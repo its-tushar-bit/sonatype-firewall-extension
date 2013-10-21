@@ -35,6 +35,14 @@ public class RolePermission
   @Enumerated(EnumType.STRING)
   private Permission permission;
 
+  public RolePermission() {
+  }
+
+  public RolePermission(String roleId, Permission permission) {
+    this.roleId = roleId;
+    this.permission = permission;
+  }
+
   @Override
   public String getId() {
     return id;

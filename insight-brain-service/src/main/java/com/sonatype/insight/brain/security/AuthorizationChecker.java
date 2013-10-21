@@ -5,18 +5,13 @@
  */
 package com.sonatype.insight.brain.security;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 
 import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
-import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
 import com.sonatype.insight.brain.dataaccess.security.RolePermissionDAO;
 import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Permission;
-import com.sonatype.insight.brain.model.security.Role;
 
 /**
  * Evaluates authorization.
@@ -27,34 +22,18 @@ class AuthorizationChecker
 {
   private final MembershipMappingDAO membershipDAO;
 
-  private final Map<Permission, Set<String>> rolesByPermission;
+  private final RolePermissionDAO rolePermissionDAO;
 
   public AuthorizationChecker() {
-    RoleDAO roleDAO = new RoleDAO();
-    RolePermissionDAO rolePermissionDAO = new RolePermissionDAO();
+    this.rolePermissionDAO = new RolePermissionDAO();
     this.membershipDAO = new MembershipMappingDAO();
-
-    rolesByPermission = new HashMap<Permission, Set<String>>();
-    for (Permission permission : Permission.values()) {
-      rolesByPermission.put(permission, new HashSet<String>());
-    }
-    for (Role role : roleDAO.getGlobalRoles()) {
-      for (Permission permission : rolePermissionDAO.getPermissionsForRole(role.getId())) {
-        rolesByPermission.get(permission).add(role.getId());
-      }
-    }
-    for (Role role : roleDAO.getApplicationRoles()) {
-      for (Permission permission : rolePermissionDAO.getPermissionsForRole(role.getId())) {
-        rolesByPermission.get(permission).add(role.getId());
-      }
-    }
   }
 
   /**
    * Determines whether the given user has the specified permission in any of the supplied contexts.
    */
   public boolean isPermitted(String username, Permission permission, Iterable<String> contextIds) {
-    Set<String> roles = rolesByPermission.get(permission);
+    Set<String> roles = rolePermissionDAO.getRoleIdsByPermission(permission);
     for (String contextId : contextIds) {
       for (MembershipMapping membership : membershipDAO.getByContextId(contextId)) {
         if (isUserIncluded(membership, username) && roles.contains(membership.getRoleId())) {

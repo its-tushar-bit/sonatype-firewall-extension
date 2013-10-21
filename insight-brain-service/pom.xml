@@ -43,11 +43,21 @@
     <dependency>
       <groupId>org.sonatype.sisu</groupId>
       <artifactId>sisu-guice</artifactId>
-      <classifier>no_aop</classifier>
+    </dependency>
+    <dependency>
+      <groupId>org.sonatype.sisu.inject</groupId>
+      <artifactId>guice-multibindings</artifactId>
     </dependency>
     <dependency>
       <groupId>org.sonatype.sisu</groupId>
       <artifactId>sisu-inject-bean</artifactId>
+      <exclusions>
+        <exclusion>
+          <!-- using aop version instead -->
+          <groupId>org.sonatype.sisu</groupId>
+          <artifactId>sisu-guice</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
     <dependency>
@@ -369,13 +379,6 @@
       <groupId>com.sonatype.licensing</groupId>
       <artifactId>license-bundle</artifactId>
       <version>${licensing.version}</version>
-      <exclusions>
-        <exclusion>
-          <!-- using no_aop version instead -->
-          <groupId>org.sonatype.sisu</groupId>
-          <artifactId>sisu-guice</artifactId>
-        </exclusion>
-      </exclusions>
     </dependency>
 
     <dependency>
@@ -385,6 +388,18 @@
     <dependency>
       <groupId>org.apache.shiro</groupId>
       <artifactId>shiro-guice</artifactId>
+      <exclusions>
+        <exclusion>
+          <!-- using sisu guice instead -->
+          <groupId>com.google.inject</groupId>
+          <artifactId>guice</artifactId>
+        </exclusion>
+        <exclusion>
+          <!-- using sisu multibindings instead -->
+          <groupId>com.google.inject.extensions</groupId>
+          <artifactId>guice-multibindings</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
     <dependency>

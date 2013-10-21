@@ -43,9 +43,12 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluationLog;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluationUtils;
 import com.sonatype.insight.brain.report.ReportDownloader.ReportDownloadReponse;
+import com.sonatype.insight.brain.security.Authorize;
+import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.MediaTypeUtils;
@@ -276,7 +279,9 @@ public class ReportResource
 
   @POST
   @Path("augmentData/{path}")
-  public Response augmentData(@PathParam("applicationPublicId") final String applicationPublicId,
+  @Authorize(permission = Permission.WRITE)
+  public Response augmentData(
+      @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) @PathParam("applicationPublicId") final String applicationPublicId,
       @PathParam("path") final String path, @QueryParam("user") final String user,
       @QueryParam("where") final String where, @Context final HttpServletRequest request, final InputStream stream)
       throws IOException

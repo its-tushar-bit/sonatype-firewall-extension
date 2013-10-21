@@ -31,10 +31,6 @@ import static org.junit.Assert.fail;
 public class ConfigurationClientTest
     extends AbstractLicenseTest
 {
-  public ConfigurationClientTest() {
-    super(true /* disableSecurity */);
-  }
-
   private void assertMatch(String pattern, String text) {
     assertTrue(text + " does not match pattern " + pattern, text != null && text.matches(pattern));
   }
@@ -60,7 +56,7 @@ public class ConfigurationClientTest
       fail("Validation should have failed due to bad context root");
     }
     catch (HttpResponseException e) {
-      assertEquals(404, e.getStatusCode());
+      assertEquals(401, e.getStatusCode());
       assertMatch("(?i).*not found.*", e.getMessage());
     }
   }

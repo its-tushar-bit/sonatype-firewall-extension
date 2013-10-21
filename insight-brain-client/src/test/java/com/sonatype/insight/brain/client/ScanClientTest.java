@@ -29,10 +29,6 @@ public class ScanClientTest
 
   private static Application application;
 
-  public ScanClientTest() {
-    super(true /* disableSecurity */);
-  }
-
   @Rule
   public TemporaryFolder tmpDir = new TemporaryFolder();
 

@@ -26,6 +26,9 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.label.ComponentLabel;
 import com.sonatype.insight.brain.model.label.Label;
+import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.security.Authorize;
+import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.error.exception.NotFoundException;
 
@@ -49,8 +52,10 @@ public class ComponentLabelResource
    */
   @GET
   @Produces(MediaType.APPLICATION_JSON)
-  public AppliedLabels getComponentLabels(@PathParam("ownerType") String ownerType,
-      @PathParam("ownerId") String ownerId, @PathParam("hash") String hash)
+  @Authorize(permission = Permission.READ)
+  public AppliedLabels getComponentLabels(
+      @AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") String ownerType,
+      @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId, @PathParam("hash") String hash)
   {
     ownerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
 
@@ -81,8 +86,10 @@ public class ComponentLabelResource
    */
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
-  public void setComponentLabel(@PathParam("ownerType") String ownerType, @PathParam("ownerId") String ownerId,
-      @PathParam("hash") String hash, Label label)
+  @Authorize(permission = Permission.WRITE)
+  public void setComponentLabel(@AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") String ownerType,
+      @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId, @PathParam("hash") String hash,
+      Label label)
   {
     String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
     ComponentLabel componentLabel = new ComponentLabel(internalOwnerId, label.getId(), hash);
@@ -96,8 +103,10 @@ public class ComponentLabelResource
    */
   @DELETE
   @Path("{labelId}")
-  public void removeComponentLabel(@PathParam("ownerType") String ownerType, @PathParam("ownerId") String ownerId,
-      @PathParam("hash") String hash, @PathParam("labelId") String labelId)
+  @Authorize(permission = Permission.WRITE)
+  public void removeComponentLabel(@AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") String ownerType,
+      @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId, @PathParam("hash") String hash,
+      @PathParam("labelId") String labelId)
   {
     String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
     ComponentLabel label = componentLabelDAO.getByOwnerIdAndHashAndLabelId(internalOwnerId, hash, labelId);

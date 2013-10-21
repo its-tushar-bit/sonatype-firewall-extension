@@ -47,7 +47,10 @@ import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.conditions.LabelConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.LicenseThreatGroupConditionType;
+import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
+import com.sonatype.insight.brain.security.Authorize;
+import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightBrainService;
 import com.sonatype.insight.brain.service.InsightWork;
@@ -99,8 +102,9 @@ public class PolicyResource
 
   @GET
   @Produces(MediaType.APPLICATION_JSON)
-  public List<Policy> getPolicies(@PathParam("ownerType") final String ownerType,
-      @PathParam("ownerId") final String ownerId)
+  @Authorize(permission = Permission.READ)
+  public List<Policy> getPolicies(@AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") final String ownerType,
+      @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") final String ownerId)
   {
     log.debug("Received request to get all policies for {} id {}", ownerType, ownerId);
 
@@ -115,8 +119,10 @@ public class PolicyResource
   @GET
   @Path("applicable")
   @Produces(MediaType.APPLICATION_JSON)
-  public ApplicablePolicies getApplicablePolicies(@PathParam("ownerType") final String ownerType,
-      @PathParam("ownerId") final String ownerId)
+  @Authorize(permission = Permission.READ)
+  public ApplicablePolicies getApplicablePolicies(
+      @AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") final String ownerType,
+      @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") final String ownerId)
   {
     log.debug("Received request to get all applicable policies for {} id {}", ownerType, ownerId);
 
@@ -155,8 +161,10 @@ public class PolicyResource
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-  public Policy addPolicy(@PathParam("ownerType") final String ownerType, @PathParam("ownerId") final String ownerId,
-      final Policy policy, @QueryParam("user") final String user, @QueryParam("where") final String where,
+  @Authorize(permission = Permission.WRITE)
+  public Policy addPolicy(@AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") final String ownerType,
+      @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") final String ownerId, final Policy policy,
+      @QueryParam("user") final String user, @QueryParam("where") final String where,
       @Context final HttpServletRequest request)
   {
     log.debug("Received request to add {} policy for ownerId {}", ownerType, ownerId);
@@ -169,9 +177,11 @@ public class PolicyResource
   @PUT
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-  public Policy updatePolicy(@PathParam("ownerType") final String ownerType,
-      @PathParam("ownerId") final String ownerId, final Policy policy, @QueryParam("user") final String user,
-      @QueryParam("where") final String where, @Context final HttpServletRequest request)
+  @Authorize(permission = Permission.WRITE)
+  public Policy updatePolicy(@AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") final String ownerType,
+      @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") final String ownerId, final Policy policy,
+      @QueryParam("user") final String user, @QueryParam("where") final String where,
+      @Context final HttpServletRequest request)
   {
     log.debug("Received request to update {} policy for ownerId {}, policyId {}", ownerType, ownerId, policy.getId());
 
@@ -182,7 +192,9 @@ public class PolicyResource
 
   @DELETE
   @Path("{policyId}")
-  public void deletePolicy(@PathParam("ownerType") final String ownerType, @PathParam("ownerId") final String ownerId,
+  @Authorize(permission = Permission.WRITE)
+  public void deletePolicy(@AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") final String ownerType,
+      @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") final String ownerId,
       @PathParam("policyId") final String policyId, @QueryParam("user") final String user,
       @QueryParam("where") final String where, @Context final HttpServletRequest request)
   {
@@ -196,8 +208,10 @@ public class PolicyResource
   @GET
   @Path("export")
   @Produces(MediaType.APPLICATION_JSON)
-  public PolicyExportResult exportPolicies(@PathParam("ownerType") final String ownerType,
-      @PathParam("ownerId") String ownerId)
+  @Authorize(permission = Permission.READ)
+  public PolicyExportResult exportPolicies(
+      @AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") final String ownerType,
+      @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId)
   {
     if (!TYPE_APPLICATION.equals(ownerType)) {
       throw new BadRequestException("Policy export is only supported for applications");
@@ -225,6 +239,7 @@ public class PolicyResource
   @PUT
   @Path("import")
   @Produces(MediaType.APPLICATION_JSON)
+  // defer authorization check to point where context becomes clear
   public PolicyImportResult importPolicies(@PathParam("ownerType") final String ownerType,
       @PathParam("ownerId") String ownerId, @Context HttpServletRequest servletRequest) throws IOException
   {
@@ -242,7 +257,10 @@ public class PolicyResource
    * 
    * @since 1.6
    */
-  private PolicyImportResult importFromApplicationToOrganization(String orgId, PolicyExportResult exportDTO) {
+  @Authorize(permission = Permission.WRITE)
+  PolicyImportResult importFromApplicationToOrganization(@AuthzContext(AuthzContext.Key.ORGANIZATION_ID) String orgId,
+      PolicyExportResult exportDTO)
+  {
     // ensure that Org exists and does not already have Apps, Policy, Label or LTGs
     OrganizationDAO organizationDAO = new OrganizationDAO();
     Organization organization = organizationDAO.getByIdNotNull(orgId);
@@ -350,6 +368,8 @@ public class PolicyResource
       application = applicationDAO.getByPublicId(em, appId);
       if (application == null) {
         // Create an application
+        checkImportAuthorization();
+
         int appLimit = licenseManager.getApplicationCountLimit();
         if (applicationDAO.getAll(em).size() >= appLimit) {
           throw new PaymentRequiredException("You have exceeded the licensed limit of " + appLimit + " applications.");
@@ -365,6 +385,8 @@ public class PolicyResource
         applicationDAO.insert(em, application);
       }
       else {
+        checkImportAuthorization(application);
+
         // The application already exists. Delete all its license threat groups and policies.
         // Do not delete its labels - labels need to be merged.
         LicenseThreatGroupDAO licenseThreatGroupDAO = new LicenseThreatGroupDAO();
@@ -476,6 +498,16 @@ public class PolicyResource
       IOUtil.close(stream);
     }
     return JsonUtils.parse(importBytes, PolicyExportResult.class);
+  }
+
+  @Authorize(permission = Permission.WRITE)
+  void checkImportAuthorization() {
+    // empty by design, it's the method interceptor for the authorization anno we want to trigger
+  }
+
+  @Authorize(permission = Permission.WRITE)
+  void checkImportAuthorization(@AuthzContext(AuthzContext.Key.APPLICATION) Application app) {
+    // empty by design, it's the method interceptor for the authorization anno we want to trigger
   }
 
   private PolicyDAO policyDAO() {

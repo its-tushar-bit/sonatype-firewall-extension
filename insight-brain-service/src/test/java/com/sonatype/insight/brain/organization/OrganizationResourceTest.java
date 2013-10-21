@@ -147,11 +147,8 @@ public class OrganizationResourceTest
     response = AuthedRestAccess.delete(getServiceURL() + "/" + organizationId);
     assertResponseStatus(204, response);
     Assert.assertNull(new OrganizationDAO().getById(organizationId));
-    // Default icon redirect should be returned
     iconResponse = AuthedRestAccess.get(getServiceURL() + "/icon/" + organizationId);
-    assertResponseStatus(307, iconResponse);
-    Assert.assertEquals(getRestBaseUrl() + "assets/img/defaulticon_organization.png",
-        iconResponse.getHeader("Location"));
+    assertResponseStatus(404, iconResponse);
     // assert related objects were deleted
     Assert.assertNull(applicationDAO.getById(application.getId()));
     Assert.assertNull(policyDAO.getByOwnerIdAndPolicyId(organizationId, policy.getId()));

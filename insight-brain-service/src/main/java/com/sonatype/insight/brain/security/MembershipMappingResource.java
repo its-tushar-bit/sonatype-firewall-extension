@@ -30,6 +30,7 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
+import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.utils.IdUtils;
@@ -67,8 +68,10 @@ public class MembershipMappingResource
    */
   @GET
   @Produces({ MediaType.APPLICATION_JSON })
-  public ApplicableMembershipMappings getApplicableMembershipMappings(@PathParam("ownerType") String ownerType,
-      @PathParam("ownerId") String ownerId)
+  @Authorize(permission = Permission.READ)
+  public ApplicableMembershipMappings getApplicableMembershipMappings(
+      @AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") String ownerType,
+      @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId)
   {
     log.debug("Getting all applicable membership mappings for {} id {}", ownerType, ownerId);
 
@@ -139,8 +142,11 @@ public class MembershipMappingResource
   @PUT
   @Path(ROLE_PATH)
   @Consumes({ MediaType.APPLICATION_JSON })
-  public void setMembershipMappingForRole(@PathParam("ownerType") String ownerType,
-      @PathParam("ownerId") String ownerId, @PathParam("roleId") String roleId, List<Member> members)
+  @Authorize(permission = Permission.ADMIN)
+  public void setMembershipMappingForRole(
+      @AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") String ownerType,
+      @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId, @PathParam("roleId") String roleId,
+      List<Member> members)
   {
     log.debug("Setting membership mappings for {} id {} and role id {}", ownerType, ownerId, roleId);
 

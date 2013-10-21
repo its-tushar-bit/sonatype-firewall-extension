@@ -175,12 +175,8 @@ public class ApplicationResourceTest
     application = applicationDAO.getByPublicId(applicationPublicId);
     Assert.assertNull(application);
     Assert.assertEquals(0, policyDAO.getByOwnerId(applicationResult.getId()).size());
-
-    // Default icon redirect should be returned
     iconResponse = AuthedRestAccess.get(getServiceURL() + "/icon/" + applicationPublicId);
-    assertResponseStatus(307, iconResponse);
-    Assert
-        .assertEquals(getRestBaseUrl() + "assets/img/defaulticon_application.png", iconResponse.getHeader("Location"));
+    assertResponseStatus(404, iconResponse);
   }
 
   @Test

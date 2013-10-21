@@ -9,6 +9,7 @@ import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 
 import javax.ws.rs.Path;
@@ -28,6 +29,10 @@ import com.google.inject.Injector;
 import com.google.inject.Key;
 import com.google.inject.Module;
 import com.sun.jersey.api.core.ResourceConfig;
+import com.sun.jersey.core.spi.component.ComponentContext;
+import com.sun.jersey.core.spi.component.ioc.IoCComponentProvider;
+import com.sun.jersey.core.spi.component.ioc.IoCComponentProviderFactory;
+import com.sun.jersey.core.spi.component.ioc.IoCInstantiatedComponentProvider;
 import com.sun.jersey.spi.container.ResourceFilterFactory;
 import com.sun.jersey.spi.inject.InjectableProvider;
 import com.yammer.dropwizard.Service;
@@ -107,6 +112,7 @@ public abstract class SisuService<T extends Configuration>
   private void runWithInjector(T configuration, Environment environment, Injector injector) {
     customize(configuration, environment);
     BeanLocator locator = injector.getInstance(BeanLocator.class);
+    environment.addProvider(new SisuComponentProviderFactory(locator));
     addHealthChecks(environment, locator);
     addProviders(environment, locator);
     addInjectableProviders(environment, locator);
@@ -176,9 +182,13 @@ public abstract class SisuService<T extends Configuration>
       Class<?> impl = resourceBeanEntry.getImplementationClass();
       if (impl != null && impl.isAnnotationPresent(Path.class)) {
         try {
-          Object resource = resourceBeanEntry.getValue();
-          environment.addResource(resource);
-          logger.debug("Added resource: {}", resource);
+          /*
+           * NOTE: Not using addResource(Object) to avoid https://java.net/jira/browse/JERSEY-692 and not using explicit
+           * root resources to avoid https://java.net/jira/browse/JERSEY-2141. Instead, SisuComponentProviderFactory
+           * teaches Jersey how to instantiante the resource.
+           */
+          environment.addResource(impl);
+          logger.debug("Added resource: {}", impl);
         }
         catch (Exception e) {
           logger.warn("Unable to add resource: {}", impl, e);
@@ -196,6 +206,42 @@ public abstract class SisuService<T extends Configuration>
     }
     if (!resourceFilterFactories.isEmpty()) {
       environment.setJerseyProperty(ResourceConfig.PROPERTY_RESOURCE_FILTER_FACTORIES, resourceFilterFactories);
+    }
+  }
+
+  private static class SisuComponentProviderFactory
+      implements IoCComponentProviderFactory
+  {
+    private final BeanLocator container;
+
+    public SisuComponentProviderFactory(final BeanLocator container) {
+      this.container = container;
+    }
+
+    public IoCComponentProvider getComponentProvider(final Class<?> type) {
+      IoCComponentProvider provider = null;
+
+      Iterator<BeanEntry<Annotation, ?>> iter = container.locate(Key.get((Class) type)).iterator();
+      if (iter.hasNext()) {
+        final BeanEntry entry = iter.next();
+
+        provider = new IoCInstantiatedComponentProvider()
+        {
+          public Object getInjectableInstance(final Object obj) {
+            return obj;
+          }
+
+          public Object getInstance() {
+            return entry.getValue();
+          }
+        };
+      }
+
+      return provider;
+    }
+
+    public IoCComponentProvider getComponentProvider(final ComponentContext context, final Class<?> type) {
+      return getComponentProvider(type);
     }
   }
 }

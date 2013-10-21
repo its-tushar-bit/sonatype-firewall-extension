@@ -30,6 +30,9 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
+import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.security.Authorize;
+import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -55,8 +58,9 @@ public class PolicyWaiverResource
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-  public PolicyWaiver addPolicyWaiver(@PathParam("ownerType") String ownerType, @PathParam("ownerId") String ownerId,
-      PolicyWaiver policyWaiver)
+  @Authorize(permission = Permission.WRITE)
+  public PolicyWaiver addPolicyWaiver(@AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") String ownerType,
+      @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId, PolicyWaiver policyWaiver)
   {
     String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
 
@@ -68,7 +72,9 @@ public class PolicyWaiverResource
 
   @DELETE
   @Path("{policyWaiverId}")
-  public void deletePolicyWaiver(@PathParam("ownerType") String ownerType, @PathParam("ownerId") String ownerId,
+  @Authorize(permission = Permission.WRITE)
+  public void deletePolicyWaiver(@AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") String ownerType,
+      @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId,
       @PathParam("policyWaiverId") String policyWaiverId)
   {
     String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
@@ -90,8 +96,10 @@ public class PolicyWaiverResource
   @GET
   @Path("component/{hash}")
   @Produces(MediaType.APPLICATION_JSON)
-  public AppliedWaivers getPolicyWaiversByHash(@PathParam("ownerType") String ownerType,
-      @PathParam("ownerId") String ownerId, @PathParam("hash") String hash)
+  @Authorize(permission = Permission.READ)
+  public AppliedWaivers getPolicyWaiversByHash(
+      @AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") String ownerType,
+      @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId, @PathParam("hash") String hash)
   {
     ownerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
 
@@ -139,7 +147,9 @@ public class PolicyWaiverResource
   @GET
   @Path("applicable/context/{policyId}")
   @Produces(MediaType.APPLICATION_JSON)
-  public ApplicableContext getApplicableContexts(@PathParam("ownerId") String applicationPublicId,
+  @Authorize(permission = Permission.READ)
+  public ApplicableContext getApplicableContexts(
+      @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) @PathParam("ownerId") String applicationPublicId,
       @PathParam("policyId") String policyId)
   {
     // Currently it is impossible to retrieve a policy by its id without traversing all policy stores. That's why we

@@ -5,8 +5,13 @@
  */
 package com.sonatype.insight.brain.utils;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Organization;
 
 public class IdUtils
 {
@@ -26,4 +31,27 @@ public class IdUtils
     throw new IllegalStateException("Unknown owner type: " + ownerType);
   }
 
+  /**
+   * Gets the internal owner/context id for the given application/organization and all its parents.
+   * 
+   * @since 1.7
+   */
+  public static List<String> getInternalOwnerIds(String ownerType, String ownerId) {
+    List<String> ids = new ArrayList<String>();
+    if (TYPE_APPLICATION.equals(ownerType)) {
+      Application app = new ApplicationDAO().getByPublicIdNotNull(ownerId);
+      ids.add(app.getId());
+      if (app.getOrganizationId() != null) {
+        ids.add(app.getOrganizationId());
+      }
+    }
+    else if (TYPE_ORGANIZATION.equals(ownerType)) {
+      Organization org = new OrganizationDAO().getByIdNotNull(ownerId);
+      ids.add(org.getId());
+    }
+    else {
+      throw new IllegalStateException("Unknown owner type: " + ownerType);
+    }
+    return ids;
+  }
 }

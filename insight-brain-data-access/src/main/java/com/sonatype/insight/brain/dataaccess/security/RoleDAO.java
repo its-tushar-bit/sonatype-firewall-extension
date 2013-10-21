@@ -34,7 +34,10 @@ public class RoleDAO
     return role;
   }
 
-  Role getByName(String name) {
+  /**
+   * Gets the role with the given name.
+   */
+  public Role getByName(String name) {
     String sQuery = "SELECT entity FROM Role entity WHERE entity.nameLowercaseNoWhitespace=?1";
     return get(sQuery, NameHelper.normalize(name));
   }

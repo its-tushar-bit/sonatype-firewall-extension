@@ -42,10 +42,14 @@ import com.sonatype.insight.brain.model.ApplicationManagementSummary;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
+import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluationLog;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluationUtils;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.saas.SaasClient;
+import com.sonatype.insight.brain.security.Authorize;
+import com.sonatype.insight.brain.security.AuthzContext;
+import com.sonatype.insight.brain.security.AuthzErrorMsg;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.dataaccess.AbstractDAO;
@@ -152,7 +156,10 @@ public class ApplicationResource
   @GET
   @Path(GET_APPLICATION_PATH)
   @Produces(MediaType.APPLICATION_JSON)
-  public Application getApplication(@PathParam("applicationPublicId") final String applicationPublicId) {
+  @Authorize(permission = Permission.READ)
+  public Application getApplication(
+      @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) @PathParam("applicationPublicId") final String applicationPublicId)
+  {
     final Application application = applicationDAO.getByPublicIdNotNull(applicationPublicId);
     return application;
   }
@@ -165,7 +172,9 @@ public class ApplicationResource
   @GET
   @Path(GET_APPLICATION_MANAGEMENT_SUMMARY)
   @Produces(MediaType.APPLICATION_JSON)
-  public ApplicationManagementSummary getApplicationManagementSummary(@PathParam("applicationPublicId") final String applicationPublicId)
+  @Authorize(permission = Permission.READ)
+  public ApplicationManagementSummary getApplicationManagementSummary(
+      @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) @PathParam("applicationPublicId") final String applicationPublicId)
       throws IOException
   {
     final Application application = applicationDAO.getByPublicIdNotNull(applicationPublicId);
@@ -188,7 +197,11 @@ public class ApplicationResource
   @GET
   @Path(GET_APPLICATION_ICON_PATH)
   @Produces("image/png")
-  public Response getIcon(@PathParam("applicationPublicId") final String applicationPublicId) throws IOException {
+  @Authorize(permission = Permission.READ)
+  public Response getIcon(
+      @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) @PathParam("applicationPublicId") final String applicationPublicId)
+      throws IOException
+  {
     String applicationId = null;
     Application application = applicationDAO.getByPublicId(applicationPublicId);
     if (application != null) {
@@ -204,7 +217,9 @@ public class ApplicationResource
   @POST
   @Consumes(MediaType.MULTIPART_FORM_DATA)
   @Path(ICON_PATH)
-  public void setIcon(@FormDataParam("applicationId") String applicationId,
+  @Authorize(permission = Permission.WRITE)
+  public void setIcon(
+      @FormDataParam("applicationId") @AuthzContext(AuthzContext.Key.APPLICATION_ID) String applicationId,
       @FormDataParam("hasRobotSource") boolean hasRobotSource, @FormDataParam("robotHash") String robotHash,
       @FormDataParam("file") InputStream uploadedInputStream,
       @FormDataParam("file") FormDataContentDisposition fileDetail) throws IOException
@@ -222,7 +237,10 @@ public class ApplicationResource
   @POST
   @Consumes(MediaType.MULTIPART_FORM_DATA)
   @Path(ICON_PATH_SYNC)
-  public String setIconSync(@FormDataParam("applicationId") String applicationId,
+  @Authorize(permission = Permission.WRITE)
+  @AuthzErrorMsg
+  public String setIconSync(
+      @FormDataParam("applicationId") @AuthzContext(AuthzContext.Key.APPLICATION_ID) String applicationId,
       @FormDataParam("hasRobotSource") boolean hasRobotSource, @FormDataParam("robotHash") String robotHash,
       @FormDataParam("file") InputStream uploadedInputStream,
       @FormDataParam("file") FormDataContentDisposition fileDetail)
@@ -234,7 +252,8 @@ public class ApplicationResource
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-  public Application addApplication(Application application) {
+  @Authorize(permission = Permission.WRITE)
+  public Application addApplication(@AuthzContext(AuthzContext.Key.APPLICATION_OWNER) Application application) {
     int appLimit = licenseManager.getApplicationCountLimit();
 
     if (applicationDAO.getAll().size() >= appLimit) {
@@ -253,7 +272,8 @@ public class ApplicationResource
   @PUT
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-  public Application updateApplication(Application application) {
+  @Authorize(permission = Permission.WRITE)
+  public Application updateApplication(@AuthzContext(AuthzContext.Key.APPLICATION) Application application) {
     if (application.getOrganizationId() == null) {
       throw new InvalidApplicationException("Applications must have a parent organization.");
     }
@@ -277,7 +297,11 @@ public class ApplicationResource
 
   @DELETE
   @Path(GET_APPLICATION_PATH)
-  public void deleteApplication(@PathParam("applicationPublicId") final String applicationPublicId) throws IOException {
+  @Authorize(permission = Permission.WRITE)
+  public void deleteApplication(
+      @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) @PathParam("applicationPublicId") final String applicationPublicId)
+      throws IOException
+  {
     EntityManager em = applicationDAO.createEntityManager();
     try {
       em.getTransaction().begin();

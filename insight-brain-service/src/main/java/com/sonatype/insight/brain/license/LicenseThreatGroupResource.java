@@ -31,6 +31,9 @@ import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.conditions.LicenseThreatGroupConditionType;
+import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.security.Authorize;
+import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -53,8 +56,10 @@ public class LicenseThreatGroupResource
 
   @GET
   @Produces({ MediaType.APPLICATION_JSON })
-  public List<LicenseThreatGroup> getLicenseThreatGroups(@PathParam("ownerType") String ownerType,
-      @PathParam("ownerId") String ownerId)
+  @Authorize(permission = Permission.READ)
+  public List<LicenseThreatGroup> getLicenseThreatGroups(
+      @AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") String ownerType,
+      @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId)
   {
     ownerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
 
@@ -67,8 +72,10 @@ public class LicenseThreatGroupResource
   @GET
   @Path("applicable")
   @Produces({ MediaType.APPLICATION_JSON })
-  public ApplicableLicenseThreatGroups getApplicableLicenseThreatGroups(@PathParam("ownerType") String ownerType,
-      @PathParam("ownerId") String ownerId)
+  @Authorize(permission = Permission.READ)
+  public ApplicableLicenseThreatGroups getApplicableLicenseThreatGroups(
+      @AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") String ownerType,
+      @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId)
   {
     ownerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
 
@@ -95,8 +102,10 @@ public class LicenseThreatGroupResource
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-  public LicenseThreatGroup addLicenseThreatGroup(@PathParam("ownerType") String ownerType,
-      @PathParam("ownerId") String ownerId, LicenseThreatGroup licenseThreatGroup)
+  @Authorize(permission = Permission.WRITE)
+  public LicenseThreatGroup addLicenseThreatGroup(
+      @AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") String ownerType,
+      @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId, LicenseThreatGroup licenseThreatGroup)
   {
     ownerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
 
@@ -110,8 +119,10 @@ public class LicenseThreatGroupResource
   @PUT
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-  public LicenseThreatGroup updateLicenseThreatGroup(@PathParam("ownerType") String ownerType,
-      @PathParam("ownerId") String ownerId, LicenseThreatGroup licenseThreatGroup)
+  @Authorize(permission = Permission.WRITE)
+  public LicenseThreatGroup updateLicenseThreatGroup(
+      @AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") String ownerType,
+      @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId, LicenseThreatGroup licenseThreatGroup)
   {
     ownerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
 
@@ -123,7 +134,9 @@ public class LicenseThreatGroupResource
 
   @DELETE
   @Path("{licenseThreatGroupId}")
-  public void deleteLicenseThreatGroup(@PathParam("ownerType") String ownerType, @PathParam("ownerId") String ownerId,
+  @Authorize(permission = Permission.WRITE)
+  public void deleteLicenseThreatGroup(@AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") String ownerType,
+      @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId,
       @PathParam("licenseThreatGroupId") String licenseThreatGroupId)
   {
     String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);

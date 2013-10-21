@@ -31,7 +31,11 @@ import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.saas.SaasClient;
+import com.sonatype.insight.brain.security.Authorize;
+import com.sonatype.insight.brain.security.AuthzContext;
+import com.sonatype.insight.brain.security.AuthzErrorMsg;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.dataaccess.AbstractDAO;
@@ -85,7 +89,8 @@ public class OrganizationResource
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-  public Organization addOrganization(Organization organization) {
+  @Authorize(permission = Permission.WRITE)
+  public Organization addOrganization(@AuthzContext(AuthzContext.Key.ORGANIZATION_OWNER) Organization organization) {
     organizationDAO.insert(organization);
 
     return organization;
@@ -97,7 +102,8 @@ public class OrganizationResource
   @PUT
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-  public Organization updateOrganization(Organization organization) {
+  @Authorize(permission = Permission.WRITE)
+  public Organization updateOrganization(@AuthzContext(AuthzContext.Key.ORGANIZATION) Organization organization) {
     organizationDAO.update(organization);
 
     return organization;
@@ -127,7 +133,11 @@ public class OrganizationResource
   @GET
   @Path(GET_ICON_PATH)
   @Produces("image/png")
-  public Response getIcon(@PathParam("organizationId") String organizationId) throws IOException {
+  @Authorize(permission = Permission.READ)
+  public Response getIcon(
+      @AuthzContext(AuthzContext.Key.ORGANIZATION_ID) @PathParam("organizationId") String organizationId)
+      throws IOException
+  {
     return super.getIcon(organizationId, work.getOrganizationIconDir());
   }
 
@@ -140,7 +150,9 @@ public class OrganizationResource
   @POST
   @Consumes(MediaType.MULTIPART_FORM_DATA)
   @Path(ICON_PATH)
-  public void setIcon(@FormDataParam("organizationId") String organizationId,
+  @Authorize(permission = Permission.WRITE)
+  public void setIcon(
+      @FormDataParam("organizationId") @AuthzContext(AuthzContext.Key.ORGANIZATION_ID) String organizationId,
       @FormDataParam("hasRobotSource") boolean hasRobotSource, @FormDataParam("robotHash") String robotHash,
       @FormDataParam("file") InputStream uploadedInputStream,
       @FormDataParam("file") FormDataContentDisposition fileDetail) throws IOException
@@ -158,7 +170,10 @@ public class OrganizationResource
   @POST
   @Consumes(MediaType.MULTIPART_FORM_DATA)
   @Path(ICON_PATH_SYNC)
-  public String setIconSync(@FormDataParam("organizationId") String organizationId,
+  @Authorize(permission = Permission.WRITE)
+  @AuthzErrorMsg
+  public String setIconSync(
+      @FormDataParam("organizationId") @AuthzContext(AuthzContext.Key.ORGANIZATION_ID) String organizationId,
       @FormDataParam("hasRobotSource") boolean hasRobotSource, @FormDataParam("robotHash") String robotHash,
       @FormDataParam("file") InputStream uploadedInputStream,
       @FormDataParam("file") FormDataContentDisposition fileDetail)
@@ -175,7 +190,11 @@ public class OrganizationResource
    */
   @DELETE
   @Path(DELETE_ORGANIZATION_PATH)
-  public void deleteOrganization(@PathParam("organizationId") final String organizationId) throws IOException {
+  @Authorize(permission = Permission.WRITE)
+  public void deleteOrganization(
+      @AuthzContext(AuthzContext.Key.ORGANIZATION_ID) @PathParam("organizationId") final String organizationId)
+      throws IOException
+  {
     EntityManager em = organizationDAO.createEntityManager();
     try {
       em.getTransaction().begin();
@@ -187,7 +206,7 @@ public class OrganizationResource
     }
   }
 
-  public void deleteOrganization(final EntityManager em, final String organizationId) throws IOException {
+  private void deleteOrganization(final EntityManager em, final String organizationId) throws IOException {
     Organization organization = organizationDAO.getByIdNotNull(em, organizationId);
 
     // cascade to applications first

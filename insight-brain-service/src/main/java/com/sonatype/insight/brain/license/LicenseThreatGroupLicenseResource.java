@@ -19,6 +19,9 @@ import javax.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupLicenseDAO;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroupLicense;
+import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.security.Authorize;
+import com.sonatype.insight.brain.security.AuthzContext;
 
 @Named
 @Path(LicenseThreatGroupLicenseResource.SERVICE_PATH)
@@ -30,7 +33,10 @@ public class LicenseThreatGroupLicenseResource
 
   @GET
   @Produces({ MediaType.APPLICATION_JSON })
+  @Authorize(permission = Permission.READ)
   public List<LicenseThreatGroupLicense> getLicenseThreatGroupLicenses(
+      @AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") String ownerType,
+      @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId,
       @PathParam("licenseThreatGroupId") String licenseThreatGroupId)
   {
     return licenseThreatGroupLicenseDAO.getByLicenseThreatGroupId(licenseThreatGroupId);
@@ -39,7 +45,10 @@ public class LicenseThreatGroupLicenseResource
   @PUT
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
+  @Authorize(permission = Permission.WRITE)
   public List<LicenseThreatGroupLicense> setLicenseThreatGroupLicenses(
+      @AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") String ownerType,
+      @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId,
       @PathParam("licenseThreatGroupId") String licenseThreatGroupId, Set<String> licenseIds)
   {
     licenseThreatGroupLicenseDAO.setLicenses(licenseThreatGroupId, licenseIds);

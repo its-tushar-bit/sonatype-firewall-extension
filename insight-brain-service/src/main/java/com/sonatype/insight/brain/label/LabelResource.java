@@ -34,6 +34,9 @@ import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.conditions.LabelConditionType;
+import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.security.Authorize;
+import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -68,7 +71,9 @@ public class LabelResource
    */
   @GET
   @Produces({ MediaType.APPLICATION_JSON })
-  public List<Label> getLabels(@PathParam("ownerType") String ownerType, @PathParam("ownerId") String ownerId,
+  @Authorize(permission = Permission.READ)
+  public List<Label> getLabels(@AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") String ownerType,
+      @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId,
       @QueryParam("inherit") @DefaultValue("false") boolean inherit)
   {
     ownerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
@@ -85,8 +90,10 @@ public class LabelResource
   @GET
   @Produces({ MediaType.APPLICATION_JSON })
   @Path("applicable")
-  public ApplicableLabels getApplicableLabels(@PathParam("ownerType") String ownerType,
-      @PathParam("ownerId") String ownerId)
+  @Authorize(permission = Permission.READ)
+  public ApplicableLabels getApplicableLabels(
+      @AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") String ownerType,
+      @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId)
   {
     log.debug("Received request to get all applicable labels for {} id {}", ownerType, ownerId);
 
@@ -130,8 +137,10 @@ public class LabelResource
   @GET
   @Produces({ MediaType.APPLICATION_JSON })
   @Path("applicable/context/{labelId}")
-  public ApplicableContext getApplicableContexts(@PathParam("ownerType") String ownerType,
-      @PathParam("ownerId") String ownerId, @PathParam("labelId") String labelId)
+  @Authorize(permission = Permission.READ)
+  public ApplicableContext getApplicableContexts(
+      @AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") String ownerType,
+      @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId, @PathParam("labelId") String labelId)
   {
     String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
     Label label = labelDAO.getByIdNotNull(labelId);
@@ -163,7 +172,10 @@ public class LabelResource
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-  public Label addLabel(@PathParam("ownerType") String ownerType, @PathParam("ownerId") String ownerId, Label label) {
+  @Authorize(permission = Permission.WRITE)
+  public Label addLabel(@AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") String ownerType,
+      @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId, Label label)
+  {
     ownerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
 
     label.setId(null);
@@ -180,7 +192,9 @@ public class LabelResource
   @PUT
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-  public Label updateLabel(@PathParam("ownerType") String ownerType, @PathParam("ownerId") String ownerId, Label label)
+  @Authorize(permission = Permission.WRITE)
+  public Label updateLabel(@AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") String ownerType,
+      @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId, Label label)
   {
     ownerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
 
@@ -196,8 +210,9 @@ public class LabelResource
    */
   @DELETE
   @Path("{labelId}")
-  public void deleteLabel(@PathParam("ownerType") String ownerType, @PathParam("ownerId") String ownerId,
-      @PathParam("labelId") String labelId)
+  @Authorize(permission = Permission.WRITE)
+  public void deleteLabel(@AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") String ownerType,
+      @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId, @PathParam("labelId") String labelId)
   {
     String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
 

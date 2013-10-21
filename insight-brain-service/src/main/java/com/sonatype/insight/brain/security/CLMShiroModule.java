@@ -44,6 +44,7 @@ public class CLMShiroModule
     manager.createChain("/*assets/**", "anon");
     manager.createChain("/favicon.ico", "anon");
     manager.createChain("/crumbIssuer/**", "anon");
+    manager.createChain("/rest/version", "anon");
     manager.createChain("/**/*", "authcBasic");
     //change the auth type so browsers dont prompt for login details
     BasicHttpAuthenticationFilter.class.cast(manager.getFilter("authcBasic")).setAuthcScheme("nonBrowserPromptingBasic");
@@ -60,16 +61,10 @@ public class CLMShiroModule
     manager.createChain("/rest/config/proprietary", "anon");
     manager.createChain("/rest/features", "anon");
     manager.createChain("/rest/ide/**", "anon");
-    manager.createChain("/rest/label/application/*", "anon");
-    manager.createChain("/rest/label/application/*/applicable", "anon");
-    manager.createChain("/rest/label/component/**", "anon");
     manager.createChain("/rest/license", "anon");
-    manager.createChain("/rest/licenseOverride/**", "anon");
-    manager.createChain("/rest/policyWaiver/**", "anon");
     manager.createChain("/rest/policy/*/evaluate", "anon");
-    manager.createChain("/rest/policy/*/*/export", "anon");
-    manager.createChain("/rest/policy/*/*/import", "anon");
     manager.createChain("/rest/policy/actionType", "anon");
+    manager.createChain("/rest/report/*/*/augmentData/**", "authcBasic");
     manager.createChain("/rest/report/**", "anon");
     manager.createChain("/rest/ci/**", "anon");
     manager.createChain("/rest/session/environment", "anon");

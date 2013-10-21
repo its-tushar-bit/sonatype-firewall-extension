@@ -188,6 +188,11 @@
         <classifier>no_aop</classifier>
       </dependency>
       <dependency>
+        <groupId>org.sonatype.sisu.inject</groupId>
+        <artifactId>guice-multibindings</artifactId>
+        <version>${sisu-guice.version}</version>
+      </dependency>
+      <dependency>
         <groupId>org.sonatype.sisu</groupId>
         <artifactId>sisu-inject-bean</artifactId>
         <version>${sisu-inject.version}</version>

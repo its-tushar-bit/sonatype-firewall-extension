@@ -31,6 +31,9 @@ import com.sonatype.insight.brain.dto.audit.LicenseOverrideAudit;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
+import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.security.Authorize;
+import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.client.utils.AuditUtils;
@@ -59,9 +62,12 @@ public class LicenseOverrideResource
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-  public LicenseOverride addLicenseOverride(@PathParam("ownerType") String ownerType,
-      @PathParam("ownerId") String ownerId, LicenseOverride licenseOverride, @QueryParam("user") String user,
-      @QueryParam("where") String where, @Context final HttpServletRequest request) throws IOException
+  @Authorize(permission = Permission.WRITE)
+  public LicenseOverride addLicenseOverride(
+      @AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") String ownerType,
+      @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId, LicenseOverride licenseOverride,
+      @QueryParam("user") String user, @QueryParam("where") String where, @Context final HttpServletRequest request)
+      throws IOException
   {
     String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
 
@@ -104,7 +110,9 @@ public class LicenseOverrideResource
 
   @DELETE
   @Path("{licenseOverrideId}")
-  public void deleteLicenseOverride(@PathParam("ownerType") String ownerType, @PathParam("ownerId") String ownerId,
+  @Authorize(permission = Permission.WRITE)
+  public void deleteLicenseOverride(@AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") String ownerType,
+      @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId,
       @PathParam("licenseOverrideId") String licenseOverrideId, @QueryParam("user") String user,
       @QueryParam("where") String where, @Context final HttpServletRequest request) throws IOException
   {
@@ -126,8 +134,10 @@ public class LicenseOverrideResource
   @GET
   @Produces({ MediaType.APPLICATION_JSON })
   @Path("applied/{groupId}/{artifactId}/{version}")
-  public AppliedLicenseOverrides getAppliedLicenseOverrides(@PathParam("ownerType") String ownerType,
-      @PathParam("ownerId") String ownerId, @PathParam("groupId") String groupId,
+  @Authorize(permission = Permission.READ)
+  public AppliedLicenseOverrides getAppliedLicenseOverrides(
+      @AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") String ownerType,
+      @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId, @PathParam("groupId") String groupId,
       @PathParam("artifactId") String artifactId, @PathParam("version") String version)
   {
     String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);

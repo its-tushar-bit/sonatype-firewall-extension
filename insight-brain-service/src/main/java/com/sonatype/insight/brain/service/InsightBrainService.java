@@ -18,6 +18,7 @@ import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.releasegraph.ReleaseGraphCacheLoader;
 import com.sonatype.insight.brain.releasegraph.ReleaseGraphKey;
 import com.sonatype.insight.brain.saas.DefaultLicenseDataUpdater;
+import com.sonatype.insight.brain.security.CLMShiroAopModule;
 import com.sonatype.insight.brain.security.CLMShiroModule;
 import com.sonatype.insight.db.DatabaseConfig;
 import com.sonatype.insight.error.JaxRsExceptionMapper;
@@ -28,6 +29,7 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Module;
 import com.google.inject.TypeLiteral;
 import com.sun.jersey.api.core.ResourceConfig;
+import com.sun.jersey.server.impl.resource.SingletonFactory;
 import com.yammer.dropwizard.assets.AssetsBundle;
 import com.yammer.dropwizard.config.Bootstrap;
 import com.yammer.dropwizard.config.Environment;
@@ -111,6 +113,8 @@ public class InsightBrainService
 
     env.enableJerseyFeature(ResourceConfig.FEATURE_CANONICALIZE_URI_PATH);
     env.enableJerseyFeature(ResourceConfig.FEATURE_NORMALIZE_URI);
+    env.setJerseyProperty(ResourceConfig.PROPERTY_DEFAULT_RESOURCE_COMPONENT_PROVIDER_FACTORY_CLASS,
+        SingletonFactory.class);
     
     env.addFilter( getInjector().getInstance( GuiceShiroFilter.class ), "/*" );
 
@@ -133,7 +137,7 @@ public class InsightBrainService
     }
 
     // Add our own mapper for exceptions.
-    environment.addProvider(new JaxRsExceptionMapper());
+    environment.addProvider(new JaxRsExceptionMapper(new ErrorResponseGenerator()));
   }
 
   @Override
@@ -155,6 +159,6 @@ public class InsightBrainService
         {
         }).toInstance(cache);
       }
-    }, new CLMShiroModule());
+    }, new CLMShiroModule(), new CLMShiroAopModule());
   }
 }

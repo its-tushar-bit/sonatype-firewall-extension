@@ -19,7 +19,10 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
+import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager.LicenseSummary;
+import com.sonatype.insight.brain.security.Authorize;
+import com.sonatype.insight.brain.security.AuthzErrorMsg;
 import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.sonatype.licensing.LicensingException;
@@ -47,7 +50,9 @@ public class ProductLicenseResource
   @Consumes(MediaType.MULTIPART_FORM_DATA)
   @Produces(MediaType.TEXT_PLAIN)
   @UnlicensedPath
-  public String installLicense(@FormDataParam("file") InputStream is, @QueryParam("forceSuccess") boolean forceSuccess)
+  @Authorize(permission = Permission.ADMIN)
+  public String installLicense(@FormDataParam("file") InputStream is,
+      @AuthzErrorMsg @QueryParam("forceSuccess") boolean forceSuccess) throws IOException
   {
     try {
       licenseManager.installLicense(is);
@@ -85,6 +90,7 @@ public class ProductLicenseResource
   }
 
   @DELETE
+  @Authorize(permission = Permission.ADMIN)
   public void uninstallLicense() throws LicensingException {
     licenseManager.uninstallLicense();
     log.info("CLM License successfully uninstalled");

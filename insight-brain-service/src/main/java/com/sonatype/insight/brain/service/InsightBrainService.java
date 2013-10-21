@@ -90,7 +90,7 @@ public class InsightBrainService
 
       if (!dir.exists()) {
         if (dir.mkdirs()) {
-          log.info("Created tmp dir: {}", dir.getAbsolutePath());
+          log.info("Created temporary folder: {}", dir.getAbsolutePath());
         }
       }
       else if (!dir.isDirectory()) {

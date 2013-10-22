@@ -218,6 +218,7 @@ public abstract class SisuService<T extends Configuration>
       this.container = container;
     }
 
+    @Override
     public IoCComponentProvider getComponentProvider(final Class<?> type) {
       IoCComponentProvider provider = null;
 
@@ -227,10 +228,12 @@ public abstract class SisuService<T extends Configuration>
 
         provider = new IoCInstantiatedComponentProvider()
         {
+          @Override
           public Object getInjectableInstance(final Object obj) {
             return obj;
           }
 
+          @Override
           public Object getInstance() {
             return entry.getValue();
           }
@@ -240,6 +243,7 @@ public abstract class SisuService<T extends Configuration>
       return provider;
     }
 
+    @Override
     public IoCComponentProvider getComponentProvider(final ComponentContext context, final Class<?> type) {
       return getComponentProvider(type);
     }

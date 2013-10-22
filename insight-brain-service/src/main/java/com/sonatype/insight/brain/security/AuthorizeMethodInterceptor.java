@@ -49,6 +49,7 @@ class AuthorizeMethodInterceptor
     return (Authorize) super.getAnnotation(mi);
   }
 
+  @Override
   public Object invoke(MethodInvocation mi) throws Throwable {
     Authorize anno = getAnnotation(mi);
     try {

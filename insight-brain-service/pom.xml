@@ -551,6 +551,7 @@
                 <include>assets/lib/bootstrap/bootstrap-*.min.js</include>
                 <include>assets/lib/angular/angular-${angularjs.version}.js</include>
                 <include>assets/lib/Base64.js</include>
+                <include>assets/lib/d3/d3.min.js</include>
                 <include>login/*.js</include>
                 <include>assets/util/AngularCommon.js</include>
                 <include>assets/util/CLMLocation.js</include>

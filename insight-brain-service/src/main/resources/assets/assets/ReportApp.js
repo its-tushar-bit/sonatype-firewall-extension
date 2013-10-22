@@ -49,11 +49,5 @@
         break;
       }
     }
-
-    $scope.$watch('$state.current.name', function() {
-      if ($state.current.name === 'reports') {
-        $state.transitionTo('reports.violations');
-      }
-    });
   }]);
 }());

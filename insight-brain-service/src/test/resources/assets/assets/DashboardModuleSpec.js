@@ -144,4 +144,16 @@ describe('dashboardApp', function() {
       return successAccept;
     }, "pageChangeAccepted event not properly retrieved", 1000);
   }));
+
+  it('Adjusts dashboard to the current state', inject(function($window, $state) {
+    $window.location.href = 'http://www.blah.com/index.html#/management/application';
+    $state.current.name = 'management.application';
+    scope.$digest();
+    expect(scope.selectedDashboard.name).toBe('Management');
+
+    $window.location.href = 'http://www.blah.com/index.html#/reports/violations';
+    $state.current.name = 'reports.violations';
+    scope.$digest();
+    expect(scope.selectedDashboard.name).toBe('Reports');
+  }));
 });

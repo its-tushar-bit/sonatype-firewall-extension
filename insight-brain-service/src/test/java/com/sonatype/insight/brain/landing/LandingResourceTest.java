@@ -32,7 +32,7 @@ public class LandingResourceTest
   public void testHome_RequestBaseUrl() throws Exception {
     Response response = AuthedRestAccess.get(getRestBaseUrl() + "?x=y&a=b");
     assertResponseStatus(303, response);
-    assertEquals(getRestBaseUrl() + InsightBrainService.BRAIN_ASSET_PATH.substring(1) + "reports.html?x=y&a=b",
+    assertEquals(getRestBaseUrl() + InsightBrainService.BRAIN_ASSET_PATH.substring(1) + "reports.html?x=y&a=b#/reports/violations",
         response.getHeader("Location"));
   }
 
@@ -41,7 +41,7 @@ public class LandingResourceTest
     Response response = AuthedRestAccess.get(getRestBaseUrl() + "?x=y&a=b");
     assertResponseStatus(303, response);
     assertEquals("http://clm.sonatype.com/test/" + InsightBrainService.BRAIN_ASSET_PATH.substring(1)
-        + "reports.html?x=y&a=b", response.getHeader("Location"));
+        + "reports.html?x=y&a=b#/reports/violations", response.getHeader("Location"));
   }
 
 }

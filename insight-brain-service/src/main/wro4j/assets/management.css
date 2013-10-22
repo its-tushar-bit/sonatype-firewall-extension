@@ -732,3 +732,7 @@ ul.tri-pane {
     margin: 5px;
     margin-left: 4px;
 }
+
+.ui-match {
+	font-weight: bold;
+}

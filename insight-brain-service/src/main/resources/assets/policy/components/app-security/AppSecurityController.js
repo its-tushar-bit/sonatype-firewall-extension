@@ -4,7 +4,7 @@
  */
 (function() {
   'use strict';
-  var appSecurityModule = angular.module('ApplicationSecurityModule', ['CommonServices']);
+  var appSecurityModule = angular.module('ApplicationSecurityModule', ['CommonServices', 'ui.utils']);
   
   function getMembersForOwner(role, ownerId, exclude) {
     var arrToSearch = role.membersByOwner;

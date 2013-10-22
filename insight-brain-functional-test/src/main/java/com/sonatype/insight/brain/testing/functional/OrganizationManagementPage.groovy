@@ -13,6 +13,6 @@ class OrganizationManagementPage extends Page {
   static at = { newOrganizationButton.displayed }
 
   static content = {
-    newOrganizationButton(required: false) { $('a', 'href':'#/management/organization/_new_') }
+    newOrganizationButton(required: false) { $('a', text:contains('New Organization')) }
   }
 }

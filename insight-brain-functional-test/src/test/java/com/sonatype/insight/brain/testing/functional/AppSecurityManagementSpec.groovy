@@ -53,8 +53,7 @@ class AppSecurityManagementSpec extends GebReportingSpec {
     
     then: "security tab content is shown"
       waitFor { securityTab.displayed }
-    
-    //TODO: when server actually sends list of roles back, add test to validate they are shown
+      
     when: "create a new application"
       to ApplicationManagementPage
       waitFor { at(ApplicationManagementPage) }
@@ -79,7 +78,6 @@ class AppSecurityManagementSpec extends GebReportingSpec {
     
     then: "security tab is shown"
       waitFor { securityTab.displayed }
- 
     //TODO: when server actually sends list of roles back, add test to validate they are shown  
   }
 }

@@ -13,6 +13,6 @@ class ApplicationManagementPage extends Page {
   static at = { newApplicationButton.displayed }
 
   static content = {
-    newApplicationButton(required: false) { $('a', 'href':'#/management/application/_new_') }
+    newApplicationButton(required: false) { $('a', text:contains('New Application')) }
   }
 }

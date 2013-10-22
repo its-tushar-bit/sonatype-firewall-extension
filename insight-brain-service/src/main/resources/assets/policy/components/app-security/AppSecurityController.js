@@ -107,6 +107,7 @@
     var filterTimeout = null;
 
     $scope.alerts = [];
+    $scope.requestActive = 0;
 
     $scope.cancel = function () {
       if ($scope.isDirty()) {
@@ -191,20 +192,24 @@
         $timeout.cancel(filterTimeout);
       }
 
+      $scope.lastQuery = newVal;
       filterTimeout = $timeout(function () {
-        $scope.requestActive = true;
-        $scope.lastQuery = newVal;
+        $scope.requestActive++;
 
         $http.get('../rest/user/query', {
           params : {
             q : newVal
           }
         }).success(function (data) {
-          $scope.requestActive = false;
-          $scope.queryResults = data;
+          $scope.requestActive--;
+          if ($scope.queryString === newVal || $scope.queryString.indexOf(newVal) === 0 && $scope.requestActive > 0) {
+            $scope.queryResults = data;
+          }
         }).error(function () {
-          $scope.requestActive = false;
-          $scope.queryResults = [];
+          $scope.requestActive--;
+          if ($scope.requestActive === 0) {
+            $scope.queryResults = [];
+          }
           $scope.filterError = Messages.getHttpErrorMessage(arguments);
         });
       }, 500);

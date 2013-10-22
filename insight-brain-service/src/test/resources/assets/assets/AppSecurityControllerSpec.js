@@ -311,6 +311,69 @@ describe('AppSecurityControllerSpec', function() {
         email : 'bob@example.org'
       })).toEqual('Bob <bob@example.org>');
     });
+
+    describe('Queries', function () {
+      it('Simple', inject(function ($timeout, $httpBackend) {
+        scope.$apply(function () {
+          scope.queryString = 'bar';
+        });
+        $httpBackend.expectGET('../rest/user/query?q=bar').respond([{ id : 'bar' }]);
+        $timeout.flush();
+
+        expect(scope.requestActive).toBeTruthy();
+        expect(scope.lastQuery).toEqual('bar');
+        $httpBackend.flush();
+
+        expect(scope.requestActive).toBeFalsy();
+        expect(scope.queryResults).toEqual([{ id : 'bar' }]);
+      }));
+
+
+      it('Query Extended', inject(function ($timeout, $httpBackend) {
+        scope.$apply(function () {
+          scope.queryString = 'foo';
+        });
+        $httpBackend.expectGET('../rest/user/query?q=foo').respond([{ id : 'food' }]);
+        $timeout.flush();
+
+        expect(scope.requestActive).toBeTruthy();
+        expect(scope.lastQuery).toEqual('foo');
+
+        // User added charactersbefore the server responded
+        scope.$apply(function () {
+          scope.queryString = 'food';
+        });
+        $httpBackend.flush();
+
+        expect(scope.lastQuery).toEqual('food');
+        expect(scope.queryResults).toBeFalsy([{ id : 'food' }]);
+      }));
+
+      it('Query Completely Changed', inject(function ($timeout, $httpBackend) {
+        scope.$apply(function () {
+          scope.queryString = 'foo';
+        });
+        $httpBackend.expectGET('../rest/user/query?q=foo').respond([{ id : 'foo' }]);
+        $timeout.flush();
+
+        expect(scope.requestActive).toBeTruthy();
+        expect(scope.lastQuery).toEqual('foo');
+
+        // User deleted it and typed something new before the server responded
+        scope.$apply(function () {
+          scope.queryString = 'bar';
+        });
+        $httpBackend.flush();
+
+        expect(scope.lastQuery).toEqual('bar');
+        expect(scope.queryResults).toBeFalsy([]);
+
+        $httpBackend.expectGET('../rest/user/query?q=bar').respond([{ id : 'bar' }]);
+        $timeout.flush();
+        $httpBackend.flush();
+        expect(scope.queryResults).toEqual([{ id : 'bar' }]);
+      }));
+    });
   });
 
   describe('userNotIn', function () {

@@ -106,9 +106,23 @@ public class LdapManager
     new LdapQuery(getDecryptedConnection(), umap).authenticateUser(username, password);
   }
 
+  /**
+   * Find a list of users searching the name, login and email address for the substring
+   *
+   * @throws NamingException if there is a problem with the mapping or the credentials
+   */
   public List<LdapUser> findUsers(String query, long maxResults) throws NamingException {
     LdapConnection conn = getDecryptedConnection();
     return new LdapQuery(conn, userDao.getByServerId(conn.getServerId())).getUsers(query, maxResults);
+  }
+
+  /**
+   * Tests finding users with a query
+   *
+   * @throws NamingException if there is a problem with the mapping or the credentials
+   */
+  public List<LdapUser> testFindUsers(LdapUserMapping umap, String query, long maxResults) throws NamingException {
+    return new LdapQuery(getDecryptedConnection(), umap).getUsers(query, maxResults);
   }
 
   // local methods used by LdapRealm

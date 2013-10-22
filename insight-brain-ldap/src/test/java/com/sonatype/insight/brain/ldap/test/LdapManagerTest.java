@@ -5,11 +5,24 @@
  */
 package com.sonatype.insight.brain.ldap.test;
 
+import static com.sonatype.insight.brain.ldap.EmbeddedLdapServer.newEmbeddedLdapServer;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.empty;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.nullValue;
+import static org.junit.Assert.fail;
+
 import java.util.Collections;
 import java.util.List;
 
 import javax.inject.Inject;
 import javax.naming.NamingException;
+
+import org.junit.After;
+import org.junit.Test;
+import org.sonatype.guice.bean.containers.InjectedTest;
 
 import com.sonatype.insight.brain.configuration.ldap.LdapConnection;
 import com.sonatype.insight.brain.configuration.ldap.LdapGroupMappingType;
@@ -20,20 +33,6 @@ import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapServerDAO;
 import com.sonatype.insight.brain.ldap.EmbeddedLdapServer;
 import com.sonatype.insight.brain.ldap.LdapManager;
 import com.sonatype.insight.brain.ldap.LdapUser;
-
-import org.sonatype.guice.bean.containers.InjectedTest;
-
-import org.junit.After;
-import org.junit.Test;
-
-import static com.sonatype.insight.brain.ldap.EmbeddedLdapServer.newEmbeddedLdapServer;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.hamcrest.Matchers.empty;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.nullValue;
-import static org.junit.Assert.fail;
 
 /**
  * @since 1.7
@@ -190,6 +189,21 @@ public class LdapManagerTest
     catch (NamingException expected) {
       manager.testUserLogin(umap, "test_user", "far2simple".toCharArray());
     }
+  }
+
+  @Test
+  public void testFindUser() throws Exception {
+    startLdapServer();
+
+    LdapConnection conn = createLdapConnection();
+    conn.setSearchBase("dc=company,dc=com");
+    manager.saveConnection(conn);
+
+    LdapUserMapping umap = createUserMapping();
+
+    List<LdapUser> users = manager.testFindUsers(umap, "user2", 100);
+    assertThat(users.size(), is(1));
+
   }
 
   public LdapManagerTest startLdapServer() throws Exception {

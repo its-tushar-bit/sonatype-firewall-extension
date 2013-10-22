@@ -52,7 +52,7 @@ public class ProductLicenseResource
   @UnlicensedPath
   @Authorize(permission = Permission.ADMIN)
   public String installLicense(@FormDataParam("file") InputStream is,
-      @AuthzErrorMsg @QueryParam("forceSuccess") boolean forceSuccess) throws IOException
+      @AuthzErrorMsg @QueryParam("forceSuccess") boolean forceSuccess)
   {
     try {
       licenseManager.installLicense(is);

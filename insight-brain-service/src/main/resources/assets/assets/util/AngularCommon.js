@@ -855,7 +855,7 @@ var AngularUtils = {
     function() {
       return {
         get: function() {
-          var baseSegments = ['/policy-assets/', '/application-assets/', '/assets/', '/login-assets/', '/security-assets/'],
+          var baseSegments = ['/policy-assets/', '/application-assets/', '/assets/', '/login-assets/', '/security-assets/', '/report-assets/'],
               idx = -1;
 
           for (var i = 0; i < baseSegments.length; i++) {

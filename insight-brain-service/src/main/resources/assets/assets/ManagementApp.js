@@ -29,7 +29,7 @@
   managementModule.controller('ManagementController', function($scope, $state, commonCodeFactory) {
     $scope.$state = $state;
 
-    $scope.managementPanes = [
+    $scope.panes = [
       {
         name: 'Organizations',
         state: 'management/organization',
@@ -52,10 +52,10 @@
       }
     ];
 
-    for (var i = 0; i < $scope.managementPanes.length; i++) {
-      var normalizedState = $scope.managementPanes[i].state.replace('/', '.');
+    for (var i = 0; i < $scope.panes.length; i++) {
+      var normalizedState = $scope.panes[i].state.replace('/', '.');
       if ($scope.$state.current.name.indexOf(normalizedState) !== -1) {
-        $scope.$state.selectedPane = $scope.managementPanes[i];
+        $scope.$state.selectedPane = $scope.panes[i];
         break;
       }
     }

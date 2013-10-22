@@ -5,7 +5,7 @@
  */
 (function() {
   "use strict";
-  var reportApp = angular.module('reportApp', ['DashboardModule', 'ReportList', 'Report'], 
+  var reportApp = angular.module('reportApp', ['ReportModule', 'Report'],
       [
         '$urlRouterProvider',
         function($urlRouterProvider) {
@@ -17,40 +17,43 @@
 (function() {
   'use strict';
 
-  var reportModule = angular.module('ReportList', ['ui.router', 'AngularCommon', 'DashboardModule', 'CLMLocation'],
+  var reportModule = angular.module('ReportModule', ['ui.router', 'DashboardModule', 'ReportViolations'],
           ['$stateProvider', function($stateProvider) {
             $stateProvider.state('reports', {
               url: '/reports',
-              templateUrl: '../assets/components/report-list.html?' + clmBuildTimestamp,
-              controller: 'ReportListController'
+              templateUrl: '../assets/management.html?' + clmBuildTimestamp,
+              controller: 'ReportsController'
+            }).state('reports.violations', {
+              url: '/violations',
+              templateUrl: '../report-assets/violations/report-list.html?' + clmBuildTimestamp,
+              parent: 'reports',
+              controller: 'ReportViolationsController'
             });
           }]);
 
-  reportModule.controller('ReportListController', [
-      '$scope',
-      '$http',
-      '$q',
-      'CLMLocations',
-      function($scope, $http, $q, clmLocations) {
-        $scope.doLoad = function() {
-          var promises = [$http.get(clmLocations.getActionStageUrl()),
-              $http.get(clmLocations.getApplicationSummariesUrl(), {
-                params: {
-                  timestamp: new Date().getTime()
-                }
-              })];
-          $scope.error = null;
+  reportModule.controller('ReportsController', ['$scope', '$state', function($scope, $state) {
+    $scope.$state = $state;
 
-          $q.all(promises).then(function(results) {
-            $scope.stages = results[0].data;
-            $scope.applications = results[1].data;
-          }, function() {
-            $scope.error = arguments[0];
-          });
-        };
-        $scope.orderColumn = 'name';
-        $scope.orderDirection = false;
-        $scope.encodeURIComponent = window.encodeURIComponent;
-        $scope.doLoad();
-      }]);
+    $scope.panes = [
+      {
+        name: 'Violations',
+        state: 'reports/violations',
+        isEnabled: true
+      }
+    ];
+
+    for (var i = 0; i < $scope.panes.length; i++) {
+      var normalizedState = $scope.panes[i].state.replace('/', '.');
+      if ($scope.$state.current.name.indexOf(normalizedState) !== -1) {
+        $scope.$state.selectedPane = $scope.panes[i];
+        break;
+      }
+    }
+
+    $scope.$watch('$state.current.name', function() {
+      if ($state.current.name === 'reports') {
+        $state.transitionTo('reports.violations');
+      }
+    });
+  }]);
 }());

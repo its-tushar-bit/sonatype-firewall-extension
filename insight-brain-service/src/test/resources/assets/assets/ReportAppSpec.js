@@ -1,7 +1,7 @@
 describe('reportApp', function() {
   var scope, state;
   
-  beforeEach(module('reportApp', 'ReportList', 'DashboardModule', function($provide) {
+  beforeEach(module('reportApp', 'ReportViolations', 'DashboardModule', function($provide) {
     $provide.value('$window', {
       location: {
         reload: function(){}
@@ -33,9 +33,8 @@ describe('reportApp', function() {
 
     $httpBackend.expectGET(CLMLocations.getActionStageUrl()).respond(MockData.getActionStageData());
     $httpBackend.expectGET(SpecUtil.toRegExp('/rest/application/services/summary')).respond(ApplicationMockData.getApplicationSummaryData());
-    $httpBackend.expectGET('../assets/components/report-list.html?').respond('<div></div>');
 
-    $controller('ReportListController', { $scope: scope, $state: state });
+    $controller('ReportViolationsController', { $scope: scope, $state: state });
 
     $httpBackend.flush();
   }));

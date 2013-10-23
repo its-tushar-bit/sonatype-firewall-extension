@@ -18,10 +18,10 @@
       replace: true,
       template:
         '<div ng-show="components">' +
-        '<h2 class="marginTop">{{ title }}</h2>' +
+        '<h2 class="marginTop section-header">{{ title }}</h2>' +
         '<div class="row" ng-repeat="component in components">' +
-        '<div class="span4 wordwrap">{{ component.groupId }}<span class="wrap-force-break"> : </span>{{ component.artifactId }}<span class="wrap-force-break"> : </span>{{ component.version }}</div>' +
-        '<div class="span2 wrap-post-left-bump" chiclets always-show="true" critical="component.critical" severe="component.severe"' +
+        '<div class="gav wordwrap">{{ component.groupId }}<span class="wrap-force-break"> : </span>{{ component.artifactId }}<span class="wrap-force-break"> : </span>{{ component.version }}</div>' +
+        '<div class="counters" chiclets base-class="threat-chiclet-small" always-show="true" critical="component.critical" severe="component.severe"' +
         ' moderate="component.moderate" none="component.none"></div>' +
         '</div>' +
         '</div>'
@@ -327,367 +327,177 @@
     '$scope', function($scope) {
       $scope.alerts = [];
       // TODO - KR CLM-1076 -simulated data used until backend service is provided
-      $scope.data = {
-        "meta": {
-          "generatedBy": "Author",
-          "generatedFor": "Company Name",
-          "generatedOn": 1362902400000,
-          "periodStart": 1362384000000,
-          "periodEnd": 1362902400000
-        },
-        "components": {
-          "inRepository": 50,
-          "inApplications": 40,
-          "exact": 20,
-          "partial": 15,
-          "unknown": 5
-        },
-        "applications": {
-          "total": 15,
-          "risks": [
-            {
-              "name": "Application One",
-              "risk": 0,
-              "critical": 4,
-              "severe": 3,
-              "moderate": 2,
-              "none": 1
-            },
-            {
-              "name": "Application Two",
-              "risk": 1,
-              "critical": 8,
-              "severe": 7,
-              "moderate": 6,
-              "none": 5
-            },
-            {
-              "name": "Application Three",
-              "risk": 2,
-              "critical": 12,
-              "severe": 11,
-              "moderate": 10,
-              "none": 9
-            },
-            {
-              "name": "Application Four",
-              "risk": 3,
-              "critical": 16,
-              "severe": 15,
-              "moderate": 14,
-              "none": 13
-            },
-            {
-              "name": "Application Five",
-              "risk": 4,
-              "critical": 20,
-              "severe": 19,
-              "moderate": 18,
-              "none": 17
-            }
-          ]
-        },
-        "policies": [
+      $scope.data = {"meta": {
+        "periodStart": 'October 2, 2013',
+        "periodEnd": 'October 22, 2013'
+      }, "components": {
+        "inApplications": 40,
+        "exact": 20,
+        "partial": 15,
+        "unknown": 5
+      }, "applications": {
+        "total": 15,
+        "risks": [
           {
-            "name": "Architecture-Banned",
-            "threat": 10,
-            "category": "quality",
-            "violations": [
-              {
-                "period": 0,
-                "count": 4
-              },
-              {
-                "period": 1,
-                "count": 6
-              },
-              {
-                "period": 2,
-                "count": 2
-              },
-              {
-                "period": 3,
-                "count": 4
-              }
-            ]
+            "name": "Application Five",
+            "risk": 4,
+            "critical": 20,
+            "severe": 19,
+            "moderate": 18,
+            "none": 17
           },
           {
-            "name": "License-Banned",
-            "threat": 10,
-            "category": "license",
-            "violations": [
-              {
-                "period": 0,
-                "count": 12
-              },
-              {
-                "period": 1,
-                "count": 10
-              },
-              {
-                "period": 2,
-                "count": 6
-              },
-              {
-                "period": 3,
-                "count": 2
-              }
-            ]
+            "name": "Application Four",
+            "risk": 3,
+            "critical": 16,
+            "severe": 15,
+            "moderate": 14,
+            "none": 13
           },
           {
-            "name": "Security-Critical",
-            "threat": 10,
-            "category": "security",
-            "violations": [
-              {
-                "period": 0,
-                "count": 1
-              },
-              {
-                "period": 1,
-                "count": 3
-              },
-              {
-                "period": 2,
-                "count": 2
-              },
-              {
-                "period": 3,
-                "count": 1
-              }
-            ]
+            "name": "Application Three",
+            "risk": 2,
+            "critical": 12,
+            "severe": 11,
+            "moderate": 10,
+            "none": 9
           },
           {
-            "name": "License-Copyleft",
-            "threat": 9,
-            "category": "license",
-            "violations": [
-              {
-                "period": 0,
-                "count": 10
-              },
-              {
-                "period": 1,
-                "count": 11
-              },
-              {
-                "period": 2,
-                "count": 5
-              },
-              {
-                "period": 3,
-                "count": 5
-              }
-            ]
+            "name": "Application Two",
+            "risk": 1,
+            "critical": 8,
+            "severe": 7,
+            "moderate": 6,
+            "none": 5
           },
           {
-            "name": "Security-High",
-            "threat": 9,
-            "category": "security",
-            "violations": [
-              {
-                "period": 0,
-                "count": 2
-              },
-              {
-                "period": 1,
-                "count": 4
-              },
-              {
-                "period": 2,
-                "count": 1
-              },
-              {
-                "period": 3,
-                "count": 2
-              }
-            ]
-          },
-          {
-            "name": "Security-Medium",
-            "threat": 7,
-            "category": "security",
-            "violations": [
-              {
-                "period": 0,
-                "count": 12
-              },
-              {
-                "period": 1,
-                "count": 12
-              },
-              {
-                "period": 2,
-                "count": 2
-              },
-              {
-                "period": 3,
-                "count": 3
-              }
-            ]
-          },
-          {
-            "name": "License-Non-Standard",
-            "threat": 6,
-            "category": "license",
-            "violations": [
-              {
-                "period": 0,
-                "count": 1
-              },
-              {
-                "period": 1,
-                "count": 4
-              },
-              {
-                "period": 2,
-                "count": 4
-              },
-              {
-                "period": 3,
-                "count": 8
-              }
-            ]
-          },
-          {
-            "name": "License-Unknown",
-            "threat": 5,
-            "category": "license",
-            "violations": [
-              {
-                "period": 0,
-                "count": 6
-              },
-              {
-                "period": 1,
-                "count": 7
-              },
-              {
-                "period": 2,
-                "count": 4
-              },
-              {
-                "period": 3,
-                "count": 8
-              }
-            ]
-          },
-          {
-            "name": "Security-Low",
-            "threat": 3,
-            "category": "security",
-            "violations": [
-              {
-                "period": 0,
-                "count": 3
-              },
-              {
-                "period": 1,
-                "count": 5
-              },
-              {
-                "period": 2,
-                "count": 2
-              },
-              {
-                "period": 3,
-                "count": 1
-              }
-            ]
-          },
-          {
-            "name": "Architecture-Deprecated",
-            "threat": 1,
-            "category": "quality",
-            "violations": [
-              {
-                "period": 0,
-                "count": 2
-              },
-              {
-                "period": 1,
-                "count": 5
-              },
-              {
-                "period": 2,
-                "count": 4
-              },
-              {
-                "period": 3,
-                "count": 3
-              }
-            ]
-          },
-          {
-            "name": "Architecture-Quality",
-            "threat": 1,
-            "category": "quality",
-            "violations": [
-              {
-                "period": 0,
-                "count": 9
-              },
-              {
-                "period": 1,
-                "count": 9
-              },
-              {
-                "period": 2,
-                "count": 9
-              },
-              {
-                "period": 3,
-                "count": 9
-              }
-            ]
-          },
-          {
-            "name": "Component-Indeterminate",
-            "threat": 1,
-            "category": "other",
-            "violations": [
-              {
-                "period": 0,
-                "count": 2
-              },
-              {
-                "period": 1,
-                "count": 5
-              },
-              {
-                "period": 2,
-                "count": 2
-              },
-              {
-                "period": 3,
-                "count": 10
-              }
-            ]
-          },
-          {
-            "name": "Component-Unknown",
-            "threat": 0,
-            "category": "other",
-            "violations": [
-              {
-                "period": 0,
-                "count": 10
-              },
-              {
-                "period": 1,
-                "count": 8
-              },
-              {
-                "period": 2,
-                "count": 6
-              },
-              {
-                "period": 3,
-                "count": 7
-              }
-            ]
+            "name": "Application One",
+            "risk": 0,
+            "critical": 4,
+            "severe": 3,
+            "moderate": 2,
+            "none": 1
           }
-        ],
+        ]
+      }, "policies": [
+        {
+          "name": "Architecture-Banned",
+          "threat": 10,
+
+          "lastViolationCount": 4,
+          "firstViolationCount": 4,
+          "sparklineData": [4, 6, 2, 4],
+          "violationsDifference": 0
+        },
+        {
+          "name": "Security-Critical",
+          "threat": 10,
+
+          "lastViolationCount": 1,
+          "firstViolationCount": 1,
+          "sparklineData": [1, 3, 2, 1],
+          "violationsDifference": 0
+        },
+        {
+          "name": "License-Banned",
+          "threat": 10,
+
+          "lastViolationCount": 2,
+          "firstViolationCount": 12,
+          "sparklineData": [12, 10, 6, 2],
+          "violationsDifference": -10
+        },
+        {
+          "name": "License-Copyleft",
+          "threat": 9,
+
+          "lastViolationCount": 5,
+          "firstViolationCount": 10,
+          "sparklineData": [10, 11, 5, 5],
+          "violationsDifference": -5
+        },
+        {
+          "name": "Security-High",
+          "threat": 9,
+
+          "lastViolationCount": 2,
+          "firstViolationCount": 2,
+          "sparklineData": [2, 4, 1, 2],
+          "violationsDifference": 0
+        },
+        {
+          "name": "Security-Medium",
+          "threat": 7,
+
+          "lastViolationCount": 3,
+          "firstViolationCount": 12,
+          "sparklineData": [12, 12, 2, 3],
+          "violationsDifference": -9
+        },
+        {
+          "name": "License-Non-Standard",
+          "threat": 6,
+
+          "lastViolationCount": 8,
+          "firstViolationCount": 1,
+          "sparklineData": [1, 4, 4, 8],
+          "violationsDifference": 7
+        },
+        {
+          "name": "License-Unknown",
+          "threat": 5,
+
+          "lastViolationCount": 8,
+          "firstViolationCount": 6,
+          "sparklineData": [6, 7, 4, 8],
+          "violationsDifference": 2
+        },
+        {
+          "name": "Security-Low",
+          "threat": 3,
+
+          "lastViolationCount": 1,
+          "firstViolationCount": 3,
+          "sparklineData": [3, 5, 2, 1],
+          "violationsDifference": -2
+        },
+        {
+          "name": "Architecture-Deprecated",
+          "threat": 1,
+
+          "lastViolationCount": 3,
+          "firstViolationCount": 2,
+          "sparklineData": [2, 5, 4, 3],
+          "violationsDifference": 1
+        },
+        {
+          "name": "Architecture-Quality",
+          "threat": 1,
+
+          "lastViolationCount": 9,
+          "firstViolationCount": 9,
+          "sparklineData": [9, 9, 9, 9],
+          "violationsDifference": 0
+        },
+        {
+          "name": "Component-Indeterminate",
+          "threat": 1,
+
+          "lastViolationCount": 10,
+          "firstViolationCount": 2,
+          "sparklineData": [2, 5, 2, 10],
+          "violationsDifference": 8
+        },
+        {
+          "name": "Component-Unknown",
+          "threat": 0,
+
+          "lastViolationCount": 7,
+          "firstViolationCount": 10,
+          "sparklineData": [10, 8, 6, 7],
+          "violationsDifference": -3
+        }
+      ],
         "partialMatches": [
           {
             "groupId": "org.springframework",
@@ -723,34 +533,14 @@
         "topPolicyViolations": {
           "security": [
             {
-              "groupId": "org.eclipse.birt.runtime.3_7_1",
-              "artifactId": "org.eclipse.equinox.app",
-              "version": "1.3.100",
-              "risk": 0,
-              "critical": 4,
-              "severe": 3,
-              "moderate": 2,
-              "none": 1
-            },
-            {
               "groupId": "org.springframework",
               "artifactId": "spring-web",
               "version": "3.0.5",
-              "risk": 1,
-              "critical": 8,
-              "severe": 7,
-              "moderate": 6,
-              "none": 5
-            },
-            {
-              "groupId": "org.springframework",
-              "artifactId": "spring-web",
-              "version": "3.0.5",
-              "risk": 2,
-              "critical": 12,
-              "severe": 11,
-              "moderate": 10,
-              "none": 9
+              "risk": 4,
+              "critical": 20,
+              "severe": 19,
+              "moderate": 18,
+              "none": 17
             },
             {
               "groupId": "org.springframework",
@@ -766,14 +556,74 @@
               "groupId": "org.springframework",
               "artifactId": "spring-web",
               "version": "3.0.5",
+              "risk": 2,
+              "critical": 12,
+              "severe": 11,
+              "moderate": 10,
+              "none": 9
+            },
+            {
+              "groupId": "org.springframework",
+              "artifactId": "spring-web",
+              "version": "3.0.5",
+              "risk": 1,
+              "critical": 8,
+              "severe": 7,
+              "moderate": 6,
+              "none": 5
+            },
+            {
+              "groupId": "org.eclipse.birt.runtime.3_7_1",
+              "artifactId": "org.eclipse.equinox.app",
+              "version": "1.3.100",
+              "risk": 0,
+              "critical": 4,
+              "severe": 3,
+              "moderate": 2,
+              "none": 1
+            }
+          ],
+          "quality": [
+            {
+              "groupId": "org.springframework",
+              "artifactId": "spring-web",
+              "version": "3.0.5",
               "risk": 4,
               "critical": 20,
               "severe": 19,
               "moderate": 18,
               "none": 17
-            }
-          ],
-          "quality": [
+            },
+            {
+              "groupId": "org.springframework",
+              "artifactId": "spring-web",
+              "version": "3.0.5",
+              "risk": 3,
+              "critical": 16,
+              "severe": 15,
+              "moderate": 14,
+              "none": 13
+            },
+            {
+              "groupId": "org.springframework",
+              "artifactId": "spring-web",
+              "version": "3.0.5",
+              "risk": 2,
+              "critical": 12,
+              "severe": 11,
+              "moderate": 10,
+              "none": 9
+            },
+            {
+              "groupId": "org.springframework",
+              "artifactId": "spring-web",
+              "version": "3.0.5",
+              "risk": 1,
+              "critical": 8,
+              "severe": 7,
+              "moderate": 6,
+              "none": 5
+            },
             {
               "groupId": "org.powermock",
               "artifactId": "powermock-mockito-release-full",
@@ -783,46 +633,6 @@
               "severe": 3,
               "moderate": 2,
               "none": 1
-            },
-            {
-              "groupId": "org.springframework",
-              "artifactId": "spring-web",
-              "version": "3.0.5",
-              "risk": 1,
-              "critical": 8,
-              "severe": 7,
-              "moderate": 6,
-              "none": 5
-            },
-            {
-              "groupId": "org.springframework",
-              "artifactId": "spring-web",
-              "version": "3.0.5",
-              "risk": 2,
-              "critical": 12,
-              "severe": 11,
-              "moderate": 10,
-              "none": 9
-            },
-            {
-              "groupId": "org.springframework",
-              "artifactId": "spring-web",
-              "version": "3.0.5",
-              "risk": 3,
-              "critical": 16,
-              "severe": 15,
-              "moderate": 14,
-              "none": 13
-            },
-            {
-              "groupId": "org.springframework",
-              "artifactId": "spring-web",
-              "version": "3.0.5",
-              "risk": 4,
-              "critical": 20,
-              "severe": 19,
-              "moderate": 18,
-              "none": 17
             }
           ],
           "license": [
@@ -830,31 +640,11 @@
               "groupId": "org.springframework",
               "artifactId": "spring-web",
               "version": "3.0.5",
-              "risk": 0,
-              "critical": 4,
-              "severe": 3,
-              "moderate": 2,
-              "none": 1
-            },
-            {
-              "groupId": "org.springframework",
-              "artifactId": "spring-web",
-              "version": "3.0.5",
-              "risk": 1,
-              "critical": 8,
-              "severe": 7,
-              "moderate": 6,
-              "none": 5
-            },
-            {
-              "groupId": "org.springframework",
-              "artifactId": "spring-web",
-              "version": "3.0.5",
-              "risk": 2,
-              "critical": 12,
-              "severe": 11,
-              "moderate": 10,
-              "none": 9
+              "risk": 4,
+              "critical": 20,
+              "severe": 19,
+              "moderate": 18,
+              "none": 17
             },
             {
               "groupId": "org.springframework",
@@ -870,11 +660,31 @@
               "groupId": "org.springframework",
               "artifactId": "spring-web",
               "version": "3.0.5",
-              "risk": 4,
-              "critical": 20,
-              "severe": 19,
-              "moderate": 18,
-              "none": 17
+              "risk": 2,
+              "critical": 12,
+              "severe": 11,
+              "moderate": 10,
+              "none": 9
+            },
+            {
+              "groupId": "org.springframework",
+              "artifactId": "spring-web",
+              "version": "3.0.5",
+              "risk": 1,
+              "critical": 8,
+              "severe": 7,
+              "moderate": 6,
+              "none": 5
+            },
+            {
+              "groupId": "org.springframework",
+              "artifactId": "spring-web",
+              "version": "3.0.5",
+              "risk": 0,
+              "critical": 4,
+              "severe": 3,
+              "moderate": 2,
+              "none": 1
             }
           ],
           "all": [
@@ -882,31 +692,11 @@
               "groupId": "org.springframework",
               "artifactId": "spring-web",
               "version": "3.0.5",
-              "risk": 0,
-              "critical": 4,
-              "severe": 3,
-              "moderate": 2,
-              "none": 1
-            },
-            {
-              "groupId": "org.springframework",
-              "artifactId": "spring-web",
-              "version": "3.0.5",
-              "risk": 1,
-              "critical": 8,
-              "severe": 7,
-              "moderate": 6,
-              "none": 5
-            },
-            {
-              "groupId": "org.springframework",
-              "artifactId": "spring-web",
-              "version": "3.0.5",
-              "risk": 2,
-              "critical": 12,
-              "severe": 11,
-              "moderate": 10,
-              "none": 9
+              "risk": 4,
+              "critical": 20,
+              "severe": 19,
+              "moderate": 18,
+              "none": 17
             },
             {
               "groupId": "org.springframework",
@@ -922,11 +712,31 @@
               "groupId": "org.springframework",
               "artifactId": "spring-web",
               "version": "3.0.5",
-              "risk": 4,
-              "critical": 20,
-              "severe": 19,
-              "moderate": 18,
-              "none": 17
+              "risk": 2,
+              "critical": 12,
+              "severe": 11,
+              "moderate": 10,
+              "none": 9
+            },
+            {
+              "groupId": "org.springframework",
+              "artifactId": "spring-web",
+              "version": "3.0.5",
+              "risk": 1,
+              "critical": 8,
+              "severe": 7,
+              "moderate": 6,
+              "none": 5
+            },
+            {
+              "groupId": "org.springframework",
+              "artifactId": "spring-web",
+              "version": "3.0.5",
+              "risk": 0,
+              "critical": 4,
+              "severe": 3,
+              "moderate": 2,
+              "none": 1
             }
           ],
           "other": [
@@ -934,31 +744,11 @@
               "groupId": "org.springframework",
               "artifactId": "spring-web",
               "version": "3.0.5",
-              "risk": 0,
-              "critical": 4,
-              "severe": 3,
-              "moderate": 2,
-              "none": 1
-            },
-            {
-              "groupId": "org.springframework",
-              "artifactId": "spring-web",
-              "version": "3.0.5",
-              "risk": 1,
-              "critical": 8,
-              "severe": 7,
-              "moderate": 6,
-              "none": 5
-            },
-            {
-              "groupId": "org.springframework",
-              "artifactId": "spring-web",
-              "version": "3.0.5",
-              "risk": 2,
-              "critical": 12,
-              "severe": 11,
-              "moderate": 10,
-              "none": 9
+              "risk": 4,
+              "critical": 20,
+              "severe": 19,
+              "moderate": 18,
+              "none": 17
             },
             {
               "groupId": "org.springframework",
@@ -974,15 +764,124 @@
               "groupId": "org.springframework",
               "artifactId": "spring-web",
               "version": "3.0.5",
-              "risk": 4,
-              "critical": 20,
-              "severe": 19,
-              "moderate": 18,
-              "none": 17
+              "risk": 2,
+              "critical": 12,
+              "severe": 11,
+              "moderate": 10,
+              "none": 9
+            },
+            {
+              "groupId": "org.springframework",
+              "artifactId": "spring-web",
+              "version": "3.0.5",
+              "risk": 1,
+              "critical": 8,
+              "severe": 7,
+              "moderate": 6,
+              "none": 5
+            },
+            {
+              "groupId": "org.springframework",
+              "artifactId": "spring-web",
+              "version": "3.0.5",
+              "risk": 0,
+              "critical": 4,
+              "severe": 3,
+              "moderate": 2,
+              "none": 1
             }
           ]
-        }
-      };
+        }, "highPolicyCount": 5, "mediumPolicyCount": 3, "lowPolicyCount": 1, "nullPolicyCount": 4, "highPolicyViolationCount": 14, "mediumPolicyViolationCount": 19, "lowPolicyViolationCount": 1, "nullPolicyViolationCount": 29, "totalPolicyViolationCount": 63,
+        "diffData": {
+          "security": [
+            {
+              "threat": "critical",
+              "violations": 3,
+              "previousViolations": 3
+            },
+            {
+              "threat": "severe",
+              "violations": 3,
+              "previousViolations": 12
+            },
+            {
+              "threat": "moderate",
+              "violations": 1,
+              "previousViolations": 3
+            },
+            {
+              "threat": "null",
+              "violations": 0,
+              "previousViolations": 0
+            }
+          ],
+          "license": [
+            {
+              "threat": "critical",
+              "violations": 7,
+              "previousViolations": 22
+            },
+            {
+              "threat": "severe",
+              "violations": 16,
+              "previousViolations": 7
+            },
+            {
+              "threat": "moderate",
+              "violations": 0,
+              "previousViolations": 0
+            },
+            {
+              "threat": "null",
+              "violations": 0,
+              "previousViolations": 0
+            }
+          ],
+          "quality": [
+            {
+              "threat": "critical",
+              "violations": 4,
+              "previousViolations": 4
+            },
+            {
+              "threat": "severe",
+              "violations": 0,
+              "previousViolations": 0
+            },
+            {
+              "threat": "moderate",
+              "violations": 0,
+              "previousViolations": 0
+            },
+            {
+              "threat": "null",
+              "violations": 12,
+              "previousViolations": 11
+            }
+          ],
+          "other": [
+            {
+              "threat": "critical",
+              "violations": 0,
+              "previousViolations": 0
+            },
+            {
+              "threat": "severe",
+              "violations": 0,
+              "previousViolations": 0
+            },
+            {
+              "threat": "moderate",
+              "violations": 0,
+              "previousViolations": 0
+            },
+            {
+              "threat": "null",
+              "violations": 17,
+              "previousViolations": 12
+            }
+          ]
+        }};
       //data.get().then(function(results) {
       //  $scope.data = results[0];
       //  $scope.diffchart = 'views/diffChart.html';

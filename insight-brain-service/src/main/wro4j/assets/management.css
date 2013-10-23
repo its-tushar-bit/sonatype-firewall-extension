@@ -20,8 +20,15 @@
 	font-family: ProximaNovaSemibold;
 	src: url(../fonts/proximanova-sbold-webfont.eot);
 	src: url(../fonts/proximanova-sbold-webfont.woff) format('woff'),
-	url(../fonts/proximanova-sbold-webfont.ttf) format('truetype'),
+	url(../fonts/ProximaNova-Sbold-webfont.ttf) format('truetype'),
 	url(../fonts/proximanova-sbold-webfont.svg#webfont) format('svg');
+}
+@font-face {
+  font-family: ProximaNovaLight;
+  src: url(../fonts//ProximaNova-Thin-webfont.eot);
+  src: url(../fonts/ProximaNova-Thin-webfont.woff) format('woff'),
+  url(../fonts/ProximaNova-Thin-webfont.ttf) format('truetype'),
+  url(../fonts/ProximaNova-Thin-webfont.svg#webfont) format('svg');
 }
 body {
 	background: #f4f4f4;

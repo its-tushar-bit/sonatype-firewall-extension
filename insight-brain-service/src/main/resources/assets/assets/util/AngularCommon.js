@@ -731,15 +731,18 @@ var AngularUtils = {
         moderate: '=',
         none: '='
       },
-      template:
-          '<span ng-show="critical || alwaysShow" class="threat-chiclet threat-chiclet-critical" ng-style="style">{{ critical || "0"  }}</span>' +
-          '<span ng-show="severe || alwaysShow" class="threat-chiclet threat-chiclet-severe" ng-style="style">{{ severe || "0" }}</span>' +
-          '<span ng-show="moderate || alwaysShow" class="threat-chiclet threat-chiclet-moderate" ng-style="style">{{ moderate || "0" }}</span>' +
-          '<span ng-show="none || alwaysShow" class="threat-chiclet threat-chiclet-none" ng-style="style">{{ none || "0" }}</span>',
-      link: function(scope, element, attrs)
-      {
+      template: '<span ng-show="critical || alwaysShow" class="{{baseClass}}" ng-class="{\'threat-chiclet-critical\': critical }" ' +
+        'ng-style="style">{{ critical || "" }}</span>' +
+        '<span ng-show="severe || alwaysShow" class="{{baseClass}}" ng-class="{\'threat-chiclet-severe\': severe }" ' +
+        'ng-style="style">{{ severe || "" }}</span>' +
+        '<span ng-show="moderate || alwaysShow" class="{{baseClass}}" ng-class="{\'threat-chiclet-moderate\': moderate }" ' +
+        'ng-style="style">{{ moderate || "" }}</span>' +
+        '<span ng-show="none || alwaysShow" class="{{baseClass}}" ng-class="{\'threat-chiclet-none\': none }" ' +
+        'ng-style="style">{{ none || "" }}</span>',
+      link: function(scope, element, attrs) {
         scope.style = {margin: attrs.margin || '2px'};
         scope.alwaysShow = attrs.alwaysShow || false;
+        scope.baseClass = attrs.baseClass || 'threat-chiclet';
       }
     };
   });

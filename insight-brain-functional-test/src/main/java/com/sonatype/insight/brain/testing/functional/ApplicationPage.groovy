@@ -22,5 +22,7 @@ class ApplicationPage extends Page {
     securityTab(required: false) { $('#security') }
     deleteButton(required: false) { $('a', 'title': 'Remove Application') }
     deleteButtonAccept(required: false) { $('button', 'ng-click':'deleteApplication();') }
+    developerRole(required: false) { $('p', text:'Developer' ) }
+    ownerRole(required: false) { $('p', text:'Owner' ) }
   }
 }

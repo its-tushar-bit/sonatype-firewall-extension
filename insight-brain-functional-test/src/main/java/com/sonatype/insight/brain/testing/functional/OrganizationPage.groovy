@@ -19,5 +19,7 @@ class OrganizationPage extends Page {
     securityTab(required: false) { $('#security') }
     deleteButton(required: false) { $('a', 'title': 'Remove Organization') }
     deleteButtonAccept(required: false) { $('button', 'ng-click':'deleteOrganization();') }
+    developerRole(required: false) { $('p', text:'Developer') }
+    ownerRole(required: false) { $('p', text:'Owner') }
   }
 }

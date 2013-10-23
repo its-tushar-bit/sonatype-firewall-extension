@@ -53,6 +53,8 @@ class AppSecurityManagementSpec extends GebReportingSpec {
     
     then: "security tab content is shown"
       waitFor { securityTab.displayed }
+      waitFor { developerRole.displayed }
+      waitFor { ownerRole.displayed }
       
     when: "create a new application"
       to ApplicationManagementPage
@@ -78,6 +80,7 @@ class AppSecurityManagementSpec extends GebReportingSpec {
     
     then: "security tab is shown"
       waitFor { securityTab.displayed }
-    //TODO: when server actually sends list of roles back, add test to validate they are shown  
+      waitFor { developerRole.displayed }
+      waitFor { ownerRole.displayed }
   }
 }

@@ -49,6 +49,10 @@ public class LdapServer
   public LdapServer() {
   }
 
+  public LdapServer(String name) {
+    setName(name);
+  }
+
   @Override
   public String getId() {
     return id;

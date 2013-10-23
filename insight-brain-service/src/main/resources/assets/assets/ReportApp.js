@@ -9,7 +9,7 @@
       [
         '$urlRouterProvider',
         function($urlRouterProvider) {
-          $urlRouterProvider.when('', '/reports');
+          $urlRouterProvider.when('', '/reports/violations');
         }
       ]);
 }());

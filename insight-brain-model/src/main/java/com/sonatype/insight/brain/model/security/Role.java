@@ -23,6 +23,8 @@ import com.sonatype.insight.model.HasStringId;
 public class Role
     implements HasStringId
 {
+  public static final String ADMIN_ROLE_ID = "1b92fae3e55a411793a091fb821c422d";
+
   @Id
   @Column(name = "role_id")
   private String id;

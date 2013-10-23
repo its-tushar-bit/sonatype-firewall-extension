@@ -7,6 +7,8 @@ package com.sonatype.insight.brain.testing.functional
 
 import geb.Page
 
+import com.sonatype.insight.brain.testing.functional.modules.ContextTabsModule
+
 class ApplicationPage extends Page {
   static at = {  applicationImage.displayed }
 
@@ -24,5 +26,7 @@ class ApplicationPage extends Page {
     deleteButtonAccept(required: false) { $('button', 'ng-click':'deleteApplication();') }
     developerRole(required: false) { $('p', text:'Developer' ) }
     ownerRole(required: false) { $('p', text:'Owner' ) }
+
+    tabs { module ContextTabsModule }
   }
 }

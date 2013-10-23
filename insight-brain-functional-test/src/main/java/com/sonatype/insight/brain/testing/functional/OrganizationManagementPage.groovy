@@ -10,9 +10,9 @@ import geb.Page
 class OrganizationManagementPage extends Page {
   static url = "assets/index.html#/management/organization"
 
-  static at = { newOrganizationButton.displayed }
+  static at = {  driver.currentUrl.endsWith(url) }
 
   static content = {
-    newOrganizationButton(required: false) { $('a', text:contains('New Organization')) }
+    newOrganizationButton(waitFor: true) { $('a', text:contains('New Organization')) }
   }
 }

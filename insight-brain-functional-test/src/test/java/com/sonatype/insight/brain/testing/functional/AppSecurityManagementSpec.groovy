@@ -5,23 +5,26 @@
  */
 package com.sonatype.insight.brain.testing.functional
 
-import com.sonatype.insight.brain.service.InsightBrainService
-import com.sonatype.insight.brain.service.InsightConfig
-
-import com.google.common.io.Resources
-import com.yammer.dropwizard.testing.junit.DropwizardServiceRule
 import geb.spock.GebReportingSpec
+
 import org.junit.ClassRule
 import org.junit.rules.TestRule
-import org.openqa.selenium.Keys
+
 import spock.lang.Shared
+
+import com.google.common.io.Resources
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO
+import com.sonatype.insight.brain.service.InsightBrainService
+import com.sonatype.insight.brain.service.InsightConfig
+import com.yammer.dropwizard.testing.junit.DropwizardServiceRule
 
 class AppSecurityManagementSpec extends GebReportingSpec {
   @Shared
   @ClassRule
   TestRule startServiceRule = new DropwizardServiceRule<InsightConfig>(InsightBrainService.class,
-    Resources.getResource('config-test.yml').getPath())
-  
+  Resources.getResource('config-test.yml').getPath())
+
 
   // assumes a license has already been installed
   // get to the organizations page
@@ -33,54 +36,63 @@ class AppSecurityManagementSpec extends GebReportingSpec {
     waitFor { at(ReportPage) }
     waitFor { browser.getDriver().manage().getCookieNamed('JSESSIONID') != null }
   }
-  
+
+  def cleanup() {
+    ApplicationDAO appDAO = new ApplicationDAO();
+    for (o in appDAO.getAll())
+      appDAO.delete(o);
+    OrganizationDAO orgDAO = new OrganizationDAO();
+    for (o in orgDAO.getAll())
+      orgDAO.delete(o);
+  }
+
   def "validate listed roles"() {
     when: "create a new organization"
-      to OrganizationManagementPage
-      waitFor { at(OrganizationManagementPage) }
-      newOrganizationButton.click()
-      waitFor { at(OrganizationPage) }
-      organizationName.click()
-      waitFor { organizationNameField.displayed }
-      organizationNameField << "test organization"
-      organizationSaveButton.click()
-      
+    to OrganizationManagementPage
+    waitFor { at(OrganizationManagementPage) }
+    newOrganizationButton.click()
+    waitFor { at(OrganizationPage) }
+    organizationName.click()
+    waitFor { organizationNameField.displayed }
+    organizationNameField << "test organization"
+    organizationSaveButton.click()
+
     then: "see the security tab shown"
-      waitFor { securityTabButton.displayed }
-      
+    waitFor { securityTabButton.displayed }
+
     when: "user clicks on security tab"
-      securityTabButton.click()
-    
+    tabs.securityTabButton.click()
+
     then: "security tab content is shown"
-      waitFor { securityTab.displayed }
-      waitFor { developerRole.displayed }
-      waitFor { ownerRole.displayed }
-      
+      waitFor { tabs.securityTab.displayed }
+      waitFor { tabs.securityTab.role("Developer").displayed }
+      waitFor { tabs.securityTab.role("Owner").displayed }
+
     when: "create a new application"
-      to ApplicationManagementPage
-      waitFor { at(ApplicationManagementPage) }
-      newApplicationButton.click()
-      waitFor { at(ApplicationPage) }
-      applicationName.click()
-      waitFor { applicationNameField.displayed }
-      applicationNameField << "test application"
-      applicationId.click()
-      waitFor { applicationIdField.displayed }
-      applicationIdField << "testapp"
-      applicationOrgField.click()
-      waitFor { $('a', text:'test organization').displayed }
-      $('a', text:'test organization').click()
-      applicationSaveButton.click()
-      
+    to ApplicationManagementPage
+    waitFor { at(ApplicationManagementPage) }
+    newApplicationButton.click()
+    waitFor { at(ApplicationPage) }
+    applicationName.click()
+    waitFor { applicationNameField.displayed }
+    applicationNameField << "test application"
+    applicationId.click()
+    waitFor { applicationIdField.displayed }
+    applicationIdField << "testapp"
+    applicationOrgField.click()
+    waitFor { $('a', text:'test organization').displayed }
+    $('a', text:'test organization').click()
+    applicationSaveButton.click()
+
     then: "see the security tab shown"
-      waitFor { securityTabButton.displayed }
-      
+    waitFor { tabs.securityTabButton.displayed }
+
     when: "user clicks on security tab"
-      securityTabButton.click()
-    
+    tabs.securityTabButton.click()
+
     then: "security tab is shown"
-      waitFor { securityTab.displayed }
-      waitFor { developerRole.displayed }
-      waitFor { ownerRole.displayed }
+      waitFor { tabs.securityTab.displayed }
+      waitFor { tabs.securityTab.role("Developer").displayed }
+      waitFor { tabs.securityTab.role("Owner").displayed }
   }
 }

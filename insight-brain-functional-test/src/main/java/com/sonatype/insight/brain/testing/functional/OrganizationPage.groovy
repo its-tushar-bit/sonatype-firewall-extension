@@ -7,6 +7,8 @@ package com.sonatype.insight.brain.testing.functional
 
 import geb.Page
 
+import com.sonatype.insight.brain.testing.functional.modules.ContextTabsModule
+
 class OrganizationPage extends Page {
   static at = {  organizationImage.displayed }
 
@@ -21,5 +23,7 @@ class OrganizationPage extends Page {
     deleteButtonAccept(required: false) { $('button', 'ng-click':'deleteOrganization();') }
     developerRole(required: false) { $('p', text:'Developer') }
     ownerRole(required: false) { $('p', text:'Owner') }
+
+    tabs { module ContextTabsModule }
   }
 }

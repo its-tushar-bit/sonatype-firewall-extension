@@ -82,6 +82,7 @@ public class ContextResolverTest
   public void testResolveContextIds_ApplicationEntity() {
     Organization org = tempEntity.newOrganization();
     Application app = tempEntity.newApplication(org.getId());
+    app.setOrganizationId("not-to-be-considered");
     Map<AuthzContext.Key, Object> parameters = new HashMap<AuthzContext.Key, Object>();
     parameters.put(AuthzContext.Key.APPLICATION, app);
     assertThat(resolver.resolveContextIds(parameters),
@@ -91,6 +92,7 @@ public class ContextResolverTest
   @Test
   public void testResolveContextIds_LegacyApplicationEntity() {
     Application app = tempEntity.newApplication(null);
+    app.setOrganizationId("not-to-be-considered");
     Map<AuthzContext.Key, Object> parameters = new HashMap<AuthzContext.Key, Object>();
     parameters.put(AuthzContext.Key.APPLICATION, app);
     assertThat(resolver.resolveContextIds(parameters), contains(app.getId(), MembershipMapping.GLOBAL_CONTEXT_ID));

@@ -26,7 +26,7 @@
       angular.module('componentProvider' + timestamp, []).service('ComponentLabelEditorGAV', function() {
         return angular.extend({ applicationId: applicationId }, angular.copy(me.gav));
       });
-      angular.bootstrap(container[0], ['ComponentLabelEditor', 'componentProvider' + timestamp, 'AngularCommon']);
+      angular.bootstrap(container[0], ['ComponentLabelEditor', 'componentProvider' + timestamp, 'AngularCommon', 'ui.bootstrap']);
     };
     LabelTab.prototype.destroy = function() {
       this.node.empty();
@@ -147,7 +147,7 @@
                 $scope.labelRemoveError = messages.getHttpErrorMessage({ status: status, data: data });
               });
         };
-        $('#labelAssignScopeModal').on('shown', function() {
+        $('#labelRemoveModal').on('show', function() {
           AngularUtils.safeApply($scope, function() {
             $scope.labelRemoveError = null;
           });
@@ -161,6 +161,7 @@
       '$http', '$scope', 'CurrentLabelData', 'ComponentLabelEditorGAV', 'hudson', 'Messages',
       function($http, $scope, currentLabelData, componentLabelEditorGAV, hudson, messages) {
         function errorFn(data, status, headersFn, config) {
+          $scope.alerts.length = 0;
           $scope.alerts.push({
             type: 'error',
             msg: messages.getHttpErrorMessage({ status: status, data: data })

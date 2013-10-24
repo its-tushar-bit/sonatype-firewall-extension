@@ -25,10 +25,12 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.conditions.ArtifactCoordinate;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
+import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluationLog;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluationUtils;
 import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.report.ReportResource;
+import com.sonatype.insight.brain.security.AuthzFilter;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -111,7 +113,7 @@ public class SearchResource
     results.criteria.artifactId = artifactId;
     results.criteria.version = version;
     String baseUrl = this.baseUrl.get();
-    for (Application app : new ApplicationDAO().getAll()) {
+    for (Application app : getApplicationsWithReadPermission()) {
       PolicyEvaluationLog evalLog = new PolicyEvaluationLog(work.getAuditDir(app.getId()));
       PolicyEvaluation eval = evalLog.lastPrimaryByStage(stageId);
       if (eval == null) {
@@ -174,6 +176,11 @@ public class SearchResource
         version, System.currentTimeMillis() - start, results.results.size());
 
     return results;
+  }
+
+  @AuthzFilter(permission = Permission.READ, context = AuthzFilter.Context.APPLICATION)
+  List<Application> getApplicationsWithReadPermission() {
+    return new ApplicationDAO().getAll();
   }
 
   /**

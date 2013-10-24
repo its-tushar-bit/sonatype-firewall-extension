@@ -19,12 +19,31 @@ import com.ning.http.client.Response;
 import com.ning.http.multipart.StringPart;
 import org.junit.Test;
 
+import static org.hamcrest.Matchers.emptyArray;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 
 public class OrganizationResourceAuthzTest
     extends AbstractResourceAuthzTest
 {
+  @Test
+  public void testGetAll() throws Exception {
+    Role role = tempEntity.newRole(false, Permission.READ);
+    tempEntity.newMembershipMapping(org.getId(), role.getId(), authorized.getUsername());
+
+    String url = getRestUrl(OrganizationResource.SERVICE_PATH);
+    Response response = RestAccess.get(url, unauthorized.getUsername(), unauthorized.getPassword());
+    assertResponseStatus(200, response);
+    Organization[] entities = fromJson(response, Organization[].class);
+    assertThat(entities, is(emptyArray()));
+
+    response = RestAccess.get(url, authorized.getUsername(), authorized.getPassword());
+    assertResponseStatus(200, response);
+    entities = fromJson(response, Organization[].class);
+    assertThat(entities.length, is(1));
+    assertThat(entities[0].getId(), is(org.getId()));
+  }
+
   @Test
   public void testGenerateIcon() throws Exception {
     String hash = "abababababababababab";

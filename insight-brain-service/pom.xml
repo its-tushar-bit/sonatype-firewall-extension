@@ -23,11 +23,12 @@
     <wro4j.version>1.7.0</wro4j.version>
     <licensing.version>1.3.2</licensing.version>
     <angularjs.version>1.0.8</angularjs.version>
-    <jasmine.version>1.3.1.2</jasmine.version>
+    <jasmine.version>1.3.1.3</jasmine.version>
     <saga.version>1.4.2</saga.version>
     <jasmine.brain.id>test-brain-assets</jasmine.brain.id>
     <jasmine.cip.id>test-cip-assets</jasmine.cip.id>
     <jasmine.login.id>test-login-assets</jasmine.login.id>
+    <phantomjs-maven-plugin.version>0.1</phantomjs-maven-plugin.version>
   </properties>
 
   <dependencies>
@@ -421,7 +422,6 @@
       <artifactId>apacheds-core-integ</artifactId>
       <scope>test</scope>
     </dependency>
-
   </dependencies>
 
   <build>
@@ -466,6 +466,21 @@
         <artifactId>maven-surefire-plugin</artifactId>
         <configuration>
           <argLine>-XX:MaxPermSize=144m</argLine>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>com.github.klieber</groupId>
+        <artifactId>phantomjs-maven-plugin</artifactId>
+        <version>${phantomjs-maven-plugin.version}</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>install</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <version>1.9.2</version>
         </configuration>
       </plugin>
       <plugin>
@@ -551,6 +566,7 @@
                 <include>assets/lib/bootstrap/bootstrap-*.min.js</include>
                 <include>assets/lib/angular/angular-${angularjs.version}.js</include>
                 <include>assets/lib/Base64.js</include>
+                <include>assets/lib/d3/d3.min.js</include>
                 <include>login/*.js</include>
                 <include>assets/util/AngularCommon.js</include>
                 <include>assets/util/CLMLocation.js</include>
@@ -571,6 +587,10 @@
           <jsSrcDir>${project.basedir}/src/main/resources/assets</jsSrcDir>
           <jsTestSrcDir>${project.basedir}/src/test/resources/assets</jsTestSrcDir>
           <keepServerAlive>true</keepServerAlive>
+          <webDriverClassName>org.openqa.selenium.phantomjs.PhantomJSDriver</webDriverClassName>
+          <webDriverCapabilities>
+            <phantomjs.binary.path>${phantomjs.binary}</phantomjs.binary.path>
+          </webDriverCapabilities>
         </configuration>
       </plugin>
       <plugin>

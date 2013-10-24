@@ -64,7 +64,7 @@ public abstract class AbstractLicenseTest
     return uploadLicense(Collections.singletonMap("forceSuccess", Boolean.toString(forceSuccess)));
   }
 
-  private Response uploadLicense(Map<String, String> queryParams) throws Exception {
+  protected Response uploadLicense(Map<String, String> queryParams, String username, String password) throws Exception {
     InputStream license = AbstractLicenseTest.class.getResourceAsStream("/productlicense/license.lic");
     try {
       AsyncHttpClient.BoundRequestBuilder builder = AuthedRestAccess.getClient().preparePost(getServiceURL());
@@ -74,11 +74,20 @@ public abstract class AbstractLicenseTest
           builder.addQueryParameter(key, queryParams.get(key));
         }
       }
-      return AuthedRestAccess.execute(builder);
+      if (username == null) {
+        return AuthedRestAccess.execute(builder);
+      }
+      else {
+        return AuthedRestAccess.execute(builder, username, password);
+      }
     }
     finally {
       IOUtil.close(license);
     }
+  }
+
+  private Response uploadLicense(Map<String, String> queryParams) throws Exception {
+    return uploadLicense(queryParams, null /* username */, null /* password */);
   }
 
   protected void uninstallLicense() throws Exception {

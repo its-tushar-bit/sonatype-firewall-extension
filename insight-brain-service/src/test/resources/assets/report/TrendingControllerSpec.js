@@ -1,5 +1,54 @@
 describe('TrendingController tests', function() {
-  beforeEach(module('ReportTrending'));
+  beforeEach(module('ReportTrending', 'CLMLocation'));
+
+  describe('TrendingReportController', function() {
+    var scope;
+
+    beforeEach(inject(function($rootScope) {
+      scope = $rootScope.$new();
+    }));
+
+    afterEach(inject(function($httpBackend) {
+      $httpBackend.verifyNoOutstandingExpectation();
+      $httpBackend.verifyNoOutstandingRequest();
+      scope.$destroy();
+    }));
+
+    it('should load data into scope', inject(function($controller, $httpBackend, CLMLocations) {
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getTrendingReportUrl())).respond(TrendingReportMockData.get());
+      $controller('TrendingReportController', { $scope: scope });
+      $httpBackend.flush();
+
+      expect(scope.data).not.toBeUndefined();
+      expect(scope.data.meta.generatedBy).toBe('Author');
+    }));
+
+    it('should keep requesting data until it is available', inject(function($controller, $httpBackend, $timeout, CLMLocations) {
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getTrendingReportUrl())).respond(null);
+      $controller('TrendingReportController', { $scope: scope });
+
+      $httpBackend.flush();
+
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getTrendingReportUrl())).respond(TrendingReportMockData.get());
+
+      $timeout.flush();
+      $httpBackend.flush();
+
+      expect(scope.data).not.toBeUndefined();
+      expect(scope.data.meta.generatedBy).toBe('Author');
+    }));
+
+    it('handles errors to the trending report service', inject(function($controller, $httpBackend, CLMLocations) {
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getTrendingReportUrl())).respond(500, 'Fake Error');
+      $controller('TrendingReportController', { $scope: scope });
+
+      $httpBackend.flush();
+
+      expect(scope.error).not.toBeUndefined();
+      expect(scope.error[0]).toBe('Fake Error');
+    }));
+  });
+
   describe('Directive: componentViolations', function () {
     var element,
         scope;
@@ -9,7 +58,7 @@ describe('TrendingController tests', function() {
     }));
 
     it('should display one row per component', inject(function ($compile) {
-      scope.components = TrendingViolationsMockData.getPolicyViolationMockData().topPolicyViolations.security;
+      scope.components = TrendingReportMockData.get().topPolicyViolations.security;
       element = angular.element('<div component-violations title="Security Policy Violators" components="components"></div>');
       element = $compile(element)(scope);
       scope.$digest();

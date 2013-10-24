@@ -15,6 +15,7 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -36,6 +37,7 @@ import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.trending.ApplicationRiskSummary;
 import com.sonatype.insight.brain.model.trending.Applications;
 import com.sonatype.insight.brain.model.trending.ComponentsSummary;
+import com.sonatype.insight.brain.model.trending.DiffData;
 import com.sonatype.insight.brain.model.trending.PartialMatch;
 import com.sonatype.insight.brain.model.trending.PolicyViolation;
 import com.sonatype.insight.brain.model.trending.TrendingReport;
@@ -53,6 +55,18 @@ import org.slf4j.LoggerFactory;
 
 public class TrendingReportProcessor
 {
+  public static final String CATEGORY_OTHER = "other";
+
+  public static final String CATEGORY_QUALITY = "quality";
+
+  public static final String CATEGORY_LICENSE = "license";
+
+  public static final String CATEGORY_SECURITY = "security";
+
+  public static final String[] CATEGORIES = { CATEGORY_SECURITY, CATEGORY_LICENSE, CATEGORY_QUALITY, CATEGORY_OTHER };
+
+  public static final String[] THREAT_LEVELS = { "critical", "severe", "moderate", "null" };
+
   private static final Logger log = LoggerFactory.getLogger(TrendingReportProcessor.class);
 
   public static final long TWENTY_DAYS_MS = 20 * 86400L * 1000L;
@@ -94,6 +108,13 @@ public class TrendingReportProcessor
 
     Map<List<String>, Set<String>> partialMatches = new HashMap<List<String>, Set<String>>();
 
+    Map<String, int[]> categories = new HashMap<String, int[]>();
+    Map<String, int[]> previousCategories = new HashMap<String, int[]>();
+    for (String category : CATEGORIES) {
+      categories.put(category, new int[THREAT_LEVELS.length]);
+      previousCategories.put(category, new int[THREAT_LEVELS.length]);
+    }
+
     for (Application app : new ApplicationDAO().getAll()) {
       // alerts counts in this application
       int criticalAlerts = 0, severeAlerts = 0, moderateAlerts = 0, totalAlerts = 0;
@@ -129,23 +150,36 @@ public class TrendingReportProcessor
         for (PolicyAlert alert : policyEvaluationUtils.findPolicyAlerts(app.getId(), lastEval.getScanId())) {
           PolicyFact policyFact = alert.getTrigger();
           int level = policyFact.getThreatLevel();
-          int componentCount = policyFact.getComponentFacts().size();
+          List<ComponentFact> componentFacts = policyFact.getComponentFacts();
+          int componentCount = componentFacts.size();
           totalAlerts += componentCount;
+          int levelIdx = 3; // other
           if (level >= 8) {
             criticalAlerts += componentCount;
+            levelIdx = 0;
           }
           else if (level >= 4) {
             severeAlerts += componentCount;
+            levelIdx = 1;
           }
           else if (level >= 2) {
             moderateAlerts += componentCount;
+            levelIdx = 2;
+          }
+          for (ComponentFact componentFact : componentFacts) {
+            categories.get(getViolationCategory(componentFact.getConstraintFacts()))[levelIdx]++;
           }
         }
+
+        PolicyEvaluation firstEval = null;
 
         // policy alerts counts
         for (PolicyEvaluation eval : evalLog.allByStage(stageType.getId())) {
           int period = (int) ((now - eval.getTime()) / PERIOD_LENGTH_MS);
           if (period >= PERIOD_COUNT) {
+            if (firstEval == null || firstEval.getTime() < eval.getTime()) {
+              firstEval = eval;
+            }
             continue; // too old, skip
           }
 
@@ -164,15 +198,53 @@ public class TrendingReportProcessor
             }
           }
         }
+
+        // previous categories
+        if (firstEval != null && lastEval.getTime() > firstEval.getTime()) {
+          for (PolicyAlert alert : policyEvaluationUtils.findPolicyAlerts(app.getId(), firstEval.getScanId())) {
+            PolicyFact policyFact = alert.getTrigger();
+            int level = policyFact.getThreatLevel();
+            List<ComponentFact> componentFacts = policyFact.getComponentFacts();
+            int levelIdx = 3; // other
+            if (level >= 8) {
+              levelIdx = 0;
+            }
+            else if (level >= 4) {
+              levelIdx = 1;
+            }
+            else if (level >= 2) {
+              levelIdx = 2;
+            }
+            for (ComponentFact componentFact : componentFacts) {
+              previousCategories.get(getViolationCategory(componentFact.getConstraintFacts()))[levelIdx]++;
+            }
+          }
+        }
       }
       applicationRisks.add(new ApplicationRiskSummary(app.getName(), criticalAlerts, severeAlerts, moderateAlerts,
           totalAlerts - criticalAlerts - severeAlerts - moderateAlerts));
     }
 
-    TrendingReport report = new TrendingReport(meta, toComponentsSummary(components), toApplications(applicationRisks),
-        new ArrayList<PolicyViolation>(policyViolations.values()), toPartialMatches(partialMatches));
+    return new TrendingReport(meta, toComponentsSummary(components), toApplications(applicationRisks),
+        toPolicyViolations(policyViolations), toPartialMatches(partialMatches), toDiffData(categories,
+            previousCategories));
+  }
 
-    return report;
+  private Map<String, List<DiffData>> toDiffData(Map<String, int[]> categories, Map<String, int[]> previousCategories) {
+    Map<String, List<DiffData>> diffData = new LinkedHashMap<String, List<DiffData>>();
+    for (String category : CATEGORIES) {
+      List<DiffData> categoryDiffData = new ArrayList<DiffData>(THREAT_LEVELS.length);
+      for (int level = 0; level < THREAT_LEVELS.length; level++) {
+        categoryDiffData.add(new DiffData(THREAT_LEVELS[level], categories.get(category)[level], previousCategories
+            .get(category)[level]));
+      }
+      diffData.put(category, categoryDiffData);
+    }
+    return diffData;
+  }
+
+  private ArrayList<PolicyViolation> toPolicyViolations(Map<String, PolicyViolation> policyViolations) {
+    return new ArrayList<PolicyViolation>(policyViolations.values());
   }
 
   private Applications toApplications(List<ApplicationRiskSummary> applicationRisks) {
@@ -212,7 +284,6 @@ public class TrendingReportProcessor
   }
 
   private String getViolationCategory(List<ConstraintFact> constraintFacts) {
-    String[] categories = { "security", "license", "quality", "other" };
     int category = 3; // other
     for (ConstraintFact constraintFact : constraintFacts) {
       for (ConditionFact conditionFact : constraintFact.getConditionFacts()) {
@@ -229,7 +300,7 @@ public class TrendingReportProcessor
         }
       }
     }
-    return categories[category];
+    return CATEGORIES[category];
   }
 
   private static ComponentsSummary toComponentsSummary(Map<String, Map<String, Integer>> components) {

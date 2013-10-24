@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import com.sonatype.clm.dto.model.policy.Stage;
@@ -23,6 +24,7 @@ import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.trending.ApplicationRiskSummary;
 import com.sonatype.insight.brain.model.trending.Applications;
 import com.sonatype.insight.brain.model.trending.ComponentsSummary;
+import com.sonatype.insight.brain.model.trending.DiffData;
 import com.sonatype.insight.brain.model.trending.PartialMatch;
 import com.sonatype.insight.brain.model.trending.PolicyViolation;
 import com.sonatype.insight.brain.model.trending.TrendingReport;
@@ -44,6 +46,8 @@ import org.junit.rules.TemporaryFolder;
 
 public class TrendingReportProcessorTest
 {
+  private static final long ONE_DAY_MS = 86400L * 1000;
+
   private TrendingReportProcessor processor;
   private InsightWork insightWork;
 
@@ -152,7 +156,6 @@ public class TrendingReportProcessorTest
     builder.addPolicyAlert("a", 10).addComponentFact("a").addConstraintFact().addConditionFact("a");
 
     long time = System.currentTimeMillis();
-    long ONE_DAY_MS = 86400L * 1000;
     createScan(application, builder, time - (21 * ONE_DAY_MS)); // this is expected to be ignored
     createScan(application, builder, time - (16 * ONE_DAY_MS));
     createScan(application, builder, time - (11 * ONE_DAY_MS));
@@ -244,10 +247,80 @@ public class TrendingReportProcessorTest
     assertPartialMatch(partialMatches.get(4), "a", "e", "5", 2);
   }
 
+  @Test
+  public void testDiffData() throws Exception {
+    Application application = createApplication("testApp");
+    long now = System.currentTimeMillis();
+
+    ReportBuilder builder = new ReportBuilder();
+    // previous
+    builder.addPolicyAlert("a", 0).addComponentFact("a").addConstraintFact().addConditionFact("security");
+    builder.addPolicyAlert("b", 10).addComponentFact("b").addConstraintFact().addConditionFact("license");
+    createScan(application, builder, now - (21 * ONE_DAY_MS));
+    // now
+    builder = new ReportBuilder();
+    builder.addPolicyAlert("a", 0).addComponentFact("a").addConstraintFact().addConditionFact("security");
+    createScan(application, builder, now - (1 * ONE_DAY_MS)); // previous
+
+    TrendingReport report = processor.calculate();
+
+    Map<String, List<DiffData>> diffData = report.getDiffData();
+
+    assertDiffData(diffData.get("security"), new int[] { 0, 0, 0, 1 }, new int[] { 0, 0, 0, 1 });
+    assertDiffData(diffData.get("license"), new int[] { 1, 0, 0, 0 }, new int[] { 0, 0, 0, 0 });
+    assertDiffData(diffData.get("quality"), new int[] { 0, 0, 0, 0 }, new int[] { 0, 0, 0, 0 });
+    assertDiffData(diffData.get("other"), new int[] { 0, 0, 0, 0 }, new int[] { 0, 0, 0, 0 });
+  }
+
+  @Test
+  public void testDiffData_noScansDuringReportPeriod() throws Exception {
+    Application application = createApplication("testApp");
+    long now = System.currentTimeMillis();
+
+    ReportBuilder builder = new ReportBuilder();
+    // previous
+    builder.addPolicyAlert("a", 0).addComponentFact("a").addConstraintFact().addConditionFact("security");
+    createScan(application, builder, now - (21 * ONE_DAY_MS));
+
+    TrendingReport report = processor.calculate();
+
+    Map<String, List<DiffData>> diffData = report.getDiffData();
+
+    assertDiffData(diffData.get("security"), new int[] { 0, 0, 0, 0 }, new int[] { 0, 0, 0, 1 });
+  }
+
+  @Test
+  public void testDiffData_noScansBeforeReportPeriod() throws Exception {
+    Application application = createApplication("testApp");
+    long now = System.currentTimeMillis();
+
+    ReportBuilder builder = new ReportBuilder();
+    // previous
+    builder.addPolicyAlert("a", 0).addComponentFact("a").addConstraintFact().addConditionFact("security");
+    createScan(application, builder, now - (1 * ONE_DAY_MS));
+
+    TrendingReport report = processor.calculate();
+
+    Map<String, List<DiffData>> diffData = report.getDiffData();
+
+    assertDiffData(diffData.get("security"), new int[] { 0, 0, 0, 0 }, new int[] { 0, 0, 0, 1 });
+  }
+
+  private void assertDiffData(List<DiffData> diffData, int[] expectedPrevious, int[] expectedCurrent) {
+    Assert.assertEquals(TrendingReportProcessor.THREAT_LEVELS.length, diffData.size());
+    Assert.assertEquals(TrendingReportProcessor.THREAT_LEVELS.length, expectedPrevious.length);
+    Assert.assertEquals(TrendingReportProcessor.THREAT_LEVELS.length, expectedCurrent.length);
+
+    for (int level = 0; level < TrendingReportProcessor.THREAT_LEVELS.length; level++) {
+      Assert.assertEquals(TrendingReportProcessor.THREAT_LEVELS[level], diffData.get(level).getThreat());
+      Assert.assertEquals(expectedCurrent[level], diffData.get(level).getViolations());
+      Assert.assertEquals(expectedPrevious[level], diffData.get(level).getPreviousViolations());
+    }
+  }
+
   private void assertPartialMatch(PartialMatch partialMatch, String groupId, String artifactId, String version,
       int count)
   {
-    // TODO better way to report failures
     Assert.assertEquals(groupId, partialMatch.getGroupId());
     Assert.assertEquals(artifactId, partialMatch.getArtifactId());
     Assert.assertEquals(version, partialMatch.getVersion());

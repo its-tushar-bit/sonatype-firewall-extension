@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.model.trending;
 
 import java.util.List;
+import java.util.Map;
 
 public class TrendingReport
 {
@@ -14,18 +15,20 @@ public class TrendingReport
   private Applications applications;
   private List<PolicyViolation> violations;
   private List<PartialMatch> partialMatches;
+  private Map<String, List<DiffData>> diffData;
 
   public TrendingReport() {
   }
 
   public TrendingReport(TrendingReportMetadata meta, ComponentsSummary components, Applications applications,
-      List<PolicyViolation> violations, List<PartialMatch> partialMatches)
+      List<PolicyViolation> violations, List<PartialMatch> partialMatches, Map<String, List<DiffData>> diffData)
   {
     this.meta = meta;
     this.components = components;
     this.applications = applications;
     this.violations = violations;
     this.partialMatches = partialMatches;
+    this.diffData = diffData;
   }
 
   /**
@@ -55,5 +58,9 @@ public class TrendingReport
 
   public List<PartialMatch> getPartialMatches() {
     return partialMatches;
+  }
+
+  public Map<String, List<DiffData>> getDiffData() {
+    return diffData;
   }
 }

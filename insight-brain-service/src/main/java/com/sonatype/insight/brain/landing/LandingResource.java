@@ -38,7 +38,7 @@ public class LandingResource
   public Response home() {
     UriBuilder uriBuilder = baseUrl.redirect();
     if (licenseManager.isValid()) {
-      uriBuilder.path(InsightBrainService.BRAIN_ASSET_PATH.substring(1) + "reports.html").fragment("/reports/violations");
+      uriBuilder.path(InsightBrainService.BRAIN_ASSET_PATH.substring(1) + "reports.html");
     }
     else {
       uriBuilder.path(InsightBrainService.BRAIN_ASSET_PATH.substring(1) + "index.html");

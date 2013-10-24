@@ -5,12 +5,10 @@
  */
 package com.sonatype.insight.brain.testing.functional
 
-import com.sonatype.insight.brain.dataaccess.security.UserDAO;
 import com.sonatype.insight.brain.service.InsightBrainService
 import com.sonatype.insight.brain.service.InsightConfig
 
 import com.google.common.io.Resources
-import com.sonatype.insight.brain.testing.functional.util.EchoingPageChangeListener
 import com.yammer.dropwizard.testing.junit.DropwizardServiceRule
 import geb.spock.GebReportingSpec
 import org.junit.ClassRule
@@ -27,9 +25,8 @@ class UserManagementSpec extends GebReportingSpec {
   // assumes a license has already been installed
   // get to the user page
   def setup() {
-    browser.config.baseUrl = "http://localhost:8070/"
-    browser.registerPageChangeListener(new EchoingPageChangeListener())
-    to LoginPage
+    to LandingPage
+    waitFor { at(LoginPage) }
     loginAsAdmin()
     at(ReportPage)
     to UserManagementPage

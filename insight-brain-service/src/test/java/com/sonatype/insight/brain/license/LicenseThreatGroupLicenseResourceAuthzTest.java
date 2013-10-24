@@ -12,9 +12,7 @@ import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.service.AbstractResourceAuthzTest;
 import com.sonatype.insight.brain.utils.IdUtils;
-import com.sonatype.insight.test.RestAccess;
 
-import com.ning.http.client.Response;
 import org.junit.Test;
 
 public class LicenseThreatGroupLicenseResourceAuthzTest
@@ -29,21 +27,13 @@ public class LicenseThreatGroupLicenseResourceAuthzTest
 
     String url = getRestUrl(LicenseThreatGroupLicenseResource.SERVICE_PATH, IdUtils.TYPE_APPLICATION,
         app.getPublicId(), ltg.getId());
-    Response response = RestAccess.get(url, unauthorized.getUsername(), unauthorized.getPassword());
-    assertResponseStatus(403, response);
-
-    response = RestAccess.get(url, authorized.getUsername(), authorized.getPassword());
-    assertResponseStatus(200, response);
+    testAuthzGet(url);
 
     tempEntity.newMembershipMapping(org.getId(), role.getId(), authorized.getUsername());
 
     url = getRestUrl(LicenseThreatGroupLicenseResource.SERVICE_PATH, IdUtils.TYPE_ORGANIZATION, org.getId(),
         ltg.getId());
-    response = RestAccess.get(url, unauthorized.getUsername(), unauthorized.getPassword());
-    assertResponseStatus(403, response);
-
-    response = RestAccess.get(url, authorized.getUsername(), authorized.getPassword());
-    assertResponseStatus(200, response);
+    testAuthzGet(url);
   }
 
   @Test
@@ -56,20 +46,12 @@ public class LicenseThreatGroupLicenseResourceAuthzTest
 
     String url = getRestUrl(LicenseThreatGroupLicenseResource.SERVICE_PATH, IdUtils.TYPE_APPLICATION,
         app.getPublicId(), ltg.getId());
-    Response response = RestAccess.put(url, unauthorized.getUsername(), unauthorized.getPassword(), json);
-    assertResponseStatus(403, response);
-
-    response = RestAccess.put(url, authorized.getUsername(), authorized.getPassword(), json);
-    assertResponseStatus(200, response);
+    testAuthzPut(url, json);
 
     tempEntity.newMembershipMapping(org.getId(), role.getId(), authorized.getUsername());
 
     url = getRestUrl(LicenseThreatGroupLicenseResource.SERVICE_PATH, IdUtils.TYPE_ORGANIZATION, org.getId(),
         ltg.getId());
-    response = RestAccess.put(url, unauthorized.getUsername(), unauthorized.getPassword(), json);
-    assertResponseStatus(403, response);
-
-    response = RestAccess.put(url, authorized.getUsername(), authorized.getPassword(), json);
-    assertResponseStatus(200, response);
+    testAuthzPut(url, json);
   }
 }

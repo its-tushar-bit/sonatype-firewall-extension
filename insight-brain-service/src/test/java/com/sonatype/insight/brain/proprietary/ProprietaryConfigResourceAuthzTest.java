@@ -13,9 +13,7 @@ import com.sonatype.clm.dto.model.ProprietaryConfig;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.service.AbstractResourceAuthzTest;
-import com.sonatype.insight.test.RestAccess;
 
-import com.ning.http.client.Response;
 import org.junit.After;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -42,10 +40,7 @@ public class ProprietaryConfigResourceAuthzTest
     tempEntity.newMembershipMapping(MembershipMapping.GLOBAL_CONTEXT_ID, Role.ADMIN_ROLE_ID, authorized.getUsername());
 
     String url = getRestUrl(ProprietaryConfigResource.SERVICE_PATH);
-    Response response = RestAccess.put(url, unauthorized.getUsername(), unauthorized.getPassword(), toJson(config));
-    assertResponseStatus(403, response);
 
-    response = RestAccess.put(url, authorized.getUsername(), authorized.getPassword(), toJson(config));
-    assertResponseStatus(204, response);
+    testAuthzPut(url, toJson(config), 204);
   }
 }

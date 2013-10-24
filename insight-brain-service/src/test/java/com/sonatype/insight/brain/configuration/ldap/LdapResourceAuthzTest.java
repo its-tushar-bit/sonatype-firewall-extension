@@ -9,7 +9,6 @@ import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapServerDAO;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.service.AbstractResourceAuthzTest;
-import com.sonatype.insight.test.RestAccess;
 
 import com.ning.http.client.Response;
 import org.junit.Test;
@@ -22,11 +21,7 @@ public class LdapResourceAuthzTest
     tempEntity.newMembershipMapping(MembershipMapping.GLOBAL_CONTEXT_ID, Role.ADMIN_ROLE_ID, authorized.getUsername());
 
     String url = getRestUrl(LdapResource.SERVICE_PATH);
-    Response response = RestAccess.get(url, unauthorized.getUsername(), unauthorized.getPassword());
-    assertResponseStatus(403, response);
-
-    response = RestAccess.get(url, authorized.getUsername(), authorized.getPassword());
-    assertResponseStatus(200, response);
+    testAuthzGet(url);
   }
 
   @Test
@@ -35,11 +30,7 @@ public class LdapResourceAuthzTest
 
     LdapServer ldapServer = tempEntity.newLdapServer("testGetConnection");
     String url = getRestUrl(LdapResource.SERVICE_PATH + "/{ldapServerId}/connection", ldapServer.getId());
-    Response response = RestAccess.get(url, unauthorized.getUsername(), unauthorized.getPassword());
-    assertResponseStatus(403, response);
-
-    response = RestAccess.get(url, authorized.getUsername(), authorized.getPassword());
-    assertResponseStatus(200, response);
+    testAuthzGet(url);
   }
 
   @Test
@@ -48,11 +39,7 @@ public class LdapResourceAuthzTest
 
     LdapServer ldapServer = tempEntity.newLdapServer("testGetUserMapping");
     String url = getRestUrl(LdapResource.SERVICE_PATH + "/{ldapServerId}/userMapping", ldapServer.getId());
-    Response response = RestAccess.get(url, unauthorized.getUsername(), unauthorized.getPassword());
-    assertResponseStatus(403, response);
-
-    response = RestAccess.get(url, authorized.getUsername(), authorized.getPassword());
-    assertResponseStatus(200, response);
+    testAuthzGet(url);
   }
 
   @Test
@@ -64,12 +51,7 @@ public class LdapResourceAuthzTest
     LdapConnection ldapConnection = new LdapConnection();
     ldapConnection.setServerId(ldapServer.getId());
     String url = getRestUrl(LdapResource.SERVICE_PATH + "/{ldapServerId}/testConnection", ldapServer.getId());
-    Response response = RestAccess.put(url, unauthorized.getUsername(), unauthorized.getPassword(),
-        toJson(ldapConnection));
-    assertResponseStatus(403, response);
-
-    response = RestAccess.put(url, authorized.getUsername(), authorized.getPassword(), toJson(ldapConnection));
-    assertResponseStatus(200, response);
+    testAuthzPut(url, toJson(ldapConnection));
   }
 
   @Test
@@ -85,12 +67,7 @@ public class LdapResourceAuthzTest
     ldapTestLoginRequest.setUsername("testTestLogin");
     ldapTestLoginRequest.setPassword("testTestLogin");
     String url = getRestUrl(LdapResource.SERVICE_PATH + "/{ldapServerId}/testLogin", ldapServer.getId());
-    Response response = RestAccess.put(url, unauthorized.getUsername(), unauthorized.getPassword(),
-        toJson(ldapTestLoginRequest));
-    assertResponseStatus(403, response);
-
-    response = RestAccess.put(url, authorized.getUsername(), authorized.getPassword(), toJson(ldapTestLoginRequest));
-    assertResponseStatus(200, response);
+    testAuthzPut(url, toJson(ldapTestLoginRequest));
   }
 
   @Test
@@ -103,13 +80,8 @@ public class LdapResourceAuthzTest
     LdapUserMapping ldapUserMapping = new LdapUserMapping();
     ldapUserMapping.setServerId(ldapServer.getId());
     String url = getRestUrl(LdapResource.SERVICE_PATH + "/{ldapServerId}/testUserMapping", ldapServer.getId());
-    Response response = RestAccess.put(url, unauthorized.getUsername(), unauthorized.getPassword(),
-        toJson(ldapUserMapping));
-    assertResponseStatus(403, response);
-
-    response = RestAccess.put(url, authorized.getUsername(), authorized.getPassword(), toJson(ldapUserMapping));
     // 400 because we don't need a successful call. We only need to get past authorization.
-    assertResponseStatus(400, response);
+    testAuthzPut(url, toJson(ldapUserMapping), 400);
   }
 
   @Test
@@ -118,12 +90,7 @@ public class LdapResourceAuthzTest
 
     LdapServer ldapServer = new LdapServer("testAddLdapServer");
     String url = getRestUrl(LdapResource.SERVICE_PATH);
-    Response response = RestAccess
-        .post(url, unauthorized.getUsername(), unauthorized.getPassword(), toJson(ldapServer));
-    assertResponseStatus(403, response);
-
-    response = RestAccess.post(url, authorized.getUsername(), authorized.getPassword(), toJson(ldapServer));
-    assertResponseStatus(200, response);
+    Response response = testAuthzPost(url, toJson(ldapServer));
     ldapServer = fromJson(response, LdapServer.class);
     new LdapServerDAO().delete(ldapServer);
   }
@@ -134,11 +101,7 @@ public class LdapResourceAuthzTest
 
     LdapServer ldapServer = tempEntity.newLdapServer("testUpdateLdapServer");
     String url = getRestUrl(LdapResource.SERVICE_PATH);
-    Response response = RestAccess.put(url, unauthorized.getUsername(), unauthorized.getPassword(), toJson(ldapServer));
-    assertResponseStatus(403, response);
-
-    response = RestAccess.put(url, authorized.getUsername(), authorized.getPassword(), toJson(ldapServer));
-    assertResponseStatus(200, response);
+    testAuthzPut(url, toJson(ldapServer));
   }
 
   @Test
@@ -147,11 +110,7 @@ public class LdapResourceAuthzTest
 
     LdapServer ldapServer = tempEntity.newLdapServer("testDeleteLdapServer");
     String url = getRestUrl(LdapResource.SERVICE_PATH + "/{ldapServerId}", ldapServer.getId());
-    Response response = RestAccess.delete(url, unauthorized.getUsername(), unauthorized.getPassword());
-    assertResponseStatus(403, response);
-
-    response = RestAccess.delete(url, authorized.getUsername(), authorized.getPassword());
-    assertResponseStatus(204, response);
+    testAuthzDelete(url);
   }
 
   @Test
@@ -161,12 +120,7 @@ public class LdapResourceAuthzTest
     LdapServer ldapServer = tempEntity.newLdapServer("testUpdateLdapConnection");
     LdapConnection ldapConnection = tempEntity.newLdapConnection(ldapServer.getId());
     String url = getRestUrl(LdapResource.SERVICE_PATH + "/{ldapServerId}/connection", ldapServer.getId());
-    Response response = RestAccess.put(url, unauthorized.getUsername(), unauthorized.getPassword(),
-        toJson(ldapConnection));
-    assertResponseStatus(403, response);
-
-    response = RestAccess.put(url, authorized.getUsername(), authorized.getPassword(), toJson(ldapConnection));
-    assertResponseStatus(200, response);
+    testAuthzPut(url, toJson(ldapConnection));
   }
 
   @Test
@@ -194,11 +148,6 @@ public class LdapResourceAuthzTest
     ldapUserMapping.setUserMemberOfGroupAttribute("userMemberOfGroupAttribute");
     ldapUserMapping.setServerId(ldapServer.getId());
     String url = getRestUrl(LdapResource.SERVICE_PATH + "/{ldapServerId}/userMapping", ldapServer.getId());
-    Response response = RestAccess.put(url, unauthorized.getUsername(), unauthorized.getPassword(),
-        toJson(ldapUserMapping));
-    assertResponseStatus(403, response);
-
-    response = RestAccess.put(url, authorized.getUsername(), authorized.getPassword(), toJson(ldapUserMapping));
-    assertResponseStatus(200, response);
+    testAuthzPut(url, toJson(ldapUserMapping));
   }
 }

@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.product.license;
 
-import com.sonatype.insight.brain.AuthedRestAccess;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.service.AbstractResourceAuthzTest;
@@ -34,10 +33,6 @@ public class ProductLicenseResourceAuthzTest
     tempEntity.newMembershipMapping(MembershipMapping.GLOBAL_CONTEXT_ID, Role.ADMIN_ROLE_ID, authorized.getUsername());
 
     String url = getRestUrl(ProductLicenseResource.SERVICE_PATH);
-    Response response = AuthedRestAccess.delete(url, unauthorized.getUsername(), unauthorized.getPassword());
-    assertResponseStatus(403, response);
-
-    response = AuthedRestAccess.delete(url, authorized.getUsername(), authorized.getPassword());
-    assertResponseStatus(204, response);
+    testAuthzDelete(url);
   }
 }

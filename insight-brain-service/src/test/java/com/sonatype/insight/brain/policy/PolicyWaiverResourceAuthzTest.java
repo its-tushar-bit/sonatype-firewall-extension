@@ -17,7 +17,6 @@ import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.service.AbstractResourceAuthzTest;
 import com.sonatype.insight.brain.utils.IdUtils;
-import com.sonatype.insight.test.RestAccess;
 
 import com.ning.http.client.Response;
 import org.junit.Test;
@@ -33,11 +32,7 @@ public class PolicyWaiverResourceAuthzTest
     PolicyWaiver waiver = new PolicyWaiver("hash", "policyId", null, "comment");
 
     String url = getRestUrl(PolicyWaiverResource.SERVICE_PATH, IdUtils.TYPE_APPLICATION, app.getPublicId());
-    Response response = RestAccess.post(url, unauthorized.getUsername(), unauthorized.getPassword(), toJson(waiver));
-    assertResponseStatus(403, response);
-
-    response = RestAccess.post(url, authorized.getUsername(), authorized.getPassword(), toJson(waiver));
-    assertResponseStatus(200, response);
+    Response response = testAuthzPost(url, toJson(waiver));
     waiver = fromJson(response, PolicyWaiver.class);
     new PolicyWaiverDAO().delete(waiver);
 
@@ -45,11 +40,7 @@ public class PolicyWaiverResourceAuthzTest
     waiver = new PolicyWaiver("hash", "policyId", null, "comment");
 
     url = getRestUrl(PolicyWaiverResource.SERVICE_PATH, IdUtils.TYPE_ORGANIZATION, org.getId());
-    response = RestAccess.post(url, unauthorized.getUsername(), unauthorized.getPassword(), toJson(waiver));
-    assertResponseStatus(403, response);
-
-    response = RestAccess.post(url, authorized.getUsername(), authorized.getPassword(), toJson(waiver));
-    assertResponseStatus(200, response);
+    response = testAuthzPost(url, toJson(waiver));
     waiver = fromJson(response, PolicyWaiver.class);
     new PolicyWaiverDAO().delete(waiver);
   }
@@ -63,22 +54,14 @@ public class PolicyWaiverResourceAuthzTest
 
     String url = getRestUrl(PolicyWaiverResource.SERVICE_PATH + "/{waiverId}", IdUtils.TYPE_APPLICATION,
         app.getPublicId(), waiver.getId());
-    Response response = RestAccess.delete(url, unauthorized.getUsername(), unauthorized.getPassword());
-    assertResponseStatus(403, response);
-
-    response = RestAccess.delete(url, authorized.getUsername(), authorized.getPassword());
-    assertResponseStatus(204, response);
+    testAuthzDelete(url);
 
     tempEntity.newMembershipMapping(org.getId(), role.getId(), authorized.getUsername());
     waiver = tempEntity.newWaiver("hash", "policyId", org.getId());
 
     url = getRestUrl(PolicyWaiverResource.SERVICE_PATH + "/{waiverId}", IdUtils.TYPE_ORGANIZATION, org.getId(),
         waiver.getId());
-    response = RestAccess.delete(url, unauthorized.getUsername(), unauthorized.getPassword());
-    assertResponseStatus(403, response);
-
-    response = RestAccess.delete(url, authorized.getUsername(), authorized.getPassword());
-    assertResponseStatus(204, response);
+    testAuthzDelete(url);
   }
 
   @Test
@@ -88,21 +71,13 @@ public class PolicyWaiverResourceAuthzTest
 
     String url = getRestUrl(PolicyWaiverResource.SERVICE_PATH + "/component/{hash}", IdUtils.TYPE_APPLICATION,
         app.getPublicId(), "hash");
-    Response response = RestAccess.get(url, unauthorized.getUsername(), unauthorized.getPassword());
-    assertResponseStatus(403, response);
-
-    response = RestAccess.get(url, authorized.getUsername(), authorized.getPassword());
-    assertResponseStatus(200, response);
+    testAuthzGet(url);
 
     tempEntity.newMembershipMapping(org.getId(), role.getId(), authorized.getUsername());
 
     url = getRestUrl(PolicyWaiverResource.SERVICE_PATH + "/component/{hash}", IdUtils.TYPE_ORGANIZATION, org.getId(),
         "hash");
-    response = RestAccess.get(url, unauthorized.getUsername(), unauthorized.getPassword());
-    assertResponseStatus(403, response);
-
-    response = RestAccess.get(url, authorized.getUsername(), authorized.getPassword());
-    assertResponseStatus(200, response);
+    testAuthzGet(url);
   }
 
   @Test
@@ -119,11 +94,7 @@ public class PolicyWaiverResourceAuthzTest
     try {
       String url = getRestUrl(PolicyWaiverResource.SERVICE_PATH + "/applicable/context/{policyId}",
           IdUtils.TYPE_APPLICATION, app.getPublicId(), policy.getId());
-      Response response = RestAccess.get(url, unauthorized.getUsername(), unauthorized.getPassword());
-      assertResponseStatus(403, response);
-
-      response = RestAccess.get(url, authorized.getUsername(), authorized.getPassword());
-      assertResponseStatus(200, response);
+      testAuthzGet(url);
     }
     finally {
       policyDAO.delete(org.getId(), policy.getId());

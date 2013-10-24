@@ -19,5 +19,6 @@ public class CLMShiroAopModule
   @Override
   protected void configureInterceptors(AnnotationResolver resolver) {
     bindShiroInterceptor(new AuthorizeMethodInterceptor(resolver));
+    bindShiroInterceptor(new AuthzFilterMethodInterceptor(resolver));
   }
 }

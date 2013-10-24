@@ -5,24 +5,17 @@
  */
 package com.sonatype.insight.brain.search;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.util.Locale;
-import java.util.UUID;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
-
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.AuthedRestAccess;
-import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluationLog;
+import com.sonatype.insight.brain.TemporaryEntity;
 import com.sonatype.insight.brain.search.SearchResource.SearchResult;
 import com.sonatype.insight.brain.search.SearchResource.SearchResults;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
 import com.ning.http.client.Response;
 import com.yammer.dropwizard.testing.JsonHelpers;
-import org.codehaus.plexus.util.FileUtils;
+import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 
 import static org.hamcrest.Matchers.hasSize;
@@ -33,6 +26,15 @@ import static org.junit.Assert.assertThat;
 public class SearchResourceTest
     extends AbstractResourceTest
 {
+  private TestHelper helper;
+
+  @Rule
+  public TemporaryEntity tempEntity = new TemporaryEntity();
+
+  @Before
+  public void init() {
+    helper = new TestHelper(tempEntity, brain);
+  }
 
   private String getSearchUrl(String stageId, String hash) {
     return getRestBaseUrl() + SearchResource.SERVICE_PATH + "?stageId=" + stageId + "&hash=" + hash;
@@ -46,33 +48,6 @@ public class SearchResourceTest
   private String getSearchUrl(String stageId, String hash, String groupId, String artifactId, String version) {
     return getRestBaseUrl() + SearchResource.SERVICE_PATH + "?stageId=" + stageId + "&hash=" + hash + "&groupId="
         + groupId + "&artifactId=" + artifactId + "&version=" + version;
-  }
-
-  private File getReportCacheEntry(String appId, String scanId, String name) {
-    return new File(new File(brain.getReportDir(appId, scanId), "report.cache"), name);
-  }
-
-  private void createAppWithScan(String appPublicId, String stageId) throws Exception {
-    String scanId = UUID.randomUUID().toString().replace("-", "");
-    Application app = createApplication(appPublicId, appPublicId.toUpperCase(Locale.ENGLISH));
-    FileUtils.copyURLToFile(getClass().getResource("/SearchResourceTest/" + appPublicId + "/bom.json"),
-        getReportCacheEntry(app.getId(), scanId, "bom.json"));
-    FileUtils.copyURLToFile(getClass().getResource("/SearchResourceTest/" + appPublicId + "/policyalerts.json"),
-        getReportCacheEntry(app.getId(), scanId, "policyalerts.json"));
-    createReport(app.getId(), scanId);
-    PolicyEvaluationLog log = new PolicyEvaluationLog(brain.getAuditDir(app.getId()));
-    log.add(new Stage(stageId), scanId, "nobody", null);
-  }
-
-  private void createReport(String appId, String scanId) throws Exception {
-    ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(new File(brain.getReportDir(appId, scanId),
-        "report.zip")));
-    try {
-      zos.putNextEntry(new ZipEntry("index.html"));
-    }
-    finally {
-      zos.close();
-    }
   }
 
   private void assertSearchResult(SearchResult result, String appId, String appName, String hash, String groupId,
@@ -127,8 +102,8 @@ public class SearchResourceTest
 
   @Test
   public void testSearchComponent_RestrictedToStage() throws Exception {
-    createAppWithScan("search-app-1", Stage.ID_BUILD);
-    createAppWithScan("search-app-2", Stage.ID_RELEASE);
+    helper.createAppWithScan("search-app-1", Stage.ID_BUILD);
+    helper.createAppWithScan("search-app-2", Stage.ID_RELEASE);
 
     Response response = AuthedRestAccess.get(getSearchUrl(Stage.ID_BUILD, "1249e25aebb15358bedd"));
     assertResponseStatus(200, response);
@@ -142,8 +117,8 @@ public class SearchResourceTest
 
   @Test
   public void testSearchComponent_ByHash() throws Exception {
-    createAppWithScan("search-app-1", Stage.ID_BUILD);
-    createAppWithScan("search-app-2", Stage.ID_BUILD);
+    helper.createAppWithScan("search-app-1", Stage.ID_BUILD);
+    helper.createAppWithScan("search-app-2", Stage.ID_BUILD);
 
     Response response = AuthedRestAccess.get(getSearchUrl(Stage.ID_BUILD, "1249e25aebb15358bedd"));
     assertResponseStatus(200, response);
@@ -159,7 +134,7 @@ public class SearchResourceTest
 
   @Test
   public void testSearchComponent_ByHash_FullHashString() throws Exception {
-    createAppWithScan("search-app-1", Stage.ID_BUILD);
+    helper.createAppWithScan("search-app-1", Stage.ID_BUILD);
 
     Response response = AuthedRestAccess.get(getSearchUrl(Stage.ID_BUILD, "1249E25aEbb15358bEdd00000000000000000000"));
     assertResponseStatus(200, response);
@@ -173,8 +148,8 @@ public class SearchResourceTest
 
   @Test
   public void testSearchComponent_ByGav() throws Exception {
-    createAppWithScan("search-app-1", Stage.ID_BUILD);
-    createAppWithScan("search-app-2", Stage.ID_BUILD);
+    helper.createAppWithScan("search-app-1", Stage.ID_BUILD);
+    helper.createAppWithScan("search-app-2", Stage.ID_BUILD);
 
     Response response = AuthedRestAccess.get(getSearchUrl(Stage.ID_BUILD, "tomcat", "*", "*"));
     assertResponseStatus(200, response);
@@ -192,8 +167,8 @@ public class SearchResourceTest
 
   @Test
   public void testSearchComponent_ByGavAndHash() throws Exception {
-    createAppWithScan("search-app-1", Stage.ID_BUILD);
-    createAppWithScan("search-app-2", Stage.ID_BUILD);
+    helper.createAppWithScan("search-app-1", Stage.ID_BUILD);
+    helper.createAppWithScan("search-app-2", Stage.ID_BUILD);
 
     Response response = AuthedRestAccess.get(getSearchUrl(Stage.ID_BUILD, "1249e25aebb15358bedd", "tomcat", "*", "*"));
     assertResponseStatus(200, response);
@@ -209,10 +184,11 @@ public class SearchResourceTest
 
   @Test
   public void testSearchComponent_ByGavAndHash_NoIntersection() throws Exception {
-    createAppWithScan("search-app-1", Stage.ID_BUILD);
-    createAppWithScan("search-app-2", Stage.ID_BUILD);
+    helper.createAppWithScan("search-app-1", Stage.ID_BUILD);
+    helper.createAppWithScan("search-app-2", Stage.ID_BUILD);
 
-    Response response = AuthedRestAccess.get(getSearchUrl(Stage.ID_BUILD, "a397f601582e5ccd4b1a", "*", "tomcat-util", "*"));
+    Response response = AuthedRestAccess.get(getSearchUrl(Stage.ID_BUILD, "a397f601582e5ccd4b1a", "*", "tomcat-util",
+        "*"));
     assertResponseStatus(200, response);
     SearchResults results = JsonHelpers.fromJson(response.getResponseBody(), SearchResults.class);
     assertThat(results, is(notNullValue()));
@@ -238,7 +214,7 @@ public class SearchResourceTest
 
   @Test
   public void testSearchComponent_NoHitsAmongAppComponents() throws Exception {
-    createAppWithScan("search-app-1", Stage.ID_BUILD);
+    helper.createAppWithScan("search-app-1", Stage.ID_BUILD);
 
     Response response = AuthedRestAccess.get(getSearchUrl(Stage.ID_BUILD, "1249E25aEbb15358bEdf"));
     assertResponseStatus(200, response);

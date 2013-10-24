@@ -50,6 +50,7 @@ import com.sonatype.insight.brain.saas.SaasClient;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzErrorMsg;
+import com.sonatype.insight.brain.security.AuthzFilter;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.dataaccess.AbstractDAO;
@@ -112,6 +113,7 @@ public class ApplicationResource
    */
   @GET
   @Produces(MediaType.APPLICATION_JSON)
+  @AuthzFilter(permission = Permission.READ, context = AuthzFilter.Context.APPLICATION)
   public List<Application> getApplications() {
     final List<Application> applications = applicationDAO.getAll();
     return applications;
@@ -127,7 +129,7 @@ public class ApplicationResource
   @Produces(MediaType.APPLICATION_JSON)
   public List<ApplicationManagementSummary> getApplicationManagementSummaries() throws IOException {
     final List<ApplicationManagementSummary> applicationManagements = new ArrayList<ApplicationManagementSummary>();
-    final List<Application> applications = applicationDAO.getAll();
+    final List<Application> applications = getApplications();
     for (Application application : applications) {
       applicationManagements.add(getApplicationManagementSummary(application));
     }

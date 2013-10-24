@@ -69,7 +69,6 @@ public class CLMShiroModule
     manager.createChain("/rest/ci/**", "anon");
     manager.createChain("/rest/session/environment", "anon");
     manager.createChain("/rest/rm/**", "anon");
-    manager.createChain("/api/v1/**", "anon");
     manager.createChain("/cip/**", "anon");
     manager.createChain("/tasks/**", "anon");
   }

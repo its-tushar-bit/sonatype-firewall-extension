@@ -25,6 +25,7 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyListOf;
+import static org.mockito.Matchers.anyMapOf;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -34,8 +35,6 @@ public class AuthorizeMethodInterceptorTest
   private MethodInvocation invoc;
 
   private AuthorizationChecker authzChecker;
-
-  private ContextResolver contextResolver;
 
   private Subject subject;
 
@@ -69,8 +68,7 @@ public class AuthorizeMethodInterceptorTest
     invoc = mock(MethodInvocation.class);
     when(invoc.getThis()).thenReturn(this);
     authzChecker = mock(AuthorizationChecker.class);
-    contextResolver = mock(ContextResolver.class);
-    interceptor = new AuthorizeMethodInterceptor(contextResolver, authzChecker);
+    interceptor = new AuthorizeMethodInterceptor(authzChecker);
     subject = mock(Subject.class);
     ThreadContext.bind(subject);
   }
@@ -103,7 +101,8 @@ public class AuthorizeMethodInterceptorTest
     when(invoc.getMethod()).thenReturn(getClass().getMethod("stubNoContext", String.class));
     when(invoc.getArguments()).thenReturn(new Object[] { "test" });
     when(invoc.proceed()).thenReturn("test");
-    when(authzChecker.isPermitted(anyString(), any(Permission.class), anyListOf(String.class))).thenReturn(true);
+    when(authzChecker.isPermitted(anyString(), any(Permission.class), anyMapOf(AuthzContext.Key.class, Object.class)))
+        .thenReturn(true);
     when(subject.getPrincipal()).thenReturn("admin");
     assertThat(interceptor.invoke(invoc), is((Object) "test"));
   }

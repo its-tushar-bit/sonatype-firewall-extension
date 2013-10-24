@@ -24,23 +24,20 @@ import org.apache.shiro.authz.UnauthorizedException;
 class AuthorizeMethodInterceptor
     extends AnnotationMethodInterceptor
 {
-  private final ContextResolver contextResolver;
-
   private final AuthorizationChecker authzChecker;
 
   public AuthorizeMethodInterceptor(AnnotationResolver resolver) {
-    this(new AuthorizeAnnotationHandler(), resolver, new ContextResolver(), new AuthorizationChecker());
+    this(new AuthorizeAnnotationHandler(), resolver, new AuthorizationChecker());
   }
 
-  AuthorizeMethodInterceptor(ContextResolver contextResolver, AuthorizationChecker authzChecker) {
-    this(new AuthorizeAnnotationHandler(), null, contextResolver, authzChecker);
+  AuthorizeMethodInterceptor(AuthorizationChecker authzChecker) {
+    this(new AuthorizeAnnotationHandler(), null, authzChecker);
   }
 
   private AuthorizeMethodInterceptor(AuthorizeAnnotationHandler handler, AnnotationResolver resolver,
-      ContextResolver contextResolver, AuthorizationChecker authzChecker)
+      AuthorizationChecker authzChecker)
   {
     super(handler, resolver);
-    this.contextResolver = contextResolver;
     this.authzChecker = authzChecker;
   }
 
@@ -53,8 +50,7 @@ class AuthorizeMethodInterceptor
   public Object invoke(MethodInvocation mi) throws Throwable {
     Authorize anno = getAnnotation(mi);
     try {
-      Iterable<String> contextIds = contextResolver.resolveContextIds(getContextParameters(mi));
-      assertAuthorized(mi, anno, contextIds);
+      assertAuthorized(mi, anno);
     }
     catch (AuthorizationException e) {
       if (isErrorMsgRequested(mi)) {
@@ -94,15 +90,13 @@ class AuthorizeMethodInterceptor
     return false;
   }
 
-  private void assertAuthorized(MethodInvocation mi, Authorize anno, Iterable<String> contextIds)
-      throws AuthorizationException
-  {
+  private void assertAuthorized(MethodInvocation mi, Authorize anno) throws AuthorizationException {
     Object principal = getSubject().getPrincipal();
     if (principal == null) {
       throw new UnauthenticatedException("Anonymous access forbidden", newAuthzException(mi));
     }
     String username = principal.toString();
-    if (!authzChecker.isPermitted(username, anno.permission(), contextIds)) {
+    if (!authzChecker.isPermitted(username, anno.permission(), getContextParameters(mi))) {
       throw new UnauthorizedException("Insufficient permissions", newAuthzException(mi));
     }
   }

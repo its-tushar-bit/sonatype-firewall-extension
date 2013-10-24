@@ -43,6 +43,8 @@ public class ProprietaryConfigResource
 
   @GET
   @Produces(MediaType.APPLICATION_JSON)
+  // TODO: Enable authz when CLM-541 is fixed.
+  // @Authorize(permission = Permission.ADMIN)
   public ProprietaryConfig get() {
     return newDAO().get();
   }
@@ -50,10 +52,11 @@ public class ProprietaryConfigResource
   @PUT
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
+  // TODO: Enable authz when CLM-541 is fixed.
+  // @Authorize(permission = Permission.ADMIN)
   public void update(@QueryParam("user") final String user, @QueryParam("where") final String where,
       @Context final HttpServletRequest request, final ProprietaryConfig config)
   {
-
     log.debug("Received request to update proprietary component configuration");
 
     newDAO().session(user, AuditUtils.findIP(request), where).update(config);

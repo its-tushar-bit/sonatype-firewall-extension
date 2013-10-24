@@ -39,11 +39,13 @@ class AppSecurityManagementSpec extends GebReportingSpec {
 
   def cleanup() {
     ApplicationDAO appDAO = new ApplicationDAO();
-    for (o in appDAO.getAll())
-      appDAO.delete(o);
+    appDAO.getAll().each {
+      appDAO.delete(it);
+    }
     OrganizationDAO orgDAO = new OrganizationDAO();
-    for (o in orgDAO.getAll())
-      orgDAO.delete(o);
+    orgDAO.getAll().each {
+      orgDAO.delete(it);
+    }
   }
 
   def "validate listed roles"() {

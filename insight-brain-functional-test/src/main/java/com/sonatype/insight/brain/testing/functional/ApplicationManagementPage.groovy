@@ -10,7 +10,7 @@ import geb.Page
 class ApplicationManagementPage extends Page {
   static url = "assets/index.html#/management/application"
 
-  static at = { newApplicationButton.displayed }
+  static at = { driver.currentUrl.endsWith(url) }
 
   static content = {
     newApplicationButton(required: false) { $('a', text:contains('New Application')) }

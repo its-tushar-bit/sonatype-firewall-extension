@@ -45,6 +45,6 @@ public class ApplicationRiskSummary
   }
 
   public int getRisk() {
-    return critical * 100 + severe * 10 + moderate;
+    return (critical * 100) + (severe * 20) + (moderate * 5);
   }
 }

@@ -26,7 +26,6 @@ import com.sonatype.clm.dto.model.policy.ComponentFact;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
-import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.model.Application;
@@ -39,8 +38,8 @@ import com.sonatype.insight.brain.model.trending.Applications;
 import com.sonatype.insight.brain.model.trending.ComponentsSummary;
 import com.sonatype.insight.brain.model.trending.PartialMatch;
 import com.sonatype.insight.brain.model.trending.PolicyViolation;
-import com.sonatype.insight.brain.model.trending.TrendingReportMetadata;
 import com.sonatype.insight.brain.model.trending.TrendingReport;
+import com.sonatype.insight.brain.model.trending.TrendingReportMetadata;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluationLog;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluationUtils;
 import com.sonatype.insight.brain.report.Report;
@@ -79,7 +78,8 @@ public class TrendingReportProcessor
   public TrendingReport calculate() throws IOException {
     final long now = new Date().getTime();
 
-    TrendingReportMetadata meta = new TrendingReportMetadata("Report Generator", "Report Generator", now, now - TWENTY_DAYS_MS, now);
+    TrendingReportMetadata meta = new TrendingReportMetadata("Report Generator", "Report Generator", now, now
+        - TWENTY_DAYS_MS, now);
 
     // total component counts in all applications based on latest application reports
     Map<String, Map<String, Integer>> components = new HashMap<String, Map<String, Integer>>();
@@ -126,14 +126,21 @@ public class TrendingReportProcessor
         }
 
         // application policy alert counts in the latest report
-        final PolicyEvaluationResult policyEvaluationResult = new PolicyEvaluationResult();
-        policyEvaluationResult.setAlerts(policyEvaluationUtils.findPolicyAlerts(app.getId(), lastEval.getScanId()));
-        // XXX this should count all threat level, not just the highest (see hipchat comment from Bruce)
-        policyEvaluationUtils.calculateCounters(policyEvaluationResult);
-        criticalAlerts += policyEvaluationResult.getCriticalComponentCount();
-        severeAlerts += policyEvaluationResult.getSevereComponentCount();
-        moderateAlerts += policyEvaluationResult.getModerateComponentCount();
-        totalAlerts += policyEvaluationResult.getAffectedComponentCount();
+        for (PolicyAlert alert : policyEvaluationUtils.findPolicyAlerts(app.getId(), lastEval.getScanId())) {
+          PolicyFact policyFact = alert.getTrigger();
+          int level = policyFact.getThreatLevel();
+          int componentCount = policyFact.getComponentFacts().size();
+          totalAlerts += componentCount;
+          if (level >= 8) {
+            criticalAlerts += componentCount;
+          }
+          else if (level >= 4) {
+            severeAlerts += componentCount;
+          }
+          else if (level >= 2) {
+            moderateAlerts += componentCount;
+          }
+        }
 
         // policy alerts counts
         for (PolicyEvaluation eval : evalLog.allByStage(stageType.getId())) {
@@ -142,8 +149,7 @@ public class TrendingReportProcessor
             continue; // too old, skip
           }
 
-          List<PolicyAlert> alerts = policyEvaluationUtils.findPolicyAlerts(app.getId(), eval.getScanId());
-          for (PolicyAlert alert : alerts) {
+          for (PolicyAlert alert : policyEvaluationUtils.findPolicyAlerts(app.getId(), eval.getScanId())) {
             PolicyFact policyFact = alert.getTrigger();
             for (ComponentFact componentFact : policyFact.getComponentFacts()) {
               String category = getViolationCategory(componentFact.getConstraintFacts());
@@ -163,9 +169,8 @@ public class TrendingReportProcessor
           totalAlerts - criticalAlerts - severeAlerts - moderateAlerts));
     }
 
-    TrendingReport report = new TrendingReport(meta, toComponentsSummary(components),
-        toApplications(applicationRisks), new ArrayList<PolicyViolation>(policyViolations.values()),
-        toPartialMatches(partialMatches));
+    TrendingReport report = new TrendingReport(meta, toComponentsSummary(components), toApplications(applicationRisks),
+        new ArrayList<PolicyViolation>(policyViolations.values()), toPartialMatches(partialMatches));
 
     return report;
   }

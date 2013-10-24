@@ -25,15 +25,15 @@ import com.sonatype.insight.brain.model.trending.Applications;
 import com.sonatype.insight.brain.model.trending.ComponentsSummary;
 import com.sonatype.insight.brain.model.trending.PartialMatch;
 import com.sonatype.insight.brain.model.trending.PolicyViolation;
-import com.sonatype.insight.brain.model.trending.TrendingReportMetadata;
 import com.sonatype.insight.brain.model.trending.TrendingReport;
+import com.sonatype.insight.brain.model.trending.TrendingReportMetadata;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluationLog;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluationUtils;
 import com.sonatype.insight.brain.report.ReportDownloader;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightWork;
-import com.sonatype.insight.brain.trending.TrendingReportProcessor;
 import com.sonatype.insight.brain.trending.ReportBuilder.ConstraintFactBuilder;
+import com.sonatype.insight.brain.trending.ReportBuilder.PolicyAlertBuilder;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -97,7 +97,9 @@ public class TrendingReportProcessorTest
     ReportBuilder builder = new ReportBuilder();
     // 1
     builder.addPolicyAlert("a", 10).addComponentFact("a").addConstraintFact().addConditionFact("a");
-    builder.addPolicyAlert("b", 6).addComponentFact("b").addConstraintFact().addConditionFact("b");
+    PolicyAlertBuilder policyAlertB = builder.addPolicyAlert("b", 6);
+    policyAlertB.addComponentFact("a").addConstraintFact().addConditionFact("b");
+    policyAlertB.addComponentFact("b").addConstraintFact().addConditionFact("b");
     builder.addPolicyAlert("c", 2).addComponentFact("c").addConstraintFact().addConditionFact("c");
     builder.addPolicyAlert("d", 0).addComponentFact("d").addConstraintFact().addConditionFact("d");
     createScan(createApplication("testApp1"), builder);
@@ -133,7 +135,7 @@ public class TrendingReportProcessorTest
 
     Assert.assertEquals("testApp1", risks.get(0).getName());
     Assert.assertEquals(1, risks.get(0).getCritical());
-    Assert.assertEquals(1, risks.get(0).getSevere());
+    Assert.assertEquals(2, risks.get(0).getSevere());
     Assert.assertEquals(1, risks.get(0).getModerate());
     Assert.assertEquals(1, risks.get(0).getNone());
 

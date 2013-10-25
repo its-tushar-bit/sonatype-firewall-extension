@@ -126,7 +126,7 @@ public class TestInsightBrainService
     savedLicenseDataUpdater = LicenseDataUpdater.getUpdater();
 
     // This reduces the test execution time for this module by ~30%.
-    CLMRealm.setHashIterationsForTestsOnly(10);
+    CLMRealm.useWeakHashIterationForTestsOnly();
 
     new Thread("TestInsightBrainService")
     {

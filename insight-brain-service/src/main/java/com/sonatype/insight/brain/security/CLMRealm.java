@@ -45,8 +45,11 @@ public class CLMRealm
 
   private static int hashIterations = DefaultPasswordService.DEFAULT_HASH_ITERATIONS;
 
-  public static void setHashIterationsForTestsOnly(int newHashIterations) {
-    hashIterations = newHashIterations;
+  // This reduces the test execution time for this module by ~30%.
+  // In my tests, it doesn't make a big difference if we use 1 or 100 for hashIterations. I didn't want to use 1 because
+  // it is a very special value and I chose 10 without any really good reason. :)
+  public static void useWeakHashIterationForTestsOnly() {
+    hashIterations = 10;
   }
 
   public CLMRealm() {

@@ -11,6 +11,7 @@ import java.util.UUID;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseDataUpdater;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.security.CLMRealm;
 import com.sonatype.insight.client.utils.AbstractClient;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.client.utils.Result;
@@ -123,6 +124,9 @@ public class TestInsightBrainService
 
     // The brain server will set up a license updater on startup
     savedLicenseDataUpdater = LicenseDataUpdater.getUpdater();
+
+    // This reduces the test execution time for this module by ~30%.
+    CLMRealm.setHashIterationsForTestsOnly(10);
 
     new Thread("TestInsightBrainService")
     {

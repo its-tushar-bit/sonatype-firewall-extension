@@ -1,3 +1,8 @@
+/*
+ Copyright (c) 2011-2013 Sonatype, Inc. All rights reserved.
+ Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ "Sonatype" is a trademark of Sonatype, Inc.
+ */
 describe('TrendingController tests', function() {
   beforeEach(module('ReportTrending', 'CLMLocation'));
 
@@ -54,7 +59,17 @@ describe('TrendingController tests', function() {
       $httpBackend.flush();
 
       expect(scope.format).not.toBeUndefined();
-      expect(scope.format(1382661636262)).toBe('Oct 24, 2013')
+      expect(scope.format(1382661636262)).toBe('Oct 24, 2013');
+
+    }));
+
+    it('provides allows specification of a custom pattern for date formatting', inject(function($controller, $httpBackend, CLMLocations) {
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getTrendingReportUrl())).respond(TrendingReportMockData.get());
+      var trendingReportController = $controller('TrendingReportController', { $scope: scope });
+      $httpBackend.flush();
+
+      expect(scope.format).not.toBeUndefined();
+      expect(scope.format(1382661636262, '%b %e - %I:%M %p, %Y' )).toBe('Oct 24 - 05:40 PM, 2013');
 
     }));
   });

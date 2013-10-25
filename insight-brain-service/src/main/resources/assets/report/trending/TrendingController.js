@@ -27,7 +27,10 @@
 
     var fmtG = d3.time.format('%b %e, %Y');
 
-    $scope.format = function(date) {
+    $scope.format = function(date, pattern) {
+      if(pattern){
+        return d3.time.format(pattern)(new Date(date));
+      }
       return fmtG(new Date(date));
     };
 
@@ -91,7 +94,7 @@
           width : attrs.width,
           height: attrs.height
         };
-        sparkline(element[0], scope.data, config);
+        sparkline(element[0], scope.data || [], config);
       }
     };
   });

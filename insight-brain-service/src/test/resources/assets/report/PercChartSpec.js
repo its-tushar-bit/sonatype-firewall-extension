@@ -1,0 +1,40 @@
+/*
+ Copyright (c) 2011-2013 Sonatype, Inc. All rights reserved.
+ Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ "Sonatype" is a trademark of Sonatype, Inc.
+ */
+(function() {
+  'use strict';
+
+  describe('Controller: PercChartCtrl', function() {
+    var PercchartCtrl, scope;
+    beforeEach(module('ReportTrending', 'CLMLocation'));
+    PercchartCtrl = {};
+    scope = {};
+    beforeEach(inject(function($controller, $rootScope, $httpBackend, CLMLocations) {
+      scope = $rootScope.$new();
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getTrendingReportUrl())).respond(TrendingReportMockData.get());
+      PercchartCtrl = $controller('PercChartCtrl', {
+        $scope: scope
+      });
+      return $httpBackend.flush();
+    }));
+    it('loads data for chart', function() {
+      expect(scope.applicationComponents).toBeDefined();
+      return expect(scope.applicationComponents.length).toBe(3);
+    });
+    it('should provide a data selector', function() {
+      var value;
+      expect(scope.componentPercentageSelector).not.toBe(null);
+      value = scope.componentPercentageSelector(scope.applicationComponents[0]);
+      return expect(value).toBe(20);
+    });
+    return it('should provide a color renderer', function() {
+      var color;
+      expect(scope.componentColorRenderer).not.toBe(null);
+      color = scope.componentColorRenderer(scope.applicationComponents[0]);
+      return expect(color).toBe('#AAA');
+    });
+  });
+
+}).call(this);

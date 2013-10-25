@@ -1,4 +1,5 @@
 <div ng-controller="LabelsController" style='padding:5px' class='labelEditor'>
+	<div clm-alerts='alerts'></div>
 	<div style='float:right;width:49.5%;margin-bottom:10px'>
 		<h5>Available <i class='icon-refresh' ng-click='reloadAppLabels()' spinner></i></h5>
 		<div class='labelContainer'>
@@ -17,7 +18,6 @@
             </span>
 		</div>
 	</div>
-	<div clm-alerts='alerts'></div>
 	<div id="labelAssignScopeModal" data-keyboard="false" data-backdrop="static" class="modal hide fade" ng-controller="LabelAddController">
 		<div class="modal-header">
 			<button type="button" class="close" ng-click="declineAddLabel()" aria-hidden="true">&times;</button>

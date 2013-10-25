@@ -261,7 +261,7 @@ public class UserResourceTest
     response = AuthedRestAccess.delete(getServiceURL() + "/" + user.getId());
     assertResponseStatus(204, response);
     
-    // now delete the second user, if this passes, we are all set, this is where the NPE was occuring prior to fix
+    // now delete the second user, if this passes, we are all set, this is where the NPE was occurring prior to fix
     response = AuthedRestAccess.delete(getServiceURL() + "/" + user2.getId());
     assertResponseStatus(204, response);
   }

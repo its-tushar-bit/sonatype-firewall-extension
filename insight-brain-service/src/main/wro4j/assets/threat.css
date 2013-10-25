@@ -98,16 +98,17 @@
 }
 .threat-chiclet-critical {
 	color: #FFF;
-	background-color: #DB2852;
+	background-color: #DB2852 !important;
 }
 .threat-chiclet-severe {
 	color: #FFF;
-	background-color: #F7941E;
+	background-color: #F7941E !important;
 }
 .threat-chiclet-moderate {
 	color: #444;
-	background-color: #F5C649;
+	background-color: #F5C649 !important;
 }
 .threat-chiclet-none {
-  background-color: #0047b2;
+  color: #FFF;
+  background-color: #0047b2 !important;
 }

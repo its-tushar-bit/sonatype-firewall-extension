@@ -203,9 +203,9 @@
       }
     ]);
     policyViolationApp.controller('ViewWaiverController', [
-      '$scope', 'hudson', '$http', '$q', 'PolicyViolationData',
-      function($scope, hudson, $http, $q, policyViolationData) {
-        function handleHttpError(data, statusCode, headerFn, config) {
+      '$scope', 'hudson', '$http', '$q', 'PolicyViolationData', 'Messages',
+      function($scope, hudson, $http, $q, policyViolationData, messages) {
+        function handleHttpError(data, status, headerFn, config) {
           $scope.appError = messages.getHttpErrorMessage({ status: status, data: data });
         }
 
@@ -240,6 +240,7 @@
         };
         $scope.remove = function(waiver) {
           $scope.confirmDelete = waiver;
+          $scope.appError = null;
         };
         $scope.removeWaiver = function() {
           var waiver = $scope.confirmDelete;

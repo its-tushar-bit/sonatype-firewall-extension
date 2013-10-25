@@ -91,7 +91,7 @@
 
   var head = $('head'),
       scripts = [
-        'assets/lib/datepicker/bootstrap-datepicker.js', 'cip/cip-label-editor.js', 'cip/cip-policy-violations.js',
+        'assets/lib/datepicker/bootstrap-datepicker.js', 'assets/lib/ui-bootstrap-tpls-0.6.0.min.js', 'cip/cip-label-editor.js', 'cip/cip-policy-violations.js',
         'cip/cip-claim-component.js', 'cip/cip-license-editor.js', 'assets/js/Hudson.js', 'assets/util/AngularCommon.js'
       ],
       styles = ['assets/lib/datepicker/datepicker.css', 'cip/cip.css'],

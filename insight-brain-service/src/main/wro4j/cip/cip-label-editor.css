@@ -84,7 +84,7 @@ span.clmLabel {
 	padding: 5px;
 	overflow-y: auto;
 	overflow-x: hidden;
-	height: 220px;
+	height: 200px;
 }
 
 .labelEditor .clmLabel {
@@ -111,4 +111,9 @@ span.clmLabel {
 	overflow: hidden;
 	text-overflow: ellipsis;
 	display: inline-block
+}
+
+#informationPanel .labelEditor .alert {
+	margin-left: 0px;
+	width: 830px;
 }

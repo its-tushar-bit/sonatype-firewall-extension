@@ -20,7 +20,7 @@ import com.sonatype.insight.brain.utils.IdUtils;
  * properly ordered among other parameter annotations (e.g. FormDataParam), putting it last seems to work.
  * 
  * @since 1.7
- * @see ContextResolver
+ * @see ContextResolver#resolveContextIds(java.util.Map)
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ ElementType.PARAMETER })

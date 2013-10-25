@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.security;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 
 import com.sonatype.insight.brain.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
@@ -16,11 +17,14 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
+import com.sonatype.insight.brain.security.AuthzFilter.Context;
 
 import org.junit.Rule;
 import org.junit.Test;
 
+import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 
@@ -86,9 +90,20 @@ public class AuthorizationCheckerTest
     User user = tempEntity.newUser();
     Collection<String> contextIds = Arrays.asList(app.getId(), org.getId(), MembershipMapping.GLOBAL_CONTEXT_ID);
 
-    assertThat(checker.isPermitted(user.getUsername(), Permission.READ, contextIds), is(false));
-    assertThat(checker.isPermitted(user.getUsername(), Permission.WRITE, contextIds), is(false));
-    assertThat(checker.isPermitted(user.getUsername(), Permission.ADMIN, contextIds), is(false));
+    for (Permission perm : Permission.values()) {
+      assertThat(perm.toString(), checker.isPermitted(user.getUsername(), perm, contextIds), is(false));
+    }
+  }
+
+  @Test
+  public void testIsPermitted_AnonymousHasNoAccess() {
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplication(org.getId());
+    Collection<String> contextIds = Arrays.asList(app.getId(), org.getId(), MembershipMapping.GLOBAL_CONTEXT_ID);
+
+    for (Permission perm : Permission.values()) {
+      assertThat(perm.toString(), checker.isPermitted(null, perm, contextIds), is(false));
+    }
   }
 
   @Test
@@ -102,5 +117,46 @@ public class AuthorizationCheckerTest
     assertThat(checker.isPermitted(user.getUsername(), Permission.READ, contextIds), is(true));
     assertThat(checker.isPermitted(user.getUsername(), Permission.WRITE, contextIds), is(true));
     assertThat(checker.isPermitted(user.getUsername(), Permission.ADMIN, contextIds), is(false));
+  }
+
+  @Test
+  public void testFilter_Organizations() {
+    List<Organization> entities = Arrays.asList(tempEntity.newOrganization(), tempEntity.newOrganization());
+    User user = tempEntity.newUser();
+    Role role = tempEntity.newRole(false, Permission.READ);
+    newMembershipMapping(user, entities.get(0).getId(), role.getId());
+    assertThat(checker.filterByPermission(user.getUsername(), Permission.READ, entities, Context.ORGANIZATION),
+        is((Object) Arrays.asList(entities.get(0))));
+  }
+
+  @Test
+  public void testFilter_Applications() {
+    Organization org = tempEntity.newOrganization();
+    List<Application> entities = Arrays.asList(tempEntity.newApplication(org.getId()),
+        tempEntity.newApplication(org.getId()));
+    User user = tempEntity.newUser();
+    Role role = tempEntity.newRole(false, Permission.READ);
+    newMembershipMapping(user, entities.get(1).getId(), role.getId());
+    assertThat(checker.filterByPermission(user.getUsername(), Permission.READ, entities, Context.APPLICATION),
+        is((Object) Arrays.asList(entities.get(1))));
+  }
+
+  @Test
+  public void testFilter_NonMemberHasNoAccess() {
+    Collection<Organization> entities = Arrays.asList(tempEntity.newOrganization());
+    User user = tempEntity.newUser();
+    for (Permission perm : Permission.values()) {
+      assertThat(perm.toString(),
+          checker.filterByPermission(user.getUsername(), Permission.READ, entities, Context.ORGANIZATION), is(empty()));
+    }
+  }
+
+  @Test
+  public void testFilter_AnonymousHasNoAccess() {
+    Collection<Organization> entities = Arrays.asList(tempEntity.newOrganization());
+    for (Permission perm : Permission.values()) {
+      assertThat(perm.toString(), checker.filterByPermission(null, Permission.READ, entities, Context.ORGANIZATION),
+          is(empty()));
+    }
   }
 }

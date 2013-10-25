@@ -12,6 +12,7 @@ import javax.persistence.EntityManager;
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.model.security.Role;
+import com.sonatype.insight.brain.model.security.RolePermission;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 /**
@@ -32,6 +33,17 @@ public class RoleDAO
       throw new NotFoundException("Cannot find a role with id " + id);
     }
     return role;
+  }
+
+  @Override
+  public void delete(EntityManager em, Role entity) {
+    // Cascade to permissions
+    RolePermissionDAO rolePermissionDAO = new RolePermissionDAO();
+    for (RolePermission rolePermission : rolePermissionDAO.getByRoleId(em, entity.getId())) {
+      rolePermissionDAO.delete(em, rolePermission);
+    }
+
+    super.delete(em, entity);
   }
 
   /**

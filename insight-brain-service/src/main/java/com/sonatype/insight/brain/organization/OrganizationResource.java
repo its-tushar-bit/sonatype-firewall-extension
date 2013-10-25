@@ -36,6 +36,7 @@ import com.sonatype.insight.brain.saas.SaasClient;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzErrorMsg;
+import com.sonatype.insight.brain.security.AuthzFilter;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.dataaccess.AbstractDAO;
@@ -79,6 +80,7 @@ public class OrganizationResource
    */
   @GET
   @Produces(MediaType.APPLICATION_JSON)
+  @AuthzFilter(permission = Permission.READ, context = AuthzFilter.Context.ORGANIZATION)
   public List<Organization> getAll() {
     return organizationDAO.getAll();
   }

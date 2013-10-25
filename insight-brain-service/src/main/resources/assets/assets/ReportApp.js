@@ -17,19 +17,24 @@
 (function() {
   'use strict';
 
-  var reportModule = angular.module('ReportModule', ['ui.router', 'DashboardModule', 'ReportViolations'],
-          ['$stateProvider', function($stateProvider) {
-            $stateProvider.state('reports', {
-              url: '/reports',
-              templateUrl: '../assets/management.html?' + clmBuildTimestamp,
-              controller: 'ReportsController'
-            }).state('reports.violations', {
-              url: '/violations',
-              templateUrl: '../report-assets/violations/report-list.html?' + clmBuildTimestamp,
-              parent: 'reports',
-              controller: 'ReportViolationsController'
-            });
-          }]);
+  var reportModule = angular.module('ReportModule', ['ui.router', 'DashboardModule', 'ReportViolations', 'ReportTrending'],
+    ['$stateProvider', function($stateProvider) {
+      $stateProvider.state('reports', {
+        url: '/reports',
+        templateUrl: '../assets/management.html?' + clmBuildTimestamp,
+        controller: 'ReportsController'
+      }).state('reports.violations', {
+          url: '/violations',
+          templateUrl: '../report-assets/violations/report-list.html?' + clmBuildTimestamp,
+          parent: 'reports',
+          controller: 'ReportViolationsController'
+        }).state('reports.trending', {
+          url: '/trending',
+          templateUrl: '../report-assets/trending/risk-report.html?' + clmBuildTimestamp,
+          parent: 'reports',
+          controller: 'TrendingReportController'
+        });
+    }]);
 
   reportModule.controller('ReportsController', ['$scope', '$state', function($scope, $state) {
     $scope.$state = $state;
@@ -38,6 +43,11 @@
       {
         name: 'Violations',
         state: 'reports/violations',
+        isEnabled: true
+      },
+      {
+        name: 'Trending',
+        state: 'reports/trending',
         isEnabled: true
       }
     ];

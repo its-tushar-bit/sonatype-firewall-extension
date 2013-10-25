@@ -1,0 +1,93 @@
+<!--
+
+    Copyright (c) 2011-2013 Sonatype, Inc. All rights reserved.
+    Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+    "Sonatype" is a trademark of Sonatype, Inc.
+
+-->
+
+<div class="content report-content">
+  <div>
+    <alert ng-repeat="alert in alerts" type="alert.type" close="closeAlert($index)">{{alert.msg}}</alert>
+  </div>
+  <div ng-show='!errors && !data'>
+    <h5><i class='icon icon-time'></i> Loading...</h5>
+  </div>
+  <div ng-show="data" id="trending-data">
+
+    <div class="row">
+      <div class="span12">
+        <strong>{{data.meta.periodStart}} - {{data.meta.periodEnd}}</strong>
+        <hr style="background-color: #AAA;color: #AAA;height: 3px;margin:0;"/>
+      </div>
+    </div>
+    <div class="row">
+      <div class="span6">
+        <div class="row" style='padding-bottom: 10px;'>
+          <div class="span2">
+            <h1 class="count-header"><strong>{{ data.policies.length }}</strong> Policies</h1>
+            <h2 class="section-header">Threat Levels</h2>
+            <table class="color-key" width="100%">
+              <tr>
+                <td>High</td>
+                <td>{{ data.highPolicyCount }}</td>
+              </tr>
+              <tr>
+                <td>Medium</td>
+                <td>{{ data.mediumPolicyCount }}</td>
+              </tr>
+              <tr>
+                <td>Low</td>
+                <td>{{ data.lowPolicyCount }}</td>
+              </tr>
+              <tr>
+                <td>None</td>
+                <td>{{ data.nullPolicyCount }}</td>
+              </tr>
+            </table>
+          </div>
+          <div class="span4">
+            <h1 class="count-header"><strong>{{ data.applications.total }}</strong> Applications</h1>
+            <h2 class="section-header">Highest Risk</h2>
+            <table>
+              <tr ng-repeat="risk in data.applications.risks | orderBy:'-risk' | limitTo:5">
+                <td width="165" class="wordwrap" style="font-size: 9pt;">{{ risk.name }}</td>
+                <td width="" valign="top"><div chiclets base-class="threat-chiclet-small" always-show="true" critical="risk.critical" severe="risk.severe" moderate="risk.moderate" none="risk.none"></div></td>
+              </tr>
+            </table>
+          </div>
+        </div>
+        <div> <span class="component-count"><strong>{{ data.components.inApplications }}</strong> Components across all Applications</span>
+          <div ng-include='percentageChart'></div>
+        </div>
+        <div class="row" style="margin: 20px 0 0 0;">
+          <div>
+            <h1 class="count-header" style="margin:0;float:left"><strong>{{ data.totalPolicyViolationCount }}</strong> Violations</h1>
+          </div>
+          <div class="span2" style="line-height:32px;" chiclets base-class="threat-chiclet-small" always-show="true"
+               critical="data.highPolicyViolationCount" severe="data.mediumPolicyViolationCount"
+               moderate="data.lowPolicyViolationCount" none="data.nullPolicyViolationCount"></div>
+        </div>
+        <div ng-include src='diffchart'></div>
+        <div class="row">
+          <div class='span6'>
+            <div ng-include src="policyProgressionTable"></div>
+          </div>
+        </div>
+      </div>
+      <div class="span6" style="margin-top: 42px;">
+        <div component-violations title="Top Violators" components="data.topPolicyViolations.all"></div>
+        <div component-violations title="Security Policy Violators" components="data.topPolicyViolations.security"></div>
+        <div component-violations title="License Policy Violators" components="data.topPolicyViolations.license"></div>
+        <div component-violations title="Quality Policy Violators" components="data.topPolicyViolations.quality"></div>
+        <div component-violations title="Other Policies" components="data.topPolicyViolations.other"></div>
+        <div ng-show="data.partialMatches">
+          <h2 class="marginTop section-header">Most Partial Matches</h2>
+          <div class="row" ng-repeat="component in data.partialMatches" style="min-height: 32px;"> <span class="threat-chiclet-small" style="float:left;margin: 0 0 0 20px;color:#444;border: 1px solid #BBB;background-color:#CCC;"><strong>{{ component.count }}</strong></span>
+            <div class="wordwrap" style="width: 400px;float:left;text-indent:0;">{{ component.groupId }}:{{ component.artifactId }}:{{ component.version }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -497,31 +497,32 @@
             </goals>
             <configuration>
               <sourceIncludes>
-                <include>assets/lib/jquery/jquery-*.min.js</include>
-                <include>assets/lib/bootstrap/bootstrap-*.min.js</include>
-                <include>assets/lib/angular/angular-${angularjs.version}.js</include>
-                <include>assets/lib/angular-ui-router-0.0.1.min.js</include>
-                <include>assets/lib/ui-bootstrap-tpls-0.3.0.min.js</include>
-                <include>assets/lib/X-editable/bootstrap-editable.min.js</include>
-                <include>assets/**/*.js</include>
-                <include>application/**/*.js</include>
-                <include>policy/**/*.js</include>
-                <include>organization/**/*.js</include>
-                <include>configuration/**/*.js</include>
-                <include>security/**/*.js</include>
-                <include>report/**/*.js</include>
+                <include>resources/assets/assets/lib/jquery/jquery-*.min.js</include>
+                <include>resources/assets/assets/lib/bootstrap/bootstrap-*.min.js</include>
+                <include>resources/assets/assets/lib/angular/angular-${angularjs.version}.js</include>
+                <include>resources/assets/assets/lib/angular-ui-router-0.0.1.min.js</include>
+                <include>resources/assets/assets/lib/ui-bootstrap-tpls-0.3.0.min.js</include>
+                <include>resources/assets/assets/lib/X-editable/bootstrap-editable.min.js</include>
+                <include>resources/assets/assets/**/*.js</include>
+                <include>resources/assets/application/**/*.js</include>
+                <include>resources/assets/policy/**/*.js</include>
+                <include>resources/assets/organization/**/*.js</include>
+                <include>resources/assets/configuration/**/*.js</include>
+                <include>resources/assets/security/**/*.js</include>
+                <include>resources/assets/report/**/*.js</include>
+                <include>wro4j/**/*.js</include>
               </sourceIncludes>
               <specIncludes>
-                <include>SpecUtil.js</include>
-                <include>**/lib/*.js</include>
-                <include>**/*MockData.js</include>
-                <include>**/*-spec.js</include>
-                <include>**/*Spec.js</include>
+                <include>resources/assets/SpecUtil.js</include>
+                <include>resources/assets/**/lib/*.js</include>
+                <include>resources/assets/**/*MockData.js</include>
+                <include>resources/assets/**/*-spec.js</include>
+                <include>resources/assets/**/*Spec.js</include>
               </specIncludes>
               <specExcludes>
-                <exclude>**/cip*.js</exclude>
-                <exclude>**/CIP*.js</exclude>
-                <exclude>**/login/*</exclude>
+                <exclude>resources/assets/**/cip*.js</exclude>
+                <exclude>resources/assets/**/CIP*.js</exclude>
+                <exclude>resources/assets/**/login/*</exclude>
               </specExcludes>
               <junitXmlReportFileName>TEST-server.xml</junitXmlReportFileName>
             </configuration>
@@ -537,19 +538,19 @@
                 <source>cip/cip-test-util.js</source>
               </preloadSources>
               <sourceIncludes>
-                <include>assets/lib/jquery/jquery-*.min.js</include>
-                <include>assets/lib/bootstrap/bootstrap-*.min.js</include>
-                <include>assets/lib/angular/angular-${angularjs.version}.js</include>
-                <include>assets/js/Hudson.js</include>
-                <include>cip/*.js</include>
-                <include>assets/util/AngularCommon.js</include>
+                <include>resources/assets/assets/lib/jquery/jquery-*.min.js</include>
+                <include>resources/assets/assets/lib/bootstrap/bootstrap-*.min.js</include>
+                <include>resources/assets/assets/lib/angular/angular-${angularjs.version}.js</include>
+                <include>resources/assets/assets/js/Hudson.js</include>
+                <include>resources/assets/cip/*.js</include>
+                <include>resources/assets/assets/util/AngularCommon.js</include>
               </sourceIncludes>
               <specIncludes>
-                <include>SpecUtil.js</include>
-                <include>**/lib/*.js</include>
-                <include>**/*MockData.js</include>
-                <include>**/cip*.js</include>
-                <include>**/CIP*.js</include>
+                <include>resources/assets/SpecUtil.js</include>
+                <include>resources/assets/**/lib/*.js</include>
+                <include>resources/assets/**/*MockData.js</include>
+                <include>resources/assets/**/cip*.js</include>
+                <include>resources/assets/**/CIP*.js</include>
               </specIncludes>
               <junitXmlReportFileName>TEST-cip.xml</junitXmlReportFileName>
             </configuration>
@@ -562,21 +563,21 @@
             </goals>
             <configuration>
               <sourceIncludes>
-                <include>assets/lib/jquery/jquery-*.min.js</include>
-                <include>assets/lib/bootstrap/bootstrap-*.min.js</include>
-                <include>assets/lib/angular/angular-${angularjs.version}.js</include>
-                <include>assets/lib/Base64.js</include>
-                <include>assets/lib/d3/d3.min.js</include>
-                <include>login/*.js</include>
-                <include>assets/util/AngularCommon.js</include>
-                <include>assets/util/CLMLocation.js</include>
-                <include>assets/js/Hudson.js</include>
+                <include>resources/assets/assets/lib/jquery/jquery-*.min.js</include>
+                <include>resources/assets/assets/lib/bootstrap/bootstrap-*.min.js</include>
+                <include>resources/assets/assets/lib/angular/angular-${angularjs.version}.js</include>
+                <include>resources/assets/assets/lib/Base64.js</include>
+                <include>resources/assets/assets/lib/d3/d3.min.js</include>
+                <include>resources/assets/login/*.js</include>
+                <include>resources/assets/assets/util/AngularCommon.js</include>
+                <include>resources/assets/assets/util/CLMLocation.js</include>
+                <include>resources/assets/assets/js/Hudson.js</include>
               </sourceIncludes>
               <specIncludes>
-                <include>SpecUtil.js</include>
-                <include>**/lib/*.js</include>
-                <include>**/*MockData.js</include>
-                <include>**/login/*-spec.js</include>
+                <include>resources/assets/SpecUtil.js</include>
+                <include>resources/assets/**/lib/*.js</include>
+                <include>resources/assets/**/*MockData.js</include>
+                <include>resources/assets/**/login/*-spec.js</include>
               </specIncludes>
               <junitXmlReportFileName>TEST-login.xml</junitXmlReportFileName>
             </configuration>
@@ -584,8 +585,8 @@
         </executions>
         <configuration>
           <jasmineTargetDir>${project.build.directory}${file.separator}jasmine-reports</jasmineTargetDir>
-          <jsSrcDir>${project.basedir}/src/main/resources/assets</jsSrcDir>
-          <jsTestSrcDir>${project.basedir}/src/test/resources/assets</jsTestSrcDir>
+          <jsSrcDir>${project.basedir}/src/main</jsSrcDir>
+          <jsTestSrcDir>${project.basedir}/src/test</jsTestSrcDir>
           <keepServerAlive>true</keepServerAlive>
           <webDriverClassName>org.openqa.selenium.phantomjs.PhantomJSDriver</webDriverClassName>
           <webDriverCapabilities>
@@ -697,7 +698,7 @@
               <goal>run</goal>
             </goals>
             <configuration>
-              <options>camelcase,curly,indent=2,eqeqeq,forin,immed,noarg,quotmark='single',undef,unused,strict,trailing</options>
+              <options>camelcase,curly,indent=2,eqeqeq,forin,immed,noarg,quotmark='single',undef,unused,strict,trailing,browser,jquery</options>
               <targetGroups>clm-server</targetGroups>
               <cssDestinationFolder>${project.build.directory}/generated/assets/assets/css/</cssDestinationFolder>
               <jsDestinationFolder>${project.build.directory}/generated/assets/assets/js/</jsDestinationFolder>

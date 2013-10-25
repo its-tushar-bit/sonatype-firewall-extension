@@ -192,7 +192,7 @@ public class LdapManagerTest
   }
 
   @Test
-  public void testFindUser() throws Exception {
+  public void testFindUserByName() throws Exception {
     startLdapServer();
 
     LdapConnection conn = createLdapConnection();
@@ -201,7 +201,8 @@ public class LdapManagerTest
 
     LdapUserMapping umap = createUserMapping();
 
-    List<LdapUser> users = manager.testFindUsers(umap, "user2", 100);
+    //note this also checks case insensitive check, as the name is 'Test User 2'
+    List<LdapUser> users = manager.testFindUsersByName(umap, "user 2", 100);
     assertThat(users.size(), is(1));
 
   }

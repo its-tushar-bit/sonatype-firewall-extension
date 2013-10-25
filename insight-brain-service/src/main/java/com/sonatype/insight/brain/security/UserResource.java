@@ -35,6 +35,8 @@ import com.sonatype.insight.brain.ldap.LdapUser;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.error.exception.BadRequestException;
 
+import org.apache.commons.lang.StringUtils;
+
 /**
  * @since 1.7
  */
@@ -65,19 +67,19 @@ public class UserResource
   @Path("query")
   @Produces({ MediaType.APPLICATION_JSON })
   public List<User> findUsers(@QueryParam("q") String query) throws NamingException {
-    if (query == null || query.length() == 0) {
+    if (StringUtils.isEmpty(query)) {
       throw new BadRequestException("No search term specified.");
     }
 
     List<User> users = new ArrayList<User>();
     UserDAO dao = new UserDAO();
-    for (User user : dao.findUsers(query)) {
+    for (User user : dao.findUsersByName(query)) {
       clearUserPassword(user);
       users.add(user);
     }
 
     if (ldapManager.isLdapEnabled()) {
-      for (LdapUser user : ldapManager.findUsers(query, 100)) {
+      for (LdapUser user : ldapManager.findUsersByName(query, 100)) {
         User u = new User(user.getUsername(), null, user.getRealName(), null, user.getEmail());
         users.add(u);
       }

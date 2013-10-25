@@ -587,8 +587,9 @@ public class UserDAOTest
     createUser("xxx3", "aaa", "xxx", "xxx", "xxx@xxx.xxx");
 
     UserDAO dao = new UserDAO();
-    List<User> users = dao.findUsers("fOo");
-    assertEquals(4, users.size());
+    List<User> users = dao.findUsersByName("fOo");
+    //we only check first name and last name, so 2 results should be found
+    assertEquals(2, users.size());
   }
 
   @Test
@@ -596,7 +597,7 @@ public class UserDAOTest
     createUser("xxx", "foo", "xxx", "xxx", "xxx@xxx.xxx");
 
     UserDAO dao = new UserDAO();
-    List<User> users = dao.findUsers("foo");
+    List<User> users = dao.findUsersByName("foo");
     assertEquals(0, users.size());
   }
 

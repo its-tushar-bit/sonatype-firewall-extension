@@ -107,22 +107,31 @@ public class LdapManager
   }
 
   /**
-   * Find a list of users searching the name, login and email address for the substring
-   *
+   * Find a list of users, searching the displayName attribute and adding a prefix and suffix wildcard to the nameFragment
+   * 
+   * @param nameFragment String to match against
+   * @param maxResults Limit on the number of results to return
+   * @return List of LdapUser objects that match the search criteria
    * @throws NamingException if there is a problem with the mapping or the credentials
    */
-  public List<LdapUser> findUsers(String query, long maxResults) throws NamingException {
+  public List<LdapUser> findUsersByName(String nameFragment, long maxResults) throws NamingException {
     LdapConnection conn = getDecryptedConnection();
-    return new LdapQuery(conn, userDao.getByServerId(conn.getServerId())).getUsers(query, maxResults);
+    return new LdapQuery(conn, userDao.getByServerId(conn.getServerId())).queryUsersByName(nameFragment, maxResults);
   }
 
   /**
-   * Tests finding users with a query
-   *
+   * Tests finding users with a nameFragment
+   * 
+   * @param umap user mappings to find proper attributes for the ldap query
+   * @param nameFragment String to match against
+   * @param maxResults Limit on the number of results to return
+   * @return List of LdapUser objects that match the search criteria
    * @throws NamingException if there is a problem with the mapping or the credentials
    */
-  public List<LdapUser> testFindUsers(LdapUserMapping umap, String query, long maxResults) throws NamingException {
-    return new LdapQuery(getDecryptedConnection(), umap).getUsers(query, maxResults);
+  public List<LdapUser> testFindUsersByName(LdapUserMapping umap, String nameFragment, long maxResults)
+      throws NamingException
+  {
+    return new LdapQuery(getDecryptedConnection(), umap).queryUsersByName(nameFragment, maxResults);
   }
 
   // local methods used by LdapRealm

@@ -15,124 +15,13 @@ describe('AppSecurityControllerSpec', function() {
   }));
   
   describe('AppSecurityController', function(){
-    var scope = null, parentScope = null;
+    var scope = null, parentScope = null, role1 = null, role2 = null;
     
-    beforeEach(inject(function ($rootScope) {
+    beforeEach(inject(function ($rootScope, $httpBackend, CLMAppLocations, $controller) {
       parentScope = $rootScope.$new();
       scope = parentScope.$new();
-    }));
-    
-    afterEach(inject(function ($httpBackend) {
-      parentScope.$destroy();
-      $httpBackend.verifyNoOutstandingExpectation();
-      $httpBackend.verifyNoOutstandingRequest();
-    }));
-    
-
-    it('test it all...ya all of it', inject(function($httpBackend, $controller, $rootScope, CLMAppLocations) {
-      var role1 = {
-        "roleId": "1da70fae1fd54d6cb7999871ebdb9a36",
-        "roleName": "Developer",
-        "roleDescription": "Allows to evaluate policies.",
-        "membersByOwner": [{
-          "ownerId": "bom1-12345678",
-          "ownerName": "app",
-          "ownerType": "application",
-          "members": [{
-            "type": "USER",
-            "internalName": "admin",
-            "displayName": "Admin BuiltIn"
-          }, {
-            "type": "USER",
-            "internalName": "plynch",
-            "displayName": "Peter Lynch"
-          }]
-        }, {
-          "ownerId": "58634626a6b747e3b3e585512b682832",
-          "ownerName": "test",
-          "ownerType": "organization",
-          "members": [{
-            "type": "USER",
-            "internalName": "bfox",
-            "displayName": "Brian Fox"
-          }, {
-            "type": "USER",
-            "internalName": "dbradicich",
-            "displayName": "Damian Bradicich"
-          }, {
-            "type": "USER",
-            "internalName": "jduggan",
-            "displayName": "Jordan Duggan"
-          }, {
-            "type": "USER",
-            "internalName": "jwayman",
-            "displayName": "Jeffrey Wayman"
-          }, {
-            "type": "USER",
-            "internalName": "krobinson",
-            "displayName": "Kelly Robinson"
-          }, {
-            "type": "USER",
-            "internalName": "mhansen",
-            "displayName": "Mike Hansen"
-          }, {
-            "type": "USER",
-            "internalName": "mpiggott",
-            "displayName": "Matthew Piggott"
-          }, {
-            "type": "USER",
-            "internalName": "sgleason",
-            "displayName": "Sunny Gleason"
-          }]
-        }]
-      }, role2 = {
-        "roleId": "1cddabf7fdaa47d6833454af10e0a3ef",
-        "roleName": "Owner",
-        "roleDescription": "Allows to manage policies.",
-        "membersByOwner": [{
-          "ownerId": "bom1-12345678",
-          "ownerName": "app",
-          "ownerType": "application",
-          "members": [{
-            "type": "USER",
-            "internalName": "bfox",
-            "displayName": "Brian Fox"
-          }, {
-            "type": "USER",
-            "internalName": "dbradicich",
-            "displayName": "Damian Bradicich"
-          }, {
-            "type": "USER",
-            "internalName": "jduggan",
-            "displayName": "Jordan Duggan"
-          }, {
-            "type": "USER",
-            "internalName": "jorlina",
-            "displayName": "Joel Orlina"
-          }]
-        }, {
-          "ownerId": "58634626a6b747e3b3e585512b682832",
-          "ownerName": "test",
-          "ownerType": "organization",
-          "members": [{
-            "type": "USER",
-            "internalName": "admin",
-            "displayName": "Admin BuiltIn"
-          }, {
-            "type": "USER",
-            "internalName": "jswank",
-            "displayName": "Jason Swank"
-          }, {
-            "type": "USER",
-            "internalName": "jwayman",
-            "displayName": "Jeffrey Wayman"
-          }, {
-            "type": "USER",
-            "internalName": "mpiggott",
-            "displayName": "Matthew Piggott"
-          }]
-        }]
-      };
+      role1 = MockData.getRoleOneData();
+      role2 = MockData.getRoleTwoData();
       
       $httpBackend.expectGET(CLMAppLocations.getRoleMappingUrl()).respond({
         "membersByRole": [role1, role2]
@@ -142,62 +31,37 @@ describe('AppSecurityControllerSpec', function() {
       });
       $httpBackend.flush();
       expect(scope.context.roles.length).toEqual(2);
-      
-      // now do an edit and see what happens!
+    }));
+    
+    afterEach(inject(function ($httpBackend) {
+      parentScope.$destroy();
+      $httpBackend.verifyNoOutstandingExpectation();
+      $httpBackend.verifyNoOutstandingRequest();
+    }));
+    
+
+    it('check edit updates the role edit map properly', inject(function() {
       scope.editClick(role1);
       expect(scope.context.roleEditMap[role1.roleId]).toEqual(role1);
-      
-      // now get the list of usernames, make sure what we would expect
+    }));
+  
+    it('check user name lists are ordered as expected', inject(function() {
       expect(scope.getUserNames(role1)).toEqual('Admin BuiltIn, Peter Lynch');
       expect(scope.getUserNames(role2)).toEqual('Brian Fox, Damian Bradicich, Joel Orlina, Jordan Duggan');
-      
-      // now get the list of inherited usernames, make sure what we would expect
       expect(scope.getInheritedUserNames(role1)).toEqual('Brian Fox, Damian Bradicich, Jeffrey Wayman, Jordan Duggan, Kelly Robinson, Matthew Piggott, Mike Hansen, Sunny Gleason');
       expect(scope.getInheritedUserNames(role2)).toEqual('Admin BuiltIn, Jason Swank, Jeffrey Wayman, Matthew Piggott');
-      
-      // now lets fire an event and make sure it gets handled properly
+    }));
+    
+    it('validate roleSaveComplete event is handled properly', inject(function($rootScope) {
       $rootScope.$broadcast('roleSaveComplete', role1.roleId, {
-        members: [{
-          "type": "USER",
-          "internalName": "test1",
-          "displayName": "Test1"
-        }, {
-          "type": "USER",
-          "internalName": "test2",
-          "displayName": "Test2"
-        }, {
-          "type": "USER",
-          "internalName": "test3",
-          "displayName": "Test3"
-        }, {
-          "type": "USER",
-          "internalName": "test4",
-          "displayName": "Test4"
-        }]
+        members: MockData.getRoleSaveCompleteEventMemberList()
       });
       
       var found;
       
-
       for ( var i = 0; i < scope.context.roles.length; i++) {
         if (scope.context.roles[i].roleId === role1.roleId) {
-          expect(scope.context.roles[i].membersByOwner[0].members).toEqual([{
-            type: 'USER',
-            internalName: 'test1',
-            displayName: 'Test1'
-          }, {
-            type: 'USER',
-            internalName: 'test2',
-            displayName: 'Test2'
-          }, {
-            type: 'USER',
-            internalName: 'test3',
-            displayName: 'Test3'
-          }, {
-            type: 'USER',
-            internalName: 'test4',
-            displayName: 'Test4'
-          }]);
+          expect(scope.context.roles[i].membersByOwner[0].members).toEqual(MockData.getRoleSaveCompleteEventMemberList());
           found = true;
           break;
         }
@@ -214,6 +78,11 @@ describe('AppSecurityControllerSpec', function() {
     beforeEach(inject(function ($rootScope, $controller) {
       parentScope = $rootScope.$new();
       scope = parentScope.$new();
+      scope.isDirty = function() {
+        return true;
+      };
+      scope.hide = function() {
+      };
 
       parentScope.mappings = [{
         ownerId : 'bom1-12345678',
@@ -244,7 +113,7 @@ describe('AppSecurityControllerSpec', function() {
       parentScope.$destroy();
     });
 
-    it('Add User', function () {
+    it('Add User', inject(function ($httpBackend, CLMAppLocations) {
       scope.$apply(function () {
         scope.addUser({
           username : 'testuser',
@@ -261,16 +130,22 @@ describe('AppSecurityControllerSpec', function() {
         internalName : 'oldlady',
         displayName : 'Old Lady'
       }]);
-      // TODO Persistence
-    });
+      
+      $httpBackend.expectPUT(CLMAppLocations.getRoleMappingUrl(scope.roleId), scope.mappings[0].members).respond(204);
+      scope.save();
+      $httpBackend.flush();
+    }));
 
-    it('Remove User', function () {
+    it('Remove User', inject(function ($httpBackend, CLMAppLocations) {
       scope.$apply(function () {
         scope.removeUser(0);
       });
       expect(parentScope.mappings[0].members).toEqual([]);
-      // TODO Persistence
-    });
+      
+      $httpBackend.expectPUT(CLMAppLocations.getRoleMappingUrl(scope.roleId), scope.mappings[0].members).respond(204);
+      scope.save();
+      $httpBackend.flush();
+    }));
 
     // Text used for when showing users
     it('Name', function () {
@@ -346,7 +221,7 @@ describe('AppSecurityControllerSpec', function() {
         $httpBackend.flush();
 
         expect(scope.lastQuery).toEqual('food');
-        expect(scope.queryResults).toBeFalsy([{ id : 'food' }]);
+        expect(scope.queryResults).toBeFalsy();
       }));
 
       it('Query Completely Changed', inject(function ($timeout, $httpBackend) {

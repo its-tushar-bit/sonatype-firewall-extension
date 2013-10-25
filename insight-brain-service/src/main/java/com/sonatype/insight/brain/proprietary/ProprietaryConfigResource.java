@@ -43,8 +43,6 @@ public class ProprietaryConfigResource
 
   @GET
   @Produces(MediaType.APPLICATION_JSON)
-  // TODO: Enable authz when CLM-541 is fixed.
-  // @Authorize(permission = Permission.ADMIN)
   public ProprietaryConfig get() {
     return newDAO().get();
   }

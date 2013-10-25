@@ -34,20 +34,6 @@ public class ProprietaryConfigResourceAuthzTest
   @Test
   // TODO: Enable when CLM-541 is fixed.
   @Ignore
-  public void testGet() throws Exception {
-    tempEntity.newMembershipMapping(MembershipMapping.GLOBAL_CONTEXT_ID, Role.ADMIN_ROLE_ID, authorized.getUsername());
-
-    String url = getRestUrl(ProprietaryConfigResource.SERVICE_PATH);
-    Response response = RestAccess.get(url, unauthorized.getUsername(), unauthorized.getPassword());
-    assertResponseStatus(403, response);
-
-    response = RestAccess.get(url, authorized.getUsername(), authorized.getPassword());
-    assertResponseStatus(200, response);
-  }
-
-  @Test
-  // TODO: Enable when CLM-541 is fixed.
-  @Ignore
   public void testUpdate() throws Exception {
     List<String> packages = Arrays.asList("org.sonatype", "com.sonatype");
     ProprietaryConfig config = new ProprietaryConfig();

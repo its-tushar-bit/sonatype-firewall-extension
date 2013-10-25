@@ -12,18 +12,16 @@
     <div alert ng-repeat="alert in alerts" type="alert.type" close="closeAlert($index)">{{alert.msg}}</div>
   </div>
   <div ng-show='!error && !data'>
-    <div class="container">
-      <div class='pull-left'>
-        <div class='loader'>
-          <span></span>
-          <span></span>
-          <span></span>
-          <span></span>
-          <span></span>
-          <span></span>
-        </div>
+    <div class='container'>
+      <div class='loader'>
+        <span></span>
+        <span></span>
+        <span></span>
+        <span></span>
+        <span></span>
+        <span></span>
       </div>
-      <p class='lead'>CLM Server is generating the trending report. This process may take a while if you have a large
+      <p class='lead text-center'>CLM Server is generating the trending report. This process may take a while if you have a large
           number of components or applications. You may leave this page without hindering the creation of the report.</p>
     </div>
   </div>

@@ -12,11 +12,20 @@
     <div alert ng-repeat="alert in alerts" type="alert.type" close="closeAlert($index)">{{alert.msg}}</div>
   </div>
   <div ng-show='!error && !data'>
-    <div class='pull-left' style='padding-right:10px;'>
-      <img src='http://i663.photobucket.com/albums/uu360/fens90/robot.gif'>
+    <div class="container">
+      <div class='pull-left'>
+        <div class='loader'>
+          <span></span>
+          <span></span>
+          <span></span>
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+      </div>
+      <p class='lead'>CLM Server is generating the trending report. This process may take a while if you have a large
+          number of components or applications. You may leave this page without hindering the creation of the report.</p>
     </div>
-    <h5>CLM Server is generating the trending report. This process may take a while if you have a large
-      number of components or applications. You may leave this page without hindering the creation of the report.</h5>
   </div>
   <div ng-show="data" id="trending-data">
 

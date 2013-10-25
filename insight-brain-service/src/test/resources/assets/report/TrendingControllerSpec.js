@@ -69,7 +69,7 @@ describe('TrendingController tests', function() {
       $httpBackend.flush();
 
       expect(scope.format).not.toBeUndefined();
-      expect(scope.format(1382661636262, '%b %e - %I:%M %p, %Y' )).toBe('Oct 24 - 05:40 PM, 2013');
+      expect(scope.format(1382661636262, '%b %e - %I:%M %p, %Y' )).toMatch(/Oct 2.*, 2013/);
 
     }));
   });

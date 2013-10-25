@@ -78,17 +78,25 @@ public class ReportBuilder
 
   public class ComponentFactBuilder
   {
-    private final ObjectNode componentFact;
+    private final ObjectNode component;
     private final ArrayNode constraintFacts;
 
-    public ComponentFactBuilder(ObjectNode componentFact) {
-      this.componentFact = componentFact;
-      this.constraintFacts = componentFact.putArray("constraintFacts");
+    public ComponentFactBuilder(ObjectNode component) {
+      this.component = component;
+      this.constraintFacts = component.putArray("constraintFacts");
     }
 
     public ConstraintFactBuilder addConstraintFact() {
       return new ConstraintFactBuilder(constraintFacts.addObject());
     }
+
+    public ComponentFactBuilder setGAV(String g, String a, String v) {
+      component.put("groupId", g);
+      component.put("artifactId", a);
+      component.put("version", v);
+      return this;
+    }
+
   }
 
   public class PolicyAlertBuilder

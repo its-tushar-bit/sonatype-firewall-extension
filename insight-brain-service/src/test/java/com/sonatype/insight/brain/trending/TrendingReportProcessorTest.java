@@ -23,6 +23,7 @@ import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.trending.ApplicationRiskSummary;
 import com.sonatype.insight.brain.model.trending.Applications;
+import com.sonatype.insight.brain.model.trending.ComponentRiskSummary;
 import com.sonatype.insight.brain.model.trending.ComponentsSummary;
 import com.sonatype.insight.brain.model.trending.DiffData;
 import com.sonatype.insight.brain.model.trending.PartialMatch;
@@ -304,6 +305,57 @@ public class TrendingReportProcessorTest
     Map<String, List<DiffData>> diffData = report.getDiffData();
 
     assertDiffData(diffData.get("security"), new int[] { 0, 0, 0, 0 }, new int[] { 0, 0, 0, 1 });
+  }
+
+  @Test
+  public void testComponentRisks() throws Exception {
+    Application application = createApplication("testApp");
+    ReportBuilder builder = new ReportBuilder();
+    // critical x2
+    builder.addPolicyAlert("a", 10).addComponentFact("a").setGAV("a", "a", "a").addConstraintFact()
+        .addConditionFact("security");
+    builder.addPolicyAlert("a2", 10).addComponentFact("a").setGAV("a", "a", "a").addConstraintFact()
+        .addConditionFact("security");
+    // critical
+    builder.addPolicyAlert("b", 10).addComponentFact("b").setGAV("b", "b", "b").addConstraintFact()
+        .addConditionFact("security");
+    // severe x2
+    builder.addPolicyAlert("c", 6).addComponentFact("c").setGAV("c", "c", "c").addConstraintFact()
+        .addConditionFact("security");
+    builder.addPolicyAlert("c2", 6).addComponentFact("c").setGAV("c", "c", "c").addConstraintFact()
+    .addConditionFact("security");
+    // severe 
+    builder.addPolicyAlert("d", 6).addComponentFact("d").setGAV("d", "d", "d").addConstraintFact()
+        .addConditionFact("security");
+    // moderate
+    builder.addPolicyAlert("e", 3).addComponentFact("e").setGAV("e", "e", "e").addConstraintFact()
+        .addConditionFact("security");
+    // none
+    builder.addPolicyAlert("f", 0).addComponentFact("f").setGAV("f", "f", "f").addConstraintFact()
+        .addConditionFact("security");
+    createScan(application, builder);
+
+    TrendingReport report = processor.calculate();
+    Map<String, List<ComponentRiskSummary>> risks = report.getTopPolicyViolations();
+    List<ComponentRiskSummary> securityRisks = risks.get("security");
+    Assert.assertEquals(TrendingReportProcessor.COMPONENT_RISKS_COUNT, securityRisks.size());
+    assertComponentRisk(securityRisks.get(0), "a", "a", "a", 2, 0, 0, 0);
+    assertComponentRisk(securityRisks.get(1), "b", "b", "b", 1, 0, 0, 0);
+    assertComponentRisk(securityRisks.get(2), "c", "c", "c", 0, 2, 0, 0);
+    assertComponentRisk(securityRisks.get(3), "d", "d", "d", 0, 1, 0, 0);
+    assertComponentRisk(securityRisks.get(4), "e", "e", "e", 0, 0, 1, 0);
+  }
+
+  private void assertComponentRisk(ComponentRiskSummary componentRisk, String groupId, String artifactId,
+      String version, int critical, int severe, int moderate, int none)
+  {
+    Assert.assertEquals(groupId, componentRisk.getGroupId());
+    Assert.assertEquals(artifactId, componentRisk.getArtifactId());
+    Assert.assertEquals(version, componentRisk.getVersion());
+    Assert.assertEquals(critical, componentRisk.getCritical());
+    Assert.assertEquals(severe, componentRisk.getSevere());
+    Assert.assertEquals(moderate, componentRisk.getModerate());
+    Assert.assertEquals(none, componentRisk.getNone());
   }
 
   private void assertDiffData(List<DiffData> diffData, int[] expectedPrevious, int[] expectedCurrent) {

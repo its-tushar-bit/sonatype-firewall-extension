@@ -36,6 +36,7 @@ import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.trending.ApplicationRiskSummary;
 import com.sonatype.insight.brain.model.trending.Applications;
+import com.sonatype.insight.brain.model.trending.ComponentRiskSummary;
 import com.sonatype.insight.brain.model.trending.ComponentsSummary;
 import com.sonatype.insight.brain.model.trending.DiffData;
 import com.sonatype.insight.brain.model.trending.PartialMatch;
@@ -77,6 +78,8 @@ public class TrendingReportProcessor
 
   public static final int PARTIAL_MATCHES_COUNT = 5;
 
+  public static final int COMPONENT_RISKS_COUNT = 5;
+
   public static final long PERIOD_LENGTH_MS = TWENTY_DAYS_MS / PERIOD_COUNT;
 
   private final InsightWork work;
@@ -113,6 +116,11 @@ public class TrendingReportProcessor
     for (String category : CATEGORIES) {
       categories.put(category, new int[THREAT_LEVELS.length]);
       previousCategories.put(category, new int[THREAT_LEVELS.length]);
+    }
+
+    Map<String, Map<List<String>, int[]>> componentRisks = new LinkedHashMap<String, Map<List<String>, int[]>>();
+    for (String category : CATEGORIES) {
+      componentRisks.put(category, new HashMap<List<String>, int[]>());
     }
 
     for (Application app : new ApplicationDAO().getAll()) {
@@ -167,7 +175,19 @@ public class TrendingReportProcessor
             levelIdx = 2;
           }
           for (ComponentFact componentFact : componentFacts) {
-            categories.get(getViolationCategory(componentFact.getConstraintFacts()))[levelIdx]++;
+            String category = getViolationCategory(componentFact.getConstraintFacts());
+            categories.get(category)[levelIdx]++;
+            String g = componentFact.getGroupId(), a = componentFact.getArtifactId(), v = componentFact.getVersion();
+            if (g != null && a != null && v != null) {
+              Map<List<String>, int[]> categoryComponentRisks = componentRisks.get(category);
+              List<String> componentKey = Arrays.asList(g, a, v);
+              int[] componentRisk = categoryComponentRisks.get(componentKey);
+              if (componentRisk == null) {
+                componentRisk = new int[THREAT_LEVELS.length];
+                categoryComponentRisks.put(componentKey, componentRisk);
+              }
+              componentRisk[levelIdx]++;
+            }
           }
         }
 
@@ -227,7 +247,35 @@ public class TrendingReportProcessor
 
     return new TrendingReport(meta, toComponentsSummary(components), toApplications(applicationRisks),
         toPolicyViolations(policyViolations), toPartialMatches(partialMatches), toDiffData(categories,
-            previousCategories));
+            previousCategories), toTopCategoryComponentRisks(componentRisks));
+  }
+
+  private Map<String, List<ComponentRiskSummary>> toTopCategoryComponentRisks(
+      Map<String, Map<List<String>, int[]>> componentRisks)
+  {
+    Map<String, List<ComponentRiskSummary>> result = new LinkedHashMap<String, List<ComponentRiskSummary>>();
+
+    for (String category : CATEGORIES) {
+      result.put(category, toTopComponentRisks(componentRisks.get(category)));
+    }
+
+    return result;
+  }
+
+  private List<ComponentRiskSummary> toTopComponentRisks(Map<List<String>, int[]> categoryComponentRisks) {
+    ArrayList<ComponentRiskSummary> result = new ArrayList<ComponentRiskSummary>();
+    for (Map.Entry<List<String>, int[]> componentRisk : categoryComponentRisks.entrySet()) {
+      List<String> gav = componentRisk.getKey();
+      int[] risks = componentRisk.getValue();
+      result.add(new ComponentRiskSummary(gav.get(0), gav.get(1), gav.get(2), risks[0], risks[1], risks[2], risks[3]));
+    }
+    return top(result, COMPONENT_RISKS_COUNT, new Comparator<ComponentRiskSummary>()
+    {
+      @Override
+      public int compare(ComponentRiskSummary o1, ComponentRiskSummary o2) {
+        return o2.getRisk() - o1.getRisk();
+      }
+    });
   }
 
   private Map<String, List<DiffData>> toDiffData(Map<String, int[]> categories, Map<String, int[]> previousCategories) {

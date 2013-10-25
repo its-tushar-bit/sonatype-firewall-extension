@@ -11,7 +11,8 @@ public class DiffData
   private int violations;
   private int previousViolations;
 
-  public DiffData() {}
+  public DiffData() {
+  }
 
   public DiffData(String threat, int violations, int previousViolations) {
     this.threat = threat;

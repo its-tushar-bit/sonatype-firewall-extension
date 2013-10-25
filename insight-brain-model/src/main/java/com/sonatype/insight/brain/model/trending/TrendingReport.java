@@ -16,12 +16,14 @@ public class TrendingReport
   private List<PolicyViolation> violations;
   private List<PartialMatch> partialMatches;
   private Map<String, List<DiffData>> diffData;
+  private Map<String, List<ComponentRiskSummary>> topPolicyViolations;
 
   public TrendingReport() {
   }
 
   public TrendingReport(TrendingReportMetadata meta, ComponentsSummary components, Applications applications,
-      List<PolicyViolation> violations, List<PartialMatch> partialMatches, Map<String, List<DiffData>> diffData)
+      List<PolicyViolation> violations, List<PartialMatch> partialMatches, Map<String, List<DiffData>> diffData,
+      Map<String, List<ComponentRiskSummary>> topPolicyViolations)
   {
     this.meta = meta;
     this.components = components;
@@ -29,6 +31,7 @@ public class TrendingReport
     this.violations = violations;
     this.partialMatches = partialMatches;
     this.diffData = diffData;
+    this.topPolicyViolations = topPolicyViolations;
   }
 
   /**
@@ -62,5 +65,9 @@ public class TrendingReport
 
   public Map<String, List<DiffData>> getDiffData() {
     return diffData;
+  }
+
+  public Map<String, List<ComponentRiskSummary>> getTopPolicyViolations() {
+    return topPolicyViolations;
   }
 }

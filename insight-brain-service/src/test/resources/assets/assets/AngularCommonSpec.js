@@ -243,7 +243,7 @@ describe('AngularCommon', function() {
       var chiclets = chicletElement.find('span');
       expect(chiclets.length).toBe(4);
       angular.forEach(chiclets, function(chiclet){
-        expect($(chiclet).text()).toBe('0');
+        expect($(chiclet).text()).toBe('');
         expect($(chiclet).css('display')).not.toBe('none');
       })
     });

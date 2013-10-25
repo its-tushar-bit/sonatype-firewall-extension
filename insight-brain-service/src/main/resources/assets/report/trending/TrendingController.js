@@ -32,10 +32,10 @@
       replace: true,
       template:
         '<div ng-show="components">' +
-        '<h2 class="marginTop">{{ title }}</h2>' +
+        '<h2 class="marginTop section-header">{{ title }}</h2>' +
         '<div class="row" ng-repeat="component in components">' +
-        '<div class="span4 wordwrap">{{ component.groupId }}<span class="wrap-force-break"> : </span>{{ component.artifactId }}<span class="wrap-force-break"> : </span>{{ component.version }}</div>' +
-        '<div class="span2 wrap-post-left-bump" chiclets always-show="true" critical="component.critical" severe="component.severe"' +
+        '<div class="gav wordwrap">{{ component.groupId }}<span class="wrap-force-break"> : </span>{{ component.artifactId }}<span class="wrap-force-break"> : </span>{{ component.version }}</div>' +
+        '<div class="counters" chiclets base-class="threat-chiclet-small" always-show="true" critical="component.critical" severe="component.severe"' +
         ' moderate="component.moderate" none="component.none"></div>' +
         '</div>' +
         '</div>'
@@ -355,6 +355,6 @@
         pollFunction();
         return defer.promise;
       }
-    }
+   }
   }]);
 }());

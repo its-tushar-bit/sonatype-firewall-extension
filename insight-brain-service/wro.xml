@@ -39,6 +39,7 @@
 		<group-ref>application</group-ref>
 		<group-ref>policy</group-ref>
 		<group-ref>security</group-ref>
+		<group-ref>trending</group-ref>
 	</group>
 
 	<group name='cip'>
@@ -51,4 +52,8 @@
 	<group name='security'>
 		<css>/user/user.css</css>
 	</group>
+
+        <group name='trending'>
+          <css>/trending/trending.css</css>
+        </group>
 </groups>

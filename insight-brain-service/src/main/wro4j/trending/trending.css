@@ -231,4 +231,23 @@ td.violations-difference {
     left: 0;
     overflow: visible;
   }
+
+  .threat-chiclet-small {
+    color: #FFF !important;
+    background-color: #f5f5f5 !important;
+  }
+
+  .threat-chiclet-critical {
+    background-color: #DB2852 !important;
+  }
+  .threat-chiclet-severe {
+    background-color: #F7941E !important;
+  }
+  .threat-chiclet-moderate {
+    color: #444 !important;
+    background-color: #F5C649 !important;
+  }
+  .threat-chiclet-none {
+    background-color: #0047b2 !important;
+  }
 }

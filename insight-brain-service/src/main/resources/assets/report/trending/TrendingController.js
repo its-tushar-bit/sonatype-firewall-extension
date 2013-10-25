@@ -16,6 +16,9 @@
       $scope.error = null;
       trendingReportService.get().then(function(trendingReport) {
         $scope.data = trendingReport;
+        $scope.diffchart = '../report-assets/trending/diffChart.html?' + clmBuildTimestamp
+        $scope.percentageChart = '../report-assets/trending/percChart.html?' + clmBuildTimestamp
+        $scope.policyProgressionTable = '../report-assets/trending/policyProgressionTable.html?' + clmBuildTimestamp
       }, function(error) {
         $scope.error = error;
       });
@@ -27,6 +30,8 @@
     $scope.format = function(date) {
       return fmtG(new Date(date));
     };
+
+
   }]);
 
   reportTrendingModule.directive('componentViolations', function() {
@@ -86,8 +91,7 @@
           width : attrs.width,
           height: attrs.height
         };
-        var data = scope.data || [random(), random(), random(), random()];
-        sparkline(element[0], data, config);
+        sparkline(element[0], scope.data, config);
       }
     };
   });

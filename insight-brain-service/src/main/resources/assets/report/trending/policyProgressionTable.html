@@ -1,0 +1,39 @@
+<!--
+
+    Copyright (c) 2011-2013 Sonatype, Inc. All rights reserved.
+    Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+    "Sonatype" is a trademark of Sonatype, Inc.
+
+-->
+<div ng-controller="PolicyProgressionCtrl">
+  <table id="details-table" class="details" cellpadding="0" cellspacing="0" border="0">
+    <thead>
+    <tr>
+      <th colspan="2">Threat</th>
+      <th>Policy</th>
+      <th colspan="4">Violations Trending</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr ng-repeat="policy in policies | orderBy:'-threat'">
+      <td class="{{ threatLevelClass(policy.threat) }}" width="3"></td>
+      <td width="35">{{ threatLevel($index) }}</td>
+      <td>{{ policy.name }}</td>
+      <td>{{ firstViolationCount(policy) }}</td>
+      <td>
+        <div class='sparkline' sparkline data="policy.violations"></div>
+      </td>
+      <td>{{ lastViolationCount(policy) }}</td>
+      <td class='violations-difference' ng-class="{down: violationDifference(policy) < 0, up: violationDifference(policy) > 0 }">
+        <div style="clear:both;">
+          <div ng-show="violationDifference(policy) < 0" class="violation-marker">&#x25BC;</div>
+          <div ng-show="violationDifference(policy) > 0" class="violation-marker">&#x25B2;</div>
+          <span style="float: right;">{{ abs(violationDifference(policy)) }}</span>
+        </div>
+      </td>
+
+    </tr>
+    
+    </tbody>
+  </table>
+</div>

@@ -156,4 +156,14 @@ describe('dashboardApp', function() {
     scope.$digest();
     expect(scope.selectedDashboard.name).toBe('Reports');
   }));
+
+  it('provides the ability to log out', inject(function($httpBackend, CLMLocations, $rootScope){
+    expect(scope.logout).not.toBeUndefined();
+    $rootScope.authenticated = true;
+    $httpBackend.expectDELETE(CLMLocations.getSessionUrl()).respond({});
+    $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getSessionUrl())).respond(401);
+    scope.logout();
+    $httpBackend.flush();
+    expect($rootScope.authenticated).toBe(false);
+  }));
 });

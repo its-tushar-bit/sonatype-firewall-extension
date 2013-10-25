@@ -3,15 +3,16 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+/* global angular, clmBuildTimestamp */
 (function() {
-  "use strict";
-  var reportApp = angular.module('reportApp', ['ReportModule', 'Report'],
-      [
-        '$urlRouterProvider',
-        function($urlRouterProvider) {
-          $urlRouterProvider.when('', '/reports/violations');
-        }
-      ]);
+  'use strict';
+  angular.module('reportApp', ['ReportModule', 'Report'],
+    [
+      '$urlRouterProvider',
+      function($urlRouterProvider) {
+        $urlRouterProvider.when('', '/reports/violations');
+      }
+    ]);
 }());
 
 (function() {

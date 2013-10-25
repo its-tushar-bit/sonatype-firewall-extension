@@ -21,6 +21,7 @@
 	<group name='insight'>
 		<css>/assets/threat.css</css>
 		<css>/assets/insight.css</css>
+                <js minimize='false'>/assets/ReportApp.js</js>
 	</group>
 
 	<group name='policy'>

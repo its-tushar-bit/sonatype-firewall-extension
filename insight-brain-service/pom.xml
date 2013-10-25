@@ -690,14 +690,18 @@
         <version>${wro4j.version}</version>
         <executions>
           <execution>
-            <id>css-assets</id>
+            <id>assets</id>
             <phase>generate-resources</phase>
             <goals>
+              <goal>jshint</goal>
               <goal>run</goal>
             </goals>
             <configuration>
+              <options>camelcase,curly,indent=2,eqeqeq,forin,immed,noarg,quotmark='single',undef,unused,strict,trailing</options>
               <targetGroups>clm-server</targetGroups>
               <cssDestinationFolder>${project.build.directory}/generated/assets/assets/css/</cssDestinationFolder>
+              <jsDestinationFolder>${project.build.directory}/generated/assets/assets/js/</jsDestinationFolder>
+              <wroManagerFactory>ro.isdc.wro.extensions.manager.standalone.GoogleStandaloneManagerFactory</wroManagerFactory>
             </configuration>
           </execution>
           <execution>

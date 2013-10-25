@@ -43,7 +43,7 @@ public class TemporaryEntity
 {
   private static final String USER_PASSWORD_CLEAR = "secret";
 
-  private static final String USER_PASSWORD_HASH = "$shiro1$SHA-256$500000$2lOqZIkAH5mPy0kRQA35Qw==$ZohUABDXBElT1fuey7V/+QfMR+VLx1kWDR5TQpnAQcI=";
+  private static final String USER_PASSWORD_HASH = "$shiro1$SHA-256$10$Gsv3gW95oRKzzxp37k/wJA==$T2VDhMzPuXN7VTobkLUcwDsxxJJXj5pInbW7YUn8muY=";
 
   private final ApplicationDAO appDAO = new ApplicationDAO();
 

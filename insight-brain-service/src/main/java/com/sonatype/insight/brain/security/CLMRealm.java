@@ -43,7 +43,7 @@ public class CLMRealm
 
   private final DefaultPasswordService passwordService;
 
-  private static int hashIterations = 500000;
+  private static int hashIterations = DefaultPasswordService.DEFAULT_HASH_ITERATIONS;
 
   public static void setHashIterationsForTestsOnly(int newHashIterations) {
     hashIterations = newHashIterations;

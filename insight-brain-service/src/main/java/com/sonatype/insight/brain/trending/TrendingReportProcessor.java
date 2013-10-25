@@ -122,6 +122,7 @@ public class TrendingReportProcessor
     for (String category : CATEGORIES) {
       componentRisks.put(category, new HashMap<List<String>, int[]>());
     }
+    componentRisks.put("all", new HashMap<List<String>, int[]>());
 
     for (Application app : new ApplicationDAO().getAll()) {
       // alerts counts in this application
@@ -179,14 +180,9 @@ public class TrendingReportProcessor
             categories.get(category)[levelIdx]++;
             String g = componentFact.getGroupId(), a = componentFact.getArtifactId(), v = componentFact.getVersion();
             if (g != null && a != null && v != null) {
-              Map<List<String>, int[]> categoryComponentRisks = componentRisks.get(category);
               List<String> componentKey = Arrays.asList(g, a, v);
-              int[] componentRisk = categoryComponentRisks.get(componentKey);
-              if (componentRisk == null) {
-                componentRisk = new int[THREAT_LEVELS.length];
-                categoryComponentRisks.put(componentKey, componentRisk);
-              }
-              componentRisk[levelIdx]++;
+              incrementComponentRisk(componentRisks, componentKey, "all", levelIdx);
+              incrementComponentRisk(componentRisks, componentKey, category, levelIdx);
             }
           }
         }
@@ -250,12 +246,24 @@ public class TrendingReportProcessor
             previousCategories), toTopCategoryComponentRisks(componentRisks));
   }
 
+  private void incrementComponentRisk(Map<String, Map<List<String>, int[]>> componentRisks, List<String> componentKey,
+      String category, int threatLevelIdx)
+  {
+    Map<List<String>, int[]> categoryComponentRisks = componentRisks.get(category);
+    int[] componentRisk = categoryComponentRisks.get(componentKey);
+    if (componentRisk == null) {
+      componentRisk = new int[THREAT_LEVELS.length];
+      categoryComponentRisks.put(componentKey, componentRisk);
+    }
+    componentRisk[threatLevelIdx]++;
+  }
+
   private Map<String, List<ComponentRiskSummary>> toTopCategoryComponentRisks(
       Map<String, Map<List<String>, int[]>> componentRisks)
   {
     Map<String, List<ComponentRiskSummary>> result = new LinkedHashMap<String, List<ComponentRiskSummary>>();
 
-    for (String category : CATEGORIES) {
+    for (String category : componentRisks.keySet()) {
       result.put(category, toTopComponentRisks(componentRisks.get(category)));
     }
 

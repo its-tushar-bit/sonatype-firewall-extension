@@ -313,6 +313,8 @@ public class TrendingReportProcessorTest
     ReportBuilder builder = new ReportBuilder();
     // critical x2
     builder.addPolicyAlert("a", 10).addComponentFact("a").setGAV("a", "a", "a").addConstraintFact()
+        .addConditionFact("license");
+    builder.addPolicyAlert("a", 10).addComponentFact("a").setGAV("a", "a", "a").addConstraintFact()
         .addConditionFact("security");
     builder.addPolicyAlert("a2", 10).addComponentFact("a").setGAV("a", "a", "a").addConstraintFact()
         .addConditionFact("security");
@@ -323,8 +325,8 @@ public class TrendingReportProcessorTest
     builder.addPolicyAlert("c", 6).addComponentFact("c").setGAV("c", "c", "c").addConstraintFact()
         .addConditionFact("security");
     builder.addPolicyAlert("c2", 6).addComponentFact("c").setGAV("c", "c", "c").addConstraintFact()
-    .addConditionFact("security");
-    // severe 
+        .addConditionFact("security");
+    // severe
     builder.addPolicyAlert("d", 6).addComponentFact("d").setGAV("d", "d", "d").addConstraintFact()
         .addConditionFact("security");
     // moderate
@@ -344,6 +346,10 @@ public class TrendingReportProcessorTest
     assertComponentRisk(securityRisks.get(2), "c", "c", "c", 0, 2, 0, 0);
     assertComponentRisk(securityRisks.get(3), "d", "d", "d", 0, 1, 0, 0);
     assertComponentRisk(securityRisks.get(4), "e", "e", "e", 0, 0, 1, 0);
+    // license
+    assertComponentRisk(risks.get("license").get(0), "a", "a", "a", 1, 0, 0, 0);
+    // all
+    assertComponentRisk(risks.get("all").get(0), "a", "a", "a", 3, 0, 0, 0);
   }
 
   private void assertComponentRisk(ComponentRiskSummary componentRisk, String groupId, String artifactId,

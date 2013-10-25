@@ -22,7 +22,7 @@
 
     <div class="row">
       <div class="span12">
-        <strong>{{data.meta.periodStart}} - {{data.meta.periodEnd}}</strong>
+        <strong>{{format(data.meta.periodStart)}} - {{format(data.meta.periodEnd)}}</strong>
         <hr style="background-color: #AAA;color: #AAA;height: 3px;margin:0;"/>
       </div>
     </div>
@@ -30,7 +30,7 @@
       <div class="span6">
         <div class="row" style='padding-bottom: 10px;'>
           <div class="span2">
-            <h1 class="count-header"><strong>{{ data.policies.length }}</strong> Policies</h1>
+            <h1 class="count-header"><strong>{{ data.violations.length }}</strong> Policies</h1>
             <h2 class="section-header">Threat Levels</h2>
             <table class="color-key" width="100%">
               <tr>
@@ -62,7 +62,7 @@
             </table>
           </div>
         </div>
-        <div> <span class="component-count"><strong>{{ data.components.inApplications }}</strong> Components across all Applications</span>
+        <div> <span class="component-count"><strong>{{ data.components.inApplication }}</strong> Components across all Applications</span>
           <div ng-include='percentageChart'></div>
         </div>
         <div class="row" style="margin: 20px 0 0 0;">

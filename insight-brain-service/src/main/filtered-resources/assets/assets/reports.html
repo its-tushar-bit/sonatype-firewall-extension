@@ -8,30 +8,31 @@
 -->
 <html lang="en" ng-app="reportApp">
 <head>
-	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
-	<meta http-equiv="X-UA-Compatible" content="IE=edge"/>
-	<title>CLM Reports</title>
-	<link href="css/clm-server.css?${build.timestamp}" rel="stylesheet"/>
-	<link rel='shortcut icon' href='favicon.ico'/>
-	<script type='text/javascript'>
-		var clmBuildTimestamp = '${build.timestamp}';
-	</script>
-	<script src='lib/jquery/jquery-1.8.3.min.js'></script>
-	<script src="lib/bootstrap/bootstrap-2.3.1.min.js"></script>
-	<script src='lib/angular/angular-${angularjs.version}.min.js'></script>
-    <script src='lib/angular-ui-router-0.2.0.min.js'></script>
-	<script src="lib/ui-bootstrap-tpls-0.6.0.min.js"></script>
-	<script src='lib/ng-upload-0.3.4.js'></script>
-	<script src='util/CLMLocation.js?${build.timestamp}'></script>
-	<script src='util/CLMAppLocation.js?${build.timestamp}'></script>
-	<script src='util/AngularCommon.js?${build.timestamp}'></script>
-	<script src='js/Resource.js?${build.timestamp}'></script>
-	<script src='js/Hudson.js?${build.timestamp}'></script>
-	<script src='DashboardModule.js?${build.timestamp}'></script>
-    <script src='ReportApp.js?${build.timestamp}'></script>
-	<script src='../report-assets/report/ReportController.js?${build.timestamp}'></script>
-    <script src='../report-assets/violations/ReportViolationsController.js?${build.timestamp}'></script>
-    <script src='../report-assets/trending/TrendingController.js?${build.timestamp}'></script>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+  <title>CLM Reports</title>
+  <link href="css/clm-server.css?${build.timestamp}" rel="stylesheet"/>
+  <link rel='shortcut icon' href='favicon.ico'/>
+  <script type='text/javascript'>
+    var clmBuildTimestamp = '${build.timestamp}';
+  </script>
+  <script src='lib/jquery/jquery-1.8.3.min.js'></script>
+  <script src="lib/bootstrap/bootstrap-2.3.1.min.js"></script>
+  <script src='lib/angular/angular-${angularjs.version}.min.js'></script>
+  <script src='lib/angular-ui-router-0.2.0.min.js'></script>
+  <script src="lib/ui-bootstrap-tpls-0.6.0.min.js"></script>
+  <script src='lib/ng-upload-0.3.4.js'></script>
+  <script src='lib/d3/d3.min.js'></script>
+  <script src='util/CLMLocation.js?${build.timestamp}'></script>
+  <script src='util/CLMAppLocation.js?${build.timestamp}'></script>
+  <script src='util/AngularCommon.js?${build.timestamp}'></script>
+  <script src='js/Resource.js?${build.timestamp}'></script>
+  <script src='js/Hudson.js?${build.timestamp}'></script>
+  <script src='DashboardModule.js?${build.timestamp}'></script>
+  <script src='ReportApp.js?${build.timestamp}'></script>
+  <script src='../report-assets/report/ReportController.js?${build.timestamp}'></script>
+  <script src='../report-assets/violations/ReportViolationsController.js?${build.timestamp}'></script>
+  <script src='../report-assets/trending/TrendingController.js?${build.timestamp}'></script>
 </head>
 <body ng-controller='dashboardController'>
 	<div class="first-row navbar navbar-fixed-top">

@@ -21,6 +21,12 @@
       });
     };
     $scope.doLoad();
+
+    var fmtG = d3.time.format('%b %e, %Y');
+
+    $scope.format = function(date) {
+      return fmtG(new Date(date));
+    };
   }]);
 
   reportTrendingModule.directive('componentViolations', function() {
@@ -342,19 +348,21 @@
       get: function() {
         var defer = $q.defer();
         var pollFunction = function() {
-          $http.get(CLMLocations.getTrendingReportUrl(), { params: { timestamp: new Date().getTime() } }).success(function(trendingReport) {
+          $http.get(CLMLocations.getTrendingReportUrl(),
+            { params: { timestamp: new Date().getTime() } }).success(function(trendingReport) {
             if (trendingReport) {
               defer.resolve(trendingReport);
-            } else {
+            }
+            else {
               $timeout(pollFunction, 2000);
             }
           }).error(function() {
-            return defer.reject(arguments);
-          });
+              return defer.reject(arguments);
+            });
         };
         pollFunction();
         return defer.promise;
       }
-   }
+    }
   }]);
 }());

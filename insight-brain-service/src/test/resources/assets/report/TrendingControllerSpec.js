@@ -47,6 +47,16 @@ describe('TrendingController tests', function() {
       expect(scope.error).not.toBeUndefined();
       expect(scope.error[0]).toBe('Fake Error');
     }));
+
+    it('provides a date format function', inject(function($controller, $httpBackend, CLMLocations) {
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getTrendingReportUrl())).respond(TrendingReportMockData.get());
+      var trendingReportController = $controller('TrendingReportController', { $scope: scope });
+      $httpBackend.flush();
+
+      expect(scope.format).not.toBeUndefined();
+      expect(scope.format(1382661636262)).toBe('Oct 24, 2013')
+
+    }));
   });
 
   describe('Directive: componentViolations', function () {

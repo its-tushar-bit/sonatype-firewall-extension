@@ -10,6 +10,7 @@ import com.sonatype.insight.brain.service.InsightConfig
 
 import com.google.common.io.Resources
 import com.yammer.dropwizard.testing.junit.DropwizardServiceRule
+import geb.navigator.Navigator
 import geb.spock.GebReportingSpec
 import org.junit.ClassRule
 import org.junit.rules.TestRule
@@ -161,13 +162,13 @@ class LoginSpec extends GebReportingSpec {
     user.logout.click()
 
     then: "we redirect to the login page"
-    at LoginPage
+    waitFor{ at LoginPage }
 
     when: "attempting to navigate back"
     browser.driver.navigate().back()
 
     then: "we never leave the login page"
-    at LoginPage
+    waitFor {at LoginPage }
 
     when: "we try to go directly to another page"
     go ReportPage.url
@@ -182,7 +183,7 @@ class LoginSpec extends GebReportingSpec {
     go ManagementPage.url
 
     then: "we redirect to login"
-    at LoginPage
+    waitFor { at LoginPage }
 
     when: "providing correct authentication"
     loginAsAdmin()
@@ -195,5 +196,15 @@ class LoginSpec extends GebReportingSpec {
     to LoginPage
     loginAsAdmin()
     waitFor { title != "CLM Login" }
+  }
+
+
+  //logout after each feature method, if possible
+  def cleanup() {
+    Navigator logoutLink = $('a', text:'Logout')
+    if(logoutLink.displayed)
+    {
+      logoutLink.click()
+    }
   }
 }

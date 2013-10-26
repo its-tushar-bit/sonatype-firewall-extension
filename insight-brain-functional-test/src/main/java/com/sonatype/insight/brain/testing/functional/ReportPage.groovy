@@ -5,10 +5,15 @@
  */
 package com.sonatype.insight.brain.testing.functional
 
+import com.sonatype.insight.brain.testing.functional.modules.LogoutModule
 import geb.Page
 
 class ReportPage extends Page {
   static url = "assets/reports.html#/reports/violations"
 
   static at = { title == 'CLM Reports' }
+
+  static content = {
+    user { module LogoutModule }
+  }
 }

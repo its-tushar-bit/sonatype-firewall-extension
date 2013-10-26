@@ -126,8 +126,70 @@ class LoginSpec extends GebReportingSpec {
     then: "user is prompted to log in"
       waitFor { at LoginPage }
   }
-  
-  // TODO redirect to original location
+
+  def "user can logout from management pages"() {
+    given: "user has logged in"
+    autoLogin()
+    waitFor { to ManagementPage }
+
+    when: "logging out"
+    user.logout.click()
+
+    then: "we redirect to the login page"
+    at LoginPage
+
+    when: "attempting to navigate back"
+    browser.driver.navigate().back()
+
+    then: "we never leave the login page"
+    at LoginPage
+
+    when: "we try to go directly to another page"
+    go ManagementPage.url
+
+    then: "we never leave the login page"
+    waitFor { at LoginPage }
+    browser.driver.currentUrl.contains('?redirectTo=')
+  }
+
+  def "user can logout from reporting pages"() {
+    given: "user has logged in"
+    autoLogin()
+    waitFor { at ReportPage }
+
+    when: "logging out"
+    user.logout.click()
+
+    then: "we redirect to the login page"
+    at LoginPage
+
+    when: "attempting to navigate back"
+    browser.driver.navigate().back()
+
+    then: "we never leave the login page"
+    at LoginPage
+
+    when: "we try to go directly to another page"
+    go ReportPage.url
+
+    then: "we never leave the login page"
+    waitFor { at LoginPage }
+    browser.driver.currentUrl.contains('?redirectTo=')
+  }
+
+  def "user is redirect to their requested page after login"(){
+    when: "attempting to login directly to a page"
+    go ManagementPage.url
+
+    then: "we redirect to login"
+    at LoginPage
+
+    when: "providing correct authentication"
+    loginAsAdmin()
+
+    then: "we are redirected to our originally requested location"
+    waitFor{ at ManagementPage }
+  }
 
   void autoLogin() {
     to LoginPage

@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.testing.functional
 
+import com.sonatype.insight.brain.dataaccess.security.UserDAO
 import com.sonatype.insight.brain.service.InsightBrainService
 import com.sonatype.insight.brain.service.InsightConfig
 

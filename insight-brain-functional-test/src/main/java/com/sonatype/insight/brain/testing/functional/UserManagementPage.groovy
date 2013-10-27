@@ -3,46 +3,57 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+
 package com.sonatype.insight.brain.testing.functional
 
 import geb.Page
 
-class UserManagementPage extends Page {
+import static com.sonatype.insight.brain.testing.functional.utils.ValidationConstants.*
+
+class UserManagementPage
+    extends Page
+{
   static url = "assets/index.html#/management/security/users"
-  
-  static at = { 
-    !newUserButton.empty() || !userForm.empty() 
-  }
-  
+
+  static at = { newUserButton.displayed }
+
   static content = {
     newUserButton(wait: true) { $('.new-user-button') }
     userForm(required: false) { $('form', name: 'userForm') }
-    firstNameControl(required: false) { userForm.find('div.controls', 0) }
+    controls(required: false) { index -> userForm.find('div.controls', index) }
+
+    firstNameControl(required: false) { controls(0) }
     firstNameInput(required: false) { firstNameControl.find('input') }
-    firstNameRequiredError(required: false) { firstNameControl.find('div', text: 'Field is required.') }
-    firstNameAlphaNumericError(required: false) { firstNameControl.find('div', text: 'Must be alpha numeric.') }
-    firstNameSpacesError(required: false) { firstNameControl.find('div', text: startsWith('No leading') ) }
-    lastNameControl(required: false) { userForm.find('div.controls', 1) }
+    firstNameRequiredError(required: false) { firstNameControl.find('div', text: REQUIRED) }
+    firstNameAlphaNumericError(required: false) { firstNameControl.find('div', text: ALPHA_NUMERIC) }
+    firstNameSpacesError(required: false) { firstNameControl.find('div', text: startsWith('No leading')) }
+
+    lastNameControl(required: false) { controls(1) }
     lastNameInput(required: false) { lastNameControl.find('input') }
-    lastNameRequiredError(required: false) { lastNameControl.find('div', text: 'Field is required.') }
-    lastNameAlphaNumericError(required: false) { lastNameControl.find('div', text: 'Must be alpha numeric.') }
-    lastNameSpacesError(required: false) { lastNameControl.find('div', text: startsWith('No leading') ) }
-    emailControl(required: false) { userForm.find('div.controls', 2) }
+    lastNameRequiredError(required: false) { lastNameControl.find('div', text: REQUIRED) }
+    lastNameAlphaNumericError(required: false) { lastNameControl.find('div', text: ALPHA_NUMERIC) }
+    lastNameSpacesError(required: false) { lastNameControl.find('div', text: startsWith('No leading')) }
+
+    emailControl(required: false) { controls(2) }
     emailInput(required: false) { emailControl.find('input') }
-    emailRequiredError(required: false) { emailControl.find('div', text: 'Field is required.') }
-    emailFormatError(required: false) { emailControl.find('div', text: 'Use valid format: abc@xyz.com') }
-    usernameControl(required: false) { userForm.find('div.controls', 3) }
+    emailRequiredError(required: false) { emailControl.find('div', text: REQUIRED) }
+    emailFormatError(required: false) { emailControl.find('div', text: INVALID_EMAIL) }
+
+    usernameControl(required: false) { controls(3) }
     usernameInput(required: false) { usernameControl.find('input') }
-    usernameRequiredError(required: false) { usernameControl.find('div', text: 'Field is required.') }
-    usernameAlphaNumericError(required: false) { usernameControl.find('div', text: 'Must be alpha numeric.') }
-    usernamePatternError(required: false) { usernameControl.find('div', text: 'Must not contain spaces.' ) }
-    passwordControl(required: false) { userForm.find('div.controls', 4) }
+    usernameRequiredError(required: false) { usernameControl.find('div', text: REQUIRED) }
+    usernameAlphaNumericError(required: false) { usernameControl.find('div', text: ALPHA_NUMERIC) }
+    usernamePatternError(required: false) { usernameControl.find('div', text: NO_SPACES) }
+
+    passwordControl(required: false) { controls(4) }
     passwordInput(required: false) { passwordControl.find('input') }
-    passwordRequiredError(required: false) { passwordControl.find('div', text: 'Field is required.') }
-    passwordValidateControl(required: false) { userForm.find('div.controls', 5) }
+    passwordRequiredError(required: false) { passwordControl.find('div', text: REQUIRED) }
+
+    passwordValidateControl(required: false) { controls(5) }
     passwordValidateInput(required: false) { passwordValidateControl.find('input') }
-    passwordValidateRequiredError(required: false) { passwordValidateControl.find('div', text: 'Field is required.') }
-    passwordValidateMatchError(required: false) { passwordValidateControl.find('div', text: 'Passwords must match!') }
+    passwordValidateRequiredError(required: false) { passwordValidateControl.find('div', text: REQUIRED) }
+    passwordValidateMatchError(required: false) { passwordValidateControl.find('div', text: PASSWORDS_MUST_MATCH) }
+
     save(required: false) { $('button', 'ng-click': 'saveClick(user)') }
     cancel(required: false) { $('button', 'ng-click': 'cancelClick(user)') }
     header(required: false) { $('a.accordion-toggle') }

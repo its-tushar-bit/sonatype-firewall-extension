@@ -79,7 +79,7 @@ class LoginSpec extends GebReportingSpec {
     
     then: "user is prompted to log in"
       // see CLM-976
-      waitFor { at(LoginPage) }
+      at LoginPage
   }
 
   def "report application is protected by authentication"() {
@@ -88,7 +88,7 @@ class LoginSpec extends GebReportingSpec {
 
     then: "user is prompted to log in"
       // see CLM-976
-      waitFor { at(LoginPage) }
+      at LoginPage
   }
 
   def "management application is protected by authentication"() {
@@ -97,7 +97,7 @@ class LoginSpec extends GebReportingSpec {
 
     then: "user is prompted to log in"
       // see CLM-976
-      waitFor { at(LoginPage) }
+      at LoginPage
   }
 
   def "authentication session state is remembered"() {
@@ -125,7 +125,7 @@ class LoginSpec extends GebReportingSpec {
       via LandingPage
     
     then: "user is prompted to log in"
-      waitFor { at LoginPage }
+      at LoginPage
   }
 
   def "user can logout from management pages"() {
@@ -149,14 +149,14 @@ class LoginSpec extends GebReportingSpec {
     go ManagementPage.url
 
     then: "we never leave the login page"
-    waitFor { at LoginPage }
+    at LoginPage
     browser.driver.currentUrl.contains('?redirectTo=')
   }
 
   def "user can logout from reporting pages"() {
     given: "user has logged in"
     autoLogin()
-    waitFor { at ReportPage }
+    at ReportPage
 
     when: "logging out"
     user.logout.click()
@@ -174,7 +174,7 @@ class LoginSpec extends GebReportingSpec {
     go ReportPage.url
 
     then: "we never leave the login page"
-    waitFor { at LoginPage }
+    at LoginPage
     browser.driver.currentUrl.contains('?redirectTo=')
   }
 
@@ -183,7 +183,7 @@ class LoginSpec extends GebReportingSpec {
     go ManagementPage.url
 
     then: "we redirect to login"
-    waitFor { at LoginPage }
+    at LoginPage
 
     when: "providing correct authentication"
     loginAsAdmin()

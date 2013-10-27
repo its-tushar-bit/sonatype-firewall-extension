@@ -14,18 +14,19 @@ import org.openqa.selenium.chrome.ChromeDriver
 import org.openqa.selenium.firefox.FirefoxDriver
 
 reportsDir = "target/test-reports/geb"
-baseUrl = System.getProperty('geb.build.baseUrl', 'http://localhost:8070/')
+baseUrl = System.getProperty('geb.build.baseUrl', 'http://localhost:9070/')
 //enable waitFor behaviour for all 'at' checks
 atCheckWaiting = true
 
+// Consult these documents for how to configure for SauceLabs
 // http://www.gebish.org/manual/current/sauce-labs.html#saucelabs_integration
 // https://saucelabs.com/docs/platforms/webdriver
 def sauceBrowser = System.getProperty("geb.sauce.browser")
 if (sauceBrowser) {
   driver = {
-    def username = System.getenv("GEB_SAUCE_LABS_USER")
+    def username = System.getProperty("GEB_SAUCE_LABS_USER")
     assert username
-    def accessKey = System.getenv("GEB_SAUCE_LABS_ACCESS_PASSWORD")
+    def accessKey = System.getProperty("GEB_SAUCE_LABS_ACCESS_PASSWORD")
     assert accessKey
     new SauceLabsDriverFactory().create(sauceBrowser, username, accessKey)
   }

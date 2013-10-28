@@ -32,9 +32,7 @@ import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
-import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
-import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.trending.ApplicationRiskSummary;
 import com.sonatype.insight.brain.model.trending.Applications;
 import com.sonatype.insight.brain.model.trending.ComponentRiskSummary;
@@ -189,35 +187,53 @@ public class TrendingReportProcessor
         }
       }
 
-      PolicyEvaluation firstEval = null;
-
       // policy alerts counts
+
+      // most recent evaluation in each reporting period
+      // index==0 is most recent evaluation *before* first reporting period
+      PolicyEvaluation[] periods = new PolicyEvaluation[PERIOD_COUNT + 1];
       for (PolicyEvaluation eval : evalLog.allByStage(STAGE_ID)) {
-        int period = (int) ((now - eval.getTime()) / PERIOD_LENGTH_MS);
-        if (period >= PERIOD_COUNT) {
-          if (firstEval == null || firstEval.getTime() < eval.getTime()) {
-            firstEval = eval;
+        int period = PERIOD_COUNT - ((int) ((now - eval.getTime()) / PERIOD_LENGTH_MS));
+
+        if (periods[period] == null) {
+          periods[period] = eval;
+          // feel evaluation gaps
+          for (int i = period + 1; i < periods.length && periods[i] == null; i++) {
+            periods[i] = eval;
           }
-          continue; // too old, skip
         }
 
-        for (PolicyAlert alert : policyEvaluationUtils.findPolicyAlerts(app.getId(), eval.getScanId())) {
-          PolicyFact policyFact = alert.getTrigger();
-          for (ComponentFact componentFact : policyFact.getComponentFacts()) {
-            String category = getViolationCategory(componentFact.getConstraintFacts());
-            String policyViolationsKey = policyFact.getPolicyId() + ":" + category;
-            PolicyViolation violations = policyViolations.get(policyViolationsKey);
-            if (violations == null) {
-              violations = new PolicyViolation(policyFact.getPolicyName(), category, policyFact.getThreatLevel(),
-                  new int[PERIOD_COUNT]);
-              policyViolations.put(policyViolationsKey, violations);
+        if (period <= 0) {
+          // log entries are ordered newest first
+          // current entry is before reporting period
+          // no point to look at earlier records
+          break;
+        }
+      }
+
+      // skip index==0, which is most recent evaluation *before* reporting period
+      for (int period = 1; period < periods.length; period++) {
+        PolicyEvaluation eval = periods[period];
+        if (eval != null) {
+          for (PolicyAlert alert : policyEvaluationUtils.findPolicyAlerts(app.getId(), eval.getScanId())) {
+            PolicyFact policyFact = alert.getTrigger();
+            for (ComponentFact componentFact : policyFact.getComponentFacts()) {
+              String category = getViolationCategory(componentFact.getConstraintFacts());
+              String policyViolationsKey = policyFact.getPolicyId() + ":" + category;
+              PolicyViolation violations = policyViolations.get(policyViolationsKey);
+              if (violations == null) {
+                violations = new PolicyViolation(policyFact.getPolicyName(), category, policyFact.getThreatLevel(),
+                    new int[PERIOD_COUNT]);
+                policyViolations.put(policyViolationsKey, violations);
+              }
+              violations.getViolations()[period - 1]++; // ain't perty but works
             }
-            violations.getViolations()[PERIOD_COUNT - period - 1]++; // ain't perty but works
           }
         }
       }
 
       // previous categories
+      PolicyEvaluation firstEval = periods[0];
       if (firstEval != null && lastEval.getTime() > firstEval.getTime()) {
         for (PolicyAlert alert : policyEvaluationUtils.findPolicyAlerts(app.getId(), firstEval.getScanId())) {
           PolicyFact policyFact = alert.getTrigger();

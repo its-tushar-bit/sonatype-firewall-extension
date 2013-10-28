@@ -10,6 +10,9 @@ import java.io.IOException;
 import com.sonatype.insight.brain.TemporaryEntity;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.security.MembershipMapping;
+import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.test.RestAccess;
 
@@ -41,6 +44,11 @@ public abstract class AbstractResourceAuthzTest
     app = tempEntity.newApplication(org.getId());
     unauthorized = tempEntity.newUser();
     authorized = tempEntity.newUser();
+  }
+
+  protected void grantAdminPermission() {
+    Role role = tempEntity.newRole(true, Permission.ADMIN);
+    tempEntity.newMembershipMapping(MembershipMapping.GLOBAL_CONTEXT_ID, role.getId(), authorized.getUsername());
   }
 
   protected String getRestUrl(String templateUrl, Object... paramValues) {

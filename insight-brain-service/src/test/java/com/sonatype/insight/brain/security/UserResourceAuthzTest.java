@@ -6,8 +6,6 @@
 package com.sonatype.insight.brain.security;
 
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
-import com.sonatype.insight.brain.model.security.MembershipMapping;
-import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.service.AbstractResourceAuthzTest;
 
@@ -19,7 +17,7 @@ public class UserResourceAuthzTest
 {
   @Test
   public void testGetAll() throws Exception {
-    tempEntity.newMembershipMapping(MembershipMapping.GLOBAL_CONTEXT_ID, Role.ADMIN_ROLE_ID, authorized.getUsername());
+    grantAdminPermission();
 
     String url = getRestUrl(UserResource.SERVICE_PATH);
     testAuthzGet(url);
@@ -27,7 +25,7 @@ public class UserResourceAuthzTest
 
   @Test
   public void testAddUser() throws Exception {
-    tempEntity.newMembershipMapping(MembershipMapping.GLOBAL_CONTEXT_ID, Role.ADMIN_ROLE_ID, authorized.getUsername());
+    grantAdminPermission();
 
     User user = new User("testAddUser", "testAddUser", "testAddUser", "testAddUser", "testAddUser@sonatype.com");
     String url = getRestUrl(UserResource.SERVICE_PATH);
@@ -38,7 +36,7 @@ public class UserResourceAuthzTest
 
   @Test
   public void testUpdateUser() throws Exception {
-    tempEntity.newMembershipMapping(MembershipMapping.GLOBAL_CONTEXT_ID, Role.ADMIN_ROLE_ID, authorized.getUsername());
+    grantAdminPermission();
 
     User user = tempEntity.newUser("testUpdateUser");
     String url = getRestUrl(UserResource.SERVICE_PATH);
@@ -47,7 +45,7 @@ public class UserResourceAuthzTest
 
   @Test
   public void testDeleteUser() throws Exception {
-    tempEntity.newMembershipMapping(MembershipMapping.GLOBAL_CONTEXT_ID, Role.ADMIN_ROLE_ID, authorized.getUsername());
+    grantAdminPermission();
 
     User user = tempEntity.newUser("testDeleteUser");
     String url = getRestUrl(UserResource.SERVICE_PATH + "/{userId}", user.getId());

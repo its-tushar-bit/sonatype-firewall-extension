@@ -10,8 +10,6 @@ import java.util.Arrays;
 import java.util.List;
 
 import com.sonatype.clm.dto.model.ProprietaryConfig;
-import com.sonatype.insight.brain.model.security.MembershipMapping;
-import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.service.AbstractResourceAuthzTest;
 
 import org.junit.After;
@@ -37,7 +35,7 @@ public class ProprietaryConfigResourceAuthzTest
     ProprietaryConfig config = new ProprietaryConfig();
     config.setPackages(packages);
     
-    tempEntity.newMembershipMapping(MembershipMapping.GLOBAL_CONTEXT_ID, Role.ADMIN_ROLE_ID, authorized.getUsername());
+    grantAdminPermission();
 
     String url = getRestUrl(ProprietaryConfigResource.SERVICE_PATH);
 

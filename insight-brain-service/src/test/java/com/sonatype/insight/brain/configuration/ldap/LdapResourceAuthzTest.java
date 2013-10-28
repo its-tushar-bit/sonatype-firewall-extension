@@ -6,8 +6,6 @@
 package com.sonatype.insight.brain.configuration.ldap;
 
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapServerDAO;
-import com.sonatype.insight.brain.model.security.MembershipMapping;
-import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.service.AbstractResourceAuthzTest;
 
 import com.ning.http.client.Response;
@@ -18,7 +16,7 @@ public class LdapResourceAuthzTest
 {
   @Test
   public void testGetAll() throws Exception {
-    tempEntity.newMembershipMapping(MembershipMapping.GLOBAL_CONTEXT_ID, Role.ADMIN_ROLE_ID, authorized.getUsername());
+    grantAdminPermission();
 
     String url = getRestUrl(LdapResource.SERVICE_PATH);
     testAuthzGet(url);
@@ -26,7 +24,7 @@ public class LdapResourceAuthzTest
 
   @Test
   public void testGetConnection() throws Exception {
-    tempEntity.newMembershipMapping(MembershipMapping.GLOBAL_CONTEXT_ID, Role.ADMIN_ROLE_ID, authorized.getUsername());
+    grantAdminPermission();
 
     LdapServer ldapServer = tempEntity.newLdapServer("testGetConnection");
     String url = getRestUrl(LdapResource.SERVICE_PATH + "/{ldapServerId}/connection", ldapServer.getId());
@@ -35,7 +33,7 @@ public class LdapResourceAuthzTest
 
   @Test
   public void testGetUserMapping() throws Exception {
-    tempEntity.newMembershipMapping(MembershipMapping.GLOBAL_CONTEXT_ID, Role.ADMIN_ROLE_ID, authorized.getUsername());
+    grantAdminPermission();
 
     LdapServer ldapServer = tempEntity.newLdapServer("testGetUserMapping");
     String url = getRestUrl(LdapResource.SERVICE_PATH + "/{ldapServerId}/userMapping", ldapServer.getId());
@@ -44,7 +42,7 @@ public class LdapResourceAuthzTest
 
   @Test
   public void testTestConnection() throws Exception {
-    tempEntity.newMembershipMapping(MembershipMapping.GLOBAL_CONTEXT_ID, Role.ADMIN_ROLE_ID, authorized.getUsername());
+    grantAdminPermission();
 
     LdapServer ldapServer = tempEntity.newLdapServer("testTestConnection");
     // The LdapConnection should not be persisted to the db at this point.
@@ -56,7 +54,7 @@ public class LdapResourceAuthzTest
 
   @Test
   public void testTestLogin() throws Exception {
-    tempEntity.newMembershipMapping(MembershipMapping.GLOBAL_CONTEXT_ID, Role.ADMIN_ROLE_ID, authorized.getUsername());
+    grantAdminPermission();
 
     LdapServer ldapServer = tempEntity.newLdapServer("testTestLogin");
     // The LdapUserMapping should not be persisted to the db at this point.
@@ -72,7 +70,7 @@ public class LdapResourceAuthzTest
 
   @Test
   public void testTestUserMapping() throws Exception {
-    tempEntity.newMembershipMapping(MembershipMapping.GLOBAL_CONTEXT_ID, Role.ADMIN_ROLE_ID, authorized.getUsername());
+    grantAdminPermission();
 
     LdapServer ldapServer = tempEntity.newLdapServer("testUserMapping");
     tempEntity.newLdapConnection(ldapServer.getId());
@@ -86,7 +84,7 @@ public class LdapResourceAuthzTest
 
   @Test
   public void testAddLdapServer() throws Exception {
-    tempEntity.newMembershipMapping(MembershipMapping.GLOBAL_CONTEXT_ID, Role.ADMIN_ROLE_ID, authorized.getUsername());
+    grantAdminPermission();
 
     LdapServer ldapServer = new LdapServer("testAddLdapServer");
     String url = getRestUrl(LdapResource.SERVICE_PATH);
@@ -97,7 +95,7 @@ public class LdapResourceAuthzTest
 
   @Test
   public void testUpdateLdapServer() throws Exception {
-    tempEntity.newMembershipMapping(MembershipMapping.GLOBAL_CONTEXT_ID, Role.ADMIN_ROLE_ID, authorized.getUsername());
+    grantAdminPermission();
 
     LdapServer ldapServer = tempEntity.newLdapServer("testUpdateLdapServer");
     String url = getRestUrl(LdapResource.SERVICE_PATH);
@@ -106,7 +104,7 @@ public class LdapResourceAuthzTest
 
   @Test
   public void testDeleteLdapServer() throws Exception {
-    tempEntity.newMembershipMapping(MembershipMapping.GLOBAL_CONTEXT_ID, Role.ADMIN_ROLE_ID, authorized.getUsername());
+    grantAdminPermission();
 
     LdapServer ldapServer = tempEntity.newLdapServer("testDeleteLdapServer");
     String url = getRestUrl(LdapResource.SERVICE_PATH + "/{ldapServerId}", ldapServer.getId());
@@ -115,7 +113,7 @@ public class LdapResourceAuthzTest
 
   @Test
   public void testUpdateLdapConnection() throws Exception {
-    tempEntity.newMembershipMapping(MembershipMapping.GLOBAL_CONTEXT_ID, Role.ADMIN_ROLE_ID, authorized.getUsername());
+    grantAdminPermission();
 
     LdapServer ldapServer = tempEntity.newLdapServer("testUpdateLdapConnection");
     LdapConnection ldapConnection = tempEntity.newLdapConnection(ldapServer.getId());
@@ -125,7 +123,7 @@ public class LdapResourceAuthzTest
 
   @Test
   public void testUpdateUserMapping() throws Exception {
-    tempEntity.newMembershipMapping(MembershipMapping.GLOBAL_CONTEXT_ID, Role.ADMIN_ROLE_ID, authorized.getUsername());
+    grantAdminPermission();
 
     LdapServer ldapServer = tempEntity.newLdapServer("testUpdateUserMapping");
     tempEntity.newLdapConnection(ldapServer.getId());

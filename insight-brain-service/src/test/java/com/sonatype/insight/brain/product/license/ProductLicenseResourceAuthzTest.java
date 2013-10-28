@@ -5,8 +5,6 @@
  */
 package com.sonatype.insight.brain.product.license;
 
-import com.sonatype.insight.brain.model.security.MembershipMapping;
-import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.service.AbstractResourceAuthzTest;
 
 import com.ning.http.client.Response;
@@ -17,7 +15,7 @@ public class ProductLicenseResourceAuthzTest
 {
   @Test
   public void testInstallLicense() throws Exception {
-    tempEntity.newMembershipMapping(MembershipMapping.GLOBAL_CONTEXT_ID, Role.ADMIN_ROLE_ID, authorized.getUsername());
+    grantAdminPermission();
 
     Response response = uploadLicense(null /* queryParams */, unauthorized.getUsername(), unauthorized.getPassword());
     assertResponseStatus(403, response);
@@ -30,7 +28,7 @@ public class ProductLicenseResourceAuthzTest
   public void testUninstallLicense() throws Exception {
     installLicense();
 
-    tempEntity.newMembershipMapping(MembershipMapping.GLOBAL_CONTEXT_ID, Role.ADMIN_ROLE_ID, authorized.getUsername());
+    grantAdminPermission();
 
     String url = getRestUrl(ProductLicenseResource.SERVICE_PATH);
     testAuthzDelete(url);

@@ -27,6 +27,7 @@ import com.sonatype.insight.brain.model.trending.ComponentRiskSummary;
 import com.sonatype.insight.brain.model.trending.ComponentsSummary;
 import com.sonatype.insight.brain.model.trending.DiffData;
 import com.sonatype.insight.brain.model.trending.PartialMatch;
+import com.sonatype.insight.brain.model.trending.PoliciesSummary;
 import com.sonatype.insight.brain.model.trending.PolicyViolation;
 import com.sonatype.insight.brain.model.trending.TrendingReport;
 import com.sonatype.insight.brain.model.trending.TrendingReportMetadata;
@@ -383,6 +384,36 @@ public class TrendingReportProcessorTest
     assertComponentRisk(risks.get("license").get(0), "a", "a", "a", 1, 0, 0, 0);
     // all
     assertComponentRisk(risks.get("all").get(0), "a", "a", "a", 3, 0, 0, 0);
+  }
+
+  @Test
+  public void testPoliciesSummary() throws Exception {
+    Application application = createApplication("testApp");
+    ReportBuilder builder = new ReportBuilder();
+    // critical
+    builder.addPolicyAlert("a", 10).addComponentFact("a").setGAV("a", "a", "a").addConstraintFact()
+        .addConditionFact("security");
+    // severe x2
+    builder.addPolicyAlert("b", 6).addComponentFact("b").setGAV("b", "b", "b").addConstraintFact()
+        .addConditionFact("security");
+    builder.addPolicyAlert("c", 6).addComponentFact("c").setGAV("c", "c", "c").addConstraintFact()
+        .addConditionFact("security");
+    // moderate
+    builder.addPolicyAlert("d", 3).addComponentFact("d").setGAV("d", "d", "d").addConstraintFact()
+        .addConditionFact("security");
+    // none
+    builder.addPolicyAlert("e", 0).addComponentFact("e").setGAV("e", "e", "e").addConstraintFact()
+        .addConditionFact("security");
+    createScan(application, builder);
+
+    TrendingReport report = processor.calculate();
+    PoliciesSummary policiesSummary = report.getPolicies();
+    Assert.assertEquals(1, policiesSummary.getCritical());
+    Assert.assertEquals(2, policiesSummary.getSevere());
+    Assert.assertEquals(1, policiesSummary.getModerate());
+    Assert.assertEquals(1, policiesSummary.getNone());
+    Assert.assertEquals(5, policiesSummary.getTotal());
+
   }
 
   private void assertComponentRisk(ComponentRiskSummary componentRisk, String groupId, String artifactId,

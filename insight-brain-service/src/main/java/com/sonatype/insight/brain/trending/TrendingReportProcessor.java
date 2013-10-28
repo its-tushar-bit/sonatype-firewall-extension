@@ -39,6 +39,7 @@ import com.sonatype.insight.brain.model.trending.ComponentRiskSummary;
 import com.sonatype.insight.brain.model.trending.ComponentsSummary;
 import com.sonatype.insight.brain.model.trending.DiffData;
 import com.sonatype.insight.brain.model.trending.PartialMatch;
+import com.sonatype.insight.brain.model.trending.PoliciesSummary;
 import com.sonatype.insight.brain.model.trending.PolicyViolation;
 import com.sonatype.insight.brain.model.trending.TrendingReport;
 import com.sonatype.insight.brain.model.trending.TrendingReportMetadata;
@@ -65,7 +66,7 @@ public class TrendingReportProcessor
 
   public static final String[] CATEGORIES = { CATEGORY_SECURITY, CATEGORY_LICENSE, CATEGORY_QUALITY, CATEGORY_OTHER };
 
-  public static final String[] THREAT_LEVELS = { "critical", "severe", "moderate", "null" };
+  public static final String[] THREAT_LEVELS = { "critical", "severe", "moderate", "none" };
 
   private static final Logger log = LoggerFactory.getLogger(TrendingReportProcessor.class);
 
@@ -239,16 +240,7 @@ public class TrendingReportProcessor
           PolicyFact policyFact = alert.getTrigger();
           int level = policyFact.getThreatLevel();
           List<ComponentFact> componentFacts = policyFact.getComponentFacts();
-          int levelIdx = 3; // other
-          if (level >= 8) {
-            levelIdx = 0;
-          }
-          else if (level >= 4) {
-            levelIdx = 1;
-          }
-          else if (level >= 2) {
-            levelIdx = 2;
-          }
+          int levelIdx = getThreadLevelIdx(level);
           for (ComponentFact componentFact : componentFacts) {
             previousCategories.get(getViolationCategory(componentFact.getConstraintFacts()))[levelIdx]++;
           }
@@ -260,7 +252,30 @@ public class TrendingReportProcessor
 
     return new TrendingReport(meta, toComponentsSummary(components), toApplications(applicationRisks),
         toPolicyViolations(policyViolations), toPartialMatches(partialMatches), toDiffData(categories,
-            previousCategories), toTopCategoryComponentRisks(componentRisks));
+            previousCategories), toTopCategoryComponentRisks(componentRisks),
+        toPoliciesSummary(policyViolations.values()));
+  }
+
+  private PoliciesSummary toPoliciesSummary(Collection<PolicyViolation> violations) {
+    int[] totals = new int[THREAT_LEVELS.length];
+    for (PolicyViolation violation : violations) {
+      totals[getThreadLevelIdx(violation.getThreat())] += violation.getViolations()[PERIOD_COUNT - 1];
+    }
+    return new PoliciesSummary(totals[0], totals[1], totals[2], totals[3]);
+  }
+
+  private int getThreadLevelIdx(int level) {
+    int levelIdx = 3; // other
+    if (level >= 8) {
+      levelIdx = 0;
+    }
+    else if (level >= 4) {
+      levelIdx = 1;
+    }
+    else if (level >= 2) {
+      levelIdx = 2;
+    }
+    return levelIdx;
   }
 
   private void incrementComponentRisk(Map<String, Map<List<String>, int[]>> componentRisks, List<String> componentKey,

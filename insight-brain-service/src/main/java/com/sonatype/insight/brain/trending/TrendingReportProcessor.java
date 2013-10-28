@@ -210,7 +210,7 @@ public class TrendingReportProcessor
                     new int[PERIOD_COUNT]);
                 policyViolations.put(policyViolationsKey, violations);
               }
-              violations.getViolations()[period]++; // ain't perty but works
+              violations.getViolations()[PERIOD_COUNT - period - 1]++; // ain't perty but works
             }
           }
         }

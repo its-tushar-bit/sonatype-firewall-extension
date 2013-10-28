@@ -38,15 +38,24 @@ class UserManagementPage
     passwordValidateInput(required: false) { userForm.passwordValidate() }
     passwordValidateValidations(required: false) { module ValidationModule, passwordValidateInput.parent() }
 
+    uniqueUserValidation(required: false) { usernameInput.parent().find('div', text: 'Enter a unique username') }
+
     validations(required: false) {
       [firstNameValidations, lastNameValidations, emailValidations, usernameValidations, passwordValidations,
           passwordValidateValidations]
     }
-    errorFree(required: false) { !validations.any { !it.errorFree } }
+
+    errorFree(required: false) { !validations.any { !it.errorFree } && !uniqueUserValidation?.displayed }
     save(required: false) { $('button', 'ng-click': 'saveClick(user)') }
     cancel(required: false) { $('button', 'ng-click': 'cancelClick(user)') }
-    header(required: false) { $('a.accordion-toggle') }
+    headers(required: false) { $('a.accordion-toggle') }
+    header(required: false) { index -> $('a.accordion-toggle', index) }
 
-    summarySection(required: false) { index -> $('div.accordion-inner', index) }
+    modal(required: false) { $('div.modal') }
+    confirmDeleteModal(required: false) { modal.find { it.text() == 'Delete User' } }
+    confirmDelete(required: false) { confirmDeleteModal.find('button', text: 'Delete') }
+    cancelDelete(required: false) { confirmDeleteModal.find('button', text: 'Cancel') }
+
+    summarySection { index -> $('div.accordion-inner', index) }
   }
 }

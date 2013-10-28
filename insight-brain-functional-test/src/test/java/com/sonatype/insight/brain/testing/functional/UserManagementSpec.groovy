@@ -14,6 +14,7 @@ import geb.spock.GebReportingSpec
 import org.junit.ClassRule
 import org.junit.rules.TestRule
 import org.openqa.selenium.Keys
+import spock.lang.Ignore
 import spock.lang.Shared
 import spock.lang.Stepwise
 import spock.lang.Unroll
@@ -62,7 +63,7 @@ class UserManagementSpec
   @Unroll
   def "If multiple space characters are present during validation the #input field should show a noSpaces error"() {
     when: 'inserting text containing leading spaces and losing focus on the field'
-    input << '  a'
+    input << 'a  a'
     input << Keys.TAB
 
     then: 'the noSpaces validation error is shown'
@@ -74,7 +75,7 @@ class UserManagementSpec
     cleanup:
     input.value('')
     input << Keys.TAB
-    assert !inputValidations.noSpaces.displayed
+    !inputValidations.noSpaces.displayed
     assert errorFree
 
     where:
@@ -151,7 +152,7 @@ class UserManagementSpec
 
   def "If the form is correct, we can save it"() {
     given: 'a count of present users in the system'
-    int userCount = header.size()
+    int userCount = headers.size()
 
     when: 'we fix the password validation error'
     passwordValidateInput.value('123abc')
@@ -162,14 +163,14 @@ class UserManagementSpec
     when: 'we click save'
     save.click()
 
-    then: "add form no longer visible"
+    then: "add form no longer visible and newly added user is displayed"
     waitFor { !userForm.present }
-    header.size() > userCount
+    headers.size() > userCount
   }
 
   def "The newly added user should now appear in the list of users"() {
     when: "user views the newly added user summary"
-    header.first().click()
+    header(0).click()
 
     then: "user sees the read only fields from the object"
     def summary = summarySection(0)
@@ -177,5 +178,29 @@ class UserManagementSpec
     summary.find('td', text: 'add').displayed
     summary.find('td', text: 'user').displayed
     summary.find('td', text: 'addusertest@email.com').displayed
+  }
+
+  @Ignore('not completely functional yet')
+  def "The newly added user can be deleted"() {
+    when: 'hovering over the header of the user in the list'
+    interact {
+      moveToElement(header(0))
+    }
+
+    then: 'we can now see the delete symbol'
+    def deleteUser = header(0).find('button', 'ng-click': 'removeClick(user)')
+    deleteUser.displayed
+
+    when: 'clicking on delete'
+    deleteUser.click()
+
+    then: 'we are presented with a confirmation dialog'
+    confirmDeleteModal.displayed
+
+    when: 'we confirm deletion'
+    confirmDelete.click()
+
+    then: 'the user is deleted'
+    header.size() == 1
   }
 }

@@ -34,15 +34,11 @@ class AppSecurityManagementSpec extends GebReportingSpec {
   // assumes a license has already been installed
   // get to the organizations page
   def setup() {
-    browser.config.baseUrl = "http://localhost:8070/"
-    browser.registerPageChangeListener(new EchoingPageChangeListener())
-    
-    // TODO - KR currently as the first run test it appears that this runs into issues being redirected to the license page instead of the expected r
     to LoginPage
     loginAsAdmin()
     waitFor { title != "CLM Login" }
-    to ReportPage
     waitFor { browser.getDriver().manage().getCookieNamed('JSESSIONID') != null }
+    at ReportPage
   }
 
   def cleanup() {

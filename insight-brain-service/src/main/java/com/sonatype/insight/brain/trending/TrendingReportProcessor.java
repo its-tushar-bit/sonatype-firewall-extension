@@ -196,6 +196,10 @@ public class TrendingReportProcessor
       for (PolicyEvaluation eval : evalLog.allByStage(STAGE_ID)) {
         int period = PERIOD_COUNT - ((int) ((now - eval.getTime()) / PERIOD_LENGTH_MS));
 
+        if (period < 0) {
+          period = 0;
+        }
+
         if (periods[period] == null) {
           periods[period] = eval;
           // feel evaluation gaps
@@ -207,7 +211,7 @@ public class TrendingReportProcessor
         if (period <= 0) {
           // log entries are ordered newest first
           // current entry is before reporting period
-          // no point to look at earlier records
+          // no point in looking at earlier records
           break;
         }
       }

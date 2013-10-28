@@ -158,12 +158,30 @@ public class TrendingReportProcessorTest
     builder.addPolicyAlert("a", 10).addComponentFact("a").addConstraintFact().addConditionFact("a");
 
     long time = System.currentTimeMillis();
+    createScan(application, builder, time - (40 * ONE_DAY_MS)); // this is expected to be ignored
     createScan(application, builder, time - (21 * ONE_DAY_MS)); // this is expected to be ignored
     createScan(application, builder, time - (16 * ONE_DAY_MS));
     createScan(application, builder, time - (11 * ONE_DAY_MS));
     createScan(application, builder, time - (6 * ONE_DAY_MS));
     createScan(application, builder, time - (1 * ONE_DAY_MS)); // this is expected to be ignored
     createScan(application, builder, time);
+
+    TrendingReport report = processor.calculate();
+
+    List<PolicyViolation> violations = report.getViolations();
+    Assert.assertEquals(1, violations.size());
+    Assert.assertArrayEquals(new int[] { 1, 1, 1, 1 }, violations.get(0).getViolations());
+  }
+
+
+  @Test
+  public void testPolicyViolationsPeriods_veryOldReport() throws Exception {
+    Application application = createApplication("testApp");
+    ReportBuilder builder = new ReportBuilder();
+    builder.addPolicyAlert("a", 10).addComponentFact("a").addConstraintFact().addConditionFact("a");
+
+    long time = System.currentTimeMillis();
+    createScan(application, builder, time - (40 * ONE_DAY_MS));
 
     TrendingReport report = processor.calculate();
 

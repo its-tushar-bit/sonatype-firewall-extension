@@ -353,13 +353,13 @@ describe('TrendingController tests', function() {
       expect(colors.barFromThreatName('critical')).toBe('#DB2852');
       expect(colors.barFromThreatName('severe')).toBe('#F7941E');
       expect(colors.barFromThreatName('moderate')).toBe('#F5C649');
-      expect(colors.barFromThreatName('null')).toBe('#0047b2');
+      expect(colors.barFromThreatName('none')).toBe('#0047b2');
     });
     it('should get text color from threat', function() {
       expect(colors.textFromThreatName('critical')).toBe('white');
       expect(colors.textFromThreatName('severe')).toBe('white');
       expect(colors.textFromThreatName('moderate')).toBe('black');
-      expect(colors.textFromThreatName('null')).toBe('white');
+      expect(colors.textFromThreatName('none')).toBe('white');
     });
     testCases = [
       {

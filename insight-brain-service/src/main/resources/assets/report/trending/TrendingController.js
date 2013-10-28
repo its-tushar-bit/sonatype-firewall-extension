@@ -309,7 +309,7 @@
               return '#F7941E';
             case 'moderate':
               return '#F5C649';
-            case 'null':
+            case 'none':
               return '#0047b2';
             default:
               return 'black';
@@ -319,7 +319,7 @@
           switch (threatName.toLowerCase()) {
             case 'critical':
             case 'severe':
-            case 'null':
+            case 'none':
               return 'white';
             default:
               return 'black';

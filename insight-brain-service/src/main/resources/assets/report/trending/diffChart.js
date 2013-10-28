@@ -52,7 +52,3 @@ Includes the third-party code listed at http://links.sonatype.com/products/clm/a
   ]);
 
 }).call(this);
-
-/*
-//@ sourceMappingURL=diffChart.js.map
-*/

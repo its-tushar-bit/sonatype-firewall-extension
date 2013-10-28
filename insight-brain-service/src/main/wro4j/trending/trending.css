@@ -232,6 +232,12 @@ td.violations-difference {
     overflow: visible;
   }
 
+  @-moz-document regexp("*reports.html*") {
+    .span12 {
+      width: 600px;
+    }
+  }
+
   .threat-chiclet-small {
     color: #FFF !important;
     background-color: #f5f5f5 !important;

@@ -33,6 +33,7 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.StageType;
+import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.trending.ApplicationRiskSummary;
 import com.sonatype.insight.brain.model.trending.Applications;
@@ -82,6 +83,8 @@ public class TrendingReportProcessor
 
   public static final long PERIOD_LENGTH_MS = TWENTY_DAYS_MS / PERIOD_COUNT;
 
+  public static final String STAGE_ID = BuildStageType.ID;
+
   private final InsightWork work;
 
   private final PolicyEvaluationUtils policyEvaluationUtils;
@@ -128,112 +131,110 @@ public class TrendingReportProcessor
       // alerts counts in this application
       int criticalAlerts = 0, severeAlerts = 0, moderateAlerts = 0, totalAlerts = 0;
       PolicyEvaluationLog evalLog = new PolicyEvaluationLog(work.getAuditDir(app.getId()));
-      for (StageType stageType : StageTypes.getAll()) {
-        // component counts in the latest report
-        PolicyEvaluation lastEval = evalLog.lastByStage(stageType.getId());
-        if (lastEval == null) {
-          continue;
+      // component counts in the latest report
+      PolicyEvaluation lastEval = evalLog.lastByStage(STAGE_ID);
+      if (lastEval == null) {
+        continue;
+      }
+      File reportFile = ReportResource.getReport(work, app.getId(), lastEval.getScanId());
+      if (reportFile == null) {
+        log.error("Cannot process application {}, recent report does not exist", app.getName());
+        continue;
+      }
+      JsonNode bomNode = JsonUtils.parse(Report.getEntry(reportFile, "bom.json").buf);
+      for (JsonNode componentNode : bomNode.get("aaData")) {
+        String matchState = componentNode.path("matchState").asText();
+        incrComponent(components, matchState, getComponentKey(componentNode));
+        if (MatchState.SIMILAR.getId().equals(matchState)) {
+          List<String> key = Arrays.asList(getAttribute(componentNode, "groupId"),
+              getAttribute(componentNode, "artifactId"), getAttribute(componentNode, "version"));
+          Set<String> hashes = partialMatches.get(key);
+          if (hashes == null) {
+            hashes = new HashSet<String>();
+            partialMatches.put(key, hashes);
+          }
+          hashes.add(getAttribute(componentNode, "hash"));
         }
-        File reportFile = ReportResource.getReport(work, app.getId(), lastEval.getScanId());
-        if (reportFile == null) {
-          log.error("Cannot process application {}, recent report does not exist", app.getName());
-          continue;
+      }
+
+      // application policy alert counts in the latest report
+      for (PolicyAlert alert : policyEvaluationUtils.findPolicyAlerts(app.getId(), lastEval.getScanId())) {
+        PolicyFact policyFact = alert.getTrigger();
+        int level = policyFact.getThreatLevel();
+        List<ComponentFact> componentFacts = policyFact.getComponentFacts();
+        int componentCount = componentFacts.size();
+        totalAlerts += componentCount;
+        int levelIdx = 3; // other
+        if (level >= 8) {
+          criticalAlerts += componentCount;
+          levelIdx = 0;
         }
-        JsonNode bomNode = JsonUtils.parse(Report.getEntry(reportFile, "bom.json").buf);
-        for (JsonNode componentNode : bomNode.get("aaData")) {
-          String matchState = componentNode.path("matchState").asText();
-          incrComponent(components, matchState, getComponentKey(componentNode));
-          if (MatchState.SIMILAR.getId().equals(matchState)) {
-            List<String> key = Arrays.asList(getAttribute(componentNode, "groupId"),
-                getAttribute(componentNode, "artifactId"), getAttribute(componentNode, "version"));
-            Set<String> hashes = partialMatches.get(key);
-            if (hashes == null) {
-              hashes = new HashSet<String>();
-              partialMatches.put(key, hashes);
-            }
-            hashes.add(getAttribute(componentNode, "hash"));
+        else if (level >= 4) {
+          severeAlerts += componentCount;
+          levelIdx = 1;
+        }
+        else if (level >= 2) {
+          moderateAlerts += componentCount;
+          levelIdx = 2;
+        }
+        for (ComponentFact componentFact : componentFacts) {
+          String category = getViolationCategory(componentFact.getConstraintFacts());
+          categories.get(category)[levelIdx]++;
+          String g = componentFact.getGroupId(), a = componentFact.getArtifactId(), v = componentFact.getVersion();
+          if (g != null && a != null && v != null) {
+            List<String> componentKey = Arrays.asList(g, a, v);
+            incrementComponentRisk(componentRisks, componentKey, "all", levelIdx);
+            incrementComponentRisk(componentRisks, componentKey, category, levelIdx);
           }
         }
+      }
 
-        // application policy alert counts in the latest report
-        for (PolicyAlert alert : policyEvaluationUtils.findPolicyAlerts(app.getId(), lastEval.getScanId())) {
+      PolicyEvaluation firstEval = null;
+
+      // policy alerts counts
+      for (PolicyEvaluation eval : evalLog.allByStage(STAGE_ID)) {
+        int period = (int) ((now - eval.getTime()) / PERIOD_LENGTH_MS);
+        if (period >= PERIOD_COUNT) {
+          if (firstEval == null || firstEval.getTime() < eval.getTime()) {
+            firstEval = eval;
+          }
+          continue; // too old, skip
+        }
+
+        for (PolicyAlert alert : policyEvaluationUtils.findPolicyAlerts(app.getId(), eval.getScanId())) {
+          PolicyFact policyFact = alert.getTrigger();
+          for (ComponentFact componentFact : policyFact.getComponentFacts()) {
+            String category = getViolationCategory(componentFact.getConstraintFacts());
+            String policyViolationsKey = policyFact.getPolicyId() + ":" + category;
+            PolicyViolation violations = policyViolations.get(policyViolationsKey);
+            if (violations == null) {
+              violations = new PolicyViolation(policyFact.getPolicyName(), category, policyFact.getThreatLevel(),
+                  new int[PERIOD_COUNT]);
+              policyViolations.put(policyViolationsKey, violations);
+            }
+            violations.getViolations()[PERIOD_COUNT - period - 1]++; // ain't perty but works
+          }
+        }
+      }
+
+      // previous categories
+      if (firstEval != null && lastEval.getTime() > firstEval.getTime()) {
+        for (PolicyAlert alert : policyEvaluationUtils.findPolicyAlerts(app.getId(), firstEval.getScanId())) {
           PolicyFact policyFact = alert.getTrigger();
           int level = policyFact.getThreatLevel();
           List<ComponentFact> componentFacts = policyFact.getComponentFacts();
-          int componentCount = componentFacts.size();
-          totalAlerts += componentCount;
           int levelIdx = 3; // other
           if (level >= 8) {
-            criticalAlerts += componentCount;
             levelIdx = 0;
           }
           else if (level >= 4) {
-            severeAlerts += componentCount;
             levelIdx = 1;
           }
           else if (level >= 2) {
-            moderateAlerts += componentCount;
             levelIdx = 2;
           }
           for (ComponentFact componentFact : componentFacts) {
-            String category = getViolationCategory(componentFact.getConstraintFacts());
-            categories.get(category)[levelIdx]++;
-            String g = componentFact.getGroupId(), a = componentFact.getArtifactId(), v = componentFact.getVersion();
-            if (g != null && a != null && v != null) {
-              List<String> componentKey = Arrays.asList(g, a, v);
-              incrementComponentRisk(componentRisks, componentKey, "all", levelIdx);
-              incrementComponentRisk(componentRisks, componentKey, category, levelIdx);
-            }
-          }
-        }
-
-        PolicyEvaluation firstEval = null;
-
-        // policy alerts counts
-        for (PolicyEvaluation eval : evalLog.allByStage(stageType.getId())) {
-          int period = (int) ((now - eval.getTime()) / PERIOD_LENGTH_MS);
-          if (period >= PERIOD_COUNT) {
-            if (firstEval == null || firstEval.getTime() < eval.getTime()) {
-              firstEval = eval;
-            }
-            continue; // too old, skip
-          }
-
-          for (PolicyAlert alert : policyEvaluationUtils.findPolicyAlerts(app.getId(), eval.getScanId())) {
-            PolicyFact policyFact = alert.getTrigger();
-            for (ComponentFact componentFact : policyFact.getComponentFacts()) {
-              String category = getViolationCategory(componentFact.getConstraintFacts());
-              String policyViolationsKey = policyFact.getPolicyId() + ":" + category;
-              PolicyViolation violations = policyViolations.get(policyViolationsKey);
-              if (violations == null) {
-                violations = new PolicyViolation(policyFact.getPolicyName(), category, policyFact.getThreatLevel(),
-                    new int[PERIOD_COUNT]);
-                policyViolations.put(policyViolationsKey, violations);
-              }
-              violations.getViolations()[PERIOD_COUNT - period - 1]++; // ain't perty but works
-            }
-          }
-        }
-
-        // previous categories
-        if (firstEval != null && lastEval.getTime() > firstEval.getTime()) {
-          for (PolicyAlert alert : policyEvaluationUtils.findPolicyAlerts(app.getId(), firstEval.getScanId())) {
-            PolicyFact policyFact = alert.getTrigger();
-            int level = policyFact.getThreatLevel();
-            List<ComponentFact> componentFacts = policyFact.getComponentFacts();
-            int levelIdx = 3; // other
-            if (level >= 8) {
-              levelIdx = 0;
-            }
-            else if (level >= 4) {
-              levelIdx = 1;
-            }
-            else if (level >= 2) {
-              levelIdx = 2;
-            }
-            for (ComponentFact componentFact : componentFacts) {
-              previousCategories.get(getViolationCategory(componentFact.getConstraintFacts()))[levelIdx]++;
-            }
+            previousCategories.get(getViolationCategory(componentFact.getConstraintFacts()))[levelIdx]++;
           }
         }
       }

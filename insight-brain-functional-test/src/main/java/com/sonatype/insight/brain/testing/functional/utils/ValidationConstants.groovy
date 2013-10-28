@@ -11,7 +11,9 @@ class ValidationConstants
 
   public static final String INVALID_EMAIL = 'Use valid format: abc@xyz.com'
 
-  public static final String NO_SPACES = 'Must not contain spaces.'
+  public static final String NO_SPACES = 'No leading'
+
+  public static final String PATTERN = 'Must not contain spaces.'
 
   public static final String PASSWORDS_MUST_MATCH = 'Passwords must match!'
 }

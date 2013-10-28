@@ -6,6 +6,7 @@
 
 package com.sonatype.insight.brain.testing.functional
 
+import com.sonatype.insight.brain.testing.functional.modules.ValidationModule
 import geb.Page
 
 import static com.sonatype.insight.brain.testing.functional.utils.ValidationConstants.*
@@ -24,35 +25,27 @@ class UserManagementPage
 
     firstNameControl(required: false) { controls(0) }
     firstNameInput(required: false) { firstNameControl.find('input') }
-    firstNameRequiredError(required: false) { firstNameControl.find('div', text: REQUIRED) }
-    firstNameAlphaNumericError(required: false) { firstNameControl.find('div', text: ALPHA_NUMERIC) }
-    firstNameSpacesError(required: false) { firstNameControl.find('div', text: startsWith('No leading')) }
+    firstNameValidations(required: false) { module ValidationModule, firstNameControl }
 
     lastNameControl(required: false) { controls(1) }
     lastNameInput(required: false) { lastNameControl.find('input') }
-    lastNameRequiredError(required: false) { lastNameControl.find('div', text: REQUIRED) }
-    lastNameAlphaNumericError(required: false) { lastNameControl.find('div', text: ALPHA_NUMERIC) }
-    lastNameSpacesError(required: false) { lastNameControl.find('div', text: startsWith('No leading')) }
+    lastNameValidations(required: false) { module ValidationModule, lastNameControl }
 
     emailControl(required: false) { controls(2) }
     emailInput(required: false) { emailControl.find('input') }
-    emailRequiredError(required: false) { emailControl.find('div', text: REQUIRED) }
-    emailFormatError(required: false) { emailControl.find('div', text: INVALID_EMAIL) }
+    emailValidations(required: false){ module ValidationModule, emailControl}
 
     usernameControl(required: false) { controls(3) }
     usernameInput(required: false) { usernameControl.find('input') }
-    usernameRequiredError(required: false) { usernameControl.find('div', text: REQUIRED) }
-    usernameAlphaNumericError(required: false) { usernameControl.find('div', text: ALPHA_NUMERIC) }
-    usernamePatternError(required: false) { usernameControl.find('div', text: NO_SPACES) }
+    usernameValidations(required:false){module ValidationModule, usernameControl}
 
     passwordControl(required: false) { controls(4) }
     passwordInput(required: false) { passwordControl.find('input') }
-    passwordRequiredError(required: false) { passwordControl.find('div', text: REQUIRED) }
+    passwordValidations(required:false) { module ValidationModule, passwordControl }
 
     passwordValidateControl(required: false) { controls(5) }
     passwordValidateInput(required: false) { passwordValidateControl.find('input') }
-    passwordValidateRequiredError(required: false) { passwordValidateControl.find('div', text: REQUIRED) }
-    passwordValidateMatchError(required: false) { passwordValidateControl.find('div', text: PASSWORDS_MUST_MATCH) }
+    passwordValidateValidations(required: false) { module ValidationModule, passwordValidateControl }
 
     save(required: false) { $('button', 'ng-click': 'saveClick(user)') }
     cancel(required: false) { $('button', 'ng-click': 'cancelClick(user)') }

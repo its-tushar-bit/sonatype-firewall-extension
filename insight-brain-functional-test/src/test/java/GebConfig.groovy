@@ -30,6 +30,11 @@ if (sauceBrowser) {
     assert accessKey
     new SauceLabsDriverFactory().create(sauceBrowser, username, accessKey)
   }
+  //increase default timeouts to account for remote execution
+  waiting{
+    timeout = 10
+    retryInterval = 0.5
+  }
 }
 else {
   driver = { new FirefoxDriver() }

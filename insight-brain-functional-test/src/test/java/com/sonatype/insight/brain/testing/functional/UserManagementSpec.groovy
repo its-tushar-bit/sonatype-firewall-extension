@@ -52,7 +52,7 @@ class UserManagementSpec extends GebReportingSpec {
       
     then: "verify add form visible"
       waitFor { firstNameInput.present }
-      !firstNameRequiredError.displayed
+      firstNameValidations.errorFree
       save.disabled
 
     when: "removing the first name value"
@@ -61,35 +61,33 @@ class UserManagementSpec extends GebReportingSpec {
       
     then: "make sure validation error shown"
       report 'missing required first name'
-      firstNameRequiredError.displayed
+      firstNameValidations.required.displayed
             
     when: "adding a first name"
       firstNameInput << "a"
       
     then: "make sure validation error not shown"
-      !firstNameRequiredError.displayed
-      !firstNameAlphaNumericError.displayed
-      
+      firstNameValidations.errorFree
+
     when: "adding a first name that contains non-alphanumeric characters"
       firstNameInput << "##"
       
     then: "make sure validation error shown"
       report 'first name contains illegal characters'
-      firstNameAlphaNumericError.displayed
+      firstNameValidations.alphaNumeric.displayed
       
     when: "removing the alphanumeric characters"
       firstNameInput << Keys.BACK_SPACE
       firstNameInput << Keys.BACK_SPACE
 
     then: "make sure alphanumeric validation error not shown"
-      !firstNameAlphaNumericError.displayed
-      !firstNameSpacesError.displayed
+      firstNameValidations.errorFree
       
     when: "adding extra spaces"
       firstNameInput << '  a'
       
     then: "make sure spaces validation error is shown"
-      firstNameSpacesError.displayed
+      firstNameValidations.noSpaces.displayed
       
     when: "removing extra characters"
       firstNameInput << Keys.BACK_SPACE
@@ -97,8 +95,7 @@ class UserManagementSpec extends GebReportingSpec {
       firstNameInput << Keys.BACK_SPACE
       
     then: "make sure spaces validation error is removed"
-      !firstNameSpacesError.displayed
-      !lastNameRequiredError.displayed
+      firstNameValidations.errorFree
       
     when: "removing the last name"
       lastNameInput << "a"
@@ -106,66 +103,62 @@ class UserManagementSpec extends GebReportingSpec {
       
     then: "make sure required validation error shown"
       report 'missing required last name'
-      lastNameRequiredError.displayed
-            
+      lastNameValidations.required.displayed
+
     when: "adding a last name"
       lastNameInput << "a"
       
     then: "make sure required validation error not shown"
-      !lastNameRequiredError.displayed
+      lastNameValidations.errorFree
       
     when: "adding a last name that contains non-alphanumeric characters"
       lastNameInput << "##"
       
     then: "make sure validation error shown"
     report 'last name contains illegal characters'
-    lastNameAlphaNumericError.displayed
+      lastNameValidations.alphaNumeric.displayed
       
     when: "removing the alphanumeric characters"
       lastNameInput << Keys.BACK_SPACE
       lastNameInput << Keys.BACK_SPACE
       
     then: "make sure alphanumeric validation error not shown"
-      !lastNameAlphaNumericError.displayed
-      !lastNameSpacesError.displayed
+      lastNameValidations.errorFree
       
     when: "adding extra spaces"
       lastNameInput << '  a'
       
     then: "make sure spaces validation error is shown"
-      lastNameSpacesError.displayed
-      
+      lastNameValidations.noSpaces.displayed
+
     when: "removing extra characters"
       lastNameInput << Keys.BACK_SPACE
       lastNameInput << Keys.BACK_SPACE
       lastNameInput << Keys.BACK_SPACE
       
     then: "make sure spaces validation error is removed"
-      !lastNameSpacesError.displayed
-      !emailRequiredError.displayed
+      lastNameValidations.errorFree
 
     when: "removing the email value"
       emailInput << "a"
       emailInput << Keys.BACK_SPACE
       
     then: "make sure required validation error shown"
-    report 'missing required email'
-    emailRequiredError.displayed
+      report 'missing required email'
+      emailValidations.required.displayed
 
     when: "adding an invalid email value"
       emailInput << "a"
       
     then: "make sure required validation error not shown and format error is shown"
       report 'email incorrect format'
-      !emailRequiredError.displayed
-      emailFormatError.displayed
+      emailValidations.invalidEmail.displayed
       
     when: "adding a valid email"
       emailInput << '@test.com'
       
     then: "make sure validation error not shown"
-      !emailFormatError.displayed
-      !usernameRequiredError.displayed
+      emailValidations.errorFree
       
     when: "removing the username value"
       usernameInput << "a"
@@ -173,44 +166,41 @@ class UserManagementSpec extends GebReportingSpec {
       
     then: "make sure validation error shown"
       report 'missing required username'
-      usernameRequiredError.displayed
-            
+      usernameValidations.required.displayed
+
     when: "adding a username value"
       usernameInput << "a"
 
     then: "make sure validation error not shown"
-      !usernameRequiredError.displayed
-      !usernameAlphaNumericError.displayed
+      usernameValidations.errorFree
       
     when: "adding a username with non-alphanumeric characters"
       usernameInput << "##"
       
     then: "make sure validation error shown"
       report 'username contains illegal characters'
-      usernameAlphaNumericError.displayed
-      
+      usernameValidations.alphaNumeric.displayed
+
     when: "removing the username value"
       usernameInput << Keys.BACK_SPACE
       usernameInput << Keys.BACK_SPACE
 
     then: "make sure validation error not shown"
-      !usernameAlphaNumericError.displayed
-      !usernamePatternError.displayed
+      usernameValidations.errorFree
       
     when: "adding extra spaces"
       usernameInput << '  a'
       
     then: "make sure spaces validation error is shown"
-      usernamePatternError.displayed
-      
+      usernameValidations.pattern.displayed
+
     when: "removing extra characters"
       usernameInput << Keys.BACK_SPACE
       usernameInput << Keys.BACK_SPACE
       usernameInput << Keys.BACK_SPACE
       
     then: "make sure spaces validation error is removed"
-      !usernamePatternError.displayed
-      !passwordRequiredError.displayed
+      usernameValidations.errorFree
       
     when: "check password required validation"
       passwordInput << "a"
@@ -218,14 +208,13 @@ class UserManagementSpec extends GebReportingSpec {
       
     then: "make sure validation error shown"
       report 'missing required password'
-      passwordRequiredError.displayed
+      passwordValidations.required.displayed
             
     when: "check password required validation gone"
       passwordInput << "a"
       
     then: "make sure validation error not shown"
-      !passwordRequiredError.displayed
-      !passwordValidateRequiredError.displayed
+      passwordValidations.errorFree
       
     when: "check password match required validation"
       passwordInput << Keys.BACK_SPACE
@@ -234,13 +223,14 @@ class UserManagementSpec extends GebReportingSpec {
       
     then: "make sure validation error shown"
       report 'required password validation is missing'
-      passwordValidateRequiredError.displayed
+      passwordValidateValidations.required.displayed
             
     when: "check password match required validation gone"
       passwordValidateInput << "a"
       
     then: "make sure validation error not shown"
-      !passwordValidateRequiredError.displayed
+      !passwordValidateValidations.required.displayed
+      passwordValidations.required.displayed
       
     when: "check password match validation"
       passwordValidateInput << Keys.BACK_SPACE
@@ -249,13 +239,13 @@ class UserManagementSpec extends GebReportingSpec {
       
     then: "make sure validation error shown"
       report 'password validation failure'
-      passwordValidateMatchError.displayed
+      passwordValidateValidations.passwordMatches.displayed
       
     when: "check password match validation gone"
       passwordValidateInput << "bc"
       
     then: "make sure validation error not shown"
-      !passwordValidateMatchError.displayed
+      passwordValidateValidations.errorFree
       !save.disabled
       
     when: "cancel new user"

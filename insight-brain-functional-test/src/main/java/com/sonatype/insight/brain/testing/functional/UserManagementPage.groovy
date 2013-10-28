@@ -19,29 +19,34 @@ class UserManagementPage
   static content = {
     newUserButton(wait: true) { $('.new-user-button') }
     userForm(required: false) { $('form', name: 'userForm') }
-    controls(required: false) { index -> userForm.find('div.controls', index) }
 
-    firstNameInput(required: false) { controls(0).find('input') }
-    firstNameValidations(required: false) { module ValidationModule, firstNameInput.parent() }
+    firstNameInput(required: false) { userForm.firstName() }
+    firstNameValidations(required: false) { module ValidationModule,  userForm.firstName().parent() }
 
-    lastNameInput(required: false) { controls(1).find('input') }
+    lastNameInput(required: false) { userForm.lastName() }
     lastNameValidations(required: false) { module ValidationModule, lastNameInput.parent() }
 
-    emailInput(required: false) { controls(2).find('input') }
+    emailInput(required: false) { userForm.email() }
     emailValidations(required: false) { module ValidationModule, emailInput.parent() }
 
-    usernameInput(required: false) { controls(3).find('input') }
+    usernameInput(required: false) { userForm.username() }
     usernameValidations(required: false) { module ValidationModule, usernameInput.parent() }
 
-    passwordInput(required: false) { controls(4).find('input') }
+    passwordInput(required: false) { userForm.password() }
     passwordValidations(required: false) { module ValidationModule, passwordInput.parent() }
 
-    passwordValidateInput(required: false) { controls(5).find('input') }
+    passwordValidateInput(required: false) { userForm.passwordValidate() }
     passwordValidateValidations(required: false) { module ValidationModule, passwordValidateInput.parent() }
 
+    validations(required: false) {
+      [firstNameValidations, lastNameValidations, emailValidations, usernameValidations, passwordValidations,
+          passwordValidateValidations]
+    }
+    errorFree(required: false) { !validations.any { !it.errorFree } }
     save(required: false) { $('button', 'ng-click': 'saveClick(user)') }
     cancel(required: false) { $('button', 'ng-click': 'cancelClick(user)') }
     header(required: false) { $('a.accordion-toggle') }
-    summarySection(required: false) { $('div.accordion-inner') }
+
+    summarySection(required: false) { index -> $('div.accordion-inner', index) }
   }
 }

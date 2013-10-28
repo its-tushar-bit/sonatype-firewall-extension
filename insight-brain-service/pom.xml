@@ -702,7 +702,6 @@
               <targetGroups>clm-server</targetGroups>
               <cssDestinationFolder>${project.build.directory}/generated/assets/assets/css/</cssDestinationFolder>
               <jsDestinationFolder>${project.build.directory}/generated/assets/assets/js/</jsDestinationFolder>
-              <wroManagerFactory>ro.isdc.wro.extensions.manager.standalone.GoogleStandaloneManagerFactory</wroManagerFactory>
             </configuration>
           </execution>
           <execution>

@@ -29,6 +29,9 @@
     </div>
     <div class="row">
       <div class="span6">
+        <div> <span class="component-count"><strong>{{ data.components.inApplication }}</strong> Components across all Applications</span>
+          <div ng-include='percentageChart'></div>
+        </div>
         <div class="row" style='padding-bottom: 10px;'>
           <div class="span2">
             <h1 class="count-header"><strong>{{ data.violations.length }}</strong> Policies</h1>
@@ -63,9 +66,6 @@
             </table>
           </div>
         </div>
-        <div> <span class="component-count"><strong>{{ data.components.inApplication }}</strong> Components across all Applications</span>
-          <div ng-include='percentageChart'></div>
-        </div>
         <div class="row" style="margin: 20px 0 0 0;">
           <div>
             <h1 class="count-header" style="margin:0;float:left"><strong>{{ data.totalPolicyViolationCount }}</strong> Violations</h1>
@@ -81,7 +81,7 @@
           </div>
         </div>
       </div>
-      <div class="span6" style="margin-top: 42px;">
+      <div class="span6" style="margin-top: 5px;">
         <div component-violations title="Top Violators" components="data.topPolicyViolations.all"></div>
         <div component-violations title="Security Policy Violators" components="data.topPolicyViolations.security"></div>
         <div component-violations title="License Policy Violators" components="data.topPolicyViolations.license"></div>

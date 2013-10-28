@@ -131,7 +131,7 @@ public class UserResource
   @PUT
   @Path(PASSWORD_PATH)
   @Consumes(MediaType.APPLICATION_JSON)
-  // TODO: Add authz
+  // Requires only authentication, no authorization.
   public void changePassword(@PathParam("userId") String userId, ChangePasswordDTO password) {
     UserDAO dao = new UserDAO();
     User user = dao.getByIdNotNull(userId);

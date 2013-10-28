@@ -262,7 +262,6 @@ public class TemporaryEntity
     ldapConnection.setPort(389);
     ldapConnection.setAuthenticationMethod(LdapAuthenticationMethod.NONE);
     ldapConnection.setSystemUsername("system");
-    // ldapConnection.setSystemPassword("password");
     new LdapConnectionDAO().insert(ldapConnection);
     return ldapConnection;
   }

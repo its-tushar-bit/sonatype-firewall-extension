@@ -25,15 +25,14 @@
   }
 
   appSecurityModule.controller('AppSecurityController', ['$scope', '$http', 'CLMAppLocations', '$rootScope', function($scope, $http, clmAppLocations, $rootScope) {
-    $scope.context = {
-      roleEditMap: {},
-      roles: []
-    };
-    
     $scope.doLoad = function() {
       $scope.error = null;
-      
+
       $http.get(clmAppLocations.getRoleMappingUrl()).success(function (data) {
+        $scope.context = {
+          roleEditMap: {},
+          roles: []
+        };
         $scope.context.roles = data.membersByRole;
       }).error(function (error) {
         $scope.error = arguments;

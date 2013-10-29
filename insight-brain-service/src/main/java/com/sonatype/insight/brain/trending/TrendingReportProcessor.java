@@ -51,8 +51,6 @@ import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class TrendingReportProcessor
 {
@@ -67,8 +65,6 @@ public class TrendingReportProcessor
   public static final String[] CATEGORIES = { CATEGORY_SECURITY, CATEGORY_LICENSE, CATEGORY_QUALITY, CATEGORY_OTHER };
 
   public static final String[] THREAT_LEVELS = { "critical", "severe", "moderate", "none" };
-
-  private static final Logger log = LoggerFactory.getLogger(TrendingReportProcessor.class);
 
   public static final long TWENTY_DAYS_MS = 20 * 86400L * 1000L;
 
@@ -130,17 +126,67 @@ public class TrendingReportProcessor
       // alerts counts in this application
       int criticalAlerts = 0, severeAlerts = 0, moderateAlerts = 0, totalAlerts = 0;
       PolicyEvaluationLog evalLog = new PolicyEvaluationLog(work.getAuditDir(app.getId()));
-      // component counts in the latest report
-      PolicyEvaluation lastEval = evalLog.lastByStage(STAGE_ID);
+
+      // most recent evaluation in each reporting period
+      // index==0 is most recent evaluation *before* first reporting period
+      PolicyEvaluation[] periods = new PolicyEvaluation[PERIOD_COUNT + 1];
+      for (PolicyEvaluation eval : evalLog.allByStage(STAGE_ID)) {
+        if (ReportResource.getReport(work, app.getId(), eval.getScanId()) == null) {
+          continue;
+        }
+
+        int period = PERIOD_COUNT - ((int) ((now - eval.getTime()) / PERIOD_LENGTH_MS));
+
+        if (period < 0) {
+          period = 0;
+        }
+
+        if (periods[period] == null) {
+          periods[period] = eval;
+          // fill evaluation gaps
+          for (int i = period + 1; i < periods.length && periods[i] == null; i++) {
+            periods[i] = eval;
+          }
+        }
+
+        if (period <= 0) {
+          // log entries are ordered newest first
+          // current entry is before reporting period
+          // no point in looking at earlier records
+          break;
+        }
+      }
+
+      PolicyEvaluation lastEval = periods[PERIOD_COUNT];
       if (lastEval == null) {
         continue;
       }
-      File reportFile = ReportResource.getReport(work, app.getId(), lastEval.getScanId());
-      if (reportFile == null) {
-        log.error("Cannot process application {}, recent report does not exist", app.getName());
-        continue;
+
+      // policy alerts counts
+      // skip index==0, which is most recent evaluation *before* reporting period
+      for (int period = 1; period < periods.length; period++) {
+        PolicyEvaluation eval = periods[period];
+        if (eval != null) {
+          for (PolicyAlert alert : policyEvaluationUtils.findPolicyAlerts(app.getId(), eval.getScanId())) {
+            PolicyFact policyFact = alert.getTrigger();
+            for (ComponentFact componentFact : policyFact.getComponentFacts()) {
+              String category = getViolationCategory(componentFact.getConstraintFacts());
+              String policyViolationsKey = policyFact.getPolicyId() + ":" + category;
+              PolicyViolation violations = policyViolations.get(policyViolationsKey);
+              if (violations == null) {
+                violations = new PolicyViolation(policyFact.getPolicyName(), category, policyFact.getThreatLevel(),
+                    new int[PERIOD_COUNT]);
+                policyViolations.put(policyViolationsKey, violations);
+              }
+              violations.getViolations()[period - 1]++; // ain't perty but works
+            }
+          }
+        }
       }
-      JsonNode bomNode = JsonUtils.parse(Report.getEntry(reportFile, "bom.json").buf);
+
+      // component counts in the latest report
+      File evalFile = ReportResource.getReport(work, app.getId(), lastEval.getScanId());
+      JsonNode bomNode = JsonUtils.parse(Report.getEntry(evalFile, "bom.json").buf);
       for (JsonNode componentNode : bomNode.get("aaData")) {
         String matchState = componentNode.path("matchState").asText();
         incrComponent(components, matchState, getComponentKey(componentNode));
@@ -184,55 +230,6 @@ public class TrendingReportProcessor
             List<String> componentKey = Arrays.asList(g, a, v);
             incrementComponentRisk(componentRisks, componentKey, "all", levelIdx);
             incrementComponentRisk(componentRisks, componentKey, category, levelIdx);
-          }
-        }
-      }
-
-      // policy alerts counts
-
-      // most recent evaluation in each reporting period
-      // index==0 is most recent evaluation *before* first reporting period
-      PolicyEvaluation[] periods = new PolicyEvaluation[PERIOD_COUNT + 1];
-      for (PolicyEvaluation eval : evalLog.allByStage(STAGE_ID)) {
-        int period = PERIOD_COUNT - ((int) ((now - eval.getTime()) / PERIOD_LENGTH_MS));
-
-        if (period < 0) {
-          period = 0;
-        }
-
-        if (periods[period] == null) {
-          periods[period] = eval;
-          // fill evaluation gaps
-          for (int i = period + 1; i < periods.length && periods[i] == null; i++) {
-            periods[i] = eval;
-          }
-        }
-
-        if (period <= 0) {
-          // log entries are ordered newest first
-          // current entry is before reporting period
-          // no point in looking at earlier records
-          break;
-        }
-      }
-
-      // skip index==0, which is most recent evaluation *before* reporting period
-      for (int period = 1; period < periods.length; period++) {
-        PolicyEvaluation eval = periods[period];
-        if (eval != null) {
-          for (PolicyAlert alert : policyEvaluationUtils.findPolicyAlerts(app.getId(), eval.getScanId())) {
-            PolicyFact policyFact = alert.getTrigger();
-            for (ComponentFact componentFact : policyFact.getComponentFacts()) {
-              String category = getViolationCategory(componentFact.getConstraintFacts());
-              String policyViolationsKey = policyFact.getPolicyId() + ":" + category;
-              PolicyViolation violations = policyViolations.get(policyViolationsKey);
-              if (violations == null) {
-                violations = new PolicyViolation(policyFact.getPolicyName(), category, policyFact.getThreatLevel(),
-                    new int[PERIOD_COUNT]);
-                policyViolations.put(policyViolationsKey, violations);
-              }
-              violations.getViolations()[period - 1]++; // ain't perty but works
-            }
           }
         }
       }

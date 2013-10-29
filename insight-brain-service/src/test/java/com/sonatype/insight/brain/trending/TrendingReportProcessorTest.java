@@ -173,7 +173,6 @@ public class TrendingReportProcessorTest
     Assert.assertArrayEquals(new int[] { 1, 1, 1, 1 }, violations.get(0).getViolations());
   }
 
-
   @Test
   public void testPolicyViolationsPeriods_veryOldReport() throws Exception {
     Application application = createApplication("testApp");
@@ -214,6 +213,23 @@ public class TrendingReportProcessorTest
 
     long time = System.currentTimeMillis();
     createScan(application, builder, time);
+
+    TrendingReport report = processor.calculate();
+
+    List<PolicyViolation> violations = report.getViolations();
+    Assert.assertEquals(1, violations.size());
+    Assert.assertArrayEquals(new int[] { 0, 0, 0, 1 }, violations.get(0).getViolations());
+  }
+
+  @Test
+  public void testPolicyViolationsPeriods_emptyEvaluation() throws Exception {
+    Application application = createApplication("testApp");
+    ReportBuilder builder = new ReportBuilder();
+    builder.addPolicyAlert("a", 10).addComponentFact("a").addConstraintFact().addConditionFact("a");
+
+    long time = System.currentTimeMillis();
+    createScan(application, builder, time - (1 * ONE_DAY_MS));
+    createScan(application, null, time); // empty report, should be ignored
 
     TrendingReport report = processor.calculate();
 
@@ -431,7 +447,6 @@ public class TrendingReportProcessorTest
     Assert.assertEquals(1, policiesSummary.getModerate());
     Assert.assertEquals(1, policiesSummary.getNone());
     Assert.assertEquals(5, policiesSummary.getTotal());
-
   }
 
   private void assertComponentRisk(ComponentRiskSummary componentRisk, String groupId, String artifactId,
@@ -486,7 +501,9 @@ public class TrendingReportProcessorTest
 
   private void createScan(Application application, ReportBuilder builder, long time) throws IOException {
     String scanId = UUID.randomUUID().toString().replace("-", "");
-    builder.build(insightWork.getReportDir(application.getId(), scanId));
+    if (builder != null) {
+      builder.build(insightWork.getReportDir(application.getId(), scanId));
+    }
     PolicyEvaluationLog log = new PolicyEvaluationLog(insightWork.getAuditDir(application.getId()));
     log.add(new Stage(BuildStageType.ID), scanId, false, "nobody", null, time);
   }

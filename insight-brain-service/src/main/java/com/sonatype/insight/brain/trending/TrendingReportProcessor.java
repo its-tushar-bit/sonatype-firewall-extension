@@ -241,7 +241,7 @@ public class TrendingReportProcessor
           PolicyFact policyFact = alert.getTrigger();
           int level = policyFact.getThreatLevel();
           List<ComponentFact> componentFacts = policyFact.getComponentFacts();
-          int levelIdx = getThreadLevelIdx(level);
+          int levelIdx = getThreatLevelIdx(level);
           for (ComponentFact componentFact : componentFacts) {
             previousCategories.get(getViolationCategory(componentFact.getConstraintFacts()))[levelIdx]++;
           }
@@ -260,12 +260,12 @@ public class TrendingReportProcessor
   private PoliciesSummary toPoliciesSummary(Collection<PolicyViolation> violations) {
     int[] totals = new int[THREAT_LEVELS.length];
     for (PolicyViolation violation : violations) {
-      totals[getThreadLevelIdx(violation.getThreat())] += violation.getViolations()[PERIOD_COUNT - 1];
+      totals[getThreatLevelIdx(violation.getThreat())] += violation.getViolations()[PERIOD_COUNT - 1];
     }
     return new PoliciesSummary(totals[0], totals[1], totals[2], totals[3]);
   }
 
-  private int getThreadLevelIdx(int level) {
+  private int getThreatLevelIdx(int level) {
     int levelIdx = 3; // other
     if (level >= 8) {
       levelIdx = 0;

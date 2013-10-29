@@ -7,9 +7,13 @@ package com.sonatype.insight.brain.license;
 
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.license.LicenseThreatGroupResource.ApplicableLicenseThreatGroups;
+import com.sonatype.insight.brain.license.LicenseThreatGroupResource.LicenseThreatGroupWithLicenses;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.utils.IdUtils;
+
+import static org.hamcrest.Matchers.hasSize;
+import static org.junit.Assert.assertThat;
 
 import org.junit.Test;
 
@@ -58,12 +62,12 @@ public class ApplicationLicenseThreatGroupResourceTest
   @Test
   public void testGetApplicable_AppWithOrg() throws Exception {
     Organization org = createOrganization("orgName", false);
-    createLicenseThreatGroup("LTG-2", org.getId());
+    createLicenseThreatGroup("LTG-2", org.getId(), "GPL-2.0", "GPL-3.0");
     Application app = createApplication("appPublicId", "appName", false, false);
     app.setOrganizationId(org.getId());
     new ApplicationDAO().update(app);
-    createLicenseThreatGroup("LTG-0", app.getId());
-    createLicenseThreatGroup("LTG-1", app.getId());
+    createLicenseThreatGroup("LTG-0", app.getId(), "Apache-2.0");
+    createLicenseThreatGroup("LTG-1", app.getId(), "EPL-1.0");
 
     ApplicableLicenseThreatGroups altgs = getApplicableLicenseThreatGroups(app.getPublicId());
     assertNotNull(altgs);
@@ -71,8 +75,14 @@ public class ApplicationLicenseThreatGroupResourceTest
     assertEquals(2, altgs.licenseThreatGroupsByOwner.size());
     assertLicenseThreatGroupsByOwner(app.getId(), app.getName(), IdUtils.TYPE_APPLICATION, 2,
         altgs.licenseThreatGroupsByOwner.get(0));
+    for (LicenseThreatGroupWithLicenses ltgwl : altgs.licenseThreatGroupsByOwner.get(0).licenseThreatGroups) {
+      assertThat(ltgwl.licenses, hasSize(1));
+    }
     assertLicenseThreatGroupsByOwner(org.getId(), org.getName(), IdUtils.TYPE_ORGANIZATION, 1,
         altgs.licenseThreatGroupsByOwner.get(1));
+    for (LicenseThreatGroupWithLicenses ltgwl : altgs.licenseThreatGroupsByOwner.get(1).licenseThreatGroups) {
+      assertThat(ltgwl.licenses, hasSize(2));
+    }
   }
 
   @Override

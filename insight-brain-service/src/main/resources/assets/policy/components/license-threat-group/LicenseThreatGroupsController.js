@@ -66,14 +66,6 @@
         },
         create: function() {
           return licenseGroupStore.create();
-        },
-        store: function(ownerId, ownerType) {
-          var licenseGroupStore = licenseGroupStores[ownerId];
-          if (!licenseGroupStore) {
-            licenseGroupStore = licenseGroupStores[ownerId] = CLMResource.getStore(angular.extend({ url: CLMAppLocations.getLicenseGroupsUrl(ownerId,
-                ownerType) }, licenseGroupStoreTemplate));
-          }
-          return licenseGroupStore;
         }
       };
     }
@@ -126,7 +118,7 @@
         var promises = [
           licenseStore.get(), $http.get(CLMAppLocations.getApplicableLicenseGroupsUrl(), {
             params: { timestamp: new Date().getTime() }
-          })
+          }), licenseGroupStore.get()
         ];
         if ($scope.error) {
           $scope.error = null;
@@ -136,32 +128,15 @@
 
         $q.all(promises).then(function(results) {
           var licenses = results[0];
-          promises = [];
 
           $scope.allLicenses = licenses.sort(sortLicense);
           $scope.applicableLicenseGroups = results[1].data.licenseThreatGroupsByOwner;
 
           angular.forEach($scope.applicableLicenseGroups, function(applicableLicenseGroup, index) {
             applicableLicenseGroup.editable = index === 0;
-            if (index === 0) {
-              promises.push(licenseGroupStore.get());
-            }
-            else {
-              promises.push(licenseGroupStore.store(applicableLicenseGroup.ownerId,
-                  applicableLicenseGroup.ownerType).get());
-            }
           });
 
-          $q.all(promises).then(function(results) {
-            angular.forEach(results, function(licenseGroups, index) {
-              $scope.applicableLicenseGroups[index].licenseThreatGroups = licenseGroups;
-              if (index === 0) {
-                $scope.licenseGroups = licenseGroups;
-              }
-            });
-          }, function(errors) {
-            $scope.error = angular.isArray(errors) ? errors[0] : errors;
-          });
+          $scope.applicableLicenseGroups[0].licenseThreatGroups = $scope.licenseGroups = results[2];
         }, function(errors) {
           $scope.error = angular.isArray(errors) ? errors[0] : errors;
         });

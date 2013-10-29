@@ -88,7 +88,9 @@
 				<div class="accordion-group" ng-repeat='role in context.roles'>
 					<div class="accordion-heading role">
 						<div class='row' ng-click="expanded = !expanded">
-							<div class='span3 expandable'>{{role.roleName}}</div>
+							<div class='span3'>
+								<div class='expandable'>{{role.roleName}}</div>
+							</div>
 							<div class='span8'>
 								<div class='hover-buttons floatRight'>
 									<button type='button' class="btn btn-mini" title="Edit Role"

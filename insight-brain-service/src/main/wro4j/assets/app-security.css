@@ -17,7 +17,7 @@
 	font-style: italic;
 }
 .roles {
-	width : 882px;
+	width : 867px;
 }
 .role-header {
 	border-bottom:1px solid rgba(0,0,0,.1);
@@ -34,5 +34,5 @@
 	min-height: 24px;
 }
 .role .hover-buttons {
-	margin-top : 5px
+	margin-top : 6px
 }

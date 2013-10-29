@@ -101,7 +101,7 @@ public class MembershipMappingResource
     if (IdUtils.TYPE_APPLICATION.equals(ownerType)) {
       Application app = appDAO.getByIdNotNull(internalOwnerId);
       for (Map.Entry<String, MembersByOwner> entry : loadMembers(app.getId(), app.getName(), IdUtils.TYPE_APPLICATION,
-          displayNames).entrySet()) {
+          displayNames, roles).entrySet()) {
         entry.getValue().ownerId = app.getPublicId();
         membersByRoleByRoleId.get(entry.getKey()).membersByOwner.add(entry.getValue());
       }
@@ -109,7 +109,7 @@ public class MembershipMappingResource
     }
     else if (IdUtils.TYPE_GLOBAL.equals(ownerType)) {
       for (Map.Entry<String, MembersByOwner> entry : loadMembers(MembershipMapping.GLOBAL_CONTEXT_ID,
-          MembershipMapping.GLOBAL_CONTEXT_NAME, IdUtils.TYPE_GLOBAL, displayNames).entrySet()) {
+          MembershipMapping.GLOBAL_CONTEXT_NAME, IdUtils.TYPE_GLOBAL, displayNames, roles).entrySet()) {
         membersByRoleByRoleId.get(entry.getKey()).membersByOwner.add(entry.getValue());
       }
     }
@@ -120,7 +120,7 @@ public class MembershipMappingResource
     if (organizationId != null) {
       Organization org = orgDAO.getByIdNotNull(organizationId);
       for (Map.Entry<String, MembersByOwner> entry : loadMembers(org.getId(), org.getName(), IdUtils.TYPE_ORGANIZATION,
-          displayNames).entrySet()) {
+          displayNames, roles).entrySet()) {
         membersByRoleByRoleId.get(entry.getKey()).membersByOwner.add(entry.getValue());
       }
     }
@@ -131,7 +131,7 @@ public class MembershipMappingResource
   }
 
   private Map<String, MembersByOwner> loadMembers(String ownerId, String ownerName, String ownerType,
-      DisplayNames displayNames)
+      DisplayNames displayNames, List<Role> roles)
   {
     Map<String, MembersByOwner> byRole = new LinkedHashMap<String, MembersByOwner>();
     for (MembershipMapping memberMap : memberMapDAO.getByContextId(ownerId)) {
@@ -148,14 +148,14 @@ public class MembershipMappingResource
     }
     
     //go through and make sure each role contains the owner, even if its empty list
-    for ( Role role : roleDAO.getApplicationRoles() ) {
+    for (Role role : roles) {
       MembersByOwner byOwner = byRole.get(role.getId());
       if (byOwner == null) {
         byOwner = new MembersByOwner(ownerId, ownerName, ownerType);
         byRole.put(role.getId(), byOwner);
       }
     }
-    
+
     return byRole;
   }
 

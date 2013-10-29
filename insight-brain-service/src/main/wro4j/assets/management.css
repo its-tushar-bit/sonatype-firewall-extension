@@ -716,14 +716,6 @@ ul.tri-pane {
   margin: 20px 0 10px 20px;
 }
 
-.roles > div.accordion-group:nth-child(odd) {
-	background-color: #f9f9f9;
-}
-
-.hover-button > i {
-	margin-top : 0px;
-}
-
 .collapsed-cell {
 	text-overflow:ellipsis;
     overflow:hidden;

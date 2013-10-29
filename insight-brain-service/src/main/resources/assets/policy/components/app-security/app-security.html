@@ -14,12 +14,12 @@
 				<h5>Available</h5>
 				<div>
 					<div>
-						<div ng-show="!queryResults.length" class='licenseSelectListItem'>Enter search criteria above to see matching users here</div>
-						<div ng-show="queryResults.length" ng-repeat='user in queryResults | userNotIn:mappings' ng-click='addUser(user)' class='licenseSelectListItem'>
+						<div ng-show="!queryString"><em>Search above to find users</em></div>
+						<div ng-repeat='user in queryResults | userNotIn:mappings' ng-click='addUser(user)' class='licenseSelectListItem'>
 							<i class='icon-plus-sign'></i>&nbsp;<span title='{{getTooltip(user)}}' ng-bind-html-unsafe="getRealname(user) | highlight:queryString:caseSensitive"></span>
 						</div>
-						<div class='licenseSelectListItem' ng-show='queryString && !requestActive && !queryResults.length && lastQuery == queryString'>
-							<i class='emptyIconGlyph'></i>&nbsp;<i>No results</i>
+						<div class='licenseSelectListItem' ng-show='queryString && !requestActive && queryResults.length == 0'>
+							<i class='emptyIconGlyph'></i>&nbsp;<em>No results</em>
 						</div>
 					</div>
 				</div>
@@ -30,7 +30,7 @@
 					<div>
 						<div ng-repeat='mapping in mappings'>
 							<div ng-repeat='member in mapping.members' ng-click='removeUser($parent.$index, $index)'
-									class='licenseSelectListItem'>
+									class='licenseSelectListItem' ng-class='{  inherited : $parent.$index }'>
 								<i ng-class='{ "icon-minus-sign" : !$parent.$index, "emptyIconGlyph" : $parent.$index }'></i>&nbsp;<span title='{{member.displayName}}'>{{member.displayName}}</span>
 							</div>
 						</div>
@@ -78,30 +78,38 @@
 		</div>
 		<div class='fade' ng-class='{in : context && !error}'>
 			<div clm-alerts='alerts'></div>
-			<div class="content-header">
-				<h4 style="padding-left: 5px;">
-					<span>Roles</span> <span style="position: absolute; left: 250px;">Users</span>
-				</h4>
+			<div class='role-header'>
+				<div class='row'>
+					<h4 class='span3'>Role</h4>
+					<h4 class='span7'>Users</h4>
+				</div>
 			</div>
 			<div class="accordion roles">
 				<div class="accordion-group" ng-repeat='role in context.roles'>
 					<div class="accordion-heading role">
-						<div class='btn-group hover-buttons floatRight'>
-							<button type='button' class="btn btn-mini hover-button" title="Edit Role" ng-disabled='context.roleEditMap[role.roleId]' ng-click="editClick(role)">
-								<i class="icon-pencil"></i>
-							</button>
+						<div class='row' ng-click="expanded = !expanded">
+							<div class='span3 expandable'>{{role.roleName}}</div>
+							<div class='span8 expandable'>
+								<div class='padded hover-buttons floatRight'>
+									<button type='button' class="btn btn-mini hover-button" title="Edit Role" 
+											ng-disabled='context.roleEditMap[role.roleId]' ng-click="editClick(role)">
+										<i class="icon-pencil"></i>
+									</button>
+								</div>
+								<div ng-show="!context.roleEditMap[role.roleId]">
+									<div ng-class='{"collapsed" : !expanded}'>
+										{{getUserNames(role)}}
+									</div>
+									<div ng-show="getInheritedUserNames(role) && expanded" class="inherited inherited-section">
+										<div><strong>Inherited from parent organization:</strong></div>
+										<div>{{getInheritedUserNames(role)}}</div>
+									</div>
+								</div>
+								<div show-if="context.roleEditMap[role.roleId]">
+									<div app-security-editor='role.membersByOwner' role-id='role.roleId' hide='context.roleEditMap[role.roleId] = false'></div>
+								</div>
+							</div>
 						</div>
-						<table style="width:97%;table-layout: fixed;cursor:pointer;" ng-click="expanded = !expanded">
-							<tr>
-								<td style="vertical-align: top; width: 215px;" ng-click="expanded = !expanded;"><p style="margin:5px;">{{role.roleName}}</p></td>
-								<td ng-show="!context.roleEditMap[role.roleId] && !expanded"><p class="collapsed-cell">{{getUserNames(role)}}</p></td>
-								<td ng-show="!context.roleEditMap[role.roleId] && expanded" style="padding:5px;">
-									<div>{{getUserNames(role)}}</div>
-									<div ng-show="getInheritedUserNames(role)" style="border-top: 1px solid #E8E8E8;margin-top:5px; padding-top:5px;color:#909090;font-style: italic;"><div style="font-weight: bold;">Inherited from parent organization:</div><div>{{getInheritedUserNames(role)}}</div></div>
-								</td>
-								<td show-if="context.roleEditMap[role.roleId]"><div app-security-editor='role.membersByOwner' role-id='role.roleId' hide='context.roleEditMap[role.roleId] = false'></div></td>
-							</tr>
-						</table>
 					</div>
 				</div>
 			</div>

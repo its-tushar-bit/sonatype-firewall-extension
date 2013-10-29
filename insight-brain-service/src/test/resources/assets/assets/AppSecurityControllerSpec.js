@@ -221,7 +221,7 @@ describe('AppSecurityControllerSpec', function() {
         $httpBackend.flush();
 
         expect(scope.lastQuery).toEqual('food');
-        expect(scope.queryResults).toBeFalsy();
+        expect(scope.queryResults).toEqual([{ id : 'food' }]);
       }));
 
       it('Query Completely Changed', inject(function ($timeout, $httpBackend) {
@@ -241,7 +241,7 @@ describe('AppSecurityControllerSpec', function() {
         $httpBackend.flush();
 
         expect(scope.lastQuery).toEqual('bar');
-        expect(scope.queryResults).toBeFalsy([]);
+        expect(scope.queryResults).toBeFalsy();
 
         $httpBackend.expectGET('../rest/user/query?q=bar').respond([{ id : 'bar' }]);
         $timeout.flush();

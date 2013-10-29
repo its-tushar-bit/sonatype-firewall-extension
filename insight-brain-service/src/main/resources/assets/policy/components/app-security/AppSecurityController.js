@@ -184,7 +184,7 @@
 
     $scope.$watch('queryString', function (newVal) {
       if (!newVal) {
-        $scope.queryResults = []; // Empty query, empty results
+        $scope.queryResults = null; // Empty query, empty results
         return;
       }
 
@@ -202,15 +202,18 @@
           }
         }).success(function (data) {
           $scope.requestActive--;
-          if ($scope.queryString === newVal || $scope.queryString.indexOf(newVal) === 0 && $scope.requestActive > 0) {
+          if ($scope.queryString === newVal || $scope.queryString.indexOf(newVal) === 0) {
             $scope.queryResults = data;
           }
         }).error(function () {
           $scope.requestActive--;
           if ($scope.requestActive === 0) {
-            $scope.queryResults = [];
+            $scope.queryResults = null;
           }
-          $scope.filterError = Messages.getHttpErrorMessage(arguments);
+          $scope.alerts.push({
+            type: 'error',
+            msg: Messages.getHttpErrorMessage(arguments)
+          });
         });
       }, 500);
     });

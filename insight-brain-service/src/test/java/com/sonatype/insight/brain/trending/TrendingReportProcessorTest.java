@@ -74,8 +74,6 @@ public class TrendingReportProcessorTest
     long afterGeneration = new Date().getTime();
 
     TrendingReportMetadata meta = report.getMeta();
-    Assert.assertNotNull(meta.getGeneratedBy());
-    Assert.assertNotNull(meta.getGeneratedFor());
     Assert.assertTrue(meta.getGeneratedOn() >= beforeGeneration && meta.getGeneratedOn() <= afterGeneration);
     Assert.assertEquals(TrendingReportProcessor.TWENTY_DAYS_MS, meta.getPeriodEnd() - meta.getPeriodStart());
   }

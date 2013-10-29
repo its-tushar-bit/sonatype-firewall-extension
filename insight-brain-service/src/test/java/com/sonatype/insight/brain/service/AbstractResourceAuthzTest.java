@@ -5,8 +5,6 @@
  */
 package com.sonatype.insight.brain.service;
 
-import java.io.IOException;
-
 import com.sonatype.insight.brain.TemporaryEntity;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
@@ -17,7 +15,6 @@ import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.test.RestAccess;
 
 import com.ning.http.client.Response;
-import com.yammer.dropwizard.testing.JsonHelpers;
 import org.junit.Before;
 import org.junit.Rule;
 
@@ -49,28 +46,6 @@ public abstract class AbstractResourceAuthzTest
   protected void grantAdminPermission() {
     Role role = tempEntity.newRole(true, Permission.ADMIN);
     tempEntity.newMembershipMapping(MembershipMapping.GLOBAL_CONTEXT_ID, role.getId(), authorized.getUsername());
-  }
-
-  protected String getRestUrl(String templateUrl, Object... paramValues) {
-    return getRestBaseUrl() + expandRestUrl(templateUrl, paramValues);
-  }
-
-  protected String toJson(Object object) {
-    try {
-      return JsonHelpers.asJson(object);
-    }
-    catch (IOException e) {
-      throw new IllegalStateException(e);
-    }
-  }
-
-  protected <T> T fromJson(Response response, Class<T> type) {
-    try {
-      return JsonHelpers.fromJson(response.getResponseBody(), type);
-    }
-    catch (IOException e) {
-      throw new IllegalStateException(e);
-    }
   }
 
   protected void testAuthzGet(String url) throws Exception {

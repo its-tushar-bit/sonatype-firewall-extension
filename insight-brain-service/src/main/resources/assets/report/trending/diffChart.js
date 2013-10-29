@@ -44,7 +44,7 @@ Includes the third-party code listed at http://links.sonatype.com/products/clm/a
           if (index % 2 === 0) {
             return '#EEE';
           } else {
-            return 'white';
+            return '#F4F4F4';
           }
         };
       });

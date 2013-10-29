@@ -10,12 +10,42 @@
   var reportTrendingModule = angular.module('ReportTrending', []);
 
   reportTrendingModule.controller('TrendingReportController', ['$scope', 'trendingReportService', 'Messages', function($scope, trendingReportService, Messages) {
-    $scope.alerts = [];
-
     $scope.doLoad = function() {
       $scope.error = null;
       trendingReportService.get().then(function(trendingReport) {
         $scope.data = trendingReport;
+        var calculatedData =  {
+          highPolicyCount: 0,
+          mediumPolicyCount: 0,
+          lowPolicyCount: 0,
+          nullPolicyCount: 0
+        };
+        angular.forEach($scope.data.violations, function(policy) {
+          switch (policy.threat) {
+            case 10:
+            case 9:
+            case 8:
+              calculatedData.highPolicyCount += 1;
+              break;
+            case 7:
+            case 6:
+            case 5:
+            case 4:
+              calculatedData.mediumPolicyCount += 1;
+              break;
+            case 3:
+            case 2:
+              calculatedData.lowPolicyCount += 1;
+              break;
+            case 1:
+            case 0:
+              calculatedData.nullPolicyCount += 1;
+              break;
+            default:
+              $scope.error = 'Unknown policy threat level: ' + policy.threat;
+          }
+        });
+        angular.extend($scope.data, calculatedData);
         $scope.diffchart = '../report-assets/trending/diffChart.html?' + clmBuildTimestamp
         $scope.percentageChart = '../report-assets/trending/percChart.html?' + clmBuildTimestamp
         $scope.policyProgressionTable = '../report-assets/trending/policyProgressionTable.html?' + clmBuildTimestamp
@@ -25,6 +55,7 @@
     };
     $scope.doLoad();
 
+    //default pattern for Date format
     var fmtG = d3.time.format('%b %e, %Y');
 
     $scope.format = function(date, pattern) {
@@ -33,8 +64,6 @@
       }
       return fmtG(new Date(date));
     };
-
-
   }]);
 
   reportTrendingModule.directive('componentViolations', function() {
@@ -136,8 +165,8 @@
               j++;
             }
             return x(left);
-          }).attr('y', 15).attr('height', function() {
-            return height - 15;
+          }).attr('y', 5).attr('height', function() {
+            return height - 5;
           }).attr('width', function(d) {
             return x(percentageSelector(d));
           }).style('fill', colorRenderer);

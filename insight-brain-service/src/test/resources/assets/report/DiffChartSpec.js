@@ -62,7 +62,7 @@
       color = scope.getBackgroundColor(0);
       expect(color).toBe('#EEE');
       color = scope.getBackgroundColor(1);
-      return expect(color).toBe('white');
+      return expect(color).toBe('#F4F4F4');
     });
   });
 

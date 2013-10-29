@@ -22,6 +22,11 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
+import com.sonatype.insight.brain.dataaccess.security.UserDAO;
+import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.model.security.User;
+import com.sonatype.insight.error.exception.BadRequestException;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authc.AuthenticationException;
@@ -29,13 +34,6 @@ import org.apache.shiro.authc.UsernamePasswordToken;
 import org.apache.shiro.session.Session;
 import org.apache.shiro.session.mgt.eis.SessionDAO;
 import org.apache.shiro.subject.Subject;
-
-import com.sonatype.insight.brain.dataaccess.security.UserDAO;
-import com.sonatype.insight.brain.ldap.LdapManager;
-import com.sonatype.insight.brain.ldap.LdapUser;
-import com.sonatype.insight.brain.model.security.Permission;
-import com.sonatype.insight.brain.model.security.User;
-import com.sonatype.insight.error.exception.BadRequestException;
 
 /**
  * @since 1.7
@@ -54,13 +52,10 @@ public class UserResource
 
   private final SessionDAO sessionDAO;
 
-  private LdapManager ldapManager;
-
   @Inject
-  public UserResource(CLMRealm clmRealm, SessionDAO sessionDAO, LdapManager ldapManager) {
+  public UserResource(CLMRealm clmRealm, SessionDAO sessionDAO) {
     this.clmRealm = clmRealm;
     this.sessionDAO = sessionDAO;
-    this.ldapManager = ldapManager;
   }
 
   @GET
@@ -77,13 +72,6 @@ public class UserResource
     for (User user : dao.findUsersByName(query)) {
       clearUserPassword(user);
       users.add(user);
-    }
-
-    if (ldapManager.isLdapEnabled()) {
-      for (LdapUser user : ldapManager.findUsersByName(query, 100)) {
-        User u = new User(user.getUsername(), null, user.getRealName(), null, user.getEmail());
-        users.add(u);
-      }
     }
     return users;
   }

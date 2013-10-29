@@ -23,7 +23,7 @@ describe('AppSecurityControllerSpec', function() {
       role1 = MockData.getRoleOneData();
       role2 = MockData.getRoleTwoData();
       
-      $httpBackend.expectGET(CLMAppLocations.getRoleMappingUrl()).respond({
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMAppLocations.getRoleMappingUrl())).respond({
         "membersByRole": [role1, role2]
       });
       $controller('AppSecurityController', {

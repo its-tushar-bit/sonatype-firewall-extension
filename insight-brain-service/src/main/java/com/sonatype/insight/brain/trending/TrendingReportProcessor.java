@@ -202,7 +202,7 @@ public class TrendingReportProcessor
 
         if (periods[period] == null) {
           periods[period] = eval;
-          // feel evaluation gaps
+          // fill evaluation gaps
           for (int i = period + 1; i < periods.length && periods[i] == null; i++) {
             periods[i] = eval;
           }

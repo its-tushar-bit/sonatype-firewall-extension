@@ -68,11 +68,11 @@
         </div>
         <div class="row" style="margin: 20px 0 0 0;">
           <div>
-            <h1 class="count-header" style="margin:0;float:left"><strong>{{ data.totalPolicyViolationCount }}</strong> Violations</h1>
+            <h1 class="count-header" style="margin:0;float:left"><strong>{{ data.policies.total }}</strong> Violations</h1>
           </div>
           <div class="span2" style="line-height:32px;" chiclets base-class="threat-chiclet-small" always-show="true"
-               critical="data.highPolicyViolationCount" severe="data.mediumPolicyViolationCount"
-               moderate="data.lowPolicyViolationCount" none="data.nullPolicyViolationCount"></div>
+               critical="data.policies.critical" severe="data.policies.severe"
+               moderate="data.policies.moderate" none="data.policies.none"></div>
         </div>
         <div ng-include src='diffchart'></div>
         <div class="row">

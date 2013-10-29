@@ -28,7 +28,10 @@
     $scope.doLoad = function() {
       $scope.error = null;
 
-      $http.get(clmAppLocations.getRoleMappingUrl()).success(function (data) {
+      $http.get(clmAppLocations.getRoleMappingUrl(), {
+        params: {
+          timestamp: new Date().getTime()
+      }}).success(function (data) {
         $scope.context = {
           roleEditMap: {},
           roles: []
@@ -194,6 +197,8 @@
       $scope.lastQuery = newVal;
       filterTimeout = $timeout(function () {
         $scope.requestActive++;
+        //clear the alerts
+        $scope.alerts.length = 0;
 
         $http.get('../rest/user/query', {
           params : {

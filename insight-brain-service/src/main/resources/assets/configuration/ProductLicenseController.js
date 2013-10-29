@@ -59,10 +59,6 @@
         $('#eulaModal').modal('show');
       };
 
-      $scope.fileSelected = function() {
-        $('#eulaModal').modal('show');
-      };
-
       $scope.eulaDeclined = function() {
         $window.location.reload();
       };
@@ -83,6 +79,7 @@
               });
             },
             error: function(req, status, error) {
+              $scope.clearValue();
               showError(req.responseText);
             }
           });
@@ -98,6 +95,7 @@
             showLicense();
           }
           else {
+            $scope.clearValue();
             $timeout(function() {
               showError(content);
             }, 0);
@@ -139,4 +137,15 @@
       };
     }
   ]);
+
+  module.directive('manualFileClear', function() {
+    return {
+      restrict: 'A',
+      link: function(scope, elem) {
+        scope.clearValue = function() {
+          elem.attr('value', '');
+        };
+      }
+    }
+  });
 }());

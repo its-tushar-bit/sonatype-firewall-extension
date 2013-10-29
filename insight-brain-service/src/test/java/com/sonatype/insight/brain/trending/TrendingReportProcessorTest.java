@@ -7,18 +7,14 @@ package com.sonatype.insight.brain.trending;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
 import com.sonatype.clm.dto.model.policy.Stage;
-import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
-import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.TemporaryEntity;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.trending.ApplicationRiskSummary;
@@ -39,7 +35,6 @@ import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.trending.ReportBuilder.ConstraintFactBuilder;
 import com.sonatype.insight.brain.trending.ReportBuilder.PolicyAlertBuilder;
 
-import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -55,6 +50,9 @@ public class TrendingReportProcessorTest
 
   @Rule
   public TemporaryFolder workDir = new TemporaryFolder(new File("target").getAbsoluteFile());
+
+  @Rule
+  public TemporaryEntity temporaryEntiry = new TemporaryEntity();
 
   @Before
   public void createTwentyDayReportProcessor() {
@@ -506,37 +504,7 @@ public class TrendingReportProcessorTest
     log.add(new Stage(BuildStageType.ID), scanId, false, "nobody", null, time);
   }
 
-  // create application and reports plumbing
-  // TODO move to a reusable helper
-
-  private Collection<Organization> organizationsToDelete = new ArrayList<Organization>();
-
   protected Application createApplication(String appId) {
-    OrganizationDAO dao = new OrganizationDAO();
-    Organization organization = new Organization();
-    organization.setName("DUMMY-ORG-" + appId);
-    dao.insert(organization, true);
-    organizationsToDelete.add(organization);
-
-    ApplicationDAO applicationDAO = new ApplicationDAO();
-    Application application = new Application();
-    application.setPublicId(appId);
-    application.setName(appId);
-    application.setOrganizationId(organization != null ? organization.getId() : null);
-    applicationDAO.insert(application);
-    return application;
-  }
-
-  @After
-  public void cleanupDatabase() {
-    OrganizationDAO dao = new OrganizationDAO();
-    ApplicationDAO applicationDAO = new ApplicationDAO();
-    for (Organization organization : organizationsToDelete) {
-      for (Application application : applicationDAO.getByOrganizationId(organization.getId())) {
-        applicationDAO.delete(application);
-      }
-      dao.delete(organization);
-    }
-    organizationsToDelete.clear();
+    return temporaryEntiry.newApplication(appId, appId, temporaryEntiry.newOrganization().getId());
   }
 }

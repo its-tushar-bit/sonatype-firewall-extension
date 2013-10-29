@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.testing.functional
 
+import com.sonatype.insight.brain.dataaccess.security.UserDAO;
 import com.sonatype.insight.brain.service.InsightBrainService
 import com.sonatype.insight.brain.service.InsightConfig
 
@@ -32,6 +33,16 @@ class UserManagementSpec extends GebReportingSpec {
     loginAsAdmin()
     at(ReportPage)
     to UserManagementPage
+  }
+  
+  //remove any created users
+  def cleanup() {
+    UserDAO userDAO = new UserDAO();
+    userDAO.getAll().each {
+      if (it.username == 'addusertest') {
+        userDAO.delete(it);
+      }
+    }
   }
   
   def "new user fields provide client-side validation"() {

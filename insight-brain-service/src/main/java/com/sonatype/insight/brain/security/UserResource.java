@@ -5,10 +5,12 @@
  */
 package com.sonatype.insight.brain.security;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.naming.NamingException;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -17,6 +19,7 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
@@ -24,6 +27,7 @@ import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.error.exception.BadRequestException;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authc.AuthenticationException;
 import org.apache.shiro.authc.UsernamePasswordToken;
@@ -52,6 +56,24 @@ public class UserResource
   public UserResource(CLMRealm clmRealm, SessionDAO sessionDAO) {
     this.clmRealm = clmRealm;
     this.sessionDAO = sessionDAO;
+  }
+
+  @GET
+  @Path("query")
+  @Produces({ MediaType.APPLICATION_JSON })
+  @Authorize(permission = Permission.ADMIN)
+  public List<User> findUsers(@QueryParam("q") String query) throws NamingException {
+    if (StringUtils.isEmpty(query)) {
+      throw new BadRequestException("No search term specified.");
+    }
+
+    List<User> users = new ArrayList<User>();
+    UserDAO dao = new UserDAO();
+    for (User user : dao.findUsersByName(query)) {
+      clearUserPassword(user);
+      users.add(user);
+    }
+    return users;
   }
 
   @GET

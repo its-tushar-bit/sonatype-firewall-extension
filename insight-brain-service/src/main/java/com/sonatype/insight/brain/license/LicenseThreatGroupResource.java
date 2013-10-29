@@ -23,10 +23,12 @@ import javax.ws.rs.core.MediaType;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
+import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
+import com.sonatype.insight.brain.model.license.LicenseThreatGroupLicense;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.Policy;
@@ -45,7 +47,9 @@ public class LicenseThreatGroupResource
 {
   public static final String SERVICE_PATH = "rest/licenseThreatGroup/{ownerType: application|organization}/{ownerId}";
 
-  private LicenseThreatGroupDAO licenseThreatGroupDAO = new LicenseThreatGroupDAO();
+  private final LicenseThreatGroupDAO licenseThreatGroupDAO = new LicenseThreatGroupDAO();
+
+  private final LicenseThreatGroupLicenseDAO licenseThreatGroupLicenseDAO = new LicenseThreatGroupLicenseDAO();
 
   private final InsightWork work;
 
@@ -84,7 +88,7 @@ public class LicenseThreatGroupResource
     String organizationId;
     if (IdUtils.TYPE_APPLICATION.equals(ownerType)) {
       Application app = new ApplicationDAO().getByIdNotNull(ownerId);
-      result.add(app.getId(), app.getName(), IdUtils.TYPE_APPLICATION, licenseThreatGroupDAO.getByOwnerId(app.getId()));
+      result.add(app.getId(), app.getName(), IdUtils.TYPE_APPLICATION, loadLicenseThreatGroups(app.getId()));
       organizationId = app.getOrganizationId();
     }
     else {
@@ -92,11 +96,23 @@ public class LicenseThreatGroupResource
     }
     if (organizationId != null) {
       Organization org = new OrganizationDAO().getByIdNotNull(organizationId);
-      result
-          .add(org.getId(), org.getName(), IdUtils.TYPE_ORGANIZATION, licenseThreatGroupDAO.getByOwnerId(org.getId()));
+      result.add(org.getId(), org.getName(), IdUtils.TYPE_ORGANIZATION, loadLicenseThreatGroups(org.getId()));
     }
 
     return result;
+  }
+
+  private List<LicenseThreatGroupWithLicenses> loadLicenseThreatGroups(String ownerId) {
+    List<LicenseThreatGroupWithLicenses> results = new ArrayList<LicenseThreatGroupWithLicenses>();
+    for (LicenseThreatGroup ltg : licenseThreatGroupDAO.getByOwnerId(ownerId)) {
+      LicenseThreatGroupWithLicenses ltgwl = new LicenseThreatGroupWithLicenses();
+      ltgwl.id = ltg.getId();
+      ltgwl.name = ltg.getName();
+      ltgwl.threatLevel = ltg.getThreatLevel();
+      ltgwl.licenses = licenseThreatGroupLicenseDAO.getByLicenseThreatGroupId(ltg.getId());
+      results.add(ltgwl);
+    }
+    return results;
   }
 
   @POST
@@ -177,7 +193,9 @@ public class LicenseThreatGroupResource
   {
     public List<LicenseThreatGroupsByOwner> licenseThreatGroupsByOwner = new ArrayList<LicenseThreatGroupsByOwner>();
 
-    public void add(String ownerId, String ownerName, String ownerType, List<LicenseThreatGroup> licenseThreatGroups) {
+    public void add(String ownerId, String ownerName, String ownerType,
+        List<LicenseThreatGroupWithLicenses> licenseThreatGroups)
+    {
       LicenseThreatGroupsByOwner ltgbo = new LicenseThreatGroupsByOwner();
       ltgbo.ownerId = ownerId;
       ltgbo.ownerName = ownerName;
@@ -195,7 +213,18 @@ public class LicenseThreatGroupResource
 
     public String ownerType;
 
-    public List<LicenseThreatGroup> licenseThreatGroups;
+    public List<LicenseThreatGroupWithLicenses> licenseThreatGroups;
+  }
+
+  public static class LicenseThreatGroupWithLicenses
+  {
+    public String id;
+
+    public String name;
+
+    public int threatLevel;
+
+    public List<LicenseThreatGroupLicense> licenses;
   }
 
   /**

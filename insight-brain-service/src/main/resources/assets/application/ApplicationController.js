@@ -8,7 +8,7 @@
   'use strict';
 
   var applicationModule = angular.module('ApplicationModule',
-      ['ui.router', 'ManagementModule', 'Policy', 'LicenseThreatGroup', 'Labels', 'AngularCommon', 'CLMLocation'],
+      ['ui.router', 'ManagementModule', 'Policy', 'LicenseThreatGroup', 'Labels', 'ApplicationSecurityModule', 'AngularCommon', 'CLMLocation'],
       ['$stateProvider', function($stateProvider) {
         $stateProvider.state('management.application', {
           parent: 'management',
@@ -61,6 +61,11 @@
           url: '/licenses',
           controller: 'LicenseThreatGroupController',
           templateUrl: '../policy-assets/components/license-threat-group/license-threat-group.html?' + clmBuildTimestamp
+        }).state('management.application.view.security', {
+          parent: 'management.application.view',
+          url: '/security',
+          controller: 'AppSecurityController',
+          templateUrl: '../policy-assets/components/app-security/app-security.html?' + clmBuildTimestamp
         });
       }]);
 

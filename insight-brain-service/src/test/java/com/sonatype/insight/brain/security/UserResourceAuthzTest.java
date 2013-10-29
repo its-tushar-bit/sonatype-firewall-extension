@@ -24,6 +24,14 @@ public class UserResourceAuthzTest
   }
 
   @Test
+  public void testFindUsers() throws Exception {
+    grantAdminPermission();
+
+    String url = getRestUrl(UserResource.SERVICE_PATH + "/query") + "?q=name";
+    testAuthzGet(url);
+  }
+
+  @Test
   public void testAddUser() throws Exception {
     grantAdminPermission();
 

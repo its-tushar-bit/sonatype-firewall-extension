@@ -14,6 +14,9 @@ import org.openqa.selenium.firefox.FirefoxDriver
 
 reportsDir = "target/test-reports/geb"
 
+//enable waitFor behaviour for all 'at' checks
+atCheckWaiting = true
+
 driver = { new FirefoxDriver() }
 
 environments {

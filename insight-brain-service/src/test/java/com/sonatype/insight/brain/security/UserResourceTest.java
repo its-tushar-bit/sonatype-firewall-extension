@@ -11,6 +11,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import com.sonatype.insight.brain.AuthedRestAccess;
+import com.sonatype.insight.brain.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
 import com.sonatype.insight.brain.features.FeaturesResource;
@@ -27,6 +28,7 @@ import com.ning.http.client.Cookie;
 import com.ning.http.client.Response;
 import com.yammer.dropwizard.testing.JsonHelpers;
 import org.junit.After;
+import org.junit.Rule;
 import org.junit.Test;
 
 import static org.hamcrest.Matchers.hasSize;
@@ -38,6 +40,9 @@ import static org.junit.Assert.assertThat;
 public class UserResourceTest
     extends AbstractResourceTest
 {
+  @Rule
+  public TemporaryEntity tempEntity = new TemporaryEntity();
+
   private List<User> usersToDelete = new ArrayList<User>();
 
   @After
@@ -321,6 +326,32 @@ public class UserResourceTest
     assertResponseStatus(204, response);
   }
 
+  @Test
+  public void testFindUsers() throws Exception {
+    Response response = AuthedRestAccess.get(getSearchUrl(""));
+    assertResponseStatus(400, response);
+
+    response = AuthedRestAccess.get(getSearchUrl(User.ADMIN_USERNAME));
+    assertResponseStatus(200, response);
+    User[] users = fromJson(response, User[].class);
+    assertThat(users, is(notNullValue()));
+    assertThat(users.length, is(1));
+    assertThat(users[0].getUsername(), is(User.ADMIN_USERNAME));
+
+    response = AuthedRestAccess.get(getSearchUrl(User.ADMIN_USERNAME.substring(0, User.ADMIN_USERNAME.length() - 1)));
+    assertResponseStatus(200, response);
+    users = fromJson(response, User[].class);
+    assertThat(users, is(notNullValue()));
+    assertThat(users.length, is(1));
+    assertThat(users[0].getUsername(), is(User.ADMIN_USERNAME));
+
+    response = AuthedRestAccess.get(getSearchUrl("nobody-has-such-a-name-really"));
+    assertResponseStatus(200, response);
+    users = fromJson(response, User[].class);
+    assertThat(users, is(notNullValue()));
+    assertThat(users.length, is(0));
+  }
+
   private void assertUser(String username, String firstName, String lastName, String email, User actual) {
     assertThat(actual.getUsername(), is(username));
     assertThat(actual.getFirstName(), is(firstName));
@@ -330,5 +361,9 @@ public class UserResourceTest
 
   private String getServiceURL() {
     return getRestBaseUrl() + UserResource.SERVICE_PATH;
+  }
+
+  private String getSearchUrl(String query) {
+    return getRestBaseUrl() + UserResource.SERVICE_PATH + "/query?q=" + query;
   }
 }

@@ -140,12 +140,6 @@ describe('ProductLicenseController', function() {
         licenseUninstalledModal.remove();
       });
 
-    it('Should show the eula if a file is selected', function(){
-      expect(eulaModal.hasClass('in')).toBeFalsy();
-      scope.fileSelected();
-      expect(eulaModal.hasClass('in')).toBeTruthy();
-    });
-
     it('Should show the eula if a file is changed', function(){
       expect(eulaModal.hasClass('in')).toBeFalsy();
       scope.onFileChanged();
@@ -156,7 +150,7 @@ describe('ProductLicenseController', function() {
       expect(eulaModal.hasClass('in')).toBeFalsy();
       expect(licenseInstalledModal.hasClass('in')).toBeFalsy();
 
-      scope.fileSelected();
+      scope.onFileChanged();
 
       expect(eulaModal.hasClass('in')).toBeTruthy();
 
@@ -168,12 +162,16 @@ describe('ProductLicenseController', function() {
       expect($window.location.reload).toHaveBeenCalled();
     }));
 
-    it('Should hide the eula and show an error if license install fails', inject(function($window, $timeout){
+    it('Should hide the eula, clear file value and show an error if license install fails', inject(function($window, $timeout){
       spyOn(scope, '$broadcast');
+
+      scope.clearValue = angular.noop;
+      spyOn(scope, 'clearValue');
+
       expect(eulaModal.hasClass('in')).toBeFalsy();
       expect(licenseInstalledModal.hasClass('in')).toBeFalsy();
 
-      scope.fileSelected();
+      scope.onFileChanged();
 
       expect(eulaModal.hasClass('in')).toBeTruthy();
 
@@ -184,6 +182,7 @@ describe('ProductLicenseController', function() {
       expect(eulaModal.hasClass('in')).toBeFalsy();
       expect(licenseInstalledModal.hasClass('in')).toBeFalsy();
       expect(scope.$broadcast).toHaveBeenCalledWith('showError', jasmine.any(Object));
+      expect(scope.clearValue).toHaveBeenCalled();
     }));
 
     it('Should show confirmation when uninstalling license', function(){

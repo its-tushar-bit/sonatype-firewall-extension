@@ -10,7 +10,7 @@
                     <label for="license-input" firefox-input-click class='btn btn-primary'>
                         <i class='icon-white icon-plus-sign'></i>&nbsp;Install License
                     </label>
-                    <input style='position:absolute;left:-9999em;' id="license-input" type="file" name="file" on-file-change="onFileChanged()"/>
+                    <input style='position:absolute;left:-9999em;' id="license-input" type="file" name="file" on-file-change="onFileChanged()" manual-file-clear/>
                     <input type='submit' upload-submit="installLicense(content, completed)" ng-show='false' />
                 </form>
             </div>

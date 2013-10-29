@@ -15,7 +15,7 @@ class UserManagementPage extends Page {
   }
   
   static content = {
-    newUserButton(required: false) { $('.new-user-button') }
+    newUserButton(wait: true) { $('.new-user-button') }
     userForm(required: false) { $('form', name: 'userForm') }
     firstNameControl(required: false) { userForm.find('div.controls', 0) }
     firstNameInput(required: false) { firstNameControl.find('input') }

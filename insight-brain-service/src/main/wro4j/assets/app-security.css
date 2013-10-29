@@ -1,0 +1,38 @@
+.roles > div.accordion-group:nth-child(odd) {
+	background-color: #f9f9f9;
+}
+.roles .collapsed {
+	height: 20px;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	overflow: hidden;
+}
+.roles .inherited-section {
+	border-top: 1px solid #E8E8E8;
+	margin-top:5px;
+	padding-top:5px;
+}
+.roles .inherited {
+	color:#909090;
+	font-style: italic;
+}
+.roles {
+	width : 882px;
+}
+.role-header {
+	border-bottom:1px solid rgba(0,0,0,.1);
+	margin-left:25px;
+	margin-bottom:10px
+}
+.role-header h4 {
+	padding-left:5px;
+	box-sizing:border-box
+} 
+.roles .expandable {
+	padding : 5px;
+	cursor : pointer;
+	min-height: 24px;
+}
+.role .hover-buttons {
+	margin-top : 5px
+}

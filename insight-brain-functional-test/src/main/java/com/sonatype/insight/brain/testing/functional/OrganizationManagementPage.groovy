@@ -13,6 +13,7 @@ class OrganizationManagementPage extends Page {
   static at = {  driver.currentUrl.endsWith(url) }
 
   static content = {
-    newOrganizationButton(waitFor: true) { $('a', text:contains('New Organization')) }
+    newOrganizationButton(wait: true, to: OrganizationPage) { $('a', text:contains('New Organization')) }
+    organization { name -> $('ul.nav-list > li > a', text:name) }
   }
 }

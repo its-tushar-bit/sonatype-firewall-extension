@@ -11,6 +11,7 @@ import com.sonatype.insight.brain.service.InsightConfig
 import com.sonatype.insight.brain.testing.functional.configuration.LDAPConfigurationPage
 import com.sonatype.insight.brain.testing.functional.configuration.LDAPConnectionConfigurationPage
 import com.sonatype.insight.brain.testing.functional.configuration.LDAPUserAndGroupMappingConfigurationPage
+import com.sonatype.insight.brain.testing.functional.util.EchoingPageChangeListener
 import com.yammer.dropwizard.testing.junit.DropwizardServiceRule
 import geb.spock.GebReportingSpec
 import org.junit.ClassRule
@@ -31,6 +32,7 @@ class LDAPConfigurationSpec extends GebReportingSpec
 
   def setupSpec() {
     browser.config.baseUrl = "http://localhost:8070/"
+    browser.registerPageChangeListener(new EchoingPageChangeListener())
   }
 
   def "create a new LDAP and navigate the connection and user/group mappings forms"(){

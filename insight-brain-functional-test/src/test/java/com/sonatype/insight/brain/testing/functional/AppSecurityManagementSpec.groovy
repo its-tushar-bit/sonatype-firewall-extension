@@ -15,8 +15,13 @@ import spock.lang.Shared
 import com.google.common.io.Resources
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO
+import com.sonatype.insight.brain.saas.DefaultLicenseDataUpdater;
 import com.sonatype.insight.brain.service.InsightBrainService
 import com.sonatype.insight.brain.service.InsightConfig
+import com.sonatype.insight.brain.testing.functional.util.EchoingPageChangeListener
+
+import com.google.common.collect.Table;
+
 import com.yammer.dropwizard.testing.junit.DropwizardServiceRule
 
 class AppSecurityManagementSpec extends GebReportingSpec {
@@ -30,10 +35,13 @@ class AppSecurityManagementSpec extends GebReportingSpec {
   // get to the organizations page
   def setup() {
     browser.config.baseUrl = "http://localhost:8070/"
-    to LandingPage
-    waitFor { at(LoginPage) }
+    browser.registerPageChangeListener(new EchoingPageChangeListener())
+    
+    // TODO - KR currently as the first run test it appears that this runs into issues being redirected to the license page instead of the expected r
+    to LoginPage
     loginAsAdmin()
-    waitFor { at(ReportPage) }
+    waitFor { title != "CLM Login" }
+    to ReportPage
     waitFor { browser.getDriver().manage().getCookieNamed('JSESSIONID') != null }
   }
 
@@ -47,34 +55,49 @@ class AppSecurityManagementSpec extends GebReportingSpec {
       orgDAO.delete(it);
     }
   }
-
-  def "validate listed roles"() {
-    when: "create a new organization"
-    to OrganizationManagementPage
-    waitFor { at(OrganizationManagementPage) }
-    newOrganizationButton.click()
-    waitFor { at(OrganizationPage) }
-    organizationName.click()
-    waitFor { organizationNameField.displayed }
-    organizationNameField << "test organization"
-    organizationSaveButton.click()
-
-    then: "see the security tab shown"
-    waitFor { securityTabButton.displayed }
-
-    when: "user clicks on security tab"
-    tabs.securityTabButton.click()
+  
+  def "validate organization roles"() {
+    when: "Open Security Tab"
+      createOrganization();
+      tabs.securityTabButton.click()
 
     then: "security tab content is shown"
       waitFor { tabs.securityTab.displayed }
       waitFor { tabs.securityTab.role("Developer").displayed }
       waitFor { tabs.securityTab.role("Owner").displayed }
+  }
+
+  def "validate application roles"() {
 
     when: "create a new application"
+      createOrganization();
+      createApplication();
+
+    then: "see the security tab shown"
+      waitFor { tabs.securityTabButton.displayed }
+
+    when: "user clicks on security tab"
+      tabs.securityTabButton.click()
+
+    then: "security tab is shown"
+      waitFor { tabs.securityTab.displayed }
+      waitFor { tabs.securityTab.role("Developer").displayed }
+      waitFor { tabs.securityTab.role("Owner").displayed }
+  }
+  
+  void createOrganization() {
+    to OrganizationManagementPage
+    newOrganizationButton.click()
+    organizationName.click()
+    waitFor { organizationNameField.displayed }
+    organizationNameField << "test organization"
+    organizationSaveButton.click()
+    waitFor { securityTabButton.displayed }
+  }
+
+  void createApplication() {
     to ApplicationManagementPage
-    waitFor { at(ApplicationManagementPage) }
     newApplicationButton.click()
-    waitFor { at(ApplicationPage) }
     applicationName.click()
     waitFor { applicationNameField.displayed }
     applicationNameField << "test application"
@@ -85,16 +108,5 @@ class AppSecurityManagementSpec extends GebReportingSpec {
     waitFor { $('a', text:'test organization').displayed }
     $('a', text:'test organization').click()
     applicationSaveButton.click()
-
-    then: "see the security tab shown"
-    waitFor { tabs.securityTabButton.displayed }
-
-    when: "user clicks on security tab"
-    tabs.securityTabButton.click()
-
-    then: "security tab is shown"
-      waitFor { tabs.securityTab.displayed }
-      waitFor { tabs.securityTab.role("Developer").displayed }
-      waitFor { tabs.securityTab.role("Owner").displayed }
   }
 }

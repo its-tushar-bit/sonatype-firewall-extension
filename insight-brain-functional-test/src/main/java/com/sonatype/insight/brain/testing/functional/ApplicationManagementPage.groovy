@@ -13,6 +13,6 @@ class ApplicationManagementPage extends Page {
   static at = { driver.currentUrl.endsWith(url) }
 
   static content = {
-    newApplicationButton(required: false) { $('a', text:contains('New Application')) }
+    newApplicationButton(wait: true, to: ApplicationPage) { $('a', text:contains('New Application')) }
   }
 }

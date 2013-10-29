@@ -13,7 +13,7 @@ class OrganizationPage extends Page {
   static at = {  organizationImage.displayed }
 
   static content = {
-    organizationImage(required: false) { $('div.editor-image') }
+    organizationImage(wait: true) { $('div.editor-image') }
     organizationName(required: false) { $('#organizationName') }
     organizationNameField(required: false) { $('input', 'placeholder':'Enter Organization Name') }
     organizationSaveButton(required: false) { $('button', text:'Save') }
@@ -24,6 +24,6 @@ class OrganizationPage extends Page {
     developerRole(required: false) { $('p', text:'Developer') }
     ownerRole(required: false) { $('p', text:'Owner') }
 
-    tabs { module ContextTabsModule }
+    tabs(required: false) { module ContextTabsModule }
   }
 }

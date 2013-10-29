@@ -9,6 +9,7 @@ import com.sonatype.insight.brain.service.InsightBrainService
 import com.sonatype.insight.brain.service.InsightConfig
 
 import com.google.common.io.Resources
+import com.sonatype.insight.brain.testing.functional.util.EchoingPageChangeListener
 import com.yammer.dropwizard.testing.junit.DropwizardServiceRule
 import geb.spock.GebReportingSpec
 import org.junit.ClassRule
@@ -25,6 +26,7 @@ class LoginSpec extends GebReportingSpec {
 
   def setup() {
     browser.config.baseUrl = "http://localhost:8070/"
+    browser.registerPageChangeListener(new EchoingPageChangeListener())
   }
 
   def "can navigate to login page"() {
@@ -84,7 +86,7 @@ class LoginSpec extends GebReportingSpec {
     
     then: "user is prompted to log in"
       // see CLM-976
-      waitFor { at(LoginPage) }
+      at(LoginPage)
   }
 
   def "report application is protected by authentication"() {
@@ -93,7 +95,7 @@ class LoginSpec extends GebReportingSpec {
 
     then: "user is prompted to log in"
       // see CLM-976
-      waitFor { at(LoginPage) }
+      at(LoginPage)
   }
 
   def "management application is protected by authentication"() {
@@ -102,7 +104,7 @@ class LoginSpec extends GebReportingSpec {
 
     then: "user is prompted to log in"
       // see CLM-976
-      waitFor { at(LoginPage) }
+      at(LoginPage)
   }
 
   def "authentication session state is remembered"() {

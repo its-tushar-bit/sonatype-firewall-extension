@@ -9,6 +9,7 @@ import com.sonatype.insight.brain.service.InsightBrainService
 import com.sonatype.insight.brain.service.InsightConfig
 
 import com.google.common.io.Resources
+import com.sonatype.insight.brain.testing.functional.util.EchoingPageChangeListener
 import com.yammer.dropwizard.testing.junit.DropwizardServiceRule
 import geb.spock.GebReportingSpec
 import org.junit.ClassRule
@@ -26,12 +27,11 @@ class UserManagementSpec extends GebReportingSpec {
   // get to the user page
   def setup() {
     browser.config.baseUrl = "http://localhost:8070/"
-    to LandingPage
-    waitFor { at(LoginPage) }
+    browser.registerPageChangeListener(new EchoingPageChangeListener())
+    to LoginPage
     loginAsAdmin()
-    waitFor { at(ReportPage) }
+    at(ReportPage)
     to UserManagementPage
-    waitFor { at(UserManagementPage) }
   }
   
   def "new user fields provide client-side validation"() {

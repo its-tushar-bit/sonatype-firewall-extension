@@ -66,6 +66,7 @@ public class UserResource
   @GET
   @Path("query")
   @Produces({ MediaType.APPLICATION_JSON })
+  @Authorize(permission = Permission.ADMIN)
   public List<User> findUsers(@QueryParam("q") String query) throws NamingException {
     if (StringUtils.isEmpty(query)) {
       throw new BadRequestException("No search term specified.");

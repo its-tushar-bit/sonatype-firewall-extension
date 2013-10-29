@@ -46,6 +46,19 @@ public class UserDAO
     }
   }
 
+  /**
+   * Find users in the database by matching against the first or last name
+   * 
+   * @param nameFragment This string will be prefixed and suffixed with wildcard characters and passed into the sql query
+   * @return List of matching User objects
+   */
+  public List<User> findUsersByName(String nameFragment) {
+    nameFragment = '%' + nameFragment.trim().toLowerCase(Locale.ENGLISH) + '%';
+    String sQuery = "SELECT entity from User entity WHERE lower(entity.firstName) LIKE ?1" //
+        + " OR lower(entity.lastName) LIKE ?2";
+    return getList(sQuery, nameFragment, nameFragment);
+  }
+
   @Override
   protected User getById(EntityManager em, String id) {
     String sQuery = "SELECT entity FROM User entity" + //

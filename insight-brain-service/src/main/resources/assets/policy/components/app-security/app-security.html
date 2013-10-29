@@ -1,0 +1,119 @@
+<div id="security" style='min-width: 955px'>
+	<script type='text/ng-template' id='appSecurityEditor'>
+	<div style='width:500px; margin:5px'>
+		<form name='userSearch' style='margin:0px'>
+			<div class="input-prepend">
+				<span class="add-on">
+					<i class='icon-search' ng-show='!requestActive'> </i>
+					<img src='../assets/img/loading.gif' ng-show='requestActive'>
+				</span><input placeholder='Find User' type='text' name='filter' ng-model='queryString'>
+			</div>
+		</form>
+		<div>
+			<div class='selectList'>
+				<h5>Available</h5>
+				<div>
+					<div>
+						<div ng-show="!queryString"><em>Search above to find users</em></div>
+						<div ng-repeat='user in queryResults | userNotIn:mappings' ng-click='addUser(user)' class='licenseSelectListItem'>
+							<i class='icon-plus-sign'></i>&nbsp;<span title='{{getTooltip(user)}}' ng-bind-html-unsafe="getRealname(user) | highlight:queryString:caseSensitive"></span>
+						</div>
+						<div class='licenseSelectListItem' ng-show='queryString && !requestActive && queryResults.length == 0'>
+							<i class='emptyIconGlyph'></i>&nbsp;<em>No results</em>
+						</div>
+					</div>
+				</div>
+			</div>			
+			<div class='selectList'>
+				<h5>Applied</h5>
+				<div>
+					<div>
+						<div ng-repeat='mapping in mappings'>
+							<div ng-repeat='member in mapping.members' ng-click='removeUser($parent.$index, $index)'
+									class='licenseSelectListItem' ng-class='{  inherited : $parent.$index }'>
+								<i ng-class='{ "icon-minus-sign" : !$parent.$index, "emptyIconGlyph" : $parent.$index }'></i>&nbsp;<span title='{{member.displayName}}'>{{member.displayName}}</span>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div style='padding: 10px 0px'>
+			<div clm-alerts='alerts'></div>
+			<div clm-buttons='buttons' accept-fn='save()' cancel-fn='cancel()' style='text-align:right'></div>
+		</div>
+	</div>
+	</script>
+	<div class="content-section">
+		<script type='text/ng-template' id='role-item'>
+<div ng-show='context.roles' class="accordion">
+	<div show-if='role'>
+		<form name="roleForm" ng-submit="saveClick(role)">
+			<div class="form-horizontal">
+				<div class="control-group" ng-class="{ error : roleForm.name.$invalid && roleForm.name.$dirty }">
+					<label class="control-label">First Name:</label>
+					<div class="controls">
+						<input class="input-xlarge" name="name" type="text" ng-required="true" alpha-numeric placeholder="Enter Name" ng-model="role.name" focus-input="role" has-whitespace="suggestedName">
+						<div show-if="roleForm.name.$error.alphaNumeric && roleForm.name.$dirty" class="text-error">Must be alpha numeric.</div>
+						<div show-if="roleForm.name.$error.required && roleForm.name.$dirty" class="text-error">Field is required.</div>
+						<div show-if="roleForm.name.$error.spaces && !roleForm.name.$error.alphaNumeric && roleForm.name.$dirty" class="text-error">No leading, trailing or double spaces or tabs, suggested name: {{suggestedName}}</div>
+					</div>
+				</div>
+			</div>
+			<div>
+				<button type="button" class='btn' type='button' ng-click='cancelClick(role)'>Cancel</button>
+				<button type="submit" class='btn btn-primary' type='button' ng-click='saveClick(role)' ng-disabled='roleForm.$invalid || saving'>Save</button>
+			</div>
+			<div style="margin-left:25px;" ng-class="{'alert alert-error': errorMsg }">{{errorMsg}}</div>
+		</form>
+	</div>
+</div>
+</script>
+		<div load-error='error' reload='doLoad()'></div>
+		<div expand-role-on-event='roleEditClick'></div>
+		<div style='text-align: center; margin: 30px' ng-show='!context && !error'>
+			<h5>
+				<i class='icon-time'></i> Loading...
+			</h5>
+		</div>
+		<div class='fade' ng-class='{in : context && !error}'>
+			<div clm-alerts='alerts'></div>
+			<div class='role-header'>
+				<div class='row'>
+					<h4 class='span3'>Role</h4>
+					<h4 class='span7'>Users</h4>
+				</div>
+			</div>
+			<div class="accordion roles">
+				<div class="accordion-group" ng-repeat='role in context.roles'>
+					<div class="accordion-heading role">
+						<div class='row' ng-click="expanded = !expanded">
+							<div class='span3 expandable'>{{role.roleName}}</div>
+							<div class='span8 expandable'>
+								<div class='padded hover-buttons floatRight'>
+									<button type='button' class="btn btn-mini hover-button" title="Edit Role" 
+											ng-disabled='context.roleEditMap[role.roleId]' ng-click="editClick(role)">
+										<i class="icon-pencil"></i>
+									</button>
+								</div>
+								<div ng-show="!context.roleEditMap[role.roleId]">
+									<div ng-class='{"collapsed" : !expanded}'>
+										{{getUserNames(role)}}
+									</div>
+									<div ng-show="getInheritedUserNames(role) && expanded" class="inherited inherited-section">
+										<div><strong>Inherited from parent organization:</strong></div>
+										<div>{{getInheritedUserNames(role)}}</div>
+									</div>
+								</div>
+								<div show-if="context.roleEditMap[role.roleId]">
+									<div app-security-editor='role.membersByOwner' role-id='role.roleId' hide='context.roleEditMap[role.roleId] = false'></div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div error-Modal></div>
+</div>

@@ -578,6 +578,29 @@ public class UserDAOTest
     assertThat(membershipMappingDAO.getByUser(user.getUsername()), is(empty()));
   }
 
+  @Test
+  public void testFindUser_CaseInsensitive() {
+    createUser("FOO", "aaa", "xxx", "xxx", "xxx@xxx.xxx");
+    createUser("xxx", "aaa", "FOO", "xxx", "xxx@xxx.xxx");
+    createUser("xxx1", "aaa", "xxx", "FOO", "xxx@xxx.xxx");
+    createUser("xxx2", "aaa", "xxx", "xxx", "FOO@xxx.xxx");
+    createUser("xxx3", "aaa", "xxx", "xxx", "xxx@xxx.xxx");
+
+    UserDAO dao = new UserDAO();
+    List<User> users = dao.findUsersByName("fOo");
+    //we only check first name and last name, so 2 results should be found
+    assertEquals(2, users.size());
+  }
+
+  @Test
+  public void testFindUser_notByPassword() {
+    createUser("xxx", "foo", "xxx", "xxx", "xxx@xxx.xxx");
+
+    UserDAO dao = new UserDAO();
+    List<User> users = dao.findUsersByName("foo");
+    assertEquals(0, users.size());
+  }
+
   private User createUser(String username) {
     return createUser(username, username + "Password", username + "First", username + "Last", username
         + "Email@localhost");

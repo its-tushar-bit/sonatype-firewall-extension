@@ -77,6 +77,10 @@
 
         getUserUrl : function () {
           return baseUrl.get() + '/rest/user';
+        },
+        
+        getRoleListUrl : function() {
+          return baseUrl.get() + '/rest/role';
         }
       };
     }

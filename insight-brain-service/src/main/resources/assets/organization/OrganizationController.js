@@ -9,7 +9,7 @@
   'use strict';
 
   var organizationModule = angular.module('OrganizationModule',
-      ['ui.router', 'ManagementModule', 'Organization', 'CommonServices', 'CLMLocation'], [
+      ['ui.router', 'ManagementModule', 'ApplicationSecurityModule', 'Organization', 'CommonServices', 'CLMLocation'], [
         '$stateProvider', function($stateProvider) {
           $stateProvider.state('management.organization', {
             parent: 'management',
@@ -63,6 +63,11 @@
             controller: 'LicenseThreatGroupController',
             templateUrl: '../policy-assets/components/license-threat-group/license-threat-group.html?' +
                 clmBuildTimestamp
+          }).state('management.organization.view.security', {
+            parent: 'management.organization.view',
+            url: '/security',
+            controller: 'AppSecurityController',
+            templateUrl: '../policy-assets/components/app-security/app-security.html?' + clmBuildTimestamp
           });
         }
       ]);

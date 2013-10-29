@@ -6,8 +6,11 @@
 package com.sonatype.insight.brain.ldap;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import javax.naming.AuthenticationException;
@@ -123,7 +126,7 @@ class LdapQuery
     NamingEnumeration<SearchResult> results = null;
     try {
       ctx = ctxFactory.getSystemLdapContext();
-      results = searchUsers(ctx, username, attributes, 1);
+      results = searchUsersByUsername(ctx, username, attributes, 1);
       if (results.hasMoreElements()) {
         return createUser(ctx, results.nextElement());
       }
@@ -146,7 +149,39 @@ class LdapQuery
     NamingEnumeration<SearchResult> results = null;
     try {
       ctx = ctxFactory.getSystemLdapContext();
-      results = searchUsers(ctx, null, attributes, maxResults);
+      results = searchUsersByUsername(ctx, null, attributes, maxResults);
+      List<LdapUser> ldapUsers = new ArrayList<LdapUser>();
+      while (results.hasMoreElements()) {
+        ldapUsers.add(createUser(ctx, results.nextElement()));
+      }
+      return ldapUsers;
+    }
+    finally {
+      LdapUtils.closeEnumeration(results);
+      LdapUtils.closeContext(ctx);
+    }
+  }
+
+  /**
+   * Query for list of users whos realname attribute matches the supplied nameFragment. This nameFragment will be prefixed and
+   * suffixed with a wildcard to find matches.
+   * 
+   * @param nameFragment String to match against
+   * @param maxResults maximum number of results to pull from ldap, don't want to overload the system
+   * @return List of LdapUser objects matching the search criteria
+   * @throws NamingException if there are problems accessing the ldap context
+   */
+  public List<LdapUser> queryUsersByName(String nameFragment, long maxResults) throws NamingException {
+    String[] attributes = pickAttributes(umap.getUserIDAttribute(), umap.getUserRealNameAttribute(),
+        umap.getUserEmailAttribute());
+
+    LdapContext ctx = null;
+    NamingEnumeration<SearchResult> results = null;
+    try {
+      ctx = ctxFactory.getSystemLdapContext();
+      // TODO: query sanitization will be applied with this ticket
+      // https://issues.sonatype.org/browse/CLM-1083
+      results = searchUsersByName(ctx, "*" + nameFragment + "*", attributes, maxResults);
       List<LdapUser> ldapUsers = new ArrayList<LdapUser>();
       while (results.hasMoreElements()) {
         ldapUsers.add(createUser(ctx, results.nextElement()));
@@ -210,12 +245,38 @@ class LdapQuery
       LdapUtils.closeEnumeration(results);
     }
   }
+  
+  /**
+   * Search ldap server for all users whose realname attribute matches the supplied name
+   */
+  private NamingEnumeration<SearchResult> searchUsersByName(LdapContext ctx, String name, String[] attributes, long maxResults) throws NamingException
+  {
+    return searchUsersByAttributes(ctx, Collections.singletonMap(umap.getUserRealNameAttribute(), name != null ? name : "*"), attributes, maxResults);
+  }
+  
+  /**
+   * Search ldap server for all users whose userid attribute matches the supplied name
+   */
+  private NamingEnumeration<SearchResult> searchUsersByUsername(LdapContext ctx, String username, String[] attributes,
+      long maxResults) throws NamingException
+  {
+    // mandatory username
+    return searchUsersByAttributes(ctx, Collections.singletonMap(umap.getUserIDAttribute(), username != null ? username : "*"),
+        attributes, maxResults);
+  }
 
   /**
-   * Searches for LDAP user records that match the given user details.
+   * Search ldap server for all users, based upon the supplied attributes
+   * 
+   * @param ctx
+   * @param attributeValues list of attribute values that will be passed to ldap to perform the query
+   * @param attributes list of attributes that we are requesting ldap to send back to us for each user
+   * @param maxResults limit the number of results returned
+   * @return
+   * @throws NamingException
    */
-  private NamingEnumeration<SearchResult> searchUsers(LdapContext ctx, String username, String[] attributes,
-      long maxResults) throws NamingException
+  private NamingEnumeration<SearchResult> searchUsersByAttributes(LdapContext ctx, Map<String, String> attributeValues,
+      String[] attributes, long maxResults) throws NamingException
   {
     SearchControls controls = new SearchControls();
 
@@ -228,15 +289,21 @@ class LdapQuery
     }
 
     String baseDN = StringUtils.defaultString(umap.getUserBaseDN());
-    String uid = StringUtils.isNotBlank(username) ? username : "*";
 
     StringBuilder ldapFilter = new StringBuilder("(&");
 
     // select user objects
     ldapFilter.append("(objectClass=").append(umap.getUserObjectClass()).append(')');
 
-    // select userid(s)
-    ldapFilter.append('(').append(umap.getUserIDAttribute()).append('=').append(uid).append(')');
+    if (attributeValues.size() > 1) {
+      ldapFilter.append('(').append('|');
+    }
+    for (Entry<String, String> entry : attributeValues.entrySet()) {
+      ldapFilter.append('(').append(entry.getKey()).append('=').append(entry.getValue()).append(')');
+    }
+    if (attributeValues.size() > 1) {
+      ldapFilter.append(')');
+    }
 
     // optional user filter
     if (StringUtils.isNotBlank(umap.getUserFilter())) {

@@ -89,14 +89,14 @@
 					<div class="accordion-heading role">
 						<div class='row' ng-click="expanded = !expanded">
 							<div class='span3 expandable'>{{role.roleName}}</div>
-							<div class='span8 expandable'>
-								<div class='padded hover-buttons floatRight'>
-									<button type='button' class="btn btn-mini hover-button" title="Edit Role" 
+							<div class='span8'>
+								<div class='hover-buttons floatRight'>
+									<button type='button' class="btn btn-mini" title="Edit Role"
 											ng-disabled='context.roleEditMap[role.roleId]' ng-click="editClick(role)">
 										<i class="icon-pencil"></i>
 									</button>
 								</div>
-								<div ng-show="!context.roleEditMap[role.roleId]">
+								<div class='expandable' ng-show="!context.roleEditMap[role.roleId]">
 									<div ng-class='{"collapsed" : !expanded}'>
 										{{getUserNames(role)}}
 									</div>

@@ -26,6 +26,8 @@ import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapServerDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapUserMappingDAO;
 import com.sonatype.insight.brain.ldap.LdapManager;
 import com.sonatype.insight.brain.ldap.LdapUser;
+import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.error.exception.BadRequestException;
 
 /**
@@ -54,6 +56,7 @@ public class LdapResource
    */
   @GET
   @Produces(MediaType.APPLICATION_JSON)
+  @Authorize(permission = Permission.ADMIN)
   public List<LdapServer> getAll() {
     List<LdapServer> result = new ArrayList<LdapServer>();
     for (LdapServer server : serverDao.getAll()) {
@@ -68,6 +71,7 @@ public class LdapResource
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
+  @Authorize(permission = Permission.ADMIN)
   public LdapServer addLdapServer(LdapServer server) {
     serverDao.insert(server);
     return server;
@@ -79,6 +83,7 @@ public class LdapResource
   @PUT
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
+  @Authorize(permission = Permission.ADMIN)
   public LdapServer updateLdapServer(LdapServer server) {
     serverDao.update(server);
     return server;
@@ -89,6 +94,7 @@ public class LdapResource
    */
   @DELETE
   @Path("{ldapServerId}")
+  @Authorize(permission = Permission.ADMIN)
   public void deleteLdapServer(@PathParam("ldapServerId") final String serverId) {
     serverDao.delete(serverDao.getByIdNotNull(serverId));
   }
@@ -101,6 +107,7 @@ public class LdapResource
   @GET
   @Path("{ldapServerId}/connection")
   @Produces(MediaType.APPLICATION_JSON)
+  @Authorize(permission = Permission.ADMIN)
   public LdapConnection getConnection(@PathParam("ldapServerId") String serverId) {
     return ldapManager.loadConnection(serverId);
   }
@@ -112,6 +119,7 @@ public class LdapResource
   @Path("{ldapServerId}/connection")
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
+  @Authorize(permission = Permission.ADMIN)
   public LdapConnection updateLdapConnection(@PathParam("ldapServerId") String serverId, LdapConnection conn) {
     validateServerId(serverId, conn);
     return ldapManager.saveConnection(conn);
@@ -125,6 +133,7 @@ public class LdapResource
   @GET
   @Path("{ldapServerId}/userMapping")
   @Produces(MediaType.APPLICATION_JSON)
+  @Authorize(permission = Permission.ADMIN)
   public LdapUserMapping getUserMapping(@PathParam("ldapServerId") String serverId) {
     LdapUserMapping umap = umapDao.getByServerId(serverId);
     if (umap == null) {
@@ -141,6 +150,7 @@ public class LdapResource
   @Path("{ldapServerId}/userMapping")
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
+  @Authorize(permission = Permission.ADMIN)
   public LdapUserMapping updateUserMapping(@PathParam("ldapServerId") String serverId, LdapUserMapping umap) {
     validateServerId(serverId, umap);
 
@@ -160,6 +170,7 @@ public class LdapResource
   @Path("{ldapServerId}/testConnection")
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
+  @Authorize(permission = Permission.ADMIN)
   public LdapConnectionStatus testConnection(@PathParam("ldapServerId") String serverId, LdapConnection conn) {
     validateServerId(serverId, conn);
 
@@ -181,6 +192,7 @@ public class LdapResource
   @Path("{ldapServerId}/testUserMapping")
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
+  @Authorize(permission = Permission.ADMIN)
   public List<LdapUser> testUserMapping(@PathParam("ldapServerId") String serverId, LdapUserMapping umap) {
     validateServerId(serverId, umap);
 
@@ -203,6 +215,7 @@ public class LdapResource
   @Path("{ldapServerId}/testLogin")
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
+  @Authorize(permission = Permission.ADMIN)
   public LdapConnectionStatus testLogin(@PathParam("ldapServerId") String serverId, LdapTestLoginRequest request) {
     LdapUserMapping umap = request.getUserMapping();
     validateServerId(serverId, umap);

@@ -60,11 +60,7 @@ public class OrganizationResourceAuthzTest
     tempEntity.newMembershipMapping(MembershipMapping.GLOBAL_CONTEXT_ID, role.getId(), authorized.getUsername());
 
     String url = getRestUrl(OrganizationResource.SERVICE_PATH);
-    Response response = RestAccess.post(url, unauthorized.getUsername(), unauthorized.getPassword(), toJson(org));
-    assertResponseStatus(403, response);
-
-    response = RestAccess.post(url, authorized.getUsername(), authorized.getPassword(), toJson(org));
-    assertResponseStatus(200, response);
+    Response response = testAuthzPost(url, toJson(org));
     org = fromJson(response, Organization.class);
     new OrganizationDAO().delete(org);
   }
@@ -75,11 +71,7 @@ public class OrganizationResourceAuthzTest
     tempEntity.newMembershipMapping(org.getId(), role.getId(), authorized.getUsername());
 
     String url = getRestUrl(OrganizationResource.SERVICE_PATH);
-    Response response = RestAccess.put(url, unauthorized.getUsername(), unauthorized.getPassword(), toJson(org));
-    assertResponseStatus(403, response);
-
-    response = RestAccess.put(url, authorized.getUsername(), authorized.getPassword(), toJson(org));
-    assertResponseStatus(200, response);
+    testAuthzPut(url, toJson(org));
   }
 
   @Test
@@ -88,11 +80,7 @@ public class OrganizationResourceAuthzTest
     tempEntity.newMembershipMapping(org.getId(), role.getId(), authorized.getUsername());
 
     String url = getRestUrl(OrganizationResource.SERVICE_PATH + '/' + OrganizationResource.GET_ICON_PATH, org.getId());
-    Response response = RestAccess.get(url, unauthorized.getUsername(), unauthorized.getPassword());
-    assertResponseStatus(403, response);
-
-    response = RestAccess.get(url, authorized.getUsername(), authorized.getPassword());
-    assertResponseStatus(307, response);
+    testAuthzGet(url, 307);
   }
 
   @Test
@@ -148,10 +136,6 @@ public class OrganizationResourceAuthzTest
 
     String url = getRestUrl(OrganizationResource.SERVICE_PATH + '/' + OrganizationResource.DELETE_ORGANIZATION_PATH,
         org.getId());
-    Response response = RestAccess.delete(url, unauthorized.getUsername(), unauthorized.getPassword());
-    assertResponseStatus(403, response);
-
-    response = RestAccess.delete(url, authorized.getUsername(), authorized.getPassword());
-    assertResponseStatus(204, response);
+    testAuthzDelete(url);
   }
 }

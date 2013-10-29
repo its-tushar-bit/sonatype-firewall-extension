@@ -60,12 +60,6 @@
       }
     }
 
-    $scope.$watch('$state.current.name', function() {
-      if ($state.current.name === 'management') {
-        $state.transitionTo('management.application');
-      }
-    });
-
     $scope.syncAlerts = [];
     var error = commonCodeFactory.getEncodedQueryString('errorMessage');
     if (error) {

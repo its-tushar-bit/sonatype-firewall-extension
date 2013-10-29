@@ -11,8 +11,12 @@ import java.util.Arrays;
 import java.util.List;
 
 import com.sonatype.insight.brain.AuthedRestAccess;
+import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
 import com.sonatype.insight.brain.features.FeaturesResource;
+import com.sonatype.insight.brain.model.security.MemberType;
+import com.sonatype.insight.brain.model.security.MembershipMapping;
+import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.security.UserResource.ChangePasswordDTO;
 import com.sonatype.insight.brain.security.UserSessionResource.AuthenticationStatus;
@@ -274,6 +278,9 @@ public class UserResourceTest
     assertResponseStatus(200, response);
     user = JsonHelpers.fromJson(response.getResponseBody(), User.class);
     usersToDelete.add(user);
+    MembershipMapping membershipMapping = new MembershipMapping(MembershipMapping.GLOBAL_CONTEXT_ID,
+        Role.ADMIN_ROLE_ID, user.getUsername(), MemberType.USER);
+    new MembershipMappingDAO().insert(membershipMapping);
 
     // log the user in
     response = AuthedRestAccess.post(getRestBaseUrl() + UserSessionResource.SERVICE_PATH, user.getUsername(),

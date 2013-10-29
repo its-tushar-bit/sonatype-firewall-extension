@@ -6,12 +6,12 @@
 (function() {
   "use strict";
   var reportApp = angular.module('reportApp', ['ReportModule', 'Report'],
-    [
-      '$urlRouterProvider',
-      function($urlRouterProvider) {
-        $urlRouterProvider.when('', '/reports');
-      }
-    ]);
+      [
+        '$urlRouterProvider',
+        function($urlRouterProvider) {
+          $urlRouterProvider.when('', '/reports/violations');
+        }
+      ]);
 }());
 
 (function() {
@@ -59,11 +59,5 @@
         break;
       }
     }
-
-    $scope.$watch('$state.current.name', function() {
-      if ($state.current.name === 'reports') {
-        $state.transitionTo('reports.violations');
-      }
-    });
   }]);
 }());

@@ -53,13 +53,21 @@ public class AuthedRestAccess
     return RestAccess.delete(urlString, ADMIN_USERNAME, ADMIN_PASSWORD);
   }
 
+  public static Response delete(String urlString, String username, String password) throws Exception {
+    return RestAccess.delete(urlString, username, password);
+  }
+
   public static Response delete(String urlString, Cookie cookie) throws Exception {
     return RestAccess.delete(urlString, null /* params */, null /* username */, null /* password */, cookie);
   }
 
-  public static Response execute(BoundRequestBuilder builder) throws Exception {
-    RestAccess.addAuthorization(builder, ADMIN_USERNAME, ADMIN_PASSWORD);
+  public static Response execute(BoundRequestBuilder builder, String username, String password) throws Exception {
+    RestAccess.addAuthorization(builder, username, password);
     return builder.execute().get();
+  }
+
+  public static Response execute(BoundRequestBuilder builder) throws Exception {
+    return execute(builder, ADMIN_USERNAME, ADMIN_PASSWORD);
   }
 
   public static AsyncHttpClient getClient() {

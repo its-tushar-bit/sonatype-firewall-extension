@@ -20,8 +20,8 @@ import org.apache.shiro.authc.SimpleAuthenticationInfo;
 import org.apache.shiro.authc.UsernamePasswordToken;
 import org.apache.shiro.authc.credential.DefaultPasswordService;
 import org.apache.shiro.authc.credential.PasswordMatcher;
-import org.apache.shiro.authc.credential.PasswordService;
 import org.apache.shiro.authz.AuthorizationInfo;
+import org.apache.shiro.crypto.hash.DefaultHashService;
 import org.apache.shiro.realm.AuthorizingRealm;
 import org.apache.shiro.subject.PrincipalCollection;
 import org.codehaus.plexus.util.StringUtils;
@@ -41,12 +41,28 @@ public class CLMRealm
 {
   private static final Logger log = LoggerFactory.getLogger(CLMRealm.class);
 
-  private final PasswordService passwordService;
+  private final DefaultPasswordService passwordService;
+
+  private static int hashIterations = DefaultPasswordService.DEFAULT_HASH_ITERATIONS;
+
+  // This reduces the test execution time for this module by ~30%.
+  // In my tests, it doesn't make a big difference if we use 1 or 100 for hashIterations. I didn't want to use 1 because
+  // it is a very special value and I chose 10 without any really good reason. :)
+  public static void useWeakHashIterationForTestsOnly() {
+    hashIterations = 10;
+  }
 
   public CLMRealm() {
     setName("CLMRealm");
 
     passwordService = new DefaultPasswordService();
+    // We create a DefaultHashService instance only to be able to change the default hash iteration count. Using the
+    // default (500000), a password encryption takes about 500ms on my machine. Using 1000, it takes about 30ms.
+    DefaultHashService hashService = new DefaultHashService();
+    hashService.setHashAlgorithmName(DefaultPasswordService.DEFAULT_HASH_ALGORITHM);
+    hashService.setHashIterations(hashIterations);
+    hashService.setGeneratePublicSalt(true);
+    passwordService.setHashService(hashService);
 
     // Create and set a password matcher. It will be used by shiro to match hashed passwords.
     PasswordMatcher passwordMatcher = new PasswordMatcher();

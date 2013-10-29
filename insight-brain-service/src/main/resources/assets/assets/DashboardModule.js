@@ -161,23 +161,34 @@
         };
       }]);
 
-  dashboardApp.controller('dashboardController', ['$scope', '$state', '$window', function($scope, $state, $window) {
+  dashboardApp.controller('dashboardController', [
+    '$scope', '$state', '$window', 'CLMLocations', '$http', '$rootScope',
+    function($scope, $state, $window, CLMLocations, $http, $rootScope) {
     function switchDashboard() {
       for ( var i = 0; i < $scope.availableDashboards.length; i++) {
-        if ($window.location.href && $window.location.href.indexOf($scope.availableDashboards[i].href) !== -1) {
+        if ($window.location.href && $window.location.href.indexOf($scope.availableDashboards[i].selector) !== -1) {
           $scope.selectedDashboard = $scope.availableDashboards[i];
           break;
         }
       }
     }
 
+    $scope.logout = function(){
+      $http.delete(CLMLocations.getSessionUrl()).success(function(){
+        $rootScope.authenticated = false;
+        $state.transitionTo('home');
+      });
+    }
+
     $scope.$state = $state;
     $scope.availableDashboards = [{
       name: 'Management',
-      href: 'index.html#/management'
+      href: 'index.html#/management/application',
+      selector: '#/management'
     }, {
       name: 'Reports',
-      href: 'reports.html#/reports'
+      href: 'reports.html#/reports/violations',
+      selector: '#/reports'
     }];
 
     $scope.$watch('$state.current.name', switchDashboard);

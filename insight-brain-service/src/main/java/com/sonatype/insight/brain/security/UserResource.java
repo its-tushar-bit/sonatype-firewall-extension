@@ -20,6 +20,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
+import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.error.exception.BadRequestException;
 
@@ -55,6 +56,7 @@ public class UserResource
 
   @GET
   @Produces({ MediaType.APPLICATION_JSON })
+  @Authorize(permission = Permission.ADMIN)
   public List<User> getAll() {
     List<User> users = new UserDAO().getAll();
     for (User user : users) {
@@ -66,6 +68,7 @@ public class UserResource
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
+  @Authorize(permission = Permission.ADMIN)
   public User addUser(User user) {
     user.setId(null);
     user.setPassword(clmRealm.encryptPassword(user.getPassword()));
@@ -79,6 +82,7 @@ public class UserResource
   @PUT
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
+  @Authorize(permission = Permission.ADMIN)
   public User updateUser(User user) {
     UserDAO dao = new UserDAO();
 
@@ -101,6 +105,7 @@ public class UserResource
 
   @DELETE
   @Path("{userId}")
+  @Authorize(permission = Permission.ADMIN)
   public void deleteUser(@PathParam("userId") String userId) {
     UserDAO dao = new UserDAO();
 
@@ -126,6 +131,7 @@ public class UserResource
   @PUT
   @Path(PASSWORD_PATH)
   @Consumes(MediaType.APPLICATION_JSON)
+  // Requires only authentication, no authorization.
   public void changePassword(@PathParam("userId") String userId, ChangePasswordDTO password) {
     UserDAO dao = new UserDAO();
     User user = dao.getByIdNotNull(userId);

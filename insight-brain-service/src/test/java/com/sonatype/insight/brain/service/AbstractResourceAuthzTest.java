@@ -10,12 +10,14 @@ import java.io.IOException;
 import com.sonatype.insight.brain.TemporaryEntity;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.security.MembershipMapping;
+import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
+import com.sonatype.insight.test.RestAccess;
 
 import com.ning.http.client.Response;
-
 import com.yammer.dropwizard.testing.JsonHelpers;
-
 import org.junit.Before;
 import org.junit.Rule;
 
@@ -44,6 +46,11 @@ public abstract class AbstractResourceAuthzTest
     authorized = tempEntity.newUser();
   }
 
+  protected void grantAdminPermission() {
+    Role role = tempEntity.newRole(true, Permission.ADMIN);
+    tempEntity.newMembershipMapping(MembershipMapping.GLOBAL_CONTEXT_ID, role.getId(), authorized.getUsername());
+  }
+
   protected String getRestUrl(String templateUrl, Object... paramValues) {
     return getRestBaseUrl() + expandRestUrl(templateUrl, paramValues);
   }
@@ -64,5 +71,53 @@ public abstract class AbstractResourceAuthzTest
     catch (IOException e) {
       throw new IllegalStateException(e);
     }
+  }
+
+  protected void testAuthzGet(String url) throws Exception {
+    testAuthzGet(url, 200);
+  }
+
+  protected void testAuthzGet(String url, int expectedSuccessStatus) throws Exception {
+    Response response = RestAccess.get(url, unauthorized.getUsername(), unauthorized.getPassword());
+    assertResponseStatus(403, response);
+
+    response = RestAccess.get(url, authorized.getUsername(), authorized.getPassword());
+    assertResponseStatus(expectedSuccessStatus, response);
+  }
+
+  protected void testAuthzPut(String url, String body) throws Exception {
+    testAuthzPut(url, body, 200);
+  }
+
+  protected void testAuthzPut(String url, String body, int expectedSuccessStatus) throws Exception {
+    Response response = RestAccess.put(url, unauthorized.getUsername(), unauthorized.getPassword(), body);
+    assertResponseStatus(403, response);
+
+    response = RestAccess.put(url, authorized.getUsername(), authorized.getPassword(), body);
+    assertResponseStatus(expectedSuccessStatus, response);
+  }
+
+  protected Response testAuthzPost(String url, String body) throws Exception {
+    return testAuthzPost(url, body, 200);
+  }
+
+  protected Response testAuthzPost(String url, String body, int expectedSuccessStatus) throws Exception {
+    Response response = RestAccess.post(url, unauthorized.getUsername(), unauthorized.getPassword(), body);
+    assertResponseStatus(403, response);
+
+    response = RestAccess.post(url, authorized.getUsername(), authorized.getPassword(), body);
+    assertResponseStatus(expectedSuccessStatus, response);
+
+    return response;
+  }
+
+  protected Response testAuthzDelete(String url) throws Exception {
+    Response response = RestAccess.delete(url, unauthorized.getUsername(), unauthorized.getPassword());
+    assertResponseStatus(403, response);
+
+    response = RestAccess.delete(url, authorized.getUsername(), authorized.getPassword());
+    assertResponseStatus(204, response);
+
+    return response;
   }
 }

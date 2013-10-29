@@ -44,15 +44,16 @@
     <script src='ManagementApp.js?${build.timestamp}'></script>
 </head>
 <body ng-controller='dashboardController'>
-	<div class="first-row navbar navbar-fixed-top">
-		<div class="navbar-inner">
-			<div class="container-fluid">
-				<a class="title brand" href="#">
-					<img src="img/sonatype-32.png" alt="Logo" height="32" width="32"/>&nbsp;Sonatype CLM
-				</a>
-			</div>
-		</div>
-	</div>
+  <div class="first-row navbar navbar-fixed-top">
+    <div class="navbar-inner">
+      <div class="container-fluid">
+        <a class="title brand" href="#">
+          <img src="img/sonatype-32.png" alt="Logo" height="32" width="32"/>&nbsp;Sonatype CLM
+        </a>
+        <div class="pull-right"><a ng-click="logout()" style="font-size: .75em">Logout</a></div>
+      </div>
+    </div>
+  </div>
 	<div ng-show='!error'>
 		<div class="second-row navbar navbar-inverse navbar-fixed-top">
 			<div class="navbar-inner">

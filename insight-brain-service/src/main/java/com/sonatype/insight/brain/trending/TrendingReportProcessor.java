@@ -93,8 +93,7 @@ public class TrendingReportProcessor
   public TrendingReport calculate() throws IOException {
     final long now = new Date().getTime();
 
-    TrendingReportMetadata meta = new TrendingReportMetadata("Report Generator", "Report Generator", now, now
-        - TWENTY_DAYS_MS, now);
+    TrendingReportMetadata meta = new TrendingReportMetadata(now, now - TWENTY_DAYS_MS, now);
 
     // total component counts in all applications based on latest application reports
     Map<String, Map<String, Integer>> components = new HashMap<String, Map<String, Integer>>();

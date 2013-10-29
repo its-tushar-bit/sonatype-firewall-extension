@@ -7,8 +7,6 @@ package com.sonatype.insight.brain.model.trending;
 
 public class TrendingReportMetadata
 {
-  private String generatedBy;
-  private String generatedFor;
   private long generatedOn;
   private long periodStart;
   private long periodEnd;
@@ -16,28 +14,10 @@ public class TrendingReportMetadata
   public TrendingReportMetadata() {
   }
 
-  public TrendingReportMetadata(String generatedBy, String generatedFor, long generatedOn, long periodStart, long periodEnd) {
-    this.generatedBy = generatedBy;
-    this.generatedFor = generatedFor;
+  public TrendingReportMetadata(long generatedOn, long periodStart, long periodEnd) {
     this.generatedOn = generatedOn;
     this.periodStart = periodStart;
     this.periodEnd = periodEnd;
-  }
-
-  public String getGeneratedBy() {
-    return generatedBy;
-  }
-
-  public void setGeneratedBy(String generatedBy) {
-    this.generatedBy = generatedBy;
-  }
-
-  public String getGeneratedFor() {
-    return generatedFor;
-  }
-
-  public void setGeneratedFor(String generatedFor) {
-    this.generatedFor = generatedFor;
   }
 
   public long getGeneratedOn() {

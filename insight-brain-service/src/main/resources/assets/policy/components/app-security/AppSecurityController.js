@@ -181,6 +181,12 @@
       if (user.email) {
         tip += '<' + user.email + '>';
       }
+      if (tip && user.realm) {
+        tip += ' ';
+      }
+      if (user.realm) {
+        tip += '(' + user.realm + ')';
+      }
       return tip;
     };
 

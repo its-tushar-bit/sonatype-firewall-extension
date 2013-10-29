@@ -153,6 +153,14 @@ public class LdapManager
     return !serverDao.getAll().isEmpty(); // we have at least one LDAP server
   }
 
+  public String getLdapName() {
+    List<LdapServer> servers = serverDao.getAll();
+    if (servers.isEmpty()) {
+      throw new IllegalStateException("LDAP server is not configured");
+    }
+    return servers.get(0).getName();
+  }
+
   /**
    * Slower authentication check; short-circuits if connection or mapping are missing.
    * 

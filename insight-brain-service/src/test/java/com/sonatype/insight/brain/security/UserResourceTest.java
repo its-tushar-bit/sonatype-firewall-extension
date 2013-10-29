@@ -20,6 +20,7 @@ import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.security.UserResource.ChangePasswordDTO;
+import com.sonatype.insight.brain.security.UserResource.UserQueryDTO;
 import com.sonatype.insight.brain.security.UserSessionResource.AuthenticationStatus;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.test.RestAccess;
@@ -35,6 +36,7 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 
 public class UserResourceTest
@@ -324,6 +326,29 @@ public class UserResourceTest
 
     response = AuthedRestAccess.put(changePasswordUrl, JsonHelpers.asJson(dto));
     assertResponseStatus(204, response);
+  }
+
+  @Test
+  public void testFindCLMUsers() throws Exception {
+    User user = new User("testChangePassword", "testChangePasswordPassword", "testChangePasswordFirstName",
+        "testChangePasswordLastName", "testChangePassword@sonatype.com");
+    Response response = AuthedRestAccess.post(getServiceURL(), JsonHelpers.asJson(user));
+    assertResponseStatus(200, response);
+    user = JsonHelpers.fromJson(response.getResponseBody(), User.class);
+    usersToDelete.add(user);
+
+    String query = getRestBaseUrl() + "query?q=test";
+    response = AuthedRestAccess.get(query);
+    assertResponseStatus(200, response);
+    UserQueryDTO[] usersQueried = JsonHelpers.fromJson(response.getResponseBody(), UserQueryDTO[].class);
+    assertThat(usersQueried.length, is(1));
+    UserQueryDTO userQueried = usersQueried[0];
+    assertThat(userQueried.username, is("testChangePassword"));
+    assertThat(userQueried.realm, is("CLM"));
+
+    query = getRestBaseUrl() + "query?q=foo";
+    usersQueried = JsonHelpers.fromJson(response.getResponseBody(), UserQueryDTO[].class);
+    assertThat(usersQueried.length, is(0));
   }
 
   @Test

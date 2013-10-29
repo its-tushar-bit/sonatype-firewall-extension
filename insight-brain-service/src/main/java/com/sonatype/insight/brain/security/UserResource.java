@@ -23,6 +23,8 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
+import com.sonatype.insight.brain.ldap.LdapManager;
+import com.sonatype.insight.brain.ldap.LdapUser;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -52,26 +54,37 @@ public class UserResource
 
   private final SessionDAO sessionDAO;
 
+  private final LdapManager ldapManager;
+
   @Inject
-  public UserResource(CLMRealm clmRealm, SessionDAO sessionDAO) {
+  public UserResource(CLMRealm clmRealm, SessionDAO sessionDAO, LdapManager ldapManager) {
     this.clmRealm = clmRealm;
     this.sessionDAO = sessionDAO;
+    this.ldapManager = ldapManager;
   }
 
   @GET
   @Path("query")
   @Produces({ MediaType.APPLICATION_JSON })
   @Authorize(permission = Permission.ADMIN)
-  public List<User> findUsers(@QueryParam("q") String query) throws NamingException {
+  public List<UserQueryDTO> findUsers(@QueryParam("q") String query) throws NamingException {
     if (StringUtils.isEmpty(query)) {
       throw new BadRequestException("No search term specified.");
     }
 
-    List<User> users = new ArrayList<User>();
+    List<UserQueryDTO> users = new ArrayList<UserQueryDTO>();
     UserDAO dao = new UserDAO();
     for (User user : dao.findUsersByName(query)) {
-      clearUserPassword(user);
-      users.add(user);
+      UserQueryDTO u = new UserQueryDTO(user.getUsername(), user.getFirstName(), user.getLastName(), user.getEmail(), "CLM");
+      users.add(u);
+    }
+
+    if (ldapManager.isLdapEnabled()) {
+      String ldapName = ldapManager.getLdapName();
+      for (LdapUser user : ldapManager.findUsersByName(query, 100)) {
+        UserQueryDTO u = new UserQueryDTO(user.getUsername(), user.getRealName(), null, user.getEmail(), ldapName);
+        users.add(u);
+      }
     }
     return users;
   }
@@ -179,5 +192,23 @@ public class UserResource
   {
     public String oldPassword;
     public String newPassword;
+  }
+
+  public static class UserQueryDTO {
+    public String username;
+    public String firstName;
+    public String lastName;
+    public String email;
+    public String realm;
+
+    public UserQueryDTO(final String username, final String firstName, final String lastName,
+                        final String email, final String realm)
+    {
+      this.username = username;
+      this.firstName = firstName;
+      this.lastName = lastName;
+      this.email = email;
+      this.realm = realm;
+    }
   }
 }

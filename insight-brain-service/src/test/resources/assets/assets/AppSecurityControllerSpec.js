@@ -185,6 +185,19 @@ describe('AppSecurityControllerSpec', function() {
         firstName : 'Bob',
         email : 'bob@example.org'
       })).toEqual('Bob <bob@example.org>');
+
+      expect(scope.getTooltip({
+        firstName : 'Bob',
+        lastName : 'Uruncle',
+        email : 'bob@example.org',
+        realm: 'CLM'
+      })).toEqual('Bob Uruncle <bob@example.org> (CLM)');
+
+      expect(scope.getTooltip({
+        firstName: 'Bob',
+        email: 'bob@example.org',
+        realm: 'CLM'
+      })).toEqual('Bob <bob@example.org> (CLM)');
     });
 
     describe('Queries', function () {

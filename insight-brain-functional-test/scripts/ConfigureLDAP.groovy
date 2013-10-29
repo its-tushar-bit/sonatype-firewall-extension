@@ -1,4 +1,9 @@
 /**
+ * Copyright (c) 2011-2013 Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+/**
  * @since 1.7
  */
 @Grab(group = 'com.sonatype.insight.brain', module = 'insight-brain-functional-test', version = '1.7.0-SNAPSHOT', changing = true)

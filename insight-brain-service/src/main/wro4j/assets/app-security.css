@@ -30,9 +30,8 @@
 } 
 .roles .expandable {
 	padding : 5px;
-	box-sizing : border-box;
 	cursor : pointer;
-	min-height: 20px;
+	min-height: 24px;
 }
 .role .hover-buttons {
 	margin-top : 3px

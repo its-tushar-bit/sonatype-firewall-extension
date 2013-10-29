@@ -96,14 +96,12 @@
 										<i class="icon-pencil"></i>
 									</button>
 								</div>
-								<div class='expandable' ng-show="!context.roleEditMap[role.roleId]">
-									<div ng-class='{"collapsed" : !expanded}'>
-										{{getUserNames(role)}}
-									</div>
+								<div class='expandable' ng-show="!context.roleEditMap[role.roleId]" ng-class='{"collapsed" : !expanded}'>
+									<span>{{getUserNames(role)}}</span>
 									<div ng-show="getInheritedUserNames(role) && expanded" class="inherited inherited-section">
-										<div><strong>Inherited from parent organization:</strong></div>
-										<div>{{getInheritedUserNames(role)}}</div>
+										<strong>Inherited from parent organization:</strong>
 									</div>
+									<span class="inherited">{{getInheritedUserNames(role)}}</span>
 								</div>
 								<div show-if="context.roleEditMap[role.roleId]">
 									<div app-security-editor='role.membersByOwner' role-id='role.roleId' hide='context.roleEditMap[role.roleId] = false'></div>

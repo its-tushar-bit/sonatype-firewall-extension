@@ -11,6 +11,19 @@
 		</form>
 		<div>
 			<div class='selectList'>
+				<h5>Applied</h5>
+				<div>
+					<div>
+						<div ng-repeat='mapping in mappings'>
+							<div ng-repeat='member in mapping.members | filter: queryString' ng-click='removeUser($parent.$index, $index)'
+									class='licenseSelectListItem' ng-class='{  inherited : $parent.$index }'>
+								<i ng-class='{ "icon-minus-sign" : !$parent.$index, "emptyIconGlyph" : $parent.$index }'></i>&nbsp;<span title='{{member.displayName}}'>{{member.displayName}}</span>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class='selectList'>
 				<h5>Available</h5>
 				<div>
 					<div>
@@ -20,19 +33,6 @@
 						</div>
 						<div class='licenseSelectListItem' ng-show='queryString && !requestActive && queryResults.length == 0'>
 							<i class='emptyIconGlyph'></i>&nbsp;<em>No results</em>
-						</div>
-					</div>
-				</div>
-			</div>			
-			<div class='selectList'>
-				<h5>Applied</h5>
-				<div>
-					<div>
-						<div ng-repeat='mapping in mappings'>
-							<div ng-repeat='member in mapping.members' ng-click='removeUser($parent.$index, $index)'
-									class='licenseSelectListItem' ng-class='{  inherited : $parent.$index }'>
-								<i ng-class='{ "icon-minus-sign" : !$parent.$index, "emptyIconGlyph" : $parent.$index }'></i>&nbsp;<span title='{{member.displayName}}'>{{member.displayName}}</span>
-							</div>
 						</div>
 					</div>
 				</div>

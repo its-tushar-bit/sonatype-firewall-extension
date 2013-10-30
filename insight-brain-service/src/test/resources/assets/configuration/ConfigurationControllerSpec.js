@@ -102,6 +102,7 @@ describe('Configuration', function() {
       expect(scope.validatePackage('com.sonatype')).toBe(null);
     });
 
+    //see CLM-1097
     it('Should treat an empty entry as valid', function(){
       expect(scope.validatePackage('')).toBe(null);
     })

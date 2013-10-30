@@ -46,10 +46,10 @@ describe('AppSecurityControllerSpec', function() {
     }));
   
     it('check user name lists are ordered as expected', inject(function() {
-      expect(scope.getUserNames(role1)).toEqual('Admin BuiltIn, Peter Lynch');
-      expect(scope.getUserNames(role2)).toEqual('Brian Fox, Damian Bradicich, Joel Orlina, Jordan Duggan');
-      expect(scope.getInheritedUserNames(role1)).toEqual('Brian Fox, Damian Bradicich, Jeffrey Wayman, Jordan Duggan, Kelly Robinson, Matthew Piggott, Mike Hansen, Sunny Gleason');
-      expect(scope.getInheritedUserNames(role2)).toEqual('Admin BuiltIn, Jason Swank, Jeffrey Wayman, Matthew Piggott');
+      expect(scope.context.roleUsers['1da70fae1fd54d6cb7999871ebdb9a36'].applied).toEqual(['Admin BuiltIn', 'Peter Lynch']);
+      expect(scope.context.roleUsers['1cddabf7fdaa47d6833454af10e0a3ef'].applied).toEqual(['Brian Fox', 'Damian Bradicich', 'Joel Orlina', 'Jordan Duggan']);
+      expect(scope.context.roleUsers['1da70fae1fd54d6cb7999871ebdb9a36'].inherited).toEqual(['Brian Fox', 'Damian Bradicich', 'Jeffrey Wayman', 'Jordan Duggan', 'Kelly Robinson', 'Matthew Piggott', 'Mike Hansen', 'Sunny Gleason']);
+      expect(scope.context.roleUsers['1cddabf7fdaa47d6833454af10e0a3ef'].inherited).toEqual(['Admin BuiltIn', 'Jason Swank', 'Jeffrey Wayman', 'Matthew Piggott']);
     }));
     
     it('validate roleSaveComplete event is handled properly', inject(function($rootScope) {

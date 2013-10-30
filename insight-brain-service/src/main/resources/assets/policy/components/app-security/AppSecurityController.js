@@ -5,26 +5,33 @@
 (function() {
   'use strict';
   var appSecurityModule = angular.module('ApplicationSecurityModule', ['CommonServices', 'ui.utils']);
-  
-  function getMembersForOwner(role, ownerId, exclude) {
-    var arrToSearch = role.membersByOwner;
-    if (arrToSearch == undefined) {
-      arrToSearch = role;
-    }
-    var members = [];
-    
-    angular.forEach(arrToSearch, function(owner){
-      if (!exclude && owner.ownerId === ownerId) {
-        members = owner.members;
-      } else if (exclude && owner.ownerId !== ownerId) {
-        members = members.concat(owner.members);
-      }
-    });
-    
-    return members;
-  }
 
   appSecurityModule.controller('AppSecurityController', ['$scope', '$http', 'CLMAppLocations', '$rootScope', function($scope, $http, clmAppLocations, $rootScope) {
+    function getUserLists(role) {
+      var lists = {
+         applied : [],
+         inherited : []
+      };
+      angular.forEach(role, function (mappings, index) {
+        angular.forEach(mappings.members, function (user) {
+          if (index === 0) {
+            lists.applied.push(user.displayName);
+          } else {
+            lists.inherited.push(user.displayName);
+          }
+        });
+      });
+      AngularUtils.alphaSort(lists.applied);
+      AngularUtils.alphaSort(lists.inherited);
+      return lists;
+    }
+    function createUserLists() {
+      $scope.context.roleUsers = {};
+      angular.forEach($scope.context.roles, function (role) {
+        $scope.context.roleUsers[role.roleId] = getUserLists(role.membersByOwner);
+      });
+    }
+
     $scope.doLoad = function() {
       $scope.error = null;
 
@@ -34,9 +41,10 @@
       }}).success(function (data) {
         $scope.context = {
           roleEditMap: {},
-          roles: []
+          roles:  data.membersByRole
         };
-        $scope.context.roles = data.membersByRole;
+
+        createUserLists();
       }).error(function (error) {
         $scope.error = arguments;
       });
@@ -45,29 +53,12 @@
     $scope.editClick = function(role) {
       $scope.context.roleEditMap[role.roleId] = role;
     };
-    
-    $scope.getUserNames = function(role) {
-      var valueList = [];
-      angular.forEach(getMembersForOwner(role, clmAppLocations.getEntityId()), function(member){
-        valueList.push(member.displayName);
-      });
-      AngularUtils.alphaSort(valueList);
-      return valueList.join(', ');
-    };
-    
-    $scope.getInheritedUserNames = function(role) {
-      var valueList = [];
-      angular.forEach(getMembersForOwner(role, clmAppLocations.getEntityId(), true), function(member){
-        valueList.push(member.displayName);
-      });
-      AngularUtils.alphaSort(valueList);
-      return valueList.join(', ');
-    };
-    
+
     $rootScope.$on('roleSaveComplete',function(event, roleId, newMappings){
       for (var i = 0 ; i < $scope.context.roles.length ; i++) {
         if ($scope.context.roles[i].roleId === roleId) {
           $scope.context.roles[i].membersByOwner[0].members = newMappings.members.slice();
+          createUserLists();
           break;
         }
       }

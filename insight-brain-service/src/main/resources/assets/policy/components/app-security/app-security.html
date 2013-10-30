@@ -99,11 +99,11 @@
 									</button>
 								</div>
 								<div class='expandable' ng-show="!context.roleEditMap[role.roleId]" ng-class='{"collapsed" : !expanded}'>
-									<span>{{getUserNames(role)}}</span>
-									<div ng-show="getInheritedUserNames(role) && expanded" class="inherited inherited-section">
+									<span>{{context.roleUsers[role.roleId].applied.join(', ')}}<span ng-show='context.roleUsers[role.roleId].applied.length && context.roleUsers[role.roleId].inherited.length && !expanded'>, </span></span>
+									<div ng-show="context.roleUsers[role.roleId].inherited.length && expanded" class="inherited inherited-section">
 										<strong>Inherited from parent organization:</strong>
 									</div>
-									<span class="inherited">{{getInheritedUserNames(role)}}</span>
+									<span class="inherited">{{context.roleUsers[role.roleId].inherited.join(', ')}}</span>
 								</div>
 								<div show-if="context.roleEditMap[role.roleId]">
 									<div app-security-editor='role.membersByOwner' role-id='role.roleId' hide='context.roleEditMap[role.roleId] = false'></div>

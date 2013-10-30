@@ -235,15 +235,12 @@
         result = input.slice();
 
         for (var i=0; i<result.length; i++) {
-          for (var m=0; m<mappings.length; m++) {
-            for (var x=0; x<mappings[m].members.length; x++) {
-              if (result[i].username === mappings[m].members[x].internalName) {
-                result.splice(i, 1);
-                i--;
-                m = mappings.length;
-                modified = true;
-                break;
-              }
+          for (var x=0; x<mappings[0].members.length; x++) {
+            if (result[i].username === mappings[0].members[x].internalName) {
+              result.splice(i, 1);
+              i--;
+              modified = true;
+              break;
             }
           }
         }

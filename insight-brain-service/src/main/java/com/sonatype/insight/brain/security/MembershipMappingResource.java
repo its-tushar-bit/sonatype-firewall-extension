@@ -165,7 +165,7 @@ public class MembershipMappingResource
   @PUT
   @Path(ROLE_PATH)
   @Consumes({ MediaType.APPLICATION_JSON })
-  @Authorize(permission = Permission.WRITE)
+  @Authorize(permission = Permission.ADMIN)
   public void setMembershipMappingForRole(
       @AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") String ownerType,
       @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId, @PathParam("roleId") String roleId,

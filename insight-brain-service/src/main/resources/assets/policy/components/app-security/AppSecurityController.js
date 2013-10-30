@@ -6,7 +6,7 @@
   'use strict';
   var appSecurityModule = angular.module('ApplicationSecurityModule', ['CommonServices', 'ui.utils']);
 
-  appSecurityModule.controller('AppSecurityController', ['$scope', '$http', 'CLMAppLocations', '$rootScope', function($scope, $http, clmAppLocations, $rootScope) {
+  appSecurityModule.controller('AppSecurityController', ['$scope', '$http', 'CLMAppLocations', function($scope, $http, clmAppLocations) {
     function getUserLists(role) {
       var lists = {
          applied : [],
@@ -54,7 +54,7 @@
       $scope.context.roleEditMap[role.roleId] = role;
     };
 
-    $rootScope.$on('roleSaveComplete',function(event, roleId, newMappings){
+    $scope.$on('roleSaveComplete',function(event, roleId, newMappings){
       for (var i = 0 ; i < $scope.context.roles.length ; i++) {
         if ($scope.context.roles[i].roleId === roleId) {
           $scope.context.roles[i].membersByOwner[0].members = newMappings.members.slice();
@@ -62,6 +62,7 @@
           break;
         }
       }
+      event.preventDefault();
     });
 
     $scope.doLoad();
@@ -96,7 +97,7 @@
     };
   });
 
-  appSecurityModule.controller('AppSecurityEditorController', ['$scope', '$http', '$timeout', '$modal', 'CLMAppLocations', 'Messages', '$rootScope', function ($scope, $http, $timeout, $modal, clmAppLocations, Messages, $rootScope) {
+  appSecurityModule.controller('AppSecurityEditorController', ['$scope', '$http', '$timeout', '$modal', 'CLMAppLocations', 'Messages', function ($scope, $http, $timeout, $modal, clmAppLocations, Messages) {
     var filterTimeout = null;
 
     $scope.alerts = [];
@@ -124,7 +125,7 @@
     $scope.save = function () {
       if ($scope.isDirty()) {
         return $http.put(clmAppLocations.getRoleMappingUrl($scope.roleId), $scope.mappings[0].members).success(function () {
-          $rootScope.$broadcast('roleSaveComplete', $scope.roleId, $scope.mappings[0]);
+          $scope.$emit('roleSaveComplete', $scope.roleId, $scope.mappings[0]);
           $scope.hide();
         }).error(function () {
           $scope.alerts.push({

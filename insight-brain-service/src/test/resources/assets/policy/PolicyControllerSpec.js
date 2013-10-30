@@ -55,11 +55,11 @@ describe('PolicyController tests', function() {
     $httpBackend.expectGET('../policy-assets/components/policy/policy-items.html?').respond('');
     var sc = $compile('<div policy-items></div>')(scope).scope();
     $httpBackend.flush();
-    expect(sc.getActionCount(scope.applicablePolicies[0].policies[0])).toEqual(1);
-    expect(sc.getActionCount(scope.applicablePolicies[0].policies[1])).toEqual(1);
-    expect(sc.getActionCount(scope.applicablePolicies[0].policies[2])).toEqual(0);
-    expect(sc.getActionCount(scope.applicablePolicies[0].policies[3])).toEqual(0);
-    expect(sc.getActionCount(scope.applicablePolicies[0].policies[4])).toEqual(0);
+    expect(sc.$$childTail.getActionCount(scope.applicablePolicies[0].policies[0])).toEqual(1);
+    expect(sc.$$childTail.getActionCount(scope.applicablePolicies[0].policies[1])).toEqual(1);
+    expect(sc.$$childTail.getActionCount(scope.applicablePolicies[0].policies[2])).toEqual(0);
+    expect(sc.$$childTail.getActionCount(scope.applicablePolicies[0].policies[3])).toEqual(0);
+    expect(sc.$$childTail.getActionCount(scope.applicablePolicies[0].policies[4])).toEqual(0);
   }));
 
   it('Test remove policy', inject(function(CLMAppLocations, $httpBackend, Dialog) {

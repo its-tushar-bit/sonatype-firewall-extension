@@ -6,7 +6,7 @@
 /* global angular, clmBuildTimestamp */
 (function() {
   'use strict';
-  angular.module('reportApp', ['ReportModule', 'Report'],
+  angular.module('reportApp', ['ReportModule', 'Report', 'ngRoute'],
     [
       '$urlRouterProvider',
       function($urlRouterProvider) {

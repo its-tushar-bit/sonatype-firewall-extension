@@ -314,6 +314,8 @@ describe('ApplicationEditorController', function() {
 
     it('Can delete an application', inject(function(CLMAppLocations, CLMLocations) {
       httpBackend.expectDELETE(CLMAppLocations.getEntityUrl(mockApplication.publicId)).respond({});
+      httpBackend.expectGET('../assets/management.html?').respond('<div></div>');
+      httpBackend.expectGET('../application-assets/components/application-navigator.html?').respond('<div></div>');
 
       expect(angular.element('#deleteApplicationModal').css('display')).toBeUndefined();
 

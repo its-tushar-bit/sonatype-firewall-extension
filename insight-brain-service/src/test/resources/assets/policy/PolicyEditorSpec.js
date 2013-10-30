@@ -106,27 +106,26 @@ describe('PolicyEditor.js', function() {
       scope = testScope.$new(); // testScope's destruction cascades
       $httpBackend.whenGET("policy-quick-add").respond('<div show-if="policy">' + template + '</div>');
       $httpBackend.whenGET("../assets/components/policy-editor/condition-editor.html?").respond(conditionTemplate);
+      $httpBackend.whenGET("../assets/components/policy-editor/constraint-editor.html?").respond(constraintEditorTemplate);
       $compile(node)(scope);
       $httpBackend.flush();
     }));
 
     afterEach(inject(function($httpBackend) {
       $('#testInlinePolicyCreator').remove();
-      $httpBackend.verifyNoOutstandingRequest()
-      $httpBackend.verifyNoOutstandingExpectation();
     }));
 
-    it('Create', function() {
-      var createScope = angular.element('#testInlinePolicyCreator').scope();
+    it('Create', inject(function($httpBackend) {
+      var createScope = angular.element('#testInlinePolicyCreator').scope().$$childTail;
 
       createScope.click();
       expect(createScope.policy).not.toBeUndefined();
 
-      expect(angular.element('#testInlinePolicyCreator').scope().policy).toBeDefined();
-    });
+      expect(angular.element('#testInlinePolicyCreator').scope().$$childTail.policy).toBeDefined();
+    }));
 
     it('Saving', inject(function($httpBackend, CLMAppLocations) {
-      var createScope = angular.element('#testInlinePolicyCreator').scope();
+      var createScope = angular.element('#testInlinePolicyCreator').scope().$$childTail;
       //creating a policy for the createScope should then trigger load of the child scope
       createScope.click();
       scope.$digest();
@@ -149,7 +148,7 @@ describe('PolicyEditor.js', function() {
     }));
 
     it('Cancel', inject(function($httpBackend) {
-      var createScope = angular.element('#testInlinePolicyCreator').scope();
+      var createScope = angular.element('#testInlinePolicyCreator').scope().$$childTail;
       createScope.click();
       scope.$digest();
 
@@ -163,7 +162,7 @@ describe('PolicyEditor.js', function() {
     }));
 
     it('Operator hidden when one condition', inject(function($httpBackend) {
-      var createScope = angular.element('#testInlinePolicyCreator').scope();
+      var createScope = angular.element('#testInlinePolicyCreator').scope().$$childTail;
 
       $httpBackend.whenGET('../assets/components/policy-editor/constraint-editor.html?').respond(constraintEditorTemplate);
       createScope.$apply(function() {
@@ -197,12 +196,12 @@ describe('PolicyEditor.js', function() {
 
     describe('isDirty', function() {
       it('Unchanged', function() {
-        var createScope = angular.element('#testInlinePolicyCreator').scope();
+        var createScope = angular.element('#testInlinePolicyCreator').scope().$$childTail;
         createScope.click();
         expect(testScope.$broadcast('pageChangeStarted').defaultPrevented).toEqual(false);
       });
       it('Policy Name', inject(function($httpBackend) {
-        var createScope = angular.element('#testInlinePolicyCreator').scope();
+        var createScope = angular.element('#testInlinePolicyCreator').scope().$$childTail;
         createScope.click();
         scope.$digest();
 
@@ -214,7 +213,7 @@ describe('PolicyEditor.js', function() {
         expect(testScope.$broadcast('pageChangeStarted').defaultPrevented).toEqual(true);
       }));
       it('Constraint Name', inject(function($httpBackend) {
-        var createScope = angular.element('#testInlinePolicyCreator').scope();
+        var createScope = angular.element('#testInlinePolicyCreator').scope().$$childTail;
         createScope.click();
         scope.$digest();
 

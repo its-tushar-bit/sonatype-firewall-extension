@@ -5,24 +5,16 @@
  */
 package com.sonatype.insight.brain.testing.functional
 
-import geb.spock.GebReportingSpec
-
-import org.junit.ClassRule
-import org.junit.rules.TestRule
-
-import spock.lang.Shared
-
 import com.google.common.io.Resources
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO
-import com.sonatype.insight.brain.saas.DefaultLicenseDataUpdater;
 import com.sonatype.insight.brain.service.InsightBrainService
 import com.sonatype.insight.brain.service.InsightConfig
-import com.sonatype.insight.brain.testing.functional.util.EchoingPageChangeListener
-
-import com.google.common.collect.Table;
-
 import com.yammer.dropwizard.testing.junit.DropwizardServiceRule
+import geb.spock.GebReportingSpec
+import org.junit.ClassRule
+import org.junit.rules.TestRule
+import spock.lang.Shared
 
 class AppSecurityManagementSpec extends GebReportingSpec {
   @Shared

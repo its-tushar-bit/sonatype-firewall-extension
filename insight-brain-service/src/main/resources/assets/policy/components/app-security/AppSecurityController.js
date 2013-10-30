@@ -101,6 +101,7 @@
 
     $scope.alerts = [];
     $scope.requestActive = 0;
+    $scope.queryString = '';
 
     $scope.cancel = function () {
       if ($scope.isDirty()) {

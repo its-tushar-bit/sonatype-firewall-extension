@@ -82,7 +82,7 @@ public class TrendingReportService
         processorLock.notify();
       }
     }
-  };
+  }
 
   private final WorkerThread worker = new WorkerThread();
 

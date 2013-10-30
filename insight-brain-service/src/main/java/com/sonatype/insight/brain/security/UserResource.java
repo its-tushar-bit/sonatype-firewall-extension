@@ -10,7 +10,6 @@ import java.util.List;
 
 import javax.inject.Inject;
 import javax.inject.Named;
-import javax.naming.NamingException;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -62,7 +61,7 @@ public class UserResource
   @Path("query")
   @Produces({ MediaType.APPLICATION_JSON })
   @Authorize(permission = Permission.ADMIN)
-  public List<User> findUsers(@QueryParam("q") String query) throws NamingException {
+  public List<User> findUsers(@QueryParam("q") String query) {
     if (StringUtils.isEmpty(query)) {
       throw new BadRequestException("No search term specified.");
     }

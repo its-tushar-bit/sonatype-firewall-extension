@@ -15,7 +15,7 @@
 				<div>
 					<div>
 						<div ng-repeat='mapping in mappings'>
-							<div ng-repeat='member in mapping.members | filter: { displayName : queryString }' ng-click='removeUser($parent.$index, $index)'
+							<div ng-repeat='member in mapping.members | filter: { displayName : queryString }' ng-click='removeUser($parent.$index, member)'
 									class='licenseSelectListItem' ng-class='{  inherited : $parent.$index }'>
 								<i ng-class='{ "icon-minus-sign" : !$parent.$index, "emptyIconGlyph" : $parent.$index }'></i>&nbsp;<span title='{{member.displayName}}'  ng-bind-html-unsafe="member.displayName | highlight:queryString:caseSensitive"></span>
 							</div>

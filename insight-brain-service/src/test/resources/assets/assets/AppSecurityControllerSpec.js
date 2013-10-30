@@ -138,7 +138,7 @@ describe('AppSecurityControllerSpec', function() {
 
     it('Remove User', inject(function ($httpBackend, CLMAppLocations) {
       scope.$apply(function () {
-        scope.removeUser(0);
+        scope.removeUser(0, scope.mappings[0].members[0]);
       });
       expect(parentScope.mappings[0].members).toEqual([]);
       

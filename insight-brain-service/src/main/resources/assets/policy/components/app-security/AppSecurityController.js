@@ -146,9 +146,14 @@
       AngularUtils.alphaSort($scope.mappings[0].members, false, 'displayName');
     };
 
-    $scope.removeUser = function ($parentIndex, $index) {
+    $scope.removeUser = function ($parentIndex, member) {
       if ($parentIndex === 0)
-        $scope.mappings[0].members.splice($index, 1);
+        for (var i=0; i<$scope.mappings[0].members.length; i++) {
+          if (member === $scope.mappings[0].members[i]) {
+            $scope.mappings[0].members.splice(i, 1);
+            break;
+          }
+        }
     };
 
     $scope.getRealname = function (user) {

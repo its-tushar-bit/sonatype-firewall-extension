@@ -19,6 +19,7 @@ class ApplicationPage extends Page {
     applicationId(required: false) { $('#applicationPublicId') }
     applicationIdField(required: false) { $('input', 'placeholder':'Enter ID') }
     applicationOrgField(required: false) { $('a', text:contains('Select Organization')) }
+    applicationOrgName(required: false) { orgName -> $('a', text: orgName) }
     applicationSaveButton(required: false) { $('button', text:'Save') }
     securityTabButton(required: false) { $('div', 'on': 'selectedApplication.id').find('a', text: 'SECURITY') }
     securityTab(required: false) { $('#security') }

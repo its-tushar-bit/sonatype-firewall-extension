@@ -93,8 +93,8 @@ class AppSecurityManagementSpec extends GebReportingSpec {
     waitFor { applicationIdField.displayed }
     applicationIdField << "testapp"
     applicationOrgField.click()
-    waitFor { $('a', text:'test organization').displayed }
-    $('a', text:'test organization').click()
+    waitFor { applicationOrgName('test organization').displayed }
+    applicationOrgName('test organization').click()
     applicationSaveButton.click()
   }
 }

@@ -131,6 +131,8 @@ class GlobalRolesSpec
     when: "clicking the save button"
       def roleRow = mapping.role("Administrator")
       roleRow.confirmButton.click()
+      //make sure we grab latest dom, as the save will rebuild it
+      roleRow = mapping.role("Administrator");
 
     then: "the edit form is closed and the added member shown in the list"
       !roleRow.editor.displayed

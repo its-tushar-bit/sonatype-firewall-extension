@@ -60,7 +60,7 @@
 							<div ng-switch-when='null' class="btn-group">
 								<a class="btn dropdown-toggle" data-toggle="dropdown" href="#"
 								   ng-class='{ selected: selectedApplication.organizationId }' style="line-height: 23px;">
-									{{getOrganizationName(selectedApplication.organizationId)}}
+									{{selectedApplication.organizationName}}
 									<span class="caret"></span>
 								</a>
 								<ul class="dropdown-menu">
@@ -69,7 +69,7 @@
 									</li>
 								</ul>
 							</div>
-							<span class="orgname" ng-switch-default>{{getOrganizationName(selectedApplication.organizationId)}}</span>
+							<span class="orgname" ng-switch-default>{{selectedApplication.organizationName}}</span>
 						</div>
 					</div>
 					<span ng-show="applicationEditor.applicationPublicId.$error.duplicate" style='color: #b94a48; font-size: 14px; font-weight: bold;'>Id is already in use</span>

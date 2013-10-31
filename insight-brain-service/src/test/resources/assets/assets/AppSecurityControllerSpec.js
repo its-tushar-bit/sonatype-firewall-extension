@@ -192,7 +192,9 @@ describe('AppSecurityControllerSpec', function() {
         scope.$apply(function () {
           scope.queryString = 'bar';
         });
-        $httpBackend.expectGET('../rest/user/application/bom1-12345678/query?q=bar').respond([{ id : 'bar' }]);
+
+        $httpBackend.expectGET('/rest/user/application/bom1-12345678/query?q=bar').respond([{ id : 'bar' }]);
+
         $timeout.flush();
 
         expect(scope.requestActive).toBeTruthy();
@@ -208,7 +210,8 @@ describe('AppSecurityControllerSpec', function() {
         scope.$apply(function () {
           scope.queryString = 'foo';
         });
-        $httpBackend.expectGET('../rest/user/application/bom1-12345678/query?q=foo').respond([{ id : 'food' }]);
+
+        $httpBackend.expectGET('/rest/user/application/bom1-12345678/query?q=foo').respond([{ id : 'food' }]);
         $timeout.flush();
 
         expect(scope.requestActive).toBeTruthy();
@@ -228,7 +231,8 @@ describe('AppSecurityControllerSpec', function() {
         scope.$apply(function () {
           scope.queryString = 'foo';
         });
-        $httpBackend.expectGET('../rest/user/application/bom1-12345678/query?q=foo').respond([{ id : 'foo' }]);
+
+        $httpBackend.expectGET('/rest/user/application/bom1-12345678/query?q=foo').respond([{ id : 'foo' }]);
         $timeout.flush();
 
         expect(scope.requestActive).toBeTruthy();
@@ -243,7 +247,8 @@ describe('AppSecurityControllerSpec', function() {
         expect(scope.lastQuery).toEqual('bar');
         expect(scope.queryResults).toBeFalsy();
 
-        $httpBackend.expectGET('../rest/user/query?q=bar').respond([{ id : 'bar' }]);
+
+        $httpBackend.expectGET('/rest/user/application/bom1-12345678/query?q=bar').respond([{ id : 'bar' }]);
         $timeout.flush();
         $httpBackend.flush();
         expect(scope.queryResults).toEqual([{ id : 'bar' }]);

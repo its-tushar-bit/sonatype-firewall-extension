@@ -11,16 +11,20 @@
 
   locationModule.factory('CLMAppLocations', [
     'ApplicationId', 'OrganizationId', '$state', 'BaseUrl', function(appId, orgId, $state, baseUrl) {
-      var isApplication = function() {
+      function isApplication() {
         return $state.current.name.indexOf('application') !== -1;
-      };
+      }
+
+      function isOrganization() {
+        return $state.current.name.indexOf('organization') !== -1;
+      }
 
       var getServicePath = function() {
-        return isApplication() ? 'application' : 'organization';
+        return isApplication() ? 'application' : isOrganization() ? 'organization' : 'global';
       };
 
       var getId = function() {
-        return isApplication() ? appId.encoded() : orgId.encoded();
+        return isApplication() ? appId.encoded() : isOrganization() ? orgId.encoded() : 'global';
       };
 
       var getServicePathWithId = function() {
@@ -86,6 +90,11 @@
 
         getApplicablePolicies: function() {
           return baseUrl.get() + '/rest/policy/' + getServicePathWithId() + '/applicable';
+        },
+
+        getRoleMappingUrl: function(roleId) {
+          return baseUrl.get() + '/rest/membershipMapping/' + getServicePathWithId()
+                  + (roleId ? ('/role/' + roleId) : '');
         },
 
         isApplication: isApplication

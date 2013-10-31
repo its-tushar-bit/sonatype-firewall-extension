@@ -90,21 +90,24 @@ describe('Configuration', function() {
   });
 
   describe('Validate', function() {
-    it('Good Inputs', inject(function($controller, $rootScope, $httpBackend, CLMLocations) {
+
+    beforeEach(inject(function($controller, $rootScope, $httpBackend, CLMLocations){
       scope = $rootScope.$new();
       $httpBackend.expectGET(toRegExp(CLMLocations.getProprietaryConfig())).respond({ packages: ['foo']});
       controller = $controller('ProprietaryConfigurationController', { $scope: scope });
       $httpBackend.flush();
-
-      expect(scope.validatePackage('com.sonatype')).toBe(null);
     }));
 
-    it('Bad Inputs', inject(function($controller, $rootScope, $httpBackend, CLMLocations) {
-      scope = $rootScope.$new();
-      $httpBackend.expectGET(toRegExp(CLMLocations.getProprietaryConfig())).respond({ packages: ['foo']});
-      controller = $controller('ProprietaryConfigurationController', { $scope: scope });
-      $httpBackend.flush();
+    it('Good Inputs', function() {
+      expect(scope.validatePackage('com.sonatype')).toBe(null);
+    });
 
+    //see CLM-1097
+    it('Should treat an empty entry as valid', function(){
+      expect(scope.validatePackage('')).toBe(null);
+    })
+
+    it('Bad Inputs', function() {
       expect(scope.validatePackage('com sonatype')).toMatch(/invalid.*/i);
       expect(scope.validatePackage('com/sonatype')).toMatch(/invalid.*/i);
       expect(scope.validatePackage('com.sonatype.')).toMatch(/invalid.*/i);
@@ -113,7 +116,7 @@ describe('Configuration', function() {
       expect(scope.validatePackage('com.sonatype.**')).toMatch(/wildcards.*/i);
       expect(scope.validatePackage('com.sona*')).toMatch(/wildcards.*/i);
       expect(scope.validatePackage('*.sonatype')).toMatch(/wildcards.*/i);
-    }));
+    });
   });
 
   describe('ProprietaryConfigurationController "isDirty"', function() {

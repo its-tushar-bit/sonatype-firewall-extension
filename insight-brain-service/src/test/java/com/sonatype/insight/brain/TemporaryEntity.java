@@ -9,8 +9,14 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.UUID;
 
+import com.sonatype.insight.brain.configuration.ldap.LdapAuthenticationMethod;
+import com.sonatype.insight.brain.configuration.ldap.LdapConnection;
+import com.sonatype.insight.brain.configuration.ldap.LdapProtocol;
+import com.sonatype.insight.brain.configuration.ldap.LdapServer;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapConnectionDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapServerDAO;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
@@ -43,7 +49,7 @@ public class TemporaryEntity
 {
   private static final String USER_PASSWORD_CLEAR = "secret";
 
-  private static final String USER_PASSWORD_HASH = "$shiro1$SHA-256$500000$2lOqZIkAH5mPy0kRQA35Qw==$ZohUABDXBElT1fuey7V/+QfMR+VLx1kWDR5TQpnAQcI=";
+  private static final String USER_PASSWORD_HASH = "$shiro1$SHA-256$10$Gsv3gW95oRKzzxp37k/wJA==$T2VDhMzPuXN7VTobkLUcwDsxxJJXj5pInbW7YUn8muY=";
 
   private final ApplicationDAO appDAO = new ApplicationDAO();
 
@@ -65,6 +71,8 @@ public class TemporaryEntity
 
   private final PolicyWaiverDAO waiverDAO = new PolicyWaiverDAO();
 
+  private final LdapServerDAO ldapServerDAO = new LdapServerDAO();
+
   private Collection<Application> apps;
 
   private Collection<Organization> orgs;
@@ -81,6 +89,8 @@ public class TemporaryEntity
 
   private Collection<PolicyWaiver> waivers;
 
+  private Collection<LdapServer> ldapServers;
+
   @Override
   protected void before() throws Throwable {
     apps = new ArrayList<Application>();
@@ -91,6 +101,7 @@ public class TemporaryEntity
     licenseThreatGroups = new ArrayList<LicenseThreatGroup>();
     licenseOverrides = new ArrayList<LicenseOverride>();
     waivers = new ArrayList<PolicyWaiver>();
+    ldapServers = new ArrayList<LdapServer>();
   }
 
   @Override
@@ -133,6 +144,11 @@ public class TemporaryEntity
     for (PolicyWaiver waiver : waivers) {
       if (waiverDAO.getById(waiver.getId()) != null) {
         waiverDAO.delete(waiver);
+      }
+    }
+    for (LdapServer ldapServer : ldapServers) {
+      if (ldapServerDAO.getById(ldapServer.getId()) != null) {
+        ldapServerDAO.delete(ldapServer);
       }
     }
   }
@@ -229,5 +245,24 @@ public class TemporaryEntity
     waiverDAO.insert(waiver);
     waivers.add(waiver);
     return waiver;
+  }
+
+  public LdapServer newLdapServer(String name) {
+    LdapServer ldapServer = new LdapServer(name);
+    ldapServerDAO.insert(ldapServer);
+    ldapServers.add(ldapServer);
+    return ldapServer;
+  }
+
+  public LdapConnection newLdapConnection(String ldapServerId) {
+    LdapConnection ldapConnection = new LdapConnection();
+    ldapConnection.setServerId(ldapServerId);
+    ldapConnection.setProtocol(LdapProtocol.LDAP);
+    ldapConnection.setHostname("localhost");
+    ldapConnection.setPort(389);
+    ldapConnection.setAuthenticationMethod(LdapAuthenticationMethod.NONE);
+    ldapConnection.setSystemUsername("system");
+    new LdapConnectionDAO().insert(ldapConnection);
+    return ldapConnection;
   }
 }

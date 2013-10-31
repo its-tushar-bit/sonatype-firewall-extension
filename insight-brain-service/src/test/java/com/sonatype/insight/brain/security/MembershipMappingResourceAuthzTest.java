@@ -11,9 +11,7 @@ import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.service.AbstractResourceAuthzTest;
 import com.sonatype.insight.brain.utils.IdUtils;
-import com.sonatype.insight.test.RestAccess;
 
-import com.ning.http.client.Response;
 import org.junit.Test;
 
 public class MembershipMappingResourceAuthzTest
@@ -25,20 +23,12 @@ public class MembershipMappingResourceAuthzTest
     tempEntity.newMembershipMapping(app.getId(), role.getId(), authorized.getUsername());
 
     String url = getRestUrl(MembershipMappingResource.SERVICE_PATH, IdUtils.TYPE_APPLICATION, app.getPublicId());
-    Response response = RestAccess.get(url, unauthorized.getUsername(), unauthorized.getPassword());
-    assertResponseStatus(403, response);
-
-    response = RestAccess.get(url, authorized.getUsername(), authorized.getPassword());
-    assertResponseStatus(200, response);
+    testAuthzGet(url);
 
     tempEntity.newMembershipMapping(org.getId(), role.getId(), authorized.getUsername());
 
     url = getRestUrl(MembershipMappingResource.SERVICE_PATH, IdUtils.TYPE_ORGANIZATION, org.getId());
-    response = RestAccess.get(url, unauthorized.getUsername(), unauthorized.getPassword());
-    assertResponseStatus(403, response);
-
-    response = RestAccess.get(url, authorized.getUsername(), authorized.getPassword());
-    assertResponseStatus(200, response);
+    testAuthzGet(url);
   }
 
   @Test
@@ -50,20 +40,12 @@ public class MembershipMappingResourceAuthzTest
 
     String url = getRestUrl(MembershipMappingResource.SERVICE_PATH + '/' + MembershipMappingResource.ROLE_PATH,
         IdUtils.TYPE_APPLICATION, app.getPublicId(), appRole.getId());
-    Response response = RestAccess.put(url, unauthorized.getUsername(), unauthorized.getPassword(), json);
-    assertResponseStatus(403, response);
-
-    response = RestAccess.put(url, authorized.getUsername(), authorized.getPassword(), json);
-    assertResponseStatus(204, response);
+    testAuthzPut(url, json, 204);
 
     tempEntity.newMembershipMapping(org.getId(), role.getId(), authorized.getUsername());
 
     url = getRestUrl(MembershipMappingResource.SERVICE_PATH + '/' + MembershipMappingResource.ROLE_PATH,
         IdUtils.TYPE_ORGANIZATION, org.getId(), appRole.getId());
-    response = RestAccess.put(url, unauthorized.getUsername(), unauthorized.getPassword(), json);
-    assertResponseStatus(403, response);
-
-    response = RestAccess.put(url, authorized.getUsername(), authorized.getPassword(), json);
-    assertResponseStatus(204, response);
+    testAuthzPut(url, json, 204);
   }
 }

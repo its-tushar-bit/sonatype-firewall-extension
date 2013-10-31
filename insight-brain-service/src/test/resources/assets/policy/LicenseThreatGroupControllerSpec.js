@@ -25,8 +25,6 @@ describe('LicenseThreatGroup', function() {
     $httpBackend.whenGET(SpecUtil.toRegExp(CLMLocations.getLicensesUrl())).respond(LicenseGroupMockData.getLicensesData());
     $httpBackend.whenGET(SpecUtil.toRegExp(CLMAppLocations.getApplicableLicenseGroupsUrl())).respond(LicenseGroupMockData.getApplicableLicenseGroupData());
     $httpBackend.whenGET(SpecUtil.toRegExp(CLMAppLocations.getLicenseGroupsUrl())).respond(LicenseGroupMockData.getLicenseGroupData());
-    $httpBackend.whenGET(SpecUtil.toRegExp(CLMAppLocations.getLicenseGroupsUrl('9999999c07584e57945f04890c672e99',
-        'organization'))).respond(LicenseGroupMockData.getLicenseGroupData());
     $httpBackend.whenGET(SpecUtil.toRegExp(CLMAppLocations.getLicenseGroupLicensesUrl(LicenseGroupMockData.getLicenseGroupData()[0]))).respond(LicenseGroupMockData.getLicenseGroupLicensesData());
     licenseGroupStore.get().then(function(data) {
       mockGroup = data[0];

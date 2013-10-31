@@ -26,6 +26,7 @@ import com.sonatype.insight.mock.InsightMockServer;
 
 import com.ning.http.client.Cookie;
 import com.ning.http.client.Response;
+import com.yammer.dropwizard.testing.JsonHelpers;
 import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.IOUtil;
 import org.junit.After;
@@ -188,6 +189,10 @@ public abstract class AbstractBrainServiceTest
     return UriBuilder.fromPath(templateUrl).build(paramValues).toString();
   }
 
+  protected String getRestUrl(String templateUrl, Object... paramValues) {
+    return getRestBaseUrl() + expandRestUrl(templateUrl, paramValues);
+  }
+
   protected void setSaasResponseForURI(String uri, int status, Object body) {
     saas.setResponseForURI(uri, body, status);
   }
@@ -336,5 +341,23 @@ public abstract class AbstractBrainServiceTest
 
     fail("Missing session cookie");
     return null;
+  }
+
+  protected String toJson(Object object) {
+    try {
+      return JsonHelpers.asJson(object);
+    }
+    catch (IOException e) {
+      throw new IllegalStateException(e);
+    }
+  }
+
+  protected <T> T fromJson(Response response, Class<T> type) {
+    try {
+      return JsonHelpers.fromJson(response.getResponseBody(), type);
+    }
+    catch (IOException e) {
+      throw new IllegalStateException(e);
+    }
   }
 }

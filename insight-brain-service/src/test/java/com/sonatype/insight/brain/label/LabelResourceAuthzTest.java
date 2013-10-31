@@ -11,7 +11,6 @@ import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.service.AbstractResourceAuthzTest;
 import com.sonatype.insight.brain.utils.IdUtils;
-import com.sonatype.insight.test.RestAccess;
 
 import com.ning.http.client.Response;
 import org.junit.Test;
@@ -25,20 +24,12 @@ public class LabelResourceAuthzTest
     tempEntity.newMembershipMapping(app.getId(), role.getId(), authorized.getUsername());
 
     String url = getRestUrl(LabelResource.SERVICE_PATH, IdUtils.TYPE_APPLICATION, app.getPublicId());
-    Response response = RestAccess.get(url, unauthorized.getUsername(), unauthorized.getPassword());
-    assertResponseStatus(403, response);
-
-    response = RestAccess.get(url, authorized.getUsername(), authorized.getPassword());
-    assertResponseStatus(200, response);
+    testAuthzGet(url);
 
     tempEntity.newMembershipMapping(org.getId(), role.getId(), authorized.getUsername());
 
     url = getRestUrl(LabelResource.SERVICE_PATH, IdUtils.TYPE_ORGANIZATION, org.getId());
-    response = RestAccess.get(url, unauthorized.getUsername(), unauthorized.getPassword());
-    assertResponseStatus(403, response);
-
-    response = RestAccess.get(url, authorized.getUsername(), authorized.getPassword());
-    assertResponseStatus(200, response);
+    testAuthzGet(url);
   }
 
   @Test
@@ -47,20 +38,12 @@ public class LabelResourceAuthzTest
     tempEntity.newMembershipMapping(app.getId(), role.getId(), authorized.getUsername());
 
     String url = getRestUrl(LabelResource.SERVICE_PATH + "/applicable", IdUtils.TYPE_APPLICATION, app.getPublicId());
-    Response response = RestAccess.get(url, unauthorized.getUsername(), unauthorized.getPassword());
-    assertResponseStatus(403, response);
-
-    response = RestAccess.get(url, authorized.getUsername(), authorized.getPassword());
-    assertResponseStatus(200, response);
+    testAuthzGet(url);
 
     tempEntity.newMembershipMapping(org.getId(), role.getId(), authorized.getUsername());
 
     url = getRestUrl(LabelResource.SERVICE_PATH + "/applicable", IdUtils.TYPE_ORGANIZATION, org.getId());
-    response = RestAccess.get(url, unauthorized.getUsername(), unauthorized.getPassword());
-    assertResponseStatus(403, response);
-
-    response = RestAccess.get(url, authorized.getUsername(), authorized.getPassword());
-    assertResponseStatus(200, response);
+    testAuthzGet(url);
   }
 
   @Test
@@ -71,22 +54,14 @@ public class LabelResourceAuthzTest
 
     String url = getRestUrl(LabelResource.SERVICE_PATH + "/applicable/context/{labelId}", IdUtils.TYPE_APPLICATION,
         app.getPublicId(), label.getId());
-    Response response = RestAccess.get(url, unauthorized.getUsername(), unauthorized.getPassword());
-    assertResponseStatus(403, response);
-
-    response = RestAccess.get(url, authorized.getUsername(), authorized.getPassword());
-    assertResponseStatus(200, response);
+    testAuthzGet(url);
 
     tempEntity.newMembershipMapping(org.getId(), role.getId(), authorized.getUsername());
     label = tempEntity.newLabel(org.getId());
 
     url = getRestUrl(LabelResource.SERVICE_PATH + "/applicable/context/{labelId}", IdUtils.TYPE_ORGANIZATION,
         org.getId(), label.getId());
-    response = RestAccess.get(url, unauthorized.getUsername(), unauthorized.getPassword());
-    assertResponseStatus(403, response);
-
-    response = RestAccess.get(url, authorized.getUsername(), authorized.getPassword());
-    assertResponseStatus(200, response);
+    testAuthzGet(url);
   }
 
   @Test
@@ -96,11 +71,7 @@ public class LabelResourceAuthzTest
 
     Label label = new Label(null, "testing", null);
     String url = getRestUrl(LabelResource.SERVICE_PATH, IdUtils.TYPE_APPLICATION, app.getPublicId());
-    Response response = RestAccess.post(url, unauthorized.getUsername(), unauthorized.getPassword(), toJson(label));
-    assertResponseStatus(403, response);
-
-    response = RestAccess.post(url, authorized.getUsername(), authorized.getPassword(), toJson(label));
-    assertResponseStatus(200, response);
+    Response response = testAuthzPost(url, toJson(label));
     label = fromJson(response, Label.class);
     new LabelDAO().delete(label);
 
@@ -108,11 +79,7 @@ public class LabelResourceAuthzTest
 
     label = new Label(null, "testing", null);
     url = getRestUrl(LabelResource.SERVICE_PATH, IdUtils.TYPE_ORGANIZATION, org.getId());
-    response = RestAccess.post(url, unauthorized.getUsername(), unauthorized.getPassword(), toJson(label));
-    assertResponseStatus(403, response);
-
-    response = RestAccess.post(url, authorized.getUsername(), authorized.getPassword(), toJson(label));
-    assertResponseStatus(200, response);
+    response = testAuthzPost(url, toJson(label));
     label = fromJson(response, Label.class);
     new LabelDAO().delete(label);
   }
@@ -124,21 +91,13 @@ public class LabelResourceAuthzTest
 
     Label label = tempEntity.newLabel(app.getId());
     String url = getRestUrl(LabelResource.SERVICE_PATH, IdUtils.TYPE_APPLICATION, app.getPublicId());
-    Response response = RestAccess.put(url, unauthorized.getUsername(), unauthorized.getPassword(), toJson(label));
-    assertResponseStatus(403, response);
-
-    response = RestAccess.put(url, authorized.getUsername(), authorized.getPassword(), toJson(label));
-    assertResponseStatus(200, response);
+    testAuthzPut(url, toJson(label));
 
     tempEntity.newMembershipMapping(org.getId(), role.getId(), authorized.getUsername());
 
     label = tempEntity.newLabel(org.getId());
     url = getRestUrl(LabelResource.SERVICE_PATH, IdUtils.TYPE_ORGANIZATION, org.getId());
-    response = RestAccess.put(url, unauthorized.getUsername(), unauthorized.getPassword(), toJson(label));
-    assertResponseStatus(403, response);
-
-    response = RestAccess.put(url, authorized.getUsername(), authorized.getPassword(), toJson(label));
-    assertResponseStatus(200, response);
+    testAuthzPut(url, toJson(label));
   }
 
   @Test
@@ -149,20 +108,12 @@ public class LabelResourceAuthzTest
     Label label = tempEntity.newLabel(app.getId());
     String url = getRestUrl(LabelResource.SERVICE_PATH + "/{labelId}", IdUtils.TYPE_APPLICATION, app.getPublicId(),
         label.getId());
-    Response response = RestAccess.delete(url, unauthorized.getUsername(), unauthorized.getPassword());
-    assertResponseStatus(403, response);
-
-    response = RestAccess.delete(url, authorized.getUsername(), authorized.getPassword());
-    assertResponseStatus(204, response);
+    testAuthzDelete(url);
 
     tempEntity.newMembershipMapping(org.getId(), role.getId(), authorized.getUsername());
 
     label = tempEntity.newLabel(org.getId());
     url = getRestUrl(LabelResource.SERVICE_PATH + "/{labelId}", IdUtils.TYPE_ORGANIZATION, org.getId(), label.getId());
-    response = RestAccess.delete(url, unauthorized.getUsername(), unauthorized.getPassword());
-    assertResponseStatus(403, response);
-
-    response = RestAccess.delete(url, authorized.getUsername(), authorized.getPassword());
-    assertResponseStatus(204, response);
+    testAuthzDelete(url);
   }
 }

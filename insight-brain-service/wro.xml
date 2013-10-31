@@ -25,6 +25,7 @@
 	</group>
 
 	<group name='policy'>
+		<css>/assets/app-security.css</css>
 		<css>/policy/labels.css</css>
 		<css>/policy/policy.css</css>
 		<css>/assets/management.css</css>

@@ -9,6 +9,63 @@
 
   var reportTrendingModule = angular.module('ReportTrending', []);
 
+  reportTrendingModule.controller('TrendingReportController', ['$scope', 'trendingReportService', 'Messages', function($scope, trendingReportService, Messages) {
+    $scope.doLoad = function() {
+      $scope.error = null;
+      trendingReportService.get().then(function(trendingReport) {
+        $scope.data = trendingReport;
+        var calculatedData =  {
+          highPolicyCount: 0,
+          mediumPolicyCount: 0,
+          lowPolicyCount: 0,
+          nullPolicyCount: 0
+        };
+        angular.forEach($scope.data.violations, function(policy) {
+          switch (policy.threat) {
+            case 10:
+            case 9:
+            case 8:
+              calculatedData.highPolicyCount += 1;
+              break;
+            case 7:
+            case 6:
+            case 5:
+            case 4:
+              calculatedData.mediumPolicyCount += 1;
+              break;
+            case 3:
+            case 2:
+              calculatedData.lowPolicyCount += 1;
+              break;
+            case 1:
+            case 0:
+              calculatedData.nullPolicyCount += 1;
+              break;
+            default:
+              $scope.error = 'Unknown policy threat level: ' + policy.threat;
+          }
+        });
+        angular.extend($scope.data, calculatedData);
+        $scope.diffchart = '../report-assets/trending/diffChart.html?' + clmBuildTimestamp
+        $scope.percentageChart = '../report-assets/trending/percChart.html?' + clmBuildTimestamp
+        $scope.policyProgressionTable = '../report-assets/trending/policyProgressionTable.html?' + clmBuildTimestamp
+      }, function(error) {
+        $scope.error = error;
+      });
+    };
+    $scope.doLoad();
+
+    //default pattern for Date format
+    var fmtG = d3.time.format('%b %e, %Y');
+
+    $scope.format = function(date, pattern) {
+      if(pattern){
+        return d3.time.format(pattern)(new Date(date));
+      }
+      return fmtG(new Date(date));
+    };
+  }]);
+
   reportTrendingModule.directive('componentViolations', function() {
     return {
       scope: {
@@ -66,8 +123,7 @@
           width : attrs.width,
           height: attrs.height
         };
-        var data = scope.data || [random(), random(), random(), random()];
-        sparkline(element[0], data, config);
+        sparkline(element[0], scope.data || [], config);
       }
     };
   });
@@ -109,8 +165,8 @@
               j++;
             }
             return x(left);
-          }).attr('y', 15).attr('height', function() {
-            return height - 15;
+          }).attr('y', 5).attr('height', function() {
+            return height - 5;
           }).attr('width', function(d) {
             return x(percentageSelector(d));
           }).style('fill', colorRenderer);
@@ -282,7 +338,7 @@
               return '#F7941E';
             case 'moderate':
               return '#F5C649';
-            case 'null':
+            case 'none':
               return '#0047b2';
             default:
               return 'black';
@@ -292,7 +348,7 @@
           switch (threatName.toLowerCase()) {
             case 'critical':
             case 'severe':
-            case 'null':
+            case 'none':
               return 'white';
             default:
               return 'black';
@@ -323,577 +379,26 @@
     }
   ]);
 
-  reportTrendingModule.controller('TrendingReportController', [
-    '$scope', function($scope) {
-      $scope.alerts = [];
-      // TODO - KR CLM-1076 -simulated data used until backend service is provided
-      $scope.data = {"meta": {
-        "periodStart": 'October 2, 2013',
-        "periodEnd": 'October 22, 2013'
-      }, "components": {
-        "inApplications": 40,
-        "exact": 20,
-        "partial": 15,
-        "unknown": 5
-      }, "applications": {
-        "total": 15,
-        "risks": [
-          {
-            "name": "Application Five",
-            "risk": 4,
-            "critical": 20,
-            "severe": 19,
-            "moderate": 18,
-            "none": 17
-          },
-          {
-            "name": "Application Four",
-            "risk": 3,
-            "critical": 16,
-            "severe": 15,
-            "moderate": 14,
-            "none": 13
-          },
-          {
-            "name": "Application Three",
-            "risk": 2,
-            "critical": 12,
-            "severe": 11,
-            "moderate": 10,
-            "none": 9
-          },
-          {
-            "name": "Application Two",
-            "risk": 1,
-            "critical": 8,
-            "severe": 7,
-            "moderate": 6,
-            "none": 5
-          },
-          {
-            "name": "Application One",
-            "risk": 0,
-            "critical": 4,
-            "severe": 3,
-            "moderate": 2,
-            "none": 1
-          }
-        ]
-      }, "policies": [
-        {
-          "name": "Architecture-Banned",
-          "threat": 10,
-
-          "lastViolationCount": 4,
-          "firstViolationCount": 4,
-          "sparklineData": [4, 6, 2, 4],
-          "violationsDifference": 0
-        },
-        {
-          "name": "Security-Critical",
-          "threat": 10,
-
-          "lastViolationCount": 1,
-          "firstViolationCount": 1,
-          "sparklineData": [1, 3, 2, 1],
-          "violationsDifference": 0
-        },
-        {
-          "name": "License-Banned",
-          "threat": 10,
-
-          "lastViolationCount": 2,
-          "firstViolationCount": 12,
-          "sparklineData": [12, 10, 6, 2],
-          "violationsDifference": -10
-        },
-        {
-          "name": "License-Copyleft",
-          "threat": 9,
-
-          "lastViolationCount": 5,
-          "firstViolationCount": 10,
-          "sparklineData": [10, 11, 5, 5],
-          "violationsDifference": -5
-        },
-        {
-          "name": "Security-High",
-          "threat": 9,
-
-          "lastViolationCount": 2,
-          "firstViolationCount": 2,
-          "sparklineData": [2, 4, 1, 2],
-          "violationsDifference": 0
-        },
-        {
-          "name": "Security-Medium",
-          "threat": 7,
-
-          "lastViolationCount": 3,
-          "firstViolationCount": 12,
-          "sparklineData": [12, 12, 2, 3],
-          "violationsDifference": -9
-        },
-        {
-          "name": "License-Non-Standard",
-          "threat": 6,
-
-          "lastViolationCount": 8,
-          "firstViolationCount": 1,
-          "sparklineData": [1, 4, 4, 8],
-          "violationsDifference": 7
-        },
-        {
-          "name": "License-Unknown",
-          "threat": 5,
-
-          "lastViolationCount": 8,
-          "firstViolationCount": 6,
-          "sparklineData": [6, 7, 4, 8],
-          "violationsDifference": 2
-        },
-        {
-          "name": "Security-Low",
-          "threat": 3,
-
-          "lastViolationCount": 1,
-          "firstViolationCount": 3,
-          "sparklineData": [3, 5, 2, 1],
-          "violationsDifference": -2
-        },
-        {
-          "name": "Architecture-Deprecated",
-          "threat": 1,
-
-          "lastViolationCount": 3,
-          "firstViolationCount": 2,
-          "sparklineData": [2, 5, 4, 3],
-          "violationsDifference": 1
-        },
-        {
-          "name": "Architecture-Quality",
-          "threat": 1,
-
-          "lastViolationCount": 9,
-          "firstViolationCount": 9,
-          "sparklineData": [9, 9, 9, 9],
-          "violationsDifference": 0
-        },
-        {
-          "name": "Component-Indeterminate",
-          "threat": 1,
-
-          "lastViolationCount": 10,
-          "firstViolationCount": 2,
-          "sparklineData": [2, 5, 2, 10],
-          "violationsDifference": 8
-        },
-        {
-          "name": "Component-Unknown",
-          "threat": 0,
-
-          "lastViolationCount": 7,
-          "firstViolationCount": 10,
-          "sparklineData": [10, 8, 6, 7],
-          "violationsDifference": -3
-        }
-      ],
-        "partialMatches": [
-          {
-            "groupId": "org.springframework",
-            "artifactId": "spring-web",
-            "version": "3.0.5",
-            "count": 5
-          },
-          {
-            "groupId": "org.springframework",
-            "artifactId": "spring-web",
-            "version": "3.0.5",
-            "count": 5
-          },
-          {
-            "groupId": "org.springframework",
-            "artifactId": "spring-web",
-            "version": "3.0.5",
-            "count": 4
-          },
-          {
-            "groupId": "org.springframework",
-            "artifactId": "spring-web",
-            "version": "3.0.5",
-            "count": 2
-          },
-          {
-            "groupId": "org.springframework",
-            "artifactId": "spring-web",
-            "version": "3.0.5",
-            "count": 2
-          }
-        ],
-        "topPolicyViolations": {
-          "security": [
-            {
-              "groupId": "org.springframework",
-              "artifactId": "spring-web",
-              "version": "3.0.5",
-              "risk": 4,
-              "critical": 20,
-              "severe": 19,
-              "moderate": 18,
-              "none": 17
-            },
-            {
-              "groupId": "org.springframework",
-              "artifactId": "spring-web",
-              "version": "3.0.5",
-              "risk": 3,
-              "critical": 16,
-              "severe": 15,
-              "moderate": 14,
-              "none": 13
-            },
-            {
-              "groupId": "org.springframework",
-              "artifactId": "spring-web",
-              "version": "3.0.5",
-              "risk": 2,
-              "critical": 12,
-              "severe": 11,
-              "moderate": 10,
-              "none": 9
-            },
-            {
-              "groupId": "org.springframework",
-              "artifactId": "spring-web",
-              "version": "3.0.5",
-              "risk": 1,
-              "critical": 8,
-              "severe": 7,
-              "moderate": 6,
-              "none": 5
-            },
-            {
-              "groupId": "org.eclipse.birt.runtime.3_7_1",
-              "artifactId": "org.eclipse.equinox.app",
-              "version": "1.3.100",
-              "risk": 0,
-              "critical": 4,
-              "severe": 3,
-              "moderate": 2,
-              "none": 1
+  reportTrendingModule.service('trendingReportService', ['$http', '$q', '$timeout', 'CLMLocations', function($http, $q, $timeout, CLMLocations) {
+    return {
+      get: function() {
+        var defer = $q.defer();
+        var pollFunction = function() {
+          $http.get(CLMLocations.getTrendingReportUrl(),
+            { params: { timestamp: new Date().getTime() } }).success(function(trendingReport) {
+            if (trendingReport) {
+              defer.resolve(trendingReport);
             }
-          ],
-          "quality": [
-            {
-              "groupId": "org.springframework",
-              "artifactId": "spring-web",
-              "version": "3.0.5",
-              "risk": 4,
-              "critical": 20,
-              "severe": 19,
-              "moderate": 18,
-              "none": 17
-            },
-            {
-              "groupId": "org.springframework",
-              "artifactId": "spring-web",
-              "version": "3.0.5",
-              "risk": 3,
-              "critical": 16,
-              "severe": 15,
-              "moderate": 14,
-              "none": 13
-            },
-            {
-              "groupId": "org.springframework",
-              "artifactId": "spring-web",
-              "version": "3.0.5",
-              "risk": 2,
-              "critical": 12,
-              "severe": 11,
-              "moderate": 10,
-              "none": 9
-            },
-            {
-              "groupId": "org.springframework",
-              "artifactId": "spring-web",
-              "version": "3.0.5",
-              "risk": 1,
-              "critical": 8,
-              "severe": 7,
-              "moderate": 6,
-              "none": 5
-            },
-            {
-              "groupId": "org.powermock",
-              "artifactId": "powermock-mockito-release-full",
-              "version": "1.4.11",
-              "risk": 0,
-              "critical": 4,
-              "severe": 3,
-              "moderate": 2,
-              "none": 1
+            else {
+              $timeout(pollFunction, 2000);
             }
-          ],
-          "license": [
-            {
-              "groupId": "org.springframework",
-              "artifactId": "spring-web",
-              "version": "3.0.5",
-              "risk": 4,
-              "critical": 20,
-              "severe": 19,
-              "moderate": 18,
-              "none": 17
-            },
-            {
-              "groupId": "org.springframework",
-              "artifactId": "spring-web",
-              "version": "3.0.5",
-              "risk": 3,
-              "critical": 16,
-              "severe": 15,
-              "moderate": 14,
-              "none": 13
-            },
-            {
-              "groupId": "org.springframework",
-              "artifactId": "spring-web",
-              "version": "3.0.5",
-              "risk": 2,
-              "critical": 12,
-              "severe": 11,
-              "moderate": 10,
-              "none": 9
-            },
-            {
-              "groupId": "org.springframework",
-              "artifactId": "spring-web",
-              "version": "3.0.5",
-              "risk": 1,
-              "critical": 8,
-              "severe": 7,
-              "moderate": 6,
-              "none": 5
-            },
-            {
-              "groupId": "org.springframework",
-              "artifactId": "spring-web",
-              "version": "3.0.5",
-              "risk": 0,
-              "critical": 4,
-              "severe": 3,
-              "moderate": 2,
-              "none": 1
-            }
-          ],
-          "all": [
-            {
-              "groupId": "org.springframework",
-              "artifactId": "spring-web",
-              "version": "3.0.5",
-              "risk": 4,
-              "critical": 20,
-              "severe": 19,
-              "moderate": 18,
-              "none": 17
-            },
-            {
-              "groupId": "org.springframework",
-              "artifactId": "spring-web",
-              "version": "3.0.5",
-              "risk": 3,
-              "critical": 16,
-              "severe": 15,
-              "moderate": 14,
-              "none": 13
-            },
-            {
-              "groupId": "org.springframework",
-              "artifactId": "spring-web",
-              "version": "3.0.5",
-              "risk": 2,
-              "critical": 12,
-              "severe": 11,
-              "moderate": 10,
-              "none": 9
-            },
-            {
-              "groupId": "org.springframework",
-              "artifactId": "spring-web",
-              "version": "3.0.5",
-              "risk": 1,
-              "critical": 8,
-              "severe": 7,
-              "moderate": 6,
-              "none": 5
-            },
-            {
-              "groupId": "org.springframework",
-              "artifactId": "spring-web",
-              "version": "3.0.5",
-              "risk": 0,
-              "critical": 4,
-              "severe": 3,
-              "moderate": 2,
-              "none": 1
-            }
-          ],
-          "other": [
-            {
-              "groupId": "org.springframework",
-              "artifactId": "spring-web",
-              "version": "3.0.5",
-              "risk": 4,
-              "critical": 20,
-              "severe": 19,
-              "moderate": 18,
-              "none": 17
-            },
-            {
-              "groupId": "org.springframework",
-              "artifactId": "spring-web",
-              "version": "3.0.5",
-              "risk": 3,
-              "critical": 16,
-              "severe": 15,
-              "moderate": 14,
-              "none": 13
-            },
-            {
-              "groupId": "org.springframework",
-              "artifactId": "spring-web",
-              "version": "3.0.5",
-              "risk": 2,
-              "critical": 12,
-              "severe": 11,
-              "moderate": 10,
-              "none": 9
-            },
-            {
-              "groupId": "org.springframework",
-              "artifactId": "spring-web",
-              "version": "3.0.5",
-              "risk": 1,
-              "critical": 8,
-              "severe": 7,
-              "moderate": 6,
-              "none": 5
-            },
-            {
-              "groupId": "org.springframework",
-              "artifactId": "spring-web",
-              "version": "3.0.5",
-              "risk": 0,
-              "critical": 4,
-              "severe": 3,
-              "moderate": 2,
-              "none": 1
-            }
-          ]
-        }, "highPolicyCount": 5, "mediumPolicyCount": 3, "lowPolicyCount": 1, "nullPolicyCount": 4, "highPolicyViolationCount": 14, "mediumPolicyViolationCount": 19, "lowPolicyViolationCount": 1, "nullPolicyViolationCount": 29, "totalPolicyViolationCount": 63,
-        "diffData": {
-          "security": [
-            {
-              "threat": "critical",
-              "violations": 3,
-              "previousViolations": 3
-            },
-            {
-              "threat": "severe",
-              "violations": 3,
-              "previousViolations": 12
-            },
-            {
-              "threat": "moderate",
-              "violations": 1,
-              "previousViolations": 3
-            },
-            {
-              "threat": "null",
-              "violations": 0,
-              "previousViolations": 0
-            }
-          ],
-          "license": [
-            {
-              "threat": "critical",
-              "violations": 7,
-              "previousViolations": 22
-            },
-            {
-              "threat": "severe",
-              "violations": 16,
-              "previousViolations": 7
-            },
-            {
-              "threat": "moderate",
-              "violations": 0,
-              "previousViolations": 0
-            },
-            {
-              "threat": "null",
-              "violations": 0,
-              "previousViolations": 0
-            }
-          ],
-          "quality": [
-            {
-              "threat": "critical",
-              "violations": 4,
-              "previousViolations": 4
-            },
-            {
-              "threat": "severe",
-              "violations": 0,
-              "previousViolations": 0
-            },
-            {
-              "threat": "moderate",
-              "violations": 0,
-              "previousViolations": 0
-            },
-            {
-              "threat": "null",
-              "violations": 12,
-              "previousViolations": 11
-            }
-          ],
-          "other": [
-            {
-              "threat": "critical",
-              "violations": 0,
-              "previousViolations": 0
-            },
-            {
-              "threat": "severe",
-              "violations": 0,
-              "previousViolations": 0
-            },
-            {
-              "threat": "moderate",
-              "violations": 0,
-              "previousViolations": 0
-            },
-            {
-              "threat": "null",
-              "violations": 17,
-              "previousViolations": 12
-            }
-          ]
-        }};
-      //data.get().then(function(results) {
-      //  $scope.data = results[0];
-      //  $scope.diffchart = 'views/diffChart.html';
-      //  $scope.percentageChart = 'views/percChart.html';
-      //  $scope.policyProgressionTable = 'views/policyProgressionTable.html';
-      //  $scope.alerts = $scope.alerts.concat(results[1]);
-      //}, function(results) {
-      //  $scope.alerts = $scope.alerts.concat(results[1]);
-      //});
-      //$scope.closeAlert = function(index) {
-      //  $scope.alerts.splice(index, 1);
-      //};
+          }).error(function() {
+              return defer.reject(arguments);
+            });
+        };
+        pollFunction();
+        return defer.promise;
+      }
     }
-  ]);
+  }]);
 }());

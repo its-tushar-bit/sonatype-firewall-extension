@@ -203,7 +203,7 @@ body {
 	width: 150px;
 	margin-left: 121px;
 	position: fixed;
-	top: 87px;
+	top: 85px;
 	bottom : 0px;
 	overflow: hidden;
 	border-right: 1px solid rgba(0, 0, 0, .1);
@@ -317,11 +317,12 @@ body {
 .content-header h4 {
 	border-bottom: 1px solid rgba(0, 0, 0, .1);
 }
-.policies, .licenseGroups {
+.policies, .licenseGroups, .roles {
 	margin-left: 25px;
 }
 .policies .accordion-heading .accordion-toggle,
-.licenseGroups .accordion-heading .accordion-toggle {
+.licenseGroups .accordion-heading .accordion-toggle,
+.roles .accordion-heading .accordion-toggle {
 	padding: 5px;
 }
 .accordion-inner {
@@ -722,3 +723,15 @@ ul.tri-pane {
   margin: 20px 0 10px 20px;
 }
 
+.collapsed-cell {
+	text-overflow:ellipsis;
+    overflow:hidden;
+    white-space:nowrap;
+    width: 100%;
+    margin: 5px;
+    margin-left: 4px;
+}
+
+.ui-match {
+	font-weight: bold;
+}

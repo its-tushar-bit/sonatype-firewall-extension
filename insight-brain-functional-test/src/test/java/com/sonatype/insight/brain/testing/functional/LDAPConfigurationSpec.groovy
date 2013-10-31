@@ -27,12 +27,6 @@ class LDAPConfigurationSpec extends GebReportingSpec
   TestRule startServiceRule = new DropwizardServiceRule<InsightConfig>(InsightBrainService.class,
       Resources.getResource('config-test.yml').getPath())
 
-  // assumes a license has already been installed
-
-  def setupSpec() {
-    browser.config.baseUrl = "http://localhost:8070/"
-  }
-
   def "create a new LDAP and navigate the connection and user/group mappings forms"(){
     setup: "login"
     to LoginPage

@@ -1,15 +1,14 @@
 <div>
-  <div class="subnavigation">
-    <div load-error='error' reload='doLoad()'></div>
-    <div ng-hide='error'>
-      <ul class="nav nav-list">
-        <li>
-        <li ng-repeat='configurationPane in configurationPanes'
-            ng-class="{'active': $location.path().substring(1) == configurationPane.state }">
-          <a href='#/{{ configurationPane.state }}'>{{configurationPane.name}}</a>
-        </li>
-      </ul>
-    </div>
-  </div>
-  <div class="content" ui-view></div>
+	<div class="subnavigation">
+		<div load-error='error' reload='doLoad()'></div>
+		<div ng-hide='error'>
+			<ul class="nav nav-list">
+				<li ng-repeat='configurationPane in configurationPanes'
+						ng-class="{'active': $location.path().substring(1) == configurationPane.state }">
+					<a href='#/{{ configurationPane.state }}'>{{configurationPane.name}}</a>
+				</li>
+			</ul>
+		</div>
+	</div>
+	<div ng-hide='error' class="content" ui-view></div>
 </div>

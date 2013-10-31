@@ -1,5 +1,79 @@
+/*
+ Copyright (c) 2011-2013 Sonatype, Inc. All rights reserved.
+ Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ "Sonatype" is a trademark of Sonatype, Inc.
+ */
 describe('TrendingController tests', function() {
-  beforeEach(module('ReportTrending'));
+  beforeEach(module('ReportTrending', 'CLMLocation'));
+
+  describe('TrendingReportController', function() {
+    var scope;
+
+    beforeEach(inject(function($rootScope) {
+      scope = $rootScope.$new();
+    }));
+
+    afterEach(inject(function($httpBackend) {
+      $httpBackend.verifyNoOutstandingExpectation();
+      $httpBackend.verifyNoOutstandingRequest();
+      scope.$destroy();
+    }));
+
+    it('should load data into scope', inject(function($controller, $httpBackend, CLMLocations) {
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getTrendingReportUrl())).respond(TrendingReportMockData.get());
+      $controller('TrendingReportController', { $scope: scope });
+      $httpBackend.flush();
+
+      expect(scope.data).not.toBeUndefined();
+      expect(scope.data.meta.generatedBy).toBe('Author');
+    }));
+
+    it('should keep requesting data until it is available', inject(function($controller, $httpBackend, $timeout, CLMLocations) {
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getTrendingReportUrl())).respond(null);
+      $controller('TrendingReportController', { $scope: scope });
+
+      $httpBackend.flush();
+
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getTrendingReportUrl())).respond(TrendingReportMockData.get());
+
+      $timeout.flush();
+      $httpBackend.flush();
+
+      expect(scope.data).not.toBeUndefined();
+      expect(scope.data.meta.generatedBy).toBe('Author');
+    }));
+
+    it('handles errors to the trending report service', inject(function($controller, $httpBackend, CLMLocations) {
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getTrendingReportUrl())).respond(500, 'Fake Error');
+      $controller('TrendingReportController', { $scope: scope });
+
+      $httpBackend.flush();
+
+      expect(scope.error).not.toBeUndefined();
+      expect(scope.error[0]).toBe('Fake Error');
+    }));
+
+    it('provides a date format function', inject(function($controller, $httpBackend, CLMLocations) {
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getTrendingReportUrl())).respond(TrendingReportMockData.get());
+      var trendingReportController = $controller('TrendingReportController', { $scope: scope });
+      $httpBackend.flush();
+
+      expect(scope.format).not.toBeUndefined();
+      expect(scope.format(1382661636262)).toBe('Oct 24, 2013');
+
+    }));
+
+    it('provides allows specification of a custom pattern for date formatting', inject(function($controller, $httpBackend, CLMLocations) {
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getTrendingReportUrl())).respond(TrendingReportMockData.get());
+      var trendingReportController = $controller('TrendingReportController', { $scope: scope });
+      $httpBackend.flush();
+
+      expect(scope.format).not.toBeUndefined();
+      expect(scope.format(1382661636262, '%b %e - %I:%M %p, %Y' )).toMatch(/Oct 2.*, 2013/);
+
+    }));
+  });
+
   describe('Directive: componentViolations', function () {
     var element,
         scope;
@@ -9,7 +83,7 @@ describe('TrendingController tests', function() {
     }));
 
     it('should display one row per component', inject(function ($compile) {
-      scope.components = TrendingViolationsMockData.getPolicyViolationMockData().topPolicyViolations.security;
+      scope.components = TrendingReportMockData.get().topPolicyViolations.security;
       element = angular.element('<div component-violations title="Security Policy Violators" components="components"></div>');
       element = $compile(element)(scope);
       scope.$digest();
@@ -279,13 +353,13 @@ describe('TrendingController tests', function() {
       expect(colors.barFromThreatName('critical')).toBe('#DB2852');
       expect(colors.barFromThreatName('severe')).toBe('#F7941E');
       expect(colors.barFromThreatName('moderate')).toBe('#F5C649');
-      expect(colors.barFromThreatName('null')).toBe('#0047b2');
+      expect(colors.barFromThreatName('none')).toBe('#0047b2');
     });
     it('should get text color from threat', function() {
       expect(colors.textFromThreatName('critical')).toBe('white');
       expect(colors.textFromThreatName('severe')).toBe('white');
       expect(colors.textFromThreatName('moderate')).toBe('black');
-      expect(colors.textFromThreatName('null')).toBe('white');
+      expect(colors.textFromThreatName('none')).toBe('white');
     });
     testCases = [
       {

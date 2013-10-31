@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.security;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -17,12 +18,15 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
+import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.error.exception.BadRequestException;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authc.AuthenticationException;
 import org.apache.shiro.authc.UsernamePasswordToken;
@@ -54,7 +58,26 @@ public class UserResource
   }
 
   @GET
+  @Path("query")
   @Produces({ MediaType.APPLICATION_JSON })
+  @Authorize(permission = Permission.ADMIN)
+  public List<User> findUsers(@QueryParam("q") String query) {
+    if (StringUtils.isEmpty(query)) {
+      throw new BadRequestException("No search term specified.");
+    }
+
+    List<User> users = new ArrayList<User>();
+    UserDAO dao = new UserDAO();
+    for (User user : dao.findUsersByName(query)) {
+      clearUserPassword(user);
+      users.add(user);
+    }
+    return users;
+  }
+
+  @GET
+  @Produces({ MediaType.APPLICATION_JSON })
+  @Authorize(permission = Permission.ADMIN)
   public List<User> getAll() {
     List<User> users = new UserDAO().getAll();
     for (User user : users) {
@@ -66,6 +89,7 @@ public class UserResource
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
+  @Authorize(permission = Permission.ADMIN)
   public User addUser(User user) {
     user.setId(null);
     user.setPassword(clmRealm.encryptPassword(user.getPassword()));
@@ -79,6 +103,7 @@ public class UserResource
   @PUT
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
+  @Authorize(permission = Permission.ADMIN)
   public User updateUser(User user) {
     UserDAO dao = new UserDAO();
 
@@ -101,6 +126,7 @@ public class UserResource
 
   @DELETE
   @Path("{userId}")
+  @Authorize(permission = Permission.ADMIN)
   public void deleteUser(@PathParam("userId") String userId) {
     UserDAO dao = new UserDAO();
 
@@ -126,6 +152,7 @@ public class UserResource
   @PUT
   @Path(PASSWORD_PATH)
   @Consumes(MediaType.APPLICATION_JSON)
+  // Requires only authentication, no authorization.
   public void changePassword(@PathParam("userId") String userId, ChangePasswordDTO password) {
     UserDAO dao = new UserDAO();
     User user = dao.getByIdNotNull(userId);

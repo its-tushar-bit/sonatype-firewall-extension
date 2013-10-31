@@ -10,6 +10,7 @@ import com.sonatype.insight.brain.service.InsightConfig
 
 import com.google.common.io.Resources
 import com.yammer.dropwizard.testing.junit.DropwizardServiceRule
+import geb.navigator.Navigator
 import geb.spock.GebReportingSpec
 import org.junit.ClassRule
 import org.junit.rules.TestRule
@@ -20,12 +21,6 @@ class LoginSpec extends GebReportingSpec {
   @ClassRule
   TestRule startServiceRule = new DropwizardServiceRule<InsightConfig>(InsightBrainService.class,
     Resources.getResource('config-test.yml').getPath())
-
-  // assumes a license has already been installed
-
-  def setup() {
-    browser.config.baseUrl = "http://localhost:8070/"
-  }
 
   def "can navigate to login page"() {
     when: "navigate to the login page"
@@ -84,7 +79,7 @@ class LoginSpec extends GebReportingSpec {
     
     then: "user is prompted to log in"
       // see CLM-976
-      waitFor { at(LoginPage) }
+      at LoginPage
   }
 
   def "report application is protected by authentication"() {
@@ -93,7 +88,7 @@ class LoginSpec extends GebReportingSpec {
 
     then: "user is prompted to log in"
       // see CLM-976
-      waitFor { at(LoginPage) }
+      at LoginPage
   }
 
   def "management application is protected by authentication"() {
@@ -102,7 +97,7 @@ class LoginSpec extends GebReportingSpec {
 
     then: "user is prompted to log in"
       // see CLM-976
-      waitFor { at(LoginPage) }
+      at LoginPage
   }
 
   def "authentication session state is remembered"() {
@@ -130,14 +125,86 @@ class LoginSpec extends GebReportingSpec {
       via LandingPage
     
     then: "user is prompted to log in"
-      waitFor { at LoginPage }
+      at LoginPage
   }
-  
-  // TODO redirect to original location
+
+  def "user can logout from management pages"() {
+    given: "user has logged in"
+    autoLogin()
+    waitFor { to ManagementPage }
+
+    when: "logging out"
+    user.logout.click()
+
+    then: "we redirect to the login page"
+    at LoginPage
+
+    when: "attempting to navigate back"
+    browser.driver.navigate().back()
+
+    then: "we never leave the login page"
+    at LoginPage
+
+    when: "we try to go directly to another page"
+    go ManagementPage.url
+
+    then: "we never leave the login page"
+    at LoginPage
+    browser.driver.currentUrl.contains('?redirectTo=')
+  }
+
+  def "user can logout from reporting pages"() {
+    given: "user has logged in"
+    autoLogin()
+    at ReportPage
+
+    when: "logging out"
+    user.logout.click()
+
+    then: "we redirect to the login page"
+    waitFor{ at LoginPage }
+
+    when: "attempting to navigate back"
+    browser.driver.navigate().back()
+
+    then: "we never leave the login page"
+    waitFor {at LoginPage }
+
+    when: "we try to go directly to another page"
+    go ReportPage.url
+
+    then: "we never leave the login page"
+    at LoginPage
+    browser.driver.currentUrl.contains('?redirectTo=')
+  }
+
+  def "user is redirect to their requested page after login"(){
+    when: "attempting to login directly to a page"
+    go ManagementPage.url
+
+    then: "we redirect to login"
+    at LoginPage
+
+    when: "providing correct authentication"
+    loginAsAdmin()
+
+    then: "we are redirected to our originally requested location"
+    waitFor{ at ManagementPage }
+  }
 
   void autoLogin() {
     to LoginPage
     loginAsAdmin()
     waitFor { title != "CLM Login" }
+  }
+
+
+  //logout after each feature method, if possible
+  def cleanup() {
+    Navigator logoutLink = $('a', text:'Logout')
+    if(logoutLink.displayed)
+    {
+      logoutLink.click()
+    }
   }
 }

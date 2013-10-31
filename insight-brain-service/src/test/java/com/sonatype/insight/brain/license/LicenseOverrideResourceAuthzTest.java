@@ -12,7 +12,6 @@ import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.service.AbstractResourceAuthzTest;
 import com.sonatype.insight.brain.utils.IdUtils;
-import com.sonatype.insight.test.RestAccess;
 
 import com.ning.http.client.Response;
 import org.junit.Test;
@@ -27,11 +26,7 @@ public class LicenseOverrideResourceAuthzTest
     LicenseOverride override = new LicenseOverride(null, "g", "a", "1", LicenseOverrideStatus.CONFIRMED, null, "test");
 
     String url = getRestUrl(LicenseOverrideResource.SERVICE_PATH, IdUtils.TYPE_APPLICATION, app.getPublicId());
-    Response response = RestAccess.post(url, unauthorized.getUsername(), unauthorized.getPassword(), toJson(override));
-    assertResponseStatus(403, response);
-
-    response = RestAccess.post(url, authorized.getUsername(), authorized.getPassword(), toJson(override));
-    assertResponseStatus(200, response);
+    Response response = testAuthzPost(url, toJson(override));
     override = fromJson(response, LicenseOverride.class);
     new LicenseOverrideDAO().delete(override);
 
@@ -39,11 +34,7 @@ public class LicenseOverrideResourceAuthzTest
     override = new LicenseOverride(null, "g", "a", "1", LicenseOverrideStatus.CONFIRMED, null, "test");
 
     url = getRestUrl(LicenseOverrideResource.SERVICE_PATH, IdUtils.TYPE_ORGANIZATION, org.getId());
-    response = RestAccess.post(url, unauthorized.getUsername(), unauthorized.getPassword(), toJson(override));
-    assertResponseStatus(403, response);
-
-    response = RestAccess.post(url, authorized.getUsername(), authorized.getPassword(), toJson(override));
-    assertResponseStatus(200, response);
+    response = testAuthzPost(url, toJson(override));
     override = fromJson(response, LicenseOverride.class);
     new LicenseOverrideDAO().delete(override);
   }
@@ -57,22 +48,14 @@ public class LicenseOverrideResourceAuthzTest
 
     String url = getRestUrl(LicenseOverrideResource.SERVICE_PATH + "/{overrideId}", IdUtils.TYPE_APPLICATION,
         app.getPublicId(), override.getId());
-    Response response = RestAccess.delete(url, unauthorized.getUsername(), unauthorized.getPassword());
-    assertResponseStatus(403, response);
-
-    response = RestAccess.delete(url, authorized.getUsername(), authorized.getPassword());
-    assertResponseStatus(204, response);
+    testAuthzDelete(url);
 
     tempEntity.newMembershipMapping(org.getId(), role.getId(), authorized.getUsername());
     override = tempEntity.newLicenseOverride(org.getId(), "g", "a", "1", LicenseOverrideStatus.CONFIRMED, null);
 
     url = getRestUrl(LicenseOverrideResource.SERVICE_PATH + "/{overrideId}", IdUtils.TYPE_ORGANIZATION, org.getId(),
         override.getId());
-    response = RestAccess.delete(url, unauthorized.getUsername(), unauthorized.getPassword());
-    assertResponseStatus(403, response);
-
-    response = RestAccess.delete(url, authorized.getUsername(), authorized.getPassword());
-    assertResponseStatus(204, response);
+    testAuthzDelete(url);
   }
 
   @Test
@@ -82,20 +65,12 @@ public class LicenseOverrideResourceAuthzTest
 
     String url = getRestUrl(LicenseOverrideResource.SERVICE_PATH + "/applied/{g}/{a}/{v}", IdUtils.TYPE_APPLICATION,
         app.getPublicId(), "g", "a", "1");
-    Response response = RestAccess.get(url, unauthorized.getUsername(), unauthorized.getPassword());
-    assertResponseStatus(403, response);
-
-    response = RestAccess.get(url, authorized.getUsername(), authorized.getPassword());
-    assertResponseStatus(200, response);
+    testAuthzGet(url);
 
     tempEntity.newMembershipMapping(org.getId(), role.getId(), authorized.getUsername());
 
     url = getRestUrl(LicenseOverrideResource.SERVICE_PATH + "/applied/{g}/{a}/{v}", IdUtils.TYPE_ORGANIZATION,
         org.getId(), "g", "a", "1");
-    response = RestAccess.get(url, unauthorized.getUsername(), unauthorized.getPassword());
-    assertResponseStatus(403, response);
-
-    response = RestAccess.get(url, authorized.getUsername(), authorized.getPassword());
-    assertResponseStatus(200, response);
+    testAuthzGet(url);
   }
 }

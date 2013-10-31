@@ -24,6 +24,7 @@ class LoginPage
 
   void loginAsAdmin() {
     login("admin", "admin123")
+    waitFor { title != "CLM Login" }
   }
 
   void login(username, password) {

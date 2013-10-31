@@ -15,17 +15,16 @@ import javax.naming.NameNotFoundException;
 import javax.naming.NamingException;
 import javax.naming.NamingSecurityException;
 
+import org.codehaus.plexus.util.StringUtils;
+import org.sonatype.plexus.components.cipher.PlexusCipher;
+import org.sonatype.plexus.components.cipher.PlexusCipherException;
+
 import com.sonatype.insight.brain.configuration.ldap.LdapConnection;
 import com.sonatype.insight.brain.configuration.ldap.LdapServer;
 import com.sonatype.insight.brain.configuration.ldap.LdapUserMapping;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapConnectionDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapServerDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapUserMappingDAO;
-
-import org.sonatype.plexus.components.cipher.PlexusCipher;
-import org.sonatype.plexus.components.cipher.PlexusCipherException;
-
-import org.codehaus.plexus.util.StringUtils;
 
 /**
  * Manages LDAP information.
@@ -113,6 +112,34 @@ public class LdapManager
    */
   public void testUserLogin(LdapUserMapping umap, String username, char[] password) throws NamingException {
     new LdapQuery(getDecryptedConnection(), umap).authenticateUser(username, password);
+  }
+
+  /**
+   * Find a list of users, searching the displayName attribute and adding a prefix and suffix wildcard to the nameFragment
+   * 
+   * @param nameFragment String to match against
+   * @param maxResults Limit on the number of results to return
+   * @return List of LdapUser objects that match the search criteria
+   * @throws NamingException if there is a problem with the mapping or the credentials
+   */
+  public List<LdapUser> findUsersByName(String nameFragment, long maxResults) throws NamingException {
+    LdapConnection conn = getDecryptedConnection();
+    return new LdapQuery(conn, userDao.getByServerId(conn.getServerId())).queryUsersByName(nameFragment, maxResults);
+  }
+
+  /**
+   * Tests finding users with a nameFragment
+   * 
+   * @param umap user mappings to find proper attributes for the ldap query
+   * @param nameFragment String to match against
+   * @param maxResults Limit on the number of results to return
+   * @return List of LdapUser objects that match the search criteria
+   * @throws NamingException if there is a problem with the mapping or the credentials
+   */
+  public List<LdapUser> testFindUsersByName(LdapUserMapping umap, String nameFragment, long maxResults)
+      throws NamingException
+  {
+    return new LdapQuery(getDecryptedConnection(), umap).queryUsersByName(nameFragment, maxResults);
   }
 
   // User authentication

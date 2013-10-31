@@ -63,12 +63,50 @@ LicenseGroupMockData = {
         {
           ownerId: "78c1d44c07584e57945f04890c672e82",
           ownerName: "applicationName",
-          ownerType: "application"
+          ownerType: "application",
+          licenseThreatGroups: [
+            {
+              "id": "8bffe93293fb49a0b6a072909ecfc1e4",
+              "name": "Copyleft",
+              "threatLevel": 9,
+              "licenses": [
+                {
+                  "id": "6104366387ba4b3993304189aa49fa5f",
+                  "licenseThreatGroupId": "6a45d92848a9462497554939263458ba",
+                  "licenseId": "AAL"
+                },
+                {
+                  "id": "088c47f045f64d29962f05f8b255e96e",
+                  "licenseThreatGroupId": "6a45d92848a9462497554939263458ba",
+                  "licenseId": "AFL-UNSPECIFIED"
+                }
+              ]
+            }
+          ]
         },
         {
           ownerId: "9999999c07584e57945f04890c672e99",
           ownerName: "orgName",
-          ownerType: "organization"
+          ownerType: "organization",
+          licenseThreatGroups: [
+            {
+              "id": "8bffe93293fb49a0b6a072909ecfc1e4",
+              "name": "Copyleft",
+              "threatLevel": 9,
+              "licenses": [
+                {
+                  "id": "6104366387ba4b3993304189aa49fa5f",
+                  "licenseThreatGroupId": "6a45d92848a9462497554939263458ba",
+                  "licenseId": "AAL"
+                },
+                {
+                  "id": "088c47f045f64d29962f05f8b255e96e",
+                  "licenseThreatGroupId": "6a45d92848a9462497554939263458ba",
+                  "licenseId": "AFL-UNSPECIFIED"
+                }
+              ]
+            }
+          ]
         }
       ]
     };

@@ -39,6 +39,7 @@ class AuthzFilterMethodInterceptor
     return (AuthzFilter) super.getAnnotation(mi);
   }
 
+  @Override
   public Object invoke(MethodInvocation mi) throws Throwable {
     Object result = mi.proceed();
     if (result != null) {

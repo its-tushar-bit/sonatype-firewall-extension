@@ -66,7 +66,7 @@ public class CLMRealmTest
     assertThat(principalCollection.getRealmNames(), hasSize(1));
     assertEquals(realm.getName(), principalCollection.getRealmNames().iterator().next());
     assertThat((String) authenticationInfo.getCredentials(),
-        is("$shiro1$SHA-256$500000$MQE0sE4AN/+RmveFR2MruQ==$AnBUsybg4CT8HjK7zofGD9A+3xdDZTpUVDpp/K7wX9M="));
+        is("$shiro1$SHA-256$10$7PC5QqeewnJK3iBQLPoq+Q==$5G44CC6HIYL8113tbp9lL0lNDP5CQJzbar0mWWkKbIM="));
   }
 
   /**
@@ -108,7 +108,7 @@ public class CLMRealmTest
     assertEquals(realm.getName(), principalCollection.getRealmNames().iterator().next());
     // The credentials must be the hashed password from the db, not the (wrong) password or its hash passed in as param.
     assertThat((String) authenticationInfo.getCredentials(),
-        is("$shiro1$SHA-256$500000$MQE0sE4AN/+RmveFR2MruQ==$AnBUsybg4CT8HjK7zofGD9A+3xdDZTpUVDpp/K7wX9M="));
+        is("$shiro1$SHA-256$10$7PC5QqeewnJK3iBQLPoq+Q==$5G44CC6HIYL8113tbp9lL0lNDP5CQJzbar0mWWkKbIM="));
   }
 
   /**
@@ -165,7 +165,7 @@ public class CLMRealmTest
     assertThat(principalCollection.getRealmNames(), hasSize(1));
     assertEquals(realm.getName(), principalCollection.getRealmNames().iterator().next());
     assertThat((String) authenticationInfo.getCredentials(),
-        is("$shiro1$SHA-256$500000$MQE0sE4AN/+RmveFR2MruQ==$AnBUsybg4CT8HjK7zofGD9A+3xdDZTpUVDpp/K7wX9M="));
+        is("$shiro1$SHA-256$10$7PC5QqeewnJK3iBQLPoq+Q==$5G44CC6HIYL8113tbp9lL0lNDP5CQJzbar0mWWkKbIM="));
   }
 
   /**

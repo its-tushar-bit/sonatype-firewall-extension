@@ -81,11 +81,7 @@ public class ApplicationResourceAuthzTest
 
     String url = getRestUrl(ApplicationResource.SERVICE_PATH + '/' + ApplicationResource.GET_APPLICATION_PATH,
         app.getPublicId());
-    Response response = RestAccess.get(url, unauthorized.getUsername(), unauthorized.getPassword());
-    assertResponseStatus(403, response);
-
-    response = RestAccess.get(url, authorized.getUsername(), authorized.getPassword());
-    assertResponseStatus(200, response);
+    testAuthzGet(url);
   }
 
   @Test
@@ -95,11 +91,7 @@ public class ApplicationResourceAuthzTest
 
     String url = getRestUrl(ApplicationResource.SERVICE_PATH + '/'
         + ApplicationResource.GET_APPLICATION_MANAGEMENT_SUMMARY, app.getPublicId());
-    Response response = RestAccess.get(url, unauthorized.getUsername(), unauthorized.getPassword());
-    assertResponseStatus(403, response);
-
-    response = RestAccess.get(url, authorized.getUsername(), authorized.getPassword());
-    assertResponseStatus(200, response);
+    testAuthzGet(url);
   }
 
   @Test
@@ -109,11 +101,7 @@ public class ApplicationResourceAuthzTest
 
     String url = getRestUrl(ApplicationResource.SERVICE_PATH + '/' + ApplicationResource.GET_APPLICATION_ICON_PATH,
         app.getPublicId());
-    Response response = RestAccess.get(url, unauthorized.getUsername(), unauthorized.getPassword());
-    assertResponseStatus(403, response);
-
-    response = RestAccess.get(url, authorized.getUsername(), authorized.getPassword());
-    assertResponseStatus(307, response);
+    testAuthzGet(url, 307);
   }
 
   @Test
@@ -169,11 +157,7 @@ public class ApplicationResourceAuthzTest
     tempEntity.newMembershipMapping(org.getId(), role.getId(), authorized.getUsername());
 
     String url = getRestUrl(ApplicationResource.SERVICE_PATH);
-    Response response = RestAccess.post(url, unauthorized.getUsername(), unauthorized.getPassword(), toJson(app));
-    assertResponseStatus(403, response);
-
-    response = RestAccess.post(url, authorized.getUsername(), authorized.getPassword(), toJson(app));
-    assertResponseStatus(200, response);
+    Response response = testAuthzPost(url, toJson(app));
     app = fromJson(response, Application.class);
     new ApplicationDAO().delete(app);
   }
@@ -184,11 +168,7 @@ public class ApplicationResourceAuthzTest
     tempEntity.newMembershipMapping(app.getId(), role.getId(), authorized.getUsername());
 
     String url = getRestUrl(ApplicationResource.SERVICE_PATH);
-    Response response = RestAccess.put(url, unauthorized.getUsername(), unauthorized.getPassword(), toJson(app));
-    assertResponseStatus(403, response);
-
-    response = RestAccess.put(url, authorized.getUsername(), authorized.getPassword(), toJson(app));
-    assertResponseStatus(200, response);
+    testAuthzPut(url, toJson(app));
   }
 
   @Test
@@ -198,10 +178,6 @@ public class ApplicationResourceAuthzTest
 
     String url = getRestUrl(ApplicationResource.SERVICE_PATH + '/' + ApplicationResource.GET_APPLICATION_PATH,
         app.getPublicId());
-    Response response = RestAccess.delete(url, unauthorized.getUsername(), unauthorized.getPassword());
-    assertResponseStatus(403, response);
-
-    response = RestAccess.delete(url, authorized.getUsername(), authorized.getPassword());
-    assertResponseStatus(204, response);
+    testAuthzDelete(url);
   }
 }

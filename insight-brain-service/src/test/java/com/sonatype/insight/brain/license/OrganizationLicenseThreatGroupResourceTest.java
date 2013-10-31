@@ -6,14 +6,17 @@
 package com.sonatype.insight.brain.license;
 
 import com.sonatype.insight.brain.license.LicenseThreatGroupResource.ApplicableLicenseThreatGroups;
+import com.sonatype.insight.brain.license.LicenseThreatGroupResource.LicenseThreatGroupWithLicenses;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.utils.IdUtils;
 
 import org.junit.Test;
 
+import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
 
 public class OrganizationLicenseThreatGroupResourceTest
     extends AbstractLicenseThreatGroupResourceTest
@@ -47,8 +50,8 @@ public class OrganizationLicenseThreatGroupResourceTest
   @Test
   public void testGetApplicable() throws Exception {
     Organization org = createOrganization("orgName", false);
-    createLicenseThreatGroup("LTG-0", org.getId());
-    createLicenseThreatGroup("LTG-1", org.getId());
+    createLicenseThreatGroup("LTG-0", org.getId(), "Apache-2.0");
+    createLicenseThreatGroup("LTG-1", org.getId(), "EPL-1.0");
 
     ApplicableLicenseThreatGroups altgs = getApplicableLicenseThreatGroups(org.getId());
     assertNotNull(altgs);
@@ -56,6 +59,9 @@ public class OrganizationLicenseThreatGroupResourceTest
     assertEquals(1, altgs.licenseThreatGroupsByOwner.size());
     assertLicenseThreatGroupsByOwner(org.getId(), org.getName(), IdUtils.TYPE_ORGANIZATION, 2,
         altgs.licenseThreatGroupsByOwner.get(0));
+    for (LicenseThreatGroupWithLicenses ltgwl : altgs.licenseThreatGroupsByOwner.get(0).licenseThreatGroups) {
+      assertThat(ltgwl.licenses, hasSize(1));
+    }
   }
 
   @Override

@@ -62,12 +62,10 @@ public class ReportBuilder
 
   public class ConstraintFactBuilder
   {
-    private final ObjectNode constraintFact;
     private final ArrayNode conditionFacts;
 
     public ConstraintFactBuilder(ObjectNode constraintFact) {
-      this.constraintFact = constraintFact;
-      this.conditionFacts = constraintFact.putArray("conditionFacts");
+      conditionFacts = constraintFact.putArray("conditionFacts");
     }
 
     public void addConditionFact(String conditionTypeId) {
@@ -101,12 +99,10 @@ public class ReportBuilder
 
   public class PolicyAlertBuilder
   {
-    private final ObjectNode trigger;
     private final ArrayNode componentFacts;
 
     public PolicyAlertBuilder(ObjectNode trigger) {
-      this.trigger = trigger;
-      this.componentFacts = trigger.putArray("componentFacts");
+      componentFacts = trigger.putArray("componentFacts");
     }
 
     public ComponentFactBuilder addComponentFact(String hash) {

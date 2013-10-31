@@ -14,7 +14,6 @@ import geb.spock.GebReportingSpec
 import org.junit.ClassRule
 import org.junit.rules.TestRule
 import org.openqa.selenium.Keys
-import spock.lang.Ignore
 import spock.lang.Shared
 import spock.lang.Stepwise
 import spock.lang.Unroll

@@ -97,6 +97,10 @@
                   + (roleId ? ('/role/' + roleId) : '');
         },
 
+        getFindUsersUrl: function() {
+          return baseUrl.get() + '/rest/user/' + getServicePathWithId() + '/query';
+        },
+
         isApplication: isApplication
       };
     }

@@ -198,7 +198,7 @@
         //clear the alerts
         $scope.alerts.length = 0;
 
-        $http.get('../rest/user/query', {
+        $http.get(clmAppLocations.getFindUsersUrl(), {
           params : {
             q : newVal
           }

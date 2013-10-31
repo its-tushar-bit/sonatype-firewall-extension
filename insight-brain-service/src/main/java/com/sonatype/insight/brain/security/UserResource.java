@@ -57,11 +57,17 @@ public class UserResource
     this.sessionDAO = sessionDAO;
   }
 
+  // TODO Code review: Move this method to MembershipMappingResource?
+  /**
+   * Retrieves a list of users that can be used to assign role-to-user memberships for an application or organization.
+   */
   @GET
-  @Path("query")
+  @Path("{ownerType: global|application|organization}/{ownerId}/query")
   @Produces({ MediaType.APPLICATION_JSON })
-  @Authorize(permission = Permission.ADMIN)
-  public List<User> findUsers(@QueryParam("q") String query) {
+  @Authorize(permission = Permission.WRITE)
+  public List<User> findUsers(@AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") String ownerType,
+      @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId, @QueryParam("q") String query)
+  {
     if (StringUtils.isEmpty(query)) {
       throw new BadRequestException("No search term specified.");
     }

@@ -36,6 +36,7 @@ import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.InvalidApplicationException;
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationManagementSummary;
@@ -84,6 +85,8 @@ public class ApplicationResource
   private static final Logger log = LoggerFactory.getLogger(ApplicationResource.class);
 
   private static final ApplicationDAO applicationDAO = new ApplicationDAO();
+  
+  private static final OrganizationDAO organizationDAO = new OrganizationDAO();
 
   private final InsightWork work;
 
@@ -113,8 +116,13 @@ public class ApplicationResource
    */
   @GET
   @Produces(MediaType.APPLICATION_JSON)
+  public List<ApplicationDTO> getApplications() {
+    final List<ApplicationDTO> applications = toDTOList(getApplicationsInternal());
+    return applications;
+  }
+  
   @AuthzFilter(permission = Permission.READ, context = AuthzFilter.Context.APPLICATION)
-  public List<Application> getApplications() {
+  List<Application> getApplicationsInternal() {
     final List<Application> applications = applicationDAO.getAll();
     return applications;
   }
@@ -129,7 +137,7 @@ public class ApplicationResource
   @Produces(MediaType.APPLICATION_JSON)
   public List<ApplicationManagementSummary> getApplicationManagementSummaries() throws IOException {
     final List<ApplicationManagementSummary> applicationManagements = new ArrayList<ApplicationManagementSummary>();
-    final List<Application> applications = getApplications();
+    final List<Application> applications = getApplicationsInternal();
     for (Application application : applications) {
       applicationManagements.add(getApplicationManagementSummary(application));
     }
@@ -159,10 +167,10 @@ public class ApplicationResource
   @Path(GET_APPLICATION_PATH)
   @Produces(MediaType.APPLICATION_JSON)
   @Authorize(permission = Permission.READ)
-  public Application getApplication(
+  public ApplicationDTO getApplication(
       @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) @PathParam("applicationPublicId") final String applicationPublicId)
   {
-    final Application application = applicationDAO.getByPublicIdNotNull(applicationPublicId);
+    final ApplicationDTO application = new ApplicationDTO(applicationDAO.getByPublicIdNotNull(applicationPublicId));
     return application;
   }
 
@@ -255,7 +263,7 @@ public class ApplicationResource
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   @Authorize(permission = Permission.WRITE)
-  public Application addApplication(@AuthzContext(AuthzContext.Key.APPLICATION_OWNER) Application application) {
+  public ApplicationDTO addApplication(@AuthzContext(AuthzContext.Key.APPLICATION_OWNER) Application application) {
     int appLimit = licenseManager.getApplicationCountLimit();
 
     if (applicationDAO.getAll().size() >= appLimit) {
@@ -268,14 +276,14 @@ public class ApplicationResource
 
     applicationDAO.insert(application);
 
-    return application;
+    return new ApplicationDTO(application);
   }
 
   @PUT
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   @Authorize(permission = Permission.WRITE)
-  public Application updateApplication(@AuthzContext(AuthzContext.Key.APPLICATION) Application application) {
+  public ApplicationDTO updateApplication(@AuthzContext(AuthzContext.Key.APPLICATION) Application application) {
     if (application.getOrganizationId() == null) {
       throw new InvalidApplicationException("Applications must have a parent organization.");
     }
@@ -294,7 +302,7 @@ public class ApplicationResource
       PolicyDAO.unlock(readLocks);
     }
 
-    return application;
+    return new ApplicationDTO(application);
   }
 
   @DELETE
@@ -389,5 +397,43 @@ public class ApplicationResource
   @Override
   protected String getDefaultIconFilename() {
     return "defaulticon_application.png";
+  }
+  
+  private List<ApplicationDTO> toDTOList(List<Application> applications) {
+    List<ApplicationDTO> dtos = new ArrayList<ApplicationDTO>();
+
+    for (Application application : applications) {
+      dtos.add(new ApplicationDTO(application));
+    }
+
+    return dtos;
+  }
+
+  /**
+   * Extension of the Application object to pass more data to the UI (specifically the organization name at this point)
+   */
+  public static class ApplicationDTO
+  {
+    public String id;
+    public String publicId;
+    public String name;
+    public String organizationId;
+    public String organizationName;
+    
+    public ApplicationDTO() {
+    }
+
+    public ApplicationDTO(Application application) {
+      this.id = application.getId();
+      this.name = application.getName();
+      this.publicId = application.getPublicId();
+      this.name = application.getName();
+      this.organizationId = application.getOrganizationId();
+      
+      //make sure to cover legacy apps that may not have a parent org
+      if (this.organizationId != null ) {
+        this.organizationName = organizationDAO.getByIdNotNull(this.organizationId).getName();
+      }
+    }
   }
 }

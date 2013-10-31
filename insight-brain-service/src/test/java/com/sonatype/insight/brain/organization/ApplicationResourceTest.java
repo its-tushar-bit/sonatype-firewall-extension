@@ -29,6 +29,7 @@ import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityConditionType;
+import com.sonatype.insight.brain.organization.ApplicationResource.ApplicationDTO;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateResource;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluationLog;
 import com.sonatype.insight.brain.saas.CIResource;
@@ -94,16 +95,17 @@ public class ApplicationResourceTest
 
     assertResponseStatus(200, response);
 
-    Application applicationResult = JsonHelpers.fromJson(response.getResponseBody(), Application.class);
+    ApplicationDTO applicationResult = JsonHelpers.fromJson(response.getResponseBody(), ApplicationDTO.class);
 
     ApplicationDAO applicationDAO = new ApplicationDAO();
     application = applicationDAO.getByPublicIdNotNull(applicationPublicId);
 
     Assert.assertNotNull(application);
-    Assert.assertEquals(application.getId(), applicationResult.getId());
-    Assert.assertEquals(applicationPublicId, applicationResult.getPublicId());
-    Assert.assertEquals(applicationName, applicationResult.getName());
-    Assert.assertEquals(application.getOrganizationId(), applicationResult.getOrganizationId());
+    Assert.assertEquals(application.getId(), applicationResult.id);
+    Assert.assertEquals(applicationPublicId, applicationResult.publicId);
+    Assert.assertEquals(applicationName, applicationResult.name);
+    Assert.assertEquals(application.getOrganizationId(), applicationResult.organizationId);
+    Assert.assertEquals(organization.getName(), applicationResult.organizationName);
 
     // Test Add Invalid Icon
     byte[] defaultIconByteArray = IconUtils.loadInvalidIcon();
@@ -141,10 +143,10 @@ public class ApplicationResourceTest
     application.setName(applicationName + "updated");
     response = AuthedRestAccess.put(getServiceURL(), JsonHelpers.asJson(application));
     assertResponseStatus(200, response);
-    applicationResult = JsonHelpers.fromJson(response.getResponseBody(), Application.class);
-    Assert.assertEquals(application.getId(), applicationResult.getId());
-    Assert.assertEquals(applicationPublicId, applicationResult.getPublicId());
-    Assert.assertEquals(applicationName + "updated", applicationResult.getName());
+    applicationResult = JsonHelpers.fromJson(response.getResponseBody(), ApplicationDTO.class);
+    Assert.assertEquals(application.getId(), applicationResult.id);
+    Assert.assertEquals(applicationPublicId, applicationResult.publicId);
+    Assert.assertEquals(applicationName + "updated", applicationResult.name);
 
     // Test icon update
     builder = AuthedRestAccess.getClient().preparePost(getSetIconServiceUrl());
@@ -174,7 +176,7 @@ public class ApplicationResourceTest
     assertResponseStatus(204, response);
     application = applicationDAO.getByPublicId(applicationPublicId);
     Assert.assertNull(application);
-    Assert.assertEquals(0, policyDAO.getByOwnerId(applicationResult.getId()).size());
+    Assert.assertEquals(0, policyDAO.getByOwnerId(applicationResult.id).size());
     iconResponse = AuthedRestAccess.get(getServiceURL() + "/icon/" + applicationPublicId);
     assertResponseStatus(404, iconResponse);
   }
@@ -333,21 +335,21 @@ public class ApplicationResourceTest
     Response response = AuthedRestAccess.get(getServiceURL());
     assertResponseStatus(200, response);
 
-    Application[] applications = JsonHelpers.fromJson(response.getResponseBody(), Application[].class);
+    ApplicationDTO[] applications = JsonHelpers.fromJson(response.getResponseBody(), ApplicationDTO[].class);
     Assert.assertNotNull(applications);
 
     Assert.assertEquals(Arrays.asList(applications).toString(), 1, applications.length);
-    Assert.assertEquals(application.getId(), applications[0].getId());
-    Assert.assertEquals(application.getName(), applications[0].getName());
+    Assert.assertEquals(application.getId(), applications[0].id);
+    Assert.assertEquals(application.getName(), applications[0].name);
 
     // Test GetApplication
     response = AuthedRestAccess.get(getApplicationServiceUrl(applicationPublicId));
     assertResponseStatus(200, response);
 
-    Application applicationSummary = JsonHelpers.fromJson(response.getResponseBody(), Application.class);
+    ApplicationDTO applicationSummary = JsonHelpers.fromJson(response.getResponseBody(), ApplicationDTO.class);
     Assert.assertNotNull(applicationSummary);
-    Assert.assertEquals(application.getId(), applicationSummary.getId());
-    Assert.assertEquals(application.getName(), applicationSummary.getName());
+    Assert.assertEquals(application.getId(), applicationSummary.id);
+    Assert.assertEquals(application.getName(), applicationSummary.name);
   }
 
   @Test

@@ -50,9 +50,10 @@ class UserManagementPage
     cancel(required: false) { $('button', 'ng-click': 'cancelClick(user)') }
     headers(required: false) { $('a.accordion-toggle') }
     header(required: false) { index -> $('a.accordion-toggle', index) }
+    deleteUserButton(required: false) { index -> header(index).parent().find('button', 'ng-click': 'removeClick(user)') }
 
     modal(required: false) { $('div.modal') }
-    confirmDeleteModal(required: false) { modal.find { it.text() == 'Delete User' } }
+    confirmDeleteModal(required: false) { modal.has('div.modal-header', text: 'Delete User') }
     confirmDelete(required: false) { confirmDeleteModal.find('button', text: 'Delete') }
     cancelDelete(required: false) { confirmDeleteModal.find('button', text: 'Cancel') }
 

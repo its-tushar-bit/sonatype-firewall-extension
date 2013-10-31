@@ -180,7 +180,6 @@ class UserManagementSpec
     summary.find('td', text: 'addusertest@email.com').displayed
   }
 
-  @Ignore('not completely functional yet')
   def "The newly added user can be deleted"() {
     when: 'hovering over the header of the user in the list'
     interact {
@@ -188,7 +187,7 @@ class UserManagementSpec
     }
 
     then: 'we can now see the delete symbol'
-    def deleteUser = header(0).find('button', 'ng-click': 'removeClick(user)')
+    def deleteUser = deleteUserButton(0)
     deleteUser.displayed
 
     when: 'clicking on delete'
@@ -201,6 +200,6 @@ class UserManagementSpec
     confirmDelete.click()
 
     then: 'the user is deleted'
-    header.size() == 1
+    headers.size() == 1
   }
 }

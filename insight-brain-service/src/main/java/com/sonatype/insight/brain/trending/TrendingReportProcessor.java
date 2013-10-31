@@ -52,6 +52,9 @@ import com.sonatype.insight.json.store.JsonUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
+/**
+ * @since 1.7
+ */
 public class TrendingReportProcessor
 {
   public static final String CATEGORY_OTHER = "other";
@@ -66,18 +69,36 @@ public class TrendingReportProcessor
 
   public static final String[] THREAT_LEVELS = { "critical", "severe", "moderate", "none" };
 
+  /**
+   * Length of reporting period, in milliseconds.
+   */
   public static final long TWENTY_DAYS_MS = 20 * 86400L * 1000L;
 
+  /**
+   * Number of reporting sub-periods.
+   */
   public static final int PERIOD_COUNT = 4;
 
+  /**
+   * Maximum number of individual application summaries included in the generated report.
+   */
   public static final int APPLICATION_RISKS_COUNT = 5;
 
+  /**
+   * Maximum number of individual partial match summaries included in the generated report.
+   */
   public static final int PARTIAL_MATCHES_COUNT = 5;
 
+  /**
+   * Maximum number of individual component risk summaries included in the generated report.
+   */
   public static final int COMPONENT_RISKS_COUNT = 5;
 
   public static final long PERIOD_LENGTH_MS = TWENTY_DAYS_MS / PERIOD_COUNT;
 
+  /**
+   * Stage id of application policy evaluations considered during report generation.
+   */
   public static final String STAGE_ID = BuildStageType.ID;
 
   private final InsightWork work;
@@ -90,6 +111,11 @@ public class TrendingReportProcessor
     this.policyEvaluationUtils = policyEvaluationUtils;
   }
 
+  /**
+   * Generates and returns trending report.
+   * 
+   * @since 1.7
+   */
   public TrendingReport calculate() throws IOException {
     final long now = new Date().getTime();
 

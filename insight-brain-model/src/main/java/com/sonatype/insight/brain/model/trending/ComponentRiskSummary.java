@@ -5,6 +5,11 @@
  */
 package com.sonatype.insight.brain.model.trending;
 
+/**
+ * Total numbers of policy violations in a particular component.
+ * 
+ * @since 1.7
+ */
 public class ComponentRiskSummary
 {
   private String groupId;
@@ -30,30 +35,67 @@ public class ComponentRiskSummary
     this.none = none;
   }
 
+  /**
+   * Returns component groupId
+   * 
+   * @since 1.7
+   */
   public String getGroupId() {
     return groupId;
   }
 
+
+  /**
+   * Returns component artifactId
+   * 
+   * @since 1.7
+   */
   public String getArtifactId() {
     return artifactId;
   }
 
+
+  /**
+   * Returns component version
+   * 
+   * @since 1.7
+   */
   public String getVersion() {
     return version;
   }
 
+  /**
+   * Returns total number of critical policy violations in the component.
+   * 
+   * @since 1.7
+   */
   public int getCritical() {
     return critical;
   }
 
+  /**
+   * Returns total number of severe policy violations in the component.
+   * 
+   * @since 1.7
+   */
   public int getSevere() {
     return severe;
   }
 
+  /**
+   * Returns total number of moderate policy violations in the component.
+   * 
+   * @since 1.7
+   */
   public int getModerate() {
     return moderate;
   }
 
+  /**
+   * Returns total number of other policy violations in the component.
+   * 
+   * @since 1.7
+   */
   public int getNone() {
     return none;
   }

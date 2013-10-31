@@ -5,6 +5,11 @@
  */
 package com.sonatype.insight.brain.model.trending;
 
+/**
+ * Summary information about components identified in all applications
+ * 
+ * @since 1.7
+ */
 public class ComponentsSummary
 {
   private int exact;
@@ -20,18 +25,38 @@ public class ComponentsSummary
     this.unknown = unknown;
   }
 
+  /**
+   * Returns number of exactly matched components.
+   * 
+   * @since 1.7
+   */
   public int getExact() {
     return exact;
   }
 
+  /**
+   * Returns number of partially matched components.
+   * 
+   * @since 1.7
+   */
   public int getPartial() {
     return partial;
   }
 
+  /**
+   * Returns number of unknown components.
+   * 
+   * @since 1.7
+   */
   public int getUnknown() {
     return unknown;
   }
 
+  /**
+   * Returns total number of components.
+   * 
+   * @since 1.7
+   */
   public int getInApplication() {
     return exact + partial + unknown;
   }

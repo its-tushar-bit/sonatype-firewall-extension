@@ -25,6 +25,11 @@ import com.sonatype.insight.json.store.JsonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Trending report generation and caching.
+ * 
+ * @since 1.7
+ */
 @Named
 @Path(TrendingReportService.SERVICE_PATH)
 public class TrendingReportService
@@ -92,6 +97,15 @@ public class TrendingReportService
     this.insightWork = insightWork;
   }
 
+  /**
+   * Returns trending report data. Returns cached version, if available. Trending report data is automatically
+   * regenerated if cached copy is older than {@link #CACHE_MAX_AGE_MS} milliseconds. If cached trending report data is
+   * not available, initiates trending report data calculation in a background thread.
+   * 
+   * @param force is set to {@code true}, expire cached and generate new trending report data.
+   * @return returns trending report data. returns {@code null} if trending report data has not been calculated yet.
+   * @since 1.7
+   */
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   public TrendingReport get(@QueryParam("force") boolean force) throws IOException {
@@ -132,6 +146,8 @@ public class TrendingReportService
 
   /**
    * Public to facilitate testing
+   * 
+   * @since 1.7
    */
   public File getCacheFile() {
     return new File(insightWork.getReportDir(), "trending-report.json");
@@ -139,6 +155,8 @@ public class TrendingReportService
 
   /**
    * For testing purposes
+   * 
+   * @since 1.7
    */
   public void purgeCache() {
     cacheLock.writeLock().lock();

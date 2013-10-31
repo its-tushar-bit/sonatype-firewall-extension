@@ -5,6 +5,11 @@
  */
 package com.sonatype.insight.brain.model.trending;
 
+/**
+ * Partially matched component information.
+ * 
+ * @since 1.7
+ */
 public class PartialMatch
 {
   private String groupId;
@@ -22,18 +27,38 @@ public class PartialMatch
     this.count = count;
   }
 
+  /**
+   * Returns partially matched component groupId.
+   * 
+   * @since 1.7
+   */
   public String getGroupId() {
     return groupId;
   }
 
+  /**
+   * Returns partially matched component artifactId.
+   * 
+   * @since 1.7
+   */
   public String getArtifactId() {
     return artifactId;
   }
 
+  /**
+   * Returns partially matched component version.
+   * 
+   * @since 1.7
+   */
   public String getVersion() {
     return version;
   }
 
+  /**
+   * Returns number of applications that use this partially matched component.
+   * 
+   * @since 1.7
+   */
   public int getCount() {
     return count;
   }

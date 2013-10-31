@@ -5,6 +5,9 @@
  */
 package com.sonatype.insight.brain.model.trending;
 
+/**
+ * @since 1.7
+ */
 public class DiffData
 {
   private String threat;
@@ -20,14 +23,30 @@ public class DiffData
     this.previousViolations = previousViolations;
   }
 
+  /**
+   * Returns threat severity
+   * 
+   * @see com.sonatype.insight.brain.trending.TrendingReportProcessor#THREAT_LEVELS
+   * @since 1.7
+   */
   public String getThreat() {
     return threat;
   }
 
+  /**
+   * Returns number of policy violations with this severity at the end of reporting period.
+   * 
+   * @since 1.7
+   */
   public int getViolations() {
     return violations;
   }
 
+  /**
+   * Returns number of policy violations with this severity at the beginning of reporting period.
+   * 
+   * @since 1.7
+   */
   public int getPreviousViolations() {
     return previousViolations;
   }

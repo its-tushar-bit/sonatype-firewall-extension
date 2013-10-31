@@ -5,6 +5,9 @@
  */
 package com.sonatype.insight.brain.model.trending;
 
+/**
+ * @since 1.7
+ */
 public class TrendingReportMetadata
 {
   private long generatedOn;
@@ -20,27 +23,30 @@ public class TrendingReportMetadata
     this.periodEnd = periodEnd;
   }
 
+  /**
+   * Returns report generation time, as number of milliseconds since epoch.
+   * 
+   * @since 1.7
+   */
   public long getGeneratedOn() {
     return generatedOn;
   }
 
-  public void setGeneratedOn(long generatedOn) {
-    this.generatedOn = generatedOn;
-  }
-
+  /**
+   * Returns beginning of reporting period, as number of milliseconds since epoch.
+   * 
+   * @since 1.7
+   */
   public long getPeriodStart() {
     return periodStart;
   }
 
-  public void setPeriodStart(long periodStart) {
-    this.periodStart = periodStart;
-  }
-
+  /**
+   * Returns end of reporting period, as number of milliseconds since epoch.
+   * 
+   * @since 1.7
+   */
   public long getPeriodEnd() {
     return periodEnd;
-  }
-
-  public void setPeriodEnd(long periodEnd) {
-    this.periodEnd = periodEnd;
   }
 }

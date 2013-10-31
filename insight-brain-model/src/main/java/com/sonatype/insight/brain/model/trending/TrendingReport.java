@@ -8,6 +8,11 @@ package com.sonatype.insight.brain.model.trending;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Application policy violations trending report
+ * 
+ * @since 1.7
+ */
 public class TrendingReport
 {
   private TrendingReportMetadata meta;
@@ -37,42 +42,76 @@ public class TrendingReport
   }
 
   /**
-   * General metadata about this report
+   * Returns general metadata about this report
+   * 
+   * @since 1.7
    */
   public TrendingReportMetadata getMeta() {
     return meta;
   }
 
   /**
-   * Number of components in the most recent application report. Total for all applications.
+   * Returns summary information about components in all applications at the end of reporting period.
+   * 
+   * @since 1.7
    */
   public ComponentsSummary getComponents() {
     return components;
   }
 
   /**
-   * Per application per threat level alert counts
+   * Returns summary information about applications at the end of reporting period.
+   * 
+   * @since 1.7
    */
   public Applications getApplications() {
     return applications;
   }
 
+  /**
+   * Returns information about policy violations detected during reporting period.
+   * 
+   * @since 1.7
+   */
   public List<PolicyViolation> getViolations() {
     return violations;
   }
 
+  /**
+   * Returns information about partially matched component at the end of reporting period.
+   * 
+   * @since 1.7
+   */
   public List<PartialMatch> getPartialMatches() {
     return partialMatches;
   }
 
+  /**
+   * Returns before/after number of violations grouped by threat category.
+   * 
+   * @see com.sonatype.insight.brain.trending.TrendingReportProcessor#CATEGORIES
+   * @since 1.7
+   */
   public Map<String, List<DiffData>> getDiffData() {
     return diffData;
   }
 
+  /**
+   * Returns component risk summary grouped by threat category, within each group component with
+   * highest risk first, lowest risk last.
+   * 
+   * @see com.sonatype.insight.brain.trending.TrendingReportProcessor#CATEGORIES
+   * @since 1.7
+   */
   public Map<String, List<ComponentRiskSummary>> getTopPolicyViolations() {
     return topPolicyViolations;
   }
 
+  /**
+   * Returns policy violations summary at the end of reporting period.
+   * 
+   * @since 1.7
+   */
   public PoliciesSummary getPolicies() {
     return policies;
   }

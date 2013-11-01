@@ -5,26 +5,33 @@
 (function() {
   'use strict';
   var appSecurityModule = angular.module('ApplicationSecurityModule', ['CommonServices', 'ui.utils']);
-  
-  function getMembersForOwner(role, ownerId, exclude) {
-    var arrToSearch = role.membersByOwner;
-    if (arrToSearch == undefined) {
-      arrToSearch = role;
-    }
-    var members = [];
-    
-    angular.forEach(arrToSearch, function(owner){
-      if (!exclude && owner.ownerId === ownerId) {
-        members = owner.members;
-      } else if (exclude && owner.ownerId !== ownerId) {
-        members = members.concat(owner.members);
-      }
-    });
-    
-    return members;
-  }
 
-  appSecurityModule.controller('AppSecurityController', ['$scope', '$http', 'CLMAppLocations', '$rootScope', function($scope, $http, clmAppLocations, $rootScope) {
+  appSecurityModule.controller('AppSecurityController', ['$scope', '$http', 'CLMAppLocations', function($scope, $http, clmAppLocations) {
+    function getUserLists(role) {
+      var lists = {
+         applied : [],
+         inherited : []
+      };
+      angular.forEach(role, function (mappings, index) {
+        angular.forEach(mappings.members, function (user) {
+          if (index === 0) {
+            lists.applied.push(user.displayName);
+          } else {
+            lists.inherited.push(user.displayName);
+          }
+        });
+      });
+      AngularUtils.alphaSort(lists.applied);
+      AngularUtils.alphaSort(lists.inherited);
+      return lists;
+    }
+    function createUserLists() {
+      $scope.context.roleUsers = {};
+      angular.forEach($scope.context.roles, function (role) {
+        $scope.context.roleUsers[role.roleId] = getUserLists(role.membersByOwner);
+      });
+    }
+
     $scope.doLoad = function() {
       $scope.error = null;
 
@@ -34,9 +41,10 @@
       }}).success(function (data) {
         $scope.context = {
           roleEditMap: {},
-          roles: []
+          roles:  data.membersByRole
         };
-        $scope.context.roles = data.membersByRole;
+
+        createUserLists();
       }).error(function (error) {
         $scope.error = arguments;
       });
@@ -45,32 +53,16 @@
     $scope.editClick = function(role) {
       $scope.context.roleEditMap[role.roleId] = role;
     };
-    
-    $scope.getUserNames = function(role) {
-      var valueList = [];
-      angular.forEach(getMembersForOwner(role, clmAppLocations.getEntityId()), function(member){
-        valueList.push(member.displayName);
-      });
-      AngularUtils.alphaSort(valueList);
-      return valueList.join(', ');
-    };
-    
-    $scope.getInheritedUserNames = function(role) {
-      var valueList = [];
-      angular.forEach(getMembersForOwner(role, clmAppLocations.getEntityId(), true), function(member){
-        valueList.push(member.displayName);
-      });
-      AngularUtils.alphaSort(valueList);
-      return valueList.join(', ');
-    };
-    
-    $rootScope.$on('roleSaveComplete',function(event, roleId, newMappings){
+
+    $scope.$on('roleSaveComplete',function(event, roleId, newMappings){
       for (var i = 0 ; i < $scope.context.roles.length ; i++) {
         if ($scope.context.roles[i].roleId === roleId) {
           $scope.context.roles[i].membersByOwner[0].members = newMappings.members.slice();
+          createUserLists();
           break;
         }
       }
+      event.preventDefault();
     });
 
     $scope.doLoad();
@@ -105,11 +97,12 @@
     };
   });
 
-  appSecurityModule.controller('AppSecurityEditorController', ['$scope', '$http', '$timeout', '$modal', 'CLMAppLocations', 'Messages', '$rootScope', function ($scope, $http, $timeout, $modal, clmAppLocations, Messages, $rootScope) {
+  appSecurityModule.controller('AppSecurityEditorController', ['$scope', '$http', '$timeout', '$modal', 'CLMAppLocations', 'Messages', function ($scope, $http, $timeout, $modal, clmAppLocations, Messages) {
     var filterTimeout = null;
 
     $scope.alerts = [];
     $scope.requestActive = 0;
+    $scope.queryString = '';
 
     $scope.cancel = function () {
       if ($scope.isDirty()) {
@@ -132,7 +125,7 @@
     $scope.save = function () {
       if ($scope.isDirty()) {
         return $http.put(clmAppLocations.getRoleMappingUrl($scope.roleId), $scope.mappings[0].members).success(function () {
-          $rootScope.$broadcast('roleSaveComplete', $scope.roleId, $scope.mappings[0]);
+          $scope.$emit('roleSaveComplete', $scope.roleId, $scope.mappings[0]);
           $scope.hide();
         }).error(function () {
           $scope.alerts.push({
@@ -154,9 +147,14 @@
       AngularUtils.alphaSort($scope.mappings[0].members, false, 'displayName');
     };
 
-    $scope.removeUser = function ($parentIndex, $index) {
+    $scope.removeUser = function ($parentIndex, member) {
       if ($parentIndex === 0)
-        $scope.mappings[0].members.splice($index, 1);
+        for (var i=0; i<$scope.mappings[0].members.length; i++) {
+          if (member === $scope.mappings[0].members[i]) {
+            $scope.mappings[0].members.splice(i, 1);
+            break;
+          }
+        }
     };
 
     $scope.getRealname = function (user) {
@@ -206,7 +204,7 @@
         //clear the alerts
         $scope.alerts.length = 0;
 
-        $http.get('../rest/user/query', {
+        $http.get(clmAppLocations.getFindUsersUrl(), {
           params : {
             q : newVal
           }
@@ -241,15 +239,12 @@
         result = input.slice();
 
         for (var i=0; i<result.length; i++) {
-          for (var m=0; m<mappings.length; m++) {
-            for (var x=0; x<mappings[m].members.length; x++) {
-              if (result[i].username === mappings[m].members[x].internalName) {
-                result.splice(i, 1);
-                i--;
-                m = mappings.length;
-                modified = true;
-                break;
-              }
+          for (var x=0; x<mappings[0].members.length; x++) {
+            if (result[i].username === mappings[0].members[x].internalName) {
+              result.splice(i, 1);
+              i--;
+              modified = true;
+              break;
             }
           }
         }

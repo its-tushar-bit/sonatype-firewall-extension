@@ -6,6 +6,7 @@
 
 package com.sonatype.insight.brain.testing.functional
 
+import com.sonatype.insight.brain.testing.functional.modules.LogoutModule
 import geb.Page
 
 class ManagementPage
@@ -14,4 +15,8 @@ class ManagementPage
   static url = "assets/index.html#/management/application"
 
   static at = { title == 'CLM Management' }
+
+  static content = {
+    user { module LogoutModule }
+  }
 }

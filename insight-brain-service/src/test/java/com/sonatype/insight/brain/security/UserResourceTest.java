@@ -391,6 +391,6 @@ public class UserResourceTest
   }
 
   private String getSearchUrl(String query) {
-    return getRestBaseUrl() + UserResource.SERVICE_PATH + "/query?q=" + query;
+    return getRestBaseUrl() + UserResource.SERVICE_PATH + "/global/global/query?q=" + query;
   }
 }

@@ -44,8 +44,18 @@ public abstract class AbstractResourceAuthzTest
   }
 
   protected void grantAdminPermission() {
-    Role role = tempEntity.newRole(true, Permission.ADMIN);
+    Role role = tempEntity.newRole(true /* global */, Permission.ADMIN);
     tempEntity.newMembershipMapping(MembershipMapping.GLOBAL_CONTEXT_ID, role.getId(), authorized.getUsername());
+  }
+
+  protected void grantWritePermission() {
+    Role role = tempEntity.newRole(true /* global */, Permission.WRITE);
+    tempEntity.newMembershipMapping(MembershipMapping.GLOBAL_CONTEXT_ID, role.getId(), authorized.getUsername());
+  }
+
+  protected void grantWritePermission(String contextId) {
+    Role role = tempEntity.newRole(false /* global */, Permission.WRITE);
+    tempEntity.newMembershipMapping(contextId, role.getId(), authorized.getUsername());
   }
 
   protected void testAuthzGet(String url) throws Exception {

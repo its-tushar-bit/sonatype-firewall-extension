@@ -28,10 +28,6 @@ class LoginScriptSpec extends GebReportingSpec {
   @ClassRule
   TestRule startServiceRule = new DropwizardServiceRule<InsightConfig>(InsightBrainService.class,
     Resources.getResource('config-test.yml').getPath())
-
-  def setup() {
-    browser.config.baseUrl = "http://localhost:8070/"
-  }
   
   // assumes a license has already been installed
   

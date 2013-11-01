@@ -33,7 +33,7 @@ public class MembershipMappingResourceAuthzTest
 
   @Test
   public void testSetMembershipMappingForRole() throws Exception {
-    Role role = tempEntity.newRole(false, Permission.ADMIN);
+    Role role = tempEntity.newRole(false, Permission.WRITE);
     tempEntity.newMembershipMapping(app.getId(), role.getId(), authorized.getUsername());
     Role appRole = tempEntity.newRole(false);
     String json = toJson(Collections.emptyList());

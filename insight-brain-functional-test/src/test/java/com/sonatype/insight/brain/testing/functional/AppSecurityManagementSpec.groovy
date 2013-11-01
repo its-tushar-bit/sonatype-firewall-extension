@@ -5,24 +5,16 @@
  */
 package com.sonatype.insight.brain.testing.functional
 
-import geb.spock.GebReportingSpec
-
-import org.junit.ClassRule
-import org.junit.rules.TestRule
-
-import spock.lang.Shared
-
 import com.google.common.io.Resources
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO
-import com.sonatype.insight.brain.saas.DefaultLicenseDataUpdater;
 import com.sonatype.insight.brain.service.InsightBrainService
 import com.sonatype.insight.brain.service.InsightConfig
-import com.sonatype.insight.brain.testing.functional.util.EchoingPageChangeListener
-
-import com.google.common.collect.Table;
-
 import com.yammer.dropwizard.testing.junit.DropwizardServiceRule
+import geb.spock.GebReportingSpec
+import org.junit.ClassRule
+import org.junit.rules.TestRule
+import spock.lang.Shared
 
 class AppSecurityManagementSpec extends GebReportingSpec {
   @Shared
@@ -34,15 +26,11 @@ class AppSecurityManagementSpec extends GebReportingSpec {
   // assumes a license has already been installed
   // get to the organizations page
   def setup() {
-    browser.config.baseUrl = "http://localhost:8070/"
-    browser.registerPageChangeListener(new EchoingPageChangeListener())
-    
-    // TODO - KR currently as the first run test it appears that this runs into issues being redirected to the license page instead of the expected r
     to LoginPage
     loginAsAdmin()
     waitFor { title != "CLM Login" }
-    to ReportPage
     waitFor { browser.getDriver().manage().getCookieNamed('JSESSIONID') != null }
+    at ReportPage
   }
 
   def cleanup() {
@@ -105,8 +93,8 @@ class AppSecurityManagementSpec extends GebReportingSpec {
     waitFor { applicationIdField.displayed }
     applicationIdField << "testapp"
     applicationOrgField.click()
-    waitFor { $('a', text:'test organization').displayed }
-    $('a', text:'test organization').click()
+    waitFor { applicationOrgName('test organization').displayed }
+    applicationOrgName('test organization').click()
     applicationSaveButton.click()
   }
 }

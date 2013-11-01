@@ -14,12 +14,12 @@ public enum Permission
 {
 
   /**
-   * Administer system or org/app's membership mapping.
+   * Administer system.
    */
   ADMIN,
 
   /**
-   * Manages policies etc. for org/app.
+   * Manages policies, role-to-user membership mappings, etc. for org/app.
    */
   WRITE,
 

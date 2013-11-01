@@ -16,7 +16,7 @@
   <artifactId>insight-brain-functional-test</artifactId>
 
   <properties>
-    <geb.version>0.9.1</geb.version>
+    <geb.version>0.9.2</geb.version>
     <selenium.version>2.35.0</selenium.version>
   </properties>
 

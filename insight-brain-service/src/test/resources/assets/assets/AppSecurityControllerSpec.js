@@ -23,7 +23,7 @@ describe('AppSecurityControllerSpec', function() {
       role1 = MockData.getRoleOneData();
       role2 = MockData.getRoleTwoData();
       
-      $httpBackend.expectGET(CLMAppLocations.getRoleMappingUrl()).respond({
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMAppLocations.getRoleMappingUrl())).respond({
         "membersByRole": [role1, role2]
       });
       $controller('AppSecurityController', {
@@ -46,10 +46,10 @@ describe('AppSecurityControllerSpec', function() {
     }));
   
     it('check user name lists are ordered as expected', inject(function() {
-      expect(scope.getUserNames(role1)).toEqual('Admin BuiltIn, Peter Lynch');
-      expect(scope.getUserNames(role2)).toEqual('Brian Fox, Damian Bradicich, Joel Orlina, Jordan Duggan');
-      expect(scope.getInheritedUserNames(role1)).toEqual('Brian Fox, Damian Bradicich, Jeffrey Wayman, Jordan Duggan, Kelly Robinson, Matthew Piggott, Mike Hansen, Sunny Gleason');
-      expect(scope.getInheritedUserNames(role2)).toEqual('Admin BuiltIn, Jason Swank, Jeffrey Wayman, Matthew Piggott');
+      expect(scope.context.roleUsers['1da70fae1fd54d6cb7999871ebdb9a36'].applied).toEqual(['Admin BuiltIn', 'Peter Lynch']);
+      expect(scope.context.roleUsers['1cddabf7fdaa47d6833454af10e0a3ef'].applied).toEqual(['Brian Fox', 'Damian Bradicich', 'Joel Orlina', 'Jordan Duggan']);
+      expect(scope.context.roleUsers['1da70fae1fd54d6cb7999871ebdb9a36'].inherited).toEqual(['Brian Fox', 'Damian Bradicich', 'Jeffrey Wayman', 'Jordan Duggan', 'Kelly Robinson', 'Matthew Piggott', 'Mike Hansen', 'Sunny Gleason']);
+      expect(scope.context.roleUsers['1cddabf7fdaa47d6833454af10e0a3ef'].inherited).toEqual(['Admin BuiltIn', 'Jason Swank', 'Jeffrey Wayman', 'Matthew Piggott']);
     }));
     
     it('validate roleSaveComplete event is handled properly', inject(function($rootScope) {
@@ -138,7 +138,7 @@ describe('AppSecurityControllerSpec', function() {
 
     it('Remove User', inject(function ($httpBackend, CLMAppLocations) {
       scope.$apply(function () {
-        scope.removeUser(0);
+        scope.removeUser(0, scope.mappings[0].members[0]);
       });
       expect(parentScope.mappings[0].members).toEqual([]);
       
@@ -205,7 +205,9 @@ describe('AppSecurityControllerSpec', function() {
         scope.$apply(function () {
           scope.queryString = 'bar';
         });
-        $httpBackend.expectGET('../rest/user/query?q=bar').respond([{ id : 'bar' }]);
+
+        $httpBackend.expectGET('/rest/user/application/bom1-12345678/query?q=bar').respond([{ id : 'bar' }]);
+
         $timeout.flush();
 
         expect(scope.requestActive).toBeTruthy();
@@ -221,7 +223,8 @@ describe('AppSecurityControllerSpec', function() {
         scope.$apply(function () {
           scope.queryString = 'foo';
         });
-        $httpBackend.expectGET('../rest/user/query?q=foo').respond([{ id : 'food' }]);
+
+        $httpBackend.expectGET('/rest/user/application/bom1-12345678/query?q=foo').respond([{ id : 'food' }]);
         $timeout.flush();
 
         expect(scope.requestActive).toBeTruthy();
@@ -241,7 +244,8 @@ describe('AppSecurityControllerSpec', function() {
         scope.$apply(function () {
           scope.queryString = 'foo';
         });
-        $httpBackend.expectGET('../rest/user/query?q=foo').respond([{ id : 'foo' }]);
+
+        $httpBackend.expectGET('/rest/user/application/bom1-12345678/query?q=foo').respond([{ id : 'foo' }]);
         $timeout.flush();
 
         expect(scope.requestActive).toBeTruthy();
@@ -256,7 +260,8 @@ describe('AppSecurityControllerSpec', function() {
         expect(scope.lastQuery).toEqual('bar');
         expect(scope.queryResults).toBeFalsy();
 
-        $httpBackend.expectGET('../rest/user/query?q=bar').respond([{ id : 'bar' }]);
+
+        $httpBackend.expectGET('/rest/user/application/bom1-12345678/query?q=bar').respond([{ id : 'bar' }]);
         $timeout.flush();
         $httpBackend.flush();
         expect(scope.queryResults).toEqual([{ id : 'bar' }]);

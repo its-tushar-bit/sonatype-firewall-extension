@@ -7,26 +7,33 @@
 -->
 
 <div class="content report-content">
-  <div>
-    <alert ng-repeat="alert in alerts" type="alert.type" close="closeAlert($index)">{{alert.msg}}</alert>
-  </div>
-  <div ng-show='!errors && !data'>
-    <h5><i class='icon icon-time'></i> Loading...</h5>
+  <div load-error='error' reload='doLoad()'></div>
+  <div ng-show='!error && !data'>
+    <div class='container text-center'>
+      <img src='../assets/img/loader.gif'>
+      <p class='lead'>CLM Server is generating the trending report. This process may take a while if you have a large
+          number of components or applications. You may leave this page without hindering the creation of the report.</p>
+    </div>
   </div>
   <div ng-show="data" id="trending-data">
 
     <div class="row">
       <div class="span12">
-        <strong>{{data.meta.periodStart}} - {{data.meta.periodEnd}}</strong>
+        <strong>{{format(data.meta.periodStart)}} - {{format(data.meta.periodEnd)}}</strong>
+        <strong class="pull-right">Generated on: {{ format(data.meta.generatedOn, '%b %e - %I:%M %p, %Y') }}</strong>
         <hr style="background-color: #AAA;color: #AAA;height: 3px;margin:0;"/>
       </div>
     </div>
     <div class="row">
       <div class="span6">
+        <div>
+          <h1 class="count-header" style="margin-bottom: 0;"><strong>{{ data.components.inApplication }}</strong> Components across all Applications</h1>
+          <div ng-include='percentageChart'></div>
+        </div>
         <div class="row" style='padding-bottom: 10px;'>
           <div class="span2">
-            <h1 class="count-header"><strong>{{ data.policies.length }}</strong> Policies</h1>
-            <h2 class="section-header">Threat Levels</h2>
+            <h1 class="count-header"><strong>{{ data.violations.length }}</strong> Policies</h1>
+            <h2 class="section-header" style="margin-top: 0">Threat Levels</h2>
             <table class="color-key" width="100%">
               <tr>
                 <td>High</td>
@@ -48,7 +55,7 @@
           </div>
           <div class="span4">
             <h1 class="count-header"><strong>{{ data.applications.total }}</strong> Applications</h1>
-            <h2 class="section-header">Highest Risk</h2>
+            <h2 class="section-header" style="margin-top: 0">Highest Risk</h2>
             <table>
               <tr ng-repeat="risk in data.applications.risks | orderBy:'-risk' | limitTo:5">
                 <td width="165" class="wordwrap" style="font-size: 9pt;">{{ risk.name }}</td>
@@ -57,16 +64,13 @@
             </table>
           </div>
         </div>
-        <div> <span class="component-count"><strong>{{ data.components.inApplications }}</strong> Components across all Applications</span>
-          <div ng-include='percentageChart'></div>
-        </div>
-        <div class="row" style="margin: 20px 0 0 0;">
+        <div class="row" style="margin: 0;">
           <div>
-            <h1 class="count-header" style="margin:0;float:left"><strong>{{ data.totalPolicyViolationCount }}</strong> Violations</h1>
+            <h1 class="count-header" style="margin:0;float:left"><strong>{{ data.policies.total }}</strong> Violations</h1>
           </div>
           <div class="span2" style="line-height:32px;" chiclets base-class="threat-chiclet-small" always-show="true"
-               critical="data.highPolicyViolationCount" severe="data.mediumPolicyViolationCount"
-               moderate="data.lowPolicyViolationCount" none="data.nullPolicyViolationCount"></div>
+               critical="data.policies.critical" severe="data.policies.severe"
+               moderate="data.policies.moderate" none="data.policies.none"></div>
         </div>
         <div ng-include src='diffchart'></div>
         <div class="row">
@@ -75,16 +79,22 @@
           </div>
         </div>
       </div>
-      <div class="span6" style="margin-top: 42px;">
-        <div component-violations title="Top Violators" components="data.topPolicyViolations.all"></div>
+      <div class="span6">
+        <div component-violations title="Top Violators" components="data.topPolicyViolations.all" style="margin-top: 46px;"></div>
         <div component-violations title="Security Policy Violators" components="data.topPolicyViolations.security"></div>
         <div component-violations title="License Policy Violators" components="data.topPolicyViolations.license"></div>
         <div component-violations title="Quality Policy Violators" components="data.topPolicyViolations.quality"></div>
-        <div component-violations title="Other Policies" components="data.topPolicyViolations.other"></div>
+        <div component-violations title="Other Policy Violators" components="data.topPolicyViolations.other"></div>
         <div ng-show="data.partialMatches">
           <h2 class="marginTop section-header">Most Partial Matches</h2>
-          <div class="row" ng-repeat="component in data.partialMatches" style="min-height: 32px;"> <span class="threat-chiclet-small" style="float:left;margin: 0 0 0 20px;color:#444;border: 1px solid #BBB;background-color:#CCC;"><strong>{{ component.count }}</strong></span>
-            <div class="wordwrap" style="width: 400px;float:left;text-indent:0;">{{ component.groupId }}:{{ component.artifactId }}:{{ component.version }}</div>
+
+          <div class="row" ng-repeat="component in data.partialMatches">
+            <span class="threat-chiclet-small"
+                  style="float:left;margin: 0 0 0 20px;color:#444;border: 1px solid #BBB;background-color:#CCC;">
+            <strong>{{ component.count }}</strong></span>
+            <div class="wordwrap" style="width: 400px;float:left;text-indent:0;font-size: 9pt;">{{ component.groupId }}:{{
+              component.artifactId }}:{{ component.version }}
+            </div>
           </div>
         </div>
       </div>

@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.security;
 
-import java.io.Console;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -64,11 +63,15 @@ public class UserResource
     this.ldapManager = ldapManager;
   }
 
+  /**
+   * Retrieves a list of users that can be used to assign role-to-user memberships for an application or organization.
+   */
   @GET
-  @Path("query")
+  @Path("{ownerType: global|application|organization}/{ownerId}/query")
   @Produces({ MediaType.APPLICATION_JSON })
-  @Authorize(permission = Permission.ADMIN)
-  public List<UserQueryDTO> findUsers(@QueryParam("q") String query) throws NamingException {
+  @Authorize(permission = Permission.WRITE)
+  public List<UserQueryDTO> findUsers(@AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") String ownerType,
+                              @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId, @QueryParam("q") String query) throws NamingException {
     if (StringUtils.isEmpty(query)) {
       throw new BadRequestException("No search term specified.");
     }

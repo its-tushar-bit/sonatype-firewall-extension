@@ -5,310 +5,200 @@
  */
 package com.sonatype.insight.brain.testing.functional
 
-import com.sonatype.insight.brain.dataaccess.security.UserDAO;
 import com.sonatype.insight.brain.service.InsightBrainService
 import com.sonatype.insight.brain.service.InsightConfig
 
 import com.google.common.io.Resources
-import com.sonatype.insight.brain.testing.functional.util.EchoingPageChangeListener
 import com.yammer.dropwizard.testing.junit.DropwizardServiceRule
 import geb.spock.GebReportingSpec
 import org.junit.ClassRule
 import org.junit.rules.TestRule
 import org.openqa.selenium.Keys
 import spock.lang.Shared
+import spock.lang.Stepwise
+import spock.lang.Unroll
 
-class UserManagementSpec extends GebReportingSpec {
+@Stepwise
+class UserManagementSpec
+    extends GebReportingSpec
+{
   @Shared
   @ClassRule
   TestRule startServiceRule = new DropwizardServiceRule<InsightConfig>(InsightBrainService.class,
-    Resources.getResource('config-test.yml').getPath())
+      Resources.getResource('config-test.yml').getPath())
 
   // assumes a license has already been installed
   // get to the user page
-  def setup() {
-    browser.config.baseUrl = "http://localhost:8070/"
-    browser.registerPageChangeListener(new EchoingPageChangeListener())
+  def setupSpec() {
     to LoginPage
     loginAsAdmin()
-    at(ReportPage)
+    at ReportPage
     to UserManagementPage
   }
-  
-  //remove any created users
-  def cleanup() {
-    UserDAO userDAO = new UserDAO();
-    userDAO.getAll().each {
-      if (it.username == 'addusertest') {
-        userDAO.delete(it);
-      }
+
+  def "Arriving at user management page we should see the 'new user button' and no form."() {
+    when: 'first viewing the page'
+    at UserManagementPage
+
+    then: 'no form is present, but the new user button is'
+    newUserButton.displayed
+    !userForm.present
+  }
+
+  def "Clicking the 'new user button' should open a new empty form"() {
+    when: 'click add new user'
+    newUserButton.click()
+
+    then: 'verify add form visible'
+    waitFor { userForm.present }
+    errorFree
+    save.disabled
+    [firstNameInput, lastNameInput, emailInput, usernameInput, passwordInput, passwordValidateInput].each { input ->
+      input.displayed
+      input.value() == ''
     }
   }
-  
-  def "new user fields provide client-side validation"() {
-    given: "user arrives at user page"
-      waitFor { newUserButton.present }
-      
-    when: "click add new user"
-      newUserButton.click()
-      
-    then: "verify add form visible"
-      waitFor { firstNameInput.present }
-      !firstNameRequiredError.displayed
-      save.disabled
 
-    when: "removing the first name value"
-      firstNameInput << "a"
-      firstNameInput << Keys.BACK_SPACE
-      
-    then: "make sure validation error shown"
-      report 'missing required first name'
-      firstNameRequiredError.displayed
-            
-    when: "adding a first name"
-      firstNameInput << "a"
-      
-    then: "make sure validation error not shown"
-      !firstNameRequiredError.displayed
-      !firstNameAlphaNumericError.displayed
-      
-    when: "adding a first name that contains non-alphanumeric characters"
-      firstNameInput << "##"
-      
-    then: "make sure validation error shown"
-      report 'first name contains illegal characters'
-      firstNameAlphaNumericError.displayed
-      
-    when: "removing the alphanumeric characters"
-      firstNameInput << Keys.BACK_SPACE
-      firstNameInput << Keys.BACK_SPACE
+  @Unroll
+  def "If multiple space characters are present during validation the #input field should show a noSpaces error"() {
+    when: 'inserting text containing leading spaces and losing focus on the field'
+    input << 'a  a'
+    input << Keys.TAB
 
-    then: "make sure alphanumeric validation error not shown"
-      !firstNameAlphaNumericError.displayed
-      !firstNameSpacesError.displayed
-      
-    when: "adding extra spaces"
-      firstNameInput << '  a'
-      
-    then: "make sure spaces validation error is shown"
-      firstNameSpacesError.displayed
-      
-    when: "removing extra characters"
-      firstNameInput << Keys.BACK_SPACE
-      firstNameInput << Keys.BACK_SPACE
-      firstNameInput << Keys.BACK_SPACE
-      
-    then: "make sure spaces validation error is removed"
-      !firstNameSpacesError.displayed
-      !lastNameRequiredError.displayed
-      
-    when: "removing the last name"
-      lastNameInput << "a"
-      lastNameInput << Keys.BACK_SPACE
-      
-    then: "make sure required validation error shown"
-      report 'missing required last name'
-      lastNameRequiredError.displayed
-            
-    when: "adding a last name"
-      lastNameInput << "a"
-      
-    then: "make sure required validation error not shown"
-      !lastNameRequiredError.displayed
-      
-    when: "adding a last name that contains non-alphanumeric characters"
-      lastNameInput << "##"
-      
-    then: "make sure validation error shown"
-    report 'last name contains illegal characters'
-    lastNameAlphaNumericError.displayed
-      
-    when: "removing the alphanumeric characters"
-      lastNameInput << Keys.BACK_SPACE
-      lastNameInput << Keys.BACK_SPACE
-      
-    then: "make sure alphanumeric validation error not shown"
-      !lastNameAlphaNumericError.displayed
-      !lastNameSpacesError.displayed
-      
-    when: "adding extra spaces"
-      lastNameInput << '  a'
-      
-    then: "make sure spaces validation error is shown"
-      lastNameSpacesError.displayed
-      
-    when: "removing extra characters"
-      lastNameInput << Keys.BACK_SPACE
-      lastNameInput << Keys.BACK_SPACE
-      lastNameInput << Keys.BACK_SPACE
-      
-    then: "make sure spaces validation error is removed"
-      !lastNameSpacesError.displayed
-      !emailRequiredError.displayed
+    then: 'the noSpaces validation error is shown'
+    inputValidations.noSpaces.displayed
+    !inputValidations.errorFree
+    !errorFree
+    report 'before cleanup'
 
-    when: "removing the email value"
-      emailInput << "a"
-      emailInput << Keys.BACK_SPACE
-      
-    then: "make sure required validation error shown"
-    report 'missing required email'
-    emailRequiredError.displayed
+    cleanup:
+    input.value('')
+    input << Keys.TAB
+    !inputValidations.noSpaces.displayed
+    assert errorFree
 
-    when: "adding an invalid email value"
-      emailInput << "a"
-      
-    then: "make sure required validation error not shown and format error is shown"
-      report 'email incorrect format'
-      !emailRequiredError.displayed
-      emailFormatError.displayed
-      
-    when: "adding a valid email"
-      emailInput << '@test.com'
-      
-    then: "make sure validation error not shown"
-      !emailFormatError.displayed
-      !usernameRequiredError.displayed
-      
-    when: "removing the username value"
-      usernameInput << "a"
-      usernameInput << Keys.BACK_SPACE
-      
-    then: "make sure validation error shown"
-      report 'missing required username'
-      usernameRequiredError.displayed
-            
-    when: "adding a username value"
-      usernameInput << "a"
-
-    then: "make sure validation error not shown"
-      !usernameRequiredError.displayed
-      !usernameAlphaNumericError.displayed
-      
-    when: "adding a username with non-alphanumeric characters"
-      usernameInput << "##"
-      
-    then: "make sure validation error shown"
-      report 'username contains illegal characters'
-      usernameAlphaNumericError.displayed
-      
-    when: "removing the username value"
-      usernameInput << Keys.BACK_SPACE
-      usernameInput << Keys.BACK_SPACE
-
-    then: "make sure validation error not shown"
-      !usernameAlphaNumericError.displayed
-      !usernamePatternError.displayed
-      
-    when: "adding extra spaces"
-      usernameInput << '  a'
-      
-    then: "make sure spaces validation error is shown"
-      usernamePatternError.displayed
-      
-    when: "removing extra characters"
-      usernameInput << Keys.BACK_SPACE
-      usernameInput << Keys.BACK_SPACE
-      usernameInput << Keys.BACK_SPACE
-      
-    then: "make sure spaces validation error is removed"
-      !usernamePatternError.displayed
-      !passwordRequiredError.displayed
-      
-    when: "check password required validation"
-      passwordInput << "a"
-      passwordInput << Keys.BACK_SPACE
-      
-    then: "make sure validation error shown"
-      report 'missing required password'
-      passwordRequiredError.displayed
-            
-    when: "check password required validation gone"
-      passwordInput << "a"
-      
-    then: "make sure validation error not shown"
-      !passwordRequiredError.displayed
-      !passwordValidateRequiredError.displayed
-      
-    when: "check password match required validation"
-      passwordInput << Keys.BACK_SPACE
-      passwordValidateInput << "a"
-      passwordValidateInput << Keys.BACK_SPACE
-      
-    then: "make sure validation error shown"
-      report 'required password validation is missing'
-      passwordValidateRequiredError.displayed
-            
-    when: "check password match required validation gone"
-      passwordValidateInput << "a"
-      
-    then: "make sure validation error not shown"
-      !passwordValidateRequiredError.displayed
-      
-    when: "check password match validation"
-      passwordValidateInput << Keys.BACK_SPACE
-      passwordInput << "abc"
-      passwordValidateInput << "a"
-      
-    then: "make sure validation error shown"
-      report 'password validation failure'
-      passwordValidateMatchError.displayed
-      
-    when: "check password match validation gone"
-      passwordValidateInput << "bc"
-      
-    then: "make sure validation error not shown"
-      !passwordValidateMatchError.displayed
-      !save.disabled
-      
-    when: "cancel new user"
-      cancel.click()
-      
-    then: "user form no longer displayed"
-      !userForm.present
-      newUserButton.present
+    where:
+    input          | inputValidations
+    firstNameInput | firstNameValidations
+    lastNameInput  | lastNameValidations
   }
-  
-  def "new user save"() {
-    given: "user arrives at user page"
-      waitFor { newUserButton.present }
-      int userCount = header.size()
-      
-    when: "click add new user"
-      newUserButton.click()
-      
-    then: "verify add form visible"
-      waitFor { firstNameInput.present }
-      !firstNameRequiredError.displayed
-      save.disabled
-      
-    when: "user populates all the fields"
-      firstNameInput << "add"
-      lastNameInput << "user"
-      emailInput << "addusertest@email.com"
-      usernameInput << "addusertest"
-      passwordInput << "123abc"
-      passwordValidateInput << "123abc"
-      
-    then: "save button becomes enabled"
-      !save.disabled
-      
-    when: "user clicks the save button"
-      save.click()
-      
-    then: "add form no longer visible"
-      waitFor { newUserButton.present }
-      
-    then: "add form no longer visible and user is added to the list"
-      waitFor { newUserButton.present }
-      waitFor { userCount < header.size() }
-      
-    when: "user views user summary"
-      header.first().click()
-    
+
+  @Unroll
+  def "If non alphaNumeric content is present during validation the #input field should show an alphaNumeric error"() {
+    when: 'we use non alphaNumeric content'
+    input << '#'
+
+    then: 'the alphaNumeric validation error is shown'
+    inputValidations.alphaNumeric.displayed
+    !inputValidations.errorFree
+    !errorFree
+    report 'before cleanup'
+
+    cleanup:
+    input.value('')
+
+    where:
+    input          | inputValidations
+    firstNameInput | firstNameValidations
+    lastNameInput  | lastNameValidations
+    usernameInput  | usernameValidations
+  }
+
+  @Unroll
+  def "If no content is present during validation the #input field should show a required error"() {
+    when: 'we add and remove content'
+    input.value('a')
+    input << Keys.BACK_SPACE
+
+    then: 'the required validation error is shown'
+    inputValidations.required.displayed
+    !inputValidations.errorFree
+    !errorFree
+
+    where:
+    input                 | inputValidations
+    firstNameInput        | firstNameValidations
+    lastNameInput         | lastNameValidations
+    emailInput            | emailValidations
+    usernameInput         | usernameValidations
+    passwordInput         | passwordValidations
+    passwordValidateInput | passwordValidateValidations
+  }
+
+  def "We fill out all fields correctly"() {
+    when: 'providing valid values for fields'
+    firstNameInput << "add"
+    lastNameInput << "user"
+    emailInput << "addusertest@email.com"
+    usernameInput << "addusertest"
+    passwordInput << "123abc"
+    passwordValidateInput << "123abc"
+
+    then: 'no errors are shown'
+    errorFree
+    !save.disabled
+  }
+
+  def "We fail to properly validate the password"() {
+    when: 'providing non matching passwords'
+    passwordValidateInput << "23abc"
+
+    then: 'an error is displayed stating that the passwords do not match'
+    passwordValidateValidations.passwordMatches.displayed
+    !errorFree
+    save.disabled
+  }
+
+  def "If the form is correct, we can save it"() {
+    given: 'a count of present users in the system'
+    int userCount = headers.size()
+
+    when: 'we fix the password validation error'
+    passwordValidateInput.value('123abc')
+
+    then: 'we can now save'
+    !save.disabled
+
+    when: 'we click save'
+    save.click()
+
+    then: "add form no longer visible and newly added user is displayed"
+    waitFor { !userForm.present }
+    headers.size() > userCount
+  }
+
+  def "The newly added user should now appear in the list of users"() {
+    when: "user views the newly added user summary"
+    header(0).click()
+
     then: "user sees the read only fields from the object"
-      waitFor { summarySection.first().displayed }
-      summarySection.first().find('td', text: 'add').displayed
-      summarySection.first().find('td', text: 'user').displayed
-      summarySection.first().find('td', text: 'addusertest@email.com').displayed
+    def summary = summarySection(0)
+    waitFor { summary.displayed }
+    summary.find('td', text: 'add').displayed
+    summary.find('td', text: 'user').displayed
+    summary.find('td', text: 'addusertest@email.com').displayed
+  }
+
+  def "The newly added user can be deleted"() {
+    when: 'hovering over the header of the user in the list'
+    interact {
+      moveToElement(header(0))
+    }
+
+    then: 'we can now see the delete symbol'
+    def deleteUser = deleteUserButton(0)
+    deleteUser.displayed
+
+    when: 'clicking on delete'
+    deleteUser.click()
+
+    then: 'we are presented with a confirmation dialog'
+    confirmDeleteModal.displayed
+
+    when: 'we confirm deletion'
+    confirmDelete.click()
+
+    then: 'the user is deleted'
+    headers.size() == 1
   }
 }

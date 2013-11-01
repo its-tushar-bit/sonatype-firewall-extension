@@ -7,8 +7,10 @@ package com.sonatype.insight.brain.policy.evaluator;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import com.sonatype.clm.dto.model.policy.Stage;
@@ -66,6 +68,23 @@ public class PolicyEvaluationLog
     return null;
   }
 
+  /**
+   * Returns all evaluations for the given stage. Returns empty list if no such evaluations.
+   */
+  public List<PolicyEvaluation> allByStage(final String stageId) throws IOException {
+    migrate();
+    final ContainerNode<?> auditContainer = auditStore.history(null, filename(stageId));
+    if (auditContainer != null) {
+      JsonNode auditData = auditContainer.get("aaData");
+      ArrayList<PolicyEvaluation> result = new ArrayList<PolicyEvaluation>();
+      for (JsonNode audit : auditData) {
+        result.add(JsonUtils.asPojo(audit, PolicyEvaluation.class));
+      }
+      return result;
+    }
+    return Collections.emptyList();
+  }
+
   public PolicyEvaluation lastByScan(final String scanId) throws IOException {
     for (StageType stageType : StageTypes.getAll()) {
       final ContainerNode<?> auditContainer = auditStore.history(null, filename(stageType.getId()));
@@ -96,6 +115,17 @@ public class PolicyEvaluationLog
       final String ip) throws IOException
   {
     add(JsonUtils.stamp(user, ip, "", create(stage, scanId, isReevaluation)));
+  }
+
+  /**
+   * For testing purposes, don't use
+   */
+  public void add(final Stage stage, final String scanId, final boolean isReevaluation, final String user,
+      final String ip, final long time) throws IOException
+  {
+    ObjectNode stamped = JsonUtils.stamp(user, ip, "", create(stage, scanId, isReevaluation));
+    stamped.put("time", time);
+    add(stamped);
   }
 
   private void add(final ObjectNode stampedLogEntry) throws IOException {

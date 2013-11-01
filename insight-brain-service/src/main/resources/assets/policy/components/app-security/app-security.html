@@ -11,6 +11,19 @@
 		</form>
 		<div>
 			<div class='selectList'>
+				<h5>Applied</h5>
+				<div>
+					<div>
+						<div ng-repeat='mapping in mappings'>
+							<div ng-repeat='member in mapping.members | filter: { displayName : queryString }' ng-click='removeUser($parent.$index, member)'
+									class='licenseSelectListItem' ng-class='{  inherited : $parent.$index }'>
+								<i ng-class='{ "icon-minus-sign" : !$parent.$index, "emptyIconGlyph" : $parent.$index }'></i>&nbsp;<span title='{{member.displayName}}'  ng-bind-html-unsafe="member.displayName | highlight:queryString:caseSensitive"></span>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class='selectList'>
 				<h5>Available</h5>
 				<div>
 					<div>
@@ -20,19 +33,6 @@
 						</div>
 						<div class='licenseSelectListItem' ng-show='queryString && !requestActive && queryResults.length == 0'>
 							<i class='emptyIconGlyph'></i>&nbsp;<em>No results</em>
-						</div>
-					</div>
-				</div>
-			</div>			
-			<div class='selectList'>
-				<h5>Applied</h5>
-				<div>
-					<div>
-						<div ng-repeat='mapping in mappings'>
-							<div ng-repeat='member in mapping.members' ng-click='removeUser($parent.$index, $index)'
-									class='licenseSelectListItem' ng-class='{  inherited : $parent.$index }'>
-								<i ng-class='{ "icon-minus-sign" : !$parent.$index, "emptyIconGlyph" : $parent.$index }'></i>&nbsp;<span tooltip='{{getTooltip(member)}}' tooltip-placement='left'>{{member.displayName}}</span>
-							</div>
 						</div>
 					</div>
 				</div>
@@ -88,7 +88,9 @@
 				<div class="accordion-group" ng-repeat='role in context.roles'>
 					<div class="accordion-heading role">
 						<div class='row' ng-click="expanded = !expanded">
-							<div class='span3 expandable'>{{role.roleName}}</div>
+							<div class='span3'>
+								<div class='expandable'>{{role.roleName}}</div>
+							</div>
 							<div class='span8'>
 								<div class='hover-buttons floatRight'>
 									<button type='button' class="btn btn-mini" title="Edit Role"
@@ -96,14 +98,12 @@
 										<i class="icon-pencil"></i>
 									</button>
 								</div>
-								<div class='expandable' ng-show="!context.roleEditMap[role.roleId]">
-									<div ng-class='{"collapsed" : !expanded}'>
-										{{getUserNames(role)}}
+								<div class='expandable' ng-show="!context.roleEditMap[role.roleId]" ng-class='{"collapsed" : !expanded}'>
+									<span>{{context.roleUsers[role.roleId].applied.join(', ')}}<span ng-show='context.roleUsers[role.roleId].applied.length && context.roleUsers[role.roleId].inherited.length && !expanded'>, </span></span>
+									<div ng-show="context.roleUsers[role.roleId].inherited.length && expanded" class="inherited inherited-section">
+										<strong>Inherited from parent organization:</strong>
 									</div>
-									<div ng-show="getInheritedUserNames(role) && expanded" class="inherited inherited-section">
-										<div><strong>Inherited from parent organization:</strong></div>
-										<div>{{getInheritedUserNames(role)}}</div>
-									</div>
+									<span class="inherited">{{context.roleUsers[role.roleId].inherited.join(', ')}}</span>
 								</div>
 								<div show-if="context.roleEditMap[role.roleId]">
 									<div app-security-editor='role.membersByOwner' role-id='role.roleId' hide='context.roleEditMap[role.roleId] = false'></div>

@@ -15,3 +15,16 @@ logging:
     "org.springframework.jdbc.datasource.init.ResourceDatabasePopulator": INFO
   console:
     logFormat: "%date %level [%thread%X{DC}] %logger - %msg%n"
+
+# HTTP-specific options.
+http:
+
+  # The port on which the HTTP server listens for service requests.
+  # Because Java cannot drop privileges in a POSIX system, these
+  # ports cannot be in the range 1-1024. A port value of 0 will
+  # make the OS use an arbitrary unused port.
+  port: 9070
+
+  # The port on which the HTTP server listens for administrative
+  # requests. Subject to the same limitations as "port".
+  adminPort: 9071

@@ -6,8 +6,10 @@
 package com.sonatype.insight.brain.security;
 
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
+import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.service.AbstractResourceAuthzTest;
+import com.sonatype.insight.brain.utils.IdUtils;
 
 import com.ning.http.client.Response;
 import org.junit.Test;
@@ -25,9 +27,21 @@ public class UserResourceAuthzTest
 
   @Test
   public void testFindUsers() throws Exception {
-    grantAdminPermission();
+    grantWritePermission(app.getId());
+    String url = getRestUrl(
+        UserResource.SERVICE_PATH + "/{ownerType: global|application|organization}/{ownerId}/query",
+        IdUtils.TYPE_APPLICATION, app.getPublicId())
+        + "?q=name";
+    testAuthzGet(url);
 
-    String url = getRestUrl(UserResource.SERVICE_PATH + "/query") + "?q=name";
+    grantWritePermission(org.getId());
+    url = getRestUrl(UserResource.SERVICE_PATH + "/{ownerType: global|application|organization}/{ownerId}/query",
+        IdUtils.TYPE_ORGANIZATION, org.getId()) + "?q=name";
+    testAuthzGet(url);
+
+    grantWritePermission();
+    url = getRestUrl(UserResource.SERVICE_PATH + "/{ownerType: global|application|organization}/{ownerId}/query",
+        IdUtils.TYPE_GLOBAL, MembershipMapping.GLOBAL_CONTEXT_ID) + "?q=name";
     testAuthzGet(url);
   }
 

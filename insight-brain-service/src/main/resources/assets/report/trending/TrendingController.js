@@ -64,6 +64,15 @@
       }
       return fmtG(new Date(date));
     };
+
+    $scope.regenerate = function() {
+      trendingReportService.regenerate();
+      $modal.open({
+        backdrop: 'static',
+        template: '<div class="modal-header"><h3>Report regeneration has beed requested</h3></div>' +
+            '<div class="modal-footer"><button class="btn" ng-click="$close()">Ok</button></div>'
+      });
+    };
   }]);
 
   reportTrendingModule.directive('componentViolations', function() {
@@ -389,12 +398,18 @@
               $timeout(pollFunction, 2000);
             }
           }).error(function() {
-              return defer.reject(arguments);
-            });
+            return defer.reject(arguments);
+          });
         };
         pollFunction();
         return defer.promise;
-      }
-    }
+      },
+      regenerate: function() {
+       $http.get(CLMLocations.getTrendingReportUrl(),
+         { params: { force: true, timestamp: new Date().getTime() } }).error(function() {
+         return defer.reject(arguments);
+       });
+     }
+    };
   }]);
 }());

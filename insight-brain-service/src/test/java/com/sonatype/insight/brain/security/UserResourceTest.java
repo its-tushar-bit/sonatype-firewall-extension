@@ -16,6 +16,7 @@ import com.sonatype.insight.brain.configuration.ldap.LdapServer;
 import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
 import com.sonatype.insight.brain.features.FeaturesResource;
+import com.sonatype.insight.brain.ldap.EmbeddedLdapServer;
 import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Role;
@@ -33,6 +34,7 @@ import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
 
+import static com.sonatype.insight.brain.ldap.EmbeddedLdapServer.newEmbeddedLdapServer;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
@@ -358,8 +360,23 @@ public class UserResourceTest
 
   @Test
   public void testFindLdapUser() throws Exception {
+    EmbeddedLdapServer embeddedLdapServer = newEmbeddedLdapServer();
+    embeddedLdapServer.start();
+    embeddedLdapServer.loadData("/UserResourceTest/ldap_users.ldif");
+
     LdapServer ldapServer = tempEntity.newLdapServer("LDAP");
-    tempEntity.newLdapConnection(ldapServer.getId());
+    tempEntity.newLdapConnection(ldapServer.getId(), embeddedLdapServer.getPort());
+    tempEntity.newLdapUserMapping(ldapServer.getId());
+
+    Response response = AuthedRestAccess.get(getSearchUrl("test"));
+    assertResponseStatus(200, response);
+    UserQueryDTO[] users = fromJson(response, UserQueryDTO[].class);
+    assertThat(users, is(notNullValue()));
+    assertThat(users.length, is(3));
+    assertThat(users[1].username, is("test_user"));
+    assertThat(users[1].realm, is("LDAP"));
+
+    embeddedLdapServer.stop();
   }
 
   private void assertUser(String username, String firstName, String lastName, String email, User actual) {

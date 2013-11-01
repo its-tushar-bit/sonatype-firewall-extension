@@ -13,10 +13,12 @@ import com.sonatype.insight.brain.configuration.ldap.LdapAuthenticationMethod;
 import com.sonatype.insight.brain.configuration.ldap.LdapConnection;
 import com.sonatype.insight.brain.configuration.ldap.LdapProtocol;
 import com.sonatype.insight.brain.configuration.ldap.LdapServer;
+import com.sonatype.insight.brain.configuration.ldap.LdapUserMapping;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapConnectionDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapServerDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapUserMappingDAO;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
@@ -73,6 +75,10 @@ public class TemporaryEntity
 
   private final LdapServerDAO ldapServerDAO = new LdapServerDAO();
 
+  private final LdapConnectionDAO ldapConnectionDAO = new LdapConnectionDAO();
+
+  private final LdapUserMappingDAO ldapUserMappingDAO = new LdapUserMappingDAO();
+
   private Collection<Application> apps;
 
   private Collection<Organization> orgs;
@@ -91,6 +97,10 @@ public class TemporaryEntity
 
   private Collection<LdapServer> ldapServers;
 
+  private Collection<LdapConnection> ldapConnections;
+
+  private Collection<LdapUserMapping> ldapUserMappings;
+
   @Override
   protected void before() throws Throwable {
     apps = new ArrayList<Application>();
@@ -102,6 +112,8 @@ public class TemporaryEntity
     licenseOverrides = new ArrayList<LicenseOverride>();
     waivers = new ArrayList<PolicyWaiver>();
     ldapServers = new ArrayList<LdapServer>();
+    ldapConnections = new ArrayList<LdapConnection>();
+    ldapUserMappings = new ArrayList<LdapUserMapping>();
   }
 
   @Override
@@ -149,6 +161,16 @@ public class TemporaryEntity
     for (LdapServer ldapServer : ldapServers) {
       if (ldapServerDAO.getById(ldapServer.getId()) != null) {
         ldapServerDAO.delete(ldapServer);
+      }
+    }
+    for (LdapConnection ldapConnection : ldapConnections) {
+      if (ldapConnectionDAO.getById(ldapConnection.getId()) != null) {
+        ldapConnectionDAO.delete(ldapConnection);
+      }
+    }
+    for (LdapUserMapping ldapUserMapping : ldapUserMappings) {
+      if (ldapUserMappingDAO.getById(ldapUserMapping.getId()) != null) {
+        ldapUserMappingDAO.delete(ldapUserMapping);
       }
     }
   }
@@ -255,14 +277,34 @@ public class TemporaryEntity
   }
 
   public LdapConnection newLdapConnection(String ldapServerId) {
+    return newLdapConnection(ldapServerId, 389);
+  }
+
+  public LdapConnection newLdapConnection(String ldapServerId, int port) {
     LdapConnection ldapConnection = new LdapConnection();
     ldapConnection.setServerId(ldapServerId);
     ldapConnection.setProtocol(LdapProtocol.LDAP);
     ldapConnection.setHostname("localhost");
-    ldapConnection.setPort(389);
+    ldapConnection.setPort(port);
     ldapConnection.setAuthenticationMethod(LdapAuthenticationMethod.NONE);
     ldapConnection.setSystemUsername("system");
-    new LdapConnectionDAO().insert(ldapConnection);
+    ldapConnectionDAO.insert(ldapConnection);
+    ldapConnections.add(ldapConnection);
     return ldapConnection;
+  }
+
+  public LdapUserMapping newLdapUserMapping(String ldapServerId) {
+    LdapUserMapping umap = new LdapUserMapping();
+    umap.setServerId(ldapServerId);
+    umap.setUserBaseDN("");
+    umap.setUserObjectClass("person");
+    umap.setUserIDAttribute("uid");
+    umap.setUserRealNameAttribute("givenName");
+    umap.setUserEmailAttribute("mail");
+    umap.setUserSubtree(true);
+    ldapUserMappingDAO.insert(umap);
+    ldapUserMappings.add(umap);
+
+    return umap;
   }
 }

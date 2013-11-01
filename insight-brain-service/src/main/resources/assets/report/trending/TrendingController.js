@@ -9,7 +9,7 @@
 
   var reportTrendingModule = angular.module('ReportTrending', []);
 
-  reportTrendingModule.controller('TrendingReportController', ['$scope', 'trendingReportService', 'Messages', function($scope, trendingReportService, Messages) {
+  reportTrendingModule.controller('TrendingReportController', ['$scope', 'trendingReportService', function($scope, trendingReportService) {
     $scope.doLoad = function() {
       $scope.error = null;
       trendingReportService.get().then(function(trendingReport) {
@@ -46,9 +46,9 @@
           }
         });
         angular.extend($scope.data, calculatedData);
-        $scope.diffchart = '../report-assets/trending/diffChart.html?' + clmBuildTimestamp
-        $scope.percentageChart = '../report-assets/trending/percChart.html?' + clmBuildTimestamp
-        $scope.policyProgressionTable = '../report-assets/trending/policyProgressionTable.html?' + clmBuildTimestamp
+        $scope.diffchart = '../report-assets/trending/diffChart.html?' + clmBuildTimestamp;
+        $scope.percentageChart = '../report-assets/trending/percChart.html?' + clmBuildTimestamp;
+        $scope.policyProgressionTable = '../report-assets/trending/policyProgressionTable.html?' + clmBuildTimestamp;
       }, function(error) {
         $scope.error = error;
       });
@@ -91,10 +91,6 @@
         data:'='
       },
       link: function postLink(scope, element, attrs) {
-
-        function random(seed) {
-          return Math.floor(Math.random() * (seed || 9) + 1);
-        }
 
         function sparkline(element, data, config) {
           config.width = config.width || 100;

@@ -218,7 +218,8 @@ public class UserResource
     public String email;
     public String realm;
 
-    public UserQueryDTO() {}
+    public UserQueryDTO() {
+    }
 
     public UserQueryDTO(final String username, final String firstName, final String lastName,
                         final String email, final String realm)

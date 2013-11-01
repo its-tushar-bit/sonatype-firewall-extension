@@ -57,7 +57,6 @@ public class UserResource
     this.sessionDAO = sessionDAO;
   }
 
-  // TODO Code review: Move this method to MembershipMappingResource?
   /**
    * Retrieves a list of users that can be used to assign role-to-user memberships for an application or organization.
    */

@@ -22,6 +22,7 @@ import java.util.Map;
 import java.util.Set;
 
 import javax.inject.Inject;
+import javax.inject.Named;
 
 import com.sonatype.clm.dto.model.policy.ComponentFact;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
@@ -55,6 +56,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 /**
  * @since 1.7
  */
+@Named
 public class TrendingReportProcessor
 {
   public static final String CATEGORY_OTHER = "other";

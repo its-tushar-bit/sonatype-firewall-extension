@@ -5,10 +5,8 @@
  */
 package com.sonatype.insight.brain.trending;
 
-import java.io.File;
 import java.io.IOException;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.Collections;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -18,12 +16,13 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
+import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.trending.TrendingReport;
-import com.sonatype.insight.brain.service.InsightWork;
-import com.sonatype.insight.json.store.JsonUtils;
+import com.sonatype.insight.brain.security.AuthorizationChecker;
+import com.sonatype.insight.brain.security.AuthzContext;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.shiro.SecurityUtils;
+import org.apache.shiro.authz.UnauthorizedException;
 
 /**
  * Trending report generation and caching.
@@ -38,63 +37,16 @@ public class TrendingReportService
 
   public static final long CACHE_MAX_AGE_MS = 86400L * 1; // one day
 
-  private final Logger log = LoggerFactory.getLogger(getClass());
+  private final TrendingReportAsyncProcessor processor;
 
-  private final ReadWriteLock cacheLock = new ReentrantReadWriteLock();
+  private final TrendingReportCache cache;
 
-  private final TrendingReportProcessor processor;
-
-  private final InsightWork insightWork;
-
-  private class WorkerThread
-      extends Thread
-  {
-    private final Object processorLock = new Object()
-    {
-    };
-
-    public WorkerThread() {
-      super("Trending report worker thread");
-      setDaemon(true);
-      start();
-    }
-
-    @Override
-    public void run() {
-      while (true) {
-        synchronized (processorLock) {
-          try {
-            processorLock.wait();
-          }
-          catch (InterruptedException e) {
-            break;
-          }
-        }
-
-        try {
-          TrendingReport report = processor.calculate();
-          writeCache(report);
-        }
-        catch (IOException e) {
-          log.error("Could not generate trending report", e);
-        }
-      }
-      log.info(getName() + " terminated");
-    }
-
-    public void schedule() {
-      synchronized (processorLock) {
-        processorLock.notify();
-      }
-    }
-  }
-
-  private final WorkerThread worker = new WorkerThread();
+  private final AuthorizationChecker authChecker = new AuthorizationChecker();
 
   @Inject
-  public TrendingReportService(TrendingReportProcessor processor, InsightWork insightWork) {
+  public TrendingReportService(TrendingReportAsyncProcessor processor, TrendingReportCache cache) {
     this.processor = processor;
-    this.insightWork = insightWork;
+    this.cache = cache;
   }
 
   /**
@@ -109,62 +61,27 @@ public class TrendingReportService
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   public TrendingReport get(@QueryParam("force") boolean force) throws IOException {
-    TrendingReport cached = !force ? readCached() : null;
+    String username = SecurityUtils.getSubject().getPrincipal().toString();
+
+    final boolean isAdmin = authChecker.isPermitted(username, Permission.ADMIN,
+        Collections.<AuthzContext.Key, Object> emptyMap());
+
+    if (!isAdmin && force) {
+      throw new UnauthorizedException("Not authorized to force trending report regeneration");
+    }
+
+    TrendingReport cached = !force ? cache.readCached() : null;
+
+    if (cached != null) {
+      cached.getMeta().setCanRegenerate(isAdmin);
+    }
 
     if (cached != null && (System.currentTimeMillis() - cached.getMeta().getGeneratedOn()) < CACHE_MAX_AGE_MS) {
       return cached;
     }
 
-    worker.schedule();
+    processor.calculate();
 
     return cached;
-  }
-
-  private TrendingReport readCached() throws IOException {
-    cacheLock.readLock().lock();
-    try {
-      File cacheFile = getCacheFile();
-      if (cacheFile.canRead()) {
-        return JsonUtils.read(cacheFile, TrendingReport.class);
-      }
-      return null;
-    }
-    finally {
-      cacheLock.readLock().unlock();
-    }
-  }
-
-  public void writeCache(TrendingReport report) throws IOException {
-    cacheLock.writeLock().lock();
-    try {
-      JsonUtils.write(getCacheFile(), report);
-    }
-    finally {
-      cacheLock.writeLock().unlock();
-    }
-  }
-
-  /**
-   * Public to facilitate testing
-   * 
-   * @since 1.7
-   */
-  public File getCacheFile() {
-    return new File(insightWork.getReportDir(), "trending-report.json");
-  }
-
-  /**
-   * For testing purposes
-   * 
-   * @since 1.7
-   */
-  public void purgeCache() {
-    cacheLock.writeLock().lock();
-    try {
-      getCacheFile().delete();
-    }
-    finally {
-      cacheLock.writeLock().unlock();
-    }
   }
 }

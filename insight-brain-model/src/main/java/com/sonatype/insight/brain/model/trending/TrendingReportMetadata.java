@@ -13,6 +13,7 @@ public class TrendingReportMetadata
   private long generatedOn;
   private long periodStart;
   private long periodEnd;
+  private boolean canRegenerate;
 
   public TrendingReportMetadata() {
   }
@@ -48,5 +49,16 @@ public class TrendingReportMetadata
    */
   public long getPeriodEnd() {
     return periodEnd;
+  }
+
+  public void setCanRegenerate(boolean value) {
+    this.canRegenerate = value;
+  }
+
+  /**
+   * Returns {@code true} if this report can be regenerated.
+   */
+  public boolean getCanRegenerate() {
+    return canRegenerate;
   }
 }

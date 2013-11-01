@@ -26,7 +26,7 @@ import com.sonatype.insight.brain.security.AuthzFilter.Context;
  * 
  * @since 1.7
  */
-class AuthorizationChecker
+public class AuthorizationChecker
 {
   private final MembershipMappingDAO membershipDAO;
 

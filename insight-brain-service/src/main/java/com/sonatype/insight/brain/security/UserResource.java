@@ -79,7 +79,7 @@ public class UserResource
         if (o instanceof UserQueryDTO) {
           UserQueryDTO checkDTO = (UserQueryDTO)o;
           for (UserQueryDTO userQueryDTO : this) {
-            if (userQueryDTO.username.equals(checkDTO.username)) {
+            if (userQueryDTO.username.equalsIgnoreCase(checkDTO.username)) {
               return true;
             }
           }

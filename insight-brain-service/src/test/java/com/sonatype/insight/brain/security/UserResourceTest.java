@@ -339,6 +339,7 @@ public class UserResourceTest
     assertThat(users, is(notNullValue()));
     assertThat(users.length, is(1));
     assertThat(users[0].username, is(User.ADMIN_USERNAME));
+    assertThat(users[0].realm, is("CLM"));
 
     response = AuthedRestAccess.get(getSearchUrl(User.ADMIN_USERNAME.substring(0, User.ADMIN_USERNAME.length() - 1)));
     assertResponseStatus(200, response);
@@ -346,6 +347,7 @@ public class UserResourceTest
     assertThat(users, is(notNullValue()));
     assertThat(users.length, is(1));
     assertThat(users[0].username, is(User.ADMIN_USERNAME));
+    assertThat(users[0].realm, is("CLM"));
 
     response = AuthedRestAccess.get(getSearchUrl("nobody-has-such-a-name-really"));
     assertResponseStatus(200, response);

@@ -89,24 +89,18 @@ public class UserResource
     };
     UserDAO dao = new UserDAO();
     for (User user : dao.findUsersByName(query)) {
-
       UserQueryDTO u = new UserQueryDTO(user.getUsername(), user.getFirstName(), user.getLastName(), user.getEmail(), "CLM");
       users.add(u);
     }
 
     if (ldapManager.isLdapEnabled()) {
       String ldapName = ldapManager.getLdapName();
-      Exception exp;
-      try {
-        for (LdapUser user : ldapManager.findUsersByName(query, 100)) {
-          UserQueryDTO u = new UserQueryDTO(user.getUsername(), user.getRealName(), null, user.getEmail(), ldapName);
-          // Users are shaded by any user from a higher up realm that has the same username
-          if (!users.contains(u)) {
-            users.add(u);
-          }
+      for (LdapUser user : ldapManager.findUsersByName(query, 100)) {
+        UserQueryDTO u = new UserQueryDTO(user.getUsername(), user.getRealName(), null, user.getEmail(), ldapName);
+        // Users are shaded by any user from a higher up realm that has the same username
+        if (!users.contains(u)) {
+          users.add(u);
         }
-      } catch (Exception ex) {
-        exp = ex;
       }
     }
     return users;

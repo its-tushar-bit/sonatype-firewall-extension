@@ -13,11 +13,9 @@ import java.util.List;
 import com.sonatype.insight.brain.AuthedRestAccess;
 import com.sonatype.insight.brain.TemporaryEntity;
 import com.sonatype.insight.brain.configuration.ldap.LdapServer;
-import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapServerDAO;
 import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
 import com.sonatype.insight.brain.features.FeaturesResource;
-import com.sonatype.insight.brain.ldap.EmbeddedLdapServer;
 import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Role;
@@ -31,17 +29,14 @@ import com.sonatype.insight.test.RestAccess;
 import com.ning.http.client.Cookie;
 import com.ning.http.client.Response;
 import com.yammer.dropwizard.testing.JsonHelpers;
-import org.hamcrest.MatcherAssert;
 import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 
 public class UserResourceTest
@@ -361,17 +356,8 @@ public class UserResourceTest
 
   @Test
   public void testFindLdapUser() throws Exception {
-    tempEntity.newLdapServer("LDAP");
-    tempEntity.newLdapConnection("LDAP Conn");
-    EmbeddedLdapServer embeddedLdapServer = EmbeddedLdapServer.newEmbeddedLdapServer();
-    embeddedLdapServer.loadData("/UserResourceTest/ldap_users.ldif");
-
-    Response response = AuthedRestAccess.get(getSearchUrl(User.ADMIN_USERNAME));
-    assertResponseStatus(200, response);
-    UserQueryDTO[] users = fromJson(response, UserQueryDTO[].class);
-    assertThat(users, is(notNullValue()));
-    assertThat(users.length, is(1));
-    assertThat(users[0].username, is(User.ADMIN_USERNAME));
+    LdapServer ldapServer = tempEntity.newLdapServer("LDAP");
+    tempEntity.newLdapConnection(ldapServer.getId());
   }
 
   private void assertUser(String username, String firstName, String lastName, String email, User actual) {

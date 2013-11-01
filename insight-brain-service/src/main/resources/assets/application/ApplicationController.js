@@ -145,32 +145,35 @@
         $scope.doLoad = function () {
           $scope.error = null;
 
-          var promises = [OrganizationStore.get(), ActionStore.get()];
+          var promises = [ActionStore.get()];
           if (selectedApplication.publicId) {
             promises.push($http.get(CLMLocations.getApplicationSummaryUrl(selectedApplication.publicId), {
               params: {
                 timestamp: new Date().getTime()
               }
             }));
+          } else {
+            promises.push(OrganizationStore.get());
           }
 
           $q.all(promises).then(function(results) {
             $scope.selectedApplication = selectedApplication;
             setApplicationIcon();
 
-            $scope.organizations = results[0];
             $scope.state = {
-              actionStageList: results[1][1]
+              actionStageList: results[0][1]
             };
 
-            if (results.length > 2) {
-              $scope.applicationSummary = results[2].data;
+            if (selectedApplication.publicId) {
+              $scope.applicationSummary = results[1].data;
               $scope.applicationSummary.stageCount = 0;
               angular.forEach($scope.applicationSummary.policyEvaluations, function(policyEvaluation, stage) {
                 policyEvaluation.reportUrl = CLMLocations.getReportUrl($scope.applicationSummary.publicId,
                         policyEvaluation.scanId);
                 $scope.applicationSummary.stageCount++;
               });
+            } else {
+              $scope.organizations = results[1];
             }
           }, function (error) {
             $scope.error = error;
@@ -179,23 +182,13 @@
         $scope.doLoad();
 
 
-        $scope.getOrganizationName = function(organizationId) {
-          if (!organizationId) {
-            return "Select Organization";
-          }
-
-          if ($scope.organizations) {
-            for (var i = 0; i < $scope.organizations.length; i++) {
-              var organizationIter = $scope.organizations[i];
-              if (organizationIter.id === organizationId) {
-                return organizationIter.name;
-              }
-            }
-          }
+        $scope.getOrganizationName = function() {
+          return $scope.selectedApplication.organizationName || "Select Organization";
         };
 
-        $scope.changeOrganization = function(organization) {
+        $scope.setOrganization = function(organization) {
           $scope.selectedApplication.organizationId = organization.id;
+          $scope.selectedApplication.organizationName = organization.name;
         };
 
         if ($state.current.data && $state.current.data.passThroughAlerts) {

@@ -90,288 +90,321 @@ describe('ApplicationEditorController', function() {
     ]);
   }));
 
-  beforeEach(inject(function($httpBackend, $rootScope, $controller, $state, CLMLocations, CLMAppLocations, applicationStore) {
-    httpBackend = $httpBackend;
-    rootScope = $rootScope;
+  describe('New Application', function () {
+    beforeEach(inject(function($httpBackend, $rootScope, $controller, $state, CLMLocations, CLMAppLocations, applicationStore) {
+      rootScope = $rootScope;
 
-    $state.current.name = 'management.application';
+      $state.current.name = 'management.application';
 
-    var applicationsData = ApplicationMockData.getApplicationsData();
-    mockApplication = applicationsData[0];
-    httpBackend.whenGET(SpecUtil.toRegExp(CLMAppLocations.getEntitiesUrl())).respond(applicationsData);
+      var applicationsData = ApplicationMockData.getApplicationsData();
+      mockApplication = applicationsData[0];
+      $httpBackend.whenGET(SpecUtil.toRegExp(CLMAppLocations.getEntitiesUrl())).respond(applicationsData);
 
-    httpBackend.expectGET(CLMLocations.getActionTypeUrl()).respond(PolicyMockData.getActionTypeData());
-    httpBackend.expectGET(CLMLocations.getActionStageUrl()).respond(MockData.getActionStageData());
+      $httpBackend.expectGET(CLMLocations.getActionTypeUrl()).respond(PolicyMockData.getActionTypeData());
+      $httpBackend.expectGET(CLMLocations.getActionStageUrl()).respond(MockData.getActionStageData());
 
-    var organizationData = OrganizationMockData.getGETResponse();
-    mockOrganization = organizationData[0];
-    httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getOrganizationsUrl())).respond(organizationData);
+      var organizationData = OrganizationMockData.getGETResponse();
+      mockOrganization = organizationData[0];
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getOrganizationsUrl())).respond(organizationData);
 
-    var applicationSummaryData = ApplicationMockData.getApplicationSummaryData();
-    httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getApplicationSummaryUrl(mockApplication.publicId))).respond(applicationSummaryData);
+      parentScope = $rootScope.$new();
+      scope = parentScope.$new();
+      state = $state;
 
-    parentScope = $rootScope.$new();
-    scope = parentScope.$new();
-    state = $state;
+      var selectedApplication = applicationStore.create();
 
-    var selectedApplication = applicationStore.create();
-    selectedApplication.$updateOriginal(mockApplication);
-    originalMockApplication = angular.copy(selectedApplication);
+      getOriginalSpy = spyOn(selectedApplication, '$getOriginal').andReturn(originalMockApplication);
+      revertSpy = spyOn(selectedApplication, '$revert').andCallThrough();
+      saveSpy = spyOn(selectedApplication, '$save').andCallThrough();
 
-    getOriginalSpy = spyOn(selectedApplication, '$getOriginal').andReturn(originalMockApplication);
-    revertSpy = spyOn(selectedApplication, '$revert').andCallThrough();
-    saveSpy = spyOn(selectedApplication, '$save').andCallThrough();
+      parentScope.applications = [selectedApplication];
+      parentScope.applicationIconTimestamp = {}
+      $controller('applicationEditorController', { $scope: scope, $state: state, selectedApplication : selectedApplication });
 
-    parentScope.applications = [selectedApplication];
-    parentScope.applicationIconTimestamp = {}
-    $controller('applicationEditorController', { $scope: scope, $state: state, selectedApplication : selectedApplication });
+      $httpBackend.flush();
+    }));
 
-    httpBackend.flush();
-  }));
-
-  afterEach(function() {
-    httpBackend.verifyNoOutstandingExpectation();
-    httpBackend.verifyNoOutstandingRequest();
-    parentScope.$destroy();
+    it('Sets Organization Name', function() {
+      scope.setOrganization(mockOrganization);
+      expect(scope.getOrganizationName()).toEqual(mockOrganization.name);
+    });
   });
 
-  it('generates an icon', function() {
-    scope.generateIcon();
+  describe('Existing Application', function () {
+    beforeEach(inject(function($httpBackend, $rootScope, $controller, $state, CLMLocations, CLMAppLocations, applicationStore) {
+      httpBackend = $httpBackend;
+      rootScope = $rootScope;
 
-    expect(scope.robotHash).not.toBeUndefined();
-    expect(scope.robotHash).not.toEqual('');
-    expect(scope.hasRobotSource).toBeTruthy();
+      $state.current.name = 'management.application';
 
-    // After first robohash is generated using the name, a random should be created next
-    var robotHash = scope.robotHash;
-    scope.generateIcon();
-    expect(scope.robotHash).not.toEqual(robotHash);
+      var applicationsData = ApplicationMockData.getApplicationsData();
+      mockApplication = applicationsData[0];
+      httpBackend.whenGET(SpecUtil.toRegExp(CLMAppLocations.getEntitiesUrl())).respond(applicationsData);
+
+      httpBackend.expectGET(CLMLocations.getActionTypeUrl()).respond(PolicyMockData.getActionTypeData());
+      httpBackend.expectGET(CLMLocations.getActionStageUrl()).respond(MockData.getActionStageData());
+
+      var applicationSummaryData = ApplicationMockData.getApplicationSummaryData();
+      httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getApplicationSummaryUrl(mockApplication.publicId))).respond(applicationSummaryData);
+
+      parentScope = $rootScope.$new();
+      scope = parentScope.$new();
+      state = $state;
+
+      var selectedApplication = applicationStore.create();
+      selectedApplication.$updateOriginal(mockApplication);
+      originalMockApplication = angular.copy(selectedApplication);
+
+      getOriginalSpy = spyOn(selectedApplication, '$getOriginal').andReturn(originalMockApplication);
+      revertSpy = spyOn(selectedApplication, '$revert').andCallThrough();
+      saveSpy = spyOn(selectedApplication, '$save').andCallThrough();
+
+      parentScope.applications = [selectedApplication];
+      parentScope.applicationIconTimestamp = {}
+      $controller('applicationEditorController', { $scope: scope, $state: state, selectedApplication : selectedApplication });
+
+      httpBackend.flush();
+    }));
+
+    afterEach(function() {
+      httpBackend.verifyNoOutstandingExpectation();
+      httpBackend.verifyNoOutstandingRequest();
+      parentScope.$destroy();
+    });
+
+    it('does not cancel edits when changing between tabs', function() {
+      scope.selectedApplication.name = 'new_name';
+      e = scope.$broadcast('pageChangeAccepted', 'application/' + scope.selectedApplication.publicId);
+      expect(scope.selectedApplication.name).toEqual('new_name');
+
+      e = scope.$broadcast('pageChangeAccepted', 'organization/');
+      expect(scope.selectedApplication.name).toEqual(originalMockApplication.name);
+    });
+
+    it('generates an icon', function() {
+      scope.generateIcon();
+
+      expect(scope.robotHash).not.toBeUndefined();
+      expect(scope.robotHash).not.toEqual('');
+      expect(scope.hasRobotSource).toBeTruthy();
+
+      // After first robohash is generated using the name, a random should be created next
+      var robotHash = scope.robotHash;
+      scope.generateIcon();
+      expect(scope.robotHash).not.toEqual(robotHash);
+    });
+
+    it('updates an applications organization', function() {
+      scope.setOrganization(mockOrganization);
+      expect(scope.selectedApplication.organizationId).toEqual(mockOrganization.id);
+    });
+
+    it('checks if the form is dirty', function() {
+      var isDirty = scope.isFormDirty();
+
+      expect(getOriginalSpy).toHaveBeenCalled();
+      expect(isDirty).not.toBeTruthy();
+
+      var originalOrgId = scope.selectedApplication.organizationId;
+      scope.setOrganization(mockOrganization);
+      isDirty = scope.isFormDirty();
+
+      expect(getOriginalSpy).toHaveBeenCalled();
+      expect(isDirty).toBeTruthy();
+
+      scope.selectedApplication.organizationId = originalOrgId;
+      isDirty = scope.isFormDirty();
+
+      expect(getOriginalSpy).toHaveBeenCalled();
+      expect(isDirty).not.toBeTruthy();
+
+      var originalName = scope.selectedApplication.name;
+      scope.selectedApplication.name = "newName";
+      isDirty = scope.isFormDirty();
+
+      expect(getOriginalSpy).toHaveBeenCalled();
+      expect(isDirty).toBeTruthy();
+
+      scope.selectedApplication.name = originalName;
+      isDirty = scope.isFormDirty();
+
+      expect(getOriginalSpy).toHaveBeenCalled();
+      expect(isDirty).not.toBeTruthy();
+
+      scope.generateIcon();
+      isDirty = scope.isFormDirty();
+
+      expect(getOriginalSpy).toHaveBeenCalled();
+      expect(isDirty).toBeTruthy();
+    });
+
+    it('cancels edits', inject(function($httpBackend) {
+      scope.selectedApplication.name = "newName";
+      scope.generateIcon();
+
+      expect(scope.hasRobotSource).toBeTruthy();
+      expect(scope.iconChanged).toBeTruthy();
+
+      scope.cancel();
+
+      expect(revertSpy).toHaveBeenCalled();
+
+      expect(angular.equals(scope.selectedApplication, originalMockApplication)).toBeTruthy();
+      expect(scope.hasRobotSource).not.toBeTruthy();
+      expect(scope.iconChanged).not.toBeTruthy();
+    }));
+
+    it('saves an application', inject(function(CLMAppLocations) {
+      scope.applicationEditor = {};
+      scope.applicationEditor.$valid = true;
+
+      scope.setOrganization(mockOrganization);
+      scope.selectedApplication.name = "newName";
+      scope.generateIcon();
+
+      window.FormData = false;
+
+      httpBackend.expectPUT(SpecUtil.toRegExp(CLMAppLocations.getEntitiesUrl(mockApplication.publicId))).respond(ApplicationMockData.getApplicationSummaryData());
+
+      scope.save();
+
+      httpBackend.flush();
+
+      expect(saveSpy).toHaveBeenCalled();
+    }));
+
+    it('Can delete an application', inject(function(CLMAppLocations, CLMLocations) {
+      httpBackend.expectDELETE(CLMAppLocations.getEntityUrl(mockApplication.publicId)).respond({});
+
+      expect(angular.element('#deleteApplicationModal').css('display')).toBeUndefined();
+
+      scope.confirmDeleteApplication(mockApplication);
+
+      expect(scope.deletedEnabled).toBeTruthy();
+      expect(angular.element('#deleteApplicationModal').css('display')).not.toBe('none');
+
+      scope.deleteApplication();
+
+      httpBackend.flush();
+
+      expect(angular.element('#deleteApplicationModal').css('display')).toBeUndefined();
+      expect(parentScope.applications.length).toEqual(0);
+      expect(scope.deletedEnabled).toBeFalsy();
+    }));
+
+    it('shows report summary.', function() {
+      expect(scope.state.actionStageList.length).toEqual(MockData.getActionStageData().length);
+    });
+
+    it('reevaluates policy', inject(function($httpBackend, CLMLocations) {
+      var policyResponse = ApplicationMockData.getPolicyEvaluationData();
+      var mockApplication = {
+              publicId: 'publicId',
+              policyEvaluations: {
+                build: {
+                  scanId: 'scanId',
+                  stage: {
+                    stageTypeId: 'build'
+                  }
+                }
+              },
+              policyEvaluationsResults: {
+                build: {}
+              }
+      };
+      scope.applicationSummary = mockApplication;
+
+      $httpBackend.expectPOST(CLMLocations.evaluatePolicyUrl(mockApplication.publicId,
+              mockApplication.policyEvaluations.build.scanId)).respond(policyResponse);
+
+      scope.reEvaluatePolicy(mockApplication.policyEvaluations.build);
+
+      $httpBackend.flush();
+
+      expect(mockApplication.policyEvaluationsResults.build.affectedComponentCount).toEqual(policyResponse.affectedComponentCount);
+      expect(mockApplication.policyEvaluationsResults.build.criticalComponentCount).toEqual(policyResponse.criticalComponentCount);
+      expect(mockApplication.policyEvaluationsResults.build.severeComponentCount).toEqual(policyResponse.severeComponentCount);
+      expect(mockApplication.policyEvaluationsResults.build.moderateComponentCount).toEqual(policyResponse.moderateComponentCount);
+    }));
+
+    it('Can respond to errors when trying to delete an application', inject(function(CLMAppLocations, CLMLocations) {
+      var spy = spyOn(rootScope, '$broadcast').andReturn({defaultPrevented: false});
+
+      httpBackend.expectDELETE(CLMAppLocations.getEntityUrl(mockApplication.publicId)).respond(400);
+
+      expect(angular.element('#deleteApplicationModal').css('display')).toBeUndefined();
+
+      scope.confirmDeleteApplication(mockApplication);
+
+      expect(scope.deletedEnabled).toBeTruthy();
+      expect(angular.element('#deleteApplicationModal').css('display')).not.toBe('none');
+
+      scope.deleteApplication();
+
+      httpBackend.flush();
+
+      expect(angular.element('#deleteApplicationModal').css('display')).toBeUndefined();
+      expect(spy).toHaveBeenCalledWith('showServerError', jasmine.any(Object));
+      expect(scope.applications.length).toEqual(1);
+      expect(scope.deletedEnabled).toBeFalsy();
+    }));
+
+    it('Refreshes the list of applications when informed that an organization has been deleted',
+            inject(function(CLMAppLocations, applicationStore) {
+              var applicationStoreSpy = spyOn(applicationStore, 'refresh');
+              rootScope.$broadcast('organizations.delete');
+              expect(applicationStoreSpy).toHaveBeenCalled()
+            }));
+
+    it('displays confirmation dialog', function() {
+      scope.selectedApplication.name = 'new_name';
+      var e = scope.$broadcast('pageChangeStarted');
+      expect(e.defaultPrevented).toBeTruthy();
+
+      scope.selectedApplication.name = originalMockApplication.name;
+      e = scope.$broadcast('pageChangeStarted');
+      expect(e.defaultPrevented).not.toBeTruthy();
+
+      scope.generateIcon();
+      var e = scope.$broadcast('pageChangeStarted');
+      expect(e.defaultPrevented).toBeTruthy();
+
+      scope.cancel();
+      e = scope.$broadcast('pageChangeStarted');
+      expect(e.defaultPrevented).not.toBeTruthy();
+
+      scope.selectedApplication.name = 'new_name';
+      e = scope.$broadcast('pageChangeStarted', 'application/' + scope.selectedApplication.publicId);
+      expect(e.defaultPrevented).not.toBeTruthy();
+    });
+
+    it('broadcasts changes to owner data', inject(function(CLMAppLocations) {
+      var broadcastSpy = spyOn(scope, '$broadcast');
+      scope.applicationEditor = {};
+      scope.applicationEditor.$valid = true;
+
+      scope.selectedApplication.organizationId = 'new_org_id';
+
+      httpBackend.expectPUT(SpecUtil.toRegExp(CLMAppLocations.getEntitiesUrl(mockApplication.publicId))).respond(ApplicationMockData.getApplicationSummaryData());
+
+      scope.save();
+
+      httpBackend.flush();
+
+      expect(broadcastSpy).toHaveBeenCalledWith('ownerChanged', { ownerId : '78c1d44c07584e57945f04890c672e82', changes : [ { field : 'organizationId', newValue : 'new_org_id' } ] });
+      broadcastSpy.reset();
+
+      scope.selectedApplication.organizationId = originalMockApplication.organizationId;
+      scope.selectedApplication.name = 'new_name';
+
+      httpBackend.expectPUT(SpecUtil.toRegExp(CLMAppLocations.getEntitiesUrl(mockApplication.publicId))).respond(ApplicationMockData.getApplicationSummaryData());
+
+      scope.save();
+
+      httpBackend.flush();
+
+      expect(broadcastSpy).toHaveBeenCalledWith('ownerChanged', { ownerId : '78c1d44c07584e57945f04890c672e82', changes : [ { field : 'name', newValue : 'new_name' } ] });
+    }));
   });
 
-  it('gets org name from id', function() {
-    var name = scope.getOrganizationName(mockOrganization.id);
-    expect(name).toEqual(mockOrganization.name);
-  });
-
-  it('updates an applications organization', function() {
-    scope.changeOrganization(mockOrganization);
-    expect(scope.selectedApplication.organizationId).toEqual(mockOrganization.id);
-  });
-
-  it('checks if the form is dirty', function() {
-    var isDirty = scope.isFormDirty();
-
-    expect(getOriginalSpy).toHaveBeenCalled();
-    expect(isDirty).not.toBeTruthy();
-
-    var originalOrgId = scope.selectedApplication.organizationId;
-    scope.changeOrganization(mockOrganization);
-    isDirty = scope.isFormDirty();
-
-    expect(getOriginalSpy).toHaveBeenCalled();
-    expect(isDirty).toBeTruthy();
-
-    scope.selectedApplication.organizationId = originalOrgId;
-    isDirty = scope.isFormDirty();
-
-    expect(getOriginalSpy).toHaveBeenCalled();
-    expect(isDirty).not.toBeTruthy();
-
-    var originalName = scope.selectedApplication.name;
-    scope.selectedApplication.name = "newName";
-    isDirty = scope.isFormDirty();
-
-    expect(getOriginalSpy).toHaveBeenCalled();
-    expect(isDirty).toBeTruthy();
-
-    scope.selectedApplication.name = originalName;
-    isDirty = scope.isFormDirty();
-
-    expect(getOriginalSpy).toHaveBeenCalled();
-    expect(isDirty).not.toBeTruthy();
-
-    scope.generateIcon();
-    isDirty = scope.isFormDirty();
-
-    expect(getOriginalSpy).toHaveBeenCalled();
-    expect(isDirty).toBeTruthy();
-  });
-
-  it('cancels edits', inject(function($httpBackend) {
-    scope.changeOrganization(mockOrganization);
-    scope.selectedApplication.name = "newName";
-    scope.generateIcon();
-
-    expect(scope.hasRobotSource).toBeTruthy();
-    expect(scope.iconChanged).toBeTruthy();
-
-    scope.cancel();
-
-    expect(revertSpy).toHaveBeenCalled();
-
-    expect(angular.equals(scope.selectedApplication, originalMockApplication)).toBeTruthy();
-    expect(scope.hasRobotSource).not.toBeTruthy();
-    expect(scope.iconChanged).not.toBeTruthy();
-  }));
-
-  it('saves an application', inject(function(CLMAppLocations) {
-    scope.applicationEditor = {};
-    scope.applicationEditor.$valid = true;
-
-    scope.changeOrganization(mockOrganization);
-    scope.selectedApplication.name = "newName";
-    scope.generateIcon();
-
-    window.FormData = false;
-
-    httpBackend.expectPUT(SpecUtil.toRegExp(CLMAppLocations.getEntitiesUrl(mockApplication.publicId))).respond(ApplicationMockData.getApplicationSummaryData());
-
-    scope.save();
-
-    httpBackend.flush();
-
-    expect(saveSpy).toHaveBeenCalled();
-  }));
-
-  it('Can delete an application', inject(function(CLMAppLocations, CLMLocations) {
-    httpBackend.expectDELETE(CLMAppLocations.getEntityUrl(mockApplication.publicId)).respond({});
-
-    expect(angular.element('#deleteApplicationModal').css('display')).toBeUndefined();
-
-    scope.confirmDeleteApplication(mockApplication);
-
-    expect(scope.deletedEnabled).toBeTruthy();
-    expect(angular.element('#deleteApplicationModal').css('display')).not.toBe('none');
-
-    scope.deleteApplication();
-
-    httpBackend.flush();
-
-    expect(angular.element('#deleteApplicationModal').css('display')).toBeUndefined();
-    expect(parentScope.applications.length).toEqual(0);
-    expect(scope.deletedEnabled).toBeFalsy();
-  }));
-
-  it('shows report summary.', function() {
-    expect(scope.state.actionStageList.length).toEqual(MockData.getActionStageData().length);
-  });
-
-  it('reevaluates policy', inject(function($httpBackend, CLMLocations) {
-    var policyResponse = ApplicationMockData.getPolicyEvaluationData();
-    var mockApplication = {
-      publicId: 'publicId',
-      policyEvaluations: {
-        build: {
-          scanId: 'scanId',
-          stage: {
-            stageTypeId: 'build'
-          }
-        }
-      },
-      policyEvaluationsResults: {
-        build: {}
-      }
-    };
-    scope.applicationSummary = mockApplication;
-
-    $httpBackend.expectPOST(CLMLocations.evaluatePolicyUrl(mockApplication.publicId,
-        mockApplication.policyEvaluations.build.scanId)).respond(policyResponse);
-
-    scope.reEvaluatePolicy(mockApplication.policyEvaluations.build);
-
-    $httpBackend.flush();
-
-    expect(mockApplication.policyEvaluationsResults.build.affectedComponentCount).toEqual(policyResponse.affectedComponentCount);
-    expect(mockApplication.policyEvaluationsResults.build.criticalComponentCount).toEqual(policyResponse.criticalComponentCount);
-    expect(mockApplication.policyEvaluationsResults.build.severeComponentCount).toEqual(policyResponse.severeComponentCount);
-    expect(mockApplication.policyEvaluationsResults.build.moderateComponentCount).toEqual(policyResponse.moderateComponentCount);
-  }));
-
-  it('Can respond to errors when trying to delete an application', inject(function(CLMAppLocations, CLMLocations) {
-    var spy = spyOn(rootScope, '$broadcast').andReturn({defaultPrevented: false});
-
-    httpBackend.expectDELETE(CLMAppLocations.getEntityUrl(mockApplication.publicId)).respond(400);
-
-    expect(angular.element('#deleteApplicationModal').css('display')).toBeUndefined();
-
-    scope.confirmDeleteApplication(mockApplication);
-
-    expect(scope.deletedEnabled).toBeTruthy();
-    expect(angular.element('#deleteApplicationModal').css('display')).not.toBe('none');
-
-    scope.deleteApplication();
-
-    httpBackend.flush();
-
-    expect(angular.element('#deleteApplicationModal').css('display')).toBeUndefined();
-    expect(spy).toHaveBeenCalledWith('showServerError', jasmine.any(Object));
-    expect(scope.applications.length).toEqual(1);
-    expect(scope.deletedEnabled).toBeFalsy();
-  }));
-
-  it('Refreshes the list of applications when informed that an organization has been deleted',
-      inject(function(CLMAppLocations, applicationStore) {
-        var applicationStoreSpy = spyOn(applicationStore, 'refresh');
-        rootScope.$broadcast('organizations.delete');
-        expect(applicationStoreSpy).toHaveBeenCalled()
-      }));
-
-  it('displays confirmation dialog', function() {
-    scope.selectedApplication.name = 'new_name';
-    var e = scope.$broadcast('pageChangeStarted');
-    expect(e.defaultPrevented).toBeTruthy();
-
-    scope.selectedApplication.name = originalMockApplication.name;
-    e = scope.$broadcast('pageChangeStarted');
-    expect(e.defaultPrevented).not.toBeTruthy();
-
-    scope.generateIcon();
-    var e = scope.$broadcast('pageChangeStarted');
-    expect(e.defaultPrevented).toBeTruthy();
-
-    scope.cancel();
-    e = scope.$broadcast('pageChangeStarted');
-    expect(e.defaultPrevented).not.toBeTruthy();
-
-    scope.selectedApplication.name = 'new_name';
-    e = scope.$broadcast('pageChangeStarted', 'application/' + scope.selectedApplication.publicId);
-    expect(e.defaultPrevented).not.toBeTruthy();
-  });
-
-  it('does not cancel edits when changing between tabs', function() {
-    scope.selectedApplication.name = 'new_name';
-    e = scope.$broadcast('pageChangeAccepted', 'application/' + scope.selectedApplication.publicId);
-    expect(scope.selectedApplication.name).toEqual('new_name');
-
-    e = scope.$broadcast('pageChangeAccepted', 'organization/');
-    expect(scope.selectedApplication.name).toEqual(originalMockApplication.name);
-  });
-
-  it('broadcasts changes to owner data', inject(function(CLMAppLocations) {
-    var broadcastSpy = spyOn(scope, '$broadcast');
-    scope.applicationEditor = {};
-    scope.applicationEditor.$valid = true;
-
-    scope.selectedApplication.organizationId = 'new_org_id';
-
-    httpBackend.expectPUT(SpecUtil.toRegExp(CLMAppLocations.getEntitiesUrl(mockApplication.publicId))).respond(ApplicationMockData.getApplicationSummaryData());
-
-    scope.save();
-
-    httpBackend.flush();
-
-    expect(broadcastSpy).toHaveBeenCalledWith('ownerChanged', { ownerId : '78c1d44c07584e57945f04890c672e82', changes : [ { field : 'organizationId', newValue : 'new_org_id' } ] });
-    broadcastSpy.reset();
-
-    scope.selectedApplication.organizationId = originalMockApplication.organizationId;
-    scope.selectedApplication.name = 'new_name';
-
-    httpBackend.expectPUT(SpecUtil.toRegExp(CLMAppLocations.getEntitiesUrl(mockApplication.publicId))).respond(ApplicationMockData.getApplicationSummaryData());
-
-    scope.save();
-
-    httpBackend.flush();
-
-    expect(broadcastSpy).toHaveBeenCalledWith('ownerChanged', { ownerId : '78c1d44c07584e57945f04890c672e82', changes : [ { field : 'name', newValue : 'new_name' } ] });
-  }));
 });

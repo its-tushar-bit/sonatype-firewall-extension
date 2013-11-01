@@ -12,9 +12,12 @@ import java.util.List;
 
 import com.sonatype.insight.brain.AuthedRestAccess;
 import com.sonatype.insight.brain.TemporaryEntity;
+import com.sonatype.insight.brain.configuration.ldap.LdapServer;
+import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapServerDAO;
 import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
 import com.sonatype.insight.brain.features.FeaturesResource;
+import com.sonatype.insight.brain.ldap.EmbeddedLdapServer;
 import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Role;
@@ -28,10 +31,12 @@ import com.sonatype.insight.test.RestAccess;
 import com.ning.http.client.Cookie;
 import com.ning.http.client.Response;
 import com.yammer.dropwizard.testing.JsonHelpers;
+import org.hamcrest.MatcherAssert;
 import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
 
+import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
@@ -330,51 +335,43 @@ public class UserResourceTest
 
   @Test
   public void testFindCLMUsers() throws Exception {
-    User user = new User("testChangePassword", "testChangePasswordPassword", "testChangePasswordFirstName",
-        "testChangePasswordLastName", "testChangePassword@sonatype.com");
-    Response response = AuthedRestAccess.post(getServiceURL(), JsonHelpers.asJson(user));
-    assertResponseStatus(200, response);
-    user = JsonHelpers.fromJson(response.getResponseBody(), User.class);
-    usersToDelete.add(user);
-
-    String query = getRestBaseUrl() + "query?q=test";
-    response = AuthedRestAccess.get(query);
-    assertResponseStatus(200, response);
-    UserQueryDTO[] usersQueried = JsonHelpers.fromJson(response.getResponseBody(), UserQueryDTO[].class);
-    assertThat(usersQueried.length, is(1));
-    UserQueryDTO userQueried = usersQueried[0];
-    assertThat(userQueried.username, is("testChangePassword"));
-    assertThat(userQueried.realm, is("CLM"));
-
-    query = getRestBaseUrl() + "query?q=foo";
-    usersQueried = JsonHelpers.fromJson(response.getResponseBody(), UserQueryDTO[].class);
-    assertThat(usersQueried.length, is(0));
-  }
-
-  @Test
-  public void testFindUsers() throws Exception {
     Response response = AuthedRestAccess.get(getSearchUrl(""));
     assertResponseStatus(400, response);
 
     response = AuthedRestAccess.get(getSearchUrl(User.ADMIN_USERNAME));
     assertResponseStatus(200, response);
-    User[] users = fromJson(response, User[].class);
+    UserQueryDTO[] users = fromJson(response, UserQueryDTO[].class);
     assertThat(users, is(notNullValue()));
     assertThat(users.length, is(1));
-    assertThat(users[0].getUsername(), is(User.ADMIN_USERNAME));
+    assertThat(users[0].username, is(User.ADMIN_USERNAME));
 
     response = AuthedRestAccess.get(getSearchUrl(User.ADMIN_USERNAME.substring(0, User.ADMIN_USERNAME.length() - 1)));
     assertResponseStatus(200, response);
-    users = fromJson(response, User[].class);
+    users = fromJson(response, UserQueryDTO[].class);
     assertThat(users, is(notNullValue()));
     assertThat(users.length, is(1));
-    assertThat(users[0].getUsername(), is(User.ADMIN_USERNAME));
+    assertThat(users[0].username, is(User.ADMIN_USERNAME));
 
     response = AuthedRestAccess.get(getSearchUrl("nobody-has-such-a-name-really"));
     assertResponseStatus(200, response);
-    users = fromJson(response, User[].class);
+    users = fromJson(response, UserQueryDTO[].class);
     assertThat(users, is(notNullValue()));
     assertThat(users.length, is(0));
+  }
+
+  @Test
+  public void testFindLdapUser() throws Exception {
+    tempEntity.newLdapServer("LDAP");
+    tempEntity.newLdapConnection("LDAP Conn");
+    EmbeddedLdapServer embeddedLdapServer = EmbeddedLdapServer.newEmbeddedLdapServer();
+    embeddedLdapServer.loadData("/UserResourceTest/ldap_users.ldif");
+
+    Response response = AuthedRestAccess.get(getSearchUrl(User.ADMIN_USERNAME));
+    assertResponseStatus(200, response);
+    UserQueryDTO[] users = fromJson(response, UserQueryDTO[].class);
+    assertThat(users, is(notNullValue()));
+    assertThat(users.length, is(1));
+    assertThat(users[0].username, is(User.ADMIN_USERNAME));
   }
 
   private void assertUser(String username, String firstName, String lastName, String email, User actual) {

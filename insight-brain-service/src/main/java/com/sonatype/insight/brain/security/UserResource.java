@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.security;
 
+import java.io.Console;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -72,18 +73,40 @@ public class UserResource
       throw new BadRequestException("No search term specified.");
     }
 
-    List<UserQueryDTO> users = new ArrayList<UserQueryDTO>();
+    List<UserQueryDTO> users = new ArrayList<UserQueryDTO>() {
+      @Override
+      public boolean contains(Object o) {
+        if (o instanceof UserQueryDTO) {
+          UserQueryDTO checkDTO = (UserQueryDTO)o;
+          for (UserQueryDTO userQueryDTO : this) {
+            if (userQueryDTO.username.equals(checkDTO.username)) {
+              return true;
+            }
+          }
+        }
+        return false;
+      }
+    };
     UserDAO dao = new UserDAO();
     for (User user : dao.findUsersByName(query)) {
+
       UserQueryDTO u = new UserQueryDTO(user.getUsername(), user.getFirstName(), user.getLastName(), user.getEmail(), "CLM");
       users.add(u);
     }
 
     if (ldapManager.isLdapEnabled()) {
       String ldapName = ldapManager.getLdapName();
-      for (LdapUser user : ldapManager.findUsersByName(query, 100)) {
-        UserQueryDTO u = new UserQueryDTO(user.getUsername(), user.getRealName(), null, user.getEmail(), ldapName);
-        users.add(u);
+      Exception exp;
+      try {
+        for (LdapUser user : ldapManager.findUsersByName(query, 100)) {
+          UserQueryDTO u = new UserQueryDTO(user.getUsername(), user.getRealName(), null, user.getEmail(), ldapName);
+          // Users are shaded by any user from a higher up realm that has the same username
+          if (!users.contains(u)) {
+            users.add(u);
+          }
+        }
+      } catch (Exception ex) {
+        exp = ex;
       }
     }
     return users;
@@ -200,6 +223,8 @@ public class UserResource
     public String lastName;
     public String email;
     public String realm;
+
+    public UserQueryDTO() {}
 
     public UserQueryDTO(final String username, final String firstName, final String lastName,
                         final String email, final String realm)

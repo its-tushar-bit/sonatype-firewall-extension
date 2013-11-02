@@ -97,10 +97,6 @@ public class TemporaryEntity
 
   private Collection<LdapServer> ldapServers;
 
-  private Collection<LdapConnection> ldapConnections;
-
-  private Collection<LdapUserMapping> ldapUserMappings;
-
   @Override
   protected void before() throws Throwable {
     apps = new ArrayList<Application>();
@@ -112,8 +108,6 @@ public class TemporaryEntity
     licenseOverrides = new ArrayList<LicenseOverride>();
     waivers = new ArrayList<PolicyWaiver>();
     ldapServers = new ArrayList<LdapServer>();
-    ldapConnections = new ArrayList<LdapConnection>();
-    ldapUserMappings = new ArrayList<LdapUserMapping>();
   }
 
   @Override
@@ -161,16 +155,6 @@ public class TemporaryEntity
     for (LdapServer ldapServer : ldapServers) {
       if (ldapServerDAO.getById(ldapServer.getId()) != null) {
         ldapServerDAO.delete(ldapServer);
-      }
-    }
-    for (LdapConnection ldapConnection : ldapConnections) {
-      if (ldapConnectionDAO.getById(ldapConnection.getId()) != null) {
-        ldapConnectionDAO.delete(ldapConnection);
-      }
-    }
-    for (LdapUserMapping ldapUserMapping : ldapUserMappings) {
-      if (ldapUserMappingDAO.getById(ldapUserMapping.getId()) != null) {
-        ldapUserMappingDAO.delete(ldapUserMapping);
       }
     }
   }
@@ -289,7 +273,6 @@ public class TemporaryEntity
     ldapConnection.setAuthenticationMethod(LdapAuthenticationMethod.NONE);
     ldapConnection.setSystemUsername("system");
     ldapConnectionDAO.insert(ldapConnection);
-    ldapConnections.add(ldapConnection);
     return ldapConnection;
   }
 
@@ -303,8 +286,6 @@ public class TemporaryEntity
     umap.setUserEmailAttribute("mail");
     umap.setUserSubtree(true);
     ldapUserMappingDAO.insert(umap);
-    ldapUserMappings.add(umap);
-
     return umap;
   }
 }

@@ -9,49 +9,53 @@
 
   var reportTrendingModule = angular.module('ReportTrending', []);
 
-  reportTrendingModule.controller('TrendingReportController', ['$scope', 'trendingReportService', function($scope, trendingReportService) {
-    $scope.doLoad = function() {
-      $scope.error = null;
-      trendingReportService.get().then(function(trendingReport) {
-        $scope.data = trendingReport;
-        var calculatedData =  {
-          highPolicyCount: 0,
-          mediumPolicyCount: 0,
-          lowPolicyCount: 0,
-          nullPolicyCount: 0
-        };
-        angular.forEach($scope.data.violations, function(policy) {
-          switch (policy.threat) {
-            case 10:
-            case 9:
-            case 8:
-              calculatedData.highPolicyCount += 1;
-              break;
-            case 7:
-            case 6:
-            case 5:
-            case 4:
-              calculatedData.mediumPolicyCount += 1;
-              break;
-            case 3:
-            case 2:
-              calculatedData.lowPolicyCount += 1;
-              break;
-            case 1:
-            case 0:
-              calculatedData.nullPolicyCount += 1;
-              break;
-            default:
-              $scope.error = 'Unknown policy threat level: ' + policy.threat;
-          }
-        });
-        angular.extend($scope.data, calculatedData);
-        $scope.diffchart = '../report-assets/trending/diffChart.html?' + clmBuildTimestamp;
-        $scope.percentageChart = '../report-assets/trending/percChart.html?' + clmBuildTimestamp;
-        $scope.policyProgressionTable = '../report-assets/trending/policyProgressionTable.html?' + clmBuildTimestamp;
-      }, function(error) {
-        $scope.error = error;
+  reportTrendingModule.controller('TrendingReportController', ['$scope', 'trendingReportService', 'Messages', function($scope, trendingReportService, Messages) {
+    function setReportData(trendingReport) {
+      $scope.data = trendingReport;
+      var calculatedData =  {
+        highPolicyCount: 0,
+        mediumPolicyCount: 0,
+        lowPolicyCount: 0,
+        nullPolicyCount: 0
+      };
+      angular.forEach($scope.data.violations, function(policy) {
+        switch (policy.threat) {
+          case 10:
+          case 9:
+          case 8:
+            calculatedData.highPolicyCount += 1;
+            break;
+          case 7:
+          case 6:
+          case 5:
+          case 4:
+            calculatedData.mediumPolicyCount += 1;
+            break;
+          case 3:
+          case 2:
+            calculatedData.lowPolicyCount += 1;
+            break;
+          case 1:
+          case 0:
+            calculatedData.nullPolicyCount += 1;
+            break;
+          default:
+            $scope.error = 'Unknown policy threat level: ' + policy.threat;
+        }
       });
+      angular.extend($scope.data, calculatedData);
+      $scope.diffchart = '../report-assets/trending/diffChart.html?' + clmBuildTimestamp;
+      $scope.percentageChart = '../report-assets/trending/percChart.html?' + clmBuildTimestamp;
+      $scope.policyProgressionTable = '../report-assets/trending/policyProgressionTable.html?' + clmBuildTimestamp;
+    }
+
+    function setReportError() {
+      $scope.error = arguments;
+    }
+
+    $scope.doLoad = function(force) {
+      $scope.error = null;
+      trendingReportService.get(setReportData, setReportError, false);
     };
     $scope.doLoad();
 
@@ -66,12 +70,9 @@
     };
 
     $scope.regenerate = function() {
-      trendingReportService.regenerate();
-      $modal.open({
-        backdrop: 'static',
-        template: '<div class="modal-header"><h3>Report regeneration has beed requested</h3></div>' +
-            '<div class="modal-footer"><button class="btn" ng-click="$close()">Ok</button></div>'
-      });
+      $scope.data.meta.regenerating = true;
+      $scope.error = null;
+      trendingReportService.get(setReportData, setReportError, true);
     };
   }]);
 
@@ -384,32 +385,33 @@
     }
   ]);
 
+  // XXX why do we need this service? helper function at the module level should be enough, no?
   reportTrendingModule.service('trendingReportService', ['$http', '$q', '$timeout', 'CLMLocations', function($http, $q, $timeout, CLMLocations) {
     return {
-      get: function() {
-        var defer = $q.defer();
-        var pollFunction = function() {
-          $http.get(CLMLocations.getTrendingReportUrl(),
-            { params: { timestamp: new Date().getTime() } }).success(function(trendingReport) {
-            if (trendingReport) {
-              defer.resolve(trendingReport);
-            }
-            else {
-              $timeout(pollFunction, 2000);
-            }
-          }).error(function() {
-            return defer.reject(arguments);
-          });
+      get: function(successFn, errorFn, force) {
+        var pollFunction, httpSuccessFn;
+
+        httpSuccessFn = function(trendingReport) {
+          if (trendingReport !== null) {
+            successFn(trendingReport);
+          }
+          if (trendingReport === null || trendingReport.meta.regenerating) {
+            $timeout(pollFunction, 2000);
+          }
         };
+
+        pollFunction = function() {
+          var params = {};
+          params.timestamp = new Date().getTime();
+          if (force) {
+            params.force = true;
+          }
+          $http.get(CLMLocations.getTrendingReportUrl(), { params: params }).success(httpSuccessFn).error(errorFn);
+        };
+
         pollFunction();
-        return defer.promise;
-      },
-      regenerate: function() {
-       $http.get(CLMLocations.getTrendingReportUrl(),
-         { params: { force: true, timestamp: new Date().getTime() } }).error(function() {
-         return defer.reject(arguments);
-       });
-     }
+        force = false; // don't force regeneration during retries
+      }
     };
   }]);
 }());

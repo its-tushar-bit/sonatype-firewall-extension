@@ -73,6 +73,12 @@ public class TrendingReportServiceTest
                 @Override
                 public void calculate() {
                   generationCount.incrementAndGet();
+                  // make sure generatedOn changes
+                  try {
+                    Thread.sleep(100);
+                  }
+                  catch (InterruptedException e) {
+                  }
                   super.calculate();
                 }
               };
@@ -122,13 +128,13 @@ public class TrendingReportServiceTest
     TrendingReport cached = JsonHelpers.fromJson(response.getResponseBody(), TrendingReport.class);
     Assert.assertEquals(report.getMeta().getGeneratedOn(), cached.getMeta().getGeneratedOn());
 
-    Thread.sleep(100); // make sure generatedOn changes
-
     // force regeneration
     cacheWriteLatch = new CountDownLatch(1);
     response = AuthedRestAccess.get(getServiceURL() + "?force=true");
-    assertResponseStatus(204, response);
+    assertResponseStatus(200, response);
     Assert.assertEquals(2, generationCount.get());
+    cached = JsonHelpers.fromJson(response.getResponseBody(), TrendingReport.class);
+    Assert.assertEquals(true, cached.getMeta().getRegenerating());
     awaitForCacheWriteLatch();
 
     // regenerated from cache
@@ -137,6 +143,7 @@ public class TrendingReportServiceTest
     Assert.assertEquals(2, generationCount.get());
     TrendingReport regenerated = JsonHelpers.fromJson(response.getResponseBody(), TrendingReport.class);
     Assert.assertNotEquals(report.getMeta().getGeneratedOn(), regenerated.getMeta().getGeneratedOn());
+    Assert.assertEquals(false, regenerated.getMeta().getRegenerating());
   }
 
   @Test

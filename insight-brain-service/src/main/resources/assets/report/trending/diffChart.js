@@ -12,13 +12,13 @@ Includes the third-party code listed at http://links.sonatype.com/products/clm/a
   reportTrending = angular.module('ReportTrending');
 
   reportTrending.controller('DiffChartCtrl', [
-    '$scope', 'trendingReportService', 'colors', function($scope, trendingReportService, colors) {
-      return trendingReportService.get().then(function(results) {
+    '$scope', 'colors', function($scope, colors) {
+      $scope.$watch('data', function(newData) {
         $scope.barGraphDatas = [];
-        $scope.barGraphDatas.push(results.diffData.security);
-        $scope.barGraphDatas.push(results.diffData.license);
-        $scope.barGraphDatas.push(results.diffData.quality);
-        $scope.barGraphDatas.push(results.diffData.other);
+        $scope.barGraphDatas.push(newData.diffData.security);
+        $scope.barGraphDatas.push(newData.diffData.license);
+        $scope.barGraphDatas.push(newData.diffData.quality);
+        $scope.barGraphDatas.push(newData.diffData.other);
         $scope.barGraphMax = Math.max.apply(null, $.map($scope.barGraphDatas, function(data) {
           return $.map(data, function(threatValue) {
             if (threatValue.violations > threatValue.previousViolations) {

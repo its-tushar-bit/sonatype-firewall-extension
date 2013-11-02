@@ -8,18 +8,16 @@
 
   describe('Controller: PolicyProgressionCtrl', function() {
     var PolicyprogressionCtrl, scope;
-    beforeEach(module('ReportTrending', 'CLMLocation'));
+    beforeEach(module('ReportTrending'));
     PolicyprogressionCtrl = {};
     scope = {};
-    beforeEach(inject(function($controller, $rootScope, $httpBackend, CLMLocations) {
+    beforeEach(inject(function($controller, $rootScope) {
       scope = $rootScope.$new();
-      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getTrendingReportUrl())).respond(
-        angular.extend(angular.copy(TrendingReportMockData.get()), ChartMockData.getDiffData())
-      );
+      scope.data = angular.extend(angular.copy(TrendingReportMockData.get()), ChartMockData.getDiffData()); 
       PolicyprogressionCtrl = $controller('PolicyProgressionCtrl', {
         $scope: scope
       });
-      return $httpBackend.flush();
+      scope.$digest();
     }));
     afterEach(inject(function($httpBackend) {
       $httpBackend.verifyNoOutstandingExpectation();

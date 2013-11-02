@@ -11,20 +11,16 @@
 
   describe('Controller: DiffChartCtrl', function() {
     var DiffchartCtrl, scope;
-    beforeEach(module('ReportTrending','CLMLocation'));
+    beforeEach(module('ReportTrending'));
     DiffchartCtrl = {};
     scope = {};
-    beforeEach(inject(function($controller, $rootScope, $httpBackend, CLMLocations) {
+    beforeEach(inject(function($controller, $rootScope) {
       scope = $rootScope.$new();
-      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getTrendingReportUrl())).respond(mockData);
       DiffchartCtrl = $controller('DiffChartCtrl', {
         $scope: scope
       });
-      return $httpBackend.flush();
-    }));
-    afterEach(inject(function($httpBackend) {
-      $httpBackend.verifyNoOutstandingExpectation();
-      return $httpBackend.verifyNoOutstandingRequest();
+      scope.data = mockData;
+      scope.$digest();
     }));
     it('should provide a data selector for previous violations', function() {
       var value;

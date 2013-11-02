@@ -14,6 +14,7 @@ public class TrendingReportMetadata
   private long periodStart;
   private long periodEnd;
   private boolean canRegenerate;
+  private boolean regenerating;
 
   public TrendingReportMetadata() {
   }
@@ -60,5 +61,13 @@ public class TrendingReportMetadata
    */
   public boolean getCanRegenerate() {
     return canRegenerate;
+  }
+
+  public void setRegenerating(boolean value) {
+    this.regenerating = value;
+  }
+
+  public boolean getRegenerating() {
+    return regenerating;
   }
 }

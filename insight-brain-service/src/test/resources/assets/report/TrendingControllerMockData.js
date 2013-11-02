@@ -7,11 +7,10 @@ TrendingReportMockData = {
   get: function() {
     return {
       "meta": {
-        "generatedBy": "Author",
-        "generatedFor": "Company Name",
         "generatedOn": 1362902400000,
         "periodStart": 1362384000000,
-        "periodEnd": 1362902400000
+        "periodEnd": 1362902400000,
+        "regenerating": false
       },
       "components": {
         "inRepository": 50,

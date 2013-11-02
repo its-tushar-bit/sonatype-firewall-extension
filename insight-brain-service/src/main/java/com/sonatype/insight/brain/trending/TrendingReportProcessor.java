@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -74,7 +75,7 @@ public class TrendingReportProcessor
   /**
    * Length of reporting period, in milliseconds.
    */
-  public static final long TWENTY_DAYS_MS = 20 * 86400L * 1000L;
+  public static final long TWENTY_DAYS_MS = TimeUnit.DAYS.toMillis(20);
 
   /**
    * Number of reporting sub-periods.

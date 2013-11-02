@@ -11,18 +11,17 @@ Includes the third-party code listed at http://links.sonatype.com/products/clm/a
 
   reportTrending = angular.module('ReportTrending');
 
-  reportTrending.controller('PercChartCtrl', [
-    '$scope', 'trendingReportService', function($scope, trendingReportService) {
-      return trendingReportService.get().then(function(data) {
+  reportTrending.controller('PercChartCtrl', ['$scope', function($scope) {
+      $scope.$watch('data', function(newData) {
         $scope.applicationComponents = [
           {
-            value: data.components.exact,
+            value: newData.components.exact,
             color: '#AAA'
           }, {
-            value: data.components.partial,
+            value: newData.components.partial,
             color: '#CCC'
           }, {
-            value: data.components.unknown,
+            value: newData.components.unknown,
             color: '#e8e8e8'
           }
         ];

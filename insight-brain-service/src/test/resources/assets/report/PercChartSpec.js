@@ -8,16 +8,16 @@
 
   describe('Controller: PercChartCtrl', function() {
     var PercchartCtrl, scope;
-    beforeEach(module('ReportTrending', 'CLMLocation'));
+    beforeEach(module('ReportTrending'));
     PercchartCtrl = {};
     scope = {};
-    beforeEach(inject(function($controller, $rootScope, $httpBackend, CLMLocations) {
+    beforeEach(inject(function($controller, $rootScope) {
       scope = $rootScope.$new();
-      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getTrendingReportUrl())).respond(TrendingReportMockData.get());
+      scope.data = TrendingReportMockData.get();
       PercchartCtrl = $controller('PercChartCtrl', {
         $scope: scope
       });
-      return $httpBackend.flush();
+      scope.$digest();
     }));
     it('loads data for chart', function() {
       expect(scope.applicationComponents).toBeDefined();

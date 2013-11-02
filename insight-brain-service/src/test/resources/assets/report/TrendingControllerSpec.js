@@ -6,28 +6,6 @@
 describe('TrendingController tests', function() {
   beforeEach(module('ReportTrending', 'CLMLocation'));
 
-  beforeEach(module(function($provide) {
-    $provide.value('$modal', {
-      open: function(config) {
-        dialogScope = {};
-        dialogScope.$close = function() {
-        };
-        inject(function($controller) {
-          $controller(config.controller, {
-            $scope: dialogScope
-          });
-        });
-        return {
-          result: {
-            then: function(success, failure) {
-              success();
-            }
-          }
-        };
-      }
-    });
-  }));
-
   describe('TrendingReportController', function() {
     var scope, Jan1AtNoon = Date.UTC(2013, 0, 1, 12);
 
@@ -47,7 +25,6 @@ describe('TrendingController tests', function() {
       $httpBackend.flush();
 
       expect(scope.data).not.toBeUndefined();
-      expect(scope.data.meta.generatedBy).toBe('Author');
     }));
 
     it('should keep requesting data until it is available', inject(function($controller, $httpBackend, $timeout, CLMLocations) {
@@ -62,7 +39,6 @@ describe('TrendingController tests', function() {
       $httpBackend.flush();
 
       expect(scope.data).not.toBeUndefined();
-      expect(scope.data.meta.generatedBy).toBe('Author');
     }));
 
     it('handles errors to the trending report service', inject(function($controller, $httpBackend, CLMLocations) {
@@ -100,7 +76,7 @@ describe('TrendingController tests', function() {
       var trendingReportController = $controller('TrendingReportController', { $scope: scope });
       $httpBackend.flush();
 
-      $httpBackend.expectGET(new RegExp(CLMLocations.getTrendingReportUrl() + '\\?force=true\\&timestamp=[0-9]+')).respond(204, '');
+      $httpBackend.expectGET(new RegExp(CLMLocations.getTrendingReportUrl() + '\\?force=true\\&timestamp=[0-9]+')).respond(TrendingReportMockData.get());
       scope.regenerate();
       $httpBackend.flush();
     }));

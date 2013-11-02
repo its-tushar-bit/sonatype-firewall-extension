@@ -23,6 +23,8 @@ public class TrendingReportAsyncProcessor
 {
   private final Logger log = LoggerFactory.getLogger(getClass());
 
+  private volatile boolean running;
+
   private final TrendingReportCache cache;
 
   private final TrendingReportProcessor processor;
@@ -59,12 +61,16 @@ public class TrendingReportAsyncProcessor
         catch (IOException e) {
           log.error("Could not generate trending report", e);
         }
+        finally {
+          running = false;
+        }
       }
       log.info(getName() + " terminated");
     }
 
     public void schedule() {
       synchronized (processorLock) {
+        running = true;
         processorLock.notify();
       }
     }
@@ -80,6 +86,10 @@ public class TrendingReportAsyncProcessor
 
   public void calculate() {
     worker.schedule();
+  }
+
+  public boolean isRunning() {
+    return running;
   }
 
 }

@@ -12,10 +12,10 @@ Includes the third-party code listed at http://links.sonatype.com/products/clm/a
   reportTrending = angular.module('ReportTrending');
 
   reportTrending.controller('PolicyProgressionCtrl', [
-    '$scope', 'colors', 'trendingReportService', 'orderByFilter', function($scope, colors, trendingReportService, orderByFilter) {
+    '$scope', 'colors', 'orderByFilter', function($scope, colors, orderByFilter) {
       $scope.policies = [];
-      trendingReportService.get().then(function(results) {
-        return $scope.policies = orderByFilter(results.violations, '-threat');
+      $scope.$watch('data', function(newData) {
+        $scope.policies = orderByFilter(newData.violations, '-threat');
       });
       $scope.threatLevel = function(index) {
         var threatLevel;
@@ -38,21 +38,21 @@ Includes the third-party code listed at http://links.sonatype.com/products/clm/a
 
       $scope.lastViolationCount = function(policy) {
         if (angular.isUndefined(policy.violations) || policy.violations.length == 0) {
-          return 0
+          return 0;
         }
         return policy.violations.slice(-1)[0];
       };
 
       $scope.firstViolationCount = function(policy) {
         if (angular.isUndefined(policy.violations) || policy.violations.length == 0) {
-          return 0
+          return 0;
         }
         return policy.violations[0];
-      }
+      };
 
       $scope.violationDifference = function(policy){
         return $scope.lastViolationCount(policy) - $scope.firstViolationCount(policy);
-      }
+      };
     }
   ]);
 

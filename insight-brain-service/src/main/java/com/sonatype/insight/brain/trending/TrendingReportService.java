@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.trending;
 
 import java.io.IOException;
 import java.util.Collections;
+import java.util.concurrent.TimeUnit;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -23,6 +24,8 @@ import com.sonatype.insight.brain.security.AuthzContext;
 
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authz.UnauthorizedException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Trending report generation and caching.
@@ -35,7 +38,9 @@ public class TrendingReportService
 {
   public static final String SERVICE_PATH = "rest/trending";
 
-  public static final long CACHE_MAX_AGE_MS = 86400L * 1; // one day
+  public static final long CACHE_MAX_AGE_MS = TimeUnit.DAYS.toMillis(1); // one day
+
+  private final Logger log = LoggerFactory.getLogger(getClass());
 
   private final TrendingReportAsyncProcessor processor;
 
@@ -61,7 +66,7 @@ public class TrendingReportService
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   public TrendingReport get(@QueryParam("force") boolean force) throws IOException {
-    String username = SecurityUtils.getSubject().getPrincipal().toString();
+    final String username = SecurityUtils.getSubject().getPrincipal().toString();
 
     final boolean isAdmin = authChecker.isPermitted(username, Permission.ADMIN,
         Collections.<AuthzContext.Key, Object> emptyMap());
@@ -70,17 +75,38 @@ public class TrendingReportService
       throw new UnauthorizedException("Not authorized to force trending report regeneration");
     }
 
-    TrendingReport cached = !force ? cache.readCached() : null;
+    final TrendingReport cached = cache.readCached();
+
+    final long now = System.currentTimeMillis();
+
+    if (force || cached == null || (now - cached.getMeta().getGeneratedOn()) > CACHE_MAX_AGE_MS) {
+      if (log.isDebugEnabled()) {
+        if (force) {
+          log.debug("Regenerating trendong report: forced.");
+        }
+        else if (cached == null) {
+          log.debug("Regenerating trendong report: no cached trending report data.");
+        }
+        else {
+          log.debug("Regenerating trendong report: cached trending report data is too old ({}ms).", now
+              - cached.getMeta().getGeneratedOn());
+        }
+      }
+
+      processor.calculate();
+    }
 
     if (cached != null) {
+      final boolean regenerationRunning = processor.isRunning();
+
       cached.getMeta().setCanRegenerate(isAdmin);
-    }
+      cached.getMeta().setRegenerating(regenerationRunning);
 
-    if (cached != null && (System.currentTimeMillis() - cached.getMeta().getGeneratedOn()) < CACHE_MAX_AGE_MS) {
-      return cached;
+      log.debug("Cached trending report data age={}ms, regenerationRunning={}",
+          now - cached.getMeta().getGeneratedOn(), regenerationRunning);
+    } else {
+      log.debug("No cached trending report data");
     }
-
-    processor.calculate();
 
     return cached;
   }

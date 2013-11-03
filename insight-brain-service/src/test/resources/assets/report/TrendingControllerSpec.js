@@ -61,6 +61,17 @@ describe('TrendingController tests', function() {
 
     }));
 
+    it('generation running duration format function', inject(function($controller, $httpBackend, CLMLocations) {
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getTrendingReportUrl())).respond(TrendingReportMockData.get());
+      var trendingReportController = $controller('TrendingReportController', { $scope: scope });
+      $httpBackend.flush();
+
+      expect(scope.formatDuration).not.toBeUndefined();
+      expect(scope.formatDuration(3000)).toBe('3 seconds');
+      expect(scope.formatDuration(200000)).toBe('3 minutes');
+      expect(scope.formatDuration(8000000)).toBe('2 hours');
+    }));
+
     it('provides allows specification of a custom pattern for date formatting', inject(function($controller, $httpBackend, CLMLocations) {
       $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getTrendingReportUrl())).respond(TrendingReportMockData.get());
       $controller('TrendingReportController', { $scope: scope });

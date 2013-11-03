@@ -6,11 +6,13 @@
 package com.sonatype.insight.brain.trending;
 
 import java.io.IOException;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 
 import com.sonatype.insight.brain.model.trending.TrendingReport;
+import com.sonatype.insight.brain.trending.TrendingReportProcessor.ProgressMonitor;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,7 +25,11 @@ public class TrendingReportAsyncProcessor
 {
   private final Logger log = LoggerFactory.getLogger(getClass());
 
-  private volatile boolean running;
+  private volatile Long startTime;
+
+  private final AtomicInteger total = new AtomicInteger();
+
+  private final AtomicInteger current = new AtomicInteger();
 
   private final TrendingReportCache cache;
 
@@ -55,14 +61,15 @@ public class TrendingReportAsyncProcessor
         }
 
         try {
-          TrendingReport report = processor.calculate();
+          beforeStart();
+          TrendingReport report = processor.calculate(newProgressMonitor());
           cache.writeCache(report);
         }
         catch (IOException e) {
           log.error("Could not generate trending report", e);
         }
         finally {
-          running = false;
+          afterFinish();
         }
       }
       log.info(getName() + " terminated");
@@ -70,7 +77,6 @@ public class TrendingReportAsyncProcessor
 
     public void schedule() {
       synchronized (processorLock) {
-        running = true;
         processorLock.notify();
       }
     }
@@ -88,8 +94,38 @@ public class TrendingReportAsyncProcessor
     worker.schedule();
   }
 
-  public boolean isRunning() {
-    return running;
+  protected void beforeStart() {
+    startTime = new Long(System.currentTimeMillis());
+    total.set(0);
+    current.set(0);
   }
 
+  protected void afterFinish() {
+    startTime = null;
+    total.set(0);
+    current.set(0);
+  }
+
+  public long getStartTime() {
+    return startTime != null ? startTime : -1;
+  }
+
+  public int getTotal() {
+    return total.get();
+  }
+
+  public int getCurrent() {
+    return current.get();
+  }
+
+  protected ProgressMonitor newProgressMonitor() {
+    return new ProgressMonitor()
+    {
+      @Override
+      public void tick(int total, int current) {
+        TrendingReportAsyncProcessor.this.total.set(total);
+        TrendingReportAsyncProcessor.this.current.set(current);
+      }
+    };
+  }
 }

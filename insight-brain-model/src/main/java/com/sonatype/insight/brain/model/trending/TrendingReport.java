@@ -16,6 +16,7 @@ import java.util.Map;
 public class TrendingReport
 {
   private TrendingReportMetadata meta;
+  private TrendingReportGenerationMetadata generation;
   private ComponentsSummary components;
   private Applications applications;
   private List<PolicyViolation> violations;
@@ -114,5 +115,13 @@ public class TrendingReport
    */
   public PoliciesSummary getPolicies() {
     return policies;
+  }
+
+  public void setGeneration(TrendingReportGenerationMetadata generation) {
+    this.generation = generation;
+  }
+
+  public TrendingReportGenerationMetadata getGeneration() {
+    return generation;
   }
 }

@@ -104,6 +104,11 @@ public class TrendingReportProcessor
    */
   public static final String STAGE_ID = BuildStageType.ID;
 
+  public static interface ProgressMonitor
+  {
+    public void tick(int total, int current);
+  };
+
   private final InsightWork work;
 
   private final PolicyEvaluationUtils policyEvaluationUtils;
@@ -119,7 +124,7 @@ public class TrendingReportProcessor
    * 
    * @since 1.7
    */
-  public TrendingReport calculate() throws IOException {
+  public TrendingReport calculate(ProgressMonitor monitor) throws IOException {
     final long now = new Date().getTime();
 
     TrendingReportMetadata meta = new TrendingReportMetadata(now, now - TWENTY_DAYS_MS, now);
@@ -150,16 +155,21 @@ public class TrendingReportProcessor
     }
     componentRisks.put("all", new HashMap<List<String>, int[]>());
 
-    for (Application app : new ApplicationDAO().getAll()) {
+    final List<Application> applications = new ArrayList<Application>(new ApplicationDAO().getAll());
+    for (int applicationNo = 0; applicationNo < applications.size(); applicationNo++) {
+      monitor.tick(applications.size(), applicationNo);
+
+      final Application application = applications.get(applicationNo);
+
       // alerts counts in this application
       int criticalAlerts = 0, severeAlerts = 0, moderateAlerts = 0, totalAlerts = 0;
-      PolicyEvaluationLog evalLog = new PolicyEvaluationLog(work.getAuditDir(app.getId()));
+      PolicyEvaluationLog evalLog = new PolicyEvaluationLog(work.getAuditDir(application.getId()));
 
       // most recent evaluation in each reporting period
       // index==0 is most recent evaluation *before* first reporting period
       PolicyEvaluation[] periods = new PolicyEvaluation[PERIOD_COUNT + 1];
       for (PolicyEvaluation eval : evalLog.allByStage(STAGE_ID)) {
-        if (ReportResource.getReport(work, app.getId(), eval.getScanId()) == null) {
+        if (ReportResource.getReport(work, application.getId(), eval.getScanId()) == null) {
           continue;
         }
 
@@ -195,7 +205,7 @@ public class TrendingReportProcessor
       for (int period = 1; period < periods.length; period++) {
         PolicyEvaluation eval = periods[period];
         if (eval != null) {
-          for (PolicyAlert alert : policyEvaluationUtils.findPolicyAlerts(app.getId(), eval.getScanId())) {
+          for (PolicyAlert alert : policyEvaluationUtils.findPolicyAlerts(application.getId(), eval.getScanId())) {
             PolicyFact policyFact = alert.getTrigger();
             for (ComponentFact componentFact : policyFact.getComponentFacts()) {
               String category = getViolationCategory(componentFact.getConstraintFacts());
@@ -213,7 +223,7 @@ public class TrendingReportProcessor
       }
 
       // component counts in the latest report
-      File evalFile = ReportResource.getReport(work, app.getId(), lastEval.getScanId());
+      File evalFile = ReportResource.getReport(work, application.getId(), lastEval.getScanId());
       JsonNode bomNode = JsonUtils.parse(Report.getEntry(evalFile, "bom.json").buf);
       for (JsonNode componentNode : bomNode.get("aaData")) {
         String matchState = componentNode.path("matchState").asText();
@@ -231,7 +241,7 @@ public class TrendingReportProcessor
       }
 
       // application policy alert counts in the latest report
-      for (PolicyAlert alert : policyEvaluationUtils.findPolicyAlerts(app.getId(), lastEval.getScanId())) {
+      for (PolicyAlert alert : policyEvaluationUtils.findPolicyAlerts(application.getId(), lastEval.getScanId())) {
         PolicyFact policyFact = alert.getTrigger();
         int level = policyFact.getThreatLevel();
         List<ComponentFact> componentFacts = policyFact.getComponentFacts();
@@ -265,7 +275,7 @@ public class TrendingReportProcessor
       // previous categories
       PolicyEvaluation firstEval = periods[0];
       if (firstEval != null && lastEval.getTime() > firstEval.getTime()) {
-        for (PolicyAlert alert : policyEvaluationUtils.findPolicyAlerts(app.getId(), firstEval.getScanId())) {
+        for (PolicyAlert alert : policyEvaluationUtils.findPolicyAlerts(application.getId(), firstEval.getScanId())) {
           PolicyFact policyFact = alert.getTrigger();
           int level = policyFact.getThreatLevel();
           List<ComponentFact> componentFacts = policyFact.getComponentFacts();
@@ -275,9 +285,11 @@ public class TrendingReportProcessor
           }
         }
       }
-      applicationRisks.add(new ApplicationRiskSummary(app.getName(), criticalAlerts, severeAlerts, moderateAlerts,
-          totalAlerts - criticalAlerts - severeAlerts - moderateAlerts));
+      applicationRisks.add(new ApplicationRiskSummary(application.getName(), criticalAlerts, severeAlerts,
+          moderateAlerts, totalAlerts - criticalAlerts - severeAlerts - moderateAlerts));
     }
+
+    monitor.tick(applications.size(), applications.size());
 
     return new TrendingReport(meta, toComponentsSummary(components), toApplications(applicationRisks),
         toPolicyViolations(policyViolations), toPartialMatches(partialMatches), toDiffData(categories,

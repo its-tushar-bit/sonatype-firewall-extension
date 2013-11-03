@@ -5,16 +5,19 @@
  */
 package com.sonatype.insight.brain.trending;
 
-import java.io.IOException;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import com.sonatype.insight.brain.AuthedRestAccess;
+import com.sonatype.insight.brain.TemporaryEntity;
+import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.trending.TrendingReport;
 import com.sonatype.insight.brain.service.AbstractResourceAuthzTest;
-import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.service.TestInsightBrainService;
+import com.sonatype.insight.brain.trending.TrendingReportProcessor.ProgressMonitor;
 import com.sonatype.insight.test.RestAccess;
 
 import com.google.inject.AbstractModule;
@@ -22,13 +25,82 @@ import com.google.inject.Provider;
 import com.ning.http.client.Response;
 import com.yammer.dropwizard.testing.JsonHelpers;
 import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 
 public class TrendingReportServiceTest
     extends AbstractResourceAuthzTest
 {
-  private final AtomicInteger generationCount = new AtomicInteger();
-  private volatile CountDownLatch cacheWriteLatch;
+  private static enum Checkpoint
+  {
+    /**
+     * Report (re)generation was requested but worker thread has not started yet, generating==false. Triggered
+     * synchronously from client thread.
+     */
+    SCHEDULED,
+
+    /**
+     * Worker thread started report generation, generating==true
+     */
+    STARTED,
+
+    /**
+     * Worker thread started processing an application.
+     */
+    APPLICATION,
+
+    /**
+     * Worked thread finished report generation, generating==false
+     */
+    FINISHED;
+  };
+
+  private final Map<Checkpoint, CountDownLatch> checkpoints = new ConcurrentHashMap<Checkpoint, CountDownLatch>();
+  private final Map<Checkpoint, AtomicInteger> executions = new ConcurrentHashMap<Checkpoint, AtomicInteger>();
+  private final Map<Checkpoint, CountDownLatch> breakpoints = new ConcurrentHashMap<Checkpoint, CountDownLatch>();
+
+  private void awaitCheckpoint(Checkpoint checkpoint) throws InterruptedException {
+    Assert.assertTrue(checkpoint + " await", checkpoints.get(checkpoint).await(20, TimeUnit.SECONDS));
+    // rearm checkpoint latch. this assumes tests are executed serially
+    checkpoints.put(checkpoint, new CountDownLatch(1));
+  }
+
+  private void assertCheckpointExecutionCount(int expected, Checkpoint checkpint) {
+    Assert.assertEquals(checkpint + " execution count", expected, executions.get(checkpint).get());
+  }
+
+  private void enableBreakpoint(Checkpoint checkpoint) {
+    Assert.assertTrue(checkpoint + " unique breakpoint", breakpoints.put(checkpoint, new CountDownLatch(1)) == null);
+  }
+
+  private void releaseBreakpoint(Checkpoint checkpoint) {
+    final CountDownLatch breakpoint = breakpoints.remove(checkpoint);
+    Assert.assertNotNull(checkpoint + " breakpoint enabled", breakpoint);
+    breakpoint.countDown();
+  }
+
+  private void enterCheckpoint(Checkpoint checkpoint) {
+    executions.get(checkpoint).incrementAndGet();
+    checkpoints.get(checkpoint).countDown();
+    final CountDownLatch breakpoint = breakpoints.get(checkpoint);
+    if (breakpoint != null) {
+      try {
+        breakpoint.await(20, TimeUnit.SECONDS);
+      }
+      catch (InterruptedException e) {
+        throw new AssertionError(checkpoint + " enter", e);
+      }
+    }
+  }
+
+  @Before
+  public void setupCheckpoints() {
+    for (Checkpoint checkpoint : Checkpoint.values()) {
+      checkpoints.put(checkpoint, new CountDownLatch(1));
+      executions.put(checkpoint, new AtomicInteger());
+    }
+  }
 
   @Override
   protected void configureBrain(TestInsightBrainService brain) {
@@ -37,30 +109,8 @@ public class TrendingReportServiceTest
     {
       @Override
       protected void configure() {
-        final Provider<InsightWork> insightWorkProvider = getProvider(InsightWork.class);
         final Provider<TrendingReportProcessor> processorProvider = getProvider(TrendingReportProcessor.class);
-        final Provider<TrendingReportCache> cacheProvider = new Provider<TrendingReportCache>()
-        {
-          private TrendingReportCache cache;
-
-          @Override
-          public TrendingReportCache get() {
-            if (cache == null) {
-              cache = new TrendingReportCache(insightWorkProvider.get())
-              {
-                @Override
-                public void writeCache(TrendingReport report) throws IOException {
-                  super.writeCache(report);
-                  if (cacheWriteLatch != null) {
-                    cacheWriteLatch.countDown();
-                  }
-                }
-              };
-            }
-            return cache;
-          }
-        };
-        bind(TrendingReportCache.class).toProvider(cacheProvider);
+        final Provider<TrendingReportCache> cacheProvider = getProvider(TrendingReportCache.class);
         bind(TrendingReportAsyncProcessor.class).toProvider(new Provider<TrendingReportAsyncProcessor>()
         {
           private TrendingReportAsyncProcessor asyncProcessor;
@@ -72,15 +122,34 @@ public class TrendingReportServiceTest
               {
                 @Override
                 public void calculate() {
-                  generationCount.incrementAndGet();
-                  // make sure generatedOn changes
-                  try {
-                    Thread.sleep(100);
-                  }
-                  catch (InterruptedException e) {
-                  }
+                  enterCheckpoint(Checkpoint.SCHEDULED);
                   super.calculate();
                 }
+
+                @Override
+                protected void beforeStart() {
+                  super.beforeStart();
+                  enterCheckpoint(Checkpoint.STARTED);
+                };
+
+                @Override
+                protected void afterFinish() {
+                  super.afterFinish();
+                  enterCheckpoint(Checkpoint.FINISHED);
+                };
+
+                @Override
+                protected ProgressMonitor newProgressMonitor() {
+                  final ProgressMonitor monitor = super.newProgressMonitor();
+                  return new ProgressMonitor()
+                  {
+                    @Override
+                    public void tick(int total, int current) {
+                      monitor.tick(total, current);
+                      enterCheckpoint(Checkpoint.APPLICATION);
+                    }
+                  };
+                };
               };
             }
             return asyncProcessor;
@@ -94,101 +163,107 @@ public class TrendingReportServiceTest
   public void startService() throws Exception {
     super.startService();
     brain.getInjector().getInstance(TrendingReportCache.class).getCacheFile().delete();
-    cacheWriteLatch = null;
-    generationCount.set(0);
   }
 
-  @Override
-  public void stopService() throws Exception {
-    cacheWriteLatch = null;
-    super.stopService();
-  }
+  @Rule
+  public TemporaryEntity temporaryEntiry = new TemporaryEntity();
 
   @Test
   public void testBasic() throws Exception {
+    Response response;
+
     // initial generation
-    cacheWriteLatch = new CountDownLatch(1);
-    generationCount.set(0);
-    Response response = AuthedRestAccess.get(getServiceURL());
-    assertResponseStatus(204, response); // no data
-    Assert.assertEquals(1, generationCount.get());
-    awaitForCacheWriteLatch();
+    assertResponseStatus(204, AuthedRestAccess.get(getServiceURL())); // no data
+    awaitCheckpoint(Checkpoint.FINISHED); // waits generation complete, fails with timeout if generation didn't happen
 
     // from cache
     response = AuthedRestAccess.get(getServiceURL());
     assertResponseStatus(200, response);
-    Assert.assertEquals(1, generationCount.get());
+    assertCheckpointExecutionCount(1, Checkpoint.SCHEDULED);
     TrendingReport report = JsonHelpers.fromJson(response.getResponseBody(), TrendingReport.class);
-    Assert.assertEquals(true, report.getMeta().getCanRegenerate());
 
     // from cache again
     response = AuthedRestAccess.get(getServiceURL());
     assertResponseStatus(200, response);
-    Assert.assertEquals(1, generationCount.get());
+    assertCheckpointExecutionCount(1, Checkpoint.SCHEDULED);
     TrendingReport cached = JsonHelpers.fromJson(response.getResponseBody(), TrendingReport.class);
-    Assert.assertEquals(report.getMeta().getGeneratedOn(), cached.getMeta().getGeneratedOn());
+    Assert.assertEquals("generatedOn", report.getMeta().getGeneratedOn(), cached.getMeta().getGeneratedOn());
+  }
 
-    // force regeneration
-    cacheWriteLatch = new CountDownLatch(1);
-    response = AuthedRestAccess.get(getServiceURL() + "?force=true");
-    assertResponseStatus(200, response);
-    Assert.assertEquals(2, generationCount.get());
-    cached = JsonHelpers.fromJson(response.getResponseBody(), TrendingReport.class);
-    Assert.assertEquals(true, cached.getMeta().getRegenerating());
-    awaitForCacheWriteLatch();
+  @Test
+  public void testRegenerate() throws Exception {
 
-    // regenerated from cache
+    Organization organization = temporaryEntiry.newOrganization();
+    temporaryEntiry.newApplication("app1", "app1", organization.getId());
+    temporaryEntiry.newApplication("app2", "app2", organization.getId());
+    temporaryEntiry.newApplication("app3", "app3", organization.getId());
+
+    Response response;
+
+    // prime cached report data
+    assertResponseStatus(204, AuthedRestAccess.get(getServiceURL())); // no data
+    awaitCheckpoint(Checkpoint.FINISHED); // waits generation complete, fails with timeout if generation didn't happen
+
+    // get cached report, make sure regeneration is allowed
     response = AuthedRestAccess.get(getServiceURL());
     assertResponseStatus(200, response);
-    Assert.assertEquals(2, generationCount.get());
+    assertCheckpointExecutionCount(1, Checkpoint.SCHEDULED);
+    TrendingReport report = JsonHelpers.fromJson(response.getResponseBody(), TrendingReport.class);
+    Assert.assertEquals("canGenerate", true, report.getGeneration().isEnabled());
+
+    // trigger report regeneration
+    enableBreakpoint(Checkpoint.APPLICATION);
+    response = AuthedRestAccess.get(getServiceURL() + "?force=true");
+    assertResponseStatus(200, AuthedRestAccess.get(getServiceURL()));
+    TrendingReport cached = JsonHelpers.fromJson(response.getResponseBody(), TrendingReport.class);
+    Assert.assertEquals("generation", true, cached.getGeneration().isRunning());
+
+    // get cached report data while regeneration is still running
+    awaitCheckpoint(Checkpoint.APPLICATION);
+    response = AuthedRestAccess.get(getServiceURL());
+    assertResponseStatus(200, AuthedRestAccess.get(getServiceURL()));
+    cached = JsonHelpers.fromJson(response.getResponseBody(), TrendingReport.class);
+    Assert.assertEquals("generation", true, cached.getGeneration().isRunning());
+    Assert.assertEquals("generation total", 4, cached.getGeneration().getApplicationsTotal());
+    Assert.assertEquals("generation current", 0, cached.getGeneration().getApplicationsCurrent());
+    releaseBreakpoint(Checkpoint.APPLICATION);
+
+    // get regenerated report data
+    awaitCheckpoint(Checkpoint.FINISHED);
+    response = AuthedRestAccess.get(getServiceURL());
+    assertResponseStatus(200, AuthedRestAccess.get(getServiceURL()));
     TrendingReport regenerated = JsonHelpers.fromJson(response.getResponseBody(), TrendingReport.class);
-    Assert.assertNotEquals(report.getMeta().getGeneratedOn(), regenerated.getMeta().getGeneratedOn());
-    Assert.assertEquals(false, regenerated.getMeta().getRegenerating());
+    Assert.assertNotEquals("generatedOn", cached.getMeta().getGeneratedOn(), regenerated.getMeta().getGeneratedOn());
+    Assert.assertEquals("generating", false, regenerated.getGeneration().isRunning());
   }
 
   @Test
   public void testRegenerateNonAdminUser() throws Exception {
+    Response response;
+
     // initial generation
-    cacheWriteLatch = new CountDownLatch(1);
-    generationCount.set(0);
-    Response response = RestAccess.get(getServiceURL(), unauthorized.getUsername(), unauthorized.getPassword());
-    assertResponseStatus(204, response); // no data
-    Assert.assertEquals(1, generationCount.get());
-    awaitForCacheWriteLatch();
+    assertResponseStatus(204, RestAccess.get(getServiceURL(), unauthorized.getUsername(), unauthorized.getPassword()));
+    awaitCheckpoint(Checkpoint.FINISHED); // waits generation complete, fails with timeout if generation didn't happen
 
     // from cache
     response = RestAccess.get(getServiceURL(), unauthorized.getUsername(), unauthorized.getPassword());
     assertResponseStatus(200, response);
-    Assert.assertEquals(1, generationCount.get());
+    assertCheckpointExecutionCount(1, Checkpoint.SCHEDULED);
     TrendingReport report = JsonHelpers.fromJson(response.getResponseBody(), TrendingReport.class);
-    Assert.assertEquals(false, report.getMeta().getCanRegenerate());
+    Assert.assertEquals("canGenerate", false, report.getGeneration().isEnabled());
 
     // force regeneration forbidden
-    cacheWriteLatch = new CountDownLatch(1);
     response = RestAccess.get(getServiceURL() + "?force=true", unauthorized.getUsername(), unauthorized.getPassword());
     assertResponseStatus(403, response);
-    Assert.assertEquals(1, generationCount.get());
+    assertCheckpointExecutionCount(1, Checkpoint.SCHEDULED);
   }
 
   @Test
   public void testAnonymous() throws Exception {
-    Response response = RestAccess.get(getServiceURL());
-    assertResponseStatus(401, response);
+    assertResponseStatus(401, RestAccess.get(getServiceURL()));
   }
 
   private String getServiceURL() {
     return getRestBaseUrl() + TrendingReportService.SERVICE_PATH;
   }
-
-  private void awaitForCacheWriteLatch() throws InterruptedException {
-    try {
-      if (!cacheWriteLatch.await(20, TimeUnit.SECONDS)) {
-        Assert.fail("Report was not generated");
-      }
-    }
-    finally {
-      cacheWriteLatch = null;
-    }
-  }
-
 }

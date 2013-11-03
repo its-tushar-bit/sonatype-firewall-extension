@@ -10,8 +10,26 @@
   var reportTrendingModule = angular.module('ReportTrending', []);
 
   reportTrendingModule.controller('TrendingReportController', ['$scope', 'trendingReportService', 'Messages', function($scope, trendingReportService, Messages) {
+    function formatDuration(durationMs) {
+      var durationText;
+      if (durationMs < 120000) {
+        durationText = Math.round(durationMs/1000) + ' seconds';
+      } else if (durationMs < 7200000) {
+        durationText = Math.round(durationMs/60000) + ' minutes';
+      } else {
+        durationText = Math.round(durationMs/3600000) + ' hours';
+      }
+      return durationText;
+    }
+
     function setReportData(trendingReport) {
       $scope.data = trendingReport;
+
+      if (trendingReport.generation.running) {
+        $scope.generationProgressTooltip = 'Report generation running ' + formatDuration(trendingReport.generation.runningTime) 
+          + ', total number of applications ' + trendingReport.generation.applicationsTotal 
+          + ', applications processed so far ' + trendingReport.generation.applicationsCurrent;
+      }
       var calculatedData =  {
         highPolicyCount: 0,
         mediumPolicyCount: 0,
@@ -68,9 +86,10 @@
       }
       return fmtG(new Date(date));
     };
+    $scope.formatDuration = formatDuration; // for testing purposes
 
     $scope.regenerate = function() {
-      $scope.data.meta.regenerating = true;
+      $scope.data.generation.running = true;
       $scope.error = null;
       trendingReportService.get(setReportData, setReportError, true);
     };
@@ -385,8 +404,7 @@
     }
   ]);
 
-  // XXX why do we need this service? helper function at the module level should be enough, no?
-  reportTrendingModule.service('trendingReportService', ['$http', '$q', '$timeout', 'CLMLocations', function($http, $q, $timeout, CLMLocations) {
+  reportTrendingModule.service('trendingReportService', ['$http', '$timeout', 'CLMLocations', function($http, $timeout, CLMLocations) {
     return {
       get: function(successFn, errorFn, force) {
         var pollFunction, httpSuccessFn;
@@ -395,7 +413,7 @@
           if (trendingReport !== null) {
             successFn(trendingReport);
           }
-          if (trendingReport === null || trendingReport.meta.regenerating) {
+          if (trendingReport === null || trendingReport.generation.running) {
             $timeout(pollFunction, 2000);
           }
         };

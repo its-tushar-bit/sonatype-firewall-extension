@@ -7,10 +7,13 @@ package com.sonatype.insight.brain.trending;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.TemporaryEntity;
@@ -34,6 +37,7 @@ import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.trending.ReportBuilder.ConstraintFactBuilder;
 import com.sonatype.insight.brain.trending.ReportBuilder.PolicyAlertBuilder;
+import com.sonatype.insight.brain.trending.TrendingReportProcessor.ProgressMonitor;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -43,7 +47,7 @@ import org.junit.rules.TemporaryFolder;
 
 public class TrendingReportProcessorTest
 {
-  private static final long ONE_DAY_MS = 86400L * 1000;
+  private static final long ONE_DAY_MS = TimeUnit.DAYS.toMillis(1);
 
   private TrendingReportProcessor processor;
   private InsightWork insightWork;
@@ -68,7 +72,7 @@ public class TrendingReportProcessorTest
   @Test
   public void testMetadata() throws Exception {
     long beforeGeneration = new Date().getTime();
-    TrendingReport report = processor.calculate();
+    TrendingReport report = calculateReport();
     long afterGeneration = new Date().getTime();
 
     TrendingReportMetadata meta = report.getMeta();
@@ -85,7 +89,7 @@ public class TrendingReportProcessorTest
     builder.addComponent().setGAV("c", "c", "c").setHash("C").setMatchState(MatchState.UNKNOWN);
     createScan(application, builder);
 
-    TrendingReport report = processor.calculate();
+    TrendingReport report = calculateReport();
 
     ComponentsSummary components = report.getComponents();
     Assert.assertEquals(1, components.getExact());
@@ -126,7 +130,7 @@ public class TrendingReportProcessorTest
     builder.addPolicyAlert("i", 5).addComponentFact("i").addConstraintFact().addConditionFact("i");
     createScan(createApplication("testApp6"), builder);
 
-    TrendingReport report = processor.calculate();
+    TrendingReport report = calculateReport();
 
     Applications applications = report.getApplications();
 
@@ -162,7 +166,7 @@ public class TrendingReportProcessorTest
     createScan(application, builder, time - (1 * ONE_DAY_MS)); // this is expected to be ignored
     createScan(application, builder, time);
 
-    TrendingReport report = processor.calculate();
+    TrendingReport report = calculateReport();
 
     List<PolicyViolation> violations = report.getViolations();
     Assert.assertEquals(1, violations.size());
@@ -178,7 +182,7 @@ public class TrendingReportProcessorTest
     long time = System.currentTimeMillis();
     createScan(application, builder, time - (40 * ONE_DAY_MS));
 
-    TrendingReport report = processor.calculate();
+    TrendingReport report = calculateReport();
 
     List<PolicyViolation> violations = report.getViolations();
     Assert.assertEquals(1, violations.size());
@@ -194,7 +198,7 @@ public class TrendingReportProcessorTest
     long time = System.currentTimeMillis();
     createScan(application, builder, time - (21 * ONE_DAY_MS));
 
-    TrendingReport report = processor.calculate();
+    TrendingReport report = calculateReport();
 
     List<PolicyViolation> violations = report.getViolations();
     Assert.assertEquals(1, violations.size());
@@ -210,7 +214,7 @@ public class TrendingReportProcessorTest
     long time = System.currentTimeMillis();
     createScan(application, builder, time);
 
-    TrendingReport report = processor.calculate();
+    TrendingReport report = calculateReport();
 
     List<PolicyViolation> violations = report.getViolations();
     Assert.assertEquals(1, violations.size());
@@ -227,7 +231,7 @@ public class TrendingReportProcessorTest
     createScan(application, builder, time - (1 * ONE_DAY_MS));
     createScan(application, null, time); // empty report, should be ignored
 
-    TrendingReport report = processor.calculate();
+    TrendingReport report = calculateReport();
 
     List<PolicyViolation> violations = report.getViolations();
     Assert.assertEquals(1, violations.size());
@@ -257,7 +261,7 @@ public class TrendingReportProcessorTest
     other.addConditionFact("other");
     createScan(application, builder);
 
-    TrendingReport report = processor.calculate();
+    TrendingReport report = calculateReport();
     List<PolicyViolation> violations = report.getViolations();
     Assert.assertEquals(5, violations.size());
     assertPolicyViolations(violations, "a", "security", 0);
@@ -300,7 +304,7 @@ public class TrendingReportProcessorTest
 
     createScan(application, builder);
 
-    TrendingReport report = processor.calculate();
+    TrendingReport report = calculateReport();
 
     List<PartialMatch> partialMatches = report.getPartialMatches();
 
@@ -327,7 +331,7 @@ public class TrendingReportProcessorTest
     builder.addPolicyAlert("a", 0).addComponentFact("a").addConstraintFact().addConditionFact("security");
     createScan(application, builder, now - (1 * ONE_DAY_MS)); // previous
 
-    TrendingReport report = processor.calculate();
+    TrendingReport report = calculateReport();
 
     Map<String, List<DiffData>> diffData = report.getDiffData();
 
@@ -347,7 +351,7 @@ public class TrendingReportProcessorTest
     builder.addPolicyAlert("a", 0).addComponentFact("a").addConstraintFact().addConditionFact("security");
     createScan(application, builder, now - (21 * ONE_DAY_MS));
 
-    TrendingReport report = processor.calculate();
+    TrendingReport report = calculateReport();
 
     Map<String, List<DiffData>> diffData = report.getDiffData();
 
@@ -364,7 +368,7 @@ public class TrendingReportProcessorTest
     builder.addPolicyAlert("a", 0).addComponentFact("a").addConstraintFact().addConditionFact("security");
     createScan(application, builder, now - (1 * ONE_DAY_MS));
 
-    TrendingReport report = processor.calculate();
+    TrendingReport report = calculateReport();
 
     Map<String, List<DiffData>> diffData = report.getDiffData();
 
@@ -401,7 +405,7 @@ public class TrendingReportProcessorTest
         .addConditionFact("security");
     createScan(application, builder);
 
-    TrendingReport report = processor.calculate();
+    TrendingReport report = calculateReport();
     Map<String, List<ComponentRiskSummary>> risks = report.getTopPolicyViolations();
     List<ComponentRiskSummary> securityRisks = risks.get("security");
     Assert.assertEquals(TrendingReportProcessor.COMPONENT_RISKS_COUNT, securityRisks.size());
@@ -436,13 +440,40 @@ public class TrendingReportProcessorTest
         .addConditionFact("security");
     createScan(application, builder);
 
-    TrendingReport report = processor.calculate();
+    TrendingReport report = calculateReport();
     PoliciesSummary policiesSummary = report.getPolicies();
     Assert.assertEquals(1, policiesSummary.getCritical());
     Assert.assertEquals(2, policiesSummary.getSevere());
     Assert.assertEquals(1, policiesSummary.getModerate());
     Assert.assertEquals(1, policiesSummary.getNone());
     Assert.assertEquals(5, policiesSummary.getTotal());
+  }
+
+  @Test
+  public void testProgressMonitor() throws Exception {
+    createApplication("testApp1");
+    createApplication("testApp2");
+    createApplication("testApp");
+
+    final List<String> ticks = new ArrayList<String>();
+    processor.calculate(new ProgressMonitor()
+    {
+      @Override
+      public void tick(int total, int current) {
+        ticks.add(String.format("t=%d;c=%d", total, current));
+      }
+    });
+
+    Assert.assertEquals(Arrays.asList("t=3;c=0", "t=3;c=1", "t=3;c=2", "t=3;c=3"), ticks);
+  }
+
+  private TrendingReport calculateReport() throws IOException {
+    return processor.calculate(new ProgressMonitor()
+    {
+      @Override
+      public void tick(int total, int current) {
+      }
+    });
   }
 
   private void assertComponentRisk(ComponentRiskSummary componentRisk, String groupId, String artifactId,

@@ -10,7 +10,13 @@ TrendingReportMockData = {
         "generatedOn": 1362902400000,
         "periodStart": 1362384000000,
         "periodEnd": 1362902400000,
-        "regenerating": false
+      },
+      "generation": {
+        "enabled": true,
+        "running": false,
+        "runningTime": -1,
+        "applicationsTotal": 0,
+        "applicationsCurrent": 0
       },
       "components": {
         "inRepository": 50,

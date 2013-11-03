@@ -19,6 +19,7 @@ import javax.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.trending.TrendingReport;
+import com.sonatype.insight.brain.model.trending.TrendingReportGenerationMetadata;
 import com.sonatype.insight.brain.security.AuthorizationChecker;
 import com.sonatype.insight.brain.security.AuthzContext;
 
@@ -97,13 +98,15 @@ public class TrendingReportService
     }
 
     if (cached != null) {
-      final boolean regenerationRunning = processor.isRunning();
+      final long startTime = processor.getStartTime();
+      final long time = startTime >= 0 ? now - startTime : (force ? 0 : -1);
+      final int total = processor.getTotal();
+      final int current = processor.getCurrent();
 
-      cached.getMeta().setCanRegenerate(isAdmin);
-      cached.getMeta().setRegenerating(regenerationRunning);
+      cached.setGeneration(new TrendingReportGenerationMetadata(isAdmin, time, total, current));
 
-      log.debug("Cached trending report data age={}ms, regenerationRunning={}",
-          now - cached.getMeta().getGeneratedOn(), regenerationRunning);
+      log.debug("Cached trending report data age={}ms, generationTime={}, generationTotal={}, generationCurrent={}",
+    now - cached.getMeta().getGeneratedOn(), time, total, current);
     } else {
       log.debug("No cached trending report data");
     }

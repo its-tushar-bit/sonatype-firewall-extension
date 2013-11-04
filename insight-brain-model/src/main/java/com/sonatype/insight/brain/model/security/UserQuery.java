@@ -68,8 +68,7 @@ public class UserQuery implements Comparable<Object>
     if (getClass() != obj.getClass()) {
       return false;
     }
-    final UserQuery other = (UserQuery)obj;
-    return this.username.equalsIgnoreCase(other.username);
+    return compareTo(obj) == 0;
   }
 
   @Override

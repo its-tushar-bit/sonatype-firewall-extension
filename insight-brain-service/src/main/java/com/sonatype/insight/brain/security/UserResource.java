@@ -30,7 +30,6 @@ import com.sonatype.insight.brain.ldap.LdapManager;
 import com.sonatype.insight.brain.ldap.LdapUser;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.User;
-import com.sonatype.insight.brain.model.security.UserQuery;
 import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.apache.commons.lang.StringUtils;

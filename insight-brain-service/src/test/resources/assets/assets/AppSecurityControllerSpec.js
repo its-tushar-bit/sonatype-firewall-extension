@@ -117,8 +117,7 @@ describe('AppSecurityControllerSpec', function() {
       scope.$apply(function () {
         scope.addUser({
           username : 'testuser',
-          firstName : 'Fred',
-          lastName : 'Flintstone'
+          displayName : 'Fred Flintstone'
         });
       });
       expect(parentScope.mappings[0].members).toEqual([{
@@ -147,57 +146,27 @@ describe('AppSecurityControllerSpec', function() {
       $httpBackend.flush();
     }));
 
-    // Text used for when showing users
-    it('Name', function () {
-      expect(scope.getRealname({
-        firstName : 'Bob',
-        lastName : 'Uruncle'
-      })).toEqual('Bob Uruncle');
-
-      expect(scope.getRealname({
-        lastName : 'Uruncle'
-      })).toEqual('Uruncle');
-
-      expect(scope.getRealname({
-        firstName : 'Bob'
-      })).toEqual('Bob');
-    });
-
     // Text used for mouseover on users
     it('Tooltip', function () {
       expect(scope.getTooltip({
-        firstName : 'Bob',
-        lastName : 'Uruncle',
+        displayName : 'Bob Uruncle',
         email : 'bob@example.org'
       })).toEqual('Bob Uruncle <bob@example.org>');
 
       expect(scope.getTooltip({
-        firstName : 'Bob',
-        lastName : 'Uruncle'
+        displayName : 'Bob Uruncle'
       })).toEqual('Bob Uruncle');
 
       expect(scope.getTooltip({
-        lastName : 'Uruncle',
+        displayName : 'Uruncle',
         email : 'bob@example.org'
       })).toEqual('Uruncle <bob@example.org>');
 
       expect(scope.getTooltip({
-        firstName : 'Bob',
-        email : 'bob@example.org'
-      })).toEqual('Bob <bob@example.org>');
-
-      expect(scope.getTooltip({
-        firstName : 'Bob',
-        lastName : 'Uruncle',
+        displayName : 'Bob Uruncle',
         email : 'bob@example.org',
         realm: 'CLM'
       })).toEqual('Bob Uruncle <bob@example.org> (CLM)');
-
-      expect(scope.getTooltip({
-        firstName: 'Bob',
-        email: 'bob@example.org',
-        realm: 'CLM'
-      })).toEqual('Bob <bob@example.org> (CLM)');
     });
 
     describe('Queries', function () {
@@ -293,16 +262,13 @@ describe('AppSecurityControllerSpec', function() {
     it('Test', function () {
       var users = [{
             username: 'fred',
-            firstName: 'Fred',
-            lastName : 'Flintstone'
+            displayName: 'Fred Flintstone'
           }, {
             username: 'barn',
-            firstName: 'Barney',
-            lastName : 'Rubble'
+            displayName: 'Barney Rubble'
           }, {
             username: 'wilma',
-            firstName: 'Wilma',
-            lastName : 'Flintstone'
+            displayName: 'Wilma Flintstone'
           }],
         mappings = [{
           members: [{
@@ -327,12 +293,10 @@ describe('AppSecurityControllerSpec', function() {
         }]
       }])).toEqual([{
         username: 'barn',
-        firstName: 'Barney',
-        lastName : 'Rubble'
+        displayName: 'Barney Rubble'
       }, {
         username: 'wilma',
-        firstName: 'Wilma',
-        lastName : 'Flintstone'
+        displayName: 'Wilma Flintstone'
       }]);
       // Original array should not have been modified
       expect(users.length).toEqual(3);

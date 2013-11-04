@@ -141,7 +141,7 @@
     $scope.addUser = function (user) {
       $scope.mappings[0].members.push({
         type : "USER",
-        displayName : $scope.getRealname(user),
+        displayName : user.displayName,
         internalName : user.username
       });
       AngularUtils.alphaSort($scope.mappings[0].members, false, 'displayName');
@@ -157,22 +157,8 @@
         }
     };
 
-    $scope.getRealname = function (user) {
-      if (!user) {
-        return;
-      }
-      var name = '';
-      if (user.firstName) {
-        name += user.firstName + ' ';
-      }
-      if (user.lastName) {
-        name += user.lastName;
-      }
-      return name.trim();
-    };
-
     $scope.getTooltip = function (user) {
-      var tip = $scope.getRealname(user);
+      var tip = user.displayName;
       if (tip && user.email) {
         tip += ' ';
       }

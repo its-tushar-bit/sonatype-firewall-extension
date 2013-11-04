@@ -81,14 +81,15 @@ public class UserResource
     TreeSet<UserQuery> users = new TreeSet<UserQuery>();
     UserDAO dao = new UserDAO();
     for (User user : dao.findUsersByName(query)) {
-      UserQuery u = new UserQuery(user.getUsername(), user.getFirstName(), user.getLastName(), user.getEmail(), "CLM");
+      String displayName = user.getFirstName() + " " + user.getLastName();
+      UserQuery u = new UserQuery(user.getUsername(), displayName.trim(), user.getEmail(), "CLM");
       users.add(u);
     }
 
     if (ldapManager.isLdapEnabled()) {
       String ldapName = ldapManager.getLdapRealmName();
       for (LdapUser user : ldapManager.findUsersByName(query, 100)) {
-        UserQuery u = new UserQuery(user.getUsername(), user.getRealName(), null, user.getEmail(), ldapName);
+        UserQuery u = new UserQuery(user.getUsername(), user.getRealName(), user.getEmail(), ldapName);
         users.add(u);
       }
     }

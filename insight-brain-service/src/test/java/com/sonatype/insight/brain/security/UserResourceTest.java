@@ -341,6 +341,7 @@ public class UserResourceTest
     assertThat(users, is(notNullValue()));
     assertThat(users.length, is(1));
     assertThat(users[0].getUsername(), is(User.ADMIN_USERNAME));
+    assertThat(users[0].getDisplayName(), is("Admin BuiltIn"));
     assertThat(users[0].getRealm(), is("CLM"));
 
     response = AuthedRestAccess.get(getSearchUrl(User.ADMIN_USERNAME.substring(0, User.ADMIN_USERNAME.length() - 1)));
@@ -349,6 +350,7 @@ public class UserResourceTest
     assertThat(users, is(notNullValue()));
     assertThat(users.length, is(1));
     assertThat(users[0].getUsername(), is(User.ADMIN_USERNAME));
+    assertThat(users[0].getDisplayName(), is("Admin BuiltIn"));
     assertThat(users[0].getRealm(), is("CLM"));
 
     response = AuthedRestAccess.get(getSearchUrl("nobody-has-such-a-name-really"));
@@ -374,6 +376,7 @@ public class UserResourceTest
     assertThat(users, is(notNullValue()));
     assertThat(users.length, is(3));
     assertThat(users[0].getUsername(), is("test_user"));
+    assertThat(users[0].getDisplayName(), is("Test"));
     assertThat(users[0].getRealm(), is("LDAP"));
 
     // Test shading. Admin user loaded from "/UserResourceTest/ldap_users.ldif" should not be returned
@@ -383,6 +386,7 @@ public class UserResourceTest
     assertThat(users, is(notNullValue()));
     assertThat(users.length, is(1));
     assertThat(users[0].getUsername(), is(User.ADMIN_USERNAME));
+    assertThat(users[0].getDisplayName(), is("Admin BuiltIn"));
     assertThat(users[0].getRealm(), is("CLM"));
 
     embeddedLdapServer.stop();

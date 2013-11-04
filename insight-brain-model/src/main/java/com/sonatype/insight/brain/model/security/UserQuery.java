@@ -1,10 +1,14 @@
+/*
+ * Copyright (c) 2011-2013 Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
 package com.sonatype.insight.brain.model.security;
 
 public class UserQuery implements Comparable<Object>
 {
   private String username;
-  private String firstName;
-  private String lastName;
+  private String displayName;
   private String email;
   private String realm;
 
@@ -16,20 +20,12 @@ public class UserQuery implements Comparable<Object>
     this.username = username;
   }
 
-  public String getFirstName() {
-    return firstName;
+  public String getDisplayName() {
+    return displayName;
   }
 
-  public void setFirstName(final String firstName) {
-    this.firstName = firstName;
-  }
-
-  public String getLastName() {
-    return lastName;
-  }
-
-  public void setLastName(final String lastName) {
-    this.lastName = lastName;
+  public void setDisplayName(final String displayName) {
+    this.displayName = displayName;
   }
 
   public String getEmail() {
@@ -51,12 +47,9 @@ public class UserQuery implements Comparable<Object>
   public UserQuery() {
   }
 
-  public UserQuery(final String username, final String firstName, final String lastName,
-                      final String email, final String realm)
-  {
+  public UserQuery(final String username, final String displayName, final String email, final String realm) {
     this.username = username;
-    this.firstName = firstName;
-    this.lastName = lastName;
+    this.displayName = displayName;
     this.email = email;
     this.realm = realm;
   }

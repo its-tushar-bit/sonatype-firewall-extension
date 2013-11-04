@@ -7,7 +7,7 @@ describe('TrendingController tests', function() {
   beforeEach(module('ReportTrending', 'CLMLocation'));
 
   describe('TrendingReportController', function() {
-    var scope;
+    var scope, Jan1AtNoon = Date.UTC(2013, 0, 1, 12);;
 
     beforeEach(inject(function($rootScope) {
       scope = $rootScope.$new();
@@ -55,21 +55,21 @@ describe('TrendingController tests', function() {
 
     it('provides a date format function', inject(function($controller, $httpBackend, CLMLocations) {
       $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getTrendingReportUrl())).respond(TrendingReportMockData.get());
-      var trendingReportController = $controller('TrendingReportController', { $scope: scope });
+      $controller('TrendingReportController', { $scope: scope });
       $httpBackend.flush();
 
       expect(scope.format).not.toBeUndefined();
-      expect(scope.format(1382661636262)).toBe('Oct 24, 2013');
+      expect(scope.format(Jan1AtNoon)).toBe('Jan  1, 2013');
 
     }));
 
     it('provides allows specification of a custom pattern for date formatting', inject(function($controller, $httpBackend, CLMLocations) {
       $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getTrendingReportUrl())).respond(TrendingReportMockData.get());
-      var trendingReportController = $controller('TrendingReportController', { $scope: scope });
+      $controller('TrendingReportController', { $scope: scope });
       $httpBackend.flush();
 
       expect(scope.format).not.toBeUndefined();
-      expect(scope.format(1382661636262, '%b %e - %I:%M %p, %Y' )).toMatch(/Oct 2.*, 2013/);
+      expect(scope.format(Jan1AtNoon, '%b %e - %I:%M %p, %Y' )).toMatch(/Jan  1 - [0-9]{2}:[0-9]{2} [A|P]{1}M, 2013/);
 
     }));
   });

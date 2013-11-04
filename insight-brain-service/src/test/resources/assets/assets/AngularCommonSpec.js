@@ -187,35 +187,58 @@ describe('AngularCommon', function() {
     beforeEach(inject(function($filter) {
       ago = $filter('ago');
     }));
-    var today = new Date();
-    var twoYearsAgo = new Date(today.getFullYear() - 2, today.getMonth(), today.getDate());
-    var threeMonthsAgo = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 3 * 30);
-    var tenDaysAgo = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 10);
-    var twentyThreeHoursAgo = new Date(today.getFullYear(), today.getMonth(), today.getDate(), today.getHours() - 23);
-    var fiftyEightMinutesAgo = new Date(today.getFullYear(), today.getMonth(), today.getDate(), today.getHours(),
-        today.getMinutes() - 58);
-    var oneMinuteAgo = new Date(today.getFullYear(), today.getMonth(), today.getDate(), today.getHours(),
-        today.getMinutes() - 1);
-    var theFuture = new Date(today.getFullYear() + 100, today.getMonth(), today.getDate());
     var testCases = [
-      { input: today, expected: 'Seconds Ago' },
-      { input: today.getTime(), expected: 'Seconds Ago' },
-      { input: twoYearsAgo, expected: '2 Years Ago' },
-      { input: threeMonthsAgo, expected: '3 Months Ago' },
-      { input: tenDaysAgo, expected: '10 Days Ago' },
-      { input: twentyThreeHoursAgo, expected: '23 Hours Ago' },
-      { input: fiftyEightMinutesAgo, expected: '^5[8|9]{1} Minutes Ago$' },
-      { input: oneMinuteAgo, expected: '^[1|2]{1} Minute[s]? Ago$' },
-      { input: theFuture, expected: 'Seconds Ago' },
-      { input: null, expected: '' },
-      { input: undefined, expected: '' },
-      { input: '', expected: '' }
+      { input: function() {
+        return new Date();
+      }, expected: 'Seconds Ago' },
+      { input: function() {
+        return new Date().getTime();
+      }, expected: 'Seconds Ago' },
+      { input: function() {
+        var today = new Date();
+        return new Date(today.getFullYear() - 2, today.getMonth(), today.getDate());
+      }, expected: '2 Years Ago' },
+      { input: function() {
+        var today = new Date();
+        return new Date(today.getFullYear(), today.getMonth(), today.getDate() - 3 * 30);
+      }, expected: '3 Months Ago' },
+      { input: function() {
+        var today = new Date();
+        return new Date(today.getFullYear(), today.getMonth(), today.getDate() - 10);
+      }, expected: '10 Days Ago' },
+      { input: function() {
+        var today = new Date();
+        return new Date(today.getFullYear(), today.getMonth(), today.getDate(), today.getHours() - 22);
+      }, expected: '2[2|3]{1} Hours Ago' },
+      { input: function() {
+        var today = new Date();
+        return new Date(today.getFullYear(), today.getMonth(), today.getDate(), today.getHours(),
+          today.getMinutes() - 58);
+      }, expected: '^5[8|9]{1} Minutes Ago$' },
+      { input: function() {
+        var today = new Date();
+        return new Date(today.getFullYear(), today.getMonth(), today.getDate(), today.getHours(),
+          today.getMinutes() - 1);
+      }, expected: '^[1|2]{1} Minute[s]? Ago$' },
+      { input: function() {
+        var today = new Date();
+        return new Date(today.getFullYear() + 100, today.getMonth(), today.getDate());
+      }, expected: 'Seconds Ago' },
+      { input: function() {
+        return null;
+      }, expected: '' },
+      { input: function() {
+        return undefined;
+      }, expected: '' },
+      { input: function() {
+        return '';
+      }, expected: '' }
     ]
     for (var i = 0; i < testCases.length; i++) {
       var testCase = testCases[i];
       (function(input, expected) {
-        it('should filter the value: ' + input + ' to: ' + expected, function() {
-          expect(ago(input)).toMatch(expected);
+        it('should filter to: ' + expected, function() {
+          expect(ago(input())).toMatch(expected);
         });
       })(testCase['input'], testCase['expected']);
     }

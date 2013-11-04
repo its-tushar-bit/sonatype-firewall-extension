@@ -491,44 +491,6 @@
         <extensions>true</extensions>
         <executions>
           <execution>
-            <id>${jasmine.brain.id}</id>
-            <phase>test</phase>
-            <goals>
-              <goal>test</goal>
-            </goals>
-            <configuration>
-              <sourceIncludes>
-                <include>resources/assets/assets/lib/jquery/jquery-*.min.js</include>
-                <include>resources/assets/assets/lib/bootstrap/bootstrap-*.min.js</include>
-                <include>resources/assets/assets/lib/angular/angular-${angularjs.version}.js</include>
-                <include>resources/assets/assets/lib/angular-ui-router-0.0.1.min.js</include>
-                <include>resources/assets/assets/lib/ui-bootstrap-tpls-0.3.0.min.js</include>
-                <include>resources/assets/assets/lib/X-editable/bootstrap-editable.min.js</include>
-                <include>resources/assets/assets/**/*.js</include>
-                <include>resources/assets/application/**/*.js</include>
-                <include>resources/assets/policy/**/*.js</include>
-                <include>resources/assets/organization/**/*.js</include>
-                <include>resources/assets/configuration/**/*.js</include>
-                <include>resources/assets/security/**/*.js</include>
-                <include>resources/assets/report/**/*.js</include>
-                <include>wro4j/**/*.js</include>
-              </sourceIncludes>
-              <specIncludes>
-                <include>resources/assets/SpecUtil.js</include>
-                <include>resources/assets/**/lib/*.js</include>
-                <include>resources/assets/**/*MockData.js</include>
-                <include>resources/assets/**/*-spec.js</include>
-                <include>resources/assets/**/*Spec.js</include>
-              </specIncludes>
-              <specExcludes>
-                <exclude>resources/assets/**/cip*.js</exclude>
-                <exclude>resources/assets/**/CIP*.js</exclude>
-                <exclude>resources/assets/**/login/*</exclude>
-              </specExcludes>
-              <junitXmlReportFileName>TEST-server.xml</junitXmlReportFileName>
-            </configuration>
-          </execution>
-          <execution>
             <id>${jasmine.cip.id}</id>
             <phase>test</phase>
             <goals>
@@ -581,6 +543,44 @@
                 <include>resources/assets/**/login/*-spec.js</include>
               </specIncludes>
               <junitXmlReportFileName>TEST-login.xml</junitXmlReportFileName>
+            </configuration>
+          </execution>
+          <execution>
+            <id>${jasmine.brain.id}</id>
+            <phase>test</phase>
+            <goals>
+              <goal>test</goal>
+            </goals>
+            <configuration>
+              <sourceIncludes>
+                <include>resources/assets/assets/lib/jquery/jquery-*.min.js</include>
+                <include>resources/assets/assets/lib/bootstrap/bootstrap-*.min.js</include>
+                <include>resources/assets/assets/lib/angular/angular-${angularjs.version}.js</include>
+                <include>resources/assets/assets/lib/angular-ui-router-0.0.1.min.js</include>
+                <include>resources/assets/assets/lib/ui-bootstrap-tpls-0.3.0.min.js</include>
+                <include>resources/assets/assets/lib/X-editable/bootstrap-editable.min.js</include>
+                <include>resources/assets/assets/**/*.js</include>
+                <include>resources/assets/application/**/*.js</include>
+                <include>resources/assets/policy/**/*.js</include>
+                <include>resources/assets/organization/**/*.js</include>
+                <include>resources/assets/configuration/**/*.js</include>
+                <include>resources/assets/security/**/*.js</include>
+                <include>resources/assets/report/**/*.js</include>
+                <include>wro4j/**/*.js</include>
+              </sourceIncludes>
+              <specIncludes>
+                <include>resources/assets/SpecUtil.js</include>
+                <include>resources/assets/**/lib/*.js</include>
+                <include>resources/assets/**/*MockData.js</include>
+                <include>resources/assets/**/*-spec.js</include>
+                <include>resources/assets/**/*Spec.js</include>
+              </specIncludes>
+              <specExcludes>
+                <exclude>resources/assets/**/cip*.js</exclude>
+                <exclude>resources/assets/**/CIP*.js</exclude>
+                <exclude>resources/assets/**/login/*</exclude>
+              </specExcludes>
+              <junitXmlReportFileName>TEST-server.xml</junitXmlReportFileName>
             </configuration>
           </execution>
         </executions>

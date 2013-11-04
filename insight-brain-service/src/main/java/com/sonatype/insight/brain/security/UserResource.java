@@ -5,8 +5,11 @@
  */
 package com.sonatype.insight.brain.security;
 
+import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.TreeSet;
+import java.util.Locale;
+import java.util.Map;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -71,29 +74,32 @@ public class UserResource
   @Path("{ownerType: global|application|organization}/{ownerId}/query")
   @Produces({ MediaType.APPLICATION_JSON })
   @Authorize(permission = Permission.WRITE)
-  public TreeSet<UserQuery> findUsers(@AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") String ownerType,
+  public Collection<UserQuery> findUsers(@AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") String ownerType,
       @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId, @QueryParam("q") String query) throws NamingException {
     if (StringUtils.isEmpty(query)) {
       throw new BadRequestException("No search term specified.");
     }
 
     // Users are shaded by any user from a higher up realm that has the same username
-    TreeSet<UserQuery> users = new TreeSet<UserQuery>();
+    Map<String, UserQuery> users = new LinkedHashMap<String, UserQuery>();
     UserDAO dao = new UserDAO();
     for (User user : dao.findUsersByName(query)) {
       String displayName = user.getFirstName() + " " + user.getLastName();
       UserQuery u = new UserQuery(user.getUsername(), displayName.trim(), user.getEmail(), "CLM");
-      users.add(u);
+      users.put(u.getUsername().toLowerCase(Locale.ENGLISH), u);
     }
 
     if (ldapManager.isLdapEnabled()) {
-      String ldapName = ldapManager.getLdapRealmName();
+      String ldapName = ldapManager.getLdapServerName();
       for (LdapUser user : ldapManager.findUsersByName(query, 100)) {
         UserQuery u = new UserQuery(user.getUsername(), user.getRealName(), user.getEmail(), ldapName);
-        users.add(u);
+        String key = u.getUsername().toLowerCase(Locale.ENGLISH);
+        if (!users.containsKey(key)) {
+          users.put(key, u);
+        }
       }
     }
-    return users;
+    return users.values();
   }
 
   @GET

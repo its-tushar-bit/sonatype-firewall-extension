@@ -374,19 +374,26 @@ public class UserResourceTest
     assertResponseStatus(200, response);
     UserQuery[] users = fromJson(response, UserQuery[].class);
     assertThat(users, is(notNullValue()));
-    assertThat(users.length, is(3));
-    assertThat(users[0].getUsername(), is("test_user"));
-    assertThat(users[0].getDisplayName(), is("Test"));
-    assertThat(users[0].getRealm(), is("LDAP"));
+    assertThat(users.length, is(2));
+    assertThat(users[1].getUsername(), is("testuser"));
+    assertThat(users[1].getDisplayName(), is("Test"));
+    assertThat(users[1].getRealm(), is("LDAP"));
+
+    User user = new User("testuser", "testuserpassword", "testuser",
+        "testuser", "test_user@sonatype.com");
+    response = AuthedRestAccess.post(getServiceURL(), JsonHelpers.asJson(user));
+    assertResponseStatus(200, response);
+    user = JsonHelpers.fromJson(response.getResponseBody(), User.class);
+    usersToDelete.add(user);
 
     // Test shading. Admin user loaded from "/UserResourceTest/ldap_users.ldif" should not be returned
-    response = AuthedRestAccess.get(getSearchUrl(User.ADMIN_USERNAME));
+    response = AuthedRestAccess.get(getSearchUrl("testuser"));
     assertResponseStatus(200, response);
     users = fromJson(response, UserQuery[].class);
     assertThat(users, is(notNullValue()));
     assertThat(users.length, is(1));
-    assertThat(users[0].getUsername(), is(User.ADMIN_USERNAME));
-    assertThat(users[0].getDisplayName(), is("Admin BuiltIn"));
+    assertThat(users[0].getUsername(), is("testuser"));
+    assertThat(users[0].getDisplayName(), is("testuser testuser"));
     assertThat(users[0].getRealm(), is("CLM"));
 
     embeddedLdapServer.stop();

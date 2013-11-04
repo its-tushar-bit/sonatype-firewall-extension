@@ -5,9 +5,7 @@
  */
 package com.sonatype.insight.brain.model.security;
 
-import java.util.Locale;
-
-public class UserQuery implements Comparable<Object>
+public class UserQuery
 {
   private String username;
   private String displayName;
@@ -54,27 +52,5 @@ public class UserQuery implements Comparable<Object>
     this.displayName = displayName;
     this.email = email;
     this.realm = realm;
-  }
-
-  @Override
-  public int compareTo(final Object obj) {
-    UserQuery other = (UserQuery) obj;
-    return this.username.compareToIgnoreCase(other.username);
-  }
-
-  @Override
-  public boolean equals(Object obj) {
-    if (obj == null) {
-      return false;
-    }
-    if (getClass() != obj.getClass()) {
-      return false;
-    }
-    return compareTo(obj) == 0;
-  }
-
-  @Override
-  public int hashCode() {
-    return this.username.toLowerCase(Locale.ENGLISH).hashCode();
   }
 }

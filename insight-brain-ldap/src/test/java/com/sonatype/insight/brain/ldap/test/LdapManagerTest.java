@@ -320,16 +320,16 @@ public class LdapManagerTest
   }
 
   @Test
-  public void testGetLdapName() throws Exception {
+  public void testGetLdapServerName() throws Exception {
     try {
-      manager.getLdapRealmName();
+      manager.getLdapServerName();
       fail("Expected IllegalStateException");
     } catch(IllegalStateException expected) {
       assertThat(expected.getMessage(), is("LDAP server is not configured"));
     }
 
     startLdapServer();
-    String name = manager.getLdapRealmName();
+    String name = manager.getLdapServerName();
     assertThat(name, is("Test Server"));
   }
 

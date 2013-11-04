@@ -31,8 +31,12 @@ import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.MatchState;
+import com.sonatype.insight.brain.model.policy.Condition;
+import com.sonatype.insight.brain.model.policy.Constraint;
+import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.trending.ApplicationRiskSummary;
@@ -121,7 +125,7 @@ public class TrendingReportProcessor
 
   /**
    * Generates and returns trending report.
-   * 
+   *
    * @since 1.7
    */
   public TrendingReport calculate(ProgressMonitor monitor) throws IOException {
@@ -168,7 +172,8 @@ public class TrendingReportProcessor
       // most recent evaluation in each reporting period
       // index==0 is most recent evaluation *before* first reporting period
       PolicyEvaluation[] periods = new PolicyEvaluation[PERIOD_COUNT + 1];
-      for (PolicyEvaluation eval : evalLog.allByStage(STAGE_ID)) {
+      List<PolicyEvaluation> policyEvaluations = evalLog.allByStage(STAGE_ID);
+      for (PolicyEvaluation eval : policyEvaluations) {
         if (ReportResource.getReport(work, application.getId(), eval.getScanId()) == null) {
           continue;
         }
@@ -208,7 +213,7 @@ public class TrendingReportProcessor
           for (PolicyAlert alert : policyEvaluationUtils.findPolicyAlerts(application.getId(), eval.getScanId())) {
             PolicyFact policyFact = alert.getTrigger();
             for (ComponentFact componentFact : policyFact.getComponentFacts()) {
-              String category = getViolationCategory(componentFact.getConstraintFacts());
+              String category = determineCategory(application, policyFact, componentFact);
               String policyViolationsKey = policyFact.getPolicyId() + ":" + category;
               PolicyViolation violations = policyViolations.get(policyViolationsKey);
               if (violations == null) {
@@ -261,7 +266,7 @@ public class TrendingReportProcessor
           levelIdx = 2;
         }
         for (ComponentFact componentFact : componentFacts) {
-          String category = getViolationCategory(componentFact.getConstraintFacts());
+          String category = determineCategory(application, policyFact, componentFact);
           categories.get(category)[levelIdx]++;
           String g = componentFact.getGroupId(), a = componentFact.getArtifactId(), v = componentFact.getVersion();
           if (g != null && a != null && v != null) {
@@ -281,7 +286,7 @@ public class TrendingReportProcessor
           List<ComponentFact> componentFacts = policyFact.getComponentFacts();
           int levelIdx = getThreatLevelIdx(level);
           for (ComponentFact componentFact : componentFacts) {
-            previousCategories.get(getViolationCategory(componentFact.getConstraintFacts()))[levelIdx]++;
+            previousCategories.get(determineCategory(application, policyFact, componentFact))[levelIdx]++;
           }
         }
       }
@@ -293,7 +298,7 @@ public class TrendingReportProcessor
 
     return new TrendingReport(meta, toComponentsSummary(components), toApplications(applicationRisks),
         toPolicyViolations(policyViolations), toPartialMatches(partialMatches), toDiffData(categories,
-            previousCategories), toTopCategoryComponentRisks(componentRisks),
+        previousCategories), toTopCategoryComponentRisks(componentRisks),
         toPoliciesSummary(policyViolations.values()));
   }
 
@@ -412,16 +417,71 @@ public class TrendingReportProcessor
     return top;
   }
 
-  private String getViolationCategory(List<ConstraintFact> constraintFacts) {
+  /**
+   * Attempt to determine the category based upon the present policy, and if that policy has been
+   * deleted already, fall back to examining the violation data.
+   */
+  private String determineCategory(final Application app, final PolicyFact policyFact,
+                                   final ComponentFact componentFact)
+  {
+    String category = getViolationCategoryFromPresentPolicy(app.getId(), app.getOrganizationId(),
+        policyFact.getPolicyId());
+    if (category == null) {
+      category = getViolationCategoryFromConstraintFacts(componentFact.getConstraintFacts());
+    }
+    return category;
+  }
+
+  /**
+   * Determine the category from the present policy, since the policy evaluation contains
+   * only the specific conditions violated. This could therefore be incorrect if the policy
+   * conditions have changed during the evaluation period.
+   */
+  private String getViolationCategoryFromPresentPolicy(String applicationId, String organizationId, String policyId) {
+    PolicyDAO policyDAO = new PolicyDAO(work.getWorkDir());
+    Policy policy = policyDAO.getByOwnerIdAndPolicyId(applicationId, policyId);
+    String violationCategory = null;
+
+    if (policy == null) {
+      policy = policyDAO.getByOwnerIdAndPolicyId(organizationId, policyId);
+    }
+
+    if (policy != null) {
+      violationCategory = getViolationCategoryFromConstraints(policy.getConstraints());
+    }
+
+    return violationCategory;
+  }
+
+  private String getViolationCategoryFromConstraints(List<Constraint> constraints) {
+    int category = 3; // other
+    for (Constraint constraint : constraints) {
+      for (Condition condition : constraint.getConditions()) {
+        String conditionTypeId = condition.getConditionTypeId().toLowerCase(Locale.US);
+        if (conditionTypeId.contains(CATEGORY_SECURITY)) {
+          return CATEGORIES[0];
+        }
+        else if (conditionTypeId.contains(CATEGORY_LICENSE)) {
+          category = 1;
+        }
+        else if (category > 2 && (conditionTypeId.contains("age") || conditionTypeId.contains("popularity"))) {
+          category = 2;
+        }
+      }
+    }
+
+    return CATEGORIES[category];
+  }
+
+  private String getViolationCategoryFromConstraintFacts(List<ConstraintFact> constraintFacts) {
     int category = 3; // other
     for (ConstraintFact constraintFact : constraintFacts) {
       for (ConditionFact conditionFact : constraintFact.getConditionFacts()) {
         String conditionTypeId = conditionFact.getConditionTypeId().toLowerCase(Locale.US);
-        if (conditionTypeId.contains("security")) {
-          category = 0;
-          break;
+        if (conditionTypeId.contains(CATEGORY_SECURITY)) {
+          return CATEGORIES[0];
         }
-        else if (conditionTypeId.contains("license")) {
+        else if (conditionTypeId.contains(CATEGORY_LICENSE)) {
           category = 1;
         }
         else if (category > 2 && (conditionTypeId.contains("age") || conditionTypeId.contains("popularity"))) {

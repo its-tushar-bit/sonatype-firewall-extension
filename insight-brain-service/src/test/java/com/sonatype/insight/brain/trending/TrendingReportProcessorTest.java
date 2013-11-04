@@ -17,8 +17,18 @@ import java.util.concurrent.TimeUnit;
 
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.TemporaryEntity;
+import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.MatchState;
+import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
+import com.sonatype.insight.brain.model.policy.Condition;
+import com.sonatype.insight.brain.model.policy.Constraint;
+import com.sonatype.insight.brain.model.policy.LogicalOperator;
+import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.policy.conditions.AgeInDaysConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.LicenseThreatGroupConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityConditionType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.trending.ApplicationRiskSummary;
 import com.sonatype.insight.brain.model.trending.Applications;
@@ -35,6 +45,7 @@ import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluationUtils;
 import com.sonatype.insight.brain.report.ReportDownloader;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.trending.ReportBuilder.ComponentFactBuilder;
 import com.sonatype.insight.brain.trending.ReportBuilder.ConstraintFactBuilder;
 import com.sonatype.insight.brain.trending.ReportBuilder.PolicyAlertBuilder;
 import com.sonatype.insight.brain.trending.TrendingReportProcessor.ProgressMonitor;
@@ -242,11 +253,14 @@ public class TrendingReportProcessorTest
   public void testPolicyViolationsCategories() throws Exception {
     Application application = createApplication("testApp");
     ReportBuilder builder = new ReportBuilder();
-    ConstraintFactBuilder security = builder.addPolicyAlert("a", 0).addComponentFact("a").addConstraintFact();
+    ComponentFactBuilder componentFactBuilder = builder.addPolicyAlert("a", 0).addComponentFact("a");
+    ConstraintFactBuilder security = componentFactBuilder.addConstraintFact();
     security.addConditionFact("security");
     security.addConditionFact("license");
     security.addConditionFact("quality");
     security.addConditionFact("other");
+    ConstraintFactBuilder licenseAfterSecurity = componentFactBuilder.addConstraintFact();
+    licenseAfterSecurity.addConditionFact("license");
     ConstraintFactBuilder license = builder.addPolicyAlert("b", 1).addComponentFact("b").addConstraintFact();
     license.addConditionFact("license");
     license.addConditionFact("quality");
@@ -269,6 +283,54 @@ public class TrendingReportProcessorTest
     assertPolicyViolations(violations, "c1", "quality", 2);
     assertPolicyViolations(violations, "c2", "quality", 3);
     assertPolicyViolations(violations, "d", "other", 4);
+  }
+
+  @Test
+  public void testPolicyViolationsCategoriesFromPolicyDAO() throws Exception {
+    Application application = createApplication("testApp");
+    PolicyDAO policyDAO = new PolicyDAO(insightWork.getWorkDir());
+
+    List<LicenseThreatGroup> licenseThreatGroups = new LicenseThreatGroupDAO().getByOwnerId(application.getOrganizationId());
+    LicenseThreatGroup licenseThreatGroup = licenseThreatGroups.get(0);
+
+    // this policy should always be interpreted as 'license' category, even if a different kind of condition is violated
+    Policy licensePolicy = new Policy(null, "license");
+    licensePolicy.setThreatLevel(1);
+
+    Constraint licenseConstraint = new Constraint(null, "license", LogicalOperator.AND);
+    licenseConstraint.addCondition(new Condition(LicenseThreatGroupConditionType.ID, "is", licenseThreatGroup.getId() ));
+    Constraint otherConstraint = new Constraint(null, "other", LogicalOperator.AND);
+    otherConstraint.addCondition(new Condition(AgeInDaysConditionType.ID, "older than", "1" ));
+    licensePolicy.addConstraint(otherConstraint);
+    licensePolicy.addConstraint(licenseConstraint);
+
+    // this policy should always be interpreted as 'security' category, even if a different kind of condition is violated
+    Policy securityPolicy = new Policy(null, "security");
+    securityPolicy.setThreatLevel(10);
+    Constraint securityConstraint = new Constraint(null, "security", LogicalOperator.AND);
+    securityConstraint.addCondition(new Condition(AgeInDaysConditionType.ID, "older than", "1" ));
+    securityConstraint.addCondition(new Condition(LicenseThreatGroupConditionType.ID, "is", licenseThreatGroup.getId() ));
+    securityConstraint.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
+    securityPolicy.addConstraint(securityConstraint);
+    policyDAO.insert(application.getId(), licensePolicy);
+    policyDAO.insert(application.getId(), securityPolicy);
+
+    ReportBuilder builder = new ReportBuilder();
+    ComponentFactBuilder componentFactBuilder = builder.addPolicyAlert(licensePolicy.getId(), 0).addComponentFact("a");
+    ConstraintFactBuilder license = componentFactBuilder.addConstraintFact();
+    license.addConditionFact("other");
+
+    componentFactBuilder = builder.addPolicyAlert(securityPolicy.getId(), 1).addComponentFact("a");
+    ConstraintFactBuilder security = componentFactBuilder.addConstraintFact();
+    security.addConditionFact("other");
+    security.addConditionFact("license");
+    createScan(application, builder);
+
+    TrendingReport report = processor.calculate();
+    List<PolicyViolation> violations = report.getViolations();
+    Assert.assertEquals(2, violations.size());
+    assertPolicyViolations(violations, licensePolicy.getId(), "license", 0);
+    assertPolicyViolations(violations, securityPolicy.getId(), "security", 1);
   }
 
   @Test

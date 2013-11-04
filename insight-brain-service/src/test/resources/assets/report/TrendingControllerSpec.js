@@ -7,7 +7,7 @@ describe('TrendingController tests', function() {
   beforeEach(module('ReportTrending', 'CLMLocation'));
 
   describe('TrendingReportController', function() {
-    var scope, Jan1AtNoon = Date.UTC(2013, 0, 1, 12);;
+    var scope, Jan1AtNoon = Date.UTC(2013, 0, 1, 12);
 
     beforeEach(inject(function($rootScope) {
       scope = $rootScope.$new();

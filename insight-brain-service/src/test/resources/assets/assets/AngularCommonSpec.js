@@ -208,18 +208,18 @@ describe('AngularCommon', function() {
       }, expected: '10 Days Ago' },
       { input: function() {
         var today = new Date();
-        return new Date(today.getFullYear(), today.getMonth(), today.getDate(), today.getHours() - 22);
-      }, expected: '2[2|3]{1} Hours Ago' },
+        return new Date(today.getTime() - (23 * 60 + 30) * 60 * 1000 );
+      }, expected: '23 Hours Ago' },
       { input: function() {
         var today = new Date();
         return new Date(today.getFullYear(), today.getMonth(), today.getDate(), today.getHours(),
           today.getMinutes() - 58);
-      }, expected: '^5[8|9]{1} Minutes Ago$' },
+      }, expected: '5[8|9] Minutes Ago' },
       { input: function() {
         var today = new Date();
         return new Date(today.getFullYear(), today.getMonth(), today.getDate(), today.getHours(),
           today.getMinutes() - 1);
-      }, expected: '^[1|2]{1} Minute[s]? Ago$' },
+      }, expected: '[1|2] Minute[s]? Ago' },
       { input: function() {
         var today = new Date();
         return new Date(today.getFullYear() + 100, today.getMonth(), today.getDate());

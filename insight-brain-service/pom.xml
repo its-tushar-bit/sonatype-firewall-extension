@@ -489,6 +489,7 @@
         <artifactId>jasmine-maven-plugin</artifactId>
         <version>${jasmine.version}</version>
         <extensions>true</extensions>
+        <!-- Only the last execution of this plugin is subject to collection of coverage information, unfortunately. -->
         <executions>
           <execution>
             <id>${jasmine.cip.id}</id>

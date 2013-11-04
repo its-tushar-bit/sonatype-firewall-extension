@@ -117,12 +117,12 @@ public class ApplicationResource
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   public List<ApplicationDTO> getApplications() {
-    final List<ApplicationDTO> applications = toDTOList(getApplicationsInternal());
+    final List<ApplicationDTO> applications = toDTOList(getApplicationsWithReadPermission());
     return applications;
   }
   
   @AuthzFilter(permission = Permission.READ, context = AuthzFilter.Context.APPLICATION)
-  List<Application> getApplicationsInternal() {
+  List<Application> getApplicationsWithReadPermission() {
     final List<Application> applications = applicationDAO.getAll();
     return applications;
   }
@@ -137,7 +137,7 @@ public class ApplicationResource
   @Produces(MediaType.APPLICATION_JSON)
   public List<ApplicationManagementSummary> getApplicationManagementSummaries() throws IOException {
     final List<ApplicationManagementSummary> applicationManagements = new ArrayList<ApplicationManagementSummary>();
-    final List<Application> applications = getApplicationsInternal();
+    final List<Application> applications = getApplicationsWithReadPermission();
     for (Application application : applications) {
       applicationManagements.add(getApplicationManagementSummary(application));
     }

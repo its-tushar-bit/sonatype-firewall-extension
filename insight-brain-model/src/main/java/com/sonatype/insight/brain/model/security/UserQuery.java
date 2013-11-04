@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.model.security;
 
+import java.util.Locale;
+
 public class UserQuery implements Comparable<Object>
 {
   private String username;
@@ -73,6 +75,6 @@ public class UserQuery implements Comparable<Object>
 
   @Override
   public int hashCode() {
-    return this.username.hashCode();
+    return this.username.toLowerCase(Locale.ENGLISH).hashCode();
   }
 }

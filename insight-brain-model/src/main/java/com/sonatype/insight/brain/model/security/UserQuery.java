@@ -55,8 +55,25 @@ public class UserQuery implements Comparable<Object>
   }
 
   @Override
-  public int compareTo(final Object o) {
-    UserQuery checkDTO = (UserQuery) o;
-    return this.username.compareToIgnoreCase(checkDTO.username);
+  public int compareTo(final Object obj) {
+    UserQuery other = (UserQuery) obj;
+    return this.username.compareToIgnoreCase(other.username);
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (obj == null) {
+      return false;
+    }
+    if (getClass() != obj.getClass()) {
+      return false;
+    }
+    final UserQuery other = (UserQuery)obj;
+    return this.username.equalsIgnoreCase(other.username);
+  }
+
+  @Override
+  public int hashCode() {
+    return this.username.hashCode();
   }
 }

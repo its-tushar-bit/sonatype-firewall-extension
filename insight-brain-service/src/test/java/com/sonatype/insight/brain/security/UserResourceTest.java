@@ -21,8 +21,8 @@ import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
+import com.sonatype.insight.brain.model.security.UserQuery;
 import com.sonatype.insight.brain.security.UserResource.ChangePasswordDTO;
-import com.sonatype.insight.brain.security.UserResource.UserQueryDTO;
 import com.sonatype.insight.brain.security.UserSessionResource.AuthenticationStatus;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.test.RestAccess;
@@ -337,23 +337,23 @@ public class UserResourceTest
 
     response = AuthedRestAccess.get(getSearchUrl(User.ADMIN_USERNAME));
     assertResponseStatus(200, response);
-    UserQueryDTO[] users = fromJson(response, UserQueryDTO[].class);
+    UserQuery[] users = fromJson(response, UserQuery[].class);
     assertThat(users, is(notNullValue()));
     assertThat(users.length, is(1));
-    assertThat(users[0].username, is(User.ADMIN_USERNAME));
-    assertThat(users[0].realm, is("CLM"));
+    assertThat(users[0].getUsername(), is(User.ADMIN_USERNAME));
+    assertThat(users[0].getRealm(), is("CLM"));
 
     response = AuthedRestAccess.get(getSearchUrl(User.ADMIN_USERNAME.substring(0, User.ADMIN_USERNAME.length() - 1)));
     assertResponseStatus(200, response);
-    users = fromJson(response, UserQueryDTO[].class);
+    users = fromJson(response, UserQuery[].class);
     assertThat(users, is(notNullValue()));
     assertThat(users.length, is(1));
-    assertThat(users[0].username, is(User.ADMIN_USERNAME));
-    assertThat(users[0].realm, is("CLM"));
+    assertThat(users[0].getUsername(), is(User.ADMIN_USERNAME));
+    assertThat(users[0].getRealm(), is("CLM"));
 
     response = AuthedRestAccess.get(getSearchUrl("nobody-has-such-a-name-really"));
     assertResponseStatus(200, response);
-    users = fromJson(response, UserQueryDTO[].class);
+    users = fromJson(response, UserQuery[].class);
     assertThat(users, is(notNullValue()));
     assertThat(users.length, is(0));
   }
@@ -370,11 +370,20 @@ public class UserResourceTest
 
     Response response = AuthedRestAccess.get(getSearchUrl("test"));
     assertResponseStatus(200, response);
-    UserQueryDTO[] users = fromJson(response, UserQueryDTO[].class);
+    UserQuery[] users = fromJson(response, UserQuery[].class);
     assertThat(users, is(notNullValue()));
     assertThat(users.length, is(3));
-    assertThat(users[1].username, is("test_user"));
-    assertThat(users[1].realm, is("LDAP"));
+    assertThat(users[0].getUsername(), is("test_user"));
+    assertThat(users[0].getRealm(), is("LDAP"));
+
+    // Test shading. Admin user loaded from "/UserResourceTest/ldap_users.ldif" should not be returned
+    response = AuthedRestAccess.get(getSearchUrl(User.ADMIN_USERNAME));
+    assertResponseStatus(200, response);
+    users = fromJson(response, UserQuery[].class);
+    assertThat(users, is(notNullValue()));
+    assertThat(users.length, is(1));
+    assertThat(users[0].getUsername(), is(User.ADMIN_USERNAME));
+    assertThat(users[0].getRealm(), is("CLM"));
 
     embeddedLdapServer.stop();
   }

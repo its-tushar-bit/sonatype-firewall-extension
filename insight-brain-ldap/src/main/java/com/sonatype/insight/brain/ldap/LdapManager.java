@@ -153,7 +153,11 @@ public class LdapManager
     return !serverDao.getAll().isEmpty(); // we have at least one LDAP server
   }
 
-  public String getLdapName() {
+  /**
+   * Returns the name of the first ldap realm configured. Throws an exception when no LdapServers have been configured
+   * in the database.
+   */
+  public String getLdapRealmName() {
     List<LdapServer> servers = serverDao.getAll();
     if (servers.isEmpty()) {
       throw new IllegalStateException("LDAP server is not configured");

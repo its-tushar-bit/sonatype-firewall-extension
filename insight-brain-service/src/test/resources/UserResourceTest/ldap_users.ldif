@@ -10,6 +10,20 @@ objectclass: organizationalUnit
 ou: groups
 description: Container for group entries
 
+dn: uid=admin,ou=users,dc=company,dc=com
+uid: admin
+givenName: Admin
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+sn: Admin
+cn: Admin User
+userPassword: {md5}rQ8H83Kkz8RJZFwzDwk0fg==
+mail: admin@company.com
+departmentNumber: testUsers
+departmentNumber: primaryUsers
+
 dn: uid=test_user,ou=users,dc=company,dc=com
 uid: test_user
 givenName: Test

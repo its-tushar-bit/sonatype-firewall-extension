@@ -5,8 +5,8 @@
  */
 package com.sonatype.insight.brain.security;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.TreeSet;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -27,6 +27,7 @@ import com.sonatype.insight.brain.ldap.LdapManager;
 import com.sonatype.insight.brain.ldap.LdapUser;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.User;
+import com.sonatype.insight.brain.model.security.UserQuery;
 import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.apache.commons.lang.StringUtils;
@@ -70,40 +71,25 @@ public class UserResource
   @Path("{ownerType: global|application|organization}/{ownerId}/query")
   @Produces({ MediaType.APPLICATION_JSON })
   @Authorize(permission = Permission.WRITE)
-  public List<UserQueryDTO> findUsers(@AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") String ownerType,
-                              @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId, @QueryParam("q") String query) throws NamingException {
+  public TreeSet<UserQuery> findUsers(@AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") String ownerType,
+      @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId, @QueryParam("q") String query) throws NamingException {
     if (StringUtils.isEmpty(query)) {
       throw new BadRequestException("No search term specified.");
     }
 
-    List<UserQueryDTO> users = new ArrayList<UserQueryDTO>() {
-      @Override
-      public boolean contains(Object o) {
-        if (o instanceof UserQueryDTO) {
-          UserQueryDTO checkDTO = (UserQueryDTO)o;
-          for (UserQueryDTO userQueryDTO : this) {
-            if (userQueryDTO.username.equalsIgnoreCase(checkDTO.username)) {
-              return true;
-            }
-          }
-        }
-        return false;
-      }
-    };
+    // Users are shaded by any user from a higher up realm that has the same username
+    TreeSet<UserQuery> users = new TreeSet<UserQuery>();
     UserDAO dao = new UserDAO();
     for (User user : dao.findUsersByName(query)) {
-      UserQueryDTO u = new UserQueryDTO(user.getUsername(), user.getFirstName(), user.getLastName(), user.getEmail(), "CLM");
+      UserQuery u = new UserQuery(user.getUsername(), user.getFirstName(), user.getLastName(), user.getEmail(), "CLM");
       users.add(u);
     }
 
     if (ldapManager.isLdapEnabled()) {
-      String ldapName = ldapManager.getLdapName();
+      String ldapName = ldapManager.getLdapRealmName();
       for (LdapUser user : ldapManager.findUsersByName(query, 100)) {
-        UserQueryDTO u = new UserQueryDTO(user.getUsername(), user.getRealName(), null, user.getEmail(), ldapName);
-        // Users are shaded by any user from a higher up realm that has the same username
-        if (!users.contains(u)) {
-          users.add(u);
-        }
+        UserQuery u = new UserQuery(user.getUsername(), user.getRealName(), null, user.getEmail(), ldapName);
+        users.add(u);
       }
     }
     return users;
@@ -212,26 +198,5 @@ public class UserResource
   {
     public String oldPassword;
     public String newPassword;
-  }
-
-  public static class UserQueryDTO {
-    public String username;
-    public String firstName;
-    public String lastName;
-    public String email;
-    public String realm;
-
-    public UserQueryDTO() {
-    }
-
-    public UserQueryDTO(final String username, final String firstName, final String lastName,
-                        final String email, final String realm)
-    {
-      this.username = username;
-      this.firstName = firstName;
-      this.lastName = lastName;
-      this.email = email;
-      this.realm = realm;
-    }
   }
 }

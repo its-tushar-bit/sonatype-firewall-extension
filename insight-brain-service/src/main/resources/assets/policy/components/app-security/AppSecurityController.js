@@ -197,7 +197,14 @@
         }).success(function (data) {
           $scope.requestActive--;
           if ($scope.queryString === newVal || $scope.queryString.indexOf(newVal) === 0) {
-            $scope.queryResults = data;
+            $scope.queryResults = data.users;
+
+            if (data.hasLdapConnectionError) {
+              $scope.alerts.push({
+                type: 'error',
+                msg: 'LDAP Connection Unavailable. Displaying Local Users Only.'
+              });
+            }
           }
         }).error(function () {
           $scope.requestActive--;

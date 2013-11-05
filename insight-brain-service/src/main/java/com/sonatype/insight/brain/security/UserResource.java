@@ -13,6 +13,7 @@ import java.util.Map;
 
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.naming.CommunicationException;
 import javax.naming.NamingException;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -73,7 +74,7 @@ public class UserResource
   @Path("{ownerType: global|application|organization}/{ownerId}/query")
   @Produces({ MediaType.APPLICATION_JSON })
   @Authorize(permission = Permission.WRITE)
-  public Collection<FindUserDTO> findUsers(@AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") String ownerType,
+  public FindUsersDTO findUsers(@AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") String ownerType,
       @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId, @QueryParam("q") String query) throws NamingException {
     if (StringUtils.isEmpty(query)) {
       throw new BadRequestException("No search term specified.");
@@ -81,6 +82,8 @@ public class UserResource
 
     // Users are shaded by any user from a higher up realm that has the same username
     Map<String, FindUserDTO> users = new LinkedHashMap<String, FindUserDTO>();
+    boolean hasLdapConnectionError = false;
+
     UserDAO dao = new UserDAO();
     for (User user : dao.findUsersByName(query)) {
       String displayName = user.getFirstName() + " " + user.getLastName();
@@ -90,15 +93,20 @@ public class UserResource
 
     if (ldapManager.isLdapEnabled()) {
       String ldapName = ldapManager.getLdapServerName();
-      for (LdapUser user : ldapManager.findUsersByName(query, 100)) {
-        FindUserDTO u = new FindUserDTO(user.getUsername(), user.getRealName(), user.getEmail(), ldapName);
-        String key = u.getUsername().toLowerCase(Locale.ENGLISH);
-        if (!users.containsKey(key)) {
-          users.put(key, u);
+      try {
+        for (LdapUser user : ldapManager.findUsersByName(query, 100)) {
+          FindUserDTO u = new FindUserDTO(user.getUsername(), user.getRealName(), user.getEmail(), ldapName);
+          String key = u.getUsername().toLowerCase(Locale.ENGLISH);
+          if (!users.containsKey(key)) {
+            users.put(key, u);
+          }
         }
       }
+      catch (CommunicationException ex) {
+        hasLdapConnectionError = true;
+      }
     }
-    return users.values();
+    return new FindUsersDTO(users.values(), hasLdapConnectionError);
   }
 
   @GET
@@ -204,5 +212,35 @@ public class UserResource
   {
     public String oldPassword;
     public String newPassword;
+  }
+
+  public static class FindUsersDTO
+  {
+    private Collection<FindUserDTO> users;
+    private boolean hasLdapConnectionError;
+
+    public Collection<FindUserDTO> getUsers() {
+      return users;
+    }
+
+    public void setUsers(final Collection<FindUserDTO> users) {
+      this.users = users;
+    }
+
+    public boolean isHasLdapConnectionError() {
+      return hasLdapConnectionError;
+    }
+
+    public void setHasLdapConnectionError(final boolean hasLdapConnectionError) {
+      this.hasLdapConnectionError = hasLdapConnectionError;
+    }
+
+    public FindUsersDTO() {
+    }
+
+    public FindUsersDTO(Collection<FindUserDTO> users, boolean hasLdapConnectionError) {
+      this.users = users;
+      this.hasLdapConnectionError = hasLdapConnectionError;
+    }
   }
 }

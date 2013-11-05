@@ -40,6 +40,8 @@ import org.apache.shiro.authc.UsernamePasswordToken;
 import org.apache.shiro.session.Session;
 import org.apache.shiro.session.mgt.eis.SessionDAO;
 import org.apache.shiro.subject.Subject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @since 1.7
@@ -51,6 +53,8 @@ public class UserResource
   public static final String SERVICE_PATH = "rest/user";
 
   public static final String PASSWORD_PATH = "/{userId}/password";
+
+  private static final Logger log = LoggerFactory.getLogger(UserResource.class);
 
   static final String FAKE_PASSWORD = "#~FAKE~CLM~PASSWORD~#";
 
@@ -82,7 +86,7 @@ public class UserResource
 
     // Users are shaded by any user from a higher up realm that has the same username
     Map<String, FindUserDTO> users = new LinkedHashMap<String, FindUserDTO>();
-    boolean hasLdapConnectionError = false;
+    String connectionError = null;
 
     UserDAO dao = new UserDAO();
     for (User user : dao.findUsersByName(query)) {
@@ -103,10 +107,11 @@ public class UserResource
         }
       }
       catch (CommunicationException ex) {
-        hasLdapConnectionError = true;
+        log.error("Unable to connect to ldap server", ex);
+        connectionError = "LDAP connection unavailable. Displaying local users only.";
       }
     }
-    return new FindUsersDTO(users.values(), hasLdapConnectionError);
+    return new FindUsersDTO(users.values(), connectionError);
   }
 
   @GET
@@ -217,7 +222,7 @@ public class UserResource
   public static class FindUsersDTO
   {
     private Collection<FindUserDTO> users;
-    private boolean hasLdapConnectionError;
+    private String error;
 
     public Collection<FindUserDTO> getUsers() {
       return users;
@@ -227,20 +232,20 @@ public class UserResource
       this.users = users;
     }
 
-    public boolean isHasLdapConnectionError() {
-      return hasLdapConnectionError;
+    public String getError() {
+      return error;
     }
 
-    public void setHasLdapConnectionError(final boolean hasLdapConnectionError) {
-      this.hasLdapConnectionError = hasLdapConnectionError;
+    public void setError(final String error) {
+      this.error = error;
     }
 
     public FindUsersDTO() {
     }
 
-    public FindUsersDTO(Collection<FindUserDTO> users, boolean hasLdapConnectionError) {
+    public FindUsersDTO(Collection<FindUserDTO> users, String error) {
       this.users = users;
-      this.hasLdapConnectionError = hasLdapConnectionError;
+      this.error = error;
     }
   }
 }

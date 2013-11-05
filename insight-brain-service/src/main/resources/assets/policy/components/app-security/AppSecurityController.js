@@ -199,10 +199,10 @@
           if ($scope.queryString === newVal || $scope.queryString.indexOf(newVal) === 0) {
             $scope.queryResults = data.users;
 
-            if (data.hasLdapConnectionError) {
+            if (data.error) {
               $scope.alerts.push({
                 type: 'error',
-                msg: 'LDAP Connection Unavailable. Displaying Local Users Only.'
+                msg: data.error
               });
             }
           }

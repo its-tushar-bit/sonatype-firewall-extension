@@ -39,6 +39,7 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
 
 public class UserResourceTest
@@ -339,7 +340,7 @@ public class UserResourceTest
     assertResponseStatus(200, response);
 
     FindUsersDTO dto = fromJson(response, FindUsersDTO.class);
-    assertThat(dto.isHasLdapConnectionError(), is(false));
+    assertThat(dto.getError(), nullValue());
 
     FindUserDTO[] users = dto.getUsers().toArray(new FindUserDTO[0]);
     assertThat(users, is(notNullValue()));
@@ -352,7 +353,7 @@ public class UserResourceTest
     assertResponseStatus(200, response);
 
     dto = fromJson(response, FindUsersDTO.class);
-    assertThat(dto.isHasLdapConnectionError(), is(false));
+    assertThat(dto.getError(), nullValue());
 
     users = dto.getUsers().toArray(new FindUserDTO[0]);
     assertThat(users, is(notNullValue()));
@@ -365,7 +366,7 @@ public class UserResourceTest
     assertResponseStatus(200, response);
 
     dto = fromJson(response, FindUsersDTO.class);
-    assertThat(dto.isHasLdapConnectionError(), is(false));
+    assertThat(dto.getError(), nullValue());
 
     users = dto.getUsers().toArray(new FindUserDTO[0]);
     assertThat(users, is(notNullValue()));
@@ -386,7 +387,7 @@ public class UserResourceTest
     assertResponseStatus(200, response);
 
     FindUsersDTO dto = fromJson(response, FindUsersDTO.class);
-    assertThat(dto.isHasLdapConnectionError(), is(false));
+    assertThat(dto.getError(), nullValue());
 
     FindUserDTO[] users = dto.getUsers().toArray(new FindUserDTO[0]);
     assertThat(users, is(notNullValue()));
@@ -402,7 +403,7 @@ public class UserResourceTest
     assertResponseStatus(200, response);
 
     dto = fromJson(response, FindUsersDTO.class);
-    assertThat(dto.isHasLdapConnectionError(), is(false));
+    assertThat(dto.getError(), nullValue());
 
     users = dto.getUsers().toArray(new FindUserDTO[0]);
     assertThat(users, is(notNullValue()));
@@ -424,7 +425,7 @@ public class UserResourceTest
     assertResponseStatus(200, response);
 
     FindUsersDTO dto = fromJson(response, FindUsersDTO.class);
-    assertThat(dto.isHasLdapConnectionError(), is(true));
+    assertThat(dto.getError(), is("LDAP connection unavailable. Displaying local users only."));
 
     FindUserDTO[] users = dto.getUsers().toArray(new FindUserDTO[0]);
     assertThat(users, is(notNullValue()));

@@ -154,6 +154,18 @@ public class LdapManager
   }
 
   /**
+   * Returns the name of the first ldap server configured. Throws an exception when no LdapServers have been configured
+   * in the database.
+   */
+  public String getLdapServerName() {
+    List<LdapServer> servers = serverDao.getAll();
+    if (servers.isEmpty()) {
+      throw new IllegalStateException("LDAP server is not configured");
+    }
+    return servers.get(0).getName();
+  }
+
+  /**
    * Slower authentication check; short-circuits if connection or mapping are missing.
    * 
    * @see LdapRealm#queryForAuthenticationInfo

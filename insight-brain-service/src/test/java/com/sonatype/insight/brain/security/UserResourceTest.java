@@ -12,9 +12,11 @@ import java.util.List;
 
 import com.sonatype.insight.brain.AuthedRestAccess;
 import com.sonatype.insight.brain.TemporaryEntity;
+import com.sonatype.insight.brain.configuration.ldap.LdapServer;
 import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
 import com.sonatype.insight.brain.features.FeaturesResource;
+import com.sonatype.insight.brain.ldap.EmbeddedLdapServer;
 import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Role;
@@ -31,6 +33,7 @@ import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
 
+import static com.sonatype.insight.brain.ldap.EmbeddedLdapServer.newEmbeddedLdapServer;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
@@ -327,29 +330,67 @@ public class UserResourceTest
   }
 
   @Test
-  public void testFindUsers() throws Exception {
+  public void testFindCLMUsers() throws Exception {
     Response response = AuthedRestAccess.get(getSearchUrl(""));
     assertResponseStatus(400, response);
 
     response = AuthedRestAccess.get(getSearchUrl(User.ADMIN_USERNAME));
     assertResponseStatus(200, response);
-    User[] users = fromJson(response, User[].class);
+    FindUserDTO[] users = fromJson(response, FindUserDTO[].class);
     assertThat(users, is(notNullValue()));
     assertThat(users.length, is(1));
     assertThat(users[0].getUsername(), is(User.ADMIN_USERNAME));
+    assertThat(users[0].getDisplayName(), is("Admin BuiltIn"));
+    assertThat(users[0].getRealm(), is("CLM"));
 
     response = AuthedRestAccess.get(getSearchUrl(User.ADMIN_USERNAME.substring(0, User.ADMIN_USERNAME.length() - 1)));
     assertResponseStatus(200, response);
-    users = fromJson(response, User[].class);
+    users = fromJson(response, FindUserDTO[].class);
     assertThat(users, is(notNullValue()));
     assertThat(users.length, is(1));
     assertThat(users[0].getUsername(), is(User.ADMIN_USERNAME));
+    assertThat(users[0].getDisplayName(), is("Admin BuiltIn"));
+    assertThat(users[0].getRealm(), is("CLM"));
 
     response = AuthedRestAccess.get(getSearchUrl("nobody-has-such-a-name-really"));
     assertResponseStatus(200, response);
-    users = fromJson(response, User[].class);
+    users = fromJson(response, FindUserDTO[].class);
     assertThat(users, is(notNullValue()));
     assertThat(users.length, is(0));
+  }
+
+  @Test
+  public void testFindLdapUser() throws Exception {
+    EmbeddedLdapServer embeddedLdapServer = newEmbeddedLdapServer();
+    embeddedLdapServer.start();
+    embeddedLdapServer.loadData("/UserResourceTest/ldap_users.ldif");
+
+    LdapServer ldapServer = tempEntity.newLdapServer("LDAP");
+    tempEntity.newLdapConnection(ldapServer.getId(), embeddedLdapServer.getPort());
+    tempEntity.newLdapUserMapping(ldapServer.getId());
+
+    Response response = AuthedRestAccess.get(getSearchUrl("John"));
+    assertResponseStatus(200, response);
+    FindUserDTO[] users = fromJson(response, FindUserDTO[].class);
+    assertThat(users, is(notNullValue()));
+    assertThat(users.length, is(1));
+    assertThat(users[0].getUsername(), is("testuser"));
+    assertThat(users[0].getDisplayName(), is("John Doe"));
+    assertThat(users[0].getRealm(), is("LDAP"));
+
+    tempEntity.newUser("testuser");
+
+    // Test shading. testuser loaded from "/UserResourceTest/ldap_users.ldif" should not be returned
+    response = AuthedRestAccess.get(getSearchUrl("John"));
+    assertResponseStatus(200, response);
+    users = fromJson(response, FindUserDTO[].class);
+    assertThat(users, is(notNullValue()));
+    assertThat(users.length, is(1));
+    assertThat(users[0].getUsername(), is("testuser"));
+    assertThat(users[0].getDisplayName(), is("John Doe"));
+    assertThat(users[0].getRealm(), is("CLM"));
+
+    embeddedLdapServer.stop();
   }
 
   private void assertUser(String username, String firstName, String lastName, String email, User actual) {

@@ -29,7 +29,7 @@
 					<div>
 						<div ng-show="!queryString"><em>Search above to find users</em></div>
 						<div ng-repeat='user in queryResults | userNotIn:mappings' ng-click='addUser(user)' class='licenseSelectListItem'>
-							<i class='icon-plus-sign'></i>&nbsp;<span title='{{getTooltip(user)}}' ng-bind-html-unsafe="getRealname(user) | highlight:queryString:caseSensitive"></span>
+							<i class='icon-plus-sign'></i>&nbsp;<span tooltip='{{getTooltip(user)}}' tooltip-placement='left' ng-bind-html-unsafe="getRealname(user) | highlight:queryString:caseSensitive"></span>
 						</div>
 						<div class='licenseSelectListItem' ng-show='queryString && !requestActive && queryResults.length == 0'>
 							<i class='emptyIconGlyph'></i>&nbsp;<em>No results</em>

@@ -13,10 +13,12 @@ import com.sonatype.insight.brain.configuration.ldap.LdapAuthenticationMethod;
 import com.sonatype.insight.brain.configuration.ldap.LdapConnection;
 import com.sonatype.insight.brain.configuration.ldap.LdapProtocol;
 import com.sonatype.insight.brain.configuration.ldap.LdapServer;
+import com.sonatype.insight.brain.configuration.ldap.LdapUserMapping;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapConnectionDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapServerDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapUserMappingDAO;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
@@ -72,6 +74,10 @@ public class TemporaryEntity
   private final PolicyWaiverDAO waiverDAO = new PolicyWaiverDAO();
 
   private final LdapServerDAO ldapServerDAO = new LdapServerDAO();
+
+  private final LdapConnectionDAO ldapConnectionDAO = new LdapConnectionDAO();
+
+  private final LdapUserMappingDAO ldapUserMappingDAO = new LdapUserMappingDAO();
 
   private Collection<Application> apps;
 
@@ -255,14 +261,31 @@ public class TemporaryEntity
   }
 
   public LdapConnection newLdapConnection(String ldapServerId) {
+    return newLdapConnection(ldapServerId, 389);
+  }
+
+  public LdapConnection newLdapConnection(String ldapServerId, int port) {
     LdapConnection ldapConnection = new LdapConnection();
     ldapConnection.setServerId(ldapServerId);
     ldapConnection.setProtocol(LdapProtocol.LDAP);
     ldapConnection.setHostname("localhost");
-    ldapConnection.setPort(389);
+    ldapConnection.setPort(port);
     ldapConnection.setAuthenticationMethod(LdapAuthenticationMethod.NONE);
     ldapConnection.setSystemUsername("system");
-    new LdapConnectionDAO().insert(ldapConnection);
+    ldapConnectionDAO.insert(ldapConnection);
     return ldapConnection;
+  }
+
+  public LdapUserMapping newLdapUserMapping(String ldapServerId) {
+    LdapUserMapping umap = new LdapUserMapping();
+    umap.setServerId(ldapServerId);
+    umap.setUserBaseDN("");
+    umap.setUserObjectClass("person");
+    umap.setUserIDAttribute("uid");
+    umap.setUserRealNameAttribute("givenName");
+    umap.setUserEmailAttribute("mail");
+    umap.setUserSubtree(true);
+    ldapUserMappingDAO.insert(umap);
+    return umap;
   }
 }

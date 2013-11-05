@@ -5,11 +5,15 @@
  */
 package com.sonatype.insight.brain.security;
 
-import java.util.ArrayList;
+import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.naming.NamingException;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -22,6 +26,8 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
+import com.sonatype.insight.brain.ldap.LdapManager;
+import com.sonatype.insight.brain.ldap.LdapUser;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -51,10 +57,13 @@ public class UserResource
 
   private final SessionDAO sessionDAO;
 
+  private final LdapManager ldapManager;
+
   @Inject
-  public UserResource(CLMRealm clmRealm, SessionDAO sessionDAO) {
+  public UserResource(CLMRealm clmRealm, SessionDAO sessionDAO, LdapManager ldapManager) {
     this.clmRealm = clmRealm;
     this.sessionDAO = sessionDAO;
+    this.ldapManager = ldapManager;
   }
 
   /**
@@ -64,20 +73,32 @@ public class UserResource
   @Path("{ownerType: global|application|organization}/{ownerId}/query")
   @Produces({ MediaType.APPLICATION_JSON })
   @Authorize(permission = Permission.WRITE)
-  public List<User> findUsers(@AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") String ownerType,
-      @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId, @QueryParam("q") String query)
-  {
+  public Collection<FindUserDTO> findUsers(@AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") String ownerType,
+      @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId, @QueryParam("q") String query) throws NamingException {
     if (StringUtils.isEmpty(query)) {
       throw new BadRequestException("No search term specified.");
     }
 
-    List<User> users = new ArrayList<User>();
+    // Users are shaded by any user from a higher up realm that has the same username
+    Map<String, FindUserDTO> users = new LinkedHashMap<String, FindUserDTO>();
     UserDAO dao = new UserDAO();
     for (User user : dao.findUsersByName(query)) {
-      clearUserPassword(user);
-      users.add(user);
+      String displayName = user.getFirstName() + " " + user.getLastName();
+      FindUserDTO u = new FindUserDTO(user.getUsername(), displayName.trim(), user.getEmail(), "CLM");
+      users.put(u.getUsername().toLowerCase(Locale.ENGLISH), u);
     }
-    return users;
+
+    if (ldapManager.isLdapEnabled()) {
+      String ldapName = ldapManager.getLdapServerName();
+      for (LdapUser user : ldapManager.findUsersByName(query, 100)) {
+        FindUserDTO u = new FindUserDTO(user.getUsername(), user.getRealName(), user.getEmail(), ldapName);
+        String key = u.getUsername().toLowerCase(Locale.ENGLISH);
+        if (!users.containsKey(key)) {
+          users.put(key, u);
+        }
+      }
+    }
+    return users.values();
   }
 
   @GET

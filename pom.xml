@@ -11,7 +11,7 @@
   <parent>
     <groupId>com.sonatype.buildsupport</groupId>
     <artifactId>private-parent</artifactId>
-    <version>4</version>
+    <version>5</version>
     <relativePath />
   </parent>
 

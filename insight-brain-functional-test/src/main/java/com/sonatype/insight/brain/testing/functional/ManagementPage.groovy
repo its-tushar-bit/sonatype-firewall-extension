@@ -6,14 +6,15 @@
 
 package com.sonatype.insight.brain.testing.functional
 
+import com.sonatype.insight.brain.testing.functional.modules.ChangePasswordModule
 import com.sonatype.insight.brain.testing.functional.modules.DropdownNav
 import com.sonatype.insight.brain.testing.functional.modules.LogoutModule
 import com.sonatype.insight.brain.testing.functional.modules.NavListModule
+
 import geb.Page
 
 class ManagementPage
-    extends Page
-{
+extends Page {
   static url = "assets/index.html#/management/application"
 
   static at = { title == 'CLM Management' }
@@ -22,5 +23,6 @@ class ManagementPage
     user { module LogoutModule }
     dropdownNav { module DropdownNav }
     nav { module NavListModule }
+    changePassword { module ChangePasswordModule }
   }
 }

@@ -451,7 +451,7 @@ public class TrendingReportProcessor
           @Nullable
           @Override
           public String apply(@Nullable final Condition input) {
-            return input.getConditionTypeId().toLowerCase(Locale.US);
+            return input.getConditionTypeId().toLowerCase(Locale.ENGLISH);
           }
         }));
       }
@@ -480,7 +480,7 @@ public class TrendingReportProcessor
           @Nullable
           @Override
           public String apply(@Nullable final ConditionFact input) {
-            return input.getConditionTypeId().toLowerCase(Locale.US);
+            return input.getConditionTypeId().toLowerCase(Locale.ENGLISH);
           }
         }));
       }

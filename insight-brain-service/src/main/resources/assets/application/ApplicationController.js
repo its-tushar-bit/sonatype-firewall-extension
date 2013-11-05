@@ -183,7 +183,7 @@
 
 
         $scope.getOrganizationName = function() {
-          return $scope.selectedApplication.organizationName || "Select Organization";
+          return $scope.selectedApplication && $scope.selectedApplication.organizationName || "Select Organization";
         };
 
         $scope.setOrganization = function(organization) {

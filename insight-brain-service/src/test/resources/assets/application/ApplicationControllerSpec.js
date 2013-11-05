@@ -172,6 +172,11 @@ describe('ApplicationEditorController', function() {
       parentScope.$destroy();
     });
 
+    it('getOrganization with null selectedApplication', function () {
+      scope.selectedApplication = null;
+      expect(scope.getOrganizationName()).toEqual("Select Organization");
+    });
+
     it('does not cancel edits when changing between tabs', function() {
       scope.selectedApplication.name = 'new_name';
       e = scope.$broadcast('pageChangeAccepted', 'application/' + scope.selectedApplication.publicId);

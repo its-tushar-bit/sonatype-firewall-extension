@@ -73,25 +73,25 @@ public class UserResource
   @Path("{ownerType: global|application|organization}/{ownerId}/query")
   @Produces({ MediaType.APPLICATION_JSON })
   @Authorize(permission = Permission.WRITE)
-  public Collection<UserQuery> findUsers(@AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") String ownerType,
+  public Collection<FindUserDTO> findUsers(@AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") String ownerType,
       @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId, @QueryParam("q") String query) throws NamingException {
     if (StringUtils.isEmpty(query)) {
       throw new BadRequestException("No search term specified.");
     }
 
     // Users are shaded by any user from a higher up realm that has the same username
-    Map<String, UserQuery> users = new LinkedHashMap<String, UserQuery>();
+    Map<String, FindUserDTO> users = new LinkedHashMap<String, FindUserDTO>();
     UserDAO dao = new UserDAO();
     for (User user : dao.findUsersByName(query)) {
       String displayName = user.getFirstName() + " " + user.getLastName();
-      UserQuery u = new UserQuery(user.getUsername(), displayName.trim(), user.getEmail(), "CLM");
+      FindUserDTO u = new FindUserDTO(user.getUsername(), displayName.trim(), user.getEmail(), "CLM");
       users.put(u.getUsername().toLowerCase(Locale.ENGLISH), u);
     }
 
     if (ldapManager.isLdapEnabled()) {
       String ldapName = ldapManager.getLdapServerName();
       for (LdapUser user : ldapManager.findUsersByName(query, 100)) {
-        UserQuery u = new UserQuery(user.getUsername(), user.getRealName(), user.getEmail(), ldapName);
+        FindUserDTO u = new FindUserDTO(user.getUsername(), user.getRealName(), user.getEmail(), ldapName);
         String key = u.getUsername().toLowerCase(Locale.ENGLISH);
         if (!users.containsKey(key)) {
           users.put(key, u);

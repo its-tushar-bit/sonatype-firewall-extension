@@ -5,7 +5,7 @@
  */
 package com.sonatype.insight.brain.security;
 
-public class UserQuery
+public class FindUserDTO
 {
   private String username;
   private String displayName;
@@ -44,10 +44,10 @@ public class UserQuery
     this.realm = realm;
   }
 
-  public UserQuery() {
+  public FindUserDTO() {
   }
 
-  public UserQuery(final String username, final String displayName, final String email, final String realm) {
+  public FindUserDTO(final String username, final String displayName, final String email, final String realm) {
     this.username = username;
     this.displayName = displayName;
     this.email = email;

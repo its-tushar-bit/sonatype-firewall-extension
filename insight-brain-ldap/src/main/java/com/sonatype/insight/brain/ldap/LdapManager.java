@@ -154,7 +154,7 @@ public class LdapManager
   }
 
   /**
-   * Returns the name of the first ldap realm configured. Throws an exception when no LdapServers have been configured
+   * Returns the name of the first ldap server configured. Throws an exception when no LdapServers have been configured
    * in the database.
    */
   public String getLdapServerName() {

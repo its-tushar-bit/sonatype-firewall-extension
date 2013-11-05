@@ -336,7 +336,7 @@ public class UserResourceTest
 
     response = AuthedRestAccess.get(getSearchUrl(User.ADMIN_USERNAME));
     assertResponseStatus(200, response);
-    UserQuery[] users = fromJson(response, UserQuery[].class);
+    FindUserDTO[] users = fromJson(response, FindUserDTO[].class);
     assertThat(users, is(notNullValue()));
     assertThat(users.length, is(1));
     assertThat(users[0].getUsername(), is(User.ADMIN_USERNAME));
@@ -345,7 +345,7 @@ public class UserResourceTest
 
     response = AuthedRestAccess.get(getSearchUrl(User.ADMIN_USERNAME.substring(0, User.ADMIN_USERNAME.length() - 1)));
     assertResponseStatus(200, response);
-    users = fromJson(response, UserQuery[].class);
+    users = fromJson(response, FindUserDTO[].class);
     assertThat(users, is(notNullValue()));
     assertThat(users.length, is(1));
     assertThat(users[0].getUsername(), is(User.ADMIN_USERNAME));
@@ -354,7 +354,7 @@ public class UserResourceTest
 
     response = AuthedRestAccess.get(getSearchUrl("nobody-has-such-a-name-really"));
     assertResponseStatus(200, response);
-    users = fromJson(response, UserQuery[].class);
+    users = fromJson(response, FindUserDTO[].class);
     assertThat(users, is(notNullValue()));
     assertThat(users.length, is(0));
   }
@@ -369,30 +369,25 @@ public class UserResourceTest
     tempEntity.newLdapConnection(ldapServer.getId(), embeddedLdapServer.getPort());
     tempEntity.newLdapUserMapping(ldapServer.getId());
 
-    Response response = AuthedRestAccess.get(getSearchUrl("test"));
+    Response response = AuthedRestAccess.get(getSearchUrl("John"));
     assertResponseStatus(200, response);
-    UserQuery[] users = fromJson(response, UserQuery[].class);
-    assertThat(users, is(notNullValue()));
-    assertThat(users.length, is(2));
-    assertThat(users[1].getUsername(), is("testuser"));
-    assertThat(users[1].getDisplayName(), is("Test"));
-    assertThat(users[1].getRealm(), is("LDAP"));
-
-    User user = new User("testuser", "testuserpassword", "testuser",
-        "testuser", "test_user@sonatype.com");
-    response = AuthedRestAccess.post(getServiceURL(), JsonHelpers.asJson(user));
-    assertResponseStatus(200, response);
-    user = JsonHelpers.fromJson(response.getResponseBody(), User.class);
-    usersToDelete.add(user);
-
-    // Test shading. Admin user loaded from "/UserResourceTest/ldap_users.ldif" should not be returned
-    response = AuthedRestAccess.get(getSearchUrl("testuser"));
-    assertResponseStatus(200, response);
-    users = fromJson(response, UserQuery[].class);
+    FindUserDTO[] users = fromJson(response, FindUserDTO[].class);
     assertThat(users, is(notNullValue()));
     assertThat(users.length, is(1));
     assertThat(users[0].getUsername(), is("testuser"));
-    assertThat(users[0].getDisplayName(), is("testuser testuser"));
+    assertThat(users[0].getDisplayName(), is("John Doe"));
+    assertThat(users[0].getRealm(), is("LDAP"));
+
+    tempEntity.newUser("testuser");
+
+    // Test shading. testuser loaded from "/UserResourceTest/ldap_users.ldif" should not be returned
+    response = AuthedRestAccess.get(getSearchUrl("John"));
+    assertResponseStatus(200, response);
+    users = fromJson(response, FindUserDTO[].class);
+    assertThat(users, is(notNullValue()));
+    assertThat(users.length, is(1));
+    assertThat(users[0].getUsername(), is("testuser"));
+    assertThat(users[0].getDisplayName(), is("John Doe"));
     assertThat(users[0].getRealm(), is("CLM"));
 
     embeddedLdapServer.stop();

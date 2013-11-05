@@ -22,6 +22,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -57,6 +58,13 @@ import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.base.Function;
+import com.google.common.base.Predicate;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableMap.Builder;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 
 /**
  * @since 1.7
@@ -117,6 +125,14 @@ public class TrendingReportProcessor
 
   private final PolicyEvaluationUtils policyEvaluationUtils;
 
+  private final Predicate<String> isSecurity = new StartsWithPredicate("security");
+
+  private final Predicate<String> isLicense = new StartsWithPredicate("license");
+
+  private final Predicate<String> isAge = new StartsWithPredicate("age");
+
+  private final Predicate<String> isPopularity = new StartsWithPredicate("popularity");
+
   @Inject
   public TrendingReportProcessor(InsightWork work, PolicyEvaluationUtils policyEvaluationUtils) {
     this.work = work;
@@ -164,6 +180,7 @@ public class TrendingReportProcessor
       monitor.tick(applications.size(), applicationNo);
 
       final Application application = applications.get(applicationNo);
+      final Map<String, String> applicationPolicyCategories = determinePolicyCategories(application);
 
       // alerts counts in this application
       int criticalAlerts = 0, severeAlerts = 0, moderateAlerts = 0, totalAlerts = 0;
@@ -213,7 +230,7 @@ public class TrendingReportProcessor
           for (PolicyAlert alert : policyEvaluationUtils.findPolicyAlerts(application.getId(), eval.getScanId())) {
             PolicyFact policyFact = alert.getTrigger();
             for (ComponentFact componentFact : policyFact.getComponentFacts()) {
-              String category = determineCategory(application, policyFact, componentFact);
+              String category = determineCategory(policyFact.getPolicyId(), applicationPolicyCategories, componentFact);
               String policyViolationsKey = policyFact.getPolicyId() + ":" + category;
               PolicyViolation violations = policyViolations.get(policyViolationsKey);
               if (violations == null) {
@@ -266,7 +283,7 @@ public class TrendingReportProcessor
           levelIdx = 2;
         }
         for (ComponentFact componentFact : componentFacts) {
-          String category = determineCategory(application, policyFact, componentFact);
+          String category = determineCategory(policyFact.getPolicyId(), applicationPolicyCategories, componentFact);
           categories.get(category)[levelIdx]++;
           String g = componentFact.getGroupId(), a = componentFact.getArtifactId(), v = componentFact.getVersion();
           if (g != null && a != null && v != null) {
@@ -286,7 +303,7 @@ public class TrendingReportProcessor
           List<ComponentFact> componentFacts = policyFact.getComponentFacts();
           int levelIdx = getThreatLevelIdx(level);
           for (ComponentFact componentFact : componentFacts) {
-            previousCategories.get(determineCategory(application, policyFact, componentFact))[levelIdx]++;
+            previousCategories.get(determineCategory(policyFact.getPolicyId(), applicationPolicyCategories, componentFact))[levelIdx]++;
           }
         }
       }
@@ -418,78 +435,71 @@ public class TrendingReportProcessor
   }
 
   /**
-   * Attempt to determine the category based upon the present policy, and if that policy has been
-   * deleted already, fall back to examining the violation data.
+   * Find and categorize all policies for the given application.
    */
-  private String determineCategory(final Application app, final PolicyFact policyFact,
-                                   final ComponentFact componentFact)
-  {
-    String category = getViolationCategoryFromPresentPolicy(app.getId(), app.getOrganizationId(),
-        policyFact.getPolicyId());
-    if (category == null) {
-      category = getViolationCategoryFromConstraintFacts(componentFact.getConstraintFacts());
+  private Map<String, String> determinePolicyCategories(final Application application) {
+    Builder<String,String> builder = new Builder<String, String>();
+    PolicyDAO policyDAO = new PolicyDAO(work.getWorkDir());
+    List<Policy> policies = policyDAO.getByOwnerId(application.getId());
+    policies.addAll(policyDAO.getByOwnerId(application.getOrganizationId()));
+
+    for (Policy policy : policies) {
+      Set<String> conditionTypeIds = Sets.newHashSet();
+      for (Constraint constraint : policy.getConstraints()) {
+        conditionTypeIds.addAll(Lists.transform(constraint.getConditions(), new Function<Condition, String>()
+        {
+          @Nullable
+          @Override
+          public String apply(@Nullable final Condition input) {
+            return input.getConditionTypeId().toLowerCase(Locale.US);
+          }
+        }));
+      }
+      builder.put(policy.getId(), determineCategory(conditionTypeIds));
     }
-    return category;
+    return builder.build();
   }
 
   /**
-   * Determine the category from the present policy, since the policy evaluation contains
-   * only the specific conditions violated. This could therefore be incorrect if the policy
-   * conditions have changed during the evaluation period.
+   * Attempt to determine the category based upon the present policy, and if that policy has been
+   * deleted already, fall back to examining the violation data.
    */
-  private String getViolationCategoryFromPresentPolicy(String applicationId, String organizationId, String policyId) {
-    PolicyDAO policyDAO = new PolicyDAO(work.getWorkDir());
-    Policy policy = policyDAO.getByOwnerIdAndPolicyId(applicationId, policyId);
-    String violationCategory = null;
-
-    if (policy == null) {
-      policy = policyDAO.getByOwnerIdAndPolicyId(organizationId, policyId);
-    }
-
-    if (policy != null) {
-      violationCategory = getViolationCategoryFromConstraints(policy.getConstraints());
-    }
-
-    return violationCategory;
-  }
-
-  private String getViolationCategoryFromConstraints(List<Constraint> constraints) {
-    int category = 3; // other
-    for (Constraint constraint : constraints) {
-      for (Condition condition : constraint.getConditions()) {
-        String conditionTypeId = condition.getConditionTypeId().toLowerCase(Locale.US);
-        if (conditionTypeId.contains(CATEGORY_SECURITY)) {
-          return CATEGORIES[0];
-        }
-        else if (conditionTypeId.contains(CATEGORY_LICENSE)) {
-          category = 1;
-        }
-        else if (category > 2 && (conditionTypeId.contains("age") || conditionTypeId.contains("popularity"))) {
-          category = 2;
-        }
-      }
-    }
-
-    return CATEGORIES[category];
+  private String determineCategory(final String policyId, final Map<String, String> applicationPolicyCategories,
+                                   final ComponentFact componentFact)
+  {
+    String policyCategory = applicationPolicyCategories.get(policyId);
+    return policyCategory != null ? policyCategory : getViolationCategoryFromConstraintFacts(
+        componentFact.getConstraintFacts());
   }
 
   private String getViolationCategoryFromConstraintFacts(List<ConstraintFact> constraintFacts) {
-    int category = 3; // other
+    Set<String> conditionTypeIds = Sets.newHashSet();
     for (ConstraintFact constraintFact : constraintFacts) {
-      for (ConditionFact conditionFact : constraintFact.getConditionFacts()) {
-        String conditionTypeId = conditionFact.getConditionTypeId().toLowerCase(Locale.US);
-        if (conditionTypeId.contains(CATEGORY_SECURITY)) {
-          return CATEGORIES[0];
-        }
-        else if (conditionTypeId.contains(CATEGORY_LICENSE)) {
-          category = 1;
-        }
-        else if (category > 2 && (conditionTypeId.contains("age") || conditionTypeId.contains("popularity"))) {
-          category = 2;
-        }
+        conditionTypeIds.addAll(Lists.transform(constraintFact.getConditionFacts(), new Function<ConditionFact, String>()
+        {
+          @Nullable
+          @Override
+          public String apply(@Nullable final ConditionFact input) {
+            return input.getConditionTypeId().toLowerCase(Locale.US);
+          }
+        }));
       }
+    return determineCategory(conditionTypeIds);
+  }
+
+  private String determineCategory(final Set<String> conditionTypeIds) {
+
+    if (Sets.filter(conditionTypeIds, isSecurity).size() > 0) {
+      return CATEGORY_SECURITY;
     }
-    return CATEGORIES[category];
+    else if (Sets.filter(conditionTypeIds, isLicense).size() > 0) {
+      return CATEGORY_LICENSE;
+    }
+    else if (Sets.filter(conditionTypeIds, isAge).size() > 0 ||
+        Sets.filter(conditionTypeIds, isPopularity).size() > 0) {
+      return CATEGORY_QUALITY;
+    }
+    return CATEGORY_OTHER;
   }
 
   private static ComponentsSummary toComponentsSummary(Map<String, Map<String, Integer>> components) {
@@ -516,5 +526,19 @@ public class TrendingReportProcessor
   private static String getAttribute(JsonNode parent, String childname) {
     JsonNode child = parent.path(childname);
     return !child.isNull() ? child.asText() : null;
+  }
+
+  /**
+   * Predicate wrapper for finding Strings starting with a given value in a collection.
+   */
+  private static class StartsWithPredicate implements Predicate<String>{
+    private final String startsWith;
+    StartsWithPredicate(String startsWith){
+      this.startsWith = startsWith;
+    }
+    @Override
+    public boolean apply(@Nullable final String input) {
+      return input.startsWith(startsWith);
+    }
   }
 }

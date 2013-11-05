@@ -326,7 +326,7 @@ public class TrendingReportProcessorTest
     security.addConditionFact("license");
     createScan(application, builder);
 
-    TrendingReport report = processor.calculate();
+    TrendingReport report = calculateReport();
     List<PolicyViolation> violations = report.getViolations();
     Assert.assertEquals(2, violations.size());
     assertPolicyViolations(violations, licensePolicy.getId(), "license", 0);

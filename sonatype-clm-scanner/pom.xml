@@ -236,9 +236,9 @@
     <profile>
       <id>obfuscate-ci-osx</id>
       <activation>
-        <os>
-          <family>mac</family>
-        </os>
+        <file>
+          <exists>${java.home}/../Classes/classes.jar</exists>
+        </file>
       </activation>
       <properties>
         <rt.jar>${java.home}/../Classes/classes.jar</rt.jar>

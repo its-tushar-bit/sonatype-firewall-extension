@@ -68,6 +68,7 @@ class GlobalRolesSpec
       roleRow.editButton.displayed
 
     when: "clicking the edit button"
+      js.exec '$( ".content" ).scrollLeft( 300 );'  //content appears offscreen in default browser size
       roleRow.editButton.click()
 
     then: "the edit form opens"
@@ -82,7 +83,7 @@ class GlobalRolesSpec
     then: "the matching users are listed"
       waitFor { roleRow.availableMembers.size() == 1 }
       roleRow.availableMemberNames*.text() == ["Jane Doe"]
-      roleRow.availableMemberNames*.@title == ["Jane Doe <jane@doe.net>"]
+      roleRow.availableMemberNames*.@tooltip == ["Jane Doe <jane@doe.net> (CLM)"]
       roleRow.appliedMembers.size() == 0
 
     when: "entering last name prefix"
@@ -91,7 +92,7 @@ class GlobalRolesSpec
     then: "the matching users are listed"
       waitFor { roleRow.availableMembers.size() == 2 }
       roleRow.availableMemberNames*.text().sort() == ["Jane Doe", "John Doe"]
-      roleRow.availableMemberNames*.@title.sort() == ["Jane Doe <jane@doe.net>", "John Doe <john@doe.net>"]
+      roleRow.availableMemberNames*.@tooltip.sort() == ["Jane Doe <jane@doe.net> (CLM)", "John Doe <john@doe.net> (CLM)"]
       roleRow.appliedMembers.size() == 0
   }
 

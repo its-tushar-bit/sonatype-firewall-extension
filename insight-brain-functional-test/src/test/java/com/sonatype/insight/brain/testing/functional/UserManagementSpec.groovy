@@ -69,13 +69,7 @@ class UserManagementSpec
     inputValidations.noSpaces.displayed
     !inputValidations.errorFree
     !errorFree
-    report 'before cleanup'
-
-    cleanup:
-    input.value('')
-    input << Keys.TAB
-    !inputValidations.noSpaces.displayed
-    assert errorFree
+    report 'after invalidation'
 
     where:
     input          | inputValidations

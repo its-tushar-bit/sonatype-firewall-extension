@@ -18,6 +18,6 @@ class GlobalRolesPage
   static at = { driver.currentUrl.endsWith(url) }
 
   static content = {
-    mapping { module RoleMappingModule }
+    mapping(wait: true) { module RoleMappingModule }
   }
 }

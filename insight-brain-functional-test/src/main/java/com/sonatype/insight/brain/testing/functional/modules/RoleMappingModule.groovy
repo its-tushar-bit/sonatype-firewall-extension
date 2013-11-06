@@ -11,7 +11,7 @@ class RoleMappingModule extends Module {
   static base = { $('#security') }
 
   static content = {
-    role { name -> module RoleModule, $('.role').has('div > div:first-child', text : name) }
+    role(wait: true) { name -> module RoleModule, $('.role').has('div > div:first-child', text : name) }
     roles { moduleList RoleModule, $('.role') }
   }
 }

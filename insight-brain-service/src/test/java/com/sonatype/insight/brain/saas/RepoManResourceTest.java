@@ -51,7 +51,7 @@ public class RepoManResourceTest
     assertNotNull(scanReceipt);
     assertEquals("f75365d9d93b4f1ea2dd8457a25dc44d", scanReceipt.getScanId());
     assertEquals(Long.valueOf(30), scanReceipt.getTimeToReport());
-    assertEquals("rest/report/RepoManResourceTest_AppId/f75365d9d93b4f1ea2dd8457a25dc44d/embedReport/",
+    assertEquals("ui/links/application/RepoManResourceTest_AppId/report/f75365d9d93b4f1ea2dd8457a25dc44d",
         scanReceipt.getReportUrl());
   }
 

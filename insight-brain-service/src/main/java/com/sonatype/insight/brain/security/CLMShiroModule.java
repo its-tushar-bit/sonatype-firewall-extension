@@ -45,6 +45,7 @@ public class CLMShiroModule
     manager.createChain("/favicon.ico", "anon");
     manager.createChain("/crumbIssuer/**", "anon");
     manager.createChain("/rest/version", "anon");
+    manager.createChain("/ui/links/**", "anon");
     manager.createChain("/**/*", "authcBasic");
     //change the auth type so browsers dont prompt for login details
     BasicHttpAuthenticationFilter.class.cast(manager.getFilter("authcBasic")).setAuthcScheme("nonBrowserPromptingBasic");

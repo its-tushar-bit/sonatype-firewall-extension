@@ -106,8 +106,9 @@ public class TrendingReportService
       cached.setGeneration(new TrendingReportGenerationMetadata(isAdmin, time, total, current));
 
       log.debug("Cached trending report data age={}ms, generationTime={}, generationTotal={}, generationCurrent={}",
-    now - cached.getMeta().getGeneratedOn(), time, total, current);
-    } else {
+          now - cached.getMeta().getGeneratedOn(), time, total, current);
+    }
+    else {
       log.debug("No cached trending report data");
     }
 

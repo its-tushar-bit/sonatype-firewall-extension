@@ -150,7 +150,9 @@ public class LdapManager
    * @see LdapRealm#supports
    */
   public boolean isLdapEnabled() {
-    return !serverDao.getAll().isEmpty(); // we have at least one LDAP server
+    List<LdapServer> servers = serverDao.getAll();
+    return !servers.isEmpty() &&
+        connDao.getByServerId(servers.get(0).getId()) != null; // We have at least one server with a connection
   }
 
   /**

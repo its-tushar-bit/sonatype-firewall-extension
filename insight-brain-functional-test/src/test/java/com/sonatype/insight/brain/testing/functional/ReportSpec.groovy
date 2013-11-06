@@ -6,6 +6,9 @@
 package com.sonatype.insight.brain.testing.functional
 
 import com.google.common.io.Resources
+import com.sonatype.insight.brain.dataaccess.security.UserDAO
+import com.sonatype.insight.brain.model.security.User
+import com.sonatype.insight.brain.security.CLMRealm
 import com.sonatype.insight.brain.service.InsightBrainService
 import com.sonatype.insight.brain.service.InsightConfig
 import com.yammer.dropwizard.testing.junit.DropwizardServiceRule
@@ -27,10 +30,21 @@ class ReportSpec
   TestRule startServiceRule = new DropwizardServiceRule<InsightConfig>(InsightBrainService.class,
       Resources.getResource('config-test.yml').getPath())
 
+  @Shared User nonAdminUser
+
   def setupSpec() {
+    UserDAO userDAO = new UserDAO()
+    nonAdminUser = new User(username: "test", password: new CLMRealm().encryptPassword("secret"), firstName: "John",
+        lastName: "Doe", email: "john@doe.net")
+    userDAO.insert(nonAdminUser);
+
     to LoginPage
     loginAsAdmin()
     waitFor { at ReportPage }
+  }
+
+  def cleanupSpec() {
+    new UserDAO().delete(nonAdminUser)
   }
 
   def "When we first login we're invited to create a new Org"() {
@@ -59,4 +73,29 @@ class ReportSpec
     applicationCount ==  '0 Applications'
     violationCount == '0 Violations'
   }
+
+  def "When we view the same report as a non-admin user"(){
+    when: 'we logout'
+    user.logout.click()
+
+    then: 'we arrive back at the logn page'
+    at LoginPage
+
+    when: 'we log in using the non-admin user'
+    login('test', 'secret')
+
+    then:
+    at ReportPage
+
+    when: 'opening the report'
+    to TrendingReportPage
+
+    then: 'no refresh button is displayed, but the report is vislble'
+    !refresh.displayed
+    componentCount == '0 Components across all Applications'
+    policyCount == '0 Policies'
+    applicationCount ==  '0 Applications'
+    violationCount == '0 Violations'
+  }
+
 }

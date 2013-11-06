@@ -16,13 +16,13 @@ class ChangePasswordModule extends Module
     //the main link from the top right of the page
     open { $('a', text: 'Change Password') }
     //this content is all in the popup dialog
-    dialog(required: false) { $('div.modal-ldap') }
-    oldPassword(required: false) { userMappingDialog.find('input', 'name': 'currentPassword') }
-    newPassword(required: false) { userMappingDialog.find('input', 'name': 'newPassword') }
-    newPasswordValidate(required: false) { userMappingDialog.find('input', 'name': 'validatePassword') }
-    newPasswordValidateDoesntMatch(required: false) { userMappingDialog.find('div', text: 'Passwords must match!') }
-    invalidCredentialsError(required: false) { userMappingDialog.find('div', text: 'Invalid credentials supplied.') }
-    ok(required: false) { userMappingDialog.find('button', text: 'Save') }
-    cancel(required: false) { userMappingDialog.find('button', text: 'Cancel') }
+    dialog(required: false) { $('form', name: 'passwordForm') }
+    oldPassword(required: false) { dialog.find('input', 'name': 'currentPassword') }
+    newPassword(required: false) { dialog.find('input', 'name': 'newPassword') }
+    newPasswordValidate(required: false) { dialog.find('input', 'name': 'validatePassword') }
+    newPasswordValidateDoesntMatch(required: false) { dialog.find('div', text: 'Passwords must match!') }
+    invalidCredentialsError(required: false) { dialog.find('div', text: 'Invalid credentials supplied.') }
+    ok(required: false) { dialog.find('button', text: 'Change') }
+    cancel(required: false) { dialog.find('button', text: 'Cancel') }
   }
 }

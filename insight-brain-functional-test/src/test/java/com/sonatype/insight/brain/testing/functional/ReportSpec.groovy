@@ -1,0 +1,62 @@
+/**
+ * Copyright (c) 2011-2013 Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.testing.functional
+
+import com.google.common.io.Resources
+import com.sonatype.insight.brain.service.InsightBrainService
+import com.sonatype.insight.brain.service.InsightConfig
+import com.yammer.dropwizard.testing.junit.DropwizardServiceRule
+import geb.spock.GebReportingSpec
+import org.junit.ClassRule
+import org.junit.rules.TestRule
+import spock.lang.Shared
+import spock.lang.Stepwise
+
+/**
+ * @since 1.7
+ */
+@Stepwise
+class ReportSpec
+    extends GebReportingSpec
+{
+  @Shared
+  @ClassRule
+  TestRule startServiceRule = new DropwizardServiceRule<InsightConfig>(InsightBrainService.class,
+      Resources.getResource('config-test.yml').getPath())
+
+  def setupSpec() {
+    to LoginPage
+    loginAsAdmin()
+    waitFor { at ReportPage }
+  }
+
+  def "When we first login we're invited to create a new Org"() {
+    expect:
+    emptyMessage.displayed
+  }
+
+  def "We can navigate to the trending report"() {
+    when: 'we click the navigation link to Trending'
+    nav.link('Trending').click()
+
+    then: 'we see the large loading progress meter'
+    at TrendingReportPage
+    loadingText.startsWith('CLM Server is generating the trending report')
+  }
+
+  def "We can load the (empty) report"(){
+    when: 'the report is generated and we refresh the page'
+    browser.driver.navigate().refresh()
+
+    then: 'we see that no violations have occurred, since we have not scanned anything'
+    at TrendingReportPage
+    refresh.displayed
+    componentCount == '0 Components across all Applications'
+    policyCount == '0 Policies'
+    applicationCount ==  '0 Applications'
+    violationCount == '0 Violations'
+  }
+}

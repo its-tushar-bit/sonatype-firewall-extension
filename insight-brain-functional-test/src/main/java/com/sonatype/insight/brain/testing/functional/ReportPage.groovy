@@ -3,9 +3,12 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+
 package com.sonatype.insight.brain.testing.functional
 
+import com.sonatype.insight.brain.testing.functional.modules.DropdownNav
 import com.sonatype.insight.brain.testing.functional.modules.LogoutModule
+import com.sonatype.insight.brain.testing.functional.modules.NavListModule
 import geb.Page
 
 class ReportPage extends Page {
@@ -15,5 +18,9 @@ class ReportPage extends Page {
 
   static content = {
     user { module LogoutModule }
+    dropdownNav { module DropdownNav }
+    nav { module NavListModule }
+
+    emptyMessage { $('div h5', text: startsWith('Welcome to Sonatype CLM. Get started by')) }
   }
 }

@@ -31,7 +31,7 @@
           controller: 'ReportViolationsController'
         }).state('reports.trending', {
           url: '/trending',
-          templateUrl: '../report-assets/trending/risk-report.html?' + clmBuildTimestamp,
+`          templateUrl: '../report-assets/trending/trending-report.html?' + clmBuildTimestamp,
           parent: 'reports',
           controller: 'TrendingReportController'
         });

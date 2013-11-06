@@ -33,7 +33,7 @@
       <div class="span6">
         <div>
           <h1 class="count-header" style="margin-bottom: 0;"><strong>{{ data.components.inApplication }}</strong> Components across all Applications</h1>
-          <div ng-include='percentageChart'></div>
+          <div ng-show="data.components.inApplications" ng-include='percentageChart'></div>
         </div>
         <div class="row" style='padding-bottom: 10px;'>
           <div class="span2">

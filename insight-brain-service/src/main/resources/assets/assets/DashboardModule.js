@@ -23,7 +23,7 @@
 
   var dashboardApp = angular.module(
           'DashboardModule',
-          ['ui.router', 'ui.bootstrap', 'CLMLocation', 'CommonServices'],
+          ['ui.router', 'ui.bootstrap', 'CLMLocation', 'CommonServices', 'UserControls'],
           ['$stateProvider', '$routeProvider', '$urlRouterProvider',
               function($stateProvider, $routeProvider, $urlRouterProvider) {
                 $stateProvider.state('home', {
@@ -171,13 +171,6 @@
           break;
         }
       }
-    }
-
-    $scope.logout = function(){
-      $http.delete(CLMLocations.getSessionUrl()).success(function(){
-        $rootScope.authenticated = false;
-        $state.transitionTo('home');
-      });
     }
 
     $scope.$state = $state;

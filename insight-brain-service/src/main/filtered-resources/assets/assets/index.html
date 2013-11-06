@@ -41,6 +41,7 @@
     <script src='../configuration-assets/LdapConfigurationController.js?${build.timestamp}'></script>
     <script src='../configuration-assets/ConfigurationController.js?${build.timestamp}'></script>
     <script src='../assets/components/list-editor/ListEditor.js?${build.timestamp}'></script>
+    <script src='../assets/components/user-controls/UserControls.js?${build.timestamp}'></script>
     <script src='../security-assets/UserModule.js?${build.timestamp}'></script>
     <script src='DashboardModule.js?${build.timestamp}'></script>
     <script src='ManagementApp.js?${build.timestamp}'></script>
@@ -52,7 +53,7 @@
         <a class="title brand" href="#">
           <img src="img/sonatype-32.png" alt="Logo" height="32" width="32"/>&nbsp;Sonatype CLM
         </a>
-        <div class="pull-right"><a ng-click="logout()" style="font-size: .75em">Logout</a></div>
+        <div class="pull-right" user-controls></div>
       </div>
     </div>
   </div>

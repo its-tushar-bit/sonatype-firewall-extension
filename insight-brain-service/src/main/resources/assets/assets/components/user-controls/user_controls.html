@@ -1,0 +1,40 @@
+<div>
+	<script type='text/ng-template' id='change-password'>
+<div class='modal fade in'>
+	<div class='modal-header'>
+		<button type="button" class="close"  ng-click='$dismiss()' aria-hidden="true">&times;</button>
+		<h3>Change Password</h3>
+	</div>
+	<form name='passwordForm' class='form-horizontal' style='margin-bottom:0px' ng-submit='save()'>
+		<div class='modal-body'>
+			<div class="control-group">
+				<label class="control-label" id='originalPassword'>Current password</label>
+				<div class="controls">
+					<input type="password" id="originalPassword" class="input-large" ng-model='result.originalPassword' required>
+				</div>
+			</div>
+			<hr/>
+			<div class="control-group">
+				<label class="control-label" id='newPassword'>New password</label>
+				<div class="controls">
+					<input type="password" id="newPassword" class="input-large" ng-model='result.newPassword' required>
+				</div>
+			</div>
+			<div class="control-group" ng-class='{ error : passwordForm.confirmPassword.$error.match }'>
+				<label class="control-label" id='confirmPassword'>Confirm new password</label>
+				<div class="controls">
+					<input type="password" id="confirmPassword" name='confirmPassword' class="input-large" ng-model='result.confirmPassword' required match='{{result.newPassword}}'>
+					<span ng-show='passwordForm.confirmPassword.$error.match' class="help-inline">Does not match</span>
+				</div>
+			</div>
+		</div>
+		<div class='modal-footer'>
+			<button type='button' class="btn" ng-click='$dismiss()'>Cancel</button>
+			<button type='submit' class="btn btn-primary" ng-disabled='passwordForm.$invalid && submitActive'>Change</button>
+		</div>
+	</form>
+</div>
+	</script>
+	<a ng-controller='ChangePassword' ng-click="change()" style="font-size: .75em">Change Password</a> | 
+	<a ng-controller='LogoutController' ng-click="logout()" style="font-size: .75em">Logout</a>
+</div>

@@ -85,6 +85,10 @@
 
         getTrendingReportUrl: function() {
           return baseUrl.get() + '/rest/trending';
+        },
+
+        getChangePasswordUrl : function (userId) {
+          return baseUrl.get() + '/rest/user/' + userId + '/password';
         }
       };
     }

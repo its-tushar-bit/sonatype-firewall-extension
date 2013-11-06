@@ -55,6 +55,7 @@ var SpecUtil = {
   toRegExp: function toRegExp(url) {
     return new RegExp(url + '\\?timestamp=[0-9]+')
   },
+
   setInput: function(inputElement, val) {
     var evt = document.createEvent('HTMLEvents');
     inputElement.val(val);

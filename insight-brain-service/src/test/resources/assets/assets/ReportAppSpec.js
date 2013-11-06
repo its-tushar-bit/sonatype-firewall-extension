@@ -1,7 +1,7 @@
 describe('reportApp', function() {
-  var scope, state;
+  var scope, state, currentUserSuccess, currentUserFail, licenseCheckerFail, licenseCheckerSuccess;
   
-  beforeEach(module('reportApp', 'ReportViolations', 'DashboardModule', function($provide) {
+  beforeEach(module('reportApp', 'ReportViolations', function($provide) {
     $provide.value('$window', {
       location: {
         reload: function(){}
@@ -21,16 +21,35 @@ describe('reportApp', function() {
         };
       }
     });
+    $provide.value('CurrentUser', {
+      then : function (success, fail) {
+        currentUserSuccess = success;
+        currentUserFail = fail;
+        return this;
+      }
+    });
+    $provide.value('licenseChecker', {
+      check : function () {
+        return {
+          then : function (success, fail) {
+            licenseCheckerFail = fail;
+            licenseCheckerSuccess = success;
+          }
+        }
+      }
+    });
   }));
   
   beforeEach(inject(function($rootScope, $state, $controller, $httpBackend, CLMLocations) {
     $rootScope.initialized = true;
-    $rootScope.username = 'user';
-    $rootScope.authenticated = true;
     $rootScope.licensed = true;
     scope = $rootScope.$new();
     state = $state;
 
+    currentUserSuccess({
+      authenticated : true,
+      username : 'user'
+    });
     $httpBackend.expectGET(CLMLocations.getActionStageUrl()).respond(MockData.getActionStageData());
     $httpBackend.expectGET(SpecUtil.toRegExp('/rest/application/services/summary')).respond(ApplicationMockData.getApplicationSummaryData());
 
@@ -45,7 +64,7 @@ describe('reportApp', function() {
     $httpBackend.verifyNoOutstandingRequest();
   }));
 
-  it('loads data', function() {
+  it('loads data', inject(function ($httpBackend) {
     var mockStageData = MockData.getActionStageData();
     var mockApplicationSummaryData = ApplicationMockData.getApplicationSummaryData();
 
@@ -57,5 +76,5 @@ describe('reportApp', function() {
     expect(scope.applications).not.toBeUndefined();
     expect(scope.applications.length).toEqual(mockApplicationSummaryData.length);
     expect(scope.applications[0].id).toEqual(mockApplicationSummaryData[0].id);
-  });
+  }));
 });

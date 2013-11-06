@@ -1,5 +1,6 @@
 describe('dashboardApp', function() {
-  var scope, state;
+  'use strict';
+  var scope, state, currentUserSuccess, currentUserFail, licenseCheckerFail, licenseCheckerSuccess;
 
   beforeEach(module('DashboardModule', function($stateProvider, $provide) {
     $provide.value('$window', {
@@ -16,6 +17,23 @@ describe('dashboardApp', function() {
         }
       }
     });
+    $provide.value('CurrentUser', {
+      then : function (success, fail) {
+        currentUserSuccess = success;
+        currentUserFail = fail;
+        return this;
+      }
+    });
+    $provide.value('licenseChecker', {
+      check : function () {
+        return {
+          then : function (success, fail) {
+            licenseCheckerFail = fail;
+            licenseCheckerSuccess = success;
+          }
+        }
+      }
+    });
 
     $stateProvider.state('test', {url: '/test/:testId'}).state('management', {}).state('management.configuration', {}).state(
             'management.configuration.productlicense', {});
@@ -29,10 +47,7 @@ describe('dashboardApp', function() {
     $httpBackend.verifyNoOutstandingRequest();
   }));
 
-  beforeEach(inject(function($rootScope, $state, $controller) {
-    $rootScope.username = 'user';
-    $rootScope.authenticated = true;
-    $rootScope.licensed = true;
+  beforeEach(inject(function($rootScope, $state, $controller, $httpBackend) {
     scope = $rootScope.$new();
     state = $state;
 
@@ -42,128 +57,131 @@ describe('dashboardApp', function() {
     });
   }));
 
-  it('Validate proper requests made on initialization', inject(function($rootScope, $httpBackend, $state, $stateParams, $window,
-          CLMLocations) {
+  describe('Validate proper requests made on initialization', function () {
     var event = {
       preventDefault: jasmine.createSpy('preventDefault')
     };
 
-    function cleanScope() {
-      // dump the vars so that we can test from scratch
-      delete $rootScope.username;
-      delete $rootScope.authenticated;
-      delete $rootScope.licensed;
-    }
+    it('normal', inject(function($rootScope, $httpBackend, $state, $stateParams, $window, CLMLocations) {
+      var toParams = {testId:'blah'},
+          event = null;
 
-    cleanScope();
-    $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getSessionUrl())).respond({
-      username: 'user',
-      authenticated: true
-    });
-    $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getLicenseSummaryUrl().split('?')[0])).respond({
-      username: 'user'
-    });
-    var toParams = {testId:'blah'};
-    var event = $rootScope.$broadcast('$stateChangeStart', 'test', toParams, '', {});
-    $httpBackend.flush();
+      scope.$apply(function () {
+        event = $rootScope.$broadcast('$stateChangeStart', 'test', toParams, '', {});
+      });
 
-    expect(event.defaultPrevented).toBeTruthy();
-    expect($rootScope.username).toEqual('user');
-    expect($rootScope.authenticated).toBeTruthy();
-    expect($rootScope.licensed).toBeTruthy();
-    expect($state.current.name).toEqual('test');
-    expect($stateParams).toEqual(toParams);
+      expect(event.defaultPrevented).toBeTruthy();
 
-    // now test with bad license
-    cleanScope();
+      scope.$apply(function () {
+        currentUserSuccess({
+          username: 'user',
+          authenticated: true
+        });
+      });
 
-    $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getSessionUrl())).respond({
-      username: 'user',
-      authenticated: true
-    });
-    $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getLicenseSummaryUrl().split('?')[0])).respond(402);
-    var event = $rootScope.$broadcast('$stateChangeStart', 'test', {}, '', {});
-    $httpBackend.flush();
+      expect($rootScope.username).toEqual('user');
+      expect($rootScope.licensed).toBeFalsy();
 
-    expect(event.defaultPrevented).toBeTruthy();
-    expect($rootScope.username).toEqual('user');
-    expect($rootScope.authenticated).toBeTruthy();
-    expect($rootScope.licensed).toBeFalsy();
-    expect($state.current.name).toEqual('management.configuration.productlicense');
+      scope.$apply(function () {
+        licenseCheckerSuccess({
+          expiryTimestamp : 0 // technically in the past but JS doesn't check this
+        });
+      });
 
-    // now test with bad license from something other than index.html (i.e.
-    // reports.html)
-    $window.location.href = 'http://blah/reports.html';
-    cleanScope();
+      expect($rootScope.licensed).toBeTruthy();
 
-    $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getSessionUrl())).respond({
-      username: 'user',
-      authenticated: true
-    });
-    $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getLicenseSummaryUrl().split('?')[0])).respond(402);
-    var event = $rootScope.$broadcast('$stateChangeStart', 'test', {}, '', {});
-    $httpBackend.flush();
+      expect($state.current.name).toEqual('test');
+      expect($stateParams).toEqual(toParams);
+    }));
 
-    expect(event.defaultPrevented).toBeTruthy();
-    expect($rootScope.username).toEqual('user');
-    expect($rootScope.authenticated).toBeTruthy();
-    expect($rootScope.licensed).toBeFalsy();
-    expect($window.location.replace).toHaveBeenCalledWith('index.html#/management/configuration/productlicense');
+    it('bad license', inject(function($rootScope, $httpBackend, $state, $stateParams, $window, CLMLocations) {
+      var event = null;
+      scope.$apply(function () {
+        currentUserSuccess({
+          username: 'user',
+          authenticated: true
+        });
+        licenseCheckerFail(['', 402]);
+        event = $rootScope.$broadcast('$stateChangeStart', 'test', {}, '', {});
+      });
 
-    // now test with bad auth
-    $window.location.replace.reset();
-    cleanScope();
+      expect(event.defaultPrevented).toBeTruthy();
+      expect($rootScope.username).toEqual('user');
+      expect($rootScope.licensed).toBeFalsy();
+      expect($state.current.name).toEqual('management.configuration.productlicense');
+    }));
 
-    $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getSessionUrl())).respond(401);
-    var event = $rootScope.$broadcast('$stateChangeStart', 'test', {}, '', {});
-    $httpBackend.flush();
+    it('bad license in separate application', inject(function($rootScope, $httpBackend, $state, $stateParams, $window, CLMLocations) {
+      // now test with bad license from something other than index.html (i.e. reports.html)
+      $window.location.href = 'http://blah/reports.html';
 
-    expect(event.defaultPrevented).toBeTruthy();
-    expect($rootScope.username).toBeFalsy();
-    expect($rootScope.authenticated).toBeFalsy();
-    expect($rootScope.licensed).toBeFalsy();
-    expect($window.location.replace).toHaveBeenCalledWith(
-            '../login-assets/login.html?redirectTo=' + encodeURIComponent('http://blah/reports.html'));
-  }));
+      currentUserSuccess({
+        username: 'user',
+        authenticated: true
+      });
+      licenseCheckerFail(['', 402]);
+      var event = $rootScope.$broadcast('$stateChangeStart', 'test', {}, '', {});
 
-  it('Validate location change event is broadcast properly', inject(function($rootScope) {
-    var successStart = false, successAccept = false;
-    $rootScope.$on('pageChangeStarted', function(event, destination) {
-      successStart = true;
-    });
-    $rootScope.$on('pageChangeAccepted', function(event, destination) {
-      successAccept = true;
-    });
+      expect(event.defaultPrevented).toBeTruthy();
+      expect($rootScope.username).toEqual('user');
+      expect($rootScope.licensed).toBeFalsy();
+      expect($window.location.replace).toHaveBeenCalledWith('index.html#/management/configuration/productlicense');
+    }));
 
-    $rootScope.$broadcast('$locationChangeStart', 'http://www.cnn.com', 'http://www.google.com');
+    it('bad auth', inject(function($rootScope, $httpBackend, $state, $stateParams, $window, CLMLocations) {
+      $window.location.replace.reset();
 
-    waitsFor(function() {
-      return successStart;
-    }, "pageChangeStarted event not properly retrieved", 1000);
-    waitsFor(function() {
-      return successAccept;
-    }, "pageChangeAccepted event not properly retrieved", 1000);
-  }));
+      currentUserSuccess({
+        username: 'user',
+        authenticated: false
+      });
+      licenseCheckerFail(['', 401]);
+      var event = $rootScope.$broadcast('$stateChangeStart', 'test', {}, '', {});
 
-  it('Adjusts dashboard to the current state', inject(function($window, $state) {
-    $window.location.href = 'http://www.blah.com/index.html#/management/application';
-    $state.current.name = 'management.application';
-    scope.$digest();
-    expect(scope.selectedDashboard.name).toBe('Management');
+      expect(event.defaultPrevented).toBeTruthy();
+      expect($rootScope.username).toBeFalsy();
+      expect($rootScope.licensed).toBeFalsy();
+      expect($window.location.replace).toHaveBeenCalledWith(
+              '../login-assets/login.html?redirectTo=' + encodeURIComponent('http://blah/index.html'));
+    }));
+  });
 
-    $window.location.href = 'http://www.blah.com/index.html#/reports/violations';
-    $state.current.name = 'reports.violations';
-    scope.$digest();
-    expect(scope.selectedDashboard.name).toBe('Reports');
-  }));
+  describe('Normal Operation', function () {
+    beforeEach(inject(function($rootScope, $state, $controller, $httpBackend) {
+      $rootScope.username = 'user';
+      $rootScope.authenticated = true;
+      $rootScope.licensed = true;
+    }));
 
-  it('provides the ability to log out', inject(function($httpBackend, CLMLocations, $rootScope){
-    expect(scope.logout).not.toBeUndefined();
-    $rootScope.authenticated = true;
-    $httpBackend.expectDELETE(CLMLocations.getSessionUrl()).respond({});
-    $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getSessionUrl())).respond(401);
-    scope.logout();
-    $httpBackend.flush();
-    expect($rootScope.authenticated).toBe(false);
-  }));
+    it('Validate location change event is broadcast properly', inject(function($rootScope) {
+      var successStart = false, successAccept = false;
+      $rootScope.$on('pageChangeStarted', function(event, destination) {
+        successStart = true;
+      });
+      $rootScope.$on('pageChangeAccepted', function(event, destination) {
+        successAccept = true;
+      });
+
+      $rootScope.$broadcast('$locationChangeStart', 'http://www.cnn.com', 'http://www.google.com');
+
+      waitsFor(function() {
+        return successStart;
+      }, "pageChangeStarted event not properly retrieved", 1000);
+      waitsFor(function() {
+        return successAccept;
+      }, "pageChangeAccepted event not properly retrieved", 1000);
+    }));
+
+    it('Adjusts dashboard to the current state', inject(function($window, $state) {
+      $window.location.href = 'http://www.blah.com/index.html#/management/application';
+      $state.current.name = 'management.application';
+      scope.$digest();
+      expect(scope.selectedDashboard.name).toBe('Management');
+
+      $window.location.href = 'http://www.blah.com/index.html#/reports/violations';
+      $state.current.name = 'reports.violations';
+      scope.$digest();
+      expect(scope.selectedDashboard.name).toBe('Reports');
+    }));
+  });
 });

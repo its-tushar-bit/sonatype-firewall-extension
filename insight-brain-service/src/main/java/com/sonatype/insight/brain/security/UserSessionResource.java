@@ -15,6 +15,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.product.license.UnlicensedPath;
+import com.sonatype.insight.brain.security.CLMRealm.CLMUserPrincipal;
 
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.subject.Subject;
@@ -71,6 +72,8 @@ public class UserSessionResource
     
     private boolean isAuthenticated;
     
+    private boolean isClmUser;
+
     /**
      * Status for a user that is not authenticated.
      */
@@ -88,7 +91,13 @@ public class UserSessionResource
       
       // Supply username if it's available.  Will be useful when a user is remembered but not authenticated.
       if(subject.getPrincipal() != null) {
-        status.setUsername(subject.getPrincipal().toString());
+        Object principal = subject.getPrincipal();
+        if (principal instanceof CLMUserPrincipal) {
+          status.setUsername(((CLMUserPrincipal) principal).username);
+          status.setClmUser(((CLMUserPrincipal) principal).clmUser);
+        } else {
+          status.setUsername(subject.getPrincipal().toString());
+        }
       }
 
       return status;
@@ -108,6 +117,14 @@ public class UserSessionResource
 
     public void setAuthenticated(boolean isAuthenticated) {
       this.isAuthenticated = isAuthenticated;
+    }
+
+    public boolean isClmUser() {
+      return isClmUser;
+    }
+
+    public void setClmUser(boolean isClmUser) {
+      this.isClmUser = isClmUser;
     }
   }
 }

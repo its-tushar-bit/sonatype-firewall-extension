@@ -33,6 +33,7 @@ import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.error.exception.BadRequestException;
 
+import com.sun.jersey.api.NotFoundException;
 import org.apache.commons.lang.StringUtils;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authc.AuthenticationException;
@@ -192,10 +193,13 @@ public class UserResource
   @Path(PASSWORD_PATH)
   @Consumes(MediaType.APPLICATION_JSON)
   // Requires only authentication, no authorization.
-  public void changePassword(@PathParam("userId") String userId, ChangePasswordDTO password) {
+  public void changePassword(@PathParam("userId") String userName, ChangePasswordDTO password) {
     UserDAO dao = new UserDAO();
-    User user = dao.getByIdNotNull(userId);
-    
+    User user = dao.getByUsernameLowercase(userName);
+    if (user == null) {
+      throw new NotFoundException();
+    }
+
     //validate the old password first
     try {
       SecurityUtils.getSecurityManager().authenticate(new UsernamePasswordToken(user.getUsername(), password.oldPassword));

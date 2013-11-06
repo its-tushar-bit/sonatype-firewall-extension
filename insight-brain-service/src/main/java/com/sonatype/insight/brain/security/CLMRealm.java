@@ -82,7 +82,7 @@ public class CLMRealm
     User user = new UserDAO().getByUsernameLowercase(username.toLowerCase(Locale.ENGLISH));
     if (user != null) {
       // Shiro will verify the password
-      return new SimpleAuthenticationInfo(username, user.getPassword(), getName());
+      return new SimpleAuthenticationInfo(new CLMUserPrincipal(username), user.getPassword(), getName());
     }
 
     // The username is not in the CLM db. Leave it to other realms to authenticate the user.
@@ -110,5 +110,21 @@ public class CLMRealm
   protected AuthorizationInfo doGetAuthorizationInfo(PrincipalCollection principals) {
     // TODO To be implemented when we add support for authorization
     return null;
+  }
+
+  public class CLMUserPrincipal
+  {
+    public final String username;
+
+    public final boolean clmUser = true;
+
+    CLMUserPrincipal(String username) {
+      this.username = username;
+    }
+
+    @Override
+    public String toString() {
+      return this.username;
+    }
   }
 }

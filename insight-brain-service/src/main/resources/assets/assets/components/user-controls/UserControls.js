@@ -8,21 +8,22 @@
 
   var module = angular.module('UserControls', ['AngularCommon', 'CLMLocation']);
 
-  module.controller('LogoutController', ['$scope', '$http', function ($scope, $http) {
+  module.controller('LogoutController', ['$scope', '$http', 'CLMLocations', function ($scope, $http, CLMLocations) {
     $scope.logout = function () {
       // TODO This ought to perform a dirty check before it simply logs the user out
       $http['delete'](CLMLocations.getSessionUrl()).success(function(){
-        $rootScope.authenticated = false;
-        $state.transitionTo('home');
+        $scope.$emit('logout');
       });
     };
   }]);
 
-  module.controller('ChangePassword', ['$scope', '$http', '$modal', 'CLMLocations', 'CurrentUser', function ($scope, $http, modal, clmLocations, currentUser) {
+  module.controller('ChangePassword', ['$scope', '$http', '$modal', 'CLMLocations', 'CurrentUser', 'Messages', function ($scope, $http, modal, clmLocations, currentUser, messages) {
 
     // Errors should be handled @ application level
-    currentUser.then(function (userId) {
-      $scope.userId = userId;
+    currentUser.then(function (authenticationStatus) {
+      if (authenticationStatus.isClmUser) {
+        $scope.username = authenticationStatus.username;
+      }
     }, angular.noop);
 
     $scope.change = function () {
@@ -36,14 +37,14 @@
               scope.error = null;
               scope.submitActive = true;
 
-              $http.put(clmLocations.getChangePasswordUrl($scope.userId), {
+              $http.put(clmLocations.getChangePasswordUrl($scope.username), {
                 oldPassword : scope.result.originalPassword,
                 newPassword : scope.result.newPassword
               }).success(function () {
                 scope.$close();
               }).error(function () {
                 scope.submitActive = false;
-                scope.error = Messages.getHttpErrorMessage(arguments);
+                scope.error = messages.getHttpErrorMessage(arguments);
               });
             }
           };
@@ -80,11 +81,10 @@
     };
   });
 
-  // TODO We need to unify the user role services to avoid multiple requests
   module.factory('CurrentUser', ['$http', '$q', 'CLMLocations', function ($http, $q, clmLocations) {
     var deferred = $q.defer();
-    $http.get(clmLocations.getSessionUrl()).success(function (data) {
-      deferred.resolve(data.username);
+    $http.get(clmLocations.getSessionUrl()).success(function (authenticationStatus) {
+      deferred.resolve(authenticationStatus);
     }).error(function () {
       deferred.reject(arguments);
     });

@@ -1,4 +1,4 @@
-<div>
+<div style="font-size: .75em">
 	<script type='text/ng-template' id='change-password'>
 <div class='modal fade in'>
 	<div class='modal-header'>
@@ -30,11 +30,11 @@
 		</div>
 		<div class='modal-footer'>
 			<button type='button' class="btn" ng-click='$dismiss()'>Cancel</button>
-			<button type='submit' class="btn btn-primary" ng-disabled='passwordForm.$invalid && submitActive'>Change</button>
+			<button type='submit' class="btn btn-primary" ng-disabled='passwordForm.$invalid || submitActive'>Change</button>
 		</div>
 	</form>
 </div>
 	</script>
-	<a ng-controller='ChangePassword' ng-click="change()" style="font-size: .75em">Change Password</a> | 
-	<a ng-controller='LogoutController' ng-click="logout()" style="font-size: .75em">Logout</a>
+	<span ng-show='username'><a ng-controller='ChangePassword' ng-click="change()">Change Password</a> | </span>
+	<a ng-controller='LogoutController' ng-click="logout()">Logout</a>
 </div>

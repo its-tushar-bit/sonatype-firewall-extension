@@ -410,10 +410,10 @@
         var pollFunction, httpSuccessFn;
 
         httpSuccessFn = function(trendingReport) {
-          if (trendingReport !== null) {
+          if (trendingReport) {
             successFn(trendingReport);
           }
-          if (trendingReport === null || trendingReport.generation.running) {
+          if (!trendingReport || trendingReport.generation.running) {
             $timeout(pollFunction, 2000);
           }
         };

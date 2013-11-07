@@ -26,45 +26,59 @@
       $scope.data = trendingReport;
 
       if (trendingReport.generation.running) {
+        $scope.generationRunning = formatDuration(trendingReport.generation.runningTime);
+        $scope.generationTotal = trendingReport.generation.applicationsTotal;
+        $scope.generationCurrent = trendingReport.generation.applicationsCurrent;
+        $scope.generationProgress = trendingReport.generation.applicationsTotal > 0
+                ? 100 * trendingReport.generation.applicationsCurrent / trendingReport.generation.applicationsTotal 
+                : 0;
         $scope.generationProgressTooltip = 'Report generation running ' + formatDuration(trendingReport.generation.runningTime) 
           + ', total number of applications ' + trendingReport.generation.applicationsTotal 
           + ', applications processed so far ' + trendingReport.generation.applicationsCurrent;
       }
-      var calculatedData =  {
-        highPolicyCount: 0,
-        mediumPolicyCount: 0,
-        lowPolicyCount: 0,
-        nullPolicyCount: 0
-      };
-      angular.forEach($scope.data.violations, function(policy) {
-        switch (policy.threat) {
-          case 10:
-          case 9:
-          case 8:
-            calculatedData.highPolicyCount += 1;
-            break;
-          case 7:
-          case 6:
-          case 5:
-          case 4:
-            calculatedData.mediumPolicyCount += 1;
-            break;
-          case 3:
-          case 2:
-            calculatedData.lowPolicyCount += 1;
-            break;
-          case 1:
-          case 0:
-            calculatedData.nullPolicyCount += 1;
-            break;
-          default:
-            $scope.error = 'Unknown policy threat level: ' + policy.threat;
-        }
-      });
-      angular.extend($scope.data, calculatedData);
-      $scope.diffchart = '../report-assets/trending/diffChart.html?' + clmBuildTimestamp;
-      $scope.percentageChart = '../report-assets/trending/percChart.html?' + clmBuildTimestamp;
-      $scope.policyProgressionTable = '../report-assets/trending/policyProgressionTable.html?' + clmBuildTimestamp;
+
+      if (trendingReport.meta) {
+        var calculatedData =  {
+          highPolicyCount: 0,
+          mediumPolicyCount: 0,
+          lowPolicyCount: 0,
+          nullPolicyCount: 0
+        };
+        angular.forEach($scope.data.violations, function(policy) {
+          switch (policy.threat) {
+            case 10:
+            case 9:
+            case 8:
+              calculatedData.highPolicyCount += 1;
+              break;
+            case 7:
+            case 6:
+            case 5:
+            case 4:
+              calculatedData.mediumPolicyCount += 1;
+              break;
+            case 3:
+            case 2:
+              calculatedData.lowPolicyCount += 1;
+              break;
+            case 1:
+            case 0:
+              calculatedData.nullPolicyCount += 1;
+              break;
+            default:
+              $scope.error = 'Unknown policy threat level: ' + policy.threat;
+          }
+        });
+        angular.extend($scope.data, calculatedData);
+        $scope.diffchart = '../report-assets/trending/diffChart.html?' + clmBuildTimestamp;
+        $scope.percentageChart = '../report-assets/trending/percChart.html?' + clmBuildTimestamp;
+        $scope.policyProgressionTable = '../report-assets/trending/policyProgressionTable.html?' + clmBuildTimestamp;
+      } else {
+        // be extra nice, remove all scope properties that were probably never set
+        delete $scope.diffchart;
+        delete $scope.percentageChart;
+        delete $scope.policyProgressionTable;
+      }
     }
 
     function setReportError() {
@@ -407,13 +421,11 @@
   reportTrendingModule.service('trendingReportService', ['$http', '$timeout', 'CLMLocations', function($http, $timeout, CLMLocations) {
     return {
       get: function(successFn, errorFn, force) {
-        var pollFunction, httpSuccessFn;
+        var pollFunction;
 
-        httpSuccessFn = function(trendingReport) {
-          if (trendingReport) {
-            successFn(trendingReport);
-          }
-          if (!trendingReport || trendingReport.generation.running) {
+        function httpSuccessFn(trendingReport) {
+          successFn(trendingReport);
+          if (!trendingReport.meta || trendingReport.generation.running) {
             $timeout(pollFunction, 2000);
           }
         };

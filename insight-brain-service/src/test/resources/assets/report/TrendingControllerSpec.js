@@ -28,7 +28,16 @@ describe('TrendingController tests', function() {
     }));
 
     it('should keep requesting data until it is available', inject(function($controller, $httpBackend, $timeout, CLMLocations) {
-      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getTrendingReportUrl())).respond(null);
+      var mockData = {
+        generation: {
+          enabled: true,
+          running: true,
+          runningTime: 10,
+          applicationsTotal: 2,
+          applicationsCurrent: 1
+        }
+      };
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getTrendingReportUrl())).respond(mockData);
       $controller('TrendingReportController', { $scope: scope });
 
       $httpBackend.flush();

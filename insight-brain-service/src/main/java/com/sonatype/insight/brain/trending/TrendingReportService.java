@@ -76,42 +76,48 @@ public class TrendingReportService
       throw new UnauthorizedException("Not authorized to force trending report regeneration");
     }
 
-    final TrendingReport cached = cache.readCached();
+    TrendingReport report = cache.readCached();
 
     final long now = System.currentTimeMillis();
 
-    if (force || cached == null || (now - cached.getMeta().getGeneratedOn()) > CACHE_MAX_AGE_MS) {
+    if (force || report == null || (now - report.getMeta().getGeneratedOn()) > CACHE_MAX_AGE_MS) {
       if (log.isDebugEnabled()) {
         if (force) {
           log.debug("Regenerating trendong report: forced.");
         }
-        else if (cached == null) {
+        else if (report == null) {
           log.debug("Regenerating trendong report: no cached trending report data.");
         }
         else {
           log.debug("Regenerating trendong report: cached trending report data is too old ({}ms).", now
-              - cached.getMeta().getGeneratedOn());
+              - report.getMeta().getGeneratedOn());
         }
       }
 
       processor.calculate();
     }
 
-    if (cached != null) {
-      final long startTime = processor.getStartTime();
-      final long time = startTime >= 0 ? now - startTime : (force ? 0 : -1);
-      final int total = processor.getTotal();
-      final int current = processor.getCurrent();
-
-      cached.setGeneration(new TrendingReportGenerationMetadata(isAdmin, time, total, current));
-
-      log.debug("Cached trending report data age={}ms, generationTime={}, generationTotal={}, generationCurrent={}",
-          now - cached.getMeta().getGeneratedOn(), time, total, current);
+    if (report != null) {
+      log.debug("Cached report age={}ms", now - report.getMeta().getGeneratedOn());
     }
     else {
       log.debug("No cached trending report data");
+      report = new TrendingReport();
     }
 
-    return cached;
+    final long startTime = processor.getStartTime();
+    final long time = startTime >= 0 ? now - startTime : (force ? 0 : -1);
+    final int total = processor.getTotal();
+    final int current = processor.getCurrent();
+
+    if (startTime >= 0) {
+      log.debug("Report generation running={}ms, applications total={}, current={}", time, total, current);
+    }
+
+    final TrendingReportGenerationMetadata generation = new TrendingReportGenerationMetadata(isAdmin, time, total,
+        current);
+    report.setGeneration(generation);
+
+    return report;
   }
 }

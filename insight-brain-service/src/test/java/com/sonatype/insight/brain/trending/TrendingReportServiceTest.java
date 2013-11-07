@@ -173,7 +173,8 @@ public class TrendingReportServiceTest
     Response response;
 
     // initial generation
-    assertResponseStatus(204, AuthedRestAccess.get(getServiceURL())); // no data
+    response = AuthedRestAccess.get(getServiceURL());
+    assertResponseStatus(200, response); 
     awaitCheckpoint(Checkpoint.FINISHED); // waits generation complete, fails with timeout if generation didn't happen
 
     // from cache
@@ -199,16 +200,20 @@ public class TrendingReportServiceTest
     temporaryEntiry.newApplication("app3", "app3", organization.getId());
 
     Response response;
+    TrendingReport report;
 
     // prime cached report data
-    assertResponseStatus(204, AuthedRestAccess.get(getServiceURL())); // no data
+    response = AuthedRestAccess.get(getServiceURL());
+    assertResponseStatus(200, response);
+    report = JsonHelpers.fromJson(response.getResponseBody(), TrendingReport.class);
+    Assert.assertNull("report.getMeta()", report.getMeta());
     awaitCheckpoint(Checkpoint.FINISHED); // waits generation complete, fails with timeout if generation didn't happen
 
     // get cached report, make sure regeneration is allowed
     response = AuthedRestAccess.get(getServiceURL());
     assertResponseStatus(200, response);
     assertCheckpointExecutionCount(1, Checkpoint.SCHEDULED);
-    TrendingReport report = JsonHelpers.fromJson(response.getResponseBody(), TrendingReport.class);
+    report = JsonHelpers.fromJson(response.getResponseBody(), TrendingReport.class);
     Assert.assertEquals("canGenerate", true, report.getGeneration().isEnabled());
 
     // trigger report regeneration
@@ -240,16 +245,20 @@ public class TrendingReportServiceTest
   @Test
   public void testRegenerateNonAdminUser() throws Exception {
     Response response;
+    TrendingReport report;
 
     // initial generation
-    assertResponseStatus(204, RestAccess.get(getServiceURL(), unauthorized.getUsername(), unauthorized.getPassword()));
+    response = RestAccess.get(getServiceURL(), unauthorized.getUsername(), unauthorized.getPassword());
+    assertResponseStatus(200, response);
+    report = JsonHelpers.fromJson(response.getResponseBody(), TrendingReport.class);
+    report = JsonHelpers.fromJson(response.getResponseBody(), TrendingReport.class);
     awaitCheckpoint(Checkpoint.FINISHED); // waits generation complete, fails with timeout if generation didn't happen
 
     // from cache
     response = RestAccess.get(getServiceURL(), unauthorized.getUsername(), unauthorized.getPassword());
     assertResponseStatus(200, response);
     assertCheckpointExecutionCount(1, Checkpoint.SCHEDULED);
-    TrendingReport report = JsonHelpers.fromJson(response.getResponseBody(), TrendingReport.class);
+    report = JsonHelpers.fromJson(response.getResponseBody(), TrendingReport.class);
     Assert.assertEquals("canGenerate", false, report.getGeneration().isEnabled());
 
     // force regeneration forbidden

@@ -8,14 +8,18 @@
 
 <div class="content report-content">
   <div load-error='error' reload='doLoad()'></div>
-  <div ng-show='!error && !data'>
+  <div ng-show='!error && !data.meta'>
     <div class='container text-center'>
-      <img src='../assets/img/loader.gif'>
-      <p class='lead'>CLM Server is generating the trending report. This process may take a while if you have a large
-          number of components or applications. You may leave this page without hindering the creation of the report.</p>
+      <h2>CLM Server is generating the trending report.</h2>
+      <progress percent="generationProgress" class="progress-striped active"></progress>
+      <p class='lead'>
+         This process may take a while if you have a large  number of components or applications. 
+         You may leave this page without hindering the creation of the report.
+         Report generation running {{generationRunning}}, total number of applications {{generationTotal}}, applications processed so far {{generationCurrent}}.
+      </p>
     </div>
   </div>
-  <div ng-show="data" id="trending-data">
+  <div ng-show="data.meta" id="trending-data">
 
     <div class="row">
       <div class="span12">

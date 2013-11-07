@@ -32,8 +32,8 @@ import com.sonatype.insight.brain.ldap.LdapUser;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.error.exception.BadRequestException;
+import com.sonatype.insight.error.exception.NotFoundException;
 
-import com.sun.jersey.api.NotFoundException;
 import org.apache.commons.lang.StringUtils;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authc.AuthenticationException;
@@ -53,7 +53,7 @@ public class UserResource
 {
   public static final String SERVICE_PATH = "rest/user";
 
-  public static final String PASSWORD_PATH = "/{userId}/password";
+  public static final String PASSWORD_PATH = "/{username}/password";
 
   private static final Logger log = LoggerFactory.getLogger(UserResource.class);
 
@@ -193,11 +193,11 @@ public class UserResource
   @Path(PASSWORD_PATH)
   @Consumes(MediaType.APPLICATION_JSON)
   // Requires only authentication, no authorization.
-  public void changePassword(@PathParam("userId") String userName, ChangePasswordDTO password) {
+  public void changePassword(@PathParam("username") String username, ChangePasswordDTO password) {
     UserDAO dao = new UserDAO();
-    User user = dao.getByUsernameLowercase(userName);
+    User user = dao.getByUsernameLowercase(username.trim().toLowerCase(Locale.ENGLISH));
     if (user == null) {
-      throw new NotFoundException();
+      throw new NotFoundException("Could not find user with name " + username);
     }
 
     //validate the old password first

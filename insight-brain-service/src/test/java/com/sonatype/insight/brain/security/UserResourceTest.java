@@ -315,7 +315,7 @@ public class UserResourceTest
     user = JsonHelpers.fromJson(response.getResponseBody(), User.class);
     usersToDelete.add(user);
 
-    String changePasswordUrl = getServiceURL() + "/" + user.getId() + "/password";
+    String changePasswordUrl = getServiceURL() + "/" + user.getUsernameLowercase() + "/password";
 
     // Can't change password when password input doesn't match
     ChangePasswordDTO dto = new ChangePasswordDTO();

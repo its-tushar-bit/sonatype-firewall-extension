@@ -112,7 +112,7 @@ public class CLMRealm
     return null;
   }
 
-  public class CLMUserPrincipal
+  public static class CLMUserPrincipal
   {
     public final String username;
 

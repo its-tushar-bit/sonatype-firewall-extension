@@ -43,6 +43,8 @@ class NavigationToSpec
     at pageUnderTest
 
     where:
-    pageUnderTest << [LoginPage, ManagementPage, ReportPage, UserManagementPage]
+    pageUnderTest << [LoginPage, ManagementPage, ReportPage, UserManagementPage, GlobalRolesPage,
+        ApplicationManagementPage, OrganizationManagementPage]
+    //deliberately not including TrendingReportPage here as that automatically triggers generation of the report data
   }
 }

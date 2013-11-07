@@ -74,23 +74,15 @@ class ReportSpec
     violationCount == '0 Violations'
   }
 
-  def "When we view the same report as a non-admin user"(){
-    when: 'we logout'
+  def "A non-admin user cannot regenerate the report"(){
+    when: 'we log in as a non-admin user'
     user.logout.click()
-
-    then: 'we arrive back at the logn page'
     at LoginPage
-
-    when: 'we log in using the non-admin user'
     login('test', 'secret')
-
-    then:
     at ReportPage
-
-    when: 'opening the report'
     to TrendingReportPage
 
-    then: 'no refresh button is displayed, but the report is vislble'
+    then: 'no refresh button is displayed, but the report is visible'
     !refresh.displayed
     componentCount == '0 Components across all Applications'
     policyCount == '0 Policies'

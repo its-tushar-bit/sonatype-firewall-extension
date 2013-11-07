@@ -33,7 +33,7 @@ class NavigationLinksSpec extends GebReportingSpec
     waitFor { at ReportPage }
   }
 
-  def "When clicking the dropdown list and selecting 'Management'"(){
+  def "Can use navigation to view the Management application"(){
     when: 'clicking the dropdown and then the Management link'
     dropdownNav.toManagement()
 
@@ -42,7 +42,7 @@ class NavigationLinksSpec extends GebReportingSpec
   }
 
 
-  def "When clicking the dropdown list and selecting 'Reports'"(){
+  def "Can use navigation to view the Report application"(){
     when: 'clicking the dropdown and then the Reports link'
     dropdownNav.toReports()
 

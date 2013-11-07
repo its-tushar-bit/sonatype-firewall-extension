@@ -656,20 +656,20 @@ ul.tri-pane {
 	background-color: #E8E8E8;
 }
 .large-select-list-item {
-  padding-top: 5px;
-  padding-bottom: 5px;
+  padding-top: 2px;
+  padding-bottom: 2px;
   padding-left: 2px;
 }
 .large-select-list-item i {
-  width: 24px;
-  height: 24px;
-  margin-top: 4px;
+  width: 20px;
+  margin-top: 2px;
 }
 .large-select-list-item .large-select-list-item-title {
-  font-size: 18px;
+  font-size: 14px;
+  margin-bottom: -5px;
 }
 .large-select-list-item .large-select-list-item-detail {
-  font-size: 12px;
+  font-size: 11px;
 }
 .large-select-list-item .large-select-list-item-detail.right-detail {
   float: right;

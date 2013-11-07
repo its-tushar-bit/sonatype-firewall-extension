@@ -649,11 +649,31 @@ ul.tri-pane {
 .master-modal {
 	z-index: 2050;
 }
-.licenseSelectListItem {
+.licenseSelectListItem, .large-select-list-item {
 	cursor: pointer;
 }
-.licenseSelectListItem:hover {
+.licenseSelectListItem:hover, .large-select-list-item:hover {
 	background-color: #E8E8E8;
+}
+.large-select-list-item {
+  padding-top: 5px;
+  padding-bottom: 5px;
+  padding-left: 2px;
+}
+.large-select-list-item i {
+  width: 24px;
+  height: 24px;
+  margin-top: 4px;
+}
+.large-select-list-item .large-select-list-item-title {
+  font-size: 18px;
+}
+.large-select-list-item .large-select-list-item-detail {
+  font-size: 12px;
+}
+.large-select-list-item .large-select-list-item-detail.right-detail {
+  float: right;
+  margin-right: 10px
 }
 .slide {
 	-webkit-transition:height .15s linear;

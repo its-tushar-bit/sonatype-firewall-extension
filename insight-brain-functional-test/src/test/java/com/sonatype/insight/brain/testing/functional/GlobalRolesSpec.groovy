@@ -83,7 +83,8 @@ class GlobalRolesSpec
     then: "the matching users are listed"
       waitFor { roleRow.availableMembers.size() == 1 }
       roleRow.availableMemberNames*.text() == ["Jane Doe"]
-      roleRow.availableMemberNames*.@tooltip == ["Jane Doe <jane@doe.net> (CLM)"]
+      roleRow.availableMemberEmail*.text() == ["jane@doe.net "]
+      roleRow.availableMemberRealm*.text() == ["CLM"]
       roleRow.appliedMembers.size() == 0
 
     when: "entering last name prefix"
@@ -92,7 +93,8 @@ class GlobalRolesSpec
     then: "the matching users are listed"
       waitFor { roleRow.availableMembers.size() == 2 }
       roleRow.availableMemberNames*.text().sort() == ["Jane Doe", "John Doe"]
-      roleRow.availableMemberNames*.@tooltip.sort() == ["Jane Doe <jane@doe.net> (CLM)", "John Doe <john@doe.net> (CLM)"]
+      roleRow.availableMemberEmail*.text().sort() == ["jane@doe.net ", "john@doe.net "]
+      roleRow.availableMemberRealm*.text() == ["CLM", "CLM"]
       roleRow.appliedMembers.size() == 0
   }
 

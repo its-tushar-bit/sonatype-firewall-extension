@@ -146,29 +146,6 @@ describe('AppSecurityControllerSpec', function() {
       $httpBackend.flush();
     }));
 
-    // Text used for mouseover on users
-    it('Tooltip', function () {
-      expect(scope.getTooltip({
-        displayName : 'Bob Uruncle',
-        email : 'bob@example.org'
-      })).toEqual('Bob Uruncle <bob@example.org>');
-
-      expect(scope.getTooltip({
-        displayName : 'Bob Uruncle'
-      })).toEqual('Bob Uruncle');
-
-      expect(scope.getTooltip({
-        displayName : 'Uruncle',
-        email : 'bob@example.org'
-      })).toEqual('Uruncle <bob@example.org>');
-
-      expect(scope.getTooltip({
-        displayName : 'Bob Uruncle',
-        email : 'bob@example.org',
-        realm: 'CLM'
-      })).toEqual('Bob Uruncle <bob@example.org> (CLM)');
-    });
-
     describe('Queries', function () {
       it('Simple', inject(function ($timeout, $httpBackend) {
         scope.$apply(function () {

@@ -197,7 +197,14 @@
         }).success(function (data) {
           $scope.requestActive--;
           if ($scope.queryString === newVal || $scope.queryString.indexOf(newVal) === 0) {
-            $scope.queryResults = data;
+            $scope.queryResults = data.users;
+
+            if (data.error) {
+              $scope.alerts.push({
+                type: 'error',
+                msg: data.error
+              });
+            }
           }
         }).error(function () {
           $scope.requestActive--;

@@ -175,7 +175,7 @@ describe('AppSecurityControllerSpec', function() {
           scope.queryString = 'bar';
         });
 
-        $httpBackend.expectGET('/rest/user/application/bom1-12345678/query?q=bar').respond([{ id : 'bar' }]);
+        $httpBackend.expectGET('/rest/user/application/bom1-12345678/query?q=bar').respond({ users: [{ id : 'bar' }], error: null });
 
         $timeout.flush();
 
@@ -193,7 +193,7 @@ describe('AppSecurityControllerSpec', function() {
           scope.queryString = 'foo';
         });
 
-        $httpBackend.expectGET('/rest/user/application/bom1-12345678/query?q=foo').respond([{ id : 'food' }]);
+        $httpBackend.expectGET('/rest/user/application/bom1-12345678/query?q=foo').respond({ users: [{ id : 'food' }], error: null });
         $timeout.flush();
 
         expect(scope.requestActive).toBeTruthy();
@@ -214,7 +214,7 @@ describe('AppSecurityControllerSpec', function() {
           scope.queryString = 'foo';
         });
 
-        $httpBackend.expectGET('/rest/user/application/bom1-12345678/query?q=foo').respond([{ id : 'foo' }]);
+        $httpBackend.expectGET('/rest/user/application/bom1-12345678/query?q=foo').respond({ users: [{ id : 'foo' }], error: null });
         $timeout.flush();
 
         expect(scope.requestActive).toBeTruthy();
@@ -230,10 +230,47 @@ describe('AppSecurityControllerSpec', function() {
         expect(scope.queryResults).toBeFalsy();
 
 
-        $httpBackend.expectGET('/rest/user/application/bom1-12345678/query?q=bar').respond([{ id : 'bar' }]);
+        $httpBackend.expectGET('/rest/user/application/bom1-12345678/query?q=bar').respond({ users: [{ id : 'bar' }], error: null });
         $timeout.flush();
         $httpBackend.flush();
         expect(scope.queryResults).toEqual([{ id : 'bar' }]);
+      }));
+
+      it('Handles Ldap Connection Failure', inject(function($timeout, $httpBackend) {
+        scope.$apply(function () {
+          scope.queryString = 'foo';
+        });
+
+        $httpBackend.expectGET('/rest/user/application/bom1-12345678/query?q=foo').respond({ users: [{ id : 'foo' }], error: '' });
+
+        $timeout.flush();
+
+        expect(scope.requestActive).toBeTruthy();
+        expect(scope.lastQuery).toEqual('foo');
+        $httpBackend.flush();
+
+        expect(scope.requestActive).toBeFalsy();
+        expect(scope.queryResults).toEqual([{ id : 'foo' }]);
+        expect(scope.alerts.length).toEqual(0);
+
+        scope.$apply(function () {
+          scope.queryString = 'bar';
+        });
+
+        $httpBackend.expectGET('/rest/user/application/bom1-12345678/query?q=bar').respond({ users: [{ id : 'bar' }], error: 'baz' });
+
+        $timeout.flush();
+
+        expect(scope.requestActive).toBeTruthy();
+        expect(scope.lastQuery).toEqual('bar');
+        $httpBackend.flush();
+
+        expect(scope.requestActive).toBeFalsy();
+        expect(scope.queryResults).toEqual([{ id : 'bar' }]);
+        expect(scope.alerts).toEqual([{
+          type: 'error',
+          msg: 'baz'
+        }]);
       }));
     });
   });

@@ -22,6 +22,7 @@ import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.security.UserResource.ChangePasswordDTO;
+import com.sonatype.insight.brain.security.UserResource.FindUsersDTO;
 import com.sonatype.insight.brain.security.UserSessionResource.AuthenticationStatus;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.test.RestAccess;
@@ -29,6 +30,7 @@ import com.sonatype.insight.test.RestAccess;
 import com.ning.http.client.Cookie;
 import com.ning.http.client.Response;
 import com.yammer.dropwizard.testing.JsonHelpers;
+import org.h2.util.StringUtils;
 import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
@@ -38,6 +40,7 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
 
 public class UserResourceTest
@@ -335,26 +338,18 @@ public class UserResourceTest
     assertResponseStatus(400, response);
 
     response = AuthedRestAccess.get(getSearchUrl(User.ADMIN_USERNAME));
-    assertResponseStatus(200, response);
-    FindUserDTO[] users = fromJson(response, FindUserDTO[].class);
-    assertThat(users, is(notNullValue()));
-    assertThat(users.length, is(1));
-    assertThat(users[0].getUsername(), is(User.ADMIN_USERNAME));
-    assertThat(users[0].getDisplayName(), is("Admin BuiltIn"));
-    assertThat(users[0].getRealm(), is("CLM"));
+    assertFindUsersDTO(response, null, User.ADMIN_USERNAME, "Admin BuiltIn", "CLM");assertResponseStatus(200, response);
 
     response = AuthedRestAccess.get(getSearchUrl(User.ADMIN_USERNAME.substring(0, User.ADMIN_USERNAME.length() - 1)));
-    assertResponseStatus(200, response);
-    users = fromJson(response, FindUserDTO[].class);
-    assertThat(users, is(notNullValue()));
-    assertThat(users.length, is(1));
-    assertThat(users[0].getUsername(), is(User.ADMIN_USERNAME));
-    assertThat(users[0].getDisplayName(), is("Admin BuiltIn"));
-    assertThat(users[0].getRealm(), is("CLM"));
+    assertFindUsersDTO(response, null, User.ADMIN_USERNAME, "Admin BuiltIn", "CLM");
 
     response = AuthedRestAccess.get(getSearchUrl("nobody-has-such-a-name-really"));
     assertResponseStatus(200, response);
-    users = fromJson(response, FindUserDTO[].class);
+
+    FindUsersDTO dto = fromJson(response, FindUsersDTO.class);
+    assertThat(dto.getError(), nullValue());
+
+    FindUserDTO[] users = dto.getUsers().toArray(new FindUserDTO[0]);
     assertThat(users, is(notNullValue()));
     assertThat(users.length, is(0));
   }
@@ -370,27 +365,30 @@ public class UserResourceTest
     tempEntity.newLdapUserMapping(ldapServer.getId());
 
     Response response = AuthedRestAccess.get(getSearchUrl("John"));
-    assertResponseStatus(200, response);
-    FindUserDTO[] users = fromJson(response, FindUserDTO[].class);
-    assertThat(users, is(notNullValue()));
-    assertThat(users.length, is(1));
-    assertThat(users[0].getUsername(), is("testuser"));
-    assertThat(users[0].getDisplayName(), is("John Doe"));
-    assertThat(users[0].getRealm(), is("LDAP"));
+    assertFindUsersDTO(response, null, "testuser", "John Doe", "LDAP");
 
     tempEntity.newUser("testuser");
 
     // Test shading. testuser loaded from "/UserResourceTest/ldap_users.ldif" should not be returned
     response = AuthedRestAccess.get(getSearchUrl("John"));
-    assertResponseStatus(200, response);
-    users = fromJson(response, FindUserDTO[].class);
-    assertThat(users, is(notNullValue()));
-    assertThat(users.length, is(1));
-    assertThat(users[0].getUsername(), is("testuser"));
-    assertThat(users[0].getDisplayName(), is("John Doe"));
-    assertThat(users[0].getRealm(), is("CLM"));
+    assertFindUsersDTO(response, null, "testuser", "John Doe", "CLM");
 
     embeddedLdapServer.stop();
+  }
+
+  @Test
+  public void testNoLdapConnection() throws Exception {
+    LdapServer ldapServer = tempEntity.newLdapServer("LDAP");
+    Response response = AuthedRestAccess.get(getSearchUrl(User.ADMIN_USERNAME));
+
+    // Should not try to use Ldap until server is added and configured
+    assertFindUsersDTO(response, null, User.ADMIN_USERNAME, "Admin BuiltIn", "CLM");
+
+    tempEntity.newLdapConnection(ldapServer.getId());
+    tempEntity.newLdapUserMapping(ldapServer.getId());
+
+    response = AuthedRestAccess.get(getSearchUrl(User.ADMIN_USERNAME));
+    assertFindUsersDTO(response, "LDAP connection unavailable. Displaying local users only.", User.ADMIN_USERNAME, "Admin BuiltIn", "CLM");
   }
 
   private void assertUser(String username, String firstName, String lastName, String email, User actual) {
@@ -406,5 +404,26 @@ public class UserResourceTest
 
   private String getSearchUrl(String query) {
     return getRestBaseUrl() + UserResource.SERVICE_PATH + "/global/global/query?q=" + query;
+  }
+
+  private void assertFindUsersDTO(Response response, String error, String username, String displayName, String realm)
+      throws IOException
+  {
+    assertResponseStatus(200, response);
+
+    FindUsersDTO dto = fromJson(response, FindUsersDTO.class);
+
+    if (!StringUtils.isNullOrEmpty(error)) {
+      assertThat(dto.getError(), is(error));
+    } else {
+      assertThat(dto.getError(), nullValue());
+    }
+
+    FindUserDTO[] users = dto.getUsers().toArray(new FindUserDTO[0]);
+    assertThat(users, is(notNullValue()));
+    assertThat(users.length, is(1));
+    assertThat(users[0].getUsername(), is(username));
+    assertThat(users[0].getDisplayName(), is(displayName));
+    assertThat(users[0].getRealm(), is(realm));
   }
 }

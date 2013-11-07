@@ -32,6 +32,7 @@ import com.sonatype.insight.brain.configuration.ldap.LdapGroupMappingType;
 import com.sonatype.insight.brain.configuration.ldap.LdapProtocol;
 import com.sonatype.insight.brain.configuration.ldap.LdapServer;
 import com.sonatype.insight.brain.configuration.ldap.LdapUserMapping;
+import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapConnectionDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapServerDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapUserMappingDAO;
 import com.sonatype.insight.brain.ldap.EmbeddedLdapServer;
@@ -317,6 +318,21 @@ public class LdapManagerTest
     List<LdapUser> users = manager.testFindUsersByName(umap, "user 2", 100);
     assertThat(users.size(), is(1));
 
+  }
+
+  @Test
+  public void testIsLdapEnabled() throws Exception {
+    assertThat(manager.isLdapEnabled(), is(false));
+
+    serverDetails = new LdapServer();
+    serverDetails.setName("Test Server");
+    serverDao.insert(serverDetails);
+    assertThat(manager.isLdapEnabled(), is(false));
+
+    LdapConnection conn = createLdapConnection();
+    conn.setHostname("localhost");
+    new LdapConnectionDAO().insert(conn);
+    assertThat(manager.isLdapEnabled(), is(true));
   }
 
   @Test

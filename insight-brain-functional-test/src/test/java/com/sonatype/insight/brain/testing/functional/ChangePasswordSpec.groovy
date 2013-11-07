@@ -28,10 +28,10 @@ class ChangePasswordSpec extends GebReportingSpec {
   //simple setup, login as this new user and go to the management page
   def setupSpec() {
     UserDAO userDAO = new UserDAO()
-    User user = new User(username: "test", password: new CLMRealm().encryptPassword("secret"), firstName: "John", lastName: "Doe", email: "john@doe.net")
+    User user = new User(username: "testchangepass", password: new CLMRealm().encryptPassword("secret"), firstName: "John", lastName: "Doe", email: "john@doe.net")
     userDAO.insert(user);
     to LoginPage
-    login("test", "secret")
+    login("testchangepass", "secret")
     to ManagementPage
   }
   
@@ -39,7 +39,7 @@ class ChangePasswordSpec extends GebReportingSpec {
   def cleanupSpec() {
     UserDAO userDAO = new UserDAO();
     userDAO.getAll().each { user ->
-      if (user.username.startsWith("test")) {
+      if (user.username == "testchangepass") {
         userDAO.delete(user);
       }
     }
@@ -94,7 +94,7 @@ class ChangePasswordSpec extends GebReportingSpec {
       
     when: "User attemps to login with new password"
       to LoginPage
-      login("test", "newsecret")
+      login("testchangepass", "newsecret")
       to ManagementPage
     
     then: "Application is loaded"

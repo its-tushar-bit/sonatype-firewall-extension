@@ -11,6 +11,7 @@
   module.controller('LogoutController', ['$scope', '$http', 'CLMLocations', function ($scope, $http, CLMLocations) {
     $scope.logout = function () {
       // TODO This ought to perform a dirty check before it simply logs the user out
+      // https://issues.sonatype.org/browse/CLM-1251
       $http['delete'](CLMLocations.getSessionUrl()).success(function(){
         $scope.$emit('logout');
       });

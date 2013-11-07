@@ -64,7 +64,7 @@ class LoginSpec extends GebReportingSpec {
       to LoginPage
   
     when: "invalid credentials are supplied"
-      login("unknown", "user")
+      login("unknown", "user", true)
       
     then: "an error indicating bad credentials is shown"
       waitFor { errorMessage.text().contains("Invalid credentials") }
@@ -134,7 +134,7 @@ class LoginSpec extends GebReportingSpec {
     waitFor { to ManagementPage }
 
     when: "logging out"
-    user.logout.click()
+    user.logout.link.click()
 
     then: "we redirect to the login page"
     at LoginPage
@@ -159,7 +159,7 @@ class LoginSpec extends GebReportingSpec {
     at ReportPage
 
     when: "logging out"
-    user.logout.click()
+    user.logout.link.click()
 
     then: "we redirect to the login page"
     waitFor{ at LoginPage }

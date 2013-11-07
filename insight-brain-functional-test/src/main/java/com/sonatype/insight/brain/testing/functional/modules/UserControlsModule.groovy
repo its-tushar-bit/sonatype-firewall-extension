@@ -10,9 +10,10 @@ import geb.Module
 /**
  * @since 1.7
  */
-class LogoutModule extends Module
+class UserControlsModule extends Module
 {
   static content = {
-    link { $('a', text: 'Logout') }
+    logout { module LogoutModule }
+    changePassword { module ChangePasswordModule }
   }
 }

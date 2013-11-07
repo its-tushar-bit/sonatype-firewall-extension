@@ -8,8 +8,8 @@ package com.sonatype.insight.brain.testing.functional
 
 import com.sonatype.insight.brain.testing.functional.modules.ChangePasswordModule
 import com.sonatype.insight.brain.testing.functional.modules.DropdownNav
-import com.sonatype.insight.brain.testing.functional.modules.LogoutModule
 import com.sonatype.insight.brain.testing.functional.modules.NavListModule
+import com.sonatype.insight.brain.testing.functional.modules.UserControlsModule
 
 import geb.Page
 
@@ -20,9 +20,9 @@ extends Page {
   static at = { title == 'CLM Management' }
 
   static content = {
-    user { module LogoutModule }
     dropdownNav { module DropdownNav }
     nav { module NavListModule }
     changePassword { module ChangePasswordModule }
+    user { module UserControlsModule }
   }
 }

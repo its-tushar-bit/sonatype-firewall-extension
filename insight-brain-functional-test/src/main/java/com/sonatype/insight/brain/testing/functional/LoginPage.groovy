@@ -25,12 +25,18 @@ class LoginPage
   void loginAsAdmin() {
     login("admin", "admin123")
   }
-
+  
   void login(username, password) {
+    login(username, password, false)
+  }
+
+  void login(username, password, expectedFail) {
     usernameInput.value(username)
     passwordInput.value(password)
     waitFor { loginAction.@disabled != 'disabled' }
     loginAction.click()
-    waitFor { title != "CLM Login" }
+    if (!expectedFail) {
+      waitFor { title != "CLM Login" }
+    }
   }
 }

@@ -10,6 +10,8 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 import javax.naming.NamingException;
 
+import com.sonatype.insight.brain.model.security.UserPrincipal;
+
 import org.apache.shiro.authc.AuthenticationInfo;
 import org.apache.shiro.authc.AuthenticationToken;
 import org.apache.shiro.authc.SimpleAuthenticationInfo;
@@ -54,6 +56,6 @@ public class LdapRealm
 
     ldapManager.authenticateUser(username, password);
 
-    return new SimpleAuthenticationInfo(username, null, getName());
+    return new SimpleAuthenticationInfo(new UserPrincipal(username, false), null, getName());
   }
 }

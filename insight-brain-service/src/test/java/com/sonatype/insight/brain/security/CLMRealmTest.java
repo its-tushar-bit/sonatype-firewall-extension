@@ -10,6 +10,7 @@ import java.util.Iterator;
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.model.security.User;
+import com.sonatype.insight.brain.model.security.UserPrincipal;
 
 import org.sonatype.guice.bean.containers.InjectedTest;
 
@@ -61,7 +62,7 @@ public class CLMRealmTest
     assertFalse(principalCollection.isEmpty());
     Iterator<?> principalIterator = principalCollection.iterator();
     Object principal = principalIterator.next();
-    assertEquals(principal, User.ADMIN_USERNAME);
+    assertEquals(new UserPrincipal(User.ADMIN_USERNAME, true), principal);
     assertFalse(principalIterator.hasNext());
     assertThat(principalCollection.getRealmNames(), hasSize(1));
     assertEquals(realm.getName(), principalCollection.getRealmNames().iterator().next());
@@ -102,7 +103,7 @@ public class CLMRealmTest
     assertFalse(principalCollection.isEmpty());
     Iterator<?> principalIterator = principalCollection.iterator();
     Object principal = principalIterator.next();
-    assertEquals(principal, User.ADMIN_USERNAME);
+    assertEquals(new UserPrincipal(User.ADMIN_USERNAME, true), principal);
     assertFalse(principalIterator.hasNext());
     assertThat(principalCollection.getRealmNames(), hasSize(1));
     assertEquals(realm.getName(), principalCollection.getRealmNames().iterator().next());
@@ -160,7 +161,7 @@ public class CLMRealmTest
     assertFalse(principalCollection.isEmpty());
     Iterator<?> principalIterator = principalCollection.iterator();
     Object principal = principalIterator.next();
-    assertEquals(principal, User.ADMIN_USERNAME);
+    assertEquals(new UserPrincipal(User.ADMIN_USERNAME, true), principal);
     assertFalse(principalIterator.hasNext());
     assertThat(principalCollection.getRealmNames(), hasSize(1));
     assertEquals(realm.getName(), principalCollection.getRealmNames().iterator().next());

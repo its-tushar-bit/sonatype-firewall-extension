@@ -14,8 +14,8 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
+import com.sonatype.insight.brain.model.security.UserPrincipal;
 import com.sonatype.insight.brain.product.license.UnlicensedPath;
-import com.sonatype.insight.brain.security.CLMRealm.CLMUserPrincipal;
 
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.subject.Subject;
@@ -92,9 +92,9 @@ public class UserSessionResource
       // Supply username if it's available.  Will be useful when a user is remembered but not authenticated.
       if(subject.getPrincipal() != null) {
         Object principal = subject.getPrincipal();
-        if (principal instanceof CLMUserPrincipal) {
-          status.setUsername(((CLMUserPrincipal) principal).username);
-          status.setClmUser(((CLMUserPrincipal) principal).clmUser);
+        if (principal instanceof UserPrincipal) {
+          status.setUsername(((UserPrincipal) principal).username);
+          status.setClmUser(((UserPrincipal) principal).clmUser);
         } else {
           status.setUsername(subject.getPrincipal().toString());
         }

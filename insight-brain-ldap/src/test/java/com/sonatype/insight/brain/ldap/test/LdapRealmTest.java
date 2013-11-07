@@ -22,6 +22,7 @@ import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapUserMappingD
 import com.sonatype.insight.brain.ldap.EmbeddedLdapServer;
 import com.sonatype.insight.brain.ldap.LdapManager;
 import com.sonatype.insight.brain.ldap.LdapRealm;
+import com.sonatype.insight.brain.model.security.UserPrincipal;
 
 import org.sonatype.guice.bean.containers.InjectedTest;
 
@@ -203,7 +204,7 @@ public class LdapRealmTest
     assertFalse(principalCollection.isEmpty());
     Iterator<?> principalIterator = principalCollection.iterator();
     Object principal = principalIterator.next();
-    assertEquals(principal, username);
+    assertEquals(new UserPrincipal(username, false), principal);
     assertFalse(principalIterator.hasNext());
     assertThat(principalCollection.getRealmNames(), hasSize(1));
     assertEquals(realm.getName(), principalCollection.getRealmNames().iterator().next());

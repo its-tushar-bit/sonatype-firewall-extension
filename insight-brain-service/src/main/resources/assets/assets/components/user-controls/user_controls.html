@@ -8,20 +8,20 @@
 	<form name='passwordForm' class='form-horizontal' style='margin-bottom:0px' ng-submit='save()'>
 		<div class='modal-body'>
 			<div class="control-group">
-				<label class="control-label" id='originalPassword'>Current password</label>
+				<label class="control-label" for='originalPassword'>Current password</label>
 				<div class="controls">
 					<input type="password" id="originalPassword" class="input-large" ng-model='result.originalPassword' required>
 				</div>
 			</div>
 			<hr/>
 			<div class="control-group">
-				<label class="control-label" id='newPassword'>New password</label>
+				<label class="control-label" for='newPassword'>New password</label>
 				<div class="controls">
 					<input type="password" id="newPassword" class="input-large" ng-model='result.newPassword' required>
 				</div>
 			</div>
 			<div class="control-group" ng-class='{ error : passwordForm.confirmPassword.$error.match }'>
-				<label class="control-label" id='confirmPassword'>Confirm new password</label>
+				<label class="control-label" for='confirmPassword'>Confirm new password</label>
 				<div class="controls">
 					<input type="password" id="confirmPassword" name='confirmPassword' class="input-large" ng-model='result.confirmPassword' required match='{{result.newPassword}}'>
 					<span ng-show='passwordForm.confirmPassword.$error.match' class="help-inline">Does not match</span>
@@ -29,6 +29,7 @@
 			</div>
 		</div>
 		<div class='modal-footer'>
+			<span style="margin:0px;padding: 4px 35px 4px 14px;float:left;" ng-class="{'alert alert-error': error }" ng-show="error">{{error}}</span>
 			<button type='button' class="btn" ng-click='$dismiss()'>Cancel</button>
 			<button type='submit' class="btn btn-primary" ng-disabled='passwordForm.$invalid || submitActive'>Change</button>
 		</div>

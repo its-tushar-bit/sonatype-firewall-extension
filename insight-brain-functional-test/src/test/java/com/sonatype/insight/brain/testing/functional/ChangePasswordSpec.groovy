@@ -10,6 +10,7 @@ import com.sonatype.insight.brain.model.security.User
 import com.sonatype.insight.brain.security.CLMRealm
 import com.sonatype.insight.brain.service.InsightBrainService
 import com.sonatype.insight.brain.service.InsightConfig
+import com.sonatype.insight.brain.testing.functional.modules.ChangePasswordModule;
 
 import com.google.common.io.Resources
 import com.yammer.dropwizard.testing.junit.DropwizardServiceRule
@@ -53,26 +54,26 @@ class ChangePasswordSpec extends GebReportingSpec {
       changePassword.ok.disabled
       
     when: "User enters an invalid old password"
-      changePassword.oldPassword.value = 'unsecret'
+      changePassword.oldPassword.value('unsecret')
     
     then: "Save button stays disabled"
       changePassword.ok.disabled
     
     when: "User enters a new password"
-      changePassword.newPassword.value = 'newsecret'
+      changePassword.newPassword.value('newsecret')
     
     then: "Save button stays disabled"
       changePassword.ok.disabled
     
     when: "User enters a validate password that doesn't match"
-      changePassword.newPasswordValidate.value = 'newsecretdoesntmatch'
+      changePassword.newPasswordValidate.value('newsecretdoesntmatch')
     
     then: "Save button stays disabled and validation error shown"
       changePassword.newPasswordValidateDoesntMatch.displayed
       changePassword.ok.disabled
     
     when: "User enters proper validation password"
-      changePassword.newPasswordValidate.value = 'newsecret'
+      changePassword.newPasswordValidate.value('newsecret')
     
     then: "Save button becomes enabled"
       !changePassword.newPasswordValidateDoesntMatch.displayed
@@ -82,13 +83,21 @@ class ChangePasswordSpec extends GebReportingSpec {
       changePassword.ok.click()
     
     then: "User sees error stating credentials are invalid"
-      invalidCredentialsError.displayed
+      waitFor { changePassword.invalidCredentialsError.displayed }
     
     when: "User enters valid old password and clicks save"
-      changePassword.oldPassword.value = 'secret'
+      changePassword.oldPassword.value('secret')
       changePassword.ok.click()
     
     then: "User should no longer see the change password dialog"
       waitFor { !changePassword.dialog.displayed }
+      
+    when: "User attemps to login with new password"
+      to LoginPage
+      login("test", "newsecret")
+      to ManagementPage
+    
+    then: "Application is loaded"
+      at ManagementPage
   }
 }

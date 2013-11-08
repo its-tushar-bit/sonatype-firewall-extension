@@ -8,7 +8,7 @@
 
 <div class="content report-content">
   <div load-error='error' reload='doLoad()'></div>
-  <div ng-show='!error && !data.meta'>
+  <div ng-show='!error && data && !data.meta'>
     <div class='container text-center'>
       <h2>CLM Server is generating the trending report.</h2>
       <progress percent="generationProgress" class="progress-striped active"></progress>

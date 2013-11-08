@@ -17,9 +17,9 @@ class ChangePasswordModule extends Module
     open { $('a', text: 'Change Password') }
     //this content is all in the popup dialog
     dialog(required: false) { $('form', name: 'passwordForm') }
-    oldPassword(required: false) { dialog.find('input', 'id': 'originalPassword') }
-    newPassword(required: false) { dialog.find('input', 'id': 'newPassword') }
-    newPasswordValidate(required: false) { dialog.find('input', 'id': 'confirmPassword') }
+    oldPassword(required: false) { dialog.originalPassword() }
+    newPassword(required: false) { dialog.newPassword() }
+    newPasswordValidate(required: false) { dialog.confirmPassword() }
     newPasswordValidateDoesntMatch(required: false) { dialog.find('span', text: 'Does not match') }
     invalidCredentialsError(required: false) { dialog.find('span', 'ng-show': 'error') }
     ok(required: false) { dialog.find('button', text: 'Change') }

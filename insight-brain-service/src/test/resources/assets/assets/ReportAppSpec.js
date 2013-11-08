@@ -64,7 +64,7 @@ describe('reportApp', function() {
     $httpBackend.verifyNoOutstandingRequest();
   }));
 
-  it('loads data', inject(function ($httpBackend) {
+  it('loads data', function () {
     var mockStageData = MockData.getActionStageData();
     var mockApplicationSummaryData = ApplicationMockData.getApplicationSummaryData();
 
@@ -76,5 +76,5 @@ describe('reportApp', function() {
     expect(scope.applications).not.toBeUndefined();
     expect(scope.applications.length).toEqual(mockApplicationSummaryData.length);
     expect(scope.applications[0].id).toEqual(mockApplicationSummaryData[0].id);
-  }));
+  });
 });

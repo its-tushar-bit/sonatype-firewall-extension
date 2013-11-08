@@ -41,6 +41,7 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 
 public class UserResourceTest
@@ -315,7 +316,7 @@ public class UserResourceTest
     user = JsonHelpers.fromJson(response.getResponseBody(), User.class);
     usersToDelete.add(user);
 
-    String changePasswordUrl = getServiceURL() + "/" + user.getUsernameLowercase() + "/password";
+    String changePasswordUrl = getServiceURL() + "/" + user.getId() + "/password";
 
     // Can't change password when password input doesn't match
     ChangePasswordDTO dto = new ChangePasswordDTO();
@@ -352,6 +353,7 @@ public class UserResourceTest
     response = AuthedRestAccess.put(changePasswordUrl, JsonHelpers.asJson(dto), user.getUsername(),
         "testChangePasswordPassword");
     assertResponseStatus(400, response);
+    assertEquals("Invalid credentials supplied.", response.getResponseBody());
 
     // Can change password with correct input
     dto.oldPassword = "testChangePasswordPassword";

@@ -56,7 +56,7 @@ public class UserResource
 
   private static final String MY_PASSWORD_PATH = "/password";
 
-  public static final String PASSWORD_PATH = "/{username}/password";
+  public static final String PASSWORD_PATH = "/{userId}/password";
 
   private static final Logger log = LoggerFactory.getLogger(UserResource.class);
 
@@ -202,7 +202,7 @@ public class UserResource
 
     User user = dao.getByUsernameLowercase(principal.username.trim().toLowerCase(Locale.ENGLISH));
     if (user == null) {
-      throw new NotFoundException("Could not find user with name " + principal.username);
+      throw new NotFoundException("Could not find user with username " + principal.username);
     }
 
     // validate the old password first
@@ -223,12 +223,9 @@ public class UserResource
   @Path(PASSWORD_PATH)
   @Consumes(MediaType.APPLICATION_JSON)
   // Requires only authentication, no authorization.
-  public void changePassword(@PathParam("username") String username, ChangePasswordDTO password) {
+  public void changePassword(@PathParam("userId") String userId, ChangePasswordDTO password) {
     UserDAO dao = new UserDAO();
-    User user = dao.getByUsernameLowercase(username.trim().toLowerCase(Locale.ENGLISH));
-    if (user == null) {
-      throw new NotFoundException("Could not find user with name " + username);
-    }
+    User user = dao.getByIdNotNull(userId);
 
     //validate the old password first
     try {

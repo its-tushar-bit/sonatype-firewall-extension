@@ -33,7 +33,9 @@ describe('UserControlsSpec', function () {
   }));
 
   afterEach(inject(function($httpBackend) {
-    if (scope) {
+    if (parentScope) {
+      parentScope.$destroy();
+    } else if (scope) {
       scope.$destroy();
     }
     $httpBackend.verifyNoOutstandingExpectation();
@@ -67,9 +69,7 @@ describe('UserControlsSpec', function () {
 
   describe('ChangePassword', function () {
     beforeEach(inject(function ($controller, $rootScope) {
-      parentScope = $rootScope.$new();
-
-      scope = parentScope.$new();
+      scope = $rootScope.$new();
 
       $controller('ChangePassword', {
         $scope : scope

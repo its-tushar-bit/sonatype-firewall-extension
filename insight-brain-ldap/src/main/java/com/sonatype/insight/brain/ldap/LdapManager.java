@@ -119,18 +119,18 @@ public class LdapManager
    *
    * @throws NamingException if there is a problem with the mapping or the credentials
    */
-  public List<LdapUser> getUsersByNames(String[] names, long maxResults) throws NamingException {
+  public List<LdapUser> getUsers(String[] names, long maxResults) throws NamingException {
     LdapConnection conn = getDecryptedConnection();
-    return new LdapQuery(conn, userDao.getByServerId(conn.getServerId())).getUsersByNames(names, maxResults);
+    return new LdapQuery(conn, userDao.getByServerId(conn.getServerId())).getUsers(names, maxResults);
   }
 
   /**
    * Tests retrieving users by an array of UserIDs
    */
-  public List<LdapUser> testGetUsersByNames(LdapUserMapping umap, String[] names, long maxResults)
+  public List<LdapUser> testGetUsers(LdapUserMapping umap, String[] names, long maxResults)
       throws NamingException
   {
-    return new LdapQuery(getDecryptedConnection(), umap).getUsersByNames(names, maxResults);
+    return new LdapQuery(getDecryptedConnection(), umap).getUsers(names, maxResults);
   }
 
   /**

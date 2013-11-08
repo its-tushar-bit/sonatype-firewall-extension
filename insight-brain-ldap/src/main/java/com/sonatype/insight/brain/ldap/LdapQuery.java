@@ -166,7 +166,7 @@ class LdapQuery
   /**
    * Queries LDAP for list of users whose UserID attribute matches one of the names provided by the names parameter
    */
-  public List<LdapUser> getUsersByNames(String[] names, long maxResults) throws NamingException {
+  public List<LdapUser> getUsers(String[] names, long maxResults) throws NamingException {
     String[] attributes = pickAttributes(umap.getUserIDAttribute(), umap.getUserRealNameAttribute(),
         umap.getUserEmailAttribute());
     LdapContext ctx = null;
@@ -175,7 +175,7 @@ class LdapQuery
       ctx = ctxFactory.getSystemLdapContext();
       // TODO: query sanitization will be applied with this ticket
       // https://issues.sonatype.org/browse/CLM-1083
-      results = getUsersByNames(ctx, names, attributes, maxResults);
+      results = searchUsersByUsernames(ctx, names, attributes, maxResults);
       List<LdapUser> ldapUsers = new ArrayList<LdapUser>();
       while (results.hasMoreElements()) {
         ldapUsers.add(createUser(ctx, results.nextElement()));
@@ -272,8 +272,8 @@ class LdapQuery
     }
   }
 
-  private NamingEnumeration<SearchResult> getUsersByNames(LdapContext ctx, String[] names, String[] attributes, long maxResults)
-      throws NamingException
+  private NamingEnumeration<SearchResult> searchUsersByUsernames(LdapContext ctx, String[] names, String[] attributes,
+                                                                long maxResults) throws NamingException
   {
     Map<String, String> nameAttributes = new LinkedHashMap<>();
     final String givenName = umap.getUserIDAttribute();
@@ -282,7 +282,7 @@ class LdapQuery
     }
     return searchUsersByAttributes(ctx, nameAttributes, attributes, maxResults);
   }
-  
+
   /**
    * Search ldap server for all users whose realname attribute matches the supplied name
    */

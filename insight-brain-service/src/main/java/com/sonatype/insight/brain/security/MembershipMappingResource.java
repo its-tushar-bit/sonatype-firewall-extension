@@ -310,7 +310,8 @@ public class MembershipMappingResource
       if (ldapManager.isLdapEnabled()) {
         try {
           // If LDAP is enabled, try to resolve the RealName from LDAP
-          List<LdapUser> ldapUsers = ldapManager.getUsersByNames(unresolvedNames.toArray(new String[0]), (long)unresolvedNames.size());
+          List<LdapUser> ldapUsers = ldapManager.getUsers(unresolvedNames.toArray(new String[0]),
+              (long) unresolvedNames.size());
           for (String unresolvedName : unresolvedNames) {
             boolean found = false;
             for (LdapUser ldapUser : ldapUsers) {

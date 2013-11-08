@@ -54,7 +54,7 @@ public class TrendingReportServiceTest
      * Worked thread finished report generation, generating==false
      */
     FINISHED;
-  };
+  }
 
   private final Map<Checkpoint, CountDownLatch> checkpoints = new ConcurrentHashMap<Checkpoint, CountDownLatch>();
   private final Map<Checkpoint, AtomicInteger> executions = new ConcurrentHashMap<Checkpoint, AtomicInteger>();
@@ -130,13 +130,13 @@ public class TrendingReportServiceTest
                 protected void beforeStart() {
                   super.beforeStart();
                   enterCheckpoint(Checkpoint.STARTED);
-                };
+                }
 
                 @Override
                 protected void afterFinish() {
                   super.afterFinish();
                   enterCheckpoint(Checkpoint.FINISHED);
-                };
+                }
 
                 @Override
                 protected ProgressMonitor newProgressMonitor() {
@@ -149,7 +149,7 @@ public class TrendingReportServiceTest
                       enterCheckpoint(Checkpoint.APPLICATION);
                     }
                   };
-                };
+                }
               };
             }
             return asyncProcessor;

@@ -60,10 +60,8 @@ import com.sonatype.insight.json.store.JsonUtils;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableMap.Builder;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
 /**
@@ -119,7 +117,7 @@ public class TrendingReportProcessor
   public static interface ProgressMonitor
   {
     public void tick(int total, int current);
-  };
+  }
 
   private final InsightWork work;
 

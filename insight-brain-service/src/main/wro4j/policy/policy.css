@@ -63,9 +63,6 @@
 .licenseContainer .icon-plus-sign, .licenseContainer .icon-minus-sign, .fullWidthPrependedTextBox .icon-remove {
 	cursor: pointer
 }
-#policyName {
-	margin-bottom: 0px;
-}
 #constraintName {
 	font-weight: normal;
 	font-style: normal;

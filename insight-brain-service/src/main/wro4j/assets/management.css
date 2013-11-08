@@ -226,7 +226,6 @@ body {
 	color: #17558E;
 	border-left: 3px solid #2476FC;
 	padding-left: 12px;
-	font-weight: bold;	
 }
 .subnavigation .nav-list>.active>a:hover, .subnavigation .nav>li>a:hover, .subnavigation .nav>li.missing-org>a:hover, .nav-list>.active>a:hover {
 	background-color: #f4f4f4;

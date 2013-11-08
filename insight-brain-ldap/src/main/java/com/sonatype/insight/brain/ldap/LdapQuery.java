@@ -75,7 +75,7 @@ class LdapQuery
    * Authenticates the given user and password against LDAP.
    */
   public void authenticateUser(String username, char[] password) throws NamingException {
-    LdapUser ldapUser = getUser(username);
+    LdapUser ldapUser = getUser(username, false);
 
     if (StringUtils.isBlank(umap.getUserPasswordAttribute())) {
       authenticateWithBind(ldapUser, password);
@@ -117,10 +117,21 @@ class LdapQuery
 
   /**
    * Queries LDAP for a specific user; includes stored credentials when password attribute is set.
+   * 
+   * @param username The username to lookup
+   * @param withMembership when true include group membership, otherwise don't
+   * @return LdapUser object for the given username
+   * @throws NameNotFoundException if the username doesn't exist in ldap
+   * @throws NamingException if there are problems accessing the ldap context
    */
-  public LdapUser getUser(String username) throws NamingException {
-    String[] attributes = pickAttributes(umap.getUserIDAttribute(), umap.getUserPasswordAttribute(),
-        umap.getUserRealNameAttribute(), umap.getUserEmailAttribute(), umap.getUserMemberOfGroupAttribute());
+  public LdapUser getUser(String username, boolean withMembership) throws NamingException {
+    String[] attributes = pickAttributes( //
+        umap.getUserIDAttribute(), //
+        umap.getUserRealNameAttribute(), //
+        umap.getUserEmailAttribute(), //
+        withMembership ? umap.getUserMemberOfGroupAttribute() : null, //
+        umap.getUserPasswordAttribute() //
+    );
 
     LdapContext ctx = null;
     NamingEnumeration<SearchResult> results = null;
@@ -128,7 +139,7 @@ class LdapQuery
       ctx = ctxFactory.getSystemLdapContext();
       results = searchUsersByUsername(ctx, username, attributes, 1);
       if (results.hasMoreElements()) {
-        return createUser(ctx, results.nextElement());
+        return createUser(ctx, results.nextElement(), withMembership);
       }
       throw new NameNotFoundException("LDAP user with username '" + username + "' does not exist");
     }
@@ -140,10 +151,19 @@ class LdapQuery
 
   /**
    * Queries LDAP for all users up to a limited number; result never includes stored credentials.
+   * 
+   * @param maxResults maximum number of results to pull from ldap, don't want to overload the system
+   * @param withMembership when true include group membership, otherwise don't
+   * @return List of LdapUser objects
+   * @throws NamingException if there are problems accessing the ldap context
    */
-  public List<LdapUser> getUsers(long maxResults) throws NamingException {
-    String[] attributes = pickAttributes(umap.getUserIDAttribute(), umap.getUserRealNameAttribute(),
-        umap.getUserEmailAttribute(), umap.getUserMemberOfGroupAttribute());
+  public List<LdapUser> getUsers(long maxResults, boolean withMembership) throws NamingException {
+    String[] attributes = pickAttributes( //
+        umap.getUserIDAttribute(), //
+        umap.getUserRealNameAttribute(), //
+        umap.getUserEmailAttribute(), //
+        withMembership ? umap.getUserMemberOfGroupAttribute() : null //
+    );
 
     LdapContext ctx = null;
     NamingEnumeration<SearchResult> results = null;
@@ -152,7 +172,7 @@ class LdapQuery
       results = searchUsersByUsername(ctx, null, attributes, maxResults);
       List<LdapUser> ldapUsers = new ArrayList<LdapUser>();
       while (results.hasMoreElements()) {
-        ldapUsers.add(createUser(ctx, results.nextElement()));
+        ldapUsers.add(createUser(ctx, results.nextElement(), withMembership));
       }
       return ldapUsers;
     }
@@ -164,7 +184,7 @@ class LdapQuery
 
   /**
    * Query for list of users whos realname attribute matches the supplied nameFragment. This nameFragment will be prefixed and
-   * suffixed with a wildcard to find matches.
+   * suffixed with a wildcard to find matches. Group membership is not included in the result.
    * 
    * @param nameFragment String to match against
    * @param maxResults maximum number of results to pull from ldap, don't want to overload the system
@@ -172,8 +192,11 @@ class LdapQuery
    * @throws NamingException if there are problems accessing the ldap context
    */
   public List<LdapUser> queryUsersByName(String nameFragment, long maxResults) throws NamingException {
-    String[] attributes = pickAttributes(umap.getUserIDAttribute(), umap.getUserRealNameAttribute(),
-        umap.getUserEmailAttribute());
+    String[] attributes = pickAttributes( //
+        umap.getUserIDAttribute(), //
+        umap.getUserRealNameAttribute(), //
+        umap.getUserEmailAttribute() //
+    );
 
     LdapContext ctx = null;
     NamingEnumeration<SearchResult> results = null;
@@ -184,7 +207,7 @@ class LdapQuery
       results = searchUsersByName(ctx, "*" + nameFragment + "*", attributes, maxResults);
       List<LdapUser> ldapUsers = new ArrayList<LdapUser>();
       while (results.hasMoreElements()) {
-        ldapUsers.add(createUser(ctx, results.nextElement()));
+        ldapUsers.add(createUser(ctx, results.nextElement(), false));
       }
       return ldapUsers;
     }
@@ -197,7 +220,7 @@ class LdapQuery
   /**
    * Populates LDAP user information from the given search result.
    */
-  private LdapUser createUser(LdapContext ctx, SearchResult result) throws NamingException {
+  private LdapUser createUser(LdapContext ctx, SearchResult result, boolean withMembership) throws NamingException {
     LdapUser user = new LdapUser();
 
     user.setDn(result.getNameInNamespace());
@@ -209,19 +232,21 @@ class LdapQuery
     user.setRealName(getAttributeValue(attributes, umap.getUserRealNameAttribute()));
     user.setEmail(getAttributeValue(attributes, umap.getUserEmailAttribute()));
 
-    Set<String> membership;
-    switch (umap.getGroupMappingType()) {
-      case DYNAMIC:
-        membership = getAttributeValues(attributes, umap.getUserMemberOfGroupAttribute());
-        break;
-      case STATIC:
-        membership = getUserMembership(ctx, user); // search groups using current context
-        break;
-      default:
-        membership = null;
-        break;
+    if (withMembership) {
+      Set<String> membership;
+      switch (umap.getGroupMappingType()) {
+        case DYNAMIC:
+          membership = getAttributeValues(attributes, umap.getUserMemberOfGroupAttribute());
+          break;
+        case STATIC:
+          membership = getUserMembership(ctx, user); // search groups using current context
+          break;
+        default:
+          membership = null;
+          break;
+      }
+      user.setMembership(getSimpleNames(membership));
     }
-    user.setMembership(getSimpleNames(membership));
 
     return user;
   }
@@ -379,7 +404,7 @@ class LdapQuery
   }
 
   /**
-   * Returns the given sequence of names with any null elements removed.
+   * Returns the given sequence of names with any null/empty elements removed.
    */
   private static String[] pickAttributes(String... names) {
     List<String> result = new ArrayList<String>(names.length);

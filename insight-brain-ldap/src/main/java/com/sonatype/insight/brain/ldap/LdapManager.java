@@ -102,7 +102,7 @@ public class LdapManager
    * @throws NamingException if there is a problem with the mapping
    */
   public List<LdapUser> testUserMapping(LdapUserMapping umap, long maxResults) throws NamingException {
-    return new LdapQuery(getDecryptedConnection(), umap).getUsers(maxResults);
+    return new LdapQuery(getDecryptedConnection(), umap).getUsers(maxResults, true);
   }
 
   /**

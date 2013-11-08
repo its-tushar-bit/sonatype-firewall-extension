@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.ldap;
 
-import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -26,7 +25,7 @@ public class LdapUser
 
   private String email;
 
-  private Set<String> membership = new HashSet<String>();
+  private Set<String> membership;
 
   public String getUsername() {
     return username;

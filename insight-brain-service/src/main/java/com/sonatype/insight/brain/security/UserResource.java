@@ -31,6 +31,7 @@ import com.sonatype.insight.brain.ldap.LdapManager;
 import com.sonatype.insight.brain.ldap.LdapUser;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.User;
+import com.sonatype.insight.brain.model.security.UserPrincipal;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
@@ -52,6 +53,8 @@ import org.slf4j.LoggerFactory;
 public class UserResource
 {
   public static final String SERVICE_PATH = "rest/user";
+
+  private static final String MY_PASSWORD_PATH = "/password";
 
   public static final String PASSWORD_PATH = "/{username}/password";
 
@@ -187,6 +190,33 @@ public class UserResource
         subject.logout();
       }
     }
+  }
+
+  @PUT
+  @Path(MY_PASSWORD_PATH)
+  @Consumes(MediaType.APPLICATION_JSON)
+  public void changeMyPassword(ChangePasswordDTO password) {
+    UserDAO dao = new UserDAO();
+
+    UserPrincipal principal = (UserPrincipal) SecurityUtils.getSubject().getPrincipal();
+
+    User user = dao.getByUsernameLowercase(principal.username.trim().toLowerCase(Locale.ENGLISH));
+    if (user == null) {
+      throw new NotFoundException("Could not find user with name " + principal.username);
+    }
+
+    // validate the old password first
+    try {
+      SecurityUtils.getSecurityManager().authenticate(
+          new UsernamePasswordToken(user.getUsername(), password.oldPassword));
+    }
+    catch (AuthenticationException e) {
+      throw new BadRequestException("Invalid credentials supplied.");
+    }
+
+    user.setPassword(clmRealm.encryptPassword(password.newPassword));
+
+    dao.update(user);
   }
 
   @PUT

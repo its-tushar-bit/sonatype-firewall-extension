@@ -333,6 +333,35 @@ public class UserResourceTest
   }
 
   @Test
+  public void testChangeMyPassword() throws Exception {
+    // Add user so we can change his password
+    User user = new User("testChangePassword", "testChangePasswordPassword", "testChangePasswordFirstName",
+        "testChangePasswordLastName", "testChangePassword@sonatype.com");
+    Response response = AuthedRestAccess.post(getServiceURL(), JsonHelpers.asJson(user));
+    assertResponseStatus(200, response);
+    user = JsonHelpers.fromJson(response.getResponseBody(), User.class);
+    usersToDelete.add(user);
+
+    String changePasswordUrl = getServiceURL() + "/password";
+
+    // Can't change password when password input doesn't match
+    ChangePasswordDTO dto = new ChangePasswordDTO();
+    dto.oldPassword = "badPass";
+    dto.newPassword = "doesntmatter";
+
+    response = AuthedRestAccess.put(changePasswordUrl, JsonHelpers.asJson(dto), user.getUsername(),
+        "testChangePasswordPassword");
+    assertResponseStatus(400, response);
+
+    // Can change password with correct input
+    dto.oldPassword = "testChangePasswordPassword";
+
+    response = AuthedRestAccess.put(changePasswordUrl, JsonHelpers.asJson(dto), user.getUsername(),
+        "testChangePasswordPassword");
+    assertResponseStatus(204, response);
+  }
+
+  @Test
   public void testFindCLMUsers() throws Exception {
     Response response = AuthedRestAccess.get(getSearchUrl(""));
     assertResponseStatus(400, response);

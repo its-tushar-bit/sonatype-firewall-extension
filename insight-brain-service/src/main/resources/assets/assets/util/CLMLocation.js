@@ -87,6 +87,10 @@
           return baseUrl.get() + '/rest/trending';
         },
 
+        getChangeMyPasswordUrl : function () {
+          return baseUrl.get() + '/rest/user/password';
+        },
+
         getChangePasswordUrl : function (userId) {
           return baseUrl.get() + '/rest/user/' + userId + '/password';
         }

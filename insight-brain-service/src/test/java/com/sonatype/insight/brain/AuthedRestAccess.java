@@ -45,6 +45,10 @@ public class AuthedRestAccess
     return RestAccess.post(urlString, username, password);
   }
 
+  public static Response put(String urlString, String body, String username, String password) throws Exception {
+    return RestAccess.put(urlString, username, password, body);
+  }
+
   public static Response put(String urlString, String body) throws Exception {
     return RestAccess.put(urlString, ADMIN_USERNAME, ADMIN_PASSWORD, body);
   }

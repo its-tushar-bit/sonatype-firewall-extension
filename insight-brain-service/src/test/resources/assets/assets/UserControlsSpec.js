@@ -94,7 +94,7 @@ describe('UserControlsSpec', function () {
     }));
 
     it('With Valid Auth', inject(function ($httpBackend, CLMLocations) {
-      $httpBackend.expectPUT(CLMLocations.getChangePasswordUrl('foo')).respond(200);
+      $httpBackend.expectPUT(CLMLocations.getChangeMyPasswordUrl()).respond(200);
       dialogScope.save();
       expect(dialogScope.submitActive).toBeTruthy();
       $httpBackend.flush();
@@ -103,7 +103,7 @@ describe('UserControlsSpec', function () {
     }));
 
     it('With Invalid Auth', inject(function ($httpBackend, CLMLocations, Messages) {
-      $httpBackend.expectPUT(CLMLocations.getChangePasswordUrl('foo')).respond(400);
+      $httpBackend.expectPUT(CLMLocations.getChangeMyPasswordUrl()).respond(400);
 
       dialogScope.save();
       expect(dialogScope.submitActive).toBeTruthy();

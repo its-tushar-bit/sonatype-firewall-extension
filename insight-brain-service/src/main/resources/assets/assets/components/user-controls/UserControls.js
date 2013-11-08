@@ -38,7 +38,7 @@
               scope.error = null;
               scope.submitActive = true;
 
-              $http.put(clmLocations.getChangePasswordUrl($scope.username), {
+              $http.put(clmLocations.getChangeMyPasswordUrl(), {
                 oldPassword : scope.result.originalPassword,
                 newPassword : scope.result.newPassword
               }).success(function () {

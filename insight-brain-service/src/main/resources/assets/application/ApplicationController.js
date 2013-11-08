@@ -373,11 +373,7 @@
         };
 
         $scope.reEvaluatePolicy = function(policyEvaluation) {
-          $scope.reEvaluatingPolicy = true;
-          return policyEvaluator.evaluate($scope.applicationSummary, policyEvaluation).then(function(data) {
-            $scope.reEvaluatingPolicy = false;
-          }, function(error) {
-            $scope.reEvaluatingPolicy = false;
+          return policyEvaluator.evaluate($scope.applicationSummary, policyEvaluation).then(angular.noop, function(error) {
             $scope.alerts.push({
               type: 'error',
               msg: 'An error occurred attempting to re-evaluate the policy. (' + Messages.getHttpErrorMessage(error) +

@@ -20,9 +20,11 @@ class RoleModule extends Module {
     appliedMemberNames(required: false) { appliedMembers.children('span') }
     appliedMember(required: false) { displayName -> appliedMembers.has('span', text: displayName ) }
 
-    availableMembers(required: false) { $('div[app-security-editor] .selectList:last-child .licenseSelectListItem', 'ng-click': 'addUser(user)') }
-    availableMemberNames(required: false) { availableMembers.children('span') }
-    availableMember(required: false) { displayName -> availableMembers.has('span', text: displayName ) }
+    availableMembers(required: false) { $('div[app-security-editor] .selectList:last-child .large-select-list-item', 'ng-click': 'addUser(user)') }
+    availableMemberNames(required: false) { availableMembers.find('.large-select-list-item-title') }
+    availableMember(required: false) { displayName -> availableMembers.has('.large-select-list-item-title', text: displayName ) }
+    availableMemberEmail(required: false) { availableMembers.find('.large-select-list-item-detail:not(.right-detail)') }
+    availableMemberRealm(required: false) { availableMembers.find('.large-select-list-item-detail.right-detail') }
 
     confirmButton(required: false) { $('button.btn-primary') }
   }

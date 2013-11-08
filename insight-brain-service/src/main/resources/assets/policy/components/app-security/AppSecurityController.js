@@ -157,23 +157,6 @@
         }
     };
 
-    $scope.getTooltip = function (user) {
-      var tip = user.displayName;
-      if (tip && user.email) {
-        tip += ' ';
-      }
-      if (user.email) {
-        tip += '<' + user.email + '>';
-      }
-      if (tip && user.realm) {
-        tip += ' ';
-      }
-      if (user.realm) {
-        tip += '(' + user.realm + ')';
-      }
-      return tip;
-    };
-
     $scope.$watch('queryString', function (newVal) {
       if (!newVal) {
         $scope.queryResults = null; // Empty query, empty results

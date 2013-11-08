@@ -9,7 +9,7 @@
 
   var reportTrendingModule = angular.module('ReportTrending', []);
 
-  reportTrendingModule.controller('TrendingReportController', ['$scope', 'trendingReportService', 'Messages', function($scope, trendingReportService, Messages) {
+  reportTrendingModule.controller('TrendingReportController', ['$scope', '$q', 'trendingReportService', function($scope, $q, trendingReportService) {
     function formatDuration(durationMs) {
       var durationText;
       if (durationMs < 120000) {
@@ -35,6 +35,8 @@
         $scope.generationProgressTooltip = 'Report generation running ' + formatDuration(trendingReport.generation.runningTime) 
           + ', total number of applications ' + trendingReport.generation.applicationsTotal 
           + ', applications processed so far ' + trendingReport.generation.applicationsCurrent;
+      } else {
+        delete $scope.generationProgressTooltip;
       }
 
       if (trendingReport.meta) {
@@ -103,9 +105,18 @@
     $scope.formatDuration = formatDuration; // for testing purposes
 
     $scope.regenerate = function() {
-      $scope.data.generation.running = true;
+      var deferred = $q.defer();
       $scope.error = null;
-      trendingReportService.get(setReportData, setReportError, true);
+      trendingReportService.get(function(trendingReport) {
+        if (!trendingReport.generation.running) {
+          deferred.resolve(trendingReport);
+        }
+        setReportData(trendingReport);
+      }, function() {
+        deferred.reject();
+        setReportError(arguments);
+      }, true);
+      return deferred.promise;
     };
   }]);
 

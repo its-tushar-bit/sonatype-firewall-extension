@@ -26,9 +26,7 @@
         <strong>{{format(data.meta.periodStart)}} - {{format(data.meta.periodEnd)}}</strong>
         <div class="pull-right">
           <strong >Generated on: {{ format(data.meta.generatedOn, '%b %e - %I:%M %p, %Y') }}</strong>
-          <a class="btn btn-mini" ng-show="!data.generation.running && data.generation.enabled" ng-click="regenerate()">Refresh</a>
-          <img ng-show="data.generation.running" src='../assets/img/inlineLoader.gif'
-             tooltip='{{generationProgressTooltip}}' tooltip-placement='bottom'>
+          <span refresh-button='regenerate()' refresh-tooltip='generationProgressTooltip'></span>
         </div>
         <hr style="background-color: #AAA;color: #AAA;height: 3px; margin-top: 3px; margin-bottom: 0;"/>
       </div>

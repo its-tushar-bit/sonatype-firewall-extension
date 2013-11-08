@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.ldap;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -163,6 +164,31 @@ class LdapQuery
   }
 
   /**
+   * Queries LDAP for list of users whose UserID attribute matches one of the names provided by the names parameter
+   */
+  public List<LdapUser> getUsersByNames(String[] names, long maxResults) throws NamingException {
+    String[] attributes = pickAttributes(umap.getUserIDAttribute(), umap.getUserRealNameAttribute(),
+        umap.getUserEmailAttribute());
+    LdapContext ctx = null;
+    NamingEnumeration<SearchResult> results = null;
+    try {
+      ctx = ctxFactory.getSystemLdapContext();
+      // TODO: query sanitization will be applied with this ticket
+      // https://issues.sonatype.org/browse/CLM-1083
+      results = getUsersByNames(ctx, names, attributes, maxResults);
+      List<LdapUser> ldapUsers = new ArrayList<LdapUser>();
+      while (results.hasMoreElements()) {
+        ldapUsers.add(createUser(ctx, results.nextElement()));
+      }
+      return ldapUsers;
+    }
+    finally {
+      LdapUtils.closeEnumeration(results);
+      LdapUtils.closeContext(ctx);
+    }
+  }
+
+  /**
    * Query for list of users whos realname attribute matches the supplied nameFragment. This nameFragment will be prefixed and
    * suffixed with a wildcard to find matches.
    * 
@@ -244,6 +270,17 @@ class LdapQuery
     finally {
       LdapUtils.closeEnumeration(results);
     }
+  }
+
+  private NamingEnumeration<SearchResult> getUsersByNames(LdapContext ctx, String[] names, String[] attributes, long maxResults)
+      throws NamingException
+  {
+    Map<String, String> nameAttributes = new LinkedHashMap<>();
+    final String givenName = umap.getUserIDAttribute();
+    for (String name : names) {
+      nameAttributes.put(givenName, name);
+    }
+    return searchUsersByAttributes(ctx, nameAttributes, attributes, maxResults);
   }
   
   /**

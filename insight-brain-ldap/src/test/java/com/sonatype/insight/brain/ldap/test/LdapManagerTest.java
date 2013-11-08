@@ -305,6 +305,25 @@ public class LdapManagerTest
   }
 
   @Test
+  public void testGetUsersByNames() throws Exception {
+    startLdapServer();
+
+    LdapConnection conn = createLdapConnection();
+    conn.setSearchBase("dc=company,dc=com");
+    manager.saveConnection(conn);
+
+    LdapUserMapping umap = createUserMapping();
+
+    List<LdapUser> users = manager.testGetUsersByNames(umap, new String[] {"test_user"}, 100);
+    assertThat(users.size(), is(1));
+    LdapUser user = users.get(0);
+    assertThat(user.getUsername(), is("test_user"));
+
+    users = manager.testGetUsersByNames(umap, new String[] {"foo"}, 100);
+    assertThat(users.size(), is(0));
+  }
+
+  @Test
   public void testFindUserByName() throws Exception {
     startLdapServer();
 

@@ -812,8 +812,9 @@ var AngularUtils = {
       }, 15);
     }
 
-    function reset() {
+    function refreshComplete(scope) {
       $timeout.cancel(timer);
+      scope.refreshing = false;
     }
 
     return {
@@ -832,11 +833,9 @@ var AngularUtils = {
           scope.refreshing = true;
           rotate(element.find('i'));
           deferredFunction(scope.$parent).then(function() {
-            reset();
-            scope.refreshing = false;
+            refreshComplete(scope);
           }, function() {
-            reset();
-            scope.refreshing = false;
+            refreshComplete(scope);
           });
         });
       }

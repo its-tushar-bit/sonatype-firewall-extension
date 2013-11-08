@@ -82,11 +82,7 @@
 				<div ng-repeat='stage in state.actionStageList | filterReportColumns' class="report-summary" ng-class="{ bordered : !$last }">
 					{{stage.name}}
 					<span show-if='applicationSummary.policyEvaluationsResults[stage.id]'>
-						<a title='Re-evaluate Policy' ng-show='!reEvaluatingPolicy'
-						   ng-click='reEvaluatePolicy(applicationSummary.policyEvaluations[stage.id])'>
-							<i class='icon-refresh'></i>
-						</a>
-						<i ng-show='reEvaluatingPolicy' class='icon-time'></i>
+                        <span refresh-button='reEvaluatePolicy(applicationSummary.policyEvaluations[stage.id])' title='Re-evaluate Policy'></span>
 					</span>
 					<div show-if='applicationSummary.policyEvaluationsResults[stage.id]'>
 						<a class='no-hover-underline' style='vertical-align: middle;' title='View Report - {{applicationSummary.policyEvaluations[stage.id].time | ago}}'

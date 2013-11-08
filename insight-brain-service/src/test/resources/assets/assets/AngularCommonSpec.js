@@ -341,4 +341,44 @@ describe('AngularCommon', function() {
       expect(scope.selectedLabel).toBe(scope.labels[0].id);
     });
   });
+
+  describe('refreshButton', function() {
+    var element, scope, compile;
+
+    beforeEach(inject(function($compile, $rootScope) {
+      scope = $rootScope.$new();
+      element = angular.element('<span refresh-button="refresh()" refresh-tooltip="tooltip"></span>');
+      compile = $compile;
+    }));
+
+    it('calls the refresh function', function() {
+      scope.refresh = function() {
+        return {
+          then: angular.noop
+        }
+      };
+      var refreshSpy = spyOn(scope, 'refresh').andCallThrough();
+      compile(element)(scope);
+
+      element.click();
+
+      expect(refreshSpy).toHaveBeenCalled();
+    });
+
+    it('rotates icon', function() {
+      scope.refresh = function() {
+        expect(element.find('i').attr('style')).toMatch(/rotate\(/);
+        return {
+          then: angular.noop
+        }
+      };
+      var refreshSpy = spyOn(scope, 'refresh').andCallThrough();
+      compile(element)(scope);
+
+      expect(element.find('i').attr('style')).not.toMatch(/rotate\(/);
+      element.click();
+
+      expect(refreshSpy).toHaveBeenCalled();
+    });
+  });
 });

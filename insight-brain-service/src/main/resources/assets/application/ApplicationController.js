@@ -373,19 +373,17 @@
         };
 
         $scope.reEvaluatePolicy = function(policyEvaluation) {
-          if (!$scope.reEvaluatingPolicy) {
-            $scope.reEvaluatingPolicy = true;
-            policyEvaluator.evaluate($scope.applicationSummary, policyEvaluation).then(function(data) {
-              $scope.reEvaluatingPolicy = false;
-            }, function(error) {
-              $scope.reEvaluatingPolicy = false;
-              $scope.alerts.push({
-                type: 'error',
-                msg: 'An error occurred attempting to re-evaluate the policy. (' + Messages.getHttpErrorMessage(error) +
-                    ')'
-              });
+          $scope.reEvaluatingPolicy = true;
+          return policyEvaluator.evaluate($scope.applicationSummary, policyEvaluation).then(function(data) {
+            $scope.reEvaluatingPolicy = false;
+          }, function(error) {
+            $scope.reEvaluatingPolicy = false;
+            $scope.alerts.push({
+              type: 'error',
+              msg: 'An error occurred attempting to re-evaluate the policy. (' + Messages.getHttpErrorMessage(error) +
+                  ')'
             });
-          }
+          });
         };
       });
 

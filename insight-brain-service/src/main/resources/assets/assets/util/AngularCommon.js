@@ -801,6 +801,48 @@ var AngularUtils = {
     };
   });
 
+  angularCommon.directive('refreshButton', ['$timeout', '$parse', function($timeout, $parse) {
+    var timer, degree = 0;
+
+    function rotate(element) {
+      element.css({ transform: 'rotate(' + degree + 'deg)'});
+      timer = $timeout(function() {
+        ++degree;
+        rotate(element);
+      }, 15);
+    }
+
+    function reset() {
+      $timeout.cancel(timer);
+    }
+
+    return {
+      scope: {
+        refreshTooltip: '='
+      },
+      template: '<a ng-show="!refreshing"><i class="icon-refresh"></i></a>' +
+          '<a ng-show="refreshing" tooltip="{{refreshTooltip}}" tooltip-placement="bottom"><i class="icon-refresh"></i></a>',
+      link: function(scope, element, attr) {
+        var deferredFunction = $parse(attr.refreshButton);
+        scope.refreshing = false;
+        element.bind('click', function() {
+          if (scope.refreshing) {
+            return;
+          }
+          scope.refreshing = true;
+          rotate(element.find('i'));
+          deferredFunction(scope.$parent).then(function() {
+            reset();
+            scope.refreshing = false;
+          }, function() {
+            reset();
+            scope.refreshing = false;
+          });
+        });
+      }
+    };
+  }]);
+
   angularCommon.service('Dialog', ['$modal', function ($modal) {
     function wrapClick(fn, scope) {
       return function () {

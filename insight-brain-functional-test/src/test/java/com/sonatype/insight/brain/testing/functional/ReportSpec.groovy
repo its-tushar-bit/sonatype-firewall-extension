@@ -76,7 +76,7 @@ class ReportSpec
 
   def "A non-admin user cannot regenerate the report"(){
     when: 'we log in as a non-admin user'
-    user.logout.click()
+    user.logout.link.click()
     at LoginPage
     login('test', 'secret')
     at ReportPage

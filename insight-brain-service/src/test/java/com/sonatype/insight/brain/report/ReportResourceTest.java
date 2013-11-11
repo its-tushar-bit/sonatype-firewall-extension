@@ -26,6 +26,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
 import javax.mail.Message;
+import javax.ws.rs.core.UriBuilder;
 
 import com.sonatype.clm.dto.model.ComponentSummary;
 import com.sonatype.clm.dto.model.policy.Action;
@@ -120,7 +121,7 @@ public class ReportResourceTest
         AuthedRestAccess.get(getRestBaseUrl() + ReportResource.getReportPath(applicationPublicId, scanId)));
 
     String resourcePrefix = getServiceURL(applicationPublicId, scanId);
-    Response response = AuthedRestAccess.get(resourcePrefix + "/embedReport/bom.json");
+    Response response = AuthedRestAccess.get(resourcePrefix + "/browseReport/bom.json");
     assertResponseStatus(200, response);
     boolean foundClaimedComponent = false;
     String bomJsonData = response.getResponseBody();
@@ -145,7 +146,7 @@ public class ReportResourceTest
     }
     assertTrue(foundClaimedComponent);
 
-    response = AuthedRestAccess.get(resourcePrefix + "/embedReport/licenses.json");
+    response = AuthedRestAccess.get(resourcePrefix + "/browseReport/licenses.json");
     assertResponseStatus(200, response);
     String licensesJsonData = response.getResponseBody();
     assertNotNull(licensesJsonData);
@@ -153,7 +154,7 @@ public class ReportResourceTest
     assertFalse(licensesJsonData.contains(hash));
     assertFalse(licensesJsonData.contains("commons-httpclient"));
 
-    response = AuthedRestAccess.get(resourcePrefix + "/embedReport/security.json");
+    response = AuthedRestAccess.get(resourcePrefix + "/browseReport/security.json");
     assertResponseStatus(200, response);
     String securityJsonData = response.getResponseBody();
     assertNotNull(securityJsonData);
@@ -161,7 +162,7 @@ public class ReportResourceTest
     assertFalse(securityJsonData.contains(hash));
     assertFalse(securityJsonData.contains("commons-httpclient"));
 
-    response = AuthedRestAccess.get(resourcePrefix + "/embedReport/partialmatched.json");
+    response = AuthedRestAccess.get(resourcePrefix + "/browseReport/partialmatched.json");
     assertResponseStatus(200, response);
     String partialmatched = response.getResponseBody();
     assertNotNull(partialmatched);
@@ -212,7 +213,7 @@ public class ReportResourceTest
 
     String resourcePrefix = getServiceURL(applicationPublicId, scanId);
 
-    Response response = AuthedRestAccess.get(resourcePrefix + "/embedReport/licenses.json");
+    Response response = AuthedRestAccess.get(resourcePrefix + "/browseReport/licenses.json");
     assertResponseStatus(200, response);
     String licensesJsonData = response.getResponseBody();
     assertNotNull(licensesJsonData);
@@ -240,7 +241,7 @@ public class ReportResourceTest
 
     // populate JSON data cache before claiming the component
     String resourcePrefix = getServiceURL(applicationPublicId, scanId);
-    Response response = AuthedRestAccess.get(resourcePrefix + "/embedReport/bom.json");
+    Response response = AuthedRestAccess.get(resourcePrefix + "/browseReport/bom.json");
     assertResponseStatus(200, response);
 
     // The hash of commons-httpclient-3.1.SONATYPE.jar, similar match of commons-httpclient:commons-httpclient:3.1
@@ -257,7 +258,7 @@ public class ReportResourceTest
     response = AuthedRestAccess.post(getRestBaseUrl() + HashGAVResource.SERVICE_PATH, JsonHelpers.asJson(hashGAV));
     assertResponseStatus(200, response);
 
-    response = AuthedRestAccess.get(resourcePrefix + "/embedReport/bom.json");
+    response = AuthedRestAccess.get(resourcePrefix + "/browseReport/bom.json");
     assertResponseStatus(200, response);
     boolean foundClaimedComponent = false;
     String bomJsonData = response.getResponseBody();
@@ -280,7 +281,7 @@ public class ReportResourceTest
     }
     assertTrue(foundClaimedComponent);
 
-    response = AuthedRestAccess.get(resourcePrefix + "/embedReport/licenses.json");
+    response = AuthedRestAccess.get(resourcePrefix + "/browseReport/licenses.json");
     assertResponseStatus(200, response);
     String licensesJsonData = response.getResponseBody();
     assertNotNull(licensesJsonData);
@@ -288,7 +289,7 @@ public class ReportResourceTest
     assertFalse(licensesJsonData.contains(hash));
     assertFalse(licensesJsonData.contains("commons-httpclient"));
 
-    response = AuthedRestAccess.get(resourcePrefix + "/embedReport/security.json");
+    response = AuthedRestAccess.get(resourcePrefix + "/browseReport/security.json");
     assertResponseStatus(200, response);
     String securityJsonData = response.getResponseBody();
     assertNotNull(securityJsonData);
@@ -296,7 +297,7 @@ public class ReportResourceTest
     assertFalse(securityJsonData.contains(hash));
     assertFalse(securityJsonData.contains("commons-httpclient"));
 
-    response = AuthedRestAccess.get(resourcePrefix + "/embedReport/partialmatched.json");
+    response = AuthedRestAccess.get(resourcePrefix + "/browseReport/partialmatched.json");
     assertResponseStatus(200, response);
     String partialmatched = response.getResponseBody();
     assertNotNull(partialmatched);
@@ -310,7 +311,7 @@ public class ReportResourceTest
   }
 
   @Test
-  public void testEmbedReportEntryExpirationDate() throws Exception {
+  public void testBrowseReportEntryExpirationDate() throws Exception {
     final String applicationPublicId = "ReportResourceTest_AppId";
     createApplication(applicationPublicId);
     final String scanId = "ReportResourceTest_ScanId";
@@ -331,7 +332,7 @@ public class ReportResourceTest
 
     calendar.setTime(new Date());
     calendar.set(Calendar.YEAR, calendar.get(Calendar.YEAR) + 1);
-    Response response = AuthedRestAccess.get(resourcePrefix + "/embedReport/index.html");
+    Response response = AuthedRestAccess.get(resourcePrefix + "/browseReport/index.html");
     assertResponseStatus(200, response);
     String expiresHeader = response.getHeader("Expires");
     assertNotNull(expiresHeader);
@@ -340,7 +341,7 @@ public class ReportResourceTest
         Math.abs(calendar.getTimeInMillis() - expires.getTime()) <= 2 * 60 * 1000);
 
     calendar.setTime(new Date());
-    response = AuthedRestAccess.get(resourcePrefix + "/embedReport/data.json");
+    response = AuthedRestAccess.get(resourcePrefix + "/browseReport/data.json");
     assertResponseStatus(200, response);
     expiresHeader = response.getHeader("Expires");
     expires = expirationHeaderFormat.parse(expiresHeader);
@@ -351,12 +352,12 @@ public class ReportResourceTest
     calendar.set(Calendar.DAY_OF_MONTH, calendar.get(Calendar.DAY_OF_MONTH) + 1);
     ifModifiedSinceHeader.put("If-Modified-Since",
         new SimpleDateFormat("E, dd MMM yyyy HH:mm:ss", Locale.ENGLISH).format(calendar.getTime()));
-    response = AuthedRestAccess.get(resourcePrefix + "/embedReport/data.json", ifModifiedSinceHeader);
+    response = AuthedRestAccess.get(resourcePrefix + "/browseReport/data.json", ifModifiedSinceHeader);
     assertResponseStatus(304, response);
   }
 
   @Test
-  public void testEmbedReport() throws Exception {
+  public void testBrowseReport() throws Exception {
     final String applicationPublicId = "ReportResourceTest_AppId";
     createApplication(applicationPublicId);
     final String scanId = "ReportResourceTest_ScanId";
@@ -375,7 +376,7 @@ public class ReportResourceTest
     final Enumeration<? extends ZipEntry> e = zipFile.entries();
     while (e.hasMoreElements()) {
       final ZipEntry entry = e.nextElement();
-      final Response response = AuthedRestAccess.get(resourcePrefix + "/embedReport/" + entry.getName());
+      final Response response = AuthedRestAccess.get(resourcePrefix + "/browseReport/" + entry.getName());
       final String contentType = response.getContentType();
       assertResponseStatus(200, response);
 
@@ -427,6 +428,22 @@ public class ReportResourceTest
 
     assertResponseStatus(200,
         AuthedRestAccess.get(getRestBaseUrl() + ReportResource.getReportPath(applicationPublicId, scanId)));
+  }
+
+  @Test
+  public void testEmbedReport() throws Exception {
+    String scanId = "abcdefg12345";
+    String appPublicId = "bom1-12345678";
+
+    UriBuilder builder = UriBuilder.fromUri(getRestBaseUrl());
+    builder.path(ReportResource.SERVICE_PATH);
+    builder.path("embedReport/index.html");
+    Response response = AuthedRestAccess.get(builder.build(appPublicId, scanId).toString());
+    assertResponseStatus(200, response);
+
+    String content = response.getResponseBody();
+    assertTrue(content.contains(getRestBaseUrl() + ReportResource.getReportPath(appPublicId, scanId)));
+    assertEquals("Thu, 01 Jan 1970 00:00:00 GMT", response.getHeader("Expires"));
   }
 
   @Test
@@ -634,7 +651,7 @@ public class ReportResourceTest
     assertResponseStatus(400, response); // bad request; no changes
 
     // verify nothing has changed
-    response = AuthedRestAccess.get(resourcePrefix + "/embedReport/security.json");
+    response = AuthedRestAccess.get(resourcePrefix + "/browseReport/security.json");
     assertResponseStatus(200, response);
     assertThat(response.getResponseBody(), not(containsString("\"state\" : \"accepted\"")));
 
@@ -644,7 +661,7 @@ public class ReportResourceTest
     assertResponseStatus(200, response);
 
     // verify the state has changed
-    response = AuthedRestAccess.get(resourcePrefix + "/embedReport/security.json");
+    response = AuthedRestAccess.get(resourcePrefix + "/browseReport/security.json");
     assertResponseStatus(200, response);
     assertThat(response.getResponseBody(), containsString("\"state\" : \"accepted\""));
 
@@ -663,7 +680,7 @@ public class ReportResourceTest
     assertResponseStatus(200, response);
 
     // verify the state has changed again
-    response = AuthedRestAccess.get(resourcePrefix + "/embedReport/security.json");
+    response = AuthedRestAccess.get(resourcePrefix + "/browseReport/security.json");
     assertResponseStatus(200, response);
     assertThat(response.getResponseBody(), containsString("\"state\" : \"confirmed\""));
 
@@ -685,7 +702,7 @@ public class ReportResourceTest
     assertResponseStatus(200, response);
 
     // verify the BoM change has been applied
-    response = AuthedRestAccess.get(resourcePrefix + "/embedReport/bom.json");
+    response = AuthedRestAccess.get(resourcePrefix + "/browseReport/bom.json");
     assertResponseStatus(200, response);
     boolean found = false;
     final String bomJsonString = response.getResponseBody();
@@ -747,7 +764,7 @@ public class ReportResourceTest
     assertEquals("My comment", licenseOverride.getComment());
 
     // verify the license overrides were applied to the license.json file
-    response = AuthedRestAccess.get(resourcePrefix + "/embedReport/licenses.json");
+    response = AuthedRestAccess.get(resourcePrefix + "/browseReport/licenses.json");
     assertResponseStatus(200, response);
     int found = 0;
     String licenseJsonString = response.getResponseBody();
@@ -794,7 +811,7 @@ public class ReportResourceTest
     assertEquals("My comment1", licenseOverride.getComment());
 
     // verify the license overrides were applied to the license.json file
-    response = AuthedRestAccess.get(resourcePrefix + "/embedReport/licenses.json");
+    response = AuthedRestAccess.get(resourcePrefix + "/browseReport/licenses.json");
     assertResponseStatus(200, response);
     found = 0;
     licenseJsonString = response.getResponseBody();
@@ -838,7 +855,7 @@ public class ReportResourceTest
     FileUtils.copyFile(new File(testReportResultUrl.getFile()), saasReportFile);
 
     // Verify before any license overrides are added
-    Response response = AuthedRestAccess.get(resourcePrefix + "/embedReport/licenses.json");
+    Response response = AuthedRestAccess.get(resourcePrefix + "/browseReport/licenses.json");
     assertResponseStatus(200, response);
     int found = 0;
     String licenseJsonString = response.getResponseBody();
@@ -863,7 +880,7 @@ public class ReportResourceTest
     assertResponseStatus(200, response);
     orgLicenseOverride = JsonHelpers.fromJson(response.getResponseBody(), LicenseOverride.class);
 
-    response = AuthedRestAccess.get(resourcePrefix + "/embedReport/licenses.json");
+    response = AuthedRestAccess.get(resourcePrefix + "/browseReport/licenses.json");
     assertResponseStatus(200, response);
     found = 0;
     licenseJsonString = response.getResponseBody();
@@ -896,7 +913,7 @@ public class ReportResourceTest
     assertResponseStatus(200, response);
     appLicenseOverride = JsonHelpers.fromJson(response.getResponseBody(), LicenseOverride.class);
 
-    response = AuthedRestAccess.get(resourcePrefix + "/embedReport/licenses.json");
+    response = AuthedRestAccess.get(resourcePrefix + "/browseReport/licenses.json");
     assertResponseStatus(200, response);
     found = 0;
     licenseJsonString = response.getResponseBody();
@@ -942,7 +959,7 @@ public class ReportResourceTest
     final String query = "security.json?user=test&where=ReportResourceTest";
 
     // verify nothing has changed
-    Response response = AuthedRestAccess.get(resourcePrefix + "/embedReport/security.json");
+    Response response = AuthedRestAccess.get(resourcePrefix + "/browseReport/security.json");
     assertResponseStatus(200, response);
     assertThat(response.getResponseBody(), not(containsString("\"state\" : \"accepted\"")));
 
@@ -964,7 +981,7 @@ public class ReportResourceTest
     int oldModCount = ReportResource.MODIFICATION_COUNTS.put(appId + '-' + scanId, 888);
 
     // verify nothing has changed
-    response = AuthedRestAccess.get(resourcePrefix + "/embedReport/security.json");
+    response = AuthedRestAccess.get(resourcePrefix + "/browseReport/security.json");
     assertResponseStatus(200, response);
     assertThat(response.getResponseBody(), not(containsString("\"state\" : \"accepted\"")));
 
@@ -972,7 +989,7 @@ public class ReportResourceTest
     ReportResource.MODIFICATION_COUNTS.put(appId + '-' + scanId, oldModCount);
 
     // verify the state has changed
-    response = AuthedRestAccess.get(resourcePrefix + "/embedReport/security.json");
+    response = AuthedRestAccess.get(resourcePrefix + "/browseReport/security.json");
     assertResponseStatus(200, response);
     assertThat(response.getResponseBody(), containsString("\"state\" : \"accepted\""));
   }
@@ -1001,7 +1018,7 @@ public class ReportResourceTest
     assertResponseStatus(200, response);
 
     // verify can still access report
-    response = AuthedRestAccess.get(resourcePrefix + "/embedReport/security.json");
+    response = AuthedRestAccess.get(resourcePrefix + "/browseReport/security.json");
     assertResponseStatus(200, response);
     assertThat(response.getResponseBody(), not(containsString("\"state\" : \"accepted\"")));
 

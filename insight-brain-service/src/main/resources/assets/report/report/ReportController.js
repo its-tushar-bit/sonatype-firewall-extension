@@ -38,7 +38,7 @@
           }
           $scope.application = results[0].data;
           $scope.reportUrl = '../rest/report/' + encodeURIComponent($state.params.publicId) + '/' +
-              encodeURIComponent($scope.policyEvaluation.scanId) + '/embedReport/index.html';
+              encodeURIComponent($scope.policyEvaluation.scanId) + '/browseReport/index.html';
 
           for (var i = 0; i < results[1].data.length; i++) {
             if (results[1].data[i].id == $scope.policyEvaluation.stage.stageTypeId) {

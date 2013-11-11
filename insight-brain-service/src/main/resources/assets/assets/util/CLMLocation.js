@@ -68,7 +68,7 @@
 
         getReportUrl: function(applicationId, scanId) {
           return baseUrl.get() + '/rest/report/' + encodeURIComponent(applicationId) + '/' +
-              encodeURIComponent(scanId) + '/embedReport/index.html';
+              encodeURIComponent(scanId) + '/browseReport/index.html';
         },
         
         getSessionUrl: function() {

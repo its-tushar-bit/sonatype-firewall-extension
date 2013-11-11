@@ -106,9 +106,38 @@ public class ReportResource
     this.baseUrl = baseUrl;
   }
 
+  /**
+   * Support Legacy CI instances (pre 1.7)
+   */
+  @Deprecated
   @GET
   @Path("embedReport/{path:.*}")
   public Response embedReport(@PathParam("applicationPublicId") final String applicationPublicId,
+      @PathParam("scanId") final String scanId, @PathParam("path") final String path,
+      @Context final HttpServletRequest httpRequest) throws IOException
+  {
+    StringBuilder sb = new StringBuilder(
+        "<html><body style='font: 12px Verdana, Helvetica'>Your Sonatype CLM server has been updated and the <a target='_top' href='");
+    UriBuilder uriBuilder = baseUrl.redirect();
+    uriBuilder.path(getReportPath(applicationPublicId, scanId));
+
+    sb.append(uriBuilder.build(applicationPublicId, scanId));
+    sb.append("'>report</a> has been moved.</body></hml>");
+
+    final ResponseBuilder response = Response.ok(sb.toString());
+    response.type(MediaTypeUtils.byName("index.html"));
+    response.expires(new Date(0));
+    return response.build();
+  }
+
+  /**
+   * Get resources for a scan report
+   *
+   * @since 1.7
+   */
+  @GET
+  @Path("browseReport/{path:.*}")
+  public Response browseReport(@PathParam("applicationPublicId") final String applicationPublicId,
       @PathParam("scanId") final String scanId, @PathParam("path") final String path,
       @Context final HttpServletRequest httpRequest) throws IOException
   {
@@ -515,7 +544,7 @@ public class ReportResource
   }
 
   public static String getReportPath(final String appPublicId, final String scanId) {
-    String url = ReportResource.SERVICE_PATH + "/embedReport/";
+    String url = ReportResource.SERVICE_PATH + "/browseReport/";
     url = url.replace("{applicationPublicId}", UrlUtils.encodeUrlComponent(appPublicId));
     url = url.replace("{scanId}", UrlUtils.encodeUrlComponent(scanId));
     return url;

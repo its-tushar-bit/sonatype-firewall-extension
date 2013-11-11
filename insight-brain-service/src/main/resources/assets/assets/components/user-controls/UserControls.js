@@ -61,27 +61,6 @@
     };
   });
 
-  module.directive('match', function () {
-    return {
-      restrict: 'A',
-      require: 'ngModel',
-      scope: false,
-      priority: 99,
-      link: function(scope, elm, attrs, ctrl) {
-        function validate (newVal) {
-          var match = !elm.val() || attrs.match === elm.val();
-
-          ctrl.$setValidity('match', match);
-
-          return match ? newVal : undefined;
-        }
-
-        ctrl.$parsers.unshift(validate);
-        attrs.$observe('match', validate);
-      }
-    };
-  });
-
   module.factory('CurrentUser', ['$http', '$q', 'CLMLocations', function ($http, $q, clmLocations) {
     var deferred = $q.defer();
     $http.get(clmLocations.getSessionUrl()).success(function (authenticationStatus) {

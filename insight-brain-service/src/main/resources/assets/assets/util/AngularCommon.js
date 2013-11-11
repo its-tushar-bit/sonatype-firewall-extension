@@ -484,24 +484,27 @@ var AngularUtils = {
     }
   ]);
   
-  angularCommon.directive("matchField", ['$parse', function($parse) {
+  /**
+   * Ensure that the value of the input matches the value from another specified input
+   */
+  angularCommon.directive("match", ['$parse', function($parse) {
     return {
-       require: "ngModel",
-       restrict: 'A',
-       link: function(scope, element, attrs, ctrl) { 
-         var validator = function(value) {
-           var passed = $parse(attrs.matchField)(scope) == value;
-           ctrl.$setValidity('matchField', passed);
-           return passed ? value : undefined;
-         };
-         ctrl.$parsers.push(validator);
-         // Allows validation to be invoked by code or user input
-         scope.$watch(attrs.ngModel, function(newValue) {
-           if (typeof newValue !== 'undefined') {
-             validator(newValue);
-           }
-         });
-       }
+      restrict: 'A',
+      require: 'ngModel',
+      scope: false,
+      priority: 99,
+      link: function(scope, elm, attrs, ctrl) {
+        function validate (newVal) {
+          var match = !elm.val() || attrs.match === elm.val();
+
+          ctrl.$setValidity('match', match);
+
+          return match ? newVal : undefined;
+        }
+
+        ctrl.$parsers.unshift(validate);
+        attrs.$observe('match', validate);
+      }
     };
  }]);
 

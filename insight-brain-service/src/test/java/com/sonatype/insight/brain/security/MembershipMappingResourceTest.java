@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.security;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import com.sonatype.insight.brain.AuthedRestAccess;
@@ -285,5 +286,17 @@ public class MembershipMappingResourceTest
     assertThat(membersByOwner.members, hasSize(1));
     assertThat(membersByOwner.members.get(0).internalName, is(User.ADMIN_USERNAME));
     assertThat(membersByOwner.members.get(0).type, is(MemberType.USER));
+  }
+
+  @Test
+  public void testAdministratorRoleCantBeRevokedFromAllUsers() throws Exception {
+    Role admin = roleDAO.getByName("Administrator");
+    assertThat(admin, is(notNullValue()));
+
+    Response response = AuthedRestAccess.put(
+        getServiceUrl(IdUtils.TYPE_GLOBAL, MembershipMapping.GLOBAL_CONTEXT_ID, admin.getId()),
+        toJson(Collections.emptyList()));
+    assertResponseStatus(400, response);
+    assertThat(response.getResponseBody(), is("There must be at least one user in the administrator role."));
   }
 }

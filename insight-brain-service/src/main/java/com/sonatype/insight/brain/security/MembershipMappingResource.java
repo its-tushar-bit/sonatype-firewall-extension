@@ -173,7 +173,11 @@ public class MembershipMappingResource
   {
     log.debug("Setting membership mappings for {} id {} and role id {}", ownerType, ownerId, roleId);
 
-    validateRole(ownerType, roleId);
+    Role role = validateRole(ownerType, roleId);
+
+    if (members.isEmpty() && isAdminRole(role)) {
+      throw new BadRequestException("There must be at least one user in the administrator role.");
+    }
 
     String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
     validateContextId(ownerType, internalOwnerId);
@@ -272,7 +276,7 @@ public class MembershipMappingResource
     }
   }
 
-  private void validateRole(String ownerType, String roleId) {
+  private Role validateRole(String ownerType, String roleId) {
     Role role = roleDAO.getByIdNotNull(roleId);
     if (!IdUtils.TYPE_GLOBAL.equals(ownerType) && role.isGlobal()) {
       throw new BadRequestException("Cannot map members to global role in context of " + ownerType);
@@ -280,6 +284,11 @@ public class MembershipMappingResource
     if (IdUtils.TYPE_GLOBAL.equals(ownerType) && !role.isGlobal()) {
       throw new BadRequestException("Cannot map members to application role in global context");
     }
+    return role;
+  }
+
+  private boolean isAdminRole(Role role) {
+    return role.isGlobal() && "Administrator".equals(role.getName());
   }
 
   /**

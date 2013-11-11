@@ -26,7 +26,7 @@
         <strong>{{format(data.meta.periodStart)}} - {{format(data.meta.periodEnd)}}</strong>
         <div class="pull-right">
           <strong >Generated on: {{ format(data.meta.generatedOn, '%b %e - %I:%M %p, %Y') }}</strong>
-          <span refresh-button='regenerate()' refresh-tooltip='generationProgressTooltip'></span>
+          <span ng-show="data.generation.enabled"><span refresh-button='regenerate()' refresh-tooltip='generationProgressTooltip'></span></span>
         </div>
         <hr style="background-color: #AAA;color: #AAA;height: 3px; margin-top: 3px; margin-bottom: 0;"/>
       </div>

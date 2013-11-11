@@ -106,7 +106,7 @@ public class TrendingReportResource
     }
 
     final long startTime = processor.getStartTime();
-    final long time = startTime >= 0 ? now - startTime : (force ? 0 : -1);
+    final long time = startTime >= 0 ? Math.max(0, now - startTime) : (force ? 0 : -1);
     final int total = processor.getTotal();
     final int current = processor.getCurrent();
 

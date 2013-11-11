@@ -83,13 +83,13 @@ public class TrendingReportResource
     if (force || report == null || (now - report.getMeta().getGeneratedOn()) > CACHE_MAX_AGE_MS) {
       if (log.isDebugEnabled()) {
         if (force) {
-          log.debug("Regenerating trendong report: forced.");
+          log.debug("Regenerating trending report: forced.");
         }
         else if (report == null) {
-          log.debug("Regenerating trendong report: no cached trending report data.");
+          log.debug("Regenerating trending report: no cached trending report data.");
         }
         else {
-          log.debug("Regenerating trendong report: cached trending report data is too old ({}ms).", now
+          log.debug("Regenerating trending report: cached trending report data is too old ({}ms).", now
               - report.getMeta().getGeneratedOn());
         }
       }

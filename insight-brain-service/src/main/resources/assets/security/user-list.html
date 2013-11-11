@@ -30,9 +30,9 @@
 			<div class="control-group" ng-class="{ error : changePasswordForm.validatePassword.$invalid && changePasswordForm.validatePassword.$dirty }">
 				<label class="control-label">Validate</label>
 				<div class="controls">
-					<input class="input-xlarge" name="validatePassword" type="password" ng-required="true" match-field="newPassword" placeholder="Re-enter Password" ng-model="validatePassword">
-					<div show-if="changePasswordForm.validatePassword.$error.matchField && changePasswordForm.validatePassword.$dirty" class="text-error">Passwords must match!</div>
-					<div show-if="changePasswordForm.newPassword.$error.required && !changePasswordForm.validatePassword.$error.matchField && changePasswordForm.validatePassword.$dirty" class="text-error">Field is required.</div>
+					<input class="input-xlarge" name="validatePassword" type="password" ng-required="true" match="{{newPassword}}" placeholder="Re-enter Password" ng-model="validatePassword">
+					<div show-if="changePasswordForm.validatePassword.$error.match && changePasswordForm.validatePassword.$dirty" class="text-error">Passwords must match!</div>
+					<div show-if="changePasswordForm.newPassword.$error.required && !changePasswordForm.validatePassword.$error.match && changePasswordForm.validatePassword.$dirty" class="text-error">Field is required.</div>
 				</div>
 			</div>
 		</div>
@@ -103,9 +103,9 @@
 				<div class="control-group" ng-show="!user.id" ng-class="{ error : userForm.passwordValidate.$invalid && userForm.passwordValidate.$dirty }">
 					<label class="control-label user-form-label">Validate:</label>
 					<div class="controls">
-						<input class="input-xlarge" name="passwordValidate" type="password" ng-required="!user.id" match-field="user.password" placeholder="Re-enter Password" ng-model="user.passwordValidate">
-						<div show-if="userForm.passwordValidate.$error.matchField && userForm.passwordValidate.$dirty" class="text-error">Passwords must match!</div>
-						<div show-if="userForm.passwordValidate.$error.required && userForm.passwordValidate.$dirty && !userForm.passwordValidate.$error.matchField" class="text-error">Field is required.</div>
+						<input class="input-xlarge" name="passwordValidate" type="password" ng-required="!user.id" match="{{user.password}}" placeholder="Re-enter Password" ng-model="user.passwordValidate">
+						<div show-if="userForm.passwordValidate.$error.match && userForm.passwordValidate.$dirty" class="text-error">Passwords must match!</div>
+						<div show-if="userForm.passwordValidate.$error.required && userForm.passwordValidate.$dirty && !userForm.passwordValidate.$error.match" class="text-error">Field is required.</div>
 					</div>
 				</div>
 			</div>

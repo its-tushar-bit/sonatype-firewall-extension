@@ -311,10 +311,8 @@ public class MembershipMappingResource
           List<LdapUser> ldapUsers = ldapManager.getUsers(unresolvedNames.toArray(new String[0]), unresolvedNames.size());
           for (LdapUser ldapUser : ldapUsers) {
             final String userName = ldapUser.getUsername();
-            if (unresolvedNames.contains(userName)) {
-              resolvedNames.put(userName, ldapUser.getRealName());
-              unresolvedNames.remove(userName);
-            }
+            resolvedNames.put(userName, ldapUser.getRealName());
+            unresolvedNames.remove(userName);
           }
         }
         catch (NamingException ex) {

@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.ldap;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -29,6 +30,8 @@ import javax.naming.ldap.LdapName;
 import com.sonatype.insight.brain.configuration.ldap.LdapConnection;
 import com.sonatype.insight.brain.configuration.ldap.LdapUserMapping;
 
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
 import org.apache.directory.api.ldap.model.password.PasswordUtil;
 import org.apache.directory.api.util.Strings;
 import org.apache.shiro.realm.ldap.LdapUtils;
@@ -275,12 +278,9 @@ class LdapQuery
   private NamingEnumeration<SearchResult> searchUsersByUsernames(LdapContext ctx, String[] names, String[] attributes,
                                                                  long maxResults) throws NamingException
   {
-    Map<String, String> userIDAttributes = new LinkedHashMap<>();
-    final String userIDAttribute = umap.getUserIDAttribute();
-    for (String name : names) {
-      userIDAttributes.put(userIDAttribute, name);
-    }
-    return searchUsersByAttributes(ctx, userIDAttributes, attributes, maxResults);
+    Multimap<String, String> attributeValues = ArrayListMultimap.create();
+    attributeValues.putAll(umap.getUserIDAttribute(), Arrays.asList(names));
+    return searchUsersByAttributes(ctx, attributeValues, attributes, maxResults);
   }
 
   /**
@@ -288,7 +288,9 @@ class LdapQuery
    */
   private NamingEnumeration<SearchResult> searchUsersByName(LdapContext ctx, String name, String[] attributes, long maxResults) throws NamingException
   {
-    return searchUsersByAttributes(ctx, Collections.singletonMap(umap.getUserRealNameAttribute(), name != null ? name : "*"), attributes, maxResults);
+    Multimap<String, String> attributeValues = ArrayListMultimap.create();
+    attributeValues.put(umap.getUserRealNameAttribute(), name != null ? name : "*");
+    return searchUsersByAttributes(ctx, attributeValues, attributes, maxResults);
   }
   
   /**
@@ -297,9 +299,9 @@ class LdapQuery
   private NamingEnumeration<SearchResult> searchUsersByUsername(LdapContext ctx, String username, String[] attributes,
       long maxResults) throws NamingException
   {
-    // mandatory username
-    return searchUsersByAttributes(ctx, Collections.singletonMap(umap.getUserIDAttribute(), username != null ? username : "*"),
-        attributes, maxResults);
+    Multimap<String, String> attributeValues = ArrayListMultimap.create();
+    attributeValues.put(umap.getUserIDAttribute(), username != null ? username : "*"); // mandatory username
+    return searchUsersByAttributes(ctx, attributeValues, attributes, maxResults);
   }
 
   /**
@@ -312,7 +314,7 @@ class LdapQuery
    * @return
    * @throws NamingException
    */
-  private NamingEnumeration<SearchResult> searchUsersByAttributes(LdapContext ctx, Map<String, String> attributeValues,
+  private NamingEnumeration<SearchResult> searchUsersByAttributes(LdapContext ctx, Multimap<String, String> attributeValues,
       String[] attributes, long maxResults) throws NamingException
   {
     SearchControls controls = new SearchControls();
@@ -335,7 +337,7 @@ class LdapQuery
     if (attributeValues.size() > 1) {
       ldapFilter.append('(').append('|');
     }
-    for (Entry<String, String> entry : attributeValues.entrySet()) {
+    for (Entry<String, String> entry : attributeValues.entries()) {
       ldapFilter.append('(').append(entry.getKey()).append('=').append(entry.getValue()).append(')');
     }
     if (attributeValues.size() > 1) {

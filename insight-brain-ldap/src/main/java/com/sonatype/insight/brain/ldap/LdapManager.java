@@ -125,15 +125,6 @@ public class LdapManager
   }
 
   /**
-   * Tests retrieving users by an array of UserIDs
-   */
-  public List<LdapUser> testGetUsers(LdapUserMapping umap, String[] names, long maxResults)
-      throws NamingException
-  {
-    return new LdapQuery(getDecryptedConnection(), umap).getUsers(names, maxResults);
-  }
-
-  /**
    * Find a list of users, searching the displayName attribute and adding a prefix and suffix wildcard to the nameFragment
    * 
    * @param nameFragment String to match against

@@ -273,14 +273,14 @@ class LdapQuery
   }
 
   private NamingEnumeration<SearchResult> searchUsersByUsernames(LdapContext ctx, String[] names, String[] attributes,
-                                                                long maxResults) throws NamingException
+                                                                 long maxResults) throws NamingException
   {
-    Map<String, String> nameAttributes = new LinkedHashMap<>();
-    final String givenName = umap.getUserIDAttribute();
+    Map<String, String> userIDAttributes = new LinkedHashMap<>();
+    final String userIDAttribute = umap.getUserIDAttribute();
     for (String name : names) {
-      nameAttributes.put(givenName, name);
+      userIDAttributes.put(userIDAttribute, name);
     }
-    return searchUsersByAttributes(ctx, nameAttributes, attributes, maxResults);
+    return searchUsersByAttributes(ctx, userIDAttributes, attributes, maxResults);
   }
 
   /**

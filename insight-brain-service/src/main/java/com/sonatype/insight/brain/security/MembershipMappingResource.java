@@ -7,10 +7,12 @@ package com.sonatype.insight.brain.security;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -285,8 +287,7 @@ public class MembershipMappingResource
     }
 
     public Map<String, String> get(List<String> internalNames) {
-      List<String> unresolvedNames = new ArrayList<>();
-      Map<String, String> displayNames = new LinkedHashMap<>();
+      Set<String> unresolvedNames = new HashSet<>();
 
       // First check already resolved names
       // Then check if user is in the CLM Realm and using UserDAO
@@ -297,53 +298,35 @@ public class MembershipMappingResource
           if (user != null) {
             displayName = user.getFirstName() + " " + user.getLastName();
             resolvedNames.put(internalName, displayName);
-            displayNames.put(internalName, displayName);
           }
           else {
             unresolvedNames.add(internalName);
           }
-        } else {
-          displayNames.put(internalName, displayName);
         }
       }
 
       if (ldapManager.isLdapEnabled()) {
         try {
           // If LDAP is enabled, try to resolve the RealName from LDAP
-          List<LdapUser> ldapUsers = ldapManager.getUsers(unresolvedNames.toArray(new String[0]),
-              (long) unresolvedNames.size());
-          for (String unresolvedName : unresolvedNames) {
-            boolean found = false;
-            for (LdapUser ldapUser : ldapUsers) {
-              if (unresolvedName.equals(ldapUser.getUsername())) {
-                resolvedNames.put(unresolvedName, ldapUser.getRealName());
-                displayNames.put(unresolvedName, ldapUser.getRealName());
-                found = true;
-                break;
-              }
-            }
-            // If user not found in LDAP, use internal name for display name
-            if (!found) {
-              resolvedNames.put(unresolvedName, unresolvedName);
-              displayNames.put(unresolvedName, unresolvedName);
+          List<LdapUser> ldapUsers = ldapManager.getUsers(unresolvedNames.toArray(new String[0]), unresolvedNames.size());
+          for (LdapUser ldapUser : ldapUsers) {
+            final String userName = ldapUser.getUsername();
+            if (unresolvedNames.contains(userName)) {
+              resolvedNames.put(userName, ldapUser.getRealName());
+              unresolvedNames.remove(userName);
             }
           }
         }
         catch (NamingException ex) {
           log.error("LDAP exception when trying to resolve user names", ex);
-          for (String unresolvedName : unresolvedNames) {
-            displayNames.put(unresolvedName, unresolvedName);
-          }
-        }
-      // If LDAP is not enabled use internal name for display name
-      } else {
-        for (String unresolvedName : unresolvedNames) {
-          resolvedNames.put(unresolvedName, unresolvedName);
-          displayNames.put(unresolvedName, unresolvedName);
         }
       }
+      // Use the unresolved names as the display names for anything still unresolved
+      for (String unresolvedName : unresolvedNames) {
+        resolvedNames.put(unresolvedName, unresolvedName);
+      }
 
-      return displayNames;
+      return resolvedNames;
     }
   }
 

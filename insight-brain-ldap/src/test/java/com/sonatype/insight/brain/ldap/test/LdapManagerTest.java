@@ -24,6 +24,7 @@ import javax.inject.Inject;
 import javax.naming.NamingException;
 
 import org.junit.After;
+import org.junit.Rule;
 import org.junit.Test;
 import org.sonatype.guice.bean.containers.InjectedTest;
 
@@ -313,13 +314,15 @@ public class LdapManagerTest
     manager.saveConnection(conn);
 
     LdapUserMapping umap = createUserMapping();
+    LdapUserMappingDAO userMappingDAO = new LdapUserMappingDAO();
+    userMappingDAO.insert(umap);
 
-    List<LdapUser> users = manager.testGetUsers(umap, new String[]{"test_user"}, 100);
+    List<LdapUser> users = manager.getUsers(new String[]{"test_user"}, 100);
     assertThat(users.size(), is(1));
     LdapUser user = users.get(0);
     assertThat(user.getUsername(), is("test_user"));
 
-    users = manager.testGetUsers(umap, new String[]{"foo"}, 100);
+    users = manager.getUsers(new String[]{"foo"}, 100);
     assertThat(users.size(), is(0));
   }
 

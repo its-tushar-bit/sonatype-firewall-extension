@@ -487,7 +487,7 @@ var AngularUtils = {
   /**
    * Ensure that the value of the input matches the value from another specified input
    */
-  angularCommon.directive("match", ['$parse', function($parse) {
+  angularCommon.directive("match", function() {
     return {
       restrict: 'A',
       require: 'ngModel',
@@ -506,7 +506,7 @@ var AngularUtils = {
         attrs.$observe('match', validate);
       }
     };
- }]);
+ });
 
   /**
    * Ensure that a given value does not :

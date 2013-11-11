@@ -29,7 +29,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
-public class TrendingReportServiceTest
+public class TrendingReportResourceTest
     extends AbstractResourceAuthzTest
 {
   private static enum Checkpoint
@@ -273,6 +273,6 @@ public class TrendingReportServiceTest
   }
 
   private String getServiceURL() {
-    return getRestBaseUrl() + TrendingReportService.SERVICE_PATH;
+    return getRestBaseUrl() + TrendingReportResource.SERVICE_PATH;
   }
 }

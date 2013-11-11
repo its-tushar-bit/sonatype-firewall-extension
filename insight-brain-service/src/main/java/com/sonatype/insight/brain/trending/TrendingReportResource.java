@@ -34,8 +34,8 @@ import org.slf4j.LoggerFactory;
  * @since 1.7
  */
 @Named
-@Path(TrendingReportService.SERVICE_PATH)
-public class TrendingReportService
+@Path(TrendingReportResource.SERVICE_PATH)
+public class TrendingReportResource
 {
   public static final String SERVICE_PATH = "rest/trending";
 
@@ -50,7 +50,7 @@ public class TrendingReportService
   private final AuthorizationChecker authChecker = new AuthorizationChecker();
 
   @Inject
-  public TrendingReportService(TrendingReportAsyncProcessor processor, TrendingReportCache cache) {
+  public TrendingReportResource(TrendingReportAsyncProcessor processor, TrendingReportCache cache) {
     this.processor = processor;
     this.cache = cache;
   }

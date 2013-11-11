@@ -33,6 +33,18 @@ http:
   # The address used as From for outgoing notification mails sent by the server.
   #systemEmail: "SonatypeCLM@localhost"
 
+  # The username used to access the mail server.
+  #username: "anonymous"
+
+  # The password used to access the mail server.
+  #password: "guest"
+  
+  # Connect using SSL.
+  #ssl: true
+  
+  # Connect using TLS.
+  #tls: true
+
 # Proxy settings.
 #proxy:
 

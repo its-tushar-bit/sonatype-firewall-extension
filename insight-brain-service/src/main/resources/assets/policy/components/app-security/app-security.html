@@ -15,7 +15,7 @@
           <div>
             <div>
               <div ng-repeat='mapping in mappings'>
-                <div ng-repeat='member in mapping.members | filter: { displayName : queryString }' ng-click='removeUser($parent.$index, member)'
+                <div ng-repeat='member in mapping.members | filter: { displayName : queryString } | orderBy:"displayName"' ng-click='removeUser($parent.$index, member)'
                      class='licenseSelectListItem' ng-class='{  inherited : $parent.$index }'>
                   <i ng-class='{ "icon-minus-sign" : !$parent.$index, "emptyIconGlyph" : $parent.$index }'></i>&nbsp;<span title='{{member.displayName}}' ng-bind-html-unsafe="member.displayName | highlight:queryString:caseSensitive"></span>
                 </div>
@@ -28,7 +28,7 @@
           <div>
             <div>
               <div ng-show="!queryString"><em>Search above to find users</em></div>
-              <div ng-repeat='user in queryResults | userNotIn:mappings' ng-click='addUser(user)' class='large-select-list-item'>
+              <div ng-repeat='user in queryResults | userNotIn:mappings | orderBy:"displayName"' ng-click='addUser(user)' class='large-select-list-item'>
                 <div class='pull-left'>
                   <i class='icon-plus-sign'></i>
                 </div>

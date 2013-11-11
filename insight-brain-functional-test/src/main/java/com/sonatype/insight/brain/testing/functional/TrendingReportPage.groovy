@@ -16,7 +16,7 @@ class TrendingReportPage extends ReportPage
 
   static content = {
     loadingText(required: false) { $('div.report-content h2').text() }
-    refresh(required: false) { $('a', text: 'Refresh') }
+    refresh(required: false) { $('span', 'refresh-button': 'regenerate()') }
     trendingData { $('div#trending-data') }
     count { index -> trendingData.find('h1.count-header', index) }
     componentCount(required: false) { count(0).text() }

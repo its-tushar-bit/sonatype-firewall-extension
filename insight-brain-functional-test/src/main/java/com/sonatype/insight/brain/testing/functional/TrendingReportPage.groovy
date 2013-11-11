@@ -15,7 +15,7 @@ class TrendingReportPage extends ReportPage
   static at = { browser.driver.currentUrl.endsWith(url) }
 
   static content = {
-    loadingText(required: false) { $('p.lead').text() }
+    loadingText(required: false) { $('div.report-content h2').text() }
     refresh(required: false) { $('a', text: 'Refresh') }
     trendingData { $('div#trending-data') }
     count { index -> trendingData.find('h1.count-header', index) }

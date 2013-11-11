@@ -95,7 +95,7 @@ public class UserResource
     UserDAO dao = new UserDAO();
     for (User user : dao.findUsersByName(query)) {
       String displayName = user.getFirstName() + " " + user.getLastName();
-      FindUserDTO u = new FindUserDTO(user.getUsername(), displayName.trim(), user.getEmail(), "CLM");
+      FindUserDTO u = new FindUserDTO(user.getUsername(), displayName, user.getEmail(), "CLM");
       users.put(u.getUsername().toLowerCase(Locale.ENGLISH), u);
     }
 

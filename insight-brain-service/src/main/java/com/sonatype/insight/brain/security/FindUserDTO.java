@@ -49,8 +49,8 @@ public class FindUserDTO
 
   public FindUserDTO(final String username, final String displayName, final String email, final String realm) {
     this.username = username;
-    this.displayName = displayName;
-    this.email = email;
+    this.displayName = displayName.trim();
+    this.email = email.trim();
     this.realm = realm;
   }
 }

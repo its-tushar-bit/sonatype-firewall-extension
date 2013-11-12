@@ -26,7 +26,6 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
 import javax.mail.Message;
-import javax.ws.rs.core.UriBuilder;
 
 import com.sonatype.clm.dto.model.ComponentSummary;
 import com.sonatype.clm.dto.model.policy.Action;
@@ -435,10 +434,8 @@ public class ReportResourceTest
     String scanId = "abcdefg12345";
     String appPublicId = "bom1-12345678";
 
-    UriBuilder builder = UriBuilder.fromUri(getRestBaseUrl());
-    builder.path(ReportResource.SERVICE_PATH);
-    builder.path("embedReport/index.html");
-    Response response = AuthedRestAccess.get(builder.build(appPublicId, scanId).toString());
+    Response response = AuthedRestAccess.get(getRestUrl(ReportResource.SERVICE_PATH + "/embedReport/index.html",
+        appPublicId, scanId).toString());
     assertResponseStatus(200, response);
 
     String content = response.getResponseBody();

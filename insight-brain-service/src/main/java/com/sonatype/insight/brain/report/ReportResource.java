@@ -107,7 +107,7 @@ public class ReportResource
   }
 
   /**
-   * Support Legacy CI instances (pre 1.7)
+   * Support legacy CI instances (pre 2.11) and Nexus CLM plugins that persisted a report link obtained from CLM 1.6-
    */
   @Deprecated
   @GET

@@ -648,8 +648,6 @@ ul.tri-pane {
 }
 .licenseSelectListItem, .large-select-list-item {
   cursor: pointer;
-  display: inline-block;
-  width: 99%;
 }
 .licenseSelectListItem:hover, .large-select-list-item:hover {
 	background-color: #E8E8E8;
@@ -672,7 +670,7 @@ ul.tri-pane {
 }
 .large-select-list-item .large-select-list-item-detail.right-detail {
   float: right;
-  margin-right: 10px
+  margin-right: 10px;
 }
 .slide {
 	-webkit-transition:height .15s linear;

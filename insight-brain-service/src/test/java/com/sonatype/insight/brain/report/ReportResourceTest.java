@@ -57,6 +57,7 @@ import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.client.utils.UrlUtils;
 import com.sonatype.insight.json.store.JsonUtils;
+import com.sonatype.insight.test.RestAccess;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ContainerNode;
@@ -434,8 +435,8 @@ public class ReportResourceTest
     String scanId = "abcdefg12345";
     String appPublicId = "bom1-12345678";
 
-    Response response = AuthedRestAccess.get(getRestUrl(ReportResource.SERVICE_PATH + "/embedReport/index.html",
-        appPublicId, scanId));
+    Response response = RestAccess.get(getRestUrl(ReportResource.SERVICE_PATH + "/embedReport/index.html", appPublicId,
+        scanId));
     assertResponseStatus(200, response);
 
     String content = response.getResponseBody();

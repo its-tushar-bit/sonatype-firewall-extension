@@ -282,6 +282,7 @@ public class MembershipMappingResource
 
     private final UserDAO userDAO = new UserDAO();
 
+    @SuppressWarnings("hiding")
     private static final Logger log = LoggerFactory.getLogger(DisplayNames.class);
 
     private final LdapManager ldapManager;

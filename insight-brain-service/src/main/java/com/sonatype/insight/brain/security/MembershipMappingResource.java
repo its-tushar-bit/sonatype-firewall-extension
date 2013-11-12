@@ -7,12 +7,16 @@ package com.sonatype.insight.brain.security;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
+import javax.inject.Inject;
 import javax.inject.Named;
+import javax.naming.NamingException;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.PUT;
@@ -26,6 +30,8 @@ import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
 import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
+import com.sonatype.insight.brain.ldap.LdapManager;
+import com.sonatype.insight.brain.ldap.LdapUser;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.security.MemberType;
@@ -62,6 +68,13 @@ public class MembershipMappingResource
 
   private MembershipMappingDAO memberMapDAO = new MembershipMappingDAO();
 
+  private final LdapManager ldapManager;
+
+  @Inject
+  public MembershipMappingResource(LdapManager ldapManager) {
+    this.ldapManager = ldapManager;
+  }
+
   /**
    * Gets the applicable membership mappings for a given application/organization, that is including mappings inherited
    * from parent organizations.
@@ -94,7 +107,7 @@ public class MembershipMappingResource
       byRole.roleDescription = role.getDescription();
       membersByRoleByRoleId.put(byRole.roleId, byRole);
     }
-    DisplayNames displayNames = new DisplayNames();
+    DisplayNames displayNames = new DisplayNames(ldapManager);
 
     String organizationId = null;
     // Add app members
@@ -134,6 +147,7 @@ public class MembershipMappingResource
       DisplayNames displayNames, List<Role> roles)
   {
     Map<String, MembersByOwner> byRole = new LinkedHashMap<String, MembersByOwner>();
+    List<String> lookupNames = new ArrayList<>();
     for (MembershipMapping memberMap : memberMapDAO.getByContextId(ownerId)) {
       MembersByOwner byOwner = byRole.get(memberMap.getRoleId());
       if (byOwner == null) {
@@ -142,10 +156,11 @@ public class MembershipMappingResource
       }
       Member member = new Member(memberMap.getMemberType(), memberMap.getMemberName(), memberMap.getMemberName());
       if (MemberType.USER.equals(member.type)) {
-        member.displayName = displayNames.get(member.internalName);
+        lookupNames.add(member.internalName);
       }
       byOwner.members.add(member);
     }
+    Map<String, String> displayNameMap = displayNames.get(lookupNames);
     
     //go through and make sure each role contains the owner, even if its empty list
     for (Role role : roles) {
@@ -153,6 +168,13 @@ public class MembershipMappingResource
       if (byOwner == null) {
         byOwner = new MembersByOwner(ownerId, ownerName, ownerType);
         byRole.put(role.getId(), byOwner);
+      }
+
+      // Fill in display names queried from userDAO and ldap
+      for (Member member : byOwner.members) {
+        if (MemberType.USER.equals(member.type)) {
+          member.displayName = displayNameMap.get(member.internalName);
+        }
       }
     }
 
@@ -260,19 +282,53 @@ public class MembershipMappingResource
 
     private final UserDAO userDAO = new UserDAO();
 
-    public String get(String internalName) {
-      String displayName = resolvedNames.get(internalName);
-      if (displayName == null) {
-        User user = userDAO.getByUsernameLowercase(internalName.toLowerCase(Locale.ENGLISH));
-        if (user != null) {
-          displayName = user.getFirstName() + " " + user.getLastName();
+    private static final Logger log = LoggerFactory.getLogger(DisplayNames.class);
+
+    private final LdapManager ldapManager;
+
+    public DisplayNames(final LdapManager ldapManager) {
+      this.ldapManager = ldapManager;
+    }
+
+    public Map<String, String> get(List<String> internalNames) {
+      Set<String> unresolvedNames = new HashSet<>();
+
+      // First check already resolved names
+      // Then check if user is in the CLM Realm and using UserDAO
+      for (String internalName : internalNames) {
+        String displayName = resolvedNames.get(internalName);
+        if (displayName == null) {
+          User user = userDAO.getByUsernameLowercase(internalName.toLowerCase(Locale.ENGLISH));
+          if (user != null) {
+            displayName = user.getFirstName() + " " + user.getLastName();
+            resolvedNames.put(internalName, displayName);
+          }
+          else {
+            unresolvedNames.add(internalName);
+          }
         }
-        else {
-          displayName = internalName;
-        }
-        resolvedNames.put(internalName, displayName);
       }
-      return displayName;
+
+      if (ldapManager.isLdapEnabled()) {
+        try {
+          // If LDAP is enabled, try to resolve the RealName from LDAP
+          List<LdapUser> ldapUsers = ldapManager.getUsers(unresolvedNames.toArray(new String[0]), unresolvedNames.size());
+          for (LdapUser ldapUser : ldapUsers) {
+            final String userName = ldapUser.getUsername();
+            resolvedNames.put(userName, ldapUser.getRealName());
+            unresolvedNames.remove(userName);
+          }
+        }
+        catch (NamingException ex) {
+          log.error("LDAP exception when trying to resolve user names", ex);
+        }
+      }
+      // Use the unresolved names as the display names for anything still unresolved
+      for (String unresolvedName : unresolvedNames) {
+        resolvedNames.put(unresolvedName, unresolvedName);
+      }
+
+      return resolvedNames;
     }
   }
 

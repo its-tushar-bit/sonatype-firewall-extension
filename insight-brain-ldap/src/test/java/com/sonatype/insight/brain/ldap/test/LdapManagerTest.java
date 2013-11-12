@@ -24,6 +24,7 @@ import javax.inject.Inject;
 import javax.naming.NamingException;
 
 import org.junit.After;
+import org.junit.Rule;
 import org.junit.Test;
 import org.sonatype.guice.bean.containers.InjectedTest;
 
@@ -302,6 +303,25 @@ public class LdapManagerTest
     catch (NamingException expected) {
       manager.testUserLogin(umap, "test_user", "far2simple".toCharArray());
     }
+  }
+
+  @Test
+  public void testGetUsers() throws Exception {
+    startLdapServer();
+
+    LdapConnection conn = createLdapConnection();
+    conn.setSearchBase("dc=company,dc=com");
+    manager.saveConnection(conn);
+
+    LdapUserMapping umap = createUserMapping();
+    LdapUserMappingDAO userMappingDAO = new LdapUserMappingDAO();
+    userMappingDAO.insert(umap);
+
+    List<LdapUser> users = manager.getUsers(new String[]{"test_user", "test_user2"}, 100);
+    assertThat(users.size(), is(2));
+
+    users = manager.getUsers(new String[]{"foo"}, 100);
+    assertThat(users.size(), is(0));
   }
 
   @Test

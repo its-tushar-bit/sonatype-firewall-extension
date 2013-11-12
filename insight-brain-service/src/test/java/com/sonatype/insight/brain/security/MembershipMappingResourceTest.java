@@ -5,13 +5,17 @@
  */
 package com.sonatype.insight.brain.security;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
 import com.sonatype.insight.brain.AuthedRestAccess;
+import com.sonatype.insight.brain.TemporaryEntity;
+import com.sonatype.insight.brain.configuration.ldap.LdapServer;
 import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
+import com.sonatype.insight.brain.ldap.EmbeddedLdapServer;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.security.MemberType;
@@ -29,8 +33,10 @@ import com.ning.http.client.Response;
 import com.yammer.dropwizard.testing.JsonHelpers;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 
+import static com.sonatype.insight.brain.ldap.EmbeddedLdapServer.newEmbeddedLdapServer;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
@@ -50,6 +56,9 @@ public class MembershipMappingResourceTest
   private RoleDAO roleDAO = new RoleDAO();
 
   private UserDAO userDAO = new UserDAO();
+
+  @Rule
+  public TemporaryEntity tempEntity = new TemporaryEntity();
 
   private String getServiceUrl(final String ownerType, final String ownerId) {
     return getRestUrl(MembershipMappingResource.SERVICE_PATH, ownerType, ownerId);
@@ -200,34 +209,64 @@ public class MembershipMappingResourceTest
   }
 
   @Test
+  public void testLdap_GlobalRoles() throws Exception {
+    EmbeddedLdapServer embeddedLdapServer = newEmbeddedLdapServer();
+    embeddedLdapServer.start();
+    embeddedLdapServer.loadData("/UserResourceTest/ldap_users.ldif");
+
+    LdapServer ldapServer = tempEntity.newLdapServer("LDAP");
+    tempEntity.newLdapConnection(ldapServer.getId(), embeddedLdapServer.getPort());
+    tempEntity.newLdapUserMapping(ldapServer.getId());
+
+    // Initial state
+    Response response = AuthedRestAccess.get(getServiceUrl(IdUtils.TYPE_GLOBAL, MembershipMapping.GLOBAL_CONTEXT_ID));
+    List<Role> roles = testInitialGlobalState(response);
+
+    // Create
+    response = AuthedRestAccess.put(
+        getServiceUrl(IdUtils.TYPE_GLOBAL, MembershipMapping.GLOBAL_CONTEXT_ID, roles.get(0).getId()),
+        JsonHelpers.asJson(Arrays.asList(newMember(User.ADMIN_USERNAME), newMember("testuser"))));
+    assertResponseStatus(204, response);
+
+    // Read for created data
+    response = AuthedRestAccess.get(getServiceUrl(IdUtils.TYPE_GLOBAL, MembershipMapping.GLOBAL_CONTEXT_ID));
+    assertResponseStatus(200, response);
+    ApplicableMembershipMappings applicable = JsonHelpers.fromJson(response.getResponseBody(), ApplicableMembershipMappings.class);
+
+    assertThat(applicable, is(notNullValue()));
+    assertThat(applicable.membersByRole, is(notNullValue()));
+    assertThat(applicable.membersByRole, hasSize(roles.size()));
+
+    MembersByRole membersByRole = applicable.membersByRole.get(0);
+    assertThat(membersByRole.roleId, is(roles.get(0).getId()));
+    assertThat(membersByRole.membersByOwner, is(notNullValue()));
+    assertThat(membersByRole.membersByOwner, hasSize(1));
+    MembersByOwner membersByOwner = membersByRole.membersByOwner.get(0);
+    assertThat(membersByOwner.ownerId, is(MembershipMapping.GLOBAL_CONTEXT_ID));
+    assertThat(membersByOwner.ownerName, is(MembershipMapping.GLOBAL_CONTEXT_NAME));
+    assertThat(membersByOwner.ownerType, is(IdUtils.TYPE_GLOBAL));
+    assertThat(membersByOwner.members, is(notNullValue()));
+    assertThat(membersByOwner.members, hasSize(2));
+    assertThat(membersByOwner.members.get(0).internalName, is(User.ADMIN_USERNAME));
+    assertThat(membersByOwner.members.get(0).type, is(MemberType.USER));
+    assertThat(membersByOwner.members.get(1).internalName, is("testuser"));
+    assertThat(membersByOwner.members.get(1).displayName, is("John Doe"));
+    assertThat(membersByOwner.members.get(1).type, is(MemberType.USER));
+
+    // Reset Initial State
+    response = AuthedRestAccess.put(
+        getServiceUrl(IdUtils.TYPE_GLOBAL, MembershipMapping.GLOBAL_CONTEXT_ID, roles.get(0).getId()),
+        JsonHelpers.asJson(Arrays.asList(newMember(User.ADMIN_USERNAME))));
+    assertResponseStatus(204, response);
+
+    embeddedLdapServer.stop();
+  }
+
+  @Test
   public void testCRUD_GlobalRoles() throws Exception {
     // Initial state
     Response response = AuthedRestAccess.get(getServiceUrl(IdUtils.TYPE_GLOBAL, MembershipMapping.GLOBAL_CONTEXT_ID));
-    assertResponseStatus(200, response);
-    ApplicableMembershipMappings applicable = JsonHelpers.fromJson(response.getResponseBody(),
-        ApplicableMembershipMappings.class);
-    assertThat(applicable, is(notNullValue()));
-    assertThat(applicable.membersByRole, is(notNullValue()));
-
-    List<Role> roles = roleDAO.getGlobalRoles();
-    assertThat(applicable.membersByRole, hasSize(roles.size()));
-    for (int i = 0; i < roles.size(); i++) {
-      MembersByRole membersByRole = applicable.membersByRole.get(i);
-      Role role = roles.get(i);
-      assertThat(membersByRole.roleId, is(role.getId()));
-      assertThat(membersByRole.roleName, is(role.getName()));
-      assertThat(membersByRole.roleDescription, is(role.getDescription()));
-      assertThat(membersByRole.membersByOwner, is(notNullValue()));
-      assertThat(membersByRole.membersByOwner, is(hasSize(1)));
-      MembersByOwner membersByOwner = membersByRole.membersByOwner.get(0);
-      assertThat(membersByOwner.ownerId, is(MembershipMapping.GLOBAL_CONTEXT_ID));
-      assertThat(membersByOwner.ownerName, is(MembershipMapping.GLOBAL_CONTEXT_NAME));
-      assertThat(membersByOwner.ownerType, is(IdUtils.TYPE_GLOBAL));
-      assertThat(membersByOwner.members, is(notNullValue()));
-      assertThat(membersByOwner.members, hasSize(1));
-      assertThat(membersByOwner.members.get(0).internalName, is(User.ADMIN_USERNAME));
-      assertThat(membersByOwner.members.get(0).type, is(MemberType.USER));
-    }
+    List<Role> roles = testInitialGlobalState(response);
 
     // Create
     response = AuthedRestAccess.put(
@@ -238,7 +277,7 @@ public class MembershipMappingResourceTest
     // Read for created data
     response = AuthedRestAccess.get(getServiceUrl(IdUtils.TYPE_GLOBAL, MembershipMapping.GLOBAL_CONTEXT_ID));
     assertResponseStatus(200, response);
-    applicable = JsonHelpers.fromJson(response.getResponseBody(), ApplicableMembershipMappings.class);
+    ApplicableMembershipMappings applicable = JsonHelpers.fromJson(response.getResponseBody(), ApplicableMembershipMappings.class);
 
     assertThat(applicable, is(notNullValue()));
     assertThat(applicable.membersByRole, is(notNullValue()));
@@ -286,6 +325,43 @@ public class MembershipMappingResourceTest
     assertThat(membersByOwner.members, hasSize(1));
     assertThat(membersByOwner.members.get(0).internalName, is(User.ADMIN_USERNAME));
     assertThat(membersByOwner.members.get(0).type, is(MemberType.USER));
+
+    // Reset Initial State
+    response = AuthedRestAccess.put(
+        getServiceUrl(IdUtils.TYPE_GLOBAL, MembershipMapping.GLOBAL_CONTEXT_ID, roles.get(0).getId()),
+        JsonHelpers.asJson(Arrays.asList(newMember(User.ADMIN_USERNAME))));
+    assertResponseStatus(204, response);
+  }
+
+
+  private List<Role> testInitialGlobalState(Response response) throws IOException {
+    assertResponseStatus(200, response);
+    ApplicableMembershipMappings applicable = JsonHelpers.fromJson(response.getResponseBody(),
+        ApplicableMembershipMappings.class);
+    assertThat(applicable, is(notNullValue()));
+    assertThat(applicable.membersByRole, is(notNullValue()));
+
+    List<Role> roles = roleDAO.getGlobalRoles();
+    assertThat(applicable.membersByRole, hasSize(roles.size()));
+    for (int i = 0; i < roles.size(); i++) {
+      MembersByRole membersByRole = applicable.membersByRole.get(i);
+      Role role = roles.get(i);
+      assertThat(membersByRole.roleId, is(role.getId()));
+      assertThat(membersByRole.roleName, is(role.getName()));
+      assertThat(membersByRole.roleDescription, is(role.getDescription()));
+      assertThat(membersByRole.membersByOwner, is(notNullValue()));
+      assertThat(membersByRole.membersByOwner, is(hasSize(1)));
+      MembersByOwner membersByOwner = membersByRole.membersByOwner.get(0);
+      assertThat(membersByOwner.ownerId, is(MembershipMapping.GLOBAL_CONTEXT_ID));
+      assertThat(membersByOwner.ownerName, is(MembershipMapping.GLOBAL_CONTEXT_NAME));
+      assertThat(membersByOwner.ownerType, is(IdUtils.TYPE_GLOBAL));
+      assertThat(membersByOwner.members, is(notNullValue()));
+      assertThat(membersByOwner.members, hasSize(1));
+      assertThat(membersByOwner.members.get(0).internalName, is(User.ADMIN_USERNAME));
+      assertThat(membersByOwner.members.get(0).type, is(MemberType.USER));
+    }
+
+    return roles;
   }
 
   @Test

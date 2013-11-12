@@ -435,7 +435,7 @@ public class ReportResourceTest
     String appPublicId = "bom1-12345678";
 
     Response response = AuthedRestAccess.get(getRestUrl(ReportResource.SERVICE_PATH + "/embedReport/index.html",
-        appPublicId, scanId).toString());
+        appPublicId, scanId));
     assertResponseStatus(200, response);
 
     String content = response.getResponseBody();

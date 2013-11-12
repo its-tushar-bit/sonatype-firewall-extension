@@ -185,7 +185,7 @@ public abstract class AbstractBrainServiceTest
     return restBaseUrl;
   }
 
-  protected String expandRestUrl(String templateUrl, Object... paramValues) {
+  private String expandRestUrl(String templateUrl, Object... paramValues) {
     return UriBuilder.fromPath(templateUrl).build(paramValues).toString();
   }
 

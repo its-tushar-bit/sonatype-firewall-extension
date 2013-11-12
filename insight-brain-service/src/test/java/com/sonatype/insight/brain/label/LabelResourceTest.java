@@ -123,8 +123,8 @@ public class LabelResourceTest
     Policy policy = new Policy("PolicyId1", "Policy Name 1");
     policy.setConstraints(constraints);
     policy.addAction(BuildStageType.ID, new Action(FailActionType.ID));
-    response = AuthedRestAccess.post(getRestBaseUrl()
-        + expandRestUrl(PolicyResource.SERVICE_PATH, "application", appPublicId), JsonHelpers.asJson(policy));
+    response = AuthedRestAccess.post(getRestUrl(PolicyResource.SERVICE_PATH, "application", appPublicId),
+        JsonHelpers.asJson(policy));
     assertResponseStatus(200, response);
 
     // Try to delete the label
@@ -256,7 +256,7 @@ public class LabelResourceTest
     policy.setConstraints(constraints);
     policy.addAction(BuildStageType.ID, new Action(FailActionType.ID));
     response = AuthedRestAccess.post(
-        getRestBaseUrl() + expandRestUrl(PolicyResource.SERVICE_PATH, "organization", organization.getId()),
+        getRestUrl(PolicyResource.SERVICE_PATH, "organization", organization.getId()),
         JsonHelpers.asJson(policy));
     assertResponseStatus(200, response);
 
@@ -298,8 +298,8 @@ public class LabelResourceTest
     Policy policy = new Policy("PolicyId1", "Policy Name 1");
     policy.setConstraints(constraints);
     policy.addAction(BuildStageType.ID, new Action(FailActionType.ID));
-    response = AuthedRestAccess.post(getRestBaseUrl()
-        + expandRestUrl(PolicyResource.SERVICE_PATH, "application", appPublicId), JsonHelpers.asJson(policy));
+    response = AuthedRestAccess.post(getRestUrl(PolicyResource.SERVICE_PATH, "application", appPublicId),
+        JsonHelpers.asJson(policy));
     assertResponseStatus(200, response);
 
     // Try to delete the label

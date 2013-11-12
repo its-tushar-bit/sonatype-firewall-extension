@@ -40,6 +40,6 @@ public class ConditionValueTypeResourceTest
   }
 
   private String getServiceURL(String ownerType, String ownerId) {
-    return getRestBaseUrl() + expandRestUrl(ConditionValueTypeResource.SERVICE_PATH, ownerType, ownerId);
+    return getRestUrl(ConditionValueTypeResource.SERVICE_PATH, ownerType, ownerId);
   }
 }

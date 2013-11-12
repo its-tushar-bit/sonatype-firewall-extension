@@ -69,7 +69,7 @@ public class PolicyEvaluateResourceTest
 {
   private Response addPolicy(final String applicationPublicId, final Policy policy) throws Exception {
     final Response response = AuthedRestAccess.post(
-        getRestBaseUrl() + expandRestUrl(PolicyResource.SERVICE_PATH, "application", applicationPublicId),
+        getRestUrl(PolicyResource.SERVICE_PATH, "application", applicationPublicId),
         JsonHelpers.asJson(policy));
     assertResponseStatus(200, response);
     return response;
@@ -77,7 +77,7 @@ public class PolicyEvaluateResourceTest
 
   private Response updatePolicy(final String applicationPublicId, final Policy policy) throws Exception {
     final Response response = AuthedRestAccess.put(
-        getRestBaseUrl() + expandRestUrl(PolicyResource.SERVICE_PATH, "application", applicationPublicId),
+        getRestUrl(PolicyResource.SERVICE_PATH, "application", applicationPublicId),
         JsonHelpers.asJson(policy));
     assertResponseStatus(200, response);
 

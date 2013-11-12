@@ -258,8 +258,8 @@ public class PolicyWaiverResourceTest
     Policy policy = new Policy(null, "Policy Name 1");
     policy.addConstraint(constraint);
     policy.addAction(BuildStageType.ID, new Action(FailActionType.ID));
-    Response response = AuthedRestAccess.post(
-        getRestBaseUrl() + expandRestUrl(PolicyResource.SERVICE_PATH, ownerType, ownerId), JsonHelpers.asJson(policy));
+    Response response = AuthedRestAccess.post(getRestUrl(PolicyResource.SERVICE_PATH, ownerType, ownerId),
+        JsonHelpers.asJson(policy));
     assertResponseStatus(200, response);
     policy = JsonHelpers.fromJson(response.getResponseBody(), Policy.class);
     return policy;

@@ -52,12 +52,12 @@ public class MembershipMappingResourceTest
   private UserDAO userDAO = new UserDAO();
 
   private String getServiceUrl(final String ownerType, final String ownerId) {
-    return getRestBaseUrl() + expandRestUrl(MembershipMappingResource.SERVICE_PATH, ownerType, ownerId);
+    return getRestUrl(MembershipMappingResource.SERVICE_PATH, ownerType, ownerId);
   }
 
   private String getServiceUrl(String ownerType, String ownerId, String roleId) {
-    return getRestBaseUrl() + expandRestUrl(MembershipMappingResource.SERVICE_PATH, ownerType, ownerId) + "/"
-        + expandRestUrl(MembershipMappingResource.ROLE_PATH, roleId);
+    return getRestUrl(MembershipMappingResource.SERVICE_PATH + '/' + MembershipMappingResource.ROLE_PATH, ownerType,
+        ownerId, roleId);
   }
 
   private Member newMember(String name) {

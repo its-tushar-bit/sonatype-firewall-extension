@@ -649,8 +649,7 @@ public class PolicyResourceTest
     Organization org = createOrganization("testErrorImportingForOrgWithDefinedPolicy");
 
     LicenseThreatGroup licenseThreatGroup = createDefaultLTG(org.getId());
-    String ltgUrl = getRestBaseUrl()
-        + expandRestUrl(LicenseThreatGroupResource.SERVICE_PATH, TYPE_ORGANIZATION, org.getId());
+    String ltgUrl = getRestUrl(LicenseThreatGroupResource.SERVICE_PATH, TYPE_ORGANIZATION, org.getId());
     Response response = AuthedRestAccess.post(ltgUrl, JsonHelpers.asJson(licenseThreatGroup));
     assertResponseStatus(200, response);
 
@@ -686,8 +685,7 @@ public class PolicyResourceTest
     Label label = addLabel(application.getId(), application.getName(), Color.black);
 
     LicenseThreatGroup licenseThreatGroup = createDefaultLTG(application.getPublicId());
-    String ltgUrl = getRestBaseUrl()
-        + expandRestUrl(LicenseThreatGroupResource.SERVICE_PATH, APP, application.getPublicId());
+    String ltgUrl = getRestUrl(LicenseThreatGroupResource.SERVICE_PATH, APP, application.getPublicId());
     Response response = AuthedRestAccess.post(ltgUrl, JsonHelpers.asJson(licenseThreatGroup));
     assertResponseStatus(200, response);
     licenseThreatGroup = JsonHelpers.fromJson(response.getResponseBody(), LicenseThreatGroup.class);
@@ -761,7 +759,7 @@ public class PolicyResourceTest
   }
 
   private String getServiceURL(final String ownerType, final String ownerId) {
-    return getRestBaseUrl() + expandRestUrl(PolicyResource.SERVICE_PATH, ownerType, ownerId);
+    return getRestUrl(PolicyResource.SERVICE_PATH, ownerType, ownerId);
   }
 
   private String getServiceURL(final String ownerType, final String ownerId, final String policyId) {

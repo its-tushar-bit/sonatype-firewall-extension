@@ -75,11 +75,6 @@ class ReportSpec
   }
 
   def "We can regenerate a report"() {
-    def dateMatcher = reportDate.text() =~ /Generated on: (.*)/
-    dateMatcher.size() == 1
-    dateMatcher[0].size() == 2
-    def originalDate = Date.parse("MMM dd - hh:mm a, yyyy", dateMatcher[0][1]);
-
     when: "we click the refresh button"
       js.exec '$( ".content" ).scrollLeft( 300 );'
       refresh.click()
@@ -88,18 +83,11 @@ class ReportSpec
       }
 
     then: "refresh tooltip shows up"
-      tooltip.displayed
+      waitFor { tooltip.displayed }
       tooltip.text() == "Report generation running 0 seconds, total number of applications 0, applications processed so far 0"
 
-    when: "report generation is finished"
+    then: "report generation is finished"
       waitFor { !tooltip.displayed }
-      dateMatcher = reportDate.text() =~ /Generated on: (.*)/
-
-    then: "report is updated"
-      dateMatcher.size() == 1
-      dateMatcher[0].size() == 2
-      def refreshDate = Date.parse("MMM dd - hh:mm a, yyyy", dateMatcher[0][1]);
-      refreshDate.getTime() > originalDate.getTime()
   }
 
   def "A non-admin user cannot regenerate the report"(){

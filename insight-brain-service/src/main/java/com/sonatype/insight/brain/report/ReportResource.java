@@ -9,10 +9,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -46,7 +42,6 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluationLog;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluationUtils;
-import com.sonatype.insight.brain.report.ReportDownloader.ReportDownloadReponse;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.service.BaseUrl;
@@ -60,9 +55,7 @@ import com.sonatype.insight.json.store.JsonStore;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ContainerNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.cache.CacheBuilder;
 import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.IOUtil;
@@ -218,96 +211,6 @@ public class ReportResource
     Report.printPdf(reportFile, StringUtils.defaultString(projectName, "clm"), buildNumber, response);
 
     return response.build();
-  }
-
-  /**
-   * @deprecated As of Brain 1.2 (and corresponding SaaS), clients/reports use ComponentInfoResource.
-   */
-  @Deprecated
-  @GET
-  @Path("artifactDetails{ignore:.*}")
-  @Produces(MediaType.APPLICATION_JSON)
-  public Response artifactDetails(@PathParam("applicationPublicId") final String applicationPublicId,
-                                  @PathParam("scanId") final String scanId, 
-                                  @QueryParam("groupId") final String groupId,
-                                  @QueryParam("artifactId") final String artifactId, 
-                                  @QueryParam("version") final String version,
-                                  @Context final HttpServletRequest httpRequest) 
-                                      throws Exception
-  {
-    ReportEntry reportEntry = null;
-    try {
-      Application application = applicationDAO.getByPublicIdNotNull(applicationPublicId);
-      String appId = application.getId();
-
-      final File reportFile = fetchReport(reportDownloader, work, appId, scanId, false);
-      reportEntry = Report.getEntry(reportFile, "licenses.json");
-      final long ifModifiedSince = httpRequest.getDateHeader(HttpHeaders.IF_MODIFIED_SINCE);
-      if (ifModifiedSince >= 0 && reportEntry.time / 1000 <= ifModifiedSince / 1000) {
-        return Response.status(304).build();
-      }
-    }
-    catch (final Exception e) {
-      log.debug("No report available, details will not be augmented", e);
-    }
-
-    Map<String, String> queryParams = new HashMap<String, String>();
-
-    queryParams.put("groupId", groupId);
-    queryParams.put("artifactId", artifactId);
-    queryParams.put("version", version);
-
-    final ReportDownloadReponse result = reportDownloader.fetchReport("rest/ci/artifact/" + scanId, queryParams);
-
-    final ResponseBuilder response = Response.status(result.getStatusCode());
-
-    for (final Entry<String, String> header : result.getHeaders().entrySet()) {
-      response.header(header.getKey(), header.getValue());
-    }
-
-    final byte[] data;
-    if (result.getStatusCode() < 300 && reportEntry != null) {
-      data = augmentArtifactDetails(result.getData(), reportEntry.buf);
-      response.lastModified(new Date(reportEntry.time));
-      response.type("application/json;charset=UTF-8");
-    }
-    else {
-      data = result.getData();
-    }
-
-    return response.entity(data).build();
-  }
-
-  /**
-   * @deprecated As of Brain 1.2 (and corresponding SaaS), clients/reports use ComponentInfoResource.
-   */
-  @Deprecated
-  public Response getArtifactInfo(final String scanId,
-                                  final String groupId, final String artifactId, final String version,
-                                  final HttpServletRequest httpRequest) throws Exception
-  {
-    String applicationPublicId = "unknown";
-    String appId = findOwningAppId(scanId);
-    if (appId != null) {
-      applicationPublicId = applicationDAO.getByIdNotNull(appId).getPublicId();
-    }    
-    return artifactDetails(applicationPublicId, scanId, groupId, artifactId, version, httpRequest);
-  }
-  
-  private String findOwningAppId(final String scanId) {
-    final File rootDir = work.getReportDir();
-    if (rootDir.isDirectory()) {
-      try {
-        final List<String> dirs = FileUtils.getDirectoryNames(rootDir, "*/" + scanId, null, false);
-        if (!dirs.isEmpty()) {
-          return FileUtils.dirname(dirs.get(0));
-        }
-      }
-      catch (final IOException e) {
-        log.error("Problem searching directory: {} for scanId: {}", rootDir, scanId, e);
-      }
-    }
-    return null;
   }
 
   @POST
@@ -497,42 +400,6 @@ public class ReportResource
 
   public static void flushReportChanges() {
     MODIFICATION_COUNTS.clear();
-  }
-
-  /**
-   * @deprecated As of Brain 1.2 (and corresponding SaaS)
-   */
-  @Deprecated
-  private static byte[] augmentArtifactDetails(final byte[] detailData, final byte[] licenseData) throws IOException {
-    byte[] augmentedDetailData = detailData;
-
-    final ObjectNode details = JsonUtils.parse(detailData);
-
-    final ContainerNode<?> licenses = JsonUtils.parse(licenseData);
-    final ArrayNode artifacts = (ArrayNode) (licenses instanceof ArrayNode ? licenses : licenses.get("aaData"));
-
-    final JsonNode overriddenLicenses = getOverriddenLicenses(details, artifacts);
-    if (overriddenLicenses != null) {
-      details.put("overriddenLicenses", overriddenLicenses);
-      augmentedDetailData = JsonUtils.generate(details);
-    }
-
-    return augmentedDetailData;
-  }
-
-  private static JsonNode getOverriddenLicenses(final ObjectNode details, final ArrayNode artifacts) {
-    final String groupId = details.path("groupId").asText();
-    final String artifactId = details.path("artifactId").asText();
-    final String version = details.path("version").asText();
-
-    for (int i = 0; i < artifacts.size(); i++) {
-      final JsonNode row = artifacts.get(i);
-      if (artifactId.equals(row.path("artifactId").asText()) && groupId.equals(row.path("groupId").asText())
-          && version.equals(row.path("version").asText())) {
-        return row.get("overriddenLicenses");
-      }
-    }
-    return null;
   }
 
   private static Lock lockFor(final String appId, final String scanId) {

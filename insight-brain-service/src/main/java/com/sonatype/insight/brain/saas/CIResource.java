@@ -15,17 +15,14 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
 import javax.ws.rs.core.StreamingOutput;
 
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.organization.ApplicationResource;
 import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
-import com.sonatype.insight.brain.report.ReportResource;
 import com.sonatype.insight.license.model.CLMEnforcementPoint;
 
 @Path(CIResource.SERVICE_PATH)
@@ -40,14 +37,11 @@ public class CIResource
   private final ScanUploader uploader;
 
   private ApplicationDAO applicationDAO = new ApplicationDAO();
-  
-  private ReportResource reportResource;
 
   @Inject
-  public CIResource(final SaasClient client, final ScanUploader uploader, ReportResource reportResource) {
+  public CIResource(final SaasClient client, final ScanUploader uploader) {
     this.client = client;
     this.uploader = uploader;
-    this.reportResource = reportResource;
   }
 
   /**
@@ -78,21 +72,5 @@ public class CIResource
     applicationDAO.getByPublicIdNotNull(applicationPublicId);
 
     return StreamingOutput.class.cast(client.doProxy(req, "rest/ci/report").getEntity());
-  }
-
-  /**
-   * @deprecated As of Brain 1.2 (and corresponding SaaS), clients/reports use ComponentInfoResource.
-   */
-  @Deprecated
-  @GET
-  @Path("artifact/{scanId}")
-  @Produces(MediaType.APPLICATION_JSON)
-  public Response getArtifactInfo(@PathParam("scanId") final String scanId,
-                                  @QueryParam("groupId") final String groupId, 
-                                  @QueryParam("artifactId") final String artifactId,
-                                  @QueryParam("version") final String version,
-                                  @Context final HttpServletRequest httpRequest) throws Exception
-  {
-    return reportResource.getArtifactInfo(scanId, groupId, artifactId, version, httpRequest);
   }
 }

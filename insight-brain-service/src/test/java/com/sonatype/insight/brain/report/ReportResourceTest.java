@@ -623,21 +623,6 @@ public class ReportResourceTest
   }
 
   @Test
-  public void testArtifactDetails() throws Exception {
-    final String applicationPublicId = "ReportResourceTest_AppId";
-    createApplication(applicationPublicId);
-    final String scanId = "ReportResourceTest_ScanId";
-
-    final String resourcePrefix = getServiceURL(applicationPublicId, scanId);
-    final String query = "?groupId=org.springframework&artifactId=spring-core&version=2.5.6";
-    final Response response = AuthedRestAccess.get(resourcePrefix + "/artifactDetails" + query);
-    assertResponseStatus(200, response);
-
-    assertThat(response.getResponseBody(), stringContainsInOrder(Arrays.asList("\"groupId\"",
-        "\"org.springframework\"", "\"artifactId\"", "\"spring-core\"", "\"version\"", "\"2.5.6\"")));
-  }
-
-  @Test
   public void testAugmentDataAndAuditLog() throws Exception {
     final String applicationPublicId = "ReportResourceTest_AppId";
     createApplication(applicationPublicId);

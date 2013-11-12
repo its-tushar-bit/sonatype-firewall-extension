@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.report;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.HashMap;
@@ -22,10 +21,6 @@ import javax.inject.Singleton;
 import com.sonatype.insight.brain.saas.SaasClient;
 import com.sonatype.insight.error.exception.NotFoundException;
 
-import org.apache.http.Header;
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.util.EntityUtils;
 import org.codehaus.plexus.util.IOUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -81,34 +76,6 @@ public class ReportDownloader
     }
 
     return false;
-  }
-
-  public ReportDownloadReponse fetchReport(final String path, final Map<String, String> queryParams) throws IOException
-  {
-    InputStream is = null;
-
-    try {
-      HttpResponse response = client.getResponse(null, path, queryParams);
-
-      ReportDownloadReponse downloadResponse = new ReportDownloadReponse();
-      downloadResponse.setStatusCode(response.getStatusLine().getStatusCode());
-      HttpEntity body = response.getEntity();
-      if (body.getContentType() != null) {
-        downloadResponse.setHeader("Content-Type", body.getContentType().getValue());
-      }
-      for (String name : new String[] { "Expires", "Cache-Control", "Last-Modified", "ETag" }) {
-        Header header = response.getFirstHeader(name);
-        if (header != null) {
-          downloadResponse.setHeader(name, header.getValue());
-        }
-      }
-      downloadResponse.setData(EntityUtils.toByteArray(body));
-
-      return downloadResponse;
-    }
-    finally {
-      IOUtil.close(is);
-    }
   }
 
   public static class ReportDownloadReponse

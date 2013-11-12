@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.saas;
 
 import java.io.File;
 import java.net.URL;
-import java.util.Arrays;
 
 import com.sonatype.insight.brain.AuthedRestAccess;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
@@ -24,7 +23,6 @@ import org.junit.Test;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.equalToIgnoringWhiteSpace;
-import static org.hamcrest.Matchers.stringContainsInOrder;
 
 public class CIResourceTest
     extends AbstractResourceTest
@@ -148,36 +146,6 @@ public class CIResourceTest
     setEnforcementPoints(CLMEnforcementPoint.StageRelease);
 
     Response response = AuthedRestAccess.get(getServiceURL() + "/report/unlicensedapp?scanId=unlicensedscanid");
-    assertResponseStatus(402, response);
-  }
-
-  @Test
-  public void testArtifact() throws Exception {
-    final String scanId = "CIResourceTest_ScanId";
-
-    final String query = scanId + "?groupId=org.springframework&artifactId=spring-core&version=2.5.6";
-    Response response = AuthedRestAccess.get(getServiceURL() + "/artifact/" + query);
-    assertResponseStatus(200, response);
-
-    assertThat(response.getResponseBody(), stringContainsInOrder(Arrays.asList("\"groupId\"",
-        "\"org.springframework\"", "\"artifactId\"", "\"spring-core\"", "\"version\"", "\"2.5.6\"")));
-  }
-
-  @Test
-  public void testArtifact_Unlicensed() throws Exception {
-    uninstallLicense();
-    Response response = AuthedRestAccess.get(getServiceURL()
-        + "/artifact/unlicensedscanid?groupId=ulg&artifactId=ula&version=ulv");
-    assertResponseStatus(402, response);
-  }
-
-  @Test
-  public void testArtifact_EnforcementPointUnlicensed() throws Exception {
-    // note this enforcement point should not apply to this request
-    setEnforcementPoints(CLMEnforcementPoint.StageRelease);
-
-    Response response = AuthedRestAccess.get(getServiceURL()
-        + "/artifact/unlicensedscanid?groupId=ulg&artifactId=ula&version=ulv");
     assertResponseStatus(402, response);
   }
 

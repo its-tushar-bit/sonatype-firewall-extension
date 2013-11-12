@@ -2,11 +2,9 @@
 	<div class="subnavigation" ng-class="{'subnavigation-expanded' : !$state.params.organizationId}">
 		<div load-error='error' reload='doLoad()'></div>
 		<div ng-hide='error'>
-			<div class='new-entity-button'>
-				<a class="btn" href='#/management/organization/_new_'>
-					<i class="icon-plus"></i>&nbsp;New Organization
-				</a>
-			</div>
+			<a class="btn new-entity-button" href='#/management/organization/_new_'>
+				<i class="icon-plus"></i>&nbsp;New Organization
+			</a>
 			<div class='search input-prepend'>
 				<span class='add-on'><i
 					ng-class="{'icon-search': !orgFilter.name, 'icon-remove': orgFilter.name}"

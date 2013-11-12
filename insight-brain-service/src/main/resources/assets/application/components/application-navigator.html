@@ -2,11 +2,9 @@
 	<div class="subnavigation" ng-class="{'subnavigation-expanded' : !$state.params.applicationPublicId}">
 		<div load-error='error' reload='doLoad()'></div>
 		<div ng-hide='error'>
-			<div class='new-entity-button'>
-				<a class="btn" href='#/management/application/_new_'>
-					<i class="icon-plus"></i>&nbsp;New Application
-				</a>
-			</div>
+			<a class="new-entity-button btn" href='#/management/application/_new_'>
+				<i class="icon-plus"></i>&nbsp;New Application
+			</a>
 			<div class='search input-prepend'>
 				<span class='add-on'><i	ng-class="{'icon-search': !appFilter.name, 'icon-remove': appFilter.name}"
 					ng-click="appFilter.name = ''"></i></span>

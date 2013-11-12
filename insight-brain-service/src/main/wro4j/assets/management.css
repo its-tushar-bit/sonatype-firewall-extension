@@ -240,17 +240,15 @@ body {
 .subnavigation .search input {
 	width: 100px;
 }
-.new-entity-button a {
+.subnavigation a.new-entity-button {
 	margin: 5px 5px auto;
+	display: inline-block;
+	width: 120px;
 	font-size: 85%;
-	font-weight: bold;
-	width: 127px;
 	text-align: left;
-	padding: 4px 6px;
 }
-.new-entity-button i {
-	margin-bottom: 4px;
-	vertical-align: middle;
+.new-entity-button {
+	padding-left: 8px;
 }
 .content {
 	position: absolute;

@@ -74,6 +74,22 @@ class ReportSpec
     violationCount == '0 Violations'
   }
 
+  def "We can regenerate a report"() {
+    when: "we click the refresh button"
+      js.exec '$( ".content" ).scrollLeft( 300 );'
+      refresh.click()
+      interact {
+        moveToElement(refresh)
+      }
+
+    then: "refresh tooltip shows up"
+      waitFor { tooltip.displayed }
+      tooltip.text() == "Report generation running 0 seconds, total number of applications 0, applications processed so far 0"
+
+    then: "report generation is finished"
+      waitFor { !tooltip.displayed }
+  }
+
   def "A non-admin user cannot regenerate the report"(){
     when: 'we log in as a non-admin user'
     user.logout.link.click()

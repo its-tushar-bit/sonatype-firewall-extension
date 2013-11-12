@@ -23,5 +23,7 @@ class TrendingReportPage extends ReportPage
     policyCount(required: false) { count(1).text() }
     applicationCount(require: false) { count(2).text() }
     violationCount(require: false) { count(3).text() }
+    tooltip(require: false) { $('div.tooltip .tooltip-inner') }
+    reportDate(require: false) { $('#trending-data .pull-right strong') }
   }
 }

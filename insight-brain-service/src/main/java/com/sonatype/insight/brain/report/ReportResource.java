@@ -107,14 +107,15 @@ public class ReportResource
   }
 
   /**
-   * Support legacy CI instances (pre 2.11) and Nexus CLM plugins that persisted a report link obtained from CLM 1.6-
+   * @deprecated Support legacy CI instances (pre 2.11) and Nexus CLM plugins that persisted a report link obtained from
+   *             CLM 1.6-
    */
   @Deprecated
   @GET
   @Path("embedReport/{path:.*}")
   public Response embedReport(@PathParam("applicationPublicId") final String applicationPublicId,
       @PathParam("scanId") final String scanId, @PathParam("path") final String path,
-      @Context final HttpServletRequest httpRequest) throws IOException
+      @Context final HttpServletRequest httpRequest)
   {
     StringBuilder sb = new StringBuilder(
         "<html><body style='font: 12px Verdana, Helvetica'>Your Sonatype CLM server has been updated and the <a target='_top' href='");

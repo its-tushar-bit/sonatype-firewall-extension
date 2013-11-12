@@ -651,7 +651,7 @@ ul.tri-pane {
 .licenseSelectListItem, .large-select-list-item {
   cursor: pointer;
   display: inline-block;
-  width: 100%;
+  width: 99%;
 }
 .licenseSelectListItem:hover, .large-select-list-item:hover {
 	background-color: #E8E8E8;

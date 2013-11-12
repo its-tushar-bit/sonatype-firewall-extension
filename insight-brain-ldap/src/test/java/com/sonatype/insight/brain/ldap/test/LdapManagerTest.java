@@ -5,28 +5,12 @@
  */
 package com.sonatype.insight.brain.ldap.test;
 
-import static com.sonatype.insight.brain.ldap.EmbeddedLdapServer.newEmbeddedLdapServer;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.closeTo;
-import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.empty;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.nullValue;
-import static org.junit.Assert.fail;
-
 import java.net.ServerSocket;
 import java.util.Collections;
 import java.util.List;
 
 import javax.inject.Inject;
 import javax.naming.NamingException;
-
-import org.junit.After;
-import org.junit.Rule;
-import org.junit.Test;
-import org.sonatype.guice.bean.containers.InjectedTest;
 
 import com.sonatype.insight.brain.configuration.ldap.LdapConnection;
 import com.sonatype.insight.brain.configuration.ldap.LdapGroupMappingType;
@@ -39,6 +23,22 @@ import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapUserMappingD
 import com.sonatype.insight.brain.ldap.EmbeddedLdapServer;
 import com.sonatype.insight.brain.ldap.LdapManager;
 import com.sonatype.insight.brain.ldap.LdapUser;
+
+import org.sonatype.guice.bean.containers.InjectedTest;
+
+import org.junit.After;
+import org.junit.Test;
+
+import static com.sonatype.insight.brain.ldap.EmbeddedLdapServer.newEmbeddedLdapServer;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.closeTo;
+import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.empty;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.nullValue;
+import static org.junit.Assert.fail;
 
 /**
  * @since 1.7

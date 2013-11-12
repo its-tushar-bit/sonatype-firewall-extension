@@ -445,6 +445,17 @@ public class ReportResourceTest
   }
 
   @Test
+  public void testEmbedReport_Json() throws Exception {
+    String scanId = "abcdefg12345";
+    String appPublicId = "bom1-12345678";
+
+    Response response = RestAccess.get(getRestUrl(ReportResource.SERVICE_PATH + "/embedReport/policyalerts.json",
+        appPublicId, scanId));
+    assertResponseStatus(404, response);
+    assertEquals("Reports have been moved.  Clear cache and reload.", response.getResponseBody());
+  }
+
+  @Test
   public void testPrintReport() throws Exception {
     final String applicationPublicId = "ReportResourceTest_AppId";
     createApplication(applicationPublicId);

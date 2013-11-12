@@ -117,18 +117,21 @@ public class ReportResource
       @PathParam("scanId") final String scanId, @PathParam("path") final String path,
       @Context final HttpServletRequest httpRequest)
   {
-    StringBuilder sb = new StringBuilder(
-        "<html><body style='font: 12px Verdana, Helvetica'>Your Sonatype CLM server has been updated and the <a target='_top' href='");
-    UriBuilder uriBuilder = baseUrl.redirect();
-    uriBuilder.path(getReportPath(applicationPublicId, scanId));
+    if ("index.html".equals(path) || path.isEmpty()) {
+      StringBuilder sb = new StringBuilder(
+          "<html><body style='font: 12px Verdana, Helvetica'>Your Sonatype CLM server has been updated and the <a target='_top' href='");
+      UriBuilder uriBuilder = baseUrl.redirect();
+      uriBuilder.path(getReportPath(applicationPublicId, scanId));
 
-    sb.append(uriBuilder.build(applicationPublicId, scanId));
-    sb.append("'>report</a> has been moved.</body></hml>");
+      sb.append(uriBuilder.build(applicationPublicId, scanId));
+      sb.append("'>report</a> has been moved.</body></hml>");
 
-    final ResponseBuilder response = Response.ok(sb.toString());
-    response.type(MediaTypeUtils.byName("index.html"));
-    response.expires(new Date(0));
-    return response.build();
+      final ResponseBuilder response = Response.ok(sb.toString());
+      response.type(MediaTypeUtils.byName("index.html"));
+      response.expires(new Date(0));
+      return response.build();
+    }
+    throw new NotFoundException("Reports have been moved.  Clear cache and reload.");
   }
 
   /**

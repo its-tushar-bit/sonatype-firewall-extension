@@ -130,6 +130,41 @@ describe('ApplicationEditorController', function() {
     });
   });
 
+  describe('Existing Application No Org', function () {
+    beforeEach(inject(function($httpBackend, $rootScope, $controller, $state, applicationStore) {
+      rootScope = $rootScope;
+
+      $state.current.name = 'management.application';
+
+      parentScope = $rootScope.$new();
+      scope = parentScope.$new();
+      state = $state;
+
+      var selectedApplication = applicationStore.create();
+
+      parentScope.applications = [selectedApplication];
+      parentScope.applicationIconTimestamp = {}
+      $controller('applicationEditorController', { $scope: scope, $state: state, selectedApplication : selectedApplication });
+    }));
+
+    it('Organizations List Retrieved', inject(function($httpBackend, CLMLocations, CLMAppLocations) {
+      var applicationsData = ApplicationMockData.getApplicationsData();
+      mockApplication = applicationsData[0];
+      $httpBackend.whenGET(SpecUtil.toRegExp(CLMAppLocations.getEntitiesUrl())).respond(applicationsData);
+
+      $httpBackend.expectGET(CLMLocations.getActionTypeUrl()).respond(PolicyMockData.getActionTypeData());
+      $httpBackend.expectGET(CLMLocations.getActionStageUrl()).respond(MockData.getActionStageData());
+
+      var organizationData = OrganizationMockData.getGETResponse();
+      mockOrganization = organizationData[0];
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getOrganizationsUrl())).respond(organizationData);
+      $httpBackend.flush();
+
+      expect(scope.organizations).toBeDefined();
+      expect(scope.organizations.length).toEqual(OrganizationMockData.getGETResponse().length);
+    }));
+  });
+
   describe('Existing Application', function () {
     beforeEach(inject(function($httpBackend, $rootScope, $controller, $state, CLMLocations, CLMAppLocations, applicationStore) {
       httpBackend = $httpBackend;

@@ -152,7 +152,10 @@
                 timestamp: new Date().getTime()
               }
             }));
-          } else {
+          }
+
+          // New application, or an application without an organization
+          if (!selectedApplication.organizationId) {
             promises.push(OrganizationStore.get());
           }
 
@@ -172,6 +175,9 @@
                         policyEvaluation.scanId);
                 $scope.applicationSummary.stageCount++;
               });
+              if (results.length > 2) {
+                $scope.organizations = results[2];
+              }
             } else {
               $scope.organizations = results[1];
             }

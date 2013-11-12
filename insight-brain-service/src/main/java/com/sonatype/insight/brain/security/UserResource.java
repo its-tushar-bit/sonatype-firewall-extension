@@ -83,7 +83,7 @@ public class UserResource
   @Produces({ MediaType.APPLICATION_JSON })
   @Authorize(permission = Permission.WRITE)
   public FindUsersDTO findUsers(@AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") String ownerType,
-      @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId, @QueryParam("q") String query) throws NamingException {
+      @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId, @QueryParam("q") String query) {
     if (StringUtils.isEmpty(query)) {
       throw new BadRequestException("No search term specified.");
     }

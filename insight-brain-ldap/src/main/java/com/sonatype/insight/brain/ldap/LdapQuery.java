@@ -198,7 +198,7 @@ class LdapQuery
       results = searchUsersByUsernames(ctx, names, attributes, maxResults);
       List<LdapUser> ldapUsers = new ArrayList<LdapUser>();
       while (results.hasMoreElements()) {
-        ldapUsers.add(createUser(ctx, results.nextElement()));
+        ldapUsers.add(createUser(ctx, results.nextElement(), false));
       }
       return ldapUsers;
     }

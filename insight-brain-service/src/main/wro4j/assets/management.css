@@ -247,6 +247,10 @@ body {
 	font-size: 85%;
 	text-align: left;
 }
+
+.subnavigation .new-entity-button > i {
+	vertical-align: text-bottom;
+}
 .new-entity-button {
 	padding-left: 8px;
 }

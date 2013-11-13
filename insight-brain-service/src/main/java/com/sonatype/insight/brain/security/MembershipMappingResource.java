@@ -302,7 +302,7 @@ public class MembershipMappingResource
           if (user != null) {
             member.displayName = user.getFirstName() + " " + user.getLastName();
             member.email = user.getEmail();
-            member.realm = CLMRealm.DisplayName;
+            member.realm = CLMRealm.DISPLAY_NAME;
 
             resolvedMembers.put(internalName, member);
           }

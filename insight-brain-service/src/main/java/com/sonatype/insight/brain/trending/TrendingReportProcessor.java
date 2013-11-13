@@ -189,7 +189,9 @@ public class TrendingReportProcessor
       PolicyEvaluation[] periods = new PolicyEvaluation[PERIOD_COUNT + 1];
       List<PolicyEvaluation> policyEvaluations = evalLog.allByStage(STAGE_ID);
       for (PolicyEvaluation eval : policyEvaluations) {
-        if (ReportResource.getReport(work, application.getId(), eval.getScanId()) == null) {
+        // If the report is not available for whatever reason, ignore this policy evaluation as we're strictly looking
+        // at these data points for possible inspection later.
+        if (!work.getReportFile(application.getId(), eval.getScanId()).exists()) {
           continue;
         }
 

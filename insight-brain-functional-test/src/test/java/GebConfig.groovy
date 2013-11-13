@@ -11,6 +11,7 @@
 
 import geb.driver.SauceLabsDriverFactory
 import org.openqa.selenium.Dimension
+import org.openqa.selenium.WebDriver
 import org.openqa.selenium.chrome.ChromeDriver
 import org.openqa.selenium.firefox.FirefoxDriver
 import org.openqa.selenium.remote.RemoteWebDriver
@@ -30,7 +31,9 @@ if (sauceBrowser) {
     assert username
     def accessKey = System.getProperty("GEB_SAUCE_LABS_ACCESS_PASSWORD")
     assert accessKey
-    new SauceLabsDriverFactory().create(sauceBrowser, username, accessKey)
+    WebDriver driver = new SauceLabsDriverFactory().create(sauceBrowser, username, accessKey)
+    driver.manage().window().maximize()
+    return driver
   }
   //increase default timeouts to account for remote execution
   waiting{

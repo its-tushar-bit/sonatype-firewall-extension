@@ -112,7 +112,7 @@ public class ReportResource
   {
     if ("index.html".equals(path) || path.isEmpty()) {
       StringBuilder sb = new StringBuilder(
-          "<html><body style='font: 12px Verdana, Helvetica'>Your Sonatype CLM server has been updated and the <a target='_top' href='");
+          "<html><body style='font: 12px Verdana, Helvetica'>Your Sonatype CLM server has been updated and the <a target='_new' href='");
       UriBuilder uriBuilder = baseUrl.redirect();
       uriBuilder.path(getReportPath(applicationPublicId, scanId));
 

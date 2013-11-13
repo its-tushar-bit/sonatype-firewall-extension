@@ -54,7 +54,7 @@ def configs = [
         baseDN: 'cn=users',
         objectClass: 'user',
         userIdAttribute: 'sAMAccountName',
-        realNameAttribute: 'cn',
+        realNameAttribute: 'displayName',
         emailAttribute: 'mail',
         groupBaseDN: 'cn=builtin',
         groupObjectClass: 'group',

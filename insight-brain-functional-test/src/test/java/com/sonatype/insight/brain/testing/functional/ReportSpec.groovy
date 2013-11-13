@@ -45,6 +45,9 @@ class ReportSpec
 
   def cleanupSpec() {
     new UserDAO().delete(nonAdminUser)
+    File file = new File('target/sonatype-work/clm-server/report/trending-report.json')
+    assert file.exists()
+    file.delete()
   }
 
   def "When we first login we're invited to create a new Org"() {

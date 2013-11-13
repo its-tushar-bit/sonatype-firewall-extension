@@ -10,8 +10,10 @@
 */
 
 import geb.driver.SauceLabsDriverFactory
+import org.openqa.selenium.Dimension
 import org.openqa.selenium.chrome.ChromeDriver
 import org.openqa.selenium.firefox.FirefoxDriver
+import org.openqa.selenium.remote.RemoteWebDriver
 
 reportsDir = "target/test-reports/geb"
 baseUrl = System.getProperty('geb.build.baseUrl', 'http://localhost:9070/')
@@ -37,7 +39,7 @@ if (sauceBrowser) {
   }
 }
 else {
-  driver = { new FirefoxDriver() }
+  driver = { configure(new FirefoxDriver()) }
 }
 
 environments {
@@ -45,8 +47,13 @@ environments {
   // run as “mvn -Dgeb.env=chrome test”
   // See: http://code.google.com/p/selenium/wiki/ChromeDriver
   chrome {
-    driver = { new ChromeDriver() }
+    driver = { configure(new ChromeDriver()) }
   }
 
   // See: http://code.google.com/p/selenium/wiki/HtmlUnitDriver
+}
+
+def configure(final RemoteWebDriver driver) {
+  driver.manage().window().setSize(new Dimension(1280, 1024))
+  return driver
 }

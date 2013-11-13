@@ -91,7 +91,9 @@ describe('AppSecurityControllerSpec', function() {
         members : [{
           type: "USER",
           internalName : 'oldlady',
-          displayName : 'Old Lady'
+          displayName : 'Old Lady',
+          email : 'oldlady@foo.com',
+          realm : 'old'
         }]
       },{
         ownerId : '862f7a486bff473b9205007595399ffe',
@@ -100,7 +102,9 @@ describe('AppSecurityControllerSpec', function() {
         members : [{
           type: "USER",
           internalName : 'oldman',
-          displayName : 'Old Man'
+          displayName : 'Old Man',
+          email : 'oldman@foo.com',
+          realm : 'old'
         }]
       }];
 
@@ -117,17 +121,23 @@ describe('AppSecurityControllerSpec', function() {
       scope.$apply(function () {
         scope.addUser({
           username : 'testuser',
-          displayName : 'Fred Flintstone'
+          displayName : 'Fred Flintstone',
+          email : 'fred@flinstone.com',
+          realm : 'bedrock'
         });
       });
       expect(parentScope.mappings[0].members).toEqual([{
         type: "USER",
         internalName : 'testuser',
-        displayName : 'Fred Flintstone'
+        displayName : 'Fred Flintstone',
+        email : "fred@flinstone.com",
+        realm : "bedrock"
       },{
         type: "USER",
         internalName : 'oldlady',
-        displayName : 'Old Lady'
+        displayName : 'Old Lady',
+        email : 'oldlady@foo.com',
+        realm : 'old'
       }]);
       
       $httpBackend.expectPUT(CLMAppLocations.getRoleMappingUrl(scope.roleId), scope.mappings[0].members).respond(204);

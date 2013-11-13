@@ -142,7 +142,9 @@
       $scope.mappings[0].members.push({
         type : "USER",
         displayName : user.displayName,
-        internalName : user.username
+        internalName : user.username,
+        email : user.email,
+        realm : user.realm
       });
       AngularUtils.alphaSort($scope.mappings[0].members, false, 'displayName');
     };

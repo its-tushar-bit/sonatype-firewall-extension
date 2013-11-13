@@ -16,8 +16,16 @@
             <div>
               <div ng-repeat='mapping in mappings'>
                 <div ng-repeat='member in mapping.members | filter: { displayName : queryString } | orderBy:"displayName"' ng-click='removeUser($parent.$index, member)'
-                     class='licenseSelectListItem' ng-class='{  inherited : $parent.$index }'>
-                  <i ng-class='{ "icon-minus-sign" : !$parent.$index, "emptyIconGlyph" : $parent.$index }'></i>&nbsp;<span title='{{member.displayName}}' ng-bind-html-unsafe="member.displayName | highlight:queryString:caseSensitive"></span>
+                     class='large-select-list-item' ng-class='{  inherited : $parent.$index }'>
+                  <div class='pull-left'>
+                    <i ng-class='{ "icon-minus-sign" : !$parent.$index, "emptyIconGlyph" : $parent.$index }'></i>
+                  </div>
+                  <div>
+                    <div ng-bind-html-unsafe="member.displayName | highlight:queryString:caseSensitive" class='large-select-list-item-title'></div>
+                    <span class='large-select-list-item-detail'>{{member.email}}&nbsp;</span>
+                    <span class='large-select-list-item-detail right-detail'>{{member.realm}}</span>
+                  </div>
+                  <div style='clear:both'></div>
                 </div>
               </div>
             </div>

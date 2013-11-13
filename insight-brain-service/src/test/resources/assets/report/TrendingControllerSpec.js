@@ -161,17 +161,23 @@ describe('TrendingController tests', function() {
   });
 
   describe('Directive: chart', function() {
-    var scope = {};
-    var mockPercData = ChartMockData.getPercentageData();
+    var scope = {},
+        mockPercData = ChartMockData.getPercentageData(),
+        element = null;
 
     beforeEach(inject(function($controller, $rootScope) {
-      return scope = $rootScope.$new();
+      scope = $rootScope.$new();
     }));
+    afterEach(function () {
+      if (element) {
+        element.remove();
+      }
+    });
     describe('perc chart', function() {
       it('should build a chart to the correct size', inject(function($compile) {
-        var element, svg;
+        var svg;
         scope.data = [1];
-        element = angular.element("<div horizontal-percentage-chart data='data' height='150' width='100'></div>");
+        element = angular.element("<div horizontal-percentage-chart data='data' height='150' width='100'></div>").appendTo('body');
         element = $compile(element)(scope);
         svg = element.find('svg');
         expect(svg).toBeDefined();
@@ -179,9 +185,9 @@ describe('TrendingController tests', function() {
         expect(+svg.attr('height')).toBe(150);
       }));
       it('should render correct number of bars', inject(function($compile) {
-        var element, rects, svg;
+        var rects, svg;
         scope.data = [0, 1, 2, 3];
-        element = angular.element("<div horizontal-percentage-chart data='data'></div>");
+        element = angular.element("<div horizontal-percentage-chart data='data'></div>").appendTo('body');
         element = $compile(element)(scope);
         svg = element.find('svg');
         expect(svg).toBeDefined();
@@ -190,9 +196,9 @@ describe('TrendingController tests', function() {
         expect(rects.length).toBe(scope.data.length);
       }));
       it('should render correct number of texts', inject(function($compile) {
-        var element, rects, svg;
+        var rects, svg;
         scope.data = [0, 1, 2, 3];
-        element = angular.element("<div horizontal-percentage-chart data='data'></div>");
+        element = angular.element("<div horizontal-percentage-chart data='data'></div>").appendTo('body');
         element = $compile(element)(scope);
         svg = element.find('svg');
         expect(svg).toBeDefined();
@@ -201,9 +207,9 @@ describe('TrendingController tests', function() {
         expect(rects.length).toBe(4 + (4 + 8 + 12 + 16));
       }));
       it('should render the largest bar to the maximum width', inject(function($compile) {
-        var element, rects, svg;
+        var rects, svg;
         scope.data = [5];
-        element = angular.element("<div horizontal-percentage-chart data='data' width='100'></div>");
+        element = angular.element("<div horizontal-percentage-chart data='data' width='100'></div>").appendTo('body');
         element = $compile(element)(scope);
         svg = element.find('svg');
         expect(svg).toBeDefined();
@@ -213,12 +219,12 @@ describe('TrendingController tests', function() {
         expect(+rects.attr('width')).toBe(100);
       }));
       it('should allow bar color selection', inject(function($compile) {
-        var element, rects, svg;
+        var rects, svg;
         scope.data = [5];
         scope.colorRenderer = function() {
           return '#ff0000';
         };
-        element = angular.element("<div horizontal-percentage-chart data='data' color-renderer='colorRenderer'></div>");
+        element = angular.element("<div horizontal-percentage-chart data='data' color-renderer='colorRenderer'></div>").appendTo('body');
         element = $compile(element)(scope);
         svg = element.find('svg');
         expect(svg).toBeDefined();
@@ -226,13 +232,13 @@ describe('TrendingController tests', function() {
         expect(rects).toBeDefined();
         expect(rects.attr('style')).toMatch(/^fill: #ff0000; ?$/);
       }));
-      return it('should allow for data selection', inject(function($compile) {
-        var element, rects, svg;
+      it('should allow for data selection', inject(function($compile) {
+        var rects, svg;
         scope.data = mockPercData;
         scope.selector = function(d) {
           return d.value;
         };
-        element = angular.element("<div horizontal-percentage-chart data='data' percentage-selector='selector' width='100'></div>");
+        element = angular.element("<div horizontal-percentage-chart data='data' percentage-selector='selector' width='100'></div>").appendTo('body');
         element = $compile(element)(scope);
         svg = element.find('svg');
         expect(svg).toBeDefined();

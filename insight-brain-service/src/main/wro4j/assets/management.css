@@ -242,7 +242,7 @@ body {
 }
 .subnavigation a.new-entity-button {
 	margin: 5px 5px auto;
-	display: inline-block;
+	display: block;
 	width: 120px;
 	font-size: 85%;
 	text-align: left;

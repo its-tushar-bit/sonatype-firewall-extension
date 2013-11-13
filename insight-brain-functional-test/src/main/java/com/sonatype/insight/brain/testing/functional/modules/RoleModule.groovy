@@ -16,9 +16,11 @@ class RoleModule extends Module {
     editor(required: false) { $('div[app-security-editor] > div') }
     queryInput(required: false) { $('input[name=filter]') }
 
-    appliedMembers(required: false) { $('div[app-security-editor] .selectList:first-child .licenseSelectListItem') }
-    appliedMemberNames(required: false) { appliedMembers.children('span') }
-    appliedMember(required: false) { displayName -> appliedMembers.has('span', text: displayName ) }
+    appliedMembers(required: false) { $('div[app-security-editor] .selectList:first-child .large-select-list-item') }
+    appliedMemberNames(required: false) { appliedMembers.find('.large-select-list-item-title') }
+    appliedMember(required: false) { displayName -> appliedMembers.has('.large-select-list-item-title', text: displayName ) }
+    appliedMemberEmail(required: false) { appliedMembers.find('.large-select-list-item-detail:not(.right-detail)') }
+    appliedMemberRealm(required: false) { appliedMembers.find('.large-select-list-item-detail.right-detail') }
 
     availableMembers(required: false) { $('div[app-security-editor] .selectList:last-child .large-select-list-item', 'ng-click': 'addUser(user)') }
     availableMemberNames(required: false) { availableMembers.find('.large-select-list-item-title') }

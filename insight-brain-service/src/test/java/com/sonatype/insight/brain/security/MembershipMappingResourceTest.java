@@ -145,6 +145,8 @@ public class MembershipMappingResourceTest
     assertThat(membersByOwner.members, hasSize(1));
     assertThat(membersByOwner.members.get(0).internalName, is(userB.getUsername()));
     assertThat(membersByOwner.members.get(0).displayName, is(userB.getFirstName() + " " + userB.getLastName()));
+    assertThat(membersByOwner.members.get(0).email, is(userB.getEmail()));
+    assertThat(membersByOwner.members.get(0).realm, is("CLM"));
     assertThat(membersByOwner.members.get(0).type, is(MemberType.USER));
 
     // Update
@@ -177,6 +179,8 @@ public class MembershipMappingResourceTest
     assertThat(membersByOwner.members, hasSize(1));
     assertThat(membersByOwner.members.get(0).internalName, is(userA.getUsername()));
     assertThat(membersByOwner.members.get(0).displayName, is(userA.getFirstName() + " " + userA.getLastName()));
+    assertThat(membersByOwner.members.get(0).email, is(userA.getEmail()));
+    assertThat(membersByOwner.members.get(0).realm, is("CLM"));
     assertThat(membersByOwner.members.get(0).type, is(MemberType.USER));
     membersByOwner = membersByRole.membersByOwner.get(1);
     assertThat(membersByOwner.ownerId, is(org.getId()));
@@ -186,6 +190,8 @@ public class MembershipMappingResourceTest
     assertThat(membersByOwner.members, hasSize(1));
     assertThat(membersByOwner.members.get(0).internalName, is(userB.getUsername()));
     assertThat(membersByOwner.members.get(0).displayName, is(userB.getFirstName() + " " + userB.getLastName()));
+    assertThat(membersByOwner.members.get(0).email, is(userB.getEmail()));
+    assertThat(membersByOwner.members.get(0).realm, is("CLM"));
     assertThat(membersByOwner.members.get(0).type, is(MemberType.USER));
     membersByRole = applicable.membersByRole.get(1);
     assertThat(membersByRole.roleId, is(appRoles.get(1).getId()));
@@ -199,6 +205,8 @@ public class MembershipMappingResourceTest
     assertThat(membersByOwner.members, hasSize(1));
     assertThat(membersByOwner.members.get(0).internalName, is(userB.getUsername()));
     assertThat(membersByOwner.members.get(0).displayName, is(userB.getFirstName() + " " + userB.getLastName()));
+    assertThat(membersByOwner.members.get(0).email, is(userB.getEmail()));
+    assertThat(membersByOwner.members.get(0).realm, is("CLM"));
     assertThat(membersByOwner.members.get(0).type, is(MemberType.USER));
     membersByOwner = membersByRole.membersByOwner.get(1);
     assertThat(membersByOwner.ownerId, is(org.getId()));
@@ -251,6 +259,8 @@ public class MembershipMappingResourceTest
     assertThat(membersByOwner.members.get(0).type, is(MemberType.USER));
     assertThat(membersByOwner.members.get(1).internalName, is("testuser"));
     assertThat(membersByOwner.members.get(1).displayName, is("John Doe"));
+    assertThat(membersByOwner.members.get(1).email, is("test.user@company.com"));
+    assertThat(membersByOwner.members.get(1).realm, is("LDAP"));
     assertThat(membersByOwner.members.get(1).type, is(MemberType.USER));
 
     // Reset Initial State
@@ -297,6 +307,8 @@ public class MembershipMappingResourceTest
     assertThat(membersByOwner.members.get(0).type, is(MemberType.USER));
     assertThat(membersByOwner.members.get(1).internalName, is(userB.getUsername()));
     assertThat(membersByOwner.members.get(1).displayName, is(userB.getFirstName() + " " + userB.getLastName()));
+    assertThat(membersByOwner.members.get(1).email, is(userB.getEmail()));
+    assertThat(membersByOwner.members.get(1).realm, is("CLM"));
     assertThat(membersByOwner.members.get(1).type, is(MemberType.USER));
 
     // Update

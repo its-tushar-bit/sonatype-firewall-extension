@@ -7,12 +7,10 @@ package com.sonatype.insight.brain.security;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Set;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -107,14 +105,14 @@ public class MembershipMappingResource
       byRole.roleDescription = role.getDescription();
       membersByRoleByRoleId.put(byRole.roleId, byRole);
     }
-    DisplayNames displayNames = new DisplayNames(ldapManager);
+    MemberAttributeResolver memberAttributeResolver = new MemberAttributeResolver(ldapManager);
 
     String organizationId = null;
     // Add app members
     if (IdUtils.TYPE_APPLICATION.equals(ownerType)) {
       Application app = appDAO.getByIdNotNull(internalOwnerId);
       for (Map.Entry<String, MembersByOwner> entry : loadMembers(app.getId(), app.getName(), IdUtils.TYPE_APPLICATION,
-          displayNames, roles).entrySet()) {
+          memberAttributeResolver, roles).entrySet()) {
         entry.getValue().ownerId = app.getPublicId();
         membersByRoleByRoleId.get(entry.getKey()).membersByOwner.add(entry.getValue());
       }
@@ -122,7 +120,7 @@ public class MembershipMappingResource
     }
     else if (IdUtils.TYPE_GLOBAL.equals(ownerType)) {
       for (Map.Entry<String, MembersByOwner> entry : loadMembers(MembershipMapping.GLOBAL_CONTEXT_ID,
-          MembershipMapping.GLOBAL_CONTEXT_NAME, IdUtils.TYPE_GLOBAL, displayNames, roles).entrySet()) {
+          MembershipMapping.GLOBAL_CONTEXT_NAME, IdUtils.TYPE_GLOBAL, memberAttributeResolver, roles).entrySet()) {
         membersByRoleByRoleId.get(entry.getKey()).membersByOwner.add(entry.getValue());
       }
     }
@@ -133,7 +131,7 @@ public class MembershipMappingResource
     if (organizationId != null) {
       Organization org = orgDAO.getByIdNotNull(organizationId);
       for (Map.Entry<String, MembersByOwner> entry : loadMembers(org.getId(), org.getName(), IdUtils.TYPE_ORGANIZATION,
-          displayNames, roles).entrySet()) {
+          memberAttributeResolver, roles).entrySet()) {
         membersByRoleByRoleId.get(entry.getKey()).membersByOwner.add(entry.getValue());
       }
     }
@@ -144,10 +142,9 @@ public class MembershipMappingResource
   }
 
   private Map<String, MembersByOwner> loadMembers(String ownerId, String ownerName, String ownerType,
-      DisplayNames displayNames, List<Role> roles)
+      MemberAttributeResolver memberAttributeResolver, List<Role> roles)
   {
     Map<String, MembersByOwner> byRole = new LinkedHashMap<String, MembersByOwner>();
-    List<String> lookupNames = new ArrayList<>();
     for (MembershipMapping memberMap : memberMapDAO.getByContextId(ownerId)) {
       MembersByOwner byOwner = byRole.get(memberMap.getRoleId());
       if (byOwner == null) {
@@ -155,12 +152,8 @@ public class MembershipMappingResource
         byRole.put(memberMap.getRoleId(), byOwner);
       }
       Member member = new Member(memberMap.getMemberType(), memberMap.getMemberName(), memberMap.getMemberName());
-      if (MemberType.USER.equals(member.type)) {
-        lookupNames.add(member.internalName);
-      }
       byOwner.members.add(member);
     }
-    Map<String, String> displayNameMap = displayNames.get(lookupNames);
     
     //go through and make sure each role contains the owner, even if its empty list
     for (Role role : roles) {
@@ -171,11 +164,7 @@ public class MembershipMappingResource
       }
 
       // Fill in display names queried from userDAO and ldap
-      for (Member member : byOwner.members) {
-        if (MemberType.USER.equals(member.type)) {
-          member.displayName = displayNameMap.get(member.internalName);
-        }
-      }
+      memberAttributeResolver.resolve(byOwner.members);
     }
 
     return byRole;
@@ -266,6 +255,10 @@ public class MembershipMappingResource
 
     public String displayName;
 
+    public String email;
+
+    public String realm;
+
     public Member() {
     }
 
@@ -276,48 +269,74 @@ public class MembershipMappingResource
     }
   }
 
-  private static class DisplayNames
+  private static class MemberAttributeResolver
   {
-    private final Map<String, String> resolvedNames = new HashMap<String, String>();
+    private final Map<String, Member> resolvedMembers = new HashMap<>();
 
     private final UserDAO userDAO = new UserDAO();
 
     @SuppressWarnings("hiding")
-    private static final Logger log = LoggerFactory.getLogger(DisplayNames.class);
+    private static final Logger log = LoggerFactory.getLogger(MemberAttributeResolver.class);
 
     private final LdapManager ldapManager;
 
-    public DisplayNames(final LdapManager ldapManager) {
+    public MemberAttributeResolver(final LdapManager ldapManager) {
       this.ldapManager = ldapManager;
     }
 
-    public Map<String, String> get(List<String> internalNames) {
-      Set<String> unresolvedNames = new HashSet<>();
+    public void resolve(List<Member> members) {
+      HashMap<String, Member> unresolvedMembers = new HashMap<>();
 
-      // First check already resolved names
-      // Then check if user is in the CLM Realm and using UserDAO
-      for (String internalName : internalNames) {
-        String displayName = resolvedNames.get(internalName);
-        if (displayName == null) {
+      // First check already resolved members
+      // Then check if user is in the CLM Realm using UserDAO
+      for (Member member : members) {
+        // No resolution needed for non USER type
+        if (!MemberType.USER.equals(member.type)) {
+          continue;
+        }
+
+        String internalName = member.internalName;
+        Member existingMember = resolvedMembers.get(internalName);
+        if (existingMember == null) {
           User user = userDAO.getByUsernameLowercase(internalName.toLowerCase(Locale.ENGLISH));
           if (user != null) {
-            displayName = user.getFirstName() + " " + user.getLastName();
-            resolvedNames.put(internalName, displayName);
+            member.displayName = user.getFirstName() + " " + user.getLastName();
+            member.email = user.getEmail();
+            member.realm = CLMRealm.DISPLAY_NAME;
+
+            resolvedMembers.put(internalName, member);
           }
           else {
-            unresolvedNames.add(internalName);
+            unresolvedMembers.put(internalName, member);
           }
+        } else {
+          member.displayName = existingMember.displayName;
+          member.email = existingMember.email;
+          member.realm = existingMember.realm;
         }
+      }
+
+      // Resolution is complete if there are no unresolved members
+      if (unresolvedMembers.isEmpty()) {
+        return;
       }
 
       if (ldapManager.isLdapEnabled()) {
         try {
-          // If LDAP is enabled, try to resolve the RealName from LDAP
-          List<LdapUser> ldapUsers = ldapManager.getUsers(unresolvedNames.toArray(new String[0]), unresolvedNames.size());
+          String ldapServerName = ldapManager.getLdapServerName();
+          // If LDAP is enabled, try to resolve the RealName and Email from LDAP
+          List<LdapUser> ldapUsers = ldapManager.getUsers(unresolvedMembers.keySet().toArray(new String[0]), unresolvedMembers.keySet().size());
+
           for (LdapUser ldapUser : ldapUsers) {
             final String userName = ldapUser.getUsername();
-            resolvedNames.put(userName, ldapUser.getRealName());
-            unresolvedNames.remove(userName);
+
+            Member member = unresolvedMembers.get(userName);
+            member.displayName = ldapUser.getRealName();
+            member.email = ldapUser.getEmail();
+            member.realm = ldapServerName;
+
+            resolvedMembers.put(userName, member);
+            unresolvedMembers.remove(userName);
           }
         }
         catch (NamingException ex) {
@@ -325,11 +344,12 @@ public class MembershipMappingResource
         }
       }
       // Use the unresolved names as the display names for anything still unresolved
-      for (String unresolvedName : unresolvedNames) {
-        resolvedNames.put(unresolvedName, unresolvedName);
-      }
+      for (String unresolvedName : unresolvedMembers.keySet()) {
+        Member member = unresolvedMembers.get(unresolvedName);
+        member.displayName = unresolvedName;
 
-      return resolvedNames;
+        resolvedMembers.put(unresolvedName, member);
+      }
     }
   }
 

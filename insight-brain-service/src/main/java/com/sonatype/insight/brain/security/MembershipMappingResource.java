@@ -288,7 +288,7 @@ public class MembershipMappingResource
       HashMap<String, Member> unresolvedMembers = new HashMap<>();
 
       // First check already resolved members
-      // Then check if user is in the CLM Realm and using UserDAO
+      // Then check if user is in the CLM Realm using UserDAO
       for (Member member : members) {
         // No resolution needed for non USER type
         if (!MemberType.USER.equals(member.type)) {
@@ -300,10 +300,8 @@ public class MembershipMappingResource
         if (existingMember == null) {
           User user = userDAO.getByUsernameLowercase(internalName.toLowerCase(Locale.ENGLISH));
           if (user != null) {
-            String displayName = user.getFirstName() + " " + user.getLastName();
-            String email = user.getEmail();
-            member.displayName = displayName;
-            member.email = email;
+            member.displayName = user.getFirstName() + " " + user.getLastName();
+            member.email = user.getEmail();
             member.realm = "CLM";
 
             resolvedMembers.put(internalName, member);
@@ -326,17 +324,15 @@ public class MembershipMappingResource
       if (ldapManager.isLdapEnabled()) {
         try {
           String ldapServerName = ldapManager.getLdapServerName();
-          // If LDAP is enabled, try to resolve the RealName from LDAP
+          // If LDAP is enabled, try to resolve the RealName and Email from LDAP
           List<LdapUser> ldapUsers = ldapManager.getUsers(unresolvedMembers.keySet().toArray(new String[0]), unresolvedMembers.keySet().size());
 
           for (LdapUser ldapUser : ldapUsers) {
             final String userName = ldapUser.getUsername();
-            String displayName = ldapUser.getRealName();
-            String email = ldapUser.getEmail();
 
             Member member = unresolvedMembers.get(userName);
-            member.displayName = displayName;
-            member.email = email;
+            member.displayName = ldapUser.getRealName();
+            member.email = ldapUser.getEmail();
             member.realm = ldapServerName;
 
             resolvedMembers.put(userName, member);

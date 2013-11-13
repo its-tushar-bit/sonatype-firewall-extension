@@ -302,7 +302,7 @@ public class MembershipMappingResource
           if (user != null) {
             member.displayName = user.getFirstName() + " " + user.getLastName();
             member.email = user.getEmail();
-            member.realm = "CLM";
+            member.realm = CLMRealm.DisplayName;
 
             resolvedMembers.put(internalName, member);
           }
@@ -317,7 +317,7 @@ public class MembershipMappingResource
       }
 
       // Resolution is complete if there are no unresolved members
-      if (unresolvedMembers.size() == 0) {
+      if (unresolvedMembers.isEmpty()) {
         return;
       }
 

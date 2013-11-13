@@ -83,7 +83,7 @@ class GlobalRolesSpec
     then: "the matching users are listed"
       waitFor { roleRow.availableMembers.size() == 1 }
       roleRow.availableMemberNames*.text() == ["Jane Doe"]
-      roleRow.availableMemberEmail*.text() == ["jane@doe.net "]
+      roleRow.availableMemberEmail*.text() == ["jane@doe.net"]
       roleRow.availableMemberRealm*.text() == ["CLM"]
       roleRow.appliedMembers.size() == 0
 
@@ -93,7 +93,7 @@ class GlobalRolesSpec
     then: "the matching users are listed"
       waitFor { roleRow.availableMembers.size() == 2 }
       roleRow.availableMemberNames*.text().sort() == ["Jane Doe", "John Doe"]
-      roleRow.availableMemberEmail*.text().sort() == ["jane@doe.net ", "john@doe.net "]
+      roleRow.availableMemberEmail*.text().sort() == ["jane@doe.net", "john@doe.net"]
       roleRow.availableMemberRealm*.text() == ["CLM", "CLM"]
       roleRow.appliedMembers.size() == 0
   }
@@ -106,10 +106,10 @@ class GlobalRolesSpec
     then: "the user is moved from the available list to the applied list"
       roleRow.availableMembers.size() == 1
       roleRow.availableMemberNames*.text() == ["Jane Doe"]
-      roleRow.availableMemberEmail*.text() == ["jane@doe.net "]
+      roleRow.availableMemberEmail*.text() == ["jane@doe.net"]
       roleRow.appliedMembers.size() == 1
       roleRow.appliedMemberNames*.text() == ["John Doe"]
-      roleRow.appliedMemberEmail*.text() == ["john@doe.net "]
+      roleRow.appliedMemberEmail*.text() == ["john@doe.net"]
       roleRow.appliedMemberRealm*.text() == ["CLM"]
 
     when: "clicking another available user"
@@ -119,7 +119,7 @@ class GlobalRolesSpec
       roleRow.availableMembers.size() == 0
       roleRow.appliedMembers.size() == 2
       roleRow.appliedMemberNames*.text().sort() == ["Jane Doe", "John Doe"]
-      roleRow.appliedMemberEmail*.text().sort() == ["jane@doe.net ", "john@doe.net "]
+      roleRow.appliedMemberEmail*.text().sort() == ["jane@doe.net", "john@doe.net"]
       roleRow.appliedMemberRealm*.text() == ["CLM", "CLM"]
   }
 
@@ -132,10 +132,10 @@ class GlobalRolesSpec
       roleRow.availableMembers.size() == 1
       roleRow.availableMemberNames*.text() == ["Jane Doe"]
       roleRow.availableMemberNames*.text() == ["Jane Doe"]
-      roleRow.availableMemberEmail*.text() == ["jane@doe.net "]
+      roleRow.availableMemberEmail*.text() == ["jane@doe.net"]
       roleRow.appliedMembers.size() == 1
       roleRow.appliedMemberNames*.text() == ["John Doe"]
-      roleRow.appliedMemberEmail*.text() == ["john@doe.net "]
+      roleRow.appliedMemberEmail*.text() == ["john@doe.net"]
       roleRow.appliedMemberRealm*.text() == ["CLM"]
   }
 

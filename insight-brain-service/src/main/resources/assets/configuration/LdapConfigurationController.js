@@ -10,7 +10,7 @@
   function showAlert(alerts, alert){
     alerts.length = 0;
     alerts.push(alert);
-  };
+  }
 
   var module = angular.module('LdapConfiguration',
   ['CLMLocation', 'Hudson', 'ResourceModule', 'ui.router', 'AngularCommon', 'CommonServices', 'Configuration'],
@@ -212,12 +212,17 @@
       };
       $scope.setCurrentTab = setCurrentTab;
 
-      ldapStore.get().then(function(results) {
-        $scope.ldap = results.length === 0 ? ldapStore.create() : results[0];
-        setCurrentTab('connection');
-      }, function() {
-        $scope.$broadcast('showServerError', arguments);
-      });
+      $scope.doLoad = function () {
+        $scope.loadError = null;
+
+        ldapStore.get().then(function(results) {
+          $scope.ldap = results.length === 0 ? ldapStore.create() : results[0];
+          setCurrentTab('connection');
+        }, function(error) {
+          $scope.loadError = error;
+        });
+      };
+      $scope.doLoad();
     }
   ]);
   

@@ -140,8 +140,6 @@ describe('dashboardApp', function() {
       expect(event.defaultPrevented).toBeTruthy();
       expect($rootScope.username).toBeFalsy();
       expect($rootScope.licensed).toBeFalsy();
-      expect($window.location.replace).toHaveBeenCalledWith(
-              '../login-assets/login.html?redirectTo=' + encodeURIComponent('http://blah/index.html'));
     }));
   });
 

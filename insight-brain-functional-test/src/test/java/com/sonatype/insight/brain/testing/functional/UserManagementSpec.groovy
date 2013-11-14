@@ -5,34 +5,19 @@
  */
 package com.sonatype.insight.brain.testing.functional
 
-import com.sonatype.insight.brain.service.InsightBrainService
-import com.sonatype.insight.brain.service.InsightConfig
-
-import com.google.common.io.Resources
-import com.yammer.dropwizard.testing.junit.DropwizardServiceRule
-import geb.spock.GebReportingSpec
-import org.junit.ClassRule
-import org.junit.rules.TestRule
 import org.openqa.selenium.Keys
-import spock.lang.Shared
 import spock.lang.Stepwise
 import spock.lang.Unroll
 
 @Stepwise
 class UserManagementSpec
-    extends GebReportingSpec
+    extends BaseSpec
 {
-  @Shared
-  @ClassRule
-  TestRule startServiceRule = new DropwizardServiceRule<InsightConfig>(InsightBrainService.class,
-      Resources.getResource('config-test.yml').getPath())
-
   // assumes a license has already been installed
   // get to the user page
   def setupSpec() {
-    to LoginPage
-    loginAsAdmin()
-    at ReportPage
+    to ReportPage
+    login.loginAsAdmin()
     to UserManagementPage
   }
 

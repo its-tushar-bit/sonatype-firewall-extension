@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.testing.functional.modules
 
 import com.sonatype.insight.brain.testing.functional.ManagementPage
 import com.sonatype.insight.brain.testing.functional.ReportPage
+
 import geb.Module
 
 /**

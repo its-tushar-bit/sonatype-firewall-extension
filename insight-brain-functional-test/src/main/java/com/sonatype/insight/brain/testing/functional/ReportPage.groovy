@@ -8,11 +8,9 @@ package com.sonatype.insight.brain.testing.functional
 
 import com.sonatype.insight.brain.testing.functional.modules.DropdownNav
 import com.sonatype.insight.brain.testing.functional.modules.NavListModule
-import com.sonatype.insight.brain.testing.functional.modules.UserControlsModule
 
-import geb.Page
 
-class ReportPage extends Page {
+class ReportPage extends BasePage {
   static url = "assets/reports.html#/reports/violations"
 
   static at = { title == 'CLM Reports' }
@@ -22,6 +20,5 @@ class ReportPage extends Page {
     nav { module NavListModule }
 
     emptyMessage { $('div h5', text: startsWith('Welcome to Sonatype CLM. Get started by')) }
-    user { module UserControlsModule }
   }
 }

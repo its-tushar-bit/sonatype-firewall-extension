@@ -7,26 +7,13 @@ package com.sonatype.insight.brain.testing.functional
 
 import com.sonatype.insight.brain.dataaccess.security.UserDAO
 import com.sonatype.insight.brain.model.security.User
-import com.sonatype.insight.brain.service.InsightBrainService
-import com.sonatype.insight.brain.service.InsightConfig
 
-import com.google.common.io.Resources
-import com.yammer.dropwizard.testing.junit.DropwizardServiceRule
-import geb.spock.GebReportingSpec
-import org.junit.ClassRule
-import org.junit.rules.TestRule
-import spock.lang.Shared
 import spock.lang.Stepwise
 
 @Stepwise
 class GlobalRolesSpec
-    extends GebReportingSpec
+    extends BaseSpec
 {
-  @Shared
-  @ClassRule
-  TestRule startServiceRule = new DropwizardServiceRule<InsightConfig>(InsightBrainService.class,
-      Resources.getResource('config-test.yml').getPath())
-
   def setupSpec() {
     UserDAO userDAO = new UserDAO()
     User user = new User(username: "test-a", password: "secret", firstName: "John", lastName: "Doe", email: "john@doe.net")
@@ -34,9 +21,8 @@ class GlobalRolesSpec
     user = new User(username: "test-b", password: "secret", firstName: "Jane", lastName: "Doe", email: "jane@doe.net")
     userDAO.insert(user);
 
-    to LoginPage
-    loginAsAdmin()
     to GlobalRolesPage
+    login.loginAsAdmin()
   }
 
   def cleanupSpec() {

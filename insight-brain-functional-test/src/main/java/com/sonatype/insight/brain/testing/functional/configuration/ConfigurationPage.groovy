@@ -5,13 +5,13 @@
  */
 package com.sonatype.insight.brain.testing.functional.configuration
 
-import geb.Page
+import com.sonatype.insight.brain.testing.functional.BasePage
 
 /**
  * @since 1.7
  */
 class ConfigurationPage
-    extends Page
+    extends BasePage
 {
   static url = 'assets/index.html#/management/configuration'
 

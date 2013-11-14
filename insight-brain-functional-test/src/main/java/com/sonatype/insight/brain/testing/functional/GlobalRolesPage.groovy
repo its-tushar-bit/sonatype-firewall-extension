@@ -8,10 +8,9 @@ package com.sonatype.insight.brain.testing.functional
 
 import com.sonatype.insight.brain.testing.functional.modules.RoleMappingModule
 
-import geb.Page
 
 class GlobalRolesPage
-    extends Page
+    extends BasePage
 {
   static url = "assets/index.html#/management/security/global"
 

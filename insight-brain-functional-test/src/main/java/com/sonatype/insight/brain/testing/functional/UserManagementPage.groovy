@@ -7,10 +7,10 @@
 package com.sonatype.insight.brain.testing.functional
 
 import com.sonatype.insight.brain.testing.functional.modules.ValidationModule
-import geb.Page
+
 
 class UserManagementPage
-    extends Page
+    extends BasePage
 {
   static url = "assets/index.html#/management/security/users"
 

@@ -5,9 +5,8 @@
  */
 package com.sonatype.insight.brain.testing.functional
 
-import geb.Page
 
-class ApplicationManagementPage extends Page {
+class ApplicationManagementPage extends BasePage {
   static url = "assets/index.html#/management/application"
 
   static at = { driver.currentUrl.endsWith(url) }

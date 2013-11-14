@@ -8,31 +8,16 @@ package com.sonatype.insight.brain.testing.functional
 import com.sonatype.insight.brain.dataaccess.security.UserDAO
 import com.sonatype.insight.brain.model.security.User
 import com.sonatype.insight.brain.security.CLMRealm
-import com.sonatype.insight.brain.service.InsightBrainService
-import com.sonatype.insight.brain.service.InsightConfig
-import com.sonatype.insight.brain.testing.functional.modules.ChangePasswordModule;
 
-import com.google.common.io.Resources
-import com.yammer.dropwizard.testing.junit.DropwizardServiceRule
-import geb.spock.GebReportingSpec
-import org.junit.ClassRule
-import org.junit.rules.TestRule
-import spock.lang.Shared
 
-class ChangePasswordSpec extends GebReportingSpec {
-  @Shared
-  @ClassRule
-  TestRule startServiceRule = new DropwizardServiceRule<InsightConfig>(InsightBrainService.class,
-    Resources.getResource('config-test.yml').getPath())
-  
+class ChangePasswordSpec extends BaseSpec {
   //simple setup, login as this new user and go to the management page
   def setupSpec() {
     UserDAO userDAO = new UserDAO()
     User user = new User(username: "testchangepass", password: new CLMRealm().encryptPassword("secret"), firstName: "John", lastName: "Doe", email: "john@doe.net")
     userDAO.insert(user);
-    to LoginPage
-    login("testchangepass", "secret")
-    to ManagementPage
+    to ReportPage
+    login.login("testchangepass", "secret")
   }
   
   //make sure to cleanup our mess!
@@ -93,8 +78,8 @@ class ChangePasswordSpec extends GebReportingSpec {
       waitFor { !user.changePassword.dialog.displayed }
       
     when: "User attempts to login with new password"
-      to LoginPage
-      login("testchangepass", "newsecret")
+      user.logout.link.click()
+      login.login("testchangepass", "newsecret")
       to ManagementPage
     
     then: "Application is loaded"

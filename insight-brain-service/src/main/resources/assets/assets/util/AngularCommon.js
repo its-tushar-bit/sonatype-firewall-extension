@@ -37,7 +37,7 @@ var AngularUtils = {
 
   var angularCommon;
   angularCommon = angular.module('AngularCommon', ['CommonServices']);
-
+  
   angularCommon.directive('errorModal', function() {
     return {
       replace: true,
@@ -803,6 +803,29 @@ var AngularUtils = {
       }
     };
   });
+  
+  angularCommon.directive('autofill', ['$timeout', '$parse', function($timeout, $parse) {
+    return {
+      restrict: 'A',
+      require: '?ngModel',
+      link: function postLink($scope, element, attrs, controller) {
+        function checkForChange() {
+          var elementValue = element.val();
+
+          var modelParser = $parse(attrs.ngModel);
+          if (elementValue !== modelParser($scope)) {
+            AngularUtils.safeApply($scope, function() {
+              modelParser.assign($scope, elementValue);
+            });
+          }
+
+          $timeout(checkForChange, 100);
+        }
+
+        $timeout(checkForChange, 100);
+      }
+    };
+  }]);
 
   angularCommon.directive('refreshButton', ['$timeout', '$parse', function($timeout, $parse) {
     var timer, degree = 0;
@@ -884,7 +907,7 @@ var AngularUtils = {
 (function() {
   "use strict";
 
-  var services = angular.module('CommonServices', []);
+  var services = angular.module('CommonServices', ['ui.bootstrap']);
 
   services.service('Messages', function() {
     return {
@@ -956,7 +979,7 @@ var AngularUtils = {
     function() {
       return {
         get: function() {
-          var baseSegments = ['/policy-assets/', '/application-assets/', '/assets/', '/login-assets/', '/security-assets/', '/report-assets/'],
+          var baseSegments = ['/policy-assets/', '/application-assets/', '/assets/', '/security-assets/', '/report-assets/'],
               idx = -1;
 
           for (var i = 0; i < baseSegments.length; i++) {

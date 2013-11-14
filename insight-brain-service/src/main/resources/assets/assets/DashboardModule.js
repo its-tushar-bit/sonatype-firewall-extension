@@ -22,7 +22,7 @@
   };
 
   var dashboardApp = angular.module('DashboardModule', ['ui.router', 'ui.bootstrap', 'CLMLocation', 'CommonServices',
-      'UserControls', 'ngRoute'], ['$stateProvider', '$routeProvider', '$urlRouterProvider',
+      'UserControls', 'ngRoute', 'HttpInterceptors'], ['$stateProvider', '$routeProvider', '$urlRouterProvider',
       function($stateProvider, $routeProvider, $urlRouterProvider) {
         $stateProvider.state('home', {
           url: '/',
@@ -75,14 +75,6 @@
             }
           }
         }
-        function redirectToLogin() {
-          var to = '../login-assets/login.html',
-              current = $window.location.href;
-          if (current && current.indexOf('/login-assets/login.html') == -1) {
-            to = to + '?redirectTo=' + encodeURIComponent(current);
-          }
-          $window.location.replace(to);
-        }
 
         var savedState = null,
             stateChangePrevention = $rootScope.$on('$stateChangeStart', function (event, toState, toParams) {
@@ -113,22 +105,14 @@
         });
 
         currentUser.then(function (data) {
-          if (!data.authenticated) {
-            redirectToLogin();
-          } else {
-            username = data.username;
-            checkBootstrap();
-          }
+          username = data.username;
+          checkBootstrap();
         }, function (error) {
-          if (error[1] === 401) {
-            redirectToLogin(); 
-          } else {
-            $rootScope.error = 'Unable to initialize the application';
-          }
+          $rootScope.error = 'Unable to initialize the application';
         });
 
         $rootScope.$on('logout', function () {
-          redirectToLogin();
+          window.location.replace('..');
         });
         $rootScope.$on('$stateChangeError', function(event, toState, toParams, fromState, fromParams, error) {
           $rootScope.error = messages.getHttpErrorMessage(error);

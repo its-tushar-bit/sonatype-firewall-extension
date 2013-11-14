@@ -5,11 +5,10 @@
  */
 package com.sonatype.insight.brain.testing.functional
 
-import geb.Page
-
 import com.sonatype.insight.brain.testing.functional.modules.ContextTabsModule
 
-class OrganizationPage extends Page {
+
+class OrganizationPage extends BasePage {
   static at = {  organizationImage.displayed }
 
   static content = {

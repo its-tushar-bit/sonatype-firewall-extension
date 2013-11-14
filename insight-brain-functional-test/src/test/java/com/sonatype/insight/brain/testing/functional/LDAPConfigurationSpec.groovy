@@ -5,36 +5,24 @@
  */
 package com.sonatype.insight.brain.testing.functional
 
-import com.google.common.io.Resources
-import com.sonatype.insight.brain.service.InsightBrainService
-import com.sonatype.insight.brain.service.InsightConfig
 import com.sonatype.insight.brain.testing.functional.configuration.LDAPConfigurationPage
 import com.sonatype.insight.brain.testing.functional.configuration.LDAPConnectionConfigurationPage
 import com.sonatype.insight.brain.testing.functional.configuration.LDAPUserAndGroupMappingConfigurationPage
-import com.yammer.dropwizard.testing.junit.DropwizardServiceRule
-import geb.spock.GebReportingSpec
-import org.junit.ClassRule
-import org.junit.rules.TestRule
-import spock.lang.Shared
+
 
 /**
  * @since 1.7
  */
-class LDAPConfigurationSpec extends GebReportingSpec
+class LDAPConfigurationSpec extends BaseSpec
 {
-  @Shared
-  @ClassRule
-  TestRule startServiceRule = new DropwizardServiceRule<InsightConfig>(InsightBrainService.class,
-      Resources.getResource('config-test.yml').getPath())
-
   def "create a new LDAP and navigate the connection and user/group mappings forms"(){
     setup: "login"
-    to LoginPage
-    loginAsAdmin()
-    waitFor { title != "CLM Login" }
+    to ReportPage
+    login.loginAsAdmin()
+    to LDAPConfigurationPage
 
     when: "going to the LDAP page"
-    waitFor { to LDAPConfigurationPage }
+    waitFor { at LDAPConfigurationPage }
 
     then:
     report 'initial state with no LDAP configured'

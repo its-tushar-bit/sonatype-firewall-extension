@@ -5,32 +5,16 @@
  */
 package com.sonatype.insight.brain.testing.functional
 
-import com.google.common.io.Resources
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO
-import com.sonatype.insight.brain.service.InsightBrainService
-import com.sonatype.insight.brain.service.InsightConfig
-import com.yammer.dropwizard.testing.junit.DropwizardServiceRule
-import geb.spock.GebReportingSpec
-import org.junit.ClassRule
-import org.junit.rules.TestRule
-import spock.lang.Shared
-
-class AppSecurityManagementSpec extends GebReportingSpec {
-  @Shared
-  @ClassRule
-  TestRule startServiceRule = new DropwizardServiceRule<InsightConfig>(InsightBrainService.class,
-  Resources.getResource('config-test.yml').getPath())
 
 
+class AppSecurityManagementSpec extends BaseSpec {
   // assumes a license has already been installed
   // get to the organizations page
   def setup() {
-    to LoginPage
-    loginAsAdmin()
-    waitFor { title != "CLM Login" }
-    waitFor { browser.getDriver().manage().getCookieNamed('JSESSIONID') != null }
-    at ReportPage
+    to ReportPage
+    login.loginAsAdmin()
   }
 
   def cleanup() {

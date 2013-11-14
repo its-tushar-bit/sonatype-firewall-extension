@@ -79,7 +79,7 @@ describe('dashboardApp', function() {
         });
       });
 
-      expect($rootScope.username).toEqual('user');
+      expect($rootScope.initialized).toBeFalsy();
       expect($rootScope.licensed).toBeFalsy();
 
       scope.$apply(function () {
@@ -89,6 +89,7 @@ describe('dashboardApp', function() {
       });
 
       expect($rootScope.licensed).toBeTruthy();
+      expect($rootScope.initialized).toBeTruthy();
 
       expect($state.current.name).toEqual('test');
       expect($stateParams).toEqual(toParams);
@@ -106,7 +107,7 @@ describe('dashboardApp', function() {
       });
 
       expect(event.defaultPrevented).toBeTruthy();
-      expect($rootScope.username).toEqual('user');
+      expect($rootScope.initialized).toBeTruthy();
       expect($rootScope.licensed).toBeFalsy();
       expect($state.current.name).toEqual('management.configuration.productlicense');
     }));
@@ -123,8 +124,6 @@ describe('dashboardApp', function() {
       var event = $rootScope.$broadcast('$stateChangeStart', 'test', {}, '', {});
 
       expect(event.defaultPrevented).toBeTruthy();
-      expect($rootScope.username).toEqual('user');
-      expect($rootScope.licensed).toBeFalsy();
       expect($window.location.replace).toHaveBeenCalledWith('index.html#/management/configuration/productlicense');
     }));
 

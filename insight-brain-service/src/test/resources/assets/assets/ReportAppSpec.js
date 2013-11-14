@@ -41,7 +41,6 @@ describe('reportApp', function() {
   }));
   
   beforeEach(inject(function($rootScope, $state, $controller, $httpBackend, CLMLocations) {
-    $rootScope.initialized = true;
     $rootScope.licensed = true;
     scope = $rootScope.$new();
     state = $state;

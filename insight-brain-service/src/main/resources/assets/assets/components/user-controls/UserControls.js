@@ -22,7 +22,7 @@
 
     // Errors should be handled @ application level
     currentUser.then(function (authenticationStatus) {
-      if (authenticationStatus.isClmUser) {
+      if (authenticationStatus.clmUser) {
         $scope.username = authenticationStatus.username;
       }
     }, angular.noop);

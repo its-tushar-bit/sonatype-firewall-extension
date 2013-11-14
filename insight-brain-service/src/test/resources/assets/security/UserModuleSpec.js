@@ -24,6 +24,13 @@ describe('UserModuleSpec.js', function() {
     $provide.value('$modalInstance', {
       close: function() {}
     });
+    $provide.factory('CurrentUser', ['$q', function ($q) {
+      var deferred = $q.defer();
+      deferred.resolve({
+        username : 'user'
+      });
+      return deferred.promise;
+    }]);
     $provide.value('$modal', {
       open: function(config) {
         dialogScope = listScope.$new();

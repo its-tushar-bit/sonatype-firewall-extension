@@ -49,11 +49,12 @@
       'CurrentUser',
       function($rootScope, $location, $window, $state, messages, CLMLocations, licenseChecker, currentUser) {
         function checkBootstrap() {
-          if ($rootScope.username) {
+          if (username) {
             // User is logged in
             if ($rootScope.licensed) {
               // Typical usage, server is licensed
               stateChangePrevention(); // Remove block
+              $rootScope.initialized = true;
               if (savedState) {
                 $state.transitionTo(savedState.toState, savedState.toParams);
               }
@@ -68,6 +69,7 @@
                     event.preventDefault();
                   }
                 });
+                $rootScope.initialized = true;
                 $state.transitionTo('management.configuration.productlicense');
               }
             }
@@ -89,7 +91,8 @@
                 toState : toState,
                 toParams : toParams
               };
-            });
+            }),
+            username = null;
 
         licenseChecker.check().then(function () {
           $rootScope.licensed = true;
@@ -98,7 +101,7 @@
           if (result[1] === 402) {
            $rootScope.licensed = false;
            checkBootstrap();
-          } else if ($rootScope.username) {
+          } else if (username) {
             $rootScope.error = 'Unable to initialize the application';
           } else {
             $rootScope.$watch('username', function (newVal) {
@@ -113,7 +116,7 @@
           if (!data.authenticated) {
             redirectToLogin();
           } else {
-            $rootScope.username = data.username;
+            username = data.username;
             checkBootstrap();
           }
         }, function (error) {

@@ -58,8 +58,10 @@
     return store;
   }]);
 
-  module.controller('UserListController', ['$http', 'hudson', 'CLMLocations', 'UserStore', 'Messages', '$scope',
-      '$modal', '$rootScope', function($http, hudson, clmLocations, UserStore, messages, $scope, $modal, $rootScope) {
+  module.controller('UserListController', ['$http', 'hudson', 'CLMLocations', 'UserStore', 'Messages', 'CurrentUser', '$scope',
+      '$modal', '$q', function($http, hudson, clmLocations, UserStore, messages, CurrentUser, $scope, $modal, $q) {
+        var username = null;
+
         $scope.context = {
           userEditMap: {},
           users: []
@@ -67,8 +69,9 @@
         $scope.doLoad = function() {
           $scope.error = null;
 
-          UserStore.refresh().then(function(data) {
-            $scope.context.users = data;
+          $q.all([UserStore.refresh(), CurrentUser]).then(function(results) {
+            $scope.context.users = results[0];
+            username = results[1].username;
           }, function(error) {
             $scope.error = error;
           });
@@ -80,7 +83,7 @@
           });
         };
         $scope.isCurrentUser = function(user) {
-          return $rootScope.username === user.username;
+          return username === user.username;
         };
         $scope.changePasswordClick = function(user) {
           $modal.open({

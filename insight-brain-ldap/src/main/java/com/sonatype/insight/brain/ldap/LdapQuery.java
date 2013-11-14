@@ -249,7 +249,7 @@ class LdapQuery
    *
    * @param nameFragment String to match against
    * @param maxResults maximum number of results to pull from ldap, don't want to overload the system
-   * @return List of LdapUser objects matching the search criteria
+   * @return List of LdapGroup objects matching the search criteria
    */
   public List<LdapGroup> queryGroupsByName(String nameFragment, long maxResults) throws NamingException {
     String[] attributes = pickAttributes(umap.getGroupIDAttribute());

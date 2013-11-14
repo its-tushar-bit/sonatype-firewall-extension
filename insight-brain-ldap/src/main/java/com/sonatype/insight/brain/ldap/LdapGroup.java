@@ -36,8 +36,8 @@ public class LdapGroup
   public String toString() {
     StringBuilder buf = new StringBuilder();
 
-    buf.append("User:");
-    buf.append("\n\tUsername: ").append(groupname);
+    buf.append("Group:");
+    buf.append("\n\tGroupname: ").append(groupname);
     buf.append("\n\tDN: ").append(dn);
 
     return buf.toString();

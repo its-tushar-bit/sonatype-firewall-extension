@@ -7,8 +7,8 @@ package com.sonatype.insight.brain.version;
 
 import java.util.Map;
 
-import com.sonatype.insight.brain.AuthedRestAccess;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
+import com.sonatype.insight.test.RestAccess;
 
 import com.ning.http.client.Response;
 import com.yammer.dropwizard.testing.JsonHelpers;
@@ -27,7 +27,7 @@ public class VersionResourceTest
 
   @Test
   public void testGetVersionInfo_Licensed() throws Exception {
-    Response response = AuthedRestAccess.get(getServiceURL());
+    Response response = RestAccess.get(getServiceURL());
     assertResponseStatus(200, response);
     Map<?, ?> versionInfo = JsonHelpers.fromJson(response.getResponseBody(), Map.class);
     assertNotNull(versionInfo);

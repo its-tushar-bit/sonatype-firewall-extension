@@ -4,7 +4,7 @@
  */
 (function() {
   'use strict';
-  var appSecurityModule = angular.module('ApplicationSecurityModule', ['CommonServices', 'ui.utils']);
+  var appSecurityModule = angular.module('ApplicationSecurityModule', ['CommonServices', 'ui.utils', 'ngSanitize']);
 
   appSecurityModule.controller('AppSecurityController', ['$scope', '$http', 'CLMAppLocations', function($scope, $http, clmAppLocations) {
     function getUserLists(role) {

@@ -138,6 +138,18 @@ public class LdapManager
   }
 
   /**
+   * Find a list of groups, searching the Group ID attribute and adding a prefix and suffix wildcard to the nameFragment
+   *
+   * @param nameFragment String to match against
+   * @param maxResults Limit on the number of results to return
+   * @return List of LdapGroup objects that match the search criteria
+   */
+  public List<LdapGroup> findGroupsByName(String nameFragment, long maxResults) throws NamingException {
+    LdapConnection conn = getDecryptedConnection();
+    return new LdapQuery(conn, userDao.getByServerId(conn.getServerId())).queryGroupsByName(nameFragment, maxResults);
+  }
+
+  /**
    * Tests finding users with a nameFragment
    * 
    * @param umap user mappings to find proper attributes for the ldap query

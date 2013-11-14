@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -75,6 +76,9 @@ public class ApplicationResource
   public static final String GET_APPLICATION_MANAGEMENT_SUMMARIES = "services/summary";
 
   public static final String GET_APPLICATION_MANAGEMENT_SUMMARY = GET_APPLICATION_MANAGEMENT_SUMMARIES + "/{applicationPublicId}";
+
+  public static final String GET_SCAN_APPLICATION_MANAGEMENT_SUMMARY = GET_APPLICATION_MANAGEMENT_SUMMARIES
+      + "/{applicationPublicId}/{scanId}";
 
   public static final String GET_APPLICATION_PATH = "{applicationPublicId}";
 
@@ -189,6 +193,23 @@ public class ApplicationResource
   {
     final Application application = applicationDAO.getByPublicIdNotNull(applicationPublicId);
     return getApplicationManagementSummary(application);
+  }
+
+  /**
+   * Get an ApplicatinoManagementSummary containing only the information for a specific scan.
+   * 
+   * @since 1.7
+   */
+  @GET
+  @Path(GET_SCAN_APPLICATION_MANAGEMENT_SUMMARY)
+  @Produces(MediaType.APPLICATION_JSON)
+  @Authorize(permission = Permission.READ)
+  public ApplicationManagementSummary getApplicationManagementSummary(
+      @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) @PathParam("applicationPublicId") final String applicationPublicId,
+      @PathParam("scanId") final String scanId) throws IOException
+  {
+    final Application application = applicationDAO.getByPublicIdNotNull(applicationPublicId);
+    return getApplicationManagementSummary(application, scanId);
   }
 
   /**
@@ -371,6 +392,19 @@ public class ApplicationResource
     applicationManagement.setPolicyEvaluationsResults(policyEvaluationResults);
 
     return applicationManagement;
+  }
+
+  private ApplicationManagementSummary getApplicationManagementSummary(final Application application, String scanId)
+      throws IOException
+  {
+    final String applicationPublicId = application.getPublicId();
+    final String applicationId = application.getId();
+    log.debug("Found application with public id {}", applicationPublicId);
+
+    PolicyEvaluation evaluation = new PolicyEvaluationLog(work.getAuditDir(applicationId)).lastByScan(scanId);
+    ApplicationManagementSummary summary = ApplicationManagementSummary.fromApplication(application);
+    summary.setPolicyEvaluations(Collections.singletonMap(evaluation.getStage().toString(), evaluation));
+    return summary;
   }
 
   private List<PolicyEvaluation> getMostRecentPolicyEvaluations(final String appId) throws IOException {

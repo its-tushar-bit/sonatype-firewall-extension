@@ -10,7 +10,7 @@
   var reportModule = angular.module('Report', ['CLMLocation', 'ui.router', 'AngularCommon', 'CommonServices'], [
     '$stateProvider', function($stateProvider) {
       $stateProvider.state('report', {
-        url: '/reports/{publicId}/{stageId}',
+        url: '/reports/{publicId}/{scanId}',
         controller: 'ReportController',
         templateUrl: '../report-assets/report/report.html?' + clmBuildTimestamp
       });
@@ -20,29 +20,30 @@
   reportModule.controller('ReportController', [
     '$scope', '$state', '$http', '$q', 'CLMLocations', function($scope, $state, $http, $q, clmLocations) {
       $scope.doLoad = function() {
-        var appListPromise = $http.get(clmLocations.getApplicationSummaryUrl($state.params.publicId), {
-              params: { timestamp: new Date().getTime() }
-            }),
-            actionStagePromise = $http.get(clmLocations.getActionStageUrl(), {
-              params: { timestamp: new Date().getTime() }
-            });
         $scope.error = null;
 
-        $q.all([appListPromise, actionStagePromise]).then(function(results) {
-          var stageId = $state.params.stageId;
-          for (var stageTypeId in results[0].data.policyEvaluations) {
-            if (stageTypeId === stageId) {
-              $scope.policyEvaluation = results[0].data.policyEvaluations[stageTypeId];
-              break;
-            }
-          }
-          $scope.application = results[0].data;
-          $scope.reportUrl = '../rest/report/' + encodeURIComponent($state.params.publicId) + '/' +
-              encodeURIComponent($scope.policyEvaluation.scanId) + '/browseReport/index.html';
+        var actionStagePromise = $http.get(clmLocations.getActionStageUrl(), {
+              params: { timestamp: new Date().getTime() }
+            }),
+            appScanSummary = $http.get(clmLocations.getApplicationScanSummary($state.params.publicId, $state.params.scanId), {
+              params : { timestamp : new Date().getTime() }
+            });
 
-          for (var i = 0; i < results[1].data.length; i++) {
-            if (results[1].data[i].id == $scope.policyEvaluation.stage.stageTypeId) {
-              $scope.policyEvaluation.stage.stageName = results[1].data[i].name;
+        $scope.reportUrl = '../rest/report/' + encodeURIComponent($state.params.publicId) + '/'
+                + encodeURIComponent($state.params.scanId) + '/browseReport/index.html';
+
+        $q.all([actionStagePromise, appScanSummary]).then(function(results) {
+          $scope.application = results[1].data;
+
+          angular.forEach($scope.application.policyEvaluations, function (evaluation, stageId) {
+            if (evaluation.scanId === $state.params.scanId) {
+              $scope.policyEvaluation = evaluation;
+            }
+          });
+
+          for (var i = 0; i < results[0].data.length; i++) {
+            if (results[0].data[i].id == $scope.policyEvaluation.stage.stageTypeId) {
+              $scope.policyEvaluation.stage.stageName = results[0].data[i].name;
               break;
             }
           }

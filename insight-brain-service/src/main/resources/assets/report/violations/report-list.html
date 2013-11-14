@@ -38,15 +38,16 @@
 					<td ng-repeat='stage in stages | filterReportColumns'>
 						<div show-if='application.policyEvaluationsResults[stage.id]'>
 							<div>
-								<a class='no-hover-underline' style='vertical-align: middle;' title='View Report' href='#/reports/{{encodeURIComponent(application.publicId)}}/{{stage.id}}'>
-                                                                  <div chiclets critical="application.policyEvaluationsResults[stage.id].criticalComponentCount"
-                                                                       severe="application.policyEvaluationsResults[stage.id].severeComponentCount"
-                                                                       moderate="application.policyEvaluationsResults[stage.id].moderateComponentCount"></div>
+								<a class='no-hover-underline' style='vertical-align: middle;' title='View Report'
+										href='#/reports/{{encodeURIComponent(application.publicId)}}/{{application.policyEvaluations[stage.id].scanId}}'>
+									<div chiclets critical="application.policyEvaluationsResults[stage.id].criticalComponentCount"
+										severe="application.policyEvaluationsResults[stage.id].severeComponentCount"
+										moderate="application.policyEvaluationsResults[stage.id].moderateComponentCount"></div>
 									<span ng-show='!(application.policyEvaluationsResults[stage.id].criticalComponentCount + application.policyEvaluationsResults[stage.id].severeComponentCount + application.policyEvaluationsResults[stage.id].moderateComponentCount)' style="color:#000000;">No violations</span>
 								</a>
 							</div>
 							<div>
-								<a title='View Report' href='#/reports/{{encodeURIComponent(application.publicId)}}/{{stage.id}}'>
+								<a title='View Report' href='#/reports/{{encodeURIComponent(application.publicId)}}/{{application.policyEvaluations[stage.id].scanId}}'>
 									{{application.policyEvaluations[stage.id].time | ago}}</a>
 							</div>
 						</div>

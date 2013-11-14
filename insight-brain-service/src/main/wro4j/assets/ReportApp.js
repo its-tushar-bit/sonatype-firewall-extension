@@ -6,13 +6,9 @@
 /* global angular, clmBuildTimestamp */
 (function() {
   'use strict';
-  angular.module('reportApp', ['ReportModule', 'Report', 'ngRoute'],
-    [
-      '$urlRouterProvider',
-      function($urlRouterProvider) {
-        $urlRouterProvider.when('', '/reports/violations');
-      }
-    ]);
+  angular.module('reportApp', ['ReportModule', 'Report', 'ngRoute'], ['$urlRouterProvider', function($urlRouterProvider) {
+    $urlRouterProvider.when('', '/reports/violations');
+  }]);
 }());
 
 (function() {

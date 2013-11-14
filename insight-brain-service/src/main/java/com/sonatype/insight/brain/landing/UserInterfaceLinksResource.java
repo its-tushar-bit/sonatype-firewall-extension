@@ -16,7 +16,6 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 
 import com.sonatype.insight.brain.product.license.UnlicensedPath;
-import com.sonatype.insight.brain.report.ReportResource;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightBrainService;
 
@@ -66,7 +65,8 @@ public class UserInterfaceLinksResource
       @PathParam("scanId") String scanId)
   {
     UriBuilder uriBuilder = baseUrl.redirect();
-    uriBuilder.path(ReportResource.getReportPath(applicationPublicId, scanId));
-    return redirect(uriBuilder.build());
+    uriBuilder.path(InsightBrainService.BRAIN_ASSET_PATH + "reports.html").fragment(
+        "/reports/{applicationPublicId}/{scanId}");
+    return redirect(uriBuilder.build(applicationPublicId, scanId));
   }
 }

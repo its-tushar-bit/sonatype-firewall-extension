@@ -86,7 +86,7 @@
 					</span>
 					<div show-if='applicationSummary.policyEvaluationsResults[stage.id]'>
 						<a class='no-hover-underline' style='vertical-align: middle;' title='View Report - {{applicationSummary.policyEvaluations[stage.id].time | ago}}'
-						   ng-href='reports.html#/reports/{{encodeURIComponent(applicationSummary.publicId)}}/{{stage.id}}' target='_blank'>
+						   ng-href='reports.html#/reports/{{encodeURIComponent(applicationSummary.publicId)}}/{{applicationSummary.policyEvaluations[stage.id].scanId}}' target='_blank'>
 							<div chiclets critical="applicationSummary.policyEvaluationsResults[stage.id].criticalComponentCount"
 							     severe="applicationSummary.policyEvaluationsResults[stage.id].severeComponentCount"
 							     moderate="applicationSummary.policyEvaluationsResults[stage.id].moderateComponentCount"></div>

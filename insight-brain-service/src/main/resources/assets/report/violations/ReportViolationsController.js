@@ -7,20 +7,24 @@
   "use strict";
   var reportListModule = angular.module('ReportViolations', ['AngularCommon', 'CLMLocation']);
 
-  reportListModule.controller('ReportViolationsController', [
-    '$scope',
-    '$http',
-    '$q',
-    'CLMLocations',
+  reportListModule.controller('ReportViolationsController', ['$scope', '$http', '$q', 'CLMLocations',
     function($scope, $http, $q, clmLocations) {
+
+      $scope.orderColumn = 'name';
+      $scope.orderDirection = false;
+      $scope.encodeURIComponent = window.encodeURIComponent;
+
       $scope.doLoad = function() {
-        var promises = [$http.get(clmLocations.getActionStageUrl()),
-                        $http.get(clmLocations.getApplicationSummariesUrl(), {
-                          params: {
-                            timestamp: new Date().getTime()
-                          }
-                        })];
         $scope.error = null;
+
+        var promises = [];
+
+        promises.push($http.get(clmLocations.getActionStageUrl()));
+        promises.push($http.get(clmLocations.getApplicationSummariesUrl(), {
+          params: {
+            timestamp: new Date().getTime()
+          }
+        }));
 
         $q.all(promises).then(function(results) {
           $scope.stages = results[0].data;
@@ -29,9 +33,6 @@
           $scope.error = arguments[0];
         });
       };
-      $scope.orderColumn = 'name';
-      $scope.orderDirection = false;
-      $scope.encodeURIComponent = window.encodeURIComponent;
       $scope.doLoad();
     }]);
 }());

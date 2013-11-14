@@ -112,7 +112,7 @@
 								</button>
 								<a type="button" class="btn btn-mini" title="Remove License Threat Group" ng-click='confirmDeleteLicenseGroup(licenseGroup)'><i class='icon-trash'></i></a>
 							</div>
-							<a class="accordion-toggle licenseGroup-top collapsed" data-toggle="collapse" data-parent="applicableLicenseGroup.licenseThreatGroups" href="#collapse{{licenseGroup.id}}">
+							<a class="accordion-toggle licenseGroup-top collapsed" data-toggle="collapse" data-parent="applicableLicenseGroup.licenseThreatGroups" data-target="#collapse{{licenseGroup.id}}">
 								<span class='threat-chiclet threat-level-{{licenseGroup.threatLevel}}'>&nbsp;</span>
 								<h3>{{licenseGroup.name}}</h3>
 							</a>

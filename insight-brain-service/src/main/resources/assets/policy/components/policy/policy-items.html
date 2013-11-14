@@ -5,7 +5,7 @@
 				<button type='button' class="btn btn-mini policy-button" title="Edit Policy" ng-disabled='policyEditMap[policy.id]' ng-click="edit(policy)"><i class="icon-pencil"></i></button>
 				<button type='button' class="btn btn-mini policy-button" title="Remove Policy" ng-click="remove(policy)"><i class="icon-trash"></i></button>
 			</div>
-			<a class="accordion-toggle policy-top collapsed" data-toggle="collapse" href="#collapse{{policy.id}}">
+			<a class="accordion-toggle policy-top collapsed" data-toggle="collapse" data-target="#collapse{{policy.id}}">
 				<span class='threat-chiclet threat-level-{{policy.threatLevel}}'>&nbsp;</span>
 				<h3>{{policy.name}}</h3>
 			</a>

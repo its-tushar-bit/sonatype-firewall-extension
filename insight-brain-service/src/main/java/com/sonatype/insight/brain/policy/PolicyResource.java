@@ -103,7 +103,8 @@ public class PolicyResource
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   @Authorize(permission = Permission.READ)
-  public List<Policy> getPolicies(@AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") final String ownerType,
+  public List<Policy> getPolicies(
+      @AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") final String ownerType,
       @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") final String ownerId)
   {
     log.debug("Received request to get all policies for {} id {}", ownerType, ownerId);
@@ -162,9 +163,12 @@ public class PolicyResource
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   @Authorize(permission = Permission.WRITE)
-  public Policy addPolicy(@AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") final String ownerType,
-      @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") final String ownerId, final Policy policy,
-      @QueryParam("user") final String user, @QueryParam("where") final String where,
+  public Policy addPolicy(
+      @AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") final String ownerType,
+      @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") final String ownerId,
+      final Policy policy,
+      @QueryParam("user") final String user,
+      @QueryParam("where") final String where,
       @Context final HttpServletRequest request)
   {
     log.debug("Received request to add {} policy for ownerId {}", ownerType, ownerId);
@@ -178,9 +182,12 @@ public class PolicyResource
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   @Authorize(permission = Permission.WRITE)
-  public Policy updatePolicy(@AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") final String ownerType,
-      @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") final String ownerId, final Policy policy,
-      @QueryParam("user") final String user, @QueryParam("where") final String where,
+  public Policy updatePolicy(
+      @AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") final String ownerType,
+      @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") final String ownerId,
+      final Policy policy,
+      @QueryParam("user") final String user,
+      @QueryParam("where") final String where,
       @Context final HttpServletRequest request)
   {
     log.debug("Received request to update {} policy for ownerId {}, policyId {}", ownerType, ownerId, policy.getId());
@@ -193,10 +200,13 @@ public class PolicyResource
   @DELETE
   @Path("{policyId}")
   @Authorize(permission = Permission.WRITE)
-  public void deletePolicy(@AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") final String ownerType,
+  public void deletePolicy(
+      @AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") final String ownerType,
       @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") final String ownerId,
-      @PathParam("policyId") final String policyId, @QueryParam("user") final String user,
-      @QueryParam("where") final String where, @Context final HttpServletRequest request)
+      @PathParam("policyId") final String policyId,
+      @QueryParam("user") final String user,
+      @QueryParam("where") final String where,
+      @Context final HttpServletRequest request)
   {
     log.debug("Received request to delete {} policy for ownerId {}, policyId {}", ownerType, ownerId, policyId);
 
@@ -240,8 +250,10 @@ public class PolicyResource
   @Path("import")
   @Produces(MediaType.APPLICATION_JSON)
   // defer authorization check to point where context becomes clear
-  public PolicyImportResult importPolicies(@PathParam("ownerType") final String ownerType,
-      @PathParam("ownerId") String ownerId, @Context HttpServletRequest servletRequest) throws IOException
+  public PolicyImportResult importPolicies(
+      @PathParam("ownerType") final String ownerType,
+      @PathParam("ownerId") String ownerId,
+      @Context HttpServletRequest servletRequest) throws IOException
   {
     PolicyExportResult exportDTO = readPolicyExportResult(servletRequest.getInputStream());
     if (!TYPE_APPLICATION.equals(ownerType)) {
@@ -254,11 +266,12 @@ public class PolicyResource
   /**
    * Import an existing Application export to an Organization. Supported only as an update mechanism
    * between v1.5 and v1.6
-   * 
+   *
    * @since 1.6
    */
   @Authorize(permission = Permission.WRITE)
-  PolicyImportResult importFromApplicationToOrganization(@AuthzContext(AuthzContext.Key.ORGANIZATION_ID) String orgId,
+  PolicyImportResult importFromApplicationToOrganization(
+      @AuthzContext(AuthzContext.Key.ORGANIZATION_ID) String orgId,
       PolicyExportResult exportDTO)
   {
     // ensure that Org exists and does not already have Apps, Policy, Label or LTGs

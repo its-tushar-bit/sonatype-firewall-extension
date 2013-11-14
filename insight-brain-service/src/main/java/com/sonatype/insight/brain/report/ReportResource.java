@@ -134,7 +134,9 @@ public class ReportResource
    */
   @GET
   @Path("browseReport/{path:.*}")
-  public Response browseReport(@PathParam("applicationPublicId") final String applicationPublicId,
+  @Authorize(permission = Permission.READ)
+  public Response browseReport(
+      @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) @PathParam("applicationPublicId") final String applicationPublicId,
       @PathParam("scanId") final String scanId, @PathParam("path") final String path,
       @Context final HttpServletRequest httpRequest) throws IOException
   {
@@ -177,7 +179,9 @@ public class ReportResource
    */
   @GET
   @Path("reevaluatePolicy")
-  public Response reevaluatePolicy(@PathParam("applicationPublicId") final String applicationPublicId,
+  @Authorize(permission = Permission.READ)
+  public Response reevaluatePolicy(
+      @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) @PathParam("applicationPublicId") final String applicationPublicId,
       @PathParam("scanId") final String scanId) throws IOException
   {
     Application application = applicationDAO.getByPublicIdNotNull(applicationPublicId);
@@ -197,7 +201,9 @@ public class ReportResource
   @GET
   @Path("printReport")
   @Produces("application/pdf")
-  public Response printReport(@PathParam("applicationPublicId") final String applicationPublicId,
+  @Authorize(permission = Permission.READ)
+  public Response printReport(
+      @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) @PathParam("applicationPublicId") final String applicationPublicId,
       @PathParam("scanId") final String scanId, @QueryParam("projectName") final String projectName,
       @QueryParam("buildNumber") final int buildNumber) throws IOException
   {
@@ -290,7 +296,9 @@ public class ReportResource
   @GET
   @Path("auditLog/{path}")
   @Produces(MediaType.APPLICATION_JSON)
-  public Response auditLog(@PathParam("applicationPublicId") final String applicationPublicId,
+  @Authorize(permission = Permission.READ)
+  public Response auditLog(
+      @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) @PathParam("applicationPublicId") final String applicationPublicId,
       @PathParam("path") final String path, @QueryParam("key") final String encodedKey) throws IOException
   {
     Application application = applicationDAO.getByPublicIdNotNull(applicationPublicId);

@@ -49,7 +49,7 @@ public class ProprietaryConfigResourceTest
     List<String> packages = Arrays.asList("org.sonatype", "com.sonatype");
     ProprietaryConfig config = new ProprietaryConfig();
     config.setPackages(packages);
-    Response response = AuthedRestAccess.put(getServiceUrl(), JsonHelpers.asJson(config));
+    Response response = AuthedRestAccess.put(getServiceUrl() + "/update", JsonHelpers.asJson(config));
     assertResponseStatus(204, response);
 
     response = AuthedRestAccess.get(getServiceUrl());

@@ -13,7 +13,6 @@ import com.sonatype.clm.dto.model.ProprietaryConfig;
 import com.sonatype.insight.brain.service.AbstractResourceAuthzTest;
 
 import org.junit.After;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import static org.junit.Assert.assertTrue;
@@ -28,16 +27,14 @@ public class ProprietaryConfigResourceAuthzTest
   }
 
   @Test
-  // TODO: Enable when CLM-541 is fixed.
-  @Ignore
   public void testUpdate() throws Exception {
     List<String> packages = Arrays.asList("org.sonatype", "com.sonatype");
     ProprietaryConfig config = new ProprietaryConfig();
     config.setPackages(packages);
-    
+
     grantAdminPermission();
 
-    String url = getRestUrl(ProprietaryConfigResource.SERVICE_PATH);
+    String url = getRestUrl(ProprietaryConfigResource.SERVICE_PATH + "/update");
 
     testAuthzPut(url, toJson(config), 204);
   }

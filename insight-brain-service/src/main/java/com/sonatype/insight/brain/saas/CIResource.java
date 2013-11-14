@@ -17,10 +17,8 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.StreamingOutput;
 
 import com.sonatype.clm.dto.model.ScanReceipt;
-import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.organization.ApplicationResource;
 import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
 import com.sonatype.insight.license.model.CLMEnforcementPoint;
@@ -32,15 +30,10 @@ public class CIResource
 {
   public static final String SERVICE_PATH = "rest/ci";
 
-  private final SaasClient client;
-
   private final ScanUploader uploader;
 
-  private ApplicationDAO applicationDAO = new ApplicationDAO();
-
   @Inject
-  public CIResource(final SaasClient client, final ScanUploader uploader) {
-    this.client = client;
+  public CIResource(final ScanUploader uploader) {
     this.uploader = uploader;
   }
 
@@ -61,16 +54,5 @@ public class CIResource
       @Context HttpServletRequest req) throws IOException
   {
     return uploader.upload(req, applicationPublicId, "rest/ci/scan");
-  }
-
-  @GET
-  @Path("report/{applicationPublicId}")
-  @Produces(MediaType.APPLICATION_OCTET_STREAM)
-  public StreamingOutput getReport(@PathParam("applicationPublicId") final String applicationPublicId,
-      @Context final HttpServletRequest req) throws IOException
-  {
-    applicationDAO.getByPublicIdNotNull(applicationPublicId);
-
-    return StreamingOutput.class.cast(client.doProxy(req, "rest/ci/report").getEntity());
   }
 }

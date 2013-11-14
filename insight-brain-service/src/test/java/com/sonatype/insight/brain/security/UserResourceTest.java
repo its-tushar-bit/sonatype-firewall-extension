@@ -15,7 +15,6 @@ import com.sonatype.insight.brain.TemporaryEntity;
 import com.sonatype.insight.brain.configuration.ldap.LdapServer;
 import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
-import com.sonatype.insight.brain.features.FeaturesResource;
 import com.sonatype.insight.brain.ldap.EmbeddedLdapServer;
 import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
@@ -25,6 +24,7 @@ import com.sonatype.insight.brain.security.UserResource.ChangePasswordDTO;
 import com.sonatype.insight.brain.security.UserResource.FindUsersDTO;
 import com.sonatype.insight.brain.security.UserSessionResource.AuthenticationStatus;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
+import com.sonatype.insight.brain.version.VersionResource;
 import com.sonatype.insight.test.RestAccess;
 
 import com.ning.http.client.Cookie;
@@ -270,7 +270,7 @@ public class UserResourceTest
     assertResponseStatus(204, response);
     
     // access an anonymous resource to create a third session
-    response = RestAccess.get(getRestBaseUrl() + FeaturesResource.SERVICE_PATH);
+    response = RestAccess.get(getRestBaseUrl() + VersionResource.SERVICE_PATH);
     assertResponseStatus(200, response);
     
     // now delete the first user

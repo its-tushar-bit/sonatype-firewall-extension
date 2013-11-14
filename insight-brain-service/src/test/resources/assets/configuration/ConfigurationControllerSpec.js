@@ -61,7 +61,7 @@ describe('Configuration', function() {
 
       scope.packages.push('bar');
 
-      $httpBackend.expectPUT(CLMLocations.getProprietaryConfig()).respond(204);
+      $httpBackend.expectPUT(CLMLocations.getProprietaryConfig() + '/update').respond(204);
       scope.save();
       expect(scope.saving).toEqual(true);
       $httpBackend.flush();
@@ -79,7 +79,7 @@ describe('Configuration', function() {
 
       scope.packages.push('bar');
 
-      $httpBackend.expectPUT(CLMLocations.getProprietaryConfig()).respond(500, 'A Random Error');
+      $httpBackend.expectPUT(CLMLocations.getProprietaryConfig() + '/update').respond(500, 'A Random Error');
       scope.save();
       $httpBackend.flush();
 

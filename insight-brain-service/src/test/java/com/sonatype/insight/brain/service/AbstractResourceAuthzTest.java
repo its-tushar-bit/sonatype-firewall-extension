@@ -58,6 +58,11 @@ public abstract class AbstractResourceAuthzTest
     tempEntity.newMembershipMapping(contextId, role.getId(), authorized.getUsername());
   }
 
+  protected void grantReadPermission(String contextId) {
+    Role role = tempEntity.newRole(false /* global */, Permission.READ);
+    tempEntity.newMembershipMapping(contextId, role.getId(), authorized.getUsername());
+  }
+
   protected void testAuthzGet(String url) throws Exception {
     testAuthzGet(url, 200);
   }
@@ -68,6 +73,15 @@ public abstract class AbstractResourceAuthzTest
 
     response = RestAccess.get(url, authorized.getUsername(), authorized.getPassword());
     assertResponseStatus(expectedSuccessStatus, response);
+  }
+
+  // Sometimes, simply being able to log in, is all the authorization you need...
+  protected void testAuthcGet(String url) throws Exception {
+    Response response = RestAccess.get(url);
+    assertResponseStatus(401, response);
+
+    response = RestAccess.get(url, authorized.getUsername(), authorized.getPassword());
+    assertResponseStatus(200, response);
   }
 
   protected void testAuthzPut(String url, String body) throws Exception {

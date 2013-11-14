@@ -44,6 +44,9 @@ public class CLMShiroModule
     manager.createChain("/*assets/**", "anon");
     manager.createChain("/favicon.ico", "anon");
     manager.createChain("/crumbIssuer/**", "anon");
+    manager.createChain("/rest/report/*/*/embedReport/**", "anon");
+    manager.createChain("/rest/report/*/*/brain/**", "anon");
+    manager.createChain("/rest/session/environment", "anon");
     manager.createChain("/rest/version", "anon");
     manager.createChain("/ui/links/**", "anon");
     manager.createChain("/**/*", "authcBasic");
@@ -58,17 +61,11 @@ public class CLMShiroModule
   private void addTemporaryAnonymousPaths( DefaultFilterChainManager manager ) {
     manager.createChain("/rest/application/services/names", "anon");
     manager.createChain("/rest/application/validate/*", "anon");
-    manager.createChain("/rest/component/identified", "anon");
     manager.createChain("/rest/config/proprietary", "anon");
-    manager.createChain("/rest/features", "anon");
     manager.createChain("/rest/ide/**", "anon");
-    manager.createChain("/rest/license", "anon");
     manager.createChain("/rest/policy/*/evaluate", "anon");
-    manager.createChain("/rest/policy/actionType", "anon");
-    manager.createChain("/rest/report/*/*/augmentData/**", "authcBasic");
-    manager.createChain("/rest/report/**", "anon");
-    manager.createChain("/rest/ci/**", "anon");
-    manager.createChain("/rest/session/environment", "anon");
+    manager.createChain("/rest/ci/validate/*", "anon");
+    manager.createChain("/rest/ci/scan/*", "anon");
     manager.createChain("/rest/rm/**", "anon");
     manager.createChain("/cip/**", "anon");
     manager.createChain("/tasks/**", "anon");

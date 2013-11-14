@@ -16,7 +16,6 @@ import com.sonatype.insight.license.model.CLMEnforcementPoint;
 
 import com.ning.http.client.Response;
 import org.codehaus.plexus.util.FileUtils;
-import org.codehaus.plexus.util.IOUtil;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -108,44 +107,6 @@ public class CIResourceTest
     setEnforcementPoints(CLMEnforcementPoint.StageRelease);
 
     Response response = AuthedRestAccess.put(getServiceURL() + "/scan/unlicensedapp", "");
-    assertResponseStatus(402, response);
-  }
-
-  @Test
-  public void testReport() throws Exception {
-    final String applicationPublicId = "CIResourceTest_AppId";
-    createApplication(applicationPublicId);
-    final String scanId = "CIResourceTest_ScanId";
-    final String licenseFingerprint = "CIResourceTest_LicenseFingerprint";
-    setLicenseFingerprint(licenseFingerprint);
-
-    final File saasReportFile = getReportResponseFile(licenseFingerprint, scanId);
-    saasReportFile.delete();
-
-    final URL testReportResultUrl = getClass().getResource("/CIResourceTest/report.zip");
-    FileUtils.copyFile(new File(testReportResultUrl.getFile()), saasReportFile);
-
-    final Response response = AuthedRestAccess.get(getServiceURL() + "/report/" + applicationPublicId + "?scanId=" + scanId);
-
-    assertResponseStatus(200, response);
-
-    assertThat(IOUtil.toByteArray(response.getResponseBodyAsStream()),
-        equalTo(IOUtil.toByteArray(testReportResultUrl.openStream())));
-  }
-
-  @Test
-  public void testReport_Unlicensed() throws Exception {
-    uninstallLicense();
-    Response response = AuthedRestAccess.get(getServiceURL() + "/report/unlicensedapp?scanId=unlicensedscanid");
-    assertResponseStatus(402, response);
-  }
-
-  @Test
-  public void testReport_EnforcementPointUnlicensed() throws Exception {
-    // note this enforcement point should not apply to this request
-    setEnforcementPoints(CLMEnforcementPoint.StageRelease);
-
-    Response response = AuthedRestAccess.get(getServiceURL() + "/report/unlicensedapp?scanId=unlicensedscanid");
     assertResponseStatus(402, response);
   }
 

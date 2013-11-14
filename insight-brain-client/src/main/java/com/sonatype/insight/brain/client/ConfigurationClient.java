@@ -40,8 +40,9 @@ public class ConfigurationClient
       String msg = result.text();
       if (status == 401) {
         /*
-         * Until CLM-541 is resolved, a misconfigured base URL will make the client issue requests against resources
-         * requiring authentication, so tweak the user facing error message to better highlight the proper remediation.
+         * Until the client uses authentication, a misconfigured base URL will make the client encounter authentication
+         * errors from already protected resources, so tweak the user facing error message to better highlight the
+         * proper remediation.
          */
         msg = "Resource not found, please check your request URL.";
       }

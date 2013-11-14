@@ -9,6 +9,9 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.Path;
 
+import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.security.Authorize;
+import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.service.InsightWork;
 
 @Path(CIComponentInfoResource.SERVICE_PATH)
@@ -26,5 +29,11 @@ public class CIComponentInfoResource
   @Override
   protected String getToolName() {
     return "ci";
+  }
+
+  @Override
+  @Authorize(permission = Permission.READ)
+  protected void verifyReadAccess(@AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String applicationPublicId) {
+    // the method interceptor for the authz annos is all that matters here
   }
 }

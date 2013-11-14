@@ -21,7 +21,6 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
 
 import com.sonatype.clm.dto.model.License;
 import com.sonatype.clm.dto.model.SecurityVulnerability;
@@ -75,27 +74,14 @@ public abstract class AbstractComponentInfoResource
   }
 
   @GET
-  @Path("versions/{applicationPublicId}")
-  @Produces(MediaType.APPLICATION_JSON)
-  /**
-   * @deprecated Used by eclipse plugin < 2.1.1, ci plugin < 2.8
-   */
-  public Response getComponentVersionDetails(@PathParam("applicationPublicId") String applicationPublicId,
-      @QueryParam("instanceId") String instanceId, @QueryParam("groupId") String groupId,
-      @QueryParam("artifactId") String artifactId, @QueryParam("version") String version) throws IOException
-  {
-    log.debug("Getting {} component version details for application id {}, GAV {}:{}:{}.", getToolName(),
-        applicationPublicId, groupId, artifactId, version);
-    return client.doProxy(request, "rest/ide/component/details/versions");
-  }
-
-  @GET
   @Path("list/{applicationPublicId}")
   @Produces(MediaType.APPLICATION_JSON)
   public ComponentDetailsList getComponentDetailsList(@PathParam("applicationPublicId") String applicationPublicId,
       @QueryParam("groupId") String groupId, @QueryParam("artifactId") String artifactId,
       @QueryParam("version") String version) throws IOException
   {
+    verifyReadAccess(applicationPublicId);
+
     long start = System.currentTimeMillis();
 
     log.debug("Getting {} component details list for application id {}, GAV {}:{}:{}.", getToolName(),
@@ -124,6 +110,8 @@ public abstract class AbstractComponentInfoResource
       @QueryParam("hash") String hash, @QueryParam("matchState") String matchState,
       @QueryParam("proprietary") boolean proprietary) throws IOException
   {
+    verifyReadAccess(applicationPublicId);
+
     long start = System.currentTimeMillis();
 
     log.debug("Getting {} component details for application id {}, GAV {}:{}:{}, hash {}.", getToolName(),
@@ -239,6 +227,8 @@ public abstract class AbstractComponentInfoResource
       @QueryParam("instanceId") String instanceId, @QueryParam("groupId") String groupId,
       @QueryParam("artifactId") String artifactId, @QueryParam("version") String version) throws IOException
   {
+    verifyReadAccess(applicationPublicId);
+
     applicationDAO.getByPublicIdNotNull(applicationPublicId);
 
     // Get component details from the SAAS server
@@ -285,6 +275,8 @@ public abstract class AbstractComponentInfoResource
       @QueryParam("groupId") String groupId, @QueryParam("artifactId") String artifactId,
       @QueryParam("version") String version) throws IOException
   {
+    verifyReadAccess(applicationPublicId);
+
     Application application = applicationDAO.getByPublicIdNotNull(applicationPublicId);
 
     ComponentLicenses result = new ComponentLicenses();
@@ -342,4 +334,11 @@ public abstract class AbstractComponentInfoResource
   }
 
   protected abstract String getToolName();
+
+  protected void verifyReadAccess(String applicationPublicId) {
+    /*
+     * Temporary hook for CIComponentInfoResource until IDEComponentInfoResource requires auth (CLM-1249) such the authz
+     * annos can simply be added in this class.
+     */
+  }
 }

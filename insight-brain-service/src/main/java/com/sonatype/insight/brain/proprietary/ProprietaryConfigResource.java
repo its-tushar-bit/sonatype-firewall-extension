@@ -19,7 +19,9 @@ import javax.ws.rs.core.MediaType;
 
 import com.sonatype.clm.dto.model.ProprietaryConfig;
 import com.sonatype.insight.brain.dataaccess.ProprietaryConfigDAO;
+import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.policy.PolicyResource;
+import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.client.utils.AuditUtils;
 
@@ -48,10 +50,15 @@ public class ProprietaryConfigResource
   }
 
   @PUT
+  /*
+   * NOTE: Without SHIRO-200, it's hard to protect the PUT but leave GET still open for anon if using the same path.
+   * Given this isn't public API and only used by the web UI, we temporarily change the path to overcome Shiro's
+   * shortcoming easily. The path can be reverted to match the one for GET once all clients use authc.
+   */
+  @Path("update")
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-  // TODO: Enable authz when CLM-541 is fixed.
-  // @Authorize(permission = Permission.ADMIN)
+  @Authorize(permission = Permission.ADMIN)
   public void update(@QueryParam("user") final String user, @QueryParam("where") final String where,
       @Context final HttpServletRequest request, final ProprietaryConfig config)
   {

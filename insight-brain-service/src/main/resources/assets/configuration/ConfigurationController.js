@@ -104,7 +104,7 @@
 
         $scope.saving = true;
 
-        hudson.put(clmLocations.getProprietaryConfig(), proprietary).success(function() {
+        hudson.put(clmLocations.getProprietaryConfig() + '/update', proprietary).success(function() {
           $scope.saving = false;
           $scope.proprietary = proprietary;
           $scope.reset();

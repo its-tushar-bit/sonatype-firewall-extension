@@ -446,6 +446,8 @@ class LdapQuery
 
     StringBuilder ldapFilter = new StringBuilder("(&");
 
+    ldapFilter.append("(objectClass=").append(umap.getGroupObjectClass()).append(')');
+
     if (attributeValues.size() > 1) {
       ldapFilter.append("(|");
     }

@@ -351,13 +351,18 @@ public class LdapManagerTest
 
     LdapUserMapping umap = createUserMapping();
     LdapUserMappingDAO userMappingDAO = new LdapUserMappingDAO();
+    umap.setGroupMappingType(LdapGroupMappingType.STATIC);
+    umap.setGroupObjectClass("groupOfNames");
+    umap.setGroupMemberAttribute("member");
+    umap.setGroupMemberFormat("uid=${username}");
     userMappingDAO.insert(umap);
 
+    // Wrong Objectclass, groupOfUniqueNames not groupOfNames
     List<LdapGroup> groups = manager.findGroupsByName("Alpha", 100);
-    assertThat(groups.size(), is(1));
+    assertThat(groups.size(), is(0));
 
     groups = manager.findGroupsByName("a", 100);
-    assertThat(groups.size(), is(5));
+    assertThat(groups.size(), is(3));
 
     // Test max results
     groups = manager.findGroupsByName("a", 2);
@@ -380,6 +385,32 @@ public class LdapManagerTest
     conn.setHostname("localhost");
     new LdapConnectionDAO().insert(conn);
     assertThat(manager.isLdapEnabled(), is(true));
+  }
+
+  @Test
+  public void testIsLdapGroupEnabled() throws Exception {
+    serverDetails = new LdapServer();
+    serverDetails.setName("Test Server");
+    serverDao.insert(serverDetails);
+    assertThat(manager.isLdapEnabled(), is(false));
+
+    LdapConnection conn = createLdapConnection();
+    conn.setHostname("localhost");
+    conn.setSearchBase("dc=company,dc=com");
+    new LdapConnectionDAO().insert(conn);
+
+    LdapUserMapping umap = createUserMapping();
+    umap.setGroupMappingType(LdapGroupMappingType.NONE);
+
+    LdapUserMappingDAO userMappingDAO = new LdapUserMappingDAO();
+    userMappingDAO.insert(umap);
+
+    assertThat(manager.isLdapGroupEnabled(), is(false));
+
+    umap.setGroupMappingType(LdapGroupMappingType.STATIC);
+    userMappingDAO.update(umap);
+
+    assertThat(manager.isLdapGroupEnabled(), is(true));
   }
 
   @Test

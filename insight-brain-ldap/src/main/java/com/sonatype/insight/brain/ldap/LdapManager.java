@@ -20,6 +20,7 @@ import org.sonatype.plexus.components.cipher.PlexusCipher;
 import org.sonatype.plexus.components.cipher.PlexusCipherException;
 
 import com.sonatype.insight.brain.configuration.ldap.LdapConnection;
+import com.sonatype.insight.brain.configuration.ldap.LdapGroupMappingType;
 import com.sonatype.insight.brain.configuration.ldap.LdapServer;
 import com.sonatype.insight.brain.configuration.ldap.LdapUserMapping;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapConnectionDAO;
@@ -175,6 +176,14 @@ public class LdapManager
     List<LdapServer> servers = serverDao.getAll();
     return !servers.isEmpty() &&
         connDao.getByServerId(servers.get(0).getId()) != null; // We have at least one server with a connection
+  }
+
+  public boolean isLdapGroupEnabled() {
+    if (isLdapEnabled()) {
+      LdapConnection conn = getDecryptedConnection();
+      return userDao.getByServerId(conn.getServerId()).getGroupMappingType() != LdapGroupMappingType.NONE;
+    }
+    return false;
   }
 
   /**

@@ -36,6 +36,6 @@
 	</form>
 </div>
 	</script>
-	<span ng-controller='ChangePassword' ng-show='username'><a ng-click="change()">Change Password</a> | </span>
+	<span ng-controller='ChangePassword' ng-show='canChangePassword()'><a ng-click="change()">Change Password</a> | </span>
 	<a ng-controller='LogoutController' ng-click="logout()">Logout</a>
 </div>

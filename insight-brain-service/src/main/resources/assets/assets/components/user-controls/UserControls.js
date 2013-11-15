@@ -19,13 +19,16 @@
   }]);
 
   module.controller('ChangePassword', ['$scope', '$http', '$modal', 'CLMLocations', 'CurrentUser', 'Messages', function ($scope, $http, modal, clmLocations, currentUser, messages) {
+    var clmUser = null;
 
     // Errors should be handled @ application level
     currentUser.then(function (authenticationStatus) {
-      if (authenticationStatus.clmUser) {
-        $scope.username = authenticationStatus.username;
-      }
+      clmUser = authenticationStatus.clmUser;
     }, angular.noop);
+
+    $scope.canChangePassword = function () {
+      return clmUser;
+    };
 
     $scope.change = function () {
       modal.open({

@@ -67,52 +67,78 @@ describe('UserControlsSpec', function () {
     }));
   });
 
-  describe('ChangePassword', function () {
+  describe('ChangePasswordController', function () {
     beforeEach(inject(function ($controller, $rootScope) {
       scope = $rootScope.$new();
 
       $controller('ChangePassword', {
         $scope : scope
       });
+    }));
 
-      userControlSuccess({
-        username : 'foo',
-        authenticated : true,
-        isClmUser : true
+    describe('canChangePassword', function () {
+      it('Not Loaded', function () {
+        expect(scope.canChangePassword()).toBeFalsy();
       });
-      scope.change();
+      it('CLM User', function () {
+        userControlSuccess({
+          username : 'foo',
+          authenticated : true,
+          clmUser : true
+        });
+        expect(scope.canChangePassword()).toBeTruthy();
+      });
+      it('Not CLM User', function () {
+        userControlSuccess({
+          username : 'foo',
+          authenticated : true,
+          clmUser : false
+        });
+        expect(scope.canChangePassword()).toBeFalsy();
+      });
+    });
 
-      dialogScope.result = {
-        originalPassword : 'bar',
-        newPassword : 'xxx',
-        confirmPassword : 'xxx'
-      };
-      dialogScope.passwordForm = {
-        $valid : true // form validation
-      };
+    describe('Dialog', function () {
+      beforeEach(inject(function ($controller, $rootScope) {
+        userControlSuccess({
+          username : 'foo',
+          authenticated : true,
+          clmUser : true
+        });
+        scope.change();
 
-    }));
+        dialogScope.result = {
+          originalPassword : 'bar',
+          newPassword : 'xxx',
+          confirmPassword : 'xxx'
+        };
+        dialogScope.passwordForm = {
+          $valid : true // form validation
+        };
+      }));
 
-    it('With Valid Auth', inject(function ($httpBackend, CLMLocations) {
-      $httpBackend.expectPUT(CLMLocations.getChangeMyPasswordUrl()).respond(200);
-      dialogScope.save();
-      expect(dialogScope.submitActive).toBeTruthy();
-      $httpBackend.flush();
+      it('With Valid Auth', inject(function ($httpBackend, CLMLocations) {
+        $httpBackend.expectPUT(CLMLocations.getChangeMyPasswordUrl()).respond(200);
+        dialogScope.save();
+        expect(dialogScope.submitActive).toBeTruthy();
+        $httpBackend.flush();
 
-      expect(dialogScope.$close).toHaveBeenCalled();
-    }));
+        expect(dialogScope.$close).toHaveBeenCalled();
+      }));
 
-    it('With Invalid Auth', inject(function ($httpBackend, CLMLocations, Messages) {
-      $httpBackend.expectPUT(CLMLocations.getChangeMyPasswordUrl()).respond(400);
+      it('With Invalid Auth', inject(function ($httpBackend, CLMLocations, Messages) {
+        $httpBackend.expectPUT(CLMLocations.getChangeMyPasswordUrl()).respond(400);
 
-      dialogScope.save();
-      expect(dialogScope.submitActive).toBeTruthy();
+        dialogScope.save();
+        expect(dialogScope.submitActive).toBeTruthy();
 
-      $httpBackend.flush();
+        $httpBackend.flush();
 
-      expect(dialogScope.submitActive).toBeFalsy();
-      expect(dialogScope.$close).not.toHaveBeenCalled();
-      expect(dialogScope.error).toEqual(Messages.getHttpErrorMessage([undefined, 400]));
-    }));
+        expect(dialogScope.submitActive).toBeFalsy();
+        expect(dialogScope.$close).not.toHaveBeenCalled();
+        expect(dialogScope.error).toEqual(Messages.getHttpErrorMessage([undefined, 400]));
+      }));
+    });
+
   });
 });

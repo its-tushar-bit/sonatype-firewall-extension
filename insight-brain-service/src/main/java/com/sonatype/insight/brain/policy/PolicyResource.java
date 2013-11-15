@@ -8,13 +8,10 @@ package com.sonatype.insight.brain.policy;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import javax.inject.Inject;
 import javax.inject.Named;
-import javax.persistence.EntityManager;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -27,44 +24,30 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.UriBuilder;
 
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
-import com.sonatype.insight.brain.dataaccess.label.ComponentLabelDAO;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
-import com.sonatype.insight.brain.model.label.ComponentLabel;
 import com.sonatype.insight.brain.model.label.Label;
-import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
-import com.sonatype.insight.brain.model.license.LicenseThreatGroupLicense;
-import com.sonatype.insight.brain.model.policy.Condition;
-import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.Policy;
-import com.sonatype.insight.brain.model.policy.conditions.LabelConditionType;
-import com.sonatype.insight.brain.model.policy.conditions.LicenseThreatGroupConditionType;
 import com.sonatype.insight.brain.model.security.Permission;
-import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
-import com.sonatype.insight.brain.service.BaseUrl;
-import com.sonatype.insight.brain.service.InsightBrainService;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.client.utils.AuditUtils;
-import com.sonatype.insight.error.exception.BadRequestException;
-import com.sonatype.insight.error.exception.PaymentRequiredException;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import org.codehaus.plexus.util.IOUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static com.sonatype.insight.brain.utils.IdUtils.TYPE_APPLICATION;
+import static com.sonatype.insight.brain.utils.IdUtils.TYPE_ORGANIZATION;
 
 @Named
 @Path(PolicyResource.SERVICE_PATH)
@@ -74,30 +57,14 @@ public class PolicyResource
 
   private static final Logger log = LoggerFactory.getLogger(PolicyResource.class);
 
-  public static final String ORG_IMPORT_LTG_ERROR = "Organization already has license threat groups besides the default "
-      + "ones defined, cannot import data unless the Organization is new.";
-
-  public static final String ORG_IMPORT_LABEL_ERROR = "Organization already has labels defined, cannot import data "
-      + "unless the Organization is new.";
-
-  public static final String ORG_IMPORT_POLICY_ERROR = "Organization already has policies defined, cannot import data "
-      + "unless the Organization is new.";
-
-  public static final String ORG_IMPORT_APP_ERROR = "Organization already has applications defined, cannot import data "
-      + "unless the Organization is new.";
-
   private final InsightWork work;
 
-  private final BaseUrl baseUrl;
-
-  private final CLMLicenseManager licenseManager;
+  private final PolicyImporter policyImporter;
 
   @Inject
-  public PolicyResource(InsightWork work, BaseUrl baseUrl, CLMLicenseManager licenseManager) {
+  public PolicyResource(InsightWork work, PolicyImporter policyImporter) {
     this.work = work;
-    this.baseUrl = baseUrl;
-    this.licenseManager = licenseManager;
-
+    this.policyImporter = policyImporter;
   }
 
   @GET
@@ -131,7 +98,7 @@ public class PolicyResource
 
     ApplicablePolicies result = new ApplicablePolicies();
 
-    result.policiesByOwner = new ArrayList<PoliciesByOwner>();
+    result.policiesByOwner = new ArrayList<>();
     String organizationId;
     if (IdUtils.TYPE_APPLICATION.equals(ownerType)) {
       Application application = new ApplicationDAO().getByIdNotNull(internalOwnerId);
@@ -223,9 +190,6 @@ public class PolicyResource
       @AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") final String ownerType,
       @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId)
   {
-    if (!TYPE_APPLICATION.equals(ownerType)) {
-      throw new BadRequestException("Policy export is only supported for applications");
-    }
     String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
 
     PolicyExportResult exportDTO = new PolicyExportResult();
@@ -249,257 +213,19 @@ public class PolicyResource
   @PUT
   @Path("import")
   @Produces(MediaType.APPLICATION_JSON)
-  // defer authorization check to point where context becomes clear
   public PolicyImportResult importPolicies(
       @PathParam("ownerType") final String ownerType,
       @PathParam("ownerId") String ownerId,
       @Context HttpServletRequest servletRequest) throws IOException
   {
     PolicyExportResult exportDTO = readPolicyExportResult(servletRequest.getInputStream());
-    if (!TYPE_APPLICATION.equals(ownerType)) {
-      return importFromApplicationToOrganization(ownerId, exportDTO);
+
+    String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
+
+    if (TYPE_ORGANIZATION.equals(ownerType)) {
+      return policyImporter.importOrganization(new OrganizationDAO().getByIdNotNull(internalOwnerId), exportDTO);
     }
-
-    return importApplication(ownerId, exportDTO);
-  }
-
-  /**
-   * Import an existing Application export to an Organization. Supported only as an update mechanism
-   * between v1.5 and v1.6
-   *
-   * @since 1.6
-   */
-  @Authorize(permission = Permission.WRITE)
-  PolicyImportResult importFromApplicationToOrganization(
-      @AuthzContext(AuthzContext.Key.ORGANIZATION_ID) String orgId,
-      PolicyExportResult exportDTO)
-  {
-    // ensure that Org exists and does not already have Apps, Policy, Label or LTGs
-    OrganizationDAO organizationDAO = new OrganizationDAO();
-    Organization organization = organizationDAO.getByIdNotNull(orgId);
-    List<Application> applications = new ApplicationDAO().getByOrganizationId(orgId);
-    if (!applications.isEmpty()) {
-      throw new BadRequestException(ORG_IMPORT_APP_ERROR);
-    }
-
-    PolicyDAO policyDAO = policyDAO();
-    List<Policy> policies = policyDAO.getByOwnerId(organization.getId());
-    if (!policies.isEmpty()) {
-      throw new BadRequestException(ORG_IMPORT_POLICY_ERROR);
-    }
-
-    List<Label> labels = new LabelDAO().getByOwnerId(organization.getId());
-    if (!labels.isEmpty()) {
-      throw new BadRequestException(ORG_IMPORT_LABEL_ERROR);
-    }
-
-    LicenseThreatGroupDAO licenseThreatGroupDAO = new LicenseThreatGroupDAO();
-    List<LicenseThreatGroup> licenseThreatGroups = licenseThreatGroupDAO.getByOwnerId(orgId);
-
-    int size = licenseThreatGroups.size();
-    if (size != 4 && size != 0) {
-      throw new BadRequestException(ORG_IMPORT_LTG_ERROR);
-    }
-
-    EntityManager em = organizationDAO.createEntityManager();
-    try {
-      em.getTransaction().begin();
-
-      LicenseThreatGroupLicenseDAO licenseThreatGroupLicenseDAO = new LicenseThreatGroupLicenseDAO();
-      ComponentLabelDAO componentLabelDAO = new ComponentLabelDAO();
-      LabelDAO labelDAO = new LabelDAO();
-
-      // Set labels with Org as the owner
-      for (Label label : exportDTO.labels) {
-        label.setOwnerId(orgId);
-        labelDAO.update(em, label);
-        for (ComponentLabel componentLabel : componentLabelDAO.getByLabelId(em, label.getId())) {
-          componentLabel.setOwnerId(orgId);
-          componentLabelDAO.update(em, componentLabel);
-        }
-      }
-
-      if (!exportDTO.licenseThreatGroups.isEmpty()) {
-        // Delete existing(default) LTGs from Organization to prevent conflict with imported LTGs
-        for (LicenseThreatGroup licenseThreatGroup : licenseThreatGroups) {
-          licenseThreatGroupDAO.delete(em, licenseThreatGroup);
-        }
-
-        // Set LTGs with Org as the owner
-        for (LicenseThreatGroup licenseThreatGroup : exportDTO.licenseThreatGroups) {
-          licenseThreatGroup.setOwnerId(orgId);
-          licenseThreatGroupDAO.update(em, licenseThreatGroup);
-        }
-      }
-
-      if (!exportDTO.licenseThreatGroupLicenses.isEmpty()) {
-        // Set LTGLs with Org as the owner
-        for (LicenseThreatGroupLicense licenseThreatGroupLicense : exportDTO.licenseThreatGroupLicenses) {
-          licenseThreatGroupLicense.setOwnerId(orgId);
-          licenseThreatGroupLicenseDAO.update(em, licenseThreatGroupLicense);
-        }
-      }
-
-      em.getTransaction().commit();
-
-      // Create org policies from exportDTO. Since this is not stored in the DB, the strategy of changing the ownerId
-      // and
-      // updating does not work.
-      for (Policy policy : exportDTO.policies) {
-        // remove existing policy if it exists
-        if (policyDAO.getByOwnerIdAndPolicyId(policy.getOwnerId(), policy.getId()) != null) {
-          policyDAO.delete(policy.getOwnerId(), policy.getId());
-        }
-        policy.setOwnerId(orgId);
-        policyDAO.insert(orgId, policy);
-      }
-    }
-    finally {
-      OrganizationDAO.close(em);
-    }
-
-    PolicyImportResult result = new PolicyImportResult();
-    result.applicationName = organization.getName();
-    UriBuilder uriBuilder = baseUrl.redirect().path(InsightBrainService.BRAIN_ASSET_PATH).path("index.html")
-        .fragment("/management/organization/" + organization.getId());
-    result.applicationURL = uriBuilder.build().toString();
-    return result;
-  }
-
-  /**
-   * Import an Application, either by creating a new Application or modifying an existing one.
-   */
-  private PolicyImportResult importApplication(String appId, PolicyExportResult exportDTO) {
-    Application application;
-    ApplicationDAO applicationDAO = new ApplicationDAO();
-    EntityManager em = applicationDAO.createEntityManager();
-    try {
-      em.getTransaction().begin();
-
-      LabelDAO labelDAO = new LabelDAO();
-      List<Label> oldLabels = new ArrayList<Label>();
-      application = applicationDAO.getByPublicId(em, appId);
-      if (application == null) {
-        // Create an application
-        checkImportAuthorization();
-
-        int appLimit = licenseManager.getApplicationCountLimit();
-        if (applicationDAO.getAll(em).size() >= appLimit) {
-          throw new PaymentRequiredException("You have exceeded the licensed limit of " + appLimit + " applications.");
-        }
-
-        application = new Application();
-        application.setPublicId(appId);
-        application.setName(appId);
-        if (applicationDAO.getByName(em, application.getName()) != null) {
-          application.setName(application.getName() + " " + System.currentTimeMillis());
-        }
-
-        applicationDAO.insert(em, application);
-      }
-      else {
-        checkImportAuthorization(application);
-
-        // The application already exists. Delete all its license threat groups and policies.
-        // Do not delete its labels - labels need to be merged.
-        LicenseThreatGroupDAO licenseThreatGroupDAO = new LicenseThreatGroupDAO();
-        List<LicenseThreatGroup> licenseThreatGroups = licenseThreatGroupDAO.getByOwnerId(em, application.getId());
-        for (LicenseThreatGroup licenseThreatGroup : licenseThreatGroups) {
-          licenseThreatGroupDAO.delete(em, licenseThreatGroup);
-        }
-
-        policyDAO().deleteByOwnerId(application.getId());
-
-        oldLabels.addAll(labelDAO.getByOwnerId(em, application.getId()));
-      }
-      String applicationId = application.getId();
-
-      if (exportDTO.labels.size() > 0) {
-        Map<String, String> idMap = new HashMap<String, String>();
-        // include any existing org labels, in case they're used in app policies. These are NOT candidates for deletion.
-        if (application.getOrganizationId() != null) {
-          for (Label label : labelDAO.getByOwnerId(application.getOrganizationId())) {
-            idMap.put(label.getId(), label.getId());
-          }
-        }
-        for (Label label : exportDTO.labels) {
-          String oldId = label.getId();
-          Label existingLabel = getLabelByName(oldLabels, label.getLabelLowercase());
-          if (existingLabel != null) {
-            oldLabels.remove(existingLabel);
-            existingLabel.setLabel(label.getLabel());
-            existingLabel.setColor(label.getColor());
-            labelDAO.update(em, existingLabel);
-            idMap.put(oldId, existingLabel.getId());
-          }
-          else {
-            label.setId(null);
-            label.setOwnerId(applicationId);
-            labelDAO.insert(em, label);
-            idMap.put(oldId, label.getId());
-          }
-        }
-        for (Policy policy : exportDTO.policies) {
-          for (Constraint constraint : policy.getConstraints()) {
-            for (Condition condition : constraint.getConditions()) {
-              if (LabelConditionType.ID.equals(condition.getConditionTypeId())) {
-                condition.setValue(idMap.get(condition.getValue()));
-              }
-            }
-          }
-        }
-      }
-      for (Label label : oldLabels) {
-        labelDAO.delete(em, label);
-      }
-
-      if (exportDTO.licenseThreatGroups.size() > 0) {
-        Map<String, String> idMap = new HashMap<String, String>();
-        LicenseThreatGroupDAO licenseThreatGroupDAO = new LicenseThreatGroupDAO();
-        for (LicenseThreatGroup licenseThreatGroup : exportDTO.licenseThreatGroups) {
-          String oldId = licenseThreatGroup.getId();
-          licenseThreatGroup.setId(null);
-          licenseThreatGroup.setOwnerId(applicationId);
-          licenseThreatGroupDAO.insert(em, licenseThreatGroup);
-          idMap.put(oldId, licenseThreatGroup.getId());
-        }
-        LicenseThreatGroupLicenseDAO licenseThreatGroupLicenseDAO = new LicenseThreatGroupLicenseDAO();
-        for (LicenseThreatGroupLicense licenseThreatGroupLicense : exportDTO.licenseThreatGroupLicenses) {
-          licenseThreatGroupLicense.setId(null);
-          licenseThreatGroupLicense.setOwnerId(applicationId);
-          licenseThreatGroupLicense.setLicenseThreatGroupId(idMap.get(licenseThreatGroupLicense
-              .getLicenseThreatGroupId()));
-          licenseThreatGroupLicenseDAO.insert(em, licenseThreatGroupLicense);
-        }
-        for (Policy policy : exportDTO.policies) {
-          for (Constraint constraint : policy.getConstraints()) {
-            for (Condition condition : constraint.getConditions()) {
-              if (LicenseThreatGroupConditionType.ID.equals(condition.getConditionTypeId())) {
-                condition.setValue(idMap.get(condition.getValue()));
-              }
-            }
-          }
-        }
-      }
-      em.getTransaction().commit();
-
-      // no transactional support here
-      PolicyDAO policyDAO = policyDAO();
-      for (Policy policy : exportDTO.policies) {
-        policyDAO.insert(application.getId(), policy);
-      }
-    }
-    finally {
-      ApplicationDAO.close(em);
-    }
-
-    PolicyImportResult result = new PolicyImportResult();
-    result.applicationName = application.getName();
-    UriBuilder uriBuilder = baseUrl.redirect().path(InsightBrainService.BRAIN_ASSET_PATH).path("index.html")
-        .fragment("/management/application/" + appId);
-    result.applicationURL = uriBuilder.build().toString();
-
-    return result;
+    return policyImporter.importApplication(new ApplicationDAO().getByIdNotNull(internalOwnerId), exportDTO);
   }
 
   private PolicyExportResult readPolicyExportResult(InputStream stream) throws IOException {
@@ -511,16 +237,6 @@ public class PolicyResource
       IOUtil.close(stream);
     }
     return JsonUtils.parse(importBytes, PolicyExportResult.class);
-  }
-
-  @Authorize(permission = Permission.WRITE)
-  void checkImportAuthorization() {
-    // empty by design, it's the method interceptor for the authorization anno we want to trigger
-  }
-
-  @Authorize(permission = Permission.WRITE)
-  void checkImportAuthorization(@AuthzContext(AuthzContext.Key.APPLICATION) Application app) {
-    // empty by design, it's the method interceptor for the authorization anno we want to trigger
   }
 
   private PolicyDAO policyDAO() {

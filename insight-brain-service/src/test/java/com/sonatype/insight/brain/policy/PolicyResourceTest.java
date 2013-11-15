@@ -9,6 +9,7 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
+import java.util.UUID;
 
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.insight.brain.AuthedRestAccess;
@@ -28,7 +29,6 @@ import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroupLicense;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
-import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.ValidationResult;
 import com.sonatype.insight.brain.model.policy.conditions.LabelConditionType;
@@ -50,7 +50,10 @@ import org.junit.Test;
 
 import static com.sonatype.insight.brain.utils.IdUtils.TYPE_APPLICATION;
 import static com.sonatype.insight.brain.utils.IdUtils.TYPE_ORGANIZATION;
+import static com.yammer.dropwizard.testing.JsonHelpers.*;
 import static org.hamcrest.CoreMatchers.endsWith;
+import static org.hamcrest.Matchers.empty;
+import static org.hamcrest.Matchers.not;
 import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertNotNull;
@@ -60,115 +63,31 @@ import static org.junit.Assert.assertTrue;
 public class PolicyResourceTest
     extends AbstractResourceTest
 {
+
   private static final String APP = TYPE_APPLICATION;
 
   private static final String ORG = TYPE_ORGANIZATION;
 
+  public static final String TEST_HASH = "componenthash";
+
   private LabelDAO labelDAO = new LabelDAO();
+  private LicenseThreatGroupDAO licenseThreatGroupDAO = new LicenseThreatGroupDAO();
+  private LicenseThreatGroupLicenseDAO licenseThreatGroupLicenseDAO = new LicenseThreatGroupLicenseDAO();
 
   @Test
-  public void testExportImport_Insert() throws Exception {
-    String applicationPublicId = "PolicyResourceTest-testExportImport-Insert";
-    Application application = createApplication(applicationPublicId, false /* createLicenseThreatGroups */);
-    String appId = application.getId();
+  public void testAppImport_Insert() throws Exception {
+    String applicationPublicId = "PolicyResourceTest-testAppImport_Insert";
+    Response response = AuthedRestAccess.post(getServiceURL(APP, applicationPublicId), asJson(createPolicyExportResult()));
+    //ensure that we cannot import to an App that does not exist
+    assertResponseStatus(404, response);
+  }
 
-    Label label = addLabel(appId, "label1", Color.blue);
-
-    LicenseThreatGroup licenseThreatGroup = new LicenseThreatGroup(appId, "LicenseThreatGroup1", 3);
-    LicenseThreatGroupDAO licenseThreatGroupDAO = new LicenseThreatGroupDAO();
-    licenseThreatGroupDAO.insert(licenseThreatGroup);
-
-    LicenseThreatGroupLicense licenseThreatGroupLicense = new LicenseThreatGroupLicense(appId,
-        licenseThreatGroup.getId(), "GPL-2.0");
-    LicenseThreatGroupLicenseDAO licenseThreatGroupLicenseDAO = new LicenseThreatGroupLicenseDAO();
-    licenseThreatGroupLicenseDAO.insert(licenseThreatGroupLicense);
-
-    Policy policy = new Policy();
-    policy.setName("Policy1");
-    Constraint constraint1 = new Constraint();
-    constraint1.setName("Constraint1");
-    constraint1.addCondition(new Condition(LabelConditionType.ID, "is", label.getId()));
-    policy.addConstraint(constraint1);
-    Constraint constraint2 = new Constraint();
-    constraint2.setName("Constraint2");
-    constraint2.addCondition(new Condition(LicenseThreatGroupConditionType.ID, "is", licenseThreatGroup.getId()));
-    policy.addConstraint(constraint2);
-    policy.addAction(BuildStageType.ID, new Action(Action.ID_FAIL));
-    Response response = AuthedRestAccess.post(getServiceURL(APP, applicationPublicId), JsonHelpers.asJson(policy));
-    assertResponseStatus(200, response);
-
-    // Export
-    response = AuthedRestAccess.get(getServiceURL("application", applicationPublicId) + "/export");
-    assertResponseStatus(200, response);
-    PolicyExportResult policyExportResult = JsonHelpers.fromJson(response.getResponseBody(), PolicyExportResult.class);
-    assertNotNull(policyExportResult);
-    assertTrue(!policyExportResult.policies.isEmpty());
-    assertTrue(!policyExportResult.labels.isEmpty());
-    assertTrue(!policyExportResult.licenseThreatGroups.isEmpty());
-    assertTrue(!policyExportResult.licenseThreatGroupLicenses.isEmpty());
-
-    // Import
-    String newApplicationPublicId = applicationPublicId + "1";
-    response = AuthedRestAccess.put(getServiceURL(APP, newApplicationPublicId) + "/import",
-        JsonHelpers.asJson(policyExportResult));
-    assertResponseStatus(200, response);
-    PolicyImportResult policyImportResult = JsonHelpers.fromJson(response.getResponseBody(), PolicyImportResult.class);
-    assertNotNull(policyImportResult);
-    Assert.assertEquals(newApplicationPublicId, policyImportResult.applicationName);
-    assertThat(policyImportResult.applicationURL, endsWith("index.html#/management/application/"
-        + newApplicationPublicId));
-    application = new ApplicationDAO().getByName(policyImportResult.applicationName);
-    applicationsToDelete.add(application);
-    assertNotNull(application);
-    List<Label> labels = labelDAO.getByOwnerId(application.getId());
-    Assert.assertEquals(1, labels.size());
-    Assert.assertEquals(label.getLabel(), labels.get(0).getLabel());
-    Assert.assertEquals(label.getColor(), labels.get(0).getColor());
-    List<LicenseThreatGroup> licenseThreatGroups = licenseThreatGroupDAO.getByOwnerId(application.getId());
-    Assert.assertEquals(1, licenseThreatGroups.size());
-    Assert.assertEquals(licenseThreatGroup.getName(), licenseThreatGroups.get(0).getName());
-    List<LicenseThreatGroupLicense> licenseThreatGroupLicenses = licenseThreatGroupLicenseDAO.getByOwnerId(application
-        .getId());
-    Assert.assertEquals(1, licenseThreatGroupLicenses.size());
-    Assert.assertEquals(licenseThreatGroupLicense.getLicenseId(), licenseThreatGroupLicenses.get(0).getLicenseId());
-    response = AuthedRestAccess.get(getServiceURL(APP, newApplicationPublicId));
-    assertResponseStatus(200, response);
-    Policy[] policies = JsonHelpers.fromJson(response.getResponseBody(), Policy[].class);
-    Assert.assertEquals(1, policies.length);
-    Assert.assertEquals(policy.getName(), policies[0].getName());
-    ValidationResult policyValidationResult = policies[0].validate(application.getId());
-    assertTrue(policyValidationResult.toMessageString(), policyValidationResult.isValid());
-
-    // Import again for a different application
-    newApplicationPublicId = applicationPublicId + "2";
-    response = AuthedRestAccess.put(getServiceURL(APP, newApplicationPublicId) + "/import",
-        JsonHelpers.asJson(policyExportResult));
-    assertResponseStatus(200, response);
-    policyImportResult = JsonHelpers.fromJson(response.getResponseBody(), PolicyImportResult.class);
-    assertNotNull(policyImportResult);
-    Assert.assertEquals(newApplicationPublicId, policyImportResult.applicationName);
-    assertThat(policyImportResult.applicationURL, endsWith("index.html#/management/application/"
-        + newApplicationPublicId));
-    application = new ApplicationDAO().getByName(policyImportResult.applicationName);
-    applicationsToDelete.add(application);
-    assertNotNull(application);
-    labels = labelDAO.getByOwnerId(application.getId());
-    Assert.assertEquals(1, labels.size());
-    Assert.assertEquals(label.getLabel(), labels.get(0).getLabel());
-    Assert.assertEquals(label.getColor(), labels.get(0).getColor());
-    licenseThreatGroups = licenseThreatGroupDAO.getByOwnerId(application.getId());
-    Assert.assertEquals(1, licenseThreatGroups.size());
-    Assert.assertEquals(licenseThreatGroup.getName(), licenseThreatGroups.get(0).getName());
-    licenseThreatGroupLicenses = licenseThreatGroupLicenseDAO.getByOwnerId(application.getId());
-    Assert.assertEquals(1, licenseThreatGroupLicenses.size());
-    Assert.assertEquals(licenseThreatGroupLicense.getLicenseId(), licenseThreatGroupLicenses.get(0).getLicenseId());
-    response = AuthedRestAccess.get(getServiceURL(APP, newApplicationPublicId));
-    assertResponseStatus(200, response);
-    policies = JsonHelpers.fromJson(response.getResponseBody(), Policy[].class);
-    Assert.assertEquals(1, policies.length);
-    Assert.assertEquals(policy.getName(), policies[0].getName());
-    policyValidationResult = policies[0].validate(application.getId());
-    assertTrue(policyValidationResult.toMessageString(), policyValidationResult.isValid());
+  @Test
+  public void testOrgImport_Insert() throws Exception {
+    String orgId = "PolicyResourceTest-testOrgImport_Insert";
+    Response response = AuthedRestAccess.post(getServiceURL(ORG, orgId), asJson(createPolicyExportResult()));
+    //ensure that we cannot import to an Org that does not exist
+    assertResponseStatus(404, response);
   }
 
   @Test
@@ -181,7 +100,6 @@ public class PolicyResourceTest
     Label label2 = addLabel(appId, "label2", Color.red);
 
     LicenseThreatGroup licenseThreatGroup = new LicenseThreatGroup(appId, "LicenseThreatGroup1", 3);
-    LicenseThreatGroupDAO licenseThreatGroupDAO = new LicenseThreatGroupDAO();
     licenseThreatGroupDAO.insert(licenseThreatGroup);
 
     LicenseThreatGroupLicense licenseThreatGroupLicense = new LicenseThreatGroupLicense(appId,
@@ -200,7 +118,7 @@ public class PolicyResourceTest
     constraint2.addCondition(new Condition(LicenseThreatGroupConditionType.ID, "is", licenseThreatGroup.getId()));
     policy.addConstraint(constraint2);
     policy.addAction(BuildStageType.ID, new Action(Action.ID_FAIL));
-    Response response = AuthedRestAccess.post(getServiceURL(APP, applicationPublicId), JsonHelpers.asJson(policy));
+    Response response = AuthedRestAccess.post(getServiceURL(APP, applicationPublicId), asJson(policy));
     assertResponseStatus(200, response);
 
     // Export
@@ -224,13 +142,13 @@ public class PolicyResourceTest
 
     // Import
     response = AuthedRestAccess.put(getServiceURL(APP, applicationPublicId) + "/import",
-        JsonHelpers.asJson(policyExportResult));
+        asJson(policyExportResult));
     assertResponseStatus(200, response);
     PolicyImportResult policyImportResult = JsonHelpers.fromJson(response.getResponseBody(), PolicyImportResult.class);
     assertNotNull(policyImportResult);
-    Assert.assertEquals(application.getName(), policyImportResult.applicationName);
-    assertThat(policyImportResult.applicationURL, endsWith("index.html#/management/application/" + applicationPublicId));
-    application = new ApplicationDAO().getByName(policyImportResult.applicationName);
+    Assert.assertEquals(application.getName(), policyImportResult.name);
+    assertThat(policyImportResult.url, endsWith("index.html#/management/application/" + applicationPublicId));
+    application = new ApplicationDAO().getByName(policyImportResult.name);
     applicationsToDelete.add(application);
     assertNotNull(application);
     List<Label> labels = labelDAO.getByOwnerId(application.getId());
@@ -258,26 +176,6 @@ public class PolicyResourceTest
     Assert.assertNotEquals(policy.getId(), policies[0].getId());
     ValidationResult policyValidationResult = policies[0].validate(application.getId());
     assertTrue(policyValidationResult.toMessageString(), policyValidationResult.isValid());
-  }
-
-  @Test
-  public void testExportImport_ExceedsLicensedApplicationCount() throws Exception {
-    setApplicationLimit(1);
-
-    String applicationPublicId = "testExportImport_ExceedsLicensedApplicationCount";
-    createApplication(applicationPublicId, false /* createLicenseThreatGroups */);
-
-    // Export
-    Response response = AuthedRestAccess.get(getServiceURL(APP, applicationPublicId) + "/export");
-    assertResponseStatus(200, response);
-    PolicyExportResult policyExportResult = JsonHelpers.fromJson(response.getResponseBody(), PolicyExportResult.class);
-    assertNotNull(policyExportResult);
-
-    // Import
-    response = AuthedRestAccess.put(getServiceURL(APP, applicationPublicId + "1") + "/import",
-        JsonHelpers.asJson(policyExportResult));
-    assertResponseStatus(402, response);
-    Assert.assertEquals("You have exceeded the licensed limit of 1 applications.", response.getResponseBody());
   }
 
   @Test
@@ -310,7 +208,7 @@ public class PolicyResourceTest
     constraint.setName("PolicyResourceTest new constraint");
     constraint.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
     policy.addConstraint(constraint);
-    Response response = AuthedRestAccess.post(getServiceURL(ownerType, ownerId), JsonHelpers.asJson(policy));
+    Response response = AuthedRestAccess.post(getServiceURL(ownerType, ownerId), asJson(policy));
     assertResponseStatus(200, response);
     final Policy policy1 = JsonHelpers.fromJson(response.getResponseBody(), Policy.class);
     assertNotNull(policy1.getId());
@@ -338,7 +236,7 @@ public class PolicyResourceTest
     // Update a policy
     policy = policies[0];
     policy.setName("PolicyResourceTest updated policy");
-    response = AuthedRestAccess.put(getServiceURL(ownerType, ownerId), JsonHelpers.asJson(policy));
+    response = AuthedRestAccess.put(getServiceURL(ownerType, ownerId), asJson(policy));
     assertResponseStatus(200, response);
     final Policy policy2 = JsonHelpers.fromJson(response.getResponseBody(), Policy.class);
     Assert.assertEquals("PolicyResourceTest updated policy", policy2.getName());
@@ -414,7 +312,7 @@ public class PolicyResourceTest
     constraint.setName("PolicyResourceTest new constraint");
     constraint.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
     policy.addConstraint(constraint);
-    Response response = AuthedRestAccess.post(getServiceURL(ownerType, ownerId), JsonHelpers.asJson(policy));
+    Response response = AuthedRestAccess.post(getServiceURL(ownerType, ownerId), asJson(policy));
     assertResponseStatus(400, response);
     Assert.assertEquals("The policy name is required.", response.getResponseBody());
   }
@@ -445,13 +343,13 @@ public class PolicyResourceTest
     constraint.setName("PolicyResourceTest new constraint");
     constraint.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
     policy.addConstraint(constraint);
-    Response response = AuthedRestAccess.post(getServiceURL(ownerType, ownerId), JsonHelpers.asJson(policy));
+    Response response = AuthedRestAccess.post(getServiceURL(ownerType, ownerId), asJson(policy));
     assertResponseStatus(200, response);
     policy = JsonHelpers.fromJson(response.getResponseBody(), Policy.class);
 
     // Update invalid policy
     policy.setName(null);
-    response = AuthedRestAccess.put(getServiceURL(ownerType, ownerId), JsonHelpers.asJson(policy));
+    response = AuthedRestAccess.put(getServiceURL(ownerType, ownerId), asJson(policy));
     assertResponseStatus(400, response);
     Assert.assertEquals("The policy name is required.", response.getResponseBody());
   }
@@ -502,7 +400,7 @@ public class PolicyResourceTest
     constraint.setName("testGetApplicablePolicies App constraint");
     constraint.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
     appPolicy.addConstraint(constraint);
-    response = AuthedRestAccess.post(getServiceURL(APP, appPublicId), JsonHelpers.asJson(appPolicy));
+    response = AuthedRestAccess.post(getServiceURL(APP, appPublicId), asJson(appPolicy));
     assertResponseStatus(200, response);
     appPolicy = JsonHelpers.fromJson(response.getResponseBody(), Policy.class);
 
@@ -531,7 +429,7 @@ public class PolicyResourceTest
     constraint.setName("testGetApplicablePolicies Org constraint");
     constraint.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
     orgPolicy.addConstraint(constraint);
-    response = AuthedRestAccess.post(getServiceURL(ORG, orgId), JsonHelpers.asJson(orgPolicy));
+    response = AuthedRestAccess.post(getServiceURL(ORG, orgId), asJson(orgPolicy));
     assertResponseStatus(200, response);
     orgPolicy = JsonHelpers.fromJson(response.getResponseBody(), Policy.class);
 
@@ -557,205 +455,158 @@ public class PolicyResourceTest
   }
 
   /**
-   * Test for condition in CLM-636
-   * 
-   * @since 1.6
+   *
+   * @since 1.7
    */
   @Test
-  public void testImportOrgLabelCondition() throws Exception {
-    // create an Org with a Label that we then use in an App policy
-    String name = "testImportOrgLabelCondition";
-    Organization org = createOrganization(name);
-    Application application = createApplication(name, name, org);
-    Label label = addLabel(org.getId(), name, Color.black);
-    Policy policy = new Policy(name, name);
-    Constraint constraint = new Constraint(name, name, LogicalOperator.OR);
-    constraint.addCondition(new Condition(LabelConditionType.ID, "is", label.getId()));
-    policy.addConstraint(constraint);
-    Response response = AuthedRestAccess.post(getServiceURL(APP, application.getPublicId()), JsonHelpers.asJson(policy));
-    assertResponseStatus(200, response);
+  public void testImportDeletionOfExistingOrgPolicy() throws Exception{
+    Organization org = createOrganizationWithPolicy();
+    Application app = createApplicationWithPolicy(org);
 
-    // Export the policy
-    response = AuthedRestAccess.get(getServiceURL(APP, application.getPublicId()) + "/export");
-    assertResponseStatus(200, response);
-    PolicyExportResult policyExportResult = JsonHelpers.fromJson(response.getResponseBody(), PolicyExportResult.class);
-    assertNotNull(policyExportResult);
-    assertTrue(!policyExportResult.policies.isEmpty());
-    assertThat(policyExportResult.policies.get(0).getConstraints().get(0).getConditions().get(0).getValue(),
-        is(label.getId()));
-
-    // Import it directly back
-    response = AuthedRestAccess.put(getServiceURL(APP, application.getPublicId()) + "/import",
-        JsonHelpers.asJson(policyExportResult));
-    assertResponseStatus(200, response);
-  }
-
-  /**
-   * CLM-638
-   * 
-   * @since 1.6
-   */
-  @Test
-  public void testErrorImportingForOrgWithDefinedLabels() throws Exception {
-    Organization org = createOrganization("testErrorImportingForOrgWithDefinedLabels");
-    addLabel(org.getId(), org.getId(), Color.black);
+    // import a policy with no data to the org
     Response response = AuthedRestAccess.put(getServiceURL(ORG, org.getId()) + "/import",
-        JsonHelpers.asJson(createPolicyExportResult()));
-    assertResponseStatus(400, response);
-    assertThat(response.getResponseBody(), is(PolicyResource.ORG_IMPORT_LABEL_ERROR));
-  }
-
-  /**
-   * CLM-638
-   * 
-   * @since 1.6
-   */
-  @Test
-  public void testErrorImportingForOrgWithDefinedApps() throws Exception {
-    Organization org = createOrganization("testErrorImportingForOrgWithDefinedApps");
-    createApplication("testErrorImportingForOrgWithDefinedApps", "testErrorImportingForOrgWithDefinedApps", org);
-    Response response = AuthedRestAccess.put(getServiceURL(ORG, org.getId()) + "/import",
-        JsonHelpers.asJson(createPolicyExportResult()));
-    assertResponseStatus(400, response);
-    assertThat(response.getResponseBody(), is(PolicyResource.ORG_IMPORT_APP_ERROR));
-  }
-
-  /**
-   * CLM-638
-   * 
-   * @since 1.6
-   */
-  @Test
-  public void testErrorImportingForOrgWithDefinedPolicy() throws Exception {
-    Organization org = createOrganization("testErrorImportingForOrgWithDefinedPolicy");
-    Label label = addLabel(org.getId(), org.getId(), Color.black);
-    Policy policy = createDefaultPolicy(label.getId());
-    Response response = AuthedRestAccess.post(getServiceURL(ORG, org.getId()), JsonHelpers.asJson(policy));
+        asJson(createPolicyExportResult()));
     assertResponseStatus(200, response);
 
+    //verify that we delete all data from the org
+    assertThat(licenseThreatGroupLicenseDAO.getByOwnerId(org.getId()), is(empty()));
+    assertThat(licenseThreatGroupDAO.getByOwnerId(org.getId()), is(empty()));
+    assertThat(policyDAO().getByOwnerId(org.getId()), is(empty()));
+    assertThat(new LabelDAO().getByOwnerId(org.getId()), is(empty()));
+    assertThat(new ComponentLabelDAO().getByOwnerId(org.getId()), is(empty()));
+
+    //verify that we delete all data from the app
+    assertThat(licenseThreatGroupLicenseDAO.getByOwnerId(app.getId()), is(empty()));
+    assertThat(licenseThreatGroupDAO.getByOwnerId(app.getId()), is(empty()));
+    assertThat(policyDAO().getByOwnerId(app.getId()), is(empty()));
+    assertThat(new ComponentLabelDAO().getByOwnerId(app.getId()), is(empty()));
+    assertThat(new LabelDAO().getByOwnerId(app.getId()), is(empty()));
+  }
+
+  /**
+   *
+   * @since 1.7
+   */
+  @Test
+  public void testImportDeletionOfExistingAppPolicy() throws Exception{
+    Organization org = createOrganizationWithPolicy();
+    Application app = createApplicationWithPolicy(org);
+
+    // import a policy with no data to the app
+    Response response = AuthedRestAccess.put(getServiceURL(APP, app.getPublicId()) + "/import",
+        asJson(createPolicyExportResult()));
+    assertResponseStatus(200, response);
+
+    // verify that org data is untouched
+    assertThat(licenseThreatGroupLicenseDAO.getByOwnerId(org.getId()), hasSize(127));
+    assertThat(licenseThreatGroupDAO.getByOwnerId(org.getId()), hasSize(5));
+    assertThat(policyDAO().getByOwnerId(org.getId()), hasSize(1));
+    assertThat(new LabelDAO().getByOwnerId(org.getId()), hasSize(1));
+    assertThat(new ComponentLabelDAO().getByOwnerId(org.getId()), hasSize(1));
+
+    //verify that we delete all data from the app
+    assertThat(licenseThreatGroupLicenseDAO.getByOwnerId(app.getId()), is(empty()));
+    assertThat(licenseThreatGroupDAO.getByOwnerId(app.getId()), is(empty()));
+    assertThat(policyDAO().getByOwnerId(app.getId()), is(empty()));
+    assertThat(new ComponentLabelDAO().getByOwnerId(app.getId()), is(empty()));
+    assertThat(new LabelDAO().getByOwnerId(app.getId()), is(empty()));
+  }
+
+  @Test
+  public void testImportToOrg() throws Exception{
+    Organization org = createOrganizationWithPolicy();
+    Application app = createApplicationWithPolicy(org);
+
+    Response response = AuthedRestAccess.get(getServiceURL(ORG, org.getId()) + "/export");
+    assertResponseStatus(200, response);
+    PolicyExportResult orgPolicy = JsonHelpers.fromJson(response.getResponseBody(), PolicyExportResult.class);
+
+    response = AuthedRestAccess.get(getServiceURL(APP, app.getPublicId()) + "/export");
+    assertResponseStatus(200, response);
+    PolicyExportResult appPolicy = JsonHelpers.fromJson(response.getResponseBody(), PolicyExportResult.class);
+
+    // import policy into the org
+    String importId = "importId";
+    PolicyExportResult policyExportResult = createPolicyExportResult();
+    LicenseThreatGroup ltg = createDefaultLTG(importId);
+    ltg.setId(id());
+    policyExportResult.licenseThreatGroups.add(ltg);
+    LicenseThreatGroupLicense ltgl = createDefaultLTGL(importId, ltg.getId());
+    ltgl.setId(id());
+    policyExportResult.licenseThreatGroupLicenses.add(ltgl);
+    Label label = new Label(importId, importId, Color.black);
+    label.setId(id());
+    policyExportResult.labels.add(label);
+    Policy policy = createDefaultPolicy(label.getId(), importId);
+    policy.setId(id());
+    policyExportResult.policies.add(policy);
     response = AuthedRestAccess.put(getServiceURL(ORG, org.getId()) + "/import",
-        JsonHelpers.asJson(createPolicyExportResult()));
-    assertResponseStatus(400, response);
-    assertThat(response.getResponseBody(), is(PolicyResource.ORG_IMPORT_POLICY_ERROR));
-  }
-
-  /**
-   * CLM-638
-   * 
-   * @since 1.6
-   */
-  @Test
-  public void testErrorImportingForOrgWithDefinedLTG() throws Exception {
-    Organization org = createOrganization("testErrorImportingForOrgWithDefinedPolicy");
-
-    LicenseThreatGroup licenseThreatGroup = createDefaultLTG(org.getId());
-    String ltgUrl = getRestUrl(LicenseThreatGroupResource.SERVICE_PATH, TYPE_ORGANIZATION, org.getId());
-    Response response = AuthedRestAccess.post(ltgUrl, JsonHelpers.asJson(licenseThreatGroup));
+        asJson(policyExportResult));
     assertResponseStatus(200, response);
 
-    response = AuthedRestAccess.put(getServiceURL(ORG, org.getId()) + "/import",
-        JsonHelpers.asJson(createPolicyExportResult()));
-    assertResponseStatus(400, response);
-    assertThat(response.getResponseBody(), is(PolicyResource.ORG_IMPORT_LTG_ERROR));
-  }
-
-  /**
-   * CLM-638
-   * 
-   * @since 1.6
-   */
-  @Test
-  public void testImportEmptyToOrg() throws Exception {
-    Organization org = createOrganization("testImportEmptyToOrg");
-    Response response = AuthedRestAccess.put(getServiceURL(ORG, org.getId()) + "/import",
-        JsonHelpers.asJson(createPolicyExportResult()));
-    assertResponseStatus(200, response);
-  }
-
-  /**
-   * CLM-638
-   * 
-   * @since 1.6
-   */
-  @Test
-  public void testImportAppToOrg() throws Exception {
-    // setup: Create an App with Policy/Label/LTG to export
-    String name = "testImportAppToOrg";
-    Application application = createApplication(name + "App", name + "App");
-    Label label = addLabel(application.getId(), application.getName(), Color.black);
-
-    LicenseThreatGroup licenseThreatGroup = createDefaultLTG(application.getPublicId());
-    String ltgUrl = getRestUrl(LicenseThreatGroupResource.SERVICE_PATH, APP, application.getPublicId());
-    Response response = AuthedRestAccess.post(ltgUrl, JsonHelpers.asJson(licenseThreatGroup));
-    assertResponseStatus(200, response);
-    licenseThreatGroup = JsonHelpers.fromJson(response.getResponseBody(), LicenseThreatGroup.class);
-
-    // use both the label and the LTG in Policy Conditions to ensure that they are valid after ownership is transferred
-    Policy policy = createDefaultPolicy(label.getId());
-    policy.getConstraints().get(0).getConditions()
-        .add(new Condition(LicenseThreatGroupConditionType.ID, "is", licenseThreatGroup.getId()));
-    response = AuthedRestAccess.post(getServiceURL(APP, application.getPublicId()), JsonHelpers.asJson(policy));
-    assertResponseStatus(200, response);
-
-    // label a (fake)component with our app label
-    String hash = "componenthash";
-    labelComponent(application.getId(), hash, label.getId());
-
-    // export policy from app
-    response = AuthedRestAccess.get(getServiceURL(APP, application.getPublicId() + "/export"));
-    assertResponseStatus(200, response);
-
-    // create new Org and import policy
-    Organization org = createOrganization("testImportAppToOrg");
-    response = AuthedRestAccess.put(getServiceURL(ORG, org.getId()) + "/import",
-        JsonHelpers.asJson(JsonHelpers.fromJson(response.getResponseBody(), PolicyExportResult.class)));
-    assertResponseStatus(200, response);
-
-    // verify result object
-    PolicyImportResult policyImportResult = JsonHelpers.fromJson(response.getResponseBody(), PolicyImportResult.class);
-    assertThat(policyImportResult.applicationName, is(org.getName()));
-    assertThat(policyImportResult.applicationURL, endsWith("index.html#/management/organization/" + org.getId()));
-
-    // verify labels
-    List<Label> orgLabels = labelDAO.getByOwnerId(org.getId());
-    assertThat(orgLabels, hasSize(1));
-    assertThat(orgLabels.get(0).getLabel(), is(label.getLabel()));
-    assertThat(orgLabels.get(0).getColor(), is(label.getColor()));
-
-    // verify policies
-    PolicyDAO policyDAO = new PolicyDAO(brain.getWorkDir());
-    List<Policy> policies = policyDAO.getByOwnerId(org.getId());
+    // verify that org data is as expected
+    List<LicenseThreatGroupLicense> ltgls = licenseThreatGroupLicenseDAO.getByOwnerId(org.getId());
+    assertThat(ltgls, hasSize(1));
+    assertThat(ltgls.get(0).getId(), is(not(ltgl.getId())));
+    List<LicenseThreatGroup> ltgs = licenseThreatGroupDAO.getByOwnerId(org.getId());
+    assertThat(ltgs, hasSize(1));
+    assertThat(ltgs.get(0).getId(), is(not(ltg.getId())));
+    assertThat(ltgs.get(0).getName(), is(ltg.getName()));
+    List<Policy> policies = policyDAO().getByOwnerId(org.getId());
     assertThat(policies, hasSize(1));
-    assertThat(policies.get(0).getConstraints(), hasSize(1));
-    assertThat(policies.get(0).getConstraints().get(0).getConditions(), hasSize(2));
-    assertThat(policies.get(0).getConstraints().get(0).getConditions().get(0).getConditionTypeId(),
-        is(LabelConditionType.ID));
-    assertThat(policies.get(0).getConstraints().get(0).getConditions().get(1).getConditionTypeId(),
-        is(LicenseThreatGroupConditionType.ID));
+    assertThat(policies.get(0).getId(), is(not(policy.getId())));
+    assertThat(policies.get(0).getName(), is(policy.getName()));
+    List<Label> labels = new LabelDAO().getByOwnerId(org.getId());
+    assertThat(labels, hasSize(1));
+    assertThat(labels.get(0).getId(), is(not(label.getId())));
+    assertThat(labels.get(0).getLabel(), is(label.getLabel()));
+    assertThat(new ComponentLabelDAO().getByOwnerId(org.getId()), is(empty()));
 
-    // verify LTGs
-    List<LicenseThreatGroup> licenseThreatGroups = new LicenseThreatGroupDAO().getByOwnerId(org.getId());
-    assertThat(licenseThreatGroups, hasSize(1));
-    assertThat(licenseThreatGroups.get(0).getName(), is(licenseThreatGroup.getName()));
-
-    // verify ComponentLabels
-    List<ComponentLabel> labels = new ComponentLabelDAO().getByOwnerIdAndHash(org.getId(), hash);
-    assertThat(labels.size(), is(1));
-    assertThat(labels.get(0).getLabelId(), is(label.getId()));
-    assertThat(labels.get(0).getOwnerId(), is(org.getId()));
+    //verify that we delete all data from the app
+    assertThat(licenseThreatGroupDAO.getByOwnerId(app.getId()), is(empty()));
+    assertThat(policyDAO().getByOwnerId(app.getId()), is(empty()));
+    assertThat(new ComponentLabelDAO().getByOwnerId(app.getId()), is(empty()));
+    assertThat(new LabelDAO().getByOwnerId(app.getId()), is(empty()));
   }
 
-  /**
-   * CLM-638
-   * 
-   * @since 1.6
-   */
-  @Test
-  public void testErrorOnImportToMissingOrg() throws Exception {
-    Response response = AuthedRestAccess.put(getServiceURL(ORG, "nonsenseId") + "/import",
-        JsonHelpers.asJson(createPolicyExportResult()));
-    assertResponseStatus(404, response);
-    assertThat(response.getResponseBody(), is("Cannot find organization with id nonsenseId."));
+  private Application createApplicationWithPolicy(final Organization org) throws Exception {Response response;
+    Application app = createApplication("appWithExistingPolicy", "appWithExistingPolicy", org);
+    Label shouldBeDeletedApp = addLabel(app.getId(), app.getName(), Color.white);
+    LicenseThreatGroup licenseThreatGroupApp = createDefaultLTG(app.getId());
+    response = AuthedRestAccess.post(getRestUrl(LicenseThreatGroupResource.SERVICE_PATH, APP, app.getPublicId()),
+        asJson(licenseThreatGroupApp));
+    assertResponseStatus(200, response);
+    licenseThreatGroupApp = JsonHelpers.fromJson(response.getResponseBody(), LicenseThreatGroup.class);
+    // use both the label and the LTG in Policy Conditions to ensure that they are deleted as part of the import
+    Policy appPolicy = createDefaultPolicy(shouldBeDeletedApp.getId(), app.getName());
+    appPolicy.getConstraints().get(0).getConditions()
+        .add(new Condition(LicenseThreatGroupConditionType.ID, "is", licenseThreatGroupApp.getId()));
+    response = AuthedRestAccess.post(getServiceURL(APP, app.getPublicId()), asJson(appPolicy));
+    assertResponseStatus(200, response);
+    labelComponent(app.getId(), TEST_HASH, shouldBeDeletedApp.getId());
+    return app;
+  }
+
+  private Organization createOrganizationWithPolicy() throws Exception {
+    Organization org = createOrganization("orgWithExistingPolicy");
+    Label shouldBeDeletedOrg = addLabel(org.getId(), org.getName(), Color.white);
+    LicenseThreatGroup licenseThreatGroupOrg = createDefaultLTG(org.getId());
+    Response response = AuthedRestAccess.post(getRestUrl(LicenseThreatGroupResource.SERVICE_PATH, ORG, org.getId()),
+        asJson(licenseThreatGroupOrg));
+    assertResponseStatus(200, response);
+    licenseThreatGroupOrg = JsonHelpers.fromJson(response.getResponseBody(), LicenseThreatGroup.class);
+    // use both the label and the LTG in Policy Conditions to ensure that they are deleted as part of the import
+    Policy orgPolicy = createDefaultPolicy(shouldBeDeletedOrg.getId(), org.getName());
+    orgPolicy.getConstraints().get(0).getConditions()
+        .add(new Condition(LicenseThreatGroupConditionType.ID, "is", licenseThreatGroupOrg.getId()));
+    response = AuthedRestAccess.post(getServiceURL(ORG, org.getId()), asJson(orgPolicy));
+    assertResponseStatus(200, response);
+    // label a (fake)component with our app label
+    labelComponent(org.getId(), TEST_HASH, shouldBeDeletedOrg.getId());
+    // verify LTGs; by default a new Organization has 4 default LTGs + the one we introduced
+    List<LicenseThreatGroup> licenseThreatGroups = licenseThreatGroupDAO.getByOwnerId(org.getId());
+    assertThat(licenseThreatGroups, hasSize(5));
+    return org;
   }
 
   private String getServiceURL(final String ownerType, final String ownerId) {
@@ -785,21 +636,36 @@ public class PolicyResourceTest
     return policyExportResult;
   }
 
-  private Policy createDefaultPolicy(final String labelId) {
+  private Policy createDefaultPolicy(String labelId, String name) {
     Policy policy = new Policy();
-    policy.setName("testErrorImportingForOrgWithDefinedPolicy");
+    policy.setName(name);
     Constraint constraint = new Constraint();
-    constraint.setName("testErrorImportingForOrgWithDefinedPolicy");
+    constraint.setName(name);
     constraint.addCondition(new Condition(LabelConditionType.ID, "is", labelId));
     policy.addConstraint(constraint);
     return policy;
   }
 
-  private LicenseThreatGroup createDefaultLTG(final String ownerId) {
+  private LicenseThreatGroup createDefaultLTG(String ownerId) {
     LicenseThreatGroup licenseThreatGroup = new LicenseThreatGroup();
     licenseThreatGroup.setOwnerId(ownerId);
     licenseThreatGroup.setName(ownerId);
     return licenseThreatGroup;
   }
 
+  private LicenseThreatGroupLicense createDefaultLTGL(String ownerId, String ltgid) {
+    LicenseThreatGroupLicense ltgl = new LicenseThreatGroupLicense();
+    ltgl.setLicenseId("UNKNOWN");
+    ltgl.setLicenseThreatGroupId(ltgid);
+    ltgl.setOwnerId(ownerId);
+    return ltgl;
+  }
+
+  private PolicyDAO policyDAO() {
+    return new PolicyDAO(brain.getWorkDir());
+  }
+
+  private String id(){
+    return UUID.randomUUID().toString();
+  }
 }

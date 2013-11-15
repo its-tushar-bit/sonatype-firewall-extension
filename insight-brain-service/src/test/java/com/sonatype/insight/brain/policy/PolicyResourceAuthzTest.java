@@ -154,24 +154,6 @@ public class PolicyResourceAuthzTest
   }
 
   @Test
-  public void testImportPolicies_ToNewApp() throws Exception {
-    Role role = tempEntity.newRole(false, Permission.WRITE);
-    tempEntity.newMembershipMapping(MembershipMapping.GLOBAL_CONTEXT_ID, role.getId(), authorized.getUsername());
-
-    PolicyExportResult export = new PolicyExportResult();
-    export.labels = Collections.emptyList();
-    export.licenseThreatGroups = Collections.emptyList();
-    export.licenseThreatGroupLicenses = Collections.emptyList();
-    export.policies = Collections.emptyList();
-    String publicId = tempEntity.uuid();
-
-    String url = getRestUrl(PolicyResource.SERVICE_PATH + "/import", IdUtils.TYPE_APPLICATION, publicId);
-    testAuthzPut(url, toJson(export));
-    ApplicationDAO appDAO = new ApplicationDAO();
-    appDAO.delete(appDAO.getByPublicIdNotNull(publicId));
-  }
-
-  @Test
   public void testImportPolicies_ToExistingOrg() throws Exception {
     Role role = tempEntity.newRole(false, Permission.WRITE);
     tempEntity.newMembershipMapping(org.getId(), role.getId(), authorized.getUsername());

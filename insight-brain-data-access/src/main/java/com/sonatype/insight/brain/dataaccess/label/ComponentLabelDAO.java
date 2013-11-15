@@ -43,6 +43,12 @@ public class ComponentLabelDAO
     }
   }
 
+  public List<ComponentLabel> getByOwnerId(String ownerId) {
+    final String sQuery = "SELECT label FROM ComponentLabel label" + //
+        " WHERE label.ownerId=?1";
+    return getList(sQuery, ownerId);
+  }
+
   public List<ComponentLabel> getByOwnerIdAndHash(EntityManager em, String ownerId, String hash) {
     final String sQuery = "SELECT label FROM ComponentLabel label" + //
         " WHERE label.ownerId=?1 AND label.hash=?2";

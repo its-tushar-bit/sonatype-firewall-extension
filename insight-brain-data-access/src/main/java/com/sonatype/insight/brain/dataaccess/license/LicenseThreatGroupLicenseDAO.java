@@ -40,6 +40,13 @@ public class LicenseThreatGroupLicenseDAO
     return getList(sQuery, ownerId);
   }
 
+  public List<LicenseThreatGroupLicense> getByOwnerId(EntityManager em, String ownerId) {
+    String sQuery = "SELECT entity FROM LicenseThreatGroupLicense entity" + //
+        " WHERE entity.ownerId=?1" + //
+        " ORDER BY entity.licenseId";
+    return getList(em, sQuery, ownerId);
+  }
+
   List<LicenseThreatGroupLicense> getByLicenseThreatGroupId(EntityManager em, String licenseThreatGroupId) {
     String sQuery = "SELECT entity FROM LicenseThreatGroupLicense entity" + //
         " WHERE entity.licenseThreatGroupId=?1" + //

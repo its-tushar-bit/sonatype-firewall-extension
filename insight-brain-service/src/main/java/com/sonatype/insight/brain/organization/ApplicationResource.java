@@ -403,7 +403,7 @@ public class ApplicationResource
 
     PolicyEvaluation evaluation = new PolicyEvaluationLog(work.getAuditDir(applicationId)).lastByScan(scanId);
     ApplicationManagementSummary summary = ApplicationManagementSummary.fromApplication(application);
-    summary.setPolicyEvaluations(Collections.singletonMap(evaluation.getStage().toString(), evaluation));
+    summary.setPolicyEvaluations(Collections.singletonMap(evaluation.getStage().getStageTypeId(), evaluation));
     return summary;
   }
 

@@ -230,7 +230,8 @@ describe('TrendingController tests', function() {
         expect(svg).toBeDefined();
         rects = svg.find('rect');
         expect(rects).toBeDefined();
-        expect(rects.attr('style')).toMatch(/^fill: #ff0000; ?$/);
+        //svg color definition is different for Chrome and FF, in that order of matching
+        expect(rects.attr('style')).toMatch(/^fill: (#ff0000|rgb\(255, 0, 0\)); ?$/);
       }));
       it('should allow for data selection', inject(function($compile) {
         var rects, svg;
@@ -308,7 +309,8 @@ describe('TrendingController tests', function() {
         expect(svg).toBeDefined();
         rects = svg.find('rect');
         expect(rects).toBeDefined();
-        expect(rects.attr('style')).toMatch(/^fill: #ff0000; stroke: #ffffff; ?$/);
+        //svg color definition is different for Chrome and FF, in that order of matching
+        expect(rects.attr('style')).toMatch(/^(fill: #ff0000; stroke: #ffffff;|fill: rgb\(255, 0, 0\); stroke: white;) ?$/);
       }));
       it('should allow text color selection', inject(function($compile) {
         var element, svg, texts;
@@ -322,7 +324,8 @@ describe('TrendingController tests', function() {
         expect(svg).toBeDefined();
         texts = svg.find('text');
         expect(texts).toBeDefined();
-        expect(texts.attr('style')).toMatch(/^fill: #ff0000;( font-weight: bold;)? ?$/);
+        //svg color definition is different for Chrome and FF, in that order of matching
+        expect(texts.attr('style')).toMatch(/^(fill: #ff0000; font-weight: bold;|fill: rgb\(255, 0, 0\); font-weight: bold;) ?$/);
       }));
       it('should respect a yMax value', inject(function($compile) {
         var element, rects, svg;

@@ -563,6 +563,40 @@ describe('PolicyEditor.js', function() {
     });
   });
 
+  describe('Email notification display formatter', function() {
+    beforeEach(inject(function() {
+      expectActionRequests();
+      testScope.policy = createNewPolicy();
+      editorScope = getController('PolicyEditorController').scope;
+    }));
+
+    it('No format when no emails', function() {
+      testScope.policy.actions.foo = [];
+
+      var formatted = editorScope.getFormattedEmailList({ id: 'foo' });
+      expect(formatted).toEqual('');
+    });
+
+    it('Formats single email', function() {
+      testScope.policy.actions.foo = [
+        { actionTypeId: 'notify', target: 'single@email.org' }
+      ];
+
+      var formatted = editorScope.getFormattedEmailList({ id: 'foo' });
+      expect(formatted).toEqual('single@email.org');
+    });
+
+    it('Formats multiple emails', function() {
+      testScope.policy.actions.foo = [
+        { actionTypeId: 'notify', target: 'any@email.org' },
+        { actionTypeId: 'notify', target: 'another@email.org' }
+      ];
+
+      var formatted = editorScope.getFormattedEmailList({ id: 'foo' });
+      expect(formatted).toEqual('any@email.org, another@email.org');
+    });
+  });
+
   describe('Edit Notifications', function() {
     var editorScope;
 
@@ -578,29 +612,83 @@ describe('PolicyEditor.js', function() {
       expect(testScope.policy.actions.foo).toEqual([]);
     });
 
-    it('Save One Address', function() {
+    it('Save One New Address', function() {
       editorScope.editNotification({ id: 'foo' });
-      dialogScope.notificationEmailList.push('test@example.org');
+      dialogScope.notificationEmailList.push('single@example.org');
       dialogScope.save();
       expect(testScope.policy.actions.foo).toEqual([
-        { actionTypeId: 'notify', target: 'test@example.org' }
+        { actionTypeId: 'notify', target: 'single@example.org' }
       ]);
     });
 
-    it('Save Multiple Addresses', function() {
+    it('Save Multiple New Addresses', function() {
       editorScope.editNotification({ id: 'foo' });
-      dialogScope.notificationEmailList.push('test@example.org', 'test1@example.org');
+      dialogScope.notificationEmailList.push('one@example.org', 'two@example.org');
       dialogScope.save();
       expect(testScope.policy.actions.foo).toEqual([
-        { actionTypeId: 'notify', target: 'test@example.org,test1@example.org' }
+        { actionTypeId: 'notify', target: 'one@example.org' },
+        { actionTypeId: 'notify', target: 'two@example.org' }
       ]);
     });
 
-    it('Cancel', function() {
+    it('Cancel Does Not Update', function() {
       editorScope.editNotification({ id: 'foo' });
-      dialogScope.notificationEmailList.push('test@example.org');
+      dialogScope.notificationEmailList.push('cancelled@example.org');
       dialogScope.$close();
       expect(testScope.policy.actions.foo).toBeUndefined();
+    });
+
+    it('Adds to Existing Addresses', function () {
+      testScope.policy.actions.foo = [
+        { actionTypeId: 'notify', target: 'existing@example.org' },
+        { actionTypeId: 'notify', target: 'another.existing@example.org' }
+      ];
+
+      editorScope.editNotification({ id: 'foo' });
+      dialogScope.notificationEmailList.push('new@example.org');
+      dialogScope.save();
+
+      expect(testScope.policy.actions.foo.length).toEqual(3);
+      expect(testScope.policy.actions.foo).toEqual([
+        { actionTypeId: 'notify', target: 'existing@example.org' },
+        { actionTypeId: 'notify', target: 'another.existing@example.org' },
+        { actionTypeId: 'notify', target: 'new@example.org' }
+      ]);
+    });
+
+    it('Removes Existing Address', function () {
+      testScope.policy.actions.foo = [
+        { actionTypeId: 'notify', target: 'existing@example.org' },
+        { actionTypeId: 'notify', target: 'another.existing@example.org' }
+      ];
+
+      editorScope.editNotification({ id: 'foo' });
+      dialogScope.notificationEmailList.push('new@example.org', 'gnu@example.org');
+      dialogScope.notificationEmailList.splice(0,1);
+      dialogScope.save();
+
+      expect(testScope.policy.actions.foo.length).toEqual(3);
+      expect(testScope.policy.actions.foo).toEqual([
+        { actionTypeId: 'notify', target: 'another.existing@example.org' },
+        { actionTypeId: 'notify', target: 'new@example.org' },
+        { actionTypeId: 'notify', target: 'gnu@example.org' }
+      ]);
+    });
+
+    it('Accepts brain 1.6 concatenated emails', function () {
+      testScope.policy.actions.foo = [
+        { actionTypeId: 'notify', target: 'chang.bunker@siam.th,eng.bunker@siam.th' }
+      ];
+
+      editorScope.editNotification({ id: 'foo' });
+      dialogScope.notificationEmailList.push('abby.hensel@mn.us', 'brittany.hensel@mn.us');
+      dialogScope.save();
+
+      expect(testScope.policy.actions.foo).toEqual([
+        { actionTypeId: 'notify', target: 'chang.bunker@siam.th,eng.bunker@siam.th' },
+        { actionTypeId: 'notify', target: 'abby.hensel@mn.us' },
+        { actionTypeId: 'notify', target: 'brittany.hensel@mn.us' }
+      ]);
     });
   });
 });

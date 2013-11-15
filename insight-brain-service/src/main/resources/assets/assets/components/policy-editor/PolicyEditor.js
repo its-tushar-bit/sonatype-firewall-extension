@@ -199,14 +199,14 @@
       };
 
       $scope.editNotification = function(stage) {
-        var addresses = [];
+        // local copy for updating/adding notification actions
+        var actions = $scope.policy.actions[stage.id] || [];
 
-        if ($scope.policy.actions[stage.id]) {
-          for (var i = 0; i < $scope.policy.actions[stage.id].length; i++) {
-            if ($scope.policy.actions[stage.id][i].actionTypeId == 'notify') {
-              addresses = $scope.policy.actions[stage.id][i].target.split(',');
-              break;
-            }
+        var addresses = [];
+        for (var i = 0; i < actions.length; i++) {
+          if (actions[i].actionTypeId == 'notify') {
+            // extract the emails for notification action types
+            addresses.push(actions[i].target);
           }
         }
 
@@ -222,31 +222,27 @@
               modalScope.setEditorError = function(error) {
                 modalScope.error = error;
               };
+
               modalScope.notificationEmailList = addresses;
 
               modalScope.save = function() {
-                var found = false;
-                $scope.policy.actions[stage.id] = $scope.policy.actions[stage.id] || [];
-                for (var i = 0; i < $scope.policy.actions[stage.id].length; i++) {
-                  if ($scope.policy.actions[stage.id][i].actionTypeId == 'notify') {
-                    if (addresses.length) {
-                      //if valid addresses, update target
-                      $scope.policy.actions[stage.id][i].target = addresses.join();
-                    }
-                    else {
-                      //otherwise dump the action
-                      $scope.policy.actions[stage.id].splice(i, 1);
-                    }
-                    found = true;
-                    break;
+                // remove existing notify actions since all entries will be added when saved
+                // loop in reverse to avoid missing items when splice reindexes the array, causing the counter to be off if done in a normal for loop
+                var i = actions.length;
+                while (i--) {
+                  if (actions[i].actionTypeId == 'notify') {
+                    actions.splice(i,1);
                   }
                 }
-                if (!found && addresses.length > 0) {
-                  $scope.policy.actions[stage.id].push({
-                    actionTypeId: 'notify',
-                    target: addresses.join()
-                  });
+
+                // add notify action for each address
+                for (var i = 0; i < addresses.length; i++) {
+                  actions.push({ actionTypeId: 'notify', target: addresses[i] });
                 }
+
+                // replace policy action state with updated copy
+                $scope.policy.actions[stage.id] = actions;
+
                 modalScope.$close();
               };
             }
@@ -270,14 +266,19 @@
         return showActionIcon(stage.id, 'fail');
       };
 
-      $scope.getEmailList = function(stage) {
-        if ($scope.policy.actions[stage.id]) {
-          for (var i = 0; i < $scope.policy.actions[stage.id].length; i++) {
-            if ($scope.policy.actions[stage.id][i].actionTypeId == 'notify') {
-              return $scope.policy.actions[stage.id][i].target.split(',').join(', ');
-            }
+      /**
+       * Formats the list of notification recipients as a single string, or empty string if no recipients.
+       */
+      $scope.getFormattedEmailList = function(stage) {
+        var addresses = [];
+        var actions = $scope.policy.actions[stage.id] || [];
+        for (var i = 0; i < actions.length; i++) {
+          if (actions[i].actionTypeId == 'notify') {
+            addresses.push(actions[i].target);
           }
         }
+
+        return addresses.join(', ');
       };
 
       //make sure user is aware they are about to lose changes

@@ -783,8 +783,8 @@
 
   <profiles>
     <!--
-      To execute just the Jasmine tests run mvn jasmine:test -P <test profile>
-      E.g. mvn jasmine:test -P test-brain
+      To execute just the Jasmine tests run mvn phantomjs:install jasmine:test -P <test profile>
+      E.g. mvn phantomjs:install jasmine:test -P test-brain
     -->
     <profile>
       <id>test-cip</id>

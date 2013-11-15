@@ -66,7 +66,9 @@
 
   module.factory('CurrentUser', ['$http', '$q', 'CLMLocations', function ($http, $q, clmLocations) {
     var deferred = $q.defer();
-    $http.get(clmLocations.getSessionUrl()).success(function (authenticationStatus) {
+    $http.get(clmLocations.getSessionUrl(), {
+      params: { timestamp: new Date().getTime() }
+    }).success(function (authenticationStatus) {
       deferred.resolve(authenticationStatus);
     }).error(function () {
       deferred.reject(arguments);

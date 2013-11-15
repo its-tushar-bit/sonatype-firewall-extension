@@ -22,6 +22,7 @@ import org.junit.Test;
 
 import static org.hamcrest.Matchers.emptyArray;
 import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 
 public class ApplicationResourceAuthzTest
@@ -43,6 +44,24 @@ public class ApplicationResourceAuthzTest
     entities = fromJson(response, Application[].class);
     assertThat(entities.length, is(1));
     assertThat(entities[0].getId(), is(app.getId()));
+  }
+
+  @Test
+  public void testGetScanApplicationManagementSummary() throws Exception {
+    Role role = tempEntity.newRole(false, Permission.READ);
+    tempEntity.newMembershipMapping(app.getId(), role.getId(), authorized.getUsername());
+
+    String url = getRestBaseUrl()
+        + ApplicationResource.SERVICE_PATH
+        + "/"
+        + ApplicationResource.GET_SCAN_APPLICATION_MANAGEMENT_SUMMARY.replace("{applicationPublicId}",
+            app.getPublicId()).replace("{scanId}", "123");
+    Response response = RestAccess.get(url, unauthorized.getUsername(), unauthorized.getPassword());
+    assertResponseStatus(403, response);
+
+    response = RestAccess.get(url, authorized.getUsername(), authorized.getPassword());
+    assertResponseStatus(404, response);
+    assertEquals("Unable to locate requested scan", response.getResponseBody());
   }
 
   @Test

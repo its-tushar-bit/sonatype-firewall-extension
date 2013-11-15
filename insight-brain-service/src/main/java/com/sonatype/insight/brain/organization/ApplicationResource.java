@@ -56,6 +56,7 @@ import com.sonatype.insight.brain.security.AuthzFilter;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.dataaccess.AbstractDAO;
+import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.error.exception.PaymentRequiredException;
 
 import com.sun.jersey.core.header.FormDataContentDisposition;
@@ -402,6 +403,9 @@ public class ApplicationResource
     log.debug("Found application with public id {}", applicationPublicId);
 
     PolicyEvaluation evaluation = new PolicyEvaluationLog(work.getAuditDir(applicationId)).lastByScan(scanId);
+    if (evaluation == null) {
+      throw new NotFoundException("Unable to locate requested scan");
+    }
     ApplicationManagementSummary summary = ApplicationManagementSummary.fromApplication(application);
     summary.setPolicyEvaluations(Collections.singletonMap(evaluation.getStage().getStageTypeId(), evaluation));
     return summary;

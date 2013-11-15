@@ -42,10 +42,6 @@
           return baseUrl.get() + '/rest/application/services/summary/' + encodeURIComponent(applicationId);
         },
 
-        getScanApplicationSummaryUrl: function(applicationId, scanId) {
-          return baseUrl.get() + '/rest/application/services/summary/' + encodeURIComponent(applicationId) + "/" + scanId;
-        },
-
         getOrganizationsUrl: function() {
           return baseUrl.get() + '/rest/organization';
         },
@@ -99,8 +95,8 @@
           return baseUrl.get() + '/rest/user/' + userId + '/password';
         },
 
-        getApplicationScanSummary : function (publicAppId, scanId) {
-          return baseUrl.get() + '/rest/application/services/summary/' + publicAppId + '/' + scanId;
+        getApplicationScanSummary : function (applicationId, scanId) {
+          return baseUrl.get() + '/rest/application/services/summary/' + encodeURIComponent(applicationId) + '/' + scanId;
         }
       };
     }

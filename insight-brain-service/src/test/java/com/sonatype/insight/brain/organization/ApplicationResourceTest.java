@@ -28,6 +28,7 @@ import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityConditionType;
 import com.sonatype.insight.brain.organization.ApplicationResource.ApplicationDTO;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateResource;
@@ -353,6 +354,66 @@ public class ApplicationResourceTest
   }
 
   @Test
+  public void testGetApplicationManagementSummary() throws Exception {
+    // Create an application
+    final String applicationPublicId = "ApplicationResourceTest-getApplicationsTest-AppId";
+    final String applicationName = "ApplicationResourceTest-getApplicationsTest-Name";
+    final String licenseFingerprint = "ApplicationResourceTest-getApplicationsTest-LicenseFingerprint";
+
+    Application application = createApplication(applicationPublicId, applicationName);
+    setLicenseFingerprint(licenseFingerprint);
+
+
+    final String scanId1 = "ScanId1", scanId2 = "ScanId2";
+    final File saasReportFile1 = getReportResponseFile(licenseFingerprint, scanId1);
+    FileUtils.copyURLToFile(getClass().getResource("/PolicyEvaluateResourceTest/report.zip"), saasReportFile1);
+    FileUtils.copyFile(saasReportFile1, getReportResponseFile(licenseFingerprint, scanId2));
+
+    final long startTime = System.currentTimeMillis();
+    Response response = AuthedRestAccess.post(getEvalURL(applicationPublicId, scanId1),
+        JsonHelpers.asJson(new Stage(Stage.ID_BUILD)));
+    assertResponseStatus(200, response);
+    response = AuthedRestAccess.post(getEvalURL(applicationPublicId, scanId2),
+        JsonHelpers.asJson(new Stage(Stage.ID_RELEASE)));
+    assertResponseStatus(200, response);
+
+    // Verify Response for scan 1
+    response = AuthedRestAccess.get(getApplicationManagementSummaryUrl(application.getPublicId(), scanId1));
+    assertResponseStatus(200, response);
+    ApplicationManagementSummary summary = JsonHelpers.fromJson(response.getResponseBody(),
+        ApplicationManagementSummary.class);
+
+    Assert.assertEquals(application.getName(), summary.getName());
+    Assert.assertEquals(application.getId(), summary.getId());
+    Assert.assertEquals(1, summary.getPolicyEvaluations().size());
+    Assert.assertTrue(summary.getPolicyEvaluations().containsKey(Stage.ID_BUILD));
+
+    PolicyEvaluation evaluation = summary.getPolicyEvaluations().get(Stage.ID_BUILD);
+    Assert.assertEquals(scanId1, evaluation.getScanId());
+    Assert.assertTrue(evaluation.getTime() > startTime);
+
+    // Verify Response for scan 2
+    response = AuthedRestAccess.get(getApplicationManagementSummaryUrl(application.getPublicId(), scanId2));
+    assertResponseStatus(200, response);
+
+    summary = JsonHelpers.fromJson(response.getResponseBody(), ApplicationManagementSummary.class);
+
+    Assert.assertEquals(application.getName(), summary.getName());
+    Assert.assertEquals(application.getId(), summary.getId());
+    Assert.assertEquals(1, summary.getPolicyEvaluations().size());
+    Assert.assertTrue(summary.getPolicyEvaluations().containsKey(Stage.ID_RELEASE));
+
+    evaluation = summary.getPolicyEvaluations().get(Stage.ID_RELEASE);
+    Assert.assertEquals(scanId2, evaluation.getScanId());
+    Assert.assertTrue(evaluation.getTime() > startTime);
+
+    // 1-800-DIAL-A-SCAN
+    response = AuthedRestAccess.get(getApplicationManagementSummaryUrl(application.getPublicId(), "12345678"));
+    assertResponseStatus(404, response);
+    Assert.assertEquals("Unable to locate requested scan", response.getResponseBody());
+  }
+
+  @Test
   public void testGetApplicationSummaries() throws Exception {
     // Create an application
     final String applicationPublicId = "ApplicationResourceTest-getApplicationsTest-AppId";
@@ -363,13 +424,8 @@ public class ApplicationResourceTest
     setLicenseFingerprint(licenseFingerprint);
 
     // Create policy
-    PolicyDAO policyDAO = new PolicyDAO(brain.getWorkDir());
-    Policy policy1 = new Policy();
-    policy1.setName("policy 1");
-    Constraint constraint1 = new Constraint(null, "constraint 1", LogicalOperator.AND);
-    constraint1.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
-    policy1.addConstraint(constraint1);
-    policyDAO.insert(application.getId(), policy1);
+    createSimplePolicy(application, "policy 1", "constraint 1", LogicalOperator.AND, new Condition(
+        SecurityVulnerabilityConditionType.ID, "present"));
     final String scanId1 = "ScanId1", scanId2 = "ScanId2";
     final File saasReportFile1 = getReportResponseFile(licenseFingerprint, scanId1);
     FileUtils.copyURLToFile(getClass().getResource("/PolicyEvaluateResourceTest/report.zip"), saasReportFile1);
@@ -625,6 +681,20 @@ public class ApplicationResourceTest
     }
   }
 
+  private void createSimplePolicy(Application app, String policyName, String constraintName, LogicalOperator op,
+      Condition... conditions)
+  {
+    PolicyDAO policyDAO = new PolicyDAO(brain.getWorkDir());
+    Policy policy1 = new Policy();
+    policy1.setName(policyName);
+    Constraint constraint1 = new Constraint(null, constraintName, op);
+    for (Condition condition : conditions) {
+      constraint1.addCondition(condition);
+    }
+    policy1.addConstraint(constraint1);
+    policyDAO.insert(app.getId(), policy1);
+  }
+
   private String getValidateApplicationIdServiceURL(String applicationPublicId) {
     return getServiceURL() + '/'
         + ApplicationResource.VALIDATE_PATH.replace("{applicationPublicId}", applicationPublicId);
@@ -633,6 +703,14 @@ public class ApplicationResourceTest
   private String getApplicationServiceUrl(String applicationPublicId) {
     return getServiceURL() + '/'
         + ApplicationResource.GET_APPLICATION_PATH.replace("{applicationPublicId}", applicationPublicId);
+  }
+
+  private String getApplicationManagementSummaryUrl(final String appId, final String scanId) {
+    return getRestBaseUrl()
+        + ApplicationResource.SERVICE_PATH
+        + "/"
+        + ApplicationResource.GET_SCAN_APPLICATION_MANAGEMENT_SUMMARY.replace("{applicationPublicId}", appId).replace(
+            "{scanId}", scanId);
   }
 
   private String getGetIconServiceUrl(String applicationPublicId) {

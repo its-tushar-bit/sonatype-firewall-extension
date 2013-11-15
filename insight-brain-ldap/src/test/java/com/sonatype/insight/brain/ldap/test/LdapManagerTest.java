@@ -21,6 +21,7 @@ import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapConnectionDA
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapServerDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapUserMappingDAO;
 import com.sonatype.insight.brain.ldap.EmbeddedLdapServer;
+import com.sonatype.insight.brain.ldap.LdapGroup;
 import com.sonatype.insight.brain.ldap.LdapManager;
 import com.sonatype.insight.brain.ldap.LdapUser;
 
@@ -338,6 +339,32 @@ public class LdapManagerTest
     List<LdapUser> users = manager.testFindUsersByName(umap, "user 2", 100);
     assertThat(users.size(), is(1));
 
+  }
+
+  @Test
+  public void testFindGroupsByName() throws Exception {
+    startLdapServer();
+
+    LdapConnection conn = createLdapConnection();
+    conn.setSearchBase("dc=company,dc=com");
+    manager.saveConnection(conn);
+
+    LdapUserMapping umap = createUserMapping();
+    LdapUserMappingDAO userMappingDAO = new LdapUserMappingDAO();
+    userMappingDAO.insert(umap);
+
+    List<LdapGroup> groups = manager.findGroupsByName("Alpha", 100);
+    assertThat(groups.size(), is(1));
+
+    groups = manager.findGroupsByName("a", 100);
+    assertThat(groups.size(), is(5));
+
+    // Test max results
+    groups = manager.findGroupsByName("a", 2);
+    assertThat(groups.size(), is(2));
+
+    groups = manager.findGroupsByName("Foo", 100);
+    assertThat(groups.size(), is(0));
   }
 
   @Test

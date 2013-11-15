@@ -244,6 +244,33 @@ class LdapQuery
   }
 
   /**
+   * Query for list of groups whose Group ID attribute matches the supplied nameFragment. This nameFragment will be prefixed and
+   * suffixed with a wildcard to find matches.
+   *
+   * @param nameFragment String to match against
+   * @param maxResults maximum number of results to pull from ldap, don't want to overload the system
+   * @return List of LdapGroup objects matching the search criteria
+   */
+  public List<LdapGroup> queryGroupsByName(String nameFragment, long maxResults) throws NamingException {
+    String[] attributes = pickAttributes(umap.getGroupIDAttribute());
+
+    LdapContext ctx = null;
+    NamingEnumeration<SearchResult> results = null;
+    try {
+      ctx = ctxFactory.getSystemLdapContext();
+      results = searchGroupsByGroupname(ctx, "*" + nameFragment + "*", attributes, maxResults);
+      List<LdapGroup> ldapGroups = new ArrayList<>();
+      while (results.hasMoreElements()) {
+        ldapGroups.add(createGroup(ctx, results.nextElement()));
+      }
+      return ldapGroups;
+    } finally {
+      LdapUtils.closeEnumeration(results);
+      LdapUtils.closeContext(ctx);
+    }
+  }
+
+  /**
    * Populates LDAP user information from the given search result.
    */
   private LdapUser createUser(LdapContext ctx, SearchResult result, boolean withMembership) throws NamingException {
@@ -275,6 +302,18 @@ class LdapQuery
     }
 
     return user;
+  }
+
+  private LdapGroup createGroup(LdapContext cs, SearchResult result) throws NamingException {
+    LdapGroup group = new LdapGroup();
+
+    group.setDn(result.getNameInNamespace());
+
+    Attributes attributes = result.getAttributes();
+
+    group.setGroupname(getAttributeValue(attributes, umap.getGroupIDAttribute()));
+
+    return group;
   }
 
   /**
@@ -327,6 +366,17 @@ class LdapQuery
   }
 
   /**
+   * Search ldap server for all groups whose Group ID attribute matches the supplied name
+   */
+  private NamingEnumeration<SearchResult> searchGroupsByGroupname(LdapContext ctx, String groupname, String[] attributes,
+      long maxResults) throws NamingException
+  {
+    Multimap<String, String> attributeValues = ArrayListMultimap.create();
+    attributeValues.put(umap.getGroupIDAttribute(), groupname != null ? groupname : "*"); // mandatory groupname
+    return searchGroupsByAttributes(ctx, attributeValues, attributes, maxResults);
+  }
+
+  /**
    * Search ldap server for all users, based upon the supplied attributes
    * 
    * @param ctx
@@ -357,7 +407,7 @@ class LdapQuery
     ldapFilter.append("(objectClass=").append(umap.getUserObjectClass()).append(')');
 
     if (attributeValues.size() > 1) {
-      ldapFilter.append('(').append('|');
+      ldapFilter.append("(|");
     }
     for (Entry<String, String> entry : attributeValues.entries()) {
       ldapFilter.append('(').append(entry.getKey()).append('=').append(entry.getValue()).append(')');
@@ -369,6 +419,41 @@ class LdapQuery
     // optional user filter
     if (StringUtils.isNotBlank(umap.getUserFilter())) {
       ldapFilter.append('(').append(umap.getUserFilter()).append(')');
+    }
+
+    ldapFilter.append(')');
+
+    return ctx.search(baseDN, ldapFilter.toString(), controls);
+  }
+
+  /**
+   * Search ldap server for all groups, based upon the supplied attributes
+   */
+   private NamingEnumeration<SearchResult> searchGroupsByAttributes(LdapContext ctx, Multimap<String, String> attributeValues,
+      String[] attributes, long maxResults) throws NamingException
+  {
+    SearchControls controls = new SearchControls();
+
+    controls.setDerefLinkFlag(true);
+    controls.setSearchScope(umap.isGroupSubtree() ? SearchControls.SUBTREE_SCOPE : SearchControls.ONELEVEL_SCOPE);
+    controls.setReturningAttributes(attributes);
+
+    if (maxResults > 0) {
+      controls.setCountLimit(maxResults);
+    }
+
+    String baseDN = StringUtils.defaultString(umap.getGroupBaseDN());
+
+    StringBuilder ldapFilter = new StringBuilder("(&");
+
+    if (attributeValues.size() > 1) {
+      ldapFilter.append("(|");
+    }
+    for (Entry<String, String> entry : attributeValues.entries()) {
+      ldapFilter.append('(').append(entry.getKey()).append('=').append(entry.getValue()).append(')');
+    }
+    if (attributeValues.size() > 1) {
+      ldapFilter.append(')');
     }
 
     ldapFilter.append(')');

@@ -407,7 +407,7 @@ class LdapQuery
     ldapFilter.append("(objectClass=").append(umap.getUserObjectClass()).append(')');
 
     if (attributeValues.size() > 1) {
-      ldapFilter.append('(').append('|');
+      ldapFilter.append("(|");
     }
     for (Entry<String, String> entry : attributeValues.entries()) {
       ldapFilter.append('(').append(entry.getKey()).append('=').append(entry.getValue()).append(')');
@@ -447,7 +447,7 @@ class LdapQuery
     StringBuilder ldapFilter = new StringBuilder("(&");
 
     if (attributeValues.size() > 1) {
-      ldapFilter.append('(').append('|');
+      ldapFilter.append("(|");
     }
     for (Entry<String, String> entry : attributeValues.entries()) {
       ldapFilter.append('(').append(entry.getKey()).append('=').append(entry.getValue()).append(')');

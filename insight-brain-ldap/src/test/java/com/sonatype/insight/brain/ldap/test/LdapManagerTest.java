@@ -356,8 +356,12 @@ public class LdapManagerTest
     List<LdapGroup> groups = manager.findGroupsByName("Alpha", 100);
     assertThat(groups.size(), is(1));
 
-    groups = manager.findGroupsByName("Theta", 100);
-    assertThat(groups.size(), is(1));
+    groups = manager.findGroupsByName("a", 100);
+    assertThat(groups.size(), is(5));
+
+    // Test max results
+    groups = manager.findGroupsByName("a", 2);
+    assertThat(groups.size(), is(2));
 
     groups = manager.findGroupsByName("Foo", 100);
     assertThat(groups.size(), is(0));

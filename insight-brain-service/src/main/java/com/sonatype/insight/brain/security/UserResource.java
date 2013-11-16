@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.security;
 
 import java.util.Collection;
+import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -26,8 +27,10 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
+import com.sonatype.insight.brain.ldap.LdapGroup;
 import com.sonatype.insight.brain.ldap.LdapManager;
 import com.sonatype.insight.brain.ldap.LdapUser;
+import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.model.security.UserPrincipal;
@@ -91,10 +94,12 @@ public class UserResource
     Map<String, FindUserDTO> users = new LinkedHashMap<String, FindUserDTO>();
     String connectionError = null;
 
+    Date date = new Date();
+
     UserDAO dao = new UserDAO();
     for (User user : dao.findUsersByName(query)) {
       String displayName = user.getFirstName() + " " + user.getLastName();
-      FindUserDTO u = new FindUserDTO(user.getUsername(), displayName, user.getEmail(), CLMRealm.DISPLAY_NAME);
+      FindUserDTO u = new FindUserDTO(MemberType.USER, user.getUsername(), displayName, user.getEmail(), CLMRealm.DISPLAY_NAME);
       users.put(u.getUsername().toLowerCase(Locale.ENGLISH), u);
     }
 
@@ -102,10 +107,17 @@ public class UserResource
       String ldapName = ldapManager.getLdapServerName();
       try {
         for (LdapUser user : ldapManager.findUsersByName(query, 100)) {
-          FindUserDTO u = new FindUserDTO(user.getUsername(), user.getRealName(), user.getEmail(), ldapName);
+          FindUserDTO u = new FindUserDTO(MemberType.USER, user.getUsername(), user.getRealName(), user.getEmail(), ldapName);
           String key = u.getUsername().toLowerCase(Locale.ENGLISH);
           if (!users.containsKey(key)) {
             users.put(key, u);
+          }
+        }
+        if (ldapManager.isLdapGroupEnabled()) {
+          for (LdapGroup group : ldapManager.findGroupsByName(query, 100)) {
+            final String groupName = group.getGroupname();
+            FindUserDTO g = new FindUserDTO(MemberType.GROUP, groupName, groupName, null, ldapName);
+            users.put(groupName, g);
           }
         }
       }

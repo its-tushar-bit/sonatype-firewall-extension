@@ -656,6 +656,14 @@ ul.tri-pane {
 .licenseSelectListItem:hover, .large-select-list-item:hover {
 	background-color: #E8E8E8;
 }
+.large-select-list-header {
+  padding-left: 7px;
+  font-size: 16px;
+  font-weight: bold;
+}
+.large-select-list-header .pull-left {
+  padding-right: 10px;
+}
 .large-select-list-item {
   padding-top: 2px;
   padding-bottom: 2px;

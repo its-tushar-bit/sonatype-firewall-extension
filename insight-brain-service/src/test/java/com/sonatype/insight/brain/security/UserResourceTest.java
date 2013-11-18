@@ -353,7 +353,7 @@ public class UserResourceTest
     response = AuthedRestAccess.put(changePasswordUrl, JsonHelpers.asJson(dto), user.getUsername(),
         "testChangePasswordPassword");
     assertResponseStatus(400, response);
-    assertEquals("Invalid credentials supplied.", response.getResponseBody());
+    assertEquals("Current password is wrong.", response.getResponseBody());
 
     // Can change password with correct input
     dto.oldPassword = "testChangePasswordPassword";

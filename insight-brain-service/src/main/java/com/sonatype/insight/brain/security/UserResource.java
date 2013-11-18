@@ -210,7 +210,7 @@ public class UserResource
           new UsernamePasswordToken(user.getUsername(), password.oldPassword));
     }
     catch (AuthenticationException e) {
-      throw new BadRequestException("Invalid credentials supplied.");
+      throw new BadRequestException("Current password is wrong.");
     }
 
     user.setPassword(clmRealm.encryptPassword(password.newPassword));
@@ -231,7 +231,7 @@ public class UserResource
       SecurityUtils.getSecurityManager().authenticate(new UsernamePasswordToken(user.getUsername(), password.oldPassword));
     }
     catch (AuthenticationException e) {
-      throw new BadRequestException("Invalid credentials supplied.");
+      throw new BadRequestException("Current password is wrong.");
     }
 
     user.setPassword(clmRealm.encryptPassword(password.newPassword));

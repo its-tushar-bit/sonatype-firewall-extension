@@ -9,8 +9,8 @@ package com.sonatype.insight.brain.testing.functional
 class LoginSpec extends BaseSpec {
   def "form states are usable"() {
     when: "login modal is shown"
-      to ReportPage
-    
+    to ReportViolationsPage
+
     then: "username input has focus"
       js.'document.activeElement'.id == login.usernameInput.firstElement().id
 
@@ -27,8 +27,8 @@ class LoginSpec extends BaseSpec {
   
   def "can log in with valid credentials"() {
     given: "prompt to log in"
-      to ReportPage
-    
+    to ReportViolationsPage
+
     when: "valid credentials are supplied"
       login.loginAsAdmin()
     
@@ -38,8 +38,8 @@ class LoginSpec extends BaseSpec {
   
   def "log in prevented when using invalid credentials" () {
     given: "prompt to log in"
-      to ReportPage
-  
+    to ReportViolationsPage
+
     when: "invalid credentials are supplied"
       login.login("unknown", "user", true)
       
@@ -52,7 +52,7 @@ class LoginSpec extends BaseSpec {
 
   def "report application is protected by authentication"() {
     when: "accessing the report application"
-      via ReportPage
+      via ReportViolationsPage
 
     then: "user is prompted to log in"
       login.isDisplayed()
@@ -76,18 +76,18 @@ class LoginSpec extends BaseSpec {
       at ManagementPage
     
     when: "accessing report application"
-      to ReportPage
+      to ReportViolationsPage
 
     then: "user is not prompted to log in"
       report 'report page'
-      at ReportPage
+      at ReportViolationsPage
     
     when: "cookies are removed"
       clearCookies()
 
     and: "accessing something that requires authentication"
-      via ReportPage
-    
+    via ReportViolationsPage
+
     then: "user is prompted to log in"
       login.isDisplayed()
   }
@@ -119,12 +119,12 @@ class LoginSpec extends BaseSpec {
 
   def "user can logout from reporting pages"() {
     given: "user has logged in"
-    to ReportPage
+    to ReportViolationsPage
     login.loginAsAdmin()
 
     when: "logging out"
     logout.link.click()
-    to ReportPage
+    to ReportViolationsPage
 
     then: "we redirect to the login page"
     login.isDisplayed()
@@ -136,10 +136,10 @@ class LoginSpec extends BaseSpec {
     login.isDisplayed()
 
     when: "we try to go directly to another page"
-    go ReportPage.url
+    go ReportViolationsPage.url
 
     then: "we never leave the login page"
-    at ReportPage
+    at ReportViolationsPage
     login.isDisplayed()
   }
 }

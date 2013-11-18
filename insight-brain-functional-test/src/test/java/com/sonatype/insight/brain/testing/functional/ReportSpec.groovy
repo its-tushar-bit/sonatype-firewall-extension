@@ -17,17 +17,16 @@ import spock.lang.Stepwise
  */
 @Stepwise
 class ReportSpec
-    extends BaseSpec
-{
+extends BaseSpec {
   @Shared User nonAdminUser
 
   def setupSpec() {
     UserDAO userDAO = new UserDAO()
     nonAdminUser = new User(username: "test", password: new CLMRealm().encryptPassword("secret"), firstName: "John",
-        lastName: "Doe", email: "john@doe.net")
+    lastName: "Doe", email: "john@doe.net")
     userDAO.insert(nonAdminUser);
 
-    to ReportPage
+    to ReportViolationsPage
     login.loginAsAdmin()
   }
 
@@ -65,23 +64,21 @@ class ReportSpec
     violationCount == '0 Violations'
   }
 
-/* commented out because this test consistently fails for me 
-    def "We can regenerate a report"() {
-    when: "we click the refresh button"
-      js.exec '$( ".content" ).scrollLeft( 300 );'
-      refresh.click()
-      interact {
-        moveToElement(refresh)
-      }
-
-    then: "refresh tooltip shows up"
-      waitFor { tooltip.displayed }
-      tooltip.text() == "Report generation running 0 seconds, total number of applications 0, applications processed so far 0"
-
-    then: "report generation is finished"
-      waitFor { !tooltip.displayed }
-  }
-*/
+  /* commented out because this test consistently fails for me 
+   def "We can regenerate a report"() {
+   when: "we click the refresh button"
+   js.exec '$( ".content" ).scrollLeft( 300 );'
+   refresh.click()
+   interact {
+   moveToElement(refresh)
+   }
+   then: "refresh tooltip shows up"
+   waitFor { tooltip.displayed }
+   tooltip.text() == "Report generation running 0 seconds, total number of applications 0, applications processed so far 0"
+   then: "report generation is finished"
+   waitFor { !tooltip.displayed }
+   }
+   */
   def "A non-admin user cannot regenerate the report"(){
     when: 'we log in as a non-admin user'
     logout.link.click()
@@ -95,5 +92,4 @@ class ReportSpec
     applicationCount ==  '0 Applications'
     violationCount == '0 Violations'
   }
-
 }

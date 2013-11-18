@@ -5,16 +5,15 @@
  */
 package com.sonatype.insight.brain.testing.functional.modules
 
-import com.sonatype.insight.brain.testing.functional.ReportPage
+import com.sonatype.insight.brain.testing.functional.ReportViolationsPage
 
 import geb.Module
 
 /**
  * @since 1.7
  */
-class LogoutModule extends Module
-{
+class LogoutModule extends Module {
   static content = {
-    link (wait: true, to: ReportPage) { $('a', text: 'Logout') }
+    link (wait: true, to: ReportViolationsPage) { $('a', text: 'Logout') }
   }
 }

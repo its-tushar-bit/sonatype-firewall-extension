@@ -16,7 +16,7 @@ class NavigationToSpec
     extends BaseSpec
 {
   def setupSpec() {
-    to ReportPage
+    to ReportViolationsPage
     login.loginAsAdmin()
   }
 
@@ -29,7 +29,7 @@ class NavigationToSpec
     at pageUnderTest
 
     where:
-    pageUnderTest << [ManagementPage, ReportPage, UserManagementPage, GlobalRolesPage,
+    pageUnderTest << [ManagementPage, ReportViolationsPage, UserManagementPage, GlobalRolesPage,
         ApplicationManagementPage, OrganizationManagementPage]
     //deliberately not including TrendingReportPage here as that automatically triggers generation of the report data
   }

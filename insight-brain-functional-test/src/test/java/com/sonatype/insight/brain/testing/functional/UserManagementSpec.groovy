@@ -11,12 +11,11 @@ import spock.lang.Unroll
 
 @Stepwise
 class UserManagementSpec
-    extends BaseSpec
-{
+extends BaseSpec {
   // assumes a license has already been installed
   // get to the user page
   def setupSpec() {
-    to ReportPage
+    to ReportViolationsPage
     login.loginAsAdmin()
     to UserManagementPage
   }
@@ -38,7 +37,14 @@ class UserManagementSpec
     waitFor { userForm.present }
     errorFree
     save.disabled
-    [firstNameInput, lastNameInput, emailInput, usernameInput, passwordInput, passwordValidateInput].each { input ->
+    [
+      firstNameInput,
+      lastNameInput,
+      emailInput,
+      usernameInput,
+      passwordInput,
+      passwordValidateInput
+    ].each { input ->
       input.displayed
       input.value() == ''
     }
@@ -159,37 +165,37 @@ class UserManagementSpec
     currentUsers.size() == 1
     currentUsers.text() == 'admin (Admin BuiltIn)'
   }
-  
+
   def "A user's password can be reset"() {
     when: 'hovering over the header of the user in the list'
     interact {
       moveToElement(header(0))
     }
-    
+
     then: 'we can now see the reset symbol'
     def resetUser = resetUserButton(0)
     resetUser.displayed
-    
+
     when: 'clicking on reset'
     resetUser.click()
 
     then: 'we are presented with a confirmation dialog'
     confirmResetModal.displayed
-    
+
     when: 'we confirm reset'
     confirmReset.click()
-    
+
     then: 'we are presented with the new password'
     waitFor { newPasswordField.displayed }
     def newPassword = newPasswordField.value();
     okReset.click()
     waitFor { !newPasswordField.displayed }
-    
+
     when: 'user logs in with new password'
     logout.link.click()
     login.isDisplayed()
     login.login('addusertest', newPassword);
-    
+
     then: 'login succeeds'
     !login.isDisplayed()
     logout.link.click()

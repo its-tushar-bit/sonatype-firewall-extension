@@ -5,17 +5,16 @@
  */
 package com.sonatype.insight.brain.testing.functional
 
-import spock.lang.Stepwise;
+import spock.lang.Stepwise
 
 
 /**
  * @since 1.7
  */
 @Stepwise
-class NavigationLinksSpec extends BaseSpec
-{
+class NavigationLinksSpec extends BaseSpec {
   def setupSpec() {
-    to ReportPage
+    to ReportViolationsPage
     login.loginAsAdmin()
   }
 
@@ -33,7 +32,6 @@ class NavigationLinksSpec extends BaseSpec
     dropdownNav.toReports()
 
     then: 'we should end up back at the Report page with the Violations nav link shown as active'
-    at ReportPage
+    at ReportViolationsPage
   }
-
 }

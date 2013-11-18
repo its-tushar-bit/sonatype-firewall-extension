@@ -6,7 +6,7 @@
 package com.sonatype.insight.brain.testing.functional.modules
 
 import com.sonatype.insight.brain.testing.functional.ManagementPage
-import com.sonatype.insight.brain.testing.functional.ReportPage
+import com.sonatype.insight.brain.testing.functional.ReportViolationsPage
 
 import geb.Module
 
@@ -14,8 +14,7 @@ import geb.Module
  * @since 1.7
  */
 class DropdownNav
-    extends Module
-{
+extends Module {
   public static final String REPORTS = 'Reports'
 
   public static final String MANAGEMENT = 'Management'
@@ -23,8 +22,10 @@ class DropdownNav
   static content = {
     trigger { $('a.dropdown-toggle')}
     links { $('ul.dropdown-menu').find('a') }
-    management(to: ManagementPage) { links.find { it.text().trim() == MANAGEMENT } }
-    reports(to: ReportPage) { links.find { it.text().trim() == REPORTS } }
+    management(to: ManagementPage) { links.find { it.text().trim() == MANAGEMENT
+      } }
+    reports(to: ReportViolationsPage) { links.find { it.text().trim() == REPORTS
+      } }
   }
 
   void toManagement() {

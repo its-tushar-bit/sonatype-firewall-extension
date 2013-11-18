@@ -60,6 +60,7 @@
           </excludes>
           <includes>
             <include>**/*Spec.*</include>
+            <include>**/*Test.*</include>
           </includes>
           <systemPropertyVariables>
             <!--

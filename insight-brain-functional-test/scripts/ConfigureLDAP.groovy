@@ -120,7 +120,7 @@ browser.getDriver().manage().window().maximize()
 Browser.drive(browser) {
   to LoginPage
   loginAsAdmin()
-  waitFor { at ReportPage }
+  waitFor { at ReportViolationsPage }
 
   to LDAPConfigurationPage
 

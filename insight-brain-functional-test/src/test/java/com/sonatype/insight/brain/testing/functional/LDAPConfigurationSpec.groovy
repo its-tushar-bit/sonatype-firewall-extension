@@ -17,7 +17,7 @@ class LDAPConfigurationSpec extends BaseSpec
 {
   def "create a new LDAP and navigate the connection and user/group mappings forms"(){
     setup: "login"
-    to ReportPage
+    to ReportViolationsPage
     login.loginAsAdmin()
     to LDAPConfigurationPage
 

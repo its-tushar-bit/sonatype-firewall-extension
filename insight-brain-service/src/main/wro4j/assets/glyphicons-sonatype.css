@@ -9,6 +9,20 @@
   content: "\e017";
 }
 
+.glyphicons-sonatype.user-small:before {
+  content: "\E004";
+  font-size: 10px;
+  padding-right: 10px;
+  vertical-align: -5%;
+}
+
+.glyphicons-sonatype.group-small:before {
+  content: "\E044";
+  font-size: 10px;
+  padding-right: 10px;
+  vertical-align: -5%;
+}
+
 .glyphicons-halflings-sonatype:before {
     *zoom: 1;
     font: 12px/1em 'Glyphicons Halflings';

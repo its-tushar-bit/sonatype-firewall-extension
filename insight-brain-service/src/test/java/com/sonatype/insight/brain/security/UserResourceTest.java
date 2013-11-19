@@ -369,10 +369,11 @@ public class UserResourceTest
     assertResponseStatus(400, response);
 
     response = AuthedRestAccess.get(getSearchUrl(User.ADMIN_USERNAME));
-    assertFindUsersDTO(response, null, User.ADMIN_USERNAME, "Admin BuiltIn", "CLM");assertResponseStatus(200, response);
+    assertFindUsersDTO(response, null, MemberType.USER, User.ADMIN_USERNAME, "Admin BuiltIn", "admin@localhost", "CLM");
+    assertResponseStatus(200, response);
 
     response = AuthedRestAccess.get(getSearchUrl(User.ADMIN_USERNAME.substring(0, User.ADMIN_USERNAME.length() - 1)));
-    assertFindUsersDTO(response, null, User.ADMIN_USERNAME, "Admin BuiltIn", "CLM");
+    assertFindUsersDTO(response, null, MemberType.USER, User.ADMIN_USERNAME, "Admin BuiltIn", "admin@localhost", "CLM");
 
     response = AuthedRestAccess.get(getSearchUrl("nobody-has-such-a-name-really"));
     assertResponseStatus(200, response);
@@ -396,15 +397,29 @@ public class UserResourceTest
     tempEntity.newLdapUserMapping(ldapServer.getId());
 
     Response response = AuthedRestAccess.get(getSearchUrl("John"));
-    assertFindUsersDTO(response, null, "testuser", "John Doe", "LDAP");
+    assertFindUsersDTO(response, null, MemberType.USER, "testuser", "John Doe", "test.user@company.com", "LDAP");
 
     tempEntity.newUser("testuser");
 
     // Test shading. testuser loaded from "/UserResourceTest/ldap_users.ldif" should not be returned
     response = AuthedRestAccess.get(getSearchUrl("John"));
-    assertFindUsersDTO(response, null, "testuser", "John Doe", "CLM");
+    assertFindUsersDTO(response, null, MemberType.USER, "testuser", "John Doe", "testuser@void.com", "CLM");
 
     embeddedLdapServer.stop();
+  }
+
+  @Test
+  public void testFindLdapGroup() throws Exception {
+    EmbeddedLdapServer embeddedLdapServer = newEmbeddedLdapServer();
+    embeddedLdapServer.start();
+    embeddedLdapServer.loadData("/UserResourceTest/ldap_users.ldif");
+
+    LdapServer ldapServer = tempEntity.newLdapServer("LDAP");
+    tempEntity.newLdapConnection(ldapServer.getId(), embeddedLdapServer.getPort());
+    tempEntity.newLdapUserMapping(ldapServer.getId());
+
+    Response response = AuthedRestAccess.get(getSearchUrl("Alpha"));
+    assertFindUsersDTO(response, null, MemberType.GROUP, "Alpha", "Alpha", null, "LDAP");
   }
 
   @Test
@@ -413,13 +428,13 @@ public class UserResourceTest
     Response response = AuthedRestAccess.get(getSearchUrl(User.ADMIN_USERNAME));
 
     // Should not try to use Ldap until server is added and configured
-    assertFindUsersDTO(response, null, User.ADMIN_USERNAME, "Admin BuiltIn", "CLM");
+    assertFindUsersDTO(response, null, MemberType.USER, User.ADMIN_USERNAME, "Admin BuiltIn", "admin@localhost", "CLM");
 
     tempEntity.newLdapConnection(ldapServer.getId());
     tempEntity.newLdapUserMapping(ldapServer.getId());
 
     response = AuthedRestAccess.get(getSearchUrl(User.ADMIN_USERNAME));
-    assertFindUsersDTO(response, "LDAP connection unavailable. Displaying local users only.", User.ADMIN_USERNAME, "Admin BuiltIn", "CLM");
+    assertFindUsersDTO(response, "LDAP connection unavailable. Displaying local users only.", MemberType.USER, User.ADMIN_USERNAME, "Admin BuiltIn", "admin@localhost", "CLM");
   }
 
   private void assertUser(String username, String firstName, String lastName, String email, User actual) {
@@ -437,7 +452,7 @@ public class UserResourceTest
     return getRestBaseUrl() + UserResource.SERVICE_PATH + "/global/global/query?q=" + query;
   }
 
-  private void assertFindUsersDTO(Response response, String error, String username, String displayName, String realm)
+  private void assertFindUsersDTO(Response response, String error, MemberType type, String username, String displayName, String email, String realm)
       throws IOException
   {
     assertResponseStatus(200, response);
@@ -453,8 +468,10 @@ public class UserResourceTest
     FindUserDTO[] users = dto.getUsers().toArray(new FindUserDTO[0]);
     assertThat(users, is(notNullValue()));
     assertThat(users.length, is(1));
+    assertThat(users[0].getType(), is(type));
     assertThat(users[0].getUsername(), is(username));
     assertThat(users[0].getDisplayName(), is(displayName));
+    assertThat(users[0].getEmail(), is(email));
     assertThat(users[0].getRealm(), is(realm));
   }
 }

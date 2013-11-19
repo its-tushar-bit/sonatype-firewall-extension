@@ -94,6 +94,12 @@ describe('AppSecurityControllerSpec', function() {
           displayName : 'Old Lady',
           email : 'oldlady@foo.com',
           realm : 'old'
+        }, {
+          type : 'GROUP',
+          internalName : 'oldladiesgroup',
+          displayName : 'Old Ladies Group',
+          email : 'oldladiesgroup@foo.com',
+          realm : 'old'
         }]
       },{
         ownerId : '862f7a486bff473b9205007595399ffe',
@@ -104,6 +110,12 @@ describe('AppSecurityControllerSpec', function() {
           internalName : 'oldman',
           displayName : 'Old Man',
           email : 'oldman@foo.com',
+          realm : 'old'
+        }, {
+          type : 'GROUP',
+          internalName : 'oldmengroup',
+          displayName : 'Old Men Group',
+          email : 'oldmengroup@foo.com',
           realm : 'old'
         }]
       }];
@@ -117,9 +129,10 @@ describe('AppSecurityControllerSpec', function() {
       parentScope.$destroy();
     });
 
-    it('Add User', inject(function ($httpBackend, CLMAppLocations) {
+    it('Add User and Group', inject(function ($httpBackend, CLMAppLocations) {
       scope.$apply(function () {
         scope.addUser({
+          type: 'USER',
           username : 'testuser',
           displayName : 'Fred Flintstone',
           email : 'fred@flinstone.com',
@@ -132,6 +145,47 @@ describe('AppSecurityControllerSpec', function() {
         displayName : 'Fred Flintstone',
         email : "fred@flinstone.com",
         realm : "bedrock"
+      },{
+        type : 'GROUP',
+        internalName : 'oldladiesgroup',
+        displayName : 'Old Ladies Group',
+        email : 'oldladiesgroup@foo.com',
+        realm : 'old'
+      },{
+        type: "USER",
+        internalName : 'oldlady',
+        displayName : 'Old Lady',
+        email : 'oldlady@foo.com',
+        realm : 'old'
+      }]);
+
+      scope.$apply(function () {
+        scope.addUser({
+          type: 'GROUP',
+          username : 'finstones',
+          displayName : 'Flintstone Family',
+          email : 'family@flinstone.com',
+          realm : 'bedrock'
+        });
+      });
+      expect(parentScope.mappings[0].members).toEqual([{
+        type: 'GROUP',
+        internalName : 'finstones',
+        displayName : 'Flintstone Family',
+        email : 'family@flinstone.com',
+        realm : 'bedrock'
+      },{
+        type: "USER",
+        internalName : 'testuser',
+        displayName : 'Fred Flintstone',
+        email : "fred@flinstone.com",
+        realm : "bedrock"
+      },{
+        type : 'GROUP',
+        internalName : 'oldladiesgroup',
+        displayName : 'Old Ladies Group',
+        email : 'oldladiesgroup@foo.com',
+        realm : 'old'
       },{
         type: "USER",
         internalName : 'oldlady',
@@ -146,6 +200,16 @@ describe('AppSecurityControllerSpec', function() {
     }));
 
     it('Remove User', inject(function ($httpBackend, CLMAppLocations) {
+      scope.$apply(function () {
+        scope.removeUser(0, scope.mappings[0].members[0]);
+      });
+      expect(parentScope.mappings[0].members).toEqual([{
+        type : 'GROUP',
+        internalName : 'oldladiesgroup',
+        displayName : 'Old Ladies Group',
+        email : 'oldladiesgroup@foo.com',
+        realm : 'old'
+      }]);
       scope.$apply(function () {
         scope.removeUser(0, scope.mappings[0].members[0]);
       });

@@ -11,6 +11,7 @@ import java.util.UUID;
 
 import com.sonatype.insight.brain.configuration.ldap.LdapAuthenticationMethod;
 import com.sonatype.insight.brain.configuration.ldap.LdapConnection;
+import com.sonatype.insight.brain.configuration.ldap.LdapGroupMappingType;
 import com.sonatype.insight.brain.configuration.ldap.LdapProtocol;
 import com.sonatype.insight.brain.configuration.ldap.LdapServer;
 import com.sonatype.insight.brain.configuration.ldap.LdapUserMapping;
@@ -272,6 +273,7 @@ public class TemporaryEntity
     ldapConnection.setPort(port);
     ldapConnection.setAuthenticationMethod(LdapAuthenticationMethod.NONE);
     ldapConnection.setSystemUsername("system");
+    ldapConnection.setSearchBase("dc=company,dc=com");
     ldapConnectionDAO.insert(ldapConnection);
     return ldapConnection;
   }
@@ -279,12 +281,19 @@ public class TemporaryEntity
   public LdapUserMapping newLdapUserMapping(String ldapServerId) {
     LdapUserMapping umap = new LdapUserMapping();
     umap.setServerId(ldapServerId);
-    umap.setUserBaseDN("");
+    umap.setUserBaseDN("ou=users");
     umap.setUserObjectClass("person");
     umap.setUserIDAttribute("uid");
     umap.setUserRealNameAttribute("givenName");
     umap.setUserEmailAttribute("mail");
     umap.setUserSubtree(true);
+    umap.setGroupMappingType(LdapGroupMappingType.STATIC);
+    umap.setGroupBaseDN("ou=groups");
+    umap.setGroupIDAttribute("cn");
+    umap.setGroupSubtree(true);
+    umap.setGroupObjectClass("groupOfNames");
+    umap.setGroupMemberAttribute("member");
+    umap.setGroupMemberFormat("uid=${username}");
     ldapUserMappingDAO.insert(umap);
     return umap;
   }

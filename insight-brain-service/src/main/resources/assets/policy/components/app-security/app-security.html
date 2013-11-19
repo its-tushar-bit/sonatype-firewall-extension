@@ -10,42 +10,83 @@
         </div>
       </form>
       <div>
-        <div class='selectList'>
+        <div class='selectList-large'>
           <h5>Applied</h5>
           <div>
             <div>
               <div ng-repeat='mapping in mappings'>
-                <div ng-repeat='member in mapping.members | filter: { displayName : queryString } | orderBy:"displayName"' ng-click='removeUser($parent.$index, member)'
-                     class='large-select-list-item' ng-class='{  inherited : $parent.$index }'>
-                  <div class='pull-left'>
-                    <i ng-class='{ "icon-minus-sign" : !$parent.$index, "emptyIconGlyph" : $parent.$index }'></i>
+                <div ng-repeat='member in mapping.members | filter: { displayName : queryString, type : "GROUP" } | orderBy:"displayName"'>
+                  <div class='large-select-list-header' ng-if='$first'>
+                    <i class='glyphicons-sonatype group-small'></i>{{mapping.ownerName}} Groups
                   </div>
-                  <div>
-                    <div ng-bind-html="member.displayName | highlight:queryString:caseSensitive" class='large-select-list-item-title'></div>
-                    <span class='large-select-list-item-detail'>{{member.email}}</span>
-                    <span class='large-select-list-item-detail right-detail'>{{member.realm}}</span>
+                  <div ng-click='removeUser($parent.$index, member)' class='large-select-list-item' ng-class='{  inherited : $parent.$index }'>
+                    <div class='pull-left'>
+                      <i ng-class='{ "icon-minus-sign" : !$parent.$index, "emptyIconGlyph" : $parent.$index }'></i>
+                    </div>
+                    <div>
+                      <div ng-bind-html="member.displayName | highlight:queryString:caseSensitive" class='large-select-list-item-title'></div>
+                      <span class='large-select-list-item-detail'>{{member.email}}</span>
+                      <span class='large-select-list-item-detail right-detail'>{{member.realm}}</span>
+                    </div>
+                    <div style='clear:both'></div>
                   </div>
-                  <div style='clear:both'></div>
+                </div>
+                <div ng-repeat='member in mapping.members | filter: { displayName : queryString, type : "USER" } | orderBy:"displayName"'>
+                  <div class='large-select-list-header' ng-if='$first'>
+                    <i class='glyphicons-sonatype user-small'></i>{{mapping.ownerName}} Users
+                  </div>
+                  <div ng-click='removeUser($parent.$index, member)' class='large-select-list-item' ng-class='{  inherited : $parent.$index }'>
+                    <div class='pull-left'>
+                      <i ng-class='{ "icon-minus-sign" : !$parent.$index, "emptyIconGlyph" : $parent.$index }'></i>
+                    </div>
+                    <div>
+                      <div ng-bind-html="member.displayName | highlight:queryString:caseSensitive" class='large-select-list-item-title'></div>
+                      <span class='large-select-list-item-detail'>{{member.email}}</span>
+                      <span class='large-select-list-item-detail right-detail'>{{member.realm}}</span>
+                    </div>
+                    <div style='clear:both'></div>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
-        <div class='selectList'>
+        <div class='selectList-large'>
           <h5>Available</h5>
           <div>
             <div>
               <div ng-show="!queryString"><em>Search above to find users</em></div>
-              <div ng-repeat='user in queryResults | userNotIn:mappings | orderBy:"displayName"' ng-click='addUser(user)' class='large-select-list-item'>
-                <div class='pull-left'>
-                  <i class='icon-plus-sign'></i>
+              <div ng-repeat='user in queryResults | userNotIn:mappings | filter: { type: "GROUP" } | orderBy:"displayName"'>
+                <div class='large-select-list-header' ng-if='$first'>
+                    <i class='glyphicons-sonatype group-small'></i>Groups
                 </div>
-                <div>
-                  <div ng-bind-html="user.displayName | highlight:queryString:caseSensitive" class='large-select-list-item-title'></div>
-                  <span class='large-select-list-item-detail'>{{user.email}}</span>
-                  <span class='large-select-list-item-detail right-detail'>{{user.realm}}</span>
+                <div ng-click='addUser(user)' class='large-select-list-item'>
+                  <div class='pull-left'>
+                    <i class='icon-plus-sign'></i>
+                  </div>
+                  <div>
+                    <div ng-bind-html="user.displayName | highlight:queryString:caseSensitive" class='large-select-list-item-title'></div>
+                    <span class='large-select-list-item-detail'>{{user.email}}</span>
+                    <span class='large-select-list-item-detail right-detail'>{{user.realm}}</span>
+                  </div>
+                  <div style='clear:both'></div>
                 </div>
-                <div style='clear:both'></div>
+              </div>
+              <div ng-repeat='user in queryResults | userNotIn:mappings | filter: { type: "USER" } | orderBy:"displayName"'>
+                <div class='large-select-list-header' ng-if='$first'>
+                    <i class='glyphicons-sonatype user-small'></i>Users
+                </div>
+                <div ng-click='addUser(user)' class='large-select-list-item'>
+                  <div class='pull-left'>
+                    <i class='icon-plus-sign'></i>
+                  </div>
+                  <div>
+                    <div ng-bind-html="user.displayName | highlight:queryString:caseSensitive" class='large-select-list-item-title'></div>
+                    <span class='large-select-list-item-detail'>{{user.email}}</span>
+                    <span class='large-select-list-item-detail right-detail'>{{user.realm}}</span>
+                  </div>
+                  <div style='clear:both'></div>
+                </div>
               </div>
               <div class='licenseSelectListItem' ng-show='queryString && !requestActive && queryResults.length == 0'>
                 <i class='emptyIconGlyph'></i>&nbsp;<em>No results</em>

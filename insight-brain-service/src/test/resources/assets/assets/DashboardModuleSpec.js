@@ -102,7 +102,7 @@ describe('dashboardApp', function() {
           username: 'user',
           authenticated: true
         });
-        licenseCheckerFail(['', 402]);
+        licenseCheckerFail(402);
         event = $rootScope.$broadcast('$stateChangeStart', 'test', {}, '', {});
       });
 
@@ -120,7 +120,7 @@ describe('dashboardApp', function() {
         username: 'user',
         authenticated: true
       });
-      licenseCheckerFail(['', 402]);
+      licenseCheckerFail(402);
       var event = $rootScope.$broadcast('$stateChangeStart', 'test', {}, '', {});
 
       expect(event.defaultPrevented).toBeTruthy();
@@ -134,7 +134,7 @@ describe('dashboardApp', function() {
         username: 'user',
         authenticated: false
       });
-      licenseCheckerFail(['', 401]);
+      licenseCheckerFail(401);
       var event = $rootScope.$broadcast('$stateChangeStart', 'test', {}, '', {});
 
       expect(event.defaultPrevented).toBeTruthy();

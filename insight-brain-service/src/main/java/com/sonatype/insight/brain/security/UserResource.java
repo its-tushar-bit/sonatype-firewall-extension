@@ -94,8 +94,6 @@ public class UserResource
     Map<String, FindUserDTO> users = new LinkedHashMap<String, FindUserDTO>();
     String connectionError = null;
 
-    Date date = new Date();
-
     UserDAO dao = new UserDAO();
     for (User user : dao.findUsersByName(query)) {
       String displayName = user.getFirstName() + " " + user.getLastName();

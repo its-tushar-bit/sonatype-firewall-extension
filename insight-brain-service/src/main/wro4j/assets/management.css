@@ -657,12 +657,12 @@ ul.tri-pane {
 	background-color: #E8E8E8;
 }
 .large-select-list-header {
+  height: 25px;
   padding-left: 7px;
-  font-size: 16px;
+  font-size: 12px;
   font-weight: bold;
-}
-.large-select-list-header .pull-left {
-  padding-right: 10px;
+  color: #909090;
+  border-bottom: 1px solid #d8d8d8;
 }
 .large-select-list-item {
   padding-top: 2px;

@@ -140,7 +140,7 @@
 
     $scope.addUser = function (user) {
       $scope.mappings[0].members.push({
-        type : "USER",
+        type : user.type,
         displayName : user.displayName,
         internalName : user.username,
         email : user.email,

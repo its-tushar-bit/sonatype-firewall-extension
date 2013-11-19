@@ -10,18 +10,14 @@
         </div>
       </form>
       <div>
-        <div class='selectList'>
+        <div class='selectList-large'>
           <h5>Applied</h5>
           <div>
             <div>
               <div ng-repeat='mapping in mappings'>
                 <div ng-repeat='member in mapping.members | filter: { displayName : queryString, type : "GROUP" } | orderBy:"displayName"'>
                   <div class='large-select-list-header' ng-if='$first'>
-                    <div class='pull-left'>
-                      <i class='glyphicons-sonatype group-large'></i>
-                    </div>
-                    {{mapping.ownerName}} Groups
-                    <div style='clear: both'></div>
+                    <i class='glyphicons-sonatype group-small'></i>{{mapping.ownerName}} Groups
                   </div>
                   <div ng-click='removeUser($parent.$index, member)' class='large-select-list-item' ng-class='{  inherited : $parent.$index }'>
                     <div class='pull-left'>
@@ -37,11 +33,7 @@
                 </div>
                 <div ng-repeat='member in mapping.members | filter: { displayName : queryString, type : "USER" } | orderBy:"displayName"'>
                   <div class='large-select-list-header' ng-if='$first'>
-                    <div class='pull-left'>
-                      <i class='glyphicons-sonatype user-large'></i>
-                    </div>
-                    {{mapping.ownerName}} Users
-                    <div style='clear: both'></div>
+                    <i class='glyphicons-sonatype user-small'></i>{{mapping.ownerName}} Users
                   </div>
                   <div ng-click='removeUser($parent.$index, member)' class='large-select-list-item' ng-class='{  inherited : $parent.$index }'>
                     <div class='pull-left'>
@@ -59,18 +51,14 @@
             </div>
           </div>
         </div>
-        <div class='selectList'>
+        <div class='selectList-large'>
           <h5>Available</h5>
           <div>
             <div>
               <div ng-show="!queryString"><em>Search above to find users</em></div>
               <div ng-repeat='user in queryResults | userNotIn:mappings | filter: { type: "GROUP" } | orderBy:"displayName"'>
                 <div class='large-select-list-header' ng-if='$first'>
-                  <div class='pull-left'>
-                    <i class='glyphicons-sonatype group-large'></i>
-                  </div>
-                  Groups
-                  <div style='clear: both'></div>
+                    <i class='glyphicons-sonatype group-small'></i>Groups
                 </div>
                 <div ng-click='addUser(user)' class='large-select-list-item'>
                   <div class='pull-left'>
@@ -86,11 +74,7 @@
               </div>
               <div ng-repeat='user in queryResults | userNotIn:mappings | filter: { type: "USER" } | orderBy:"displayName"'>
                 <div class='large-select-list-header' ng-if='$first'>
-                  <div class='pull-left'>
-                    <i class='glyphicons-sonatype user-large'></i>
-                  </div>
-                  Users
-                  <div style='clear: both'></div>
+                    <i class='glyphicons-sonatype user-small'></i>Users
                 </div>
                 <div ng-click='addUser(user)' class='large-select-list-item'>
                   <div class='pull-left'>

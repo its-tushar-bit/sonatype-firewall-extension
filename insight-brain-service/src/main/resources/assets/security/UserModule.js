@@ -59,7 +59,7 @@
   }]);
 
   module.controller('UserListController', ['$http', 'hudson', 'CLMLocations', 'UserStore', 'Messages', 'CurrentUser', '$scope',
-      '$modal', '$q', function($http, hudson, clmLocations, UserStore, messages, CurrentUser, $scope, $modal, $q) {
+      '$modal', '$q', 'Dialog', function($http, hudson, clmLocations, UserStore, messages, CurrentUser, $scope, $modal, $q, Dialog) {
         var username = null;
 
         $scope.context = {
@@ -113,6 +113,33 @@
               $localScope.cancel = function() {
                 $modalInstance.close();
               };
+            }]
+          });
+        };
+        $scope.resetPasswordClick = function(user) {
+          Dialog.open({
+            title : 'Reset Password',
+            body : 'Are you sure you want to reset the password for "' + user.username + '"?  This action cannot be undone.',
+            buttons : [{
+              name : 'Cancel'
+            }, {
+              name : 'Reset',
+              type : 'danger',
+              click : function() {
+                $http.put(clmLocations.getUserUrl() + '/' + user.id + '/reset').success(function(data) {
+                  Dialog.open({
+                    template: '<div class="modal-header"><button type="button" class="close" ng-click="$close()">&times;</button><h3>New Password</h3></div>' +
+                    '<div class="modal-body"><span style="margin-right:10px;">The new password is</span><span style="margin-bottom:0px;" class="input-append">' +
+                    '<input id="generatedPassword" style="height:22px;" type="text" ng-model="newPassword"/><button title="Copy to clipboard" style="padding:0 6px 4px;height:32px;" class="btn" type="button" zero-clipboard="generatedPassword">' +
+                    '<i class="glyphicons-sonatype clipboard">&nbsp;</i></button></span></div>' +
+                    '<div class="modal-footer">' +
+                      '<button class="btn btn-primary" ng-click="$close()">OK</button>' +
+                    '</div>',
+                    controller: ['$scope', function(scope) {
+                      scope.newPassword = data.newPassword;                    }]
+                  });
+                });
+              }
             }]
           });
         };
@@ -213,5 +240,20 @@
         });
       }
     };
+  });
+  
+  module.directive('zeroClipboard', function() {
+    return {
+      restrict: 'A',
+      link: function(scope, element, attrs) {
+        var clip = new ZeroClipboard( element, {
+          moviePath: "../assets/lib/zeroclipboard/ZeroClipboard-1.2.3.swf"
+        });
+        
+        clip.on( 'dataRequested', function ( client, args ) {
+          clip.setText( $('#' + attrs.zeroClipboard).val() );
+        });
+      }
+    }
   });
 }());

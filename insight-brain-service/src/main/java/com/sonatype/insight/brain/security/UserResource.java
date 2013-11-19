@@ -36,6 +36,7 @@ import com.sonatype.insight.brain.model.security.UserPrincipal;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
+import org.apache.commons.lang.RandomStringUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authc.AuthenticationException;
@@ -58,6 +59,8 @@ public class UserResource
   private static final String MY_PASSWORD_PATH = "/password";
 
   public static final String PASSWORD_PATH = "/{userId}/password";
+  
+  public static final String RESET_PASSWORD_PATH = "/{userId}/reset";
 
   private static final Logger log = LoggerFactory.getLogger(UserResource.class);
 
@@ -226,26 +229,25 @@ public class UserResource
 
     dao.update(user);
   }
-
+  
   @PUT
-  @Path(PASSWORD_PATH)
-  @Consumes(MediaType.APPLICATION_JSON)
-  // Requires only authentication, no authorization.
-  public void changePassword(@PathParam("userId") String userId, ChangePasswordDTO password) {
+  @Path(RESET_PASSWORD_PATH)
+  @Produces(MediaType.APPLICATION_JSON)
+  @Authorize(permission = Permission.ADMIN)
+  public ChangePasswordDTO resetPassword(@PathParam("userId") String userId) {
     UserDAO dao = new UserDAO();
     User user = dao.getByIdNotNull(userId);
 
-    //validate the old password first
-    try {
-      SecurityUtils.getSecurityManager().authenticate(new UsernamePasswordToken(user.getUsername(), password.oldPassword));
-    }
-    catch (AuthenticationException e) {
-      throw new BadRequestException("Current password is wrong.");
-    }
+    String password = RandomStringUtils.randomAlphanumeric(12);
 
-    user.setPassword(clmRealm.encryptPassword(password.newPassword));
+    user.setPassword(clmRealm.encryptPassword(password));
 
     dao.update(user);
+    
+    ChangePasswordDTO dto = new ChangePasswordDTO();
+    dto.newPassword = password;
+    
+    return dto;
   }
 
   private void clearUserPassword(User user) {

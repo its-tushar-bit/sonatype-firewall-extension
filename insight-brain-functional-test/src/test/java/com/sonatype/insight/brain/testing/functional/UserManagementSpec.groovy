@@ -157,6 +157,31 @@ class UserManagementSpec
     summary.find('td', text: 'user').displayed
     summary.find('td', text: 'addusertest@email.com').displayed
   }
+  
+  def "A user's password can be reset"() {
+    when: 'hovering over the header of the user in the list'
+    interact {
+      moveToElement(header(0))
+    }
+    
+    then: 'we can now see the reset symbol'
+    def resetUser = resetUserButton(0)
+    resetUser.displayed
+    
+    when: 'clicking on reset'
+    resetUser.click()
+
+    then: 'we are presented with a confirmation dialog'
+    confirmResetModal.displayed
+    
+    when: 'we confirm reset'
+    confirmReset.click()
+    
+    then: 'we are presented with the new password'
+    waitFor { newPasswordField.displayed }
+    newPasswordOk.click()
+    waitFor { !newPasswordField.displayed }
+  }
 
   def "The newly added user can be deleted"() {
     when: 'hovering over the header of the user in the list'

@@ -50,3 +50,8 @@
   color: #BC0430;
   font-size: 10px;
 }
+
+.glyphicons-sonatype.clipboard:before {
+  content: "\e030";
+  font: 20px 'Glyphicons' !important;
+}

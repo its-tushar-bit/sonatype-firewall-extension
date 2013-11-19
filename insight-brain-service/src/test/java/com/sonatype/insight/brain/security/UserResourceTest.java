@@ -30,7 +30,7 @@ import com.sonatype.insight.test.RestAccess;
 import com.ning.http.client.Cookie;
 import com.ning.http.client.Response;
 import com.yammer.dropwizard.testing.JsonHelpers;
-import org.h2.util.StringUtils;
+import org.apache.commons.lang.StringUtils;
 import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
@@ -313,33 +313,6 @@ public class UserResourceTest
   }
 
   @Test
-  public void testChangePassword() throws Exception {
-    // Add user so we can change his password
-    User user = new User("testChangePassword", "testChangePasswordPassword", "testChangePasswordFirstName",
-        "testChangePasswordLastName", "testChangePassword@sonatype.com");
-    Response response = AuthedRestAccess.post(getServiceURL(), JsonHelpers.asJson(user));
-    assertResponseStatus(200, response);
-    user = JsonHelpers.fromJson(response.getResponseBody(), User.class);
-    usersToDelete.add(user);
-
-    String changePasswordUrl = getServiceURL() + "/" + user.getId() + "/password";
-
-    // Can't change password when password input doesn't match
-    ChangePasswordDTO dto = new ChangePasswordDTO();
-    dto.oldPassword = "badPass";
-    dto.newPassword = "doesntmatter";
-
-    response = AuthedRestAccess.put(changePasswordUrl, JsonHelpers.asJson(dto));
-    assertResponseStatus(400, response);
-
-    // Can change password with correct input
-    dto.oldPassword = "testChangePasswordPassword";
-
-    response = AuthedRestAccess.put(changePasswordUrl, JsonHelpers.asJson(dto));
-    assertResponseStatus(204, response);
-  }
-
-  @Test
   public void testChangeMyPassword() throws Exception {
     // Add user so we can change his password
     User user = new User("testChangePassword", "testChangePasswordPassword", "testChangePasswordFirstName",
@@ -367,6 +340,22 @@ public class UserResourceTest
     response = AuthedRestAccess.put(changePasswordUrl, JsonHelpers.asJson(dto), user.getUsername(),
         "testChangePasswordPassword");
     assertResponseStatus(204, response);
+  }
+  
+  @Test
+  public void testResetPassword() throws Exception {
+    // Add user so we can change his password
+    User user = tempEntity.newUser("testResetPassword");
+    user.setPassword("testResetPasswordPassword");
+    
+    String url = getServiceURL() + "/" + user.getId() + "/reset";
+
+    Response response = AuthedRestAccess.put(url, null);
+    assertResponseStatus(200, response);
+    
+    ChangePasswordDTO dto = JsonHelpers.fromJson(response.getResponseBody(), ChangePasswordDTO.class);
+    assertThat(dto.newPassword.length(), is(12));
+    assertThat(StringUtils.isAlphanumeric(dto.newPassword), is(true));
   }
 
   @Test
@@ -463,7 +452,7 @@ public class UserResourceTest
 
     FindUsersDTO dto = fromJson(response, FindUsersDTO.class);
 
-    if (!StringUtils.isNullOrEmpty(error)) {
+    if (!StringUtils.isBlank(error)) {
       assertThat(dto.getError(), is(error));
     } else {
       assertThat(dto.getError(), nullValue());

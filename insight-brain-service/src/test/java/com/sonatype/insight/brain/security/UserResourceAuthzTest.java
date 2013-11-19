@@ -73,4 +73,13 @@ public class UserResourceAuthzTest
     String url = getRestUrl(UserResource.SERVICE_PATH + "/{userId}", user.getId());
     testAuthzDelete(url);
   }
+  
+  @Test
+  public void testResetPassword() throws Exception {
+    grantAdminPermission();
+    
+    User user = tempEntity.newUser("testUpdateUser");
+    String url = getRestUrl(UserResource.SERVICE_PATH + "/{userId}/reset", user.getId());
+    testAuthzPut(url, toJson(user));
+  }
 }

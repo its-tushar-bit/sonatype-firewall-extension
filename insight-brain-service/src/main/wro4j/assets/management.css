@@ -791,3 +791,9 @@ ul.tri-pane {
 .ui-match {
 	font-weight: bold;
 }
+
+.icon-reset-pw {
+	background-image: url("../img/icon_reset_pw.png") !important;
+	background-position: 0px 0px;
+	background-size: 14px 14px;
+}

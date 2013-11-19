@@ -51,11 +51,19 @@ class UserManagementPage
     headers(required: false) { $('a.accordion-toggle') }
     header(required: false) { index -> $('a.accordion-toggle', index) }
     deleteUserButton(required: false) { index -> header(index).parent().find('button', 'ng-click': 'removeClick(user)') }
+    resetUserButton(required: false) { index -> header(index).parent().find('button', 'ng-click': 'resetPasswordClick(user)') }
 
     modal(required: false) { $('div.modal') }
     confirmDeleteModal(required: false) { modal.has('div.modal-header', text: 'Delete User') }
     confirmDelete(required: false) { confirmDeleteModal.find('button', text: 'Delete') }
     cancelDelete(required: false) { confirmDeleteModal.find('button', text: 'Cancel') }
+    
+    confirmResetModal(required: false) { modal.has('div.modal-header').has('h3', text: 'Reset Password') }
+    confirmReset(required: false) { confirmResetModal.find('button', text: 'Reset') }
+    cancelReset(required: false) { confirmResetModal.find('button', text: 'Cancel') }
+    
+    newPasswordField(required: false){$('#generatedPassword') } 
+    newPasswordOk(required: false){ $('h3', text:'New Password').parent().parent().find('button', 'ng-click':'$close()') }
 
     summarySection { index -> $('div.accordion-inner', index) }
   }

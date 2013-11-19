@@ -882,7 +882,7 @@ var AngularUtils = {
         config = angular.extend({
           backdrop: 'static',
           keyboard : false,
-          template: '<div class="modal-header"><h3>{{title}}</h3></div>' +
+          template: '<div class="modal-header"><button type="button" class="close" ng-click="$close()">&times</button><h3>{{title}}</h3></div>' +
               '<div class="modal-body"><p>{{body}}</p></div>' +
               '<div class="modal-footer">' +
                 '<button ng-repeat="button in buttons" ng-class="{\'btn-danger\' : button.type == \'danger\',\'btn-primary\' : button.type == \'primary\'}" class="btn" ng-click="button.click()">{{button.name}}</button>' +

@@ -399,7 +399,7 @@ public class MembershipMappingResourceTest
     assertThat(response.getResponseBody(), is("There must be at least one user in the administrator role."));
   }
 
-  private class MemberComparator implements Comparator<Member> {
+  private static class MemberComparator implements Comparator<Member> {
     @Override
     public int compare(final Member member, final Member otherMember) {
       int nameComp = member.displayName.compareTo(otherMember.displayName);

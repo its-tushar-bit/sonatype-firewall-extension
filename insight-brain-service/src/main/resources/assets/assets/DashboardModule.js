@@ -90,7 +90,7 @@
           $rootScope.licensed = true;
           checkBootstrap();
         }, function (result) {
-          if (result[1] === 402) {
+          if (result === 402) {
            $rootScope.licensed = false;
            checkBootstrap();
           } else if (username) {

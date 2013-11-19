@@ -419,7 +419,7 @@ public class UserResourceTest
     tempEntity.newLdapUserMapping(ldapServer.getId());
 
     Response response = AuthedRestAccess.get(getSearchUrl("Alpha"));
-    assertFindUsersDTO(response, null, MemberType.GROUP, "Alpha", "Alpha", "", "LDAP");
+    assertFindUsersDTO(response, null, MemberType.GROUP, "Alpha", "Alpha", null, "LDAP");
   }
 
   @Test

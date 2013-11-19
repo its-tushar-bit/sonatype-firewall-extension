@@ -28,6 +28,7 @@ import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
 import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
+import com.sonatype.insight.brain.ldap.LdapGroup;
 import com.sonatype.insight.brain.ldap.LdapManager;
 import com.sonatype.insight.brain.ldap.LdapUser;
 import com.sonatype.insight.brain.model.Application;
@@ -271,7 +272,7 @@ public class MembershipMappingResource
 
   private static class MemberAttributeResolver
   {
-    private final Map<String, Member> resolvedMembers = new HashMap<>();
+    private final Map<MemberKey, Member> resolvedMembers = new HashMap<>();
 
     private final UserDAO userDAO = new UserDAO();
 
@@ -285,29 +286,29 @@ public class MembershipMappingResource
     }
 
     public void resolve(List<Member> members) {
-      HashMap<String, Member> unresolvedMembers = new HashMap<>();
+      HashMap<MemberKey, Member> unresolvedMembers = new HashMap<>();
 
       // First check already resolved members
-      // Then check if user is in the CLM Realm using UserDAO
       for (Member member : members) {
-        // No resolution needed for non USER type
-        if (!MemberType.USER.equals(member.type)) {
-          continue;
-        }
-
         String internalName = member.internalName;
-        Member existingMember = resolvedMembers.get(internalName);
+        MemberKey key = new MemberKey(member.internalName, member.type);
+        Member existingMember = resolvedMembers.get(key);
+
+        // Then check if user is in the CLM Realm using UserDAO
         if (existingMember == null) {
-          User user = userDAO.getByUsernameLowercase(internalName.toLowerCase(Locale.ENGLISH));
+          User user = null;
+          if (key.type.equals(MemberType.USER)) {
+            user = userDAO.getByUsernameLowercase(internalName.toLowerCase(Locale.ENGLISH));
+          }
           if (user != null) {
             member.displayName = user.getFirstName() + " " + user.getLastName();
             member.email = user.getEmail();
             member.realm = CLMRealm.DISPLAY_NAME;
 
-            resolvedMembers.put(internalName, member);
+            resolvedMembers.put(key, member);
           }
           else {
-            unresolvedMembers.put(internalName, member);
+            unresolvedMembers.put(key, member);
           }
         } else {
           member.displayName = existingMember.displayName;
@@ -321,34 +322,92 @@ public class MembershipMappingResource
         return;
       }
 
+      // If LDAP is enabled, try to resolve the RealName and Email from LDAP
       if (ldapManager.isLdapEnabled()) {
         try {
           String ldapServerName = ldapManager.getLdapServerName();
-          // If LDAP is enabled, try to resolve the RealName and Email from LDAP
-          List<LdapUser> ldapUsers = ldapManager.getUsers(unresolvedMembers.keySet().toArray(new String[0]), unresolvedMembers.keySet().size());
 
-          for (LdapUser ldapUser : ldapUsers) {
-            final String userName = ldapUser.getUsername();
+          HashMap<String, Member> unresolvedUsers = new HashMap<>();
+          HashMap<String, Member> unresolvedGroups = new HashMap<>();
+          for (Member unresolvedMember : unresolvedMembers.values()) {
+            if (unresolvedMember.type.equals(MemberType.USER)) {
+              unresolvedUsers.put(unresolvedMember.internalName, unresolvedMember);
+            } else {
+              unresolvedGroups.put(unresolvedMember.internalName, unresolvedMember);
+            }
+          }
 
-            Member member = unresolvedMembers.get(userName);
-            member.displayName = ldapUser.getRealName();
-            member.email = ldapUser.getEmail();
-            member.realm = ldapServerName;
+          // Only search for users if there are unresolved users
+          if (!unresolvedUsers.isEmpty()) {
+            List<LdapUser> ldapUsers = ldapManager.getUsers(unresolvedUsers.keySet().toArray(new String[0]), unresolvedMembers.keySet().size());
+            for (LdapUser ldapUser : ldapUsers) {
+              final String userName = ldapUser.getUsername();
 
-            resolvedMembers.put(userName, member);
-            unresolvedMembers.remove(userName);
+              MemberKey memberKey = new MemberKey(userName, MemberType.USER);
+              Member member = unresolvedMembers.get(memberKey);
+              member.displayName = ldapUser.getRealName();
+              member.email = ldapUser.getEmail();
+              member.realm = ldapServerName;
+
+              resolvedMembers.put(memberKey, member);
+              unresolvedMembers.remove(memberKey);
+            }
+          }
+
+          // Only search for groups if there are unresolved groups
+          if (!unresolvedGroups.isEmpty()) {
+            List<LdapGroup> ldapGroups = ldapManager.getGroups(unresolvedGroups.keySet().toArray(new String[0]), unresolvedGroups.keySet().size());
+            for (LdapGroup ldapGroup : ldapGroups) {
+              final String groupName = ldapGroup.getGroupname();
+
+              MemberKey memberKey = new MemberKey(groupName, MemberType.GROUP);
+              Member member = unresolvedMembers.get(memberKey);
+              member.displayName = groupName;
+              member.realm = ldapServerName;
+
+              resolvedMembers.put(memberKey, member);
+              unresolvedMembers.remove(memberKey);
+            }
           }
         }
         catch (NamingException ex) {
           log.error("LDAP exception when trying to resolve user names", ex);
         }
       }
-      // Use the unresolved names as the display names for anything still unresolved
-      for (String unresolvedName : unresolvedMembers.keySet()) {
-        Member member = unresolvedMembers.get(unresolvedName);
-        member.displayName = unresolvedName;
 
-        resolvedMembers.put(unresolvedName, member);
+      // Use the unresolved names as the display names for anything still unresolved
+      for (MemberKey unresolvedMember : unresolvedMembers.keySet()) {
+        Member member = unresolvedMembers.get(unresolvedMember);
+        member.displayName = unresolvedMember.username;
+
+        resolvedMembers.put(unresolvedMember, member);
+      }
+    }
+
+    private static class MemberKey {
+      private final String username;
+      private final MemberType type;
+
+      public MemberKey(final String username, final MemberType type) {
+        this.username = username;
+        this.type = type;
+      }
+
+      @Override
+      public boolean equals(Object o) {
+        if (this == o) {
+          return true;
+        }
+        if (!(o instanceof MemberKey)) {
+          return false;
+        }
+        MemberKey key = (MemberKey)o;
+        return key.username.equals(this.username) && key.type.equals(type);
+      }
+
+      @Override
+      public int hashCode() {
+        return 31 * this.username.hashCode() + this.type.hashCode();
       }
     }
   }

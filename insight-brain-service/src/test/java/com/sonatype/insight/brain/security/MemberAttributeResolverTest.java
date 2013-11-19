@@ -51,7 +51,8 @@ public class MemberAttributeResolverTest extends InjectedTest
     member.type = MemberType.USER;
     member.internalName = "clmUser";
 
-    List<Member> members = new ArrayList<Member>() { { add(member); } };
+    List<Member> members = new ArrayList<>();
+    members.add(member);
 
     memberAttributeResolver.resolve(members);
 
@@ -77,7 +78,8 @@ public class MemberAttributeResolverTest extends InjectedTest
     userMember.type = MemberType.USER;
     userMember.internalName = "testuser";
 
-    List<Member> members = new ArrayList<Member>() { { add(userMember); } };
+    List<Member> members = new ArrayList<>();
+    members.add(userMember);
 
     memberAttributeResolver.resolve(members);
 
@@ -91,7 +93,8 @@ public class MemberAttributeResolverTest extends InjectedTest
     groupMember.type = MemberType.GROUP;
     groupMember.internalName = "Alpha";
 
-    members = new ArrayList<Member>() { { add(groupMember); } };
+    members = new ArrayList<>();
+    members.add(groupMember);
 
     memberAttributeResolver.resolve(members);
 
@@ -100,5 +103,43 @@ public class MemberAttributeResolverTest extends InjectedTest
     assertThat(groupMember.email, is(nullValue()));
     assertThat(groupMember.displayName, is("Alpha"));
     assertThat(groupMember.realm, is("LDAP"));
+  }
+
+  @Test
+  public void testCLMUserShading() throws Exception {
+    EmbeddedLdapServer embeddedLdapServer = newEmbeddedLdapServer();
+    embeddedLdapServer.start();
+    embeddedLdapServer.loadData("/UserResourceTest/ldap_users.ldif");
+
+    LdapServer ldapServer = tempEntity.newLdapServer("LDAP");
+    tempEntity.newLdapConnection(ldapServer.getId(), embeddedLdapServer.getPort());
+    tempEntity.newLdapUserMapping(ldapServer.getId());
+
+    final Member member = new Member();
+    member.type = MemberType.USER;
+    member.internalName = "testuser";
+
+    List<Member> members = new ArrayList<>();
+    members.add(member);
+
+    memberAttributeResolver.resolve(members);
+
+    assertThat(member.internalName, is("testuser"));
+    assertThat(member.type, is(MemberType.USER));
+    assertThat(member.email, is("test.user@company.com"));
+    assertThat(member.displayName, is("John Doe"));
+    assertThat(member.realm, is("LDAP"));
+
+    tempEntity.newUser("testuser");
+    // Need to reinitialize attribute resolver to clear cache
+    memberAttributeResolver = new MemberAttributeResolver(manager);
+
+    memberAttributeResolver.resolve(members);
+
+    assertThat(member.internalName, is("testuser"));
+    assertThat(member.type, is(MemberType.USER));
+    assertThat(member.email, is("testuser@void.com"));
+    assertThat(member.displayName, is("John Doe"));
+    assertThat(member.realm, is("CLM"));
   }
 }

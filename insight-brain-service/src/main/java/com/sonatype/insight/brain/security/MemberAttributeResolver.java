@@ -34,7 +34,6 @@ public class MemberAttributeResolver
 
   private final UserDAO userDAO = new UserDAO();
 
-  @SuppressWarnings("hiding")
   private static final Logger log = LoggerFactory.getLogger(MemberAttributeResolver.class);
 
   private final LdapManager ldapManager;
@@ -146,8 +145,8 @@ public class MemberAttributeResolver
     private final String name;
     private final MemberType type;
 
-    public MemberKey(final String username, final MemberType type) {
-      this.name = username;
+    public MemberKey(final String name, final MemberType type) {
+      this.name = name;
       this.type = type;
     }
 

@@ -106,8 +106,8 @@
                 <div ng-repeat='grouping in groupings' ng-if='showGrouping(grouping, role.membersByOwner)'>
                   <i class='glyphicons-sonatype' ng-class='grouping.icon'></i>
                   <div class='member-list' ng-repeat='mapping in role.membersByOwner' ng-if='mapping.members.length > 0'
-                       ng-class='{ "inherited inherited-section" : $last }' ng-init="isLastMapping = $last">
-                    <div ng-if="expanded && isLastMapping">
+                       ng-class='{ "inherited inherited-section" : $last && role.membersByOwner.length > 1 }' ng-init="isLastMapping = $last">
+                    <div ng-if="expanded && $last && role.membersByOwner.length > 1">
                       <strong>Inherited from parent organization:</strong>
                     </div>
                     <span ng-repeat='member in mapping.members | filter: { type: grouping.type } | orderBy:"displayName"'>

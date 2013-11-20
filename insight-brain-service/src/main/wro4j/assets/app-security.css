@@ -14,7 +14,10 @@
 }
 .roles .inherited {
 	color:#909090;
-	font-style: italic;
+  cursor: default;
+}
+.roles .inherited:hover {
+  background: white;
 }
 .roles {
 	width : 867px;

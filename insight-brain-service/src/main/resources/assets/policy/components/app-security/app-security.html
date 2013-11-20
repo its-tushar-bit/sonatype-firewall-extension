@@ -21,11 +21,15 @@
                 <div ng-repeat='mapping in mappings'>
                   <div ng-repeat='member in mapping.members | filter: { displayName : queryString, type : grouping.type } | orderBy:"displayName"'>
                     <div ng-click='removeUser($parent.$index, member)' class='large-select-list-item' ng-class='{  inherited : $parent.$index }'>
-                      <i ng-class='{ "icon-minus-sign" : !$parent.$index, "emptyIconGlyph" : $parent.$index }'></i>
-                      <span ng-bind-html="member.displayName | highlight:queryString:caseSensitive" class='large-select-list-item-title'></span>
-                      <div>
-                        <span class='large-select-list-item-detail'>{{member.email}}</span>
-                        <span class='large-select-list-item-right-detail'>{{member.realm}}</span>
+                      <div class="floatLeft">
+                        <i ng-class='{ "icon-minus-sign" : !$parent.$index, "emptyIconGlyph" : $parent.$index }'></i>
+                      </div>
+                      <div class='large-select-list-item-content'>
+                        <span ng-bind-html="member.displayName | highlight:queryString:caseSensitive"></span>
+                        <div>
+                          <span class='large-select-list-item-detail'>{{member.email}}</span>
+                          <span class='large-select-list-item-right-detail'>{{member.realm}}</span>
+                        </div>
                       </div>
                       <div style='clear:both'></div>
                     </div>

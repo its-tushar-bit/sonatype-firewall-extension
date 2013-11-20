@@ -1,6 +1,5 @@
 <div style="font-size: .75em">
 	<script type='text/ng-template' id='change-password'>
-<div class='modal fade in'>
 	<div class='modal-header'>
 		<button type="button" class="close"  ng-click='$dismiss()' aria-hidden="true">&times;</button>
 		<h3>Change Password</h3>
@@ -34,7 +33,6 @@
 			<button type='submit' class="btn btn-primary" ng-disabled='passwordForm.$invalid || submitActive'>Change</button>
 		</div>
 	</form>
-</div>
 	</script>
 	<span ng-controller='ChangePassword' ng-show='canChangePassword()'><a ng-click="change()">Change Password</a> | </span>
 	<a ng-controller='LogoutController' ng-click="logout()">Logout</a>

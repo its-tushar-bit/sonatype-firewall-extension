@@ -26,8 +26,11 @@ import org.apache.shiro.web.mgt.WebSecurityManager;
 import org.apache.shiro.web.session.mgt.DefaultWebSessionManager;
 import org.apache.shiro.web.session.mgt.WebSessionManager;
 
-//pulled in from benjamins poc, comments to come
-//TODO: comment
+/**
+ * Configures Shiro security.
+ * 
+ * @since 1.7
+ */
 public class CLMShiroModule
     extends ShiroModule
 {

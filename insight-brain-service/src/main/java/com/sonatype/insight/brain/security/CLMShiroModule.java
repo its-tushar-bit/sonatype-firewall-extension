@@ -44,6 +44,8 @@ public class CLMShiroModule
     manager.createChain("/*assets/**", "anon");
     manager.createChain("/favicon.ico", "anon");
     manager.createChain("/crumbIssuer/**", "anon");
+    manager.createChain("/rest/ide/asset/**", "anon");
+    manager.createChain("/rest/ide/brain/**", "anon");
     manager.createChain("/rest/report/*/*/embedReport/**", "anon");
     manager.createChain("/rest/report/*/*/brain/**", "anon");
     manager.createChain("/rest/session/environment", "anon");
@@ -62,7 +64,6 @@ public class CLMShiroModule
     manager.createChain("/rest/application/services/names", "anon");
     manager.createChain("/rest/application/validate/*", "anon");
     manager.createChain("/rest/config/proprietary", "anon");
-    manager.createChain("/rest/ide/**", "anon");
     manager.createChain("/rest/policy/*/evaluate", "anon");
     manager.createChain("/rest/ci/validate/*", "anon");
     manager.createChain("/rest/ci/scan/*", "anon");

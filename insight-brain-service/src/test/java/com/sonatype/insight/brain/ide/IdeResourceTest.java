@@ -47,6 +47,7 @@ import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityS
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.license.model.CLMEnforcementPoint;
+import com.sonatype.insight.test.RestAccess;
 
 import com.ning.http.client.Response;
 import com.yammer.dropwizard.testing.JsonHelpers;
@@ -647,7 +648,7 @@ public class IdeResourceTest
   @Test
   public void testGetAsset() throws Exception {
     setSaasResponseForURI("ide/sub/dir/some%20space.html?x=y&a=b", "OK", 200);
-    Response response = AuthedRestAccess.get(getServiceURL() + "/asset/sub/dir/some%20space.html?x=y&a=b");
+    Response response = RestAccess.get(getServiceURL() + "/asset/sub/dir/some%20space.html?x=y&a=b");
     assertResponseStatus(200, response);
     Assert.assertEquals("OK", response.getResponseBody());
   }
@@ -655,7 +656,7 @@ public class IdeResourceTest
   @Test
   public void testGetAsset_Unlicensed() throws Exception {
     uninstallLicense();
-    Response response = AuthedRestAccess.get(getServiceURL() + "/asset/sub/dir/some%20space.html?x=y&a=b");
+    Response response = RestAccess.get(getServiceURL() + "/asset/sub/dir/some%20space.html?x=y&a=b");
     assertResponseStatus(402, response);
   }
 
@@ -664,7 +665,7 @@ public class IdeResourceTest
     // note this enforcement point should not apply to this request
     setEnforcementPoints(CLMEnforcementPoint.StageRelease);
 
-    Response response = AuthedRestAccess.get(getServiceURL() + "/asset/sub/dir/some%20space.html?x=y&a=b");
+    Response response = RestAccess.get(getServiceURL() + "/asset/sub/dir/some%20space.html?x=y&a=b");
     assertResponseStatus(402, response);
   }
 

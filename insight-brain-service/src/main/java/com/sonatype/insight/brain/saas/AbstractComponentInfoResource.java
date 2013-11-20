@@ -43,7 +43,10 @@ import com.sonatype.insight.brain.model.component.SecurityVulnerabilityStatus;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.license.MultiLicense;
 import com.sonatype.insight.brain.model.policy.stages.DevelopStageType;
+import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluator;
+import com.sonatype.insight.brain.security.Authorize;
+import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.error.exception.NotFoundException;
 
@@ -76,12 +79,12 @@ public abstract class AbstractComponentInfoResource
   @GET
   @Path("list/{applicationPublicId}")
   @Produces(MediaType.APPLICATION_JSON)
-  public ComponentDetailsList getComponentDetailsList(@PathParam("applicationPublicId") String applicationPublicId,
+  @Authorize(permission = Permission.READ)
+  public ComponentDetailsList getComponentDetailsList(
+      @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) @PathParam("applicationPublicId") String applicationPublicId,
       @QueryParam("groupId") String groupId, @QueryParam("artifactId") String artifactId,
       @QueryParam("version") String version) throws IOException
   {
-    verifyReadAccess(applicationPublicId);
-
     long start = System.currentTimeMillis();
 
     log.debug("Getting {} component details list for application id {}, GAV {}:{}:{}.", getToolName(),
@@ -104,14 +107,14 @@ public abstract class AbstractComponentInfoResource
   @GET
   @Path("{applicationPublicId}")
   @Produces(MediaType.APPLICATION_JSON)
-  public ComponentDetails getComponentDetails(@PathParam("applicationPublicId") String applicationPublicId,
+  @Authorize(permission = Permission.READ)
+  public ComponentDetails getComponentDetails(
+      @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) @PathParam("applicationPublicId") String applicationPublicId,
       @QueryParam("instanceId") String instanceId, @QueryParam("groupId") String groupId,
       @QueryParam("artifactId") String artifactId, @QueryParam("version") String version,
       @QueryParam("hash") String hash, @QueryParam("matchState") String matchState,
       @QueryParam("proprietary") boolean proprietary) throws IOException
   {
-    verifyReadAccess(applicationPublicId);
-
     long start = System.currentTimeMillis();
 
     log.debug("Getting {} component details for application id {}, GAV {}:{}:{}, hash {}.", getToolName(),
@@ -223,12 +226,12 @@ public abstract class AbstractComponentInfoResource
   @GET
   @Path("selectableLicenses/{applicationPublicId}")
   @Produces({ MediaType.APPLICATION_JSON })
-  public Set<License> getSelectableLicenses(@PathParam("applicationPublicId") String applicationPublicId,
+  @Authorize(permission = Permission.READ)
+  public Set<License> getSelectableLicenses(
+      @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) @PathParam("applicationPublicId") String applicationPublicId,
       @QueryParam("instanceId") String instanceId, @QueryParam("groupId") String groupId,
       @QueryParam("artifactId") String artifactId, @QueryParam("version") String version) throws IOException
   {
-    verifyReadAccess(applicationPublicId);
-
     applicationDAO.getByPublicIdNotNull(applicationPublicId);
 
     // Get component details from the SAAS server
@@ -271,12 +274,12 @@ public abstract class AbstractComponentInfoResource
   @GET
   @Produces({ MediaType.APPLICATION_JSON })
   @Path("licenses/{applicationPublicId}")
-  public ComponentLicenses getLicenses(@PathParam("applicationPublicId") String applicationPublicId,
+  @Authorize(permission = Permission.READ)
+  public ComponentLicenses getLicenses(
+      @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) @PathParam("applicationPublicId") String applicationPublicId,
       @QueryParam("groupId") String groupId, @QueryParam("artifactId") String artifactId,
       @QueryParam("version") String version) throws IOException
   {
-    verifyReadAccess(applicationPublicId);
-
     Application application = applicationDAO.getByPublicIdNotNull(applicationPublicId);
 
     ComponentLicenses result = new ComponentLicenses();
@@ -334,11 +337,4 @@ public abstract class AbstractComponentInfoResource
   }
 
   protected abstract String getToolName();
-
-  protected void verifyReadAccess(String applicationPublicId) {
-    /*
-     * Temporary hook for CIComponentInfoResource until IDEComponentInfoResource requires auth (CLM-1249) such the authz
-     * annos can simply be added in this class.
-     */
-  }
 }

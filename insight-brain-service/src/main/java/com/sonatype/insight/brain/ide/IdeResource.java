@@ -37,10 +37,13 @@ import com.sonatype.insight.brain.model.component.HashGAV;
 import com.sonatype.insight.brain.model.component.IdentificationSource;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.stages.DevelopStageType;
+import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluator;
 import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
 import com.sonatype.insight.brain.saas.AugmentUtil;
 import com.sonatype.insight.brain.saas.SaasClient;
+import com.sonatype.insight.brain.security.Authorize;
+import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.license.model.CLMEnforcementPoint;
@@ -94,9 +97,12 @@ public class IdeResource
   @GET
   @Path("scan/{scanType}/{applicationPublicId}/{path:.*}")
   @Produces(MediaType.APPLICATION_JSON)
-  public IdeMatchedComponent doScan(@PathParam("scanType") String scanType,
-      @PathParam("applicationPublicId") String applicationPublicId, @PathParam("path") String path,
-      @QueryParam("proprietary") boolean proprietary, @Context HttpServletRequest req) throws IOException
+  @Authorize(permission = Permission.READ)
+  public IdeMatchedComponent doScan(
+      @PathParam("scanType") String scanType,
+      @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) @PathParam("applicationPublicId") String applicationPublicId,
+      @PathParam("path") String path, @QueryParam("proprietary") boolean proprietary, @Context HttpServletRequest req)
+      throws IOException
   {
     Application app = applicationDAO.getByPublicIdNotNull(applicationPublicId);
     String applicationId = app.getId();

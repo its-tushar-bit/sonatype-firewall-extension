@@ -22,7 +22,7 @@
   };
 
   var dashboardApp = angular.module('DashboardModule', ['ui.router', 'ui.bootstrap', 'CLMLocation', 'CommonServices',
-      'UserControls', 'ngRoute', 'HttpInterceptors'], ['$stateProvider', '$routeProvider', '$urlRouterProvider',
+      'UserControls', 'ngRoute', 'UnauthenticatedResponseHttpInterceptor'], ['$stateProvider', '$routeProvider', '$urlRouterProvider',
       function($stateProvider, $routeProvider, $urlRouterProvider) {
         $stateProvider.state('home', {
           url: '/',

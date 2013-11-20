@@ -84,7 +84,7 @@ class ReportSpec
 */
   def "A non-admin user cannot regenerate the report"(){
     when: 'we log in as a non-admin user'
-    user.logout.link.click()
+    logout.link.click()
     to TrendingReportPage
     login.login('test', 'secret')
 

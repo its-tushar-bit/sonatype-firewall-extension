@@ -1,9 +1,5 @@
 describe('HttpInterceptors.js', function() {
-  beforeEach(module('HttpInterceptors'), function($provide) {
-    /*$provide.value('$modal', {
-      open: function(){}
-    });*/
-  });
+  beforeEach(module('UnauthenticatedResponseHttpInterceptor'));
 
   it('Validate that a failed request is in the queue', inject(function($q, $http, $httpBackend, $rootScope) {
     $httpBackend.expectPOST('test').respond(401);

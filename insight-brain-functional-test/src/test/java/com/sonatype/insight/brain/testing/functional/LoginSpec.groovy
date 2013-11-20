@@ -91,23 +91,23 @@ class LoginSpec extends BaseSpec {
     then: "user is prompted to log in"
       login.isDisplayed()
   }
-/* commented out because I can't figure why the login.isDisplayed() check (right after logout is clicked) isn't functioning as expected 
+
   def "user can logout from management pages"() {
     given: "user has logged in"
     to ManagementPage
     login.loginAsAdmin()
 
     when: "logging out"
-    user.logout.link.click()
+    logout.link.click()
 
     then: "we now see the login module"
-    waitFor { login.isDisplayed() }
+    login.isDisplayed()
 
     when: "attempting to navigate back"
     browser.driver.navigate().back()
 
     then: "we never lose the login module"
-    waitFor { login.isDisplayed() }
+    login.isDisplayed()
 
     when: "we try to go directly to another page"
     go ManagementPage.url
@@ -123,24 +123,23 @@ class LoginSpec extends BaseSpec {
     login.loginAsAdmin()
 
     when: "logging out"
-    user.logout.link.click()
+    logout.link.click()
     to ReportPage
 
     then: "we redirect to the login page"
-    waitFor { login.isDisplayed() }
+    login.isDisplayed()
 
     when: "attempting to navigate back"
     browser.driver.navigate().back()
 
     then: "we never leave the login page"
-    waitFor { login.isDisplayed() }
+    login.isDisplayed()
 
     when: "we try to go directly to another page"
     go ReportPage.url
 
     then: "we never leave the login page"
     at ReportPage
-    waitFor { login.isDisplayed() }
+    login.isDisplayed()
   }
-*/
 }

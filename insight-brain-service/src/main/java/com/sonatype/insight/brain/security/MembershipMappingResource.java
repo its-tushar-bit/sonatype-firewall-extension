@@ -6,15 +6,12 @@
 package com.sonatype.insight.brain.security;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 
 import javax.inject.Inject;
 import javax.inject.Named;
-import javax.naming.NamingException;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.PUT;
@@ -27,17 +24,13 @@ import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
 import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
-import com.sonatype.insight.brain.dataaccess.security.UserDAO;
-import com.sonatype.insight.brain.ldap.LdapGroup;
 import com.sonatype.insight.brain.ldap.LdapManager;
-import com.sonatype.insight.brain.ldap.LdapUser;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
-import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.error.exception.BadRequestException;
 

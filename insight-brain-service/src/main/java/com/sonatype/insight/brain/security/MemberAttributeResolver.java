@@ -43,7 +43,7 @@ public class MemberAttributeResolver
   }
 
   public void resolve(List<Member> members) {
-    HashMap<MemberKey, Member> unresolvedMembers = new HashMap<>();
+    Map<MemberKey, Member> unresolvedMembers = new HashMap<>();
 
     // First check already resolved members
     for (Member member : members) {

@@ -134,6 +134,6 @@ class GlobalRolesSpec
 
     then: "the edit form is closed and the added member shown in the list"
       !roleRow.editor.displayed
-      roleRow.memberNames.sort() == ["Admin BuiltIn", "John Doe"]
+      roleRow.memberNames == ["Inherited from parent organization:\nAdmin BuiltIn", "John Doe"]
   }
 }

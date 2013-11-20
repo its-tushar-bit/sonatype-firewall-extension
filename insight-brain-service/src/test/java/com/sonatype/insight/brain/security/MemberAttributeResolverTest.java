@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.security;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -19,6 +20,7 @@ import com.sonatype.insight.brain.security.MembershipMappingResource.Member;
 
 import org.sonatype.guice.bean.containers.InjectedTest;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -35,12 +37,21 @@ public class MemberAttributeResolverTest extends InjectedTest
 
   private MemberAttributeResolver memberAttributeResolver;
 
+  private EmbeddedLdapServer embeddedLdapServer;
+
   @Rule
   public TemporaryEntity tempEntity = new TemporaryEntity();
 
   @Before
   public void init() {
     memberAttributeResolver = new MemberAttributeResolver(manager);
+  }
+
+  @After
+  public void cleanup() throws Exception {
+    if (embeddedLdapServer != null) {
+      embeddedLdapServer.stop();
+    }
   }
 
   @Test
@@ -51,8 +62,7 @@ public class MemberAttributeResolverTest extends InjectedTest
     member.type = MemberType.USER;
     member.internalName = "clmUser";
 
-    List<Member> members = new ArrayList<>();
-    members.add(member);
+    List<Member> members = Arrays.asList(member);
 
     memberAttributeResolver.resolve(members);
 
@@ -66,7 +76,7 @@ public class MemberAttributeResolverTest extends InjectedTest
   // Test both user and group to reduce the overhead of starting an EmbeddedLdapServer
   @Test
   public void testResolveLDAPUserAndGroup() throws Exception {
-    EmbeddedLdapServer embeddedLdapServer = newEmbeddedLdapServer();
+    embeddedLdapServer = newEmbeddedLdapServer();
     embeddedLdapServer.start();
     embeddedLdapServer.loadData("/UserResourceTest/ldap_users.ldif");
 
@@ -78,8 +88,7 @@ public class MemberAttributeResolverTest extends InjectedTest
     userMember.type = MemberType.USER;
     userMember.internalName = "testuser";
 
-    List<Member> members = new ArrayList<>();
-    members.add(userMember);
+    List<Member> members = Arrays.asList(userMember);
 
     memberAttributeResolver.resolve(members);
 
@@ -93,8 +102,7 @@ public class MemberAttributeResolverTest extends InjectedTest
     groupMember.type = MemberType.GROUP;
     groupMember.internalName = "Alpha";
 
-    members = new ArrayList<>();
-    members.add(groupMember);
+    members = Arrays.asList(groupMember);
 
     memberAttributeResolver.resolve(members);
 
@@ -107,7 +115,7 @@ public class MemberAttributeResolverTest extends InjectedTest
 
   @Test
   public void testCLMUserShading() throws Exception {
-    EmbeddedLdapServer embeddedLdapServer = newEmbeddedLdapServer();
+    embeddedLdapServer = newEmbeddedLdapServer();
     embeddedLdapServer.start();
     embeddedLdapServer.loadData("/UserResourceTest/ldap_users.ldif");
 
@@ -119,8 +127,7 @@ public class MemberAttributeResolverTest extends InjectedTest
     member.type = MemberType.USER;
     member.internalName = "testuser";
 
-    List<Member> members = new ArrayList<>();
-    members.add(member);
+    List<Member> members = Arrays.asList(member);
 
     memberAttributeResolver.resolve(members);
 

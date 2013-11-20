@@ -38,19 +38,15 @@ describe('AppSecurityControllerSpec', function() {
       $httpBackend.verifyNoOutstandingExpectation();
       $httpBackend.verifyNoOutstandingRequest();
     }));
-    
 
-    it('check edit updates the role edit map properly', inject(function() {
-      scope.editClick(role1);
-      expect(scope.context.roleEditMap[role1.roleId]).toEqual(role1);
-    }));
-  
-    it('check user name lists are ordered as expected', inject(function() {
-      expect(scope.context.roleUsers['1da70fae1fd54d6cb7999871ebdb9a36'].applied).toEqual(['Admin BuiltIn', 'Peter Lynch']);
-      expect(scope.context.roleUsers['1cddabf7fdaa47d6833454af10e0a3ef'].applied).toEqual(['Brian Fox', 'Damian Bradicich', 'Joel Orlina', 'Jordan Duggan']);
-      expect(scope.context.roleUsers['1da70fae1fd54d6cb7999871ebdb9a36'].inherited).toEqual(['Brian Fox', 'Damian Bradicich', 'Jeffrey Wayman', 'Jordan Duggan', 'Kelly Robinson', 'Matthew Piggott', 'Mike Hansen', 'Sunny Gleason']);
-      expect(scope.context.roleUsers['1cddabf7fdaa47d6833454af10e0a3ef'].inherited).toEqual(['Admin BuiltIn', 'Jason Swank', 'Jeffrey Wayman', 'Matthew Piggott']);
-    }));
+    it('data is loaded into scope', function() {
+      expect(scope.context.roles.length).toBe(2);
+      expect(scope.context.roles[0].roleId).toBe('1da70fae1fd54d6cb7999871ebdb9a36');
+      expect(scope.context.roles[0].membersByOwner.length).toBe(2);
+      expect(scope.context.roles[0].membersByOwner[0].ownerId).toBe('bom1-12345678');
+      expect(scope.context.roles[0].membersByOwner[0].members.length).toBe(2);
+      expect(scope.context.roles[0].membersByOwner[0].members[0].internalName).toBe('admin');
+    });
     
     it('validate roleSaveComplete event is handled properly', inject(function($rootScope) {
       $rootScope.$broadcast('roleSaveComplete', role1.roleId, {
@@ -141,10 +137,10 @@ describe('AppSecurityControllerSpec', function() {
       });
       expect(parentScope.mappings[0].members).toEqual([{
         type: "USER",
-        internalName : 'testuser',
-        displayName : 'Fred Flintstone',
-        email : "fred@flinstone.com",
-        realm : "bedrock"
+        internalName : 'oldlady',
+        displayName : 'Old Lady',
+        email : 'oldlady@foo.com',
+        realm : 'old'
       },{
         type : 'GROUP',
         internalName : 'oldladiesgroup',
@@ -153,10 +149,10 @@ describe('AppSecurityControllerSpec', function() {
         realm : 'old'
       },{
         type: "USER",
-        internalName : 'oldlady',
-        displayName : 'Old Lady',
-        email : 'oldlady@foo.com',
-        realm : 'old'
+        internalName : 'testuser',
+        displayName : 'Fred Flintstone',
+        email : "fred@flinstone.com",
+        realm : "bedrock"
       }]);
 
       scope.$apply(function () {
@@ -169,17 +165,11 @@ describe('AppSecurityControllerSpec', function() {
         });
       });
       expect(parentScope.mappings[0].members).toEqual([{
-        type: 'GROUP',
-        internalName : 'finstones',
-        displayName : 'Flintstone Family',
-        email : 'family@flinstone.com',
-        realm : 'bedrock'
-      },{
         type: "USER",
-        internalName : 'testuser',
-        displayName : 'Fred Flintstone',
-        email : "fred@flinstone.com",
-        realm : "bedrock"
+        internalName : 'oldlady',
+        displayName : 'Old Lady',
+        email : 'oldlady@foo.com',
+        realm : 'old'
       },{
         type : 'GROUP',
         internalName : 'oldladiesgroup',
@@ -188,10 +178,16 @@ describe('AppSecurityControllerSpec', function() {
         realm : 'old'
       },{
         type: "USER",
-        internalName : 'oldlady',
-        displayName : 'Old Lady',
-        email : 'oldlady@foo.com',
-        realm : 'old'
+        internalName : 'testuser',
+        displayName : 'Fred Flintstone',
+        email : "fred@flinstone.com",
+        realm : "bedrock"
+      },{
+        type: 'GROUP',
+        internalName : 'finstones',
+        displayName : 'Flintstone Family',
+        email : 'family@flinstone.com',
+        realm : 'bedrock'
       }]);
       
       $httpBackend.expectPUT(CLMAppLocations.getRoleMappingUrl(scope.roleId), scope.mappings[0].members).respond(204);
@@ -323,6 +319,27 @@ describe('AppSecurityControllerSpec', function() {
           msg: 'baz'
         }]);
       }));
+
+      it('conditionally shows user and group headers', function() {
+        var group = { type: 'GROUP' };
+        expect(scope.showGroupingHeader(group, null)).toBe(false);
+
+        var mapping = [{
+          members: [{
+            type: 'USER'
+          }]
+        }];
+        expect(scope.showGroupingHeader(group, mapping)).toBe(false);
+
+        mapping[0].members.push({ type: 'GROUP' });
+        expect(scope.showGroupingHeader(group, mapping)).toBe(true);
+
+        var members = [{ type: 'USER' }];
+        expect(scope.showGroupingHeader(group, members)).toBe(false);
+
+        members.push({ type: 'GROUP' });
+        expect(scope.showGroupingHeader(group, members)).toBe(true);
+      });
     });
   });
 

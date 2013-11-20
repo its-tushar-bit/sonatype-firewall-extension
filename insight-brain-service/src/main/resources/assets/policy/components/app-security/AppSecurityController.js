@@ -3,34 +3,44 @@
  *          http://links.sonatype.com/products/clm/attributions. "Sonatype" is a trademark of Sonatype, Inc.
  */
 (function() {
+  var groupings = [{
+    type: 'GROUP',
+    header: 'Groups',
+    icon: 'group-small'
+  },{
+    type: 'USER',
+    header: 'Users',
+    icon: 'user-small'
+  }];
+  var showGroupings = function(grouping, mappings) {
+    if (!mappings) {
+      return false;
+    }
+    for (var i = 0; i < mappings.length; i++) {
+      var mapping = mappings[i];
+      // Mapping can either have an array of members in a members property or be an array of members itself
+      if (mapping.members) {
+        for (var j = 0; j < mapping.members.length; j++) {
+          var member = mapping.members[j];
+          if (member.type === grouping.type) {
+            return true;
+          }
+        }
+      } else {
+        if (mapping.type === grouping.type) {
+          return true;
+        }
+      }
+    }
+    return false;
+  };
+
   'use strict';
   var appSecurityModule = angular.module('ApplicationSecurityModule', ['CommonServices', 'ui.utils', 'ngSanitize']);
 
   appSecurityModule.controller('AppSecurityController', ['$scope', '$http', 'CLMAppLocations', function($scope, $http, clmAppLocations) {
-    function getUserLists(role) {
-      var lists = {
-         applied : [],
-         inherited : []
-      };
-      angular.forEach(role, function (mappings, index) {
-        angular.forEach(mappings.members, function (user) {
-          if (index === 0) {
-            lists.applied.push(user.displayName);
-          } else {
-            lists.inherited.push(user.displayName);
-          }
-        });
-      });
-      AngularUtils.alphaSort(lists.applied);
-      AngularUtils.alphaSort(lists.inherited);
-      return lists;
-    }
-    function createUserLists() {
-      $scope.context.roleUsers = {};
-      angular.forEach($scope.context.roles, function (role) {
-        $scope.context.roleUsers[role.roleId] = getUserLists(role.membersByOwner);
-      });
-    }
+    $scope.groupings = groupings;
+    $scope.showGrouping = showGroupings;
 
     $scope.doLoad = function() {
       $scope.error = null;
@@ -40,25 +50,17 @@
           timestamp: new Date().getTime()
       }}).success(function (data) {
         $scope.context = {
-          roleEditMap: {},
           roles:  data.membersByRole
         };
-
-        createUserLists();
       }).error(function (error) {
         $scope.error = arguments;
       });
-    };
-
-    $scope.editClick = function(role) {
-      $scope.context.roleEditMap[role.roleId] = role;
     };
 
     $scope.$on('roleSaveComplete',function(event, roleId, newMappings){
       for (var i = 0 ; i < $scope.context.roles.length ; i++) {
         if ($scope.context.roles[i].roleId === roleId) {
           $scope.context.roles[i].membersByOwner[0].members = newMappings.members.slice();
-          createUserLists();
           break;
         }
       }
@@ -68,41 +70,15 @@
     $scope.doLoad();
   }]);
 
-  appSecurityModule.directive('roleItem', function() {
-    return {
-      restrict: 'A',
-      templateUrl: 'role-item',
-      scope: {
-        role: '=',
-        context: '='
-      },
-      controller: 'AppSecurityEditorController',
-      link: function(scope, element, attrs) {
-        // so data changes dont affect orig
-        if (scope.role) {
-          scope.role = scope.role.$clone();
-        }
-      }
-    };
-  });
-
-  appSecurityModule.directive('expandRoleOnEvent', function() {
-    return {
-      restrict: 'A',
-      link: function(scope, element, attrs) {
-        scope.$on(attrs.expandRoleOnEvent, function(event, data) {
-          $('#collapse' + data.roleId).collapse('show');
-        });
-      }
-    };
-  });
-
   appSecurityModule.controller('AppSecurityEditorController', ['$scope', '$http', '$timeout', '$modal', 'CLMAppLocations', 'Messages', function ($scope, $http, $timeout, $modal, clmAppLocations, Messages) {
     var filterTimeout = null;
 
     $scope.alerts = [];
     $scope.requestActive = 0;
     $scope.queryString = '';
+
+    $scope.groupings = groupings;
+    $scope.showGroupingHeader = showGroupings;
 
     $scope.cancel = function () {
       if ($scope.isDirty()) {
@@ -146,7 +122,6 @@
         email : user.email,
         realm : user.realm
       });
-      AngularUtils.alphaSort($scope.mappings[0].members, false, 'displayName');
     };
 
     $scope.removeUser = function ($parentIndex, member) {

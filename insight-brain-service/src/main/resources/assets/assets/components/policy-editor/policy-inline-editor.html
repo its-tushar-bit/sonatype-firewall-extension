@@ -59,7 +59,7 @@
 				<td style="text-align:center;cursor:pointer;" ng-click='toggleFailureAction(actionStage)'><img ng-show='showFailureIcon(actionStage)' src='../assets/img/policyerror.png' style="height: 13px; width: 13px;" /></td>
 				<td style="width:400px;">
 					<div style="width:400px;white-space: nowrap;overflow: hidden;text-overflow: ellipsis;">
-						<i class="icon-envelope" style="cursor:pointer;padding-right:5px;" ng-click='editNotification(actionStage,policy)'></i>{{getEmailList(actionStage)}}
+						<i class="icon-envelope" style="cursor:pointer;padding-right:5px;" ng-click='editNotification(actionStage,policy)'></i>{{getFormattedEmailList(actionStage)}}
 					</div>
 				</td>
 			</tr>

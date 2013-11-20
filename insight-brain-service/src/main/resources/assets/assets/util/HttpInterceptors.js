@@ -109,11 +109,7 @@
                     $scope.data = {};
 
                     // Remove error when user changes login information
-                    $scope.$watch('data.username', function() {
-                      $scope.loginError = null;
-                    });
-                    
-                    $scope.$watch('data.password', function() {
+                    $scope.$watchCollection('data', function() {
                       $scope.loginError = null;
                     });
 

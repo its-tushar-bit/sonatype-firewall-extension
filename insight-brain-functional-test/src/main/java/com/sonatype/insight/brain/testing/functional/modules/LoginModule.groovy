@@ -19,26 +19,26 @@ class LoginModule extends Module {
     errorMessage(required: false, wait: true) { $(id: "login-error") }
   }
 
-  void loginAsAdmin() {
+  def loginAsAdmin() {
     login("admin", "admin123")
   }
 
-  void login(username, password) {
+  def login(username, password) {
     login(username, password, false)
   }
 
-  void login(username, password, expectedFail) {
-    waitFor { modal.present }
+  def login(username, password, expectedFail) {
+    waitFor { modal.displayed }
     usernameInput.value(username)
     passwordInput.value(password)
     waitFor { loginAction.@disabled != 'disabled' }
     loginAction.click()
     if (!expectedFail) {
-      waitFor { !modal.present }
+      waitFor { !modal.displayed }
     }
   }
   
-  void isDisplayed() {
-    modal.present
+  def isDisplayed() {
+    modal.displayed
   }
 }

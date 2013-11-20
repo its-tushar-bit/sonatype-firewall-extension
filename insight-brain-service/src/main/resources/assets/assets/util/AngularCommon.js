@@ -907,7 +907,7 @@ var AngularUtils = {
 (function() {
   "use strict";
 
-  var services = angular.module('CommonServices', ['ui.bootstrap']);
+  var services = angular.module('CommonServices', []);
 
   services.service('Messages', function() {
     return {

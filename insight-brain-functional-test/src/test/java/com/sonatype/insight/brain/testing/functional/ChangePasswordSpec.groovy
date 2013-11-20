@@ -32,53 +32,53 @@ class ChangePasswordSpec extends BaseSpec {
 
   def "can change password"() {
     when: "User clicks the change password link"
-      user.changePassword.open.click();
+      changePassword.open.click();
     
     then: "User sees the change password dialog and save is disabled"
-      user.changePassword.dialog.displayed
-      user.changePassword.ok.disabled
+      changePassword.dialog.displayed
+      changePassword.ok.disabled
       
     when: "User enters an invalid old password"
-      user.changePassword.oldPassword.value('unsecret')
+      changePassword.oldPassword.value('unsecret')
     
     then: "Save button stays disabled"
-      user.changePassword.ok.disabled
+      changePassword.ok.disabled
     
     when: "User enters a new password"
-      user.changePassword.newPassword.value('newsecret')
+      changePassword.newPassword.value('newsecret')
     
     then: "Save button stays disabled"
-      user.changePassword.ok.disabled
+      changePassword.ok.disabled
     
     when: "User enters a validate password that doesn't match"
-      user.changePassword.newPasswordValidate.value('newsecretdoesntmatch')
+      changePassword.newPasswordValidate.value('newsecretdoesntmatch')
     
     then: "Save button stays disabled and validation error shown"
-      user.changePassword.newPasswordValidateDoesntMatch.displayed
-      user.changePassword.ok.disabled
+      changePassword.newPasswordValidateDoesntMatch.displayed
+      changePassword.ok.disabled
     
     when: "User enters proper validation password"
-      user.changePassword.newPasswordValidate.value('newsecret')
+      changePassword.newPasswordValidate.value('newsecret')
     
     then: "Save button becomes enabled"
-      !user.changePassword.newPasswordValidateDoesntMatch.displayed
-      !user.changePassword.ok.disabled
+      !changePassword.newPasswordValidateDoesntMatch.displayed
+      !changePassword.ok.disabled
     
     when: "User clicks save button"
-      user.changePassword.ok.click()
+      changePassword.ok.click()
     
     then: "User sees error stating credentials are invalid"
-      waitFor { user.changePassword.invalidCredentialsError.displayed }
+      waitFor { changePassword.invalidCredentialsError.displayed }
     
     when: "User enters valid old password and clicks save"
-      user.changePassword.oldPassword.value('secret')
-      user.changePassword.ok.click()
+      changePassword.oldPassword.value('secret')
+      changePassword.ok.click()
     
     then: "User should no longer see the change password dialog"
-      waitFor { !user.changePassword.dialog.displayed }
+      waitFor { !changePassword.dialog.displayed }
       
     when: "User attempts to login with new password"
-      user.logout.link.click()
+      logout.link.click()
       login.login("testchangepass", "newsecret")
       to ManagementPage
     

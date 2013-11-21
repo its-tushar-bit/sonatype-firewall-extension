@@ -125,6 +125,11 @@ public class LdapManager
     return new LdapQuery(conn, userDao.getByServerId(conn.getServerId())).getUsers(names, maxResults);
   }
 
+  public List<LdapGroup> getGroups(String[] names, long maxResults) throws NamingException {
+    LdapConnection conn = getDecryptedConnection();
+    return new LdapQuery(conn, userDao.getByServerId(conn.getServerId())).getGroups(names, maxResults);
+  }
+
   /**
    * Find a list of users, searching the displayName attribute and adding a prefix and suffix wildcard to the nameFragment
    * 

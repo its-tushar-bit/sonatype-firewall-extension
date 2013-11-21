@@ -208,6 +208,27 @@ class LdapQuery
     }
   }
 
+  public List<LdapGroup> getGroups(String[] names, long maxResults) throws NamingException {
+    String[] attributes = pickAttributes(umap.getGroupIDAttribute());
+    LdapContext ctx = null;
+    NamingEnumeration<SearchResult> results = null;
+    try {
+      ctx = ctxFactory.getSystemLdapContext();
+      // TODO: query sanitization will be applied with this ticket
+      // https://issues.sonatype.org/browse/CLM-1083
+      results = searchGroupsByGroupnames(ctx, names, attributes, maxResults);
+      List<LdapGroup> ldapGroups = new ArrayList<>();
+      while (results.hasMoreElements()) {
+        ldapGroups.add(createGroup(ctx, results.nextElement()));
+      }
+      return ldapGroups;
+    }
+    finally {
+      LdapUtils.closeEnumeration(results);
+      LdapUtils.closeContext(ctx);
+    }
+  }
+
   /**
    * Query for list of users whos realname attribute matches the supplied nameFragment. This nameFragment will be prefixed and
    * suffixed with a wildcard to find matches. Group membership is not included in the result.
@@ -363,6 +384,14 @@ class LdapQuery
     Multimap<String, String> attributeValues = ArrayListMultimap.create();
     attributeValues.put(umap.getUserIDAttribute(), username != null ? username : "*"); // mandatory username
     return searchUsersByAttributes(ctx, attributeValues, attributes, maxResults);
+  }
+
+  private NamingEnumeration<SearchResult> searchGroupsByGroupnames(LdapContext ctx, String[] groupnames,
+                                                                   String[] attributes, long maxResults) throws NamingException
+  {
+    Multimap<String, String> attributeValues = ArrayListMultimap.create();
+    attributeValues.putAll(umap.getGroupIDAttribute(), Arrays.asList(groupnames));
+    return searchGroupsByAttributes(ctx, attributeValues, attributes, maxResults);
   }
 
   /**

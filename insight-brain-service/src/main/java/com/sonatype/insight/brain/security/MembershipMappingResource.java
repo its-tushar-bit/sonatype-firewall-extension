@@ -6,15 +6,12 @@
 package com.sonatype.insight.brain.security;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 
 import javax.inject.Inject;
 import javax.inject.Named;
-import javax.naming.NamingException;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.PUT;
@@ -27,16 +24,13 @@ import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
 import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
-import com.sonatype.insight.brain.dataaccess.security.UserDAO;
 import com.sonatype.insight.brain.ldap.LdapManager;
-import com.sonatype.insight.brain.ldap.LdapUser;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
-import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.error.exception.BadRequestException;
 
@@ -266,90 +260,6 @@ public class MembershipMappingResource
       this.type = type;
       this.internalName = internalName;
       this.displayName = displayName;
-    }
-  }
-
-  private static class MemberAttributeResolver
-  {
-    private final Map<String, Member> resolvedMembers = new HashMap<>();
-
-    private final UserDAO userDAO = new UserDAO();
-
-    @SuppressWarnings("hiding")
-    private static final Logger log = LoggerFactory.getLogger(MemberAttributeResolver.class);
-
-    private final LdapManager ldapManager;
-
-    public MemberAttributeResolver(final LdapManager ldapManager) {
-      this.ldapManager = ldapManager;
-    }
-
-    public void resolve(List<Member> members) {
-      HashMap<String, Member> unresolvedMembers = new HashMap<>();
-
-      // First check already resolved members
-      // Then check if user is in the CLM Realm using UserDAO
-      for (Member member : members) {
-        // No resolution needed for non USER type
-        if (!MemberType.USER.equals(member.type)) {
-          continue;
-        }
-
-        String internalName = member.internalName;
-        Member existingMember = resolvedMembers.get(internalName);
-        if (existingMember == null) {
-          User user = userDAO.getByUsernameLowercase(internalName.toLowerCase(Locale.ENGLISH));
-          if (user != null) {
-            member.displayName = user.getFirstName() + " " + user.getLastName();
-            member.email = user.getEmail();
-            member.realm = CLMRealm.DISPLAY_NAME;
-
-            resolvedMembers.put(internalName, member);
-          }
-          else {
-            unresolvedMembers.put(internalName, member);
-          }
-        } else {
-          member.displayName = existingMember.displayName;
-          member.email = existingMember.email;
-          member.realm = existingMember.realm;
-        }
-      }
-
-      // Resolution is complete if there are no unresolved members
-      if (unresolvedMembers.isEmpty()) {
-        return;
-      }
-
-      if (ldapManager.isLdapEnabled()) {
-        try {
-          String ldapServerName = ldapManager.getLdapServerName();
-          // If LDAP is enabled, try to resolve the RealName and Email from LDAP
-          List<LdapUser> ldapUsers = ldapManager.getUsers(unresolvedMembers.keySet().toArray(new String[0]), unresolvedMembers.keySet().size());
-
-          for (LdapUser ldapUser : ldapUsers) {
-            final String userName = ldapUser.getUsername();
-
-            Member member = unresolvedMembers.get(userName);
-            member.displayName = ldapUser.getRealName();
-            member.email = ldapUser.getEmail();
-            member.realm = ldapServerName;
-
-            resolvedMembers.put(userName, member);
-            unresolvedMembers.remove(userName);
-          }
-        }
-        catch (NamingException ex) {
-          log.error("LDAP exception when trying to resolve user names", ex);
-        }
-      }
-      // Use the unresolved names as the display names for anything still unresolved
-      for (String unresolvedName : unresolvedMembers.keySet()) {
-        Member member = unresolvedMembers.get(unresolvedName);
-        member.displayName = unresolvedName;
-
-        resolvedMembers.put(unresolvedName, member);
-      }
     }
   }
 

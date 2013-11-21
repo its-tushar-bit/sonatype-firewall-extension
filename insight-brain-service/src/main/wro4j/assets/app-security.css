@@ -1,7 +1,7 @@
 .roles > div.accordion-group:nth-child(odd) {
 	background-color: #f9f9f9;
 }
-.roles .collapsed {
+.roles .collapsed > div {
 	height: 20px;
 	text-overflow: ellipsis;
 	white-space: nowrap;
@@ -14,7 +14,10 @@
 }
 .roles .inherited {
 	color:#909090;
-	font-style: italic;
+  cursor: default;
+}
+.roles .inherited:hover {
+  background: white;
 }
 .roles {
 	width : 867px;
@@ -32,6 +35,9 @@
 	padding : 5px;
 	cursor : pointer;
 	min-height: 24px;
+}
+.roles .member-list {
+  display: inline;
 }
 .role .hover-buttons {
 	margin-top : 6px

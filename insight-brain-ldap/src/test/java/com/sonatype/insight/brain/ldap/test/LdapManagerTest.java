@@ -326,6 +326,33 @@ public class LdapManagerTest
   }
 
   @Test
+  public void testGetGroups() throws Exception {
+    startLdapServer();
+
+    LdapConnection conn = createLdapConnection();
+    conn.setSearchBase("dc=company,dc=com");
+    manager.saveConnection(conn);
+
+    LdapUserMapping umap = createUserMapping();
+    LdapUserMappingDAO userMappingDAO = new LdapUserMappingDAO();
+    umap.setGroupMappingType(LdapGroupMappingType.STATIC);
+    umap.setGroupObjectClass("groupOfNames");
+    umap.setGroupMemberAttribute("member");
+    umap.setGroupMemberFormat("uid=${username}");
+    userMappingDAO.insert(umap);
+
+    List<LdapGroup> groups = manager.getGroups(new String[]{"Gamma", "Theta"}, 100);
+    assertThat(groups.size(), is(2));
+
+    // Test max results
+    groups = manager.getGroups(new String[]{"Gamma", "Theta"}, 1);
+    assertThat(groups.size(), is(1));
+
+    groups = manager.getGroups(new String[]{"foo"}, 100);
+    assertThat(groups.size(), is(0));
+  }
+
+  @Test
   public void testFindUserByName() throws Exception {
     startLdapServer();
 

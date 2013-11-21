@@ -130,7 +130,7 @@
                   Dialog.open({
                     template: '<div class="modal-header"><button type="button" class="close" ng-click="$close()">&times;</button><h3>New Password</h3></div>' +
                     '<div class="modal-body"><span style="margin-right:10px;">The new password is</span><span style="margin-bottom:0px;" class="input-append">' +
-                    '<input id="generatedPassword" style="height:22px;" type="text" ng-model="newPassword"/><button ng-show="flashInstalled()" title="Copy to clipboard" style="padding:0 6px 4px;height:32px;" class="btn" type="button" zero-clipboard="generatedPassword">' +
+                    '<input id="generatedPassword" style="height:22px;" type="text" ng-model="newPassword" select-text/><button ng-show="flashInstalled()" title="Copy to clipboard" style="padding:0 6px 4px;height:32px;" class="btn" type="button" zero-clipboard="generatedPassword">' +
                     '<i class="glyphicons-sonatype clipboard">&nbsp;</i></button></span></div>' +
                     '<div class="modal-footer">' +
                       '<button class="btn btn-primary" ng-click="$close()">OK</button>' +
@@ -260,4 +260,13 @@
       }
     }
   });
+  
+  //simple directive that will select the text in an input field
+  module.directive('selectText', ['$timeout', function ($timeout) {
+    return function (scope, element, attrs) {
+      $timeout(function(){
+        element.select();
+      });
+    };
+  }]);
 }());

@@ -433,8 +433,6 @@ public class UserResourceTest
 
     assertMember(members[0], MemberType.USER, "Beta", "Beta User", "beta.user@company.com", "LDAP");
     assertMember(members[1], MemberType.GROUP, "Beta", "Beta", null, "LDAP");
-
-    embeddedLdapServer.stop();
   }
 
   @Test

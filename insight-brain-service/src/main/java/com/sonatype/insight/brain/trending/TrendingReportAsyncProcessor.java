@@ -35,6 +35,8 @@ public class TrendingReportAsyncProcessor
 
   private final TrendingReportProcessor processor;
 
+  private static final AtomicInteger id = new AtomicInteger();
+
   private class WorkerThread
       extends Thread
   {
@@ -43,23 +45,17 @@ public class TrendingReportAsyncProcessor
     };
 
     public WorkerThread() {
-      super("Trending report worker thread");
+      super("Trending report worker thread " + id.incrementAndGet());
       setDaemon(true);
-      start();
+
+      log.debug("Created TrendingReportAsyncProcessor worker thread '{}'", getName());
     }
 
     @Override
     public void run() {
-      while (true) {
-        synchronized (processorLock) {
-          try {
-            processorLock.wait();
-          }
-          catch (InterruptedException e) {
-            break;
-          }
-        }
+      log.debug("Starting TrendingReportAsyncProcessor worker thread '{}'", getName());
 
+      while (true) {
         try {
           beforeStart();
           TrendingReport report = processor.calculate(newProgressMonitor());
@@ -71,18 +67,29 @@ public class TrendingReportAsyncProcessor
         finally {
           afterFinish();
         }
+
+        synchronized (processorLock) {
+          try {
+            processorLock.wait();
+          }
+          catch (InterruptedException e) {
+            break;
+          }
+        }
       }
       log.info(getName() + " terminated");
     }
 
     public void schedule() {
+      log.debug("Scheduling TrendingReportAsyncProcessor worker execution '{}'", getName());
+
       synchronized (processorLock) {
         processorLock.notify();
       }
     }
   }
 
-  private final WorkerThread worker = new WorkerThread();
+  private WorkerThread worker;
 
   @Inject
   public TrendingReportAsyncProcessor(TrendingReportCache cache, TrendingReportProcessor processor) {
@@ -91,6 +98,14 @@ public class TrendingReportAsyncProcessor
   }
 
   public void calculate() {
+    if (worker == null) {
+      synchronized (this) {
+        if (worker == null) {
+          worker = new WorkerThread();
+          worker.start();
+        }        
+      }
+    }
     worker.schedule();
   }
 

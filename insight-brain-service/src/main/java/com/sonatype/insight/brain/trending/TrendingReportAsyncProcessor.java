@@ -89,7 +89,7 @@ public class TrendingReportAsyncProcessor
     }
   }
 
-  private WorkerThread worker;
+  private volatile WorkerThread worker;
 
   @Inject
   public TrendingReportAsyncProcessor(TrendingReportCache cache, TrendingReportProcessor processor) {

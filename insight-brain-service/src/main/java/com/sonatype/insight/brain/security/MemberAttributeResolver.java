@@ -18,7 +18,6 @@ import com.sonatype.insight.brain.ldap.LdapManager;
 import com.sonatype.insight.brain.ldap.LdapUser;
 import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.User;
-import com.sonatype.insight.brain.security.MembershipMappingResource.Member;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,8 +46,8 @@ public class MemberAttributeResolver
 
     // First check already resolved members
     for (Member member : members) {
-      String internalName = member.internalName;
-      MemberKey key = new MemberKey(member.internalName, member.type);
+      String internalName = member.getInternalName();
+      MemberKey key = new MemberKey(member.getInternalName(), member.getType());
       Member existingMember = resolvedMembers.get(key);
 
       // Then check if user is in the CLM Realm using UserDAO
@@ -58,9 +57,9 @@ public class MemberAttributeResolver
           user = userDAO.getByUsernameLowercase(internalName.toLowerCase(Locale.ENGLISH));
         }
         if (user != null) {
-          member.displayName = user.getFirstName() + " " + user.getLastName();
-          member.email = user.getEmail();
-          member.realm = CLMRealm.DISPLAY_NAME;
+          member.setDisplayName(user.getFirstName() + " " + user.getLastName());
+          member.setEmail(user.getEmail());
+          member.setRealm(CLMRealm.DISPLAY_NAME);
 
           resolvedMembers.put(key, member);
         }
@@ -68,9 +67,9 @@ public class MemberAttributeResolver
           unresolvedMembers.put(key, member);
         }
       } else {
-        member.displayName = existingMember.displayName;
-        member.email = existingMember.email;
-        member.realm = existingMember.realm;
+        member.setDisplayName(existingMember.getDisplayName());
+        member.setEmail(existingMember.getEmail());
+        member.setRealm(existingMember.getRealm());
       }
     }
 
@@ -87,10 +86,10 @@ public class MemberAttributeResolver
         HashMap<String, Member> unresolvedUsers = new HashMap<>();
         HashMap<String, Member> unresolvedGroups = new HashMap<>();
         for (Member unresolvedMember : unresolvedMembers.values()) {
-          if (unresolvedMember.type.equals(MemberType.USER)) {
-            unresolvedUsers.put(unresolvedMember.internalName, unresolvedMember);
+          if (unresolvedMember.getType().equals(MemberType.USER)) {
+            unresolvedUsers.put(unresolvedMember.getInternalName(), unresolvedMember);
           } else {
-            unresolvedGroups.put(unresolvedMember.internalName, unresolvedMember);
+            unresolvedGroups.put(unresolvedMember.getInternalName(), unresolvedMember);
           }
         }
 
@@ -102,9 +101,9 @@ public class MemberAttributeResolver
 
             MemberKey memberKey = new MemberKey(userName, MemberType.USER);
             Member member = unresolvedMembers.get(memberKey);
-            member.displayName = ldapUser.getRealName();
-            member.email = ldapUser.getEmail();
-            member.realm = ldapServerName;
+            member.setDisplayName(ldapUser.getRealName());
+            member.setEmail(ldapUser.getEmail());
+            member.setRealm(ldapServerName);
 
             resolvedMembers.put(memberKey, member);
             unresolvedMembers.remove(memberKey);
@@ -119,8 +118,8 @@ public class MemberAttributeResolver
 
             MemberKey memberKey = new MemberKey(groupName, MemberType.GROUP);
             Member member = unresolvedMembers.get(memberKey);
-            member.displayName = groupName;
-            member.realm = ldapServerName;
+            member.setDisplayName(groupName);
+            member.setRealm(ldapServerName);
 
             resolvedMembers.put(memberKey, member);
             unresolvedMembers.remove(memberKey);
@@ -135,7 +134,7 @@ public class MemberAttributeResolver
     // Use the unresolved names as the display names for anything still unresolved
     for (MemberKey unresolvedMember : unresolvedMembers.keySet()) {
       Member member = unresolvedMembers.get(unresolvedMember);
-      member.displayName = unresolvedMember.name;
+      member.setDisplayName(unresolvedMember.name);
 
       resolvedMembers.put(unresolvedMember, member);
     }

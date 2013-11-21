@@ -15,10 +15,10 @@ import com.sonatype.insight.brain.configuration.ldap.LdapServer;
 import com.sonatype.insight.brain.ldap.EmbeddedLdapServer;
 import com.sonatype.insight.brain.ldap.LdapManager;
 import com.sonatype.insight.brain.model.security.MemberType;
-import com.sonatype.insight.brain.security.MembershipMappingResource.Member;
 
 import org.sonatype.guice.bean.containers.InjectedTest;
 
+import org.apache.commons.lang.StringUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -59,18 +59,14 @@ public class MemberAttributeResolverTest extends InjectedTest
     tempEntity.newUser("clmUser");
 
     final Member member = new Member();
-    member.type = MemberType.USER;
-    member.internalName = "clmUser";
+    member.setType(MemberType.USER);
+    member.setInternalName("clmUser");
 
     List<Member> members = Arrays.asList(member);
 
     memberAttributeResolver.resolve(members);
 
-    assertThat(member.internalName, is("clmUser"));
-    assertThat(member.type, is(MemberType.USER));
-    assertThat(member.email, is("clmUser@void.com"));
-    assertThat(member.displayName, is("John Doe"));
-    assertThat(member.realm, is("CLM"));
+    assertMember(member, MemberType.USER, "clmUser", "John Doe", "clmUser@void.com", "CLM");
   }
 
   // Test both user and group to reduce the overhead of starting an EmbeddedLdapServer
@@ -85,32 +81,24 @@ public class MemberAttributeResolverTest extends InjectedTest
     tempEntity.newLdapUserMapping(ldapServer.getId());
 
     final Member userMember = new Member();
-    userMember.type = MemberType.USER;
-    userMember.internalName = "testuser";
+    userMember.setType(MemberType.USER);
+    userMember.setInternalName("testuser");
 
     List<Member> members = Arrays.asList(userMember);
 
     memberAttributeResolver.resolve(members);
 
-    assertThat(userMember.internalName, is("testuser"));
-    assertThat(userMember.type, is(MemberType.USER));
-    assertThat(userMember.email, is("test.user@company.com"));
-    assertThat(userMember.displayName, is("John Doe"));
-    assertThat(userMember.realm, is("LDAP"));
+    assertMember(userMember, MemberType.USER, "testuser", "John Doe", "test.user@company.com", "LDAP");
 
     final Member groupMember = new Member();
-    groupMember.type = MemberType.GROUP;
-    groupMember.internalName = "Alpha";
+    groupMember.setType(MemberType.GROUP);
+    groupMember.setInternalName("Alpha");
 
     members = Arrays.asList(groupMember);
 
     memberAttributeResolver.resolve(members);
 
-    assertThat(groupMember.internalName, is("Alpha"));
-    assertThat(groupMember.type, is(MemberType.GROUP));
-    assertThat(groupMember.email, is(nullValue()));
-    assertThat(groupMember.displayName, is("Alpha"));
-    assertThat(groupMember.realm, is("LDAP"));
+    assertMember(groupMember, MemberType.GROUP, "Alpha", "Alpha", null, "LDAP");
   }
 
   @Test
@@ -124,18 +112,14 @@ public class MemberAttributeResolverTest extends InjectedTest
     tempEntity.newLdapUserMapping(ldapServer.getId());
 
     final Member member = new Member();
-    member.type = MemberType.USER;
-    member.internalName = "testuser";
+    member.setType(MemberType.USER);
+    member.setInternalName("testuser");
 
     List<Member> members = Arrays.asList(member);
 
     memberAttributeResolver.resolve(members);
 
-    assertThat(member.internalName, is("testuser"));
-    assertThat(member.type, is(MemberType.USER));
-    assertThat(member.email, is("test.user@company.com"));
-    assertThat(member.displayName, is("John Doe"));
-    assertThat(member.realm, is("LDAP"));
+    assertMember(member, MemberType.USER, "testuser", "John Doe", "test.user@company.com", "LDAP");
 
     tempEntity.newUser("testuser");
     // Need to reinitialize attribute resolver to clear cache
@@ -143,10 +127,20 @@ public class MemberAttributeResolverTest extends InjectedTest
 
     memberAttributeResolver.resolve(members);
 
-    assertThat(member.internalName, is("testuser"));
-    assertThat(member.type, is(MemberType.USER));
-    assertThat(member.email, is("testuser@void.com"));
-    assertThat(member.displayName, is("John Doe"));
-    assertThat(member.realm, is("CLM"));
+    assertMember(member, MemberType.USER, "testuser", "John Doe", "testuser@void.com", "CLM");
+  }
+
+  private void assertMember(Member member, MemberType type, String internalName, String displayName, String email,
+                            String realm)
+  {
+    assertThat(member.getType(), is(type));
+    assertThat(member.getInternalName(), is(internalName));
+    assertThat(member.getDisplayName(), is(displayName));
+    if (StringUtils.isNotEmpty(email)) {
+      assertThat(member.getEmail(), is(email));
+    } else {
+      assertThat(member.getEmail(), is(nullValue()));
+    }
+    assertThat(member.getRealm(), is(realm));
   }
 }

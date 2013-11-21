@@ -27,7 +27,6 @@ import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
 import com.sonatype.insight.brain.ldap.LdapManager;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
-import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
@@ -190,7 +189,7 @@ public class MembershipMappingResource
     List<MembershipMapping> memberMaps = new ArrayList<MembershipMapping>();
     for (Member member : members) {
       validateMember(member);
-      MembershipMapping memberMap = new MembershipMapping(member.internalName, member.type);
+      MembershipMapping memberMap = new MembershipMapping(member.getInternalName(), member.getType());
       memberMaps.add(memberMap);
     }
     memberMapDAO.setMembershipMappingsForContextAndRole(internalOwnerId, roleId, memberMaps);
@@ -241,28 +240,6 @@ public class MembershipMappingResource
     }
   }
 
-  public static class Member
-  {
-    public MemberType type;
-
-    public String internalName;
-
-    public String displayName;
-
-    public String email;
-
-    public String realm;
-
-    public Member() {
-    }
-
-    public Member(MemberType type, String internalName, String displayName) {
-      this.type = type;
-      this.internalName = internalName;
-      this.displayName = displayName;
-    }
-  }
-
   private Role validateRole(String ownerType, String roleId) {
     Role role = roleDAO.getByIdNotNull(roleId);
     if (!IdUtils.TYPE_GLOBAL.equals(ownerType) && role.isGlobal()) {
@@ -291,10 +268,10 @@ public class MembershipMappingResource
   }
 
   private void validateMember(Member member) {
-    if (member.internalName == null || member.internalName.isEmpty()) {
+    if (member.getInternalName() == null || member.getInternalName().isEmpty()) {
       throw new BadRequestException("Internal name of role member has not been specified");
     }
-    if (member.type == null) {
+    if (member.getType() == null) {
       throw new BadRequestException("Type of role member has not been specified");
     }
   }

@@ -86,38 +86,39 @@ public class UserResource
   @Path("{ownerType: global|application|organization}/{ownerId}/query")
   @Produces({ MediaType.APPLICATION_JSON })
   @Authorize(permission = Permission.WRITE)
-  public FindUsersDTO findUsers(@AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") String ownerType,
-      @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId, @QueryParam("q") String query) {
+  public FindMembersDTO findMembers(@AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") String ownerType,
+                                  @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId,
+                                  @QueryParam("q") String query) {
     if (StringUtils.isEmpty(query)) {
       throw new BadRequestException("No search term specified.");
     }
 
     // Users are shaded by any user from a higher up realm that has the same username
-    Map<String, FindUserDTO> users = new LinkedHashMap<String, FindUserDTO>();
+    Map<String, Member> users = new LinkedHashMap<>();
     String connectionError = null;
 
     UserDAO dao = new UserDAO();
     for (User user : dao.findUsersByName(query)) {
       String displayName = user.getFirstName() + " " + user.getLastName();
-      FindUserDTO u = new FindUserDTO(MemberType.USER, user.getUsername(), displayName, user.getEmail(), CLMRealm.DISPLAY_NAME);
-      users.put(u.getUsername().toLowerCase(Locale.ENGLISH), u);
+      Member member = new Member(MemberType.USER, user.getUsername(), displayName, user.getEmail(), CLMRealm.DISPLAY_NAME);
+      users.put(member.getInternalName().toLowerCase(Locale.ENGLISH), member);
     }
 
     if (ldapManager.isLdapEnabled()) {
       String ldapName = ldapManager.getLdapServerName();
       try {
         for (LdapUser user : ldapManager.findUsersByName(query, 100)) {
-          FindUserDTO u = new FindUserDTO(MemberType.USER, user.getUsername(), user.getRealName(), user.getEmail(), ldapName);
-          String key = u.getUsername().toLowerCase(Locale.ENGLISH);
+          Member member = new Member(MemberType.USER, user.getUsername(), user.getRealName(), user.getEmail(), ldapName);
+          String key = member.getInternalName().toLowerCase(Locale.ENGLISH);
           if (!users.containsKey(key)) {
-            users.put(key, u);
+            users.put(key, member);
           }
         }
         if (ldapManager.isLdapGroupEnabled()) {
           for (LdapGroup group : ldapManager.findGroupsByName(query, 100)) {
             final String groupName = group.getGroupname();
-            FindUserDTO g = new FindUserDTO(MemberType.GROUP, groupName, groupName, null, ldapName);
-            users.put(groupName, g);
+            Member member = new Member(MemberType.GROUP, groupName, groupName, null, ldapName);
+            users.put(groupName, member);
           }
         }
       }
@@ -126,7 +127,7 @@ public class UserResource
         connectionError = "LDAP connection unavailable. Displaying local users only.";
       }
     }
-    return new FindUsersDTO(users.values(), connectionError);
+    return new FindMembersDTO(users.values(), connectionError);
   }
 
   @GET
@@ -260,17 +261,17 @@ public class UserResource
     public String newPassword;
   }
 
-  public static class FindUsersDTO
+  public static class FindMembersDTO
   {
-    private Collection<FindUserDTO> users;
+    private Collection<Member> members;
     private String error;
 
-    public Collection<FindUserDTO> getUsers() {
-      return users;
+    public Collection<Member> getMembers() {
+      return members;
     }
 
-    public void setUsers(final Collection<FindUserDTO> users) {
-      this.users = users;
+    public void setMembers(final Collection<Member> members) {
+      this.members = members;
     }
 
     public String getError() {
@@ -281,11 +282,11 @@ public class UserResource
       this.error = error;
     }
 
-    public FindUsersDTO() {
+    public FindMembersDTO() {
     }
 
-    public FindUsersDTO(Collection<FindUserDTO> users, String error) {
-      this.users = users;
+    public FindMembersDTO(Collection<Member> members, String error) {
+      this.members = members;
       this.error = error;
     }
   }

@@ -118,7 +118,7 @@
       $scope.mappings[0].members.push({
         type : user.type,
         displayName : user.displayName,
-        internalName : user.username,
+        internalName : user.internalName,
         email : user.email,
         realm : user.realm
       });
@@ -157,7 +157,7 @@
         }).success(function (data) {
           $scope.requestActive--;
           if ($scope.queryString === newVal || $scope.queryString.indexOf(newVal) === 0) {
-            $scope.queryResults = data.users;
+            $scope.queryResults = data.members;
 
             if (data.error) {
               $scope.alerts.push({
@@ -193,7 +193,7 @@
 
         for (var i=0; i<result.length; i++) {
           for (var x=0; x<mappings[0].members.length; x++) {
-            if (result[i].username === mappings[0].members[x].internalName) {
+            if (result[i].internalName === mappings[0].members[x].internalName) {
               result.splice(i, 1);
               i--;
               modified = true;

@@ -7,12 +7,21 @@ package com.sonatype.insight.brain.security;
 
 import com.sonatype.insight.brain.model.security.MemberType;
 
-public class FindUserDTO
+/**
+ * DTO representation of a CLM or LDAP Member
+ *
+ * @since 1.7
+ */
+public class Member
 {
   private MemberType type;
-  private String username;
+
+  private String internalName;
+
   private String displayName;
+
   private String email;
+
   private String realm;
 
   public MemberType getType() {
@@ -23,12 +32,12 @@ public class FindUserDTO
     this.type = type;
   }
 
-  public String getUsername() {
-    return username;
+  public String getInternalName() {
+    return internalName;
   }
 
-  public void setUsername(final String username) {
-    this.username = username;
+  public void setInternalName(final String internalName) {
+    this.internalName = internalName;
   }
 
   public String getDisplayName() {
@@ -55,14 +64,20 @@ public class FindUserDTO
     this.realm = realm;
   }
 
-  public FindUserDTO() {
+  public Member() {
   }
 
-  public FindUserDTO(final MemberType type, final String username, final String displayName, final String email, final String realm) {
+  public Member(MemberType type, String internalName, String displayName) {
     this.type = type;
-    this.username = username;
-    this.displayName = displayName != null ? displayName.trim() : null;
-    this.email = email != null ? email.trim() : null;
+    this.internalName = internalName;
+    this.displayName = displayName;
+  }
+
+  public Member(MemberType type, String internalName, String displayName, String email, String realm) {
+    this.type = type;
+    this.internalName = internalName;
+    this.displayName = displayName;
+    this.email = email;
     this.realm = realm;
   }
 }

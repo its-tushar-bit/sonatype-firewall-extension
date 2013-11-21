@@ -30,6 +30,14 @@ var AngularUtils = {
         }
       });
     }
+  },
+  hasFlash: function() {
+    try {
+      if (new ActiveXObject('ShockwaveFlash.ShockwaveFlash')) { return true; }
+    } catch (e) {
+      if (navigator.mimeTypes["application/x-shockwave-flash"] != undefined) { return true; }
+    }
+    return false;
   }
 };
 (function() {

@@ -52,14 +52,20 @@ public class UserResourceTest
 
   private List<User> usersToDelete = new ArrayList<User>();
 
+  private EmbeddedLdapServer embeddedLdapServer;
+
   @After
-  public void after() {
+  public void after() throws Exception {
     UserDAO dao = new UserDAO();
     for (User user : usersToDelete) {
       user = dao.getById(user.getId());
       if (user != null) {
         dao.delete(user);
       }
+    }
+    if (embeddedLdapServer != null) {
+      embeddedLdapServer.stop();
+      embeddedLdapServer = null;
     }
   }
 
@@ -388,7 +394,7 @@ public class UserResourceTest
 
   @Test
   public void testFindLdapUser() throws Exception {
-    EmbeddedLdapServer embeddedLdapServer = newEmbeddedLdapServer();
+    embeddedLdapServer = newEmbeddedLdapServer();
     embeddedLdapServer.start();
     embeddedLdapServer.loadData("/UserResourceTest/ldap_users.ldif");
 
@@ -404,13 +410,11 @@ public class UserResourceTest
     // Test shading. testuser loaded from "/UserResourceTest/ldap_users.ldif" should not be returned
     response = AuthedRestAccess.get(getSearchUrl("John"));
     assertFindUsersDTO(response, null, MemberType.USER, "testuser", "John Doe", "testuser@void.com", "CLM");
-
-    embeddedLdapServer.stop();
   }
 
   @Test
   public void testFindLdapGroup() throws Exception {
-    EmbeddedLdapServer embeddedLdapServer = newEmbeddedLdapServer();
+    embeddedLdapServer = newEmbeddedLdapServer();
     embeddedLdapServer.start();
     embeddedLdapServer.loadData("/UserResourceTest/ldap_users.ldif");
 

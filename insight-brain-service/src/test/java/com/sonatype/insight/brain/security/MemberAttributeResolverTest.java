@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.security;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -51,6 +50,7 @@ public class MemberAttributeResolverTest extends InjectedTest
   public void cleanup() throws Exception {
     if (embeddedLdapServer != null) {
       embeddedLdapServer.stop();
+      embeddedLdapServer = null;
     }
   }
 

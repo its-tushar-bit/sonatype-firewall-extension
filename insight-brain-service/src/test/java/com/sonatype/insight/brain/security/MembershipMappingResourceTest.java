@@ -58,6 +58,8 @@ public class MembershipMappingResourceTest
 
   private UserDAO userDAO = new UserDAO();
 
+  private EmbeddedLdapServer embeddedLdapServer;
+
   @Rule
   public TemporaryEntity tempEntity = new TemporaryEntity();
 
@@ -91,6 +93,10 @@ public class MembershipMappingResourceTest
     }
     if (userB != null) {
       userDAO.delete(userB);
+    }
+    if (embeddedLdapServer != null) {
+      embeddedLdapServer.stop();
+      embeddedLdapServer = null;
     }
   }
 
@@ -219,7 +225,7 @@ public class MembershipMappingResourceTest
 
   @Test
   public void testLdap_GlobalRoles() throws Exception {
-    EmbeddedLdapServer embeddedLdapServer = newEmbeddedLdapServer();
+    embeddedLdapServer = newEmbeddedLdapServer();
     embeddedLdapServer.start();
     embeddedLdapServer.loadData("/UserResourceTest/ldap_users.ldif");
 
@@ -277,8 +283,6 @@ public class MembershipMappingResourceTest
         getServiceUrl(IdUtils.TYPE_GLOBAL, MembershipMapping.GLOBAL_CONTEXT_ID, roles.get(0).getId()),
         JsonHelpers.asJson(Arrays.asList(newMember(MemberType.USER, User.ADMIN_USERNAME))));
     assertResponseStatus(204, response);
-
-    embeddedLdapServer.stop();
   }
 
   @Test

@@ -415,6 +415,29 @@ public class UserResourceTest
   }
 
   @Test
+  public void testFindLdapUserGroupSameName() throws Exception {
+    EmbeddedLdapServer embeddedLdapServer = newEmbeddedLdapServer();
+    embeddedLdapServer.start();
+    embeddedLdapServer.loadData("/UserResourceTest/ldap_users.ldif");
+
+    LdapServer ldapServer = tempEntity.newLdapServer("LDAP");
+    tempEntity.newLdapConnection(ldapServer.getId(), embeddedLdapServer.getPort());
+    tempEntity.newLdapUserMapping(ldapServer.getId());
+
+    Response response = AuthedRestAccess.get(getSearchUrl("Beta"));
+    assertResponseStatus(200, response);
+    FindMembersDTO dto = fromJson(response, FindMembersDTO.class);
+    Member[] members = dto.getMembers().toArray(new Member[0]);
+    assertThat(members, is(notNullValue()));
+    assertThat(members.length, is(2));
+
+    assertMember(members[0], MemberType.USER, "Beta", "Beta User", "beta.user@company.com", "LDAP");
+    assertMember(members[1], MemberType.GROUP, "Beta", "Beta", null, "LDAP");
+
+    embeddedLdapServer.stop();
+  }
+
+  @Test
   public void testNoLdapConnection() throws Exception {
     LdapServer ldapServer = tempEntity.newLdapServer("LDAP");
     Response response = AuthedRestAccess.get(getSearchUrl(User.ADMIN_USERNAME));
@@ -458,13 +481,19 @@ public class UserResourceTest
       assertThat(dto.getError(), nullValue());
     }
 
-    Member[] users = dto.getMembers().toArray(new Member[0]);
-    assertThat(users, is(notNullValue()));
-    assertThat(users.length, is(1));
-    assertThat(users[0].getType(), is(type));
-    assertThat(users[0].getInternalName(), is(name));
-    assertThat(users[0].getDisplayName(), is(displayName));
-    assertThat(users[0].getEmail(), is(email));
-    assertThat(users[0].getRealm(), is(realm));
+    Member[] members = dto.getMembers().toArray(new Member[0]);
+    assertThat(members, is(notNullValue()));
+    assertThat(members.length, is(1));
+    assertMember(members[0], type, name, displayName, email, realm);
+  }
+
+  private void assertMember(final Member member, final MemberType type, final String name, final String displayName,
+                            final String email, final String realm)
+  {
+    assertThat(member.getType(), is(type));
+    assertThat(member.getInternalName(), is(name));
+    assertThat(member.getDisplayName(), is(displayName));
+    assertThat(member.getEmail(), is(email));
+    assertThat(member.getRealm(), is(realm));
   }
 }

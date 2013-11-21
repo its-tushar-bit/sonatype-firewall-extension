@@ -67,7 +67,7 @@ public class TrendingReportProcessorTest
   public TemporaryFolder workDir = new TemporaryFolder(new File("target").getAbsoluteFile());
 
   @Rule
-  public TemporaryEntity temporaryEntiry = new TemporaryEntity();
+  public TemporaryEntity temporaryEntity = new TemporaryEntity();
 
   @Before
   public void createTwentyDayReportProcessor() {
@@ -598,6 +598,6 @@ public class TrendingReportProcessorTest
   }
 
   protected Application createApplication(String appId) {
-    return temporaryEntiry.newApplication(appId, appId, temporaryEntiry.newOrganization().getId());
+    return temporaryEntity.newApplication(appId, appId, temporaryEntity.newOrganization().getId());
   }
 }

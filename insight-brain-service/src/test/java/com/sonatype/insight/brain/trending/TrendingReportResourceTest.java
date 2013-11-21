@@ -166,7 +166,7 @@ public class TrendingReportResourceTest
   }
 
   @Rule
-  public TemporaryEntity temporaryEntiry = new TemporaryEntity();
+  public TemporaryEntity temporaryEntity = new TemporaryEntity();
 
   @Test
   public void testBasic() throws Exception {
@@ -194,10 +194,10 @@ public class TrendingReportResourceTest
   @Test
   public void testRegenerate() throws Exception {
 
-    Organization organization = temporaryEntiry.newOrganization();
-    temporaryEntiry.newApplication("app1", "app1", organization.getId());
-    temporaryEntiry.newApplication("app2", "app2", organization.getId());
-    temporaryEntiry.newApplication("app3", "app3", organization.getId());
+    Organization organization = temporaryEntity.newOrganization();
+    temporaryEntity.newApplication("app1", "app1", organization.getId());
+    temporaryEntity.newApplication("app2", "app2", organization.getId());
+    temporaryEntity.newApplication("app3", "app3", organization.getId());
 
     Response response;
     TrendingReport report;

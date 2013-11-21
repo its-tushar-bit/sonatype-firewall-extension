@@ -132,12 +132,9 @@ public class UserResource
     }
 
     List<Member> members = new ArrayList<>();
-    for (Member user : users.values()) {
-      members.add(user);
-    }
-    for (Member group : groups.values()) {
-      members.add(group);
-    }
+    members.addAll(users.values());
+    members.addAll(groups.values());
+
     return new FindMembersDTO(members, connectionError);
   }
 

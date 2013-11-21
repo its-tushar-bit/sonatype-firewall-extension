@@ -416,7 +416,7 @@ public class UserResourceTest
 
   @Test
   public void testFindLdapUserGroupSameName() throws Exception {
-    EmbeddedLdapServer embeddedLdapServer = newEmbeddedLdapServer();
+    embeddedLdapServer = newEmbeddedLdapServer();
     embeddedLdapServer.start();
     embeddedLdapServer.loadData("/UserResourceTest/ldap_users.ldif");
 

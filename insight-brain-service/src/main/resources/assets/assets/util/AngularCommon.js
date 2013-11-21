@@ -811,29 +811,6 @@ var AngularUtils = {
       }
     };
   });
-  
-  angularCommon.directive('autofill', ['$timeout', '$parse', function($timeout, $parse) {
-    return {
-      restrict: 'A',
-      require: '?ngModel',
-      link: function postLink($scope, element, attrs, controller) {
-        function checkForChange() {
-          var elementValue = element.val();
-
-          var modelParser = $parse(attrs.ngModel);
-          if (elementValue !== modelParser($scope)) {
-            AngularUtils.safeApply($scope, function() {
-              modelParser.assign($scope, elementValue);
-            });
-          }
-
-          $timeout(checkForChange, 100);
-        }
-
-        $timeout(checkForChange, 100);
-      }
-    };
-  }]);
 
   angularCommon.directive('refreshButton', ['$timeout', '$parse', function($timeout, $parse) {
     var timer, degree = 0;
@@ -876,6 +853,24 @@ var AngularUtils = {
     };
   }]);
 
+  angularCommon.directive('autofill', ['$timeout', function($timeout) {
+    return {
+      require: 'ngModel',
+      link: function(scope, element, attrs, ngModel) {
+        function checkForChange() {
+          var elementValue = element.val();
+
+          if (elementValue !== ngModel.$modelValue) {
+            ngModel.$setViewValue(elementValue);
+          }
+
+          $timeout(checkForChange, 100);
+        }
+        $timeout(checkForChange, 100);
+      }
+    }
+  }]);
+  
   angularCommon.service('Dialog', ['$modal', function ($modal) {
     function wrapClick(fn, scope) {
       return function () {

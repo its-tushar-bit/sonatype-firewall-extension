@@ -8,8 +8,7 @@
 (function() {
   "use strict";
 
-  // interceptor module
-  var httpInterceptors = angular.module('HttpInterceptors', []);
+  var processingLogin = false, requestQueue = [], httpInterceptors = angular.module('HttpInterceptors', []);
 
   // This is our unauthenticated interceptor factory, will handle creating the interceptor when necessary
   httpInterceptors.factory('unauthenticatedResponseHttpInterceptor', ['$q', '$rootScope', function($q, $rootScope) {
@@ -37,11 +36,11 @@
   httpInterceptors.factory('cacheBusterHttpInterceptor', [function() {
     return {
       request: function(config) {
-        if (!config.params) {
-          config.params = {};
-        }
-        config.params.timestamp = new Date().getTime();
-        return config;
+        return angular.extend(config, {
+          params: {
+            timestamp: new Date().getTime()
+          }
+        });
       }
     };
   }]);
@@ -62,15 +61,12 @@
       $rootScope.$on('userNeedsAuthentication', function(event, response, deferred) {
         // if user is already processing login, this will be a login failure response so reject and let them try
         // again
-        if ($rootScope.processingLogin) {
-          $rootScope.processingLogin = false;
+        if (processingLogin) {
+          processingLogin = false;
           deferred.reject(response);
         } else {
-          if (!$rootScope.requestQueue) {
-            $rootScope.requestQueue = [];
-          }
           // add a new function to the queue that will handle resolving the promise retrieved from event emitter
-          $rootScope.requestQueue.push(function() {
+          requestQueue.push(function() {
             // simply replay the request
             $http(response.config).then(function() {
               deferred.resolve(arguments[0]);
@@ -80,7 +76,7 @@
           });
           // we only want to pop up the dialog for the first error, as many requests may be sent asynchronously, for
           // the other messages, the data will be added to the queue, but the dialog portion will be ignored
-          if ($rootScope.requestQueue.length === 1) {
+          if (requestQueue.length === 1) {
             $modal.open({
               backdrop: 'static',
               keyboard: false,    
@@ -107,7 +103,7 @@
                   function($scope, $http, CLMLocations, Messages, $q) {
                     // setup our data for binding
                     $scope.data = {};
-
+                    
                     // Remove error when user changes login information
                     $scope.$watchCollection('data', function() {
                       $scope.loginError = null;
@@ -115,15 +111,19 @@
 
                     // give template access to the processing state
                     $scope.isProcessing = function() {
-                      return $rootScope.processingLogin;
+                      return processingLogin;
                     };
-
+                    
+                    $scope.getRequestQueue = function() {
+                      return requestQueue;
+                    }
+                    
                     // sign in the user
                     $scope.signIn = function() {
                       var authz = Base64.encode($scope.data.username + ':' + $scope.data.password);
 
                       $scope.loginError = null;
-                      $rootScope.processingLogin = true;
+                      processingLogin = true;
 
                       $http.post(CLMLocations.getSessionUrl(), {}, {
                         headers: {
@@ -132,16 +132,20 @@
                       }).success(function() {
                         var promises = [];
                         // blow through each failed request and resolve them
-                        angular.forEach($rootScope.requestQueue, function(request) {
+                        angular.forEach(requestQueue, function(request) {
                           promises.push(request());
                         });
                         $q.all(promises).then(function() {
-                          $rootScope.processingLogin = false;
+                          processingLogin = false;
                           $scope.$close();
-                          $rootScope.requestQueue = [];
+                          requestQueue = [];
+                        }, function(){
+                          processingLogin = false;
+                          $scope.$close();
+                          requestQueue = [];
                         });
                       }).error(function(data, status, headers, config) {
-                        $rootScope.processingLogin = false;
+                        processingLogin = false;
                         if (status === 401) {
                           $scope.loginError = 'Invalid credentials. Please try again.';
                         } else {

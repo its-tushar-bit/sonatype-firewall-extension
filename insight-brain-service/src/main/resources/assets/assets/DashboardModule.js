@@ -112,7 +112,7 @@
         });
 
         $rootScope.$on('logout', function () {
-          window.location.replace('..');
+          $window.location.replace('..');
         });
         $rootScope.$on('$stateChangeError', function(event, toState, toParams, fromState, fromParams, error) {
           $rootScope.error = messages.getHttpErrorMessage(error);

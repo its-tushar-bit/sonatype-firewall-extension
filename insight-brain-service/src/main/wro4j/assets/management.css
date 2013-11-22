@@ -797,3 +797,7 @@ ul.tri-pane {
 	background-position: 0px 0px;
 	background-size: 14px 14px;
 }
+
+.modal > form.form-horizontal {
+  margin-bottom : 0px
+}

@@ -80,10 +80,9 @@
             $modal.open({
               backdrop: 'static',
               keyboard: false,    
-              template: '<div class="modal-header" id="loginModalHeader"><h3>Authentication Required</h3></div>'
+              template: '<div class="modal-header" id="loginModalHeader"><h3>User Login</h3></div>'
                 + '<form name="loginForm" class="form-horizontal">'      
-                + '<div class="modal-body"><p style="text-align:center;">You need to sign in to access '
-                      + 'this protected resource</p><br>'
+                + '<div class="modal-body">'
                        + '<div class="control-group">'
                       + '<label class="control-label" for="login-username">Username</label>'
                       + '<div class="controls">'

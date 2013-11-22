@@ -53,5 +53,6 @@
 
 .glyphicons-sonatype.clipboard:before {
   content: "\e030";
-  font: 20px 'Glyphicons' !important;
+  font: 14px 'Glyphicons' !important;
+  vertical-align: bottom;
 }

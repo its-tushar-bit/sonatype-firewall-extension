@@ -30,10 +30,6 @@ import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.conditions.LabelConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.LicenseThreatGroupConditionType;
-import com.sonatype.insight.brain.model.security.Permission;
-import com.sonatype.insight.brain.security.Authorize;
-import com.sonatype.insight.brain.security.AuthzContext;
-import com.sonatype.insight.brain.security.AuthzContext.Key;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightBrainService;
 import com.sonatype.insight.brain.service.InsightWork;
@@ -74,10 +70,8 @@ public class PolicyImporterImpl
     this.baseUrl = baseUrl;
   }
 
-  @Authorize(permission = Permission.WRITE)
-  public PolicyImportResult importApplication(@AuthzContext(Key.APPLICATION) Application application,
-                                              PolicyExportResult exportDTO)
-  {
+  @Override
+  public PolicyImportResult importApplication(Application application, PolicyExportResult exportDTO) {
     String appId = application.getId();
     String orgId = application.getOrganizationId();
     EntityManager em = applicationDAO.createEntityManager();
@@ -91,7 +85,8 @@ public class PolicyImporterImpl
 
       em.getTransaction().commit();
 
-      // no transactional support here
+      // no transactional support here so policies are deleted last to ensure that we don't leave the system in an
+      // inconsistent state should a rollback occur partway through the process
       policyDAO().deleteByOwnerId(appId);
       for (Policy policy : exportDTO.policies) {
         policyDAO().insert(appId, policy);
@@ -105,10 +100,7 @@ public class PolicyImporterImpl
   }
 
   @Override
-  @Authorize(permission = Permission.WRITE)
-  public PolicyImportResult importOrganization(@AuthzContext(AuthzContext.Key.ORGANIZATION) Organization organization,
-                                               final PolicyExportResult exportDTO)
-  {
+  public PolicyImportResult importOrganization(Organization organization, PolicyExportResult exportDTO) {
     String orgId = organization.getId();
     EntityManager em = organizationDAO.createEntityManager();
     try {
@@ -120,7 +112,8 @@ public class PolicyImporterImpl
 
       em.getTransaction().commit();
 
-      // no transactional support here
+      // no transactional support here so policies are deleted last to ensure that we don't leave the system in an
+      // inconsistent state should a rollback occur partway through the process
       PolicyDAO policyDAO = policyDAO();
       policyDAO.deleteByOwnerId(orgId);
       for (Application application : applicationDAO.getByOrganizationId(orgId)) {
@@ -138,18 +131,16 @@ public class PolicyImporterImpl
   }
 
   /**
-   * Delete all data related to ownerId from the database.
-   * For the Org case, all child Applications LTG/Label data is deleted, as well as LTGs on the org itself.
-   * For the App case, only LTGs are deleted.
+   * Delete policy data related to ownerId from the database.
+   * When the owner is an Org, all child Applications LTG/Label data is deleted, as well as LTGs on the org itself.
+   * When the owner is an App, only LTGs are deleted.
    *
-   * @param ownerId Org/App owning policy
-   * @param type    Org/App
+   * @param ownerId   Org/App owning policy
+   * @param ownerType Org/App
    */
-  private void deleteAllPolicyFromDatabase(EntityManager em, String ownerId, String type) {
-    if (type.equals(TYPE_ORGANIZATION)) {
+  private void deleteAllPolicyFromDatabase(EntityManager em, String ownerId, String ownerType) {
+    if (ownerType.equals(TYPE_ORGANIZATION)) {
       for (Application application : applicationDAO.getByOrganizationId(em, ownerId)) {
-        log.debug("Deleting application policies from: {} during import of organization: {}", application.getName(),
-            ownerId);
         deleteAllPolicyFromDatabase(em, application.getId(), TYPE_APPLICATION);
         for (Label label : labelDAO.getByOwnerId(em, application.getId(), false)) {
           log.debug("Deleting application labels from: {} during import of organization: {}", application.getName(),
@@ -173,7 +164,7 @@ public class PolicyImporterImpl
    * @param ownerId   the org/app id to import to
    */
   private void importLicenseThreatData(EntityManager em, PolicyExportResult exportDTO, String ownerId) {
-    if (exportDTO.licenseThreatGroups.size() > 0) {
+    if (!exportDTO.licenseThreatGroups.isEmpty()) {
       Map<String, String> idMap = new HashMap<>();
       for (LicenseThreatGroup licenseThreatGroup : exportDTO.licenseThreatGroups) {
         String oldId = licenseThreatGroup.getId();
@@ -211,21 +202,20 @@ public class PolicyImporterImpl
    * @param organizationId the organizationId owning the labels; if applicationId is not set this organization will be
    *                       updated
    */
-  private void importAndMergeLabels(final EntityManager em, final PolicyExportResult exportDTO,
-                                    final List<Label> oldLabels, final String applicationId,
-                                    final String organizationId)
+  void importAndMergeLabels(final EntityManager em, final PolicyExportResult exportDTO,
+                            final List<Label> oldLabels, final String applicationId,
+                            final String organizationId)
   {
-    if (exportDTO.labels.size() > 0) {
+    if (!exportDTO.labels.isEmpty()) {
       Map<String, String> idMap = new HashMap<>();
-      // include any existing org labels, in case they're used in app policies. These are NOT candidates for deletion.
-      if (organizationId != null) {
+      if (applicationId != null && organizationId != null) {
         for (Label label : labelDAO.getByOwnerId(em, organizationId)) {
           idMap.put(label.getId(), label.getId());
         }
       }
       for (Label label : exportDTO.labels) {
         String oldId = label.getId();
-        Label existingLabel = getLabelByName(oldLabels, label.getLabelLowercase());
+        Label existingLabel = getLabelByName(oldLabels, label);
         if (existingLabel != null) {
           oldLabels.remove(existingLabel);
           existingLabel.setLabel(label.getLabel());
@@ -256,9 +246,16 @@ public class PolicyImporterImpl
     }
   }
 
-  private Label getLabelByName(List<Label> labels, String nameLowercase) {
+  /**
+   * Search for label in the list, considering a match on case-insensitive comparison
+   * of the label name only.
+   *
+   * @param labels      search candidates
+   * @param labelToFind label we're looking for
+   */
+  private Label getLabelByName(List<Label> labels, Label labelToFind) {
     for (Label label : labels) {
-      if (nameLowercase.equals(label.getLabelLowercase())) {
+      if (labelToFind.getLabelLowercase().equals(label.getLabelLowercase())) {
         return label;
       }
     }
@@ -269,12 +266,17 @@ public class PolicyImporterImpl
     return new PolicyDAO(work.getWorkDir());
   }
 
-  private PolicyImportResult createResult(String name, String id, String type ) {
+  private PolicyImportResult createResult(String name, String id, String type) {
     PolicyImportResult result = new PolicyImportResult();
-    result.name = name;
+    result.ownerName = name;
     UriBuilder uriBuilder = baseUrl.redirect().path(InsightBrainService.BRAIN_ASSET_PATH).path("index.html")
         .fragment("/management/" + type + "/" + id);
     result.url = uriBuilder.build().toString();
     return result;
+  }
+
+  /** available only to facilitate testing **/
+  void setLabelDAO(final LabelDAO labelDAO) {
+    this.labelDAO = labelDAO;
   }
 }

@@ -7,7 +7,7 @@ package com.sonatype.insight.brain.policy;
 
 public class PolicyImportResult
 {
-  public String name;
+  public String ownerName;
 
   public String url;
 }

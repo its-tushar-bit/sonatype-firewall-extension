@@ -75,7 +75,7 @@ public class PolicyResourceTest
   private LicenseThreatGroupLicenseDAO licenseThreatGroupLicenseDAO = new LicenseThreatGroupLicenseDAO();
 
   @Test
-  public void testAppImport_Insert() throws Exception {
+  public void testAppImport_InsertFailure() throws Exception {
     String applicationPublicId = "PolicyResourceTest-testAppImport_Insert";
     Response response = AuthedRestAccess.post(getServiceURL(APP, applicationPublicId), asJson(createPolicyExportResult()));
     //ensure that we cannot import to an App that does not exist
@@ -83,7 +83,7 @@ public class PolicyResourceTest
   }
 
   @Test
-  public void testOrgImport_Insert() throws Exception {
+  public void testOrgImport_InsertFailure() throws Exception {
     String orgId = "PolicyResourceTest-testOrgImport_Insert";
     Response response = AuthedRestAccess.post(getServiceURL(ORG, orgId), asJson(createPolicyExportResult()));
     //ensure that we cannot import to an Org that does not exist
@@ -146,9 +146,9 @@ public class PolicyResourceTest
     assertResponseStatus(200, response);
     PolicyImportResult policyImportResult = JsonHelpers.fromJson(response.getResponseBody(), PolicyImportResult.class);
     assertNotNull(policyImportResult);
-    Assert.assertEquals(application.getName(), policyImportResult.name);
+    Assert.assertEquals(application.getName(), policyImportResult.ownerName);
     assertThat(policyImportResult.url, endsWith("index.html#/management/application/" + applicationPublicId));
-    application = new ApplicationDAO().getByName(policyImportResult.name);
+    application = new ApplicationDAO().getByName(policyImportResult.ownerName);
     applicationsToDelete.add(application);
     assertNotNull(application);
     List<Label> labels = labelDAO.getByOwnerId(application.getId());

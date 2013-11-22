@@ -201,21 +201,13 @@ public class PolicyResource
     return exportDTO;
   }
 
-  private Label getLabelByName(List<Label> labels, String nameLowercase) {
-    for (Label label : labels) {
-      if (nameLowercase.equals(label.getLabelLowercase())) {
-        return label;
-      }
-    }
-    return null;
-  }
-
   @PUT
   @Path("import")
   @Produces(MediaType.APPLICATION_JSON)
+  @Authorize(permission = Permission.WRITE)
   public PolicyImportResult importPolicies(
-      @PathParam("ownerType") final String ownerType,
-      @PathParam("ownerId") String ownerId,
+      @AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") final String ownerType,
+      @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId,
       @Context HttpServletRequest servletRequest) throws IOException
   {
     PolicyExportResult exportDTO = readPolicyExportResult(servletRequest.getInputStream());

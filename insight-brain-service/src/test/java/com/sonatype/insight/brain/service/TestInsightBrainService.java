@@ -6,6 +6,8 @@
 package com.sonatype.insight.brain.service;
 
 import java.io.File;
+import java.lang.reflect.Field;
+import java.util.Iterator;
 import java.util.UUID;
 
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
@@ -19,14 +21,22 @@ import com.sonatype.insight.db.DatabaseConfig;
 
 import org.sonatype.inject.BeanScanning;
 
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.Appender;
 import com.google.common.base.Optional;
 import com.yammer.dropwizard.config.Environment;
 import com.yammer.dropwizard.config.HttpConfiguration;
 import com.yammer.dropwizard.config.SslConfiguration;
+import com.yammer.dropwizard.jetty.AsyncRequestLog;
 import com.yammer.dropwizard.lifecycle.ServerLifecycleListener;
+import com.yammer.dropwizard.logging.AsyncAppender;
 import com.yammer.dropwizard.util.Duration;
 import org.codehaus.plexus.util.FileUtils;
+import org.eclipse.jetty.server.Handler;
+import org.eclipse.jetty.server.RequestLog;
 import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.handler.HandlerCollection;
+import org.eclipse.jetty.server.handler.RequestLogHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -220,12 +230,80 @@ public class TestInsightBrainService
   public void stop() throws Exception {
     if (testBrainServer != null) {
       testBrainServer.stop();
+      // Dropwizard starts some threads for logging. These threads are blocked on internal blocking queues when there is
+      // nothing to log and they are not stopped when the server is stopped.
+      // This is a problem only in our test code, because we start/stop a new server for each test and these threads
+      // accumulate to a point where the JVM cannot create more native threads, resulting in
+      // "java.lang.OutOfMemoryError: unable to create new native thread" exceptions.
+      stopDropwizardLoggingAsyncAppenders();
+      stopDropwizardLoggingAsyncRequestLogs(testBrainServer);
       testBrainServer = null;
 
       LicenseDataUpdater.setUpdater(savedLicenseDataUpdater);
     }
     if (brainFault != null) {
       throw brainFault;
+    }
+  }
+
+  private void stopDropwizardLoggingAsyncAppenders() {
+    ch.qos.logback.classic.Logger rootLogger = (ch.qos.logback.classic.Logger) LoggerFactory.getLogger(org.slf4j.Logger.ROOT_LOGGER_NAME);
+    Iterator<Appender<ILoggingEvent>> logAppenderIter = rootLogger.iteratorForAppenders();
+    while (logAppenderIter.hasNext()) {
+      Appender<ILoggingEvent> logAppender = logAppenderIter.next();
+      if (!(logAppender instanceof AsyncAppender)) {
+        continue;
+      }
+
+      AsyncAppender dropwizardAsyncAppender = (AsyncAppender) logAppender;
+      // This doesn't stop the dispatcher thread used by the AsyncAppender, it only marks the AsyncAppender as stopped.
+      dropwizardAsyncAppender.stop();
+      // The AsyncAppender dispatcher thread is blocked trying to take an element from its queue. Interrupt the
+      // dispatcher thread.
+      try {
+        Field dispatcherField = AsyncAppender.class.getDeclaredField("dispatcher");
+        dispatcherField.setAccessible(true);
+        Thread dispatcherThread = (Thread) dispatcherField.get(dropwizardAsyncAppender);
+        dispatcherThread.interrupt();
+      }
+      catch (NoSuchFieldException e) {
+        throw new RuntimeException(e);
+      }
+      catch (IllegalAccessException e) {
+        throw new RuntimeException(e);
+      }
+    }
+  }
+
+  private void stopDropwizardLoggingAsyncRequestLogs(Server server) {
+    HandlerCollection handlerCollection = (HandlerCollection) server.getHandler();
+    Handler[] handlers = handlerCollection.getHandlers();
+    for (Handler handler : handlers) {
+      if (!(handler instanceof RequestLogHandler)) {
+        continue;
+      }
+
+      RequestLogHandler requestLogHandler = (RequestLogHandler) handler;
+      RequestLog requestLog = requestLogHandler.getRequestLog();
+      if (!(requestLog instanceof AsyncRequestLog)) {
+        continue;
+      }
+
+      AsyncRequestLog asyncRequestLog = (AsyncRequestLog) requestLog;
+      // The AsyncRequestLog dispatcher thread is blocked trying to take an element from its queue. Interrupt the
+      // dispatcher thread.
+      try {
+        Field dispatchThreadField = AsyncRequestLog.class.getDeclaredField("dispatchThread");
+        dispatchThreadField.setAccessible(true);
+        Thread dispatchThread = (Thread) dispatchThreadField.get(asyncRequestLog);
+        dispatchThread.interrupt();
+      }
+      catch (NoSuchFieldException e) {
+        throw new RuntimeException(e);
+      }
+      catch (IllegalAccessException e) {
+        throw new RuntimeException(e);
+      }
     }
   }
 

@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.security;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -95,6 +97,7 @@ public class UserResource
 
     // Users are shaded by any user from a higher up realm that has the same username
     Map<String, Member> users = new LinkedHashMap<>();
+    Map<String, Member> groups = new LinkedHashMap<>();
     String connectionError = null;
 
     UserDAO dao = new UserDAO();
@@ -118,7 +121,7 @@ public class UserResource
           for (LdapGroup group : ldapManager.findGroupsByName(query, 100)) {
             final String groupName = group.getGroupname();
             Member member = new Member(MemberType.GROUP, groupName, groupName, null, ldapName);
-            users.put(groupName, member);
+            groups.put(groupName, member);
           }
         }
       }
@@ -127,7 +130,12 @@ public class UserResource
         connectionError = "LDAP connection unavailable. Displaying local users only.";
       }
     }
-    return new FindMembersDTO(users.values(), connectionError);
+
+    List<Member> members = new ArrayList<>();
+    members.addAll(users.values());
+    members.addAll(groups.values());
+
+    return new FindMembersDTO(members, connectionError);
   }
 
   @GET
@@ -263,14 +271,14 @@ public class UserResource
 
   public static class FindMembersDTO
   {
-    private Collection<Member> members;
+    private List<Member> members;
     private String error;
 
-    public Collection<Member> getMembers() {
+    public List<Member> getMembers() {
       return members;
     }
 
-    public void setMembers(final Collection<Member> members) {
+    public void setMembers(final List<Member> members) {
       this.members = members;
     }
 
@@ -285,7 +293,7 @@ public class UserResource
     public FindMembersDTO() {
     }
 
-    public FindMembersDTO(Collection<Member> members, String error) {
+    public FindMembersDTO(List<Member> members, String error) {
       this.members = members;
       this.error = error;
     }

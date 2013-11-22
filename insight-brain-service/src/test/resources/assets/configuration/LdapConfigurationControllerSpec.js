@@ -77,7 +77,7 @@ describe('Tests for the LdapConfigurationController', function() {
 
       httpBackend.expectPOST(SpecUtil.toRegExp(CLMLocations.getLdapConfig())).respond(
         function(method, url, data) {
-          return [200, angular.extend({id: 'id1'}, angular.copy(data)), {}];
+          return [200, angular.extend(angular.fromJson(data), {id: 'id1'}), {}];
         });
       scope.save();
       expect(scope.saving).toBeTruthy();
@@ -94,7 +94,7 @@ describe('Tests for the LdapConfigurationController', function() {
 
       httpBackend.expectPUT(SpecUtil.toRegExp(CLMLocations.getLdapConfig())).respond(
         function(method, url, data) {
-    	  return [200, angular.copy(data), {}];
+          return [200, angular.fromJson(data), {}];
         });
       scope.save();
       expect(scope.saving).toBeTruthy();

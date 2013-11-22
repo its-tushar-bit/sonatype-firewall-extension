@@ -59,7 +59,7 @@
             var relationsToLoad = data.length * Object.keys(config.relationalConfigs).length;
 
             angular.forEach(data, function(obj, i) {
-              var resource = new Resource(obj);
+              var resource = new Resource(obj, false);
               result.push(resource);
 
               for (var relationalProperty in config.relationalConfigs) {
@@ -110,7 +110,7 @@
           return angular.copy(relationalConfig.template);
         }
 
-        var resource = new Resource(config.template());
+        var resource = new Resource(config.template(), true);
         for (var property in config.relationalConfigs) {
           if (config.relationalConfigs.hasOwnProperty(property)) {
             relationalConfig = config.relationalConfigs[property];
@@ -125,10 +125,11 @@
         return storeDeferred.promise;
       };
 
-      function Resource(originalObject) {
-        var original;
-        var me = this;
+      function Resource(originalObject, isNew) {
+        var original = null,
+            me = this;
 
+        me.$new = isNew;
         me.isDirty = function() {
           var currentProperties = [],
               originalProperties = [],
@@ -230,7 +231,7 @@
 
         var relationsToSave = Object.keys(config.relationalConfigs).length;
 
-        if (id === null || angular.isUndefined(id)) {
+        if (me.$new) {
           // Newly created object
           hudson.post(config.url, this, { params: config.params }).success(function(data) {
             for (var relationalProperty in config.relationalConfigs) {
@@ -250,7 +251,7 @@
                 });
               }
             }
-
+            me.$new = false;
             me.$updateOriginal(data);
             store.push(me);
             checkDeferredResolve(deferred, me, relationsToSave);
@@ -394,7 +395,7 @@
       };
     }
 
-    Store.prototype.objectMethods = ['isDirty', 'config', '$updateOriginal', '$getOriginal', '$revert', '$clone'];
+    Store.prototype.objectMethods = ['isDirty', 'config', '$updateOriginal', '$getOriginal', '$revert', '$clone', '$new'];
 
     return {
       'getStore': function(config) {

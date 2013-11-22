@@ -258,6 +258,7 @@ describe('Resource', function() {
         firstObj = store.create();
 
     firstObj.data.push('foo');
+    expect(firstObj.$new).toBeTruthy();
     expect(firstObj.data).toEqual(['foo']);
     expect(store.create().data).toEqual([]);
 
@@ -265,9 +266,18 @@ describe('Resource', function() {
     firstObj.$save().then(spy, errorSpy);
     $httpBackend.flush();
 
-    expect(spy).toHaveBeenCalledWith({ data: [
-      'foo'
-    ], id: 'bar', isDirty: jasmine.any(Function), $updateOriginal: jasmine.any(Function), $getOriginal: jasmine.any(Function), $revert: jasmine.any(Function), $clone: jasmine.any(Function), $save: jasmine.any(Function), $delete: jasmine.any(Function) });
+    expect(spy).toHaveBeenCalledWith({
+      data: [ 'foo' ],
+      id: 'bar',
+      $new : false,
+      isDirty: jasmine.any(Function),
+      $updateOriginal: jasmine.any(Function),
+      $getOriginal: jasmine.any(Function),
+      $revert: jasmine.any(Function),
+      $clone: jasmine.any(Function),
+      $save: jasmine.any(Function),
+      $delete: jasmine.any(Function)
+    });
     expect(errorSpy).not.toHaveBeenCalled();
 
     expect(firstObj.data).toEqual(['foo']);

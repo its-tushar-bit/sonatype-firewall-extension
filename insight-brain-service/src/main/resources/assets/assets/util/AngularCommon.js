@@ -45,7 +45,7 @@ var AngularUtils = {
 
   var angularCommon;
   angularCommon = angular.module('AngularCommon', ['CommonServices']);
-  
+
   angularCommon.directive('errorModal', function() {
     return {
       replace: true,
@@ -90,6 +90,20 @@ var AngularUtils = {
       }
     };
   });
+
+  angularCommon.controller('DeleteResourceController', ['$scope', '$http', 'CLMAppLocations', 'selected', function ($scope, $http, CLMAppLocations, selected) {
+    $scope.deletedEnabled = true;
+    $scope.selected = selected;
+
+    $scope.doDelete  = function() {
+      $scope.deletedEnabled = false;
+      selected.$delete().then(function () {
+        $scope.$close();
+      }, function () {
+        $scope.$dismiss(arguments);
+      });
+    };
+  }]);
 
   angularCommon.directive('typeAhead', [
     '$parse', function($parse) {
@@ -491,7 +505,7 @@ var AngularUtils = {
       };
     }
   ]);
-  
+
   /**
    * Ensure that the value of the input matches the value from another specified input
    */

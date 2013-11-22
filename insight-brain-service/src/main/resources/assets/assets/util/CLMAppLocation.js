@@ -101,6 +101,10 @@
           return baseUrl.get() + '/rest/user/' + getServicePathWithId() + '/query';
         },
 
+        getImportPolicyUrl : function () {
+          return baseUrl.get() + '/rest/policy/' + getServicePathWithId() + '/import';
+        },
+
         isApplication: isApplication
       };
     }

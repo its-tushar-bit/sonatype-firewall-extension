@@ -13,10 +13,10 @@ class OrganizationPage extends BasePage {
 
   static content = {
     organizationImage(wait: true) { $('div.editor-image') }
-    organizationName(required: false) { $('#organizationName') }
+    organizationName(required: false) { $('#aoName') }
     organizationNameField(required: false) { $('input', 'placeholder':'Enter Organization Name') }
     organizationSaveButton(required: false) { $('button', text:'Save') }
-    securityTabButton(required: false) { $('div', 'on': 'selectedOrganization.id').find('a', text: 'SECURITY') }
+    securityTabButton(required: false) { $('.tri-pane').find('a', text: 'SECURITY') }
     securityTab(required: false) { $('#security') }
     deleteButton(required: false) { $('a', 'title': 'Remove Organization') }
     deleteButtonAccept(required: false) { $('button', 'ng-click':'deleteOrganization();') }

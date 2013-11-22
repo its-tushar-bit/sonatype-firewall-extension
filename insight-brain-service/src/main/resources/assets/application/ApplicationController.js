@@ -8,7 +8,7 @@
   'use strict';
 
   var applicationModule = angular.module('ApplicationModule',
-      ['ui.router', 'ManagementModule', 'Policy', 'LicenseThreatGroup', 'Labels', 'ApplicationSecurityModule', 'AngularCommon', 'CLMLocation'],
+      ['ui.router', 'AngularCommon', 'CLMLocation', 'ManagementModule', 'Policy', 'LicenseThreatGroup', 'Labels', 'ApplicationSecurityModule'],
       ['$stateProvider', function($stateProvider) {
         $stateProvider.state('management.application', {
           parent: 'management',
@@ -22,7 +22,7 @@
           data: {
             passThroughAlerts: []
           },
-          templateUrl: '../application-assets/components/application-editor.html?' + clmBuildTimestamp,
+          templateUrl: '../application-assets/components/aoeditor.html?' + clmBuildTimestamp,
           resolve : {
             selectedApplication : function ($q, $stateParams, applicationStore) {
               if ($stateParams.applicationPublicId === '_new_')
@@ -102,7 +102,7 @@
   ]);
 
   applicationModule.controller('applicationEditorController',
-      function($scope, $state, $q, applicationStore, OrganizationStore, CLMLocations, CLMAppLocations, Messages, $http,
+      function($scope, $state, $http, $q, $modal, applicationStore, OrganizationStore, CLMLocations, CLMAppLocations, Messages,
                hudson, editorTools, ActionStore, policyEvaluator, selectedApplication)
       {
         var me = this;
@@ -165,6 +165,15 @@
 
             $scope.state = {
               actionStageList: results[0][1]
+            };
+            $scope.ao = {
+              typeName : 'Application',
+              type : 'application',
+              selected : selectedApplication,
+              siblings : $scope.applications,
+              getId : function () {
+                return selectedApplication.publicId;
+              }
             };
 
             if (selectedApplication.publicId) {
@@ -276,7 +285,7 @@
         });
 
         $scope.canSaveEdit = function() {
-          return $scope.isFormDirty() && !$scope.applicationEditor.$invalid && !$scope.submitActive &&
+          return $scope.isFormDirty() && !$scope.aoEditor.$invalid && !$scope.submitActive &&
               $scope.selectedApplication.organizationId;
         };
 
@@ -291,26 +300,24 @@
           }
         };
 
-        $scope.confirmDeleteApplication = function(application) {
-          $scope.deletedEnabled = true;
-          $('#deleteApplicationModal').modal('show');
-        };
-
-        $scope.deleteApplication = function() {
-          $scope.deletedEnabled = false;
-          hudson['delete'](CLMAppLocations.getEntityUrl()).success(function() {
-            angular.forEach($scope.applications, function(applicationCandidate, key) {
-              if (applicationCandidate.id === $scope.selectedApplication.id) {
-                $scope.applications.splice(key, 1);
-                return false;
+        $scope.confirmDelete = function() {
+          $modal.open({
+            backdrop : 'static',
+            keyboard : true,
+            controller : 'DeleteResourceController',
+            templateUrl : 'delete-app-modal',
+            resolve : {
+              selected : function () {
+                return $scope.selectedApplication;
               }
-            });
-            $('#deleteApplicationModal').modal('hide');
+            }
+          }).result.then(function () {
             $state.transitionTo('management.application');
-          }).error(function() {
-                $('#deleteApplicationModal').modal('hide');
-                $scope.$broadcast('showServerError', arguments);
-              });
+          }, function (error) {
+            if (error) {
+              $scope.$broadcast('showServerError', error);
+            }
+          });
         };
 
         // This needs to be invoked by onsubmit rather than ng-submit to suppress submit when necessary
@@ -319,7 +326,7 @@
             return true;
           }
 
-          if (!$scope.applicationEditor.$valid) {
+          if (!$scope.aoEditor.$valid) {
             return false;
           }
 
@@ -387,12 +394,21 @@
             });
           });
         };
+
+        $scope.openImport = function () {
+          $modal.open({
+            backdrop : 'static',
+            keyboard : false,
+            templateUrl : 'import-policy-modal',
+            controller : 'ImportPolicyController'
+          });
+        };
       });
 
   applicationModule.service('applicationStore', [
     '$rootScope', 'CLMLocations', 'CLMResource', function($rootScope, clmLocations, clmResource) {
       var applicationStore = clmResource.getStore({
-        id: 'id',
+        id: 'publicId',
         url: clmLocations.getApplicationsUrl(),
         template: { id: null, publicId: null, name: null, organizationId: null },
         params: {
@@ -405,6 +421,56 @@
       return applicationStore;
     }
   ]);
+
+  applicationModule.controller('ImportPolicyController', ['$scope', '$http', '$timeout', 'Messages', 'CLMAppLocations', function ($scope, $http, $timeout, messages, clmAppLocations) {
+    function fileCheck() {
+      if (!fileElement) {
+        fileElement =  angular.element('form[name=importPolicy] input[type=file]')[0];
+      }
+      $scope.btnDisabled = fileElement.files.length === 0;
+
+      if (!$scope.$$destroyed) {
+        $timeout(fileCheck, 100);
+      }
+    }
+    var fileElement = null;
+
+    $scope.btnDisabled = true;
+
+    $timeout(fileCheck, 100);
+
+    $scope.doSubmit = function () {
+      if (window.FileReader) {
+        // TODO disable button
+        $scope.error = null;
+        $scope.requestActive = true;
+        var reader = new FileReader();
+        reader.onloadend = function (event) {
+          $http.put(clmAppLocations.getImportPolicyUrl(), reader.result, {
+            headers : {
+              'Content-Type' : 'application/json'
+            }
+          }).success(function (data) {
+            $scope.$close(data);
+          }).error(function () {
+            $scope.error = messages.getHttpErrorMessage(arguments);
+            $scope.requestActive = false;
+          });
+        };
+        reader.onerror = function () {
+          console.log(arguments);
+        };
+        reader.readAsBinaryString(fileElement.files[0]);
+        $timeout(function () {
+          console.log(reader.readyState)
+        }, 5000);
+      } else {
+        // TODO disable button
+        // submit form
+        form.submit();
+      }
+    };
+  }]);
 
   applicationModule.service('ApplicationId', [
     'commonCodeFactory', '$state', function(commonCodeFactory, $state) {

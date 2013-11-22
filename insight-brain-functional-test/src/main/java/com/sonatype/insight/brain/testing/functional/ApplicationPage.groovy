@@ -13,7 +13,7 @@ class ApplicationPage extends BasePage {
 
   static content = {
     applicationImage(wait: true) { $('div.editor-image') }
-    applicationName(required: false) { $('#applicationName') }
+    applicationName(required: false) { $('#aoName') }
     applicationNameField(required: false) { $('input', 'placeholder':'Enter Application Name') }
     applicationId(required: false) { $('#applicationPublicId') }
     applicationIdField(required: false) { $('input', 'placeholder':'Enter ID') }

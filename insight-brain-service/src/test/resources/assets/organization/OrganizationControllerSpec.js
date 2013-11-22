@@ -62,7 +62,7 @@ describe('Tests for the OrganizationController', function() {
     it('passes through alerts', inject(function($state, $httpBackend) {
       $httpBackend.expectGET('../assets/management.html?').respond('<div></div>');
       $httpBackend.expectGET('../organization-assets/components/organization-navigator.html?').respond('<div></div>');
-      $httpBackend.expectGET('../organization-assets/components/organization-editor.html?').respond('<div></div>');
+      $httpBackend.expectGET('../application-assets/components/aoeditor.html?').respond('<div></div>');
 
       $state.transitionTo('management.organization.view', {
         organizationId : '_new_'
@@ -163,7 +163,7 @@ describe('Tests for the OrganizationController', function() {
       expect(scope.hasRobotSource).toBeTruthy();
       expect(scope.iconChanged).toBeTruthy();
 
-      scope.cancelClick();
+      scope.cancel();
 
       expect(angular.equals(scope.selectedOrganization, originalMockOrganization)).toBeTruthy();
       expect(scope.hasRobotSource).not.toBeTruthy();
@@ -171,8 +171,9 @@ describe('Tests for the OrganizationController', function() {
     });
 
     it('saves an organization', inject(function(CLMAppLocations) {
-      scope.organizationEditor = {};
-      scope.organizationEditor.$valid = true;
+      scope.aoEditor = {
+        $valid : true
+      };
 
       scope.selectedOrganization.name = "newName";
       scope.selectedOrganization.id = null;
@@ -183,7 +184,7 @@ describe('Tests for the OrganizationController', function() {
       var hasFormData = window.FormData;
       window.FormData = false;
 
-      scope.saveClick();
+      scope.save();
 
       httpBackend.flush();
 
@@ -195,7 +196,7 @@ describe('Tests for the OrganizationController', function() {
       //create a new Organization so that we're not updating the existing one
       scope.selectedOrganization = OrganizationStore.create();
       scope.selectedOrganization.name = 'name';
-      scope.organizationEditor = {}
+      scope.aoEditor = {};
 
       httpBackend.expectPOST(SpecUtil.toRegExp(CLMLocations.getOrganizationsUrl()), {
         id: null,
@@ -205,11 +206,11 @@ describe('Tests for the OrganizationController', function() {
       var hasFormData = window.FormData;
       window.FormData = false;
 
-      scope.saveClick();
+      scope.save();
 
       httpBackend.expectGET('../assets/management.html?').respond('<div></div>');
       httpBackend.expectGET('../organization-assets/components/organization-navigator.html?').respond('<div></div>');
-      httpBackend.expectGET('../organization-assets/components/organization-editor.html?').respond('<div></div>');
+      httpBackend.expectGET('../application-assets/components/aoeditor.html?').respond('<div></div>');
       httpBackend.expectGET('../policy-assets/components/policy/policy.html?').respond('<div></div>');
 
       httpBackend.flush();
@@ -217,50 +218,46 @@ describe('Tests for the OrganizationController', function() {
       window.FormData = hasFormData;
     }));
 
-    it('Can delete an organization and broadcast that it has happened',
-        inject(function(CLMAppLocations, OrganizationStore) {
-          var spy = spyOn(rootScope, '$broadcast').andReturn({defaultPrevented: false});
+    it('Can delete an organization and broadcast that it has happened', inject(function(CLMAppLocations, OrganizationStore, $modal, $q) {
+      var spy = spyOn(rootScope, '$broadcast').andReturn({defaultPrevented: false}),
+          modalDeferred = $q.defer(),
+          modalSpy = spyOn($modal, 'open').andReturn({
+            result : modalDeferred.promise
+          });
 
-          httpBackend.expectDELETE(CLMAppLocations.getEntityUrl()).respond({});
-          httpBackend.expectGET('../assets/management.html?').respond('<div></div>');
-          httpBackend.expectGET('../organization-assets/components/organization-navigator.html?').respond('<div></div>');
+      httpBackend.expectGET('../assets/management.html?').respond('<div></div>');
+      httpBackend.expectGET('../organization-assets/components/organization-navigator.html?').respond('<div></div>');
 
-          expect(angular.element('#deleteOrganizationModel').css('display')).toBeUndefined();
+      scope.confirmDelete();
 
-          scope.confirmDeleteOrganization(scope.selectedOrganization);
+      expect(modalSpy).toHaveBeenCalled();
+      expect(modalSpy.mostRecentCall.args[0].resolve.selected()).toEqual(scope.selectedOrganization);
+      expect(modalSpy.mostRecentCall.args[0].templateUrl).toEqual('delete-org-modal');
 
-          expect(scope.deletedEnabled).toBeTruthy();
-          expect(angular.element('#deleteOrganizationModel').css('display')).not.toBe('none');
-
-          scope.deleteOrganization();
-
-          httpBackend.flush();
-
-          expect(angular.element('#deleteOrganizationModel').css('display')).toBeUndefined();
-          expect(spy).toHaveBeenCalledWith('organizations.delete', originalMockOrganization.id);
-          expect(scope.deletedEnabled).toBeFalsy();
-        }));
-
-    it('Can respond to errors when trying to delete an organization', inject(function(CLMAppLocations) {
-      var spy = spyOn(rootScope, '$broadcast').andReturn({defaultPrevented: false});
-
-      scope.organizations = [originalMockOrganization];
-      httpBackend.expectDELETE(CLMAppLocations.getEntityUrl()).respond(400);
-
-      expect(angular.element('#deleteOrganizationModel').css('display')).toBeUndefined();
-
-      scope.confirmDeleteOrganization(scope.selectedOrganization);
-
-      expect(scope.deletedEnabled).toBeTruthy();
-      expect(angular.element('#deleteOrganizationModel').css('display')).not.toBe('none');
-
-      scope.deleteOrganization();
-
+      scope.$apply(function () {
+        modalDeferred.resolve();
+      });
       httpBackend.flush();
 
-      expect(angular.element('#deleteOrganizationModel').css('display')).toBeUndefined();
-      expect(spy).toHaveBeenCalledWith('showServerError', jasmine.any(Object));
-      expect(scope.deletedEnabled).toBeFalsy();
+      expect(spy).toHaveBeenCalledWith('organizations.delete', originalMockOrganization.id);
+    }));
+
+    it('Can respond to errors when trying to delete an organization', inject(function(CLMAppLocations, $modal, $q) {
+      var spy = spyOn(scope, '$broadcast').andReturn({defaultPrevented: false}),
+          modalDeferred = $q.defer(),
+          modalSpy = spyOn($modal, 'open').andReturn({
+            result : modalDeferred.promise
+          });
+      scope.confirmDelete();
+
+      expect(modalSpy).toHaveBeenCalled();
+      expect(modalSpy.mostRecentCall.args[0].resolve.selected()).toEqual(scope.selectedOrganization);
+      expect(modalSpy.mostRecentCall.args[0].templateUrl).toEqual('delete-org-modal');
+
+      scope.$apply(function () {
+        modalDeferred.reject(['foo', 400, null, null]);
+      });
+      expect(spy).toHaveBeenCalledWith('showServerError', ['foo', 400, null, null]);
     }));
 
     it('displays confirmation dialog when navigating away from edited data', function() {
@@ -276,7 +273,7 @@ describe('Tests for the OrganizationController', function() {
       var e = scope.$broadcast('pageChangeStarted');
       expect(e.defaultPrevented).toBeTruthy();
 
-      scope.cancelClick();
+      scope.cancel();
       e = scope.$broadcast('pageChangeStarted');
       expect(e.defaultPrevented).not.toBeTruthy();
 

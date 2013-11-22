@@ -8,8 +8,7 @@
 (function() {
   'use strict';
 
-  var organizationModule = angular.module('OrganizationModule',
-      ['ui.router', 'ManagementModule', 'ApplicationSecurityModule', 'Organization', 'CommonServices', 'CLMLocation'], [
+  var organizationModule = angular.module('OrganizationModule', ['ui.router', 'ManagementModule', 'Organization'], [
         '$stateProvider', function($stateProvider) {
           $stateProvider.state('management.organization', {
             parent: 'management',
@@ -23,7 +22,7 @@
             data: {
               passThroughAlerts: []
             },
-            templateUrl: '../organization-assets/components/organization-editor.html?' + clmBuildTimestamp,
+            templateUrl: '../application-assets/components/aoeditor.html?' + clmBuildTimestamp,
             resolve : {
               selectedOrganization : function ($q, $stateParams, OrganizationStore) {
                 if ($stateParams.organizationId === '_new_')
@@ -77,7 +76,7 @@
   'use strict';
 
   var organizationModule = angular.module('Organization',
-      ['AngularCommon', 'ui.router', 'CLMAppLocation', 'ResourceModule', 'EditorTools']);
+      ['AngularCommon', 'ApplicationSecurityModule', 'CLMAppLocation', 'CommonServices', 'EditorTools', 'Labels', 'LicenseThreatGroup', 'Policy', 'ResourceModule', 'ui.router']);
 
   organizationModule.controller('OrganizationController', [
     '$scope', '$state', '$http', '$location', '$timeout', 'hudson', 'CLMLocations', 'OrganizationStore',
@@ -113,9 +112,9 @@
   ]);
 
   organizationModule.controller('OrganizationEditorController', [
-    '$scope', '$state', '$location', '$http', '$rootScope', 'regexFactory', 'CLMLocations', 'hudson', 'editorTools',
+    '$scope', '$state', '$location', '$http', '$rootScope', '$modal', 'regexFactory', 'CLMLocations', 'hudson', 'editorTools',
     'CLMAppLocations', 'Messages', 'CLMAppLocations', 'selectedOrganization',
-    function($scope, $state, $location, $http, $rootScope, regexFactory, CLMLocations, hudson, editorTools,
+    function($scope, $state, $location, $http, $rootScope, $modal, regexFactory, CLMLocations, hudson, editorTools,
              clmAppLocations, messages, CLMAppLocations, selectedOrganization)
     {
       var me = this;
@@ -149,10 +148,43 @@
             $scope.organizationIconTimestamp[$scope.selectedOrganization.id];
       }
 
+      function isExternalDestination(destination) {
+        var organization = $scope.selectedOrganization;
+        return !destination || (organization && destination.indexOf('organization/' + organization.id) === -1);
+      }
+
+      function setAO() {
+        $scope.ao = {
+          typeName : 'Organization',
+          type : 'organization',
+          selected : $scope.selectedOrganization,
+          siblings : $scope.organizations,
+          getId : function () {
+            return $scope.selectedOrganization.id;
+          }
+        };
+      }
+
       $scope.selectedOrganization = selectedOrganization;
       setOrganizationIcon();
       $scope.addOrganizationSync = clmAppLocations.addIconSync();
+
       $scope.$on('resetIconCache', resetIconCache);
+
+      //make sure user is aware they are about to lose changes
+      $scope.$on('pageChangeStarted', function(event, destination) {
+        if (isExternalDestination(destination)) {
+          if ($scope.isFormDirty() && !$scope.isPostingIcon) {
+            event.preventDefault();
+          }
+        }
+      });
+
+      $scope.$on('pageChangeAccepted', function(event, destination) {
+        if (isExternalDestination(destination)) {
+          $scope.cancel();
+        }
+      });
 
       $scope.$state = $state;
       $scope.submitActive = false;
@@ -182,30 +214,10 @@
       $scope.encodeURIComponent = window.encodeURIComponent;
 
       $scope.canSaveEdit = function() {
-        return !$scope.organizationEditor.$invalid && !$scope.submitActive;
+        return !$scope.aoEditor.$invalid && !$scope.submitActive;
       };
 
-      function isExternalDestination(destination) {
-        var organization = $scope.selectedOrganization;
-        return !destination || (organization && destination.indexOf('organization/' + organization.id) === -1);
-      }
-
-      //make sure user is aware they are about to lose changes
-      $scope.$on('pageChangeStarted', function(event, destination) {
-        if (isExternalDestination(destination)) {
-          if ($scope.isFormDirty() && !$scope.isPostingIcon) {
-            event.preventDefault();
-          }
-        }
-      });
-
-      $scope.$on('pageChangeAccepted', function(event, destination) {
-        if (isExternalDestination(destination)) {
-          $scope.cancelClick();
-        }
-      });
-
-      $scope.cancelClick = function() {
+      $scope.cancel = function() {
         $scope.selectedOrganization.$revert();
         if ($scope.iconChanged) {
           $scope.userIconSource = $scope.origUserIconSource;
@@ -225,12 +237,12 @@
 
       // This needs to be invoked by onsubmit rather than ng-submit to
       // suppress submit when necessary
-      $scope.saveClick = function() {
+      $scope.save = function() {
         if ($scope.submitActive) {
           return true;
         }
 
-        if ($scope.organizationEditor.$invalid) {
+        if ($scope.aoEditor.$invalid) {
           return false;
         }
 
@@ -278,22 +290,43 @@
         return false;
       };
 
-      $scope.confirmDeleteOrganization = function(Organization) {
-        $scope.selectedOrganization = Organization;
-        $scope.deletedEnabled = true;
-        $('#deleteOrganizationModal').modal('show');
-      };
-
-      $scope.deleteOrganization = function() {
-        $scope.deletedEnabled = false;
-        $('#deleteOrganizationModal').modal('hide');
-        $scope.selectedOrganization.$delete().then(function() {
+      $scope.confirmDelete = function() {
+        $modal.open({
+          background : 'static',
+          keyboard : true,
+          controller : 'DeleteResourceController',
+          templateUrl : 'delete-org-modal',
+          resolve : {
+            selected : function () {
+              return $scope.selectedOrganization;
+            }
+          }
+        }).result.then(function () {
           $rootScope.$broadcast('organizations.delete', $scope.selectedOrganization.id);
           $state.transitionTo('management.organization');
-        }, function() {
-          $scope.$broadcast('showServerError', arguments);
+        }, function (error) {
+          if (error) {
+            $scope.$broadcast('showServerError', error);
+          }
         });
       };
+
+      $scope.openImport = function () {
+        $modal.open({
+          backdrop : 'static',
+          keyboard : false,
+          templateUrl : 'import-policy-modal',
+          controller : 'ImportPolicyController'
+        });
+      };
+
+      if (!$scope.organizations) {
+        $scope.$watch('organizations', function () {
+          setAO();
+        });
+      } else {
+        setAO();
+      }
     }
   ]);
 

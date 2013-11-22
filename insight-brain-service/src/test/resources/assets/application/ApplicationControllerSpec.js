@@ -54,7 +54,7 @@ describe('ApplicationController', function() {
   it('passes through alerts', inject(function($state, $httpBackend) {
     $httpBackend.expectGET('../assets/management.html?').respond('<div></div>');
     $httpBackend.expectGET('../application-assets/components/application-navigator.html?').respond('<div></div>');
-    $httpBackend.expectGET('../application-assets/components/application-editor.html?').respond('<div></div>');
+    $httpBackend.expectGET('../application-assets/components/aoeditor.html?').respond('<div></div>');
 
     $state.transitionTo('management.application.view', {
       applicationPublicId : '_new_'
@@ -80,7 +80,7 @@ describe('ApplicationController', function() {
 });
 
 describe('ApplicationEditorController', function() {
-  var parentScope, scope, httpBackend, rootScope, state, mockApplication, originalMockApplication, mockOrganization, revertSpy, getOriginalSpy, saveSpy;
+  var parentScope, scope, httpBackend, rootScope, state, mockApplication, originalMockApplication, mockOrganization, getOriginalSpy;
 
   beforeEach(module('ApplicationModule', 'OrganizationModule', function($provide) {
     $provide.factory('hudson', [
@@ -112,10 +112,6 @@ describe('ApplicationEditorController', function() {
       state = $state;
 
       var selectedApplication = applicationStore.create();
-
-      getOriginalSpy = spyOn(selectedApplication, '$getOriginal').andReturn(originalMockApplication);
-      revertSpy = spyOn(selectedApplication, '$revert').andCallThrough();
-      saveSpy = spyOn(selectedApplication, '$save').andCallThrough();
 
       parentScope.applications = [selectedApplication];
       parentScope.applicationIconTimestamp = {}
@@ -186,12 +182,11 @@ describe('ApplicationEditorController', function() {
       state = $state;
 
       var selectedApplication = applicationStore.create();
+      selectedApplication.$new = false;
       selectedApplication.$updateOriginal(mockApplication);
       originalMockApplication = angular.copy(selectedApplication);
 
       getOriginalSpy = spyOn(selectedApplication, '$getOriginal').andReturn(originalMockApplication);
-      revertSpy = spyOn(selectedApplication, '$revert').andCallThrough();
-      saveSpy = spyOn(selectedApplication, '$save').andCallThrough();
 
       parentScope.applications = [selectedApplication];
       parentScope.applicationIconTimestamp = {}
@@ -278,6 +273,7 @@ describe('ApplicationEditorController', function() {
     });
 
     it('cancels edits', inject(function($httpBackend) {
+      var revertSpy = spyOn(scope.selectedApplication, '$revert').andCallThrough();
       scope.selectedApplication.name = "newName";
       scope.generateIcon();
 
@@ -294,8 +290,10 @@ describe('ApplicationEditorController', function() {
     }));
 
     it('saves an application', inject(function(CLMAppLocations) {
-      scope.applicationEditor = {};
-      scope.applicationEditor.$valid = true;
+      var saveSpy = spyOn(scope.selectedApplication, '$save').andCallThrough();
+      scope.aoEditor = {
+        $valid : true
+      };
 
       scope.setOrganization(mockOrganization);
       scope.selectedApplication.name = "newName";
@@ -312,25 +310,24 @@ describe('ApplicationEditorController', function() {
       expect(saveSpy).toHaveBeenCalled();
     }));
 
-    it('Can delete an application', inject(function(CLMAppLocations, CLMLocations) {
-      httpBackend.expectDELETE(CLMAppLocations.getEntityUrl(mockApplication.publicId)).respond({});
+    it('Can delete an application', inject(function(CLMAppLocations, CLMLocations, $modal, $q) {
+      var modalDeferred = $q.defer(),
+          modalSpy = spyOn($modal, 'open').andReturn({
+            result : modalDeferred.promise
+          });
+
       httpBackend.expectGET('../assets/management.html?').respond('<div></div>');
       httpBackend.expectGET('../application-assets/components/application-navigator.html?').respond('<div></div>');
 
       expect(angular.element('#deleteApplicationModal').css('display')).toBeUndefined();
 
-      scope.confirmDeleteApplication(mockApplication);
+      scope.confirmDelete();
+      expect(modalSpy).toHaveBeenCalled();
+      expect(modalSpy.mostRecentCall.args[0].resolve.selected()).toEqual(scope.selectedApplication);
+      expect(modalSpy.mostRecentCall.args[0].templateUrl).toEqual('delete-app-modal');
 
-      expect(scope.deletedEnabled).toBeTruthy();
-      expect(angular.element('#deleteApplicationModal').css('display')).not.toBe('none');
-
-      scope.deleteApplication();
-
+      modalDeferred.resolve({});
       httpBackend.flush();
-
-      expect(angular.element('#deleteApplicationModal').css('display')).toBeUndefined();
-      expect(parentScope.applications.length).toEqual(0);
-      expect(scope.deletedEnabled).toBeFalsy();
     }));
 
     it('shows report summary.', function() {
@@ -368,26 +365,24 @@ describe('ApplicationEditorController', function() {
       expect(mockApplication.policyEvaluationsResults.build.moderateComponentCount).toEqual(policyResponse.moderateComponentCount);
     }));
 
-    it('Can respond to errors when trying to delete an application', inject(function(CLMAppLocations, CLMLocations) {
-      var spy = spyOn(rootScope, '$broadcast').andReturn({defaultPrevented: false});
-
-      httpBackend.expectDELETE(CLMAppLocations.getEntityUrl(mockApplication.publicId)).respond(400);
-
-      expect(angular.element('#deleteApplicationModal').css('display')).toBeUndefined();
-
-      scope.confirmDeleteApplication(mockApplication);
-
-      expect(scope.deletedEnabled).toBeTruthy();
-      expect(angular.element('#deleteApplicationModal').css('display')).not.toBe('none');
-
-      scope.deleteApplication();
-
-      httpBackend.flush();
+    it('Can respond to errors when trying to delete an application', inject(function(CLMAppLocations, CLMLocations, $modal, $q) {
+      var spy = spyOn(scope, '$broadcast'),
+          modalDeferred = $q.defer(),
+          serverFailure = ['Foo', 400, null, null],
+          modalSpy = spyOn($modal, 'open').andReturn({
+            result : modalDeferred.promise
+          });
 
       expect(angular.element('#deleteApplicationModal').css('display')).toBeUndefined();
-      expect(spy).toHaveBeenCalledWith('showServerError', jasmine.any(Object));
-      expect(scope.applications.length).toEqual(1);
-      expect(scope.deletedEnabled).toBeFalsy();
+
+      scope.confirmDelete();
+      expect(modalSpy).toHaveBeenCalled();
+
+      scope.$apply(function () {
+        modalDeferred.reject(serverFailure);
+      });
+
+      expect(spy).toHaveBeenCalledWith('showServerError', serverFailure);
     }));
 
     it('Refreshes the list of applications when informed that an organization has been deleted',
@@ -421,8 +416,9 @@ describe('ApplicationEditorController', function() {
 
     it('broadcasts changes to owner data', inject(function(CLMAppLocations) {
       var broadcastSpy = spyOn(scope, '$broadcast');
-      scope.applicationEditor = {};
-      scope.applicationEditor.$valid = true;
+      scope.aoEditor = {
+        $valid : true
+      };
 
       scope.selectedApplication.organizationId = 'new_org_id';
 

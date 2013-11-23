@@ -53,6 +53,7 @@ import static com.sonatype.insight.brain.utils.IdUtils.TYPE_ORGANIZATION;
 import static com.yammer.dropwizard.testing.JsonHelpers.*;
 import static org.hamcrest.CoreMatchers.endsWith;
 import static org.hamcrest.Matchers.empty;
+import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
 import static org.hamcrest.core.Is.is;
@@ -498,7 +499,7 @@ public class PolicyResourceTest
     assertResponseStatus(200, response);
 
     // verify that org data is untouched
-    assertThat(licenseThreatGroupLicenseDAO.getByOwnerId(org.getId()), hasSize(127));
+    assertThat(licenseThreatGroupLicenseDAO.getByOwnerId(org.getId()).size(), is(greaterThan(100))); //127 at time of writing, should only break if we remove many
     assertThat(licenseThreatGroupDAO.getByOwnerId(org.getId()), hasSize(5));
     assertThat(policyDAO().getByOwnerId(org.getId()), hasSize(1));
     assertThat(new LabelDAO().getByOwnerId(org.getId()), hasSize(1));

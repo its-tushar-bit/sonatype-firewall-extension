@@ -13,17 +13,16 @@ import java.util.UUID;
 
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.insight.brain.AuthedRestAccess;
+import com.sonatype.insight.brain.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.label.ComponentLabelDAO;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
-import com.sonatype.insight.brain.license.LicenseThreatGroupResource;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.label.Color;
-import com.sonatype.insight.brain.model.label.ComponentLabel;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroupLicense;
@@ -46,6 +45,7 @@ import com.google.common.collect.Lists;
 import com.ning.http.client.Response;
 import com.yammer.dropwizard.testing.JsonHelpers;
 import org.junit.Assert;
+import org.junit.Rule;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.utils.IdUtils.TYPE_APPLICATION;
@@ -65,22 +65,25 @@ public class PolicyResourceTest
     extends AbstractResourceTest
 {
 
+  @Rule
+  public TemporaryEntity tempEntity = new TemporaryEntity();
+
   private static final String APP = TYPE_APPLICATION;
-
   private static final String ORG = TYPE_ORGANIZATION;
-
-  public static final String TEST_HASH = "componenthash";
-
-  private LabelDAO labelDAO = new LabelDAO();
-  private LicenseThreatGroupDAO licenseThreatGroupDAO = new LicenseThreatGroupDAO();
-  private LicenseThreatGroupLicenseDAO licenseThreatGroupLicenseDAO = new LicenseThreatGroupLicenseDAO();
+  private static final LabelDAO labelDAO = new LabelDAO();
+  private static final ComponentLabelDAO componentLabelDao = new ComponentLabelDAO();
+  private static final LicenseThreatGroupDAO licenseThreatGroupDAO = new LicenseThreatGroupDAO();
+  private static final LicenseThreatGroupLicenseDAO licenseThreatGroupLicenseDAO = new LicenseThreatGroupLicenseDAO();
 
   @Test
   public void testAppImport_InsertFailure() throws Exception {
     String applicationPublicId = "PolicyResourceTest-testAppImport_Insert";
-    Response response = AuthedRestAccess.post(getServiceURL(APP, applicationPublicId), asJson(createPolicyExportResult()));
+    Response response = AuthedRestAccess.post(getServiceURL(APP, applicationPublicId),
+        asJson(createPolicyExportResult()));
     //ensure that we cannot import to an App that does not exist
     assertResponseStatus(404, response);
+    assertThat(response.getResponseBody(),
+        is("Could not find an application with public id " + applicationPublicId + "."));
   }
 
   @Test
@@ -89,6 +92,7 @@ public class PolicyResourceTest
     Response response = AuthedRestAccess.post(getServiceURL(ORG, orgId), asJson(createPolicyExportResult()));
     //ensure that we cannot import to an Org that does not exist
     assertResponseStatus(404, response);
+    assertThat(response.getResponseBody(), is("Cannot find organization with id " + orgId + "."));
   }
 
   @Test
@@ -97,16 +101,11 @@ public class PolicyResourceTest
     Application application = createApplication(applicationPublicId, false /* createLicenseThreatGroups */);
     String appId = application.getId();
 
-    Label label1 = addLabel(appId, "label1", Color.blue);
-    Label label2 = addLabel(appId, "label2", Color.red);
-
-    LicenseThreatGroup licenseThreatGroup = new LicenseThreatGroup(appId, "LicenseThreatGroup1", 3);
-    licenseThreatGroupDAO.insert(licenseThreatGroup);
-
-    LicenseThreatGroupLicense licenseThreatGroupLicense = new LicenseThreatGroupLicense(appId,
-        licenseThreatGroup.getId(), "GPL-2.0");
-    LicenseThreatGroupLicenseDAO licenseThreatGroupLicenseDAO = new LicenseThreatGroupLicenseDAO();
-    licenseThreatGroupLicenseDAO.insert(licenseThreatGroupLicense);
+    Label label1 = tempEntity.newLabel(appId, "label1", Color.blue);
+    Label label2 = tempEntity.newLabel(appId,"label2", Color.red);
+    LicenseThreatGroup licenseThreatGroup = tempEntity.newLicenseThreatGroup(appId);
+    LicenseThreatGroupLicense licenseThreatGroupLicense = tempEntity
+        .newLicenseThreatGroupLicense(appId, licenseThreatGroup.getId());
 
     Policy policy = new Policy();
     policy.setName("Policy1");
@@ -132,14 +131,13 @@ public class PolicyResourceTest
     assertTrue(!policyExportResult.licenseThreatGroups.isEmpty());
     assertTrue(!policyExportResult.licenseThreatGroupLicenses.isEmpty());
 
-    LabelDAO labelDAO = new LabelDAO();
     // Delete and re-create one label - it should be reset by import (matched by label case insensitive)
     labelDAO.delete(label1);
-    label1 = addLabel(appId, label1.getLabel().toUpperCase(Locale.ENGLISH), Color.black);
+    label1 = tempEntity.newLabel(appId, label1.getLabel().toUpperCase(Locale.ENGLISH), Color.black);
     // Delete one label - it should be re-created by the import.
     labelDAO.delete(label2);
     // Add a new label - it should be deleted by the import.
-    addLabel(appId, "label3", Color.red);
+    tempEntity.newLabel(appId, "label3", Color.red);
 
     // Import
     response = AuthedRestAccess.put(getServiceURL(APP, applicationPublicId) + "/import",
@@ -473,15 +471,15 @@ public class PolicyResourceTest
     assertThat(licenseThreatGroupLicenseDAO.getByOwnerId(org.getId()), is(empty()));
     assertThat(licenseThreatGroupDAO.getByOwnerId(org.getId()), is(empty()));
     assertThat(policyDAO().getByOwnerId(org.getId()), is(empty()));
-    assertThat(new LabelDAO().getByOwnerId(org.getId()), is(empty()));
-    assertThat(new ComponentLabelDAO().getByOwnerId(org.getId()), is(empty()));
+    assertThat(labelDAO.getByOwnerId(org.getId()), is(empty()));
+    assertThat(componentLabelDao.getByOwnerId(org.getId()), is(empty()));
 
     //verify that we delete all data from the app
     assertThat(licenseThreatGroupLicenseDAO.getByOwnerId(app.getId()), is(empty()));
     assertThat(licenseThreatGroupDAO.getByOwnerId(app.getId()), is(empty()));
     assertThat(policyDAO().getByOwnerId(app.getId()), is(empty()));
-    assertThat(new ComponentLabelDAO().getByOwnerId(app.getId()), is(empty()));
-    assertThat(new LabelDAO().getByOwnerId(app.getId()), is(empty()));
+    assertThat(componentLabelDao.getByOwnerId(app.getId()), is(empty()));
+    assertThat(labelDAO.getByOwnerId(app.getId()), is(empty()));
   }
 
   /**
@@ -502,15 +500,15 @@ public class PolicyResourceTest
     assertThat(licenseThreatGroupLicenseDAO.getByOwnerId(org.getId()).size(), is(greaterThan(100))); //127 at time of writing, should only break if we remove many
     assertThat(licenseThreatGroupDAO.getByOwnerId(org.getId()), hasSize(5));
     assertThat(policyDAO().getByOwnerId(org.getId()), hasSize(1));
-    assertThat(new LabelDAO().getByOwnerId(org.getId()), hasSize(1));
-    assertThat(new ComponentLabelDAO().getByOwnerId(org.getId()), hasSize(1));
+    assertThat(labelDAO.getByOwnerId(org.getId()), hasSize(1));
+    assertThat(componentLabelDao.getByOwnerId(org.getId()), hasSize(1));
 
     //verify that we delete all data from the app
     assertThat(licenseThreatGroupLicenseDAO.getByOwnerId(app.getId()), is(empty()));
     assertThat(licenseThreatGroupDAO.getByOwnerId(app.getId()), is(empty()));
     assertThat(policyDAO().getByOwnerId(app.getId()), is(empty()));
-    assertThat(new ComponentLabelDAO().getByOwnerId(app.getId()), is(empty()));
-    assertThat(new LabelDAO().getByOwnerId(app.getId()), is(empty()));
+    assertThat(componentLabelDao.getByOwnerId(app.getId()), is(empty()));
+    assertThat(labelDAO.getByOwnerId(app.getId()), is(empty()));
   }
 
   @Test
@@ -518,30 +516,23 @@ public class PolicyResourceTest
     Organization org = createOrganizationWithPolicy();
     Application app = createApplicationWithPolicy(org);
 
-    Response response = AuthedRestAccess.get(getServiceURL(ORG, org.getId()) + "/export");
-    assertResponseStatus(200, response);
-    PolicyExportResult orgPolicy = JsonHelpers.fromJson(response.getResponseBody(), PolicyExportResult.class);
-
-    response = AuthedRestAccess.get(getServiceURL(APP, app.getPublicId()) + "/export");
-    assertResponseStatus(200, response);
-    PolicyExportResult appPolicy = JsonHelpers.fromJson(response.getResponseBody(), PolicyExportResult.class);
-
     // import policy into the org
     String importId = "importId";
     PolicyExportResult policyExportResult = createPolicyExportResult();
-    LicenseThreatGroup ltg = createDefaultLTG(importId);
+    LicenseThreatGroup ltg = createDetachedLTG(importId);
     ltg.setId(id());
     policyExportResult.licenseThreatGroups.add(ltg);
-    LicenseThreatGroupLicense ltgl = createDefaultLTGL(importId, ltg.getId());
+    LicenseThreatGroupLicense ltgl = createDetachedTGL(importId, ltg.getId());
     ltgl.setId(id());
     policyExportResult.licenseThreatGroupLicenses.add(ltgl);
-    Label label = new Label(importId, importId, Color.black);
+    //label uses same name as existing and will be updated, not deleted. Preserves existing component label
+    Label label = new Label(importId, org.getId(), Color.black);
     label.setId(id());
     policyExportResult.labels.add(label);
-    Policy policy = createDefaultPolicy(label.getId(), importId);
+    Policy policy = createDefaultPolicy(label.getId(), ltg.getId(), importId);
     policy.setId(id());
     policyExportResult.policies.add(policy);
-    response = AuthedRestAccess.put(getServiceURL(ORG, org.getId()) + "/import",
+    Response response = AuthedRestAccess.put(getServiceURL(ORG, org.getId()) + "/import",
         asJson(policyExportResult));
     assertResponseStatus(200, response);
 
@@ -557,56 +548,50 @@ public class PolicyResourceTest
     assertThat(policies, hasSize(1));
     assertThat(policies.get(0).getId(), is(not(policy.getId())));
     assertThat(policies.get(0).getName(), is(policy.getName()));
-    List<Label> labels = new LabelDAO().getByOwnerId(org.getId());
+    List<Label> labels = labelDAO.getByOwnerId(org.getId());
     assertThat(labels, hasSize(1));
     assertThat(labels.get(0).getId(), is(not(label.getId())));
     assertThat(labels.get(0).getLabel(), is(label.getLabel()));
-    assertThat(new ComponentLabelDAO().getByOwnerId(org.getId()), is(empty()));
+    assertThat(labels.get(0).getColor(), is(label.getColor()));
+    assertThat(componentLabelDao.getByOwnerId(org.getId()), hasSize(1)); //preserved by import of labels
 
     //verify that we delete all data from the app
     assertThat(licenseThreatGroupDAO.getByOwnerId(app.getId()), is(empty()));
+    assertThat(licenseThreatGroupLicenseDAO.getByOwnerId(app.getId()), is(empty()));
     assertThat(policyDAO().getByOwnerId(app.getId()), is(empty()));
-    assertThat(new ComponentLabelDAO().getByOwnerId(app.getId()), is(empty()));
-    assertThat(new LabelDAO().getByOwnerId(app.getId()), is(empty()));
+    assertThat(componentLabelDao.getByOwnerId(app.getId()), is(empty()));
+    assertThat(labelDAO.getByOwnerId(app.getId()), is(empty()));
   }
 
   private Application createApplicationWithPolicy(final Organization org) throws Exception {Response response;
     Application app = createApplication("appWithExistingPolicy", "appWithExistingPolicy", org);
-    Label shouldBeDeletedApp = addLabel(app.getId(), app.getName(), Color.white);
-    LicenseThreatGroup licenseThreatGroupApp = createDefaultLTG(app.getId());
-    response = AuthedRestAccess.post(getRestUrl(LicenseThreatGroupResource.SERVICE_PATH, APP, app.getPublicId()),
-        asJson(licenseThreatGroupApp));
-    assertResponseStatus(200, response);
-    licenseThreatGroupApp = JsonHelpers.fromJson(response.getResponseBody(), LicenseThreatGroup.class);
+    Label label = tempEntity.newLabel(app.getId(), Color.white);
+    LicenseThreatGroup licenseThreatGroup = tempEntity.newLicenseThreatGroup(app.getId());
+    tempEntity.newLicenseThreatGroupLicense(app.getId(), licenseThreatGroup.getId());
     // use both the label and the LTG in Policy Conditions to ensure that they are deleted as part of the import
-    Policy appPolicy = createDefaultPolicy(shouldBeDeletedApp.getId(), app.getName());
+    Policy appPolicy = createDefaultPolicy(label.getId(), licenseThreatGroup.getId(), app.getName());
     appPolicy.getConstraints().get(0).getConditions()
-        .add(new Condition(LicenseThreatGroupConditionType.ID, "is", licenseThreatGroupApp.getId()));
+        .add(new Condition(LicenseThreatGroupConditionType.ID, "is", licenseThreatGroup.getId()));
     response = AuthedRestAccess.post(getServiceURL(APP, app.getPublicId()), asJson(appPolicy));
     assertResponseStatus(200, response);
-    labelComponent(app.getId(), TEST_HASH, shouldBeDeletedApp.getId());
+    // label a (fake)component with our app label
+    tempEntity.newComponentLabel(app.getId(), label.getId());
     return app;
   }
 
   private Organization createOrganizationWithPolicy() throws Exception {
     Organization org = createOrganization("orgWithExistingPolicy");
-    Label shouldBeDeletedOrg = addLabel(org.getId(), org.getName(), Color.white);
-    LicenseThreatGroup licenseThreatGroupOrg = createDefaultLTG(org.getId());
-    Response response = AuthedRestAccess.post(getRestUrl(LicenseThreatGroupResource.SERVICE_PATH, ORG, org.getId()),
-        asJson(licenseThreatGroupOrg));
-    assertResponseStatus(200, response);
-    licenseThreatGroupOrg = JsonHelpers.fromJson(response.getResponseBody(), LicenseThreatGroup.class);
+    Label label = tempEntity.newLabel(org.getId(), org.getId(), Color.white);
+    LicenseThreatGroup licenseThreatGroup = tempEntity.newLicenseThreatGroup(org.getId());
+    tempEntity.newLicenseThreatGroupLicense(org.getId(), licenseThreatGroup.getId());
     // use both the label and the LTG in Policy Conditions to ensure that they are deleted as part of the import
-    Policy orgPolicy = createDefaultPolicy(shouldBeDeletedOrg.getId(), org.getName());
+    Policy orgPolicy = createDefaultPolicy(label.getId(), licenseThreatGroup.getId(),  org.getName());
     orgPolicy.getConstraints().get(0).getConditions()
-        .add(new Condition(LicenseThreatGroupConditionType.ID, "is", licenseThreatGroupOrg.getId()));
-    response = AuthedRestAccess.post(getServiceURL(ORG, org.getId()), asJson(orgPolicy));
+        .add(new Condition(LicenseThreatGroupConditionType.ID, "is", licenseThreatGroup.getId()));
+    Response response = AuthedRestAccess.post(getServiceURL(ORG, org.getId()), asJson(orgPolicy));
     assertResponseStatus(200, response);
-    // label a (fake)component with our app label
-    labelComponent(org.getId(), TEST_HASH, shouldBeDeletedOrg.getId());
-    // verify LTGs; by default a new Organization has 4 default LTGs + the one we introduced
-    List<LicenseThreatGroup> licenseThreatGroups = licenseThreatGroupDAO.getByOwnerId(org.getId());
-    assertThat(licenseThreatGroups, hasSize(5));
+    // label a (fake)component with our org label
+    tempEntity.newComponentLabel(org.getId(), label.getId());
     return org;
   }
 
@@ -618,16 +603,6 @@ public class PolicyResourceTest
     return getServiceURL(ownerType, ownerId) + "/" + policyId;
   }
 
-  private Label addLabel(final String ownerId, final String name, final Color color) {
-    Label label = new Label(ownerId, name, color);
-    labelDAO.insert(label);
-    return label;
-  }
-
-  private void labelComponent(final String ownerId, final String hash, final String labelId) {
-    new ComponentLabelDAO().insert(new ComponentLabel(ownerId, labelId, hash));
-  }
-
   private PolicyExportResult createPolicyExportResult() {
     PolicyExportResult policyExportResult = new PolicyExportResult();
     policyExportResult.licenseThreatGroupLicenses = Lists.newArrayList();
@@ -637,24 +612,25 @@ public class PolicyResourceTest
     return policyExportResult;
   }
 
-  private Policy createDefaultPolicy(String labelId, String name) {
+  private Policy createDefaultPolicy(String labelId, String ltgId, String name) {
     Policy policy = new Policy();
     policy.setName(name);
     Constraint constraint = new Constraint();
     constraint.setName(name);
     constraint.addCondition(new Condition(LabelConditionType.ID, "is", labelId));
+    constraint.addCondition(new Condition(LicenseThreatGroupConditionType.ID, "is", ltgId));
     policy.addConstraint(constraint);
     return policy;
   }
 
-  private LicenseThreatGroup createDefaultLTG(String ownerId) {
+  private LicenseThreatGroup createDetachedLTG(String ownerId) {
     LicenseThreatGroup licenseThreatGroup = new LicenseThreatGroup();
     licenseThreatGroup.setOwnerId(ownerId);
     licenseThreatGroup.setName(ownerId);
     return licenseThreatGroup;
   }
 
-  private LicenseThreatGroupLicense createDefaultLTGL(String ownerId, String ltgid) {
+  private LicenseThreatGroupLicense createDetachedTGL(String ownerId, String ltgid) {
     LicenseThreatGroupLicense ltgl = new LicenseThreatGroupLicense();
     ltgl.setLicenseId("UNKNOWN");
     ltgl.setLicenseThreatGroupId(ltgid);

@@ -15,21 +15,25 @@ public interface PolicyImporter
 {
   /**
    * Import policy into an Application, removing any existing policy data first.
-   * Application Labels will be merged if they match(case-insensitive by name) existing data.
+   * Application Labels will be merged if they match(case-insensitive by name) existing data; this preserves any
+   * related ComponentLabels.
+   * License Threat Groups and associated Licenses are all deleted as part of the import.
    *
    * @param application app to import policy to
-   * @param exportDTO update existing IDs from this export to match newly persisted data(as a side effect)
+   * @param exportDTO data to import
    * @return result embedding the url of the application
    */
   public PolicyImportResult importApplication(Application application, PolicyExportResult exportDTO);
 
   /**
    * Import policy into an Organization, removing any existing policy data first.
-   * This includes deletion of data from child Applications.
-   * Organization Labels will be merged if they match(case-insensitive by name) existing data.
+   * This includes deletion of data from child Applications(Labels, License Threat Groups and associated Licenses).
+   * Organization Labels will be merged if they match(case-insensitive by name) existing data; this preserves any
+   * related ComponentLabels.
+   * License Threat Groups and associated Licenses are all deleted as part of the import.
    *
    * @param organization org to import policy to
-   * @param exportDTO update existing IDs from this export to match newly persisted data(as a side effect)
+   * @param exportDTO data to import
    * @return result embedding the url of the organization
    */
   public PolicyImportResult importOrganization(Organization organization, PolicyExportResult exportDTO);

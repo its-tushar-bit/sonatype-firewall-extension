@@ -20,9 +20,11 @@ import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapConnectionDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapServerDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapUserMappingDAO;
+import com.sonatype.insight.brain.dataaccess.label.ComponentLabelDAO;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
+import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
 import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
@@ -30,10 +32,13 @@ import com.sonatype.insight.brain.dataaccess.security.RolePermissionDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.label.Color;
+import com.sonatype.insight.brain.model.label.ComponentLabel;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
+import com.sonatype.insight.brain.model.license.LicenseThreatGroupLicense;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
@@ -68,7 +73,11 @@ public class TemporaryEntity
 
   private final LabelDAO labelDAO = new LabelDAO();
 
+  private final ComponentLabelDAO componentLabelDAO = new ComponentLabelDAO();
+
   private final LicenseThreatGroupDAO licenseThreatGroupDAO = new LicenseThreatGroupDAO();
+
+  private final LicenseThreatGroupLicenseDAO licenseThreatGroupLicenseDAO = new LicenseThreatGroupLicenseDAO();
 
   private final LicenseOverrideDAO licenseOverrideDAO = new LicenseOverrideDAO();
 
@@ -225,10 +234,24 @@ public class TemporaryEntity
   }
 
   public Label newLabel(String ownerId) {
-    Label label = new Label(ownerId, uuid(), null);
+    return newLabel(ownerId, null);
+  }
+
+  public Label newLabel(String ownerId, Color color) {
+    return newLabel(ownerId, uuid(), color);
+  }
+
+  public Label newLabel(String ownerId, String labelText, Color color){
+    Label label = new Label(ownerId, labelText, color);
     labelDAO.insert(label);
     labels.add(label);
     return label;
+  }
+
+  public ComponentLabel newComponentLabel(String ownerId, String labelId){
+    ComponentLabel componentLabel = new ComponentLabel(ownerId, labelId, uuid().substring(0, 19));
+    componentLabelDAO.insert(componentLabel);
+    return componentLabel;
   }
 
   public LicenseThreatGroup newLicenseThreatGroup(String ownerId) {
@@ -236,6 +259,13 @@ public class TemporaryEntity
     licenseThreatGroupDAO.insert(ltg);
     licenseThreatGroups.add(ltg);
     return ltg;
+  }
+
+  public LicenseThreatGroupLicense newLicenseThreatGroupLicense(String ownerId, String licenseThreatGroupId) {
+    LicenseThreatGroupLicense licenseThreatGroupLicense = new LicenseThreatGroupLicense(ownerId, licenseThreatGroupId,
+        "Apache-2.0");
+    licenseThreatGroupLicenseDAO.insert(licenseThreatGroupLicense);
+    return licenseThreatGroupLicense;
   }
 
   public LicenseOverride newLicenseOverride(String ownerId, String groupId, String artifactId, String version,

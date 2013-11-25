@@ -12,6 +12,18 @@ public class ValidationResult
 {
   private List<String> errors = new ArrayList<String>();
 
+  /**
+   * An instance that can be used to indicate that the ValidationResult has no errors, instead of returning null values.
+   * 
+   * Note that errors can be added to this in subsequent calls.
+   */
+  public static ValidationResult noErrors() {
+    return new ValidationResult();
+  }
+  
+  /**
+   * Creates an instance that starts as being valid. 
+   */
   public ValidationResult() {
   }
 

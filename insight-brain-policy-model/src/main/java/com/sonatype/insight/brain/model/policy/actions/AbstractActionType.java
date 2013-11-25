@@ -14,17 +14,19 @@ abstract class AbstractActionType
 {
   @Override
   public ValidationResult validateAction(Action action) {
+    ValidationResult result = new ValidationResult();
+    
     if (isRequiresTarget()) {
       if (action.getTarget() == null || action.getTarget().trim().isEmpty()) {
-        return new ValidationResult("Invalid action '" + getName() + "': A target is required");
+        result.addError("Invalid action '" + getName() + "': A target is required");
       }
     }
     else {
       if (action.getTarget() != null) {
-        return new ValidationResult("Invalid action '" + getName() + "': This action does not support targets");
+        result.addError("Invalid action '" + getName() + "': This action does not support targets");
       }
     }
 
-    return null;
+    return result;
   }
 }

@@ -16,7 +16,7 @@ import org.apache.commons.lang.StringUtils;
 import org.junit.Assert;
 import org.junit.Test;
 
-public class PolicyTest
+public class PolicyValidationTest
 {
   private String applicationId = "PolicyTest_AppId";
 

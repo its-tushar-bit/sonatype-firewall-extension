@@ -66,7 +66,7 @@ public class Condition
       return new ValidationResult(e);
     }
 
-    return null;
+    return ValidationResult.noErrors();
   }
 
   public String toMessageString() {

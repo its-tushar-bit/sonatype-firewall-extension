@@ -563,6 +563,26 @@ public class PolicyResourceTest
     assertThat(labelDAO.getByOwnerId(app.getId()), is(empty()));
   }
 
+  @Test
+  public void testImportOfNonJsonPolicyFile() throws Exception{
+    Organization org = tempEntity.newOrganization();
+    Response response = AuthedRestAccess.put(getServiceURL(ORG, org.getId()) + "/import",
+        "garbage");
+    assertResponseStatus(400, response);
+    assertThat(response.getResponseBody(), is("The file you selected failed to upload correctly, are you certain " +
+        "it is a properly formatted policy import json file?"));
+  }
+
+  @Test
+  public void testImportOfJsonFileIncorrectFormat() throws Exception{
+    Organization org = tempEntity.newOrganization();
+    Response response = AuthedRestAccess.put(getServiceURL(ORG, org.getId()) + "/import",
+        "{\"notPolicy\":\"anything\"}");
+    assertResponseStatus(400, response);
+    assertThat(response.getResponseBody(), is("The file you selected failed to upload correctly, are you certain " +
+        "it is a properly formatted policy import json file?"));
+  }
+
   private Application createApplicationWithPolicy(final Organization org) throws Exception {Response response;
     Application app = createApplication("appWithExistingPolicy", "appWithExistingPolicy", org);
     Label label = tempEntity.newLabel(app.getId(), Color.white);

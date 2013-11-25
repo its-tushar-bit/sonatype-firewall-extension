@@ -40,6 +40,7 @@ import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.client.utils.AuditUtils;
+import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import org.codehaus.plexus.util.IOUtil;
@@ -55,6 +56,9 @@ public class PolicyResource
   public static final String SERVICE_PATH = "rest/policy/{ownerType: application|organization}/{ownerId}";
 
   private static final Logger log = LoggerFactory.getLogger(PolicyResource.class);
+
+  public static final String BAD_FORMAT_FILE_UPLOAD = "The file you selected failed to upload correctly, are you certain" +
+      " it is a properly formatted policy import json file?";
 
   private final InsightWork work;
 
@@ -227,7 +231,21 @@ public class PolicyResource
     finally {
       IOUtil.close(stream);
     }
-    return JsonUtils.parse(importBytes, PolicyExportResult.class);
+    PolicyExportResult parse;
+    try {
+      parse = JsonUtils.parse(importBytes, PolicyExportResult.class);
+    }
+    catch (IOException e) {
+      log.error("Policy file import failure, unable to marshal to json", e);
+      throw new BadRequestException(BAD_FORMAT_FILE_UPLOAD);
+    }
+    // Any random json file can be uploaded and result in an empty PolicyImportResult; ensure that we can parse
+    // relevant data in expected format, for which minimally these should be empty collections.
+    if(parse.policies == null || parse.labels == null || parse.licenseThreatGroupLicenses == null ||
+        parse.licenseThreatGroups == null){
+      throw new BadRequestException(BAD_FORMAT_FILE_UPLOAD);
+    }
+    return parse;
   }
 
   private PolicyDAO policyDAO() {

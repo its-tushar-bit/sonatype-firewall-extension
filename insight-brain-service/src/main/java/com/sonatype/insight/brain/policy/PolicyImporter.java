@@ -14,7 +14,7 @@ import com.sonatype.insight.brain.model.Organization;
 public interface PolicyImporter
 {
   /**
-   * Import policy into an Application, removing any existing policy data first.
+   * Import policy into an Application.
    * Application Labels will be merged if they match(case-insensitive by name) existing data; this preserves any
    * related ComponentLabels.
    * License Threat Groups and associated Licenses are all deleted as part of the import.
@@ -26,7 +26,7 @@ public interface PolicyImporter
   public PolicyImportResult importApplication(Application application, PolicyExportResult exportDTO);
 
   /**
-   * Import policy into an Organization, removing any existing policy data first.
+   * Import policy into an Organization.
    * This includes deletion of data from child Applications(Labels, License Threat Groups and associated Licenses).
    * Organization Labels will be merged if they match(case-insensitive by name) existing data; this preserves any
    * related ComponentLabels.

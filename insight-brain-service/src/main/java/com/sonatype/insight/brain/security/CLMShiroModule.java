@@ -44,7 +44,7 @@ public class CLMShiroModule
     bind(FilterChainManager.class).to(DefaultFilterChainManager.class);
     DefaultFilterChainManager manager = new DefaultFilterChainManager();
     addTemporaryAnonymousPaths(manager);
-    manager.createChain("/*assets/**", "anon"); // asserts for the web interface
+    manager.createChain("/*assets/**", "anon"); // assets for the web interface
     manager.createChain("/cip/**", "anon"); // assets for report CIP
     manager.createChain("/favicon.ico", "anon"); // favicon for web interface
     manager.createChain("/crumbIssuer/**", "anon"); // Hudson integration

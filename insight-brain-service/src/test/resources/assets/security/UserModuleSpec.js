@@ -147,6 +147,32 @@ describe('UserModuleSpec.js', function() {
     $httpBackend.flush();
     expect(dialogScope.errorMsg).toBeFalsy();
   }));
+  
+  it('reset password', inject(function($httpBackend, CLMLocations) {
+    $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getUserUrl())).respond(data);
+    setupControllers();
+    $httpBackend.flush();
+
+    listScope.resetPasswordClick({
+      id: 'test-id'
+    });
+    
+    $httpBackend.expectPUT(CLMLocations.getUserUrl() + '/test-id/reset').respond({
+      newPassword: '1234567890ab'
+    });
+    
+    dialogScope.resetClick();
+    $httpBackend.flush();
+    
+    expect(dialogScope.newPassword).toEqual('1234567890ab');
+
+    // server failure
+    $httpBackend.expectPUT(CLMLocations.getUserUrl() + '/test-id/reset').respond(500, 'Error resetting');
+    dialogScope.resetClick();
+    $httpBackend.flush();
+    
+    expect(dialogScope.error).toEqual('Error resetting');
+  }));
 
   it('add user', inject(function($rootScope, $httpBackend, CLMLocations) {
     $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getUserUrl())).respond(data);

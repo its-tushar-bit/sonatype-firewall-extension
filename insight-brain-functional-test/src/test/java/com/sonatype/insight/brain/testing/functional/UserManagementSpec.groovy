@@ -182,8 +182,20 @@ class UserManagementSpec
     
     then: 'we are presented with the new password'
     waitFor { newPasswordField.displayed }
+    def newPassword = newPasswordField.value();
     newPasswordOk.click()
     waitFor { !newPasswordField.displayed }
+    
+    when: 'user logs in with new password'
+    logout.link.click()
+    login.isDisplayed()
+    login.login('addusertest', newPassword);
+    
+    then: 'login succeeds'
+    !login.isDisplayed()
+    logout.link.click()
+    login.loginAsAdmin()
+    to UserManagementPage
   }
 
   def "The newly added user can be deleted"() {

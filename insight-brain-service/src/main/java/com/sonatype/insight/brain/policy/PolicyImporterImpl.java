@@ -81,7 +81,7 @@ public class PolicyImporterImpl
 
       deleteAllPolicyFromDatabase(em, appId, TYPE_APPLICATION);
       importAndMergeLabels(em, exportDTO, labelDAO.getByOwnerId(em, appId), appId, orgId);
-      importLicenseThreatData(em, exportDTO, appId);
+      importLicenseThreatGroups(em, exportDTO, appId);
 
       em.getTransaction().commit();
 
@@ -108,7 +108,7 @@ public class PolicyImporterImpl
 
       deleteAllPolicyFromDatabase(em, orgId, TYPE_ORGANIZATION);
       importAndMergeLabels(em, exportDTO, labelDAO.getByOwnerId(em, orgId), null, orgId);
-      importLicenseThreatData(em, exportDTO, orgId);
+      importLicenseThreatGroups(em, exportDTO, orgId);
 
       em.getTransaction().commit();
 
@@ -157,13 +157,13 @@ public class PolicyImporterImpl
   }
 
   /**
-   * Will import LicenseThreatGroupLicense and LicenseThreatGroup information from the exportDTO.
+   * Will import LicenseThreatGroup and LicenseThreatGroupLicense information from the exportDTO.
    *
    * @param em        entityManager for sharing transaction
    * @param exportDTO exportDTO modified by side-effect to update ids from newly saved objects
    * @param ownerId   the org/app id to import to
    */
-  private void importLicenseThreatData(EntityManager em, PolicyExportResult exportDTO, String ownerId) {
+  private void importLicenseThreatGroups(EntityManager em, PolicyExportResult exportDTO, String ownerId) {
     if (!exportDTO.licenseThreatGroups.isEmpty()) {
       Map<String, String> idMap = new HashMap<>();
       for (LicenseThreatGroup licenseThreatGroup : exportDTO.licenseThreatGroups) {

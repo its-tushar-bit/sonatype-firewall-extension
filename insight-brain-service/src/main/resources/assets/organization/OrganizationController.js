@@ -317,7 +317,9 @@
           keyboard : false,
           templateUrl : 'import-policy-modal',
           controller : 'ImportPolicyController'
-        });
+        }).result.then(function () {
+          $scope.$broadcast('refresh', $scope.selectedOrganization);
+        }, angular.noop);
       };
 
       if (!$scope.organizations) {

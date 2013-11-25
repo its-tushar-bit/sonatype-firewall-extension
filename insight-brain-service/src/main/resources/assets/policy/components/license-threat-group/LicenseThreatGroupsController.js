@@ -116,7 +116,7 @@
 
       $scope.doLoad = function() {
         var promises = [
-          licenseStore.get(), $http.get(CLMAppLocations.getApplicableLicenseGroupsUrl(), {
+          licenseStore.refresh(), $http.get(CLMAppLocations.getApplicableLicenseGroupsUrl(), {
             params: { timestamp: new Date().getTime() }
           }), licenseGroupStore.get()
         ];
@@ -145,6 +145,7 @@
       $scope.doLoad();
 
       $scope.$on('ownerChanged', ownerChange.getEventHandler($scope, 'applicableLicenseGroups'));
+      $scope.$on('refresh', $scope.doLoad);
 
       $scope.getDisplayName = function(license) {
         var licenseId = license.licenseId;

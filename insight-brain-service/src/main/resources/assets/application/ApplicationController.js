@@ -401,7 +401,9 @@
             keyboard : false,
             templateUrl : 'import-policy-modal',
             controller : 'ImportPolicyController'
-          });
+          }).result.then(function () {
+            $scope.$broadcast('refresh', $scope.selectedApplication);
+          }, angular.noop);
         };
       });
 
@@ -433,6 +435,10 @@
         $timeout(fileCheck, 100);
       }
     }
+    function setError(message) {
+      $scope.requestActive = false;
+      $scope.error = message;
+    }
     var fileElement = null;
 
     $scope.btnDisabled = true;
@@ -441,10 +447,11 @@
 
     $scope.doSubmit = function () {
       if (window.FileReader) {
-        // TODO disable button
         $scope.error = null;
         $scope.requestActive = true;
+
         var reader = new FileReader();
+
         reader.onloadend = function (event) {
           $http.put(clmAppLocations.getImportPolicyUrl(), reader.result, {
             headers : {
@@ -453,19 +460,22 @@
           }).success(function (data) {
             $scope.$close(data);
           }).error(function () {
-            $scope.error = messages.getHttpErrorMessage(arguments);
-            $scope.requestActive = false;
+            setError(messages.getHttpErrorMessage(arguments));
           });
         };
-        reader.onerror = function () {
-          console.log(arguments);
+
+        reader.onerror = function (e, filename) {
+          setError(reader.error.message);
         };
-        reader.readAsBinaryString(fileElement.files[0]);
-        $timeout(function () {
-          console.log(reader.readyState)
-        }, 5000);
+
+        try {
+          reader.readAsBinaryString(fileElement.files[0]);
+        } catch (err) {
+          // FF throws an exception in some instances
+          setError(err.message);
+        }
       } else {
-        // TODO disable button
+        $scope.requestActive = false;
         // submit form
         form.submit();
       }

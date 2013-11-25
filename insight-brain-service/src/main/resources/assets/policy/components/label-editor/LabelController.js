@@ -82,8 +82,9 @@
 
       $scope.doLoad = function() {
         $scope.error = null;
+        $scope.applicableLabels = null;
         var promises = [
-          LabelStore.get(), $http.get(clmAppLocations.getApplicableLabelsUrl(), {
+          LabelStore.refresh(), $http.get(clmAppLocations.getApplicableLabelsUrl(), {
             params: { timestamp: new Date().getTime() }
           })
         ];
@@ -102,6 +103,7 @@
       };
 
       $scope.$on('ownerChanged', ownerChange.getEventHandler($scope, 'applicableLabels'));
+      $scope.$on('refresh', $scope.doLoad);
 
       $scope.editLabel = function(isEditable, label) {
         if (!isEditable) {

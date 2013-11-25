@@ -40,8 +40,9 @@
 
       $scope.doLoad = function() {
         $scope.error = null;
+        $scope.applicablePolicies = null;
         var promises = [
-          policyStore.get().get(), $http.get(clmAppLocations.getApplicablePolicies(), {
+          policyStore.get().refresh(), $http.get(clmAppLocations.getApplicablePolicies(), {
             params: { timestamp: new Date().getTime() }
           })
         ];
@@ -60,6 +61,7 @@
       };
 
       $scope.$on('ownerChanged', ownerChange.getEventHandler($scope, 'applicablePolicies'));
+      $scope.$on('refresh', $scope.doLoad);
 
       $scope.toggleAll = function(applicablePolicy) {
         var action = $scope.allExpanded[applicablePolicy.ownerId] ? 'hide' : 'show';

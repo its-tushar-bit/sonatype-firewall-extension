@@ -94,7 +94,6 @@ describe('AppSecurityControllerSpec', function() {
           type : 'GROUP',
           internalName : 'oldladiesgroup',
           displayName : 'Old Ladies Group',
-          email : 'oldladiesgroup@foo.com',
           realm : 'old'
         }]
       },{
@@ -111,7 +110,6 @@ describe('AppSecurityControllerSpec', function() {
           type : 'GROUP',
           internalName : 'oldmengroup',
           displayName : 'Old Men Group',
-          email : 'oldmengroup@foo.com',
           realm : 'old'
         }]
       }];
@@ -145,7 +143,6 @@ describe('AppSecurityControllerSpec', function() {
         type : 'GROUP',
         internalName : 'oldladiesgroup',
         displayName : 'Old Ladies Group',
-        email : 'oldladiesgroup@foo.com',
         realm : 'old'
       },{
         type: "USER",
@@ -160,7 +157,6 @@ describe('AppSecurityControllerSpec', function() {
           type: 'GROUP',
           internalName : 'finstones',
           displayName : 'Flintstone Family',
-          email : 'family@flinstone.com',
           realm : 'bedrock'
         });
       });
@@ -174,7 +170,6 @@ describe('AppSecurityControllerSpec', function() {
         type : 'GROUP',
         internalName : 'oldladiesgroup',
         displayName : 'Old Ladies Group',
-        email : 'oldladiesgroup@foo.com',
         realm : 'old'
       },{
         type: "USER",
@@ -186,7 +181,6 @@ describe('AppSecurityControllerSpec', function() {
         type: 'GROUP',
         internalName : 'finstones',
         displayName : 'Flintstone Family',
-        email : 'family@flinstone.com',
         realm : 'bedrock'
       }]);
       
@@ -203,7 +197,6 @@ describe('AppSecurityControllerSpec', function() {
         type : 'GROUP',
         internalName : 'oldladiesgroup',
         displayName : 'Old Ladies Group',
-        email : 'oldladiesgroup@foo.com',
         realm : 'old'
       }]);
       scope.$apply(function () {

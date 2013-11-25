@@ -17,9 +17,7 @@ public class UserPrincipal
   public final Set<String> membership;
 
   public UserPrincipal(String username, boolean clmUser) {
-    this.username = username;
-    this.clmUser = clmUser;
-    this.membership = Collections.emptySet();
+    this(username, clmUser, null);
   }
 
   public UserPrincipal(String username, boolean clmUser, Set<String> membership) {

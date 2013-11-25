@@ -10,6 +10,7 @@ import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -451,8 +452,8 @@ class LdapQuery
       Set<String> groupNames = getSimpleNames(getAttributeValues(result.getAttributes(), umap.getUserMemberOfGroupAttribute()));
       if (groupNames != null) {
         for (String groupName : groupNames) {
-          if (groupNameMatches(groupName, queries, exact) && !ldapGroups.containsKey(groupName)) {
-            ldapGroups.put(groupName, createGroup(result, groupName));
+          if (groupNameMatches(groupName, queries, exact) && !ldapGroups.containsKey(groupName.toLowerCase(Locale.ENGLISH))) {
+            ldapGroups.put(groupName.toLowerCase(Locale.ENGLISH), createGroup(result, groupName));
 
             if (ldapGroups.size() == maxResults) {
               return new ArrayList<>(ldapGroups.values());

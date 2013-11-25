@@ -40,6 +40,8 @@ import org.apache.directory.server.protocol.shared.store.LdifFileLoader;
 import org.apache.directory.server.protocol.shared.transport.TcpTransport;
 import org.apache.directory.server.protocol.shared.transport.Transport;
 import org.codehaus.plexus.util.FileUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Embedded LDAP server meant to facilitate unit testing of LDAP integration.
@@ -48,6 +50,8 @@ import org.codehaus.plexus.util.FileUtils;
  */
 public class EmbeddedLdapServer
 {
+  private static final Logger log = LoggerFactory.getLogger(EmbeddedLdapServer.class);
+
   private static final String LOCALHOST = "localhost";
 
   private File workingDirectory;
@@ -70,6 +74,8 @@ public class EmbeddedLdapServer
    * @since 1.7
    */
   public EmbeddedLdapServer(File workingDirectory) {
+    log.debug("Creating EmbeddedLdapServer with workingDirectory={}", workingDirectory == null ? null
+        : workingDirectory.getAbsolutePath());
     this.workingDirectory = workingDirectory;
   }
 
@@ -77,6 +83,8 @@ public class EmbeddedLdapServer
    * @since 1.7
    */
   public void start() throws Exception {
+    long start = System.currentTimeMillis();
+
     if (port <= 0) {
       port = getRandomPort();
     }
@@ -134,6 +142,8 @@ public class EmbeddedLdapServer
 
     directoryService.startup();
     ldapServer.start();
+
+    log.debug("Started EmbeddedLdapServer in {} ms", System.currentTimeMillis() - start);
   }
 
   public void loadData(String ldifResourceName) throws IOException {
@@ -193,9 +203,13 @@ public class EmbeddedLdapServer
    * @since 1.7
    */
   public void stop() throws Exception {
+    long start = System.currentTimeMillis();
+
     ldapServer.stop();
     directoryService.shutdown();
     port = 0;
+
+    log.debug("Stopped EmbeddedLdapServer in {} ms", System.currentTimeMillis() - start);
   }
 
   /**

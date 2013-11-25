@@ -5,8 +5,6 @@
  */
 package com.sonatype.insight.brain.ldap;
 
-import java.util.Objects;
-
 /**
  * Group details populated from LDAP.
  *

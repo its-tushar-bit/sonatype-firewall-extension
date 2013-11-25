@@ -21,10 +21,8 @@ import org.apache.shiro.authc.SimpleAuthenticationInfo;
 import org.apache.shiro.authc.UsernamePasswordToken;
 import org.apache.shiro.authc.credential.DefaultPasswordService;
 import org.apache.shiro.authc.credential.PasswordMatcher;
-import org.apache.shiro.authz.AuthorizationInfo;
 import org.apache.shiro.crypto.hash.DefaultHashService;
-import org.apache.shiro.realm.AuthorizingRealm;
-import org.apache.shiro.subject.PrincipalCollection;
+import org.apache.shiro.realm.AuthenticatingRealm;
 import org.codehaus.plexus.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,7 +36,7 @@ import org.slf4j.LoggerFactory;
 @Named
 @Singleton
 public class CLMRealm
-    extends AuthorizingRealm
+    extends AuthenticatingRealm
 {
   private static final Logger log = LoggerFactory.getLogger(CLMRealm.class);
 
@@ -107,11 +105,5 @@ public class CLMRealm
     log.debug("Encrypted password in {} ms", System.currentTimeMillis() - start);
 
     return encryptedPassword;
-  }
-
-  @Override
-  protected AuthorizationInfo doGetAuthorizationInfo(PrincipalCollection principals) {
-    // TODO To be implemented when we add support for authorization
-    return null;
   }
 }

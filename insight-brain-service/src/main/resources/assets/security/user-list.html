@@ -129,7 +129,7 @@
 		<div ng-show='context.users' class="accordion users">
 			<div user-item context="context" user="user"></div>
 		</div>
-		<div class="accordion-group users" ng-repeat='user in context.users'>
+		<div class="accordion-group users" ng-class="{'white': isCurrentUser(user) }" ng-repeat='user in context.users'>
 			<div class="accordion-heading">
 				<div class='btn-group floatRight'>
 					<button type='button' class="btn btn-mini user-button hover-buttons" title="Edit User" ng-disabled='context.userEditMap[user.id]' ng-click="editClick(user)">
@@ -142,8 +142,8 @@
 						<i class="icon-trash"></i>
 					</button>
 				</div>
-				<a class="accordion-toggle user-top collapsed" style="padding-bottom:0px;" data-toggle="collapse" data-target="#collapse{{user.id}}">
-					<h4 style="margin-top:0px;margin-bottom:4px;">{{user.username}} ({{user.firstName}} {{user.lastName}})</h4>
+				<a class="accordion-toggle user-top collapsed" style="padding-bottom:4px;" data-toggle="collapse" data-target="#collapse{{user.id}}">
+					<h4 style="display:inline;margin-top:0px;margin-bottom:4px;">{{user.username}} ({{user.firstName}} {{user.lastName}})</h4><span ng-if="isCurrentUser(user)" style="margin-left:5px;font-size:10px;color:darkgreen;">Current User</span>
 				</a>
 			</div>
 			<div id="collapse{{user.id}}" class="accordion-body collapse">

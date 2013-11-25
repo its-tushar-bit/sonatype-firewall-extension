@@ -50,6 +50,7 @@ class UserManagementPage
     cancel(required: false) { $('button', 'ng-click': 'cancelClick(user)') }
     headers(required: false) { $('a.accordion-toggle') }
     header(required: false) { index -> $('a.accordion-toggle', index) }
+    currentUser(required: false){ index -> header(index).find('span', "ng-if":"isCurrentUser(user)") } 
     deleteUserButton(required: false) { index -> header(index).parent().find('button', 'ng-click': 'removeClick(user)') }
     resetUserButton(required: false) { index -> header(index).parent().find('button', 'ng-click': 'resetPasswordClick(user)') }
 

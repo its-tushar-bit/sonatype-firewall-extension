@@ -79,7 +79,7 @@ public class PolicyImporterImpl
     try {
       em.getTransaction().begin();
 
-      deleteAllPolicyFromDatabase(em, appId, TYPE_APPLICATION);
+      deleteLicenseThreatGroups(em, appId, null);
       importAndMergeLabels(em, exportDTO, labelDAO.getByOwnerId(em, appId), appId, orgId);
       importLicenseThreatGroups(em, exportDTO, appId);
 
@@ -106,7 +106,8 @@ public class PolicyImporterImpl
     try {
       em.getTransaction().begin();
 
-      deleteAllPolicyFromDatabase(em, orgId, TYPE_ORGANIZATION);
+      deleteFromOwnedApplications(em, orgId);
+      deleteLicenseThreatGroups(em, orgId, null);
       importAndMergeLabels(em, exportDTO, labelDAO.getByOwnerId(em, orgId), null, orgId);
       importLicenseThreatGroups(em, exportDTO, orgId);
 
@@ -130,28 +131,29 @@ public class PolicyImporterImpl
     return createResult(organization.getName(), orgId, TYPE_ORGANIZATION);
   }
 
+
   /**
-   * Delete policy data related to ownerId from the database.
-   * When the owner is an Org, all child Applications LTG/Label data is deleted, as well as LTGs on the org itself.
-   * When the owner is an App, only LTGs are deleted.
-   *
-   * @param ownerId   Org/App owning policy
-   * @param ownerType Org/App
+   *  Delete all LTGs and Labels from an organization's child applications.
    */
-  private void deleteAllPolicyFromDatabase(EntityManager em, String ownerId, String ownerType) {
-    if (ownerType.equals(TYPE_ORGANIZATION)) {
-      for (Application application : applicationDAO.getByOrganizationId(em, ownerId)) {
-        deleteAllPolicyFromDatabase(em, application.getId(), TYPE_APPLICATION);
-        for (Label label : labelDAO.getByOwnerId(em, application.getId(), false)) {
-          log.debug("Deleting application labels from: {} during import of organization: {}", application.getName(),
-              ownerId);
-          labelDAO.delete(em, label);
-        }
+  private void deleteFromOwnedApplications(EntityManager em, String orgId){
+    for (Application application : applicationDAO.getByOrganizationId(em, orgId)) {
+      deleteLicenseThreatGroups(em, application.getId(), orgId);
+      for (Label label : labelDAO.getByOwnerId(em, application.getId(), false)) {
+        log.debug("Deleting application labels from: {} during import of organization: {}", application.getName(),
+            orgId);
+        labelDAO.delete(em, label);
       }
     }
+  }
+
+  /**
+   * Delete all LTGs from the specified owner.
+   */
+  private void deleteLicenseThreatGroups(EntityManager em, String ownerId, String orgId) {
     List<LicenseThreatGroup> licenseThreatGroups = licenseThreatGroupDAO.getByOwnerId(em, ownerId);
     for (LicenseThreatGroup licenseThreatGroup : licenseThreatGroups) {
-      log.debug("Deleting licenseThreatGroup: {} during import for ownerId: {}", licenseThreatGroup.getName(), ownerId);
+      log.debug("Deleting licenseThreatGroup: {} during import for ownerId: {}", licenseThreatGroup.getName(),
+          orgId != null ? orgId : ownerId);
       licenseThreatGroupDAO.delete(em, licenseThreatGroup);
     }
   }
@@ -193,7 +195,8 @@ public class PolicyImporterImpl
   }
 
   /**
-   * Will import and update existing labels or add new ones mentioned in the exportDTO.
+   * Will import and update existing labels or add new ones mentioned in the exportDTO. "Old" labels that
+   * are not merged will be deleted.
    *
    * @param em             entityManager for sharing transaction
    * @param exportDTO      exportDTO modified by side-effect to update ids from newly saved objects

@@ -16,7 +16,7 @@
             <div>
               <div ng-repeat='grouping in groupings'>
                 <div class='large-select-list-header' ng-if='showGroupingHeader(grouping, mappings)'>
-                  <i class='glyphicons-sonatype' ng-class='grouping.icon'></i>{{grouping.header}}
+                  <i class='glyphicons-sonatype small' ng-class='grouping.icon'></i>{{grouping.header}}
                 </div>
                 <div ng-repeat='mapping in mappings'>
                   <div ng-repeat='member in mapping.members | filter: { displayName : queryString, type : grouping.type } | orderBy:"displayName"'>
@@ -46,7 +46,7 @@
               <div class='large-select-query-item' ng-show="!queryString">Search above to find users</div>
               <div ng-repeat='grouping in groupings'>
                 <div class='large-select-list-header' ng-if='showGroupingHeader(grouping, queryResults)'>
-                  <i class='glyphicons-sonatype' ng-class='grouping.icon'></i>{{grouping.header}}
+                  <i class='glyphicons-sonatype small' ng-class='grouping.icon'></i>{{grouping.header}}
                 </div>
                 <div ng-repeat='user in queryResults | userNotIn:mappings | filter: { type: grouping.type } | orderBy:"displayName"'>
                   <div ng-click='addUser(user)' class='large-select-list-item'>
@@ -108,7 +108,7 @@
               </div>
               <div ng-if='!editMode' class='expandable' ng-show="!context.roleEditMap[role.roleId]" ng-class='{"collapsed" : !expanded}'>
                 <div ng-repeat='grouping in groupings' ng-if='showGrouping(grouping, role.membersByOwner)'>
-                  <i class='glyphicons-sonatype' ng-class='grouping.icon'></i>
+                  <i class='glyphicons-sonatype small' ng-class='grouping.icon'></i>
                   <div class='member-list' ng-repeat='mapping in role.membersByOwner' ng-if='mapping.members.length > 0'
                        ng-class='{ "inherited inherited-section" : $last && role.membersByOwner.length > 1 }' ng-init="isLastMapping = $last">
                     <div ng-if="expanded && $last && role.membersByOwner.length > 1">

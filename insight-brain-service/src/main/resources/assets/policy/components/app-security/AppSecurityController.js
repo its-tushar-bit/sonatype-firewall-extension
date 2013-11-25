@@ -6,11 +6,11 @@
   var groupings = [{
     type: 'GROUP',
     header: 'Groups',
-    icon: 'group-small'
+    icon: 'group'
   },{
     type: 'USER',
     header: 'Users',
-    icon: 'user-small'
+    icon: 'user'
   }];
   var showGroupings = function(grouping, mappings) {
     if (!mappings) {

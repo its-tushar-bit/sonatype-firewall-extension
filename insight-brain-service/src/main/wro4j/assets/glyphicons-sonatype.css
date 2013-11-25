@@ -9,20 +9,19 @@
   content: "\e017";
 }
 
-.glyphicons-sonatype.user-small:before {
-  content: "\E004";
+.glyphicons-sonatype.small:before {
   font-size: 10px;
   padding-right: 10px;
   vertical-align: -5%;
   color: #909090;
 }
 
-.glyphicons-sonatype.group-small:before {
+.glyphicons-sonatype.user:before {
+  content: "\E004";
+}
+
+.glyphicons-sonatype.group:before {
   content: "\E044";
-  font-size: 10px;
-  padding-right: 10px;
-  vertical-align: -5%;
-  color: #909090;
 }
 
 .glyphicons-halflings-sonatype:before {

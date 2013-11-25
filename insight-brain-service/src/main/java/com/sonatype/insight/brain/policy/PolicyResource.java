@@ -57,7 +57,7 @@ public class PolicyResource
 
   private static final Logger log = LoggerFactory.getLogger(PolicyResource.class);
 
-  public static final String BAD_FORMAT_FILE_UPLOAD = "The file you selected failed to upload correctly, are you certain" +
+  private static final String BAD_FORMAT_FILE_UPLOAD = "The file you selected failed to upload correctly, are you certain" +
       " it is a properly formatted policy import json file?";
 
   private final InsightWork work;

@@ -32,10 +32,9 @@
 						<input type='file' ng-model='import.file' id='policyFile' name='file' accept='.json'>
 					</div>
 				</div>
-				<p class="text-error"><strong>Note:</strong> Importing policies is <strong>destructive</strong> and will replace existing policies, labels and license threat groups</p>
 			</div>
 			<div class='modal-footer'>
-				<span style="margin:0px;padding: 4px 35px 4px 14px;float:left;max-width:330px" ng-class="{'alert alert-error': error }" ng-show="error">{{error}}</span>
+				<span style="margin:0px;padding: 4px 35px 4px 14px;float:left;" ng-class="{'alert alert-error': error }" ng-show="error">{{error}}</span>
 				<button class='btn' type='button' ng-click='$dismiss()'>Cancel</button>
 				<button class='btn btn-primary' type='button' ng-disabled='btnDisabled || requestActive' ng-click='doSubmit()'>Import</button>
 			</div>

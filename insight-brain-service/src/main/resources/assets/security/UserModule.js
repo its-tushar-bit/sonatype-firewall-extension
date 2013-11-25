@@ -116,33 +116,32 @@
             }]
           });
         };
+        
         $scope.resetPasswordClick = function(user) {
-          Dialog.open({
-            title : 'Reset Password',
-            body : 'Are you sure you want to reset the password for "' + user.username + '"?  This action cannot be undone.',
-            buttons : [{
-              name : 'Cancel'
-            }, {
-              name : 'Reset',
-              type : 'danger',
-              click : function() {
+          $modal.open({
+            templateUrl: 'reset-password-modal',
+            scope: $scope,
+            controller: ['$scope', function(scope) {
+              scope.state = 'ready';
+              scope.user = user;
+              scope.cancelClick = function(){
+                scope.$close();
+              };
+              scope.resetClick = function(){
+                scope.state = 'pending';
                 $http.put(clmLocations.getUserUrl() + '/' + user.id + '/reset').success(function(data) {
-                  Dialog.open({
-                    template: '<div class="modal-header"><button type="button" class="close" ng-click="$close()">&times;</button><h3>New Password</h3></div>' +
-                    '<div class="modal-body"><span style="margin-right:10px;">The new password is</span><span style="margin-bottom:0px;" class="input-append">' +
-                    '<input id="generatedPassword" style="height:22px;" type="text" ng-model="newPassword" select-text/><button ng-show="flashInstalled()" title="Copy to clipboard" style="height:32px;width:32px;" class="btn" type="button" zero-clipboard="generatedPassword">' +
-                    '<i class="glyphicons-sonatype clipboard">&nbsp;</i></button></span></div>' +
-                    '<div class="modal-footer">' +
-                      '<button class="btn btn-primary" ng-click="$close()">OK</button>' +
-                    '</div>',
-                    controller: ['$scope', function(scope) {
-                      scope.newPassword = data.newPassword;
-                      scope.flashInstalled = function() {
-                        return AngularUtils.hasFlash();
-                      }
-                    }]
-                  });
+                  scope.newPassword = data.newPassword;
+                  scope.state = 'complete';
+                }).error(function(error){
+                  scope.state = 'failed';
+                  scope.error = error;
                 });
+              };
+              scope.okClick = function(){
+                scope.$close();
+              };
+              scope.flashInstalled = function() {
+                return AngularUtils.hasFlash();
               }
             }]
           });
@@ -262,10 +261,11 @@
   });
   
   //simple directive that will select the text in an input field
+  //when user clicks on it
   module.directive('selectText', ['$timeout', function ($timeout) {
     return function (scope, element, attrs) {
-      $timeout(function(){
-        element.select();
+      element.bind('click', function () {
+        this.select();
       });
     };
   }]);

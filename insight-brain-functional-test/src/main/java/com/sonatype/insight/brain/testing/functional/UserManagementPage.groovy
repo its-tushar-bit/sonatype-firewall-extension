@@ -63,7 +63,7 @@ class UserManagementPage
     cancelReset(required: false) { confirmResetModal.find('button', text: 'Cancel') }
     
     newPasswordField(required: false){$('#generatedPassword') } 
-    newPasswordOk(required: false){ $('h3', text:'New Password').parent().parent().find('button', 'ng-click':'$close()') }
+    newPasswordOk(required: false){ $('h3', text:'Reset Password').parent().parent().find('button', 'ng-click':'$close()') }
 
     summarySection { index -> $('div.accordion-inner', index) }
   }

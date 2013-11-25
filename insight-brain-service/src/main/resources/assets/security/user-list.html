@@ -8,6 +8,51 @@
 </div>
 <div style="margin-left:10px;margin-right:10px;" ng-class="{'alert alert-error': errorMsg }">{{errorMsg}}</div>
 	</script>
+	<script type='text/ng-template' id='reset-password-modal'>
+<div class="modal-header">
+	<button type="button" class="close" ng-click="$close()">&times</button>
+	<h3>Reset Password</h3>
+</div>
+<div ng-switch="state">
+	<div ng-switch-when="ready">
+		<div class="modal-body">
+			<p>Are you sure you want to reset the password for {{user.username}}?  This action cannot be undone.</p>
+		</div>
+		<div class="modal-footer">
+			<button class="btn" ng-click="cancelClick()">Cancel</button>
+			<button class="btn btn-danger" ng-click="resetClick()">Reset</button>
+		</div>
+	</div>
+	<div ng-switch-when="pending">
+		<div class="modal-body">
+			<span>Reset pending...</span>
+		</div>
+		<div class="modal-footer">
+		</div>	
+	</div>
+	<div ng-switch-when="complete">
+		<div class="modal-body">
+			<span style="margin-right:10px;">The new password is</span>
+			<span style="margin-bottom:0px;" class="input-append">
+				<input id="generatedPassword" style="height:22px;" type="text" ng-model="newPassword" select-text/>
+				<button ng-show="flashInstalled()" title="Copy to clipboard" style="height:32px;width:32px;" class="btn" type="button" zero-clipboard="generatedPassword">
+					<i class="glyphicons-sonatype clipboard">&nbsp;</i>
+				</button>
+			</span>
+		</div>
+		<div class="modal-footer">
+			<button class="btn btn-primary" ng-click="okClick()">OK</button>
+		</div>	
+	</div>
+	<div ng-switch-when="error">
+		<div class="modal-body">
+			<span>{{error}}</span>
+		</div>
+		<div class="modal-footer">
+		</div>	
+	</div>
+</div>
+	</script>
 	<script type='text/ng-template' id='change-password-modal'>
 <form name="changePasswordForm" ng-submit="save()" style="margin-bottom:0px;">
 	<div class="modal-header">Change Password</div>

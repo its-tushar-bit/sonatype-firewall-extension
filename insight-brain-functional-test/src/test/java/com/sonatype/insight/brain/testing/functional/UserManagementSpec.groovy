@@ -156,9 +156,8 @@ class UserManagementSpec
     summary.find('td', text: 'add').displayed
     summary.find('td', text: 'user').displayed
     summary.find('td', text: 'addusertest@email.com').displayed
-    //validate the logged in user as well, admin will be the second
-    //user in the list, as add user comes first alphabetically
-    currentUser(1).displayed
+    currentUsers.size() == 1
+    currentUsers.text() == 'admin (Admin BuiltIn)'
   }
   
   def "A user's password can be reset"() {
@@ -183,7 +182,7 @@ class UserManagementSpec
     then: 'we are presented with the new password'
     waitFor { newPasswordField.displayed }
     def newPassword = newPasswordField.value();
-    newPasswordOk.click()
+    okReset.click()
     waitFor { !newPasswordField.displayed }
     
     when: 'user logs in with new password'

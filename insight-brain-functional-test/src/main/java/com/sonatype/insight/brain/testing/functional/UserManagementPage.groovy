@@ -50,7 +50,7 @@ class UserManagementPage
     cancel(required: false) { $('button', 'ng-click': 'cancelClick(user)') }
     headers(required: false) { $('a.accordion-toggle') }
     header(required: false) { index -> $('a.accordion-toggle', index) }
-    currentUser(required: false){ index -> header(index).find('span', "ng-if":"isCurrentUser(user)") } 
+    currentUsers(required: false) { $('span', 'ng-if': 'isCurrentUser(user)').findAll( { it.displayed } ).parent().find('h4') }
     deleteUserButton(required: false) { index -> header(index).parent().find('button', 'ng-click': 'removeClick(user)') }
     resetUserButton(required: false) { index -> header(index).parent().find('button', 'ng-click': 'resetPasswordClick(user)') }
 
@@ -62,9 +62,9 @@ class UserManagementPage
     confirmResetModal(required: false) { modal.has('div.modal-header').has('h3', text: 'Reset Password') }
     confirmReset(required: false) { confirmResetModal.find('button', text: 'Reset') }
     cancelReset(required: false) { confirmResetModal.find('button', text: 'Cancel') }
+    okReset(required: false) { confirmResetModal.find('button', text: 'OK') }
     
-    newPasswordField(required: false){$('#generatedPassword') } 
-    newPasswordOk(required: false){ $('h3', text:'Reset Password').parent().parent().find('button', 'ng-click':'$close()') }
+    newPasswordField(required: false){$('#generatedPassword') }
 
     summarySection { index -> $('div.accordion-inner', index) }
   }

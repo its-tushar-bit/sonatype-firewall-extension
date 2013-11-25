@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.ldap;
 
+import java.util.Set;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -54,8 +56,9 @@ public class LdapRealm
     String username = ((UsernamePasswordToken) token).getUsername();
     char[] password = ((UsernamePasswordToken) token).getPassword();
 
-    ldapManager.authenticateUser(username, password);
+    LdapUser ldapUser = ldapManager.authenticateUser(username, password);
+    Set<String> membership = ldapUser.getMembership();
 
-    return new SimpleAuthenticationInfo(new UserPrincipal(username, false), null, getName());
+    return new SimpleAuthenticationInfo(new UserPrincipal(username, false, membership), null, getName());
   }
 }

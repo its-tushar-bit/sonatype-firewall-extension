@@ -8,12 +8,16 @@ package com.sonatype.insight.brain.ldap.test;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Set;
 
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.configuration.ldap.LdapAuthenticationMethod;
 import com.sonatype.insight.brain.configuration.ldap.LdapConnection;
+import com.sonatype.insight.brain.configuration.ldap.LdapGroupMappingType;
 import com.sonatype.insight.brain.configuration.ldap.LdapProtocol;
 import com.sonatype.insight.brain.configuration.ldap.LdapServer;
 import com.sonatype.insight.brain.configuration.ldap.LdapUserMapping;
@@ -40,6 +44,7 @@ import org.junit.rules.TemporaryFolder;
 
 import static com.sonatype.insight.brain.ldap.EmbeddedLdapServer.newEmbeddedLdapServer;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
@@ -192,11 +197,11 @@ public class LdapRealmTest
       assertBadCredentials("test_user", null);
       assertBadCredentials("test_user", "");
       assertBadCredentials("test_user", "guest");
-      assertGoodCredentials("test_user", "far2simple");
+      assertGoodCredentials("test_user", "far2simple", "Gamma", "Theta", "Omega");
     }
   }
 
-  public void assertGoodCredentials(String username, String password) {
+  public void assertGoodCredentials(String username, String password, String... groups) {
     UsernamePasswordToken usernamePasswordToken = new UsernamePasswordToken(username, password);
     AuthenticationInfo authenticationInfo = realm.getAuthenticationInfo(usernamePasswordToken);
     PrincipalCollection principalCollection = authenticationInfo.getPrincipals();
@@ -205,6 +210,7 @@ public class LdapRealmTest
     Iterator<?> principalIterator = principalCollection.iterator();
     Object principal = principalIterator.next();
     assertEquals(new UserPrincipal(username, false), principal);
+    assertThat(((UserPrincipal) principal).membership, containsInAnyOrder(groups));
     assertFalse(principalIterator.hasNext());
     assertThat(principalCollection.getRealmNames(), hasSize(1));
     assertEquals(realm.getName(), principalCollection.getRealmNames().iterator().next());
@@ -253,18 +259,24 @@ public class LdapRealmTest
 
     userMappingDetails = new LdapUserMapping();
     userMappingDetails.setServerId(serverDetails.getId());
-    userMappingDetails.setUserBaseDN("");
+    userMappingDetails.setUserBaseDN("ou=users");
     userMappingDetails.setUserObjectClass("person");
     userMappingDetails.setUserIDAttribute("uid");
     userMappingDetails.setUserRealNameAttribute("givenName");
     userMappingDetails.setUserEmailAttribute("mail");
     userMappingDetails.setUserSubtree(true);
 
+    userMappingDetails.setGroupBaseDN("ou=groups");
+    userMappingDetails.setGroupIDAttribute("cn");
+    userMappingDetails.setGroupSubtree(true);
+    userMappingDetails.setGroupMappingType(LdapGroupMappingType.STATIC);
+    userMappingDetails.setGroupObjectClass("groupOfNames");
+    userMappingDetails.setGroupMemberAttribute("member");
+    userMappingDetails.setGroupMemberFormat("uid=${username}");
+
     if (!authenticateWithBind) {
       userMappingDetails.setUserPasswordAttribute("userPassword");
     }
-
-    userDao.insert(userMappingDetails);
 
     ldapServer = newEmbeddedLdapServer();
 
@@ -272,7 +284,7 @@ public class LdapRealmTest
     connectionDetails.setServerId(serverDetails.getId());
     connectionDetails.setProtocol(protocol);
     connectionDetails.setHostname(ldapServer.getHostname());
-    connectionDetails.setSearchBase("ou=users,dc=company,dc=com");
+    connectionDetails.setSearchBase("dc=company,dc=com");
     connectionDetails.setSystemUsername(ldapServer.getSystemUserDN());
     connectionDetails.setSystemPassword(ldapServer.getSystemUserPassword());
     connectionDetails.setAuthenticationMethod(authentication);
@@ -285,12 +297,14 @@ public class LdapRealmTest
       connectionDetails.setSearchBase("ou=system"); // match embedded server base settings when using strong auth
       connectionDetails.setSystemUsername(ldapServer.getSystemUser()); // SASL-based auth expects username not DN
       connectionDetails.setSaslRealm(ldapServer.getSaslRealm());
+      userMappingDetails.setUserBaseDN("");
     }
     else if (authentication == LdapAuthenticationMethod.CRAMMD5) {
       ldapServer.setAuthenticationSasl(SupportedSaslMechanisms.CRAM_MD5);
       connectionDetails.setSearchBase("ou=system"); // match embedded server base settings when using strong auth
       connectionDetails.setSystemUsername(ldapServer.getSystemUser()); // SASL-based auth expects username not DN
       connectionDetails.setSaslRealm(ldapServer.getSaslRealm());
+      userMappingDetails.setUserBaseDN("");
     }
 
     if (protocol == LdapProtocol.LDAPS) {
@@ -299,6 +313,8 @@ public class LdapRealmTest
           .getAbsolutePath());
       ldapServer.enableLdaps(getTestResourceFile("/keystore/insight-test.ks"), "secret");
     }
+
+    userDao.insert(userMappingDetails);
 
     ldapServer.start();
     ldapServer.loadData("/ldap_users.ldif");

@@ -19,6 +19,7 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.model.security.UserPrincipal;
 import com.sonatype.insight.brain.security.AuthzFilter.Context;
 
 /**
@@ -48,19 +49,19 @@ public class AuthorizationChecker
    * Determines whether the given user has the specified permission in the supplied context or any of its ancestor
    * contexts.
    */
-  public boolean isPermitted(String username, Permission permission, Map<AuthzContext.Key, Object> contextParameters) {
+  public boolean isPermitted(UserPrincipal user, Permission permission, Map<AuthzContext.Key, Object> contextParameters) {
     Iterable<String> contextIds = contextResolver.resolveContextIds(contextParameters);
-    return isPermitted(username, permission, contextIds);
+    return isPermitted(user, permission, contextIds);
   }
 
   /**
    * Determines whether the given user has the specified permission in any of the supplied contexts.
    */
-  boolean isPermitted(String username, Permission permission, Iterable<String> contextIds) {
-    if (username != null) {
+  boolean isPermitted(UserPrincipal user, Permission permission, Iterable<String> contextIds) {
+    if (user != null) {
       Set<String> roleIds = rolePermissionDAO.getRoleIdsByPermission(permission);
       for (String contextId : contextIds) {
-        if (isUserHavingAnyRoleInContext(username, roleIds, contextId)) {
+        if (isUserHavingAnyRoleInContext(user, roleIds, contextId)) {
           return true;
         }
       }
@@ -73,16 +74,16 @@ public class AuthorizationChecker
    * permission.
    */
   @SuppressWarnings("unchecked")
-  public Collection<?> filterByPermission(String username, Permission permission, Object entities, Context contextEntity)
+  public Collection<?> filterByPermission(UserPrincipal user, Permission permission, Object entities, Context contextEntity)
   {
     Collection<Object> filtered = newCollection(entities);
-    if (username != null) {
+    if (user != null) {
       switch (contextEntity) {
         case APPLICATION:
-          filter(filtered, username, permission, (Iterable<Application>) entities, contextResolver.APPLICATION);
+          filter(filtered, user, permission, (Iterable<Application>) entities, contextResolver.APPLICATION);
           break;
         case ORGANIZATION:
-          filter(filtered, username, permission, (Iterable<Organization>) entities, contextResolver.ORGANIZATION);
+          filter(filtered, user, permission, (Iterable<Organization>) entities, contextResolver.ORGANIZATION);
           break;
         default:
           throw new IllegalStateException("Cannot check authorization in unknown context " + contextEntity);
@@ -100,26 +101,26 @@ public class AuthorizationChecker
     }
   }
 
-  private <T> void filter(Collection<Object> filtered, String username, Permission permission,
+  private <T> void filter(Collection<Object> filtered, UserPrincipal user, Permission permission,
       Iterable<? extends T> entities, ContextIdResolver<T> resolver)
   {
     Set<String> roleIds = rolePermissionDAO.getRoleIdsByPermission(permission);
     Map<String, Boolean> resultByContextId = new HashMap<String, Boolean>(256);
     for (T entity : entities) {
       Iterable<String> contextIds = resolver.resolveContextIds(entity);
-      if (isUserHavingAnyRoleInAnyContext(username, roleIds, contextIds, resultByContextId)) {
+      if (isUserHavingAnyRoleInAnyContext(user, roleIds, contextIds, resultByContextId)) {
         filtered.add(entity);
       }
     }
   }
 
-  private boolean isUserHavingAnyRoleInAnyContext(String username, Set<String> roleIds, Iterable<String> contextIds,
+  private boolean isUserHavingAnyRoleInAnyContext(UserPrincipal user, Set<String> roleIds, Iterable<String> contextIds,
       Map<String, Boolean> resultByContextId)
   {
     for (String contextId : contextIds) {
       Boolean result = resultByContextId.get(contextId);
       if (result == null) {
-        result = isUserHavingAnyRoleInContext(username, roleIds, contextId);
+        result = isUserHavingAnyRoleInContext(user, roleIds, contextId);
         resultByContextId.put(contextId, result);
       }
       if (result) {
@@ -129,19 +130,22 @@ public class AuthorizationChecker
     return false;
   }
 
-  private boolean isUserHavingAnyRoleInContext(String username, Set<String> roleIds, String contextId) {
+  private boolean isUserHavingAnyRoleInContext(UserPrincipal user, Set<String> roleIds, String contextId) {
     Collection<MembershipMapping> memberships = membershipDAO.getByContextId(contextId);
     for (MembershipMapping membership : memberships) {
-      if (roleIds.contains(membership.getRoleId()) && isUserIncluded(membership, username)) {
+      if (roleIds.contains(membership.getRoleId()) && isUserIncluded(membership, user)) {
         return true;
       }
     }
     return false;
   }
 
-  private boolean isUserIncluded(MembershipMapping membership, String username) {
+  private boolean isUserIncluded(MembershipMapping membership, UserPrincipal user) {
     if (MemberType.USER.equals(membership.getMemberType())) {
-      return membership.getMemberName().equalsIgnoreCase(username);
+      return membership.getMemberName().equalsIgnoreCase(user.username);
+    }
+    if (MemberType.GROUP.equals(membership.getMemberType())) {
+      return user.membership.contains(membership.getMemberName());
     }
     return false;
   }

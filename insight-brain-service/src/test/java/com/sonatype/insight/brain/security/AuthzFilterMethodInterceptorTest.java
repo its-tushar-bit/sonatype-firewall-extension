@@ -13,6 +13,7 @@ import com.sonatype.insight.brain.TemporaryEntity;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.model.security.UserPrincipal;
 
 import org.apache.shiro.aop.MethodInvocation;
 import org.apache.shiro.subject.Subject;
@@ -80,9 +81,10 @@ public class AuthzFilterMethodInterceptorTest
     when(invoc.getMethod()).thenReturn(getClass().getMethod("stubOrgs"));
     when(invoc.getArguments()).thenReturn(new Object[0]);
     when(invoc.proceed()).thenReturn(entities);
-    when(subject.getPrincipal()).thenReturn("john");
+    UserPrincipal principal = new UserPrincipal("john", true);
+    when(subject.getPrincipal()).thenReturn(principal);
     when(
-        authzChecker.filterByPermission(eq("john"), eq(Permission.READ), eq(entities),
+        authzChecker.filterByPermission(eq(principal), eq(Permission.READ), eq(entities),
             eq(AuthzFilter.Context.ORGANIZATION))).thenReturn(Collections.EMPTY_LIST);
     assertThat((Collection<?>) interceptor.invoke(invoc), is(empty()));
   }
@@ -95,7 +97,7 @@ public class AuthzFilterMethodInterceptorTest
     when(invoc.getArguments()).thenReturn(new Object[0]);
     when(invoc.proceed()).thenReturn(entities);
     when(
-        authzChecker.filterByPermission(isNull(String.class), eq(Permission.READ), eq(entities),
+        authzChecker.filterByPermission(isNull(UserPrincipal.class), eq(Permission.READ), eq(entities),
             eq(AuthzFilter.Context.ORGANIZATION))).thenReturn(Collections.EMPTY_LIST);
     assertThat((Collection<?>) interceptor.invoke(invoc), is(empty()));
   }

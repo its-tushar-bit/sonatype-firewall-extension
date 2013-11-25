@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.security;
 import java.util.Map;
 
 import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.model.security.UserPrincipal;
 
 import org.apache.shiro.aop.MethodInvocation;
 import org.apache.shiro.authz.UnauthenticatedException;
@@ -101,9 +102,9 @@ public class AuthorizeMethodInterceptorTest
     when(invoc.getMethod()).thenReturn(getClass().getMethod("stubNoContext", String.class));
     when(invoc.getArguments()).thenReturn(new Object[] { "test" });
     when(invoc.proceed()).thenReturn("test");
-    when(authzChecker.isPermitted(anyString(), any(Permission.class), anyMapOf(AuthzContext.Key.class, Object.class)))
+    when(authzChecker.isPermitted(any(UserPrincipal.class), any(Permission.class), anyMapOf(AuthzContext.Key.class, Object.class)))
         .thenReturn(true);
-    when(subject.getPrincipal()).thenReturn("admin");
+    when(subject.getPrincipal()).thenReturn(adminPrincipal());
     assertThat(interceptor.invoke(invoc), is((Object) "test"));
   }
 
@@ -112,8 +113,8 @@ public class AuthorizeMethodInterceptorTest
     when(invoc.getMethod()).thenReturn(getClass().getMethod("stubNoContext", String.class));
     when(invoc.getArguments()).thenReturn(new Object[] { "test" });
     when(invoc.proceed()).thenReturn("test");
-    when(authzChecker.isPermitted(anyString(), any(Permission.class), anyListOf(String.class))).thenReturn(false);
-    when(subject.getPrincipal()).thenReturn("admin");
+    when(authzChecker.isPermitted(any(UserPrincipal.class), any(Permission.class), anyListOf(String.class))).thenReturn(false);
+    when(subject.getPrincipal()).thenReturn(adminPrincipal());
     try {
       interceptor.invoke(invoc);
       fail("Should have thrown UnauthorizedException");
@@ -128,8 +129,8 @@ public class AuthorizeMethodInterceptorTest
     when(invoc.getMethod()).thenReturn(getClass().getMethod("stubErrorMessage", Boolean.TYPE));
     when(invoc.getArguments()).thenReturn(new Object[] { Boolean.TRUE });
     when(invoc.proceed()).thenReturn("test");
-    when(authzChecker.isPermitted(anyString(), any(Permission.class), anyListOf(String.class))).thenReturn(false);
-    when(subject.getPrincipal()).thenReturn("admin");
+    when(authzChecker.isPermitted(any(UserPrincipal.class), any(Permission.class), anyListOf(String.class))).thenReturn(false);
+    when(subject.getPrincipal()).thenReturn(adminPrincipal());
     assertThat(interceptor.invoke(invoc), is((Object) "Insufficient permissions"));
 
     when(invoc.getArguments()).thenReturn(new Object[] { Boolean.FALSE });
@@ -147,8 +148,8 @@ public class AuthorizeMethodInterceptorTest
     when(invoc.getMethod()).thenReturn(getClass().getMethod("stubErrorMessage"));
     when(invoc.getArguments()).thenReturn(new Object[] {});
     when(invoc.proceed()).thenReturn("test");
-    when(authzChecker.isPermitted(anyString(), any(Permission.class), anyListOf(String.class))).thenReturn(false);
-    when(subject.getPrincipal()).thenReturn("admin");
+    when(authzChecker.isPermitted(any(UserPrincipal.class), any(Permission.class), anyListOf(String.class))).thenReturn(false);
+    when(subject.getPrincipal()).thenReturn(adminPrincipal());
     assertThat(interceptor.invoke(invoc), is((Object) "Insufficient permissions"));
   }
 
@@ -156,7 +157,7 @@ public class AuthorizeMethodInterceptorTest
   public void testInvoke_NoPrincipal() throws Throwable {
     when(invoc.getMethod()).thenReturn(getClass().getMethod("stubNoContext", String.class));
     when(invoc.getArguments()).thenReturn(new Object[] { "test" });
-    when(authzChecker.isPermitted(anyString(), any(Permission.class), anyListOf(String.class))).thenReturn(true);
+    when(authzChecker.isPermitted(any(UserPrincipal.class), any(Permission.class), anyListOf(String.class))).thenReturn(true);
     try {
       interceptor.invoke(invoc);
       fail("Should have thrown UnauthenticatedException");
@@ -164,5 +165,9 @@ public class AuthorizeMethodInterceptorTest
     catch (UnauthenticatedException e) {
       assertThat(e.getMessage(), is("Anonymous access forbidden"));
     }
+  }
+
+  private UserPrincipal adminPrincipal() {
+    return new UserPrincipal("admin", true);
   }
 }

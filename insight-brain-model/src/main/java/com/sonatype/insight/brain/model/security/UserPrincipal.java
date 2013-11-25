@@ -5,15 +5,27 @@
  */
 package com.sonatype.insight.brain.model.security;
 
+import java.util.Collections;
+import java.util.Set;
+
 public class UserPrincipal
 {
   public final String username;
 
   public final boolean clmUser;
 
+  public final Set<String> membership;
+
   public UserPrincipal(String username, boolean clmUser) {
     this.username = username;
     this.clmUser = clmUser;
+    this.membership = Collections.emptySet();
+  }
+
+  public UserPrincipal(String username, boolean clmUser, Set<String> membership) {
+    this.username = username;
+    this.clmUser = clmUser;
+    this.membership = membership != null ? membership : Collections.<String>emptySet();
   }
 
   @Override
@@ -21,6 +33,9 @@ public class UserPrincipal
     return this.username;
   }
 
+  /**
+   * Membership not considered in hashcode to allow UserPrincipal to be created without having to look up Membership
+   */
   @Override
   public int hashCode() {
     final int prime = 31;
@@ -30,6 +45,9 @@ public class UserPrincipal
     return result;
   }
 
+  /**
+   * Membership not considered in comparison to allow UserPrincipal to be created without having to look up Membership
+   */
   @Override
   public boolean equals(Object obj) {
     if (this == obj)

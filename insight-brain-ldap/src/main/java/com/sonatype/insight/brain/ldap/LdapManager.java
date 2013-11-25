@@ -112,7 +112,7 @@ public class LdapManager
    * @throws NamingException if there is a problem with the mapping or the credentials
    */
   public void testUserLogin(LdapUserMapping umap, String username, char[] password) throws NamingException {
-    new LdapQuery(getDecryptedConnection(), umap).authenticateUser(username, password);
+    new LdapQuery(getDecryptedConnection(), umap).authenticateUser(username, password, false);
   }
 
   /**
@@ -208,7 +208,7 @@ public class LdapManager
    * 
    * @see LdapRealm#queryForAuthenticationInfo
    */
-  public void authenticateUser(String username, char[] password) throws NamingException {
+  public LdapUser authenticateUser(String username, char[] password) throws NamingException {
     LdapConnection conn = getDecryptedConnection();
     LdapUserMapping umap = userDao.getByServerId(conn.getServerId());
     if (umap == null) {
@@ -216,8 +216,9 @@ public class LdapManager
     }
     checkValidConnection(conn);
     try {
-      new LdapQuery(conn, umap).authenticateUser(username, password);
+      LdapUser user = new LdapQuery(conn, umap).authenticateUser(username, password, true);
       resetConnectionFailures();
+      return user;
     }
     catch (NameNotFoundException e) {
       throw e; // unknown user

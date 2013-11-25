@@ -18,6 +18,7 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.model.security.UserPrincipal;
 import com.sonatype.insight.brain.model.trending.TrendingReport;
 import com.sonatype.insight.brain.model.trending.TrendingReportGenerationMetadata;
 import com.sonatype.insight.brain.security.AuthorizationChecker;
@@ -67,9 +68,9 @@ public class TrendingReportResource
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   public TrendingReport get(@QueryParam("force") boolean force) throws IOException {
-    final String username = SecurityUtils.getSubject().getPrincipal().toString();
+    final UserPrincipal user = (UserPrincipal)SecurityUtils.getSubject().getPrincipal();
 
-    final boolean isAdmin = authChecker.isPermitted(username, Permission.ADMIN,
+    final boolean isAdmin = authChecker.isPermitted(user, Permission.ADMIN,
         Collections.<AuthzContext.Key, Object> emptyMap());
 
     if (!isAdmin && force) {

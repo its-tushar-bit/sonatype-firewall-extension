@@ -9,6 +9,8 @@ import java.lang.annotation.Annotation;
 import java.util.EnumMap;
 import java.util.Map;
 
+import com.sonatype.insight.brain.model.security.UserPrincipal;
+
 import org.apache.shiro.aop.AnnotationMethodInterceptor;
 import org.apache.shiro.aop.AnnotationResolver;
 import org.apache.shiro.aop.MethodInvocation;
@@ -95,8 +97,8 @@ class AuthorizeMethodInterceptor
     if (principal == null) {
       throw new UnauthenticatedException("Anonymous access forbidden", newAuthzException(mi));
     }
-    String username = principal.toString();
-    if (!authzChecker.isPermitted(username, anno.permission(), getContextParameters(mi))) {
+    UserPrincipal user = (UserPrincipal)principal;
+    if (!authzChecker.isPermitted(user, anno.permission(), getContextParameters(mi))) {
       throw new UnauthorizedException("Insufficient permissions", newAuthzException(mi));
     }
   }

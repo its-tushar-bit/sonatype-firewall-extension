@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.security;
 
+import com.sonatype.insight.brain.model.security.UserPrincipal;
+
 import org.apache.shiro.aop.AnnotationMethodInterceptor;
 import org.apache.shiro.aop.AnnotationResolver;
 import org.apache.shiro.aop.MethodInvocation;
@@ -46,8 +48,8 @@ class AuthzFilterMethodInterceptor
       AuthzFilter anno = getAnnotation(mi);
       if (anno != null) {
         Object principal = getSubject().getPrincipal();
-        String username = (principal != null) ? principal.toString() : null;
-        result = authzChecker.filterByPermission(username, anno.permission(), result, anno.context());
+        UserPrincipal user = (UserPrincipal)((principal != null) ? principal : null);
+        result = authzChecker.filterByPermission(user, anno.permission(), result, anno.context());
       }
     }
     return result;

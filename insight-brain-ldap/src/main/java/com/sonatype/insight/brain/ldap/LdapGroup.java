@@ -5,6 +5,10 @@
  */
 package com.sonatype.insight.brain.ldap;
 
+import java.util.Objects;
+
+import org.apache.commons.lang.StringUtils;
+
 /**
  * Group details populated from LDAP.
  *
@@ -41,5 +45,22 @@ public class LdapGroup
     buf.append("\n\tDN: ").append(dn);
 
     return buf.toString();
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof LdapGroup)) {
+      return false;
+    }
+    LdapGroup group = (LdapGroup)o;
+    return StringUtils.equals(group.getGroupname(), groupname) && StringUtils.equals(group.getDn(), dn);
+  }
+
+  @Override
+  public int hashCode() {
+    return 31 * Objects.hashCode(groupname) + Objects.hashCode(dn);
   }
 }

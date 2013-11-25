@@ -326,7 +326,7 @@ public class LdapManagerTest
   }
 
   @Test
-  public void testGetGroups() throws Exception {
+  public void testGetStaticGroups() throws Exception {
     startLdapServer();
 
     LdapConnection conn = createLdapConnection();
@@ -353,6 +353,30 @@ public class LdapManagerTest
   }
 
   @Test
+  public void testGetDynamicGroups() throws Exception {
+    startLdapServer();
+
+    LdapConnection conn = createLdapConnection();
+    conn.setSearchBase("dc=company,dc=com");
+    manager.saveConnection(conn);
+
+    LdapUserMappingDAO userMappingDAO = new LdapUserMappingDAO();
+    LdapUserMapping umap = createUserMapping();
+    umap.setGroupMappingType(LdapGroupMappingType.DYNAMIC);
+    umap.setUserMemberOfGroupAttribute("departmentNumber");
+    userMappingDAO.insert(umap);
+
+    List<LdapGroup> groups = manager.getGroups(new String[]{"testUsers", "primaryUsers", "secondaryUsers"}, 100);
+    assertThat(groups.size(), is(3));
+
+    groups = manager.getGroups(new String[]{"testUsers", "primaryUsers", "secondaryUsers"}, 1);
+    assertThat(groups.size(), is(1));
+
+    groups = manager.getGroups(new String[]{"foo"}, 100);
+    assertThat(groups.size(), is(0));
+  }
+
+  @Test
   public void testFindUserByName() throws Exception {
     startLdapServer();
 
@@ -369,7 +393,7 @@ public class LdapManagerTest
   }
 
   @Test
-  public void testFindGroupsByName() throws Exception {
+  public void testFindStaticGroupsByName() throws Exception {
     startLdapServer();
 
     LdapConnection conn = createLdapConnection();
@@ -394,6 +418,30 @@ public class LdapManagerTest
     // Test max results
     groups = manager.findGroupsByName("a", 2);
     assertThat(groups.size(), is(2));
+
+    groups = manager.findGroupsByName("Foo", 100);
+    assertThat(groups.size(), is(0));
+  }
+
+  @Test
+  public void testFindDynamicGroupsByName() throws Exception {
+    startLdapServer();
+
+    LdapConnection conn = createLdapConnection();
+    conn.setSearchBase("dc=company,dc=com");
+    manager.saveConnection(conn);
+
+    LdapUserMappingDAO userMappingDAO = new LdapUserMappingDAO();
+    LdapUserMapping umap = createUserMapping();
+    umap.setGroupMappingType(LdapGroupMappingType.DYNAMIC);
+    umap.setUserMemberOfGroupAttribute("departmentNumber");
+    userMappingDAO.insert(umap);
+
+    List<LdapGroup> groups = manager.findGroupsByName("Users", 100);
+    assertThat(groups.size(), is(3));
+
+    groups = manager.findGroupsByName("Users", 1);
+    assertThat(groups.size(), is(1));
 
     groups = manager.findGroupsByName("Foo", 100);
     assertThat(groups.size(), is(0));

@@ -44,16 +44,18 @@ public class CLMShiroModule
     bind(FilterChainManager.class).to(DefaultFilterChainManager.class);
     DefaultFilterChainManager manager = new DefaultFilterChainManager();
     addTemporaryAnonymousPaths(manager);
-    manager.createChain("/*assets/**", "anon");
-    manager.createChain("/favicon.ico", "anon");
-    manager.createChain("/crumbIssuer/**", "anon");
-    manager.createChain("/rest/ide/asset/**", "anon");
-    manager.createChain("/rest/ide/brain/**", "anon");
-    manager.createChain("/rest/report/*/*/embedReport/**", "anon");
-    manager.createChain("/rest/report/*/*/brain/**", "anon");
-    manager.createChain("/rest/session/environment", "anon");
-    manager.createChain("/rest/version", "anon");
-    manager.createChain("/ui/links/**", "anon");
+    manager.createChain("/*assets/**", "anon"); // asserts for the web interface
+    manager.createChain("/cip/**", "anon"); // assets for report CIP
+    manager.createChain("/favicon.ico", "anon"); // favicon for web interface
+    manager.createChain("/crumbIssuer/**", "anon"); // Hudson integration
+    manager.createChain("/rest/ide/asset/**", "anon"); // assets for the IDE CIP and details view
+    manager.createChain("/rest/ide/brain/**", "anon"); // only redirects
+    manager.createChain("/rest/report/*/*/embedReport/**", "anon"); // backward-compat with non-authenticating clients
+    manager.createChain("/rest/report/*/*/brain/**", "anon"); // only redirects
+    manager.createChain("/rest/session/environment", "anon"); // client environment gathering
+    manager.createChain("/rest/version", "anon"); // product version info
+    manager.createChain("/tasks/**", "anon"); // DW tasks exposed on admin port
+    manager.createChain("/ui/links/**", "anon"); // only redirects
     manager.createChain("/**/*", "authcBasic");
     //change the auth type so browsers dont prompt for login details
     BasicHttpAuthenticationFilter.class.cast(manager.getFilter("authcBasic")).setAuthcScheme("nonBrowserPromptingBasic");
@@ -63,6 +65,7 @@ public class CLMShiroModule
     bindRealm().to(LdapRealm.class);
   }
   
+  // to be removed once all clients use authentication
   private void addTemporaryAnonymousPaths( DefaultFilterChainManager manager ) {
     manager.createChain("/rest/application/services/names", "anon");
     manager.createChain("/rest/application/validate/*", "anon");
@@ -71,8 +74,6 @@ public class CLMShiroModule
     manager.createChain("/rest/ci/validate/*", "anon");
     manager.createChain("/rest/ci/scan/*", "anon");
     manager.createChain("/rest/rm/**", "anon");
-    manager.createChain("/cip/**", "anon");
-    manager.createChain("/tasks/**", "anon");
   }
 
   @Override

@@ -105,6 +105,10 @@
           return baseUrl.get() + '/rest/policy/' + getServicePathWithId() + '/import';
         },
 
+        getIeImportPolicyUrl : function () {
+          return this.getImportPolicyUrl() + '/ie';
+        },
+
         isApplication: isApplication
       };
     }

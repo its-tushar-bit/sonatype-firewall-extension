@@ -97,6 +97,7 @@ describe('PolicyController tests', function() {
   });
 
   it('handles owner changes', inject(function($httpBackend, CLMAppLocations) {
+    $httpBackend.expectGET(SpecUtil.toRegExp(CLMAppLocations.getPolicyUrl())).respond(PolicyMockData.getPolicyData());
     $httpBackend.expectGET(SpecUtil.toRegExp(CLMAppLocations.getApplicablePolicies())).respond(ApplicationMockData.getApplicablePolicies());
     scope.$broadcast('ownerChanged', {
       ownerId : ApplicationMockData.getApplicablePolicies().policiesByOwner[0].ownerId,

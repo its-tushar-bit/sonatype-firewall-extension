@@ -424,56 +424,6 @@
     }
   ]);
 
-  applicationModule.controller('ImportPolicyController', ['$scope', '$http', '$timeout', 'Messages', 'CLMAppLocations', function ($scope, $http, $timeout, messages, clmAppLocations) {
-    function fileCheck() {
-      if (!fileElement) {
-        fileElement =  angular.element('form[name=importPolicy] input[type=file]')[0];
-      }
-      $scope.btnDisabled = fileElement.files.length === 0;
-
-      if (!$scope.$$destroyed) {
-        $timeout(fileCheck, 100);
-      }
-    }
-    var fileElement = null;
-
-    $scope.btnDisabled = true;
-
-    $timeout(fileCheck, 100);
-
-    $scope.doSubmit = function () {
-      if (window.FileReader) {
-        // TODO disable button
-        $scope.error = null;
-        $scope.requestActive = true;
-        var reader = new FileReader();
-        reader.onloadend = function (event) {
-          $http.put(clmAppLocations.getImportPolicyUrl(), reader.result, {
-            headers : {
-              'Content-Type' : 'application/json'
-            }
-          }).success(function (data) {
-            $scope.$close(data);
-          }).error(function () {
-            $scope.error = messages.getHttpErrorMessage(arguments);
-            $scope.requestActive = false;
-          });
-        };
-        reader.onerror = function () {
-          console.log(arguments);
-        };
-        reader.readAsBinaryString(fileElement.files[0]);
-        $timeout(function () {
-          console.log(reader.readyState)
-        }, 5000);
-      } else {
-        // TODO disable button
-        // submit form
-        form.submit();
-      }
-    };
-  }]);
-
   applicationModule.service('ApplicationId', [
     'commonCodeFactory', '$state', function(commonCodeFactory, $state) {
       // TODO Are ui-router parameters encoded or decoded?

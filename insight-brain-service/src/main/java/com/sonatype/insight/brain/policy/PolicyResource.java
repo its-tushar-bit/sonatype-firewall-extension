@@ -37,12 +37,16 @@ import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
+import com.sonatype.insight.brain.security.AuthzErrorMsg;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.client.utils.AuditUtils;
+import com.sonatype.insight.error.ErrorResponseGenerator;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.json.store.JsonUtils;
 
+import com.sun.jersey.core.header.FormDataContentDisposition;
+import com.sun.jersey.multipart.FormDataParam;
 import org.codehaus.plexus.util.IOUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -63,6 +67,8 @@ public class PolicyResource
   private final InsightWork work;
 
   private final PolicyImporter policyImporter;
+
+  private ErrorResponseGenerator errorResponseGenerator = new ErrorResponseGenerator(false);
 
   @Inject
   public PolicyResource(InsightWork work, PolicyImporter policyImporter) {
@@ -213,7 +219,35 @@ public class PolicyResource
       @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId,
       @Context HttpServletRequest servletRequest) throws IOException
   {
-    PolicyExportResult exportDTO = readPolicyExportResult(servletRequest.getInputStream());
+    return importPolicies(ownerType, ownerId, servletRequest.getInputStream());
+  }
+
+  @POST
+  @Path("import/ie")
+  @Consumes(MediaType.MULTIPART_FORM_DATA)
+  @Authorize(permission = Permission.WRITE)
+  @AuthzErrorMsg
+  public String importPolicies(
+      @AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") final String ownerType,
+      @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId,
+      @FormDataParam("file") InputStream uploadedInputStream,
+      @FormDataParam("file") FormDataContentDisposition fileDetail) throws IOException
+  {
+
+    String errorMessage = "";
+    try {
+      importPolicies(ownerType, ownerId, uploadedInputStream);
+    }
+    catch (Exception e) {
+      log.error(e.getMessage(), e);
+      errorMessage = errorResponseGenerator.mapException(e).getMessageBody();
+    }
+
+    return errorMessage;
+  }
+
+  private PolicyImportResult importPolicies(String ownerType, String ownerId, InputStream in) throws IOException {
+    PolicyExportResult exportDTO = readPolicyExportResult(in);
 
     String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
 
@@ -221,6 +255,7 @@ public class PolicyResource
       return policyImporter.importOrganization(new OrganizationDAO().getByIdNotNull(internalOwnerId), exportDTO);
     }
     return policyImporter.importApplication(new ApplicationDAO().getByIdNotNull(internalOwnerId), exportDTO);
+
   }
 
   private PolicyExportResult readPolicyExportResult(InputStream stream) throws IOException {

@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.policy;
 
 import java.util.Collections;
 
+import com.sonatype.insight.brain.AuthedRestAccess;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.policy.Condition;
@@ -18,10 +19,18 @@ import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.service.AbstractResourceAuthzTest;
 import com.sonatype.insight.brain.utils.IdUtils;
+import com.sonatype.insight.test.RestAccess;
 
+import com.ning.http.client.AsyncHttpClient;
+import com.ning.http.client.Response;
+import com.ning.http.multipart.ByteArrayPartSource;
+import com.ning.http.multipart.FilePart;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertThat;
 
 public class PolicyResourceAuthzTest
     extends AbstractResourceAuthzTest
@@ -166,5 +175,35 @@ public class PolicyResourceAuthzTest
 
     String url = getRestUrl(PolicyResource.SERVICE_PATH + "/import", IdUtils.TYPE_ORGANIZATION, org.getId());
     testAuthzPut(url, toJson(export));
+  }
+
+  @Test
+  public void testImportPolicies_IE9() throws Exception {
+    Role role = tempEntity.newRole(false, Permission.WRITE);
+    tempEntity.newMembershipMapping(org.getId(), role.getId(), authorized.getUsername());
+
+    PolicyExportResult export = new PolicyExportResult();
+    export.labels = Collections.emptyList();
+    export.licenseThreatGroups = Collections.emptyList();
+    export.licenseThreatGroupLicenses = Collections.emptyList();
+    export.policies = Collections.emptyList();
+    new ApplicationDAO().delete(app);
+
+    String url = getRestUrl(PolicyResource.SERVICE_PATH + "/import/ie", IdUtils.TYPE_ORGANIZATION, org.getId());
+
+    byte[] policyArray = toJson(export).getBytes();
+    AsyncHttpClient.BoundRequestBuilder builder = AuthedRestAccess.getClient().preparePost(url);
+    builder.addBodyPart(new FilePart("file", new ByteArrayPartSource("file", policyArray)));
+    RestAccess.addAuthorization(builder, unauthorized.getUsername(), unauthorized.getPassword());
+    Response response = builder.execute().get();
+    assertResponseStatus(200, response);
+    assertThat(response.getResponseBody(), is("Insufficient permissions"));
+
+    builder = AuthedRestAccess.getClient().preparePost(url);
+    builder.addBodyPart(new FilePart("file", new ByteArrayPartSource("file", policyArray)));
+    RestAccess.addAuthorization(builder, authorized.getUsername(), authorized.getPassword());
+    response = builder.execute().get();
+    assertResponseStatus(200, response);
+    assertThat(response.getResponseBody(), is(""));
   }
 }

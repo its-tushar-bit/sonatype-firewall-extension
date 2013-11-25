@@ -11,7 +11,80 @@
   function wrap($http, method, args, clmLocations) {
   }
 
-  angular.module('EditorTools', []).service('editorTools',
+  var module = angular.module('EditorTools', ['CommonServices', 'CLMAppLocation']);
+
+  module.controller('ImportPolicyController', ['$scope', '$http', '$timeout', '$window', 'Messages', 'CLMAppLocations', function ($scope, $http, $timeout, $window, messages, clmAppLocations) {
+    function fileCheck() {
+      if (!fileElement) {
+        fileElement =  angular.element('form[name=importPolicy] input[type=file]')[0];
+      }
+      $scope.btnDisabled = fileElement.files !== undefined && fileElement.files.length === 0;
+
+      if (!$scope.$$destroyed) {
+        $timeout(fileCheck, 100);
+      }
+    }
+    function setError(message) {
+      $scope.requestActive = false;
+      $scope.error = message;
+    }
+    var fileElement = null;
+
+    $scope.btnDisabled = true;
+    $scope.importPolicyUrl = clmAppLocations.getIeImportPolicyUrl();
+
+    $timeout(fileCheck, 100);
+
+    $scope.doSubmit = function () {
+      $scope.requestActive = true;
+      $scope.error = null;
+
+      if ($window.FileReader) {
+        var reader = new $window.FileReader();
+
+        reader.onload = function (event) {
+          $http.put(clmAppLocations.getImportPolicyUrl(), reader.result, {
+            headers : {
+              'Content-Type' : 'application/json'
+            }
+          }).success(function (data) {
+            $scope.$close(data);
+          }).error(function () {
+            setError(messages.getHttpErrorMessage(arguments));
+          });
+        };
+
+        reader.onerror = function (e, filename) {
+          setError(reader.error.message);
+        };
+
+        try {
+          reader.readAsText(fileElement.files[0]);
+        } catch (err) {
+          // FF throws an exception in some instances
+          setError(err.message);
+        }
+      } else {
+        // IE9 case, trigger ng-upload
+        $('form[name=importPolicy]').find('input[type=submit]').trigger('click');
+      }
+    };
+
+    // Handler for ng-upload progress
+    $scope.uploaded = function (content, complete) {
+      if (complete) {
+        $scope.requestActive = false;
+        if (content.length === 0) {
+          // success
+          $scope.$close();
+        } else {
+          $scope.error = content;
+        }
+      }
+    };
+  }]);
+
+  module.service('editorTools',
       function($parse, $q, $timeout, regexFactory, hudson, CLMAppLocations) {
         function EditorController($scope, idSelector, hiddenId, form) {
           var defer, me = this;

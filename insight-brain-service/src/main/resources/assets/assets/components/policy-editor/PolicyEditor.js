@@ -202,10 +202,10 @@
         // local reference for updating/adding notification actions
         var actions = $scope.policy.actions[stage.id] || [];
 
+        // extract the emails for notification action types
         var addresses = [];
         for (var i = 0; i < actions.length; i++) {
-          if (actions[i].actionTypeId == 'notify') {
-            // extract the emails for notification action types
+          if (actions[i].actionTypeId === 'notify') {
             addresses.push(actions[i].target);
           }
         }
@@ -230,7 +230,7 @@
                 // loop in reverse to avoid missing items when splice reindexes the array, causing the counter to be off if done in a normal for loop
                 var i = actions.length;
                 while (i--) {
-                  if (actions[i].actionTypeId == 'notify') {
+                  if (actions[i].actionTypeId === 'notify') {
                     actions.splice(i,1);
                   }
                 }
@@ -273,7 +273,7 @@
         var addresses = [];
         var actions = $scope.policy.actions[stage.id] || [];
         for (var i = 0; i < actions.length; i++) {
-          if (actions[i].actionTypeId == 'notify') {
+          if (actions[i].actionTypeId === 'notify') {
             addresses.push(actions[i].target);
           }
         }

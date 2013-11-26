@@ -20,6 +20,7 @@ import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.label.Label;
@@ -28,6 +29,7 @@ import com.sonatype.insight.brain.model.license.LicenseThreatGroupLicense;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.conditions.LabelConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.LicenseThreatGroupConditionType;
 import com.sonatype.insight.brain.service.BaseUrl;
@@ -59,6 +61,8 @@ public class PolicyImporterImpl
 
   private LabelDAO labelDAO = new LabelDAO();
 
+  private PolicyWaiverDAO policyWaiverDAO = new PolicyWaiverDAO();
+
   private final InsightWork work;
 
   private final BaseUrl baseUrl;
@@ -80,6 +84,7 @@ public class PolicyImporterImpl
       em.getTransaction().begin();
 
       deleteLicenseThreatGroups(em, appId, null);
+      deletePolicyWaivers(em, appId, null);
       importAndMergeLabels(em, exportDTO, labelDAO.getByOwnerId(em, appId), appId, orgId);
       importLicenseThreatGroups(em, exportDTO, appId);
 
@@ -107,6 +112,7 @@ public class PolicyImporterImpl
       em.getTransaction().begin();
 
       deleteFromOwnedApplications(em, orgId);
+      deletePolicyWaivers(em, orgId, null);
       deleteLicenseThreatGroups(em, orgId, null);
       importAndMergeLabels(em, exportDTO, labelDAO.getByOwnerId(em, orgId), null, orgId);
       importLicenseThreatGroups(em, exportDTO, orgId);
@@ -138,6 +144,7 @@ public class PolicyImporterImpl
   private void deleteFromOwnedApplications(EntityManager em, String orgId){
     for (Application application : applicationDAO.getByOrganizationId(em, orgId)) {
       deleteLicenseThreatGroups(em, application.getId(), orgId);
+      deletePolicyWaivers(em, application.getId(), orgId);
       for (Label label : labelDAO.getByOwnerId(em, application.getId(), false)) {
         log.debug("Deleting application label: {} from: {} during import of organization: {}", label.getLabel(),
             application.getName(), orgId);
@@ -155,6 +162,17 @@ public class PolicyImporterImpl
       log.debug("Deleting licenseThreatGroup: {} during import for ownerId: {}", licenseThreatGroup.getName(),
           orgId != null ? orgId : ownerId);
       licenseThreatGroupDAO.delete(em, licenseThreatGroup);
+    }
+  }
+
+  /**
+   * Delete all PolicyWaivers from the specified owner.
+   */
+  private void deletePolicyWaivers(EntityManager em, String ownerId, final String orgId) {
+    for (PolicyWaiver policyWaiver : policyWaiverDAO.getByOwnerId(ownerId)) {
+      log.debug("Deleting policyWaiver: {} during import for ownerId: {}", policyWaiver.getId(),
+          orgId != null ? orgId : ownerId);
+      policyWaiverDAO.delete(em, policyWaiver);
     }
   }
 
@@ -264,11 +282,6 @@ public class PolicyImporterImpl
     }
     return null;
   }
-
-  private void deletePolicyWaivers(EntityManager em, String appId) {
-
-  }
-
 
   private PolicyDAO policyDAO() {
     return new PolicyDAO(work.getWorkDir());

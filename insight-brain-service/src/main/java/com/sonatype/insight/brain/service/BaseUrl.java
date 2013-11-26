@@ -30,7 +30,10 @@ public class BaseUrl
     this.uriInfo = null; // set via reflection by Jersey's dependency injection
   }
 
-  BaseUrl(final InsightConfig appConfig, final UriInfo uriInfo) {
+  /**
+   * public for testing only
+   */
+  public BaseUrl(final InsightConfig appConfig, final UriInfo uriInfo) {
     this.appConfig = appConfig;
     this.uriInfo = uriInfo;
   }

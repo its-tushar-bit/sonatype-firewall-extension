@@ -6,12 +6,17 @@
 
 package com.sonatype.insight.brain.policy;
 
+import java.net.URI;
+import java.util.Collections;
 import java.util.List;
 
 import javax.persistence.EntityManager;
+import javax.ws.rs.core.UriInfo;
 
 import com.sonatype.insight.brain.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.label.Color;
@@ -30,11 +35,16 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * @since 1.7
@@ -47,17 +57,24 @@ public class PolicyImporterTest
   @Rule
   public TemporaryEntity tempEntity = new TemporaryEntity();
 
+  @Mock
+  private UriInfo uriInfo;
+
   private PolicyImporterImpl policyImporter;
 
   private Organization fromOrg;
 
   private Application fromApp;
 
+  private InsightConfig insightConfig;
+
   @Before
   public void setUp() {
-    InsightConfig insightConfig = new InsightConfig();
+    MockitoAnnotations.initMocks(this);
+    insightConfig = new InsightConfig();
+    insightConfig.setBaseUrl("base");
     insightConfig.setSonatypeWork(temporaryFolder.getRoot().getAbsolutePath());
-    policyImporter = new PolicyImporterImpl(new InsightWork(insightConfig), new BaseUrl(insightConfig));
+    policyImporter = new PolicyImporterImpl(new InsightWork(insightConfig), new BaseUrl(insightConfig, uriInfo));
     fromOrg = tempEntity.newOrganization();
     fromApp = tempEntity.newApplication(fromOrg.getId());
   }
@@ -157,10 +174,73 @@ public class PolicyImporterTest
     assertThat(exportDTO.policies.get(1).getConstraints().get(0).getConditions().get(0).getValue(), is(orgLabel.getId()));
   }
 
+  @Test
+  public void testDeletionOfPolicyWaiversFromApp(){
+    Organization toOrg = tempEntity.newOrganization();
+    Application toApp = tempEntity.newApplication(toOrg.getId());
+    Label appLabel = tempEntity.newLabel(toApp.getId(), Color.black);
+    Policy appPolicy = policyDAO().insert(toApp.getId(), createPolicies(toApp.getId(), appLabel.getId()).get(0));
+    tempEntity.newWaiver("hash", toApp.getId(), appPolicy.getId());
+    PolicyWaiverDAO policyWaiverDAO = new PolicyWaiverDAO();
+    EntityManager em = policyWaiverDAO.createEntityManager();
+    when(uriInfo.getRequestUri()).thenReturn(URI.create("whatever"));
+
+    try {
+      em.getTransaction().begin();
+      //only interested in the deletion so import an empty DTO
+      policyImporter.importApplication(toApp, emptyExportDTO());
+      em.getTransaction().commit();
+    }
+    finally {
+      PolicyWaiverDAO.close(em);
+    }
+
+    verify(uriInfo).getRequestUri();
+    assertThat(policyWaiverDAO.getByOwnerId(toApp.getId()), is(empty()));
+  }
+
+  @Test
+  public void testDeletionOfPolicyWaiversFromOrg(){
+    Organization toOrg = tempEntity.newOrganization();
+    Application toApp = tempEntity.newApplication(toOrg.getId());
+    Label orgLabel = tempEntity.newLabel(toOrg.getId(), Color.black);
+    Label appLabel = tempEntity.newLabel(toApp.getId(), Color.black);
+    Policy orgPolicy = policyDAO().insert(toOrg.getId(), createPolicies(toOrg.getId(), orgLabel.getId()).get(0));
+    Policy appPolicy = policyDAO().insert(toApp.getId(), createPolicies(toApp.getId(), appLabel.getId()).get(0));
+    tempEntity.newWaiver("hash", toOrg.getId(), orgPolicy.getId());
+    tempEntity.newWaiver("hash", toApp.getId(), appPolicy.getId());
+    PolicyWaiverDAO policyWaiverDAO = new PolicyWaiverDAO();
+    EntityManager em = policyWaiverDAO.createEntityManager();
+    when(uriInfo.getRequestUri()).thenReturn(URI.create("whatever"));
+
+    try {
+      em.getTransaction().begin();
+      //only interested in the deletion so import an empty DTO
+      policyImporter.importOrganization(toOrg, emptyExportDTO());
+      em.getTransaction().commit();
+    }
+    finally {
+      PolicyWaiverDAO.close(em);
+    }
+
+    verify(uriInfo).getRequestUri();
+    assertThat(policyWaiverDAO.getByOwnerId(toOrg.getId()), is(empty()));
+    assertThat(policyWaiverDAO.getByOwnerId(toApp.getId()), is(empty()));
+  }
+
+  private PolicyExportResult emptyExportDTO() {
+    PolicyExportResult policyExportResult = new PolicyExportResult();
+    policyExportResult.licenseThreatGroups = Collections.emptyList();
+    policyExportResult.licenseThreatGroupLicenses = Collections.emptyList();
+    policyExportResult.labels = Collections.emptyList();
+    policyExportResult.policies = Collections.emptyList();
+    return policyExportResult;
+  }
+
   private List<Policy> createPolicies(String ownerId, String labelId) {
     Policy policy = new Policy(ownerId, ownerId);
     Constraint constraint = new Constraint(ownerId, ownerId, LogicalOperator.AND);
-    constraint.addCondition(new Condition(LabelConditionType.ID, "", labelId));
+    constraint.addCondition(new Condition(LabelConditionType.ID, "is", labelId));
     policy.addConstraint(constraint);
     return Lists.newArrayList(policy);
   }
@@ -171,5 +251,9 @@ public class PolicyImporterTest
     Label label2 = new Label(ownerId, "LABEL2", Color.blue);
     label2.setId("label2");
     return Lists.newArrayList(label1, label2);
+  }
+
+  private PolicyDAO policyDAO() {
+    return new PolicyDAO(insightConfig.getSonatypeWork());
   }
 }

@@ -10,6 +10,7 @@ import java.util.List;
 
 import javax.persistence.EntityManager;
 
+import com.sonatype.insight.brain.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
@@ -25,144 +26,134 @@ import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightWork;
 
 import com.google.common.collect.Lists;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
-import org.mockito.MockitoAnnotations;
-import org.mockito.MockitoAnnotations.Mock;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.when;
 
 /**
  * @since 1.7
  */
 public class PolicyImporterTest
 {
-
-  public static final String TEST_ORG = "testOrg";
-
-  public static final String TEST_APP = "testApp";
-
   @Rule
   public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
-  @Mock
-  private LabelDAO labelDAO;
-
-  @Mock
-  private EntityManager entityManager;
-
-  @Captor
-  private ArgumentCaptor<Label> newLabel;
+  @Rule
+  public TemporaryEntity tempEntity = new TemporaryEntity();
 
   private PolicyImporterImpl policyImporter;
 
-  private Organization org;
+  private Organization fromOrg;
 
-  private Application app;
+  private Application fromApp;
 
   @Before
   public void setUp() {
-    MockitoAnnotations.initMocks(this);
     InsightConfig insightConfig = new InsightConfig();
     insightConfig.setSonatypeWork(temporaryFolder.getRoot().getAbsolutePath());
     policyImporter = new PolicyImporterImpl(new InsightWork(insightConfig), new BaseUrl(insightConfig));
-    policyImporter.setLabelDAO(labelDAO);
-    org = new Organization(TEST_ORG);
-    org.setId(TEST_ORG);
-    app = new Application(TEST_APP, TEST_APP, org.getId());
-    app.setId(TEST_APP);
-  }
-
-  @After
-  public void after() {
-    verifyNoMoreInteractions(labelDAO, entityManager);
+    fromOrg = tempEntity.newOrganization();
+    fromApp = tempEntity.newApplication(fromOrg.getId());
   }
 
   @Test
   public void testImportAndMergeLabelsForOrg() {
     PolicyExportResult exportDTO = new PolicyExportResult();
-    exportDTO.labels = createLabels(TEST_ORG);
-    for (Label label : exportDTO.labels) {
-      label.setId(TEST_ORG);
-    }
-    exportDTO.policies = createPolicies(TEST_ORG, exportDTO.labels.get(0).getId());
+    exportDTO.labels = createLabels(fromOrg.getId());
+    exportDTO.policies = createPolicies(fromOrg.getId(), exportDTO.labels.get(0).getId());
 
-    Label oldLabelToUpdate = new Label("whoCares?", exportDTO.labels.get(0).getLabel().toLowerCase(), Color.white);
+    Organization toOrg = tempEntity.newOrganization();
+
+    LabelDAO labelDAO = new LabelDAO();
+    Label oldLabelToUpdate = new Label(toOrg.getId(), exportDTO.labels.get(0).getLabel().toLowerCase(), Color.white);
     oldLabelToUpdate.setDescription("anything");
     oldLabelToUpdate.setId("label1Old");
+    labelDAO.insert(oldLabelToUpdate);
 
-    Label oldLabelToDelete = new Label("deleteMe", "deleteMe", Color.red);
-    oldLabelToDelete.setId("deleteMe");
+    Label oldLabelToDelete = new Label(toOrg.getId(), "deleteMe", Color.red);
+    labelDAO.insert(oldLabelToDelete);
     List<Label> oldLabels = Lists.newArrayList(oldLabelToUpdate, oldLabelToDelete);
 
-    policyImporter.importAndMergeLabels(entityManager, exportDTO, oldLabels, null, org.getId());
+    EntityManager em = labelDAO.createEntityManager();
+    try {
+      em.getTransaction().begin();
+      policyImporter.importAndMergeLabels(em, exportDTO, oldLabels, null, toOrg.getId());
+      em.getTransaction().commit();
+    }
+    finally {
+      LabelDAO.close(em);
+    }
 
-    verify(labelDAO).update(entityManager, oldLabelToUpdate);
-    verify(labelDAO).insert(eq(entityManager), newLabel.capture());
-    verify(labelDAO).delete(entityManager, oldLabelToDelete);
+    List<Label> labels = labelDAO.getByOwnerId(toOrg.getId());
+    assertThat(labels, hasSize(2));
+    Label oldlabel = labels.get(0);
+    assertThat(oldlabel.getColor(), is(Color.black)); // updated
+    assertThat(oldlabel.getLabel(), is("LABEL1")); // updated from the lowercase version
+    assertThat(oldlabel.getId(), is("label1Old")); // id remains the same
+    assertThat(oldlabel.getDescription(), nullValue()); // existing description is removed
 
-    assertThat(oldLabelToUpdate.getColor(), is(Color.black));  // updated
-    assertThat(oldLabelToUpdate.getLabel(), is("LABEL1"));     // updated from the lowercase version
-    assertThat(oldLabelToUpdate.getId(), is("label1Old"));     // id remains the same
-    assertThat(oldLabelToUpdate.getDescription(), nullValue()); // existing description is removed
+    Label newLabel = labels.get(1);
+    assertThat(newLabel.getColor(), is(Color.blue));
+    assertThat(newLabel.getLabel(), is("LABEL2"));
 
-    assertThat(newLabel.getValue().getOwnerId(), is(org.getId()));
-    assertThat(newLabel.getValue().getLabel(), is(exportDTO.labels.get(1).getLabel()));
-
-    assertThat(exportDTO.policies.get(0).getConstraints().get(0).getConditions().get(0).getValue(), nullValue());
+    assertThat(exportDTO.policies.get(0).getConstraints().get(0).getConditions().get(0).getValue(), is("label1Old"));
   }
 
   @Test
   public void testImportAndMergeLabelsForApp() {
     PolicyExportResult exportDTO = new PolicyExportResult();
-    exportDTO.labels = createLabels(TEST_APP);
-    for (Label label : exportDTO.labels) {
-      label.setId(TEST_APP);
-    }
+    exportDTO.labels = createLabels(fromApp.getId());
 
-    exportDTO.policies = createPolicies(TEST_APP, exportDTO.labels.get(0).getId());
-    exportDTO.policies.addAll(createPolicies(TEST_APP, "orgLabelId")); // add policy referring to an org label
+    exportDTO.policies = createPolicies(fromApp.getId(), exportDTO.labels.get(0).getId());
+    exportDTO.policies.addAll(createPolicies(fromApp.getId(), "orgLabelId")); // add policy referring to an org label
 
-    Label orgLabel = new Label("orgLabel", "orgLabel", Color.black);
+    Organization toOrg = tempEntity.newOrganization();
+    Application toApp = tempEntity.newApplication(toOrg.getId());
+
+    LabelDAO labelDAO = new LabelDAO();
+    Label orgLabel = new Label(toOrg.getId(), "orgLabel", Color.black);
     orgLabel.setId("orgLabelId");
+    labelDAO.insert(orgLabel);
 
-    Label oldLabelToUpdate = new Label("whoCares?", exportDTO.labels.get(0).getLabel().toLowerCase(), Color.white);
+    Label oldLabelToUpdate = new Label(toApp.getId(), exportDTO.labels.get(0).getLabel().toLowerCase(), Color.white);
     oldLabelToUpdate.setDescription("anything");
     oldLabelToUpdate.setId("label1Old");
+    labelDAO.insert(oldLabelToUpdate);
 
-    Label oldLabelToDelete = new Label("deleteMe", "deleteMe", Color.red);
-    oldLabelToDelete.setId("deleteMe");
+    Label oldLabelToDelete = new Label(toApp.getId(), "deleteMe", Color.red);
+    labelDAO.insert(oldLabelToDelete);
     List<Label> oldLabels = Lists.newArrayList(oldLabelToUpdate, oldLabelToDelete);
 
-    when(labelDAO.getByOwnerId(entityManager, app.getOrganizationId())).thenReturn(Lists.newArrayList(orgLabel));
+    EntityManager em = labelDAO.createEntityManager();
+    try {
+      em.getTransaction().begin();
+      policyImporter.importAndMergeLabels(em, exportDTO, oldLabels, toApp.getId(), toOrg.getId());
+      em.getTransaction().commit();
+    }
+    finally {
+      LabelDAO.close(em);
+    }
 
-    policyImporter.importAndMergeLabels(entityManager, exportDTO, oldLabels, app.getId(), org.getId());
+    List<Label> labels = labelDAO.getByOwnerId(toApp.getId());
+    assertThat(labels, hasSize(2));
+    Label oldlabel = labels.get(0);
 
-    verify(labelDAO).getByOwnerId(entityManager, app.getOrganizationId());
-    verify(labelDAO).update(entityManager, oldLabelToUpdate);
-    verify(labelDAO).insert(eq(entityManager), newLabel.capture());
-    verify(labelDAO).delete(entityManager, oldLabelToDelete);
+    assertThat(oldlabel.getColor(), is(Color.black)); // updated
+    assertThat(oldlabel.getLabel(), is("LABEL1")); // updated from the lowercase version
+    assertThat(oldlabel.getId(), is("label1Old")); // id remains the same
+    assertThat(oldlabel.getDescription(), nullValue()); // existing description is removed
 
-    assertThat(oldLabelToUpdate.getColor(), is(Color.black));  // updated
-    assertThat(oldLabelToUpdate.getLabel(), is("LABEL1"));     // updated from the lowercase version
-    assertThat(oldLabelToUpdate.getId(), is("label1Old"));     // id remains the same
-    assertThat(oldLabelToUpdate.getDescription(), nullValue()); // existing description is removed
+    Label newLabel = labels.get(1);
+    assertThat(newLabel.getColor(), is(Color.blue));
+    assertThat(newLabel.getLabel(), is("LABEL2"));
 
-    assertThat(newLabel.getValue().getOwnerId(), is(app.getId()));
-    assertThat(newLabel.getValue().getLabel(), is(exportDTO.labels.get(1).getLabel()));
-
-    assertThat(exportDTO.policies.get(0).getConstraints().get(0).getConditions().get(0).getValue(), nullValue());
+    assertThat(exportDTO.policies.get(0).getConstraints().get(0).getConditions().get(0).getValue(), is("label1Old"));
     assertThat(exportDTO.policies.get(1).getConstraints().get(0).getConditions().get(0).getValue(), is(orgLabel.getId()));
   }
 

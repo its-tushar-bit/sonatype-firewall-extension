@@ -5,13 +5,11 @@
  */
 package com.sonatype.insight.brain.model.policy.actions;
 
-import java.util.List;
-
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.insight.brain.model.policy.ActionType;
 
 public class FailActionType
-    extends AbstractActionType
+    extends UntargetedActionType
     implements ActionType
 {
   public static final String ID = Action.ID_FAIL;
@@ -24,16 +22,6 @@ public class FailActionType
   @Override
   public String getName() {
     return "Fail";
-  }
-
-  @Override
-  public List<String> getAvailableTargets() {
-    return null;
-  }
-
-  @Override
-  public boolean isRequiresTarget() {
-    return false;
   }
 
   @Override

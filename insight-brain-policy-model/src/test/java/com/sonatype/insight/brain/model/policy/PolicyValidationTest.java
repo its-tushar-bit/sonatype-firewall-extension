@@ -244,11 +244,11 @@ public class PolicyValidationTest
       policy.addAction(BuildStageType.ID, action);
       ValidationResult result = policy.validate(applicationId);
       assertValidationResultHasErrors(result, "Policy 'Policy Name' has invalid actions:",
-          "Invalid action 'Notify': A valid email target is required");
+          "Invalid action 'Notify': A valid email address is required instead of: one@1.com,two@2.com");
   }
 
   @Test
-  public void testValidate_NotifyActionType() {
+  public void testValidate_NotifyActionTypeWithNullEmail() {
     Policy policy = new Policy("PolicyId", "Policy Name");
     Constraint constraint = new Constraint("Constraint Id", "Constraint Name", LogicalOperator.AND);
     constraint.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
@@ -257,7 +257,45 @@ public class PolicyValidationTest
     policy.addAction(BuildStageType.ID, action);
     ValidationResult result = policy.validate(applicationId);
     assertValidationResultHasErrors(result, "Policy 'Policy Name' has invalid actions:",
-        "Invalid action 'Notify': A target is required");
+        "Invalid action 'Notify': A valid email address is required");
+
+    // Fix the action and validate again
+    action.setTarget("tester@sonatype.com");
+    result = policy.validate(applicationId);
+    Assert.assertTrue(result.isValid());
+  }
+
+  @Test
+  public void testValidate_NotifyActionTypeWithEmptyEmail() {
+    Policy policy = new Policy("PolicyId", "Policy Name");
+    Constraint constraint = new Constraint("Constraint Id", "Constraint Name", LogicalOperator.AND);
+    constraint.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
+    policy.addConstraint(constraint);
+    Action action = new Action(NotifyActionType.ID);
+    action.setTarget("  ");
+    policy.addAction(BuildStageType.ID, action);
+    ValidationResult result = policy.validate(applicationId);
+    assertValidationResultHasErrors(result, "Policy 'Policy Name' has invalid actions:",
+        "Invalid action 'Notify': A valid email address is required");
+
+    // Fix the action and validate again
+    action.setTarget("tester@sonatype.com");
+    result = policy.validate(applicationId);
+    Assert.assertTrue(result.isValid());
+  }
+
+  @Test
+  public void testValidate_NotifyActionTypeWithInvalidEmail() {
+    Policy policy = new Policy("PolicyId", "Policy Name");
+    Constraint constraint = new Constraint("Constraint Id", "Constraint Name", LogicalOperator.AND);
+    constraint.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
+    policy.addConstraint(constraint);
+    Action action = new Action(NotifyActionType.ID);
+    action.setTarget("bad email address");
+    policy.addAction(BuildStageType.ID, action);
+    ValidationResult result = policy.validate(applicationId);
+    assertValidationResultHasErrors(result, "Policy 'Policy Name' has invalid actions:",
+        "Invalid action 'Notify': A valid email address is required instead of: bad email address");
 
     // Fix the action and validate again
     action.setTarget("tester@sonatype.com");

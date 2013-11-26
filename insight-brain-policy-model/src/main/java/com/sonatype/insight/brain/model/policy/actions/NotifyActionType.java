@@ -7,11 +7,13 @@ package com.sonatype.insight.brain.model.policy.actions;
 
 import java.util.List;
 
+import javax.mail.internet.InternetAddress;
+
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.insight.brain.model.policy.ActionType;
+import com.sonatype.insight.brain.model.policy.ValidationResult;
 
 public class NotifyActionType
-    extends AbstractActionType
     implements ActionType
 {
   public static final String ID = Action.ID_NOTIFY;
@@ -39,5 +41,26 @@ public class NotifyActionType
   @Override
   public String getSummary() {
     return "Notification Sent";
+  }
+
+  @Override
+  public ValidationResult validateAction(Action action) {
+    ValidationResult result = new ValidationResult();
+    String target = action.getTarget();
+    
+    if (target == null || target.trim().isEmpty()) {
+      result.addError("Invalid action '" + getName() + "': A valid email address is required");
+    }
+    else {
+      // validate email address
+      try {
+        new InternetAddress(target);
+      }
+      catch (Exception e) {
+        result.addError("Invalid action '" + getName() + "': A valid email address is required instead of: " + target);
+      }
+    }
+
+    return result;
   }
 }

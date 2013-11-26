@@ -5,26 +5,36 @@
  */
 package com.sonatype.insight.brain.model.policy.actions;
 
+import java.util.List;
+
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.insight.brain.model.policy.ActionType;
 import com.sonatype.insight.brain.model.policy.ValidationResult;
 
-abstract class AbstractActionType
+/**
+ * An {@link ActionType} that does not support targets.
+ * 
+ * @since 1.7
+ */
+abstract class UntargetedActionType
     implements ActionType
 {
+  @Override
+  public boolean isRequiresTarget() {
+    return false;
+  }
+
+  @Override
+  public List<String> getAvailableTargets() {
+    return null;
+  }
+
   @Override
   public ValidationResult validateAction(Action action) {
     ValidationResult result = new ValidationResult();
     
-    if (isRequiresTarget()) {
-      if (action.getTarget() == null || action.getTarget().trim().isEmpty()) {
-        result.addError("Invalid action '" + getName() + "': A target is required");
-      }
-    }
-    else {
-      if (action.getTarget() != null) {
-        result.addError("Invalid action '" + getName() + "': This action does not support targets");
-      }
+    if (action.getTarget() != null) {
+      result.addError("Invalid action '" + getName() + "': This action does not support targets");
     }
 
     return result;

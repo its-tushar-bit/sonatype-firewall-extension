@@ -5,11 +5,11 @@
 (function() {
   var groupings = [{
     type: 'GROUP',
-    header: 'Groups',
+    header: 'GROUPS',
     icon: 'group'
   },{
     type: 'USER',
-    header: 'Users',
+    header: 'USERS',
     icon: 'user'
   }];
   var showGroupings = function(grouping, mappings) {

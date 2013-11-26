@@ -12,8 +12,8 @@
 .glyphicons-sonatype.small:before {
   font-size: 10px;
   padding-right: 10px;
-  vertical-align: -5%;
   color: #909090;
+  padding-left: 2px;
 }
 
 .glyphicons-sonatype.user:before {

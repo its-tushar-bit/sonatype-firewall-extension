@@ -16,6 +16,7 @@ import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.model.policy.actions.ActionTypes;
+import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -173,10 +174,16 @@ public class Policy
     if (actions != null) {
       ValidationResult actionResult = new ValidationResult();
       for (String stageTypeId : actions.keySet()) {
+
+        StageType stageType = StageTypes.getById(stageTypeId);
+        if (stageType == null) {
+          actionResult.addError("Invalid stage type id: '" + stageTypeId + "'");
+        }
+        
         for (Action action : actions.get(stageTypeId)) {
           ActionType actionType = ActionTypes.getById(action.getActionTypeId());
-          
-          if(actionType == null) {
+
+          if (actionType == null) {
             actionResult.addError("Invalid action type id: '" + action.getActionTypeId() + "'");
           }
           else {

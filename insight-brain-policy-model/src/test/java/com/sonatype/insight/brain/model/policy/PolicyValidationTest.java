@@ -5,12 +5,17 @@
  */
 package com.sonatype.insight.brain.model.policy;
 
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.model.policy.actions.NotifyActionType;
 import com.sonatype.insight.brain.model.policy.actions.WarnActionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityConditionType;
+import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 
 import org.apache.commons.lang.StringUtils;
 import org.junit.Assert;
@@ -187,13 +192,37 @@ public class PolicyValidationTest
   }
 
   @Test
+  public void testValidate_UnknownStageType() {
+    Policy policy = new Policy("PolicyId", "Policy Name");
+    Constraint constraint = new Constraint("Constraint Id", "Constraint Name", LogicalOperator.AND);
+    constraint.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
+    policy.addConstraint(constraint);
+    
+    Action action = new Action(FailActionType.ID);
+    HashMap<String, List<Action>> invalidStage = new HashMap<String, List<Action>>();
+    invalidStage.put("unknown stage type", Arrays.asList(action));
+    policy.setActions(invalidStage);
+
+    ValidationResult result = policy.validate(applicationId);
+    assertValidationResultHasErrors(result, "Policy 'Policy Name' has invalid actions:",
+        "Invalid stage type id: 'unknown stage type'");
+
+    // Fix the stage and validate again
+    HashMap<String, List<Action>> validStage = new HashMap<String, List<Action>>();
+    validStage.put(BuildStageType.ID, Arrays.asList(action));
+    policy.setActions(validStage);
+    result = policy.validate(applicationId);
+    Assert.assertTrue(result.isValid());
+  }
+  
+  @Test
   public void testValidate_UnknownActionType() {
     Policy policy = new Policy("PolicyId", "Policy Name");
     Constraint constraint = new Constraint("Constraint Id", "Constraint Name", LogicalOperator.AND);
     constraint.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
     policy.addConstraint(constraint);
     Action action = new Action("unknown action type");
-    policy.addAction("any stage", action);
+    policy.addAction(BuildStageType.ID, action);
     ValidationResult result = policy.validate(applicationId);
     assertValidationResultHasErrors(result, "Policy 'Policy Name' has invalid actions:",
         "Invalid action type id: 'unknown action type'");
@@ -204,15 +233,30 @@ public class PolicyValidationTest
     Assert.assertTrue(result.isValid());
   }
 
+  @Test
+  public void testValidate_NotifyActionTypeWithBrain1_6ConcatenatedAddresses() {
+      Policy policy = new Policy("PolicyId", "Policy Name");
+      Constraint constraint = new Constraint("Constraint Id", "Constraint Name", LogicalOperator.AND);
+      constraint.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
+      policy.addConstraint(constraint);
+      Action action = new Action(NotifyActionType.ID);
+      action.setTarget("one@1.com,two@2.com");
+      policy.addAction(BuildStageType.ID, action);
+      ValidationResult result = policy.validate(applicationId);
+      assertValidationResultHasErrors(result, "Policy 'Policy Name' has invalid actions:",
+          "Invalid action 'Notify': A valid email target is required");
+  }
+
+  @Test
   public void testValidate_NotifyActionType() {
     Policy policy = new Policy("PolicyId", "Policy Name");
     Constraint constraint = new Constraint("Constraint Id", "Constraint Name", LogicalOperator.AND);
     constraint.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
     policy.addConstraint(constraint);
     Action action = new Action(NotifyActionType.ID);
-    policy.addAction(FailActionType.ID, action);
+    policy.addAction(BuildStageType.ID, action);
     ValidationResult result = policy.validate(applicationId);
-    assertValidationResult(result, "Policy 'Policy Name' has invalid actions:",
+    assertValidationResultHasErrors(result, "Policy 'Policy Name' has invalid actions:",
         "Invalid action 'Notify': A target is required");
 
     // Fix the action and validate again
@@ -229,7 +273,7 @@ public class PolicyValidationTest
     policy.addConstraint(constraint);
     Action action = new Action(FailActionType.ID);
     action.setTarget("abc");
-    policy.addAction(FailActionType.ID, action);
+    policy.addAction(BuildStageType.ID, action);
     ValidationResult result = policy.validate(applicationId);
     assertValidationResultHasErrors(result, "Policy 'Policy Name' has invalid actions:",
         "Invalid action 'Fail': This action does not support targets");
@@ -248,7 +292,7 @@ public class PolicyValidationTest
     policy.addConstraint(constraint);
     Action action = new Action(WarnActionType.ID);
     action.setTarget("abc");
-    policy.addAction(FailActionType.ID, action);
+    policy.addAction(BuildStageType.ID, action);
     ValidationResult result = policy.validate(applicationId);
     assertValidationResultHasErrors(result, "Policy 'Policy Name' has invalid actions:",
         "Invalid action 'Warn': This action does not support targets");

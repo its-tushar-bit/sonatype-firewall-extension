@@ -121,6 +121,8 @@
           $modal.open({
             templateUrl: 'reset-password-modal',
             scope: $scope,
+            backdrop: 'static',
+            keyboard : false,
             controller: ['$scope', function(scope) {
               scope.state = 'ready';
               scope.user = user;
@@ -264,7 +266,7 @@
   //when user clicks on it
   module.directive('selectText', ['$timeout', function ($timeout) {
     return function (scope, element, attrs) {
-      element.bind('click', function () {
+      element.bind('focus', function () {
         this.select();
       });
     };

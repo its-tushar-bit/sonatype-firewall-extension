@@ -157,21 +157,25 @@ describe('UserModuleSpec.js', function() {
       id: 'test-id'
     });
     
+    expect(dialogScope.state).toEqual('ready');
+    
     $httpBackend.expectPUT(CLMLocations.getUserUrl() + '/test-id/reset').respond({
       newPassword: '1234567890ab'
     });
     
     dialogScope.resetClick();
+    expect(dialogScope.state).toEqual('pending');
     $httpBackend.flush();
     
     expect(dialogScope.newPassword).toEqual('1234567890ab');
-
+    expect(dialogScope.state).toEqual('complete');
     // server failure
     $httpBackend.expectPUT(CLMLocations.getUserUrl() + '/test-id/reset').respond(500, 'Error resetting');
     dialogScope.resetClick();
     $httpBackend.flush();
     
     expect(dialogScope.error).toEqual('Error resetting');
+    expect(dialogScope.state).toEqual('failed');
   }));
 
   it('add user', inject(function($rootScope, $httpBackend, CLMLocations) {

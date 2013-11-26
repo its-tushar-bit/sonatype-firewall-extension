@@ -34,7 +34,7 @@
 		<div class="modal-body">
 			<span style="margin-right:10px;">The new password is</span>
 			<span style="margin-bottom:0px;" class="input-append">
-				<input id="generatedPassword" style="height:22px;" type="text" ng-model="newPassword" select-text/>
+				<input id="generatedPassword" style="height:22px;cursor:auto;" type="text" ng-model="newPassword" readonly select-text focus-input="state == 'complete'"/>
 				<button ng-show="flashInstalled()" title="Copy to clipboard" style="height:32px;width:32px;" class="btn" type="button" zero-clipboard="generatedPassword">
 					<i class="glyphicons-sonatype clipboard">&nbsp;</i>
 				</button>
@@ -44,7 +44,7 @@
 			<button class="btn btn-primary" ng-click="okClick()">OK</button>
 		</div>	
 	</div>
-	<div ng-switch-when="error">
+	<div ng-switch-when="failed">
 		<div class="modal-body">
 			<span>{{error}}</span>
 		</div>

@@ -101,7 +101,6 @@ public class PolicyImporterTest
     Label oldLabelToUpdate = new Label("whoCares?", exportDTO.labels.get(0).getLabel().toLowerCase(), Color.white);
     oldLabelToUpdate.setDescription("anything");
     oldLabelToUpdate.setId("label1Old");
-    oldLabelToUpdate.setColor(Color.white);
 
     Label oldLabelToDelete = new Label("deleteMe", "deleteMe", Color.red);
     oldLabelToDelete.setId("deleteMe");
@@ -141,7 +140,6 @@ public class PolicyImporterTest
     Label oldLabelToUpdate = new Label("whoCares?", exportDTO.labels.get(0).getLabel().toLowerCase(), Color.white);
     oldLabelToUpdate.setDescription("anything");
     oldLabelToUpdate.setId("label1Old");
-    oldLabelToUpdate.setColor(Color.white);
 
     Label oldLabelToDelete = new Label("deleteMe", "deleteMe", Color.red);
     oldLabelToDelete.setId("deleteMe");

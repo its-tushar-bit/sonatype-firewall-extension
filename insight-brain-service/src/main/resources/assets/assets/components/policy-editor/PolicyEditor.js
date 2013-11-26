@@ -199,7 +199,7 @@
       };
 
       $scope.editNotification = function(stage) {
-        // local copy for updating/adding notification actions
+        // local reference for updating/adding notification actions
         var actions = $scope.policy.actions[stage.id] || [];
 
         var addresses = [];

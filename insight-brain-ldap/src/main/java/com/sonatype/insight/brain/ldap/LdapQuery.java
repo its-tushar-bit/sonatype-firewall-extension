@@ -502,7 +502,7 @@ class LdapQuery
     return ldapGroups;
   }
 
-  private LdapGroup createGroup(SearchResult result, String groupname) throws NamingException {
+  private LdapGroup createGroup(SearchResult result, String groupname) {
     LdapGroup group = new LdapGroup();
     group.setDn(result.getNameInNamespace());
     group.setGroupname(groupname);
@@ -513,12 +513,9 @@ class LdapQuery
   /**
    * Search ldap server for all users, based upon the supplied attributes
    * 
-   * @param ctx
    * @param attributeValues list of attribute values that will be passed to ldap to perform the query
    * @param attributes list of attributes that we are requesting ldap to send back to us for each user
    * @param maxResults limit the number of results returned
-   * @return
-   * @throws NamingException
    */
   private NamingEnumeration<SearchResult> searchUsersByAttributes(LdapContext ctx, Multimap<String, String> attributeValues,
       String[] attributes, long maxResults) throws NamingException

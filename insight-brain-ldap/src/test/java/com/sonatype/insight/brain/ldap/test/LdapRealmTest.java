@@ -8,11 +8,7 @@ package com.sonatype.insight.brain.ldap.test;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.Iterator;
-import java.util.Set;
-
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.configuration.ldap.LdapAuthenticationMethod;

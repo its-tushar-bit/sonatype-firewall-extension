@@ -522,7 +522,7 @@ public class PolicyResourceTest
     LicenseThreatGroup ltg = createDetachedLTG(importId);
     ltg.setId(id());
     policyExportResult.licenseThreatGroups.add(ltg);
-    LicenseThreatGroupLicense ltgl = createDetachedTGL(importId, ltg.getId());
+    LicenseThreatGroupLicense ltgl = createDetachedLTGL(importId, ltg.getId());
     ltgl.setId(id());
     policyExportResult.licenseThreatGroupLicenses.add(ltgl);
     //label uses same name as existing and will be updated, not deleted. Preserves existing component label
@@ -630,7 +630,7 @@ public class PolicyResourceTest
     return licenseThreatGroup;
   }
 
-  private LicenseThreatGroupLicense createDetachedTGL(String ownerId, String ltgid) {
+  private LicenseThreatGroupLicense createDetachedLTGL(String ownerId, String ltgid) {
     LicenseThreatGroupLicense ltgl = new LicenseThreatGroupLicense();
     ltgl.setLicenseId("UNKNOWN");
     ltgl.setLicenseThreatGroupId(ltgid);

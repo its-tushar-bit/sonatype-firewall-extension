@@ -40,7 +40,7 @@ import org.mockito.MockitoAnnotations.Mock;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
-import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
@@ -112,7 +112,7 @@ public class PolicyImporterTest
     policyImporter.importAndMergeLabels(entityManager, exportDTO, oldLabels, null, org.getId());
 
     verify(labelDAO).update(entityManager, oldLabelToUpdate);
-    verify(labelDAO).insert(any(EntityManager.class), newLabel.capture());
+    verify(labelDAO).insert(eq(entityManager), newLabel.capture());
     verify(labelDAO).delete(entityManager, oldLabelToDelete);
 
     assertThat(oldLabelToUpdate.getColor(), is(Color.black));  // updated
@@ -155,7 +155,7 @@ public class PolicyImporterTest
 
     verify(labelDAO).getByOwnerId(entityManager, app.getOrganizationId());
     verify(labelDAO).update(entityManager, oldLabelToUpdate);
-    verify(labelDAO).insert(any(EntityManager.class), newLabel.capture());
+    verify(labelDAO).insert(eq(entityManager), newLabel.capture());
     verify(labelDAO).delete(entityManager, oldLabelToDelete);
 
     assertThat(oldLabelToUpdate.getColor(), is(Color.black));  // updated

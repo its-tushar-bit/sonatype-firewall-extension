@@ -6,8 +6,6 @@
 
 package com.sonatype.insight.brain.policy;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import javax.persistence.EntityManager;
@@ -107,7 +105,7 @@ public class PolicyImporterTest
 
     Label oldLabelToDelete = new Label("deleteMe", "deleteMe", Color.red);
     oldLabelToDelete.setId("deleteMe");
-    List<Label> oldLabels = new ArrayList<>(Arrays.asList(oldLabelToUpdate, oldLabelToDelete));
+    List<Label> oldLabels = Lists.newArrayList(oldLabelToUpdate, oldLabelToDelete);
 
     policyImporter.importAndMergeLabels(entityManager, exportDTO, oldLabels, null, org.getId());
 
@@ -147,7 +145,7 @@ public class PolicyImporterTest
 
     Label oldLabelToDelete = new Label("deleteMe", "deleteMe", Color.red);
     oldLabelToDelete.setId("deleteMe");
-    List<Label> oldLabels = new ArrayList<>(Arrays.asList(oldLabelToUpdate, oldLabelToDelete));
+    List<Label> oldLabels = Lists.newArrayList(oldLabelToUpdate, oldLabelToDelete);
 
     when(labelDAO.getByOwnerId(entityManager, app.getOrganizationId())).thenReturn(Lists.newArrayList(orgLabel));
 

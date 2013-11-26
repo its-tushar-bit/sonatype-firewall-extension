@@ -139,8 +139,8 @@ public class PolicyImporterImpl
     for (Application application : applicationDAO.getByOrganizationId(em, orgId)) {
       deleteLicenseThreatGroups(em, application.getId(), orgId);
       for (Label label : labelDAO.getByOwnerId(em, application.getId(), false)) {
-        log.debug("Deleting application labels from: {} during import of organization: {}", application.getName(),
-            orgId);
+        log.debug("Deleting application label: {} from: {} during import of organization: {}", label.getLabel(),
+            application.getName(), orgId);
         labelDAO.delete(em, label);
       }
     }
@@ -264,6 +264,11 @@ public class PolicyImporterImpl
     }
     return null;
   }
+
+  private void deletePolicyWaivers(EntityManager em, String appId) {
+
+  }
+
 
   private PolicyDAO policyDAO() {
     return new PolicyDAO(work.getWorkDir());

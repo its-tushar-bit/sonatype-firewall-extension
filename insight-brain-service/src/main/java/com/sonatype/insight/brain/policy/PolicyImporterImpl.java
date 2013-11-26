@@ -282,9 +282,4 @@ public class PolicyImporterImpl
     result.url = uriBuilder.build().toString();
     return result;
   }
-
-  /** available only to facilitate testing **/
-  void setLabelDAO(final LabelDAO labelDAO) {
-    this.labelDAO = labelDAO;
-  }
 }

@@ -175,7 +175,13 @@ public class Policy
       for (String stageTypeId : actions.keySet()) {
         for (Action action : actions.get(stageTypeId)) {
           ActionType actionType = ActionTypes.getById(action.getActionTypeId());
-          actionResult.merge(actionType.validateAction(action));
+          
+          if(actionType == null) {
+            actionResult.addError("Invalid action type id: '" + action.getActionTypeId() + "'");
+          }
+          else {
+            actionResult.merge(actionType.validateAction(action));
+          }
         }
       }
       if (!actionResult.isValid()) {

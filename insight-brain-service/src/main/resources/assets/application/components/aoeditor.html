@@ -103,7 +103,7 @@
 								onchange='angular.element(this).scope().fileChanged(this)' />
 						<input type='submit' upload-submit='iconUploadComplete(content, completed)' ng-show='false' />
 						<a ng-click='generateIcon()'>Want a robot?</a>
-						<input name='{{ao.type}}Id' value='{{ao.getPublicId()}}' type='hidden'/>
+						<input name='{{ao.type}}Id' value='{{ao.getId()}}' type='hidden'/>
 						<input name='hasRobotSource' ng-model='hasRobotSource' type='hidden'/>
 						<input name='robotHash' ng-model='robotHash' type='hidden'/>
 					</form>
@@ -164,16 +164,16 @@
 		<div ng-if='ao.selected.id' style='clear:both'>
 			<ul class='tri-pane'>
 				<li ng-class='{ active : isCurrentTab("policies") || isCurrentTab("policies.edit") }'>
-					<a ng-href='#/management/{{ao.type}}/{{ao.getId()}}/policies'>POLICIES</a>
+					<a ng-href='#/management/{{ao.type}}/{{ao.getPublicId()}}/policies'>POLICIES</a>
 				</li>
 				<li ng-class='{ active : isCurrentTab("labels")}'>
-					<a ng-href='#/management/{{ao.type}}/{{ao.getId()}}/labels'>LABELS</a>
+					<a ng-href='#/management/{{ao.type}}/{{ao.getPublicId()}}/labels'>LABELS</a>
 				</li>
 				<li ng-class='{ active : isCurrentTab("licenses")}'>
-					<a ng-href='#/management/{{ao.type}}/{{ao.getId()}}/licenses'>LICENSES</a>
+					<a ng-href='#/management/{{ao.type}}/{{ao.getPublicId()}}/licenses'>LICENSES</a>
 				</li>
 				<li ng-class='{ active : isCurrentTab("security")}'>
-					<a ng-href='#/management/{{ao.type}}/{{ao.getId()}}/security'>SECURITY</a>
+					<a ng-href='#/management/{{ao.type}}/{{ao.getPublicId()}}/security'>SECURITY</a>
 				</li>
 			</ul>
 			<div ui-view></div>

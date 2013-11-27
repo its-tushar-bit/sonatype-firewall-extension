@@ -171,8 +171,11 @@
               type : 'application',
               selected : selectedApplication,
               siblings : $scope.applications,
-              getId : function () {
+              getPublicId : function () {
                 return selectedApplication.publicId;
+              },
+              getId : function () {
+                return selectedApplication.id;
               }
             };
 

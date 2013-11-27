@@ -159,6 +159,9 @@
           type : 'organization',
           selected : $scope.selectedOrganization,
           siblings : $scope.organizations,
+          getPublicId : function () {
+            return $scope.selectedOrganization.id;
+          },
           getId : function () {
             return $scope.selectedOrganization.id;
           }

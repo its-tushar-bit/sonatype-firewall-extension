@@ -36,6 +36,7 @@ import com.sonatype.insight.brain.dataaccess.component.HashGAVDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
+import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
 import com.sonatype.insight.brain.license.LicenseOverrideResource;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.HashGAV;
@@ -440,7 +441,7 @@ public class ReportResourceTest
     assertResponseStatus(200, response);
 
     String content = response.getResponseBody();
-    assertTrue(content.contains(getRestBaseUrl() + ReportResource.getReportPath(appPublicId, scanId)));
+    assertTrue(content.contains(getRestUrl(UserInterfaceLinksResource.SERVICE_PATH + "/" + UserInterfaceLinksResource.REPORT_PATH, appPublicId, scanId)));
     assertEquals("Thu, 01 Jan 1970 00:00:00 GMT", response.getHeader("Expires"));
   }
 

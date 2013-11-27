@@ -35,6 +35,7 @@ import javax.ws.rs.core.UriBuilder;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
+import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
@@ -111,14 +112,18 @@ public class ReportResource
       @Context final HttpServletRequest httpRequest)
   {
     if ("index.html".equals(path) || path.isEmpty()) {
-      StringBuilder sb = new StringBuilder(
-          "<html><body style='font: 12px Verdana, Helvetica'>Your Sonatype CLM server has been updated and the <a target='_blank' href='");
       UriBuilder uriBuilder = baseUrl.redirect();
-      uriBuilder.path(getReportPath(applicationPublicId, scanId));
-
-      sb.append(uriBuilder.build(applicationPublicId, scanId));
-      sb.append("'>report</a> has been moved.</body></hml>");
-
+      uriBuilder.path(UserInterfaceLinksResource.SERVICE_PATH + "/" + UserInterfaceLinksResource.REPORT_PATH);
+      
+      StringBuilder sb = new StringBuilder();
+      sb.append("<html>");
+      sb.append("<body style='font: 12px Verdana, Helvetica;margin-top:50px;'>");
+      sb.append("<h1>This report has moved</h1>");
+      sb.append("<p>Your Sonatype CLM Server was updated, causing the report formerly at this location to be moved ");
+      sb.append("<a target='_blank' href='" + uriBuilder.build(applicationPublicId, scanId) + "'>here</a></p>");
+      sb.append("</body>");
+      sb.append("</html>");
+      
       final ResponseBuilder response = Response.ok(sb.toString());
       response.type(MediaTypeUtils.byName("index.html"));
       response.expires(new Date(0));

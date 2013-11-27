@@ -118,13 +118,10 @@ if(options.g && selectedConfig != configs.activeDirectory){
 Browser browser = new Browser(baseUrl: options.s ?: 'http://localhost:8070/')
 browser.getDriver().manage().window().maximize()
 Browser.drive(browser) {
-  to LoginPage
-  loginAsAdmin()
-  waitFor { at ReportViolationsPage }
 
+  to ReportPage
+  login.loginAsAdmin()
   to LDAPConfigurationPage
-
-  waitFor { at LDAPConfigurationPage }
 
   // delete any existing ldap configuration
   if (delete?.present && delete.displayed) {

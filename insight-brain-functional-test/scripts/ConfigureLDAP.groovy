@@ -80,7 +80,13 @@ def configs = [
         objectClass: 'person',
         userIdAttribute: 'uid',
         realNameAttribute: 'cn',
-        emailAttribute: 'mail'
+        emailAttribute: 'mail',
+        groupBaseDN: 'ou=group',
+        groupObjectClass: 'groupOfUniqueNames',
+        groupIDAttribute:'cn',
+        groupMemberAttribute:'uniqueMember',
+        groupMemberFormat:'${dn}',
+        memberOfAttribute: 'memberOf'
     ]]
 
 def selectedConfig = options.d ? configs.apacheDS : configs.activeDirectory
@@ -110,9 +116,6 @@ if (options.m) {
       selectedConfig.password = 'T3stU5er2' //for whatever reason the password is different here
       break
   }
-}
-if(options.g && selectedConfig != configs.activeDirectory){
-  throw new IllegalStateException("ApacheDS isn't configured with groups")
 }
 
 Browser browser = new Browser(baseUrl: options.s ?: 'http://localhost:8070/')

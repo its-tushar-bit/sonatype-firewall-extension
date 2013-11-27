@@ -1,0 +1,120 @@
+/*
+ * Copyright (c) 2011-2013 Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.testing.functional;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.service.InsightBrainService;
+import com.sonatype.insight.brain.service.InsightConfig;
+
+import com.google.common.base.Function;
+import com.google.common.io.Resources;
+import com.sun.jersey.core.util.Base64;
+import com.yammer.dropwizard.testing.junit.DropwizardServiceRule;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.ContentType;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Assert;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.rules.TestRule;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.firefox.FirefoxDriver;
+import org.openqa.selenium.support.FindBy;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
+
+public abstract class AbstractFunctionalTest
+{
+  @ClassRule
+  public static TestRule startServiceRule = new DropwizardServiceRule<InsightConfig>(InsightBrainService.class,
+      Resources.getResource("config-test.yml").getPath());
+
+  protected static WebDriver driver;
+
+  private List<Application> appsToRemove;
+
+  @BeforeClass
+  public static void boot() {
+    driver = new FirefoxDriver();
+  }
+
+  @AfterClass
+  public static void shutdown() {
+    driver.close();
+  }
+
+  @After
+  public final void after() {
+    ApplicationDAO applicationDAO = new ApplicationDAO();
+    if (appsToRemove != null) {
+      for (Application app : appsToRemove) {
+        applicationDAO.delete(app);
+      }
+    }
+  }
+
+  protected Application createApplication(String appId, String name) {
+    ApplicationDAO applicationDAO = new ApplicationDAO();
+    Application app = new Application(appId, name, null);
+    applicationDAO.insert(app);
+    if (appsToRemove == null) {
+      appsToRemove = new ArrayList<Application>();
+    }
+    appsToRemove.add(app);
+    return app;
+  }
+
+  protected static void wait(int time, Function<WebDriver, ?> isTrue) {
+    new WebDriverWait(driver, time).until(isTrue);
+  }
+
+  protected static String getUrl() {
+    return "http://localhost:" + getConfig().getHttpConfiguration().getPort() + "/";
+  }
+
+  @SuppressWarnings("unchecked")
+  protected static InsightConfig getConfig() {
+    return ((DropwizardServiceRule<InsightConfig>) startServiceRule).getConfiguration();
+  }
+
+  protected static void post(String url, String content, String user, String pass) throws Exception {
+    HttpClient client = new DefaultHttpClient();
+    HttpPost post = new HttpPost(url);
+    post.setEntity(new StringEntity(content, ContentType.APPLICATION_JSON));
+    post.setHeader("Authorization", "Basic " + Base64.encode(user + ":" + pass));
+    HttpResponse response = client.execute(post);
+    Assert.assertEquals(200, response.getStatusLine().getStatusCode());
+  }
+
+  public static class Login
+  {
+    @FindBy(id = "login-username")
+    private WebElement username;
+
+    @FindBy(id = "login-password")
+    private WebElement password;
+
+    @FindBy(id = "login-action")
+    private WebElement submit;
+
+    public void doLogin(String user, String pass) {
+      AbstractFunctionalTest.wait(10, ExpectedConditions.visibilityOf(username));
+      username.sendKeys(user);
+      password.sendKeys(pass);
+      submit.click();
+    }
+  }
+}

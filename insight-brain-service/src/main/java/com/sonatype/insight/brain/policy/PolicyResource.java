@@ -231,7 +231,7 @@ public class PolicyResource
       @AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") final String ownerType,
       @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId,
       @FormDataParam("file") InputStream uploadedInputStream,
-      @FormDataParam("file") FormDataContentDisposition fileDetail) throws IOException
+      @FormDataParam("file") FormDataContentDisposition fileDetail)
   {
 
     String errorMessage = "";

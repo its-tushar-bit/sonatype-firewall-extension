@@ -78,7 +78,9 @@
 	<div class='fade' ng-class='{ in : ao.selected != null }'>
 		<div clm-alerts='alerts'></div>
 		<div style="float:right; margin:10px;" class='btn-group'>
-			<a class="btn btn-mini" title="Import Policies" ng-click="openImport()"><img src='../assets/img/icon-import.png' alt='Import Policy' style='width:16px;height:16px;padding:6px 0px'></a>
+			<a class="btn btn-mini" title="Import Policies" ng-click="openImport()" ng-if='ao.getId()'>
+				<img src='../assets/img/icon-import.png' alt='Import Policy' style='width:16px;height:16px;padding:6px 0px'>
+			</a>
 			<a class="btn btn-mini" title="Remove {{ao.typeName}}" ng-click="confirmDelete()"><i class='glyphicons-sonatype bin'></i></a>
 		</div>
 		<div ng-show='isUploadingIcon'>

@@ -3,6 +3,8 @@
  *          http://links.sonatype.com/products/clm/attributions. "Sonatype" is a trademark of Sonatype, Inc.
  */
 (function() {
+  'use strict';
+
   var groupings = [{
     type: 'GROUP',
     header: 'GROUPS',
@@ -35,7 +37,6 @@
     return false;
   };
 
-  'use strict';
   var appSecurityModule = angular.module('ApplicationSecurityModule', ['CommonServices', 'ui.utils', 'ngSanitize']);
 
   appSecurityModule.controller('AppSecurityController', ['$scope', '$http', 'CLMAppLocations', function($scope, $http, clmAppLocations) {

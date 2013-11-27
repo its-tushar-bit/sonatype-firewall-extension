@@ -82,7 +82,7 @@ logging:
     # Do not display log statements below this threshold to stdout.
     threshold: INFO
 
-    logFormat: "%date %level [%thread] %logger - %msg%n"
+    logFormat: "%d{'yyyy-MM-dd HH:mm:ss,SSSZ'} %level [%thread] %logger - %msg%n"
 
   # Settings for logging to a file.
   file:
@@ -106,4 +106,4 @@ logging:
     # The number of archived files to keep.
     archivedFileCount: 5
 
-    logFormat: "%date %level [%thread] %logger - %msg%n"
+    logFormat: "%d{'yyyy-MM-dd HH:mm:ss,SSSZ'} %level [%thread] %logger - %msg%n"

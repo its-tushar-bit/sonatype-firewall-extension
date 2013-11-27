@@ -10,5 +10,5 @@ logging:
     "org.eclipse.jetty": INFO
     "org.springframework.jdbc.datasource.init.ResourceDatabasePopulator": INFO
   console:
-    logFormat: "%date %level [%thread%X{DC}] %logger - %msg%n"
+    logFormat: "%d{'yyyy-MM-dd HH:mm:ss,SSSZ'} %level [%thread] %logger - %msg%n"
     

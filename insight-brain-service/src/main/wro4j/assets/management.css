@@ -619,10 +619,16 @@ ul.tri-pane {
  * Accordion
  */
 .accordion-group .hover-buttons {
-	visibility: hidden;
+  opacity: 0.2;
+}
+.accordion-group .btn-mini{
+  border: 1px solid transparent;
 }
 .accordion-group:hover .hover-buttons {
-	visibility: visible;
+  opacity: 1.0;
+}
+.accordion-group:hover .btn-mini{
+  border: 1px solid #ccc;
 }
 .common-expand-toggle {
 	display: inline;

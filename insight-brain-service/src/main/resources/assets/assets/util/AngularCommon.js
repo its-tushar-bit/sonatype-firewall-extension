@@ -704,35 +704,6 @@ var AngularUtils = {
     };
   }]);
 
-  /**
-   * Conditionally show the element based on the expression
-   */
-  angularCommon.directive('showIf', function() {
-    return {
-      transclude: 'element',
-      compile: function($element, $attrs, $transclude) {
-        return function(scope, element, attr, ctrl) {
-          var visScope,
-              visElement;
-          scope.$watch(attr.showIf, function(val) {
-            if (val && !visScope) {
-              visScope = scope.$new();
-              $transclude(visScope, function(clone) {
-                element.after(clone);
-                visElement = clone;
-              });
-            }
-            else if (!val && visScope) {
-              visScope.$destroy();
-              visElement.remove();
-              visElement = visScope = null;
-            }
-          });
-        };
-      }
-    };
-  });
-
   angularCommon.directive('focusInput', ['$parse', function($parse) {
     return {
       link: function(scope, element, attrs) {

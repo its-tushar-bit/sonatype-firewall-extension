@@ -11,7 +11,7 @@
 			</a>
 		</div>
 		<div id="collapse{{policy.id}}" class="accordion-body collapse">
-			<div class="accordion-inner" show-if="!policyEditMap[policy.id]">
+			<div class="accordion-inner" ng-if="!policyEditMap[policy.id]">
 				<table>
 					<tr class="constraints">
 						<td class="header">Constraints:</td>
@@ -31,7 +31,7 @@
 					</tr>
 				</table>
 			</div>
-			<div class="accordion-inner" show-if="policyEditMap[policy.id]">
+			<div class="accordion-inner" ng-if="policyEditMap[policy.id]">
 				<div inline-policy-editor></div>
 			</div>
 		</div>

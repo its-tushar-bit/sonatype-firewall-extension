@@ -1,12 +1,12 @@
 <div id="policy" style='min-width:955px'>
 	<script type='text/ng-template' id='policy-quick-add'>
 <div>
-	<div show-if='!policy'>
+	<div ng-if='!policy'>
 		<button type='button' class='btn add-new new-entity-button' ng-click='click()'>
 			<i class='icon icon-plus'></i> New Policy
 		</button>
 	</div>
-	<div show-if='policy' class='border-box'>
+	<div ng-if='policy' class='border-box'>
 		<div clm-include='"../assets/components/policy-editor/policy-inline-editor.html"'></div>
 	</div>
 </div>
@@ -32,7 +32,7 @@
                         </div>
                     </h4>
 				</div>
-				<div show-if='applicablePolicy.editable' class='policies' style='margin-bottom:5px'>
+				<div ng-if='applicablePolicy.editable' class='policies' style='margin-bottom:5px'>
 					<div inline-policy-creator></div>
 				</div>
 				<div ng-switch='applicablePolicy.policies.length'>

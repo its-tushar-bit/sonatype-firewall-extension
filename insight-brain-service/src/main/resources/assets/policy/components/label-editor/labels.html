@@ -17,7 +17,7 @@
           </h4>
         </div>
         <div class="label-list">
-          <span show-if='applicableLabel.editable'>
+          <span ng-if='applicableLabel.editable'>
             <button type='button' class='btn add-new new-entity-button' ng-click='createNew()'>
               <i class='icon icon-plus'></i> New Label
             </button>
@@ -40,11 +40,11 @@
             </div>
           </div>
           <em ng-show='labels.length == 0'>No labels available</em>
-          <div show-if='applicableLabel.editable'>
+          <div ng-if='applicableLabel.editable'>
             <div clm-alerts='alerts'></div>
           </div>
         </div>
-        <div show-if='applicableLabel.editable && selectedLabel' style='margin-left:25px'>
+        <div ng-if='applicableLabel.editable && selectedLabel' style='margin-left:25px'>
           <div class='fade in' style='width:830px' ng-controller='LabelEditorController'>
             <form name='labelEditor' class='form-horizontal' style='margin-bottom:0' ng-submit='saveLabel()'>
               <div class="modal-body" style="padding: 15px 0;">

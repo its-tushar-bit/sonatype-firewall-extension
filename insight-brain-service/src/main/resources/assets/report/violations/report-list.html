@@ -36,7 +36,7 @@
 						</a>
 					</td>
 					<td ng-repeat='stage in stages | filterReportColumns'>
-						<div show-if='application.policyEvaluationsResults[stage.id]'>
+						<div ng-if='application.policyEvaluationsResults[stage.id]'>
 							<div>
 								<a class='no-hover-underline' style='vertical-align: middle;' title='View Report'
 										href='#/reports/{{encodeURIComponent(application.publicId)}}/{{application.policyEvaluations[stage.id].scanId}}'>

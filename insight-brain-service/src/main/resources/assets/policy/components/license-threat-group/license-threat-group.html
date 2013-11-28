@@ -4,7 +4,7 @@
 			<div ng-hide='selectedGroup' style='margin-bottom:5px'>
 				<button type="button" class="btn add-new new-entity-button"  ng-click="createNew()" id='createLTG'><i class="icon icon-plus"></i> New License Threat Group</button>
 			</div>
-			<div show-if="selectedGroup" class='border-box' style='width:530px;margin-bottom:5px'>
+			<div ng-if="selectedGroup" class='border-box' style='width:530px;margin-bottom:5px'>
 				<div ng-controller='LicenseThreatGroupEditorController'>
 					<form name='licenseGroupEditor' class='form' style='margin-bottom: 0px' ng-submit='saveClick();'>
 						<div ng-include="'ltgeditor'"></div>
@@ -101,7 +101,7 @@
 					</h4>
 				</div>
 				<div class="accordion licenseGroups">
-					<div show-if='applicableLicenseGroup.editable'>
+					<div ng-if='applicableLicenseGroup.editable'>
 						<div ltg-creator></div>
 					</div>
 					<div class="accordion-group" ng-repeat='licenseGroup in applicableLicenseGroup.licenseThreatGroups | orderBy: "threatLevel" : true'>
@@ -119,10 +119,10 @@
 						</div>
 						<div id="collapse{{licenseGroup.id}}" class="accordion-body collapse" ng-class='{ in : isExpanded(applicableLicenseGroup) }'>
 							<div class="accordion-inner">
-								<div show-if='ltgEditorMap[licenseGroup.id]'>
+								<div ng-if='ltgEditorMap[licenseGroup.id]'>
 									<div ltg-editor='licenseGroup' hide='ltgEditorMap[licenseGroup.id] = false'></div>
 								</div>
-								<div show-if='!ltgEditorMap[licenseGroup.id]'>
+								<div ng-if='!ltgEditorMap[licenseGroup.id]'>
 									<b>Licenses</b>
 									<ul class="unstyled max-height-scrollable">
 										<li ng-repeat='l in licenseGroup.licenses | orderBy: getDisplayName'>

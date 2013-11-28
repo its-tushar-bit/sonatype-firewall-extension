@@ -104,7 +104,7 @@ describe('PolicyEditor.js', function() {
       var node = $("<div id='testInlinePolicyCreator' inline-policy-creator></div>");
       node.appendTo('body');
       scope = testScope.$new(); // testScope's destruction cascades
-      $httpBackend.whenGET("policy-quick-add").respond('<div show-if="policy">' + template + '</div>');
+      $httpBackend.whenGET("policy-quick-add").respond('<div ng-if="policy">' + template + '</div>');
       $httpBackend.whenGET("../assets/components/policy-editor/condition-editor.html?").respond(conditionTemplate);
       $httpBackend.whenGET("../assets/components/policy-editor/constraint-editor.html?").respond(constraintEditorTemplate);
       $compile(node)(scope);
@@ -236,7 +236,7 @@ describe('PolicyEditor.js', function() {
         scope = null;
 
     beforeEach(inject(function($compile, $httpBackend, CLMLocations, CLMAppLocations) {
-      var node = $("<div><div show-if='policyEditMap[policy.id]'><div id='testInlinePolicyEditor' inline-policy-editor '></div></div></div>");
+      var node = $("<div><div ng-if='policyEditMap[policy.id]'><div id='testInlinePolicyEditor' inline-policy-editor '></div></div></div>");
       node.appendTo('body');
       expectActionRequests()
       $httpBackend.whenGET(SpecUtil.toRegExp(CLMLocations.getConditionTypeUrl())).respond(PolicyMockData.getConditionTypeData());

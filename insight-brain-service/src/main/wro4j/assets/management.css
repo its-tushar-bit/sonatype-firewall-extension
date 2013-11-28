@@ -759,12 +759,6 @@ ul.tri-pane {
 .modal-ldap-user-list table{
   width: 98%;
 }
-.modal-ldap-user-list modal-footer{
-  position: absolute;
-  bottom: 0;
-  right: 0;
-  width: 94%;
-}
 
 .ldap-form{
   margin-bottom: 0px;

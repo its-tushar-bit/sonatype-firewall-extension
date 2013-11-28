@@ -22,7 +22,7 @@
     <freemarker.version>2.3.19</freemarker.version>
     <wro4j.version>1.7.0</wro4j.version>
     <licensing.version>1.3.2</licensing.version>
-    <angularjs.version>1.2.1</angularjs.version>
+    <angularjs.version>1.2.3</angularjs.version>
     <jasmine.version>1.3.1.3</jasmine.version>
     <saga.version>1.4.2</saga.version>
     <jasmine.brain.id>test-brain-assets</jasmine.brain.id>
@@ -498,7 +498,7 @@
             </goals>
             <configuration>
               <preloadSources>
-                <source>cip/cip-test-util.js</source>
+                <source>resources/assets/cip/cip-test-util.js</source>
               </preloadSources>
               <sourceIncludes>
                 <include>resources/assets/assets/lib/jquery/jquery-*.min.js</include>

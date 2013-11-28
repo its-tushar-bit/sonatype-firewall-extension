@@ -115,7 +115,11 @@
           $window.location.replace('..');
         });
         $rootScope.$on('$stateChangeError', function(event, toState, toParams, fromState, fromParams, error) {
-          $rootScope.error = messages.getHttpErrorMessage(error);
+          if (typeof error === "string") {
+            $rootScope.error = error;
+          } else {
+            $rootScope.error = messages.getHttpErrorMessage(error);
+          }
         });
 
         // The page contains unsaved changes, continuing will discard them.

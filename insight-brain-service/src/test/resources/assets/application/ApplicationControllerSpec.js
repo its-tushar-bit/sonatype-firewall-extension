@@ -90,6 +90,29 @@ describe('ApplicationEditorController', function() {
     ]);
   }));
 
+  describe('Missing Application', function () {
+    beforeEach(inject(function ($controller, $rootScope) {
+      var state = {
+        params : {
+          applicationPublicId : 'foo'
+        },
+        current : {}
+      };
+      scope = $rootScope.$new();
+      $controller('applicationEditorController', {
+        $scope: scope,
+        $state: state,
+        selectedApplication : null
+      });
+    }));
+
+    it('Simple', function () {
+      expect(scope.ao).toBeDefined();
+      expect(scope.ao.selected).toBeFalsy();
+      expect(scope.ao.getPublicId()).toEqual('foo');
+    });
+  });
+
   describe('New Application', function () {
     beforeEach(inject(function($httpBackend, $rootScope, $controller, $state, CLMLocations, CLMAppLocations, applicationStore) {
       rootScope = $rootScope;

@@ -33,13 +33,11 @@
                 for (var i=0; i<data.length; i++) {
                   if (data[i].publicId === $stateParams.applicationPublicId) {
                     deferred.resolve(data[i].$clone());
-                    break;
+                    return;
                   }
                 }
-                deferred.reject("Failed to locate application");
-              }, function () {
-                deferred.reject("Failed to locate application");
-              });
+                deferred.resolve(null);
+              }, /* Errors will be handled at state parent */ angular.noop);
               return deferred.promise;
             }
           }
@@ -136,13 +134,32 @@
               $scope.applicationIconTimestamp[$scope.selectedApplication.publicId];
         }
 
-        $scope.addApplicationSync = CLMAppLocations.addIconSync();
-        $scope.$on('resetIconCache', resetIconCache);
+        function isExternalDestination(destination) {
+          var application = $scope.selectedApplication;
+          return !destination || (application && destination.indexOf('application/' + application.publicId) === -1);
+        }
 
         $scope.$state = $state;
         $scope.submitActive = false;
 
         $scope.doLoad = function () {
+          var ao = {
+            addSync : CLMAppLocations.addIconSync(),
+            selected : selectedApplication,
+            type : 'application',
+            typeName : 'Application'
+          };
+
+          // The application is missing (changed appId, deleted or insuf perms)
+          if (selectedApplication === null) {
+            $scope.ao = angular.extend(ao, {
+              getPublicId : function () {
+                return $state.params.applicationPublicId;
+              }
+            });
+            return;
+          }
+
           $scope.error = null;
 
           var promises = [ActionStore.get()];
@@ -166,10 +183,7 @@
             $scope.state = {
               actionStageList: results[0][1]
             };
-            $scope.ao = {
-              typeName : 'Application',
-              type : 'application',
-              selected : selectedApplication,
+            $scope.ao = angular.extend(ao, {
               siblings : $scope.applications,
               getPublicId : function () {
                 return selectedApplication.publicId;
@@ -177,7 +191,7 @@
               getId : function () {
                 return selectedApplication.id;
               }
-            };
+            });
 
             if (selectedApplication.publicId) {
               $scope.applicationSummary = results[1].data;
@@ -263,14 +277,9 @@
           var originalApplication = $scope.selectedApplication.$getOriginal();
           var currentApplication = $scope.selectedApplication;
           return currentApplication.publicId != originalApplication.publicId ||
-              currentApplication.name != originalApplication.name
-              || currentApplication.organizationId != originalApplication.organizationId || $scope.iconChanged;
+              currentApplication.name != originalApplication.name ||
+              currentApplication.organizationId != originalApplication.organizationId || $scope.iconChanged;
         };
-
-        function isExternalDestination(destination) {
-          var application = $scope.selectedApplication;
-          return !destination || (application && destination.indexOf('application/' + application.publicId) === -1);
-        }
 
         //make sure user is aware they are about to lose changes
         $scope.$on('pageChangeStarted', function(event, destination) {
@@ -286,6 +295,8 @@
             $scope.cancel();
           }
         });
+
+        $scope.$on('resetIconCache', resetIconCache);
 
         $scope.canSaveEdit = function() {
           return $scope.isFormDirty() && !$scope.aoEditor.$invalid && !$scope.submitActive &&

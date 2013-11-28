@@ -33,13 +33,11 @@
                   for (var i=0; i<data.length; i++) {
                     if (data[i].id === $stateParams.organizationId) {
                       deferred.resolve(data[i].$clone());
-                      break;
+                      return;
                     }
                   }
-                  deferred.reject("Failed to locate organization");
-                }, function () {
-                  deferred.reject("Failed to locate organization");
-                });
+                  deferred.resolve(null);
+                }, /* Errors will be handled at state parent */ angular.noop);
                 return deferred.promise;
               }
             }
@@ -153,24 +151,31 @@
         return !destination || (organization && destination.indexOf('organization/' + organization.id) === -1);
       }
 
-      function setAO() {
+      function doLoad() {
         $scope.ao = {
-          typeName : 'Organization',
-          type : 'organization',
-          selected : $scope.selectedOrganization,
-          siblings : $scope.organizations,
-          getPublicId : function () {
-            return $scope.selectedOrganization.id;
-          },
+          addSync : clmAppLocations.addIconSync(),
           getId : function () {
-            return $scope.selectedOrganization.id;
-          }
+            return $state.params.organizationId;
+          },
+          getPublicId : function () {
+            return $state.params.organizationId;
+          },
+          type : 'organization',
+          typeName : 'Organization'
         };
+
+        if (selectedOrganization !== null) {
+          $scope.selectedOrganization = selectedOrganization;
+          $scope.$state = $state;
+          $scope.submitActive = false;
+
+          $scope.ao.selected = $scope.selectedOrganization;
+          $scope.ao.siblings = $scope.organizations;
+
+          setOrganizationIcon();
+        }
       }
 
-      $scope.selectedOrganization = selectedOrganization;
-      setOrganizationIcon();
-      $scope.addOrganizationSync = clmAppLocations.addIconSync();
 
       $scope.$on('resetIconCache', resetIconCache);
 
@@ -188,9 +193,6 @@
           $scope.cancel();
         }
       });
-
-      $scope.$state = $state;
-      $scope.submitActive = false;
 
       if ($state.current.data && $state.current.data.passThroughAlerts) {
         angular.forEach($state.current.data.passThroughAlerts, function(alert) {
@@ -327,10 +329,10 @@
 
       if (!$scope.organizations) {
         $scope.$watch('organizations', function () {
-          setAO();
+          doLoad();
         });
       } else {
-        setAO();
+        doLoad();
       }
     }
   ]);

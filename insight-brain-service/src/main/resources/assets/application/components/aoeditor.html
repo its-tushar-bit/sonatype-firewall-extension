@@ -71,11 +71,15 @@
 			<button class='btn btn-danger' ng-disabled='!deletedEnabled' ng-click='doDelete();'>Delete</button>
 		</div>
 	</script>
-	<div ng-show='!error && ao.selected == null'>
+	<div ng-if='!error && ao == null' class='editor-header' style='margin:20px;'>
 		<h5><i class='icon icon-time'></i> Loading...</h5>
 	</div>
+	<div ng-if='ao && ao.selected == null' class='alert alert-error fade in' style='margin:36px;width:50%;max-width:450px'>
+		<h4>{{ao.typeName}} Missing</h4>
+		<p>The {{ao.type}} with id <strong>{{ao.getPublicId()}}</strong> has been moved, deleted or the current user does not have permission to view it.</p>
+	</div>
 	<div load-error='error' reload='doLoad()'></div>
-	<div class='fade' ng-class='{ in : ao.selected != null }'>
+	<div class='fade in' ng-if='ao.selected != null'>
 		<div clm-alerts='alerts'></div>
 		<div style="float:right; margin:10px;" class='btn-group'>
 			<a class="btn btn-mini" title="Import Policies" ng-click="openImport()" ng-if='ao.getId()'>
@@ -99,7 +103,7 @@
 					</div>
 				</div>
 				<div class='edit-image'>
-					<form id='iconUploadForm' name='iconUploadForm' ng-upload action='{{addApplicationSync}}' class='form' style='margin: 0px;' method='post'>
+					<form id='iconUploadForm' name='iconUploadForm' ng-upload action='{{ao.addSync}}' class='form' style='margin: 0px;' method='post'>
 						<label for='file' firefox-input-click>Choose Icon</label>
 						<input style='position:absolute;left:-9999em;' id="file" type="file" name="file" accept='image/*'
 								onchange='angular.element(this).scope().fileChanged(this)' />
@@ -119,9 +123,9 @@
 							required alpha-numeric has-whitespace='suggestedName'
 							is-Duplicate is-Duplicate-Array='ao.siblings' is-Duplicate-Id-Field='id' is-Duplicate-Case-Sensitive='false'></span></h1>
 					<div class='errors'>
-						<span ng-show="aoEditor.name.$error.duplicate" style='color: #b94a48;'>Name is already in use</span>
-						<span ng-show="aoEditor.name.$error.alphaNumeric" style='color: #b94a48;'>Name must be alpha numeric</span>
-						<span ng-show="aoEditor.name.$error.spaces" style='color: #b94a48;'>No leading, trailing or double spaces or tabs in name<br/>Suggested name: {{suggestedName}}</span>
+						<span ng-if="aoEditor.name.$error.duplicate" class="text-error">Name is already in use</span>
+						<span ng-if="aoEditor.name.$error.alphaNumeric" class="text-error">Name must be alpha numeric</span>
+						<span ng-if="aoEditor.name.$error.spaces" class="text-error">No leading, trailing or double spaces or tabs in name<br/>Suggested name: {{suggestedName}}</span>
 					</div>
 				</div>
 				<div ng-if='ao.type == "application"'>

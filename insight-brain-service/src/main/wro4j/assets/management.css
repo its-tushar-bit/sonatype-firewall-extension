@@ -621,13 +621,13 @@ ul.tri-pane {
 .accordion-group .hover-buttons {
   opacity: 0.2;
 }
-.accordion-group .btn-mini{
+.accordion-group .btn-mini {
   border: 1px solid transparent;
 }
 .accordion-group:hover .hover-buttons {
   opacity: 1.0;
 }
-.accordion-group:hover .btn-mini{
+.accordion-group:hover .btn-mini {
   border: 1px solid #ccc;
 }
 .common-expand-toggle {

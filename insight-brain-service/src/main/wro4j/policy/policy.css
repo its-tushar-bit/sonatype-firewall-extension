@@ -92,13 +92,13 @@
 .inline-policy-editor div.accordion-group .hover-buttons {
   opacity: 0.2;
 }
-.div.accordion-group .btn-mini{
+.div.accordion-group .btn-mini {
   border: 1px solid transparent;
 }
 .inline-policy-editor div.accordion-group:hover .btn-group {
   opacity: 1.0;
 }
-.div.accordion-group:hover .btn-mini{
+.div.accordion-group:hover .btn-mini {
   border: 1px solid #ccc;
 }
 .inline-policy-editor .accordion {

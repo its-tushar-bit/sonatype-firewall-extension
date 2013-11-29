@@ -60,7 +60,7 @@
   module.directive('userControls', function () {
     return {
       restrict: 'A',
-      templateUrl : '../assets/components/user-controls/user_controls.html?' + clmBuildTimestamp
+      templateUrl : '../assets/components/user-controls/user-controls.html?' + clmBuildTimestamp
     };
   });
 

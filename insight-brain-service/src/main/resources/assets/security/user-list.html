@@ -1,7 +1,7 @@
 <div style="margin-left:5px;">
 	<script type='text/ng-template' id='delete-user-modal'>
-<div class="modal-header">Delete User</div>
-<div class="modal-body">{{'Are you sure you want to delete user "' + username + '"?'}}</div>
+<div class="modal-header"><h3>Delete User</h3></div>
+<div class="modal-body"><p>Are you sure you want to delete user <strong>{{username}}</strong>?</p></div>
 <div class="modal-footer">
 	<button class="btn" ng-click="cancel()">Cancel</button>
 	<button class="btn btn-danger" ng-click="discard()">Delete</button>

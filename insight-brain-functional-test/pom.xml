@@ -123,6 +123,10 @@
           <groupId>org.codehaus.groovy</groupId>
           <artifactId>groovy-all</artifactId>
         </exclusion>
+        <exclusion>
+          <artifactId>junit-dep</artifactId>
+          <groupId>junit</groupId>
+        </exclusion>
       </exclusions>
     </dependency>
     <!-- Geb browser automation -->

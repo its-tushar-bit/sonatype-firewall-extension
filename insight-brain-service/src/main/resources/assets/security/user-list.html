@@ -121,9 +121,9 @@
 					</div>
 				</div>
 				<div class="control-group" ng-class="{ error : userForm.email.$invalid && userForm.email.$dirty }">
-					<label class="control-label user-form-label">Email Address:</label>
+					<label class="control-label user-form-label">E-mail Address:</label>
 					<div class="controls">
-						<input class="input-xlarge" name="email" type="email" ng-required="true" placeholder="Enter Email Address" ng-model="user.email">
+						<input class="input-xlarge" name="email" type="email" ng-required="true" placeholder="Enter E-mail Address" ng-model="user.email">
 						<div ng-if="userForm.email.$error.email && userForm.email.$dirty" class="text-error">Use valid format: abc@xyz.com</div>
 						<div ng-if="userForm.email.$error.required && !userForm.email.$error.alphaNumeric && userForm.email.$dirty" class="text-error">Field is required.</div>
 					</div>
@@ -203,7 +203,7 @@
 							<td>{{user.lastName}}</td>
 						</tr>
 						<tr>
-							<td class="summary-label">Email Address:</td>
+							<td class="summary-label">E-mail Address:</td>
 							<td>{{user.email}}</td>
 						</tr>
 					</table>

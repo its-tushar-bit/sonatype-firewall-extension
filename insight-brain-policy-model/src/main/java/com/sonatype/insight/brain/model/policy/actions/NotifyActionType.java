@@ -49,7 +49,7 @@ public class NotifyActionType
     String target = action.getTarget();
     
     if (target == null || target.trim().isEmpty()) {
-      result.addError("Invalid action '" + getName() + "': A valid email address is required");
+      result.addError("Invalid action '" + getName() + "': A valid e-mail address is required");
     }
     else {
       // validate email address
@@ -57,7 +57,7 @@ public class NotifyActionType
         new InternetAddress(target);
       }
       catch (Exception e) {
-        result.addError("Invalid action '" + getName() + "': A valid email address is required instead of: " + target);
+        result.addError("Invalid action '" + getName() + "': A valid e-mail address is required instead of: " + target);
       }
     }
 

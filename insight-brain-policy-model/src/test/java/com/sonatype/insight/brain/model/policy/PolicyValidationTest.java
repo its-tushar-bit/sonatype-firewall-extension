@@ -244,7 +244,7 @@ public class PolicyValidationTest
       policy.addAction(BuildStageType.ID, action);
       ValidationResult result = policy.validate(applicationId);
       assertValidationResultHasErrors(result, "Policy 'Policy Name' has invalid actions:",
-          "Invalid action 'Notify': A valid email address is required instead of: one@1.com,two@2.com");
+          "Invalid action 'Notify': A valid e-mail address is required instead of: one@1.com,two@2.com");
   }
 
   @Test
@@ -257,7 +257,7 @@ public class PolicyValidationTest
     policy.addAction(BuildStageType.ID, action);
     ValidationResult result = policy.validate(applicationId);
     assertValidationResultHasErrors(result, "Policy 'Policy Name' has invalid actions:",
-        "Invalid action 'Notify': A valid email address is required");
+        "Invalid action 'Notify': A valid e-mail address is required");
 
     // Fix the action and validate again
     action.setTarget("tester@sonatype.com");
@@ -276,7 +276,7 @@ public class PolicyValidationTest
     policy.addAction(BuildStageType.ID, action);
     ValidationResult result = policy.validate(applicationId);
     assertValidationResultHasErrors(result, "Policy 'Policy Name' has invalid actions:",
-        "Invalid action 'Notify': A valid email address is required");
+        "Invalid action 'Notify': A valid e-mail address is required");
 
     // Fix the action and validate again
     action.setTarget("tester@sonatype.com");
@@ -295,7 +295,7 @@ public class PolicyValidationTest
     policy.addAction(BuildStageType.ID, action);
     ValidationResult result = policy.validate(applicationId);
     assertValidationResultHasErrors(result, "Policy 'Policy Name' has invalid actions:",
-        "Invalid action 'Notify': A valid email address is required instead of: bad email address");
+        "Invalid action 'Notify': A valid e-mail address is required instead of: bad email address");
 
     // Fix the action and validate again
     action.setTarget("tester@sonatype.com");

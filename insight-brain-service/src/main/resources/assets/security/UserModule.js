@@ -15,8 +15,7 @@
         }).state('management.security.global', {
           parent: 'management.security',
           url: '/global',
-          controller: 'AppSecurityController',
-          templateUrl: '../policy-assets/components/app-security/app-security.html?' + clmBuildTimestamp
+          template : '<h1 class="page-title">Global Roles</h1><div ng-controller="AppSecurityController" ng-include="\'../policy-assets/components/app-security/app-security.html?' + clmBuildTimestamp + '\'"></div>'
         });
       }]);
 

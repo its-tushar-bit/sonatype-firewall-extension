@@ -1,19 +1,17 @@
-<div class='face' style="padding-left: 10px;">
-		<div ng-controller='ProprietaryConfigurationController' style="max-width: 510px;">
-			<div style="padding-top: 10px;">
-				<div ng-show='loadError'>An Error Occurred</div>
-				<div ng-show='!loadError && !proprietary'><i class='icon-time'></i> Loading</div>
-				<div ng-show='!loadError && proprietary'>
-					<div list-editor place-holder='Prefix of Proprietary Packages' max-length='50' entries='packages' set-error='setEditorError' validator='validatePackage'></div>
-				</div>
-				<div>
-				    <span ng-show='error' class="alert alert-error" style="float: left; padding-top: 4px; padding-bottom: 4px;">{{ error }}</span>
-					<span ng-show='!saving && proprietary' style="float: right;">
-						<button class="btn" ng-click="reset()">Reset</button>
-						<button class="btn btn-primary" ng-disabled="!isDirty()" ng-click="save()">Save</button>
-					</span>
-					<span ng-show='saving' style='height:30px'><i class='icon-time'></i> Saving</span>
-				</div>
-			</div>
+<div style="padding-top: 10px;">
+	<h1 class='page-title'>Proprietary Packages</h1>
+	<div style="max-width: 510px; padding-left: 25px">
+		<div ng-show='loadError'>An Error Occurred</div>
+		<div ng-show='!loadError && !proprietary'><i class='icon-time'></i> Loading</div>
+		<div ng-show='!loadError && proprietary'>
+			<p>These entries are provided to CLM scanners and are used to help identify internal components.</p>
+			<div list-editor place-holder='Prefix of Proprietary Packages' max-length='50' entries='packages' set-error='setEditorError' validator='validatePackage'></div>
+			<span ng-show='error' class="alert alert-error" style="float: left; padding-top: 4px; padding-bottom: 4px;">{{ error }}</span>
+			<span ng-show='!saving && proprietary' style="float: right;">
+				<button class="btn" ng-click="reset()">Reset</button>
+				<button class="btn btn-primary" ng-disabled="!isDirty()" ng-click="save()">Save</button>
+			</span>
+			<span ng-show='saving' style='height:30px'><i class='icon-time'></i> Saving</span>
 		</div>
+	</div>
 </div>

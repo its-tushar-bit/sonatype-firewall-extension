@@ -82,18 +82,16 @@
       </div>
     </div>
   </form>
-  <div style="max-width: 510px;margin-left:25px">
+  <div style="max-width: 485px;margin-left:25px">
     <div clm-alerts='alerts'></div>
-    <span ng-show='!saving && ldapConn'>
-    <div class="ldap-button-group">
+    <div class="ldap-button-group" ng-show='!saving && ldapConn'>
       <button class='btn btn-success' ng-disabled="ldapConnectionEditor.$invalid || testInProgress" ng-click="testConnection()">Test Connection</button>
-      <div style="float: right;padding-right: 5px;">
+      <div style="float: right">
         <button class="btn" ng-disabled="!isDirty()" ng-click="reset()">Reset</button>
         <button class="btn btn-primary" ng-disabled="!canSaveEdit()" ng-click="save()">Save</button>
       </div>
-      </div>
-    </span>
-    <span ng-show='saving' style='height:30px'><i class='icon-time'></i> Saving</span>
+    </div>
+    <div ng-show='saving' style='height:30px'><i class='icon-time'></i> Saving</div>
   </div>
   <div error-Modal></div>
 </div>

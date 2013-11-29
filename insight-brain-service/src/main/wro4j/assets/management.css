@@ -569,9 +569,6 @@ body {
 ul.tri-pane li:first-child {
 	margin-left: 25px;
 }
-ul.tri-pane li:first-child a {
-	padding-left: 0px;
-}
 ul.tri-pane:before, ul.tri-pane:after {
 	display : table;
 	content : "";
@@ -581,7 +578,8 @@ ul.tri-pane:before, ul.tri-pane:after {
 ul.tri-pane {
 	width : 100%;
 	height: 30px;
-	margin: 0px;
+	margin-left: -12px;
+	padding-right: 12px; /* Ensures underline is full width with the above margin */
 	list-style-type: none;
 	min-width: 500px;
 	border-bottom: 1px solid rgba(0, 0, 0, .1);

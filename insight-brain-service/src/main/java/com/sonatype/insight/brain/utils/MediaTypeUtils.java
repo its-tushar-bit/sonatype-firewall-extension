@@ -5,19 +5,24 @@
  */
 package com.sonatype.insight.brain.utils;
 
-import eu.medsea.mimeutil.MimeType;
-import eu.medsea.mimeutil.MimeUtil2;
-import eu.medsea.mimeutil.detector.ExtensionMimeDetector;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.eclipse.jetty.http.MimeTypes;
+import org.eclipse.jetty.io.Buffer;
 
 /**
  * Various utility methods for detecting media types.
  */
 public final class MediaTypeUtils
 {
-  private static final MimeUtil2 mimeUtil = new MimeUtil2();
+  // Reusing the same approach as used by DropWizard's AssertServlet to ensure consistency
+  private static final MimeTypes mimeTypes = new MimeTypes();
 
   static {
-    mimeUtil.registerMimeDetector(ExtensionMimeDetector.class.getName());
+    Map<String, String> extras = new HashMap<String, String>();
+    extras.put("json", "application/json");
+    mimeTypes.setMimeMap(extras);
   }
 
   private MediaTypeUtils() {
@@ -31,11 +36,14 @@ public final class MediaTypeUtils
    * @return Detected media type
    */
   public static String byName(final String name) {
-    final MimeType mimeType = MimeUtil2.getMostSpecificMimeType(mimeUtil.getMimeTypes(name));
-    if (mimeType != null) {
-      final String mediaType = mimeType.toString(); // returns "<mediaType>/<subType>"
-      return mediaType.startsWith("text") ? mediaType + ";charset=UTF-8" : mediaType;
+    String mediaType = "application/octet-stream";
+    Buffer buffer = mimeTypes.getMimeByExtension(name);
+    if (buffer != null) {
+      mediaType = buffer.toString("UTF-8");
+      if (mediaType.startsWith("text")) {
+        mediaType += ";charset=UTF-8";
+      }
     }
-    return null;
+    return mediaType;
   }
 }

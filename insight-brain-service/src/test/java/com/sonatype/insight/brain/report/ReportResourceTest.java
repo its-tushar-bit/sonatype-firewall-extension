@@ -12,7 +12,6 @@ import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Calendar;
-import java.util.Collection;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -64,8 +63,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ContainerNode;
 import com.ning.http.client.Response;
 import com.yammer.dropwizard.testing.JsonHelpers;
-import eu.medsea.mimeutil.MimeType;
-import eu.medsea.mimeutil.detector.MagicMimeMimeDetector;
 import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.IOUtil;
 import org.codehaus.plexus.util.StringUtils;
@@ -74,7 +71,6 @@ import org.junit.Test;
 import org.jvnet.mock_javamail.Mailbox;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.equalToIgnoringWhiteSpace;
@@ -485,8 +481,7 @@ public class ReportResourceTest
 
     // validate content type and check the actual content is really a PDF
     assertThat(response.getContentType(), equalTo("application/pdf"));
-    final Collection<?> mimeTypes = new MagicMimeMimeDetector().getMimeTypes(response.getResponseBodyAsStream());
-    assertThat(mimeTypes, contains((Object) new MimeType("application/pdf")));
+    assertThat(response.getResponseBodyExcerpt(1024, "US-ASCII"), containsString("%PDF-"));
   }
 
   @Test
@@ -528,8 +523,7 @@ public class ReportResourceTest
 
     // validate content type and check the actual content is really a PDF
     assertThat(response.getContentType(), equalTo("application/pdf"));
-    final Collection<?> mimeTypes = new MagicMimeMimeDetector().getMimeTypes(response.getResponseBodyAsStream());
-    assertThat(mimeTypes, contains((Object) new MimeType("application/pdf")));
+    assertThat(response.getResponseBodyExcerpt(1024, "US-ASCII"), containsString("%PDF-"));
   }
 
   @Test

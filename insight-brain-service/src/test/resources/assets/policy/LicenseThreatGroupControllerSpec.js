@@ -26,12 +26,13 @@ describe('LicenseThreatGroup', function() {
     $httpBackend.whenGET(SpecUtil.toRegExp(CLMAppLocations.getApplicableLicenseGroupsUrl())).respond(LicenseGroupMockData.getApplicableLicenseGroupData());
     $httpBackend.whenGET(SpecUtil.toRegExp(CLMAppLocations.getLicenseGroupsUrl())).respond(LicenseGroupMockData.getLicenseGroupData());
     $httpBackend.whenGET(SpecUtil.toRegExp(CLMAppLocations.getLicenseGroupLicensesUrl(LicenseGroupMockData.getLicenseGroupData()[0]))).respond(LicenseGroupMockData.getLicenseGroupLicensesData());
-    licenseGroupStore.get().then(function(data) {
-      mockGroup = data[0];
-    });
     scope = $rootScope.$new();
 
     $controller('LicenseThreatGroupController', {$scope: scope});
+
+    licenseGroupStore.get().then(function(data) {
+      mockGroup = data[0];
+    });
 
     $httpBackend.flush();
   }));

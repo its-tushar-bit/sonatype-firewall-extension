@@ -116,9 +116,9 @@
 
       $scope.doLoad = function() {
         var promises = [
-          licenseStore.refresh(), $http.get(CLMAppLocations.getApplicableLicenseGroupsUrl(), {
+          licenseStore.get(), $http.get(CLMAppLocations.getApplicableLicenseGroupsUrl(), {
             params: { timestamp: new Date().getTime() }
-          }), licenseGroupStore.get()
+          }), licenseGroupStore.refresh()
         ];
         if ($scope.error) {
           $scope.error = null;

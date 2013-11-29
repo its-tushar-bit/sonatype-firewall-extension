@@ -16,6 +16,7 @@ import com.sonatype.insight.brain.service.InsightConfig;
 import com.google.common.base.Function;
 import com.google.common.io.Resources;
 import com.sun.jersey.core.util.Base64;
+import com.yammer.dropwizard.testing.junit.DropwizardServiceRule;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
@@ -39,7 +40,8 @@ public abstract class AbstractFunctionalTest
   private static DropwizardServiceRule<InsightConfig> serviceRule;
 
   /**
-   * Creates a new service for each test class.
+   * Creates a new service for each test class. It's crucial to create a fresh rule per class to avoid
+   * https://github.com/dropwizard/dropwizard/issues/427.
    */
   @ClassRule
   public static DropwizardServiceRule<InsightConfig> initServiceRule() {

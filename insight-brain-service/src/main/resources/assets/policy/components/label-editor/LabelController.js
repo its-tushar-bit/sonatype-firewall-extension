@@ -133,7 +133,7 @@
                   'This will delete all associated component labels, if any.' + 
                 '</div>' +
                 '<div class="modal-footer"><button class="btn" ng-click="cancel()">Cancel</button>' +
-                '<button class="btn btn-danger" ng-click="doDeleteLabel()">Confirm</button></div>',
+                '<button class="btn btn-danger" ng-click="doDeleteLabel()">Delete</button></div>',
             controller: [
               '$scope', function(modalScope) {
                 modalScope.label = label;

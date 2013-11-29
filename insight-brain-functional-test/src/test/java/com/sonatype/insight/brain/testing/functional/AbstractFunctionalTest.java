@@ -36,9 +36,17 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 
 public abstract class AbstractFunctionalTest
 {
+  private static DropwizardServiceRule<InsightConfig> serviceRule;
+
+  /**
+   * Creates a new service for each test class.
+   */
   @ClassRule
-  public static DropwizardServiceRule<InsightConfig> startServiceRule = new DropwizardServiceRule<InsightConfig>(
-      InsightBrainService.class, Resources.getResource("config-test.yml").getPath());
+  public static DropwizardServiceRule<InsightConfig> initServiceRule() {
+    serviceRule = new DropwizardServiceRule<InsightConfig>(InsightBrainService.class,
+      Resources.getResource("config-test.yml").getPath());
+    return serviceRule;
+  }
 
   protected static WebDriver driver;
 
@@ -79,12 +87,12 @@ public abstract class AbstractFunctionalTest
     new WebDriverWait(driver, time).until(isTrue);
   }
 
-  protected static String getUrl() {
+  protected String getUrl() {
     return "http://localhost:" + getConfig().getHttpConfiguration().getPort() + "/";
   }
 
-  protected static InsightConfig getConfig() {
-    return startServiceRule.getConfiguration();
+  protected InsightConfig getConfig() {
+    return serviceRule.getConfiguration();
   }
 
   protected static void post(String url, String content, String user, String pass) throws Exception {

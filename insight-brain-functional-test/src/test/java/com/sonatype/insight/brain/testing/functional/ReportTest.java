@@ -71,11 +71,11 @@ public class ReportTest
     Assert.assertEquals(36, summary.getSecurityAlerts());
   }
 
-  private static String getEvalURL(String appId, String scanId) {
+  private String getEvalURL(String appId, String scanId) {
     return getUrl() + PolicyEvaluateResource.SERVICE_PATH.replace("{applicationPublicId}", appId) + "?scanId=" + scanId;
   }
 
-  private static String getUiLinksReportUrl(String appId, String scanId) {
+  private String getUiLinksReportUrl(String appId, String scanId) {
     return getUrl() + UserInterfaceLinksResource.SERVICE_PATH + "/"
         + UserInterfaceLinksResource.REPORT_PATH.replace("{applicationPublicId}", appId).replace("{scanId}", scanId);
   }

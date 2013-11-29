@@ -295,7 +295,7 @@
 
       $scope.confirmDelete = function() {
         $modal.open({
-          background : 'static',
+          backdrop : 'static',
           keyboard : true,
           controller : 'DeleteResourceController',
           templateUrl : 'delete-org-modal',

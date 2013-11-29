@@ -27,7 +27,6 @@ import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
-import org.junit.rules.TestRule;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.firefox.FirefoxDriver;
@@ -38,8 +37,8 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 public abstract class AbstractFunctionalTest
 {
   @ClassRule
-  public static TestRule startServiceRule = new DropwizardServiceRule<InsightConfig>(InsightBrainService.class,
-      Resources.getResource("config-test.yml").getPath());
+  public static DropwizardServiceRule<InsightConfig> startServiceRule = new DropwizardServiceRule<InsightConfig>(
+      InsightBrainService.class, Resources.getResource("config-test.yml").getPath());
 
   protected static WebDriver driver;
 
@@ -84,9 +83,8 @@ public abstract class AbstractFunctionalTest
     return "http://localhost:" + getConfig().getHttpConfiguration().getPort() + "/";
   }
 
-  @SuppressWarnings("unchecked")
   protected static InsightConfig getConfig() {
-    return ((DropwizardServiceRule<InsightConfig>) startServiceRule).getConfiguration();
+    return startServiceRule.getConfiguration();
   }
 
   protected static void post(String url, String content, String user, String pass) throws Exception {

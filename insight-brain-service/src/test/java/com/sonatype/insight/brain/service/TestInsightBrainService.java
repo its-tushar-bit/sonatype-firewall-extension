@@ -198,6 +198,7 @@ public class TestInsightBrainService
   public void run(final InsightConfig config, final Environment env) throws Exception {
     config.getHttpConfiguration().setPort(testPort);
     config.getHttpConfiguration().setAdminPort(testAdminPort);
+    // Don't wait 2 seconds after each brain service test, 1 millisecond seems to be enough
     config.getHttpConfiguration().setShutdownGracePeriod(Duration.milliseconds(1));
     if (testKeystore != null) {
       final SslConfiguration sslConfiguration = new SslConfiguration();

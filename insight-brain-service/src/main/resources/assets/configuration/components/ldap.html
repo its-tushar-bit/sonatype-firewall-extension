@@ -1,48 +1,41 @@
-<div class='face' style="padding-left: 10px;">
-  <div ng-controller='LdapConfigurationController'>
-    <div style="padding-top: 10px;">
-      <div load-error='loadError' reload='doLoad()'></div>
-      <div ng-show='!loadError && !ldap'><i class='icon-time'></i> Loading</div>
-      <div ng-show='!loadError && ldap'>
-        <div style="float:right; margin:10px;" class='btn-group' ng-show='ldap.id'>
-          <a class="btn btn-mini" title="Remove Configuration" ng-click="confirmDeleteConfiguration(ldap)"><i class='glyphicons-sonatype bin'></i></a>
-        </div>
-        <form name='ldapEditor' style='margin-bottom:0px; max-width: 510px;'>
-          <div style="padding-left: 20px">
-            <div class='inline head'>
-              <h1><span id='ldapName' name='ldapName' ng-model='ldap.name' xeditable href='javascript:;'
-                ng-class="{ error: ldapEditor.ldapName.$error.alphaNumeric || ldapEditor.ldapName.$error.spaces}"
-                data-emptytext='Enter Server Name' data-placeholder='Enter Server Name' data-type='text'
-                required alpha-numeric has-whitespace='suggestedName'></span>
-              </h1>
-              <div class='errors'>
-                <span ng-show="ldapEditor.ldapName.$error.alphaNumeric" style='color: #b94a48;'>Name must be alpha numeric</span>
-                <span ng-show="ldapEditor.ldapName.$error.spaces" style='color: #b94a48;'>No leading, trailing or double spaces or tabs in name<br/>Suggested name: {{suggestedName}}</span>
-              </div>
-            </div>
-            <div ng-show="!saving && (ldap.id == null || isDirty())">
-              <button class="btn" ng-click="ldap.$revert()">Cancel</button>
-              <button class="btn btn-primary" ng-disabled="!canSaveEdit()" ng-click="save()">Save</button>
-            </div>
-            <span ng-show='saving' style='height:30px'><i class='icon-time'></i> Saving</span>
-          </div>
-        </form>
-        <div ng-switch on='ldap.id'>
-          <div ng-switch-when='null'></div>
-          <div ng-switch-default>
-            <ul class='tri-pane'>
-              <li ng-class='{ active : isCurrentTab("connection") }'>
-                <a ng-click='setCurrentTab("connection")'>CONNECTION</a>
-              </li>
-              <li ng-class='{ active : isCurrentTab("usermapping") }'>
-                <a ng-click='setCurrentTab("usermapping")'>USER &amp; GROUP SETTINGS</a>
-              </li>
-            </ul>
-            <div ui-view></div>
-          </div>
-        </div>
-      </div>
+<div style="padding-top: 10px;">
+  <div load-error='loadError' reload='doLoad()'></div>
+  <div ng-show='!loadError && !ldap'><i class='icon-time'></i> Loading</div>
+  <div ng-show='!loadError && ldap'>
+    <div style="float:right; margin:10px;" class='btn-group' ng-show='ldap.id'>
+      <a class="btn btn-mini" title="Remove Configuration" ng-click="confirmDeleteConfiguration(ldap)"><i class='glyphicons-sonatype bin'></i></a>
     </div>
-    <div error-Modal></div>
+    <form name='ldapEditor' style='margin-bottom:0px; max-width: 510px;'>
+      <div style="padding-left: 25px">
+        <div class='inline head'>
+          <h1><span id='ldapName' name='ldapName' ng-model='ldap.name' xeditable href='javascript:;'
+            ng-class="{ error: ldapEditor.ldapName.$error.alphaNumeric || ldapEditor.ldapName.$error.spaces}"
+            data-emptytext='Enter Server Name' data-placeholder='Enter Server Name' data-type='text'
+            required alpha-numeric has-whitespace='suggestedName'></span>
+          </h1>
+          <div class='errors'>
+            <span ng-show="ldapEditor.ldapName.$error.alphaNumeric" style='color: #b94a48;'>Name must be alpha numeric</span>
+            <span ng-show="ldapEditor.ldapName.$error.spaces" style='color: #b94a48;'>No leading, trailing or double spaces or tabs in name<br/>Suggested name: {{suggestedName}}</span>
+          </div>
+        </div>
+        <div ng-show="!saving && (ldap.id == null || isDirty())">
+          <button class="btn" ng-click="ldap.$revert()">Cancel</button>
+          <button class="btn btn-primary" ng-disabled="!canSaveEdit()" ng-click="save()">Save</button>
+        </div>
+        <span ng-show='saving' style='height:30px'><i class='icon-time'></i> Saving</span>
+      </div>
+    </form>
+    <div ng-if='ldap.id'>
+        <ul class='tri-pane'>
+          <li ng-class='{ active : isCurrentTab("connection") }'>
+            <a ng-click='setCurrentTab("connection")'>CONNECTION</a>
+          </li>
+          <li ng-class='{ active : isCurrentTab("usermapping") }'>
+            <a ng-click='setCurrentTab("usermapping")'>USER &amp; GROUP SETTINGS</a>
+          </li>
+        </ul>
+        <div ui-view></div>
+    </div>
   </div>
+  <div error-Modal></div>
 </div>

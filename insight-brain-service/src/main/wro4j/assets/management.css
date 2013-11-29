@@ -369,7 +369,7 @@ body {
 }
 .editor-header {
 	padding-top: 20px;
-	padding-left: 30px;
+	padding-left: 25px;
 }
 .editor-header h2 {
 	border: 1px;
@@ -566,6 +566,12 @@ body {
 /**
  * Triangular tabs used by app/org
  */
+ul.tri-pane li:first-child {
+	margin-left: 25px;
+}
+ul.tri-pane li:first-child a {
+	padding-left: 0px;
+}
 ul.tri-pane:before, ul.tri-pane:after {
 	display : table;
 	content : "";
@@ -769,11 +775,10 @@ ul.tri-pane {
 .ldap-form{
   margin-bottom: 0px;
   max-width: 510px;
-  margin-left: -5px;
 }
 
 .ldap-button-group{
-  margin: 20px 0 10px 20px;
+  margin: 20px 0 10px 0px;
 }
 
 .collapsed-cell {

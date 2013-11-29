@@ -82,8 +82,8 @@
       </div>
     </div>
   </form>
-  <div style="max-width: 510px;">
-    <div clm-alerts='alerts' style="padding-left: 20px; padding-right: 5px;"></div>
+  <div style="max-width: 510px;margin-left:25px">
+    <div clm-alerts='alerts'></div>
     <span ng-show='!saving && ldapConn'>
     <div class="ldap-button-group">
       <button class='btn btn-success' ng-disabled="ldapConnectionEditor.$invalid || testInProgress" ng-click="testConnection()">Test Connection</button>

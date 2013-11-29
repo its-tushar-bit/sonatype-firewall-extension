@@ -28,3 +28,6 @@ http:
   # The port on which the HTTP server listens for administrative
   # requests. Subject to the same limitations as "port".
   adminPort: 9071
+
+  # Fix for CLM-1297 which ReportTest causes a lot of the time.
+  connectorType: nonblocking

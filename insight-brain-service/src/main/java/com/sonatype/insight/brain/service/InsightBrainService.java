@@ -67,6 +67,8 @@ public class InsightBrainService
   public static final String REPORT_ASSET_PATH = "/report-assets/";
 
   public static void main(final String[] args) throws Exception {
+    JavaRuntimeChecker.checkJreIsSupported();
+
     if (!validateTempDir()) {
       System.exit(1);
     }

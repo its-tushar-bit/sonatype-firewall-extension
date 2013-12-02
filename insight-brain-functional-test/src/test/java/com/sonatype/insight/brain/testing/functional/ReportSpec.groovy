@@ -9,6 +9,8 @@ import com.sonatype.insight.brain.dataaccess.security.UserDAO
 import com.sonatype.insight.brain.model.security.User
 import com.sonatype.insight.brain.security.CLMRealm
 
+import spock.lang.Ignore;
+
 import spock.lang.Shared
 import spock.lang.Stepwise
 
@@ -32,7 +34,7 @@ extends BaseSpec {
 
   def cleanupSpec() {
     new UserDAO().delete(nonAdminUser)
-    File file = new File('target/sonatype-work/clm-server/report/trending-report.json')
+    File file = new File('target/test-brain-work/report/trending-report.json')
     assert file.exists()
     file.delete()
   }

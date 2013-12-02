@@ -72,11 +72,11 @@ public class ReportTest
   }
 
   private String getEvalURL(String appId, String scanId) {
-    return getUrl() + PolicyEvaluateResource.SERVICE_PATH.replace("{applicationPublicId}", appId) + "?scanId=" + scanId;
+    return getBaseUrl() + PolicyEvaluateResource.SERVICE_PATH.replace("{applicationPublicId}", appId) + "?scanId=" + scanId;
   }
 
   private String getUiLinksReportUrl(String appId, String scanId) {
-    return getUrl() + UserInterfaceLinksResource.SERVICE_PATH + "/"
+    return getBaseUrl() + UserInterfaceLinksResource.SERVICE_PATH + "/"
         + UserInterfaceLinksResource.REPORT_PATH.replace("{applicationPublicId}", appId).replace("{scanId}", scanId);
   }
 }

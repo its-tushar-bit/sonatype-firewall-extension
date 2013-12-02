@@ -10,8 +10,8 @@ import java.util.List;
 
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.service.InsightBrainService;
 import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.service.TestInsightBrainService;
 
 import com.google.common.base.Function;
 import com.google.common.io.Resources;
@@ -37,6 +37,10 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 
 public abstract class AbstractFunctionalTest
 {
+  static {
+    System.setProperty("javax.net.ssl.trustStore", "src/test/resources/ssl/server-store");
+  }
+
   private static DropwizardServiceRule<InsightConfig> serviceRule;
 
   /**
@@ -45,7 +49,7 @@ public abstract class AbstractFunctionalTest
    */
   @ClassRule
   public static DropwizardServiceRule<InsightConfig> initServiceRule() {
-    serviceRule = new DropwizardServiceRule<InsightConfig>(InsightBrainService.class,
+    serviceRule = new DropwizardServiceRule<InsightConfig>(TestInsightBrainService.class,
       Resources.getResource("config-test.yml").getPath());
     return serviceRule;
   }
@@ -89,8 +93,8 @@ public abstract class AbstractFunctionalTest
     new WebDriverWait(driver, time).until(isTrue);
   }
 
-  protected String getUrl() {
-    return "http://localhost:" + getConfig().getHttpConfiguration().getPort() + "/";
+  protected String getBaseUrl() {
+    return "http://localhost:" + serviceRule.getLocalPort() + "/";
   }
 
   protected InsightConfig getConfig() {

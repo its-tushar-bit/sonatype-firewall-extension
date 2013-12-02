@@ -160,6 +160,12 @@
       <artifactId>insight-brain-service</artifactId>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>com.sonatype.insight.brain</groupId>
+      <artifactId>insight-brain-service</artifactId>
+      <classifier>tests</classifier>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 
   <profiles>

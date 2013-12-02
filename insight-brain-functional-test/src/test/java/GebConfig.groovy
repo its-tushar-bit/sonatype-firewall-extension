@@ -17,7 +17,9 @@ import org.openqa.selenium.firefox.FirefoxDriver
 import org.openqa.selenium.remote.RemoteWebDriver
 
 reportsDir = "target/test-reports/geb"
-baseUrl = System.getProperty('geb.build.baseUrl', 'http://localhost:9070/')
+// Port is not known until runtime, needs to be set in BaseSpec.groovy
+//baseUrl = System.getProperty('geb.build.baseUrl', 'http://localhost:9070/')
+
 //enable waitFor behaviour for all 'at' checks
 atCheckWaiting = true
 

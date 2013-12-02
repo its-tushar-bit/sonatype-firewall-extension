@@ -117,7 +117,7 @@ public class ImportPolicyTest
   }
 
   private String getPolicyUrl() {
-    return getUrl() + "assets/index.html#/management/application/" + appId + "/policies";
+    return getBaseUrl() + "assets/index.html#/management/application/" + appId + "/policies";
   }
 
   private File getValidImportFile() throws Exception {

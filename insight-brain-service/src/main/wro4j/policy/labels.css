@@ -81,6 +81,9 @@ form[name="labelEditor"] .clmLabel {
 .blueLabel:hover {
 	border-color: #17558E;
 }
+.labelContainer:last-child {
+	margin-right: 0px;
+}
 .labelContainer {
 	display: inline-block;
 	cursor: pointer;

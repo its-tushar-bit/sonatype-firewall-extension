@@ -49,18 +49,11 @@
 
 
 
-      <div class="content-header">
-        <label class="checkbox">
-          <input type='checkbox' name='useUserPasswordAttribute' ng-model="useUserPasswordAttribute">
-          <h4>Use Password Attribute</h4>
-        </label>
-      </div>
-      <div ng-show="useUserPasswordAttribute" class="control-group"
-           ng-class='{ error : ldapUserMappingEditor.userPasswordAttribute.$invalid && ldapUserMappingEditor.userPasswordAttribute.$dirty }'>
-        <label class="control-label glyphicons-sonatype required" for="userPasswordAttribute">Password Attribute:</label>
+      <div class="control-group" ng-class='{ error : ldapUserMappingEditor.userPasswordAttribute.$invalid && ldapUserMappingEditor.userPasswordAttribute.$dirty }'>
+        <label class="control-label glyphicons-sonatype" for="userPasswordAttribute">Password Attribute:</label>
         <div class="controls">
           <input type='text' maxlength='255' name='userPasswordAttribute' id='userPasswordAttribute'
-                 ng-model='ldapUserMapping.userPasswordAttribute' ng-required="useUserPasswordAttribute">
+                 ng-model='ldapUserMapping.userPasswordAttribute'>
         </div>
       </div>
 

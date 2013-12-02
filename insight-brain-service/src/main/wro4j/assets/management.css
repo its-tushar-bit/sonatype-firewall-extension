@@ -740,7 +740,7 @@ ul.tri-pane {
 .configuration .control-label {
 	text-align: left;
 }
-.configuration .controls>input {
+.configuration .controls>input[type=text], .configuration .controls>input[type=password], .configuration .controls>input[type=number] {
 	width: 291px;
 }
 .configuration .controls>select {

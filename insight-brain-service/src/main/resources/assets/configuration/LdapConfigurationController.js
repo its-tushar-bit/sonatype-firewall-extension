@@ -303,13 +303,6 @@
 
       $scope.groupMappingTypes = ['NONE', 'STATIC', 'DYNAMIC'];
 
-      $scope.useUserPasswordAttribute = false;
-      $scope.$watch('useUserPasswordAttribute', function(newValue, oldValue) {
-        if (!newValue) {
-          $scope.ldapUserMapping.userPasswordAttribute = null;
-        }
-      });
-
       $scope.isDirty = function() {
         return !angular.equals(origLdapUserMapping, $scope.ldapUserMapping);
       };
@@ -320,7 +313,6 @@
 
       $scope.reset = resetDialog($modal, function () { 
         $scope.ldapUserMapping = angular.copy(origLdapUserMapping);
-        $scope.useUserPasswordAttribute = $scope.ldapUserMapping.userPasswordAttribute != null;
         $scope.alerts.length = 0;
       });
 
@@ -392,7 +384,6 @@
       $http.get($scope.getConfigLdapUrl('userMapping'), weHeartIE()).success(function(data) {
         origLdapUserMapping = data;
         $scope.ldapUserMapping = angular.copy(origLdapUserMapping);
-        $scope.useUserPasswordAttribute = $scope.ldapUserMapping.userPasswordAttribute != null;
       }).error(function() {
         $scope.$broadcast('showServerError', arguments);
       });

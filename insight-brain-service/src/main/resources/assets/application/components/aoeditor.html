@@ -79,7 +79,7 @@
 		<p>The {{ao.type}} with id <strong>{{ao.getPublicId()}}</strong> has been moved, deleted or the current user does not have permission to view it.</p>
 	</div>
 	<div load-error='error' reload='doLoad()'></div>
-	<div class='fade in' ng-class='{ in : ao.selected != null }'>
+	<div class='fade' ng-class='{ in : ao.selected != null }'>
 		<div clm-alerts='alerts'></div>
 		<div style="float:right; margin:10px;" class='btn-group'>
 			<a class="btn btn-mini" title="Import Policies" ng-click="openImport()" ng-if='ao.getId()'>

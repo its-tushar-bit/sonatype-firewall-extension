@@ -56,6 +56,7 @@ describe('AngularCommon', function() {
 
     expect(Messages.getHttpErrorMessage({ data: 'Internal Error', status: 500 })).toEqual('500 - Internal Error');
     expect(Messages.getHttpErrorMessage({ data: 'Bogus String', status: 0 })).toEqual('Unable to reach CLM server');
+    expect(Messages.getHttpErrorMessage(['<html>Error</html>', 503, function() { return {'content-type': 'text/html'}; }])).toEqual('503');
   }));
 
   it('X-editable directive should be respected if applied as an attribute', function() {

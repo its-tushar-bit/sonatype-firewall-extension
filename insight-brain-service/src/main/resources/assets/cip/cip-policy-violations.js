@@ -65,7 +65,7 @@
         function errorFn(data, status, headersFn, config) {
           $scope.alerts.push({
             type: 'error',
-            msg: messages.getHttpErrorMessage({ status: status, data: data })
+            msg: messages.getHttpErrorMessage(arguments)
           });
         }
 
@@ -173,7 +173,7 @@
             $scope.waiverPolicyAlert = policy;
           }).error(function(data, status) {
                 $scope.waiverLoading = false;
-                $scope.waiveAssignError = messages.getHttpErrorMessage({ status: status, data: data });
+                $scope.waiveAssignError = messages.getHttpErrorMessage(arguments);
               });
         };
         //move the dialog onto the body in the dom, so the backdrop shows properly
@@ -197,7 +197,7 @@
             $('#componentAddWaiverModal').modal('hide');
           }).error(function(data, status, headersFn, config) {
                 $scope.waiverSaving = false;
-                $scope.waiveAssignError = messages.getHttpErrorMessage({ status: status, data: data });
+                $scope.waiveAssignError = messages.getHttpErrorMessage(arguments);
               });
         };
       }
@@ -206,7 +206,7 @@
       '$scope', 'hudson', '$http', '$q', 'PolicyViolationData', 'Messages',
       function($scope, hudson, $http, $q, policyViolationData, messages) {
         function handleHttpError(data, status, headerFn, config) {
-          $scope.appError = messages.getHttpErrorMessage({ status: status, data: data });
+          $scope.appError = messages.getHttpErrorMessage(arguments);
         }
 
         //after dialog is shown, make sure to apply the angular stuff

@@ -907,7 +907,7 @@ var AngularUtils = {
           args = {
             status: args[1],
             data: args[0],
-            headers: args.length > 5 ? args[4] : null
+            headers: args.length >= 3 ? args[2] : null
           };
         }
         var message = '',

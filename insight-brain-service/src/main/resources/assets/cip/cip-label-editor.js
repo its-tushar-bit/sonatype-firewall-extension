@@ -86,7 +86,7 @@
             $('#labelAssignScopeModal').modal('hide');
           }).error(function(data, status, headersFn, config) {
                 $scope.labelSaving = false;
-                $scope.labelAddError = messages.getHttpErrorMessage({ status: status, data: data });
+                $scope.labelAddError = messages.getHttpErrorMessage(arguments);
               });
         };
         //after dialog is shown, make sure to apply the angular stuff
@@ -117,7 +117,7 @@
               processItem(data);
             }).error(function(data, status) {
                   $scope.labelLoading = false;
-                  $scope.labelAddError = messages.getHttpErrorMessage({ status: status, data: data });
+                  $scope.labelAddError = messages.getHttpErrorMessage(arguments);
                 });
           });
         });
@@ -144,7 +144,7 @@
             $('#labelRemoveModal').modal('hide');
           }).error(function(data, status, headersFn, config) {
                 $scope.labelDeleting = false;
-                $scope.labelRemoveError = messages.getHttpErrorMessage({ status: status, data: data });
+                $scope.labelRemoveError = messages.getHttpErrorMessage(arguments);
               });
         };
         $('#labelRemoveModal').on('show', function() {
@@ -164,7 +164,7 @@
           $scope.alerts.length = 0;
           $scope.alerts.push({
             type: 'error',
-            msg: messages.getHttpErrorMessage({ status: status, data: data })
+            msg: messages.getHttpErrorMessage(arguments)
           });
         }
 

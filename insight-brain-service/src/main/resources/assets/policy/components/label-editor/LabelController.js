@@ -149,7 +149,7 @@
                     showAlert($scope.alerts, {
                       type: 'error',
                       msg: 'An error occurred while deleting the label ' + label.label + '. (' +
-                          messages.getHttpErrorMessage({ status: error.status, data: error.data}) + ')'
+                          messages.getHttpErrorMessage(error) + ')'
                     });
                   });
                   modalScope.$close(true);
@@ -177,7 +177,7 @@
         showAlert($scope.editorAlerts, {
           type: 'error',
           msg: 'An error occurred while saving the label. (' +
-              messages.getHttpErrorMessage({ status: error.status, data: error.data}) + ')'
+              messages.getHttpErrorMessage(error) + ')'
         });
       }
 

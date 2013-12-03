@@ -212,11 +212,7 @@ public class PolicyEvaluator
       }
     }
 
-    String reportUrl = params.getServerUrl();
-    if (!reportUrl.endsWith("/")) {
-      reportUrl += '/';
-    }
-    reportUrl += receipt.getReportUrl();
+    String reportUrl = receipt.resolveReportUrl(params.getServerUrl());
 
     if (!PolicyAction.NONE.equals(outcome)) {
       log.info("");

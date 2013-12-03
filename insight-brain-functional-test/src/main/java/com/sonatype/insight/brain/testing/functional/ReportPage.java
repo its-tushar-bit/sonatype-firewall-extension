@@ -48,9 +48,37 @@ public class ReportPage
   {
     @FindBy(id = "summary")
     private WebElement summary;
+    
+    @FindBy(id = "componentcontainer")
+    private WebElement policy;
+    
+    @FindBy(id = "loginModal")
+    private WebElement login;
+    
+    @FindBy(id = "summaryBtn")
+    private WebElement summaryButton;
+    
+    @FindBy(id = "componentcontainerBtn")
+    private WebElement policyButton;
 
     public ReportSummaryPage getSummary() {
       return new ReportSummaryPage(summary);
+    }
+    
+    public ReportPolicyPage getPolicy() {
+      return new ReportPolicyPage(policy);
+    }
+    
+    public void clickSummary() {
+      summaryButton.click();
+    }
+    
+    public void clickPolicy() {
+      policyButton.click();
+    }
+    
+    public ReportLoginPage getLogin() {
+      return new ReportLoginPage(login);
     }
   }
 
@@ -75,6 +103,62 @@ public class ReportPage
 
     public int getSecurityAlerts() {
       return Integer.valueOf(securityAlerts.getText());
+    }
+    
+    public boolean isDisplayed() {
+      return componentsIdentified.isDisplayed();
+    }
+  }
+  
+  /**
+   * Represents the policy page of the report
+   */
+  public static class ReportPolicyPage
+  {
+    @FindBy(css = ".slick-viewport")
+    private WebElement slickViewport;
+    
+    public ReportPolicyPage(SearchContext parent) {
+      PageFactory.initElements(new DefaultElementLocatorFactory(parent), this);
+    }
+    
+    public boolean isDisplayed() {
+      return slickViewport.isDisplayed();
+    }
+  }
+  
+  /**
+   * Represents the login dialog that pops up when there is no authentication
+   */
+  public static class ReportLoginPage
+  {
+    @FindBy(id = "login-username")
+    private WebElement username;
+    
+    @FindBy(id = "login-password")
+    private WebElement password;
+    
+    @FindBy(id = "login-action")
+    private WebElement loginButton;
+    
+    public ReportLoginPage(SearchContext parent) {
+      PageFactory.initElements(new DefaultElementLocatorFactory(parent), this);
+    }
+    
+    public WebElement getUsername() {
+      return username;
+    }
+    
+    public WebElement getPassword() {
+      return password;
+    }
+    
+    public WebElement getLoginButton() {
+      return loginButton;
+    }
+    
+    public boolean isDisplayed() {
+      return username.isDisplayed();
     }
   }
 }

@@ -64,7 +64,7 @@
     }
   });
 
-  var claimApp = angular.module('ClaimComponent', ['Hudson']);
+  var claimApp = angular.module('ClaimComponent', ['Hudson', 'UnauthenticatedResponseHttpInterceptor']);
 
   claimApp.controller('ClaimComponentController', [
     'hudson', '$scope', 'CurrentData', function(hudson, $scope, CurrentData) {

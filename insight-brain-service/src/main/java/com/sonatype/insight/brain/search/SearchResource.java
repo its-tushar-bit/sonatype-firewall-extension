@@ -21,6 +21,7 @@ import javax.ws.rs.core.MediaType;
 import com.sonatype.clm.dto.model.policy.ComponentFact;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.conditions.ArtifactCoordinate;
@@ -143,7 +144,7 @@ public class SearchResource
         SearchResult result = new SearchResult();
         result.applicationId = app.getPublicId();
         result.applicationName = app.getName();
-        result.reportUrl = baseUrl + ReportResource.getReportPath(app.getPublicId(), eval.getScanId());
+        result.reportUrl = baseUrl + UserInterfaceLinksResource.getReportUrl(app.getPublicId(), eval.getScanId());
         result.hash = h;
         result.groupId = g;
         result.artifactId = a;

@@ -40,6 +40,8 @@ public class UserInterfaceLinksResourceTest
 
   @Test
   public void testLinkToReport() throws Exception {
+    assertThat(UserInterfaceLinksResource.getReportUrl("app id", "scan id"), is(UserInterfaceLinksResource.SERVICE_PATH
+        + "/application/app%20id/report/scan%20id"));
     Response response = get(UserInterfaceLinksResource.REPORT_PATH, "app id", "scan id");
     assertRedirect(response, "assets/reports.html#/reports/app%20id/scan%20id");
   }

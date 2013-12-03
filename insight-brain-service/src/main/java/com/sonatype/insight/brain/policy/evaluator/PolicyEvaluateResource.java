@@ -34,11 +34,11 @@ import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.actions.ActionTypes;
 import com.sonatype.insight.brain.model.policy.actions.NotifyActionType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
-import com.sonatype.insight.brain.report.ReportResource;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightMail;
 import com.sonatype.insight.brain.utils.TemplateUtils;
@@ -130,7 +130,7 @@ public class PolicyEvaluateResource
     final Map<String, Object> model = new HashMap<String, Object>();
 
     model.put("cdnUrl", cdnUrl);
-    model.put("detailedReportUrl", serverUrl + ReportResource.getReportPath(applicationPublicId, scanId));
+    model.put("detailedReportUrl", serverUrl + UserInterfaceLinksResource.getReportUrl(applicationPublicId, scanId));
     model.put("policyAlerts", policyAlerts);
     model.put("policyThreatStage", StageTypes.getById(stage.getStageTypeId()).getName());
     model.put("policyThreatApp", applicationPublicId);

@@ -23,6 +23,7 @@ import com.sonatype.insight.brain.dataaccess.component.HashGAVDAO;
 import com.sonatype.insight.brain.dataaccess.label.ComponentLabelDAO;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
+import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.HashGAV;
@@ -657,7 +658,7 @@ public class PolicyEvaluateResourceTest
     Assert.assertNotNull(model);
     Assert.assertEquals(policyAlerts, model.get("policyAlerts"));
     Assert.assertEquals(cdnUrl, model.get("cdnUrl"));
-    Assert.assertEquals(serverUrl + ReportResource.getReportPath(applicationPublicId, scanId),
+    Assert.assertEquals(serverUrl + UserInterfaceLinksResource.getReportUrl(applicationPublicId, scanId),
         model.get("detailedReportUrl"));
     Assert.assertEquals(7, model.get("policyThreatRedCount"));
     Assert.assertEquals(3, model.get("policyThreatOrangeCount"));

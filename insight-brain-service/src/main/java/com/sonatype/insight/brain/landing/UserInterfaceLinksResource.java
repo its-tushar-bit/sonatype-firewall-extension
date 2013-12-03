@@ -69,4 +69,12 @@ public class UserInterfaceLinksResource
         "/reports/{applicationPublicId}/{scanId}");
     return redirect(uriBuilder.build(applicationPublicId, scanId));
   }
+
+  /**
+   * Gets the relative URL to the stable hyperlink for the report of the given application and scan.
+   */
+  public static String getReportUrl(String applicationPublicId, String scanId) {
+    return UriBuilder.fromPath(UserInterfaceLinksResource.SERVICE_PATH + '/' + UserInterfaceLinksResource.REPORT_PATH)
+        .build(applicationPublicId, scanId).toString();
+  }
 }

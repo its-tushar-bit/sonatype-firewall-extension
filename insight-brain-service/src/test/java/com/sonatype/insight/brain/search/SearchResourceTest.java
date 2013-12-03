@@ -12,6 +12,7 @@ import com.sonatype.insight.brain.search.SearchResource.SearchResult;
 import com.sonatype.insight.brain.search.SearchResource.SearchResults;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
+import com.ning.http.client.AsyncHttpClient;
 import com.ning.http.client.Response;
 import com.yammer.dropwizard.testing.JsonHelpers;
 import org.junit.Before;
@@ -56,7 +57,9 @@ public class SearchResourceTest
     assertThat(result.applicationId, is(appId));
     assertThat(result.applicationName, is(appName));
     assertThat(result.reportUrl, is(notNullValue()));
-    assertResponseStatus(200, AuthedRestAccess.get(result.reportUrl));
+    AsyncHttpClient.BoundRequestBuilder builder = AuthedRestAccess.getClient().prepareGet(result.reportUrl);
+    builder.setFollowRedirects(true);
+    assertResponseStatus(200, AuthedRestAccess.execute(builder));
     assertThat(result.hash, is(hash));
     assertThat(result.groupId, is(groupId));
     assertThat(result.artifactId, is(artifactId));

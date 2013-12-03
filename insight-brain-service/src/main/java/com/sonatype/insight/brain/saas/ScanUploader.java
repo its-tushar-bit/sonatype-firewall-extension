@@ -13,7 +13,6 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.core.UriBuilder;
 
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
@@ -75,9 +74,7 @@ public class ScanUploader
     log.debug("Successfully uploaded scan id {}", receipt.getScanId());
 
     // SaaS knows nothing about where CLM Server stores reports, add this info to the receipt.
-    receipt.setReportUrl(UriBuilder
-        .fromPath(UserInterfaceLinksResource.SERVICE_PATH + '/' + UserInterfaceLinksResource.REPORT_PATH)
-        .build(applicationPublicId, receipt.getScanId()).toString());
+    receipt.setReportUrl(UserInterfaceLinksResource.getReportUrl(applicationPublicId, receipt.getScanId()));
 
     return receipt;
   }

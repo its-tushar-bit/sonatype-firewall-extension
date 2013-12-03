@@ -1,8 +1,7 @@
 <div id='labels'>
   <div class="content-section">
     <div load-error='error' reload='doLoad()'></div>
-    <div class='content-container' style='text-align:center;width:370px;margin:25px auto'
-         ng-show='applicableLabels == null && !error'>
+    <div style='margin:25px' ng-show='applicableLabels == null && !error'>
       <h5><i class='icon-time'></i> Loading...</h5>
     </div>
     <div ng-show='!error && applicableLabels != null'>

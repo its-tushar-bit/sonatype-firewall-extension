@@ -976,6 +976,11 @@ var AngularUtils = {
               break;
             }
           }
+          
+          // check if we are in a report
+          if (idx < 0) {
+            idx = window.location.href.indexOf('/rest/report/');
+          }
 
           if (idx > -1) {
             return window.location.href.substring(0, idx);

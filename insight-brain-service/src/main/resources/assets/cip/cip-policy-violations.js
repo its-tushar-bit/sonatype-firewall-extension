@@ -48,7 +48,7 @@
 
   (function() {
     var policyViolationApp = angular.module('PolicyViolations',
-            ['CommonServices', 'Hudson']).service('CurrentPolicyData', function() {
+            ['CommonServices', 'Hudson', 'UnauthenticatedResponseHttpInterceptor']).service('CurrentPolicyData', function() {
       var currentPolicy = null;
       return {
         get: function() {

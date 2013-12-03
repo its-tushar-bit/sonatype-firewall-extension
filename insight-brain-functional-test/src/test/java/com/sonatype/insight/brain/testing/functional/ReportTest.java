@@ -15,6 +15,9 @@ import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateResource;
 import com.sonatype.insight.brain.testing.functional.ReportPage.Report;
 import com.sonatype.insight.brain.testing.functional.ReportPage.ReportSummaryPage;
 
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.support.ui.ExpectedCondition;
+
 import com.yammer.dropwizard.testing.JsonHelpers;
 import org.codehaus.plexus.util.FileUtils;
 import org.junit.After;
@@ -69,6 +72,66 @@ public class ReportTest
     ReportSummaryPage summary = PageFactory.initElements(driver, Report.class).getSummary();
     Assert.assertEquals(28, summary.getComponentsIdentified());
     Assert.assertEquals(36, summary.getSecurityAlerts());
+  }
+  
+  @Test
+  public void testReportAuthentication() {
+    driver.get(getUiLinksReportUrl(appId, scanId));
+    PageFactory.initElements(driver, Login.class).doLogin("admin", "admin123");
+
+    final ReportPage reportPage = PageFactory.initElements(driver, ReportPage.class);
+    wait(10, ExpectedConditions.visibilityOf(reportPage.getReportFrame()));
+
+    driver.switchTo().frame(reportPage.getReportFrame());
+    final Report report = reportPage.getReport();
+    //make sure the summary page loads
+    report.clickSummary();
+    waitForSummaryPage(report);
+    //then the policy page
+    report.clickPolicy();
+    waitForPolicyPage(report);
+    //now back to summary page
+    report.clickSummary();
+    waitForSummaryPage(report);
+    //now lets clear out cookies
+    driver.manage().deleteCookieNamed("JSESSIONID");
+    //now back to the policy page, authentication should be required
+    report.clickPolicy();
+    waitForLoginPage(report, true);
+    //now lets login
+    report.getLogin().getUsername().sendKeys("admin");
+    report.getLogin().getPassword().sendKeys("admin123");
+    report.getLogin().getLoginButton().click();
+    //make sure login is gone
+    waitForLoginPage(report, false);
+    waitForPolicyPage(report);
+  }
+  
+  private void waitForSummaryPage(final Report report) {
+    wait(10, new ExpectedCondition<Boolean>() {
+      @Override
+      public Boolean apply(WebDriver driver) {
+        return report.getSummary().isDisplayed();
+      }
+    });
+  }
+  
+  private void waitForPolicyPage(final Report report) {
+    wait(10, new ExpectedCondition<Boolean>() {
+      @Override
+      public Boolean apply(WebDriver driver) {
+        return report.getPolicy().isDisplayed();
+      }
+    });
+  }
+  
+  private void waitForLoginPage(final Report report, final boolean displayed) {
+    wait(10, new ExpectedCondition<Boolean>() {
+      @Override
+      public Boolean apply(WebDriver driver) {
+        return displayed == report.getLogin().isDisplayed();
+      }
+    });
   }
 
   private String getEvalURL(String appId, String scanId) {

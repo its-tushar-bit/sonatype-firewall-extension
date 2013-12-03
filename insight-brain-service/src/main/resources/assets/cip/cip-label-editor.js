@@ -45,7 +45,7 @@
 
   (function() {
     //create the app, and a service we can use to transfer data between our controllers
-    var labelsApp = angular.module('ComponentLabelEditor', ['CommonServices', 'Hudson']).service('CurrentLabelData',
+    var labelsApp = angular.module('ComponentLabelEditor', ['CommonServices', 'Hudson', 'UnauthenticatedResponseHttpInterceptor']).service('CurrentLabelData',
         function() {
           var currentLabel = null,
               currentError = null;

@@ -49,7 +49,7 @@
   }
 
   var licenseEditor = angular.module('LicenseEditor',
-      ['CommonServices', 'AngularCommon', 'Hudson', 'ApplicationIdProvider']);
+      ['CommonServices', 'AngularCommon', 'Hudson', 'ApplicationIdProvider', 'UnauthenticatedResponseHttpInterceptor']);
 
   licenseEditor.controller('LicenseEditorController', [
     '$scope', '$q', '$http', 'hudson', 'Messages', 'SelectedComponent', 'DataView', 'ApplicationId',

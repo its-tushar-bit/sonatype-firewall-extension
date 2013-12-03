@@ -49,6 +49,9 @@ public class ReportTest
     FileUtils.copyURLToFile(getClass().getResource("/ReportTest/report.zip"), saasReportFile1);
     // Trigger evaluation
     post(getEvalURL(appId, scanId), JsonHelpers.asJson(new Stage(Stage.ID_BUILD)), "admin", "admin123");
+
+    // nuke session cookie from any prior tests
+    driver.manage().deleteCookieNamed("JSESSIONID");
   }
 
   @After

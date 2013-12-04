@@ -6,4 +6,4 @@
 # "Sonatype" is a trademark of Sonatype, Inc.
 #
 
-java -jar ${clm.server.jar} server config.yml
+${clm.server.demo.command}

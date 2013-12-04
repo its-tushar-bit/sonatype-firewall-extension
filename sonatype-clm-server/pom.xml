@@ -22,6 +22,7 @@
 
   <properties>
     <clm.server.jar>sonatype-clm-server-${project.version}.jar</clm.server.jar>
+    <clm.server.demo.command>java -XX:MaxPermSize=128m -jar ${clm.server.jar} server config.yml</clm.server.demo.command>
   </properties>
 
   <dependencies>

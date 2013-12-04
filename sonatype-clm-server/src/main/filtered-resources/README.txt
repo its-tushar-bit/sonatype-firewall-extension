@@ -13,6 +13,7 @@ To start the Sonatype CLM Server in a mode that is useful for a short evaluation
 - listening on port 8070
 - log to the console and ./log/clm-server.log
 - data stored in ./sonatype-work/clm-server
+- Java MaxPermSize increased to accommodate generation of PDF reports
 
 Refer to the example config.yml in this bundle for additional options.
 

@@ -4,4 +4,4 @@
 @REM "Sonatype" is a trademark of Sonatype, Inc.
 @REM
 
-java -jar ${clm.server.jar} server config.yml
+${clm.server.demo.command}

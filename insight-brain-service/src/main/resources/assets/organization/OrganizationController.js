@@ -155,10 +155,16 @@
         $scope.ao = {
           addSync : clmAppLocations.addIconSync(),
           getId : function () {
+            if (this.selected) {
+              return this.selected.id || $state.params.organizationId;
+            }
             return $state.params.organizationId;
           },
           getPublicId : function () {
-            return $state.params.organizationId;
+            return this.getId();
+          },
+          isNew : function () {
+            return $state.params.organizationId === "_new_";
           },
           type : 'organization',
           typeName : 'Organization'

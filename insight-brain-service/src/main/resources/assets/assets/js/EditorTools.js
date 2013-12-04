@@ -161,6 +161,8 @@
 
             // Angular modal does not adjust value of form element so when posting these values need to be set
             hiddenId.val($parse(idSelector)($scope));
+            // With new app/org, this method is called before a digest loop with the id set
+            angular.element('[name=' + $scope.ao.type + 'Id]').val($scope.ao.getId());
             angular.element('[name=hasRobotSource]').val($scope.hasRobotSource);
             angular.element('[name=robotHash]').val($scope.robotHash);
 

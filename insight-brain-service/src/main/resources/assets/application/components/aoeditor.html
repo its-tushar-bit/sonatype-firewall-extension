@@ -167,7 +167,7 @@
 				</div>
 			</form>
 		</div>
-		<div ng-if='ao.selected.id' style='clear:both'>
+		<div ng-if='!ao.isNew()' style='clear:both'>
 			<ul class='tri-pane'>
 				<li ng-class='{ active : isCurrentTab("policies") || isCurrentTab("policies.edit") }'>
 					<a ng-href='#/management/{{ao.type}}/{{ao.getPublicId()}}/policies'>POLICIES</a>

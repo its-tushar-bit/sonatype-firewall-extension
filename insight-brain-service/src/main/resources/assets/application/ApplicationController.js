@@ -145,6 +145,9 @@
         $scope.doLoad = function () {
           var ao = {
             addSync : CLMAppLocations.addIconSync(),
+            isNew : function () {
+              return $state.params.applicationPublicId === "_new_";
+            },
             selected : selectedApplication,
             type : 'application',
             typeName : 'Application'

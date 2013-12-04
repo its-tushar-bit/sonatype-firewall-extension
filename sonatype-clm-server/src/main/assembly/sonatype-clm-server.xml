@@ -24,13 +24,24 @@
       <outputDirectory>.</outputDirectory>
       <filtered>true</filtered>
     </fileSet>
-
   </fileSets>
   <files>
     <file>
       <source>${project.build.directory}/insight-brain-service-${project.version}-server.jar</source>
       <outputDirectory>.</outputDirectory>
       <destName>${clm.server.jar}</destName>
+    </file>
+    <!-- 
+      Flip executable bit for demo bash script.
+      
+      NOTE: this directive needs to be after the general fileSet for filtered-resources so that it overwrites that copy
+      with this one.
+    -->
+    <file>
+      <source>src/main/filtered-resources/demo.sh</source>
+      <outputDirectory>.</outputDirectory>
+      <filtered>true</filtered>
+      <fileMode>744</fileMode>
     </file>
   </files>
 </assembly>

@@ -49,7 +49,7 @@ describe('reportApp', function() {
       authenticated : true,
       username : 'user'
     });
-    $httpBackend.expectGET(CLMLocations.getActionStageUrl()).respond(MockData.getActionStageData());
+    $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getActionStageUrl())).respond(MockData.getActionStageData());
     $httpBackend.expectGET(SpecUtil.toRegExp('/rest/application/services/summary')).respond(ApplicationMockData.getApplicationSummaryData());
     $httpBackend.expectGET('../assets/management.html?').respond('<div></div>');
     $httpBackend.expectGET('../report-assets/violations/report-list.html?').respond('<div></div>');

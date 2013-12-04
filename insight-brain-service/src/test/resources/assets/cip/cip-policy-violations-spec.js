@@ -50,7 +50,7 @@ describe('CIP Policy Waiver tests', function() {
         }
       ]
     });
-    $httpBackend.expectGET('../brain/rest/policy/actionType').respond({});
+    $httpBackend.expectGET(SpecUtil.toRegExp('../brain/rest/policy/actionType')).respond({});
     $controller('PolicyViolationsController', {
       $scope: _scope,
       global: {},
@@ -91,7 +91,7 @@ describe('CIP Policy Waiver tests', function() {
   });
 
   it('Test waive policy at org level', inject(function($httpBackend) {
-    $httpBackend.expectGET('../brain/rest/policyWaiver/application/appId/applicable/context/policyId').respond({
+    $httpBackend.expectGET(SpecUtil.toRegExp('../brain/rest/policyWaiver/application/appId/applicable/context/policyId')).respond({
       id: 'orgId',
       name: 'org',
       type: 'organization',
@@ -126,7 +126,7 @@ describe('CIP Policy Waiver tests', function() {
   }));
 
   it('Test waive policy at app level', inject(function($httpBackend) {
-    $httpBackend.expectGET('../brain/rest/policyWaiver/application/appId/applicable/context/policyId').respond({
+    $httpBackend.expectGET(SpecUtil.toRegExp('../brain/rest/policyWaiver/application/appId/applicable/context/policyId')).respond({
       id: 'orgId',
       name: 'org',
       type: 'organization',

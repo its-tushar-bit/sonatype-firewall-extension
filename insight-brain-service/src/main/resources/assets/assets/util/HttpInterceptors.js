@@ -36,11 +36,11 @@
   httpInterceptors.factory('cacheBusterHttpInterceptor', [function() {
     return {
       request: function(config) {
-        return angular.extend(config, {
-          params: {
-            timestamp: new Date().getTime()
-          }
-        });
+        if (config.method == 'GET' && config.url.indexOf('/rest/') > -1 && config.url.indexOf('timestamp=') < 0) {
+          config.params = config.params || {};
+          config.params.timestamp = new Date().getTime();
+        } 
+        return config;
       }
     };
   }]);
@@ -48,6 +48,7 @@
   // Apply the interceptor to the httpProvider during config
   httpInterceptors.config(function($httpProvider) {
     $httpProvider.interceptors.push('unauthenticatedResponseHttpInterceptor');
+    $httpProvider.interceptors.push('cacheBusterHttpInterceptor');
   });
   
   //Ideally this would be merged into the above code, no event would be emitted, but sadly, ui.bootstrap (for $modal) has a dependency

@@ -92,7 +92,7 @@
 
     describe('App+Org with Overrides', function() {
       beforeEach(inject(function($controller, $httpBackend, SelectedComponent) {
-        $httpBackend.expectGET(CLM.path + 'rest/license').respond(LicenseGroupMockData.getLicensesData());
+        $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/license')).respond(LicenseGroupMockData.getLicensesData());
 
         $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/licenseOverride/application/app1/applied/' +
             SelectedComponent.groupId + '/' + SelectedComponent.artifactId + '/' +
@@ -147,7 +147,7 @@
 
     describe("No Overrides", function() {
       beforeEach(inject(function($controller, $httpBackend, SelectedComponent) {
-        $httpBackend.expectGET(CLM.path + 'rest/license').respond(LicenseGroupMockData.getLicensesData());
+        $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/license')).respond(LicenseGroupMockData.getLicensesData());
 
         $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/licenseOverride/application/app1/applied/' +
             SelectedComponent.groupId + '/' + SelectedComponent.artifactId + '/' +
@@ -230,7 +230,7 @@
 
     describe("Org Overridden", function() {
       beforeEach(inject(function($controller, $httpBackend, SelectedComponent) {
-        $httpBackend.expectGET(CLM.path + 'rest/license').respond(LicenseGroupMockData.getLicensesData());
+        $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/license')).respond(LicenseGroupMockData.getLicensesData());
 
         $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/licenseOverride/application/app1/applied/' +
             SelectedComponent.groupId + '/' + SelectedComponent.artifactId + '/' +
@@ -302,7 +302,7 @@
 
     describe("App Overridden", function() {
       beforeEach(inject(function($controller, $httpBackend, SelectedComponent) {
-        $httpBackend.expectGET(CLM.path + 'rest/license').respond(LicenseGroupMockData.getLicensesData());
+        $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/license')).respond(LicenseGroupMockData.getLicensesData());
 
         $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/licenseOverride/application/app1/applied/' +
             SelectedComponent.groupId + '/' + SelectedComponent.artifactId + '/' +
@@ -379,7 +379,7 @@
 
     describe("No Organization - App Overridden", function() {
       beforeEach(inject(function($controller, $httpBackend, SelectedComponent) {
-        $httpBackend.expectGET(CLM.path + 'rest/license').respond(LicenseGroupMockData.getLicensesData());
+        $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/license')).respond(LicenseGroupMockData.getLicensesData());
 
         $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/licenseOverride/application/app1/applied/' +
             SelectedComponent.groupId + '/' + SelectedComponent.artifactId + '/' +

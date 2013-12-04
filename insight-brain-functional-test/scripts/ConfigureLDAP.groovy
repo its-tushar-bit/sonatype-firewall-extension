@@ -122,7 +122,7 @@ Browser browser = new Browser(baseUrl: options.s ?: 'http://localhost:8070/')
 browser.getDriver().manage().window().maximize()
 Browser.drive(browser) {
 
-  to ReportPage
+  to ReportViolationsPage
   login.loginAsAdmin()
   to LDAPConfigurationPage
 

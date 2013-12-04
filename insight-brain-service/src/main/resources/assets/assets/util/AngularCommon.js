@@ -967,7 +967,7 @@ var AngularUtils = {
     function() {
       return {
         get: function() {
-          var baseSegments = ['/policy-assets/', '/application-assets/', '/assets/', '/security-assets/', '/report-assets/'],
+          var baseSegments = ['/policy-assets/', '/application-assets/', '/assets/', '/security-assets/', '/report-assets/', '/rest/report/'],
               idx = -1;
 
           for (var i = 0; i < baseSegments.length; i++) {
@@ -975,11 +975,6 @@ var AngularUtils = {
             if (idx !== -1) {
               break;
             }
-          }
-          
-          // check if we are in a report
-          if (idx < 0) {
-            idx = window.location.href.indexOf('/rest/report/');
           }
 
           if (idx > -1) {

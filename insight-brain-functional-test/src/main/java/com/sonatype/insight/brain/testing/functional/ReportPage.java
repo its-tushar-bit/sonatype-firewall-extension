@@ -61,12 +61,12 @@ public class ReportPage
     @FindBy(id = "componentcontainerBtn")
     private WebElement policyButton;
 
-    public ReportSummaryPage getSummary() {
-      return new ReportSummaryPage(summary);
+    public ReportSummaryTab getSummary() {
+      return new ReportSummaryTab(summary);
     }
     
-    public ReportPolicyPage getPolicy() {
-      return new ReportPolicyPage(policy);
+    public ReportPolicyTab getPolicy() {
+      return new ReportPolicyTab(policy);
     }
     
     public void clickSummary() {
@@ -83,9 +83,9 @@ public class ReportPage
   }
 
   /**
-   * Represents the summary page of the report
+   * Represents the summary tab of the report
    */
-  public static class ReportSummaryPage
+  public static class ReportSummaryTab
   {
     @FindBy(css = ".topBorder:nth-child(3) .span5 .value_lrg")
     private WebElement componentsIdentified;
@@ -93,7 +93,7 @@ public class ReportPage
     @FindBy(css = "#svHeader .value_lrg")
     private WebElement securityAlerts;
 
-    public ReportSummaryPage(SearchContext parent) {
+    public ReportSummaryTab(SearchContext parent) {
       PageFactory.initElements(new DefaultElementLocatorFactory(parent), this);
     }
 
@@ -111,14 +111,14 @@ public class ReportPage
   }
   
   /**
-   * Represents the policy page of the report
+   * Represents the policy tab of the report
    */
-  public static class ReportPolicyPage
+  public static class ReportPolicyTab
   {
     @FindBy(css = ".slick-viewport")
     private WebElement slickViewport;
     
-    public ReportPolicyPage(SearchContext parent) {
+    public ReportPolicyTab(SearchContext parent) {
       PageFactory.initElements(new DefaultElementLocatorFactory(parent), this);
     }
     

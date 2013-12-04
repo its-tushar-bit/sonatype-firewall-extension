@@ -13,7 +13,7 @@ import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateResource;
 import com.sonatype.insight.brain.testing.functional.ReportPage.Report;
-import com.sonatype.insight.brain.testing.functional.ReportPage.ReportSummaryPage;
+import com.sonatype.insight.brain.testing.functional.ReportPage.ReportSummaryTab;
 
 import com.yammer.dropwizard.testing.JsonHelpers;
 import org.codehaus.plexus.util.FileUtils;
@@ -71,7 +71,7 @@ public class ReportTest
     wait(10, ExpectedConditions.presenceOfElementLocated(By.tagName("body")));
 
     // Verify content of report
-    ReportSummaryPage summary = PageFactory.initElements(driver, Report.class).getSummary();
+    ReportSummaryTab summary = PageFactory.initElements(driver, Report.class).getSummary();
     Assert.assertEquals(28, summary.getComponentsIdentified());
     Assert.assertEquals(36, summary.getSecurityAlerts());
   }

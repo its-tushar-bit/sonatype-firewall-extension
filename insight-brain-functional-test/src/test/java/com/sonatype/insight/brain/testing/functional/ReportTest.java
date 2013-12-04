@@ -15,9 +15,6 @@ import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateResource;
 import com.sonatype.insight.brain.testing.functional.ReportPage.Report;
 import com.sonatype.insight.brain.testing.functional.ReportPage.ReportSummaryPage;
 
-import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.support.ui.ExpectedCondition;
-
 import com.yammer.dropwizard.testing.JsonHelpers;
 import org.codehaus.plexus.util.FileUtils;
 import org.junit.After;
@@ -25,7 +22,9 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.openqa.selenium.By;
+import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.support.PageFactory;
+import org.openqa.selenium.support.ui.ExpectedCondition;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 
 public class ReportTest

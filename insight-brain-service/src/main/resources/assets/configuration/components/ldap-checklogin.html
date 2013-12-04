@@ -6,7 +6,7 @@
     <div class="control-group" ng-class='{ error : ldapCheckLogin.username.$invalid && ldapCheckLogin.username.$dirty}'>
       <label class="control-label glyphicons-sonatype required">Username:</label>
       <div class="controls">
-        <input type='text' name='username' ng-model="ldapCredentials.username" required>
+        <input type='text' name='username' ng-model="ldapCredentials.username" required focus-input='true'>
       </div>
     </div>
     <div class="control-group" ng-class='{ error : ldapCheckLogin.password.$invalid && ldapCheckLogin.password.$dirty }'>

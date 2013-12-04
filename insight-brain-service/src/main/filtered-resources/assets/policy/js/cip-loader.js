@@ -104,10 +104,10 @@
       var context = this;
       
       function getBaseUrl() {
-        var idx = window.location.href.indexOf('/rest/report');
+        var idx = window.location.href.indexOf('/rest/report/');
         
         if (idx > -1) {
-          return window.location.href.substring(0, idx);
+          return window.location.href.substring(0, idx + 1);
         } else {
           return '../../../../../';
         }

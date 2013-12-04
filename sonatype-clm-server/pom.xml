@@ -20,6 +20,10 @@
   <packaging>pom</packaging>
   <name>Sonatype CLM Server distribution bundle</name>
 
+  <properties>
+    <clm.server.jar>sonatype-clm-server-${project.version}.jar</clm.server.jar>
+  </properties>
+
   <dependencies>
     <dependency>
       <groupId>${project.groupId}</groupId>

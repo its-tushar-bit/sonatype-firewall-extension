@@ -19,12 +19,18 @@
       <directory>src/main/resources</directory>
       <outputDirectory>.</outputDirectory>
     </fileSet>
+    <fileSet>
+      <directory>src/main/filtered-resources</directory>
+      <outputDirectory>.</outputDirectory>
+      <filtered>true</filtered>
+    </fileSet>
+
   </fileSets>
   <files>
     <file>
       <source>${project.build.directory}/insight-brain-service-${project.version}-server.jar</source>
       <outputDirectory>.</outputDirectory>
-      <destName>sonatype-clm-server-${project.version}.jar</destName>
+      <destName>${clm.server.jar}</destName>
     </file>
   </files>
 </assembly>

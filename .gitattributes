@@ -1,0 +1,2 @@
+# Files that must have CRLF line endings
+*.bat eol=crlf

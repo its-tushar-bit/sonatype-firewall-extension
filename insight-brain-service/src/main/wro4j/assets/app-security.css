@@ -12,9 +12,12 @@
   padding-bottom: 2px;
 }
 .roles .inherited-section {
-	border-top: 1px solid #E8E8E8;
 	margin-top:5px;
 	padding-top:5px;
+}
+.roles .inherited-header {
+  border-bottom: 1px solid #E8E8E8;
+  display: block;
 }
 .roles .inherited {
 	color:#909090;

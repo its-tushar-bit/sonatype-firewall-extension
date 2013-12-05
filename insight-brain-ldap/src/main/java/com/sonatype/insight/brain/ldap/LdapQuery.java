@@ -37,6 +37,8 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.directory.api.ldap.model.password.PasswordUtil;
 import org.apache.directory.api.util.Strings;
 import org.apache.shiro.realm.ldap.LdapUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Provides various LDAP queries.
@@ -45,6 +47,8 @@ import org.apache.shiro.realm.ldap.LdapUtils;
  */
 class LdapQuery
 {
+  private static final Logger log = LoggerFactory.getLogger(LdapQuery.class);
+
   private final LdapCtxFactory ctxFactory;
 
   private final LdapUserMapping umap;
@@ -554,7 +558,12 @@ class LdapQuery
 
     ldapFilter.append(')');
 
-    return ctx.search(baseDN, ldapFilter.toString(), controls);
+    String ldapFilterString = ldapFilter.toString();
+    if(log.isDebugEnabled()){
+      log.debug("Executing LdapQuery searchUsersByAttributes with ldapFilter: {}", ldapFilterString);
+    }
+
+    return ctx.search(baseDN, ldapFilterString, controls);
   }
 
   /**
@@ -591,7 +600,12 @@ class LdapQuery
 
     ldapFilter.append(')');
 
-    return ctx.search(baseDN, ldapFilter.toString(), controls);
+    String ldapFilterString = ldapFilter.toString();
+    if(log.isDebugEnabled()){
+      log.debug("Executing LdapQuery searchGroupsByAttributes with ldapFilter: {}", ldapFilterString);
+    }
+
+    return ctx.search(baseDN, ldapFilterString, controls);
   }
 
   /**
@@ -627,7 +641,12 @@ class LdapQuery
 
     ldapFilter.append(')');
 
-    return ctx.search(baseDN, ldapFilter.toString(), controls);
+    String ldapFilterString = ldapFilter.toString();
+    if(log.isDebugEnabled()){
+      log.debug("Executing LdapQuery searchGroups with ldapFilter: {}", ldapFilterString);
+    }
+
+    return ctx.search(baseDN, ldapFilterString, controls);
   }
 
   /**

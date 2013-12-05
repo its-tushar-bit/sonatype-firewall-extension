@@ -47,7 +47,7 @@ class LDAPUserAndGroupMappingConfigurationPage
     userMappingDialogClose(required: false){ userMappingDialog.find('button')}
 
     //test user login dialog
-    userLoginDialog(required: false) { $('div.modal h3', text: 'LDAP Login Credentials to Test')?.parent().parent() }
+    userLoginDialog(required: false) { $('div.modal h3', text: 'Test LDAP Login Credentials')?.parent().parent() }
     userLoginUsername(required: false) { userLoginDialog.find('input', name: 'username')}
     userLoginPassword(required: false) { userLoginDialog.find('input', name: 'password')}
     userLoginDialogTest(required: false){ userLoginDialog.find('button', 'ng-click':'testLogin()')}

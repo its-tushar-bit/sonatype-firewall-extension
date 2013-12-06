@@ -19,8 +19,6 @@ import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.client.utils.Result;
 import com.sonatype.insight.db.DatabaseConfig;
 
-import org.sonatype.inject.BeanScanning;
-
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.Appender;
 import com.google.common.base.Optional;
@@ -37,6 +35,7 @@ import org.eclipse.jetty.server.RequestLog;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.HandlerCollection;
 import org.eclipse.jetty.server.handler.RequestLogHandler;
+import org.eclipse.sisu.space.BeanScanning;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

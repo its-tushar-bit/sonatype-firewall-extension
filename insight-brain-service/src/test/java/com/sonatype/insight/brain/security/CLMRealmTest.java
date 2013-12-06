@@ -12,13 +12,12 @@ import javax.inject.Inject;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.model.security.UserPrincipal;
 
-import org.sonatype.guice.bean.containers.InjectedTest;
-
 import org.apache.shiro.authc.AuthenticationException;
 import org.apache.shiro.authc.AuthenticationInfo;
 import org.apache.shiro.authc.IncorrectCredentialsException;
 import org.apache.shiro.authc.UsernamePasswordToken;
 import org.apache.shiro.subject.PrincipalCollection;
+import org.eclipse.sisu.launch.InjectedTest;
 import org.junit.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;

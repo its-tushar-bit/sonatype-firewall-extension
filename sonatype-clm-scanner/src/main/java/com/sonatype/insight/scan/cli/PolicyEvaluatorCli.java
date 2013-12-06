@@ -54,7 +54,7 @@ public class PolicyEvaluatorCli
       System.exit(0);
     }
 
-    return org.sonatype.guice.bean.containers.Main.boot(type, params.getArgs());
+    return org.eclipse.sisu.launch.Main.boot(type, params.getArgs());
   }
 
   private static void initLogging(Parameters params) {

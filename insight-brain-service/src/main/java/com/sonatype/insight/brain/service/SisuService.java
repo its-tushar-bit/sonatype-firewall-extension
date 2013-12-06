@@ -15,14 +15,6 @@ import java.util.List;
 import javax.ws.rs.Path;
 import javax.ws.rs.ext.Provider;
 
-import org.sonatype.guice.bean.binders.SpaceModule;
-import org.sonatype.guice.bean.binders.WireModule;
-import org.sonatype.guice.bean.locators.BeanLocator;
-import org.sonatype.guice.bean.reflect.ClassSpace;
-import org.sonatype.guice.bean.reflect.URLClassSpace;
-import org.sonatype.inject.BeanEntry;
-import org.sonatype.inject.BeanScanning;
-
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -41,6 +33,13 @@ import com.yammer.dropwizard.config.Environment;
 import com.yammer.dropwizard.lifecycle.Managed;
 import com.yammer.dropwizard.tasks.Task;
 import com.yammer.metrics.core.HealthCheck;
+import org.eclipse.sisu.BeanEntry;
+import org.eclipse.sisu.inject.BeanLocator;
+import org.eclipse.sisu.space.BeanScanning;
+import org.eclipse.sisu.space.ClassSpace;
+import org.eclipse.sisu.space.SpaceModule;
+import org.eclipse.sisu.space.URLClassSpace;
+import org.eclipse.sisu.wire.WireModule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

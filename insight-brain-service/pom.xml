@@ -20,7 +20,7 @@
     <drools.version>6.0.0.CR1</drools.version>
     <freemarker.version>2.3.19</freemarker.version>
     <wro4j.version>1.7.0</wro4j.version>
-    <licensing.version>1.3.2</licensing.version>
+    <licensing.version>1.4</licensing.version>
     <angularjs.version>1.2.3</angularjs.version>
     <jasmine.version>1.3.1.3</jasmine.version>
     <saga.version>1.4.2</saga.version>
@@ -48,8 +48,8 @@
       <artifactId>guice-multibindings</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.sonatype.sisu</groupId>
-      <artifactId>sisu-inject-bean</artifactId>
+      <groupId>org.eclipse.sisu</groupId>
+      <artifactId>org.eclipse.sisu.inject</artifactId>
       <exclusions>
         <exclusion>
           <!-- using aop version instead -->
@@ -619,7 +619,7 @@
                   </excludes>
                 </filter>
                 <filter>
-                  <artifact>*:sisu-inject-bean</artifact>
+                  <artifact>*:org.eclipse.sisu.inject</artifact>
                   <excludes>
                     <!-- avoid conflict with same resource from BIRT -->
                     <exclude>plugin.xml</exclude>

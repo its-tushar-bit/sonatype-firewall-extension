@@ -19,9 +19,8 @@ import com.sonatype.insight.scan.model.Scan;
 import com.sonatype.insight.scan.model.ScanItem;
 import com.sonatype.insight.scan.model.io.ScanReader;
 
-import org.sonatype.guice.bean.containers.InjectedTest;
-
 import com.google.inject.Binder;
+import org.eclipse.sisu.launch.InjectedTest;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;

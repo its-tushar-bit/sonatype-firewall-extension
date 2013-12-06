@@ -16,12 +16,12 @@ import com.sonatype.insight.brain.ldap.LdapManager;
 import com.sonatype.insight.brain.ldap.TestLdapServer;
 import com.sonatype.insight.brain.model.security.MemberType;
 
-import org.sonatype.guice.bean.containers.InjectedTest;
-
 import org.apache.commons.lang.StringUtils;
+import org.eclipse.sisu.launch.InjectedTest;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;

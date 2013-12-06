@@ -19,6 +19,7 @@ import com.sonatype.insight.brain.configuration.ldap.LdapUserMapping;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapServerDAO;
 import com.sonatype.insight.brain.ldap.LdapManager;
 import com.sonatype.insight.brain.ldap.LdapUser;
+import com.sonatype.insight.brain.ldap.TestLdapServer;
 
 import org.sonatype.guice.bean.containers.InjectedTest;
 

@@ -13,7 +13,7 @@ import com.sonatype.insight.brain.AuthedRestAccess;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapConnectionDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapServerDAO;
 import com.sonatype.insight.brain.ldap.LdapManager;
-import com.sonatype.insight.brain.ldap.test.TestLdapServer;
+import com.sonatype.insight.brain.ldap.TestLdapServer;
 import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 

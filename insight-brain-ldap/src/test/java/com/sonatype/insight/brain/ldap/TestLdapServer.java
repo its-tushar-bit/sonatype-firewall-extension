@@ -3,9 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.ldap.test;
-
-import com.sonatype.insight.brain.ldap.EmbeddedLdapServer;
+package com.sonatype.insight.brain.ldap;
 
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;

@@ -13,6 +13,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.jms.IllegalStateException;
+
 import org.apache.directory.api.ldap.model.constants.AuthenticationLevel;
 import org.apache.directory.api.ldap.model.constants.SchemaConstants;
 import org.apache.directory.api.ldap.model.constants.SupportedSaslMechanisms;
@@ -44,7 +46,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Embedded LDAP server meant to facilitate unit testing of LDAP integration.
+ * Embedded LDAP server meant to facilitate unit testing of LDAP integration. For convenience, use the
+ * TestLdapServer subclass in tests.
  * 
  * @since 1.7
  */
@@ -70,6 +73,8 @@ public class EmbeddedLdapServer
 
   private String ldapsKeystorePassword;
 
+  private boolean running = false;
+
   /**
    * @since 1.7
    */
@@ -80,9 +85,31 @@ public class EmbeddedLdapServer
   }
 
   /**
+   * Creates new EmbeddedLdapServer instance with conventional work directory target/apacheds
+   */
+  public EmbeddedLdapServer() {
+    this(initWorkingDirectory());
+  }
+
+  private static File initWorkingDirectory() {
+    File workingDirectory = new File("target/apacheds");
+    try {
+      FileUtils.deleteDirectory(workingDirectory);
+    }
+    catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+    return workingDirectory;
+  }
+
+  /**
    * @since 1.7
    */
   public void start() throws Exception {
+    if (running) {
+      throw new IllegalStateException("The EmbeddedLdapServer is already running");
+    }
+
     long start = System.currentTimeMillis();
 
     if (port <= 0) {
@@ -142,6 +169,8 @@ public class EmbeddedLdapServer
 
     directoryService.startup();
     ldapServer.start();
+
+    running = true;
 
     log.debug("Started EmbeddedLdapServer in {} ms", System.currentTimeMillis() - start);
   }
@@ -203,11 +232,16 @@ public class EmbeddedLdapServer
    * @since 1.7
    */
   public void stop() throws Exception {
+    if (!running) {
+      return;
+    }
+
     long start = System.currentTimeMillis();
 
     ldapServer.stop();
     directoryService.shutdown();
     port = 0;
+    running = false;
 
     log.debug("Stopped EmbeddedLdapServer in {} ms", System.currentTimeMillis() - start);
   }
@@ -288,17 +322,6 @@ public class EmbeddedLdapServer
   public void enableLdaps(File keystore, String keystorePassword) {
     this.ldapsKeystore = keystore;
     this.ldapsKeystorePassword = keystorePassword;
-  }
-
-  /**
-   * Creates new LDAP server instance with conventional work directory target/apacheds
-   * 
-   * @since 1.7
-   */
-  public static EmbeddedLdapServer newEmbeddedLdapServer() throws IOException {
-    File workingDirectory = new File("target/apacheds");
-    FileUtils.deleteDirectory(workingDirectory);
-    return new EmbeddedLdapServer(workingDirectory);
   }
 
   // this method is meant to help test this test harness, it is not part of API, do not use

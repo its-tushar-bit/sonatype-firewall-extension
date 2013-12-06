@@ -21,7 +21,6 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
 
-import static com.sonatype.insight.brain.ldap.EmbeddedLdapServer.newEmbeddedLdapServer;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 
@@ -36,7 +35,7 @@ public class EmbeddedLdapServerTest
   private static final String AUTH_SIMPLE = "simple";
   private static final String AUTH_NONE = "none";
 
-  private EmbeddedLdapServer server;
+  private EmbeddedLdapServer server = new EmbeddedLdapServer();
 
   @After
   public void stopServer() throws Exception {
@@ -48,7 +47,6 @@ public class EmbeddedLdapServerTest
 
   @Test
   public void testAnonymous() throws Exception {
-    server = newEmbeddedLdapServer();
     server.start();
 
     assertLogin(AUTH_NONE, AUTH_SIMPLE);
@@ -57,7 +55,6 @@ public class EmbeddedLdapServerTest
 
   @Test
   public void testSimple() throws Exception {
-    server = newEmbeddedLdapServer();
     server.setAuthenticationSimple();
     server.start();
 
@@ -67,7 +64,6 @@ public class EmbeddedLdapServerTest
 
   @Test
   public void testDigest() throws Exception {
-    server = newEmbeddedLdapServer();
     server.setAuthenticationSasl(SupportedSaslMechanisms.DIGEST_MD5);
     server.start();
 
@@ -77,7 +73,6 @@ public class EmbeddedLdapServerTest
 
   @Test
   public void testCram() throws Exception {
-    server = newEmbeddedLdapServer();
     server.setAuthenticationSasl(SupportedSaslMechanisms.CRAM_MD5);
     server.start();
 
@@ -87,7 +82,6 @@ public class EmbeddedLdapServerTest
 
   @Test
   public void testInvalidSaslRealm() throws Exception {
-    server = newEmbeddedLdapServer();
     server.setAuthenticationSasl(SupportedSaslMechanisms.DIGEST_MD5);
     server.start();
 
@@ -104,7 +98,6 @@ public class EmbeddedLdapServerTest
 
   @Test
   public void testNoSaslRealm() throws Exception {
-    server = newEmbeddedLdapServer();
     server.setAuthenticationSasl(SupportedSaslMechanisms.DIGEST_MD5);
     server.start();
 
@@ -118,7 +111,6 @@ public class EmbeddedLdapServerTest
 
   @Test
   public void testLdaps() throws Exception {
-    server = newEmbeddedLdapServer();
     server.enableLdaps(new File("src/test/resources/keystore/insight-test.ks"), "secret");
     server.start();
 

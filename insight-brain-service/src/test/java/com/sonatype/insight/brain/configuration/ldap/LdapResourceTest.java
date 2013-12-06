@@ -12,8 +12,8 @@ import java.net.URL;
 import com.sonatype.insight.brain.AuthedRestAccess;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapConnectionDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapServerDAO;
-import com.sonatype.insight.brain.ldap.EmbeddedLdapServer;
 import com.sonatype.insight.brain.ldap.LdapManager;
+import com.sonatype.insight.brain.ldap.test.TestLdapServer;
 import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
@@ -26,8 +26,6 @@ import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-
-import static com.sonatype.insight.brain.ldap.EmbeddedLdapServer.newEmbeddedLdapServer;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.containsString;
@@ -44,17 +42,10 @@ public class LdapResourceTest
 
   private static final LdapServerDAO serverDao = new LdapServerDAO();
 
-  private EmbeddedLdapServer ldapServer;
+  @Rule
+  public TestLdapServer ldapServer = new TestLdapServer();
 
   private LdapServer server;
-
-  @After
-  public void stopEmbeddedLdapServer() throws Exception {
-    if (ldapServer != null) {
-      ldapServer.stop();
-      ldapServer = null;
-    }
-  }
 
   @After
   public void deleteLdapServer() {
@@ -307,7 +298,6 @@ public class LdapResourceTest
 
   @Test
   public void testTestAnonymousConnection() throws Exception {
-    ldapServer = newEmbeddedLdapServer();
     ldapServer.start();
 
     LdapConnection conn = createLdapConnection("test");
@@ -322,7 +312,6 @@ public class LdapResourceTest
 
   @Test
   public void testTestSimpleConnection() throws Exception {
-    ldapServer = newEmbeddedLdapServer();
     ldapServer.setAuthenticationSimple();
     ldapServer.start();
 
@@ -341,7 +330,6 @@ public class LdapResourceTest
 
   @Test
   public void testTestDigestConnection() throws Exception {
-    ldapServer = newEmbeddedLdapServer();
     ldapServer.setAuthenticationSasl(SupportedSaslMechanisms.DIGEST_MD5);
     ldapServer.start();
 
@@ -360,7 +348,6 @@ public class LdapResourceTest
 
   @Test
   public void testTestCramConnection() throws Exception {
-    ldapServer = newEmbeddedLdapServer();
     ldapServer.setAuthenticationSasl(SupportedSaslMechanisms.CRAM_MD5);
     ldapServer.start();
 
@@ -379,7 +366,6 @@ public class LdapResourceTest
 
   @Test
   public void testTestConnection_InvalidUser() throws Exception {
-    ldapServer = newEmbeddedLdapServer();
     ldapServer.setAuthenticationSimple();
     ldapServer.start();
 
@@ -400,7 +386,6 @@ public class LdapResourceTest
 
   @Test
   public void testTestConnection_InvalidPassword() throws Exception {
-    ldapServer = newEmbeddedLdapServer();
     ldapServer.setAuthenticationSimple();
     ldapServer.start();
 
@@ -420,7 +405,6 @@ public class LdapResourceTest
 
   @Test
   public void testTestConnection_InvalidHostname() throws Exception {
-    ldapServer = newEmbeddedLdapServer();
     ldapServer.start();
 
     LdapConnection conn = createLdapConnection("test");
@@ -439,7 +423,6 @@ public class LdapResourceTest
 
   @Test
   public void testTestConnection_invalidSaslRealm() throws Exception {
-    ldapServer = newEmbeddedLdapServer();
     ldapServer.setAuthenticationSasl(SupportedSaslMechanisms.DIGEST_MD5);
     ldapServer.start();
 
@@ -460,7 +443,6 @@ public class LdapResourceTest
 
   @Test
   public void testTestConnection_ldaps() throws Exception {
-    ldapServer = newEmbeddedLdapServer();
     ldapServer.setAuthenticationSimple();
     ldapServer.enableLdaps(getTestResourceFile("/keystore/insight-test.ks"), "secret");
     ldapServer.start();

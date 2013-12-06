@@ -17,7 +17,6 @@ import com.sonatype.insight.brain.configuration.ldap.LdapProtocol;
 import com.sonatype.insight.brain.configuration.ldap.LdapServer;
 import com.sonatype.insight.brain.configuration.ldap.LdapUserMapping;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapServerDAO;
-import com.sonatype.insight.brain.ldap.EmbeddedLdapServer;
 import com.sonatype.insight.brain.ldap.LdapManager;
 import com.sonatype.insight.brain.ldap.LdapUser;
 
@@ -26,9 +25,8 @@ import org.sonatype.guice.bean.containers.InjectedTest;
 import org.apache.directory.api.ldap.model.constants.SupportedSaslMechanisms;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
-
-import static com.sonatype.insight.brain.ldap.EmbeddedLdapServer.newEmbeddedLdapServer;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.empty;
@@ -46,7 +44,8 @@ public class LdapUserAndGroupMappingTest
 
   private LdapAuthenticationMethod authentication;
 
-  private EmbeddedLdapServer ldapServer;
+  @Rule
+  public TestLdapServer ldapServer = new TestLdapServer();
 
   private LdapServer serverDetails;
 
@@ -286,7 +285,6 @@ public class LdapUserAndGroupMappingTest
     serverDetails.setName("Test Server");
     serverDao.insert(serverDetails);
 
-    ldapServer = newEmbeddedLdapServer();
     if (authentication == LdapAuthenticationMethod.SIMPLE) {
       ldapServer.setAuthenticationSimple();
     }
@@ -308,12 +306,7 @@ public class LdapUserAndGroupMappingTest
   }
 
   @After
-  public void stopLdapServer() throws Exception {
-    if (ldapServer != null) {
-      ldapServer.stop();
-      ldapServer = null;
-    }
-
+  public void cleanup() throws Exception {
     for (LdapServer s : serverDao.getAll()) {
       serverDao.delete(s);
     }

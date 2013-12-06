@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Iterator;
+
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.configuration.ldap.LdapAuthenticationMethod;
@@ -19,7 +20,6 @@ import com.sonatype.insight.brain.configuration.ldap.LdapServer;
 import com.sonatype.insight.brain.configuration.ldap.LdapUserMapping;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapServerDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapUserMappingDAO;
-import com.sonatype.insight.brain.ldap.EmbeddedLdapServer;
 import com.sonatype.insight.brain.ldap.LdapManager;
 import com.sonatype.insight.brain.ldap.LdapRealm;
 import com.sonatype.insight.brain.model.security.UserPrincipal;
@@ -37,8 +37,6 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-
-import static com.sonatype.insight.brain.ldap.EmbeddedLdapServer.newEmbeddedLdapServer;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.empty;
@@ -69,7 +67,8 @@ public class LdapRealmTest
 
   private LdapProtocol protocol;
 
-  private EmbeddedLdapServer ldapServer;
+  @Rule
+  public TestLdapServer ldapServer = new TestLdapServer();
 
   private LdapServer serverDetails;
 
@@ -274,8 +273,6 @@ public class LdapRealmTest
       userMappingDetails.setUserPasswordAttribute("userPassword");
     }
 
-    ldapServer = newEmbeddedLdapServer();
-
     connectionDetails = new LdapConnection();
     connectionDetails.setServerId(serverDetails.getId());
     connectionDetails.setProtocol(protocol);
@@ -330,7 +327,7 @@ public class LdapRealmTest
   }
 
   @After
-  public void stopLdapServer() throws Exception {
+  public void cleanup() throws Exception {
     if (protocol == LdapProtocol.LDAPS) {
       if (oldTrustStore != null) {
         System.setProperty(SYSPROP_SSLTRUSTSTORE, oldTrustStore);
@@ -338,11 +335,6 @@ public class LdapRealmTest
       else {
         System.clearProperty(SYSPROP_SSLTRUSTSTORE);
       }
-    }
-
-    if (ldapServer != null) {
-      ldapServer.stop();
-      ldapServer = null;
     }
 
     if (serverDetails != null) {

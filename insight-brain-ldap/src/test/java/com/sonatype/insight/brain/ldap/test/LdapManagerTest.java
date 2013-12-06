@@ -20,7 +20,6 @@ import com.sonatype.insight.brain.configuration.ldap.LdapUserMapping;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapConnectionDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapServerDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapUserMappingDAO;
-import com.sonatype.insight.brain.ldap.EmbeddedLdapServer;
 import com.sonatype.insight.brain.ldap.LdapGroup;
 import com.sonatype.insight.brain.ldap.LdapManager;
 import com.sonatype.insight.brain.ldap.LdapUser;
@@ -28,9 +27,8 @@ import com.sonatype.insight.brain.ldap.LdapUser;
 import org.sonatype.guice.bean.containers.InjectedTest;
 
 import org.junit.After;
+import org.junit.Rule;
 import org.junit.Test;
-
-import static com.sonatype.insight.brain.ldap.EmbeddedLdapServer.newEmbeddedLdapServer;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.closeTo;
 import static org.hamcrest.Matchers.containsInAnyOrder;
@@ -49,7 +47,8 @@ public class LdapManagerTest
 {
   private final LdapServerDAO serverDao = new LdapServerDAO();
 
-  private EmbeddedLdapServer ldapServer;
+  @Rule
+  public TestLdapServer ldapServer = new TestLdapServer();
 
   private LdapServer serverDetails;
 
@@ -507,7 +506,6 @@ public class LdapManagerTest
     serverDetails.setName("Test Server");
     serverDao.insert(serverDetails);
 
-    ldapServer = newEmbeddedLdapServer();
     ldapServer.start();
     ldapServer.loadData("/ldap_users.ldif");
 
@@ -515,12 +513,7 @@ public class LdapManagerTest
   }
 
   @After
-  public void stopLdapServer() throws Exception {
-    if (ldapServer != null) {
-      ldapServer.stop();
-      ldapServer = null;
-    }
-
+  public void cleanup() throws Exception {
     for (LdapServer s : serverDao.getAll()) {
       serverDao.delete(s);
     }

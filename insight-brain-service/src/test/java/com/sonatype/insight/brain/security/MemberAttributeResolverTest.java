@@ -12,19 +12,16 @@ import javax.inject.Inject;
 
 import com.sonatype.insight.brain.TemporaryEntity;
 import com.sonatype.insight.brain.configuration.ldap.LdapServer;
-import com.sonatype.insight.brain.ldap.EmbeddedLdapServer;
 import com.sonatype.insight.brain.ldap.LdapManager;
+import com.sonatype.insight.brain.ldap.test.TestLdapServer;
 import com.sonatype.insight.brain.model.security.MemberType;
 
 import org.sonatype.guice.bean.containers.InjectedTest;
 
 import org.apache.commons.lang.StringUtils;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-
-import static com.sonatype.insight.brain.ldap.EmbeddedLdapServer.newEmbeddedLdapServer;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;
@@ -36,7 +33,8 @@ public class MemberAttributeResolverTest extends InjectedTest
 
   private MemberAttributeResolver memberAttributeResolver;
 
-  private EmbeddedLdapServer embeddedLdapServer;
+  @Rule
+  public TestLdapServer embeddedLdapServer = new TestLdapServer();
 
   @Rule
   public TemporaryEntity tempEntity = new TemporaryEntity();
@@ -44,14 +42,6 @@ public class MemberAttributeResolverTest extends InjectedTest
   @Before
   public void init() {
     memberAttributeResolver = new MemberAttributeResolver(manager);
-  }
-
-  @After
-  public void cleanup() throws Exception {
-    if (embeddedLdapServer != null) {
-      embeddedLdapServer.stop();
-      embeddedLdapServer = null;
-    }
   }
 
   @Test
@@ -72,7 +62,6 @@ public class MemberAttributeResolverTest extends InjectedTest
   // Test both user and group to reduce the overhead of starting an EmbeddedLdapServer
   @Test
   public void testResolveLDAPUserAndGroup() throws Exception {
-    embeddedLdapServer = newEmbeddedLdapServer();
     embeddedLdapServer.start();
     embeddedLdapServer.loadData("/UserResourceTest/ldap_users.ldif");
 
@@ -103,7 +92,6 @@ public class MemberAttributeResolverTest extends InjectedTest
 
   @Test
   public void testCLMUserShading() throws Exception {
-    embeddedLdapServer = newEmbeddedLdapServer();
     embeddedLdapServer.start();
     embeddedLdapServer.loadData("/UserResourceTest/ldap_users.ldif");
 

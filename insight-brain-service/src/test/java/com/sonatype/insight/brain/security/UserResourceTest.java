@@ -15,7 +15,7 @@ import com.sonatype.insight.brain.TemporaryEntity;
 import com.sonatype.insight.brain.configuration.ldap.LdapServer;
 import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
-import com.sonatype.insight.brain.ldap.EmbeddedLdapServer;
+import com.sonatype.insight.brain.ldap.test.TestLdapServer;
 import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Role;
@@ -35,7 +35,6 @@ import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
 
-import static com.sonatype.insight.brain.ldap.EmbeddedLdapServer.newEmbeddedLdapServer;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
@@ -52,7 +51,8 @@ public class UserResourceTest
 
   private List<User> usersToDelete = new ArrayList<User>();
 
-  private EmbeddedLdapServer embeddedLdapServer;
+  @Rule
+  public TestLdapServer embeddedLdapServer = new TestLdapServer();
 
   @After
   public void after() throws Exception {
@@ -62,10 +62,6 @@ public class UserResourceTest
       if (user != null) {
         dao.delete(user);
       }
-    }
-    if (embeddedLdapServer != null) {
-      embeddedLdapServer.stop();
-      embeddedLdapServer = null;
     }
   }
 
@@ -382,7 +378,6 @@ public class UserResourceTest
 
   @Test
   public void testFindLdapUser() throws Exception {
-    embeddedLdapServer = newEmbeddedLdapServer();
     embeddedLdapServer.start();
     embeddedLdapServer.loadData("/UserResourceTest/ldap_users.ldif");
 
@@ -402,7 +397,6 @@ public class UserResourceTest
 
   @Test
   public void testFindLdapGroup() throws Exception {
-    embeddedLdapServer = newEmbeddedLdapServer();
     embeddedLdapServer.start();
     embeddedLdapServer.loadData("/UserResourceTest/ldap_users.ldif");
 
@@ -416,7 +410,6 @@ public class UserResourceTest
 
   @Test
   public void testFindLdapUserGroupSameName() throws Exception {
-    embeddedLdapServer = newEmbeddedLdapServer();
     embeddedLdapServer.start();
     embeddedLdapServer.loadData("/UserResourceTest/ldap_users.ldif");
 

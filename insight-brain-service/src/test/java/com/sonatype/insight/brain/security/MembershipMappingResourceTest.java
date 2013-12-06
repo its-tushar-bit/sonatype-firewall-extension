@@ -16,7 +16,7 @@ import com.sonatype.insight.brain.TemporaryEntity;
 import com.sonatype.insight.brain.configuration.ldap.LdapServer;
 import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
-import com.sonatype.insight.brain.ldap.EmbeddedLdapServer;
+import com.sonatype.insight.brain.ldap.test.TestLdapServer;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.security.MemberType;
@@ -37,7 +37,6 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
-import static com.sonatype.insight.brain.ldap.EmbeddedLdapServer.newEmbeddedLdapServer;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
@@ -59,7 +58,8 @@ public class MembershipMappingResourceTest
 
   private UserDAO userDAO = new UserDAO();
 
-  private EmbeddedLdapServer embeddedLdapServer;
+  @Rule
+  public TestLdapServer embeddedLdapServer = new TestLdapServer();
 
   @Rule
   public TemporaryEntity tempEntity = new TemporaryEntity();
@@ -94,10 +94,6 @@ public class MembershipMappingResourceTest
     }
     if (userB != null) {
       userDAO.delete(userB);
-    }
-    if (embeddedLdapServer != null) {
-      embeddedLdapServer.stop();
-      embeddedLdapServer = null;
     }
   }
 
@@ -217,7 +213,6 @@ public class MembershipMappingResourceTest
 
   @Test
   public void testLdap_GlobalRoles() throws Exception {
-    embeddedLdapServer = newEmbeddedLdapServer();
     embeddedLdapServer.start();
     embeddedLdapServer.loadData("/UserResourceTest/ldap_users.ldif");
 

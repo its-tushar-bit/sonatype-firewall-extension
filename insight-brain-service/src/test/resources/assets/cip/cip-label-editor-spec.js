@@ -109,4 +109,13 @@ describe('ComponentLabelEditor tests', function() {
     expect(scope.isApplied({ "label": "bbb"})).toEqual(true);
     expect(scope.isApplied({ "label": "foo"})).toEqual(false);
   });
+
+  it('reloads both applied and applicable labels upon refresh', function() {
+    $http.expectGET(new RegExp('\\.\\./brain/rest/label/component/application/bom1-12345678/3102cdd0edd5a05afe00\\?timestamp=[0-9]+')).
+        respond({"labelsByOwner": []});
+    $http.expectGET(new RegExp('\\.\\./brain/rest/label/application/bom1-12345678/applicable\\?timestamp=[0-9]+')).
+        respond({"labelsByOwner": []});
+    scope.loadLabelData();
+    $http.flush();
+  });
 });

@@ -1,7 +1,7 @@
 <div ng-controller="LabelsController" style='padding:5px' class='labelEditor'>
 	<div clm-alerts='alerts'></div>
 	<div style='float:right;width:49.5%;margin-bottom:10px'>
-		<h5>Available <i class='icon-refresh' ng-click='reloadAppLabels()' spinner></i></h5>
+		<h5>Available <i class='icon-refresh' ng-click='loadLabelData()' spinner></i></h5>
 		<div class='labelContainer'>
 			<span ng-repeat='label in availableLabels  | filter:isApplied | orderBy:"label"' class='clmLabel {{label.color}}Label'>
               <span title='{{label.description || label.label}}' tip>{{label.label}}</span>&nbsp;
@@ -10,7 +10,7 @@
 		</div>
 	</div>
 	<div style='width:49.5%;margin-bottom:10px'>
-		<h5>Applied <i class='icon-refresh' ng-click='reloadLabels()' spinner></i></h5>
+		<h5>Applied <i class='icon-refresh' ng-click='loadLabelData()' spinner></i></h5>
 		<div class='labelContainer'>
 			<span ng-repeat='label in itemLabels' class='clmLabel {{label.color}}Label'>
               <span title='{{label.description || label.label}}' tip>{{label.label}}</span>&nbsp;

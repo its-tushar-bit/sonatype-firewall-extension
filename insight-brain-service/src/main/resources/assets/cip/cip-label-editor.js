@@ -181,18 +181,22 @@
           return list;
         }
 
-        $scope.reloadLabels = function() {
+        function reloadLabels() {
           $http.get(CLM.path + 'rest/label/component/application/' + componentLabelEditorGAV.applicationId + '/' +
               componentLabelEditorGAV.hash, { params: { timestamp: new Date().getTime() } }).success(function(data) {
             $scope.itemLabels = flattenLabelList(data);
           }).error(errorFn);
         };
-        $scope.reloadAppLabels = function() {
+        function reloadAppLabels() {
           $http.get(CLM.path + 'rest/label/application/' + componentLabelEditorGAV.applicationId + '/applicable',
               { params: { timestamp: new Date().getTime() } }).success(function(data) {
             $scope.availableLabels = flattenLabelList(data);
           }).error(errorFn);
         };
+        $scope.loadLabelData = function() {
+          reloadLabels();
+          reloadAppLabels();
+        }
         $scope.removeLabel = function(label) {
           currentLabelData.set(label);
           $('#labelRemoveModal').modal('show');
@@ -202,8 +206,7 @@
           if (label.ownerType === 'application') {
             hudson.post(CLM.path + 'rest/label/component/application/' + componentLabelEditorGAV.applicationId + '/' +
                     componentLabelEditorGAV.hash, label).success(function(responseData) {
-              $scope.reloadLabels();
-              $scope.reloadAppLabels();
+              $scope.loadLabelData();
             }).error(errorFn);
           }
           else {
@@ -224,16 +227,13 @@
           return !duplicate;
         };
         $scope.alerts = [];
-        $scope.reloadLabels(); // do initial load
-        $scope.reloadAppLabels(); // do initial load
+        $scope.loadLabelData(); // do initial load
         //when either of the modals go away, refresh the content
         $('#labelAssignScopeModal').on('hide', function() {
-          $scope.reloadLabels();
-          $scope.reloadAppLabels();
+          $scope.loadLabelData();
         });
         $('#labelRemoveModal').on('hide', function() {
-          $scope.reloadLabels();
-          $scope.reloadAppLabels();
+          $scope.loadLabelData();
         });
       }
     ]);

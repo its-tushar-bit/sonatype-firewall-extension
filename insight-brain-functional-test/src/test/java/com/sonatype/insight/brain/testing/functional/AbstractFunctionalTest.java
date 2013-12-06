@@ -65,7 +65,7 @@ public abstract class AbstractFunctionalTest
 
   @AfterClass
   public static void shutdown() {
-    driver.close();
+    driver.quit();
   }
 
   @After

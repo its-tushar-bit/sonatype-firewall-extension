@@ -159,14 +159,13 @@
 
                   $("#login-action").on('click', function(event) {
                     event.preventDefault();
-                    var authz = Base64.encode($('#login-username').val() + ':' + $('#login-password').val());
-
+                    $('#login-error').hide();
                     // do the login with the original ajax, so we don't hit our code here
                     oldAjax({
                       url: getBaseUrl() + 'rest/user/session',
                       type: 'POST',
                       headers: {
-                        'Authorization': 'Basic ' + authz
+                        'Authorization': 'Basic ' + Base64.encode($('#login-username').val() + ':' + $('#login-password').val())
                       }
                     }).then(function() {
                       // login success, go ahead and resend each of the requests
@@ -177,6 +176,8 @@
                       // clean up
                       requestQueue = [];
                       modalDiv.modal('hide');
+                      $('#login-username').val('');
+                      $('#login-password').val('');
                     }, function() {
                       $('#login-error').text('Invalid credentials. Please try again.');
                       $('#login-error').show();

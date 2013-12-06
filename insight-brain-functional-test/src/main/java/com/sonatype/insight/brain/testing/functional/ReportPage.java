@@ -141,6 +141,9 @@ public class ReportPage
     @FindBy(id = "login-action")
     private WebElement loginButton;
     
+    @FindBy(id = "login-error")
+    private WebElement loginError;
+    
     public ReportLoginPage(SearchContext parent) {
       PageFactory.initElements(new DefaultElementLocatorFactory(parent), this);
     }
@@ -155,6 +158,10 @@ public class ReportPage
     
     public WebElement getLoginButton() {
       return loginButton;
+    }
+    
+    public WebElement getError() {
+      return loginError;
     }
     
     public boolean isDisplayed() {

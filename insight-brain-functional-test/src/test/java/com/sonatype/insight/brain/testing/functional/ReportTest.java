@@ -77,7 +77,7 @@ public class ReportTest
   }
   
   @Test
-  public void testReportAuthentication() {
+  public void testReportAuthentication() throws Exception {
     driver.get(getUiLinksReportUrl(appId, scanId));
     PageFactory.initElements(driver, Login.class).doLogin("admin", "admin123");
 
@@ -100,13 +100,34 @@ public class ReportTest
     //now back to the policy page, authentication should be required
     report.clickPolicy();
     waitForLoginPage(report, true);
-    //now lets login
+    //now lets login with bad password
     report.getLogin().getUsername().sendKeys("admin");
+    report.getLogin().getPassword().sendKeys("admin1234");
+    Assert.assertFalse(report.getLogin().getError().isDisplayed());
+    report.getLogin().getLoginButton().click();
+    waitForLoginError(report);
+    //now lets login with real password
+    report.getLogin().getUsername().clear();
+    report.getLogin().getUsername().sendKeys("admin");
+    report.getLogin().getPassword().clear();
     report.getLogin().getPassword().sendKeys("admin123");
     report.getLogin().getLoginButton().click();
+    Assert.assertFalse(report.getLogin().getError().isDisplayed());
     //make sure login is gone
     waitForLoginPage(report, false);
+    //make sure login dom has been reset properly
+    Assert.assertEquals(report.getLogin().getUsername().getAttribute("value"), "");
+    Assert.assertEquals(report.getLogin().getPassword().getAttribute("value"), "");
     waitForPolicyPage(report);
+  }
+  
+  private void waitForLoginError(final Report report) {
+    wait(10, new ExpectedCondition<Boolean>() {
+      @Override
+      public Boolean apply(WebDriver driver) {
+        return report.getLogin().getError().isDisplayed();
+      }
+    });
   }
   
   private void waitForSummaryPage(final Report report) {

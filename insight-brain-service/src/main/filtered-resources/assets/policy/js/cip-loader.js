@@ -151,7 +151,7 @@
                                     + '</form>' + '</div>').appendTo('body');
                     modalDiv.modal({
                       backdrop: 'static',
-                      keyboard: 'false'
+                      keyboard: false
                     });
                   } else {
                     modalDiv.modal('show');

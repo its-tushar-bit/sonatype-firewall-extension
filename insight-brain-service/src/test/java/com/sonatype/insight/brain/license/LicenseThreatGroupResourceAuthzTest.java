@@ -7,8 +7,6 @@ package com.sonatype.insight.brain.license;
 
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
-import com.sonatype.insight.brain.model.security.Permission;
-import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.service.AbstractResourceAuthzTest;
 import com.sonatype.insight.brain.utils.IdUtils;
 
@@ -20,13 +18,12 @@ public class LicenseThreatGroupResourceAuthzTest
 {
   @Test
   public void testGetLicenseThreatGroups() throws Exception {
-    Role role = tempEntity.newRole(false, Permission.READ);
-    tempEntity.newMembershipMapping(app.getId(), role.getId(), authorized.getUsername());
+    grantReadPermission(app.getId());
 
     String url = getRestUrl(LicenseThreatGroupResource.SERVICE_PATH, IdUtils.TYPE_APPLICATION, app.getPublicId());
     testAuthzGet(url);
 
-    tempEntity.newMembershipMapping(org.getId(), role.getId(), authorized.getUsername());
+    grantReadPermission(org.getId());
 
     url = getRestUrl(LicenseThreatGroupResource.SERVICE_PATH, IdUtils.TYPE_ORGANIZATION, org.getId());
     testAuthzGet(url);
@@ -34,14 +31,13 @@ public class LicenseThreatGroupResourceAuthzTest
 
   @Test
   public void testGetApplicableLicenseThreatGroups() throws Exception {
-    Role role = tempEntity.newRole(false, Permission.READ);
-    tempEntity.newMembershipMapping(app.getId(), role.getId(), authorized.getUsername());
+    grantReadPermission(app.getId());
 
     String url = getRestUrl(LicenseThreatGroupResource.SERVICE_PATH + "/applicable", IdUtils.TYPE_APPLICATION,
         app.getPublicId());
     testAuthzGet(url);
 
-    tempEntity.newMembershipMapping(org.getId(), role.getId(), authorized.getUsername());
+    grantReadPermission(org.getId());
 
     url = getRestUrl(LicenseThreatGroupResource.SERVICE_PATH + "/applicable", IdUtils.TYPE_ORGANIZATION, org.getId());
     testAuthzGet(url);

@@ -9,8 +9,6 @@ import com.sonatype.insight.brain.AuthedRestAccess;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationManagementSummary;
-import com.sonatype.insight.brain.model.security.Permission;
-import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.service.AbstractResourceAuthzTest;
 import com.sonatype.insight.test.RestAccess;
@@ -29,8 +27,7 @@ public class ApplicationResourceAuthzTest
 {
   @Test
   public void testGetAll() throws Exception {
-    Role role = tempEntity.newRole(false, Permission.READ);
-    tempEntity.newMembershipMapping(app.getId(), role.getId(), authorized.getUsername());
+    grantReadPermission(app.getId());
 
     String url = getRestUrl(ApplicationResource.SERVICE_PATH);
     Response response = RestAccess.get(url, unauthorized.getUsername(), unauthorized.getPassword());
@@ -60,8 +57,7 @@ public class ApplicationResourceAuthzTest
 
   @Test
   public void testGetAllSummaries() throws Exception {
-    Role role = tempEntity.newRole(false, Permission.READ);
-    tempEntity.newMembershipMapping(app.getId(), role.getId(), authorized.getUsername());
+    grantReadPermission(app.getId());
 
     String url = getRestUrl(ApplicationResource.SERVICE_PATH + '/'
         + ApplicationResource.GET_APPLICATION_MANAGEMENT_SUMMARIES);
@@ -89,8 +85,7 @@ public class ApplicationResourceAuthzTest
 
   @Test
   public void testGetApplication() throws Exception {
-    Role role = tempEntity.newRole(false, Permission.READ);
-    tempEntity.newMembershipMapping(app.getId(), role.getId(), authorized.getUsername());
+    grantReadPermission(app.getId());
 
     String url = getRestUrl(ApplicationResource.SERVICE_PATH + '/' + ApplicationResource.GET_APPLICATION_PATH,
         app.getPublicId());
@@ -99,8 +94,7 @@ public class ApplicationResourceAuthzTest
 
   @Test
   public void testGetApplicationManagementSummary() throws Exception {
-    Role role = tempEntity.newRole(false, Permission.READ);
-    tempEntity.newMembershipMapping(app.getId(), role.getId(), authorized.getUsername());
+    grantReadPermission(app.getId());
 
     String url = getRestUrl(ApplicationResource.SERVICE_PATH + '/'
         + ApplicationResource.GET_APPLICATION_MANAGEMENT_SUMMARY, app.getPublicId());
@@ -109,8 +103,7 @@ public class ApplicationResourceAuthzTest
 
   @Test
   public void testGetIcon() throws Exception {
-    Role role = tempEntity.newRole(false, Permission.READ);
-    tempEntity.newMembershipMapping(app.getId(), role.getId(), authorized.getUsername());
+    grantReadPermission(app.getId());
 
     String url = getRestUrl(ApplicationResource.SERVICE_PATH + '/' + ApplicationResource.GET_APPLICATION_ICON_PATH,
         app.getPublicId());

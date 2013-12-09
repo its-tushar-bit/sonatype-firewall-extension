@@ -8,8 +8,6 @@ package com.sonatype.insight.brain.license;
 import java.util.Arrays;
 
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
-import com.sonatype.insight.brain.model.security.Permission;
-import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.service.AbstractResourceAuthzTest;
 import com.sonatype.insight.brain.utils.IdUtils;
 
@@ -20,8 +18,7 @@ public class LicenseThreatGroupLicenseResourceAuthzTest
 {
   @Test
   public void testGetLicenseThreatGroupLicenses() throws Exception {
-    Role role = tempEntity.newRole(false, Permission.READ);
-    tempEntity.newMembershipMapping(app.getId(), role.getId(), authorized.getUsername());
+    grantReadPermission(app.getId());
 
     LicenseThreatGroup ltg = tempEntity.newLicenseThreatGroup(app.getId());
 
@@ -29,7 +26,7 @@ public class LicenseThreatGroupLicenseResourceAuthzTest
         app.getPublicId(), ltg.getId());
     testAuthzGet(url);
 
-    tempEntity.newMembershipMapping(org.getId(), role.getId(), authorized.getUsername());
+    grantReadPermission(org.getId());
 
     url = getRestUrl(LicenseThreatGroupLicenseResource.SERVICE_PATH, IdUtils.TYPE_ORGANIZATION, org.getId(),
         ltg.getId());

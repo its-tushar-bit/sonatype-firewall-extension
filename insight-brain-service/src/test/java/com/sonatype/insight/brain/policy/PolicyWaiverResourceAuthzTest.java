@@ -13,8 +13,6 @@ import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityConditionType;
-import com.sonatype.insight.brain.model.security.Permission;
-import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.service.AbstractResourceAuthzTest;
 import com.sonatype.insight.brain.utils.IdUtils;
 
@@ -64,14 +62,13 @@ public class PolicyWaiverResourceAuthzTest
 
   @Test
   public void testGetPolicyWaiversByHash() throws Exception {
-    Role role = tempEntity.newRole(false, Permission.READ);
-    tempEntity.newMembershipMapping(app.getId(), role.getId(), authorized.getUsername());
+    grantReadPermission(app.getId());
 
     String url = getRestUrl(PolicyWaiverResource.SERVICE_PATH + "/component/{hash}", IdUtils.TYPE_APPLICATION,
         app.getPublicId(), "hash");
     testAuthzGet(url);
 
-    tempEntity.newMembershipMapping(org.getId(), role.getId(), authorized.getUsername());
+    grantReadPermission(org.getId());
 
     url = getRestUrl(PolicyWaiverResource.SERVICE_PATH + "/component/{hash}", IdUtils.TYPE_ORGANIZATION, org.getId(),
         "hash");
@@ -80,8 +77,7 @@ public class PolicyWaiverResourceAuthzTest
 
   @Test
   public void testGetApplicableContexts() throws Exception {
-    Role role = tempEntity.newRole(false, Permission.READ);
-    tempEntity.newMembershipMapping(app.getId(), role.getId(), authorized.getUsername());
+    grantReadPermission(app.getId());
 
     Policy policy = new Policy(null, "Test Policy");
     Constraint constraint = new Constraint(null, "Test Constraint", LogicalOperator.AND);

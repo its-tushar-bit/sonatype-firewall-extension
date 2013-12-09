@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.security;
 
 import java.util.Collections;
 
-import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.service.AbstractResourceAuthzTest;
 import com.sonatype.insight.brain.utils.IdUtils;
@@ -19,13 +18,12 @@ public class MembershipMappingResourceAuthzTest
 {
   @Test
   public void testGetApplicableMembershipMappings() throws Exception {
-    Role role = tempEntity.newRole(false, Permission.READ);
-    tempEntity.newMembershipMapping(app.getId(), role.getId(), authorized.getUsername());
+    grantReadPermission(app.getId());
 
     String url = getRestUrl(MembershipMappingResource.SERVICE_PATH, IdUtils.TYPE_APPLICATION, app.getPublicId());
     testAuthzGet(url);
 
-    tempEntity.newMembershipMapping(org.getId(), role.getId(), authorized.getUsername());
+    grantReadPermission(org.getId());
 
     url = getRestUrl(MembershipMappingResource.SERVICE_PATH, IdUtils.TYPE_ORGANIZATION, org.getId());
     testAuthzGet(url);

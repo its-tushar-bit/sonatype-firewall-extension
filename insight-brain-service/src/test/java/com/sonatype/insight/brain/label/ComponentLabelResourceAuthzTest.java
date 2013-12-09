@@ -8,8 +8,6 @@ package com.sonatype.insight.brain.label;
 import com.sonatype.insight.brain.dataaccess.label.ComponentLabelDAO;
 import com.sonatype.insight.brain.model.label.ComponentLabel;
 import com.sonatype.insight.brain.model.label.Label;
-import com.sonatype.insight.brain.model.security.Permission;
-import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.service.AbstractResourceAuthzTest;
 import com.sonatype.insight.brain.utils.IdUtils;
 
@@ -22,13 +20,12 @@ public class ComponentLabelResourceAuthzTest
 
   @Test
   public void testGetComponentLabels() throws Exception {
-    Role role = tempEntity.newRole(false, Permission.READ);
-    tempEntity.newMembershipMapping(app.getId(), role.getId(), authorized.getUsername());
+    grantReadPermission(app.getId());
 
     String url = getRestUrl(ComponentLabelResource.SERVICE_PATH, IdUtils.TYPE_APPLICATION, app.getPublicId(), "bad");
     testAuthzGet(url);
 
-    tempEntity.newMembershipMapping(org.getId(), role.getId(), authorized.getUsername());
+    grantReadPermission(org.getId());
 
     url = getRestUrl(ComponentLabelResource.SERVICE_PATH, IdUtils.TYPE_ORGANIZATION, org.getId(), "bad");
     testAuthzGet(url);

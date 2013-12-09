@@ -8,8 +8,6 @@ package com.sonatype.insight.brain.organization;
 import com.sonatype.insight.brain.AuthedRestAccess;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.model.Organization;
-import com.sonatype.insight.brain.model.security.Permission;
-import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.service.AbstractResourceAuthzTest;
 import com.sonatype.insight.test.RestAccess;
 
@@ -27,8 +25,7 @@ public class OrganizationResourceAuthzTest
 {
   @Test
   public void testGetAll() throws Exception {
-    Role role = tempEntity.newRole(false, Permission.READ);
-    tempEntity.newMembershipMapping(org.getId(), role.getId(), authorized.getUsername());
+    grantReadPermission(org.getId());
 
     String url = getRestUrl(OrganizationResource.SERVICE_PATH);
     Response response = RestAccess.get(url, unauthorized.getUsername(), unauthorized.getPassword());
@@ -73,8 +70,7 @@ public class OrganizationResourceAuthzTest
 
   @Test
   public void testGetIcon() throws Exception {
-    Role role = tempEntity.newRole(false, Permission.READ);
-    tempEntity.newMembershipMapping(org.getId(), role.getId(), authorized.getUsername());
+    grantReadPermission(org.getId());
 
     String url = getRestUrl(OrganizationResource.SERVICE_PATH + '/' + OrganizationResource.GET_ICON_PATH, org.getId());
     testAuthzGet(url, 307);

@@ -7,8 +7,6 @@ package com.sonatype.insight.brain.label;
 
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.model.label.Label;
-import com.sonatype.insight.brain.model.security.Permission;
-import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.service.AbstractResourceAuthzTest;
 import com.sonatype.insight.brain.utils.IdUtils;
 
@@ -20,13 +18,12 @@ public class LabelResourceAuthzTest
 {
   @Test
   public void testGetLabels() throws Exception {
-    Role role = tempEntity.newRole(false, Permission.READ);
-    tempEntity.newMembershipMapping(app.getId(), role.getId(), authorized.getUsername());
+    grantReadPermission(app.getId());
 
     String url = getRestUrl(LabelResource.SERVICE_PATH, IdUtils.TYPE_APPLICATION, app.getPublicId());
     testAuthzGet(url);
 
-    tempEntity.newMembershipMapping(org.getId(), role.getId(), authorized.getUsername());
+    grantReadPermission(org.getId());
 
     url = getRestUrl(LabelResource.SERVICE_PATH, IdUtils.TYPE_ORGANIZATION, org.getId());
     testAuthzGet(url);
@@ -34,13 +31,12 @@ public class LabelResourceAuthzTest
 
   @Test
   public void testGetApplicableLabels() throws Exception {
-    Role role = tempEntity.newRole(false, Permission.READ);
-    tempEntity.newMembershipMapping(app.getId(), role.getId(), authorized.getUsername());
+    grantReadPermission(app.getId());
 
     String url = getRestUrl(LabelResource.SERVICE_PATH + "/applicable", IdUtils.TYPE_APPLICATION, app.getPublicId());
     testAuthzGet(url);
 
-    tempEntity.newMembershipMapping(org.getId(), role.getId(), authorized.getUsername());
+    grantReadPermission(org.getId());
 
     url = getRestUrl(LabelResource.SERVICE_PATH + "/applicable", IdUtils.TYPE_ORGANIZATION, org.getId());
     testAuthzGet(url);
@@ -48,15 +44,14 @@ public class LabelResourceAuthzTest
 
   @Test
   public void testGetApplicableContexts() throws Exception {
-    Role role = tempEntity.newRole(false, Permission.READ);
-    tempEntity.newMembershipMapping(app.getId(), role.getId(), authorized.getUsername());
+    grantReadPermission(app.getId());
     Label label = tempEntity.newLabel(app.getId());
 
     String url = getRestUrl(LabelResource.SERVICE_PATH + "/applicable/context/{labelId}", IdUtils.TYPE_APPLICATION,
         app.getPublicId(), label.getId());
     testAuthzGet(url);
 
-    tempEntity.newMembershipMapping(org.getId(), role.getId(), authorized.getUsername());
+    grantReadPermission(org.getId());
     label = tempEntity.newLabel(org.getId());
 
     url = getRestUrl(LabelResource.SERVICE_PATH + "/applicable/context/{labelId}", IdUtils.TYPE_ORGANIZATION,

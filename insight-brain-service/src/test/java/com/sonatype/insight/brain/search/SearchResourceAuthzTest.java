@@ -6,8 +6,6 @@
 package com.sonatype.insight.brain.search;
 
 import com.sonatype.clm.dto.model.policy.Stage;
-import com.sonatype.insight.brain.model.security.Permission;
-import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.search.SearchResource.SearchResults;
 import com.sonatype.insight.brain.service.AbstractResourceAuthzTest;
 import com.sonatype.insight.test.RestAccess;
@@ -36,8 +34,7 @@ public class SearchResourceAuthzTest
   public void testSearchComponent() throws Exception {
     helper.createScanForApp(app.getId(), Stage.ID_BUILD, "search-app-1");
 
-    Role role = tempEntity.newRole(false, Permission.READ);
-    tempEntity.newMembershipMapping(app.getId(), role.getId(), authorized.getUsername());
+    grantReadPermission(app.getId());
 
     String url = getRestUrl(SearchResource.SERVICE_PATH) + "?stageId=" + Stage.ID_BUILD + "&hash="
         + "1249e25aebb15358bedd";

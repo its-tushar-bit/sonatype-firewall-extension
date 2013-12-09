@@ -8,8 +8,6 @@ package com.sonatype.insight.brain.license;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
-import com.sonatype.insight.brain.model.security.Permission;
-import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.service.AbstractResourceAuthzTest;
 import com.sonatype.insight.brain.utils.IdUtils;
 
@@ -58,14 +56,13 @@ public class LicenseOverrideResourceAuthzTest
 
   @Test
   public void testGetAppliedLicenseOverrides() throws Exception {
-    Role role = tempEntity.newRole(false, Permission.READ);
-    tempEntity.newMembershipMapping(app.getId(), role.getId(), authorized.getUsername());
+    grantReadPermission(app.getId());
 
     String url = getRestUrl(LicenseOverrideResource.SERVICE_PATH + "/applied/{g}/{a}/{v}", IdUtils.TYPE_APPLICATION,
         app.getPublicId(), "g", "a", "1");
     testAuthzGet(url);
 
-    tempEntity.newMembershipMapping(org.getId(), role.getId(), authorized.getUsername());
+    grantReadPermission(org.getId());
 
     url = getRestUrl(LicenseOverrideResource.SERVICE_PATH + "/applied/{g}/{a}/{v}", IdUtils.TYPE_ORGANIZATION,
         org.getId(), "g", "a", "1");

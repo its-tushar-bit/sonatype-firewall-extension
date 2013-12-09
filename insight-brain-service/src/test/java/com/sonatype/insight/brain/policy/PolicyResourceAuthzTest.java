@@ -15,8 +15,6 @@ import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityConditionType;
-import com.sonatype.insight.brain.model.security.Permission;
-import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.service.AbstractResourceAuthzTest;
 import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.test.RestAccess;
@@ -58,13 +56,12 @@ public class PolicyResourceAuthzTest
 
   @Test
   public void testGetPolicies() throws Exception {
-    Role role = tempEntity.newRole(false, Permission.READ);
-    tempEntity.newMembershipMapping(app.getId(), role.getId(), authorized.getUsername());
+    grantReadPermission(app.getId());
 
     String url = getRestUrl(PolicyResource.SERVICE_PATH, IdUtils.TYPE_APPLICATION, app.getPublicId());
     testAuthzGet(url);
 
-    tempEntity.newMembershipMapping(org.getId(), role.getId(), authorized.getUsername());
+    grantReadPermission(org.getId());
 
     url = getRestUrl(PolicyResource.SERVICE_PATH, IdUtils.TYPE_ORGANIZATION, org.getId());
     testAuthzGet(url);
@@ -72,13 +69,12 @@ public class PolicyResourceAuthzTest
 
   @Test
   public void testGetApplicablePolicies() throws Exception {
-    Role role = tempEntity.newRole(false, Permission.READ);
-    tempEntity.newMembershipMapping(app.getId(), role.getId(), authorized.getUsername());
+    grantReadPermission(app.getId());
 
     String url = getRestUrl(PolicyResource.SERVICE_PATH + "/applicable", IdUtils.TYPE_APPLICATION, app.getPublicId());
     testAuthzGet(url);
 
-    tempEntity.newMembershipMapping(org.getId(), role.getId(), authorized.getUsername());
+    grantReadPermission(org.getId());
 
     url = getRestUrl(PolicyResource.SERVICE_PATH + "/applicable", IdUtils.TYPE_ORGANIZATION, org.getId());
     testAuthzGet(url);
@@ -137,8 +133,7 @@ public class PolicyResourceAuthzTest
 
   @Test
   public void testExportPolicies() throws Exception {
-    Role role = tempEntity.newRole(false, Permission.READ);
-    tempEntity.newMembershipMapping(app.getId(), role.getId(), authorized.getUsername());
+    grantReadPermission(app.getId());
 
     String url = getRestUrl(PolicyResource.SERVICE_PATH + "/export", IdUtils.TYPE_APPLICATION, app.getPublicId());
     testAuthzGet(url);

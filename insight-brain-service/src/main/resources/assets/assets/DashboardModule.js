@@ -167,6 +167,14 @@
         $(window).bind('beforeunload', fn);
       }]);
 
+  /**
+   * Allow for images to be sourced from blobs. This was removed from AngularJS with closed issue:
+   * https://github.com/angular/angular.js/issues/3889
+   */
+  dashboardApp.config(['$compileProvider', function($compileProvider) {
+    $compileProvider.imgSrcSanitizationWhitelist(/^\s*(https?|ftp|file|blob):|data:image\//);
+  }]);
+
   // this is a fix to bootstrap to stop the 'too much recursion' error when multiple modals are fighting for focus
   $.fn.modal.Constructor.prototype.enforceFocus = function() {
     var that = this;

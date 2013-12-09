@@ -9,10 +9,12 @@ import com.sonatype.insight.brain.testing.functional.modules.ContextTabsModule
 
 
 class ApplicationPage extends BasePage {
-  static at = {  applicationImage.displayed }
+  static at = {  applicationImageWrapper.displayed }
 
   static content = {
-    applicationImage(wait: true) { $('div.editor-image') }
+    applicationImageWrapper(wait: true) { $('div.editor-image') }
+    applicationImage(wait: true) { $('#userIcon') }
+    applicationImageFileDialog(wait: true) { $('#file') }
     applicationName(required: false) { $('#aoName') }
     applicationNameField(required: false) { $('input', 'placeholder':'Enter Application Name') }
     applicationId(required: false) { $('#applicationPublicId') }
@@ -20,6 +22,7 @@ class ApplicationPage extends BasePage {
     applicationOrgField(required: false) { $('div', 'on': 'selectedApplication.id && selectedApplication.organizationId').find('a') }
     applicationOrgName(required: false) { orgName -> $('a', text: orgName) }
     applicationSaveButton(required: false) { $('button', text:'Save') }
+    applicationCancelButton(required: false) { $('button', text:'Cancel') }
     securityTabButton(required: false) { $('div', 'on': 'selectedApplication.id').find('a', text: 'SECURITY') }
     securityTab(required: false) { $('#security') }
     deleteButton(required: false) { $('a', 'title': 'Remove Application') }

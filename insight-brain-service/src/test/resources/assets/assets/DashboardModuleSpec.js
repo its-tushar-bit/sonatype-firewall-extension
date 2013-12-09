@@ -57,6 +57,14 @@ describe('dashboardApp', function() {
     });
   }));
 
+  describe('Custom sanitation', function() {
+    it('allows blob urls unsanitized', inject(function($$sanitizeUri) {
+      var uri = 'blob:http%3A//127.0.0.1%3A8070/someuuid';
+      var sanitized = $$sanitizeUri(uri, true);
+      expect(sanitized).toBe(uri);
+    }));
+  });
+
   describe('Validate proper requests made on initialization', function () {
     var event = {
       preventDefault: jasmine.createSpy('preventDefault')

@@ -467,12 +467,14 @@ public class LdapManagerTest
     serverDetails = new LdapServer();
     serverDetails.setName("Test Server");
     serverDao.insert(serverDetails);
-    assertThat(manager.isLdapEnabled(), is(false));
+    assertThat(manager.isLdapGroupEnabled(), is(false));
 
     LdapConnection conn = createLdapConnection();
     conn.setHostname("localhost");
     conn.setSearchBase("dc=company,dc=com");
     new LdapConnectionDAO().insert(conn);
+
+    assertThat(manager.isLdapGroupEnabled(), is(false));
 
     LdapUserMapping umap = createUserMapping();
     umap.setGroupMappingType(LdapGroupMappingType.NONE);

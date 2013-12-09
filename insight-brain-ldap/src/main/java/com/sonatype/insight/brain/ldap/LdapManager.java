@@ -186,7 +186,10 @@ public class LdapManager
   public boolean isLdapGroupEnabled() {
     if (isLdapEnabled()) {
       LdapConnection conn = getDecryptedConnection();
-      return userDao.getByServerId(conn.getServerId()).getGroupMappingType() != LdapGroupMappingType.NONE;
+      LdapUserMapping mapping = userDao.getByServerId(conn.getServerId());
+      if (mapping != null) {
+        return mapping.getGroupMappingType() != LdapGroupMappingType.NONE;
+      }
     }
     return false;
   }

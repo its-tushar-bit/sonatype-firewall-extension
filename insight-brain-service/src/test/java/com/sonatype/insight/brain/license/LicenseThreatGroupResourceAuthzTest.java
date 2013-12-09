@@ -49,8 +49,7 @@ public class LicenseThreatGroupResourceAuthzTest
 
   @Test
   public void testAddLicenseThreatGroup() throws Exception {
-    Role role = tempEntity.newRole(false, Permission.WRITE);
-    tempEntity.newMembershipMapping(app.getId(), role.getId(), authorized.getUsername());
+    grantWritePermission(app.getId());
 
     LicenseThreatGroup ltg = new LicenseThreatGroup(null, "Test LTG", 5);
 
@@ -59,7 +58,7 @@ public class LicenseThreatGroupResourceAuthzTest
     ltg = fromJson(response, LicenseThreatGroup.class);
     new LicenseThreatGroupDAO().delete(ltg);
 
-    tempEntity.newMembershipMapping(org.getId(), role.getId(), authorized.getUsername());
+    grantWritePermission(org.getId());
 
     url = getRestUrl(LicenseThreatGroupResource.SERVICE_PATH, IdUtils.TYPE_ORGANIZATION, org.getId());
     response = testAuthzPost(url, toJson(ltg));
@@ -69,15 +68,14 @@ public class LicenseThreatGroupResourceAuthzTest
 
   @Test
   public void testUpdateLicenseThreatGroup() throws Exception {
-    Role role = tempEntity.newRole(false, Permission.WRITE);
-    tempEntity.newMembershipMapping(app.getId(), role.getId(), authorized.getUsername());
+    grantWritePermission(app.getId());
 
     LicenseThreatGroup ltg = tempEntity.newLicenseThreatGroup(app.getId());
 
     String url = getRestUrl(LicenseThreatGroupResource.SERVICE_PATH, IdUtils.TYPE_APPLICATION, app.getPublicId());
     testAuthzPut(url, toJson(ltg));
 
-    tempEntity.newMembershipMapping(org.getId(), role.getId(), authorized.getUsername());
+    grantWritePermission(org.getId());
     ltg = tempEntity.newLicenseThreatGroup(org.getId());
 
     url = getRestUrl(LicenseThreatGroupResource.SERVICE_PATH, IdUtils.TYPE_ORGANIZATION, org.getId());
@@ -86,8 +84,7 @@ public class LicenseThreatGroupResourceAuthzTest
 
   @Test
   public void testDeleteLicenseThreatGroup() throws Exception {
-    Role role = tempEntity.newRole(false, Permission.WRITE);
-    tempEntity.newMembershipMapping(app.getId(), role.getId(), authorized.getUsername());
+    grantWritePermission(app.getId());
 
     LicenseThreatGroup ltg = tempEntity.newLicenseThreatGroup(app.getId());
 
@@ -95,7 +92,7 @@ public class LicenseThreatGroupResourceAuthzTest
         app.getPublicId(), ltg.getId());
     testAuthzDelete(url);
 
-    tempEntity.newMembershipMapping(org.getId(), role.getId(), authorized.getUsername());
+    grantWritePermission(org.getId());
     ltg = tempEntity.newLicenseThreatGroup(org.getId());
 
     url = getRestUrl(LicenseThreatGroupResource.SERVICE_PATH + "/{ltgId}", IdUtils.TYPE_ORGANIZATION, org.getId(),

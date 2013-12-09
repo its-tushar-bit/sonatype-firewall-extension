@@ -21,8 +21,7 @@ public class LicenseOverrideResourceAuthzTest
 {
   @Test
   public void testAddLicenseOverride() throws Exception {
-    Role role = tempEntity.newRole(false, Permission.WRITE);
-    tempEntity.newMembershipMapping(app.getId(), role.getId(), authorized.getUsername());
+    grantWritePermission(app.getId());
     LicenseOverride override = new LicenseOverride(null, "g", "a", "1", LicenseOverrideStatus.CONFIRMED, null, "test");
 
     String url = getRestUrl(LicenseOverrideResource.SERVICE_PATH, IdUtils.TYPE_APPLICATION, app.getPublicId());
@@ -30,7 +29,7 @@ public class LicenseOverrideResourceAuthzTest
     override = fromJson(response, LicenseOverride.class);
     new LicenseOverrideDAO().delete(override);
 
-    tempEntity.newMembershipMapping(org.getId(), role.getId(), authorized.getUsername());
+    grantWritePermission(org.getId());
     override = new LicenseOverride(null, "g", "a", "1", LicenseOverrideStatus.CONFIRMED, null, "test");
 
     url = getRestUrl(LicenseOverrideResource.SERVICE_PATH, IdUtils.TYPE_ORGANIZATION, org.getId());
@@ -41,8 +40,7 @@ public class LicenseOverrideResourceAuthzTest
 
   @Test
   public void testDeleteLicenseOverride() throws Exception {
-    Role role = tempEntity.newRole(false, Permission.WRITE);
-    tempEntity.newMembershipMapping(app.getId(), role.getId(), authorized.getUsername());
+    grantWritePermission(app.getId());
     LicenseOverride override = tempEntity.newLicenseOverride(app.getId(), "g", "a", "1",
         LicenseOverrideStatus.CONFIRMED, null);
 
@@ -50,7 +48,7 @@ public class LicenseOverrideResourceAuthzTest
         app.getPublicId(), override.getId());
     testAuthzDelete(url);
 
-    tempEntity.newMembershipMapping(org.getId(), role.getId(), authorized.getUsername());
+    grantWritePermission(org.getId());
     override = tempEntity.newLicenseOverride(org.getId(), "g", "a", "1", LicenseOverrideStatus.CONFIRMED, null);
 
     url = getRestUrl(LicenseOverrideResource.SERVICE_PATH + "/{overrideId}", IdUtils.TYPE_ORGANIZATION, org.getId(),

@@ -38,8 +38,7 @@ public class LicenseThreatGroupLicenseResourceAuthzTest
 
   @Test
   public void testSetLicenseThreatGroupLicenses() throws Exception {
-    Role role = tempEntity.newRole(false, Permission.WRITE);
-    tempEntity.newMembershipMapping(app.getId(), role.getId(), authorized.getUsername());
+    grantWritePermission(app.getId());
 
     LicenseThreatGroup ltg = tempEntity.newLicenseThreatGroup(app.getId());
     String json = toJson(Arrays.asList("MIT"));
@@ -48,7 +47,7 @@ public class LicenseThreatGroupLicenseResourceAuthzTest
         app.getPublicId(), ltg.getId());
     testAuthzPut(url, json);
 
-    tempEntity.newMembershipMapping(org.getId(), role.getId(), authorized.getUsername());
+    grantWritePermission(org.getId());
 
     url = getRestUrl(LicenseThreatGroupLicenseResource.SERVICE_PATH, IdUtils.TYPE_ORGANIZATION, org.getId(),
         ltg.getId());

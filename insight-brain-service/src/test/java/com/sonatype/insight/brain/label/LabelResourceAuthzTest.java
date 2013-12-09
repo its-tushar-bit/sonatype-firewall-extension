@@ -66,8 +66,7 @@ public class LabelResourceAuthzTest
 
   @Test
   public void testAddLabel() throws Exception {
-    Role role = tempEntity.newRole(false, Permission.WRITE);
-    tempEntity.newMembershipMapping(app.getId(), role.getId(), authorized.getUsername());
+    grantWritePermission(app.getId());
 
     Label label = new Label(null, "testing", null);
     String url = getRestUrl(LabelResource.SERVICE_PATH, IdUtils.TYPE_APPLICATION, app.getPublicId());
@@ -75,7 +74,7 @@ public class LabelResourceAuthzTest
     label = fromJson(response, Label.class);
     new LabelDAO().delete(label);
 
-    tempEntity.newMembershipMapping(org.getId(), role.getId(), authorized.getUsername());
+    grantWritePermission(org.getId());
 
     label = new Label(null, "testing", null);
     url = getRestUrl(LabelResource.SERVICE_PATH, IdUtils.TYPE_ORGANIZATION, org.getId());
@@ -86,14 +85,13 @@ public class LabelResourceAuthzTest
 
   @Test
   public void testUpdateLabel() throws Exception {
-    Role role = tempEntity.newRole(false, Permission.WRITE);
-    tempEntity.newMembershipMapping(app.getId(), role.getId(), authorized.getUsername());
+    grantWritePermission(app.getId());
 
     Label label = tempEntity.newLabel(app.getId());
     String url = getRestUrl(LabelResource.SERVICE_PATH, IdUtils.TYPE_APPLICATION, app.getPublicId());
     testAuthzPut(url, toJson(label));
 
-    tempEntity.newMembershipMapping(org.getId(), role.getId(), authorized.getUsername());
+    grantWritePermission(org.getId());
 
     label = tempEntity.newLabel(org.getId());
     url = getRestUrl(LabelResource.SERVICE_PATH, IdUtils.TYPE_ORGANIZATION, org.getId());
@@ -102,15 +100,14 @@ public class LabelResourceAuthzTest
 
   @Test
   public void testDeleteLabel() throws Exception {
-    Role role = tempEntity.newRole(false, Permission.WRITE);
-    tempEntity.newMembershipMapping(app.getId(), role.getId(), authorized.getUsername());
+    grantWritePermission(app.getId());
 
     Label label = tempEntity.newLabel(app.getId());
     String url = getRestUrl(LabelResource.SERVICE_PATH + "/{labelId}", IdUtils.TYPE_APPLICATION, app.getPublicId(),
         label.getId());
     testAuthzDelete(url);
 
-    tempEntity.newMembershipMapping(org.getId(), role.getId(), authorized.getUsername());
+    grantWritePermission(org.getId());
 
     label = tempEntity.newLabel(org.getId());
     url = getRestUrl(LabelResource.SERVICE_PATH + "/{labelId}", IdUtils.TYPE_ORGANIZATION, org.getId(), label.getId());

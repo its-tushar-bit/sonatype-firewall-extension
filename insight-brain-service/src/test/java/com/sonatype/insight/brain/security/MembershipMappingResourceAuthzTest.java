@@ -33,8 +33,7 @@ public class MembershipMappingResourceAuthzTest
 
   @Test
   public void testSetMembershipMappingForRole() throws Exception {
-    Role role = tempEntity.newRole(false, Permission.WRITE);
-    tempEntity.newMembershipMapping(app.getId(), role.getId(), authorized.getUsername());
+    grantWritePermission(app.getId());
     Role appRole = tempEntity.newRole(false);
     String json = toJson(Collections.emptyList());
 
@@ -42,7 +41,7 @@ public class MembershipMappingResourceAuthzTest
         IdUtils.TYPE_APPLICATION, app.getPublicId(), appRole.getId());
     testAuthzPut(url, json, 204);
 
-    tempEntity.newMembershipMapping(org.getId(), role.getId(), authorized.getUsername());
+    grantWritePermission(org.getId());
 
     url = getRestUrl(MembershipMappingResource.SERVICE_PATH + '/' + MembershipMappingResource.ROLE_PATH,
         IdUtils.TYPE_ORGANIZATION, org.getId(), appRole.getId());

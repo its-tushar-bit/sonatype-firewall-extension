@@ -26,8 +26,7 @@ public class PolicyWaiverResourceAuthzTest
 {
   @Test
   public void testAddPolicyWaiver() throws Exception {
-    Role role = tempEntity.newRole(false, Permission.WRITE);
-    tempEntity.newMembershipMapping(app.getId(), role.getId(), authorized.getUsername());
+    grantWritePermission(app.getId());
 
     PolicyWaiver waiver = new PolicyWaiver("hash", "policyId", null, "comment");
 
@@ -36,7 +35,7 @@ public class PolicyWaiverResourceAuthzTest
     waiver = fromJson(response, PolicyWaiver.class);
     new PolicyWaiverDAO().delete(waiver);
 
-    tempEntity.newMembershipMapping(org.getId(), role.getId(), authorized.getUsername());
+    grantWritePermission(org.getId());
     waiver = new PolicyWaiver("hash", "policyId", null, "comment");
 
     url = getRestUrl(PolicyWaiverResource.SERVICE_PATH, IdUtils.TYPE_ORGANIZATION, org.getId());
@@ -47,8 +46,7 @@ public class PolicyWaiverResourceAuthzTest
 
   @Test
   public void testDeletePolicyWaiver() throws Exception {
-    Role role = tempEntity.newRole(false, Permission.WRITE);
-    tempEntity.newMembershipMapping(app.getId(), role.getId(), authorized.getUsername());
+    grantWritePermission(app.getId());
 
     PolicyWaiver waiver = tempEntity.newWaiver("hash", "policyId", app.getId());
 
@@ -56,7 +54,7 @@ public class PolicyWaiverResourceAuthzTest
         app.getPublicId(), waiver.getId());
     testAuthzDelete(url);
 
-    tempEntity.newMembershipMapping(org.getId(), role.getId(), authorized.getUsername());
+    grantWritePermission(org.getId());
     waiver = tempEntity.newWaiver("hash", "policyId", org.getId());
 
     url = getRestUrl(PolicyWaiverResource.SERVICE_PATH + "/{waiverId}", IdUtils.TYPE_ORGANIZATION, org.getId(),

@@ -119,8 +119,7 @@ public class ApplicationResourceAuthzTest
 
   @Test
   public void testSetIcon() throws Exception {
-    Role role = tempEntity.newRole(false, Permission.WRITE);
-    tempEntity.newMembershipMapping(app.getId(), role.getId(), authorized.getUsername());
+    grantWritePermission(app.getId());
 
     AsyncHttpClient.BoundRequestBuilder builder = AuthedRestAccess.getClient().preparePost(
         getRestUrl(ApplicationResource.SERVICE_PATH + '/' + ApplicationResource.ICON_PATH));
@@ -141,8 +140,7 @@ public class ApplicationResourceAuthzTest
 
   @Test
   public void testSetIconSync() throws Exception {
-    Role role = tempEntity.newRole(false, Permission.WRITE);
-    tempEntity.newMembershipMapping(app.getId(), role.getId(), authorized.getUsername());
+    grantWritePermission(app.getId());
 
     AsyncHttpClient.BoundRequestBuilder builder = AuthedRestAccess.getClient().preparePost(
         getRestUrl(ApplicationResource.SERVICE_PATH + '/' + ApplicationResource.ICON_PATH_SYNC));
@@ -166,8 +164,7 @@ public class ApplicationResourceAuthzTest
   @Test
   public void testAddApplication() throws Exception {
     Application app = new Application("test-app", "test-app", org.getId());
-    Role role = tempEntity.newRole(true, Permission.WRITE);
-    tempEntity.newMembershipMapping(org.getId(), role.getId(), authorized.getUsername());
+    grantWritePermission(org.getId());
 
     String url = getRestUrl(ApplicationResource.SERVICE_PATH);
     Response response = testAuthzPost(url, toJson(app));
@@ -177,8 +174,7 @@ public class ApplicationResourceAuthzTest
 
   @Test
   public void testUpdateApplication() throws Exception {
-    Role role = tempEntity.newRole(false, Permission.WRITE);
-    tempEntity.newMembershipMapping(app.getId(), role.getId(), authorized.getUsername());
+    grantWritePermission(app.getId());
 
     String url = getRestUrl(ApplicationResource.SERVICE_PATH);
     testAuthzPut(url, toJson(app));
@@ -186,8 +182,7 @@ public class ApplicationResourceAuthzTest
 
   @Test
   public void testDeleteApplication() throws Exception {
-    Role role = tempEntity.newRole(false, Permission.WRITE);
-    tempEntity.newMembershipMapping(app.getId(), role.getId(), authorized.getUsername());
+    grantWritePermission(app.getId());
 
     String url = getRestUrl(ApplicationResource.SERVICE_PATH + '/' + ApplicationResource.GET_APPLICATION_PATH,
         app.getPublicId());

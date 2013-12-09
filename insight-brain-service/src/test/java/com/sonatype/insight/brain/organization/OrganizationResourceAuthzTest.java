@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.organization;
 import com.sonatype.insight.brain.AuthedRestAccess;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.model.Organization;
-import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.service.AbstractResourceAuthzTest;
@@ -56,8 +55,7 @@ public class OrganizationResourceAuthzTest
   @Test
   public void testAddOrganization() throws Exception {
     Organization org = new Organization("test-org");
-    Role role = tempEntity.newRole(true, Permission.WRITE);
-    tempEntity.newMembershipMapping(MembershipMapping.GLOBAL_CONTEXT_ID, role.getId(), authorized.getUsername());
+    grantWritePermission();
 
     String url = getRestUrl(OrganizationResource.SERVICE_PATH);
     Response response = testAuthzPost(url, toJson(org));
@@ -67,8 +65,7 @@ public class OrganizationResourceAuthzTest
 
   @Test
   public void testUpdateOrganization() throws Exception {
-    Role role = tempEntity.newRole(false, Permission.WRITE);
-    tempEntity.newMembershipMapping(org.getId(), role.getId(), authorized.getUsername());
+    grantWritePermission(org.getId());
 
     String url = getRestUrl(OrganizationResource.SERVICE_PATH);
     testAuthzPut(url, toJson(org));
@@ -85,8 +82,7 @@ public class OrganizationResourceAuthzTest
 
   @Test
   public void testSetIcon() throws Exception {
-    Role role = tempEntity.newRole(false, Permission.WRITE);
-    tempEntity.newMembershipMapping(org.getId(), role.getId(), authorized.getUsername());
+    grantWritePermission(org.getId());
 
     AsyncHttpClient.BoundRequestBuilder builder = AuthedRestAccess.getClient().preparePost(
         getRestUrl(OrganizationResource.SERVICE_PATH + '/' + OrganizationResource.ICON_PATH));
@@ -107,8 +103,7 @@ public class OrganizationResourceAuthzTest
 
   @Test
   public void testSetIconSync() throws Exception {
-    Role role = tempEntity.newRole(false, Permission.WRITE);
-    tempEntity.newMembershipMapping(org.getId(), role.getId(), authorized.getUsername());
+    grantWritePermission(org.getId());
 
     AsyncHttpClient.BoundRequestBuilder builder = AuthedRestAccess.getClient().preparePost(
         getRestUrl(OrganizationResource.SERVICE_PATH + '/' + OrganizationResource.ICON_PATH_SYNC));
@@ -131,8 +126,7 @@ public class OrganizationResourceAuthzTest
 
   @Test
   public void testDeleteOrganization() throws Exception {
-    Role role = tempEntity.newRole(false, Permission.WRITE);
-    tempEntity.newMembershipMapping(org.getId(), role.getId(), authorized.getUsername());
+    grantWritePermission(org.getId());
 
     String url = getRestUrl(OrganizationResource.SERVICE_PATH + '/' + OrganizationResource.DELETE_ORGANIZATION_PATH,
         org.getId());

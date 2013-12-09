@@ -36,8 +36,7 @@ public class ComponentLabelResourceAuthzTest
 
   @Test
   public void testSetComponentLabel() throws Exception {
-    Role role = tempEntity.newRole(false, Permission.WRITE);
-    tempEntity.newMembershipMapping(app.getId(), role.getId(), authorized.getUsername());
+    grantWritePermission(app.getId());
     Label label = tempEntity.newLabel(org.getId());
     String hash = "bad";
 
@@ -45,7 +44,7 @@ public class ComponentLabelResourceAuthzTest
     testAuthzPost(url, toJson(label), 204);
     compLabelDAO.delete(compLabelDAO.getByOwnerIdAndHashAndLabelId(app.getId(), hash, label.getId()));
 
-    tempEntity.newMembershipMapping(org.getId(), role.getId(), authorized.getUsername());
+    grantWritePermission(org.getId());
 
     url = getRestUrl(ComponentLabelResource.SERVICE_PATH, IdUtils.TYPE_ORGANIZATION, org.getId(), hash);
     testAuthzPost(url, toJson(label), 204);
@@ -54,8 +53,7 @@ public class ComponentLabelResourceAuthzTest
 
   @Test
   public void testRemoveComponentLabel() throws Exception {
-    Role role = tempEntity.newRole(false, Permission.WRITE);
-    tempEntity.newMembershipMapping(app.getId(), role.getId(), authorized.getUsername());
+    grantWritePermission(app.getId());
     Label label = tempEntity.newLabel(org.getId());
     String hash = "bad";
 
@@ -65,7 +63,7 @@ public class ComponentLabelResourceAuthzTest
         app.getPublicId(), hash, label.getId());
     testAuthzDelete(url);
 
-    tempEntity.newMembershipMapping(org.getId(), role.getId(), authorized.getUsername());
+    grantWritePermission(org.getId());
 
     compLabel = new ComponentLabel(org.getId(), label.getId(), hash);
     compLabelDAO.insert(compLabel);

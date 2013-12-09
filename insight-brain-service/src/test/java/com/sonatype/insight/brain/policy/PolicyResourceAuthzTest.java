@@ -86,14 +86,13 @@ public class PolicyResourceAuthzTest
 
   @Test
   public void testAddPolicy() throws Exception {
-    Role role = tempEntity.newRole(false, Permission.WRITE);
-    tempEntity.newMembershipMapping(app.getId(), role.getId(), authorized.getUsername());
+    grantWritePermission(app.getId());
 
     Policy policy = newPolicy();
     String url = getRestUrl(PolicyResource.SERVICE_PATH, IdUtils.TYPE_APPLICATION, app.getPublicId());
     testAuthzPost(url, toJson(policy));
 
-    tempEntity.newMembershipMapping(org.getId(), role.getId(), authorized.getUsername());
+    grantWritePermission(org.getId());
 
     policy = newPolicy();
     url = getRestUrl(PolicyResource.SERVICE_PATH, IdUtils.TYPE_ORGANIZATION, org.getId());
@@ -102,14 +101,14 @@ public class PolicyResourceAuthzTest
 
   @Test
   public void testUpdatePolicy() throws Exception {
-    Role role = tempEntity.newRole(false, Permission.WRITE);
-    tempEntity.newMembershipMapping(app.getId(), role.getId(), authorized.getUsername());
+    grantWritePermission(app.getId());
 
     Policy policy = newPolicy();
     policyDAO.insert(app.getId(), policy);
     String url = getRestUrl(PolicyResource.SERVICE_PATH, IdUtils.TYPE_APPLICATION, app.getPublicId());
     testAuthzPut(url, toJson(policy));
-    tempEntity.newMembershipMapping(org.getId(), role.getId(), authorized.getUsername());
+
+    grantWritePermission(org.getId());
 
     policy = newPolicy();
     policyDAO.insert(org.getId(), policy);
@@ -119,8 +118,7 @@ public class PolicyResourceAuthzTest
 
   @Test
   public void testDeletePolicy() throws Exception {
-    Role role = tempEntity.newRole(false, Permission.WRITE);
-    tempEntity.newMembershipMapping(app.getId(), role.getId(), authorized.getUsername());
+    grantWritePermission(app.getId());
 
     Policy policy = newPolicy();
     policyDAO.insert(app.getId(), policy);
@@ -128,7 +126,7 @@ public class PolicyResourceAuthzTest
         policy.getId());
     testAuthzDelete(url);
 
-    tempEntity.newMembershipMapping(org.getId(), role.getId(), authorized.getUsername());
+    grantWritePermission(org.getId());
 
     policy = newPolicy();
     policyDAO.insert(org.getId(), policy);
@@ -148,8 +146,7 @@ public class PolicyResourceAuthzTest
 
   @Test
   public void testImportPolicies_ToExistingApp() throws Exception {
-    Role role = tempEntity.newRole(false, Permission.WRITE);
-    tempEntity.newMembershipMapping(app.getId(), role.getId(), authorized.getUsername());
+    grantWritePermission(app.getId());
 
     PolicyExportResult export = new PolicyExportResult();
     export.labels = Collections.emptyList();
@@ -163,8 +160,7 @@ public class PolicyResourceAuthzTest
 
   @Test
   public void testImportPolicies_ToExistingOrg() throws Exception {
-    Role role = tempEntity.newRole(false, Permission.WRITE);
-    tempEntity.newMembershipMapping(org.getId(), role.getId(), authorized.getUsername());
+    grantWritePermission(org.getId());
 
     PolicyExportResult export = new PolicyExportResult();
     export.labels = Collections.emptyList();
@@ -179,8 +175,7 @@ public class PolicyResourceAuthzTest
 
   @Test
   public void testImportPolicies_IE9() throws Exception {
-    Role role = tempEntity.newRole(false, Permission.WRITE);
-    tempEntity.newMembershipMapping(org.getId(), role.getId(), authorized.getUsername());
+    grantWritePermission(org.getId());
 
     PolicyExportResult export = new PolicyExportResult();
     export.labels = Collections.emptyList();

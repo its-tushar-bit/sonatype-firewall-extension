@@ -68,8 +68,8 @@
       }]);
 
   applicationModule.controller('applicationController', [
-    '$scope', '$state', '$timeout', '$location', 'applicationStore', 'CLMLocations',
-    function($scope, $state, $timeout, $location, applicationStore, CLMLocations) {
+    '$scope', '$state', '$location', 'applicationStore', 'CLMLocations',
+    function($scope, $state, $location, applicationStore, CLMLocations) {
       $scope.location = $location;
 
       // Store icon cache timestamps at higher scope so it is not reinstantiated with editor controller

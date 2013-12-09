@@ -439,7 +439,7 @@
           if (!trendingReport.meta || trendingReport.generation.running) {
             $timeout(pollFunction, 2000);
           }
-        };
+        }
 
         pollFunction = function() {
           var params = {};

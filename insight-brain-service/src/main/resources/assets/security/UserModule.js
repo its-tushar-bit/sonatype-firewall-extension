@@ -263,7 +263,7 @@
   
   //simple directive that will select the text in an input field
   //when user clicks on it
-  module.directive('selectText', ['$timeout', function ($timeout) {
+  module.directive('selectText', [function () {
     return function (scope, element, attrs) {
       element.bind('focus', function () {
         this.select();

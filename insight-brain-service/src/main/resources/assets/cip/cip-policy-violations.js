@@ -60,8 +60,8 @@
       };
     });
     policyViolationApp.controller('PolicyViolationsController', [
-      'hudson', '$http', '$scope', '$timeout', 'PolicyViolationData', 'Messages', 'CurrentPolicyData',
-      function(hudson, $http, $scope, $timeout, policyViolationData, messages, currentPolicyData) {
+      'hudson', '$http', '$scope', 'PolicyViolationData', 'Messages', 'CurrentPolicyData',
+      function(hudson, $http, $scope, policyViolationData, messages, currentPolicyData) {
         function errorFn(data, status, headersFn, config) {
           $scope.alerts.push({
             type: 'error',

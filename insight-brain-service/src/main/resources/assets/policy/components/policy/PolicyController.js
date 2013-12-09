@@ -12,9 +12,9 @@
       ['Hudson', 'PolicyEditor', 'CLMAppLocation', 'AngularCommon', 'CommonServices']);
 
   policyModule.controller('PolicyController', [
-    '$scope', '$location', '$http', 'hudson', '$timeout', '$rootScope', '$q', 'PolicyStore', 'ActionStore',
+    '$scope', '$location', '$http', 'hudson', '$rootScope', '$q', 'PolicyStore', 'ActionStore',
     'CLMAppLocations', 'Dialog', 'ownerChange',
-    function($scope, $location, $http, hudson, $timeout, $rootScope, $q, policyStore, actionStore, clmAppLocations, Dialog, ownerChange) {
+    function($scope, $location, $http, hudson, $rootScope, $q, policyStore, actionStore, clmAppLocations, Dialog, ownerChange) {
 
       $scope.alerts = [];
       $scope.location = $location;

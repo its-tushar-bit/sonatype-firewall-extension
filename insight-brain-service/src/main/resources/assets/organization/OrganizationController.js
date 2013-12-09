@@ -77,8 +77,8 @@
       ['AngularCommon', 'ApplicationSecurityModule', 'CLMAppLocation', 'CommonServices', 'EditorTools', 'Labels', 'LicenseThreatGroup', 'Policy', 'ResourceModule', 'ui.router']);
 
   organizationModule.controller('OrganizationController', [
-    '$scope', '$state', '$http', '$location', '$timeout', 'hudson', 'CLMLocations', 'OrganizationStore',
-    function($scope, $state, $http, $location, $timeout, hudson, CLMLocations, OrganizationStore) {
+    '$scope', '$state', '$http', '$location', 'hudson', 'CLMLocations', 'OrganizationStore',
+    function($scope, $state, $http, $location, hudson, CLMLocations, OrganizationStore) {
       $scope.isCurrentTab = function(tabName) {
         return $state.current.name.lastIndexOf(tabName) === $state.current.name.length - tabName.length;
       };

@@ -422,6 +422,13 @@
         <build.timestamp>m2e</build.timestamp>
       </properties>
     </profile>
+    <profile>
+      <!-- include performance testing in the modules -->
+      <id>perf</id>
+      <modules>
+        <module>insight-brain-performance-test</module>
+      </modules>
+    </profile>
   </profiles>
 
 </project>

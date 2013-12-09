@@ -248,7 +248,9 @@ public class LdapManager
     }
     if (StringUtils.isNotBlank(conn.getSystemPassword())) {
       try {
-        conn.setSystemPassword(cipher.decryptDecorated(conn.getSystemPassword(), ENC));
+        synchronized (cipher) {
+          conn.setSystemPassword(cipher.decryptDecorated(conn.getSystemPassword(), ENC));
+        }
       }
       catch (PlexusCipherException e) {
         throw new IllegalStateException(e);
@@ -277,7 +279,9 @@ public class LdapManager
       try {
         LdapConnection copy = new LdapConnection(conn);
         String encryptedPassword = connDao.getByIdNotNull(conn.getId()).getSystemPassword();
-        copy.setSystemPassword(cipher.decryptDecorated(encryptedPassword, ENC));
+        synchronized (cipher) {
+          copy.setSystemPassword(cipher.decryptDecorated(encryptedPassword, ENC));
+        }
         return copy;
       }
       catch (PlexusCipherException e) {
@@ -298,7 +302,9 @@ public class LdapManager
           copy.setSystemPassword(connDao.getByIdNotNull(conn.getId()).getSystemPassword());
         }
         else {
-          copy.setSystemPassword(cipher.encryptAndDecorate(conn.getSystemPassword(), ENC));
+          synchronized (cipher) {
+            copy.setSystemPassword(cipher.encryptAndDecorate(conn.getSystemPassword(), ENC));
+          }
         }
         return copy;
       }

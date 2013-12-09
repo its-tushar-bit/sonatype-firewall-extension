@@ -459,6 +459,12 @@ public class LdapManagerTest
     LdapConnection conn = createLdapConnection();
     conn.setHostname("localhost");
     new LdapConnectionDAO().insert(conn);
+    assertThat(manager.isLdapEnabled(), is(false));
+
+    LdapUserMapping umap = createUserMapping();
+    LdapUserMappingDAO userMappingDAO = new LdapUserMappingDAO();
+    userMappingDAO.insert(umap);
+
     assertThat(manager.isLdapEnabled(), is(true));
   }
 

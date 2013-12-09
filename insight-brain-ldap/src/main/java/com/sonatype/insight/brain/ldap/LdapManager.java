@@ -179,8 +179,8 @@ public class LdapManager
    */
   public boolean isLdapEnabled() {
     List<LdapServer> servers = serverDao.getAll();
-    return !servers.isEmpty() &&
-        connDao.getByServerId(servers.get(0).getId()) != null; // We have at least one server with a connection
+    return !servers.isEmpty() && connDao.getByServerId(servers.get(0).getId()) != null &&
+        userDao.getByServerId(servers.get(0).getId()) != null;
   }
 
   public boolean isLdapGroupEnabled() {

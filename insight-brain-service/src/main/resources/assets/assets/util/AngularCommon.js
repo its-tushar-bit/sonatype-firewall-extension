@@ -838,18 +838,22 @@ var AngularUtils = {
     };
   }]);
 
+  /**
+   * Used to ensure that model is updated when forms are filled using auto complete. This will occur when a password
+   * is saved by a password manager but filled when selecting a username via a dropdown list.
+   */
   angularCommon.directive('autofill', ['$timeout', function($timeout) {
     return {
       require: 'ngModel',
       link: function(scope, element, attrs, ngModel) {
         function checkForChange() {
-          var elementValue = element.val();
-
-          if (elementValue !== ngModel.$modelValue) {
-            ngModel.$setViewValue(elementValue);
+          if (!scope.$$destroyed) {
+            var elementValue = element.val();
+            if (elementValue !== ngModel.$modelValue) {
+              ngModel.$setViewValue(elementValue);
+            }
+            $timeout(checkForChange, 100);  
           }
-
-          $timeout(checkForChange, 100);
         }
         $timeout(checkForChange, 100);
       }

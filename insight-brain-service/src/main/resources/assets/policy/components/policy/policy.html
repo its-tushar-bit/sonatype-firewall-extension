@@ -37,6 +37,8 @@
 				</div>
 				<div ng-switch='applicablePolicy.policies.length'>
 					<div ng-switch-when='0'><em style="margin-left:25px;">No policies defined</em></div>
+					<!-- Note that we cannot (currently) have a template loaded in same div as ngSwitch 
+					see https://issues.sonatype.org/browse/CLM-1462-->
 					<div ng-switch-default>
                       <div policy-items='applicablePolicy.policies' editable='applicablePolicy.editable' remove='viewRemovePolicy'></div>
 					</div>

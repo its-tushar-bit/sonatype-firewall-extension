@@ -37,7 +37,9 @@
 				</div>
 				<div ng-switch='applicablePolicy.policies.length'>
 					<div ng-switch-when='0'><em style="margin-left:25px;">No policies defined</em></div>
-					<div ng-switch-default policy-items='applicablePolicy.policies' editable='applicablePolicy.editable' remove='viewRemovePolicy'></div>	
+					<div ng-switch-default>
+                      <div policy-items='applicablePolicy.policies' editable='applicablePolicy.editable' remove='viewRemovePolicy'></div>
+					</div>
 				</div>				
 			</div>
 		</div>

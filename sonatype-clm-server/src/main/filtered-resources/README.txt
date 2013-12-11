@@ -17,6 +17,12 @@ To start the Sonatype CLM Server in a mode that is useful for a short evaluation
 
 Refer to the example config.yml in this bundle for additional options.
 
+Authentication in the CLM Server
+================================
+
+As of version 1.7, the CLM Server now requires authentication to access the web interface.  The default username/password to access the system is admin/admin123
+It is recommended that you change this password after logging in.
+
 
 Configuration for PDF report generation
 =======================================

@@ -28,7 +28,7 @@
     <insight-scanner.version>2.0.9-01</insight-scanner.version>
     <insight-saas.version>2.0.6-01</insight-saas.version>
     <slf4j.version>1.7.5</slf4j.version>
-    <logback.version>1.0.12</logback.version>
+    <logback.version>1.0.13</logback.version>
     <jackson.version>2.1.2</jackson.version>
     <openjpa.version>2.2.2</openjpa.version>
     <shiro.version>1.2.2</shiro.version>

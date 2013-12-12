@@ -83,7 +83,7 @@ public class ImportPolicyTest
     wait(10, ExpectedConditions.visibilityOf(dialog.getErrorAlert()));
     Assert
         .assertEquals(
-            "400 - The file you selected failed to upload correctly, are you certain it is a properly formatted policy import json file?",
+            "The file you selected failed to upload correctly, are you certain it is a properly formatted policy import json file?",
             dialog.getErrorAlert().getText());
   }
 

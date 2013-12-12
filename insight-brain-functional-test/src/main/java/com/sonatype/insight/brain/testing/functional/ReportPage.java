@@ -87,10 +87,10 @@ public class ReportPage
    */
   public static class ReportSummaryTab
   {
-    @FindBy(css = ".topBorder:nth-child(3) .span5 .value_lrg")
+    @FindBy(css = ".topBorder:nth-child(2) .span5 .value_lrg")
     private WebElement componentsIdentified;
 
-    @FindBy(css = "#svHeader .value_lrg")
+    @FindBy(css = ".topBorder:nth-child(2) [data-tooltip~='security'] .value_lrg")
     private WebElement securityAlerts;
 
     public ReportSummaryTab(SearchContext parent) {

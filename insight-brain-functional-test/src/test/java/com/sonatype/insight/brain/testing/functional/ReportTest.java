@@ -15,11 +15,14 @@ import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateResource;
 import com.sonatype.insight.brain.testing.functional.ReportPage.Report;
 import com.sonatype.insight.brain.testing.functional.ReportPage.ReportSummaryTab;
 
+import org.junit.runners.MethodSorters;
+
 import com.yammer.dropwizard.testing.JsonHelpers;
 import org.codehaus.plexus.util.FileUtils;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
@@ -27,6 +30,9 @@ import org.openqa.selenium.support.PageFactory;
 import org.openqa.selenium.support.ui.ExpectedCondition;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 
+//Note, this is so that the tests will be run in an expected order, if this order is swapped, 
+//testOpenReportLink fails as the report is only partially drawn, no solution as of yet
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class ReportTest
     extends AbstractFunctionalTest
 {
@@ -60,7 +66,7 @@ public class ReportTest
   }
 
   @Test
-  public void testReportLink() {
+  public void testOpenReportLink() {
     driver.get(getUiLinksReportUrl(appId, scanId));
     PageFactory.initElements(driver, Login.class).doLogin("admin", "admin123");
 

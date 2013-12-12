@@ -148,6 +148,7 @@ public class ImportPolicyTest
       WebElement context = driver.findElement(By.id("import-policy-dialog"));
       AbstractFunctionalTest.wait(10, ExpectedConditions.visibilityOf(context));
       PageFactory.initElements(new DefaultElementLocatorFactory(context), this);
+      AbstractFunctionalTest.wait(10, ExpectedConditions.visibilityOf(input));
     }
 
     public WebElement getImportBtn() {

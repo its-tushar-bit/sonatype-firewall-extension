@@ -34,5 +34,7 @@ public class HttpConfig
     setPort(8070);
     setAdminPort(8071);
     setMaxIdleTime(Duration.minutes(15));
+    // NOTE: DropWizard's default connector (BLOCKING) is known to cause hanging requests, cf. CLM-1297
+    setConnectorType(ConnectorType.NONBLOCKING);
   }
 }

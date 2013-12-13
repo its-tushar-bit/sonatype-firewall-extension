@@ -74,10 +74,10 @@ public class Parameters
   private boolean quiet;
 
   @Parameter(names = {"-w", "--fail-on-policy-warnings"}, description = "Fail on policy evaluation warnings")
-  private boolean warning;
+  private boolean failOnPolicyWaring;
 
   @Parameter(names = {"-e", "--ignore-system-errors"}, description = "Ignore system errors (IO, network, server, etc)")
-  private boolean ignore;
+  private boolean ignoreSystemErrors;
 
   @Parameter(names = {"-h", "--help"}, description = "Show this help screen")
   private boolean help;
@@ -204,11 +204,11 @@ public class Parameters
     return help;
   }
 
-  public boolean isWarning() {
-    return warning;
+  public boolean isFailOnPolicyWaring() {
+    return failOnPolicyWaring;
   }
 
-  public boolean isIgnore() {
-    return ignore;
+  public boolean isIgnoreSystemErrors() {
+    return ignoreSystemErrors;
   }
 }

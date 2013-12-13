@@ -216,3 +216,11 @@ CREATE TABLE ldap_usermapping (
   CONSTRAINT ldap_usermapping_server_fk FOREIGN KEY (ldap_server_id) REFERENCES ldap_server(ldap_server_id),
   CONSTRAINT ldap_usermapping_server_id_uk UNIQUE KEY (ldap_server_id)
 );
+
+CREATE TABLE policy_monitoring (
+  policy_monitoring_id varchar(50) NOT NULL,
+  owner_id varchar(50) NOT NULL,
+  stage_type_id varchar(50) NOT NULL,
+  CONSTRAINT policy_monitoring_pk PRIMARY KEY (policy_monitoring_id),
+  CONSTRAINT policy_monitoring_uk UNIQUE KEY (owner_id)
+);

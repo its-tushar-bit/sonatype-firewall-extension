@@ -228,12 +228,88 @@ public class PolicyEvaluatorTest
     when(restClient.getApplications()).thenReturn(Collections.singletonMap("the-app-id", "My App"));
     when(restClient.uploadScan(eq("the-app-id"), any(File.class))).thenReturn(newReceipt());
     when(restClient.evaluatePolicy(eq("the-app-id"), eq("the-scan-id"), eq(Stage.ID_BUILD))).thenReturn(eval);
-    Parameters params = new Parameters("-s", "http://localhost:8070/", "-i", "the-app-id", "src/test/data/artifact.jar");
-    evaluator.run(params);
+    Parameters params = new Parameters("-s", "http://localhost:8070/", "-i", "the-app-id",
+        "src/test/data/artifact.jar");
+
+    try {
+      evaluator.run(params);
+      fail("Expected error");
+    }
+    catch (ExitException ex) {
+      assertEquals(1, ex.getExitCode());
+    }
     assertLog("[INFO] Policy Action: Failure");
     assertLog("[INFO] Summary of policy violations: 1 critical, 2 severe, 3 moderate");
     assertLog("[ERROR] Sonatype CLM reports policy failing due to ");
     assertLog("[WARN] Sonatype CLM reports policy warning due to ");
+  }
+
+  @Test
+  public void testFailOnWarn() throws Exception {
+    PolicyAlert alert = new PolicyAlert(new PolicyFact("policy1", "Policy 1", 10), Arrays.asList(new Action(
+        Action.ID_WARN)));
+
+    PolicyEvaluationResult eval = new PolicyEvaluationResult();
+    eval.setAffectedComponentCount(6);
+    eval.setCriticalComponentCount(1);
+    eval.setAlerts(Arrays.asList(alert));
+    when(restClient.getApplications()).thenReturn(Collections.singletonMap("the-app-id", "My App"));
+    when(restClient.uploadScan(eq("the-app-id"), any(File.class))).thenReturn(newReceipt());
+    when(restClient.evaluatePolicy(eq("the-app-id"), eq("the-scan-id"), eq(Stage.ID_BUILD))).thenReturn(eval);
+    Parameters params = new Parameters("-s", "http://localhost:8070/", "-i", "the-app-id",
+        "src/test/data/artifact.jar");
+
+    evaluator.run(params);
+    assertLog("[INFO] Policy Action: Warning");
+    assertLog("[INFO] Summary of policy violations: 1 critical, 0 severe, 0 moderate");
+    assertLog("[WARN] Sonatype CLM reports policy warning due to ");
+
+    params = new Parameters("-s", "http://localhost:8070/", "-i", "the-app-id",
+        "src/test/data/artifact.jar", "-w", "true");
+
+    try {
+      evaluator.run(params);
+      fail("Expected error");
+    }
+    catch (ExitException ex) {
+      assertEquals(1, ex.getExitCode());
+    }
+    assertLog("[INFO] Policy Action: Warning");
+    assertLog("[INFO] Summary of policy violations: 1 critical, 0 severe, 0 moderate");
+    assertLog("[WARN] Sonatype CLM reports policy warning due to ");
+  }
+
+  @Test
+  public void testPassWhenIgnoreSystemExceptions() throws Exception {
+    when(restClient.getApplications()).thenThrow(new HttpResponseException(503, ""));
+
+    Parameters params = new Parameters("-s", "http://localhost:8070/", "-i", "the-app-id",
+        "src/test/data/artifact.jar");
+
+    try {
+      evaluator.run(params);
+      fail("Expected error");
+    }
+    catch (ExitException ex) {
+      assertEquals(1, ex.getExitCode());
+    }
+
+    assertLog("[ERROR] The CLM Server is down for maintenance, please try again later.");
+
+    params = new Parameters("-s", "http://localhost:8070/", "-i", "the-app-id",
+        "src/test/data/artifact.jar", "-e", "true");
+
+    // The evaluator will still throw an exit exception in the case where the -g flag is passed in as true
+    // The exception will have exit status code 0 such that it will "pass" in a CI
+    try {
+      evaluator.run(params);
+      fail("Expected error");
+    }
+    catch (ExitException ex) {
+      assertEquals(0, ex.getExitCode());
+    }
+
+    assertLog("[ERROR] The CLM Server is down for maintenance, please try again later.");
   }
 
   @Test

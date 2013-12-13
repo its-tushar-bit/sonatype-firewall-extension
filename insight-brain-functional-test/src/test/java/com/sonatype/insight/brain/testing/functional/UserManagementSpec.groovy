@@ -217,7 +217,7 @@ extends BaseSpec {
     deleteUser.click()
 
     then: 'we are presented with a confirmation dialog'
-    confirmDeleteModal.displayed
+    waitFor { confirmDeleteModal.displayed }
 
     when: 'we confirm deletion'
     confirmDelete.click()

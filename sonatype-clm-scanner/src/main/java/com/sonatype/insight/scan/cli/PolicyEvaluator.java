@@ -91,12 +91,12 @@ public class PolicyEvaluator
         log.error("The CLM server {} could not be contacted: {}", params.getServerUrl(), e.getMessage());
         log.error("Error details below:", e);
       }
-      throw new ExitException(2, e);
+      throw new ExitException(params.isIgnoreSystemErrors(), e);
     }
     if (!(appIds.contains(params.getApplicationId()))) {
       log.error("The application ID {} is invalid.", params.getApplicationId());
       log.error("The following application IDs are registered on the CLM server: {} ", appIds);
-      throw new ExitException(2);
+      throw new ExitException(1, String.format("The application ID %s is invalid.", params.getApplicationId()));
     }
   }
 
@@ -111,19 +111,19 @@ public class PolicyEvaluator
         return new ProprietaryConfig();
       }
       log.error("Could not retrieve configuration for proprietary components from CLM server", e);
-      throw new ExitException(2, e);
+      throw new ExitException(params.isIgnoreSystemErrors(), e);
     }
   }
 
   private void validateInputPaths(List<File> files) throws ExitException {
     if (files.isEmpty()) {
       log.error("The archives or directories to scan were not specified.");
-      throw new ExitException(3);
+      throw new ExitException(1, "The archives or directories to scan were not specified.");
     }
     for (File file : files) {
       if (!file.exists()) {
         log.error("The input path '{}' does not exist.", file.getAbsolutePath());
-        throw new ExitException(3);
+        throw new ExitException(1, String.format("The input path '%s' does not exist.", file.getAbsolutePath()));
       }
     }
   }
@@ -137,7 +137,7 @@ public class PolicyEvaluator
     }
     catch (IOException e) {
       log.error("The scan could not be performed", e);
-      throw new ExitException(4, e);
+      throw new ExitException(params.isIgnoreSystemErrors(), e);
     }
   }
 
@@ -175,20 +175,20 @@ public class PolicyEvaluator
     catch (HttpResponseException e) {
       log.error("The policy evaluation results could not be fetched from the CLM server: {} ({})", e.getMessage(),
           e.getStatusCode());
-      throw new ExitException(6, e);
+      throw new ExitException(params.isIgnoreSystemErrors(), e);
     }
     catch (ClientException e) {
       log.error("The policy evaluation results could not be fetched from the CLM server: {} ({})", e.getMessage(), e
           .getResult().status());
-      throw new ExitException(6, e);
+      throw new ExitException(params.isIgnoreSystemErrors(), e);
     }
     catch (IOException e) {
       log.error("The policy evaluation results could not be fetched from the CLM server", e);
-      throw new ExitException(6, e);
+      throw new ExitException(params.isIgnoreSystemErrors(), e);
     }
     catch (InterruptedException e) {
       log.error("The process was interrupted");
-      throw new ExitException(6, e);
+      throw new ExitException(params.isIgnoreSystemErrors(), e);
     }
 
     log.info("");
@@ -225,6 +225,13 @@ public class PolicyEvaluator
     log.info("The detailed report can be viewed online at {}", reportUrl);
     log.info("*********************************************************************************************");
 
+    if (outcome.equals(PolicyAction.FAIL)) {
+      throw new ExitException(1, "Sonatype CLM reports policy failing.");
+    }
+    else if (outcome.equals(PolicyAction.WARN) && params.isFailOnPolicyWaring()) {
+      throw new ExitException(1, "Sonatype CLM reports policy warning.");
+    }
+
     return eval;
   }
 
@@ -235,12 +242,11 @@ public class PolicyEvaluator
     }
     catch (HttpResponseException e) {
       log.error("The scan could not be submitted to the CLM server: {} ({})", e.getMessage(), e.getStatusCode());
-      throw new ExitException(5, e);
+      throw new ExitException(params.isIgnoreSystemErrors(), e);
     }
     catch (IOException e) {
       log.error("The scan could not be submitted to the CLM server", e);
-      throw new ExitException(5, e);
+      throw new ExitException(params.isIgnoreSystemErrors(), e);
     }
   }
-
 }

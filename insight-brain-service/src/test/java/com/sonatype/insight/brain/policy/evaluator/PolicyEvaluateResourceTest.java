@@ -62,8 +62,11 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.jvnet.mock_javamail.Mailbox;
 
+import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.junit.Assert.assertThat;
 
 public class PolicyEvaluateResourceTest
     extends AbstractResourceTest
@@ -270,14 +273,14 @@ public class PolicyEvaluateResourceTest
     response = AuthedRestAccess.post(getServiceURL(applicationPublicId, scanId), JsonHelpers.asJson(stage));
     assertResponseStatus(200, response);
     PolicyEvaluationResult policyEval = JsonHelpers.fromJson(response.getResponseBody(), PolicyEvaluationResult.class);
-    Assert.assertThat(policyEval, is(notNullValue()));
-    Assert.assertThat(policyEval.getAffectedComponentCount(), is(1));
-    Assert.assertThat(policyEval.getCriticalComponentCount(), is(0));
-    Assert.assertThat(policyEval.getSevereComponentCount(), is(1));
-    Assert.assertThat(policyEval.getModerateComponentCount(), is(0));
+    assertThat(policyEval, is(notNullValue()));
+    assertThat(policyEval.getAffectedComponentCount(), is(1));
+    assertThat(policyEval.getCriticalComponentCount(), is(0));
+    assertThat(policyEval.getSevereComponentCount(), is(1));
+    assertThat(policyEval.getModerateComponentCount(), is(0));
     List<PolicyAlert> policyAlerts = policyEval.getAlerts();
-    Assert.assertThat(policyAlerts, is(notNullValue()));
-    Assert.assertThat(policyAlerts.size(), is(1));
+    assertThat(policyAlerts, is(notNullValue()));
+    assertThat(policyAlerts.size(), is(1));
     AbstractPolicyEvaluationTest.assertFactCounts(1, 1, policyAlerts.get(0));
     Component expectedComponentExact = new Component(groupId, artifactId, version, MatchState.EXACT);
     expectedComponentExact.setHash(hash);
@@ -384,6 +387,63 @@ public class PolicyEvaluateResourceTest
     // notification message should not have been sent since the results are the same
     Assert.assertTrue(messagesA.isEmpty());
     Assert.assertTrue(messagesB.isEmpty());
+  }
+
+  @Test
+  public void testEvaluate_SendNotificationsFalse() throws Exception {
+
+    final String applicationPublicId = "testEvaluateSendNotificationsFalse_AppId";
+    final String scanId = "PolicyEvaluateResourceTest_ScanId";
+    final List<Message> messagesA = createNotificationTestData(applicationPublicId, scanId);
+
+    final Stage stage = new Stage(BuildStageType.ID);
+
+    // Evaluate policy without sending notifications
+    Boolean sendNotifications = false;
+    Response response = AuthedRestAccess
+        .post(getServiceURL(applicationPublicId, scanId, sendNotifications), JsonHelpers.asJson(stage));
+    assertResponseStatus(200, response);
+
+    // notification message should not have been sent since sendNotifications=false
+    assertThat(messagesA, is(empty()));
+  }
+
+  @Test
+  public void testEvaluate_SendNotificationsTrue() throws Exception {
+
+    final String applicationPublicId = "testEvaluateSendNotificationsTrue_AppId";
+    final String scanId = "PolicyEvaluateResourceTest_ScanId";
+    final List<Message> messagesA = createNotificationTestData(applicationPublicId, scanId);
+
+    final Stage stage = new Stage(BuildStageType.ID);
+
+    // Evaluate policy with sending notification
+    Boolean sendNotifications = true;
+    Response response = AuthedRestAccess
+        .post(getServiceURL(applicationPublicId, scanId, sendNotifications), JsonHelpers.asJson(stage));
+    assertResponseStatus(200, response);
+
+    // notification message should have been sent since sendNotifications=true
+    assertThat(messagesA, not(empty()));
+  }
+
+  @Test
+  public void testEvaluate_SendNotificationsDefault() throws Exception {
+
+    final String applicationPublicId = "testEvaluateSendNotificationsDefault_AppId";
+    final String scanId = "PolicyEvaluateResourceTest_ScanId";
+    final List<Message> messagesA = createNotificationTestData(applicationPublicId, scanId);
+
+    final Stage stage = new Stage(BuildStageType.ID);
+
+    // Evaluate policy with default for sending notifications (default is to send notifications)
+    Boolean sendNotifications = null;
+    Response response = AuthedRestAccess
+        .post(getServiceURL(applicationPublicId, scanId, sendNotifications), JsonHelpers.asJson(stage));
+    assertResponseStatus(200, response);
+
+    // notification message should have been sent since sendNotifications=null
+    assertThat(messagesA, not(empty()));
   }
 
   @Test
@@ -856,13 +916,56 @@ public class PolicyEvaluateResourceTest
   }
 
   private String getServiceURL(final String appId, final String scanId) {
-    return getRestBaseUrl() + PolicyEvaluateResource.SERVICE_PATH.replace("{applicationPublicId}", appId) + "?scanId="
+    return getServiceURL(appId, scanId, true);
+  }
+
+  private String getServiceURL(final String appId, final String scanId, Boolean sendNotifications) {
+    String url = getRestBaseUrl() + PolicyEvaluateResource.SERVICE_PATH.replace("{applicationPublicId}", appId) + "?scanId="
         + scanId;
+
+    if (sendNotifications!= null) {
+      url += "&sendNotifications=" + Boolean.toString(sendNotifications);
+    }
+
+    return url;
   }
 
   private String getThreatsURL(final String applicationPublicId, final String scanId) {
     return getRestBaseUrl()
         + ReportResource.SERVICE_PATH.replace("{applicationPublicId}", applicationPublicId).replace("{scanId}", scanId)
         + "/browseReport/policythreats.json";
+  }
+
+
+  private List<Message> createNotificationTestData(final String applicationPublicId, final String scanId)
+      throws Exception
+  {
+    Application application = createApplication(applicationPublicId);
+    String licenseFingerprint = "PolicyEvaluateResourceTest_LicenseFingerprint";
+    setLicenseFingerprint(licenseFingerprint);
+
+    final File saasReportFile = getReportResponseFile(licenseFingerprint, scanId);
+    saasReportFile.delete();
+
+    final Constraint constraint1 = new Constraint("C1", "PolicyEvaluateResourceTest constraint 1", LogicalOperator.AND);
+    final Condition condition1 = new Condition(SecurityVulnerabilityConditionType.ID, "present");
+    constraint1.addCondition(condition1);
+    final Policy policy1 = new Policy("P1", "PolicyEvaluateResourceTest policy1");
+    policy1.setThreatLevel(8);
+    policy1.addConstraint(constraint1);
+    final Action notifyAction = new Action(NotifyActionType.ID);
+    notifyAction.setTarget("manager@test.corp");
+    policy1.addAction(BuildStageType.ID, notifyAction);
+    addPolicy(applicationPublicId, policy1);
+
+    // Simulate that the report is available
+    final URL testReportFileUrl = getClass().getResource("/PolicyEvaluateResourceTest/report.zip");
+    FileUtils.copyFile(new File(testReportFileUrl.getFile()), saasReportFile);
+
+    final String emailAddress = "manager@test.corp";
+    final List<Message> messages = Mailbox.get(emailAddress);
+    messages.clear();
+
+    return messages;
   }
 }

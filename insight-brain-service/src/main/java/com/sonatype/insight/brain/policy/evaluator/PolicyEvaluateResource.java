@@ -21,6 +21,7 @@ import java.util.Map.Entry;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DefaultValue;
 import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -78,11 +79,12 @@ public class PolicyEvaluateResource
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   public PolicyEvaluationResult evaluate(@PathParam("applicationPublicId") final String applicationPublicId,
-      @QueryParam("scanId") final String scanId, final Stage stage, @HeaderParam("user-agent") final String userAgent)
+      @QueryParam("scanId") final String scanId, final Stage stage, @HeaderParam("user-agent") final String userAgent,
+      @DefaultValue("true") @QueryParam("sendNotifications") final boolean sendNotifications)
       throws IOException
   {
-    log.debug("Received request to evaluate policy for app id {}, scan id {}, stageTypeId {}", applicationPublicId,
-        scanId, stage.getStageTypeId());
+    log.debug("Received request to evaluate policy for app id {}, scan id {}, stageTypeId {}, sendNotifications {}", applicationPublicId,
+        scanId, stage.getStageTypeId(), sendNotifications);
 
     Application application = applicationDAO.getByPublicIdNotNull(applicationPublicId);
     String appId = application.getId();
@@ -100,7 +102,7 @@ public class PolicyEvaluateResource
         digest = PolicyAlertDigester.digestPolicyAlerts(alerts, oldAlerts);
       }
 
-      if (digest != null) {
+      if (digest != null && sendNotifications) {
         sendNotifications(applicationPublicId, appId, scanId, stage, digest);
       }
     }

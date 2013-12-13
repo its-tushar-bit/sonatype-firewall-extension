@@ -48,29 +48,38 @@ public class Parameters
   @Parameter(names = "-D", description = "Configuration properties, e.g. -D key=value", hidden = true)
   private List<String> properties = new ArrayList<String>();
 
-  @Parameter(names = { "-o", "--output-directory" }, description = "Path to output directory for scan results", hidden = true)
+  @Parameter(names = {"-o", "--output-directory"}, description = "Path to output directory for scan results",
+      hidden = true)
   private File outputDirectory = new File(System.getProperty("java.io.tmpdir", ""), "sonatype-clm").getAbsoluteFile();
 
-  @Parameter(names = { "-i", "--application-id" }, description = "ID of the application on the CLM server", required = true)
+  @Parameter(names = {"-i", "--application-id"}, description = "ID of the application on the CLM server",
+      required = true)
   private String applicationId;
 
-  @Parameter(names = { "-s", "--server-url" }, description = "URL to the CLM server to which the scan result should be uploaded", required = true)
+  @Parameter(names = {"-s", "--server-url"},
+      description = "URL to the CLM server to which the scan result should be uploaded", required = true)
   private String serverUrl;
 
-  @Parameter(names = { "-p", "--proxy" }, description = "Proxy to use, format <host[:port]>."
+  @Parameter(names = {"-p", "--proxy"}, description = "Proxy to use, format <host[:port]>."
       + " If unspecified, the operating system will be queried for the proxy settings")
   private String proxy;
 
-  @Parameter(names = { "-U", "--proxy-user" }, description = "Credentials to use for proxy, format <username:password>")
+  @Parameter(names = {"-U", "--proxy-user"}, description = "Credentials to use for proxy, format <username:password>")
   private String proxyUser;
 
-  @Parameter(names = { "-X", "--debug" }, description = "Enable debug logs", hidden = true)
+  @Parameter(names = {"-X", "--debug"}, description = "Enable debug logs", hidden = true)
   private boolean debug;
 
-  @Parameter(names = { "-q", "--quiet" }, description = "Restrict logs to errors", hidden = true)
+  @Parameter(names = {"-q", "--quiet"}, description = "Restrict logs to errors", hidden = true)
   private boolean quiet;
 
-  @Parameter(names = { "-h", "--help" }, description = "Show this help screen")
+  @Parameter(names = {"-w", "--fail-on-policy-warnings"}, description = "Fail on policy evaluation warnings")
+  private boolean warning;
+
+  @Parameter(names = {"-e", "--ignore-system-errors"}, description = "Ignore system errors (IO, network, server, etc)")
+  private boolean ignore;
+
+  @Parameter(names = {"-h", "--help"}, description = "Show this help screen")
   private boolean help;
 
   public Parameters() {
@@ -195,4 +204,11 @@ public class Parameters
     return help;
   }
 
+  public boolean isWarning() {
+    return warning;
+  }
+
+  public boolean isIgnore() {
+    return ignore;
+  }
 }

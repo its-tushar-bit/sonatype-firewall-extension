@@ -17,9 +17,14 @@ public class ExitException
     this.exitCode = exitCode;
   }
 
-  public ExitException(int exitCode, Throwable cause) {
-    super(cause);
+  public ExitException(int exitCode, String message) {
+    super(message);
     this.exitCode = exitCode;
+  }
+
+  public ExitException(boolean ignorable, Throwable cause) {
+    super(cause);
+    this.exitCode = ignorable ? 0 : 1;
   }
 
   public int getExitCode() {

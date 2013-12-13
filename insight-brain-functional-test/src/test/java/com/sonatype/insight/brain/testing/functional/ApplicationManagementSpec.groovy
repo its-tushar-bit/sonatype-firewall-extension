@@ -21,6 +21,8 @@ class ApplicationManagementSpec extends BaseSpec
       interact {
         moveToElement(applicationImage)
       }
+      // Selenium 2.36+ apparently considers an element invisible when off-screen so we nuke the style that moves the element off-screen
+      applicationImageFileDialog.jquery.attr('style', '')
       applicationImageFileDialog << tempFile.getAbsolutePath()
 
     then: "preview shows unsanitized in browser"

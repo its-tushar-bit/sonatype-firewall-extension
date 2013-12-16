@@ -12,6 +12,7 @@ import javax.persistence.EntityManager;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
 import com.sonatype.insight.brain.model.InvalidNameException;
@@ -20,6 +21,7 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
+import com.sonatype.insight.brain.model.policy.PolicyMonitoring;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -160,6 +162,13 @@ public class OrganizationDAO
     MembershipMappingDAO membershipMappingDAO = new MembershipMappingDAO();
     for (MembershipMapping membershipMapping : membershipMappingDAO.getByContextId(em, organization.getId())) {
       membershipMappingDAO.delete(em, membershipMapping);
+    }
+
+    // Cascade to policy monitoring
+    PolicyMonitoringDAO policyMonitoringDAO = new PolicyMonitoringDAO();
+    PolicyMonitoring policyMonitoring = policyMonitoringDAO.getByOwnerId(em, organization.getId());
+    if (policyMonitoring != null) {
+      policyMonitoringDAO.delete(em, policyMonitoring);
     }
 
     super.delete(em, organization);

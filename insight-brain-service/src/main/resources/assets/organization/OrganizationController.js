@@ -77,8 +77,8 @@
       ['AngularCommon', 'ApplicationSecurityModule', 'CLMAppLocation', 'CommonServices', 'EditorTools', 'Labels', 'LicenseThreatGroup', 'Policy', 'ResourceModule', 'ui.router']);
 
   organizationModule.controller('OrganizationController', [
-    '$scope', '$state', '$http', '$location', 'hudson', 'CLMLocations', 'OrganizationStore',
-    function($scope, $state, $http, $location, hudson, CLMLocations, OrganizationStore) {
+    '$scope', '$state', '$http', '$location', 'CLMLocations', 'OrganizationStore',
+    function($scope, $state, $http, $location, CLMLocations, OrganizationStore) {
       $scope.isCurrentTab = function(tabName) {
         return $state.current.name.lastIndexOf(tabName) === $state.current.name.length - tabName.length;
       };
@@ -110,9 +110,9 @@
   ]);
 
   organizationModule.controller('OrganizationEditorController', [
-    '$scope', '$state', '$location', '$http', '$rootScope', '$modal', 'regexFactory', 'CLMLocations', 'hudson', 'editorTools',
+    '$scope', '$state', '$location', '$http', '$rootScope', '$modal', 'regexFactory', 'CLMLocations', 'editorTools',
     'CLMAppLocations', 'Messages', 'CLMAppLocations', 'selectedOrganization',
-    function($scope, $state, $location, $http, $rootScope, $modal, regexFactory, CLMLocations, hudson, editorTools,
+    function($scope, $state, $location, $http, $rootScope, $modal, regexFactory, CLMLocations, editorTools,
              clmAppLocations, messages, CLMAppLocations, selectedOrganization)
     {
       var me = this;

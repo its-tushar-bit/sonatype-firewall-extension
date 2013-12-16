@@ -1,13 +1,7 @@
 describe('CIP Policy Waiver tests', function() {
   var _scope, _addScope, _viewScope;
 
-  beforeEach(module('PolicyViolations', function($provide) {
-    $provide.factory('hudson', [
-      '$http', function($http) {
-        return $http;
-      }
-    ]);
-  }));
+  beforeEach(module('PolicyViolations'));
   // setup our http backend to return what we want
   beforeEach(inject(function($rootScope, $controller, $httpBackend) {
     _scope = $rootScope.$new();

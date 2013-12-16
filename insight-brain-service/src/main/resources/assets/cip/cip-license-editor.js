@@ -49,11 +49,11 @@
   }
 
   var licenseEditor = angular.module('LicenseEditor',
-      ['CommonServices', 'AngularCommon', 'Hudson', 'ApplicationIdProvider', 'UnauthenticatedResponseHttpInterceptor']);
+      ['CommonServices', 'AngularCommon', 'ApplicationIdProvider', 'UnauthenticatedResponseHttpInterceptor']);
 
   licenseEditor.controller('LicenseEditorController', [
-    '$scope', '$q', '$http', 'hudson', 'Messages', 'SelectedComponent', 'DataView', 'ApplicationId',
-    function($scope, $q, $http, hudson, Messages, SelectedComponent, DataView, ApplicationId) {
+    '$scope', '$q', '$http', 'Messages', 'SelectedComponent', 'DataView', 'ApplicationId',
+    function($scope, $q, $http, Messages, SelectedComponent, DataView, ApplicationId) {
 
       function getHierarchyById(id) {
         for (var i = 0; i < $scope.hierarchy.length; i++) {
@@ -239,7 +239,7 @@
         licenseOverride.ownerId = owner.ownerId;
 
         if (licenseOverride.status === 'DELETE') {
-          hudson['delete'](CLM.path + 'rest/licenseOverride/application/' + licenseOverride.ownerId + '/' +
+          $http['delete'](CLM.path + 'rest/licenseOverride/application/' + licenseOverride.ownerId + '/' +
                   owner.licenseOverride.id).success(function() {
             $scope.saving = false;
             owner.licenseOverride = null;
@@ -252,7 +252,7 @@
               });
         }
         else {
-          hudson.post(CLM.path + 'rest/licenseOverride/' + owner.ownerType + '/' + owner.ownerId,
+          $http.post(CLM.path + 'rest/licenseOverride/' + owner.ownerType + '/' + owner.ownerId,
                   licenseOverride).success(function(data) {
             $scope.saving = false;
             owner.licenseOverride = data;

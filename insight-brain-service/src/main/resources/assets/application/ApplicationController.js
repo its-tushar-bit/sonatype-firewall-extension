@@ -101,7 +101,7 @@
 
   applicationModule.controller('applicationEditorController',
       function($scope, $state, $http, $q, $modal, applicationStore, OrganizationStore, CLMLocations, CLMAppLocations, Messages,
-               hudson, editorTools, ActionStore, policyEvaluator, selectedApplication)
+               editorTools, ActionStore, policyEvaluator, selectedApplication)
       {
         var me = this;
         angular.extend(me,
@@ -453,12 +453,12 @@
     }
   ]);
 
-  applicationModule.service('policyEvaluator', function($q, hudson, CLMLocations) {
+  applicationModule.service('policyEvaluator', function($q, $http, CLMLocations) {
     return {
       evaluate: function(application, policyEvaluation) {
         var deferred = $q.defer();
         var stage = policyEvaluation.stage;
-        hudson.post(CLMLocations.evaluatePolicyUrl(application.publicId, policyEvaluation.scanId),
+        $http.post(CLMLocations.evaluatePolicyUrl(application.publicId, policyEvaluation.scanId),
                 stage).success(function(data) {
           policyEvaluation.time = new Date();
           for (var stageTypeId in application.policyEvaluationsResults) {

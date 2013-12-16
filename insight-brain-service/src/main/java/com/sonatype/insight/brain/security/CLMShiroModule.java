@@ -47,7 +47,6 @@ public class CLMShiroModule
     manager.createChain("/*assets/**", "anon"); // assets for the web interface
     manager.createChain("/cip/**", "anon"); // assets for report CIP
     manager.createChain("/favicon.ico", "anon"); // favicon for web interface
-    manager.createChain("/crumbIssuer/**", "anon"); // Hudson integration
     manager.createChain("/rest/ide/asset/**", "anon"); // assets for the IDE CIP and details view
     manager.createChain("/rest/ide/brain/**", "anon"); // only redirects
     manager.createChain("/rest/report/*/*/embedReport/**", "anon"); // backward-compat with non-authenticating clients

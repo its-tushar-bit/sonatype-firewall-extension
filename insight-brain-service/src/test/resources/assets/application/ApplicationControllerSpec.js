@@ -14,11 +14,6 @@ describe('ApplicationController', function() {
         return null;
       }
     });
-    $provide.factory('hudson', [
-      '$http', function($http) {
-        return $http;
-      }
-    ]);
   }));
 
   beforeEach(inject(function($httpBackend, $rootScope, $controller, $state, CLMAppLocations) {
@@ -82,13 +77,7 @@ describe('ApplicationController', function() {
 describe('ApplicationEditorController', function() {
   var parentScope, scope, httpBackend, rootScope, state, mockApplication, originalMockApplication, mockOrganization, getOriginalSpy;
 
-  beforeEach(module('ApplicationModule', 'OrganizationModule', function($provide) {
-    $provide.factory('hudson', [
-      '$http', function($http) {
-        return $http;
-      }
-    ]);
-  }));
+  beforeEach(module('ApplicationModule', 'OrganizationModule'));
 
   describe('Missing Application', function () {
     beforeEach(inject(function ($controller, $rootScope) {

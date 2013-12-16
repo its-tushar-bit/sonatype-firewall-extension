@@ -487,7 +487,6 @@
                 <include>resources/assets/assets/lib/jquery/jquery-*.min.js</include>
                 <include>resources/assets/assets/lib/bootstrap/bootstrap-*.min.js</include>
                 <include>resources/assets/assets/lib/angular/angular-${angularjs.version}.js</include>
-                <include>resources/assets/assets/js/Hudson.js</include>
                 <include>resources/assets/cip/*.js</include>
                 <include>resources/assets/assets/util/AngularCommon.js</include>
                 <include>resources/assets/assets/util/CLMLocation.js</include>

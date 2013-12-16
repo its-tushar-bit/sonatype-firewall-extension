@@ -69,12 +69,6 @@ describe('LabelController.js', function() {
       }
     });
 
-    $provide.factory('hudson', [
-      '$http', function($http) {
-        return $http;
-      }
-    ]);
-
     $provide.value('ApplicationId', {
       encoded: function() {
         return 'bom1-12345678';

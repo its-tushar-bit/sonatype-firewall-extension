@@ -7,7 +7,7 @@
 (function() {
   'use strict';
   var module = angular.module('PolicyEditor', [
-    'CLMAppLocation', 'CLMLocation', 'Hudson', 'ResourceModule', 'ui.router', 'ui.bootstrap', 'AngularCommon',
+    'CLMAppLocation', 'CLMLocation', 'ResourceModule', 'ui.router', 'ui.bootstrap', 'AngularCommon',
     'CommonServices'
   ]);
 

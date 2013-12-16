@@ -48,7 +48,7 @@
 
   (function() {
     var policyViolationApp = angular.module('PolicyViolations',
-            ['CommonServices', 'Hudson', 'UnauthenticatedResponseHttpInterceptor']).service('CurrentPolicyData', function() {
+            ['CommonServices', 'UnauthenticatedResponseHttpInterceptor']).service('CurrentPolicyData', function() {
       var currentPolicy = null;
       return {
         get: function() {
@@ -60,8 +60,8 @@
       };
     });
     policyViolationApp.controller('PolicyViolationsController', [
-      'hudson', '$http', '$scope', 'PolicyViolationData', 'Messages', 'CurrentPolicyData',
-      function(hudson, $http, $scope, policyViolationData, messages, currentPolicyData) {
+      '$http', '$scope', 'PolicyViolationData', 'Messages', 'CurrentPolicyData',
+      function($http, $scope, policyViolationData, messages, currentPolicyData) {
         function errorFn(data, status, headersFn, config) {
           $scope.alerts.push({
             type: 'error',
@@ -131,8 +131,8 @@
       }
     ]);
     policyViolationApp.controller('AddWaiverController', [
-      'hudson', '$http', '$scope', 'PolicyViolationData', 'Messages', 'CurrentPolicyData',
-      function(hudson, $http, $scope, policyViolationData, messages, currentPolicyData) {
+      '$http', '$scope', 'PolicyViolationData', 'Messages', 'CurrentPolicyData',
+      function($http, $scope, policyViolationData, messages, currentPolicyData) {
         //after dialog is shown, make sure to apply the angular stuff
         $('#componentAddWaiverModal').on('shown', function() {
           AngularUtils.safeApply($scope, $scope.setupModal);
@@ -191,7 +191,7 @@
               },
               parts = $scope.waiver.selectedTarget.split('$$');
           $scope.waiverSaving = true;
-          hudson.post(CLM.path + 'rest/policyWaiver/' + parts[1] + '/' + parts[0],
+          $http.post(CLM.path + 'rest/policyWaiver/' + parts[1] + '/' + parts[0],
                   data).success(function(responseData) {
             $scope.waiverSaving = false;
             $('#componentAddWaiverModal').modal('hide');
@@ -203,8 +203,8 @@
       }
     ]);
     policyViolationApp.controller('ViewWaiverController', [
-      '$scope', 'hudson', '$http', '$q', 'PolicyViolationData', 'Messages',
-      function($scope, hudson, $http, $q, policyViolationData, messages) {
+      '$scope', '$http', '$q', 'PolicyViolationData', 'Messages',
+      function($scope, $http, $q, policyViolationData, messages) {
         function handleHttpError(data, status, headerFn, config) {
           $scope.appError = messages.getHttpErrorMessage(arguments);
         }
@@ -246,7 +246,7 @@
           var waiver = $scope.confirmDelete;
           $scope.confirmDelete = null;
           $scope.appError = null;
-          hudson['delete'](CLM.path + 'rest/policyWaiver/' + waiver.type + '/' + waiver.ownerId + '/' +
+          $http['delete'](CLM.path + 'rest/policyWaiver/' + waiver.type + '/' + waiver.ownerId + '/' +
                   waiver.id).success(function() {
             $scope.waivers.splice($scope.waivers.indexOf(waiver), 1);
           }).error(handleHttpError);

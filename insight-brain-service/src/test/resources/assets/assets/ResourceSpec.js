@@ -5,13 +5,7 @@ describe('Resource', function() {
     return 'http://localhost:8234/related/' + result.id;
   };
 
-  beforeEach(module('ResourceModule', 'Hudson', function($provide) {
-    $provide.factory('hudson', [
-      '$http', function($http) {
-        return $http;
-      }
-    ]);
-  }));
+  beforeEach(module('ResourceModule'));
 
   afterEach(inject(function($httpBackend) {
     $httpBackend.verifyNoOutstandingExpectation();

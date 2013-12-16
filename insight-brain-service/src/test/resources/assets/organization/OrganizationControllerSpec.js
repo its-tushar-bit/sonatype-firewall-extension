@@ -11,11 +11,6 @@ describe('Tests for the OrganizationController', function() {
         return;
       }
     });
-    $provide.factory('hudson', [
-      '$http', function($http) {
-        return $http;
-      }
-    ]);
   }));
 
   describe('OrganizationController', function() {

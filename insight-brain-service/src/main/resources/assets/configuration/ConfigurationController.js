@@ -19,7 +19,7 @@
   }
 
   var module = angular.module('Configuration',
-      ['ListEditor', 'ui.router', 'ManagementModule', 'ProductLicense', 'Hudson'], [
+      ['ListEditor', 'ui.router', 'ManagementModule', 'ProductLicense'], [
         '$stateProvider', function($stateProvider) {
           $stateProvider.state('management.configuration', {
             parent: 'management',
@@ -86,7 +86,7 @@
   ]);
 
   module.controller('ProprietaryConfigurationController', [
-    '$scope', '$http', 'hudson', 'CLMLocations', function($scope, $http, hudson, clmLocations) {
+    '$scope', '$http', 'CLMLocations', function($scope, $http, clmLocations) {
       var PACKAGE_REGEXP = new RegExp('^[^ /.][^ /]*[^ /.]$');
 
       $scope.doLoad = function() {
@@ -104,7 +104,7 @@
 
         $scope.saving = true;
 
-        hudson.put(clmLocations.getProprietaryConfig() + '/update', proprietary).success(function() {
+        $http.put(clmLocations.getProprietaryConfig() + '/update', proprietary).success(function() {
           $scope.saving = false;
           $scope.proprietary = proprietary;
           $scope.reset();

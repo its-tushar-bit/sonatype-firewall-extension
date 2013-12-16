@@ -18,9 +18,6 @@ describe('UserModuleSpec.js', function() {
   }
 
   beforeEach(module('UserModule', function($provide) {
-    $provide.factory('hudson', ['$http', function($http) {
-      return $http;
-    }]);
     $provide.value('$modalInstance', {
       close: function() {}
     });

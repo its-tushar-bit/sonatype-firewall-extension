@@ -15,7 +15,7 @@
     };
   }
 
-  module.service('CLMResource', function($q, $http, hudson, $parse) {
+  module.service('CLMResource', function($q, $http, $parse) {
     function Store(config) {
       var store = [],
           error = false,
@@ -233,7 +233,7 @@
 
         if (me.$new) {
           // Newly created object
-          hudson.post(config.url, this, { params: config.params }).success(function(data) {
+          $http.post(config.url, this, { params: config.params }).success(function(data) {
             for (var relationalProperty in config.relationalConfigs) {
               if (config.relationalConfigs.hasOwnProperty(relationalProperty)) {
                 var relationalResource = $parse(relationalProperty)(me);
@@ -259,7 +259,7 @@
         }
         else {
           // Update to existing object
-          hudson.put(config.url, this, { params: config.params }).success(function(data) {
+          $http.put(config.url, this, { params: config.params }).success(function(data) {
             var properties = [],
                 promises = [],
                 resourcesToUpdate = [me];
@@ -308,7 +308,7 @@
             index = -1;
 
         if (id !== null && angular.isDefined(id)) {
-          hudson['delete'](url, this, { params: config.params }).success(function() {
+          $http['delete'](url, this, { params: config.params }).success(function() {
             // remove from store
             angular.forEach(store, function(candidate, candidateIndex) {
               if (candidate[config.id] === id) {
@@ -386,7 +386,7 @@
           var relationalIDValue = $parse(me.config.id)(me[i]);
           relationalIDs.push(relationalIDValue);
         }
-        hudson.put(me.config.url, relationalIDs, { params: me.config.params }).success(function(data) {
+        $http.put(me.config.url, relationalIDs, { params: me.config.params }).success(function(data) {
           me.$updateOriginal(data);
           deferred.resolve(me);
         }).error(getErrorFn(deferred));

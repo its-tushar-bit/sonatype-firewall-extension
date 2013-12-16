@@ -14,11 +14,6 @@ describe('PolicyController tests', function() {
         return null;
       }
     });
-    $provide.factory('hudson', [
-      '$http', function($http) {
-        return $http;
-      }
-    ]);
   }));
 
   afterEach(inject(function($httpBackend) {

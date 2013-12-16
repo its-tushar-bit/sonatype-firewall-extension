@@ -91,7 +91,7 @@
   }]);
 
   module.service('editorTools',
-      function($parse, $q, $timeout, regexFactory, hudson, CLMAppLocations) {
+      function($parse, $q, $timeout, regexFactory, $http, CLMAppLocations, Messages) {
         function EditorController($scope, idSelector, hiddenId, form) {
           var defer, me = this;
           $scope.isPostingIcon = false;
@@ -180,35 +180,34 @@
               if (icon.files.length > 0) {
                 formData.append('file', icon.files[0]);
               }
-
-              hudson.ajaxPost({
+              
+              //using jquery for this call to add parameters not supported in angular
+              //there is no means to not process the form data it seems, so using jquery
+              //to disabled the data processing (otherwise angular will try to upload json
+              //representation of the file)
+              jQuery.ajax({
                 url: CLMAppLocations.addIcon(),
-                data: formData,
-                success: function(data, status, jqXHR) {
-                  $scope.$apply(function() {
-                    $scope.submitActive = false;
-                    $scope.isUploadingIcon = false;
-                    $scope.iconChanged = false;
-                    $scope.$emit('resetIconCache');
-                    defer.resolve(data);
-                  });
-                },
-                error: function(jqXHR) {
-                  var errorText;
-                  var contentType = jqXHR.getResponseHeader('Content-Type');
-                  if (contentType.indexOf('text/html') === 0) {
-                    errorText = 'Server Error';
-                  }
-                  else {
-                    errorText = jqXHR.responseText;
-                  }
-                  $scope.$apply(function() {
-                    $scope.isUploadingIcon = false;
-                    $scope.submitActive = false;
-                    $scope.pushAlert({ type: 'error', msg: errorText });
-                    defer.reject(errorText);
-                  });
-                }
+                cache: false,
+                contentType: false,
+                processData: false,
+                type: 'POST',
+                data: formData
+              }).done(function(data) {
+                $scope.$apply(function() {
+                  $scope.submitActive = false;
+                  $scope.isUploadingIcon = false;
+                  $scope.iconChanged = false;
+                  $scope.$emit('resetIconCache');
+                  defer.resolve(data);
+                });
+              }).fail(function(error) {
+                $scope.$apply(function() {
+                  var msg = Messages.getHttpErrorMessage(error);
+                  $scope.isUploadingIcon = false;
+                  $scope.submitActive = false;
+                  $scope.pushAlert({ type: 'error', msg: msg });
+                  defer.reject(msg);
+                });
               });
             }
             else {

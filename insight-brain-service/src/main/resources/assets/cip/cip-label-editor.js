@@ -45,7 +45,7 @@
 
   (function() {
     //create the app, and a service we can use to transfer data between our controllers
-    var labelsApp = angular.module('ComponentLabelEditor', ['CommonServices', 'Hudson', 'UnauthenticatedResponseHttpInterceptor']).service('CurrentLabelData',
+    var labelsApp = angular.module('ComponentLabelEditor', ['CommonServices', 'UnauthenticatedResponseHttpInterceptor']).service('CurrentLabelData',
         function() {
           var currentLabel = null,
               currentError = null;
@@ -66,8 +66,8 @@
         });
     //the add controller, controlling the add modal
     labelsApp.controller('LabelAddController', [
-      '$scope', 'CurrentLabelData', 'ComponentLabelEditorGAV', 'hudson', 'Messages', '$http',
-      function($scope, currentLabelData, componentLabelEditorGAV, hudson, messages, $http) {
+      '$scope', 'CurrentLabelData', 'ComponentLabelEditorGAV', 'Messages', '$http',
+      function($scope, currentLabelData, componentLabelEditorGAV, messages, $http) {
         $scope.groupId = componentLabelEditorGAV.groupId;
         $scope.artifactId = componentLabelEditorGAV.artifactId;
         $scope.version = componentLabelEditorGAV.version;
@@ -80,7 +80,7 @@
           $scope.labelSaving = true;
           $scope.labelAddError = null;
           var parts = $scope.label.selectedOwner.split('$$');
-          hudson.post(CLM.path + 'rest/label/component/' + parts[1] + '/' + parts[0] + '/' +
+          $http.post(CLM.path + 'rest/label/component/' + parts[1] + '/' + parts[0] + '/' +
                   componentLabelEditorGAV.hash, currentLabelData.get()).success(function(responseData) {
             $scope.labelSaving = false;
             $('#labelAssignScopeModal').modal('hide');
@@ -127,8 +127,8 @@
     ]);
     //the remove controller, controlling the remove modal
     labelsApp.controller('LabelRemoveController', [
-      '$scope', '$http', 'hudson', 'CurrentLabelData', 'ComponentLabelEditorGAV', 'Messages',
-      function($scope, $http, hudson, currentLabelData, componentLabelEditorGAV, messages) {
+      '$scope', '$http', 'CurrentLabelData', 'ComponentLabelEditorGAV', 'Messages',
+      function($scope, $http, currentLabelData, componentLabelEditorGAV, messages) {
         //decline to remove, just dump the dialog
         $scope.decline = function() {
           $('#labelRemoveModal').modal('hide');
@@ -138,7 +138,7 @@
           $scope.labelDeleting = true;
           $scope.labelRemoveError = null;
           var label = currentLabelData.get();
-          hudson['delete'](CLM.path + 'rest/label/component/' + label.ownerType + '/' + label.ownerId + '/' +
+          $http['delete'](CLM.path + 'rest/label/component/' + label.ownerType + '/' + label.ownerId + '/' +
                   componentLabelEditorGAV.hash + '/' + label.id).success(function(responseData) {
             $scope.labelDeleting = false;
             $('#labelRemoveModal').modal('hide');
@@ -158,8 +158,8 @@
     ]);
     //main label controller handling the main view, and launching the other modals when necessary
     labelsApp.controller('LabelsController', [
-      '$http', '$scope', 'CurrentLabelData', 'ComponentLabelEditorGAV', 'hudson', 'Messages',
-      function($http, $scope, currentLabelData, componentLabelEditorGAV, hudson, messages) {
+      '$http', '$scope', 'CurrentLabelData', 'ComponentLabelEditorGAV', 'Messages',
+      function($http, $scope, currentLabelData, componentLabelEditorGAV, messages) {
         function errorFn(data, status, headersFn, config) {
           $scope.alerts.length = 0;
           $scope.alerts.push({
@@ -204,7 +204,7 @@
         //for labels owned by the app, we simply do the add here, as there is no need to view the dialog to select the owner, app is the only option
         $scope.addLabel = function(label) {
           if (label.ownerType === 'application') {
-            hudson.post(CLM.path + 'rest/label/component/application/' + componentLabelEditorGAV.applicationId + '/' +
+            $http.post(CLM.path + 'rest/label/component/application/' + componentLabelEditorGAV.applicationId + '/' +
                     componentLabelEditorGAV.hash, label).success(function(responseData) {
               $scope.loadLabelData();
             }).error(errorFn);

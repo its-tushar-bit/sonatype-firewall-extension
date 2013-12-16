@@ -14,13 +14,7 @@ var InsightDatatable = {
 describe('CIP Claim Component tests', function() {
   var scope, $http;
 
-  beforeEach(module('ClaimComponent', function($provide) {
-    $provide.factory('hudson', [
-      '$http', function($http) {
-        return $http;
-      }
-    ]);
-  }));
+  beforeEach(module('ClaimComponent'));
   // setup our http backend to return what we want
   beforeEach(inject(function($rootScope, $controller, $httpBackend, $location) {
     $http = $httpBackend;

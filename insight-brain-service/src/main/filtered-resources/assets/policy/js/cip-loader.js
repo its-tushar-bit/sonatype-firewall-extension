@@ -200,7 +200,7 @@
        scripts = ['assets/lib/datepicker/bootstrap-datepicker.js',
         'assets/lib/ui-bootstrap-tpls-0.6.0.min.js', 'assets/lib/Base64.js', 'assets/util/HttpInterceptors.js',
         'assets/util/CLMLocation.js', 'cip/cip-label-editor.js',
-        'cip/cip-policy-violations.js', 'cip/cip-claim-component.js', 'cip/cip-license-editor.js', 'assets/js/Hudson.js',
+        'cip/cip-policy-violations.js', 'cip/cip-claim-component.js', 'cip/cip-license-editor.js',
         'assets/util/AngularCommon.js'],
       styles = ['assets/lib/datepicker/datepicker.css', 'cip/cip.css'],
       clmBuildTimestamp = '${build.timestamp}';

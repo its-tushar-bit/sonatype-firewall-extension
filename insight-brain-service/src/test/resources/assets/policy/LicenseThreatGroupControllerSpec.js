@@ -14,11 +14,6 @@ describe('LicenseThreatGroup', function() {
         return null;
       }
     });
-    $provide.factory('hudson', [
-      '$http', function($http) {
-        return $http;
-      }
-    ]);
   }));
 
   beforeEach(inject(function($httpBackend, $rootScope, $controller, CLMLocations, CLMAppLocations, licenseGroupStore) {

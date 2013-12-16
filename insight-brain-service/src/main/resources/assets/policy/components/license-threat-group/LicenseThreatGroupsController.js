@@ -219,9 +219,9 @@
 
   licenseGroupModule.controller('LicenseThreatGroupEditorController',
       [
-        '$scope', '$filter', '$http', '$q', 'hudson', 'CLMAppLocations', 'licenseGroupStore', 'licenseStore',
+        '$scope', '$filter', '$http', '$q', 'CLMAppLocations', 'licenseGroupStore', 'licenseStore',
         'Messages',
-        function($scope, $filter, $http, $q, hudson, CLMAppLocations, licenseGroupStore, licenseStore, Messages) {
+        function($scope, $filter, $http, $q, CLMAppLocations, licenseGroupStore, licenseStore, Messages) {
           $scope.alerts = [];
           $scope.licenseSearch = '';
 

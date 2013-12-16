@@ -73,11 +73,6 @@
       $provide.value('DataView', {
         updateItem: $.noop
       });
-      $provide.factory('hudson', [
-        '$http', function($http) {
-          return $http;
-        }
-      ]);
     }));
 
     var scope;

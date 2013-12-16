@@ -9,13 +9,7 @@ describe('ComponentLabelEditor tests', function() {
     };
   });
 
-  beforeEach(module('ComponentLabelEditor', 'TestGavProvider', function($provide) {
-    $provide.factory('hudson', [
-      '$http', function($http) {
-        return $http;
-      }
-    ]);
-  }));
+  beforeEach(module('ComponentLabelEditor', 'TestGavProvider'));
 
   //setup our http backend to return what we want
   beforeEach(inject(function($rootScope, $controller, $httpBackend) {

@@ -63,11 +63,6 @@ describe('PolicyEditor.js', function() {
         return null;
       }
     });
-    $provide.factory('hudson', [
-      '$http', function($http) {
-        return $http;
-      }
-    ]);
   }));
 
   beforeEach(inject(function($rootScope) {

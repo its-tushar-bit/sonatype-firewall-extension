@@ -2,11 +2,6 @@ describe('Tests for the LdapConfigurationController', function() {
   var scope, dialogScope;
 
   beforeEach(module('LdapConfiguration', function($provide, $stateProvider) {
-    $provide.factory('hudson', [
-      '$http', function($http) {
-        return $http;
-      }
-    ]);
     $provide.value('$modal', {
       open: function(config) {
         dialogScope = scope.$new();

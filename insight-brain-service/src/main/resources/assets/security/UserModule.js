@@ -27,7 +27,7 @@
 (function() {
   "use strict";
 
-  var module = angular.module('UserModule', ['ui.router', 'SecurityModule', 'CLMLocation', 'ResourceModule', 'Hudson'],
+  var module = angular.module('UserModule', ['ui.router', 'SecurityModule', 'CLMLocation', 'ResourceModule'],
           ['$stateProvider', function($stateProvider) {
             $stateProvider.state('management.security.users', {
               parent: 'management.security',
@@ -57,8 +57,8 @@
     return store;
   }]);
 
-  module.controller('UserListController', ['$http', 'hudson', 'CLMLocations', 'UserStore', 'Messages', 'CurrentUser', '$scope',
-      '$modal', '$q', 'Dialog', function($http, hudson, clmLocations, UserStore, messages, CurrentUser, $scope, $modal, $q, Dialog) {
+  module.controller('UserListController', ['$http', 'CLMLocations', 'UserStore', 'Messages', 'CurrentUser', '$scope',
+      '$modal', '$q', 'Dialog', function($http, clmLocations, UserStore, messages, CurrentUser, $scope, $modal, $q, Dialog) {
         var username = null;
 
         $scope.context = {

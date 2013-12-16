@@ -64,10 +64,10 @@
     }
   });
 
-  var claimApp = angular.module('ClaimComponent', ['Hudson', 'UnauthenticatedResponseHttpInterceptor']);
+  var claimApp = angular.module('ClaimComponent', ['UnauthenticatedResponseHttpInterceptor']);
 
   claimApp.controller('ClaimComponentController', [
-    'hudson', '$scope', 'CurrentData', function(hudson, $scope, CurrentData) {
+    '$http', '$scope', 'CurrentData', function($http, $scope, CurrentData) {
       $scope.resetClaimData = function() {
         $scope.claimData = {};
         $scope.claimData.createTimeText = CurrentData.createTime ? dateToString(new Date(CurrentData.createTime)) : null;
@@ -85,7 +85,7 @@
           if ($scope.claimData.createTimeText) {
             $scope.claimData.createTime = stringToDate($scope.claimData.createTimeText).getTime();
           }
-          hudson.post(CLM.path + 'rest/component/identified', $scope.claimData).success(function(data) {
+          $http.post(CLM.path + 'rest/component/identified', $scope.claimData).success(function(data) {
             var dataView = InsightDatatable.getActiveTable().dataView, currentItem;
 
             $.each(dataView.getItems(), function(index, item) {

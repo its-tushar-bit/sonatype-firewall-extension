@@ -9,12 +9,12 @@
   'use strict';
 
   var policyModule = angular.module('Policy',
-      ['Hudson', 'PolicyEditor', 'CLMAppLocation', 'AngularCommon', 'CommonServices']);
+      ['PolicyEditor', 'CLMAppLocation', 'AngularCommon', 'CommonServices']);
 
   policyModule.controller('PolicyController', [
-    '$scope', '$location', '$http', 'hudson', '$rootScope', '$q', 'PolicyStore', 'ActionStore',
+    '$scope', '$location', '$http', '$rootScope', '$q', 'PolicyStore', 'ActionStore',
     'CLMAppLocations', 'Dialog', 'ownerChange',
-    function($scope, $location, $http, hudson, $rootScope, $q, policyStore, actionStore, clmAppLocations, Dialog, ownerChange) {
+    function($scope, $location, $http, $rootScope, $q, policyStore, actionStore, clmAppLocations, Dialog, ownerChange) {
 
       $scope.alerts = [];
       $scope.location = $location;

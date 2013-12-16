@@ -24,11 +24,6 @@ describe('ProductLicenseController', function() {
     };
 
     module('ProductLicense', function($provide) {
-      $provide.factory('hudson', [
-        '$http', function($http) {
-          return $http;
-        }
-      ]);
       $provide.value('$window', mockWindow);
     });
   });

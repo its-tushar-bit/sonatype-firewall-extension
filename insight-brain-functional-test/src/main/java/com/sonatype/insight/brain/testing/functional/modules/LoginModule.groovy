@@ -28,7 +28,7 @@ class LoginModule extends Module {
   }
 
   def login(username, password, expectedFail) {
-    waitFor { modal.displayed }
+    waitFor { usernameInput.displayed }
     usernameInput.value(username)
     passwordInput.value(password)
     waitFor { loginAction.@disabled != 'disabled' }

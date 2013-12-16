@@ -180,7 +180,7 @@ extends BaseSpec {
     resetUser.click()
 
     then: 'we are presented with a confirmation dialog'
-    confirmResetModal.displayed
+    waitFor { confirmResetModal.displayed }
 
     when: 'we confirm reset'
     confirmReset.click()

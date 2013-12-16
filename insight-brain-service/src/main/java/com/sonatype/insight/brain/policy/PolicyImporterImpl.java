@@ -169,7 +169,7 @@ public class PolicyImporterImpl
    * Delete all PolicyWaivers from the specified owner.
    */
   private void deletePolicyWaivers(EntityManager em, String ownerId, final String orgId) {
-    for (PolicyWaiver policyWaiver : policyWaiverDAO.getByOwnerId(ownerId)) {
+    for (PolicyWaiver policyWaiver : policyWaiverDAO.getByOwnerId(em, ownerId)) {
       log.debug("Deleting policyWaiver: {} during import for ownerId: {}", policyWaiver.getId(),
           orgId != null ? orgId : ownerId);
       policyWaiverDAO.delete(em, policyWaiver);

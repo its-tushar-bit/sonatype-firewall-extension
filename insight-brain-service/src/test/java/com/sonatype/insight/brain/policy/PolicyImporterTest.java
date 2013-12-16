@@ -180,20 +180,12 @@ public class PolicyImporterTest
     Application toApp = tempEntity.newApplication(toOrg.getId());
     Label appLabel = tempEntity.newLabel(toApp.getId(), Color.black);
     Policy appPolicy = policyDAO().insert(toApp.getId(), createPolicies(toApp.getId(), appLabel.getId()).get(0));
-    tempEntity.newWaiver("hash", toApp.getId(), appPolicy.getId());
+    tempEntity.newWaiver("hash", appPolicy.getId(), toApp.getId());
     PolicyWaiverDAO policyWaiverDAO = new PolicyWaiverDAO();
-    EntityManager em = policyWaiverDAO.createEntityManager();
     when(uriInfo.getRequestUri()).thenReturn(URI.create("whatever"));
 
-    try {
-      em.getTransaction().begin();
-      //only interested in the deletion so import an empty DTO
-      policyImporter.importApplication(toApp, emptyExportDTO());
-      em.getTransaction().commit();
-    }
-    finally {
-      PolicyWaiverDAO.close(em);
-    }
+    //only interested in the deletion so import an empty DTO
+    policyImporter.importApplication(toApp, emptyExportDTO());
 
     verify(uriInfo).getRequestUri();
     assertThat(policyWaiverDAO.getByOwnerId(toApp.getId()), is(empty()));
@@ -207,21 +199,13 @@ public class PolicyImporterTest
     Label appLabel = tempEntity.newLabel(toApp.getId(), Color.black);
     Policy orgPolicy = policyDAO().insert(toOrg.getId(), createPolicies(toOrg.getId(), orgLabel.getId()).get(0));
     Policy appPolicy = policyDAO().insert(toApp.getId(), createPolicies(toApp.getId(), appLabel.getId()).get(0));
-    tempEntity.newWaiver("hash", toOrg.getId(), orgPolicy.getId());
-    tempEntity.newWaiver("hash", toApp.getId(), appPolicy.getId());
+    tempEntity.newWaiver("hash", orgPolicy.getId(), toOrg.getId());
+    tempEntity.newWaiver("hash", appPolicy.getId(), toApp.getId());
     PolicyWaiverDAO policyWaiverDAO = new PolicyWaiverDAO();
-    EntityManager em = policyWaiverDAO.createEntityManager();
     when(uriInfo.getRequestUri()).thenReturn(URI.create("whatever"));
 
-    try {
-      em.getTransaction().begin();
-      //only interested in the deletion so import an empty DTO
-      policyImporter.importOrganization(toOrg, emptyExportDTO());
-      em.getTransaction().commit();
-    }
-    finally {
-      PolicyWaiverDAO.close(em);
-    }
+    //only interested in the deletion so import an empty DTO
+    policyImporter.importOrganization(toOrg, emptyExportDTO());
 
     verify(uriInfo).getRequestUri();
     assertThat(policyWaiverDAO.getByOwnerId(toOrg.getId()), is(empty()));

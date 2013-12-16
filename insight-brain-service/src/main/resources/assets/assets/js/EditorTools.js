@@ -200,9 +200,11 @@
                   $scope.$emit('resetIconCache');
                   defer.resolve(data);
                 });
-              }).fail(function(error) {
+              }).fail(function(xhr) {
                 $scope.$apply(function() {
-                  var msg = Messages.getHttpErrorMessage(error);
+                  var headers = { 'content-type': xhr.getResponseHeader('Content-Type') },
+                      resp = { status: xhr.status, data: xhr.responseText, headers: function() { return headers; } },
+                      msg = Messages.getHttpErrorMessage(resp);
                   $scope.isUploadingIcon = false;
                   $scope.submitActive = false;
                   $scope.pushAlert({ type: 'error', msg: msg });

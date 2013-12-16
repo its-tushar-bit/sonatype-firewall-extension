@@ -15,7 +15,7 @@ class LoginSpec extends BaseSpec {
       js.'document.activeElement'.id == login.usernameInput.firstElement().id
 
     and: "login action is disabled"
-      login.loginAction.isDisabled() // Navigator API version of loginAction.@disabled
+      waitFor { login.loginAction.isDisabled() } // Navigator API version of loginAction.@disabled
 
     when: "credential inputs are filled in"
       login.usernameInput = "some username"
@@ -107,7 +107,7 @@ class LoginSpec extends BaseSpec {
     browser.driver.navigate().back()
 
     then: "we never lose the login module"
-    login.isDisplayed()
+    waitFor { login.isDisplayed() }
 
     when: "we try to go directly to another page"
     go ManagementPage.url

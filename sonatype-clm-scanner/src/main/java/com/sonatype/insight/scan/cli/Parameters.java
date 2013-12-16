@@ -14,8 +14,13 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.sonatype.clm.dto.model.policy.Stage;
+
+import com.beust.jcommander.IStringConverter;
+import com.beust.jcommander.IValueValidator;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
+import com.beust.jcommander.ParameterException;
 
 public class Parameters
 {
@@ -66,6 +71,12 @@ public class Parameters
 
   @Parameter(names = {"-U", "--proxy-user"}, description = "Credentials to use for proxy, format <username:password>")
   private String proxyUser;
+
+  @Parameter(names = {"-t", "--stage"}, validateValueWith = StageParameterValidator.class,
+      converter = StageParameterConverter.class,
+      description = "Development stage to run analysis against. Accepted values: " + Stage.ID_BUILD + "|" +
+          Stage.ID_STAGE_RELEASE + "|" + Stage.ID_RELEASE)
+  private Stage stage = new Stage(Stage.ID_BUILD);
 
   @Parameter(names = {"-X", "--debug"}, description = "Enable debug logs", hidden = true)
   private boolean debug;
@@ -192,6 +203,10 @@ public class Parameters
     return proxyUser;
   }
 
+  public Stage getStage() {
+    return stage;
+  }
+
   public boolean isDebug() {
     return debug;
   }
@@ -210,5 +225,31 @@ public class Parameters
 
   public boolean isIgnoreSystemErrors() {
     return ignoreSystemErrors;
+  }
+
+  /*
+   * Validator for the stage parameter
+   */
+  public static class StageParameterValidator
+      implements IValueValidator<Stage>
+  {
+    @Override
+    public void validate(String name, Stage value) throws ParameterException {
+      if (!Stage.isValidStageTypeId(value.getStageTypeId())) {
+        throw new ParameterException("An invalid development stage was specified: " + name + " " + value);
+      }
+    }
+  }
+
+  /*
+   * Converter to convert String to Stage object
+   */
+  public static class StageParameterConverter
+      implements IStringConverter<Stage>
+  {
+    @Override
+    public Stage convert(String value) {
+      return new Stage(value.toLowerCase());
+    }
   }
 }

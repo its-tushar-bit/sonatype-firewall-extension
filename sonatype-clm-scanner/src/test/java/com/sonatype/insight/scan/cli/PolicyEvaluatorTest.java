@@ -53,8 +53,10 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class PolicyEvaluatorTest
@@ -421,4 +423,34 @@ public class PolicyEvaluatorTest
     }
   }
 
+  @Test
+  public void testSetScanStage() throws Exception {
+    when(restClient.getApplications()).thenReturn(Collections.singletonMap("the-app-id", "My App"));
+    when(restClient.uploadScan(eq("the-app-id"), any(File.class))).thenReturn(newReceipt());
+    when(restClient.evaluatePolicy(eq("the-app-id"), eq("the-scan-id"), anyString()))
+        .thenReturn(new PolicyEvaluationResult());
+    Parameters params = new Parameters("-s", "http://localhost:8070/", "-i", "the-app-id", "src/test/data/artifact.jar",
+        "-t", Stage.ID_RELEASE);
+    evaluator.run(params);
+    verify(restClient).evaluatePolicy("the-app-id", "the-scan-id", Stage.ID_RELEASE);
+  }
+
+  @Test
+  public void testDefaultScanStage() throws Exception {
+    when(restClient.getApplications()).thenReturn(Collections.singletonMap("the-app-id", "My App"));
+    when(restClient.uploadScan(eq("the-app-id"), any(File.class))).thenReturn(newReceipt());
+    when(restClient.evaluatePolicy(eq("the-app-id"), eq("the-scan-id"), anyString()))
+        .thenReturn(new PolicyEvaluationResult());
+    Parameters params = new Parameters("-s", "http://localhost:8070/", "-i", "the-app-id",
+        "src/test/data/artifact.jar");
+    evaluator.run(params);
+    verify(restClient).evaluatePolicy("the-app-id", "the-scan-id", Stage.ID_BUILD);
+  }
+
+  @Test
+  public void testInvalidStage() throws Exception {
+    Parameters params = new Parameters("-s", "http://localhost:8070/", "-i", "the-app-id", "src/test/data/artifact.jar",
+        "-t", "invalid-stage-id");
+    assertNotNull("Invalid stage id was not detected", params.getError());
+  }
 }

@@ -170,7 +170,7 @@ public class PolicyEvaluator
       if (receipt.getTimeToReport() != null) {
         Thread.sleep(receipt.getTimeToReport() * 1000);
       }
-      eval = restClient.evaluatePolicy(params.getApplicationId(), receipt.getScanId(), Stage.ID_BUILD);
+      eval = restClient.evaluatePolicy(params.getApplicationId(), receipt.getScanId(), params.getStage().getStageTypeId());
     }
     catch (HttpResponseException e) {
       log.error("The policy evaluation results could not be fetched from the CLM server: {} ({})", e.getMessage(),

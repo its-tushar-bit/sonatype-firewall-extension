@@ -1,4 +1,15 @@
 <div id='labels'>
+  <script type='text/ng-template' id='delete-label-modal'>
+	<div class="modal-header"><h3>Delete Label</h3></div>
+	<div class="modal-body">
+		Are you sure you want to delete the label <strong>{{label.label}}</strong>?
+		This will delete all associated component labels, if any.
+	</div>
+	<div class="modal-footer">
+		<button class="btn" ng-click="$dismiss()">Cancel</button>
+		<button class="btn btn-danger" ng-click="$close()">Delete</button>
+	</div>
+  </script>
   <div class="content-section">
     <div load-error='error' reload='doLoad()'></div>
     <div style='margin:25px' ng-show='applicableLabels == null && !error'>
@@ -17,56 +28,46 @@
         </div>
         <div class="label-list">
           <span ng-if='applicableLabel.editable'>
-            <button type='button' class='btn add-new new-entity-button' ng-click='createNew()'>
+            <button type='button' class='btn add-new new-entity-button' ng-click='createNew()' style='margin-bottom: 7px;'>
               <i class='icon icon-plus'></i> New Label
             </button>
           </span>
-          <div ng-repeat='label in applicableLabel.labels | orderBy:"label"' style='display:inline-block;'
-               ng-click='editLabel(applicableLabel.editable, label)'>
-            <div class="labelContainer" ng-class="{active: selectedLabel.id == label.id}">
-              <span ng-switch='applicableLabel.editable'>
-                <span ng-switch-when='true'>
-                  <span style="padding-right: 25px;" class="clmLabel {{label.color}}Label" data-tooltip="{{label.description}}"
-                        data-tooltip-placement="bottom"> {{label.label}}</span>
-                  <span title="Delete {{label.label}} Label" class="icon-remove-circle {{label.color}}LabelRemove deleteHoverTransparent"
-                        ng-click="deleteLabel(label)"></span>
-                </span>
-                <span ng-switch-default>
-                  <span class="clmLabel inherited-label {{label.color}}Label" data-tooltip="{{label.description}}"
-                        data-tooltip-placement="bottom"> {{label.label}} </span>
-                </span>
-              </span>
-            </div>
-          </div>
+          <span ng-repeat='label in applicableLabel.labels | orderBy:"label"' ng-click='editLabel(applicableLabel.editable, label)'>
+            <span class='clmLabel {{label.color}}Label' ng-class="{active: selectedLabel.id == label.id}">
+              <span data-tooltip="{{label.description}}" data-tooltip-placement="bottom">{{label.label}}</span>
+              <i ng-if='applicableLabel.editable' ng-class='{ "icon-white" : isWhite(label) }' ng-click='deleteLabel(label, $event)'
+                 class='icon-remove label-remove' title="Delete {{label.label}}"></i>
+            </span>
+          </span>
           <em ng-show='labels.length == 0'>No labels available</em>
           <div ng-if='applicableLabel.editable'>
             <div clm-alerts='alerts'></div>
           </div>
         </div>
         <div ng-if='applicableLabel.editable && selectedLabel' style='margin-left:25px'>
-          <div class='fade in' style='width:544px' ng-controller='LabelEditorController'>
+          <div class='fade in' style='width:544px;padding-bottom:15px' ng-controller='LabelEditorController'>
             <form name='labelEditor' class='form-horizontal' style='margin-bottom:0' ng-submit='saveLabel()'>
-              <div class="modal-body" style="padding: 15px 0;">
-                <div class="control-group" ng-class='{ error : labelEditor.label.$error.duplicate || labelEditor.label.$error.invalid }'>
-                  <div class="controls" style="margin-left: 0;">
-                    <input id="labelEditorLabel" name='label' type="text" maxlength='50' ng-model='selectedLabel.label' placeholder="Enter Label Name" focus-input="true" required item-label>
-                    <span ng-show='labelEditor.label.$error.duplicate' class="help-inline">Duplicate Label</span>
-                    <span ng-show='labelEditor.label.$error.invalid' class="help-inline">Invalid Character(s)</span>
-                  </div>
+              <div class="control-group" ng-class='{ error : labelEditor.label.$error.duplicate || labelEditor.label.$error.invalid }'>
+                <div class="controls" style="margin-left: 0;">
+                  <input id="labelEditorLabel" name='label' type="text" maxlength='50' ng-model='selectedLabel.label' placeholder="Enter Label Name" focus-input="true" required item-label>
+                  <span ng-show='labelEditor.label.$error.duplicate' class="help-inline">Duplicate Label</span>
+                  <span ng-show='labelEditor.label.$error.invalid' class="help-inline">Invalid Character(s)</span>
                 </div>
-                <div class="control-group">
-                  <textarea maxlength="255" rows="3" style="width:530px;resize:none;" ng-model='selectedLabel.description' placeholder="Enter Description"></textarea>
-                </div>
-                <div class="control-group">
-                  <div class='labelContainer' ng-repeat="color in colors" ng-class='{ active : selectedLabel.color == color}' ng-click='setColor(color);' >
-                    <span class="clmLabel {{color}}Label" style='display:inline-block;min-height:1em;min-width:30px;'>{{selectedLabel.label}}</span>
-                  </div>
-                </div>
-                <div clm-alerts='editorAlerts'></div>
-                <div class="pull-right">
-                  <button class="btn" type='button' ng-click='cancelEditLabel()'>Cancel</button>
-                  <button class="btn btn-primary" ng-disabled='!canSaveEdit(labelEditor.$valid, selectedLabel)'>Save</button>
-                </div>
+              </div>
+              <div class="control-group">
+                <textarea maxlength="255" rows="3" style="width:530px;resize:none;" ng-model='selectedLabel.description' placeholder="Enter Description"></textarea>
+              </div>
+              <div class="control-group">
+                <span ng-repeat="color in colors" ng-click='setColor(color);'>
+                  <span class='clmLabel {{color}}Label' ng-class='{ active : selectedLabel.color == color}' style='min-width:33px'>
+                    <span>{{selectedLabel.label}}</span>
+                  </span>
+                </span>
+              </div>
+              <div clm-alerts='editorAlerts'></div>
+              <div class="pull-right">
+                <button class="btn" type='button' ng-click='cancelEditLabel()'>Cancel</button>
+                <button class="btn btn-primary" ng-disabled='!canSaveEdit(labelEditor.$valid, selectedLabel)'>Save</button>
               </div>
             </form>
           </div>

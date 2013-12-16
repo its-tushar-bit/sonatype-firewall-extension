@@ -47,10 +47,10 @@
     }
   ]);
 
-  function showAlert(alerts, alert){
+  function showAlert(alerts, alert) {
     alerts.length = 0;
     alerts.push(alert);
-  };
+  }
 
   labelModule.controller('LabelController', [
     '$scope', '$http', '$q', '$modal', 'CLMAppLocations', 'Messages', 'CLMResource', 'LabelStore', 'ownerChange',
@@ -122,42 +122,36 @@
         });
       };
 
-      $scope.deleteLabel = function(label) {
-        executeIfClean(function() {
-          $modal.open({
-            scope: $scope,
-            backdrop: 'static',
-            template: '<div class="modal-header"><h3>Delete Label</h3></div>' +
-                '<div class="modal-body">' +
-                  'Are you sure you want to delete the label <strong>{{label.label}}</strong>? ' + 
-                  'This will delete all associated component labels, if any.' + 
-                '</div>' +
-                '<div class="modal-footer"><button class="btn" ng-click="cancel()">Cancel</button>' +
-                '<button class="btn btn-danger" ng-click="doDeleteLabel()">Delete</button></div>',
-            controller: [
-              '$scope', function(modalScope) {
-                modalScope.label = label;
-                modalScope.cancel = function() {
-                  deselect();
-                  modalScope.$close();
-                };
-                modalScope.doDeleteLabel = function() {
-                  label.$delete().then(function() {
-                    deselect();
-                  }, function(error) {
-                    deselect();
-                    showAlert($scope.alerts, {
-                      type: 'error',
-                      msg: 'An error occurred while deleting the label ' + label.label + '. (' +
-                          messages.getHttpErrorMessage(error) + ')'
-                    });
-                  });
-                  modalScope.$close(true);
-                };
-              }
-            ]
+      $scope.deleteLabel = function(label, $event) {
+        $event.stopPropagation();
+        $modal.open({
+          scope: $scope,
+          backdrop: 'static',
+          templateUrl: 'delete-label-modal',
+          controller: [
+            '$scope', function(modalScope) {
+              modalScope.label = label;
+              modalScope.cancel = function() {
+                modalScope.$close();
+              };
+              modalScope.doDeleteLabel = function() {
+                modalScope.$close(true);
+              };
+            }
+          ]
+        }).result.then(function () {
+          label.$delete().then(function () {
+            if ($scope.selectedLabel && label.id === $scope.selectedLabel.id) {
+              $scope.selectedLabel = null;
+            }
+          }, function(error) {
+            showAlert($scope.alerts, {
+              type: 'error',
+              msg: 'An error occurred while deleting the label ' + label.label + '. (' +
+                  messages.getHttpErrorMessage(error) + ')'
+            });
           });
-        });
+        }, angular.noop);
       };
 
       $scope.$on('labels.cancelEditLabel', function(event, label) {

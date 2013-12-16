@@ -177,7 +177,7 @@ describe('LabelController.js', function() {
     it('Can delete a label', inject(function($httpBackend, CLMAppLocations) {
       $httpBackend.expectDELETE(CLMAppLocations.getLabelsUrl() + '/' +
           testScope.applicableLabels[0].labels[0].id).respond(204);
-      scope.deleteLabel(testScope.applicableLabels[0].labels[0]);
+      scope.deleteLabel(testScope.applicableLabels[0].labels[0], { stopPropagation : angular.noop });
       dialogScope.doDeleteLabel();
       $httpBackend.flush();
       expect(testScope.applicableLabels[0].labels.length).toEqual(1);

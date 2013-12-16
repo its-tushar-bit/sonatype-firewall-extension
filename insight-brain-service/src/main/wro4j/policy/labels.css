@@ -1,3 +1,9 @@
+.label-remove {
+	opacity: 0.2
+}
+.label-remove:hover {
+	opacity: 0.4;
+}
 .clmLabel {
 	-moz-border-radius: 3px;
 	-webkit-border-radius: 3px;
@@ -6,16 +12,22 @@
 	font-size: 12px;
 	font-weight: bold;
 	text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.25);
-	overflow: hidden;
-	text-overflow: ellipsis;
 	padding: 5px 10px;
+	margin-bottom: 5px;
 	vertical-align: middle;
 	line-height: 14px;
 	max-width: 200px;
 	display: inline-block;
-	word-break: break-all;
 	cursor: pointer;
 	white-space: nowrap;
+}
+.clmLabel span {
+	display: inline-block;
+	max-width: 160px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	vertical-align: text-top;
+	word-break: break-all;
 }
 .clmLabel-dropdown {
 	color: black !important;
@@ -43,14 +55,19 @@ form[name="labelEditor"] .clmLabel {
 .greyLabel:hover {
 	border-color: #909090;
 }
+.blackLabel, .greenLabel, .orangeLabel, .redLabel, .blueLabel {
+	color: white !important;
+}
+.blackLabel .icon-remove, .greenLabel .icon-remove, .orangeLabel .icon-remove, .redLabel .icon-remove, .blueLabel .icon-remove {
+	background-image: url("../lib/glyphicon/glyphicons_halflings-white.png") !important;
+}
+
 .blackLabel, .blackLabel:hover {
 	border-color: #000;
 	background-color: #444444;
-	color: white !important;
 }
 .greenLabel, .greenLabel:hover {
 	background-color: #0B9743;
-	color: white !important;
 }
 .greenLabel:hover {
 	border-color: #04642A;
@@ -65,18 +82,15 @@ form[name="labelEditor"] .clmLabel {
 .orangeLabel, .orangeLabel:hover {
 	background-color: #F2862F;
 	border-color: #C56213;
-	color: white !important;
 }
 .redLabel, .redLabel:hover {
 	background-color: #880625;
-	color: white !important;
 }
 .redLabel:hover {
 	border-color: #460011;
 }
 .blueLabel, .blueLabel:hover {
 	background-color: #2476C3;
-	color: white !important;
 }
 .blueLabel:hover {
 	border-color: #17558E;
@@ -95,10 +109,7 @@ form[name="labelEditor"] .clmLabel {
 	margin-right: 5px;
 	transition: border linear .2s,box-shadow linear .2s;
 }
-.blackLabelRemove, .orangeLabelRemove, .greenLabelRemove, .redLabelRemove, .blueLabelRemove {
-	background-image: url("../lib/glyphicon/glyphicons_halflings-white.png") !important;
-}
-.labelContainer.active {
+.clmLabel.active {
 	border: 2px solid rgb(82,168,236);
 	outline: 0;
 	outline: thin solid 9;
@@ -106,17 +117,9 @@ form[name="labelEditor"] .clmLabel {
 	-moz-box-shadow: inset 0 1px 1px rgba(0,0,0,0.075),0 0 8px rgba(82,168,236,0.6);
 	box-shadow: inset 0 1px 1px rgba(0,0,0,0.075),0 0 8px rgba(82,168,236,0.6);
 }
-.deleteHoverTransparent {
-	background-position: -314px 0px;
-	opacity: .3;
-	filter: alpha(opacity=50);
-	vertical-align: top;
-	position: absolute;
-	right: 4px;
-	top: 6px;
-}
 .label-list {
 	margin-left: 25px;
+	margin-bottom: 10px;
 }
 .tooltip-inner {
 	min-width:100px;

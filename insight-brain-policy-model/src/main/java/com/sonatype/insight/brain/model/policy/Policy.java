@@ -13,9 +13,11 @@ import java.util.Map;
 import java.util.Set;
 
 import com.sonatype.clm.dto.model.policy.Action;
+import com.sonatype.clm.dto.model.policy.NotifyAction;
 import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.model.policy.actions.ActionTypes;
+import com.sonatype.insight.brain.model.policy.actions.NotifyActionType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 
 import org.slf4j.Logger;
@@ -41,6 +43,8 @@ public class Policy
   private List<Constraint> constraints;
 
   private Map<String, List<Action>> actions;
+
+  private List<NotifyAction> monitorNotifyActions;
 
   public Policy() {
   }
@@ -197,6 +201,18 @@ public class Policy
       }
     }
 
+    if (monitorNotifyActions != null) {
+      ActionType notifyActionType = ActionTypes.getById(NotifyActionType.ID);
+      ValidationResult monitorNotifyActionResult = new ValidationResult();
+      for (NotifyAction notifyAction : monitorNotifyActions) {
+        monitorNotifyActionResult.merge(notifyActionType.validateAction(notifyAction));
+      }
+      if (!monitorNotifyActionResult.isValid()) {
+        result.addError("Policy '" + name + "' has invalid monitor notification actions:");
+        result.merge(monitorNotifyActionResult);
+      }
+    }
+
     if (!result.isValid()) {
       log.debug("Validation result: " + result.toMessageString());
     }
@@ -224,5 +240,20 @@ public class Policy
 
   public void setOwnerId(String ownerId) {
     this.ownerId = ownerId;
+  }
+
+  public List<NotifyAction> getMonitorNotifyActions() {
+    return monitorNotifyActions;
+  }
+
+  public void setMonitorNotifyActions(List<NotifyAction> monitorNotifyActions) {
+    this.monitorNotifyActions = monitorNotifyActions;
+  }
+
+  public void addMonitorNotifyAction(NotifyAction notifyAction) {
+    if (monitorNotifyActions == null) {
+      monitorNotifyActions = new ArrayList<>();
+    }
+    monitorNotifyActions.add(notifyAction);
   }
 }

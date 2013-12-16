@@ -7,6 +7,9 @@
 	white-space: nowrap;
 	overflow: hidden;
 }
+.roles .collapsed .member-list {
+  display: inline;
+}
 .roles .expandable > div {
   padding-left: 2px;
   padding-bottom: 2px;
@@ -14,10 +17,7 @@
 .roles .inherited-section {
 	margin-top:5px;
 	padding-top:5px;
-}
-.roles .inherited-header {
-  border-bottom: 1px solid #E8E8E8;
-  display: block;
+	border-top: 1px solid #E8E8E8;
 }
 .roles .inherited {
 	color:#909090;
@@ -41,7 +41,7 @@
 	min-height: 24px;
 }
 .roles .member-list {
-  display: inline;
+  text-indent: -24px;
 }
 .role .hover-buttons {
 	margin-top : 6px

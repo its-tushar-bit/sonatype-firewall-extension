@@ -61,8 +61,7 @@ public class PolicyAlertNotifier
     this.baseUrl = baseUrl;
   }
 
-  public void sendNotifications(final String applicationPublicId, String appId, final String scanId,
- final Stage stage,
+  public void sendNotifications(final String applicationPublicId, String appId, final String scanId, final Stage stage,
       final List<PolicyAlert> policyAlerts)
   {
     for (final Entry<String, List<PolicyAlert>> details : byRecipients(policyAlerts).entrySet()) {

@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.dataaccess.policy;
 
+import java.util.List;
+
 import javax.persistence.EntityManager;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
@@ -17,6 +19,12 @@ import com.sonatype.insight.error.exception.BadRequestException;
 public class PolicyMonitoringDAO
     extends AbstractOperationalSqlDAO<PolicyMonitoring>
 {
+  public List<PolicyMonitoring> getAll() {
+    String sQuery = "SELECT entity FROM PolicyMonitoring entity" + //
+        " ORDER BY entity.id";
+    return getList(sQuery);
+  }
+
   @Override
   protected PolicyMonitoring getById(EntityManager em, String id) {
     String sQuery = "SELECT entity FROM PolicyMonitoring entity" + //

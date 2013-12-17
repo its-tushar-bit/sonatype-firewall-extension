@@ -13,6 +13,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 import com.sonatype.clm.dto.model.policy.Stage;
 
@@ -249,7 +250,7 @@ public class Parameters
   {
     @Override
     public Stage convert(String value) {
-      return new Stage(value.toLowerCase());
+      return new Stage(value.toLowerCase(Locale.ENGLISH));
     }
   }
 }

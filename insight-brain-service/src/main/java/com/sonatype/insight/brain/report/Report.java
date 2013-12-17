@@ -47,9 +47,13 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ContainerNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.codehaus.plexus.util.IOUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public final class Report
 {
+  private static final Logger log = LoggerFactory.getLogger(Report.class);
+
   private static enum ReportType
   {
     FULL, SAMPLE, ERROR
@@ -108,6 +112,8 @@ public final class Report
   public static int[] applyChanges(final Application application, final File reportFile, final File auditDir)
       throws IOException
   {
+    long start = System.currentTimeMillis();
+
     final ReportType reportType = getType(reportFile);
 
     if (ReportType.ERROR.equals(reportType)) {
@@ -262,6 +268,8 @@ public final class Report
     badges.append(buildAlerts).append(']');
 
     cache(getCacheFile(reportFile, "badges.json"), badges.toString().getBytes("UTF-8"));
+
+    log.debug("Applied changes to report in {} ms", System.currentTimeMillis() - start);
 
     return new int[] { securityAlerts, licenseAlerts, buildAlerts };
   }

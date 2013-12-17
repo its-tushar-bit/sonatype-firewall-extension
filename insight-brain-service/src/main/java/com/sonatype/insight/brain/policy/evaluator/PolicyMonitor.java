@@ -56,7 +56,7 @@ public class PolicyMonitor
     this.policyAlertNotifier = policyAlertNotifier;
   }
 
-  public void run() throws IOException {
+  public void run() {
     log.info("Starting policy monitoring");
 
     long start = System.currentTimeMillis();
@@ -92,6 +92,9 @@ public class PolicyMonitor
       catch (InterruptedException e) {
         log.error(e.getMessage(), e);
         return;
+      }
+      catch (IOException | RuntimeException e) {
+        log.error("Failed policy monitoring for application '{}': {}", app.getName(), e.getMessage(), e);
       }
     }
 

@@ -131,6 +131,14 @@ public class TrendingReportProcessor
 
   private final Predicate<String> isPopularity = new StartsWithPredicate("popularity");
 
+  private static final String EXACT_COMPONENTS = "exact";
+
+  private static final String SIMILAR_COMPONENTS = "similar";
+
+  private static final String UNKNOWN_COMPONENTS = "unknown";
+
+  private static final String PROPRIETARY_COMPONENTS = "proprietary";
+
   @Inject
   public TrendingReportProcessor(InsightWork work, PolicyEvaluationUtils policyEvaluationUtils) {
     this.work = work;
@@ -149,9 +157,10 @@ public class TrendingReportProcessor
 
     // total component counts in all applications based on latest application reports
     Map<String, Map<String, Integer>> components = new HashMap<String, Map<String, Integer>>();
-    components.put("exact", new HashMap<String, Integer>());
-    components.put("similar", new HashMap<String, Integer>());
-    components.put("unknown", new HashMap<String, Integer>());
+    components.put(EXACT_COMPONENTS, new HashMap<String, Integer>());
+    components.put(SIMILAR_COMPONENTS, new HashMap<String, Integer>());
+    components.put(UNKNOWN_COMPONENTS, new HashMap<String, Integer>());
+    components.put(PROPRIETARY_COMPONENTS, new HashMap<String, Integer>());
 
     // per application alerts summary based on latest application reports
     List<ApplicationRiskSummary> applicationRisks = new ArrayList<ApplicationRiskSummary>();
@@ -248,7 +257,8 @@ public class TrendingReportProcessor
       File evalFile = ReportResource.getReport(work, application.getId(), lastEval.getScanId());
       JsonNode bomNode = JsonUtils.parse(Report.getEntry(evalFile, "bom.json").buf);
       for (JsonNode componentNode : bomNode.get("aaData")) {
-        String matchState = componentNode.path("matchState").asText();
+        // Proprietary components are counted as proprietary rather than their match state
+        String matchState = componentNode.path("proprietary").asBoolean() ? PROPRIETARY_COMPONENTS : componentNode.path("matchState").asText();
         incrComponent(components, matchState, getComponentKey(componentNode));
         if (MatchState.SIMILAR.getId().equals(matchState)) {
           List<String> key = Arrays.asList(getAttribute(componentNode, "groupId"),
@@ -503,8 +513,8 @@ public class TrendingReportProcessor
   }
 
   private static ComponentsSummary toComponentsSummary(Map<String, Map<String, Integer>> components) {
-    return new ComponentsSummary(components.get("exact").size(), components.get("similar").size(), components.get(
-        "unknown").size());
+    return new ComponentsSummary(components.get(EXACT_COMPONENTS).size(), components.get(SIMILAR_COMPONENTS).size(),
+        components.get(UNKNOWN_COMPONENTS).size(), components.get(PROPRIETARY_COMPONENTS).size());
   }
 
   private void incrComponent(Map<String, Map<String, Integer>> components, String matchState, String componentKey) {

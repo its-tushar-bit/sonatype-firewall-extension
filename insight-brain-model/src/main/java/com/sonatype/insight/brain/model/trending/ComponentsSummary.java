@@ -15,14 +15,16 @@ public class ComponentsSummary
   private int exact;
   private int partial;
   private int unknown;
+  private int proprietary;
 
   public ComponentsSummary() {
   }
 
-  public ComponentsSummary(int exact, int partial, int unknown) {
+  public ComponentsSummary(int exact, int partial, int unknown, int proprietary) {
     this.exact = exact;
     this.partial = partial;
     this.unknown = unknown;
+    this.proprietary = proprietary;
   }
 
   /**
@@ -53,11 +55,19 @@ public class ComponentsSummary
   }
 
   /**
+   * Returns total number of proprietary components
+   * @since 1.7.1
+   */
+  public int getProprietary() {
+    return proprietary;
+  }
+
+  /**
    * Returns total number of components.
-   * 
+   *
    * @since 1.7
    */
   public int getInApplication() {
-    return exact + partial + unknown;
+    return exact + partial + unknown + proprietary;
   }
 }

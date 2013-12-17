@@ -98,6 +98,7 @@ public class TrendingReportProcessorTest
     builder.addComponent().setGAV("a", "a", "a").setHash("A").setMatchState(MatchState.EXACT);
     builder.addComponent().setGAV("b", "b", "b").setHash("B").setMatchState(MatchState.SIMILAR);
     builder.addComponent().setGAV("c", "c", "c").setHash("C").setMatchState(MatchState.UNKNOWN);
+    builder.addComponent().setGAV("d", "d", "d").setHash("D").setProprietary(false).setMatchState(MatchState.UNKNOWN);
     createScan(application, builder);
 
     TrendingReport report = calculateReport();
@@ -105,8 +106,25 @@ public class TrendingReportProcessorTest
     ComponentsSummary components = report.getComponents();
     Assert.assertEquals(1, components.getExact());
     Assert.assertEquals(1, components.getPartial());
+    Assert.assertEquals(2, components.getUnknown());
+    Assert.assertEquals(0, components.getProprietary());
+    Assert.assertEquals(4, components.getInApplication());
+
+    builder = new ReportBuilder();
+    builder.addComponent().setGAV("a", "a", "a").setHash("A").setMatchState(MatchState.EXACT);
+    builder.addComponent().setGAV("b", "b", "b").setHash("B").setMatchState(MatchState.SIMILAR);
+    builder.addComponent().setGAV("c", "c", "c").setHash("C").setMatchState(MatchState.UNKNOWN);
+    builder.addComponent().setGAV("d", "d", "d").setHash("D").setProprietary(true).setMatchState(MatchState.UNKNOWN);
+    createScan(application, builder);
+
+    report = calculateReport();
+
+    components = report.getComponents();
+    Assert.assertEquals(1, components.getExact());
+    Assert.assertEquals(1, components.getPartial());
     Assert.assertEquals(1, components.getUnknown());
-    Assert.assertEquals(3, components.getInApplication());
+    Assert.assertEquals(1, components.getProprietary());
+    Assert.assertEquals(4, components.getInApplication());
   }
 
   @Test

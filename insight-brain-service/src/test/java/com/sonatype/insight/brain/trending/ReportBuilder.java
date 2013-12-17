@@ -58,6 +58,11 @@ public class ReportBuilder
       component.put("hash", hash);
       return this;
     }
+
+    public ComponentBuilder setProprietary(boolean proprietary) {
+      component.put("proprietary", proprietary);
+      return this;
+    }
   }
 
   public class ConstraintFactBuilder

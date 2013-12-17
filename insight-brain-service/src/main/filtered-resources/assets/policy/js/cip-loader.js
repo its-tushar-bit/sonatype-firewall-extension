@@ -7,10 +7,15 @@
 /*global $, window, CLM, document */
 (function() {
   'use strict';
+  
+  function getBaseUrl() {
+    var idx = window.location.href.indexOf('/rest/report/');
+    return window.location.href.substring(0, idx + 1);
+  }
 
   $.extend(true, window, {
     'CLM': {
-      'path': '../brain/',
+      'path': getBaseUrl(),
       'loadPlugin': (function() {
         var pluginsMap = null;
 
@@ -102,16 +107,6 @@
       var deferred = $.Deferred();
       // context to resolve/reject with
       var context = this;
-      
-      function getBaseUrl() {
-        var idx = window.location.href.indexOf('/rest/report/');
-        
-        if (idx > -1) {
-          return window.location.href.substring(0, idx + 1);
-        } else {
-          return '../../../../../';
-        }
-      }
 
       // use the original ajax call
       oldAjax.apply(context, Array.prototype.slice.apply(arguments)).then(
@@ -162,7 +157,7 @@
                     $('#login-error').hide();
                     // do the login with the original ajax, so we don't hit our code here
                     oldAjax({
-                      url: getBaseUrl() + 'rest/user/session',
+                      url: CLM.path + 'rest/user/session',
                       type: 'POST',
                       headers: {
                         'Authorization': 'Basic ' + Base64.encode($('#login-username').val() + ':' + $('#login-password').val())

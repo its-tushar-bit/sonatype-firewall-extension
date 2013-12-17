@@ -38,6 +38,7 @@
     <dropwizard.version>0.6.2</dropwizard.version>
     <!-- The jersey.version must match the jersey version used by dropwizard -->
     <jersey.version>1.17.1</jersey.version>
+    <rt.jar>${java.home}/lib/rt.jar</rt.jar>
   </properties>
 
   <scm>
@@ -350,6 +351,34 @@
             </excludes>
           </configuration>
         </plugin>
+        <plugin>
+          <groupId>com.github.wvengen</groupId>
+          <artifactId>proguard-maven-plugin</artifactId>
+          <version>2.0.6</version>
+          <executions>
+            <execution>
+              <id>obfuscate</id>
+              <phase>package</phase>
+              <goals>
+                <goal>proguard</goal>
+              </goals>
+            </execution>
+          </executions>
+          <configuration>
+            <addMavenDescriptor>true</addMavenDescriptor>
+            <maxMemory>896m</maxMemory>
+            <libs>
+              <lib>${rt.jar}</lib>
+            </libs>
+          </configuration>
+          <dependencies>
+            <dependency>
+              <groupId>net.sf.proguard</groupId>
+              <artifactId>proguard-base</artifactId>
+              <version>4.10</version>
+            </dependency>
+          </dependencies>
+        </plugin>
       </plugins>
     </pluginManagement>
     <plugins>
@@ -428,6 +457,17 @@
       <modules>
         <module>insight-brain-performance-test</module>
       </modules>
+    </profile>
+    <profile>
+      <id>obfuscate-ci-osx</id>
+      <activation>
+        <file>
+          <exists>${java.home}/../Classes/classes.jar</exists>
+        </file>
+      </activation>
+      <properties>
+        <rt.jar>${java.home}/../Classes/classes.jar</rt.jar>
+      </properties>
     </profile>
   </profiles>
 

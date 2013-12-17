@@ -25,11 +25,11 @@ import com.sonatype.insight.brain.ldap.LdapManager;
 import com.sonatype.insight.brain.ldap.LdapUser;
 import com.sonatype.insight.brain.ldap.TestLdapServer;
 
-import org.sonatype.guice.bean.containers.InjectedTest;
-
+import org.eclipse.sisu.launch.InjectedTest;
 import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
+
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.closeTo;
 import static org.hamcrest.Matchers.containsInAnyOrder;

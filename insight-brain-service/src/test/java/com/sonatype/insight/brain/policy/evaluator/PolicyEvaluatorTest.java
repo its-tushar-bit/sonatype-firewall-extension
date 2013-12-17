@@ -407,7 +407,7 @@ public class PolicyEvaluatorTest
     components.add(component2);
 
     List<PolicyAlert> policyAlerts;
-    List<Action> actions;
+    List<? extends Action> actions;
 
     // Evaluate the policy when developing
     policyAlerts = new PolicyEvaluator().evaluate(applicationId, new Stage(DevelopStageType.ID), Arrays.asList(policy),

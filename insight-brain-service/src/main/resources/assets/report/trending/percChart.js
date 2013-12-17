@@ -16,12 +16,15 @@ Includes the third-party code listed at http://links.sonatype.com/products/clm/a
         $scope.applicationComponents = [
           {
             value: newData.components.exact,
-            color: '#AAA'
+            color: '#838383'
           }, {
             value: newData.components.partial,
-            color: '#CCC'
+            color: '#AAA'
           }, {
             value: newData.components.unknown,
+            color: '#CCC'
+          }, {
+            value: newData.components.proprietary,
             color: '#e8e8e8'
           }
         ];

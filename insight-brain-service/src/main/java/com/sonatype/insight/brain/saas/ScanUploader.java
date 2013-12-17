@@ -68,8 +68,26 @@ public class ScanUploader
     final ScanReceipt receipt = client.get(request, ScanReceipt.class, path, params);
 
     if (StringUtils.isNotBlank(receipt.getScanId())) {
-      FileUtils.rename(scanFile, new File(scanDir, "scan-" + receipt.getScanId() + ".xml.gz"));
+      FileUtils.rename(scanFile, work.getScanFile(appId, receipt.getScanId()));
     }
+
+    log.debug("Successfully uploaded scan id {}", receipt.getScanId());
+
+    // SaaS knows nothing about where CLM Server stores reports, add this info to the receipt.
+    receipt.setReportUrl(UserInterfaceLinksResource.getReportUrl(applicationPublicId, receipt.getScanId()));
+
+    return receipt;
+  }
+
+  /**
+   * Uploads an existing scan file to the SaaS server.
+   * 
+   * @since 1.7.1
+   */
+  public ScanReceipt upload(File scanFile, String applicationPublicId, String path)
+      throws IOException
+  {
+    ScanReceipt receipt = client.put(ScanReceipt.class, path, scanFile);
 
     log.debug("Successfully uploaded scan id {}", receipt.getScanId());
 

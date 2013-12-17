@@ -65,6 +65,12 @@ public class PolicyEvaluationUtils
   public PolicyEvaluationResult evaluate(final String applicationPublicId, final String scanId, final Stage stage)
       throws IOException
   {
+    return evaluate(applicationPublicId, scanId, stage, false /* forMonitoring */);
+  }
+
+  public PolicyEvaluationResult evaluate(final String applicationPublicId, final String scanId, final Stage stage,
+      boolean forMonitoring) throws IOException
+  {
     Application application = applicationDAO.getByPublicIdNotNull(applicationPublicId);
     String appId = application.getId();
 
@@ -88,7 +94,7 @@ public class PolicyEvaluationUtils
     final List<Component> components = new ComponentDAO().getAll(application, licenseReportEntry.buf,
         securityReportEntry.buf, bomReportEntry.buf);
 
-    final List<PolicyAlert> alerts = new PolicyEvaluator().evaluate(appId, stage, policyDAO, components);
+    final List<PolicyAlert> alerts = new PolicyEvaluator().evaluate(appId, stage, policyDAO, components, forMonitoring);
 
     Report.putEntry(reportFile, POLICY_ALERTS_FILENAME, JsonUtils.generate(JsonUtils.aaData(alerts)));
     if (!isReevaluation) {

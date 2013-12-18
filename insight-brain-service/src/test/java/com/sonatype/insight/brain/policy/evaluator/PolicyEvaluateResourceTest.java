@@ -48,7 +48,6 @@ import com.sonatype.insight.brain.model.policy.conditions.MatchStateConditionTyp
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityConditionType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.policy.PolicyResource;
-import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateResource.MailPolicyAlertCounts;
 import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.report.ReportResource;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
@@ -713,7 +712,7 @@ public class PolicyEvaluateResourceTest
     assertResponseStatus(200, response);
     PolicyEvaluationResult policyEval = JsonHelpers.fromJson(response.getResponseBody(), PolicyEvaluationResult.class);
     List<PolicyAlert> policyAlerts = policyEval.getAlerts();
-    Map<String, Object> model = PolicyEvaluateResource.createPolicyMailModel(serverUrl, cdnUrl, applicationPublicId,
+    Map<String, Object> model = PolicyAlertNotifier.createPolicyMailModel(serverUrl, cdnUrl, applicationPublicId,
         scanId, stage, policyAlerts);
     Assert.assertNotNull(model);
     Assert.assertEquals(policyAlerts, model.get("policyAlerts"));
@@ -727,20 +726,6 @@ public class PolicyEvaluateResourceTest
     Assert.assertEquals("Build", model.get("policyThreatStage"));
     Assert.assertEquals(applicationPublicId, model.get("policyThreatApp"));
     Assert.assertNotNull(model.get("policyThreatTime"));
-  }
-
-  @Test
-  public void testNotificationEmailSubject() throws Exception {
-    Assert.assertEquals("Policy Alert: 1 critical violation out of 15",
-        PolicyEvaluateResource.createPolicyMailSubject(new MailPolicyAlertCounts(1, 2, 3, 4, 5)));
-    Assert.assertEquals("Policy Alert: 2 severe violations out of 14",
-        PolicyEvaluateResource.createPolicyMailSubject(new MailPolicyAlertCounts(0, 2, 3, 4, 5)));
-    Assert.assertEquals("Policy Alert: 3 moderate violations out of 12",
-        PolicyEvaluateResource.createPolicyMailSubject(new MailPolicyAlertCounts(0, 0, 3, 4, 5)));
-    Assert.assertEquals("Policy Alert: 9 neutral violations out of 9",
-        PolicyEvaluateResource.createPolicyMailSubject(new MailPolicyAlertCounts(0, 0, 0, 4, 5)));
-    Assert.assertEquals("Policy Alert: 5 neutral violations out of 5",
-        PolicyEvaluateResource.createPolicyMailSubject(new MailPolicyAlertCounts(0, 0, 0, 0, 5)));
   }
 
   @Test

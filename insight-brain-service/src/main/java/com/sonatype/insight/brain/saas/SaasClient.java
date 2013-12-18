@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.saas;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -116,8 +117,17 @@ public class SaasClient
   {
     long start = System.currentTimeMillis();
 
+    try {
+      HttpResponse response = getResponse(request, path, queryParams, uriParams);
+      return fromHttpResponse(response, clazz);
+    }
+    finally {
+      log.debug("Completed SaaS request in {} ms.", System.currentTimeMillis() - start);
+    }
+  }
+
+  private <T> T fromHttpResponse(HttpResponse response, Class<T> clazz) throws IOException {
     boolean usingStream = false;
-    HttpResponse response = getResponse(request, path, queryParams, uriParams);
     try {
       switch (response.getStatusLine().getStatusCode()) {
         case 200:
@@ -169,7 +179,6 @@ public class SaasClient
           log.error("Failed to consume response entity", e);
         }
       }
-      log.debug("Completed SaaS request in {} ms.", System.currentTimeMillis() - start);
     }
   }
 
@@ -222,6 +231,34 @@ public class SaasClient
     }
     catch (HttpHostConnectException e) {
       throw new GatewayTimeoutException(e.getMessage(), e);
+    }
+  }
+
+  /**
+   * @since 1.7.1
+   */
+  public <T> T put(Class<T> clazz, String path, File uploadFile, String... uriParams) throws IOException
+  {
+    long start = System.currentTimeMillis();
+
+    try {
+      if (!uploadFile.exists()) {
+        throw new FileNotFoundException(uploadFile.getAbsolutePath());
+      }
+      HttpPut cloudReq = new HttpPut(buildUri(path, uriParams));
+      FileEntity fileEntity = new FileEntity(uploadFile, ContentType.DEFAULT_BINARY);
+      cloudReq.setEntity(new BufferedHttpEntity(fileEntity));
+      populateRequest(null /* base request */, cloudReq);
+      try {
+        HttpResponse response = client.execute(cloudReq);
+        return fromHttpResponse(response, clazz);
+      }
+      catch (HttpHostConnectException e) {
+        throw new GatewayTimeoutException(e.getMessage(), e);
+      }
+    }
+    finally {
+      log.debug("Completed SaaS request in {} ms.", System.currentTimeMillis() - start);
     }
   }
 
@@ -285,6 +322,10 @@ public class SaasClient
       });
     }
     return builder.build();
+  }
+
+  private String buildUri(String path, String... uriParams) {
+    return buildUri(null /* base request */, path, null /* queryParams */, uriParams);
   }
 
   private String buildUri(HttpServletRequest base, String path, Map<String, String> queryParams, String... uriParams) {

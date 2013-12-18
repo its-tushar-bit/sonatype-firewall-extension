@@ -493,15 +493,16 @@ public class PolicyEvaluatorTest
     }
 
     // Slice facts into alerts
-    final List<PolicyAlert> expectedAlerts = PolicyEvaluator
-        .createAlerts(policies, facts, new Stage(BuildStageType.ID));
+    final List<PolicyAlert> expectedAlerts = PolicyEvaluator.createAlerts(policies, facts,
+        new Stage(BuildStageType.ID), false /* forMonitoring */);
 
     // Check slicing is consistent
     for (int i = 0; i < 100; i++) {
       Collections.shuffle(facts);
       Collections.shuffle(policies);
 
-      final List<PolicyAlert> alerts = PolicyEvaluator.createAlerts(policies, facts, new Stage(BuildStageType.ID));
+      final List<PolicyAlert> alerts = PolicyEvaluator.createAlerts(policies, facts, new Stage(BuildStageType.ID),
+          false /* forMonitoring */);
 
       Assert.assertEquals(alertsToString(expectedAlerts), alertsToString(alerts));
     }

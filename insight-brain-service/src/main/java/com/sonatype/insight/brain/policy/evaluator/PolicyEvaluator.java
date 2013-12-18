@@ -18,6 +18,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.ComponentFact;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
@@ -67,19 +68,31 @@ public class PolicyEvaluator
 
   public List<PolicyAlert> evaluate(String applicationId, Stage stage, PolicyDAO policyDAO, List<Component> components)
   {
+    return evaluate(applicationId, stage, policyDAO, components, false /* forMonitoring */);
+  }
+
+  public List<PolicyAlert> evaluate(String applicationId, Stage stage, PolicyDAO policyDAO, List<Component> components,
+      boolean forMonitoring)
+  {
     List<Policy> policies = policyDAO.getApplicableByOwnerId(applicationId);
-    return evaluate(applicationId, stage, policies, components);
+    return evaluate(applicationId, stage, policies, components, forMonitoring);
   }
 
   // Package visibility for tests only
   List<PolicyAlert> evaluate(final String applicationId, final Stage stage, final List<Policy> policies,
       final List<Component> components)
   {
+    return evaluate(applicationId, stage, policies, components, false /* forMonitoring */);
+  }
+
+  List<PolicyAlert> evaluate(final String applicationId, final Stage stage, final List<Policy> policies,
+      final List<Component> components, boolean forMonitoring)
+  {
     final long start = System.currentTimeMillis();
 
     List<MatchFact> facts = evaluateFacts(applicationId, policies, components);
     facts = applyWaivers(applicationId, facts);
-    final List<PolicyAlert> alerts = createAlerts(policies, facts, stage);
+    final List<PolicyAlert> alerts = createAlerts(policies, facts, stage, forMonitoring);
 
     log.debug("Evaluated policies in {} millisecs", System.currentTimeMillis() - start);
 
@@ -103,7 +116,9 @@ public class PolicyEvaluator
     return result;
   }
 
-  static List<PolicyAlert> createAlerts(final List<Policy> policies, final List<MatchFact> facts, final Stage stage) {
+  static List<PolicyAlert> createAlerts(final List<Policy> policies, final List<MatchFact> facts, final Stage stage,
+      boolean forMonitoring)
+  {
     // Ordering of facts + slicing with LinkedHashMap should = consistent alerts
     Collections.sort(facts, MATCHES_BY_POLICY_COMPONENT_CONSTRAINT_CONDITION);
 
@@ -141,7 +156,14 @@ public class PolicyEvaluator
         }
       }
       if (!policyFact.getComponentFacts().isEmpty()) {
-        alerts.add(new PolicyAlert(policyFact, policy.getActions(stage.getStageTypeId())));
+        List<? extends Action> actions;
+        if (forMonitoring) {
+          actions = policy.getMonitorNotifyActions();
+        }
+        else {
+          actions = policy.getActions(stage.getStageTypeId());
+        }
+        alerts.add(new PolicyAlert(policyFact, actions));
       }
     }
     return alerts;

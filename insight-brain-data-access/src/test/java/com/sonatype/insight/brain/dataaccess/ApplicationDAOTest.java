@@ -15,9 +15,11 @@ import java.util.Locale;
 
 import javax.imageio.ImageIO;
 
+import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
 import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
@@ -30,6 +32,7 @@ import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
+import com.sonatype.insight.brain.model.policy.PolicyMonitoring;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
@@ -42,6 +45,10 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -494,5 +501,20 @@ public class ApplicationDAOTest
 
     application.setName(name);
     applicationDAO.update(application);
+  }
+
+  @Test
+  public void testCascadeDeleteToPolicyMonitoring() {
+    application.setName("testCascadeDeleteToPolicyMonitoring");
+    applicationDAO.insert(application);
+
+    PolicyMonitoringDAO policyMonitoringDAO = new PolicyMonitoringDAO();
+    PolicyMonitoring policyMonitoring = new PolicyMonitoring(application.getId(), Stage.ID_RELEASE);
+    policyMonitoringDAO.insert(policyMonitoring);
+    assertThat(policyMonitoringDAO.getByOwnerId(application.getId()), is(notNullValue()));
+
+    applicationDAO.delete(application);
+
+    assertThat(policyMonitoringDAO.getByOwnerId(application.getId()), is(nullValue()));
   }
 }

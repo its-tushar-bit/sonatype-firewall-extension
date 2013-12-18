@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.List;
 
 import com.sonatype.clm.dto.model.policy.Action;
+import com.sonatype.clm.dto.model.policy.NotifyAction;
 import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.model.policy.actions.NotifyActionType;
@@ -357,5 +358,61 @@ public class PolicyValidationTest
     Assert.assertEquals("Policy 'Policy Name' has invalid constraints:", result.getErrors().get(0));
     Assert.assertEquals("Constraint 'Constraint Name' has invalid conditions:", result.getErrors().get(1));
     Assert.assertEquals(error, result.getErrors().get(2));
+  }
+
+  @Test
+  public void testValidate_MonitorNotifyActionWithEmptyEmail() {
+    Policy policy = new Policy("PolicyId", "Policy Name");
+    Constraint constraint = new Constraint("Constraint Id", "Constraint Name", LogicalOperator.AND);
+    constraint.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
+    policy.addConstraint(constraint);
+    NotifyAction notifyAction = new NotifyAction();
+    notifyAction.setTarget("  ");
+    policy.addMonitorNotifyAction(notifyAction);
+    ValidationResult result = policy.validate(applicationId);
+    assertValidationResultHasErrors(result, "Policy 'Policy Name' has invalid monitor notification actions:",
+        "Invalid action 'Notify': A valid e-mail address is required");
+
+    // Fix the action and validate again
+    notifyAction.setTarget("tester@sonatype.com");
+    result = policy.validate(applicationId);
+    Assert.assertTrue(result.isValid());
+  }
+
+  @Test
+  public void testValidate_MonitorNotifyActionTypeWithInvalidEmail() {
+    Policy policy = new Policy("PolicyId", "Policy Name");
+    Constraint constraint = new Constraint("Constraint Id", "Constraint Name", LogicalOperator.AND);
+    constraint.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
+    policy.addConstraint(constraint);
+    NotifyAction notifyAction = new NotifyAction();
+    notifyAction.setTarget("bad email address");
+    policy.addMonitorNotifyAction(notifyAction);
+    ValidationResult result = policy.validate(applicationId);
+    assertValidationResultHasErrors(result, "Policy 'Policy Name' has invalid monitor notification actions:",
+        "Invalid action 'Notify': A valid e-mail address is required instead of: bad email address");
+
+    // Fix the action and validate again
+    notifyAction.setTarget("tester@sonatype.com");
+    result = policy.validate(applicationId);
+    Assert.assertTrue(result.isValid());
+  }
+
+  @Test
+  public void testValidate_MonitorNotifyActionTypeWithNullEmail() {
+    Policy policy = new Policy("PolicyId", "Policy Name");
+    Constraint constraint = new Constraint("Constraint Id", "Constraint Name", LogicalOperator.AND);
+    constraint.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
+    policy.addConstraint(constraint);
+    NotifyAction notifyAction = new NotifyAction();
+    policy.addMonitorNotifyAction(notifyAction);
+    ValidationResult result = policy.validate(applicationId);
+    assertValidationResultHasErrors(result, "Policy 'Policy Name' has invalid monitor notification actions:",
+        "Invalid action 'Notify': A valid e-mail address is required");
+
+    // Fix the action and validate again
+    notifyAction.setTarget("tester@sonatype.com");
+    result = policy.validate(applicationId);
+    Assert.assertTrue(result.isValid());
   }
 }

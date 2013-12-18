@@ -115,17 +115,17 @@
       }
     };
 
-    $scope.addUser = function (user) {
+    $scope.addMember = function (member) {
       $scope.mappings[0].members.push({
-        type : user.type,
-        displayName : user.displayName,
-        internalName : user.internalName,
-        email : user.email,
-        realm : user.realm
+        type : member.type,
+        displayName : member.displayName,
+        internalName : member.internalName,
+        email : member.email,
+        realm : member.realm
       });
     };
 
-    $scope.removeUser = function ($parentIndex, member) {
+    $scope.removeMember = function ($parentIndex, member) {
       if ($parentIndex === 0)
         for (var i=0; i<$scope.mappings[0].members.length; i++) {
           if (member === $scope.mappings[0].members[i]) {
@@ -184,7 +184,7 @@
   /**
    * Filter which removes users present in a second array.
    */
-  appSecurityModule.filter('userNotIn', function () {
+  appSecurityModule.filter('memberNotIn', function () {
     return function (input, mappings) {
       var result = null,
           modified = false;

@@ -20,7 +20,7 @@
                 </div>
                 <div ng-repeat='mapping in mappings'>
                   <div ng-repeat='member in mapping.members | filter: { displayName : queryString, type : grouping.type } | orderBy:"displayName"'>
-                    <div ng-click='removeUser($parent.$index, member)' class='large-select-list-item' ng-class='{  inherited : $parent.$index }'>
+                    <div ng-click='removeMember($parent.$index, member)' class='large-select-list-item' ng-class='{  inherited : $parent.$index }'>
                       <div class="floatLeft">
                         <i ng-class='{ "icon-minus-sign" : !$parent.$index, "emptyIconGlyph" : $parent.$index }'></i>
                       </div>
@@ -43,21 +43,21 @@
           <h5>Available</h5>
           <div>
             <div>
-              <div class='large-select-query-item' ng-show="!queryString">Search above to find users</div>
+              <div class='large-select-query-item' ng-show="!queryString">Search above to find members.</div>
               <div ng-repeat='grouping in groupings'>
                 <div class='large-select-list-header' ng-if='showGroupingHeader(grouping, queryResults)'>
                   <i class='glyphicons-sonatype small' ng-class='grouping.icon'></i>{{grouping.header}}
                 </div>
-                <div ng-repeat='user in queryResults | userNotIn:mappings | filter: { type: grouping.type } | orderBy:"displayName"'>
-                  <div ng-click='addUser(user)' class='large-select-list-item'>
+                <div ng-repeat='member in queryResults | memberNotIn:mappings | filter: { type: grouping.type } | orderBy:"displayName"'>
+                  <div ng-click='addMember(member)' class='large-select-list-item'>
                     <div class='floatLeft'>
                       <i class='icon-plus-sign'></i>
                     </div>
                     <div class='large-select-list-item-content'>
-                      <span ng-bind-html="user.displayName | highlight:queryString:caseSensitive"></span>
+                      <span ng-bind-html="member.displayName | highlight:queryString:caseSensitive"></span>
                       <div>
-                        <span class='large-select-list-item-detail'>{{user.email}}</span>
-                        <span class='large-select-list-item-right-detail'>{{user.realm}}</span>
+                        <span class='large-select-list-item-detail'>{{member.email}}</span>
+                        <span class='large-select-list-item-right-detail'>{{member.realm}}</span>
                       </div>
                     </div>
                     <div style='clear:both'></div>

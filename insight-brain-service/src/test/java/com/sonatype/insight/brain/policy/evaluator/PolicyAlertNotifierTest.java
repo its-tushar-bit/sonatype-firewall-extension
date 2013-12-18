@@ -5,7 +5,7 @@
  */
 package com.sonatype.insight.brain.policy.evaluator;
 
-import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateResource.MailPolicyAlertCounts;
+import com.sonatype.insight.brain.policy.evaluator.PolicyAlertNotifier.MailPolicyAlertCounts;
 
 import org.junit.Assert;
 import org.junit.Test;

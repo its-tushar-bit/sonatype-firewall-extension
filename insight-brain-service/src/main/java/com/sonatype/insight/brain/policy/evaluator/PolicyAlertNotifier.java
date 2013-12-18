@@ -28,7 +28,6 @@ import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
 import com.sonatype.insight.brain.model.policy.actions.ActionTypes;
 import com.sonatype.insight.brain.model.policy.actions.NotifyActionType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
-import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateResource.MailPolicyAlertCounts;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightMail;
 import com.sonatype.insight.brain.utils.TemplateUtils;
@@ -171,5 +170,42 @@ public class PolicyAlertNotifier
     model.put("actionTypes", ActionTypes.getAll());
 
     return model;
+  }
+
+  static class MailPolicyAlertCounts
+  {
+    public int red, orange, yellow, darkBlue, blue;
+
+    public MailPolicyAlertCounts(final int red, final int orange, final int yellow, final int darkBlue, final int blue)
+    {
+      this.red = red;
+      this.orange = orange;
+      this.yellow = yellow;
+      this.darkBlue = darkBlue;
+      this.blue = blue;
+    }
+
+    public MailPolicyAlertCounts(final List<PolicyAlert> alerts) {
+      for (PolicyAlert alert : alerts) {
+        int level = alert.getTrigger().getThreatLevel();
+        int components = alert.getTrigger().getComponentFacts().size();
+
+        if (level > 7) {
+          red += components;
+        }
+        else if (level > 3) {
+          orange += components;
+        }
+        else if (level > 1) {
+          yellow += components;
+        }
+        else if (level == 1) {
+          darkBlue += components;
+        }
+        else {
+          blue += components;
+        }
+      }
+    }
   }
 }

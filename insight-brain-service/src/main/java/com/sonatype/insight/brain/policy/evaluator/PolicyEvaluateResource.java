@@ -87,41 +87,4 @@ public class PolicyEvaluateResource
     return policyEvaluationResult;
   }
 
-  static class MailPolicyAlertCounts
-  {
-    public int red, orange, yellow, darkBlue, blue;
-
-    public MailPolicyAlertCounts(final int red, final int orange, final int yellow, final int darkBlue, final int blue)
-    {
-      this.red = red;
-      this.orange = orange;
-      this.yellow = yellow;
-      this.darkBlue = darkBlue;
-      this.blue = blue;
-    }
-
-    public MailPolicyAlertCounts(final List<PolicyAlert> alerts) {
-      for (PolicyAlert alert : alerts) {
-        int level = alert.getTrigger().getThreatLevel();
-        int components = alert.getTrigger().getComponentFacts().size();
-
-        if (level > 7) {
-          red += components;
-        }
-        else if (level > 3) {
-          orange += components;
-        }
-        else if (level > 1) {
-          yellow += components;
-        }
-        else if (level == 1) {
-          darkBlue += components;
-        }
-        else {
-          blue += components;
-        }
-      }
-    }
-  }
-
 }

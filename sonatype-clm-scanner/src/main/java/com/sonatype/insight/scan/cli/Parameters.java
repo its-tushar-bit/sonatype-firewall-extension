@@ -75,7 +75,7 @@ public class Parameters
 
   @Parameter(names = {"-t", "--stage"}, validateValueWith = StageParameterValidator.class,
       converter = StageParameterConverter.class,
-      description = "Development stage to run analysis against. Accepted values: " + Stage.ID_BUILD + "|" +
+      description = "Lifecycle stage to run analysis against. Accepted values: " + Stage.ID_BUILD + "|" +
           Stage.ID_STAGE_RELEASE + "|" + Stage.ID_RELEASE)
   private Stage stage = new Stage(Stage.ID_BUILD);
 
@@ -237,7 +237,7 @@ public class Parameters
     @Override
     public void validate(String name, Stage value) throws ParameterException {
       if (!Stage.isValidStageTypeId(value.getStageTypeId())) {
-        throw new ParameterException("An invalid development stage was specified: " + name + " " + value);
+        throw new ParameterException("An invalid lifecycle stage was specified: " + name + " " + value);
       }
     }
   }

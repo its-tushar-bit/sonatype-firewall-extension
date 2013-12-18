@@ -9,12 +9,12 @@
   'use strict';
 
   var policyModule = angular.module('Policy',
-      ['PolicyEditor', 'CLMAppLocation', 'AngularCommon', 'CommonServices']);
+      ['PolicyEditor', 'CLMAppLocation', 'AngularCommon', 'CommonServices', 'Stores']);
 
   policyModule.controller('PolicyController', [
     '$scope', '$location', '$http', '$rootScope', '$q', 'PolicyStore', 'ActionStore',
     'CLMAppLocations', 'Dialog', 'ownerChange',
-    function($scope, $location, $http, $rootScope, $q, policyStore, actionStore, clmAppLocations, Dialog, ownerChange) {
+    function($scope, $location, $http, $rootScope, $q, policyStore, ActionStore, clmAppLocations, Dialog, ownerChange) {
 
       $scope.alerts = [];
       $scope.location = $location;
@@ -85,7 +85,7 @@
   ]);
 
   policyModule.directive('policyItems', [
-    'ActionStore', function(actionStore) {
+    'ActionStore', function(ActionStore) {
       function capitalize(text) {
         if (text && text.length > 1) {
           return text.substring(0, 1).toUpperCase() + text.substring(1);
@@ -94,7 +94,7 @@
       }
 
       var actionStageList = null;
-      actionStore.get().then(function(data) {
+      ActionStore.get().then(function(data) {
         actionStageList = data[1];
       });
       return {

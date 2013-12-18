@@ -8,7 +8,7 @@
   'use strict';
 
   var applicationModule = angular.module('ApplicationModule',
-      ['ui.router', 'AngularCommon', 'CLMLocation', 'ManagementModule', 'Policy', 'LicenseThreatGroup', 'Labels', 'ApplicationSecurityModule'],
+      ['ui.router', 'AngularCommon', 'CLMLocation', 'ManagementModule', 'Policy', 'LicenseThreatGroup', 'Labels', 'ApplicationSecurityModule', 'Stores'],
       ['$stateProvider', function($stateProvider) {
         $stateProvider.state('management.application', {
           parent: 'management',
@@ -24,12 +24,12 @@
           },
           templateUrl: '../application-assets/components/aoeditor.html?' + clmBuildTimestamp,
           resolve : {
-            selectedApplication : function ($q, $stateParams, applicationStore) {
+            selectedApplication : function ($q, $stateParams, ApplicationStore) {
               if ($stateParams.applicationPublicId === '_new_')
-                return applicationStore.create();
+                return ApplicationStore.create();
 
               var deferred = $q.defer();
-              applicationStore.get().then(function (data) {
+              ApplicationStore.get().then(function (data) {
                 for (var i=0; i<data.length; i++) {
                   if (data[i].publicId === $stateParams.applicationPublicId) {
                     deferred.resolve(data[i].$clone());
@@ -68,8 +68,8 @@
       }]);
 
   applicationModule.controller('applicationController', [
-    '$scope', '$state', '$location', 'applicationStore', 'CLMLocations',
-    function($scope, $state, $location, applicationStore, CLMLocations) {
+    '$scope', '$state', '$location', 'ApplicationStore', 'CLMLocations',
+    function($scope, $state, $location, ApplicationStore, CLMLocations) {
       $scope.location = $location;
 
       // Store icon cache timestamps at higher scope so it is not reinstantiated with editor controller
@@ -89,7 +89,7 @@
 
       $scope.doLoad = function() {
         $scope.error = null;
-        applicationStore.get().then(function(applications) {
+        ApplicationStore.get().then(function(applications) {
           $scope.applications = applications;
         }, function(error) {
           $scope.error = error;
@@ -100,7 +100,7 @@
   ]);
 
   applicationModule.controller('applicationEditorController',
-      function($scope, $state, $http, $q, $modal, applicationStore, OrganizationStore, CLMLocations, CLMAppLocations, Messages,
+      function($scope, $state, $http, $q, $modal, OrganizationStore, CLMLocations, CLMAppLocations, Messages,
                editorTools, ActionStore, policyEvaluator, selectedApplication)
       {
         var me = this;
@@ -178,7 +178,7 @@
           if (!selectedApplication.organizationId) {
             promises.push(OrganizationStore.get());
           }
-
+          
           $q.all(promises).then(function(results) {
             $scope.selectedApplication = selectedApplication;
             setApplicationIcon();
@@ -422,24 +422,23 @@
             $scope.$broadcast('refresh', $scope.selectedApplication);
           }, angular.noop);
         };
+        
+        $scope.openEvalute = function () {
+          $modal.open({
+            backdrop : 'static',
+            keyboard : false,
+            templateUrl : 'evaluate-bundle-modal',
+            controller : 'EvaluateBundleController',
+            resolve: {
+              selectedApplication: function() {
+                return $scope.selectedApplication;
+              }
+            }
+          }).result.then(function () {
+            $scope.$broadcast('refresh', $scope.selectedApplication);
+          }, angular.noop);
+        };
       });
-
-  applicationModule.service('applicationStore', [
-    '$rootScope', 'CLMLocations', 'CLMResource', function($rootScope, clmLocations, clmResource) {
-      var applicationStore = clmResource.getStore({
-        id: 'publicId',
-        url: clmLocations.getApplicationsUrl(),
-        template: { id: null, publicId: null, name: null, organizationId: null },
-        params: {
-          timestamp: new Date().getTime()
-        }
-      });
-      $rootScope.$on('organizations.delete', function(event, organizationId) {
-        applicationStore.refresh();
-      });
-      return applicationStore;
-    }
-  ]);
 
   applicationModule.service('ApplicationId', [
     'commonCodeFactory', '$state', function(commonCodeFactory, $state) {

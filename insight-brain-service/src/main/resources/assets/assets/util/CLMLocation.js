@@ -97,6 +97,10 @@
 
         getApplicationScanSummary : function (applicationId, scanId) {
           return baseUrl.get() + '/rest/application/services/summary/' + encodeURIComponent(applicationId) + '/' + scanId;
+        },
+        
+        getBundleUploadUrl : function (applicationId) {
+          return baseUrl.get() + '/rest/scan/' + encodeURIComponent(applicationId) + (!$window.FormData ? '?forceSuccess=true' : '');
         }
       };
     }

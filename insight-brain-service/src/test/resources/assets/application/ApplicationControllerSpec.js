@@ -103,7 +103,7 @@ describe('ApplicationEditorController', function() {
   });
 
   describe('New Application', function () {
-    beforeEach(inject(function($httpBackend, $rootScope, $controller, $state, CLMLocations, CLMAppLocations, applicationStore) {
+    beforeEach(inject(function($httpBackend, $rootScope, $controller, $state, CLMLocations, CLMAppLocations, ApplicationStore) {
       rootScope = $rootScope;
 
       $state.current.name = 'management.application';
@@ -123,7 +123,7 @@ describe('ApplicationEditorController', function() {
       scope = parentScope.$new();
       state = $state;
 
-      var selectedApplication = applicationStore.create();
+      var selectedApplication = ApplicationStore.create();
 
       parentScope.applications = [selectedApplication];
       parentScope.applicationIconTimestamp = {}
@@ -139,7 +139,7 @@ describe('ApplicationEditorController', function() {
   });
 
   describe('Existing Application No Org', function () {
-    beforeEach(inject(function($httpBackend, $rootScope, $controller, $state, applicationStore, CLMLocations) {
+    beforeEach(inject(function($httpBackend, $rootScope, $controller, $state, ApplicationStore, CLMLocations) {
       rootScope = $rootScope;
 
       $state.current.name = 'management.application';
@@ -148,7 +148,7 @@ describe('ApplicationEditorController', function() {
       scope = parentScope.$new();
       state = $state;
 
-      var selectedApplication = applicationStore.create();
+      var selectedApplication = ApplicationStore.create();
 
       parentScope.applications = [selectedApplication];
       parentScope.applicationIconTimestamp = {}
@@ -173,7 +173,7 @@ describe('ApplicationEditorController', function() {
   });
 
   describe('Existing Application', function () {
-    beforeEach(inject(function($httpBackend, $rootScope, $controller, $state, CLMLocations, CLMAppLocations, applicationStore) {
+    beforeEach(inject(function($httpBackend, $rootScope, $controller, $state, CLMLocations, CLMAppLocations, ApplicationStore) {
       httpBackend = $httpBackend;
       rootScope = $rootScope;
 
@@ -193,7 +193,7 @@ describe('ApplicationEditorController', function() {
       scope = parentScope.$new();
       state = $state;
 
-      var selectedApplication = applicationStore.create();
+      var selectedApplication = ApplicationStore.create();
       selectedApplication.$new = false;
       selectedApplication.$updateOriginal(mockApplication);
       originalMockApplication = angular.copy(selectedApplication);
@@ -398,10 +398,10 @@ describe('ApplicationEditorController', function() {
     }));
 
     it('Refreshes the list of applications when informed that an organization has been deleted',
-            inject(function(CLMAppLocations, applicationStore) {
-              var applicationStoreSpy = spyOn(applicationStore, 'refresh');
+            inject(function(CLMAppLocations, ApplicationStore) {
+              var ApplicationStoreSpy = spyOn(ApplicationStore, 'refresh');
               rootScope.$broadcast('organizations.delete');
-              expect(applicationStoreSpy).toHaveBeenCalled()
+              expect(ApplicationStoreSpy).toHaveBeenCalled()
             }));
 
     it('displays confirmation dialog', function() {

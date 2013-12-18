@@ -20,6 +20,24 @@ MockData = {
       "id": "operate"
     }];
   },
+  getActionTypeData: function() {
+    return [{
+      "name": "Fail",
+      "id": "fail",
+      "summary": "Build Failed",
+      "requiresTarget": false
+    }, {
+      "name": "Warn",
+      "id": "warn",
+      "summary": "Build Warning",
+      "requiresTarget": false
+    }, {
+      "name": "Notify",
+      "id": "notify",
+      "summary": "Notification Sent",
+      "requiresTarget": true
+    }];
+  },
   getRoleOneData: function() {
     return {
       "roleId": "1da70fae1fd54d6cb7999871ebdb9a36",

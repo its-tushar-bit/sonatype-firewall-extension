@@ -18,6 +18,66 @@
 			</div>
 		</div>
 	</script>
+	<script type='text/ng-template' id='evaluate-bundle-modal'>
+	<div id='evaluate-bundle-dialog'>
+		<div class='modal-header'>
+			<button type="button" class="close"  ng-click='$dismiss()' aria-hidden="true">&times;</button>
+			<h3>Evaluate an Application</h3>
+		</div>
+		<div ng-switch='loading'>
+			<div ng-switch-when="true">
+				<i class='icon icon-time'></i> Loading...
+			</div>
+			<div ng-switch-when="false">
+				<form name='evaluateBundle' action='invalid' enctype='multipart/form-data' method='post' ng-upload style='margin-bottom:0px'>
+					<div class='modal-body'>
+						<div class='control-group'>
+							<label class="control-label" for='bundleFile'>Select the bundle you want scanned:</label>
+							<div class='controls'>
+								<input type='file' ng-model='bundle.file' id='bundleFile' name='file'>
+							</div>
+						</div>
+		                <div class='control-group'>
+							<label class="control-label" for='bundleApplication'>Which application is this bundle associated with?</label>
+							<div class='controls'>
+								<select id='bundleApplication' ng-required="true" ng-model="bundle.applicationPublicId" ng-change="updateFormActionUrl()" ng-options="app.publicId as app.name for app in applications">
+									<option value="">-- Select Application --</option>
+								</select>
+							</div>
+						</div>
+						<div class='control-group'>
+							<label class="control-label" for='bundleStage'>What development stage should this scan be associated with?</label>
+							<div class='controls'>
+								<select id='bundleStage' ng-required="true" ng-model="bundle.stage" ng-options="stage.id as stage.name for stage in stages">
+									<option value="">-- Select Stage --</option>
+								</select>
+							</div>
+						</div>
+						<div class='control-group'>
+							<label class="control-label" for='bundleNotifications'>Should policy violations send notifications?</label>
+							<div class='controls'>
+								<label class="radio">
+            						<input type="radio" ng-model="bundle.notify" value="true"/>
+									Yes, raise alerts
+								</label>
+        						<label class="radio">
+           		 				<input type="radio" ng-model="bundle.notify" value="false"/>
+            						No, do not send alerts
+         						</label>
+							</div>
+						</div>
+					</div>
+					<div class='modal-footer'>
+						<span style="margin:0px;padding: 4px 35px 4px 14px;float:left;max-width:330px" ng-class="{'alert alert-error': error }" ng-show="error">{{error}}</span>
+						<button class='btn' type='button' ng-click='$dismiss()'>Cancel</button>
+						<button class='btn btn-primary' type='button' ng-disabled='requestActive || !isFormValid()' ng-click='doSubmit()'>Upload</button>
+					</div>
+					<input type='submit' upload-submit='uploaded(content, completed)' class='hide' />
+				</form>
+			</div>		
+		</div>
+	</div>
+	</script>
 	<script type='text/ng-template' id='import-policy-modal'>
 	<div id='import-policy-dialog'>
 		<div class='modal-header'>
@@ -84,6 +144,9 @@
 		<div style="float:right; margin:10px;" class='btn-group'>
 			<a class="btn btn-mini" title="Import Policies" ng-click="openImport()" ng-if='ao.getId()'>
 				<img src='../assets/img/icon-import.png' alt='Import Policy' style='width:16px;height:16px;padding:6px 0px'>
+			</a>
+			<a class="btn btn-mini" title="Evaluate an Application" ng-click="openEvalute()" ng-if='ao.getId()'>
+				<img src='../assets/img/icon-add-bundle.png' alt='Evaluate an Application' style='width:16px;height:16px;padding:6px 0px'>
 			</a>
 			<a class="btn btn-mini" title="Remove {{ao.typeName}}" ng-click="confirmDelete()" ng-if='ao.getId()'>
 				<i class='glyphicons-sonatype bin'></i>

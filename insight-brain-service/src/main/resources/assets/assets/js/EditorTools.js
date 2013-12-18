@@ -8,10 +8,99 @@
 /* global angular */
 (function() {
   'use strict';
-  function wrap($http, method, args, clmLocations) {
-  }
+  var module = angular.module('EditorTools', ['CommonServices', 'CLMAppLocation', 'Stores']);
+  
+  module.controller('EvaluateBundleController', ['$scope', '$http', '$timeout', '$window', 'Messages', 'CLMLocations', 'selectedApplication', 'ApplicationStore', 'ActionStore', '$q', function ($scope, $http, $timeout, $window, messages, CLMLocations, selectedApplication, ApplicationStore, ActionStore, $q) {
+    var fileElement = null;
+    
+    //Note that I am purposefully not using the angular $timeout, as each time it processes
+    //if the select dropdown is displayed, the highlighted item is reset every half second
+    //causes a wicked bad flicker effect
+    function fileCheck() {
+      if (!fileElement) {
+        fileElement = angular.element('form[name=evaluateBundle] input[type=file]')[0];
+      }
 
-  var module = angular.module('EditorTools', ['CommonServices', 'CLMAppLocation']);
+      if (!$scope.$$destroyed) {
+        $timeout(fileCheck, 500, false);
+      }
+    }
+        
+    function setError(message) {
+      $scope.requestActive = false;
+      //there are certain cases where the browser will not give us an error
+      //as we would expect, so we will add something default in this case
+      if (message) {
+        $scope.error = message;
+      } else {
+        $scope.error = 'Error uploading, please check the file.';
+      }
+    }
+    
+    function doLoad() {
+      $scope.loading = true;
+      $q.all([ActionStore.get(),ApplicationStore.get()]).then(function(results) {
+        $scope.applications = results[1];
+        $scope.stages = results[0][1];
+        $scope.bundle = {
+          notify: 'false',
+          applicationPublicId: selectedApplication ? selectedApplication.publicId : null
+        };
+        $scope.loading = false;
+        $timeout(fileCheck, 500);
+      }, function(error){
+        setError(messages.getHttpErrorMessage(error));
+        $scope.loading = false;
+      });  
+    }    
+    
+    $scope.doSubmit = function () {
+      $scope.requestActive = true;
+      $scope.error = null;
+      
+      if ($window.FormData) {
+        var form = new FormData();
+        form.append('file', fileElement.files[0]);
+        $http.post(CLMLocations.getBundleUploadUrl($scope.bundle.applicationPublicId), form, {
+          headers : {
+            'Content-Type' : undefined
+          },
+          transformRequest: angular.identity
+        }).success(function (data) {
+          $scope.$close(data);
+        }).error(function () {
+          setError(messages.getHttpErrorMessage(arguments));
+        });
+      }
+      else {
+        // IE9 case, trigger ng-upload
+        $('form[name=evaluateBundle]').find('input[type=submit]').trigger('click');
+      }
+    };
+    
+    $scope.updateFormActionUrl = function() {
+      $('form[name=evaluateBundle]').attr('action',CLMLocations.getBundleUploadUrl($scope.bundle.applicationPublicId));
+    };
+    
+    $scope.isFormValid = function() {
+      return fileElement && fileElement.files !== undefined && fileElement.files.length > 0 && $scope.bundle.applicationPublicId && $scope.bundle.stage && $scope.bundle.notify;
+    };
+
+    // Handler for ng-upload progress
+    $scope.uploaded = function (content, complete) {
+      if (complete) {
+        $scope.requestActive = false;
+        if (content.length === 0) {
+          // success
+          $scope.$close();
+        } else {
+          $scope.error = content;
+        }
+      }
+    };
+    
+    doLoad();
+  }]);
 
   module.controller('ImportPolicyController', ['$scope', '$http', '$timeout', '$window', 'Messages', 'CLMAppLocations', function ($scope, $http, $timeout, $window, messages, clmAppLocations) {
     function fileCheck() {

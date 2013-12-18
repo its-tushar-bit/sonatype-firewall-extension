@@ -8,7 +8,7 @@
   'use strict';
   var module = angular.module('PolicyEditor', [
     'CLMAppLocation', 'CLMLocation', 'ResourceModule', 'ui.router', 'ui.bootstrap', 'AngularCommon',
-    'CommonServices'
+    'CommonServices', 'Stores'
   ]);
 
   module.service('PolicyStore', [
@@ -63,25 +63,6 @@
         },
         getConditionTypes: function() {
           return conditionTypes;
-        }
-      };
-    }
-  ]);
-
-  module.service('ActionStore', [
-    'CLMLocations', 'CLMResource', '$q', function(clmLocations, clmResource, $q) {
-      var actionTypeStore = clmResource.getStore({
-            id: 'id',
-            url: clmLocations.getActionTypeUrl()
-          }),
-          actionStageStore = clmResource.getStore({
-            id: 'id',
-            url: clmLocations.getActionStageUrl()
-          }),
-          actionPromise = $q.all([actionTypeStore.get(), actionStageStore.get()]);
-      return {
-        'get': function() {
-          return actionPromise;
         }
       };
     }

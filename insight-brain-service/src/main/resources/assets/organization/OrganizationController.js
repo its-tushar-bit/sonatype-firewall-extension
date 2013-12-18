@@ -111,9 +111,9 @@
 
   organizationModule.controller('OrganizationEditorController', [
     '$scope', '$state', '$location', '$http', '$rootScope', '$modal', 'regexFactory', 'CLMLocations', 'editorTools',
-    'CLMAppLocations', 'Messages', 'CLMAppLocations', 'selectedOrganization',
+    'CLMAppLocations', 'Messages', 'CLMAppLocations', 'selectedOrganization', '$q',
     function($scope, $state, $location, $http, $rootScope, $modal, regexFactory, CLMLocations, editorTools,
-             clmAppLocations, messages, CLMAppLocations, selectedOrganization)
+             clmAppLocations, messages, CLMAppLocations, selectedOrganization, $q)
     {
       var me = this;
       angular.extend(me,
@@ -328,6 +328,22 @@
           keyboard : false,
           templateUrl : 'import-policy-modal',
           controller : 'ImportPolicyController'
+        }).result.then(function () {
+          $scope.$broadcast('refresh', $scope.selectedOrganization);
+        }, angular.noop);
+      };
+      
+      $scope.openEvalute = function () {
+        $modal.open({
+          backdrop : 'static',
+          keyboard : false,
+          templateUrl : 'evaluate-bundle-modal',
+          controller : 'EvaluateBundleController',
+          resolve: {
+            selectedApplication: function() {
+              return null;
+            }
+          }
         }).result.then(function () {
           $scope.$broadcast('refresh', $scope.selectedOrganization);
         }, angular.noop);

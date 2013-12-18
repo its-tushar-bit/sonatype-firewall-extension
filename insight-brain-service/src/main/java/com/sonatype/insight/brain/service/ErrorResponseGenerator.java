@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.service;
 
+import javax.inject.Named;
 import javax.ws.rs.core.Response;
 
 import org.apache.shiro.authz.UnauthenticatedException;
@@ -15,6 +16,7 @@ import org.apache.shiro.authz.UnauthorizedException;
  * 
  * @since 1.7
  */
+@Named
 public class ErrorResponseGenerator
     extends com.sonatype.insight.error.ErrorResponseGenerator
 {

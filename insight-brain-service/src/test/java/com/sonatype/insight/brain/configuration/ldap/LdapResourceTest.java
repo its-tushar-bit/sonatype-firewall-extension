@@ -28,6 +28,7 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.allOf;
+import static org.hamcrest.Matchers.anyOf;
 import static org.hamcrest.Matchers.containsString;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
@@ -418,7 +419,8 @@ public class LdapResourceTest
 
     Assert.assertEquals(LdapConnectionStatus.Status.FAILURE, status.getStatus());
     assertThat(status.getMessage(),
-        allOf(containsString("UnknownHostException"), containsString("garbage.localhost.litter")));
+        allOf(anyOf(containsString("UnknownHostException"), containsString("CommunicationException")),
+            containsString("garbage.localhost.litter")));
   }
 
   @Test

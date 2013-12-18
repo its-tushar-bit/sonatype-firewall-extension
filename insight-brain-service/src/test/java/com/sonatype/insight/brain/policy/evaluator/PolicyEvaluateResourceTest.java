@@ -925,7 +925,7 @@ public class PolicyEvaluateResourceTest
   private List<Message> createNotificationTestData(final String applicationPublicId, final String scanId)
       throws Exception
   {
-    Application application = createApplication(applicationPublicId);
+    createApplication(applicationPublicId);
     String licenseFingerprint = "PolicyEvaluateResourceTest_LicenseFingerprint";
     setLicenseFingerprint(licenseFingerprint);
 

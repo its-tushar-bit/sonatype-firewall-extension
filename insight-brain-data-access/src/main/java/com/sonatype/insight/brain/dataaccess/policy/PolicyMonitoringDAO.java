@@ -12,6 +12,7 @@ import javax.persistence.EntityManager;
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.model.policy.PolicyMonitoring;
 import com.sonatype.insight.error.exception.BadRequestException;
+import com.sonatype.insight.error.exception.NotFoundException;
 
 /**
  * @since 1.7.1
@@ -42,6 +43,14 @@ public class PolicyMonitoringDAO
     }
   }
 
+  public PolicyMonitoring getByOwnerIdNotNull(String ownerId) {
+    PolicyMonitoring entity = getByOwnerId(ownerId);
+    if (entity == null) {
+      throw new NotFoundException("Policy monitoring was not set for owner id " + ownerId);
+    }
+    return entity;
+  }
+
   public PolicyMonitoring getByOwnerId(EntityManager em, String ownerId) {
     String sQuery = "SELECT entity FROM PolicyMonitoring entity" + //
         " WHERE entity.ownerId=?1";
@@ -56,5 +65,28 @@ public class PolicyMonitoringDAO
     }
 
     super.insert(em, entity);
+  }
+
+  /**
+   * Sets (insert or update) the policy monitoring for an app/org.
+   */
+  public void set(PolicyMonitoring entity) {
+    EntityManager em = createEntityManager();
+    try {
+      em.getTransaction().begin();
+      PolicyMonitoring other = getByOwnerId(em, entity.getOwnerId());
+      if (other == null) {
+        entity.setId(null);
+        insert(em, entity);
+      }
+      else {
+        entity.setId(other.getId());
+        update(em, entity);
+      }
+      em.getTransaction().commit();
+    }
+    finally {
+      close(em);
+    }
   }
 }

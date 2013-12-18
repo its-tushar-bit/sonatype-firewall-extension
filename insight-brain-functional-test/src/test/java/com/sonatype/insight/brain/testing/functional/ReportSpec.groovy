@@ -8,7 +8,7 @@ package com.sonatype.insight.brain.testing.functional
 import com.sonatype.insight.brain.dataaccess.security.UserDAO
 import com.sonatype.insight.brain.model.security.User
 import com.sonatype.insight.brain.security.CLMRealm
-
+import org.codehaus.plexus.util.FileUtils
 import spock.lang.Ignore;
 
 import spock.lang.Shared
@@ -96,5 +96,25 @@ extends BaseSpec {
     policyCount == '0 Policies'
     applicationCount ==  '0 Applications'
     violationCount == '0 Violations'
+  }
+
+  def "We display an accurate component chart"() {
+    when:
+      FileUtils.copyURLToFile(getClass().getResource("/ReportTest/trending-report.json"), new File('target/test-brain-work/report/trending-report.json'))
+      browser.driver.navigate().refresh()
+      at TrendingReportPage
+    then:
+      percentageChartControl.displayed
+      def chartWidth = percentageChartControl.getWidth()
+
+      exactComponentBar.displayed
+      partialComponentBar.displayed
+      unknownComponentBar.displayed
+      proprietaryComponentBar.displayed
+
+      exactComponentBar.getWidth() / chartWidth == 0.4
+      partialComponentBar.getWidth() / chartWidth == 0.3
+      unknownComponentBar.getWidth() / chartWidth == 0.2
+      proprietaryComponentBar.getWidth() / chartWidth == 0.1
   }
 }

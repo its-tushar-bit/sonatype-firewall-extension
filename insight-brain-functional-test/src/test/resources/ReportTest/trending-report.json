@@ -1,0 +1,375 @@
+{
+  "meta" : {
+    "generatedOn" : 1387303429358,
+    "periodStart" : 1385575429358,
+    "periodEnd" : 1387303429358
+  },
+  "generation" : null,
+  "components" : {
+    "exact" : 40,
+    "partial" : 30,
+    "unknown" : 20,
+    "proprietary" : 10,
+    "inApplication" : 100
+  },
+  "applications" : {
+    "total" : 3,
+    "risks" : [ {
+      "name" : "Bar Bax",
+      "critical" : 7,
+      "severe" : 7,
+      "moderate" : 0,
+      "none" : 20,
+      "risk" : 840
+    }, {
+      "name" : "Application New",
+      "critical" : 2,
+      "severe" : 0,
+      "moderate" : 10,
+      "none" : 0,
+      "risk" : 250
+    }, {
+      "name" : "Foo",
+      "critical" : 1,
+      "severe" : 2,
+      "moderate" : 0,
+      "none" : 3,
+      "risk" : 140
+    } ]
+  },
+  "violations" : [ {
+    "name" : "Security-High",
+    "category" : "security",
+    "threat" : 9,
+    "violations" : [ 2, 4, 4, 3 ]
+  }, {
+    "name" : "License-Copyleft",
+    "category" : "license",
+    "threat" : 8,
+    "violations" : [ 4, 8, 8, 4 ]
+  }, {
+    "name" : "Last Violation",
+    "category" : "license",
+    "threat" : 2,
+    "violations" : [ 3, 3, 3, 3 ]
+  }, {
+    "name" : "asdf",
+    "category" : "quality",
+    "threat" : 5,
+    "violations" : [ 0, 14, 0, 0 ]
+  }, {
+    "name" : "Test",
+    "category" : "other",
+    "threat" : 10,
+    "violations" : [ 0, 0, 1, 1 ]
+  }, {
+    "name" : "Security-Medium",
+    "category" : "security",
+    "threat" : 7,
+    "violations" : [ 7, 14, 14, 9 ]
+  }, {
+    "name" : "Architecture-Quality",
+    "category" : "quality",
+    "threat" : 1,
+    "violations" : [ 20, 40, 40, 23 ]
+  }, {
+    "name" : "Violation",
+    "category" : "security",
+    "threat" : 2,
+    "violations" : [ 7, 7, 7, 7 ]
+  }, {
+    "name" : "Another Violation",
+    "category" : "license",
+    "threat" : 10,
+    "violations" : [ 2, 2, 2, 2 ]
+  } ],
+  "partialMatches" : [ {
+    "groupId" : "org.apache.lucene",
+    "artifactId" : "lucene-spellchecker",
+    "version" : "2.9.0",
+    "count" : 1
+  }, {
+    "groupId" : "org.slf4j",
+    "artifactId" : "slf4j-api",
+    "version" : "1.6.1",
+    "count" : 1
+  }, {
+    "groupId" : "commons-httpclient",
+    "artifactId" : "commons-httpclient",
+    "version" : "3.1",
+    "count" : 1
+  } ],
+  "diffData" : {
+    "security" : [ {
+      "threat" : "critical",
+      "violations" : 3,
+      "previousViolations" : 2
+    }, {
+      "threat" : "severe",
+      "violations" : 9,
+      "previousViolations" : 7
+    }, {
+      "threat" : "moderate",
+      "violations" : 7,
+      "previousViolations" : 0
+    }, {
+      "threat" : "none",
+      "violations" : 0,
+      "previousViolations" : 0
+    } ],
+    "license" : [ {
+      "threat" : "critical",
+      "violations" : 6,
+      "previousViolations" : 4
+    }, {
+      "threat" : "severe",
+      "violations" : 0,
+      "previousViolations" : 0
+    }, {
+      "threat" : "moderate",
+      "violations" : 3,
+      "previousViolations" : 0
+    }, {
+      "threat" : "none",
+      "violations" : 0,
+      "previousViolations" : 0
+    } ],
+    "quality" : [ {
+      "threat" : "critical",
+      "violations" : 0,
+      "previousViolations" : 0
+    }, {
+      "threat" : "severe",
+      "violations" : 0,
+      "previousViolations" : 0
+    }, {
+      "threat" : "moderate",
+      "violations" : 0,
+      "previousViolations" : 0
+    }, {
+      "threat" : "none",
+      "violations" : 23,
+      "previousViolations" : 20
+    } ],
+    "other" : [ {
+      "threat" : "critical",
+      "violations" : 1,
+      "previousViolations" : 0
+    }, {
+      "threat" : "severe",
+      "violations" : 0,
+      "previousViolations" : 0
+    }, {
+      "threat" : "moderate",
+      "violations" : 0,
+      "previousViolations" : 0
+    }, {
+      "threat" : "none",
+      "violations" : 0,
+      "previousViolations" : 0
+    } ]
+  },
+  "topPolicyViolations" : {
+    "security" : [ {
+      "groupId" : "org.mortbay.jetty",
+      "artifactId" : "jetty",
+      "version" : "6.1.15",
+      "critical" : 1,
+      "severe" : 1,
+      "moderate" : 1,
+      "none" : 0,
+      "risk" : 125
+    }, {
+      "groupId" : "org.apache.geronimo.framework",
+      "artifactId" : "geronimo-security",
+      "version" : "2.1",
+      "critical" : 1,
+      "severe" : 1,
+      "moderate" : 1,
+      "none" : 0,
+      "risk" : 125
+    }, {
+      "groupId" : "org.apache.struts",
+      "artifactId" : "struts2-core",
+      "version" : "2.3.15.1",
+      "critical" : 1,
+      "severe" : 1,
+      "moderate" : 0,
+      "none" : 0,
+      "risk" : 120
+    }, {
+      "groupId" : "tomcat",
+      "artifactId" : "servlets-default",
+      "version" : "5.5.4",
+      "critical" : 0,
+      "severe" : 1,
+      "moderate" : 1,
+      "none" : 0,
+      "risk" : 25
+    }, {
+      "groupId" : "org.openid4java",
+      "artifactId" : "openid4java",
+      "version" : "0.9.5",
+      "critical" : 0,
+      "severe" : 1,
+      "moderate" : 1,
+      "none" : 0,
+      "risk" : 25
+    } ],
+    "license" : [ {
+      "groupId" : "edu.ucar",
+      "artifactId" : "unidataCommon",
+      "version" : "4.2.20",
+      "critical" : 1,
+      "severe" : 0,
+      "moderate" : 0,
+      "none" : 0,
+      "risk" : 100
+    }, {
+      "groupId" : "javancss",
+      "artifactId" : "javancss",
+      "version" : "29.50",
+      "critical" : 1,
+      "severe" : 0,
+      "moderate" : 0,
+      "none" : 0,
+      "risk" : 100
+    }, {
+      "groupId" : "cobertura",
+      "artifactId" : "cobertura",
+      "version" : "1.6",
+      "critical" : 1,
+      "severe" : 0,
+      "moderate" : 0,
+      "none" : 0,
+      "risk" : 100
+    }, {
+      "groupId" : "org.apache.avro",
+      "artifactId" : "avro-ipc",
+      "version" : "1.5.0",
+      "critical" : 1,
+      "severe" : 0,
+      "moderate" : 0,
+      "none" : 0,
+      "risk" : 100
+    }, {
+      "groupId" : "org.slf4j",
+      "artifactId" : "slf4j-api",
+      "version" : "1.6.1",
+      "critical" : 1,
+      "severe" : 0,
+      "moderate" : 0,
+      "none" : 0,
+      "risk" : 100
+    } ],
+    "quality" : [ {
+      "groupId" : "tomcat",
+      "artifactId" : "servlets-default",
+      "version" : "5.5.4",
+      "critical" : 0,
+      "severe" : 0,
+      "moderate" : 0,
+      "none" : 1,
+      "risk" : 0
+    }, {
+      "groupId" : "org.apache.lucene",
+      "artifactId" : "lucene-spellchecker",
+      "version" : "2.9.0",
+      "critical" : 0,
+      "severe" : 0,
+      "moderate" : 0,
+      "none" : 1,
+      "risk" : 0
+    }, {
+      "groupId" : "org.apache.geronimo.framework",
+      "artifactId" : "geronimo-security",
+      "version" : "2.1",
+      "critical" : 0,
+      "severe" : 0,
+      "moderate" : 0,
+      "none" : 1,
+      "risk" : 0
+    }, {
+      "groupId" : "org.apache.avro",
+      "artifactId" : "avro-ipc",
+      "version" : "1.5.0",
+      "critical" : 0,
+      "severe" : 0,
+      "moderate" : 0,
+      "none" : 1,
+      "risk" : 0
+    }, {
+      "groupId" : "geronimo",
+      "artifactId" : "geronimo-tomcat",
+      "version" : "1.0",
+      "critical" : 0,
+      "severe" : 0,
+      "moderate" : 0,
+      "none" : 1,
+      "risk" : 0
+    } ],
+    "other" : [ {
+      "groupId" : "commons-httpclient",
+      "artifactId" : "commons-httpclient",
+      "version" : "3.1",
+      "critical" : 1,
+      "severe" : 0,
+      "moderate" : 0,
+      "none" : 0,
+      "risk" : 100
+    } ],
+    "all" : [ {
+      "groupId" : "commons-httpclient",
+      "artifactId" : "commons-httpclient",
+      "version" : "3.1",
+      "critical" : 1,
+      "severe" : 1,
+      "moderate" : 2,
+      "none" : 1,
+      "risk" : 130
+    }, {
+      "groupId" : "org.apache.geronimo.framework",
+      "artifactId" : "geronimo-security",
+      "version" : "2.1",
+      "critical" : 1,
+      "severe" : 1,
+      "moderate" : 1,
+      "none" : 1,
+      "risk" : 125
+    }, {
+      "groupId" : "org.mortbay.jetty",
+      "artifactId" : "jetty",
+      "version" : "6.1.15",
+      "critical" : 1,
+      "severe" : 1,
+      "moderate" : 1,
+      "none" : 1,
+      "risk" : 125
+    }, {
+      "groupId" : "org.apache.struts",
+      "artifactId" : "struts2-core",
+      "version" : "2.3.15.1",
+      "critical" : 1,
+      "severe" : 1,
+      "moderate" : 0,
+      "none" : 0,
+      "risk" : 120
+    }, {
+      "groupId" : "org.apache.avro",
+      "artifactId" : "avro-ipc",
+      "version" : "1.5.0",
+      "critical" : 1,
+      "severe" : 0,
+      "moderate" : 0,
+      "none" : 1,
+      "risk" : 100
+    } ]
+  },
+  "policies" : {
+    "critical" : 10,
+    "severe" : 9,
+    "moderate" : 10,
+    "none" : 23,
+    "total" : 52
+  }
+}

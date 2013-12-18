@@ -21,7 +21,7 @@
     }));
     it('loads data for chart', function() {
       expect(scope.applicationComponents).toBeDefined();
-      return expect(scope.applicationComponents.length).toBe(3);
+      return expect(scope.applicationComponents.length).toBe(4);
     });
     it('should provide a data selector', function() {
       var value;
@@ -33,7 +33,7 @@
       var color;
       expect(scope.componentColorRenderer).not.toBe(null);
       color = scope.componentColorRenderer(scope.applicationComponents[0]);
-      return expect(color).toBe('#AAA');
+      return expect(color).toBe('#838383');
     });
   });
 

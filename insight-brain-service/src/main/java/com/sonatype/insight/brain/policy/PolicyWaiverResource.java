@@ -218,6 +218,8 @@ public class PolicyWaiverResource
   /**
    * Enumerates the waivers contributed from a given context (app/org) along with basic identifying info about the
    * context itself, suitable for future REST requests to manage the waivers.
+   * If the owner is an application, the ownerId holds the public application ID as expected for REST requests and not
+   * the internal ID.
    */
   public static class WaiversByOwner
   {
@@ -231,8 +233,7 @@ public class PolicyWaiverResource
   }
 
   /**
-   * Describes a waiver in a REST-friendly way. Besides including the the name of the waived policy, the ownerId holds
-   * the public ID as expected for REST requests and not the internal ID.
+   * Describes a waiver in a REST-friendly way.
    */
   public static class PolicyWaiverDTO
       extends PolicyWaiver

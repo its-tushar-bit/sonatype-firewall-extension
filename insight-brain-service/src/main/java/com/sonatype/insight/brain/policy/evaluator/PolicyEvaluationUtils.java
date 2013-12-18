@@ -68,7 +68,13 @@ public class PolicyEvaluationUtils
     return evaluate(applicationPublicId, scanId, stage, false /* forMonitoring */);
   }
 
-  public PolicyEvaluationResult evaluate(final String applicationPublicId, final String scanId, final Stage stage,
+  public PolicyEvaluationResult evaluateForMonitoring(String applicationPublicId, String scanId, Stage stage)
+      throws IOException
+  {
+    return evaluate(applicationPublicId, scanId, stage, true /* forMonitoring */);
+  }
+
+  private PolicyEvaluationResult evaluate(final String applicationPublicId, final String scanId, final Stage stage,
       boolean forMonitoring) throws IOException
   {
     Application application = applicationDAO.getByPublicIdNotNull(applicationPublicId);

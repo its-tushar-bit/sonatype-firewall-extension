@@ -124,8 +124,8 @@ public class PolicyMonitor
 
     Stage stage = new Stage(policyMonitoring.getStageTypeId());
     List<PolicyAlert> oldAlerts = policyEvaluationUtils.findLastPolicyAlerts(app.getPublicId(), app.getId(), stage);
-    PolicyEvaluationResult policyEvaluationResult = policyEvaluationUtils.evaluate(app.getPublicId(), scanId, stage,
-        true /* forMonitoring */);
+    PolicyEvaluationResult policyEvaluationResult = policyEvaluationUtils.evaluateForMonitoring(app.getPublicId(),
+        scanId, stage);
     List<PolicyAlert> newAlerts = policyEvaluationResult.getAlerts();
 
     @SuppressWarnings("unchecked")

@@ -686,4 +686,28 @@ describe('PolicyEditor.js', function() {
       ]);
     });
   });
+
+  /**
+   * Testing is not exhaustive as under the hood this shares the same code path as
+   * all conditions previously tested in 'Editing Notifications'.
+   */
+  describe('Edit Monitoring Notifications', function() {
+    var editorScope;
+
+    beforeEach(inject(function() {
+      expectActionRequests();
+      testScope.policy = createNewPolicy();
+      editorScope = getController('PolicyEditorController').scope;
+    }));
+
+    it('Save Multiple New Addresses', function() {
+      editorScope.editMonitoringNotificationActions();
+      dialogScope.notificationEmailList.push('one@example.org', 'two@example.org');
+      dialogScope.save();
+      expect(testScope.policy.monitorNotifyActions).toEqual([
+        { actionTypeId: 'notify', target: 'one@example.org' },
+        { actionTypeId: 'notify', target: 'two@example.org' }
+      ]);
+    });
+  });
 });

@@ -322,7 +322,7 @@ body {
 .content-header h4 {
 	border-bottom: 1px solid rgba(0, 0, 0, .1);
 }
-.policies, .licenseGroups, .roles {
+.policies, .licenseGroups, .roles, .monitoringContent {
 	margin-left: 25px;
 }
 .policies .accordion-heading .accordion-toggle,

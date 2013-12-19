@@ -109,6 +109,14 @@
           return this.getImportPolicyUrl() + '/ie';
         },
 
+        getPolicyMonitoringUrl: function() {
+          return baseUrl.get() + '/rest/policyMonitoring/' + getServicePathWithId();
+        },
+
+        getApplicablePolicyMonitoring: function(){
+          return this.getPolicyMonitoringUrl() + '/applicable';
+        },
+
         isApplication: isApplication
       };
     }

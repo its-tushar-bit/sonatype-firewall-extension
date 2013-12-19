@@ -179,18 +179,13 @@
         });
       };
 
-      $scope.editNotification = function(stage) {
-        // local reference for updating/adding notification actions
-        var actions = $scope.policy.actions[stage.id] || [];
-
-        // extract the emails for notification action types
-        var addresses = [];
-        for (var i = 0; i < actions.length; i++) {
-          if (actions[i].actionTypeId === 'notify') {
-            addresses.push(actions[i].target);
-          }
-        }
-
+      /**
+       * Open a modal to allow for editing notification email addresses.
+       * @param addresses the new addresses to notify
+       * @param actions the existing set of notifications to update
+       * @param callback  function that will be called with the new list of actions as a param
+       */
+       function openNotificationModal(addresses, actions, callback) {
         $modal.open({
           backdrop: 'static',
           templateUrl: 'notification',
@@ -215,14 +210,12 @@
                     actions.splice(i,1);
                   }
                 }
-
                 // add notify action for each address
                 for (var i = 0; i < addresses.length; i++) {
                   actions.push({ actionTypeId: 'notify', target: addresses[i] });
                 }
 
-                // replace policy action state with updated copy
-                $scope.policy.actions[stage.id] = actions;
+                callback(actions);
 
                 modalScope.$close();
               };
@@ -230,6 +223,49 @@
           ]
         });
       };
+
+      $scope.extractAddresses = function(actions) {
+        // extract the emails for notification action types
+        var addresses = [];
+        for (var i = 0; i < actions.length; i++) {
+          if (actions[i].actionTypeId === 'notify') {
+            addresses.push(actions[i].target);
+          }
+        }
+        return addresses;
+      };
+
+      /**
+       * Formats the list of notification recipients as a single string, or empty string if no recipients.
+       */
+      function getFormattedEmailListFromActions(actions) {
+        return $scope.extractAddresses(actions).join(', ')
+      };
+
+      $scope.getFormattedEmailList = function(stage) {
+        return getFormattedEmailListFromActions($scope.policy.actions[stage.id] || []);
+      };
+
+      $scope.getFormattedMonitoringEmailList = function(){
+        return getFormattedEmailListFromActions($scope.policy.monitorNotifyActions || []);
+      };
+
+      $scope.editNotification = function(stage) {
+        // local reference for updating/adding notification actions
+        var actions = $scope.policy.actions[stage.id] || [];
+        var addresses = $scope.extractAddresses(actions);
+        openNotificationModal(addresses, actions, function(actions){
+          // replace policy action state with updated copy
+          $scope.policy.actions[stage.id] = actions;
+        });
+      };
+
+      $scope.editMonitoringNotificationActions = function(){
+        var actions = $scope.policy.monitorNotifyActions || [];
+        openNotificationModal($scope.extractAddresses(actions),actions, function(actions){
+          $scope.policy.monitorNotifyActions = actions;
+        })
+      }
 
       $scope.toggleWarnAction = function(stage) {
         toggleAction(stage.id, 'warn');
@@ -245,21 +281,6 @@
 
       $scope.showFailureIcon = function(stage) {
         return showActionIcon(stage.id, 'fail');
-      };
-
-      /**
-       * Formats the list of notification recipients as a single string, or empty string if no recipients.
-       */
-      $scope.getFormattedEmailList = function(stage) {
-        var addresses = [];
-        var actions = $scope.policy.actions[stage.id] || [];
-        for (var i = 0; i < actions.length; i++) {
-          if (actions[i].actionTypeId === 'notify') {
-            addresses.push(actions[i].target);
-          }
-        }
-
-        return addresses.join(', ');
       };
 
       //make sure user is aware they are about to lose changes

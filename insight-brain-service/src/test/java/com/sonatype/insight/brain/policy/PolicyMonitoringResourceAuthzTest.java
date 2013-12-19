@@ -58,6 +58,19 @@ public class PolicyMonitoringResourceAuthzTest
     testAuthzGet(url);
   }
 
+  @Test
+  public void testGetApplicable() throws Exception {
+    grantReadPermission(app.getId());
+    createPolicyMonitoring(app.getId());
+    String url = getRestUrl(PolicyMonitoringResource.SERVICE_PATH, IdUtils.TYPE_APPLICATION, app.getPublicId(), "applicable");
+    testAuthzGet(url);
+
+    grantReadPermission(org.getId());
+    createPolicyMonitoring(org.getId());
+    url = getRestUrl(PolicyMonitoringResource.SERVICE_PATH, IdUtils.TYPE_ORGANIZATION, org.getId(), "applicable");
+    testAuthzGet(url);
+  }
+
   private void createPolicyMonitoring(String ownerid) {
     PolicyMonitoring policyMonitoring = new PolicyMonitoring(ownerid, Stage.ID_RELEASE);
     new PolicyMonitoringDAO().insert(policyMonitoring);

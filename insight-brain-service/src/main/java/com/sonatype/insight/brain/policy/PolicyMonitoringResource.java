@@ -15,7 +15,9 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
+import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyMonitoring;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.security.Authorize;
@@ -37,9 +39,29 @@ public class PolicyMonitoringResource
   public PolicyMonitoring get(@AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") String ownerType,
       @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId)
   {
-    ownerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
+    return loadPolicyMonitoring(ownerType, ownerId);
+  }
 
-    return new PolicyMonitoringDAO().getByOwnerId(ownerId);
+  /**
+   * Returns the Application PolicyMonitoring and its parent Org PolicyMonitoring. Both may be null depending on
+   * whether or not these values are stored.
+   */
+  @GET
+  @Produces({MediaType.APPLICATION_JSON})
+  @Path("applicable")
+  @Authorize(permission = Permission.READ)
+  public ApplicablePolicyMonitors getApplicable(
+      @AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") String ownerType,
+      @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId)
+  {
+    String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
+
+    if (IdUtils.TYPE_ORGANIZATION.equals(ownerType)) {
+      return new ApplicablePolicyMonitors(null, loadPolicyMonitoring(ownerType, ownerId));
+    }
+    Application application = new ApplicationDAO().getByIdNotNull(internalOwnerId);
+    return new ApplicablePolicyMonitors(loadPolicyMonitoring(ownerType, ownerId),
+        loadPolicyMonitoring(IdUtils.TYPE_ORGANIZATION, application.getOrganizationId()));
   }
 
   @PUT
@@ -67,5 +89,27 @@ public class PolicyMonitoringResource
     PolicyMonitoringDAO dao = new PolicyMonitoringDAO();
     PolicyMonitoring policyMonitoring = new PolicyMonitoringDAO().getByOwnerIdNotNull(ownerId);
     dao.delete(policyMonitoring);
+  }
+
+  private PolicyMonitoring loadPolicyMonitoring(final String ownerType, String ownerId) {
+    ownerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
+
+    return new PolicyMonitoringDAO().getByOwnerId(ownerId);
+  }
+
+  public static class ApplicablePolicyMonitors {
+    public PolicyMonitoring appPolicyMonitor;
+    public PolicyMonitoring orgPolicyMonitor;
+
+    public ApplicablePolicyMonitors()
+    {
+    }
+
+    public ApplicablePolicyMonitors(final PolicyMonitoring appPolicyMonitor,
+                                    final PolicyMonitoring orgPolicyMonitor)
+    {
+      this.appPolicyMonitor = appPolicyMonitor;
+      this.orgPolicyMonitor = orgPolicyMonitor;
+    }
   }
 }

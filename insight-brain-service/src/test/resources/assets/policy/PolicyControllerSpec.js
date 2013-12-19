@@ -30,6 +30,7 @@ describe('PolicyController tests', function() {
     $httpBackend.expectGET(CLMLocations.getActionStageUrl()).respond(MockData.getActionStageData());
     $httpBackend.expectGET(SpecUtil.toRegExp(CLMAppLocations.getPolicyUrl())).respond(PolicyMockData.getPolicyData());
     $httpBackend.expectGET(SpecUtil.toRegExp(CLMAppLocations.getApplicablePolicies())).respond(ApplicationMockData.getApplicablePolicies());
+    $httpBackend.expectGET(CLMAppLocations.getApplicablePolicyMonitoring()).respond(PolicyMonitoringMockData);
     $httpBackend.whenGET(SpecUtil.toRegExp(CLMLocations.getConditionTypeUrl())).respond(PolicyMockData.getConditionTypeData());
     $httpBackend.whenGET(SpecUtil.toRegExp(CLMAppLocations.getConditionValueTypeUrl())).respond(PolicyMockData.getConditionValueTypeData());
     // inject the controller
@@ -94,6 +95,7 @@ describe('PolicyController tests', function() {
   it('handles owner changes', inject(function($httpBackend, CLMAppLocations) {
     $httpBackend.expectGET(SpecUtil.toRegExp(CLMAppLocations.getPolicyUrl())).respond(PolicyMockData.getPolicyData());
     $httpBackend.expectGET(SpecUtil.toRegExp(CLMAppLocations.getApplicablePolicies())).respond(ApplicationMockData.getApplicablePolicies());
+    $httpBackend.expectGET(CLMAppLocations.getApplicablePolicyMonitoring()).respond(PolicyMonitoringMockData);
     scope.$broadcast('ownerChanged', {
       ownerId : ApplicationMockData.getApplicablePolicies().policiesByOwner[0].ownerId,
       changes : [ { field : 'organizationId', newValue : 'new_org_id' } ]
@@ -107,4 +109,26 @@ describe('PolicyController tests', function() {
     });
     expect(scope.applicablePolicies[0].ownerName).toBe("NEW NAME");
   }));
+
+  describe('Policy Monitoring', function() {
+
+    it('Handles inherited Org policy monitoring properly', function(){
+      expect(scope.policyMonitoringPlaceHolder).toBe("Develop (inherited from parent)")
+    });
+
+    it('Can save policy monitoring stage choice', inject(function($httpBackend, CLMAppLocations) {
+      $httpBackend.expectPUT(CLMAppLocations.getPolicyMonitoringUrl()).respond(204);
+      scope.savePolicyMonitoring();
+      $httpBackend.flush();
+      expect(scope.policyMonitoring.ownerId).toEqual(CLMAppLocations.getEntityId());
+    }));
+
+    it('Can delete policy monitoring stage choice', inject(function($httpBackend, CLMAppLocations) {
+      scope.policyMonitoring.stageTypeId = null;
+      $httpBackend.expectDELETE(CLMAppLocations.getPolicyMonitoringUrl()).respond(204);
+      scope.savePolicyMonitoring();
+      $httpBackend.flush();
+    }));
+  });
+
 });

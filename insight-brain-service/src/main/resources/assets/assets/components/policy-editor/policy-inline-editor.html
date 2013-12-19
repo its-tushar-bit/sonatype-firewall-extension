@@ -59,11 +59,18 @@
 				<td style="text-align:center;cursor:pointer;" ng-click='toggleFailureAction(actionStage)'><img ng-show='showFailureIcon(actionStage)' src='../assets/img/policyerror.png' style="height: 13px; width: 13px;" /></td>
 				<td style="width:400px;">
 					<div style="width:400px;white-space: nowrap;overflow: hidden;text-overflow: ellipsis;">
-						<i class="icon-envelope" style="cursor:pointer;padding-right:5px;" ng-click='editNotification(actionStage,policy)'></i>{{getFormattedEmailList(actionStage)}}
+						<i class="icon-envelope" style="cursor:pointer;padding-right:5px;" ng-click='editNotification(actionStage)'></i>{{getFormattedEmailList(actionStage)}}
 					</div>
 				</td>
 			</tr>
 		</table>
+      <div style="padding-bottom: 10px;">
+        <h5>Monitoring Notifications</h5>
+        If new information becomes available and causes this policy to be violated, who should be notified?
+        <div style="padding-left: 5px; border: 1px solid #ddd;white-space: nowrap;overflow: hidden;text-overflow: ellipsis;background-color: white;">
+          <i class="icon-envelope" style="cursor:pointer;padding-right:5px;" ng-click='editMonitoringNotificationActions()'></i>{{getFormattedMonitoringEmailList()}}
+        </div>
+      </div>
 		<div clm-alerts='alerts'></div>
 		<div style='padding-bottom:10px;text-align:right'>
 			<button class='btn' type='button' ng-click='cancel()'>Cancel</button>

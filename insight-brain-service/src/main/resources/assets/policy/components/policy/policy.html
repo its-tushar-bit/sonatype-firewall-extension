@@ -11,6 +11,45 @@
 	</div>
 </div>
 	</script>
+  <div class="content-section">
+    <div style='margin:25px' ng-show='!applicablePolicies && !error'>
+      <h5><i class='icon-time'></i> Loading...</h5>
+    </div>
+    <div class='fade' ng-class='{in : applicablePolicies }' id="monitoring">
+      <div class="content-header">
+        <h4>
+          <span>Policy Monitoring</span>
+
+          <div class='common-expand-toggle' ng-click='monitoringExpanded = !monitoringExpanded'>
+            <a ng-click="toggleSection('monitoring',monitoringExpanded)"><i
+                    ng-class="{'glyphicons-halflings-sonatype collapse': monitoringExpanded, 'glyphicons-halflings-sonatype expand': !monitoringExpanded}"></i></a>
+          </div>
+        </h4>
+      </div>
+      <div class="accordion monitoringContent">
+        <div class="accordion-body collapse">
+          <div class="form-horizontal configuration" style="width: 600px;">
+            <form id="monitoringForm" name="monitoringForm">
+              <div class='control-group'>
+                <label class="control-label" style="width: auto;padding-right: 5px;" for="policyMonitoring">
+                  What stage should be monitored?
+                </label>
+                <div class='controls'>
+                  <select id="policyMonitoring" name="policyMonitoring" ng-model="policyMonitoring.stageTypeId"
+                          ng-options="s.id as s.name for s in actionStageList" ng-change="savePolicyMonitoring()">
+                    <option value="">{{ policyMonitoringPlaceHolder }}</option>
+                  </select>
+                  <span class="icon-question-sign" data-popover="{{ monitoringHelp }}" data-popover-placement="right"
+                        data-popover-trigger="mouseenter" data-popover-append-to-body="true"></span>
+                </div>
+              </div>
+              <div clm-alerts='policyMonitoringAlerts'></div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 	<div class="content-section">
 		<div load-error='error' reload='doLoad()'></div>
 		<div style='margin:25px' ng-show='!applicablePolicies && !error'>

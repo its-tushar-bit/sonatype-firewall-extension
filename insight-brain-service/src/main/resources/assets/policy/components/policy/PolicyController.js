@@ -11,13 +11,36 @@
   var policyModule = angular.module('Policy',
       ['PolicyEditor', 'CLMAppLocation', 'AngularCommon', 'CommonServices', 'Stores']);
 
+  policyModule.service('PolicyMonitoringStore', [
+    'CLMAppLocations', '$http', function(CLMAppLocations, $http) {
+      return {
+        get: function() {
+          return $http.get(CLMAppLocations.getPolicyMonitoringUrl());
+        },
+        getApplicable: function() {
+          return $http.get(CLMAppLocations.getApplicablePolicyMonitoring())
+        },
+        save: function(policyMonitoring) {
+          return $http.put(CLMAppLocations.getPolicyMonitoringUrl(), policyMonitoring);
+        },
+        delete: function(){
+          return $http.delete(CLMAppLocations.getPolicyMonitoringUrl());
+        }
+      }
+    }
+  ]);
+
   policyModule.controller('PolicyController', [
     '$scope', '$location', '$http', '$rootScope', '$q', 'PolicyStore', 'ActionStore',
-    'CLMAppLocations', 'Dialog', 'ownerChange',
-    function($scope, $location, $http, $rootScope, $q, policyStore, ActionStore, clmAppLocations, Dialog, ownerChange) {
+    'CLMAppLocations', 'Dialog', 'ownerChange', 'PolicyMonitoringStore', 'Messages',
+    function($scope, $location, $http, $rootScope, $q, policyStore, actionStore, clmAppLocations, Dialog, ownerChange,
+             PolicyMonitoringStore, messages) {
 
       $scope.alerts = [];
       $scope.location = $location;
+      $scope.policyMonitoringAlerts = [];
+      $scope.monitoringHelp = "Each day the latest scan from this stage will be evaluated. Notifications for new " +
+        "violations can be configured per policy (below).";
 
       $scope.viewRemovePolicy = function(policy) {
         Dialog.open({
@@ -40,14 +63,33 @@
       $scope.doLoad = function() {
         $scope.error = null;
         $scope.applicablePolicies = null;
+        $scope.actionStageList = null;
+
         var promises = [
-          policyStore.get().refresh(), $http.get(clmAppLocations.getApplicablePolicies(), {
+          policyStore.get().refresh(),
+          $http.get(clmAppLocations.getApplicablePolicies(), {
             params: { timestamp: new Date().getTime() }
-          })
+          }),
+          actionStore.get(),
+          PolicyMonitoringStore.getApplicable()
         ];
+
+        /**
+         * Conditionally render text for the select box to take into account inheritance.
+         */
+        function createPlaceHolderText(isApplication, orgPolicyMonitor) {
+          if(isApplication && orgPolicyMonitor != null){
+            var stageName = $.grep($scope.actionStageList, function(e){ return e.id == orgPolicyMonitor.stageTypeId; })[0].name;
+            return stageName + ' (inherited from parent)';
+          }
+          return '-- select a stage --';
+        }
 
         $q.all(promises).then(function(results) {
           $scope.applicablePolicies = results[1].data.policiesByOwner;
+          $scope.actionStageList = results[2][1];
+          $scope.policyMonitoring = clmAppLocations.isApplication() ? results[3].data.appPolicyMonitor : results[3].data.orgPolicyMonitor;
+          $scope.policyMonitoringPlaceHolder = createPlaceHolderText(clmAppLocations.isApplication(), results[3].data.orgPolicyMonitor);
           angular.forEach($scope.applicablePolicies, function(applicablePolicy, index) {
             applicablePolicy.editable = index === 0;
             if (index === 0) {
@@ -62,18 +104,52 @@
       $scope.$on('ownerChanged', ownerChange.getEventHandler($scope, 'applicablePolicies'));
       $scope.$on('refresh', $scope.doLoad);
 
-      $scope.toggleAll = function(applicablePolicy) {
-        var action = $scope.allExpanded[applicablePolicy.ownerId] ? 'hide' : 'show';
-        $('#' + applicablePolicy.ownerId).find('.accordion-body').collapse(action);
+      function toggleExpanded(selector, action) {
+        selector.find('.accordion-body').collapse(action);
         //TODO: to work around collapse bug, fixed in newer release of bootstrap
         //https://github.com/twitter/bootstrap/pull/7424/files
-        $('#' + applicablePolicy.ownerId).find('.policy-top')[action ==
-            'hide' ? 'addClass' : 'removeClass']('collapsed');
+        selector.find('.policy-top')[action ==
+          'hide' ? 'addClass' : 'removeClass']('collapsed');
+      }
+
+      $scope.toggleAll = function(applicablePolicy) {
+        var action = $scope.allExpanded[applicablePolicy.ownerId] ? 'hide' : 'show';
+        toggleExpanded($('#' + applicablePolicy.ownerId), action);
         $scope.allExpanded[applicablePolicy.ownerId] = !($scope.allExpanded[applicablePolicy.ownerId] || false);
+      };
+
+      $scope.toggleSection = function(id, expanded) {
+        var action = expanded === true ? 'hide' : 'show';
+        toggleExpanded($('#' + id), action);
       };
 
       $scope.isExpanded = function(applicablePolicy) {
         return $scope.allExpanded[applicablePolicy.ownerId] || false;
+      };
+
+      function clearPolicyMonitoringAlerts(){
+        $scope.policyMonitoringAlerts.length = 0;
+      }
+
+      $scope.savePolicyMonitoring = function() {
+        if ($scope.policyMonitoring.stageTypeId === null) {
+          PolicyMonitoringStore.delete().then(clearPolicyMonitoringAlerts, function(error) {
+            $scope.policyMonitoringAlerts.push({
+              type: 'error',
+              msg: 'An error occurred while turning off policy monitoring. (' +
+                messages.getHttpErrorMessage(error) + ')'
+            })
+          });
+        }
+        else {
+          PolicyMonitoringStore.save($scope.policyMonitoring).then(clearPolicyMonitoringAlerts, function(error) {
+          $scope.policyMonitoringAlerts.push({
+              type: 'error',
+              msg: 'An error occurred while saving your policy monitoring configuration. (' +
+                messages.getHttpErrorMessage(error) + ')'
+            })
+          });
+        }
       };
 
       $scope.doLoad();

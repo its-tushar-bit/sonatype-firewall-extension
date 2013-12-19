@@ -13,9 +13,8 @@
   module.controller('EvaluateBundleController', ['$scope', '$http', '$timeout', '$window', 'Messages', 'CLMLocations', 'selectedApplication', 'ApplicationStore', 'ActionStore', '$q', function ($scope, $http, $timeout, $window, messages, CLMLocations, selectedApplication, ApplicationStore, ActionStore, $q) {
     var fileElement = null;
     
-    //Note that I am purposefully not using the angular $timeout, as each time it processes
-    //if the select dropdown is displayed, the highlighted item is reset every half second
-    //causes a wicked bad flicker effect
+    //Note that we need to repeatedly check the fileElement 
+    //as we don't get notified when user has selected a file
     function fileCheck() {
       if (!fileElement) {
         fileElement = angular.element('form[name=evaluateBundle] input[type=file]')[0];

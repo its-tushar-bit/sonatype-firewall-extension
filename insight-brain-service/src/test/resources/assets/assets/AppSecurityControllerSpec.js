@@ -125,7 +125,7 @@ describe('AppSecurityControllerSpec', function() {
 
     it('Add User and Group', inject(function ($httpBackend, CLMAppLocations) {
       scope.$apply(function () {
-        scope.addUser({
+        scope.addMember({
           type: 'USER',
           internalName : 'testuser',
           displayName : 'Fred Flintstone',
@@ -153,7 +153,7 @@ describe('AppSecurityControllerSpec', function() {
       }]);
 
       scope.$apply(function () {
-        scope.addUser({
+        scope.addMember({
           type: 'GROUP',
           internalName : 'finstones',
           displayName : 'Flintstone Family',
@@ -191,7 +191,7 @@ describe('AppSecurityControllerSpec', function() {
 
     it('Remove User', inject(function ($httpBackend, CLMAppLocations) {
       scope.$apply(function () {
-        scope.removeUser(0, scope.mappings[0].members[0]);
+        scope.removeMember(0, scope.mappings[0].members[0]);
       });
       expect(parentScope.mappings[0].members).toEqual([{
         type : 'GROUP',
@@ -200,7 +200,7 @@ describe('AppSecurityControllerSpec', function() {
         realm : 'old'
       }]);
       scope.$apply(function () {
-        scope.removeUser(0, scope.mappings[0].members[0]);
+        scope.removeMember(0, scope.mappings[0].members[0]);
       });
       expect(parentScope.mappings[0].members).toEqual([]);
       
@@ -336,11 +336,11 @@ describe('AppSecurityControllerSpec', function() {
     });
   });
 
-  describe('userNotIn', function () {
+  describe('memberNotIn', function () {
     var filter = null;
 
     beforeEach(inject(function ($filter) {
-      filter = $filter('userNotIn');
+      filter = $filter('memberNotIn');
     }));
     
     afterEach(function () {

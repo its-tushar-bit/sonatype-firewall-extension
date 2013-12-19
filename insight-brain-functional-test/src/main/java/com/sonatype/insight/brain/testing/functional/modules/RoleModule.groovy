@@ -22,7 +22,7 @@ class RoleModule extends Module {
     appliedMemberEmail(required: false) { appliedMembers.find('.large-select-list-item-detail') }
     appliedMemberRealm(required: false) { appliedMembers.find('.large-select-list-item-right-detail') }
 
-    availableMembers(required: false) { $('div[app-security-editor] .selectList-large:last-child .large-select-list-item', 'ng-click': 'addUser(user)') }
+    availableMembers(required: false) { $('div[app-security-editor] .selectList-large:last-child .large-select-list-item', 'ng-click': 'addMember(member)') }
     availableMemberNames(required: false) { availableMembers.find('span:not(.large-select-list-item-detail):not(.large-select-list-item-right-detail):not(.ui-match)') }
     availableMember(required: false) { displayName -> availableMembers.has('span:not(.large-select-list-item-detail):not(.large-select-list-item-right-detail):not(.ui-match)', text: displayName ) }
     availableMemberEmail(required: false) { availableMembers.find('.large-select-list-item-detail') }

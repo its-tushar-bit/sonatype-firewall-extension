@@ -18,6 +18,10 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Provider;
 
+import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.security.Authorize;
+import com.sonatype.insight.brain.security.AuthzContext;
+
 import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.IOUtil;
 import org.codehaus.plexus.util.io.RawInputStreamFacade;
@@ -52,9 +56,9 @@ class ScanService
    * Initiates scanning of the provided application bundle, providing the caller with a ticket that can be used to query
    * for the status/completion of the process.
    */
-  // @Authorize(permission = Permission.WRITE)
-  public ScanTicket scanBinary(/* @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) */String appPublicId,
-      InputStream is) throws IOException
+  @Authorize(permission = Permission.WRITE)
+  public ScanTicket scanBinary(@AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String appPublicId, InputStream is)
+      throws IOException
   {
     File binFile = saveBinary(is);
     ScanTask task = newScanTask(appPublicId, binFile);

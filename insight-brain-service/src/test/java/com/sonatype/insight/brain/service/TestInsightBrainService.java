@@ -326,6 +326,11 @@ public class TestInsightBrainService
     return null;
   }
 
+  @Override
+  protected void configurePolicyMonitoring(final Environment environment, final int policyMonitoringHour) {
+    // don't schedule execution of policy monitoring in the test environment
+  }
+
   public File getAuditDir(String applicationId) {
     return new File(new File(getWorkDir(), "audit"), applicationId);
   }

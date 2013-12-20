@@ -10,6 +10,8 @@ import java.net.URL;
 
 import javax.mail.internet.InternetAddress;
 import javax.validation.Valid;
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -54,6 +56,12 @@ public class InsightConfig
   @NotNull
   @JsonProperty
   private int releaseGraphCacheSize = 1000;
+
+  @NotNull
+  @JsonProperty
+  @Min(0)
+  @Max(23)
+  private int policyMonitoringHour = 0;
 
   public ProxyConfig getProxyConfig() {
     return proxy;
@@ -159,5 +167,19 @@ public class InsightConfig
       log.error("Invalid cndUrl: {}", e.getMessage());
       return false;
     }
+  }
+
+  /**
+   * @since 1.7.1
+   */
+  public int getPolicyMonitoringHour() {
+    return policyMonitoringHour;
+  }
+
+  /**
+   * @since 1.7.1
+   */
+  public void setPolicyMonitoringHour(final int policyMonitoringHour) {
+    this.policyMonitoringHour = policyMonitoringHour;
   }
 }

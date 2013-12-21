@@ -191,6 +191,12 @@ describe('ApplicationEditorController', function() {
 
       parentScope = $rootScope.$new();
       scope = parentScope.$new();
+      scope.appPublicIdForm = {
+        $save : angular.noop
+      };
+      scope.aoEditorName = {
+        $save : angular.noop
+      };
       state = $state;
 
       var selectedApplication = ApplicationStore.create();

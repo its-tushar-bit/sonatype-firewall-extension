@@ -8,7 +8,7 @@
 /* global angular */
 (function() {
   'use strict';
-  var module = angular.module('EditorTools', ['CommonServices', 'CLMAppLocation', 'Stores']);
+  var module = angular.module('EditorTools', ['CommonServices', 'CLMAppLocation', 'Stores', 'AngularCommon']);
   
   module.controller('EvaluateBundleController', ['$scope', '$http', '$timeout', '$window', 'Messages', 'CLMLocations', 'selectedApplication', 'ApplicationStore', 'ActionStore', '$q', function ($scope, $http, $timeout, $window, messages, CLMLocations, selectedApplication, ApplicationStore, ActionStore, $q) {
     var fileElement = null;
@@ -99,6 +99,89 @@
     };
     
     doLoad();
+  }]);
+
+  module.directive('clmEditable', ['$parse', 'regexFactory', function ($parse, regexFactory) {
+    var alphaNumericRegex = new RegExp('[^-' + regexFactory.allLetters().source + '0-9 ]', 'i'),
+        count = 0;
+    return {
+      template : '<span><span ng-click="myForm.$show()"' +
+          'editable-text="model[modelField]"' +
+          'blur="submit"' +
+          'onbeforesave="check($data)"' +
+          'onshow="onShow()"' +
+          'buttons="no"' +
+          'e-form="myForm"' +
+          'e-placeholder="{{emptyText}}">{{model[modelField] || emptyText}}</span></span>',
+      restrict : 'A',
+      scope : {
+        duplicateArray : '=',
+        duplicateIdField : '@',
+        emptyText : '@',
+        whitespaceCheck : '@',
+        model : '=',
+        modelField : '@',
+        invalid : '=?',
+        eForm : '@'
+      },
+      priority : 99,
+      link : function (scope, element) {
+
+        scope.$watch('myForm', function (newVal) {
+          var getter = $parse(scope.eForm);
+          getter.assign(scope.$parent, newVal);
+        });
+
+        scope.onShow = function () {
+          function change() {
+            var val = (inputElement.val() || '').trim();
+
+            AngularUtils.safeApply(scope, function () {
+              if (val) {
+                scope.myForm.$setError(null, scope.check(val) || '');
+              } else {
+                scope.invalid = true;
+              }
+            });
+          }
+          var inputElement = angular.element('input', element);
+          change();
+
+          inputElement.keyup(change);
+        };
+
+        scope.check = function (val) {
+          val = val || '';
+          scope.invalid = true;
+          // check dupe
+          if (scope.duplicateArray) {
+            var duplicate = false,
+                lowercaseVal = val.toLowerCase();
+
+            angular.forEach(scope.duplicateArray, function (candidate) {
+              if (candidate[scope.duplicateIdField] !== scope.model[scope.duplicateIdField] &&
+                      (candidate[scope.modelField] || '').toLowerCase() === lowercaseVal) {
+                duplicate = true;
+              }
+            });
+            if (duplicate) {
+              return 'Already in use';
+            }
+          }
+          // check alpha
+          if (val.match(alphaNumericRegex)) {
+            return 'Name must be alpha numeric';
+          }
+          // check spaces
+          if (scope.whitespaceCheck  && val.match(/^ | {2,}|\t| $/)) {
+            return 'No double spaces or tabs in name';
+          }
+          scope.invalid = false;
+        };
+
+        scope.check(scope.model ? scope.model[scope.modelField] : '');
+      }
+    };
   }]);
 
   module.controller('ImportPolicyController', ['$scope', '$http', '$timeout', '$window', 'Messages', 'CLMAppLocations', function ($scope, $http, $timeout, $window, messages, clmAppLocations) {

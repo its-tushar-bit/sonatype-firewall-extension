@@ -14,7 +14,7 @@ class OrganizationPage extends OrganizationManagementPage {
 
   static content = {
     organizationImage(wait: true) { $('div.editor-image') }
-    organizationName(required: false) { $('#aoName') }
+    organizationName(required: false) { $('#aoName .editable') }
     organizationNameField(required: false) { $('input', 'placeholder':'Enter Organization Name') }
     organizationSaveButton(required: false) { $('button', text:'Save') }
     securityTabButton(required: false) { $('.tri-pane').find('a', text: 'SECURITY') }

@@ -14,7 +14,7 @@
 		<css>/lib/bootstrap/bootstrap-2.3.1.min.css</css>
 		<css>/lib/glyphicons/glyphicons.css</css>
 		<css>/lib/glyphicons/halflings.css</css>
-		<css>/lib/X-editable/bootstrap-editable.css</css>
+		<css>/lib/X-editable/xeditable.css</css>
 		<css>/assets/glyphicons-sonatype.css</css>
 	</group>
 

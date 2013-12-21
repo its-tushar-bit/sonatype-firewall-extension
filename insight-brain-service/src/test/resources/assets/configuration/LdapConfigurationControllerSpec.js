@@ -32,6 +32,9 @@ describe('Tests for the LdapConfigurationController', function() {
       $state.current.name = 'management.configuration.ldap';
 
       scope = $rootScope.$new();
+      scope.ldapNameForm = {
+        $save : angular.noop
+      };
       state = $state;
 
       httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getLdapConfig())).respond([]);

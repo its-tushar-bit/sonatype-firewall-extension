@@ -16,9 +16,9 @@ class ApplicationPage extends ApplicationManagementPage {
     applicationImageWrapper(wait: true) { $('div.editor-image') }
     applicationImage(wait: true) { $('#userIcon') }
     applicationImageFileDialog(wait: true) { $('#file') }
-    applicationName(required: false) { $('#aoName') }
+    applicationName(required: false) { $('#aoName .editable') }
     applicationNameField(required: false) { $('input', 'placeholder':'Enter Application Name') }
-    applicationId(required: false) { $('#applicationPublicId') }
+    applicationId(required: false) { $('#applicationPublicId .editable') }
     applicationIdField(required: false) { $('input', 'placeholder':'Enter ID') }
     applicationOrgField(required: false) { $('div', 'on': 'selectedApplication.id && selectedApplication.organizationId').find('a') }
     applicationOrgName(required: false) { orgName -> $('a', text: orgName) }

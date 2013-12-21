@@ -17,7 +17,7 @@ class LDAPConfigurationPage
 
   static content = {
     // name editor
-    inlineEditorSpan(wait: true) { $('#ldapName') }
+    inlineEditorSpan(wait: true) { $('#ldapName .editable') }
     inlineEditor(required: false) { inlineEditorSpan.next().find('input') }
     save(required: false) { $('button', text: 'Save') }
     cancel(required: false) { $('button', text: 'Cancel') }

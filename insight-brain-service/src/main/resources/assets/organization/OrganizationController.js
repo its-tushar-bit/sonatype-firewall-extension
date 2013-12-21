@@ -182,7 +182,6 @@
         }
       }
 
-
       $scope.$on('resetIconCache', resetIconCache);
 
       //make sure user is aware they are about to lose changes
@@ -225,7 +224,7 @@
       $scope.encodeURIComponent = window.encodeURIComponent;
 
       $scope.canSaveEdit = function() {
-        return !$scope.aoEditor.$invalid && !$scope.submitActive;
+        return !$scope.aoEditor.$invalid && !$scope.submitActive && ($scope.aoEditorName && $scope.aoEditorName.$visible || $scope.ao.selected.name);
       };
 
       $scope.cancel = function() {
@@ -256,6 +255,7 @@
         if ($scope.aoEditor.$invalid) {
           return false;
         }
+        $scope.aoEditorName.$save();
 
         if (window.FormData) {
           var icon = angular.element('#file')[0];

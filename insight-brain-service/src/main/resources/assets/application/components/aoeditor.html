@@ -178,37 +178,46 @@
 					</form>
 				</div>
 			</div>
-			<form id='aoEditor' name='aoEditor' method='post' enctype='multipart/form-data' form-submit='save()'>
-				<div class='inline head'>
-					<h1><span id='aoName' name='name' ng-model='ao.selected.name' xeditable data-emptytext='Enter {{ao.typeName}} Name'
-							data-placeholder='Enter {{ao.typeName}} Name' data-type='text'
-							ng-class="{ error: aoEditor.name.$error.duplicate || aoEditor.name.$error.alphaNumeric || aoEditor.name.$error.spaces}"
-							required alpha-numeric has-whitespace='suggestedName'
-							is-Duplicate is-Duplicate-Array='ao.siblings' is-Duplicate-Id-Field='id' is-Duplicate-Case-Sensitive='false'></span></h1>
-					<div class='errors'>
-						<span ng-if="aoEditor.name.$error.duplicate" class="text-error">Name is already in use</span>
-						<span ng-if="aoEditor.name.$error.alphaNumeric" class="text-error">Name must be alpha numeric</span>
-						<span ng-if="aoEditor.name.$error.spaces" class="text-error">No leading, trailing or double spaces or tabs in name<br/>Suggested name: {{suggestedName}}</span>
-					</div>
+			<div id='aoEditor'>
+				<div id='aoName'
+					class='inline head'
+					clm-editable
+					model='ao.selected'
+					model-field='name'
+					e-form='aoEditorName'
+					empty-text='Enter {{ao.typeName}} Name'
+					whitespace-check='true'
+					invalid='aoEditor.$invalid'
+					duplicate-array='ao.siblings'
+					duplicate-id-field='id'>
 				</div>
-				<div ng-if='ao.type == "application"'>
-					<div class='inline'>
-						<span>Application</span>
-						<div class="setappid" ng-switch on='selectedApplication.id' style='display: inline-block;'>
+				<div ng-if='ao.type == "application"' class='inline' style='margin-bottom:10px'>
+					<div style='vertical-align:top'>
+						Application
+						<div class="setappid" ng-switch on='selectedApplication.id' style='display: inline-block;vertical-align:top'>
 							<div ng-switch-when='null'>
-								<span id='applicationPublicId' name='applicationPublicId' ng-model='selectedApplication.publicId' xeditable
-								      adjustable="true" href='javascript:;' data-emptytext='Enter ID' data-placeholder='Enter ID' data-type='text'
-								      required is-Duplicate is-Duplicate-Array='applications' is-Duplicate-Id-Field='publicId' is-Duplicate-Case-Sensitive='false'></span>
+								<div class='inline'
+									id='applicationPublicId'
+									clm-editable
+									e-form='$parent.$parent.appPublicIdForm'
+									model='selectedApplication'
+									model-field='publicId'
+									empty-text='Enter ID'
+									whitespace-check='false'
+									invalid='$parent.$parent.aoIdEditor.$invalid'
+									duplicate-array='ao.siblings'
+									duplicate-id-field='id'>
+								</div>
 							</div>
 							<span class="appid" ng-switch-default>{{selectedApplication.publicId}}</span>
 						</div>
-						<span>in</span>
+						in
 						<div ng-switch on='selectedApplication.id && selectedApplication.organizationId' style='display: inline-block;'>
-							<div ng-switch-when='null' class="btn-group">
-								<a class="btn dropdown-toggle" data-toggle="dropdown" href="#"
-								   ng-class='{ selected: selectedApplication.organizationId }' style="line-height: 22px;">
+							<div ng-switch-when='null' class='btn-group'>
+								<a class="dropdown-toggle editable editable-empty" data-toggle="dropdown" href="#"
+								   ng-class='{ selected: selectedApplication.organizationId }' style="line-height: 20px;">
 									{{getOrganizationName()}}
-									<span class="caret"></span>
+									<span class="caret" style='vertical-align:middle'></span>
 								</a>
 								<ul class="dropdown-menu">
 									<li ng-repeat='organization in organizations'>
@@ -219,18 +228,28 @@
 							<span class="orgname" ng-switch-default>{{getOrganizationName()}}</span>
 						</div>
 					</div>
-					<span ng-show="aoEditor.applicationPublicId.$error.duplicate" style='color: #b94a48; font-size: 14px; font-weight: bold;'>Id is already in use</span>
+					<div>
+						<span>Contact:</span>
+						<span
+							class='editable'
+							ng-class='{ "editable-empty" : !ao.selected.contact }'
+							ng-click='openContact()'>{{ao.selected.contact.displayName || "None"}}</span>
+					</div>
 				</div>
-				<div ng-show='isFormDirty() || !ao.selected.id' class="application-save">
-					<button class='btn' type='button' ng-click='cancel()'>Cancel</button>
-					<button class='btn btn-primary' ng-disabled='!canSaveEdit()' type="submit">Save</button>
+				<div ng-switch='ao.selected && !ao.selected.id || isFormDirty() || aoEditorName.$visible'>
+					<div ng-switch-when='true' class="application-save">
+						<button class='btn' type='button' ng-click='cancel()'>Cancel</button>
+						<button class='btn btn-primary' ng-disabled='!canSaveEdit()' type="button" ng-click='save()'>Save</button>
+					</div>
+					<div ng-switch-default>
+						<div ng-if='applicationSummary'>
+							<div ng-include='"recent-policy-eval"'></div>
+						</div>
+					</div>
 				</div>
-				<div ng-if='applicationSummary'>
-					<div ng-include='"recent-policy-eval"'></div>
-				</div>
-			</form>
+			</div>
 		</div>
-		<div ng-if='!ao.isNew()' style='clear:both'>
+		<div ng-if='ao.selected && !ao.isNew()' style='clear:both'>
 			<ul class='tri-pane'>
 				<li ng-class='{ active : isCurrentTab("policies") || isCurrentTab("policies.edit") }'>
 					<a ng-href='#/management/{{ao.type}}/{{ao.getPublicId()}}/policies'>POLICIES</a>

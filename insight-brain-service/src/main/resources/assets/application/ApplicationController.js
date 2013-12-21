@@ -302,8 +302,10 @@
         $scope.$on('resetIconCache', resetIconCache);
 
         $scope.canSaveEdit = function() {
-          return $scope.isFormDirty() && !$scope.aoEditor.$invalid && !$scope.submitActive &&
-              $scope.selectedApplication.organizationId;
+          var applicationNameValid = $scope.aoEditorName && $scope.aoEditorName.$visible || $scope.ao.selected.name,
+              applicationIdValid = !$scope.aoIdEditor.$invalid && ($scope.appPublicIdForm && $scope.appPublicIdForm.$visible || $scope.selectedApplication.publicId);
+          return !$scope.aoEditor.$invalid && !$scope.submitActive &&
+              $scope.selectedApplication.organizationId && applicationNameValid && applicationIdValid;
         };
 
         $scope.cancel = function() {
@@ -339,14 +341,11 @@
 
         // This needs to be invoked by onsubmit rather than ng-submit to suppress submit when necessary
         $scope.save = function() {
-          if ($scope.submitActive) {
-            return true;
+          if ($scope.submitActive || $scope.aoEditor.$invalid) {
+            return;
           }
-
-          if (!$scope.aoEditor.$valid) {
-            return false;
-          }
-
+          $scope.appPublicIdForm.$save();
+          $scope.aoEditorName.$save();
           if (window.FormData) {
             var icon = angular.element('#file')[0];
             if (icon.files.length > 0) {

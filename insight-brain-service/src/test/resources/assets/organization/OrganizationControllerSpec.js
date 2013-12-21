@@ -27,6 +27,10 @@ describe('Tests for the OrganizationController', function() {
       httpBackend.whenGET(SpecUtil.toRegExp(CLMAppLocations.getEntitiesUrl())).respond(organizationsData);
 
       scope = $rootScope.$new();
+
+      scope.aoEditorName = {
+        $save : angular.noop
+      };
       state = $state;
 
       $controller('OrganizationController', {
@@ -135,6 +139,9 @@ describe('Tests for the OrganizationController', function() {
 
         parentScope = $rootScope.$new();
         scope = parentScope.$new();
+        scope.aoEditorName = {
+          $save : angular.noop
+        };
         state = $state;
 
         var selectedOrganization = OrganizationStore.create();

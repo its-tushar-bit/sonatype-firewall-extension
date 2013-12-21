@@ -367,6 +367,10 @@ body {
 .tabbable {
 	clear: both;
 }
+#aoEditor {
+	display : inline-block;
+	vertical-align: top;
+}
 .editor-header {
 	padding-top: 20px;
 	padding-left: 25px;
@@ -375,10 +379,10 @@ body {
 	border: 1px;
 }
 .editor-image {
-	float: left;
 	margin-right: 15px;
 	text-align: center;
 	height: 200px;
+	display : inline-block;
 }
 .editor-image img {
 	height: 160px;
@@ -427,16 +431,17 @@ body {
  * Inline Editor
  */
 .inline {
-	margin-top: -10px;
-	margin-bottom: 5px;
+	font-weight: bold;
 }
-.head h1 {
+.inline.head .editable, .inline.head input {
+	font-size: 40px;
+}
+.inline .editable.editable-click, .inline .editable.editable-click:hover {
+	color : #444;
+}
+.inline .editable, .inline.head input, .inline .editable-controls input {
 	white-space: nowrap;
-	height: 55px;
-}
-.inline.head h1 span, .inline.head h1 input, .inline .editable-container input {
 	background: transparent;
-	font: inherit;
 	color: #444;
 	margin: 0;
 	line-height: normal;
@@ -446,47 +451,48 @@ body {
 	height: auto;
 	width: auto;
 	text-rendering: optimizelegibility;
+	font-weight: bold;
 }
-.inline .editable-container input {
+.inline .editable-controls input {
 	padding: 0;
 	border: none;
 }
-.setappid .inline .editable-container input {
+.setappid .inline .editable-controls input {
 	-webkit-transition: width .2s linear;
 	-moz-transition: width .2s linear;
 	transition: width .2s linear;
-	width: 55px;
+	width: 150px;
+	vertical-align : text-top;
 }
-.inline.head h1 span, .inline.head h1 input {
-	line-height: 55px;
-}
-/* xeditable uses input-medium class for text input. this is too small for header inputs */
-.inline.head .input-medium {
+.inline.head input {
 	width: 500px;
 }
-.inline.head .editable-error-block {
+.inline.head .editable-error {
 	font-size: 14px;
 }
 .inline.head .errors {
     margin-bottom: 5px;
     margin-top: -8px;
 }
-.inline input:focus {
+.inline .editable-controls input:focus {
 	outline: none;
 	border: 0;
 	-webkit-box-shadow: none;
 	-moz-box-shadow: none;	
 	box-shadow: none;
 }
-.inline.head .editable-empty, .inline .editable-empty, .inline .editable-empty:hover, .inline .editable-empty:focus {
+.inline.head a.editable-empty, .inline .editable.editable-empty, .inline .editable.editable-empty:hover, .inline .editable.editable-empty:focus {
 	font-style: normal;
 	color: #909090;
 	text-decoration: none;
 }
+.inline.head .editable-wrap {
+	padding-bottom : 2px;
+}
 .inline .editable {
 	border-bottom: 1px solid transparent;
 }
-.inline .editable-container.editable-inline {
+.inline .editable-controls.editable-inline {
 	vertical-align: text-bottom;
 }
 .inline .editableform .control-group {
@@ -495,10 +501,10 @@ body {
 .inline .editable:hover, .inline a:hover {
 	border-bottom: 1px dashed #909090;
 }
-.inline span, .inline input, .inline a {
+.inline input, .inline .editable {
 	font-weight: bold;
 }
-.inline a {
+.inline .editable, .inline .open .editable {
 	-webkit-appearance: none;
 	-moz-box-shadow: none;
 	-webkit-box-shadow: none;
@@ -515,7 +521,6 @@ body {
 	outline: none;
 	margin: 0;
 	vertical-align: text-bottom;
-	color: #909090;
 	border-radius: 0;
 }
 .inline .btn-group {
@@ -527,18 +532,8 @@ body {
 	-moz-box-shadow: none;
 	box-shadow: none;
 }
-.inline a.selected {
+.inline .editable.selected {
 	color: #333333;
-}
-.inline .error {
-	border: 2px solid #b94a48;
-	border-radius: 5px !important;
-	-moz-border-radius: 5px !important;
-	-webkit-border-radius: 5px !important;
-	-webkit-box-shadow: inset 0 1px 1px rgba(0,0,0,0.075) !important;
-	-moz-box-shadow: inset 0 1px 1px rgba(0,0,0,0.075) !important;
-	box-shadow: inset 0 1px 1px rgba(0,0,0,0.075) !important;
-	padding: 2px !important;
 }
 .application-save {
 	margin-bottom: 5px;

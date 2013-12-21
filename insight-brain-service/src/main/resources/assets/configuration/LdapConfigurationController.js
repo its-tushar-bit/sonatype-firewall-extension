@@ -131,7 +131,9 @@
     '$scope', '$state', '$modal', 'Dialog', 'LdapConfigurationStore', 'CLMLocations',
     function($scope, $state, $modal, Dialog, ldapStore, clmLocations) {
       function isDirty() {
-        if ($scope.ldap) {
+        if ($scope.ldapNameForm && $scope.ldapNameForm.$visible) {
+          return true;
+        } else if ($scope.ldap) {
           return $scope.ldap.isDirty();
         }
         return false;
@@ -168,10 +170,11 @@
 
       $scope.isDirty = isDirty;
       $scope.canSaveEdit = function() {
-        return isDirty() && !$scope.ldapEditor.$invalid;
+        return $scope.ldapEditor && !$scope.ldapEditor.$invalid && ($scope.ldapNameForm && $scope.ldapNameForm.$visible || $scope.ldap && $scope.ldap.name);
       };
 
       $scope.save = function() {
+        $scope.ldapNameForm.$save();
         $scope.saving = true;
         $scope.ldap.$save().then(function(config) {
           $scope.saving = false;

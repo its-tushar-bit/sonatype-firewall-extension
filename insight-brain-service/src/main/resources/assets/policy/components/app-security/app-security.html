@@ -1,137 +1,111 @@
 <div id="security" style='min-width: 955px'>
-  <script type='text/ng-template' id='appSecurityEditor'>
-    <div style='width:500px; margin:5px'>
-      <form name='userSearch' style='margin:0px'>
-        <div class="input-prepend">
-				<span class="add-on">
-					<i class='icon-search' ng-show='!requestActive'> </i>
-					<img src='../assets/img/loading.gif' ng-show='requestActive'>
-				</span><input placeholder='Find Member' type='text' name='filter' ng-model='queryString'>
-        </div>
-      </form>
-      <div>
-        <div class='selectList-large'>
-          <h5>Applied</h5>
-          <div>
-            <div>
-              <div ng-repeat='grouping in groupings'>
-                <div class='large-select-list-header' ng-if='showGroupingHeader(grouping, mappings)'>
-                  <i class='glyphicons-sonatype small' ng-class='grouping.icon'></i>{{grouping.header}}
-                </div>
-                <div ng-repeat='mapping in mappings'>
-                  <div ng-repeat='member in mapping.members | filter: { displayName : queryString, type : grouping.type } | orderBy:"displayName"'>
-                    <div ng-click='removeMember($parent.$index, member)' class='large-select-list-item' ng-class='{  inherited : $parent.$index }'>
-                      <div class="floatLeft">
-                        <i ng-class='{ "icon-minus-sign" : !$parent.$index, "emptyIconGlyph" : $parent.$index }'></i>
-                      </div>
-                      <div class='large-select-list-item-content'>
-                        <span ng-bind-html="member.displayName | highlight:queryString:caseSensitive"></span>
-                        <div>
-                          <span class='large-select-list-item-detail'>{{member.email}}</span>
-                          <span class='large-select-list-item-right-detail'>{{member.realm}}</span>
-                        </div>
-                      </div>
-                      <div style='clear:both'></div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class='selectList-large'>
-          <h5>Available</h5>
-          <div>
-            <div>
-              <div class='large-select-query-item' ng-show="!queryString">Search above to find members.</div>
-              <div ng-repeat='grouping in groupings'>
-                <div class='large-select-list-header' ng-if='showGroupingHeader(grouping, queryResults)'>
-                  <i class='glyphicons-sonatype small' ng-class='grouping.icon'></i>{{grouping.header}}
-                </div>
-                <div ng-repeat='member in queryResults | memberNotIn:mappings | filter: { type: grouping.type } | orderBy:"displayName"'>
-                  <div ng-click='addMember(member)' class='large-select-list-item'>
-                    <div class='floatLeft'>
-                      <i class='icon-plus-sign'></i>
-                    </div>
-                    <div class='large-select-list-item-content'>
-                      <span ng-bind-html="member.displayName | highlight:queryString:caseSensitive"></span>
-                      <div>
-                        <span class='large-select-list-item-detail'>{{member.email}}</span>
-                        <span class='large-select-list-item-right-detail'>{{member.realm}}</span>
-                      </div>
-                    </div>
-                    <div style='clear:both'></div>
-                  </div>
-                </div>
-              </div>
-              <div class='licenseSelectListItem' ng-show='queryString && !requestActive && queryResults.length == 0'>
-                <i class='emptyIconGlyph'></i>&nbsp;<em>No results</em>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div style='padding: 10px 0px'>
-        <div clm-alerts='alerts'></div>
-        <div clm-buttons='buttons' accept-fn='save()' cancel-fn='cancel()' style='text-align:right'></div>
-      </div>
-    </div>
-  </script>
-  <div load-error='error' reload='doLoad()'></div>
-  <div expand-role-on-event='roleEditClick'></div>
-  <div style='margin:25px' ng-show='!context && !error'>
-    <h5>
-      <i class='icon-time'></i> Loading...
-    </h5>
-  </div>
-  <div class='fade' ng-class='{in : context && !error}'>
-    <div clm-alerts='alerts'></div>
-    <div class='role-header'>
-      <div class='row'>
-        <h4 class='span3'>Role</h4>
-        <h4 class='span7'>Members</h4>
-      </div>
-    </div>
+	<script type='text/ng-template' id='appSecurityEditor'>
+		<div style='width:500px; margin:5px'>
+			<div app-user-search set-results='setResults($members, $error)' query-string='queryString' request-active='requestActive'></div>
+			<div>
+				<div class='selectList-large'>
+					<h5>Applied</h5>
+					<div>
+						<div>
+							<div ng-repeat='grouping in groupings'>
+								<div class='large-select-list-header' ng-if='showGroupingHeader(grouping, mappings)'>
+									<i class='glyphicons-sonatype small' ng-class='grouping.icon'></i>{{grouping.header}}
+								</div>
+								<div ng-repeat='mapping in mappings'>
+									<div ng-repeat='member in mapping.members | filter: { displayName : queryString, type : grouping.type } | orderBy:"displayName"'>
+										<div user-list-item='member'
+										     icon-class='{{$parent.$index ? "emptyIconGlyph" : "icon-minus-sign"}}'
+										     query='{{queryString}}'
+										     ng-click='removeMember($parent.$index, member)'
+										     ng-class='{ inherited : $parent.$index }'>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class='selectList-large'>
+					<h5>Available</h5>
+					<div>
+						<div>
+							<div class='large-select-query-item' ng-show="!queryString">Search above to find users</div>
+							<div ng-repeat='grouping in groupings'>
+								<div class='large-select-list-header' ng-if='showGroupingHeader(grouping, queryResults)'>
+									<i class='glyphicons-sonatype small' ng-class='grouping.icon'></i>{{grouping.header}}
+								</div>
+								<div ng-repeat='member in queryResults | memberNotIn:mappings | filter: { type: grouping.type } | orderBy:"displayName"'>
+									<div user-list-item='member' ng-click='addMember(member)' icon-class='icon-plus-sign' query='{{queryString}}'></div>
+								</div>
+							</div>
+							<div class='licenseSelectListItem' ng-show='queryString && !requestActive && queryResults.length == 0'>
+								<i class='emptyIconGlyph'></i>&nbsp;<em>No results</em>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div style='padding: 10px 0px'>
+				<div clm-alerts='alerts'></div>
+				<div clm-buttons='buttons' accept-fn='save()' cancel-fn='cancel()' style='text-align:right'></div>
+			</div>
+		</div>
+	</script>
+	<div load-error='error' reload='doLoad()'></div>
+	<div expand-role-on-event='roleEditClick'></div>
+	<div style='margin:25px' ng-show='!context && !error'>
+		<h5>
+			<i class='icon-time'></i> Loading...
+		</h5>
+	</div>
+	<div class='fade' ng-class='{in : context && !error}'>
+		<div clm-alerts='alerts'></div>
+		<div class='role-header'>
+			<div class='row'>
+				<h4 class='span3'>Role</h4>
+				<h4 class='span7'>Members</h4>
+			</div>
+		</div>
 
-    <div class="accordion roles">
-      <div class="accordion-group" ng-repeat='role in context.roles'>
-        <div class="accordion-heading role">
-          <div class='row' ng-click="expanded = !expanded">
-            <div class='span3'>
-              <div class='expandable'>{{role.roleName}}</div>
-            </div>
-            <div class='span8'>
-              <div class='hover-buttons floatRight'>
-                <button type='button' class="btn btn-mini" title="Edit Role" ng-click='editMode = true' ng-disabled='editMode'>
-                  <i class="icon-pencil"></i>
-                </button>
-              </div>
-              <div ng-if='!editMode' class='expandable' ng-show="!context.roleEditMap[role.roleId]" ng-class='{"collapsed" : !expanded}'>
-                <div ng-repeat='grouping in groupings' ng-if='showGrouping(grouping, role.membersByOwner)' ng-class='{ "role-footer" : !$last }'>
-                  <div class='member-list' ng-repeat='mapping in role.membersByOwner' ng-if='mapping.members.length > 0'
-                       ng-class='{ "inherited inherited-section" : $last && role.membersByOwner.length > 1 }'
-                       ng-init="isLastMapping = $last">
-                    <span ng-if="$first">
-                      <i class='glyphicons-sonatype small' ng-class='grouping.icon'></i>
-                    </span>
-                    <span ng-if="expanded && $last && role.membersByOwner.length > 1 && showGrouping(grouping, role.membersByOwner[role.membersByOwner.length - 1].members)"
-                          tooltip='Inherited from parent' tooltip-placement='bottom'>
-                      <img src='../assets/img/icon-elbow-up-gray.png' class='inherited-icon' alt='Inherited'>
-                    </span>
-                    <span ng-repeat='member in mapping.members | filter: { type: grouping.type } | orderBy:"displayName"'>
-                      {{member.displayName}}<span ng-show="!$last || (!isLastMapping && !expanded && showGrouping(grouping, role.membersByOwner[role.membersByOwner.length - 1].members))">,</span>
-                    </span>
-                  </div>
-                </div>
-              </div>
-              <div ng-if='editMode'>
-                <div app-security-editor='role.membersByOwner' role-id='role.roleId' hide='$parent.editMode = false'></div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-  <div error-Modal></div>
+		<div class="accordion roles">
+			<div class="accordion-group" ng-repeat='role in context.roles'>
+				<div class="accordion-heading role">
+					<div class='row' ng-click="expanded = !expanded">
+						<div class='span3'>
+							<div class='expandable'>{{role.roleName}}</div>
+						</div>
+						<div class='span8'>
+							<div class='hover-buttons floatRight'>
+								<button type='button' class="btn btn-mini" title="Edit Role" ng-click='editMode = true' ng-disabled='editMode'>
+									<i class="icon-pencil"></i>
+								</button>
+							</div>
+							<div ng-if='!editMode' class='expandable' ng-show="!context.roleEditMap[role.roleId]" ng-class='{"collapsed" : !expanded}'>
+								<div ng-repeat='grouping in groupings' ng-if='showGrouping(grouping, role.membersByOwner)' ng-class='{ "role-footer" : !$last }'>
+									<div class='member-list' ng-repeat='mapping in role.membersByOwner' ng-if='mapping.members.length > 0'
+											ng-class='{ "inherited inherited-section" : $last && role.membersByOwner.length > 1 }'
+											ng-init="isLastMapping = $last">
+										<span ng-if="$first">
+											<i class='glyphicons-sonatype small' ng-class='grouping.icon'></i>
+										</span>
+										<span ng-if="expanded && $last && role.membersByOwner.length > 1 && showGrouping(grouping, role.membersByOwner[role.membersByOwner.length - 1].members)"
+												tooltip='Inherited from parent' tooltip-placement='bottom'>
+											<img src='../assets/img/icon-elbow-up-gray.png' class='inherited-icon' alt='Inherited'>
+										</span>
+										<span ng-repeat='member in mapping.members | filter: { type: grouping.type } | orderBy:"displayName"'>
+											{{member.displayName}}<span ng-show="!$last || (!isLastMapping && !expanded && showGrouping(grouping, role.membersByOwner[role.membersByOwner.length - 1].members))">,</span>
+										</span>
+									</div>
+								</div>
+							</div>
+							<div ng-if='editMode'>
+								<div app-security-editor='role.membersByOwner' role-id='role.roleId' hide='$parent.editMode = false'></div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div error-Modal></div>
 </div>

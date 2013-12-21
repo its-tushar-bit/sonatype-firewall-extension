@@ -13,16 +13,16 @@ describe('AppSecurityControllerSpec', function() {
       }
     });
   }));
-  
+
   describe('AppSecurityController', function(){
     var scope = null, parentScope = null, role1 = null, role2 = null;
-    
+
     beforeEach(inject(function ($rootScope, $httpBackend, CLMAppLocations, $controller) {
       parentScope = $rootScope.$new();
       scope = parentScope.$new();
       role1 = MockData.getRoleOneData();
       role2 = MockData.getRoleTwoData();
-      
+
       $httpBackend.expectGET(SpecUtil.toRegExp(CLMAppLocations.getRoleMappingUrl())).respond({
         "membersByRole": [role1, role2]
       });
@@ -32,7 +32,7 @@ describe('AppSecurityControllerSpec', function() {
       $httpBackend.flush();
       expect(scope.context.roles.length).toEqual(2);
     }));
-    
+
     afterEach(inject(function ($httpBackend) {
       parentScope.$destroy();
       $httpBackend.verifyNoOutstandingExpectation();
@@ -47,14 +47,14 @@ describe('AppSecurityControllerSpec', function() {
       expect(scope.context.roles[0].membersByOwner[0].members.length).toBe(2);
       expect(scope.context.roles[0].membersByOwner[0].members[0].internalName).toBe('admin');
     });
-    
+
     it('validate roleSaveComplete event is handled properly', inject(function($rootScope) {
       $rootScope.$broadcast('roleSaveComplete', role1.roleId, {
         members: MockData.getRoleSaveCompleteEventMemberList()
       });
-      
+
       var found;
-      
+
       for ( var i = 0; i < scope.context.roles.length; i++) {
         if (scope.context.roles[i].roleId === role1.roleId) {
           expect(scope.context.roles[i].membersByOwner[0].members).toEqual(MockData.getRoleSaveCompleteEventMemberList());
@@ -62,7 +62,7 @@ describe('AppSecurityControllerSpec', function() {
           break;
         }
       }
-      
+
       expect(found).toEqual(true);
     }));
   });
@@ -71,7 +71,7 @@ describe('AppSecurityControllerSpec', function() {
     var scope = null,
         parentScope = null;
 
-    beforeEach(inject(function ($rootScope, $controller) {
+    beforeEach(inject(function ($rootScope, $controller, $compile) {
       parentScope = $rootScope.$new();
       scope = parentScope.$new();
       scope.isDirty = function() {
@@ -117,6 +117,8 @@ describe('AppSecurityControllerSpec', function() {
       $controller('AppSecurityEditorController', {
         $scope : scope
       });
+
+      $compile("<div app-user-search set-results='setResults($members, $error)' query-string='queryString' request-active='requestActive'></div>")(scope);
     }));
 
     afterEach(function () {
@@ -183,7 +185,7 @@ describe('AppSecurityControllerSpec', function() {
         displayName : 'Flintstone Family',
         realm : 'bedrock'
       }]);
-      
+
       $httpBackend.expectPUT(CLMAppLocations.getRoleMappingUrl(scope.roleId), scope.mappings[0].members).respond(204);
       scope.save();
       $httpBackend.flush();
@@ -203,7 +205,7 @@ describe('AppSecurityControllerSpec', function() {
         scope.removeMember(0, scope.mappings[0].members[0]);
       });
       expect(parentScope.mappings[0].members).toEqual([]);
-      
+
       $httpBackend.expectPUT(CLMAppLocations.getRoleMappingUrl(scope.roleId), scope.mappings[0].members).respond(204);
       scope.save();
       $httpBackend.flush();
@@ -220,13 +222,12 @@ describe('AppSecurityControllerSpec', function() {
         $timeout.flush();
 
         expect(scope.requestActive).toBeTruthy();
-        expect(scope.lastQuery).toEqual('bar');
+        expect(scope.$$childHead.lastQuery).toEqual('bar');
         $httpBackend.flush();
 
         expect(scope.requestActive).toBeFalsy();
         expect(scope.queryResults).toEqual([{ id : 'bar' }]);
       }));
-
 
       it('Query Extended', inject(function ($timeout, $httpBackend) {
         scope.$apply(function () {
@@ -237,7 +238,7 @@ describe('AppSecurityControllerSpec', function() {
         $timeout.flush();
 
         expect(scope.requestActive).toBeTruthy();
-        expect(scope.lastQuery).toEqual('foo');
+        expect(scope.$$childHead.lastQuery).toEqual('foo');
 
         // User added charactersbefore the server responded
         scope.$apply(function () {
@@ -245,7 +246,7 @@ describe('AppSecurityControllerSpec', function() {
         });
         $httpBackend.flush();
 
-        expect(scope.lastQuery).toEqual('food');
+        expect(scope.$$childHead.lastQuery).toEqual('food');
         expect(scope.queryResults).toEqual([{ id : 'food' }]);
       }));
 
@@ -258,7 +259,7 @@ describe('AppSecurityControllerSpec', function() {
         $timeout.flush();
 
         expect(scope.requestActive).toBeTruthy();
-        expect(scope.lastQuery).toEqual('foo');
+        expect(scope.$$childHead.lastQuery).toEqual('foo');
 
         // User deleted it and typed something new before the server responded
         scope.$apply(function () {
@@ -266,9 +267,8 @@ describe('AppSecurityControllerSpec', function() {
         });
         $httpBackend.flush();
 
-        expect(scope.lastQuery).toEqual('bar');
+        expect(scope.$$childHead.lastQuery).toEqual('bar');
         expect(scope.queryResults).toBeFalsy();
-
 
         $httpBackend.expectGET('/rest/user/application/bom1-12345678/query?q=bar').respond({ members: [{ id : 'bar' }], error: null });
         $timeout.flush();
@@ -286,7 +286,7 @@ describe('AppSecurityControllerSpec', function() {
         $timeout.flush();
 
         expect(scope.requestActive).toBeTruthy();
-        expect(scope.lastQuery).toEqual('foo');
+        expect(scope.$$childHead.lastQuery).toEqual('foo');
         $httpBackend.flush();
 
         expect(scope.requestActive).toBeFalsy();
@@ -302,7 +302,7 @@ describe('AppSecurityControllerSpec', function() {
         $timeout.flush();
 
         expect(scope.requestActive).toBeTruthy();
-        expect(scope.lastQuery).toEqual('bar');
+        expect(scope.$$childHead.lastQuery).toEqual('bar');
         $httpBackend.flush();
 
         expect(scope.requestActive).toBeFalsy();
@@ -342,7 +342,7 @@ describe('AppSecurityControllerSpec', function() {
     beforeEach(inject(function ($filter) {
       filter = $filter('memberNotIn');
     }));
-    
+
     afterEach(function () {
       filter = null;
     });

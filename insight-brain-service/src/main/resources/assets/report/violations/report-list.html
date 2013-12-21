@@ -25,6 +25,7 @@
 						<th ng-repeat='stage in stages | filterReportColumns'>
 							{{stage.name}} Violations
 						</th>
+						<th>Contact</th>
 					</tr>
 				</thead>
 				<tr ng-repeat='application in applications | filter: appFilter | orderBy:orderColumn:orderDirection'>
@@ -52,6 +53,7 @@
 							</div>
 						</div>
 					</td>
+					<td>{{application.contact.displayName || application.contact.internalName}}</td>
 				</tr>
 			</table>
 		</div>

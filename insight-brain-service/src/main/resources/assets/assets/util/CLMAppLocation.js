@@ -19,16 +19,19 @@
         return $state.current.name.indexOf('organization') !== -1;
       }
 
-      var getServicePath = function() {
+      function getServicePath() {
         return isApplication() ? 'application' : isOrganization() ? 'organization' : 'global';
-      };
+      }
+
+      function getServicePathWithId() {
+        var id = getId(),
+            path = id === 'global' ? 'global' : getServicePath();
+        return path + '/' + id;
+      }
 
       var getId = function() {
-        return isApplication() ? appId.encoded() : isOrganization() ? orgId.encoded() : 'global';
-      };
-
-      var getServicePathWithId = function() {
-        return getServicePath() + '/' + getId();
+        var id = isApplication() ? appId.encoded() : isOrganization() ? orgId.encoded() : 'global';
+        return id === '_new_' ? 'global' : id;
       };
 
       return {

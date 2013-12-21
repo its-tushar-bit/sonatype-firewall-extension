@@ -87,8 +87,9 @@ public class UserResource
   @Produces({ MediaType.APPLICATION_JSON })
   @Authorize(permission = Permission.WRITE)
   public FindMembersDTO findMembers(@AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") String ownerType,
-                                  @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId,
-                                  @QueryParam("q") String query) {
+      @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId, @QueryParam("q") String query,
+      @QueryParam("groups") Boolean groupsEnabled)
+  {
     if (StringUtils.isEmpty(query)) {
       throw new BadRequestException("No search term specified.");
     }
@@ -115,7 +116,7 @@ public class UserResource
             users.put(key, member);
           }
         }
-        if (ldapManager.isLdapGroupEnabled()) {
+        if ((groupsEnabled == null || groupsEnabled) && ldapManager.isLdapGroupEnabled()) {
           for (LdapGroup group : ldapManager.findGroupsByName(query, 100)) {
             final String groupName = group.getGroupname();
             Member member = new Member(MemberType.GROUP, groupName, groupName, null, ldapName);

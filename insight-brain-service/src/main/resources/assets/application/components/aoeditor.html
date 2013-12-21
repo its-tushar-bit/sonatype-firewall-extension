@@ -131,6 +131,40 @@
 			<button class='btn btn-danger' ng-disabled='!deletedEnabled' ng-click='doDelete();'>Delete</button>
 		</div>
 	</script>
+	<script type='text/ng-template' id='contact-modal'>
+	<div ng-controller='ContactController' id='contact-modal-dialog'>
+		<div class='modal-header'>
+			<h3>Contact User</h3>
+		</div>
+		<div class='modal-body'>
+			<div style='width:75%;margin:auto'>
+				<div app-user-search set-results='setQueryResults($members, $error)' query-string='queryString' request-active='requestActive'></div>
+				<div class='selectList-large' style='width:100%'>
+					<h5>Available</h5>
+					<div>
+						<div>
+							<div class='large-select-query-item' ng-show="!queryString">Search above to find users</div>
+							<div ng-repeat='user in queryResults | memberNotIn:mappings | filter: { type: grouping.type } | orderBy:"displayName"'>
+								<div user-list-item='user'
+									 icon-class='emptyIconGlyph'
+									 query='{{queryString}}'
+									 selected='selectedUser.internalName == user.internalName'
+									 ng-click='selectUser(user)'></div>
+							</div>
+							<div class='licenseSelectListItem' ng-show='queryString && !requestActive && queryResults.length == 0'>
+								<i class='emptyIconGlyph'></i>&nbsp;<em>No results</em>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class='modal-footer'>
+			<div class='pull-left'><button class='btn btn-danger' ng-click='$close(null)'>Remove Contact</button></div>
+			<button class='btn' ng-click='$dismiss()'>Cancel</button>
+		</div>
+	</div>
+	</script>
 	<div ng-if='!error && ao == null' class='editor-header' style='margin:20px;'>
 		<h5><i class='icon icon-time'></i> Loading...</h5>
 	</div>
@@ -230,10 +264,10 @@
 					</div>
 					<div>
 						<span>Contact:</span>
-						<span
+						<span id='contact-field'
 							class='editable'
 							ng-class='{ "editable-empty" : !ao.selected.contact }'
-							ng-click='openContact()'>{{ao.selected.contact.displayName || "None"}}</span>
+							ng-click='openContact()'>{{ao.selected.contact.displayName || ao.selected.contact.internalName || "None"}}</span>
 					</div>
 				</div>
 				<div ng-switch='ao.selected && !ao.selected.id || isFormDirty() || aoEditorName.$visible'>

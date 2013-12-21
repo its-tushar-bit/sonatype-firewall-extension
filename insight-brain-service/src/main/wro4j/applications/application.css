@@ -5,3 +5,11 @@
 #applicationManagement table td {
 	vertical-align: middle;
 }
+
+.large-select-list-item.active {
+	background-color : #0088cc;
+	color : white;
+}
+.large-select-list-item.active:hover {
+	background-color : #0088cc;
+}

@@ -216,7 +216,6 @@
         };
         $scope.doLoad();
 
-
         $scope.getOrganizationName = function() {
           return $scope.selectedApplication && $scope.selectedApplication.organizationName || "Select Organization";
         };
@@ -277,11 +276,14 @@
           if (!$scope.selectedApplication) {
             return false;
           }
-          var originalApplication = $scope.selectedApplication.$getOriginal();
-          var currentApplication = $scope.selectedApplication;
+          var originalApplication = $scope.selectedApplication.$getOriginal(),
+              currentApplication = $scope.selectedApplication,
+              contactChanged = (currentApplication.contact || originalApplication.contact) ? !angular.equals(currentApplication.contact, originalApplication.contact) : false;
+
           return currentApplication.publicId != originalApplication.publicId ||
               currentApplication.name != originalApplication.name ||
-              currentApplication.organizationId != originalApplication.organizationId || $scope.iconChanged;
+              currentApplication.organizationId != originalApplication.organizationId ||
+              contactChanged || $scope.iconChanged;
         };
 
         //make sure user is aware they are about to lose changes
@@ -303,7 +305,7 @@
 
         $scope.canSaveEdit = function() {
           var applicationNameValid = $scope.aoEditorName && $scope.aoEditorName.$visible || $scope.ao.selected.name,
-              applicationIdValid = !$scope.aoIdEditor.$invalid && ($scope.appPublicIdForm && $scope.appPublicIdForm.$visible || $scope.selectedApplication.publicId);
+              applicationIdValid = !$scope.aoIdEditor || !$scope.aoIdEditor.$invalid && ($scope.appPublicIdForm && $scope.appPublicIdForm.$visible || $scope.selectedApplication.publicId);
           return !$scope.aoEditor.$invalid && !$scope.submitActive &&
               $scope.selectedApplication.organizationId && applicationNameValid && applicationIdValid;
         };
@@ -344,8 +346,12 @@
           if ($scope.submitActive || $scope.aoEditor.$invalid) {
             return;
           }
-          $scope.appPublicIdForm.$save();
-          $scope.aoEditorName.$save();
+          if ($scope.appPublicIdForm && $scope.appPublicIdForm.$visible) {
+            $scope.appPublicIdForm.$save();
+          }
+          if ($scope.aoEditorName.$visible) {
+            $scope.aoEditorName.$save();
+          }
           if (window.FormData) {
             var icon = angular.element('#file')[0];
             if (icon.files.length > 0) {
@@ -361,6 +367,7 @@
           $scope.submitActive = true;
 
           var oldApplication = $scope.selectedApplication.$getOriginal();
+          $scope.selectedApplication.contactInternalName = $scope.selectedApplication.contact ? $scope.selectedApplication.contact.internalName : null;
           $scope.selectedApplication.$save().then(function() {
             me.saveIcon().then(function() {
               if ($state.params.applicationPublicId === '_new_') {
@@ -421,7 +428,7 @@
             $scope.$broadcast('refresh', $scope.selectedApplication);
           }, angular.noop);
         };
-        
+
         $scope.openEvalute = function () {
           $modal.open({
             backdrop : 'static',
@@ -435,6 +442,16 @@
             }
           }).result.then(function () {
             $scope.$broadcast('refresh', $scope.selectedApplication);
+          }, angular.noop);
+        };
+
+        $scope.openContact = function () {
+          $modal.open({
+            backdrop : 'static',
+            keyboard : true,
+            templateUrl : 'contact-modal'
+          }).result.then(function (contact) {
+            selectedApplication.contact = contact;
           }, angular.noop);
         };
       });
@@ -473,4 +490,28 @@
       }
     };
   });
+
+  applicationModule.controller('ContactController', ['$scope', function ($scope) {
+    $scope.alerts = [];
+
+    $scope.setQueryResults = function (members, error) {
+      $scope.queryResults = members;
+
+      if (error) {
+        $scope.alerts.push({
+          type: 'error',
+          msg: error
+        });
+      }
+    };
+
+    $scope.selectUser = function (user) {
+      $scope.$close(user);
+    };
+
+    $scope.$watch('queryString', function (newVal) {
+      // clear the alerts
+      $scope.alerts.length = 0;
+    });
+  }]);
 }());

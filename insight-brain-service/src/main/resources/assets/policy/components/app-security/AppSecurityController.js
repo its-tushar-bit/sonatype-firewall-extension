@@ -72,11 +72,7 @@
   }]);
 
   appSecurityModule.controller('AppSecurityEditorController', ['$scope', '$http', '$timeout', '$modal', 'CLMAppLocations', 'Messages', function ($scope, $http, $timeout, $modal, clmAppLocations, Messages) {
-    var filterTimeout = null;
-
     $scope.alerts = [];
-    $scope.requestActive = 0;
-    $scope.queryString = '';
 
     $scope.groupings = groupings;
     $scope.showGroupingHeader = showGroupings;
@@ -98,7 +94,7 @@
         $scope.hide();
       }
     };
-    
+
     $scope.save = function () {
       if ($scope.isDirty()) {
         return $http.put(clmAppLocations.getRoleMappingUrl($scope.roleId), $scope.mappings[0].members).success(function () {
@@ -135,49 +131,20 @@
         }
     };
 
-    $scope.$watch('queryString', function (newVal) {
-      if (!newVal) {
-        $scope.queryResults = null; // Empty query, empty results
-        return;
-      }
+    $scope.setResults = function (members, error) {
+      $scope.queryResults = members;
 
-      if (filterTimeout) {
-        $timeout.cancel(filterTimeout);
-      }
-
-      $scope.lastQuery = newVal;
-      filterTimeout = $timeout(function () {
-        $scope.requestActive++;
-        //clear the alerts
-        $scope.alerts.length = 0;
-
-        $http.get(clmAppLocations.getFindUsersUrl(), {
-          params : {
-            q : newVal
-          }
-        }).success(function (data) {
-          $scope.requestActive--;
-          if ($scope.queryString === newVal || $scope.queryString.indexOf(newVal) === 0) {
-            $scope.queryResults = data.members;
-
-            if (data.error) {
-              $scope.alerts.push({
-                type: 'error',
-                msg: data.error
-              });
-            }
-          }
-        }).error(function () {
-          $scope.requestActive--;
-          if ($scope.requestActive === 0) {
-            $scope.queryResults = null;
-          }
-          $scope.alerts.push({
-            type: 'error',
-            msg: Messages.getHttpErrorMessage(arguments)
-          });
+      if (error) {
+        $scope.alerts.push({
+          type: 'error',
+          msg: error
         });
-      }, 500);
+      }
+    };
+
+    $scope.$watch('queryString', function (newVal) {
+      // clear the alerts
+      $scope.alerts.length = 0;
     });
   }]);
 
@@ -231,6 +198,100 @@
           if (scope.isDirty()) {
             e.preventDefault();
           }
+        });
+      }
+    };
+  }]);
+
+  appSecurityModule.directive('userListItem', function () {
+    return {
+      restrict : 'A',
+      scope : {
+        iconClass : '@',
+        user : '=userListItem',
+        queryString : '@',
+        selected : '&'
+      },
+      template :
+        '<div class="large-select-list-item" ng-class="{ active : selected() }">' +
+          '<div class="floatLeft">' +
+            '<i class="{{iconClass}}"></i>' +
+          '</div>' +
+          '<div class="large-select-list-item-content">' +
+            '<span ng-bind-html="user.displayName | highlight:queryString:caseSensitive"></span>' +
+            '<div>' +
+              '<span class="large-select-list-item-detail">{{user.email}}</span>' +
+              '<span class="large-select-list-item-right-detail">{{user.realm}}</span>' +
+            '</div>' +
+          '</div>' +
+          '<div style="clear:both"></div>' +
+        '</div>'
+    };
+  });
+
+  appSecurityModule.directive('appUserSearch', ['$timeout', '$http', 'CLMAppLocations', function ($timeout, $http, clmAppLocations) {
+    return {
+      restrict : 'A',
+      scope : {
+        setResults : '&',
+        queryString : '=',
+        groups : '@',
+        requestActive : '='
+      },
+      template : "<form name='userSearch' style='margin:0px'>" +
+          "<div class='input-prepend'>" +
+            "<span class='add-on'>" +
+              "<i class='icon-search' ng-show='!requestActive'> </i>" +
+              "<img src='../assets/img/loading.gif' ng-show='requestActive'>" +
+            "</span><input placeholder='Find User' type='text' name='filter' ng-model='queryString' focus-input='true'>" +
+          "</div>" +
+        "</form>",
+      link : function ($scope) {
+        var filterTimeout = null,
+            lastResults = null;
+
+        $scope.requestActive = 0;
+        $scope.queryString = $scope.queryString || '';
+
+        $scope.$watch('queryString', function (newVal) {
+          if (!newVal) {
+            $scope.setResults({
+              $members : null, // Empty query, empty results
+              $error : null
+            });
+            return;
+          }
+
+          if (filterTimeout) {
+            $timeout.cancel(filterTimeout);
+          }
+
+          $scope.lastQuery = newVal;
+          filterTimeout = $timeout(function () {
+            $scope.requestActive++;
+
+            $http.get(clmAppLocations.getFindUsersUrl(), {
+              params : {
+                q : newVal,
+                groups : $scope.groups
+              }
+            }).success(function (data) {
+              $scope.requestActive--;
+              if ($scope.queryString === newVal || $scope.queryString.indexOf(newVal) === 0) {
+                $scope.setResults({
+                  $members : data.members,
+                  $error : data.error
+                });
+              }
+            }).error(function () {
+              $scope.requestActive--;
+
+              $scope.setResults({
+                $members : null,
+                $error : arguments
+              });
+            });
+          }, 500);
         });
       }
     };

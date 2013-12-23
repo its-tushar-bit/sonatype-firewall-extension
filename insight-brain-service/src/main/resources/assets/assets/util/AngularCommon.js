@@ -817,8 +817,8 @@ var AngularUtils = {
       scope: {
         refreshTooltip: '='
       },
-      template: '<a ng-show="!refreshing"><i class="icon-refresh"></i></a>' +
-          '<a ng-show="refreshing" tooltip="{{refreshTooltip}}" tooltip-placement="bottom"><i class="icon-refresh"></i></a>',
+      template: '<a class="btn btn-mini btn-bottom" ng-show="!refreshing"><i class="icon-refresh"></i></a>' +
+          '<a class="btn btn-mini" ng-show="refreshing" tooltip="{{refreshTooltip}}" tooltip-placement="bottom"><i class="icon-refresh"></i></a>',
       link: function(scope, element, attr) {
         var deferredFunction = $parse(attr.refreshButton);
         scope.refreshing = false;

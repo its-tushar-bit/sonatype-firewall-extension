@@ -1,19 +1,19 @@
 <div>
 	<script type='text/ng-template' id='recent-policy-eval'>
 		<div ng-show='applicationSummary.stageCount'>
-			<div ng-repeat='stage in state.actionStageList | filterReportColumns' class="report-summary" ng-class="{ bordered : !$last }">
+			<div ng-repeat='stage in state.actionStageList | filterReportColumns' class="report-summary">
 				{{stage.name}}
 				<span ng-if='applicationSummary.policyEvaluationsResults[stage.id]'>
-				<span refresh-button='reEvaluatePolicy(applicationSummary.policyEvaluations[stage.id])' title='Re-evaluate Policy'></span>
 				</span>
 				<div ng-if='applicationSummary.policyEvaluationsResults[stage.id]'>
 					<a class='no-hover-underline' style='vertical-align: middle;' title='View Report - {{applicationSummary.policyEvaluations[stage.id].time | ago}}'
 					   ng-href='reports.html#/reports/{{encodeURIComponent(applicationSummary.publicId)}}/{{applicationSummary.policyEvaluations[stage.id].scanId}}' target='_blank'>
-						<div chiclets critical="applicationSummary.policyEvaluationsResults[stage.id].criticalComponentCount"
+						<span chiclets critical="applicationSummary.policyEvaluationsResults[stage.id].criticalComponentCount"
 							 severe="applicationSummary.policyEvaluationsResults[stage.id].severeComponentCount"
-							 moderate="applicationSummary.policyEvaluationsResults[stage.id].moderateComponentCount"></div>
+							 moderate="applicationSummary.policyEvaluationsResults[stage.id].moderateComponentCount"></span>
 						<span ng-show='!(applicationSummary.policyEvaluationsResults[stage.id].criticalComponentCount + applicationSummary.policyEvaluationsResults[stage.id].severeComponentCount + applicationSummary.policyEvaluationsResults[stage.id].moderateComponentCount)' style="color:#000000;">No violations</span>
 					</a>
+                    <span class="refresh-chiclet" refresh-button='reEvaluatePolicy(applicationSummary.policyEvaluations[stage.id])' title='Re-evaluate Policy'></span>
 				</div>
 			</div>
 		</div>

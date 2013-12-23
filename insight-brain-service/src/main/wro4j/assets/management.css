@@ -555,13 +555,34 @@ body {
 .report-summary {
 	display: inline-block;
 	vertical-align: top;
-	width: 130px;
+	width: 170px;
 	height: 50px;
 	margin-right: 10px;
 	font-weight: bold;
+
+	border: 1px solid rgba(0, 0, 0, .1);
+        -webkit-border-radius: 4px;
+        -moz-border-radius: 4px;
+        border-radius: 4px;
+        padding: 5px;
 }
-.report-summary.bordered {
-	border-right: solid gray 1px;
+.report-summary:nth-child(even) {
+        background-color: #f9f9f9;
+}
+.refresh-chiclet > a {
+  display: inline-block;
+  width: 25px;
+  padding: 4px 6px;
+  text-align: center;
+  -webkit-border-radius: 4px;
+  -moz-border-radius: 4px;
+  border-radius: 4px;
+  font-weight: bold;
+  font-size: 14px;
+  vertical-align: middle;
+}
+.refresh-chiclet > a > i {
+  vertical-align: -2px;
 }
 /**
  * Triangular tabs used by app/org

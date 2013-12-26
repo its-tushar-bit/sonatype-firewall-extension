@@ -59,3 +59,10 @@
   font: 14px 'Glyphicons' !important;
   vertical-align: bottom;
 }
+
+.glyphicons-sonatype.management:before {
+  content: '\e267'
+}
+.glyphicons-sonatype.reports:before {
+  content: '\e040'
+}

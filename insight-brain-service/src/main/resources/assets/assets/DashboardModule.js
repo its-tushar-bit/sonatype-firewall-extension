@@ -216,10 +216,12 @@
         $scope.$state = $state;
         $scope.availableDashboards = [{
           name: 'Management',
+          icon: 'management',
           href: 'index.html#/management/application',
           selector: '#/management'
         }, {
           name: 'Reports',
+          icon: 'reports',
           href: 'reports.html#/reports/violations',
           selector: '#/reports'
         }];

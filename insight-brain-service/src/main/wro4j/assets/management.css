@@ -67,9 +67,6 @@ h4 {
 .first-row i, .first-row img {
 	vertical-align: middle;
 }
-.first-row .pull-right {
-	padding: 10px 20px 10px;
-}
 .first-row .title {
 	padding-top: 6px;
 	padding-bottom: 6px;
@@ -87,14 +84,6 @@ h4 {
 .first-row a:hover {
 	text-decoration: none;
 	color: black;
-}
-.second-row.navbar-fixed-top {
-	top: 53px;
-	border-bottom: 1px solid rgba(0,0,0,.15);
-	-webkit-box-shadow: 0px 1px 0px rgba(255,255,255,.4);
-	-moz-box-shadow: 0px 1px 0px rgba(255,255,255,.4);
-	box-shadow: 0px 1px 0px rgba(255,255,255,.4);
-	border-top: 1px solid #E8E8E8;
 }
 .navbar-inner a.dropdown-toggle {
 	color: #17558E;
@@ -122,7 +111,7 @@ h4 {
 	transition: all .1s linear;
 	border-top-color: #17558E;
 }
-.navbar-inverse .navbar-inner, .navbar-inner {
+.navbar-inner {
 	background-color: #E0E0E0;
 	background-image: none;
 	min-height: inherit;
@@ -148,22 +137,19 @@ h4 {
 	color: black;
 }
  @media (max-width: 979px) {
-.first-row, .second-row {
-	margin-bottom: 0px;
-	position: fixed;
-}
-.first-row div, .second-row div {
-	padding: 0px !important;
-}
+  .first-row {
+          margin-bottom: 0px;
+          position: fixed;
+  }
+  .first-row div {
+          padding: 0px !important;
+  }
 }
  @media (max-width: 767px) {
-body {
-	padding-left: 0px !important;
-	padding-right: 0px !important;
-}
-}
-.third-row {
-	margin: 85px 0 auto auto;
+  body {
+          padding-left: 0px !important;
+          padding-right: 0px !important;
+  }
 }
 .marginless-alert .alert {
 	margin-bottom: 0px;
@@ -174,6 +160,7 @@ body {
 	background-clip: padding-box; /* for IE9+, Firefox 4+, Opera, Chrome */
 }
 .navigation {
+  margin: 53px 0 auto auto;
 	background: #E0E0E0;
 	z-index: 1;
 	width: 120px;
@@ -206,7 +193,7 @@ body {
 	width: 150px;
 	margin-left: 121px;
 	position: fixed;
-	top: 85px;
+	top: 53px;
 	bottom : 0px;
 	overflow: hidden;
 	border-right: 1px solid rgba(0, 0, 0, .1);
@@ -217,7 +204,7 @@ body {
 .subnavigation ul:nth-child(3) {
 	overflow:auto;
 	position:fixed;
-	top:160px;
+	top:139px;
 	bottom:0px;
 	width:116px;
 }
@@ -260,7 +247,7 @@ body {
 }
 .content {
 	position: absolute;
-	top: 85px;
+	top: 53px;
 	bottom : 0px;
 	right : 0px;
 	left : 272px;

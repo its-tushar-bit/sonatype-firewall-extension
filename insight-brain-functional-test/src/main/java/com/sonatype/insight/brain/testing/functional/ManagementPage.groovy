@@ -6,7 +6,7 @@
 
 package com.sonatype.insight.brain.testing.functional
 
-import com.sonatype.insight.brain.testing.functional.modules.DropdownNav
+import com.sonatype.insight.brain.testing.functional.modules.PageNavigation
 import com.sonatype.insight.brain.testing.functional.modules.NavListModule
 
 
@@ -17,7 +17,7 @@ extends BasePage {
   static at = { title == 'CLM Management' }
 
   static content = {
-    dropdownNav { module DropdownNav }
+    pageNavigation { module PageNavigation }
     nav { module NavListModule }
   }
 }

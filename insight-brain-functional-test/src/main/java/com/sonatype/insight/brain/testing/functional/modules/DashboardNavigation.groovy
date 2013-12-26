@@ -13,7 +13,7 @@ import geb.Module
 /**
  * @since 1.7
  */
-class PageNavigation
+class DashboardNavigation
 extends Module {
   static content = {
     management(to: ManagementPage) { $('.management') }

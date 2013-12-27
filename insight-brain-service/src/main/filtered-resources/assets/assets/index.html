@@ -48,25 +48,12 @@
     <script src='../assets/components/list-editor/ListEditor.js?${build.timestamp}'></script>
     <script src='../assets/components/user-controls/UserControls.js?${build.timestamp}'></script>
     <script src='../security-assets/UserModule.js?${build.timestamp}'></script>
+    <script src='../assets/components/dashboard-header/DashboardHeader.js?${build.timestamp}'></script>
     <script src='DashboardModule.js?${build.timestamp}'></script>
     <script src='ManagementApp.js?${build.timestamp}'></script>
 </head>
-<body ng-controller='dashboardController'>
-  <div class="first-row navbar navbar-fixed-top">
-    <div class="navbar-inner">
-      <div class="container-fluid">
-        <a class="title brand" href="#">
-          <img src="img/sonatype-32.png" alt="Logo" height="32" width="32"/>&nbsp;Sonatype CLM
-        </a>
-        <ul class="inline">
-          <li ng-repeat="dashboard in availableDashboards">
-            <a ng-href='{{dashboard.href}}'><i class='glyphicons-sonatype' ng-class='dashboard.icon'></i></a>
-          </li>
-        </ul>
-        <div class="pull-right" user-controls></div>
-      </div>
-    </div>
-  </div>
+<body>
+  <div dashboard-header></div>
 	<div ng-show='!error'>
 		<div ui-view></div>
 	</div>

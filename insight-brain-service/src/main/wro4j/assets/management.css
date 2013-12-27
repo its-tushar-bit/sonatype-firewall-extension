@@ -136,7 +136,25 @@ h4 {
 .first-row a.brand:hover {
 	color: black;
 }
- @media (max-width: 979px) {
+.dashboard-navigation {
+  display: inline;
+}
+.dashboard-navigation > li {
+  padding-top: 10px;
+  padding-right: 10px !important;
+  padding-bottom: 8px;
+  padding-left: 10px !important;
+}
+.dashboard-navigation > li:hover {
+  background-color: #f4f4f4;
+}
+.dashboard-navigation i:before {
+  font-size: 24px;
+}
+.dashboard-navigation .selected {
+  border-top: 3px solid #2476FC;
+}
+@media (max-width: 979px) {
   .first-row {
           margin-bottom: 0px;
           position: fixed;
@@ -204,7 +222,7 @@ h4 {
 .subnavigation ul:nth-child(3) {
 	overflow:auto;
 	position:fixed;
-	top:139px;
+	top:133px;
 	bottom:0px;
 	width:116px;
 }

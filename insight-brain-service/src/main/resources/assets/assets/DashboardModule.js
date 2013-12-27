@@ -22,7 +22,7 @@
   };
 
   var dashboardApp = angular.module('DashboardModule', ['ui.router', 'ui.bootstrap', 'CLMLocation', 'CommonServices',
-      'UserControls', 'ngRoute', 'UnauthenticatedResponseHttpInterceptor', 'xeditable'], ['$stateProvider', '$routeProvider', '$urlRouterProvider',
+      'DashboardHeader', 'ngRoute', 'UnauthenticatedResponseHttpInterceptor', 'xeditable'], ['$stateProvider', '$routeProvider', '$urlRouterProvider',
       function($stateProvider, $routeProvider, $urlRouterProvider) {
         $stateProvider.state('home', {
           url: '/',
@@ -47,8 +47,7 @@
       'CLMLocations',
       'licenseChecker',
       'CurrentUser',
-      'editableOptions',
-      function($rootScope, $location, $window, $state, messages, CLMLocations, licenseChecker, currentUser, editableOptions) {
+      function($rootScope, $location, $window, $state, messages, CLMLocations, licenseChecker, currentUser) {
         function checkBootstrap() {
           if (username) {
             // User is logged in
@@ -166,8 +165,6 @@
 
         // this causes the browser to notify the user that the page contains unsaved data
         $(window).bind('beforeunload', fn);
-
-        editableOptions.theme = 'bs2'; // Set X-Editable template
       }]);
 
   /**

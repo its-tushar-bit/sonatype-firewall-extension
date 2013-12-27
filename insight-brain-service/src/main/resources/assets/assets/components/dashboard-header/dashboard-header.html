@@ -1,0 +1,17 @@
+<div class="first-row navbar navbar-fixed-top">
+  <div class="navbar-inner">
+    <div class="container-fluid">
+      <a class="title brand" href="#">
+        <img src="img/sonatype-32.png" alt="Logo" height="32" width="32"/>&nbsp;Sonatype CLM
+      </a>
+      <ul class='inline dashboard-navigation'>
+        <li ng-repeat="dashboard in availableDashboards" ng-class='{ "selected" : dashboard == selectedDashboard }'>
+          <a ng-href='{{dashboard.href}}' tooltip='{{dashboard.name}}' tooltip-placement='bottom'>
+            <i class='glyphicons-sonatype' ng-class='dashboard.icon'></i>
+          </a>
+        </li>
+      </ul>
+      <span class="pull-right" user-controls></span>
+    </div>
+  </div>
+</div>

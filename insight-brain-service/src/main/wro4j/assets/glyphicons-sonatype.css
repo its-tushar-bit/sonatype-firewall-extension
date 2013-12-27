@@ -66,3 +66,9 @@
 .glyphicons-sonatype.reports:before {
   content: '\e040'
 }
+.glyphicons-sonatype.cogwheel:before {
+  content: '\e137'
+}
+.glyphicons-sonatype.help:before {
+  content: '\e195'
+}

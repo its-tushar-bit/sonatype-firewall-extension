@@ -6,7 +6,7 @@
 (function() {
   "use strict";
 
-  var module = angular.module('UserControls', ['AngularCommon', 'CLMLocation']);
+  var module = angular.module('UserControls', ['AngularCommon', 'CLMLocation', 'Configuration']);
 
   module.controller('LogoutController', ['$scope', '$http', 'CLMLocations', function ($scope, $http, CLMLocations) {
     $scope.logout = function () {
@@ -57,9 +57,16 @@
     };
   }]);
 
+  module.controller('userControlsController', ['$scope', 'CurrentUser', function($scope, currentUser) {
+    currentUser.then(function(status) {
+      $scope.username = status.username;
+    });
+  }]);
+
   module.directive('userControls', function () {
     return {
       restrict: 'A',
+      controller: 'userControlsController',
       templateUrl : '../assets/components/user-controls/user-controls.html?' + clmBuildTimestamp
     };
   });

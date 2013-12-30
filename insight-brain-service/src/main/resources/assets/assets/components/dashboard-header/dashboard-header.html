@@ -39,28 +39,7 @@
       <a class="title brand" href="#">
         <img src="img/sonatype-32.png" alt="Logo" height="32" width="32"/>&nbsp;Sonatype CLM
       </a>
-      <ul class='inline dashboard-navigation'>
-        <li ng-repeat="dashboard in availableDashboards" ng-class='{ "selected" : dashboard == selectedDashboard }'>
-          <a ng-href='{{dashboard.href}}' tooltip='{{dashboard.name}}' tooltip-placement='bottom'>
-            <i class='glyphicons-sonatype' ng-class='dashboard.icon'></i>
-          </a>
-        </li>
-      </ul>
-      <div class="pull-right">
-        <ul class='inline dashboard-menus'>
-          <li>
-            <div class="btn-group pull-right">
-              <a class="btn dropdown-toggle" data-toggle="dropdown" href="javascript:;">
-                <i class='glyphicons-sonatype user'></i><span class="user-name">{{ username }}</span>
-                <span class="caret"></span>
-              </a>
-              <ul class="dropdown-menu dropdown-menu-arrow">
-                <li ng-controller='ChangePassword' ng-show='canChangePassword()'><a ng-click="change()">Change Password</a></li>
-                <li ng-controller='LogoutController'><a ng-click="logout()">Logout</a></li>
-              </ul>
-            </div>
-          </li>
-        </ul>
+      <div class='dashboard-right pull-right'>
         <ul class='inline dashboard-menus'>
           <li>
             <div class="btn-group pull-right">
@@ -99,6 +78,29 @@
                 <li>
                   <a href="http://links.sonatype.com/products/clm/doc" title="Go to Online Help" target="_blank">Online Help</a>
                 </li>
+              </ul>
+            </div>
+          </li>
+        </ul>
+      </div>
+      <div class='dashboard-responsive'>
+        <ul class='inline dashboard-navigation'>
+          <li ng-repeat="dashboard in availableDashboards" ng-class='{ "selected" : dashboard == selectedDashboard }'>
+            <a ng-href='{{dashboard.href}}' tooltip='{{dashboard.name}}' tooltip-placement='bottom'>
+              <i class='glyphicons-sonatype' ng-class='dashboard.icon'></i>
+            </a>
+          </li>
+        </ul>
+        <ul class='inline dashboard-user pull-right'>
+          <li>
+            <div class="btn-group pull-right">
+              <a class="btn dropdown-toggle" data-toggle="dropdown" href="javascript:;">
+                <i class='glyphicons-sonatype user'></i><span class="user-name">{{ username }}</span>
+                <span class="caret"></span>
+              </a>
+              <ul class="dropdown-menu dropdown-menu-arrow">
+                <li ng-controller='ChangePassword' ng-show='canChangePassword()'><a ng-click="change()">Change Password</a></li>
+                <li ng-controller='LogoutController'><a ng-click="logout()">Logout</a></li>
               </ul>
             </div>
           </li>

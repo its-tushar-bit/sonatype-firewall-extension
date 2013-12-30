@@ -14,7 +14,7 @@
 (function() {
   'use strict';
 
-  var reportModule = angular.module('ReportModule', ['ui.router', 'DashboardModule', 'ReportViolations', 'ReportTrending'],
+  var reportModule = angular.module('ReportModule', ['ui.router', 'DashboardModule', 'DashboardHeader', 'ReportViolations', 'ReportTrending'],
     ['$stateProvider', function($stateProvider) {
       $stateProvider.state('reports', {
         url: '/reports',

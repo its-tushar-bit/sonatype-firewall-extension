@@ -47,37 +47,47 @@
         </li>
       </ul>
       <div class="pull-right">
-        <div class="btn-group">
-          <a class="btn dropdown-toggle" data-toggle="dropdown" href="javascript:;">
-            <i class='glyphicons-sonatype user'></i>&nbsp;{{ username }}
-            <span class="caret"></span>
-          </a>
-          <ul class="dropdown-menu pull-right">
-            <li ng-controller='ChangePassword' ng-show='canChangePassword()'><a ng-click="change()">Change Password</a></li>
-            <li ng-controller='LogoutController'><a ng-click="logout()">Logout</a></li>
-          </ul>
-        </div>
-        <div class="btn-group">
-          <a class='dropdown-toggle' data-toggle="dropdown" href="#">
-            <i class='glyphicons-sonatype cogwheel'></i>
-          </a>
-          <ul class="dropdown-menu pull-right">
-            <li ng-repeat='configurationPane in configurationPanes'
-                ng-class="{'active': $location.path().substring(1) == configurationPane.href }">
-              <a href='{{ configurationPane.href }}'>{{configurationPane.name}}</a>
-            </li>
-          </ul>
-        </div>
-        <div class="btn-group">
-          <a class='dropdown-toggle' data-toggle="dropdown" href="#">
-            <i class='glyphicons-sonatype help'></i>
-          </a>
-          <ul class="dropdown-menu pull-right">
-            <li>
-              <a href="http://links.sonatype.com/products/clm/doc" title="Go to Online Help" target="_blank">Online Help</a>
-            </li>
-          </ul>
-        </div>
+        <ul class='inline dashboard-menus'>
+          <li>
+            <div class="btn-group">
+              <a class="btn dropdown-toggle" data-toggle="dropdown" href="javascript:;">
+                <i class='glyphicons-sonatype user'></i>&nbsp;{{ username }}
+                <span class="caret"></span>
+              </a>
+              <ul class="dropdown-menu pull-right">
+                <li ng-controller='ChangePassword' ng-show='canChangePassword()'><a ng-click="change()">Change Password</a></li>
+                <li ng-controller='LogoutController'><a ng-click="logout()">Logout</a></li>
+              </ul>
+            </div>
+          </li>
+        </ul>
+        <ul class='inline dashboard-menus'>
+          <li>
+            <div class="btn-group">
+              <a class='dropdown-toggle' data-toggle="dropdown" href="#">
+                <i class='glyphicons-sonatype cogwheel'></i>
+              </a>
+              <ul class="dropdown-menu pull-right">
+                <li ng-repeat='configurationPane in configurationPanes'
+                    ng-class="{'active': $location.path().substring(1) == configurationPane.href }">
+                  <a href='{{ configurationPane.href }}'>{{configurationPane.name}}</a>
+                </li>
+              </ul>
+            </div>
+          </li>
+          <li>
+            <div class="btn-group">
+              <a class='dropdown-toggle' data-toggle="dropdown" href="#">
+                <i class='glyphicons-sonatype help'></i>
+              </a>
+              <ul class="dropdown-menu pull-right">
+                <li>
+                  <a href="http://links.sonatype.com/products/clm/doc" title="Go to Online Help" target="_blank">Online Help</a>
+                </li>
+              </ul>
+            </div>
+          </li>
+        </ul>
       </div>
     </div>
   </div>

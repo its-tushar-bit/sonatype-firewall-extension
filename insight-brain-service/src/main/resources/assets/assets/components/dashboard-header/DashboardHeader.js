@@ -6,7 +6,7 @@
 (function() {
   "use strict";
 
-  var module = angular.module('DashboardHeader', ['ui.router','AngularCommon', 'CLMLocation']);
+  var module = angular.module('DashboardHeader', ['ui.router', 'AngularCommon', 'CLMLocation']);
 
   module.controller('LogoutController', ['$scope', '$http', 'CLMLocations', function ($scope, $http, CLMLocations) {
       $scope.logout = function () {

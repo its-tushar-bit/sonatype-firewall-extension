@@ -49,7 +49,8 @@ public class ImportPolicyTest
 
   @After
   public void teardown() {
-    driver.findElement(By.cssSelector("a[ng-controller='LogoutController']")).click();
+    driver.findElement(By.cssSelector(".dashboard-menus a.btn")).click();
+    driver.findElement(By.cssSelector("li[ng-controller='LogoutController'] a")).click();
   }
 
   @Test

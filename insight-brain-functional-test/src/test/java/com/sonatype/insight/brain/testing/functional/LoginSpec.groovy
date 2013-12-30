@@ -98,7 +98,7 @@ class LoginSpec extends BaseSpec {
     login.loginAsAdmin()
 
     when: "logging out"
-    logout.link.click()
+    userOptions.logoutClick()
 
     then: "we now see the login module"
     login.isDisplayed()
@@ -123,7 +123,7 @@ class LoginSpec extends BaseSpec {
     login.loginAsAdmin()
 
     when: "logging out"
-    logout.link.click()
+    userOptions.logoutClick()
     to ReportViolationsPage
 
     then: "we redirect to the login page"

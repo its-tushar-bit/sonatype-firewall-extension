@@ -86,7 +86,7 @@ extends BaseSpec {
 
   def "A non-admin user cannot regenerate the report"(){
     when: 'we log in as a non-admin user'
-    logout.link.click()
+    userOptions.logoutClick()
     to TrendingReportPage
     login.login('test', 'secret')
 

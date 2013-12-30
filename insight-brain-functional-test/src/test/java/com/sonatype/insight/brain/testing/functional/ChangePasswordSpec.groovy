@@ -32,7 +32,7 @@ class ChangePasswordSpec extends BaseSpec {
 
   def "can change password"() {
     when: "User clicks the change password link"
-      changePassword.open.click();
+      userOptions.changePasswordClick()
     
     then: "User sees the change password dialog and save is disabled"
       changePassword.dialog.displayed

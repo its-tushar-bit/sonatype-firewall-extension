@@ -83,24 +83,6 @@
     $scope.$watch('$state.current.name', switchDashboard);
     switchDashboard();
 
-    $scope.configurationPanes = [
-      {
-        name: 'Product License',
-        href: 'index.html#/management/configuration/productlicense',
-        isEnabled: true
-      },
-      {
-        name: 'Proprietary Packages',
-        href: 'index.html#/management/configuration/proprietarypackages',
-        isEnabled: true
-      },
-      {
-        name: 'LDAP',
-        href: 'index.html#/management/configuration/ldap',
-        isEnabled: true
-      }
-    ];
-
     currentUser.then(function(status) {
       $scope.username = status.username;
     });

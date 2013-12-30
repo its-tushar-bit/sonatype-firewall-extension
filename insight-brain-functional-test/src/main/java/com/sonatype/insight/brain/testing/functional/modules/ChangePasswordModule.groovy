@@ -13,8 +13,6 @@ import geb.Module
 class ChangePasswordModule extends Module
 {
   static content = {
-    //the main link from the top right of the page
-    open { $('a', text: 'Change Password') }
     //this content is all in the popup dialog
     dialog(required: false) { $('form', name: 'passwordForm') }
     oldPassword(required: false) { dialog.originalPassword() }

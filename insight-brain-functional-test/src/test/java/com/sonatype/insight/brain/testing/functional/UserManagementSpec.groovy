@@ -192,13 +192,13 @@ extends BaseSpec {
     waitFor { !newPasswordField.displayed }
 
     when: 'user logs in with new password'
-    logout.link.click()
+    userOptions.logoutClick()
     login.isDisplayed()
     login.login('addusertest', newPassword);
 
     then: 'login succeeds'
     !login.isDisplayed()
-    logout.link.click()
+    userOptions.logoutClick()
     login.loginAsAdmin()
     to UserManagementPage
   }

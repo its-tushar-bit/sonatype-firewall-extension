@@ -7,14 +7,14 @@ package com.sonatype.insight.brain.testing.functional
 
 import com.sonatype.insight.brain.testing.functional.modules.ChangePasswordModule
 import com.sonatype.insight.brain.testing.functional.modules.LoginModule
-import com.sonatype.insight.brain.testing.functional.modules.LogoutModule
 
+import com.sonatype.insight.brain.testing.functional.modules.UserOptionsModule
 import geb.Page
 
 abstract class BasePage extends Page {
   static content = {
     changePassword { module ChangePasswordModule }
     login { module LoginModule }
-    logout { module LogoutModule }
+    userOptions { module UserOptionsModule }
   }
 }

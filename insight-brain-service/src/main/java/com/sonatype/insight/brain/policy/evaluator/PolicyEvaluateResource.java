@@ -39,7 +39,7 @@ public class PolicyEvaluateResource
   private static final Logger log = LoggerFactory.getLogger(PolicyEvaluateResource.class);
 
   private final PolicyEvaluationUtils policyEvaluationUtils;
-  
+
   private final PolicyAlertNotifier policyAlertNotifier;
 
   private ApplicationDAO applicationDAO = new ApplicationDAO();
@@ -57,11 +57,10 @@ public class PolicyEvaluateResource
   @Produces(MediaType.APPLICATION_JSON)
   public PolicyEvaluationResult evaluate(@PathParam("applicationPublicId") final String applicationPublicId,
       @QueryParam("scanId") final String scanId, final Stage stage, @HeaderParam("user-agent") final String userAgent,
-      @DefaultValue("true") @QueryParam("sendNotifications") final boolean sendNotifications)
-      throws IOException
+      @DefaultValue("true") @QueryParam("sendNotifications") final boolean sendNotifications) throws IOException
   {
-    log.debug("Received request to evaluate policy for app id {}, scan id {}, stageTypeId {}, sendNotifications {}", applicationPublicId,
-        scanId, stage.getStageTypeId(), sendNotifications);
+    log.debug("Received request to evaluate policy for app id {}, scan id {}, stageTypeId {}, sendNotifications {}",
+        applicationPublicId, scanId, stage.getStageTypeId(), sendNotifications);
 
     Application application = applicationDAO.getByPublicIdNotNull(applicationPublicId);
     String appId = application.getId();

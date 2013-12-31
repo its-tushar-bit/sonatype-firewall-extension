@@ -64,7 +64,7 @@ public class InsightBrainService
   public static final String ORGANIZATION_ASSET_PATH = "/organization-assets/";
 
   public static final String CONFIGURATION_ASSET_PATH = "/configuration-assets/";
-  
+
   public static final String SECURITY_ASSET_PATH = "/security-assets/";
 
   public static final String CIP_ASSET_PATH = "/cip/";
@@ -105,24 +105,28 @@ public class InsightBrainService
         }
       }
       else if (!dir.isDirectory()) {
-        log.error("It appears that the temporary location is not a folder. Please ensure that {} is a folder " +
-            "or specify another folder by adding -Djava.io.tmpdir=<writeable-folder> to the command line used for launching " +
-            "the server.", dir.getAbsolutePath());
+        log.error(
+            "It appears that the temporary location is not a folder. Please ensure that {} is a folder "
+                + "or specify another folder by adding -Djava.io.tmpdir=<writeable-folder> to the command line used for launching "
+                + "the server.", dir.getAbsolutePath());
         return false;
       }
 
       // Ensure we can actually create and delete a new temp file
       File file = File.createTempFile("clm-server-launcher", ".tmp");
       if (!file.delete()) {
-        log.error("The server is not able to delete from the temporary folder. Please ensure server has access to {} " +
-            "or specify another folder by adding -Djava.io.tmpdir=<writeable-folder> to the command line used for launching " +
-            "the server.", dir.getAbsolutePath());
+        log.error(
+            "The server is not able to delete from the temporary folder. Please ensure server has access to {} "
+                + "or specify another folder by adding -Djava.io.tmpdir=<writeable-folder> to the command line used for launching "
+                + "the server.", dir.getAbsolutePath());
         return false;
       }
-    } catch (IOException ex) {
-      log.error("The server is not able to write to the temporary folder. Please ensure server has access to {} " +
-          "or specify another folder by adding -Djava.io.tmpdir=<writeable-folder> to the command line used for launching " +
-          "the server.", tmp);
+    }
+    catch (IOException ex) {
+      log.error(
+          "The server is not able to write to the temporary folder. Please ensure server has access to {} "
+              + "or specify another folder by adding -Djava.io.tmpdir=<writeable-folder> to the command line used for launching "
+              + "the server.", tmp);
       log.debug("Unable to validate temporary folder", ex);
       return false;
     }
@@ -165,8 +169,8 @@ public class InsightBrainService
     env.enableJerseyFeature(ResourceConfig.FEATURE_NORMALIZE_URI);
     env.setJerseyProperty(ResourceConfig.PROPERTY_DEFAULT_RESOURCE_COMPONENT_PROVIDER_FACTORY_CLASS,
         SingletonFactory.class);
-    
-    env.addFilter( getInjector().getInstance( GuiceShiroFilter.class ), "/*" );
+
+    env.addFilter(getInjector().getInstance(GuiceShiroFilter.class), "/*");
 
     log.info("Server base URL: {}", config.getBaseUrl());
     log.debug("SaaS address: {}", config.getSaasAddress());
@@ -214,6 +218,7 @@ public class InsightBrainService
 
   /**
    * Configure PolicyMonitor to run once a day at a specified hour.
+   * 
    * @since 1.7.1
    */
   protected void configurePolicyMonitoring(final Environment environment, final int policyMonitoringHour) {
@@ -236,8 +241,8 @@ public class InsightBrainService
 
   private DateTime determineNextExecutionTime(final int policyMonitoringHour) {
     DateTime dateTime = new DateTime().withHourOfDay(policyMonitoringHour).withMinuteOfHour(0).withSecondOfMinute(0);
-    //set for tomorrow if this time has already passed today
-    if(dateTime.isBeforeNow()){
+    // set for tomorrow if this time has already passed today
+    if (dateTime.isBeforeNow()) {
       dateTime = dateTime.plusDays(1);
     }
     return dateTime;

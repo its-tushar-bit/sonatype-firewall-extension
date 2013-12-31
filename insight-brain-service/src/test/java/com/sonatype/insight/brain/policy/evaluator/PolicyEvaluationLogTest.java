@@ -37,7 +37,7 @@ public class PolicyEvaluationLogTest
   @Test
   public void testAdd() throws Exception {
     PolicyEvaluationLog log = new PolicyEvaluationLog(tmpDir.getRoot());
-    log.add(new Stage(Stage.ID_BUILD), "scanId", "user", "ip");
+    log.add(new PolicyEvaluation(new Stage(Stage.ID_BUILD), "scanId"), "user", "ip");
 
     assertNull(log.lastByStage(Stage.ID_RELEASE));
     assertNull(log.lastByStage(Stage.ID_STAGE_RELEASE));
@@ -58,7 +58,7 @@ public class PolicyEvaluationLogTest
   @Test
   public void testAdd_Reevaluation() throws Exception {
     PolicyEvaluationLog log = new PolicyEvaluationLog(tmpDir.getRoot());
-    log.add(new Stage(Stage.ID_BUILD), "scanId", true /* isReevaluation */, "user", "ip");
+    log.add(new PolicyEvaluation(new Stage(Stage.ID_BUILD), "scanId", true /* isReevaluation */), "user", "ip");
 
     assertNull(log.lastByStage(Stage.ID_RELEASE));
     assertNull(log.lastByStage(Stage.ID_STAGE_RELEASE));
@@ -88,7 +88,7 @@ public class PolicyEvaluationLogTest
     PolicyEvaluation evaluation = log.lastByScan(scanId);
     assertNull(evaluation);
 
-    log.add(stage, scanId, user, ip);
+    log.add(new PolicyEvaluation(stage, scanId), user, ip);
 
     evaluation = log.lastByScan(scanId);
     assertNotNull(evaluation);

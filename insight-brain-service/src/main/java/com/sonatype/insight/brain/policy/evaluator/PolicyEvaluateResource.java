@@ -65,7 +65,7 @@ public class PolicyEvaluateResource
     Application application = applicationDAO.getByPublicIdNotNull(applicationPublicId);
     String appId = application.getId();
 
-    final List<PolicyAlert> oldAlerts = policyEvaluationUtils.findLastPolicyAlerts(applicationPublicId, appId, stage);
+    final List<PolicyAlert> oldAlerts = policyEvaluationUtils.findLastPrimaryPolicyAlerts(applicationPublicId, appId, stage);
 
     PolicyEvaluationResult policyEvaluationResult = policyEvaluationUtils.evaluate(applicationPublicId, scanId, stage);
 

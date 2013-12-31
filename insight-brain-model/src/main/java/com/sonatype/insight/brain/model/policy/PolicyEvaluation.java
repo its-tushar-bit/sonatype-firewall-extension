@@ -15,9 +15,29 @@ public class PolicyEvaluation
 
   private boolean isReevaluation;
 
+  private boolean isForMonitoring;
+
   private long time;
 
   private String user;
+
+  public PolicyEvaluation() {
+  }
+
+  public PolicyEvaluation(Stage stage, String scanId) {
+    this(stage, scanId, false /* isReevaluation */, false /* isForMonitoring */);
+  }
+
+  public PolicyEvaluation(Stage stage, String scanId, boolean isReevaluation) {
+    this(stage, scanId, isReevaluation, false /* isForMonitoring */);
+  }
+
+  public PolicyEvaluation(Stage stage, String scanId, boolean isReevaluation, boolean isForMonitoring) {
+    this.stage = stage;
+    this.scanId = scanId;
+    this.isReevaluation = isReevaluation;
+    this.isForMonitoring = isForMonitoring;
+  }
 
   public long getTime() {
     return time;
@@ -57,5 +77,13 @@ public class PolicyEvaluation
 
   public void setReevaluation(boolean isReevaluation) {
     this.isReevaluation = isReevaluation;
+  }
+
+  public boolean isForMonitoring() {
+    return isForMonitoring;
+  }
+
+  public void setForMonitoring(boolean isForMonitoring) {
+    this.isForMonitoring = isForMonitoring;
   }
 }

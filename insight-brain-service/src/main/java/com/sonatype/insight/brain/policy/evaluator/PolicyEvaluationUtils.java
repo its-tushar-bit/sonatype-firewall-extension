@@ -46,6 +46,8 @@ public class PolicyEvaluationUtils
 {
   private static final Logger log = LoggerFactory.getLogger(PolicyEvaluationUtils.class);
 
+  public static final String MONITOR_POLICY_ALERTS_FILENAME = "monitorpolicyalerts.json";
+
   public static final String PRIMARY_POLICY_ALERTS_FILENAME = "primarypolicyalerts.json";
 
   private static final String POLICY_ALERTS_FILENAME = "policyalerts.json";
@@ -95,17 +97,24 @@ public class PolicyEvaluationUtils
     // add new entry in the rolling log (TODO: populate invoker's details)
     PolicyEvaluationLog evalLog = new PolicyEvaluationLog(work.getAuditDir(appId));
     boolean isReevaluation = (evalLog.lastByScan(scanId) != null);
-    evalLog.add(stage, scanId, isReevaluation, "anonymous", "127.0.0.1");
+    evalLog.add(new PolicyEvaluation(stage, scanId, isReevaluation, forMonitoring), "anonymous", "127.0.0.1");
 
     final List<Component> components = new ComponentDAO().getAll(application, licenseReportEntry.buf,
         securityReportEntry.buf, bomReportEntry.buf);
 
     final List<PolicyAlert> alerts = new PolicyEvaluator().evaluate(appId, stage, policyDAO, components, forMonitoring);
 
-    Report.putEntry(reportFile, POLICY_ALERTS_FILENAME, JsonUtils.generate(JsonUtils.aaData(alerts)));
-    if (!isReevaluation) {
-      Report.putEntry(reportFile, PRIMARY_POLICY_ALERTS_FILENAME, JsonUtils.generate(JsonUtils.aaData(alerts)));
+    byte[] alertsFileContent = JsonUtils.generate(JsonUtils.aaData(alerts));
+    if (forMonitoring) {
+      Report.putEntry(reportFile, MONITOR_POLICY_ALERTS_FILENAME, alertsFileContent);
     }
+    else {
+      Report.putEntry(reportFile, POLICY_ALERTS_FILENAME, alertsFileContent);
+    }
+    if (!isReevaluation) {
+      Report.putEntry(reportFile, PRIMARY_POLICY_ALERTS_FILENAME, alertsFileContent);
+    }
+
     Report.putEntry(reportFile, "policythreats.json", JsonUtils.generate(analyzeThreats(alerts)));
 
     ReportResource.flushReportChanges(appId, scanId); // ensure policy count is recalculated on fetch
@@ -150,25 +159,34 @@ public class PolicyEvaluationUtils
     policyEvaluationResult.setModerateComponentCount(moderateCount);
   }
 
-  public List<PolicyAlert> findLastPolicyAlerts(final String applicationPublicId, String appId, final Stage stage)
+  public List<PolicyAlert> findLastPolicyAlertsForMonitoring(String appId, String scanId)
+      throws IOException
+  {
+    File reportFile = ReportResource.fetchReport(reportDownloader, work, appId, scanId, true /* waitForReport */);
+    ReportEntry reportEntry = Report.getEntry(reportFile, MONITOR_POLICY_ALERTS_FILENAME);
+    if (reportEntry == null) {
+      reportEntry = getPrimaryPolicyAlertsReportEntry(reportFile, appId, scanId);
+    }
+    if (reportEntry != null) {
+      return Arrays.asList(JsonUtils.parse(reportEntry.buf, PolicyAlert[].class));
+    }
+    return Collections.emptyList();
+  }
+
+  public List<PolicyAlert> findLastPrimaryPolicyAlerts(final String applicationPublicId, String appId, final Stage stage)
       throws IOException
   {
     PolicyEvaluationLog evalLog = new PolicyEvaluationLog(work.getAuditDir(appId));
 
     // retrieve last known scanId for stage
-    PolicyEvaluation last = evalLog.lastPrimaryByStage(stage.getStageTypeId());
-    final String lastScanId = (last != null) ? last.getScanId() : null;
+    PolicyEvaluation lastPrimaryPolicyEvaluation = evalLog.lastPrimaryByStage(stage.getStageTypeId());
+    final String lastScanId = (lastPrimaryPolicyEvaluation != null) ? lastPrimaryPolicyEvaluation.getScanId() : null;
 
     if (!StringUtils.isBlank(lastScanId)) {
       try {
-        final File reportFile = ReportResource.fetchReport(reportDownloader, work, appId, lastScanId, true);
-        ReportEntry reportEntry = Report.getEntry(reportFile, PRIMARY_POLICY_ALERTS_FILENAME);
-        if (reportEntry == null) {
-          // Prior to 1.6, reports did not have a PRIMARY_POLICY_ALERTS_FILENAME, so fall back to
-          // POLICY_ALERTS_FILENAME.
-          log.info("Could not find {} for app id {}, scan id {}", PRIMARY_POLICY_ALERTS_FILENAME, appId, lastScanId);
-          reportEntry = Report.getEntry(reportFile, POLICY_ALERTS_FILENAME);
-        }
+        final File reportFile = ReportResource
+            .fetchReport(reportDownloader, work, appId, lastScanId, true /* waitForReport */);
+        ReportEntry reportEntry = getPrimaryPolicyAlertsReportEntry(reportFile, appId, lastScanId);
         if (reportEntry != null) {
           return Arrays.asList(JsonUtils.parse(reportEntry.buf, PolicyAlert[].class));
         }
@@ -179,6 +197,20 @@ public class PolicyEvaluationUtils
       }
     }
     return Collections.emptyList();
+  }
+
+  private ReportEntry getPrimaryPolicyAlertsReportEntry(File reportFile, String appId, String scanId)
+      throws IOException
+  {
+    ReportEntry reportEntry = Report.getEntry(reportFile, PRIMARY_POLICY_ALERTS_FILENAME);
+    if (reportEntry == null) {
+      // Prior to 1.6, reports did not have a PRIMARY_POLICY_ALERTS_FILENAME, so fall back to
+      // POLICY_ALERTS_FILENAME.
+      log.info("Could not find {} for app id {}, scan id {}", PRIMARY_POLICY_ALERTS_FILENAME, appId, scanId);
+      reportEntry = Report.getEntry(reportFile, POLICY_ALERTS_FILENAME);
+    }
+
+    return reportEntry;
   }
 
   public List<PolicyAlert> findPolicyAlerts(final String appId, final String scanId) throws IOException {

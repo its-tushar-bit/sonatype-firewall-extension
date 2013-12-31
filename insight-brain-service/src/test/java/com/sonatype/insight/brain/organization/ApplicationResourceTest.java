@@ -545,7 +545,7 @@ public class ApplicationResourceTest
 
     // create eval log entry pointing at missing report
     PolicyEvaluationLog evalLog = new PolicyEvaluationLog(brain.getAuditDir(appId));
-    evalLog.add(new Stage(Stage.ID_BUILD), scanId, false, "anonymous", "127.0.0.1");
+    evalLog.add(new PolicyEvaluation(new Stage(Stage.ID_BUILD), scanId), "anonymous", "127.0.0.1");
     setSaasResponseForURI("/rest/ci/report?scanId=" + scanId, "Not Found", 404);
 
     Response response = AuthedRestAccess.get(getServiceURL());

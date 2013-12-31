@@ -15,6 +15,7 @@ import java.util.zip.ZipOutputStream;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.TemporaryEntity;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluationLog;
 import com.sonatype.insight.brain.service.TestInsightBrainService;
 
@@ -45,7 +46,7 @@ class TestHelper
         getReportCacheEntry(appId, scanId, "policyalerts.json"));
     createReport(appId, scanId);
     PolicyEvaluationLog log = new PolicyEvaluationLog(brain.getAuditDir(appId));
-    log.add(new Stage(stageId), scanId, "nobody", null);
+    log.add(new PolicyEvaluation(new Stage(stageId), scanId), "nobody", null);
   }
 
   private File getReportCacheEntry(String appId, String scanId, String name) {

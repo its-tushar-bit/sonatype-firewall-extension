@@ -87,7 +87,8 @@ public class PolicyMonitorTest
     Map<StageType, PolicyEvaluation> policyEvaluations = new LinkedHashMap<>();
     PolicyEvaluationLog policyEvaluationLog = new PolicyEvaluationLog(brain.getAuditDir(notMonitoredApp.getId()));
     for (StageType stageType : StageTypes.getAll()) {
-      policyEvaluationLog.add(new Stage(stageType.getId()), "fakeScanId", "someUser", "127.0.0.1");
+      policyEvaluationLog
+          .add(new PolicyEvaluation(new Stage(stageType.getId()), "fakeScanId"), "someUser", "127.0.0.1");
       PolicyEvaluation policyEvaluation = policyEvaluationLog.lastByStage(stageType.getId());
       assertThat(policyEvaluation, is(notNullValue()));
       policyEvaluations.put(stageType, policyEvaluation);
@@ -221,7 +222,7 @@ public class PolicyMonitorTest
     notificationsMonitor1.clear();
     assertThat(notificationsMonitor2, is(empty()));
 
-    // Modify policy2 and run the monitor again. Both monitor emails should receive a notification.
+    // Modify policy2 and run the monitor again. Only the second monitor email should receive a notification.
     policy2.setName(policy2.getName() + "Updated");
     updatePolicy(IdUtils.TYPE_ORGANIZATION, org.getId(), policy2);
     policyMonitor.run();
@@ -230,8 +231,7 @@ public class PolicyMonitorTest
     assertThat(policyEvaluationLog.lastByStage(stage.getStageTypeId()).getTime(),
         is(greaterThan(policyEvaluation4.getTime())));
     assertThat(notificationsDeveloper, is(empty()));
-    assertThat(notificationsMonitor1, hasSize(1));
-    notificationsMonitor1.clear();
+    assertThat(notificationsMonitor1, is(empty()));
     assertThat(notificationsMonitor2, hasSize(1));
     notificationsMonitor2.clear();
   }

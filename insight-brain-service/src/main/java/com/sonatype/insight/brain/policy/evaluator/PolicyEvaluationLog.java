@@ -100,30 +100,23 @@ public class PolicyEvaluationLog
     return null;
   }
 
-  private ObjectNode create(final Stage stage, final String scanId, final boolean isReevaluation) {
-    final ObjectNode logEntry = JsonUtils.asTree(Collections.singletonMap("stage", stage));
-    logEntry.put("scanId", scanId);
-    logEntry.put("reevaluation", isReevaluation);
+  private ObjectNode createJsonNode(PolicyEvaluation policyEvaluation) {
+    final ObjectNode logEntry = JsonUtils.asTree(Collections.singletonMap("stage", policyEvaluation.getStage()));
+    logEntry.put("scanId", policyEvaluation.getScanId());
+    logEntry.put("reevaluation", policyEvaluation.isReevaluation());
     return logEntry;
   }
 
-  public void add(final Stage stage, final String scanId, final String user, final String ip) throws IOException {
-    add(stage, scanId, false /* isReevaluation */, user, ip);
-  }
-
-  public void add(final Stage stage, final String scanId, final boolean isReevaluation, final String user,
-      final String ip) throws IOException
-  {
-    add(JsonUtils.stamp(user, ip, "", create(stage, scanId, isReevaluation)));
+  public void add(PolicyEvaluation policyEvaluation, String user, String ip) throws IOException {
+    add(JsonUtils.stamp(user, ip, "", createJsonNode(policyEvaluation)));
   }
 
   /**
    * For testing purposes, don't use
    */
-  public void add(final Stage stage, final String scanId, final boolean isReevaluation, final String user,
-      final String ip, final long time) throws IOException
+  public void add(PolicyEvaluation policyEvaluation, String user, String ip, final long time) throws IOException
   {
-    ObjectNode stamped = JsonUtils.stamp(user, ip, "", create(stage, scanId, isReevaluation));
+    ObjectNode stamped = JsonUtils.stamp(user, ip, "", createJsonNode(policyEvaluation));
     stamped.put("time", time);
     add(stamped);
   }

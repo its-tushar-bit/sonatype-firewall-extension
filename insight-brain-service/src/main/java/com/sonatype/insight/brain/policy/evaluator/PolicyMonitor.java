@@ -123,7 +123,16 @@ public class PolicyMonitor
     }
 
     Stage stage = new Stage(policyMonitoring.getStageTypeId());
-    List<PolicyAlert> oldAlerts = policyEvaluationUtils.findLastPolicyAlerts(app.getPublicId(), app.getId(), stage);
+    List<PolicyAlert> oldAlerts;
+    try {
+      oldAlerts = policyEvaluationUtils.findLastPolicyAlertsForMonitoring(app.getId(), scanId);
+    }
+    catch (final Exception e) {
+      // don't abort sending notifications if old results are corrupt or missing, just means full digest will be sent
+      log.warn("Cannot load last policy evaluation results for app id {}", app.getPublicId(), e);
+      oldAlerts = Collections.emptyList();
+    }
+
     PolicyEvaluationResult policyEvaluationResult = policyEvaluationUtils.evaluateForMonitoring(app.getPublicId(),
         scanId, stage);
     List<PolicyAlert> newAlerts = policyEvaluationResult.getAlerts();

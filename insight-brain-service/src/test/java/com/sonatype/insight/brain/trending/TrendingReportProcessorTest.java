@@ -26,6 +26,7 @@ import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.conditions.AgeInDaysConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.LicenseThreatGroupConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityConditionType;
@@ -612,7 +613,7 @@ public class TrendingReportProcessorTest
       builder.build(insightWork.getReportDir(application.getId(), scanId));
     }
     PolicyEvaluationLog log = new PolicyEvaluationLog(insightWork.getAuditDir(application.getId()));
-    log.add(new Stage(BuildStageType.ID), scanId, false, "nobody", null, time);
+    log.add(new PolicyEvaluation(new Stage(BuildStageType.ID), scanId), "nobody", null, time);
   }
 
   protected Application createApplication(String appId) {

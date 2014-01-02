@@ -240,7 +240,8 @@ public class InsightBrainService
   }
 
   private DateTime determineNextExecutionTime(final int policyMonitoringHour) {
-    DateTime dateTime = new DateTime().withHourOfDay(policyMonitoringHour).withMinuteOfHour(0).withSecondOfMinute(0);
+    DateTime dateTime = new DateTime().withHourOfDay(policyMonitoringHour).withMinuteOfHour(0).withSecondOfMinute(0)
+        .withMillisOfSecond(0);
     // set for tomorrow if this time has already passed today
     if (dateTime.isBeforeNow()) {
       dateTime = dateTime.plusDays(1);

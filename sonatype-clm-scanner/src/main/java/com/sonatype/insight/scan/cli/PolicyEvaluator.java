@@ -229,7 +229,7 @@ public class PolicyEvaluator
     if (outcome.equals(PolicyAction.FAIL)) {
       throw new ExitException(1, "Sonatype CLM reports policy failing.");
     }
-    else if (outcome.equals(PolicyAction.WARN) && params.isFailOnPolicyWaring()) {
+    else if (outcome.equals(PolicyAction.WARN) && params.isFailOnPolicyWarning()) {
       throw new ExitException(1, "Sonatype CLM reports policy warning.");
     }
 

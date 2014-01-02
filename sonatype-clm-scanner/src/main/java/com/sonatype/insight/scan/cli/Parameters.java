@@ -81,7 +81,7 @@ public class Parameters
   private boolean quiet;
 
   @Parameter(names = { "-w", "--fail-on-policy-warnings" }, description = "Fail on policy evaluation warnings")
-  private boolean failOnPolicyWaring;
+  private boolean failOnPolicyWarning;
 
   @Parameter(names = { "-e", "--ignore-system-errors" }, description = "Ignore system errors (IO, network, server, etc)")
   private boolean ignoreSystemErrors;
@@ -215,8 +215,8 @@ public class Parameters
     return help;
   }
 
-  public boolean isFailOnPolicyWaring() {
-    return failOnPolicyWaring;
+  public boolean isFailOnPolicyWarning() {
+    return failOnPolicyWarning;
   }
 
   public boolean isIgnoreSystemErrors() {

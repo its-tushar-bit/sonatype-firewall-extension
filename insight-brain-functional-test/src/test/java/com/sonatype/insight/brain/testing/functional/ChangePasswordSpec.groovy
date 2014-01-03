@@ -78,7 +78,7 @@ class ChangePasswordSpec extends BaseSpec {
       waitFor { !changePassword.dialog.displayed }
       
     when: "User attempts to login with new password"
-      logout.link.click()
+      userOptions.logoutClick()
       login.login("testchangepass", "newsecret")
       to ManagementPage
     

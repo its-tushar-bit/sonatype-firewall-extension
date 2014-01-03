@@ -17,7 +17,7 @@ class DashboardNavigation
 extends Module {
   static content = {
     management(to: ManagementPage) { $('.management') }
-    reports(to: ReportViolationsPage) { $('.reports') }
+    reports(to: ReportViolationsPage) { $('.triage') }
   }
 
   void toManagement() {

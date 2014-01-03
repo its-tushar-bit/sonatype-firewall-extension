@@ -63,8 +63,11 @@
 .glyphicons-sonatype.management:before {
   content: '\e267'
 }
-.glyphicons-sonatype.reports:before {
-  content: '\e040'
+.glyphicons-sonatype.triage:before {
+  content: '\e041'
+}
+.glyphicons-sonatype.reporting:before {
+  content: '\e042'
 }
 .glyphicons-sonatype.cogwheel:before {
   content: '\e137'

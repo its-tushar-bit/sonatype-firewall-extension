@@ -57,31 +57,8 @@
     };
   }]);
 
-  module.controller('dashboardHeaderController', ['$scope', '$state', '$window', 'CLMLocations', '$http', '$rootScope', 'CurrentUser', function($scope, $state, $window, CLMLocations, $http, $rootScope, currentUser) {
-    function switchDashboard() {
-      for ( var i = 0; i < $scope.availableDashboards.length; i++) {
-        if ($window.location.href && $window.location.href.indexOf($scope.availableDashboards[i].selector) !== -1) {
-          $scope.selectedDashboard = $scope.availableDashboards[i];
-          break;
-        }
-      }
-    }
-
+  module.controller('dashboardHeaderController', ['$scope', '$state', 'CurrentUser', function($scope, $state, currentUser) {
     $scope.$state = $state;
-    $scope.availableDashboards = [{
-      name: 'Management',
-      icon: 'management',
-      href: 'index.html#/management/application',
-      selector: '#/management'
-    }, {
-      name: 'Reports',
-      icon: 'reports',
-      href: 'reports.html#/reports/violations',
-      selector: '#/reports'
-    }];
-
-    $scope.$watch('$state.current.name', switchDashboard);
-    switchDashboard();
 
     currentUser.then(function(status) {
       $scope.username = status.username;

@@ -69,18 +69,6 @@ describe('dashboardHeader', function() {
     $httpBackend.verifyNoOutstandingRequest();
   }));
 
-  it('Adjusts dashboard to the current state', inject(function($window, $state) {
-    $window.location.href = 'http://www.blah.com/index.html#/management/application';
-    $state.current.name = 'management.application';
-    scope.$digest();
-    expect(scope.selectedDashboard.name).toBe('Management');
-
-    $window.location.href = 'http://www.blah.com/index.html#/reports/violations';
-    $state.current.name = 'reports.violations';
-    scope.$digest();
-    expect(scope.selectedDashboard.name).toBe('Reports');
-  }));
-
   describe('Dashboard Header User Controls', function () {
     describe('LogoutController', function () {
       beforeEach(inject(function ($controller, $rootScope) {

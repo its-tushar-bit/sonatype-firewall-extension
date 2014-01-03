@@ -85,9 +85,19 @@
       </div>
       <div class='dashboard-responsive'>
         <ul class='inline dashboard-navigation'>
-          <li ng-repeat="dashboard in availableDashboards" ng-class='{ "selected" : dashboard == selectedDashboard }'>
-            <a ng-href='{{dashboard.href}}' tooltip='{{dashboard.name}}' tooltip-placement='bottom'>
-              <i class='glyphicons-sonatype' ng-class='dashboard.icon'></i>
+          <li ng-class="{ 'selected' : $state.includes('management') }">
+            <a href='index.html#/management/organization' tooltip='Organizational Design' tooltip-placement='bottom'>
+              <i class='glyphicons-sonatype management'></i>
+            </a>
+          </li>
+          <li ng-class="{ 'selected' : $state.includes('reports.triage') }">
+            <a href='reports.html#/reports/triage' tooltip='Triage' tooltip-placement='bottom'>
+              <i class='glyphicons-sonatype triage'></i>
+            </a>
+          </li>
+          <li ng-class="{ 'selected' : $state.includes('reports.reporting') }">
+            <a href='reports.html#/reports/reporting' tooltip='Reporting' tooltip-placement='bottom'>
+              <i class='glyphicons-sonatype reporting'></i>
             </a>
           </li>
         </ul>

@@ -12,7 +12,7 @@
 					ng-model='orgFilter.name' autocomplete="off" />
 			</div>
 			<ul class="nav nav-list">
-				<li ng-repeat='organization in organizations | filter: orgFilter'
+				<li ng-repeat='organization in organizations | filter: orgFilter | orderBy: "name"'
 					ng-class="{'active': $state.params.organizationId == organization.id }">
 						<a href='#/management/organization/{{organization.id}}/policies'>{{organization.name}}</a></li>
 				<li ng-show='!organizations'><h5><i class='icon icon-time'></i> Loading...</h5></li>

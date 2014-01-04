@@ -105,18 +105,27 @@ h4 {
 	-webkit-transition: all .2s linear;
 	-moz-transition: all .2s linear;
 	transition: all .2s linear;
-	margin-left: 15px;
+  padding: 13px 39px 13px 21px;
 }
 .first-row a.brand:hover {
 	color: black;
 }
-.dashboard-navigation, .dashboard-menus {
+.dashboard-navigation, .dashboard-menus, .dashboard-user {
   display: inline;
+  margin-bottom: 0px;
+}
+.dashboard-navigation > li, .dashboard-menus > li, .dashboard-user > li {
+  padding-right: 10px !important;
+  padding-left: 10px !important;
+}
+.dashboard-navigation > li:first-child, .dashboard-menus > li:first-child, .dashboard-user > li:first-child {
+  margin-left: 11px !important;
+}
+.dashboard-navigation > li:last-child, .dashboard-menus > li:last-child, .dashboard-user > li:last-child {
+  margin-right: 11px !important;
 }
 .dashboard-navigation > li, .dashboard-menus > li {
   padding-top: 10px;
-  padding-right: 10px !important;
-  padding-left: 10px !important;
 }
 .dashboard-navigation > li {
   padding-bottom: 8px;
@@ -124,20 +133,23 @@ h4 {
 .dashboard-navigation > li:hover {
   background-color: #f4f4f4;
 }
-.dashboard-navigation i:before, .dashboard-menus i:before {
+.dashboard-navigation i:before, .dashboard-menus i:before, .dashboard-user i:before {
   font-size: 24px;
 }
 .dashboard-navigation .selected {
   border-top: 3px solid #2476FC;
 }
-.dashboard-menus .btn {
+.dashboard-right {
+  height: 56px;
+}
+.dashboard-user .btn {
   vertical-align: 3px;
   padding: 0px 10px;
 }
-.dashboard-menus .btn-group {
-  margin-top: 0px;
+.dashboard-user .btn-group {
+  margin-top: 13px;
 }
-.dashboard-menus .btn .user-name {
+.dashboard-user .btn .user-name {
   vertical-align: 5px;
   padding: 0px 10px;
   font-weight: bold;
@@ -177,19 +189,23 @@ h4 {
  * --------------------------------------------------
  */
 
-@media (max-width: 979px) {
-  .first-row {
-          margin-bottom: 0px;
-          position: fixed;
+@media (max-width: 800px) {
+  .dashboard-responsive {
+    clear: both;
   }
-  .first-row div {
-          padding: 0px !important;
+  .navigation {
+    margin-top: 113px !important;
   }
-}
- @media (max-width: 767px) {
-  body {
-          padding-left: 0px !important;
-          padding-right: 0px !important;
+  .subnavigation {
+    top: 113px !important;
+  }
+
+  .subnavigation ul:nth-child(3) {
+    top: 186px !important;
+  }
+
+  .content {
+    top: 113px !important;
   }
 }
 .marginless-alert .alert {
@@ -201,7 +217,7 @@ h4 {
 	background-clip: padding-box; /* for IE9+, Firefox 4+, Opera, Chrome */
 }
 .navigation {
-  margin: 53px 0 auto auto;
+  margin: 59px 0 auto auto;
 	background: #E0E0E0;
 	z-index: 1;
 	width: 120px;
@@ -214,11 +230,15 @@ h4 {
 }
 .navigation .nav-list {
 	margin-top: 2px;
+  padding-left: 21px;
+}
+.navigation .nav-list>li>a {
+  margin-left: -21px;
 }
 .nav-list>li>a {
 	font-size: 85%;
 	color: #17558E;
-	padding: 7px 15px;
+  padding: 7px 15px 7px 21px;
 	font-weight: 500;
 }
 .navigation .nav-list>.active>a, .navigation .nav-list>.active>a:hover, .navigation .nav-list>.active>a:focus, .navigation .nav>li>a:hover, .navigation .nav>li>a:focus {
@@ -234,7 +254,7 @@ h4 {
 	width: 150px;
 	margin-left: 121px;
 	position: fixed;
-	top: 55px;
+	top: 59px;
 	bottom : 0px;
 	overflow: hidden;
 	border-right: 1px solid rgba(0, 0, 0, .1);
@@ -245,7 +265,7 @@ h4 {
 .subnavigation ul:nth-child(3) {
 	overflow:auto;
 	position:fixed;
-	top:133px;
+	top:135px;
 	bottom:0px;
 	width:116px;
 }
@@ -257,7 +277,7 @@ h4 {
 	background-color: transparent;
 	color: #17558E;
 	border-left: 3px solid #2476FC;
-	padding-left: 12px;
+	padding-left: 18px;
 }
 .subnavigation .nav-list>.active>a:hover, .subnavigation .nav>li>a:hover, .subnavigation .nav>li.missing-org>a:hover, .nav-list>.active>a:hover {
 	background-color: #f4f4f4;
@@ -288,7 +308,7 @@ h4 {
 }
 .content {
 	position: absolute;
-	top: 53px;
+	top: 59px;
 	bottom : 0px;
 	right : 0px;
 	left : 272px;

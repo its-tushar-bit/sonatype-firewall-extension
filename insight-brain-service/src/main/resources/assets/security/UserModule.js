@@ -21,6 +21,12 @@
 
   module.controller('SecurityMenuController', ['$state', '$scope', function($state, $scope) {
     $scope.$state = $state;
+
+    $scope.$watch('$state.current.name', function() {
+      if ($state.current.name === 'management.security') {
+        $state.transitionTo('management.security.users');
+      }
+    });
   }]);
 }());
 

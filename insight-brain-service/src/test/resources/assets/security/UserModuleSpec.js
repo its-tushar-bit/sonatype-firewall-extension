@@ -59,6 +59,23 @@ describe('UserModuleSpec.js', function() {
     listScope.$destroy();
   }));
 
+  describe('SecurityMenuController', function() {
+    beforeEach(inject(function($controller, $rootScope) {
+      scope = $rootScope.$new();
+      controller = $controller('SecurityMenuController', { $scope: scope });
+    }));
+
+    it('defaults to user state', inject(function($httpBackend, $state) {
+      $state.transitionTo('management.security');
+      $httpBackend.expectGET('../assets/management.html?').respond('<div></div>');
+      $httpBackend.expectGET('../security-assets/security-navigation.html?').respond('<div></div>');
+      $httpBackend.expectGET('../security-assets/user-list.html?').respond('<div></div>');
+      $httpBackend.flush();
+
+      expect($state.current.name).toBe('management.security.users');
+    }));
+  });
+
   var data = [{
     "id": "ADMIN",
     "username": "admin",

@@ -149,10 +149,31 @@ h4 {
 .dashboard-user .btn-group {
   margin-top: 13px;
 }
+.dashboard-user .btn-group .dropdown-toggle {
+  -webkit-border-top-right-radius: 0px;
+  border-top-right-radius: 0px;
+  -webkit-border-bottom-right-radius: 0px;
+  border-bottom-right-radius: 0px;
+  -moz-border-radius-topright: 0px;
+  -moz-border-radius-bottomright: 0px;
+  -webkit-border-bottom-left-radius: 0px;
+  border-bottom-left-radius: 0px;
+  -webkit-border-top-left-radius: 0px;
+  border-top-left-radius: 0px;
+  -moz-border-radius-bottomleft: 0px;
+  -moz-border-radius-topleft: 0px;
+  background-image: none;
+  background-color: transparent;
+  box-shadow: none;
+  -webkit-box-shadow: none;
+}
 .dashboard-user .btn .user-name {
   vertical-align: 5px;
   padding: 0px 10px;
   font-weight: bold;
+}
+.dashboard-user .btn .caret {
+  vertical-align: 8px;
 }
 /*
  * Arrow to the top of a twitter dropdown menu

@@ -513,6 +513,7 @@
                 <include>resources/assets/assets/util/CLMLocation.js</include>
                 <include>resources/assets/assets/util/HttpInterceptors.js</include>
                 <include>resources/assets/assets/lib/ui-bootstrap-tpls-*.min.js</include>
+                <include>resources/assets/assets/lib/datepicker/bootstrap-datepicker.js</include>
               </sourceIncludes>
               <specIncludes>
                 <include>resources/assets/SpecUtil.js</include>

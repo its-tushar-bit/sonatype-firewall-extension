@@ -169,7 +169,7 @@
     };
   });
 
-  claimApp.directive('datepicker', function() {
+  claimApp.directive('clmDatepicker', function() {
     return function(scope, element, attrs) {
       element.datepicker({
         format: 'mm/dd/yyyy',

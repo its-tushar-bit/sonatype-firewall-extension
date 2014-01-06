@@ -55,4 +55,26 @@ describe('CIP Claim Component tests', function() {
     scope.claimSubmit();
     $http.flush();
   });
+
+  // Functional tests for the clm datepicker since we do not have a functional tests for the cip components
+  describe('clm datepicker test', function() {
+    var compiled, element, scope;
+
+    beforeEach(inject(function($rootScope, $compile) {
+      scope = $rootScope.$new();
+      scope.claimData = {};
+
+      scope.claimData.createTimeText = '12/12/2012';
+
+      element = angular.element('<div clm-datepicker><input name="foo" ng-model="claimData.createTimeText"></div>');
+      compiled = $compile(element)(scope);
+    }));
+
+    it('binds data correctly', function() {
+      expect(scope.claimData.createTimeText).toBe('12/12/2012');
+
+      element.find('td.day:contains(1)').first().click();
+      expect(scope.claimData.createTimeText).toBe('12/01/2012');
+    });
+  });
 });

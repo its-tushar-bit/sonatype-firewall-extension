@@ -82,7 +82,7 @@
             var stageName = $.grep($scope.actionStageList, function(e){ return e.id == orgPolicyMonitor.stageTypeId; })[0].name;
             return stageName + ' (inherited from parent)';
           }
-          return '-- select a stage --';
+          return '-- do not monitor --';
         }
 
         $q.all(promises).then(function(results) {

@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.organization;
 import com.sonatype.insight.brain.AuthedRestAccess;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.ApplicationManagementSummary;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.service.AbstractResourceAuthzTest;
 import com.sonatype.insight.test.RestAccess;
@@ -63,12 +62,12 @@ public class ApplicationResourceAuthzTest
         + ApplicationResource.GET_APPLICATION_MANAGEMENT_SUMMARIES);
     Response response = RestAccess.get(url, unauthorized.getUsername(), unauthorized.getPassword());
     assertResponseStatus(200, response);
-    ApplicationManagementSummary[] entities = fromJson(response, ApplicationManagementSummary[].class);
+    ApplicationManagementSummaryDTO[] entities = fromJson(response, ApplicationManagementSummaryDTO[].class);
     assertThat(entities, is(emptyArray()));
 
     response = RestAccess.get(url, authorized.getUsername(), authorized.getPassword());
     assertResponseStatus(200, response);
-    entities = fromJson(response, ApplicationManagementSummary[].class);
+    entities = fromJson(response, ApplicationManagementSummaryDTO[].class);
     assertThat(entities.length, is(1));
     assertThat(entities[0].getId(), is(app.getId()));
   }

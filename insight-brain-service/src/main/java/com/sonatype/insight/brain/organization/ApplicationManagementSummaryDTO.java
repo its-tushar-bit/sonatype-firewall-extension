@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.model;
+package com.sonatype.insight.brain.organization;
 
 import java.util.Collections;
 import java.util.Map;
@@ -11,7 +11,7 @@ import java.util.Map;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 
-public class ApplicationManagementSummary
+public class ApplicationManagementSummaryDTO
 {
   private String id;
 
@@ -26,6 +26,8 @@ public class ApplicationManagementSummary
   private Map<String, PolicyEvaluationResult> policyEvaluationsResults;
 
   private int scansCount;
+
+  private ContactDTO contact;
 
   public String getId() {
     return id;
@@ -60,7 +62,7 @@ public class ApplicationManagementSummary
   }
 
   public Map<String, PolicyEvaluation> getPolicyEvaluations() {
-    return (policyEvaluations != null) ? policyEvaluations : Collections.<String, PolicyEvaluation> emptyMap();
+    return (policyEvaluations != null) ? policyEvaluations : Collections.<String, PolicyEvaluation>emptyMap();
   }
 
   public void setPolicyEvaluations(Map<String, PolicyEvaluation> policyEvaluations) {
@@ -69,7 +71,7 @@ public class ApplicationManagementSummary
 
   public Map<String, PolicyEvaluationResult> getPolicyEvaluationsResults() {
     return (policyEvaluationsResults != null) ? policyEvaluationsResults : Collections
-        .<String, PolicyEvaluationResult> emptyMap();
+        .<String, PolicyEvaluationResult>emptyMap();
   }
 
   public void setPolicyEvaluationsResults(Map<String, PolicyEvaluationResult> policyEvaluationsResults) {
@@ -84,13 +86,24 @@ public class ApplicationManagementSummary
     this.scansCount = scansCount;
   }
 
-  public static ApplicationManagementSummary fromApplication(Application application) {
-    ApplicationManagementSummary summary = new ApplicationManagementSummary();
-    summary.setId(application.getId());
-    summary.setName(application.getName());
-    summary.setPublicId(application.getPublicId());
-    summary.setOrganizationId(application.getOrganizationId());
-    return summary;
+  /**
+   * Get the contact DTO for the application management summary DTO
+   *
+   * @return the contact DTO
+   * @since 1.7.1
+   */
+  public ContactDTO getContact() {
+    return contact;
+  }
+
+  /**
+   * Set the contact DTO for the application management summary DTO
+   *
+   * @param contact the contact DTO
+   * @since 1.7.1
+   */
+  public void setContact(final ContactDTO contact) {
+    this.contact = contact;
   }
 
   @Override

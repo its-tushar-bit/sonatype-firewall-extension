@@ -37,10 +37,8 @@ import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.InvalidApplicationException;
-import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.ApplicationManagementSummary;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
@@ -91,7 +89,7 @@ public class ApplicationResource
 
   private static final ApplicationDAO applicationDAO = new ApplicationDAO();
   
-  private static final OrganizationDAO organizationDAO = new OrganizationDAO();
+  private final ApplicationAdapter applicationAdapter;
 
   private final InsightWork work;
 
@@ -101,12 +99,14 @@ public class ApplicationResource
 
   @Inject
   public ApplicationResource(final InsightWork work, final BaseUrl baseUrl, final CLMLicenseManager licenseManager,
-      final SaasClient client, final PolicyEvaluationUtils policyEvaluationUtils)
+      final SaasClient client, final PolicyEvaluationUtils policyEvaluationUtils,
+      final ApplicationAdapter applicationAdapter)
   {
     super(client, baseUrl);
     this.work = work;
     this.licenseManager = licenseManager;
     this.policyEvaluationUtils = policyEvaluationUtils;
+    this.applicationAdapter = applicationAdapter;
   }
 
   @GET
@@ -140,8 +140,8 @@ public class ApplicationResource
   @GET
   @Path(GET_APPLICATION_MANAGEMENT_SUMMARIES)
   @Produces(MediaType.APPLICATION_JSON)
-  public List<ApplicationManagementSummary> getApplicationManagementSummaries() throws IOException {
-    final List<ApplicationManagementSummary> applicationManagements = new ArrayList<ApplicationManagementSummary>();
+  public List<ApplicationManagementSummaryDTO> getApplicationManagementSummaries() throws IOException {
+    final List<ApplicationManagementSummaryDTO> applicationManagements = new ArrayList<ApplicationManagementSummaryDTO>();
     final List<Application> applications = getApplicationsWithReadPermission();
     for (Application application : applications) {
       applicationManagements.add(getApplicationManagementSummary(application));
@@ -175,7 +175,7 @@ public class ApplicationResource
   public ApplicationDTO getApplication(
       @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) @PathParam("applicationPublicId") final String applicationPublicId)
   {
-    final ApplicationDTO application = new ApplicationDTO(applicationDAO.getByPublicIdNotNull(applicationPublicId));
+    final ApplicationDTO application = applicationAdapter.convert(applicationDAO.getByPublicIdNotNull(applicationPublicId));
     return application;
   }
 
@@ -188,7 +188,7 @@ public class ApplicationResource
   @Path(GET_APPLICATION_MANAGEMENT_SUMMARY)
   @Produces(MediaType.APPLICATION_JSON)
   @Authorize(permission = Permission.READ)
-  public ApplicationManagementSummary getApplicationManagementSummary(
+  public ApplicationManagementSummaryDTO getApplicationManagementSummary(
       @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) @PathParam("applicationPublicId") final String applicationPublicId)
       throws IOException
   {
@@ -205,7 +205,7 @@ public class ApplicationResource
   @Path(GET_SCAN_APPLICATION_MANAGEMENT_SUMMARY)
   @Produces(MediaType.APPLICATION_JSON)
   @Authorize(permission = Permission.READ)
-  public ApplicationManagementSummary getApplicationManagementSummary(
+  public ApplicationManagementSummaryDTO getApplicationManagementSummary(
       @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) @PathParam("applicationPublicId") final String applicationPublicId,
       @PathParam("scanId") final String scanId) throws IOException
   {
@@ -298,7 +298,7 @@ public class ApplicationResource
 
     applicationDAO.insert(application);
 
-    return new ApplicationDTO(application);
+    return applicationAdapter.convert(application);
   }
 
   @PUT
@@ -324,7 +324,7 @@ public class ApplicationResource
       PolicyDAO.unlock(readLocks);
     }
 
-    return new ApplicationDTO(application);
+    return applicationAdapter.convert(application);
   }
 
   @DELETE
@@ -359,15 +359,15 @@ public class ApplicationResource
     applicationDAO.deleteWithIcon(em, application, work.getApplicationIconDir());
   }
 
-  private ApplicationManagementSummary getApplicationManagementSummary(final Application application)
+  private ApplicationManagementSummaryDTO getApplicationManagementSummary(final Application application)
       throws IOException
   {
     final String applicationPublicId = application.getPublicId();
     final String applicationId = application.getId();
     log.debug("Found application with public id {}", applicationPublicId);
 
-    final ApplicationManagementSummary applicationManagement = ApplicationManagementSummary
-        .fromApplication(application);
+    final ApplicationManagementSummaryDTO applicationManagement = applicationAdapter
+        .createApplicationManagementSummary(application);
     File[] scans = work.getScanDir(applicationManagement.getId()).listFiles();
     applicationManagement.setScansCount(scans != null ? scans.length : 0);
 
@@ -395,7 +395,7 @@ public class ApplicationResource
     return applicationManagement;
   }
 
-  private ApplicationManagementSummary getApplicationManagementSummary(final Application application, String scanId)
+  private ApplicationManagementSummaryDTO getApplicationManagementSummary(final Application application, String scanId)
       throws IOException
   {
     final String applicationPublicId = application.getPublicId();
@@ -406,7 +406,8 @@ public class ApplicationResource
     if (evaluation == null) {
       throw new NotFoundException("Unable to locate requested scan");
     }
-    ApplicationManagementSummary summary = ApplicationManagementSummary.fromApplication(application);
+    ApplicationManagementSummaryDTO summary = applicationAdapter
+        .createApplicationManagementSummary(application);
     summary.setPolicyEvaluations(Collections.singletonMap(evaluation.getStage().getStageTypeId(), evaluation));
     return summary;
   }
@@ -441,37 +442,9 @@ public class ApplicationResource
     List<ApplicationDTO> dtos = new ArrayList<ApplicationDTO>();
 
     for (Application application : applications) {
-      dtos.add(new ApplicationDTO(application));
+      dtos.add(applicationAdapter.convert(application));
     }
 
     return dtos;
-  }
-
-  /**
-   * Extension of the Application object to pass more data to the UI (specifically the organization name at this point)
-   */
-  public static class ApplicationDTO
-  {
-    public String id;
-    public String publicId;
-    public String name;
-    public String organizationId;
-    public String organizationName;
-    
-    public ApplicationDTO() {
-    }
-
-    public ApplicationDTO(Application application) {
-      this.id = application.getId();
-      this.name = application.getName();
-      this.publicId = application.getPublicId();
-      this.name = application.getName();
-      this.organizationId = application.getOrganizationId();
-      
-      //make sure to cover legacy apps that may not have a parent org
-      if (this.organizationId != null ) {
-        this.organizationName = organizationDAO.getByIdNotNull(this.organizationId).getName();
-      }
-    }
   }
 }

@@ -22,7 +22,6 @@ import com.sonatype.insight.brain.AuthedRestAccess;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.ApplicationManagementSummary;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
@@ -30,7 +29,6 @@ import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityConditionType;
-import com.sonatype.insight.brain.organization.ApplicationResource.ApplicationDTO;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateResource;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluationLog;
 import com.sonatype.insight.brain.saas.CIResource;
@@ -50,6 +48,8 @@ import org.junit.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
 
 /// TODO This class doesn't properly cleanup after failed tests
 public class ApplicationResourceTest
@@ -91,6 +91,7 @@ public class ApplicationResourceTest
     application.setName(applicationName);
     application.setPublicId(applicationPublicId);
     application.setOrganizationId(organization.getId());
+    application.setContactInternalName("admin");
 
     Response response = AuthedRestAccess.post(getServiceURL(), JsonHelpers.asJson(application));
 
@@ -102,11 +103,15 @@ public class ApplicationResourceTest
     application = applicationDAO.getByPublicIdNotNull(applicationPublicId);
 
     Assert.assertNotNull(application);
-    Assert.assertEquals(application.getId(), applicationResult.id);
-    Assert.assertEquals(applicationPublicId, applicationResult.publicId);
-    Assert.assertEquals(applicationName, applicationResult.name);
-    Assert.assertEquals(application.getOrganizationId(), applicationResult.organizationId);
-    Assert.assertEquals(organization.getName(), applicationResult.organizationName);
+    Assert.assertEquals(application.getId(), applicationResult.getId());
+    Assert.assertEquals(applicationPublicId, applicationResult.getPublicId());
+    Assert.assertEquals(applicationName, applicationResult.getName());
+    Assert.assertEquals(application.getOrganizationId(), applicationResult.getOrganizationId());
+    Assert.assertEquals(organization.getName(), applicationResult.getOrganizationName());
+
+    ContactDTO expectedContact = new ContactDTO("admin", "Admin BuiltIn", "admin@localhost", "CLM");
+    ContactDTO contact = applicationResult.getContact();
+    assertContact(contact, expectedContact);
 
     // Test Add Invalid Icon
     byte[] defaultIconByteArray = IconUtils.loadInvalidIcon();
@@ -145,9 +150,9 @@ public class ApplicationResourceTest
     response = AuthedRestAccess.put(getServiceURL(), JsonHelpers.asJson(application));
     assertResponseStatus(200, response);
     applicationResult = JsonHelpers.fromJson(response.getResponseBody(), ApplicationDTO.class);
-    Assert.assertEquals(application.getId(), applicationResult.id);
-    Assert.assertEquals(applicationPublicId, applicationResult.publicId);
-    Assert.assertEquals(applicationName + "updated", applicationResult.name);
+    Assert.assertEquals(application.getId(), applicationResult.getId());
+    Assert.assertEquals(applicationPublicId, applicationResult.getPublicId());
+    Assert.assertEquals(applicationName + "updated", applicationResult.getName());
 
     // Test icon update
     builder = AuthedRestAccess.getClient().preparePost(getSetIconServiceUrl());
@@ -177,7 +182,7 @@ public class ApplicationResourceTest
     assertResponseStatus(204, response);
     application = applicationDAO.getByPublicId(applicationPublicId);
     Assert.assertNull(application);
-    Assert.assertEquals(0, policyDAO.getByOwnerId(applicationResult.id).size());
+    Assert.assertEquals(0, policyDAO.getByOwnerId(applicationResult.getId()).size());
     iconResponse = AuthedRestAccess.get(getServiceURL() + "/icon/" + applicationPublicId);
     assertResponseStatus(404, iconResponse);
   }
@@ -340,8 +345,8 @@ public class ApplicationResourceTest
     Assert.assertNotNull(applications);
 
     Assert.assertEquals(Arrays.asList(applications).toString(), 1, applications.length);
-    Assert.assertEquals(application.getId(), applications[0].id);
-    Assert.assertEquals(application.getName(), applications[0].name);
+    Assert.assertEquals(application.getId(), applications[0].getId());
+    Assert.assertEquals(application.getName(), applications[0].getName());
 
     // Test GetApplication
     response = AuthedRestAccess.get(getApplicationServiceUrl(applicationPublicId));
@@ -349,8 +354,8 @@ public class ApplicationResourceTest
 
     ApplicationDTO applicationSummary = JsonHelpers.fromJson(response.getResponseBody(), ApplicationDTO.class);
     Assert.assertNotNull(applicationSummary);
-    Assert.assertEquals(application.getId(), applicationSummary.id);
-    Assert.assertEquals(application.getName(), applicationSummary.name);
+    Assert.assertEquals(application.getId(), applicationSummary.getId());
+    Assert.assertEquals(application.getName(), applicationSummary.getName());
   }
 
   @Test
@@ -360,7 +365,7 @@ public class ApplicationResourceTest
     final String applicationName = "ApplicationResourceTest-getApplicationsTest-Name";
     final String licenseFingerprint = "ApplicationResourceTest-getApplicationsTest-LicenseFingerprint";
 
-    Application application = createApplication(applicationPublicId, applicationName);
+    Application application = createApplication(applicationPublicId, applicationName, true, true, null, "admin");
     setLicenseFingerprint(licenseFingerprint);
 
 
@@ -380,8 +385,8 @@ public class ApplicationResourceTest
     // Verify Response for scan 1
     response = AuthedRestAccess.get(getApplicationManagementSummaryUrl(application.getPublicId(), scanId1));
     assertResponseStatus(200, response);
-    ApplicationManagementSummary summary = JsonHelpers.fromJson(response.getResponseBody(),
-        ApplicationManagementSummary.class);
+    ApplicationManagementSummaryDTO summary = JsonHelpers.fromJson(response.getResponseBody(),
+        ApplicationManagementSummaryDTO.class);
 
     Assert.assertEquals(application.getName(), summary.getName());
     Assert.assertEquals(application.getId(), summary.getId());
@@ -396,12 +401,16 @@ public class ApplicationResourceTest
     response = AuthedRestAccess.get(getApplicationManagementSummaryUrl(application.getPublicId(), scanId2));
     assertResponseStatus(200, response);
 
-    summary = JsonHelpers.fromJson(response.getResponseBody(), ApplicationManagementSummary.class);
+    summary = JsonHelpers.fromJson(response.getResponseBody(), ApplicationManagementSummaryDTO.class);
 
     Assert.assertEquals(application.getName(), summary.getName());
     Assert.assertEquals(application.getId(), summary.getId());
     Assert.assertEquals(1, summary.getPolicyEvaluations().size());
     Assert.assertTrue(summary.getPolicyEvaluations().containsKey(Stage.ID_RELEASE));
+
+    ContactDTO expectedContact = new ContactDTO("admin", "Admin BuiltIn", "admin@localhost", "CLM");
+    ContactDTO summaryContact = summary.getContact();
+    assertContact(summaryContact, expectedContact);
 
     evaluation = summary.getPolicyEvaluations().get(Stage.ID_RELEASE);
     Assert.assertEquals(scanId2, evaluation.getScanId());
@@ -420,7 +429,7 @@ public class ApplicationResourceTest
     final String applicationName = "ApplicationResourceTest-getApplicationsTest-Name";
     final String licenseFingerprint = "ApplicationResourceTest-getApplicationsTest-LicenseFingerprint";
 
-    Application application = createApplication(applicationPublicId, applicationName);
+    Application application = createApplication(applicationPublicId, applicationName, true, true, null, "admin");
     setLicenseFingerprint(licenseFingerprint);
 
     // Create policy
@@ -444,13 +453,18 @@ public class ApplicationResourceTest
     response = AuthedRestAccess.get(getSummariesURL());
     assertResponseStatus(200, response);
 
-    ApplicationManagementSummary[] applications = JsonHelpers.fromJson(response.getResponseBody(),
-        ApplicationManagementSummary[].class);
+    ApplicationManagementSummaryDTO[] applications = JsonHelpers.fromJson(response.getResponseBody(),
+        ApplicationManagementSummaryDTO[].class);
     Assert.assertNotNull(applications);
 
     Assert.assertEquals(Arrays.asList(applications).toString(), 1, applications.length);
     Assert.assertEquals(application.getId(), applications[0].getId());
     Assert.assertEquals(application.getName(), applications[0].getName());
+
+
+    ContactDTO expectedContact = new ContactDTO("admin", "Admin BuiltIn", "admin@localhost", "CLM");
+    ContactDTO applicationContact = applications[0].getContact();
+    assertContact(applicationContact, expectedContact);
 
     Map<String, com.sonatype.insight.brain.model.policy.PolicyEvaluation> policyEvaluations = applications[0]
         .getPolicyEvaluations();
@@ -493,7 +507,7 @@ public class ApplicationResourceTest
     response = AuthedRestAccess.get(getSummariesURL());
     assertResponseStatus(200, response);
 
-    applications = JsonHelpers.fromJson(response.getResponseBody(), ApplicationManagementSummary[].class);
+    applications = JsonHelpers.fromJson(response.getResponseBody(), ApplicationManagementSummaryDTO[].class);
     Assert.assertNotNull(applications);
     Assert.assertEquals(1, applications[0].getScansCount());
 
@@ -501,11 +515,14 @@ public class ApplicationResourceTest
     response = AuthedRestAccess.get(getSummaryURL(applicationPublicId));
     assertResponseStatus(200, response);
 
-    ApplicationManagementSummary applicationSummary = JsonHelpers.fromJson(response.getResponseBody(),
-        ApplicationManagementSummary.class);
+    ApplicationManagementSummaryDTO applicationSummary = JsonHelpers.fromJson(response.getResponseBody(),
+        ApplicationManagementSummaryDTO.class);
     Assert.assertNotNull(applicationSummary);
     Assert.assertEquals(application.getId(), applicationSummary.getId());
     Assert.assertEquals(application.getName(), applicationSummary.getName());
+
+    ContactDTO summaryContact = applicationSummary.getContact();
+    assertContact(summaryContact, expectedContact);
 
     policyEvaluations = applicationSummary.getPolicyEvaluations();
     stageTypeIds = policyEvaluations.keySet().toArray(new String[0]);
@@ -551,8 +568,8 @@ public class ApplicationResourceTest
     Response response = AuthedRestAccess.get(getServiceURL());
     assertResponseStatus(200, response);
 
-    ApplicationManagementSummary[] applications = JsonHelpers.fromJson(response.getResponseBody(),
-        ApplicationManagementSummary[].class);
+    ApplicationManagementSummaryDTO[] applications = JsonHelpers.fromJson(response.getResponseBody(),
+        ApplicationManagementSummaryDTO[].class);
     Assert.assertNotNull(applications);
     Assert.assertEquals(1, applications.length);
   }
@@ -749,5 +766,14 @@ public class ApplicationResourceTest
 
   private String getScanURL(final String appId) {
     return getRestBaseUrl() + CIResource.SERVICE_PATH + "/scan/" + appId;
+  }
+
+  private void assertContact(ContactDTO actualContact, ContactDTO expectedContact) {
+
+    Assert.assertThat(actualContact, notNullValue());
+    Assert.assertThat(actualContact.getInternalName(), is(expectedContact.getInternalName()));
+    Assert.assertThat(actualContact.getDisplayName(), is(expectedContact.getDisplayName()));
+    Assert.assertThat(actualContact.getEmail(), is(expectedContact.getEmail()));
+    Assert.assertThat(actualContact.getRealm(), is(expectedContact.getRealm()));
   }
 }

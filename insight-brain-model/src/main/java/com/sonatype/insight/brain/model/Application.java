@@ -38,6 +38,9 @@ public class Application
   @Column(name = "organization_id")
   private String organizationId;
 
+  @Column(name = "contact_internal_name")
+  private String contactInternalName;
+
   public Application() {
   }
 
@@ -93,7 +96,7 @@ public class Application
    * This method is defined here only to trick jackson into "thinking" that it de-serialized the value of the
    * publicIdLowercase field. If this method is not defined, jackson will set/access the publicIdLowercase field
    * directly via reflection, possibly setting it to an incorrect value.
-   * 
+   *
    * @deprecated This method should not be used explicitly.
    */
   @Deprecated
@@ -105,7 +108,7 @@ public class Application
    * This method is defined here only to trick jackson into "thinking" that it de-serialized the value of the
    * nameLowercaseNoWhitespace field. If this method is not defined, jackson will set/access the
    * nameLowercaseNoWhitespace field directly via reflection, possibly setting it to an incorrect value.
-   * 
+   *
    * @deprecated This method should not be used explicitly.
    */
   @Deprecated
@@ -119,5 +122,25 @@ public class Application
 
   public void setOrganizationId(String organizationId) {
     this.organizationId = organizationId;
+  }
+
+  /**
+   * Set the internal name of the contact User (CLM User or LDAP User)
+   *
+   * @param contactInternalName the contact user's internal name (username)
+   * @since 1.7.1
+   */
+  public void setContactInternalName(String contactInternalName) {
+    this.contactInternalName = contactInternalName;
+  }
+
+  /**
+   * Get the internal name of the contact User (CLM User or LDAP User)
+   *
+   * @return the internal name of the contact user
+   * @since 1.7.1
+   */
+  public String getContactInternalName() {
+    return contactInternalName;
   }
 }

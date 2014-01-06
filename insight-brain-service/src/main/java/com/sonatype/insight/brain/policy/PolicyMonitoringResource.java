@@ -39,7 +39,8 @@ public class PolicyMonitoringResource
   public PolicyMonitoring get(@AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") String ownerType,
       @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId)
   {
-    return loadPolicyMonitoring(ownerType, ownerId);
+    String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
+    return loadPolicyMonitoring(internalOwnerId);
   }
 
   /**
@@ -57,11 +58,11 @@ public class PolicyMonitoringResource
     String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
 
     if (IdUtils.TYPE_ORGANIZATION.equals(ownerType)) {
-      return new ApplicablePolicyMonitors(null, loadPolicyMonitoring(ownerType, ownerId));
+      return new ApplicablePolicyMonitors(null, loadPolicyMonitoring(internalOwnerId));
     }
     Application application = new ApplicationDAO().getByIdNotNull(internalOwnerId);
-    return new ApplicablePolicyMonitors(loadPolicyMonitoring(ownerType, ownerId),
-        loadPolicyMonitoring(IdUtils.TYPE_ORGANIZATION, application.getOrganizationId()));
+    return new ApplicablePolicyMonitors(loadPolicyMonitoring(application.getId()),
+        loadPolicyMonitoring(application.getOrganizationId()));
   }
 
   @PUT
@@ -91,9 +92,7 @@ public class PolicyMonitoringResource
     dao.delete(policyMonitoring);
   }
 
-  private PolicyMonitoring loadPolicyMonitoring(final String ownerType, String ownerId) {
-    ownerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
-
+  private PolicyMonitoring loadPolicyMonitoring(final String ownerId) {
     return new PolicyMonitoringDAO().getByOwnerId(ownerId);
   }
 

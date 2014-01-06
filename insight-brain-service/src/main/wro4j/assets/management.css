@@ -124,10 +124,11 @@ h4 {
 .dashboard-navigation > li:last-child, .dashboard-menus > li:last-child, .dashboard-user > li:last-child {
   margin-right: 11px !important;
 }
-.dashboard-navigation > li, .dashboard-menus > li {
+.dashboard-menus > li {
   padding-top: 10px;
 }
 .dashboard-navigation > li {
+  padding-top: 12px;
   padding-bottom: 8px;
 }
 .dashboard-navigation > li:hover {

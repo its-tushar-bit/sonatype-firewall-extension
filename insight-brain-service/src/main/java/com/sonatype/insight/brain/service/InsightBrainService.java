@@ -11,7 +11,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 import javax.inject.Named;
@@ -227,7 +226,7 @@ public class InsightBrainService
     ScheduledExecutorService scheduledExecutorService = environment.managedScheduledExecutorService(
         "policyMonitoring-%d", 1);
     final PolicyMonitor policyMonitor = getInjector().getInstance(PolicyMonitor.class);
-    ScheduledFuture<?> scheduledFuture = scheduledExecutorService.scheduleAtFixedRate(new Runnable()
+    scheduledExecutorService.scheduleAtFixedRate(new Runnable()
     {
       @Override
       public void run() {
@@ -235,8 +234,8 @@ public class InsightBrainService
         policyMonitor.run();
         log.info("Next Policy Monitor execution scheduled for {}", determineNextExecutionTime(policyMonitoringHour));
       }
-    }, TimeUnit.MILLISECONDS.toMinutes(dateTime.getMillis() - System.currentTimeMillis()), 1440, TimeUnit.MINUTES);
-    log.info("First execution of Policy Monitor will happen in {} minutes", scheduledFuture.getDelay(TimeUnit.MINUTES));
+    }, dateTime.getMillis() - System.currentTimeMillis(), TimeUnit.DAYS.toMillis(1), TimeUnit.MILLISECONDS);
+    log.info("First Policy Monitor execution scheduled for {}", dateTime);
   }
 
   private DateTime determineNextExecutionTime(final int policyMonitoringHour) {

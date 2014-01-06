@@ -18,9 +18,9 @@ import com.ning.http.client.Response;
 import com.yammer.dropwizard.testing.JsonHelpers;
 import org.junit.Test;
 
+import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
-import static org.hamcrest.core.IsNot.not;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 
@@ -106,13 +106,13 @@ public class PolicyMonitoringResourceTest
     Response response = AuthedRestAccess
         .get(getServiceURL(IdUtils.TYPE_APPLICATION, application.getPublicId()) + "/applicable");
     ApplicablePolicyMonitors applicablePolicyMonitors = fromJson(response, ApplicablePolicyMonitors.class);
-    assertThat(applicablePolicyMonitors.appPolicyMonitor, is(nullValue()));
-    assertThat(applicablePolicyMonitors.orgPolicyMonitor, is(nullValue()));
+    assertThat(applicablePolicyMonitors.appPolicyMonitor, nullValue());
+    assertThat(applicablePolicyMonitors.orgPolicyMonitor, nullValue());
     response = AuthedRestAccess
         .get(getServiceURL(IdUtils.TYPE_ORGANIZATION, organization.getId()) + "/applicable");
     applicablePolicyMonitors = fromJson(response, ApplicablePolicyMonitors.class);
-    assertThat(applicablePolicyMonitors.appPolicyMonitor, is(nullValue()));
-    assertThat(applicablePolicyMonitors.orgPolicyMonitor, is(nullValue()));
+    assertThat(applicablePolicyMonitors.appPolicyMonitor, nullValue());
+    assertThat(applicablePolicyMonitors.orgPolicyMonitor, nullValue());
 
     //Org only Policy Monitoring set
     PolicyMonitoring policyMonitoring = new PolicyMonitoring(null /* ownerId */, Stage.ID_RELEASE);
@@ -123,8 +123,8 @@ public class PolicyMonitoringResourceTest
         .get(getServiceURL(IdUtils.TYPE_APPLICATION, application.getPublicId()) + "/applicable");
     applicablePolicyMonitors = fromJson(response, ApplicablePolicyMonitors.class);
 
-    assertThat(applicablePolicyMonitors.appPolicyMonitor, is(nullValue()));
-    assertThat(applicablePolicyMonitors.orgPolicyMonitor, is(not(nullValue())));
+    assertThat(applicablePolicyMonitors.appPolicyMonitor, nullValue());
+    assertThat(applicablePolicyMonitors.orgPolicyMonitor, notNullValue());
     assertThat(applicablePolicyMonitors.orgPolicyMonitor.getStageTypeId(), is(Stage.ID_RELEASE));
 
     //App and Org both have Policy Monitoring set
@@ -135,18 +135,35 @@ public class PolicyMonitoringResourceTest
         .get(getServiceURL(IdUtils.TYPE_APPLICATION, application.getPublicId()) + "/applicable");
     applicablePolicyMonitors = fromJson(response, ApplicablePolicyMonitors.class);
 
-    assertThat(applicablePolicyMonitors.appPolicyMonitor, is(not(nullValue())));
+    assertThat(applicablePolicyMonitors.appPolicyMonitor, notNullValue());
     assertThat(applicablePolicyMonitors.appPolicyMonitor.getStageTypeId(), is(Stage.ID_OPERATE));
-    assertThat(applicablePolicyMonitors.orgPolicyMonitor, is(not(nullValue())));
+    assertThat(applicablePolicyMonitors.orgPolicyMonitor, notNullValue());
     assertThat(applicablePolicyMonitors.orgPolicyMonitor.getStageTypeId(), is(Stage.ID_RELEASE));
 
     //sanity check the Org information
     response = AuthedRestAccess
         .get(getServiceURL(IdUtils.TYPE_ORGANIZATION, organization.getId()) + "/applicable");
     applicablePolicyMonitors = fromJson(response, ApplicablePolicyMonitors.class);
-    assertThat(applicablePolicyMonitors.appPolicyMonitor, is(nullValue()));
-    assertThat(applicablePolicyMonitors.orgPolicyMonitor, is(not(nullValue())));
+    assertThat(applicablePolicyMonitors.appPolicyMonitor, nullValue());
+    assertThat(applicablePolicyMonitors.orgPolicyMonitor, notNullValue());
     assertThat(applicablePolicyMonitors.orgPolicyMonitor.getStageTypeId(), is(Stage.ID_RELEASE));
+  }
+
+  @Test
+  public void testGetApplicablePolicyMonitoringForAppWithoutOrg() throws Exception {
+    Application application = createApplication("testGetApplicablePolicyMonitoringAppIdNoOrg",
+        "testGetApplicablePolicyMonitoringAppIdNoOrg", false, false);
+
+    PolicyMonitoring policyMonitoring = new PolicyMonitoring(null /* ownerId */, Stage.ID_RELEASE);
+    AuthedRestAccess.put(getServiceURL(IdUtils.TYPE_APPLICATION, application.getPublicId()),
+        JsonHelpers.asJson(policyMonitoring));
+
+    Response response = AuthedRestAccess
+        .get(getServiceURL(IdUtils.TYPE_APPLICATION, application.getPublicId()) + "/applicable");
+    ApplicablePolicyMonitors applicablePolicyMonitors = fromJson(response, ApplicablePolicyMonitors.class);
+    assertThat(applicablePolicyMonitors.appPolicyMonitor, notNullValue());
+    assertThat(applicablePolicyMonitors.appPolicyMonitor.getStageTypeId(), is(Stage.ID_RELEASE));
+    assertThat(applicablePolicyMonitors.orgPolicyMonitor, nullValue());
   }
 
   private void assertPolicyMonitoring(String ownerId, String stageTypeId, PolicyMonitoring actual) {

@@ -81,7 +81,7 @@ public class PolicyMonitoringResource
 
   @DELETE
   @Authorize(permission = Permission.WRITE)
-  public void deletePolicyWaiver(@AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") String ownerType,
+  public void delete(@AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") String ownerType,
       @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId)
   {
     ownerId = IdUtils.getInternalOwnerId(ownerType, ownerId);

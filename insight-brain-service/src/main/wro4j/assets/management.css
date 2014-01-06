@@ -768,7 +768,6 @@ ul.tri-pane {
 	width: 305px;
 }
 .truncate-ellipsis{
-  max-width: 1px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;

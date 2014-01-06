@@ -607,7 +607,8 @@ public final class Report
     return new File(reportFile.getParentFile(), "report.cache");
   }
 
-  private static File getCacheFile(final File reportFile, final String name) {
+  // public access for tests only
+  public static File getCacheFile(final File reportFile, final String name) {
     return new File(getCacheDir(reportFile), name);
   }
 

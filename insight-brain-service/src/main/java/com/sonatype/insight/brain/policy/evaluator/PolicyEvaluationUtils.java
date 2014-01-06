@@ -50,7 +50,7 @@ public class PolicyEvaluationUtils
 
   public static final String PRIMARY_POLICY_ALERTS_FILENAME = "primarypolicyalerts.json";
 
-  private static final String POLICY_ALERTS_FILENAME = "policyalerts.json";
+  public static final String POLICY_ALERTS_FILENAME = "policyalerts.json";
 
   private final InsightWork work;
 

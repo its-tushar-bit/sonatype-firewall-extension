@@ -6,9 +6,10 @@
 package com.sonatype.insight.brain.testing.functional
 
 import com.sonatype.insight.brain.testing.functional.modules.ContextTabsModule
+import com.sonatype.insight.brain.testing.functional.modules.PolicyMonitoringModule
 
 
-class ApplicationPage extends BasePage {
+class ApplicationPage extends ApplicationManagementPage {
   static at = {  applicationImageWrapper.displayed }
 
   static content = {
@@ -29,6 +30,8 @@ class ApplicationPage extends BasePage {
     deleteButtonAccept(required: false) { $('button', 'ng-click':'deleteApplication();') }
     developerRole(required: false) { $('p', text:'Developer' ) }
     ownerRole(required: false) { $('p', text:'Owner' ) }
+
+    policyMonitoring { module PolicyMonitoringModule }
 
     tabs { module ContextTabsModule }
   }

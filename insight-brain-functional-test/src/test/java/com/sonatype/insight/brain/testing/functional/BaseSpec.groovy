@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.testing.functional
 
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO
 import com.sonatype.insight.brain.service.InsightConfig
 import com.sonatype.insight.brain.service.TestInsightBrainService
 
@@ -24,7 +26,10 @@ abstract class BaseSpec extends GebReportingSpec {
   @ClassRule
   TestRule serviceRule = new DropwizardServiceRule<InsightConfig>(TestInsightBrainService.class,
   Resources.getResource('config-test.yml').getPath())
-  
+
+  static OrganizationDAO organizationDAO = new OrganizationDAO()
+  static ApplicationDAO  applicationDAO = new ApplicationDAO()
+
   def setupSpec() {
     // Use port as reported by service under test since it's not known until runtime.
     System.setProperty("geb.build.baseUrl", "http://localhost:" + serviceRule.getLocalPort() + "/")

@@ -5,9 +5,6 @@
  */
 package com.sonatype.insight.brain.testing.functional
 
-import com.sonatype.insight.brain.dataaccess.ApplicationDAO
-import com.sonatype.insight.brain.dataaccess.OrganizationDAO
-
 
 class AppSecurityManagementSpec extends BaseSpec {
   // assumes a license has already been installed
@@ -18,13 +15,11 @@ class AppSecurityManagementSpec extends BaseSpec {
   }
 
   def cleanup() {
-    ApplicationDAO appDAO = new ApplicationDAO();
-    appDAO.getAll().each {
-      appDAO.delete(it);
+    applicationDAO.getAll().each {
+      applicationDAO.delete(it);
     }
-    OrganizationDAO orgDAO = new OrganizationDAO();
-    orgDAO.getAll().each {
-      orgDAO.delete(it);
+    organizationDAO.getAll().each {
+      organizationDAO.delete(it);
     }
   }
 

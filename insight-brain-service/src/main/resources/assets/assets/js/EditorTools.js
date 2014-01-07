@@ -41,7 +41,6 @@
       $scope.loading = true;
       $q.all([ActionStore.get(),ApplicationStore.get()]).then(function(results) {
         $scope.applications = results[1];
-        $scope.stages = results[0][1];
         $scope.stages = [];
         angular.forEach(results[0][1], function(stage) {
         if (validStages.indexOf(stage.id) > -1) {

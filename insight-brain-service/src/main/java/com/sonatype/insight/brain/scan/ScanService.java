@@ -22,6 +22,7 @@ import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.IOUtil;
 import org.codehaus.plexus.util.io.RawInputStreamFacade;
@@ -48,7 +49,8 @@ class ScanService
   public ScanService(Provider<ScanTask> scanTaskProvider) {
     this.scanTaskProvider = scanTaskProvider;
     scanTasks = new ConcurrentHashMap<>();
-    executor = new ThreadPoolExecutor(1, 2, 5L, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
+    executor = new ThreadPoolExecutor(1, 2, 5L, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>(),
+        new ThreadFactoryBuilder().setDaemon(true).setNameFormat("ScanTask-%s").build());
     executor.allowCoreThreadTimeOut(true);
   }
 

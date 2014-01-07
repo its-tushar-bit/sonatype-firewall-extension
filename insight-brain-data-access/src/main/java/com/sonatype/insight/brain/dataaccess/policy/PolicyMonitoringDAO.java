@@ -15,7 +15,7 @@ import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 /**
- * @since 1.7.1
+ * @since 1.8
  */
 public class PolicyMonitoringDAO
     extends AbstractOperationalSqlDAO<PolicyMonitoring>

@@ -82,7 +82,7 @@ public class ScanUploader
   /**
    * Uploads an existing scan file to the SaaS server.
    * 
-   * @since 1.7.1
+   * @since 1.8
    */
   public ScanReceipt upload(File scanFile, String applicationPublicId, String path)
       throws IOException

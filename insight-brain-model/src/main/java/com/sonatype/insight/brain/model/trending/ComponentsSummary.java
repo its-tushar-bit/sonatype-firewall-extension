@@ -56,7 +56,7 @@ public class ComponentsSummary
 
   /**
    * Returns total number of proprietary components
-   * @since 1.7.1
+   * @since 1.8
    */
   public int getProprietary() {
     return proprietary;

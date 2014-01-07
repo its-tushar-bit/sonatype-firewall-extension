@@ -20,7 +20,7 @@ import org.slf4j.LoggerFactory;
 /**
  * Worker task to process a single application bundle.
  * 
- * @since 1.7.1
+ * @since 1.8
  */
 @Named
 class ScanTask

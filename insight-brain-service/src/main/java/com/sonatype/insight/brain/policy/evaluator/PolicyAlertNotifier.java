@@ -41,7 +41,7 @@ import org.slf4j.LoggerFactory;
 /**
  * Utility class used to send (email) notifications for policy alerts.
  * 
- * @since 1.7.1
+ * @since 1.8
  */
 @Named
 public class PolicyAlertNotifier

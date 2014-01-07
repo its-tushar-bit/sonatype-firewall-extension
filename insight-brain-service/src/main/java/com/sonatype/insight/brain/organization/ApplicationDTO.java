@@ -67,7 +67,7 @@ public class ApplicationDTO
    * Get the contact DTO for the application
    *
    * @return the contact DTO
-   * @since 1.7.1
+   * @since 1.8
    */
   public ContactDTO getContact() {
     return contact;
@@ -78,7 +78,7 @@ public class ApplicationDTO
    * Set the contact DTO for the application
    *
    * @param contact the contact DTO
-   * @since 1.7.1
+   * @since 1.8
    */
   public void setContact(final ContactDTO contact) {
     this.contact = contact;

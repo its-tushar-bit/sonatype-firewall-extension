@@ -16,7 +16,7 @@ import com.google.common.collect.ImmutableMultimap;
 import com.yammer.dropwizard.tasks.Task;
 
 /**
- * @since 1.7.1
+ * @since 1.8
  */
 @Named
 public class PolicyMonitoringTask

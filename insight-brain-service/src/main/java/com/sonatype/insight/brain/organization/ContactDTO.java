@@ -8,7 +8,7 @@ package com.sonatype.insight.brain.organization;
 /**
  * The contact DTO
  *
- * @since 1.7.1
+ * @since 1.8
  */
 public class ContactDTO
 {

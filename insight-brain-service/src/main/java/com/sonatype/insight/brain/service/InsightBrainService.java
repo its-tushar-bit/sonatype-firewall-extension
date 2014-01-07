@@ -218,7 +218,7 @@ public class InsightBrainService
   /**
    * Configure PolicyMonitor to run once a day at a specified hour.
    * 
-   * @since 1.7.1
+   * @since 1.8
    */
   protected void configurePolicyMonitoring(final Environment environment, final int policyMonitoringHour) {
     DateTime dateTime = determineNextExecutionTime(policyMonitoringHour);

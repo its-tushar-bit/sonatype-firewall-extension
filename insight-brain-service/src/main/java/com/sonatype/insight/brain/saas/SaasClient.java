@@ -235,7 +235,7 @@ public class SaasClient
   }
 
   /**
-   * @since 1.7.1
+   * @since 1.8
    */
   public <T> T put(Class<T> clazz, String path, File uploadFile, String... uriParams) throws IOException
   {

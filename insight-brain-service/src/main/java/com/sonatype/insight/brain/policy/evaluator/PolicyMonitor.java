@@ -31,7 +31,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * @since 1.7.1
+ * @since 1.8
  */
 @Named
 public class PolicyMonitor

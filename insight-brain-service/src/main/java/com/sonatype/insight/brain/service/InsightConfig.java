@@ -170,14 +170,14 @@ public class InsightConfig
   }
 
   /**
-   * @since 1.7.1
+   * @since 1.8
    */
   public int getPolicyMonitoringHour() {
     return policyMonitoringHour;
   }
 
   /**
-   * @since 1.7.1
+   * @since 1.8
    */
   public void setPolicyMonitoringHour(final int policyMonitoringHour) {
     this.policyMonitoringHour = policyMonitoringHour;

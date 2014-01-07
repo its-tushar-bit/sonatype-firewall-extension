@@ -14,7 +14,7 @@ import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.model.HasStringId;
 
 /**
- * @since 1.7.1
+ * @since 1.8
  */
 @Entity
 @Table(name = "policy_monitoring")

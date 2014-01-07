@@ -90,7 +90,7 @@ public class ApplicationManagementSummaryDTO
    * Get the contact DTO for the application management summary DTO
    *
    * @return the contact DTO
-   * @since 1.7.1
+   * @since 1.8
    */
   public ContactDTO getContact() {
     return contact;
@@ -100,7 +100,7 @@ public class ApplicationManagementSummaryDTO
    * Set the contact DTO for the application management summary DTO
    *
    * @param contact the contact DTO
-   * @since 1.7.1
+   * @since 1.8
    */
   public void setContact(final ContactDTO contact) {
     this.contact = contact;

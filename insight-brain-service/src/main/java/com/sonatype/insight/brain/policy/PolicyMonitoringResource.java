@@ -25,7 +25,7 @@ import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.utils.IdUtils;
 
 /**
- * @since 1.7.1
+ * @since 1.8
  */
 @Named
 @Path(PolicyMonitoringResource.SERVICE_PATH)

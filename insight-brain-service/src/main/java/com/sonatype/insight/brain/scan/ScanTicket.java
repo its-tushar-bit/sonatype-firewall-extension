@@ -8,7 +8,7 @@ package com.sonatype.insight.brain.scan;
 /**
  * A DTO to report on the state of an application bundle scan.
  * 
- * @since 1.7.1
+ * @since 1.8
  */
 public class ScanTicket
 {

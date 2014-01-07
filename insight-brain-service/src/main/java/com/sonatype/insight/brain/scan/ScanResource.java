@@ -25,7 +25,7 @@ import com.sun.jersey.multipart.FormDataParam;
 /**
  * Accepts uploads of application binaries for the purpose of scanning them.
  * 
- * @since 1.7.1
+ * @since 1.8
  */
 @Named
 @Path(ScanResource.SERVICE_PATH)

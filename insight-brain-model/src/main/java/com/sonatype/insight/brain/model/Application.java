@@ -128,7 +128,7 @@ public class Application
    * Set the internal name of the contact User (CLM User or LDAP User)
    *
    * @param contactInternalName the contact user's internal name (username)
-   * @since 1.7.1
+   * @since 1.8
    */
   public void setContactInternalName(String contactInternalName) {
     this.contactInternalName = contactInternalName;
@@ -138,7 +138,7 @@ public class Application
    * Get the internal name of the contact User (CLM User or LDAP User)
    *
    * @return the internal name of the contact user
-   * @since 1.7.1
+   * @since 1.8
    */
   public String getContactInternalName() {
     return contactInternalName;

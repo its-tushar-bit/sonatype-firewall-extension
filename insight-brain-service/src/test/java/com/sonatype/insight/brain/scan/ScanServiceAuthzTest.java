@@ -21,18 +21,18 @@ public class ScanServiceAuthzTest
 
   @Test(expected = UnauthenticatedException.class)
   public void testScanBinary_Anon() throws Exception {
-    scanService.scanBinary(app.getPublicId(), getClass().getResourceAsStream("/ScannerTest/app01.zip"));
+    scanService.scanBinary(app.getPublicId(), getClass().getResourceAsStream("/ScannerTest/app01.zip"), "app.zip");
   }
 
   @Test(expected = UnauthorizedException.class)
   public void testScanBinary_Unauthorized() throws Exception {
     login();
-    scanService.scanBinary(app.getPublicId(), getClass().getResourceAsStream("/ScannerTest/app01.zip"));
+    scanService.scanBinary(app.getPublicId(), getClass().getResourceAsStream("/ScannerTest/app01.zip"), "app.zip");
   }
 
   @Test
   public void testScanBinary_Authorized() throws Exception {
     grantWritePermission(app.getId());
-    scanService.scanBinary(app.getPublicId(), getClass().getResourceAsStream("/ScannerTest/app01.zip"));
+    scanService.scanBinary(app.getPublicId(), getClass().getResourceAsStream("/ScannerTest/app01.zip"), "app.zip");
   }
 }

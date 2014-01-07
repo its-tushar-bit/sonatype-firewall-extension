@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.scan;
 
+import java.io.File;
 import java.io.InputStream;
 
 import javax.inject.Inject;
@@ -17,6 +18,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
+import static org.hamcrest.Matchers.endsWith;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertThat;
@@ -40,8 +42,15 @@ public class ScanServiceTest
   @Test
   public void testScanBinary() throws Exception {
     InputStream appBundle = getClass().getResourceAsStream("/ScannerTest/app01.zip");
-    ScanTicket ticket = scanService.scanBinary(app.getPublicId(), appBundle);
+    ScanTicket ticket = scanService.scanBinary(app.getPublicId(), appBundle, "app01.zip");
     assertThat(ticket, is(notNullValue()));
     assertThat(ticket.ticketId, is(notNullValue()));
+  }
+
+  @Test
+  public void testSaveBinary_KeepsOriginalFileExtensionForArchiveDetectionPurposes() throws Exception {
+    File file = ScanService.saveBinary(getClass().getResourceAsStream("/ScannerTest/app01.zip"), "app.tar.gz");
+    file.delete();
+    assertThat(file.getName(), endsWith(".tar.gz"));
   }
 }

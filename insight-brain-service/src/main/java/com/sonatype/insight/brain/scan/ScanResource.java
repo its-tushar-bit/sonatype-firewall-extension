@@ -20,6 +20,7 @@ import javax.ws.rs.core.Response;
 import com.sonatype.insight.brain.service.ErrorResponseGenerator;
 import com.sonatype.insight.error.ErrorResponse;
 
+import com.sun.jersey.core.header.FormDataContentDisposition;
 import com.sun.jersey.multipart.FormDataParam;
 
 /**
@@ -46,10 +47,11 @@ public class ScanResource
   @POST
   @Consumes(MediaType.MULTIPART_FORM_DATA)
   public Response uploadBinary(@PathParam("applicationPublicId") String appPublicId,
-      @FormDataParam("file") InputStream is, @QueryParam("forceSuccess") boolean forceSuccess) throws Exception
+      @FormDataParam("file") InputStream is, @FormDataParam("file") FormDataContentDisposition fileDetail,
+      @QueryParam("forceSuccess") boolean forceSuccess) throws Exception
   {
     try {
-      ScanTicket result = scanService.scanBinary(appPublicId, is);
+      ScanTicket result = scanService.scanBinary(appPublicId, is, fileDetail.getFileName());
       return Response.ok(result, MediaType.APPLICATION_JSON_TYPE).build();
     }
     catch (Exception e) {

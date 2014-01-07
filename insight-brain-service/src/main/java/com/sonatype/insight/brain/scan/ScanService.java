@@ -59,10 +59,10 @@ class ScanService
    * for the status/completion of the process.
    */
   @Authorize(permission = Permission.WRITE)
-  public ScanTicket scanBinary(@AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String appPublicId, InputStream is)
-      throws IOException
+  public ScanTicket scanBinary(@AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String appPublicId,
+      InputStream is, String filename) throws IOException
   {
-    File binFile = saveBinary(is);
+    File binFile = saveBinary(is, filename);
     ScanTask task = newScanTask(appPublicId, binFile);
     ScanTicket ticket = new ScanTicket();
     ticket.ticketId = task.getId();
@@ -70,9 +70,10 @@ class ScanService
     return ticket;
   }
 
-  private File saveBinary(InputStream is) throws IOException {
+  static File saveBinary(InputStream is, String filename) throws IOException {
     try {
-      File file = File.createTempFile("clm-", ".tmp");
+      String ext = getFileExtension(filename);
+      File file = File.createTempFile("clm-", ext);
       log.debug("Saving binary to {}", file);
       try {
         FileUtils.copyStreamToFile(new RawInputStreamFacade(is), file);
@@ -86,6 +87,13 @@ class ScanService
     finally {
       IOUtil.close(is);
     }
+  }
+
+  private static String getFileExtension(String filename) {
+    // NOTE: We don't want to error on the side of too few characters (gz vs tar.gz)
+    int index = filename.indexOf('.');
+    String ext = (index < 0) ? "" : filename.substring(index);
+    return ext;
   }
 
   private ScanTask newScanTask(String appPublicId, File binFile) {

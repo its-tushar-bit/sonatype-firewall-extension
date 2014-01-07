@@ -42,7 +42,7 @@ public class ScanResourceTest
     InputStream license = getClass().getResourceAsStream("/" + getClass().getSimpleName() + "/" + resource);
     try {
       AsyncHttpClient.BoundRequestBuilder builder = AuthedRestAccess.getClient().preparePost(url);
-      builder.addBodyPart(new FilePart("file", new ByteArrayPartSource(null, IOUtil.toByteArray(license))));
+      builder.addBodyPart(new FilePart("file", new ByteArrayPartSource(resource, IOUtil.toByteArray(license))));
       return AuthedRestAccess.execute(builder);
     }
     finally {

@@ -180,7 +180,7 @@
 			</div>
 			<div id='aoEditor'>
 				<div id='aoName'
-					class='inline head'
+					class='inline-editor head'
 					clm-editable
 					model='ao.selected'
 					model-field='name'
@@ -191,12 +191,12 @@
 					duplicate-array='ao.siblings'
 					duplicate-id-field='id'>
 				</div>
-				<div ng-if='ao.type == "application"' class='inline' style='margin-bottom:10px'>
+				<div ng-if='ao.type == "application"' class='inline-editor' style='margin-bottom:10px'>
 					<div style='vertical-align:top'>
 						Application
 						<div class="setappid" ng-switch on='selectedApplication.id' style='display: inline-block;vertical-align:top'>
 							<div ng-switch-when='null'>
-								<div class='inline'
+								<div class='inline-editor'
 									id='applicationPublicId'
 									clm-editable
 									e-form='$parent.$parent.appPublicIdForm'

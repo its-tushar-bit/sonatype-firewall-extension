@@ -10,7 +10,7 @@ package com.sonatype.insight.brain.testing.functional
  */
 class TrendingReportPage extends ReportViolationsPage
 {
-  static url = 'assets/reports.html#/reports/reporting'
+  static url = 'assets/reports.html#/reports/trending'
 
   static at = { browser.driver.currentUrl.endsWith(url) }
 

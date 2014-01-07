@@ -11,7 +11,7 @@ import com.sonatype.insight.brain.testing.functional.modules.NavListModule
 
 
 class ReportViolationsPage extends BasePage {
-  static url = "assets/reports.html#/reports/triage"
+  static url = "assets/reports.html#/reports/violations"
 
   static at = { title == 'CLM Reports' }
 

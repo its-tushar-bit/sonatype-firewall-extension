@@ -63,10 +63,10 @@
 .glyphicons-sonatype.management:before {
   content: '\e267'
 }
-.glyphicons-sonatype.triage:before {
+.glyphicons-sonatype.violations:before {
   content: '\e041'
 }
-.glyphicons-sonatype.reporting:before {
+.glyphicons-sonatype.trending:before {
   content: '\e042'
 }
 .glyphicons-sonatype.cogwheel:before {

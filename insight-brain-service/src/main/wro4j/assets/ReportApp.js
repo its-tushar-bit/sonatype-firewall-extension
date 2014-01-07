@@ -7,7 +7,7 @@
 (function() {
   'use strict';
   angular.module('reportApp', ['ReportModule', 'Report', 'ngRoute'], ['$urlRouterProvider', function($urlRouterProvider) {
-    $urlRouterProvider.when('', '/reports/triage');
+    $urlRouterProvider.when('', '/reports/violations');
   }]);
 }());
 
@@ -20,13 +20,13 @@
         url: '/reports',
         templateUrl: '../assets/management.html?' + clmBuildTimestamp,
         controller: 'ReportsController'
-      }).state('reports.triage', {
-          url: '/triage',
+      }).state('reports.violations', {
+          url: '/violations',
           templateUrl: '../report-assets/violations/report-list.html?' + clmBuildTimestamp,
           parent: 'reports',
           controller: 'ReportViolationsController'
-        }).state('reports.reporting', {
-          url: '/reporting',
+        }).state('reports.trending', {
+          url: '/trending',
           templateUrl: '../report-assets/trending/trending-report.html?' + clmBuildTimestamp,
           parent: 'reports',
           controller: 'TrendingReportController'
@@ -38,13 +38,13 @@
 
     $scope.panes = [
       {
-        name: 'Triage',
-        state: 'reports/triage',
+        name: 'Violations',
+        state: 'reports/violations',
         isEnabled: true
       },
       {
-        name: 'Reporting',
-        state: 'reports/reporting',
+        name: 'Trending',
+        state: 'reports/trending',
         isEnabled: true
       }
     ];

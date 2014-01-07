@@ -41,7 +41,7 @@ class LoginScriptSpec extends GebReportingSpec {
   
   def "report application is protected by authentication"() {
     when: "accessing the report application"
-      go "assets/reports.html#/reports/triage"
+      go "assets/reports.html#/reports/violations"
 
     then: "user is prompted to log in"
       // see CLM-976

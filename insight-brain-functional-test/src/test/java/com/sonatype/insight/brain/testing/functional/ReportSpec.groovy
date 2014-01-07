@@ -46,7 +46,7 @@ extends BaseSpec {
 
   def "We can navigate to the trending report"() {
     when: 'we click the navigation link to Trending'
-    nav.link('Reporting').click()
+    nav.link('Trending').click()
 
     then: 'we see the large loading progress meter'
     at TrendingReportPage

@@ -220,7 +220,7 @@ public class PolicyEvaluator
     }
     log.info("*********************************************************************************************");
     log.info("Policy Action: {}", outcome);
-    log.info("Lifecycle stage: {}", params.getStage().getStageTypeId());
+    log.info("CLM stage: {}", params.getStage().getStageTypeId());
     log.info("Summary of policy violations: {} critical, {} severe, {} moderate", eval.getCriticalComponentCount(),
         eval.getSevereComponentCount(), eval.getModerateComponentCount());
     log.info("The detailed report can be viewed online at {}", reportUrl);

@@ -16,6 +16,7 @@ import javax.inject.Named;
 import javax.naming.NamingException;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
+import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
@@ -88,7 +89,7 @@ public class UserResource
   @Authorize(permission = Permission.WRITE)
   public FindMembersDTO findMembers(@AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") String ownerType,
       @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId, @QueryParam("q") String query,
-      @QueryParam("groups") Boolean groupsEnabled)
+      @QueryParam("groups") @DefaultValue("true") boolean groupsEnabled)
   {
     if (StringUtils.isEmpty(query)) {
       throw new BadRequestException("No search term specified.");
@@ -116,7 +117,7 @@ public class UserResource
             users.put(key, member);
           }
         }
-        if ((groupsEnabled == null || groupsEnabled) && ldapManager.isLdapGroupEnabled()) {
+        if (groupsEnabled && ldapManager.isLdapGroupEnabled()) {
           for (LdapGroup group : ldapManager.findGroupsByName(query, 100)) {
             final String groupName = group.getGroupname();
             Member member = new Member(MemberType.GROUP, groupName, groupName, null, ldapName);

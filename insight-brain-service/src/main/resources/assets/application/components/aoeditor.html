@@ -160,8 +160,9 @@
 			</div>
 		</div>
 		<div class='modal-footer'>
-			<div class='pull-left'><button class='btn btn-danger' ng-click='$close(null)'>Remove Contact</button></div>
-			<button class='btn' ng-click='$dismiss()'>Cancel</button>
+			<span style="margin:0px;padding: 4px 14px;max-width:290px" ng-class="{'alert alert-error pull-left': error }" ng-show="error">{{error}}</span>
+			<button class='btn btn-danger' ng-click='$close(null)'>Remove Contact</button>
+			<button class='btn btn-primary' ng-click='$dismiss()'>Cancel</button>
 		</div>
 	</div>
 	</script>

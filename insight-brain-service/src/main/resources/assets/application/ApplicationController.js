@@ -498,10 +498,7 @@
       $scope.queryResults = members;
 
       if (error) {
-        $scope.alerts.push({
-          type: 'error',
-          msg: error
-        });
+        $scope.error = error
       }
     };
 

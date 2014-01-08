@@ -313,6 +313,27 @@ describe('AppSecurityControllerSpec', function() {
         }]);
       }));
 
+      it('Handles HTTP Error', inject(function($timeout, $httpBackend) {
+        scope.$apply(function () {
+          scope.queryString = 'bar';
+        });
+
+        $httpBackend.expectGET('/rest/user/application/bom1-12345678/query?q=bar').respond(403, 'Insufficient Permissions');
+
+        $timeout.flush();
+
+        expect(scope.requestActive).toBeTruthy();
+        expect(scope.$$childHead.lastQuery).toEqual('bar');
+        $httpBackend.flush();
+
+        expect(scope.requestActive).toBeFalsy();
+        expect(scope.queryResults).toBeNull();
+        expect(scope.alerts).toEqual([{
+          type: 'error',
+          msg: 'Insufficient Permissions'
+        }]);
+      }));
+
       it('conditionally shows user and group headers', function() {
         var group = { type: 'GROUP' };
         expect(scope.showGroupingHeader(group, null)).toBe(false);

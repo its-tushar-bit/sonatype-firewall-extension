@@ -229,7 +229,7 @@
     };
   });
 
-  appSecurityModule.directive('appUserSearch', ['$timeout', '$http', 'CLMAppLocations', function ($timeout, $http, clmAppLocations) {
+  appSecurityModule.directive('appUserSearch', ['$timeout', '$http', 'CLMAppLocations', 'Messages', function ($timeout, $http, clmAppLocations, Messages) {
     return {
       restrict : 'A',
       scope : {
@@ -288,7 +288,7 @@
 
               $scope.setResults({
                 $members : null,
-                $error : arguments
+                $error : Messages.getHttpErrorMessage(arguments)
               });
             });
           }, 500);

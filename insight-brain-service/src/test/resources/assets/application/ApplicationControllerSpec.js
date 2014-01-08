@@ -491,33 +491,24 @@ describe('ContactController', function () {
 
   it('Error', function () {
     scope.setQueryResults(null, "Failure");
-    expect(scope.alerts[0]).toEqual({
-      type: 'error',
-      msg: "Failure"
-    });
+    expect(scope.error).toEqual("Failure");
   });
 
   it('Query Error', function () {
     scope.setQueryResults(null, "Failure");
-    expect(scope.alerts[0]).toEqual({
-      type: 'error',
-      msg: "Failure"
-    });
+    expect(scope.error).toEqual("Failure");
     expect(scope.queryResults).toEqual(null);
   });
 
   it('Query Results+Error', function () {
     scope.setQueryResults([{ id : 'bar' }], "Failure");
-    expect(scope.alerts[0]).toEqual({
-      type: 'error',
-      msg: "Failure"
-    });
+    expect(scope.error).toEqual("Failure");
     expect(scope.queryResults).toEqual([{ id : 'bar' }]);
   });
 
   it('Query Results', function () {
     scope.setQueryResults([{ id : 'bar' }]);
-    expect(scope.alerts).toEqual([]);
+    expect(scope.error).toEqual(null);
     expect(scope.queryResults).toEqual([{ id : 'bar' }]);
   });
 

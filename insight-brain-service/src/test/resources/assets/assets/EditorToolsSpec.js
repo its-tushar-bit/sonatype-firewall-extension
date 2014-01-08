@@ -75,6 +75,10 @@ describe('EditorToolsSpec', function() {
       expect(scope.applications.length).toEqual(3);
       expect(scope.bundle.applicationPublicId).toEqual('bom1-12345678');
       expect(scope.bundle.notify).toEqual('false');
+      expect(scope.stages.length).toEqual(3);
+      expect(scope.stages[0].id).toEqual('build');
+      expect(scope.stages[1].id).toEqual('stage-release');
+      expect(scope.stages[2].id).toEqual('release');
     }));
     
     it('Test validation', inject(function ($timeout) {

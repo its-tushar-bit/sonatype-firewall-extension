@@ -110,11 +110,9 @@ extends BaseSpec {
       exactComponentBar.displayed
       partialComponentBar.displayed
       unknownComponentBar.displayed
-      proprietaryComponentBar.displayed
 
-      exactComponentBar.getWidth() / chartWidth == 0.4
+      exactComponentBar.getWidth() / chartWidth == 0.5
       partialComponentBar.getWidth() / chartWidth == 0.3
       unknownComponentBar.getWidth() / chartWidth == 0.2
-      proprietaryComponentBar.getWidth() / chartWidth == 0.1
   }
 }

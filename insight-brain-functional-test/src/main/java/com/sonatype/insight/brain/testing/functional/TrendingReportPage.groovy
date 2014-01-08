@@ -26,9 +26,8 @@ class TrendingReportPage extends ReportViolationsPage
     tooltip(require: false) { $('div.tooltip .tooltip-inner') }
     reportDate(require: false) { $('#trending-data .pull-right strong') }
     percentageChartControl(require: false) { $('div', "ng-controller": 'PercChartCtrl') }
-    exactComponentBar(require: false) { percentageChartControl.find('rect[style="fill: rgb(131, 131, 131);"]') }
-    partialComponentBar(require: false) { percentageChartControl.find('rect[style="fill: rgb(170, 170, 170);"]') }
-    unknownComponentBar(require: false) { percentageChartControl.find('rect[style="fill: rgb(204, 204, 204);"]') }
-    proprietaryComponentBar(require: false) { percentageChartControl.find('rect[style="fill: rgb(232, 232, 232);"]') }
+    exactComponentBar(require: false) { percentageChartControl.find('rect[style="fill: rgb(170, 170, 170);"]') }
+    partialComponentBar(require: false) { percentageChartControl.find('rect[style="fill: rgb(204, 204, 204);"]') }
+    unknownComponentBar(require: false) { percentageChartControl.find('rect[style="fill: rgb(232, 232, 232);"]') }
   }
 }

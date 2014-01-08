@@ -203,18 +203,14 @@ td.violations-difference {
 }
 
 li.exact {
-  color: #838383 !important;
-}
-
-li.partial {
   color: #AAA !important;
 }
 
-li.unknown {
+li.partial {
   color: #CCC !important;
 }
 
-li.proprietary {
+li.unknown {
   color: #e8e8e8 !important;
 }
 

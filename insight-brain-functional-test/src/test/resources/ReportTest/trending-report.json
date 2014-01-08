@@ -6,11 +6,11 @@
   },
   "generation" : null,
   "components" : {
-    "exact" : 40,
+    "exact" : 50,
     "partial" : 30,
     "unknown" : 20,
     "proprietary" : 10,
-    "inApplication" : 100
+    "inApplication" : 110
   },
   "applications" : {
     "total" : 3,

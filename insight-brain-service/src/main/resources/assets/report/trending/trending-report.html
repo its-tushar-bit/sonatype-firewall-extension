@@ -34,7 +34,7 @@
     <div class="row">
       <div class="span6">
         <div>
-          <h1 class="count-header" style="margin-bottom: 0;"><strong>{{ data.components.inApplication }}</strong> Components across all Applications</h1>
+          <h1 class="count-header" style="margin-bottom: 0;"><strong>{{ data.components.exact + data.components.partial + data.components.unknown }}</strong> Components across all Applications</h1>
           <div ng-show="data.components.inApplication" ng-include='percentageChart'></div>
         </div>
         <div class="row" style='padding-bottom: 10px;'>

@@ -147,7 +147,7 @@ public class MembershipMappingResourceTest
     assertThat(membersByOwner.members, is(notNullValue()));
     assertThat(membersByOwner.members, hasSize(1));
     assertMember(membersByOwner.members.get(0), MemberType.USER, userB.getUsername(),
-        userB.getFirstName() + " " + userB.getLastName(), userB.getEmail(), "CLM");
+        userB.calculateDisplayName(), userB.getEmail(), "CLM");
 
     // Update
     response = AuthedRestAccess.put(
@@ -178,7 +178,7 @@ public class MembershipMappingResourceTest
     assertThat(membersByOwner.members, is(notNullValue()));
     assertThat(membersByOwner.members, hasSize(1));
     assertMember(membersByOwner.members.get(0), MemberType.USER, userA.getUsername(),
-        userA.getFirstName() + " " + userA.getLastName(), userA.getEmail(), "CLM");
+        userA.calculateDisplayName(), userA.getEmail(), "CLM");
 
     membersByOwner = membersByRole.membersByOwner.get(1);
     assertThat(membersByOwner.ownerId, is(org.getId()));
@@ -187,7 +187,7 @@ public class MembershipMappingResourceTest
     assertThat(membersByOwner.members, is(notNullValue()));
     assertThat(membersByOwner.members, hasSize(1));
     assertMember(membersByOwner.members.get(0), MemberType.USER, userB.getUsername(),
-        userB.getFirstName() + " " + userB.getLastName(), userB.getEmail(), "CLM");
+        userB.calculateDisplayName(), userB.getEmail(), "CLM");
 
     membersByRole = applicable.membersByRole.get(1);
     assertThat(membersByRole.roleId, is(appRoles.get(1).getId()));
@@ -200,7 +200,7 @@ public class MembershipMappingResourceTest
     assertThat(membersByOwner.members, is(notNullValue()));
     assertThat(membersByOwner.members, hasSize(1));
     assertMember(membersByOwner.members.get(0), MemberType.USER, userB.getUsername(),
-        userB.getFirstName() + " " + userB.getLastName(), userB.getEmail(), "CLM");
+        userB.calculateDisplayName(), userB.getEmail(), "CLM");
 
     membersByOwner = membersByRole.membersByOwner.get(1);
     assertThat(membersByOwner.ownerId, is(org.getId()));
@@ -301,7 +301,7 @@ public class MembershipMappingResourceTest
     assertMember(membersByOwner.members.get(0), MemberType.USER, User.ADMIN_USERNAME, "Admin BuiltIn",
         "admin@localhost", "CLM");
     assertMember(membersByOwner.members.get(1), MemberType.USER, userB.getUsername(),
-        userB.getFirstName() + " " + userB.getLastName(), userB.getEmail(), "CLM");
+        userB.calculateDisplayName(), userB.getEmail(), "CLM");
 
     // Update
     response = AuthedRestAccess.put(

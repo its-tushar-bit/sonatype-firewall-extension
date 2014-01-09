@@ -69,6 +69,8 @@ public class UserSessionResource
   public static final class AuthenticationStatus
   {
     private String username;
+
+    private String displayName;
     
     private boolean isAuthenticated;
     
@@ -94,6 +96,7 @@ public class UserSessionResource
         Object principal = subject.getPrincipal();
         if (principal instanceof UserPrincipal) {
           status.setUsername(((UserPrincipal) principal).username);
+          status.setDisplayName(((UserPrincipal)principal).displayName);
           status.setClmUser(((UserPrincipal) principal).clmUser);
         } else {
           status.setUsername(subject.getPrincipal().toString());
@@ -109,6 +112,14 @@ public class UserSessionResource
 
     public String getUsername() {
       return username;
+    }
+
+    public String getDisplayName() {
+      return displayName;
+    }
+
+    public void setDisplayName(final String displayName) {
+      this.displayName = displayName;
     }
 
     public boolean isAuthenticated() {

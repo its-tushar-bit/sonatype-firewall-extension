@@ -102,8 +102,7 @@ public class UserResource
 
     UserDAO dao = new UserDAO();
     for (User user : dao.findUsersByName(query)) {
-      String displayName = user.getFirstName() + " " + user.getLastName();
-      Member member = new Member(MemberType.USER, user.getUsername(), displayName, user.getEmail(), CLMRealm.DISPLAY_NAME);
+      Member member = new Member(MemberType.USER, user.getUsername(), user.calculateDisplayName(), user.getEmail(), CLMRealm.DISPLAY_NAME);
       users.put(member.getInternalName().toLowerCase(Locale.ENGLISH), member);
     }
 

@@ -61,7 +61,7 @@
     $scope.$state = $state;
 
     currentUser.then(function(status) {
-      $scope.username = status.username;
+      $scope.displayName = status.displayName;
     });
   }]);
 

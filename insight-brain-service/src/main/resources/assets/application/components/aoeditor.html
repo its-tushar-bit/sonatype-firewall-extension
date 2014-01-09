@@ -147,7 +147,7 @@
 							<div ng-repeat='user in queryResults | memberNotIn:mappings | filter: { type: grouping.type } | orderBy:"displayName"'>
 								<div user-list-item='user'
 									 icon-class='emptyIconGlyph'
-									 query='{{queryString}}'
+									 query-string='{{queryString}}'
 									 selected='selectedUser.internalName == user.internalName'
 									 ng-click='selectUser(user)'></div>
 							</div>

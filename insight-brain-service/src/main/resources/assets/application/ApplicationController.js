@@ -496,10 +496,7 @@
 
     $scope.setQueryResults = function (members, error) {
       $scope.queryResults = members;
-
-      if (error) {
-        $scope.error = error
-      }
+      $scope.error = error;
     };
 
     $scope.selectUser = function (user) {

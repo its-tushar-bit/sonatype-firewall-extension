@@ -35,7 +35,7 @@
 									<i class='glyphicons-sonatype small' ng-class='grouping.icon'></i>{{grouping.header}}
 								</div>
 								<div ng-repeat='member in queryResults | memberNotIn:mappings | filter: { type: grouping.type } | orderBy:"displayName"'>
-									<div user-list-item='member' ng-click='addMember(member)' icon-class='icon-plus-sign' query='{{queryString}}'></div>
+									<div user-list-item='member' ng-click='addMember(member)' icon-class='icon-plus-sign' query-string='{{queryString}}'></div>
 								</div>
 							</div>
 							<div class='licenseSelectListItem' ng-show='queryString && !requestActive && queryResults.length == 0'>

@@ -71,7 +71,7 @@ public class Parameters
   private String proxyUser;
 
   @Parameter(names = { "-t", "--stage" }, validateValueWith = StageParameterValidator.class, converter = StageParameterConverter.class, description = "CLM stage to run analysis against. Accepted values: "
-      + Stage.ID_BUILD + "|" + Stage.ID_STAGE_RELEASE + "|" + Stage.ID_RELEASE)
+      + Stage.ID_PROCURE + "|" + Stage.ID_DEVELOP + "|" + Stage.ID_BUILD + "|" + Stage.ID_STAGE_RELEASE + "|" + Stage.ID_RELEASE + "|" + Stage.ID_OPERATE)
   private Stage stage = new Stage(Stage.ID_BUILD);
 
   @Parameter(names = { "-X", "--debug" }, description = "Enable debug logs", hidden = true)

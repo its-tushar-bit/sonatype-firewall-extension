@@ -9,8 +9,12 @@
 (function() {
   'use strict';
   var module = angular.module('EditorTools', ['CommonServices', 'CLMAppLocation', 'Stores', 'AngularCommon']),
-  validStages = ['build', 'stage-release', 'release'];
-  
+      validStages = ['build', 'stage-release', 'release'];
+
+  module.run(['editableOptions', function (editableOptions) {
+    editableOptions.theme = 'bs2';
+  }]);
+
   module.controller('EvaluateBundleController', ['$scope', '$http', '$timeout', '$window', 'Messages', 'CLMLocations', 'selectedApplication', 'ApplicationStore', 'ActionStore', '$q', function ($scope, $http, $timeout, $window, messages, CLMLocations, selectedApplication, ApplicationStore, ActionStore, $q) {
     var fileElement = null;
     

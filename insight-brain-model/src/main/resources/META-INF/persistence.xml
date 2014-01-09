@@ -23,6 +23,7 @@
     <class>com.sonatype.insight.brain.model.security.Role</class>
     <class>com.sonatype.insight.brain.model.security.RolePermission</class>
     <class>com.sonatype.insight.brain.model.security.User</class>
+    <class>com.sonatype.insight.brain.model.tag.Tag</class>
     <class>com.sonatype.insight.brain.configuration.ldap.LdapServer</class>
     <class>com.sonatype.insight.brain.configuration.ldap.LdapConnection</class>
     <class>com.sonatype.insight.brain.configuration.ldap.LdapUserMapping</class>

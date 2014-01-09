@@ -22,6 +22,7 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
 import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
+import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
 import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.model.Organization;
@@ -34,6 +35,7 @@ import com.sonatype.insight.brain.model.policy.PolicyMonitoring;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
+import com.sonatype.insight.brain.model.tag.Tag;
 
 import org.apache.commons.lang.StringUtils;
 import org.junit.Assert;
@@ -42,7 +44,9 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertEquals;
@@ -323,6 +327,26 @@ public class OrganizationDAOTest
     dao.delete(organization);
 
     Assert.assertTrue(labelDAO.getByOwnerId(organizationId).isEmpty());
+  }
+
+  @Test
+  public void testCascadeDeleteToTags() {
+    TagDAO tagDAO = new TagDAO();
+
+    Organization organization = new Organization("organization");
+    dao.insert(organization);
+
+    String organizationId = organization.getId();
+
+    Tag tag = new Tag(organizationId, "testCascadeDeleteToTags", "testCascadeDeleteToTags");
+    tagDAO.insert(tag);
+
+    // sanity check
+    assertThat(tagDAO.getByOrganizationId(organizationId), is(not(empty())));
+
+    dao.delete(organization);
+
+    assertThat(tagDAO.getByOrganizationId(organizationId), is(empty()));
   }
 
   @Test

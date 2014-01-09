@@ -15,6 +15,7 @@ import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
+import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
 import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.model.Organization;
@@ -24,6 +25,7 @@ import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.policy.PolicyMonitoring;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
+import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 public class OrganizationDAO
@@ -169,6 +171,13 @@ public class OrganizationDAO
     PolicyMonitoring policyMonitoring = policyMonitoringDAO.getByOwnerId(em, organization.getId());
     if (policyMonitoring != null) {
       policyMonitoringDAO.delete(em, policyMonitoring);
+    }
+
+    // Cascade to tags
+    TagDAO tagDAO = new TagDAO();
+    List<Tag> tags = tagDAO.getByOrganizationId(em, organization.getId());
+    for (Tag tag : tags) {
+      tagDAO.delete(em, tag);
     }
 
     super.delete(em, organization);

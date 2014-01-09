@@ -1,5 +1,4 @@
 /**
- /**
  * @license Copyright (c) 2013 Sonatype, Inc. All rights reserved. Includes the
  *          third-party code listed at
  *          http://links.sonatype.com/products/clm/attributions. "Sonatype" is a
@@ -8,7 +7,7 @@
 /* global angular */
 (function() {
   'use strict';
-  var module = angular.module('EditorTools', ['CommonServices', 'CLMAppLocation', 'Stores', 'AngularCommon']),
+  var module = angular.module('EditorTools', ['CommonServices', 'CLMAppLocation', 'Stores', 'AngularCommon', 'xeditable']),
       validStages = ['build', 'stage-release', 'release'];
 
   module.run(['editableOptions', function (editableOptions) {

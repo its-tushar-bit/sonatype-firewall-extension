@@ -182,7 +182,7 @@ public class LdapRealmTest
       assertBadCredentials("test_sasl_user", null);
       assertBadCredentials("test_sasl_user", "");
       assertBadCredentials("test_sasl_user", "guest");
-      assertGoodCredentials("test_sasl_user", "s3cr3t");
+      assertGoodCredentials("test_sasl_user", "Test", "s3cr3t");
     }
     else {
       assertBadCredentials("anonymous", null);
@@ -193,11 +193,11 @@ public class LdapRealmTest
       assertBadCredentials("test_user", null);
       assertBadCredentials("test_user", "");
       assertBadCredentials("test_user", "guest");
-      assertGoodCredentials("test_user", "far2simple", "Gamma", "Theta", "Omega");
+      assertGoodCredentials("test_user", "Test", "far2simple", "Gamma", "Theta", "Omega");
     }
   }
 
-  public void assertGoodCredentials(String username, String password, String... groups) {
+  public void assertGoodCredentials(String username, String displayName, String password, String... groups) {
     UsernamePasswordToken usernamePasswordToken = new UsernamePasswordToken(username, password);
     AuthenticationInfo authenticationInfo = realm.getAuthenticationInfo(usernamePasswordToken);
     PrincipalCollection principalCollection = authenticationInfo.getPrincipals();
@@ -205,7 +205,7 @@ public class LdapRealmTest
     assertFalse(principalCollection.isEmpty());
     Iterator<?> principalIterator = principalCollection.iterator();
     Object principal = principalIterator.next();
-    assertEquals(new UserPrincipal(username, false), principal);
+    assertEquals(new UserPrincipal(username, displayName, false), principal);
     assertThat(((UserPrincipal) principal).membership, containsInAnyOrder(groups));
     assertFalse(principalIterator.hasNext());
     assertThat(principalCollection.getRealmNames(), hasSize(1));

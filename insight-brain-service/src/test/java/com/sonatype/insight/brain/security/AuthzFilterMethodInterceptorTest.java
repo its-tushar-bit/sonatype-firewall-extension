@@ -81,7 +81,7 @@ public class AuthzFilterMethodInterceptorTest
     when(invoc.getMethod()).thenReturn(getClass().getMethod("stubOrgs"));
     when(invoc.getArguments()).thenReturn(new Object[0]);
     when(invoc.proceed()).thenReturn(entities);
-    UserPrincipal principal = new UserPrincipal("john", true);
+    UserPrincipal principal = new UserPrincipal("john", "John Smith", true);
     when(subject.getPrincipal()).thenReturn(principal);
     when(
         authzChecker.filterByPermission(eq(principal), eq(Permission.READ), eq(entities),

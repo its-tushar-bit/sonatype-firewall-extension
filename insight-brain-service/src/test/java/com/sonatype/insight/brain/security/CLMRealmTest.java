@@ -61,7 +61,7 @@ public class CLMRealmTest
     assertFalse(principalCollection.isEmpty());
     Iterator<?> principalIterator = principalCollection.iterator();
     Object principal = principalIterator.next();
-    assertEquals(new UserPrincipal(User.ADMIN_USERNAME, true), principal);
+    assertEquals(new UserPrincipal(User.ADMIN_USERNAME, "Admin BuiltIn", true), principal);
     assertFalse(principalIterator.hasNext());
     assertThat(principalCollection.getRealmNames(), hasSize(1));
     assertEquals(realm.getName(), principalCollection.getRealmNames().iterator().next());
@@ -102,7 +102,7 @@ public class CLMRealmTest
     assertFalse(principalCollection.isEmpty());
     Iterator<?> principalIterator = principalCollection.iterator();
     Object principal = principalIterator.next();
-    assertEquals(new UserPrincipal(User.ADMIN_USERNAME, true), principal);
+    assertEquals(new UserPrincipal(User.ADMIN_USERNAME, "Admin BuiltIn", true), principal);
     assertFalse(principalIterator.hasNext());
     assertThat(principalCollection.getRealmNames(), hasSize(1));
     assertEquals(realm.getName(), principalCollection.getRealmNames().iterator().next());
@@ -160,7 +160,7 @@ public class CLMRealmTest
     assertFalse(principalCollection.isEmpty());
     Iterator<?> principalIterator = principalCollection.iterator();
     Object principal = principalIterator.next();
-    assertEquals(new UserPrincipal(User.ADMIN_USERNAME, true), principal);
+    assertEquals(new UserPrincipal(User.ADMIN_USERNAME, "Admin BuiltIn", true), principal);
     assertFalse(principalIterator.hasNext());
     assertThat(principalCollection.getRealmNames(), hasSize(1));
     assertEquals(realm.getName(), principalCollection.getRealmNames().iterator().next());

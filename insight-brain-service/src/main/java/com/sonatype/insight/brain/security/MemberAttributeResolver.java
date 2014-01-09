@@ -57,7 +57,7 @@ public class MemberAttributeResolver
           user = userDAO.getByUsernameLowercase(internalName.toLowerCase(Locale.ENGLISH));
         }
         if (user != null) {
-          member.setDisplayName(user.getFirstName() + " " + user.getLastName());
+          member.setDisplayName(user.calculateDisplayName());
           member.setEmail(user.getEmail());
           member.setRealm(CLMRealm.DISPLAY_NAME);
 

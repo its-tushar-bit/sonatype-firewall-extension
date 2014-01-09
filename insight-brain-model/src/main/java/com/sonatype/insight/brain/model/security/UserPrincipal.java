@@ -12,16 +12,19 @@ public class UserPrincipal
 {
   public final String username;
 
+  public final String displayName;
+
   public final boolean clmUser;
 
   public final Set<String> membership;
 
-  public UserPrincipal(String username, boolean clmUser) {
-    this(username, clmUser, null);
+  public UserPrincipal(String username, String displayName, boolean clmUser) {
+    this(username, displayName, clmUser, null);
   }
 
-  public UserPrincipal(String username, boolean clmUser, Set<String> membership) {
+  public UserPrincipal(String username, String displayName, boolean clmUser, Set<String> membership) {
     this.username = username;
+    this.displayName = displayName;
     this.clmUser = clmUser;
     this.membership = membership != null ? membership : Collections.<String>emptySet();
   }
@@ -40,6 +43,7 @@ public class UserPrincipal
     int result = 1;
     result = prime * result + (clmUser ? 1231 : 1237);
     result = prime * result + ((username == null) ? 0 : username.hashCode());
+    result = prime * result + ((displayName == null) ? 0 : displayName.hashCode());
     return result;
   }
 
@@ -63,6 +67,13 @@ public class UserPrincipal
     }
     else if (!username.equals(other.username))
       return false;
+    if (displayName == null) {
+      if (other.displayName != null) {
+        return false;
+      }
+    } else if (!displayName.equals(other.displayName)) {
+      return false;
+    }
     return true;
   }
 }

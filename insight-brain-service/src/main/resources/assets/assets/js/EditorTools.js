@@ -103,7 +103,7 @@
       if ($window.FormData) {  
         var form = new FormData();
         form.append('file', fileElement.files[0]);
-        $http.post(CLMLocations.getBundleUploadUrl($scope.bundle.applicationPublicId), form, {
+        $http.post(CLMLocations.getBundleUploadUrl($scope.bundle.applicationPublicId, $scope.bundle.stage), form, {
           headers : {
             'Content-Type' : undefined
           },
@@ -127,7 +127,7 @@
     };
     
     $scope.updateFormActionUrl = function() {
-      $scope.evaluateBundleAction = CLMLocations.getBundleUploadUrl($scope.bundle.applicationPublicId);
+      $scope.evaluateBundleAction = CLMLocations.getBundleUploadUrl($scope.bundle.applicationPublicId, $scope.bundle.stage);
     };
     
     $scope.isFormValid = function() {

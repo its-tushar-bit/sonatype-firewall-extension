@@ -19,6 +19,7 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.service.ErrorResponseGenerator;
 import com.sonatype.insight.error.ErrorResponse;
 
@@ -53,11 +54,12 @@ public class ScanResource
       @PathParam("applicationPublicId") String appPublicId,
       @FormDataParam("file") InputStream is, 
       @FormDataParam("file") FormDataContentDisposition fileDetail,
+      @QueryParam("stageId") String stageId,
       @QueryParam("noFormData") boolean noFormData) 
           throws Exception
   {
     try {
-      ScanTicket result = scanService.scanBinary(appPublicId, is, fileDetail.getFileName());
+      ScanTicket result = scanService.scanBinary(appPublicId, is, fileDetail.getFileName(), new Stage(stageId));
       if (noFormData) {
         return Response.ok(new ObjectMapper().writeValueAsString(result), ErrorResponse.CONTENT_TYPE).build();
       } else {

@@ -74,6 +74,8 @@ class ScanTask
 
   private File binFile;
 
+  private Stage stage;
+
   private volatile State state = State.PENDING;
 
   private volatile Throwable error;
@@ -92,9 +94,10 @@ class ScanTask
    * @param applicationPublicId a valid public application id to associate to the policy results
    * @param binFile the binary file of what to scan
    */
-  public void init(String applicationPublicId, File binFile) {
+  public void init(String applicationPublicId, File binFile, Stage stage) {
     this.applicationPublicId = applicationPublicId;
     this.binFile = binFile;
+    this.stage = stage;
   }
 
   public String getId() {
@@ -146,7 +149,7 @@ class ScanTask
       // get report/perform evaluation
       state = State.EVALUATING_POLICY;
       // PolicyEvaluationUtils will fetch report if it's not there
-      policyEvaluationUtils.evaluate(applicationPublicId, scanReceipt.getScanId(), new Stage(Stage.ID_BUILD));
+      policyEvaluationUtils.evaluate(applicationPublicId, scanReceipt.getScanId(), stage);
 
       // provide report/scanId once evaluation is completed successfully
       scanId = scanReceipt.getScanId();

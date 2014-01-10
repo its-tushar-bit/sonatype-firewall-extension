@@ -18,10 +18,12 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Provider;
 
+import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
+import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
@@ -57,15 +59,18 @@ class ScanService
   }
 
   /**
-   * Initiates scanning of the provided application bundle, providing the caller with a ticket that can be used to query
-   * for the status/completion of the process.
+   * Initiates scanning of the provided application bundle and policy evaluation for the specified stage, providing the
+   * caller with a ticket that can be used to query for the status/completion of the process.
    */
   @Authorize(permission = Permission.WRITE)
   public ScanTicket scanBinary(@AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String appPublicId,
-      InputStream is, String filename) throws IOException
+      InputStream is, String filename, Stage stage) throws IOException
   {
+    if (!Stage.isValidStageTypeId(stage.getStageTypeId())) {
+      throw new BadRequestException("Invalid CLM stage: " + stage.getStageTypeId());
+    }
     File binFile = saveBinary(is, filename);
-    ScanTask task = newScanTask(appPublicId, binFile);
+    ScanTask task = newScanTask(appPublicId, binFile, stage);
     return task.getTicket();
   }
 
@@ -111,11 +116,11 @@ class ScanService
     return ext;
   }
 
-  private ScanTask newScanTask(String appPublicId, File binFile) {
+  private ScanTask newScanTask(String appPublicId, File binFile, Stage stage) {
     validatePublicApplicationId(appPublicId);
 
     ScanTask scanTask = scanTaskProvider.get();
-    scanTask.init(appPublicId, binFile);
+    scanTask.init(appPublicId, binFile, stage);
     scanTasks.put(scanTask.getId(), scanTask);
     executor.submit(scanTask);
     return scanTask;

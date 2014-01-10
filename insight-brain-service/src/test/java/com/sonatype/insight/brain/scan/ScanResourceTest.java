@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.scan;
 
 import java.io.InputStream;
 
+import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.AuthedRestAccess;
 import com.sonatype.insight.brain.TemporaryEntity;
 import com.sonatype.insight.brain.model.Application;
@@ -34,8 +35,8 @@ public class ScanResourceTest
 
   private Application app;
 
-  private String getUploadUrl(String appPublicId) {
-    return getRestUrl(ScanResource.SERVICE_PATH, appPublicId);
+  private String getUploadUrl(String appPublicId, String stageId) {
+    return getRestUrl(ScanResource.SERVICE_PATH, appPublicId) + "?stageId=" + stageId;
   }
 
   private Response upload(String resource, String url) throws Exception {
@@ -57,7 +58,7 @@ public class ScanResourceTest
 
   @Test
   public void testUploadBinary() throws Exception {
-    Response response = upload("app01.zip", getUploadUrl(app.getPublicId()));
+    Response response = upload("app01.zip", getUploadUrl(app.getPublicId(), Stage.ID_BUILD));
     assertResponseStatus(200, response);
     ScanTicket result = fromJson(response, ScanTicket.class);
     assertThat(result, is(notNullValue()));
@@ -66,7 +67,7 @@ public class ScanResourceTest
 
   @Test
   public void testUploadBinary_IeErrorHandling() throws Exception {
-    Response response = upload("app01.zip", getUploadUrl("bad-app-id") + "?noFormData=true");
+    Response response = upload("app01.zip", getUploadUrl("bad-app-id", Stage.ID_BUILD) + "&noFormData=true");
     assertResponseStatus(200, response);
     assertThat(response.getContentType(), startsWith("text/plain"));
     assertThat(response.getResponseBody(), is("Could not find an application with public id bad-app-id."));

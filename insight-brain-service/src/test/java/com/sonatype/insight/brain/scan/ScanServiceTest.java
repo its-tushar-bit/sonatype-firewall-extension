@@ -11,8 +11,10 @@ import java.io.InputStream;
 
 import javax.inject.Inject;
 
+import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.TemporaryEntity;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.eclipse.sisu.launch.InjectedTest;
@@ -25,6 +27,7 @@ import static org.hamcrest.Matchers.endsWith;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 
 public class ScanServiceTest
     extends InjectedTest
@@ -37,6 +40,10 @@ public class ScanServiceTest
 
   private Application app;
 
+  private InputStream getBundle(String name) {
+    return getClass().getResourceAsStream("/ScannerTest/" + name);
+  }
+
   @Before
   public void init() {
     app = tempEntity.newApplication(tempEntity.newOrganization().getId());
@@ -44,23 +51,23 @@ public class ScanServiceTest
 
   @Test
   public void testScanBinary() throws Exception {
-    InputStream appBundle = getClass().getResourceAsStream("/ScannerTest/app01.zip");
-    ScanTicket ticket = scanService.scanBinary(app.getPublicId(), appBundle, "app01.zip");
+    InputStream appBundle = getBundle("app01.zip");
+    ScanTicket ticket = scanService.scanBinary(app.getPublicId(), appBundle, "app01.zip", new Stage(Stage.ID_BUILD));
     assertThat(ticket, is(notNullValue()));
     assertThat(ticket.ticketId, is(notNullValue()));
   }
 
   @Test
   public void testSaveBinary_KeepsOriginalFileExtensionForArchiveDetectionPurposes() throws Exception {
-    File file = ScanService.saveBinary(getClass().getResourceAsStream("/ScannerTest/app01.zip"), "app.tar.gz");
+    File file = ScanService.saveBinary(getBundle("app01.zip"), "app.tar.gz");
     file.delete();
     assertThat(file.getName(), endsWith(".tar.gz"));
   }
 
   @Test
   public void testGetTicket() throws IOException {
-    InputStream appBundle = getClass().getResourceAsStream("/ScannerTest/app01.zip");
-    ScanTicket originalTicket = scanService.scanBinary(app.getPublicId(), appBundle, "app01.zip");
+    InputStream appBundle = getBundle("app01.zip");
+    ScanTicket originalTicket = scanService.scanBinary(app.getPublicId(), appBundle, "app01.zip", new Stage(Stage.ID_BUILD));
 
     ScanTicket statusTicket = scanService.getTicket(app.getPublicId(), originalTicket.ticketId);
     assertThat(statusTicket.ticketId, is(originalTicket.ticketId));
@@ -82,12 +89,24 @@ public class ScanServiceTest
    */
   @Test(timeout=15 * 1000)
   public void testGetTicketUntilTaskComplete() throws IOException {
-    InputStream appBundle = getClass().getResourceAsStream("/ScannerTest/app01.zip");
-    ScanTicket originalTicket = scanService.scanBinary(app.getPublicId(), appBundle, "app01.zip");
+    InputStream appBundle = getBundle("app01.zip");
+    ScanTicket originalTicket = scanService.scanBinary(app.getPublicId(), appBundle, "app01.zip", new Stage(Stage.ID_BUILD));
 
     ScanTicket statusTicket = originalTicket;
     while (statusTicket.currentStep != statusTicket.totalSteps) {
       statusTicket = scanService.getTicket(app.getPublicId(), originalTicket.ticketId);
+    }
+  }
+
+  @Test
+  public void testFailEarlyOnInvalidStage() throws Exception {
+    InputStream appBundle = getBundle("app01.zip");
+    try {
+      scanService.scanBinary(app.getPublicId(), appBundle, "app01.zip", new Stage("invalid-stage-id"));
+      fail("Should have reject invalid stage");
+    }
+    catch (BadRequestException e) {
+      assertThat(e.getMessage(), containsString("invalid-stage-id"));
     }
   }
 }

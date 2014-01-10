@@ -74,6 +74,7 @@ describe('EditorToolsSpec', function() {
       expect(scope.error).toBeFalsy();
       expect(scope.applications.length).toEqual(3);
       expect(scope.bundle.applicationPublicId).toEqual('bom1-12345678');
+      expect(scope.bundle.stage).toBeUndefined();
       expect(scope.bundle.notify).toEqual('false');
       expect(scope.stages.length).toEqual(3);
       expect(scope.stages[0].id).toEqual('build');
@@ -116,6 +117,7 @@ describe('EditorToolsSpec', function() {
           value: 'testfile'
         }]);
         scope.fileChanged();
+        scope.bundle.stage = 'release';
       }));
       
       afterEach(inject(function($httpBackend){
@@ -134,7 +136,7 @@ describe('EditorToolsSpec', function() {
       }
       
       it('Test submit failure', inject(function(CLMLocations, $httpBackend){
-        $httpBackend.expectPOST(CLMLocations.getBundleUploadUrl('bom1-12345678')).respond(500, 'Some failure');
+        $httpBackend.expectPOST(CLMLocations.getBundleUploadUrl('bom1-12345678', 'release')).respond(500, 'Some failure');
         
         scope.doSubmit();
         validateInitialState();
@@ -145,7 +147,7 @@ describe('EditorToolsSpec', function() {
       }));
       
       it('Test submit success', inject(function(CLMLocations, $httpBackend, $timeout){
-        $httpBackend.expectPOST(CLMLocations.getBundleUploadUrl('bom1-12345678')).respond({
+        $httpBackend.expectPOST(CLMLocations.getBundleUploadUrl('bom1-12345678', 'release')).respond({
           ticketId: 'ticket'
         });
         scope.doSubmit();
@@ -165,7 +167,7 @@ describe('EditorToolsSpec', function() {
       }));
       
       it('Test evaluation polling loop', inject(function(CLMLocations, $httpBackend, $timeout){
-        $httpBackend.expectPOST(CLMLocations.getBundleUploadUrl('bom1-12345678')).respond({
+        $httpBackend.expectPOST(CLMLocations.getBundleUploadUrl('bom1-12345678', 'release')).respond({
           ticketId: 'ticket'
         });
         scope.doSubmit();
@@ -189,7 +191,7 @@ describe('EditorToolsSpec', function() {
       }));
       
       it('Test evaluation error', inject(function(CLMLocations, $httpBackend, $timeout){
-        $httpBackend.expectPOST(CLMLocations.getBundleUploadUrl('bom1-12345678')).respond({
+        $httpBackend.expectPOST(CLMLocations.getBundleUploadUrl('bom1-12345678', 'release')).respond({
           ticketId: 'ticket'
         });
         scope.doSubmit();

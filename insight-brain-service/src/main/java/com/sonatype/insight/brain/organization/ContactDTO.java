@@ -21,6 +21,8 @@ public class ContactDTO
 
   private String realm;
 
+  private String error;
+
   public ContactDTO() {
 
   }
@@ -73,6 +75,14 @@ public class ContactDTO
     this.realm = realm;
   }
 
+  public String getError() {
+    return error;
+  }
+
+  public void setError(final String error) {
+    this.error = error;
+  }
+
   @Override
   public String toString() {
     return "ContactDTO{" +
@@ -80,6 +90,7 @@ public class ContactDTO
         ", displayName='" + displayName + '\'' +
         ", email='" + email + '\'' +
         ", realm='" + realm + '\'' +
+        ", error='" + error + '\'' +
         '}';
   }
 }

@@ -35,15 +35,21 @@ public class ApplicationAdapter
 {
   private static final Logger log = LoggerFactory.getLogger(ApplicationAdapter.class);
 
-  private final OrganizationDAO organizationDAO = new OrganizationDAO();
+  private final OrganizationDAO organizationDAO;
 
-  private final UserDAO userDAO = new UserDAO();
+  private final UserDAO userDAO;
 
   private final LdapManager ldapManager;
 
   @Inject
   public ApplicationAdapter(final LdapManager ldapManager) {
+    this(ldapManager, new OrganizationDAO(), new UserDAO());
+  }
+
+  public ApplicationAdapter(final LdapManager ldapManager, OrganizationDAO organizationDAO, UserDAO userDAO) {
     this.ldapManager = ldapManager;
+    this.organizationDAO = organizationDAO;
+    this.userDAO = userDAO;
   }
 
   /**
@@ -116,9 +122,10 @@ public class ApplicationAdapter
     }
     else if (ldapManager.isLdapEnabled()) {
       // If not found in DB and LDAP is enabled lookup user there
-      String ldapServerName = ldapManager.getLdapServerName();
-      String[] names = {contactInternalName};
+      String ldapServerName = null;
       try {
+        ldapServerName = ldapManager.getLdapServerName();
+        String[] names = {contactInternalName};
         List<LdapUser> ldapUsers = ldapManager.getUsers(names, 1);
         if (!ldapUsers.isEmpty()) {
           LdapUser ldapUser = ldapUsers.get(0);
@@ -126,10 +133,25 @@ public class ApplicationAdapter
           contact = new ContactDTO(ldapUser.getUsername(), ldapUser.getRealName(), ldapUser.getEmail(), ldapServerName);
         }
       }
-      catch (NamingException e) {
+      catch (NamingException | IllegalStateException e) {
         log.error("LDAP exception when trying to resolve user names", e);
+        contact = createErrorContact(contactInternalName, ldapServerName, "LDAP error");
       }
     }
+
+    if (contact == null) {
+      // No contact found in CLM and LDAP not configured, so create a contact with an error message
+      contact = createErrorContact(contactInternalName, null,
+          "The username " + contactInternalName + " no longer exists");
+    }
+
+    return contact;
+  }
+
+  private ContactDTO createErrorContact(String internalName, String realm, String errorMessage) {
+
+    ContactDTO contact = new ContactDTO(internalName, null, null, realm);
+    contact.setError(errorMessage);
 
     return contact;
   }

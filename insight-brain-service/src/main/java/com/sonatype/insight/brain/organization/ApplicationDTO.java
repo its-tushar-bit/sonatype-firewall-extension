@@ -83,4 +83,16 @@ public class ApplicationDTO
   public void setContact(final ContactDTO contact) {
     this.contact = contact;
   }
+
+  @Override
+  public String toString() {
+    return "ApplicationDTO{" +
+        "id='" + id + '\'' +
+        ", publicId='" + publicId + '\'' +
+        ", name='" + name + '\'' +
+        ", organizationId='" + organizationId + '\'' +
+        ", organizationName='" + organizationName + '\'' +
+        ", contact=" + contact +
+        '}';
+  }
 }

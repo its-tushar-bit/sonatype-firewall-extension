@@ -27,7 +27,7 @@ public class ScanTicketFactoryTest
     ScanTicket ticket = ScanTicketFactory.forScanState(ScanTask.State.PENDING);
 
     assertThat(ticket.currentStep, equalTo(0));
-    assertThat(ticket.currentStepName, equalTo("Scheduled in queue"));
+    assertThat(ticket.currentStepName, equalTo("Queued"));
   }
 
   @Test

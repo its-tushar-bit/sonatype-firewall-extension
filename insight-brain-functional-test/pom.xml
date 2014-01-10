@@ -152,6 +152,13 @@
       <groupId>com.yammer.dropwizard</groupId>
       <artifactId>dropwizard-testing</artifactId>
       <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <!-- Conflicts with org.ow2.asm:asm-*:4.x used by enhanced matching. -->
+          <groupId>asm</groupId>
+          <artifactId>asm</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <!-- The app to test against -->
     <dependency>

@@ -41,20 +41,20 @@ describe('EditorToolsSpec', function() {
       $httpBackend.expectGET(CLMLocations.getActionStageUrl()).respond(MockData.getActionStageData());
       $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getApplicationsUrl())).respond([{
         "id": "0",
-        "publicId": "0",
+        "publicId": "bom0-12345678",
         "name": "0",
         "organizationId": "0",
         "organizationName": "0"
       }, {
         "id": "1",
-        "publicId": "1",
+        "publicId": "bom1-12345678",
         "name": "1",
         "organizationId": "1",
         "organizationName": "1"
       }, {
         "id": "2",
         "publicId": "2",
-        "name": "2",
+        "name": "bom2-12345678",
         "organizationId": "2",
         "organizationName": "2"
       }]);
@@ -69,7 +69,7 @@ describe('EditorToolsSpec', function() {
       $httpBackend.verifyNoOutstandingRequest();
     }));
     
-    it('Test initial state', inject(function ($timeout) {
+    it('Test initial state', function () {
       expect(scope.isFormValid()).toBeFalsy();
       expect(scope.error).toBeFalsy();
       expect(scope.applications.length).toEqual(3);
@@ -81,17 +81,16 @@ describe('EditorToolsSpec', function() {
       expect(scope.stages[2].id).toEqual('release');
     }));
     
-    it('Test validation', inject(function ($timeout) {
+    it('Test validation', function () {
       var origElement = angular.element;
-      var spy = spyOn(angular, 'element'),
-          selectedFiles = [];
-
-      spy.andReturn([{
-        files: selectedFiles
+      spyOn(angular, 'element').andReturn([{
+        files: [{
+          name: 'testfile'
+        }],
+        value: 'testfile'
       }]);
 
-      selectedFiles.push({});
-      $timeout.flush();
+      scope.fileChanged();
       expect(scope.isFormValid()).toBeFalsy();
       
       scope.bundle.applicationPublicId = '0';
@@ -101,7 +100,112 @@ describe('EditorToolsSpec', function() {
       expect(scope.isFormValid()).toBeTruthy();
       //put original method in place
       angular.element = origElement;
-    }));
+    });
+    
+    describe('Bundle submit', function(){
+      var origElement;
+      beforeEach(inject(function ($window) {
+        $window.FormData = function(){
+          this.append = function(){};
+        };
+        origElement = angular.element;
+        spyOn(angular, 'element').andReturn([{
+          files: [{
+            name: 'testfile'
+          }],
+          value: 'testfile'
+        }]);
+        scope.fileChanged();
+      }));
+      
+      afterEach(inject(function($httpBackend){
+        angular.element = origElement;
+      }));
+      
+      function validateInitialState() {
+        expect(scope.state).toEqual('polling');
+        expect(scope.evaluationStatus.currentStep).toEqual(1);
+        expect(scope.evaluationStatus.totalSteps).toEqual(1);
+        expect(scope.evaluationStatus.currentStepName).toEqual('Uploading...');
+        expect(scope.error).toBeNull();
+        expect(scope.bundle.filename).toEqual('testfile');
+        expect(scope.bundle.applicationName).toEqual('1');
+        expect(scope.pollingUrl).toBeNull();
+      }
+      
+      it('Test submit failure', inject(function(CLMLocations, $httpBackend){
+        $httpBackend.expectPOST(CLMLocations.getBundleUploadUrl('bom1-12345678')).respond(500, 'Some failure');
+        
+        scope.doSubmit();
+        validateInitialState();
+        $httpBackend.flush();
+        
+        expect(scope.state).toEqual('ready');
+        expect(scope.error).toEqual('Some failure');
+      }));
+      
+      it('Test submit success', inject(function(CLMLocations, $httpBackend, $timeout){
+        $httpBackend.expectPOST(CLMLocations.getBundleUploadUrl('bom1-12345678')).respond({
+          ticketId: 'ticket'
+        });
+        scope.doSubmit();
+        validateInitialState();
+        $httpBackend.expectGET(CLMLocations.getEvaluationStatusUrl('bom1-12345678', 'ticket')).respond({
+          ticketId: 'ticket',
+          scanId: 'scanId',
+          currentStep: 1,
+          totalSteps: 1
+        });
+        
+        $httpBackend.flush();
+        
+        expect(scope.pollingUrl).toEqual(CLMLocations.getEvaluationStatusUrl('bom1-12345678', 'ticket'));
+        
+        $timeout.flush();
+      }));
+      
+      it('Test evaluation polling loop', inject(function(CLMLocations, $httpBackend, $timeout){
+        $httpBackend.expectPOST(CLMLocations.getBundleUploadUrl('bom1-12345678')).respond({
+          ticketId: 'ticket'
+        });
+        scope.doSubmit();
+        validateInitialState();
+        $httpBackend.expectGET(CLMLocations.getEvaluationStatusUrl('bom1-12345678', 'ticket')).respond({
+          ticketId: 'ticket',
+          currentStep: 1,
+          totalSteps: 2
+        });
+        $timeout.flush();
+        $httpBackend.flush();
+        $httpBackend.expectGET(CLMLocations.getEvaluationStatusUrl('bom1-12345678', 'ticket')).respond({
+          ticketId: 'ticket',
+          scanId: 'scanId',
+          currentStep: 2,
+          totalSteps: 2
+        });
+        $timeout.flush();
+        $httpBackend.flush();
+        expect(scope.pollingUrl).toEqual(CLMLocations.getEvaluationStatusUrl('bom1-12345678', 'ticket'));
+      }));
+      
+      it('Test evaluation error', inject(function(CLMLocations, $httpBackend, $timeout){
+        $httpBackend.expectPOST(CLMLocations.getBundleUploadUrl('bom1-12345678')).respond({
+          ticketId: 'ticket'
+        });
+        scope.doSubmit();
+        validateInitialState();
+        $httpBackend.expectGET(CLMLocations.getEvaluationStatusUrl('bom1-12345678', 'ticket')).respond({
+          ticketId: 'ticket',
+          currentStep: 1,
+          totalSteps: 1,
+          error: 'something aint right'
+        });
+        $timeout.flush();
+        $httpBackend.flush();
+        expect(scope.pollingUrl).toEqual(CLMLocations.getEvaluationStatusUrl('bom1-12345678', 'ticket'));
+        expect(scope.error).toEqual('something aint right');
+      }));
+    });    
   });
   
   describe('Policy import', function(){

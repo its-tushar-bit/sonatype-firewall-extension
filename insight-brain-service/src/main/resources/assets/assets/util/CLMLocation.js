@@ -100,7 +100,11 @@
         },
         
         getBundleUploadUrl : function (applicationId) {
-          return baseUrl.get() + '/rest/scan/' + encodeURIComponent(applicationId) + (!$window.FormData ? '?forceSuccess=true' : '');
+          return baseUrl.get() + '/rest/scan/' + encodeURIComponent(applicationId) + (!$window.FormData ? '?noFormData=true' : '');
+        },
+        
+        getEvaluationStatusUrl : function (applicationId, ticketId) {
+          return baseUrl.get() + '/rest/scan/' + encodeURIComponent(applicationId) + '/' + ticketId;
         }
       };
     }

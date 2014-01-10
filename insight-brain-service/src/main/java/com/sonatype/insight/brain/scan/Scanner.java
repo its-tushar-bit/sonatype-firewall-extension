@@ -32,7 +32,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Scans application bundles.
- * 
+ *
  * @since 1.8
  */
 @Named

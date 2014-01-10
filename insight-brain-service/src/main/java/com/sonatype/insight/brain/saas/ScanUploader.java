@@ -81,7 +81,8 @@ public class ScanUploader
 
   /**
    * Uploads an existing scan file to the SaaS server.
-   * 
+   *
+   * @param path the destination REST path on the SaaS server, e.g. rest/ci/scan
    * @since 1.8
    */
   public ScanReceipt upload(File scanFile, String applicationPublicId, String path)

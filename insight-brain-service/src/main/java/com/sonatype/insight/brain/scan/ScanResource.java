@@ -10,9 +10,11 @@ import java.io.InputStream;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -22,10 +24,11 @@ import com.sonatype.insight.error.ErrorResponse;
 
 import com.sun.jersey.core.header.FormDataContentDisposition;
 import com.sun.jersey.multipart.FormDataParam;
+import org.codehaus.jackson.map.ObjectMapper;
 
 /**
  * Accepts uploads of application binaries for the purpose of scanning them.
- * 
+ *
  * @since 1.8
  */
 @Named
@@ -46,20 +49,37 @@ public class ScanResource
 
   @POST
   @Consumes(MediaType.MULTIPART_FORM_DATA)
-  public Response uploadBinary(@PathParam("applicationPublicId") String appPublicId,
-      @FormDataParam("file") InputStream is, @FormDataParam("file") FormDataContentDisposition fileDetail,
-      @QueryParam("forceSuccess") boolean forceSuccess) throws Exception
+  public Response uploadBinary(
+      @PathParam("applicationPublicId") String appPublicId,
+      @FormDataParam("file") InputStream is, 
+      @FormDataParam("file") FormDataContentDisposition fileDetail,
+      @QueryParam("noFormData") boolean noFormData) 
+          throws Exception
   {
     try {
       ScanTicket result = scanService.scanBinary(appPublicId, is, fileDetail.getFileName());
-      return Response.ok(result, MediaType.APPLICATION_JSON_TYPE).build();
+      if (noFormData) {
+        return Response.ok(new ObjectMapper().writeValueAsString(result), ErrorResponse.CONTENT_TYPE).build();
+      } else {
+        return Response.ok(result, MediaType.APPLICATION_JSON).build();  
+      }
     }
     catch (Exception e) {
-      if (forceSuccess) {
+      if (noFormData) {
         String msg = errorResponseGenerator.mapException(e).getMessageBody();
         return Response.ok(msg, ErrorResponse.CONTENT_TYPE).build();
       }
       throw e;
     }
+  }
+
+  @Path("/{ticketId}")
+  @GET
+  @Produces(MediaType.APPLICATION_JSON)
+  public ScanTicket getTicket(
+      @PathParam("applicationPublicId") String appPublicId,
+      @PathParam("ticketId") String ticketId) throws Exception
+  {
+    return scanService.getTicket(appPublicId, ticketId);
   }
 }

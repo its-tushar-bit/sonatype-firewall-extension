@@ -10,24 +10,13 @@
   var module = angular.module('EditorTools', ['CommonServices', 'CLMAppLocation', 'Stores', 'AngularCommon', 'xeditable']),
       validStages = ['build', 'stage-release', 'release'];
 
-  module.run(['editableOptions', function (editableOptions) {
-    editableOptions.theme = 'bs2';
-  }]);
+    module.run(['editableOptions', function (editableOptions) {
+      editableOptions.theme = 'bs2';
+    }]);
 
-  module.controller('EvaluateBundleController', ['$scope', '$http', '$timeout', '$window', 'Messages', 'CLMLocations', 'selectedApplication', 'ApplicationStore', 'ActionStore', '$q', function ($scope, $http, $timeout, $window, messages, CLMLocations, selectedApplication, ApplicationStore, ActionStore, $q) {
+    module.controller('EvaluateBundleController', ['$scope', '$http', '$timeout', '$window', 'Messages', 'CLMLocations', 'selectedApplication', 'ApplicationStore', 'ActionStore', '$q', '$location', function ($scope, $http, $timeout, $window, messages, CLMLocations, selectedApplication, ApplicationStore, ActionStore, $q, $location) {
     var fileElement = null;
-    
-    //Note that we need to repeatedly check the fileElement 
-    //as we don't get notified when user has selected a file
-    function fileCheck() {
-      if (!fileElement) {
-        fileElement = angular.element('form[name=evaluateBundle] input[type=file]')[0];
-      }
-
-      if (!$scope.$$destroyed) {
-        $timeout(fileCheck, 500, false);
-      }
-    }
+    $scope.currentState = 'init';
         
     function setError(message) {
       $scope.requestActive = false;
@@ -40,9 +29,28 @@
       }
     }
     
+    function getApplicationName(publicId) {
+      for ( var i = 0 ; i < $scope.applications.length ; i++ ) {
+        if ($scope.applications[i].publicId === publicId) {
+          return $scope.applications[i].name;
+        }
+      }
+    }
+    
+    function parseFilename(filename) {
+      var idx = Math.max(filename.lastIndexOf('/'), filename.lastIndexOf('\\'));
+      
+      if (idx > -1) {
+        return filename.substring(idx + 1);
+      }
+      
+      return filename;
+    }
+    
     function doLoad() {
-      $scope.loading = true;
+      $scope.state = 'loading';
       $q.all([ActionStore.get(),ApplicationStore.get()]).then(function(results) {
+        $scope.state = 'ready';
         $scope.applications = results[1];
         $scope.stages = [];
         angular.forEach(results[0][1], function(stage) {
@@ -54,19 +62,45 @@
           notify: 'false',
           applicationPublicId: selectedApplication ? selectedApplication.publicId : null
         };
-        $scope.loading = false;
-        $timeout(fileCheck, 500);
+        $scope.updateFormActionUrl();
       }, function(error){
+        $scope.state = 'ready';
         setError(messages.getHttpErrorMessage(error));
-        $scope.loading = false;
       });  
     }    
     
+    function doPoll() {
+      if (!$scope.$$destroyed) {
+        $http.get($scope.pollingUrl).then(function(response){
+          $scope.evaluationStatus = response.data;
+          if ($scope.evaluationStatus.error) {
+            setError($scope.evaluationStatus.error);
+          } else if ($scope.evaluationStatus.currentStep < $scope.evaluationStatus.totalSteps) {
+            $timeout(doPoll,500);
+          }
+        },function(error){
+          setError(messages.getHttpErrorMessage(error));
+        });
+      }
+    }
+    
+    $scope.fileChanged = function(file) {
+      fileElement = angular.element(file)[0];
+    };
+    
+    $scope.getProgressWidth = function () {
+      return $scope.evaluationStatus ? ($scope.evaluationStatus.currentStep / $scope.evaluationStatus.totalSteps * 100 + '%') : '0%';
+    };
+    
     $scope.doSubmit = function () {
-      $scope.requestActive = true;
+      $scope.state = 'polling';
+      $scope.evaluationStatus = {currentStep: 1, totalSteps: 1, currentStepName: 'Uploading...'};
       $scope.error = null;
+      $scope.bundle.filename = parseFilename(fileElement.value);
+      $scope.bundle.applicationName = getApplicationName($scope.bundle.applicationPublicId);
+      $scope.pollingUrl = null;
       
-      if ($window.FormData) {
+      if ($window.FormData) {  
         var form = new FormData();
         form.append('file', fileElement.files[0]);
         $http.post(CLMLocations.getBundleUploadUrl($scope.bundle.applicationPublicId), form, {
@@ -75,8 +109,10 @@
           },
           transformRequest: angular.identity
         }).success(function (data) {
-          $scope.$close(data);
+          $scope.pollingUrl = CLMLocations.getEvaluationStatusUrl($scope.bundle.applicationPublicId, data.ticketId);
+          doPoll();
         }).error(function () {
+          $scope.state = 'ready';
           setError(messages.getHttpErrorMessage(arguments));
         });
       }
@@ -86,24 +122,37 @@
       }
     };
     
+    $scope.getReportUrl = function() {
+      return 'reports.html#/reports/' + encodeURIComponent($scope.evaluationStatus.applicationPublicId) + '/' + $scope.evaluationStatus.scanId;
+    };
+    
     $scope.updateFormActionUrl = function() {
-      $('form[name=evaluateBundle]').attr('action',CLMLocations.getBundleUploadUrl($scope.bundle.applicationPublicId));
+      $scope.evaluateBundleAction = CLMLocations.getBundleUploadUrl($scope.bundle.applicationPublicId);
     };
     
     $scope.isFormValid = function() {
-      return fileElement && fileElement.files !== undefined && fileElement.files.length > 0 && $scope.bundle.applicationPublicId && $scope.bundle.stage && $scope.bundle.notify;
+      return fileElement && fileElement.value && $scope.bundle.applicationPublicId && $scope.bundle.stage && $scope.bundle.notify;
     };
 
     // Handler for ng-upload progress
-    $scope.uploaded = function (content, complete) {
-      if (complete) {
-        $scope.requestActive = false;
-        if (content.length === 0) {
-          // success
-          $scope.$close();
-        } else {
-          $scope.error = content;
-        }
+    $scope.uploaded = function (content, completed) {
+      $scope.requestActive = false;
+      $scope.error = null;
+      var response;
+      try {
+         response = angular.fromJson(content);
+      }
+      catch(e) {
+        response = content;
+      }
+      
+      if (angular.isString(response)) {
+        $scope.state = 'ready';
+        setError(response);
+      } else {
+        $scope.state = 'polling';
+        $scope.pollingUrl = CLMLocations.getEvaluationStatusUrl(response.ticketId);
+        doPoll();
       }
     };
     

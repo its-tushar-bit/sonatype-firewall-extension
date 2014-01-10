@@ -118,9 +118,7 @@ public class PolicyMonitor
     String scanId = policyEvaluation.getScanId();
     File scanFile = work.getScanFile(app.getId(), scanId);
     ScanReceipt scanReceipt = uploader.upload(scanFile, app.getPublicId(), "rest/ci/scan");
-    if (scanReceipt.getTimeToReport() != null) {
-      Thread.sleep(scanReceipt.getTimeToReport() * 1000);
-    }
+    scanReceipt.waitForReport();
 
     Stage stage = new Stage(policyMonitoring.getStageTypeId());
     List<PolicyAlert> oldAlerts;

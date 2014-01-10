@@ -22,23 +22,63 @@
 	<div id='evaluate-bundle-dialog'>
 		<div class='modal-header'>
 			<button type="button" class="close"  ng-click='$dismiss()' aria-hidden="true">&times;</button>
-			<h3>Evaluate an Application</h3>
+			<div ng-switch='state'>
+				<div ng-switch-when='polling'>
+					<h3>Evaluation Status</h3>				
+				</div>
+				<div ng-switch-default>
+					<h3>Evaluate an Application</h3>
+				</div>
+			</div>
 		</div>
-		<div ng-switch='loading'>
-			<div ng-switch-when="true">
+		<div ng-switch='state'>
+			<div ng-switch-when="loading">
 				<i class='icon icon-time'></i> Loading...
 			</div>
-			<div ng-switch-when="false">
-				<form name='evaluateBundle' action='invalid' enctype='multipart/form-data' method='post' ng-upload style='margin-bottom:0px'>
+			<div ng-switch-when="polling">
+				<div class="modal-body">
+					<p>Closing this panel will not interrupt the evaluation. It will still progress until it is complete. When the evaluation has been completed you can view the results by clicking on the button below.</p>
+					<div class="well well-small" style="margin-bottom:0px;">					
+						<table>
+							<tr>
+								<td style><b>File:</b></td>
+								<td style="padding-left:10px;">{{bundle.filename}}</td>
+							</tr>
+							<tr>
+								<td><b>Application:</td>
+								<td style="padding-left:10px;">{{bundle.applicationName}}</td>
+							</tr>
+							<tr>
+								<td><b>Stage:</td>
+								<td style="padding-left:10px;">{{bundle.stage}}</td>
+							</tr>
+						</table>
+						<div style="margin-top:5px;">
+							<div style="margin-bottom:0px;" class="progress progress-striped" ng-class="{active: !evaluationStatus.scanId}">
+								<div class="bar" ng-style="{width: getProgressWidth()}">
+									<span class="sr-only"><b>{{evaluationStatus.currentStepName}}</b></span>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class='modal-footer'>
+					<span style="margin:0px;padding: 4px 35px 4px 14px;float:left;max-width:330px" ng-class="{'alert alert-error': error }" ng-show="error">{{error}}</span>
+					<button class='btn' type='button' ng-disabled='!pollingUrl' ng-click='$close()'>Close</button>
+					<a class='btn btn-primary' ng-disabled='!evaluationStatus.scanId' ng-href='{{getReportUrl()}}' target='_blank'>View Report</a>
+				</div>
+			</div>
+			<div ng-switch-default>
+				<form name='evaluateBundle' action='{{evaluateBundleAction}}' enctype='multipart/form-data' method='post' ng-upload style='margin-bottom:0px'>
 					<div class='modal-body'>
 						<div class='control-group'>
-							<label class="control-label" for='bundleFile'>Select the bundle you want scanned:</label>
+							<label class="control-label" for='bundleFile'>Select the file you want evaluated:</label>
 							<div class='controls'>
-								<input type='file' ng-model='bundle.file' id='bundleFile' name='file'>
+								<input type='file' ng-model='bundle.file' id='bundleFile' name='file' onchange="angular.element(this).scope().fileChanged(this)">
 							</div>
 						</div>
 		                <div class='control-group'>
-							<label class="control-label" for='bundleApplication'>Which application is this bundle associated with?</label>
+							<label class="control-label" for='bundleApplication'>Which application is this file associated with?</label>
 							<div class='controls'>
 								<select id='bundleApplication' ng-required="true" ng-model="bundle.applicationPublicId" ng-change="updateFormActionUrl()" ng-options="app.publicId as app.name for app in applications">
 									<option value="">-- Select Application --</option>
@@ -46,10 +86,10 @@
 							</div>
 						</div>
 						<div class='control-group'>
-							<label class="control-label" for='bundleStage'>What CLM stage should this scan be associated with?</label>
+							<label class="control-label" for='bundleStage'>Which CLM stage should this evaluation be associated with?</label>
 							<div class='controls'>
 								<select id='bundleStage' ng-required="true" ng-model="bundle.stage" ng-options="stage.id as stage.name for stage in stages">
-									<option value="">-- Select Stage --</option>
+									<option value="">-- Select CLM Stage --</option>
 								</select>
 							</div>
 						</div>
@@ -58,19 +98,19 @@
 							<div class='controls'>
 								<label class="radio">
             						<input type="radio" ng-model="bundle.notify" value="true"/>
-									Yes, raise alerts
+									Yes, raise alerts (if configured).
 								</label>
         						<label class="radio">
            		 				<input type="radio" ng-model="bundle.notify" value="false"/>
-            						No, do not send alerts
+            						No, do not send alerts.
          						</label>
 							</div>
 						</div>
 					</div>
 					<div class='modal-footer'>
 						<span style="margin:0px;padding: 4px 35px 4px 14px;float:left;max-width:330px" ng-class="{'alert alert-error': error }" ng-show="error">{{error}}</span>
-						<button class='btn' type='button' ng-click='$dismiss()'>Cancel</button>
-						<button class='btn btn-primary' type='button' ng-disabled='requestActive || !isFormValid()' ng-click='doSubmit()'>Upload</button>
+						<button class='btn' type='button' ng-click='$close()'>Cancel</button>
+						<button class='btn btn-primary' type='button' ng-disabled='state != "ready" || !isFormValid()' ng-click='doSubmit()'>Upload</button>
 					</div>
 					<input type='submit' upload-submit='uploaded(content, completed)' class='hide' />
 				</form>

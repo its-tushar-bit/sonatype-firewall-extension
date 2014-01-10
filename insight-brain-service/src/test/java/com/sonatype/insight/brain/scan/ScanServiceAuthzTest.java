@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.scan;
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
+import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;
@@ -34,5 +35,27 @@ public class ScanServiceAuthzTest
   public void testScanBinary_Authorized() throws Exception {
     grantWritePermission(app.getId());
     scanService.scanBinary(app.getPublicId(), getClass().getResourceAsStream("/ScannerTest/app01.zip"), "app.zip");
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testGetTicket_Anon() throws Exception {
+    scanService.getTicket("any-app-id", "any-ticket-id");
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testGetTicket_Unauthorized() throws Exception {
+    login();
+    scanService.getTicket(app.getPublicId(), "any-ticket-id");
+  }
+
+  @Test
+  public void testGetTicket_Authorized() throws Exception {
+    grantWritePermission(app.getId());
+    try {
+      scanService.getTicket(app.getPublicId(), "any-ticket-id");
+    }
+    catch (NotFoundException irrelevant) {
+      // Expected but irrelevant for this test.
+    }
   }
 }

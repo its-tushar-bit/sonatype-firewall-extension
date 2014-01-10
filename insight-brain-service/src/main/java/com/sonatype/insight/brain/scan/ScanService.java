@@ -18,9 +18,11 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Provider;
 
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
+import com.sonatype.insight.error.exception.NotFoundException;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.codehaus.plexus.util.FileUtils;
@@ -31,7 +33,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Provides the services to scan and evaluate application binaries.
- * 
+ *
  * @since 1.8
  */
 @Named
@@ -64,10 +66,23 @@ class ScanService
   {
     File binFile = saveBinary(is, filename);
     ScanTask task = newScanTask(appPublicId, binFile);
-    ScanTicket ticket = new ScanTicket();
-    ticket.ticketId = task.getId();
-    ticket.state = task.getState().toString();
-    return ticket;
+    return task.getTicket();
+  }
+
+  /**
+   * @throws NotFoundException if there is no ticket for the given ticketId
+   */
+  @Authorize(permission = Permission.WRITE)
+  public ScanTicket getTicket(@AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String appPublicId, String ticketId)
+      throws NotFoundException
+  {
+    ScanTask task = scanTasks.get(ticketId);
+
+    if (task == null) {
+      throw new NotFoundException("Cannot find ScanTicket with id " + ticketId + ".");
+    }
+
+    return task.getTicket();
   }
 
   static File saveBinary(InputStream is, String filename) throws IOException {
@@ -97,10 +112,16 @@ class ScanService
   }
 
   private ScanTask newScanTask(String appPublicId, File binFile) {
+    validatePublicApplicationId(appPublicId);
+
     ScanTask scanTask = scanTaskProvider.get();
     scanTask.init(appPublicId, binFile);
     scanTasks.put(scanTask.getId(), scanTask);
     executor.submit(scanTask);
     return scanTask;
+  }
+
+  private void validatePublicApplicationId(String appPublicId) {
+    new ApplicationDAO().getByPublicIdNotNull(appPublicId);
   }
 }

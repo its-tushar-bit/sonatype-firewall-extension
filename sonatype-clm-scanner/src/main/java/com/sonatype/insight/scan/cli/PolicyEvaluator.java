@@ -166,9 +166,7 @@ public class PolicyEvaluator
     log.info("Fetching results of policy evaluation (ETA {}s)...", receipt.getTimeToReport());
     PolicyEvaluationResult eval;
     try {
-      if (receipt.getTimeToReport() != null) {
-        Thread.sleep(receipt.getTimeToReport() * 1000);
-      }
+      receipt.waitForReport();
       eval = restClient.evaluatePolicy(params.getApplicationId(), receipt.getScanId(), params.getStage()
           .getStageTypeId());
     }

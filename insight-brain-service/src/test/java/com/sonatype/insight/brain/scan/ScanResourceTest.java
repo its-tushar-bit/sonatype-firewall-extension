@@ -66,7 +66,7 @@ public class ScanResourceTest
 
   @Test
   public void testUploadBinary_IeErrorHandling() throws Exception {
-    Response response = upload("app01.zip", getUploadUrl("bad-app-id") + "?forceSuccess=true");
+    Response response = upload("app01.zip", getUploadUrl("bad-app-id") + "?noFormData=true");
     assertResponseStatus(200, response);
     assertThat(response.getContentType(), startsWith("text/plain"));
     assertThat(response.getResponseBody(), is("Could not find an application with public id bad-app-id."));

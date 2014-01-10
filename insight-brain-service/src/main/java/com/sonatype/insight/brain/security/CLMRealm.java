@@ -5,8 +5,6 @@
  */
 package com.sonatype.insight.brain.security;
 
-import java.util.Locale;
-
 import javax.inject.Named;
 import javax.inject.Singleton;
 
@@ -80,7 +78,7 @@ public class CLMRealm
       throw new AuthenticationException("The username is required");
     }
 
-    User user = new UserDAO().getByUsernameLowercase(username.toLowerCase(Locale.ENGLISH));
+    User user = new UserDAO().getByUsername(username);
     if (user != null) {
       // Shiro will verify the password
       return new SimpleAuthenticationInfo(new UserPrincipal(username, user.calculateDisplayName(), true), user.getPassword(), getName());

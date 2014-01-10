@@ -84,7 +84,7 @@ public class ApplicationAdapterTest
 
     // Return this user when ever the mock user DAO getByUsernameLowercase method is called
     User user = createUser();
-    when(mockUserDAO.getByUsernameLowercase(contactInternalName)).thenReturn(user);
+    when(mockUserDAO.getByUsername(contactInternalName)).thenReturn(user);
 
     ApplicationDTO expectedApplicationDTO = createExpectedDTO("CLM", null);
 
@@ -99,7 +99,7 @@ public class ApplicationAdapterTest
 
     // Return this user when ever the mock user DAO getByUsernameLowercase method is called
     User user = createUser();
-    when(mockUserDAO.getByUsernameLowercase(contactInternalName)).thenReturn(user);
+    when(mockUserDAO.getByUsername(contactInternalName)).thenReturn(user);
     // Throw exception when ever the mock organization DAO getByIdNotNull is called
     when(mockOrganizationDAO.getByIdNotNull(organizationId)).thenThrow(new NotFoundException("Not Found"));
 
@@ -118,7 +118,7 @@ public class ApplicationAdapterTest
     ldapUsers.add(ldapUser);
 
     // Return null when ever the mock user DAO getByUsernameLowercase method is called
-    when(mockUserDAO.getByUsernameLowercase(contactInternalName)).thenReturn(null);
+    when(mockUserDAO.getByUsername(contactInternalName)).thenReturn(null);
     // Return true when ever the mock ldap manager's isLdapEnabled method is called
     when(mockLdapManager.isLdapEnabled()).thenReturn(true);
     when(mockLdapManager.getLdapServerName()).thenReturn(ldapServerName);
@@ -139,7 +139,7 @@ public class ApplicationAdapterTest
 
     List<LdapUser> ldapUsers = new ArrayList<>();
 
-    when(mockUserDAO.getByUsernameLowercase(contactInternalName)).thenReturn(null);
+    when(mockUserDAO.getByUsername(contactInternalName)).thenReturn(null);
     when(mockLdapManager.isLdapEnabled()).thenReturn(true);
     when(mockLdapManager.getLdapServerName()).thenReturn(ldapServerName);
     when(mockLdapManager.getUsers(any(String[].class), anyInt())).thenReturn(ldapUsers);
@@ -158,7 +158,7 @@ public class ApplicationAdapterTest
 
     String ldapServerName = null;
 
-    when(mockUserDAO.getByUsernameLowercase(contactInternalName)).thenReturn(null);
+    when(mockUserDAO.getByUsername(contactInternalName)).thenReturn(null);
     when(mockLdapManager.isLdapEnabled()).thenReturn(true);
     when(mockLdapManager.getLdapServerName()).thenThrow(new IllegalStateException("Dummy Message"));
 
@@ -175,7 +175,7 @@ public class ApplicationAdapterTest
 
     String ldapServerName = "LDAP";
 
-    when(mockUserDAO.getByUsernameLowercase(contactInternalName)).thenReturn(null);
+    when(mockUserDAO.getByUsername(contactInternalName)).thenReturn(null);
     when(mockLdapManager.isLdapEnabled()).thenReturn(true);
     when(mockLdapManager.getLdapServerName()).thenReturn(ldapServerName);
     when(mockLdapManager.getUsers(any(String[].class), anyInt())).thenThrow(new NamingException("Dummy Message"));

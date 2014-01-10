@@ -219,7 +219,7 @@ public class UserResource
 
     UserPrincipal principal = (UserPrincipal) SecurityUtils.getSubject().getPrincipal();
 
-    User user = dao.getByUsernameLowercase(principal.username.trim().toLowerCase(Locale.ENGLISH));
+    User user = dao.getByUsername(principal.username.trim());
     if (user == null) {
       throw new NotFoundException("Could not find user with username " + principal.username);
     }

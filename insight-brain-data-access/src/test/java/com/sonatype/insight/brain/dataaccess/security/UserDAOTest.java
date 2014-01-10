@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.dataaccess.security;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Locale;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.model.InvalidNameException;
@@ -81,19 +80,20 @@ public class UserDAOTest
   }
 
   @Test
-  public void testGetByUsernameLowercase() throws Exception {
+  public void testGetByUsername() throws Exception {
     UserDAO dao = new UserDAO();
-    User user = dao.getByUsernameLowercase(User.ADMIN_USERNAME.toLowerCase(Locale.ENGLISH));
+    User user = dao.getByUsername(User.ADMIN_USERNAME);
     assertThat(user, notNullValue());
     assertThat(user.getUsername(), is(User.ADMIN_USERNAME));
     assertThat(user.getUsernameLowercase(), is(User.ADMIN_USERNAME));
   }
 
   @Test
-  public void testGetByUsernameLowercase_UppercaseNameDoesNotMatch() throws Exception {
+  public void testGetByUsername_CaseInsensitive() throws Exception {
     UserDAO dao = new UserDAO();
-    User user = dao.getByUsernameLowercase(User.ADMIN_USERNAME.toUpperCase(Locale.ENGLISH));
-    assertThat(user, nullValue());
+    User user = dao.getByUsername("aDMin");
+    assertThat(user, notNullValue());
+    assertThat(user.getUsername(), is(User.ADMIN_USERNAME));
   }
 
   @Test

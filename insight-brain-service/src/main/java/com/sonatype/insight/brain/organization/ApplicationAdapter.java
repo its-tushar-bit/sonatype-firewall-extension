@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.organization;
 
 import java.util.List;
-import java.util.Locale;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -114,7 +113,7 @@ public class ApplicationAdapter
     ContactDTO contact = null;
 
     // Get the user from the database
-    User user = userDAO.getByUsernameLowercase(contactInternalName.toLowerCase(Locale.ENGLISH));
+    User user = userDAO.getByUsername(contactInternalName);
     if (user != null) {
       // Create the contact member and set it on the application DTO
       contact = new ContactDTO(user.getUsername(), user.calculateDisplayName(), user.getEmail(), CLMRealm.DISPLAY_NAME);

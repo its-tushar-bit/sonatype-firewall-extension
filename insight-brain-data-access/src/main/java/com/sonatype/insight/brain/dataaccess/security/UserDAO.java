@@ -30,16 +30,22 @@ public class UserDAO
 
   public static final int MAX_EMAIL_SIZE = 255;
 
-  private User getByUsernameLowercase(EntityManager em, String usernameLowercase) {
+  private User getByUsername(EntityManager em, String username) {
     String sQuery = "SELECT entity FROM User entity" + //
         " WHERE entity.usernameLowercase=?1";
-    return get(em, sQuery, usernameLowercase);
+    return get(em, sQuery, username.toLowerCase(Locale.ENGLISH));
   }
 
-  public User getByUsernameLowercase(String usernameLowercase) {
+  /**
+   * Looks up a user by its (case-insensitive) username.
+   * 
+   * @param username The username to look up, must not be {@code null}.
+   * @return The user or {@code null} if not found.
+   */
+  public User getByUsername(String username) {
     EntityManager em = createEntityManager();
     try {
-      return getByUsernameLowercase(em, usernameLowercase);
+      return getByUsername(em, username);
     }
     finally {
       close(em);
@@ -124,7 +130,7 @@ public class UserDAO
   public void insert(EntityManager em, User user) {
     validate(user);
 
-    if (getByUsernameLowercase(em, user.getUsername().toLowerCase(Locale.ENGLISH)) != null) {
+    if (getByUsername(em, user.getUsername()) != null) {
       throw new InvalidNameException(user.getUsername() + " is already used as a username.");
     }
 
@@ -135,7 +141,7 @@ public class UserDAO
   public void update(EntityManager em, User user) {
     validate(user);
 
-    User existingUser = getByUsernameLowercase(em, user.getUsername().toLowerCase(Locale.ENGLISH));
+    User existingUser = getByUsername(em, user.getUsername());
     if (existingUser != null && !existingUser.getId().equals(user.getId())) {
       throw new InvalidNameException(user.getUsername() + " is already used as a username.");
     }

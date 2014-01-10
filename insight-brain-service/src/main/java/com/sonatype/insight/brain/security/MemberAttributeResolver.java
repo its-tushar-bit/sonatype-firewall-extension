@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.security;
 
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 
 import javax.naming.NamingException;
@@ -54,7 +53,7 @@ public class MemberAttributeResolver
       if (existingMember == null) {
         User user = null;
         if (key.type.equals(MemberType.USER)) {
-          user = userDAO.getByUsernameLowercase(internalName.toLowerCase(Locale.ENGLISH));
+          user = userDAO.getByUsername(internalName);
         }
         if (user != null) {
           member.setDisplayName(user.calculateDisplayName());

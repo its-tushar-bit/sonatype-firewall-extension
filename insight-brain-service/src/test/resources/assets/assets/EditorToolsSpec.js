@@ -79,7 +79,7 @@ describe('EditorToolsSpec', function() {
       expect(scope.stages[0].id).toEqual('build');
       expect(scope.stages[1].id).toEqual('stage-release');
       expect(scope.stages[2].id).toEqual('release');
-    }));
+    });
     
     it('Test validation', function () {
       var origElement = angular.element;

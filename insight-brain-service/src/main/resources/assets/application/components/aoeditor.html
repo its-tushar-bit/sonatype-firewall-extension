@@ -138,7 +138,7 @@
 		</div>
 		<div class='modal-body'>
 			<div style='width:75%;margin:auto'>
-				<div app-user-search set-results='setQueryResults($members, $error)' query-string='queryString' request-active='requestActive'></div>
+				<div app-user-search set-results='setQueryResults($members, $error)' query-string='queryString' request-active='requestActive' groups='false'></div>
 				<div class='selectList-large' style='width:100%'>
 					<h5>Available</h5>
 					<div>
@@ -147,7 +147,7 @@
 							<div ng-repeat='user in queryResults | memberNotIn:mappings | filter: { type: grouping.type } | orderBy:"displayName"'>
 								<div user-list-item='user'
 									 icon-class='emptyIconGlyph'
-									 query='{{queryString}}'
+									 query-string='{{queryString}}'
 									 selected='selectedUser.internalName == user.internalName'
 									 ng-click='selectUser(user)'></div>
 							</div>

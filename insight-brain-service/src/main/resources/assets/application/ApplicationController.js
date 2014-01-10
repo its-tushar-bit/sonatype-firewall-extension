@@ -313,6 +313,9 @@
         $scope.cancel = function() {
           if ($scope.selectedApplication) {
             $scope.selectedApplication.$revert();
+            if ($scope.aoEditorName.$visible) {
+              $scope.aoEditorName.$cancel();
+            }
             if ($scope.iconChanged) {
               $scope.userIconSource = $scope.origUserIconSource;
               $scope.hasRobotSource = false;
@@ -496,10 +499,7 @@
 
     $scope.setQueryResults = function (members, error) {
       $scope.queryResults = members;
-
-      if (error) {
-        $scope.error = error
-      }
+      $scope.error = error;
     };
 
     $scope.selectUser = function (user) {

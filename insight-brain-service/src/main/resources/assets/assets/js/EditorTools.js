@@ -1,5 +1,4 @@
 /**
- /**
  * @license Copyright (c) 2013 Sonatype, Inc. All rights reserved. Includes the
  *          third-party code listed at
  *          http://links.sonatype.com/products/clm/attributions. "Sonatype" is a
@@ -8,9 +7,13 @@
 /* global angular */
 (function() {
   'use strict';
-  var module = angular.module('EditorTools', ['CommonServices', 'CLMAppLocation', 'Stores', 'AngularCommon']),
-  validStages = ['build', 'stage-release', 'release'];
-  
+  var module = angular.module('EditorTools', ['CommonServices', 'CLMAppLocation', 'Stores', 'AngularCommon', 'xeditable']),
+      validStages = ['build', 'stage-release', 'release'];
+
+  module.run(['editableOptions', function (editableOptions) {
+    editableOptions.theme = 'bs2';
+  }]);
+
   module.controller('EvaluateBundleController', ['$scope', '$http', '$timeout', '$window', 'Messages', 'CLMLocations', 'selectedApplication', 'ApplicationStore', 'ActionStore', '$q', function ($scope, $http, $timeout, $window, messages, CLMLocations, selectedApplication, ApplicationStore, ActionStore, $q) {
     var fileElement = null;
     

@@ -13,6 +13,7 @@ import geb.Module
  */
 class UserOptionsModule extends Module {
   static content = {
+    displayName(wait: true) { $('.user-name') }
     optionsDropdown(wait: true) { $('.dashboard-user a.btn') }
     logout (wait: true, to: ReportViolationsPage) { $('a', text: 'Logout') }
     openChangePassword { $('a', text: 'Change Password') }

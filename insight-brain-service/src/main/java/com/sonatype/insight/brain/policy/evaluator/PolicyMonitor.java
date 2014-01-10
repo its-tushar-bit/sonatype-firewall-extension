@@ -136,15 +136,7 @@ public class PolicyMonitor
     PolicyEvaluationResult policyEvaluationResult = policyEvaluationUtils.evaluateForMonitoring(app.getPublicId(),
         scanId, stage);
     List<PolicyAlert> newAlerts = policyEvaluationResult.getAlerts();
-
-    @SuppressWarnings("unchecked")
-    List<PolicyAlert>[] digest = new List[] { newAlerts, Collections.emptyList() };
-    if (!oldAlerts.isEmpty()) {
-      digest = PolicyAlertDigester.digestPolicyAlerts(newAlerts, oldAlerts);
-    }
-    if (digest != null) {
-      policyAlertNotifier.sendNotifications(app.getPublicId(), app.getId(), scanId, stage, digest[0]);
-    }
+    policyAlertNotifier.sendNotifications(app.getPublicId(), app.getId(), scanId, stage, newAlerts, oldAlerts);
 
     log.debug("Policy monitoring evaluated for application '{}' in {} ms", app.getName(), System.currentTimeMillis()
         - start);

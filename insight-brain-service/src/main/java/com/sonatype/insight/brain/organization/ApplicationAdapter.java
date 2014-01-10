@@ -116,9 +116,8 @@ public class ApplicationAdapter
     // Get the user from the database
     User user = userDAO.getByUsernameLowercase(contactInternalName.toLowerCase(Locale.ENGLISH));
     if (user != null) {
-      String displayName = user.getFirstName() + " " + user.getLastName();
       // Create the contact member and set it on the application DTO
-      contact = new ContactDTO(user.getUsername(), displayName, user.getEmail(), CLMRealm.DISPLAY_NAME);
+      contact = new ContactDTO(user.getUsername(), user.calculateDisplayName(), user.getEmail(), CLMRealm.DISPLAY_NAME);
     }
     else if (ldapManager.isLdapEnabled()) {
       // If not found in DB and LDAP is enabled lookup user there

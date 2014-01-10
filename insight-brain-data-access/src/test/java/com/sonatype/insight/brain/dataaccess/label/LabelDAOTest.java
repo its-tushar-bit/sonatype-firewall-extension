@@ -207,7 +207,7 @@ public class LabelDAOTest
     Assert.assertNotNull(label.getId());
     label = dao.getById(label.getId());
     Assert.assertNotNull(label);
-    assertLabel(applicationId, "MyLabel", Color.blue, label, null);
+    assertLabel(applicationId, "MyLabel", Color.blue, null, label);
 
     // Update the color using a new Label instance. This is important because an instance that was not retrieved
     // from the db was never marked as attached/detached by openjpa.
@@ -238,7 +238,7 @@ public class LabelDAOTest
 
     label = dao.getById(label.getId());
     Assert.assertNotNull(label);
-    assertLabel(applicationId, "MyLabel", Color.blue, label, "My label   description.");
+    assertLabel(applicationId, "MyLabel", Color.blue, "My label   description.", label);
 
     // Update
     label.setLabel("MyUpdatedLabel");
@@ -246,7 +246,7 @@ public class LabelDAOTest
 
     label = dao.getById(label.getId());
     Assert.assertNotNull(label);
-    assertLabel(applicationId, "MyUpdatedLabel", Color.blue, label, "My label   description.");
+    assertLabel(applicationId, "MyUpdatedLabel", Color.blue, "My label   description.", label);
 
     // Delete
     dao.delete(label);
@@ -331,7 +331,7 @@ public class LabelDAOTest
     // Update without changing the name
     label2.setColor(Color.red);
     labelDAO.update(label2);
-    assertLabel(applicationId, "MyLabel2", Color.red, label2, null);
+    assertLabel(applicationId, "MyLabel2", Color.red, null, label2);
 
     // Update with a conflicting name
     label2.setLabel(label1.getLabel());
@@ -515,7 +515,7 @@ public class LabelDAOTest
     return actualMap;
   }
 
-  private void assertLabel(String applicationId, String label, Color color, Label actual, String description) {
+  private void assertLabel(String applicationId, String label, Color color, String description, Label actual) {
     assertEquals(applicationId, actual.getOwnerId());
     assertEquals(label, actual.getLabel());
     assertEquals(label.toLowerCase(Locale.ENGLISH), actual.getLabelLowercase());

@@ -439,8 +439,8 @@ public class UserResourceTest
     tempEntity.newLdapUserMapping(ldapServer.getId());
 
     response = AuthedRestAccess.get(getSearchUrl(User.ADMIN_USERNAME));
-    assertMember(response, "LDAP connection unavailable. Displaying local users only.", MemberType.USER,
-        User.ADMIN_USERNAME, "Admin BuiltIn", "admin@localhost", "CLM");
+    assertMember(response, "LDAP error, displaying local users only.", MemberType.USER, User.ADMIN_USERNAME,
+        "Admin BuiltIn", "admin@localhost", "CLM");
   }
 
   private void assertUser(String username, String firstName, String lastName, String email, User actual) {

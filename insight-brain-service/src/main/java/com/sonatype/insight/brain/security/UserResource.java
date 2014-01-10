@@ -126,7 +126,7 @@ public class UserResource
       }
       catch (NamingException ex) {
         log.error("Unable to connect to ldap server", ex);
-        connectionError = "LDAP connection unavailable. Displaying local users only.";
+        connectionError = "LDAP error, displaying local users only.";
       }
     }
 

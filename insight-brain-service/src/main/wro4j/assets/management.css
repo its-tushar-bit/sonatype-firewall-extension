@@ -64,8 +64,13 @@ h4 {
 .first-row {
 	border-bottom: 1px solid #d8d8d8;
 }
-.first-row i, .first-row img {
-	vertical-align: middle;
+.first-row i {
+  vertical-align: middle;
+}
+.first-row img {
+	vertical-align: -5px;
+	height: 24px;
+	width: 24px;
 }
 .first-row .title {
 	padding-top: 6px;
@@ -105,7 +110,7 @@ h4 {
 	-webkit-transition: all .2s linear;
 	-moz-transition: all .2s linear;
 	transition: all .2s linear;
-  padding: 13px 39px 13px 21px;
+  padding: 8px 19px 6px 21px;
 }
 .first-row a.brand:hover {
 	color: black;
@@ -115,40 +120,68 @@ h4 {
   margin-bottom: 0px;
 }
 .dashboard-navigation > li, .dashboard-menus > li, .dashboard-user > li {
+  line-height: 0;
+}
+.dashboard-navigation > li span, .dashboard-menus > li, .dashboard-user > li {
   padding-right: 10px !important;
   padding-left: 10px !important;
 }
 .dashboard-navigation > li:first-child, .dashboard-menus > li:first-child, .dashboard-user > li:first-child {
-  margin-left: 11px !important;
+  margin-left: 21px !important;
 }
 .dashboard-navigation > li:last-child, .dashboard-menus > li:last-child, .dashboard-user > li:last-child {
   margin-right: 11px !important;
 }
-.dashboard-menus > li {
-  padding-top: 10px;
-}
 .dashboard-navigation > li {
-  padding-top: 12px;
-  padding-bottom: 8px;
+  padding: 0 !important;
 }
-.dashboard-navigation > li:hover {
+.dashboard-navigation > li span, .dashboard-menus > li {
+  display: inline-block;
+  padding-bottom: 6px;
+  margin-bottom: -6px;
+}
+.dashboard-navigation li span {
+  padding-top: 3px;
+}
+.dashboard-navigation > li span:hover {
   background-color: #f4f4f4;
 }
 .dashboard-navigation i:before, .dashboard-menus i:before, .dashboard-user i:before {
   font-size: 24px;
 }
-.dashboard-navigation .selected {
+.dashboard-navigation .active span {
   border-top: 3px solid #2476FC;
 }
-.dashboard-right {
-  height: 56px;
+.dashboard-navigation span:hover i:before, .dashboard-user a:hover, .dashboard-user a:hover i:before, .dashboard-menus li:hover i:before {
+  color: #2476FC;
+}
+.dashboard-menus > li {
+  padding-top: 6px;
+}
+.dashboard-menus .btn-group {
+  margin: 0px;
+}
+.dashboard-menus .dropdown-menu > .disabled > a {
+  padding-left: 10px;
+  font-weight: bold;
+}
+.dashboard-menus .dropdown-menu .divider {
+  margin: 0px 1px 9px;
+}
+.dashboard-user  .dropdown-menu > li > a:hover, .dashboard-menus .dropdown-menu > li > a:hover {
+  color: black;
+  background-color: #E0E0E0;
+  background-image: none;
+}
+.dashboard-user .dropdown-menu > .disabled > a:hover, .dashboard-menus .dropdown-menu > .disabled > a:hover {
+  color: #999;
+  background-color: transparent;
+  background-image: none;
+  filter: progid:DXImageTransform.Microsoft.gradient(enabled=false);
 }
 .dashboard-user .btn {
   vertical-align: 3px;
   padding: 0px 10px;
-}
-.dashboard-user .btn-group {
-  margin-top: 13px;
 }
 .dashboard-user .btn-group .dropdown-toggle {
   -webkit-border-top-right-radius: 0px;
@@ -169,7 +202,7 @@ h4 {
   -webkit-box-shadow: none;
 }
 .dashboard-user .btn .user-name {
-  vertical-align: 5px;
+  vertical-align: 3px;
   padding: 0px 10px;
   font-weight: bold;
 }
@@ -216,18 +249,18 @@ h4 {
     clear: both;
   }
   .navigation {
-    margin-top: 113px !important;
+    margin-top: 80px !important;
   }
   .subnavigation {
-    top: 113px !important;
+    top: 80px !important;
   }
 
   .subnavigation ul:nth-child(3) {
-    top: 186px !important;
+    top: 153px !important;
   }
 
   .content {
-    top: 113px !important;
+    top: 80px !important;
   }
 }
 .marginless-alert .alert {
@@ -239,7 +272,7 @@ h4 {
 	background-clip: padding-box; /* for IE9+, Firefox 4+, Opera, Chrome */
 }
 .navigation {
-  margin: 59px 0 auto auto;
+  margin: 41px 0 auto auto;
 	background: #E0E0E0;
 	z-index: 1;
 	width: 120px;
@@ -276,7 +309,7 @@ h4 {
 	width: 150px;
 	margin-left: 121px;
 	position: fixed;
-	top: 59px;
+	top: 41px;
 	bottom : 0px;
 	overflow: hidden;
 	border-right: 1px solid rgba(0, 0, 0, .1);
@@ -287,7 +320,7 @@ h4 {
 .subnavigation ul:nth-child(3) {
 	overflow:auto;
 	position:fixed;
-	top:135px;
+	top:117px;
 	bottom:0px;
 	width:116px;
 }
@@ -330,7 +363,7 @@ h4 {
 }
 .content {
 	position: absolute;
-	top: 59px;
+	top: 41px;
 	bottom : 0px;
 	right : 0px;
 	left : 272px;

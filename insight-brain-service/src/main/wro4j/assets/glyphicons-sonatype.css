@@ -9,6 +9,9 @@
   content: "\e017";
 }
 
+.glyphicons-sonatype.medium:before {
+  font-size: 18px;
+}
 .glyphicons-sonatype.small:before {
   font-size: 10px;
   padding-right: 10px;

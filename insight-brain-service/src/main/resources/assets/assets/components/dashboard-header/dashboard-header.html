@@ -37,17 +37,17 @@
   <div class="navbar-inner">
     <div class="container-fluid">
       <a class="title brand" href="#">
-        <img src="img/sonatype-32.png" alt="Logo" height="32" width="32"/>&nbsp;Sonatype CLM
+        <img src="img/sonatype-32.png" alt="Logo" height="24" width="24"/>&nbsp;Sonatype CLM
       </a>
       <div class='dashboard-right pull-right'>
         <ul class='inline dashboard-menus'>
           <li>
             <div class="btn-group pull-right">
               <a class='dropdown-toggle' data-toggle="dropdown" href="#">
-                <i class='glyphicons-sonatype cogwheel'></i>
+                <i class='glyphicons-sonatype medium cogwheel'></i>
               </a>
               <ul class="dropdown-menu dropdown-menu-arrow">
-                <li class="disabled"><a tabindex="-1" href="#">System Preferences</a></li>
+                <li class="disabled"><a tabindex="-1">System Preferences</a></li>
                 <li class="divider"></li>
                 <li ng-class="{'active': $state.is('management.security.users') }">
                   <a href='index.html#/management/security/users'>Users</a>
@@ -70,10 +70,10 @@
           <li>
             <div class="btn-group pull-right">
               <a class='dropdown-toggle' data-toggle="dropdown" href="#">
-                <i class='glyphicons-sonatype help'></i>
+                <i class='glyphicons-sonatype medium help'></i>
               </a>
               <ul class="dropdown-menu dropdown-menu-arrow">
-                <li class="disabled"><a tabindex="-1" href="#">Support Options</a></li>
+                <li class="disabled"><a tabindex="-1">Support Options</a></li>
                 <li class="divider"></li>
                 <li>
                   <a href="http://links.sonatype.com/products/clm/doc" title="Go to Online Help" target="_blank">Online Help</a>
@@ -85,19 +85,19 @@
       </div>
       <div class='dashboard-responsive'>
         <ul class='inline dashboard-navigation'>
-          <li ng-class="{ 'selected' : $state.includes('management') }">
+          <li ng-class="{ 'active' : $state.includes('management') }">
             <a href='index.html#/management/organization' tooltip='Organizational Design' tooltip-placement='bottom'>
-              <i class='glyphicons-sonatype management'></i>
+              <span><i class='glyphicons-sonatype medium management'></i></span>
             </a>
           </li>
-          <li ng-class="{ 'selected' : $state.includes('reports.violations') }">
+          <li ng-class="{ 'active' : $state.includes('reports.violations') }">
             <a href='reports.html#/reports/violations' tooltip='Violations' tooltip-placement='bottom'>
-              <i class='glyphicons-sonatype violations'></i>
+              <span><i class='glyphicons-sonatype medium violations'></i></span>
             </a>
           </li>
-          <li ng-class="{ 'selected' : $state.includes('reports.trending') }">
+          <li ng-class="{ 'active' : $state.includes('reports.trending') }">
             <a href='reports.html#/reports/trending' tooltip='Trending' tooltip-placement='bottom'>
-              <i class='glyphicons-sonatype trending'></i>
+              <span><i class='glyphicons-sonatype medium trending'></i></span>
             </a>
           </li>
         </ul>
@@ -105,8 +105,7 @@
           <li>
             <div class="btn-group pull-right">
               <a class="btn dropdown-toggle" data-toggle="dropdown" href="javascript:;">
-                <i class='glyphicons-sonatype user'></i><span class="user-name">{{ displayName }}</span>
-                <span class="caret"></span>
+                <i class='glyphicons-sonatype medium user'></i><span class="user-name">{{ displayName }}</span>
               </a>
               <ul class="dropdown-menu dropdown-menu-arrow">
                 <li ng-controller='ChangePassword' ng-show='canChangePassword()'><a ng-click="change()">Change Password</a></li>

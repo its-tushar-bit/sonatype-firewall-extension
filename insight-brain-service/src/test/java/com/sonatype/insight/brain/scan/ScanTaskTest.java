@@ -81,6 +81,8 @@ public class ScanTaskTest
     assertThat("Ticket has no error", ticket.error, is(nullValue()));
     assertThat("Ticket has public app id", ticket.applicationPublicId, is("expected-public-app-id"));
     assertThat("Ticket has scan id", ticket.scanId, is("expected-scan-id"));
+    assertThat("Final ticket step", ticket.currentStep, is(ticket.totalSteps));
+    assertThat("Final ticket step text", ticket.currentStepName, is("Done"));
   }
 
   @Test
@@ -95,8 +97,8 @@ public class ScanTaskTest
 
     ScanTicket ticket = task.getTicket();
     assertThat("Ticket has error", ticket.error, is(notNullValue()));
-    // TODO test message?
     assertThat("Ticket has no scan id", ticket.scanId, is(nullValue()));
-
+    assertThat("Final ticket step", ticket.currentStep, is(ticket.totalSteps));
+    assertThat("Final ticket step text", ticket.currentStepName, is("Done"));
   }
 }

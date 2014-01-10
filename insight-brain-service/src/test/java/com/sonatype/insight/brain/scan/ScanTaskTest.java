@@ -28,7 +28,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
- * Also see {@link ScanTaskStateTest} and {@link ScanTicketFactoryTest}.
+ * Also see {@link ScanTaskStateTest} and {@link ScanStateToTicketTranslatorTest}.
  */
 public class ScanTaskTest
 {

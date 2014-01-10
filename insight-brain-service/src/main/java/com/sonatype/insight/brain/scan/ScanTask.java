@@ -30,23 +30,33 @@ class ScanTask
 {
   public enum State
   {
-    PENDING ("Queued"), 
+    PENDING ("Queued"),
     SCANNING_COMPONENTS ("Fingerprinting components"),
     // Treat uploading and waiting as the same state for user display
-    UPLOADING_SCAN ("Analyzing components"), 
-    WAITING_FOR_REPORT ("Analyzing components"), 
-    EVALUATING_POLICY ("Evaluating policy"), 
+    UPLOADING_SCAN ("Analyzing components"),
+    WAITING_FOR_REPORT ("Analyzing components"),
+    EVALUATING_POLICY ("Evaluating policy"),
     DONE("Done");
-    
-    private final String descriptiveText;
-    
-    State(String desriptiveText) {
-      this.descriptiveText = desriptiveText;
+
+    private final String displayText;
+
+    State(String displayText) {
+      this.displayText = displayText;
     }
-    
+
     @Override
     public String toString() {
-      return descriptiveText;
+      return displayText;
+    }
+
+    /**
+     * Updates the provided {@link ScanTicket} with step information as translated from this state.
+     */
+    public void provideStepInfo(ScanTicket ticket) {
+      ticket.totalSteps = State.values().length - 1; // Discount PENDING state as step.
+
+      ticket.currentStep = this.ordinal();
+      ticket.currentStepName = this.toString();
     }
   }
 
@@ -99,7 +109,9 @@ class ScanTask
    * Creates a {@link ScanTicket} representing the current state of the task.
    */
   public ScanTicket getTicket() {
-    ScanTicket ticket = ScanTicketFactory.forScanState(state);
+    ScanTicket ticket = new ScanTicket();
+
+    state.provideStepInfo(ticket);
 
     ticket.ticketId = id;
     ticket.applicationPublicId = applicationPublicId;

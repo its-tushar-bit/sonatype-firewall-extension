@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.policy.evaluator;
 
 import java.io.IOException;
-import java.util.Collections;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -69,18 +68,9 @@ public class PolicyEvaluateResource
 
     PolicyEvaluationResult policyEvaluationResult = policyEvaluationUtils.evaluate(applicationPublicId, scanId, stage);
 
-    if (!policyEvaluationResult.isReevaluation()) {
-      final List<PolicyAlert> alerts = policyEvaluationResult.getAlerts();
-
-      @SuppressWarnings("unchecked")
-      List<PolicyAlert>[] digest = new List[] { alerts, Collections.emptyList() };
-      if (!oldAlerts.isEmpty()) {
-        digest = PolicyAlertDigester.digestPolicyAlerts(alerts, oldAlerts);
-      }
-
-      if (digest != null && sendNotifications) {
-        policyAlertNotifier.sendNotifications(applicationPublicId, appId, scanId, stage, digest[0]);
-      }
+    if (!policyEvaluationResult.isReevaluation() && sendNotifications) {
+      final List<PolicyAlert> newAlerts = policyEvaluationResult.getAlerts();
+      policyAlertNotifier.sendNotifications(applicationPublicId, appId, scanId, stage, newAlerts, oldAlerts);
     }
 
     return policyEvaluationResult;

@@ -60,7 +60,25 @@ public class PolicyAlertNotifier
     this.baseUrl = baseUrl;
   }
 
+  /**
+   * Sends notifications in case of a difference between the current and previous policy alerts for a given application
+   * and stage.
+   */
   public void sendNotifications(final String applicationPublicId, String appId, final String scanId, final Stage stage,
+      final List<PolicyAlert> currentAlerts, final List<PolicyAlert> previousAlerts)
+  {
+    @SuppressWarnings("unchecked")
+    List<PolicyAlert>[] digest = new List[] { currentAlerts, Collections.emptyList() };
+    if (!previousAlerts.isEmpty()) {
+      digest = PolicyAlertDigester.digestPolicyAlerts(currentAlerts, previousAlerts);
+    }
+
+    if (digest != null) {
+      sendNotifications(applicationPublicId, appId, scanId, stage, digest[0]);
+    }
+  }
+
+  private void sendNotifications(final String applicationPublicId, String appId, final String scanId, final Stage stage,
       final List<PolicyAlert> policyAlerts)
   {
     for (final Entry<String, List<PolicyAlert>> details : byRecipients(policyAlerts).entrySet()) {

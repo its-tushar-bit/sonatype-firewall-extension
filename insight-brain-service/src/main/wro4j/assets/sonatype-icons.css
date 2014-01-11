@@ -1,0 +1,36 @@
+@font-face {
+  font-family: 'sonatype-icons';
+  src:url('../fonts/sonatype-icons.eot');
+  src:url('../fonts/sonatype-icons.eot?#iefix') format('embedded-opentype'),
+    url('../fonts/sonatype-icons.woff') format('woff'),
+    url('../fonts/sonatype-icons.ttf') format('truetype'),
+    url('../fonts/sonatype-icons.svg#sonatype') format('svg');
+  font-weight: normal;
+  font-style: normal;
+}
+
+.sonatype-icons:before {
+  *zoom: 1;
+  font: 24px/30px 'sonatype-icons';
+  font-style: normal;
+  color: #1d1d1b;
+  font-weight: normal;
+  font-variant: normal;
+  text-transform: none;
+  line-height: 1;
+
+  /* Better Font Rendering =========== */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.sonatype-icons.medium:before {
+  font-size: 18px;
+}
+
+.sonatype-icons.reporting:before {
+  content: '\e604';
+}
+.sonatype-icons.organizational-design:before {
+  content: '\e605';
+}

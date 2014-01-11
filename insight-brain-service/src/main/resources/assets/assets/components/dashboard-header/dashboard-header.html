@@ -85,19 +85,14 @@
       </div>
       <div class='dashboard-responsive'>
         <ul class='inline dashboard-navigation'>
+          <li ng-class="{ 'active' : $state.includes('reports') }">
+            <a href='reports.html#/reports/violations' tooltip='Reporting' tooltip-placement='bottom'>
+              <span><i class='sonatype-icons medium reporting'></i></span>
+            </a>
+          </li>
           <li ng-class="{ 'active' : $state.includes('management') }">
             <a href='index.html#/management/organization' tooltip='Organizational Design' tooltip-placement='bottom'>
-              <span><i class='glyphicons-sonatype medium management'></i></span>
-            </a>
-          </li>
-          <li ng-class="{ 'active' : $state.includes('reports.violations') }">
-            <a href='reports.html#/reports/violations' tooltip='Violations' tooltip-placement='bottom'>
-              <span><i class='glyphicons-sonatype medium violations'></i></span>
-            </a>
-          </li>
-          <li ng-class="{ 'active' : $state.includes('reports.trending') }">
-            <a href='reports.html#/reports/trending' tooltip='Trending' tooltip-placement='bottom'>
-              <span><i class='glyphicons-sonatype medium trending'></i></span>
+              <span><i class='sonatype-icons medium organizational-design'></i></span>
             </a>
           </li>
         </ul>

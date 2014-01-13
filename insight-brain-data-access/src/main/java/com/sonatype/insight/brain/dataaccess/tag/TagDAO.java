@@ -14,6 +14,7 @@ import com.sonatype.insight.brain.dataaccess.DataAccessException;
 import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.model.tag.Tag;
+import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.codehaus.plexus.util.StringUtils;
 
@@ -94,5 +95,23 @@ public class TagDAO
     }
 
     super.update(em, entity);
+  }
+
+  private Tag getByIdNotNull(EntityManager em, String id) {
+    Tag tag = getById(em, id);
+    if (tag == null) {
+      throw new NotFoundException("Cannot find a tag with id " + id);
+    }
+    return tag;
+  }
+
+  public Tag getByIdNotNull(String id) {
+    EntityManager em = createEntityManager();
+    try {
+      return getByIdNotNull(em, id);
+    }
+    finally {
+      close(em);
+    }
   }
 }

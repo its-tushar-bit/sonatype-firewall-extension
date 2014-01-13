@@ -48,6 +48,9 @@ a, a:hover, a:active, a:focus {
 	color: #2476C3;
 	outline: 0;
 }
+a:focus {
+  text-decoration: none;
+}
 h1, h2, h3, h4, h5, h6 {
 	font-family: "ProximaNovaSemibold", "ProximaNovaRegular", "Helvetica Neue", Helvetica, Arial, sans-serif;
 	text-shadow: 0px 1px 0px white;
@@ -88,7 +91,6 @@ h4 {
 }
 .first-row a:hover {
 	text-decoration: none;
-	color: black;
 }
 .navbar-inner {
 	background-color: #E0E0E0;
@@ -111,9 +113,6 @@ h4 {
 	-moz-transition: all .2s linear;
 	transition: all .2s linear;
   padding: 8px 19px 6px 21px;
-}
-.first-row a.brand:hover {
-	color: black;
 }
 .dashboard-navigation, .dashboard-menus, .dashboard-user {
   display: inline;

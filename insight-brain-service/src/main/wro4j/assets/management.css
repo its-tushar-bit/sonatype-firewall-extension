@@ -543,6 +543,9 @@ h4 {
 .inline-editor .editable.editable-click, .inline-editor .editable.editable-click:hover {
         color : #444;
 }
+.inline-editor .editable.error {
+	color: #b94a48;
+}
 .inline-editor .editable, .inline-editor.head input, .inline-editor .editable-controls input {
         white-space: nowrap;
         background: transparent;
@@ -769,6 +772,9 @@ ul.tri-pane {
 .clm-error {
 	margin: 100px auto;
 	width : 50%;
+}
+.error {
+	color: #b94a48;
 }
 .add-section {
 	border-top: 1px solid rgba(255,255,255,.6);

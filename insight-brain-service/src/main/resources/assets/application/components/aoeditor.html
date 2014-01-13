@@ -307,11 +307,11 @@
 						<span>Contact:</span>
 						<span id='contact-field'
 							class='editable'
-							ng-class='{ "editable-empty" : !ao.selected.contact }'
+							ng-class='{ "editable-empty" : !ao.selected.contact, "error" : ao.selected.contact.error }'
 							ng-click='openContact()'>{{ao.selected.contact.displayName || ao.selected.contact.internalName || "None"}}</span>
+						<span class='error'
+							ng-if='ao.selected.contact.error'> - {{ao.selected.contact.error}}</span>
 					</div>
-					<div style='color:#b94a48'
-						ng-if='ao.selected.contact.error'>{{ao.selected.contact.error}}</div>
 				</div>
 				<div ng-switch='ao.selected && !ao.selected.id || isFormDirty() || aoEditorName.$visible'>
 					<div ng-switch-when='true' class="application-save">

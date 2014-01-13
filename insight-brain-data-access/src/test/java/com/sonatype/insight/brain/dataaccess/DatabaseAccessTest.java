@@ -93,18 +93,21 @@ public class DatabaseAccessTest
     for (int i = 0; i < threadCount; i++) {
       threads[i].join();
     }
-    boolean success = true;
+    Exception exception = null;
     for (int i = 0; i < threadCount; i++) {
       if (!threads[i].errors.isEmpty()) {
-        success = false;
+        if (exception == null) {
+          exception = threads[i].errors.get(0);
+        }
         System.err.println("Thread: " + threads[i].getName() + " errors=" + threads[i].errors.size());
         for (Exception error : threads[i].errors) {
           System.err.println("\t" + error.getMessage());
         }
       }
     }
-
-    Assert.assertTrue(success);
+    if (exception != null) {
+      throw exception;
+    }
   }
 
   private static class DatabaseAccessThread

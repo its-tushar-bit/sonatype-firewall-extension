@@ -52,7 +52,8 @@ public class ScanServiceTest
   @Test
   public void testScanBinary() throws Exception {
     InputStream appBundle = getBundle("app01.zip");
-    ScanTicket ticket = scanService.scanBinary(app.getPublicId(), appBundle, "app01.zip", new Stage(Stage.ID_BUILD));
+    ScanTicket ticket = scanService.scanBinary(app.getPublicId(), appBundle, "app01.zip", new Stage(Stage.ID_BUILD),
+        false);
     assertThat(ticket, is(notNullValue()));
     assertThat(ticket.ticketId, is(notNullValue()));
   }
@@ -67,7 +68,8 @@ public class ScanServiceTest
   @Test
   public void testGetTicket() throws IOException {
     InputStream appBundle = getBundle("app01.zip");
-    ScanTicket originalTicket = scanService.scanBinary(app.getPublicId(), appBundle, "app01.zip", new Stage(Stage.ID_BUILD));
+    ScanTicket originalTicket = scanService.scanBinary(app.getPublicId(), appBundle, "app01.zip", new Stage(
+        Stage.ID_BUILD), false);
 
     ScanTicket statusTicket = scanService.getTicket(app.getPublicId(), originalTicket.ticketId);
     assertThat(statusTicket.ticketId, is(originalTicket.ticketId));
@@ -90,7 +92,8 @@ public class ScanServiceTest
   @Test(timeout=15 * 1000)
   public void testGetTicketUntilTaskComplete() throws IOException {
     InputStream appBundle = getBundle("app01.zip");
-    ScanTicket originalTicket = scanService.scanBinary(app.getPublicId(), appBundle, "app01.zip", new Stage(Stage.ID_BUILD));
+    ScanTicket originalTicket = scanService.scanBinary(app.getPublicId(), appBundle, "app01.zip", new Stage(
+        Stage.ID_BUILD), false);
 
     ScanTicket statusTicket = originalTicket;
     while (statusTicket.currentStep != statusTicket.totalSteps) {
@@ -102,7 +105,7 @@ public class ScanServiceTest
   public void testFailEarlyOnInvalidStage() throws Exception {
     InputStream appBundle = getBundle("app01.zip");
     try {
-      scanService.scanBinary(app.getPublicId(), appBundle, "app01.zip", new Stage("invalid-stage-id"));
+      scanService.scanBinary(app.getPublicId(), appBundle, "app01.zip", new Stage("invalid-stage-id"), false);
       fail("Should have reject invalid stage");
     }
     catch (BadRequestException e) {

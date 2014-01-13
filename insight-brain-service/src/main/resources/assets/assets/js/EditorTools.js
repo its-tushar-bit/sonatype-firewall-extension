@@ -84,6 +84,10 @@
       }
     }
     
+    function getBundleUploadUrl() {
+      return CLMLocations.getBundleUploadUrl($scope.bundle.applicationPublicId, $scope.bundle.stage, $scope.bundle.notify);
+    }
+    
     $scope.fileChanged = function(file) {
       fileElement = angular.element(file)[0];
     };
@@ -103,7 +107,7 @@
       if ($window.FormData) {  
         var form = new FormData();
         form.append('file', fileElement.files[0]);
-        $http.post(CLMLocations.getBundleUploadUrl($scope.bundle.applicationPublicId, $scope.bundle.stage), form, {
+        $http.post(getBundleUploadUrl(), form, {
           headers : {
             'Content-Type' : undefined
           },
@@ -127,7 +131,7 @@
     };
     
     $scope.updateFormActionUrl = function() {
-      $scope.evaluateBundleAction = CLMLocations.getBundleUploadUrl($scope.bundle.applicationPublicId, $scope.bundle.stage);
+      $scope.evaluateBundleAction = getBundleUploadUrl();
     };
     
     $scope.isFormValid = function() {

@@ -6,13 +6,18 @@
 package com.sonatype.insight.brain.scan;
 
 import java.io.File;
+import java.util.List;
 import java.util.UUID;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 
 import com.sonatype.clm.dto.model.ScanReceipt;
+import com.sonatype.clm.dto.model.policy.PolicyAlert;
+import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.policy.evaluator.PolicyAlertNotifier;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluationUtils;
 import com.sonatype.insight.brain.saas.ScanUploader;
 
@@ -68,13 +73,17 @@ class ScanTask
 
   private final PolicyEvaluationUtils policyEvaluationUtils;
 
+  private final PolicyAlertNotifier policyAlertNotifier;
+
   private final String id;
 
-  private String applicationPublicId;
+  private Application app;
 
   private File binFile;
 
   private Stage stage;
+
+  private boolean sendNotifications;
 
   private volatile State state = State.PENDING;
 
@@ -83,21 +92,24 @@ class ScanTask
   private volatile String scanId;
 
   @Inject
-  public ScanTask(Scanner scanner, ScanUploader uploader, PolicyEvaluationUtils policyEvaluationUtils) {
+  public ScanTask(Scanner scanner, ScanUploader uploader, PolicyEvaluationUtils policyEvaluationUtils,
+      PolicyAlertNotifier policyAlertNotifier)
+  {
     this.scanner = scanner;
     this.uploader = uploader;
     this.policyEvaluationUtils = policyEvaluationUtils;
+    this.policyAlertNotifier = policyAlertNotifier;
     id = UUID.randomUUID().toString().replace("-", "");
   }
 
   /**
-   * @param applicationPublicId a valid public application id to associate to the policy results
    * @param binFile the binary file of what to scan
    */
-  public void init(String applicationPublicId, File binFile, Stage stage) {
-    this.applicationPublicId = applicationPublicId;
+  public void init(Application app, File binFile, Stage stage, boolean sendNotifications) {
+    this.app = app;
     this.binFile = binFile;
     this.stage = stage;
+    this.sendNotifications = sendNotifications;
   }
 
   public String getId() {
@@ -117,11 +129,11 @@ class ScanTask
     state.provideStepInfo(ticket);
 
     ticket.ticketId = id;
-    ticket.applicationPublicId = applicationPublicId;
+    ticket.applicationPublicId = app.getPublicId();
     ticket.scanId = scanId;
 
     if(error != null) {
-      ticket.error = "Failed to evaluate policies on uploaded binary for application " + applicationPublicId;
+      ticket.error = "Failed to evaluate policies on uploaded binary for application " + app.getPublicId();
     }
 
     return ticket;
@@ -133,14 +145,20 @@ class ScanTask
 
   @Override
   public void run() {
+    String appPublicId = null;
     try {
+      if (app == null || stage == null || binFile == null) {
+        throw new IllegalStateException("scan task has not been properly initialized");
+      }
+      appPublicId = app.getPublicId();
+
       // create the scan data
       state = State.SCANNING_COMPONENTS;
       File scanFile = scanner.scan(binFile);
 
       // upload the scan
       state = State.UPLOADING_SCAN;
-      ScanReceipt scanReceipt = uploader.upload(scanFile, applicationPublicId, "rest/ci/scan");
+      ScanReceipt scanReceipt = uploader.upload(scanFile, appPublicId, "rest/ci/scan");
 
       // wait for the report
       state = State.WAITING_FOR_REPORT;
@@ -148,15 +166,24 @@ class ScanTask
 
       // get report/perform evaluation
       state = State.EVALUATING_POLICY;
+      List<PolicyAlert> oldAlerts = null;
+      if (sendNotifications) {
+        oldAlerts = policyEvaluationUtils.findLastPrimaryPolicyAlerts(appPublicId, app.getId(), stage);
+      }
       // PolicyEvaluationUtils will fetch report if it's not there
-      policyEvaluationUtils.evaluate(applicationPublicId, scanReceipt.getScanId(), stage);
+      PolicyEvaluationResult evalResult = policyEvaluationUtils.evaluate(appPublicId, scanReceipt.getScanId(), stage);
+      if (sendNotifications) {
+        List<PolicyAlert> newAlerts = evalResult.getAlerts();
+        policyAlertNotifier.sendNotifications(appPublicId, app.getId(), scanReceipt.getScanId(), stage, newAlerts,
+            oldAlerts);
+      }
 
       // provide report/scanId once evaluation is completed successfully
       scanId = scanReceipt.getScanId();
     }
     catch (Throwable e) {
       error = e;
-      log.error("Failed to evaluate policies on uploaded binary for application {}", applicationPublicId, e);
+      log.error("Failed to evaluate policies on uploaded binary for application {}", appPublicId, e);
     }
     finally {
       state = State.DONE;

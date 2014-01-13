@@ -10,10 +10,13 @@ import java.io.IOException;
 
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.policy.evaluator.PolicyAlertNotifier;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluationUtils;
 import com.sonatype.insight.brain.saas.ScanUploader;
 import com.sonatype.insight.brain.scan.ScanTask.State;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
@@ -38,9 +41,15 @@ public class ScanTaskStateTest
   Scanner scanner = mock(Scanner.class);
   ScanUploader uploader = mock(ScanUploader.class);
   PolicyEvaluationUtils evaluator = mock(PolicyEvaluationUtils.class);
-  ScanTask task = new ScanTask(scanner, uploader, evaluator);
+  PolicyAlertNotifier notifier = mock(PolicyAlertNotifier.class);
+  ScanTask task = new ScanTask(scanner, uploader, evaluator, notifier);
 
   TaskStateCapturer captureState = new TaskStateCapturer();
+
+  @Before
+  public void init() {
+    task.init(new Application("any", "MyApp", null), new File("any"), new Stage(Stage.ID_BUILD), false);
+  }
 
   @Test
   public void notStarted() {

@@ -7,16 +7,23 @@ package com.sonatype.insight.brain.scan;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import com.sonatype.clm.dto.model.ScanReceipt;
+import com.sonatype.clm.dto.model.policy.PolicyAlert;
+import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
+import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.policy.evaluator.PolicyAlertNotifier;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluationUtils;
 import com.sonatype.insight.brain.saas.ScanUploader;
 import com.sonatype.insight.brain.scan.ScanTask.State;
 
+import org.hamcrest.BaseMatcher;
+import org.hamcrest.Description;
 import org.junit.Test;
-import org.mockito.ArgumentCaptor;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
@@ -25,7 +32,9 @@ import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.argThat;
 import static org.mockito.Matchers.eq;
+import static org.mockito.Matchers.same;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -35,22 +44,52 @@ import static org.mockito.Mockito.when;
  */
 public class ScanTaskTest
 {
+  private static class StageMatcher
+      extends BaseMatcher<Stage>
+  {
+    private final Stage stage;
+
+    public StageMatcher(Stage stage) {
+      this.stage = stage;
+    }
+
+    @Override
+    public boolean matches(Object item) {
+      return item != null && stage.getStageTypeId().equals(((Stage) item).getStageTypeId());
+    }
+
+    @Override
+    public void describeTo(Description description) {
+      description.appendText(stage.getStageTypeId());
+    }
+  }
+
+  private static Stage match(Stage stage) {
+    return argThat(new StageMatcher(stage));
+  }
+
+  private Application newApp(String publicId) {
+    Application app = new Application(publicId, "My App", null);
+    app.setId("uuid");
+    return app;
+  }
+
   @Test
   public void stateForScheduledTaskIsPending() {
-    ScanTask task = new ScanTask(null, null, null);
+    ScanTask task = new ScanTask(null, null, null, null);
     assertThat("New task state", task.getState(), equalTo(State.PENDING));
 
-    task.init("any", new File("any"), new Stage(Stage.ID_BUILD));
+    task.init(newApp("any"), new File("any"), new Stage(Stage.ID_BUILD), false);
     assertThat("Initialized task state", task.getState(), equalTo(State.PENDING));
   }
 
   @Test
   public void savedApplicationBinaryIsScanned() throws IOException {
     Scanner scanner = mock(Scanner.class);
-    ScanTask task = new ScanTask(scanner, null, null);
+    ScanTask task = new ScanTask(scanner, null, null, null);
 
     File appBinaryLocation = new File("app-binary-location");
-    task.init("public-app-id", appBinaryLocation, new Stage(Stage.ID_BUILD));
+    task.init(newApp("public-app-id"), appBinaryLocation, new Stage(Stage.ID_BUILD), false);
 
     task.run();
 
@@ -70,14 +109,15 @@ public class ScanTaskTest
     Scanner scanner = mock(Scanner.class);
     ScanUploader uploader = mock(ScanUploader.class);
     PolicyEvaluationUtils evaluator = mock(PolicyEvaluationUtils.class);
-    ScanTask task = new ScanTask(scanner, uploader, evaluator);
+    PolicyAlertNotifier notifier = mock(PolicyAlertNotifier.class);
+    ScanTask task = new ScanTask(scanner, uploader, evaluator, notifier);
 
     ScanReceipt scanReciept = mock(ScanReceipt.class);
     when(scanReciept.getScanId()).thenReturn("expected-scan-id");
 
     when(uploader.upload((File) any(), anyString(), anyString())).thenReturn(scanReciept);
 
-    task.init("expected-public-app-id", new File("any-file"), new Stage(Stage.ID_BUILD));
+    task.init(newApp("expected-public-app-id"), new File("any-file"), new Stage(Stage.ID_BUILD), false);
     task.run();
 
     ScanTicket ticket = task.getTicket();
@@ -92,7 +132,8 @@ public class ScanTaskTest
   @SuppressWarnings("unchecked")
   public void erorredTaskHasTicketWithErrorMessage() throws IOException {
     Scanner scanner = mock(Scanner.class);
-    ScanTask task = new ScanTask(scanner, null, null);
+    ScanTask task = new ScanTask(scanner, null, null, null);
+    task.init(newApp("any"), new File("any"), new Stage(Stage.ID_BUILD), false);
 
     when(scanner.scan((File) any())).thenThrow(RuntimeException.class);
 
@@ -110,19 +151,49 @@ public class ScanTaskTest
     Scanner scanner = mock(Scanner.class);
     ScanUploader uploader = mock(ScanUploader.class);
     PolicyEvaluationUtils evaluator = mock(PolicyEvaluationUtils.class);
-    ScanTask task = new ScanTask(scanner, uploader, evaluator);
+    PolicyAlertNotifier notifier = mock(PolicyAlertNotifier.class);
+    ScanTask task = new ScanTask(scanner, uploader, evaluator, notifier);
 
     ScanReceipt scanReciept = mock(ScanReceipt.class);
     when(scanReciept.getScanId()).thenReturn("scan-id");
     when(uploader.upload((File) any(), eq("app-id"), anyString())).thenReturn(scanReciept);
 
-    task.init("app-id", new File("any-file"), new Stage(Stage.ID_RELEASE));
+    Stage stage = new Stage(Stage.ID_RELEASE);
+    task.init(newApp("app-id"), new File("any-file"), stage, false);
 
     task.run();
 
-    ArgumentCaptor<Stage> stageCaptor = ArgumentCaptor.forClass(Stage.class);
-    verify(evaluator).evaluate(eq("app-id"), eq("scan-id"), stageCaptor.capture());
-    assertThat(stageCaptor.getValue(), is(notNullValue()));
-    assertThat(stageCaptor.getValue().getStageTypeId(), is(Stage.ID_RELEASE));
+    verify(evaluator).evaluate(eq("app-id"), eq("scan-id"), match(stage));
+  }
+
+  @Test
+  public void sendsNotifications() throws IOException {
+    Scanner scanner = mock(Scanner.class);
+    ScanUploader uploader = mock(ScanUploader.class);
+    PolicyEvaluationUtils evaluator = mock(PolicyEvaluationUtils.class);
+    PolicyAlertNotifier notifier = mock(PolicyAlertNotifier.class);
+    ScanTask task = new ScanTask(scanner, uploader, evaluator, notifier);
+
+    Application app = newApp("app-id");
+    Stage stage = new Stage(Stage.ID_RELEASE);
+    task.init(app, new File("any-file"), stage, true);
+
+    ScanReceipt scanReceipt = new ScanReceipt();
+    scanReceipt.setScanId("scan-id");
+    when(uploader.upload((File) any(), eq(app.getPublicId()), anyString())).thenReturn(scanReceipt);
+
+    List<PolicyAlert> oldAlerts = new ArrayList<>();
+    List<PolicyAlert> newAlerts = new ArrayList<>();
+    when(evaluator.findLastPrimaryPolicyAlerts(eq(app.getPublicId()), eq(app.getId()), match(stage))).thenReturn(
+        oldAlerts);
+
+    PolicyEvaluationResult evalResult = new PolicyEvaluationResult();
+    evalResult.setAlerts(newAlerts);
+    when(evaluator.evaluate(eq(app.getPublicId()), eq(scanReceipt.getScanId()), match(stage))).thenReturn(evalResult);
+
+    task.run();
+
+    verify(notifier).sendNotifications(eq(app.getPublicId()), eq(app.getId()), eq("scan-id"), match(stage),
+        same(newAlerts), same(oldAlerts));
   }
 }

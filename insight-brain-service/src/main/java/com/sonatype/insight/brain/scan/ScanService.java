@@ -20,6 +20,7 @@ import javax.inject.Provider;
 
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
@@ -64,13 +65,13 @@ class ScanService
    */
   @Authorize(permission = Permission.WRITE)
   public ScanTicket scanBinary(@AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String appPublicId,
-      InputStream is, String filename, Stage stage) throws IOException
+      InputStream is, String filename, Stage stage, boolean sendNotifications) throws IOException
   {
     if (!Stage.isValidStageTypeId(stage.getStageTypeId())) {
       throw new BadRequestException("Invalid CLM stage: " + stage.getStageTypeId());
     }
     File binFile = saveBinary(is, filename);
-    ScanTask task = newScanTask(appPublicId, binFile, stage);
+    ScanTask task = newScanTask(appPublicId, binFile, stage, sendNotifications);
     return task.getTicket();
   }
 
@@ -116,17 +117,13 @@ class ScanService
     return ext;
   }
 
-  private ScanTask newScanTask(String appPublicId, File binFile, Stage stage) {
-    validatePublicApplicationId(appPublicId);
+  private ScanTask newScanTask(String appPublicId, File binFile, Stage stage, boolean sendNotifications) {
+    Application app = new ApplicationDAO().getByPublicIdNotNull(appPublicId);
 
     ScanTask scanTask = scanTaskProvider.get();
-    scanTask.init(appPublicId, binFile, stage);
+    scanTask.init(app, binFile, stage, sendNotifications);
     scanTasks.put(scanTask.getId(), scanTask);
     executor.submit(scanTask);
     return scanTask;
-  }
-
-  private void validatePublicApplicationId(String appPublicId) {
-    new ApplicationDAO().getByPublicIdNotNull(appPublicId);
   }
 }

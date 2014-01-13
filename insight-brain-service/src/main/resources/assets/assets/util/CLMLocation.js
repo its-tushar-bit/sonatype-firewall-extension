@@ -99,8 +99,9 @@
           return baseUrl.get() + '/rest/application/services/summary/' + encodeURIComponent(applicationId) + '/' + scanId;
         },
         
-        getBundleUploadUrl : function (applicationId, stageId) {
-          return baseUrl.get() + '/rest/scan/' + encodeURIComponent(applicationId) + '?stageId=' + stageId + (!$window.FormData ? '&noFormData=true' : '');
+        getBundleUploadUrl : function (applicationId, stageId, sendNotifications) {
+          return baseUrl.get() + '/rest/scan/' + encodeURIComponent(applicationId) + '?stageId=' + stageId + 
+              '&sendNotifications=' + sendNotifications + (!$window.FormData ? '&noFormData=true' : '');
         },
         
         getEvaluationStatusUrl : function (applicationId, ticketId) {

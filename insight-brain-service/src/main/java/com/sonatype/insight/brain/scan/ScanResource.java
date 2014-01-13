@@ -55,11 +55,13 @@ public class ScanResource
       @FormDataParam("file") InputStream is, 
       @FormDataParam("file") FormDataContentDisposition fileDetail,
       @QueryParam("stageId") String stageId,
+      @QueryParam("sendNotifications") boolean sendNotifications,
       @QueryParam("noFormData") boolean noFormData) 
           throws Exception
   {
     try {
-      ScanTicket result = scanService.scanBinary(appPublicId, is, fileDetail.getFileName(), new Stage(stageId));
+      ScanTicket result = scanService.scanBinary(appPublicId, is, fileDetail.getFileName(), new Stage(stageId),
+          sendNotifications);
       if (noFormData) {
         return Response.ok(new ObjectMapper().writeValueAsString(result), ErrorResponse.CONTENT_TYPE).build();
       } else {

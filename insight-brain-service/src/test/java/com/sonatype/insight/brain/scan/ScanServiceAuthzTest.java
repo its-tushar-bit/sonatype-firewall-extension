@@ -29,19 +29,19 @@ public class ScanServiceAuthzTest
 
   @Test(expected = UnauthenticatedException.class)
   public void testScanBinary_Anon() throws Exception {
-    scanService.scanBinary(app.getPublicId(), getBundle("app01.zip"), "app.zip", new Stage(Stage.ID_BUILD));
+    scanService.scanBinary(app.getPublicId(), getBundle("app01.zip"), "app.zip", new Stage(Stage.ID_BUILD), false);
   }
 
   @Test(expected = UnauthorizedException.class)
   public void testScanBinary_Unauthorized() throws Exception {
     login();
-    scanService.scanBinary(app.getPublicId(), getBundle("app01.zip"), "app.zip", new Stage(Stage.ID_BUILD));
+    scanService.scanBinary(app.getPublicId(), getBundle("app01.zip"), "app.zip", new Stage(Stage.ID_BUILD), false);
   }
 
   @Test
   public void testScanBinary_Authorized() throws Exception {
     grantWritePermission(app.getId());
-    scanService.scanBinary(app.getPublicId(), getBundle("app01.zip"), "app.zip", new Stage(Stage.ID_BUILD));
+    scanService.scanBinary(app.getPublicId(), getBundle("app01.zip"), "app.zip", new Stage(Stage.ID_BUILD), false);
   }
 
   @Test(expected = UnauthenticatedException.class)

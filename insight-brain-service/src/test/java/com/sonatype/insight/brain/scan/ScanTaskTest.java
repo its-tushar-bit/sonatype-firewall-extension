@@ -139,7 +139,7 @@ public class ScanTaskTest
    * hence interrupt the app (reloading the page) and browser history.
    */
   @Test
-  public void successfulTaskHasTicketWithIdsForUiToRouteToReport() throws IOException {
+  public void successfulTaskHasTicketWithIdsForUiToRouteToReport() {
     task.init(app, bundleFile, stage, false);
     task.run();
 

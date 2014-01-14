@@ -103,7 +103,7 @@ public class ApplicationAdapterTest
     // Throw exception when ever the mock organization DAO getByIdNotNull is called
     when(mockOrganizationDAO.getByIdNotNull(organizationId)).thenThrow(new NotFoundException("Not Found"));
 
-    ApplicationDTO actualApplicationDTO = applicationAdapter.convert(application);
+    applicationAdapter.convert(application);
   }
 
   @Test

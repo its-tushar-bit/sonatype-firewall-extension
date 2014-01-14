@@ -15,6 +15,7 @@ import com.sonatype.insight.brain.policy.evaluator.PolicyAlertNotifier;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluationUtils;
 import com.sonatype.insight.brain.saas.ScanUploader;
 import com.sonatype.insight.brain.scan.ScanTask.State;
+import com.sonatype.insight.brain.service.InsightWork;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -42,7 +43,8 @@ public class ScanTaskStateTest
   ScanUploader uploader = mock(ScanUploader.class);
   PolicyEvaluationUtils evaluator = mock(PolicyEvaluationUtils.class);
   PolicyAlertNotifier notifier = mock(PolicyAlertNotifier.class);
-  ScanTask task = new ScanTask(scanner, uploader, evaluator, notifier);
+  InsightWork work = mock(InsightWork.class);
+  ScanTask task = new ScanTask(scanner, uploader, evaluator, notifier, work);
 
   TaskStateCapturer captureState = new TaskStateCapturer();
 
@@ -59,7 +61,7 @@ public class ScanTaskStateTest
 
   @Test
   public void scanning() throws IOException {
-    when(scanner.scan((File) any())).then(captureState);
+    when(scanner.scan((File) any(), (File) any())).then(captureState);
 
     task.run();
 
@@ -109,7 +111,7 @@ public class ScanTaskStateTest
   @Test
   @SuppressWarnings("unchecked")
   public void error() throws IOException {
-    when(scanner.scan((File) any())).thenThrow(RuntimeException.class);
+    when(scanner.scan((File) any(), (File) any())).thenThrow(RuntimeException.class);
 
     task.run();
 

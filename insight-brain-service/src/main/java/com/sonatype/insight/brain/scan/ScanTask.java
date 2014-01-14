@@ -20,7 +20,10 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.policy.evaluator.PolicyAlertNotifier;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluationUtils;
 import com.sonatype.insight.brain.saas.ScanUploader;
+import com.sonatype.insight.brain.service.InsightWork;
 
+import org.codehaus.plexus.util.FileUtils;
+import org.codehaus.plexus.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -75,6 +78,8 @@ class ScanTask
 
   private final PolicyAlertNotifier policyAlertNotifier;
 
+  private final InsightWork work;
+
   private final String id;
 
   private Application app;
@@ -93,12 +98,13 @@ class ScanTask
 
   @Inject
   public ScanTask(Scanner scanner, ScanUploader uploader, PolicyEvaluationUtils policyEvaluationUtils,
-      PolicyAlertNotifier policyAlertNotifier)
+      PolicyAlertNotifier policyAlertNotifier, InsightWork work)
   {
     this.scanner = scanner;
     this.uploader = uploader;
     this.policyEvaluationUtils = policyEvaluationUtils;
     this.policyAlertNotifier = policyAlertNotifier;
+    this.work = work;
     id = UUID.randomUUID().toString().replace("-", "");
   }
 
@@ -154,11 +160,14 @@ class ScanTask
 
       // create the scan data
       state = State.SCANNING_COMPONENTS;
-      File scanFile = scanner.scan(binFile);
+      File scanFile = scanner.scan(binFile, work.getScanDir(app.getId()));
 
       // upload the scan
       state = State.UPLOADING_SCAN;
       ScanReceipt scanReceipt = uploader.upload(scanFile, appPublicId, "rest/ci/scan");
+      if (StringUtils.isNotBlank(scanReceipt.getScanId())) {
+        FileUtils.rename(scanFile, work.getScanFile(app.getId(), scanReceipt.getScanId()));
+      }
 
       // wait for the report
       state = State.WAITING_FOR_REPORT;

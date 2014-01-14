@@ -62,10 +62,10 @@ class Scanner
   }
 
   /**
-   * Scans the specified target file and returns the resulting scan file.
+   * Scans the specified target file and returns the resulting scan file, using the given directory as parent.
    */
-  public File scan(File target) throws IOException {
-    File scanFile = File.createTempFile("clm-scan-", ".xml.gz");
+  public File scan(File target, File scanDir) throws IOException {
+    File scanFile = File.createTempFile("temp-", ".xml.gz", scanDir);
     log.debug("Saving scan of {} to {}", target, scanFile);
 
     try {

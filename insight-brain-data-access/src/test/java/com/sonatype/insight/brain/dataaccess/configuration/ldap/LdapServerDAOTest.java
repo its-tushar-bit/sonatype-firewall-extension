@@ -123,8 +123,7 @@ public class LdapServerDAOTest
 
   @Test
   public void testValidateNameInvalidChars_Insert() {
-    String[] invalidAlphaNumericNames = { "!", "@", "#", "$", "%", "^", "&", "*", "(", "_", "+" };
-    for (String name : invalidAlphaNumericNames) {
+    for (String name: INVALID_ALPHANUMERIC) {
       LdapServer config = createLdapServer(name);
       try {
         dao.insert(config);
@@ -139,8 +138,7 @@ public class LdapServerDAOTest
   @Test
   public void testValidateNameInvalidChars_Update() {
     LdapServer config = insertLdapServer("testValidateNameInvalidChars");
-    String[] invalidAlphaNumericNames = { "!", "@", "#", "$", "%", "^", "&", "*", "(", "_", "+" };
-    for (String name : invalidAlphaNumericNames) {
+    for (String name: INVALID_ALPHANUMERIC) {
       config.setName(name);
       try {
         dao.update(config);
@@ -154,9 +152,7 @@ public class LdapServerDAOTest
 
   @Test
   public void testValidateNameSpaces_Insert() {
-    String[] invalidSpacingNames = { " leading space", "trailing space ", "double  space",
-        "  starts with double space", "ends with double space  " };
-    for (String name : invalidSpacingNames) {
+    for (String name : INVALID_SPACING_NAMES) {
       try {
         insertLdapServer(name);
         fail("Expected InvalidNameException");
@@ -171,10 +167,7 @@ public class LdapServerDAOTest
   @Test
   public void testValidateNameSpaces_Update() {
     LdapServer config = insertLdapServer("testValidateNameSpaces");
-
-    String[] invalidSpacingNames = { " leading space", "trailing space ", "double  space",
-        "  starts with double space", "ends with double space  " };
-    for (String name : invalidSpacingNames) {
+    for (String name : INVALID_SPACING_NAMES) {
       config.setName(name);
       try {
         dao.update(config);

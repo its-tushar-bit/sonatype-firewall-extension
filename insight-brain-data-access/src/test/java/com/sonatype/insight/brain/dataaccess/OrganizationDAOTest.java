@@ -167,8 +167,7 @@ public class OrganizationDAOTest
 
   @Test
   public void testValidateNameInvalidChars_Insert() {
-    String[] invalidAlphaNumericNames = { "!", "@", "#", "$", "%", "^", "&", "*", "(", "_", "+" };
-    for (String name : invalidAlphaNumericNames) {
+    for (String name: INVALID_ALPHANUMERIC) {
       Organization organization = new Organization(name);
       try {
         dao.insert(organization);
@@ -183,8 +182,7 @@ public class OrganizationDAOTest
   @Test
   public void testValidateNameInvalidChars_Update() {
     organization = createOrganization("testValidateNameInvalidChars");
-    String[] invalidAlphaNumericNames = { "!", "@", "#", "$", "%", "^", "&", "*", "(", "_", "+" };
-    for (String name : invalidAlphaNumericNames) {
+    for (String name: INVALID_ALPHANUMERIC) {
       organization.setName(name);
       try {
         dao.update(organization);
@@ -198,9 +196,7 @@ public class OrganizationDAOTest
 
   @Test
   public void testValidateNameSpaces_Insert() {
-    String[] invalidSpacingNames = { " leading space", "trailing space ", "double  space",
-        "  starts with double space", "ends with double space  " };
-    for (String name : invalidSpacingNames) {
+    for (String name : INVALID_SPACING_NAMES) {
       try {
         createOrganization(name);
         fail("Expected InvalidNameException");
@@ -215,10 +211,7 @@ public class OrganizationDAOTest
   @Test
   public void testValidateNameSpaces_Update() {
     organization = createOrganization("testValidateNameSpaces");
-
-    String[] invalidSpacingNames = { " leading space", "trailing space ", "double  space",
-        "  starts with double space", "ends with double space  " };
-    for (String name : invalidSpacingNames) {
+    for (String name : INVALID_SPACING_NAMES) {
       organization.setName(name);
       try {
         dao.update(organization);

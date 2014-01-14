@@ -261,8 +261,7 @@ public class ApplicationDAOTest
 
   @Test
   public void testValidateNameInvalidChars_Insert() {
-    String[] invalidAlphaNumericNames = { "!", "@", "#", "$", "%", "^", "&", "*", "(", "_", "+" };
-    for (String name : invalidAlphaNumericNames) {
+    for (String name: INVALID_ALPHANUMERIC) {
       application.setName(name);
       try {
         applicationDAO.insert(application);
@@ -278,8 +277,7 @@ public class ApplicationDAOTest
   public void testValidateNameInvalidChars_Update() {
     application.setName("testValidateNameInvalidChars");
     applicationDAO.insert(application);
-    String[] invalidAlphaNumericNames = { "!", "@", "#", "$", "%", "^", "&", "*", "(", "_", "+" };
-    for (String name : invalidAlphaNumericNames) {
+    for (String name: INVALID_ALPHANUMERIC) {
       application.setName(name);
       try {
         applicationDAO.update(application);
@@ -293,9 +291,7 @@ public class ApplicationDAOTest
 
   @Test
   public void testValidateNameSpaces_Insert() {
-    String[] invalidSpacingNames = { " leading space", "trailing space ", "double  space",
-        "  starts with double space", "ends with double space  " };
-    for (String name : invalidSpacingNames) {
+    for (String name : INVALID_SPACING_NAMES) {
       application.setName(name);
       try {
         applicationDAO.insert(application);
@@ -313,9 +309,7 @@ public class ApplicationDAOTest
     application.setName("testValidateNameSpaces");
     applicationDAO.insert(application);
 
-    String[] invalidSpacingNames = { " leading space", "trailing space ", "double  space",
-        "  starts with double space", "ends with double space  " };
-    for (String name : invalidSpacingNames) {
+    for (String name : INVALID_SPACING_NAMES) {
       application.setName(name);
       try {
         applicationDAO.update(application);

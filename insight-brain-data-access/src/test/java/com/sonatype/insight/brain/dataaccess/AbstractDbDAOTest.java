@@ -25,6 +25,13 @@ public abstract class AbstractDbDAOTest
 
   protected Set<Organization> organizationsToDelete = new LinkedHashSet<Organization>();
 
+  public static final String[] INVALID_ALPHANUMERIC = { "!", "@", "#", "$", "%", "^", "&", "*", "(", "_", "+" };
+
+  public static final String[] INVALID_SPACING_NAMES = {
+      " leading space", "trailing space ", "double  space",
+      "  starts with double space", "ends with double space  "
+  };
+
   protected Organization createOrganization(String name) {
     Organization organization = new Organization(name);
     new OrganizationDAO().insert(organization);

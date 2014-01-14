@@ -120,8 +120,7 @@ public class TagDAOTest
   @Test
   public void testValidateNameInvalidChars_Insert() {
     Tag tag = new Tag(organization.getId(), "name", "description");
-    String[] invalidAlphaNumericNames = { "!", "@", "#", "$", "%", "^", "&", "*", "(", "_", "+" };
-    for (String name : invalidAlphaNumericNames) {
+    for (String name : INVALID_ALPHANUMERIC) {
       tag.setName(name);
       try {
         dao.insert(tag);
@@ -137,8 +136,7 @@ public class TagDAOTest
   public void testValidateNameInvalidChars_Update() {
     Tag tag = new Tag(organization.getId(), "name", "description");
     dao.insert(tag);
-    String[] invalidAlphaNumericNames = { "!", "@", "#", "$", "%", "^", "&", "*", "(", "_", "+" };
-    for (String name : invalidAlphaNumericNames) {
+    for (String name: INVALID_ALPHANUMERIC) {
       tag.setName(name);
       try {
         dao.update(tag);
@@ -153,9 +151,7 @@ public class TagDAOTest
   @Test
   public void testValidateNameSpaces_Insert() {
     Tag tag = new Tag(organization.getId(), "name", "description");
-    String[] invalidSpacingNames = { " leading space", "trailing space ", "double  space",
-        "  starts with double space", "ends with double space  " };
-    for (String name : invalidSpacingNames) {
+    for (String name : INVALID_SPACING_NAMES) {
       tag.setName(name);
       try {
         dao.insert(tag);
@@ -173,9 +169,7 @@ public class TagDAOTest
     Tag tag = new Tag(organization.getId(), "name", "description");
     dao.insert(tag);
 
-    String[] invalidSpacingNames = { " leading space", "trailing space ", "double  space",
-        "  starts with double space", "ends with double space  " };
-    for (String name : invalidSpacingNames) {
+    for (String name : INVALID_SPACING_NAMES) {
       tag.setName(name);
       try {
         dao.update(tag);

@@ -176,8 +176,7 @@ public class UserDAOTest
 
   @Test
   public void testValidateUsernameInvalidChars_Insert() {
-    String[] invalidAlphaNumericNames = { "!", "@", "#", "$", "%", "^", "&", "*", "(", "_", "+" };
-    for (String username : invalidAlphaNumericNames) {
+    for (String username : INVALID_ALPHANUMERIC) {
       try {
         createUser(username);
         fail("Expected InvalidNameException");
@@ -191,8 +190,7 @@ public class UserDAOTest
   @Test
   public void testValidateUsernameInvalidChars_Update() {
     User user = createUser("testValidateUsernameInvalidChars");
-    String[] invalidAlphaNumericNames = { "!", "@", "#", "$", "%", "^", "&", "*", "(", "_", "+" };
-    for (String username : invalidAlphaNumericNames) {
+    for (String username : INVALID_ALPHANUMERIC) {
       user.setUsername(username);
       try {
         new UserDAO().update(user);

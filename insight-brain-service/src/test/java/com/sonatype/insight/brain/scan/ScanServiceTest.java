@@ -11,25 +11,36 @@ import java.io.InputStream;
 
 import javax.inject.Inject;
 
+import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.TemporaryEntity;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.report.ReportDownloader;
+import com.sonatype.insight.brain.saas.ScanUploader;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
-import static org.hamcrest.Matchers.nullValue;
-
+import com.google.inject.Binder;
+import org.codehaus.plexus.util.FileUtils;
 import org.eclipse.sisu.launch.InjectedTest;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.endsWith;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyInt;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class ScanServiceTest
     extends InjectedTest
@@ -40,15 +51,40 @@ public class ScanServiceTest
   @Inject
   private ScanService scanService;
 
+  private ScanUploader scanUploader;
+
+  private ReportDownloader reportDownloader;
+
   private Application app;
 
   private InputStream getBundle(String name) {
     return getClass().getResourceAsStream("/ScannerTest/" + name);
   }
 
+  @Override
+  public void configure(Binder binder) {
+    scanUploader = mock(ScanUploader.class);
+    binder.bind(ScanUploader.class).toInstance(scanUploader);
+    reportDownloader = mock(ReportDownloader.class);
+    binder.bind(ReportDownloader.class).toInstance(reportDownloader);
+  }
+
   @Before
-  public void init() {
+  public void init() throws Exception {
     app = tempEntity.newApplication(tempEntity.newOrganization().getId());
+    ScanReceipt receipt = new ScanReceipt();
+    receipt.setScanId("scan-id");
+    when(scanUploader.upload((File) any(), eq(app.getPublicId()), (String) any())).thenReturn(receipt);
+    when(reportDownloader.downloadReport(eq(receipt.getScanId()), (File) any(), anyInt(), anyInt())).then(
+        new Answer<Boolean>()
+        {
+          @Override
+          public Boolean answer(InvocationOnMock invocation) throws Throwable {
+            File reportFile = (File) invocation.getArguments()[1];
+            FileUtils.copyURLToFile(getClass().getResource("/ScannerTest/report.zip"), reportFile);
+            return true;
+          }
+        });
   }
 
   @Test

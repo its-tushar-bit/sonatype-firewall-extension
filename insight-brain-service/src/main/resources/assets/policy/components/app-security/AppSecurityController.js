@@ -236,7 +236,9 @@
         setResults : '&',
         queryString : '=',
         groups : '@',
-        requestActive : '='
+        requestActive : '=',
+        type : '@',
+        typeId : '@'
       },
       template : "<form name='userSearch' style='margin:0px'>" +
           "<div class='input-prepend'>" +
@@ -246,6 +248,7 @@
             "</span><input placeholder='Find User' type='text' name='filter' ng-model='queryString' focus-input='true'>" +
           "</div>" +
         "</form>",
+      priority : 99,
       link : function ($scope) {
         var filterTimeout = null,
             lastResults = null;
@@ -270,7 +273,7 @@
           filterTimeout = $timeout(function () {
             $scope.requestActive++;
 
-            $http.get(clmAppLocations.getFindUsersUrl(), {
+            $http.get(clmAppLocations.getFindUsersUrl($scope.type, $scope.typeId), {
               params : {
                 q : newVal,
                 groups : $scope.groups

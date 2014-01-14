@@ -483,7 +483,7 @@ describe('ContactController', function () {
   beforeEach(inject(function ($rootScope, $controller) {
     scope = $rootScope.$new();
     scope.$close = jasmine.createSpy('closeSpy');
-    $controller('ContactController', { $scope: scope });
+    $controller('ContactController', { $scope: scope, organizationId : 'foo' });
   }));
   afterEach(function () {
     scope.$destroy();

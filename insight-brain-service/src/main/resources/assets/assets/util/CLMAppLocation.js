@@ -100,8 +100,14 @@
                   + (roleId ? ('/role/' + roleId) : '');
         },
 
-        getFindUsersUrl: function() {
-          return baseUrl.get() + '/rest/user/' + getServicePathWithId() + '/query';
+        getFindUsersUrl: function(type, typeId) {
+          var servicePath = null;
+          if (type && typeId) {
+            servicePath = window.encodeURIComponent(type) + '/' + window.encodeURIComponent(typeId);
+          } else {
+            servicePath = getServicePathWithId();
+          }
+          return baseUrl.get() + '/rest/user/' + servicePath + '/query';
         },
 
         getImportPolicyUrl : function () {

@@ -172,13 +172,19 @@
 		</div>
 	</script>
 	<script type='text/ng-template' id='contact-modal'>
-	<div ng-controller='ContactController' id='contact-modal-dialog'>
+	<div id='contact-modal-dialog'>
 		<div class='modal-header'>
 			<h3>Contact User</h3>
 		</div>
 		<div class='modal-body'>
 			<div style='width:75%;margin:auto'>
-				<div app-user-search set-results='setQueryResults($members, $error)' query-string='queryString' request-active='requestActive' groups='false'></div>
+				<div app-user-search
+					set-results='setQueryResults($members, $error)'
+					query-string='queryString'
+					request-active='requestActive'
+					type='organization'
+					type-id='{{organizationId}}'
+					groups='false'></div>
 				<div class='selectList-large' style='width:100%'>
 					<h5>Available</h5>
 					<div>
@@ -305,12 +311,16 @@
 					</div>
 					<div>
 						<span>Contact:</span>
-						<span id='contact-field'
+						<span ng-if='(ao.selected.organizationId || ao.selected.id)'
+							id='contact-field'
 							class='editable'
 							ng-class='{ "editable-empty" : !ao.selected.contact, "error" : ao.selected.contact.error }'
 							ng-click='openContact()'>{{ao.selected.contact.displayName || ao.selected.contact.internalName || "None"}}</span>
-						<span class='error'
-							ng-if='ao.selected.contact.error'> - {{ao.selected.contact.error}}</span>
+						<span ng-if='!(ao.selected.organizationId || ao.selected.id)'
+							class='editable-empty editable'
+							tooltip='Select an organization'>None</span>
+						<span ng-if='ao.selected.contact.error'
+							class='error'> - {{ao.selected.contact.error}}</span>
 					</div>
 				</div>
 				<div ng-switch='ao.selected && !ao.selected.id || isFormDirty() || aoEditorName.$visible'>

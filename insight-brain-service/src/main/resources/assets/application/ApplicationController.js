@@ -452,7 +452,11 @@
           $modal.open({
             backdrop : 'static',
             keyboard : true,
-            templateUrl : 'contact-modal'
+            templateUrl : 'contact-modal',
+            controller : 'ContactController',
+            resolve : {
+              organizationId : function () { return selectedApplication.organizationId; }
+            }
           }).result.then(function (contact) {
             selectedApplication.contact = contact;
           }, angular.noop);
@@ -494,8 +498,9 @@
     };
   });
 
-  applicationModule.controller('ContactController', ['$scope', function ($scope) {
+  applicationModule.controller('ContactController', ['$scope', 'organizationId', function ($scope, organizationId) {
     $scope.alerts = [];
+    $scope.organizationId = organizationId;
 
     $scope.setQueryResults = function (members, error) {
       $scope.queryResults = members;

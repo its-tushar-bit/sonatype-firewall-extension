@@ -432,7 +432,7 @@
           }, angular.noop);
         };
 
-        $scope.openEvalute = function () {
+        $scope.openEvaluate = function () {
           $modal.open({
             backdrop : 'static',
             keyboard : false,

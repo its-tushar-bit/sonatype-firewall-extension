@@ -255,7 +255,9 @@
         if ($scope.aoEditor.$invalid) {
           return false;
         }
-        $scope.aoEditorName.$save();
+        if ($scope.aoEditorName.$visible) {
+          $scope.aoEditorName.$save();
+        }
 
         if (window.FormData) {
           var icon = angular.element('#file')[0];

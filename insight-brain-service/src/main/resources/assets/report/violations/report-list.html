@@ -53,7 +53,12 @@
 							</div>
 						</div>
 					</td>
-					<td>{{application.contact.displayName || application.contact.internalName}}</td>
+					<td>
+						<span ng-if='application.contact.error'>
+							<i class='icon-warning-sign' tooltip='{{application.contact.error}}' tooltip-placement='left'></i>
+						</span>
+						<span>{{application.contact.displayName || application.contact.internalName}}</span>
+					</td>
 				</tr>
 			</table>
 		</div>

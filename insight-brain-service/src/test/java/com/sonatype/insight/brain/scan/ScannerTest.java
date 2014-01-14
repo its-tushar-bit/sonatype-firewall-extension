@@ -74,7 +74,7 @@ public class ScannerTest
   @Test
   public void testScan() throws Exception {
     File appFile = new File("src/test/resources/ScannerTest/app01.zip");
-    File scanFile = scanner.scan(appFile, tmpDir.getRoot());
+    File scanFile = scanner.scan(appFile, new File(tmpDir.getRoot(), "not-yet-existent"));
     assertThat(scanFile, is(notNullValue()));
     assertThat(scanFile.isFile(), is(true));
 

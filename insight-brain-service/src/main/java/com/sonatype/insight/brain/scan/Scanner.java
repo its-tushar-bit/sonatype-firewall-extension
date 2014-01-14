@@ -65,6 +65,7 @@ class Scanner
    * Scans the specified target file and returns the resulting scan file, using the given directory as parent.
    */
   public File scan(File target, File scanDir) throws IOException {
+    scanDir.mkdirs();
     File scanFile = File.createTempFile("temp-", ".xml.gz", scanDir);
     log.debug("Saving scan of {} to {}", target, scanFile);
 

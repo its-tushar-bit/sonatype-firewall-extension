@@ -17,6 +17,8 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
+import static org.hamcrest.Matchers.nullValue;
+
 import org.eclipse.sisu.launch.InjectedTest;
 import org.junit.Before;
 import org.junit.Rule;
@@ -99,6 +101,9 @@ public class ScanServiceTest
     while (statusTicket.currentStep != statusTicket.totalSteps) {
       statusTicket = scanService.getTicket(app.getPublicId(), originalTicket.ticketId);
     }
+
+    assertThat(statusTicket, is(notNullValue()));
+    assertThat(statusTicket.error, is(nullValue()));
   }
 
   @Test

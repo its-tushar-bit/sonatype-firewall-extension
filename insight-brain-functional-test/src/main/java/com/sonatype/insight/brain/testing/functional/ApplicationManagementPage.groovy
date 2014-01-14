@@ -13,5 +13,6 @@ class ApplicationManagementPage extends BasePage {
 
   static content = {
     newApplicationButton(wait: true, to: ApplicationPage) { $('a', text:contains('New Application')) }
+    application { name -> $('ul.nav-list a', text:name) }
   }
 }

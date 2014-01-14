@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.testing.functional
 
+import com.sonatype.insight.brain.testing.functional.modules.EditorToolsModule
 import com.sonatype.insight.brain.testing.functional.modules.ContextTabsModule
 import com.sonatype.insight.brain.testing.functional.modules.PolicyMonitoringModule
 
@@ -26,13 +27,12 @@ class ApplicationPage extends ApplicationManagementPage {
     applicationCancelButton(required: false) { $('button', text:'Cancel') }
     securityTabButton(required: false) { $('div', 'on': 'selectedApplication.id').find('a', text: 'SECURITY') }
     securityTab(required: false) { $('#security') }
-    deleteButton(required: false) { $('a', 'title': 'Remove Application') }
-    deleteButtonAccept(required: false) { $('button', 'ng-click':'deleteApplication();') }
     developerRole(required: false) { $('p', text:'Developer' ) }
     ownerRole(required: false) { $('p', text:'Owner' ) }
 
     policyMonitoring { module PolicyMonitoringModule }
 
     tabs { module ContextTabsModule }
+    tools { module EditorToolsModule }
   }
 }

@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.testing.functional
 
 import com.sonatype.insight.brain.testing.functional.modules.ContextTabsModule
+import com.sonatype.insight.brain.testing.functional.modules.EditorToolsModule
 import com.sonatype.insight.brain.testing.functional.modules.PolicyMonitoringModule
 
 
@@ -27,5 +28,6 @@ class OrganizationPage extends OrganizationManagementPage {
     policyMonitoring { module PolicyMonitoringModule }
 
     tabs(required: false) { module ContextTabsModule }
+    tools(required: false) { module EditorToolsModule }
   }
 }

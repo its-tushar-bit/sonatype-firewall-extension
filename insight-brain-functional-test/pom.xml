@@ -172,6 +172,11 @@
       <classifier>tests</classifier>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>com.sonatype.insight.scan</groupId>
+      <artifactId>insight-mock-server</artifactId>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 
   <profiles>

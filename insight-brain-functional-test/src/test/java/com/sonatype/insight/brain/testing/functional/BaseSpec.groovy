@@ -9,6 +9,7 @@ import com.sonatype.insight.brain.dataaccess.ApplicationDAO
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO
 import com.sonatype.insight.brain.service.InsightConfig
 import com.sonatype.insight.brain.service.TestInsightBrainService
+import com.sonatype.insight.brain.testing.functional.utils.InsightMockServerRule
 
 import com.google.common.io.Resources
 import com.yammer.dropwizard.testing.junit.DropwizardServiceRule
@@ -21,15 +22,17 @@ abstract class BaseSpec extends GebReportingSpec {
   static {
     System.setProperty("javax.net.ssl.trustStore", "src/test/resources/ssl/server-store");
   }
+  @Shared
+  @ClassRule
+  TestRule serviceRule = new DropwizardServiceRule<InsightConfig>(TestInsightBrainService.class,Resources.getResource('config-test.yml').getPath())
 
   @Shared
   @ClassRule
-  TestRule serviceRule = new DropwizardServiceRule<InsightConfig>(TestInsightBrainService.class,
-  Resources.getResource('config-test.yml').getPath())
-
+  TestRule saasRule = new InsightMockServerRule();
+  
   static OrganizationDAO organizationDAO = new OrganizationDAO()
   static ApplicationDAO  applicationDAO = new ApplicationDAO()
-
+  
   def setupSpec() {
     // Use port as reported by service under test since it's not known until runtime.
     System.setProperty("geb.build.baseUrl", "http://localhost:" + serviceRule.getLocalPort() + "/")

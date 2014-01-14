@@ -222,14 +222,14 @@
 	<div load-error='error' reload='doLoad()'></div>
 	<div class='fade' ng-class='{ in : ao.selected != null }'>
 		<div clm-alerts='alerts'></div>
-		<div style="float:right; margin:10px;" class='btn-group'>
-			<a class="btn btn-mini" title="Import Policies" ng-click="openImport()" ng-if='ao.getId()'>
+		<div id="editor-toolbar" style="float:right; margin:10px;" class='btn-group'>
+			<a id="policy-import-button" class="btn btn-mini" title="Import Policies" ng-click="openImport()" ng-if='ao.getId()'>
 				<img src='../assets/img/icon-import.png' alt='Import Policy' style='width:16px;height:16px;padding:6px 0px'>
 			</a>
-			<a class="btn btn-mini" title="Evaluate an Application" ng-click="openEvalute()" ng-if='ao.getId()'>
+			<a id="app-evaluate-button" class="btn btn-mini" title="Evaluate an Application" ng-click="openEvalute()" ng-if='ao.getId()'>
 				<img src='../assets/img/icon-add-bundle.png' alt='Evaluate an Application' style='width:16px;height:16px;padding:6px 0px'>
 			</a>
-			<a class="btn btn-mini" title="Remove {{ao.typeName}}" ng-click="confirmDelete()" ng-if='ao.getId()'>
+			<a id="remove-app-org-button" class="btn btn-mini" title="Remove {{ao.typeName}}" ng-click="confirmDelete()" ng-if='ao.getId()'>
 				<i class='glyphicons-sonatype bin'></i>
 			</a>
 		</div>

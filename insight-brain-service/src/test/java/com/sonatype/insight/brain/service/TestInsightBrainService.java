@@ -208,7 +208,9 @@ public class TestInsightBrainService
       config.getHttpConfiguration().setSslConfiguration(sslConfiguration);
     }
     config.setSonatypeWork(getWorkDir().getPath());
-    config.setSaasAddress(testSaasAddress);
+    if (testSaasAddress != null) {
+      config.setSaasAddress(testSaasAddress);
+    }
     config.setBaseUrl(testBaseUrl);
 
     if (testProxyConfig != null) {

@@ -14,8 +14,21 @@
       editableOptions.theme = 'bs2';
     }]);
 
-    module.controller('EvaluateBundleController', ['$scope', '$http', '$timeout', '$window', 'Messages', 'CLMLocations', 'selectedApplication', 'ApplicationStore', 'ActionStore', '$q', '$location', function ($scope, $http, $timeout, $window, messages, CLMLocations, selectedApplication, ApplicationStore, ActionStore, $q, $location) {
-    var fileElement = null;
+    module.controller('EvaluateBundleController', [
+      '$scope',
+      '$http',
+      '$timeout',
+      '$window',
+      'Messages',
+      'CLMLocations',
+      'selectedApplication',
+      'ApplicationStore',
+      'ActionStore',
+      '$q',
+      '$location',
+      function($scope, $http, $timeout, $window, messages, CLMLocations, selectedApplication, ApplicationStore,
+              ActionStore, $q, $location) {
+        var fileElement = null;
     $scope.currentState = 'init';
         
     function setError(message) {

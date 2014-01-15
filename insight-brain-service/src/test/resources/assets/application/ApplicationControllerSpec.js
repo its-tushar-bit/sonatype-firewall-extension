@@ -187,7 +187,7 @@ describe('ApplicationEditorController', function() {
       httpBackend.expectGET(CLMLocations.getActionStageUrl()).respond(MockData.getActionStageData());
 
       var applicationSummaryData = ApplicationMockData.getApplicationSummaryData();
-      httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getApplicationSummaryUrl(mockApplication.publicId))).respond(applicationSummaryData);
+      httpBackend.expectGET(CLMLocations.getApplicationSummaryUrl(mockApplication.publicId)).respond(applicationSummaryData);
 
       parentScope = $rootScope.$new();
       scope = parentScope.$new();
@@ -351,6 +351,23 @@ describe('ApplicationEditorController', function() {
     it('shows report summary.', function() {
       expect(scope.state.actionStageList.length).toEqual(MockData.getActionStageData().length);
     });
+    
+    it('report summary refreshed on event.', inject(function(CLMLocations) {
+      httpBackend.expectGET(CLMLocations.getApplicationSummaryUrl(mockApplication.publicId)).respond(ApplicationMockData.getApplicationSummaryData('build'));
+      scope.$broadcast('refreshSummary', mockApplication.publicId);
+      httpBackend.flush();
+      expect(scope.applicationSummary[0].policyEvaluations['release']).toBeUndefined();
+      expect(scope.applicationSummary[0].policyEvaluationsResults['release']).toBeUndefined();
+      expect(scope.applicationSummary[0].policyEvaluations['build']).toBeDefined();
+      expect(scope.applicationSummary[0].policyEvaluationsResults['build']).toBeDefined();
+      httpBackend.expectGET(CLMLocations.getApplicationSummaryUrl(mockApplication.publicId)).respond(ApplicationMockData.getApplicationSummaryData('release'));
+      scope.$broadcast('refreshSummary', mockApplication.publicId);
+      httpBackend.flush();
+      expect(scope.applicationSummary[0].policyEvaluations['build']).toBeUndefined();
+      expect(scope.applicationSummary[0].policyEvaluationsResults['build']).toBeUndefined();
+      expect(scope.applicationSummary[0].policyEvaluations['release']).toBeDefined();
+      expect(scope.applicationSummary[0].policyEvaluationsResults['release']).toBeDefined();
+    }));
 
     it('reevaluates policy', inject(function($httpBackend, CLMLocations) {
       var policyResponse = ApplicationMockData.getPolicyEvaluationData();

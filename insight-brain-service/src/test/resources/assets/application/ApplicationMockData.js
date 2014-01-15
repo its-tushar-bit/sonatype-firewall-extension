@@ -9,34 +9,36 @@ ApplicationMockData = {
       }
     ];
   },
-  getApplicationSummaryData: function() {
-    return [
-      {
-        "id": "78c1d44c07584e57945f04890c672e82",
-        "name": "applicationName",
-        "publicId": "bom1-12345678",
-        "organizationId": "organizationId",
-        "policyEvaluations": {
-          "build": {
-            "stage": {
-              "stageTypeId": "build"
-            },
-            "scanId": "2e12e6a9811347a78031b8969b604c49",
-            "time": 1371487786570,
-            "user": "anonymous"
-          }
-        },
-        "policyEvaluationsResults": {
-          "build": {
-            "alerts": [],
-            "affectedComponentCount": 0,
-            "criticalComponentCount": 0,
-            "severeComponentCount": 0,
-            "moderateComponentCount": 0
-          }
-        }
-      }
-    ];
+  getApplicationSummaryData: function(stage) {
+    var result = {
+      "id": "78c1d44c07584e57945f04890c672e82",
+      "name": "applicationName",
+      "publicId": "bom1-12345678",
+      "organizationId": "organizationId",
+      "policyEvaluations": {},
+      "policyEvaluationsResults": {}
+    };
+    
+    if (!stage) {
+      stage = 'build';
+    }
+    
+    result.policyEvaluations[stage] = {
+      "stage": {
+        "stageTypeId": stage
+      },
+      "scanId": "2e12e6a9811347a78031b8969b604c49",
+      "time": 1371487786570,
+      "user": "anonymous"
+    };
+    result.policyEvaluationsResults[stage] = {
+      "alerts": [],
+      "affectedComponentCount": 0,
+      "criticalComponentCount": 0,
+      "severeComponentCount": 0,
+      "moderateComponentCount": 0
+    };
+    return [result];
   },
   getApplicablePolicies: function() {
     return {

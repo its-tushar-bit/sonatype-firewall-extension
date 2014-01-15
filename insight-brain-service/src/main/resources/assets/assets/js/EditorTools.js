@@ -30,7 +30,7 @@
               ActionStore, $q, $location) {
         var fileElement = null;
     $scope.currentState = 'init';
-        
+
     function setError(message) {
       $scope.requestActive = false;
       //there are certain cases where the browser will not give us an error
@@ -41,7 +41,7 @@
         $scope.error = 'Error uploading, please check the file.';
       }
     }
-    
+
     function getApplicationName(publicId) {
       for ( var i = 0 ; i < $scope.applications.length ; i++ ) {
         if ($scope.applications[i].publicId === publicId) {
@@ -49,17 +49,17 @@
         }
       }
     }
-    
+
     function parseFilename(filename) {
       var idx = Math.max(filename.lastIndexOf('/'), filename.lastIndexOf('\\'));
-      
+
       if (idx > -1) {
         return filename.substring(idx + 1);
       }
-      
+
       return filename;
     }
-    
+
     function doLoad() {
       $scope.state = 'loading';
       $q.all([ActionStore.get(),ApplicationStore.get()]).then(function(results) {
@@ -81,7 +81,7 @@
         setError(messages.getHttpErrorMessage(error));
       });  
     }    
-    
+
     function doPoll() {
       if (!$scope.$$destroyed) {
         $http.get($scope.pollingUrl).then(function(response){
@@ -96,19 +96,19 @@
         });
       }
     }
-    
+
     function getBundleUploadUrl() {
       return CLMLocations.getBundleUploadUrl($scope.bundle.applicationPublicId, $scope.bundle.stage, $scope.bundle.notify);
     }
-    
+
     $scope.fileChanged = function(file) {
       fileElement = angular.element(file)[0];
     };
-    
+
     $scope.getProgressWidth = function () {
       return $scope.evaluationStatus ? ($scope.evaluationStatus.currentStep / $scope.evaluationStatus.totalSteps * 100) : '0';
     };
-    
+
     $scope.doSubmit = function () {
       $scope.state = 'polling';
       $scope.evaluationStatus = {currentStep: 1, totalSteps: 1, currentStepName: 'Uploading'};
@@ -116,7 +116,7 @@
       $scope.bundle.filename = parseFilename(fileElement.value);
       $scope.bundle.applicationName = getApplicationName($scope.bundle.applicationPublicId);
       $scope.pollingUrl = null;
-      
+
       if ($window.FormData) {  
         var form = new FormData();
         form.append('file', fileElement.files[0]);
@@ -138,15 +138,15 @@
         $('form[name=evaluateBundle]').find('input[type=submit]').trigger('click');
       }
     };
-    
+
     $scope.getReportUrl = function() {
       return 'reports.html#/reports/' + encodeURIComponent($scope.evaluationStatus.applicationPublicId) + '/' + $scope.evaluationStatus.scanId;
     };
-    
+
     $scope.updateFormActionUrl = function() {
       $scope.evaluateBundleAction = getBundleUploadUrl();
     };
-    
+
     $scope.isFormValid = function() {
       return fileElement && fileElement.value && $scope.bundle.applicationPublicId && $scope.bundle.stage && $scope.bundle.notify;
     };
@@ -162,7 +162,7 @@
       catch(e) {
         response = content;
       }
-      
+
       if (angular.isString(response)) {
         $scope.state = 'ready';
         setError(response);
@@ -172,7 +172,7 @@
         doPoll();
       }
     };
-    
+
     doLoad();
   }]);
 
@@ -426,7 +426,7 @@
               if (icon.files.length > 0) {
                 formData.append('file', icon.files[0]);
               }
-              
+
               //using jquery for this call to add parameters not supported in angular
               //there is no means to not process the form data it seems, so using jquery
               //to disabled the data processing (otherwise angular will try to upload json

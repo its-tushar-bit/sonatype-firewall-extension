@@ -67,4 +67,26 @@ public class ScanTaskRepositoryTest
     catch (NotFoundException expected) {
     }
   }
+
+  @Test
+  public void obsoleteTaskGetsPurged() {
+    ScanTask task = mock(ScanTask.class);
+    when(provider.get()).thenReturn(task);
+    when(task.getId()).thenReturn("task-0");
+    when(task.isObsolete()).thenReturn(true);
+    repo.newScanTask(null, null, null, false);
+
+    task = mock(ScanTask.class);
+    when(provider.get()).thenReturn(task);
+    when(task.getId()).thenReturn("task-1");
+    repo.newScanTask(null, null, null, false);
+
+    assertThat(repo.getByIdNotNull("task-1"), is(notNullValue()));
+    try {
+      repo.getByIdNotNull("task-0");
+      fail("Task should have been purged from storage");
+    }
+    catch (NotFoundException expected) {
+    }
+  }
 }

@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.scan;
 import java.io.File;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -99,6 +100,8 @@ class ScanTask
 
   private volatile String scanId;
 
+  private volatile long touched;
+
   @Inject
   public ScanTask(Scanner scanner, ScanUploader uploader, PolicyEvaluationUtils policyEvaluationUtils,
       PolicyAlertNotifier policyAlertNotifier, InsightWork work, FileCleaner fileCleaner)
@@ -147,11 +150,17 @@ class ScanTask
           + errorId + " - Access CLM Log for details.";
     }
 
+    touched = System.currentTimeMillis();
+
     return ticket;
   }
 
   public Throwable getError() {
     return error;
+  }
+
+  public boolean isObsolete() {
+    return System.currentTimeMillis() - touched > TimeUnit.MINUTES.toMillis(30);
   }
 
   @Override

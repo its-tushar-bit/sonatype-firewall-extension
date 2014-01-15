@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.scan;
 
 import java.io.File;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -36,6 +37,8 @@ public class ScanTaskRepository
 
   private final ThreadPoolExecutor executor;
 
+  private volatile long lastPurge;
+
   @Inject
   public ScanTaskRepository(Provider<ScanTask> scanTaskProvider) {
     this.scanTaskProvider = scanTaskProvider;
@@ -60,6 +63,8 @@ public class ScanTaskRepository
    * @throws NotFoundException if there is no ticket for the given taskId
    */
   public ScanTask getByIdNotNull(String id) throws NotFoundException {
+    purgeObsoleteTasks();
+
     ScanTask task = scanTasks.get(id);
 
     if (task == null) {
@@ -74,5 +79,19 @@ public class ScanTaskRepository
    */
   public void remove(String ticketId) {
     scanTasks.remove(ticketId);
+  }
+
+  private void purgeObsoleteTasks() {
+    long now = System.currentTimeMillis();
+    if (now - lastPurge < TimeUnit.SECONDS.toMillis(10)) {
+      return;
+    }
+    lastPurge = now;
+    for (Iterator<ScanTask> it = scanTasks.values().iterator(); it.hasNext();) {
+      ScanTask task = it.next();
+      if (task.isObsolete()) {
+        it.remove();
+      }
+    }
   }
 }

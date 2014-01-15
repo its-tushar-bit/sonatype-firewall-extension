@@ -180,15 +180,15 @@ extends BaseSpec {
     resetUser.click()
 
     then: 'we are presented with a confirmation dialog'
-    waitFor { confirmResetModal.displayed }
+    waitFor { resetModal.modal.displayed }
 
     when: 'we confirm reset'
-    confirmReset.click()
+    resetModal.confirm.click()
 
     then: 'we are presented with the new password'
     waitFor { newPasswordField.displayed }
     def newPassword = newPasswordField.value();
-    okReset.click()
+    resetModal.ok.click()
     waitFor { !newPasswordField.displayed }
 
     when: 'user logs in with new password'
@@ -217,10 +217,10 @@ extends BaseSpec {
     deleteUser.click()
 
     then: 'we are presented with a confirmation dialog'
-    waitFor { confirmDeleteModal.displayed }
+    waitFor { deleteModal.modal.displayed }
 
     when: 'we confirm deletion'
-    confirmDelete.click()
+    deleteModal.confirm.click()
 
     then: 'the user is deleted'
     headers.size() == 1

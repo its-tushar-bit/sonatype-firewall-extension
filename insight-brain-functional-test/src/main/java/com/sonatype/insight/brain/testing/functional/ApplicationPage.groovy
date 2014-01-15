@@ -29,10 +29,29 @@ class ApplicationPage extends ApplicationManagementPage {
     securityTab(required: false) { $('#security') }
     developerRole(required: false) { $('p', text:'Developer' ) }
     ownerRole(required: false) { $('p', text:'Owner' ) }
+    applicationSaveButton(required: false) { $('button', text: 'Save') }
+    applicationCancelButton(required: false) { $('button', text: 'Cancel') }
+    deleteButton(required: false) { $('a', 'title': 'Remove Application') }
+    deleteButtonAccept(required: false) { $('button', 'ng-click': 'deleteApplication();') }
+    developerRole(required: false) { $('p', text: 'Developer') }
+    ownerRole(required: false) { $('p', text: 'Owner') }
 
     policyMonitoring { module PolicyMonitoringModule }
 
     tabs { module ContextTabsModule }
     tools { module EditorToolsModule }
+  }
+
+  void editApp(name, id, orgName) {
+    applicationName.click()
+    waitFor { applicationNameField.displayed }
+    applicationNameField = name
+    applicationId.click()
+    waitFor { applicationIdField.displayed }
+    applicationIdField = id
+    applicationOrgField.click()
+    waitFor { applicationOrgName(orgName).displayed }
+    applicationOrgName(orgName).click()
+    applicationSaveButton.click()
   }
 }

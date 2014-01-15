@@ -6,6 +6,7 @@
 
 package com.sonatype.insight.brain.testing.functional
 
+import com.sonatype.insight.brain.testing.functional.modules.ModalModule
 import com.sonatype.insight.brain.testing.functional.modules.ValidationModule
 
 
@@ -54,16 +55,9 @@ class UserManagementPage
     deleteUserButton(required: false) { index -> header(index).parent().find('button', 'ng-click': 'removeClick(user)') }
     resetUserButton(required: false) { index -> header(index).parent().find('button', 'ng-click': 'resetPasswordClick(user)') }
 
-    modal(required: false) { $('div.modal') }
-    confirmDeleteModal(required: false) { modal.has('div.modal-header', text: 'Delete User') }
-    confirmDelete(required: false) { confirmDeleteModal.find('button', text: 'Delete') }
-    cancelDelete(required: false) { confirmDeleteModal.find('button', text: 'Cancel') }
-    
-    confirmResetModal(required: false) { modal.has('div.modal-header').has('h3', text: 'Reset Password') }
-    confirmReset(required: false) { confirmResetModal.find('button', text: 'Reset') }
-    cancelReset(required: false) { confirmResetModal.find('button', text: 'Cancel') }
-    okReset(required: false) { confirmResetModal.find('button', text: 'OK') }
-    
+    deleteModal { module ModalModule, title: 'Delete User'}
+
+    resetModal { module ModalModule, title: 'Reset Password', confirmText: 'Reset'}
     newPasswordField(required: false){$('#generatedPassword') }
 
     summarySection { index -> $('div.accordion-inner', index) }

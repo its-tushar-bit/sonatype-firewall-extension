@@ -1,0 +1,60 @@
+<div id='tags'>
+  <div class="content-section">
+    <div load-error='error' reload='doLoad()'></div>
+    <div style='margin:25px' ng-show='tags == null && !error'>
+      <h5><i class='icon-time'></i> Loading...</h5>
+    </div>
+    <div ng-show='!error && tags != null'>
+      <div class="content-header">
+        <h4>
+          <span>{{ ao.selected.name }} Tags</span>
+        </h4>
+      </div>
+      <div class="label-list">
+        <button type='button' class='btn add-new new-entity-button' ng-click='createNew()' style='margin-bottom: 7px;'>
+          <i class='icon icon-plus'></i> New Tag
+        </button>
+        <span>
+          <span ng-repeat='tag in tags | orderBy:"name"' ng-click='editTag(tag)'>
+            <span class='clm-tag' ng-class="{active: selectedTag.id == tag.id}"
+                  data-tooltip="{{tag.description}}" data-tooltip-placement="bottom">
+              {{tag.name}}
+              <i ng-click='deleteTag(tag, $event)' class='icon-remove label-remove' title="Delete {{tag.name}}"></i>
+            </span>
+          </span>
+        </span>
+        <em ng-show='tags.length == 0'>No tags available</em>
+
+        <div clm-alerts='alerts'></div>
+      </div>
+      <div ng-if='selectedTag' style='margin-left:25px'>
+        <div class='fade in' style='width:544px;padding-bottom:15px' ng-controller='TagEditorController'>
+          <form name='tagEditor' class='form-horizontal' style='margin-bottom:0' ng-submit='saveTag()'>
+            <div class="control-group"
+                 ng-class='{ error : tagEditor.name.$error.duplicate || tagEditor.name.$error.alphaNumeric }'>
+              <div class="controls" style="margin-left: 0;">
+                <input id="tagEditorLabel" name='name' type="text" maxlength='50' ng-model='selectedTag.name'
+                       placeholder="Enter Tag Name" focus-input="true" required alpha-numeric is-duplicate
+                       is-duplicate-array='tags' is-duplicate-id-field='name' is-duplicate-case-sensitive='false'>
+                <div ng-show='tagEditor.name.$error.duplicate' class="help-inline">Duplicate Tag name.</div>
+                <div ng-show='tagEditor.name.$error.alphaNumeric' class="help-inline">Must be alpha numeric.</div>
+              </div>
+            </div>
+            <div class="control-group">
+              <textarea name='description' maxlength="255" rows="3" style="width:530px;resize:none;" ng-model='selectedTag.description'
+                        placeholder="Enter Description" required></textarea>
+            </div>
+            <div clm-alerts='editorAlerts'></div>
+            <div class="pull-right">
+              <button class="btn" type='button' ng-click='cancelEditTag()'>Cancel</button>
+              <button class="btn btn-primary" ng-disabled='!canSaveEdit(tagEditor.$valid, selectedTag)'>Save
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div error-Modal></div>
+</div>

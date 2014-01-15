@@ -37,4 +37,18 @@ abstract class BaseSpec extends GebReportingSpec {
     // Use port as reported by service under test since it's not known until runtime.
     System.setProperty("geb.build.baseUrl", "http://localhost:" + serviceRule.getLocalPort() + "/")
   }
+
+  def cleanAppsAndOrgs() {
+    applicationDAO.getAll().each {
+      applicationDAO.delete(it);
+    }
+    organizationDAO.getAll().each {
+      organizationDAO.delete(it);
+    }
+  }
+
+  def loginAsAdmin() {
+    to ReportViolationsPage
+    login.loginAsAdmin()
+  }
 }

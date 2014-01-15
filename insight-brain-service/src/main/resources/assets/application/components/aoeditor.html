@@ -350,6 +350,9 @@
 				<li ng-class='{ active : isCurrentTab("security")}'>
 					<a ng-href='#/management/{{ao.type}}/{{ao.getPublicId()}}/security'>SECURITY</a>
 				</li>
+              <li ng-class='{ active : isCurrentTab("tags")}'>
+                <a ng-href='#/management/{{ao.type}}/{{ao.getPublicId()}}/tags'>TAGS</a>
+              </li>
 			</ul>
 			<div ui-view></div>
 		</div>

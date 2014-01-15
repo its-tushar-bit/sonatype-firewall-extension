@@ -3,19 +3,25 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+
 package com.sonatype.insight.brain.testing.functional.modules
 
 import geb.Module
 
-class ContextTabsModule extends Module {
+class ContextTabsModule
+    extends Module
+{
   static content = {
-    policiesTabButton(required: false) { $('ul.tri-pane').find('a', text: 'POLICIES') }
-    policiesTab(required: false) { $('#policy') }
-    labelsTabButton(required: false) { $('ul.tri-pane').find('a', text: 'LABELS') }
-    labelsTab(required: false) { $('#labels') }
-    ltgTabButton(required: false) { $('ul.tri-pane').find('a', text: 'LICENSES') }
-    ltgTab(required: false) { $('#ltg') }
-    securityTabButton(required: false) { $('ul.tri-pane').find('a', text: 'SECURITY') }
-    securityTab(required: false) { module RoleMappingModule }
+    tabLinks { $('ul.tri-pane a') }
+    policiesTabButton { tabLinks.find { it.text() == 'POLICIES' } }
+    policiesTab { $('#policy') }
+    labelsTabButton { tabLinks.find { it.text() == 'LABELS' } }
+    labelsTab { $('#labels') }
+    ltgTabButton { tabLinks.find { it.text() == 'LICENSES' } }
+    ltgTab { $('#ltg') }
+    securityTabButton { tabLinks.find { it.text() == 'SECURITY' } }
+    securityTab { module RoleMappingModule }
+    tagTabButton { tabLinks.find { it.text() == 'TAGS' } }
+    tagTab { $('#tags') }
   }
 }

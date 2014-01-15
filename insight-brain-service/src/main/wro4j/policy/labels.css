@@ -4,22 +4,24 @@
 .label-remove:hover {
 	opacity: 0.4;
 }
+.clmLabel, .clm-tag {
+  font-size: 12px;
+  font-weight: bold;
+  text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.25);
+  display: inline-block;
+  cursor: pointer;
+  white-space: nowrap;
+  max-width: 200px;
+  line-height: 14px;
+}
 .clmLabel {
 	-moz-border-radius: 3px;
 	-webkit-border-radius: 3px;
 	border-radius: 3px;
 	border: 1px solid rgba(0,0,0,0.25);
-	font-size: 12px;
-	font-weight: bold;
-	text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.25);
 	padding: 5px 10px;
 	margin-bottom: 5px;
 	vertical-align: middle;
-	line-height: 14px;
-	max-width: 200px;
-	display: inline-block;
-	cursor: pointer;
-	white-space: nowrap;
 }
 .clmLabel span {
 	display: inline-block;
@@ -125,4 +127,73 @@ form[name="labelEditor"] .clmLabel {
 	min-width:100px;
 	overflow: hidden;
 	text-overflow: ellipsis;
+}
+
+/* Differentiate the visual styling of a Tag from a Label by adding a sideways trapezoid on the left */
+.clm-tag {
+  vertical-align: middle;
+  margin: 0 0 7px 20px;
+  position: relative;
+  text-decoration: none;
+  color: #996633;
+  text-shadow: 0px 1px 0px rgba(255,255,255,.4);
+  padding: 0.55em 0.4em 0.55em 1.3em;
+  border-top: 1px solid #d99d38;
+  border-right: 1px solid #d99d38;
+  border-bottom: 1px solid #d99d38;
+  -webkit-border-radius: 0 0.25em 0.25em 0;
+  -moz-border-radius: 0 0.25em 0.25em 0;
+  border-radius: 0 0.25em 0.25em 0;
+  background-image: -webkit-linear-gradient(top, rgb(254, 218, 113), rgb(254, 186, 71));
+  background-image: -moz-linear-gradient(top, rgb(254, 218, 113), rgb(254, 186, 71));
+  background-image: -o-linear-gradient(top, rgb(254, 218, 113), rgb(254, 186, 71));
+  background-image: -ms-linear-gradient(top, rgb(254, 218, 113), rgb(254, 186, 71));
+  background-image: linear-gradient(top, rgb(254, 218, 113), rgb(254, 186, 71));
+  filter: progid:DXImageTransform.Microsoft.gradient(GradientType=0,StartColorStr='#feda71', EndColorStr='#feba47');
+  -webkit-box-shadow: inset 0 1px 0 #faeaba, 0 1px 1px rgba(0,0,0,.1);
+  -moz-box-shadow: inset 0 1px 0 #faeaba, 0 1px 1px rgba(0,0,0,.1);
+  box-shadow: inset 0 1px 0 #faeaba, 0 1px 1px rgba(0,0,0,.1);
+  z-index: 100;
+}
+.clm-tag::before {
+  content: '';
+  width: 1.67em;
+  height: 1.74em;
+  background-image: -webkit-linear-gradient(left top, rgb(254, 218, 113), rgb(254, 186, 71));
+  background-image: -moz-linear-gradient(left top, rgb(254, 218, 113), rgb(254, 186, 71));
+  background-image: -o-linear-gradient(left top, rgb(254, 218, 113), rgb(254, 186, 71));
+  background-image: -ms-linear-gradient(left top, rgb(254, 218, 113), rgb(254, 186, 71));
+  background-image: linear-gradient(left top, rgb(254, 218, 113), rgb(254, 186, 71));
+  filter: progid:DXImageTransform.Microsoft.gradient(GradientType=1,StartColorStr='#feda71', EndColorStr='#feba47');
+  position: absolute;
+  left: -0.88em;
+  top: .26em;
+  -webkit-transform: rotate(45deg);
+  -moz-transform: rotate(45deg);
+  -o-transform: rotate(45deg);
+  -ms-transform: rotate(45deg);
+  transform: rotate(45deg);
+  border-left: 1px solid #d99d38;
+  border-bottom: 1px solid #d99d38;
+  -webkit-border-radius: 0 0 0 0.25em;
+  -moz-border-radius: 0 0 0 0.25em;
+  border-radius: 0 0 0 0.25em;
+  z-index: 1;
+}
+.clm-tag::after {
+  content: '';
+  width: 0.5em;
+  height: 0.5em;
+  background: #fff;
+  -webkit-border-radius: 4.167em;
+  -moz-border-radius: 4.167em;
+  border-radius: 4.167em;
+  border: 1px solid #d99d38;
+  -webkit-box-shadow: 0 1px 0 #faeaba;
+  -moz-box-shadow: 0 1px 0 #faeaba;
+  box-shadow: 0 1px 0 #faeaba;
+  position: absolute;
+  top: 0.8em;
+  left: -0.4em;
+  z-index: 9999;
 }

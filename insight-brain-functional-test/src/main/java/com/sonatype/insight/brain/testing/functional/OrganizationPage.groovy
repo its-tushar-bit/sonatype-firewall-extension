@@ -5,9 +5,11 @@
  */
 package com.sonatype.insight.brain.testing.functional
 
+import com.sonatype.insight.brain.testing.functional.modules.ModalModule
 import com.sonatype.insight.brain.testing.functional.modules.ContextTabsModule
 import com.sonatype.insight.brain.testing.functional.modules.EditorToolsModule
 import com.sonatype.insight.brain.testing.functional.modules.PolicyMonitoringModule
+import com.sonatype.insight.brain.testing.functional.modules.TagModule
 
 
 class OrganizationPage extends OrganizationManagementPage {
@@ -18,16 +20,25 @@ class OrganizationPage extends OrganizationManagementPage {
     organizationName(required: false) { $('#aoName .editable') }
     organizationNameField(required: false) { $('input', 'placeholder':'Enter Organization Name') }
     organizationSaveButton(required: false) { $('button', text:'Save') }
-    securityTabButton(required: false) { $('.tri-pane').find('a', text: 'SECURITY') }
-    securityTab(required: false) { $('#security') }
     deleteButton(required: false) { $('a', 'title': 'Remove Organization') }
-    deleteButtonAccept(required: false) { $('button', 'ng-click':'deleteOrganization();') }
+    deleteButtonAccept(required: false) { $('button', text:'Delete') }
     developerRole(required: false) { $('p', text:'Developer') }
     ownerRole(required: false) { $('p', text:'Owner') }
 
-    policyMonitoring { module PolicyMonitoringModule }
+    tabs { module ContextTabsModule }
 
     tabs(required: false) { module ContextTabsModule }
     tools(required: false) { module EditorToolsModule }
+    policyMonitoring { module PolicyMonitoringModule, tabs.policiesTab }
+    tags { module TagModule, tabs.tagTab }
+    tagModal { module ModalModule, title: 'Delete Tag' }
+  }
+
+  def editOrg(name) {
+    organizationName.click()
+    waitFor { organizationNameField.displayed }
+    organizationNameField = name
+    organizationSaveButton.click()
+    waitFor { !organizationSaveButton.displayed }
   }
 }

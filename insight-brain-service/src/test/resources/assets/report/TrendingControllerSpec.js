@@ -310,7 +310,7 @@ describe('TrendingController tests', function() {
         rects = svg.find('rect');
         expect(rects).toBeDefined();
         //svg color definition is different for Chrome and FF, in that order of matching
-        expect(rects.attr('style')).toMatch(/^(fill: #ff0000; stroke: #ffffff;|fill: rgb\(255, 0, 0\); stroke: white;) ?$/);
+        expect(rects.attr('style')).toMatch(/^(fill: #ff0000; stroke: #ffffff;|fill: rgb\(255, 0, 0\); stroke: rgb\(255, 255, 255\);) ?$/);
       }));
       it('should allow text color selection', inject(function($compile) {
         var element, svg, texts;

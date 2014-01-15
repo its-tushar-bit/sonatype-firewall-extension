@@ -10,17 +10,11 @@ class AppSecurityManagementSpec extends BaseSpec {
   // assumes a license has already been installed
   // get to the organizations page
   def setup() {
-    to ReportViolationsPage
-    login.loginAsAdmin()
+    loginAsAdmin()
   }
 
   def cleanup() {
-    applicationDAO.getAll().each {
-      applicationDAO.delete(it);
-    }
-    organizationDAO.getAll().each {
-      organizationDAO.delete(it);
-    }
+    cleanAppsAndOrgs()
   }
 
   def "validate organization roles"() {
@@ -53,27 +47,12 @@ class AppSecurityManagementSpec extends BaseSpec {
   }
 
   void createOrganization() {
-    to OrganizationManagementPage
-    newOrganizationButton.click()
-    organizationName.click()
-    waitFor { organizationNameField.displayed }
-    organizationNameField << "test organization"
-    organizationSaveButton.click()
-    waitFor { securityTabButton.displayed }
+    OrganizationManagementPage organizationManagementPage = to(OrganizationManagementPage)
+    organizationManagementPage.createOrg()
   }
 
   void createApplication() {
-    to ApplicationManagementPage
-    newApplicationButton.click()
-    applicationName.click()
-    waitFor { applicationNameField.displayed }
-    applicationNameField << "test application"
-    applicationId.click()
-    waitFor { applicationIdField.displayed }
-    applicationIdField << "testapp"
-    applicationOrgField.click()
-    waitFor { applicationOrgName('test organization').displayed }
-    applicationOrgName('test organization').click()
-    applicationSaveButton.click()
+    ApplicationManagementPage applicationManagementPage = to(ApplicationManagementPage)
+    applicationManagementPage.createApp()
   }
 }

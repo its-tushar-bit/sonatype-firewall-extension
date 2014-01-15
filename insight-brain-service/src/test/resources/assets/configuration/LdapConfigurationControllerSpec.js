@@ -106,7 +106,7 @@ describe('Tests for the LdapConfigurationController', function() {
 
       expect(angular.element('#deleteConfigurationModal').css('display')).toBeUndefined();
 
-      scope.confirmDeleteConfiguration(scope.ldap);
+      scope.confirmDeleteConfiguration();
 
       expect(angular.element('#deleteConfigurationModal').css('display')).not.toBe('none');
 

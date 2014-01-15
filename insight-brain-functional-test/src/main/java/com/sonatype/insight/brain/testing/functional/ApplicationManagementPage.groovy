@@ -15,4 +15,12 @@ class ApplicationManagementPage extends BasePage {
     newApplicationButton(wait: true, to: ApplicationPage) { $('a', text:contains('New Application')) }
     application { name -> $('ul.nav-list a', text:name) }
   }
+
+  void createApp(name = 'test application', id = 'test application', orgName = 'test organization') {
+    newApplicationButton.click()
+    browser.with {
+      ApplicationPage applicationPage = at(ApplicationPage)
+      applicationPage.editApp(name, id, orgName)
+    }
+  }
 }

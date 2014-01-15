@@ -163,9 +163,7 @@
     }
   ]);
 
-  labelModule.controller('LabelEditorController', [
-    '$scope', '$http', 'CLMAppLocations', 'Messages', 'LabelStore',
-    function($scope, $http, clmAppLocations, messages, LabelStore) {
+  labelModule.controller('LabelEditorController', ['$scope', 'Messages', function($scope, messages) {
       function errorFn(error) {
         $scope.submitActive = false;
         showAlert($scope.editorAlerts, {

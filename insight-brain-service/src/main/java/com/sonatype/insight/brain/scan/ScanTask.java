@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.scan;
 import java.io.File;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -18,6 +19,8 @@ import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.policy.evaluator.PolicyAlertNotifier;
+import com.sonatype.insight.brain.io.FileCleaner;
+import com.sonatype.insight.brain.io.FileCleaner.FileDeletionException;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluationUtils;
 import com.sonatype.insight.brain.saas.ScanUploader;
 import com.sonatype.insight.brain.service.InsightWork;
@@ -29,7 +32,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Worker task to process a single application bundle.
- *
+ * 
  * @since 1.8
  */
 @Named
@@ -38,13 +41,10 @@ class ScanTask
 {
   public enum State
   {
-    PENDING ("Queued"),
-    SCANNING_COMPONENTS ("Fingerprinting components"),
+    PENDING("Queued"), SCANNING_COMPONENTS("Fingerprinting components"),
     // Treat uploading and waiting as the same state for user display
-    UPLOADING_SCAN ("Analyzing components"),
-    WAITING_FOR_REPORT ("Analyzing components"),
-    EVALUATING_POLICY ("Evaluating policy"),
-    DONE("Done");
+    UPLOADING_SCAN("Analyzing components"), WAITING_FOR_REPORT("Analyzing components"), EVALUATING_POLICY(
+        "Evaluating policy"), DONE("Done");
 
     private final String displayText;
 
@@ -80,6 +80,8 @@ class ScanTask
 
   private final InsightWork work;
 
+  private FileCleaner fileCleaner;
+
   private final String id;
 
   private Application app;
@@ -94,17 +96,22 @@ class ScanTask
 
   private volatile Throwable error;
 
+  private volatile String errorId;
+
   private volatile String scanId;
+
+  private volatile long touched;
 
   @Inject
   public ScanTask(Scanner scanner, ScanUploader uploader, PolicyEvaluationUtils policyEvaluationUtils,
-      PolicyAlertNotifier policyAlertNotifier, InsightWork work)
+      PolicyAlertNotifier policyAlertNotifier, InsightWork work, FileCleaner fileCleaner)
   {
     this.scanner = scanner;
     this.uploader = uploader;
     this.policyEvaluationUtils = policyEvaluationUtils;
     this.policyAlertNotifier = policyAlertNotifier;
     this.work = work;
+    this.fileCleaner = fileCleaner;
     id = UUID.randomUUID().toString().replace("-", "");
   }
 
@@ -138,15 +145,22 @@ class ScanTask
     ticket.applicationPublicId = app.getPublicId();
     ticket.scanId = scanId;
 
-    if(error != null) {
-      ticket.error = "Failed to evaluate policies on uploaded binary for application " + app.getPublicId();
+    if (error != null) {
+      ticket.error = "An error occurred, and the application you uploaded has not been evaluated. Please contact your IT Administrator for troubleshooting options. Error ID "
+          + errorId + " - Access CLM Log for details.";
     }
+
+    touched = System.currentTimeMillis();
 
     return ticket;
   }
 
   public Throwable getError() {
     return error;
+  }
+
+  public boolean isObsolete() {
+    return System.currentTimeMillis() - touched > TimeUnit.MINUTES.toMillis(30);
   }
 
   @Override
@@ -192,11 +206,21 @@ class ScanTask
     }
     catch (Throwable e) {
       error = e;
-      log.error("Failed to evaluate policies on uploaded binary for application {}", appPublicId, e);
+      errorId = UUID.randomUUID().toString().replace("-", "").substring(0, 16);
+
+      log.error("Failed to evaluate policies on uploaded binary for application {} (Error ID {})", appPublicId,
+          errorId, e);
     }
     finally {
       state = State.DONE;
+
+      // remove the uploaded scanned app binary, user can resubmit if there was an error
+      try {
+        fileCleaner.delete(binFile);
+      }
+      catch (FileDeletionException e) {
+        log.error("Can not delete temporary application binary", e);
+      }
     }
   }
 }
-

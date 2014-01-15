@@ -88,21 +88,21 @@
 						<div class='control-group'>
 							<label class="control-label" for='bundleStage'>Which CLM stage should this evaluation be associated with?</label>
 							<div class='controls'>
-								<select id='bundleStage' ng-required="true" ng-model="bundle.stage" ng-options="stage.id as stage.name for stage in stages">
+								<select id='bundleStage' ng-required="true" ng-model="bundle.stage" ng-change="updateFormActionUrl()" ng-options="stage.id as stage.name for stage in stages">
 									<option value="">-- Select CLM Stage --</option>
 								</select>
 							</div>
 						</div>
 						<div class='control-group'>
-							<label class="control-label" for='bundleNotifications'>Should policy violations send notifications?</label>
+							<label class="control-label" for='bundleNotifications'>Should notifications be sent if this application violates any policies?</label>
 							<div class='controls'>
 								<label class="radio">
-            						<input type="radio" ng-model="bundle.notify" value="true"/>
-									Yes, raise alerts (if configured).
+            						<input type="radio" ng-model="bundle.notify" ng-change="updateFormActionUrl()" value="true"/>
+									Yes
 								</label>
         						<label class="radio">
-           		 				<input type="radio" ng-model="bundle.notify" value="false"/>
-            						No, do not send alerts.
+           		 				<input type="radio" ng-model="bundle.notify" ng-change="updateFormActionUrl()" value="false"/>
+            						No
          						</label>
 							</div>
 						</div>
@@ -182,8 +182,8 @@
 					set-results='setQueryResults($members, $error)'
 					query-string='queryString'
 					request-active='requestActive'
-					type='organization'
-					type-id='{{organizationId}}'
+					owner-type='organization'
+					owner-id='{{organizationId}}'
 					groups='false'></div>
 				<div class='selectList-large' style='width:100%'>
 					<h5>Available</h5>
@@ -226,7 +226,7 @@
 			<a id="policy-import-button" class="btn btn-mini" title="Import Policies" ng-click="openImport()" ng-if='ao.getId()'>
 				<img src='../assets/img/icon-import.png' alt='Import Policy' style='width:16px;height:16px;padding:6px 0px'>
 			</a>
-			<a id="app-evaluate-button" class="btn btn-mini" title="Evaluate an Application" ng-click="openEvalute()" ng-if='ao.getId()'>
+			<a id="app-evaluate-button" class="btn btn-mini" title="Evaluate an Application" ng-click="openEvaluate()" ng-if='ao.getId()'>
 				<img src='../assets/img/icon-add-bundle.png' alt='Evaluate an Application' style='width:16px;height:16px;padding:6px 0px'>
 			</a>
 			<a id="remove-app-org-button" class="btn btn-mini" title="Remove {{ao.typeName}}" ng-click="confirmDelete()" ng-if='ao.getId()'>
@@ -318,7 +318,7 @@
 							ng-click='openContact()'>{{ao.selected.contact.displayName || ao.selected.contact.internalName || "None"}}</span>
 						<span ng-if='!(ao.selected.organizationId || ao.selected.id)'
 							class='editable-empty editable'
-							tooltip='Select an organization'>None</span>
+							tooltip='Must select an organization first'>None</span>
 						<span ng-if='ao.selected.contact.error'
 							class='error'> - {{ao.selected.contact.error}}</span>
 					</div>

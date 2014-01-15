@@ -26,7 +26,7 @@
     <saga.version>1.4.2</saga.version>
     <jasmine.brain.id>test-brain-assets</jasmine.brain.id>
     <jasmine.cip.id>test-cip-assets</jasmine.cip.id>
-    <phantomjs-maven-plugin.version>0.1</phantomjs-maven-plugin.version>
+    <phantomjs-maven-plugin.version>0.2.1</phantomjs-maven-plugin.version>
   </properties>
 
   <dependencies>

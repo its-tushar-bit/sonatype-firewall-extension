@@ -66,24 +66,6 @@ extends BaseSpec {
     violationCount == '0 Violations'
   }
 
-  @Ignore
-  def "We can regenerate a report"() {
-    
-    when: "we click the refresh button"
-      js.exec '$( ".content" ).scrollLeft( 300 );'
-      refresh.click()
-      interact {
-        moveToElement(refresh)
-      }
-
-    then: "refresh tooltip shows up"
-      waitFor { tooltip.displayed }
-      tooltip.text() == "Report generation running 0 seconds, total number of applications 0, applications processed so far 0"
-
-    then: "report generation is finished"
-      waitFor { !tooltip.displayed }
-   }
-
   def "A non-admin user cannot regenerate the report"(){
     when: 'we log in as a non-admin user'
     userOptions.logoutClick()
@@ -100,19 +82,21 @@ extends BaseSpec {
 
   def "We display an accurate component chart"() {
     when:
-      FileUtils.copyURLToFile(getClass().getResource("/ReportTest/trending-report.json"), new File('target/test-brain-work/report/trending-report.json'))
-      browser.driver.navigate().refresh()
-      at TrendingReportPage
+    FileUtils.copyURLToFile(getClass().getResource("/ReportTest/trending-report.json"),
+        new File(serviceRule.configuration.sonatypeWork, 'report/trending-report.json'))
+    browser.driver.navigate().refresh()
+    at TrendingReportPage
     then:
-      percentageChartControl.displayed
-      def chartWidth = percentageChartControl.getWidth()
+    waitFor { percentageChartControl.displayed }
+    def chartWidth = percentageChartControl.getWidth()
 
-      exactComponentBar.displayed
-      partialComponentBar.displayed
-      unknownComponentBar.displayed
+    componentBars.size() == 3
+    exactComponentBar.displayed
+    partialComponentBar.displayed
+    unknownComponentBar.displayed
 
-      exactComponentBar.getWidth() / chartWidth == 0.5
-      partialComponentBar.getWidth() / chartWidth == 0.3
-      unknownComponentBar.getWidth() / chartWidth == 0.2
+    exactComponentBar.getWidth() / chartWidth == 0.5
+    partialComponentBar.getWidth() / chartWidth == 0.3
+    unknownComponentBar.getWidth() / chartWidth == 0.2
   }
 }

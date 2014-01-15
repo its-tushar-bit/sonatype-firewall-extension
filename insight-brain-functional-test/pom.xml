@@ -16,7 +16,8 @@
 
   <properties>
     <geb.version>0.9.2</geb.version>
-    <selenium.version>2.38.0</selenium.version>
+    <selenium.version>2.39.0</selenium.version>
+    <exclude.tests>do-not-exclude</exclude.tests>
   </properties>
 
   <build>
@@ -56,6 +57,7 @@
           <excludes>
             <!-- Examples to be run as individual tests from Maven CLI or IDE. -->
             <exclude>**/example/**</exclude>
+            <exclude>${exclude.tests}</exclude>
           </excludes>
           <includes>
             <include>**/*Spec.*</include>
@@ -147,6 +149,29 @@
       <version>${selenium.version}</version>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>org.seleniumhq.selenium</groupId>
+      <artifactId>selenium-safari-driver</artifactId>
+      <version>${selenium.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.seleniumhq.selenium</groupId>
+      <artifactId>selenium-ie-driver</artifactId>
+      <version>${selenium.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.github.detro.ghostdriver</groupId>
+      <artifactId>phantomjsdriver</artifactId>
+      <version>1.1.0</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.mortbay.jetty</groupId>
+          <artifactId>servlet-api-2.5</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
     <!-- DW testing to start services -->
     <dependency>
       <groupId>com.yammer.dropwizard</groupId>
@@ -193,6 +218,12 @@
       </activation>
       <properties>
         <skipTests>true</skipTests>
+      </properties>
+    </profile>
+    <profile>
+      <id>exclude-java-functional-test</id>
+      <properties>
+        <exclude.tests>**/*Test.java</exclude.tests>
       </properties>
     </profile>
   </profiles>

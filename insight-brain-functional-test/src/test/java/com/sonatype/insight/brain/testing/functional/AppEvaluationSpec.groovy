@@ -5,8 +5,6 @@
  */
 package com.sonatype.insight.brain.testing.functional
 
-import java.io.File;
-
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 
@@ -41,6 +39,7 @@ class AppEvaluationSpec extends BaseSpec {
   def "validate application evaluation available from organization screen"() {
     when: 'User accesses organization'
       OrganizationManagementPage orgManPage = to OrganizationManagementPage
+      waitFor { orgManPage.organization("AppEvaluationOrg").displayed }
       orgManPage.organization("AppEvaluationOrg").click()
     then: 'User at organization page and app eval button is visible'
       OrganizationPage orgPage = at (OrganizationPage)
@@ -51,10 +50,11 @@ class AppEvaluationSpec extends BaseSpec {
       orgPage.tools.appEval.dialog.displayed
       orgPage.tools.appEval.application.value() == ''
   }
-  
+
   def "validate application evaluation available from application screen"() {
     when: 'User accesses application'
       ApplicationManagementPage appManPage = to ApplicationManagementPage
+      waitFor { appManPage.application("AppEvaluationApp2").displayed }
       appManPage.application("AppEvaluationApp2").click()
     then: 'User at application page and app eval button is visible'
       ApplicationPage appPage = at (ApplicationPage)
@@ -66,10 +66,11 @@ class AppEvaluationSpec extends BaseSpec {
       appPage.tools.appEval.application.value() == '1'
       appPage.tools.appEval.getSelectedApplicationOption() == "AppEvaluationApp2"
   }
-  
+
   def "validate upload"() {
     when: 'User accesses application and sets params for application evaluation'
       ApplicationManagementPage appManPage = to ApplicationManagementPage
+      waitFor { appManPage.application("AppEvaluationApp2").displayed }
       appManPage.application("AppEvaluationApp2").click()
       ApplicationPage appPage = at (ApplicationPage)
       appPage.tools.appEvalButton.displayed
@@ -82,13 +83,16 @@ class AppEvaluationSpec extends BaseSpec {
       appPage.tools.appEval.upload.click()
     then: 'User sees the evaluation status screen'
       //will be disabled initially, until processing complete
-      appPage.tools.appEval.viewReport.@disabled
+      waitFor { appPage.tools.appEval.viewReport.@disabled }
       //so just wait for that to happen
       waitFor {!appPage.tools.appEval.viewReport.@disabled}
       getAvailableWindows().size() == 1
     when: 'User clicks to view the report'
       appPage.tools.appEval.viewReport.click()
     then: 'new tab is open on the report page'
-      waitFor {getAvailableWindows().size() == 2}
+      waitFor {getAvailableWindows().size() == 2 }
+      withWindow(availableWindows[1]){
+        driver.currentUrl.contains('reports.html#/reports/AppEvaluationApp2')
+      }
   }
 }

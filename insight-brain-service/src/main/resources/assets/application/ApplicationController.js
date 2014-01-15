@@ -138,10 +138,28 @@
           var application = $scope.selectedApplication;
           return !destination || (application && destination.indexOf('application/' + application.publicId) === -1);
         }
+        
+        function assignAppSummary(data) {
+          $scope.applicationSummary = data;
+          $scope.applicationSummary.stageCount = 0;
+          angular.forEach($scope.applicationSummary.policyEvaluations, function(policyEvaluation, stage) {
+            policyEvaluation.reportUrl = CLMLocations.getReportUrl($scope.applicationSummary.publicId,
+                    policyEvaluation.scanId);
+            $scope.applicationSummary.stageCount++;
+          });
+        }
+        
+        function refreshSummary() {
+          $http.get(CLMLocations.getApplicationSummaryUrl(selectedApplication.publicId)).then(function(response){
+            assignAppSummary(response.data);
+          }, function(error){
+            $scope.error = error;
+          });
+        }
 
         $scope.$state = $state;
         $scope.submitActive = false;
-
+        
         $scope.doLoad = function () {
           var ao = {
             addSync : CLMAppLocations.addIconSync(),
@@ -167,11 +185,7 @@
 
           var promises = [ActionStore.get()];
           if (selectedApplication.publicId) {
-            promises.push($http.get(CLMLocations.getApplicationSummaryUrl(selectedApplication.publicId), {
-              params: {
-                timestamp: new Date().getTime()
-              }
-            }));
+            promises.push($http.get(CLMLocations.getApplicationSummaryUrl(selectedApplication.publicId)));
           }
 
           // New application, or an application without an organization
@@ -197,13 +211,7 @@
             });
 
             if (selectedApplication.publicId) {
-              $scope.applicationSummary = results[1].data;
-              $scope.applicationSummary.stageCount = 0;
-              angular.forEach($scope.applicationSummary.policyEvaluations, function(policyEvaluation, stage) {
-                policyEvaluation.reportUrl = CLMLocations.getReportUrl($scope.applicationSummary.publicId,
-                        policyEvaluation.scanId);
-                $scope.applicationSummary.stageCount++;
-              });
+              assignAppSummary(results[1].data);
               if (results.length > 2) {
                 $scope.organizations = results[2];
               }
@@ -300,6 +308,8 @@
             $scope.cancel();
           }
         });
+        
+        $scope.$on('refreshSummary', refreshSummary);
 
         $scope.$on('resetIconCache', resetIconCache);
 
@@ -432,7 +442,7 @@
           }, angular.noop);
         };
 
-        $scope.openEvalute = function () {
+        $scope.openEvaluate = function () {
           $modal.open({
             backdrop : 'static',
             keyboard : false,
@@ -444,7 +454,7 @@
               }
             }
           }).result.then(function () {
-            $scope.$broadcast('refresh', $scope.selectedApplication);
+            $scope.$broadcast('refreshSummary', $scope.selectedApplication);
           }, angular.noop);
         };
 

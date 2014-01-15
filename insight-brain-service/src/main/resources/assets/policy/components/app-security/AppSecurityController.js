@@ -237,8 +237,8 @@
         queryString : '=',
         groups : '@',
         requestActive : '=',
-        type : '@',
-        typeId : '@'
+        ownerType : '@',
+        ownerId : '@'
       },
       template : "<form name='userSearch' style='margin:0px'>" +
           "<div class='input-prepend'>" +
@@ -273,7 +273,7 @@
           filterTimeout = $timeout(function () {
             $scope.requestActive++;
 
-            $http.get(clmAppLocations.getFindUsersUrl($scope.type, $scope.typeId), {
+            $http.get(clmAppLocations.getFindUsersUrl($scope.ownerType, $scope.ownerId), {
               params : {
                 q : newVal,
                 groups : $scope.groups

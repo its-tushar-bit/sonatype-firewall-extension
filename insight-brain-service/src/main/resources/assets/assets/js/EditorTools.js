@@ -14,8 +14,21 @@
       editableOptions.theme = 'bs2';
     }]);
 
-    module.controller('EvaluateBundleController', ['$scope', '$http', '$timeout', '$window', 'Messages', 'CLMLocations', 'selectedApplication', 'ApplicationStore', 'ActionStore', '$q', '$location', function ($scope, $http, $timeout, $window, messages, CLMLocations, selectedApplication, ApplicationStore, ActionStore, $q, $location) {
-    var fileElement = null;
+    module.controller('EvaluateBundleController', [
+      '$scope',
+      '$http',
+      '$timeout',
+      '$window',
+      'Messages',
+      'CLMLocations',
+      'selectedApplication',
+      'ApplicationStore',
+      'ActionStore',
+      '$q',
+      '$location',
+      function($scope, $http, $timeout, $window, messages, CLMLocations, selectedApplication, ApplicationStore,
+              ActionStore, $q, $location) {
+        var fileElement = null;
     $scope.currentState = 'init';
         
     function setError(message) {
@@ -59,7 +72,7 @@
           }
         });
         $scope.bundle = {
-          notify: 'false',
+          notify: 'true',
           applicationPublicId: selectedApplication ? selectedApplication.publicId : null
         };
         $scope.updateFormActionUrl();
@@ -98,7 +111,7 @@
     
     $scope.doSubmit = function () {
       $scope.state = 'polling';
-      $scope.evaluationStatus = {currentStep: 1, totalSteps: 1, currentStepName: 'Uploading...'};
+      $scope.evaluationStatus = {currentStep: 1, totalSteps: 1, currentStepName: 'Uploading'};
       $scope.error = null;
       $scope.bundle.filename = parseFilename(fileElement.value);
       $scope.bundle.applicationName = getApplicationName($scope.bundle.applicationPublicId);
@@ -155,7 +168,7 @@
         setError(response);
       } else {
         $scope.state = 'polling';
-        $scope.pollingUrl = CLMLocations.getEvaluationStatusUrl(response.ticketId);
+        $scope.pollingUrl = CLMLocations.getEvaluationStatusUrl($scope.bundle.applicationPublicId, response.ticketId);
         doPoll();
       }
     };

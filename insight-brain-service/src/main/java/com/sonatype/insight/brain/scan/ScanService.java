@@ -16,7 +16,6 @@ import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.security.Permission;
-import com.sonatype.insight.brain.scan.ScanTask.State;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -72,7 +71,7 @@ class ScanService
     ScanTask task = taskRepository.getByIdNotNull(ticketId);
     ScanTicket ticket = task.getTicket();
 
-    if (State.DONE == task.getState()) {
+    if (ticket.currentStep >= ticket.totalSteps) {
       taskRepository.remove(ticketId);
     }
 

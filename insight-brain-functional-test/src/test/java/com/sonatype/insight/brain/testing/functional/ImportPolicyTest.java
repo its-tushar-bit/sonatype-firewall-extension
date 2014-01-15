@@ -49,6 +49,9 @@ public class ImportPolicyTest
 
   @After
   public void teardown() {
+    if (dialog != null) {
+      dialog.cancelBtn.click();
+    }
     driver.findElement(By.cssSelector(".dashboard-user a.btn")).click();
     driver.findElement(By.cssSelector("li[ng-controller='LogoutController'] a")).click();
   }
@@ -93,6 +96,7 @@ public class ImportPolicyTest
   public void testSuccess() throws Exception {
     dialog.submitFile(getValidImportFile().getAbsolutePath());
     dialog.waitForInvisibility();
+    dialog = null;
 
     wait(10, ExpectedConditions.visibilityOfElementLocated(By.cssSelector(".policy-top")));
 
@@ -115,6 +119,7 @@ public class ImportPolicyTest
     dialog.cancelBtn.click();
     // This call will timeout if the dialog does not disappear
     dialog.waitForInvisibility();
+    dialog = null;
   }
 
   private String getPolicyUrl() {

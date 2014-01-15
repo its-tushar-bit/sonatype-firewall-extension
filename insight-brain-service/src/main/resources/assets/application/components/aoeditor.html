@@ -13,7 +13,7 @@
 							 moderate="applicationSummary.policyEvaluationsResults[stage.id].moderateComponentCount"></span>
 						<span ng-show='!(applicationSummary.policyEvaluationsResults[stage.id].criticalComponentCount + applicationSummary.policyEvaluationsResults[stage.id].severeComponentCount + applicationSummary.policyEvaluationsResults[stage.id].moderateComponentCount)' style="color:#000000;">No violations</span>
 					</a>
-                    <span class="refresh-chiclet" refresh-button='reEvaluatePolicy(applicationSummary.policyEvaluations[stage.id])' title='Re-evaluate Policy'></span>
+					<span class="refresh-chiclet" refresh-button='reEvaluatePolicy(applicationSummary.policyEvaluations[stage.id])' title='Re-evaluate Policy'></span>
 				</div>
 			</div>
 		</div>
@@ -24,7 +24,7 @@
 			<button type="button" class="close"  ng-click='$dismiss()' aria-hidden="true">&times;</button>
 			<div ng-switch='state'>
 				<div ng-switch-when='polling'>
-					<h3>Evaluation Status</h3>				
+					<h3>Evaluation Status</h3>
 				</div>
 				<div ng-switch-default>
 					<h3>Evaluate an Application</h3>
@@ -38,7 +38,7 @@
 			<div ng-switch-when="polling">
 				<div class="modal-body">
 					<p>Closing this panel will not interrupt the evaluation. It will still progress until it is complete. When the evaluation has been completed you can view the results by clicking on the button below.</p>
-					<div class="well well-small" style="margin-bottom:0px;">					
+					<div class="well well-small">
 						<table>
 							<tr>
 								<td style><b>File:</b></td>
@@ -53,14 +53,11 @@
 								<td style="padding-left:10px;">{{bundle.stage}}</td>
 							</tr>
 						</table>
-						<div style="margin-top:5px;">
-							<div style="margin-bottom:0px;" class="progress progress-striped" ng-class="{active: !evaluationStatus.scanId}">
-								<div class="bar" ng-style="{width: getProgressWidth()}">
-									<span class="sr-only"><b>{{evaluationStatus.currentStepName}}</b></span>
-								</div>
-							</div>
-						</div>
 					</div>
+					<div style="margin-bottom:3px;" class="progress progress-striped" ng-class="{active: !evaluationStatus.scanId}">
+						<div class="bar" ng-style="{width: getProgressWidth() + '%'}"></div>
+					</div>
+					<div style='padding-left:3px;font-weight:bold' id='evaluate-bundle-status'>{{evaluationStatus.currentStepName}}</div>
 				</div>
 				<div class='modal-footer'>
 					<span style="margin:0px;padding: 4px 35px 4px 14px;float:left;max-width:330px" ng-class="{'alert alert-error': error }" ng-show="error">{{error}}</span>
@@ -77,7 +74,7 @@
 								<input type='file' ng-model='bundle.file' id='bundleFile' name='file' onchange="angular.element(this).scope().fileChanged(this)">
 							</div>
 						</div>
-		                <div class='control-group'>
+						<div class='control-group'>
 							<label class="control-label" for='bundleApplication'>Which application is this file associated with?</label>
 							<div class='controls'>
 								<select id='bundleApplication' ng-required="true" ng-model="bundle.applicationPublicId" ng-change="updateFormActionUrl()" ng-options="app.publicId as app.name for app in applications">
@@ -97,13 +94,13 @@
 							<label class="control-label" for='bundleNotifications'>Should notifications be sent if this application violates any policies?</label>
 							<div class='controls'>
 								<label class="radio">
-            						<input type="radio" ng-model="bundle.notify" ng-change="updateFormActionUrl()" value="true"/>
+									<input type="radio" ng-model="bundle.notify" ng-change="updateFormActionUrl()" value="true"/>
 									Yes
 								</label>
-        						<label class="radio">
-           		 				<input type="radio" ng-model="bundle.notify" ng-change="updateFormActionUrl()" value="false"/>
-            						No
-         						</label>
+								<label class="radio">
+									<input type="radio" ng-model="bundle.notify" ng-change="updateFormActionUrl()" value="false"/>
+									No
+								</label>
 							</div>
 						</div>
 					</div>

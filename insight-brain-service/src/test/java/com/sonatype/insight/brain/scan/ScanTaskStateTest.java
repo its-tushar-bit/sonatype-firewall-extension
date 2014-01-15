@@ -10,6 +10,7 @@ import java.io.IOException;
 
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.io.FileCleaner;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.policy.evaluator.PolicyAlertNotifier;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluationUtils;
@@ -32,10 +33,10 @@ import static org.mockito.Mockito.when;
 
 /**
  * Verifies that the scan state reflects the orchestrated action within the {@link ScanTask} being executed.
- *
+ * 
  * Uses Mockito's stubbing to capture the state and verify, see {@link TaskStateCapturer}.
  * 
- * Refer to {@link ScanStateToTicketTranslatorTest} for translation from state to ticket steps. 
+ * Refer to {@link ScanStateToTicketTranslatorTest} for translation from state to ticket steps.
  */
 public class ScanTaskStateTest
 {
@@ -44,7 +45,8 @@ public class ScanTaskStateTest
   PolicyEvaluationUtils evaluator = mock(PolicyEvaluationUtils.class);
   PolicyAlertNotifier notifier = mock(PolicyAlertNotifier.class);
   InsightWork work = mock(InsightWork.class);
-  ScanTask task = new ScanTask(scanner, uploader, evaluator, notifier, work);
+  FileCleaner fileCleaner = mock(FileCleaner.class);
+  ScanTask task = new ScanTask(scanner, uploader, evaluator, notifier, work, fileCleaner);
 
   TaskStateCapturer captureState = new TaskStateCapturer();
 

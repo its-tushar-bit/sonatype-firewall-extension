@@ -18,6 +18,8 @@ import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.policy.evaluator.PolicyAlertNotifier;
+import com.sonatype.insight.brain.io.FileCleaner;
+import com.sonatype.insight.brain.io.FileCleaner.FileDeletionException;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluationUtils;
 import com.sonatype.insight.brain.saas.ScanUploader;
 import com.sonatype.insight.brain.service.InsightWork;
@@ -29,7 +31,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Worker task to process a single application bundle.
- *
+ * 
  * @since 1.8
  */
 @Named
@@ -38,13 +40,10 @@ class ScanTask
 {
   public enum State
   {
-    PENDING ("Queued"),
-    SCANNING_COMPONENTS ("Fingerprinting components"),
+    PENDING("Queued"), SCANNING_COMPONENTS("Fingerprinting components"),
     // Treat uploading and waiting as the same state for user display
-    UPLOADING_SCAN ("Analyzing components"),
-    WAITING_FOR_REPORT ("Analyzing components"),
-    EVALUATING_POLICY ("Evaluating policy"),
-    DONE("Done");
+    UPLOADING_SCAN("Analyzing components"), WAITING_FOR_REPORT("Analyzing components"), EVALUATING_POLICY(
+        "Evaluating policy"), DONE("Done");
 
     private final String displayText;
 
@@ -96,15 +95,18 @@ class ScanTask
 
   private volatile String scanId;
 
+  private FileCleaner fileCleaner;
+
   @Inject
   public ScanTask(Scanner scanner, ScanUploader uploader, PolicyEvaluationUtils policyEvaluationUtils,
-      PolicyAlertNotifier policyAlertNotifier, InsightWork work)
+      PolicyAlertNotifier policyAlertNotifier, InsightWork work, FileCleaner fileCleaner)
   {
     this.scanner = scanner;
     this.uploader = uploader;
     this.policyEvaluationUtils = policyEvaluationUtils;
     this.policyAlertNotifier = policyAlertNotifier;
     this.work = work;
+    this.fileCleaner = fileCleaner;
     id = UUID.randomUUID().toString().replace("-", "");
   }
 
@@ -138,7 +140,7 @@ class ScanTask
     ticket.applicationPublicId = app.getPublicId();
     ticket.scanId = scanId;
 
-    if(error != null) {
+    if (error != null) {
       ticket.error = "Failed to evaluate policies on uploaded binary for application " + app.getPublicId();
     }
 
@@ -196,7 +198,14 @@ class ScanTask
     }
     finally {
       state = State.DONE;
+
+      // remove the uploaded scanned app binary, user can resubmit if there was an error
+      try {
+        fileCleaner.delete(binFile);
+      }
+      catch (FileDeletionException e) {
+        log.error("Can not delete temporary application binary", e);
+      }
     }
   }
 }
-

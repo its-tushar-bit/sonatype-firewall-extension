@@ -14,6 +14,7 @@ import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.io.FileCleaner;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.policy.evaluator.PolicyAlertNotifier;
@@ -53,7 +54,8 @@ public class ScanTaskTest
   private PolicyEvaluationUtils evaluator = mock(PolicyEvaluationUtils.class);
   private PolicyAlertNotifier notifier = mock(PolicyAlertNotifier.class);
   private InsightWork work = mock(InsightWork.class);
-  private ScanTask task = new ScanTask(scanner, uploader, evaluator, notifier, work);
+  FileCleaner fileCleaner = mock(FileCleaner.class);
+  private ScanTask task = new ScanTask(scanner, uploader, evaluator, notifier, work, fileCleaner);
   private Application app = newApp("public-app-id");
   private Stage stage = new Stage(Stage.ID_BUILD);
   private ScanReceipt scanReceipt = new ScanReceipt();
@@ -131,17 +133,19 @@ public class ScanTaskTest
   }
 
   /**
-   * The client will assemble a UI route to the functionality that displays the report.  It needs the public app id and
+   * The client will assemble a UI route to the functionality that displays the report. It needs the public app id and
    * the scan id to make this happen.
-   *
+   * 
    * This is preferred over using the {@link UserInterfaceLinksResource} so that the UI state is not destroyed and
-   * browser history is preserved.  UserInterfaceLinksResource are stable links that redirect to the UI for rendering,
+   * browser history is preserved. UserInterfaceLinksResource are stable links that redirect to the UI for rendering,
    * hence interrupt the app (reloading the page) and browser history.
    */
   @Test
   public void successfulTaskHasTicketWithIdsForUiToRouteToReport() {
     task.init(app, bundleFile, stage, false);
     task.run();
+
+    assertThatTaskCompletedSuccessfully(task);
 
     ScanTicket ticket = task.getTicket();
     assertThat("Ticket has no error", ticket.error, is(nullValue()));
@@ -158,7 +162,10 @@ public class ScanTaskTest
 
     when(scanner.scan((File) any(), (File) any())).thenThrow(RuntimeException.class);
 
+    task.init(app, bundleFile, stage, false);
     task.run();
+
+    assertThatTaskCompletedUnsuccessfully(task);
 
     ScanTicket ticket = task.getTicket();
     assertThat("Ticket has error", ticket.error, is(notNullValue()));
@@ -178,6 +185,19 @@ public class ScanTaskTest
   }
 
   @Test
+  @SuppressWarnings("unchecked")
+  public void erorredTaskDeletesTemporaryApplicationBinary() throws IOException {
+    when(scanner.scan((File) any(), (File) any())).thenThrow(RuntimeException.class);
+
+    File appBinary = new File("any");
+    task.init(app, appBinary, stage, false);
+    task.run();
+
+    assertThatTaskCompletedUnsuccessfully(task);
+    verify(fileCleaner).delete(appBinary);
+  }
+
+  @Test
   public void sendsNotifications() throws IOException {
     task.init(app, bundleFile, stage, true);
 
@@ -194,5 +214,15 @@ public class ScanTaskTest
 
     verify(notifier).sendNotifications(eq(app.getPublicId()), eq(app.getId()), eq("scan-id"), match(stage),
         same(newAlerts), same(oldAlerts));
+  }
+
+  private void assertThatTaskCompletedSuccessfully(ScanTask task) {
+    assertThat(task.getState(), is(State.DONE));
+    assertThat(task.getError(), nullValue());
+  }
+
+  private void assertThatTaskCompletedUnsuccessfully(ScanTask task) {
+    assertThat(task.getState(), is(State.DONE));
+    assertThat(task.getError(), notNullValue());
   }
 }

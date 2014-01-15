@@ -42,7 +42,7 @@ if (sauceBrowser) {
     driver.manage().window().maximize()
     return driver
   }
-  //increase default timeouts to account for remote execution
+  // increase default timeouts to account for remote execution
   waiting {
     timeout = 10
     retryInterval = 0.5
@@ -50,6 +50,11 @@ if (sauceBrowser) {
 }
 else {
   driver = { configure(new FirefoxDriver()) }
+
+  // increase default timeout to account for slower CI server
+  waiting {
+    timeout = 10
+  }
 }
 
 Platform current = Platform.current

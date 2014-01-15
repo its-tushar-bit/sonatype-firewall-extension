@@ -155,7 +155,7 @@
         setError(response);
       } else {
         $scope.state = 'polling';
-        $scope.pollingUrl = CLMLocations.getEvaluationStatusUrl(response.ticketId);
+        $scope.pollingUrl = CLMLocations.getEvaluationStatusUrl($scope.bundle.applicationPublicId, response.ticketId);
         doPoll();
       }
     };

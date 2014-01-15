@@ -208,7 +208,18 @@ describe('EditorToolsSpec', function() {
         expect(scope.pollingUrl).toEqual(CLMLocations.getEvaluationStatusUrl('bom1-12345678', 'ticket'));
         expect(scope.error).toEqual('something aint right');
       }));
-    });    
+      
+      it('uses proper URL for state polling by IE9', inject(function(CLMLocations, $httpBackend){
+        scope.uploaded({ticketId: 'ticket'}, true);
+        $httpBackend.expectGET(CLMLocations.getEvaluationStatusUrl('bom1-12345678', 'ticket')).respond({
+          ticketId: 'ticket',
+          scanId: 'scanId',
+          currentStep: 2,
+          totalSteps: 2
+        });
+        $httpBackend.flush();
+      }));
+    });
   });
   
   describe('Policy import', function(){

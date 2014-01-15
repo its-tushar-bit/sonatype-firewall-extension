@@ -106,7 +106,7 @@
     };
     
     $scope.getProgressWidth = function () {
-      return $scope.evaluationStatus ? ($scope.evaluationStatus.currentStep / $scope.evaluationStatus.totalSteps * 100 + '%') : '0%';
+      return $scope.evaluationStatus ? ($scope.evaluationStatus.currentStep / $scope.evaluationStatus.totalSteps * 100) : '0';
     };
     
     $scope.doSubmit = function () {

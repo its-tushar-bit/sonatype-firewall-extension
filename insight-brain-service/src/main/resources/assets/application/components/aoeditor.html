@@ -55,8 +55,8 @@
 						</table>
 						<div style="margin-top:5px;">
 							<div style="margin-bottom:0px;" class="progress progress-striped" ng-class="{active: !evaluationStatus.scanId}">
-								<div class="bar" ng-style="{width: getProgressWidth()}">
-									<span class="sr-only"><b>{{evaluationStatus.currentStepName}}</b></span>
+								<div class="bar" ng-style="{width: getProgressWidth() + '%', color : (getProgressWidth() ? 'white' : '#888') }">
+									<span style='padding:0 5px'><b>{{evaluationStatus.currentStepName}}</b></span>
 								</div>
 							</div>
 						</div>

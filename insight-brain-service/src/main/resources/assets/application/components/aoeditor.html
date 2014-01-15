@@ -57,7 +57,7 @@
 					<div style="margin-bottom:3px;" class="progress progress-striped" ng-class="{active: !evaluationStatus.scanId}">
 						<div class="bar" ng-style="{width: getProgressWidth() + '%'}"></div>
 					</div>
-					<div style='padding-left:3px;font-weight:bold'>{{evaluationStatus.currentStepName}}</div>
+					<div style='padding-left:3px;font-weight:bold' id='evaluate-bundle-status'>{{evaluationStatus.currentStepName}}</div>
 				</div>
 				<div class='modal-footer'>
 					<span style="margin:0px;padding: 4px 35px 4px 14px;float:left;max-width:330px" ng-class="{'alert alert-error': error }" ng-show="error">{{error}}</span>

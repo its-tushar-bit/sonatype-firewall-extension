@@ -83,7 +83,7 @@ class AppEvaluationSpec extends BaseSpec {
       appPage.tools.appEval.upload.click()
     then: 'User sees the evaluation status screen'
       //will be disabled initially, until processing complete
-      waitFor { appPage.tools.appEval.viewReport.@disabled }
+      waitFor { appPage.tools.appEval.viewReport.@disabled || appPage.tools.appEval.status.text() == 'Done' }
       //so just wait for that to happen
       waitFor {!appPage.tools.appEval.viewReport.@disabled}
       getAvailableWindows().size() == 1

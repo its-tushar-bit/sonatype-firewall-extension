@@ -11,7 +11,6 @@ import java.util.List;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.Consumes;
-import javax.ws.rs.DefaultValue;
 import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -55,11 +54,11 @@ public class PolicyEvaluateResource
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   public PolicyEvaluationResult evaluate(@PathParam("applicationPublicId") final String applicationPublicId,
-      @QueryParam("scanId") final String scanId, final Stage stage, @HeaderParam("user-agent") final String userAgent,
-      @DefaultValue("true") @QueryParam("sendNotifications") final boolean sendNotifications) throws IOException
+      @QueryParam("scanId") final String scanId, final Stage stage, @HeaderParam("user-agent") final String userAgent)
+      throws IOException
   {
-    log.debug("Received request to evaluate policy for app id {}, scan id {}, stageTypeId {}, sendNotifications {}",
-        applicationPublicId, scanId, stage.getStageTypeId(), sendNotifications);
+    log.debug("Received request to evaluate policy for app id {}, scan id {}, stageTypeId {}", applicationPublicId,
+        scanId, stage.getStageTypeId());
 
     Application application = applicationDAO.getByPublicIdNotNull(applicationPublicId);
     String appId = application.getId();
@@ -68,7 +67,7 @@ public class PolicyEvaluateResource
 
     PolicyEvaluationResult policyEvaluationResult = policyEvaluationUtils.evaluate(applicationPublicId, scanId, stage);
 
-    if (!policyEvaluationResult.isReevaluation() && sendNotifications) {
+    if (!policyEvaluationResult.isReevaluation()) {
       final List<PolicyAlert> newAlerts = policyEvaluationResult.getAlerts();
       policyAlertNotifier.sendNotifications(applicationPublicId, appId, scanId, stage, newAlerts, oldAlerts);
     }

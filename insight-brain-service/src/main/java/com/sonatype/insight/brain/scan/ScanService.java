@@ -8,26 +8,20 @@ package com.sonatype.insight.brain.scan;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 
 import javax.inject.Inject;
 import javax.inject.Named;
-import javax.inject.Provider;
 
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.scan.ScanTask.State;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.IOUtil;
 import org.codehaus.plexus.util.io.RawInputStreamFacade;
@@ -36,7 +30,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Provides the services to scan and evaluate application binaries.
- *
+ * 
  * @since 1.8
  */
 @Named
@@ -44,19 +38,11 @@ class ScanService
 {
   private static final Logger log = LoggerFactory.getLogger(ScanService.class);
 
-  private final Provider<ScanTask> scanTaskProvider;
-
-  private final Map<String, ScanTask> scanTasks;
-
-  private final ThreadPoolExecutor executor;
+  private ScanTaskRepository taskRepository;
 
   @Inject
-  public ScanService(Provider<ScanTask> scanTaskProvider) {
-    this.scanTaskProvider = scanTaskProvider;
-    scanTasks = new ConcurrentHashMap<>();
-    executor = new ThreadPoolExecutor(1, 2, 5L, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>(),
-        new ThreadFactoryBuilder().setDaemon(true).setNameFormat("ScanTask-%s").build());
-    executor.allowCoreThreadTimeOut(true);
+  public ScanService(ScanTaskRepository scanTaskRepository) {
+    this.taskRepository = scanTaskRepository;
   }
 
   /**
@@ -71,6 +57,7 @@ class ScanService
       throw new BadRequestException("Invalid CLM stage: " + stage.getStageTypeId());
     }
     File binFile = saveBinary(is, filename);
+
     ScanTask task = newScanTask(appPublicId, binFile, stage, sendNotifications);
     return task.getTicket();
   }
@@ -82,13 +69,14 @@ class ScanService
   public ScanTicket getTicket(@AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String appPublicId, String ticketId)
       throws NotFoundException
   {
-    ScanTask task = scanTasks.get(ticketId);
+    ScanTask task = taskRepository.getByIdNotNull(ticketId);
+    ScanTicket ticket = task.getTicket();
 
-    if (task == null) {
-      throw new NotFoundException("Cannot find ScanTicket with id " + ticketId + ".");
+    if (State.DONE == task.getState()) {
+      taskRepository.remove(ticketId);
     }
 
-    return task.getTicket();
+    return ticket;
   }
 
   static File saveBinary(InputStream is, String filename) throws IOException {
@@ -119,11 +107,7 @@ class ScanService
 
   private ScanTask newScanTask(String appPublicId, File binFile, Stage stage, boolean sendNotifications) {
     Application app = new ApplicationDAO().getByPublicIdNotNull(appPublicId);
-
-    ScanTask scanTask = scanTaskProvider.get();
-    scanTask.init(app, binFile, stage, sendNotifications);
-    scanTasks.put(scanTask.getId(), scanTask);
-    executor.submit(scanTask);
+    ScanTask scanTask = taskRepository.newScanTask(app, binFile, stage, sendNotifications);
     return scanTask;
   }
 }

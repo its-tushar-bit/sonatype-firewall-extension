@@ -18,7 +18,6 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.report.ReportDownloader;
 import com.sonatype.insight.brain.saas.ScanUploader;
 import com.sonatype.insight.error.exception.BadRequestException;
-import com.sonatype.insight.error.exception.NotFoundException;
 
 import com.google.inject.Binder;
 import org.codehaus.plexus.util.FileUtils;
@@ -42,6 +41,9 @@ import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+/**
+ * Also see {@link ScanServiceUnitTest}.
+ */
 public class ScanServiceTest
     extends InjectedTest
 {
@@ -111,16 +113,6 @@ public class ScanServiceTest
 
     ScanTicket statusTicket = scanService.getTicket(app.getPublicId(), originalTicket.ticketId);
     assertThat(statusTicket.ticketId, is(originalTicket.ticketId));
-  }
-
-  @Test
-  public void testGetTicketNotFound() {
-    try {
-      scanService.getTicket(app.getPublicId(), "unknown-ticket");
-    }
-    catch (NotFoundException e) {
-      assertThat(e.getMessage(), containsString("unknown-ticket"));
-    }
   }
 
   /**

@@ -59,7 +59,7 @@
           }
         });
         $scope.bundle = {
-          notify: 'false',
+          notify: 'true',
           applicationPublicId: selectedApplication ? selectedApplication.publicId : null
         };
         $scope.updateFormActionUrl();

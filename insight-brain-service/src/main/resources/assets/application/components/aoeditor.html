@@ -88,7 +88,7 @@
 						<div class='control-group'>
 							<label class="control-label" for='bundleStage'>Which CLM stage should this evaluation be associated with?</label>
 							<div class='controls'>
-								<select id='bundleStage' ng-required="true" ng-model="bundle.stage" ng-options="stage.id as stage.name for stage in stages">
+								<select id='bundleStage' ng-required="true" ng-model="bundle.stage" ng-change="updateFormActionUrl()" ng-options="stage.id as stage.name for stage in stages">
 									<option value="">-- Select CLM Stage --</option>
 								</select>
 							</div>
@@ -97,11 +97,11 @@
 							<label class="control-label" for='bundleNotifications'>Should policy violations send notifications?</label>
 							<div class='controls'>
 								<label class="radio">
-            						<input type="radio" ng-model="bundle.notify" value="true"/>
+            						<input type="radio" ng-model="bundle.notify" ng-change="updateFormActionUrl()" value="true"/>
 									Yes, raise alerts (if configured).
 								</label>
         						<label class="radio">
-           		 				<input type="radio" ng-model="bundle.notify" value="false"/>
+           		 				<input type="radio" ng-model="bundle.notify" ng-change="updateFormActionUrl()" value="false"/>
             						No, do not send alerts.
          						</label>
 							</div>

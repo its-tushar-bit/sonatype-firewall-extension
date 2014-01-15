@@ -182,8 +182,8 @@
 					set-results='setQueryResults($members, $error)'
 					query-string='queryString'
 					request-active='requestActive'
-					type='organization'
-					type-id='{{organizationId}}'
+					owner-type='organization'
+					owner-id='{{organizationId}}'
 					groups='false'></div>
 				<div class='selectList-large' style='width:100%'>
 					<h5>Available</h5>
@@ -318,7 +318,7 @@
 							ng-click='openContact()'>{{ao.selected.contact.displayName || ao.selected.contact.internalName || "None"}}</span>
 						<span ng-if='!(ao.selected.organizationId || ao.selected.id)'
 							class='editable-empty editable'
-							tooltip='Select an organization'>None</span>
+							tooltip='Must select an organization first'>None</span>
 						<span ng-if='ao.selected.contact.error'
 							class='error'> - {{ao.selected.contact.error}}</span>
 					</div>

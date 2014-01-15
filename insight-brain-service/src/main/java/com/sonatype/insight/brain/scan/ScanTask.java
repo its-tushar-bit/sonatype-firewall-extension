@@ -79,6 +79,8 @@ class ScanTask
 
   private final InsightWork work;
 
+  private FileCleaner fileCleaner;
+
   private final String id;
 
   private Application app;
@@ -93,9 +95,9 @@ class ScanTask
 
   private volatile Throwable error;
 
-  private volatile String scanId;
+  private volatile String errorId;
 
-  private FileCleaner fileCleaner;
+  private volatile String scanId;
 
   @Inject
   public ScanTask(Scanner scanner, ScanUploader uploader, PolicyEvaluationUtils policyEvaluationUtils,
@@ -141,7 +143,8 @@ class ScanTask
     ticket.scanId = scanId;
 
     if (error != null) {
-      ticket.error = "Failed to evaluate policies on uploaded binary for application " + app.getPublicId();
+      ticket.error = "An error occurred, and the application you uploaded has not been evaluated. Please contact your IT Administrator for troubleshooting options. Error ID "
+          + errorId + " - Access CLM Log for details.";
     }
 
     return ticket;
@@ -194,7 +197,10 @@ class ScanTask
     }
     catch (Throwable e) {
       error = e;
-      log.error("Failed to evaluate policies on uploaded binary for application {}", appPublicId, e);
+      errorId = UUID.randomUUID().toString().replace("-", "").substring(0, 16);
+
+      log.error("Failed to evaluate policies on uploaded binary for application {} (Error ID {})", appPublicId,
+          errorId, e);
     }
     finally {
       state = State.DONE;

@@ -53,7 +53,7 @@ else {
 
   // increase default timeout to account for slower CI server
   waiting {
-    timeout = 10
+    timeout = 15
   }
 }
 

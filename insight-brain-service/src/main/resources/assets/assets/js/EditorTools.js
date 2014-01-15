@@ -98,7 +98,7 @@
     
     $scope.doSubmit = function () {
       $scope.state = 'polling';
-      $scope.evaluationStatus = {currentStep: 1, totalSteps: 1, currentStepName: 'Uploading...'};
+      $scope.evaluationStatus = {currentStep: 1, totalSteps: 1, currentStepName: 'Uploading'};
       $scope.error = null;
       $scope.bundle.filename = parseFilename(fileElement.value);
       $scope.bundle.applicationName = getApplicationName($scope.bundle.applicationPublicId);

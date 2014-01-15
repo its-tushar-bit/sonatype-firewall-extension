@@ -128,7 +128,7 @@ describe('EditorToolsSpec', function() {
         expect(scope.state).toEqual('polling');
         expect(scope.evaluationStatus.currentStep).toEqual(1);
         expect(scope.evaluationStatus.totalSteps).toEqual(1);
-        expect(scope.evaluationStatus.currentStepName).toEqual('Uploading...');
+        expect(scope.evaluationStatus.currentStepName).toEqual('Uploading');
         expect(scope.error).toBeNull();
         expect(scope.bundle.filename).toEqual('testfile');
         expect(scope.bundle.applicationName).toEqual('1');

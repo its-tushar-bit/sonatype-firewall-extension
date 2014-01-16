@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.model.license;
 
+import java.io.Serializable;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -33,7 +35,10 @@ public class MultiLicenseLicenseInternal
   }
 
   public static class ID
+      implements Serializable
   {
+    private static final long serialVersionUID = 4817701526044595237L;
+
     private String multiLicenseId;
 
     private String licenseId;

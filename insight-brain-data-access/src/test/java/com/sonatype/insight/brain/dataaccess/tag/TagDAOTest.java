@@ -5,7 +5,13 @@
  */
 package com.sonatype.insight.brain.dataaccess.tag;
 
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
+import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.model.tag.Tag;
@@ -352,10 +358,48 @@ public class TagDAOTest
     }
   }
 
+  @Test
+  public void testGetAppliedApplicationTags() {
+    Application app1 = createApplication("one", "one", organization.getId());
+    Application app2 = createApplication("two", "two", organization.getId());
+
+    List<Tag> app1Tags = new ArrayList<>();
+    List<Tag> app2Tags = new ArrayList<>();
+
+    app1Tags.add(createTag("tag1", "tag1", organization.getId()));
+    app1Tags.add(createTag("tag2", "tag2", organization.getId()));
+    app2Tags.add(createTag("tag3", "tag3", organization.getId()));
+    app2Tags.add(createTag("tag4", "tag4", organization.getId()));
+
+    for (Tag tag : app1Tags) {
+      createApplicationTag(app1.getId(), tag.getId());
+    }
+
+    for (Tag tag : app2Tags) {
+      createApplicationTag(app2.getId(), tag.getId());
+    }
+
+    assertAppliedApplicationTags(app1Tags, dao.getByApplicationId(app1.getId()));
+    assertAppliedApplicationTags(app2Tags, dao.getByApplicationId(app2.getId()));
+  }
+
   private void assertTag(String orgId, String name, String description, Tag actual) {
     assertThat(actual.getOrganizationId(), is(orgId));
     assertThat(actual.getName(), is(name));
     assertThat(actual.getNameLowercaseNoWhitespace(), is(NameHelper.normalize(name)));
     assertThat(actual.getDescription(), is(description));
+  }
+
+  private void assertAppliedApplicationTags(List<Tag> expected, List<Tag> actual) {
+    assertThat(actual.size(), is(expected.size()));
+
+    Set<String> tagIds = new HashSet<>();
+    for (Tag tag : expected) {
+      tagIds.add(tag.getId());
+    }
+
+    for (Tag tag : actual) {
+      assertThat(tagIds.contains(tag.getId()), is(true));
+    }
   }
 }

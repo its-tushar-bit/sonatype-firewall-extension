@@ -9,11 +9,14 @@ import java.util.List;
 
 import javax.inject.Named;
 
+import com.sonatype.insight.brain.dataaccess.tag.ApplicationTagDAO;
 import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
 import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.model.tag.ApplicationTag;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
+import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 @Named
@@ -53,5 +56,28 @@ class TagService
     }
 
     tagDAO.delete(tag);
+  }
+
+  @Authorize(permission = Permission.READ)
+  public List<Tag> getAppliedApplicationTags(@AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String applicationPublicId) {
+    return new TagDAO().getByApplicationId(IdUtils.getInternalOwnerId(IdUtils.TYPE_APPLICATION, applicationPublicId));
+  }
+
+  @Authorize(permission = Permission.WRITE)
+  public ApplicationTag applyTagToApplication(@AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String applicationPublicId, Tag tag) {
+    ApplicationTag appTag = new ApplicationTag(IdUtils.getInternalOwnerId(IdUtils.TYPE_APPLICATION, applicationPublicId), tag.getId());
+    new ApplicationTagDAO().insert(appTag);
+    return appTag;
+  }
+
+  @Authorize(permission = Permission.WRITE)
+  public void removeApplicationTag(@AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String applicationPublicId, String tagId) {
+    ApplicationTagDAO appTagDAO = new ApplicationTagDAO();
+    ApplicationTag appTag = appTagDAO.getByApplicationIdAndTagId(IdUtils.getInternalOwnerId(IdUtils.TYPE_APPLICATION, applicationPublicId), tagId);
+    if(appTag == null) {
+      throw new NotFoundException("Tag with id " + tagId + " is not applied to application with id " + applicationPublicId);
+    }
+
+    appTagDAO.delete(appTag);
   }
 }

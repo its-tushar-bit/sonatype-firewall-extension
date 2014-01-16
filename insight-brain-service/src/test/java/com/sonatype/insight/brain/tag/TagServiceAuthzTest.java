@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.tag;
 
 import javax.inject.Inject;
 
+import com.sonatype.insight.brain.model.tag.ApplicationTag;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 
@@ -71,5 +72,47 @@ public class TagServiceAuthzTest
     grantWritePermission(org.getId());
     Tag tag = tempEntity.newTag(org.getId(), "name");
     tagService.deleteTag(org.getId(), tag.getId());
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testGetAppliedApplicationTags_Unauthorized() throws Exception {
+    login();
+    tagService.getAppliedApplicationTags(app.getPublicId());
+  }
+
+  @Test
+  public void testGetAppliedApplicationTags_Authorized() throws Exception {
+    grantReadPermission(app.getId());
+    tagService.getAppliedApplicationTags(app.getPublicId());
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testApplyTagToApplication_Unauthorized() throws Exception {
+    grantReadPermission(app.getId());
+    Tag tag = tempEntity.newTag(org.getId(), "name");
+    tagService.applyTagToApplication(app.getPublicId(), tag);
+  }
+
+  @Test
+  public void testApplyTagToApplication_Authorized() throws Exception {
+    grantWritePermission(app.getId());
+    Tag tag = tempEntity.newTag(org.getId(), "name");
+    tagService.applyTagToApplication(app.getPublicId(), tag);
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testRemoveApplicationTag_Unauthorized() throws Exception {
+    grantReadPermission(app.getId());
+    Tag tag = tempEntity.newTag(org.getId(), "name");
+    ApplicationTag appTag = tempEntity.newApplicationTag(app.getId(), tag.getId());
+    tagService.removeApplicationTag(app.getPublicId(), tag.getId());
+  }
+
+  @Test
+  public void testRemoveApplicationTag_Authorized() throws Exception {
+    grantWritePermission(app.getId());
+    Tag tag = tempEntity.newTag(org.getId(), "name");
+    ApplicationTag appTag = tempEntity.newApplicationTag(app.getId(), tag.getId());
+    tagService.removeApplicationTag(app.getPublicId(), tag.getId());
   }
 }

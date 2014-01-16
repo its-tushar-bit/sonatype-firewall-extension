@@ -3,15 +3,17 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+
 package com.sonatype.insight.brain.tag;
+
+import com.ning.http.client.Response;
 
 import com.sonatype.insight.brain.AuthedRestAccess;
 import com.sonatype.insight.brain.TemporaryEntity;
-import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
-import com.ning.http.client.Response;
 import com.yammer.dropwizard.testing.JsonHelpers;
 import org.junit.Rule;
 import org.junit.Test;
@@ -20,7 +22,7 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertThat;
 
-public class TagResourceTest
+public class ApplicationTagResourceTest
     extends AbstractResourceTest
 {
   @Rule
@@ -28,23 +30,23 @@ public class TagResourceTest
 
   @Test
   public void testCRUD() throws Exception {
-    Organization org = createOrganization("TagResourceTest");
+    Application app = createApplication("testApp");
 
-    String url = getRestUrl(TagResource.SERVICE_PATH, org.getId());
-    // Get
+    String url = getRestUrl(ApplicationTagResource.SERVICE_PATH, app.getPublicId());
+
+    //Get
     Response response = AuthedRestAccess.get(url);
     assertResponseStatus(200, response);
     Tag[] tags = JsonHelpers.fromJson(response.getResponseBody(), Tag[].class);
     assertThat(tags, is(notNullValue()));
     assertThat(tags.length, is(0));
 
-    // Add
-    Tag tag = new Tag(org.getId(), "Tag Name", "Tag description");
+    //Add
+    Tag tag = tempEntity.newTag(app.getOrganizationId(), "tag name");
     response = AuthedRestAccess.post(url, JsonHelpers.asJson(tag));
-    assertResponseStatus(200, response);
-    tempEntity.assertTag(tag, JsonHelpers.fromJson(response.getResponseBody(), Tag.class));
+    assertResponseStatus(204, response);
 
-    // Get
+    //Get
     response = AuthedRestAccess.get(url);
     assertResponseStatus(200, response);
     tags = JsonHelpers.fromJson(response.getResponseBody(), Tag[].class);
@@ -52,26 +54,11 @@ public class TagResourceTest
     assertThat(tags.length, is(1));
     tempEntity.assertTag(tag, tags[0]);
 
-    // Update
-    tag = tags[0];
-    tag.setName("Tag Updated Name");
-    response = AuthedRestAccess.put(url, JsonHelpers.asJson(tag));
-    assertResponseStatus(200, response);
-    tempEntity.assertTag(tag, JsonHelpers.fromJson(response.getResponseBody(), Tag.class));
-
-    // Get
-    response = AuthedRestAccess.get(url);
-    assertResponseStatus(200, response);
-    tags = JsonHelpers.fromJson(response.getResponseBody(), Tag[].class);
-    assertThat(tags, is(notNullValue()));
-    assertThat(tags.length, is(1));
-    tempEntity.assertTag(tag, tags[0]);
-
-    // Delete
+    //Delete
     response = AuthedRestAccess.delete(url + "/" + tag.getId());
     assertResponseStatus(204, response);
 
-    // Get
+    //Get
     response = AuthedRestAccess.get(url);
     assertResponseStatus(200, response);
     tags = JsonHelpers.fromJson(response.getResponseBody(), Tag[].class);

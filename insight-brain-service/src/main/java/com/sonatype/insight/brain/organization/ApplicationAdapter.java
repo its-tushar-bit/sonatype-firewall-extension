@@ -5,7 +5,13 @@
  */
 package com.sonatype.insight.brain.organization;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map.Entry;
+import java.util.Set;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -20,6 +26,8 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.security.CLMRealm;
 
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ListMultimap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -63,22 +71,66 @@ public class ApplicationAdapter
       return null;
     }
 
-    final ApplicationDTO applicationDTO = new ApplicationDTO();
+    final ContactDTO contact = getContact(application.getContactInternalName());
+    return createApplicationDTO(application, contact);
+  }
 
-    applicationDTO.setId(application.getId());
-    applicationDTO.setName(application.getName());
-    applicationDTO.setPublicId(application.getPublicId());
+  public List<ApplicationDTO> convert(List<Application> applicationList) {
 
-    String organizationId = application.getOrganizationId();
-    if (organizationId != null) {
-      applicationDTO.setOrganizationId(organizationId);
-      applicationDTO.setOrganizationName(organizationDAO.getByIdNotNull(organizationId).getName());
+    if (applicationList == null || applicationList.isEmpty()) {
+      return Collections.emptyList();
     }
 
-    applicationDTO.setContact(getContact(application.getContactInternalName()));
+    List<ApplicationDTO> applicationDTOList = new ArrayList<>(applicationList.size());
 
-    return applicationDTO;
+    final List<String> internalNameList = new ArrayList<>(applicationList.size());
+    for (final Application application : applicationList) {
+      final String internalName = application.getContactInternalName();
+      internalNameList.add(internalName);
+    }
+
+    final ContactDTO[] contacts = getContacts(internalNameList);
+
+    for (int i = 0; i < applicationList.size(); i++) {
+      final ApplicationDTO applicationDTO = createApplicationDTO(applicationList.get(i), contacts[i]);
+      applicationDTOList.add(applicationDTO);
+    }
+
+    return applicationDTOList;
   }
+
+  /**
+   * Create a list of application summary DTOs from the list of applications
+   *
+   * @param applicationList the list of applications
+   * @return the list of application summary DTOs
+   */
+  public List<ApplicationManagementSummaryDTO> createApplicationManagementSummaries(List<Application> applicationList) {
+
+    final List<ApplicationManagementSummaryDTO> applicationManagementSummaryDTOList = new ArrayList<>(
+        applicationList.size());
+
+    final List<String> internalNameList = new ArrayList<>(applicationList.size());
+    for (final Application application : applicationList) {
+      final String internalName = application.getContactInternalName();
+      internalNameList.add(internalName);
+    }
+
+    final ContactDTO[] contacts = getContacts(internalNameList);
+    for (int i = 0; i < applicationList.size(); i++) {
+      Application application = applicationList.get(i);
+      final ApplicationManagementSummaryDTO summary = new ApplicationManagementSummaryDTO();
+      summary.setId(application.getId());
+      summary.setName(application.getName());
+      summary.setPublicId(application.getPublicId());
+      summary.setOrganizationId(application.getOrganizationId());
+      summary.setContact(contacts[i]);
+      applicationManagementSummaryDTOList.add(summary);
+    }
+
+    return applicationManagementSummaryDTOList;
+  }
+
 
   /**
    * Create the application management summary DTO from the application entity
@@ -93,64 +145,147 @@ public class ApplicationAdapter
     summary.setName(application.getName());
     summary.setPublicId(application.getPublicId());
     summary.setOrganizationId(application.getOrganizationId());
-    summary.setContact(getContact(application.getContactInternalName()));
+
+    final ContactDTO contact = getContact(application.getContactInternalName());
+    summary.setContact(contact);
 
     return summary;
+  }
+
+  private ContactDTO getContact(final String internalName) {
+
+    return getContacts(Arrays.asList(internalName))[0];
   }
 
   /**
    * Get the contact DTO from the contact internal name (username)
    *
-   * @param contactInternalName the contact internal name to look up the contact by
-   * @return the contact DTO
+   * @param internalNamesList the list of contact internal names to look up
+   * @return the contact DTO array (guaranteed to be the same size as the input list)
    */
-  private ContactDTO getContact(String contactInternalName) {
+  private ContactDTO[] getContacts(List<String> internalNamesList) {
 
-    if (contactInternalName == null) {
-      return null;
+    if (internalNamesList == null || internalNamesList.isEmpty()) {
+      return new ContactDTO[0];
     }
 
-    ContactDTO contact = null;
+    final ContactDTO[] contacts = new ContactDTO[internalNamesList.size()];
 
-    // Get the user from the database
-    User user = userDAO.getByUsername(contactInternalName);
-    if (user != null) {
-      // Create the contact member and set it on the application DTO
-      contact = new ContactDTO(user.getUsername(), user.calculateDisplayName(), user.getEmail(), CLMRealm.DISPLAY_NAME);
+    // Multi-map to keep the internal names that need to be looked up in LDAP (also the positions in the array)
+    final ListMultimap<String, Integer> notFoundInClmMap = ArrayListMultimap.create();
+
+    // First look up each internal name in the CLM database
+    int i = 0;
+    for (String internalName : internalNamesList) {
+      if (internalName == null) {
+        // No internal name for this entry, so set the contact to null
+        contacts[i] = null;
+      }
+      else {
+        // Look up user in database
+        User user = userDAO.getByUsername(internalName);
+        if (user != null) {
+          // Found in CLM database so add contact for this entry
+          ContactDTO contact = new ContactDTO(user.getUsername(), user.calculateDisplayName(), user.getEmail(),
+              CLMRealm.DISPLAY_NAME);
+          contacts[i] = contact;
+        }
+        else if (ldapManager.isLdapEnabled()) {
+          // Not found in CLM and LDAP is configured so add to the LDAP map
+          // Since LDAP is case-insensitive we normalize the map with only lowercase keys
+          notFoundInClmMap.put(internalName.toLowerCase(Locale.ENGLISH), i);
+        }
+        else {
+          // No contact found in CLM and LDAP not configured, so create a contact with an error message
+          ContactDTO contact = createErrorContact(internalName, "The username " + internalName + " no longer exists");
+          contacts[i] = contact;
+        }
+      }
+      i++;
     }
-    else if (ldapManager.isLdapEnabled()) {
-      // If not found in DB and LDAP is enabled lookup user there
+
+    // Now look up the items not found in the CLM database from LDAP
+    // If LDAP is enabled we lookup any users not found in the CLM database
+    // Note this map will be empty if ldap is not enabled or if all users found in CLM database
+    if (!notFoundInClmMap.isEmpty()) {
+
+      List<LdapUser> ldapUsers = null;
       String ldapServerName = null;
+
+      Set<String> keys = notFoundInClmMap.keySet();
+      String[] internalNames = keys.toArray(new String[keys.size()]);
       try {
         ldapServerName = ldapManager.getLdapServerName();
-        String[] names = {contactInternalName};
-        List<LdapUser> ldapUsers = ldapManager.getUsers(names, 1);
-        if (!ldapUsers.isEmpty()) {
-          LdapUser ldapUser = ldapUsers.get(0);
-          // Create the contact member and set it on the application DTO
-          contact = new ContactDTO(ldapUser.getUsername(), ldapUser.getRealName(), ldapUser.getEmail(), ldapServerName);
-        }
+        ldapUsers = ldapManager.getUsers(internalNames, internalNames.length);
       }
       catch (NamingException | IllegalStateException e) {
         log.error("LDAP exception when trying to resolve user names", e);
-        contact = createErrorContact(contactInternalName, ldapServerName, "LDAP error");
+
+        // Create LDAP general error for all items in the map and return the contact list
+        for (Entry<String, Integer> entry : notFoundInClmMap.entries()) {
+          String internalName = entry.getKey();
+          Integer index = entry.getValue();
+          ContactDTO contact = createErrorContact(internalName, "LDAP error");
+          contacts[index] = contact;
+        }
+        return contacts;
+      }
+
+      if (ldapUsers != null) {
+        for (LdapUser ldapUser : ldapUsers) {
+          // Create the contact member and set it on the application DTO
+          final ContactDTO contact = new ContactDTO(ldapUser.getUsername(), ldapUser.getRealName(), ldapUser.getEmail(),
+              ldapServerName);
+          // remove the item from the map and add the contact to the list at the desired positions
+          // Since LDAP is case-insensitive we normalize the map with only lowercase keys
+          final List<Integer> positions = notFoundInClmMap
+              .removeAll(contact.getInternalName().toLowerCase(Locale.ENGLISH));
+          for (int position : positions) {
+            contacts[position] = contact;
+          }
+        }
+      }
+
+      // Create errors for any items left in the map
+      for (final Entry<String, Integer> entry : notFoundInClmMap.entries()) {
+        String internalName = entry.getKey();
+        Integer index = entry.getValue();
+        ContactDTO contact = createErrorContact(internalName, "The username " + internalName + " no longer exists");
+        contacts[index] = contact;
       }
     }
 
-    if (contact == null) {
-      // No contact found in CLM and LDAP not configured, so create a contact with an error message
-      contact = createErrorContact(contactInternalName, null,
-          "The username " + contactInternalName + " no longer exists");
-    }
+    return contacts;
+  }
+
+  private ContactDTO createErrorContact(String internalName, String errorMessage) {
+
+    ContactDTO contact = new ContactDTO(internalName, null, null, null);
+    contact.setError(errorMessage);
 
     return contact;
   }
 
-  private ContactDTO createErrorContact(String internalName, String realm, String errorMessage) {
+  private ApplicationDTO createApplicationDTO(final Application application, ContactDTO contact) {
 
-    ContactDTO contact = new ContactDTO(internalName, null, null, realm);
-    contact.setError(errorMessage);
+    if (application == null) {
+      return null;
+    }
 
-    return contact;
+    final ApplicationDTO applicationDTO = new ApplicationDTO();
+
+    applicationDTO.setId(application.getId());
+    applicationDTO.setName(application.getName());
+    applicationDTO.setPublicId(application.getPublicId());
+
+    final String organizationId = application.getOrganizationId();
+    if (organizationId != null) {
+      applicationDTO.setOrganizationId(organizationId);
+      applicationDTO.setOrganizationName(organizationDAO.getByIdNotNull(organizationId).getName());
+    }
+
+    applicationDTO.setContact(contact);
+
+    return applicationDTO;
   }
 }

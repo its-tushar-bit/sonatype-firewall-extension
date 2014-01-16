@@ -122,7 +122,7 @@ public class ApplicationResource
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   public List<ApplicationDTO> getApplications() {
-    final List<ApplicationDTO> applications = toDTOList(getApplicationsWithReadPermission());
+    final List<ApplicationDTO> applications = applicationAdapter.convert(getApplicationsWithReadPermission());
     return applications;
   }
   
@@ -141,11 +141,10 @@ public class ApplicationResource
   @Path(GET_APPLICATION_MANAGEMENT_SUMMARIES)
   @Produces(MediaType.APPLICATION_JSON)
   public List<ApplicationManagementSummaryDTO> getApplicationManagementSummaries() throws IOException {
-    final List<ApplicationManagementSummaryDTO> applicationManagements = new ArrayList<ApplicationManagementSummaryDTO>();
     final List<Application> applications = getApplicationsWithReadPermission();
-    for (Application application : applications) {
-      applicationManagements.add(getApplicationManagementSummary(application));
-    }
+
+    final List<ApplicationManagementSummaryDTO> applicationManagements = getApplicationManagementSummaries(
+        applications);
 
     return applicationManagements;
   }
@@ -359,38 +358,28 @@ public class ApplicationResource
     applicationDAO.deleteWithIcon(em, application, work.getApplicationIconDir());
   }
 
+  private List<ApplicationManagementSummaryDTO> getApplicationManagementSummaries(
+      final List<Application> applications) throws IOException
+  {
+
+    // Create the summary DTOs from the applications
+    final List<ApplicationManagementSummaryDTO> applicationManagementSummaryDTOs = applicationAdapter
+        .createApplicationManagementSummaries(applications);
+
+    // Now evaluate the policy for each
+    for (ApplicationManagementSummaryDTO applicationManagement : applicationManagementSummaryDTOs) {
+      evaluatePolicy(applicationManagement);
+    }
+
+    return applicationManagementSummaryDTOs;
+  }
+
   private ApplicationManagementSummaryDTO getApplicationManagementSummary(final Application application)
       throws IOException
   {
-    final String applicationPublicId = application.getPublicId();
-    final String applicationId = application.getId();
-    log.debug("Found application with public id {}", applicationPublicId);
-
     final ApplicationManagementSummaryDTO applicationManagement = applicationAdapter
         .createApplicationManagementSummary(application);
-    File[] scans = work.getScanDir(applicationManagement.getId()).listFiles();
-    applicationManagement.setScansCount(scans != null ? scans.length : 0);
-
-    final List<PolicyEvaluation> policyEvaluationList = getMostRecentPolicyEvaluations(application.getId());
-    Map<String, PolicyEvaluation> policyEvaluations = new HashMap<String, PolicyEvaluation>();
-    Map<String, PolicyEvaluationResult> policyEvaluationResults = new HashMap<String, PolicyEvaluationResult>();
-    for (PolicyEvaluation policyEvaluation : policyEvaluationList) {
-      final Stage stage = policyEvaluation.getStage();
-      policyEvaluations.put(stage.getStageTypeId(), policyEvaluation);
-
-      List<PolicyAlert> alerts = policyEvaluationUtils.findPolicyAlerts(applicationId, policyEvaluation.getScanId());
-      final PolicyEvaluationResult policyEvaluationResult = new PolicyEvaluationResult();
-      policyEvaluationResult.setAlerts(alerts);
-      policyEvaluationUtils.calculateCounters(policyEvaluationResult);
-
-      // Alerts are not needed by the Application Management UI and greatly bloat the JSON response
-      policyEvaluationResult.setAlerts(null);
-
-      policyEvaluationResults.put(stage.getStageTypeId(), policyEvaluationResult);
-    }
-
-    applicationManagement.setPolicyEvaluations(policyEvaluations);
-    applicationManagement.setPolicyEvaluationsResults(policyEvaluationResults);
+    evaluatePolicy(applicationManagement);
 
     return applicationManagement;
   }
@@ -410,6 +399,37 @@ public class ApplicationResource
         .createApplicationManagementSummary(application);
     summary.setPolicyEvaluations(Collections.singletonMap(evaluation.getStage().getStageTypeId(), evaluation));
     return summary;
+  }
+
+  private void evaluatePolicy(final ApplicationManagementSummaryDTO applicationManagement) throws IOException {
+
+    final String applicationPublicId = applicationManagement.getPublicId();
+    final String applicationId = applicationManagement.getId();
+    log.debug("Found application with public id {}", applicationPublicId);
+
+    File[] scans = work.getScanDir(applicationManagement.getId()).listFiles();
+    applicationManagement.setScansCount(scans != null ? scans.length : 0);
+
+    final List<PolicyEvaluation> policyEvaluationList = getMostRecentPolicyEvaluations(applicationManagement.getId());
+    Map<String, PolicyEvaluation> policyEvaluations = new HashMap<String, PolicyEvaluation>();
+    Map<String, PolicyEvaluationResult> policyEvaluationResults = new HashMap<String, PolicyEvaluationResult>();
+    for (PolicyEvaluation policyEvaluation : policyEvaluationList) {
+      final Stage stage = policyEvaluation.getStage();
+      policyEvaluations.put(stage.getStageTypeId(), policyEvaluation);
+
+      List<PolicyAlert> alerts = policyEvaluationUtils.findPolicyAlerts(applicationId, policyEvaluation.getScanId());
+      final PolicyEvaluationResult policyEvaluationResult = new PolicyEvaluationResult();
+      policyEvaluationResult.setAlerts(alerts);
+      policyEvaluationUtils.calculateCounters(policyEvaluationResult);
+
+      // Alerts are not needed by the Application Management UI and greatly bloat the JSON response
+      policyEvaluationResult.setAlerts(null);
+
+      policyEvaluationResults.put(stage.getStageTypeId(), policyEvaluationResult);
+    }
+
+    applicationManagement.setPolicyEvaluations(policyEvaluations);
+    applicationManagement.setPolicyEvaluationsResults(policyEvaluationResults);
   }
 
   private List<PolicyEvaluation> getMostRecentPolicyEvaluations(final String appId) throws IOException {
@@ -436,15 +456,5 @@ public class ApplicationResource
   @Override
   protected String getDefaultIconFilename() {
     return "defaulticon_application.png";
-  }
-  
-  private List<ApplicationDTO> toDTOList(List<Application> applications) {
-    List<ApplicationDTO> dtos = new ArrayList<ApplicationDTO>();
-
-    for (Application application : applications) {
-      dtos.add(applicationAdapter.convert(application));
-    }
-
-    return dtos;
   }
 }

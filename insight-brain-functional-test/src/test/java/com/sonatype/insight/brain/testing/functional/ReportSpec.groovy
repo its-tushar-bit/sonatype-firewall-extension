@@ -41,7 +41,7 @@ extends BaseSpec {
 
   def "When we first login we're invited to create a new Org"() {
     expect:
-    emptyMessage.displayed
+    waitFor { emptyMessage.displayed }
   }
 
   def "We can navigate to the trending report"() {

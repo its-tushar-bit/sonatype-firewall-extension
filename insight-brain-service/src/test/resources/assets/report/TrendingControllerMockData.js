@@ -19,8 +19,7 @@ TrendingReportMockData = {
         "applicationsCurrent": 0
       },
       "components": {
-        "inRepository": 50,
-        "inApplications": 40,
+        "inApplication": 40,
         "exact": 20,
         "partial": 15,
         "unknown": 5

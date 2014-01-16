@@ -9,6 +9,7 @@ import com.sonatype.insight.brain.dataaccess.security.UserDAO
 import com.sonatype.insight.brain.model.security.User
 import com.sonatype.insight.brain.security.CLMRealm
 import org.codehaus.plexus.util.FileUtils
+import org.codehaus.plexus.util.IOUtil
 import spock.lang.Ignore;
 
 import spock.lang.Shared
@@ -82,8 +83,9 @@ extends BaseSpec {
 
   def "We display an accurate component chart"() {
     when:
-    FileUtils.copyURLToFile(getClass().getResource("/ReportTest/trending-report.json"),
-        new File(serviceRule.configuration.sonatypeWork, 'report/trending-report.json'))
+    def json = IOUtil.toString(getClass().getResourceAsStream("/ReportTest/trending-report.json"), "UTF-8")
+    json = json.replace("@generatedOn@", Long.toString(System.currentTimeMillis()))
+    FileUtils.fileWrite(new File(serviceRule.configuration.sonatypeWork, 'report/trending-report.json'), "UTF-8", json)
     browser.driver.navigate().refresh()
     at TrendingReportPage
     then:

@@ -167,6 +167,8 @@ class ScanTask
   public void run() {
     String appPublicId = null;
     try {
+      log.debug("Running scan task {}", id);
+
       if (app == null || stage == null || binFile == null) {
         throw new IllegalStateException("scan task has not been properly initialized");
       }
@@ -221,6 +223,8 @@ class ScanTask
       catch (FileDeletionException e) {
         log.error("Can not delete temporary application binary", e);
       }
+
+      log.debug("Completed scan task {}", id);
     }
   }
 }

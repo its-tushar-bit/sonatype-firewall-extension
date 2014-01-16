@@ -22,6 +22,8 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Creates and stores {@link ScanTask}.
@@ -31,6 +33,8 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder;
 @Named
 public class ScanTaskRepository
 {
+  private static final Logger log = LoggerFactory.getLogger(ScanTaskRepository.class);
+
   private final Provider<ScanTask> scanTaskProvider;
 
   private final Map<String, ScanTask> scanTasks;
@@ -55,6 +59,7 @@ public class ScanTaskRepository
     ScanTask scanTask = scanTaskProvider.get();
     scanTask.init(app, binFile, stage, sendNotifications);
     scanTasks.put(scanTask.getId(), scanTask);
+    log.debug("Scheduling scan task {}", scanTask.getId());
     executor.submit(scanTask);
     return scanTask;
   }
@@ -78,6 +83,7 @@ public class ScanTaskRepository
    * Removes the task from storage. Does not halt task execution.
    */
   public void remove(String ticketId) {
+    log.debug("Removing scan task {}", ticketId);
     scanTasks.remove(ticketId);
   }
 
@@ -90,6 +96,7 @@ public class ScanTaskRepository
     for (Iterator<ScanTask> it = scanTasks.values().iterator(); it.hasNext();) {
       ScanTask task = it.next();
       if (task.isObsolete()) {
+        log.debug("Purging scan task {}", task.getId());
         it.remove();
       }
     }

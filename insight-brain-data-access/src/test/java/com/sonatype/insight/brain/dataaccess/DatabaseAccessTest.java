@@ -81,6 +81,9 @@ public class DatabaseAccessTest
     Assert.assertTrue(databaseDir.exists());
     Assert.assertTrue(new File(databaseDir, "dm.h2.db").exists());
 
+    // TODO: Delete this line once https://issues.apache.org/jira/browse/OPENJPA-2472 is resolved
+    new ApplicationDAO().insert(new Application("OPENJPA-2472", "Workaround", null));
+
     int threadCount = 20;
     DatabaseAccessThread[] threads = new DatabaseAccessThread[threadCount];
     for (int i = 0; i < threadCount; i++) {

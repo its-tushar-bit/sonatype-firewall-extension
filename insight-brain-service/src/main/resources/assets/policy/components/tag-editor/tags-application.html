@@ -1,0 +1,29 @@
+<div id='tags'>
+  <div class="content-section">
+    <div load-error='error' reload='doLoad()'></div>
+    <div style='margin:25px' ng-show='tags == null && !error'>
+      <h5><i class='icon-time'></i> Loading...</h5>
+    </div>
+    <div ng-show='!error && tags != null'>
+      <div class="content-header">
+        <h4>
+          <span>{{ ao.selected.name }} Tags</span>
+        </h4>
+      </div>
+      <div class="label-list">
+        <span>
+          <span ng-repeat='tag in tags | orderBy:"name"' ng-click='toggleApply(tag)'>
+            <span class='clm-tag' data-tooltip="{{tag.description}}" data-tooltip-placement="bottom">
+              <i ng-if='tag.isApplied' class='glyphicons-sonatype pushpin clm-tag-pushpin'></i>
+              {{tag.name}}&nbsp;
+            </span>
+          </span>
+        </span>
+        <em ng-show='tags.length == 0'>No tags available</em>
+
+        <div clm-alerts='alerts'></div>
+      </div>
+    </div>
+  </div>
+  <div error-Modal></div>
+</div>

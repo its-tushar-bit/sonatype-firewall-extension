@@ -178,4 +178,64 @@
       };
     }
   ]);
+
+  tagModule.controller('TagApplicationController', ['$scope', '$http', '$q', 'CLMLocations', 'selectedApplication', 'Messages',
+    function($scope, $http, $q, CLMLocations, selectedApplication, Messages) {
+      $scope.alerts = [];
+      var promises = [ $http.get(CLMLocations.getOrganizationTagUrl(selectedApplication.organizationId)),
+                       $http.get(CLMLocations.getApplicationTagUrl(selectedApplication.publicId)) ];
+
+      $scope.doLoad = function() {
+        $scope.error = null;
+        $q.all(promises).then(function(results) {
+          var organizationTags = results[0].data;
+          var applicationTags = results[1].data;
+          var tags = [];
+
+          for (var i = 0; i < organizationTags.length; i++) {
+            var organizationTag = organizationTags[i];
+            organizationTag.isApplied = false;
+            for (var j = 0; j < applicationTags.length; j++) {
+              var applicationTag = applicationTags[j];
+              if (organizationTag.id === applicationTag.id) {
+                organizationTag.isApplied = true;
+                applicationTags.splice(j, 1);
+                break;
+              }
+            }
+            tags.push(organizationTag);
+          }
+
+          $scope.tags = tags;
+        }, function (error) {
+          $scope.error = error;
+        });
+      };
+
+      $scope.toggleApply = function(tag) {
+        if (tag.isApplied) {
+          $http['delete'](CLMLocations.getDeleteApplicationTagUrl(selectedApplication.publicId, tag.id)).success(function() {
+            tag.isApplied = false;
+          }).error(function() {
+            showAlert($scope.alerts, {
+              type: 'error',
+              msg: 'An error occurred while detaching the tag ' + tag.name + '. (' +
+                Messages.getHttpErrorMessage(arguments) + ')'
+            });
+          });
+        } else {
+          $http.post(CLMLocations.getApplicationTagUrl(selectedApplication.publicId), tag).success(function() {
+            tag.isApplied = true;
+          }).error(function() {
+            showAlert($scope.alerts, {
+              type: 'error',
+              msg: 'An error occurred while applying the tag ' + tag.name + '. (' +
+                Messages.getHttpErrorMessage(arguments) + ')'
+            });
+          });
+        }
+      };
+
+      $scope.doLoad();
+  }]);
 }());

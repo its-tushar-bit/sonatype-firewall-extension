@@ -106,6 +106,16 @@
         
         getEvaluationStatusUrl : function (applicationId, ticketId) {
           return baseUrl.get() + '/rest/scan/' + encodeURIComponent(applicationId) + '/' + ticketId;
+        },
+
+        getOrganizationTagUrl : function(organizationId) {
+          return baseUrl.get() + '/rest/tag/' + encodeURIComponent(organizationId);
+        },
+        getApplicationTagUrl : function(applicationId) {
+          return baseUrl.get() + '/rest/applicationTag/' + encodeURIComponent(applicationId);
+        },
+        getDeleteApplicationTagUrl : function(applicationId, tagId) {
+          return baseUrl.get() + '/rest/applicationTag/' + encodeURIComponent(applicationId) + '/' + tagId;
         }
       };
     }

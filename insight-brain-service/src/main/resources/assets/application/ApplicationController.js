@@ -64,7 +64,12 @@
           url: '/security',
           controller: 'AppSecurityController',
           templateUrl: '../policy-assets/components/app-security/app-security.html?' + clmBuildTimestamp
-        });
+        }).state('management.application.view.tags', {
+          parent: 'management.application.view',
+          url: '/tags',
+          controller: 'TagApplicationController',
+          templateUrl: '../policy-assets/components/tag-editor/tags-application.html?' + clmBuildTimestamp
+        });;
       }]);
 
   applicationModule.controller('applicationController', [

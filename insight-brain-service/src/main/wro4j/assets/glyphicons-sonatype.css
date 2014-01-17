@@ -69,3 +69,6 @@
 .glyphicons-sonatype.help:before {
   content: '\e195'
 }
+.glyphicons-sonatype.pushpin:before {
+  content: "\e336";
+}

@@ -23,6 +23,7 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
 import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
+import com.sonatype.insight.brain.dataaccess.tag.ApplicationTagDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.NameHelper;
@@ -36,6 +37,8 @@ import com.sonatype.insight.brain.model.policy.PolicyMonitoring;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
+import com.sonatype.insight.brain.model.tag.ApplicationTag;
+import com.sonatype.insight.brain.model.tag.Tag;
 
 import org.apache.commons.lang.StringUtils;
 import org.junit.After;
@@ -46,6 +49,7 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
@@ -261,8 +265,7 @@ public class ApplicationDAOTest
 
   @Test
   public void testValidateNameInvalidChars_Insert() {
-    String[] invalidAlphaNumericNames = { "!", "@", "#", "$", "%", "^", "&", "*", "(", "_", "+" };
-    for (String name : invalidAlphaNumericNames) {
+    for (String name: INVALID_ALPHANUMERIC) {
       application.setName(name);
       try {
         applicationDAO.insert(application);
@@ -278,8 +281,7 @@ public class ApplicationDAOTest
   public void testValidateNameInvalidChars_Update() {
     application.setName("testValidateNameInvalidChars");
     applicationDAO.insert(application);
-    String[] invalidAlphaNumericNames = { "!", "@", "#", "$", "%", "^", "&", "*", "(", "_", "+" };
-    for (String name : invalidAlphaNumericNames) {
+    for (String name: INVALID_ALPHANUMERIC) {
       application.setName(name);
       try {
         applicationDAO.update(application);
@@ -293,9 +295,7 @@ public class ApplicationDAOTest
 
   @Test
   public void testValidateNameSpaces_Insert() {
-    String[] invalidSpacingNames = { " leading space", "trailing space ", "double  space",
-        "  starts with double space", "ends with double space  " };
-    for (String name : invalidSpacingNames) {
+    for (String name : INVALID_SPACING_NAMES) {
       application.setName(name);
       try {
         applicationDAO.insert(application);
@@ -313,9 +313,7 @@ public class ApplicationDAOTest
     application.setName("testValidateNameSpaces");
     applicationDAO.insert(application);
 
-    String[] invalidSpacingNames = { " leading space", "trailing space ", "double  space",
-        "  starts with double space", "ends with double space  " };
-    for (String name : invalidSpacingNames) {
+    for (String name : INVALID_SPACING_NAMES) {
       application.setName(name);
       try {
         applicationDAO.update(application);
@@ -441,6 +439,22 @@ public class ApplicationDAOTest
     applicationDAO.delete(application);
 
     assertEquals(Arrays.asList(), membershipMappingDAO.getByContextId(application.getId()));
+  }
+
+  @Test
+  public void testCascadeDeleteToApplicationTags() {
+    createDefaultApplication();
+
+    Tag tag = createTag("testCascadeDeleteToApplicationTags name", "testCascadeDeleteToApplicationTags description",
+        organization.getId());
+
+    ApplicationTagDAO appTagDAO = new ApplicationTagDAO();
+    ApplicationTag appTag = new ApplicationTag(applicationId, tag.getId());
+    appTagDAO.insert(appTag);
+
+    applicationDAO.delete(application);
+
+    assertThat(appTagDAO.getByApplicationId(applicationId), is(empty()));
   }
 
   @Test

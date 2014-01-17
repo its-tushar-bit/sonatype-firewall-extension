@@ -146,7 +146,7 @@ describe('LabelController.js', function() {
         labelEditController,
         labelController;
 
-    beforeEach(inject(function($rootScope, $controller, $httpBackend, CLMAppLocations, $state) {
+    beforeEach(inject(function($rootScope, $controller, $httpBackend, CLMAppLocations) {
       scope = testScope.$new();
       testScope.alerts = [];
       $httpBackend.whenGET(SpecUtil.toRegExp(CLMAppLocations.getLabelsUrl())).respond(LabelMockData.getLabels());
@@ -181,6 +181,13 @@ describe('LabelController.js', function() {
       dialogScope.doDeleteLabel();
       $httpBackend.flush();
       expect(testScope.applicableLabels[0].labels.length).toEqual(1);
+    }));
+
+    it('Can save a new Label', inject(function($httpBackend, CLMAppLocations) {
+      scope.createNew();
+      $httpBackend.expectPOST(SpecUtil.toRegExp(CLMAppLocations.getLabelsUrl())).respond(204);
+      scope.saveLabel();
+      $httpBackend.flush();
     }));
 
     describe('Cancel Deselects', function() {

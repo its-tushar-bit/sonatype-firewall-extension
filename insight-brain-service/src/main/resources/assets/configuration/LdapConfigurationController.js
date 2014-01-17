@@ -187,7 +187,7 @@
         });
       };
 
-      $scope.confirmDeleteConfiguration = function(config) {
+      $scope.confirmDeleteConfiguration = function() {
         Dialog.open({
           title : 'Delete Configuration',
           body : 'Are you sure you want to delete this LDAP configuration?',

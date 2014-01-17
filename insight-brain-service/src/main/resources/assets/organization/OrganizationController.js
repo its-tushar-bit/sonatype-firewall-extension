@@ -65,7 +65,12 @@
             url: '/security',
             controller: 'AppSecurityController',
             templateUrl: '../policy-assets/components/app-security/app-security.html?' + clmBuildTimestamp
-          });
+          }).state('management.organization.view.tags', {
+              parent: 'management.organization.view',
+              url: '/tags',
+              controller: 'TagController',
+              templateUrl: '../policy-assets/components/tag-editor/tags.html?' + clmBuildTimestamp
+            });
         }
       ]);
 }());
@@ -74,7 +79,8 @@
   'use strict';
 
   var organizationModule = angular.module('Organization',
-      ['AngularCommon', 'ApplicationSecurityModule', 'CLMAppLocation', 'CommonServices', 'EditorTools', 'Labels', 'LicenseThreatGroup', 'Policy', 'ResourceModule', 'ui.router']);
+      ['AngularCommon', 'ApplicationSecurityModule', 'CLMAppLocation', 'CommonServices', 'EditorTools', 'Labels',
+       'LicenseThreatGroup', 'Policy', 'ResourceModule', 'Tags', 'ui.router']);
 
   organizationModule.controller('OrganizationController', [
     '$scope', '$state', '$http', '$location', 'CLMLocations', 'OrganizationStore',

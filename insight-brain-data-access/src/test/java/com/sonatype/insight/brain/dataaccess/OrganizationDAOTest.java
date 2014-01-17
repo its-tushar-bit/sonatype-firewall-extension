@@ -22,6 +22,7 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
 import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
+import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
 import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.model.Organization;
@@ -34,6 +35,7 @@ import com.sonatype.insight.brain.model.policy.PolicyMonitoring;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
+import com.sonatype.insight.brain.model.tag.Tag;
 
 import org.apache.commons.lang.StringUtils;
 import org.junit.Assert;
@@ -42,7 +44,9 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertEquals;
@@ -163,8 +167,7 @@ public class OrganizationDAOTest
 
   @Test
   public void testValidateNameInvalidChars_Insert() {
-    String[] invalidAlphaNumericNames = { "!", "@", "#", "$", "%", "^", "&", "*", "(", "_", "+" };
-    for (String name : invalidAlphaNumericNames) {
+    for (String name: INVALID_ALPHANUMERIC) {
       Organization organization = new Organization(name);
       try {
         dao.insert(organization);
@@ -179,8 +182,7 @@ public class OrganizationDAOTest
   @Test
   public void testValidateNameInvalidChars_Update() {
     organization = createOrganization("testValidateNameInvalidChars");
-    String[] invalidAlphaNumericNames = { "!", "@", "#", "$", "%", "^", "&", "*", "(", "_", "+" };
-    for (String name : invalidAlphaNumericNames) {
+    for (String name: INVALID_ALPHANUMERIC) {
       organization.setName(name);
       try {
         dao.update(organization);
@@ -194,9 +196,7 @@ public class OrganizationDAOTest
 
   @Test
   public void testValidateNameSpaces_Insert() {
-    String[] invalidSpacingNames = { " leading space", "trailing space ", "double  space",
-        "  starts with double space", "ends with double space  " };
-    for (String name : invalidSpacingNames) {
+    for (String name : INVALID_SPACING_NAMES) {
       try {
         createOrganization(name);
         fail("Expected InvalidNameException");
@@ -211,10 +211,7 @@ public class OrganizationDAOTest
   @Test
   public void testValidateNameSpaces_Update() {
     organization = createOrganization("testValidateNameSpaces");
-
-    String[] invalidSpacingNames = { " leading space", "trailing space ", "double  space",
-        "  starts with double space", "ends with double space  " };
-    for (String name : invalidSpacingNames) {
+    for (String name : INVALID_SPACING_NAMES) {
       organization.setName(name);
       try {
         dao.update(organization);
@@ -323,6 +320,26 @@ public class OrganizationDAOTest
     dao.delete(organization);
 
     Assert.assertTrue(labelDAO.getByOwnerId(organizationId).isEmpty());
+  }
+
+  @Test
+  public void testCascadeDeleteToTags() {
+    TagDAO tagDAO = new TagDAO();
+
+    Organization organization = new Organization("organization");
+    dao.insert(organization);
+
+    String organizationId = organization.getId();
+
+    Tag tag = new Tag(organizationId, "testCascadeDeleteToTags", "testCascadeDeleteToTags");
+    tagDAO.insert(tag);
+
+    // sanity check
+    assertThat(tagDAO.getByOrganizationId(organizationId), is(not(empty())));
+
+    dao.delete(organization);
+
+    assertThat(tagDAO.getByOrganizationId(organizationId), is(empty()));
   }
 
   @Test

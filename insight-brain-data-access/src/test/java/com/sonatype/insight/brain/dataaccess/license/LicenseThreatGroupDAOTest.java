@@ -408,9 +408,8 @@ public class LicenseThreatGroupDAOTest
 
   @Test
   public void testValidateNameInvalidChars_Insert() {
-    String[] invalidAlphaNumericNames = { "!", "@", "#", "$", "%", "^", "&", "*", "(", "_", "+" };
     LicenseThreatGroupDAO dao = new LicenseThreatGroupDAO();
-    for (String name : invalidAlphaNumericNames) {
+    for (String name: INVALID_ALPHANUMERIC) {
       LicenseThreatGroup group = new LicenseThreatGroup(applicationId, name, 5);
       try {
         dao.insert(group);
@@ -427,8 +426,7 @@ public class LicenseThreatGroupDAOTest
     LicenseThreatGroupDAO dao = new LicenseThreatGroupDAO();
     LicenseThreatGroup group = new LicenseThreatGroup(applicationId, "testValidateNameInvalidChars", 5);
     dao.insert(group);
-    String[] invalidAlphaNumericNames = { "!", "@", "#", "$", "%", "^", "&", "*", "(", "_", "+" };
-    for (String name : invalidAlphaNumericNames) {
+    for (String name: INVALID_ALPHANUMERIC) {
       group.setName(name);
       try {
         dao.update(group);
@@ -443,9 +441,7 @@ public class LicenseThreatGroupDAOTest
   @Test
   public void testValidateNameSpaces_Insert() {
     LicenseThreatGroupDAO dao = new LicenseThreatGroupDAO();
-    String[] invalidSpacingNames = { " leading space", "trailing space ", "double  space",
-        "  starts with double space", "ends with double space  " };
-    for (String name : invalidSpacingNames) {
+    for (String name : INVALID_SPACING_NAMES) {
       LicenseThreatGroup group = new LicenseThreatGroup(applicationId, name, 5);
       try {
         dao.insert(group);
@@ -464,9 +460,7 @@ public class LicenseThreatGroupDAOTest
     LicenseThreatGroup group = new LicenseThreatGroup(applicationId, "testValidateNameSpaces", 5);
     dao.insert(group);
 
-    String[] invalidSpacingNames = { " leading space", "trailing space ", "double  space",
-        "  starts with double space", "ends with double space  " };
-    for (String name : invalidSpacingNames) {
+    for (String name : INVALID_SPACING_NAMES) {
       group.setName(name);
       try {
         dao.update(group);

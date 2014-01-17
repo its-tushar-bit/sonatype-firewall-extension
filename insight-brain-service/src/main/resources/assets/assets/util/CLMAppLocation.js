@@ -126,6 +126,10 @@
           return this.getPolicyMonitoringUrl() + '/applicable';
         },
 
+        getTagsUrl: function() {
+          return baseUrl.get() + '/rest/tag/' + getId();
+        },
+
         isApplication: isApplication
       };
     }

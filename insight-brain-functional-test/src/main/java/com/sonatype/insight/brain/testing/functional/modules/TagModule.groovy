@@ -1,0 +1,36 @@
+/**
+ * Copyright (c) 2011-2013 Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.testing.functional.modules
+
+import geb.Module
+
+/**
+ * @since 1.8
+ */
+class TagModule
+    extends Module
+{
+  static content = {
+    newTagButton { $('button', 'ng-click': 'createNew()') }
+    tagList(required:false) { $('span', 'ng-repeat': startsWith('tag in tags')) }
+    delete { tag -> tag.find('i').click() }
+
+    //form controls(only visible while editing)
+    tagEditor(required:false) { $('form', name: 'tagEditor') }
+    name(required:false)  { tagEditor.name() }
+    description(required:false)  { tagEditor.description() }
+    buttons { module ButtonsModule }
+
+    //client validation error messaging
+    nameValidations(required: false) { module ValidationModule, name.parent() }
+
+    //server error messaging
+    serverAlerts { $('div', 'clm-alerts': 'alerts') }
+    cancelServerAlert { serverAlerts.find('button') }
+    editAlerts(required:false) { $('div', 'clm-alerts': 'editorAlerts') }
+    cancelEditAlert { editAlerts.find('button') }
+  }
+}

@@ -30,6 +30,8 @@ import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
 import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
 import com.sonatype.insight.brain.dataaccess.security.RolePermissionDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
+import com.sonatype.insight.brain.dataaccess.tag.ApplicationTagDAO;
+import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.label.Color;
@@ -46,8 +48,13 @@ import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.RolePermission;
 import com.sonatype.insight.brain.model.security.User;
+import com.sonatype.insight.brain.model.tag.ApplicationTag;
+import com.sonatype.insight.brain.model.tag.Tag;
 
 import org.junit.rules.ExternalResource;
+
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertThat;
 
 /**
  * Like TemporaryFolder, just for apps and orgs etc.
@@ -72,6 +79,10 @@ public class TemporaryEntity
   private final MembershipMappingDAO membershipMappingDAO = new MembershipMappingDAO();
 
   private final LabelDAO labelDAO = new LabelDAO();
+
+  private final TagDAO tagDAO = new TagDAO();
+
+  private final ApplicationTagDAO appTagDAO = new ApplicationTagDAO();
 
   private final ComponentLabelDAO componentLabelDAO = new ComponentLabelDAO();
 
@@ -107,6 +118,10 @@ public class TemporaryEntity
 
   private Collection<LdapServer> ldapServers;
 
+  private Collection<Tag> tags;
+
+  private Collection<ApplicationTag> appTags;
+
   @Override
   protected void before() throws Throwable {
     apps = new ArrayList<Application>();
@@ -118,6 +133,8 @@ public class TemporaryEntity
     licenseOverrides = new ArrayList<LicenseOverride>();
     waivers = new ArrayList<PolicyWaiver>();
     ldapServers = new ArrayList<LdapServer>();
+    tags = new ArrayList<Tag>();
+    appTags = new ArrayList<ApplicationTag>();
   }
 
   @Override
@@ -165,6 +182,16 @@ public class TemporaryEntity
     for (LdapServer ldapServer : ldapServers) {
       if (ldapServerDAO.getById(ldapServer.getId()) != null) {
         ldapServerDAO.delete(ldapServer);
+      }
+    }
+    for (Tag tag : tags) {
+      if (tagDAO.getById(tag.getId()) != null) {
+        tagDAO.delete(tag);
+      }
+    }
+    for (ApplicationTag appTag : appTags) {
+      if (appTagDAO.getById(appTag.getId()) != null) {
+        appTagDAO.delete(appTag);
       }
     }
   }
@@ -326,5 +353,26 @@ public class TemporaryEntity
     umap.setGroupMemberFormat("uid=${username}");
     ldapUserMappingDAO.insert(umap);
     return umap;
+  }
+
+  public Tag newTag(String orgId, String name) {
+    Tag tag = new Tag(orgId, name, "description");
+    tagDAO.insert(tag);
+    tags.add(tag);
+    return tag;
+  }
+
+  public ApplicationTag newApplicationTag(String appId, String tagId) {
+    ApplicationTag appTag = new ApplicationTag(appId, tagId);
+    appTagDAO.insert(appTag);
+    appTags.add(appTag);
+    return appTag;
+  }
+
+  public void assertTag(Tag expected, Tag actual) {
+    assertThat(actual.getOrganizationId(), is(expected.getOrganizationId()));
+    assertThat(actual.getName(), is(expected.getName()));
+    assertThat(actual.getNameLowercaseNoWhitespace(), is(expected.getNameLowercaseNoWhitespace()));
+    assertThat(actual.getDescription(), is(expected.getDescription()));
   }
 }

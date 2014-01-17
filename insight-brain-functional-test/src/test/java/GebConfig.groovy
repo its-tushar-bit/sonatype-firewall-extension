@@ -27,7 +27,13 @@ reportsDir = "target/test-reports/geb"
 
 //enable waitFor behaviour for all 'at' checks
 atCheckWaiting = true
-
+waiting {
+  presets {
+    slow {
+      timeout = 15
+    }
+  }
+}
 // Consult these documents for how to configure for SauceLabs
 // http://www.gebish.org/manual/current/sauce-labs.html#saucelabs_integration
 // https://saucelabs.com/docs/platforms/webdriver
@@ -50,11 +56,6 @@ if (sauceBrowser) {
 }
 else {
   driver = { configure(new FirefoxDriver()) }
-
-  // increase default timeout to account for slower CI server
-  waiting {
-    timeout = 15
-  }
 }
 
 Platform current = Platform.current
@@ -97,6 +98,11 @@ environments {
     }
     def params = phantomJsBinary ? ['phantomjs.binary.path': phantomJsBinary] : [:]
     driver = { configure(new PhantomJSDriver(new DesiredCapabilities(params))) }
+
+    // increase default timeout to account for slower CI server
+    waiting {
+      timeout = 15
+    }
   }
 }
 

@@ -85,7 +85,7 @@ class AppEvaluationSpec extends BaseSpec {
       //will be disabled initially, until processing complete
       waitFor { appPage.tools.appEval.viewReport.@disabled || appPage.tools.appEval.status.text() == 'Done' }
       //so just wait for that to happen
-      waitFor {!appPage.tools.appEval.viewReport.@disabled}
+      waitFor('slow') {!appPage.tools.appEval.viewReport.@disabled}
       getAvailableWindows().size() == 1
     when: 'User clicks to view the report'
       appPage.tools.appEval.viewReport.click()

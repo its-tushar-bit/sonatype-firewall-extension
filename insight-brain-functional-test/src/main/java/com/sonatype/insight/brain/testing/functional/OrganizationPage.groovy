@@ -26,8 +26,6 @@ class OrganizationPage extends OrganizationManagementPage {
     ownerRole(required: false) { $('p', text:'Owner') }
 
     tabs { module ContextTabsModule }
-
-    tabs(required: false) { module ContextTabsModule }
     tools(required: false) { module EditorToolsModule }
     policyMonitoring { module PolicyMonitoringModule, tabs.policiesTab }
     tags { module TagModule, tabs.tagTab }

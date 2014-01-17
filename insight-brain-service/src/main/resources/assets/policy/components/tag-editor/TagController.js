@@ -7,7 +7,7 @@
 (function() {
   'use strict';
 
-  var tagModule = angular.module('Tags', ['AngularCommon', 'CLMAppLocation', 'CommonServices', 'ResourceModule']);
+  var tagModule = angular.module('Tags', ['AngularCommon', 'CLMAppLocation', 'CLMLocation', 'CommonServices', 'ResourceModule']);
 
   tagModule.service('TagStore', [
     'CLMResource', 'CLMAppLocations', function(CLMResource, CLMAppLocations) {
@@ -225,6 +225,7 @@
           });
         } else {
           $http.post(CLMLocations.getApplicationTagUrl(selectedApplication.publicId), tag).success(function() {
+            delete $scope.tagSearch;
             tag.isApplied = true;
           }).error(function() {
             showAlert($scope.alerts, {

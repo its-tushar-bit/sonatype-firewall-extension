@@ -204,11 +204,3 @@ form[name="labelEditor"] .clmLabel {
   left: -0.4em;
   z-index: 9999;
 }
-.clm-tag-pushpin:before {
-  position: absolute;
-  z-index: 10000;
-  margin-left: -18px;
-  margin-top: -15px;
-  font-size: 20px !important;
-  color: #7C7C7C;
-}

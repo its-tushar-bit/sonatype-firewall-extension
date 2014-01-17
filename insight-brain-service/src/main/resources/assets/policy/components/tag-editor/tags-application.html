@@ -10,19 +10,39 @@
           <span>{{ ao.selected.name }} Tags</span>
         </h4>
       </div>
-      <div class="label-list">
-        <span>
-          <span ng-repeat='tag in tags | orderBy:"name"' ng-click='toggleApply(tag)'>
-            <span class='clm-tag' data-tooltip="{{tag.description}}" data-tooltip-placement="bottom">
-              <i ng-if='tag.isApplied' class='glyphicons-sonatype pushpin clm-tag-pushpin'></i>
-              {{tag.name}}&nbsp;
-            </span>
-          </span>
-        </span>
-        <em ng-show='tags.length == 0'>No tags available</em>
-
-        <div clm-alerts='alerts'></div>
+      <div class='row'>
+        <div class='span6'>
+          <div class="label-list" style="min-height: 66px;">
+            <h5>Applied Tags</h5>
+            <div>
+              <span ng-repeat='tag in appliedTags = (tags | filter: { isApplied: "true" } | orderBy:"name")' ng-click='toggleApply(tag)'>
+                <span class='clm-tag' data-tooltip="{{tag.description}}" data-tooltip-placement="bottom">
+                  {{tag.name}}&nbsp;
+                </span>
+              </span>
+            </div>
+            <em ng-show='appliedTags.length == 0'>No tags applied</em>
+          </div>
+        </div>
+        <div class='span6'>
+          <div class="label-list">
+            <h5>Available Tags</h5>
+            <div class='input-prepend fullWidthPrependedTextBox'>
+              <span class='add-on'><i ng-class="{'icon-search': !tagSearch, 'icon-remove': tagSearch}" ng-click="tagSearch = ''"></i></span>
+              <input type='text' placeholder='Find Tag' ng-model='tagSearch' prevent-submit style='width:221px'>
+            </div>
+            <div>
+              <span ng-repeat='tag in availableTags = (tags | filter: { isApplied: "false", name: tagSearch } | orderBy:"name")' ng-click='toggleApply(tag)'>
+                <span class='clm-tag' data-tooltip="{{tag.description}}" data-tooltip-placement="bottom">
+                  {{tag.name}}&nbsp;
+                </span>
+              </span>
+            </div>
+            <em ng-show='availableTags.length == 0'>No tags available</em>
+          </div>
+        </div>
       </div>
+      <div clm-alerts='alerts'></div>
     </div>
   </div>
   <div error-Modal></div>

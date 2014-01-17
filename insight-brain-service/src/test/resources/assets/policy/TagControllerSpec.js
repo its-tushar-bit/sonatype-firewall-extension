@@ -1,8 +1,31 @@
 describe('TagController.js', function() {
 
-  var testScope, dialogScope, tags = [
+  var testScope, dialogScope, bomId = 'bom1-12345678', tags = [
     {id: 1, ownerId: 'bom-12345678', name: 'bom-12345678', description: 'foo'},
-    {id: 2, ownerId: 'bom-12345678', name: 'bom-12345678', description: 'bar'}];
+    {id: 2, ownerId: 'bom-12345678', name: 'bom-12345678', description: 'bar'}],
+    organizationTags = [
+     {
+       id: "tagid1",
+       organizationId: bomId,
+       name: "TagOne",
+       nameLowercaseNoWhitespace: "tagone",
+       description: "Tag One Description"
+     }, {
+        id: "tagid2",
+        organizationId: bomId,
+        name: "TagTwo",
+        nameLowercaseNoWhitespace: "tagtwo",
+        description: "Tag Two Description"
+      }
+    ], applicationTags = [
+      {
+        id: "tagid1",
+        organizationId: bomId,
+        name: "TagOne",
+        nameLowercaseNoWhitespace: "tagone",
+        description: "Tag One Description"
+      }
+    ];
 
   beforeEach(module('Tags', function($provide) {
     $provide.value('$modal', {
@@ -27,13 +50,17 @@ describe('TagController.js', function() {
 
     $provide.value('ApplicationId', {
       encoded: function() {
-        return 'bom1-12345678';
+        return bomId;
       }
     });
     $provide.value('OrganizationId', {
       encoded: function() {
-        return 'bom1-12345678';
+        return bomId;
       }
+    });
+    $provide.value('selectedApplication', {
+      publicId: 'applicationPublicId',
+      organizationId: bomId
     });
   }));
 
@@ -45,6 +72,59 @@ describe('TagController.js', function() {
     if (testScope) {
       testScope.$destroy();
     }
+  });
+
+  describe('Applying tags', function() {
+    var scope, tagApplicationController;
+
+    beforeEach(inject(function($controller, $httpBackend, CLMLocations) {
+      scope = testScope.$new();
+
+      $httpBackend.expectGET(CLMLocations.getOrganizationTagUrl(bomId)).respond(angular.copy(organizationTags));
+      $httpBackend.expectGET(CLMLocations.getApplicationTagUrl('applicationPublicId')).respond(angular.copy(applicationTags));
+      tagApplicationController = $controller('TagApplicationController', { $scope: scope });
+      $httpBackend.flush();
+    }));
+
+    afterEach(inject(function($httpBackend) {
+      $httpBackend.verifyNoOutstandingExpectation();
+      $httpBackend.verifyNoOutstandingRequest();
+    }));
+
+    it('Loads tags', function() {
+      var loadedTags = [{
+        id: 'tagid1',
+        organizationId: 'bom1-12345678',
+        name: 'TagOne',
+        nameLowercaseNoWhitespace: 'tagone',
+        description: 'Tag One Description',
+        isApplied: true
+      }, {
+        id: 'tagid2',
+        organizationId: 'bom1-12345678',
+        name: 'TagTwo',
+        nameLowercaseNoWhitespace: 'tagtwo',
+        description: 'Tag Two Description',
+        isApplied: false
+      }];
+      expect(scope.tags).toEqual(loadedTags);
+    });
+
+    it('Applies a tag', inject(function($httpBackend, CLMLocations) {
+      $httpBackend.expectPOST(CLMLocations.getApplicationTagUrl('applicationPublicId')).respond();
+      scope.toggleApply(scope.tags[1]);
+      $httpBackend.flush();
+
+      expect(scope.tags[1].isApplied).toBe(true);
+    }));
+
+    it('Detaches a tag', inject(function($httpBackend, CLMLocations) {
+      $httpBackend.expectDELETE(CLMLocations.getDeleteApplicationTagUrl('applicationPublicId', scope.tags[0].id)).respond();
+      scope.toggleApply(scope.tags[0]);
+      $httpBackend.flush();
+
+      expect(scope.tags[0].isApplied).toBe(false);
+    }));
   });
 
   describe('Editing tests', function() {

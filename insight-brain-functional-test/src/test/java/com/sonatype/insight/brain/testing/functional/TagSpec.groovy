@@ -108,6 +108,7 @@ class TagSpec
   }
 
   def createNewTag(tags, name = 'New Tag', description = 'Tag description') {
+    waitFor { tags.newTagButton.displayed }
     tags.newTagButton.click()
     tags.name = name
     tags.description = description

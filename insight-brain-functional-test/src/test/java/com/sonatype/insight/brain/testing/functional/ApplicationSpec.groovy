@@ -69,6 +69,7 @@ class ApplicationSpec extends BaseSpec
     createApp('A', 'a')
 
     then: 'they are listed alphabetically'
+    waitFor{ applicationList.displayed }
     applicationList.collect{ it.text() } == ['A','Z']
   }
 }

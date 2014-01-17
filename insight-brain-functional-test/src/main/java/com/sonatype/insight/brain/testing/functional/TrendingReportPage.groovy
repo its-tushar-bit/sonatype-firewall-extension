@@ -25,7 +25,7 @@ class TrendingReportPage extends ReportViolationsPage
     violationCount(require: false) { count(3).text() }
     tooltip(require: false) { $('div.tooltip .tooltip-inner') }
     reportDate(require: false) { $('#trending-data .pull-right strong') }
-    percentageChartControl(require: false) { $('div', "ng-controller": 'PercChartCtrl') }
+    percentageChartControl(require: false) { $('div#percChart') }
     componentBars(require: false) { percentageChartControl.find('rect') }
     exactComponentBar(require: false) { componentBars[0] }
     partialComponentBar(require: false) { componentBars[1] }

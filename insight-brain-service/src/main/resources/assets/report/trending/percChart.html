@@ -5,7 +5,7 @@
     "Sonatype" is a trademark of Sonatype, Inc.
 
 -->
-<div ng-controller='PercChartCtrl' ng-switch='loaded' style="font-weight:bold;">
+<div id='percChart' ng-controller='PercChartCtrl' ng-switch='loaded' style="font-weight:bold;">
   <div ng-switch-when='true' horizontal-percentage-chart data='applicationComponents' percentage-selector='componentPercentageSelector'
        color-renderer='componentColorRenderer' width='460' height='30'></div>
 </div>       

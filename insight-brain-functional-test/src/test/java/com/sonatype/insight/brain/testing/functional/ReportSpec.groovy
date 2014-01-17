@@ -21,9 +21,14 @@ import spock.lang.Stepwise
 @Stepwise
 class ReportSpec
 extends BaseSpec {
+
+  private static final String TEST_FILE = 'target/test-brain-work/report/trending-report.json'
+
   @Shared User nonAdminUser
 
   def setupSpec() {
+    //pre-emptively delete, as generation of this file will be triggered by any visit to the TrendingReportPage prior to this test
+    new File(TEST_FILE).delete()
     UserDAO userDAO = new UserDAO()
     nonAdminUser = new User(username: "test", password: new CLMRealm().encryptPassword("secret"), firstName: "John",
     lastName: "Doe", email: "john@doe.net")
@@ -35,9 +40,7 @@ extends BaseSpec {
 
   def cleanupSpec() {
     new UserDAO().delete(nonAdminUser)
-    File file = new File('target/test-brain-work/report/trending-report.json')
-    assert file.exists()
-    file.delete()
+    assert new File(TEST_FILE).delete()
   }
 
   def "When we first login we're invited to create a new Org"() {

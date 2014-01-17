@@ -17,11 +17,11 @@ import com.sonatype.insight.brain.TemporaryEntity;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.report.ReportDownloader;
 import com.sonatype.insight.brain.saas.ScanUploader;
+import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.error.exception.BadRequestException;
 
 import com.google.inject.Binder;
 import org.codehaus.plexus.util.FileUtils;
-import org.eclipse.sisu.launch.InjectedTest;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -45,7 +45,7 @@ import static org.mockito.Mockito.when;
  * Also see {@link ScanServiceUnitTest}.
  */
 public class ScanServiceTest
-    extends InjectedTest
+    extends AbstractComponentTest
 {
   @Rule
   public TemporaryEntity tempEntity = new TemporaryEntity();
@@ -65,6 +65,7 @@ public class ScanServiceTest
 
   @Override
   public void configure(Binder binder) {
+    super.configure(binder);
     scanUploader = mock(ScanUploader.class);
     binder.bind(ScanUploader.class).toInstance(scanUploader);
     reportDownloader = mock(ReportDownloader.class);

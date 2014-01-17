@@ -23,7 +23,6 @@ import org.apache.shiro.guice.ShiroModule;
 import org.apache.shiro.mgt.SecurityManager;
 import org.apache.shiro.subject.Subject;
 import org.apache.shiro.util.ThreadContext;
-import org.eclipse.sisu.launch.InjectedTest;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -32,7 +31,7 @@ import org.junit.Rule;
  * Common fixture for authorization tests of the service layer components.
  */
 public class AbstractServiceAuthzTest
-    extends InjectedTest
+    extends AbstractComponentTest
 {
   @Rule
   public TemporaryEntity tempEntity = new TemporaryEntity();
@@ -50,6 +49,7 @@ public class AbstractServiceAuthzTest
 
   @Override
   public void configure(Binder binder) {
+    super.configure(binder);
     binder.install(new ShiroModule()
     {
       @Override

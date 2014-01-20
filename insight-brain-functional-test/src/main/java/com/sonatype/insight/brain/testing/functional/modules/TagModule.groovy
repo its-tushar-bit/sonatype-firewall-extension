@@ -33,4 +33,11 @@ class TagModule
     editAlerts(required:false) { $('div', 'clm-alerts': 'editorAlerts') }
     cancelEditAlert { editAlerts.find('button') }
   }
+
+  def createNewTag(name = 'New Tag', description = 'Tag description') {
+    waitFor { newTagButton.displayed }
+    newTagButton.click()
+    this.name = name
+    this.description = description
+  }
 }

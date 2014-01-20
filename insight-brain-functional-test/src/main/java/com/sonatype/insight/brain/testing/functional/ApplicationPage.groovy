@@ -9,6 +9,7 @@ import com.sonatype.insight.brain.testing.functional.modules.ButtonsModule
 import com.sonatype.insight.brain.testing.functional.modules.EditorToolsModule
 import com.sonatype.insight.brain.testing.functional.modules.ContextTabsModule
 import com.sonatype.insight.brain.testing.functional.modules.PolicyMonitoringModule
+import com.sonatype.insight.brain.testing.functional.modules.TagApplicationModule
 
 
 class ApplicationPage extends ApplicationManagementPage {
@@ -47,6 +48,8 @@ class ApplicationPage extends ApplicationManagementPage {
 
     tabs { module ContextTabsModule }
     tools { module EditorToolsModule }
+
+    tags { module TagApplicationModule, tabs.tagTab }
   }
 
   void createApp(String name = 'test application', String id = 'test application', String orgName = 'test organization'){

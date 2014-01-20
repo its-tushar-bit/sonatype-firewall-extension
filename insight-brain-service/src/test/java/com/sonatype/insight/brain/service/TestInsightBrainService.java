@@ -226,6 +226,9 @@ public class TestInsightBrainService
         testBrainServer = server;
       }
     });
+
+    SlowMoFilter.configure(env);
+
     super.run(config, env);
   }
 

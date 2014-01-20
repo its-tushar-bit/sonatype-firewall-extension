@@ -64,6 +64,7 @@
             <include>**/*Test.*</include>
           </includes>
           <systemPropertyVariables>
+            <slowmo.enable>true</slowmo.enable>
             <!--
               Defined in GebConfig.groovy so that tests can be executed in Eclipse or from Maven CLI.
             -->

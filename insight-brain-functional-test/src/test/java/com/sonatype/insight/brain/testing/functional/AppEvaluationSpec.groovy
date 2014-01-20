@@ -47,8 +47,8 @@ class AppEvaluationSpec extends BaseSpec {
     when: 'User clicks on the app eval button'
       orgPage.tools.appEvalButton.click()
     then: 'User see the app eval dialog and no application is selected'
-      orgPage.tools.appEval.dialog.displayed
-      orgPage.tools.appEval.application.value() == ''
+      waitFor { orgPage.tools.appEval.dialog.displayed }
+      waitFor { orgPage.tools.appEval.application.value() == '' }
   }
 
   def "validate application evaluation available from application screen"() {
@@ -62,7 +62,7 @@ class AppEvaluationSpec extends BaseSpec {
     when: 'User clicks on the app eval button'
       appPage.tools.appEvalButton.click()
     then: 'User see the app eval dialog and an application is selected'
-      appPage.tools.appEval.dialog.displayed
+      waitFor { appPage.tools.appEval.dialog.displayed }
       appPage.tools.appEval.application.value() == '1'
       appPage.tools.appEval.getSelectedApplicationOption() == "AppEvaluationApp2"
   }

@@ -30,10 +30,9 @@ class ApplicationSpec extends BaseSpec
 
     then: 'we are left at the Application page, and the newly created App appears in the list of Applications'
     at ApplicationPage
-    waitFor{ applicationList.displayed }
-    applicationList.size() == 1
+    waitFor { applicationList.size() == 1 }
     application('New Application').displayed
-    applicationName.text() == 'New Application'
+    waitFor { applicationName.text() == 'New Application' }
     applicationIdSaved.text() == 'New Application'
   }
 
@@ -43,7 +42,7 @@ class ApplicationSpec extends BaseSpec
 
     then: 'the list is updated'
     applicationList.size() == 1
-    application('New Application Updated').displayed
+    waitFor { application('New Application Updated').displayed }
     applicationName.text() == 'New Application Updated'
   }
 
@@ -65,11 +64,11 @@ class ApplicationSpec extends BaseSpec
   def "When adding new Applications, they are listed alphabetically"(){
     when: 'we add multiple Applications'
     createApp('Z')
-    newApplicationButton.click()
+    waitFor { applicationList.size() == 1 }
     createApp('A', 'a')
 
     then: 'they are listed alphabetically'
-    waitFor{ applicationList.displayed }
+    waitFor { applicationList.size() == 2 }
     applicationList.collect{ it.text() } == ['A','Z']
   }
 }

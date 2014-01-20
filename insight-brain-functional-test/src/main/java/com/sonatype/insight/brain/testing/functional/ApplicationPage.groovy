@@ -25,6 +25,12 @@ class ApplicationPage extends ApplicationManagementPage {
     applicationIdSaved(required:false){ $('div.setappid')}
     applicationOrgField(required: false) { $('div', 'on': 'selectedApplication.id && selectedApplication.organizationId').find('a') }
     applicationOrgName(required: false) { orgName -> $('a', text: orgName) }
+
+    applicationContactField(required: false) { $('#contact-field') }
+    applicationContactDialog(wait: true) { $('#contact-modal-dialog') }
+    applicationContactDialogSearchField(required: false) { $('input', 'placeholder':'Find User') }
+    applicationContactDialogResultList(required : false) { $('.large-select-list-item') }
+
     securityTabButton(required: false) { $('div', 'on': 'selectedApplication.id').find('a', text: 'SECURITY') }
     securityTab(required: false) { $('#security') }
     developerRole(required: false) { $('p', text:'Developer' ) }

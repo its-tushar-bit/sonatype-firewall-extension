@@ -304,6 +304,10 @@ public class TemporaryEntity
     return override;
   }
 
+  public PolicyWaiver newWaiver(String policyId, String ownerId) {
+    return newWaiver(null, policyId, ownerId);
+  }
+
   public PolicyWaiver newWaiver(String hash, String policyId, String ownerId) {
     PolicyWaiver waiver = new PolicyWaiver(hash, policyId, ownerId, "testing");
     waiverDAO.insert(waiver);

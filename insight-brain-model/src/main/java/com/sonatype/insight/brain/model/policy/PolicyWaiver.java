@@ -48,11 +48,15 @@ public class PolicyWaiver
   public PolicyWaiver() {
   }
 
-  public PolicyWaiver(String hash, String policyId, String ownerId, String comment) {
-    setHash(hash);
+  public PolicyWaiver(String policyId, String ownerId, String comment) {
     this.policyId = policyId;
     this.ownerId = ownerId;
     this.comment = comment;
+  }
+
+  public PolicyWaiver(String hash, String policyId, String ownerId, String comment) {
+    this(policyId, ownerId, comment);
+    setHash(hash);
   }
 
   @Override

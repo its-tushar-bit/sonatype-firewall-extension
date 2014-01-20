@@ -123,7 +123,7 @@ public class PolicyWaiverResource
   }
 
   private List<PolicyWaiverDTO> getAppliedWaivers(String ownerId, String hash) {
-    List<PolicyWaiver> waivers = new PolicyWaiverDAO().getByOwnerIdAndHash(ownerId, hash, false);
+    List<PolicyWaiver> waivers = new PolicyWaiverDAO().getByOwnerIdAndHash(ownerId, hash);
     Map<String, String> policyNamesById = new HashMap<String, String>();
     for (Policy policy : policyDAO().getApplicableByOwnerId(ownerId)) {
       policyNamesById.put(policy.getId(), policy.getName());

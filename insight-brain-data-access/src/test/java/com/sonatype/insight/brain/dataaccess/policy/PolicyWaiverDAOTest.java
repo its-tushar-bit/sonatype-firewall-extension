@@ -16,9 +16,13 @@ import com.sonatype.insight.error.exception.NotFoundException;
 import org.codehaus.plexus.util.StringUtils;
 import org.junit.Test;
 
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -97,7 +101,7 @@ public class PolicyWaiverDAOTest
   }
 
   @Test
-  public void testAddDuplicate() throws Exception {
+  public void testAddDuplicate_ComponentLevel() throws Exception {
     PolicyWaiverDAO dao = new PolicyWaiverDAO();
 
     String hash = "12345678901234567890";
@@ -108,6 +112,28 @@ public class PolicyWaiverDAOTest
     dao.insert(policyWaiver1);
 
     PolicyWaiver policyWaiver2 = new PolicyWaiver(hash, policyId, ownerId, comment);
+    try {
+      dao.insert(policyWaiver2);
+      fail("Expected BadRequestException");
+    }
+    catch (BadRequestException expected) {
+      assertEquals("This policy waiver already exists", expected.getMessage());
+    }
+
+    dao.delete(policyWaiver1);
+  }
+
+  @Test
+  public void testAddDuplicate_PolicyLevel() throws Exception {
+    PolicyWaiverDAO dao = new PolicyWaiverDAO();
+
+    String policyId = "MyPolicyId";
+    String ownerId = "MyOwnerId";
+    String comment = "My comment";
+    PolicyWaiver policyWaiver1 = new PolicyWaiver(policyId, ownerId, comment);
+    dao.insert(policyWaiver1);
+
+    PolicyWaiver policyWaiver2 = new PolicyWaiver(policyId, ownerId, comment);
     try {
       dao.insert(policyWaiver2);
       fail("Expected BadRequestException");
@@ -169,5 +195,28 @@ public class PolicyWaiverDAOTest
     }
 
     dao.delete(policyWaiver1);
+  }
+
+  @Test
+  public void testGetByOwnerIdAndHash() throws Exception {
+    PolicyWaiverDAO dao = new PolicyWaiverDAO();
+
+    String hash = "12345678901234567890";
+    String policyId = "MyPolicyId";
+    String ownerId = "MyOwnerId";
+    String comment = "Just testing";
+    PolicyWaiver policyWaiver1 = new PolicyWaiver(hash, policyId, ownerId, comment);
+    dao.insert(policyWaiver1);
+    PolicyWaiver policyWaiver2 = new PolicyWaiver(policyId, ownerId, comment);
+    dao.insert(policyWaiver2);
+
+    List<PolicyWaiver> waivers = dao.getByOwnerIdAndHash(ownerId, hash);
+    dao.delete(policyWaiver1);
+    dao.delete(policyWaiver2);
+
+    assertThat(waivers, is(notNullValue()));
+    assertThat(waivers, hasSize(2));
+    assertThat(waivers.get(0).getId(), is(policyWaiver1.getId()));
+    assertThat(waivers.get(1).getId(), is(policyWaiver2.getId()));
   }
 }

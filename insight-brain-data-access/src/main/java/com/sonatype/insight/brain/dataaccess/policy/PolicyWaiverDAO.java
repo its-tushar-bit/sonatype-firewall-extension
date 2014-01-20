@@ -56,18 +56,17 @@ public class PolicyWaiverDAO
     }
   }
 
-  public List<PolicyWaiver> getByOwnerIdAndHash(String ownerId, String hash, boolean inherit) {
+  /**
+   * Gets all policy waivers that target the specified component hash in the context of the given app/org. Note that a
+   * component can be subject to a waiver that refers to its specific hash or to a waiver that applies to the entire
+   * app/org.
+   */
+  public List<PolicyWaiver> getByOwnerIdAndHash(String ownerId, String hash) {
     EntityManager em = createEntityManager();
     try {
       List<PolicyWaiver> waivers = new ArrayList<PolicyWaiver>();
-      if (inherit) {
-        ApplicationDAO applicationDAO = new ApplicationDAO();
-        Application application = applicationDAO.getById(ownerId);
-        if (application != null && application.getOrganizationId() != null) {
-          waivers.addAll(getByOwnerIdAndHash(em, application.getOrganizationId(), hash));
-        }
-      }
       waivers.addAll(getByOwnerIdAndHash(em, ownerId, hash));
+      waivers.addAll(getByOwnerIdAndHash(em, ownerId, null));
       return waivers;
     }
     finally {

@@ -119,7 +119,7 @@ public class LabelConditionTypeTest
     components.add(component3);
 
     // Evaluate the policy
-    List<PolicyAlert> policyAlerts = new PolicyEvaluator().evaluate(applicationId, new Stage(BuildStageType.ID),
+    List<PolicyAlert> policyAlerts = evaluator.evaluate(applicationId, new Stage(BuildStageType.ID),
         Arrays.asList(policy), components);
 
     Assert.assertNotNull(policyAlerts);
@@ -161,7 +161,7 @@ public class LabelConditionTypeTest
     components.add(component3);
 
     // Evaluate the policy
-    List<PolicyAlert> policyAlerts = new PolicyEvaluator().evaluate(applicationId, new Stage(BuildStageType.ID),
+    List<PolicyAlert> policyAlerts = evaluator.evaluate(applicationId, new Stage(BuildStageType.ID),
         Arrays.asList(policy), components);
 
     Assert.assertNotNull(policyAlerts);
@@ -205,7 +205,7 @@ public class LabelConditionTypeTest
     components.add(component3);
 
     // Evaluate the policy
-    List<PolicyAlert> policyAlerts = new PolicyEvaluator().evaluate(applicationId, new Stage(BuildStageType.ID),
+    List<PolicyAlert> policyAlerts = evaluator.evaluate(applicationId, new Stage(BuildStageType.ID),
         Arrays.asList(policy), components);
 
     Assert.assertNotNull(policyAlerts);
@@ -247,7 +247,7 @@ public class LabelConditionTypeTest
     Component component1 = new Component("g1", "a1", "v1", MatchState.EXACT);
     components.add(component1);
 
-    List<PolicyAlert> policyAlerts = new PolicyEvaluator().evaluate(applicationId, new Stage(BuildStageType.ID),
+    List<PolicyAlert> policyAlerts = evaluator.evaluate(applicationId, new Stage(BuildStageType.ID),
         Arrays.asList(policy), components);
 
     Assert.assertNotNull(policyAlerts);

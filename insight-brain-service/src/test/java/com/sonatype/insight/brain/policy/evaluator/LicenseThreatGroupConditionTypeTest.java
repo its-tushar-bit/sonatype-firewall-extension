@@ -149,7 +149,7 @@ public class LicenseThreatGroupConditionTypeTest
     components.add(component2);
 
     // Evaluate the policy
-    List<PolicyAlert> policyAlerts = new PolicyEvaluator().evaluate(applicationId, new Stage(BuildStageType.ID),
+    List<PolicyAlert> policyAlerts = evaluator.evaluate(applicationId, new Stage(BuildStageType.ID),
         Arrays.asList(policy), components);
 
     Assert.assertNotNull(policyAlerts);
@@ -186,7 +186,7 @@ public class LicenseThreatGroupConditionTypeTest
     components.add(component2);
 
     // Evaluate the policy
-    List<PolicyAlert> policyAlerts = new PolicyEvaluator().evaluate(applicationId, new Stage(BuildStageType.ID),
+    List<PolicyAlert> policyAlerts = evaluator.evaluate(applicationId, new Stage(BuildStageType.ID),
         Arrays.asList(policy), components);
 
     Assert.assertNotNull(policyAlerts);
@@ -223,7 +223,7 @@ public class LicenseThreatGroupConditionTypeTest
     components.add(component2);
 
     // Evaluate the policy
-    List<PolicyAlert> policyAlerts = new PolicyEvaluator().evaluate(applicationId, new Stage(BuildStageType.ID),
+    List<PolicyAlert> policyAlerts = evaluator.evaluate(applicationId, new Stage(BuildStageType.ID),
         Arrays.asList(policy), components);
 
     Assert.assertNotNull(policyAlerts);
@@ -260,7 +260,7 @@ public class LicenseThreatGroupConditionTypeTest
     components.add(component2);
 
     // Evaluate the policy
-    List<PolicyAlert> policyAlerts = new PolicyEvaluator().evaluate(applicationId, new Stage(BuildStageType.ID),
+    List<PolicyAlert> policyAlerts = evaluator.evaluate(applicationId, new Stage(BuildStageType.ID),
         Arrays.asList(policy), components);
 
     Assert.assertNotNull(policyAlerts);
@@ -301,7 +301,7 @@ public class LicenseThreatGroupConditionTypeTest
     components.add(component2);
 
     // Evaluate the policy
-    List<PolicyAlert> policyAlerts = new PolicyEvaluator().evaluate(applicationId, new Stage(BuildStageType.ID),
+    List<PolicyAlert> policyAlerts = evaluator.evaluate(applicationId, new Stage(BuildStageType.ID),
         Arrays.asList(policy), components);
 
     Assert.assertNotNull(policyAlerts);
@@ -342,7 +342,7 @@ public class LicenseThreatGroupConditionTypeTest
     components.add(component2);
 
     // Evaluate the policy
-    List<PolicyAlert> policyAlerts = new PolicyEvaluator().evaluate(applicationId, new Stage(BuildStageType.ID),
+    List<PolicyAlert> policyAlerts = evaluator.evaluate(applicationId, new Stage(BuildStageType.ID),
         Arrays.asList(policy), components);
 
     Assert.assertNotNull(policyAlerts);
@@ -406,7 +406,7 @@ public class LicenseThreatGroupConditionTypeTest
     components.add(component2);
 
     // Evaluate the policy
-    List<PolicyAlert> policyAlerts = new PolicyEvaluator().evaluate(applicationId, new Stage(BuildStageType.ID),
+    List<PolicyAlert> policyAlerts = evaluator.evaluate(applicationId, new Stage(BuildStageType.ID),
         Arrays.asList(policy), components);
 
     Assert.assertNotNull(policyAlerts);

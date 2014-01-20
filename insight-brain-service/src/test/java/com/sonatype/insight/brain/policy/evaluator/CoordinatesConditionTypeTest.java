@@ -52,8 +52,8 @@ public class CoordinatesConditionTypeTest
     components.add(component3);
 
     // Evaluate the policy
-    List<PolicyAlert> policyAlerts = new PolicyEvaluator().evaluate(null /* applicationId */, new Stage(
-        BuildStageType.ID), Arrays.asList(policy), components);
+    List<PolicyAlert> policyAlerts = evaluator.evaluate(null /* applicationId */, new Stage(BuildStageType.ID),
+        Arrays.asList(policy), components);
     Assert.assertNotNull(policyAlerts);
     Assert.assertEquals(1, policyAlerts.size());
     assertFactCounts(1, 1, policyAlerts.get(0));
@@ -78,8 +78,8 @@ public class CoordinatesConditionTypeTest
     components.add(component1);
 
     // Evaluate the policy
-    List<PolicyAlert> policyAlerts = new PolicyEvaluator().evaluate(null /* applicationId */, new Stage(
-        BuildStageType.ID), Arrays.asList(policy), components);
+    List<PolicyAlert> policyAlerts = evaluator.evaluate(null /* applicationId */, new Stage(BuildStageType.ID),
+        Arrays.asList(policy), components);
     Assert.assertNotNull(policyAlerts);
     Assert.assertEquals(1, policyAlerts.size());
     assertFactCounts(1, 1, policyAlerts.get(0));
@@ -109,8 +109,8 @@ public class CoordinatesConditionTypeTest
     components.add(component3);
 
     // Evaluate the policy
-    List<PolicyAlert> policyAlerts = new PolicyEvaluator().evaluate(null /* applicationId */, new Stage(
-        BuildStageType.ID), Arrays.asList(policy), components);
+    List<PolicyAlert> policyAlerts = evaluator.evaluate(null /* applicationId */, new Stage(BuildStageType.ID),
+        Arrays.asList(policy), components);
     Assert.assertNotNull(policyAlerts);
     Assert.assertEquals(1, policyAlerts.size());
     assertFactCounts(1, 1, policyAlerts.get(0));
@@ -140,8 +140,8 @@ public class CoordinatesConditionTypeTest
     components.add(component3);
 
     // Evaluate the policy
-    List<PolicyAlert> policyAlerts = new PolicyEvaluator().evaluate(null /* applicationId */, new Stage(
-        BuildStageType.ID), Arrays.asList(policy), components);
+    List<PolicyAlert> policyAlerts = evaluator.evaluate(null /* applicationId */, new Stage(BuildStageType.ID),
+        Arrays.asList(policy), components);
     Assert.assertNotNull(policyAlerts);
     Assert.assertEquals(1, policyAlerts.size());
     assertFactCounts(1, 1, policyAlerts.get(0));
@@ -171,8 +171,8 @@ public class CoordinatesConditionTypeTest
     components.add(component3);
 
     // Evaluate the policy
-    List<PolicyAlert> policyAlerts = new PolicyEvaluator().evaluate(null /* applicationId */, new Stage(
-        BuildStageType.ID), Arrays.asList(policy), components);
+    List<PolicyAlert> policyAlerts = evaluator.evaluate(null /* applicationId */, new Stage(BuildStageType.ID),
+        Arrays.asList(policy), components);
     Assert.assertNotNull(policyAlerts);
     Assert.assertEquals(1, policyAlerts.size());
     assertFactCounts(1, 1, policyAlerts.get(0));
@@ -191,8 +191,8 @@ public class CoordinatesConditionTypeTest
     Component component1 = new Component("g1", artifactId, "v1", MatchState.EXACT);
     components.add(component1);
 
-    List<PolicyAlert> policyAlerts = new PolicyEvaluator().evaluate(null /* applicationId */, new Stage(
-        BuildStageType.ID), Arrays.asList(policy), components);
+    List<PolicyAlert> policyAlerts = evaluator.evaluate(null /* applicationId */, new Stage(BuildStageType.ID),
+        Arrays.asList(policy), components);
     Assert.assertNotNull(policyAlerts);
     Assert.assertEquals(1, policyAlerts.size());
     assertFactCounts(1, 1, policyAlerts.get(0));

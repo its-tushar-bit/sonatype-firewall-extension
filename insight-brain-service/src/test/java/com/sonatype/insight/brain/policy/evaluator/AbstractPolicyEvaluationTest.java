@@ -25,6 +25,8 @@ import org.junit.Assert;
 
 public abstract class AbstractPolicyEvaluationTest
 {
+  protected PolicyEvaluator evaluator = new PolicyEvaluator();
+
   protected Constraint createConstraint(String constraintId, String constraintName, String conditionTypeId,
       String operator, String value)
   {

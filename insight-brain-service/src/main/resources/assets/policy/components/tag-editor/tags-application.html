@@ -12,25 +12,31 @@
       </div>
       <div class='row'>
         <div class='span6'>
-          <div class="label-list" style="min-height: 66px;">
+          <div class='label-list'>
+            <div class='input-prepend fullWidthPrependedTextBox'>
+              <span class='add-on'><i ng-class="{'icon-search': !tagSearch, 'icon-remove': tagSearch}" ng-click="tagSearch = ''"></i></span>
+              <input type='text' placeholder='Filter Tags' ng-model='tagSearch' prevent-submit style='width:221px'>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class='row'>
+        <div class='span6'>
+          <div class="label-list">
             <h5>Applied Tags</h5>
             <div>
-              <span ng-repeat='tag in appliedTags = (tags | filter: { isApplied: "true" } | orderBy:"name")' ng-click='toggleApply(tag)'>
+              <span ng-repeat='tag in appliedTags = (tags | filter: { isApplied: "true", name: tagSearch } | orderBy:"name")' ng-click='toggleApply(tag)'>
                 <span class='clm-tag' data-tooltip="{{tag.description}}" data-tooltip-placement="bottom">
                   {{tag.name}}
                 </span>
               </span>
             </div>
-            <em ng-show='appliedTags.length == 0'>No tags applied</em>
+            <em ng-show='appliedTags.length == 0'>No tags applied {{ tagSearch ? 'matching ' + tagSearch : '' }}</em>
           </div>
         </div>
         <div class='span6'>
           <div class="label-list">
             <h5>Available Tags</h5>
-            <div class='input-prepend fullWidthPrependedTextBox'>
-              <span class='add-on'><i ng-class="{'icon-search': !tagSearch, 'icon-remove': tagSearch}" ng-click="tagSearch = ''"></i></span>
-              <input type='text' placeholder='Find Tag' ng-model='tagSearch' prevent-submit style='width:221px'>
-            </div>
             <div>
               <span ng-repeat='tag in availableTags = (tags | filter: { isApplied: "false", name: tagSearch } | orderBy:"name")' ng-click='toggleApply(tag)'>
                 <span class='clm-tag' data-tooltip="{{tag.description}}" data-tooltip-placement="bottom">
@@ -38,7 +44,7 @@
                 </span>
               </span>
             </div>
-            <em ng-show='availableTags.length == 0'>No tags available</em>
+            <em ng-show='availableTags.length == 0'>No tags available {{ tagSearch ? 'matching ' + tagSearch : '' }}</em>
           </div>
         </div>
       </div>

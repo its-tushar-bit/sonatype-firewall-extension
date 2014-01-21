@@ -119,6 +119,7 @@ class LdapConfigurationSpec extends BaseSpec
       delete.click()
       waitFor{ deleteConfirm?.present }
       deleteConfirm.click()
+      waitFor { !delete.present } // wait for the request to complete, otherwise an error dialog results and upsets the following tests
     }
   }
 }

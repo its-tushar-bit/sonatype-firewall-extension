@@ -9,7 +9,8 @@ package com.sonatype.insight.brain.testing.functional
 class LoginSpec extends BaseSpec {
   def "form states are usable"() {
     when: "login modal is shown"
-    to ReportViolationsPage
+      via ReportViolationsPage
+      waitFor { login.isDisplayed() }
 
     then: "username input has focus"
       js.'document.activeElement'.id == login.usernameInput.firstElement().id
@@ -27,7 +28,7 @@ class LoginSpec extends BaseSpec {
   
   def "can log in with valid credentials"() {
     given: "prompt to log in"
-    to ReportViolationsPage
+      via ReportViolationsPage
 
     when: "valid credentials are supplied"
       login.loginAsAdmin()
@@ -38,7 +39,7 @@ class LoginSpec extends BaseSpec {
   
   def "log in prevented when using invalid credentials" () {
     given: "prompt to log in"
-    to ReportViolationsPage
+      via ReportViolationsPage
 
     when: "invalid credentials are supplied"
       login.login("unknown", "user", true)
@@ -55,7 +56,7 @@ class LoginSpec extends BaseSpec {
       via ReportViolationsPage
 
     then: "user is prompted to log in"
-      login.isDisplayed()
+      waitFor { login.isDisplayed() }
   }
 
   def "management application is protected by authentication"() {
@@ -63,7 +64,7 @@ class LoginSpec extends BaseSpec {
       via ManagementPage
 
     then: "user is prompted to log in"
-      login.isDisplayed()
+      waitFor { login.isDisplayed() }
   }
 
   def "authentication session state is remembered"() {
@@ -86,10 +87,10 @@ class LoginSpec extends BaseSpec {
       clearCookies()
 
     and: "accessing something that requires authentication"
-    via ReportViolationsPage
+      via ReportViolationsPage
 
     then: "user is prompted to log in"
-      login.isDisplayed()
+      waitFor { login.isDisplayed() }
   }
 
   def "user can logout from management pages"() {
@@ -101,7 +102,7 @@ class LoginSpec extends BaseSpec {
     userOptions.logoutClick()
 
     then: "we now see the login module"
-    login.isDisplayed()
+    waitFor { login.isDisplayed() }
 
     when: "attempting to navigate back"
     browser.driver.navigate().back()
@@ -114,7 +115,7 @@ class LoginSpec extends BaseSpec {
 
     then: "we are still prompted to login"
     at ManagementPage
-    login.isDisplayed()
+    waitFor { login.isDisplayed() }
   }
 
   def "user can logout from reporting pages"() {
@@ -127,7 +128,7 @@ class LoginSpec extends BaseSpec {
     to ReportViolationsPage
 
     then: "we redirect to the login page"
-    login.isDisplayed()
+    waitFor { login.isDisplayed() }
 
     when: "attempting to navigate back"
     browser.driver.navigate().back()

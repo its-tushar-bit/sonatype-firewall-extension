@@ -22,13 +22,13 @@ import spock.lang.Stepwise
 class ReportSpec
 extends BaseSpec {
 
-  private static final String TEST_FILE = 'target/test-brain-work/report/trending-report.json'
+  private static final File TEST_FILE = new File('target/test-brain-work/report/trending-report.json')
 
   @Shared User nonAdminUser
 
   def setupSpec() {
     //pre-emptively delete, as generation of this file will be triggered by any visit to the TrendingReportPage prior to this test
-    new File(TEST_FILE).delete()
+    TEST_FILE.delete()
     UserDAO userDAO = new UserDAO()
     nonAdminUser = new User(username: "test", password: new CLMRealm().encryptPassword("secret"), firstName: "John",
     lastName: "Doe", email: "john@doe.net")
@@ -40,7 +40,7 @@ extends BaseSpec {
 
   def cleanupSpec() {
     new UserDAO().delete(nonAdminUser)
-    assert new File(TEST_FILE).delete()
+    assert TEST_FILE.delete() || !TEST_FILE.exists()
   }
 
   def "When we first login we're invited to create a new Org"() {
@@ -54,7 +54,7 @@ extends BaseSpec {
 
     then: 'we see the large loading progress meter'
     at TrendingReportPage
-    loadingText.startsWith('CLM Server is generating the trending report')
+    waitFor { loadingText.startsWith('CLM Server is generating the trending report') }
   }
 
   def "We can load the (empty) report"(){
@@ -63,6 +63,7 @@ extends BaseSpec {
 
     then: 'we see that no violations have occurred, since we have not scanned anything'
     at TrendingReportPage
+    waitFor { trendingData.displayed }
     refresh.displayed
     componentCount == '0 Components across all Applications'
     policyCount == '0 Policies'
@@ -77,6 +78,7 @@ extends BaseSpec {
     login.login('test', 'secret')
 
     then: 'no refresh button is displayed, but the report is visible'
+    waitFor { trendingData.displayed }
     !refresh.displayed
     componentCount == '0 Components across all Applications'
     policyCount == '0 Policies'

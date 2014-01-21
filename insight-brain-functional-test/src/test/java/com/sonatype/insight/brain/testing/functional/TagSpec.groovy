@@ -58,7 +58,7 @@ class TagSpec
       tags.buttons.save.click()
 
     then:
-      tags.tagList[0].text() == 'Updated New Tag'
+      waitFor { tags.tagList[0].text() == 'Updated New Tag' }
   }
 
   def "Can delete the newly added Tag"() {
@@ -69,7 +69,7 @@ class TagSpec
       tagModal.confirm.click()
 
     then:
-      tags.tagList.empty
+      waitFor { tags.tagList.empty }
   }
 
   def "We are prevented from saving if the form won't validate"(){

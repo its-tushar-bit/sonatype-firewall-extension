@@ -39,14 +39,15 @@ class LDAPConfigurationSpec extends BaseSpec
     report 'editor displayed'
     inlineEditor.displayed
 
-    when: "saving a value"
+    when: "Saving a LDAP server"
     inlineEditor.value('TestLDAP')
     save.click()
 
-    then: "the connection form appears, the inline editing components are removed"
+    then: "the connection form appears, the inline editing components are removed and defaults loaded"
     report 'connection form'
-    waitFor{ at LDAPConnectionConfigurationPage}
+    waitFor{ at LDAPConnectionConfigurationPage }
     !inlineEditor.displayed
+    waitFor { port.value() == '389' }
 
     when: "filling out the required fields in the form"
     requiredFields.each{

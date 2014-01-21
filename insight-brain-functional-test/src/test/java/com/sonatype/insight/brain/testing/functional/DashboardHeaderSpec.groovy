@@ -12,6 +12,6 @@ class DashboardHeaderSpec extends BaseSpec {
       login.loginAsAdmin()
 
     then: "users display name is shown"
-      userOptions.displayName.text() == "Admin BuiltIn"
+      waitFor { userOptions.displayName.text() == "Admin BuiltIn" }
   }
 }

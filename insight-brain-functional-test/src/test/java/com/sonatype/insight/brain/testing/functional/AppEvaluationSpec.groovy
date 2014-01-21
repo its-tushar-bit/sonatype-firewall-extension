@@ -102,8 +102,8 @@ class AppEvaluationSpec extends BaseSpec {
       appPage.tools.appEval.viewReport.click()
 
     then: 'new tab is open on the report page'
-      waitFor {getAvailableWindows().size() == 2 }
-      withWindow(availableWindows[1]){
+      waitFor { getAvailableWindows().size() == 2 }
+      withWindow(close: true, availableWindows[1]) {
         driver.currentUrl.contains('reports.html#/reports/AppEvaluationApp2')
       }
   }

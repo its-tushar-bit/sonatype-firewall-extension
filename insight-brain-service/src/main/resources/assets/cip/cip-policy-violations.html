@@ -10,14 +10,14 @@
 				<i class='icon icon-time'></i> Loading...
 			</div>
 			<div ng-show="!waiverLoading">
-				<div ng-show="waiverSelectOwner" class='radio-container'>
+				<div id="add-waiver-scope" ng-show="waiverSelectOwner" class='radio-container'>
 					<div>The waiver should be limited to:</div>
 					<label class="radio" ng-repeat="waiverTarget in waiverTargets">
 						<input type="radio" ng-model="waiver.ownerId" name="waiverSelectedTarget" ng-value="waiverTarget.id" ng-change='owner.type = waiverTarget.type'>
 						{{waiverTarget.type == 'application' ? 'Application' : 'Organization'}} <em>{{waiverTarget.name}}</em>
 					</label>
 				</div>
-				<div class='radio-container'>
+				<div id="add-waiver-apply" class='radio-container'>
 					<div>
 						<span ng-show='waiverSelectOwner'>And apply to:</span>
 						<span ng-hide='waiverSelectOwner'>The waiver should apply to:</span>

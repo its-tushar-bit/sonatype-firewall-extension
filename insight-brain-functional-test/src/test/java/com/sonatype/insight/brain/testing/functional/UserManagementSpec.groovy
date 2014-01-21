@@ -187,14 +187,13 @@ extends BaseSpec {
 
     then: 'we are presented with the new password'
       waitFor { newPasswordField.displayed }
-      def newPassword = newPasswordField.value();
+      def newPassword = newPasswordField.value()
       resetModal.ok.click()
       waitFor { !newPasswordField.displayed }
 
     when: 'user logs in with new password'
       userOptions.logoutClick()
-      login.isDisplayed()
-      login.login('addusertest', newPassword);
+      login.login('addusertest', newPassword)
 
     then: 'login succeeds'
       !login.isDisplayed()
@@ -223,6 +222,6 @@ extends BaseSpec {
       deleteModal.confirm.click()
 
     then: 'the user is deleted'
-      headers.size() == 1
+      waitFor { headers.size() == 1 }
   }
 }

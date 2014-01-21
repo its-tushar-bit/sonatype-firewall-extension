@@ -54,6 +54,7 @@ extends BaseSpec {
 
     then: 'we see the large loading progress meter'
       at TrendingReportPage
+      report 'debug-1'
       waitFor { loadingText.startsWith('CLM Server is generating the trending report') }
   }
 

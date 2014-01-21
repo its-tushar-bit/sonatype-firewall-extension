@@ -132,14 +132,14 @@ class LoginSpec extends BaseSpec {
     when: "attempting to navigate back"
     browser.driver.navigate().back()
 
-    then: "we never leave the login page"
-    login.isDisplayed()
+    then: "the login dialog does not dispose"
+    waitFor { login.isDisplayed() }
 
     when: "we try to go directly to another page"
-    go ReportViolationsPage.url
+    go ManagementPage.url
 
-    then: "we never leave the login page"
-    at ReportViolationsPage
-    login.isDisplayed()
+    then: "the login dialog does not dispose"
+    at ManagementPage
+    waitFor { login.isDisplayed() }
   }
 }

@@ -35,11 +35,11 @@ class ApplicationPage extends ApplicationManagementPage {
     securityTab(required: false) { $('#security') }
     developerRole(required: false) { $('p', text:'Developer' ) }
     ownerRole(required: false) { $('p', text:'Owner' ) }
-    buttons { module ButtonsModule }
+    buttons { module ButtonsModule, $('#aoEditor') }
     applicationSaveButton(required: false) { buttons.save }
     applicationCancelButton(required: false) { buttons.cancel }
     deleteButton(required: false) { $('a', 'title': 'Remove Application') }
-    deleteButtonAccept(required: false) { buttons.button('Delete') }
+    deleteButtonAccept(required: false) { $('button', text: 'Delete') }
     developerRole(required: false) { $('p', text: 'Developer') }
     ownerRole(required: false) { $('p', text: 'Owner') }
 

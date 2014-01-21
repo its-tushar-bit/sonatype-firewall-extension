@@ -43,10 +43,14 @@ class LDAPConfigurationSpec extends BaseSpec
     inlineEditor.value('TestLDAP')
     save.click()
 
-    then: "the connection form appears, the inline editing components are removed and defaults loaded"
+    then: "the connection form appears"
     report 'connection form'
     waitFor{ at LDAPConnectionConfigurationPage }
+
+    and: "the inline editing components are removed"
     !inlineEditor.displayed
+
+    and: "the defaults are loaded"
     waitFor { port.value() == '389' }
 
     when: "filling out the required fields in the form"
@@ -61,19 +65,23 @@ class LDAPConfigurationSpec extends BaseSpec
     }
     !save.disabled
 
-    when: "cancelling the form and navigating to the user and group settings"
+    when: "cancelling the form"
     reset.click()
     waitFor{ discard?.present }
     report 'confirmation of discarding changes'
     discard.click()
+
+    and: "navigating to the user and group settings"
     userAndGroupSettingsTab.click()
 
-    then: "user and group mapping form appears, with controls disabled"
+    then: "user and group mapping form appears"
     report 'user and group mappings'
     at LDAPUserAndGroupMappingConfigurationPage
     requiredFields.each{
       it.hasClass('ng-invalid-required')
     }
+
+    and: "controls are disabled"
     checkUserMapping.disabled
     checkUserLogin.disabled
 
@@ -87,13 +95,15 @@ class LDAPConfigurationSpec extends BaseSpec
     !checkUserMapping.disabled
     !checkUserLogin.disabled
 
-    when:
+    when: "resetting form to discard changes"
     reset.click()
     waitFor{ discard?.present }
+
+    then: "confirmation is requested"
     report 'confirmation of discarding changes'
     discard.click()
 
-    then:
+    and: "changes are discarded"
     requiredFields.each{
       !it.value()
     }

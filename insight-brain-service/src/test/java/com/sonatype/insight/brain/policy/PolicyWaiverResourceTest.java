@@ -221,7 +221,7 @@ public class PolicyWaiverResourceTest
         + policy.getId());
     assertResponseStatus(200, response);
     ApplicableContext result = JsonHelpers.fromJson(response.getResponseBody(), ApplicableContext.class);
-    assertApplicableContext(application.getId(), application.getName(), "application", result);
+    assertApplicableContext(appPublicId, application.getName(), "application", result);
   }
 
   @Test
@@ -241,7 +241,7 @@ public class PolicyWaiverResourceTest
     assertNotNull(result.getChildren());
     assertEquals(1, result.getChildren().size());
     ApplicableContext childContext = result.getChildren().get(0);
-    assertApplicableContext(application.getId(), application.getName(), "application", childContext);
+    assertApplicableContext(appPublicId, application.getName(), "application", childContext);
     assertNull(childContext.getChildren());
   }
 

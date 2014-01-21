@@ -161,11 +161,10 @@ public class PolicyWaiverResource
     // Hopefully that will be simplified in the new storage.
 
     Application application = new ApplicationDAO().getByPublicIdNotNull(applicationPublicId);
-    String applicationId = application.getId();
-    Policy policy = policyDAO().getByOwnerIdAndPolicyId(applicationId, policyId);
+    Policy policy = policyDAO().getByOwnerIdAndPolicyId(application.getId(), policyId);
     if (policy != null) {
       // The policy belongs to the application
-      return new ApplicableContext(applicationId, application.getName(), IdUtils.TYPE_APPLICATION);
+      return new ApplicableContext(application.getPublicId(), application.getName(), IdUtils.TYPE_APPLICATION);
     }
 
     if (application.getOrganizationId() != null) {
@@ -183,7 +182,8 @@ public class PolicyWaiverResource
     result.setChildren(new ArrayList<ApplicableContext>());
     // Currently we need only the application specified by the applicationPublicId. In the future we might need to
     // return all the applications for this organization.
-    result.getChildren().add(new ApplicableContext(applicationId, application.getName(), IdUtils.TYPE_APPLICATION));
+    result.getChildren().add(
+        new ApplicableContext(application.getPublicId(), application.getName(), IdUtils.TYPE_APPLICATION));
     return result;
   }
 

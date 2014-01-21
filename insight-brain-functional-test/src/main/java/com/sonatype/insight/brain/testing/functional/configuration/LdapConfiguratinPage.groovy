@@ -8,7 +8,7 @@ package com.sonatype.insight.brain.testing.functional.configuration
 /**
  * @since 1.7
  */
-class LDAPConfigurationPage
+class LdapConfigurationPage
     extends ConfigurationPage
 {
   static url = "${ConfigurationPage.url}/ldap"
@@ -30,8 +30,8 @@ class LDAPConfigurationPage
     discard(required: false) { $('button', text: 'Discard')}
 
     // in-page navigation
-    connectionTab(required: false, to: LDAPConnectionConfigurationPage) { $('a', text: 'CONNECTION') }
-    userAndGroupSettingsTab(required: false, to: LDAPUserAndGroupMappingConfigurationPage) { $('a', text: 'USER & GROUP SETTINGS') }
+    connectionTab(required: false, to: LdapConnectionConfigurationPage) { $('a', text: 'CONNECTION') }
+    userAndGroupSettingsTab(required: false, to: LdapUserAndGroupMappingConfigurationPage) { $('a', text: 'USER & GROUP SETTINGS') }
   }
 
   static isActiveTab(tab){

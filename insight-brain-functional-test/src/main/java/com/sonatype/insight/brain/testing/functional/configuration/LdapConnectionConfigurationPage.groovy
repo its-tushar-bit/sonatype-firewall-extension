@@ -8,8 +8,8 @@ package com.sonatype.insight.brain.testing.functional.configuration
 /**
  * @since 1.7
  */
-class LDAPConnectionConfigurationPage
-    extends LDAPConfigurationPage
+class LdapConnectionConfigurationPage
+    extends LdapConfigurationPage
 {
   static at = { isActiveTab(connectionTab) }
 

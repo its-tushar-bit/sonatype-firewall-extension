@@ -8,8 +8,8 @@ package com.sonatype.insight.brain.testing.functional.configuration
 /**
  * @since 1.7
  */
-class LDAPUserAndGroupMappingConfigurationPage
-    extends LDAPConfigurationPage
+class LdapUserAndGroupMappingConfigurationPage
+    extends LdapConfigurationPage
 {
   static at = { isActiveTab(userAndGroupSettingsTab) }
 

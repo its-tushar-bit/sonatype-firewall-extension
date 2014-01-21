@@ -5,24 +5,24 @@
  */
 package com.sonatype.insight.brain.testing.functional
 
-import com.sonatype.insight.brain.testing.functional.configuration.LDAPConfigurationPage
-import com.sonatype.insight.brain.testing.functional.configuration.LDAPConnectionConfigurationPage
-import com.sonatype.insight.brain.testing.functional.configuration.LDAPUserAndGroupMappingConfigurationPage
+import com.sonatype.insight.brain.testing.functional.configuration.LdapConfigurationPage
+import com.sonatype.insight.brain.testing.functional.configuration.LdapConnectionConfigurationPage
+import com.sonatype.insight.brain.testing.functional.configuration.LdapUserAndGroupMappingConfigurationPage
 
 
 /**
  * @since 1.7
  */
-class LDAPConfigurationSpec extends BaseSpec
+class LdapConfigurationSpec extends BaseSpec
 {
   def "create a new LDAP and navigate the connection and user/group mappings forms"(){
     setup: "login"
     to ReportViolationsPage
     login.loginAsAdmin()
-    to LDAPConfigurationPage
+    to LdapConfigurationPage
 
     when: "going to the LDAP page"
-    waitFor { at LDAPConfigurationPage }
+    waitFor { at LdapConfigurationPage }
 
     then:
     report 'initial state with no LDAP configured'
@@ -45,7 +45,7 @@ class LDAPConfigurationSpec extends BaseSpec
 
     then: "the connection form appears"
     report 'connection form'
-    waitFor{ at LDAPConnectionConfigurationPage }
+    waitFor{ at LdapConnectionConfigurationPage }
 
     and: "the inline editing components are removed"
     !inlineEditor.displayed
@@ -76,7 +76,7 @@ class LDAPConfigurationSpec extends BaseSpec
 
     then: "user and group mapping form appears"
     report 'user and group mappings'
-    at LDAPUserAndGroupMappingConfigurationPage
+    at LdapUserAndGroupMappingConfigurationPage
     requiredFields.each{
       it.hasClass('ng-invalid-required')
     }
@@ -114,7 +114,7 @@ class LDAPConfigurationSpec extends BaseSpec
    * @return
    */
   def cleanup() {
-    to LDAPConfigurationPage
+    to LdapConfigurationPage
     if(delete?.present){
       delete.click()
       waitFor{ deleteConfirm?.present }

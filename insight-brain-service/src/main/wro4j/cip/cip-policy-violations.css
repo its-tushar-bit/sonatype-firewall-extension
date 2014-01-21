@@ -69,3 +69,16 @@
 		transparent;
 	color: #005399;
 }
+
+#add-waiver-modal label {
+	display : block;
+}
+#add-waiver-modal .radio-container {
+	margin-bottom : 10px;
+}
+#add-waiver-modal .radio-container label {
+	margin-left : 5px;
+}
+#add-waiver-modal .radio-container > div:first-child {
+	margin-bottom : 3px;
+}

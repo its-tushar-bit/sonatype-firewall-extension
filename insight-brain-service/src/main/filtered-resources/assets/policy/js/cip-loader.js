@@ -69,7 +69,7 @@
   }
 
   function createApplicationIdProvider() {
-    angular.module('ApplicationIdProvider', []).service('ApplicationId',function() {
+    angular.module('ApplicationIdProvider', ['ui.bootstrap']).service('ApplicationId',function() {
       // TODO Are ui-router parameters encoded or decoded?
       return {
         encoded: function() {
@@ -196,7 +196,7 @@
         'assets/lib/ui-bootstrap-tpls-0.6.0.min.js', 'assets/lib/Base64.js', 'assets/util/HttpInterceptors.js',
         'assets/util/CLMLocation.js', 'cip/cip-label-editor.js',
         'cip/cip-policy-violations.js', 'cip/cip-claim-component.js', 'cip/cip-license-editor.js',
-        'assets/util/AngularCommon.js'],
+        'assets/util/AngularCommon.js', 'ui-bootstrap-tpls-0.6.0.min.js'],
       styles = ['assets/lib/datepicker/datepicker.css', 'cip/cip.css'],
       clmBuildTimestamp = '${build.timestamp}';
   

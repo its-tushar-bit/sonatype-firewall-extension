@@ -30,16 +30,16 @@
           return baseUrl.get() + '/rest/application';
         },
 
-        getApplicationUrl: function(applicationId) {
-          return baseUrl.get() + '/rest/application/' + encodeURIComponent(applicationId);
+        getApplicationUrl: function(applicationPublicId) {
+          return baseUrl.get() + '/rest/application/' + encodeURIComponent(applicationPublicId);
         },
 
         getApplicationSummariesUrl: function() {
           return baseUrl.get() + '/rest/application/services/summary';
         },
 
-        getApplicationSummaryUrl: function(applicationId) {
-          return baseUrl.get() + '/rest/application/services/summary/' + encodeURIComponent(applicationId);
+        getApplicationSummaryUrl: function(applicationPublicId) {
+          return baseUrl.get() + '/rest/application/services/summary/' + encodeURIComponent(applicationPublicId);
         },
 
         getOrganizationsUrl: function() {
@@ -54,8 +54,8 @@
           return baseUrl.get() + '/rest/product/license' + (!$window.FormData ? '?forceSuccess=true' : '');
         },
 
-        evaluatePolicyUrl: function(applicationId, scanId) {
-          return baseUrl.get() + '/rest/policy/' + encodeURIComponent(applicationId) + '/evaluate?scanId=' + scanId;
+        evaluatePolicyUrl: function(applicationPublicId, scanId) {
+          return baseUrl.get() + '/rest/policy/' + encodeURIComponent(applicationPublicId) + '/evaluate?scanId=' + scanId;
         },
 
         getProprietaryConfig: function() {
@@ -66,8 +66,8 @@
           return baseUrl.get() + '/rest/config/ldap';
         },
 
-        getReportUrl: function(applicationId, scanId) {
-          return baseUrl.get() + '/rest/report/' + encodeURIComponent(applicationId) + '/' +
+        getReportUrl: function(applicationPublicId, scanId) {
+          return baseUrl.get() + '/rest/report/' + encodeURIComponent(applicationPublicId) + '/' +
               encodeURIComponent(scanId) + '/browseReport/index.html';
         },
         
@@ -95,27 +95,27 @@
           return baseUrl.get() + '/rest/user/' + userId + '/password';
         },
 
-        getApplicationScanSummary : function (applicationId, scanId) {
-          return baseUrl.get() + '/rest/application/services/summary/' + encodeURIComponent(applicationId) + '/' + scanId;
+        getApplicationScanSummary : function (applicationPublicId, scanId) {
+          return baseUrl.get() + '/rest/application/services/summary/' + encodeURIComponent(applicationPublicId) + '/' + scanId;
         },
         
-        getBundleUploadUrl : function (applicationId, stageId, sendNotifications) {
-          return baseUrl.get() + '/rest/scan/' + encodeURIComponent(applicationId) + '?stageId=' + stageId + 
+        getBundleUploadUrl : function (applicationPublicId, stageId, sendNotifications) {
+          return baseUrl.get() + '/rest/scan/' + encodeURIComponent(applicationPublicId) + '?stageId=' + stageId +
               '&sendNotifications=' + sendNotifications + (!$window.FormData ? '&noFormData=true' : '');
         },
         
-        getEvaluationStatusUrl : function (applicationId, ticketId) {
-          return baseUrl.get() + '/rest/scan/' + encodeURIComponent(applicationId) + '/' + ticketId;
+        getEvaluationStatusUrl : function (applicationPublicId, ticketId) {
+          return baseUrl.get() + '/rest/scan/' + encodeURIComponent(applicationPublicId) + '/' + ticketId;
         },
 
         getOrganizationTagUrl : function(organizationId) {
           return baseUrl.get() + '/rest/tag/' + encodeURIComponent(organizationId);
         },
-        getApplicationTagUrl : function(applicationId) {
-          return baseUrl.get() + '/rest/applicationTag/' + encodeURIComponent(applicationId);
+        getApplicationTagUrl : function(applicationPublicId) {
+          return baseUrl.get() + '/rest/applicationTag/' + encodeURIComponent(applicationPublicId);
         },
-        getDeleteApplicationTagUrl : function(applicationId, tagId) {
-          return this.getApplicationTagUrl(applicationId) + '/' + tagId;
+        getDeleteApplicationTagUrl : function(applicationPublicId, tagId) {
+          return this.getApplicationTagUrl(applicationPublicId) + '/' + tagId;
         }
       };
     }

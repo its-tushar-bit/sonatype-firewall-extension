@@ -92,7 +92,7 @@ class LdapConfigurationSpec extends BaseSpec
 
     then: "buttons are enabled"
       report 'form is ready to save'
-      !checkUserMapping.disabled
+      waitFor { !checkUserMapping.disabled }
       !checkUserLogin.disabled
 
     when: "resetting form to discard changes"

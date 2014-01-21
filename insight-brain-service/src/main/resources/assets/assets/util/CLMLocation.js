@@ -115,7 +115,7 @@
           return baseUrl.get() + '/rest/applicationTag/' + encodeURIComponent(applicationId);
         },
         getDeleteApplicationTagUrl : function(applicationId, tagId) {
-          return baseUrl.get() + '/rest/applicationTag/' + encodeURIComponent(applicationId) + '/' + tagId;
+          return this.getApplicationTagUrl(applicationId) + '/' + tagId;
         }
       };
     }

@@ -1,8 +1,8 @@
 describe('TagController.js', function() {
 
   var testScope, dialogScope, bomId = 'bom1-12345678', tags = [
-    {id: 1, ownerId: 'bom-12345678', name: 'bom-12345678', description: 'foo'},
-    {id: 2, ownerId: 'bom-12345678', name: 'bom-12345678', description: 'bar'}],
+    {id: 1, ownerId: bomId, name: bomId, description: 'foo'},
+    {id: 2, ownerId: bomId, name: bomId, description: 'bar'}],
     organizationTags = [
      {
        id: "tagid1",
@@ -94,14 +94,14 @@ describe('TagController.js', function() {
     it('Loads tags', function() {
       var loadedTags = [{
         id: 'tagid1',
-        organizationId: 'bom1-12345678',
+        organizationId: bomId,
         name: 'TagOne',
         nameLowercaseNoWhitespace: 'tagone',
         description: 'Tag One Description',
         isApplied: true
       }, {
         id: 'tagid2',
-        organizationId: 'bom1-12345678',
+        organizationId: bomId,
         name: 'TagTwo',
         nameLowercaseNoWhitespace: 'tagtwo',
         description: 'Tag Two Description',

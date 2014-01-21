@@ -15,7 +15,9 @@ class TagApplicationModule
 {
   static content = {
     appliedTagList(required:false) { $('span', 'ng-repeat': startsWith('tag in appliedTags')) }
+    appliedTagEmptyText(required:false) { $('em', 'ng-show': startsWith('appliedTags.length') )}
     availableTagList(required:false) { $('span', 'ng-repeat': startsWith('tag in availableTags')) }
+    availableTagEmptyText(required:false) { $('em', 'ng-show': startsWith('availableTags.length') )}
 
     tagFilterInput(required:false) { $('input', 'ng-model': 'tagSearch') }
   }

@@ -49,6 +49,7 @@ class TagApplicationSpec
 
     then: 'the available tag is moved to the applied tags'
       tags.availableTagList.size() == 0
+      tags.availableTagEmptyText.text() == 'No tags available'
       tags.appliedTagList.size() == 1
       tags.appliedTagList[0].text() == 'New Tag'
   }
@@ -61,6 +62,7 @@ class TagApplicationSpec
       tags.availableTagList.size() == 1
       tags.availableTagList[0].text() == 'New Tag'
       tags.appliedTagList.size() == 0
+      tags.appliedTagEmptyText.text() == 'No tags applied'
   }
 
   def 'Can filter tag'() {
@@ -70,11 +72,15 @@ class TagApplicationSpec
     then: 'the existing tag shows up'
       tags.availableTagList.size() == 1
       tags.availableTagList[0].text() == 'New Tag'
+      tags.appliedTagList.size() == 0
+      tags.appliedTagEmptyText.text() == 'No tags applied matching Tag'
 
     when: 'A non existing tag filter is applied'
       tags.tagFilterInput = 'Foo'
 
     then: 'no tags show up'
       tags.availableTagList.size() == 0
+      tags.availableTagEmptyText.text() == 'No tags available matching Foo'
+
   }
 }

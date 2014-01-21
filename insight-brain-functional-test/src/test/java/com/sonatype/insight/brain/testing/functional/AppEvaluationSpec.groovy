@@ -81,6 +81,7 @@ class AppEvaluationSpec extends BaseSpec {
       ApplicationPage appPage = at (ApplicationPage)
       appPage.tools.appEvalButton.displayed
       appPage.tools.appEvalButton.click()
+      waitFor { appPage.tools.appEval.dialog.displayed }
       appPage.tools.appEval.file.value(new File(getClass().getResource( '/AppEvaluationSpec/some.file' ).toURI()).getAbsoluteFile().getAbsolutePath())
       appPage.tools.appEval.stage.value('0')
 

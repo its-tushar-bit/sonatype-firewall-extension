@@ -14,8 +14,8 @@ class ButtonsModule
     extends Module
 {
   static content = {
-    button { text -> $('button', text: text) }
-    save { button('Save') }
-    cancel { button('Cancel') }
+    button(required: false) { text -> $('button', text: text) }
+    save(required: false) { button('Save') }
+    cancel(required: false) { button('Cancel') }
   }
 }

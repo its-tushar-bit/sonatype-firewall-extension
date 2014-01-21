@@ -43,7 +43,7 @@ class ContactUserSpec extends BaseSpec
 
       appPage.applicationContactDialogResultList.allElements().getAt(0).click()
       appPage.applicationSaveButton.click()
-      waitFor { at ApplicationPage }
+      waitFor { !appPage.applicationSaveButton.displayed }
 
     then: 'Admin is set as contact user'
       appPage.applicationContactField.text() == "Admin BuiltIn"

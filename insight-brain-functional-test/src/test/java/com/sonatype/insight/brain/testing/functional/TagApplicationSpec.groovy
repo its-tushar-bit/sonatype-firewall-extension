@@ -21,6 +21,7 @@ class TagApplicationSpec
     tabs.tagTabButton.click()
     tags.createNewTag()
     tags.buttons.save.click()
+    waitFor { tags.tagList.size() == 1 }
 
     ApplicationManagementPage applicationManagementPage = to(ApplicationManagementPage)
     applicationManagementPage.createApp('ApplicationTagSpec')
@@ -47,7 +48,7 @@ class TagApplicationSpec
       tags.availableTagList[0].click()
 
     then: 'the available tag is moved to the applied tags'
-      tags.availableTagList.size() == 0
+      waitFor { tags.availableTagList.size() == 0 }
       tags.availableTagEmptyText.text() == 'No tags available'
       tags.appliedTagList.size() == 1
       tags.appliedTagList[0].text() == 'New Tag'
@@ -58,7 +59,7 @@ class TagApplicationSpec
       tags.appliedTagList[0].click()
 
     then: 'the applied tag is moved to the available tags'
-      tags.availableTagList.size() == 1
+      waitFor { tags.availableTagList.size() == 1 }
       tags.availableTagList[0].text() == 'New Tag'
       tags.appliedTagList.size() == 0
       tags.appliedTagEmptyText.text() == 'No tags applied'

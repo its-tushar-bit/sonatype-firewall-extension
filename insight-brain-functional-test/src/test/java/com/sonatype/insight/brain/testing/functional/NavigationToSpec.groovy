@@ -23,14 +23,14 @@ class NavigationToSpec
   @Unroll("Navigating to #pageUnderTest should take us to #pageUnderTest.url")
   def "Should be able to navigate directly using URLs once logged in"() {
     when: "Navigating to "
-    to pageUnderTest
+      to pageUnderTest
     
     then:
-    at pageUnderTest
+      at pageUnderTest
 
     where:
-    pageUnderTest << [ManagementPage, ReportViolationsPage, UserManagementPage, GlobalRolesPage,
-        ApplicationManagementPage, OrganizationManagementPage]
+      pageUnderTest << [ManagementPage, ReportViolationsPage, UserManagementPage, GlobalRolesPage,
+          ApplicationManagementPage, OrganizationManagementPage]
     //deliberately not including TrendingReportPage here as that automatically triggers generation of the report data
   }
 }

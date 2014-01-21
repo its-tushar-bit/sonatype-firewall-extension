@@ -41,11 +41,14 @@ class AppEvaluationSpec extends BaseSpec {
       OrganizationManagementPage orgManPage = to OrganizationManagementPage
       waitFor { orgManPage.organization("AppEvaluationOrg").displayed }
       orgManPage.organization("AppEvaluationOrg").click()
+
     then: 'User at organization page and app eval button is visible'
       OrganizationPage orgPage = at (OrganizationPage)
       orgPage.tools.appEvalButton.displayed
+
     when: 'User clicks on the app eval button'
       orgPage.tools.appEvalButton.click()
+
     then: 'User see the app eval dialog and no application is selected'
       waitFor { orgPage.tools.appEval.dialog.displayed }
       waitFor { orgPage.tools.appEval.application.value() == '' }
@@ -56,11 +59,14 @@ class AppEvaluationSpec extends BaseSpec {
       ApplicationManagementPage appManPage = to ApplicationManagementPage
       waitFor { appManPage.application("AppEvaluationApp2").displayed }
       appManPage.application("AppEvaluationApp2").click()
+
     then: 'User at application page and app eval button is visible'
       ApplicationPage appPage = at (ApplicationPage)
       appPage.tools.appEvalButton.displayed
+
     when: 'User clicks on the app eval button'
       appPage.tools.appEvalButton.click()
+
     then: 'User see the app eval dialog and an application is selected'
       waitFor { appPage.tools.appEval.dialog.displayed }
       appPage.tools.appEval.application.value() == '1'
@@ -77,18 +83,23 @@ class AppEvaluationSpec extends BaseSpec {
       appPage.tools.appEvalButton.click()
       appPage.tools.appEval.file.value(new File(getClass().getResource( '/AppEvaluationSpec/some.file' ).toURI()).getAbsoluteFile().getAbsolutePath())
       appPage.tools.appEval.stage.value('0')
+
     then: 'The upload button enables'
       !appPage.tools.appEval.upload.disabled
+
     when: 'User clicks upload'
       appPage.tools.appEval.upload.click()
+
     then: 'User sees the evaluation status screen'
       //will be disabled initially, until processing complete
       waitFor { appPage.tools.appEval.viewReport.@disabled || appPage.tools.appEval.status.text() == 'Done' }
       //so just wait for that to happen
       waitFor('slow') {!appPage.tools.appEval.viewReport.@disabled}
       getAvailableWindows().size() == 1
+
     when: 'User clicks to view the report'
       appPage.tools.appEval.viewReport.click()
+
     then: 'new tab is open on the report page'
       waitFor {getAvailableWindows().size() == 2 }
       withWindow(availableWindows[1]){

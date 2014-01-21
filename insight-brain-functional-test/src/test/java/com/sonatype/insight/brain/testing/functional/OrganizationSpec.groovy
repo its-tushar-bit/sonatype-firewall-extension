@@ -24,47 +24,47 @@ class OrganizationSpec
 
   def "Can create a new Organization"() {
     when: 'We add a new Organization'
-    OrganizationManagementPage organizationManagementPage = to(OrganizationManagementPage)
-    organizationManagementPage.createOrg('New Organization')
+      OrganizationManagementPage organizationManagementPage = to(OrganizationManagementPage)
+      organizationManagementPage.createOrg('New Organization')
 
     then: 'we are left at the Organization page, and the newly created Org appears in the list of Organizations'
-    at OrganizationPage
-    organizationList.size() == 1
-    organization('New Organization').displayed
-    organizationName.text() == 'New Organization'
+      at OrganizationPage
+      organizationList.size() == 1
+      organization('New Organization').displayed
+      organizationName.text() == 'New Organization'
   }
 
   def "Can edit an existing Organization"() {
     when: 'We edit the Organization name'
-    editOrg('New Organization Updated')
+      editOrg('New Organization Updated')
 
     then: 'the list is updated'
-    organizationList.size() == 1
-    organization('New Organization Updated').displayed
-    organizationName.text() == 'New Organization Updated'
+      organizationList.size() == 1
+      organization('New Organization Updated').displayed
+      organizationName.text() == 'New Organization Updated'
   }
 
   def "Can delete an existing Organization"() {
     when: 'We click the delete button'
-    deleteButton.click()
+      deleteButton.click()
 
     then: 'we are presented with a confirmation dialog'
-    waitFor { deleteButtonAccept.displayed }
+      waitFor { deleteButtonAccept.displayed }
 
     when: 'we agree to delete the Organization'
-    deleteButtonAccept.click()
+      deleteButtonAccept.click()
 
     then: 'the list of Orgs is now empty'
-    waitFor{ at OrganizationManagementPage }
-    organizationList.empty
+      waitFor{ at OrganizationManagementPage }
+      organizationList.empty
   }
 
   def "When adding new Organizations, they are listed alphabetically"(){
     when: 'we add multiple Organizations'
-    createOrg('Z')
-    createOrg('A')
+      createOrg('Z')
+      createOrg('A')
 
     then: 'they are listed alphabetically'
-    organizationList.collect{ it.text() } == ['A','Z']
+      organizationList.collect{ it.text() } == ['A','Z']
   }
 }

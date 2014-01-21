@@ -19,31 +19,31 @@ class AppSecurityManagementSpec extends BaseSpec {
 
   def "validate organization roles"() {
     when: "Open Security Tab"
-    createOrganization();
-    tabs.securityTabButton.click()
+      createOrganization();
+      tabs.securityTabButton.click()
 
     then: "security tab content is shown"
-    waitFor { tabs.securityTab.displayed }
-    waitFor { tabs.securityTab.role("Developer").displayed }
-    waitFor { tabs.securityTab.role("Owner").displayed }
+      waitFor { tabs.securityTab.displayed }
+      waitFor { tabs.securityTab.role("Developer").displayed }
+      waitFor { tabs.securityTab.role("Owner").displayed }
   }
 
   def "validate application roles"() {
 
     when: "create a new application"
-    createOrganization();
-    createApplication();
+      createOrganization();
+      createApplication();
 
     then: "see the security tab shown"
-    waitFor { tabs.securityTabButton.displayed }
+      waitFor { tabs.securityTabButton.displayed }
 
     when: "user clicks on security tab"
-    tabs.securityTabButton.click()
+      tabs.securityTabButton.click()
 
     then: "security tab is shown"
-    waitFor { tabs.securityTab.displayed }
-    waitFor { tabs.securityTab.role("Developer").displayed }
-    waitFor { tabs.securityTab.role("Owner").displayed }
+      waitFor { tabs.securityTab.displayed }
+      waitFor { tabs.securityTab.role("Developer").displayed }
+      waitFor { tabs.securityTab.role("Owner").displayed }
   }
 
   void createOrganization() {

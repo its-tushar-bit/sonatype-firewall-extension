@@ -23,7 +23,7 @@ class LoginSpec extends BaseSpec {
       login.passwordInput = "some password"
     
     then: "login action is enabled"
-      ! login.loginAction.isDisabled()
+      !login.loginAction.isDisabled()
   }
   
   def "can log in with valid credentials"() {
@@ -95,52 +95,52 @@ class LoginSpec extends BaseSpec {
 
   def "user can logout from management pages"() {
     given: "user has logged in"
-    to ManagementPage
-    login.loginAsAdmin()
+      to ManagementPage
+      login.loginAsAdmin()
 
     when: "logging out"
-    userOptions.logoutClick()
+      userOptions.logoutClick()
 
     then: "we now see the login module"
-    waitFor { login.isDisplayed() }
+      waitFor { login.isDisplayed() }
 
     when: "attempting to navigate back"
-    browser.driver.navigate().back()
+      browser.driver.navigate().back()
 
     then: "we never lose the login module"
-    waitFor { login.isDisplayed() }
+      waitFor { login.isDisplayed() }
 
     when: "we try to go directly to another page"
-    go ManagementPage.url
+      go ManagementPage.url
 
     then: "we are still prompted to login"
-    at ManagementPage
-    waitFor { login.isDisplayed() }
+      at ManagementPage
+      waitFor { login.isDisplayed() }
   }
 
   def "user can logout from reporting pages"() {
     given: "user has logged in"
-    to ReportViolationsPage
-    login.loginAsAdmin()
+      to ReportViolationsPage
+      login.loginAsAdmin()
 
     when: "logging out"
-    userOptions.logoutClick()
-    to ReportViolationsPage
+      userOptions.logoutClick()
+      to ReportViolationsPage
 
     then: "we redirect to the login page"
-    waitFor { login.isDisplayed() }
+      waitFor { login.isDisplayed() }
 
     when: "attempting to navigate back"
-    browser.driver.navigate().back()
+      browser.driver.navigate().back()
 
     then: "the login dialog does not dispose"
-    waitFor { login.isDisplayed() }
+      waitFor { login.isDisplayed() }
 
     when: "we try to go directly to another page"
-    go ManagementPage.url
+      go ManagementPage.url
 
     then: "the login dialog does not dispose"
-    at ManagementPage
-    waitFor { login.isDisplayed() }
+      at ManagementPage
+      waitFor { login.isDisplayed() }
   }
 }

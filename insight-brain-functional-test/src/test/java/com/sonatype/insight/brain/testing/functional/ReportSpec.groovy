@@ -45,65 +45,66 @@ extends BaseSpec {
 
   def "When we first login we're invited to create a new Org"() {
     expect:
-    waitFor { emptyMessage.displayed }
+      waitFor { emptyMessage.displayed }
   }
 
   def "We can navigate to the trending report"() {
     when: 'we click the navigation link to Trending'
-    nav.link('Trending').click()
+      nav.link('Trending').click()
 
     then: 'we see the large loading progress meter'
-    at TrendingReportPage
-    waitFor { loadingText.startsWith('CLM Server is generating the trending report') }
+      at TrendingReportPage
+      waitFor { loadingText.startsWith('CLM Server is generating the trending report') }
   }
 
   def "We can load the (empty) report"(){
     when: 'the report is generated and we refresh the page'
-    browser.driver.navigate().refresh()
+      browser.driver.navigate().refresh()
 
     then: 'we see that no violations have occurred, since we have not scanned anything'
-    at TrendingReportPage
-    waitFor { trendingData.displayed }
-    refresh.displayed
-    componentCount == '0 Components across all Applications'
-    policyCount == '0 Policies'
-    applicationCount ==  '0 Applications'
-    violationCount == '0 Violations'
+      at TrendingReportPage
+      waitFor { trendingData.displayed }
+      refresh.displayed
+      componentCount == '0 Components across all Applications'
+      policyCount == '0 Policies'
+      applicationCount ==  '0 Applications'
+      violationCount == '0 Violations'
   }
 
   def "A non-admin user cannot regenerate the report"(){
     when: 'we log in as a non-admin user'
-    userOptions.logoutClick()
-    to TrendingReportPage
-    login.login('test', 'secret')
+      userOptions.logoutClick()
+      to TrendingReportPage
+      login.login('test', 'secret')
 
     then: 'no refresh button is displayed, but the report is visible'
-    waitFor { trendingData.displayed }
-    !refresh.displayed
-    componentCount == '0 Components across all Applications'
-    policyCount == '0 Policies'
-    applicationCount ==  '0 Applications'
-    violationCount == '0 Violations'
+      waitFor { trendingData.displayed }
+      !refresh.displayed
+      componentCount == '0 Components across all Applications'
+      policyCount == '0 Policies'
+      applicationCount ==  '0 Applications'
+      violationCount == '0 Violations'
   }
 
   def "We display an accurate component chart"() {
     when:
-    def json = IOUtil.toString(getClass().getResourceAsStream("/ReportTest/trending-report.json"), "UTF-8")
-    json = json.replace("@generatedOn@", Long.toString(System.currentTimeMillis()))
-    FileUtils.fileWrite(new File(serviceRule.configuration.sonatypeWork, 'report/trending-report.json'), "UTF-8", json)
-    browser.driver.navigate().refresh()
-    at TrendingReportPage
+      def json = IOUtil.toString(getClass().getResourceAsStream("/ReportTest/trending-report.json"), "UTF-8")
+      json = json.replace("@generatedOn@", Long.toString(System.currentTimeMillis()))
+      FileUtils.fileWrite(new File(serviceRule.configuration.sonatypeWork, 'report/trending-report.json'), "UTF-8", json)
+      browser.driver.navigate().refresh()
+      at TrendingReportPage
+
     then:
-    waitFor { percentageChartControl.displayed }
-    def chartWidth = percentageChartControl.getWidth()
+      waitFor { percentageChartControl.displayed }
+      def chartWidth = percentageChartControl.getWidth()
 
-    componentBars.size() == 3
-    exactComponentBar.displayed
-    partialComponentBar.displayed
-    unknownComponentBar.displayed
+      componentBars.size() == 3
+      exactComponentBar.displayed
+      partialComponentBar.displayed
+      unknownComponentBar.displayed
 
-    exactComponentBar.getWidth() / chartWidth == 0.5
-    partialComponentBar.getWidth() / chartWidth == 0.3
-    unknownComponentBar.getWidth() / chartWidth == 0.2
+      exactComponentBar.getWidth() / chartWidth == 0.5
+      partialComponentBar.getWidth() / chartWidth == 0.3
+      unknownComponentBar.getWidth() / chartWidth == 0.2
   }
 }

@@ -17,96 +17,96 @@ class LdapConfigurationSpec extends BaseSpec
 {
   def "create a new LDAP and navigate the connection and user/group mappings forms"(){
     setup: "login"
-    to ReportViolationsPage
-    login.loginAsAdmin()
-    to LdapConfigurationPage
+      to ReportViolationsPage
+      login.loginAsAdmin()
+      to LdapConfigurationPage
 
     when: "going to the LDAP page"
-    waitFor { at LdapConfigurationPage }
+      waitFor { at LdapConfigurationPage }
 
     then:
-    report 'initial state with no LDAP configured'
-    inlineEditorSpan.present
-    !inlineEditor.displayed
-    save.displayed
-    save.disabled
-    cancel.displayed
+      report 'initial state with no LDAP configured'
+      inlineEditorSpan.present
+      !inlineEditor.displayed
+      save.displayed
+      save.disabled
+      cancel.displayed
 
     when: "clicking into the inline editor"
-    inlineEditorSpan.click()
+      inlineEditorSpan.click()
 
     then: "the text field and buttons are now displayed"
-    report 'editor displayed'
-    inlineEditor.displayed
+      report 'editor displayed'
+      inlineEditor.displayed
 
     when: "Saving a LDAP server"
-    inlineEditor.value('TestLDAP')
-    save.click()
+      inlineEditor.value('TestLDAP')
+      save.click()
 
     then: "the connection form appears"
-    report 'connection form'
-    waitFor{ at LdapConnectionConfigurationPage }
+      report 'connection form'
+      waitFor{ at LdapConnectionConfigurationPage }
 
     and: "the inline editing components are removed"
-    !inlineEditor.displayed
+      !inlineEditor.displayed
 
     and: "the defaults are loaded"
-    waitFor { port.value() == '389' }
+      waitFor { port.value() == '389' }
 
     when: "filling out the required fields in the form"
-    requiredFields.each{
-      it << 'foo'
-    }
+      requiredFields.each{
+        it << 'foo'
+      }
 
     then: "save is enabled"
-    report 'connection details'
-    requiredFields.each{
-      !it.hasClass('ng-invalid-required')
-    }
-    !save.disabled
+      report 'connection details'
+      requiredFields.each{
+        !it.hasClass('ng-invalid-required')
+      }
+      !save.disabled
 
     when: "cancelling the form"
-    reset.click()
-    waitFor{ discard?.present }
-    report 'confirmation of discarding changes'
-    discard.click()
+      reset.click()
+      waitFor{ discard?.present }
+      report 'confirmation of discarding changes'
+      discard.click()
 
     and: "navigating to the user and group settings"
-    userAndGroupSettingsTab.click()
+      userAndGroupSettingsTab.click()
 
     then: "user and group mapping form appears"
-    report 'user and group mappings'
-    at LdapUserAndGroupMappingConfigurationPage
-    requiredFields.each{
-      it.hasClass('ng-invalid-required')
-    }
+      report 'user and group mappings'
+      at LdapUserAndGroupMappingConfigurationPage
+      requiredFields.each{
+        it.hasClass('ng-invalid-required')
+      }
 
     and: "controls are disabled"
-    checkUserMapping.disabled
-    checkUserLogin.disabled
+      checkUserMapping.disabled
+      checkUserLogin.disabled
 
     when: "filling out required fields"
-    requiredFields.each{
-      it << 'foo'
-    }
+      requiredFields.each{
+        it << 'foo'
+      }
 
     then: "buttons are enabled"
-    report 'form is ready to save'
-    !checkUserMapping.disabled
-    !checkUserLogin.disabled
+      report 'form is ready to save'
+      !checkUserMapping.disabled
+      !checkUserLogin.disabled
 
     when: "resetting form to discard changes"
-    reset.click()
-    waitFor{ discard?.present }
+      reset.click()
+      waitFor{ discard?.present }
 
     then: "confirmation is requested"
-    report 'confirmation of discarding changes'
-    discard.click()
+      report 'confirmation of discarding changes'
+      discard.click()
 
     and: "changes are discarded"
-    requiredFields.each{
-      !it.value()
-    }
+      requiredFields.each{
+        !it.value()
+      }
   }
 
   /**

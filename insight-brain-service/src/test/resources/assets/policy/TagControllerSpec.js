@@ -58,10 +58,6 @@ describe('TagController.js', function() {
         return bomId;
       }
     });
-    $provide.value('selectedApplication', {
-      publicId: 'applicationPublicId',
-      organizationId: bomId
-    });
   }));
 
   beforeEach(inject(function($rootScope) {
@@ -80,9 +76,14 @@ describe('TagController.js', function() {
     beforeEach(inject(function($controller, $httpBackend, CLMLocations) {
       scope = testScope.$new();
 
+      selectedApplication = {
+        publicId: 'applicationPublicId',
+        organizationId: bomId
+      };
+
       $httpBackend.expectGET(CLMLocations.getOrganizationTagUrl(bomId)).respond(angular.copy(organizationTags));
       $httpBackend.expectGET(CLMLocations.getApplicationTagUrl('applicationPublicId')).respond(angular.copy(applicationTags));
-      tagApplicationController = $controller('TagApplicationController', { $scope: scope });
+      tagApplicationController = $controller('TagApplicationController', { $scope: scope, selectedApplication: selectedApplication });
       $httpBackend.flush();
     }));
 

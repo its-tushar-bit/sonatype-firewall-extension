@@ -4,6 +4,7 @@
  *          http://links.sonatype.com/products/clm/attributions. "Sonatype" is a
  *          trademark of Sonatype, Inc.
  */
+ /* global angular, clmBuildTimestamp */
 (function() {
   'use strict';
 
@@ -25,9 +26,9 @@
           templateUrl: '../application-assets/components/aoeditor.html?' + clmBuildTimestamp,
           resolve : {
             selectedApplication : function ($q, $stateParams, ApplicationStore) {
-              if ($stateParams.applicationPublicId === '_new_')
+              if ($stateParams.applicationPublicId === '_new_') {
                 return ApplicationStore.create();
-
+              }
               var deferred = $q.defer();
               ApplicationStore.get().then(function (data) {
                 for (var i=0; i<data.length; i++) {
@@ -69,12 +70,11 @@
           url: '/tags',
           controller: 'TagApplicationController',
           templateUrl: '../policy-assets/components/tag-editor/tags-application.html?' + clmBuildTimestamp
-        });;
+        });
       }]);
 
   applicationModule.controller('applicationController', [
-    '$scope', '$state', '$location', 'ApplicationStore', 'CLMLocations',
-    function($scope, $state, $location, ApplicationStore, CLMLocations) {
+    '$scope', '$state', '$location', 'ApplicationStore', function($scope, $state, $location, ApplicationStore) {
       $scope.location = $location;
 
       // Store icon cache timestamps at higher scope so it is not reinstantiated with editor controller
@@ -147,7 +147,7 @@
         function assignAppSummary(data) {
           $scope.applicationSummary = data;
           $scope.applicationSummary.stageCount = 0;
-          angular.forEach($scope.applicationSummary.policyEvaluations, function(policyEvaluation, stage) {
+          angular.forEach($scope.applicationSummary.policyEvaluations, function(policyEvaluation) {
             policyEvaluation.reportUrl = CLMLocations.getReportUrl($scope.applicationSummary.publicId,
                     policyEvaluation.scanId);
             $scope.applicationSummary.stageCount++;
@@ -169,7 +169,7 @@
           var ao = {
             addSync : CLMAppLocations.addIconSync(),
             isNew : function () {
-              return $state.params.applicationPublicId === "_new_";
+              return $state.params.applicationPublicId === '_new_';
             },
             selected : selectedApplication,
             type : 'application',
@@ -230,7 +230,7 @@
         $scope.doLoad();
 
         $scope.getOrganizationName = function() {
-          return $scope.selectedApplication && $scope.selectedApplication.organizationName || "Select Organization";
+          return $scope.selectedApplication && $scope.selectedApplication.organizationName || 'Select Organization';
         };
 
         $scope.setOrganization = function(organization) {
@@ -293,9 +293,9 @@
               currentApplication = $scope.selectedApplication,
               contactChanged = (currentApplication.contact || originalApplication.contact) ? !angular.equals(currentApplication.contact, originalApplication.contact) : false;
 
-          return currentApplication.publicId != originalApplication.publicId ||
-              currentApplication.name != originalApplication.name ||
-              currentApplication.organizationId != originalApplication.organizationId ||
+          return currentApplication.publicId !== originalApplication.publicId ||
+              currentApplication.name !== originalApplication.name ||
+              currentApplication.organizationId !== originalApplication.organizationId ||
               contactChanged || $scope.iconChanged;
         };
 
@@ -526,7 +526,7 @@
       $scope.$close(user);
     };
 
-    $scope.$watch('queryString', function (newVal) {
+    $scope.$watch('queryString', function () {
       // clear the alerts
       $scope.alerts.length = 0;
     });

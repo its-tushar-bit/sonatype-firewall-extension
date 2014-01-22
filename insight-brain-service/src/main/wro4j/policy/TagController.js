@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-/*global angular, $, clmBuildTimestamp */
+/*global angular */
 (function() {
   'use strict';
 
@@ -117,7 +117,7 @@
               type: 'danger',
               click: function() {
                 tag.$delete().then(function() {
-                  if ($scope.selectedTag && label.id === $scope.selectedTag.id) {
+                  if ($scope.selectedTag && tag.id === $scope.selectedTag.id) {
                     $scope.selectedTag = null;
                   }
                 }, function(error) {
@@ -133,7 +133,7 @@
         });
       };
 
-      $scope.$on('tags.cancelEditTag', function(event, tag) {
+      $scope.$on('tags.cancelEditTag', function(event) {
         event.stopPropagation();
         deselect();
       });
@@ -159,7 +159,7 @@
       };
 
       $scope.canSaveEdit = function(valid, tag) {
-        return valid && !$scope.submitActive && tag != null && tag.name && tag.description;
+        return valid && !$scope.submitActive && tag !== null && tag.name && tag.description;
       };
 
       $scope.$on('pageChangeStarted', function(event) {
@@ -172,7 +172,7 @@
 
       $scope.saveTag = function() {
         $scope.submitActive = true;
-        $scope.selectedTag.$save().then(function(tag) {
+        $scope.selectedTag.$save().then(function() {
           $scope.deselect();
         }, errorFn);
       };
@@ -238,5 +238,5 @@
       };
 
       $scope.doLoad();
-  }]);
+    }]);
 }());

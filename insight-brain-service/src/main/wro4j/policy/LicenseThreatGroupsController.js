@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-/*global angular, $, clmBuildTimestamp */
+/* global angular, $ */
 (function() {
   'use strict';
 
@@ -97,16 +97,6 @@
         return 0;
       }
 
-      function sortGroupLicense(a, b) {
-        if (a.licenseId < b.licenseId) {
-          return -1;
-        }
-        if (a.licenseId > b.licenseId) {
-          return 1;
-        }
-        return 0;
-      }
-
       function deselect() {
         $scope.selectedGroup = null;
       }
@@ -166,7 +156,7 @@
         $('#' + applicableLicenseGroup.ownerId).find('.accordion-body').collapse(action);
         //TODO: to work around collapse bug, fixed in newer release of bootstrap
         //https://github.com/twitter/bootstrap/pull/7424/files
-        $('#' + applicableLicenseGroup.ownerId).find('.licenseGroup-top')[action ==
+        $('#' + applicableLicenseGroup.ownerId).find('.licenseGroup-top')[action ===
             'hide' ? 'addClass' : 'removeClass']('collapsed');
         $scope.allExpanded[applicableLicenseGroup.ownerId] = !($scope.allExpanded[applicableLicenseGroup.ownerId] ||
             false);
@@ -177,7 +167,7 @@
       };
       $scope.showEditor = function(licenseGroup) {
         $('#collapse' + licenseGroup.id).collapse('show');
-        $("a[href='#collapse" + licenseGroup.id + "']").removeClass('collapsed');
+        $('a[href="#collapse' + licenseGroup.id + '"]').removeClass('collapsed');
 
         $scope.ltgEditorMap[licenseGroup.id] = true;
       };
@@ -207,7 +197,7 @@
 
       $scope.$on('pageChangeStarted', function(event) {
         var dirty = false;
-        angular.forEach($scope.licenseGroups, function(group, index) {
+        angular.forEach($scope.licenseGroups, function(group) {
           dirty = dirty || group.isDirty();
         });
         if (dirty) {
@@ -218,106 +208,104 @@
   ]);
 
   licenseGroupModule.controller('LicenseThreatGroupEditorController',
-      [
-        '$scope', '$filter', '$http', '$q', 'CLMAppLocations', 'licenseGroupStore', 'licenseStore',
-        'Messages',
-        function($scope, $filter, $http, $q, CLMAppLocations, licenseGroupStore, licenseStore, Messages) {
-          $scope.alerts = [];
-          $scope.licenseSearch = '';
+    ['$scope', '$filter', '$http', '$q', 'CLMAppLocations', 'licenseGroupStore', 'licenseStore', 'Messages',
+      function($scope, $filter, $http, $q, CLMAppLocations, licenseGroupStore, licenseStore, Messages) {
+        $scope.alerts = [];
+        $scope.licenseSearch = '';
 
-          function load() {
-            $scope.licenseGroups = null;
-            $scope.allLicenses = null;
-            $q.all([licenseGroupStore.get(), licenseStore.get()]).then(function(results) {
-              $scope.licenseGroups = results[0];
-              $scope.allLicenses = results[1];
-            }, function() {
-              /* Errors are handled above this point */
-            });
-            $filter('toLicense'); // Trigger loading licenses
+        function load() {
+          $scope.licenseGroups = null;
+          $scope.allLicenses = null;
+          $q.all([licenseGroupStore.get(), licenseStore.get()]).then(function(results) {
+            $scope.licenseGroups = results[0];
+            $scope.allLicenses = results[1];
+          }, function() {
+            /* Errors are handled above this point */
+          });
+          $filter('toLicense'); // Trigger loading licenses
+        }
+
+        $scope.$on('reload', function() {
+          load();
+        });
+        load();
+
+        $scope.searchEnter = function() {
+          var filter = $filter('filterLicenses');
+          var licenses = filter($scope.allLicenses,
+              { groupLicenses: $scope.selectedGroupLicenses, searchLicense: $scope.licenseSearch });
+          // If only one license is applicable to the current search filter, set isApplied true when enter is pressed
+          if (licenses.length === 1) {
+            $scope.addLicense(licenses[0]);
+            $scope.licenseSearch = '';
+          }
+        };
+
+        $scope.addLicense = function(license) {
+          var newLicense = angular.extend(licenseGroupStore.create('licenses'), { licenseId: license.id });
+          $scope.selectedGroup.licenses.push(newLicense);
+          $scope.selectedGroupLicenses[license.id] = true;
+        };
+
+        $scope.removeLicense = function(license) {
+          var index = -1;
+          angular.forEach($scope.selectedGroup.licenses, function(l, candidateIndex) {
+            if (license.id === l.licenseId) {
+              index = candidateIndex;
+            }
+          });
+          if (index !== -1) {
+            $scope.selectedGroupLicenses[license.id] = null;
+            $scope.selectedGroup.licenses.splice(index, 1);
+          }
+        };
+
+        $scope.canSaveEdit = function(valid) {
+          return valid && !$scope.submitActive && $scope.selectedGroup !== null && $scope.selectedGroup.name;
+        };
+
+        $scope.saveClick = function() {
+          if (!$scope.canSaveEdit($scope.licenseGroupEditor.$valid)) {
+            return;
           }
 
-          $scope.$on('reload', function() {
-            load();
-          });
-          load();
-
-          $scope.searchEnter = function() {
-            var filter = $filter('filterLicenses');
-            var licenses = filter($scope.allLicenses,
-                { groupLicenses: $scope.selectedGroupLicenses, searchLicense: $scope.licenseSearch });
-            // If only one license is applicable to the current search filter, set isApplied true when enter is pressed
-            if (licenses.length == 1) {
-              $scope.addLicense(licenses[0]);
-              $scope.licenseSearch = '';
-            }
-          };
-
-          $scope.addLicense = function(license) {
-            var newLicense = angular.extend(licenseGroupStore.create('licenses'), { licenseId: license.id });
-            $scope.selectedGroup.licenses.push(newLicense);
-            $scope.selectedGroupLicenses[license.id] = true;
-          };
-
-          $scope.removeLicense = function(license) {
-            var index = -1;
-            angular.forEach($scope.selectedGroup.licenses, function(l, candidateIndex) {
-              if (license.id === l.licenseId) {
-                index = candidateIndex;
-              }
+          $scope.submitActive = true;
+          $scope.selectedGroup.$save().then(function() {
+            $scope.hide();
+          }, function(rejection) {
+            $scope.submitActive = false;
+            $scope.alerts.push({
+              type: 'error',
+              msg: 'An error occurred while saving the license threat group. (' +
+                  Messages.getHttpErrorMessage(rejection) + ')'
             });
-            if (index !== -1) {
-              $scope.selectedGroupLicenses[license.id] = null;
-              $scope.selectedGroup.licenses.splice(index, 1);
-            }
-          };
+          });
+        };
 
-          $scope.canSaveEdit = function(valid) {
-            return valid && !$scope.submitActive && $scope.selectedGroup != null && $scope.selectedGroup.name;
-          };
-
-          $scope.saveClick = function() {
-            if (!$scope.canSaveEdit($scope.licenseGroupEditor.$valid)) {
+        $scope.$on('pageChangeStarted', function(event) {
+          if ($scope.selectedGroup) {
+            if ($scope.selectedGroup.isDirty()) {
+              event.preventDefault();
               return;
             }
+          }
+        });
 
-            $scope.submitActive = true;
-            $scope.selectedGroup.$save().then(function() {
-              $scope.hide();
-            }, function(rejection) {
-              $scope.submitActive = false;
-              $scope.alerts.push({
-                type: 'error',
-                msg: 'An error occurred while saving the license threat group. (' +
-                    Messages.getHttpErrorMessage(rejection) + ')'
-              });
+        $scope.$watch('selectedGroup', function(newValue) {
+          if (newValue) {
+            $scope.selectedGroupLicenses = {};
+            $scope.licenseSearch = '';
+
+            angular.forEach($scope.selectedGroup.licenses, function(license) {
+              $scope.selectedGroupLicenses[license.licenseId] = true;
             });
-          };
-
-          $scope.$on('pageChangeStarted', function(event) {
-            if ($scope.selectedGroup) {
-              if ($scope.selectedGroup.isDirty()) {
-                event.preventDefault();
-                return;
-              }
-            }
-          });
-
-          $scope.$watch('selectedGroup', function(newValue) {
-            if (newValue) {
-              $scope.selectedGroupLicenses = {};
-              $scope.licenseSearch = '';
-
-              angular.forEach($scope.selectedGroup.licenses, function(license, index) {
-                $scope.selectedGroupLicenses[license.licenseId] = true;
-              });
-            }
-            else {
-              $scope.selectedGroupLicenses = null;
-            }
-          });
-        }
-      ]);
+          }
+          else {
+            $scope.selectedGroupLicenses = null;
+          }
+        });
+      }
+    ]);
 
   licenseGroupModule.filter('toLicense', [
     'licenseStore', function(licenseStore) {
@@ -329,7 +317,7 @@
           licenses[license.id] = license;
         });
       });
-      return function(items, filter) {
+      return function(items) {
         var retLicenses = [];
         angular.forEach(items, function(item) {
           retLicenses.push(licenses[item.licenseId]);
@@ -364,14 +352,14 @@
       link: function(scope, element, attrs) {
         if (attrs.preventSubmit !== undefined) {
           $(element).bind('keypress keydown keyup', function(e) {
-            if (e.keyCode == 13) {
+            if (e.keyCode === 13) {
               e.preventDefault();
             }
           });
         }
 
         $(element).bind('keydown', function(e) {
-          if (e.keyCode == 13) {
+          if (e.keyCode === 13) {
             scope.$apply(attrs.enterDown || angular.noop);
           }
         });
@@ -389,7 +377,7 @@
           hide: '&'
         },
         controller: 'LicenseThreatGroupEditorController',
-        link: function(scope, element, attrs) {
+        link: function(scope) {
           scope.$watch('ltgEditor', function(val) {
             if (val) {
               scope.selectedGroup = val.$clone();
@@ -420,7 +408,7 @@
         restrict: 'A',
         templateUrl: 'ltgcreator',
         scope: {},
-        link: function(scope, element, attrs) {
+        link: function(scope) {
           scope.createNew = function() {
             scope.selectedGroup = licenseGroupStore.create();
           };

@@ -4,75 +4,76 @@
  *          http://links.sonatype.com/products/clm/attributions. "Sonatype" is a
  *          trademark of Sonatype, Inc.
  */
-/* global angular, $, clmBuildTimestamp, window */
+/* global angular, clmBuildTimestamp, window */
 (function() {
   'use strict';
 
-  var organizationModule = angular.module('OrganizationModule', ['ui.router', 'ManagementModule', 'Organization'], [
-        '$stateProvider', function($stateProvider) {
-          $stateProvider.state('management.organization', {
-            parent: 'management',
-            url: '/organization',
-            controller: 'OrganizationController',
-            templateUrl: '../organization-assets/components/organization-navigator.html?' + clmBuildTimestamp
-          }).state('management.organization.view', {
-            parent: 'management.organization',
-            url: '/{organizationId}',
-            controller: 'OrganizationEditorController',
-            data: {
-              passThroughAlerts: []
-            },
-            templateUrl: '../application-assets/components/aoeditor.html?' + clmBuildTimestamp,
-            resolve : {
-              selectedOrganization : function ($q, $stateParams, OrganizationStore) {
-                if ($stateParams.organizationId === '_new_')
-                  return OrganizationStore.create();
-
-                var deferred = $q.defer();
-                OrganizationStore.get().then(function (data) {
-                  for (var i=0; i<data.length; i++) {
-                    if (data[i].id === $stateParams.organizationId) {
-                      deferred.resolve(data[i].$clone());
-                      return;
-                    }
-                  }
-                  deferred.resolve(null);
-                }, /* Errors will be handled at state parent */ angular.noop);
-                return deferred.promise;
-              }
+  angular.module('OrganizationModule', ['ui.router', 'ManagementModule', 'Organization'], [
+    '$stateProvider', function($stateProvider) {
+      $stateProvider.state('management.organization', {
+        parent: 'management',
+        url: '/organization',
+        controller: 'OrganizationController',
+        templateUrl: '../organization-assets/components/organization-navigator.html?' + clmBuildTimestamp
+      }).state('management.organization.view', {
+        parent: 'management.organization',
+        url: '/{organizationId}',
+        controller: 'OrganizationEditorController',
+        data: {
+          passThroughAlerts: []
+        },
+        templateUrl: '../application-assets/components/aoeditor.html?' + clmBuildTimestamp,
+        resolve : {
+          selectedOrganization : function ($q, $stateParams, OrganizationStore) {
+            if ($stateParams.organizationId === '_new_') {
+              return OrganizationStore.create();
             }
-          }).state('management.organization.view.policies', {
-            parent: 'management.organization.view',
-            url: '/policies',
-            controller: 'PolicyController',
-            data: {
-              passThroughAlerts: []
-            },
-            templateUrl: '../policy-assets/components/policy/policy.html?' + clmBuildTimestamp
-          }).state('management.organization.view.labels', {
-            parent: 'management.organization.view',
-            url: '/labels',
-            controller: 'LabelController',
-            templateUrl: '../policy-assets/components/label-editor/labels.html?' + clmBuildTimestamp
-          }).state('management.organization.view.licenses', {
-            parent: 'management.organization.view',
-            url: '/licenses',
-            controller: 'LicenseThreatGroupController',
-            templateUrl: '../policy-assets/components/license-threat-group/license-threat-group.html?' +
-                clmBuildTimestamp
-          }).state('management.organization.view.security', {
-            parent: 'management.organization.view',
-            url: '/security',
-            controller: 'AppSecurityController',
-            templateUrl: '../policy-assets/components/app-security/app-security.html?' + clmBuildTimestamp
-          }).state('management.organization.view.tags', {
-              parent: 'management.organization.view',
-              url: '/tags',
-              controller: 'TagController',
-              templateUrl: '../policy-assets/components/tag-editor/tags.html?' + clmBuildTimestamp
-            });
+
+            var deferred = $q.defer();
+            OrganizationStore.get().then(function (data) {
+              for (var i=0; i<data.length; i++) {
+                if (data[i].id === $stateParams.organizationId) {
+                  deferred.resolve(data[i].$clone());
+                  return;
+                }
+              }
+              deferred.resolve(null);
+            }, /* Errors will be handled at state parent */ angular.noop);
+            return deferred.promise;
+          }
         }
-      ]);
+      }).state('management.organization.view.policies', {
+        parent: 'management.organization.view',
+        url: '/policies',
+        controller: 'PolicyController',
+        data: {
+          passThroughAlerts: []
+        },
+        templateUrl: '../policy-assets/components/policy/policy.html?' + clmBuildTimestamp
+      }).state('management.organization.view.labels', {
+        parent: 'management.organization.view',
+        url: '/labels',
+        controller: 'LabelController',
+        templateUrl: '../policy-assets/components/label-editor/labels.html?' + clmBuildTimestamp
+      }).state('management.organization.view.licenses', {
+        parent: 'management.organization.view',
+        url: '/licenses',
+        controller: 'LicenseThreatGroupController',
+        templateUrl: '../policy-assets/components/license-threat-group/license-threat-group.html?' +
+            clmBuildTimestamp
+      }).state('management.organization.view.security', {
+        parent: 'management.organization.view',
+        url: '/security',
+        controller: 'AppSecurityController',
+        templateUrl: '../policy-assets/components/app-security/app-security.html?' + clmBuildTimestamp
+      }).state('management.organization.view.tags', {
+        parent: 'management.organization.view',
+        url: '/tags',
+        controller: 'TagController',
+        templateUrl: '../policy-assets/components/tag-editor/tags.html?' + clmBuildTimestamp
+      });
+    }
+  ]);
 }());
 
 (function() {
@@ -117,9 +118,9 @@
 
   organizationModule.controller('OrganizationEditorController', [
     '$scope', '$state', '$location', '$http', '$rootScope', '$modal', 'regexFactory', 'CLMLocations', 'editorTools',
-    'CLMAppLocations', 'Messages', 'CLMAppLocations', 'selectedOrganization', '$q',
+    'CLMAppLocations', 'Messages', 'CLMAppLocations', 'selectedOrganization',
     function($scope, $state, $location, $http, $rootScope, $modal, regexFactory, CLMLocations, editorTools,
-             clmAppLocations, messages, CLMAppLocations, selectedOrganization, $q)
+             clmAppLocations, messages, CLMAppLocations, selectedOrganization)
     {
       var me = this;
       angular.extend(me,
@@ -170,7 +171,7 @@
             return this.getId();
           },
           isNew : function () {
-            return $state.params.organizationId === "_new_";
+            return $state.params.organizationId === '_new_';
           },
           type : 'organization',
           typeName : 'Organization'
@@ -282,7 +283,7 @@
 
         $scope.submitActive = true;
 
-        $scope.selectedOrganization.$save().then(function(data) {
+        $scope.selectedOrganization.$save().then(function() {
           me.saveIcon().then(function() {
             if ($state.params.organizationId === '_new_') {
               $state.transitionTo('management.organization.view.policies',

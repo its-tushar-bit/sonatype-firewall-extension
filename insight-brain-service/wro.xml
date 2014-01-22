@@ -22,7 +22,14 @@
 		<css>/assets/threat.css</css>
 		<css>/assets/insight.css</css>
                 <css>/assets/sonatype-icons.css</css>
+                <js>/applications/ApplicationController.js</js>
                 <js>/assets/ReportApp.js</js>
+                <js>/organization/OrganizationController.js</js>
+                <js>/policy/AppSecurityController.js</js>
+                <js>/policy/LabelController.js</js>
+                <js>/policy/LicenseThreatGroupsController.js</js>
+                <js>/policy/PolicyController.js</js>
+                <js>/policy/TagController.js</js>
 	</group>
 
 	<group name='policy'>

@@ -18,7 +18,7 @@
           return $http.get(CLMAppLocations.getPolicyMonitoringUrl());
         },
         getApplicable: function() {
-          return $http.get(CLMAppLocations.getApplicablePolicyMonitoring())
+          return $http.get(CLMAppLocations.getApplicablePolicyMonitoring());
         },
         save: function(policyMonitoring) {
           return $http.put(CLMAppLocations.getPolicyMonitoringUrl(), policyMonitoring);
@@ -26,7 +26,7 @@
         delete: function(){
           return $http.delete(CLMAppLocations.getPolicyMonitoringUrl());
         }
-      }
+      };
     }
   ]);
 
@@ -39,20 +39,20 @@
       $scope.alerts = [];
       $scope.location = $location;
       $scope.policyMonitoringAlerts = [];
-      $scope.monitoringHelp = "Each day the latest scan from this stage will be evaluated. Notifications for new " +
-        "violations can be configured per policy (below).";
+      $scope.monitoringHelp = 'Each day the latest scan from this stage will be evaluated. Notifications for new ' +
+        'violations can be configured per policy (below).';
 
       $scope.viewRemovePolicy = function(policy) {
         Dialog.open({
           title : 'Delete Policy',
-          body : "Are you sure you want to delete the Policy named '" + policy.name + "'? This action is not reversible.",
+          body : 'Are you sure you want to delete the Policy named "' + policy.name + '"? This action is not reversible.',
           buttons : [{
             name : 'Cancel'
           },{
             name : 'Delete',
             type : 'danger',
             click : function () {
-              policy.$delete().then(angular.noop, function(error) {
+              policy.$delete().then(angular.noop, function() {
                 $scope.$broadcast('showServerError', arguments);
               });
             }
@@ -78,8 +78,8 @@
          * Conditionally render text for the select box to take into account inheritance.
          */
         function createPlaceHolderText(isApplication, orgPolicyMonitor) {
-          if(isApplication && orgPolicyMonitor != null){
-            var stageName = $.grep($scope.actionStageList, function(e){ return e.id == orgPolicyMonitor.stageTypeId; })[0].name;
+          if(isApplication && orgPolicyMonitor !== null){
+            var stageName = $.grep($scope.actionStageList, function(e){ return e.id === orgPolicyMonitor.stageTypeId; })[0].name;
             return stageName + ' (inherited from parent)';
           }
           return '-- do not monitor --';
@@ -108,7 +108,7 @@
         selector.find('.accordion-body').collapse(action);
         //TODO: to work around collapse bug, fixed in newer release of bootstrap
         //https://github.com/twitter/bootstrap/pull/7424/files
-        selector.find('.policy-top')[action ==
+        selector.find('.policy-top')[action ===
           'hide' ? 'addClass' : 'removeClass']('collapsed');
       }
 
@@ -138,16 +138,16 @@
               type: 'error',
               msg: 'An error occurred while turning off policy monitoring. (' +
                 messages.getHttpErrorMessage(error) + ')'
-            })
+            });
           });
         }
         else {
           PolicyMonitoringStore.save($scope.policyMonitoring).then(clearPolicyMonitoringAlerts, function(error) {
-          $scope.policyMonitoringAlerts.push({
+            $scope.policyMonitoringAlerts.push({
               type: 'error',
               msg: 'An error occurred while saving your policy monitoring configuration. (' +
                 messages.getHttpErrorMessage(error) + ')'
-            })
+            });
           });
         }
       };
@@ -162,13 +162,6 @@
 
   policyModule.directive('policyItems', [
     'ActionStore', function(ActionStore) {
-      function capitalize(text) {
-        if (text && text.length > 1) {
-          return text.substring(0, 1).toUpperCase() + text.substring(1);
-        }
-        return text;
-      }
-
       var actionStageList = null;
       ActionStore.get().then(function(data) {
         actionStageList = data[1];
@@ -182,11 +175,11 @@
           remove: '='
         },
         priority: 99,
-        link: function(scope, elem, attr, ctrl) {
+        link: function(scope) {
           scope.policyEditMap = {};
           scope.getActionCount = function(policy) {
             var actionCount = 0;
-            angular.forEach(policy.actions, function(value, key) {
+            angular.forEach(policy.actions, function(value) {
               if (value.length > 0) {
                 actionCount++;
               }
@@ -199,11 +192,11 @@
           scope.getStageIconPath = function(stage, policy) {
             if (policy.actions[stage.id]) {
               for (var i = 0; i < policy.actions[stage.id].length; i++) {
-                if (policy.actions[stage.id][i].actionTypeId == 'warn') {
-                  return "../assets/img/policyalert.png";
+                if (policy.actions[stage.id][i].actionTypeId === 'warn') {
+                  return '../assets/img/policyalert.png';
                 }
-                else if (policy.actions[stage.id][i].actionTypeId == 'fail') {
-                  return "../assets/img/policyerror.png";
+                else if (policy.actions[stage.id][i].actionTypeId === 'fail') {
+                  return '../assets/img/policyerror.png';
                 }
               }
             }

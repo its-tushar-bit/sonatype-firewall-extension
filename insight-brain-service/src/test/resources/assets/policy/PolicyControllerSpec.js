@@ -66,7 +66,7 @@ describe('PolicyController tests', function() {
     expect(scope.applicablePolicies[0].policies[0].id).toEqual('053e89a476b34d7dac5d97665d2d241e');
     expect(Dialog.open).toHaveBeenCalledWith({
       title : 'Delete Policy',
-      body : 'Are you sure you want to delete the Policy named \'asdffffrfff\'? This action is not reversible.',
+      body : 'Are you sure you want to delete the Policy named "asdffffrfff"? This action is not reversible.',
       buttons : [{
         name : 'Cancel'
       }, {

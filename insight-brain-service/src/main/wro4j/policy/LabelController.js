@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-/*global angular, $, clmBuildTimestamp */
+/* global angular */
 (function() {
   'use strict';
 
@@ -154,7 +154,7 @@
         }, angular.noop);
       };
 
-      $scope.$on('labels.cancelEditLabel', function(event, label) {
+      $scope.$on('labels.cancelEditLabel', function(event) {
         event.stopPropagation();
         deselect();
       });
@@ -173,7 +173,7 @@
         });
       }
 
-      $scope.editorAlerts = []; 
+      $scope.editorAlerts = [];
 
       $scope.colors = [null, 'white', 'grey', 'black', 'green', 'yellow', 'orange', 'red', 'blue'];
 
@@ -186,7 +186,7 @@
       };
 
       $scope.canSaveEdit = function(valid, label) {
-        return valid && !$scope.submitActive && label != null && label.label;
+        return valid && !$scope.submitActive && label !== null && label.label;
       };
 
       $scope.$on('pageChangeStarted', function(event) {
@@ -199,7 +199,7 @@
 
       $scope.saveLabel = function() {
         $scope.submitActive = true;
-        $scope.selectedLabel.$save().then(function(label) {
+        $scope.selectedLabel.$save().then(function() {
           $scope.deselect();
         }, errorFn);
       };
@@ -214,7 +214,7 @@
           var unique = true,
               notInvalid = newValue.indexOf(' ') === -1 && newValue.indexOf('\t') === -1;
 
-          angular.forEach(scope.labels, function(item, key) {
+          angular.forEach(scope.labels, function(item) {
             if (item.id !== scope.selectedLabel.id) {
               unique = unique && (item.label.toLowerCase() !== newValue.toLowerCase());
             }

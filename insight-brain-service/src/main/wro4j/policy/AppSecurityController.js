@@ -2,6 +2,7 @@
  * @license Copyright (c) 2012-2013 Sonatype, Inc. All rights reserved. Includes the third-party code listed at
  *          http://links.sonatype.com/products/clm/attributions. "Sonatype" is a trademark of Sonatype, Inc.
  */
+ /* global angular */
 (function() {
   'use strict';
 
@@ -49,11 +50,12 @@
       $http.get(clmAppLocations.getRoleMappingUrl(), {
         params: {
           timestamp: new Date().getTime()
-      }}).success(function (data) {
+        }
+      }).success(function (data) {
         $scope.context = {
           roles:  data.membersByRole
         };
-      }).error(function (error) {
+      }).error(function () {
         $scope.error = arguments;
       });
     };
@@ -122,13 +124,14 @@
     };
 
     $scope.removeMember = function ($parentIndex, member) {
-      if ($parentIndex === 0)
+      if ($parentIndex === 0) {
         for (var i=0; i<$scope.mappings[0].members.length; i++) {
           if (member === $scope.mappings[0].members[i]) {
             $scope.mappings[0].members.splice(i, 1);
             break;
           }
         }
+      }
     };
 
     $scope.setResults = function (members, error) {
@@ -142,7 +145,7 @@
       }
     };
 
-    $scope.$watch('queryString', function (newVal) {
+    $scope.$watch('queryString', function () {
       // clear the alerts
       $scope.alerts.length = 0;
     });
@@ -174,7 +177,7 @@
     };
   });
 
-  appSecurityModule.directive('appSecurityEditor', ['CLMAppLocations', function (clmAppLocations) {
+  appSecurityModule.directive('appSecurityEditor', [function () {
     return {
       scope : {
         appSecurityEditor : '=appSecurityEditor',
@@ -240,18 +243,17 @@
         ownerType : '@',
         ownerId : '@'
       },
-      template : "<form name='userSearch' style='margin:0px'>" +
-          "<div class='input-prepend'>" +
-            "<span class='add-on'>" +
-              "<i class='icon-search' ng-show='!requestActive'> </i>" +
-              "<img src='../assets/img/loading.gif' ng-show='requestActive'>" +
-            "</span><input placeholder='Find User' type='text' name='filter' ng-model='queryString' focus-input='true'>" +
-          "</div>" +
-        "</form>",
+      template : '<form name="userSearch" style="margin:0px">' +
+          '<div class="input-prepend">' +
+            '<span class="add-on">' +
+              '<i class="icon-search" ng-show="!requestActive"> </i>' +
+              '<img src="../assets/img/loading.gif" ng-show="requestActive">' +
+            '</span><input placeholder="Find User" type="text" name="filter" ng-model="queryString" focus-input="true">' +
+          '</div>' +
+        '</form>',
       priority : 99,
       link : function ($scope) {
-        var filterTimeout = null,
-            lastResults = null;
+        var filterTimeout = null;
 
         $scope.requestActive = 0;
         $scope.queryString = $scope.queryString || '';

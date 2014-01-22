@@ -169,7 +169,9 @@
               ownerId : $scope.waiverTargets[0].id,
               comment : ''
             };
-            $scope.ownerType = $scope.waiverTargets[0].type;
+            $scope.owner = {
+              type : $scope.waiverTargets[0].type
+            };
           }).error(function(data, status) {
             $scope.waiverLoading = false;
             $scope.waiveAssignError = messages.getHttpErrorMessage(arguments);
@@ -182,7 +184,7 @@
           $scope.waiverSaving = true;
           $scope.waiveAssignError = null;
 
-          $http.post(CLM.path + 'rest/policyWaiver/' + $scope.ownerType + '/' + $scope.waiver.ownerId,
+          $http.post(CLM.path + 'rest/policyWaiver/' + $scope.owner.type + '/' + $scope.waiver.ownerId,
                   $scope.waiver).success(function(responseData) {
             $scope.waiverSaving = false;
             $scope.$close();

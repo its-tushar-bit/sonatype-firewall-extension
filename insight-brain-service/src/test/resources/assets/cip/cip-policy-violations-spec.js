@@ -189,7 +189,7 @@ describe('CIP Policy Waiver tests', function() {
       _scope.$apply(function () {
         _scope.waiver.ownerId = 'orgId';
         _scope.waiver.comment = 'this is my comment!';
-        _scope.ownerType = 'organization';
+        _scope.owner.type = 'organization';
       });
 
       $httpBackend.expectPOST('../brain/rest/policyWaiver/organization/orgId', {
@@ -211,7 +211,7 @@ describe('CIP Policy Waiver tests', function() {
       _scope.$apply(function () {
         _scope.waiver.ownerId = 'appId';
         _scope.waiver.comment = 'this is my comment!';
-        _scope.ownerType = 'application';
+        _scope.owner.type = 'application';
       });
 
       $httpBackend.expectPOST('../brain/rest/policyWaiver/application/appId', {

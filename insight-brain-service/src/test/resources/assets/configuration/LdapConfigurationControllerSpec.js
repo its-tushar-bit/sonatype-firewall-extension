@@ -161,7 +161,7 @@ describe('Tests for the LdapConfigurationController', function() {
       scope.ldap = {id: "123"};
       scope.getConfigLdapUrl = getConfigLdapUrl;
 
-      httpBackend.expectGET(SpecUtil.toRegExp(getConfigLdapUrl('connection'))).respond(404, "");
+      httpBackend.expectGET(SpecUtil.toRegExp(getConfigLdapUrl('connection'))).respond({ serverId: scope.ldap.id });
 
       $controller('LdapConnectionController', {
         $scope: scope,
@@ -368,7 +368,10 @@ describe('Tests for the LdapConfigurationController', function() {
       scope.ldap = {id: "123"};
       scope.getConfigLdapUrl = getConfigLdapUrl;
 
-      httpBackend.expectGET(SpecUtil.toRegExp(getConfigLdapUrl())).respond(404, "");
+      httpBackend.expectGET(SpecUtil.toRegExp(getConfigLdapUrl())).respond({
+        serverId: scope.ldap.id,
+        userPasswordAttribute: null
+      });
 
       $controller('LdapUsermappingController', {
         $scope: scope,

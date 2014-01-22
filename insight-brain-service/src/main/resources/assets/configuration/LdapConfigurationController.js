@@ -232,6 +232,10 @@
   module.controller('LdapConnectionController', [
     '$scope', '$modal', '$http',
     function($scope, $modal, $http) {
+      $scope.ldapProtocols = ['LDAP', 'LDAPS'];
+      $scope.ldapMethods = ['NONE', 'SIMPLE', 'DIGESTMD5', 'CRAMMD5'];
+      $scope.alerts = [];
+      delete $scope.ldapConn;
 
       var origLdapConn = {
         serverId: $scope.ldap.id
@@ -240,7 +244,7 @@
       preventPageChange($scope);
 
       $scope.isDirty = function() {
-        return !angular.equals(origLdapConn, $scope.ldapConn);
+        return $scope.ldapConn && !angular.equals(origLdapConn, $scope.ldapConn);
       };
 
       $scope.canSaveEdit = function() {
@@ -271,13 +275,6 @@
         });
       };
 
-      $scope.ldapProtocols = ['LDAP', 'LDAPS'];
-      $scope.ldapMethods = ['NONE', 'SIMPLE', 'DIGESTMD5', 'CRAMMD5'];
-
-      $scope.alerts = [];
-
-      $scope.ldapConn = angular.copy(origLdapConn); // make sure the scope is clean while we query backend
-
       $scope.$watch('ldapConn.protocol', function(newProtocol) {
         if (newProtocol === 'LDAP' && (!$scope.ldapConn.port || $scope.ldapConn.port === 636)) {
           $scope.ldapConn.port = 389;
@@ -298,16 +295,16 @@
   module.controller('LdapUsermappingController', ['$scope', '$modal', '$http', 
     function($scope, $modal, $http) {
       $scope.alerts = [];
+      delete $scope.ldapUserMapping;// make sure the scope is clean while we query backend
 
       var origLdapUserMapping = {
-        serverId: $scope.ldap.id,
-        userPasswordAttribute: null // to make tests happy, not needed otherwise
+        serverId: $scope.ldap.id
       };
 
       $scope.groupMappingTypes = ['NONE', 'STATIC', 'DYNAMIC'];
 
       $scope.isDirty = function() {
-        return !angular.equals(origLdapUserMapping, $scope.ldapUserMapping);
+        return $scope.ldapUserMapping && !angular.equals(origLdapUserMapping, $scope.ldapUserMapping);
       };
 
       $scope.canSaveEdit = function() {
@@ -377,8 +374,6 @@
           $scope.testInProgress = false;
         });
       };
-
-      $scope.ldapUserMapping = angular.copy(origLdapUserMapping); // make sure the scope is clean while we query backend
 
       $scope.isGroupFieldRequired = function(groupMappingType) {
         return $scope.ldapUserMapping.groupMappingType === groupMappingType;

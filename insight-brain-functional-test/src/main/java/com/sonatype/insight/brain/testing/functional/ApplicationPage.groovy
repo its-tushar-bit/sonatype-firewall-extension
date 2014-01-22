@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.testing.functional
 import com.sonatype.insight.brain.testing.functional.modules.ButtonsModule
 import com.sonatype.insight.brain.testing.functional.modules.EditorToolsModule
 import com.sonatype.insight.brain.testing.functional.modules.ContextTabsModule
+import com.sonatype.insight.brain.testing.functional.modules.ImportPolicyModule
 import com.sonatype.insight.brain.testing.functional.modules.PolicyMonitoringModule
 import com.sonatype.insight.brain.testing.functional.modules.TagApplicationModule
 
@@ -45,6 +46,8 @@ class ApplicationPage
     deleteButtonAccept(required: false) { $('button', text: 'Delete') }
     developerRole(required: false) { $('p', text: 'Developer') }
     ownerRole(required: false) { $('p', text: 'Owner') }
+
+    policyImport { module ImportPolicyModule }
 
     policyMonitoring { module PolicyMonitoringModule }
 

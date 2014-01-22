@@ -426,36 +426,24 @@
               if (icon.files.length > 0) {
                 formData.append('file', icon.files[0]);
               }
-
-              //using jquery for this call to add parameters not supported in angular
-              //there is no means to not process the form data it seems, so using jquery
-              //to disabled the data processing (otherwise angular will try to upload json
-              //representation of the file)
-              jQuery.ajax({
-                url: CLMAppLocations.addIcon(),
-                cache: false,
-                contentType: false,
-                processData: false,
-                type: 'POST',
-                data: formData
-              }).done(function(data) {
-                $scope.$apply(function() {
-                  $scope.submitActive = false;
-                  $scope.isUploadingIcon = false;
-                  $scope.iconChanged = false;
-                  $scope.$emit('resetIconCache');
-                  defer.resolve(data);
-                });
-              }).fail(function(xhr) {
-                $scope.$apply(function() {
-                  var headers = { 'content-type': xhr.getResponseHeader('Content-Type') },
-                      resp = { status: xhr.status, data: xhr.responseText, headers: function() { return headers; } },
-                      msg = Messages.getHttpErrorMessage(resp);
-                  $scope.isUploadingIcon = false;
-                  $scope.submitActive = false;
-                  $scope.pushAlert({ type: 'error', msg: msg });
-                  defer.reject(msg);
-                });
+              
+              $http.post(CLMAppLocations.addIcon(), formData, {
+                headers : {
+                  'Content-Type' : undefined
+                },
+                transformRequest: angular.identity
+              }).success(function (data) {
+                $scope.submitActive = false;
+                $scope.isUploadingIcon = false;
+                $scope.iconChanged = false;
+                $scope.$emit('resetIconCache');
+                defer.resolve(data);
+              }).error(function () {
+                var msg = Messages.getHttpErrorMessage(arguments);
+                $scope.isUploadingIcon = false;
+                $scope.submitActive = false;
+                $scope.pushAlert({ type: 'error', msg: msg });
+                defer.reject(msg);
               });
             }
             else {

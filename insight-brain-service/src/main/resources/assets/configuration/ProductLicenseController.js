@@ -11,8 +11,8 @@
   var module = angular.module('ProductLicense', ['AngularCommon', 'ngUpload', 'CLMLocation']);
 
   module.controller('ProductLicenseController', [
-    '$http', '$scope', 'CLMLocations', '$timeout', '$window',
-    function($http, $scope, clmLocations, $timeout, $window) {
+    '$http', '$scope', 'CLMLocations', '$timeout', '$window', 'Messages',
+    function($http, $scope, clmLocations, $timeout, $window, Messages) {
 
       $scope.summaryUrl = clmLocations.getLicenseSummaryUrl();
       $scope.uploadUrl = clmLocations.getLicenseUploadUrl();
@@ -41,10 +41,8 @@
       }
 
       function showError(content) {
-        $scope.$apply(function() {
-          $('#eulaModal').modal('hide');
-          $scope.$broadcast('showError', content);
-        });
+        $('#eulaModal').modal('hide');
+        $scope.$broadcast('showError', content);
       }
 
       $scope.reload = function() {
@@ -67,21 +65,15 @@
         if ($window.FormData) {
           var form = new FormData();
           form.append('file', $('#license-input')[0].files[0]);
-          $.ajax({
-            url: $scope.uploadUrl,
-            data: form,
-            processData: false,
-            contentType: false,
-            type: 'POST',
-            success: function() {
-              $scope.$apply(function() {
-                showLicense();
-              });
+          $http.post($scope.uploadUrl, form, {
+            headers : {
+              'Content-Type' : undefined
             },
-            error: function(req, status, error) {
-              $scope.clearValue();
-              showError(req.responseText);
-            }
+            transformRequest: angular.identity
+          }).success(function (data) {
+            showLicense();
+          }).error(function () {
+            showError(Messages.getHttpErrorMessage(arguments));
           });
         }
         else {

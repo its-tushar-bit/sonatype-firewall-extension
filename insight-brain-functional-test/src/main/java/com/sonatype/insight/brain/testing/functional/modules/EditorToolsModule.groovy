@@ -10,7 +10,8 @@ import geb.Module
 /**
  * @since 1.8
  */
-class EditorToolsModule extends Module
+class EditorToolsModule
+    extends Module
 {
   static content = {
     deleteButton(required: true) { $('#remove-app-org-button') }

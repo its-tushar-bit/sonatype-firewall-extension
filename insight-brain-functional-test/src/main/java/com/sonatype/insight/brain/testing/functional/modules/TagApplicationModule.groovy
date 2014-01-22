@@ -11,7 +11,7 @@ import geb.Module
  * @since 1.9
  */
 class TagApplicationModule
-  extends Module
+    extends Module
 {
   static content = {
     appliedTagList(required:false) { $('span', 'ng-repeat': startsWith('tag in appliedTags')) }

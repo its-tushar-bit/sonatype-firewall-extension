@@ -10,7 +10,8 @@ import geb.Module
 /**
  * @since 1.7
  */
-class ChangePasswordModule extends Module
+class ChangePasswordModule
+    extends Module
 {
   static content = {
     //this content is all in the popup dialog

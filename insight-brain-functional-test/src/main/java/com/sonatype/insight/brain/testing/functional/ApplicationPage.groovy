@@ -12,7 +12,9 @@ import com.sonatype.insight.brain.testing.functional.modules.PolicyMonitoringMod
 import com.sonatype.insight.brain.testing.functional.modules.TagApplicationModule
 
 
-class ApplicationPage extends ApplicationManagementPage {
+class ApplicationPage
+    extends ApplicationManagementPage
+{
   static at = { $('#applicationEditor').displayed }
 
   static content = {

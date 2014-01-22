@@ -12,7 +12,9 @@ import com.sonatype.insight.brain.testing.functional.modules.PolicyMonitoringMod
 import com.sonatype.insight.brain.testing.functional.modules.TagModule
 
 
-class OrganizationPage extends OrganizationManagementPage {
+class OrganizationPage
+    extends OrganizationManagementPage
+{
   static at = { $('#organizationEditor').displayed }
 
   static content = {

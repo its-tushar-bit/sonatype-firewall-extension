@@ -11,7 +11,9 @@ import com.sonatype.insight.brain.testing.functional.modules.LoginModule
 import com.sonatype.insight.brain.testing.functional.modules.UserOptionsModule
 import geb.Page
 
-abstract class BasePage extends Page {
+abstract class BasePage
+    extends Page
+{
   static content = {
     changePassword { module ChangePasswordModule }
     login { module LoginModule }

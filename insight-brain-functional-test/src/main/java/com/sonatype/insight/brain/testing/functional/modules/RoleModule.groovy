@@ -7,7 +7,9 @@ package com.sonatype.insight.brain.testing.functional.modules
 
 import geb.Module
 
-class RoleModule extends Module {
+class RoleModule
+    extends Module
+{
   static content = {
     memberNames(required: false) { $('.member-list').text().split(', ') }
 

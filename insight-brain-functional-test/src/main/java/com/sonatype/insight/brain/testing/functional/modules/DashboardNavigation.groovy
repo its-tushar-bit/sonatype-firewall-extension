@@ -14,7 +14,8 @@ import geb.Module
  * @since 1.7
  */
 class DashboardNavigation
-extends Module {
+    extends Module
+{
   static content = {
     management(to: ManagementPage) { $('.organizational-design') }
     reports(to: ReportViolationsPage) { $('.reporting') }

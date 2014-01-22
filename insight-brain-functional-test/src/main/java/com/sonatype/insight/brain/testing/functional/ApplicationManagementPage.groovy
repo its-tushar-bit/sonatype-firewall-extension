@@ -6,7 +6,9 @@
 package com.sonatype.insight.brain.testing.functional
 
 
-class ApplicationManagementPage extends BasePage {
+class ApplicationManagementPage
+    extends BasePage
+{
   static url = "assets/index.html#/management/application"
 
   static at = { newApplicationButton.displayed }

@@ -10,7 +10,8 @@ import geb.Module
 /**
  * @since 1.8
  */
-class ApplicationEvaluationModule extends Module
+class ApplicationEvaluationModule
+    extends Module
 {
   static content = {
     //this content is all in the popup dialog

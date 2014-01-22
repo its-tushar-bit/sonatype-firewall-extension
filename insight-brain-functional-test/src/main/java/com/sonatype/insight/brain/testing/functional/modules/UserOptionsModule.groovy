@@ -13,7 +13,9 @@ import org.openqa.selenium.WebElement
 /**
  * @since 1.8
  */
-class UserOptionsModule extends Module {
+class UserOptionsModule
+    extends Module
+{
   static content = {
     displayName(wait: true) { $('.user-name') }
     optionsDropdown(wait: true) { $('.dashboard-user a.btn') }

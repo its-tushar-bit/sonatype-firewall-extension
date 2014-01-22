@@ -6,6 +6,8 @@
 package com.sonatype.insight.brain.testing.functional
 
 
-class LandingPage extends BasePage {
+class LandingPage
+    extends BasePage
+{
   static url = ""
 }

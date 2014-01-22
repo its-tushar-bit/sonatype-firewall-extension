@@ -10,7 +10,9 @@ import geb.Module
 /**
  * @since 1.7
  */
-class LoginModule extends Module {
+class LoginModule
+    extends Module
+{
   static content = {
     modal ( required: false ) { $('div', id: 'loginModalHeader').parent() }
     usernameInput { $(id: "login-username") }

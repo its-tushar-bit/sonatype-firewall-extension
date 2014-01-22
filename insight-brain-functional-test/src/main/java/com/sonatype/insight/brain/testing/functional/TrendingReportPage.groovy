@@ -8,7 +8,8 @@ package com.sonatype.insight.brain.testing.functional
 /**
  * @since 1.7
  */
-class TrendingReportPage extends ReportViolationsPage
+class TrendingReportPage
+    extends ReportViolationsPage
 {
   static url = 'assets/reports.html#/reports/trending'
 

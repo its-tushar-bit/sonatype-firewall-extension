@@ -11,7 +11,8 @@ import geb.Module
  * Describe a modal that offers a Yes/No choice.
  * @since 1.8
  */
-class ModalModule extends Module
+class ModalModule
+    extends Module
 {
   def title
   def confirmText = 'Delete'

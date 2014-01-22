@@ -17,12 +17,11 @@ class LdapConfigurationSpec extends BaseSpec
 {
   def "create a new LDAP and navigate the connection and user/group mappings forms"(){
     setup: "login"
-      to ReportViolationsPage
+      via ReportViolationsPage
       login.loginAsAdmin()
-      to LdapConfigurationPage
 
     when: "going to the LDAP page"
-      waitFor { at LdapConfigurationPage }
+      to LdapConfigurationPage
 
     then:
       report 'initial state with no LDAP configured'
@@ -45,7 +44,7 @@ class LdapConfigurationSpec extends BaseSpec
 
     then: "the connection form appears"
       report 'connection form'
-      waitFor{ at LdapConnectionConfigurationPage }
+      at LdapConnectionConfigurationPage
 
     and: "the inline editing components are removed"
       !inlineEditor.displayed

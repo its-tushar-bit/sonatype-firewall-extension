@@ -13,7 +13,7 @@ class GlobalRolesPage
 {
   static url = "assets/index.html#/management/security/global"
 
-  static at = { driver.currentUrl.endsWith(url) }
+  static at = { $('#security').displayed }
 
   static content = {
     mapping(wait: true) { module RoleMappingModule }

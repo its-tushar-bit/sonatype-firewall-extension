@@ -13,7 +13,7 @@ import com.sonatype.insight.brain.testing.functional.modules.TagApplicationModul
 
 
 class ApplicationPage extends ApplicationManagementPage {
-  static at = {  applicationImageWrapper.displayed }
+  static at = { $('#applicationEditor').displayed }
 
   static content = {
     applicationImageWrapper(wait: true) { $('div.editor-image') }
@@ -36,7 +36,7 @@ class ApplicationPage extends ApplicationManagementPage {
     securityTab(required: false) { $('#security') }
     developerRole(required: false) { $('p', text:'Developer' ) }
     ownerRole(required: false) { $('p', text:'Owner' ) }
-    buttons { module ButtonsModule, $('#aoEditor') }
+    buttons { module ButtonsModule, $('#applicationEditor') }
     applicationSaveButton(required: false) { buttons.save }
     applicationCancelButton(required: false) { buttons.cancel }
     deleteButton(required: false) { $('a', 'title': 'Remove Application') }

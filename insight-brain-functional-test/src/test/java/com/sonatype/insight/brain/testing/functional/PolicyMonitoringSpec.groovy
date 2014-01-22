@@ -34,7 +34,7 @@ class PolicyMonitoringSpec
 
   def "Initially policy monitoring is not configured"() {
     setup:
-      to ReportViolationsPage
+      via ReportViolationsPage
       login.loginAsAdmin()
       to OrganizationPage, org.id, 'policies'
 

@@ -114,18 +114,17 @@ class LoginSpec extends BaseSpec {
       go ManagementPage.url
 
     then: "we are still prompted to login"
-      at ManagementPage
       waitFor { login.isDisplayed() }
   }
 
   def "user can logout from reporting pages"() {
     given: "user has logged in"
-      to ReportViolationsPage
+      via ReportViolationsPage
       login.loginAsAdmin()
+      verifyAt()
 
     when: "logging out"
       userOptions.logoutClick()
-      to ReportViolationsPage
 
     then: "we redirect to the login page"
       waitFor { login.isDisplayed() }
@@ -140,7 +139,6 @@ class LoginSpec extends BaseSpec {
       go ManagementPage.url
 
     then: "the login dialog does not dispose"
-      at ManagementPage
       waitFor { login.isDisplayed() }
   }
 }

@@ -34,8 +34,9 @@ extends BaseSpec {
     lastName: "Doe", email: "john@doe.net")
     userDAO.insert(nonAdminUser);
 
-    to ReportViolationsPage
+    via ReportViolationsPage
     login.loginAsAdmin()
+    verifyAt()
   }
 
   def cleanupSpec() {
@@ -75,8 +76,9 @@ extends BaseSpec {
   def "A non-admin user cannot regenerate the report"(){
     when: 'we log in as a non-admin user'
       userOptions.logoutClick()
-      to TrendingReportPage
+      via TrendingReportPage
       login.login('test', 'secret')
+      verifyAt()
 
     then: 'no refresh button is displayed, but the report is visible'
       waitFor { trendingData.displayed }

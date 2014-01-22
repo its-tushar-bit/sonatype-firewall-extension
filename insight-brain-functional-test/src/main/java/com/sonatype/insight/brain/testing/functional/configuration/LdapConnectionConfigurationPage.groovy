@@ -11,7 +11,7 @@ package com.sonatype.insight.brain.testing.functional.configuration
 class LdapConnectionConfigurationPage
     extends LdapConfigurationPage
 {
-  static at = { isActiveTab(connectionTab) }
+  static at = { hostname.displayed }
 
   static content = {
     // connection details editor

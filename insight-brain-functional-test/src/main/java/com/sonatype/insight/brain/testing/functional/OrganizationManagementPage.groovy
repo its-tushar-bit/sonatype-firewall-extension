@@ -11,7 +11,7 @@ class OrganizationManagementPage
 {
   static url = "assets/index.html#/management/organization"
 
-  static at = { driver.currentUrl.endsWith(url) }
+  static at = { newOrganizationButton.displayed }
 
   static content = {
     newOrganizationButton(wait: true, to: OrganizationPage) { $('a', text: contains('New Organization')) }

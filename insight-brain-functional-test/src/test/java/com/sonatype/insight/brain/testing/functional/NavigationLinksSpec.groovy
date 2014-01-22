@@ -14,8 +14,9 @@ import spock.lang.Stepwise
 @Stepwise
 class NavigationLinksSpec extends BaseSpec {
   def setupSpec() {
-    to ReportViolationsPage
+    via ReportViolationsPage
     login.loginAsAdmin()
+    verifyAt()
   }
 
   def "Can use navigation to view the Management application"(){

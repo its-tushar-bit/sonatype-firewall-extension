@@ -9,7 +9,7 @@ package com.sonatype.insight.brain.testing.functional
 class ApplicationManagementPage extends BasePage {
   static url = "assets/index.html#/management/application"
 
-  static at = { driver.currentUrl.endsWith(url) }
+  static at = { newApplicationButton.displayed }
 
   static content = {
     newApplicationButton(wait: true, to: ApplicationPage) { $('a', text:contains('New Application')) }

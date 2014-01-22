@@ -57,8 +57,8 @@ class ApplicationSpec extends BaseSpec
       deleteButtonAccept.click()
 
     then: 'the list of applications is empty'
-      waitFor{ at ApplicationManagementPage }
-      applicationList.empty
+      at ApplicationManagementPage
+      waitFor { applicationList.empty }
   }
 
   def "When adding new Applications, they are listed alphabetically"(){

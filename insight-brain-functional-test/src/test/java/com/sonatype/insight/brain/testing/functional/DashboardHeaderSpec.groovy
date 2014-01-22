@@ -8,8 +8,9 @@ package com.sonatype.insight.brain.testing.functional
 class DashboardHeaderSpec extends BaseSpec {
   def "displays logged in users display name"() {
     when: "user logs in"
-      to ReportViolationsPage
+      via ReportViolationsPage
       login.loginAsAdmin()
+      verifyAt()
 
     then: "users display name is shown"
       waitFor { userOptions.displayName.text() == "Admin BuiltIn" }

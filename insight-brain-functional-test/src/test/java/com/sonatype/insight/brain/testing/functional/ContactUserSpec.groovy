@@ -12,8 +12,9 @@ class ContactUserSpec extends BaseSpec
   String appName = 'TestApplication'
 
   def setup() {
-    OrganizationManagementPage organizationManagementPage = to OrganizationManagementPage
+    OrganizationManagementPage organizationManagementPage = via OrganizationManagementPage
     login.loginAsAdmin()
+    verifyAt()
     organizationManagementPage.createOrg()
 
     ApplicationManagementPage applicationManagementPage = to ApplicationManagementPage

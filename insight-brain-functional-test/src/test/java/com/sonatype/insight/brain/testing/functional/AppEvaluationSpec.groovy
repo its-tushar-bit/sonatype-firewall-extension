@@ -24,8 +24,9 @@ class AppEvaluationSpec extends BaseSpec {
       apps.add(app)
     }
     
-    to ReportViolationsPage
+    via ReportViolationsPage
     login.loginAsAdmin()
+    verifyAt()
   }
 
   def cleanup() {

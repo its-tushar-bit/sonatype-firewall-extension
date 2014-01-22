@@ -55,8 +55,8 @@ class OrganizationSpec
       deleteButtonAccept.click()
 
     then: 'the list of Orgs is now empty'
-      waitFor{ at OrganizationManagementPage }
-      organizationList.empty
+      at OrganizationManagementPage
+      waitFor { organizationList.empty }
   }
 
   def "When adding new Organizations, they are listed alphabetically"(){

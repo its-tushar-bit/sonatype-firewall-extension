@@ -8,8 +8,9 @@ package com.sonatype.insight.brain.testing.functional
 class ApplicationManagementSpec extends BaseSpec
 {
   def setup() {
-    to ApplicationManagementPage
+    via ApplicationManagementPage
     login.loginAsAdmin()
+    verifyAt()
   }
 
   def "display local image"() {

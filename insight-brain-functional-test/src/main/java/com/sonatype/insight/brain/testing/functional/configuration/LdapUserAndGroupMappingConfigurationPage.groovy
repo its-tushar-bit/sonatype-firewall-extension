@@ -11,11 +11,10 @@ package com.sonatype.insight.brain.testing.functional.configuration
 class LdapUserAndGroupMappingConfigurationPage
     extends LdapConfigurationPage
 {
-  static at = { isActiveTab(userAndGroupSettingsTab) }
+  static at = { userBaseDN.displayed }
 
   static content = {
     // user and group settings editor
-    ldapUserMappingEditor { $('#ldapUserMappingEditor') }
     userBaseDN { $('#userBaseDN') }
     userSubtree { $('#userSubtree') }
     userObjectClass { $('#userObjectClass') }

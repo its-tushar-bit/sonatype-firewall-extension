@@ -15,7 +15,7 @@ extends BaseSpec {
   // assumes a license has already been installed
   // get to the user page
   def setupSpec() {
-    to ReportViolationsPage
+    via ReportViolationsPage
     login.loginAsAdmin()
     to UserManagementPage
   }

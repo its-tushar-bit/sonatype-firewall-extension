@@ -21,8 +21,9 @@ class GlobalRolesSpec
     user = new User(username: "test-b", password: "secret", firstName: "Jane", lastName: "Doe", email: "jane@doe.net")
     userDAO.insert(user);
 
-    to GlobalRolesPage
+    via GlobalRolesPage
     login.loginAsAdmin()
+    verifyAt()
   }
 
   def cleanupSpec() {

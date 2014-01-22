@@ -16,8 +16,9 @@ class NavigationToSpec
     extends BaseSpec
 {
   def setupSpec() {
-    to ReportViolationsPage
+    via ReportViolationsPage
     login.loginAsAdmin()
+    verifyAt()
   }
 
   @Unroll("Navigating to #pageUnderTest should take us to #pageUnderTest.url")

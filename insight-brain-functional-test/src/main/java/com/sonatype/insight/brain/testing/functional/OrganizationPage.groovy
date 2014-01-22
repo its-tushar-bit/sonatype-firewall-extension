@@ -13,7 +13,7 @@ import com.sonatype.insight.brain.testing.functional.modules.TagModule
 
 
 class OrganizationPage extends OrganizationManagementPage {
-  static at = {  organizationImage.displayed }
+  static at = { $('#organizationEditor').displayed }
 
   static content = {
     organizationImage(wait: true) { $('div.editor-image') }

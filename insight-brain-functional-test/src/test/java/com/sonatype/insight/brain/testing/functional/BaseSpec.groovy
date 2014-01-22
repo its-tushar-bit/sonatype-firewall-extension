@@ -48,7 +48,7 @@ abstract class BaseSpec extends GebReportingSpec {
   }
 
   def loginAsAdmin() {
-    to ReportViolationsPage
+    via ReportViolationsPage
     login.loginAsAdmin()
   }
 }

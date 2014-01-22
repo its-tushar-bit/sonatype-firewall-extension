@@ -16,8 +16,9 @@ class ChangePasswordSpec extends BaseSpec {
     UserDAO userDAO = new UserDAO()
     User user = new User(username: "testchangepass", password: new CLMRealm().encryptPassword("secret"), firstName: "John", lastName: "Doe", email: "john@doe.net")
     userDAO.insert(user);
-    to ReportViolationsPage
+    via ReportViolationsPage
     login.login("testchangepass", "secret")
+    verifyAt()
   }
   
   //make sure to cleanup our mess!
@@ -80,9 +81,8 @@ class ChangePasswordSpec extends BaseSpec {
     when: "User attempts to login with new password"
       userOptions.logoutClick()
       login.login("testchangepass", "newsecret")
-      to ManagementPage
     
     then: "Application is loaded"
-      at ManagementPage
+      to ManagementPage
   }
 }

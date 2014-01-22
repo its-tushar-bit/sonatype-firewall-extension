@@ -12,7 +12,7 @@ class TrendingReportPage extends ReportViolationsPage
 {
   static url = 'assets/reports.html#/reports/trending'
 
-  static at = { browser.driver.currentUrl.endsWith(url) }
+  static at = { trendingData.present }
 
   static content = {
     loadingText(required: false) { $('div.report-content h2').text() }

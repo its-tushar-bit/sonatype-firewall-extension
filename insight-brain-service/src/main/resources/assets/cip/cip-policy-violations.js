@@ -44,18 +44,13 @@
     return PolicyViolationTab;
   }
 
-  function relocateModal(selector) {
-    $("body > " + selector).remove();
-    $(selector).appendTo("body");
-  }
-
   (function() {
     var policyViolationApp = angular.module('PolicyViolations',
             ['CommonServices', 'UnauthenticatedResponseHttpInterceptor']);
 
     policyViolationApp.controller('PolicyViolationsController', [
-      '$http', '$scope', '$modal', 'PolicyViolationData', 'Messages',
-      function($http, $scope, $modal, policyViolationData, messages) {
+      '$http', '$scope', '$q', '$modal', 'PolicyViolationData', 'Messages',
+      function($http, $scope, $q, $modal, policyViolationData, messages) {
         function errorFn(data, status, headersFn, config) {
           $scope.alerts.push({
             type: 'error',
@@ -63,8 +58,15 @@
           });
         }
 
-        function startIfReady() {
-          if ($scope.policyAlerts !== undefined && $scope.actionTypes !== undefined) {
+        function doLoad() {
+          $q.all([$http.get(CLM.path + 'rest/policy/actionType'), $http.get('policyalerts.json', {
+            params: {
+              timestamp: new Date().getTime()
+            }
+          })]).then(function (result) {
+            $scope.actionTypes = result[0].data;
+            $scope.policyAlerts = result[1].data.aaData || [];
+
             $scope.processedPolicyAlerts = [];
             angular.forEach($scope.policyAlerts, function(policyAlert, policyAlertIndex) {
               var actions = [];
@@ -99,7 +101,12 @@
               return policyA.threatLevel > policyB.threatLevel ? -11 : policyA.threatLevel <
                   policyB.threatLevel ? 1 : 0;
             });
-          }
+          }, function (error) {
+            $scope.alerts.push({
+              type: 'error',
+              msg: messages.getHttpErrorMessage(error)
+            });
+          });
         }
 
         $scope.waiveComponent = function(policyAlert) {
@@ -114,21 +121,16 @@
           });
         };
         $scope.viewWaivers = function() {
-          $('#componentExistingWaiverModal').modal('show');
+          $modal.open({
+            templateUrl : 'view-waivers-modal-tmpl',
+            controller : 'ViewWaiverController',
+            backdrop : 'static',
+            keyboard : false
+          });
         };
         $scope.alerts = [];
-        $http.get('policyalerts.json', {
-          params: {
-            timestamp: new Date().getTime()
-          }
-        }).success(function(data) {
-              $scope.policyAlerts = data.aaData || [];
-              startIfReady();
-            }).error(errorFn);
-        $http.get(CLM.path + 'rest/policy/actionType').success(function(data) {
-          $scope.actionTypes = data;
-          startIfReady();
-        }).error(errorFn);
+
+        doLoad();
       }
     ]);
 
@@ -203,11 +205,7 @@
           $scope.appError = messages.getHttpErrorMessage(arguments);
         }
 
-        //after dialog is shown, make sure to apply the angular stuff
-        $('#componentExistingWaiverModal').on('shown', function() {
-          $scope.setupModal();
-        });
-        $scope.setupModal = function() {
+        function doLoad() {
           $scope.waiversLoading = true;
           // get the waivers from the server
           $http.get(CLM.path + 'rest/policyWaiver/application/' + policyViolationData.appId + '/component/' +
@@ -216,26 +214,25 @@
               timestamp: new Date().getTime()
             }
           }).success(function(data) {
-                $scope.waiversLoading = false;
-                $scope.waivers = [];
-                angular.forEach(data.waiversByOwner, function(waiversByOwner, ownerIndex) {
-                  angular.forEach(waiversByOwner.waivers, function(waiver, waiverIndex) {
-                    waiver.type = waiversByOwner.ownerType;
-                    waiver.ownerName = waiversByOwner.ownerName;
-                    $scope.waivers.push(waiver);
-                  });
-                });
-              }).error(handleHttpError);
-        };
-        //move the dialog onto the body in the dom, so the backdrop shows properly
-        relocateModal('#componentExistingWaiverModal');
-        $scope.close = function() {
-          $('#componentExistingWaiverModal').modal('hide');
-        };
+            $scope.waiversLoading = false;
+            $scope.waivers = [];
+            angular.forEach(data.waiversByOwner, function(waiversByOwner, ownerIndex) {
+              angular.forEach(waiversByOwner.waivers, function(waiver, waiverIndex) {
+                waiver.type = waiversByOwner.ownerType;
+                waiver.ownerName = waiversByOwner.ownerName;
+                $scope.waivers.push(waiver);
+              });
+            });
+          }).error(handleHttpError);
+        }
+
+        doLoad();
+
         $scope.remove = function(waiver) {
           $scope.confirmDelete = waiver;
           $scope.appError = null;
         };
+
         $scope.removeWaiver = function() {
           var waiver = $scope.confirmDelete;
           $scope.confirmDelete = null;

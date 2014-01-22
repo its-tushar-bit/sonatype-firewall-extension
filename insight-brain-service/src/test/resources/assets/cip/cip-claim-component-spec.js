@@ -12,6 +12,7 @@ var InsightDatatable = {
 };
 
 describe('CIP Claim Component tests', function() {
+  'use strict';
   var scope, $http;
 
   beforeEach(module('ClaimComponent'));

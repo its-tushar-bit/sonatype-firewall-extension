@@ -54,8 +54,6 @@ public class PolicyEvaluatorTest
 
   private String applicationId = "PolicyEvaluatorTest_AppId";
 
-  private PolicyEvaluator evaluator = new PolicyEvaluator();
-
   @Test
   public void testEvaluate_TwoConstraintsWithConditions() {
     final Stage stage = new Stage(BuildStageType.ID);

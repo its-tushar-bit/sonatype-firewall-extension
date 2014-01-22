@@ -4,12 +4,12 @@
  *          http://links.sonatype.com/products/clm/attributions. "Sonatype" is a
  *          trademark of Sonatype, Inc.
  */
-/*global angular */
+/* global angular, clmBuildTimestamp */
 
 (function() {
   'use strict';
 
-  function getMessage(data, status, headersFn, config) {
+  function getMessage(data, status) {
     if (status === 0) {
       return 'Error: Unable to contact server';
     }
@@ -19,26 +19,25 @@
   }
 
   var module = angular.module('Configuration',
-      ['ListEditor', 'ui.router', 'ManagementModule', 'ProductLicense'], [
-        '$stateProvider', function($stateProvider) {
-          $stateProvider.state('management.configuration', {
-            parent: 'management',
-            url: '/configuration',
-            controller: 'ConfigurationController',
-            templateUrl: '../configuration-assets/components/configuration-navigator.html?' + clmBuildTimestamp
-          }).state('management.configuration.productlicense', {
-                parent: 'management.configuration',
-                url: '/productlicense',
-                controller: 'ProductLicenseController',
-                templateUrl: '../configuration-assets/components/license.html?' + clmBuildTimestamp
-              }).state('management.configuration.proprietarypackages', {
-                parent: 'management.configuration',
-                url: '/proprietarypackages',
-                controller: 'ProprietaryConfigurationController',
-                templateUrl: '../configuration-assets/components/proprietary.html?' + clmBuildTimestamp
-              });
-        }
-      ]);
+    ['ListEditor', 'ui.router', 'ManagementModule', 'ProductLicense'], ['$stateProvider', function($stateProvider) {
+      $stateProvider.state('management.configuration', {
+        parent: 'management',
+        url: '/configuration',
+        controller: 'ConfigurationController',
+        templateUrl: '../configuration-assets/components/configuration-navigator.html?' + clmBuildTimestamp
+      }).state('management.configuration.productlicense', {
+        parent: 'management.configuration',
+        url: '/productlicense',
+        controller: 'ProductLicenseController',
+        templateUrl: '../configuration-assets/components/license.html?' + clmBuildTimestamp
+      }).state('management.configuration.proprietarypackages', {
+        parent: 'management.configuration',
+        url: '/proprietarypackages',
+        controller: 'ProprietaryConfigurationController',
+        templateUrl: '../configuration-assets/components/proprietary.html?' + clmBuildTimestamp
+      });
+    }
+  ]);
 
   module.controller('ConfigurationController', [
     '$scope', '$state', 'commonCodeFactory', '$location', function($scope, $state, commonCodeFactory, $location) {
@@ -91,7 +90,7 @@
 
       $scope.doLoad = function() {
         $http.get(clmLocations.getProprietaryConfig(),
-            { params: { "ts": new Date().getTime() } }).success(function(data) {
+            { params: { 'ts': new Date().getTime() } }).success(function(data) {
           $scope.proprietary = data;
           $scope.reset();
         }).error(function() {
@@ -108,10 +107,10 @@
           $scope.saving = false;
           $scope.proprietary = proprietary;
           $scope.reset();
-        }).error(function(data, status, headersFn, config) {
-              $scope.saving = false;
-              $scope.error = getMessage.apply(null, arguments);
-            });
+        }).error(function() {
+          $scope.saving = false;
+          $scope.error = getMessage.apply(null, arguments);
+        });
       };
 
       $scope.reset = function() {

@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-/*global angular, $, clmBuildTimestamp */
+/* global angular, clmBuildTimestamp */
 (function() {
   'use strict';
 
@@ -32,7 +32,7 @@
   }]);
 
   module.service('LdapConfigurationStore', [
-    'CLMLocations', 'CLMResource', 
+    'CLMLocations', 'CLMResource',
     function(clmLocations, clmResource) {
       return clmResource.getStore({
         id: 'id',
@@ -50,7 +50,7 @@
 
   function resetDialog($modal, discardFn, discardLabel) {
     if (!discardLabel) {
-      discardLabel = "Discard";
+      discardLabel = 'Discard';
     }
     return function() {
       $modal.open({
@@ -73,24 +73,24 @@
 
   function preventPageChange($scope) {
     //make sure user is aware they are about to lose changes
-    function hander(event) {
+    function handler(event) {
       if ($scope.isDirty()) {
         event.preventDefault();
       }
     }
-    $scope.$on('pageChangeStarted', hander);
-    $scope.$on('ldapStateChangeStarted', hander);
+    $scope.$on('pageChangeStarted', handler);
+    $scope.$on('ldapStateChangeStarted', handler);
   }
 
   // certain browsers will happily serve the request from their cache, 
   // thereby showing potentially outdated data to the end user.
   // use unique ?timestamp $http request parameter as a workaround 
   function weHeartIE() {
-    return { 
-      params: { 
-        timestamp: new Date().getTime() 
-      } 
-    }; 
+    return {
+      params: {
+        timestamp: new Date().getTime()
+      }
+    };
   }
 
   /**
@@ -148,8 +148,8 @@
           if (!event.defaultPrevented) {
             $state.transitionTo(targetState, {}, false);
           } else {
-            resetDialog($modal, function () { 
-              $state.transitionTo(targetState, {}, false); 
+            resetDialog($modal, function () {
+              $state.transitionTo(targetState, {}, false);
             }, 'Continue')();
           }
         }
@@ -176,7 +176,7 @@
       $scope.save = function() {
         $scope.ldapNameForm.$save();
         $scope.saving = true;
-        $scope.ldap.$save().then(function(config) {
+        $scope.ldap.$save().then(function() {
           $scope.saving = false;
           if ($state.current.name === 'management.configuration.ldap') {
             setCurrentTab('connection');
@@ -292,7 +292,7 @@
     }
   ]);
 
-  module.controller('LdapUsermappingController', ['$scope', '$modal', '$http', 
+  module.controller('LdapUsermappingController', ['$scope', '$modal', '$http',
     function($scope, $modal, $http) {
       $scope.alerts = [];
       delete $scope.ldapUserMapping;// make sure the scope is clean while we query backend
@@ -311,7 +311,7 @@
         return !$scope.ldapUserMappingEditor.$invalid && $scope.isDirty();
       };
 
-      $scope.reset = resetDialog($modal, function () { 
+      $scope.reset = resetDialog($modal, function () {
         $scope.ldapUserMapping = angular.copy(origLdapUserMapping);
         $scope.alerts.length = 0;
       });
@@ -343,15 +343,15 @@
           windowClass: 'modal modal-ldap',
           resolve: {
             users: function($q, $http) {
-                var deferred = $q.defer();
-                $http.put($scope.getConfigLdapUrl('testUserMapping'), $scope.ldapUserMapping).success(function (users) {
-                    deferred.resolve(users);
-                }).error(function(data, status, headers, config) {
-                    $scope.testInProgress = false;
-                    showAlert($scope.alerts, {type: 'error', msg: data});
-                    deferred.reject({ data: data, status: status, headers: headers, config: config });
-                  });
-                return deferred.promise;
+              var deferred = $q.defer();
+              $http.put($scope.getConfigLdapUrl('testUserMapping'), $scope.ldapUserMapping).success(function (users) {
+                deferred.resolve(users);
+              }).error(function(data, status, headers, config) {
+                $scope.testInProgress = false;
+                showAlert($scope.alerts, {type: 'error', msg: data});
+                deferred.reject({ data: data, status: status, headers: headers, config: config });
+              });
+              return deferred.promise;
             }
           }
         }).result.then(function() {

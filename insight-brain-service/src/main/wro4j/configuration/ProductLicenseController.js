@@ -4,7 +4,7 @@
  *          http://links.sonatype.com/products/clm/attributions. "Sonatype" is a
  *          trademark of Sonatype, Inc.
  */
-/*global angular, $, clmBuildTimestamp */
+/* global angular, $ */
 (function() {
   'use strict';
 
@@ -70,7 +70,7 @@
               'Content-Type' : undefined
             },
             transformRequest: angular.identity
-          }).success(function (data) {
+          }).success(function () {
             showLicense();
           }).error(function () {
             showError(Messages.getHttpErrorMessage(arguments));
@@ -96,7 +96,7 @@
       };
 
       $scope.uninstallLicense = function() {
-        $http['delete']($scope.uploadUrl).success(function(data) {
+        $http['delete']($scope.uploadUrl).success(function() {
           $('#licenseUninstallConfirmationModal').modal('hide');
           $('#licenseUninstalledModal').modal('show');
           $timeout($scope.reload, 5000);
@@ -119,8 +119,8 @@
       return {
         restrict: 'A',
         scope: false,
-        link: function(scope, elem, attr, ctrl) {
-          angular.element(elem).bind('change', function(event) {
+        link: function(scope, elem, attr) {
+          angular.element(elem).bind('change', function() {
             if (attr.onFileChange) {
               scope.$apply(attr.onFileChange);
             }
@@ -138,6 +138,6 @@
           elem.attr('value', '');
         };
       }
-    }
+    };
   });
 }());

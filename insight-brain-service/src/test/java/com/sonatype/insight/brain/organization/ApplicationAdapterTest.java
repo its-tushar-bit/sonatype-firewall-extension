@@ -290,34 +290,6 @@ public class ApplicationAdapterTest
     assertApplicationManagementSummaryDTOs(actualDTOs, expectedDTOs);
   }
 
-  @Test(expected = NotFoundException.class)
-  public void testCreateApplicationManagementSummariesWhenOrganizationNotFound() {
-
-    List<Application> applications = new ArrayList<>();
-    for (int i = 1; i <= 5; i++) {
-      String orgId = organizationId;
-      String appName = applicationName + "-" + i;
-      String appId = applicationId + "-" + i;
-      String contactName = contactInternalName + "-" + i;
-      String firstName = userFirstName + "-" + i;
-      String lastName = userLastName + "-" + i;
-      String email = userEmail + "-" + i;
-
-      Application application = createApplication(orgId, appName, appId, contactName);
-      applications.add(application);
-
-      // Return this user when ever the mock user DAO getByUsernameLowercase method is called
-      User user = createUser(userId + "-" + i, contactName, firstName, lastName, email);
-      when(mockUserDAO.getByUsername(contactName)).thenReturn(user);
-      // Throw exception when ever the mock organization DAO getByIdNotNull is called
-      when(mockOrganizationDAO.getByIdNotNull(orgId)).thenThrow(new NotFoundException(TEST_MESSAGE));
-    }
-
-    @SuppressWarnings("UnusedDeclaration")
-    List<ApplicationManagementSummaryDTO> actualDTOs = applicationAdapter.createApplicationManagementSummaries(
-        applications);
-  }
-
   @Test
   public void testCreateApplicationManagementSummariesWithUserFromLdap() throws NamingException {
 

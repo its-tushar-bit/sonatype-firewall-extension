@@ -16,7 +16,7 @@ class TrendingReportPage
   static at = { trendingData.present }
 
   static content = {
-    loadingText(required: false) { $('div.report-content h2').text() }
+    loadingText(required: false) { $('#generatingPlaceholderText').text() }
     refresh(required: false) { $('span', 'refresh-button': 'regenerate()') }
     trendingData { $('div#trending-data') }
     count { index -> trendingData.find('h1.count-header', index) }

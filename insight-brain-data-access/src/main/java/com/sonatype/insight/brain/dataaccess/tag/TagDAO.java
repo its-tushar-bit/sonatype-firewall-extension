@@ -66,15 +66,9 @@ public class TagDAO
    * Retrieve list of Tags applied to specified Application
    */
   public List<Tag> getByApplicationId(String applicationId) {
-    EntityManager em = createEntityManager();
-    try {
-      String sQuery = "SELECT tag FROM ApplicationTag appTag, Tag tag" + //
-          " WHERE appTag.tagId=tag.id AND appTag.applicationId=?1";
-      return getList(em, sQuery, applicationId);
-    }
-    finally {
-      close(em);
-    }
+    String sQuery = "SELECT tag FROM ApplicationTag appTag, Tag tag" + //
+        " WHERE appTag.tagId=tag.id AND appTag.applicationId=?1";
+    return getList(sQuery, applicationId);
   }
 
   private void validateDescription(String description) {

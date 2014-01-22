@@ -132,6 +132,7 @@ form[name="labelEditor"] .clmLabel {
 /* Differentiate the visual styling of a Tag from a Label by adding a sideways trapezoid on the left */
 .clm-tag {
   vertical-align: middle;
+  min-height: 15px;
   margin: 0 0 7px 20px;
   position: relative;
   text-decoration: none;

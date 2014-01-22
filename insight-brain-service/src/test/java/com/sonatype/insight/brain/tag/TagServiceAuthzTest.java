@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.tag;
 
 import javax.inject.Inject;
 
-import com.sonatype.insight.brain.model.tag.ApplicationTag;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 
@@ -104,7 +103,7 @@ public class TagServiceAuthzTest
   public void testRemoveApplicationTag_Unauthorized() throws Exception {
     grantReadPermission(app.getId());
     Tag tag = tempEntity.newTag(org.getId(), "name");
-    ApplicationTag appTag = tempEntity.newApplicationTag(app.getId(), tag.getId());
+    tempEntity.newApplicationTag(app.getId(), tag.getId());
     tagService.removeApplicationTag(app.getPublicId(), tag.getId());
   }
 
@@ -112,7 +111,7 @@ public class TagServiceAuthzTest
   public void testRemoveApplicationTag_Authorized() throws Exception {
     grantWritePermission(app.getId());
     Tag tag = tempEntity.newTag(org.getId(), "name");
-    ApplicationTag appTag = tempEntity.newApplicationTag(app.getId(), tag.getId());
+    tempEntity.newApplicationTag(app.getId(), tag.getId());
     tagService.removeApplicationTag(app.getPublicId(), tag.getId());
   }
 }

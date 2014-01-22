@@ -13,6 +13,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.sonatype.insight.brain.common.io.FileCleaner;
+
 import org.apache.directory.api.ldap.model.constants.AuthenticationLevel;
 import org.apache.directory.api.ldap.model.constants.SchemaConstants;
 import org.apache.directory.api.ldap.model.constants.SupportedSaslMechanisms;
@@ -92,7 +94,7 @@ public class EmbeddedLdapServer
   private static File initWorkingDirectory() {
     File workingDirectory = new File("target/apacheds");
     try {
-      FileUtils.deleteDirectory(workingDirectory);
+      new FileCleaner().delete(workingDirectory);
     }
     catch (IOException e) {
       throw new RuntimeException(e);
@@ -325,7 +327,7 @@ public class EmbeddedLdapServer
   // this method is meant to help test this test harness, it is not part of API, do not use
   public static void main(String[] args) throws Exception {
     File workingDirectory = new File("target/apacheds");
-    FileUtils.deleteDirectory(workingDirectory);
+    new FileCleaner().delete(workingDirectory);
     EmbeddedLdapServer server = new EmbeddedLdapServer(workingDirectory);
     server.enableLdaps(new File("src/test/resources/keystore/insight-test.ks"), "secret");
     server.start();

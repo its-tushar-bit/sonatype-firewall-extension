@@ -53,6 +53,7 @@
     <module>insight-json-store</module>
     <module>insight-brain-model</module>
     <module>insight-brain-policy-model</module>
+    <module>insight-brain-common</module>
     <module>insight-brain-db</module>
     <module>insight-brain-data-access</module>
     <module>insight-brain-policy-data-access</module>
@@ -95,6 +96,11 @@
       <dependency>
         <groupId>com.sonatype.insight.brain</groupId>
         <artifactId>insight-brain-policy-model</artifactId>
+        <version>1.8.1-SNAPSHOT</version>
+      </dependency>
+      <dependency>
+        <groupId>com.sonatype.insight.brain</groupId>
+        <artifactId>insight-brain-common</artifactId>
         <version>1.8.1-SNAPSHOT</version>
       </dependency>
       <dependency>

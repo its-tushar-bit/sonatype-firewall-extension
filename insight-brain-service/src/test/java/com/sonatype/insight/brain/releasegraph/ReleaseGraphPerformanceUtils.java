@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.model.GAVPopularity;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightWork;
@@ -32,7 +33,7 @@ public class ReleaseGraphPerformanceUtils
       doOutput(args.length > 0 ? args[1] : null, results);
     }
     finally {
-      FileUtils.deleteDirectory(work.getWorkDir());
+      new FileCleaner().delete(work.getWorkDir());
     }
   }
 

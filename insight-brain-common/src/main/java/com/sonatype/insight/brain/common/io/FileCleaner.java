@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.io;
+package com.sonatype.insight.brain.common.io;
 
 import java.io.File;
 import java.io.IOException;
@@ -17,11 +17,14 @@ import org.codehaus.plexus.util.FileUtils;
  * 
  * Having our own utility encourages consistency across the system, making it easier to change implementation as necessary.
  * 
- * @since 1.8
+ * @since 1.9
  */
 @Named
 public class FileCleaner
 {
+  /**
+   * Delete a file. If file is directory delete it with all sub-directories and containing files.
+   */
   public void delete(File file) throws FileDeletionException {
     if (file != null) {
       try {

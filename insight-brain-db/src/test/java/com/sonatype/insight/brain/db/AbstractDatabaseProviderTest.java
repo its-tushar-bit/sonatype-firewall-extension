@@ -12,9 +12,9 @@ import java.sql.Statement;
 
 import javax.sql.DataSource;
 
+import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.db.DatabaseConfig;
 
-import org.codehaus.plexus.util.FileUtils;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -54,7 +54,7 @@ public abstract class AbstractDatabaseProviderTest
   }
 
   protected void verifyDatabaseCreation_OnDisk(DatabaseConfig databaseConfig, File databaseDir) throws Exception {
-    FileUtils.deleteDirectory(databaseDir);
+    new FileCleaner().delete(databaseDir);
     Assert.assertFalse(databaseDir.exists());
 
     // New database

@@ -10,6 +10,7 @@ import java.lang.reflect.Field;
 import java.util.Iterator;
 import java.util.UUID;
 
+import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseDataUpdater;
 import com.sonatype.insight.brain.model.Application;
@@ -29,7 +30,6 @@ import com.yammer.dropwizard.jetty.AsyncRequestLog;
 import com.yammer.dropwizard.lifecycle.ServerLifecycleListener;
 import com.yammer.dropwizard.logging.AsyncAppender;
 import com.yammer.dropwizard.util.Duration;
-import org.codehaus.plexus.util.FileUtils;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.RequestLog;
 import org.eclipse.jetty.server.Server;
@@ -217,7 +217,7 @@ public class TestInsightBrainService
       config.setProxyConfig(testProxyConfig);
     }
 
-    FileUtils.deleteDirectory(config.getSonatypeWork());
+    new FileCleaner().delete(config.getSonatypeWork());
 
     env.addServerLifecycleListener(new ServerLifecycleListener()
     {

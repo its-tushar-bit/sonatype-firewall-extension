@@ -17,6 +17,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.locks.Lock;
 
+import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.InvalidNameException;
@@ -32,7 +33,6 @@ import com.sonatype.insight.json.store.JsonUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -213,7 +213,7 @@ public class PolicyDAO
   public void deleteByOwnerId(final String ownerId) {
     final File policyDir = getPolicyDir(ownerId);
     try {
-      FileUtils.deleteDirectory(policyDir);
+      new FileCleaner().delete(policyDir);
     }
     catch (IOException e) {
       log.error("Failed to bulk delete policies for {}", ownerId, e);

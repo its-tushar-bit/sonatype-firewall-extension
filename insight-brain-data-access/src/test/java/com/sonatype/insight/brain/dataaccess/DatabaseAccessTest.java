@@ -13,13 +13,13 @@ import java.util.List;
 
 import javax.sql.DataSource;
 
+import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.db.DataSourceFactory;
 import com.sonatype.insight.brain.db.DatamartProvider;
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.db.DatabaseConfig;
 
-import org.codehaus.plexus.util.FileUtils;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -55,7 +55,7 @@ public class DatabaseAccessTest
   public void testConcurrentDatabaseAccess() throws Exception {
     // Create a file database (i.e. not in memory)
     File databaseDir = new File("target/DatabaseTest/testConcurrentDatabaseAccess");
-    FileUtils.deleteDirectory(databaseDir.getParentFile());
+    new FileCleaner().delete(databaseDir.getParentFile());
 
     DatabaseConfig odsDatabaseConfig = new DatabaseConfig();
     odsDatabaseConfig.setDriverClassName("org.h2.Driver");

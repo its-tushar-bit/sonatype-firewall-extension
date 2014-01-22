@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.db;
 
 import java.io.File;
 
+import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.db.DatabaseConfig;
 
 import org.codehaus.plexus.util.FileUtils;
@@ -26,7 +27,7 @@ public class H2DatabaseMigratorTest
   @Test
   public void testMigrateOperationalDataStore() throws Exception {
     File databaseDir = new File("target/H2DatabaseMigratorTest/testMigrateOperationalDataStore");
-    FileUtils.deleteDirectory(databaseDir);
+    new FileCleaner().delete(databaseDir);
     FileUtils.copyDirectory(new File("target/test-classes/H2DatabaseMigratorTest/testMigrateOperationalDataStore"),
         databaseDir);
     File databaseVersionFile = new File(databaseDir, "ods.ver");
@@ -48,7 +49,7 @@ public class H2DatabaseMigratorTest
   @Test
   public void testMigrateDatamart() throws Exception {
     File databaseDir = new File("target/H2DatabaseMigratorTest/testMigrateDatamart");
-    FileUtils.deleteDirectory(databaseDir);
+    new FileCleaner().delete(databaseDir);
     FileUtils.copyDirectory(new File("target/test-classes/H2DatabaseMigratorTest/testMigrateDatamart"), databaseDir);
     File databaseVersionFile = new File(databaseDir, "dm.ver");
     assertTrue(databaseVersionFile.exists());

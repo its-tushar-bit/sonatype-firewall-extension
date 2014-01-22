@@ -14,6 +14,7 @@ import java.util.List;
 
 import javax.sql.DataSource;
 
+import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.db.DatabaseConfig;
 
 import org.codehaus.plexus.util.FileUtils;
@@ -81,7 +82,7 @@ public class H2DatabaseMigrator
       runScripts(dataSource, scriptNames);
 
       FileUtils.fileWrite(databaseVersionFile, "UTF-8", String.valueOf(desiredVersion));
-      FileUtils.deleteDirectory(backupDir);
+      new FileCleaner().delete(backupDir);
     }
     catch (IOException e) {
       throw new RuntimeException(e);

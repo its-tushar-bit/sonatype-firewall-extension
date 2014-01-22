@@ -25,6 +25,7 @@ import java.util.zip.ZipFile;
 
 import com.sonatype.insight.brain.TestLicenseFingerprinter;
 import com.sonatype.insight.brain.TestProductLicenseManager;
+import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.GAVPopularity;
@@ -174,7 +175,7 @@ public class ReleaseGraphPerformance
       doOutput(args.length > 2 ? args[2] : null, results);
     }
     finally {
-      FileUtils.deleteDirectory(work.getWorkDir());
+      new FileCleaner().delete(work.getWorkDir());
     }
   }
 

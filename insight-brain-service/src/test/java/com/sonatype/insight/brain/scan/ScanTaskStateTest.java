@@ -10,7 +10,7 @@ import java.io.IOException;
 
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.policy.Stage;
-import com.sonatype.insight.brain.io.FileCleaner;
+import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.policy.evaluator.PolicyAlertNotifier;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluationUtils;

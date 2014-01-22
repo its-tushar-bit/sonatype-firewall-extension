@@ -59,7 +59,6 @@ import com.sonatype.insight.error.exception.PaymentRequiredException;
 
 import com.sun.jersey.core.header.FormDataContentDisposition;
 import com.sun.jersey.multipart.FormDataParam;
-import org.codehaus.plexus.util.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -97,16 +96,19 @@ public class ApplicationResource
 
   private final PolicyEvaluationUtils policyEvaluationUtils;
 
+  private ApplicationCleaner applicationCleaner;
+
   @Inject
   public ApplicationResource(final InsightWork work, final BaseUrl baseUrl, final CLMLicenseManager licenseManager,
       final SaasClient client, final PolicyEvaluationUtils policyEvaluationUtils,
-      final ApplicationAdapter applicationAdapter)
+      final ApplicationAdapter applicationAdapter, ApplicationCleaner applicationCleaner)
   {
     super(client, baseUrl);
     this.work = work;
     this.licenseManager = licenseManager;
     this.policyEvaluationUtils = policyEvaluationUtils;
     this.applicationAdapter = applicationAdapter;
+    this.applicationCleaner = applicationCleaner;
   }
 
   @GET
@@ -344,18 +346,8 @@ public class ApplicationResource
     }
   }
 
-  public void deleteApplication(final EntityManager em, final String applicationPublicId) throws IOException {
-    Application application = applicationDAO.getByPublicIdNotNull(em, applicationPublicId);
-
-    PolicyDAO policyDAO = new PolicyDAO(work.getWorkDir());
-    policyDAO.deleteByOwnerId(application.getId()); // as of 1.6, not stored in database
-
-    FileUtils.deleteDirectory(work.getScanDir(application.getId()));
-    FileUtils.deleteDirectory(work.getAuditDir(application.getId()));
-    FileUtils.deleteDirectory(work.getReportDir(application.getId()));
-
-    // delete application last, this way the operation can be retried later if anything goes wrong
-    applicationDAO.deleteWithIcon(em, application, work.getApplicationIconDir());
+  public void deleteApplication(final EntityManager em, final String applicationPublicId) throws IOException {    
+    applicationCleaner.delete(em, applicationPublicId);
   }
 
   private List<ApplicationManagementSummaryDTO> getApplicationManagementSummaries(

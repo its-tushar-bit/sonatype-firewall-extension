@@ -13,6 +13,7 @@ import java.util.Locale;
 
 import javax.persistence.EntityManager;
 
+import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
@@ -33,7 +34,6 @@ import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.tag.ApplicationTag;
 import com.sonatype.insight.error.exception.NotFoundException;
 
-import org.codehaus.plexus.util.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -243,7 +243,7 @@ public class ApplicationDAO
   public void deleteWithIcon(EntityManager em, Application application, File iconDirectory) {
     File applicationIconDirectory = new File(iconDirectory, application.getId());
     try {
-      FileUtils.deleteDirectory(applicationIconDirectory);
+      new FileCleaner().delete(applicationIconDirectory);
     }
     catch (IOException e) {
       log.error("Could not delete application icons: {}" + applicationIconDirectory, e);

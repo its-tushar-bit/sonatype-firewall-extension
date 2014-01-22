@@ -26,6 +26,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
@@ -43,7 +44,6 @@ import com.sonatype.insight.dataaccess.AbstractDAO;
 
 import com.sun.jersey.core.header.FormDataContentDisposition;
 import com.sun.jersey.multipart.FormDataParam;
-import org.codehaus.plexus.util.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -64,15 +64,18 @@ public class OrganizationResource
 
   private final InsightWork work;
 
-  private final ApplicationResource applicationResource;
+  private final FileCleaner fileCleaner;
+
+  private final ApplicationCleaner applicationCleaner;
 
   @Inject
-  public OrganizationResource(InsightWork work, ApplicationResource applicationResource, SaasClient client,
-      BaseUrl baseUrl)
+  public OrganizationResource(InsightWork work, SaasClient client, BaseUrl baseUrl,
+      ApplicationCleaner applicationCleaner, FileCleaner fileCleaner)
   {
     super(client, baseUrl);
     this.work = work;
-    this.applicationResource = applicationResource;
+    this.applicationCleaner = applicationCleaner;
+    this.fileCleaner = fileCleaner;
   }
 
   /**
@@ -213,7 +216,7 @@ public class OrganizationResource
 
     // cascade to applications first
     for (Application application : new ApplicationDAO().getByOrganizationId(em, organizationId)) {
-      applicationResource.deleteApplication(em, application.getPublicId());
+        applicationCleaner.delete(em, application.getPublicId());
     }
 
     // oddly orgDAO.delete does not cascade to policies, but cascades to labels, license threat groups and waivers
@@ -222,7 +225,7 @@ public class OrganizationResource
 
     File organizationIconDirectory = new File(work.getOrganizationIconDir(), organizationId);
     try {
-      FileUtils.deleteDirectory(organizationIconDirectory);
+      fileCleaner.delete(organizationIconDirectory);
     }
     catch (IOException e) {
       log.error("Could not delete organization icons: {}" + organizationIconDirectory, e);

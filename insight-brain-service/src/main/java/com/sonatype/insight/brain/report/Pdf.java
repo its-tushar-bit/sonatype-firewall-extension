@@ -22,6 +22,7 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.StreamingOutput;
 
+import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.client.utils.UrlUtils;
 import com.sonatype.insight.json.store.JsonUtils;
 
@@ -71,7 +72,7 @@ final class Pdf
         generate(pdfFile, templateDir, sample);
       }
       finally {
-        FileUtils.deleteDirectory(templateDir);
+        new FileCleaner().delete(templateDir);
       }
     }
 

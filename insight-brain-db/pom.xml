@@ -33,6 +33,10 @@
       <groupId>com.sonatype.insight.portal</groupId>
       <artifactId>insight-db-common</artifactId>
     </dependency>
+    <dependency>
+      <groupId>com.sonatype.insight.brain</groupId>
+      <artifactId>insight-brain-common</artifactId>
+    </dependency>
 
     <dependency>
       <groupId>junit</groupId>

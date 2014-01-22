@@ -3,12 +3,14 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.io;
+package com.sonatype.insight.brain.common.io;
 
 import java.io.File;
 import java.io.IOException;
 
-import com.sonatype.insight.brain.io.FileCleaner.FileDeletionException;
+import com.sonatype.insight.brain.common.io.FileCleaner;
+import com.sonatype.insight.brain.common.io.FileCleaner.FileDeletionException;
+
 
 import org.junit.Rule;
 import org.junit.Test;

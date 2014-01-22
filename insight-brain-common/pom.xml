@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!--
 
     Copyright (c) 2011-2014 Sonatype, Inc. All rights reserved.
@@ -13,32 +14,19 @@
     <version>1.8.1-SNAPSHOT</version>
   </parent>
 
-  <artifactId>insight-brain-data-access</artifactId>
-  <name>Insight Brain Data Access</name>
+  <artifactId>insight-brain-common</artifactId>
+  <name>Insight Brain Common</name>
 
   <dependencies>
     <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-api</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>com.sonatype.insight.brain</groupId>
-      <artifactId>insight-brain-model</artifactId>
+      <groupId>org.codehaus.plexus</groupId>
+      <artifactId>plexus-utils</artifactId>
     </dependency>
     <dependency>
-      <groupId>com.sonatype.insight.brain</groupId>
-      <artifactId>insight-brain-db</artifactId>
+      <groupId>javax.inject</groupId>
+      <artifactId>javax.inject</artifactId>
+      <scope>provided</scope>
     </dependency>
-    <dependency>
-      <groupId>com.sonatype.insight.brain</groupId>
-      <artifactId>insight-json-store</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>com.sonatype.insight.brain</groupId>
-      <artifactId>insight-brain-common</artifactId>
-    </dependency>
-
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
@@ -50,14 +38,9 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>ch.qos.logback</groupId>
-      <artifactId>logback-classic</artifactId>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-core</artifactId>
       <scope>test</scope>
     </dependency>
-    <dependency>
-      <groupId>com.sonatype.clm</groupId>
-      <artifactId>com.sonatype.clm.dto.model</artifactId>
-    </dependency>
   </dependencies>
-
 </project>

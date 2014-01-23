@@ -27,7 +27,7 @@
             <div>
               <span ng-repeat='tag in appliedTags = (tags | filter: { isApplied: "true", name: tagSearch } | orderBy:"name")' ng-click='toggleApply(tag)'>
                 <span class='clm-tag' data-tooltip="{{tag.description}}" data-tooltip-placement="bottom">
-                  {{tag.name}}
+                  {{tag.name | truncate}}
                 </span>
               </span>
             </div>
@@ -40,7 +40,7 @@
             <div>
               <span ng-repeat='tag in availableTags = (tags | filter: { isApplied: "false", name: tagSearch } | orderBy:"name")' ng-click='toggleApply(tag)'>
                 <span class='clm-tag' data-tooltip="{{tag.description}}" data-tooltip-placement="bottom">
-                  {{tag.name}}
+                  {{tag.name | truncate}}
                 </span>
               </span>
             </div>

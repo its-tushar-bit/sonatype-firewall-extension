@@ -378,4 +378,26 @@ describe('AngularCommon', function() {
       expect(plainScope.inputVal).not.toEqual('testValue');
     }));
   });
+
+  describe('"truncate" filter', function() {
+    var truncate;
+    beforeEach(inject(function($filter) {
+      truncate = $filter('truncate');
+    }));
+    it('Should filter strings longer than 25 characters by default', function(){
+      var truncated = truncate('A string longer than 25 characters');
+      expect(truncated).toBe('A string longer than 2...');
+      expect(truncated.length).toBe(25);
+    });
+    it('Should allow for specifying a length', function(){
+      var truncated = truncate('A string longer than 30 characters', 30);
+      expect(truncated).toBe('A string longer than 30 cha...');
+      expect(truncated.length).toBe(30);
+    });
+    it('Should not filter strings that fit in its set length', function(){
+      var truncated = truncate('bumfuzzled');
+      expect(truncated).toBe('bumfuzzled');
+      expect(truncated.length).toBe(10);
+    });
+  });
 });

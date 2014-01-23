@@ -852,6 +852,31 @@ var AngularUtils = {
     };
   });
 
+  /**
+   * Filter strings to fit within a set length, padding the end with ellipsis.
+   * Default length is 25, but can be overridden.
+   * i.e.
+   * {{ value | truncate:20 }}
+   *
+   * Generally if you are filtering text, it's to ensure that it fits within some boundary element. CSS rules for that
+   * element should take into account the possibility of increased font sizes on client machines and prefer to specify
+   * boundary sizes in em.
+   */
+  services.filter('truncate', function () {
+      return function (text, length) {
+        var end = "...";
+        if (isNaN(length)){
+          length = 25;
+        }
+        if (text.length <= length) {
+          return text;
+        }
+        else {
+          return String(text).substring(0, length-end.length) + end;
+        }
+      };
+    });
+
   services.service('BaseUrl', [
     function() {
       return {

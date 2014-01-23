@@ -18,7 +18,7 @@
           <span ng-repeat='tag in tags | orderBy:"name"' ng-click='editTag(tag)'>
             <span class='clm-tag' ng-class="{active: selectedTag.id == tag.id}"
                   data-tooltip="{{tag.description}}" data-tooltip-placement="bottom">
-              {{tag.name}}
+              {{tag.name | truncate}}
               <i ng-click='deleteTag(tag, $event)' class='icon-remove label-remove' title="Delete {{tag.name}}"></i>
             </span>
           </span>

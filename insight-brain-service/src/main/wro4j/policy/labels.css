@@ -11,7 +11,7 @@
   display: inline-block;
   cursor: pointer;
   white-space: nowrap;
-  max-width: 200px;
+  max-width: 25em;
   line-height: 14px;
 }
 .clmLabel {

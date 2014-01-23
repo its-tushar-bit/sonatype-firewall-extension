@@ -107,4 +107,13 @@ class TagSpec
       !tags.name.displayed
       !tags.description.displayed
   }
+
+  def "Long names are truncated"() {
+    when: 'We use a name that does not fit the UI element'
+      tags.createNewTag('A' * 30)
+      tags.buttons.save.click()
+
+    then: 'the value displayed will be truncated'
+      tags.tagList[0].text() == (('A' * 22) + '...')
+  }
 }

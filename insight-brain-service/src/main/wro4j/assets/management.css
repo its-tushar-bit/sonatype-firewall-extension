@@ -111,6 +111,9 @@ h4 {
 .navbar .brand {
 	padding: 10px 25px 10px 0;
 }
+.navbar .btn, .navbar .btn-group {
+    margin-top: 7px;
+}
 .container-fluid {
 	padding: 0px;
 }
@@ -136,13 +139,13 @@ h4 {
 }
 .dashboard-navigation > li span, .dashboard-menus > li {
   display: inline-block;
-  padding-bottom: 8px;
+  padding-bottom: 9px;
 }
 .dashboard-right {
   margin-bottom: -8px;
 }
 .dashboard-navigation li span {
-  padding-top: 11px;
+  padding-top: 14px;
 }
 .dashboard-navigation > li span:hover {
   background-color: #f4f4f4;
@@ -276,7 +279,7 @@ h4 {
 	background-clip: padding-box; /* for IE9+, Firefox 4+, Opera, Chrome */
 }
 .navigation {
-  margin: 41px 0 auto auto;
+  margin: 45px 0 auto auto;
 	background: #E0E0E0;
 	z-index: 1;
 	width: 120px;
@@ -313,7 +316,7 @@ h4 {
 	width: 150px;
 	margin-left: 121px;
 	position: fixed;
-	top: 41px;
+	top: 45px;
 	bottom : 0px;
 	overflow: hidden;
 	border-right: 1px solid rgba(0, 0, 0, .1);
@@ -367,7 +370,7 @@ h4 {
 }
 .content {
 	position: absolute;
-	top: 41px;
+	top: 45px;
 	bottom : 0px;
 	right : 0px;
 	left : 272px;

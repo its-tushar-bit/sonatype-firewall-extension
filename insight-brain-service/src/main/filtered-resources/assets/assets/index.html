@@ -47,6 +47,14 @@
     <script src='ManagementApp.js?${build.timestamp}'></script>
 </head>
 <body>
+  <script>
+  var serverVersion = {
+    version: '${project.version}',
+    timestamp: '${build.timestamp}',
+    tag: '${build.tag}',
+    build: '${build.number}'
+  };
+  </script>
   <div dashboard-header></div>
 	<div ng-show='!error'>
 		<div ui-view></div>

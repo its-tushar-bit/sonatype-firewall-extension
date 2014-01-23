@@ -63,6 +63,10 @@
     currentUser.then(function(status) {
       $scope.displayName = status.displayName;
     });
+    
+    $scope.getServerVersion = function() {
+      return serverVersion.version;
+    }
   }]);
 
   module.directive('dashboardHeader', function () {

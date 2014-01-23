@@ -259,10 +259,10 @@ h4 {
     clear: both;
   }
   .navigation {
-    margin-top: 84px !important;
+    margin-top: 80px !important;
   }
   .subnavigation {
-    top: 84px !important;
+    top: 80px !important;
   }
 
   .subnavigation ul:nth-child(3) {
@@ -270,7 +270,7 @@ h4 {
   }
 
   .content {
-    top: 84px !important;
+    top: 80px !important;
   }
 }
 .marginless-alert .alert {

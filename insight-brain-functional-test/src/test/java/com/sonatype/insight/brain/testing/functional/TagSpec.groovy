@@ -114,6 +114,7 @@ class TagSpec
       tags.buttons.save.click()
 
     then: 'the value displayed will be truncated'
+      waitFor { tags.tagList.size() == 2 }
       tags.tagList[0].text() == (('A' * 22) + '...')
   }
 }

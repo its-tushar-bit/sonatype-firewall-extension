@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-/*global angular, $, window, Option */
+/*global angular, $, Option, clmBuildTimestamp */
 (function() {
   'use strict';
   var module = angular.module('PolicyEditor', [
@@ -15,36 +15,36 @@
     'ConstraintStore', 'CLMLocations', 'CLMAppLocations', 'CLMResource',
     function(constraintStore, clmLocations, clmAppLocations, clmResource) {
       var conditionTypes = null,
-          policyStoreTemplate = {
-            id: 'id',
-            template: function() {
-              var o = {
-                threatLevel: 5,
-                constraints: [
-                  { conditions: [], operator: 'OR', id: '' + new Date().getTime() }
-                ],
-                actions: {}
-              };
-              if (conditionTypes) {
-                var conditionType = conditionTypes.AgeInDays;
-                o.constraints[0].conditions.push({
-                  conditionTypeId: conditionType.id,
-                  operator: conditionType.supportedOperators[0],
-                  value: null
-                });
-              }
-              return o;
-            },
-            params: {
-              timestamp: new Date().getTime()
+        policyStoreTemplate = {
+          id: 'id',
+          template: function() {
+            var o = {
+              threatLevel: 5,
+              constraints: [
+                { conditions: [], operator: 'OR', id: '' + new Date().getTime() }
+              ],
+              actions: {}
+            };
+            if (conditionTypes) {
+              var conditionType = conditionTypes.AgeInDays;
+              o.constraints[0].conditions.push({
+                conditionTypeId: conditionType.id,
+                operator: conditionType.supportedOperators[0],
+                value: null
+              });
             }
+            return o;
           },
-          policyStores = {};
+          params: {
+            timestamp: new Date().getTime()
+          }
+        },
+        policyStores = {};
 
       return {
         get: function() {
           var ownerId = clmAppLocations.getEntityId(),
-              store = policyStores[ownerId];
+            store = policyStores[ownerId];
           if (!store) {
             constraintStore.get().then(function(results) {
               conditionTypes = {};
@@ -81,13 +81,13 @@
       return {
         'get': function() {
           var conditionValueTypeStore = clmResource.getStore({
-                id: 'id',
-                url: clmAppLocations.getConditionValueTypeUrl(),
-                params: {
-                  timestamp: new Date().getTime()
-                }
-              }),
-              conditionDeferred = $q.all([conditionTypeStore.get(), conditionValueTypeStore.get()]);
+              id: 'id',
+              url: clmAppLocations.getConditionValueTypeUrl(),
+              params: {
+                timestamp: new Date().getTime()
+              }
+            }),
+            conditionDeferred = $q.all([conditionTypeStore.get(), conditionValueTypeStore.get()]);
           return conditionDeferred;
         }
       };
@@ -107,7 +107,7 @@
       function showActionIcon(stageId, action) {
         if ($scope.policy.actions[stageId]) {
           for (var i = 0; i < $scope.policy.actions[stageId].length; i++) {
-            if ($scope.policy.actions[stageId][i].actionTypeId == action) {
+            if ($scope.policy.actions[stageId][i].actionTypeId === action) {
               return true;
             }
           }
@@ -118,6 +118,7 @@
         var add = true;
         if ($scope.policy.actions[stageId]) {
           for (var i = $scope.policy.actions[stageId].length - 1; i >= 0; i--) {
+            /* jshint indent:false */
             switch ($scope.policy.actions[stageId][i].actionTypeId) {
               case 'warn':
                 $scope.policy.actions[stageId].splice(i, 1);
@@ -132,6 +133,7 @@
                 }
                 break;
             }
+            /* jshint indent:2 */
           }
         }
 
@@ -185,7 +187,7 @@
        * @param actions the existing set of notifications to update
        * @param callback  function that will be called with the new list of actions as a param
        */
-       function openNotificationModal(addresses, actions, callback) {
+      function openNotificationModal(addresses, actions, callback) {
         $modal.open({
           backdrop: 'static',
           templateUrl: 'notification',
@@ -211,8 +213,8 @@
                   }
                 }
                 // add notify action for each address
-                for (var i = 0; i < addresses.length; i++) {
-                  actions.push({ actionTypeId: 'notify', target: addresses[i] });
+                for (var j = 0; j < addresses.length; j++) {
+                  actions.push({ actionTypeId: 'notify', target: addresses[j] });
                 }
 
                 callback(actions);
@@ -222,7 +224,7 @@
             }
           ]
         });
-      };
+      }
 
       $scope.extractAddresses = function(actions) {
         // extract the emails for notification action types
@@ -239,8 +241,8 @@
        * Formats the list of notification recipients as a single string, or empty string if no recipients.
        */
       function getFormattedEmailListFromActions(actions) {
-        return $scope.extractAddresses(actions).join(', ')
-      };
+        return $scope.extractAddresses(actions).join(', ');
+      }
 
       $scope.getFormattedEmailList = function(stage) {
         return getFormattedEmailListFromActions($scope.policy.actions[stage.id] || []);
@@ -264,8 +266,8 @@
         var actions = $scope.policy.monitorNotifyActions || [];
         openNotificationModal($scope.extractAddresses(actions),actions, function(actions){
           $scope.policy.monitorNotifyActions = actions;
-        })
-      }
+        });
+      };
 
       $scope.toggleWarnAction = function(stage) {
         toggleAction(stage.id, 'warn');
@@ -316,7 +318,7 @@
       };
       $scope.savePolicy = function() {
         if ($scope.validate()) {
-          $scope.policy.$save().then(function(policy) {
+          $scope.policy.$save().then(function() {
             $scope.hide();
           }, function(error) {
             $scope.alerts.push({
@@ -329,6 +331,7 @@
 
       $scope.createConditionValidationMessage = function(dataType, constraintName, index) {
         var msg = 'Please enter ';
+        /* jshint indent:false */
         switch (dataType) {
           case 'Integer':
             msg += 'a whole number';
@@ -337,9 +340,12 @@
             msg += 'a decimal number';
             break;
           case 'String':
+          /* falls through */
           default :
             msg += 'a value';
+            break;
         }
+        /* jshint indent:2 */
         msg += ' for condition #' + index + ' in constraint "' + constraintName + '"';
         return msg;
       };
@@ -429,16 +435,16 @@
     '$scope', '$timeout', 'ConstraintStore', function($scope, $timeout, constraints) {
       function isDirty() {
         if ($scope.originalConstraint) {
-          if ($scope.originalConstraint.name != $scope.constraint.name ||
-              $scope.originalConstraint.operator != $scope.constraint.operator ||
-              $scope.originalConstraint.conditions.length != $scope.constraint.conditions.length) {
+          if ($scope.originalConstraint.name !== $scope.constraint.name ||
+              $scope.originalConstraint.operator !== $scope.constraint.operator ||
+              $scope.originalConstraint.conditions.length !== $scope.constraint.conditions.length) {
             return true;
           }
           for (var i = 0; i < $scope.originalConstraint.conditions.length; i++) {
-            if ($scope.originalConstraint.conditions[i].value != $scope.constraint.conditions[i].value ||
-                $scope.originalConstraint.conditions[i].operator != $scope.constraint.conditions[i].operator ||
-                $scope.originalConstraint.conditions[i].conditionTypeId !=
-                    $scope.constraint.conditions[i].conditionTypeId) {
+            if ($scope.originalConstraint.conditions[i].value !== $scope.constraint.conditions[i].value ||
+                $scope.originalConstraint.conditions[i].operator !== $scope.constraint.conditions[i].operator ||
+                $scope.originalConstraint.conditions[i].conditionTypeId !==
+                  $scope.constraint.conditions[i].conditionTypeId) {
               return true;
             }
           }
@@ -496,6 +502,7 @@
 
         // This could be replaced with ng-init but the html is fairly verbose as it is
         condition.operator = $scope.conditionTypes[condition.conditionTypeId].supportedOperators[0];
+        /* jshint indent:false */
         switch ($scope.conditionTypes[condition.conditionTypeId].valueTypeId) {
           case 'LicenseCategoryValueType':
           case 'LicenseValueType':
@@ -511,6 +518,7 @@
             }
             break;
         }
+        /* jshint indent:2 */
       };
       $scope.$watch('constraint', function(constraint) {
         if (constraint) {
@@ -534,7 +542,7 @@
       });
 
       $scope.addCondition = function() {
-        var conditionType = $scope.conditionTypes['AgeInDays'];
+        var conditionType = $scope.conditionTypes.AgeInDays;
 
         //when switching from 1 -> 2 conditions, enable the operator field and force selection
         if ($scope.constraint.conditions.length === 1) {
@@ -567,7 +575,7 @@
           type.valueType = typeValue;
           $scope.conditionTypes[type.id] = type;
         });
-      }, function(error) {
+      }, function() {
         // TODO handle this error
       });
     }
@@ -578,7 +586,7 @@
       return {
         restrict: 'A',
         require: 'ngModel',
-        link: function(scope, elem, attr, ctrl) {
+        link: function(scope, elem, attr) {
           var options = attr.ieOptions;
           scope.$watch(options, function() {
             var collection = $parse(options)(scope);
@@ -657,8 +665,8 @@
       scope: {
         model: '=ngModel'
       },
-      template: "<input type='number' style='width:100px;vertical-align:top' ng-model='value' placeholder='{{placeholder}}' required> <select style='width:100px;vertical-align:top' ng-model='modifier' ng-options='timeSpan.value as timeSpan.name for timeSpan in timeSpans' required></select>",
-      link: function(scope, element, attrs) {
+      template: '<input type="number" style="width:100px;vertical-align:top" ng-model="value" placeholder="{{placeholder}}" required> <select style="width:100px;vertical-align:top" ng-model="modifier" ng-options="timeSpan.value as timeSpan.name for timeSpan in timeSpans" required></select>',
+      link: function(scope) {
         function updateModel() {
           if (typeof scope.value === 'number' && scope.modifier) {
             scope.model = '' + (scope.value * scope.modifier);

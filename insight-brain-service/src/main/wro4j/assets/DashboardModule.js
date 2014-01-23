@@ -42,8 +42,8 @@
 
   dashboardApp.run([
     '$rootScope',
-    '$window',
     '$location',
+    '$window',
     '$state',
     'Messages',
     'CLMLocations',

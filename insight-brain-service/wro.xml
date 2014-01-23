@@ -24,8 +24,10 @@
                 <css>/assets/sonatype-icons.css</css>
                 <js>/applications/ApplicationController.js</js>
                 <js>/assets/DashboardModule.js</js>
+                <js>/assets/EditorTools.js</js>
                 <js>/assets/ManagementApp.js</js>
                 <js>/assets/ReportApp.js</js>
+                <js>/assets/Resource.js</js>
                 <js>/configuration/ConfigurationController.js</js>
                 <js>/configuration/LdapConfigurationController.js</js>
                 <js>/configuration/ProductLicenseController.js</js>

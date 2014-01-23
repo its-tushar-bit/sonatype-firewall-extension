@@ -4,181 +4,180 @@
  *          http://links.sonatype.com/products/clm/attributions. "Sonatype" is a
  *          trademark of Sonatype, Inc.
  */
-/* global angular */
+/* global angular, AngularUtils */
 (function() {
   'use strict';
   var module = angular.module('EditorTools', ['CommonServices', 'CLMAppLocation', 'Stores', 'AngularCommon', 'xeditable']),
       validStages = ['build', 'stage-release', 'release'];
 
-    module.run(['editableOptions', function (editableOptions) {
-      editableOptions.theme = 'bs2';
-    }]);
+  module.run(['editableOptions', function (editableOptions) {
+    editableOptions.theme = 'bs2';
+  }]);
 
-    module.controller('EvaluateBundleController', [
-      '$scope',
-      '$http',
-      '$timeout',
-      '$window',
-      'Messages',
-      'CLMLocations',
-      'selectedApplication',
-      'ApplicationStore',
-      'ActionStore',
-      '$q',
-      '$location',
-      function($scope, $http, $timeout, $window, messages, CLMLocations, selectedApplication, ApplicationStore,
-              ActionStore, $q, $location) {
-        var fileElement = null;
-    $scope.currentState = 'init';
+  module.controller('EvaluateBundleController', [
+    '$scope',
+    '$http',
+    '$timeout',
+    '$window',
+    'Messages',
+    'CLMLocations',
+    'selectedApplication',
+    'ApplicationStore',
+    'ActionStore',
+    '$q',
+    function($scope, $http, $timeout, $window, messages, CLMLocations, selectedApplication, ApplicationStore,
+            ActionStore, $q) {
+      var fileElement = null;
+      $scope.currentState = 'init';
 
-    function setError(message) {
-      $scope.requestActive = false;
-      //there are certain cases where the browser will not give us an error
-      //as we would expect, so we will add something default in this case
-      if (message) {
-        $scope.error = message;
-      } else {
-        $scope.error = 'Error uploading, please check the file.';
-      }
-    }
-
-    function getApplicationName(publicId) {
-      for ( var i = 0 ; i < $scope.applications.length ; i++ ) {
-        if ($scope.applications[i].publicId === publicId) {
-          return $scope.applications[i].name;
+      function setError(message) {
+        $scope.requestActive = false;
+        //there are certain cases where the browser will not give us an error
+        //as we would expect, so we will add something default in this case
+        if (message) {
+          $scope.error = message;
+        } else {
+          $scope.error = 'Error uploading, please check the file.';
         }
       }
-    }
 
-    function parseFilename(filename) {
-      var idx = Math.max(filename.lastIndexOf('/'), filename.lastIndexOf('\\'));
-
-      if (idx > -1) {
-        return filename.substring(idx + 1);
+      function getApplicationName(publicId) {
+        for ( var i = 0 ; i < $scope.applications.length ; i++ ) {
+          if ($scope.applications[i].publicId === publicId) {
+            return $scope.applications[i].name;
+          }
+        }
       }
 
-      return filename;
-    }
+      function parseFilename(filename) {
+        var idx = Math.max(filename.lastIndexOf('/'), filename.lastIndexOf('\\'));
 
-    function doLoad() {
-      $scope.state = 'loading';
-      $q.all([ActionStore.get(),ApplicationStore.get()]).then(function(results) {
-        $scope.state = 'ready';
-        $scope.applications = results[1];
-        $scope.stages = [];
-        angular.forEach(results[0][1], function(stage) {
-        if (validStages.indexOf(stage.id) > -1) {
-            $scope.stages.push(stage);
-          }
-        });
-        $scope.bundle = {
-          notify: 'true',
-          applicationPublicId: selectedApplication ? selectedApplication.publicId : null
-        };
-        $scope.updateFormActionUrl();
-      }, function(error){
-        $scope.state = 'ready';
-        setError(messages.getHttpErrorMessage(error));
-      });  
-    }    
+        if (idx > -1) {
+          return filename.substring(idx + 1);
+        }
 
-    function doPoll() {
-      if (!$scope.$$destroyed) {
-        $http.get($scope.pollingUrl).then(function(response){
-          $scope.evaluationStatus = response.data;
-          if ($scope.evaluationStatus.error) {
-            setError($scope.evaluationStatus.error);
-          } else if ($scope.evaluationStatus.currentStep < $scope.evaluationStatus.totalSteps) {
-            $timeout(doPoll,500);
-          }
-        },function(error){
+        return filename;
+      }
+
+      function doLoad() {
+        $scope.state = 'loading';
+        $q.all([ActionStore.get(),ApplicationStore.get()]).then(function(results) {
+          $scope.state = 'ready';
+          $scope.applications = results[1];
+          $scope.stages = [];
+          angular.forEach(results[0][1], function(stage) {
+            if (validStages.indexOf(stage.id) > -1) {
+              $scope.stages.push(stage);
+            }
+          });
+          $scope.bundle = {
+            notify: 'true',
+            applicationPublicId: selectedApplication ? selectedApplication.publicId : null
+          };
+          $scope.updateFormActionUrl();
+        }, function(error){
+          $scope.state = 'ready';
           setError(messages.getHttpErrorMessage(error));
         });
       }
-    }
 
-    function getBundleUploadUrl() {
-      return CLMLocations.getBundleUploadUrl($scope.bundle.applicationPublicId, $scope.bundle.stage, $scope.bundle.notify);
-    }
-
-    $scope.fileChanged = function(file) {
-      fileElement = angular.element(file)[0];
-    };
-
-    $scope.getProgressWidth = function () {
-      return $scope.evaluationStatus ? ($scope.evaluationStatus.currentStep / $scope.evaluationStatus.totalSteps * 100) : '0';
-    };
-
-    $scope.doSubmit = function () {
-      $scope.state = 'polling';
-      $scope.evaluationStatus = {currentStep: 1, totalSteps: 1, currentStepName: 'Uploading'};
-      $scope.error = null;
-      $scope.bundle.filename = parseFilename(fileElement.value);
-      $scope.bundle.applicationName = getApplicationName($scope.bundle.applicationPublicId);
-      $scope.pollingUrl = null;
-
-      if ($window.FormData) {  
-        var form = new FormData();
-        form.append('file', fileElement.files[0]);
-        $http.post(getBundleUploadUrl(), form, {
-          headers : {
-            'Content-Type' : undefined
-          },
-          transformRequest: angular.identity
-        }).success(function (data) {
-          $scope.pollingUrl = CLMLocations.getEvaluationStatusUrl($scope.bundle.applicationPublicId, data.ticketId);
-          doPoll();
-        }).error(function () {
-          $scope.state = 'ready';
-          setError(messages.getHttpErrorMessage(arguments));
-        });
-      }
-      else {
-        // IE9 case, trigger ng-upload
-        $('form[name=evaluateBundle]').find('input[type=submit]').trigger('click');
-      }
-    };
-
-    $scope.getReportUrl = function() {
-      return 'reports.html#/reports/' + encodeURIComponent($scope.evaluationStatus.applicationPublicId) + '/' + $scope.evaluationStatus.scanId;
-    };
-
-    $scope.updateFormActionUrl = function() {
-      $scope.evaluateBundleAction = getBundleUploadUrl();
-    };
-
-    $scope.isFormValid = function() {
-      return fileElement && fileElement.value && $scope.bundle.applicationPublicId && $scope.bundle.stage && $scope.bundle.notify;
-    };
-
-    // Handler for ng-upload progress
-    $scope.uploaded = function (content, completed) {
-      $scope.requestActive = false;
-      $scope.error = null;
-      var response;
-      try {
-         response = angular.fromJson(content);
-      }
-      catch(e) {
-        response = content;
+      function doPoll() {
+        if (!$scope.$$destroyed) {
+          $http.get($scope.pollingUrl).then(function(response){
+            $scope.evaluationStatus = response.data;
+            if ($scope.evaluationStatus.error) {
+              setError($scope.evaluationStatus.error);
+            } else if ($scope.evaluationStatus.currentStep < $scope.evaluationStatus.totalSteps) {
+              $timeout(doPoll,500);
+            }
+          },function(error){
+            setError(messages.getHttpErrorMessage(error));
+          });
+        }
       }
 
-      if (angular.isString(response)) {
-        $scope.state = 'ready';
-        setError(response);
-      } else {
+      function getBundleUploadUrl() {
+        return CLMLocations.getBundleUploadUrl($scope.bundle.applicationPublicId, $scope.bundle.stage, $scope.bundle.notify);
+      }
+
+      $scope.fileChanged = function(file) {
+        fileElement = angular.element(file)[0];
+      };
+
+      $scope.getProgressWidth = function () {
+        return $scope.evaluationStatus ? ($scope.evaluationStatus.currentStep / $scope.evaluationStatus.totalSteps * 100) : '0';
+      };
+
+      $scope.doSubmit = function () {
         $scope.state = 'polling';
-        $scope.pollingUrl = CLMLocations.getEvaluationStatusUrl($scope.bundle.applicationPublicId, response.ticketId);
-        doPoll();
-      }
-    };
+        $scope.evaluationStatus = {currentStep: 1, totalSteps: 1, currentStepName: 'Uploading'};
+        $scope.error = null;
+        $scope.bundle.filename = parseFilename(fileElement.value);
+        $scope.bundle.applicationName = getApplicationName($scope.bundle.applicationPublicId);
+        $scope.pollingUrl = null;
 
-    doLoad();
-  }]);
+        if ($window.FormData) {
+          var form = new FormData();
+          form.append('file', fileElement.files[0]);
+          $http.post(getBundleUploadUrl(), form, {
+            headers : {
+              'Content-Type' : undefined
+            },
+            transformRequest: angular.identity
+          }).success(function (data) {
+            $scope.pollingUrl = CLMLocations.getEvaluationStatusUrl($scope.bundle.applicationPublicId, data.ticketId);
+            doPoll();
+          }).error(function () {
+            $scope.state = 'ready';
+            setError(messages.getHttpErrorMessage(arguments));
+          });
+        }
+        else {
+          // IE9 case, trigger ng-upload
+          $('form[name=evaluateBundle]').find('input[type=submit]').trigger('click');
+        }
+      };
+
+      $scope.getReportUrl = function() {
+        return 'reports.html#/reports/' + encodeURIComponent($scope.evaluationStatus.applicationPublicId) + '/' + $scope.evaluationStatus.scanId;
+      };
+
+      $scope.updateFormActionUrl = function() {
+        $scope.evaluateBundleAction = getBundleUploadUrl();
+      };
+
+      $scope.isFormValid = function() {
+        return fileElement && fileElement.value && $scope.bundle.applicationPublicId && $scope.bundle.stage && $scope.bundle.notify;
+      };
+
+      // Handler for ng-upload progress
+      $scope.uploaded = function (content) {
+        $scope.requestActive = false;
+        $scope.error = null;
+        var response;
+        try {
+          response = angular.fromJson(content);
+        }
+        catch(e) {
+          response = content;
+        }
+
+        if (angular.isString(response)) {
+          $scope.state = 'ready';
+          setError(response);
+        } else {
+          $scope.state = 'polling';
+          $scope.pollingUrl = CLMLocations.getEvaluationStatusUrl($scope.bundle.applicationPublicId, response.ticketId);
+          doPoll();
+        }
+      };
+
+      doLoad();
+    }
+  ]);
 
   module.directive('clmEditable', ['$parse', 'regexFactory', function ($parse, regexFactory) {
-    var alphaNumericRegex = new RegExp('[^-' + regexFactory.allLetters().source + '0-9 ]', 'i'),
-        count = 0;
+    var alphaNumericRegex = new RegExp('[^-' + regexFactory.allLetters().source + '0-9 ]', 'i');
     return {
       template : '<span><span ng-click="myForm.$show()"' +
           'editable-text="model[modelField]"' +
@@ -294,7 +293,7 @@
       if ($window.FileReader) {
         var reader = new $window.FileReader();
 
-        reader.onload = function (event) {
+        reader.onload = function () {
           $http.put(clmAppLocations.getImportPolicyUrl(), reader.result, {
             headers : {
               'Content-Type' : 'application/json'
@@ -306,7 +305,7 @@
           });
         };
 
-        reader.onerror = function (e, filename) {
+        reader.onerror = function () {
           setError(reader.error.message);
         };
 
@@ -426,7 +425,7 @@
               if (icon.files.length > 0) {
                 formData.append('file', icon.files[0]);
               }
-              
+
               $http.post(CLMAppLocations.addIcon(), formData, {
                 headers : {
                   'Content-Type' : undefined

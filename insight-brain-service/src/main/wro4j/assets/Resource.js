@@ -57,8 +57,19 @@
             }
             
             var relationsToLoad = data.length * Object.keys(config.relationalConfigs).length;
+            var loadChildResource = function(parentResource, childResource, property) {
+              $http.get(childResource.config.url,
+                  { params: childResource.config.params }).success(function(data) {
+                childResource.$updateOriginal(data);
+                $parse(property).assign(parentResource, childResource);
+                relationsToLoad--;
+                checkDeferredResolve(storeDeferred, store, relationsToLoad);
+              }).error(function() {
+                error = true;
+              }).error(getErrorFn(storeDeferred));
+            };
 
-            angular.forEach(data, function(obj, i) {
+            angular.forEach(data, function(obj) {
               var resource = new Resource(obj, false);
               result.push(resource);
 
@@ -72,18 +83,7 @@
                     linkedResource.config.url = linkedResource.config.url(resource);
                   }
 
-                  (function(parentResource, childResource, property) {
-                    $http.get(childResource.config.url,
-                        { params: childResource.config.params }).success(function(data) {
-                      childResource.$updateOriginal(data);
-                      $parse(property).assign(parentResource, childResource);
-                      relationsToLoad--;
-                      checkDeferredResolve(storeDeferred, store, relationsToLoad);
-                    }).error(function() {
-                          error = true;
-                        }).error(getErrorFn(storeDeferred));
-
-                  }(resource, linkedResource, relationalProperty));
+                  loadChildResource(resource, linkedResource, relationalProperty);
                 }
               }
             });
@@ -224,16 +224,22 @@
         me.$updateOriginal(originalObject);
       }
 
-      Resource.prototype['$save'] = function() {
+      Resource.prototype.$save = function() {
         var deferred = $q.defer(),
-            me = this,
-            id = this[config.id];
+            me = this;
 
         var relationsToSave = Object.keys(config.relationalConfigs).length;
 
         if (me.$new) {
           // Newly created object
           $http.post(config.url, this, { params: config.params }).success(function(data) {
+            var saveRelationalResource = function() {
+              relationsToSave--;
+              checkDeferredResolve(deferred, me, relationsToSave);
+            };
+            var errorRelationalResource = function(rejection) {
+              deferred.reject(rejection);
+            };
             for (var relationalProperty in config.relationalConfigs) {
               if (config.relationalConfigs.hasOwnProperty(relationalProperty)) {
                 var relationalResource = $parse(relationalProperty)(me);
@@ -243,12 +249,7 @@
                   relationalResource.config.url = relationalResource.config.url(data);
                 }
 
-                relationalResource.$save().then(function() {
-                  relationsToSave--;
-                  checkDeferredResolve(deferred, me, relationsToSave);
-                }, function(rejection) {
-                  deferred.reject(rejection);
-                });
+                relationalResource.$save().then(saveRelationalResource, errorRelationalResource);
               }
             }
             me.$new = false;
@@ -300,9 +301,8 @@
         return deferred.promise;
       };
 
-      Resource.prototype['$delete'] = function() {
+      Resource.prototype.$delete = function() {
         var deferred = $q.defer(),
-            me = this,
             id = this[config.id],
             url = config.url.charAt(config.url.length - 1) === '/' ? config.url + id : config.url + '/' + id,
             index = -1;
@@ -376,7 +376,7 @@
       }
 
       LinkedResource.prototype = [];
-      LinkedResource.prototype['$save'] = function() {
+      LinkedResource.prototype.$save = function() {
         var deferred = $q.defer(),
             me = this;
 

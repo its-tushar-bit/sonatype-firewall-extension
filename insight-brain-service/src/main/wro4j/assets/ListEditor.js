@@ -4,7 +4,7 @@
  * http://links.sonatype.com/products/clm/attributions. "Sonatype" is a
  * trademark of Sonatype, Inc.
  */
-/*global angular, $ */
+/* global angular, clmBuildTimestamp */
 (function() {
   'use strict';
 
@@ -26,7 +26,7 @@
         setError: '=setError'
       },
       priority: 99,
-      link: function(scope, elm, attrs, ctrl) {
+      link: function(scope) {
         scope.add = function() {
           scope.entries.push(scope.currentEntry);
           scope.currentEntry = '';
@@ -47,18 +47,18 @@
       link: function(scope, elm, attrs, ctrl) {
         var validate = function(newValue) {
           var unique = angular.isArray(scope.entries) && scope.entries.indexOf(newValue) === -1,
-              validation = typeof scope.validator === "function" ? scope.validator(newValue) : true,
-              validInput = typeof validation === "string" ? false : validation != false;
+              validation = typeof scope.validator === 'function' ? scope.validator(newValue) : true,
+              validInput = typeof validation === 'string' ? false : validation !== false;
 
           ctrl.$setValidity('unique', unique);
           ctrl.$setValidity('validInput', validInput);
 
-          if (typeof scope.setError === "function") {
+          if (typeof scope.setError === 'function') {
             if (!unique) {
               scope.setError('Enter a unique value');
             }
             else if (!validInput) {
-              scope.setError(typeof validation === "string" ? validation : 'Invalid ' + scope.placeHolder);
+              scope.setError(typeof validation === 'string' ? validation : 'Invalid ' + scope.placeHolder);
             }
             else {
               scope.setError(null);

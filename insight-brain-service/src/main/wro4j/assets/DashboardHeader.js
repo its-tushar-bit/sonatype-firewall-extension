@@ -3,8 +3,9 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+ /* global angular, clmBuildTimestamp */
 (function() {
-  "use strict";
+  'use strict';
 
   var module = angular.module('DashboardHeader', ['ui.router', 'AngularCommon', 'CLMLocation']);
 

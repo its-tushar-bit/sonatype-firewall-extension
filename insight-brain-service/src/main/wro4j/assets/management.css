@@ -96,7 +96,7 @@ h4 {
 	-webkit-transition: all .2s linear;
 	-moz-transition: all .2s linear;
 	transition: all .2s linear;
-    padding: 8px 19px 0px 21px;
+    padding: 8px 19px 6px 21px;
 }
 .navbar-inner {
 	background-color: #E0E0E0;
@@ -110,14 +110,12 @@ h4 {
 }
 .navbar-version {
 	font-size:10px;
-	line-height:10px; 
-	margin-top: 2px;
+	line-height:10px;
+	text-shadow: none;
+	font-weight: bold;
 }
 .navbar .brand {
 	padding: 10px 25px 10px 0;
-}
-.navbar .btn, .navbar .btn-group {
-    margin-top: 7px;
 }
 .container-fluid {
 	padding: 0px;
@@ -144,13 +142,13 @@ h4 {
 }
 .dashboard-navigation > li span, .dashboard-menus > li {
   display: inline-block;
-  padding-bottom: 9px;
+  padding-bottom: 8px;
 }
 .dashboard-right {
   margin-bottom: -8px;
 }
 .dashboard-navigation li span {
-  padding-top: 14px;
+  padding-top: 11px;
 }
 .dashboard-navigation > li span:hover {
   background-color: #f4f4f4;
@@ -284,7 +282,7 @@ h4 {
 	background-clip: padding-box; /* for IE9+, Firefox 4+, Opera, Chrome */
 }
 .navigation {
-  margin: 45px 0 auto auto;
+  margin: 41px 0 auto auto;
 	background: #E0E0E0;
 	z-index: 1;
 	width: 120px;
@@ -321,7 +319,7 @@ h4 {
 	width: 150px;
 	margin-left: 121px;
 	position: fixed;
-	top: 45px;
+	top: 41px;
 	bottom : 0px;
 	overflow: hidden;
 	border-right: 1px solid rgba(0, 0, 0, .1);
@@ -375,7 +373,7 @@ h4 {
 }
 .content {
 	position: absolute;
-	top: 45px;
+	top: 41px;
 	bottom : 0px;
 	right : 0px;
 	left : 272px;

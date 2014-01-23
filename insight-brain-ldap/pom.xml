@@ -33,7 +33,7 @@
 
     <dependency>
       <groupId>com.sonatype.insight.brain</groupId>
-      <artifactId>insight-brain-data-access</artifactId>
+      <artifactId>insight-brain-data</artifactId>
     </dependency>
 
     <dependency>

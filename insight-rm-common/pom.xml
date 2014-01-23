@@ -27,7 +27,7 @@
       <exclusions>
         <exclusion>
           <groupId>com.sonatype.insight.brain</groupId>
-          <artifactId>insight-brain-data-access</artifactId>
+          <artifactId>insight-brain-data</artifactId>
         </exclusion>
         <exclusion>
           <groupId>com.sonatype.insight.portal</groupId>

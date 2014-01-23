@@ -66,19 +66,7 @@
 
     <dependency>
       <groupId>com.sonatype.insight.brain</groupId>
-      <artifactId>insight-brain-model</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>com.sonatype.insight.brain</groupId>
-      <artifactId>insight-brain-policy-model</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>com.sonatype.insight.brain</groupId>
-      <artifactId>insight-brain-data-access</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>com.sonatype.insight.brain</groupId>
-      <artifactId>insight-brain-policy-data-access</artifactId>
+      <artifactId>insight-brain-data</artifactId>
     </dependency>
     <dependency>
       <groupId>com.sonatype.insight.brain</groupId>

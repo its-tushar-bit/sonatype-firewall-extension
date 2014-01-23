@@ -65,7 +65,7 @@
     });
     
     $scope.getServerVersion = function() {
-      return serverVersion.version;
+      return clmServerVersion;
     }
   }]);
 

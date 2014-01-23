@@ -14,7 +14,7 @@
   <link href="css/clm-server.css?${build.timestamp}" rel="stylesheet"/>
   <link rel='shortcut icon' href='favicon.ico'/>
   <script type='text/javascript'>
-    var clmBuildTimestamp = '${build.timestamp}';
+    var clmBuildTimestamp = '${build.timestamp}', clmServerVersion = '${project.version}';
   </script>
   <script src='lib/jquery/jquery-1.8.3.min.js'></script>
   <script src="lib/bootstrap/bootstrap-2.3.1.min.js"></script>
@@ -43,14 +43,6 @@
   <script src='DashboardModule.js?${build.timestamp}'></script>
 </head>
 <body>
-  <script>
-  var serverVersion = {
-    version: '${project.version}',
-    timestamp: '${build.timestamp}',
-    tag: '${build.tag}',
-    build: '${build.number}'
-  };
-  </script>
   <div dashboard-header></div>
 	<div ng-show='!error'>
 		<div class='clm-content' ui-view></div>

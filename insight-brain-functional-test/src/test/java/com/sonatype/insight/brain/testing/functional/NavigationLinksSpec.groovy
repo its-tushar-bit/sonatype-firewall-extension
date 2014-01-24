@@ -21,7 +21,7 @@ class NavigationLinksSpec extends BaseSpec {
 
   def "Can use navigation to view the Management application"(){
     when: 'clicking the dropdown and then the Management link'
-      dashboardNavigation.toManagement()
+      dashboardModule.toManagement()
 
     then: 'we should end up at the Management page with the Applications nav link shown as active'
       at ManagementPage
@@ -30,7 +30,7 @@ class NavigationLinksSpec extends BaseSpec {
 
   def "Can use navigation to view the Report application"(){
     when: 'clicking the dropdown and then the Reports link'
-      dashboardNavigation.toReports()
+      dashboardModule.toReports()
 
     then: 'we should end up back at the Report page with the Violations nav link shown as active'
       at ReportViolationsPage

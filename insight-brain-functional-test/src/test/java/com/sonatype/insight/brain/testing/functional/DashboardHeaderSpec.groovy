@@ -6,13 +6,23 @@
 package com.sonatype.insight.brain.testing.functional
 
 class DashboardHeaderSpec extends BaseSpec {
+  def setup() {
+    via ReportViolationsPage
+    login.loginAsAdmin()
+    verifyAt()
+  }
   def "displays logged in users display name"() {
-    when: "user logs in"
-      via ReportViolationsPage
-      login.loginAsAdmin()
-      verifyAt()
-
-    then: "users display name is shown"
+    given: "user has logged in"
+    expect: "users display name is shown"
       waitFor { userOptions.displayName.text() == "Admin BuiltIn" }
+  }
+  
+  def "displays version in the header"() {
+    given: "user has logged in"
+      def props = new Properties()
+      props.load(getClass().getClassLoader().getResourceAsStream("version.properties"));
+    expect: "version is shown"
+      waitFor { dashboardModule.version.displayed }
+      waitFor { dashboardModule.version.text() == props["version"] }
   }
 }

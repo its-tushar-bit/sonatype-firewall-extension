@@ -20,7 +20,7 @@ class DashboardHeaderSpec extends BaseSpec {
   def "displays version in the header"() {
     given: "user has logged in"
       def props = new Properties()
-      props.load(getClass().getClassLoader().getResourceAsStream("version.properties"));
+      props.load(getClass().getResourceAsStream("/version.properties"));
     expect: "version is shown"
       waitFor { dashboardModule.version.displayed }
       waitFor { dashboardModule.version.text() == props["version"] }

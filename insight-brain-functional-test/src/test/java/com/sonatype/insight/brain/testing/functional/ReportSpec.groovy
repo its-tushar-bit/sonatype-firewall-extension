@@ -10,8 +10,8 @@ import com.sonatype.insight.brain.model.security.User
 import com.sonatype.insight.brain.security.CLMRealm
 import org.codehaus.plexus.util.FileUtils
 import org.codehaus.plexus.util.IOUtil
-import spock.lang.Ignore;
-
+import spock.lang.Ignore
+import spock.lang.Issue;
 import spock.lang.Shared
 import spock.lang.Stepwise
 
@@ -36,7 +36,6 @@ extends BaseSpec {
 
     via ReportViolationsPage
     login.loginAsAdmin()
-    verifyAt()
   }
 
   def cleanupSpec() {
@@ -49,6 +48,8 @@ extends BaseSpec {
       waitFor { emptyMessage.displayed }
   }
 
+  @Ignore('Temporarily removing this test execution as it is 50/50 whether or not this text stays on the screen long enough to be observed consistently')
+  @Issue("CLM-1763")
   def "We can navigate to the trending report"() {
     when: 'we click the navigation link to Trending'
       nav.link('Trending').click()
@@ -60,8 +61,11 @@ extends BaseSpec {
   }
 
   def "We can load the (empty) report"(){
-    when: 'the report is generated and we refresh the page'
-      browser.driver.navigate().refresh()
+    //when: 'the report is generated and we refresh the page'
+    //  browser.driver.navigate().refresh()
+
+    when: 'we click the navigation link to Trending'
+      nav.link('Trending').click()
 
     then: 'we see that no violations have occurred, since we have not scanned anything'
       at TrendingReportPage

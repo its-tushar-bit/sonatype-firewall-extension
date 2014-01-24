@@ -7,99 +7,99 @@
 
 -->
 <groups xmlns="http://www.isdc.ro/wro"
-		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-		xsi:schemaLocation="http://www.isdc.ro/wro wro.xsd">
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.isdc.ro/wro wro.xsd">
 
-	<group name='lib'>
-		<css>/lib/bootstrap/bootstrap-2.3.1.min.css</css>
-		<css>/lib/glyphicons/glyphicons.css</css>
-		<css>/lib/glyphicons/halflings.css</css>
-		<css>/lib/X-editable/xeditable.css</css>
-		<css>/assets/glyphicons-sonatype.css</css>
-	</group>
+  <group name='lib'>
+    <css>/lib/bootstrap/bootstrap-2.3.1.min.css</css>
+    <css>/lib/glyphicons/glyphicons.css</css>
+    <css>/lib/glyphicons/halflings.css</css>
+    <css>/lib/X-editable/xeditable.css</css>
+    <css>/assets/glyphicons-sonatype.css</css>
+  </group>
 
-	<group name='insight'>
-		<css>/assets/threat.css</css>
-		<css>/assets/insight.css</css>
-                <css>/assets/sonatype-icons.css</css>
-                <js>/applications/ApplicationController.js</js>
-                <js>/assets/DashboardHeader.js</js>
-                <js>/assets/DashboardModule.js</js>
-                <js>/assets/EditorTools.js</js>
-                <js>/assets/ListEditor.js</js>
-                <js>/assets/ManagementApp.js</js>
-                <js>/assets/PolicyEditor.js</js>
-                <js>/assets/ReportApp.js</js>
-                <js>/assets/Resource.js</js>
-                <js>/configuration/ConfigurationController.js</js>
-                <js>/configuration/LdapConfigurationController.js</js>
-                <js>/configuration/ProductLicenseController.js</js>
-                <js>/organization/OrganizationController.js</js>
-                <js>/policy/AppSecurityController.js</js>
-                <js>/policy/LabelController.js</js>
-                <js>/policy/LicenseThreatGroupsController.js</js>
-                <js>/policy/PolicyController.js</js>
-                <js>/policy/TagController.js</js>
-                <js>/security/UserModule.js</js>
-	</group>
+  <group name='insight'>
+    <css>/assets/threat.css</css>
+    <css>/assets/insight.css</css>
+    <css>/assets/sonatype-icons.css</css>
+    <js>/applications/ApplicationController.js</js>
+    <js>/assets/DashboardHeader.js</js>
+    <js>/assets/DashboardModule.js</js>
+    <js>/assets/EditorTools.js</js>
+    <js>/assets/ListEditor.js</js>
+    <js>/assets/ManagementApp.js</js>
+    <js>/assets/PolicyEditor.js</js>
+    <js>/assets/ReportApp.js</js>
+    <js>/assets/Resource.js</js>
+    <js>/configuration/ConfigurationController.js</js>
+    <js>/configuration/LdapConfigurationController.js</js>
+    <js>/configuration/ProductLicenseController.js</js>
+    <js>/organization/OrganizationController.js</js>
+    <js>/policy/AppSecurityController.js</js>
+    <js>/policy/LabelController.js</js>
+    <js>/policy/LicenseThreatGroupsController.js</js>
+    <js>/policy/PolicyController.js</js>
+    <js>/policy/TagController.js</js>
+    <js>/security/UserModule.js</js>
+  </group>
 
-        <group name='report'>
-          <js>/report/TrendingController.js</js>
-          <js>/report/diffChart.js</js>
-          <js>/report/percChart.js</js>
-          <js>/report/policyProgression.js</js>
-          <js>/report/ReportController.js</js>
-          <js>/report/ReportViolationsController.js</js>
-        </group>
+  <group name='report'>
+    <js>/report/TrendingController.js</js>
+    <js>/report/diffChart.js</js>
+    <js>/report/percChart.js</js>
+    <js>/report/policyProgression.js</js>
+    <js>/report/ReportController.js</js>
+    <js>/report/ReportViolationsController.js</js>
+  </group>
 
-        <group name='util'>
-          <js>/util/AngularCommon.js</js>
-          <js>/util/CLMAppLocation.js</js>
-          <js>/util/CLMLocation.js</js>
-          <js>/util/HttpInterceptors.js</js>
-          <js>/util/Stores.js</js>
-        </group>
+  <group name='util'>
+    <js>/util/AngularCommon.js</js>
+    <js>/util/CLMAppLocation.js</js>
+    <js>/util/CLMLocation.js</js>
+    <js>/util/HttpInterceptors.js</js>
+    <js>/util/Stores.js</js>
+  </group>
 
-	<group name='policy'>
-		<css>/assets/app-security.css</css>
-		<css>/policy/labels.css</css>
-		<css>/policy/policy.css</css>
-		<css>/assets/management.css</css>
-	</group>
+  <group name='policy'>
+    <css>/assets/app-security.css</css>
+    <css>/policy/labels.css</css>
+    <css>/policy/policy.css</css>
+    <css>/assets/management.css</css>
+  </group>
 
-	<group name='application'>
-		<css>/applications/application.css</css>
-	</group>
+  <group name='application'>
+    <css>/applications/application.css</css>
+  </group>
 
-	<group name='clm-server'>
-		<group-ref>lib</group-ref>
-		<group-ref>insight</group-ref>
-		<group-ref>application</group-ref>
-		<group-ref>policy</group-ref>
-		<group-ref>security</group-ref>
-		<group-ref>trending</group-ref>
-	</group>
+  <group name='clm-server'>
+    <group-ref>lib</group-ref>
+    <group-ref>insight</group-ref>
+    <group-ref>application</group-ref>
+    <group-ref>policy</group-ref>
+    <group-ref>security</group-ref>
+    <group-ref>trending</group-ref>
+  </group>
 
-        <group name='clm-server-report'>
-          <group-ref>report</group-ref>
-        </group>
+  <group name='clm-server-report'>
+    <group-ref>report</group-ref>
+  </group>
 
-        <group name='clm-server-util'>
-          <group-ref>util</group-ref>
-        </group>
+  <group name='clm-server-util'>
+    <group-ref>util</group-ref>
+  </group>
 
-	<group name='cip'>
-		<css>/cip/cip-claim-component.css</css>
-		<css>/cip/cip-label-editor.css</css>
-		<css>/cip/cip-policy-violations.css</css>
-		<css>/cip/cip-license-editor.css</css>
-	</group>
-	
-	<group name='security'>
-		<css>/user/user.css</css>
-	</group>
+  <group name='cip'>
+    <css>/cip/cip-claim-component.css</css>
+    <css>/cip/cip-label-editor.css</css>
+    <css>/cip/cip-policy-violations.css</css>
+    <css>/cip/cip-license-editor.css</css>
+  </group>
 
-        <group name='trending'>
-          <css>/trending/trending.css</css>
-        </group>
+  <group name='security'>
+    <css>/user/user.css</css>
+  </group>
+
+  <group name='trending'>
+    <css>/trending/trending.css</css>
+  </group>
 </groups>

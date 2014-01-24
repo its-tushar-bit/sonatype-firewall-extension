@@ -9,6 +9,36 @@
 <groups xmlns="http://www.isdc.ro/wro"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://www.isdc.ro/wro wro.xsd">
+  <group name='configuration'>
+    <js>/configuration/ConfigurationController.js</js>
+    <js>/configuration/LdapConfigurationController.js</js>
+    <js>/configuration/ProductLicenseController.js</js>
+    <js>/security/UserModule.js</js>
+  </group>
+
+  <group name='core'>
+    <js>/assets/DashboardHeader.js</js>
+    <js>/assets/DashboardModule.js</js>
+    <js>/assets/EditorTools.js</js>
+    <js>/assets/ListEditor.js</js>
+    <js>/assets/ManagementApp.js</js>
+    <js>/assets/PolicyEditor.js</js>
+    <js>/assets/ReportApp.js</js>
+    <js>/assets/Resource.js</js>
+  </group>
+
+  <group name='css'>
+    <css>/applications/application.css</css>
+    <css>/assets/app-security.css</css>
+    <css>/assets/insight.css</css>
+    <css>/assets/management.css</css>
+    <css>/assets/sonatype-icons.css</css>
+    <css>/assets/threat.css</css>
+    <css>/policy/labels.css</css>
+    <css>/policy/policy.css</css>
+    <css>/trending/trending.css</css>
+    <css>/user/user.css</css>
+  </group>
 
   <group name='lib'>
     <css>/lib/bootstrap/bootstrap-2.3.1.min.css</css>
@@ -18,29 +48,14 @@
     <css>/assets/glyphicons-sonatype.css</css>
   </group>
 
-  <group name='insight'>
-    <css>/assets/threat.css</css>
-    <css>/assets/insight.css</css>
-    <css>/assets/sonatype-icons.css</css>
+  <group name='policy'>
     <js>/applications/ApplicationController.js</js>
-    <js>/assets/DashboardHeader.js</js>
-    <js>/assets/DashboardModule.js</js>
-    <js>/assets/EditorTools.js</js>
-    <js>/assets/ListEditor.js</js>
-    <js>/assets/ManagementApp.js</js>
-    <js>/assets/PolicyEditor.js</js>
-    <js>/assets/ReportApp.js</js>
-    <js>/assets/Resource.js</js>
-    <js>/configuration/ConfigurationController.js</js>
-    <js>/configuration/LdapConfigurationController.js</js>
-    <js>/configuration/ProductLicenseController.js</js>
     <js>/organization/OrganizationController.js</js>
     <js>/policy/AppSecurityController.js</js>
     <js>/policy/LabelController.js</js>
     <js>/policy/LicenseThreatGroupsController.js</js>
     <js>/policy/PolicyController.js</js>
     <js>/policy/TagController.js</js>
-    <js>/security/UserModule.js</js>
   </group>
 
   <group name='report'>
@@ -60,32 +75,9 @@
     <js>/util/Stores.js</js>
   </group>
 
-  <group name='policy'>
-    <css>/assets/app-security.css</css>
-    <css>/policy/labels.css</css>
-    <css>/policy/policy.css</css>
-    <css>/assets/management.css</css>
-  </group>
-
-  <group name='application'>
-    <css>/applications/application.css</css>
-  </group>
-
-  <group name='clm-server'>
+  <group name='style'>
     <group-ref>lib</group-ref>
-    <group-ref>insight</group-ref>
-    <group-ref>application</group-ref>
-    <group-ref>policy</group-ref>
-    <group-ref>security</group-ref>
-    <group-ref>trending</group-ref>
-  </group>
-
-  <group name='clm-server-report'>
-    <group-ref>report</group-ref>
-  </group>
-
-  <group name='clm-server-util'>
-    <group-ref>util</group-ref>
+    <group-ref>css</group-ref>
   </group>
 
   <group name='cip'>
@@ -93,13 +85,5 @@
     <css>/cip/cip-label-editor.css</css>
     <css>/cip/cip-policy-violations.css</css>
     <css>/cip/cip-license-editor.css</css>
-  </group>
-
-  <group name='security'>
-    <css>/user/user.css</css>
-  </group>
-
-  <group name='trending'>
-    <css>/trending/trending.css</css>
   </group>
 </groups>

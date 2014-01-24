@@ -54,6 +54,8 @@ public class ScanClientTest
     Configuration config = brain.getClientConfiguration();
     ScanReceipt receipt = new ScanClient(config, APP_ID).uploadCiScan(tmpDir.newFile("scan.xml.gz"));
     assertEquals("SCAN-ID", receipt.getScanId());
+    assertEquals("ui/links/application/ScanClientTest_AppId/report/SCAN-ID", receipt.getReportUrl());
+    assertEquals("ui/links/application/ScanClientTest_AppId/report/SCAN-ID/pdf", receipt.getPdfUrl());
   }
 
   @Test
@@ -75,6 +77,7 @@ public class ScanClientTest
     ScanReceipt receipt = new ScanClient(config, APP_ID).uploadRepoManScan(tmpDir.newFile("scan.xml.gz"));
     assertEquals("SCAN-ID", receipt.getScanId());
     assertEquals("ui/links/application/ScanClientTest_AppId/report/SCAN-ID", receipt.getReportUrl());
+    assertEquals("ui/links/application/ScanClientTest_AppId/report/SCAN-ID/pdf", receipt.getPdfUrl());
   }
 
   @Test

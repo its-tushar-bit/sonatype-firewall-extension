@@ -16,6 +16,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 
 import com.sonatype.insight.brain.product.license.UnlicensedPath;
+import com.sonatype.insight.brain.report.ReportResource;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightBrainService;
 
@@ -38,6 +39,8 @@ public class UserInterfaceLinksResource
   public static final String MANAGEMENT_PATH = "{ownerType: application|organization}/{ownerId}/management";
 
   public static final String REPORT_PATH = "application/{applicationPublicId}/report/{scanId}";
+
+  public static final String PDF_PATH = "application/{applicationPublicId}/report/{scanId}/pdf";
 
   private final BaseUrl baseUrl;
 
@@ -71,10 +74,33 @@ public class UserInterfaceLinksResource
   }
 
   /**
-   * Gets the relative URL to the stable hyperlink for the report of the given application and scan.
+   * @since 1.9
+   */
+  @GET
+  @Path(PDF_PATH)
+  public Response linkToPdf(@PathParam("applicationPublicId") String applicationPublicId,
+      @PathParam("scanId") String scanId)
+  {
+    UriBuilder uriBuilder = baseUrl.redirect();
+    uriBuilder.path(ReportResource.SERVICE_PATH).path(ReportResource.PRINT_PATH);
+    return redirect(uriBuilder.build(applicationPublicId, scanId));
+  }
+
+  /**
+   * Gets the relative URL to the stable hyperlink for the HTML report of the given application and scan.
    */
   public static String getReportUrl(String applicationPublicId, String scanId) {
     return UriBuilder.fromPath(UserInterfaceLinksResource.SERVICE_PATH + '/' + UserInterfaceLinksResource.REPORT_PATH)
+        .build(applicationPublicId, scanId).toString();
+  }
+
+  /**
+   * Gets the relative URL to the stable hyperlink for the PDF report of the given application and scan.
+   * 
+   * @since 1.9
+   */
+  public static String getPdfUrl(String applicationPublicId, String scanId) {
+    return UriBuilder.fromPath(UserInterfaceLinksResource.SERVICE_PATH + '/' + UserInterfaceLinksResource.PDF_PATH)
         .build(applicationPublicId, scanId).toString();
   }
 }

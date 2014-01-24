@@ -21,6 +21,7 @@ import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
+import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.scan.cli.RestClientFactory.RestClient;
 import com.sonatype.insight.scan.model.Scan;
 import com.sonatype.insight.scan.model.ScanConfiguration;
@@ -46,9 +47,12 @@ import org.junit.rules.TestName;
 import org.mockito.ArgumentCaptor;
 import org.slf4j.LoggerFactory;
 
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
@@ -137,6 +141,7 @@ public class PolicyEvaluatorTest
     ScanReceipt receipt = new ScanReceipt();
     receipt.setScanId("the-scan-id");
     receipt.setReportUrl("the-report-url");
+    receipt.setPdfUrl("the-pdf-url");
     receipt.setTimeToReport(0L);
     return receipt;
   }
@@ -447,5 +452,23 @@ public class PolicyEvaluatorTest
     Parameters params = new Parameters("-s", "http://localhost:8070/", "-i", "the-app-id",
         "src/test/data/artifact.jar", "-t", "invalid-stage-id");
     assertNotNull("Invalid stage id was not detected", params.getError());
+  }
+
+  @Test
+  public void testJsonExport() throws Exception {
+    when(restClient.getApplications()).thenReturn(Collections.singletonMap("the-app-id", "My App"));
+    when(restClient.uploadScan(eq("the-app-id"), any(File.class))).thenReturn(newReceipt());
+    when(restClient.evaluatePolicy(eq("the-app-id"), eq("the-scan-id"), eq(Stage.ID_BUILD))).thenReturn(
+        new PolicyEvaluationResult());
+    File jsonFile = new File(tmpDir.getRoot(), "not-yet-existent/results.json");
+    Parameters params = new Parameters("-s", "http://localhost:8070/", "-i", "the-app-id",
+        "src/test/data/artifact.jar", "-r", jsonFile.getAbsolutePath());
+    evaluator.run(params);
+    ResultData data = JsonUtils.read(jsonFile, ResultData.class);
+    assertThat(data, is(notNullValue()));
+    assertThat(data.applicationId, is("the-app-id"));
+    assertThat(data.scanId, is("the-scan-id"));
+    assertThat(data.reportHtmlUrl, is("http://localhost:8070/the-report-url"));
+    assertThat(data.reportPdfUrl, is("http://localhost:8070/the-pdf-url"));
   }
 }

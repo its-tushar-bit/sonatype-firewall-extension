@@ -45,4 +45,12 @@ public class UserInterfaceLinksResourceTest
     Response response = get(UserInterfaceLinksResource.REPORT_PATH, "app id", "scan id");
     assertRedirect(response, "assets/reports.html#/reports/app%20id/scan%20id");
   }
+
+  @Test
+  public void testLinkToPdf() throws Exception {
+    assertThat(UserInterfaceLinksResource.getPdfUrl("app id", "scan id"), is(UserInterfaceLinksResource.SERVICE_PATH
+        + "/application/app%20id/report/scan%20id/pdf"));
+    Response response = get(UserInterfaceLinksResource.PDF_PATH, "app id", "scan id");
+    assertRedirect(response, "rest/report/app%20id/scan%20id/printReport");
+  }
 }

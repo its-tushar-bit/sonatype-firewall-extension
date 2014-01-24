@@ -74,6 +74,10 @@ public class Parameters
       + Stage.ID_PROCURE + "|" + Stage.ID_DEVELOP + "|" + Stage.ID_BUILD + "|" + Stage.ID_STAGE_RELEASE + "|" + Stage.ID_RELEASE + "|" + Stage.ID_OPERATE)
   private Stage stage = new Stage(Stage.ID_BUILD);
 
+  @Parameter(names = { "-r", "--result-file" }, description = "Path to a JSON file where the results "
+      + "of the policy evaluation will be stored in a machine-readable format")
+  private File resultFile;
+
   @Parameter(names = { "-X", "--debug" }, description = "Enable debug logs", hidden = true)
   private boolean debug;
 
@@ -201,6 +205,10 @@ public class Parameters
 
   public Stage getStage() {
     return stage;
+  }
+
+  public File getResultFile() {
+    return resultFile;
   }
 
   public boolean isDebug() {

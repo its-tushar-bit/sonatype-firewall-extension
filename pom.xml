@@ -34,7 +34,7 @@
     <shiro.version>1.2.2</shiro.version>
     <sisu-inject.version>0.1.1</sisu-inject.version>
     <sisu-guice.version>3.1.6</sisu-guice.version>
-    <clm.model.version>1.4.2</clm.model.version>
+    <clm.model.version>1.4.3-SNAPSHOT</clm.model.version>
     <dropwizard.version>0.6.2</dropwizard.version>
     <!-- The jersey.version must match the jersey version used by dropwizard -->
     <jersey.version>1.17.1</jersey.version>

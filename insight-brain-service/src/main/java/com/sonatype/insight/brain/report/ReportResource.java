@@ -70,6 +70,8 @@ public class ReportResource
 {
   public static final String SERVICE_PATH = "rest/report/{applicationPublicId}/{scanId}";
 
+  public static final String PRINT_PATH = "printReport";
+
   private static final Logger log = LoggerFactory.getLogger(ReportResource.class);
 
   private static final ConcurrentMap<String, Lock> LOCK_TABLE = CacheBuilder.newBuilder().weakValues()
@@ -204,7 +206,7 @@ public class ReportResource
   }
 
   @GET
-  @Path("printReport")
+  @Path(PRINT_PATH)
   @Produces("application/pdf")
   @Authorize(permission = Permission.READ)
   public Response printReport(

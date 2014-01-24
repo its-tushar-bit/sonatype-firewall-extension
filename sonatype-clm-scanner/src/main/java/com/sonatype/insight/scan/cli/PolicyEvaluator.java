@@ -23,6 +23,7 @@ import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.insight.client.utils.ClientException;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.client.utils.SimpleAuthentication;
+import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.scan.cli.RestClientFactory.RestClient;
 
 import org.apache.http.client.HttpResponseException;
@@ -211,6 +212,21 @@ public class PolicyEvaluator
     }
 
     String reportUrl = receipt.resolveReportUrl(params.getServerUrl());
+
+    if (params.getResultFile() != null) {
+      ResultData resultData = new ResultData();
+      resultData.applicationId = params.getApplicationId();
+      resultData.scanId = receipt.getScanId();
+      resultData.reportHtmlUrl = reportUrl;
+      resultData.reportPdfUrl = receipt.resolvePdfUrl(params.getServerUrl());
+      try {
+        JsonUtils.write(params.getResultFile(), resultData);
+      }
+      catch (IOException e) {
+        log.error("The policy evaluation results could not be exported to {}", params.getResultFile(), e);
+        throw new ExitException(params.isIgnoreSystemErrors(), e);
+      }
+    }
 
     if (!PolicyAction.NONE.equals(outcome)) {
       log.info("");

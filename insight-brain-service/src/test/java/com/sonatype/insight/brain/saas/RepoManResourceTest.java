@@ -53,6 +53,8 @@ public class RepoManResourceTest
     assertEquals(Long.valueOf(30), scanReceipt.getTimeToReport());
     assertEquals("ui/links/application/RepoManResourceTest_AppId/report/f75365d9d93b4f1ea2dd8457a25dc44d",
         scanReceipt.getReportUrl());
+    assertEquals("ui/links/application/RepoManResourceTest_AppId/report/f75365d9d93b4f1ea2dd8457a25dc44d/pdf",
+        scanReceipt.getPdfUrl());
   }
 
   @Test

@@ -75,6 +75,7 @@ public class ScanUploader
 
     // SaaS knows nothing about where CLM Server stores reports, add this info to the receipt.
     receipt.setReportUrl(UserInterfaceLinksResource.getReportUrl(applicationPublicId, receipt.getScanId()));
+    receipt.setPdfUrl(UserInterfaceLinksResource.getPdfUrl(applicationPublicId, receipt.getScanId()));
 
     return receipt;
   }

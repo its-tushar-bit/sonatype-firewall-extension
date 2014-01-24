@@ -150,8 +150,6 @@ class ScanTask
           + errorId + " - Access CLM Log for details.";
     }
 
-    ticket.isDone = (state == State.DONE);
-
     touched = System.currentTimeMillis();
 
     return ticket;

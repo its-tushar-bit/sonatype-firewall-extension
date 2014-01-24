@@ -84,7 +84,7 @@ public class ScanResourceTest
       Response response = AuthedRestAccess.get(url);
       assertResponseStatus(200, response);
       ScanTicket scanTicket = fromJson(response, ScanTicket.class);
-      if (scanTicket.isDone) {
+      if (scanTicket.currentStep >= scanTicket.totalSteps) {
         System.out.println("Scan task " + scanTicketId + " for appPublicId " + appPublicId + " was finished after "
             + (System.currentTimeMillis() - start) + " ms");
         return;

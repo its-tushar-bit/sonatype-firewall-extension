@@ -25,6 +25,4 @@ public class ScanTicket
   public String error;
 
   public String scanId;
-
-  public boolean isDone;
 }

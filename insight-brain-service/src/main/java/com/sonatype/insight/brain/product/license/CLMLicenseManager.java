@@ -24,6 +24,8 @@ import org.sonatype.licensing.product.ProductLicenseKey;
 import org.sonatype.licensing.product.ProductLicenseManager;
 import org.sonatype.licensing.product.util.LicenseFingerprinter;
 
+import org.apache.commons.lang.StringUtils;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,6 +33,8 @@ import org.slf4j.LoggerFactory;
 @Singleton
 public class CLMLicenseManager
 {
+  private static final String FEATURE_POLICY_MONITORING = "policyMonitoring";
+
   private final class CachedLicenseData
       extends ProductLicenseDetails
   {
@@ -38,13 +42,14 @@ public class CLMLicenseManager
 
     private final long expirationTimestamp;
 
-    public CachedLicenseData(final String fingerprint, Integer applicationLimit,
+    public CachedLicenseData(final String fingerprint, Integer applicationLimit, final String[] features,
         final Set<CLMEnforcementPoint> enforcementPoints, final long expirationTimestamp)
     {
       this.fingerprint = fingerprint;
       this.expirationTimestamp = expirationTimestamp;
       super.setApplicationLimit(applicationLimit);
       super.setEnforcementPoints(enforcementPoints.toArray(new CLMEnforcementPoint[0]));
+      super.setFeatures(features);
     }
 
     public String getFingerprint() {
@@ -54,11 +59,12 @@ public class CLMLicenseManager
 
   public final class LicenseSummary
   {
-
     public final long expiryTimestamp;
+    public final String[] features;
 
-    public LicenseSummary(long timestamp) {
+    public LicenseSummary(long timestamp, String[] features) {
       this.expiryTimestamp = timestamp;
+      this.features = features;
     }
   }
 
@@ -110,6 +116,19 @@ public class CLMLicenseManager
     return licenseCache.getApplicationLimit();
   }
 
+  public boolean hasPolicyMonitoring() {
+    String[] features = licenseCache.getFeatures();
+
+    if (features != null) {
+      for (String feature : features) {
+        if (FEATURE_POLICY_MONITORING.equals(feature)) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
   /**
    * Get whether the license is currently valid
    * 
@@ -159,7 +178,7 @@ public class CLMLicenseManager
   }
 
   public LicenseSummary getLicenseSummary() {
-    return new LicenseSummary(this.licenseCache.expirationTimestamp);
+    return new LicenseSummary(this.licenseCache.expirationTimestamp, this.licenseCache.getFeatures());
   }
 
   private void populateLicenseCache() throws LicensingException {
@@ -185,8 +204,11 @@ public class CLMLicenseManager
       }
     }
 
-    licenseCache = new CachedLicenseData(licenseFingerprint, applicationCount, enforcementPoints, key
-        .getExpirationDate().getTime());
+    String features = getProperty(key, ProductLicenseDetails.PROPERTY_FEATURES);
+
+    licenseCache = new CachedLicenseData(licenseFingerprint, applicationCount,
+        StringUtils.isNotBlank(features) ? features.split(",") : null, enforcementPoints, key.getExpirationDate()
+            .getTime());
   }
 
   private String getPropertyNotNull(ProductLicenseKey key, String property) throws LicensingException {
@@ -196,8 +218,12 @@ public class CLMLicenseManager
     }
     return value;
   }
+  
+  private String getProperty(ProductLicenseKey key, String property) {
+    return key.getProperties().getProperty(property);
+  }
 
   private void clearLicenseCache() {
-    licenseCache = new CachedLicenseData(null, 0, Collections.<CLMEnforcementPoint> emptySet(), 0);
+    licenseCache = new CachedLicenseData(null, 0, new String[0], Collections.<CLMEnforcementPoint> emptySet(), 0);
   }
 }

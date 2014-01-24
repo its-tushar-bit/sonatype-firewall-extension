@@ -25,6 +25,8 @@ import org.sonatype.licensing.product.ProductLicenseKey;
 import org.sonatype.licensing.product.ProductLicenseManager;
 import org.sonatype.licensing.product.internal.DefaultLicenseKey;
 
+import org.apache.commons.lang.StringUtils;
+
 /**
  * Simple replacement for a ProductLicenseManager.
  */
@@ -38,6 +40,8 @@ public class TestProductLicenseManager
   private int appCount = 100;
 
   private Date expirationDate = new Date(System.currentTimeMillis() + 600 * 1000);
+  
+  private String[] features = { "policyMonitoring" };
 
   private Set<CLMEnforcementPoint> enforcementPoints = new HashSet<CLMEnforcementPoint>();
 
@@ -92,6 +96,7 @@ public class TestProductLicenseManager
       sb.setLength(sb.length() - 1);
     }
 
+    properties.put(ProductLicenseDetails.PROPERTY_FEATURES, StringUtils.join(features, ","));
     properties.put(ProductLicenseDetails.PROPERTY_ENFORCEMENT_POINTS, sb.toString());
     properties.put(ProductLicenseDetails.PROPERTY_APPLICATION_LIMIT, Integer.toString(appCount));
     key = new DefaultLicenseKey(new Features(featureMap));
@@ -159,6 +164,13 @@ public class TestProductLicenseManager
   public void setApplicationLimit(int applicationLimit) {
     if (valid) {
       this.appCount = applicationLimit;
+      createKey();
+    }
+  }
+  
+  public void setFeatures(String[] features) {
+    if (valid) {
+      this.features = features;
       createKey();
     }
   }

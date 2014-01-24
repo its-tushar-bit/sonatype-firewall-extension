@@ -26,6 +26,8 @@ import com.sonatype.insight.error.ErrorResponse;
 import com.sun.jersey.core.header.FormDataContentDisposition;
 import com.sun.jersey.multipart.FormDataParam;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Accepts uploads of application binaries for the purpose of scanning them.
@@ -36,6 +38,8 @@ import org.codehaus.jackson.map.ObjectMapper;
 @Path(ScanResource.SERVICE_PATH)
 public class ScanResource
 {
+  public static final Logger log = LoggerFactory.getLogger(ScanResource.class);
+
   public static final String SERVICE_PATH = "rest/scan/{applicationPublicId}";
 
   private final ScanService scanService;
@@ -59,6 +63,8 @@ public class ScanResource
       @QueryParam("noFormData") boolean noFormData) 
           throws Exception
   {
+    log.debug("Binary being uploaded for application public id '{}'", appPublicId);
+
     try {
       ScanTicket result = scanService.scanBinary(appPublicId, is, fileDetail.getFileName(), new Stage(stageId),
           sendNotifications);

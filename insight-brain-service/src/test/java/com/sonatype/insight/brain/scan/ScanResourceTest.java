@@ -26,6 +26,7 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.startsWith;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 
 public class ScanResourceTest
     extends AbstractResourceTest
@@ -54,7 +55,7 @@ public class ScanResourceTest
 
   @Before
   public void init() {
-    app = tempEntity.newApplication(tempEntity.newOrganization().getId());
+    app = tempEntity.newApplication("ScanResourceTest", "ScanResourceTest", tempEntity.newOrganization().getId());
   }
 
   @Test
@@ -64,6 +65,7 @@ public class ScanResourceTest
     ScanTicket result = fromJson(response, ScanTicket.class);
     assertThat(result, is(notNullValue()));
     assertThat(result.ticketId, is(notNullValue()));
+    waitForScanTaskToBeProcessed(app.getPublicId(), result.ticketId);
   }
 
   @Test
@@ -72,5 +74,24 @@ public class ScanResourceTest
     assertResponseStatus(200, response);
     assertThat(response.getContentType(), startsWith("text/plain"));
     assertThat(response.getResponseBody(), is("Could not find an application with public id bad-app-id."));
+  }
+
+  private void waitForScanTaskToBeProcessed(String appPublicId, String scanTicketId) throws Exception {
+    // Allow 10 seconds for the scan task to be processed
+    String url = getRestUrl(ScanResource.SERVICE_PATH, appPublicId) + "/" + scanTicketId;
+    long start = System.currentTimeMillis();
+    while (System.currentTimeMillis() - start <= 10000) {
+      Response response = AuthedRestAccess.get(url);
+      assertResponseStatus(200, response);
+      ScanTicket scanTicket = fromJson(response, ScanTicket.class);
+      if (scanTicket.isDone) {
+        System.out.println("Scan task " + scanTicketId + " for appPublicId " + appPublicId + " was finished after "
+            + (System.currentTimeMillis() - start) + " ms");
+        return;
+      }
+      Thread.sleep(10);
+    }
+    fail("Scan task " + scanTicketId + " for appPublicId " + appPublicId + " was not finished after "
+        + (System.currentTimeMillis() - start) + " ms");
   }
 }

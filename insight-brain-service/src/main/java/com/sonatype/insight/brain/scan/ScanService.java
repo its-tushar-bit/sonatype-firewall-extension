@@ -52,6 +52,8 @@ class ScanService
   public ScanTicket scanBinary(@AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String appPublicId,
       InputStream is, String filename, Stage stage, boolean sendNotifications) throws IOException
   {
+    log.debug("Request to scan binary '{}' for application public id '{}'", filename, appPublicId);
+
     if (!Stage.isValidStageTypeId(stage.getStageTypeId())) {
       throw new BadRequestException("Invalid CLM stage: " + stage.getStageTypeId());
     }

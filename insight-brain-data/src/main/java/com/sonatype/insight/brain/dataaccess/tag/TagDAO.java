@@ -13,7 +13,10 @@ import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.DataAccessException;
 import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.NameHelper;
+import com.sonatype.insight.brain.model.tag.ApplicationTag;
+import com.sonatype.insight.brain.model.tag.PolicyTag;
 import com.sonatype.insight.brain.model.tag.Tag;
+import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.codehaus.plexus.util.StringUtils;
@@ -71,6 +74,15 @@ public class TagDAO
     return getList(sQuery, applicationId);
   }
 
+  /**
+   * Retrieve list of Tags applied to specified Policy
+   */
+  public List<Tag> getByPolicyId(String policyId) {
+    String sQuery = "SELECT tag FROM PolicyTag policyTag, Tag tag" + //
+        " WHERE policyTag.tagId=tag.id AND policyTag.policyId=?1";
+    return getList(sQuery, policyId);
+  }
+
   private void validateDescription(String description) {
     if (StringUtils.isEmpty(description)) {
       throw new InvalidTagException("The description is required.");
@@ -122,5 +134,23 @@ public class TagDAO
     finally {
       close(em);
     }
+  }
+
+  @Override
+  public void delete(EntityManager em, Tag tag) {
+    // Do not allow the delete if the tag is applied to policies
+    List<PolicyTag> policyTags = new PolicyTagDAO().getByTagId(em, tag.getId());
+    if (policyTags.size() > 0) {
+      throw new BadRequestException("Cannot delete the tag because it is associated with policies");
+    }
+
+    // Cascade to application tags
+    ApplicationTagDAO applicationTagDAO = new ApplicationTagDAO();
+    List<ApplicationTag> appTags = applicationTagDAO.getByTagId(em, tag.getId());
+    for (ApplicationTag appTag : appTags) {
+      applicationTagDAO.delete(em, appTag);
+    }
+
+    super.delete(em, tag);
   }
 }

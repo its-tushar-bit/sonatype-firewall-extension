@@ -19,6 +19,8 @@ import java.util.concurrent.locks.Lock;
 
 import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.tag.ApplicationTagDAO;
+import com.sonatype.insight.brain.dataaccess.tag.PolicyTagDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.NameHelper;
@@ -27,6 +29,8 @@ import com.sonatype.insight.brain.model.policy.InvalidPolicyException;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.ValidationResult;
+import com.sonatype.insight.brain.model.tag.ApplicationTag;
+import com.sonatype.insight.brain.model.tag.PolicyTag;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.json.store.JsonStore;
 import com.sonatype.insight.json.store.JsonUtils;
@@ -272,12 +276,38 @@ public class PolicyDAO
 
   public List<Policy> getApplicableByOwnerId(final String ownerId) {
     List<Policy> result = new ArrayList<Policy>();
+
     result.addAll(getByOwnerId(ownerId));
+
     Application application = new ApplicationDAO().getById(ownerId);
-    if (application != null && application.getOrganizationId() != null) {
-      result.addAll(getByOwnerId(application.getOrganizationId()));
+    if (application != null) {
+      // ownerId is an app id
+      List<ApplicationTag> appTags = new ApplicationTagDAO().getByApplicationId(ownerId);
+      PolicyTagDAO policyTagDAO = new PolicyTagDAO();
+      List<Policy> orgPolicies = getByOwnerId(application.getOrganizationId());
+      for (Policy orgPolicy : orgPolicies) {
+        List<PolicyTag> policyTags = policyTagDAO.getByPolicyId(orgPolicy.getId());
+        if (policyTags.isEmpty() || intersects(policyTags, appTags)) {
+          result.add(orgPolicy);
+        }
+      }
     }
     return result;
+  }
+
+  private boolean intersects(List<PolicyTag> policyTags, List<ApplicationTag> appTags) {
+    if (appTags.isEmpty()) {
+      return false;
+    }
+
+    for (PolicyTag policyTag : policyTags) {
+      for (ApplicationTag appTag : appTags) {
+        if (policyTag.getTagId() == appTag.getTagId()) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 
   public void validateNamesWithinHierarchy(final String orgId, final String appId, final List<Lock> readLocks) {

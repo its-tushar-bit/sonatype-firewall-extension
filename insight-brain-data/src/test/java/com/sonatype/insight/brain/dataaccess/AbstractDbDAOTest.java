@@ -9,10 +9,12 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 import com.sonatype.insight.brain.dataaccess.tag.ApplicationTagDAO;
+import com.sonatype.insight.brain.dataaccess.tag.PolicyTagDAO;
 import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.tag.ApplicationTag;
+import com.sonatype.insight.brain.model.tag.PolicyTag;
 import com.sonatype.insight.brain.model.tag.Tag;
 
 import org.junit.After;
@@ -67,6 +69,7 @@ public abstract class AbstractDbDAOTest
   protected Tag createTag(String name, String description, String parentId) {
     Tag tag = new Tag(parentId, name, description);
     new TagDAO().insert(tag);
+    tagsToDelete.add(tag);
     return tag;
   }
 
@@ -76,8 +79,26 @@ public abstract class AbstractDbDAOTest
     return appTag;
   }
 
+  protected PolicyTag createPolicyTag(String policyId, String tagId) {
+    PolicyTag policyTag = new PolicyTag(policyId, tagId);
+    new PolicyTagDAO().insert(policyTag);
+    return policyTag;
+  }
+
   @After
   public void tearDown() {
+    TagDAO tagDAO = new TagDAO();
+    PolicyTagDAO policyTagDAO = new PolicyTagDAO();
+    for (Tag tag : tagsToDelete) {
+      tag = tagDAO.getById(tag.getId());
+      if (tag != null) {
+        for (PolicyTag policyTag : policyTagDAO.getByTagId(tag.getId())) {
+          policyTagDAO.delete(policyTag);
+        }
+        tagDAO.delete(tag);
+      }
+    }
+
     ApplicationDAO applicationDAO = new ApplicationDAO();
     for (Application application : applicationsToDelete) {
       application = applicationDAO.getById(application.getId());
@@ -91,14 +112,6 @@ public abstract class AbstractDbDAOTest
       organization = organizationDAO.getById(organization.getId());
       if (organization != null) {
         organizationDAO.delete(organization);
-      }
-    }
-
-    TagDAO tagDAO = new TagDAO();
-    for (Tag tag : tagsToDelete) {
-      tag = tagDAO.getById(tag.getId());
-      if (tag != null) {
-        tagDAO.delete(tag);
       }
     }
 

@@ -9,10 +9,7 @@ import java.io.File;
 import java.util.List;
 import java.util.Locale;
 
-import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
-import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
-import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.InvalidPolicyException;
@@ -20,8 +17,8 @@ import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityConditionType;
+import com.sonatype.insight.brain.model.tag.Tag;
 
-import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -31,38 +28,17 @@ import org.junit.rules.TemporaryFolder;
 import static org.junit.Assert.assertEquals;
 
 public class PolicyDAOTest
+    extends AbstractDbDAOTest
 {
   @Rule
   public TemporaryFolder tempDir = new TemporaryFolder();
-
-  private Organization org;
-
-  private Application app;
 
   private PolicyDAO policyDAO;
 
   @Before
   public void setUp() throws Exception {
-    org = new Organization("orgName");
-    new OrganizationDAO().insert(org);
-    app = new Application();
-    app.setName("appName");
-    app.setPublicId("appId");
-    app.setOrganizationId(org.getId());
-    new ApplicationDAO().insert(app);
+    createDefaultApplication();
     policyDAO = new PolicyDAO(tempDir.newFolder());
-  }
-
-  @After
-  public void tearDown() throws Exception {
-    ApplicationDAO appDAO = new ApplicationDAO();
-    for (Application app : appDAO.getAll()) {
-      appDAO.delete(app);
-    }
-    OrganizationDAO orgDAO = new OrganizationDAO();
-    for (Organization org : orgDAO.getAll()) {
-      orgDAO.delete(org);
-    }
   }
 
   @Test
@@ -142,28 +118,28 @@ public class PolicyDAOTest
     // Add a policy at app level
     String policyName = "PolicyDAOTest new policy";
     Policy policy = newPolicy(policyName);
-    policyDAO.insert(app.getId(), policy);
+    policyDAO.insert(application.getId(), policy);
 
     // Add another policy with the same name at org level
     policy = newPolicy(policyName);
     try {
-      policyDAO.insert(org.getId(), policy);
+      policyDAO.insert(organization.getId(), policy);
       Assert.fail("Expected InvalidPolicyException");
     }
     catch (InvalidPolicyException expected) {
-      Assert
-          .assertEquals("A policy with the same name already exists for application 'appName'", expected.getMessage());
+      Assert.assertEquals("A policy with the same name already exists for application '" + application.getName() + "'",
+          expected.getMessage());
     }
 
     // Add another policy with a case-/whitespace-equivalent name at org level
     policy = newPolicy(policyName.replaceAll("\\s", "").toLowerCase(Locale.ENGLISH));
     try {
-      policyDAO.insert(org.getId(), policy);
+      policyDAO.insert(organization.getId(), policy);
       Assert.fail("Expected InvalidPolicyException");
     }
     catch (InvalidPolicyException expected) {
-      Assert
-          .assertEquals("A policy with the same name already exists for application 'appName'", expected.getMessage());
+      Assert.assertEquals("A policy with the same name already exists for application '" + application.getName() + "'",
+          expected.getMessage());
     }
   }
 
@@ -172,12 +148,12 @@ public class PolicyDAOTest
     // Add a policy at org level
     String policyName = "PolicyDAOTest new policy";
     Policy policy = newPolicy(policyName);
-    policyDAO.insert(org.getId(), policy);
+    policyDAO.insert(organization.getId(), policy);
 
     // Add another policy with the same name at app level
     policy = newPolicy(policyName);
     try {
-      policyDAO.insert(app.getId(), policy);
+      policyDAO.insert(application.getId(), policy);
       Assert.fail("Expected InvalidPolicyException");
     }
     catch (InvalidPolicyException expected) {
@@ -188,7 +164,7 @@ public class PolicyDAOTest
     // Add another policy with a case-/whitespace-equivalent name at app level
     policy = newPolicy(policyName.replaceAll("\\s", "").toLowerCase(Locale.ENGLISH));
     try {
-      policyDAO.insert(app.getId(), policy);
+      policyDAO.insert(application.getId(), policy);
       Assert.fail("Expected InvalidPolicyException");
     }
     catch (InvalidPolicyException expected) {
@@ -250,16 +226,16 @@ public class PolicyDAOTest
     // Add a policy at org level
     String policyName = "PolicyDAOTest new policy";
     Policy policy = newPolicy(policyName);
-    policyDAO.insert(org.getId(), policy);
+    policyDAO.insert(organization.getId(), policy);
 
     // Add a policy at app level
     policy = newPolicy("unique-name");
-    policyDAO.insert(app.getId(), policy);
+    policyDAO.insert(application.getId(), policy);
 
     // Rename policy at app level
     policy.setName(policyName);
     try {
-      policyDAO.update(app.getId(), policy);
+      policyDAO.update(application.getId(), policy);
       Assert.fail("Expected InvalidPolicyException");
     }
     catch (InvalidPolicyException expected) {
@@ -270,7 +246,7 @@ public class PolicyDAOTest
     // Rename policy at app level with a case-/whitespace-equivalent name
     policy.setName(policyName.replaceAll("\\s", "").toLowerCase(Locale.ENGLISH));
     try {
-      policyDAO.update(app.getId(), policy);
+      policyDAO.update(application.getId(), policy);
       Assert.fail("Expected InvalidPolicyException");
     }
     catch (InvalidPolicyException expected) {
@@ -284,32 +260,32 @@ public class PolicyDAOTest
     // Add a policy at app level
     String policyName = "PolicyDAOTest new policy";
     Policy policy = newPolicy(policyName);
-    policyDAO.insert(app.getId(), policy);
+    policyDAO.insert(application.getId(), policy);
 
     // Add a policy at org level
     policy = newPolicy("unique-name");
-    policyDAO.insert(org.getId(), policy);
+    policyDAO.insert(organization.getId(), policy);
 
     // Rename policy at org level
     policy.setName(policyName);
     try {
-      policyDAO.update(org.getId(), policy);
+      policyDAO.update(organization.getId(), policy);
       Assert.fail("Expected InvalidPolicyException");
     }
     catch (InvalidPolicyException expected) {
-      Assert
-          .assertEquals("A policy with the same name already exists for application 'appName'", expected.getMessage());
+      Assert.assertEquals("A policy with the same name already exists for application '" + application.getName() + "'",
+          expected.getMessage());
     }
 
     // Rename policy at org level with a case-/whitespace-equivalent name
     policy.setName(policyName.replaceAll("\\s", "").toLowerCase(Locale.ENGLISH));
     try {
-      policyDAO.update(org.getId(), policy);
+      policyDAO.update(organization.getId(), policy);
       Assert.fail("Expected InvalidPolicyException");
     }
     catch (InvalidPolicyException expected) {
-      Assert
-          .assertEquals("A policy with the same name already exists for application 'appName'", expected.getMessage());
+      Assert.assertEquals("A policy with the same name already exists for application '" + application.getName() + "'",
+          expected.getMessage());
     }
   }
 
@@ -588,49 +564,63 @@ public class PolicyDAOTest
   public void testGetApplicable_Organization() {
     String policyNameOrg = "testGetApplicableOrganization";
     Policy policyOrg = newPolicy(policyNameOrg);
-    policyDAO.insert(org.getId(), policyOrg);
+    policyDAO.insert(organization.getId(), policyOrg);
     String policyNameApp = "testGetApplicableApplication";
     Policy policyApp = newPolicy(policyNameApp);
-    policyDAO.insert(app.getId(), policyApp);
+    policyDAO.insert(application.getId(), policyApp);
 
-    List<Policy> policies = policyDAO.getApplicableByOwnerId(org.getId());
+    List<Policy> policies = policyDAO.getApplicableByOwnerId(organization.getId());
     Assert.assertEquals(1, policies.size());
     Assert.assertEquals(policyNameOrg, policies.get(0).getName());
+  }
+
+  @Test
+  public void testGetApplicable_Organization_WithTags() {
+    // Must retrieve all org policies, regardless of the tags associated with them
+    Policy policyOrg1 = newPolicy("policy1");
+    policyDAO.insert(organization.getId(), policyOrg1);
+    Policy policyOrg2 = newPolicy("policy2");
+    policyDAO.insert(organization.getId(), policyOrg2);
+    
+    // One policy has a tag associated, the other doesn't
+    Tag tag = createTag("tag name", "tag description", organization.getId());
+    createPolicyTag(policyOrg1.getId(), tag.getId());
+
+    List<Policy> policies = policyDAO.getApplicableByOwnerId(organization.getId());
+    Assert.assertEquals(2, policies.size());
   }
 
   @Test
   public void testGetApplicable_Application() {
     String policyNameOrg = "testGetApplicableOrganization";
     Policy policyOrg = newPolicy(policyNameOrg);
-    policyDAO.insert(org.getId(), policyOrg);
+    policyDAO.insert(organization.getId(), policyOrg);
     String policyNameApp = "testGetApplicableApplication";
     Policy policyApp = newPolicy(policyNameApp);
-    policyDAO.insert(app.getId(), policyApp);
+    policyDAO.insert(application.getId(), policyApp);
 
-    List<Policy> policies = policyDAO.getApplicableByOwnerId(app.getId());
+    List<Policy> policies = policyDAO.getApplicableByOwnerId(application.getId());
     Assert.assertEquals(2, policies.size());
     Assert.assertEquals(policyNameApp, policies.get(0).getName());
     Assert.assertEquals(policyNameOrg, policies.get(1).getName());
   }
 
   @Test
-  public void testGetApplicable_Application_NoParentOrganization() {
-    ApplicationDAO applicationDAO = new ApplicationDAO();
-    applicationDAO.delete(app);
-    app = new Application("testGetApplicableApplicationNoParentOrganization",
-        "testGetApplicableApplicationNoParentOrganization", null /* orgId */);
-    applicationDAO.insert(app);
+  public void testGetApplicable_Application_WithTags() {
+    // Must retrieve only the org policies that match the tags associated with the app
+    Policy policyOrg1 = newPolicy("policy1");
+    policyDAO.insert(organization.getId(), policyOrg1);
+    Policy policyOrg2 = newPolicy("policy2");
+    policyDAO.insert(organization.getId(), policyOrg2);
 
-    String policyNameOrg = "testGetApplicableOrganization";
-    Policy policyOrg = newPolicy(policyNameOrg);
-    policyDAO.insert(org.getId(), policyOrg);
-    String policyNameApp = "testGetApplicableApplication";
-    Policy policyApp = newPolicy(policyNameApp);
-    policyDAO.insert(app.getId(), policyApp);
+    Tag tag1 = createTag("tag name 1", "tag description 1", organization.getId());
+    createPolicyTag(policyOrg1.getId(), tag1.getId());
+    Tag tag2 = createTag("tag name 2", "tag description 2", organization.getId());
+    createPolicyTag(policyOrg1.getId(), tag2.getId());
 
-    List<Policy> policies = policyDAO.getApplicableByOwnerId(app.getId());
+    List<Policy> policies = policyDAO.getApplicableByOwnerId(application.getId());
     Assert.assertEquals(1, policies.size());
-    Assert.assertEquals(policyNameApp, policies.get(0).getName());
+    Assert.assertEquals("policy2", policies.get(0).getName());
   }
 
   @Test

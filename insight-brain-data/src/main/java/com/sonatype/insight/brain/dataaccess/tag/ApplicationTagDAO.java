@@ -51,4 +51,20 @@ public class ApplicationTagDAO
         " WHERE entity.applicationId=?1 AND entity.tagId=?2";
     return get(sQuery, appId, tagId);
   }
+
+  public List<ApplicationTag> getByTagId(String tagId) {
+    EntityManager em = createEntityManager();
+    try {
+      return getByTagId(em, tagId);
+    }
+    finally {
+      close(em);
+    }
+  }
+
+  public List<ApplicationTag> getByTagId(EntityManager em, String tagId) {
+    String sQuery = "SELECT entity FROM ApplicationTag entity" + //
+        " WHERE entity.tagId=?1";
+    return getList(em, sQuery, tagId);
+  }
 }

@@ -14,17 +14,21 @@ import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.NameHelper;
+import com.sonatype.insight.brain.model.tag.ApplicationTag;
 import com.sonatype.insight.brain.model.tag.Tag;
+import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.apache.commons.lang.StringUtils;
 import org.junit.Before;
 import org.junit.Test;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.empty;
+import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
 /**
@@ -381,6 +385,40 @@ public class TagDAOTest
 
     assertAppliedApplicationTags(app1Tags, dao.getByApplicationId(app1.getId()));
     assertAppliedApplicationTags(app2Tags, dao.getByApplicationId(app2.getId()));
+  }
+
+  @Test
+  public void testCascadeDeleteToApplicationTags() {
+    Application app = createApplication("testCascadeDeleteToApplicationTags", "testCascadeDeleteToApplicationTags",
+        organization.getId());
+    Tag tag = createTag("testCascadeDeleteToApplicationTags name", "testCascadeDeleteToApplicationTags description",
+        organization.getId());
+
+    ApplicationTagDAO appTagDAO = new ApplicationTagDAO();
+    ApplicationTag appTag = new ApplicationTag(app.getId(), tag.getId());
+    appTagDAO.insert(appTag);
+
+    dao.delete(tag);
+
+    assertThat(appTagDAO.getByTagId(tag.getId()), is(empty()));
+  }
+
+  @Test
+  public void testDenyCascadeDeleteToPolicyTags() {
+    String policyId = "testDenyCascadeDeleteToPolicyTags_PolicyId";
+    Tag tag = createTag("testDenyCascadeDeleteToPolicyTags name", "testDenyCascadeDeleteToPolicyTags description",
+        organization.getId());
+    createPolicyTag(policyId, tag.getId());
+
+    try {
+      dao.delete(tag);
+      fail("Expected BadRequestException");
+    }
+    catch (BadRequestException expected) {
+      assertThat(expected.getMessage(), is("Cannot delete the tag because it is associated with policies"));
+    }
+
+    assertThat(new PolicyTagDAO().getByTagId(tag.getId()), hasSize(1));
   }
 
   private void assertTag(String orgId, String name, String description, Tag actual) {

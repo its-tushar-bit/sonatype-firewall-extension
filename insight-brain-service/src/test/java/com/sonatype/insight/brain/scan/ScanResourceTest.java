@@ -40,14 +40,15 @@ public class ScanResourceTest
   }
 
   private Response upload(String resource, String url) throws Exception {
-    InputStream license = getClass().getResourceAsStream("/" + getClass().getSimpleName() + "/" + resource);
+    InputStream resourceInputStream = getClass().getResourceAsStream("/" + getClass().getSimpleName() + "/" + resource);
     try {
       AsyncHttpClient.BoundRequestBuilder builder = AuthedRestAccess.getClient().preparePost(url);
-      builder.addBodyPart(new FilePart("file", new ByteArrayPartSource(resource, IOUtil.toByteArray(license))));
+      builder.addBodyPart(new FilePart("file", new ByteArrayPartSource(resource, IOUtil
+          .toByteArray(resourceInputStream))));
       return AuthedRestAccess.execute(builder);
     }
     finally {
-      IOUtil.close(license);
+      IOUtil.close(resourceInputStream);
     }
   }
 

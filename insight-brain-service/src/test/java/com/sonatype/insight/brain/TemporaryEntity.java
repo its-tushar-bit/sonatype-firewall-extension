@@ -31,10 +31,11 @@ import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
 import com.sonatype.insight.brain.dataaccess.security.RolePermissionDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
 import com.sonatype.insight.brain.dataaccess.tag.ApplicationTagDAO;
+import com.sonatype.insight.brain.dataaccess.tag.PolicyTagDAO;
 import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Color;
+import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.label.ComponentLabel;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
@@ -49,6 +50,7 @@ import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.RolePermission;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.model.tag.ApplicationTag;
+import com.sonatype.insight.brain.model.tag.PolicyTag;
 import com.sonatype.insight.brain.model.tag.Tag;
 
 import org.junit.rules.ExternalResource;
@@ -83,6 +85,8 @@ public class TemporaryEntity
   private final TagDAO tagDAO = new TagDAO();
 
   private final ApplicationTagDAO appTagDAO = new ApplicationTagDAO();
+
+  private final PolicyTagDAO policyTagDAO = new PolicyTagDAO();
 
   private final ComponentLabelDAO componentLabelDAO = new ComponentLabelDAO();
 
@@ -139,6 +143,15 @@ public class TemporaryEntity
 
   @Override
   protected void after() {
+    for (Tag tag : tags) {
+      if (tagDAO.getById(tag.getId()) != null) {
+        PolicyTagDAO policyTagDAO = new PolicyTagDAO();
+        for (PolicyTag policyTag : policyTagDAO.getByTagId(tag.getId())) {
+          policyTagDAO.delete(policyTag);
+        }
+        tagDAO.delete(tag);
+      }
+    }
     for (Application app : apps) {
       if (appDAO.getById(app.getId()) != null) {
         appDAO.delete(app);
@@ -182,11 +195,6 @@ public class TemporaryEntity
     for (LdapServer ldapServer : ldapServers) {
       if (ldapServerDAO.getById(ldapServer.getId()) != null) {
         ldapServerDAO.delete(ldapServer);
-      }
-    }
-    for (Tag tag : tags) {
-      if (tagDAO.getById(tag.getId()) != null) {
-        tagDAO.delete(tag);
       }
     }
     for (ApplicationTag appTag : appTags) {
@@ -375,6 +383,12 @@ public class TemporaryEntity
     appTagDAO.insert(appTag);
     appTags.add(appTag);
     return appTag;
+  }
+
+  public PolicyTag newPolicyTag(String policyId, String tagId) {
+    PolicyTag policyTag = new PolicyTag(policyId, tagId);
+    policyTagDAO.insert(policyTag);
+    return policyTag;
   }
 
   public void assertTag(Tag expected, Tag actual) {

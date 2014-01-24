@@ -20,6 +20,8 @@ public class TagServiceAuthzTest
   @Inject
   private TagService tagService;
 
+  String policyId = "TagServiceAuthzTest_PolicyId";
+
   @Test(expected = UnauthorizedException.class)
   public void testGetTags_Unauthorized() throws Exception {
     login();
@@ -114,5 +116,47 @@ public class TagServiceAuthzTest
     Tag tag = tempEntity.newTag(org.getId(), "name");
     tempEntity.newApplicationTag(app.getId(), tag.getId());
     tagService.removeApplicationTag(app.getPublicId(), tag.getId());
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testGetPolicyTags_Unauthorized() throws Exception {
+    login();
+    tagService.getPolicyTags(org.getId(), policyId);
+  }
+
+  @Test
+  public void testGetPolicyTags_Authorized() throws Exception {
+    grantReadPermission(org.getId());
+    tagService.getPolicyTags(org.getId(), policyId);
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testAddPolicyTag_Unauthorized() throws Exception {
+    grantReadPermission(org.getId());
+    Tag tag = tempEntity.newTag(org.getId(), "name");
+    tagService.addPolicyTag(org.getId(), policyId, tag);
+  }
+
+  @Test
+  public void testAddPolicyTag_Authorized() throws Exception {
+    grantWritePermission(org.getId());
+    Tag tag = tempEntity.newTag(org.getId(), "name");
+    tagService.addPolicyTag(org.getId(), policyId, tag);
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testDeletePolicyTag_Unauthorized() throws Exception {
+    grantReadPermission(org.getId());
+    Tag tag = tempEntity.newTag(org.getId(), "name");
+    tempEntity.newPolicyTag(policyId, tag.getId());
+    tagService.deletePolicyTag(org.getId(), policyId, tag.getId());
+  }
+
+  @Test
+  public void testDeletePolicyTag_Authorized() throws Exception {
+    grantWritePermission(org.getId());
+    Tag tag = tempEntity.newTag(org.getId(), "name");
+    tempEntity.newPolicyTag(policyId, tag.getId());
+    tagService.deletePolicyTag(org.getId(), policyId, tag.getId());
   }
 }

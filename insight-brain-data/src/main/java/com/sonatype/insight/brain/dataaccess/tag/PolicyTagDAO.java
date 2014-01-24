@@ -51,4 +51,10 @@ public class PolicyTagDAO
         " WHERE entity.tagId=?1";
     return getList(em, sQuery, tagId);
   }
+
+  public PolicyTag getByPolicyIdAndTagId(String policyId, String tagId) {
+    String sQuery = "SELECT entity FROM PolicyTag entity" + //
+        " WHERE entity.policyId=?1 AND entity.tagId=?2";
+    return get(sQuery, policyId, tagId);
+  }
 }

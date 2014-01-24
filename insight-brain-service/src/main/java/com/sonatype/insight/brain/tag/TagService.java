@@ -10,9 +10,11 @@ import java.util.List;
 import javax.inject.Named;
 
 import com.sonatype.insight.brain.dataaccess.tag.ApplicationTagDAO;
+import com.sonatype.insight.brain.dataaccess.tag.PolicyTagDAO;
 import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.tag.ApplicationTag;
+import com.sonatype.insight.brain.model.tag.PolicyTag;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
@@ -79,5 +81,31 @@ class TagService
     }
 
     appTagDAO.delete(appTag);
+  }
+
+  @Authorize(permission = Permission.READ)
+  public List<Tag> getPolicyTags(@AuthzContext(AuthzContext.Key.ORGANIZATION_ID) String orgId, String policyId) {
+    return new TagDAO().getByPolicyId(policyId);
+  }
+
+  @Authorize(permission = Permission.WRITE)
+  public PolicyTag addPolicyTag(@AuthzContext(AuthzContext.Key.ORGANIZATION_ID) String orgId, String policyId, Tag tag)
+  {
+    PolicyTag policyTag = new PolicyTag(policyId, tag.getId());
+    new PolicyTagDAO().insert(policyTag);
+    return policyTag;
+  }
+
+  @Authorize(permission = Permission.WRITE)
+  public void deletePolicyTag(@AuthzContext(AuthzContext.Key.ORGANIZATION_ID) String orgId, String policyId,
+      String tagId)
+  {
+    PolicyTagDAO policyTagDAO = new PolicyTagDAO();
+    PolicyTag policyTag = policyTagDAO.getByPolicyIdAndTagId(policyId, tagId);
+    if (policyTag == null) {
+      throw new NotFoundException("Tag with id " + tagId + " is not associated with policy with id " + policyId);
+    }
+
+    policyTagDAO.delete(policyTag);
   }
 }

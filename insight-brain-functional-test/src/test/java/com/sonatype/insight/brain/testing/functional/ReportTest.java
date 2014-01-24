@@ -9,8 +9,10 @@ import java.io.File;
 
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateResource;
 import com.sonatype.insight.brain.testing.functional.ReportPage.Report;
 import com.sonatype.insight.brain.testing.functional.ReportPage.ReportSummaryTab;
@@ -31,15 +33,24 @@ public class ReportTest
     extends AbstractFunctionalTest
 {
 
+  private String orgName = "orgName";
+
+  private Organization organization = null;
+
   private String appId = ReportTest.class.getSimpleName();
 
   private String scanId = "scan1234";
 
   @Before
   public void setup() throws Exception {
+    // Create an Organization
+    OrganizationDAO organizationDAO = new OrganizationDAO();
+    organization = new Organization("orgName");
+    organizationDAO.insert(organization);
+
     // Create Application
     ApplicationDAO applicationDAO = new ApplicationDAO();
-    Application app = new Application(appId, "asdf", null);
+    Application app = new Application(appId, "asdf", organization.getId());
     applicationDAO.insert(app);
 
     // copy scan
@@ -57,6 +68,8 @@ public class ReportTest
   public void teardown() {
     ApplicationDAO applicationDAO = new ApplicationDAO();
     applicationDAO.delete(applicationDAO.getByPublicId(appId));
+    OrganizationDAO organizationDAO = new OrganizationDAO();
+    organizationDAO.delete(organization);
   }
 
   @Test

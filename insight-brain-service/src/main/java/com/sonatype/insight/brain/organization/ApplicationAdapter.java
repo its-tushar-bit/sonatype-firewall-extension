@@ -8,8 +8,10 @@ package com.sonatype.insight.brain.organization;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
@@ -23,6 +25,7 @@ import com.sonatype.insight.brain.dataaccess.security.UserDAO;
 import com.sonatype.insight.brain.ldap.LdapManager;
 import com.sonatype.insight.brain.ldap.LdapUser;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.security.CLMRealm;
 
@@ -110,10 +113,17 @@ public class ApplicationAdapter
     final List<ApplicationManagementSummaryDTO> applicationManagementSummaryDTOList = new ArrayList<>(
         applicationList.size());
 
+    // Cache of Organizations to avoid hitting the DB multiple times for same organization
+    final Map<String, Organization> organizationMap = new HashMap<>();
+
     final List<String> internalNameList = new ArrayList<>(applicationList.size());
     for (final Application application : applicationList) {
       final String internalName = application.getContactInternalName();
       internalNameList.add(internalName);
+      String organizationId = application.getOrganizationId();
+      if (!organizationMap.containsKey(organizationId)) {
+        organizationMap.put(organizationId, organizationDAO.getByIdNotNull(organizationId));
+      }
     }
 
     final ContactDTO[] contacts = getContacts(internalNameList);
@@ -123,7 +133,12 @@ public class ApplicationAdapter
       summary.setId(application.getId());
       summary.setName(application.getName());
       summary.setPublicId(application.getPublicId());
-      summary.setOrganizationId(application.getOrganizationId());
+
+      String organizationId = application.getOrganizationId();
+      summary.setOrganizationId(organizationId);
+      Organization org = organizationMap.get(organizationId);
+      summary.setOrganizationName(org.getName());
+
       summary.setContact(contacts[i]);
       applicationManagementSummaryDTOList.add(summary);
     }
@@ -144,8 +159,9 @@ public class ApplicationAdapter
     summary.setId(application.getId());
     summary.setName(application.getName());
     summary.setPublicId(application.getPublicId());
-    summary.setOrganizationId(application.getOrganizationId());
-
+    String organizationId = application.getOrganizationId();
+    summary.setOrganizationId(organizationId);
+    summary.setOrganizationName(organizationDAO.getByIdNotNull(organizationId).getName());
     final ContactDTO contact = getContact(application.getContactInternalName());
     summary.setContact(contact);
 

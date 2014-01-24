@@ -364,8 +364,10 @@ public class ApplicationResourceTest
     final String applicationPublicId = "ApplicationResourceTest-getApplicationsTest-AppId";
     final String applicationName = "ApplicationResourceTest-getApplicationsTest-Name";
     final String licenseFingerprint = "ApplicationResourceTest-getApplicationsTest-LicenseFingerprint";
+    final String organizationName = "OrgName";
 
-    Application application = createApplication(applicationPublicId, applicationName, true, true, null, "admin");
+    Organization organization = createOrganization(organizationName);
+    Application application = createApplication(applicationPublicId, applicationName, true, false, organization, "admin");
     setLicenseFingerprint(licenseFingerprint);
 
 
@@ -407,6 +409,7 @@ public class ApplicationResourceTest
     Assert.assertEquals(application.getId(), summary.getId());
     Assert.assertEquals(1, summary.getPolicyEvaluations().size());
     Assert.assertTrue(summary.getPolicyEvaluations().containsKey(Stage.ID_RELEASE));
+    Assert.assertEquals(organization.getName(), summary.getOrganizationName());
 
     ContactDTO expectedContact = new ContactDTO("admin", "Admin BuiltIn", "admin@localhost", "CLM");
     ContactDTO summaryContact = summary.getContact();
@@ -428,8 +431,11 @@ public class ApplicationResourceTest
     final String applicationPublicId = "ApplicationResourceTest-getApplicationsTest-AppId";
     final String applicationName = "ApplicationResourceTest-getApplicationsTest-Name";
     final String licenseFingerprint = "ApplicationResourceTest-getApplicationsTest-LicenseFingerprint";
+    final String organizationName = "OrgName";
 
-    Application application = createApplication(applicationPublicId, applicationName, true, true, null, "admin");
+    Organization organization = createOrganization(organizationName);
+
+    Application application = createApplication(applicationPublicId, applicationName, true, false, organization, "admin");
     setLicenseFingerprint(licenseFingerprint);
 
     // Create policy
@@ -460,6 +466,7 @@ public class ApplicationResourceTest
     Assert.assertEquals(Arrays.asList(applications).toString(), 1, applications.length);
     Assert.assertEquals(application.getId(), applications[0].getId());
     Assert.assertEquals(application.getName(), applications[0].getName());
+    Assert.assertEquals(organization.getName(), applications[0].getOrganizationName());
 
 
     ContactDTO expectedContact = new ContactDTO("admin", "Admin BuiltIn", "admin@localhost", "CLM");
@@ -520,6 +527,7 @@ public class ApplicationResourceTest
     Assert.assertNotNull(applicationSummary);
     Assert.assertEquals(application.getId(), applicationSummary.getId());
     Assert.assertEquals(application.getName(), applicationSummary.getName());
+    Assert.assertEquals(organization.getName(), applicationSummary.getOrganizationName());
 
     ContactDTO summaryContact = applicationSummary.getContact();
     assertContact(summaryContact, expectedContact);

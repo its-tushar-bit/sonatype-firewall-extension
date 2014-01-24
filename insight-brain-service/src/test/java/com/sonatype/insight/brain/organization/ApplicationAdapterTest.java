@@ -35,6 +35,8 @@ import static org.hamcrest.Matchers.is;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class ApplicationAdapterTest
@@ -110,7 +112,7 @@ public class ApplicationAdapterTest
     assertApplication(actualApplicationDTO, expectedApplicationDTO);
   }
 
-  @Test(expected = NotFoundException.class)
+  @Test
   public void testConvertApplicationOrganizationNotFound() {
 
     Application application = createApplication(organizationId, applicationName, applicationId, contactInternalName);
@@ -121,7 +123,14 @@ public class ApplicationAdapterTest
     // Throw exception when ever the mock organization DAO getByIdNotNull is called
     when(mockOrganizationDAO.getByIdNotNull(organizationId)).thenThrow(new NotFoundException(TEST_MESSAGE));
 
-    applicationAdapter.convert(application);
+    try {
+
+      applicationAdapter.convert(application);
+      Assert.fail("NotFoundException was not thrown as expected");
+
+    } catch (NotFoundException e) {
+      Assert.assertThat(e.getMessage(), is(TEST_MESSAGE));
+    }
   }
 
   @Test
@@ -265,6 +274,7 @@ public class ApplicationAdapterTest
     List<Application> applications = new ArrayList<>();
     for (int i = 1; i <= 5; i++) {
       String orgId = organizationId;
+      String orgName = organizationName;
       String appName = applicationName + "-" + i;
       String appId = applicationId + "-" + i;
       String contactName = contactInternalName + "-" + i;
@@ -277,7 +287,7 @@ public class ApplicationAdapterTest
       applications.add(application);
 
       ContactDTO expectedContact = createExpectedContact(contactName, displayName, CLM_REALM, email);
-      expectedDTOs.add(createExpectedApplicationManagementSummaryDTO(orgId, appName, appId, expectedContact));
+      expectedDTOs.add(createExpectedApplicationManagementSummaryDTO(orgId, orgName, appName, appId, expectedContact));
       // Return this user when ever the mock user DAO getByUsernameLowercase method is called
       User user = createUser(userId + "-" + i, contactName, firstName, lastName, email);
       when(mockUserDAO.getByUsername(contactName)).thenReturn(user);
@@ -299,6 +309,7 @@ public class ApplicationAdapterTest
     List<Application> applications = new ArrayList<>();
     for (int i = 1; i <= 5; i++) {
       String orgId = organizationId;
+      String orgName = organizationName;
       String appName = applicationName + "-" + i;
       String appId = applicationId + "-" + i;
       String contactName = contactInternalName + "-" + i;
@@ -311,7 +322,7 @@ public class ApplicationAdapterTest
       applications.add(application);
 
       ContactDTO expectedContact = createExpectedContact(contactName, displayName, LDAP_REALM, email);
-      expectedDTOs.add(createExpectedApplicationManagementSummaryDTO(orgId, appName, appId, expectedContact));
+      expectedDTOs.add(createExpectedApplicationManagementSummaryDTO(orgId, orgName, appName, appId, expectedContact));
 
       LdapUser ldapUser = createLdapUser(contactName, displayName, email);
       ldapGetUsersAnswer.addLdapUser(ldapUser);
@@ -328,6 +339,9 @@ public class ApplicationAdapterTest
         applications);
 
     assertApplicationManagementSummaryDTOs(actualDTOs, expectedDTOs);
+
+    // Expect only one call as all applications in the test have the same organization
+    verify(mockOrganizationDAO, times(1)).getByIdNotNull(anyString());
   }
 
   @Test
@@ -338,6 +352,7 @@ public class ApplicationAdapterTest
 
     for (int i = 1; i <= 5; i++) {
       String orgId = organizationId;
+      String orgName = organizationName;
       String appName = applicationName + "-" + i;
       String appId = applicationId + "-" + i;
       String contactName = contactInternalName + "-" + i;
@@ -346,7 +361,7 @@ public class ApplicationAdapterTest
       applications.add(application);
 
       ContactDTO expectedContact = createExpectedContactForNotFoundError(contactName);
-      expectedDTOs.add(createExpectedApplicationManagementSummaryDTO(orgId, appName, appId, expectedContact));
+      expectedDTOs.add(createExpectedApplicationManagementSummaryDTO(orgId, orgName, appName, appId, expectedContact));
     }
 
     List<LdapUser> ldapUsers = Collections.emptyList();
@@ -362,6 +377,8 @@ public class ApplicationAdapterTest
         applications);
 
     assertApplicationManagementSummaryDTOs(actualDTOs, expectedDTOs);
+    // Expect only one call as all applications in the test have the same organization
+    verify(mockOrganizationDAO, times(1)).getByIdNotNull(anyString());
   }
 
   @Test
@@ -372,6 +389,7 @@ public class ApplicationAdapterTest
 
     for (int i = 1; i <= 5; i++) {
       String orgId = organizationId;
+      String orgName = organizationName;
       String appName = applicationName + "-" + i;
       String appId = applicationId + "-" + i;
       String contactName = contactInternalName + "-" + i;
@@ -380,7 +398,7 @@ public class ApplicationAdapterTest
       applications.add(application);
 
       ContactDTO expectedContact = createExpectedContactForLdapError(contactName);
-      expectedDTOs.add(createExpectedApplicationManagementSummaryDTO(orgId, appName, appId, expectedContact));
+      expectedDTOs.add(createExpectedApplicationManagementSummaryDTO(orgId, orgName, appName, appId, expectedContact));
     }
 
     when(mockUserDAO.getByUsername(anyString())).thenReturn(null);
@@ -391,6 +409,8 @@ public class ApplicationAdapterTest
         applications);
 
     assertApplicationManagementSummaryDTOs(actualDTOs, expectedDTOs);
+    // Expect only one call as all applications in the test have the same organization
+    verify(mockOrganizationDAO, times(1)).getByIdNotNull(anyString());
   }
 
   @Test
@@ -403,6 +423,7 @@ public class ApplicationAdapterTest
 
     for (int i = 1; i <= 5; i++) {
       String orgId = organizationId;
+      String orgName = organizationName;
       String appName = applicationName + "-" + i;
       String appId = applicationId + "-" + i;
       String contactName = contactInternalName + "-" + i;
@@ -411,7 +432,7 @@ public class ApplicationAdapterTest
       applications.add(application);
 
       ContactDTO expectedContact = createExpectedContactForLdapError(contactName);
-      expectedDTOs.add(createExpectedApplicationManagementSummaryDTO(orgId, appName, appId, expectedContact));
+      expectedDTOs.add(createExpectedApplicationManagementSummaryDTO(orgId, orgName, appName, appId, expectedContact));
     }
 
 
@@ -424,6 +445,8 @@ public class ApplicationAdapterTest
         applications);
 
     assertApplicationManagementSummaryDTOs(actualDTOs, expectedDTOs);
+    // Expect only one call as all applications in the test have the same organization
+    verify(mockOrganizationDAO, times(1)).getByIdNotNull(anyString());
   }
 
   @Test
@@ -435,6 +458,7 @@ public class ApplicationAdapterTest
 
     for (int i = 1; i <= 5; i++) {
       String orgId = organizationId;
+      String orgName = organizationName;
       String appName = applicationName + "-" + i;
       String appId = applicationId + "-" + i;
       String contactName = contactInternalName + "-" + i;
@@ -461,7 +485,7 @@ public class ApplicationAdapterTest
         when(mockUserDAO.getByUsername(contactName)).thenReturn(null);
         expectedContact = createExpectedContact(contactName, displayName, LDAP_REALM, email);
       }
-      expectedDTOs.add(createExpectedApplicationManagementSummaryDTO(orgId, appName, appId, expectedContact));
+      expectedDTOs.add(createExpectedApplicationManagementSummaryDTO(orgId, orgName, appName, appId, expectedContact));
     }
 
     when(mockLdapManager.isLdapEnabled()).thenReturn(true);
@@ -472,6 +496,8 @@ public class ApplicationAdapterTest
         applications);
 
     assertApplicationManagementSummaryDTOs(actualDTOs, expectedDTOs);
+    // Expect only one call as all applications in the test have the same organization
+    verify(mockOrganizationDAO, times(1)).getByIdNotNull(anyString());
   }
 
   @Test
@@ -482,13 +508,14 @@ public class ApplicationAdapterTest
 
     for (int i = 1; i <= 5; i++) {
       String orgId = organizationId;
+      String orgName = organizationName;
       String appName = applicationName + "-" + i;
       String appId = applicationId + "-" + i;
 
       Application application = createApplication(orgId, appName, appId, null);
       applications.add(application);
 
-      expectedDTOs.add(createExpectedApplicationManagementSummaryDTO(orgId, appName, appId, null));
+      expectedDTOs.add(createExpectedApplicationManagementSummaryDTO(orgId, orgName, appName, appId, null));
     }
 
     when(mockLdapManager.isLdapEnabled()).thenReturn(true);
@@ -499,6 +526,8 @@ public class ApplicationAdapterTest
         applications);
 
     assertApplicationManagementSummaryDTOs(actualDTOs, expectedDTOs);
+    // Expect only one call as all applications in the test have the same organization
+    verify(mockOrganizationDAO, times(1)).getByIdNotNull(anyString());
   }
 
   @Test
@@ -511,6 +540,7 @@ public class ApplicationAdapterTest
     List<Application> applications = new ArrayList<>();
     for (int i = 1; i <= 5; i++) {
       String orgId = organizationId;
+      String orgName = organizationName;
       String appName = applicationName + "-" + i;
       String appId = applicationId + "-" + i;
 
@@ -518,7 +548,7 @@ public class ApplicationAdapterTest
       applications.add(application);
 
       ContactDTO expectedContact = createExpectedContact(contactInternalName, displayName, LDAP_REALM, userEmail);
-      expectedDTOs.add(createExpectedApplicationManagementSummaryDTO(orgId, appName, appId, expectedContact));
+      expectedDTOs.add(createExpectedApplicationManagementSummaryDTO(orgId, orgName, appName, appId, expectedContact));
     }
 
     List<LdapUser> ldapUsers = new ArrayList<>();
@@ -536,6 +566,8 @@ public class ApplicationAdapterTest
         applications);
 
     assertApplicationManagementSummaryDTOs(actualDTOs, expectedDTOs);
+    // Expect only one call as all applications in the test have the same organization
+    verify(mockOrganizationDAO, times(1)).getByIdNotNull(anyString());
   }
 
   @Test
@@ -548,6 +580,7 @@ public class ApplicationAdapterTest
 
     for (int i = 1; i <= 5; i++) {
       String orgId = organizationId;
+      String orgName = organizationName;
       String appName = applicationName + "-" + i;
       String appId = applicationId + "-" + i;
 
@@ -555,7 +588,7 @@ public class ApplicationAdapterTest
       applications.add(application);
 
       ContactDTO expectedContact = createExpectedContact(contactInternalName, displayName, CLM_REALM, userEmail);
-      expectedDTOs.add(createExpectedApplicationManagementSummaryDTO(orgId, appName, appId, expectedContact));
+      expectedDTOs.add(createExpectedApplicationManagementSummaryDTO(orgId, orgName, appName, appId, expectedContact));
 
       // Return this user when ever the mock user DAO getByUsernameLowercase method is called
       User user = createUser(userId, contactInternalName, userFirstName, userLastName, userEmail);
@@ -566,6 +599,8 @@ public class ApplicationAdapterTest
         applications);
 
     assertApplicationManagementSummaryDTOs(actualDTOs, expectedDTOs);
+    // Expect only one call as all applications in the test have the same organization
+    verify(mockOrganizationDAO, times(1)).getByIdNotNull(anyString());
   }
 
   @Test
@@ -578,6 +613,7 @@ public class ApplicationAdapterTest
 
     for (int i = 1; i <= 5; i++) {
       String orgId = organizationId;
+      String orgName = organizationName;
       String appName = applicationName + "-" + i;
       String appId = applicationId + "-" + i;
 
@@ -602,7 +638,7 @@ public class ApplicationAdapterTest
         when(mockUserDAO.getByUsername(contactName)).thenReturn(null);
         expectedContact = createExpectedContact(contactName, displayName, LDAP_REALM, email);
       }
-      expectedDTOs.add(createExpectedApplicationManagementSummaryDTO(orgId, appName, appId, expectedContact));
+      expectedDTOs.add(createExpectedApplicationManagementSummaryDTO(orgId, orgName, appName, appId, expectedContact));
 
       Application application = createApplication(orgId, appName, appId, contactName);
       applications.add(application);
@@ -617,6 +653,8 @@ public class ApplicationAdapterTest
         applications);
 
     assertApplicationManagementSummaryDTOs(actualDTOs, expectedDTOs);
+    // Expect only one call as all applications in the test have the same organization
+    verify(mockOrganizationDAO, times(1)).getByIdNotNull(anyString());
   }
 
   @Test
@@ -628,6 +666,7 @@ public class ApplicationAdapterTest
 
     for (int i = 1; i <= 5; i++) {
       String orgId = organizationId;
+      String orgName = organizationName;
       String appName = applicationName + "-" + i;
       String appId = applicationId + "-" + i;
       String contactName = contactInternalName + "-" + i;
@@ -650,7 +689,7 @@ public class ApplicationAdapterTest
       else {
         expectedContact = createExpectedContactForNotFoundError(contactName);
       }
-      expectedDTOs.add(createExpectedApplicationManagementSummaryDTO(orgId, appName, appId, expectedContact));
+      expectedDTOs.add(createExpectedApplicationManagementSummaryDTO(orgId, orgName, appName, appId, expectedContact));
     }
 
     // Return null when ever the mock user DAO getByUsernameLowercase method is called
@@ -664,6 +703,8 @@ public class ApplicationAdapterTest
         applications);
 
     assertApplicationManagementSummaryDTOs(actualDTOs, expectedDTOs);
+    // Expect only one call as all applications in the test have the same organization
+    verify(mockOrganizationDAO, times(1)).getByIdNotNull(anyString());
   }
 
   @Test
@@ -674,6 +715,7 @@ public class ApplicationAdapterTest
 
     for (int i = 1; i <= 5; i++) {
       String orgId = organizationId;
+      String orgName = organizationName;
       String appName = applicationName + "-" + i;
       String appId = applicationId + "-" + i;
       String contactName = contactInternalName + "-" + i;
@@ -699,7 +741,7 @@ public class ApplicationAdapterTest
         expectedContact = createExpectedContactForNotFoundError(contactName);
       }
 
-      expectedDTOs.add(createExpectedApplicationManagementSummaryDTO(orgId, appName, appId, expectedContact));
+      expectedDTOs.add(createExpectedApplicationManagementSummaryDTO(orgId, orgName, appName, appId, expectedContact));
     }
     when(mockLdapManager.isLdapEnabled()).thenReturn(false);
 
@@ -707,9 +749,11 @@ public class ApplicationAdapterTest
         applications);
 
     assertApplicationManagementSummaryDTOs(actualDTOs, expectedDTOs);
+    // Expect only one call as all applications in the test have the same organization
+    verify(mockOrganizationDAO, times(1)).getByIdNotNull(anyString());
   }
 
-  private ApplicationManagementSummaryDTO createExpectedApplicationManagementSummaryDTO(String orgId, String appName,
+  private ApplicationManagementSummaryDTO createExpectedApplicationManagementSummaryDTO(String orgId, String orgName, String appName,
       String appId, ContactDTO contact)
   {
 
@@ -718,6 +762,7 @@ public class ApplicationAdapterTest
     dto.setId(appId);
     dto.setPublicId(publicId);
     dto.setOrganizationId(orgId);
+    dto.setOrganizationName(orgName);
     dto.setContact(contact);
 
     return dto;
@@ -855,6 +900,7 @@ public class ApplicationAdapterTest
     Assert.assertThat(actual.getId(), is(expected.getId()));
     Assert.assertThat(actual.getName(), is(expected.getName()));
     Assert.assertThat(actual.getOrganizationId(), is(expected.getOrganizationId()));
+    Assert.assertThat(actual.getOrganizationName(), is(expected.getOrganizationName()));
     Assert.assertThat(actual.getPublicId(), is(expected.getPublicId()));
 
     assertContact(actual.getContact(), expected.getContact());

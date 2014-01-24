@@ -21,6 +21,8 @@ public class ApplicationManagementSummaryDTO
 
   private String organizationId;
 
+  private String organizationName;
+
   private Map<String, PolicyEvaluation> policyEvaluations;
 
   private Map<String, PolicyEvaluationResult> policyEvaluationsResults;
@@ -59,6 +61,14 @@ public class ApplicationManagementSummaryDTO
 
   public void setOrganizationId(String organizationId) {
     this.organizationId = organizationId;
+  }
+
+  public String getOrganizationName() {
+    return organizationName;
+  }
+
+  public void setOrganizationName(final String organizationName) {
+    this.organizationName = organizationName;
   }
 
   public Map<String, PolicyEvaluation> getPolicyEvaluations() {

@@ -25,7 +25,7 @@ class IconUtils
   }
 
   public static byte[] loadInvalidIcon() throws IOException {
-    return loadImage("/assets/assets/util/AngularCommon.js");
+    return loadImage("/assets/assets/components/errorModal.html");
   }
 
   public static byte[] loadIcon(String name) throws IOException {

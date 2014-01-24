@@ -3,8 +3,7 @@ Copyright (c) 2011-2013 Sonatype, Inc. All rights reserved.
 Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
 "Sonatype" is a trademark of Sonatype, Inc.
 */
-
-
+/* global angular */
 (function() {
   'use strict';
   var reportTrending;
@@ -40,7 +39,7 @@ Includes the third-party code listed at http://links.sonatype.com/products/clm/a
         $scope.barGraphTextRenderer = function(d) {
           return colors.textFromThreatName(d.threat);
         };
-        return $scope.getBackgroundColor = function(index) {
+        $scope.getBackgroundColor = function(index) {
           if (index % 2 === 0) {
             return '#EEE';
           } else {

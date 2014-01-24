@@ -3,9 +3,11 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-/*global angular, window, $ */
+/* global angular, window, ActiveXObject, clmBuildTimestamp */
+/* exported AngularUtils */
 
 //global function
+/* jshint strict:false */
 var AngularUtils = {
   safeApply: function(scope, fn) {
     if (scope.$$phase || scope.$root.$$phase) {
@@ -35,13 +37,14 @@ var AngularUtils = {
     try {
       if (new ActiveXObject('ShockwaveFlash.ShockwaveFlash')) { return true; }
     } catch (e) {
-      if (navigator.mimeTypes["application/x-shockwave-flash"] != undefined) { return true; }
+      if (navigator.mimeTypes['application/x-shockwave-flash'] !== undefined) { return true; }
     }
     return false;
   }
 };
+/* jshint strict:true */
 (function() {
-  "use strict";
+  'use strict';
 
   var angularCommon;
   angularCommon = angular.module('AngularCommon', ['CommonServices']);
@@ -120,7 +123,7 @@ var AngularUtils = {
 
           element.attr('data-provide', 'typeahead');
           element.typeahead({
-            source: function(query) {
+            source: function() {
               return angular.isFunction(source) ? source.apply(this, arguments) : source;
             },
             updater: function(item) {
@@ -179,14 +182,14 @@ var AngularUtils = {
             var modelIdValue = idFieldParser($parse(modelObject)(scope)),
                 array = arrayNameParser(scope);
 
-            var passed = !(jQuery.grep(array,function(item) {
+            var passed = jQuery.grep(array,function(item) {
               if (!caseSensitive || caseSensitive === 'false') {
-                return idFieldParser(item) !== modelIdValue && modelFieldParser(item)
-                        && modelFieldParser(item).toLowerCase() === value.toLowerCase();
+                return idFieldParser(item) !== modelIdValue && modelFieldParser(item) &&
+                  modelFieldParser(item).toLowerCase() === value.toLowerCase();
               } else {
                 return idFieldParser(item) !== modelIdValue && modelFieldParser(item) === value;
               }
-            }).length > 0);
+            }).length <= 0;
             ctrl.$setValidity('duplicate', passed);
 
             return passed ? value : undefined;
@@ -378,7 +381,7 @@ var AngularUtils = {
   /**
    * Ensure that the value of the input matches the value from another specified input
    */
-  angularCommon.directive("match", function() {
+  angularCommon.directive('match', function() {
     return {
       restrict: 'A',
       require: 'ngModel',
@@ -397,7 +400,7 @@ var AngularUtils = {
         attrs.$observe('match', validate);
       }
     };
- });
+  });
 
   /**
    * Ensure that a given value does not :
@@ -475,13 +478,15 @@ var AngularUtils = {
     return function(items) {
       var arrayToReturn = [];
       if (items) {
-        angular.forEach(items, function(item, index) {
+        angular.forEach(items, function(item) {
+          /* jshint indent:false */
           switch (item.name) {
             case 'Build':
             case 'Stage Release':
             case 'Release':
               arrayToReturn.push(item);
           }
+          /* jshint indent:2 */
         });
       }
       return arrayToReturn;
@@ -578,7 +583,7 @@ var AngularUtils = {
       link: function(scope, element, attrs) {
         var model = $parse(attrs.focusInput);
         scope.$watch(model, function(value) {
-          if(value) { 
+          if(value) {
             element[0].focus();
           }
         });
@@ -624,7 +629,7 @@ var AngularUtils = {
 
   angularCommon.directive('firefoxInputClick', function() {
     return {
-      link: function(scope, element, attrs) {
+      link: function(scope, element) {
         // Firefox v21 and below have a bug where clicking a file input label does not open the file input dialog
         // https://bugzilla.mozilla.org/show_bug.cgi?id=838695
         if (navigator.userAgent.indexOf('Firefox') !== -1 &&
@@ -721,12 +726,12 @@ var AngularUtils = {
             if (elementValue !== ngModel.$modelValue) {
               ngModel.$setViewValue(elementValue);
             }
-            $timeout(checkForChange, 100);  
+            $timeout(checkForChange, 100);
           }
         }
         $timeout(checkForChange, 100);
       }
-    }
+    };
   }]);
   
   angularCommon.service('Dialog', ['$modal', function ($modal) {
@@ -766,7 +771,7 @@ var AngularUtils = {
 }());
 
 (function() {
-  "use strict";
+  'use strict';
 
   var services = angular.module('CommonServices', []);
 
@@ -776,7 +781,7 @@ var AngularUtils = {
         if (!args) {
           return;
         }
-        if (angular.isArray(args) || args.toString() === "[object Arguments]") {
+        if (angular.isArray(args) || args.toString() === '[object Arguments]') {
           args = {
             status: args[1],
             data: args[0],
@@ -864,7 +869,7 @@ var AngularUtils = {
    */
   services.filter('truncate', function () {
       return function (text, length) {
-        var end = "...";
+        var end = '...';
         if (isNaN(length)){
           length = 25;
         }
@@ -910,6 +915,7 @@ var AngularUtils = {
       getEventHandler: function(scope, applicableCollection) {
         return function(eventArgs, changeEvent) {
           jQuery.each(changeEvent.changes, function(index, change) {
+            /* jshint indent:false */
             switch (change.field) {
               case 'name':
                 angular.forEach($parse(applicableCollection)(scope), function(item) {
@@ -922,6 +928,7 @@ var AngularUtils = {
                 scope.doLoad();
                 return false;
             }
+            /* jshint indent:2 */
           });
         };
       }

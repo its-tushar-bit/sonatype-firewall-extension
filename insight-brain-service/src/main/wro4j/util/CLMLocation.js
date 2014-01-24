@@ -3,11 +3,11 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-/*global window, angular */
+/* global angular */
 (function() {
-  "use strict";
+  'use strict';
 
-  var module = angular.module('CLMLocation', ['CommonServices']).factory('CLMLocations', [
+  angular.module('CLMLocation', ['CommonServices']).factory('CLMLocations', [
     'BaseUrl', '$window', function(baseUrl, $window) {
       return {
         getLicensesUrl: function() {

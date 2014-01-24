@@ -3,6 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+ /* global angular, clmBuildTimestamp, d3 */
 
 (function() {
   'use strict';
@@ -29,12 +30,10 @@
         $scope.generationRunning = formatDuration(trendingReport.generation.runningTime);
         $scope.generationTotal = trendingReport.generation.applicationsTotal;
         $scope.generationCurrent = trendingReport.generation.applicationsCurrent;
-        $scope.generationProgress = trendingReport.generation.applicationsTotal > 0
-                ? 100 * trendingReport.generation.applicationsCurrent / trendingReport.generation.applicationsTotal 
-                : 0;
-        $scope.generationProgressTooltip = 'Report generation running ' + formatDuration(trendingReport.generation.runningTime) 
-          + ', total number of applications ' + trendingReport.generation.applicationsTotal 
-          + ', applications processed so far ' + trendingReport.generation.applicationsCurrent;
+        $scope.generationProgress = trendingReport.generation.applicationsTotal > 0 ? 100 * trendingReport.generation.applicationsCurrent / trendingReport.generation.applicationsTotal : 0;
+        $scope.generationProgressTooltip = 'Report generation running ' + formatDuration(trendingReport.generation.runningTime) +
+          ', total number of applications ' + trendingReport.generation.applicationsTotal +
+          ', applications processed so far ' + trendingReport.generation.applicationsCurrent;
       } else {
         delete $scope.generationProgressTooltip;
       }
@@ -47,6 +46,7 @@
           nullPolicyCount: 0
         };
         angular.forEach($scope.data.violations, function(policy) {
+          /* jshint indent:false */
           switch (policy.threat) {
             case 10:
             case 9:
@@ -70,6 +70,7 @@
             default:
               $scope.error = 'Unknown policy threat level: ' + policy.threat;
           }
+          /* jshint indent:2 */
         });
         angular.extend($scope.data, calculatedData);
         $scope.diffchart = '../report-assets/trending/diffChart.html?' + clmBuildTimestamp;
@@ -87,7 +88,7 @@
       $scope.error = arguments;
     }
 
-    $scope.doLoad = function(force) {
+    $scope.doLoad = function() {
       $scope.error = null;
       trendingReportService.get(setReportData, setReportError, false);
     };
@@ -381,6 +382,7 @@
     function() {
       return {
         barFromThreatName: function(threatName) {
+          /* jshint indent:false */
           switch (threatName.toLowerCase()) {
             case 'critical':
               return '#DB2852';
@@ -393,8 +395,10 @@
             default:
               return 'black';
           }
+          /* jshint indent:2 */
         },
         textFromThreatName: function(threatName) {
+          /* jshint indent:false */
           switch (threatName.toLowerCase()) {
             case 'critical':
             case 'severe':
@@ -403,8 +407,10 @@
             default:
               return 'black';
           }
+          /* jshint indent:2 */
         },
         threatLevelClass: function(threatLevel) {
+          /* jshint indent:false */
           switch (threatLevel) {
             case 10:
             case 9:
@@ -424,6 +430,7 @@
             default:
               return 'black';
           }
+          /* jshint indent:2 */
         }
       };
     }

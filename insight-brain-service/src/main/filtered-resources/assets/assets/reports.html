@@ -6,7 +6,7 @@
 	"Sonatype" is a trademark of Sonatype, Inc.
 
 -->
-<html lang="en" ng-app="reportApp">
+<html lang="en" ng-app="reportApp" xmlns="http://www.w3.org/1999/html">
 <head>
   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
   <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
@@ -27,17 +27,9 @@
   <script src='lib/ng-upload-0.3.4.js'></script>
   <script src='lib/d3/d3.min.js'></script>
   <script src='lib/Base64.js'></script>
-  <script src='util/CLMLocation.js?${build.timestamp}'></script>
-  <script src='util/CLMAppLocation.js?${build.timestamp}'></script>
-  <script src='util/AngularCommon.js?${build.timestamp}'></script>
-  <script src='util/HttpInterceptors.js?${build.timestamp}'></script>
+  <script src='js/clm-server-util.js?${build.timestamp}'></script>
   <script src='js/clm-server.js?${build.timestamp}'></script>
-  <script src='../report-assets/report/ReportController.js?${build.timestamp}'></script>
-  <script src='../report-assets/violations/ReportViolationsController.js?${build.timestamp}'></script>
-  <script src='../report-assets/trending/TrendingController.js?${build.timestamp}'></script>
-  <script src='../report-assets/trending/diffChart.js?${build.timestamp}'></script>
-  <script src='../report-assets/trending/percChart.js?${build.timestamp}'></script>
-  <script src='../report-assets/trending/policyProgression.js?${build.timestamp}'></script>
+  <script src='js/clm-server-report.js?${build.timestamp}'></script>
 </head>
 <body>
   <div dashboard-header></div>

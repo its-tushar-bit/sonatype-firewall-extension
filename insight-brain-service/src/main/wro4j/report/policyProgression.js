@@ -3,7 +3,7 @@ Copyright (c) 2011-2013 Sonatype, Inc. All rights reserved.
 Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
 "Sonatype" is a trademark of Sonatype, Inc.
 */
-
+/* global angular */
 
 (function() {
   'use strict';
@@ -37,14 +37,14 @@ Includes the third-party code listed at http://links.sonatype.com/products/clm/a
       };
 
       $scope.lastViolationCount = function(policy) {
-        if (angular.isUndefined(policy.violations) || policy.violations.length == 0) {
+        if (angular.isUndefined(policy.violations) || policy.violations.length === 0) {
           return 0;
         }
         return policy.violations.slice(-1)[0];
       };
 
       $scope.firstViolationCount = function(policy) {
-        if (angular.isUndefined(policy.violations) || policy.violations.length == 0) {
+        if (angular.isUndefined(policy.violations) || policy.violations.length === 0) {
           return 0;
         }
         return policy.violations[0];

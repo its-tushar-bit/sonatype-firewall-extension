@@ -3,8 +3,9 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+ /* global angular, AngularUtils, ZeroClipboard, clmBuildTimestamp */
 (function() {
-  "use strict";
+  'use strict';
   var module = angular.module('SecurityModule', ['ui.router', 'ManagementModule', 'AngularCommon', 'ApplicationSecurityModule'], ['$stateProvider',
       function($stateProvider) {
         $stateProvider.state('management.security', {
@@ -31,7 +32,7 @@
 }());
 
 (function() {
-  "use strict";
+  'use strict';
 
   var module = angular.module('UserModule', ['ui.router', 'SecurityModule', 'CLMLocation', 'ResourceModule'],
           ['$stateProvider', function($stateProvider) {
@@ -64,7 +65,7 @@
   }]);
 
   module.controller('UserListController', ['$http', 'CLMLocations', 'UserStore', 'Messages', 'CurrentUser', '$scope',
-      '$modal', '$q', 'Dialog', function($http, clmLocations, UserStore, messages, CurrentUser, $scope, $modal, $q, Dialog) {
+      '$modal', '$q', function($http, clmLocations, UserStore, messages, CurrentUser, $scope, $modal, $q) {
         var username = null;
 
         $scope.context = {
@@ -149,7 +150,7 @@
               };
               scope.flashInstalled = function() {
                 return AngularUtils.hasFlash();
-              }
+              };
             }]
           });
         };
@@ -183,7 +184,7 @@
       if (!$scope.saving) {
         $scope.errorMsg = null;
         $scope.saving = true;
-        $scope.user.$save().then(function(data) {
+        $scope.user.$save().then(function() {
           if ($scope.context.userEditMap[user.id]) {
             $scope.context.userEditMap[user.id] = null;
           } else {
@@ -207,7 +208,7 @@
     };
     $scope.cancelClick = function(user) {
       if ($scope.context.userEditMap[user.id]) {
-        $scope.context.userEditMap[user.id] = null
+        $scope.context.userEditMap[user.id] = null;
       } else {
         $scope.user = null;
       }
@@ -232,7 +233,7 @@
         context: '='
       },
       controller: 'UserController',
-      link: function(scope, element, attrs) {
+      link: function(scope) {
         // so data changes dont affect orig
         if (scope.user && scope.user.id) {
           scope.user = scope.user.$clone();
@@ -257,20 +258,20 @@
       restrict: 'A',
       link: function(scope, element, attrs) {
         var clip = new ZeroClipboard( element, {
-          moviePath: "../assets/lib/zeroclipboard/ZeroClipboard-1.2.3.swf"
+          moviePath: '../assets/lib/zeroclipboard/ZeroClipboard-1.2.3.swf'
         });
         
-        clip.on( 'dataRequested', function ( client, args ) {
+        clip.on('dataRequested', function () {
           clip.setText( $('#' + attrs.zeroClipboard).val() );
         });
       }
-    }
+    };
   });
   
   //simple directive that will select the text in an input field
   //when user clicks on it
   module.directive('selectText', [function () {
-    return function (scope, element, attrs) {
+    return function (scope, element) {
       element.bind('focus', function () {
         this.select();
       });

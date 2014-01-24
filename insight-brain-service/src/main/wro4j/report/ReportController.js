@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-/*global angular, $, clmBuildTimestamp, window, document */
+/*global angular, $, clmBuildTimestamp, window */
 (function() {
   'use strict';
 
@@ -23,26 +23,26 @@
         $scope.error = null;
 
         var actionStagePromise = $http.get(clmLocations.getActionStageUrl(), {
-              params: { timestamp: new Date().getTime() }
-            }),
-            appScanSummary = $http.get(clmLocations.getApplicationScanSummary($state.params.publicId, $state.params.scanId), {
-              params : { timestamp : new Date().getTime() }
-            });
+          params: { timestamp: new Date().getTime() }
+        }),
+        appScanSummary = $http.get(clmLocations.getApplicationScanSummary($state.params.publicId, $state.params.scanId), {
+          params : { timestamp : new Date().getTime() }
+        });
 
-        $scope.reportUrl = '../rest/report/' + encodeURIComponent($state.params.publicId) + '/'
-                + encodeURIComponent($state.params.scanId) + '/browseReport/index.html';
+        $scope.reportUrl = '../rest/report/' + encodeURIComponent($state.params.publicId) + '/' +
+          encodeURIComponent($state.params.scanId) + '/browseReport/index.html';
 
         $q.all([actionStagePromise, appScanSummary]).then(function(results) {
           $scope.application = results[1].data;
 
-          angular.forEach($scope.application.policyEvaluations, function (evaluation, stageId) {
+          angular.forEach($scope.application.policyEvaluations, function (evaluation) {
             if (evaluation.scanId === $state.params.scanId) {
               $scope.policyEvaluation = evaluation;
             }
           });
 
           for (var i = 0; i < results[0].data.length; i++) {
-            if (results[0].data[i].id == $scope.policyEvaluation.stage.stageTypeId) {
+            if (results[0].data[i].id === $scope.policyEvaluation.stage.stageTypeId) {
               $scope.policyEvaluation.stage.stageName = results[0].data[i].name;
               break;
             }
@@ -57,11 +57,11 @@
 
   reportModule.directive('expandableIframe', function() {
     return {
-      template: "<iframe ng-src='{{url}}' width='100%' height='1000px' border='0' frameborder='0' scrolling='yes' style='overflow:auto;'/>",
+      template: '<iframe ng-src="{{url}}" width="100%" height="1000px" border="0" frameborder="0" scrolling="yes" style="overflow:auto;"/>',
       scope: {
         url: '=expandableIframe'
       },
-      link: function(scope, element, attrs) {
+      link: function(scope) {
         var resizeTimeoutId;
 
         function setDimensions() {

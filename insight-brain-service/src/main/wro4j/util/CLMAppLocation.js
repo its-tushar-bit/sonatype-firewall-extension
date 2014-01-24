@@ -3,9 +3,9 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-/*global window, angular */
+/* global window, angular */
 (function() {
-  "use strict";
+  'use strict';
 
   var locationModule = angular.module('CLMAppLocation', ['CommonServices', 'ui.router']);
 
@@ -96,8 +96,7 @@
         },
 
         getRoleMappingUrl: function(roleId) {
-          return baseUrl.get() + '/rest/membershipMapping/' + getServicePathWithId()
-                  + (roleId ? ('/role/' + roleId) : '');
+          return baseUrl.get() + '/rest/membershipMapping/' + getServicePathWithId() + (roleId ? ('/role/' + roleId) : '');
         },
 
         getFindUsersUrl: function(type, typeId) {

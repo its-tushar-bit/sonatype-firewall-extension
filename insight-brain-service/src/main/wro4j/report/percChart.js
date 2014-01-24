@@ -3,7 +3,7 @@ Copyright (c) 2011-2013 Sonatype, Inc. All rights reserved.
 Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
 "Sonatype" is a trademark of Sonatype, Inc.
 */
-
+/* global angular */
 
 (function() {
   'use strict';
@@ -31,7 +31,7 @@ Includes the third-party code listed at http://links.sonatype.com/products/clm/a
         $scope.componentColorRenderer = function(d) {
           return d.color;
         };
-        return $scope.loaded = true;
+        $scope.loaded = true;
       });
     }
   ]);

@@ -513,11 +513,9 @@
                 <include>resources/assets/assets/lib/bootstrap/bootstrap-*.min.js</include>
                 <include>resources/assets/assets/lib/angular/angular-${angularjs.version}.js</include>
                 <include>resources/assets/cip/*.js</include>
-                <include>resources/assets/assets/util/AngularCommon.js</include>
-                <include>resources/assets/assets/util/CLMLocation.js</include>
-                <include>resources/assets/assets/util/HttpInterceptors.js</include>
                 <include>resources/assets/assets/lib/ui-bootstrap-tpls-*.min.js</include>
                 <include>resources/assets/assets/lib/datepicker/bootstrap-datepicker.js</include>
+                <include>wro4j/**/*.js</include>
               </sourceIncludes>
               <specIncludes>
                 <include>resources/assets/SpecUtil.js</include>
@@ -545,12 +543,6 @@
                 <include>resources/assets/assets/lib/ui-bootstrap-tpls-0.3.0.min.js</include>
                 <include>resources/assets/assets/lib/X-editable/bootstrap-editable.min.js</include>
                 <include>resources/assets/assets/**/*.js</include>
-                <include>resources/assets/application/**/*.js</include>
-                <include>resources/assets/policy/**/*.js</include>
-                <include>resources/assets/organization/**/*.js</include>
-                <include>resources/assets/configuration/**/*.js</include>
-                <include>resources/assets/security/**/*.js</include>
-                <include>resources/assets/report/**/*.js</include>
                 <include>wro4j/**/*.js</include>
               </sourceIncludes>
               <specIncludes>
@@ -685,7 +677,7 @@
             <configuration>
               <minimize>false</minimize>
               <options>camelcase,curly,indent=2,eqeqeq,forin,immed,noarg,quotmark='single',undef,unused,strict,trailing,browser,jquery</options>
-              <targetGroups>clm-server</targetGroups>
+              <targetGroups>clm-server,clm-server-report,clm-server-util</targetGroups>
               <cssDestinationFolder>${project.build.directory}/generated/assets/assets/css/</cssDestinationFolder>
               <jsDestinationFolder>${project.build.directory}/generated/assets/assets/js/</jsDestinationFolder>
             </configuration>

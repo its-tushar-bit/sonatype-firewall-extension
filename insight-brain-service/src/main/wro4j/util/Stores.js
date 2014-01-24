@@ -2,11 +2,11 @@
  * @license Copyright (c) 2012-2013 Sonatype, Inc. All rights reserved. Includes the third-party code listed at
  *          http://links.sonatype.com/products/clm/attributions. "Sonatype" is a trademark of Sonatype, Inc.
  */
-/* global angular, window, $ */
+/* global angular */
 
 // global function
 (function() {
-  "use strict";
+  'use strict';
 
   var storesModule = angular.module('Stores', ['CLMLocation', 'ResourceModule']);
 
@@ -25,7 +25,7 @@
             timestamp: new Date().getTime()
           }
         });
-        $rootScope.$on('organizations.delete', function(event, organizationId) {
+        $rootScope.$on('organizations.delete', function() {
           applicationStore.refresh();
         });
         return applicationStore;

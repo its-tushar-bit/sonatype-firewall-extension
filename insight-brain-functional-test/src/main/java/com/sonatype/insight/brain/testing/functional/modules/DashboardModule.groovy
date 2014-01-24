@@ -13,12 +13,13 @@ import geb.Module
 /**
  * @since 1.7
  */
-class DashboardNavigation
+class DashboardModule
     extends Module
 {
   static content = {
     management(to: ManagementPage) { $('.organizational-design') }
     reports(to: ReportViolationsPage) { $('.reporting') }
+    version { $('.navbar-version') }
   }
 
   void toManagement() {

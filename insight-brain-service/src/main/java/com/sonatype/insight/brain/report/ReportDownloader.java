@@ -18,6 +18,8 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import com.sonatype.insight.brain.common.io.FileCleaner;
+import com.sonatype.insight.brain.common.io.FileCleaner.FileDeletionException;
 import com.sonatype.insight.brain.saas.SaasClient;
 import com.sonatype.insight.error.exception.NotFoundException;
 
@@ -32,10 +34,13 @@ public class ReportDownloader
   private static final Logger log = LoggerFactory.getLogger(ReportDownloader.class);
 
   private final SaasClient client;
+  
+  private final FileCleaner fileCleaner;
 
   @Inject
-  public ReportDownloader(final SaasClient client) {
+  public ReportDownloader(final SaasClient client, final FileCleaner fileCleaner) {
     this.client = client;
+    this.fileCleaner = fileCleaner;
   }
 
   public boolean downloadReport(final String scanId, final File reportFile, final int retryAttempts,
@@ -72,7 +77,12 @@ public class ReportDownloader
     catch (final Exception e) {
       // don't leave an incomplete file around
       log.error(e.getMessage(), e);
-      reportFile.delete();
+      try {
+        fileCleaner.delete(reportFile);
+      }
+      catch (FileDeletionException fde) {
+        log.error("Could not delete incomplete report: {}", reportFile, fde);
+      }
     }
 
     return false;

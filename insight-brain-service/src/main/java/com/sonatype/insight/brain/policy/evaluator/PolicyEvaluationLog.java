@@ -14,6 +14,8 @@ import java.util.List;
 import java.util.Map;
 
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.common.io.FileCleaner;
+import com.sonatype.insight.brain.common.io.FileCleaner.FileDeletionException;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
@@ -145,8 +147,11 @@ public class PolicyEvaluationLog
         for (final Map.Entry<String, ArrayNode> entry : perStageLogs.entrySet()) {
           JsonUtils.write(new File(auditDir, filename(entry.getKey())), entry.getValue());
         }
-        if (!legacy.delete()) {
-          log.error("Failed to delete old policy evaluation log after data migration: {}", legacy);
+        try {
+          new FileCleaner().delete(legacy);
+        }
+        catch (FileDeletionException e) {
+          log.error("Failed to delete old policy evaluation log after data migration: {}", legacy, e);
         }
       }
     }

@@ -14,24 +14,34 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import com.sonatype.insight.brain.common.io.FileCleaner;
+import com.sonatype.insight.brain.common.io.FileCleaner.FileDeletionException;
 import com.sonatype.insight.brain.model.trending.TrendingReport;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.json.store.JsonUtils;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
- * @since 1.7 
+ * @since 1.7
  */
 @Named
 @Singleton
 public class TrendingReportCache
 {
+  private static final Logger log = LoggerFactory.getLogger(TrendingReportCache.class);
+
   private final ReadWriteLock cacheLock = new ReentrantReadWriteLock();
 
   private final InsightWork insightWork;
 
+  private final FileCleaner fileCleaner;
+
   @Inject
-  public TrendingReportCache(InsightWork insightWork) {
+  public TrendingReportCache(InsightWork insightWork, FileCleaner fileCleaner) {
     this.insightWork = insightWork;
+    this.fileCleaner = fileCleaner;
   }
 
   public void writeCache(TrendingReport report) throws IOException {
@@ -74,8 +84,12 @@ public class TrendingReportCache
    */
   public void purgeCache() {
     cacheLock.writeLock().lock();
+    File file = getCacheFile();
     try {
-      getCacheFile().delete();
+      fileCleaner.delete(file);
+    }
+    catch (FileDeletionException e) {
+      log.error("Could not delete incomplete report: {}", file, e);
     }
     finally {
       cacheLock.writeLock().unlock();

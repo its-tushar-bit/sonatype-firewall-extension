@@ -20,6 +20,8 @@ import java.util.Set;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
+import com.sonatype.insight.brain.common.io.FileCleaner;
+import com.sonatype.insight.brain.common.io.FileCleaner.FileDeletionException;
 import com.sonatype.insight.scan.archive.PathSelector;
 import com.sonatype.insight.scan.archive.PathSelector.Selection;
 import com.sonatype.insight.scan.client.ClientScanRequest;
@@ -69,12 +71,13 @@ public class ScanFactory
         writer.close();
       }
     }
-    catch (IOException e) {
-      scanFile.delete();
-      throw e;
-    }
-    catch (RuntimeException e) {
-      scanFile.delete();
+    catch (RuntimeException | IOException e) {
+      try {
+        new FileCleaner().delete(scanFile);
+      }
+      catch (FileDeletionException fde) {
+        log.error("Unable to delete scanFile: {}", scanFile, fde);
+      }
       throw e;
     }
     return scanFile;
@@ -240,8 +243,13 @@ public class ScanFactory
         fileScanner.scan(scanRequest);
       }
       finally {
-        if (tmp != null && !tmp.delete() && tmp.exists()) {
-          log.warn("Failed to delete temporary file {}", tmp);
+        if (tmp != null) {
+          try {
+            new FileCleaner().delete(tmp);
+          }
+          catch (FileDeletionException fde) {
+            log.error("Unable to delete temporary file: {}", tmp, fde);
+          }
         }
       }
     }

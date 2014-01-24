@@ -15,6 +15,8 @@ import java.util.concurrent.TimeUnit;
 
 import javax.inject.Named;
 
+import com.sonatype.insight.brain.common.io.FileCleaner;
+import com.sonatype.insight.brain.common.io.FileCleaner.FileDeletionException;
 import com.sonatype.insight.brain.dataaccess.license.LicenseDataUpdater;
 import com.sonatype.insight.brain.db.DatamartProvider;
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
@@ -113,7 +115,10 @@ public class InsightBrainService
 
       // Ensure we can actually create and delete a new temp file
       File file = File.createTempFile("clm-server-launcher", ".tmp");
-      if (!file.delete()) {
+      try {
+        new FileCleaner().delete(file);
+      }
+      catch (FileDeletionException fde) {
         log.error(
             "The server is not able to delete from the temporary folder. Please ensure server has access to {} "
                 + "or specify another folder by adding -Djava.io.tmpdir=<writeable-folder> to the command line used for launching "

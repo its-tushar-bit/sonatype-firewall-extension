@@ -13,6 +13,8 @@ import javax.inject.Inject;
 import javax.inject.Named;
 
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.common.io.FileCleaner;
+import com.sonatype.insight.brain.common.io.FileCleaner.FileDeletionException;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.security.Permission;
@@ -89,7 +91,12 @@ class ScanService
         FileUtils.copyStreamToFile(new RawInputStreamFacade(is), file);
       }
       catch (RuntimeException | IOException e) {
-        file.delete();
+        try {
+          new FileCleaner().delete(file);
+        }
+        catch (FileDeletionException fde) {
+          log.error("Could not delete binary file: {}", file, fde);
+        }
         throw e;
       }
       return file;

@@ -23,6 +23,7 @@ import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.StreamingOutput;
 
 import com.sonatype.insight.brain.common.io.FileCleaner;
+import com.sonatype.insight.brain.common.io.FileCleaner.FileDeletionException;
 import com.sonatype.insight.client.utils.UrlUtils;
 import com.sonatype.insight.json.store.JsonUtils;
 
@@ -56,8 +57,11 @@ final class Pdf
   public static void delete(final File reportFile) {
     final File pdfFile = getPdfFile(reportFile);
     log.debug("Deleting report PDF {}", pdfFile);
-    if (!pdfFile.delete() && pdfFile.exists()) {
-      log.warn("Could not delete obsolete report PDF {}", pdfFile);
+    try {
+      new FileCleaner().delete(pdfFile);
+    }
+    catch (FileDeletionException e) {
+      log.error("Could not delete obsolete report PDF: {}", pdfFile, e);
     }
   }
 

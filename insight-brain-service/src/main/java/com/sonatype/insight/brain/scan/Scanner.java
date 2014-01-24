@@ -14,6 +14,8 @@ import javax.inject.Inject;
 import javax.inject.Named;
 
 import com.sonatype.clm.dto.model.ProprietaryConfig;
+import com.sonatype.insight.brain.common.io.FileCleaner;
+import com.sonatype.insight.brain.common.io.FileCleaner.FileDeletionException;
 import com.sonatype.insight.brain.dataaccess.ProprietaryConfigDAO;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.scan.client.ClientScanRequest;
@@ -49,16 +51,19 @@ class Scanner
   private final ScanWriterFactory writerFactory;
 
   private final ProprietaryConfigDAO proprietaryConfigDAO;
+  
+  private final FileCleaner fileCleaner;
 
   @Inject
   public Scanner(ScanPropertiesLoader configLoader, ClientScanner clientScanner, FileScanner fileScanner,
-      ScanWriterFactory writerFactory, InsightWork work)
+      ScanWriterFactory writerFactory, InsightWork work, FileCleaner fileCleaner)
   {
     this.configLoader = configLoader;
     this.clientScanner = clientScanner;
     this.fileScanner = fileScanner;
     this.writerFactory = writerFactory;
     proprietaryConfigDAO = new ProprietaryConfigDAO(work.getDataDir());
+    this.fileCleaner = fileCleaner;
   }
 
   /**
@@ -84,7 +89,12 @@ class Scanner
       }
     }
     catch (RuntimeException | IOException e) {
-      scanFile.delete();
+      try {
+        fileCleaner.delete(scanFile);
+      }
+      catch (FileDeletionException fde) {
+        log.error("Could not delete scan file: {}", scanFile, fde);
+      }
       throw e;
     }
 

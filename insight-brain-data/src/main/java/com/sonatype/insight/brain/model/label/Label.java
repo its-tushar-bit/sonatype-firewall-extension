@@ -14,6 +14,7 @@ import javax.persistence.Enumerated;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
+import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.model.HasStringId;
 
 @Entity

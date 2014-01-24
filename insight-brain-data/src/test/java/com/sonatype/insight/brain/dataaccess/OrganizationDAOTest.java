@@ -26,7 +26,7 @@ import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
 import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.model.Organization;
-import com.sonatype.insight.brain.model.label.Color;
+import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
@@ -331,7 +331,7 @@ public class OrganizationDAOTest
 
     String organizationId = organization.getId();
 
-    Tag tag = new Tag(organizationId, "testCascadeDeleteToTags", "testCascadeDeleteToTags");
+    Tag tag = new Tag(organizationId, "testCascadeDeleteToTags", "testCascadeDeleteToTags", Color.yellow);
     tagDAO.insert(tag);
 
     // sanity check

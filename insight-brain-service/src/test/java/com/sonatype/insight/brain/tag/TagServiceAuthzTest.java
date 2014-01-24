@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.tag;
 
 import javax.inject.Inject;
 
+import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 
@@ -34,14 +35,14 @@ public class TagServiceAuthzTest
   @Test(expected = UnauthorizedException.class)
   public void testAddTag_Unauthorized() throws Exception {
     grantReadPermission(org.getId());
-    Tag tag = new Tag(org.getId(), "name", "description");
+    Tag tag = new Tag(org.getId(), "name", "description", Color.yellow);
     tagService.addTag(org.getId(), tag);
   }
 
   @Test
   public void testAddTag_Authorized() throws Exception {
     grantWritePermission(org.getId());
-    Tag tag = new Tag(org.getId(), "name", "description");
+    Tag tag = new Tag(org.getId(), "name", "description", Color.yellow);
     tagService.addTag(org.getId(), tag);
   }
 

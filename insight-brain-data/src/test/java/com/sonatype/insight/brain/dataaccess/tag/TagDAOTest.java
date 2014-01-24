@@ -14,6 +14,7 @@ import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.NameHelper;
+import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.tag.ApplicationTag;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -47,23 +48,24 @@ public class TagDAOTest
   @Test
   public void testCRUD() throws Exception {
     // Create
-    Tag tag = new Tag(organization.getId(), "testCRUD Name", "testCRUD description");
+    Tag tag = new Tag(organization.getId(), "testCRUD Name", "testCRUD description", Color.yellow);
     dao.insert(tag);
     assertThat(tag.getId(), notNullValue());
 
     // Get
     tag = dao.getById(tag.getId());
     assertThat(tag, notNullValue());
-    assertTag(organization.getId(), "testCRUD Name", "testCRUD description", tag);
+    assertTag(organization.getId(), "testCRUD Name", "testCRUD description", Color.yellow, tag);
 
     // Update
     tag.setName("Updated Name");
+    tag.setColor(Color.black);
     dao.update(tag);
 
     // Get
     tag = dao.getById(tag.getId());
     assertThat(tag, notNullValue());
-    assertTag(organization.getId(), "Updated Name", "testCRUD description", tag);
+    assertTag(organization.getId(), "Updated Name", "testCRUD description", Color.black, tag);
 
     // Delete
     dao.delete(tag);
@@ -75,7 +77,7 @@ public class TagDAOTest
 
   @Test
   public void testValidateNullName_Insert() {
-    Tag tag = new Tag(organization.getId(), null /* name */, "description");
+    Tag tag = new Tag(organization.getId(), null /* name */, "description", Color.yellow);
     try {
       dao.insert(tag);
       fail("Expected InvalidNameException");
@@ -87,7 +89,7 @@ public class TagDAOTest
 
   @Test
   public void testValidateNullName_Update() {
-    Tag tag = new Tag(organization.getId(), "name", "description");
+    Tag tag = new Tag(organization.getId(), "name", "description", Color.yellow);
     dao.insert(tag);
 
     tag.setName(null);
@@ -102,7 +104,7 @@ public class TagDAOTest
 
   @Test
   public void testValidateEmptyName_Insert() {
-    Tag tag = new Tag(organization.getId(), " " /* name */, "description");
+    Tag tag = new Tag(organization.getId(), " " /* name */, "description", Color.yellow);
     try {
       dao.insert(tag);
       fail("Expected InvalidNameException");
@@ -114,7 +116,7 @@ public class TagDAOTest
 
   @Test
   public void testValidateEmptyName_Update() {
-    Tag tag = new Tag(organization.getId(), "name", "description");
+    Tag tag = new Tag(organization.getId(), "name", "description", Color.yellow);
     dao.insert(tag);
 
     tag.setName(" ");
@@ -129,7 +131,7 @@ public class TagDAOTest
 
   @Test
   public void testValidateNameInvalidChars_Insert() {
-    Tag tag = new Tag(organization.getId(), "name", "description");
+    Tag tag = new Tag(organization.getId(), "name", "description", Color.yellow);
     for (String name : INVALID_ALPHANUMERIC) {
       tag.setName(name);
       try {
@@ -144,7 +146,7 @@ public class TagDAOTest
 
   @Test
   public void testValidateNameInvalidChars_Update() {
-    Tag tag = new Tag(organization.getId(), "name", "description");
+    Tag tag = new Tag(organization.getId(), "name", "description", Color.yellow);
     dao.insert(tag);
     for (String name: INVALID_ALPHANUMERIC) {
       tag.setName(name);
@@ -160,7 +162,7 @@ public class TagDAOTest
 
   @Test
   public void testValidateNameSpaces_Insert() {
-    Tag tag = new Tag(organization.getId(), "name", "description");
+    Tag tag = new Tag(organization.getId(), "name", "description", Color.yellow);
     for (String name : INVALID_SPACING_NAMES) {
       tag.setName(name);
       try {
@@ -176,7 +178,7 @@ public class TagDAOTest
 
   @Test
   public void testValidateNameSpaces_Update() {
-    Tag tag = new Tag(organization.getId(), "name", "description");
+    Tag tag = new Tag(organization.getId(), "name", "description", Color.yellow);
     dao.insert(tag);
 
     for (String name : INVALID_SPACING_NAMES) {
@@ -196,7 +198,7 @@ public class TagDAOTest
   public void testNameIsCaseAndWhitespaceInsensitive() {
     String name = "test string With Case and Whitespace";
 
-    Tag tag = new Tag(organization.getId(), name, "description");
+    Tag tag = new Tag(organization.getId(), name, "description", Color.yellow);
     dao.insert(tag);
 
     assertEquals(name, tag.getName());
@@ -205,10 +207,10 @@ public class TagDAOTest
 
   @Test
   public void testDuplicateName_Insert() {
-    Tag tag = new Tag(organization.getId(), "testDuplicateName", "description");
+    Tag tag = new Tag(organization.getId(), "testDuplicateName", "description", Color.yellow);
     dao.insert(tag);
 
-    Tag tag1 = new Tag(organization.getId(), "Test Duplicate Name", "description");
+    Tag tag1 = new Tag(organization.getId(), "Test Duplicate Name", "description", Color.yellow);
     try {
       dao.insert(tag1);
       fail("Expected InvalidNameException");
@@ -220,10 +222,10 @@ public class TagDAOTest
 
   @Test
   public void testDuplicateName_Update() {
-    Tag tag = new Tag(organization.getId(), "testDuplicateName", "description");
+    Tag tag = new Tag(organization.getId(), "testDuplicateName", "description", Color.yellow);
     dao.insert(tag);
 
-    Tag tag1 = new Tag(organization.getId(), "testDuplicateName1", "description");
+    Tag tag1 = new Tag(organization.getId(), "testDuplicateName1", "description", Color.yellow);
     dao.insert(tag1);
 
     tag1.setName("Test Duplicate Name");
@@ -239,7 +241,7 @@ public class TagDAOTest
   @Test
   public void testValidateNameLength_Insert() {
     String name = StringUtils.repeat("a", NameHelper.MAX_NAME_LENGTH);
-    Tag tag = new Tag(organization.getId(), name + "a", "description");
+    Tag tag = new Tag(organization.getId(), name + "a", "description", Color.yellow);
     try {
       dao.insert(tag);
       fail("Expected InvalidNameException");
@@ -254,7 +256,7 @@ public class TagDAOTest
 
   @Test
   public void testValidateNameLength_Update() {
-    Tag tag = new Tag(organization.getId(), "name", "description");
+    Tag tag = new Tag(organization.getId(), "name", "description", Color.yellow);
     dao.insert(tag);
 
     String name = StringUtils.repeat("a", NameHelper.MAX_NAME_LENGTH);
@@ -274,7 +276,7 @@ public class TagDAOTest
   @Test
   public void testValidateDescriptionLength_Insert() {
     String description = StringUtils.repeat("a", TagDAO.MAX_DESC_SIZE);
-    Tag tag = new Tag(organization.getId(), "name", description + "a");
+    Tag tag = new Tag(organization.getId(), "name", description + "a", Color.yellow);
     try {
       dao.insert(tag);
       fail("Expected InvalidTagException");
@@ -290,7 +292,7 @@ public class TagDAOTest
 
   @Test
   public void testValidateDescriptionLength_Update() {
-    Tag tag = new Tag(organization.getId(), "name", "description");
+    Tag tag = new Tag(organization.getId(), "name", "description", Color.yellow);
     dao.insert(tag);
 
     String description = StringUtils.repeat("a", TagDAO.MAX_DESC_SIZE);
@@ -310,7 +312,7 @@ public class TagDAOTest
 
   @Test
   public void testValidateNullDescription_Insert() {
-    Tag tag = new Tag(organization.getId(), "name", null /* description */);
+    Tag tag = new Tag(organization.getId(), "name", null /* description */, Color.yellow);
     try {
       dao.insert(tag);
       fail("Expected InvalidTagException");
@@ -322,7 +324,7 @@ public class TagDAOTest
 
   @Test
   public void testValidateNullDescription_Update() {
-    Tag tag = new Tag(organization.getId(), "name", "description");
+    Tag tag = new Tag(organization.getId(), "name", "description", Color.yellow);
     dao.insert(tag);
 
     tag.setDescription(null);
@@ -337,7 +339,7 @@ public class TagDAOTest
 
   @Test
   public void testValidateEmptyDescription_Insert() {
-    Tag tag = new Tag(organization.getId(), "name", " " /* description */);
+    Tag tag = new Tag(organization.getId(), "name", " " /* description */, Color.yellow);
     try {
       dao.insert(tag);
       fail("Expected InvalidTagException");
@@ -349,7 +351,7 @@ public class TagDAOTest
 
   @Test
   public void testValidateEmptyDescription_Update() {
-    Tag tag = new Tag(organization.getId(), "name", "description");
+    Tag tag = new Tag(organization.getId(), "name", "description", Color.yellow);
     dao.insert(tag);
 
     tag.setDescription(" ");
@@ -360,6 +362,37 @@ public class TagDAOTest
     catch (InvalidTagException expected) {
       assertEquals("The description is required.", expected.getMessage());
     }
+  }
+
+  @Test
+  public void testNullColor() {
+    // Create with null color
+    Tag tag = new Tag(organization.getId(), "name", "description", null);
+    dao.insert(tag);
+    assertThat(tag.getId(), notNullValue());
+
+    // Get
+    tag = dao.getById(tag.getId());
+    assertThat(tag, notNullValue());
+    assertTag(organization.getId(), "name", "description", null, tag);
+
+    // Update color from null to something
+    tag.setColor(Color.black);
+    dao.update(tag);
+
+    // Get
+    tag = dao.getById(tag.getId());
+    assertThat(tag, notNullValue());
+    assertTag(organization.getId(), "name", "description", Color.black, tag);
+
+    // Update color back to null
+    tag.setColor(null);
+    dao.update(tag);
+
+    // Get
+    tag = dao.getById(tag.getId());
+    assertThat(tag, notNullValue());
+    assertTag(organization.getId(), "name", "description", null, tag);
   }
 
   @Test
@@ -421,11 +454,12 @@ public class TagDAOTest
     assertThat(new PolicyTagDAO().getByTagId(tag.getId()), hasSize(1));
   }
 
-  private void assertTag(String orgId, String name, String description, Tag actual) {
+  private void assertTag(String orgId, String name, String description, Color color, Tag actual) {
     assertThat(actual.getOrganizationId(), is(orgId));
     assertThat(actual.getName(), is(name));
     assertThat(actual.getNameLowercaseNoWhitespace(), is(NameHelper.normalize(name)));
     assertThat(actual.getDescription(), is(description));
+    assertThat(actual.getColor(), is(color));
   }
 
   private void assertAppliedApplicationTags(List<Tag> expected, List<Tag> actual) {

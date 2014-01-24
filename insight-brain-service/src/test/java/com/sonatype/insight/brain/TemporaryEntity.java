@@ -34,7 +34,7 @@ import com.sonatype.insight.brain.dataaccess.tag.ApplicationTagDAO;
 import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
-import com.sonatype.insight.brain.model.label.Color;
+import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.label.ComponentLabel;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
@@ -360,7 +360,11 @@ public class TemporaryEntity
   }
 
   public Tag newTag(String orgId, String name) {
-    Tag tag = new Tag(orgId, name, "description");
+    return newTag(orgId, name, Color.yellow);
+  }
+
+  public Tag newTag(String orgId, String name, Color color) {
+    Tag tag = new Tag(orgId, name, "description", color);
     tagDAO.insert(tag);
     tags.add(tag);
     return tag;
@@ -378,5 +382,6 @@ public class TemporaryEntity
     assertThat(actual.getName(), is(expected.getName()));
     assertThat(actual.getNameLowercaseNoWhitespace(), is(expected.getNameLowercaseNoWhitespace()));
     assertThat(actual.getDescription(), is(expected.getDescription()));
+    assertThat(actual.getColor(), is(expected.getColor()));
   }
 }

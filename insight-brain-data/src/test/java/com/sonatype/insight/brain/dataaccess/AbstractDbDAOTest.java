@@ -13,6 +13,7 @@ import com.sonatype.insight.brain.dataaccess.tag.PolicyTagDAO;
 import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.tag.ApplicationTag;
 import com.sonatype.insight.brain.model.tag.PolicyTag;
 import com.sonatype.insight.brain.model.tag.Tag;
@@ -67,7 +68,11 @@ public abstract class AbstractDbDAOTest
   }
 
   protected Tag createTag(String name, String description, String parentId) {
-    Tag tag = new Tag(parentId, name, description);
+    return createTag(name, description, parentId, Color.yellow);
+  }
+
+  protected Tag createTag(String name, String description, String parentId, Color color) {
+    Tag tag = new Tag(parentId, name, description, color);
     new TagDAO().insert(tag);
     tagsToDelete.add(tag);
     return tag;

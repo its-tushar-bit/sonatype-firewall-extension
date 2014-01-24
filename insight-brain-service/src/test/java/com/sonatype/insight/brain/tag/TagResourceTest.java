@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.tag;
 import com.sonatype.insight.brain.AuthedRestAccess;
 import com.sonatype.insight.brain.TemporaryEntity;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
@@ -39,7 +40,7 @@ public class TagResourceTest
     assertThat(tags.length, is(0));
 
     // Add
-    Tag tag = new Tag(org.getId(), "Tag Name", "Tag description");
+    Tag tag = new Tag(org.getId(), "Tag Name", "Tag description", Color.yellow);
     response = AuthedRestAccess.post(url, JsonHelpers.asJson(tag));
     assertResponseStatus(200, response);
     tempEntity.assertTag(tag, JsonHelpers.fromJson(response.getResponseBody(), Tag.class));

@@ -7,10 +7,13 @@ package com.sonatype.insight.brain.model.tag;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
 import com.sonatype.insight.brain.model.NameHelper;
+import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.model.HasStringId;
 
 /**
@@ -37,13 +40,18 @@ public class Tag
   @Column(name = "description")
   private String description;
 
+  @Column(name = "color")
+  @Enumerated(EnumType.STRING)
+  private Color color;
+
   public Tag() {
   }
 
-  public Tag(String organizationId, String name, String description) {
+  public Tag(String organizationId, String name, String description, Color color) {
     this.organizationId = organizationId;
     setName(name);
     this.description = description;
+    this.color = color;
   }
 
   @Override
@@ -95,5 +103,13 @@ public class Tag
 
   public void setOrganizationId(String organizationId) {
     this.organizationId = organizationId;
+  }
+
+  public Color getColor() {
+    return color;
+  }
+
+  public void setColor(Color color) {
+    this.color = color;
   }
 }

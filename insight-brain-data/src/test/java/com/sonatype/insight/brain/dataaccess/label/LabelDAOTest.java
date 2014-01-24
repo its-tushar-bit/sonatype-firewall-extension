@@ -12,7 +12,7 @@ import java.util.Locale;
 import java.util.Map;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
-import com.sonatype.insight.brain.model.label.Color;
+import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.label.ComponentLabel;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.error.exception.NotFoundException;

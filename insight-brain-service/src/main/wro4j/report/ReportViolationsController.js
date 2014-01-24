@@ -11,6 +11,11 @@
   reportListModule.controller('ReportViolationsController', ['$scope', '$http', '$q', 'CLMLocations',
     function($scope, $http, $q, clmLocations) {
 
+      $scope.setSort = function (field) {
+        $scope.orderDirection = field === $scope.orderColumn && !$scope.orderDirection;
+        $scope.orderColumn = field;
+      };
+
       $scope.orderColumn = 'name';
       $scope.orderDirection = false;
       $scope.encodeURIComponent = window.encodeURIComponent;

@@ -15,7 +15,7 @@
 			<table class='clm-table table table-striped table-bordered' style='margin-bottom:0px;background-color: white'>
 				<thead>
 					<tr>
-						<th class='sortable' ng-click="orderColumn='name'; orderDirection=!orderDirection"
+						<th class='sortable' ng-click="setSort('name')"
 							ng-class="{ 'sorted' : orderColumn == 'name' }">
 							Application Name
 							<i ng-class="{ 'icon-chevron-down' : orderColumn == 'name' && orderDirection,
@@ -26,6 +26,13 @@
 							{{stage.name}} Violations
 						</th>
 						<th>Contact</th>
+						<th class='sortable' ng-click="setSort('organizationName')"
+							ng-class="{ 'sorted' : orderColumn == 'organizationName' }">
+							Organization
+							<i ng-class="{ 'icon-chevron-down' : orderColumn == 'organizationName' && orderDirection,
+									'icon-chevron-up' : orderColumn == 'organizationName' && !orderDirection,
+									'emptyIconGlyph' : orderColumn != 'organizationName' }"></i>
+						</th>
 					</tr>
 				</thead>
 				<tr ng-repeat='application in applications | filter: appFilter | orderBy:orderColumn:orderDirection'>
@@ -58,6 +65,11 @@
 							<i class='icon-warning-sign' tooltip='{{application.contact.error}}' tooltip-placement='left'></i>
 						</span>
 						<span>{{application.contact.displayName || application.contact.internalName}}</span>
+					</td>
+					<td>
+						<a href='index.html#/management/organization/{{encodeURIComponent(application.organizationId)}}/policies'>
+							{{application.organizationName}}
+						</a>
 					</td>
 				</tr>
 			</table>

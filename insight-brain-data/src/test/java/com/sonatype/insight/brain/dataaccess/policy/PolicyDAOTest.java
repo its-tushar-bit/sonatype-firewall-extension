@@ -616,7 +616,8 @@ public class PolicyDAOTest
     Tag tag1 = createTag("tag name 1", "tag description 1", organization.getId());
     createPolicyTag(policyOrg1.getId(), tag1.getId());
     Tag tag2 = createTag("tag name 2", "tag description 2", organization.getId());
-    createPolicyTag(policyOrg1.getId(), tag2.getId());
+    createPolicyTag(policyOrg2.getId(), tag2.getId());
+    createApplicationTag(application.getId(), tag2.getId());
 
     List<Policy> policies = policyDAO.getApplicableByOwnerId(application.getId());
     Assert.assertEquals(1, policies.size());

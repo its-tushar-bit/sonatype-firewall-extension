@@ -302,7 +302,7 @@ public class PolicyDAO
 
     for (PolicyTag policyTag : policyTags) {
       for (ApplicationTag appTag : appTags) {
-        if (policyTag.getTagId() == appTag.getTagId()) {
+        if (policyTag.getTagId().equals(appTag.getTagId())) {
           return true;
         }
       }

@@ -22,11 +22,12 @@
     <wro4j.version>1.7.0</wro4j.version>
     <licensing.version>1.4</licensing.version>
     <angularjs.version>1.2.9</angularjs.version>
-    <jasmine.version>1.3.1.3</jasmine.version>
-    <saga.version>1.4.2</saga.version>
+    <jasmine.version>1.3.1.4</jasmine.version>
+    <saga.version>1.5.2</saga.version>
     <jasmine.brain.id>test-brain-assets</jasmine.brain.id>
     <jasmine.cip.id>test-cip-assets</jasmine.cip.id>
     <phantomjs-maven-plugin.version>0.2.1</phantomjs-maven-plugin.version>
+    <phantomjs.version>1.9.7</phantomjs.version>
   </properties>
 
   <dependencies>
@@ -488,7 +489,8 @@
           </execution>
         </executions>
         <configuration>
-          <version>1.9.2</version>
+          <version>${phantomjs.version}</version>
+          <baseUrl>http://cdn.bitbucket.org/ariya/phantomjs/downloads/</baseUrl>
         </configuration>
       </plugin>
       <plugin>
@@ -567,7 +569,10 @@
           <keepServerAlive>true</keepServerAlive>
           <webDriverClassName>org.openqa.selenium.phantomjs.PhantomJSDriver</webDriverClassName>
           <webDriverCapabilities>
-            <phantomjs.binary.path>${phantomjs.binary}</phantomjs.binary.path>
+            <capability>
+              <name>phantomjs.binary.path</name>
+              <value>${phantomjs.binary}</value>
+            </capability>
           </webDriverCapabilities>
         </configuration>
       </plugin>

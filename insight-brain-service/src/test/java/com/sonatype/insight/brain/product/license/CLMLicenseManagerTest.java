@@ -5,12 +5,14 @@
  */
 package com.sonatype.insight.brain.product.license;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.Date;
 
+import javax.inject.Inject;
+
 import com.sonatype.insight.brain.TestProductLicenseManager;
-import com.sonatype.insight.brain.service.AbstractLicenseTest;
-import com.sonatype.insight.brain.service.TestInsightBrainService;
+import com.sonatype.insight.brain.service.AbstractComponentTest;
 
 import org.sonatype.licensing.LicenseKey;
 import org.sonatype.licensing.LicensingException;
@@ -19,8 +21,7 @@ import org.sonatype.licensing.feature.FeatureValidator;
 import org.sonatype.licensing.internal.DefaultFeatureValidator;
 import org.sonatype.licensing.product.ProductLicenseManager;
 
-import com.google.inject.AbstractModule;
-import org.codehaus.plexus.util.IOUtil;
+import com.google.inject.Binder;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
@@ -28,8 +29,13 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
 
 public class CLMLicenseManagerTest
-    extends AbstractLicenseTest
+    extends AbstractComponentTest
 {
+  @Inject
+  private CLMLicenseManager clmLicenseManager;
+
+  private TestProductLicenseManager licenseManager = new TestProductLicenseManager(true);
+
   private static class NegativeFeatureValidator
       extends DefaultFeatureValidator
   {
@@ -40,33 +46,30 @@ public class CLMLicenseManagerTest
   }
 
   @Override
-  protected void configureBrain(TestInsightBrainService brain) {
+  public void configure(Binder binder) {
+    super.configure(binder);
     if ("testLicenseLacksClmFeature".equals(testName.getMethodName())) {
-      brain.addModule(new AbstractModule()
-      {
-        @Override
-        protected void configure() {
-          bind(FeatureValidator.class).toInstance(new NegativeFeatureValidator());
-        }
-      });
-    } else {
-      super.configureBrain(brain);
+      binder.bind(FeatureValidator.class).toInstance(new NegativeFeatureValidator());
+    }
+    else {
+      binder.bind(ProductLicenseManager.class).toInstance(licenseManager);
+    }
+  }
+
+  private void installLicense() throws IOException, LicensingException {
+    try (InputStream licenseStream = getClass().getResourceAsStream("/productlicense/license.lic")) {
+      clmLicenseManager.installLicense(licenseStream);
     }
   }
 
   @Test
   public void testLicenseLacksClmFeature() throws Exception {
-    CLMLicenseManager clmLicenseManager = brain.getInjector().getInstance(CLMLicenseManager.class);
-    InputStream licenseStream = this.getClass().getResourceAsStream("/productlicense/license.lic");
     try {
-      clmLicenseManager.installLicense(licenseStream);
+      installLicense();
       fail("Expected LicensingException");
     }
     catch (LicensingException expected) {
       assertEquals("License does not permit use of feature 'SonatypeCLM'", expected.getMessage());
-    }
-    finally {
-      IOUtil.close(licenseStream);
     }
 
     assertNull(clmLicenseManager.getLicenseFingerprint());
@@ -74,11 +77,6 @@ public class CLMLicenseManagerTest
 
   @Test
   public void testLicenseExpiration() throws Exception {
-    TestProductLicenseManager licenseManager = TestProductLicenseManager.class.cast(brain.getInjector().getInstance(
-        ProductLicenseManager.class));
-
-    CLMLicenseManager clmLicenseManager = brain.getInjector().getInstance(CLMLicenseManager.class);
-
     licenseManager.setExpirationDate(new Date(System.currentTimeMillis() + 2000));
     long before = System.currentTimeMillis();
     installLicense();

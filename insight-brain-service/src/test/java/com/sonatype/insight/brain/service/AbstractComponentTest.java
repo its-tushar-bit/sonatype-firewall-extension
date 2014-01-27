@@ -11,6 +11,7 @@ import com.google.inject.Binder;
 import org.eclipse.sisu.launch.InjectedTest;
 import org.junit.Rule;
 import org.junit.rules.TemporaryFolder;
+import org.junit.rules.TestName;
 
 /**
  * Support class for tests of Sisu components.
@@ -20,6 +21,9 @@ public class AbstractComponentTest
 {
   @Rule
   public TemporaryFolder tempDir = new TemporaryFolder();
+
+  @Rule
+  public TestName testName = new TestName();
 
   @Override
   public void configure(Binder binder) {

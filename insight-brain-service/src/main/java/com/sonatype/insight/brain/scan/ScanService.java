@@ -39,11 +39,14 @@ class ScanService
 {
   private static final Logger log = LoggerFactory.getLogger(ScanService.class);
 
-  private ScanTaskRepository taskRepository;
+  private final ScanTaskRepository taskRepository;
+
+  private final FileCleaner fileCleaner;
 
   @Inject
-  public ScanService(ScanTaskRepository scanTaskRepository) {
+  public ScanService(ScanTaskRepository scanTaskRepository, FileCleaner fileCleaner) {
     this.taskRepository = scanTaskRepository;
+    this.fileCleaner = fileCleaner;
   }
 
   /**
@@ -82,7 +85,7 @@ class ScanService
     return ticket;
   }
 
-  static File saveBinary(InputStream is, String filename) throws IOException {
+  File saveBinary(InputStream is, String filename) throws IOException {
     try {
       String ext = getFileExtension(filename);
       File file = File.createTempFile("clm-", ext);
@@ -92,7 +95,7 @@ class ScanService
       }
       catch (RuntimeException | IOException e) {
         try {
-          new FileCleaner().delete(file);
+          fileCleaner.delete(file);
         }
         catch (FileDeletionException fde) {
           log.error("Could not delete binary file: {}", file, fde);

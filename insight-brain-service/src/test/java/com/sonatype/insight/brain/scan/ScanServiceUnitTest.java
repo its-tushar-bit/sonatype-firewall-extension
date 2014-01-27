@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.scan;
 
+import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.scan.ScanTask.State;
 import com.sonatype.insight.error.exception.NotFoundException;
 
@@ -22,7 +23,7 @@ public class ScanServiceUnitTest
   @SuppressWarnings("unchecked")
   public void testGetTicketNotFound() {
     ScanTaskRepository taskRepository = mock(ScanTaskRepository.class);
-    ScanService service = new ScanService(taskRepository);
+    ScanService service = new ScanService(taskRepository, mock(FileCleaner.class));
 
     when(taskRepository.getByIdNotNull(anyString())).thenThrow(NotFoundException.class);
 
@@ -35,7 +36,7 @@ public class ScanServiceUnitTest
   @Test
   public void getDoneTicketDeletesTicketResources() {
     ScanTaskRepository taskRepository = mock(ScanTaskRepository.class);
-    ScanService service = new ScanService(taskRepository);
+    ScanService service = new ScanService(taskRepository, mock(FileCleaner.class));
 
     ScanTicket ticket = new ScanTicket();
     ticket.totalSteps = 5;

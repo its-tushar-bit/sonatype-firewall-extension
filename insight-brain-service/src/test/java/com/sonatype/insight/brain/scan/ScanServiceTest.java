@@ -101,7 +101,7 @@ public class ScanServiceTest
 
   @Test
   public void testSaveBinary_KeepsOriginalFileExtensionForArchiveDetectionPurposes() throws Exception {
-    File file = ScanService.saveBinary(getBundle("app01.zip"), "app.tar.gz");
+    File file = scanService.saveBinary(getBundle("app01.zip"), "app.tar.gz");
     file.delete();
     assertThat(file.getName(), endsWith(".tar.gz"));
   }

@@ -479,14 +479,12 @@ var AngularUtils = {
       var arrayToReturn = [];
       if (items) {
         angular.forEach(items, function(item) {
-          /* jshint indent:false */
           switch (item.name) {
             case 'Build':
             case 'Stage Release':
             case 'Release':
               arrayToReturn.push(item);
           }
-          /* jshint indent:2 */
         });
       }
       return arrayToReturn;
@@ -915,7 +913,6 @@ var AngularUtils = {
       getEventHandler: function(scope, applicableCollection) {
         return function(eventArgs, changeEvent) {
           jQuery.each(changeEvent.changes, function(index, change) {
-            /* jshint indent:false */
             switch (change.field) {
               case 'name':
                 angular.forEach($parse(applicableCollection)(scope), function(item) {
@@ -928,7 +925,6 @@ var AngularUtils = {
                 scope.doLoad();
                 return false;
             }
-            /* jshint indent:2 */
           });
         };
       }

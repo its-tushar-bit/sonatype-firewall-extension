@@ -164,7 +164,7 @@
           originalProperties.sort();
           angular.forEach(currentProperties, function(property, index) {
             if (originalProperties[index] === property) {
-              if (typeof original[property] === 'object' || typeof original[property] === 'array') {
+              if (angular.isObject(original[property]) || angular.isArray(original[property])) {
                 match = match && angular.equals(original[property], me[property]);
               }
               else {

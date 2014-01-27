@@ -46,7 +46,6 @@
           nullPolicyCount: 0
         };
         angular.forEach($scope.data.violations, function(policy) {
-          /* jshint indent:false */
           switch (policy.threat) {
             case 10:
             case 9:
@@ -70,7 +69,6 @@
             default:
               $scope.error = 'Unknown policy threat level: ' + policy.threat;
           }
-          /* jshint indent:2 */
         });
         angular.extend($scope.data, calculatedData);
         $scope.diffchart = '../report-assets/trending/diffChart.html?' + clmBuildTimestamp;
@@ -382,7 +380,6 @@
     function() {
       return {
         barFromThreatName: function(threatName) {
-          /* jshint indent:false */
           switch (threatName.toLowerCase()) {
             case 'critical':
               return '#DB2852';
@@ -395,10 +392,8 @@
             default:
               return 'black';
           }
-          /* jshint indent:2 */
         },
         textFromThreatName: function(threatName) {
-          /* jshint indent:false */
           switch (threatName.toLowerCase()) {
             case 'critical':
             case 'severe':
@@ -407,10 +402,8 @@
             default:
               return 'black';
           }
-          /* jshint indent:2 */
         },
         threatLevelClass: function(threatLevel) {
-          /* jshint indent:false */
           switch (threatLevel) {
             case 10:
             case 9:
@@ -430,7 +423,6 @@
             default:
               return 'black';
           }
-          /* jshint indent:2 */
         }
       };
     }

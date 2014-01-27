@@ -118,7 +118,6 @@
         var add = true;
         if ($scope.policy.actions[stageId]) {
           for (var i = $scope.policy.actions[stageId].length - 1; i >= 0; i--) {
-            /* jshint indent:false */
             switch ($scope.policy.actions[stageId][i].actionTypeId) {
               case 'warn':
                 $scope.policy.actions[stageId].splice(i, 1);
@@ -133,7 +132,6 @@
                 }
                 break;
             }
-            /* jshint indent:2 */
           }
         }
 
@@ -331,7 +329,6 @@
 
       $scope.createConditionValidationMessage = function(dataType, constraintName, index) {
         var msg = 'Please enter ';
-        /* jshint indent:false */
         switch (dataType) {
           case 'Integer':
             msg += 'a whole number';
@@ -345,7 +342,6 @@
             msg += 'a value';
             break;
         }
-        /* jshint indent:2 */
         msg += ' for condition #' + index + ' in constraint "' + constraintName + '"';
         return msg;
       };
@@ -502,7 +498,6 @@
 
         // This could be replaced with ng-init but the html is fairly verbose as it is
         condition.operator = $scope.conditionTypes[condition.conditionTypeId].supportedOperators[0];
-        /* jshint indent:false */
         switch ($scope.conditionTypes[condition.conditionTypeId].valueTypeId) {
           case 'LicenseCategoryValueType':
           case 'LicenseValueType':
@@ -518,7 +513,6 @@
             }
             break;
         }
-        /* jshint indent:2 */
       };
       $scope.$watch('constraint', function(constraint) {
         if (constraint) {

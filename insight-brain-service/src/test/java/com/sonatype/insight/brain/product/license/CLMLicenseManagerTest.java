@@ -87,4 +87,22 @@ public class CLMLicenseManagerTest
 
     assertEquals(false, clmLicenseManager.isValid());
   }
+
+  @Test
+  public void testLicenseCache() throws Exception {
+    assertEquals(true, clmLicenseManager.isValid());
+    assertEquals(100, clmLicenseManager.getApplicationCountLimit());
+    assertEquals(true, clmLicenseManager.hasPolicyMonitoring());
+
+    // now change the value and make sure the cache is still stale
+    licenseManager.setApplicationLimit(10);
+    assertEquals(100, clmLicenseManager.getApplicationCountLimit());
+    licenseManager.setFeatures(new String[0]);
+    assertEquals(true, clmLicenseManager.hasPolicyMonitoring());
+
+    // now install the license (which causes the cache to be cleared) and make sure the cache is no longer stale
+    installLicense();
+    assertEquals(10, clmLicenseManager.getApplicationCountLimit());
+    assertEquals(false, clmLicenseManager.hasPolicyMonitoring());
+  }
 }

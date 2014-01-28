@@ -175,16 +175,12 @@ public class ApplicationDAO
     if (!existingApplication.getPublicId().equals(application.getPublicId())) {
       throw new InvalidApplicationException("Cannot change Public ID of existing application.");
     }
-    if (existingApplication.getOrganizationId() != null) {
-      if (!existingApplication.getOrganizationId().equals(application.getOrganizationId())) {
-        throw new InvalidApplicationException("Cannot change the parent organization of an application.");
-      }
+    if (!existingApplication.getOrganizationId().equals(application.getOrganizationId())) {
+      throw new InvalidApplicationException("Cannot change the parent organization of an application.");
     }
-    else if (application.getOrganizationId() != null) {
-      Organization organization = new OrganizationDAO().getByIdNotNull(application.getOrganizationId());
-      checkConflictingLicenseThreatGroups(em, application, organization);
-      checkConflictingLabels(em, existingApplication, organization);
-    }
+    Organization organization = new OrganizationDAO().getByIdNotNull(application.getOrganizationId());
+    checkConflictingLicenseThreatGroups(em, application, organization);
+    checkConflictingLabels(em, existingApplication, organization);
     existingApplication = getByName(em, application.getName());
     if (existingApplication != null && !existingApplication.getId().equals(application.getId())) {
       throw new InvalidNameException(application.getName() + " is already used as a name.");

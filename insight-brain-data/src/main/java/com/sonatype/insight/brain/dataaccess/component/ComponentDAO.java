@@ -50,7 +50,7 @@ public class ComponentDAO
   private void loadLicenseOverride(Application application, Component component) {
     LicenseOverride licenseOverride = new LicenseOverrideDAO().getByOwnerIdAndGAV(application.getId(),
         component.getGroupId(), component.getArtifactId(), component.getVersion());
-    if (licenseOverride == null && application.getOrganizationId() != null) {
+    if (licenseOverride == null) {
       licenseOverride = new LicenseOverrideDAO().getByOwnerIdAndGAV(application.getOrganizationId(),
           component.getGroupId(), component.getArtifactId(), component.getVersion());
     }
@@ -303,13 +303,11 @@ public class ComponentDAO
 
     // Gather all license threat groups from the application's organization
     String organizationId = new ApplicationDAO().getByIdNotNull(applicationId).getOrganizationId();
-    if (organizationId != null) {
-      for (String licenseId : licenseIds) {
-        List<LicenseThreatGroup> licenseThreatGroups = licenseThreatGroupDAO.getByOwnerIdAndLicenseId(organizationId,
-            licenseId);
-        for (LicenseThreatGroup licenseThreatGroup : licenseThreatGroups) {
-          component.addLicenseThreatGroup(licenseThreatGroup);
-        }
+    for (String licenseId : licenseIds) {
+      List<LicenseThreatGroup> licenseThreatGroups = licenseThreatGroupDAO.getByOwnerIdAndLicenseId(organizationId,
+          licenseId);
+      for (LicenseThreatGroup licenseThreatGroup : licenseThreatGroups) {
+        component.addLicenseThreatGroup(licenseThreatGroup);
       }
     }
   }

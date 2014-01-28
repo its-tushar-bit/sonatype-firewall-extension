@@ -9,8 +9,10 @@ import java.io.IOException;
 
 import com.sonatype.insight.brain.configuration.ldap.LdapServer;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapServerDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Organization;
 
 import com.excilys.ebi.gatling.app.Gatling;
 import com.excilys.ebi.gatling.core.config.GatlingPropertiesBuilder;
@@ -29,7 +31,9 @@ public class LdapActiveDirectoryStaticGroupsSimulationTest
 
   @BeforeClass
   public static void setup() throws IOException {
-    application = new Application("test", "test", null);
+    Organization org = new Organization("LdapActiveDirectoryDynamicGroupsSimulationTest");
+    new OrganizationDAO().insert(org);
+    application = new Application("test", "test", org.getId());
     new ApplicationDAO().insert(application);
     
     LdapServerDAO ldapServerDAO = new LdapServerDAO();

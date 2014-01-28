@@ -94,10 +94,9 @@ public class LicenseThreatGroupResource
     else {
       organizationId = ownerId;
     }
-    if (organizationId != null) {
-      Organization org = new OrganizationDAO().getByIdNotNull(organizationId);
-      result.add(org.getId(), org.getName(), IdUtils.TYPE_ORGANIZATION, loadLicenseThreatGroups(org.getId()));
-    }
+
+    Organization org = new OrganizationDAO().getByIdNotNull(organizationId);
+    result.add(org.getId(), org.getName(), IdUtils.TYPE_ORGANIZATION, loadLicenseThreatGroups(org.getId()));
 
     return result;
   }

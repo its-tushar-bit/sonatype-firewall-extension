@@ -117,11 +117,9 @@ public class LicenseThreatGroupDAO
     Application parentApplication = applicationDAO.getById(em, licenseThreatGroup.getOwnerId());
     if (parentApplication != null) {
       // The owner is an application
-      if (parentApplication.getOrganizationId() != null) {
-        if (getByOwnerIdAndName(em, parentApplication.getOrganizationId(), licenseThreatGroup.getName()) != null) {
-          throw new InvalidLicenseThreatGroupException(
-              "A license threat group with the same name already exists for the parent organization");
-        }
+      if (getByOwnerIdAndName(em, parentApplication.getOrganizationId(), licenseThreatGroup.getName()) != null) {
+        throw new InvalidLicenseThreatGroupException(
+            "A license threat group with the same name already exists for the parent organization");
       }
     }
     else {

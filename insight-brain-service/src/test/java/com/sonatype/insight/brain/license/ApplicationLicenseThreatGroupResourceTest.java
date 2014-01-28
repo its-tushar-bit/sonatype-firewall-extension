@@ -12,13 +12,12 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.utils.IdUtils;
 
-import static org.hamcrest.Matchers.hasSize;
-import static org.junit.Assert.assertThat;
-
 import org.junit.Test;
 
+import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
 
 public class ApplicationLicenseThreatGroupResourceTest
     extends AbstractLicenseThreatGroupResourceTest
@@ -46,24 +45,10 @@ public class ApplicationLicenseThreatGroupResourceTest
   }
 
   @Test
-  public void testGetApplicable_AppWithoutOrg() throws Exception {
-    Application app = createApplication("appPublicId", "appName", false, false);
-    createLicenseThreatGroup("LTG-0", app.getId());
-    createLicenseThreatGroup("LTG-1", app.getId());
-
-    ApplicableLicenseThreatGroups altgs = getApplicableLicenseThreatGroups(app.getPublicId());
-    assertNotNull(altgs);
-    assertNotNull(altgs.licenseThreatGroupsByOwner);
-    assertEquals(1, altgs.licenseThreatGroupsByOwner.size());
-    assertLicenseThreatGroupsByOwner(app.getId(), app.getName(), IdUtils.TYPE_APPLICATION, 2,
-        altgs.licenseThreatGroupsByOwner.get(0));
-  }
-
-  @Test
-  public void testGetApplicable_AppWithOrg() throws Exception {
+  public void testGetApplicable() throws Exception {
     Organization org = createOrganization("orgName", false);
     createLicenseThreatGroup("LTG-2", org.getId(), "GPL-2.0", "GPL-3.0");
-    Application app = createApplication("appPublicId", "appName", false, false);
+    Application app = createApplication("appPublicId", "appName", false, org);
     app.setOrganizationId(org.getId());
     new ApplicationDAO().update(app);
     createLicenseThreatGroup("LTG-0", app.getId(), "Apache-2.0");

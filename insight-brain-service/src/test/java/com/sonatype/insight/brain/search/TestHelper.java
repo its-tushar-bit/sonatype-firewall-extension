@@ -15,6 +15,7 @@ import java.util.zip.ZipOutputStream;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.TemporaryEntity;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluationLog;
 import com.sonatype.insight.brain.service.TestInsightBrainService;
@@ -33,7 +34,8 @@ class TestHelper
   }
 
   public Application createAppWithScan(String appPublicId, String stageId) throws Exception {
-    Application app = tempEntity.newApplication(appPublicId.toUpperCase(Locale.ENGLISH), appPublicId, null);
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplication(appPublicId.toUpperCase(Locale.ENGLISH), appPublicId, org.getId());
     createScanForApp(app.getId(), stageId, app.getPublicId());
     return app;
   }

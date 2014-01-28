@@ -18,6 +18,7 @@ import com.sonatype.insight.brain.db.DataSourceFactory;
 import com.sonatype.insight.brain.db.DatamartProvider;
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.db.DatabaseConfig;
 
 import org.junit.After;
@@ -81,13 +82,15 @@ public class DatabaseAccessTest
     Assert.assertTrue(databaseDir.exists());
     Assert.assertTrue(new File(databaseDir, "dm.h2.db").exists());
 
+    Organization org = new Organization("testConcurrentDatabaseAccess");
+    new OrganizationDAO().insert(org);
     // TODO: Delete this line once https://issues.apache.org/jira/browse/OPENJPA-2472 is resolved
-    new ApplicationDAO().insert(new Application("OPENJPA-2472", "Workaround", null));
+    new ApplicationDAO().insert(new Application("OPENJPA-2472", "Workaround", org.getId()));
 
     int threadCount = 20;
     DatabaseAccessThread[] threads = new DatabaseAccessThread[threadCount];
     for (int i = 0; i < threadCount; i++) {
-      threads[i] = new DatabaseAccessThread(i);
+      threads[i] = new DatabaseAccessThread(i, org.getId());
     }
     for (int i = 0; i < threadCount; i++) {
       threads[i].start();
@@ -118,11 +121,14 @@ public class DatabaseAccessTest
   {
     private int id;
 
+    private String orgId;
+
     public List<Exception> errors = new ArrayList<Exception>();
 
-    DatabaseAccessThread(int id) {
+    DatabaseAccessThread(int id, String orgId) {
       super("DatabaseAccessThread" + id);
       this.id = id;
+      this.orgId = orgId;
     }
 
     @Override
@@ -136,6 +142,7 @@ public class DatabaseAccessTest
         Application application = new Application();
         application.setName(appPublicId);
         application.setPublicId(appPublicId);
+        application.setOrganizationId(orgId);
         applicationDAO.insert(application);
       }
       catch (Exception e) {

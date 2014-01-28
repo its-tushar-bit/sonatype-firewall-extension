@@ -14,7 +14,6 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.locks.Lock;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -37,7 +36,6 @@ import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.InvalidApplicationException;
-import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.StageType;
@@ -311,19 +309,7 @@ public class ApplicationResource
       throw new InvalidApplicationException("Applications must have a parent organization.");
     }
 
-    List<Lock> readLocks = new ArrayList<Lock>();
-    try {
-      Application existingApp = applicationDAO.getByIdNotNull(application.getId());
-      if (existingApp.getOrganizationId() == null) {
-        PolicyDAO policyDAO = new PolicyDAO(work.getWorkDir());
-        policyDAO.validateNamesWithinHierarchy(application.getOrganizationId(), application.getId(), readLocks);
-      }
-
-      applicationDAO.update(application);
-    }
-    finally {
-      PolicyDAO.unlock(readLocks);
-    }
+    applicationDAO.update(application);
 
     return applicationAdapter.convert(application);
   }

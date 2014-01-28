@@ -33,10 +33,7 @@ public class CIResourceTest
     Application application = applicationDAO.getByPublicId(applicationPublicId);
     Assert.assertNull(application);
 
-    application = new Application();
-    application.setPublicId(applicationPublicId);
-    application.setName("CIResourceTest-Application-Name");
-    applicationDAO.insert(application);
+    application = createApplication(applicationPublicId, "CIResourceTest-Application-Name");
 
     // Validate that the application was created
     Response response = AuthedRestAccess.get(getServiceURL() + "/validate/" + applicationPublicId);

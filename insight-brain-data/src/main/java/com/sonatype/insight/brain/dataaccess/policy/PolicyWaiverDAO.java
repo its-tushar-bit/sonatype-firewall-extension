@@ -81,7 +81,7 @@ public class PolicyWaiverDAO
       if (inherit) {
         ApplicationDAO applicationDAO = new ApplicationDAO();
         Application application = applicationDAO.getById(ownerId);
-        if (application != null && application.getOrganizationId() != null) {
+        if (application != null) {
           policyWaivers.addAll(getByOwnerId(em, application.getOrganizationId()));
         }
       }

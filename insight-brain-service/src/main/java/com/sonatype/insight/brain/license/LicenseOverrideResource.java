@@ -161,16 +161,15 @@ public class LicenseOverrideResource
     else {
       organizationId = internalOwnerId;
     }
-    if (organizationId != null) {
-      Organization organization = new OrganizationDAO().getByIdNotNull(organizationId);
-      LicenseOverrideByOwner licenseOverrideByOwner = new LicenseOverrideByOwner();
-      licenseOverrideByOwner.ownerId = organization.getId();
-      licenseOverrideByOwner.ownerName = organization.getName();
-      licenseOverrideByOwner.ownerType = IdUtils.TYPE_ORGANIZATION;
-      licenseOverrideByOwner.licenseOverride = licenseOverrideDAO.getByOwnerIdAndGAV(organization.getId(), groupId,
-          artifactId, version);
-      result.licenseOverridesByOwner.add(licenseOverrideByOwner);
-    }
+
+    Organization organization = new OrganizationDAO().getByIdNotNull(organizationId);
+    LicenseOverrideByOwner licenseOverrideByOwner = new LicenseOverrideByOwner();
+    licenseOverrideByOwner.ownerId = organization.getId();
+    licenseOverrideByOwner.ownerName = organization.getName();
+    licenseOverrideByOwner.ownerType = IdUtils.TYPE_ORGANIZATION;
+    licenseOverrideByOwner.licenseOverride = licenseOverrideDAO.getByOwnerIdAndGAV(organization.getId(), groupId,
+        artifactId, version);
+    result.licenseOverridesByOwner.add(licenseOverrideByOwner);
 
     return result;
   }

@@ -139,16 +139,14 @@ public class LicenseDAO
    */
   public Integer getLicenseThreatLevelByApplicationAndLicenseId(Application application, String licenseId) {
     final LicenseThreatGroupDAO licenseThreatGroupDAO = new LicenseThreatGroupDAO();
-    String organizationId = application.getOrganizationId();
     Integer threatLevel = null;
     List<LicenseThreatGroup> licenseThreatGroups = licenseThreatGroupDAO.getByOwnerIdAndLicenseId(application.getId(),
         licenseId);
     threatLevel = max(threatLevel, licenseThreatGroups);
 
-    if (organizationId != null) {
-      licenseThreatGroups = licenseThreatGroupDAO.getByOwnerIdAndLicenseId(organizationId, licenseId);
-      threatLevel = max(threatLevel, licenseThreatGroups);
-    }
+    licenseThreatGroups = licenseThreatGroupDAO.getByOwnerIdAndLicenseId(application.getOrganizationId(), licenseId);
+    threatLevel = max(threatLevel, licenseThreatGroups);
+
     return threatLevel;
   }
 

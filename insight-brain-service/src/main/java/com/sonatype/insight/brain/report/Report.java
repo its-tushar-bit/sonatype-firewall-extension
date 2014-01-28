@@ -423,7 +423,7 @@ public final class Report
   {
     LicenseOverride licenseOverride = licenseOverrideDAO.getByOwnerIdAndGAV(application.getId(), groupId, artifactId,
         version);
-    if (licenseOverride == null && application.getOrganizationId() != null) {
+    if (licenseOverride == null) {
       licenseOverride = licenseOverrideDAO.getByOwnerIdAndGAV(application.getOrganizationId(), groupId, artifactId,
           version);
     }

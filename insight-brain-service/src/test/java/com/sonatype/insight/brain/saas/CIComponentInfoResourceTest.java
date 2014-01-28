@@ -18,6 +18,7 @@ import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.license.MultiLicense;
 import com.sonatype.insight.brain.saas.AbstractComponentInfoResource.ComponentLicenses;
@@ -194,8 +195,10 @@ public class CIComponentInfoResourceTest
   @Test
   public void testGetComponentDetailsList() throws Exception {
     // Create an application
+    Organization organization = createOrganization("testGetComponentDetailsList", false /* createLicenseThreatGroups */);
     String applicationPublicId = "testGetComponentDetailsList";
-    Application application = createApplication(applicationPublicId, false /* createLicenseThreatGroups */);
+    Application application = createApplication(applicationPublicId, applicationPublicId,
+        false /* createLicenseThreatGroups */, organization);
     String appId = application.getId();
     // Create license threat groups
     LicenseThreatGroupDAO licenseThreatGroupDAO = new LicenseThreatGroupDAO();

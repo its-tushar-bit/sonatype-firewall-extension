@@ -22,7 +22,6 @@ import com.sonatype.insight.brain.ldap.LdapUser;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.security.User;
-import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -110,27 +109,6 @@ public class ApplicationAdapterTest
 
     ApplicationDTO actualApplicationDTO = applicationAdapter.convert(application);
     assertApplication(actualApplicationDTO, expectedApplicationDTO);
-  }
-
-  @Test
-  public void testConvertApplicationOrganizationNotFound() {
-
-    Application application = createApplication(organizationId, applicationName, applicationId, contactInternalName);
-
-    // Return this user when ever the mock user DAO getByUsernameLowercase method is called
-    User user = createUser(userId, contactInternalName, userFirstName, userLastName, userEmail);
-    when(mockUserDAO.getByUsername(contactInternalName)).thenReturn(user);
-    // Throw exception when ever the mock organization DAO getByIdNotNull is called
-    when(mockOrganizationDAO.getByIdNotNull(organizationId)).thenThrow(new NotFoundException(TEST_MESSAGE));
-
-    try {
-
-      applicationAdapter.convert(application);
-      Assert.fail("NotFoundException was not thrown as expected");
-
-    } catch (NotFoundException e) {
-      Assert.assertThat(e.getMessage(), is(TEST_MESSAGE));
-    }
   }
 
   @Test

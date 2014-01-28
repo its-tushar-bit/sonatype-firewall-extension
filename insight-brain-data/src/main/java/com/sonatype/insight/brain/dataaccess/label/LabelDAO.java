@@ -57,7 +57,7 @@ public class LabelDAO
     if (inherit) {
       final ApplicationDAO applicationDAO = new ApplicationDAO();
       final Application application = applicationDAO.getById(ownerId);
-      if (application != null && application.getOrganizationId() != null) {
+      if (application != null) {
         labels.addAll(getList(em, sQuery, application.getOrganizationId()));
       }
     }
@@ -92,7 +92,7 @@ public class LabelDAO
     if (inherit) {
       final ApplicationDAO applicationDAO = new ApplicationDAO();
       final Application application = applicationDAO.getById(em, ownerId);
-      if (application != null && application.getOrganizationId() != null) {
+      if (application != null) {
         label = get(em, sQuery, application.getOrganizationId(), labelLowercase);
       }
     }
@@ -205,7 +205,7 @@ public class LabelDAO
 
     // owner can be an app, make sure organization does not have this label already
     final Application app = appDAO.getById(em, label.getOwnerId());
-    if (app != null && app.getOrganizationId() != null) {
+    if (app != null) {
       otherLabel = getByOwnerIdAndLabelLowercase(em, app.getOrganizationId(), label.getLabelLowercase(), false);
       if (otherLabel != null) {
         final Organization org = orgDAO.getById(em, app.getOrganizationId());

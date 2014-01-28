@@ -55,7 +55,7 @@ public class ComponentLabelDAO
     final ApplicationDAO applicationDAO = new ApplicationDAO();
     final Application application = applicationDAO.getById(em, ownerId);
     final List<ComponentLabel> labels = new ArrayList<ComponentLabel>();
-    if (application != null && application.getOrganizationId() != null) {
+    if (application != null) {
       labels.addAll(getList(em, sQuery, application.getOrganizationId(), hash));
     }
     labels.addAll(getList(em, sQuery, ownerId, hash));

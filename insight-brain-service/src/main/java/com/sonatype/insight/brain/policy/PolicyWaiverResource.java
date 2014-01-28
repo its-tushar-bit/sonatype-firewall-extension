@@ -114,10 +114,9 @@ public class PolicyWaiverResource
     else {
       organizationId = ownerId;
     }
-    if (organizationId != null) {
-      Organization org = new OrganizationDAO().getByIdNotNull(organizationId);
-      result.add(org.getId(), org.getName(), IdUtils.TYPE_ORGANIZATION, getAppliedWaivers(org.getId(), hash));
-    }
+
+    Organization org = new OrganizationDAO().getByIdNotNull(organizationId);
+    result.add(org.getId(), org.getName(), IdUtils.TYPE_ORGANIZATION, getAppliedWaivers(org.getId(), hash));
 
     return result;
   }
@@ -167,9 +166,7 @@ public class PolicyWaiverResource
       return new ApplicableContext(application.getPublicId(), application.getName(), IdUtils.TYPE_APPLICATION);
     }
 
-    if (application.getOrganizationId() != null) {
-      policy = policyDAO().getByOwnerIdAndPolicyId(application.getOrganizationId(), policyId);
-    }
+    policy = policyDAO().getByOwnerIdAndPolicyId(application.getOrganizationId(), policyId);
     if (policy == null) {
       throw new NotFoundException("Cannot find a policy with id " + policyId + " for application public id "
           + applicationPublicId);

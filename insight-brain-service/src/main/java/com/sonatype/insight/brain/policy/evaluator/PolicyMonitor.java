@@ -76,10 +76,6 @@ public class PolicyMonitor
     for (Application app : apps) {
       PolicyMonitoring policyMonitoring = policyMonitoringsByOwnerId.get(app.getId());
       if (policyMonitoring == null) {
-        if (app.getOrganizationId() == null) {
-          continue;
-        }
-
         policyMonitoring = policyMonitoringsByOwnerId.get(app.getOrganizationId());
         if (policyMonitoring == null) {
           continue;

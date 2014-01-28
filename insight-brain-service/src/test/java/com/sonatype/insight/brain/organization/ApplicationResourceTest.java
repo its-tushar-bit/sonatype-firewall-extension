@@ -11,7 +11,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.Arrays;
-import java.util.Locale;
 import java.util.Map;
 
 import javax.imageio.ImageIO;
@@ -62,10 +61,7 @@ public class ApplicationResourceTest
     Application application = applicationDAO.getByPublicId(applicationPublicId);
     Assert.assertNull(application);
 
-    application = new Application();
-    application.setPublicId(applicationPublicId);
-    application.setName("ApplicationResourceTest-testValidate-AppName");
-    applicationDAO.insert(application);
+    application = createApplication(applicationPublicId, "ApplicationResourceTest-testValidate-AppName");
 
     Response response = AuthedRestAccess.get(getValidateApplicationIdServiceURL(applicationPublicId));
     assertResponseStatus(200, response);
@@ -242,12 +238,7 @@ public class ApplicationResourceTest
 
     final String applicationPublicId = "testDeleteApplicationWithScan_PublicId";
     final String applicationName = "testDeleteApplicationWithScanAppName";
-
-    Application application = new Application();
-    application.setName(applicationName);
-    application.setPublicId(applicationPublicId);
-
-    applicationDAO.insert(application);
+    Application application = createApplication(applicationPublicId, applicationName);
 
     final String licenseFingerprint = "testDeleteApplicationWithScan_LicenseFingerprint";
     setLicenseFingerprint(licenseFingerprint);
@@ -293,11 +284,7 @@ public class ApplicationResourceTest
     final String applicationPublicId = "testDeleteApplicationWithScan_PublicId";
     final String applicationName = "testDeleteApplicationWithScanAppName";
 
-    Application application = new Application();
-    application.setName(applicationName);
-    application.setPublicId(applicationPublicId);
-
-    applicationDAO.insert(application);
+    Application application = createApplication(applicationPublicId, applicationName);
 
     Response response = AuthedRestAccess.delete(getServiceURL() + "/" + applicationPublicId);
     application = applicationDAO.getByPublicId(applicationPublicId);
@@ -367,7 +354,7 @@ public class ApplicationResourceTest
     final String organizationName = "OrgName";
 
     Organization organization = createOrganization(organizationName);
-    Application application = createApplication(applicationPublicId, applicationName, true, false, organization, "admin");
+    Application application = createApplication(applicationPublicId, applicationName, true, organization, "admin");
     setLicenseFingerprint(licenseFingerprint);
 
 
@@ -435,7 +422,7 @@ public class ApplicationResourceTest
 
     Organization organization = createOrganization(organizationName);
 
-    Application application = createApplication(applicationPublicId, applicationName, true, false, organization, "admin");
+    Application application = createApplication(applicationPublicId, applicationName, true, organization, "admin");
     setLicenseFingerprint(licenseFingerprint);
 
     // Create policy
@@ -634,60 +621,6 @@ public class ApplicationResourceTest
     Response response = AuthedRestAccess.put(getServiceURL(), JsonHelpers.asJson(application));
     assertResponseStatus(400, response);
     Assert.assertEquals("Cannot change the parent organization of an application.", response.getResponseBody());
-  }
-
-  @Test
-  public void testUpdateApplication_AssignToOrganizationWithConflictingPolicy() throws Exception {
-    Organization org = createOrganization("orgName");
-    Application app = createApplication("appPublicId", "appName", false, false);
-
-    PolicyDAO policyDAO = new PolicyDAO(brain.getWorkDir());
-    String policyName = "A policy Name";
-
-    Policy policy1 = new Policy(null, policyName);
-    Constraint constraint1 = new Constraint(null, "constraint 1", LogicalOperator.AND);
-    constraint1.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
-    policy1.addConstraint(constraint1);
-    policyDAO.insert(org.getId(), policy1);
-
-    Policy policy2 = new Policy(null, policyName);
-    Constraint constraint2 = new Constraint(null, "constraint 1", LogicalOperator.AND);
-    constraint2.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
-    policy2.addConstraint(constraint2);
-    policyDAO.insert(app.getId(), policy2);
-
-    app.setOrganizationId(org.getId());
-
-    Response response = AuthedRestAccess.put(getServiceURL(), JsonHelpers.asJson(app));
-    assertResponseStatus(400, response);
-    Assert.assertEquals(
-        "The following policies collide with policies of the parent organization: " + policy2.getName(),
-        response.getResponseBody());
-
-    policy2.setName(policyName.replaceAll("\\s", "").toLowerCase(Locale.ENGLISH));
-    policyDAO.update(app.getId(), policy2);
-
-    response = AuthedRestAccess.put(getServiceURL(), JsonHelpers.asJson(app));
-    assertResponseStatus(400, response);
-    Assert.assertEquals(
-        "The following policies collide with policies of the parent organization: " + policy2.getName(),
-        response.getResponseBody());
-  }
-
-  @Test
-  public void testUpdateApplication_AssignToOrganizationWhenHavingInvalidPolicyNames() throws Exception {
-    Organization org = createOrganization("orgName");
-    Application app = createApplication("appPublicId", "appName", false, false);
-
-    FileUtils.copyURLToFile(getClass().getResource("/ApplicationResourceTest/invalid-policy-name.json"), new File(
-        new File(new File(brain.getWorkDir(), "policy"), app.getId()), "policy.json"));
-
-    app.setOrganizationId(org.getId());
-
-    Response response = AuthedRestAccess.put(getServiceURL(), JsonHelpers.asJson(app));
-    assertResponseStatus(400, response);
-    Assert.assertEquals("The following policies have invalid names: Legacy Policy  with invalid name !?",
-        response.getResponseBody());
   }
 
   @Test

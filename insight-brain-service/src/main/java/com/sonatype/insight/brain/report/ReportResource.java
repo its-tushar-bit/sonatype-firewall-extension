@@ -384,10 +384,8 @@ public class ReportResource
       final File appAuditDir = work.getAuditDir(appId);
       int newCount = JsonUtils.fileStore(appAuditDir).modificationCount();
       Application application = new ApplicationDAO().getByIdNotNull(appId);
-      if (application.getOrganizationId() != null) {
-        File orgAuditDir = work.getAuditDir(application.getOrganizationId());
-        newCount += JsonUtils.fileStore(orgAuditDir).modificationCount();
-      }
+      File orgAuditDir = work.getAuditDir(application.getOrganizationId());
+      newCount += JsonUtils.fileStore(orgAuditDir).modificationCount();
       final Integer oldCount = MODIFICATION_COUNTS.get(appId + '-' + scanId);
 
       if (oldCount == null || oldCount < newCount) {

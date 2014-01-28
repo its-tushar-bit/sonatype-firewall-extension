@@ -243,38 +243,29 @@ public abstract class AbstractBrainServiceTest
   }
 
   protected Application createApplication(String publicId, String name, boolean createLicenseThreatGroups) {
-    return createApplication(publicId, name, createLicenseThreatGroups, true);
+    Organization org = createOrganization(name);
+    return createApplication(publicId, name, createLicenseThreatGroups, org);
   }
 
   protected Application createApplication(String publicId, String name, Organization organization) {
-    return createApplication(publicId, name, true, false, organization);
+    return createApplication(publicId, name, true, organization);
   }
 
   protected Application createApplication(String publicId, String name, boolean createLicenseThreatGroups,
-      boolean withOrg)
+      Organization organization)
   {
-    return createApplication(publicId, name, createLicenseThreatGroups, withOrg, null);
+
+    return createApplication(publicId, name, createLicenseThreatGroups, organization, null);
   }
 
   protected Application createApplication(String publicId, String name, boolean createLicenseThreatGroups,
-      boolean withOrg, Organization organization)
+      Organization organization, String contactInternalName)
   {
-
-    return createApplication(publicId, name, createLicenseThreatGroups, withOrg, organization, null);
-  }
-
-  protected Application createApplication(String publicId, String name, boolean createLicenseThreatGroups,
-      boolean withOrg, Organization organization, String contactInternalName)
-  {
-    if (withOrg) {
-      organization = createOrganization(name, createLicenseThreatGroups);
-    }
-
     ApplicationDAO applicationDAO = new ApplicationDAO();
     Application application = new Application();
     application.setPublicId(publicId);
     application.setName(name);
-    application.setOrganizationId(organization != null ? organization.getId() : null);
+    application.setOrganizationId(organization.getId());
     application.setContactInternalName(contactInternalName);
     applicationDAO.insert(application);
     applicationsToDelete.add(application);

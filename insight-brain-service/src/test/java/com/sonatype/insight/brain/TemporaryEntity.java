@@ -213,8 +213,12 @@ public class TemporaryEntity
   }
 
   public Organization newOrganization(String name) {
+    return newOrganization(name, true /* createLicenseThreatGroups */);
+  }
+
+  public Organization newOrganization(String name, boolean createLicenseThreatGroups) {
     Organization org = new Organization(name);
-    orgDAO.insert(org);
+    orgDAO.insert(org, createLicenseThreatGroups);
     orgs.add(org);
     return org;
   }

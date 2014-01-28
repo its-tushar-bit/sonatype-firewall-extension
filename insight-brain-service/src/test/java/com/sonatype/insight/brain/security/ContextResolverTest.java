@@ -90,15 +90,6 @@ public class ContextResolverTest
   }
 
   @Test
-  public void testResolveContextIds_LegacyApplicationEntity() {
-    Application app = tempEntity.newApplication(null);
-    app.setOrganizationId("not-to-be-considered");
-    Map<AuthzContext.Key, Object> parameters = new HashMap<AuthzContext.Key, Object>();
-    parameters.put(AuthzContext.Key.APPLICATION, app);
-    assertThat(resolver.resolveContextIds(parameters), contains(app.getId(), MembershipMapping.GLOBAL_CONTEXT_ID));
-  }
-
-  @Test
   public void testResolveContextIds_ApplicationEntityOwner() {
     Organization org = tempEntity.newOrganization();
     Application app = new Application("test-app", "test-app", org.getId());

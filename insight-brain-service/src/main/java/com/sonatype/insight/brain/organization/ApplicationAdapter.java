@@ -295,10 +295,8 @@ public class ApplicationAdapter
     applicationDTO.setPublicId(application.getPublicId());
 
     final String organizationId = application.getOrganizationId();
-    if (organizationId != null) {
-      applicationDTO.setOrganizationId(organizationId);
-      applicationDTO.setOrganizationName(organizationDAO.getByIdNotNull(organizationId).getName());
-    }
+    applicationDTO.setOrganizationId(organizationId);
+    applicationDTO.setOrganizationName(organizationDAO.getByIdNotNull(organizationId).getName());
 
     applicationDTO.setContact(contact);
 

@@ -9,11 +9,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.locks.Lock;
 
@@ -22,7 +18,6 @@ import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.tag.ApplicationTagDAO;
 import com.sonatype.insight.brain.dataaccess.tag.PolicyTagDAO;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.InvalidPolicyException;
@@ -31,13 +26,11 @@ import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.ValidationResult;
 import com.sonatype.insight.brain.model.tag.ApplicationTag;
 import com.sonatype.insight.brain.model.tag.PolicyTag;
-import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.json.store.JsonStore;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import org.codehaus.plexus.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -310,38 +303,6 @@ public class PolicyDAO
     return false;
   }
 
-  public void validateNamesWithinHierarchy(final String orgId, final String appId, final List<Lock> readLocks) {
-    final JsonStore orgStore = policyStore(orgId, readLocks);
-    final Set<String> orgPolicyNames = new LinkedHashSet<String>();
-    for (final Policy policy : getByOwnerId(orgId, orgStore)) {
-      orgPolicyNames.add(NameHelper.normalize(policy.getName()));
-    }
-
-    final JsonStore appStore = policyStore(appId, readLocks);
-    final Map<String, String> appPolicyNames = new LinkedHashMap<String, String>();
-    final Set<String> invalidPolicyNames = new LinkedHashSet<String>();
-    for (final Policy policy : getByOwnerId(appId, appStore)) {
-      appPolicyNames.put(NameHelper.normalize(policy.getName()), policy.getName());
-      try {
-        NameHelper.validate(policy.getName());
-      }
-      catch (InvalidNameException e) {
-        invalidPolicyNames.add(policy.getName());
-      }
-    }
-
-    if (!invalidPolicyNames.isEmpty()) {
-      throw new BadRequestException("The following policies have invalid names: "
-          + StringUtils.join(invalidPolicyNames.iterator(), ", "));
-    }
-
-    appPolicyNames.keySet().retainAll(orgPolicyNames);
-    if (!appPolicyNames.isEmpty()) {
-      throw new BadRequestException("The following policies collide with policies of the parent organization: "
-          + StringUtils.join(appPolicyNames.values().iterator(), ", "));
-    }
-  }
-
   private JsonStore policyStore(final String ownerId, final List<Lock> readLocks) {
     final JsonStore store = policyStore(ownerId);
     Lock readLock = store.readLock();
@@ -357,11 +318,8 @@ public class PolicyDAO
     Application parentApplication = applicationDAO.getById(ownerId);
     if (parentApplication != null) {
       // The owner is an application
-      if (parentApplication.getOrganizationId() != null) {
-        if (getByOwnerIdAndName(parentApplication.getOrganizationId(), name, readLocks) != null) {
-          throw new InvalidPolicyException("A policy with the same name already exists"
-              + " for the parent organization");
-        }
+      if (getByOwnerIdAndName(parentApplication.getOrganizationId(), name, readLocks) != null) {
+        throw new InvalidPolicyException("A policy with the same name already exists" + " for the parent organization");
       }
     }
     else {

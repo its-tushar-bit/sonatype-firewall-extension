@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.testing.functional;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
@@ -76,17 +75,6 @@ public abstract class AbstractFunctionalTest
         applicationDAO.delete(app);
       }
     }
-  }
-
-  protected Application createApplication(String appId, String name) {
-    ApplicationDAO applicationDAO = new ApplicationDAO();
-    Application app = new Application(appId, name, null);
-    applicationDAO.insert(app);
-    if (appsToRemove == null) {
-      appsToRemove = new ArrayList<Application>();
-    }
-    appsToRemove.add(app);
-    return app;
   }
 
   protected static void wait(int time, Function<WebDriver, ?> isTrue) {

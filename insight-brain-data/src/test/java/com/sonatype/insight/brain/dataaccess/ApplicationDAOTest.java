@@ -18,21 +18,19 @@ import javax.imageio.ImageIO;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
-import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
 import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
 import com.sonatype.insight.brain.dataaccess.tag.ApplicationTagDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.model.Organization;
-import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
-import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.policy.PolicyMonitoring;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.security.MemberType;
@@ -68,7 +66,9 @@ public class ApplicationDAOTest
 
   @Before
   public void setupApplication() {
+    Organization organization = createOrganization("ApplicationDAOTest");
     application = new Application();
+    application.setOrganizationId(organization.getId());
     application.setName("valid name");
     application.setPublicId("valid public id");
   }
@@ -123,21 +123,11 @@ public class ApplicationDAOTest
   @Test
   public void testUpdateOrganizationId() {
     Organization organization1 = createOrganization("testUpdateOrganizationId 1");
-    Organization organization2 = createOrganization("testUpdateOrganizationId 2");
 
     applicationDAO.insert(application);
-    application.setOrganizationId(organization1.getId());
-    applicationDAO.update(application);
-    application = applicationDAO.getById(application.getId());
-    assertEquals(organization1.getId(), application.getOrganizationId());
-    // Update again with the same organization id - should not fail
-    application.setName("testUpdateOrganizationId");
-    applicationDAO.update(application);
-    application = applicationDAO.getById(application.getId());
-    assertEquals(organization1.getId(), application.getOrganizationId());
 
     // Update with a different organization id - should fail
-    application.setOrganizationId(organization2.getId());
+    application.setOrganizationId(organization1.getId());
     try {
       applicationDAO.update(application);
       fail("Expected InvalidApplicationException");
@@ -177,7 +167,6 @@ public class ApplicationDAOTest
   public void testPublicIdIsCaseInsensitive() {
     String appPublicId = "testPublicIdIsCaseInsensitive";
 
-    Application application = new Application();
     application.setName("test");
     application.setPublicId(appPublicId);
     ApplicationDAO applicationDAO = new ApplicationDAO();
@@ -367,6 +356,7 @@ public class ApplicationDAOTest
     Application application1 = new Application();
     application1.setPublicId("testpublicid1");
     application1.setName("testDuplicateName1");
+    application1.setOrganizationId(application.getOrganizationId());
     applicationDAO.insert(application1);
     applicationsToDelete.add(application1);
 
@@ -455,32 +445,6 @@ public class ApplicationDAOTest
     applicationDAO.delete(application);
 
     assertThat(appTagDAO.getByApplicationId(applicationId), is(empty()));
-  }
-
-  @Test
-  public void testConflictingLicenseThreatGroups() {
-    application.setName("testConflictingLicenseThreatGroups");
-    applicationDAO.insert(application);
-    LicenseThreatGroupDAO licenseThreatGroupDAO = new LicenseThreatGroupDAO();
-    LicenseThreatGroup appLicenseThreatGroup = new LicenseThreatGroup(application.getId(),
-        "testConflictingLicenseThreatGroups", 2);
-    licenseThreatGroupDAO.insert(appLicenseThreatGroup);
-
-    organization = createOrganization("testConflictingLicenseThreatGroups");
-    LicenseThreatGroup orgLicenseThreatGroup = new LicenseThreatGroup(organization.getId(),
-        "test conflictingLicenseThreatGroups", 4);
-    licenseThreatGroupDAO.insert(orgLicenseThreatGroup);
-
-    application.setOrganizationId(organization.getId());
-    try {
-      applicationDAO.update(application);
-      fail("Expected InvalidApplicationException");
-    }
-    catch (InvalidApplicationException expected) {
-      assertEquals(
-          "Both the application and the organization have a license threat group with the same name 'testConflictingLicenseThreatGroups'",
-          expected.getMessage());
-    }
   }
 
   @Test

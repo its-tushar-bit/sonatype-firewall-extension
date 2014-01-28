@@ -47,7 +47,7 @@ public class LicenseThreatGroupValueType
     result.addAll(licenseThreatGroupDAO.getByOwnerId(ownerId));
 
     Application application = new ApplicationDAO().getById(ownerId);
-    if (application != null && application.getOrganizationId() != null) {
+    if (application != null) {
       result.addAll(licenseThreatGroupDAO.getByOwnerId(application.getOrganizationId()));
     }
     return result;

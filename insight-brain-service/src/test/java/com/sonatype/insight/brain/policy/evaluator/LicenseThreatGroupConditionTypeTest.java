@@ -12,8 +12,7 @@ import java.util.List;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.Stage;
-import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
-import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.component.ComponentDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupLicenseDAO;
@@ -31,52 +30,40 @@ import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.model.policy.conditions.LicenseThreatGroupConditionType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 
-import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 
 public class LicenseThreatGroupConditionTypeTest
     extends AbstractPolicyEvaluationTest
 {
+  @Rule
+  public TemporaryEntity tempEntity = new TemporaryEntity();
+
   private LicenseThreatGroupDAO licenseThreatGroupDAO = new LicenseThreatGroupDAO();
 
   private ComponentDAO componentDAO = new ComponentDAO();
 
-  private String applicationId;
+  private Organization org;
+
+  private Application app;
 
   @Before
   public void before() {
-    ApplicationDAO applicationDAO = new ApplicationDAO();
-    Application application = new Application();
-    application.setName("test");
-    application.setPublicId("LicenseThreatGroupConditionTypeTest_AppId");
-    applicationDAO.insert(application);
-    applicationId = application.getId();
+    org = tempEntity.newOrganization("LicenseThreatGroupConditionTypeTest", false /* createLicenseThreatGroups */);
+    app = tempEntity.newApplication("test", "LicenseThreatGroupConditionTypeTest_AppId", org.getId());
 
-    LicenseThreatGroup licenseThreatGroup = new LicenseThreatGroup(applicationId, "Copyleft", 8);
+    LicenseThreatGroup licenseThreatGroup = new LicenseThreatGroup(app.getId(), "Copyleft", 8);
     new LicenseThreatGroupDAO().insert(licenseThreatGroup);
-    LicenseThreatGroupLicense licenseThreatGroupLicense = new LicenseThreatGroupLicense(applicationId,
+    LicenseThreatGroupLicense licenseThreatGroupLicense = new LicenseThreatGroupLicense(app.getId(),
         licenseThreatGroup.getId(), "GPL-2.0");
     new LicenseThreatGroupLicenseDAO().insert(licenseThreatGroupLicense);
 
-    licenseThreatGroup = new LicenseThreatGroup(applicationId, "Liberal", 2);
+    licenseThreatGroup = new LicenseThreatGroup(app.getId(), "Liberal", 2);
     new LicenseThreatGroupDAO().insert(licenseThreatGroup);
-    licenseThreatGroupLicense = new LicenseThreatGroupLicense(applicationId, licenseThreatGroup.getId(), "Apache-2.0");
+    licenseThreatGroupLicense = new LicenseThreatGroupLicense(app.getId(), licenseThreatGroup.getId(), "Apache-2.0");
     new LicenseThreatGroupLicenseDAO().insert(licenseThreatGroupLicense);
-  }
-
-  @After
-  public void after() {
-    ApplicationDAO applicationDAO = new ApplicationDAO();
-    Application application = applicationDAO.getByIdNotNull(applicationId);
-    String organizationId = application.getOrganizationId();
-    applicationDAO.delete(application);
-
-    if (organizationId != null) {
-      OrganizationDAO organizationDAO = new OrganizationDAO();
-      organizationDAO.delete(organizationDAO.getByIdNotNull(organizationId));
-    }
   }
 
   private Constraint createConstraint(String operator, String value) {
@@ -85,7 +72,7 @@ public class LicenseThreatGroupConditionTypeTest
 
   @Test
   public void testExplainMatchIs() {
-    LicenseThreatGroup licenseThreatGroup = licenseThreatGroupDAO.getByOwnerIdAndLicenseId(applicationId, "GPL-2.0")
+    LicenseThreatGroup licenseThreatGroup = licenseThreatGroupDAO.getByOwnerIdAndLicenseId(app.getId(), "GPL-2.0")
         .get(0);
 
     Condition condition = new Condition(LicenseThreatGroupConditionType.ID, "is", licenseThreatGroup.getId());
@@ -96,7 +83,7 @@ public class LicenseThreatGroupConditionTypeTest
 
     component1.addDeclaredLicenseId("Apache-2.0");
     component1.addDeclaredLicenseId("GPL-2.0");
-    componentDAO.loadLicenseThreatGroups(applicationId, component1);
+    componentDAO.loadLicenseThreatGroups(app.getId(), component1);
 
     Assert.assertEquals("Found a License in the 'Copyleft' License Threat Group",
         new LicenseThreatGroupConditionType().explainMatch(condition, component1));
@@ -104,7 +91,7 @@ public class LicenseThreatGroupConditionTypeTest
 
   @Test
   public void testExplainMatchIsNot() {
-    LicenseThreatGroup licenseThreatGroup = licenseThreatGroupDAO.getByOwnerIdAndLicenseId(applicationId, "GPL-2.0")
+    LicenseThreatGroup licenseThreatGroup = licenseThreatGroupDAO.getByOwnerIdAndLicenseId(app.getId(), "GPL-2.0")
         .get(0);
 
     Condition condition = new Condition(LicenseThreatGroupConditionType.ID, "is not", licenseThreatGroup.getId());
@@ -113,19 +100,19 @@ public class LicenseThreatGroupConditionTypeTest
         new LicenseThreatGroupConditionType().explainMatch(condition, component1));
 
     component1.addDeclaredLicenseId("Apache-2.0");
-    componentDAO.loadLicenseThreatGroups(applicationId, component1);
+    componentDAO.loadLicenseThreatGroups(app.getId(), component1);
     Assert.assertEquals("Found 'Liberal' License Threat Group",
         new LicenseThreatGroupConditionType().explainMatch(condition, component1));
 
     component1.addDeclaredLicenseId("GPL-2.0");
-    componentDAO.loadLicenseThreatGroups(applicationId, component1);
+    componentDAO.loadLicenseThreatGroups(app.getId(), component1);
     Assert.assertEquals("Found 'Liberal' and 'Copyleft' License Threat Groups",
         new LicenseThreatGroupConditionType().explainMatch(condition, component1));
   }
 
   @Test
   public void testEvaluateIs_Declared() {
-    LicenseThreatGroup licenseThreatGroup = licenseThreatGroupDAO.getByOwnerIdAndLicenseId(applicationId, "GPL-2.0")
+    LicenseThreatGroup licenseThreatGroup = licenseThreatGroupDAO.getByOwnerIdAndLicenseId(app.getId(), "GPL-2.0")
         .get(0);
 
     // Create policy constraints
@@ -141,15 +128,15 @@ public class LicenseThreatGroupConditionTypeTest
     List<Component> components = new ArrayList<Component>();
     Component component1 = new Component("g1", "a1", "v1", MatchState.EXACT);
     component1.addDeclaredLicenseId("Apache-2.0");
-    componentDAO.loadLicenseThreatGroups(applicationId, component1);
+    componentDAO.loadLicenseThreatGroups(app.getId(), component1);
     components.add(component1);
     Component component2 = new Component("g2", "a2", "v2", MatchState.EXACT);
     component2.addDeclaredLicenseId("GPL-2.0");
-    componentDAO.loadLicenseThreatGroups(applicationId, component2);
+    componentDAO.loadLicenseThreatGroups(app.getId(), component2);
     components.add(component2);
 
     // Evaluate the policy
-    List<PolicyAlert> policyAlerts = evaluator.evaluate(applicationId, new Stage(BuildStageType.ID),
+    List<PolicyAlert> policyAlerts = evaluator.evaluate(app.getId(), new Stage(BuildStageType.ID),
         Arrays.asList(policy), components);
 
     Assert.assertNotNull(policyAlerts);
@@ -162,7 +149,7 @@ public class LicenseThreatGroupConditionTypeTest
 
   @Test
   public void testEvaluateIsNot_Declared() {
-    LicenseThreatGroup licenseThreatGroup = licenseThreatGroupDAO.getByOwnerIdAndLicenseId(applicationId, "GPL-2.0")
+    LicenseThreatGroup licenseThreatGroup = licenseThreatGroupDAO.getByOwnerIdAndLicenseId(app.getId(), "GPL-2.0")
         .get(0);
 
     // Create policy constraints
@@ -178,15 +165,15 @@ public class LicenseThreatGroupConditionTypeTest
     List<Component> components = new ArrayList<Component>();
     Component component1 = new Component("g1", "a1", "v1", MatchState.EXACT);
     component1.addDeclaredLicenseId("Apache-2.0");
-    componentDAO.loadLicenseThreatGroups(applicationId, component1);
+    componentDAO.loadLicenseThreatGroups(app.getId(), component1);
     components.add(component1);
     Component component2 = new Component("g2", "a2", "v2", MatchState.EXACT);
     component2.addDeclaredLicenseId("GPL-2.0");
-    componentDAO.loadLicenseThreatGroups(applicationId, component2);
+    componentDAO.loadLicenseThreatGroups(app.getId(), component2);
     components.add(component2);
 
     // Evaluate the policy
-    List<PolicyAlert> policyAlerts = evaluator.evaluate(applicationId, new Stage(BuildStageType.ID),
+    List<PolicyAlert> policyAlerts = evaluator.evaluate(app.getId(), new Stage(BuildStageType.ID),
         Arrays.asList(policy), components);
 
     Assert.assertNotNull(policyAlerts);
@@ -199,7 +186,7 @@ public class LicenseThreatGroupConditionTypeTest
 
   @Test
   public void testEvaluateIs_Observed() {
-    LicenseThreatGroup licenseThreatGroup = licenseThreatGroupDAO.getByOwnerIdAndLicenseId(applicationId, "GPL-2.0")
+    LicenseThreatGroup licenseThreatGroup = licenseThreatGroupDAO.getByOwnerIdAndLicenseId(app.getId(), "GPL-2.0")
         .get(0);
 
     // Create policy constraints
@@ -215,15 +202,15 @@ public class LicenseThreatGroupConditionTypeTest
     List<Component> components = new ArrayList<Component>();
     Component component1 = new Component("g1", "a1", "v1", MatchState.EXACT);
     component1.addObservedLicenseId("Apache-2.0");
-    componentDAO.loadLicenseThreatGroups(applicationId, component1);
+    componentDAO.loadLicenseThreatGroups(app.getId(), component1);
     components.add(component1);
     Component component2 = new Component("g2", "a2", "v2", MatchState.EXACT);
     component2.addObservedLicenseId("GPL-2.0");
-    componentDAO.loadLicenseThreatGroups(applicationId, component2);
+    componentDAO.loadLicenseThreatGroups(app.getId(), component2);
     components.add(component2);
 
     // Evaluate the policy
-    List<PolicyAlert> policyAlerts = evaluator.evaluate(applicationId, new Stage(BuildStageType.ID),
+    List<PolicyAlert> policyAlerts = evaluator.evaluate(app.getId(), new Stage(BuildStageType.ID),
         Arrays.asList(policy), components);
 
     Assert.assertNotNull(policyAlerts);
@@ -236,7 +223,7 @@ public class LicenseThreatGroupConditionTypeTest
 
   @Test
   public void testEvaluateIsNot_Observed() {
-    LicenseThreatGroup licenseThreatGroup = licenseThreatGroupDAO.getByOwnerIdAndLicenseId(applicationId, "GPL-2.0")
+    LicenseThreatGroup licenseThreatGroup = licenseThreatGroupDAO.getByOwnerIdAndLicenseId(app.getId(), "GPL-2.0")
         .get(0);
 
     // Create policy constraints
@@ -252,15 +239,15 @@ public class LicenseThreatGroupConditionTypeTest
     List<Component> components = new ArrayList<Component>();
     Component component1 = new Component("g1", "a1", "v1", MatchState.EXACT);
     component1.addObservedLicenseId("Apache-2.0");
-    componentDAO.loadLicenseThreatGroups(applicationId, component1);
+    componentDAO.loadLicenseThreatGroups(app.getId(), component1);
     components.add(component1);
     Component component2 = new Component("g2", "a2", "v2", MatchState.EXACT);
     component2.addObservedLicenseId("GPL-2.0");
-    componentDAO.loadLicenseThreatGroups(applicationId, component2);
+    componentDAO.loadLicenseThreatGroups(app.getId(), component2);
     components.add(component2);
 
     // Evaluate the policy
-    List<PolicyAlert> policyAlerts = evaluator.evaluate(applicationId, new Stage(BuildStageType.ID),
+    List<PolicyAlert> policyAlerts = evaluator.evaluate(app.getId(), new Stage(BuildStageType.ID),
         Arrays.asList(policy), components);
 
     Assert.assertNotNull(policyAlerts);
@@ -273,7 +260,7 @@ public class LicenseThreatGroupConditionTypeTest
 
   @Test
   public void testEvaluateIs_Overridden() {
-    LicenseThreatGroup licenseThreatGroup = licenseThreatGroupDAO.getByOwnerIdAndLicenseId(applicationId, "GPL-2.0")
+    LicenseThreatGroup licenseThreatGroup = licenseThreatGroupDAO.getByOwnerIdAndLicenseId(app.getId(), "GPL-2.0")
         .get(0);
 
     // Create policy constraints
@@ -291,17 +278,17 @@ public class LicenseThreatGroupConditionTypeTest
     component1.addDeclaredLicenseId("Apache-2.0");
     component1.addObservedLicenseId("Apache-2.0");
     component1.setLicenseOverrideId("GPL-2.0");
-    componentDAO.loadLicenseThreatGroups(applicationId, component1);
+    componentDAO.loadLicenseThreatGroups(app.getId(), component1);
     components.add(component1);
     Component component2 = new Component("g2", "a2", "v2", MatchState.EXACT);
     component2.addDeclaredLicenseId("GPL-2.0");
     component2.addObservedLicenseId("GPL-2.0");
     component2.setLicenseOverrideId("Apache-2.0");
-    componentDAO.loadLicenseThreatGroups(applicationId, component2);
+    componentDAO.loadLicenseThreatGroups(app.getId(), component2);
     components.add(component2);
 
     // Evaluate the policy
-    List<PolicyAlert> policyAlerts = evaluator.evaluate(applicationId, new Stage(BuildStageType.ID),
+    List<PolicyAlert> policyAlerts = evaluator.evaluate(app.getId(), new Stage(BuildStageType.ID),
         Arrays.asList(policy), components);
 
     Assert.assertNotNull(policyAlerts);
@@ -314,7 +301,7 @@ public class LicenseThreatGroupConditionTypeTest
 
   @Test
   public void testEvaluateIsNot_Overridden() {
-    LicenseThreatGroup licenseThreatGroup = licenseThreatGroupDAO.getByOwnerIdAndLicenseId(applicationId, "GPL-2.0")
+    LicenseThreatGroup licenseThreatGroup = licenseThreatGroupDAO.getByOwnerIdAndLicenseId(app.getId(), "GPL-2.0")
         .get(0);
 
     // Create policy constraints
@@ -332,17 +319,17 @@ public class LicenseThreatGroupConditionTypeTest
     component1.addDeclaredLicenseId("Apache-2.0");
     component1.addObservedLicenseId("Apache-2.0");
     component1.setLicenseOverrideId("GPL-2.0");
-    componentDAO.loadLicenseThreatGroups(applicationId, component1);
+    componentDAO.loadLicenseThreatGroups(app.getId(), component1);
     components.add(component1);
     Component component2 = new Component("g2", "a2", "v2", MatchState.EXACT);
     component2.addDeclaredLicenseId("GPL-2.0");
     component2.addObservedLicenseId("GPL-2.0");
     component2.setLicenseOverrideId("Apache-2.0");
-    componentDAO.loadLicenseThreatGroups(applicationId, component2);
+    componentDAO.loadLicenseThreatGroups(app.getId(), component2);
     components.add(component2);
 
     // Evaluate the policy
-    List<PolicyAlert> policyAlerts = evaluator.evaluate(applicationId, new Stage(BuildStageType.ID),
+    List<PolicyAlert> policyAlerts = evaluator.evaluate(app.getId(), new Stage(BuildStageType.ID),
         Arrays.asList(policy), components);
 
     Assert.assertNotNull(policyAlerts);
@@ -357,7 +344,7 @@ public class LicenseThreatGroupConditionTypeTest
   public void testValidateCondition_InvalidLicenseThreatGroupId() {
     Condition condition = new Condition(LicenseThreatGroupConditionType.ID, "is", "abc");
     try {
-      new LicenseThreatGroupConditionType().validateCondition(condition, applicationId);
+      new LicenseThreatGroupConditionType().validateCondition(condition, app.getId());
       Assert.fail("Expected InvalidConditionException");
     }
     catch (InvalidConditionException expected) {
@@ -369,21 +356,12 @@ public class LicenseThreatGroupConditionTypeTest
 
   @Test
   public void testEvaluate_LicenseThreatGroupFromOrganization() {
-    Organization organization = new Organization();
-    organization.setName("testEvaluate-LicenseThreatGroupFromOrganization");
-    new OrganizationDAO().insert(organization, false /* createLicenseThreatGroups */);
-
-    LicenseThreatGroup orgLicenseThreatGroup = new LicenseThreatGroup(organization.getId(),
+    LicenseThreatGroup orgLicenseThreatGroup = new LicenseThreatGroup(org.getId(),
         "testEvaluate-LicenseThreatGroupFromOrganization", 5);
     new LicenseThreatGroupDAO().insert(orgLicenseThreatGroup);
-    LicenseThreatGroupLicense licenseThreatGroupLicense = new LicenseThreatGroupLicense(organization.getId(),
+    LicenseThreatGroupLicense licenseThreatGroupLicense = new LicenseThreatGroupLicense(org.getId(),
         orgLicenseThreatGroup.getId(), "Apache-2.0");
     new LicenseThreatGroupLicenseDAO().insert(licenseThreatGroupLicense);
-
-    ApplicationDAO applicationDAO = new ApplicationDAO();
-    Application application = applicationDAO.getByIdNotNull(applicationId);
-    application.setOrganizationId(organization.getId());
-    applicationDAO.update(application);
 
     // Create policy constraints
     Constraint constraint = createConstraint("is", orgLicenseThreatGroup.getId());
@@ -398,15 +376,15 @@ public class LicenseThreatGroupConditionTypeTest
     List<Component> components = new ArrayList<Component>();
     Component component1 = new Component("g1", "a1", "v1", MatchState.EXACT);
     component1.addDeclaredLicenseId("Apache-2.0");
-    componentDAO.loadLicenseThreatGroups(applicationId, component1);
+    componentDAO.loadLicenseThreatGroups(app.getId(), component1);
     components.add(component1);
     Component component2 = new Component("g2", "a2", "v2", MatchState.EXACT);
     component2.addDeclaredLicenseId("GPL-2.0");
-    componentDAO.loadLicenseThreatGroups(applicationId, component2);
+    componentDAO.loadLicenseThreatGroups(app.getId(), component2);
     components.add(component2);
 
     // Evaluate the policy
-    List<PolicyAlert> policyAlerts = evaluator.evaluate(applicationId, new Stage(BuildStageType.ID),
+    List<PolicyAlert> policyAlerts = evaluator.evaluate(app.getId(), new Stage(BuildStageType.ID),
         Arrays.asList(policy), components);
 
     Assert.assertNotNull(policyAlerts);

@@ -122,15 +122,14 @@ public class PolicyResource
     else {
       organizationId = internalOwnerId;
     }
-    if (organizationId != null) {
-      Organization organization = new OrganizationDAO().getByIdNotNull(organizationId);
-      PoliciesByOwner policiesByOwner = new PoliciesByOwner();
-      policiesByOwner.ownerId = organization.getId();
-      policiesByOwner.ownerName = organization.getName();
-      policiesByOwner.ownerType = IdUtils.TYPE_ORGANIZATION;
-      policiesByOwner.policies = policyDAO().getByOwnerId(organization.getId());
-      result.policiesByOwner.add(policiesByOwner);
-    }
+
+    Organization organization = new OrganizationDAO().getByIdNotNull(organizationId);
+    PoliciesByOwner policiesByOwner = new PoliciesByOwner();
+    policiesByOwner.ownerId = organization.getId();
+    policiesByOwner.ownerName = organization.getName();
+    policiesByOwner.ownerType = IdUtils.TYPE_ORGANIZATION;
+    policiesByOwner.policies = policyDAO().getByOwnerId(organization.getId());
+    result.policiesByOwner.add(policiesByOwner);
 
     return result;
   }

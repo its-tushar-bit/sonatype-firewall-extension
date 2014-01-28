@@ -1,7 +1,5 @@
-var clmTimestamp = '';
-
 describe('ApplicationController', function() {
-  var parentScope, scope, httpBackend, rootScope, state, mockApplication, _provide;
+  var scope, httpBackend, rootScope, state, mockApplication;
 
   beforeEach(module('ApplicationModule', function($provide) {
     $provide.value('ApplicationId', {
@@ -421,11 +419,11 @@ describe('ApplicationEditorController', function() {
     }));
 
     it('Refreshes the list of applications when informed that an organization has been deleted',
-            inject(function(CLMAppLocations, ApplicationStore) {
-              var ApplicationStoreSpy = spyOn(ApplicationStore, 'refresh');
-              rootScope.$broadcast('organizations.delete');
-              expect(ApplicationStoreSpy).toHaveBeenCalled()
-            }));
+      inject(function(CLMAppLocations, ApplicationStore) {
+        var ApplicationStoreSpy = spyOn(ApplicationStore, 'refresh');
+        rootScope.$broadcast('organizations.delete');
+        expect(ApplicationStoreSpy).toHaveBeenCalled();
+      }));
 
     it('displays confirmation dialog', function() {
       scope.selectedApplication.name = 'new_name';

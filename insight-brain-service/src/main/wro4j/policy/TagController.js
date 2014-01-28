@@ -23,7 +23,7 @@
       }
 
       var tagStoreTemplate = {
-        template: {id: null, organizationId: null, name: null, description: null},
+        template: {id: null, organizationId: null, name: null, description: null, color:null},
         params: {
           timestamp: new Date().getTime()
         }
@@ -57,6 +57,7 @@
     '$scope', '$http', '$q', 'CLMAppLocations', 'Messages', 'CLMResource', 'TagStore', 'ownerChange', 'Dialog', 'ApplicationStore',
     function($scope, $http, $q, clmAppLocations, messages, clmResource, TagStore, ownerChange, Dialog,ApplicationStore) {
       $scope.alerts = [];
+      $scope.colors = [null, 'white', 'grey', 'black', 'green', 'yellow', 'orange', 'red', 'blue'];
 
       function deselect() {
         if ($scope.selectedTag) {
@@ -115,6 +116,10 @@
           deselect();
           $scope.selectedTag = tag.$clone();
         });
+      };
+
+      $scope.setColor = function(color) {
+        $scope.selectedTag.color = color;
       };
 
       $scope.createNew = function() {

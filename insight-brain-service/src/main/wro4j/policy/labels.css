@@ -13,12 +13,12 @@
   white-space: nowrap;
   max-width: 25em;
   line-height: 14px;
+  border: 1px solid rgba(0,0,0,0.25);
 }
 .clmLabel {
 	-moz-border-radius: 3px;
 	-webkit-border-radius: 3px;
 	border-radius: 3px;
-	border: 1px solid rgba(0,0,0,0.25);
 	padding: 5px 10px;
 	margin-bottom: 5px;
 	vertical-align: middle;
@@ -43,16 +43,20 @@ form[name="labelEditor"] .clmLabel {
 .clmLabel:hover {
 	border-color: #C1C1C1;
 }
+/*
+ * Note: These styles apply to both labels and tags,
+ * be sure to verify any changes with both elements
+ */
 .yellowLabel, .greyLabel, .whiteLabel, .Label {
 	text-shadow: 0 1px 0 rgba(255,255,255,0.5);
 }
-.whiteLabel {
-	background-color: #FFFFFF;
+.whiteLabel, .whiteLabel::before {
+	background-color: #FFFFFF !important;
 	color: black !important;
 }
-.greyLabel {
-	background-color: #C6C6C6;
-	color: black !important;
+.greyLabel, .greyLabel::before {
+	background-color: #C6C6C6 !important;
+	color: black;
 }
 .greyLabel:hover {
 	border-color: #909090;
@@ -64,35 +68,41 @@ form[name="labelEditor"] .clmLabel {
 	background-image: url("../lib/glyphicon/glyphicons_halflings-white.png") !important;
 }
 
-.blackLabel, .blackLabel:hover {
+.blackLabel, .blackLabel:hover, .blackLabel::before {
 	border-color: #000;
-	background-color: #444444;
+	background-color: #444444 !important;
 }
-.greenLabel, .greenLabel:hover {
-	background-color: #0B9743;
+.blackLabel::after {
+  border: 1px solid #000 !important;
+}
+.greenLabel, .greenLabel:hover, .greenLabel::before {
+	background-color: #0B9743 !important;
 }
 .greenLabel:hover {
 	border-color: #04642A;
 }
-.yellowLabel, .yellowLabel:hover {
-	background-color: #F5C649;
+.yellowLabel, .yellowLabel:hover, .yellowLabel::before {
+	background-color: #F5C649 !important;
 	color: black !important;
 }
 .yellowLabel:hover {
 	border-color: #D2A429;
 }
-.orangeLabel, .orangeLabel:hover {
-	background-color: #F2862F;
+.orangeLabel, .orangeLabel:hover, .orangeLabel::before {
+	background-color: #F2862F !important;
 	border-color: #C56213;
 }
-.redLabel, .redLabel:hover {
-	background-color: #880625;
+.orangeLabel::after {
+  border: 1px solid #C56213 !important;
+}
+.redLabel, .redLabel:hover, .redLabel::before {
+	background-color: #880625 !important;
 }
 .redLabel:hover {
 	border-color: #460011;
 }
-.blueLabel, .blueLabel:hover {
-	background-color: #2476C3;
+.blueLabel, .blueLabel:hover, .blueLabel::before {
+	background-color: #2476C3 !important;
 }
 .blueLabel:hover {
 	border-color: #17558E;
@@ -131,54 +141,36 @@ form[name="labelEditor"] .clmLabel {
 
 /* Differentiate the visual styling of a Tag from a Label by adding a sideways trapezoid on the left */
 .clm-tag {
+  background-color: #f4f4f4;
   vertical-align: middle;
   min-height: 15px;
   margin: 0 0 7px 20px;
   position: relative;
   text-decoration: none;
-  color: #996633;
-  text-shadow: 0px 1px 0px rgba(255,255,255,.4);
   padding: 0.55em 0.4em 0.55em 1.3em;
-  border-top: 1px solid #d99d38;
-  border-right: 1px solid #d99d38;
-  border-bottom: 1px solid #d99d38;
   -webkit-border-radius: 0 0.25em 0.25em 0;
   -moz-border-radius: 0 0.25em 0.25em 0;
   border-radius: 0 0.25em 0.25em 0;
-  background-image: -webkit-linear-gradient(top, rgb(254, 218, 113), rgb(254, 186, 71));
-  background-image: -moz-linear-gradient(top, rgb(254, 218, 113), rgb(254, 186, 71));
-  background-image: -o-linear-gradient(top, rgb(254, 218, 113), rgb(254, 186, 71));
-  background-image: -ms-linear-gradient(top, rgb(254, 218, 113), rgb(254, 186, 71));
-  background-image: linear-gradient(top, rgb(254, 218, 113), rgb(254, 186, 71));
-  filter: progid:DXImageTransform.Microsoft.gradient(GradientType=0,StartColorStr='#feda71', EndColorStr='#feba47');
-  -webkit-box-shadow: inset 0 1px 0 #faeaba, 0 1px 1px rgba(0,0,0,.1);
-  -moz-box-shadow: inset 0 1px 0 #faeaba, 0 1px 1px rgba(0,0,0,.1);
-  box-shadow: inset 0 1px 0 #faeaba, 0 1px 1px rgba(0,0,0,.1);
   z-index: 100;
 }
 .clm-tag::before {
   content: '';
+  background-color: #f4f4f4;
   width: 1.67em;
   height: 1.74em;
-  background-image: -webkit-linear-gradient(left top, rgb(254, 218, 113), rgb(254, 186, 71));
-  background-image: -moz-linear-gradient(left top, rgb(254, 218, 113), rgb(254, 186, 71));
-  background-image: -o-linear-gradient(left top, rgb(254, 218, 113), rgb(254, 186, 71));
-  background-image: -ms-linear-gradient(left top, rgb(254, 218, 113), rgb(254, 186, 71));
-  background-image: linear-gradient(left top, rgb(254, 218, 113), rgb(254, 186, 71));
-  filter: progid:DXImageTransform.Microsoft.gradient(GradientType=1,StartColorStr='#feda71', EndColorStr='#feba47');
   position: absolute;
-  left: -0.88em;
+  left: -0.94em;
   top: .26em;
   -webkit-transform: rotate(45deg);
   -moz-transform: rotate(45deg);
   -o-transform: rotate(45deg);
   -ms-transform: rotate(45deg);
   transform: rotate(45deg);
-  border-left: 1px solid #d99d38;
-  border-bottom: 1px solid #d99d38;
   -webkit-border-radius: 0 0 0 0.25em;
   -moz-border-radius: 0 0 0 0.25em;
   border-radius: 0 0 0 0.25em;
+  border-left: 1px solid rgba(0,0,0,0.25);
+  border-bottom: 1px solid rgba(0,0,0,0.25);
   z-index: 1;
 }
 .clm-tag.active::before {
@@ -196,10 +188,7 @@ form[name="labelEditor"] .clmLabel {
   -webkit-border-radius: 4.167em;
   -moz-border-radius: 4.167em;
   border-radius: 4.167em;
-  border: 1px solid #d99d38;
-  -webkit-box-shadow: 0 1px 0 #faeaba;
-  -moz-box-shadow: 0 1px 0 #faeaba;
-  box-shadow: 0 1px 0 #faeaba;
+  border: 1px solid #c6c6c6;
   position: absolute;
   top: 0.8em;
   left: -0.4em;

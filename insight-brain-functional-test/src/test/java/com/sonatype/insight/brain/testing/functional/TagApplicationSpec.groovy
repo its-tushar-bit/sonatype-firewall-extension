@@ -40,6 +40,7 @@ class TagApplicationSpec
       waitFor{ tags.availableTagList.displayed }
       tags.availableTagList.size() == 1
       tags.availableTagList[0].text() == 'New Tag'
+      tags.availableTagList[0].classes().contains('blackLabel')
       tags.appliedTagList.size() == 0
   }
 
@@ -52,6 +53,7 @@ class TagApplicationSpec
       tags.availableTagEmptyText.text() == 'No tags available'
       tags.appliedTagList.size() == 1
       tags.appliedTagList[0].text() == 'New Tag'
+      tags.appliedTagList[0].classes().contains('blackLabel')
   }
 
   def 'Can detach a tag'() {
@@ -61,6 +63,7 @@ class TagApplicationSpec
     then: 'the applied tag is moved to the available tags'
       waitFor { tags.availableTagList.size() == 1 }
       tags.availableTagList[0].text() == 'New Tag'
+      tags.availableTagList[0].classes().contains('blackLabel')
       tags.appliedTagList.size() == 0
       tags.appliedTagEmptyText.text() == 'No tags applied'
   }
@@ -81,6 +84,5 @@ class TagApplicationSpec
     then: 'no tags show up'
       tags.availableTagList.size() == 0
       tags.availableTagEmptyText.text() == 'No tags available matching Foo'
-
   }
 }

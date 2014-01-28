@@ -181,6 +181,13 @@ describe('TagController.js', function() {
       $httpBackend.verifyNoOutstandingRequest();
     }));
 
+    it('Can set color', function() {
+      scope.createNew();
+      var color = scope.colors[0];
+      scope.setColor(color)
+      expect(scope.selectedTag.color).toEqual(color);
+    });
+
     it('Can cancel edit', function() {
       spyOn(scope, '$emit');
       scope.cancelEditTag();

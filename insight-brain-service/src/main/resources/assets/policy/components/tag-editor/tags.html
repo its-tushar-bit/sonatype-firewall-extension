@@ -16,7 +16,7 @@
         </button>
         <span>
           <span ng-repeat='tag in tags | orderBy:"name"' ng-click='editTag(tag)'>
-            <span class='clm-tag' ng-class="{active: selectedTag.id == tag.id}"
+            <span class='clm-tag {{tag.color}}Label' ng-class="{active: selectedTag.id == tag.id}"
                   data-tooltip="{{tag.description}}" data-tooltip-placement="bottom" data-tooltip-append-to-body="true">
               <span>{{tag.name | truncate}}</span>
               <i ng-click='deleteTag(tag, $event)' class='icon-remove label-remove' title="Delete {{tag.name}}"></i>
@@ -44,6 +44,13 @@
             <div class="control-group">
               <textarea name='description' maxlength="255" rows="3" style="width:530px;resize:none;" ng-model='selectedTag.description'
                         placeholder="Enter Description" required></textarea>
+            </div>
+            <div class="control-group">
+              <span ng-repeat="color in colors" ng-click='setColor(color);'>
+                <span class='clmLabel {{color}}Label' ng-class='{ active : selectedTag.color == color}' style='min-width:33px'>
+                  <span>{{selectedTag.name}}</span>
+                </span>
+              </span>
             </div>
             <div clm-alerts='editorAlerts'></div>
             <div class="pull-right">

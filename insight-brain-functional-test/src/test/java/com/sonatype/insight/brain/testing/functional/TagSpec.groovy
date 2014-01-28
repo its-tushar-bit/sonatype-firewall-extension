@@ -41,24 +41,28 @@ class TagSpec
 
     then: 'it is added to the list of available Tags'
       waitFor { tags.tagList.size() == 1 }
-      tags.tagList[0].text() == 'New Tag'
+      tags.tag(0).text() == 'New Tag'
+      tags.tag(0).classes().contains('blackLabel')
   }
 
   def "Can edit an existing tag"(){
     when: 'We click on an existing Tag'
-      tags.tagList[0].click()
+      tags.tag(0).click()
 
     then: 'The form is populated with the name and description of the chosen Tag'
       tags.name == 'New Tag'
       tags.description == 'Tag description'
+      tags.color('black').classes().contains('active')
 
     when: 'We update the tag name and description'
       tags.name = 'Updated New Tag'
       tags.description = 'Updated Tag Description'
+      tags.color('green').click()
       tags.buttons.save.click()
 
     then:
-      waitFor { tags.tagList[0].text() == 'Updated New Tag' }
+      waitFor { tags.tag(0).text() == 'Updated New Tag' }
+      tags.tag(0).classes().contains('greenLabel')
   }
 
   def "Can delete the newly added Tag"() {

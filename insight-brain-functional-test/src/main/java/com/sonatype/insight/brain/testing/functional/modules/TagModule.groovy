@@ -15,7 +15,9 @@ class TagModule
 {
   static content = {
     newTagButton { $('button', 'ng-click': 'createNew()') }
+
     tagList(required:false) { $('span', 'ng-repeat': startsWith('tag in tags')) }
+    tag(required:false) { index -> tagList(index).find('span') }
     delete { tag -> tag.find('i', title: startsWith('Delete')).click() }
     appliedMarker { tag -> tag.find('.appliedTagCount') }
 
@@ -23,6 +25,7 @@ class TagModule
     tagEditor(required:false) { $('form', name: 'tagEditor') }
     name(required:false)  { tagEditor.name() }
     description(required:false)  { tagEditor.description() }
+    color(requied:false) { name -> tagEditor.find('.' + name + 'Label') }
     buttons { module ButtonsModule }
 
     //client validation error messaging
@@ -35,10 +38,11 @@ class TagModule
     cancelEditAlert { editAlerts.find('button') }
   }
 
-  def createNewTag(name = 'New Tag', description = 'Tag description') {
+  def createNewTag(name = 'New Tag', description = 'Tag description', color = 'black') {
     waitFor { newTagButton.displayed }
     newTagButton.click()
     this.name = name
     this.description = description
+    this.color(color).click()
   }
 }

@@ -16,7 +16,7 @@ class OrganizationManagementPage
   static content = {
     newOrganizationButton(wait: true, to: OrganizationPage) { $('a', text: contains('New Organization')) }
     organizationList(required: false) { $('li', 'ng-repeat': startsWith('organization in organizations')).find('a') }
-    organization { name -> organizationList.find {it.text() == name} }
+    organization(to: OrganizationPage) { name -> organizationList.find {it.text() == name} }
   }
 
   public void createOrg(name = 'test organization') {

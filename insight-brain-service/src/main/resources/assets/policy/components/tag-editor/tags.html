@@ -17,10 +17,11 @@
         <span>
           <span ng-repeat='tag in tags | orderBy:"name"' ng-click='editTag(tag)'>
             <span class='clm-tag' ng-class="{active: selectedTag.id == tag.id}"
-                  data-tooltip="{{tag.description}}" data-tooltip-placement="bottom">
-              {{tag.name | truncate}}
+                  data-tooltip="{{tag.description}}" data-tooltip-placement="bottom" data-tooltip-append-to-body="true">
+              <span>{{tag.name | truncate}}</span>
               <i ng-click='deleteTag(tag, $event)' class='icon-remove label-remove' title="Delete {{tag.name}}"></i>
             </span>
+            <span ng-if="tag.appliedTags.length > 0" class="appliedTagCount">{{ tag.appliedTags.length }}</span>
           </span>
         </span>
         <em ng-show='tags.length == 0'>No tags available</em>

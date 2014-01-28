@@ -16,7 +16,8 @@ class TagModule
   static content = {
     newTagButton { $('button', 'ng-click': 'createNew()') }
     tagList(required:false) { $('span', 'ng-repeat': startsWith('tag in tags')) }
-    delete { tag -> tag.find('i').click() }
+    delete { tag -> tag.find('i', title: startsWith('Delete')).click() }
+    appliedMarker { tag -> tag.find('.appliedTagCount') }
 
     //form controls(only visible while editing)
     tagEditor(required:false) { $('form', name: 'tagEditor') }

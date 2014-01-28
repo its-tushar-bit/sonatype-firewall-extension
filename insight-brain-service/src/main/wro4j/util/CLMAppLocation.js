@@ -126,7 +126,7 @@
         },
 
         getTagsUrl: function() {
-          return baseUrl.get() + '/rest/tag/' + getId();
+          return baseUrl.get() + '/rest/tag/organization/' + getId();
         },
 
         isApplication: isApplication

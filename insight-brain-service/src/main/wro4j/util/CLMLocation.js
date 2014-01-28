@@ -109,10 +109,13 @@
         },
 
         getOrganizationTagUrl : function(organizationId) {
-          return baseUrl.get() + '/rest/tag/' + encodeURIComponent(organizationId);
+          return baseUrl.get() + '/rest/tag/organization/' + encodeURIComponent(organizationId);
+        },
+        getOrganizationAppliedTagUrl : function(organizationId) {
+          return this.getOrganizationTagUrl(organizationId) + '/applied';
         },
         getApplicationTagUrl : function(applicationPublicId) {
-          return baseUrl.get() + '/rest/applicationTag/' + encodeURIComponent(applicationPublicId);
+          return baseUrl.get() + '/rest/appliedTag/application/' + encodeURIComponent(applicationPublicId);
         },
         getDeleteApplicationTagUrl : function(applicationPublicId, tagId) {
           return this.getApplicationTagUrl(applicationPublicId) + '/' + tagId;

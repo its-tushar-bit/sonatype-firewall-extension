@@ -3,14 +3,14 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-/*global angular */
+/*global angular*/
 (function() {
   'use strict';
 
-  var tagModule = angular.module('Tags', ['AngularCommon', 'CLMAppLocation', 'CLMLocation', 'CommonServices', 'ResourceModule']);
+  var tagModule = angular.module('Tags', ['AngularCommon', 'CLMAppLocation', 'CLMLocation', 'CommonServices', 'ResourceModule', 'Stores']);
 
   tagModule.service('TagStore', [
-    'CLMResource', 'CLMAppLocations', function(CLMResource, CLMAppLocations) {
+    'CLMResource', 'CLMAppLocations', 'CLMLocations', '$http', function(CLMResource, CLMAppLocations, CLMLocations, $http) {
       var tagStore = null, tagStores = {};
 
       function refreshTagStore() {
@@ -40,6 +40,9 @@
         },
         create: function() {
           return tagStore.create();
+        },
+        getApplied: function(){
+          return $http.get(CLMLocations.getOrganizationAppliedTagUrl(CLMAppLocations.getEntityId()));
         }
       };
     }
@@ -51,8 +54,8 @@
   }
 
   tagModule.controller('TagController', [
-    '$scope', '$http', '$q', 'CLMAppLocations', 'Messages', 'CLMResource', 'TagStore', 'ownerChange', 'Dialog',
-    function($scope, $http, $q, clmAppLocations, messages, clmResource, TagStore, ownerChange, Dialog) {
+    '$scope', '$http', '$q', 'CLMAppLocations', 'Messages', 'CLMResource', 'TagStore', 'ownerChange', 'Dialog', 'ApplicationStore',
+    function($scope, $http, $q, clmAppLocations, messages, clmResource, TagStore, ownerChange, Dialog,ApplicationStore) {
       $scope.alerts = [];
 
       function deselect() {
@@ -80,8 +83,25 @@
 
       $scope.doLoad = function() {
         $scope.error = null;
-        TagStore.refresh().then(function(results) {
-          $scope.tags = results;
+        $scope.tags = null;
+        $q.all([TagStore.refresh(), TagStore.getApplied(), ApplicationStore.get()]).then(function(results) {
+          $scope.tags = results[0];
+          $scope.appliedTags = results[1].data;
+          $scope.applications = results[2];
+          var mappedApplications = {};
+          angular.forEach($scope.applications, function(application){
+            mappedApplications[application.id] = application.name;
+          });
+          var mappedTags = {};
+          angular.forEach($scope.tags, function(tag){
+            tag.appliedTags = [];
+            mappedTags[tag.id] = tag;
+          });
+          angular.forEach($scope.appliedTags, function(ApplicationTag){
+            var appliedTags = mappedTags[ApplicationTag.tagId].appliedTags;
+            ApplicationTag.applicationName = mappedApplications[ApplicationTag.applicationId];
+            appliedTags.push(ApplicationTag);
+          });
         }, function(error) {
           $scope.error = error;
         });
@@ -105,9 +125,17 @@
 
       $scope.deleteTag = function(tag, $event) {
         $event.stopPropagation();
+        var body = 'Are you sure you want to delete this tag?';
+        var length = tag.appliedTags ? tag.appliedTags.length : 0;
+        if (length > 0) {
+          body += ' It is in use by the following applications: ';
+          body += jQuery.map(tag.appliedTags, function(ApplicationTag){
+            return ApplicationTag.applicationName;
+          }).join(', ') + '.';
+        }
         Dialog.open({
           title: 'Delete Tag',
-          body: 'Are you sure you want to delete this tag?',
+          body: body,
           buttons: [
             {
               name: 'Cancel'

@@ -159,4 +159,18 @@ public class TagServiceAuthzTest
     tempEntity.newPolicyTag(policyId, tag.getId());
     tagService.deletePolicyTag(org.getId(), policyId, tag.getId());
   }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testGetApplicationTagsByOrgId_Unauthorized() throws Exception {
+    login();
+    tagService.getApplicationTagsByOrgId(org.getId());
+  }
+
+  @Test
+  public void testGetApplicationTagsByOrgId_Authorized() throws Exception {
+    grantReadPermission(org.getId());
+    Tag tag = tempEntity.newTag(org.getId(), "name");
+    tempEntity.newApplicationTag(app.getId(), tag.getId());
+    tagService.getApplicationTagsByOrgId(org.getId());
+  }
 }

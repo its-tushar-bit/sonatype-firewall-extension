@@ -67,4 +67,13 @@ public class ApplicationTagDAO
         " WHERE entity.tagId=?1";
     return getList(em, sQuery, tagId);
   }
+
+  /**
+   * Retrieve list of Tags applied to any Applications in an Organization.
+   */
+  public List<ApplicationTag> getByOrganizationId(String organizationId) {
+    String sQuery = "SELECT appTag FROM ApplicationTag appTag, Tag tag" + //
+        " WHERE appTag.tagId = tag.id AND tag.organizationId =?1";
+    return getList(sQuery, organizationId);
+  }
 }

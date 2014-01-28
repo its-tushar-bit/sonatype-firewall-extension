@@ -117,4 +117,37 @@ class TagSpec
       waitFor { tags.tagList.size() == 2 }
       tags.tagList[0].text() == (('A' * 22) + '...')
   }
+
+  def "Already applied tags warn they are used on deletion"(){
+    given: 'An Application to appy tags to'
+      def applicationManagementPage = to(ApplicationManagementPage)
+      applicationManagementPage
+      applicationManagementPage.createApp('TagSpec', 'TagSpec', 'TagSpec')
+      waitFor{ tabs.tabLinks.displayed }
+      tabs.tagTabButton.click()
+
+    when: 'Applying a Tag to an Application'
+      tags.availableTagList[0].click()
+
+    then: 'It appears in the list of applied tags'
+      waitFor { tags.appliedTagList.size() == 1 }
+
+    when: 'We view the Tags in the Organization view'
+      to OrganizationManagementPage
+      organization('TagSpec').click()
+      tabs.tagTabButton.click()
+
+    then: 'The newly applied Tag is visually shown to be applied'
+      report 'applied count is shown'
+      def marker = tags.appliedMarker(tags.tagList[0])
+      marker.displayed
+      marker.text() == '1'
+
+    when: 'We try to delete the tag'
+      tags.delete(tags.tagList[0])
+
+    then: 'We are warned that it is in use'
+      waitFor { tagModal.modal.displayed }
+      tagModal.text.contains('It is in use by the following applications: TagSpec.')
+  }
 }

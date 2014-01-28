@@ -19,6 +19,7 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
+import com.sonatype.insight.brain.model.tag.ApplicationTag;
 import com.sonatype.insight.brain.model.tag.Tag;
 
 @Named
@@ -28,7 +29,7 @@ import com.sonatype.insight.brain.model.tag.Tag;
  */
 public class TagResource
 {
-  public static final String SERVICE_PATH = "rest/tag/{organizationId}";
+  public static final String SERVICE_PATH = "rest/tag/organization/{organizationId}";
 
   private final TagService service;
 
@@ -41,6 +42,13 @@ public class TagResource
   @Produces({ MediaType.APPLICATION_JSON })
   public List<Tag> getTags(@PathParam("organizationId") String organizationId) {
     return service.getTags(organizationId);
+  }
+
+  @GET
+  @Path("/applied")
+  @Produces({ MediaType.APPLICATION_JSON })
+  public List<ApplicationTag> getApplicationTagsForOrg(@PathParam("organizationId") String organizationId) {
+    return service.getApplicationTagsByOrgId(organizationId);
   }
 
   @POST

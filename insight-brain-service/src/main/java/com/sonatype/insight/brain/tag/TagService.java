@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.tag;
 import java.util.List;
 
 import javax.inject.Named;
+import javax.persistence.EntityManager;
 
 import com.sonatype.insight.brain.dataaccess.tag.ApplicationTagDAO;
 import com.sonatype.insight.brain.dataaccess.tag.PolicyTagDAO;
@@ -56,13 +57,17 @@ class TagService
     if (!organizationId.equals(tag.getOrganizationId())) {
       throw new NotFoundException("Cannot find a tag with id " + tagId + " for organization id " + organizationId);
     }
-
     tagDAO.delete(tag);
   }
 
   @Authorize(permission = Permission.READ)
   public List<Tag> getAppliedApplicationTags(@AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String applicationPublicId) {
     return new TagDAO().getByApplicationId(IdUtils.getInternalOwnerId(IdUtils.TYPE_APPLICATION, applicationPublicId));
+  }
+
+  @Authorize(permission = Permission.READ)
+  public List<ApplicationTag> getApplicationTagsByOrgId(@AuthzContext(AuthzContext.Key.ORGANIZATION_ID) String organizationId) {
+    return new ApplicationTagDAO().getByOrganizationId(organizationId);
   }
 
   @Authorize(permission = Permission.WRITE)

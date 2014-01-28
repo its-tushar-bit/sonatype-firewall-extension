@@ -30,7 +30,7 @@ import com.google.inject.Inject;
 @Path(ApplicationTagResource.SERVICE_PATH)
 public class ApplicationTagResource
 {
-  public static final String SERVICE_PATH = "rest/applicationTag/{applicationPublicId}";
+  public static final String SERVICE_PATH = "rest/appliedTag/application/{applicationPublicId}";
 
   private final TagService tagService;
 

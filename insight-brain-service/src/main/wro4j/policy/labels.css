@@ -205,3 +205,20 @@ form[name="labelEditor"] .clmLabel {
   left: -0.4em;
   z-index: 9999;
 }
+
+/* hover a box over the corner of the parent container */
+.appliedTagCount {
+  position: relative;
+  top: -1em;
+  right: -0.5em;
+  color: white;
+  background-color: #eb1213;
+  border-radius: 0.25em;
+  -webkit-border-radius: 0.25em;
+  -moz-border-radius: 0.25em;
+  display: inline-block;
+  min-width: 1.5em;
+  text-align: center;
+  margin-left: -1.25em;
+  z-index: 999;
+}

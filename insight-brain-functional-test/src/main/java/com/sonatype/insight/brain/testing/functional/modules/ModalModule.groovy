@@ -24,6 +24,7 @@ class ModalModule
     modal { modals.has('h3', text: title) }
     confirm { modal.find('button', text: confirmText ) }
     cancel { modal.find('button', text: cancelText) }
+    text { modal.find('p').text() }
     ok(required: false) { modal.find('button', text: okText) }
   }
 }

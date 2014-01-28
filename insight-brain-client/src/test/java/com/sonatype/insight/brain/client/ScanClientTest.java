@@ -6,15 +6,11 @@
 package com.sonatype.insight.brain.client;
 
 import com.sonatype.clm.dto.model.ScanReceipt;
-import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
-import com.sonatype.insight.brain.db.DataSourceFactory;
-import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.service.AbstractLicenseTest;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 
 import org.apache.http.client.HttpResponseException;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -27,26 +23,12 @@ public class ScanClientTest
 {
   private static final String APP_ID = "ScanClientTest_AppId";
 
-  private static Application application;
-
   @Rule
   public TemporaryFolder tmpDir = new TemporaryFolder();
 
-  @AfterClass
-  public static void afterClass() {
-    if (application != null) {
-      new ApplicationDAO().delete(application);
-    }
-    DataSourceFactory.clear_ForTestsOnly();
-  }
-
-  @BeforeClass
-  public static void createApplication() {
-    ApplicationDAO applicationDAO = new ApplicationDAO();
-    application = new Application();
-    application.setName("test");
-    application.setPublicId(APP_ID);
-    applicationDAO.insert(application);
+  @Before
+  public void createApplication() {
+    createApplication(APP_ID, "test");
   }
 
   @Test

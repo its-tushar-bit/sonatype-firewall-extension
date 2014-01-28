@@ -22,10 +22,10 @@ import javax.ws.rs.core.Response;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.service.ErrorResponseGenerator;
 import com.sonatype.insight.error.ErrorResponse;
+import com.sonatype.insight.json.store.JsonUtils;
 
 import com.sun.jersey.core.header.FormDataContentDisposition;
 import com.sun.jersey.multipart.FormDataParam;
-import com.yammer.dropwizard.testing.JsonHelpers;
 
 /**
  * Accepts uploads of application binaries for the purpose of scanning them.
@@ -63,7 +63,7 @@ public class ScanResource
       ScanTicket result = scanService.scanBinary(appPublicId, is, fileDetail.getFileName(), new Stage(stageId),
           sendNotifications);
       if (noFormData) {
-        return Response.ok(JsonHelpers.asJson(result), ErrorResponse.CONTENT_TYPE).build();
+        return Response.ok(JsonUtils.generate(result), ErrorResponse.CONTENT_TYPE).build();
       } else {
         return Response.ok(result, MediaType.APPLICATION_JSON).build();  
       }

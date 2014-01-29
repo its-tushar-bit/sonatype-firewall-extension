@@ -114,6 +114,11 @@ public abstract class AbstractLicenseTest
     licenseFingerprinter.setDummyLicenseFingerprint(licenseFingerprint);
     installLicense();
   }
+  
+  protected void setLicenseProducts(String[] products) throws Exception {
+    getTestProductLicenseManager().setProducts(products);
+    installLicense();
+  }
 
   protected String getLicenseFingerprint() {
     return licenseFingerprinter.calculate();

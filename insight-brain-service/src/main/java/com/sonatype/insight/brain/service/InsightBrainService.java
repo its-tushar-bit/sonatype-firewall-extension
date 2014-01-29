@@ -21,6 +21,7 @@ import com.sonatype.insight.brain.dataaccess.license.LicenseDataUpdater;
 import com.sonatype.insight.brain.db.DatamartProvider;
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.policy.evaluator.PolicyMonitor;
+import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.releasegraph.ReleaseGraphCacheLoader;
 import com.sonatype.insight.brain.releasegraph.ReleaseGraphKey;
 import com.sonatype.insight.brain.saas.DefaultLicenseDataUpdater;
@@ -91,7 +92,7 @@ public class InsightBrainService
     LicenseOverrideMigrator LicenseOverrideMigrator = getInjector().getInstance(LicenseOverrideMigrator.class);
     LicenseOverrideMigrator.migrate();
 
-    configurePolicyMonitoring(environment, configuration.getPolicyMonitoringHour());
+    configurePolicyMonitoring(environment, configuration.getPolicyMonitoringHour(), getInjector().getInstance(CLMLicenseManager.class));
   }
 
   private static boolean validateTempDir() {
@@ -225,9 +226,16 @@ public class InsightBrainService
    * 
    * @since 1.8
    */
-  protected void configurePolicyMonitoring(final Environment environment, final int policyMonitoringHour) {
+  protected void configurePolicyMonitoring(final Environment environment, final int policyMonitoringHour,
+      final CLMLicenseManager licenseManager)
+  {
+    // I don't want to stop the executor service from running, because once a license is installed the functionality
+    // will be automatically picked up without requiring a server restart, but I do want to hide these log statements ;)
+    final boolean hasFeature = licenseManager.hasPolicyMonitoring();
+
     DateTime dateTime = determineNextExecutionTime(policyMonitoringHour);
-    log.info("Scheduling Policy Monitor execution for {}", dateTime);
+    logIfTrue(hasFeature, "Scheduling Policy Monitor execution for {}", dateTime);
+
     ScheduledExecutorService scheduledExecutorService = environment.managedScheduledExecutorService(
         "policyMonitoring-%d", 1);
     final PolicyMonitor policyMonitor = getInjector().getInstance(PolicyMonitor.class);
@@ -235,12 +243,19 @@ public class InsightBrainService
     {
       @Override
       public void run() {
-        log.info("Triggering scheduled execution of Policy Monitor");
         policyMonitor.run();
-        log.info("Next Policy Monitor execution scheduled for {}", determineNextExecutionTime(policyMonitoringHour));
+        logIfTrue(licenseManager.hasPolicyMonitoring(), "Next Policy Monitor execution scheduled for {}",
+            determineNextExecutionTime(policyMonitoringHour));
       }
     }, dateTime.getMillis() - System.currentTimeMillis(), TimeUnit.DAYS.toMillis(1), TimeUnit.MILLISECONDS);
-    log.info("First Policy Monitor execution scheduled for {}", dateTime);
+
+    logIfTrue(hasFeature, "First Policy Monitor execution scheduled for {}", dateTime);
+  }
+
+  private void logIfTrue(boolean test, String msg, Object arg) {
+    if (test) {
+      log.info(msg, arg);
+    }
   }
 
   private DateTime determineNextExecutionTime(final int policyMonitoringHour) {

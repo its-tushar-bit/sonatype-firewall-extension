@@ -24,6 +24,7 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyMonitoring;
+import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.saas.ScanUploader;
 import com.sonatype.insight.brain.service.InsightWork;
 
@@ -45,18 +46,27 @@ public class PolicyMonitor
   private final PolicyEvaluationUtils policyEvaluationUtils;
 
   private final PolicyAlertNotifier policyAlertNotifier;
+  
+  private final CLMLicenseManager licenseManager;
 
   @Inject
   public PolicyMonitor(InsightWork work, ScanUploader uploader, PolicyEvaluationUtils policyEvaluationUtils,
-      PolicyAlertNotifier policyAlertNotifier)
+      PolicyAlertNotifier policyAlertNotifier, CLMLicenseManager licenseManager)
   {
     this.work = work;
     this.uploader = uploader;
     this.policyEvaluationUtils = policyEvaluationUtils;
     this.policyAlertNotifier = policyAlertNotifier;
+    this.licenseManager = licenseManager;
   }
 
   public void run() {
+    //not licensed, back on outta here
+    if (!licenseManager.hasPolicyMonitoring()) {
+      log.debug("Ending task, not licensed for Policy Monitoring.");
+      return;
+    }
+    
     log.info("Starting policy monitoring");
 
     long start = System.currentTimeMillis();

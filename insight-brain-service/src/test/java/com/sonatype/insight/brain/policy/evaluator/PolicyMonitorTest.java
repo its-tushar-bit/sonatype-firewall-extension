@@ -7,6 +7,8 @@ package com.sonatype.insight.brain.policy.evaluator;
 
 import java.io.File;
 import java.net.URL;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -41,6 +43,7 @@ import com.sonatype.insight.brain.utils.IdUtils;
 import com.ning.http.client.Response;
 import com.yammer.dropwizard.testing.JsonHelpers;
 import org.codehaus.plexus.util.FileUtils;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -72,6 +75,60 @@ public class PolicyMonitorTest
     insightConfig.setBaseUrl("http://clm.sonatype.com/test");
     insightWork = brain.getInjector().getInstance(InsightWork.class);
     policyMonitor = brain.getInjector().getInstance(PolicyMonitor.class);
+  }
+  
+  @After
+  public void cleanup() {
+    getTestProductLicenseManager().resetProducts();
+  }
+
+  @Test
+  public void testApplicationNotMonitoredWhenUnlicensed() throws Exception {
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplication("MonitoredApp", org.getId());
+
+    Stage stage = new Stage(ReleaseStageType.ID);
+
+    PolicyMonitoring policyMonitoring = new PolicyMonitoring(app.getId(), stage.getStageTypeId());
+    new PolicyMonitoringDAO().insert(policyMonitoring);
+
+    String licenseFingerprint = "PolicyMonitorTest_LicenseFingerprint";
+    setLicenseFingerprint(licenseFingerprint);
+    String scanId = "PolicyMonitorTest_scanId";
+    File saasReportFile = getReportResponseFile(licenseFingerprint, scanId);
+    saasReportFile.delete();
+    File scanFile = insightWork.getScanFile(app.getId(), scanId);
+    scanFile.delete();
+
+    // Create the scan file
+    URL testScanFileUrl = getClass().getResource("/PolicyMonitorTest/scan.xml.gz");
+    FileUtils.copyFile(new File(testScanFileUrl.getFile()), scanFile);
+
+    // Simulate that the report is available
+    URL testReportFileUrl = getClass().getResource("/PolicyMonitorTest/report.zip");
+    FileUtils.copyFile(new File(testReportFileUrl.getFile()), saasReportFile);
+
+    evaluatePolicy(app.getPublicId(), scanId, stage);
+    PolicyEvaluationLog policyEvaluationLog = new PolicyEvaluationLog(brain.getAuditDir(app.getId()));
+
+    setLicenseProducts(new String[0]);
+
+    Collection<StageType> stageTypes = StageTypes.getAll();
+
+    Map<StageType, Long> lastRun = new HashMap<StageType, Long>();
+    for (StageType stageType : stageTypes) {
+      PolicyEvaluation eval = policyEvaluationLog.lastByStage(stageType.getId());
+      lastRun.put(stageType, eval == null ? null : Long.valueOf(eval.getTime()));
+    }
+
+    policyMonitor.run();
+
+    // There should be no new policy evaluations
+    for (StageType stageType : stageTypes) {
+      PolicyEvaluation eval = policyEvaluationLog.lastByStage(stageType.getId());
+      Long val = lastRun.get(stageType);
+      assertThat((val == null && eval == null) || (val != null && eval != null && val.equals(eval.getTime())), is(true));
+    }
   }
 
   @Test
@@ -283,7 +340,7 @@ public class PolicyMonitorTest
     notificationsDeveloper.clear();
     assertThat(notificationsMonitor1, is(empty()));
     assertThat(notificationsMonitor2, is(empty()));
-    
+
     // Simulate that the previous alerts are missing
     File reportFile = insightWork.getReportFile(app.getId(), scanId);
     File monitorAlertsFile = Report.getCacheFile(reportFile, PolicyEvaluationUtils.MONITOR_POLICY_ALERTS_FILENAME);

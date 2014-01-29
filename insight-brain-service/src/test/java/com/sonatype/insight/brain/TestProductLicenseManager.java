@@ -199,4 +199,8 @@ public class TestProductLicenseManager
   public void setForceInstallIOFailure(boolean forceInstallIOFailure) {
     this.forceInstallIOFailure = forceInstallIOFailure;
   }
+
+  public void resetProducts() {
+    setProducts(new String[] { ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION });
+  }
 }

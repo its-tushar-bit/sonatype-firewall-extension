@@ -131,6 +131,7 @@ class TagSpec
       tabs.tagTabButton.click()
 
     when: 'Applying a Tag to an Application'
+      waitFor { tags.availableTagList.size() > 0 }
       tags.availableTagList[0].click()
 
     then: 'It appears in the list of applied tags'
@@ -142,6 +143,7 @@ class TagSpec
       tabs.tagTabButton.click()
 
     then: 'The newly applied Tag is visually shown to be applied'
+      waitFor { tags.tagList.size() > 0 }
       report 'applied count is shown'
       def marker = tags.appliedMarker(tags.tagList[0])
       marker.displayed

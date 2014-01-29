@@ -16,6 +16,12 @@
         $scope.orderColumn = field;
       };
 
+      $scope.isVisible = function (item) {
+        return !$scope.appFilter ||
+              item.name.toLowerCase().indexOf($scope.appFilter.toLowerCase()) > -1 ||
+              item.organizationName.toLowerCase().indexOf($scope.appFilter.toLowerCase()) > -1;
+      };
+
       $scope.orderColumn = 'name';
       $scope.orderDirection = false;
       $scope.encodeURIComponent = window.encodeURIComponent;

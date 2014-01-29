@@ -79,4 +79,30 @@ describe('reportApp', function() {
     expect(scope.applications.length).toEqual(mockApplicationSummaryData.length);
     expect(scope.applications[0].id).toEqual(mockApplicationSummaryData[0].id);
   });
+
+  describe('Filters', function () {
+    it('Application Name', function () {
+      scope.appFilter = 'appl';
+      expect(scope.isVisible(scope.applications[0])).toBeTruthy();
+      scope.appFilter = 'foobar';
+      expect(scope.isVisible(scope.applications[0])).toBeFalsy();
+    });
+
+    it('Organization Name', function () {
+      scope.appFilter = 'OLE'; // triggers case sensitivity vs Ole
+      expect(scope.isVisible(scope.applications[0])).toBeTruthy();
+      scope.appFilter = 'foobar';
+      expect(scope.isVisible(scope.applications[0])).toBeFalsy();
+    });
+
+    it('Null', function () {
+      // App filter starts empty, we shouldn't explode a
+      expect(scope.isVisible(scope.applications[0])).toBeTruthy();
+    });
+
+    it('Empty', function () {
+      scope.appFilter = '';
+      expect(scope.isVisible(scope.applications[0])).toBeTruthy();
+    });
+  });
 });

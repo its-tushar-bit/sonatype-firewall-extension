@@ -7,6 +7,8 @@ package com.sonatype.insight.brain.testing.functional
 
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO
+import com.sonatype.insight.brain.model.Application
+import com.sonatype.insight.brain.model.Organization
 import com.sonatype.insight.brain.service.InsightConfig
 import com.sonatype.insight.brain.service.TestInsightBrainService
 import com.sonatype.insight.brain.testing.functional.utils.InsightMockServerRule
@@ -50,5 +52,21 @@ abstract class BaseSpec extends GebReportingSpec {
   def loginAsAdmin() {
     via ReportViolationsPage
     login.loginAsAdmin()
+  }
+
+  static Organization createOrganization(String name) {
+    Organization org = new Organization();
+    org.setName(name);
+    organizationDAO.insert(org);
+    return org;
+  }
+
+  static Application createApplication(String name, String publicId, String orgId) {
+    Application app = new Application();
+    app.setName(name);
+    app.setOrganizationId(orgId);
+    app.setPublicId(publicId);
+    applicationDAO.insert(app);
+    return app;
   }
 }

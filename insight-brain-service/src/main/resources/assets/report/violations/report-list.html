@@ -9,8 +9,8 @@
         </div>
 		<div ng-show='applications.length > 0'>
 			<div class='input-prepend'>
-				<span class='add-on'><i ng-class="{'icon-search': !appFilter.name, 'icon-remove': appFilter.name}" ng-click="appFilter.name = ''"></i></span>
-				<input type='text' ng-model='appFilter.name' autocomplete="off" placeholder='Filter Applications' />
+				<span class='add-on'><i ng-class="{'icon-search': !appFilter, 'icon-remove': appFilter}" ng-click="appFilter = ''"></i></span>
+				<input type='text' ng-model='appFilter' autocomplete="off" placeholder='Filter Applications' />
 			</div>
 			<table class='clm-table table table-striped table-bordered' style='margin-bottom:0px;background-color: white'>
 				<thead>
@@ -35,7 +35,7 @@
 						</th>
 					</tr>
 				</thead>
-				<tr ng-repeat='application in applications | filter: appFilter | orderBy:orderColumn:orderDirection'>
+				<tr ng-repeat='application in applications | filter: isVisible | orderBy:orderColumn:orderDirection'>
 					<td>
 						<a href='index.html#/management/application/{{encodeURIComponent(application.publicId)}}/policies'>
 							<img ng-src='../rest/application/icon/{{encodeURIComponent(application.publicId)}}'

@@ -15,6 +15,7 @@ ApplicationMockData = {
       "name": "applicationName",
       "publicId": "bom1-12345678",
       "organizationId": "organizationId",
+      "organizationName" : "Ye Ole Organization",
       "policyEvaluations": {},
       "policyEvaluationsResults": {}
     };

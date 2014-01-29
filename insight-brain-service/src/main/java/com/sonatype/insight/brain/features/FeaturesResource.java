@@ -5,9 +5,9 @@
  */
 package com.sonatype.insight.brain.features;
 
-import java.util.Arrays;
-import java.util.List;
+import java.util.Set;
 
+import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -20,10 +20,16 @@ public class FeaturesResource
 {
   public static final String SERVICE_PATH = "rest/features";
 
+  private final FeaturesService featuresService;
+
+  @Inject
+  public FeaturesResource(FeaturesService featuresSerive) {
+    this.featuresService = featuresSerive;
+  }
+
   @GET
   @Produces(MediaType.APPLICATION_JSON)
-  public List<String> getFeatures() {
-    // Changes to this list should be replicated in brain.client.js
-    return Arrays.asList("policy", "labels", "release-graph", "policy-violations", "notification", "reevaluate-policy");
+  public Set<Feature> getFeatures() {
+    return featuresService.getFeatures();
   }
 }

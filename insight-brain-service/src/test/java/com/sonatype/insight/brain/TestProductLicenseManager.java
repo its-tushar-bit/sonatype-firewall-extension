@@ -37,11 +37,13 @@ public class TestProductLicenseManager
 
   private ProductLicenseKey key;
 
+  private int version = 1;
+
   private int appCount = 100;
 
   private Date expirationDate = new Date(System.currentTimeMillis() + 600 * 1000);
-  
-  private String[] features = { "policyMonitoring" };
+
+  private String[] products = { ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION };
 
   private Set<CLMEnforcementPoint> enforcementPoints = new HashSet<CLMEnforcementPoint>();
 
@@ -96,7 +98,8 @@ public class TestProductLicenseManager
       sb.setLength(sb.length() - 1);
     }
 
-    properties.put(ProductLicenseDetails.PROPERTY_FEATURES, StringUtils.join(features, ","));
+    properties.put(ProductLicenseDetails.PROPERTY_VERSION, Integer.toString(version));
+    properties.put(ProductLicenseDetails.PROPERTY_PRODUCTS, StringUtils.join(products, ","));
     properties.put(ProductLicenseDetails.PROPERTY_ENFORCEMENT_POINTS, sb.toString());
     properties.put(ProductLicenseDetails.PROPERTY_APPLICATION_LIMIT, Integer.toString(appCount));
     key = new DefaultLicenseKey(new Features(featureMap));
@@ -161,16 +164,23 @@ public class TestProductLicenseManager
     }
   }
 
+  public void setVersion(int version) {
+    if (valid) {
+      this.version = version;
+      createKey();
+    }
+  }
+
   public void setApplicationLimit(int applicationLimit) {
     if (valid) {
       this.appCount = applicationLimit;
       createKey();
     }
   }
-  
-  public void setFeatures(String[] features) {
+
+  public void setProducts(String... products) {
     if (valid) {
-      this.features = features;
+      this.products = products;
       createKey();
     }
   }

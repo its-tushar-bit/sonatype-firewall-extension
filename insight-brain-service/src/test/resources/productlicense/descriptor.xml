@@ -33,6 +33,14 @@
   </contact>
   <properties>
     <property>
+      <key>clm.licenseVersion</key>
+      <value>1</value>
+    </property>
+    <property>
+      <key>clm.products</key>
+      <value>Nexus,Risk,RiskAndRemediation</value>
+    </property>
+    <property>
       <key>clm.maxActiveApplications</key>
       <value>10</value>
     </property>

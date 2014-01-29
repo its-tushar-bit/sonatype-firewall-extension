@@ -9,7 +9,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collections;
 import java.util.EnumSet;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 import javax.inject.Inject;
@@ -24,8 +24,6 @@ import org.sonatype.licensing.product.ProductLicenseKey;
 import org.sonatype.licensing.product.ProductLicenseManager;
 import org.sonatype.licensing.product.util.LicenseFingerprinter;
 
-import org.apache.commons.lang.StringUtils;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,7 +31,7 @@ import org.slf4j.LoggerFactory;
 @Singleton
 public class CLMLicenseManager
 {
-  private static final String FEATURE_POLICY_MONITORING = "policyMonitoring";
+  private static final String FEATURE_POLICY_MONITORING = "PolicyMonitoring";
 
   private final class CachedLicenseData
       extends ProductLicenseDetails
@@ -42,14 +40,17 @@ public class CLMLicenseManager
 
     private final long expirationTimestamp;
 
-    public CachedLicenseData(final String fingerprint, Integer applicationLimit, final String[] features,
-        final Set<CLMEnforcementPoint> enforcementPoints, final long expirationTimestamp)
+    public CachedLicenseData(final String fingerprint, final int version, Integer applicationLimit,
+        final Set<String> products, final String[] features, final Set<CLMEnforcementPoint> enforcementPoints,
+        final long expirationTimestamp)
     {
       this.fingerprint = fingerprint;
       this.expirationTimestamp = expirationTimestamp;
+      setVersion(version);
       super.setApplicationLimit(applicationLimit);
       super.setEnforcementPoints(enforcementPoints.toArray(new CLMEnforcementPoint[0]));
       super.setFeatures(features);
+      setProducts(products);
     }
 
     public String getFingerprint() {
@@ -118,7 +119,6 @@ public class CLMLicenseManager
 
   public boolean hasPolicyMonitoring() {
     String[] features = licenseCache.getFeatures();
-
     if (features != null) {
       for (String feature : features) {
         if (FEATURE_POLICY_MONITORING.equals(feature)) {
@@ -161,8 +161,7 @@ public class CLMLicenseManager
       return;
     }
 
-    Set<CLMEnforcementPoint> licensed = EnumSet.noneOf(CLMEnforcementPoint.class);
-    Collections.addAll(licensed, licenseCache.getEnforcementPoints());
+    Set<CLMEnforcementPoint> licensed = getEnforcementPoints();
     for (CLMEnforcementPoint requested : enforcementPoints) {
       if (licensed.contains(requested)) {
         return;
@@ -177,6 +176,12 @@ public class CLMLicenseManager
     throw new InvalidLicenseException("None of the enforcement points " + enforcementPoints + " is licensed!");
   }
 
+  private Set<CLMEnforcementPoint> getEnforcementPoints() {
+    Set<CLMEnforcementPoint> enforcementPoints = EnumSet.noneOf(CLMEnforcementPoint.class);
+    Collections.addAll(enforcementPoints, licenseCache.getEnforcementPoints());
+    return enforcementPoints;
+  }
+
   public LicenseSummary getLicenseSummary() {
     return new LicenseSummary(this.licenseCache.expirationTimestamp, this.licenseCache.getFeatures());
   }
@@ -188,10 +193,19 @@ public class CLMLicenseManager
 
     String licenseFingerprint = licenseFingerprinter.calculate(key);
 
+    int version;
+    try {
+      version = Integer.parseInt(getProperty(key, ProductLicenseDetails.PROPERTY_VERSION));
+    }
+    catch (IllegalArgumentException e) {
+      // legacy license
+      version = 0;
+    }
+
     Integer applicationCount = Integer
         .decode(getPropertyNotNull(key, ProductLicenseDetails.PROPERTY_APPLICATION_LIMIT));
 
-    Set<CLMEnforcementPoint> enforcementPoints = new HashSet<CLMEnforcementPoint>();
+    Set<CLMEnforcementPoint> enforcementPoints = EnumSet.noneOf(CLMEnforcementPoint.class);
     String[] enforcementPointIds = getPropertyNotNull(key, ProductLicenseDetails.PROPERTY_ENFORCEMENT_POINTS)
         .split(",");
     for (String enforcementPointId : enforcementPointIds) {
@@ -204,11 +218,33 @@ public class CLMLicenseManager
       }
     }
 
-    String features = getProperty(key, ProductLicenseDetails.PROPERTY_FEATURES);
+    Set<String> products = getProducts(key);
 
-    licenseCache = new CachedLicenseData(licenseFingerprint, applicationCount,
-        StringUtils.isNotBlank(features) ? features.split(",") : null, enforcementPoints, key.getExpirationDate()
-            .getTime());
+    Set<String> features = new LinkedHashSet<String>();
+    if (version < 1) {
+      // legacy license without product info
+      if (!isNexusClmLicense(enforcementPoints)) {
+        features.add(FEATURE_POLICY_MONITORING);
+      }
+    }
+    else {
+      // new license with product info
+      if (products.contains(ProductLicenseDetails.PRODUCT_RISK)
+          || products.contains(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION)) {
+        features.add(FEATURE_POLICY_MONITORING);
+      }
+    }
+
+    licenseCache = new CachedLicenseData(licenseFingerprint, version, applicationCount, products,
+        features.toArray(new String[features.size()]), enforcementPoints, key.getExpirationDate().getTime());
+  }
+
+  private static boolean isNexusClmLicense(Set<CLMEnforcementPoint> enforcementPoints) {
+    enforcementPoints = EnumSet.copyOf(enforcementPoints);
+    enforcementPoints.remove(CLMEnforcementPoint.StageRelease);
+    enforcementPoints.remove(CLMEnforcementPoint.Release);
+    enforcementPoints.remove(CLMEnforcementPoint.Procure);
+    return enforcementPoints.isEmpty();
   }
 
   private String getPropertyNotNull(ProductLicenseKey key, String property) throws LicensingException {
@@ -223,7 +259,17 @@ public class CLMLicenseManager
     return key.getProperties().getProperty(property);
   }
 
+  private Set<String> getProducts(ProductLicenseKey key) {
+    Set<String> products = new LinkedHashSet<>();
+    String value = getProperty(key, ProductLicenseDetails.PROPERTY_PRODUCTS);
+    if (value != null) {
+      Collections.addAll(products, value.split("\\s*,\\s*"));
+    }
+    return products;
+  }
+
   private void clearLicenseCache() {
-    licenseCache = new CachedLicenseData(null, 0, new String[0], Collections.<CLMEnforcementPoint> emptySet(), 0);
+    licenseCache = new CachedLicenseData(null, 0, 0, Collections.<String> emptySet(), new String[0],
+        Collections.<CLMEnforcementPoint> emptySet(), 0);
   }
 }

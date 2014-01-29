@@ -13,6 +13,8 @@ import javax.inject.Inject;
 
 import com.sonatype.insight.brain.TestProductLicenseManager;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.license.model.CLMEnforcementPoint;
+import com.sonatype.insight.license.model.ProductLicenseDetails;
 
 import org.sonatype.licensing.LicenseKey;
 import org.sonatype.licensing.LicensingException;
@@ -24,8 +26,10 @@ import org.sonatype.licensing.product.ProductLicenseManager;
 import com.google.inject.Binder;
 import org.junit.Test;
 
+import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
 public class CLMLicenseManagerTest
@@ -97,12 +101,47 @@ public class CLMLicenseManagerTest
     // now change the value and make sure the cache is still stale
     licenseManager.setApplicationLimit(10);
     assertEquals(100, clmLicenseManager.getApplicationCountLimit());
-    licenseManager.setFeatures(new String[0]);
+    licenseManager.setProducts(new String[0]);
     assertEquals(true, clmLicenseManager.hasPolicyMonitoring());
+    licenseManager.setEnforcementPoints(CLMEnforcementPoint.StageRelease, CLMEnforcementPoint.Release);
 
     // now install the license (which causes the cache to be cleared) and make sure the cache is no longer stale
     installLicense();
     assertEquals(10, clmLicenseManager.getApplicationCountLimit());
     assertEquals(false, clmLicenseManager.hasPolicyMonitoring());
+  }
+
+  @Test
+  public void testHasPolicyMonitoring_NexusClmLicense_Legacy() throws Exception {
+    licenseManager.setVersion(0);
+    licenseManager.setProducts();
+    licenseManager.setEnforcementPoints(CLMEnforcementPoint.StageRelease, CLMEnforcementPoint.Release,
+        CLMEnforcementPoint.Procure);
+    installLicense();
+    assertThat(clmLicenseManager.hasPolicyMonitoring(), is(false));
+  }
+
+  @Test
+  public void testHasPolicyMonitoring_FullClmLicense_Legacy() throws Exception {
+    licenseManager.setVersion(0);
+    licenseManager.setProducts();
+    installLicense();
+    assertThat(clmLicenseManager.hasPolicyMonitoring(), is(true));
+  }
+
+  @Test
+  public void testHasPolicyMonitoring_NexusClmLicense() throws Exception {
+    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_NEXUS);
+    licenseManager.setEnforcementPoints(CLMEnforcementPoint.StageRelease, CLMEnforcementPoint.Release,
+        CLMEnforcementPoint.Procure);
+    installLicense();
+    assertThat(clmLicenseManager.hasPolicyMonitoring(), is(false));
+  }
+
+  @Test
+  public void testHasPolicyMonitoring_FullClmLicense() throws Exception {
+    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK);
+    installLicense();
+    assertThat(clmLicenseManager.hasPolicyMonitoring(), is(true));
   }
 }

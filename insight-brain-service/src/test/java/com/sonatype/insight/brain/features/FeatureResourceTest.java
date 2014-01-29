@@ -27,6 +27,7 @@ public class FeatureResourceTest
     Assert.assertNotNull(features);
     Assert.assertTrue(Arrays.asList(features).contains("policy"));
     Assert.assertTrue(Arrays.asList(features).contains("labels"));
+    Assert.assertTrue(Arrays.asList(features).contains("policy-violations"));
   }
 
   private String getServiceURL() {

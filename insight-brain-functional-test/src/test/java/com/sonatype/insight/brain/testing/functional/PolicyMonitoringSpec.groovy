@@ -37,6 +37,7 @@ class PolicyMonitoringSpec
       via ReportViolationsPage
       login.loginAsAdmin()
       to OrganizationPage, org.id, 'policies'
+      waitFor { policyMonitoring.expandButton.displayed }
 
     when:
       policyMonitoring.expandButton.click()

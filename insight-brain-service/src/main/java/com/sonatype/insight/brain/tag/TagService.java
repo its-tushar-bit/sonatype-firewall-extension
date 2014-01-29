@@ -8,8 +8,6 @@ package com.sonatype.insight.brain.tag;
 import java.util.List;
 
 import javax.inject.Named;
-import javax.persistence.EntityManager;
-
 import com.sonatype.insight.brain.dataaccess.tag.ApplicationTagDAO;
 import com.sonatype.insight.brain.dataaccess.tag.PolicyTagDAO;
 import com.sonatype.insight.brain.dataaccess.tag.TagDAO;

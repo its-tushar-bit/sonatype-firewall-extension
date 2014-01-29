@@ -18,8 +18,9 @@ public enum Feature
 {
   POLICY, LABELS, RELEASE_GRAPH, POLICY_VIOLATIONS, NOTIFICATIONS, REEVALUATE_POLICY, POLICY_MONITORING;
 
+  @Override
   @JsonValue
   public String toString() {
     return name().toLowerCase(Locale.ENGLISH).replace('_', '-');
-  };
+  }
 }

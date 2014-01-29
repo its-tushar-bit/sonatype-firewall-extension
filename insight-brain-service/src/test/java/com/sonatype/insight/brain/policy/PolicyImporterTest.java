@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.policy;
 
 import java.net.URI;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -16,6 +17,7 @@ import com.sonatype.insight.brain.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
+import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Color;
@@ -25,6 +27,8 @@ import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.conditions.LabelConditionType;
+import com.sonatype.insight.brain.model.tag.PolicyTag;
+import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightWork;
@@ -40,8 +44,10 @@ import org.mockito.MockitoAnnotations;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -211,12 +217,90 @@ public class PolicyImporterTest
     assertThat(policyWaiverDAO.getByOwnerId(toApp.getId()), is(empty()));
   }
 
+  @Test
+  public void testImportAndMergeTags_UpdateTag() {
+    Tag tag = tempEntity.newTag(fromOrg.getId(), "TAG NAME", Color.yellow);
+    Tag newTag = new Tag("orgId", "tagname", "updated description", Color.black);
+    newTag.setId("tagId");
+    PolicyTag policyTag = new PolicyTag("policyId", "tagId");
+
+    PolicyExportResult exportDTO = new PolicyExportResult();
+    exportDTO.tags = Arrays.asList(newTag);
+    exportDTO.policyTags = Arrays.asList(policyTag);
+
+    TagDAO tagDAO = new TagDAO();
+    EntityManager em = tagDAO.createEntityManager();
+    try {
+      em.getTransaction().begin();
+      policyImporter.importAndMergeTags(em, exportDTO, fromOrg.getId());
+      em.getTransaction().commit();
+    }
+    finally {
+      LabelDAO.close(em);
+    }
+
+    tempEntity.assertTag(newTag, tagDAO.getById(tag.getId()));
+    assertThat(exportDTO.policyTags.get(0).getTagId(), is(tag.getId()));
+  }
+
+  @Test
+  public void testImportAndMergeTags_NewTag() {
+    Tag newTag = new Tag("orgId", "updatedName", "updated description", Color.black);
+    newTag.setId("tagId");
+    PolicyTag policyTag = new PolicyTag("policyId", "tagId");
+
+    PolicyExportResult exportDTO = new PolicyExportResult();
+    exportDTO.tags = Arrays.asList(newTag);
+    exportDTO.policyTags = Arrays.asList(policyTag);
+
+    TagDAO tagDAO = new TagDAO();
+    EntityManager em = tagDAO.createEntityManager();
+    try {
+      em.getTransaction().begin();
+      policyImporter.importAndMergeTags(em, exportDTO, fromOrg.getId());
+      em.getTransaction().commit();
+    }
+    finally {
+      LabelDAO.close(em);
+    }
+
+    assertThat(tagDAO.getByOrganizationId(fromOrg.getId()), hasSize(1));
+    assertThat(exportDTO.policyTags.get(0).getTagId(), is(not("tagId")));
+  }
+
+  @Test
+  public void testImportPolicyTagsToApplication() {
+    PolicyExportResult policyExportResult = emptyExportDTO();
+    policyExportResult.tags = Arrays.asList(tempEntity.newTag(fromOrg.getId(), "tagName"));
+
+    try {
+      policyImporter.importApplication(fromApp, policyExportResult);
+      fail("Import should have thrown an exception due to tag data");
+    }
+    catch (IllegalArgumentException e) {
+      assertThat(e.getMessage(), is("Importing policies with applied tags to an application is not supported"));
+    }
+
+    policyExportResult = emptyExportDTO();
+    policyExportResult.policyTags = Arrays.asList(new PolicyTag());
+
+    try {
+      policyImporter.importApplication(fromApp, policyExportResult);
+      fail("Import should have thrown an exception due to tag data");
+    }
+    catch (IllegalArgumentException e) {
+      assertThat(e.getMessage(), is("Importing policies with applied tags to an application is not supported"));
+    }
+  }
+
   private PolicyExportResult emptyExportDTO() {
     PolicyExportResult policyExportResult = new PolicyExportResult();
     policyExportResult.licenseThreatGroups = Collections.emptyList();
     policyExportResult.licenseThreatGroupLicenses = Collections.emptyList();
     policyExportResult.labels = Collections.emptyList();
     policyExportResult.policies = Collections.emptyList();
+    policyExportResult.tags = Collections.emptyList();
+    policyExportResult.policyTags = Collections.emptyList();
     return policyExportResult;
   }
 

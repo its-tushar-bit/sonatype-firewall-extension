@@ -52,6 +52,15 @@ public class PolicyTagDAO
     return getList(em, sQuery, tagId);
   }
 
+  /**
+   * Retrieve list of PolicyTags for Tags that are owned by the specified Organization
+   */
+  public List<PolicyTag> getByOrganizationId(String organizationId) {
+    String sQuery = "SELECT policyTag FROM PolicyTag policyTag, Tag tag" + //
+        " WHERE policyTag.tagId = tag.id AND tag.organizationId =?1";
+    return getList(sQuery, organizationId);
+  }
+
   public PolicyTag getByPolicyIdAndTagId(String policyId, String tagId) {
     String sQuery = "SELECT entity FROM PolicyTag entity" + //
         " WHERE entity.policyId=?1 AND entity.tagId=?2";

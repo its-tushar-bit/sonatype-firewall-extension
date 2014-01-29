@@ -31,6 +31,8 @@ import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
+import com.sonatype.insight.brain.dataaccess.tag.PolicyTagDAO;
+import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.Policy;
@@ -206,6 +208,12 @@ public class PolicyResource
     exportDTO.licenseThreatGroups = new LicenseThreatGroupDAO().getByOwnerId(internalOwnerId);
     exportDTO.licenseThreatGroupLicenses = new LicenseThreatGroupLicenseDAO().getByOwnerId(internalOwnerId);
 
+    //Export policy tag data for organizations only
+    if(IdUtils.TYPE_ORGANIZATION.equals(ownerType)) {
+      exportDTO.policyTags = new PolicyTagDAO().getByOrganizationId(internalOwnerId);
+      exportDTO.tags = new TagDAO().getAppliedToPolicyByOrganizationId(internalOwnerId);
+    }
+
     return exportDTO;
   }
 
@@ -218,7 +226,12 @@ public class PolicyResource
       @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId,
       @Context HttpServletRequest servletRequest) throws IOException
   {
-    return importPolicies(ownerType, ownerId, servletRequest.getInputStream());
+    try {
+      return importPolicies(ownerType, ownerId, servletRequest.getInputStream());
+    }
+    catch (IllegalArgumentException e) {
+      throw new BadRequestException(e.getMessage());
+    }
   }
 
   @POST
@@ -275,10 +288,20 @@ public class PolicyResource
     }
     // Any random json file can be uploaded and result in an empty PolicyImportResult; ensure that we can parse
     // relevant data in expected format, for which minimally these should be empty collections.
+    // Explicitly NOT checking tags and policyTags, as these are not required to be in the json
     if(parse.policies == null || parse.labels == null || parse.licenseThreatGroupLicenses == null ||
         parse.licenseThreatGroups == null){
       throw new BadRequestException(BAD_FORMAT_FILE_UPLOAD);
     }
+
+    // Ensure that tags are not null. The importer expects non-null fields
+    if(parse.tags == null) {
+      parse.tags = new ArrayList<>();
+    }
+    if(parse.policyTags == null) {
+      parse.policyTags = new ArrayList<>();
+    }
+
     return parse;
   }
 

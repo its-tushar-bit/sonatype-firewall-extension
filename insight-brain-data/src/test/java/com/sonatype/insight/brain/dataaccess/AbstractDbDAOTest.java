@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.dataaccess;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
+import java.util.UUID;
 
 import com.sonatype.insight.brain.dataaccess.tag.ApplicationTagDAO;
 import com.sonatype.insight.brain.dataaccess.tag.PolicyTagDAO;
@@ -43,6 +44,10 @@ public abstract class AbstractDbDAOTest
       "  starts with double space", "ends with double space  "
   };
 
+  private String uuid() {
+    return UUID.randomUUID().toString().replace("-", "");
+  }
+
   protected Organization createOrganization(String name) {
     Organization organization = new Organization(name);
     new OrganizationDAO().insert(organization);
@@ -65,6 +70,10 @@ public abstract class AbstractDbDAOTest
     new ApplicationDAO().insert(application);
     applicationsToDelete.add(application);
     return application;
+  }
+
+  protected Tag createTag(String parentId) {
+    return createTag("Tag name " + uuid(), "Tag description " + uuid(), parentId);
   }
 
   protected Tag createTag(String name, String description, String parentId) {

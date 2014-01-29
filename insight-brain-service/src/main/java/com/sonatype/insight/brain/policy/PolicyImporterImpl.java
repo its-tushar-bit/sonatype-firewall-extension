@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.policy;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -21,6 +22,8 @@ import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
+import com.sonatype.insight.brain.dataaccess.tag.PolicyTagDAO;
+import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.label.Label;
@@ -32,10 +35,13 @@ import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.conditions.LabelConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.LicenseThreatGroupConditionType;
+import com.sonatype.insight.brain.model.tag.PolicyTag;
+import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightBrainService;
 import com.sonatype.insight.brain.service.InsightWork;
 
+import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -63,6 +69,10 @@ public class PolicyImporterImpl
 
   private PolicyWaiverDAO policyWaiverDAO = new PolicyWaiverDAO();
 
+  private final TagDAO tagDAO = new TagDAO();
+
+  private final PolicyTagDAO policyTagDAO = new PolicyTagDAO();
+
   private final InsightWork work;
 
   private final BaseUrl baseUrl;
@@ -76,6 +86,8 @@ public class PolicyImporterImpl
 
   @Override
   public PolicyImportResult importApplication(Application application, PolicyExportResult exportDTO) {
+    checkAppImportPreconditions(application, exportDTO);
+
     String appId = application.getId();
     String orgId = application.getOrganizationId();
     EntityManager em = applicationDAO.createEntityManager();
@@ -106,6 +118,8 @@ public class PolicyImporterImpl
 
   @Override
   public PolicyImportResult importOrganization(Organization organization, PolicyExportResult exportDTO) {
+    checkOrgImportPreconditions(organization, exportDTO);
+
     String orgId = organization.getId();
     EntityManager em = organizationDAO.createEntityManager();
     try {
@@ -116,8 +130,11 @@ public class PolicyImporterImpl
       deleteLicenseThreatGroups(em, orgId, null);
       importAndMergeLabels(em, exportDTO, labelDAO.getByOwnerId(em, orgId), null, orgId);
       importLicenseThreatGroups(em, exportDTO, orgId);
+      importAndMergeTags(em, exportDTO, orgId);
 
       em.getTransaction().commit();
+
+      Map<String, List<PolicyTag> > policyTagsByPolicyId = getPolicyTagsByPolicyId(exportDTO.policyTags);
 
       // no transactional support here so policies are deleted last to ensure that we don't leave the system in an
       // inconsistent state should a rollback occur partway through the process
@@ -127,7 +144,9 @@ public class PolicyImporterImpl
         policyDAO.deleteByOwnerId(application.getId());
       }
       for (Policy policy : exportDTO.policies) {
+        List<PolicyTag> policyTags = policyTagsByPolicyId.get(policy.getId());
         policyDAO.insert(orgId, policy);
+        importPolicyTags(policy.getId(), policyTags);
       }
     }
     finally {
@@ -136,7 +155,6 @@ public class PolicyImporterImpl
 
     return createResult(organization.getName(), orgId, TYPE_ORGANIZATION);
   }
-
 
   /**
    *  Delete all LTGs and Labels from an organization's child applications.
@@ -268,6 +286,77 @@ public class PolicyImporterImpl
   }
 
   /**
+   * Import/merge the specified Tags.
+   *
+   * If the Tag already exists on the specified Org, it is updated to reflect the passed in Tag
+   * If the Tag does not exist, it is created
+   *
+   * @param em            entityManager for sharing transaction
+   * @param exportDTO     exportDTO modified by side-effect to update ids from newly saved objects
+   * @param orgId         the organization owning the tags
+   */
+  void importAndMergeTags(final EntityManager em, final PolicyExportResult exportDTO, final String orgId) {
+    if(!exportDTO.tags.isEmpty()) {
+      Map<String, String> idMap = new HashMap<>();
+      for (Tag tag : exportDTO.tags) {
+        String oldId = tag.getId();
+        Tag existingTag = tagDAO.getByOrganizationIdAndName(em, orgId, tag.getName());
+        if (existingTag != null) {
+          //Existing tag, update it
+          tag.setId(existingTag.getId());
+          tag.setOrganizationId(orgId);
+          tagDAO.update(em, tag);
+        }
+        else {
+          //New tag, create it
+          tag.setId(null);
+          tag.setOrganizationId(orgId);
+          tagDAO.insert(em, tag);
+        }
+        idMap.put(oldId, tag.getId());
+      }
+
+      for(PolicyTag policyTag : exportDTO.policyTags) {
+        policyTag.setTagId(idMap.get(policyTag.getTagId()));
+      }
+    }
+  }
+
+  /**
+   * Import the specified PolicyTags, using the specified policy id.
+   *
+   * The id on the passed in PolicyTags is no longer valid, since the policies
+   * get new ids when imported
+   */
+  private void importPolicyTags(String policyId, List<PolicyTag> policyTags) {
+    if (policyTags != null) {
+      for (PolicyTag policyTag : policyTags) {
+        policyTag.setId(null);
+        policyTag.setPolicyId(policyId);
+        policyTagDAO.insert(policyTag);
+      }
+    }
+  }
+
+  /**
+   * Convert the given list of PolicyTags into a map of PolicyTag lists, keyed by policy id
+   */
+  private Map<String, List<PolicyTag>> getPolicyTagsByPolicyId(List<PolicyTag> policyTags) {
+    Map<String, List<PolicyTag>> policyTagMap = new HashMap<>();
+    for (PolicyTag policyTag : policyTags) {
+      if (policyTagMap.containsKey(policyTag.getPolicyId())) {
+        policyTagMap.get(policyTag.getPolicyId()).add(policyTag);
+      }
+      else {
+        List<PolicyTag> policyTagList = new ArrayList<>();
+        policyTagList.add(policyTag);
+        policyTagMap.put(policyTag.getPolicyId(), policyTagList);
+      }
+    }
+    return policyTagMap;
+  }
+
+  /**
    * Search for label in the list, considering a match on case-insensitive comparison
    * of the label name only.
    *
@@ -294,5 +383,28 @@ public class PolicyImporterImpl
         .fragment("/management/" + type + "/" + id);
     result.url = uriBuilder.build().toString();
     return result;
+  }
+
+  private void checkAppImportPreconditions(Application app, PolicyExportResult exportDTO) {
+    Preconditions.checkNotNull(app, "Import failed. The passed in application was null");
+    checkPolicyExportResultPreconditions(exportDTO);
+    Preconditions.checkArgument(exportDTO.tags.isEmpty() && exportDTO.policyTags.isEmpty(),
+        "Importing policies with applied tags to an application is not supported");
+  }
+
+  private void checkOrgImportPreconditions(Organization org, PolicyExportResult exportDTO) {
+    Preconditions.checkNotNull(org, "Import failed. The passed in organization was null");
+    checkPolicyExportResultPreconditions(exportDTO);
+  }
+
+  private void checkPolicyExportResultPreconditions(PolicyExportResult exportDTO) {
+    String msg = "Import failed. Part of the PolicyExportResult was null: %s";
+    Preconditions.checkNotNull(exportDTO, "Import failed. The passed in PolicyExportResult was null");
+    Preconditions.checkNotNull(exportDTO.policies, msg, "policies");
+    Preconditions.checkNotNull(exportDTO.labels, msg, "labels");
+    Preconditions.checkNotNull(exportDTO.licenseThreatGroups, msg, "licenseThreatGroups");
+    Preconditions.checkNotNull(exportDTO.licenseThreatGroupLicenses, msg, "licenseThreatGroupLicenses");
+    Preconditions.checkNotNull(exportDTO.tags, msg, "tags");
+    Preconditions.checkNotNull(exportDTO.policyTags, msg, "policyTags");
   }
 }

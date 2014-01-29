@@ -15,6 +15,7 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.model.Color;
+import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.tag.ApplicationTag;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -416,8 +417,8 @@ public class TagDAOTest
       createApplicationTag(app2.getId(), tag.getId());
     }
 
-    assertAppliedApplicationTags(app1Tags, dao.getByApplicationId(app1.getId()));
-    assertAppliedApplicationTags(app2Tags, dao.getByApplicationId(app2.getId()));
+    assertAppliedTags(app1Tags, dao.getByApplicationId(app1.getId()));
+    assertAppliedTags(app2Tags, dao.getByApplicationId(app2.getId()));
   }
 
   @Test
@@ -454,6 +455,38 @@ public class TagDAOTest
     assertThat(new PolicyTagDAO().getByTagId(tag.getId()), hasSize(1));
   }
 
+  @Test
+  public void testGetAppliedToPolicyByOrgId() {
+    Organization org1 = createOrganization("org1");
+    Organization org2 = createOrganization("org2");
+
+    List<Tag> org1Tags = new ArrayList<>();
+    List<Tag> org2Tags = new ArrayList<>();
+
+    //Create tags and apply to policies
+    org1Tags.add(createTag(org1.getId()));
+    createPolicyTag("policyId1", org1Tags.get(0).getId());
+    org1Tags.add(createTag(org1.getId()));
+    createPolicyTag("policyId2", org1Tags.get(1).getId());
+    org1Tags.add(createTag(org1.getId()));
+    createPolicyTag("policyId1", org1Tags.get(2).getId());
+    createPolicyTag("policyId2", org1Tags.get(2).getId());
+    org2Tags.add(createTag(org2.getId()));
+    createPolicyTag("policyId4", org2Tags.get(0).getId());
+    org2Tags.add(createTag(org2.getId()));
+    createPolicyTag("policyId5", org2Tags.get(1).getId());
+    org2Tags.add(createTag(org2.getId()));
+    createPolicyTag("policyId4", org2Tags.get(2).getId());
+    createPolicyTag("policyId5", org2Tags.get(2).getId());
+
+    //Create tags but do not apply to policies
+    createTag(org1.getId());
+    createTag(org2.getId());
+
+    assertAppliedTags(org1Tags, dao.getAppliedToPolicyByOrganizationId(org1.getId()));
+    assertAppliedTags(org2Tags, dao.getAppliedToPolicyByOrganizationId(org2.getId()));
+  }
+
   private void assertTag(String orgId, String name, String description, Color color, Tag actual) {
     assertThat(actual.getOrganizationId(), is(orgId));
     assertThat(actual.getName(), is(name));
@@ -462,8 +495,8 @@ public class TagDAOTest
     assertThat(actual.getColor(), is(color));
   }
 
-  private void assertAppliedApplicationTags(List<Tag> expected, List<Tag> actual) {
-    assertThat(actual.size(), is(expected.size()));
+  private void assertAppliedTags(List<Tag> expected, List<Tag> actual) {
+    assertThat(actual, hasSize(expected.size()));
 
     Set<String> tagIds = new HashSet<>();
     for (Tag tag : expected) {

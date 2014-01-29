@@ -11,6 +11,8 @@ import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroupLicense;
 import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.tag.PolicyTag;
+import com.sonatype.insight.brain.model.tag.Tag;
 
 public class PolicyExportResult
 {
@@ -21,4 +23,14 @@ public class PolicyExportResult
   public List<LicenseThreatGroup> licenseThreatGroups;
 
   public List<LicenseThreatGroupLicense> licenseThreatGroupLicenses;
+
+  /**
+   * @since 1.9
+   */
+  public List<Tag> tags;
+
+  /**
+   * @since 1.9
+   */
+  public List<PolicyTag> policyTags;
 }

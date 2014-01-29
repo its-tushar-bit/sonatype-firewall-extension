@@ -20,6 +20,8 @@ import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
+import com.sonatype.insight.brain.dataaccess.tag.PolicyTagDAO;
+import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Color;
@@ -32,8 +34,11 @@ import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.ValidationResult;
 import com.sonatype.insight.brain.model.policy.conditions.LabelConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.LicenseThreatGroupConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.MatchStateConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityConditionType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
+import com.sonatype.insight.brain.model.tag.PolicyTag;
+import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.policy.PolicyResource.ApplicablePolicies;
 import com.sonatype.insight.brain.policy.PolicyResource.PoliciesByOwner;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
@@ -55,6 +60,7 @@ import static org.hamcrest.CoreMatchers.endsWith;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertNotNull;
@@ -74,6 +80,8 @@ public class PolicyResourceTest
   private static final ComponentLabelDAO componentLabelDao = new ComponentLabelDAO();
   private static final LicenseThreatGroupDAO licenseThreatGroupDAO = new LicenseThreatGroupDAO();
   private static final LicenseThreatGroupLicenseDAO licenseThreatGroupLicenseDAO = new LicenseThreatGroupLicenseDAO();
+  private static final TagDAO tagDAO = new TagDAO();
+  private static final PolicyTagDAO policyTagDAO = new PolicyTagDAO();
 
   @Test
   public void testAppImport_InsertFailure() throws Exception {
@@ -532,6 +540,11 @@ public class PolicyResourceTest
     Policy policy = createDefaultPolicy(label.getId(), ltg.getId(), importId);
     policy.setId(id());
     policyExportResult.policies.add(policy);
+    Tag tag = new Tag(org.getId(), "tagName", "tagDescription", Color.black);
+    tag.setId(id());
+    policyExportResult.tags = Arrays.asList(tag);
+    PolicyTag policyTag = new PolicyTag(policy.getId(), tag.getId());
+    policyExportResult.policyTags = Arrays.asList(policyTag);
     Response response = AuthedRestAccess.put(getServiceURL(ORG, org.getId()) + "/import",
         asJson(policyExportResult));
     assertResponseStatus(200, response);
@@ -554,6 +567,15 @@ public class PolicyResourceTest
     assertThat(labels.get(0).getLabel(), is(label.getLabel()));
     assertThat(labels.get(0).getColor(), is(label.getColor()));
     assertThat(componentLabelDao.getByOwnerId(org.getId()), hasSize(1)); //preserved by import of labels
+    List<Tag> tags = tagDAO.getByOrganizationId(org.getId());
+    assertThat(tags, hasSize(1));
+    assertThat(tags.get(0).getId(), is(not(tag.getId())));
+    assertThat(tags.get(0).getName(), is(tag.getName()));
+    assertThat(tags.get(0).getDescription(), is(tag.getDescription()));
+    assertThat(tags.get(0).getColor(), is(tag.getColor()));
+    List<PolicyTag> policyTags = policyTagDAO.getByPolicyId(policies.get(0).getId());
+    assertThat(policyTags, hasSize(1));
+    assertThat(policyTags.get(0).getTagId(), is(tags.get(0).getId()));
 
     //verify that we delete all data from the app
     assertThat(licenseThreatGroupDAO.getByOwnerId(app.getId()), is(empty()));
@@ -561,6 +583,21 @@ public class PolicyResourceTest
     assertThat(policyDAO().getByOwnerId(app.getId()), is(empty()));
     assertThat(componentLabelDao.getByOwnerId(app.getId()), is(empty()));
     assertThat(labelDAO.getByOwnerId(app.getId()), is(empty()));
+  }
+
+  @Test
+  public void testImportToApplicationWithTags() throws Exception {
+    Application app = createApplication("testAppPublicId");
+    PolicyExportResult policyExportResult = createPolicyExportResult();
+    Tag tag = new Tag("orgId", "tagName", "tagDescription", Color.black);
+    tag.setId(id());
+    policyExportResult.tags = Arrays.asList(tag);
+    PolicyTag policyTag = new PolicyTag("policyId", tag.getId());
+    policyExportResult.policyTags = Arrays.asList(policyTag);
+    Response response = AuthedRestAccess.put(getServiceURL(APP, app.getPublicId()) + "/import",
+        asJson(policyExportResult));
+    assertResponseStatus(400, response);
+    assertThat(response.getResponseBody(), is("Importing policies with applied tags to an application is not supported"));
   }
 
   @Test
@@ -581,6 +618,46 @@ public class PolicyResourceTest
     assertResponseStatus(400, response);
     assertThat(response.getResponseBody(), is("The file you selected failed to upload correctly, are you certain " +
         "it is a properly formatted policy import json file?"));
+  }
+
+  @Test
+  public void testExportOfTags() throws Exception {
+    Organization org = tempEntity.newOrganization("orgName");
+
+    Policy policy = new Policy();
+    policy.setName("policy1");
+    Constraint constraint = new Constraint();
+    constraint.setName("constraintName");
+    constraint.addCondition(new Condition(MatchStateConditionType.ID, "is", "similar"));
+    policy.addConstraint(constraint);
+    Response response = AuthedRestAccess.post(getServiceURL(ORG, org.getId()), asJson(policy));
+    assertResponseStatus(200, response);
+    Policy policy1 = JsonHelpers.fromJson(response.getResponseBody(), Policy.class);
+
+    policy.setName("policy2");
+    response = AuthedRestAccess.post(getServiceURL(ORG, org.getId()), asJson(policy));
+    assertResponseStatus(200, response);
+    Policy policy2 = JsonHelpers.fromJson(response.getResponseBody(), Policy.class);
+
+    Tag tag1 = tempEntity.newTag(org.getId(), "tag1");
+    tempEntity.newPolicyTag(policy1.getId(), tag1.getId());
+
+    Tag tag2 = tempEntity.newTag(org.getId(), "tag2");
+    tempEntity.newPolicyTag(policy2.getId(), tag2.getId());
+
+    Tag tag3 = tempEntity.newTag(org.getId(), "tag3");
+    tempEntity.newPolicyTag(policy1.getId(), tag3.getId());
+    tempEntity.newPolicyTag(policy2.getId(), tag3.getId());
+
+    // Export
+    response = AuthedRestAccess.get(getServiceURL(ORG, org.getId()) + "/export");
+    assertResponseStatus(200, response);
+    PolicyExportResult policyExportResult = JsonHelpers.fromJson(response.getResponseBody(), PolicyExportResult.class);
+    assertThat(policyExportResult, notNullValue());
+    assertThat(policyExportResult.tags, notNullValue());
+    assertThat(policyExportResult.tags, hasSize(3));
+    assertThat(policyExportResult.policyTags, notNullValue());
+    assertThat(policyExportResult.policyTags, hasSize(4));
   }
 
   private Application createApplicationWithPolicy(final Organization org) throws Exception {Response response;

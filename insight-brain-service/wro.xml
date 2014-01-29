@@ -72,6 +72,7 @@
     <js>/util/CLMAppLocation.js</js>
     <js>/util/CLMLocation.js</js>
     <js>/util/HttpInterceptors.js</js>
+    <js>/util/ProductFeatures.js</js>
     <js>/util/Stores.js</js>
   </group>
 

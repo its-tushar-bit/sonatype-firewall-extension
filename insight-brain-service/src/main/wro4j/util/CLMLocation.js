@@ -119,6 +119,9 @@
         },
         getDeleteApplicationTagUrl : function(applicationPublicId, tagId) {
           return this.getApplicationTagUrl(applicationPublicId) + '/' + tagId;
+        },
+        getProductFeaturesUrl : function() {
+          return baseUrl.get() + '/rest/features';
         }
       };
     }

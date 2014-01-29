@@ -31,7 +31,17 @@ describe('dashboardApp', function() {
             licenseCheckerFail = fail;
             licenseCheckerSuccess = success;
           }
-        }
+        };
+      }
+    });
+    $provide.value('ProductFeatures', {
+      load : function() {
+        return {
+          then: angular.noop
+        };
+      },
+      isAvailable : function() {
+        return true;
       }
     });
 
@@ -47,7 +57,7 @@ describe('dashboardApp', function() {
     $httpBackend.verifyNoOutstandingRequest();
   }));
 
-  beforeEach(inject(function($rootScope, $state, $controller, $httpBackend) {
+  beforeEach(inject(function($rootScope, $state) {
     scope = $rootScope.$new();
     state = $state;
   }));
@@ -65,7 +75,7 @@ describe('dashboardApp', function() {
       preventDefault: jasmine.createSpy('preventDefault')
     };
 
-    it('normal', inject(function($rootScope, $httpBackend, $state, $stateParams, $window, CLMLocations) {
+    it('normal', inject(function($rootScope, $state, $stateParams) {
       var toParams = {testId:'blah'},
           event = null;
 
@@ -90,7 +100,7 @@ describe('dashboardApp', function() {
           expiryTimestamp : 0 // technically in the past but JS doesn't check this
         });
       });
-
+      
       expect($rootScope.licensed).toBeTruthy();
       expect($rootScope.initialized).toBeTruthy();
 
@@ -98,7 +108,7 @@ describe('dashboardApp', function() {
       expect($stateParams).toEqual(toParams);
     }));
 
-    it('bad license', inject(function($rootScope, $httpBackend, $state, $stateParams, $window, CLMLocations) {
+    it('bad license', inject(function($rootScope, $state, $stateParams) {
       var event = null;
       scope.$apply(function () {
         currentUserSuccess({
@@ -115,7 +125,7 @@ describe('dashboardApp', function() {
       expect($state.current.name).toEqual('management.configuration.productlicense');
     }));
 
-    it('bad license in separate application', inject(function($rootScope, $httpBackend, $state, $stateParams, $window, CLMLocations) {
+    it('bad license in separate application', inject(function($rootScope, $state, $stateParams, $window) {
       // now test with bad license from something other than index.html (i.e. reports.html)
       $window.location.href = 'http://blah/reports.html';
 
@@ -130,7 +140,7 @@ describe('dashboardApp', function() {
       expect($window.location.replace).toHaveBeenCalledWith('index.html#/management/configuration/productlicense');
     }));
 
-    it('bad auth', inject(function($rootScope, $httpBackend, $state, $stateParams, $window, CLMLocations) {
+    it('bad auth', inject(function($rootScope, $state, $stateParams, $window) {
       $window.location.replace.reset();
 
       currentUserSuccess({
@@ -147,7 +157,7 @@ describe('dashboardApp', function() {
   });
 
   describe('Normal Operation', function () {
-    beforeEach(inject(function($rootScope, $state, $controller, $httpBackend) {
+    beforeEach(inject(function($rootScope, $state, $controller) {
       $rootScope.username = 'user';
       $rootScope.authenticated = true;
       $rootScope.licensed = true;

@@ -21,8 +21,7 @@ describe('PolicyController tests', function() {
     $httpBackend.verifyNoOutstandingRequest();
     scope.$destroy();
   }));
-
-  // setup our http backend to return what we want
+  
   beforeEach(inject(function($httpBackend, $rootScope, $controller, CLMLocations, CLMAppLocations, $state) {
     $state.current.name = "management.application";
 
@@ -42,10 +41,22 @@ describe('PolicyController tests', function() {
     });
     $httpBackend.flush();
   }));
-
-  it('Test initial data state', function() {
+  
+  it('Test initial data state', inject(function(CLMLocations, ProductFeatures, $httpBackend) {
     expect(scope.applicablePolicies[0].policies.length).toEqual(PolicyMockData.getPolicyData().length);
-  });
+    $httpBackend.expectGET(CLMLocations.getProductFeaturesUrl()).respond([]);
+    ProductFeatures.load();
+    $httpBackend.flush();
+    expect(scope.isPolicyMonitoringLicensed()).toBe(false);
+  }));
+  
+  it('Test policy monitoring enabled', inject(function(CLMLocations, ProductFeatures, $httpBackend){
+    expect(scope.isPolicyMonitoringLicensed()).toBe(false);
+    $httpBackend.expectGET(CLMLocations.getProductFeaturesUrl()).respond(['policy-monitoring']);
+    ProductFeatures.load();
+    $httpBackend.flush();
+    expect(scope.isPolicyMonitoringLicensed()).toBe(true);
+  }));
 
   it('Test Summary', inject(function($compile, $httpBackend) {
     $httpBackend.expectGET('../policy-assets/components/policy/policy-items.html?').respond('');
@@ -113,7 +124,7 @@ describe('PolicyController tests', function() {
   describe('Policy Monitoring', function() {
 
     it('Handles inherited Org policy monitoring properly', function(){
-      expect(scope.policyMonitoringPlaceHolder).toBe("Develop (inherited from parent)")
+      expect(scope.policyMonitoringPlaceHolder).toBe("Develop (inherited from parent)");
     });
 
     it('Can save policy monitoring stage choice', inject(function($httpBackend, CLMAppLocations) {
@@ -130,5 +141,4 @@ describe('PolicyController tests', function() {
       $httpBackend.flush();
     }));
   });
-
 });

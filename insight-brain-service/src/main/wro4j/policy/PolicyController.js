@@ -9,7 +9,7 @@
   'use strict';
 
   var policyModule = angular.module('Policy',
-      ['PolicyEditor', 'CLMAppLocation', 'AngularCommon', 'CommonServices', 'Stores']);
+      ['PolicyEditor', 'CLMAppLocation', 'AngularCommon', 'CommonServices', 'Stores', 'ProductFeaturesModule']);
 
   policyModule.service('PolicyMonitoringStore', [
     'CLMAppLocations', '$http', function(CLMAppLocations, $http) {
@@ -32,15 +32,18 @@
 
   policyModule.controller('PolicyController', [
     '$scope', '$location', '$http', '$rootScope', '$q', 'PolicyStore', 'ActionStore',
-    'CLMAppLocations', 'Dialog', 'ownerChange', 'PolicyMonitoringStore', 'Messages',
+    'CLMAppLocations', 'Dialog', 'ownerChange', 'PolicyMonitoringStore', 'Messages', 'ProductFeatures',
     function($scope, $location, $http, $rootScope, $q, policyStore, actionStore, clmAppLocations, Dialog, ownerChange,
-             PolicyMonitoringStore, messages) {
+             PolicyMonitoringStore, messages, ProductFeatures) {
 
       $scope.alerts = [];
       $scope.location = $location;
       $scope.policyMonitoringAlerts = [];
-      $scope.monitoringHelp = 'Each day the latest scan from this stage will be evaluated. Notifications for new ' +
-        'violations can be configured per policy (below).';
+      
+      
+      $scope.isPolicyMonitoringLicensed = function() {
+        return ProductFeatures.isAvailable('policy-monitoring');
+      };
 
       $scope.viewRemovePolicy = function(policy) {
         Dialog.open({

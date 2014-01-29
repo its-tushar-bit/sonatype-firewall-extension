@@ -36,10 +36,12 @@
                 </label>
                 <div class='controls'>
                   <select id="policyMonitoring" name="policyMonitoring" ng-model="policyMonitoring.stageTypeId"
-                          ng-options="s.id as s.name for s in actionStageList" ng-change="savePolicyMonitoring()">
+                          ng-options="s.id as s.name for s in actionStageList" ng-change="savePolicyMonitoring()" ng-disabled="!isPolicyMonitoringLicensed()">
                     <option value="">{{ policyMonitoringPlaceHolder }}</option>
                   </select>
-                  <span class="icon-question-sign" data-popover="{{ monitoringHelp }}" data-popover-placement="right"
+                  <span ng-if="isPolicyMonitoringLicensed()" class="icon-question-sign" data-popover="Each day the latest scan from this stage will be evaluated. Notifications for new violations can be configured per policy (below)." data-popover-placement="right"
+                        data-popover-trigger="mouseenter" data-popover-append-to-body="true"></span>
+                  <span ng-if="!isPolicyMonitoringLicensed()" class="icon-question-sign" data-popover="Your current license does not support this feature. Contact your CLM Administrator for additional information." data-popover-placement="right"
                         data-popover-trigger="mouseenter" data-popover-append-to-body="true"></span>
                 </div>
               </div>

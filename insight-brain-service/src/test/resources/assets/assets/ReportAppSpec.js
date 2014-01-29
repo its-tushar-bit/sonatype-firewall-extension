@@ -35,7 +35,7 @@ describe('reportApp', function() {
             licenseCheckerFail = fail;
             licenseCheckerSuccess = success;
           }
-        }
+        };
       }
     });
   }));
@@ -49,6 +49,7 @@ describe('reportApp', function() {
       authenticated : true,
       username : 'user'
     });
+    $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getProductFeaturesUrl())).respond(['policy-monitoring']);
     $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getActionStageUrl())).respond(MockData.getActionStageData());
     $httpBackend.expectGET(SpecUtil.toRegExp('/rest/application/services/summary')).respond(ApplicationMockData.getApplicationSummaryData());
     $httpBackend.expectGET('../assets/management.html?').respond('<div></div>');

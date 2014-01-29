@@ -23,7 +23,8 @@
   };
 
   var dashboardApp = angular.module('DashboardModule', ['ui.router', 'ui.bootstrap', 'CLMLocation', 'CommonServices',
-    'DashboardHeader', 'ngRoute', 'UnauthenticatedResponseHttpInterceptor', 'xeditable'], ['$stateProvider', '$routeProvider', '$urlRouterProvider',
+    'DashboardHeader', 'ngRoute', 'UnauthenticatedResponseHttpInterceptor', 'xeditable', 'ProductFeaturesModule'], 
+    ['$stateProvider', '$routeProvider', '$urlRouterProvider',
     function($stateProvider, $routeProvider, $urlRouterProvider) {
       $stateProvider.state('home', {
         url: '/',
@@ -49,7 +50,8 @@
     'CLMLocations',
     'licenseChecker',
     'CurrentUser',
-    function($rootScope, $location, $window, $state, messages, CLMLocations, licenseChecker, currentUser) {
+    'ProductFeatures',
+    function($rootScope, $location, $window, $state, messages, CLMLocations, licenseChecker, currentUser, ProductFeatures) {
       function checkBootstrap() {
         if (username) {
           // User is logged in
@@ -112,10 +114,15 @@
       }, function () {
         $rootScope.error = 'Unable to initialize the application';
       });
+      
+      ProductFeatures.load().then(angular.noop, function(){
+        $rootScope.error = 'Unable to initialize the application';
+      });
 
       $rootScope.$on('logout', function () {
         $window.location.replace('..');
       });
+      
       $rootScope.$on('$stateChangeError', function(event, toState, toParams, fromState, fromParams, error) {
         if (typeof error === 'string') {
           $rootScope.error = error;

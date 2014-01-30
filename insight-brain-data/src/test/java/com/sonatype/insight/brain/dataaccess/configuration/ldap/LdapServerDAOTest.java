@@ -269,14 +269,12 @@ public class LdapServerDAOTest
   }
 
   @After
-  @Override
-  public void tearDown() {
+  public void deleteLdapEntities() {
     for (LdapServer config : serversToDelete) {
       config = dao.getById(config.getId());
       if (config != null) {
         dao.delete(config);
       }
     }
-    super.tearDown();
   }
 }

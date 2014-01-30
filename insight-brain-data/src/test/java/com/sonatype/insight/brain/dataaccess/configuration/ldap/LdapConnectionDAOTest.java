@@ -121,8 +121,7 @@ public class LdapConnectionDAOTest
   }
 
   @After
-  @Override
-  public void tearDown() {
+  public void deleteLdapEntities() {
     for (LdapConnection conn : connsToDelete) {
       conn = connDao.getById(conn.getId());
       if (conn != null) {
@@ -130,6 +129,5 @@ public class LdapConnectionDAOTest
       }
     }
     serverDao.delete(server);
-    super.tearDown();
   }
 }

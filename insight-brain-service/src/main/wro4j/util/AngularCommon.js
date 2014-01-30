@@ -768,7 +768,8 @@ var AngularUtils = {
   }]);
 
   /**
-  * Angular directive for bootstrap-multiselect
+  * Angular directive for bootstrap-multiselect. Does not do a collection watch for selected items so if this
+  * collection is modified outside of the multi select control, update to use $watchCollection
   */
   angularCommon.directive('multiSelect', ['$timeout', function($timeout) {
     return {

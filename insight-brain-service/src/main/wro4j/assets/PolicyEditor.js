@@ -8,7 +8,7 @@
   'use strict';
   var module = angular.module('PolicyEditor', [
     'CLMAppLocation', 'CLMLocation', 'ResourceModule', 'ui.router', 'ui.bootstrap', 'AngularCommon',
-    'CommonServices', 'Stores'
+    'CommonServices', 'Stores', 'ProductFeaturesModule'
   ]);
 
   module.service('PolicyStore', [
@@ -96,7 +96,8 @@
 
   module.controller('PolicyEditorController', [
     '$scope', '$state', '$location', '$modal', '$timeout', 'Dialog', 'Messages', 'PolicyStore', '$q', 'ActionStore',
-    function($scope, $state, $location, $modal, $timeout, Dialog, messages, policyStore, $q, actionStore) {
+    'ProductFeatures',
+    function($scope, $state, $location, $modal, $timeout, Dialog, messages, policyStore, $q, actionStore, ProductFeatures) {
       function isDirty() {
         if ($scope.policy) {
           return $scope.policy.isDirty();
@@ -145,6 +146,10 @@
           });
         }
       }
+      
+      $scope.isPolicyMonitoringLicensed = function() {
+        return ProductFeatures.isAvailable('policy-monitoring');
+      };
 
       $scope.removeConstraint = function(constraint) {
         Dialog.open({

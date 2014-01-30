@@ -28,7 +28,7 @@
       </div>
       <div class="accordion monitoringContent">
         <div class="accordion-body collapse">
-          <div class="form-horizontal configuration" style="width: 700px;">
+          <div class="form-horizontal configuration" style="width: 700px;" ng-if="isPolicyMonitoringLicensed()">
             <form id="monitoringForm" name="monitoringForm">
               <div class='control-group'>
                 <label class="control-label" style="width: auto;padding-right: 5px;" for="policyMonitoring">
@@ -39,14 +39,17 @@
                           ng-options="s.id as s.name for s in actionStageList" ng-change="savePolicyMonitoring()" ng-disabled="!isPolicyMonitoringLicensed()">
                     <option value="">{{ policyMonitoringPlaceHolder }}</option>
                   </select>
-                  <span ng-if="isPolicyMonitoringLicensed()" class="icon-question-sign" data-popover="Each day the latest scan from this stage will be evaluated. Notifications for new violations can be configured per policy (below)." data-popover-placement="right"
-                        data-popover-trigger="mouseenter" data-popover-append-to-body="true"></span>
-                  <span ng-if="!isPolicyMonitoringLicensed()" class="icon-question-sign" data-popover="Your current license does not support this feature. Contact your CLM Administrator for additional information." data-popover-placement="right"
+                  <span class="icon-question-sign" data-popover="Each day the latest scan from this stage will be evaluated. Notifications for new violations can be configured per policy (below)." data-popover-placement="right"
                         data-popover-trigger="mouseenter" data-popover-append-to-body="true"></span>
                 </div>
               </div>
               <div clm-alerts='policyMonitoringAlerts'></div>
             </form>
+          </div>
+          <div ng-if="!isPolicyMonitoringLicensed()">
+          	<label class="control-label disabled-functionality">
+              Policy Monitoring is currently disabled. This feature allows for continuous review of your applications, including email alerts. Speak to your CLM Admin for additional information.
+            </label>
           </div>
         </div>
       </div>

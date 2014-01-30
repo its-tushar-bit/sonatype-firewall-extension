@@ -925,3 +925,8 @@ ul.tri-pane {
 .modal > form.form-horizontal {
   margin-bottom : 0px
 }
+
+.disabled-functionality {
+  font-weight: normal !important;
+  font-style: italic;
+}

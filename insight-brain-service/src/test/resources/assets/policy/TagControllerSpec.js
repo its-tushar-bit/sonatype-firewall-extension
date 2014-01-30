@@ -151,19 +151,26 @@ describe('TagController.js', function() {
         }
       ],
       applications = [
-      {
-        "id": bomId,
-        "name": "applicationName",
-        "publicId": bomId,
-        "organizationId": bomId
-      },
-      {
-        "id": secondAppId,
-        "name": "applicationName2",
-        "publicId": secondAppId,
-        "organizationId": bomId
-      }
-    ];
+        {
+          "id": bomId,
+          "name": "applicationName",
+          "publicId": bomId,
+          "organizationId": bomId
+        },
+        {
+          "id": secondAppId,
+          "name": "applicationName2",
+          "publicId": secondAppId,
+          "organizationId": bomId
+        }
+      ],
+      appliedPolicyTags = [
+        {
+          id: 'appliedPolicyTagId',
+          tagId: appliedTags[0].id,
+          policyId: PolicyMockData.getPolicyData()[0].id
+        }
+      ];
 
     beforeEach(inject(function($rootScope, $controller, $httpBackend, CLMAppLocations, CLMLocations) {
       scope = testScope.$new();
@@ -171,6 +178,9 @@ describe('TagController.js', function() {
       $httpBackend.whenGET(SpecUtil.toRegExp(CLMAppLocations.getTagsUrl())).respond(tags);
       $httpBackend.expectGET(CLMLocations.getOrganizationAppliedTagUrl(bomId)).respond(appliedTags);
       $httpBackend.whenGET(SpecUtil.toRegExp(CLMLocations.getApplicationsUrl())).respond(applications);
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getConditionTypeUrl())).respond(PolicyMockData.getConditionTypeData());
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMAppLocations.getConditionValueTypeUrl())).respond(PolicyMockData.getConditionValueTypeData());
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMAppLocations.getPolicyUrl())).respond(PolicyMockData.getPolicyData());
       tagController = $controller('TagController', {$scope: testScope});
       tagEditorController = $controller('TagEditorController', {$scope: scope});
       $httpBackend.flush();
@@ -212,6 +222,28 @@ describe('TagController.js', function() {
       $httpBackend.flush();
     }));
 
+    it('Can save a new tag with applied policy', inject(function($httpBackend, CLMAppLocations) {
+      scope.createNew();
+      scope.appliedPolicyIds.push(PolicyMockData.getPolicyData()[0].id);
+      $httpBackend.expectPOST(SpecUtil.toRegExp(CLMAppLocations.getTagsUrl())).respond(204);
+      $httpBackend.expectPOST(CLMAppLocations.getPolicyTagUrl(PolicyMockData.getPolicyData()[0].id)).respond(204);
+
+      scope.saveTag();
+      $httpBackend.flush();
+    }));
+
+    it('Can save a tag with detached policy', inject(function($httpBackend, CLMAppLocations) {
+      scope.editTag(testScope.tags[0]);
+      $httpBackend.expectGET(CLMAppLocations.getTagAppliedPoliciesUrl(testScope.tags[0].id)).respond(appliedPolicyTags);
+      $httpBackend.flush();
+
+      scope.appliedPolicyIds.splice(0, 1);
+      $httpBackend.expectPUT(SpecUtil.toRegExp(CLMAppLocations.getTagsUrl())).respond(204);
+      $httpBackend.expectDELETE(CLMAppLocations.getDeletePolicyTagUrl(PolicyMockData.getPolicyData()[0].id, testScope.tags[0].id)).respond(204);
+      scope.saveTag();
+      $httpBackend.flush();
+    }));
+
     describe('Cancel Deselects', function() {
       it('New Tag', function() {
         scope.createNew();
@@ -223,15 +255,18 @@ describe('TagController.js', function() {
         expect(scope.alerts.length).toEqual(0);
       });
 
-      it('Existing Tag', function() {
+      it('Existing Tag', inject(function($httpBackend, CLMAppLocations) {
         scope.editTag(testScope.tags[0]);
+        $httpBackend.expectGET(CLMAppLocations.getTagAppliedPoliciesUrl(testScope.tags[0].id)).respond([]);
+        $httpBackend.flush();
+
         scope.alerts.push({type: 'mock', 'msg': 'mock alert'});
         expect(scope.selectedTag.id).not.toBeUndefined();
 
         scope.cancelEditTag();
         expect(scope.selectedTag).toEqual(null);
         expect(scope.alerts.length).toEqual(0);
-      });
+      }));
     });
 
     describe('Dirty Checks', function() {
@@ -258,15 +293,40 @@ describe('TagController.js', function() {
         });
       });
 
-      describe('Dirty Existing Tag', function() {
+      describe('Dirty By Applied Policy New Tag', function() {
         beforeEach(function() {
+          scope.createNew();
+          scope.appliedPolicyIds.push(PolicyMockData.getPolicyData()[0].id);
+
+          var e = scope.$broadcast('pageChangeStarted', null);
+          expect(e.defaultPrevented).toEqual(true);
+        });
+
+        it('Create New Attempted', function() {
+          scope.createNew();
+          expect(scope.alerts.length).toEqual(1);
+          expect(scope.appliedPolicyIds).toEqual([PolicyMockData.getPolicyData()[0].id]);
+        });
+
+        it('Edit Existing Attempted', function() {
           scope.editTag(testScope.tags[0]);
+          expect(scope.alerts.length).toEqual(1);
+          expect(scope.appliedPolicyIds).toEqual([PolicyMockData.getPolicyData()[0].id]);
+        });
+      });
+
+      describe('Dirty Existing Tag', function() {
+        beforeEach(inject(function($httpBackend, CLMAppLocations) {
+          scope.editTag(testScope.tags[0]);
+          $httpBackend.expectGET(CLMAppLocations.getTagAppliedPoliciesUrl(testScope.tags[0].id)).respond([]);
+          $httpBackend.flush();
+
           scope.selectedTag.name = 'foo';
           expect(scope.selectedTag.isDirty()).toEqual(true);
 
           var e = scope.$broadcast('pageChangeStarted', null);
           expect(e.defaultPrevented).toEqual(true);
-        });
+        }));
 
         it('Edit Existing Attempted', function() {
           scope.editTag(testScope.tags[1]);
@@ -281,20 +341,50 @@ describe('TagController.js', function() {
         });
       });
 
-      describe('Unmodified Existing Tag', function() {
-        beforeEach(function() {
+      describe('Dirty By Applied Policy Existing Tag', function() {
+        beforeEach(inject(function($httpBackend, CLMAppLocations) {
           scope.editTag(testScope.tags[0]);
+          $httpBackend.expectGET(CLMAppLocations.getTagAppliedPoliciesUrl(testScope.tags[0].id)).respond([]);
+          $httpBackend.flush();
+          scope.appliedPolicyIds.push(PolicyMockData.getPolicyData()[0].id);
+
+          var e = scope.$broadcast('pageChangeStarted', null);
+          expect(e.defaultPrevented).toEqual(true);
+        }));
+
+        it('Create New Attempted', function() {
+          scope.createNew();
+          expect(scope.alerts.length).toEqual(1);
+          expect(scope.appliedPolicyIds).toEqual([PolicyMockData.getPolicyData()[0].id]);
+        });
+
+        it('Edit Existing Attempted', function() {
+          scope.editTag(testScope.tags[0]);
+          expect(scope.alerts.length).toEqual(1);
+          expect(scope.appliedPolicyIds).toEqual([PolicyMockData.getPolicyData()[0].id]);
+        });
+      });
+
+      describe('Unmodified Existing Tag', function() {
+        beforeEach(inject(function($httpBackend, CLMAppLocations) {
+          scope.editTag(testScope.tags[0]);
+          $httpBackend.expectGET(CLMAppLocations.getTagAppliedPoliciesUrl(testScope.tags[0].id)).respond([]);
+          $httpBackend.flush();
+
           expect(scope.selectedTag.isDirty()).toEqual(false);
 
           var e = scope.$broadcast('pageChangeStarted', null);
           expect(e.defaultPrevented).toEqual(false);
-        });
+        }));
 
-        it('Edit Existing Attempted', function() {
+        it('Edit Existing Attempted', inject(function($httpBackend, CLMAppLocations) {
           scope.editTag(testScope.tags[1]);
+          $httpBackend.expectGET(CLMAppLocations.getTagAppliedPoliciesUrl(testScope.tags[1].id)).respond([]);
+          $httpBackend.flush();
+
           expect(scope.alerts.length).toEqual(0);
           expect(scope.selectedTag.id).toEqual(testScope.tags[1].id);
-        });
+        }));
 
         it('Create New Attempted', function() {
           scope.createNew();
@@ -303,7 +393,7 @@ describe('TagController.js', function() {
         });
       });
 
-      it('Unmodified New Tag - Edit Existing Attempted', function() {
+      it('Unmodified New Tag - Edit Existing Attempted', inject(function($httpBackend, CLMAppLocations) {
         scope.createNew();
         expect(scope.selectedTag.isDirty()).toEqual(false);
 
@@ -311,9 +401,12 @@ describe('TagController.js', function() {
         expect(e.defaultPrevented).toEqual(false);
 
         scope.editTag(testScope.tags[0]);
+        $httpBackend.expectGET(CLMAppLocations.getTagAppliedPoliciesUrl(testScope.tags[0].id)).respond([]);
+        $httpBackend.flush();
+
         expect(scope.alerts.length).toEqual(0);
         expect(scope.selectedTag.id).toEqual(testScope.tags[0].id);
-      });
+      }));
     });
   });
 });

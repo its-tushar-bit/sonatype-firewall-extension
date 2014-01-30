@@ -21,6 +21,14 @@ class ImportPolicyModule  extends Module
 
     policyList(required: false) { $('.policy-top') }
     alertError(required: false) { $('#import-policy-dialog .alert-error') }
+  }
 
+  def importDefaultPolicy() {
+    importIcon.click()
+    waitFor { fileInput.displayed }
+    fileInput << new File(getClass().getResource("/ImportPolicyTest/Sonatype-Sample-Policy-1.6.json").toURI()).getAbsolutePath()
+    waitFor { !importButton.disabled }
+    importButton.click()
+    waitFor { policyList.size() == 4 }
   }
 }

@@ -17,7 +17,7 @@ class TagSpec
   def setupSpec() {
     loginAsAdmin()
     OrganizationManagementPage organizationManagementPage = to(OrganizationManagementPage)
-    organizationManagementPage.createOrg('TagSpec')
+    organizationManagementPage.createOrgWithDefaultPolicy('TagSpec')
   }
 
   def cleanupSpec() {
@@ -37,32 +37,46 @@ class TagSpec
   def "Can add a new Tag"() {
     when: 'We create a new Tag'
       tags.createNewTag()
+      tags.togglePolicy('Security-High')
       tags.buttons.save.click()
 
     then: 'it is added to the list of available Tags'
       waitFor { tags.tagList.size() == 1 }
       tags.tag(0).text() == 'New Tag'
       tags.tag(0).classes().contains('blackLabel')
+      tags.serverAlerts.children().size() == 0
   }
 
   def "Can edit an existing tag"(){
     when: 'We click on an existing Tag'
       tags.tag(0).click()
 
-    then: 'The form is populated with the name and description of the chosen Tag'
+    then: 'The form is populated with the name, description and policy of the chosen Tag'
       tags.name == 'New Tag'
       tags.description == 'Tag description'
       tags.color('black').classes().contains('active')
+      tags.isPolicyApplied('Security-High')
 
     when: 'We update the tag name and description'
       tags.name = 'Updated New Tag'
       tags.description = 'Updated Tag Description'
       tags.color('green').click()
+      tags.togglePolicy('Security-High')
       tags.buttons.save.click()
 
     then:
       waitFor { tags.tag(0).text() == 'Updated New Tag' }
       tags.tag(0).classes().contains('greenLabel')
+
+    when:
+      tags.tag(0).click()
+
+    then: 'The form is populated with the updated name, description and policy of the chosen Tag'
+      tags.name == 'Updated New Tag'
+      tags.description == 'Updated Tag Description'
+      tags.color('green').classes().contains('active')
+      !tags.isPolicyApplied('Security-High')
+      tags.buttons.cancel.click()
   }
 
   def "Can delete the newly added Tag"() {

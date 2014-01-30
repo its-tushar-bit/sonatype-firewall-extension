@@ -129,6 +129,18 @@
           return baseUrl.get() + '/rest/tag/organization/' + getId();
         },
 
+        getTagAppliedPoliciesUrl : function(tagId) {
+          return baseUrl.get() + '/rest/tag/' + getServicePathWithId() + '/' + tagId;
+        },
+
+        getPolicyTagUrl : function(policyId) {
+          return baseUrl.get() + '/rest/appliedTag/policy/' + policyId + '?orgId=' + getId();
+        },
+
+        getDeletePolicyTagUrl : function(policyId, tagId) {
+          return baseUrl.get() + '/rest/appliedTag/policy/' + policyId + '/' + tagId + '?orgId=' + getId();
+        },
+
         isApplication: isApplication
       };
     }

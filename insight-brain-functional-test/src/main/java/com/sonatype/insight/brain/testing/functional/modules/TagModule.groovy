@@ -24,6 +24,11 @@ class TagModule
     //form controls(only visible while editing)
     tagEditor(required:false) { $('form', name: 'tagEditor') }
     name(required:false)  { tagEditor.name() }
+    policiesLabel(required: false) { tagEditor.find('.tag-policies-label') }
+    policies(required:false) { tagEditor.find('span', items: 'policies') }
+    policiesDropdownButton(required:false) { policies.find('button') }
+    policiesDropdownList(required:false) { policies.find('ul') }
+    policyCheckbox(required:false) { name -> policiesDropdownList.find('label', text: name).find('input') }
     description(required:false)  { tagEditor.description() }
     color(requied:false) { name -> tagEditor.find('.' + name + 'Label') }
     buttons { module ButtonsModule }
@@ -44,5 +49,22 @@ class TagModule
     this.name = name
     this.description = description
     this.color(color).click()
+  }
+
+  def togglePolicy(String name) {
+    policiesDropdownButton.click()
+    waitFor { policiesDropdownList.displayed }
+    this.policyCheckbox(name).click()
+    policiesLabel.click()
+    waitFor { !policiesDropdownList.displayed }
+  }
+
+  def isPolicyApplied(String name) {
+    policiesDropdownButton.click()
+    waitFor { policiesDropdownList.displayed }
+    def isApplied = policiesDropdownList.find('li', text: name).classes().contains('active')
+    policiesLabel.click()
+    waitFor { !policiesDropdownList.displayed }
+    return isApplied
   }
 }

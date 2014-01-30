@@ -26,4 +26,13 @@ class OrganizationManagementPage
       organizationPage.editOrg(name)
     }
   }
+
+  def createOrgWithDefaultPolicy(name = 'test organization') {
+    newOrganizationButton.click()
+    browser.with {
+      OrganizationPage organizationPage = at(OrganizationPage)
+      organizationPage.editOrg(name)
+      organizationPage.policyImport.importDefaultPolicy()
+    }
+  }
 }

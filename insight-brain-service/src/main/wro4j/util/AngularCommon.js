@@ -766,6 +766,57 @@ var AngularUtils = {
       }
     };
   }]);
+
+  /**
+  * Angular directive for bootstrap-multiselect
+  */
+  angularCommon.directive('multiSelect', ['$timeout', function($timeout) {
+    return {
+      scope: {
+        items: '=',
+        selectedIds: '='
+      },
+      template: '<select multiple="multiple"><option ng-repeat="item in items" value="{{item.id}}">{{ item.name }}</option></select>',
+      link: function(scope, element) {
+        var selectElement = element.children('select');
+        function updateItems() {
+          $timeout(function() {
+            selectElement.multiselect('rebuild');
+          }, 0);
+        }
+        function updateSelections() {
+          if (!scope.selectedIds) {
+            return;
+          }
+          for (var i = 0; i < scope.items.length; i++) {
+            if (scope.selectedIds.indexOf(scope.items[i].id) > -1) {
+              selectElement.multiselect('select', scope.items[i].id);
+            } else {
+              selectElement.multiselect('deselect', scope.items[i].id);
+            }
+          }
+        }
+        scope.$watch('items', updateItems);
+        scope.$watch('selectedIds', updateSelections);
+        selectElement.multiselect({
+          onChange: function(element, checked) {
+            if (!scope.selectedIds) {
+              return;
+            }
+            if (!checked) {
+              for (var i = 0; i < scope.selectedIds.length; i++) {
+                if (scope.selectedIds[i] === element.attr('value')) {
+                  scope.selectedIds.splice(i, 1);
+                }
+              }
+            } else {
+              scope.selectedIds.push(element.attr('value'));
+            }
+          }
+        });
+      }
+    };
+  }]);
 }());
 
 (function() {

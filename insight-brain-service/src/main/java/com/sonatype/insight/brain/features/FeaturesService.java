@@ -29,12 +29,14 @@ public class FeaturesService
 
   /**
    * Gets a list of features supported by this server instance, allowing clients (most notably the UI) to conditionally
-   * expose available functionality.
+   * expose available functionality. If there's currently no valid license installed, the feature set is deemed empty.
    */
   public Set<Feature> getFeatures() {
     Set<Feature> features = EnumSet.noneOf(Feature.class);
-    addVersionSpecificFeatures(features);
-    addLicenseSpecificFeatures(features);
+    if (licenseManager.isValid()) {
+      addVersionSpecificFeatures(features);
+      addLicenseSpecificFeatures(features);
+    }
     return features;
   }
 

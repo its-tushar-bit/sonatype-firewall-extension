@@ -16,6 +16,8 @@ import com.google.inject.Binder;
 import org.junit.Test;
 
 import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.empty;
+import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -36,16 +38,27 @@ public class FeatureServiceTest
   }
 
   @Test
-  public void testGetFeatures() {
+  public void testGetFeatures_Unlicensed() {
+    Set<Feature> features = featuresService.getFeatures();
+    assertThat(features, is(empty()));
+  }
+
+  @Test
+  public void testGetFeatures_WithoutPolicyMonitoring() {
+    when(licenseManager.isValid()).thenReturn(true);
     when(licenseManager.hasPolicyMonitoring()).thenReturn(false);
     Set<Feature> features = featuresService.getFeatures();
     assertThat(
         features,
         containsInAnyOrder(Feature.LABELS, Feature.NOTIFICATIONS, Feature.POLICY, Feature.POLICY_VIOLATIONS,
             Feature.REEVALUATE_POLICY, Feature.RELEASE_GRAPH));
+  }
 
+  @Test
+  public void testGetFeatures_WithPolicyMonitoring() {
+    when(licenseManager.isValid()).thenReturn(true);
     when(licenseManager.hasPolicyMonitoring()).thenReturn(true);
-    features = featuresService.getFeatures();
+    Set<Feature> features = featuresService.getFeatures();
     assertThat(features, containsInAnyOrder(Feature.values()));
   }
 }

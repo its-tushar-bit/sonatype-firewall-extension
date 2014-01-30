@@ -15,11 +15,15 @@ import com.yammer.dropwizard.testing.JsonHelpers;
 import org.junit.Assert;
 import org.junit.Test;
 
+import static org.hamcrest.Matchers.emptyArray;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
+
 public class FeatureResourceTest
     extends AbstractResourceTest
 {
   @Test
-  public void testFeatures() throws Exception {
+  public void testFeatures_Licensed() throws Exception {
     // Get all features
     Response response = AuthedRestAccess.get(getServiceURL());
     assertResponseStatus(200, response);
@@ -28,6 +32,17 @@ public class FeatureResourceTest
     Assert.assertTrue(Arrays.asList(features).contains("policy"));
     Assert.assertTrue(Arrays.asList(features).contains("labels"));
     Assert.assertTrue(Arrays.asList(features).contains("policy-violations"));
+  }
+
+  @Test
+  public void testFeatures_Unlicensed() throws Exception {
+    // Get all features
+    uninstallLicense();
+    Response response = AuthedRestAccess.get(getServiceURL());
+    assertResponseStatus(200, response);
+    String[] features = JsonHelpers.fromJson(response.getResponseBody(), String[].class);
+    Assert.assertThat(features, is(notNullValue()));
+    Assert.assertThat(features, is(emptyArray()));
   }
 
   private String getServiceURL() {

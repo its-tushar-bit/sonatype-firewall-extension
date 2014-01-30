@@ -14,8 +14,11 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
+import com.sonatype.insight.brain.product.license.UnlicensedPath;
+
 @Named
 @Path(FeaturesResource.SERVICE_PATH)
+@UnlicensedPath
 public class FeaturesResource
 {
   public static final String SERVICE_PATH = "rest/features";

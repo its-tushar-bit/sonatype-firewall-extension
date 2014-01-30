@@ -201,6 +201,6 @@ public class TestProductLicenseManager
   }
 
   public void resetProducts() {
-    setProducts(new String[] { ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION });
+    setProducts(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION);
   }
 }

@@ -69,7 +69,7 @@ public class PolicyDAO
       throw new InvalidPolicyException(validationResult);
     }
 
-    Policy existingPolicy = getByOwnerIdAndName(em, ownerId, policy.getName());
+    PolicyInternal existingPolicy = policyInternalDAO.getByOwnerIdAndName(em, ownerId, policy.getName());
     if (existingPolicy != null) {
       throw new InvalidPolicyException("A policy with name '" + existingPolicy.getName() + "' already exists");
     }
@@ -106,18 +106,18 @@ public class PolicyDAO
       throw new InvalidPolicyException(validationResult);
     }
 
-    Policy existingPolicy = getByOwnerIdAndName(em, ownerId, policy.getName());
-    if (existingPolicy != null && !policy.getId().equals(existingPolicy.getId())) {
-      throw new InvalidPolicyException("A policy with name '" + existingPolicy.getName() + "' already exists");
+    PolicyInternal existingPolicyByName = policyInternalDAO.getByOwnerIdAndName(em, ownerId, policy.getName());
+    if (existingPolicyByName != null && !policy.getId().equals(existingPolicyByName.getId())) {
+      throw new InvalidPolicyException("A policy with name '" + existingPolicyByName.getName() + "' already exists");
     }
 
-    existingPolicy = PolicyInternal.toPolicy(policyInternalDAO.getByIdNotNull(em, policy.getId()));
+    Policy existingPolicyById = PolicyInternal.toPolicy(policyInternalDAO.getByIdNotNull(em, policy.getId()));
 
     validateNameWithinHierarchy(em, ownerId, policy.getName());
 
     // Allocate ids to new constraints
     for (Constraint constraint : policy.getConstraints()) {
-      if (existingPolicy.getConstraintById(constraint.getId()) == null) {
+      if (existingPolicyById.getConstraintById(constraint.getId()) == null) {
         // This is a new constraint
         constraint.setId(newUUID());
       }
@@ -152,10 +152,6 @@ public class PolicyDAO
 
   private static String newUUID() {
     return UUID.randomUUID().toString().replace("-", "");
-  }
-
-  private Policy getByOwnerIdAndName(EntityManager em, String ownerId, String name) {
-    return PolicyInternal.toPolicy(policyInternalDAO.getByOwnerIdAndName(em, ownerId, name));
   }
 
   public List<Policy> getApplicableByOwnerId(final String ownerId) {
@@ -201,7 +197,7 @@ public class PolicyDAO
     Application parentApplication = applicationDAO.getById(em, ownerId);
     if (parentApplication != null) {
       // The owner is an application
-      if (getByOwnerIdAndName(em, parentApplication.getOrganizationId(), name) != null) {
+      if (policyInternalDAO.getByOwnerIdAndName(em, parentApplication.getOrganizationId(), name) != null) {
         throw new InvalidPolicyException("A policy with the same name already exists" + " for the parent organization");
       }
     }
@@ -209,7 +205,7 @@ public class PolicyDAO
       // The owner is an organization
       List<Application> applications = applicationDAO.getByOrganizationId(em, ownerId);
       for (Application application : applications) {
-        if (getByOwnerIdAndName(em, application.getId(), name) != null) {
+        if (policyInternalDAO.getByOwnerIdAndName(em, application.getId(), name) != null) {
           throw new InvalidPolicyException("A policy with the same name already exists" + " for application '"
               + application.getName() + "'");
         }

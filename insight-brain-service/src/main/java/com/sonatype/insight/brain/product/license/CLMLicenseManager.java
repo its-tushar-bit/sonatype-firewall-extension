@@ -176,7 +176,7 @@ public class CLMLicenseManager
     throw new InvalidLicenseException("None of the enforcement points " + enforcementPoints + " is licensed!");
   }
 
-  private Set<CLMEnforcementPoint> getEnforcementPoints() {
+  Set<CLMEnforcementPoint> getEnforcementPoints() {
     Set<CLMEnforcementPoint> enforcementPoints = EnumSet.noneOf(CLMEnforcementPoint.class);
     Collections.addAll(enforcementPoints, licenseCache.getEnforcementPoints());
     return enforcementPoints;
@@ -193,17 +193,9 @@ public class CLMLicenseManager
 
     String licenseFingerprint = licenseFingerprinter.calculate(key);
 
-    int version;
-    try {
-      version = Integer.parseInt(getProperty(key, ProductLicenseDetails.PROPERTY_VERSION));
-    }
-    catch (IllegalArgumentException e) {
-      // legacy license
-      version = 0;
-    }
+    int version = getVersion(key);
 
-    Integer applicationCount = Integer
-        .decode(getPropertyNotNull(key, ProductLicenseDetails.PROPERTY_APPLICATION_LIMIT));
+    Integer applicationCount = getApplicationLimit(key);
 
     Set<CLMEnforcementPoint> enforcementPoints = EnumSet.noneOf(CLMEnforcementPoint.class);
     String[] enforcementPointIds = getPropertyNotNull(key, ProductLicenseDetails.PROPERTY_ENFORCEMENT_POINTS)
@@ -248,7 +240,7 @@ public class CLMLicenseManager
   }
 
   private String getPropertyNotNull(ProductLicenseKey key, String property) throws LicensingException {
-    String value = key.getProperties().getProperty(property);
+    String value = getProperty(key, property);
     if (value == null) {
       throw new LicensingException(key, "License lacks property " + property, null);
     }
@@ -257,6 +249,30 @@ public class CLMLicenseManager
   
   private String getProperty(ProductLicenseKey key, String property) {
     return key.getProperties().getProperty(property);
+  }
+
+  private int getVersion(ProductLicenseKey key) throws LicensingException {
+    String prop = getProperty(key, ProductLicenseDetails.PROPERTY_VERSION);
+    if (prop == null) {
+      // legacy license
+      return 0;
+    }
+    try {
+      return Integer.parseInt(prop);
+    }
+    catch (IllegalArgumentException e) {
+      throw new LicensingException("Invalid license version: " + prop, e);
+    }
+  }
+
+  private Integer getApplicationLimit(ProductLicenseKey key) throws LicensingException {
+    String prop = getPropertyNotNull(key, ProductLicenseDetails.PROPERTY_APPLICATION_LIMIT);
+    try {
+      return Integer.decode(prop);
+    }
+    catch (IllegalArgumentException e) {
+      throw new LicensingException("Invalid application limit: " + prop, e);
+    }
   }
 
   private Set<String> getProducts(ProductLicenseKey key) {

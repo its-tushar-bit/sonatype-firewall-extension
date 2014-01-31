@@ -26,6 +26,7 @@ import org.sonatype.licensing.product.ProductLicenseManager;
 import com.google.inject.Binder;
 import org.junit.Test;
 
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
@@ -143,5 +144,24 @@ public class CLMLicenseManagerTest
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK);
     installLicense();
     assertThat(clmLicenseManager.hasPolicyMonitoring(), is(true));
+  }
+
+  @Test(expected = LicensingException.class)
+  public void testInstallLicense_BadVersion() throws Exception {
+    licenseManager.setProperty(ProductLicenseDetails.PROPERTY_VERSION, "Invalid");
+    installLicense();
+  }
+
+  @Test(expected = LicensingException.class)
+  public void testInstallLicense_BadAppLimit() throws Exception {
+    licenseManager.setProperty(ProductLicenseDetails.PROPERTY_APPLICATION_LIMIT, "Invalid");
+    installLicense();
+  }
+
+  @Test
+  public void testInstallLicense_UnknownEnforcementPointIsIgnored() throws Exception {
+    licenseManager.setProperty(ProductLicenseDetails.PROPERTY_ENFORCEMENT_POINTS, "Invalid,Build");
+    installLicense();
+    assertThat(clmLicenseManager.getEnforcementPoints(), containsInAnyOrder(CLMEnforcementPoint.Build));
   }
 }

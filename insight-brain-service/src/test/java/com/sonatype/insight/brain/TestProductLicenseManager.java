@@ -47,6 +47,8 @@ public class TestProductLicenseManager
 
   private Set<CLMEnforcementPoint> enforcementPoints = new HashSet<CLMEnforcementPoint>();
 
+  private Map<String, String> properties = new HashMap<>();
+
   private boolean forceInstallLicenseFailure = false;
 
   private boolean forceInstallIOFailure = false;
@@ -102,6 +104,7 @@ public class TestProductLicenseManager
     properties.put(ProductLicenseDetails.PROPERTY_PRODUCTS, StringUtils.join(products, ","));
     properties.put(ProductLicenseDetails.PROPERTY_ENFORCEMENT_POINTS, sb.toString());
     properties.put(ProductLicenseDetails.PROPERTY_APPLICATION_LIMIT, Integer.toString(appCount));
+    properties.putAll(this.properties);
     key = new DefaultLicenseKey(new Features(featureMap));
     key.setEffectiveDate(new Date(System.currentTimeMillis() - 10000));
     key.setExpirationDate(expirationDate);
@@ -202,5 +205,9 @@ public class TestProductLicenseManager
 
   public void resetProducts() {
     setProducts(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION);
+  }
+
+  public void setProperty(String key, String value) {
+    properties.put(key, value);
   }
 }

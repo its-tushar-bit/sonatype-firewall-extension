@@ -28,7 +28,8 @@
       </div>
       <div class="accordion monitoringContent">
         <div class="accordion-body collapse">
-          <div class="form-horizontal configuration" style="width: 700px;" ng-if="isPolicyMonitoringLicensed()">
+          <!-- ngIf isnt used because of an IE9 (and IE10 i believe) where the select value only shows the first letter -->
+          <div class="form-horizontal configuration" style="width: 700px;" ng-show="isPolicyMonitoringLicensed()">
             <form id="monitoringForm" name="monitoringForm">
               <div class='control-group'>
                 <label class="control-label" style="width: auto;padding-right: 5px;" for="policyMonitoring">

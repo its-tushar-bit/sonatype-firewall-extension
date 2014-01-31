@@ -5,8 +5,13 @@
  */
 package com.sonatype.insight.brain.service;
 
+import com.sonatype.insight.brain.TemporaryEntity;
+
+import org.junit.Rule;
 
 public abstract class AbstractResourceTest
     extends AbstractLicenseTest
 {
+  @Rule
+  public TemporaryEntity tempEntity = new TemporaryEntity();
 }

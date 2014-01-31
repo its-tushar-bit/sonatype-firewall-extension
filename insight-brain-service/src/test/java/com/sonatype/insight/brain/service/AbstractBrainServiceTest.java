@@ -14,7 +14,6 @@ import java.util.UUID;
 
 import javax.ws.rs.core.UriBuilder;
 
-import com.sonatype.insight.brain.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.db.DataSourceFactory;
@@ -64,9 +63,6 @@ public abstract class AbstractBrainServiceTest
 
   @Rule
   public TestName testName = new TestName();
-
-  @Rule
-  public TemporaryEntity tempEntity = new TemporaryEntity();
 
   @AfterClass
   public static void afterClass() {

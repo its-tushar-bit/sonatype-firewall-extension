@@ -7,9 +7,7 @@ package com.sonatype.insight.brain.testing.functional
 
 class DashboardHeaderSpec extends BaseSpec {
   def setup() {
-    via ReportViolationsPage
-    login.loginAsAdmin()
-    verifyAt()
+    loginAsAdminVia()
   }
   def "displays logged in users display name"() {
     given: "user has logged in"

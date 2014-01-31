@@ -15,7 +15,7 @@ class OrganizationSpec
     extends BaseSpec
 {
   def setupSpec() {
-    loginAsAdmin()
+    loginAsAdminVia()
   }
 
   def cleanupSpec() {

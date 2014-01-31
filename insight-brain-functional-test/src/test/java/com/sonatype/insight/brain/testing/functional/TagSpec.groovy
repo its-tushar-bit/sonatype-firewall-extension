@@ -15,8 +15,7 @@ class TagSpec
     extends BaseSpec
 {
   def setupSpec() {
-    loginAsAdmin()
-    OrganizationManagementPage organizationManagementPage = to(OrganizationManagementPage)
+    OrganizationManagementPage organizationManagementPage = loginAsAdminVia(OrganizationManagementPage)
     organizationManagementPage.createOrgWithDefaultPolicy('TagSpec')
   }
 

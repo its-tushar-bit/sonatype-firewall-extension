@@ -7,14 +7,14 @@ package com.sonatype.insight.brain.testing.functional
 
 import com.sonatype.insight.brain.model.Application
 import com.sonatype.insight.brain.model.Organization
-import spock.lang.Ignore
+import groovy.util.logging.Slf4j
 import spock.lang.Stepwise
 
 /**
  * @since 1.8
  */
 @Stepwise
-@Ignore
+@Slf4j
 class PolicyMonitoringSpec
     extends BaseSpec
 {
@@ -23,22 +23,14 @@ class PolicyMonitoringSpec
   static Application app
 
   def setupSpec() {
-    org = new Organization(name: 'PolicyMonitoring')
-    organizationDAO.insert(org)
-    app = new Application('PolicyMonitoring', 'PolicyMonitoring', org.id)
-    applicationDAO.insert(app)
-  }
-
-  def cleanupSpec() {
-    applicationDAO.delete(app)
-    organizationDAO.delete(org)
+    def name = 'PolicyMonitoring'
+    org = temporaryEntity.newOrganization(name)
+    app = temporaryEntity.newApplication(name, name, org.id)
   }
 
   def "Initially policy monitoring is not configured"() {
     setup:
-      via ReportViolationsPage
-      login.loginAsAdmin()
-      to OrganizationPage, org.id, 'policies'
+      loginAsAdminVia(OrganizationPage, org.id, 'policies')
       waitFor { policyMonitoring.expandButton.displayed }
 
     when:

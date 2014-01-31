@@ -17,9 +17,12 @@ import org.openqa.selenium.chrome.ChromeDriver
 import org.openqa.selenium.firefox.FirefoxDriver
 import org.openqa.selenium.ie.InternetExplorerDriver
 import org.openqa.selenium.phantomjs.PhantomJSDriver
+import org.openqa.selenium.phantomjs.PhantomJSDriverService
 import org.openqa.selenium.remote.DesiredCapabilities
 import org.openqa.selenium.remote.RemoteWebDriver
 import org.openqa.selenium.safari.SafariDriver
+
+import java.util.logging.Level
 
 reportsDir = "target/test-reports/geb"
 // Port is not known until runtime, needs to be set in BaseSpec.groovy
@@ -96,8 +99,17 @@ environments {
         return false
       }
     }
-    def params = phantomJsBinary ? ['phantomjs.binary.path': phantomJsBinary] : [:]
-    driver = { configure(new PhantomJSDriver(new DesiredCapabilities(params))) }
+    driver = {
+      DesiredCapabilities capabilities =  DesiredCapabilities.phantomjs()
+      if(phantomJsBinary){
+        capabilities.setCapability('phantomjs.binary.path', phantomJsBinary)
+      }
+      capabilities.setCapability(PhantomJSDriverService.PHANTOMJS_CLI_ARGS, ['--webdriver-loglevel=DEBUG'] as String[]);
+      capabilities.setCapability(PhantomJSDriverService.PHANTOMJS_GHOSTDRIVER_CLI_ARGS, ["--logLevel=DEBUG"] as String[])
+      RemoteWebDriver webDriver = configure(new PhantomJSDriver(capabilities))
+      webDriver.setLogLevel(Level.ALL)
+      return webDriver
+    }
 
     // increase default timeout to account for slower CI server
     waiting {

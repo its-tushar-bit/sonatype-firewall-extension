@@ -12,9 +12,7 @@ class ContactUserSpec
   String appName = 'TestApplication'
 
   def setup() {
-    OrganizationManagementPage organizationManagementPage = via OrganizationManagementPage
-    login.loginAsAdmin()
-    verifyAt()
+    OrganizationManagementPage organizationManagementPage = loginAsAdminVia(OrganizationManagementPage)
     organizationManagementPage.createOrg()
 
     ApplicationManagementPage applicationManagementPage = to ApplicationManagementPage

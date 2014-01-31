@@ -725,6 +725,7 @@
                 <include>**/AuthedRestAccess*</include>
                 <include>**/productlicense/license.lic</include>
                 <include>**/SlowMoFilter*</include>
+                <include>**/TemporaryEntity*</include>
               </includes>
             </configuration>
           </execution>

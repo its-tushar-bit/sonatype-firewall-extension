@@ -10,7 +10,6 @@ import java.io.File;
 import com.sonatype.insight.mock.InsightMockServer;
 
 import org.apache.commons.io.FileUtils;
-
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;

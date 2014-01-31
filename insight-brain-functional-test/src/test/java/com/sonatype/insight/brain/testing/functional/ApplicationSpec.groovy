@@ -14,8 +14,7 @@ import spock.lang.Stepwise
 class ApplicationSpec extends BaseSpec
 {
   def setupSpec() {
-    loginAsAdmin()
-    OrganizationManagementPage organizationManagementPage = to(OrganizationManagementPage)
+    OrganizationManagementPage organizationManagementPage = loginAsAdminVia(OrganizationManagementPage)
     organizationManagementPage.createOrg()
   }
 

@@ -92,6 +92,7 @@
           $scope.applicablePolicies = results[1].data.policiesByOwner;
           $scope.actionStageList = results[2][1];
           $scope.policyMonitoring = clmAppLocations.isApplication() ? results[3].data.appPolicyMonitor : results[3].data.orgPolicyMonitor;
+          $scope.policyMonitoring = $scope.policyMonitoring || {};
           $scope.policyMonitoringPlaceHolder = createPlaceHolderText(clmAppLocations.isApplication(), results[3].data.orgPolicyMonitor);
           angular.forEach($scope.applicablePolicies, function(applicablePolicy, index) {
             applicablePolicy.editable = index === 0;

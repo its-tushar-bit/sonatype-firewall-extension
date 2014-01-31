@@ -15,9 +15,7 @@ extends BaseSpec {
   // assumes a license has already been installed
   // get to the user page
   def setupSpec() {
-    via ReportViolationsPage
-    login.loginAsAdmin()
-    to UserManagementPage
+    loginAsAdminVia(UserManagementPage)
   }
 
   def "Arriving at user management page we should see the 'new user button' and no form."() {
@@ -198,8 +196,7 @@ extends BaseSpec {
     then: 'login succeeds'
       !login.isDisplayed()
       userOptions.logoutClick()
-      login.loginAsAdmin()
-      to UserManagementPage
+      loginAsAdminVia(UserManagementPage)
   }
 
   def "The newly added user can be deleted"() {

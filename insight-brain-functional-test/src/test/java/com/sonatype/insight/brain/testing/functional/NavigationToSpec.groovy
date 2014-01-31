@@ -16,9 +16,7 @@ class NavigationToSpec
     extends BaseSpec
 {
   def setupSpec() {
-    via ReportViolationsPage
-    login.loginAsAdmin()
-    verifyAt()
+    loginAsAdminVia()
   }
 
   @Unroll("Navigating to #pageUnderTest should take us to #pageUnderTest.url")
@@ -31,7 +29,7 @@ class NavigationToSpec
 
     where:
       pageUnderTest << [ManagementPage, ReportViolationsPage, UserManagementPage, GlobalRolesPage,
-          ApplicationManagementPage, OrganizationManagementPage]
+          ApplicationManagementPage, OrganizationManagementPage, ReportViolationsPage]
     //deliberately not including TrendingReportPage here as that automatically triggers generation of the report data
   }
 }

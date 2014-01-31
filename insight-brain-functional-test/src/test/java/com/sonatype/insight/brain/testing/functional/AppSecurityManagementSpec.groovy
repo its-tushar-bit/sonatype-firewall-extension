@@ -10,7 +10,7 @@ class AppSecurityManagementSpec extends BaseSpec {
   // assumes a license has already been installed
   // get to the organizations page
   def setup() {
-    loginAsAdmin()
+    loginAsAdminVia()
   }
 
   def cleanup() {
@@ -44,15 +44,5 @@ class AppSecurityManagementSpec extends BaseSpec {
       waitFor { tabs.securityTab.displayed }
       waitFor { tabs.securityTab.role("Developer").displayed }
       waitFor { tabs.securityTab.role("Owner").displayed }
-  }
-
-  void createOrganization() {
-    OrganizationManagementPage organizationManagementPage = to(OrganizationManagementPage)
-    organizationManagementPage.createOrg()
-  }
-
-  void createApplication() {
-    ApplicationManagementPage applicationManagementPage = to(ApplicationManagementPage)
-    applicationManagementPage.createApp()
   }
 }

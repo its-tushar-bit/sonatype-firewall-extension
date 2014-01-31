@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.testing.functional
 
 import com.sonatype.insight.brain.dataaccess.security.UserDAO
 import com.sonatype.insight.brain.model.security.User
-
 import spock.lang.Stepwise
 
 @Stepwise
@@ -21,9 +20,7 @@ class GlobalRolesSpec
     user = new User(username: "test-b", password: "secret", firstName: "Jane", lastName: "Doe", email: "jane@doe.net")
     userDAO.insert(user);
 
-    via GlobalRolesPage
-    login.loginAsAdmin()
-    verifyAt()
+    loginAsAdminVia(GlobalRolesPage)
   }
 
   def cleanupSpec() {

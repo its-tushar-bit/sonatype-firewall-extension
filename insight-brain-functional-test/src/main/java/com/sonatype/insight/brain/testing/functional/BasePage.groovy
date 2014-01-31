@@ -11,6 +11,9 @@ import com.sonatype.insight.brain.testing.functional.modules.LoginModule
 import com.sonatype.insight.brain.testing.functional.modules.UserOptionsModule
 import geb.Page
 
+/**
+ * Common infrastructure for all pages in the application
+ */
 abstract class BasePage
     extends Page
 {
@@ -18,5 +21,6 @@ abstract class BasePage
     changePassword { module ChangePasswordModule }
     login { module LoginModule }
     userOptions { module UserOptionsModule }
+    functionalTestingSupport { $('#functionalTestingSupport') }
   }
 }

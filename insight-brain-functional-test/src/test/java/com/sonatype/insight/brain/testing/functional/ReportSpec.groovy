@@ -10,8 +10,6 @@ import com.sonatype.insight.brain.model.security.User
 import com.sonatype.insight.brain.security.CLMRealm
 import org.codehaus.plexus.util.FileUtils
 import org.codehaus.plexus.util.IOUtil
-import spock.lang.Ignore
-import spock.lang.Issue;
 import spock.lang.Shared
 import spock.lang.Stepwise
 
@@ -34,8 +32,7 @@ extends BaseSpec {
     lastName: "Doe", email: "john@doe.net")
     userDAO.insert(nonAdminUser);
 
-    via ReportViolationsPage
-    login.loginAsAdmin()
+    loginAsAdminVia()
   }
 
   def cleanupSpec() {
@@ -48,24 +45,18 @@ extends BaseSpec {
       waitFor { emptyMessage.displayed }
   }
 
-  @Ignore('Temporarily removing this test execution as it is 50/50 whether or not this text stays on the screen long enough to be observed consistently')
-  @Issue("CLM-1763")
   def "We can navigate to the trending report"() {
     when: 'we click the navigation link to Trending'
       nav.link('Trending').click()
 
     then: 'we see the large loading progress meter'
       at TrendingReportPage
-      report 'debug-1'
-      waitFor { loadingText.startsWith('CLM Server is generating the trending report') }
+      waitFor(10, 0.05) { loadingText.startsWith('CLM Server is generating the trending report') }
   }
 
   def "We can load the (empty) report"(){
-    //when: 'the report is generated and we refresh the page'
-    //  browser.driver.navigate().refresh()
-
-    when: 'we click the navigation link to Trending'
-      nav.link('Trending').click()
+    when: 'the report is generated and we refresh the page'
+      browser.driver.navigate().refresh()
 
     then: 'we see that no violations have occurred, since we have not scanned anything'
       at TrendingReportPage

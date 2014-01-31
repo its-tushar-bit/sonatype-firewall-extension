@@ -16,7 +16,7 @@ class ImportPolicySpec extends BaseSpec
   private TemporaryFolder tmpDir = new TemporaryFolder();
 
   def setup() {
-    loginAsAdmin()
+    loginAsAdminVia()
     createOrganization()
     createApplication()
     at ApplicationPage
@@ -115,17 +115,5 @@ class ImportPolicySpec extends BaseSpec
 
   String getBadImportFilePath() {
     return new File(getClass().getResource("/ImportPolicyTest/invalid-policy-import-file.txt").toURI()).getAbsoluteFile().getAbsolutePath()
-  }
-
-  void createOrganization() {
-    OrganizationManagementPage organizationManagementPage = to OrganizationManagementPage
-    organizationManagementPage.createOrg()
-    waitFor{ organizationList.size() == 1 }
-  }
-
-  void createApplication() {
-    ApplicationManagementPage applicationManagementPage = to ApplicationManagementPage
-    applicationManagementPage.createApp()
-    waitFor{ applicationList.size() == 1 }
   }
 }

@@ -31,7 +31,7 @@ class LoginSpec extends BaseSpec {
       via ReportViolationsPage
 
     when: "valid credentials are supplied"
-      login.loginAsAdmin()
+      loginAsAdminVia()
     
     then: "the user is logged in"
       waitFor { !login.isDisplayed() }
@@ -69,8 +69,7 @@ class LoginSpec extends BaseSpec {
 
   def "authentication session state is remembered"() {
     when: "accessing management application"
-      to ManagementPage
-      login.loginAsAdmin()
+      loginAsAdminVia(ManagementPage)
     
     then: "user is not prompted to log in"
       report 'management page'
@@ -95,8 +94,7 @@ class LoginSpec extends BaseSpec {
 
   def "user can logout from management pages"() {
     given: "user has logged in"
-      to ManagementPage
-      login.loginAsAdmin()
+      loginAsAdminVia(ManagementPage)
 
     when: "logging out"
       userOptions.logoutClick()
@@ -119,9 +117,7 @@ class LoginSpec extends BaseSpec {
 
   def "user can logout from reporting pages"() {
     given: "user has logged in"
-      via ReportViolationsPage
-      login.loginAsAdmin()
-      verifyAt()
+      loginAsAdminVia(ReportViolationsPage)
 
     when: "logging out"
       userOptions.logoutClick()

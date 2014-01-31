@@ -5,36 +5,23 @@
  */
 package com.sonatype.insight.brain.testing.functional
 
-import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.Organization
 
+class AppEvaluationSpec extends BaseSpec {
 
-class AppEvaluationSpec extends BaseSpec {  
-  Organization org
+  static Organization org
   
-  def apps = []
+  def setupSpec() {
+    org = temporaryEntity.newOrganization('AppEvaluationOrg')
 
-  def setup() {
-    org = new Organization(name: 'AppEvaluationOrg')
-    organizationDAO.insert(org)
-    
     for ( i in 1..5 ) {
-      def app = new Application('AppEvaluationApp' + i, 'AppEvaluationApp' + i, org.id)
-      applicationDAO.insert(app)
-      apps.add(app)
+      def name = "AppEvaluationApp$i"
+      temporaryEntity.newApplication(name, name, org.id)
     }
-    
-    via ReportViolationsPage
-    login.loginAsAdmin()
-    verifyAt()
   }
 
-  def cleanup() {
-    for (app in apps) {
-      applicationDAO.delete(app)
-    }
-    
-    organizationDAO.delete(org)
+  def setup(){
+    loginAsAdminVia()
   }
 
   def "validate application evaluation available from organization screen"() {

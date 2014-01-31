@@ -15,8 +15,7 @@ class TagApplicationSpec
     extends BaseSpec
 {
   def setupSpec() {
-    loginAsAdmin()
-    OrganizationManagementPage organizationManagementPage = to(OrganizationManagementPage)
+    OrganizationManagementPage organizationManagementPage = loginAsAdminVia(OrganizationManagementPage)
     organizationManagementPage.createOrg()
     tabs.tagTabButton.click()
     tags.createNewTag()

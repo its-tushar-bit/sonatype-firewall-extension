@@ -507,7 +507,7 @@ public class PolicyEvaluatorTest
     ApplicationDAO appDAO = new ApplicationDAO();
     Application app = new Application("testEvaluateOrgAndAppPolicies", "testEvaluateOrgAndAppPolicies", org.getId());
     appDAO.insert(app);
-    PolicyDAO policyDAO = new PolicyDAO(tempDir.newFolder());
+    PolicyDAO policyDAO = new PolicyDAO();
 
     Stage stage = new Stage(BuildStageType.ID);
 
@@ -517,9 +517,10 @@ public class PolicyEvaluatorTest
     constraintOrg.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
     constraints.add(constraintOrg);
     Policy policyOrg = new Policy(null, "Policy Name Org");
+    policyOrg.setOwnerId(org.getId());
     policyOrg.setConstraints(constraints);
     policyOrg.addAction(stage.getStageTypeId(), new Action(FailActionType.ID));
-    policyDAO.insert(org.getId(), policyOrg);
+    policyDAO.insert(policyOrg);
 
     // Create app policy
     constraints = new ArrayList<Constraint>();
@@ -527,9 +528,10 @@ public class PolicyEvaluatorTest
     constraintApp.addCondition(new Condition(LicenseConditionType.ID, "is", "Apache-2.0"));
     constraints.add(constraintApp);
     Policy policyApp = new Policy(null, "Policy Name App");
+    policyApp.setOwnerId(app.getId());
     policyApp.setConstraints(constraints);
     policyApp.addAction(stage.getStageTypeId(), new Action(FailActionType.ID));
-    policyDAO.insert(app.getId(), policyApp);
+    policyDAO.insert(policyApp);
 
     List<Component> components = new ArrayList<Component>();
     // A component with one security vulnerability
@@ -596,21 +598,30 @@ public class PolicyEvaluatorTest
   public void testEvaluate_PolicyWaived() {
     Stage stage = new Stage(BuildStageType.ID);
 
+    // Create an application
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplication(org.getId());
+
     // Create two policies
     List<Constraint> constraints1 = new ArrayList<Constraint>();
     Constraint constraint1 = new Constraint("ConstraintId1", "Constraint Name 1", LogicalOperator.AND);
     constraint1.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
     constraints1.add(constraint1);
     Policy policy1 = new Policy("PolicyId1", "Policy Name 1");
+    policy1.setOwnerId(app.getId());
     policy1.setConstraints(constraints1);
     policy1.addAction(stage.getStageTypeId(), new Action(FailActionType.ID));
+    PolicyDAO policyDAO = new PolicyDAO();
+    policyDAO.insert(policy1);
     List<Constraint> constraints2 = new ArrayList<Constraint>();
     Constraint constraint2 = new Constraint("ConstraintId2", "Constraint Name 2", LogicalOperator.AND);
     constraint2.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
     constraints2.add(constraint2);
     Policy policy2 = new Policy("PolicyId2", "Policy Name 2");
+    policy2.setOwnerId(app.getId());
     policy2.setConstraints(constraints2);
     policy2.addAction(stage.getStageTypeId(), new Action(FailActionType.ID));
+    policyDAO.insert(policy2);
 
     // Create two components
     List<Component> components = new ArrayList<Component>();
@@ -626,8 +637,8 @@ public class PolicyEvaluatorTest
     components.add(component2);
 
     // Evaluate the policy
-    List<PolicyAlert> policyAlerts = evaluator.evaluate(applicationId, stage, Arrays.asList(policy1, policy2),
-        components);
+    List<PolicyAlert> policyAlerts = evaluator
+        .evaluate(app.getId(), stage, Arrays.asList(policy1, policy2), components);
     Assert.assertNotNull(policyAlerts);
     Assert.assertEquals(2, policyAlerts.size());
     Assert.assertEquals(2, policyAlerts.get(0).getTrigger().getComponentFacts().size());
@@ -642,10 +653,10 @@ public class PolicyEvaluatorTest
         constraint2.getName(), SecurityVulnerabilityConditionType.ID, policyAlerts);
 
     // Waive policy1 for component1 and re-evaluate
-    PolicyWaiver policyWaiver = new PolicyWaiver("hash1", policy1.getId(), applicationId, null /* comment */);
+    PolicyWaiver policyWaiver = new PolicyWaiver("hash1", policy1.getId(), app.getId(), null /* comment */);
     PolicyWaiverDAO policyWaiverDAO = new PolicyWaiverDAO();
     policyWaiverDAO.insert(policyWaiver);
-    policyAlerts = evaluator.evaluate(applicationId, stage, Arrays.asList(policy1, policy2), components);
+    policyAlerts = evaluator.evaluate(app.getId(), stage, Arrays.asList(policy1, policy2), components);
     Assert.assertNotNull(policyAlerts);
     Assert.assertEquals(2, policyAlerts.size());
     Assert.assertEquals(1, policyAlerts.get(0).getTrigger().getComponentFacts().size());

@@ -18,6 +18,7 @@ import javax.imageio.ImageIO;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
@@ -31,6 +32,7 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
+import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyMonitoring;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.security.MemberType;
@@ -48,6 +50,7 @@ import org.junit.rules.TemporaryFolder;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.empty;
+import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
@@ -387,7 +390,8 @@ public class ApplicationDAOTest
     application.setName("testCascadeDeleteToPolicyWaivers");
     applicationDAO.insert(application);
 
-    PolicyWaiver policyWaiver = new PolicyWaiver("12345678901234567890", "MyPolicyId", application.getId(),
+    Policy policy = createPolicy(application.getId(), "testCascadeDeleteToPolicyWaivers");
+    PolicyWaiver policyWaiver = new PolicyWaiver("12345678901234567890", policy.getId(), application.getId(),
         "My comment");
     PolicyWaiverDAO policyWaiverDAO = new PolicyWaiverDAO();
     policyWaiverDAO.insert(policyWaiver);
@@ -397,6 +401,21 @@ public class ApplicationDAOTest
     applicationDAO.delete(application);
     policyWaivers = policyWaiverDAO.getByOwnerId(application.getId());
     assertEquals(0, policyWaivers.size());
+  }
+
+  @Test
+  public void testCascadeDeleteToPolicies() {
+    application.setName("testCascadeDeleteToPolicies");
+    applicationDAO.insert(application);
+
+    createPolicy(application.getId(), "testCascadeDeleteToPolicies");
+    PolicyDAO policyDAO = new PolicyDAO();
+    List<Policy> policies = policyDAO.getByOwnerId(application.getId());
+    assertThat(policies, hasSize(1));
+
+    applicationDAO.delete(application);
+    policies = policyDAO.getByOwnerId(application.getId());
+    assertThat(policies, is(empty()));
   }
 
   @Test

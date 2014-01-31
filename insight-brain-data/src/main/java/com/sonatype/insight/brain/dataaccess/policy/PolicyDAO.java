@@ -5,52 +5,26 @@
  */
 package com.sonatype.insight.brain.dataaccess.policy;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.locks.Lock;
 
-import com.sonatype.insight.brain.common.io.FileCleaner;
+import javax.persistence.EntityManager;
+
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.tag.ApplicationTagDAO;
 import com.sonatype.insight.brain.dataaccess.tag.PolicyTagDAO;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.InvalidPolicyException;
 import com.sonatype.insight.brain.model.policy.Policy;
-import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.ValidationResult;
 import com.sonatype.insight.brain.model.tag.ApplicationTag;
 import com.sonatype.insight.brain.model.tag.PolicyTag;
-import com.sonatype.insight.json.store.JsonStore;
-import com.sonatype.insight.json.store.JsonUtils;
-
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class PolicyDAO
 {
-  public static final String POLICY_FILENAME = "policy.json";
-
-  private static final Logger log = LoggerFactory.getLogger(PolicyDAO.class);
-
-  private final File workDir;
-
-  private String user;
-
-  private String ip;
-
-  private String where;
-
-  public PolicyDAO(final File workDir) {
-    this.workDir = workDir;
-  }
+  private static PolicyInternalDAO policyInternalDAO = new PolicyInternalDAO();
 
   public Policy getByOwnerIdAndPolicyId(String ownerId, String policyId) {
     List<Policy> policies = getByOwnerId(ownerId);
@@ -63,208 +37,125 @@ public class PolicyDAO
     return null;
   }
 
+  public Policy getById(String id) {
+    return PolicyInternal.toPolicy(policyInternalDAO.getById(id));
+  }
+
+  public Policy getByIdNotNull(String id) {
+    return PolicyInternal.toPolicy(policyInternalDAO.getByIdNotNull(id));
+  }
+
   public List<Policy> getByOwnerId(final String ownerId) {
-    final JsonStore store = policyStore(ownerId);
-    return getByOwnerId(ownerId, store);
+    return PolicyInternal.toPolicies(policyInternalDAO.getByOwnerId(ownerId));
   }
 
-  private List<Policy> getByOwnerId(final String ownerId, final JsonStore store) {
-    final List<Policy> result = new ArrayList<Policy>();
+  public void insert(Policy policy) {
+    EntityManager em = policyInternalDAO.createEntityManager();
     try {
-      final ArrayNode policies = loadPolicies(store);
-      Collections.addAll(result, JsonUtils.asPojo(policies, Policy[].class));
-      // The policies may have been saved without an ownerId (i.e. before 1.6), so fill in the owner id here.
-      for (Policy policy : result) {
-        policy.setOwnerId(ownerId);
-      }
+      em.getTransaction().begin();
+      insert(em, policy);
+      em.getTransaction().commit();
     }
-    catch (final IOException e) {
-      log.error("Failed to load policies", e);
-      throw new IllegalStateException(e);
+    finally {
+      PolicyInternalDAO.close(em);
     }
-    return result;
   }
 
-  public Policy insert(final String ownerId, final Policy policy) {
-    policy.setOwnerId(ownerId);
+  public void insert(EntityManager em, Policy policy) {
+    String ownerId = policy.getOwnerId();
+    
     ValidationResult validationResult = policy.validate(ownerId);
     if (validationResult != null && !validationResult.isValid()) {
       throw new InvalidPolicyException(validationResult);
     }
 
-    final JsonStore store = policyStore(ownerId);
-    try {
-      final ArrayNode policiesJson = loadPolicies(store);
-      Policy[] existingPolicies = JsonUtils.asPojo(policiesJson, Policy[].class);
-      for (Policy existingPolicy : existingPolicies) {
-        if (NameHelper.equals(policy.getName(), existingPolicy.getName())) {
-          throw new InvalidPolicyException("A policy with name '" + existingPolicy.getName() + "' already exists");
-        }
-      }
+    Policy existingPolicy = getByOwnerIdAndName(em, ownerId, policy.getName());
+    if (existingPolicy != null) {
+      throw new InvalidPolicyException("A policy with name '" + existingPolicy.getName() + "' already exists");
+    }
 
-      // Allocate unique ids to the policy and its constraints
-      policy.setId(newUUID());
-      for (Constraint constraint : policy.getConstraints()) {
+    validateNameWithinHierarchy(em, ownerId, policy.getName());
+
+    // Allocate unique ids to constraints
+    for (Constraint constraint : policy.getConstraints()) {
+      constraint.setId(newUUID());
+    }
+    
+    PolicyInternal policyInternal = PolicyInternal.fromPolicy(policy);
+    policyInternalDAO.insert(em, policyInternal);
+    policy.setId(policyInternal.getId());
+  }
+
+  public void update(Policy policy) {
+    EntityManager em = policyInternalDAO.createEntityManager();
+    try {
+      em.getTransaction().begin();
+      update(em, policy);
+      em.getTransaction().commit();
+    }
+    finally {
+      PolicyInternalDAO.close(em);
+    }
+  }
+
+  public void update(EntityManager em, Policy policy) {
+    String ownerId = policy.getOwnerId();
+
+    ValidationResult validationResult = policy.validate(ownerId);
+    if (validationResult != null && !validationResult.isValid()) {
+      throw new InvalidPolicyException(validationResult);
+    }
+
+    Policy existingPolicy = getByOwnerIdAndName(em, ownerId, policy.getName());
+    if (existingPolicy != null && !policy.getId().equals(existingPolicy.getId())) {
+      throw new InvalidPolicyException("A policy with name '" + existingPolicy.getName() + "' already exists");
+    }
+
+    existingPolicy = PolicyInternal.toPolicy(policyInternalDAO.getByIdNotNull(em, policy.getId()));
+
+    validateNameWithinHierarchy(em, ownerId, policy.getName());
+
+    // Allocate ids to new constraints
+    for (Constraint constraint : policy.getConstraints()) {
+      if (existingPolicy.getConstraintById(constraint.getId()) == null) {
+        // This is a new constraint
         constraint.setId(newUUID());
       }
-
-      policiesJson.add(JsonUtils.asTree(policy));
-
-      List<Lock> readLocks = new ArrayList<Lock>();
-      try {
-        validateNameWithinHierarchy(ownerId, policy.getName(), readLocks);
-        savePolicies(store, policiesJson);
-      }
-      finally {
-        unlock(readLocks);
-      }
     }
-    catch (final IOException e) {
-      log.error("Failed to insert policy {}", policy, e);
-      throw new IllegalStateException(e);
-    }
-    return policy;
+
+    PolicyInternal policyInternal = PolicyInternal.fromPolicy(policy);
+    policyInternalDAO.update(em, policyInternal);
   }
 
-  public Policy update(final String ownerId, final Policy policy) {
-    policy.setOwnerId(ownerId);
-    ValidationResult validationResult = policy.validate(ownerId);
-    if (validationResult != null && !validationResult.isValid()) {
-      throw new InvalidPolicyException(validationResult);
-    }
-
-    final JsonStore store = policyStore(ownerId);
+  public void delete(Policy policy) {
+    EntityManager em = policyInternalDAO.createEntityManager();
     try {
-      boolean updated = false;
-      final ArrayNode policiesJson = loadPolicies(store);
-      for (int i = 0; i < policiesJson.size(); i++) {
-        JsonNode oldPolicyJson = policiesJson.get(i);
-        Policy existingPolicy = JsonUtils.asPojo(oldPolicyJson, Policy.class);
-        if (policy.getId().equals(existingPolicy.getId())) {
-          // Allocate ids to new constraints
-          for (Constraint constraint : policy.getConstraints()) {
-            if (existingPolicy.getConstraintById(constraint.getId()) == null) {
-              // This is a new constraint
-              constraint.setId(newUUID());
-            }
-          }
-
-          // Update the policy
-          policiesJson.set(i, JsonUtils.asTree(policy));
-          updated = true;
-        }
-        else {
-          if (NameHelper.equals(policy.getName(), existingPolicy.getName())) {
-            throw new InvalidPolicyException("A policy with name '" + existingPolicy.getName() + "' already exists");
-          }
-        }
-      }
-
-      if (!updated) {
-        throw new InvalidPolicyException("The policy does not exist");
-      }
-
-      List<Lock> readLocks = new ArrayList<Lock>();
-      try {
-        validateNameWithinHierarchy(ownerId, policy.getName(), readLocks);
-        savePolicies(store, policiesJson);
-      }
-      finally {
-        unlock(readLocks);
-      }
+      em.getTransaction().begin();
+      delete(em, policy);
+      em.getTransaction().commit();
     }
-    catch (final IOException e) {
-      log.error("Failed to update policy {}", policy, e);
-      throw new IllegalStateException(e);
-    }
-    return policy;
-  }
-
-  public void delete(final String ownerId, final String policyId) {
-    final JsonStore store = policyStore(ownerId);
-    try {
-      final ArrayNode policies = loadPolicies(store);
-      for (int i = 0; i < policies.size(); i++) {
-        Policy policy = JsonUtils.asPojo(policies.get(i), Policy.class);
-        if (policyId.equals(policy.getId())) {
-          policies.remove(i);
-          savePolicies(store, policies);
-
-          // Cascade to policy waivers
-          PolicyWaiverDAO policyWaiverDAO = new PolicyWaiverDAO();
-          List<PolicyWaiver> policyWaivers = policyWaiverDAO.getByPolicyId(policyId);
-          for (PolicyWaiver policyWaiver : policyWaivers) {
-            policyWaiverDAO.delete(policyWaiver);
-          }
-
-          return;
-        }
-      }
-    }
-    catch (final IOException e) {
-      log.error("Failed to delete policy {}", policyId, e);
-      throw new IllegalStateException(e);
+    finally {
+      PolicyInternalDAO.close(em);
     }
   }
 
-  public void deleteByOwnerId(final String ownerId) {
-    final File policyDir = getPolicyDir(ownerId);
-    try {
-      new FileCleaner().delete(policyDir);
+  public void delete(EntityManager em, Policy policy) {
+    PolicyInternal policyInternal = PolicyInternal.fromPolicy(policy);
+    policyInternalDAO.delete(em, policyInternal);
+  }
+
+  public void deleteByOwnerId(EntityManager em, String ownerId) {
+    for (PolicyInternal policy : policyInternalDAO.getByOwnerId(em, ownerId)) {
+      policyInternalDAO.delete(em, policy);
     }
-    catch (IOException e) {
-      log.error("Failed to bulk delete policies for {}", ownerId, e);
-      throw new IllegalStateException(e);
-    }
-  }
-
-  public PolicyDAO session(final String _user, final String _ip, final String _where) {
-    user = _user;
-    ip = _ip;
-    where = _where;
-    return this;
-  }
-
-  private static ArrayNode loadPolicies(final JsonStore store) throws IOException {
-    final ArrayNode policies = (ArrayNode) store.restore(POLICY_FILENAME);
-    return policies != null ? policies : JsonUtils.arrayNode(null);
-  }
-
-  private void savePolicies(final JsonStore store, final ArrayNode policies) throws IOException {
-    store.commit(POLICY_FILENAME, JsonUtils.stamp(user, ip, where, policies));
-  }
-
-  private JsonStore policyStore(final String ownerId) {
-    return JsonUtils.fileStore(getPolicyDir(ownerId));
-  }
-
-  public File getPolicyDir(final String ownerId) {
-    return new File(workDir, "policy/" + ownerId);
   }
 
   private static String newUUID() {
     return UUID.randomUUID().toString().replace("-", "");
   }
 
-  private Policy getByOwnerIdAndName(final String ownerId, final String name, final List<Lock> readLocks) {
-    final JsonStore store = policyStore(ownerId, readLocks);
-    try {
-      final ArrayNode policies = loadPolicies(store);
-      for (JsonNode policyJsonNode : policies) {
-        Policy policy = JsonUtils.asPojo(policyJsonNode, Policy.class);
-        if (NameHelper.equals(policy.getName(), name)) {
-          // The policy may have been saved without an ownerId (i.e. before 1.6), so fill in the owner id
-          // here.
-          policy.setOwnerId(ownerId);
-          return policy;
-        }
-      }
-    }
-    catch (final IOException e) {
-      log.error("Failed to load policies", e);
-      throw new IllegalStateException(e);
-    }
-    return null;
+  private Policy getByOwnerIdAndName(EntityManager em, String ownerId, String name) {
+    return PolicyInternal.toPolicy(policyInternalDAO.getByOwnerIdAndName(em, ownerId, name));
   }
 
   public List<Policy> getApplicableByOwnerId(final String ownerId) {
@@ -303,30 +194,22 @@ public class PolicyDAO
     return false;
   }
 
-  private JsonStore policyStore(final String ownerId, final List<Lock> readLocks) {
-    final JsonStore store = policyStore(ownerId);
-    Lock readLock = store.readLock();
-    readLocks.add(readLock);
-    readLock.lock();
-    return store;
-  }
-
-  private void validateNameWithinHierarchy(final String ownerId, final String name, final List<Lock> readLocks)
+  private void validateNameWithinHierarchy(EntityManager em, final String ownerId, final String name)
       throws InvalidPolicyException
   {
     ApplicationDAO applicationDAO = new ApplicationDAO();
-    Application parentApplication = applicationDAO.getById(ownerId);
+    Application parentApplication = applicationDAO.getById(em, ownerId);
     if (parentApplication != null) {
       // The owner is an application
-      if (getByOwnerIdAndName(parentApplication.getOrganizationId(), name, readLocks) != null) {
+      if (getByOwnerIdAndName(em, parentApplication.getOrganizationId(), name) != null) {
         throw new InvalidPolicyException("A policy with the same name already exists" + " for the parent organization");
       }
     }
     else {
       // The owner is an organization
-      List<Application> applications = applicationDAO.getByOrganizationId(ownerId);
+      List<Application> applications = applicationDAO.getByOrganizationId(em, ownerId);
       for (Application application : applications) {
-        if (getByOwnerIdAndName(application.getId(), name, readLocks) != null) {
+        if (getByOwnerIdAndName(em, application.getId(), name) != null) {
           throw new InvalidPolicyException("A policy with the same name already exists" + " for application '"
               + application.getName() + "'");
         }
@@ -334,16 +217,11 @@ public class PolicyDAO
     }
   }
 
-  public static void unlock(List<Lock> locks) {
-    if (locks != null) {
-      for (Lock lock : locks) {
-        try {
-          lock.unlock();
-        }
-        catch (Exception e) {
-          log.warn("Failed to release lock {}", lock, e);
-        }
-      }
-    }
+  public EntityManager createEntityManager() {
+    return policyInternalDAO.createEntityManager();
+  }
+
+  public static void close(EntityManager em) {
+    PolicyInternalDAO.close(em);
   }
 }

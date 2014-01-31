@@ -11,7 +11,6 @@ import java.util.Arrays;
 import java.util.List;
 
 import com.sonatype.insight.brain.AuthedRestAccess;
-import com.sonatype.insight.brain.TemporaryEntity;
 import com.sonatype.insight.brain.configuration.ldap.LdapServer;
 import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
@@ -34,6 +33,7 @@ import org.apache.commons.lang.StringUtils;
 import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
+
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
@@ -45,9 +45,6 @@ import static org.junit.Assert.assertThat;
 public class UserResourceTest
     extends AbstractResourceTest
 {
-  @Rule
-  public TemporaryEntity tempEntity = new TemporaryEntity();
-
   private List<User> usersToDelete = new ArrayList<User>();
 
   @Rule

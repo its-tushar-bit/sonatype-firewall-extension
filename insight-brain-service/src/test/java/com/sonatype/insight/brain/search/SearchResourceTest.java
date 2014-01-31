@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.search;
 
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.AuthedRestAccess;
-import com.sonatype.insight.brain.TemporaryEntity;
 import com.sonatype.insight.brain.search.SearchResource.SearchResult;
 import com.sonatype.insight.brain.search.SearchResource.SearchResults;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
@@ -16,7 +15,6 @@ import com.ning.http.client.AsyncHttpClient;
 import com.ning.http.client.Response;
 import com.yammer.dropwizard.testing.JsonHelpers;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
 
 import static org.hamcrest.Matchers.hasSize;
@@ -28,9 +26,6 @@ public class SearchResourceTest
     extends AbstractResourceTest
 {
   private TestHelper helper;
-
-  @Rule
-  public TemporaryEntity tempEntity = new TemporaryEntity();
 
   @Before
   public void init() {

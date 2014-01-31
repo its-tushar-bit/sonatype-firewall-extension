@@ -449,7 +449,7 @@ public class TrendingReportProcessor
    */
   private Map<String, String> determinePolicyCategories(final Application application) {
     Builder<String,String> builder = new Builder<String, String>();
-    PolicyDAO policyDAO = new PolicyDAO(work.getWorkDir());
+    PolicyDAO policyDAO = new PolicyDAO();
     List<Policy> policies = policyDAO.getByOwnerId(application.getId());
     policies.addAll(policyDAO.getByOwnerId(application.getOrganizationId()));
 

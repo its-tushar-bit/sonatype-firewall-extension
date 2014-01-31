@@ -9,12 +9,18 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.UUID;
 
+import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.tag.ApplicationTagDAO;
 import com.sonatype.insight.brain.dataaccess.tag.PolicyTagDAO;
 import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Color;
+import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.policy.Condition;
+import com.sonatype.insight.brain.model.policy.Constraint;
+import com.sonatype.insight.brain.model.policy.LogicalOperator;
+import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityConditionType;
 import com.sonatype.insight.brain.model.tag.ApplicationTag;
 import com.sonatype.insight.brain.model.tag.PolicyTag;
 import com.sonatype.insight.brain.model.tag.Tag;
@@ -97,6 +103,17 @@ public abstract class AbstractDbDAOTest
     PolicyTag policyTag = new PolicyTag(policyId, tagId);
     new PolicyTagDAO().insert(policyTag);
     return policyTag;
+  }
+
+  protected Policy createPolicy(String ownerId, String name) {
+    Policy policy = new Policy();
+    policy.setName(name);
+    policy.setOwnerId(ownerId);
+    Constraint constraint = new Constraint(null, "Contraint", LogicalOperator.AND);
+    constraint.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
+    policy.addConstraint(constraint);
+    new PolicyDAO().insert(policy);
+    return policy;
   }
 
   @After

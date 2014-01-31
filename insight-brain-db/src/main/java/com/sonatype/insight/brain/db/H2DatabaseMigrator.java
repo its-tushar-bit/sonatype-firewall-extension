@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import javax.sql.DataSource;
@@ -109,6 +110,10 @@ public class H2DatabaseMigrator
       catch (SQLException ignored) {
       }
     }
+  }
+
+  public void runScript(DataSource dataSource, String scriptName) throws SQLException {
+    runScripts(dataSource, Arrays.asList(new String[] { scriptName }));
   }
 
   private void backup(File databaseDir, String databaseName, File backupDir) throws IOException {

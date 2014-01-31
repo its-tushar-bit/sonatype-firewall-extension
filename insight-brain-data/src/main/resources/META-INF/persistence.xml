@@ -17,6 +17,7 @@
     <class>com.sonatype.insight.brain.model.license.LicenseOverride</class>
     <class>com.sonatype.insight.brain.model.license.LicenseThreatGroup</class>
     <class>com.sonatype.insight.brain.model.license.LicenseThreatGroupLicense</class>
+    <class>com.sonatype.insight.brain.dataaccess.policy.PolicyInternal</class>
     <class>com.sonatype.insight.brain.model.policy.PolicyMonitoring</class>
     <class>com.sonatype.insight.brain.model.policy.PolicyWaiver</class>
     <class>com.sonatype.insight.brain.model.security.MembershipMapping</class>

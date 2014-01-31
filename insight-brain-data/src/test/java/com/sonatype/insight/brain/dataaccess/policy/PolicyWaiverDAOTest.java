@@ -9,11 +9,13 @@ import java.util.Date;
 import java.util.List;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
+import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.codehaus.plexus.util.StringUtils;
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.hamcrest.Matchers.hasSize;
@@ -29,6 +31,11 @@ import static org.junit.Assert.fail;
 public class PolicyWaiverDAOTest
     extends AbstractDbDAOTest
 {
+  @Before
+  public void init() {
+    organization = createOrganization("PolicyWaiverDAOTest");
+  }
+
   @Test
   public void testGetByIdNotNull() {
     try {
@@ -47,8 +54,9 @@ public class PolicyWaiverDAOTest
     String hash = "123456789012345678901";
     assertTrue(hash.length() > 20);
     String truncatedHash = hash.substring(0, 20);
-    String policyId = "MyPolicyId";
-    String ownerId = "MyOwnerId";
+    Policy policy = createPolicy(organization.getId(), "PolicyWaiverDAOTest");
+    String policyId = policy.getId();
+    String ownerId = organization.getId();
     String comment = "My comment";
 
     // Create
@@ -105,8 +113,9 @@ public class PolicyWaiverDAOTest
     PolicyWaiverDAO dao = new PolicyWaiverDAO();
 
     String hash = "12345678901234567890";
-    String policyId = "MyPolicyId";
-    String ownerId = "MyOwnerId";
+    Policy policy = createPolicy(organization.getId(), "PolicyWaiverDAOTest");
+    String policyId = policy.getId();
+    String ownerId = organization.getId();
     String comment = "My comment";
     PolicyWaiver policyWaiver1 = new PolicyWaiver(hash, policyId, ownerId, comment);
     dao.insert(policyWaiver1);
@@ -127,8 +136,9 @@ public class PolicyWaiverDAOTest
   public void testAddDuplicate_PolicyLevel() throws Exception {
     PolicyWaiverDAO dao = new PolicyWaiverDAO();
 
-    String policyId = "MyPolicyId";
-    String ownerId = "MyOwnerId";
+    Policy policy = createPolicy(organization.getId(), "PolicyWaiverDAOTest");
+    String policyId = policy.getId();
+    String ownerId = organization.getId();
     String comment = "My comment";
     PolicyWaiver policyWaiver1 = new PolicyWaiver(policyId, ownerId, comment);
     dao.insert(policyWaiver1);
@@ -149,11 +159,13 @@ public class PolicyWaiverDAOTest
   public void testGetByOwnerId_Inherited() {
     createDefaultApplication();
     PolicyWaiverDAO dao = new PolicyWaiverDAO();
+    Policy policy1 = createPolicy(organization.getId(), "PolicyWaiverDAOTest1");
+    Policy policy2 = createPolicy(organization.getId(), "PolicyWaiverDAOTest2");
 
-    PolicyWaiver policyWaiverOrg = new PolicyWaiver("1", "MyPolicyId1", organization.getId(), "My comment1");
+    PolicyWaiver policyWaiverOrg = new PolicyWaiver("1", policy1.getId(), organization.getId(), "My comment1");
     dao.insert(policyWaiverOrg);
 
-    PolicyWaiver policyWaiverApp = new PolicyWaiver("2", "MyPolicyId2", application.getId(), "My comment2");
+    PolicyWaiver policyWaiverApp = new PolicyWaiver("2", policy2.getId(), application.getId(), "My comment2");
     dao.insert(policyWaiverApp);
 
     // Assert for application
@@ -182,7 +194,7 @@ public class PolicyWaiverDAOTest
 
     String hash = "12345678901234567890";
     String policyId = "MyPolicyId";
-    String ownerId = "MyOwnerId";
+    String ownerId = organization.getId();
     String comment = StringUtils.repeat("X", 1001);
     PolicyWaiver policyWaiver1 = new PolicyWaiver(hash, policyId, ownerId, comment);
 
@@ -202,8 +214,9 @@ public class PolicyWaiverDAOTest
     PolicyWaiverDAO dao = new PolicyWaiverDAO();
 
     String hash = "12345678901234567890";
-    String policyId = "MyPolicyId";
-    String ownerId = "MyOwnerId";
+    Policy policy = createPolicy(organization.getId(), "PolicyWaiverDAOTest");
+    String policyId = policy.getId();
+    String ownerId = organization.getId();
     String comment = "Just testing";
     PolicyWaiver policyWaiver1 = new PolicyWaiver(hash, policyId, ownerId, comment);
     dao.insert(policyWaiver1);

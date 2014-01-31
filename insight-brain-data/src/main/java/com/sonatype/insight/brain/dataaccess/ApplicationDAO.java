@@ -17,6 +17,7 @@ import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
@@ -263,6 +264,9 @@ public class ApplicationDAO
     for (Label label : labels) {
       labelDAO.delete(em, label);
     }
+
+    // Cascade to policies
+    new PolicyDAO().deleteByOwnerId(em, application.getId());
 
     // Cascade to policy waivers
     PolicyWaiverDAO policyWaiverDAO = new PolicyWaiverDAO();

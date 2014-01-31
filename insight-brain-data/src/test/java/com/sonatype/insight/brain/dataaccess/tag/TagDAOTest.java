@@ -12,10 +12,11 @@ import java.util.Set;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.NameHelper;
-import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.tag.ApplicationTag;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -439,10 +440,10 @@ public class TagDAOTest
 
   @Test
   public void testDenyCascadeDeleteToPolicyTags() {
-    String policyId = "testDenyCascadeDeleteToPolicyTags_PolicyId";
+    Policy policy = createPolicy(organization.getId(), "TagDAOTest");
     Tag tag = createTag("testDenyCascadeDeleteToPolicyTags name", "testDenyCascadeDeleteToPolicyTags description",
         organization.getId());
-    createPolicyTag(policyId, tag.getId());
+    createPolicyTag(policy.getId(), tag.getId());
 
     try {
       dao.delete(tag);
@@ -463,21 +464,26 @@ public class TagDAOTest
     List<Tag> org1Tags = new ArrayList<>();
     List<Tag> org2Tags = new ArrayList<>();
 
+    Policy policy1 = createPolicy(org1.getId(), "TagDAOTest1");
+    Policy policy2 = createPolicy(org1.getId(), "TagDAOTest2");
+    Policy policy3 = createPolicy(org2.getId(), "TagDAOTest3");
+    Policy policy4 = createPolicy(org2.getId(), "TagDAOTest4");
+
     //Create tags and apply to policies
     org1Tags.add(createTag(org1.getId()));
-    createPolicyTag("policyId1", org1Tags.get(0).getId());
+    createPolicyTag(policy1.getId(), org1Tags.get(0).getId());
     org1Tags.add(createTag(org1.getId()));
-    createPolicyTag("policyId2", org1Tags.get(1).getId());
+    createPolicyTag(policy2.getId(), org1Tags.get(1).getId());
     org1Tags.add(createTag(org1.getId()));
-    createPolicyTag("policyId1", org1Tags.get(2).getId());
-    createPolicyTag("policyId2", org1Tags.get(2).getId());
+    createPolicyTag(policy1.getId(), org1Tags.get(2).getId());
+    createPolicyTag(policy2.getId(), org1Tags.get(2).getId());
     org2Tags.add(createTag(org2.getId()));
-    createPolicyTag("policyId4", org2Tags.get(0).getId());
+    createPolicyTag(policy3.getId(), org2Tags.get(0).getId());
     org2Tags.add(createTag(org2.getId()));
-    createPolicyTag("policyId5", org2Tags.get(1).getId());
+    createPolicyTag(policy4.getId(), org2Tags.get(1).getId());
     org2Tags.add(createTag(org2.getId()));
-    createPolicyTag("policyId4", org2Tags.get(2).getId());
-    createPolicyTag("policyId5", org2Tags.get(2).getId());
+    createPolicyTag(policy3.getId(), org2Tags.get(2).getId());
+    createPolicyTag(policy4.getId(), org2Tags.get(2).getId());
 
     //Create tags but do not apply to policies
     createTag(org1.getId());

@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.policy;
 
-import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
@@ -13,7 +12,6 @@ import java.util.UUID;
 
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.insight.brain.AuthedRestAccess;
-import com.sonatype.insight.brain.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.label.ComponentLabelDAO;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
@@ -23,8 +21,8 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.tag.PolicyTagDAO;
 import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Color;
+import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroupLicense;
@@ -42,20 +40,17 @@ import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.policy.PolicyResource.ApplicablePolicies;
 import com.sonatype.insight.brain.policy.PolicyResource.PoliciesByOwner;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
-import com.sonatype.insight.json.store.JsonStore;
-import com.sonatype.insight.json.store.JsonUtils;
+import com.sonatype.insight.brain.utils.IdUtils;
 
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Lists;
 import com.ning.http.client.Response;
 import com.yammer.dropwizard.testing.JsonHelpers;
 import org.junit.Assert;
-import org.junit.Rule;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.utils.IdUtils.TYPE_APPLICATION;
 import static com.sonatype.insight.brain.utils.IdUtils.TYPE_ORGANIZATION;
-import static com.yammer.dropwizard.testing.JsonHelpers.*;
+import static com.yammer.dropwizard.testing.JsonHelpers.asJson;
 import static org.hamcrest.CoreMatchers.endsWith;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.greaterThan;
@@ -70,10 +65,6 @@ import static org.junit.Assert.assertTrue;
 public class PolicyResourceTest
     extends AbstractResourceTest
 {
-
-  @Rule
-  public TemporaryEntity tempEntity = new TemporaryEntity();
-
   private static final String APP = TYPE_APPLICATION;
   private static final String ORG = TYPE_ORGANIZATION;
   private static final LabelDAO labelDAO = new LabelDAO();
@@ -188,26 +179,19 @@ public class PolicyResourceTest
   @Test
   public void testCRUD_ApplicationLevel() throws Exception {
     String applicationPublicId = "PolicyResourceTest_testCRUD";
-    Application application = createApplication(applicationPublicId);
-    String appId = application.getId();
+    createApplication(applicationPublicId);
 
-    JsonStore store = JsonUtils.fileStore(new File(brain.getWorkDir(), "policy/" + appId));
-
-    testCRUD(APP, applicationPublicId, store);
+    testCRUD(APP, applicationPublicId);
   }
 
   @Test
   public void testCRUD_OrganizationLevel() throws Exception {
     String orgId = createOrganization("test").getId();
 
-    JsonStore store = JsonUtils.fileStore(new File(brain.getWorkDir(), "policy/" + orgId));
-
-    testCRUD(ORG, orgId, store);
+    testCRUD(ORG, orgId);
   }
 
-  private void testCRUD(String ownerType, String ownerId, JsonStore store) throws Exception {
-    Assert.assertEquals(0, store.modificationCount());
-
+  private void testCRUD(String ownerType, String ownerId) throws Exception {
     // Add a policy
     Policy policy = new Policy();
     policy.setName("PolicyResourceTest new policy");
@@ -221,8 +205,6 @@ public class PolicyResourceTest
     assertNotNull(policy1.getId());
     Assert.assertEquals("PolicyResourceTest new policy", policy1.getName());
 
-    Assert.assertEquals(1, store.modificationCount());
-
     // Get all policies
     response = AuthedRestAccess.get(getServiceURL(ownerType, ownerId));
     assertResponseStatus(200, response);
@@ -232,14 +214,6 @@ public class PolicyResourceTest
     Assert.assertEquals(policy1.getId(), policies[0].getId());
     Assert.assertEquals(policy1.getName(), policies[0].getName());
 
-    Assert.assertEquals(1, store.modificationCount());
-
-    ObjectNode json;
-
-    json = (ObjectNode) store.history(null, "policy.json").get("aaData").get(0);
-    json = json.without(Arrays.asList("user", "ip", "where", "time", "filename"));
-    Assert.assertEquals(JsonUtils.asTree(policy1), json);
-
     // Update a policy
     policy = policies[0];
     policy.setName("PolicyResourceTest updated policy");
@@ -247,8 +221,6 @@ public class PolicyResourceTest
     assertResponseStatus(200, response);
     final Policy policy2 = JsonHelpers.fromJson(response.getResponseBody(), Policy.class);
     Assert.assertEquals("PolicyResourceTest updated policy", policy2.getName());
-
-    Assert.assertEquals(2, store.modificationCount());
 
     // Get all policies
     response = AuthedRestAccess.get(getServiceURL(ownerType, ownerId));
@@ -259,22 +231,10 @@ public class PolicyResourceTest
     Assert.assertEquals(policy2.getId(), policies[0].getId());
     Assert.assertEquals(policy2.getName(), policies[0].getName());
 
-    Assert.assertEquals(2, store.modificationCount());
-
-    json = (ObjectNode) store.history(null, "policy.json").get("aaData").get(0);
-    json = json.without(Arrays.asList("user", "ip", "where", "time", "filename"));
-    Assert.assertEquals(JsonUtils.asTree(policy2), json);
-
-    json = (ObjectNode) store.history(null, "policy.json").get("aaData").get(1);
-    json = json.without(Arrays.asList("user", "ip", "where", "time", "filename"));
-    Assert.assertEquals(JsonUtils.asTree(policy1), json);
-
     // Delete a policy
     policy = policies[0];
     response = AuthedRestAccess.delete(getServiceURL(ownerType, ownerId, policy.getId()));
     assertResponseStatus(204, response);
-
-    Assert.assertEquals(3, store.modificationCount());
 
     // Get all policies
     response = AuthedRestAccess.get(getServiceURL(ownerType, ownerId));
@@ -282,37 +242,22 @@ public class PolicyResourceTest
     policies = JsonHelpers.fromJson(response.getResponseBody(), Policy[].class);
     assertNotNull(policies);
     Assert.assertEquals(0, policies.length);
-
-    Assert.assertEquals(3, store.modificationCount());
-
-    json = (ObjectNode) store.history(null, "policy.json").get("aaData").get(0);
-    json = json.without(Arrays.asList("user", "ip", "where", "time", "filename"));
-    Assert.assertEquals(JsonUtils.asTree(policy2), json);
-
-    json = (ObjectNode) store.history(null, "policy.json").get("aaData").get(1);
-    json = json.without(Arrays.asList("user", "ip", "where", "time", "filename"));
-    Assert.assertEquals(JsonUtils.asTree(policy1), json);
   }
 
   @Test
   public void testCreateInvalidPolicy_AppLevel() throws Exception {
     String applicationPublicId = "PolicyResourceTest_testCreateInvalidPolicy";
-    Application application = createApplication(applicationPublicId);
-    String appId = application.getId();
-    JsonStore store = JsonUtils.fileStore(new File(brain.getWorkDir(), "policy/" + appId));
-    testCreateInvalidPolicy(APP, applicationPublicId, store);
+    createApplication(applicationPublicId);
+    testCreateInvalidPolicy(APP, applicationPublicId);
   }
 
   @Test
   public void testCreateInvalidPolicy_OrgLevel() throws Exception {
     String orgId = createOrganization("test").getId();
-    JsonStore store = JsonUtils.fileStore(new File(brain.getWorkDir(), "policy/" + orgId));
-    testCreateInvalidPolicy(ORG, orgId, store);
+    testCreateInvalidPolicy(ORG, orgId);
   }
 
-  private void testCreateInvalidPolicy(String ownerType, String ownerId, JsonStore store) throws Exception {
-    Assert.assertEquals(0, store.modificationCount());
-
+  private void testCreateInvalidPolicy(String ownerType, String ownerId) throws Exception {
     Policy policy = new Policy();
     policy.setName(null);
     Constraint constraint = new Constraint();
@@ -327,22 +272,17 @@ public class PolicyResourceTest
   @Test
   public void testUpdateInvalidPolicy_AppLevel() throws Exception {
     String applicationPublicId = "PolicyResourceTest_testUpdateInvalidPolicy";
-    Application application = createApplication(applicationPublicId);
-    String appId = application.getId();
-    JsonStore store = JsonUtils.fileStore(new File(brain.getWorkDir(), "policy/" + appId));
-    testUpdateInvalidPolicy(APP, applicationPublicId, store);
+    createApplication(applicationPublicId);
+    testUpdateInvalidPolicy(APP, applicationPublicId);
   }
 
   @Test
   public void testUpdateInvalidPolicy_OrgLevel() throws Exception {
     String orgId = createOrganization("test").getId();
-    JsonStore store = JsonUtils.fileStore(new File(brain.getWorkDir(), "policy/" + orgId));
-    testUpdateInvalidPolicy(ORG, orgId, store);
+    testUpdateInvalidPolicy(ORG, orgId);
   }
 
-  private void testUpdateInvalidPolicy(String ownerType, String ownerId, JsonStore store) throws Exception {
-    Assert.assertEquals(0, store.modificationCount());
-
+  private void testUpdateInvalidPolicy(String ownerType, String ownerId) throws Exception {
     // Create a valid policy
     Policy policy = new Policy();
     policy.setName("PolicyResourceTest-testUpdateInvalidPolicy");
@@ -736,10 +676,28 @@ public class PolicyResourceTest
   }
 
   private PolicyDAO policyDAO() {
-    return new PolicyDAO(brain.getWorkDir());
+    return new PolicyDAO();
   }
 
   private String id(){
     return UUID.randomUUID().toString();
+  }
+
+  @Test
+  public void testDeletePolicy_OwnerIdMismatch() throws Exception {
+    Organization org = tempEntity.newOrganization("testDeletePolicyOwnerIdMismatch");
+    String appPublicId1 = "PolicyResourceTest_AppId1";
+    Application app1 = tempEntity.newApplication(appPublicId1, org.getId());
+    String appPublicId2 = "PolicyResourceTest_AppId2";
+    tempEntity.newApplication(appPublicId2, org.getId());
+    Policy policy = tempEntity.newPolicy(app1.getId(), "testDeletePolicyOwnerIdMismatch");
+
+    Response response = AuthedRestAccess.delete(getServiceURL(IdUtils.TYPE_APPLICATION, appPublicId2) + "/"
+        + policy.getId());
+    assertResponseStatus(404, response);
+    Assert.assertEquals("Cannot find a policy with id " + policy.getId() + " for application id " + appPublicId2,
+        response.getResponseBody());
+    // Verify that the policy was not deleted
+    assertThat(new PolicyDAO().getById(policy.getId()), notNullValue());
   }
 }

@@ -18,19 +18,21 @@ import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
 import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
 import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
+import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.model.Organization;
-import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
+import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyMonitoring;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.security.MemberType;
@@ -45,6 +47,7 @@ import org.junit.rules.TemporaryFolder;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.empty;
+import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
@@ -343,6 +346,21 @@ public class OrganizationDAOTest
   }
 
   @Test
+  public void testCascadeDeleteToPolicies() {
+    Organization organization = new Organization("organization");
+    dao.insert(organization);
+
+    createPolicy(organization.getId(), "testCascadeDeleteToPolicies");
+    PolicyDAO policyDAO = new PolicyDAO();
+    List<Policy> policies = policyDAO.getByOwnerId(organization.getId());
+    assertThat(policies, hasSize(1));
+
+    dao.delete(organization);
+    policies = policyDAO.getByOwnerId(organization.getId());
+    assertThat(policies, is(empty()));
+  }
+
+  @Test
   public void testCascadeDeleteToLicenseOverrides() {
     Organization organization = new Organization("testCascadeDeleteToLicenseOverrides");
     dao.insert(organization);
@@ -365,7 +383,8 @@ public class OrganizationDAOTest
     Organization organization = new Organization("testCascadeDeleteToPolicyWaivers");
     dao.insert(organization);
 
-    PolicyWaiver policyWaiver = new PolicyWaiver("12345678901234567890", "MyPolicyId", organization.getId(),
+    Policy policy = createPolicy(organization.getId(), "testCascadeDeleteToPolicyWaivers");
+    PolicyWaiver policyWaiver = new PolicyWaiver("12345678901234567890", policy.getId(), organization.getId(),
         "My comment");
     PolicyWaiverDAO policyWaiverDAO = new PolicyWaiverDAO();
     policyWaiverDAO.insert(policyWaiver);

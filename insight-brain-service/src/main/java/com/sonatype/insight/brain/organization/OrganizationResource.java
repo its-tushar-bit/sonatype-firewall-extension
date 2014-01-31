@@ -29,7 +29,6 @@ import javax.ws.rs.core.Response;
 import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
-import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.security.Permission;
@@ -216,12 +215,8 @@ public class OrganizationResource
 
     // cascade to applications first
     for (Application application : new ApplicationDAO().getByOrganizationId(em, organizationId)) {
-        applicationCleaner.delete(em, application.getPublicId());
+      applicationCleaner.delete(em, application);
     }
-
-    // oddly orgDAO.delete does not cascade to policies, but cascades to labels, license threat groups and waivers
-    PolicyDAO policyDAO = new PolicyDAO(work.getWorkDir());
-    policyDAO.deleteByOwnerId(organization.getId()); // not stored in database as of 1.6
 
     File organizationIconDirectory = new File(work.getOrganizationIconDir(), organizationId);
     try {

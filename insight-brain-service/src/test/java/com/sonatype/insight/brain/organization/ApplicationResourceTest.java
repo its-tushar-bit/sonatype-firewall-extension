@@ -22,12 +22,7 @@ import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
-import com.sonatype.insight.brain.model.policy.Condition;
-import com.sonatype.insight.brain.model.policy.Constraint;
-import com.sonatype.insight.brain.model.policy.LogicalOperator;
-import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
-import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityConditionType;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateResource;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluationLog;
 import com.sonatype.insight.brain.saas.CIResource;
@@ -164,21 +159,11 @@ public class ApplicationResourceTest
 
     assertResponseStatus(400, response);
 
-    // Create policy to be deleted along app
-    PolicyDAO policyDAO = new PolicyDAO(brain.getWorkDir());
-    Policy policy1 = new Policy();
-    policy1.setName("PolicyDAOTest new policy 1");
-    Constraint constraint1 = new Constraint(null, "PolicyDAOTest new constraint 1", LogicalOperator.AND);
-    constraint1.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
-    policy1.addConstraint(constraint1);
-    policyDAO.insert(application.getId(), policy1);
-
     // Test delete
     response = AuthedRestAccess.delete(getServiceURL() + "/" + applicationPublicId);
     assertResponseStatus(204, response);
     application = applicationDAO.getByPublicId(applicationPublicId);
     Assert.assertNull(application);
-    Assert.assertEquals(0, policyDAO.getByOwnerId(applicationResult.getId()).size());
     iconResponse = AuthedRestAccess.get(getServiceURL() + "/icon/" + applicationPublicId);
     assertResponseStatus(404, iconResponse);
   }
@@ -234,7 +219,7 @@ public class ApplicationResourceTest
   @Test
   public void testDeleteApplicationWithData() throws Exception {
     final ApplicationDAO applicationDAO = new ApplicationDAO();
-    final PolicyDAO policyDAO = new PolicyDAO(brain.getWorkDir());
+    final PolicyDAO policyDAO = new PolicyDAO();
 
     final String applicationPublicId = "testDeleteApplicationWithScan_PublicId";
     final String applicationName = "testDeleteApplicationWithScanAppName";
@@ -262,7 +247,6 @@ public class ApplicationResourceTest
     createDirectory(insightWork.getScanDir(applicationId));
     createDirectory(insightWork.getAuditDir(applicationId));
     createDirectory(insightWork.getReportDir(applicationId));
-    createDirectory(policyDAO.getPolicyDir(applicationId));
 
     response = AuthedRestAccess.delete(getServiceURL() + "/" + applicationPublicId);
     application = applicationDAO.getByPublicId(applicationPublicId);
@@ -274,7 +258,6 @@ public class ApplicationResourceTest
     Assert.assertFalse(insightWork.getScanDir(applicationId).exists());
     Assert.assertFalse(insightWork.getAuditDir(applicationId).exists());
     Assert.assertFalse(insightWork.getReportDir(applicationId).exists());
-    Assert.assertFalse(policyDAO.getPolicyDir(applicationId).exists());
   }
 
   @Test
@@ -426,8 +409,7 @@ public class ApplicationResourceTest
     setLicenseFingerprint(licenseFingerprint);
 
     // Create policy
-    createSimplePolicy(application, "policy 1", "constraint 1", LogicalOperator.AND, new Condition(
-        SecurityVulnerabilityConditionType.ID, "present"));
+    tempEntity.newPolicy(application.getId(), "policy 1");
     final String scanId1 = "ScanId1", scanId2 = "ScanId2";
     final File saasReportFile1 = getReportResponseFile(licenseFingerprint, scanId1);
     FileUtils.copyURLToFile(getClass().getResource("/PolicyEvaluateResourceTest/report.zip"), saasReportFile1);
@@ -637,20 +619,6 @@ public class ApplicationResourceTest
     if (!dir.isDirectory()) {
       Assert.assertTrue("create directory " + dir.getAbsolutePath(), dir.mkdirs());
     }
-  }
-
-  private void createSimplePolicy(Application app, String policyName, String constraintName, LogicalOperator op,
-      Condition... conditions)
-  {
-    PolicyDAO policyDAO = new PolicyDAO(brain.getWorkDir());
-    Policy policy1 = new Policy();
-    policy1.setName(policyName);
-    Constraint constraint1 = new Constraint(null, constraintName, op);
-    for (Condition condition : conditions) {
-      constraint1.addCondition(condition);
-    }
-    policy1.addConstraint(constraint1);
-    policyDAO.insert(app.getId(), policy1);
   }
 
   private String getValidateApplicationIdServiceURL(String applicationPublicId) {

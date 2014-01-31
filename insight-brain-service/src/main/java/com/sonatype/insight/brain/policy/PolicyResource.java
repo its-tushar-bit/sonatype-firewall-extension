@@ -40,11 +40,10 @@ import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzErrorMsg;
-import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.IdUtils;
-import com.sonatype.insight.client.utils.AuditUtils;
 import com.sonatype.insight.error.ErrorResponseGenerator;
 import com.sonatype.insight.error.exception.BadRequestException;
+import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import com.sun.jersey.core.header.FormDataContentDisposition;
@@ -66,15 +65,12 @@ public class PolicyResource
   private static final String BAD_FORMAT_FILE_UPLOAD = "The file you selected failed to upload correctly, are you certain" +
       " it is a properly formatted policy import json file?";
 
-  private final InsightWork work;
-
   private final PolicyImporter policyImporter;
 
   private ErrorResponseGenerator errorResponseGenerator = new ErrorResponseGenerator(false);
 
   @Inject
-  public PolicyResource(InsightWork work, PolicyImporter policyImporter) {
-    this.work = work;
+  public PolicyResource(PolicyImporter policyImporter) {
     this.policyImporter = policyImporter;
   }
 
@@ -89,7 +85,7 @@ public class PolicyResource
 
     String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
 
-    return policyDAO().getByOwnerId(internalOwnerId);
+    return new PolicyDAO().getByOwnerId(internalOwnerId);
   }
 
   /**
@@ -117,7 +113,7 @@ public class PolicyResource
       policiesByOwner.ownerId = application.getId();
       policiesByOwner.ownerName = application.getName();
       policiesByOwner.ownerType = IdUtils.TYPE_APPLICATION;
-      policiesByOwner.policies = policyDAO().getByOwnerId(application.getId());
+      policiesByOwner.policies = new PolicyDAO().getByOwnerId(application.getId());
       result.policiesByOwner.add(policiesByOwner);
       organizationId = application.getOrganizationId();
     }
@@ -130,7 +126,7 @@ public class PolicyResource
     policiesByOwner.ownerId = organization.getId();
     policiesByOwner.ownerName = organization.getName();
     policiesByOwner.ownerType = IdUtils.TYPE_ORGANIZATION;
-    policiesByOwner.policies = policyDAO().getByOwnerId(organization.getId());
+    policiesByOwner.policies = new PolicyDAO().getByOwnerId(organization.getId());
     result.policiesByOwner.add(policiesByOwner);
 
     return result;
@@ -151,8 +147,10 @@ public class PolicyResource
     log.debug("Received request to add {} policy for ownerId {}", ownerType, ownerId);
 
     String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
+    policy.setOwnerId(internalOwnerId);
+    new PolicyDAO().insert(policy);
 
-    return policyDAO().session(user, AuditUtils.findIP(request), where).insert(internalOwnerId, policy);
+    return policy;
   }
 
   @PUT
@@ -170,8 +168,10 @@ public class PolicyResource
     log.debug("Received request to update {} policy for ownerId {}, policyId {}", ownerType, ownerId, policy.getId());
 
     String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
+    policy.setOwnerId(internalOwnerId);
+    new PolicyDAO().update(policy);
 
-    return policyDAO().session(user, AuditUtils.findIP(request), where).update(internalOwnerId, policy);
+    return policy;
   }
 
   @DELETE
@@ -189,7 +189,13 @@ public class PolicyResource
 
     String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
 
-    policyDAO().session(user, AuditUtils.findIP(request), where).delete(internalOwnerId, policyId);
+    PolicyDAO policyDAO = new PolicyDAO();
+    Policy policy = policyDAO.getByIdNotNull(policyId);
+    if (!internalOwnerId.equals(policy.getOwnerId())) {
+      throw new NotFoundException("Cannot find a policy with id " + policyId + " for " + ownerType + " id " + ownerId);
+    }
+
+    policyDAO.delete(policy);
   }
 
   @GET
@@ -203,7 +209,7 @@ public class PolicyResource
     String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
 
     PolicyExportResult exportDTO = new PolicyExportResult();
-    exportDTO.policies = policyDAO().getByOwnerId(internalOwnerId);
+    exportDTO.policies = new PolicyDAO().getByOwnerId(internalOwnerId);
     exportDTO.labels = new LabelDAO().getByOwnerId(internalOwnerId);
     exportDTO.licenseThreatGroups = new LicenseThreatGroupDAO().getByOwnerId(internalOwnerId);
     exportDTO.licenseThreatGroupLicenses = new LicenseThreatGroupLicenseDAO().getByOwnerId(internalOwnerId);
@@ -303,10 +309,6 @@ public class PolicyResource
     }
 
     return parse;
-  }
-
-  private PolicyDAO policyDAO() {
-    return new PolicyDAO(work.getWorkDir());
   }
 
   public static class ApplicablePolicies

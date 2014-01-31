@@ -82,10 +82,11 @@ public class SaasIdeResourcePerformanceUtils
 
   public static void addPolicy(Application app, Policy[] policies, InsightWork work) throws Exception {
     String appId = app.getId();
-    PolicyDAO policyDAO = new PolicyDAO(work.getWorkDir());
+    PolicyDAO policyDAO = new PolicyDAO();
 
     for (Policy policy : policies) {
-      policyDAO.insert(appId, policy);
+      policy.setOwnerId(appId);
+      policyDAO.insert(policy);
     }
   }
 

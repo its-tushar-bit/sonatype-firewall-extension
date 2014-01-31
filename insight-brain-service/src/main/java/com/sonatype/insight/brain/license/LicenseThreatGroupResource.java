@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.license;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -36,7 +35,6 @@ import com.sonatype.insight.brain.model.policy.conditions.LicenseThreatGroupCond
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
-import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -50,13 +48,6 @@ public class LicenseThreatGroupResource
   private final LicenseThreatGroupDAO licenseThreatGroupDAO = new LicenseThreatGroupDAO();
 
   private final LicenseThreatGroupLicenseDAO licenseThreatGroupLicenseDAO = new LicenseThreatGroupLicenseDAO();
-
-  private final InsightWork work;
-
-  @Inject
-  public LicenseThreatGroupResource(InsightWork work) {
-    this.work = work;
-  }
 
   @GET
   @Produces({ MediaType.APPLICATION_JSON })
@@ -163,7 +154,7 @@ public class LicenseThreatGroupResource
     }
 
     // Verify that the license threat group is not used in a policy condition
-    PolicyDAO policyDAO = new PolicyDAO(work.getWorkDir());
+    PolicyDAO policyDAO = new PolicyDAO();
 
     String inUseError = "Cannot delete the license threat group because it is used in a condition for the '%s' policy";
 

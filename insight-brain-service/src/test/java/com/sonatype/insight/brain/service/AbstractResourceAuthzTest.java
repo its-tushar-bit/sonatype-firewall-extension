@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.service;
 
-import com.sonatype.insight.brain.TemporaryEntity;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
@@ -16,7 +15,6 @@ import com.sonatype.insight.test.RestAccess;
 
 import com.ning.http.client.Response;
 import org.junit.Before;
-import org.junit.Rule;
 
 /**
  * Provides boilerplate fixture for authorization tests.
@@ -24,9 +22,6 @@ import org.junit.Rule;
 public abstract class AbstractResourceAuthzTest
     extends AbstractResourceTest
 {
-  @Rule
-  public TemporaryEntity tempEntity = new TemporaryEntity();
-
   protected Organization org;
 
   protected Application app;

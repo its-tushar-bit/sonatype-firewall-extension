@@ -106,9 +106,19 @@ public class PolicyWaiverDAO
   }
 
   public List<PolicyWaiver> getByPolicyId(String policyId) {
+    EntityManager em = createEntityManager();
+    try {
+      return getByPolicyId(em, policyId);
+    }
+    finally {
+      close(em);
+    }
+  }
+
+  public List<PolicyWaiver> getByPolicyId(EntityManager em, String policyId) {
     String sQuery = "SELECT entity FROM PolicyWaiver entity" + //
         " WHERE entity.policyId=?1";
-    return getList(sQuery, policyId);
+    return getList(em, sQuery, policyId);
   }
 
   private PolicyWaiver getByHashAndPolicyIdAndConstraintIdAndOwnerId(EntityManager em, String hash, String policyId,

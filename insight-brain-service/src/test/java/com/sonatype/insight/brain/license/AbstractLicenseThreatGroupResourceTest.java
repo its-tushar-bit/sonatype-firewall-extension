@@ -64,10 +64,11 @@ abstract class AbstractLicenseThreatGroupResourceTest
     ltgDAO.insert(ltg);
 
     Policy policy = new Policy(null, "policyName");
+    policy.setOwnerId(policyOwnerId);
     Constraint constraint = new Constraint(null, "constraintName", LogicalOperator.AND);
     constraint.addCondition(new Condition(LicenseThreatGroupConditionType.ID, "is", ltg.getId()));
     policy.addConstraint(constraint);
-    new PolicyDAO(brain.getWorkDir()).insert(policyOwnerId, policy);
+    new PolicyDAO().insert(policy);
 
     Response response = AuthedRestAccess.delete(getServiceURL(ownerPublicId) + "/" + ltg.getId());
     assertResponseStatus(400, response);

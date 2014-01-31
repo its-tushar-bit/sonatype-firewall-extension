@@ -9,7 +9,6 @@ import java.util.Collections;
 
 import com.sonatype.insight.brain.AuthedRestAccess;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
-import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
@@ -23,8 +22,6 @@ import com.ning.http.client.AsyncHttpClient;
 import com.ning.http.client.Response;
 import com.ning.http.multipart.ByteArrayPartSource;
 import com.ning.http.multipart.FilePart;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 
 import static org.hamcrest.Matchers.is;
@@ -33,25 +30,12 @@ import static org.junit.Assert.assertThat;
 public class PolicyResourceAuthzTest
     extends AbstractResourceAuthzTest
 {
-  private PolicyDAO policyDAO;
-
   private Policy newPolicy() {
     Policy policy = new Policy(null, "Policy " + tempEntity.uuid());
     Constraint constraint = new Constraint(null, "Test Constraint", LogicalOperator.AND);
     constraint.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
     policy.addConstraint(constraint);
     return policy;
-  }
-
-  @Before
-  public void init() {
-    policyDAO = new PolicyDAO(brain.getWorkDir());
-  }
-
-  @After
-  public void exit() {
-    policyDAO.deleteByOwnerId(app.getId());
-    policyDAO.deleteByOwnerId(org.getId());
   }
 
   @Test
@@ -99,15 +83,13 @@ public class PolicyResourceAuthzTest
   public void testUpdatePolicy() throws Exception {
     grantWritePermission(app.getId());
 
-    Policy policy = newPolicy();
-    policyDAO.insert(app.getId(), policy);
+    Policy policy = tempEntity.newPolicy(app.getId(), "testUpdatePolicy app");
     String url = getRestUrl(PolicyResource.SERVICE_PATH, IdUtils.TYPE_APPLICATION, app.getPublicId());
     testAuthzPut(url, toJson(policy));
 
     grantWritePermission(org.getId());
 
-    policy = newPolicy();
-    policyDAO.insert(org.getId(), policy);
+    policy = tempEntity.newPolicy(org.getId(), "testUpdatePolicy org");
     url = getRestUrl(PolicyResource.SERVICE_PATH, IdUtils.TYPE_ORGANIZATION, org.getId());
     testAuthzPut(url, toJson(policy));
   }
@@ -116,16 +98,14 @@ public class PolicyResourceAuthzTest
   public void testDeletePolicy() throws Exception {
     grantWritePermission(app.getId());
 
-    Policy policy = newPolicy();
-    policyDAO.insert(app.getId(), policy);
+    Policy policy = tempEntity.newPolicy(app.getId(), "testDeletePolicy");
     String url = getRestUrl(PolicyResource.SERVICE_PATH + "/{policyId}", IdUtils.TYPE_APPLICATION, app.getPublicId(),
         policy.getId());
     testAuthzDelete(url);
 
     grantWritePermission(org.getId());
 
-    policy = newPolicy();
-    policyDAO.insert(org.getId(), policy);
+    policy = tempEntity.newPolicy(org.getId(), "testDeletePolicy");
     url = getRestUrl(PolicyResource.SERVICE_PATH + "/{policyId}", IdUtils.TYPE_ORGANIZATION, org.getId(),
         policy.getId());
     testAuthzDelete(url);

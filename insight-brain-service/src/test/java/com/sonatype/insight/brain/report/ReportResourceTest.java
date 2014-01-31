@@ -548,13 +548,14 @@ public class ReportResourceTest
     final Condition condition = new Condition(SecurityVulnerabilityConditionType.ID, "present");
     constraint.addCondition(condition);
     final Policy policy = new Policy("P1", "testReevaluateReport policy1");
+    policy.setOwnerId(application.getId());
     policy.setThreatLevel(8);
     policy.addConstraint(constraint);
     final Action notifyAction = new Action(NotifyActionType.ID);
     notifyAction.setTarget("manager@test.corp");
     policy.addAction(BuildStageType.ID, notifyAction);
-    PolicyDAO policyDAO = new PolicyDAO(brain.getWorkDir());
-    policyDAO.insert(application.getId(), policy);
+    PolicyDAO policyDAO = new PolicyDAO();
+    policyDAO.insert(policy);
     final Stage stage = new Stage(BuildStageType.ID);
 
     List<Message> notifications = Mailbox.get("manager@test.corp");
@@ -580,7 +581,7 @@ public class ReportResourceTest
 
     // ReEvaluate
     policy.setName(policy.getName() + " Updated");
-    policyDAO.update(application.getId(), policy);
+    policyDAO.update(policy);
     final String resourcePrefix = getServiceURL(applicationPublicId, scanId);
     response = AuthedRestAccess.get(resourcePrefix + "/reevaluatePolicy");
     assertResponseStatus(200, response);

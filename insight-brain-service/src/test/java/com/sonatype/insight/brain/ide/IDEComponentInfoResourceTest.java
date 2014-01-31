@@ -452,8 +452,9 @@ public class IDEComponentInfoResourceTest
 
   private void addPolicy(String applicationPublicId, Policy policy) throws Exception {
     String appId = new ApplicationDAO().getByPublicIdNotNull(applicationPublicId).getId();
-    PolicyDAO policyDAO = new PolicyDAO(brain.getWorkDir());
-    policyDAO.insert(appId, policy);
+    PolicyDAO policyDAO = new PolicyDAO();
+    policy.setOwnerId(appId);
+    policyDAO.insert(policy);
   }
 
   private String convertToSaasUrl(String brainUrl, String applicationId) {

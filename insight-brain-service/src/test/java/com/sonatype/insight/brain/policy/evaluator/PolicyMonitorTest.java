@@ -19,7 +19,6 @@ import com.sonatype.clm.dto.model.policy.NotifyAction;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.AuthedRestAccess;
-import com.sonatype.insight.brain.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
@@ -45,7 +44,6 @@ import com.yammer.dropwizard.testing.JsonHelpers;
 import org.codehaus.plexus.util.FileUtils;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
 import org.jvnet.mock_javamail.Mailbox;
 
@@ -60,9 +58,6 @@ import static org.junit.Assert.assertThat;
 public class PolicyMonitorTest
     extends AbstractLicenseTest
 {
-  @Rule
-  public TemporaryEntity tempEntity = new TemporaryEntity();
-
   private PolicyMonitor policyMonitor;
 
   private InsightWork insightWork;

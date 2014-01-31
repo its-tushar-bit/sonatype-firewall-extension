@@ -48,6 +48,7 @@ public class MatchFact
 
   @Override
   public String toString() {
-    return "(" + policyId + ", " + constraintId + ", " + conditionNumber + ") @ " + component;
+    return "(Policy id:" + policyId + ", Constraint id:" + constraintId + ", Condition number:" + conditionNumber
+        + ") @ " + component;
   }
 }

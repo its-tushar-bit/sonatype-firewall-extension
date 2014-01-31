@@ -6,15 +6,13 @@
 package com.sonatype.insight.brain.tag;
 
 import com.sonatype.insight.brain.AuthedRestAccess;
-import com.sonatype.insight.brain.TemporaryEntity;
-import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Color;
+import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
 import com.ning.http.client.Response;
 import com.yammer.dropwizard.testing.JsonHelpers;
-import org.junit.Rule;
 import org.junit.Test;
 
 import static org.hamcrest.Matchers.is;
@@ -24,9 +22,6 @@ import static org.junit.Assert.assertThat;
 public class TagResourceTest
     extends AbstractResourceTest
 {
-  @Rule
-  public TemporaryEntity tempEntity = new TemporaryEntity();
-
   @Test
   public void testCRUD() throws Exception {
     Organization org = createOrganization("TagResourceTest");

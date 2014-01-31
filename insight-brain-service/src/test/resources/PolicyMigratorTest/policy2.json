@@ -1,0 +1,85 @@
+[ {
+  "time" : 1391186970137,
+  "user" : null,
+  "ip" : "127.0.0.1",
+  "where" : null,
+  "data" : [ {
+    "id" : "da31c4440914400399e4dccfc13c1897",
+    "name" : "Test Policy 2",
+    "ownerId" : "b5fe7b79059249fa8a1fdacad099a4e9",
+    "enabled" : true,
+    "threatLevel" : 5,
+    "constraints" : [ {
+      "id" : "9a2335a46e1d49a0a9ff4cb8112e395b",
+      "name" : "SV Constraint",
+      "enabled" : true,
+      "operator" : "OR",
+      "conditions" : [ {
+        "conditionTypeId" : "SecurityVulnerability",
+        "operator" : "present",
+        "value" : null
+      } ]
+    } ],
+    "actions" : {
+      "develop" : [ {
+        "actionTypeId" : "warn",
+        "target" : null
+      } ],
+      "stage-release" : [ {
+        "actionTypeId" : "fail",
+        "target" : null
+      } ]
+    }
+  }, {
+    "id" : "73fecb2f8bec4b38868f5e62c98141ef",
+    "name" : "Test Policy 3",
+    "ownerId" : "b5fe7b79059249fa8a1fdacad099a4e9",
+    "enabled" : true,
+    "threatLevel" : 5,
+    "constraints" : [ {
+      "id" : "fecfc0f6bb7543fca97563b2cd7ed7eb",
+      "name" : "Age Constraint",
+      "enabled" : true,
+      "operator" : "OR",
+      "conditions" : [ {
+        "conditionTypeId" : "AgeInDays",
+        "operator" : "older than",
+        "value" : "365"
+      } ]
+    } ],
+    "actions" : { }
+  } ]
+}, {
+  "time" : 1391186925985,
+  "user" : null,
+  "ip" : "127.0.0.1",
+  "where" : null,
+  "data" : [ {
+    "id" : "da31c4440914400399e4dccfc13c1897",
+    "name" : "Test Policy 2",
+    "ownerId" : "b5fe7b79059249fa8a1fdacad099a4e9",
+    "enabled" : true,
+    "threatLevel" : 5,
+    "constraints" : [ {
+      "id" : "9a2335a46e1d49a0a9ff4cb8112e395b",
+      "name" : "SV Constraint",
+      "enabled" : true,
+      "operator" : "OR",
+      "conditions" : [ {
+        "conditionTypeId" : "SecurityVulnerability",
+        "operator" : "present",
+        "value" : null
+      } ]
+    } ],
+    "actions" : {
+      "develop" : [ {
+        "actionTypeId" : "warn",
+        "target" : null
+      } ],
+      "stage-release" : [ {
+        "actionTypeId" : "fail",
+        "target" : null
+      } ]
+    }
+  } ]
+} ]

@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.label;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -37,7 +36,6 @@ import com.sonatype.insight.brain.model.policy.conditions.LabelConditionType;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
-import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -55,14 +53,7 @@ public class LabelResource
 
   private static final Logger log = LoggerFactory.getLogger(LabelResource.class);
 
-  private final InsightWork work;
-
   private LabelDAO labelDAO = new LabelDAO();
-
-  @Inject
-  public LabelResource(InsightWork work) {
-    this.work = work;
-  }
 
   /**
    * @param inherit boolean if {@code true} the returned list will include labels inherited from organization
@@ -221,7 +212,7 @@ public class LabelResource
     }
 
     // Verify that the label is not used in a policy condition
-    PolicyDAO policyDAO = new PolicyDAO(work.getWorkDir());
+    PolicyDAO policyDAO = new PolicyDAO();
 
     String inUseError = "Cannot delete the label because it is used in a condition for the '%s' policy";
 

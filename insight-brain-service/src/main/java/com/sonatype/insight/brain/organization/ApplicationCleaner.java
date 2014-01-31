@@ -13,7 +13,6 @@ import javax.persistence.EntityManager;
 
 import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
-import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.service.InsightWork;
 
@@ -36,12 +35,7 @@ public class ApplicationCleaner
     applicationDAO = new ApplicationDAO();
   }
 
-  public void delete(final EntityManager em, final String applicationPublicId) throws IOException {    
-    Application application = applicationDAO.getByPublicIdNotNull(em, applicationPublicId);
-
-    PolicyDAO policyDAO = new PolicyDAO(work.getWorkDir());
-    policyDAO.deleteByOwnerId(application.getId()); // as of 1.6, not stored in database
-
+  public void delete(final EntityManager em, final Application application) throws IOException {
     fileCleaner.delete(work.getScanDir(application.getId()));
     fileCleaner.delete(work.getAuditDir(application.getId()));
     fileCleaner.delete(work.getReportDir(application.getId()));

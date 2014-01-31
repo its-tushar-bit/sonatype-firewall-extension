@@ -25,6 +25,7 @@ import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupLicenseDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
 import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
@@ -42,7 +43,12 @@ import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroupLicense;
+import com.sonatype.insight.brain.model.policy.Condition;
+import com.sonatype.insight.brain.model.policy.Constraint;
+import com.sonatype.insight.brain.model.policy.LogicalOperator;
+import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
+import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityConditionType;
 import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Permission;
@@ -88,6 +94,8 @@ public class TemporaryEntity
 
   private final PolicyTagDAO policyTagDAO = new PolicyTagDAO();
 
+  private final PolicyDAO policyDAO = new PolicyDAO();
+
   private final ComponentLabelDAO componentLabelDAO = new ComponentLabelDAO();
 
   private final LicenseThreatGroupDAO licenseThreatGroupDAO = new LicenseThreatGroupDAO();
@@ -126,6 +134,8 @@ public class TemporaryEntity
 
   private Collection<ApplicationTag> appTags;
 
+  private Collection<Policy> policies;
+
   @Override
   protected void before() throws Throwable {
     apps = new ArrayList<Application>();
@@ -139,6 +149,7 @@ public class TemporaryEntity
     ldapServers = new ArrayList<LdapServer>();
     tags = new ArrayList<Tag>();
     appTags = new ArrayList<ApplicationTag>();
+    policies = new ArrayList<>();
   }
 
   @Override
@@ -200,6 +211,11 @@ public class TemporaryEntity
     for (ApplicationTag appTag : appTags) {
       if (appTagDAO.getById(appTag.getId()) != null) {
         appTagDAO.delete(appTag);
+      }
+    }
+    for (Policy policy : policies) {
+      if (policyDAO.getById(policy.getId()) != null) {
+        policyDAO.delete(policy);
       }
     }
   }
@@ -393,6 +409,17 @@ public class TemporaryEntity
     PolicyTag policyTag = new PolicyTag(policyId, tagId);
     policyTagDAO.insert(policyTag);
     return policyTag;
+  }
+
+  public Policy newPolicy(String ownerId, String name) {
+    Policy policy = new Policy(null, name);
+    policy.setOwnerId(ownerId);
+    Constraint constraint = new Constraint(null, "Test Constraint", LogicalOperator.AND);
+    constraint.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
+    policy.addConstraint(constraint);
+    policyDAO.insert(policy);
+    policies.add(policy);
+    return policy;
   }
 
   public void assertTag(Tag expected, Tag actual) {

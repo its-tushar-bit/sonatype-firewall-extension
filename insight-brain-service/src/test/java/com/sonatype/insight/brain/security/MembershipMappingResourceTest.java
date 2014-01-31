@@ -12,7 +12,6 @@ import java.util.Comparator;
 import java.util.List;
 
 import com.sonatype.insight.brain.AuthedRestAccess;
-import com.sonatype.insight.brain.TemporaryEntity;
 import com.sonatype.insight.brain.configuration.ldap.LdapServer;
 import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
@@ -36,6 +35,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
@@ -59,9 +59,6 @@ public class MembershipMappingResourceTest
 
   @Rule
   public TestLdapServer embeddedLdapServer = new TestLdapServer();
-
-  @Rule
-  public TemporaryEntity tempEntity = new TemporaryEntity();
 
   private String getServiceUrl(final String ownerType, final String ownerId) {
     return getRestUrl(MembershipMappingResource.SERVICE_PATH, ownerType, ownerId);

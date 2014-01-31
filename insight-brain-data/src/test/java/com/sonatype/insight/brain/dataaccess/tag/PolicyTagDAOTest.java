@@ -14,6 +14,7 @@ import java.util.Set;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.tag.PolicyTag;
 import com.sonatype.insight.brain.model.tag.Tag;
 
@@ -38,8 +39,6 @@ public class PolicyTagDAOTest
 
   private Tag tag;
 
-  private String policyId = "PolicyTagDAOTest_PolicyId";
-
   @Before
   public void before() {
     createDefaultApplication();
@@ -48,7 +47,8 @@ public class PolicyTagDAOTest
 
   @Test
   public void testCRUD() throws Exception {
-    policyId = "PolicyTagDAOTest_PolicyId";
+    Policy policy = createPolicy(organization.getId(), "PolicyTagDAOTest");
+    String policyId = policy.getId();
 
     // Create
     PolicyTag policyTag = new PolicyTag(policyId, tag.getId());
@@ -70,7 +70,8 @@ public class PolicyTagDAOTest
 
   @Test
   public void testUpdateNotSupported() throws Exception {
-    PolicyTag policyTag = new PolicyTag(policyId, tag.getId());
+    Policy policy = createPolicy(organization.getId(), "PolicyTagDAOTest");
+    PolicyTag policyTag = new PolicyTag(policy.getId(), tag.getId());
     dao.insert(policyTag);
 
     PolicyTag updatedPolicyTag = new PolicyTag("updated_policy_id", tag.getId());
@@ -87,8 +88,10 @@ public class PolicyTagDAOTest
 
   @Test
   public void testGetByPolicyId() throws Exception {
-    String policy1Id = policyId + "1";
-    String policy2Id = policyId + "2";
+    Policy policy1 = createPolicy(organization.getId(), "PolicyTagDAOTest1");
+    String policy1Id = policy1.getId();
+    Policy policy2 = createPolicy(organization.getId(), "PolicyTagDAOTest2");
+    String policy2Id = policy2.getId();
     List<Tag> policy1Tags = new ArrayList<>();
     List<Tag> policy2Tags = new ArrayList<>();
 
@@ -117,16 +120,21 @@ public class PolicyTagDAOTest
     List<PolicyTag> org1PolicyTags = new ArrayList<>();
     List<PolicyTag> org2PolicyTags = new ArrayList<>();
 
-    //Create tags and apply to policies
-    org1PolicyTags.add(createPolicyTag("policyId1", createTag(org1.getId()).getId()));
-    org1PolicyTags.add(createPolicyTag("policyId2", createTag(org1.getId()).getId()));
-    org1PolicyTags.add(createPolicyTag("policyId1", createTag(org1.getId()).getId()));
-    org1PolicyTags.add(createPolicyTag("policyId2", org1PolicyTags.get(2).getTagId()));
+    Policy policy1 = createPolicy(org1.getId(), "PolicyTagDAOTest1");
+    Policy policy2 = createPolicy(org1.getId(), "PolicyTagDAOTest2");
+    Policy policy3 = createPolicy(org2.getId(), "PolicyTagDAOTest3");
+    Policy policy4 = createPolicy(org2.getId(), "PolicyTagDAOTest4");
 
-    org2PolicyTags.add(createPolicyTag("policyId3", createTag(org2.getId()).getId()));
-    org2PolicyTags.add(createPolicyTag("policyId4", createTag(org2.getId()).getId()));
-    org2PolicyTags.add(createPolicyTag("policyId3", createTag(org2.getId()).getId()));
-    org2PolicyTags.add(createPolicyTag("policyId4", org2PolicyTags.get(2).getTagId()));
+    //Create tags and apply to policies
+    org1PolicyTags.add(createPolicyTag(policy1.getId(), createTag(org1.getId()).getId()));
+    org1PolicyTags.add(createPolicyTag(policy2.getId(), createTag(org1.getId()).getId()));
+    org1PolicyTags.add(createPolicyTag(policy1.getId(), createTag(org1.getId()).getId()));
+    org1PolicyTags.add(createPolicyTag(policy2.getId(), org1PolicyTags.get(2).getTagId()));
+
+    org2PolicyTags.add(createPolicyTag(policy3.getId(), createTag(org2.getId()).getId()));
+    org2PolicyTags.add(createPolicyTag(policy4.getId(), createTag(org2.getId()).getId()));
+    org2PolicyTags.add(createPolicyTag(policy3.getId(), createTag(org2.getId()).getId()));
+    org2PolicyTags.add(createPolicyTag(policy4.getId(), org2PolicyTags.get(2).getTagId()));
 
     //Create tags but do not apply to policies
     createTag(org1.getId());

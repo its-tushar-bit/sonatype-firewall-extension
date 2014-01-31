@@ -9,21 +9,17 @@ import java.io.File;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
 import javax.ws.rs.core.UriBuilder;
 
+import com.sonatype.insight.brain.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
-import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
-import com.sonatype.insight.brain.dataaccess.tag.PolicyTagDAO;
 import com.sonatype.insight.brain.db.DataSourceFactory;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
-import com.sonatype.insight.brain.model.policy.Policy;
-import com.sonatype.insight.brain.model.tag.PolicyTag;
 import com.sonatype.insight.mock.InsightMockServer;
 
 import com.ning.http.client.Cookie;
@@ -68,6 +64,9 @@ public abstract class AbstractBrainServiceTest
 
   @Rule
   public TestName testName = new TestName();
+
+  @Rule
+  public TemporaryEntity tempEntity = new TemporaryEntity();
 
   @AfterClass
   public static void afterClass() {
@@ -290,7 +289,6 @@ public abstract class AbstractBrainServiceTest
   private void cleanupApplications() {
     ApplicationDAO applicationDAO = new ApplicationDAO();
     for (Application application : applicationsToDelete) {
-      cleanupApplication(application);
       if (application.getId() != null) {
         application = applicationDAO.getById(application.getId());
         if (application != null) {
@@ -304,31 +302,9 @@ public abstract class AbstractBrainServiceTest
   private void cleanupOrganizations() {
     OrganizationDAO dao = new OrganizationDAO();
     for (Organization organization : organizationsToDelete) {
-      cleanupOrganization(organization);
       dao.delete(organization);
     }
     organizationsToDelete.clear();
-  }
-
-  protected void cleanupApplication(Application application) {
-    PolicyDAO policyDAO = new PolicyDAO(brain.getWorkDir());
-    List<Policy> policies = policyDAO.getByOwnerId(application.getId());
-    for (Policy policy : policies) {
-      policyDAO.delete(application.getId(), policy.getId());
-    }
-  }
-
-  protected void cleanupOrganization(Organization organization) {
-    PolicyDAO policyDAO = new PolicyDAO(brain.getWorkDir());
-    List<Policy> policies = policyDAO.getByOwnerId(organization.getId());
-    for (Policy policy : policies) {
-      PolicyTagDAO policyTagDAO = new PolicyTagDAO();
-      List<PolicyTag> policyTags = policyTagDAO.getByPolicyId(policy.getId());
-      for(PolicyTag policyTag : policyTags) {
-        policyTagDAO.delete(policyTag);
-      }
-      policyDAO.delete(organization.getId(), policy.getId());
-    }
   }
 
   protected static void assertResponseStatus(final int expectedStatus, final Response response) throws IOException {

@@ -333,7 +333,8 @@ public class ApplicationResource
   }
 
   public void deleteApplication(final EntityManager em, final String applicationPublicId) throws IOException {    
-    applicationCleaner.delete(em, applicationPublicId);
+    Application application = applicationDAO.getByPublicIdNotNull(em, applicationPublicId);
+    applicationCleaner.delete(em, application);
   }
 
   private List<ApplicationManagementSummaryDTO> getApplicationManagementSummaries(

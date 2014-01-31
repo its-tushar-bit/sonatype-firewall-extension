@@ -54,12 +54,15 @@ public class PolicyWaiverResourceTest
   }
 
   private void testCRUD(String ownerType, String ownerPublicId, String ownerId) throws Exception {
+    Policy policy = tempEntity.newPolicy(ownerId, "PolicyWaiverResourceTest");
+    String policyId = policy.getId();
+
     // Create
-    PolicyWaiver policyWaiver = new PolicyWaiver("12345678901234567890", "MyPolicyId", null /* ownerId */, "My comment");
+    PolicyWaiver policyWaiver = new PolicyWaiver("12345678901234567890", policyId, null /* ownerId */, "My comment");
     Response response = AuthedRestAccess.post(getServiceURL(ownerType, ownerPublicId), JsonHelpers.asJson(policyWaiver));
     assertResponseStatus(200, response);
     policyWaiver = JsonHelpers.fromJson(response.getResponseBody(), PolicyWaiver.class);
-    assertPolicyWaiver("MyPolicyId", ownerId, "My comment", policyWaiver);
+    assertPolicyWaiver(policyId, ownerId, "My comment", policyWaiver);
 
     // Get
     response = AuthedRestAccess.get(getServiceURL(ownerType, ownerPublicId) + "/component/12345678901234567890");
@@ -69,7 +72,7 @@ public class PolicyWaiverResourceTest
     assertNotNull(policyWaivers.waiversByOwner);
     assertEquals(1, policyWaivers.waiversByOwner.size());
     assertEquals(1, policyWaivers.waiversByOwner.get(0).waivers.size());
-    assertPolicyWaiver("MyPolicyId", ownerPublicId, "My comment", policyWaivers.waiversByOwner.get(0).waivers.get(0));
+    assertPolicyWaiver(policyId, ownerPublicId, "My comment", policyWaivers.waiversByOwner.get(0).waivers.get(0));
 
     // Delete
     response = AuthedRestAccess.delete(getServiceURL(ownerType, ownerPublicId) + "/" + policyWaiver.getId());
@@ -164,7 +167,9 @@ public class PolicyWaiverResourceTest
   private void testDelete_OwnerIdMismatch(String ownerType, String ownerPublicId1, String ownerId1,
       String ownerPublicId2) throws Exception
   {
-    PolicyWaiver policyWaiver = new PolicyWaiver("12345678901234567890", "MyPolicyId", null /* ownerId */, "My comment");
+    Policy policy = tempEntity.newPolicy(ownerId1, "PolicyWaiverResourceTest");
+    String policyId = policy.getId();
+    PolicyWaiver policyWaiver = new PolicyWaiver("12345678901234567890", policyId, null /* ownerId */, "My comment");
     Response response = AuthedRestAccess.post(getServiceURL(ownerType, ownerPublicId1), JsonHelpers.asJson(policyWaiver));
     assertResponseStatus(200, response);
     policyWaiver = JsonHelpers.fromJson(response.getResponseBody(), PolicyWaiver.class);
@@ -177,7 +182,7 @@ public class PolicyWaiverResourceTest
     PolicyWaiverDAO policyWaiverDAO = new PolicyWaiverDAO();
     List<PolicyWaiver> policyWaivers = policyWaiverDAO.getByOwnerId(ownerId1);
     assertEquals(1, policyWaivers.size());
-    assertPolicyWaiver("MyPolicyId", ownerId1, "My comment", policyWaivers.get(0));
+    assertPolicyWaiver(policyId, ownerId1, "My comment", policyWaivers.get(0));
   }
 
   @Test

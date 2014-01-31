@@ -220,7 +220,7 @@ public abstract class AbstractComponentInfoResource
   }
 
   private PolicyDAO policyDAO() {
-    return new PolicyDAO(work.getWorkDir());
+    return new PolicyDAO();
   }
 
   @GET

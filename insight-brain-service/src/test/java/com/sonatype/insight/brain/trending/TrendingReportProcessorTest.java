@@ -307,13 +307,14 @@ public class TrendingReportProcessorTest
   @Test
   public void testPolicyViolationsCategoriesFromPolicyDAO() throws Exception {
     Application application = createApplication("testApp");
-    PolicyDAO policyDAO = new PolicyDAO(insightWork.getWorkDir());
+    PolicyDAO policyDAO = new PolicyDAO();
 
     List<LicenseThreatGroup> licenseThreatGroups = new LicenseThreatGroupDAO().getByOwnerId(application.getOrganizationId());
     LicenseThreatGroup licenseThreatGroup = licenseThreatGroups.get(0);
 
     // this policy should always be interpreted as 'license' category, even if a different kind of condition is violated
     Policy licensePolicy = new Policy(null, "license");
+    licensePolicy.setOwnerId(application.getId());
     licensePolicy.setThreatLevel(1);
 
     Constraint licenseConstraint = new Constraint(null, "license", LogicalOperator.AND);
@@ -325,14 +326,15 @@ public class TrendingReportProcessorTest
 
     // this policy should always be interpreted as 'security' category, even if a different kind of condition is violated
     Policy securityPolicy = new Policy(null, "security");
+    securityPolicy.setOwnerId(application.getId());
     securityPolicy.setThreatLevel(10);
     Constraint securityConstraint = new Constraint(null, "security", LogicalOperator.AND);
     securityConstraint.addCondition(new Condition(AgeInDaysConditionType.ID, "older than", "1" ));
     securityConstraint.addCondition(new Condition(LicenseThreatGroupConditionType.ID, "is", licenseThreatGroup.getId() ));
     securityConstraint.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
     securityPolicy.addConstraint(securityConstraint);
-    policyDAO.insert(application.getId(), licensePolicy);
-    policyDAO.insert(application.getId(), securityPolicy);
+    policyDAO.insert(licensePolicy);
+    policyDAO.insert(securityPolicy);
 
     ReportBuilder builder = new ReportBuilder();
     ComponentFactBuilder componentFactBuilder = builder.addPolicyAlert(licensePolicy.getId(), 0).addComponentFact("a");

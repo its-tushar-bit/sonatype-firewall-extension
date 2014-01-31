@@ -14,14 +14,8 @@ import javax.imageio.ImageIO;
 import com.sonatype.insight.brain.AuthedRestAccess;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
-import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
-import com.sonatype.insight.brain.model.policy.Condition;
-import com.sonatype.insight.brain.model.policy.Constraint;
-import com.sonatype.insight.brain.model.policy.LogicalOperator;
-import com.sonatype.insight.brain.model.policy.Policy;
-import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityConditionType;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
 import com.ning.http.client.AsyncHttpClient;
@@ -132,16 +126,6 @@ public class OrganizationResourceTest
     application.setPublicId("testapp");
     application.setOrganizationId(organization.getId());
     applicationDAO.insert(application);
-    // policy
-    final PolicyDAO policyDAO = new PolicyDAO(brain.getWorkDir());
-    final Policy policy = new Policy();
-    policy.setName("testpolicy");
-    final Constraint constraint1 = new Constraint(null, "testconstraint", LogicalOperator.AND);
-    constraint1.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
-    policy.addConstraint(constraint1);
-    policy.setOwnerId(organizationId);
-    policyDAO.insert(organizationId, policy);
-    // note that other related objects (labels, license threat groups, etc) are deleted by DAO and tested at DAO level
 
     // Delete
     response = AuthedRestAccess.delete(getServiceURL() + "/" + organizationId);
@@ -151,7 +135,6 @@ public class OrganizationResourceTest
     assertResponseStatus(404, iconResponse);
     // assert related objects were deleted
     Assert.assertNull(applicationDAO.getById(application.getId()));
-    Assert.assertNull(policyDAO.getByOwnerIdAndPolicyId(organizationId, policy.getId()));
   }
 
   @Test

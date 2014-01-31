@@ -10,7 +10,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -33,7 +32,6 @@ import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
-import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.error.exception.NotFoundException;
 
@@ -47,13 +45,6 @@ public class PolicyWaiverResource
   public static final String SERVICE_BASEPATH = "rest/policyWaiver/";
 
   public static final String SERVICE_PATH = SERVICE_BASEPATH + "{ownerType: application|organization}/{ownerId}";
-
-  private final InsightWork work;
-
-  @Inject
-  public PolicyWaiverResource(InsightWork work) {
-    this.work = work;
-  }
 
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
@@ -185,7 +176,7 @@ public class PolicyWaiverResource
   }
 
   private PolicyDAO policyDAO() {
-    return new PolicyDAO(work.getWorkDir());
+    return new PolicyDAO();
   }
 
   /**

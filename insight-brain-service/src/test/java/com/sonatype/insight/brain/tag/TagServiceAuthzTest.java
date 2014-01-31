@@ -8,10 +8,12 @@ package com.sonatype.insight.brain.tag;
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.model.Color;
+import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 
 import org.apache.shiro.authz.UnauthorizedException;
+import org.junit.Before;
 import org.junit.Test;
 
 public class TagServiceAuthzTest
@@ -21,6 +23,12 @@ public class TagServiceAuthzTest
   private TagService tagService;
 
   String policyId = "TagServiceAuthzTest_PolicyId";
+
+  @Before
+  public void init() {
+    Organization org = tempEntity.newOrganization("TagServiceAuthzTest");
+    policyId = tempEntity.newPolicy(org.getId(), "TagServiceAuthzTest").getId();
+  }
 
   @Test(expected = UnauthorizedException.class)
   public void testGetTags_Unauthorized() throws Exception {

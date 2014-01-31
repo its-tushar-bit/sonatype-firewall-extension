@@ -19,8 +19,8 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Color;
+import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
@@ -31,7 +31,6 @@ import com.sonatype.insight.brain.model.tag.PolicyTag;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.brain.service.InsightWork;
 
 import com.google.common.collect.Lists;
 import org.junit.Before;
@@ -79,7 +78,7 @@ public class PolicyImporterTest
     insightConfig = new InsightConfig();
     insightConfig.setBaseUrl("base");
     insightConfig.setSonatypeWork(temporaryFolder.getRoot().getAbsolutePath());
-    policyImporter = new PolicyImporterImpl(new InsightWork(insightConfig), new BaseUrl(insightConfig, uriInfo));
+    policyImporter = new PolicyImporterImpl(new BaseUrl(insightConfig, uriInfo));
     fromOrg = tempEntity.newOrganization();
     fromApp = tempEntity.newApplication(fromOrg.getId());
   }
@@ -184,7 +183,10 @@ public class PolicyImporterTest
     Organization toOrg = tempEntity.newOrganization();
     Application toApp = tempEntity.newApplication(toOrg.getId());
     Label appLabel = tempEntity.newLabel(toApp.getId(), Color.black);
-    Policy appPolicy = policyDAO().insert(toApp.getId(), createPolicies(toApp.getId(), appLabel.getId()).get(0));
+    
+    List<Policy> policies = createPolicies(toApp.getId(), appLabel.getId());
+    policyDAO().insert(policies.get(0));
+    Policy appPolicy = policies.get(0);
     tempEntity.newWaiver("hash", appPolicy.getId(), toApp.getId());
     PolicyWaiverDAO policyWaiverDAO = new PolicyWaiverDAO();
     when(uriInfo.getRequestUri()).thenReturn(URI.create("whatever"));
@@ -202,8 +204,12 @@ public class PolicyImporterTest
     Application toApp = tempEntity.newApplication(toOrg.getId());
     Label orgLabel = tempEntity.newLabel(toOrg.getId(), Color.black);
     Label appLabel = tempEntity.newLabel(toApp.getId(), Color.black);
-    Policy orgPolicy = policyDAO().insert(toOrg.getId(), createPolicies(toOrg.getId(), orgLabel.getId()).get(0));
-    Policy appPolicy = policyDAO().insert(toApp.getId(), createPolicies(toApp.getId(), appLabel.getId()).get(0));
+    List<Policy> orgPolicies = createPolicies(toOrg.getId(), orgLabel.getId());
+    policyDAO().insert(orgPolicies.get(0));
+    Policy orgPolicy = orgPolicies.get(0);
+    List<Policy> appPolicies = createPolicies(toApp.getId(), appLabel.getId());
+    policyDAO().insert(appPolicies.get(0));
+    Policy appPolicy = appPolicies.get(0);
     tempEntity.newWaiver("hash", orgPolicy.getId(), toOrg.getId());
     tempEntity.newWaiver("hash", appPolicy.getId(), toApp.getId());
     PolicyWaiverDAO policyWaiverDAO = new PolicyWaiverDAO();
@@ -306,6 +312,7 @@ public class PolicyImporterTest
 
   private List<Policy> createPolicies(String ownerId, String labelId) {
     Policy policy = new Policy(ownerId, ownerId);
+    policy.setOwnerId(ownerId);
     Constraint constraint = new Constraint(ownerId, ownerId, LogicalOperator.AND);
     constraint.addCondition(new Condition(LabelConditionType.ID, "is", labelId));
     policy.addConstraint(constraint);
@@ -321,6 +328,6 @@ public class PolicyImporterTest
   }
 
   private PolicyDAO policyDAO() {
-    return new PolicyDAO(insightConfig.getSonatypeWork());
+    return new PolicyDAO();
   }
 }

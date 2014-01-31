@@ -31,9 +31,19 @@ public class PolicyTagDAO
   }
 
   public List<PolicyTag> getByPolicyId(String policyId) {
+    EntityManager em = createEntityManager();
+    try {
+      return getByPolicyId(em, policyId);
+    }
+    finally {
+      close(em);
+    }
+  }
+
+  public List<PolicyTag> getByPolicyId(EntityManager em, String policyId) {
     String sQuery = "SELECT entity FROM PolicyTag entity" + //
         " WHERE entity.policyId=?1";
-    return getList(sQuery, policyId);
+    return getList(em, sQuery, policyId);
   }
 
   public List<PolicyTag> getByTagId(String tagId) {

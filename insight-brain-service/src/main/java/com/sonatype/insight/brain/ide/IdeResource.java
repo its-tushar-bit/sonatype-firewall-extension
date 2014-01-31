@@ -162,7 +162,7 @@ public class IdeResource
   }
 
   private PolicyDAO policyDAO() {
-    return new PolicyDAO(work.getWorkDir());
+    return new PolicyDAO();
   }
 
   private IdeMatchedComponent getComponent(MatchedComponent mComponent) {

@@ -89,8 +89,11 @@ public class InsightBrainService
 
     LicenseDataUpdater.setUpdater(getInjector().getInstance(DefaultLicenseDataUpdater.class));
 
-    LicenseOverrideMigrator LicenseOverrideMigrator = getInjector().getInstance(LicenseOverrideMigrator.class);
-    LicenseOverrideMigrator.migrate();
+    LicenseOverrideMigrator licenseOverrideMigrator = getInjector().getInstance(LicenseOverrideMigrator.class);
+    licenseOverrideMigrator.migrate();
+
+    PolicyMigrator policyMigrator = getInjector().getInstance(PolicyMigrator.class);
+    policyMigrator.migrate();
 
     configurePolicyMonitoring(environment, configuration.getPolicyMonitoringHour(), getInjector().getInstance(CLMLicenseManager.class));
   }

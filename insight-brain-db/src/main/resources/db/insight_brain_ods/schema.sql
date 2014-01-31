@@ -1,3 +1,5 @@
+SET MAX_LENGTH_INPLACE_LOB 100000;
+
 -- For tests only
 CREATE TABLE test_table (
   test_table_id varchar(50) NOT NULL,
@@ -85,6 +87,18 @@ CREATE TABLE hash_gav (
   CONSTRAINT hash_gav_gavec_uk UNIQUE KEY (group_id, artifact_id, version, extension, classifier)
 );
 
+-- owner_id can be an application or an organization id
+CREATE TABLE policy (
+  policy_id varchar(50) NOT NULL,
+  owner_id varchar(50) NOT NULL,
+  name varchar(60) NOT NULL,
+  name_lowercase_no_whitespace varchar(60) NOT NULL,
+  threat_level smallint(2) NOT NULL,
+  content CLOB NOT NULL,
+  CONSTRAINT policy_pk PRIMARY KEY (policy_id),
+  CONSTRAINT policy_name_uk UNIQUE KEY (owner_id, name_lowercase_no_whitespace)
+);
+
 CREATE TABLE policy_waiver (
   policy_waiver_id varchar(50) NOT NULL,
   hash varchar(20) NULL,  -- null if waiver applies to all components of app/org
@@ -94,7 +108,8 @@ CREATE TABLE policy_waiver (
   comment varchar(1000) NULL,
   create_time datetime NOT NULL,
   CONSTRAINT policy_waiver_pk PRIMARY KEY (policy_waiver_id),
-  CONSTRAINT policy_waiver_uk UNIQUE KEY (hash, policy_id, constraint_id, owner_id)
+  CONSTRAINT policy_waiver_uk UNIQUE KEY (hash, policy_id, constraint_id, owner_id),
+  CONSTRAINT policy_waiver_policy_fk FOREIGN KEY (policy_id) REFERENCES policy(policy_id)
 );
 
 CREATE TABLE license_override (
@@ -254,5 +269,6 @@ CREATE TABLE policy_tag (
   tag_id varchar(50) NOT NULL,
   CONSTRAINT policy_tag_pk PRIMARY KEY (policy_tag_id),
   CONSTRAINT policy_tag_uk UNIQUE KEY (policy_id, tag_id),
+  CONSTRAINT policy_tag_policy_fk FOREIGN KEY (policy_id) REFERENCES policy(policy_id),
   CONSTRAINT policy_tag_tag_fk FOREIGN KEY (tag_id) REFERENCES tag(tag_id)
 );

@@ -12,7 +12,6 @@ import java.util.List;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.Stage;
-import com.sonatype.insight.brain.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.component.ComponentDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupLicenseDAO;
@@ -32,15 +31,11 @@ import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
 
 public class LicenseThreatGroupConditionTypeTest
     extends AbstractPolicyEvaluationTest
 {
-  @Rule
-  public TemporaryEntity tempEntity = new TemporaryEntity();
-
   private LicenseThreatGroupDAO licenseThreatGroupDAO = new LicenseThreatGroupDAO();
 
   private ComponentDAO componentDAO = new ComponentDAO();

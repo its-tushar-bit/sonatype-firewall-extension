@@ -39,7 +39,6 @@ import com.sonatype.insight.brain.model.tag.PolicyTag;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightBrainService;
-import com.sonatype.insight.brain.service.InsightWork;
 
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
@@ -73,14 +72,10 @@ public class PolicyImporterImpl
 
   private final PolicyTagDAO policyTagDAO = new PolicyTagDAO();
 
-  private final InsightWork work;
-
   private final BaseUrl baseUrl;
 
-
   @Inject
-  public PolicyImporterImpl(InsightWork work, BaseUrl baseUrl) {
-    this.work = work;
+  public PolicyImporterImpl(BaseUrl baseUrl) {
     this.baseUrl = baseUrl;
   }
 
@@ -94,20 +89,25 @@ public class PolicyImporterImpl
 
     try {
       em.getTransaction().begin();
-
       deleteLicenseThreatGroups(em, appId, null);
       deletePolicyWaivers(em, appId, null);
+      policyDAO().deleteByOwnerId(em, appId);
       importAndMergeLabels(em, exportDTO, labelDAO.getByOwnerId(em, appId), appId, orgId);
       importLicenseThreatGroups(em, exportDTO, appId);
-
+      // Must commit before inserting the policies because policy insert() calls validate(), which needs to access some
+      // db tables for policy condition validations.
+      // If everything was done in one transaction here, then all policy related validation methods need to participate
+      // in the same transaction, so they would need to take an EntityManager as param, which is not worth it in my
+      // opinion.
       em.getTransaction().commit();
 
-      // no transactional support here so policies are deleted last to ensure that we don't leave the system in an
-      // inconsistent state should a rollback occur partway through the process
-      policyDAO().deleteByOwnerId(appId);
+      em.getTransaction().begin();
       for (Policy policy : exportDTO.policies) {
-        policyDAO().insert(appId, policy);
+        policy.setId(null);
+        policy.setOwnerId(appId);
+        policyDAO().insert(em, policy);
       }
+      em.getTransaction().commit();
     }
     finally {
       ApplicationDAO.close(em);
@@ -128,26 +128,32 @@ public class PolicyImporterImpl
       deleteFromOwnedApplications(em, orgId);
       deletePolicyWaivers(em, orgId, null);
       deleteLicenseThreatGroups(em, orgId, null);
+      PolicyDAO policyDAO = policyDAO();
+      policyDAO.deleteByOwnerId(em, orgId);
+      for (Application application : applicationDAO.getByOrganizationId(em, orgId)) {
+        policyDAO.deleteByOwnerId(em, application.getId());
+      }
       importAndMergeLabels(em, exportDTO, labelDAO.getByOwnerId(em, orgId), null, orgId);
       importLicenseThreatGroups(em, exportDTO, orgId);
       importAndMergeTags(em, exportDTO, orgId);
 
+      Map<String, List<PolicyTag> > policyTagsByPolicyId = getPolicyTagsByPolicyId(exportDTO.policyTags);
+      // Must commit before inserting the policies because policy insert() calls validate(), which needs to access some
+      // db tables for policy condition validations.
+      // If everything was done in one transaction here, then all policy related validation methods need to participate
+      // in the same transaction, so they would need to take an EntityManager as param, which is not worth it in my
+      // opinion.
       em.getTransaction().commit();
 
-      Map<String, List<PolicyTag> > policyTagsByPolicyId = getPolicyTagsByPolicyId(exportDTO.policyTags);
-
-      // no transactional support here so policies are deleted last to ensure that we don't leave the system in an
-      // inconsistent state should a rollback occur partway through the process
-      PolicyDAO policyDAO = policyDAO();
-      policyDAO.deleteByOwnerId(orgId);
-      for (Application application : applicationDAO.getByOrganizationId(orgId)) {
-        policyDAO.deleteByOwnerId(application.getId());
-      }
+      em.getTransaction().begin();
       for (Policy policy : exportDTO.policies) {
         List<PolicyTag> policyTags = policyTagsByPolicyId.get(policy.getId());
-        policyDAO.insert(orgId, policy);
-        importPolicyTags(policy.getId(), policyTags);
+        policy.setId(null);
+        policy.setOwnerId(orgId);
+        policyDAO.insert(policy);
+        importPolicyTags(em, policy.getId(), policyTags);
       }
+      em.getTransaction().commit();
     }
     finally {
       OrganizationDAO.close(em);
@@ -328,12 +334,12 @@ public class PolicyImporterImpl
    * The id on the passed in PolicyTags is no longer valid, since the policies
    * get new ids when imported
    */
-  private void importPolicyTags(String policyId, List<PolicyTag> policyTags) {
+  private void importPolicyTags(EntityManager em, String policyId, List<PolicyTag> policyTags) {
     if (policyTags != null) {
       for (PolicyTag policyTag : policyTags) {
         policyTag.setId(null);
         policyTag.setPolicyId(policyId);
-        policyTagDAO.insert(policyTag);
+        policyTagDAO.insert(em, policyTag);
       }
     }
   }
@@ -373,7 +379,7 @@ public class PolicyImporterImpl
   }
 
   private PolicyDAO policyDAO() {
-    return new PolicyDAO(work.getWorkDir());
+    return new PolicyDAO();
   }
 
   private PolicyImportResult createResult(String name, String id, String type) {

@@ -62,8 +62,9 @@ public class IdeResourceTest
 {
   private void addPolicy(String applicationPublicId, Policy policy) throws Exception {
     String appId = new ApplicationDAO().getByPublicIdNotNull(applicationPublicId).getId();
-    PolicyDAO policyDAO = new PolicyDAO(brain.getWorkDir());
-    policyDAO.insert(appId, policy);
+    policy.setOwnerId(appId);
+    PolicyDAO policyDAO = new PolicyDAO();
+    policyDAO.insert(policy);
   }
 
   @Test

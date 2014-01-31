@@ -139,7 +139,8 @@ class PolicyInternal
       result = JsonUtils.parse(content, Policy.class);
     }
     catch (IOException e) {
-      throw new RuntimeException(e);
+      throw new RuntimeException("Failed to parse policy content for policy '" + name + "' for owner id " + ownerId
+          + ": " + e.getMessage(), e);
     }
     result.setId(id);
     result.setName(name);

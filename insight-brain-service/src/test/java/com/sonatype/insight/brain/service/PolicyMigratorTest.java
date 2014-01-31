@@ -74,10 +74,13 @@ public class PolicyMigratorTest
     List<Policy> orgPolicies = policyDAO.getByOwnerId(org.getId());
     assertThat(orgPolicies, hasSize(1));
     assertThat(orgPolicies.get(0).getName(), is("Test Policy 1"));
+    assertThat(orgPolicies.get(0).getId(), is("7e7a659ba7cd44e281824f43b38ada0b"));
     List<Policy> appPolicies = policyDAO.getByOwnerId(app.getId());
     assertThat(appPolicies, hasSize(2));
     assertThat(appPolicies.get(0).getName(), is("Test Policy 2"));
+    assertThat(appPolicies.get(0).getId(), is("da31c4440914400399e4dccfc13c1897"));
     assertThat(appPolicies.get(1).getName(), is("Test Policy 3"));
+    assertThat(appPolicies.get(1).getId(), is("73fecb2f8bec4b38868f5e62c98141ef"));
     
     // Assert that the new db foreign keys were created
     Tag tag = tempEntity.newTag(org.getId(), "PolicyMigratorTest Tag");

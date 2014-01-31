@@ -71,6 +71,7 @@
             <!-- <geb.build.reportsDir>${project.build.directory}/test-reports/geb</geb.build.reportsDir> -->
             <!-- <geb.build.baseUrl>http://localhost:8070/</geb.build.baseUrl> -->
           </systemPropertyVariables>
+          <argLine>-XX:MaxPermSize=144m</argLine>
         </configuration>
       </plugin>
       <!--

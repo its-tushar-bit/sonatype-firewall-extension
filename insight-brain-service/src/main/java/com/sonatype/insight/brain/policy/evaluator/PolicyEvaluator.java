@@ -89,9 +89,7 @@ public class PolicyEvaluator
     final long start = System.currentTimeMillis();
 
     List<MatchFact> facts = evaluateFacts(applicationId, policies, components);
-    System.out.println(facts);
     facts = waiverEvaluator.applyWaivers(applicationId, facts);
-    System.out.println(facts);
     final List<PolicyAlert> alerts = createAlerts(policies, facts, stage, forMonitoring);
 
     log.debug("Evaluated policies in {} millisecs", System.currentTimeMillis() - start);

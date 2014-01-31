@@ -8,21 +8,23 @@ package com.sonatype.insight.brain.testing.functional
 import org.codehaus.plexus.util.FileUtils
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
+import spock.lang.Stepwise
 
+@Stepwise
 class ImportPolicySpec extends BaseSpec
 {
 
   @Rule
   private TemporaryFolder tmpDir = new TemporaryFolder();
 
-  def setup() {
+  def setupSpec() {
     loginAsAdminVia()
     createOrganization()
     createApplication()
     at ApplicationPage
   }
 
-  def cleanup() {
+  def cleanupSpec() {
     cleanAppsAndOrgs()
   }
 
@@ -40,10 +42,6 @@ class ImportPolicySpec extends BaseSpec
 
   def "validate local issue with file"() {
 
-    given: 'User selects import policy on application page'
-      policyImport.importIcon.click();
-      waitFor { policyImport.fileInput.displayed }
-
     when: 'User selects import file which disappears'
       File tempFile = tmpDir.newFile("ImportPolicyTest.testDisappearingFile")
       FileUtils.copyFile(getValidImportFile(), tempFile);
@@ -60,13 +58,9 @@ class ImportPolicySpec extends BaseSpec
 
   def "validate user canceling out of dialog"() {
 
-    given: 'User selects valid import file'
-      policyImport.importIcon.click();
-      waitFor { policyImport.fileInput.displayed }
+    when: 'User cancels dialog'
       policyImport.fileInput << getValidImportFile().getAbsolutePath()
       waitFor { !policyImport.importButton.disabled }
-
-    when: 'User cancels dialog'
       policyImport.cancelButton.click()
 
     then: 'File not imported'
@@ -76,7 +70,7 @@ class ImportPolicySpec extends BaseSpec
   def "validate bad file not imported"() {
 
     given: 'User selects import policy on application page'
-      policyImport.importIcon.click();
+      policyImport.importIcon.click()
       waitFor { policyImport.fileInput.displayed }
 
     when: 'User selects bad file'
@@ -90,10 +84,6 @@ class ImportPolicySpec extends BaseSpec
   }
 
   def "validate successful import"() {
-
-    given: 'User selects import policy on application page'
-      policyImport.importIcon.click();
-      waitFor { policyImport.fileInput.displayed }
 
     when: 'User selects valid import file'
       policyImport.fileInput << getValidImportFile().getAbsolutePath()

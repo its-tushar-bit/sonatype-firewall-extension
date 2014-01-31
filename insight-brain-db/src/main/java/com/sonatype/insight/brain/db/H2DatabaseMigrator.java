@@ -113,7 +113,7 @@ public class H2DatabaseMigrator
   }
 
   public void runScript(DataSource dataSource, String scriptName) throws SQLException {
-    runScripts(dataSource, Arrays.asList(new String[] { scriptName }));
+    runScripts(dataSource, Arrays.asList(scriptName));
   }
 
   private void backup(File databaseDir, String databaseName, File backupDir) throws IOException {

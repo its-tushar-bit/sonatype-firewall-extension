@@ -9,41 +9,19 @@
 
   var labelTemplate = {id: null, ownerId: null, label: '', labelLowercase: null, color: null, description: null};
 
-  var labelModule = angular.module('Labels', ['AngularCommon', 'CLMAppLocation', 'CommonServices', 'ResourceModule']);
+  var labelModule = angular.module('Labels', ['AngularCommon', 'CLMAppLocation', 'CommonServices', 'Stores']);
 
   labelModule.service('LabelStore', [
-    'CLMResource', 'CLMAppLocations', function(CLMResource, CLMAppLocations) {
-      var labelStore = null, labelStores = {};
-
-      function refreshLabelStore() {
-        var entityId = CLMAppLocations.getEntityId();
-        labelStore = labelStores[entityId];
-        if (!labelStore) {
-          labelStore = labelStores[entityId] = CLMResource.getStore(angular.extend({ url: CLMAppLocations.getLabelsUrl() },
-              labelStoreTemplate));
-        }
-      }
-
+    'CachedStore', 'CLMAppLocations', function(CachedStore, CLMAppLocations) {
       var labelStoreTemplate = {
+        getUrl: CLMAppLocations.getLabelsUrl,
         template: labelTemplate,
         params: {
           timestamp: new Date().getTime()
         }
       };
 
-      return {
-        get: function() {
-          refreshLabelStore();
-          return labelStore.get();
-        },
-        refresh: function() {
-          refreshLabelStore();
-          return labelStore.refresh();
-        },
-        create: function() {
-          return labelStore.create();
-        }
-      };
+      return CachedStore.get(labelStoreTemplate);
     }
   ]);
 

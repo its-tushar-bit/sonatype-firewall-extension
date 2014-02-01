@@ -22,27 +22,17 @@
   }
 
   var licenseGroupModule = angular.module('LicenseThreatGroup',
-      ['AngularCommon', 'ResourceModule', 'CLMAppLocation', 'CommonServices', 'ui.bootstrap']);
+      ['AngularCommon', 'Stores', 'CLMAppLocation', 'CommonServices', 'ui.bootstrap']);
 
   licenseGroupModule.service('licenseGroupStore', [
-    '$q', '$http', 'CLMAppLocations', 'CLMResource', function($q, $http, CLMAppLocations, CLMResource) {
-      var licenseGroupStore = null, licenseGroupStores = {};
-
-      function refreshLicenseStore() {
-        var entityId = CLMAppLocations.getEntityId();
-        licenseGroupStore = licenseGroupStores[entityId];
-        if (!licenseGroupStore) {
-          licenseGroupStore = licenseGroupStores[entityId] = CLMResource.getStore(angular.extend({ url: CLMAppLocations.getLicenseGroupsUrl() },
-              licenseGroupStoreTemplate));
-        }
-      }
-
+    'CLMAppLocations', 'CachedStore', function(CLMAppLocations, CachedStore) {
       var licenseGroupStoreTemplate = {
         id: 'id',
         template: { id: null, ownerId: null, name: '', threatLevel: 5 },
         params: {
           timestamp: new Date().getTime()
         },
+        getUrl: CLMAppLocations.getLicenseGroupsUrl,
         relationalConfigs: {
           'licenses': {
             id: 'licenseId',
@@ -55,19 +45,7 @@
         }
       };
 
-      return {
-        get: function() {
-          refreshLicenseStore();
-          return licenseGroupStore.get();
-        },
-        refresh: function() {
-          refreshLicenseStore();
-          return licenseGroupStore.refresh();
-        },
-        create: function() {
-          return licenseGroupStore.create();
-        }
-      };
+      return CachedStore.get(licenseGroupStoreTemplate);
     }
   ]);
 

@@ -10,41 +10,21 @@
   var tagModule = angular.module('Tags', ['AngularCommon', 'CLMAppLocation', 'CLMLocation', 'CommonServices', 'ResourceModule', 'Stores', 'PolicyEditor']);
 
   tagModule.service('TagStore', [
-    'CLMResource', 'CLMAppLocations', 'CLMLocations', '$http', function(CLMResource, CLMAppLocations, CLMLocations, $http) {
-      var tagStore = null, tagStores = {};
-
-      function refreshTagStore() {
-        var entityId = CLMAppLocations.getEntityId();
-        tagStore = tagStores[entityId];
-        if (!tagStore) {
-          tagStore = tagStores[entityId] = CLMResource.getStore(angular.extend({ url: CLMAppLocations.getTagsUrl() },
-            tagStoreTemplate));
-        }
-      }
-
+    'CachedStore', 'CLMAppLocations', 'CLMLocations', '$http', function(CachedStore, CLMAppLocations, CLMLocations, $http) {
       var tagStoreTemplate = {
+        getUrl: CLMAppLocations.getTagsUrl,
         template: {id: null, organizationId: null, name: null, description: null, color:null},
         params: {
           timestamp: new Date().getTime()
         }
       };
+      var tagStores = CachedStore.get(tagStoreTemplate);
 
-      return {
-        get: function() {
-          refreshTagStore();
-          return tagStore.get();
-        },
-        refresh: function() {
-          refreshTagStore();
-          return tagStore.refresh();
-        },
-        create: function() {
-          return tagStore.create();
-        },
+      return angular.extend(tagStores, {
         getApplied: function(){
           return $http.get(CLMLocations.getOrganizationAppliedTagUrl(CLMAppLocations.getEntityId()));
         }
-      };
+      });
     }
   ]);
 

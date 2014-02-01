@@ -15,7 +15,6 @@ import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.codehaus.plexus.util.StringUtils;
-import org.junit.Before;
 import org.junit.Test;
 
 import static org.hamcrest.Matchers.hasSize;
@@ -31,11 +30,6 @@ import static org.junit.Assert.fail;
 public class PolicyWaiverDAOTest
     extends AbstractDbDAOTest
 {
-  @Before
-  public void init() {
-    organization = createOrganization("PolicyWaiverDAOTest");
-  }
-
   @Test
   public void testGetByIdNotNull() {
     try {
@@ -54,7 +48,7 @@ public class PolicyWaiverDAOTest
     String hash = "123456789012345678901";
     assertTrue(hash.length() > 20);
     String truncatedHash = hash.substring(0, 20);
-    Policy policy = createPolicy(organization.getId(), "PolicyWaiverDAOTest");
+    Policy policy = tempEntity.newPolicy(organization.getId(), "PolicyWaiverDAOTest");
     String policyId = policy.getId();
     String ownerId = organization.getId();
     String comment = "My comment";
@@ -113,7 +107,7 @@ public class PolicyWaiverDAOTest
     PolicyWaiverDAO dao = new PolicyWaiverDAO();
 
     String hash = "12345678901234567890";
-    Policy policy = createPolicy(organization.getId(), "PolicyWaiverDAOTest");
+    Policy policy = tempEntity.newPolicy(organization.getId(), "PolicyWaiverDAOTest");
     String policyId = policy.getId();
     String ownerId = organization.getId();
     String comment = "My comment";
@@ -136,7 +130,7 @@ public class PolicyWaiverDAOTest
   public void testAddDuplicate_PolicyLevel() throws Exception {
     PolicyWaiverDAO dao = new PolicyWaiverDAO();
 
-    Policy policy = createPolicy(organization.getId(), "PolicyWaiverDAOTest");
+    Policy policy = tempEntity.newPolicy(organization.getId(), "PolicyWaiverDAOTest");
     String policyId = policy.getId();
     String ownerId = organization.getId();
     String comment = "My comment";
@@ -157,10 +151,9 @@ public class PolicyWaiverDAOTest
 
   @Test
   public void testGetByOwnerId_Inherited() {
-    createDefaultApplication();
     PolicyWaiverDAO dao = new PolicyWaiverDAO();
-    Policy policy1 = createPolicy(organization.getId(), "PolicyWaiverDAOTest1");
-    Policy policy2 = createPolicy(organization.getId(), "PolicyWaiverDAOTest2");
+    Policy policy1 = tempEntity.newPolicy(organization.getId(), "PolicyWaiverDAOTest1");
+    Policy policy2 = tempEntity.newPolicy(organization.getId(), "PolicyWaiverDAOTest2");
 
     PolicyWaiver policyWaiverOrg = new PolicyWaiver("1", policy1.getId(), organization.getId(), "My comment1");
     dao.insert(policyWaiverOrg);
@@ -214,7 +207,7 @@ public class PolicyWaiverDAOTest
     PolicyWaiverDAO dao = new PolicyWaiverDAO();
 
     String hash = "12345678901234567890";
-    Policy policy = createPolicy(organization.getId(), "PolicyWaiverDAOTest");
+    Policy policy = tempEntity.newPolicy(organization.getId(), "PolicyWaiverDAOTest");
     String policyId = policy.getId();
     String ownerId = organization.getId();
     String comment = "Just testing";

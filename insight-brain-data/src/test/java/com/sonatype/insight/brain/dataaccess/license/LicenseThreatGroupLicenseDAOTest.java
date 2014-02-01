@@ -21,11 +21,6 @@ import org.junit.Test;
 public class LicenseThreatGroupLicenseDAOTest
     extends AbstractDbDAOTest
 {
-  @Before
-  public void before() {
-    createDefaultApplication();
-  }
-
   private void testCRUD(String ownerId) throws Exception {
     LicenseThreatGroupDAO groupDAO = new LicenseThreatGroupDAO();
     LicenseThreatGroup group = new LicenseThreatGroup();

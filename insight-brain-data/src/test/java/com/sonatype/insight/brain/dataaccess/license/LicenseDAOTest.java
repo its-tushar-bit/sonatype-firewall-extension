@@ -62,8 +62,6 @@ public class LicenseDAOTest
 
   @Test
   public void testGetLicenseThreatLevelByApplicationAndLicenseId() {
-    createDefaultApplication();
-
     LicenseDAO dao = new LicenseDAO();
     Collection<License> licenses = dao.getAll();
 

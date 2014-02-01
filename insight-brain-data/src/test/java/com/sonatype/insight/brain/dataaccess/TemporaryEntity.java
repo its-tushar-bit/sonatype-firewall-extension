@@ -3,10 +3,11 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain;
+package com.sonatype.insight.brain.dataaccess;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.UUID;
 
 import com.sonatype.insight.brain.configuration.ldap.LdapAuthenticationMethod;
@@ -239,6 +240,14 @@ public class TemporaryEntity
     return org;
   }
 
+  public List<Organization> newOrganizations(int orgCount) {
+    List<Organization> organizations = new ArrayList<>();
+    for (int index = 0; index < orgCount; ++index) {
+      organizations.add(newOrganization());
+    }
+    return organizations;
+  }
+
   public Application newApplication(String orgId) {
     return newApplication(uuid(), orgId);
   }
@@ -252,6 +261,14 @@ public class TemporaryEntity
     appDAO.insert(app);
     apps.add(app);
     return app;
+  }
+
+  public List<Application> newApplications(String orgId, int appCount) {
+    List<Application> applications = new ArrayList<>();
+    for (int index = 0; index < appCount; ++index) {
+      applications.add(newApplication(orgId));
+    }
+    return applications;
   }
 
   public User newUser() {
@@ -385,6 +402,10 @@ public class TemporaryEntity
     umap.setGroupMemberFormat("uid=${username}");
     ldapUserMappingDAO.insert(umap);
     return umap;
+  }
+
+  public Tag newTag(String orgId) {
+    return newTag(orgId, "Tag name " + uuid());
   }
 
   public Tag newTag(String orgId, String name) {

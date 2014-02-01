@@ -43,7 +43,6 @@ import com.sonatype.insight.brain.model.tag.Tag;
 import org.apache.commons.lang.StringUtils;
 import org.junit.After;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -67,26 +66,18 @@ public class ApplicationDAOTest
   @Rule
   public TemporaryFolder tmpDir = new TemporaryFolder();
 
-  @Before
-  public void setupApplication() {
-    Organization organization = createOrganization("ApplicationDAOTest");
-    application = new Application();
-    application.setOrganizationId(organization.getId());
-    application.setName("valid name");
-    application.setPublicId("valid public id");
-  }
-
   @After
-  public void cleanUp() {
-    if (applicationDAO.getById(application.getId()) != null) {
-      applicationDAO.delete(application);
+  public void after() throws Exception {
+    //Since these tests create apps detached from TemporaryEntity, ensure they are deleted
+    for(Application app : applicationDAO.getAll()) {
+      applicationDAO.delete(app);
     }
   }
 
   @Test
   public void testCRUD() throws Exception {
     // Create
-    createDefaultApplication();
+    Application app = tempEntity.newApplication(organization.getId());
 
     BufferedImage image = new BufferedImage(420, 420, BufferedImage.TYPE_INT_ARGB);
     ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
@@ -94,40 +85,43 @@ public class ApplicationDAOTest
     ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(byteArrayOutputStream.toByteArray());
 
     File iconDir = tmpDir.newFolder();
-    File appIconDir = new File(iconDir, applicationId);
+    File appIconDir = new File(iconDir, app.getId());
     Assert.assertFalse(appIconDir.exists());
-    new IconDAO().setIcon(applicationId, iconDir, byteArrayInputStream);
+    new IconDAO().setIcon(app.getId(), iconDir, byteArrayInputStream);
     Assert.assertTrue(appIconDir.isDirectory());
 
     // Get the icon
-    byte[] iconBytes = new IconDAO().getIcon(applicationId, iconDir);
+    byte[] iconBytes = new IconDAO().getIcon(app.getId(), iconDir);
     Assert.assertNotNull(iconBytes);
     Assert.assertTrue(iconBytes.length > 0);
 
     // Update
-    Application application = applicationDAO.getById(applicationId);
-    application.setName("ApplicationDAOTest New name");
-    applicationDAO.update(application);
-    application = applicationDAO.getById(applicationId);
-    Assert.assertEquals("ApplicationDAOTest New name", application.getName());
-
-    // Get All
-    List<Application> applications = applicationDAO.getAll();
-    Assert.assertEquals(1, applications.size());
-    Assert.assertEquals(applicationId, applications.get(0).getId());
+    app = applicationDAO.getById(app.getId());
+    app.setName("ApplicationDAOTest New name");
+    applicationDAO.update(app);
+    app = applicationDAO.getById(app.getId());
+    Assert.assertEquals("ApplicationDAOTest New name", app.getName());
 
     // Delete
-    applicationDAO.deleteWithIcon(application, iconDir);
-    application = applicationDAO.getById(applicationId);
-    Assert.assertNull(application);
+    applicationDAO.deleteWithIcon(app, iconDir);
+    app = applicationDAO.getById(app.getId());
+    Assert.assertNull(app);
     Assert.assertFalse(appIconDir.getAbsolutePath(), appIconDir.exists());
   }
 
   @Test
-  public void testUpdateOrganizationId() {
-    Organization organization1 = createOrganization("testUpdateOrganizationId 1");
+  public void testGetAll() throws Exception {
+    // Create a few apps
+    int appCount = 3;
+    tempEntity.newApplications(organization.getId(), appCount);
 
-    applicationDAO.insert(application);
+    // getAll should return appCount + 1, to account for app created by AbstractDbDAOTest
+    assertThat(applicationDAO.getAll(), hasSize(appCount + 1));
+  }
+
+  @Test
+  public void testUpdateOrganizationId() {
+    Organization organization1 = tempEntity.newOrganization("testUpdateOrganizationId 1");
 
     // Update with a different organization id - should fail
     application.setOrganizationId(organization1.getId());
@@ -142,9 +136,9 @@ public class ApplicationDAOTest
 
   @Test
   public void testValidateNullPublicId_Insert() {
-    application.setPublicId(null);
+    Application app = new Application(null, "name", organization.getId());
     try {
-      applicationDAO.insert(application);
+      applicationDAO.insert(app);
       fail("Expected InvalidApplicationException");
     }
     catch (InvalidApplicationException expected) {
@@ -154,7 +148,6 @@ public class ApplicationDAOTest
 
   @Test
   public void testValidateNullPublicId_Update() {
-    applicationDAO.insert(application);
     application.setPublicId(" ");
     application.setName(application.getName() + "1");
     try {
@@ -170,38 +163,37 @@ public class ApplicationDAOTest
   public void testPublicIdIsCaseInsensitive() {
     String appPublicId = "testPublicIdIsCaseInsensitive";
 
-    application.setName("test");
-    application.setPublicId(appPublicId);
+    Application app = new Application(appPublicId, "test", organization.getId());
     ApplicationDAO applicationDAO = new ApplicationDAO();
-    applicationDAO.insert(application);
-    String applicationId = application.getId();
+    applicationDAO.insert(app);
+    String applicationId = app.getId();
 
-    Assert.assertEquals(appPublicId, application.getPublicId());
-    Assert.assertEquals(appPublicId.toLowerCase(Locale.ENGLISH), application.getPublicIdLowercase());
+    Assert.assertEquals(appPublicId, app.getPublicId());
+    Assert.assertEquals(appPublicId.toLowerCase(Locale.ENGLISH), app.getPublicIdLowercase());
 
-    application = applicationDAO.getById(applicationId);
-    Assert.assertNotNull(application);
-    Assert.assertEquals(appPublicId, application.getPublicId());
-    Assert.assertEquals(appPublicId.toLowerCase(Locale.ENGLISH), application.getPublicIdLowercase());
+    app = applicationDAO.getById(applicationId);
+    Assert.assertNotNull(app);
+    Assert.assertEquals(appPublicId, app.getPublicId());
+    Assert.assertEquals(appPublicId.toLowerCase(Locale.ENGLISH), app.getPublicIdLowercase());
 
-    application = applicationDAO.getByPublicId(appPublicId);
-    Assert.assertNotNull(application);
-    Assert.assertEquals(applicationId, application.getId());
+    app = applicationDAO.getByPublicId(appPublicId);
+    Assert.assertNotNull(app);
+    Assert.assertEquals(applicationId, app.getId());
 
-    application = applicationDAO.getByPublicId(appPublicId.toLowerCase(Locale.ENGLISH));
-    Assert.assertNotNull(application);
-    Assert.assertEquals(applicationId, application.getId());
+    app = applicationDAO.getByPublicId(appPublicId.toLowerCase(Locale.ENGLISH));
+    Assert.assertNotNull(app);
+    Assert.assertEquals(applicationId, app.getId());
 
-    application = applicationDAO.getByPublicId(appPublicId.toUpperCase(Locale.ENGLISH));
-    Assert.assertNotNull(application);
-    Assert.assertEquals(applicationId, application.getId());
+    app = applicationDAO.getByPublicId(appPublicId.toUpperCase(Locale.ENGLISH));
+    Assert.assertNotNull(app);
+    Assert.assertEquals(applicationId, app.getId());
   }
 
   @Test
   public void testValidateNullName_Insert() {
-    application.setName(null);
+    Application app = new Application("publicId", null, organization.getId());
     try {
-      applicationDAO.insert(application);
+      applicationDAO.insert(app);
       fail("Expected InvalidNameException");
     }
     catch (InvalidNameException expected) {
@@ -211,14 +203,14 @@ public class ApplicationDAOTest
 
   @Test
   public void testValidateNullName_Update() {
-    application.setName("testValidateNullName");
-    assertEquals("testvalidatenullname", application.getNameLowercaseNoWhitespace());
-    applicationDAO.insert(application);
+    Application app = new Application("publicId", "testValidateNullName", organization.getId());
+    assertEquals("testvalidatenullname", app.getNameLowercaseNoWhitespace());
+    applicationDAO.insert(app);
 
-    application.setName(null);
-    assertNull(application.getNameLowercaseNoWhitespace());
+    app.setName(null);
+    assertNull(app.getNameLowercaseNoWhitespace());
     try {
-      applicationDAO.update(application);
+      applicationDAO.update(app);
       fail("Expected InvalidNameException");
     }
     catch (InvalidNameException expected) {
@@ -228,9 +220,9 @@ public class ApplicationDAOTest
 
   @Test
   public void testValidateEmptyName_Insert() {
-    application.setName(" ");
+    Application app = new Application("publicId", " ", organization.getId());
     try {
-      applicationDAO.insert(application);
+      applicationDAO.insert(app);
       fail("Expected InvalidNameException");
     }
     catch (InvalidNameException expected) {
@@ -240,14 +232,14 @@ public class ApplicationDAOTest
 
   @Test
   public void testValidateEmptyName_Update() {
-    application.setName("testValidateEmptyName");
-    assertEquals("testvalidateemptyname", application.getNameLowercaseNoWhitespace());
-    applicationDAO.insert(application);
+    Application app = new Application("publicId", "testValidateEmptyName", organization.getId());
+    assertEquals("testvalidateemptyname", app.getNameLowercaseNoWhitespace());
+    applicationDAO.insert(app);
 
-    application.setName(" ");
-    assertEquals("", application.getNameLowercaseNoWhitespace());
+    app.setName(" ");
+    assertEquals("", app.getNameLowercaseNoWhitespace());
     try {
-      applicationDAO.update(application);
+      applicationDAO.update(app);
       fail("Expected InvalidNameException");
     }
     catch (InvalidNameException expected) {
@@ -257,10 +249,11 @@ public class ApplicationDAOTest
 
   @Test
   public void testValidateNameInvalidChars_Insert() {
+    Application app = new Application("publicId", "name", organization.getId());
     for (String name: INVALID_ALPHANUMERIC) {
-      application.setName(name);
+      app.setName(name);
       try {
-        applicationDAO.insert(application);
+        applicationDAO.insert(app);
         fail("Expected InvalidNameException");
       }
       catch (InvalidNameException expected) {
@@ -271,8 +264,6 @@ public class ApplicationDAOTest
 
   @Test
   public void testValidateNameInvalidChars_Update() {
-    application.setName("testValidateNameInvalidChars");
-    applicationDAO.insert(application);
     for (String name: INVALID_ALPHANUMERIC) {
       application.setName(name);
       try {
@@ -287,10 +278,11 @@ public class ApplicationDAOTest
 
   @Test
   public void testValidateNameSpaces_Insert() {
+    Application app = new Application("publicId", "name", organization.getId());
     for (String name : INVALID_SPACING_NAMES) {
-      application.setName(name);
+      app.setName(name);
       try {
-        applicationDAO.insert(application);
+        applicationDAO.insert(app);
         fail("Expected InvalidNameException");
       }
       catch (InvalidNameException expected) {
@@ -302,9 +294,6 @@ public class ApplicationDAOTest
 
   @Test
   public void testValidateNameSpaces_Update() {
-    application.setName("testValidateNameSpaces");
-    applicationDAO.insert(application);
-
     for (String name : INVALID_SPACING_NAMES) {
       application.setName(name);
       try {
@@ -322,28 +311,22 @@ public class ApplicationDAOTest
   public void testNameIsCaseAndWhitespaceInsensitive() {
     String name = "test string With Case and Whitespace";
 
-    application.setName(name);
-    applicationDAO.insert(application);
+    Application app = tempEntity.newApplication(name, "publicId", organization.getId());
 
-    assertEquals(name, application.getName());
-    assertEquals("teststringwithcaseandwhitespace", application.getNameLowercaseNoWhitespace());
+    assertEquals(name, app.getName());
+    assertEquals("teststringwithcaseandwhitespace", app.getNameLowercaseNoWhitespace());
 
     String name1 = "TEST String      With    cASE and      whitespace";
     Application application1 = applicationDAO.getByName(name1);
     assertNotNull(application1);
-    assertEquals(application.getId(), application1.getId());
+    assertEquals(app.getId(), application1.getId());
   }
 
   @Test
   public void testDuplicateName_Insert() {
-    application.setName("testDuplicateName");
-    applicationDAO.insert(application);
-
-    Application application1 = new Application();
-    application1.setPublicId("testDuplicateName1");
-    application1.setName("Test Duplicate Name");
+    tempEntity.newApplication("testDuplicateName", "publicId", organization.getId());
     try {
-      applicationDAO.insert(application1);
+      tempEntity.newApplication("Test Duplicate Name", "publicId2", organization.getId());
       fail("Expected InvalidNameException");
     }
     catch (InvalidNameException expected) {
@@ -353,16 +336,9 @@ public class ApplicationDAOTest
 
   @Test
   public void testDuplicateName_Update() {
-    application.setName("testDuplicateName");
-    applicationDAO.insert(application);
+    tempEntity.newApplication("testDuplicateName", "publicId", organization.getId());
 
-    Application application1 = new Application();
-    application1.setPublicId("testpublicid1");
-    application1.setName("testDuplicateName1");
-    application1.setOrganizationId(application.getOrganizationId());
-    applicationDAO.insert(application1);
-    applicationsToDelete.add(application1);
-
+    Application application1 = tempEntity.newApplication(application.getOrganizationId());
     application1.setName("Test Duplicate Name");
     try {
       applicationDAO.update(application1);
@@ -375,22 +351,17 @@ public class ApplicationDAOTest
 
   @Test
   public void testCascadeDeleteToLabels() {
-    application.setName("testCascadeDeleteToLabels");
-    applicationDAO.insert(application);
-
     LabelDAO labelDAO = new LabelDAO();
     Label label = new Label(application.getId(), "testCascadeDeleteToLabels", Color.blue);
     labelDAO.insert(label);
 
     applicationDAO.delete(application);
+    assertThat(labelDAO.getByOwnerId(application.getId()), hasSize(0));
   }
 
   @Test
   public void testCascadeDeleteToPolicyWaivers() {
-    application.setName("testCascadeDeleteToPolicyWaivers");
-    applicationDAO.insert(application);
-
-    Policy policy = createPolicy(application.getId(), "testCascadeDeleteToPolicyWaivers");
+    Policy policy = tempEntity.newPolicy(application.getId(), "testCascadeDeleteToPolicyWaivers");
     PolicyWaiver policyWaiver = new PolicyWaiver("12345678901234567890", policy.getId(), application.getId(),
         "My comment");
     PolicyWaiverDAO policyWaiverDAO = new PolicyWaiverDAO();
@@ -405,10 +376,7 @@ public class ApplicationDAOTest
 
   @Test
   public void testCascadeDeleteToPolicies() {
-    application.setName("testCascadeDeleteToPolicies");
-    applicationDAO.insert(application);
-
-    createPolicy(application.getId(), "testCascadeDeleteToPolicies");
+    tempEntity.newPolicy(application.getId(), "testCascadeDeleteToPolicies");
     PolicyDAO policyDAO = new PolicyDAO();
     List<Policy> policies = policyDAO.getByOwnerId(application.getId());
     assertThat(policies, hasSize(1));
@@ -420,9 +388,6 @@ public class ApplicationDAOTest
 
   @Test
   public void testCascadeDeleteToLicenseOverrides() {
-    application.setName("testCascadeDeleteToLicenseOverrides");
-    applicationDAO.insert(application);
-
     LicenseOverride licenseOverride = new LicenseOverride(application.getId(), "groupId", "artifactId", "version",
         LicenseOverrideStatus.OVERRIDDEN, "Apache-2.0", "My comment");
     LicenseOverrideDAO licenseOverrideDAO = new LicenseOverrideDAO();
@@ -437,9 +402,6 @@ public class ApplicationDAOTest
 
   @Test
   public void testCascadeDeleteToMembershipMappings() {
-    application.setName("testCascadeDeleteToMembershipMappings");
-    applicationDAO.insert(application);
-
     String roleId = new RoleDAO().getApplicationRoles().get(0).getId();
     MembershipMappingDAO membershipMappingDAO = new MembershipMappingDAO();
     membershipMappingDAO.setMembershipMappingsForContextAndRole(application.getId(), roleId,
@@ -452,10 +414,7 @@ public class ApplicationDAOTest
 
   @Test
   public void testCascadeDeleteToApplicationTags() {
-    createDefaultApplication();
-
-    Tag tag = createTag("testCascadeDeleteToApplicationTags name", "testCascadeDeleteToApplicationTags description",
-        organization.getId());
+    Tag tag = tempEntity.newTag(organization.getId());
 
     ApplicationTagDAO appTagDAO = new ApplicationTagDAO();
     ApplicationTag appTag = new ApplicationTag(applicationId, tag.getId());
@@ -469,23 +428,21 @@ public class ApplicationDAOTest
   @Test
   public void testValidateNameLength_Insert() {
     String name = StringUtils.repeat("a", NameHelper.MAX_NAME_LENGTH);
-    application.setName(name + "a");
+    Application app = new Application("publicId", name + "a", organization.getId());
     try {
-      applicationDAO.insert(application);
+      applicationDAO.insert(app);
       fail("Expected InvalidNameException");
     }
     catch (InvalidNameException expected) {
       assertEquals("Name must be 60 characters or less.", expected.getMessage());
     }
 
-    application.setName(name);
-    applicationDAO.insert(application);
+    app.setName(name);
+    applicationDAO.insert(app);
   }
 
   @Test
   public void testValidateNameLength_Update() {
-    applicationDAO.insert(application);
-
     String name = StringUtils.repeat("a", NameHelper.MAX_NAME_LENGTH);
     application.setName(name + "a");
     try {
@@ -502,9 +459,6 @@ public class ApplicationDAOTest
 
   @Test
   public void testCascadeDeleteToPolicyMonitoring() {
-    application.setName("testCascadeDeleteToPolicyMonitoring");
-    applicationDAO.insert(application);
-
     PolicyMonitoringDAO policyMonitoringDAO = new PolicyMonitoringDAO();
     PolicyMonitoring policyMonitoring = new PolicyMonitoring(application.getId(), Stage.ID_RELEASE);
     policyMonitoringDAO.insert(policyMonitoring);

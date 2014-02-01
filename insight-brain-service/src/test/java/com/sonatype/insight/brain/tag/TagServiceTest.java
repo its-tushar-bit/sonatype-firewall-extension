@@ -9,8 +9,7 @@ import java.util.List;
 
 import javax.inject.Inject;
 
-import com.sonatype.insight.brain.TemporaryEntity;
-import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
+import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.Policy;

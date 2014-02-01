@@ -44,7 +44,7 @@ public class TagDAOTest
 
   @Before
   public void before() {
-    organization = createOrganization("TagDAOTest");
+    organization = tempEntity.newOrganization("TagDAOTest");
   }
 
   @Test
@@ -399,23 +399,23 @@ public class TagDAOTest
 
   @Test
   public void testGetAppliedApplicationTags() {
-    Application app1 = createApplication("one", "one", organization.getId());
-    Application app2 = createApplication("two", "two", organization.getId());
+    Application app1 = tempEntity.newApplication(organization.getId());
+    Application app2 = tempEntity.newApplication(organization.getId());
 
     List<Tag> app1Tags = new ArrayList<>();
     List<Tag> app2Tags = new ArrayList<>();
 
-    app1Tags.add(createTag("tag1", "tag1", organization.getId()));
-    app1Tags.add(createTag("tag2", "tag2", organization.getId()));
-    app2Tags.add(createTag("tag3", "tag3", organization.getId()));
-    app2Tags.add(createTag("tag4", "tag4", organization.getId()));
+    app1Tags.add(tempEntity.newTag(organization.getId()));
+    app1Tags.add(tempEntity.newTag(organization.getId()));
+    app2Tags.add(tempEntity.newTag(organization.getId()));
+    app2Tags.add(tempEntity.newTag(organization.getId()));
 
     for (Tag tag : app1Tags) {
-      createApplicationTag(app1.getId(), tag.getId());
+      tempEntity.newApplicationTag(app1.getId(), tag.getId());
     }
 
     for (Tag tag : app2Tags) {
-      createApplicationTag(app2.getId(), tag.getId());
+      tempEntity.newApplicationTag(app2.getId(), tag.getId());
     }
 
     assertAppliedTags(app1Tags, dao.getByApplicationId(app1.getId()));
@@ -424,10 +424,8 @@ public class TagDAOTest
 
   @Test
   public void testCascadeDeleteToApplicationTags() {
-    Application app = createApplication("testCascadeDeleteToApplicationTags", "testCascadeDeleteToApplicationTags",
-        organization.getId());
-    Tag tag = createTag("testCascadeDeleteToApplicationTags name", "testCascadeDeleteToApplicationTags description",
-        organization.getId());
+    Application app = tempEntity.newApplication(organization.getId());
+    Tag tag = tempEntity.newTag(organization.getId());
 
     ApplicationTagDAO appTagDAO = new ApplicationTagDAO();
     ApplicationTag appTag = new ApplicationTag(app.getId(), tag.getId());
@@ -440,10 +438,9 @@ public class TagDAOTest
 
   @Test
   public void testDenyCascadeDeleteToPolicyTags() {
-    Policy policy = createPolicy(organization.getId(), "TagDAOTest");
-    Tag tag = createTag("testDenyCascadeDeleteToPolicyTags name", "testDenyCascadeDeleteToPolicyTags description",
-        organization.getId());
-    createPolicyTag(policy.getId(), tag.getId());
+    Policy policy = tempEntity.newPolicy(organization.getId(), "TagDAOTest");
+    Tag tag = tempEntity.newTag(organization.getId());
+    tempEntity.newPolicyTag(policy.getId(), tag.getId());
 
     try {
       dao.delete(tag);
@@ -458,36 +455,36 @@ public class TagDAOTest
 
   @Test
   public void testGetAppliedToPolicyByOrgId() {
-    Organization org1 = createOrganization("org1");
-    Organization org2 = createOrganization("org2");
+    Organization org1 = tempEntity.newOrganization("org1");
+    Organization org2 = tempEntity.newOrganization("org2");
 
     List<Tag> org1Tags = new ArrayList<>();
     List<Tag> org2Tags = new ArrayList<>();
 
-    Policy policy1 = createPolicy(org1.getId(), "TagDAOTest1");
-    Policy policy2 = createPolicy(org1.getId(), "TagDAOTest2");
-    Policy policy3 = createPolicy(org2.getId(), "TagDAOTest3");
-    Policy policy4 = createPolicy(org2.getId(), "TagDAOTest4");
+    Policy policy1 = tempEntity.newPolicy(org1.getId(), "TagDAOTest1");
+    Policy policy2 = tempEntity.newPolicy(org1.getId(), "TagDAOTest2");
+    Policy policy3 = tempEntity.newPolicy(org2.getId(), "TagDAOTest3");
+    Policy policy4 = tempEntity.newPolicy(org2.getId(), "TagDAOTest4");
 
     //Create tags and apply to policies
-    org1Tags.add(createTag(org1.getId()));
-    createPolicyTag(policy1.getId(), org1Tags.get(0).getId());
-    org1Tags.add(createTag(org1.getId()));
-    createPolicyTag(policy2.getId(), org1Tags.get(1).getId());
-    org1Tags.add(createTag(org1.getId()));
-    createPolicyTag(policy1.getId(), org1Tags.get(2).getId());
-    createPolicyTag(policy2.getId(), org1Tags.get(2).getId());
-    org2Tags.add(createTag(org2.getId()));
-    createPolicyTag(policy3.getId(), org2Tags.get(0).getId());
-    org2Tags.add(createTag(org2.getId()));
-    createPolicyTag(policy4.getId(), org2Tags.get(1).getId());
-    org2Tags.add(createTag(org2.getId()));
-    createPolicyTag(policy3.getId(), org2Tags.get(2).getId());
-    createPolicyTag(policy4.getId(), org2Tags.get(2).getId());
+    org1Tags.add(tempEntity.newTag(org1.getId()));
+    tempEntity.newPolicyTag(policy1.getId(), org1Tags.get(0).getId());
+    org1Tags.add(tempEntity.newTag(org1.getId()));
+    tempEntity.newPolicyTag(policy2.getId(), org1Tags.get(1).getId());
+    org1Tags.add(tempEntity.newTag(org1.getId()));
+    tempEntity.newPolicyTag(policy1.getId(), org1Tags.get(2).getId());
+    tempEntity.newPolicyTag(policy2.getId(), org1Tags.get(2).getId());
+    org2Tags.add(tempEntity.newTag(org2.getId()));
+    tempEntity.newPolicyTag(policy3.getId(), org2Tags.get(0).getId());
+    org2Tags.add(tempEntity.newTag(org2.getId()));
+    tempEntity.newPolicyTag(policy4.getId(), org2Tags.get(1).getId());
+    org2Tags.add(tempEntity.newTag(org2.getId()));
+    tempEntity.newPolicyTag(policy3.getId(), org2Tags.get(2).getId());
+    tempEntity.newPolicyTag(policy4.getId(), org2Tags.get(2).getId());
 
     //Create tags but do not apply to policies
-    createTag(org1.getId());
-    createTag(org2.getId());
+    tempEntity.newTag(org1.getId());
+    tempEntity.newTag(org2.getId());
 
     assertAppliedTags(org1Tags, dao.getAppliedToPolicyByOrganizationId(org1.getId()));
     assertAppliedTags(org2Tags, dao.getAppliedToPolicyByOrganizationId(org2.getId()));

@@ -6,7 +6,7 @@
 package com.sonatype.insight.brain.testing.functional
 
 import com.google.common.io.Resources
-import com.sonatype.insight.brain.TemporaryEntity
+import com.sonatype.insight.brain.dataaccess.TemporaryEntity
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO
 import com.sonatype.insight.brain.service.InsightConfig

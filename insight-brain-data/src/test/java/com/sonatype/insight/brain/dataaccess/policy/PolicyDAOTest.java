@@ -41,7 +41,6 @@ public class PolicyDAOTest
 
   @Before
   public void setUp() throws Exception {
-    createDefaultApplication();
     policyDAO = new PolicyDAO();
   }
 
@@ -525,8 +524,8 @@ public class PolicyDAOTest
     policyDAO.insert(policyOrg2);
     
     // One policy has a tag associated, the other doesn't
-    Tag tag = createTag("tag name", "tag description", organization.getId());
-    createPolicyTag(policyOrg1.getId(), tag.getId());
+    Tag tag = tempEntity.newTag(organization.getId());
+    tempEntity.newPolicyTag(policyOrg1.getId(), tag.getId());
 
     List<Policy> policies = policyDAO.getApplicableByOwnerId(organization.getId());
     Assert.assertEquals(2, policies.size());
@@ -555,11 +554,11 @@ public class PolicyDAOTest
     Policy policyOrg2 = newPolicy(organization.getId(), "policy2");
     policyDAO.insert(policyOrg2);
 
-    Tag tag1 = createTag("tag name 1", "tag description 1", organization.getId());
-    createPolicyTag(policyOrg1.getId(), tag1.getId());
-    Tag tag2 = createTag("tag name 2", "tag description 2", organization.getId());
-    createPolicyTag(policyOrg2.getId(), tag2.getId());
-    createApplicationTag(application.getId(), tag2.getId());
+    Tag tag1 = tempEntity.newTag(organization.getId());
+    tempEntity.newPolicyTag(policyOrg1.getId(), tag1.getId());
+    Tag tag2 = tempEntity.newTag(organization.getId());
+    tempEntity.newPolicyTag(policyOrg2.getId(), tag2.getId());
+    tempEntity.newApplicationTag(application.getId(), tag2.getId());
 
     List<Policy> policies = policyDAO.getApplicableByOwnerId(application.getId());
     Assert.assertEquals(1, policies.size());
@@ -592,7 +591,7 @@ public class PolicyDAOTest
     Policy policy = newPolicy(applicationId, "PolicyDAOTest new policy");
     policyDAO.insert(policy);
 
-    Tag tag = createTag(organization.getId());
+    Tag tag = tempEntity.newTag(organization.getId());
 
     PolicyTag policyTag = new PolicyTag(policy.getId(), tag.getId());
     PolicyTagDAO policyTagDAO = new PolicyTagDAO();

@@ -8,7 +8,7 @@ package com.sonatype.insight.brain.security;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.sonatype.insight.brain.TemporaryEntity;
+import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.security.MembershipMapping;

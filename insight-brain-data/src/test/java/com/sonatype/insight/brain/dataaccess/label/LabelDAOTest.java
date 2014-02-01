@@ -30,11 +30,6 @@ import static org.junit.Assert.fail;
 public class LabelDAOTest
     extends AbstractDbDAOTest
 {
-  @Before
-  public void before() {
-    createDefaultApplication();
-  }
-
   @Test
   public void testLabelWithSpaces() throws Exception {
     LabelDAO dao = new LabelDAO();

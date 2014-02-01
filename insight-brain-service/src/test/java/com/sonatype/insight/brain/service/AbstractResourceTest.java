@@ -5,7 +5,7 @@
  */
 package com.sonatype.insight.brain.service;
 
-import com.sonatype.insight.brain.TemporaryEntity;
+import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 
 import org.junit.Rule;
 

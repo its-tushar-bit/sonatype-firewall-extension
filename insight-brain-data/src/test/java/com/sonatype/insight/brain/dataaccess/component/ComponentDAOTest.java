@@ -46,11 +46,6 @@ public class ComponentDAOTest
 
   private ComponentLabelDAO componentLabelDAO = new ComponentLabelDAO();
 
-  @Before
-  public void before() {
-    createDefaultApplication();
-  }
-
   private com.sonatype.insight.brain.model.component.SecurityVulnerability newSV(String refId, String source,
       Float severity, SecurityVulnerabilityStatus status)
   {

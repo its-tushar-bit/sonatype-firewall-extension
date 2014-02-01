@@ -24,11 +24,6 @@ import static org.junit.Assert.fail;
 public class PolicyMonitoringDAOTest
     extends AbstractDbDAOTest
 {
-  @Before
-  public void before() {
-    createDefaultApplication();
-  }
-
   @Test
   public void testCRUD() throws Exception {
     PolicyMonitoringDAO dao = new PolicyMonitoringDAO();

@@ -26,11 +26,6 @@ import static org.junit.Assert.fail;
 public class LicenseOverrideDAOTest
     extends AbstractDbDAOTest
 {
-  @Before
-  public void before() {
-    createDefaultApplication();
-  }
-
   private void testCRUD(String ownerId) throws Exception {
     LicenseOverrideDAO dao = new LicenseOverrideDAO();
     String groupId = "g";

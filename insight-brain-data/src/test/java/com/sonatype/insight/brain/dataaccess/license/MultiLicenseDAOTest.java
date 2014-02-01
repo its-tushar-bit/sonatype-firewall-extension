@@ -76,8 +76,6 @@ public class MultiLicenseDAOTest
 
   @Test
   public void testGetLicenseThreatLevelByApplicationAndMultiLicenseId() {
-    createDefaultApplication();
-
     MultiLicenseDAO dao = new MultiLicenseDAO();
     Collection<MultiLicense> multiLicenses = dao.getAll();
 
@@ -93,16 +91,12 @@ public class MultiLicenseDAOTest
 
   @Test(expected = NotFoundException.class)
   public void testGetLicensesByMultiLicenseIdNotFound() {
-    createDefaultApplication();
-
     MultiLicenseDAO dao = new MultiLicenseDAO();
     dao.getLicensesByMultiLicenseIdNotNull("Not-To-Be-Found");
   }
 
   @Test
   public void testGetLicensesByMultiLicenseIdRefreshedRemotely() {
-    createDefaultApplication();
-
     MultiLicenseDAO dao = new MultiLicenseDAO();
 
     try {

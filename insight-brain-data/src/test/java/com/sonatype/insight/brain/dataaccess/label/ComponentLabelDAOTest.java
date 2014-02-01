@@ -24,11 +24,6 @@ public class ComponentLabelDAOTest
 {
   private final String hash = "ababababab";
 
-  @Before
-  public void before() {
-    createDefaultApplication();
-  }
-
   private Label newLabel(String name, String ownerId) {
     LabelDAO labelDAO = new LabelDAO();
     Label label = new Label();

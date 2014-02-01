@@ -77,6 +77,13 @@
       </dependency>
       <dependency>
         <groupId>com.sonatype.insight.brain</groupId>
+        <artifactId>insight-brain-data</artifactId>
+        <version>1.8.1-SNAPSHOT</version>
+        <type>test-jar</type>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>com.sonatype.insight.brain</groupId>
         <artifactId>insight-brain-db</artifactId>
         <version>1.8.1-SNAPSHOT</version>
       </dependency>

@@ -67,7 +67,7 @@ public class OrganizationDAOTest
 
   @Test
   public void testCreateDefaultLicenseThreatGroups() throws Exception {
-    organization = createOrganization("OrganizationDAOTest");
+    organization = tempEntity.newOrganization("OrganizationDAOTest");
     List<LicenseThreatGroup> licenseThreatGroups = new LicenseThreatGroupDAO().getByOwnerId(organization.getId());
     Assert.assertEquals(LicenseThreatGroupDAO.DEFAULT_LICENSE_THREAT_GROUP_COUNT, licenseThreatGroups.size());
   }
@@ -75,7 +75,7 @@ public class OrganizationDAOTest
   @Test
   public void testCRUD() throws Exception {
     // Create
-    organization = createOrganization("OrganizationDAOTest");
+    organization = tempEntity.newOrganization("OrganizationDAOTest");
     String organizationId = organization.getId();
     organization = dao.getById(organizationId);
     Assert.assertEquals("OrganizationDAOTest", organization.getName());
@@ -102,15 +102,20 @@ public class OrganizationDAOTest
     organization = dao.getById(organizationId);
     Assert.assertEquals("OrganizationDAOTest New name", organization.getName());
 
-    // Get All
-    List<Organization> organizations = dao.getAll();
-    Assert.assertEquals(1, organizations.size());
-    Assert.assertEquals(organizationId, organizations.get(0).getId());
-
     // Delete
     dao.delete(organization);
     organization = dao.getById(organizationId);
     Assert.assertNull(organization);
+  }
+
+  @Test
+  public void testGetAll() throws Exception {
+    // Create a few orgs
+    int orgCount = 3;
+    tempEntity.newOrganizations(orgCount);
+
+    // getAll should return orgCount + 1, to account for org created by AbstractDbDAOTest
+    assertThat(dao.getAll(), hasSize(orgCount + 1));
   }
 
   @Test
@@ -127,7 +132,7 @@ public class OrganizationDAOTest
 
   @Test
   public void testValidateNullName_Update() {
-    organization = createOrganization("testValidateNullName");
+    organization = tempEntity.newOrganization("testValidateNullName");
     assertEquals("testvalidatenullname", organization.getNameLowercaseNoWhitespace());
 
     organization.setName(null);
@@ -144,7 +149,7 @@ public class OrganizationDAOTest
   @Test
   public void testValidateEmptyName_Insert() {
     try {
-      createOrganization(" ");
+      tempEntity.newOrganization(" ");
       fail("Expected InvalidNameException");
     }
     catch (InvalidNameException expected) {
@@ -154,7 +159,7 @@ public class OrganizationDAOTest
 
   @Test
   public void testValidateEmptyName_Update() {
-    organization = createOrganization("testValidateEmptyName");
+    organization = tempEntity.newOrganization("testValidateEmptyName");
     assertEquals("testvalidateemptyname", organization.getNameLowercaseNoWhitespace());
 
     organization.setName(" ");
@@ -184,7 +189,7 @@ public class OrganizationDAOTest
 
   @Test
   public void testValidateNameInvalidChars_Update() {
-    organization = createOrganization("testValidateNameInvalidChars");
+    organization = tempEntity.newOrganization("testValidateNameInvalidChars");
     for (String name: INVALID_ALPHANUMERIC) {
       organization.setName(name);
       try {
@@ -201,7 +206,7 @@ public class OrganizationDAOTest
   public void testValidateNameSpaces_Insert() {
     for (String name : INVALID_SPACING_NAMES) {
       try {
-        createOrganization(name);
+        tempEntity.newOrganization(name);
         fail("Expected InvalidNameException");
       }
       catch (InvalidNameException expected) {
@@ -213,7 +218,7 @@ public class OrganizationDAOTest
 
   @Test
   public void testValidateNameSpaces_Update() {
-    organization = createOrganization("testValidateNameSpaces");
+    organization = tempEntity.newOrganization("testValidateNameSpaces");
     for (String name : INVALID_SPACING_NAMES) {
       organization.setName(name);
       try {
@@ -231,7 +236,7 @@ public class OrganizationDAOTest
   public void testNameIsCaseAndWhitespaceInsensitive() {
     String name = "test string With Case and Whitespace";
 
-    organization = createOrganization(name);
+    organization = tempEntity.newOrganization(name);
 
     assertEquals(name, organization.getName());
     assertEquals("teststringwithcaseandwhitespace", organization.getNameLowercaseNoWhitespace());
@@ -244,10 +249,10 @@ public class OrganizationDAOTest
 
   @Test
   public void testDuplicateName_Insert() {
-    createOrganization("testDuplicateName");
+    tempEntity.newOrganization("testDuplicateName");
 
     try {
-      createOrganization("testDuplicateName");
+      tempEntity.newOrganization("testDuplicateName");
       fail("Expected InvalidNameException");
     }
     catch (InvalidNameException expected) {
@@ -257,8 +262,8 @@ public class OrganizationDAOTest
 
   @Test
   public void testDuplicateName_Update() {
-    createOrganization("testDuplicateName");
-    Organization organization1 = createOrganization("testDuplicateName1");
+    tempEntity.newOrganization("testDuplicateName");
+    Organization organization1 = tempEntity.newOrganization("testDuplicateName1");
 
     organization1.setName("Test Duplicate Name");
     try {
@@ -274,19 +279,19 @@ public class OrganizationDAOTest
   public void testValidateNameLength_Insert() {
     String name = StringUtils.repeat("a", NameHelper.MAX_NAME_LENGTH);
     try {
-      createOrganization(name + "a");
+      tempEntity.newOrganization(name + "a");
       fail("Expected InvalidNameException");
     }
     catch (InvalidNameException expected) {
       assertEquals("Name must be 60 characters or less.", expected.getMessage());
     }
 
-    createOrganization(name);
+    tempEntity.newOrganization(name);
   }
 
   @Test
   public void testValidateNameLength_Update() {
-    organization = createOrganization("test name");
+    organization = tempEntity.newOrganization("test name");
 
     String name = StringUtils.repeat("a", NameHelper.MAX_NAME_LENGTH);
     organization.setName(name + "a");
@@ -350,7 +355,7 @@ public class OrganizationDAOTest
     Organization organization = new Organization("organization");
     dao.insert(organization);
 
-    createPolicy(organization.getId(), "testCascadeDeleteToPolicies");
+    tempEntity.newPolicy(organization.getId(), "testCascadeDeleteToPolicies");
     PolicyDAO policyDAO = new PolicyDAO();
     List<Policy> policies = policyDAO.getByOwnerId(organization.getId());
     assertThat(policies, hasSize(1));
@@ -383,7 +388,7 @@ public class OrganizationDAOTest
     Organization organization = new Organization("testCascadeDeleteToPolicyWaivers");
     dao.insert(organization);
 
-    Policy policy = createPolicy(organization.getId(), "testCascadeDeleteToPolicyWaivers");
+    Policy policy = tempEntity.newPolicy(organization.getId(), "testCascadeDeleteToPolicyWaivers");
     PolicyWaiver policyWaiver = new PolicyWaiver("12345678901234567890", policy.getId(), organization.getId(),
         "My comment");
     PolicyWaiverDAO policyWaiverDAO = new PolicyWaiverDAO();

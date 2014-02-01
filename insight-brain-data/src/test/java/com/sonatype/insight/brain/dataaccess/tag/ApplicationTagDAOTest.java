@@ -37,8 +37,7 @@ public class ApplicationTagDAOTest
 
   @Before
   public void before() {
-    createDefaultApplication();
-    tag = createTag("TestTag name", "TestTag description", organization.getId());
+    tag = tempEntity.newTag(organization.getId());
   }
 
   @Test
@@ -80,23 +79,23 @@ public class ApplicationTagDAOTest
 
   @Test
   public void testGetByApplicationId() throws Exception {
-    Application app1 = createApplication("one", "one", organization.getId());
-    Application app2 = createApplication("two", "two", organization.getId());
+    Application app1 = tempEntity.newApplication(organization.getId());
+    Application app2 = tempEntity.newApplication(organization.getId());
 
     List<Tag> app1Tags = new ArrayList<>();
     List<Tag> app2Tags = new ArrayList<>();
 
-    app1Tags.add(createTag("tag1", "tag1", organization.getId()));
-    app1Tags.add(createTag("tag2", "tag2", organization.getId()));
-    app2Tags.add(createTag("tag3", "tag3", organization.getId()));
-    app2Tags.add(createTag("tag4", "tag4", organization.getId()));
+    app1Tags.add(tempEntity.newTag(organization.getId()));
+    app1Tags.add(tempEntity.newTag(organization.getId()));
+    app2Tags.add(tempEntity.newTag(organization.getId()));
+    app2Tags.add(tempEntity.newTag(organization.getId()));
 
     for (Tag tag : app1Tags) {
-      createApplicationTag(app1.getId(), tag.getId());
+      tempEntity.newApplicationTag(app1.getId(), tag.getId());
     }
 
     for (Tag tag : app2Tags) {
-      createApplicationTag(app2.getId(), tag.getId());
+      tempEntity.newApplicationTag(app2.getId(), tag.getId());
     }
 
     assertAppTags(app1.getId(), app1Tags, dao.getByApplicationId(app1.getId()));
@@ -105,7 +104,7 @@ public class ApplicationTagDAOTest
 
   @Test
   public void testGetByApplicationIdAndTagId() throws Exception {
-    createApplicationTag(applicationId, tag.getId());
+    tempEntity.newApplicationTag(applicationId, tag.getId());
     ApplicationTag appTag = dao.getByApplicationIdAndTagId(applicationId, tag.getId());
     assertAppTag(applicationId, tag.getId(), appTag);
   }

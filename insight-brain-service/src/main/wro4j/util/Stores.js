@@ -43,17 +43,20 @@
     };
   }]);
 
-  /* A service which allows stores to be cached by entity id. Stores and their contents will be cached across the SPA.
-   * configuration is the same as Resource but instead of url, a function getUrl is passed in.
+  /* A service which allows stores to be cached by a key, or if not provided the entity id.
+   * Stores and their contents will be cached across the SPA.
+   * configuration is the same as Resource except:
+   *   getUrl a function that returns the store URL at the point the store is requested
+   *   getKey (optional) a function that returns the key at the point the store is requested
    */
   storesModule.service('CachedStore', ['CLMResource', 'CLMAppLocations', function(CLMResource, CLMAppLocations) {
     function CachedStore(config) {
       var store, stores = {};
       function refreshStore() {
-        var entityId = CLMAppLocations.getEntityId();
-        store = stores[entityId];
+        var key = config.getKey ? config.getKey() : CLMAppLocations.getEntityId();
+        store = stores[key];
         if (!store) {
-          store = stores[entityId] = CLMResource.getStore(angular.extend({ url: config.getUrl() }, config));
+          store = stores[key] = CLMResource.getStore(angular.extend({ url: config.getUrl() }, config));
         }
       }
       return {

@@ -8,7 +8,7 @@
   'use strict';
   var module = angular.module('PolicyEditor', [
     'CLMAppLocation', 'CLMLocation', 'ResourceModule', 'ui.router', 'ui.bootstrap', 'AngularCommon',
-    'CommonServices', 'Stores', 'ProductFeaturesModule'
+    'CommonServices', 'Stores', 'ProductFeaturesModule', 'Tags'
   ]);
 
   module.service('PolicyStore', [
@@ -87,8 +87,10 @@
 
   module.controller('PolicyEditorController', [
     '$scope', '$state', '$location', '$modal', '$timeout', 'Dialog', 'Messages', 'PolicyStore', '$q', 'ActionStore',
-    'ProductFeatures',
-    function($scope, $state, $location, $modal, $timeout, Dialog, messages, policyStore, $q, actionStore, ProductFeatures) {
+    'ProductFeatures', 'PolicyTagStore',
+    function($scope, $state, $location, $modal, $timeout, Dialog, messages, policyStore, $q, actionStore, ProductFeatures, PolicyTagStore) {
+      var originalTags;
+
       function isDirty() {
         if ($scope.policy) {
           return $scope.policy.isDirty();
@@ -136,6 +138,13 @@
             actionTypeId: action
           });
         }
+      }
+
+      function errorFunction(error) {
+        $scope.alerts.push({
+          type: 'error',
+          msg: 'An error occurred while saving the policy. (' + messages.getHttpErrorMessage(error) + ')'
+        });
       }
       
       $scope.isPolicyMonitoringLicensed = function() {
@@ -310,16 +319,29 @@
           }
         }
       };
+
       $scope.savePolicy = function() {
         if ($scope.validate()) {
           $scope.policy.$save().then(function() {
-            $scope.hide();
-          }, function(error) {
-            $scope.alerts.push({
-              type: 'error',
-              msg: 'An error occurred while saving the policy. (' + messages.getHttpErrorMessage(error) + ')'
-            });
-          });
+            var promises = [];
+            var originalPolicyTagIds = jQuery.map(originalTags, function(tag) { return tag.id; });
+            var tagGrepper = function(tag) { return tag.id === tagId; };
+            for (var i = 0; i < $scope.tags.length; i++) {
+              var tag = $scope.tags[i];
+              var tagId = tag.id;
+              if ($scope.appliedTagIds.indexOf(tagId) > -1 && originalPolicyTagIds.indexOf(tagId) === -1) {
+                var newPolicyTag = PolicyTagStore.getByPolicyId($scope.policy.id).create();
+                angular.extend(newPolicyTag, { id: tagId });
+                promises.push(newPolicyTag.$save());
+              } else if ($scope.appliedTagIds.indexOf(tagId) === -1 && originalPolicyTagIds.indexOf(tagId) > -1) {
+                var oldPolicyTag = jQuery.grep(originalTags, tagGrepper)[0];
+                promises.push(oldPolicyTag.$delete());
+              }
+            }
+            $q.all(promises).then(function() {
+              $scope.hide();
+            }, errorFunction);
+          }, errorFunction);
         }
       };
 
@@ -410,10 +432,15 @@
       };
       $scope.doLoad = function() {
         $scope.error = null;
-        $q.all([actionStore.get()]).then(function(results) {
+        originalTags = [];
+        $scope.appliedTagIds = [];
+        $q.all([actionStore.get(), PolicyTagStore.getByPolicyId($scope.policy.id).get()]).then(function(results) {
           var actionStages = results[0][1];
 
           $scope.actionStages = actionStages;
+
+          originalTags = results[1];
+          $scope.appliedTagIds = jQuery.map(results[1], function(appliedTag) { return appliedTag.id; });
         }, function(errors) {
           $scope.error = angular.isArray(errors) ? errors[0] : errors;
         });

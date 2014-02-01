@@ -777,7 +777,7 @@ var AngularUtils = {
         items: '=',
         selectedIds: '='
       },
-      template: '<select multiple="multiple"><option ng-repeat="item in items" value="{{item.id}}">{{ item.name }}</option></select>',
+      template: '<select multiple="multiple"><option ng-repeat="item in items" value="{{item.id}}" color="{{item.color}}">{{ item.name }}</option></select>',
       link: function(scope, element) {
         var selectElement = element.children('select');
         function updateItems() {
@@ -813,6 +813,9 @@ var AngularUtils = {
             } else {
               scope.selectedIds.push(element.attr('value'));
             }
+          },
+          label: function(element) {
+            return '<span class="multi-dropdown-item ' + $(element).attr('color') + 'Label"><span class="ng-binding">' + $(element).html() + '</span></span>';
           }
         });
       }

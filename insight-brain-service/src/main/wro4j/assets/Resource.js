@@ -304,8 +304,12 @@
       Resource.prototype.$delete = function() {
         var deferred = $q.defer(),
             id = this[config.id],
-            url = config.url.charAt(config.url.length - 1) === '/' ? config.url + id : config.url + '/' + id,
             index = -1;
+
+        var queryStringIndex = config.url.indexOf('?');
+        var url = queryStringIndex > -1 ? config.url.substring(0, queryStringIndex) : config.url;
+        url = url.charAt(url.length - 1) === '/' ? url + id : url + '/' + id;
+        url = queryStringIndex > -1 ? url + config.url.substring(queryStringIndex) : url;
 
         if (id !== null && angular.isDefined(id)) {
           $http['delete'](url, this, { params: config.params }).success(function() {

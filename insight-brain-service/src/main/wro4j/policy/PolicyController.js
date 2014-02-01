@@ -9,7 +9,7 @@
   'use strict';
 
   var policyModule = angular.module('Policy',
-      ['PolicyEditor', 'CLMAppLocation', 'AngularCommon', 'CommonServices', 'Stores', 'ProductFeaturesModule']);
+      ['PolicyEditor', 'CLMAppLocation', 'AngularCommon', 'CommonServices', 'Stores', 'ProductFeaturesModule', 'Tags']);
 
   policyModule.service('PolicyMonitoringStore', [
     'CLMAppLocations', '$http', function(CLMAppLocations, $http) {
@@ -32,9 +32,9 @@
 
   policyModule.controller('PolicyController', [
     '$scope', '$location', '$http', '$rootScope', '$q', 'PolicyStore', 'ActionStore',
-    'CLMAppLocations', 'Dialog', 'ownerChange', 'PolicyMonitoringStore', 'Messages', 'ProductFeatures',
+    'CLMAppLocations', 'Dialog', 'ownerChange', 'PolicyMonitoringStore', 'Messages', 'ProductFeatures', 'TagStore',
     function($scope, $location, $http, $rootScope, $q, policyStore, actionStore, clmAppLocations, Dialog, ownerChange,
-             PolicyMonitoringStore, messages, ProductFeatures) {
+             PolicyMonitoringStore, messages, ProductFeatures, TagStore) {
 
       $scope.alerts = [];
       $scope.location = $location;
@@ -67,12 +67,14 @@
         $scope.error = null;
         $scope.applicablePolicies = null;
         $scope.actionStageList = null;
+        $scope.tags = null;
 
         var promises = [
           policyStore.get().refresh(),
           $http.get(clmAppLocations.getApplicablePolicies()),
           actionStore.get(),
-          PolicyMonitoringStore.getApplicable()
+          PolicyMonitoringStore.getApplicable(),
+          TagStore.refresh()
         ];
 
         /**
@@ -92,6 +94,7 @@
           $scope.policyMonitoring = clmAppLocations.isApplication() ? results[3].data.appPolicyMonitor : results[3].data.orgPolicyMonitor;
           $scope.policyMonitoring = $scope.policyMonitoring || {};
           $scope.policyMonitoringPlaceHolder = createPlaceHolderText(clmAppLocations.isApplication(), results[3].data.orgPolicyMonitor);
+          $scope.tags = results[4];
           angular.forEach($scope.applicablePolicies, function(applicablePolicy, index) {
             applicablePolicy.editable = index === 0;
             if (index === 0) {
@@ -174,7 +177,8 @@
         scope: {
           policies: '=policyItems',
           editable: '=editable',
-          remove: '='
+          remove: '=',
+          tags: '='
         },
         priority: 99,
         link: function(scope) {

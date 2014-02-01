@@ -7,13 +7,15 @@
 (function() {
   'use strict';
 
+  var tagTemplate = {id: null, organizationId: null, name: null, description: null, color:null};
+
   var tagModule = angular.module('Tags', ['AngularCommon', 'CLMAppLocation', 'CLMLocation', 'CommonServices', 'ResourceModule', 'Stores', 'PolicyEditor']);
 
   tagModule.service('TagStore', [
     'CachedStore', 'CLMAppLocations', 'CLMLocations', '$http', function(CachedStore, CLMAppLocations, CLMLocations, $http) {
       var tagStoreTemplate = {
         getUrl: CLMAppLocations.getTagsUrl,
-        template: {id: null, organizationId: null, name: null, description: null, color:null}
+        template: tagTemplate
       };
       var tagStores = CachedStore.get(tagStoreTemplate);
 
@@ -24,6 +26,21 @@
       });
     }
   ]);
+
+  tagModule.service('PolicyTagStore', ['CachedStore', 'CLMAppLocations', function(CachedStore, CLMAppLocations) {
+    var policyId, policyTagTemplate = {
+      getKey: function() { return policyId; },
+      getUrl: function() { return CLMAppLocations.getPolicyTagUrl(policyId); },
+      template: tagTemplate
+    };
+    var store = CachedStore.get(policyTagTemplate);
+    return {
+      getByPolicyId: function(id) {
+        policyId = id;
+        return store;
+      }
+    };
+  }]);
 
   function showAlert(alerts, alert) {
     alerts.length = 0;

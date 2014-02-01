@@ -10,8 +10,10 @@ import java.util.List;
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.TemporaryEntity;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.tag.PolicyTag;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -77,11 +79,12 @@ public class TagServiceTest extends InjectedTest
   public void getPoliciesByTag() {
     Organization organization = tempEntity.newOrganization();
     Tag tag = tempEntity.newTag(organization.getId(), "Tag");
-    tempEntity.newPolicyTag("policyId", tag.getId());
+    Policy taggedPolicy = tempEntity.newPolicy(organization.getId(), "TaggedPolicy");
+    tempEntity.newPolicyTag(taggedPolicy.getId(), tag.getId());
 
     List<PolicyTag> policies = tagService.getPoliciesByTag(tag.getId());
     assertThat(policies.size(), is(1));
-    assertThat(policies.get(0).getPolicyId(), is("policyId"));
+    assertThat(policies.get(0).getPolicyId(), is(taggedPolicy.getId()));
 
     policies = tagService.getPoliciesByTag("foo");
     assertThat(policies.size(), is(0));

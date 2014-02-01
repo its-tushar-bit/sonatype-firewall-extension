@@ -265,7 +265,7 @@ class WaiverSpec extends BaseSpec {
     and: 'that is saved'
       waiver.save()
 
-    and: 'policy is revaluated'
+    and: 'policy is re-evaluated'
       evaluator.reevaluatePolicy()
 
       to GroovyReportPage, app.publicId, scanId
@@ -292,11 +292,10 @@ class WaiverSpec extends BaseSpec {
     def policy = new Policy()
     policy.name = 'All components'
     policy.addConstraint(constraint)
+    policy.setOwnerId(ownerId)
 
     // add policy
-    def policyDao = new PolicyDAO(work.workDir)
-    // no need for an audit session in the test
-    policyDao.insert(ownerId, policy)
+    new PolicyDAO().insert(policy)
   }
 
   private waiveComponent() {

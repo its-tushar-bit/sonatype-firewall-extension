@@ -15,10 +15,13 @@ import com.sonatype.insight.brain.service.InsightWork
 import com.sonatype.insight.brain.testing.functional.BaseSpec
 import com.sonatype.insight.brain.testing.functional.utils.TestReportEvaluator
 
+import spock.lang.Stepwise
+
 /**
  * For the organization based policy tests it is assumed that the unit tests have proven correct functionality regarding
  * scope and applied components when there are multiple child applications.
  */
+@Stepwise // Share the login and browser instance to reduce execution time
 class WaiverSpec
     extends BaseSpec 
 {
@@ -36,7 +39,7 @@ class WaiverSpec
 
   def scanId
 
-  def setup() {
+  def setupSpec() {
     // Can't do anything without a logged in user
     loginAsAdminVia()
   }

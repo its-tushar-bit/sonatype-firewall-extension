@@ -18,7 +18,8 @@ import spock.lang.Stepwise
  */
 @Stepwise
 class TrendingReportSpec
-extends BaseSpec {
+    extends BaseSpec 
+{
 
   private static final File TEST_FILE = new File('target/test-brain-work/report/trending-report.json')
 

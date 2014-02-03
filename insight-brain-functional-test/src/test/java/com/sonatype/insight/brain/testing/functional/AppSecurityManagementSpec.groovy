@@ -6,7 +6,9 @@
 package com.sonatype.insight.brain.testing.functional
 
 
-class AppSecurityManagementSpec extends BaseSpec {
+class AppSecurityManagementSpec
+    extends BaseSpec 
+{
   // assumes a license has already been installed
   // get to the organizations page
   def setup() {

@@ -13,7 +13,9 @@ import com.sonatype.insight.brain.testing.functional.modules.NavListModule
  * 
  * to GroovyReportContainerPage, app.publicId, scanId
  */
-class GroovyReportContainerPage extends BasePage {
+class GroovyReportContainerPage
+    extends BasePage 
+{
   /**
    * The proper url will be created from the supplied appPublicId and scanId and should look like:
    * assets/reports.html#/reports/{appPublicId/{scanId}

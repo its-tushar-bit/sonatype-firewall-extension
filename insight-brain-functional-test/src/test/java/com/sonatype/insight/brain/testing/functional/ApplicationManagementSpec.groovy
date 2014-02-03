@@ -5,7 +5,8 @@
  */
 package com.sonatype.insight.brain.testing.functional
 
-class ApplicationManagementSpec extends BaseSpec
+class ApplicationManagementSpec
+    extends BaseSpec
 {
   def setup() {
     loginAsAdminVia(ApplicationManagementPage)

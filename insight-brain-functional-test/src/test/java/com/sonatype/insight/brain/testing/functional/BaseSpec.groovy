@@ -25,10 +25,13 @@ import org.openqa.selenium.logging.LogType
 import spock.lang.Shared
 
 @Slf4j
-abstract class BaseSpec extends GebReportingSpec {
+abstract class BaseSpec
+    extends GebReportingSpec 
+{
   static {
     System.setProperty("javax.net.ssl.trustStore", "src/test/resources/ssl/server-store");
   }
+
   @Shared
   @ClassRule
   TestRule serviceRule = new DropwizardServiceRule<InsightConfig>(TestInsightBrainService.class,Resources.getResource('config-test.yml').getPath())

@@ -13,7 +13,9 @@ import geb.Page
  *
  * to GroovyReportPage, app.publicId, scanId
  */
-class GroovyReportPage extends Page {
+class GroovyReportPage
+    extends Page
+{
   /**
    * The proper url will be created from the supplied appPublicId and scanId and should look like:
    * rest/report/{appPublicId}/{scanId}/browseReport/index.html
@@ -35,7 +37,9 @@ class GroovyReportPage extends Page {
   }
 }
 
-class PolicyReportPage extends Page {
+class PolicyReportPage
+    extends Page 
+{
   static at = { policyContent.displayed }
 
   /**
@@ -65,7 +69,9 @@ class PolicyReportPage extends Page {
  *
  * The CIP for this row can be opened with {@link #showCip()}.
  */
-class PolicyReportRow extends Module {
+class PolicyReportRow
+    extends Module 
+{
   static content = {
     cip { module Cip, parents().find('#informationPanel') }
     // can't rely on the text within the cell since it's only shown for the first row with that score
@@ -89,14 +95,18 @@ class PolicyReportRow extends Module {
   }
 }
 
-class Cip extends Module {
+class Cip
+    extends Module 
+{
   static content = {
     policy { module PolicyDetail }
     // implement other tabs as needed
   }
 }
 
-class PolicyDetail extends Module {
+class PolicyDetail
+    extends Module 
+{
   static content = {
     violations(wait: true) { moduleList PolicyRow, $('tbody tr') }
   }
@@ -109,7 +119,9 @@ class PolicyDetail extends Module {
   }
 }
 
-class PolicyRow extends Module {
+class PolicyRow
+    extends Module 
+{
   static content = {
     waiver { module AddPolicyWaiver, parents().find('#add-waiver-modal') }
   }
@@ -123,7 +135,9 @@ class PolicyRow extends Module {
   }
 }
 
-class AddPolicyWaiver extends Module {
+class AddPolicyWaiver
+    extends Module 
+{
   static content = {
     isImplicitScope { $('#add-waiver-scope').displayed == false }
     // input for the scope/limit of the waiver (orgId or appPublicId)

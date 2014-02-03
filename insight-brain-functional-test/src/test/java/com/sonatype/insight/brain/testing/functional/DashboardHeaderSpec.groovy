@@ -5,7 +5,9 @@
  */
 package com.sonatype.insight.brain.testing.functional
 
-class DashboardHeaderSpec extends BaseSpec {
+class DashboardHeaderSpec
+    extends BaseSpec 
+{
   def setup() {
     loginAsAdminVia()
   }

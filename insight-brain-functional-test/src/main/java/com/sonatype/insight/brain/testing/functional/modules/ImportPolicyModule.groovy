@@ -7,7 +7,8 @@ package com.sonatype.insight.brain.testing.functional.modules
 
 import geb.Module
 
-class ImportPolicyModule  extends Module
+class ImportPolicyModule
+    extends Module
 {
   static content = {
 

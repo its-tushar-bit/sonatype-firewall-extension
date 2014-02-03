@@ -11,7 +11,8 @@ import spock.lang.Unroll
 
 @Stepwise
 class UserManagementSpec
-extends BaseSpec {
+    extends BaseSpec 
+{
   // assumes a license has already been installed
   // get to the user page
   def setupSpec() {

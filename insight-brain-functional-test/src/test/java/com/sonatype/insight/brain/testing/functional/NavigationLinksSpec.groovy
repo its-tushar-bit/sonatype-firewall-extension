@@ -12,7 +12,9 @@ import spock.lang.Stepwise
  * @since 1.7
  */
 @Stepwise
-class NavigationLinksSpec extends BaseSpec {
+class NavigationLinksSpec
+    extends BaseSpec
+{
   def setupSpec() {
     loginAsAdminVia()
   }

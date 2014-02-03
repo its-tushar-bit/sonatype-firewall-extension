@@ -6,7 +6,9 @@
 package com.sonatype.insight.brain.testing.functional
 
 
-class LoginSpec extends BaseSpec {
+class LoginSpec
+    extends BaseSpec 
+{
   def "form states are usable"() {
     when: "login modal is shown"
       via ReportViolationsPage

@@ -12,7 +12,8 @@ import spock.lang.IgnoreIf
  * Tests of utility methods available from BaseSpec
  * @since 1.9
  */
-class BaseUtilSpec extends BaseSpec
+class BaseUtilSpec
+    extends BaseSpec
 {
 
   def setup(){

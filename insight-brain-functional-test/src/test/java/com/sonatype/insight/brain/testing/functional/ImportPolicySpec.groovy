@@ -11,7 +11,8 @@ import org.junit.rules.TemporaryFolder
 import spock.lang.Stepwise
 
 @Stepwise
-class ImportPolicySpec extends BaseSpec
+class ImportPolicySpec
+    extends BaseSpec
 {
 
   @Rule

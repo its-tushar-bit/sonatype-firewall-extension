@@ -30,7 +30,9 @@ import org.junit.Ignore;
  *   //...
  * }
  */
-class WaiverSpec extends BaseSpec {
+class WaiverSpec
+    extends BaseSpec 
+{
 
   static cannedTestReport = '/canned-reports/small-report.zip'
 

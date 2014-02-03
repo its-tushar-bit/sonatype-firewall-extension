@@ -7,7 +7,9 @@ package com.sonatype.insight.brain.testing.functional
 
 import com.sonatype.insight.brain.model.Organization
 
-class AppEvaluationSpec extends BaseSpec {
+class AppEvaluationSpec
+    extends BaseSpec 
+{
 
   static Organization org
   

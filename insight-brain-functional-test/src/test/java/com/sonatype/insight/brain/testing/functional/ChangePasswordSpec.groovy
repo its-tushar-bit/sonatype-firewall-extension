@@ -10,7 +10,9 @@ import com.sonatype.insight.brain.model.security.User
 import com.sonatype.insight.brain.security.CLMRealm
 
 
-class ChangePasswordSpec extends BaseSpec {
+class ChangePasswordSpec
+    extends BaseSpec 
+{
   //simple setup, login as this new user and go to the management page
   def setupSpec() {
     UserDAO userDAO = new UserDAO()

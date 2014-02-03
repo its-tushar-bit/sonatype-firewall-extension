@@ -11,13 +11,13 @@ import com.sonatype.insight.brain.service.InsightWork
 import com.sonatype.insight.brain.testing.functional.utils.TestReportEvaluator
 
 import org.junit.Ignore;
-
 import spock.lang.Stepwise;
-
 import spock.lang.Shared;
 
 @Stepwise
-class GroovyReportPageSpec extends BaseSpec {
+class GroovyReportPageSpec
+    extends BaseSpec 
+{
 
   static cannedTestReport = '/canned-reports/small-report.zip'
 

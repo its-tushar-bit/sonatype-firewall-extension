@@ -7,7 +7,9 @@ package com.sonatype.insight.brain.testing.functional.modules
 
 import geb.Module
 
-class ReportViolationsRow   extends Module {
+class ReportViolationsRow
+    extends Module 
+{
   static content = {
     name { $('td:first-child a') }
     contactName { $('td:nth-child(5) span') }

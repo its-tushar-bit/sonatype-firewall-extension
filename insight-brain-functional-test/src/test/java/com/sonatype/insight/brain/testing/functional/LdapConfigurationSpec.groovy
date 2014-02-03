@@ -13,7 +13,8 @@ import com.sonatype.insight.brain.testing.functional.configuration.LdapUserAndGr
 /**
  * @since 1.7
  */
-class LdapConfigurationSpec extends BaseSpec
+class LdapConfigurationSpec
+    extends BaseSpec
 {
   def "create a new LDAP and navigate the connection and user/group mappings forms"(){
     setup: "login"

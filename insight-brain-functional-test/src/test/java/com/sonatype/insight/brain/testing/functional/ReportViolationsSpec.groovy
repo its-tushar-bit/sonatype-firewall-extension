@@ -9,7 +9,8 @@ import spock.lang.Stepwise
 
 @Stepwise
 class ReportViolationsSpec
-extends BaseSpec {
+    extends BaseSpec 
+{
   def setupSpec() {
     temporaryEntity.newApplication('ReportViolationsSpec1', 'ReportViolationsSpec1', temporaryEntity.newOrganization('org1').id)
     temporaryEntity.newApplication('ReportViolationsSpec2', 'ReportViolationsSpec2', temporaryEntity.newOrganization('org2').id)

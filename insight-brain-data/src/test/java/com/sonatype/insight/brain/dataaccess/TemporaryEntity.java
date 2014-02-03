@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.dataaccess;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -111,7 +112,7 @@ public class TemporaryEntity
 
   private final LdapUserMappingDAO ldapUserMappingDAO = new LdapUserMappingDAO();
 
-  public Collection<Application> apps;
+  private Collection<Application> apps;
 
   private Collection<Organization> orgs;
 
@@ -244,6 +245,10 @@ public class TemporaryEntity
       organizations.add(newOrganization());
     }
     return organizations;
+  }
+
+  public void register(Application... applications) {
+    Collections.addAll(apps, applications);
   }
 
   public Application newApplicationWithParent(String appPublicId) {

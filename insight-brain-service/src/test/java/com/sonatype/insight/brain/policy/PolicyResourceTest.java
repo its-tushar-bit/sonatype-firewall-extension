@@ -147,7 +147,7 @@ public class PolicyResourceTest
     Assert.assertEquals(application.getName(), policyImportResult.ownerName);
     assertThat(policyImportResult.url, endsWith("index.html#/management/application/" + applicationPublicId));
     application = new ApplicationDAO().getByName(policyImportResult.ownerName);
-    tempEntity.apps.add(application);
+    tempEntity.register(application);
     assertNotNull(application);
     List<Label> labels = labelDAO.getByOwnerId(application.getId());
     Assert.assertEquals(2, labels.size());
@@ -320,7 +320,7 @@ public class PolicyResourceTest
     Application app = new Application(appPublicId, appName, orgId);
     ApplicationDAO appDAO = new ApplicationDAO();
     appDAO.insert(app);
-    tempEntity.apps.add(app);
+    tempEntity.register(app);
     String appId = app.getId();
 
     // Verify the applicable policies for the application

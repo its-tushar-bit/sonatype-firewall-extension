@@ -10,7 +10,8 @@ import spock.lang.Stepwise
  * @since 1.9
  */
 @Stepwise
-class HelpModuleSpec extends BaseSpec {
+class HelpModuleSpec
+    extends BaseSpec {
 
   def setupSpec() {
     loginAsAdminVia()

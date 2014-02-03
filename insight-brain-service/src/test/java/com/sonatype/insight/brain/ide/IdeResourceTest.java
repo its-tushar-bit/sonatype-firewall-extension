@@ -70,7 +70,7 @@ public class IdeResourceTest
   @Test
   public void testDoScan_Simple() throws Exception {
     String applicationPublicId = "IdeResourceTest_AppId";
-    createApplication(applicationPublicId);
+    tempEntity.newApplicationWithParent(applicationPublicId);
 
     Constraint constraint1 = new Constraint("C1", "Constraint 1", LogicalOperator.AND);
     Condition condition1 = new Condition(SecurityVulnerabilityConditionType.ID, "present");
@@ -104,7 +104,7 @@ public class IdeResourceTest
   @Test
   public void testDoScan_Enhanced() throws Exception {
     String applicationPublicId = "IdeResourceTest_AppId";
-    createApplication(applicationPublicId);
+    tempEntity.newApplicationWithParent(applicationPublicId);
 
     Constraint constraint1 = new Constraint("C1", "Constraint 1", LogicalOperator.AND);
     constraint1.addCondition(new Condition(MatchStateConditionType.ID, "is", "exact"));
@@ -144,7 +144,7 @@ public class IdeResourceTest
   @Test
   public void testDoScan_OverriddenLicense() throws Exception {
     String applicationPublicId = "IdeResourceTest_AppId";
-    Application application = createApplication(applicationPublicId);
+    Application application = tempEntity.newApplicationWithParent(applicationPublicId);
 
     Constraint constraint1 = new Constraint("C1", "Constraint 1", LogicalOperator.AND);
     Condition condition1 = new Condition(LicenseConditionType.ID, "is", "GPL-2.0");
@@ -195,7 +195,7 @@ public class IdeResourceTest
   @Test
   public void testDoScan_LicenseStatus() throws Exception {
     String applicationPublicId = "IdeResourceTest_AppId";
-    Application application = createApplication(applicationPublicId);
+    Application application = tempEntity.newApplicationWithParent(applicationPublicId);
 
     Constraint constraint1 = new Constraint("C1", "Constraint 1", LogicalOperator.AND);
 
@@ -248,7 +248,7 @@ public class IdeResourceTest
   @Test
   public void testDoScan_SecurityStatus() throws Exception {
     String applicationPublicId = "IdeResourceTest_AppId";
-    Application application = createApplication(applicationPublicId);
+    Application application = tempEntity.newApplicationWithParent(applicationPublicId);
 
     Constraint constraint1 = new Constraint("C1", "Constraint 1", LogicalOperator.AND);
     Condition condition1 = new Condition(SecurityVulnerabilityStatusConditionType.ID, "is",
@@ -314,7 +314,7 @@ public class IdeResourceTest
   @Test
   public void testDoScan_Age() throws Exception {
     String applicationPublicId = "IdeResourceTest_AppId";
-    createApplication(applicationPublicId);
+    tempEntity.newApplicationWithParent(applicationPublicId);
 
     Constraint constraint1 = new Constraint("C1", "Constraint 1", LogicalOperator.AND);
     Condition condition1 = new Condition(AgeInDaysConditionType.ID, "older than", "365");
@@ -348,7 +348,7 @@ public class IdeResourceTest
   public void testDoScan_unknown_simple() throws Exception {
     String hash = "000babababababababab";
     String applicationPublicId = "IdeResourceTest_AppId";
-    createApplication(applicationPublicId);
+    tempEntity.newApplicationWithParent(applicationPublicId);
 
     Constraint constraint1 = new Constraint("C1", "Constraint 1", LogicalOperator.AND);
     Condition condition1 = new Condition(MatchStateConditionType.ID, "is", "unknown");
@@ -374,7 +374,7 @@ public class IdeResourceTest
   public void testDoScan_unknown_simple_enhancedResponse() throws Exception {
     String hash = "000babababababababab";
     String applicationPublicId = "IdeResourceTest_AppId";
-    createApplication(applicationPublicId);
+    tempEntity.newApplicationWithParent(applicationPublicId);
 
     Constraint constraint1 = new Constraint("C1", "Constraint 1", LogicalOperator.AND);
     Condition condition1 = new Condition(MatchStateConditionType.ID, "is", "unknown");
@@ -418,7 +418,7 @@ public class IdeResourceTest
   public void testDoScan_unknown_enhanced() throws Exception {
     String hash = "000babababababababab";
     String applicationPublicId = "IdeResourceTest_AppId";
-    createApplication(applicationPublicId);
+    tempEntity.newApplicationWithParent(applicationPublicId);
 
     Constraint constraint1 = new Constraint("C1", "Constraint 1", LogicalOperator.AND);
     Condition condition1 = new Condition(MatchStateConditionType.ID, "is", "unknown");
@@ -461,7 +461,7 @@ public class IdeResourceTest
   @Test
   public void testDoScan_Proprietary() throws Exception {
     String applicationPublicId = "IdeResourceTest_AppId";
-    createApplication(applicationPublicId);
+    tempEntity.newApplicationWithParent(applicationPublicId);
 
     Constraint constraint1 = new Constraint("C1", "Constraint 1", LogicalOperator.AND);
     constraint1.addCondition(new Condition(ProprietaryConditionType.ID, "is true"));
@@ -525,7 +525,7 @@ public class IdeResourceTest
   @Test
   public void testDoScan_ManuallyIdentifiedComponent() throws Exception {
     String applicationPublicId = "IdeResourceTest_AppId";
-    createApplication(applicationPublicId);
+    tempEntity.newApplicationWithParent(applicationPublicId);
 
     Constraint constraint1 = new Constraint("C1", "Constraint 1", LogicalOperator.AND);
     constraint1.addCondition(new Condition(MatchStateConditionType.ID, "is", "exact"));
@@ -587,7 +587,7 @@ public class IdeResourceTest
   private void testDoScan_Label(boolean orgLabel, boolean orgComponentLabel) throws Exception {
     String hash = "abababababababababab";
     String applicationPublicId = "IdeResourceTest_AppId";
-    Application app = createApplication(applicationPublicId);
+    Application app = tempEntity.newApplicationWithParent(applicationPublicId);
     Label label = new Label(orgLabel ? app.getOrganizationId() : app.getId(), "red", null);
     new LabelDAO().insert(label);
     new ComponentLabelDAO().insert(new ComponentLabel(orgComponentLabel ? app.getOrganizationId() : app.getId(), label

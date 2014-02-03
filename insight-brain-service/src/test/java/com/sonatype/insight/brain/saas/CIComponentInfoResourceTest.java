@@ -52,7 +52,7 @@ public class CIComponentInfoResourceTest
   @Test
   public void testGetSelectableLicenses() throws Exception {
     String applicationPublicId = "ComponentInfoResourceTest";
-    createApplication(applicationPublicId);
+    tempEntity.newApplicationWithParent(applicationPublicId);
 
     String groupId = "g1";
     String artifactId = "a1";
@@ -107,7 +107,7 @@ public class CIComponentInfoResourceTest
   @Test
   public void testGetLicenses() throws Exception {
     String applicationPublicId = "ComponentInfoResourceTest";
-    Application application = createApplication(applicationPublicId);
+    Application application = tempEntity.newApplicationWithParent(applicationPublicId);
 
     String groupId = "g1";
     String artifactId = "a1";
@@ -150,7 +150,7 @@ public class CIComponentInfoResourceTest
   @Test
   public void testGetLicenses_claimedComponent() throws Exception {
     String applicationPublicId = "ComponentInfoResourceTest";
-    createApplication(applicationPublicId);
+    tempEntity.newApplicationWithParent(applicationPublicId);
 
     String groupId = "g1";
     String artifactId = "a1";
@@ -195,10 +195,9 @@ public class CIComponentInfoResourceTest
   @Test
   public void testGetComponentDetailsList() throws Exception {
     // Create an application
-    Organization organization = createOrganization("testGetComponentDetailsList", false /* createLicenseThreatGroups */);
+    Organization organization = tempEntity.newOrganization("testGetComponentDetailsList", false /* createLicenseThreatGroups */);
     String applicationPublicId = "testGetComponentDetailsList";
-    Application application = createApplication(applicationPublicId, applicationPublicId,
-        false /* createLicenseThreatGroups */, organization);
+    Application application = tempEntity.newApplication(applicationPublicId, applicationPublicId, organization.getId());
     String appId = application.getId();
     // Create license threat groups
     LicenseThreatGroupDAO licenseThreatGroupDAO = new LicenseThreatGroupDAO();

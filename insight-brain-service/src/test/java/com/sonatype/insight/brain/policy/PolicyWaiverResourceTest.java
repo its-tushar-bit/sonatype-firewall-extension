@@ -41,14 +41,14 @@ public class PolicyWaiverResourceTest
   @Test
   public void testCRUD_Application() throws Exception {
     String appPublicId = "PolicyWaiverResourceTest_AppId";
-    Application application = createApplication(appPublicId);
+    Application application = tempEntity.newApplicationWithParent(appPublicId);
 
     testCRUD(IdUtils.TYPE_APPLICATION, appPublicId, application.getId());
   }
 
   @Test
   public void testCRUD_Organization() throws Exception {
-    Organization organization = createOrganization("PolicyWaiverResourceTest");
+    Organization organization = tempEntity.newOrganization("PolicyWaiverResourceTest");
 
     testCRUD(IdUtils.TYPE_ORGANIZATION, organization.getId(), organization.getId());
   }
@@ -90,17 +90,17 @@ public class PolicyWaiverResourceTest
   @Test
   public void testDelete_OwnerIdMismatch_Application() throws Exception {
     String appPublicId1 = "PolicyWaiverResourceTest_AppId1";
-    Application application1 = createApplication(appPublicId1);
+    Application application1 = tempEntity.newApplicationWithParent(appPublicId1);
     String appPublicId2 = "PolicyWaiverResourceTest_AppId2";
-    createApplication(appPublicId2);
+    tempEntity.newApplicationWithParent(appPublicId2);
 
     testDelete_OwnerIdMismatch(IdUtils.TYPE_APPLICATION, appPublicId1, application1.getId(), appPublicId2);
   }
 
   @Test
   public void testDelete_OwnerIdMismatch_Organization() throws Exception {
-    Organization organization1 = createOrganization("PolicyWaiverResourceTest1");
-    Organization organization2 = createOrganization("PolicyWaiverResourceTest2");
+    Organization organization1 = tempEntity.newOrganization("PolicyWaiverResourceTest1");
+    Organization organization2 = tempEntity.newOrganization("PolicyWaiverResourceTest2");
 
     testDelete_OwnerIdMismatch(IdUtils.TYPE_ORGANIZATION, organization1.getId(), organization1.getId(),
         organization2.getId());
@@ -108,9 +108,9 @@ public class PolicyWaiverResourceTest
 
   @Test
   public void testGetPolicyWaiversByHash() throws Exception {
-    Organization organization = createOrganization("PolicyWaiverResourceTest1");
+    Organization organization = tempEntity.newOrganization("PolicyWaiverResourceTest1");
     String appPublicId = "PolicyWaiverResourceTest_AppId1";
-    Application application = createApplication(appPublicId, "PolicyWaiverResourceTest AppId1", organization);
+    Application application = tempEntity.newApplication("PolicyWaiverResourceTest AppId1", appPublicId, organization.getId());
     Policy policy = createPolicy(IdUtils.TYPE_ORGANIZATION, organization.getId());
 
     PolicyWaiver waiver1 = new PolicyWaiver("12345678901234567890", policy.getId(), application.getId(), "My comment");
@@ -188,7 +188,7 @@ public class PolicyWaiverResourceTest
   @Test
   public void testDelete_Nonexistant_Application() throws Exception {
     String appPublicId = "PolicyWaiverResourceTest_AppId";
-    createApplication(appPublicId);
+    tempEntity.newApplicationWithParent(appPublicId);
 
     Response response = AuthedRestAccess.delete(getServiceURL(IdUtils.TYPE_APPLICATION, appPublicId) + "/YettiId");
     assertResponseStatus(404, response);
@@ -197,7 +197,7 @@ public class PolicyWaiverResourceTest
 
   @Test
   public void testDelete_Nonexistant_Organization() throws Exception {
-    Organization organization = createOrganization("PolicyWaiverResourceTest");
+    Organization organization = tempEntity.newOrganization("PolicyWaiverResourceTest");
 
     Response response = AuthedRestAccess.delete(getServiceURL(IdUtils.TYPE_ORGANIZATION, organization.getId()) + "/YettiId");
     assertResponseStatus(404, response);
@@ -217,7 +217,7 @@ public class PolicyWaiverResourceTest
   @Test
   public void testGetApplicableContexts_Application() throws Exception {
     String appPublicId = "testGetApplicableContexts_Application";
-    Application application = createApplication(appPublicId);
+    Application application = tempEntity.newApplicationWithParent(appPublicId);
 
     // Create a policy for the application
     Policy policy = createPolicy(IdUtils.TYPE_APPLICATION, appPublicId);
@@ -232,7 +232,7 @@ public class PolicyWaiverResourceTest
   @Test
   public void testGetApplicableContexts_Organization() throws Exception {
     String appPublicId = "testGetApplicableContexts_Organization";
-    Application application = createApplication(appPublicId);
+    Application application = tempEntity.newApplicationWithParent(appPublicId);
     Organization organization = new OrganizationDAO().getByIdNotNull(application.getOrganizationId());
 
     // Create a policy for the organization

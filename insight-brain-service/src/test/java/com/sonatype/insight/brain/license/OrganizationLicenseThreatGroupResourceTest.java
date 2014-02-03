@@ -23,33 +23,33 @@ public class OrganizationLicenseThreatGroupResourceTest
 {
   @Test
   public void testCRUD() throws Exception {
-    Organization organization = createOrganization("testCRUD-Organization", true /* createLicenseThreatGroups */);
+    Organization organization = tempEntity.newOrganization("testCRUD-Organization");
     testCRUD(organization.getId(), organization.getId());
   }
 
   @Test
   public void testDelete_OwnerIdMismatch() throws Exception {
-    Organization organization1 = createOrganization("testDeleteOwnerIdMismatch1", false /* createLicenseThreatGroups */);
-    Organization organization2 = createOrganization("testDeleteOwnerIdMismatch2", false /* createLicenseThreatGroups */);
+    Organization organization1 = tempEntity.newOrganization("testDeleteOwnerIdMismatch1", false /* createLicenseThreatGroups */);
+    Organization organization2 = tempEntity.newOrganization("testDeleteOwnerIdMismatch2", false /* createLicenseThreatGroups */);
     testDelete_OwnerIdMismatch(organization1.getId(), organization1.getId(), organization2.getId(),
         organization2.getId());
   }
 
   @Test
   public void testDelete_InUseByPolicy() throws Exception {
-    Organization org = createOrganization("test", false);
+    Organization org = tempEntity.newOrganization("test", false);
     testDelete_InUseByPolicy(org.getId(), org.getId(), org.getId());
   }
 
   @Test
   public void testDelete_InUseByPolicyInChildApp() throws Exception {
-    Application app = createApplication("appPublicId", "appName");
+    Application app = tempEntity.newApplicationWithParent("appPublicId", "appName");
     testDelete_InUseByPolicy(app.getOrganizationId(), app.getOrganizationId(), app.getId(), "in application 'appName'");
   }
 
   @Test
   public void testGetApplicable() throws Exception {
-    Organization org = createOrganization("orgName", false);
+    Organization org = tempEntity.newOrganization("orgName", false);
     createLicenseThreatGroup("LTG-0", org.getId(), "Apache-2.0");
     createLicenseThreatGroup("LTG-1", org.getId(), "EPL-1.0");
 

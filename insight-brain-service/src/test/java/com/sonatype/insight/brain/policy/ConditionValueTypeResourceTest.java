@@ -19,7 +19,7 @@ public class ConditionValueTypeResourceTest
   @Test
   public void testGetConditionValueTypes_Application() throws Exception {
     String appPublicId = "ConditionValueTypeResourceTest_AppId";
-    createApplication(appPublicId);
+    tempEntity.newApplicationWithParent(appPublicId);
 
     final Response response = AuthedRestAccess.get(getServiceURL("application", appPublicId));
     assertResponseStatus(200, response);
@@ -30,7 +30,7 @@ public class ConditionValueTypeResourceTest
 
   @Test
   public void testGetConditionValueTypes_Organization() throws Exception {
-    String orgId = createOrganization("test").getId();
+    String orgId = tempEntity.newOrganization("test").getId();
 
     final Response response = AuthedRestAccess.get(getServiceURL("organization", orgId));
     assertResponseStatus(200, response);

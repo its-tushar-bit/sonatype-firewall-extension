@@ -56,7 +56,7 @@ public class ApplicationResourceTest
     Application application = applicationDAO.getByPublicId(applicationPublicId);
     Assert.assertNull(application);
 
-    application = createApplication(applicationPublicId, "ApplicationResourceTest-testValidate-AppName");
+    application = tempEntity.newApplicationWithParent(applicationPublicId, "ApplicationResourceTest-testValidate-AppName");
 
     Response response = AuthedRestAccess.get(getValidateApplicationIdServiceURL(applicationPublicId));
     assertResponseStatus(200, response);
@@ -75,7 +75,7 @@ public class ApplicationResourceTest
     final String applicationPublicId = "testID";
     final String applicationName = "test-application-name";
 
-    Organization organization = createOrganization("ApplicationResourceTest");
+    Organization organization = tempEntity.newOrganization("ApplicationResourceTest");
 
     // Test Add Application
     Application application = new Application();
@@ -171,7 +171,7 @@ public class ApplicationResourceTest
   @Test
   public void testSyncIcon() throws Exception {
     final String applicationPublicId = "testID";
-    Application application = createApplication(applicationPublicId);
+    Application application = tempEntity.newApplicationWithParent(applicationPublicId);
 
     byte[] defaultIconByteArray = loadDefaultIcon();
 
@@ -223,7 +223,7 @@ public class ApplicationResourceTest
 
     final String applicationPublicId = "testDeleteApplicationWithScan_PublicId";
     final String applicationName = "testDeleteApplicationWithScanAppName";
-    Application application = createApplication(applicationPublicId, applicationName);
+    Application application = tempEntity.newApplicationWithParent(applicationPublicId, applicationName);
 
     final String licenseFingerprint = "testDeleteApplicationWithScan_LicenseFingerprint";
     setLicenseFingerprint(licenseFingerprint);
@@ -267,7 +267,7 @@ public class ApplicationResourceTest
     final String applicationPublicId = "testDeleteApplicationWithScan_PublicId";
     final String applicationName = "testDeleteApplicationWithScanAppName";
 
-    Application application = createApplication(applicationPublicId, applicationName);
+    Application application = tempEntity.newApplicationWithParent(applicationPublicId, applicationName);
 
     Response response = AuthedRestAccess.delete(getServiceURL() + "/" + applicationPublicId);
     application = applicationDAO.getByPublicId(applicationPublicId);
@@ -286,7 +286,7 @@ public class ApplicationResourceTest
   public void testAddApplication_exceedsLicense() throws Exception {
     setApplicationLimit(1);
 
-    createApplication("testAddApplication_exceedsLicense_id");
+    tempEntity.newApplicationWithParent("testAddApplication_exceedsLicense_id");
 
     // Test Add Application, which should fail with 402 since we exceeded the limit
     Application application = new Application();
@@ -305,7 +305,7 @@ public class ApplicationResourceTest
     final String applicationName = "ApplicationResourceTest-getApplicationsTest-Name";
     final String licenseFingerprint = "ApplicationResourceTest-getApplicationsTest-LicenseFingerprint";
 
-    Application application = createApplication(applicationPublicId, applicationName);
+    Application application = tempEntity.newApplicationWithParent(applicationPublicId, applicationName);
     setLicenseFingerprint(licenseFingerprint);
 
     Response response = AuthedRestAccess.get(getServiceURL());
@@ -336,10 +336,11 @@ public class ApplicationResourceTest
     final String licenseFingerprint = "ApplicationResourceTest-getApplicationsTest-LicenseFingerprint";
     final String organizationName = "OrgName";
 
-    Organization organization = createOrganization(organizationName);
-    Application application = createApplication(applicationPublicId, applicationName, true, organization, "admin");
+    Organization organization = tempEntity.newOrganization(organizationName);
+    Application application = tempEntity.newApplication(applicationName, applicationPublicId, organization.getId());
+    application.setContactInternalName("admin");
+    new ApplicationDAO().update(application);
     setLicenseFingerprint(licenseFingerprint);
-
 
     final String scanId1 = "ScanId1", scanId2 = "ScanId2";
     final File saasReportFile1 = getReportResponseFile(licenseFingerprint, scanId1);
@@ -403,9 +404,11 @@ public class ApplicationResourceTest
     final String licenseFingerprint = "ApplicationResourceTest-getApplicationsTest-LicenseFingerprint";
     final String organizationName = "OrgName";
 
-    Organization organization = createOrganization(organizationName);
+    Organization organization = tempEntity.newOrganization(organizationName);
 
-    Application application = createApplication(applicationPublicId, applicationName, true, organization, "admin");
+    Application application = tempEntity.newApplication(applicationName, applicationPublicId, organization.getId());
+    application.setContactInternalName("admin");
+    new ApplicationDAO().update(application);
     setLicenseFingerprint(licenseFingerprint);
 
     // Create policy
@@ -534,7 +537,7 @@ public class ApplicationResourceTest
   public void testGetApplications_DoesNotContactSaasAndPotentiallyBlockToGetLastPolicyAlerts() throws Exception {
     final String applicationPublicId = "ApplicationResourceTest-AppId";
     final String applicationName = "ApplicationResourceTest-Name";
-    final String appId = createApplication(applicationPublicId, applicationName).getId();
+    final String appId = tempEntity.newApplicationWithParent(applicationPublicId, applicationName).getId();
     final String scanId = "ApplicationResourceTest-ScanId";
 
     // create eval log entry pointing at missing report
@@ -555,7 +558,7 @@ public class ApplicationResourceTest
   public void testGetApplicationNames() throws Exception {
     final String applicationPublicId = "ApplicationResourceTest-getApplicationNamesTest-AppId";
     final String applicationName = "ApplicationResourceTest-getApplicationNamesTest-Name";
-    createApplication(applicationPublicId, applicationName);
+    tempEntity.newApplicationWithParent(applicationPublicId, applicationName);
 
     Response response = AuthedRestAccess.get(getServiceURL() + "/services/names");
     assertResponseStatus(200, response);
@@ -585,7 +588,7 @@ public class ApplicationResourceTest
 
   @Test
   public void testUpdateApplication_NoOrganization() throws Exception {
-    Application application = createApplication("testUpdateApplication_NoOrganization");
+    Application application = tempEntity.newApplicationWithParent("testUpdateApplication_NoOrganization");
 
     application.setOrganizationId(null);
 
@@ -596,7 +599,7 @@ public class ApplicationResourceTest
 
   @Test
   public void testUpdateApplication_ChangeOrganization() throws Exception {
-    Application application = createApplication("testUpdateApplication_ChangeOrganization");
+    Application application = tempEntity.newApplicationWithParent("testUpdateApplication_ChangeOrganization");
 
     application.setOrganizationId("newOrganizationId");
 

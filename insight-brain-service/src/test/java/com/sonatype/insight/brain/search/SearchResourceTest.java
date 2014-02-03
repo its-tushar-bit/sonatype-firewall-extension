@@ -224,7 +224,7 @@ public class SearchResourceTest
 
   @Test
   public void testSearchComponent_AppWithoutAnyReports() throws Exception {
-    createApplication("search-app-1");
+    tempEntity.newApplicationWithParent("search-app-1");
 
     Response response = AuthedRestAccess.get(getSearchUrl(Stage.ID_BUILD, "1249E25aEbb15358bEdd"));
     assertResponseStatus(200, response);

@@ -33,7 +33,7 @@ public class CIResourceTest
     Application application = applicationDAO.getByPublicId(applicationPublicId);
     Assert.assertNull(application);
 
-    application = createApplication(applicationPublicId, "CIResourceTest-Application-Name");
+    application = tempEntity.newApplicationWithParent(applicationPublicId, "CIResourceTest-Application-Name");
 
     // Validate that the application was created
     Response response = AuthedRestAccess.get(getServiceURL() + "/validate/" + applicationPublicId);
@@ -75,7 +75,7 @@ public class CIResourceTest
   public void testScan() throws Exception {
     final String applicationPublicId = "CIResourceTest_AppId";
     final String licenseFingerprint = "CIResourceTest_LicenseFingerprint";
-    createApplication(applicationPublicId);
+    tempEntity.newApplicationWithParent(applicationPublicId);
     setLicenseFingerprint(licenseFingerprint);
 
     final File saasScanFile = getScanResponseFile(licenseFingerprint);

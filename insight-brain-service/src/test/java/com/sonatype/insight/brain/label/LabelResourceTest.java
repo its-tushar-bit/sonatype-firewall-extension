@@ -16,8 +16,8 @@ import com.sonatype.insight.brain.dto.ApplicableContext;
 import com.sonatype.insight.brain.label.LabelResource.ApplicableLabels;
 import com.sonatype.insight.brain.label.LabelResource.LabelsByOwner;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Color;
+import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
@@ -50,7 +50,7 @@ public class LabelResourceTest
   public void testApplicationCRUD() throws Exception {
     // Create an application
     String appPublicId = "LabelResourceTest_AppId";
-    Application application = createApplication(appPublicId);
+    Application application = tempEntity.newApplicationWithParent(appPublicId);
 
     // Get all labels
     Response response = AuthedRestAccess.get(getServiceURLForApplication(appPublicId));
@@ -106,7 +106,7 @@ public class LabelResourceTest
   public void testDeleteAppLabel_UsedInPolicyCondition() throws Exception {
     // Create an application with one label
     String appPublicId = "LabelResourceTest_AppId";
-    Application application = createApplication(appPublicId);
+    Application application = tempEntity.newApplicationWithParent(appPublicId);
     Label label = new Label();
     label.setColor(Color.blue);
     label.setLabel("MyLabel");
@@ -144,7 +144,7 @@ public class LabelResourceTest
   @Test
   public void testDeleteAppLabel_Nonexistant() throws Exception {
     String appPublicId = "LabelResourceTest_AppId";
-    createApplication(appPublicId);
+    tempEntity.newApplicationWithParent(appPublicId);
 
     Response response = AuthedRestAccess.delete(getServiceURLForApplication(appPublicId) + "/YettiId");
     assertResponseStatus(404, response);
@@ -154,9 +154,9 @@ public class LabelResourceTest
   @Test
   public void testDeleteAppLabel_OwnerIdMismatch() throws Exception {
     String appPublicId1 = "LabelResourceTest_AppId1";
-    Application application1 = createApplication(appPublicId1);
+    Application application1 = tempEntity.newApplicationWithParent(appPublicId1);
     String appPublicId2 = "LabelResourceTest_AppId2";
-    createApplication(appPublicId2);
+    tempEntity.newApplicationWithParent(appPublicId2);
 
     Label label = new Label();
     label.setColor(Color.blue);
@@ -182,7 +182,7 @@ public class LabelResourceTest
   public void testOrganizationCRUD() throws Exception {
     // Create an organization
     String orgName = "LabelResourceTestOrgName";
-    Organization organization = createOrganization(orgName);
+    Organization organization = tempEntity.newOrganization(orgName);
 
     // Get all labels
     Response response = AuthedRestAccess.get(getServiceURL(ORG, organization.getId()));
@@ -238,7 +238,7 @@ public class LabelResourceTest
   public void testDeleteOrgLabel_UsedInPolicyCondition() throws Exception {
     // Create an organization with one label
     String orgName = "LabelResourceTestOrgName";
-    Organization organization = createOrganization(orgName);
+    Organization organization = tempEntity.newOrganization(orgName);
     Label label = new Label();
     label.setColor(Color.blue);
     label.setLabel("MyLabel");
@@ -278,7 +278,7 @@ public class LabelResourceTest
   public void testDeleteOrgLabel_UsedInAppPolicyCondition() throws Exception {
     // Create an application
     String appPublicId = "LabelResourceTest_AppId";
-    Application application = createApplication(appPublicId, "Application Name 1");
+    Application application = tempEntity.newApplicationWithParent(appPublicId, "Application Name 1");
     String organizationId = application.getOrganizationId();
 
     // Create an organization label
@@ -320,7 +320,7 @@ public class LabelResourceTest
   @Test
   public void testDeleteOrgLabel_Nonexistant() throws Exception {
     String orgName = "LabelResourceTestOrgName";
-    Organization organization = createOrganization(orgName);
+    Organization organization = tempEntity.newOrganization(orgName);
 
     Response response = AuthedRestAccess.delete(getServiceURLForOrganization(organization.getId()) + "/YettiId");
     assertResponseStatus(404, response);
@@ -330,9 +330,9 @@ public class LabelResourceTest
   @Test
   public void testDeleteOrgLabel_OwnerIdMismatch() throws Exception {
     String orgName1 = "LabelResourceTestOrgName1";
-    Organization organization1 = createOrganization(orgName1);
+    Organization organization1 = tempEntity.newOrganization(orgName1);
     String orgName2 = "LabelResourceTestOrgName2";
-    Organization organization2 = createOrganization(orgName2);
+    Organization organization2 = tempEntity.newOrganization(orgName2);
 
     Label label = new Label();
     label.setColor(Color.blue);
@@ -362,11 +362,11 @@ public class LabelResourceTest
   public void testGetApplicableLabels() throws Exception {
     // Create an organization and an application
     String orgName = "testGetApplicableLabelsOrg";
-    Organization organization = createOrganization(orgName);
+    Organization organization = tempEntity.newOrganization(orgName);
     String orgId = organization.getId();
     String appName = "testGetApplicableLabelsApp";
     String appPublicId = "testGetApplicableLabelsApp";
-    Application app = super.createApplication(appPublicId, appPublicId, organization);
+    Application app = super.tempEntity.newApplication(appPublicId, appPublicId, organization.getId());
     String appId = app.getId();
 
     // Verify the applicable labels for the application
@@ -442,8 +442,8 @@ public class LabelResourceTest
 
   @Test
   public void testGetApplicableContexts() throws Exception {
-    Organization org = createOrganization("orgName");
-    Application app = createApplication("appPublicId", "appName", org);
+    Organization org = tempEntity.newOrganization("orgName");
+    Application app = tempEntity.newApplication("appName", "appPublicId", org.getId());
     Label orgLabel = new Label(org.getId(), "orgLabel", null);
     new LabelDAO().insert(orgLabel);
     Label appLabel = new Label(app.getId(), "appLabel", null);

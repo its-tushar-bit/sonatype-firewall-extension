@@ -42,14 +42,14 @@ public class LicenseOverrideResourceTest
   @Test
   public void testCRUD_Application() throws Exception {
     String appPublicId = "LicenseOverrideResourceTest";
-    Application application = createApplication(appPublicId);
+    Application application = tempEntity.newApplicationWithParent(appPublicId);
 
     testCRUD(IdUtils.TYPE_APPLICATION, appPublicId, application.getId());
   }
 
   @Test
   public void testCRUD_Organization() throws Exception {
-    Organization organization = createOrganization("LicenseOverrideResourceTest");
+    Organization organization = tempEntity.newOrganization("LicenseOverrideResourceTest");
 
     testCRUD(IdUtils.TYPE_ORGANIZATION, organization.getId(), organization.getId());
   }
@@ -153,7 +153,7 @@ public class LicenseOverrideResourceTest
   @Test
   public void testDelete_Nonexistant_Application() throws Exception {
     String appPublicId = "LicenseOverrideResourceTest";
-    createApplication(appPublicId);
+    tempEntity.newApplicationWithParent(appPublicId);
 
     Response response = AuthedRestAccess.delete(getServiceURL(IdUtils.TYPE_APPLICATION, appPublicId) + "/YettiId");
     assertResponseStatus(404, response);
@@ -162,7 +162,7 @@ public class LicenseOverrideResourceTest
 
   @Test
   public void testDelete_Nonexistant_Organization() throws Exception {
-    Organization organization = createOrganization("LicenseOverrideResourceTest");
+    Organization organization = tempEntity.newOrganization("LicenseOverrideResourceTest");
 
     Response response = AuthedRestAccess.delete(getServiceURL(IdUtils.TYPE_ORGANIZATION, organization.getId()) + "/YettiId");
     assertResponseStatus(404, response);
@@ -173,11 +173,11 @@ public class LicenseOverrideResourceTest
   public void testGetAppliedLicenseOverrides() throws Exception {
     // Create an organization and an application
     String orgName = "testGetAppliedLicenseOverrides";
-    Organization organization = createOrganization(orgName);
+    Organization organization = tempEntity.newOrganization(orgName);
     String orgId = organization.getId();
     String appName = "testGetAppliedLicenseOverrides";
     String appPublicId = "testGetAppliedLicenseOverrides";
-    createApplication(appPublicId, appPublicId, organization);
+    tempEntity.newApplication(appPublicId, appPublicId, organization.getId());
 
     // Verify the applied license overrides for the application
     Response response = AuthedRestAccess.get(getServiceURL(IdUtils.TYPE_APPLICATION, appPublicId) + "/applied/g1/a1/v1");
@@ -265,17 +265,17 @@ public class LicenseOverrideResourceTest
   @Test
   public void testDelete_OwnerIdMismatch_Application() throws Exception {
     String appPublicId1 = "LicenseOverrideResourceTest1";
-    Application application1 = createApplication(appPublicId1);
+    Application application1 = tempEntity.newApplicationWithParent(appPublicId1);
     String appPublicId2 = "LicenseOverrideResourceTest2";
-    createApplication(appPublicId2);
+    tempEntity.newApplicationWithParent(appPublicId2);
 
     testDelete_OwnerIdMismatch(IdUtils.TYPE_APPLICATION, appPublicId1, application1.getId(), appPublicId2);
   }
 
   @Test
   public void testDelete_OwnerIdMismatch_Organization() throws Exception {
-    Organization organization1 = createOrganization("LicenseOverrideResourceTest1");
-    Organization organization2 = createOrganization("LicenseOverrideResourceTest2");
+    Organization organization1 = tempEntity.newOrganization("LicenseOverrideResourceTest1");
+    Organization organization2 = tempEntity.newOrganization("LicenseOverrideResourceTest2");
 
     testDelete_OwnerIdMismatch(IdUtils.TYPE_ORGANIZATION, organization1.getId(), organization1.getId(),
         organization2.getId());

@@ -75,8 +75,8 @@ public class MembershipMappingResourceTest
 
   @Before
   public void init() throws Exception {
-    org = createOrganization("test-org");
-    app = createApplication("test-app", "test-app", org);
+    org = tempEntity.newOrganization("test-org");
+    app = tempEntity.newApplication("test-app", "test-app", org.getId());
     userA = new User("user-a", "secret", "John", "Doe", "void@void.com");
     userDAO.insert(userA);
     userB = new User("user-b", "secret", "Jane", "Doe", "void@void.com");

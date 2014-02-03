@@ -59,13 +59,13 @@ public class LicenseThreatGroupLicenseResourceTest
   @Test
   public void testSetGet_Application() throws Exception {
     String appPublicId = "LicenseThreatGroupLicenseResourceTest_AppId";
-    Application application = createApplication(appPublicId, false /* createLicenseThreatGroups */);
+    Application application = tempEntity.newApplicationWithParent(appPublicId);
     testSetGet("application", appPublicId, application.getId());
   }
 
   @Test
   public void testSetGet_Organization() throws Exception {
-    Organization organization = createOrganization("testSetGet-Organization", false /* createLicenseThreatGroups */);
+    Organization organization = tempEntity.newOrganization("testSetGet-Organization", false /* createLicenseThreatGroups */);
     testSetGet("organization", organization.getId(), organization.getId());
   }
 

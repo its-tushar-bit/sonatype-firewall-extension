@@ -30,14 +30,14 @@ public class PolicyMonitoringResourceTest
   @Test
   public void testCRUD_Application() throws Exception {
     String appPublicId = "PolicyMonitoringResourceTest_AppId";
-    Application application = createApplication(appPublicId);
+    Application application = tempEntity.newApplicationWithParent(appPublicId);
 
     testCRUD(IdUtils.TYPE_APPLICATION, appPublicId, application.getId());
   }
 
   @Test
   public void testCRUD_Organization() throws Exception {
-    Organization organization = createOrganization("PolicyMonitoringResourceTest");
+    Organization organization = tempEntity.newOrganization("PolicyMonitoringResourceTest");
 
     testCRUD(IdUtils.TYPE_ORGANIZATION, organization.getId(), organization.getId());
   }
@@ -81,7 +81,7 @@ public class PolicyMonitoringResourceTest
 
   @Test
   public void testDelete_NotSet_Organization() throws Exception {
-    Organization organization = createOrganization("PolicyMonitoringResourceTest");
+    Organization organization = tempEntity.newOrganization("PolicyMonitoringResourceTest");
     Response response = AuthedRestAccess.delete(getServiceURL(IdUtils.TYPE_ORGANIZATION, organization.getId()));
     assertResponseStatus(404, response);
     assertThat(response.getResponseBody(), is("Policy monitoring was not set for owner id " + organization.getId()));
@@ -90,7 +90,7 @@ public class PolicyMonitoringResourceTest
   @Test
   public void testDelete_NotSet_Application() throws Exception {
     String appPublicId = "PolicyMonitoringResourceTest_AppId";
-    Application application = createApplication(appPublicId);
+    Application application = tempEntity.newApplicationWithParent(appPublicId);
     Response response = AuthedRestAccess.delete(getServiceURL(IdUtils.TYPE_APPLICATION, appPublicId));
     assertResponseStatus(404, response);
     assertThat(response.getResponseBody(), is("Policy monitoring was not set for owner id " + application.getId()));
@@ -98,9 +98,9 @@ public class PolicyMonitoringResourceTest
 
   @Test
   public void testGetApplicablePolicyMonitoring() throws Exception {
-    Organization organization = createOrganization("testGetApplicablePolicyMonitoringOrgId");
-    Application application = createApplication("testGetApplicablePolicyMonitoringAppId",
-        "testGetApplicablePolicyMonitoringAppId", organization);
+    Organization organization = tempEntity.newOrganization("testGetApplicablePolicyMonitoringOrgId");
+    Application application = tempEntity.newApplication("testGetApplicablePolicyMonitoringAppId",
+        "testGetApplicablePolicyMonitoringAppId", organization.getId());
 
     //no Policy Monitoring set
     Response response = AuthedRestAccess

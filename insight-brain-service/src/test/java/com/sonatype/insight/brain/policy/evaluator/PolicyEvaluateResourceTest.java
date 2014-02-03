@@ -88,7 +88,7 @@ public class PolicyEvaluateResourceTest
   @Test
   public void testEvaluate_MultipleMatchesForSameGAV() throws Exception {
     String applicationPublicId = "testEvaluate_MultipleMatchesForSameGAV_AppId";
-    createApplication(applicationPublicId);
+    tempEntity.newApplicationWithParent(applicationPublicId);
     String scanId = "testEvaluate_MultipleMatchesForSameGAV_ScanId";
     String licenseFingerprint = "testEvaluate_MultipleMatchesForSameGAV_LicenseFingerprint";
     setLicenseFingerprint(licenseFingerprint);
@@ -159,7 +159,7 @@ public class PolicyEvaluateResourceTest
   @Test
   public void testEvaluate_ManuallyIdentifiedComponent() throws Exception {
     String applicationPublicId = "testEvaluate_ManuallyIdentifiedComponent_AppId";
-    createApplication(applicationPublicId);
+    tempEntity.newApplicationWithParent(applicationPublicId);
     String scanId = "testEvaluate_ManuallyIdentifiedComponent_ScanId";
     String licenseFingerprint = "testEvaluate_ManuallyIdentifiedComponent_LicenseFingerprint";
     setLicenseFingerprint(licenseFingerprint);
@@ -236,7 +236,7 @@ public class PolicyEvaluateResourceTest
   private void testEvaluate_Label(boolean orgLabel, boolean orgComponentLabel) throws Exception {
     String hash = "1249e25aebb15358bedd";
     String applicationPublicId = "testEvaluate_Label";
-    Application app = createApplication(applicationPublicId);
+    Application app = tempEntity.newApplicationWithParent(applicationPublicId);
     String scanId = "testEvaluate_Label_ScanId";
     String licenseFingerprint = "testEvaluate_Label_LicenseFingerprint";
     setLicenseFingerprint(licenseFingerprint);
@@ -295,7 +295,7 @@ public class PolicyEvaluateResourceTest
   @Test
   public void testEvaluate() throws Exception {
     final String applicationPublicId = "PolicyEvaluateResourceTest_AppId";
-    Application application = createApplication(applicationPublicId);
+    Application application = tempEntity.newApplicationWithParent(applicationPublicId);
     final String scanId = "PolicyEvaluateResourceTest_ScanId";
     String licenseFingerprint = "PolicyEvaluateResourceTest_LicenseFingerprint";
     setLicenseFingerprint(licenseFingerprint);
@@ -389,7 +389,7 @@ public class PolicyEvaluateResourceTest
   @Test
   public void testPolicyThreatLevelCounts() throws Exception {
     final String applicationPublicId = "PolicyThreatCountResourceTest_AppId";
-    createApplication(applicationPublicId);
+    tempEntity.newApplicationWithParent(applicationPublicId);
     final String scanId = "PolicyThreatCountResourceTest_ScanId";
     String licenseFingerprint = "PolicyThreatCountResourceTest_LicenseFingerprint";
     setLicenseFingerprint(licenseFingerprint);
@@ -471,7 +471,7 @@ public class PolicyEvaluateResourceTest
   @Test
   public void testEvaluate_MultiLicense() throws Exception {
     String applicationPublicId = "testEvaluate_MultiLicense_AppId";
-    createApplication(applicationPublicId);
+    tempEntity.newApplicationWithParent(applicationPublicId);
     String scanId = "testEvaluate_MultiLicense_ScanId";
     String licenseFingerprint = "testEvaluate_MultiLicense_LicenseFingerprint";
     setLicenseFingerprint(licenseFingerprint);
@@ -523,7 +523,7 @@ public class PolicyEvaluateResourceTest
   @Test
   public void testEvaluate_LicenseOverride_DefinedAtOrgLevel() throws Exception {
     String applicationPublicId = "testEvaluate_LicenseOverride_DefinedAtOrgLevel";
-    Application application = createApplication(applicationPublicId);
+    Application application = tempEntity.newApplicationWithParent(applicationPublicId);
     String scanId = "testEvaluate_LicenseOverride_DefinedAtOrgLevel";
     String licenseFingerprint = "testEvaluate_LicenseOverride_DefinedAtOrgLevel";
     setLicenseFingerprint(licenseFingerprint);
@@ -605,7 +605,7 @@ public class PolicyEvaluateResourceTest
   @Test
   public void testNotificationEmailModel() throws Exception {
     final String applicationPublicId = "PolicyEvaluateResourceTest_AppId";
-    createApplication(applicationPublicId);
+    tempEntity.newApplicationWithParent(applicationPublicId);
     final String scanId = "PolicyEvaluateResourceTest_ScanId";
     String licenseFingerprint = "PolicyEvaluateResourceTest_LicenseFingerprint";
     setLicenseFingerprint(licenseFingerprint);
@@ -672,7 +672,7 @@ public class PolicyEvaluateResourceTest
   @Test
   public void testErrorReport() throws Exception {
     final String applicationPublicId = "PolicyEvaluateResourceTest_AppId";
-    final String appId = createApplication(applicationPublicId).getId();
+    final String appId = tempEntity.newApplicationWithParent(applicationPublicId).getId();
     final String scanId = "PolicyEvaluateResourceTest_ScanId";
     String licenseFingerprint = "PolicyEvaluateResourceTest_LicenseFingerprint";
     setLicenseFingerprint(licenseFingerprint);
@@ -694,7 +694,7 @@ public class PolicyEvaluateResourceTest
   @Test
   public void testNotifications_No_primarypolicyalertsjson() throws Exception {
     String applicationPublicId = "testNotificationsNoprimarypolicyalertsjson";
-    Application application = createApplication(applicationPublicId);
+    Application application = tempEntity.newApplicationWithParent(applicationPublicId);
     String scanId = "testNotificationsNoprimarypolicyalertsjson";
     String licenseFingerprint = "testNotificationsNoprimarypolicyalertsjson";
     setLicenseFingerprint(licenseFingerprint);
@@ -761,7 +761,7 @@ public class PolicyEvaluateResourceTest
   @Test
   public void testReEvaluate() throws Exception {
     String applicationPublicId = "testReEvaluation";
-    Application application = createApplication(applicationPublicId);
+    Application application = tempEntity.newApplicationWithParent(applicationPublicId);
     String scanId = "testReEvaluation";
     String licenseFingerprint = "testReEvaluation";
     setLicenseFingerprint(licenseFingerprint);
@@ -826,7 +826,7 @@ public class PolicyEvaluateResourceTest
   @Test
   public void testEvaluate_NoPolicyEvalAuditEntryCreatedIfReportMissing() throws Exception {
     final String applicationPublicId = "PolicyEvaluateResourceTest_AppId";
-    final String appId = createApplication(applicationPublicId).getId();
+    final String appId = tempEntity.newApplicationWithParent(applicationPublicId).getId();
     final String scanId = "PolicyEvaluateResourceTest_ScanId";
     String licenseFingerprint = "PolicyEvaluateResourceTest_LicenseFingerprint";
     setLicenseFingerprint(licenseFingerprint);

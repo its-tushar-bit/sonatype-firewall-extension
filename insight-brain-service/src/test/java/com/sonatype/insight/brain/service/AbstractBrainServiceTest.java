@@ -8,17 +8,10 @@ package com.sonatype.insight.brain.service;
 import java.io.File;
 import java.io.IOException;
 import java.net.ServerSocket;
-import java.util.LinkedHashSet;
-import java.util.Set;
-import java.util.UUID;
 
 import javax.ws.rs.core.UriBuilder;
 
-import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
-import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.db.DataSourceFactory;
-import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.mock.InsightMockServer;
 
 import com.ning.http.client.Cookie;
@@ -56,10 +49,6 @@ public abstract class AbstractBrainServiceTest
   protected InsightMockServer saas;
 
   protected TestInsightBrainService brain;
-
-  protected Set<Application> applicationsToDelete = new LinkedHashSet<Application>();
-
-  protected Set<Organization> organizationsToDelete = new LinkedHashSet<Organization>();
 
   @Rule
   public TestName testName = new TestName();
@@ -119,9 +108,6 @@ public abstract class AbstractBrainServiceTest
   @After
   public void stopService() throws Exception {
     long start = System.currentTimeMillis();
-
-    cleanupApplications();
-    cleanupOrganizations();
 
     if (brain != null) {
       brain.stop();
@@ -224,83 +210,6 @@ public abstract class AbstractBrainServiceTest
     catch (IOException e) {
       throw new IllegalStateException(e);
     }
-  }
-
-  protected Application createApplication(String publicId) {
-    return createApplication(publicId, true /* createLicenseThreatGroups */);
-  }
-
-  protected Application createApplication(String publicId, boolean createLicenseThreatGroups) {
-    // Application Name must be unique
-    return createApplication(publicId, "DUMMY-NAME-" + UUID.randomUUID().toString(), createLicenseThreatGroups);
-  }
-
-  protected Application createApplication(String publicId, String name) {
-    return createApplication(publicId, name, true /* createLicenseThreatGroups */);
-  }
-
-  protected Application createApplication(String publicId, String name, boolean createLicenseThreatGroups) {
-    Organization org = createOrganization(name);
-    return createApplication(publicId, name, createLicenseThreatGroups, org);
-  }
-
-  protected Application createApplication(String publicId, String name, Organization organization) {
-    return createApplication(publicId, name, true, organization);
-  }
-
-  protected Application createApplication(String publicId, String name, boolean createLicenseThreatGroups,
-      Organization organization)
-  {
-
-    return createApplication(publicId, name, createLicenseThreatGroups, organization, null);
-  }
-
-  protected Application createApplication(String publicId, String name, boolean createLicenseThreatGroups,
-      Organization organization, String contactInternalName)
-  {
-    ApplicationDAO applicationDAO = new ApplicationDAO();
-    Application application = new Application();
-    application.setPublicId(publicId);
-    application.setName(name);
-    application.setOrganizationId(organization.getId());
-    application.setContactInternalName(contactInternalName);
-    applicationDAO.insert(application);
-    applicationsToDelete.add(application);
-    return application;
-  }
-
-  protected Organization createOrganization(String name) {
-    return createOrganization(name, true /* createLicenseThreatGroups */);
-  }
-
-  protected Organization createOrganization(String name, boolean createLicenseThreatGroups) {
-    OrganizationDAO dao = new OrganizationDAO();
-    Organization organization = new Organization();
-    organization.setName(name);
-    dao.insert(organization, createLicenseThreatGroups);
-    organizationsToDelete.add(organization);
-    return organization;
-  }
-
-  private void cleanupApplications() {
-    ApplicationDAO applicationDAO = new ApplicationDAO();
-    for (Application application : applicationsToDelete) {
-      if (application.getId() != null) {
-        application = applicationDAO.getById(application.getId());
-        if (application != null) {
-          applicationDAO.delete(application);
-        }
-      }
-    }
-    applicationsToDelete.clear();
-  }
-
-  private void cleanupOrganizations() {
-    OrganizationDAO dao = new OrganizationDAO();
-    for (Organization organization : organizationsToDelete) {
-      dao.delete(organization);
-    }
-    organizationsToDelete.clear();
   }
 
   protected static void assertResponseStatus(final int expectedStatus, final Response response) throws IOException {

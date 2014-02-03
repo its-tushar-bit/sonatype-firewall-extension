@@ -97,7 +97,7 @@ public class PolicyResourceTest
   @Test
   public void testExportImport_Update() throws Exception {
     String applicationPublicId = "PolicyResourceTest-testExportImport-Update";
-    Application application = createApplication(applicationPublicId, false /* createLicenseThreatGroups */);
+    Application application = tempEntity.newApplicationWithParent(applicationPublicId);
     String appId = application.getId();
 
     Label label1 = tempEntity.newLabel(appId, "label1", Color.blue);
@@ -147,7 +147,7 @@ public class PolicyResourceTest
     Assert.assertEquals(application.getName(), policyImportResult.ownerName);
     assertThat(policyImportResult.url, endsWith("index.html#/management/application/" + applicationPublicId));
     application = new ApplicationDAO().getByName(policyImportResult.ownerName);
-    applicationsToDelete.add(application);
+    tempEntity.apps.add(application);
     assertNotNull(application);
     List<Label> labels = labelDAO.getByOwnerId(application.getId());
     Assert.assertEquals(2, labels.size());
@@ -179,14 +179,14 @@ public class PolicyResourceTest
   @Test
   public void testCRUD_ApplicationLevel() throws Exception {
     String applicationPublicId = "PolicyResourceTest_testCRUD";
-    createApplication(applicationPublicId);
+    tempEntity.newApplicationWithParent(applicationPublicId);
 
     testCRUD(APP, applicationPublicId);
   }
 
   @Test
   public void testCRUD_OrganizationLevel() throws Exception {
-    String orgId = createOrganization("test").getId();
+    String orgId = tempEntity.newOrganization("test").getId();
 
     testCRUD(ORG, orgId);
   }
@@ -247,13 +247,13 @@ public class PolicyResourceTest
   @Test
   public void testCreateInvalidPolicy_AppLevel() throws Exception {
     String applicationPublicId = "PolicyResourceTest_testCreateInvalidPolicy";
-    createApplication(applicationPublicId);
+    tempEntity.newApplicationWithParent(applicationPublicId);
     testCreateInvalidPolicy(APP, applicationPublicId);
   }
 
   @Test
   public void testCreateInvalidPolicy_OrgLevel() throws Exception {
-    String orgId = createOrganization("test").getId();
+    String orgId = tempEntity.newOrganization("test").getId();
     testCreateInvalidPolicy(ORG, orgId);
   }
 
@@ -272,13 +272,13 @@ public class PolicyResourceTest
   @Test
   public void testUpdateInvalidPolicy_AppLevel() throws Exception {
     String applicationPublicId = "PolicyResourceTest_testUpdateInvalidPolicy";
-    createApplication(applicationPublicId);
+    tempEntity.newApplicationWithParent(applicationPublicId);
     testUpdateInvalidPolicy(APP, applicationPublicId);
   }
 
   @Test
   public void testUpdateInvalidPolicy_OrgLevel() throws Exception {
-    String orgId = createOrganization("test").getId();
+    String orgId = tempEntity.newOrganization("test").getId();
     testUpdateInvalidPolicy(ORG, orgId);
   }
 
@@ -314,13 +314,13 @@ public class PolicyResourceTest
   public void testGetApplicablePolicies() throws Exception {
     // Create an organization and an application
     String orgName = "testGetApplicablePoliciesOrg";
-    String orgId = createOrganization(orgName).getId();
+    String orgId = tempEntity.newOrganization(orgName).getId();
     String appName = "testGetApplicablePoliciesApp";
     String appPublicId = appName;
     Application app = new Application(appPublicId, appName, orgId);
     ApplicationDAO appDAO = new ApplicationDAO();
     appDAO.insert(app);
-    applicationsToDelete.add(app);
+    tempEntity.apps.add(app);
     String appId = app.getId();
 
     // Verify the applicable policies for the application
@@ -527,7 +527,7 @@ public class PolicyResourceTest
 
   @Test
   public void testImportToApplicationWithTags() throws Exception {
-    Application app = createApplication("testAppPublicId");
+    Application app = tempEntity.newApplicationWithParent("testAppPublicId");
     PolicyExportResult policyExportResult = createPolicyExportResult();
     Tag tag = new Tag("orgId", "tagName", "tagDescription", Color.black);
     tag.setId(id());
@@ -601,7 +601,7 @@ public class PolicyResourceTest
   }
 
   private Application createApplicationWithPolicy(final Organization org) throws Exception {Response response;
-    Application app = createApplication("appWithExistingPolicy", "appWithExistingPolicy", org);
+    Application app = tempEntity.newApplication("appWithExistingPolicy", "appWithExistingPolicy", org.getId());
     Label label = tempEntity.newLabel(app.getId(), Color.white);
     LicenseThreatGroup licenseThreatGroup = tempEntity.newLicenseThreatGroup(app.getId());
     tempEntity.newLicenseThreatGroupLicense(app.getId(), licenseThreatGroup.getId());
@@ -617,7 +617,7 @@ public class PolicyResourceTest
   }
 
   private Organization createOrganizationWithPolicy() throws Exception {
-    Organization org = createOrganization("orgWithExistingPolicy");
+    Organization org = tempEntity.newOrganization("orgWithExistingPolicy");
     Label label = tempEntity.newLabel(org.getId(), org.getId(), Color.white);
     LicenseThreatGroup licenseThreatGroup = tempEntity.newLicenseThreatGroup(org.getId());
     tempEntity.newLicenseThreatGroupLicense(org.getId(), licenseThreatGroup.getId());

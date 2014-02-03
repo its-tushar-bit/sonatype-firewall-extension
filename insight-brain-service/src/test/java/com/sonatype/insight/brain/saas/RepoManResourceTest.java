@@ -34,7 +34,7 @@ public class RepoManResourceTest
   public void testUploadScan() throws Exception {
     final String applicationPublicId = "RepoManResourceTest_AppId";
     final String licenseFingerprint = "RepoManResourceTest_LicenseFingerprint";
-    createApplication(applicationPublicId);
+    tempEntity.newApplicationWithParent(applicationPublicId);
     setLicenseFingerprint(licenseFingerprint);
 
     final File saasScanFile = getScanResponseFile(licenseFingerprint);

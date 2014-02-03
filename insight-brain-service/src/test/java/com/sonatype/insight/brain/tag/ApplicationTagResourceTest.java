@@ -23,7 +23,7 @@ public class ApplicationTagResourceTest
 {
   @Test
   public void testCRUD() throws Exception {
-    Application app = createApplication("testApp");
+    Application app = tempEntity.newApplicationWithParent("testApp");
 
     String url = getRestUrl(ApplicationTagResource.SERVICE_PATH, app.getPublicId());
 

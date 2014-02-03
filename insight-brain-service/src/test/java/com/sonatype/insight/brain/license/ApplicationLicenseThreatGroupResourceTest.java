@@ -25,30 +25,30 @@ public class ApplicationLicenseThreatGroupResourceTest
   @Test
   public void testCRUD() throws Exception {
     String appPublicId = "LicenseThreatGroupResourceTest_AppId";
-    Application application = createApplication(appPublicId);
+    Application application = tempEntity.newApplicationWithParent(appPublicId);
     testCRUD(appPublicId, application.getId());
   }
 
   @Test
   public void testDelete_OwnerIdMismatch() throws Exception {
     String appPublicId1 = "LicenseThreatGroupResourceTest_AppId1";
-    Application application1 = createApplication(appPublicId1);
+    Application application1 = tempEntity.newApplicationWithParent(appPublicId1);
     String appPublicId2 = "LicenseThreatGroupResourceTest_AppId2";
-    Application application2 = createApplication(appPublicId2);
+    Application application2 = tempEntity.newApplicationWithParent(appPublicId2);
     testDelete_OwnerIdMismatch(appPublicId1, application1.getId(), appPublicId2, application2.getId());
   }
 
   @Test
   public void testDelete_InUseByPolicy() throws Exception {
-    Application app = createApplication("appPublicId");
+    Application app = tempEntity.newApplicationWithParent("appPublicId");
     testDelete_InUseByPolicy(app.getPublicId(), app.getId(), app.getId());
   }
 
   @Test
   public void testGetApplicable() throws Exception {
-    Organization org = createOrganization("orgName", false);
+    Organization org = tempEntity.newOrganization("orgName", false);
     createLicenseThreatGroup("LTG-2", org.getId(), "GPL-2.0", "GPL-3.0");
-    Application app = createApplication("appPublicId", "appName", false, org);
+    Application app = tempEntity.newApplication("appName", "appPublicId", org.getId());
     app.setOrganizationId(org.getId());
     new ApplicationDAO().update(app);
     createLicenseThreatGroup("LTG-0", app.getId(), "Apache-2.0");

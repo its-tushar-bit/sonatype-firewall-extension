@@ -16,8 +16,6 @@ import com.sonatype.insight.brain.configuration.ldap.LdapGroupMappingType;
 import com.sonatype.insight.brain.configuration.ldap.LdapProtocol;
 import com.sonatype.insight.brain.configuration.ldap.LdapServer;
 import com.sonatype.insight.brain.configuration.ldap.LdapUserMapping;
-import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
-import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapConnectionDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapServerDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapUserMappingDAO;
@@ -113,7 +111,7 @@ public class TemporaryEntity
 
   private final LdapUserMappingDAO ldapUserMappingDAO = new LdapUserMappingDAO();
 
-  private Collection<Application> apps;
+  public Collection<Application> apps;
 
   private Collection<Organization> orgs;
 
@@ -246,6 +244,16 @@ public class TemporaryEntity
       organizations.add(newOrganization());
     }
     return organizations;
+  }
+
+  public Application newApplicationWithParent(String appPublicId) {
+    // Application Name must be unique
+    return newApplicationWithParent(appPublicId, "DUMMY-NAME-" + uuid());
+  }
+
+  public Application newApplicationWithParent(String publicId, String name) {
+    Organization org = newOrganization(name);
+    return newApplication(name, publicId, org.getId());
   }
 
   public Application newApplication(String orgId) {

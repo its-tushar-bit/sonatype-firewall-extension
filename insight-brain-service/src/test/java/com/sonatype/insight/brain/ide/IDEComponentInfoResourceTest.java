@@ -67,7 +67,7 @@ public class IDEComponentInfoResourceTest
   @Test
   public void testGetComponentDetails_PolicyAlerts() throws Exception {
     String applicationPublicId = "IdeResourceTest_AppId";
-    Application application = createApplication(applicationPublicId);
+    Application application = tempEntity.newApplicationWithParent(applicationPublicId);
     Label label = new Label(application.getId(), "white", null);
     new LabelDAO().insert(label);
     new ComponentLabelDAO().insert(new ComponentLabel(application.getId(), label.getId(), "01234567890123456789"));
@@ -119,7 +119,7 @@ public class IDEComponentInfoResourceTest
   @Test
   public void testGetComponentDetails_OverriddenLicense() throws Exception {
     String applicationPublicId = "IdeResourceTest_AppId";
-    Application application = createApplication(applicationPublicId);
+    Application application = tempEntity.newApplicationWithParent(applicationPublicId);
 
     LicenseOverride licenseOverride = new LicenseOverride(application.getId(), "g1", "a1", "v1",
         LicenseOverrideStatus.OVERRIDDEN, "GPL-2.0", null /* comment */);
@@ -151,7 +151,7 @@ public class IDEComponentInfoResourceTest
   @Test
   public void testGetComponentDetails_OverriddenSecurityVulnerabilityStatus() throws Exception {
     String applicationPublicId = "IdeResourceTest_AppId";
-    Application application = createApplication(applicationPublicId);
+    Application application = tempEntity.newApplicationWithParent(applicationPublicId);
 
     setSecurityAuditLog(application.getId(), "/IdeResourceTest/SecurityOverride_abababababababababab.json");
 
@@ -182,7 +182,7 @@ public class IDEComponentInfoResourceTest
   @Test
   public void testGetComponentDetails_UnknownComponent() throws Exception {
     String applicationPublicId = "IdeResourceTest_AppId";
-    createApplication(applicationPublicId);
+    tempEntity.newApplicationWithParent(applicationPublicId);
 
     Constraint constraint1 = new Constraint("C1", "Constraint 1", LogicalOperator.AND);
     constraint1.addCondition(new Condition(MatchStateConditionType.ID, "is", "unknown"));
@@ -231,7 +231,7 @@ public class IDEComponentInfoResourceTest
   @Test
   public void testGetComponentDetails_AppIdWithUnsafeCharacters() throws Exception {
     String applicationPublicId = "bom 1&2%20?";
-    createApplication(applicationPublicId);
+    tempEntity.newApplicationWithParent(applicationPublicId);
 
     String groupId = "ug1";
     String artifactId = "ua1";
@@ -262,7 +262,7 @@ public class IDEComponentInfoResourceTest
   @Test
   public void testGetComponentDetails_ProprietaryComponent() throws Exception {
     String applicationPublicId = "IdeResourceTest_AppId";
-    createApplication(applicationPublicId);
+    tempEntity.newApplicationWithParent(applicationPublicId);
 
     Constraint constraint1 = new Constraint("C1", "Constraint 1", LogicalOperator.AND);
     constraint1.addCondition(new Condition(ProprietaryConditionType.ID, "is true"));
@@ -310,7 +310,7 @@ public class IDEComponentInfoResourceTest
   @Test
   public void testGetComponentDetails_ManuallyIdentifiedComponent() throws Exception {
     String applicationPublicId = "IdeResourceTest_AppId";
-    createApplication(applicationPublicId);
+    tempEntity.newApplicationWithParent(applicationPublicId);
 
     Constraint constraint1 = new Constraint("C1", "Constraint 1", LogicalOperator.AND);
     constraint1.addCondition(new Condition(MatchStateConditionType.ID, "is", "exact"));
@@ -384,7 +384,7 @@ public class IDEComponentInfoResourceTest
   private void testGetComponentDetails_Label(boolean orgLabel, boolean orgComponentLabel) throws Exception {
     String hash = "01234567890123456789";
     String applicationPublicId = "IdeResourceTest_AppId";
-    Application app = createApplication(applicationPublicId);
+    Application app = tempEntity.newApplicationWithParent(applicationPublicId);
     Label label = new Label(orgLabel ? app.getOrganizationId() : app.getId(), "red", null);
     new LabelDAO().insert(label);
     new ComponentLabelDAO().insert(new ComponentLabel(orgComponentLabel ? app.getOrganizationId() : app.getId(), label

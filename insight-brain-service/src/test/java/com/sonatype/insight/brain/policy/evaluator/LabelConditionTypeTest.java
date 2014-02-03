@@ -12,14 +12,12 @@ import java.util.List;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.Stage;
-import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
-import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.MatchState;
-import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
@@ -30,9 +28,8 @@ import com.sonatype.insight.brain.model.policy.conditions.LabelConditionType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 
 import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Assert;
-import org.junit.BeforeClass;
+import org.junit.Before;
 import org.junit.Test;
 
 public class LabelConditionTypeTest
@@ -44,17 +41,6 @@ public class LabelConditionTypeTest
 
   private static String applicationId;
 
-  @AfterClass
-  public static void afterClass() {
-    ApplicationDAO applicationDAO = new ApplicationDAO();
-    Application application = applicationDAO.getByIdNotNull(applicationId);
-    applicationDAO.delete(application);
-
-    OrganizationDAO organizationDAO = new OrganizationDAO();
-    Organization organization = organizationDAO.getByIdNotNull(organizationId);
-    organizationDAO.delete(organization);
-  }
-
   @After
   public void cleanup() {
     for (Label label : labelDAO.getByOwnerId(applicationId)) {
@@ -65,20 +51,12 @@ public class LabelConditionTypeTest
     }
   }
 
-  @BeforeClass
-  public static void createApplication() {
-    OrganizationDAO organizationDAO = new OrganizationDAO();
-    Organization organization = new Organization();
-    organization.setName("test-organization");
-    organizationDAO.insert(organization);
+  @Before
+  public void createApplication() {
+    Organization organization = tempEntity.newOrganization("test-organization");
     organizationId = organization.getId();
 
-    ApplicationDAO applicationDAO = new ApplicationDAO();
-    Application application = new Application();
-    application.setName("test-application");
-    application.setPublicId(applicationPublicId);
-    application.setOrganizationId(organizationId);
-    applicationDAO.insert(application);
+    Application application = tempEntity.newApplication("test-application", applicationPublicId, organizationId);
     applicationId = application.getId();
   }
 

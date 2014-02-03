@@ -128,7 +128,7 @@ public class ConfigurationClientTest
 
   @Test
   public void testValidateApplicationId_AllGood() throws Exception {
-    Application app = createApplication("valid-id");
+    Application app = tempEntity.newApplicationWithParent("valid-id");
 
     new ConfigurationClient(brain.getClientConfiguration()).validateApplicationId(app.getPublicId());
   }
@@ -146,7 +146,7 @@ public class ConfigurationClientTest
 
   @Test
   public void testGetApplicationIdNameMap() throws Exception {
-    Application app = createApplication("valid-id");
+    Application app = tempEntity.newApplicationWithParent("valid-id");
 
     Map<String, String> map = new ConfigurationClient(brain.getClientConfiguration()).getApplicationIdNameMap();
 

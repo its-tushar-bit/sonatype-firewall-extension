@@ -24,7 +24,7 @@ public class TagResourceTest
 {
   @Test
   public void testCRUD() throws Exception {
-    Organization org = createOrganization("TagResourceTest");
+    Organization org = tempEntity.newOrganization("TagResourceTest");
 
     String url = getRestUrl(TagResource.SERVICE_PATH, org.getId());
     // Get

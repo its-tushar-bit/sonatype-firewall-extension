@@ -102,7 +102,7 @@ public class ReportResourceTest
     hashGAVDAO.insert(hashGAV);
 
     String applicationPublicId = "testClaimedComponent_AppId";
-    createApplication(applicationPublicId);
+    tempEntity.newApplicationWithParent(applicationPublicId);
 
     String scanId = "testClaimedComponent_ScanId";
     String licenseFingerprint = "ReportResourceTest_LicenseFingerprint";
@@ -188,7 +188,7 @@ public class ReportResourceTest
     hashGAVDAO.insert(hashGAV);
 
     String applicationPublicId = "testClaimedComponent_AppId";
-    Application application = createApplication(applicationPublicId);
+    Application application = tempEntity.newApplicationWithParent(applicationPublicId);
 
     String licenseId = new LicenseDAO().getByIdNotNull("GPL-3.0").getId(); // db lookup to make sure licenseId is valid
     LicenseOverride licenseOverride = new LicenseOverride(application.getId(), groupId, artifactId, version,
@@ -225,7 +225,7 @@ public class ReportResourceTest
   @Test
   public void testManuallyIdentifiedComponentInvalidatesCachedReportData() throws Exception {
     String applicationPublicId = "testClaimedComponent_AppId";
-    createApplication(applicationPublicId);
+    tempEntity.newApplicationWithParent(applicationPublicId);
     String scanId = "testClaimedComponent_ScanId";
     String licenseFingerprint = "ReportResourceTest_LicenseFingerprint";
     setLicenseFingerprint(licenseFingerprint);
@@ -310,7 +310,7 @@ public class ReportResourceTest
   @Test
   public void testBrowseReportEntryExpirationDate() throws Exception {
     final String applicationPublicId = "ReportResourceTest_AppId";
-    createApplication(applicationPublicId);
+    tempEntity.newApplicationWithParent(applicationPublicId);
     final String scanId = "ReportResourceTest_ScanId";
     final String licenseFingerprint = "ReportResourceTest_LicenseFingerprint";
     setLicenseFingerprint(licenseFingerprint);
@@ -356,7 +356,7 @@ public class ReportResourceTest
   @Test
   public void testBrowseReport() throws Exception {
     final String applicationPublicId = "ReportResourceTest_AppId";
-    createApplication(applicationPublicId);
+    tempEntity.newApplicationWithParent(applicationPublicId);
     final String scanId = "ReportResourceTest_ScanId";
     final String licenseFingerprint = "ReportResourceTest_LicenseFingerprint";
     setLicenseFingerprint(licenseFingerprint);
@@ -455,7 +455,7 @@ public class ReportResourceTest
   @Test
   public void testPrintReport() throws Exception {
     final String applicationPublicId = "ReportResourceTest_AppId";
-    createApplication(applicationPublicId);
+    tempEntity.newApplicationWithParent(applicationPublicId);
     final String scanId = "ReportResourceTest_ScanId";
     final String licenseFingerprint = "ReportResourceTest_LicenseFingerprint";
     setLicenseFingerprint(licenseFingerprint);
@@ -487,7 +487,7 @@ public class ReportResourceTest
   @Test
   public void testPrintReport_AfterPreviousGenerationFailure() throws Exception {
     final String applicationPublicId = "ReportResourceTest_AppId";
-    final String appId = createApplication(applicationPublicId).getId();
+    final String appId = tempEntity.newApplicationWithParent(applicationPublicId).getId();
     final String scanId = "ReportResourceTest_ScanId";
     final String licenseFingerprint = "ReportResourceTest_LicenseFingerprint";
     setLicenseFingerprint(licenseFingerprint);
@@ -529,7 +529,7 @@ public class ReportResourceTest
   @Test
   public void testReevaluateReport() throws Exception {
     final String applicationPublicId = "ReportResourceTest_AppId";
-    final Application application = createApplication(applicationPublicId);
+    final Application application = tempEntity.newApplicationWithParent(applicationPublicId);
     String scanId = "ReportResourceTest_ScanId";
     final String licenseFingerprint = "ReportResourceTest_LicenseFingerprint";
     setLicenseFingerprint(licenseFingerprint);
@@ -621,7 +621,7 @@ public class ReportResourceTest
   @Test
   public void testAugmentDataAndAuditLog() throws Exception {
     final String applicationPublicId = "ReportResourceTest_AppId";
-    createApplication(applicationPublicId);
+    tempEntity.newApplicationWithParent(applicationPublicId);
     final String scanId = "ReportResourceTest_ScanId";
     final String licenseFingerprint = "ReportResourceTest_LicenseFingerprint";
     setLicenseFingerprint(licenseFingerprint);
@@ -712,7 +712,7 @@ public class ReportResourceTest
   @Test
   public void testAugmentDataAndAuditLog_LicenseOverrides() throws Exception {
     final String applicationPublicId = "ReportResourceTest_AppId";
-    Application application = createApplication(applicationPublicId);
+    Application application = tempEntity.newApplicationWithParent(applicationPublicId);
     final String scanId = "ReportResourceTest_ScanId";
     final String licenseFingerprint = "ReportResourceTest_LicenseFingerprint";
     setLicenseFingerprint(licenseFingerprint);
@@ -831,7 +831,7 @@ public class ReportResourceTest
   @Test
   public void test_LicenseOverrides_Organization() throws Exception {
     final String applicationPublicId = "ReportResourceTest_AppId";
-    Application application = createApplication(applicationPublicId);
+    Application application = tempEntity.newApplicationWithParent(applicationPublicId);
     final String scanId = "ReportResourceTest_ScanId";
     final String licenseFingerprint = "ReportResourceTest_LicenseFingerprint";
     setLicenseFingerprint(licenseFingerprint);
@@ -932,7 +932,7 @@ public class ReportResourceTest
   @Test
   public void testRefreshOnlyOnChange() throws Exception {
     final String applicationPublicId = "ReportResourceTest_AppId";
-    Application application = createApplication(applicationPublicId);
+    Application application = tempEntity.newApplicationWithParent(applicationPublicId);
     String appId = application.getId();
     final String scanId = "ReportResourceTest_ScanId";
     final String licenseFingerprint = "ReportResourceTest_LicenseFingerprint";
@@ -987,7 +987,7 @@ public class ReportResourceTest
   @Test
   public void testCanAuditNonReportData() throws Exception {
     final String applicationPublicId = "ReportResourceTest_AppId";
-    createApplication(applicationPublicId);
+    tempEntity.newApplicationWithParent(applicationPublicId);
     final String scanId = "ReportResourceTest_ScanId";
     final String licenseFingerprint = "ReportResourceTest_LicenseFingerprint";
     setLicenseFingerprint(licenseFingerprint);

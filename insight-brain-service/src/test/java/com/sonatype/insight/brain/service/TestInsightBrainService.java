@@ -8,12 +8,9 @@ package com.sonatype.insight.brain.service;
 import java.io.File;
 import java.lang.reflect.Field;
 import java.util.Iterator;
-import java.util.UUID;
 
 import com.sonatype.insight.brain.common.io.FileCleaner;
-import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseDataUpdater;
-import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.policy.evaluator.PolicyMonitorScheduler;
 import com.sonatype.insight.brain.security.CLMRealm;
 import com.sonatype.insight.client.utils.AbstractClient;
@@ -112,14 +109,6 @@ public class TestInsightBrainService
     configuration.setServerAdminUrl(adminProtocol + "://localhost:" + testAdminPort
         + (testAdminPort != testPort ? "" : "/admin"));
     return configuration;
-  }
-
-  public Application createApplication(String applicationPublicId) {
-    Application application = new Application();
-    application.setName("DUMMY-NAME-" + UUID.randomUUID().toString());
-    application.setPublicId(applicationPublicId);
-    new ApplicationDAO().insert(application);
-    return application;
   }
 
   @Override

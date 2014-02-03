@@ -28,7 +28,7 @@ public class ScanClientTest
 
   @Before
   public void createApplication() {
-    createApplication(APP_ID, "test");
+    tempEntity.newApplicationWithParent(APP_ID, "test");
   }
 
   @Test

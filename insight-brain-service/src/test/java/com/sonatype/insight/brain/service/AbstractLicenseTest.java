@@ -12,6 +12,7 @@ import java.util.Map;
 import com.sonatype.insight.brain.AuthedRestAccess;
 import com.sonatype.insight.brain.TestLicenseFingerprinter;
 import com.sonatype.insight.brain.TestProductLicenseManager;
+import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.product.license.ProductLicenseResource;
 import com.sonatype.insight.license.model.CLMEnforcementPoint;
 
@@ -25,10 +26,14 @@ import com.ning.http.multipart.ByteArrayPartSource;
 import com.ning.http.multipart.FilePart;
 import org.codehaus.plexus.util.IOUtil;
 import org.junit.Assert;
+import org.junit.Rule;
 
 public abstract class AbstractLicenseTest
     extends AbstractBrainServiceTest
 {
+  @Rule
+  public TemporaryEntity tempEntity = new TemporaryEntity();
+
   // by default license is always valid, to override, simply uninstall the license
   private final TestProductLicenseManager licenseManager = new TestProductLicenseManager(true);
 

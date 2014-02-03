@@ -17,8 +17,7 @@ class HelpModule
 
   static content = {
     dropdown { $('a', 'data-toggle': 'dropdown') }
-    links(required: false) { $('li a') }
-    documentation(required: false) { links.find { it.text().contains('Online Help') } }
-    support(required: false) { links.find { it.text().contains('Request Support') } }
+    documentation(required: false) { $('#documentation-link') }
+    support(required: false) { $('#support-link') }
   }
 }

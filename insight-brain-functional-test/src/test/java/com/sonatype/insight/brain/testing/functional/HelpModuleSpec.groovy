@@ -6,9 +6,7 @@
 package com.sonatype.insight.brain.testing.functional
 
 import spock.lang.Stepwise
-/**
- * @since 1.9
- */
+
 @Stepwise
 class HelpModuleSpec
     extends BaseSpec 
@@ -18,27 +16,17 @@ class HelpModuleSpec
     loginAsAdminVia()
   }
 
-  def "Should be able to open our online documentation"() {
-    when: 'Clicking on the documentation link'
+  def "Links to external pages are presented in the UI"() {
+    when: 'We click the "help" dropdown'
       helpLinks.dropdown.click()
       waitFor { helpLinks.documentation.displayed }
-      helpLinks.documentation.click()
 
-    then: 'A new window should open with our online documentation'
-      withWindow(close: true, availableWindows[1]) {
-        waitFor { $('h1', text: contains('Sonatype CLM Documentation Index')).displayed }
-      }
-  }
+    then: 'We are presented with the links to the external documentation'
+      helpLinks.documentation.@href == 'http://links.sonatype.com/products/clm/doc'
+      helpLinks.documentation.@target == '_blank'
 
-  def "Should be able to easily open a new support request"(){
-    when: 'Clicking on the support link'
-      helpLinks.dropdown.click()
-      waitFor { helpLinks.support.displayed }
-      helpLinks.support.click()
-
-    then: 'A new window should open on a form ready to create a support request'
-      withWindow(close: true, availableWindows[1]) {
-        waitFor { $('h2', text: 'Submit a request').displayed }
-      }
+    and: 'links to create a new support request'
+      helpLinks.support.@href == 'http://links.sonatype.com/products/clm/support'
+      helpLinks.support.@target == '_blank'
   }
 }

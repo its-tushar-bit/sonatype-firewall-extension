@@ -21,6 +21,7 @@ abstract class BasePage
     changePassword { module ChangePasswordModule }
     login { module LoginModule }
     userOptions { module UserOptionsModule }
+    helpLinks { module HelpModule }
     functionalTestingSupport { $('#functionalTestingSupport') }
   }
 }

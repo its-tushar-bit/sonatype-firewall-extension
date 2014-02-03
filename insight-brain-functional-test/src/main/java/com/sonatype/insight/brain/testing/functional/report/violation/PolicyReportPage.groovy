@@ -48,12 +48,14 @@ class PolicyReportRow
     cip { module Cip, parents().find('#informationPanel') }
     // can't rely on the text within the cell since it's only shown for the first row with that score
     threatGroup { $(class: iEndsWith('Score')).classes()[0] }
+
+    // private, use page methods for interaction
+    // click a cell, not the row, to make the CIP appear
+    showCipTrigger { $(class:'slick-cell scoreCol') }
   }
 
   Cip showCip() {
-    // click a cell, not the row, to make the CIP appear
-    def activator = $(class:'slick-cell scoreCol')
-    activator.click()
+    showCipTrigger.click()
     waitFor { cip.displayed }
 
     return cip
@@ -81,13 +83,18 @@ class PolicyDetail
 {
   static content = {
     violations(wait: true) { moduleList PolicyRow, $('tbody tr') }
+
+    // private
+    detailContainer { $('table', class: 'cip-policy-table') }
+
+    // private, use page methods for interaction
+    // assume that there will be no anchors with the same name
+    showTrigger { $('a', text: 'Policy') }
   }
 
   void show() {
-    // assume that there will be no anchors with the same name
-    def activator = $('a', text: 'Policy')
-    activator.click();
-    waitFor { $('table', class: 'cip-policy-table').displayed }
+    showTrigger.click();
+    waitFor { detailContainer.displayed }
   }
 }
 
@@ -96,11 +103,13 @@ class PolicyRow
 {
   static content = {
     waiver { module AddPolicyWaiver, parents().find('#add-waiver-modal') }
+
+    // private, use page methods for interaction
+    addWaiverTrigger { $('button', text: 'Waive') }
   }
 
   AddPolicyWaiver addWaiver() {
-    def activator = $('button', text: 'Waive')
-    activator.click()
+    addWaiverTrigger.click()
     waitFor { waiver.displayed }
 
     return waiver
@@ -111,23 +120,31 @@ class AddPolicyWaiver
     extends Module 
 {
   static content = {
-    isImplicitScope { $('#add-waiver-scope').displayed == false }
+    // private
+    scopeContainer { $('#add-waiver-scope') }
+    // private
+    applyContainer { $('#add-waiver-apply') }
+
+    isImplicitScope { scopeContainer.displayed == false }
     // input for the scope/limit of the waiver (orgId or appPublicId)
-    scope { $('#add-waiver-scope').find('input', name: 'waiverSelectedTarget') }
+    scope { scopeContainer.find('input', name: 'waiverSelectedTarget') }
     // input for the application of the waiver (selectedComponent or allComponents)
-    apply { $('#add-waiver-apply').find('input', name: 'waiver-hash') }
+    apply { applyContainer.find('input', name: 'waiver-hash') }
     // input value for option to apply to all components
-    allComponents { $('#add-waiver-apply').find('label', class: 'radio', text: iContains('all components')).text() }
+    allComponents { applyContainer.find('label', class: 'radio', text: iContains('all components')).text() }
     // input value for option to apply to selected component
-    selectedComponent { $('#add-waiver-apply')
-      .find('label', class: 'radio', text: iContains('selected component')).text() }
+    selectedComponent { applyContainer.find('label', class: 'radio', text: iContains('selected component')).text() }
+
+    // private, use page methods for interaction
+    saveTrigger { $('button', text: 'Waive') }
+    cancelTrigger { $('button', text: 'Cancel') }
   }
 
   void save() {
-    $('button', text: 'Waive').click()
+    saveTrigger.click()
   }
 
   void cancel() {
-    $('button', text: 'Cancel').click()
+    cancelTrigger.click()
   }
 }

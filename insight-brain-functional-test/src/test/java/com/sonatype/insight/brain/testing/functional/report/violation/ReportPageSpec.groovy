@@ -50,10 +50,10 @@ class ReportPageSpec
       to ReportPage, app.publicId, scanId
 
     then: 'summary nav button is shown'
-      navigation.summaryButton.displayed == true
+      navigation.summaryTrigger.displayed == true
 
     and: 'policy nav button is shown'
-      navigation.policyButton.displayed == true
+      navigation.policyTrigger.displayed == true
 
     // add other nav button verifications to new then: blocks as tests require them
   }

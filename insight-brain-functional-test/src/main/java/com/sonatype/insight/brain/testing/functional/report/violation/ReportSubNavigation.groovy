@@ -11,15 +11,15 @@ class ReportSubNavigation
     extends Module
 {
   static content = {
-    summaryButton(to: SummaryReportPage) { $('#summaryBtn') }
-    policyButton(to: PolicyReportPage) { $('#componentcontainerBtn') }
+    summaryTrigger(to: SummaryReportPage) { $('#summaryBtn') }
+    policyTrigger(to: PolicyReportPage) { $('#componentcontainerBtn') }
   }
 
   void toSummaryReportPage() {
-    summaryButton.click()
+    summaryTrigger.click()
   }
 
   void toPolicyReportPage() {
-    policyButton.click()
+    policyTrigger.click()
   }
 }

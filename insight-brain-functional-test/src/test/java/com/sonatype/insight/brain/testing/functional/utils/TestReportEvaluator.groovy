@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.testing.functional.utils;
+package com.sonatype.insight.brain.testing.functional.utils
 
 import com.sonatype.clm.dto.model.policy.Stage
 import com.sonatype.insight.brain.model.Application
@@ -34,7 +34,7 @@ class TestReportEvaluator
     this.app = app
     this.locationOfTestReport = locationOfTestReport
     this.brainBaseUrl = brainBaseUrl
-    this.workStorage = workStorage;
+    this.workStorage = workStorage
   }
 
   public String evaluatePolicy() {

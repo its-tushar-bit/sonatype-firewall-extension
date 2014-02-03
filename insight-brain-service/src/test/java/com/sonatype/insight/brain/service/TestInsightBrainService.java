@@ -14,7 +14,7 @@ import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseDataUpdater;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.product.license.CLMLicenseManager;
+import com.sonatype.insight.brain.policy.evaluator.PolicyMonitorScheduler;
 import com.sonatype.insight.brain.security.CLMRealm;
 import com.sonatype.insight.client.utils.AbstractClient;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
@@ -231,6 +231,8 @@ public class TestInsightBrainService
     SlowMoFilter.configure(env);
 
     super.run(config, env);
+
+    getInjector().getInstance(PolicyMonitorScheduler.class).disableForTesting = true;
   }
 
   public void stop() throws Exception {
@@ -330,11 +332,6 @@ public class TestInsightBrainService
   protected DatabaseConfig getDatabaseConfig(File databaseDir, String databaseName) {
     // Use in memory db
     return null;
-  }
-
-  @Override
-  protected void configurePolicyMonitoring(final Environment environment, final int policyMonitoringHour, final CLMLicenseManager licenseManager) {
-    // don't schedule execution of policy monitoring in the test environment
   }
 
   public File getAuditDir(String applicationId) {

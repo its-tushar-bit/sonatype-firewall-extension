@@ -10,7 +10,9 @@ import java.io.InputStream;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -76,6 +78,8 @@ public class CLMLicenseManager
   private static final Logger log = LoggerFactory.getLogger(CLMLicenseManager.class);
 
   private volatile CachedLicenseData licenseCache;
+
+  private final List<LicenseListener> listeners = new CopyOnWriteArrayList<>();
 
   @Inject
   public CLMLicenseManager(final ProductLicenseManager licenseManager, final LicenseFingerprinter licenseFingerprinter)
@@ -229,6 +233,7 @@ public class CLMLicenseManager
 
     licenseCache = new CachedLicenseData(licenseFingerprint, version, applicationCount, products,
         features.toArray(new String[features.size()]), enforcementPoints, key.getExpirationDate().getTime());
+    notifyListeners();
   }
 
   private static boolean isNexusClmLicense(Set<CLMEnforcementPoint> enforcementPoints) {
@@ -287,5 +292,38 @@ public class CLMLicenseManager
   private void clearLicenseCache() {
     licenseCache = new CachedLicenseData(null, 0, 0, Collections.<String> emptySet(), new String[0],
         Collections.<CLMEnforcementPoint> emptySet(), 0);
+    notifyListeners();
+  }
+
+  /**
+   * Registers the specified listener to be notified of changes to the license.
+   * 
+   * @since 1.9
+   */
+  public void addListener(LicenseListener listener) {
+    if (listener == null) {
+      throw new IllegalArgumentException("listener not specified");
+    }
+    listeners.add(listener);
+  }
+
+  /**
+   * Unregisters the specified listener.
+   * 
+   * @since 1.9
+   */
+  public void removeListener(LicenseListener listener) {
+    listeners.remove(listener);
+  }
+
+  private void notifyListeners() {
+    for (LicenseListener listener : listeners) {
+      try {
+        listener.licenseChanged();
+      }
+      catch (RuntimeException e) {
+        log.warn("Failed to nofify {} of license update", listener, e);
+      }
+    }
   }
 }

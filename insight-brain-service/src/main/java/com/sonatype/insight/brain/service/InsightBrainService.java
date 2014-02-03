@@ -10,8 +10,6 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 import javax.inject.Named;
 
@@ -20,8 +18,6 @@ import com.sonatype.insight.brain.common.io.FileCleaner.FileDeletionException;
 import com.sonatype.insight.brain.dataaccess.license.LicenseDataUpdater;
 import com.sonatype.insight.brain.db.DatamartProvider;
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
-import com.sonatype.insight.brain.policy.evaluator.PolicyMonitor;
-import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.releasegraph.ReleaseGraphCacheLoader;
 import com.sonatype.insight.brain.releasegraph.ReleaseGraphKey;
 import com.sonatype.insight.brain.saas.DefaultLicenseDataUpdater;
@@ -42,7 +38,6 @@ import com.yammer.dropwizard.config.Bootstrap;
 import com.yammer.dropwizard.config.Environment;
 import com.yammer.dropwizard.jersey.LoggingExceptionMapper;
 import org.apache.shiro.guice.web.GuiceShiroFilter;
-import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -94,8 +89,6 @@ public class InsightBrainService
 
     PolicyMigrator policyMigrator = getInjector().getInstance(PolicyMigrator.class);
     policyMigrator.migrate();
-
-    configurePolicyMonitoring(environment, configuration.getPolicyMonitoringHour(), getInjector().getInstance(CLMLicenseManager.class));
   }
 
   private static boolean validateTempDir() {
@@ -222,52 +215,5 @@ public class InsightBrainService
         }).toInstance(cache);
       }
     }, new CLMShiroModule(), new CLMShiroAopModule());
-  }
-
-  /**
-   * Configure PolicyMonitor to run once a day at a specified hour.
-   * 
-   * @since 1.8
-   */
-  protected void configurePolicyMonitoring(final Environment environment, final int policyMonitoringHour,
-      final CLMLicenseManager licenseManager)
-  {
-    // I don't want to stop the executor service from running, because once a license is installed the functionality
-    // will be automatically picked up without requiring a server restart, but I do want to hide these log statements ;)
-    final boolean hasFeature = licenseManager.hasPolicyMonitoring();
-
-    DateTime dateTime = determineNextExecutionTime(policyMonitoringHour);
-    logIfTrue(hasFeature, "Scheduling Policy Monitor execution for {}", dateTime);
-
-    ScheduledExecutorService scheduledExecutorService = environment.managedScheduledExecutorService(
-        "policyMonitoring-%d", 1);
-    final PolicyMonitor policyMonitor = getInjector().getInstance(PolicyMonitor.class);
-    scheduledExecutorService.scheduleAtFixedRate(new Runnable()
-    {
-      @Override
-      public void run() {
-        policyMonitor.run();
-        logIfTrue(licenseManager.hasPolicyMonitoring(), "Next Policy Monitor execution scheduled for {}",
-            determineNextExecutionTime(policyMonitoringHour));
-      }
-    }, dateTime.getMillis() - System.currentTimeMillis(), TimeUnit.DAYS.toMillis(1), TimeUnit.MILLISECONDS);
-
-    logIfTrue(hasFeature, "First Policy Monitor execution scheduled for {}", dateTime);
-  }
-
-  private void logIfTrue(boolean test, String msg, Object arg) {
-    if (test) {
-      log.info(msg, arg);
-    }
-  }
-
-  private DateTime determineNextExecutionTime(final int policyMonitoringHour) {
-    DateTime dateTime = new DateTime().withHourOfDay(policyMonitoringHour).withMinuteOfHour(0).withSecondOfMinute(0)
-        .withMillisOfSecond(0);
-    // set for tomorrow if this time has already passed today
-    if (dateTime.isBeforeNow()) {
-      dateTime = dateTime.plusDays(1);
-    }
-    return dateTime;
   }
 }

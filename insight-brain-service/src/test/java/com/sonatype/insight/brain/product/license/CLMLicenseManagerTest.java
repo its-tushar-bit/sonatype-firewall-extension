@@ -32,6 +32,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 public class CLMLicenseManagerTest
     extends AbstractComponentTest
@@ -163,5 +165,31 @@ public class CLMLicenseManagerTest
     licenseManager.setProperty(ProductLicenseDetails.PROPERTY_ENFORCEMENT_POINTS, "Invalid,Build");
     installLicense();
     assertThat(clmLicenseManager.getEnforcementPoints(), containsInAnyOrder(CLMEnforcementPoint.Build));
+  }
+
+  @Test
+  public void testNotifiyListener_InstallLicense() throws Exception {
+    LicenseListener listener = mock(LicenseListener.class);
+    clmLicenseManager.addListener(listener);
+    installLicense();
+    verify(listener).licenseChanged();
+
+    clmLicenseManager.removeListener(listener);
+    installLicense();
+    verify(listener).licenseChanged();
+  }
+
+  @Test
+  public void testNotifiyListener_UninstallLicense() throws Exception {
+    installLicense();
+    LicenseListener listener = mock(LicenseListener.class);
+    clmLicenseManager.addListener(listener);
+    clmLicenseManager.uninstallLicense();
+    verify(listener).licenseChanged();
+
+    clmLicenseManager.removeListener(listener);
+    installLicense();
+    clmLicenseManager.uninstallLicense();
+    verify(listener).licenseChanged();
   }
 }

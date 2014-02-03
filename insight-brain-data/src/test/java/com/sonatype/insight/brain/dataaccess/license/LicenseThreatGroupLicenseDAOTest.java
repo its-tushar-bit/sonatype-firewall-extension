@@ -15,7 +15,6 @@ import com.sonatype.insight.brain.model.license.LicenseThreatGroupLicense;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 
 public class LicenseThreatGroupLicenseDAOTest

@@ -16,7 +16,6 @@ import com.sonatype.insight.error.exception.BadRequestException;
 import org.hamcrest.core.IsEqual;
 import org.hamcrest.core.IsNull;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 
 public class ComponentLabelDAOTest

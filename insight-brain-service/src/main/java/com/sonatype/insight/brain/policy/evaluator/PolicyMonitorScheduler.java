@@ -98,6 +98,7 @@ public class PolicyMonitorScheduler
     }
   }
 
+  @Override
   public void licenseChanged() {
     if (licenseManager.hasPolicyMonitoring()) {
       startMonitoring();

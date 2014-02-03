@@ -10,7 +10,9 @@ import geb.Module
 /**
  * @since 1.9
  */
-class HelpModule extends Module {
+class HelpModule
+    extends Module 
+{
   static base = { $('#help') }
 
   static content = {

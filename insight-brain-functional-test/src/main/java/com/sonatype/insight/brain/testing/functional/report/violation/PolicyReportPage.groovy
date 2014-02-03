@@ -3,39 +3,10 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.testing.functional
+package com.sonatype.insight.brain.testing.functional.report.violation
 
 import geb.Module
 import geb.Page
-
-/**
- * When navigating to this page the public application id and scan must be supplied, in that order.  For example:
- *
- * to GroovyReportPage, app.publicId, scanId
- */
-class GroovyReportPage
-    extends Page
-{
-  /**
-   * The proper url will be created from the supplied appPublicId and scanId and should look like:
-   * rest/report/{appPublicId}/{scanId}/browseReport/index.html
-   */
-  static url = 'rest/report'
-
-  String convertToPath(Object[] args) {
-    args ? '/' + args*.toString().join('/') + '/browseReport/index.html' : ""
-  }
-
-  static at = { $('div', class:'container') }
-
-  static content = {
-    policyButton(to: PolicyReportPage) { $('#componentcontainerBtn') }
-  }
-
-  void toPolicyReportPage() {
-    policyButton.click()
-  }
-}
 
 class PolicyReportPage
     extends Page 
@@ -55,6 +26,7 @@ class PolicyReportPage
   static none = 'noScore'
 
   static content = {
+    navigation { module ReportSubNavigation }
     policyContent(wait: true) { $('div', class: 'slick-viewport') }
     results { moduleList PolicyReportRow, $(class: 'slick-row') }
     resultsWithNoScore { results.findAll { it.threatGroup == none } }

@@ -3,17 +3,24 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.testing.functional
+package com.sonatype.insight.brain.testing.functional.report.violation
 
-import com.sonatype.insight.brain.testing.functional.modules.DashboardModule
-import com.sonatype.insight.brain.testing.functional.modules.NavListModule
+import com.sonatype.insight.brain.testing.functional.BasePage
 
 /**
  * When navigating to this page the public application id and scan must be supplied, in that order.  For example:
  * 
- * to GroovyReportContainerPage, app.publicId, scanId
+ * to ReportContainerPage, app.publicId, scanId
+ * 
+ * Example using the IFRAME page
+ * http://www.gebish.org/manual/current/pages.html#dealing_with_frames
+ *
+ * to GroovyReportContainerPage, 'appPublicId', 'scanId'
+ * withFrame(reportFrame, GroovyReportPage) {
+ *   //...
+ * }
  */
-class GroovyReportContainerPage
+class ReportContainerPage
     extends BasePage 
 {
   /**

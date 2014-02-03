@@ -61,7 +61,6 @@
           </excludes>
           <includes>
             <include>**/*Spec.*</include>
-            <include>**/*Test.*</include>
           </includes>
           <systemPropertyVariables>
             <slowmo.enable>true</slowmo.enable>
@@ -230,12 +229,6 @@
       </activation>
       <properties>
         <skipTests>true</skipTests>
-      </properties>
-    </profile>
-    <profile>
-      <id>exclude-java-functional-test</id>
-      <properties>
-        <exclude.tests>**/*Test.java</exclude.tests>
       </properties>
     </profile>
   </profiles>

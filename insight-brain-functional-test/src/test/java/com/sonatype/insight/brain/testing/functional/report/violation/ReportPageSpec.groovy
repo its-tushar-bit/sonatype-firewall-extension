@@ -3,19 +3,21 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.testing.functional
+package com.sonatype.insight.brain.testing.functional.report.violation
 
 import com.sonatype.insight.brain.model.Application
-import com.sonatype.insight.brain.model.Organization
 import com.sonatype.insight.brain.service.InsightWork
+import com.sonatype.insight.brain.testing.functional.BaseSpec
 import com.sonatype.insight.brain.testing.functional.utils.TestReportEvaluator
 
-import org.junit.Ignore;
-import spock.lang.Stepwise;
-import spock.lang.Shared;
+import spock.lang.Shared
+import spock.lang.Stepwise
 
+/**
+ * Use the unframed report page definition for most tests because it's easier to work with.
+ */
 @Stepwise
-class GroovyReportPageSpec
+class ReportPageSpec
     extends BaseSpec 
 {
 
@@ -45,20 +47,41 @@ class GroovyReportPageSpec
 
   def "Sub report navigation is shown"() {
     when: 'viewing the report'
-      to GroovyReportPage, app.publicId, scanId
+      to ReportPage, app.publicId, scanId
 
-    then: 'policy nav button is shown'
-      policyButton.displayed == true
+    then: 'summary nav button is shown'
+      navigation.summaryButton.displayed == true
+
+    and: 'policy nav button is shown'
+      navigation.policyButton.displayed == true
 
     // add other nav button verifications to new then: blocks as tests require them
   }
 
+  def "Can view summary sub report"() {
+    when: 'viewing the summary sub report'
+      navigation.toSummaryReportPage()
+
+    then: 'summary information is shown'
+      summaryContent.displayed == true
+  }
+
   def "Can view policy sub report"() {
     when: 'viewing the policy sub report'
-      toPolicyReportPage()
+      navigation.toPolicyReportPage()
 
-    then: 'component summary table is shown'
+    then: 'component summary information is shown'
       policyContent.displayed == true
+  }
+
+  def "Report can be framed in CLM UI"() {
+    when: 'viewing the report in the CLM UI'
+      to ReportContainerPage, app.publicId, scanId
+
+    then: 'it is framed'
+      withFrame(reportFrame, ReportPage) {
+        contentContainer.displayed == true
+      }
   }
 
   private Application newApplication() {

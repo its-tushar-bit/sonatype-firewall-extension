@@ -3,32 +3,21 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.testing.functional
+package com.sonatype.insight.brain.testing.functional.report.violation
 
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO
 import com.sonatype.insight.brain.model.Application
-import com.sonatype.insight.brain.model.Organization
 import com.sonatype.insight.brain.model.policy.Condition
 import com.sonatype.insight.brain.model.policy.Constraint
 import com.sonatype.insight.brain.model.policy.Policy
 import com.sonatype.insight.brain.model.policy.conditions.CoordinatesConditionType
 import com.sonatype.insight.brain.service.InsightWork
+import com.sonatype.insight.brain.testing.functional.BaseSpec
 import com.sonatype.insight.brain.testing.functional.utils.TestReportEvaluator
-
-import org.junit.Ignore;
 
 /**
  * For the organization based policy tests it is assumed that the unit tests have proven correct functionality regarding
  * scope and applied components when there are multiple child applications.
- *
- * Example using the IFRAME page
- * http://www.gebish.org/manual/current/pages.html#dealing_with_frames
- *
- * to GroovyReportContainerPage, 'waiver-app', 'waiver-scan'
- * report 'after-report'
- * withFrame(reportFrame) {
- *   //...
- * }
  */
 class WaiverSpec
     extends BaseSpec 
@@ -63,8 +52,8 @@ class WaiverSpec
       scanId = evaluator.evaluatePolicy()
 
     when: 'apply waiver dialog is active'
-      to GroovyReportPage, app.publicId, scanId
-      toPolicyReportPage()
+      to ReportPage, app.publicId, scanId
+      navigation.toPolicyReportPage()
 
       results[0].addWaiverForFirstViolation()
 
@@ -177,8 +166,8 @@ class WaiverSpec
     and: 'policy is revaluated'
       evaluator.reevaluatePolicy()
 
-      to GroovyReportPage, app.publicId, scanId
-      toPolicyReportPage()
+      to ReportPage, app.publicId, scanId
+      navigation.toPolicyReportPage()
 
     then: 'waived policy is not violated'
       results.size() == numberOfComponents
@@ -210,8 +199,8 @@ class WaiverSpec
     and: 'policy is revaluated'
       evaluator.reevaluatePolicy()
 
-      to GroovyReportPage, app.publicId, scanId
-      toPolicyReportPage()
+      to ReportPage, app.publicId, scanId
+      navigation.toPolicyReportPage()
 
     then: 'all components do not have violations'
       results.size() == numberOfComponents
@@ -240,8 +229,8 @@ class WaiverSpec
     and: 'policy is revaluated'
       evaluator.reevaluatePolicy()
 
-      to GroovyReportPage, app.publicId, scanId
-      toPolicyReportPage()
+      to ReportPage, app.publicId, scanId
+      navigation.toPolicyReportPage()
 
     then: 'waived policy is not violated'
       results.size() == numberOfComponents
@@ -270,8 +259,8 @@ class WaiverSpec
     and: 'policy is re-evaluated'
       evaluator.reevaluatePolicy()
 
-      to GroovyReportPage, app.publicId, scanId
-      toPolicyReportPage()
+      to ReportPage, app.publicId, scanId
+      navigation.toPolicyReportPage()
 
     then: 'all components do not have violations'
       results.size() == numberOfComponents
@@ -301,8 +290,8 @@ class WaiverSpec
   }
 
   private waiveComponent() {
-    to GroovyReportPage, app.publicId, scanId
-    toPolicyReportPage()
+    to ReportPage, app.publicId, scanId
+    navigation.toPolicyReportPage()
     results[0].addWaiverForFirstViolation()
   }
 }

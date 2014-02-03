@@ -145,8 +145,8 @@ public class PolicyMigrator
     catch (Exception e) {
       Throwable cause = e;
       while (cause != null) {
-        if (cause.getMessage() != null
-            && cause.getMessage().startsWith("Constraint \"policy_waiver_policy_fk\" already exists")) {
+        // NOTE: The exception message is localized
+        if (cause.getMessage() != null && cause.getMessage().contains("\"policy_waiver_policy_fk\"")) {
           return;
         }
         cause = cause.getCause();

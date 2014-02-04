@@ -69,6 +69,7 @@
           return store.refresh();
         },
         create: function() {
+          refreshStore();
           return store.create();
         }
       };

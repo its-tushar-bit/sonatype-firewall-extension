@@ -116,10 +116,4 @@ class TagService
 
     policyTagDAO.delete(policyTag);
   }
-
-  @Authorize(permission = Permission.READ)
-  public List<PolicyTag> getPoliciesByTag(final String tagId) {
-    PolicyTagDAO policyTagDAO = new PolicyTagDAO();
-    return policyTagDAO.getByTagId(tagId);
-  }
 }

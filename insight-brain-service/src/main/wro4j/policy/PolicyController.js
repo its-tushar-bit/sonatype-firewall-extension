@@ -73,9 +73,11 @@
           policyStore.get().refresh(),
           $http.get(clmAppLocations.getApplicablePolicies()),
           actionStore.get(),
-          PolicyMonitoringStore.getApplicable(),
-          TagStore.refresh()
+          PolicyMonitoringStore.getApplicable()
         ];
+        if (!clmAppLocations.isApplication()) {
+          promises.push(TagStore.refresh());
+        }
 
         /**
          * Conditionally render text for the select box to take into account inheritance.
@@ -94,13 +96,16 @@
           $scope.policyMonitoring = clmAppLocations.isApplication() ? results[3].data.appPolicyMonitor : results[3].data.orgPolicyMonitor;
           $scope.policyMonitoring = $scope.policyMonitoring || {};
           $scope.policyMonitoringPlaceHolder = createPlaceHolderText(clmAppLocations.isApplication(), results[3].data.orgPolicyMonitor);
-          $scope.tags = results[4];
           angular.forEach($scope.applicablePolicies, function(applicablePolicy, index) {
             applicablePolicy.editable = index === 0;
             if (index === 0) {
               applicablePolicy.policies = results[0];
             }
           });
+
+          if (results.length > 3) {
+            $scope.tags = results[4];
+          }
         }, function(errors) {
           $scope.error = angular.isArray(errors) ? errors[0] : errors;
         });

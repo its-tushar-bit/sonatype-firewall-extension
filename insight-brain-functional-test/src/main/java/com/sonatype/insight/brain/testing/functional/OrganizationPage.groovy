@@ -9,6 +9,7 @@ import com.sonatype.insight.brain.testing.functional.modules.ImportPolicyModule
 import com.sonatype.insight.brain.testing.functional.modules.ModalModule
 import com.sonatype.insight.brain.testing.functional.modules.ContextTabsModule
 import com.sonatype.insight.brain.testing.functional.modules.EditorToolsModule
+import com.sonatype.insight.brain.testing.functional.modules.PolicyModule
 import com.sonatype.insight.brain.testing.functional.modules.PolicyMonitoringModule
 import com.sonatype.insight.brain.testing.functional.modules.TagModule
 
@@ -30,6 +31,7 @@ class OrganizationPage
 
     tabs { module ContextTabsModule }
     tools(required: false) { module EditorToolsModule }
+    policies { module PolicyModule, tabs.policiesTab }
     policyMonitoring { module PolicyMonitoringModule, tabs.policiesTab }
     tags { module TagModule, tabs.tagTab }
     tagModal { module ModalModule, title: 'Delete Tag' }

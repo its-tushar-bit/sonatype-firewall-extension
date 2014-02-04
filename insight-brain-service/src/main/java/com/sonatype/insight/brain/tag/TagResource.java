@@ -52,13 +52,6 @@ public class TagResource
     return service.getApplicationTagsByOrgId(organizationId);
   }
 
-  @GET
-  @Path("/{tagId}")
-  @Produces({MediaType.APPLICATION_JSON})
-  public List<PolicyTag> getPoliciesByTag(@PathParam("tagId") String tagId) {
-    return service.getPoliciesByTag(tagId);
-  }
-
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)

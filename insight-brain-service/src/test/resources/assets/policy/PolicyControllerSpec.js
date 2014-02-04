@@ -32,6 +32,7 @@ describe('PolicyController tests', function() {
     $httpBackend.expectGET(SpecUtil.toRegExp(CLMAppLocations.getApplicablePolicyMonitoring())).respond(PolicyMonitoringMockData);
     $httpBackend.whenGET(SpecUtil.toRegExp(CLMLocations.getConditionTypeUrl())).respond(PolicyMockData.getConditionTypeData());
     $httpBackend.whenGET(SpecUtil.toRegExp(CLMAppLocations.getConditionValueTypeUrl())).respond(PolicyMockData.getConditionValueTypeData());
+
     // inject the controller
     scope = $rootScope.$new();
 
@@ -150,3 +151,58 @@ describe('PolicyController tests', function() {
     }));
   });
 });
+
+describe('PolicyController organization tests', function() {
+  var scope, bomId = 'bom1-12345678', tags = [
+    {id: 1, ownerId: bomId, name: 'tag one name', description: 'foo'},
+    {id: 2, ownerId: bomId, name: 'tag two name', description: 'bar'}
+  ];
+
+  beforeEach(module('Policy', function($provide) {
+    $provide.value('ApplicationId', {
+      encoded: function() {
+        return null;
+      }
+    });
+    $provide.value('OrganizationId', {
+      encoded: function() {
+        return 'bom1-12345678';
+      }
+    });
+  }));
+
+  beforeEach(inject(function($rootScope, $state, $httpBackend, $controller, CLMLocations, CLMAppLocations) {
+    $state.current.name = 'management.organization';
+
+    scope = $rootScope.$new();
+
+    $httpBackend.expectGET(CLMLocations.getActionTypeUrl()).respond(PolicyMockData.getActionTypeData());
+    $httpBackend.expectGET(CLMLocations.getActionStageUrl()).respond(MockData.getActionStageData());
+    $httpBackend.expectGET(SpecUtil.toRegExp(CLMAppLocations.getPolicyUrl())).respond(PolicyMockData.getPolicyData());
+    $httpBackend.expectGET(SpecUtil.toRegExp(CLMAppLocations.getApplicablePolicies())).respond(ApplicationMockData.getApplicablePolicies());
+    $httpBackend.expectGET(CLMAppLocations.getApplicablePolicyMonitoring()).respond(PolicyMonitoringMockData);
+    $httpBackend.expectGET(SpecUtil.toRegExp(CLMAppLocations.getTagsUrl())).respond(tags);
+    $httpBackend.whenGET(SpecUtil.toRegExp(CLMLocations.getConditionTypeUrl())).respond(PolicyMockData.getConditionTypeData());
+    $httpBackend.whenGET(SpecUtil.toRegExp(CLMAppLocations.getConditionValueTypeUrl())).respond(PolicyMockData.getConditionValueTypeData());
+
+    $controller('PolicyController', {
+      $scope: scope,
+      global: {}
+    });
+    $httpBackend.flush();
+  }));
+
+  afterEach(inject(function($httpBackend) {
+    $httpBackend.verifyNoOutstandingExpectation();
+    $httpBackend.verifyNoOutstandingRequest();
+    scope.$destroy();
+  }));
+
+  it('loads tags', function() {
+    expect(scope.tags.length).toBe(tags.length);
+    expect(scope.tags[0].id).toBe(tags[0].id);
+    expect(scope.tags[0].name).toBe(tags[0].name);
+    expect(scope.tags[0].ownerId).toBe(tags[0].ownerId);
+    expect(scope.tags[0].description).toBe(tags[0].description);
+  });
+})

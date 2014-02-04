@@ -36,7 +36,6 @@ class TagSpec
   def "Can add a new Tag"() {
     when: 'We create a new Tag'
       tags.createNewTag()
-      tags.togglePolicy('Security-High')
       tags.buttons.save.click()
 
     then: 'The tag editor is disposed'
@@ -57,13 +56,11 @@ class TagSpec
       tags.name == 'New Tag'
       tags.description == 'Tag description'
       tags.color('black').classes().contains('active')
-      waitFor { tags.isPolicyApplied('Security-High') }
 
     when: 'We update the tag name and description'
       tags.name = 'Updated New Tag'
       tags.description = 'Updated Tag Description'
       tags.color('green').click()
-      tags.togglePolicy('Security-High')
       tags.buttons.save.click()
 
     then: 'The tag editor is disposed'
@@ -80,7 +77,6 @@ class TagSpec
       tags.name == 'Updated New Tag'
       tags.description == 'Updated Tag Description'
       tags.color('green').classes().contains('active')
-      !tags.isPolicyApplied('Security-High')
       tags.buttons.cancel.click()
   }
 

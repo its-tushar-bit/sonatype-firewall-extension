@@ -87,8 +87,8 @@
 
   module.controller('PolicyEditorController', [
     '$scope', '$state', '$location', '$modal', '$timeout', 'Dialog', 'Messages', 'PolicyStore', '$q', 'ActionStore',
-    'ProductFeatures', 'PolicyTagStore',
-    function($scope, $state, $location, $modal, $timeout, Dialog, messages, policyStore, $q, actionStore, ProductFeatures, PolicyTagStore) {
+    'ProductFeatures', 'PolicyTagStore', 'CLMAppLocations',
+    function($scope, $state, $location, $modal, $timeout, Dialog, messages, policyStore, $q, actionStore, ProductFeatures, PolicyTagStore, CLMAppLocations) {
       var originalTags;
 
       function isDirty() {
@@ -160,6 +160,7 @@
         return false;
       }
 
+      $scope.isApplication = CLMAppLocations.isApplication();
       
       $scope.isPolicyMonitoringLicensed = function() {
         return ProductFeatures.isAvailable('policy-monitoring');
@@ -453,13 +454,18 @@
         $scope.error = null;
         originalTags = [];
         $scope.appliedTagIds = [];
-        $q.all([actionStore.get(), PolicyTagStore.getByPolicyId($scope.policy.id).get()]).then(function(results) {
+        var promises = [actionStore.get()];
+        if (!$scope.policy.$new && !$scope.isApplication) {
+          promises.push(PolicyTagStore.getByPolicyId($scope.policy.id).get());
+        }
+        $q.all(promises).then(function(results) {
           var actionStages = results[0][1];
-
           $scope.actionStages = actionStages;
 
-          originalTags = results[1];
-          $scope.appliedTagIds = jQuery.map(results[1], function(appliedTag) { return appliedTag.id; });
+          if (results.length === 2) {
+            originalTags = results[1];
+            $scope.appliedTagIds = jQuery.map(results[1], function(appliedTag) { return appliedTag.id; });
+          }
         }, function(errors) {
           $scope.error = angular.isArray(errors) ? errors[0] : errors;
         });
@@ -642,7 +648,9 @@
       return {
         restrict: 'A',
         templateUrl: 'policy-quick-add',
-        scope: {},
+        scope: {
+          tags: '='
+        },
         link: function(scope) {
           scope.hide = function() {
             scope.policy = null;

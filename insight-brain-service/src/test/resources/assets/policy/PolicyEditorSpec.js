@@ -1,6 +1,11 @@
 describe('PolicyEditor.js', function() {
   var testScope = null,
-      dialogScope = null;
+      dialogScope = null,
+      bomId = 'bom1-12345678',
+      tags = [
+        {id: 1, ownerId: bomId, name: bomId, description: 'foo'},
+        {id: 2, ownerId: bomId, name: bomId, description: 'bar'}
+      ];
 
   function getController(controllerName) {
     var controller = null,
@@ -55,7 +60,7 @@ describe('PolicyEditor.js', function() {
 
     $provide.value('ApplicationId', {
       encoded: function() {
-        return 'bom1-12345678';
+        return bomId;
       }
     });
     $provide.value('OrganizationId', {
@@ -94,9 +99,10 @@ describe('PolicyEditor.js', function() {
         scope = null;
 
     beforeEach(inject(function($compile, $httpBackend) {
+      testScope.policy = createNewPolicy();
+      testScope.tags = tags;
       getPolicyEditorController();
-      createNewPolicy();
-      var node = $("<div id='testInlinePolicyCreator' inline-policy-creator></div>");
+      var node = $("<div id='testInlinePolicyCreator' inline-policy-creator tags='tags'></div>");
       node.appendTo('body');
       scope = testScope.$new(); // testScope's destruction cascades
       $httpBackend.whenGET("policy-quick-add").respond('<div ng-if="policy">' + template + '</div>');
@@ -138,7 +144,7 @@ describe('PolicyEditor.js', function() {
       policyEditorScope.savePolicy();
       $httpBackend.flush();
 
-      expect(angular.element('#testInlinePolicyCreator').scope().policy).toEqual(null);
+      expect(angular.element('#testInlinePolicyCreator').scope().policy).toEqual(testScope.policy);
       expect(policyEditorScope.validate).toHaveBeenCalled();
     }));
 
@@ -231,7 +237,9 @@ describe('PolicyEditor.js', function() {
         scope = null;
 
     beforeEach(inject(function($compile, $httpBackend, CLMLocations, CLMAppLocations) {
-      var node = $("<div><div ng-if='policyEditMap[policy.id]'><div id='testInlinePolicyEditor' inline-policy-editor '></div></div></div>");
+      testScope.policy = createNewPolicy();
+      testScope.tags = tags;
+      var node = $("<div><div ng-if='policyEditMap[policy.id]'><div id='testInlinePolicyEditor' inline-policy-editor tags='tags'></div></div></div>");
       node.appendTo('body');
       expectActionRequests()
       $httpBackend.whenGET(SpecUtil.toRegExp(CLMLocations.getConditionTypeUrl())).respond(PolicyMockData.getConditionTypeData());
@@ -350,6 +358,7 @@ describe('PolicyEditor.js', function() {
       var policyStoreContents;
       $httpBackend.whenGET(SpecUtil.toRegExp(CLMAppLocations.getPolicyUrl())).respond(PolicyMockData.getPolicyData());
       $httpBackend.whenGET(SpecUtil.toRegExp(CLMAppLocations.getApplicablePolicies())).respond(ApplicationMockData.getApplicablePolicies());
+      $httpBackend.whenGET(CLMAppLocations.getPolicyTagUrl(PolicyMockData.getPolicyData()[0].id)).respond(tags);
       PolicyStore.get().get().then(function() {
         policyStoreContents = arguments[0];
         policyScope.policy = policyStoreContents[0];
@@ -374,6 +383,7 @@ describe('PolicyEditor.js', function() {
       var policyStoreContents;
       $httpBackend.whenGET(SpecUtil.toRegExp(CLMAppLocations.getPolicyUrl())).respond(PolicyMockData.getPolicyData());
       $httpBackend.whenGET(SpecUtil.toRegExp(CLMAppLocations.getApplicablePolicies())).respond(ApplicationMockData.getApplicablePolicies());
+      $httpBackend.whenGET(CLMAppLocations.getPolicyTagUrl(PolicyMockData.getPolicyData()[0].id)).respond(tags);
       PolicyStore.get().get().then(function() {
         policyStoreContents = arguments[0];
         policyScope.policy = policyStoreContents[0];
@@ -518,9 +528,9 @@ describe('PolicyEditor.js', function() {
       scope.$digest();
     }));
 
-    afterEach(function() {
+    afterEach(inject(function($httpBackend) {
       $('#testAgeInDays').remove();
-    });
+    }));
 
     it('Simple Number', function() {
       SpecUtil.setInput($('#testAgeInDays input:first'), '1');

@@ -10,6 +10,7 @@ import org.junit.Ignore
 /**
  * Since 1.9
  */
+@Ignore
 class PolicyTagSpec
     extends BaseSpec
 {
@@ -30,7 +31,6 @@ class PolicyTagSpec
     cleanAppsAndOrgs()
   }
 
-  @Ignore
   def 'Can create add a tag to the policy'() {
     when: 'Toggling the tag'
       policies.toggleTag('Policy Tag')

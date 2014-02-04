@@ -73,19 +73,4 @@ public class TagServiceTest extends InjectedTest
           + application2.getPublicId()));
     }
   }
-
-  @Test
-  public void getPoliciesByTag() {
-    Organization organization = tempEntity.newOrganization();
-    Tag tag = tempEntity.newTag(organization.getId(), "Tag");
-    Policy taggedPolicy = tempEntity.newPolicy(organization.getId(), "TaggedPolicy");
-    tempEntity.newPolicyTag(taggedPolicy.getId(), tag.getId());
-
-    List<PolicyTag> policies = tagService.getPoliciesByTag(tag.getId());
-    assertThat(policies.size(), is(1));
-    assertThat(policies.get(0).getPolicyId(), is(taggedPolicy.getId()));
-
-    policies = tagService.getPoliciesByTag("foo");
-    assertThat(policies.size(), is(0));
-  }
 }

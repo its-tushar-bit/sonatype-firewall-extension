@@ -16,7 +16,6 @@ import com.sonatype.clm.dto.model.policy.ComponentFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.Stage;
-import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
@@ -502,11 +501,9 @@ public class PolicyEvaluatorTest
   @Test
   public void testEvaluate_OrgAndAppPolicies() throws Exception {
     OrganizationDAO orgDAO = new OrganizationDAO();
-    Organization org = new Organization("testEvaluateOrgAndAppPolicies");
-    orgDAO.insert(org);
-    ApplicationDAO appDAO = new ApplicationDAO();
-    Application app = new Application("testEvaluateOrgAndAppPolicies", "testEvaluateOrgAndAppPolicies", org.getId());
-    appDAO.insert(app);
+    Organization org = tempEntity.newOrganization("testEvaluateOrgAndAppPolicies");
+    Application app = tempEntity.newApplication("testEvaluateOrgAndAppPolicies", "testEvaluateOrgAndAppPolicies",
+        org.getId());
     PolicyDAO policyDAO = new PolicyDAO();
 
     Stage stage = new Stage(BuildStageType.ID);
@@ -551,9 +548,6 @@ public class PolicyEvaluatorTest
         constraintOrg.getId(), "Constraint Name Org", SecurityVulnerabilityConditionType.ID, policyAlerts);
     assertContainsPolicyAlert(component2, policyApp.getId(), "Policy Name App", FailActionType.ID,
         constraintApp.getId(), "Constraint Name App", LicenseConditionType.ID, policyAlerts);
-
-    appDAO.delete(app);
-    orgDAO.delete(org);
   }
 
   private static String alertsToString(final List<PolicyAlert> policyAlerts) {

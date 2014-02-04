@@ -7,15 +7,13 @@ package com.sonatype.insight.brain.model.policy.conditions.valuetype;
 
 import java.util.List;
 
-import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
-import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
-import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
+import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 
-import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
@@ -23,33 +21,18 @@ import static org.junit.Assert.assertNotNull;
 
 public class LicenseThreatGroupValueTypeTest
 {
+  @Rule
+  public TemporaryEntity tempEntity = new TemporaryEntity();
+
   private Organization org;
 
   private Application app;
 
   @Before
   public void setUp() throws Exception {
-    org = new Organization("orgName");
-    new OrganizationDAO().insert(org);
-    app = new Application();
-    app.setName("appName");
-    app.setPublicId("appId");
-    app.setOrganizationId(org.getId());
-    new ApplicationDAO().insert(app);
-    LicenseThreatGroup ltg = new LicenseThreatGroup(app.getId(), "ltgName", 5);
-    new LicenseThreatGroupDAO().insert(ltg);
-  }
-
-  @After
-  public void tearDown() throws Exception {
-    ApplicationDAO appDAO = new ApplicationDAO();
-    for (Application app : appDAO.getAll()) {
-      appDAO.delete(app);
-    }
-    OrganizationDAO orgDAO = new OrganizationDAO();
-    for (Organization org : orgDAO.getAll()) {
-      orgDAO.delete(org);
-    }
+    org = tempEntity.newOrganization("orgName");
+    app = tempEntity.newApplication("appName", "appId", org.getId());
+    tempEntity.newLicenseThreatGroup(app.getId());
   }
 
   @Test

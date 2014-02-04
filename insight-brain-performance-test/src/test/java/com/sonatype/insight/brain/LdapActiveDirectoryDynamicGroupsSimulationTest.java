@@ -7,16 +7,9 @@ package com.sonatype.insight.brain;
 
 import java.io.IOException;
 
-import com.sonatype.insight.brain.configuration.ldap.LdapServer;
-import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
-import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
-import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapServerDAO;
-import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.Organization;
-
 import com.excilys.ebi.gatling.app.Gatling;
 import com.excilys.ebi.gatling.core.config.GatlingPropertiesBuilder;
-import org.junit.BeforeClass;
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.equalTo;
@@ -28,16 +21,10 @@ import static org.junit.Assert.assertThat;
   public class LdapActiveDirectoryDynamicGroupsSimulationTest
     extends AbstractLdapSimulationTest
 {
-  @BeforeClass
-  public static void setup() throws IOException {
-    Organization org = new Organization("LdapActiveDirectoryDynamicGroupsSimulationTest");
-    new OrganizationDAO().insert(org);
-    application = new Application("test", "test", org.getId());
-    new ApplicationDAO().insert(application);
-
-    LdapServerDAO ldapServerDAO = new LdapServerDAO();
-    ldapServer = new LdapServer("Active Directory");
-    ldapServerDAO.insert(ldapServer);
+  @Before
+  public void setup() throws IOException {
+    application = tempEntity.newApplicationWithParent("test");
+    ldapServer = tempEntity.newLdapServer("Active Directory");
 
     configureLDAP("active-directory-dynamic.properties");
   }

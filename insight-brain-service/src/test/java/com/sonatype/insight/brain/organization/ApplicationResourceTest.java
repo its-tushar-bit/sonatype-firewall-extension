@@ -45,7 +45,6 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 
-/// TODO This class doesn't properly cleanup after failed tests
 public class ApplicationResourceTest
     extends AbstractResourceTest
 {
@@ -89,6 +88,7 @@ public class ApplicationResourceTest
 
     ApplicationDAO applicationDAO = new ApplicationDAO();
     application = applicationDAO.getByPublicIdNotNull(applicationPublicId);
+    tempEntity.register(application);
 
     Assert.assertNotNull(application);
     Assert.assertEquals(application.getId(), applicationResult.getId());

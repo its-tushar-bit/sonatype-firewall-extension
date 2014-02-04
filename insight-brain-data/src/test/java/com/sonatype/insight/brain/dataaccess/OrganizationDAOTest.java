@@ -67,7 +67,6 @@ public class OrganizationDAOTest
 
   @Test
   public void testCreateDefaultLicenseThreatGroups() throws Exception {
-    organization = tempEntity.newOrganization("OrganizationDAOTest");
     List<LicenseThreatGroup> licenseThreatGroups = new LicenseThreatGroupDAO().getByOwnerId(organization.getId());
     Assert.assertEquals(LicenseThreatGroupDAO.DEFAULT_LICENSE_THREAT_GROUP_COUNT, licenseThreatGroups.size());
   }
@@ -132,9 +131,6 @@ public class OrganizationDAOTest
 
   @Test
   public void testValidateNullName_Update() {
-    organization = tempEntity.newOrganization("testValidateNullName");
-    assertEquals("testvalidatenullname", organization.getNameLowercaseNoWhitespace());
-
     organization.setName(null);
     assertNull(organization.getNameLowercaseNoWhitespace());
     try {
@@ -159,9 +155,6 @@ public class OrganizationDAOTest
 
   @Test
   public void testValidateEmptyName_Update() {
-    organization = tempEntity.newOrganization("testValidateEmptyName");
-    assertEquals("testvalidateemptyname", organization.getNameLowercaseNoWhitespace());
-
     organization.setName(" ");
     assertEquals("", organization.getNameLowercaseNoWhitespace());
     try {
@@ -189,7 +182,6 @@ public class OrganizationDAOTest
 
   @Test
   public void testValidateNameInvalidChars_Update() {
-    organization = tempEntity.newOrganization("testValidateNameInvalidChars");
     for (String name: INVALID_ALPHANUMERIC) {
       organization.setName(name);
       try {
@@ -218,7 +210,6 @@ public class OrganizationDAOTest
 
   @Test
   public void testValidateNameSpaces_Update() {
-    organization = tempEntity.newOrganization("testValidateNameSpaces");
     for (String name : INVALID_SPACING_NAMES) {
       organization.setName(name);
       try {
@@ -291,8 +282,6 @@ public class OrganizationDAOTest
 
   @Test
   public void testValidateNameLength_Update() {
-    organization = tempEntity.newOrganization("test name");
-
     String name = StringUtils.repeat("a", NameHelper.MAX_NAME_LENGTH);
     organization.setName(name + "a");
     try {
@@ -311,8 +300,7 @@ public class OrganizationDAOTest
   public void testCascadeDeleteToLabels() {
     final LabelDAO labelDAO = new LabelDAO();
 
-    Organization organization = new Organization("organization");
-    dao.insert(organization);
+    Organization organization = tempEntity.newOrganization("organization");
 
     String organizationId = organization.getId();
 
@@ -334,8 +322,7 @@ public class OrganizationDAOTest
   public void testCascadeDeleteToTags() {
     TagDAO tagDAO = new TagDAO();
 
-    Organization organization = new Organization("organization");
-    dao.insert(organization);
+    Organization organization = tempEntity.newOrganization("organization");
 
     String organizationId = organization.getId();
 
@@ -352,8 +339,7 @@ public class OrganizationDAOTest
 
   @Test
   public void testCascadeDeleteToPolicies() {
-    Organization organization = new Organization("organization");
-    dao.insert(organization);
+    Organization organization = tempEntity.newOrganization("organization");
 
     tempEntity.newPolicy(organization.getId(), "testCascadeDeleteToPolicies");
     PolicyDAO policyDAO = new PolicyDAO();
@@ -367,8 +353,7 @@ public class OrganizationDAOTest
 
   @Test
   public void testCascadeDeleteToLicenseOverrides() {
-    Organization organization = new Organization("testCascadeDeleteToLicenseOverrides");
-    dao.insert(organization);
+    Organization organization = tempEntity.newOrganization("testCascadeDeleteToLicenseOverrides");
     String organizationId = organization.getId();
 
     LicenseOverride licenseOverride = new LicenseOverride(organizationId, "groupId", "artifactId", "version",
@@ -385,8 +370,7 @@ public class OrganizationDAOTest
 
   @Test
   public void testCascadeDeleteToPolicyWaivers() {
-    Organization organization = new Organization("testCascadeDeleteToPolicyWaivers");
-    dao.insert(organization);
+    Organization organization = tempEntity.newOrganization("testCascadeDeleteToPolicyWaivers");
 
     Policy policy = tempEntity.newPolicy(organization.getId(), "testCascadeDeleteToPolicyWaivers");
     PolicyWaiver policyWaiver = new PolicyWaiver("12345678901234567890", policy.getId(), organization.getId(),
@@ -403,8 +387,7 @@ public class OrganizationDAOTest
 
   @Test
   public void testCascadeDeleteToMembershipMappings() {
-    Organization organization = new Organization("testCascadeDeleteToMembershipMappings");
-    dao.insert(organization);
+    Organization organization = tempEntity.newOrganization("testCascadeDeleteToMembershipMappings");
 
     String roleId = new RoleDAO().getApplicationRoles().get(0).getId();
     MembershipMappingDAO membershipMappingDAO = new MembershipMappingDAO();
@@ -418,8 +401,7 @@ public class OrganizationDAOTest
 
   @Test
   public void testCascadeDeleteToPolicyMonitoring() {
-    Organization organization = new Organization("testCascadeDeleteToPolicyMonitoring");
-    dao.insert(organization);
+    Organization organization = tempEntity.newOrganization("testCascadeDeleteToPolicyMonitoring");
 
     PolicyMonitoringDAO policyMonitoringDAO = new PolicyMonitoringDAO();
     PolicyMonitoring policyMonitoring = new PolicyMonitoring(organization.getId(), Stage.ID_RELEASE);

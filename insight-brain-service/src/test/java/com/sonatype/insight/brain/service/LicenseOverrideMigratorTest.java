@@ -9,17 +9,14 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 
-import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
-import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 
 import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.StringUtils;
-import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -39,32 +36,12 @@ public class LicenseOverrideMigratorTest
   @Rule
   public TemporaryFolder tempDir = new TemporaryFolder();
 
-  private Organization organization;
-
-  private Application application;
-
-  @After
-  public void after() {
-    if (application != null) {
-      new ApplicationDAO().delete(application);
-    }
-    if (organization != null) {
-      new OrganizationDAO().delete(organization);
-    }
-  }
+  @Rule
+  public TemporaryEntity tempEntity = new TemporaryEntity();
 
   @Test
   public void testMigrate() throws Exception {
-    // Create an organization
-    OrganizationDAO orgDAO = new OrganizationDAO();
-    organization = new Organization("LicenseOverrideMigratorTest");
-    orgDAO.insert(organization);
-
-    // Create an application
-    ApplicationDAO appDAO = new ApplicationDAO();
-    application = new Application("LicenseOverrideMigratorTestAppId", "LicenseOverrideMigratorTest",
-        organization.getId());
-    appDAO.insert(application);
+    Application application = tempEntity.newApplicationWithParent("LicenseOverrideMigratorTestAppId");
 
     InsightWork insightWork = createInsightWork();
     File auditDir = insightWork.getAuditDir("");
@@ -92,16 +69,7 @@ public class LicenseOverrideMigratorTest
 
   @Test
   public void testMigrate_UnknownLicense() throws Exception {
-    // Create an organization
-    OrganizationDAO orgDAO = new OrganizationDAO();
-    organization = new Organization("LicenseOverrideMigratorTest");
-    orgDAO.insert(organization);
-
-    // Create an application
-    ApplicationDAO appDAO = new ApplicationDAO();
-    application = new Application("LicenseOverrideMigratorTestAppId", "LicenseOverrideMigratorTest",
-        organization.getId());
-    appDAO.insert(application);
+    Application application = tempEntity.newApplicationWithParent("LicenseOverrideMigratorTestAppId");
 
     InsightWork insightWork = createInsightWork();
     File auditDir = insightWork.getAuditDir("");
@@ -182,14 +150,7 @@ public class LicenseOverrideMigratorTest
 
   @Test
   public void testMigrate_ExcessiveComment() throws Exception {
-    OrganizationDAO orgDAO = new OrganizationDAO();
-    organization = new Organization("LicenseOverrideMigratorTest");
-    orgDAO.insert(organization);
-
-    ApplicationDAO appDAO = new ApplicationDAO();
-    application = new Application("LicenseOverrideMigratorTestAppId", "LicenseOverrideMigratorTest",
-        organization.getId());
-    appDAO.insert(application);
+    Application application = tempEntity.newApplicationWithParent("LicenseOverrideMigratorTestAppId");
 
     InsightWork insightWork = createInsightWork();
     File auditDir = insightWork.getAuditDir("");

@@ -147,11 +147,11 @@ public class OrganizationResourceTest
     Organization organization = new Organization("OrganizationResourceTest");
     Response response = AuthedRestAccess.post(getServiceURL(), JsonHelpers.asJson(organization));
     assertResponseStatus(200, response);
+    organization = JsonHelpers.fromJson(response.getResponseBody(), Organization.class);
+    tempEntity.register(organization);
     uninstallLicense();
     response = AuthedRestAccess.put(getServiceURL(), JsonHelpers.asJson(organization));
     assertResponseStatus(402, response);
-
-    new OrganizationDAO().delete(organization);
   }
 
   @Test

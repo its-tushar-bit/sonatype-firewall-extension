@@ -251,6 +251,10 @@ public class TemporaryEntity
     Collections.addAll(apps, applications);
   }
 
+  public void register(Organization... organizations) {
+    Collections.addAll(orgs, organizations);
+  }
+
   public Application newApplicationWithParent(String appPublicId) {
     // Application Name must be unique
     return newApplicationWithParent(appPublicId, "DUMMY-NAME-" + uuid());

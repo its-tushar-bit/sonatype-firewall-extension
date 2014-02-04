@@ -14,9 +14,8 @@ import com.sonatype.insight.brain.configuration.ldap.LdapGroupMappingType;
 import com.sonatype.insight.brain.configuration.ldap.LdapProtocol;
 import com.sonatype.insight.brain.configuration.ldap.LdapServer;
 import com.sonatype.insight.brain.configuration.ldap.LdapUserMapping;
-import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapConnectionDAO;
-import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapServerDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapUserMappingDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.service.InsightBrainService;
@@ -25,8 +24,8 @@ import com.sonatype.insight.brain.service.InsightConfig;
 import com.excilys.ebi.gatling.core.config.GatlingPropertiesBuilder;
 import com.google.common.io.Resources;
 import com.yammer.dropwizard.testing.junit.DropwizardServiceRule;
-import org.junit.AfterClass;
 import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.rules.TestRule;
 
 /**
@@ -38,11 +37,14 @@ public class AbstractLdapSimulationTest
   public static TestRule startServiceRule = new DropwizardServiceRule<InsightConfig>(InsightBrainService.class,
       Resources.getResource("config-test.yml").getPath());
 
-  static LdapServer ldapServer;
+  @Rule
+  public TemporaryEntity tempEntity = new TemporaryEntity();
 
-  static Application application;
+  protected LdapServer ldapServer;
 
-  protected static void configureLDAP(final String propertiesFile) throws IOException {
+  protected Application application;
+
+  protected void configureLDAP(final String propertiesFile) throws IOException {
     Properties properties = new Properties();
     properties.load(Resources.getResource(propertiesFile).openStream());
     LdapConnection ldapConnection = new LdapConnection();
@@ -75,12 +77,6 @@ public class AbstractLdapSimulationTest
     ldapUserMapping.setUserMemberOfGroupAttribute(prop(properties, "userMemberOfGroupAttribute"));
     ldapUserMapping.setGroupMappingType(LdapGroupMappingType.valueOf(prop(properties, "groupMappingType")));
     new LdapUserMappingDAO().insert(ldapUserMapping);
-  }
-
-  @AfterClass
-  public static void tearDown() {
-    new LdapServerDAO().delete(ldapServer);
-    new ApplicationDAO().delete(application);
   }
 
   private static String prop(final Properties properties, final String propertyName) {

@@ -93,6 +93,11 @@
       <artifactId>insight-brain-service</artifactId>
     </dependency>
     <dependency>
+      <groupId>com.sonatype.insight.brain</groupId>
+      <artifactId>insight-brain-data</artifactId>
+      <type>test-jar</type>
+    </dependency>
+    <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
       <scope>test</scope>

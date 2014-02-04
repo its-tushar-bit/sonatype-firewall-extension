@@ -77,7 +77,7 @@ public class ApplicationAdapterTest
 
   private String userLastName = "Smith";
 
-  private String userEmail = "jsmith@gmail.com";
+  private String userEmail = "jsmith@sonatype.com";
 
   @Before
   public void setUp() {

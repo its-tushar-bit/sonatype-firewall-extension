@@ -88,8 +88,7 @@ public class ApplicationAdapterTest
     applicationAdapter = new ApplicationAdapter(mockLdapManager, mockOrganizationDAO, mockUserDAO);
 
     // Return this organization when ever the mock organization DAO getByIdNotNull method is called
-    Organization organization = new Organization();
-    organization.setName(organizationName);
+    Organization organization = new Organization(organizationName);
     organization.setId(organizationId);
     when(mockOrganizationDAO.getByIdNotNull(organizationId)).thenReturn(organization);
   }
@@ -789,13 +788,9 @@ public class ApplicationAdapterTest
   }
 
   private Application createApplication(String orgid, String appName, String appId, String contact) {
-
-    Application application = new Application();
+    Application application = new Application(publicId, appName, orgid);
     application.setId(appId);
-    application.setOrganizationId(orgid);
     application.setContactInternalName(contact);
-    application.setPublicId(publicId);
-    application.setName(appName);
 
     return application;
   }

@@ -36,8 +36,7 @@ public class OrganizationResourceTest
   @Test
   public void testCRUD() throws Exception {
     // Create
-    Organization organization = new Organization();
-    organization.setName("OrganizationResourceTest");
+    Organization organization = new Organization("OrganizationResourceTest");
 
     Response response = AuthedRestAccess.post(getServiceURL(), JsonHelpers.asJson(organization));
     assertResponseStatus(200, response);
@@ -121,10 +120,7 @@ public class OrganizationResourceTest
 
     // application
     final ApplicationDAO applicationDAO = new ApplicationDAO();
-    final Application application = new Application();
-    application.setName("testapp");
-    application.setPublicId("testapp");
-    application.setOrganizationId(organization.getId());
+    final Application application = new Application("testapp", "testapp", organization.getId());
     applicationDAO.insert(application);
 
     // Delete
@@ -140,8 +136,7 @@ public class OrganizationResourceTest
   @Test
   public void testAddOrganization_Unlicensed() throws Exception {
     uninstallLicense();
-    Organization organization = new Organization();
-    organization.setName("OrganizationResourceTest");
+    Organization organization = new Organization("OrganizationResourceTest");
 
     Response response = AuthedRestAccess.post(getServiceURL(), JsonHelpers.asJson(organization));
     assertResponseStatus(402, response);
@@ -149,8 +144,7 @@ public class OrganizationResourceTest
 
   @Test
   public void testUpdateOrganization_Unlicensed() throws Exception {
-    Organization organization = new Organization();
-    organization.setName("OrganizationResourceTest");
+    Organization organization = new Organization("OrganizationResourceTest");
     Response response = AuthedRestAccess.post(getServiceURL(), JsonHelpers.asJson(organization));
     assertResponseStatus(200, response);
     uninstallLicense();

@@ -78,10 +78,7 @@ public class ApplicationResourceTest
     Organization organization = tempEntity.newOrganization("ApplicationResourceTest");
 
     // Test Add Application
-    Application application = new Application();
-    application.setName(applicationName);
-    application.setPublicId(applicationPublicId);
-    application.setOrganizationId(organization.getId());
+    Application application = new Application(applicationPublicId, applicationName, organization.getId());
     application.setContactInternalName("admin");
 
     Response response = AuthedRestAccess.post(getServiceURL(), JsonHelpers.asJson(application));

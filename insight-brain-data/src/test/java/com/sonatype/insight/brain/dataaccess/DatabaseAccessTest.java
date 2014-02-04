@@ -139,10 +139,7 @@ public class DatabaseAccessTest
       ApplicationDAO applicationDAO = new ApplicationDAO();
       long before = System.currentTimeMillis();
       try {
-        Application application = new Application();
-        application.setName(appPublicId);
-        application.setPublicId(appPublicId);
-        application.setOrganizationId(orgId);
+        Application application = new Application(appPublicId, appPublicId, orgId);
         applicationDAO.insert(application);
       }
       catch (Exception e) {

@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.testing.functional
 
+import org.junit.Ignore
+
 /**
  * Since 1.9
  */
@@ -28,6 +30,7 @@ class PolicyTagSpec
     cleanAppsAndOrgs()
   }
 
+  @Ignore
   def 'Can create add a tag to the policy'() {
     when: 'Toggling the tag'
       policies.toggleTag('Policy Tag')

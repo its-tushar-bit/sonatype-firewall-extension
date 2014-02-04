@@ -1,6 +1,6 @@
 <div class="accordion policies">
 	<div class="accordion-group" ng-repeat='policy in policies'>
-		<div class="accordion-heading policy">
+		<div id="collapse-header{{policy.id}}" class="accordion-heading policy">
 			<div class='btn-group hover-buttons floatRight' ng-show='editable'>
 				<button type='button' class="btn btn-mini policy-button" title="Edit Policy" ng-disabled='policyEditMap[policy.id]' ng-click="edit(policy)"><i class="icon-pencil"></i></button>
 				<button type='button' class="btn btn-mini policy-button" title="Remove Policy" ng-click="remove(policy)"><i class="icon-trash"></i></button>
@@ -10,7 +10,7 @@
 				<h3>{{policy.name}}</h3>
 			</a>
 		</div>
-		<div id="collapse{{policy.id}}" class="accordion-body collapse">
+		<div id="collapse{{policy.id}}" class="accordion-body collapse" delayed-overflow>
 			<div class="accordion-inner" ng-if="!policyEditMap[policy.id]">
 				<table>
 					<tr class="constraints">

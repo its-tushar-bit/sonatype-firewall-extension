@@ -557,24 +557,19 @@ var AngularUtils = {
   /**
    * Delay allowing overflow on accordion elements to preserve the expand/collapse animation effect
    */
-  angularCommon.directive('delayedOverflow', ['$timeout', function($timeout) {
+  angularCommon.directive('delayedOverflow', function() {
     return {
       restrict: 'A',
-      // Since accordion creates its own scope, an attribute needs to be used rather than scope. Because of this,
-      // attribute should take a rendered value {{ ... }} rather than a scope field name
-      link: function(scope, element, attrs) {
-        attrs.$observe('delayedOverflow', function() {
-          if (attrs.delayedOverflow === 'true') {
-            $timeout(function() {
-              element.css('overflow', 'visible');
-            }, 100);
-          } else {
-            element.css('overflow', 'hidden');
-          }
+      link: function(scope, element) {
+        element.on('shown', function() {
+          element.css('overflow', 'visible');
+        });
+        element.on('hide', function() {
+          element.css('overflow', 'hidden');
         });
       }
     };
-  }]);
+  });
 
   angularCommon.directive('focusInput', ['$parse', function($parse) {
     return {
@@ -805,18 +800,23 @@ var AngularUtils = {
               return;
             }
             if (!checked) {
-              for (var i = 0; i < scope.selectedIds.length; i++) {
-                if (scope.selectedIds[i] === element.attr('value')) {
-                  scope.selectedIds.splice(i, 1);
+              scope.$apply(function() {
+                for (var i = 0; i < scope.selectedIds.length; i++) {
+                  if (scope.selectedIds[i] === element.attr('value')) {
+                    scope.selectedIds.splice(i, 1);
+                  }
                 }
-              }
+              });
             } else {
-              scope.selectedIds.push(element.attr('value'));
+              scope.$apply(function() {
+                scope.selectedIds.push(element.attr('value'));
+              });
             }
           },
           label: function(element) {
             return '<span class="multi-dropdown-item ' + $(element).attr('color') + 'Label"><span class="ng-binding">' + $(element).html() + '</span></span>';
-          }
+          },
+          numberDisplayed: 6
         });
       }
     };

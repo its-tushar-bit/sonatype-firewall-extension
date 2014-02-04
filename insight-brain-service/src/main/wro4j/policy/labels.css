@@ -211,9 +211,3 @@ form[name="labelEditor"] .clmLabel {
   margin-left: -1.25em;
   z-index: 999;
 }
-
-.tag-policies-label {
-  font-weight: bold;
-  margin-left: 10px;
-  margin-right: 10px;
-}

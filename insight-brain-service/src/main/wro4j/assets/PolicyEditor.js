@@ -93,7 +93,7 @@
 
       function isDirty() {
         if ($scope.policy) {
-          return $scope.policy.isDirty();
+          return $scope.policy.isDirty() || isAppliedTagsChanged();
         }
         return false;
       }
@@ -146,6 +146,20 @@
           msg: 'An error occurred while saving the policy. (' + messages.getHttpErrorMessage(error) + ')'
         });
       }
+
+      function isAppliedTagsChanged() {
+        var originalPolicyTagIds = jQuery.map(originalTags, function(tag) { return tag.id; });
+        for (var i = 0; i < $scope.tags.length; i++) {
+          var tag = $scope.tags[i];
+          var tagId = tag.id;
+          if ($scope.appliedTagIds.indexOf(tagId) > -1 && originalPolicyTagIds.indexOf(tagId) === -1 ||
+            $scope.appliedTagIds.indexOf(tagId) === -1 && originalPolicyTagIds.indexOf(tagId) > -1) {
+            return true;
+          }
+        }
+        return false;
+      }
+
       
       $scope.isPolicyMonitoringLicensed = function() {
         return ProductFeatures.isAvailable('policy-monitoring');
@@ -286,6 +300,10 @@
 
       $scope.showFailureIcon = function(stage) {
         return showActionIcon(stage.id, 'fail');
+      };
+
+      $scope.clearTags = function() {
+        $scope.appliedTagIds = [];
       };
 
       //make sure user is aware they are about to lose changes
@@ -430,6 +448,7 @@
           return true;
         }
       };
+
       $scope.doLoad = function() {
         $scope.error = null;
         originalTags = [];

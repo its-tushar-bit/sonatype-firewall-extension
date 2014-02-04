@@ -42,11 +42,10 @@ public class PolicyTagResourceTest
     Tag tag = tempEntity.newTag(org.getId(), "tag name");
     response = AuthedRestAccess.post(url, JsonHelpers.asJson(tag));
     assertResponseStatus(200, response);
-    PolicyTag policyTag = JsonHelpers.fromJson(response.getResponseBody(), PolicyTag.class);
+    Tag policyTag = JsonHelpers.fromJson(response.getResponseBody(), Tag.class);
     assertThat(policyTag, is(notNullValue()));
     assertThat(policyTag.getId(), is(notNullValue()));
-    assertThat(policyTag.getPolicyId(), is(policyId));
-    assertThat(policyTag.getTagId(), is(tag.getId()));
+    assertThat(policyTag.getId(), is(tag.getId()));
 
     // Get
     response = AuthedRestAccess.get(url);

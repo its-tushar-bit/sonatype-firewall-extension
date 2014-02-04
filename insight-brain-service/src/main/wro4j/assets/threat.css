@@ -22,9 +22,15 @@
 }
 /* Various implementations for colored drop downs using bootstrap's drop down or bootstrap-multiselect */
 .multi-dropdown-item {
-  width: 100%;
+  width: 174px;
   display: inline-block;
-  padding: 3px 10px;
+  padding: 3px 10px 0px 10px;
+}
+.multi-dropdown-item>span {
+  text-overflow: ellipsis;
+  width: 174px;
+  overflow: hidden;
+  display: inline-block;
 }
 .multi-dropdown .checkbox {
   padding-left: 0px;

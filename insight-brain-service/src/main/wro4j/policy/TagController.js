@@ -9,7 +9,7 @@
 
   var tagTemplate = {id: null, organizationId: null, name: null, description: null, color:null};
 
-  var tagModule = angular.module('Tags', ['AngularCommon', 'CLMAppLocation', 'CLMLocation', 'CommonServices', 'ResourceModule', 'Stores', 'PolicyEditor']);
+  var tagModule = angular.module('Tags', ['AngularCommon', 'CLMAppLocation', 'CLMLocation', 'CommonServices', 'ResourceModule', 'Stores']);
 
   tagModule.service('TagStore', [
     'CachedStore', 'CLMAppLocations', 'CLMLocations', '$http', function(CachedStore, CLMAppLocations, CLMLocations, $http) {
@@ -48,8 +48,8 @@
   }
 
   tagModule.controller('TagController', [
-    '$scope', '$http', '$q', 'CLMAppLocations', 'Messages', 'CLMResource', 'TagStore', 'PolicyStore', 'ownerChange', 'Dialog', 'ApplicationStore',
-    function($scope, $http, $q, clmAppLocations, messages, clmResource, TagStore, PolicyStore, ownerChange, Dialog, ApplicationStore) {
+    '$scope', '$http', '$q', 'CLMAppLocations', 'Messages', 'CLMResource', 'TagStore', 'ownerChange', 'Dialog', 'ApplicationStore',
+    function($scope, $http, $q, clmAppLocations, messages, clmResource, TagStore, ownerChange, Dialog, ApplicationStore) {
       $scope.alerts = [];
       $scope.colors = [null, 'white', 'grey', 'black', 'green', 'yellow', 'orange', 'red', 'blue'];
 
@@ -74,11 +74,10 @@
       $scope.doLoad = function() {
         $scope.error = null;
         $scope.tags = null;
-        $q.all([TagStore.refresh(), TagStore.getApplied(), ApplicationStore.get(), PolicyStore.get().refresh()]).then(function(results) {
+        $q.all([TagStore.refresh(), TagStore.getApplied(), ApplicationStore.get()]).then(function(results) {
           $scope.tags = results[0];
           $scope.appliedTags = results[1].data;
           $scope.applications = results[2];
-          $scope.policies = results[3];
           var mappedApplications = {};
           angular.forEach($scope.applications, function(application){
             mappedApplications[application.id] = application.name;
@@ -171,10 +170,8 @@
     }
   ]);
 
-  tagModule.controller('TagEditorController', ['$scope', '$http', '$q', 'Messages', 'CLMAppLocations',
-    function($scope, $http, $q, messages, CLMAppLocations) {
-      var originalAppliedPolicyIds;
-
+  tagModule.controller('TagEditorController', ['$scope', '$http', '$q', 'Messages',
+    function($scope, $http, $q, messages) {
       function errorFn(error) {
         $scope.submitActive = false;
         showAlert($scope.editorAlerts, {
@@ -184,45 +181,14 @@
         });
       }
 
-      function isAppliedPolicyChanged() {
-        for (var i = 0; i < $scope.policies.length; i++) {
-          var policyId = $scope.policies[i].id;
-          if ($scope.appliedPolicyIds.indexOf(policyId) > -1 && originalAppliedPolicyIds.indexOf(policyId) === -1 ||
-            $scope.appliedPolicyIds.indexOf(policyId) === -1 && originalAppliedPolicyIds.indexOf(policyId) > -1) {
-            return true;
-          }
-        }
-        return false;
-      }
-
       function isEditing() {
         if ($scope.selectedTag) {
-          if ($scope.selectedTag.isDirty() || isAppliedPolicyChanged()) {
-            return true;
-          }
+          return $scope.selectedTag.isDirty();
         }
         return false;
       }
 
       $scope.editorAlerts = [];
-
-      $scope.doLoad = function() {
-        if ($scope.submitActive) {
-          return;
-        }
-        $scope.appliedPolicyIds = [];
-        originalAppliedPolicyIds = [];
-        if (!$scope.selectedTag || $scope.selectedTag.$new) {
-          return;
-        }
-        $http.get(CLMAppLocations.getTagAppliedPoliciesUrl($scope.selectedTag.id)).then(function(response) {
-          var appliedPolicies = response.data;
-          for (var i = 0; i < appliedPolicies.length; i++) {
-            originalAppliedPolicyIds.push(appliedPolicies[i].policyId);
-          }
-          $scope.appliedPolicyIds = angular.copy(originalAppliedPolicyIds);
-        });
-      };
 
       $scope.cancelEditTag = function() {
         $scope.$emit('tags.cancelEditTag');
@@ -247,23 +213,10 @@
       $scope.saveTag = function() {
         $scope.submitActive = true;
         $scope.selectedTag.$save().then(function() {
-          var promises = [];
-          for (var i = 0; i < $scope.policies.length; i++) {
-            var policyId = $scope.policies[i].id;
-            if ($scope.appliedPolicyIds.indexOf(policyId) > -1 && originalAppliedPolicyIds.indexOf(policyId) === -1) {
-              promises.push($http.post(CLMAppLocations.getPolicyTagUrl(policyId), $scope.selectedTag));
-            } else if ($scope.appliedPolicyIds.indexOf(policyId) === -1 && originalAppliedPolicyIds.indexOf(policyId) > -1) {
-              promises.push($http['delete'](CLMAppLocations.getDeletePolicyTagUrl(policyId, $scope.selectedTag.id)));
-            }
-          }
-          $q.all(promises).then(function() {
-            $scope.submitActive = false;
-            $scope.deselect();
-          }, errorFn);
+          $scope.submitActive = false;
+          $scope.deselect();
         }, errorFn);
       };
-
-      $scope.$watch('selectedTag', $scope.doLoad);
     }
   ]);
 

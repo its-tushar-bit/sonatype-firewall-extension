@@ -31,10 +31,6 @@
       <div ng-if='selectedTag' style='margin-left:25px'>
         <div class='fade in' style='width:544px;padding-bottom:15px' ng-controller='TagEditorController'>
           <form name='tagEditor' class='form-horizontal' style='margin-bottom:0' ng-submit='saveTag()'>
-            <span class='pull-right'>
-              <span class='tag-policies-label'>Policies</span>
-              <span multi-select items='policies' selected-ids='appliedPolicyIds'></span>
-            </span>
             <div class="control-group"
                  ng-class='{ error : tagEditor.name.$error.duplicate || tagEditor.name.$error.alphaNumeric }'>
               <div class="controls" style="margin-left: 0;">

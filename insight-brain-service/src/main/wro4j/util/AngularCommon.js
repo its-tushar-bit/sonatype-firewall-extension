@@ -814,9 +814,10 @@ var AngularUtils = {
             }
           },
           label: function(element) {
-            return '<span class="multi-dropdown-item ' + $(element).attr('color') + 'Label"><span class="ng-binding">' + $(element).html() + '</span></span>';
+            return '<span class="multi-dropdown-item ng-binding">' + $(element).html() + '</span><span class="multi-dropdown-item-color ' + $(element).attr('color') + 'Label"></span>';
           },
-          numberDisplayed: 6
+          numberDisplayed: 6,
+          selectedClass: null
         });
       }
     };

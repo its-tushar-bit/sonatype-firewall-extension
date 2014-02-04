@@ -5,7 +5,22 @@
 			<span class='policy'><span threat-box selected='policy.threatLevel' one='1' zero='0 (None)'></span></span>
 			<span ng-show="inlinePolicyForm.name.$error.alphaNumeric" class="help-inline">Must be alpha numeric</span>
 			<span ng-show="inlinePolicyForm.name.$error.spaces && !inlinePolicyForm.name.$error.alphaNumeric" class="help-inline">No leading, trailing or double spaces or tabs, suggested name: {{suggestedName}}</span>
-		</div> 
+		</div>
+        <div ng-if="!isApplication">
+          <div>
+            <h5>Application Matching</h5>
+            <div style="padding-left: 5px;padding-bottom: 5px;">Which applications should this policy apply to?</div>
+          </div>
+          <div class='policy-tag' ng-class='{ error : hasPolicyTags && appliedTagIds.length == 0 }'>
+            <div>
+              <input type='radio' name='policy-tag' ng-click='clearTags()' ng-model='hasPolicyTags' ng-value='false'>All Applications
+            </div>
+            <div>
+              <input type='radio' name='policy-tag' ng-model='hasPolicyTags' ng-value='true'>Applications with tags <span class='multi-dropdown' multi-select items='tags' selected-ids='appliedTagIds'></span>
+            </div>
+            <div ng-show='hasPolicyTags && appliedTagIds.length == 0'>Must select tags to associate with the policy.</div>
+          </div>
+        </div>
 		<div>
 			<h5>Constraints</h5>
 		</div>
@@ -65,22 +80,6 @@
 				</td>
 			</tr>
 		</table>
-        <div ng-if="!isApplication">
-          <div>
-            <h5>Application Matching</h5>
-            <div style="padding-left: 5px;padding-bottom: 5px;">Specify which applications this policy applies to.</div>
-          </div>
-          <table class='table table-striped table-bordered table-condensed'>
-            <tr>
-              <td style='min-width: 235px; width: 235px;'>Applications with the following tags</td>
-              <td><span class='multi-dropdown' multi-select items='tags' selected-ids='appliedTagIds'></span></td>
-            </tr>
-            <tr>
-              <td></td>
-              <td><button class='btn' ng-class='{ "btn-success" : appliedTagIds.length == 0 }' type='button' ng-click='clearTags()'>All Applications</button></td>
-            </tr>
-          </table>
-        </div>
       </form>
       <div style="padding-bottom: 10px;" ng-if="isPolicyMonitoringLicensed()">
         <h5>Monitoring Notifications</h5>

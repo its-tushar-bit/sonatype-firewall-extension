@@ -387,6 +387,9 @@
         var msg = null;
         $scope.alerts = [];
         if ($scope.policy) {
+          if ($scope.hasPolicyTags && $scope.appliedTagIds.length === 0) {
+            msg = 'Must select tags to associate with the policy.';
+          }
           var form = $scope[$scope.getFormName()];
           if (form) {
             var error = form.name.$error;
@@ -470,6 +473,9 @@
           $scope.error = angular.isArray(errors) ? errors[0] : errors;
         });
       };
+      $scope.$watchCollection('appliedTagIds', function() {
+        $scope.hasPolicyTags = $scope.appliedTagIds.length > 0;
+      });
       $scope.alerts = [];
       $scope.doLoad();
     }

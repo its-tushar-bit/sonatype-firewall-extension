@@ -66,10 +66,10 @@ public class PolicyEvaluator
 
   public List<PolicyAlert> evaluate(String applicationId, Stage stage, PolicyDAO policyDAO, List<Component> components)
   {
-    return evaluate(applicationId, stage, policyDAO, components, false /* forMonitoring */);
+    return evaluate(applicationId, stage, policyDAO, components, false /* forMonitoring */).getActiveAlerts();
   }
 
-  public List<PolicyAlert> evaluate(String applicationId, Stage stage, PolicyDAO policyDAO, List<Component> components,
+  public PolicyResults evaluate(String applicationId, Stage stage, PolicyDAO policyDAO, List<Component> components,
       boolean forMonitoring)
   {
     List<Policy> policies = policyDAO.getApplicableByOwnerId(applicationId);
@@ -80,21 +80,23 @@ public class PolicyEvaluator
   List<PolicyAlert> evaluate(final String applicationId, final Stage stage, final List<Policy> policies,
       final List<Component> components)
   {
-    return evaluate(applicationId, stage, policies, components, false /* forMonitoring */);
+    return evaluate(applicationId, stage, policies, components, false /* forMonitoring */).getActiveAlerts();
   }
 
-  private List<PolicyAlert> evaluate(final String applicationId, final Stage stage, final List<Policy> policies,
+  private PolicyResults evaluate(final String applicationId, final Stage stage, final List<Policy> policies,
       final List<Component> components, boolean forMonitoring)
   {
     final long start = System.currentTimeMillis();
 
     List<MatchFact> facts = evaluateFacts(applicationId, policies, components);
-    facts = waiverEvaluator.applyWaivers(applicationId, facts);
-    final List<PolicyAlert> alerts = createAlerts(policies, facts, stage, forMonitoring);
+    PolicyWaiverResults policyWaiverResults = waiverEvaluator.applyWaivers(applicationId, facts);
+    PolicyResults policyResults = new PolicyResults();
+    policyResults.setActiveAlerts(createAlerts(policies, policyWaiverResults.getActiveFacts(), stage, forMonitoring));
+    policyResults.setWaivedAlerts(createAlerts(policies, policyWaiverResults.getWaivedFacts(), stage, forMonitoring));
 
     log.debug("Evaluated policies in {} millisecs", System.currentTimeMillis() - start);
 
-    return alerts;
+    return policyResults;
   }
 
   static List<PolicyAlert> createAlerts(final List<Policy> policies, final List<MatchFact> facts, final Stage stage,

@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.policy.evaluator;
 
-import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -22,14 +21,15 @@ import org.slf4j.LoggerFactory;
  * 
  * @since 1.9
  */
-public class PolicyWaiverEvaluator
+class PolicyWaiverEvaluator
 {
   private static final Logger log = LoggerFactory.getLogger(PolicyWaiverEvaluator.class);
 
   /**
-   * Returns all those facts from the input list that are not subject to a policy waiver for the specified application.
+   * Splits the facts from the input list into those that are subject to a policy waiver for the specified application
+   * and those that are not.
    */
-  public List<MatchFact> applyWaivers(String applicationId, List<MatchFact> facts) {
+  public PolicyWaiverResults applyWaivers(String applicationId, List<MatchFact> facts) {
     List<PolicyWaiver> policyWaivers = new PolicyWaiverDAO().getByOwnerId(applicationId, true /* inherit */);
     log.debug("Applying {} waivers to {} facts for application ID {}", policyWaivers.size(), facts.size(),
         applicationId);
@@ -43,13 +43,11 @@ public class PolicyWaiverEvaluator
       }
     }
 
-    List<MatchFact> result = new ArrayList<MatchFact>();
+    PolicyWaiverResults results = new PolicyWaiverResults();
     for (MatchFact fact : facts) {
-      if (!isWaived(fact, policyWaiverKeys)) {
-        result.add(fact);
-      }
+      results.addFact(fact, isWaived(fact, policyWaiverKeys));
     }
-    return result;
+    return results;
   }
 
   private boolean isWaived(MatchFact fact, Set<String> policyWaiverKeys) {

@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.policy.evaluator;
 
 import java.util.Arrays;
-import java.util.List;
 
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.model.Application;
@@ -56,8 +55,9 @@ public class PolicyWaiverEvaluatorTest
     MatchFact fact2 = new MatchFact(newComponent("aaaaaaaaaaaaaaaaaaa0"), policy0.getId(), "constraint-1");
     MatchFact fact3 = new MatchFact(newComponent("aaaaaaaaaaaaaaaaaaa0"), policy1.getId(), "constraint-0");
     MatchFact fact4 = new MatchFact(newComponent("aaaaaaaaaaaaaaaaaaa1"), policy0.getId(), "constraint-0");
-    List<MatchFact> facts = evaluator.applyWaivers(app.getId(), Arrays.asList(fact1, fact2, fact3, fact4));
-    assertThat(facts, contains(fact3, fact4));
+    PolicyWaiverResults results = evaluator.applyWaivers(app.getId(), Arrays.asList(fact1, fact2, fact3, fact4));
+    assertThat(results.getActiveFacts(), contains(fact3, fact4));
+    assertThat(results.getWaivedFacts(), contains(fact1, fact2));
   }
 
   @Test
@@ -67,7 +67,8 @@ public class PolicyWaiverEvaluatorTest
     MatchFact fact2 = new MatchFact(newComponent("aaaaaaaaaaaaaaaaaaa0"), policy0.getId(), "constraint-1");
     MatchFact fact3 = new MatchFact(newComponent("aaaaaaaaaaaaaaaaaaa0"), policy1.getId(), "constraint-0");
     MatchFact fact4 = new MatchFact(newComponent("aaaaaaaaaaaaaaaaaaa1"), policy0.getId(), "constraint-0");
-    List<MatchFact> facts = evaluator.applyWaivers(app.getId(), Arrays.asList(fact1, fact2, fact3, fact4));
-    assertThat(facts, contains(fact3));
+    PolicyWaiverResults results = evaluator.applyWaivers(app.getId(), Arrays.asList(fact1, fact2, fact3, fact4));
+    assertThat(results.getActiveFacts(), contains(fact3));
+    assertThat(results.getWaivedFacts(), contains(fact1, fact2, fact4));
   }
 }

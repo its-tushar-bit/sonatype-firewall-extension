@@ -7,16 +7,21 @@ package com.sonatype.insight.brain.policy.evaluator;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.ComponentFact;
+import com.sonatype.clm.dto.model.policy.ConditionFact;
+import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.clm.dto.model.policy.PolicyFact;
@@ -27,6 +32,7 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.model.policy.actions.ActionTypes;
 import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.report.ReportDownloader;
 import com.sonatype.insight.brain.report.ReportEntry;
@@ -35,8 +41,6 @@ import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.json.store.JsonUtils;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.codehaus.plexus.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -102,7 +106,8 @@ public class PolicyEvaluationUtils
     final List<Component> components = new ComponentDAO().getAll(application, licenseReportEntry.buf,
         securityReportEntry.buf, bomReportEntry.buf);
 
-    final List<PolicyAlert> alerts = new PolicyEvaluator().evaluate(appId, stage, policyDAO, components, forMonitoring);
+    PolicyResults policyResults = new PolicyEvaluator().evaluate(appId, stage, policyDAO, components, forMonitoring);
+    final List<PolicyAlert> alerts = policyResults.getActiveAlerts();
 
     byte[] alertsFileContent = JsonUtils.generate(JsonUtils.aaData(alerts));
     if (forMonitoring) {
@@ -115,7 +120,7 @@ public class PolicyEvaluationUtils
       Report.putEntry(reportFile, PRIMARY_POLICY_ALERTS_FILENAME, alertsFileContent);
     }
 
-    Report.putEntry(reportFile, "policythreats.json", JsonUtils.generate(analyzeThreats(alerts)));
+    Report.putEntry(reportFile, "policythreats.json", JsonUtils.generate(toPolicyThreats(policyResults)));
 
     ReportResource.flushReportChanges(appId, scanId); // ensure policy count is recalculated on fetch
 
@@ -224,26 +229,80 @@ public class PolicyEvaluationUtils
     return Collections.emptyList();
   }
 
-  private static ObjectNode analyzeThreats(final List<PolicyAlert> policyAlerts) {
-    final Map<String, JsonNode> componentThreats = new HashMap<String, JsonNode>();
-    for (final PolicyAlert alert : policyAlerts) {
+  PolicyThreats toPolicyThreats(final PolicyResults policyResults) {
+    final Map<String, PolicyThreats.Component> components = new LinkedHashMap<>();
+    processAlerts(components, policyResults.getActiveAlerts(), false);
+    processAlerts(components, policyResults.getWaivedAlerts(), true);
+    for (PolicyThreats.Component component : components.values()) {
+      if (component.policyThreatLevel < 0) {
+        component.policyThreatLevel = 0;
+        component.policyName = "None";
+      }
+    }
+    PolicyThreats policyThreats = new PolicyThreats();
+    policyThreats.version = 1;
+    policyThreats.aaData = new ArrayList<>(components.values());
+    return policyThreats;
+  }
+
+  private void processAlerts(Map<String, PolicyThreats.Component> components, List<PolicyAlert> alerts, boolean waived)
+  {
+    for (final PolicyAlert alert : alerts) {
       final PolicyFact trigger = alert.getTrigger();
       final int threatLevel = trigger.getThreatLevel();
-      for (final ComponentFact component : trigger.getComponentFacts()) {
-        final String id = component.getComponentId();
-        ObjectNode threat = (ObjectNode) componentThreats.get(id);
-        if (threat == null) {
-          threat = JsonUtils.asTree(component);
-          threat.remove("constraintFacts");
-          componentThreats.put(id, threat);
+      for (final ComponentFact componentFact : trigger.getComponentFacts()) {
+        final String id = componentFact.getComponentId();
+        PolicyThreats.Component component = components.get(id);
+        if (component == null) {
+          component = new PolicyThreats.Component();
+          component.hash = componentFact.getHash();
+          component.groupId = componentFact.getGroupId();
+          component.artifactId = componentFact.getArtifactId();
+          component.version = componentFact.getVersion();
+          component.policyThreatLevel = -1;
+          components.put(id, component);
         }
-        if (threatLevel > threat.path("policyThreatLevel").asInt(-1)) {
-          threat.put("policyId", trigger.getPolicyId());
-          threat.put("policyName", trigger.getPolicyName());
-          threat.put("policyThreatLevel", threatLevel);
+        PolicyThreats.PolicyViolation violation = toPolicyViolation(alert, componentFact);
+        if (!waived) {
+          component.activeViolations.add(violation);
+          if (threatLevel > component.policyThreatLevel) {
+            component.policyId = trigger.getPolicyId();
+            component.policyName = trigger.getPolicyName();
+            component.policyThreatLevel = threatLevel;
+          }
+        }
+        else {
+          component.waivedViolations.add(violation);
         }
       }
     }
-    return JsonUtils.aaDataNode(componentThreats.values());
+  }
+
+  private PolicyThreats.PolicyViolation toPolicyViolation(PolicyAlert alert, ComponentFact componentFact) {
+    PolicyThreats.PolicyViolation violation = new PolicyThreats.PolicyViolation();
+    violation.policyId = alert.getTrigger().getPolicyId();
+    violation.policyName = alert.getTrigger().getPolicyName();
+    violation.policyThreatLevel = alert.getTrigger().getThreatLevel();
+    for (Action action : alert.getActions()) {
+      PolicyThreats.PolicyAction act = new PolicyThreats.PolicyAction();
+      act.actionType = action.getActionTypeId();
+      act.actionSummary = ActionTypes.getById(action.getActionTypeId()).getSummary();
+      violation.actions.add(act);
+    }
+    for (ConstraintFact constraintFact : componentFact.getConstraintFacts()) {
+      PolicyThreats.PolicyConstraint constraint = new PolicyThreats.PolicyConstraint();
+      constraint.constraintId = constraintFact.getConstraintId();
+      constraint.constraintName = constraintFact.getConstraintName();
+      constraint.constraintOperator = constraintFact.getOperatorName();
+      for (ConditionFact conditionFact : constraintFact.getConditionFacts()) {
+        PolicyThreats.PolicyCondition condition = new PolicyThreats.PolicyCondition();
+        condition.conditionType = conditionFact.getConditionTypeId();
+        condition.conditionSummary = conditionFact.getSummary();
+        condition.conditionReason = conditionFact.getReason();
+        constraint.conditions.add(condition);
+      }
+      violation.constraints.add(constraint);
+    }
+    return violation;
   }
 }

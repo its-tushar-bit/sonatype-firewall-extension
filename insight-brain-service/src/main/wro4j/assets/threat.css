@@ -22,7 +22,7 @@
 }
 /* Various implementations for colored drop downs using bootstrap's drop down or bootstrap-multiselect */
 .multi-dropdown-item-color {
-  padding: 9px 22px 2px 20px;
+  padding: 10px 22px 2px 20px;
   background-color: #f4f4f4;
 }
 .multi-dropdown-item {
@@ -43,11 +43,6 @@
 }
 .multi-dropdown a {
   padding: 0px !important;
-}
-.multi-dropdown .multiselect-container.dropdown-menu > li > a:hover span {
-  color: black;
-  background-color: #E0E0E0 !important;
-  background-image: none;
 }
 .threat-level-dropdown a {
 	padding: 5px 8px;

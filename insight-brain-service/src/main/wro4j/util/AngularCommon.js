@@ -819,7 +819,7 @@ var AngularUtils = {
           numberDisplayed: 6,
           selectedClass: null,
           maxHeight: 300,
-          enableCaseInsensitiveFiltering: true
+          enableCaseInsensitiveFiltering: scope.items.length > 10
         });
       }
     };

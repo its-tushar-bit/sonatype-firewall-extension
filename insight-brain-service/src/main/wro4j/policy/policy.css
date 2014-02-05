@@ -174,3 +174,7 @@ table.policy-actions td:last-child {
 .policy-tag .multi-dropdown ul>.input-group>.multiselect-search {
   width: 150px;
 }
+.policy-tag label {
+  display: inline;
+  font-weight: normal;
+}

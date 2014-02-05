@@ -103,6 +103,19 @@ describe('EditorToolsSpec', function() {
       angular.element = origElement;
     });
     
+    it('Test reportUrl is empty when no scanId (and vice versa)', function() {
+      scope.evaluationStatus = {
+        applicationPublicId : 'appIdtest',
+        scanId: 'scanIdtest'
+      };
+      
+      expect(scope.getReportUrl()).toEqual('reports.html#/reports/appIdtest/scanIdtest');
+      
+      scope.evaluationStatus.scanId = null;
+      
+      expect(scope.getReportUrl()).toEqual('');
+    });
+    
     describe('Bundle submit', function(){
       var origElement;
       beforeEach(inject(function ($window) {

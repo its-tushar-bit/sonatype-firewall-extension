@@ -139,7 +139,10 @@
       };
 
       $scope.getReportUrl = function() {
-        return 'reports.html#/reports/' + encodeURIComponent($scope.evaluationStatus.applicationPublicId) + '/' + $scope.evaluationStatus.scanId;
+        if ($scope.evaluationStatus.scanId) {
+          return 'reports.html#/reports/' + encodeURIComponent($scope.evaluationStatus.applicationPublicId) + '/' + $scope.evaluationStatus.scanId;
+        }
+        return '';
       };
 
       $scope.updateFormActionUrl = function() {

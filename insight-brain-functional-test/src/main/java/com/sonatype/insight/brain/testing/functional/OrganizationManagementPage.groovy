@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.testing.functional
 
+import com.sonatype.insight.brain.testing.functional.modules.ImportPolicyModule
 
 class OrganizationManagementPage
     extends BasePage
@@ -27,12 +28,12 @@ class OrganizationManagementPage
     }
   }
 
-  def createOrgWithDefaultPolicy(name = 'test organization') {
+  def createOrgWithDefaultPolicy(name = 'test organization', File file = ImportPolicyModule.samplePolicyFile) {
     newOrganizationButton.click()
     browser.with {
       OrganizationPage organizationPage = at(OrganizationPage)
       organizationPage.editOrg(name)
-      organizationPage.policyImport.importDefaultPolicy()
+      organizationPage.policyImport.importPolicy(file)
     }
   }
 }

@@ -6,10 +6,14 @@
 package com.sonatype.insight.brain.testing.functional.modules
 
 import geb.Module
+import groovy.json.JsonSlurper
 
 class ImportPolicyModule
     extends Module
 {
+  public static samplePolicyFile = new File(getClass().getResource("/ImportPolicyTest/Sonatype-Sample-Policy-1.6.json").toURI())
+  public static sampleOrgPolicyFile = new File(getClass().getResource("/ImportPolicyTest/Sonatype-Org-Sample-Policy-1.6.json").toURI())
+
   static content = {
 
     importIcon { $('#policy-import-button') }
@@ -24,12 +28,17 @@ class ImportPolicyModule
     alertError(required: false) { $('#import-policy-dialog .alert-error') }
   }
 
-  def importDefaultPolicy() {
+  def importPolicy(File policyFile = samplePolicyFile) {
+    Map policy = parsePolicyFile(policyFile)
     importIcon.click()
     waitFor { fileInput.displayed }
-    fileInput << new File(getClass().getResource("/ImportPolicyTest/Sonatype-Sample-Policy-1.6.json").toURI()).getAbsolutePath()
+    fileInput << policyFile.getAbsolutePath()
     waitFor { !importButton.disabled }
     importButton.click()
-    waitFor { policyList.size() == 4 }
+    waitFor { policyList.size() == policy.policies.size() }
+  }
+
+  static Map parsePolicyFile(File file){
+    return new JsonSlurper().parse(file.newReader())
   }
 }

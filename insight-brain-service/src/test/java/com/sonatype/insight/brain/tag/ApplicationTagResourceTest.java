@@ -14,6 +14,7 @@ import com.ning.http.client.Response;
 import com.yammer.dropwizard.testing.JsonHelpers;
 import org.junit.Test;
 
+import static com.sonatype.insight.brain.Assert.assertTag;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertThat;
@@ -45,7 +46,7 @@ public class ApplicationTagResourceTest
     tags = JsonHelpers.fromJson(response.getResponseBody(), Tag[].class);
     assertThat(tags, is(notNullValue()));
     assertThat(tags.length, is(1));
-    tempEntity.assertTag(tag, tags[0]);
+    assertTag(tag, tags[0]);
 
     //Delete
     response = AuthedRestAccess.delete(url + "/" + tag.getId());

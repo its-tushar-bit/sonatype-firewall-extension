@@ -61,9 +61,6 @@ import com.sonatype.insight.brain.model.tag.Tag;
 
 import org.junit.rules.ExternalResource;
 
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
-
 /**
  * Like TemporaryFolder, just for apps and orgs etc.
  */
@@ -458,13 +455,5 @@ public class TemporaryEntity
     policyDAO.insert(policy);
     policies.add(policy);
     return policy;
-  }
-
-  public void assertTag(Tag expected, Tag actual) {
-    assertThat(actual.getOrganizationId(), is(expected.getOrganizationId()));
-    assertThat(actual.getName(), is(expected.getName()));
-    assertThat(actual.getNameLowercaseNoWhitespace(), is(expected.getNameLowercaseNoWhitespace()));
-    assertThat(actual.getDescription(), is(expected.getDescription()));
-    assertThat(actual.getColor(), is(expected.getColor()));
   }
 }

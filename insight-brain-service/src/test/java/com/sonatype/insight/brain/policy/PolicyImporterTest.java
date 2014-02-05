@@ -40,6 +40,7 @@ import org.junit.rules.TemporaryFolder;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import static com.sonatype.insight.brain.Assert.assertTag;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.hasSize;
@@ -245,7 +246,7 @@ public class PolicyImporterTest
       LabelDAO.close(em);
     }
 
-    tempEntity.assertTag(newTag, tagDAO.getById(tag.getId()));
+    assertTag(newTag, tagDAO.getById(tag.getId()));
     assertThat(exportDTO.policyTags.get(0).getTagId(), is(tag.getId()));
   }
 

@@ -15,6 +15,7 @@ import com.ning.http.client.Response;
 import com.yammer.dropwizard.testing.JsonHelpers;
 import org.junit.Test;
 
+import static com.sonatype.insight.brain.Assert.assertTag;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertThat;
@@ -38,7 +39,7 @@ public class TagResourceTest
     Tag tag = new Tag(org.getId(), "Tag Name", "Tag description", Color.yellow);
     response = AuthedRestAccess.post(url, JsonHelpers.asJson(tag));
     assertResponseStatus(200, response);
-    tempEntity.assertTag(tag, JsonHelpers.fromJson(response.getResponseBody(), Tag.class));
+    assertTag(tag, JsonHelpers.fromJson(response.getResponseBody(), Tag.class));
 
     // Get
     response = AuthedRestAccess.get(url);
@@ -46,14 +47,14 @@ public class TagResourceTest
     tags = JsonHelpers.fromJson(response.getResponseBody(), Tag[].class);
     assertThat(tags, is(notNullValue()));
     assertThat(tags.length, is(1));
-    tempEntity.assertTag(tag, tags[0]);
+    assertTag(tag, tags[0]);
 
     // Update
     tag = tags[0];
     tag.setName("Tag Updated Name");
     response = AuthedRestAccess.put(url, JsonHelpers.asJson(tag));
     assertResponseStatus(200, response);
-    tempEntity.assertTag(tag, JsonHelpers.fromJson(response.getResponseBody(), Tag.class));
+    assertTag(tag, JsonHelpers.fromJson(response.getResponseBody(), Tag.class));
 
     // Get
     response = AuthedRestAccess.get(url);
@@ -61,7 +62,7 @@ public class TagResourceTest
     tags = JsonHelpers.fromJson(response.getResponseBody(), Tag[].class);
     assertThat(tags, is(notNullValue()));
     assertThat(tags.length, is(1));
-    tempEntity.assertTag(tag, tags[0]);
+    assertTag(tag, tags[0]);
 
     // Delete
     response = AuthedRestAccess.delete(url + "/" + tag.getId());

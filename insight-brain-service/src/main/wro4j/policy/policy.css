@@ -166,3 +166,11 @@ table.policy-actions td:last-child {
 .policy-tag span {
   margin-left: 10px;
 }
+.policy-tag .multi-dropdown ul>.input-group {
+  width: 150px;
+  height: 35px;
+  padding-top: 5px;
+}
+.policy-tag .multi-dropdown ul>.input-group>.multiselect-search {
+  width: 150px;
+}

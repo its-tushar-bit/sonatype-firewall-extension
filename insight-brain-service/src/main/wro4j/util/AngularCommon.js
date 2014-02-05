@@ -817,7 +817,9 @@ var AngularUtils = {
             return '<span class="multi-dropdown-item ng-binding">' + $(element).html() + '</span><span class="multi-dropdown-item-color ' + $(element).attr('color') + 'Label"></span>';
           },
           numberDisplayed: 6,
-          selectedClass: null
+          selectedClass: null,
+          maxHeight: 300,
+          enableCaseInsensitiveFiltering: true
         });
       }
     };

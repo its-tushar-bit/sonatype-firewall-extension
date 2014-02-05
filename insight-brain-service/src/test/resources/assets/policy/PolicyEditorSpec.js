@@ -3,8 +3,9 @@ describe('PolicyEditor.js', function() {
       dialogScope = null,
       bomId = 'bom1-12345678',
       tags = [
-        {id: 1, ownerId: bomId, name: bomId, description: 'foo'},
-        {id: 2, ownerId: bomId, name: bomId, description: 'bar'}
+        {id: 'tagId1', ownerId: bomId, name: 'foo', description: 'foo'},
+        {id: 'tagId2', ownerId: bomId, name: 'bar', description: 'bar'},
+        {id: 'tagId3', ownerId: bomId, name: 'baz', description: 'baz'}
       ];
 
   function getController(controllerName) {
@@ -347,8 +348,12 @@ describe('PolicyEditor.js', function() {
 
       scope.policy.constraints[1].conditions[1].conditionTypeId = 'AgeInDays';
       validateValidation(policyEditorScope, 'Please enter a whole number for condition #2 in constraint "name"');
-
       scope.policy.constraints[1].conditions[1].value = '300';
+
+      policyEditorScope.hasPolicyTags = true;
+      validateValidation(policyEditorScope, 'Must select tags to associate with the policy.');
+      policyEditorScope.appliedTagIds.push('foo');
+
       policyEditorScope.validate();
       expect(policyEditorScope.alerts.length).toEqual(0);
       $httpBackend.flush();
@@ -398,6 +403,73 @@ describe('PolicyEditor.js', function() {
       parentScope.$digest();
       expect(policyStoreContents[0].isDirty()).toEqual(false);
       $httpBackend.flush();
+    }));
+  });
+
+  describe('Policy Tags', function() {
+    // OrgId null due to $provider set to return org id null in test set up
+    var scope, orgId = null, appliedTags = [{
+        'id':'tagId1',
+        'organizationId':orgId,
+        'name':'Tag One Name',
+        'description':'Tag One Description',
+        'color':'orange'
+      },{
+        'id':'tagId2',
+        'organizationId':orgId,
+        'name':'Tag Two Name',
+        'description':'Tag Two Description',
+        'color':'red'
+    }];
+
+    beforeEach(inject(function($state, $httpBackend, CLMAppLocations) {
+      $state.current.name = 'management.organization';
+
+      testScope.policy = createNewPolicy();
+      testScope.policy.$new = false;
+      testScope.tags = tags;
+      expectActionRequests();
+
+      $httpBackend.whenGET(CLMAppLocations.getPolicyTagUrl(undefined)).respond(appliedTags);
+      scope = getController('PolicyEditorController').scope;
+    }));
+
+    it('loads applied policy tags', function() {
+      expect(scope.appliedTagIds.length).toBe(2);
+      expect(scope.appliedTagIds).toEqual([ 'tagId1', 'tagId2' ]);
+    });
+
+    it('marks editor dirty when applied policy tag changes', function() {
+      scope.appliedTagIds.splice(0, 1);
+      var e = scope.$broadcast('pageChangeStarted');
+      expect(e.defaultPrevented).toBeTruthy();
+    });
+
+    it('adjusts hasPolicyTags', function() {
+      expect(scope.hasPolicyTags).toBe(true);
+
+      scope.appliedTagIds.splice(0, 2);
+      scope.$digest();
+      expect(scope.hasPolicyTags).toBe(false);
+
+      scope.appliedTagIds.push('tagId1');
+      scope.$digest();
+      expect(scope.hasPolicyTags).toBe(true);
+    });
+
+    it('saves updated policy tag information', inject(function($httpBackend, CLMAppLocations) {
+      scope.getFormName = function() { return null; }
+      scope.hide = jasmine.createSpy('hide');
+
+      scope.appliedTagIds.splice(0, 1);
+      scope.appliedTagIds.push('tagId3');
+
+      $httpBackend.expectPUT(SpecUtil.toRegExp(CLMAppLocations.getPolicyUrl())).respond(testScope.policy);
+      $httpBackend.expectDELETE(CLMAppLocations.getPolicyTagUrl(undefined).substring(0, CLMAppLocations.getPolicyTagUrl(undefined).indexOf('?')) + '/tagId1?orgId=null').respond(204);
+      $httpBackend.expectPOST(CLMAppLocations.getPolicyTagUrl(undefined)).respond(200);
+      scope.savePolicy();
+      $httpBackend.flush();
+      expect(scope.hide).toHaveBeenCalled();
     }));
   });
 

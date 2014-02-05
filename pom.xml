@@ -362,6 +362,9 @@
               <exclude>**/*.css</exclude>
               <exclude>**/*.html</exclude>
             </excludes>
+            <mapping>
+              <groovy>SLASHSTAR_STYLE</groovy>
+            </mapping>
           </configuration>
         </plugin>
         <plugin>

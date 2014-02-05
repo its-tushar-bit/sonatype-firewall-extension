@@ -16,7 +16,6 @@ import com.sonatype.clm.dto.model.policy.ComponentFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.Stage;
-import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.model.Application;
@@ -500,7 +499,6 @@ public class PolicyEvaluatorTest
 
   @Test
   public void testEvaluate_OrgAndAppPolicies() throws Exception {
-    OrganizationDAO orgDAO = new OrganizationDAO();
     Organization org = tempEntity.newOrganization("testEvaluateOrgAndAppPolicies");
     Application app = tempEntity.newApplication("testEvaluateOrgAndAppPolicies", "testEvaluateOrgAndAppPolicies",
         org.getId());

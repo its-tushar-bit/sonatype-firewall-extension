@@ -40,9 +40,6 @@
         template: {
           id: null,
           name: ''
-        },
-        params: {
-          timestamp: new Date().getTime()
         }
       });
     }
@@ -80,17 +77,6 @@
     }
     $scope.$on('pageChangeStarted', handler);
     $scope.$on('ldapStateChangeStarted', handler);
-  }
-
-  // certain browsers will happily serve the request from their cache, 
-  // thereby showing potentially outdated data to the end user.
-  // use unique ?timestamp $http request parameter as a workaround 
-  function weHeartIE() {
-    return {
-      params: {
-        timestamp: new Date().getTime()
-      }
-    };
   }
 
   /**
@@ -283,7 +269,7 @@
         }
       });
 
-      $http.get($scope.getConfigLdapUrl('connection'), weHeartIE()).success(function(data) {
+      $http.get($scope.getConfigLdapUrl('connection')).success(function(data) {
         origLdapConn = data;
         $scope.ldapConn = angular.copy(origLdapConn);
       }).error(function() {
@@ -379,7 +365,7 @@
         return $scope.ldapUserMapping.groupMappingType === groupMappingType;
       };
 
-      $http.get($scope.getConfigLdapUrl('userMapping'), weHeartIE()).success(function(data) {
+      $http.get($scope.getConfigLdapUrl('userMapping')).success(function(data) {
         origLdapUserMapping = data;
         $scope.ldapUserMapping = angular.copy(origLdapUserMapping);
       }).error(function() {

@@ -376,9 +376,6 @@
         template: {
           id: null,
           name: null
-        },
-        params: {
-          timestamp: new Date().getTime()
         }
       });
     }

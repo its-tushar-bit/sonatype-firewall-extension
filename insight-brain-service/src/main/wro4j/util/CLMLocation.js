@@ -47,7 +47,7 @@
         },
 
         getLicenseSummaryUrl: function() {
-          return baseUrl.get() + '/rest/product/license?timestamp=' + new Date().getTime();
+          return baseUrl.get() + '/rest/product/license';
         },
 
         getLicenseUploadUrl: function() {

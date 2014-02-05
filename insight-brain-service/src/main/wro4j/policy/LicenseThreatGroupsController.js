@@ -29,18 +29,12 @@
       var licenseGroupStoreTemplate = {
         id: 'id',
         template: { id: null, ownerId: null, name: '', threatLevel: 5 },
-        params: {
-          timestamp: new Date().getTime()
-        },
         getUrl: CLMAppLocations.getLicenseGroupsUrl,
         relationalConfigs: {
           'licenses': {
             id: 'licenseId',
             template: { id: null, licenseId: null },
-            url: CLMAppLocations.getLicenseGroupLicensesUrl,
-            params: {
-              timestamp: new Date().getTime()
-            }
+            url: CLMAppLocations.getLicenseGroupLicensesUrl
           }
         }
       };
@@ -53,10 +47,7 @@
     'CLMLocations', 'CLMResource', function(CLMLocations, CLMResource) {
       var licenseStore = CLMResource.getStore({
         id: 'id',
-        url: CLMLocations.getLicensesUrl(),
-        params: {
-          timestamp: new Date().getTime()
-        }
+        url: CLMLocations.getLicensesUrl()
       });
       return licenseStore;
     }
@@ -84,9 +75,9 @@
 
       $scope.doLoad = function() {
         var promises = [
-          licenseStore.get(), $http.get(CLMAppLocations.getApplicableLicenseGroupsUrl(), {
-            params: { timestamp: new Date().getTime() }
-          }), licenseGroupStore.refresh()
+          licenseStore.get(),
+          $http.get(CLMAppLocations.getApplicableLicenseGroupsUrl()),
+          licenseGroupStore.refresh()
         ];
         if ($scope.error) {
           $scope.error = null;

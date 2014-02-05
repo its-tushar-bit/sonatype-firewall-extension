@@ -17,7 +17,7 @@ describe('UserModuleSpec.js', function() {
     });
   }
 
-  beforeEach(module('UserModule', function($provide) {
+  beforeEach(module('UserModule', 'HttpInterceptors', function($provide) {
     $provide.value('$modalInstance', {
       close: function() {}
     });
@@ -143,20 +143,14 @@ describe('UserModuleSpec.js', function() {
     dialogScope.changePasswordForm.$valid = true;
     dialogScope.currentPassword = 'old';
     dialogScope.newPassword = 'new';
-    $httpBackend.expectPUT(CLMLocations.getUserUrl() + '/test-id' + '/password', {
-      oldPassword: 'old',
-      newPassword: 'new'
-    }).respond(401, 'Error');
+    $httpBackend.expectPUT(SpecUtil.toRegExp(CLMLocations.getUserUrl() + '/test-id/password')).respond(400, 'Error');
 
     dialogScope.save();
     $httpBackend.flush();
     expect(dialogScope.errorMsg).toEqual('Error');
 
     // all good
-    $httpBackend.expectPUT(CLMLocations.getUserUrl() + '/test-id' + '/password', {
-      oldPassword: 'old',
-      newPassword: 'new'
-    }).respond(204);
+    $httpBackend.expectPUT(SpecUtil.toRegExp(CLMLocations.getUserUrl() + '/test-id/password')).respond(204);
     dialogScope.save();
     $httpBackend.flush();
     expect(dialogScope.errorMsg).toBeFalsy();
@@ -173,7 +167,7 @@ describe('UserModuleSpec.js', function() {
     
     expect(dialogScope.state).toEqual('ready');
     
-    $httpBackend.expectPUT(CLMLocations.getUserUrl() + '/test-id/reset').respond({
+    $httpBackend.expectPUT(SpecUtil.toRegExp(CLMLocations.getUserUrl() + '/test-id/reset')).respond({
       newPassword: '1234567890ab'
     });
     
@@ -184,7 +178,7 @@ describe('UserModuleSpec.js', function() {
     expect(dialogScope.newPassword).toEqual('1234567890ab');
     expect(dialogScope.state).toEqual('complete');
     // server failure
-    $httpBackend.expectPUT(CLMLocations.getUserUrl() + '/test-id/reset').respond(500, 'Error resetting');
+    $httpBackend.expectPUT(SpecUtil.toRegExp(CLMLocations.getUserUrl() + '/test-id/reset')).respond(500, 'Error resetting');
     dialogScope.resetClick();
     $httpBackend.flush();
     

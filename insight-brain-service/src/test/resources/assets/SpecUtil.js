@@ -53,7 +53,23 @@ var SpecUtil = {
   },
 
   toRegExp: function toRegExp(url) {
-    return new RegExp(url + '\\?timestamp=[0-9]+')
+    var addedTimestamp = false, parts = url.split('?');
+    //Note that i go through all of this funkiness as the params are added to the request
+    //alphabetically from the angular code, so when testing query param matching, need
+    //to make sure the timestamp param is in the proper position
+    if (parts.length > 1) {
+      parts = parts[1].split('&');
+      
+      for (var i = 0 ; i < parts.length ; i++) {
+        if ('timestamp' < parts[i]) {
+          url = url.replace(parts[i], 'timestamp=[0-9]+&' + parts[i]);
+          addedTimestamp = true;
+          break;
+        }
+      }
+    }
+    
+    return new RegExp(url.replace('?', '\\?') + (!addedTimestamp ? ((url.indexOf('?') < 0 ? '\\?' : '&') + 'timestamp=[0-9]+') : ''));
   },
 
   setInput: function(inputElement, val) {

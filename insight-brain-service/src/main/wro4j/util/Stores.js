@@ -20,9 +20,6 @@
             publicId: null,
             name: null,
             organizationId: null
-          },
-          params: {
-            timestamp: new Date().getTime()
           }
         });
         $rootScope.$on('organizations.delete', function() {

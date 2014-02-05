@@ -1,7 +1,7 @@
 describe('ApplicationController', function() {
   var scope, httpBackend, rootScope, state, mockApplication;
 
-  beforeEach(module('ApplicationModule', function($provide) {
+  beforeEach(module('ApplicationModule', 'HttpInterceptors', function($provide) {
     $provide.value('ApplicationId', {
       encoded: function() {
         return 'bom1-12345678';
@@ -75,7 +75,7 @@ describe('ApplicationController', function() {
 describe('ApplicationEditorController', function() {
   var parentScope, scope, httpBackend, rootScope, state, mockApplication, originalMockApplication, mockOrganization, getOriginalSpy;
 
-  beforeEach(module('ApplicationModule', 'OrganizationModule'));
+  beforeEach(module('ApplicationModule', 'OrganizationModule', 'HttpInterceptors'));
 
   describe('Missing Application', function () {
     beforeEach(inject(function ($controller, $rootScope) {
@@ -110,8 +110,8 @@ describe('ApplicationEditorController', function() {
       mockApplication = applicationsData[0];
       $httpBackend.whenGET(SpecUtil.toRegExp(CLMAppLocations.getEntitiesUrl())).respond(applicationsData);
 
-      $httpBackend.expectGET(CLMLocations.getActionTypeUrl()).respond(PolicyMockData.getActionTypeData());
-      $httpBackend.expectGET(CLMLocations.getActionStageUrl()).respond(MockData.getActionStageData());
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getActionTypeUrl())).respond(PolicyMockData.getActionTypeData());
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getActionStageUrl())).respond(MockData.getActionStageData());
 
       var organizationData = OrganizationMockData.getGETResponse();
       mockOrganization = organizationData[0];
@@ -153,8 +153,8 @@ describe('ApplicationEditorController', function() {
 
       var organizationData = OrganizationMockData.getGETResponse();
       mockOrganization = organizationData[0];
-      $httpBackend.expectGET(CLMLocations.getActionTypeUrl()).respond(PolicyMockData.getActionTypeData());
-      $httpBackend.expectGET(CLMLocations.getActionStageUrl()).respond(MockData.getActionStageData());
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getActionTypeUrl())).respond(PolicyMockData.getActionTypeData());
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getActionStageUrl())).respond(MockData.getActionStageData());
       $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getOrganizationsUrl())).respond(organizationData);
 
       $controller('applicationEditorController', { $scope: scope, $state: state, selectedApplication : selectedApplication });
@@ -181,11 +181,11 @@ describe('ApplicationEditorController', function() {
       mockApplication = applicationsData[0];
       httpBackend.whenGET(SpecUtil.toRegExp(CLMAppLocations.getEntitiesUrl())).respond(applicationsData);
 
-      httpBackend.expectGET(CLMLocations.getActionTypeUrl()).respond(PolicyMockData.getActionTypeData());
-      httpBackend.expectGET(CLMLocations.getActionStageUrl()).respond(MockData.getActionStageData());
+      httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getActionTypeUrl())).respond(PolicyMockData.getActionTypeData());
+      httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getActionStageUrl())).respond(MockData.getActionStageData());
 
       var applicationSummaryData = ApplicationMockData.getApplicationSummaryData();
-      httpBackend.expectGET(CLMLocations.getApplicationSummaryUrl(mockApplication.publicId)).respond(applicationSummaryData);
+      httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getApplicationSummaryUrl(mockApplication.publicId))).respond(applicationSummaryData);
 
       parentScope = $rootScope.$new();
       scope = parentScope.$new();
@@ -351,14 +351,14 @@ describe('ApplicationEditorController', function() {
     });
     
     it('report summary refreshed on event.', inject(function(CLMLocations) {
-      httpBackend.expectGET(CLMLocations.getApplicationSummaryUrl(mockApplication.publicId)).respond(ApplicationMockData.getApplicationSummaryData('build'));
+      httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getApplicationSummaryUrl(mockApplication.publicId))).respond(ApplicationMockData.getApplicationSummaryData('build'));
       scope.$broadcast('refreshSummary', mockApplication.publicId);
       httpBackend.flush();
       expect(scope.applicationSummary[0].policyEvaluations['release']).toBeUndefined();
       expect(scope.applicationSummary[0].policyEvaluationsResults['release']).toBeUndefined();
       expect(scope.applicationSummary[0].policyEvaluations['build']).toBeDefined();
       expect(scope.applicationSummary[0].policyEvaluationsResults['build']).toBeDefined();
-      httpBackend.expectGET(CLMLocations.getApplicationSummaryUrl(mockApplication.publicId)).respond(ApplicationMockData.getApplicationSummaryData('release'));
+      httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getApplicationSummaryUrl(mockApplication.publicId))).respond(ApplicationMockData.getApplicationSummaryData('release'));
       scope.$broadcast('refreshSummary', mockApplication.publicId);
       httpBackend.flush();
       expect(scope.applicationSummary[0].policyEvaluations['build']).toBeUndefined();
@@ -385,8 +385,8 @@ describe('ApplicationEditorController', function() {
       };
       scope.applicationSummary = mockApplication;
 
-      $httpBackend.expectPOST(CLMLocations.evaluatePolicyUrl(mockApplication.publicId,
-              mockApplication.policyEvaluations.build.scanId)).respond(policyResponse);
+      $httpBackend.expectPOST(SpecUtil.toRegExp(CLMLocations.evaluatePolicyUrl(mockApplication.publicId,
+              mockApplication.policyEvaluations.build.scanId))).respond(policyResponse);
 
       scope.reEvaluatePolicy(mockApplication.policyEvaluations.build);
 

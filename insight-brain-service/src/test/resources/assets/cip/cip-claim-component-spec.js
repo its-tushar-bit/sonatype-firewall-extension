@@ -52,7 +52,7 @@ describe('CIP Claim Component tests', function() {
       $valid: true
     };
 
-    $http.expectPOST('../brain/rest/component/identified').respond({});
+    $http.expectPOST(SpecUtil.toRegExp('../brain/rest/component/identified')).respond({});
     scope.claimSubmit();
     $http.flush();
   });

@@ -48,7 +48,7 @@ describe('LabelController.js', function() {
 
   var testScope, dialogScope;
 
-  beforeEach(module('Labels', function($provide) {
+  beforeEach(module('Labels', 'HttpInterceptors', function($provide) {
     $provide.value('$modal', {
       open: function(config) {
         dialogScope = testScope.$new();
@@ -175,8 +175,8 @@ describe('LabelController.js', function() {
     });
 
     it('Can delete a label', inject(function($httpBackend, CLMAppLocations) {
-      $httpBackend.expectDELETE(CLMAppLocations.getLabelsUrl() + '/' +
-          testScope.applicableLabels[0].labels[0].id).respond(204);
+      $httpBackend.expectDELETE(SpecUtil.toRegExp(CLMAppLocations.getLabelsUrl() + '/' +
+          testScope.applicableLabels[0].labels[0].id)).respond(204);
       scope.deleteLabel(testScope.applicableLabels[0].labels[0], { stopPropagation : angular.noop });
       dialogScope.doDeleteLabel();
       $httpBackend.flush();

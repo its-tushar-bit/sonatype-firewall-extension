@@ -3,7 +3,7 @@ var clmBuildTimestamp = '';
 describe('PolicyController tests', function() {
   var scope;
 
-  beforeEach(module('Policy', function($provide) {
+  beforeEach(module('Policy', 'HttpInterceptors', function($provide) {
     $provide.value('ApplicationId', {
       encoded: function() {
         return 'bom1-12345678';
@@ -25,11 +25,11 @@ describe('PolicyController tests', function() {
   beforeEach(inject(function($httpBackend, $rootScope, $controller, CLMLocations, CLMAppLocations, $state) {
     $state.current.name = "management.application";
 
-    $httpBackend.expectGET(CLMLocations.getActionTypeUrl()).respond(PolicyMockData.getActionTypeData());
-    $httpBackend.expectGET(CLMLocations.getActionStageUrl()).respond(MockData.getActionStageData());
+    $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getActionTypeUrl())).respond(PolicyMockData.getActionTypeData());
+    $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getActionStageUrl())).respond(MockData.getActionStageData());
     $httpBackend.expectGET(SpecUtil.toRegExp(CLMAppLocations.getPolicyUrl())).respond(PolicyMockData.getPolicyData());
     $httpBackend.expectGET(SpecUtil.toRegExp(CLMAppLocations.getApplicablePolicies())).respond(ApplicationMockData.getApplicablePolicies());
-    $httpBackend.expectGET(CLMAppLocations.getApplicablePolicyMonitoring()).respond(PolicyMonitoringMockData);
+    $httpBackend.expectGET(SpecUtil.toRegExp(CLMAppLocations.getApplicablePolicyMonitoring())).respond(PolicyMonitoringMockData);
     $httpBackend.whenGET(SpecUtil.toRegExp(CLMLocations.getConditionTypeUrl())).respond(PolicyMockData.getConditionTypeData());
     $httpBackend.whenGET(SpecUtil.toRegExp(CLMAppLocations.getConditionValueTypeUrl())).respond(PolicyMockData.getConditionValueTypeData());
     // inject the controller
@@ -44,7 +44,7 @@ describe('PolicyController tests', function() {
   
   it('Test initial data state', inject(function(CLMLocations, ProductFeatures, $httpBackend) {
     expect(scope.applicablePolicies[0].policies.length).toEqual(PolicyMockData.getPolicyData().length);
-    $httpBackend.expectGET(CLMLocations.getProductFeaturesUrl()).respond([]);
+    $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getProductFeaturesUrl())).respond([]);
     ProductFeatures.load();
     $httpBackend.flush();
     expect(scope.isPolicyMonitoringLicensed()).toBe(false);
@@ -52,7 +52,7 @@ describe('PolicyController tests', function() {
   
   it('Test policy monitoring enabled', inject(function(CLMLocations, ProductFeatures, $httpBackend){
     expect(scope.isPolicyMonitoringLicensed()).toBe(false);
-    $httpBackend.expectGET(CLMLocations.getProductFeaturesUrl()).respond(['policy-monitoring']);
+    $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getProductFeaturesUrl())).respond(['policy-monitoring']);
     ProductFeatures.load();
     $httpBackend.flush();
     expect(scope.isPolicyMonitoringLicensed()).toBe(true);
@@ -88,7 +88,7 @@ describe('PolicyController tests', function() {
     });
 
     $httpBackend.expectDELETE(
-            CLMAppLocations.getPolicyUrl() + '/' + scope.applicablePolicies[0].policies[0].id).respond(200);
+            SpecUtil.toRegExp(CLMAppLocations.getPolicyUrl() + '/' + scope.applicablePolicies[0].policies[0].id)).respond(200);
 
     Dialog.open.mostRecentCall.args[0].buttons[1].click();
 
@@ -106,7 +106,7 @@ describe('PolicyController tests', function() {
   it('handles owner changes', inject(function($httpBackend, CLMAppLocations) {
     $httpBackend.expectGET(SpecUtil.toRegExp(CLMAppLocations.getPolicyUrl())).respond(PolicyMockData.getPolicyData());
     $httpBackend.expectGET(SpecUtil.toRegExp(CLMAppLocations.getApplicablePolicies())).respond(ApplicationMockData.getApplicablePolicies());
-    $httpBackend.expectGET(CLMAppLocations.getApplicablePolicyMonitoring()).respond(PolicyMonitoringMockData);
+    $httpBackend.expectGET(SpecUtil.toRegExp(CLMAppLocations.getApplicablePolicyMonitoring())).respond(PolicyMonitoringMockData);
     scope.$broadcast('ownerChanged', {
       ownerId : ApplicationMockData.getApplicablePolicies().policiesByOwner[0].ownerId,
       changes : [ { field : 'organizationId', newValue : 'new_org_id' } ]
@@ -128,7 +128,7 @@ describe('PolicyController tests', function() {
     });
 
     it('Can save policy monitoring stage choice', inject(function($httpBackend, CLMAppLocations) {
-      $httpBackend.expectPUT(CLMAppLocations.getPolicyMonitoringUrl()).respond(204);
+      $httpBackend.expectPUT(SpecUtil.toRegExp(CLMAppLocations.getPolicyMonitoringUrl())).respond(204);
       scope.savePolicyMonitoring();
       $httpBackend.flush();
       expect(scope.policyMonitoring.ownerId).toEqual(CLMAppLocations.getEntityId());
@@ -136,7 +136,7 @@ describe('PolicyController tests', function() {
 
     it('Can delete policy monitoring stage choice', inject(function($httpBackend, CLMAppLocations) {
       scope.policyMonitoring.stageTypeId = null;
-      $httpBackend.expectDELETE(CLMAppLocations.getPolicyMonitoringUrl()).respond(204);
+      $httpBackend.expectDELETE(SpecUtil.toRegExp(CLMAppLocations.getPolicyMonitoringUrl())).respond(204);
       scope.savePolicyMonitoring();
       $httpBackend.flush();
     }));

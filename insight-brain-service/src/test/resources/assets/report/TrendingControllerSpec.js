@@ -4,7 +4,7 @@
  "Sonatype" is a trademark of Sonatype, Inc.
  */
 describe('TrendingController tests', function() {
-  beforeEach(module('ReportTrending', 'CLMLocation'));
+  beforeEach(module('ReportTrending', 'HttpInterceptors', 'CLMLocation'));
 
   describe('TrendingReportController', function() {
     var scope, Jan1AtNoon = Date.UTC(2013, 0, 1, 12);
@@ -96,7 +96,7 @@ describe('TrendingController tests', function() {
       var trendingReportController = $controller('TrendingReportController', { $scope: scope });
       $httpBackend.flush();
 
-      $httpBackend.expectGET(new RegExp(CLMLocations.getTrendingReportUrl() + '\\?force=true\\&timestamp=[0-9]+')).respond(TrendingReportMockData.get());
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getTrendingReportUrl() + '?force=true')).respond(TrendingReportMockData.get());
       scope.regenerate();
       $httpBackend.flush();
     }));

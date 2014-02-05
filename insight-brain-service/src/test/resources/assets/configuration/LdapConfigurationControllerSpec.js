@@ -1,7 +1,7 @@
 describe('Tests for the LdapConfigurationController', function() {
   var scope, dialogScope;
 
-  beforeEach(module('LdapConfiguration', function($provide, $stateProvider) {
+  beforeEach(module('LdapConfiguration', 'HttpInterceptors', function($provide, $stateProvider) {
     $provide.value('$modal', {
       open: function(config) {
         dialogScope = scope.$new();
@@ -110,7 +110,7 @@ describe('Tests for the LdapConfigurationController', function() {
 
       expect(angular.element('#deleteConfigurationModal').css('display')).not.toBe('none');
 
-      httpBackend.expectDELETE(CLMLocations.getLdapConfig() + '/id1').respond({});
+      httpBackend.expectDELETE(SpecUtil.toRegExp(CLMLocations.getLdapConfig() + '/id1')).respond({});
       scope.deleteConfiguration();
       httpBackend.flush();
 
@@ -200,7 +200,7 @@ describe('Tests for the LdapConfigurationController', function() {
 
       expect(scope.isDirty()).toBeTruthy();
 
-      httpBackend.expectPUT(getConfigLdapUrl('connection')).respond(function(method, url, data) {
+      httpBackend.expectPUT(SpecUtil.toRegExp(getConfigLdapUrl('connection'))).respond(function(method, url, data) {
         return [200, angular.extend({
           id: 'id1'
         }, angular.copy(data)), {}];
@@ -221,7 +221,7 @@ describe('Tests for the LdapConfigurationController', function() {
 
       expect(scope.isDirty()).toBeTruthy();
 
-      httpBackend.expectPUT(getConfigLdapUrl('connection')).respond(function(method, url, data) {
+      httpBackend.expectPUT(SpecUtil.toRegExp(getConfigLdapUrl('connection'))).respond(function(method, url, data) {
         return [200, angular.copy(data), {}];
       });
       scope.save();
@@ -264,7 +264,7 @@ describe('Tests for the LdapConfigurationController', function() {
       scope.ldapConn.password = 'anon';
 
       // configuration is good
-      httpBackend.expectPUT(getConfigLdapUrl('testConnection')).respond(
+      httpBackend.expectPUT(SpecUtil.toRegExp(getConfigLdapUrl('testConnection'))).respond(
         function(method, url, data) {
           return [200, {status: 'OK'}, {}];
         });
@@ -274,7 +274,7 @@ describe('Tests for the LdapConfigurationController', function() {
       expect(scope.alerts[0].type).toBe('success');
 
       // configuration is bad
-      httpBackend.expectPUT(getConfigLdapUrl('testConnection')).respond(
+      httpBackend.expectPUT(SpecUtil.toRegExp(getConfigLdapUrl('testConnection'))).respond(
         function(method, url, data) {
           return [200, {status: 'FAILURE', message: 'foo bar'}, {}];
         });
@@ -285,7 +285,7 @@ describe('Tests for the LdapConfigurationController', function() {
       expect(scope.alerts[0].msg).toBe('foo bar');
 
       // clm server misbehaves
-      httpBackend.expectPUT(getConfigLdapUrl('testConnection')).respond(
+      httpBackend.expectPUT(SpecUtil.toRegExp(getConfigLdapUrl('testConnection'))).respond(
         function(method, url, data) {
           return [500, 'foo bar', {}];
         });
@@ -296,7 +296,7 @@ describe('Tests for the LdapConfigurationController', function() {
       expect(scope.alerts[0].msg).toBe('foo bar');
 
       // can't connect to clm server
-      httpBackend.expectPUT(getConfigLdapUrl('testConnection')).respond(
+      httpBackend.expectPUT(SpecUtil.toRegExp(getConfigLdapUrl('testConnection'))).respond(
         function(method, url, data) {
           return [0, '', {}];
         });
@@ -417,7 +417,7 @@ describe('Tests for the LdapConfigurationController', function() {
 
       expect(scope.isDirty()).toBeTruthy();
 
-      httpBackend.expectPUT(getConfigLdapUrl()).respond(function(method, url, data) {
+      httpBackend.expectPUT(SpecUtil.toRegExp(getConfigLdapUrl())).respond(function(method, url, data) {
         return [200, angular.extend({
           id: 'id1'
         }, angular.copy(data)), {}];
@@ -436,7 +436,7 @@ describe('Tests for the LdapConfigurationController', function() {
 
       expect(scope.isDirty()).toBeTruthy();
 
-      httpBackend.expectPUT(getConfigLdapUrl()).respond(function(method, url, data) {
+      httpBackend.expectPUT(SpecUtil.toRegExp(getConfigLdapUrl())).respond(function(method, url, data) {
         return [200, angular.copy(data), {}];
       });
       scope.save();

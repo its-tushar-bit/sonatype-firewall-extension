@@ -442,7 +442,6 @@
 
         pollFunction = function() {
           var params = {};
-          params.timestamp = new Date().getTime();
           if (force) {
             params.force = true;
           }

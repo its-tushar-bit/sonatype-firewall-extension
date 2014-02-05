@@ -47,11 +47,7 @@
     $scope.doLoad = function() {
       $scope.error = null;
 
-      $http.get(clmAppLocations.getRoleMappingUrl(), {
-        params: {
-          timestamp: new Date().getTime()
-        }
-      }).success(function (data) {
+      $http.get(clmAppLocations.getRoleMappingUrl()).success(function (data) {
         $scope.context = {
           roles:  data.membersByRole
         };

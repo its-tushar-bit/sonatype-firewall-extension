@@ -17,8 +17,8 @@ describe('PolicyEditor.js', function() {
 
   function expectActionRequests() {
     inject(function($httpBackend, CLMLocations) {
-      $httpBackend.whenGET(CLMLocations.getActionTypeUrl()).respond(PolicyMockData.getActionTypeData());
-      $httpBackend.whenGET(CLMLocations.getActionStageUrl()).respond(MockData.getActionStageData());
+      $httpBackend.whenGET(SpecUtil.toRegExp(CLMLocations.getActionTypeUrl())).respond(PolicyMockData.getActionTypeData());
+      $httpBackend.whenGET(SpecUtil.toRegExp(CLMLocations.getActionStageUrl())).respond(MockData.getActionStageData());
     });
   }
 
@@ -32,7 +32,7 @@ describe('PolicyEditor.js', function() {
     return policy;
   }
 
-  beforeEach(module('PolicyEditor', 'AngularCommon', 'CLMLocation', 'CLMAppLocation', function($provide) {
+  beforeEach(module('PolicyEditor', 'HttpInterceptors', 'AngularCommon', 'CLMLocation', 'CLMAppLocation', function($provide) {
     $provide.value('$modal', {
       open: function(config) {
         dialogScope = testScope.$new();

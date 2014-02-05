@@ -70,9 +70,7 @@
 
         var promises = [
           policyStore.get().refresh(),
-          $http.get(clmAppLocations.getApplicablePolicies(), {
-            params: { timestamp: new Date().getTime() }
-          }),
+          $http.get(clmAppLocations.getApplicablePolicies()),
           actionStore.get(),
           PolicyMonitoringStore.getApplicable()
         ];

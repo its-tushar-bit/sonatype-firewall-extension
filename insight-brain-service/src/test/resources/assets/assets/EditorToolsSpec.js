@@ -8,7 +8,7 @@ describe('EditorToolsSpec', function() {
   var scope = null,
       reader = null;
 
-  beforeEach(module('EditorTools', function ($provide) {
+  beforeEach(module('EditorTools', 'HttpInterceptors', function ($provide) {
     $provide.value('ApplicationId', {
       encoded: function() {
         return 'bom1-12345678';
@@ -37,8 +37,8 @@ describe('EditorToolsSpec', function() {
   
   describe('Bundle Upload', function(){
     beforeEach(inject(function ($controller, $httpBackend, CLMLocations) {
-      $httpBackend.expectGET(CLMLocations.getActionTypeUrl()).respond(MockData.getActionTypeData());
-      $httpBackend.expectGET(CLMLocations.getActionStageUrl()).respond(MockData.getActionStageData());
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getActionTypeUrl())).respond(MockData.getActionTypeData());
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getActionStageUrl())).respond(MockData.getActionStageData());
       $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getApplicationsUrl())).respond([{
         "id": "0",
         "publicId": "bom0-12345678",
@@ -136,7 +136,7 @@ describe('EditorToolsSpec', function() {
       }
       
       it('Test submit failure', inject(function(CLMLocations, $httpBackend){
-        $httpBackend.expectPOST(CLMLocations.getBundleUploadUrl('bom1-12345678', 'release', true)).respond(500, 'Some failure');
+        $httpBackend.expectPOST(SpecUtil.toRegExp(CLMLocations.getBundleUploadUrl('bom1-12345678', 'release', true))).respond(500, 'Some failure');
         
         scope.doSubmit();
         validateInitialState();
@@ -148,12 +148,12 @@ describe('EditorToolsSpec', function() {
       
       it('Test submit success', inject(function(CLMLocations, $httpBackend, $timeout){
         scope.bundle.notify = false;
-        $httpBackend.expectPOST(CLMLocations.getBundleUploadUrl('bom1-12345678', 'release', false)).respond({
+        $httpBackend.expectPOST(SpecUtil.toRegExp(CLMLocations.getBundleUploadUrl('bom1-12345678', 'release', false))).respond({
           ticketId: 'ticket'
         });
         scope.doSubmit();
         validateInitialState();
-        $httpBackend.expectGET(CLMLocations.getEvaluationStatusUrl('bom1-12345678', 'ticket')).respond({
+        $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getEvaluationStatusUrl('bom1-12345678', 'ticket'))).respond({
           ticketId: 'ticket',
           scanId: 'scanId',
           currentStep: 1,
@@ -168,19 +168,19 @@ describe('EditorToolsSpec', function() {
       }));
       
       it('Test evaluation polling loop', inject(function(CLMLocations, $httpBackend, $timeout){
-        $httpBackend.expectPOST(CLMLocations.getBundleUploadUrl('bom1-12345678', 'release', true)).respond({
+        $httpBackend.expectPOST(SpecUtil.toRegExp(CLMLocations.getBundleUploadUrl('bom1-12345678', 'release', true))).respond({
           ticketId: 'ticket'
         });
         scope.doSubmit();
         validateInitialState();
-        $httpBackend.expectGET(CLMLocations.getEvaluationStatusUrl('bom1-12345678', 'ticket')).respond({
+        $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getEvaluationStatusUrl('bom1-12345678', 'ticket'))).respond({
           ticketId: 'ticket',
           currentStep: 1,
           totalSteps: 2
         });
         $timeout.flush();
         $httpBackend.flush();
-        $httpBackend.expectGET(CLMLocations.getEvaluationStatusUrl('bom1-12345678', 'ticket')).respond({
+        $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getEvaluationStatusUrl('bom1-12345678', 'ticket'))).respond({
           ticketId: 'ticket',
           scanId: 'scanId',
           currentStep: 2,
@@ -192,12 +192,12 @@ describe('EditorToolsSpec', function() {
       }));
       
       it('Test evaluation error', inject(function(CLMLocations, $httpBackend, $timeout){
-        $httpBackend.expectPOST(CLMLocations.getBundleUploadUrl('bom1-12345678', 'release', true)).respond({
+        $httpBackend.expectPOST(SpecUtil.toRegExp(CLMLocations.getBundleUploadUrl('bom1-12345678', 'release', true))).respond({
           ticketId: 'ticket'
         });
         scope.doSubmit();
         validateInitialState();
-        $httpBackend.expectGET(CLMLocations.getEvaluationStatusUrl('bom1-12345678', 'ticket')).respond({
+        $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getEvaluationStatusUrl('bom1-12345678', 'ticket'))).respond({
           ticketId: 'ticket',
           currentStep: 1,
           totalSteps: 1,
@@ -211,7 +211,7 @@ describe('EditorToolsSpec', function() {
       
       it('uses proper URL for state polling by IE9', inject(function(CLMLocations, $httpBackend){
         scope.uploaded({ticketId: 'ticket'}, true);
-        $httpBackend.expectGET(CLMLocations.getEvaluationStatusUrl('bom1-12345678', 'ticket')).respond({
+        $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getEvaluationStatusUrl('bom1-12345678', 'ticket'))).respond({
           ticketId: 'ticket',
           scanId: 'scanId',
           currentStep: 2,

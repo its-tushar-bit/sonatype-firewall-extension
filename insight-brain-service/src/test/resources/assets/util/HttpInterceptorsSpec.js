@@ -45,19 +45,13 @@ describe('HttpInterceptors.js', function() {
     expect(scope.getRequestQueue().length).toEqual(1);
   }));
   
-  it('Validate that a GET request has timestamp param', inject(function($q, $http, $httpBackend, $rootScope) {
+  it('Validate that a GET/POST/PUT/DELETE request has a timestamp param', inject(function($q, $http, $httpBackend, $rootScope) {
     $httpBackend.expectGET(SpecUtil.toRegExp('/rest/test')).respond(200);
+    $httpBackend.expectPOST(SpecUtil.toRegExp('/rest/test')).respond(200);
+    $httpBackend.expectPUT(SpecUtil.toRegExp('/rest/test')).respond(200);
+    $httpBackend.expectDELETE(SpecUtil.toRegExp('/rest/test')).respond(200);
     
     $http.get('/rest/test');
-    
-    $httpBackend.flush();
-  }));
-  
-  it('Validate that a POST/PUT/DELETE request has no timestamp param', inject(function($q, $http, $httpBackend, $rootScope) {
-    $httpBackend.expectPOST('/rest/test').respond(200);
-    $httpBackend.expectPUT('/rest/test').respond(200);
-    $httpBackend.expectDELETE('/rest/test').respond(200);
-    
     $http.post('/rest/test');
     $http.put('/rest/test');
     $http['delete']('/rest/test');

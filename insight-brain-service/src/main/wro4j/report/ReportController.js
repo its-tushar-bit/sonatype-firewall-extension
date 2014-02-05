@@ -22,12 +22,8 @@
       $scope.doLoad = function() {
         $scope.error = null;
 
-        var actionStagePromise = $http.get(clmLocations.getActionStageUrl(), {
-          params: { timestamp: new Date().getTime() }
-        }),
-        appScanSummary = $http.get(clmLocations.getApplicationScanSummary($state.params.publicId, $state.params.scanId), {
-          params : { timestamp : new Date().getTime() }
-        });
+        var actionStagePromise = $http.get(clmLocations.getActionStageUrl()),
+        appScanSummary = $http.get(clmLocations.getApplicationScanSummary($state.params.publicId, $state.params.scanId));
 
         $scope.reportUrl = '../rest/report/' + encodeURIComponent($state.params.publicId) + '/' +
           encodeURIComponent($state.params.scanId) + '/browseReport/index.html';

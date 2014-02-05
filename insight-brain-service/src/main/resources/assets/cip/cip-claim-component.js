@@ -64,7 +64,7 @@
     }
   });
 
-  var claimApp = angular.module('ClaimComponent', ['UnauthenticatedResponseHttpInterceptor']);
+  var claimApp = angular.module('ClaimComponent', ['HttpInterceptors', 'UnauthenticatedResponseHttpInterceptor']);
 
   claimApp.controller('ClaimComponentController', [
     '$http', '$scope', 'CurrentData', function($http, $scope, CurrentData) {

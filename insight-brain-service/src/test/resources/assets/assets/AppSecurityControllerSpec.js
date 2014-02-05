@@ -1,5 +1,5 @@
 describe('AppSecurityControllerSpec', function() {
-  beforeEach(module('ApplicationSecurityModule', 'CLMAppLocation', function ($provide) {
+  beforeEach(module('ApplicationSecurityModule', 'HttpInterceptors', 'CLMAppLocation', function ($provide) {
     $provide.value('$modal', {});
     $provide.value('OrganizationId', '');
     $provide.value('ApplicationId', {
@@ -186,7 +186,7 @@ describe('AppSecurityControllerSpec', function() {
         realm : 'bedrock'
       }]);
 
-      $httpBackend.expectPUT(CLMAppLocations.getRoleMappingUrl(scope.roleId), scope.mappings[0].members).respond(204);
+      $httpBackend.expectPUT(SpecUtil.toRegExp(CLMAppLocations.getRoleMappingUrl(scope.roleId)), scope.mappings[0].members).respond(204);
       scope.save();
       $httpBackend.flush();
     }));
@@ -206,7 +206,7 @@ describe('AppSecurityControllerSpec', function() {
       });
       expect(parentScope.mappings[0].members).toEqual([]);
 
-      $httpBackend.expectPUT(CLMAppLocations.getRoleMappingUrl(scope.roleId), scope.mappings[0].members).respond(204);
+      $httpBackend.expectPUT(SpecUtil.toRegExp(CLMAppLocations.getRoleMappingUrl(scope.roleId)), scope.mappings[0].members).respond(204);
       scope.save();
       $httpBackend.flush();
     }));
@@ -217,7 +217,7 @@ describe('AppSecurityControllerSpec', function() {
           scope.queryString = 'bar';
         });
 
-        $httpBackend.expectGET('/rest/user/application/bom1-12345678/query?q=bar').respond({ members: [{ id : 'bar' }], error: null });
+        $httpBackend.expectGET(SpecUtil.toRegExp('/rest/user/application/bom1-12345678/query?q=bar')).respond({ members: [{ id : 'bar' }], error: null });
 
         $timeout.flush();
 
@@ -234,7 +234,7 @@ describe('AppSecurityControllerSpec', function() {
           scope.queryString = 'foo';
         });
 
-        $httpBackend.expectGET('/rest/user/application/bom1-12345678/query?q=foo').respond({ members: [{ id : 'food' }], error: null });
+        $httpBackend.expectGET(SpecUtil.toRegExp('/rest/user/application/bom1-12345678/query?q=foo')).respond({ members: [{ id : 'food' }], error: null });
         $timeout.flush();
 
         expect(scope.requestActive).toBeTruthy();
@@ -255,7 +255,7 @@ describe('AppSecurityControllerSpec', function() {
           scope.queryString = 'foo';
         });
 
-        $httpBackend.expectGET('/rest/user/application/bom1-12345678/query?q=foo').respond({ members: [{ id : 'foo' }], error: null });
+        $httpBackend.expectGET(SpecUtil.toRegExp('/rest/user/application/bom1-12345678/query?q=foo')).respond({ members: [{ id : 'foo' }], error: null });
         $timeout.flush();
 
         expect(scope.requestActive).toBeTruthy();
@@ -270,7 +270,7 @@ describe('AppSecurityControllerSpec', function() {
         expect(scope.$$childHead.lastQuery).toEqual('bar');
         expect(scope.queryResults).toBeFalsy();
 
-        $httpBackend.expectGET('/rest/user/application/bom1-12345678/query?q=bar').respond({ members: [{ id : 'bar' }], error: null });
+        $httpBackend.expectGET(SpecUtil.toRegExp('/rest/user/application/bom1-12345678/query?q=bar')).respond({ members: [{ id : 'bar' }], error: null });
         $timeout.flush();
         $httpBackend.flush();
         expect(scope.queryResults).toEqual([{ id : 'bar' }]);
@@ -281,7 +281,7 @@ describe('AppSecurityControllerSpec', function() {
           scope.queryString = 'foo';
         });
 
-        $httpBackend.expectGET('/rest/user/application/bom1-12345678/query?q=foo').respond({ members: [{ id : 'foo' }], error: '' });
+        $httpBackend.expectGET(SpecUtil.toRegExp('/rest/user/application/bom1-12345678/query?q=foo')).respond({ members: [{ id : 'foo' }], error: '' });
 
         $timeout.flush();
 
@@ -297,7 +297,7 @@ describe('AppSecurityControllerSpec', function() {
           scope.queryString = 'bar';
         });
 
-        $httpBackend.expectGET('/rest/user/application/bom1-12345678/query?q=bar').respond({ members: [{ id : 'bar' }], error: 'baz' });
+        $httpBackend.expectGET(SpecUtil.toRegExp('/rest/user/application/bom1-12345678/query?q=bar')).respond({ members: [{ id : 'bar' }], error: 'baz' });
 
         $timeout.flush();
 
@@ -318,7 +318,7 @@ describe('AppSecurityControllerSpec', function() {
           scope.queryString = 'bar';
         });
 
-        $httpBackend.expectGET('/rest/user/application/bom1-12345678/query?q=bar').respond(403, 'Insufficient Permissions');
+        $httpBackend.expectGET(SpecUtil.toRegExp('/rest/user/application/bom1-12345678/query?q=bar')).respond(403, 'Insufficient Permissions');
 
         $timeout.flush();
 

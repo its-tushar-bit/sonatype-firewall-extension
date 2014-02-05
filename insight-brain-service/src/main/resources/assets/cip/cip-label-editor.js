@@ -45,7 +45,7 @@
 
   (function() {
     //create the app, and a service we can use to transfer data between our controllers
-    var labelsApp = angular.module('ComponentLabelEditor', ['CommonServices', 'UnauthenticatedResponseHttpInterceptor']).service('CurrentLabelData',
+    var labelsApp = angular.module('ComponentLabelEditor', ['CommonServices', 'HttpInterceptors', 'UnauthenticatedResponseHttpInterceptor']).service('CurrentLabelData',
         function() {
           var currentLabel = null,
               currentError = null;
@@ -183,13 +183,12 @@
 
         function reloadLabels() {
           $http.get(CLM.path + 'rest/label/component/application/' + componentLabelEditorGAV.applicationId + '/' +
-              componentLabelEditorGAV.hash, { params: { timestamp: new Date().getTime() } }).success(function(data) {
+              componentLabelEditorGAV.hash).success(function(data) {
             $scope.itemLabels = flattenLabelList(data);
           }).error(errorFn);
         };
         function reloadAppLabels() {
-          $http.get(CLM.path + 'rest/label/application/' + componentLabelEditorGAV.applicationId + '/applicable',
-              { params: { timestamp: new Date().getTime() } }).success(function(data) {
+          $http.get(CLM.path + 'rest/label/application/' + componentLabelEditorGAV.applicationId + '/applicable').success(function(data) {
             $scope.availableLabels = flattenLabelList(data);
           }).error(errorFn);
         };

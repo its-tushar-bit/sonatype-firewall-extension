@@ -3,7 +3,7 @@ var clmTimestamp = '';
 describe('LicenseThreatGroup', function() {
   var scope, mockGroup;
 
-  beforeEach(module('LicenseThreatGroup', 'CLMLocation', function($provide) {
+  beforeEach(module('LicenseThreatGroup', 'HttpInterceptors', 'CLMLocation', function($provide) {
     $provide.value('ApplicationId', {
       encoded: function() {
         return 'bom1-12345678';
@@ -91,7 +91,7 @@ describe('LicenseThreatGroup', function() {
       expect(scope.deletedEnabled).toBeTruthy();
     });
     it('deletes a group.', inject(function($httpBackend, CLMAppLocations) {
-      $httpBackend.expectDELETE(CLMAppLocations.getDeleteLicenseGroupUrl(mockGroup)).respond({});
+      $httpBackend.expectDELETE(SpecUtil.toRegExp(CLMAppLocations.getDeleteLicenseGroupUrl(mockGroup))).respond({});
 
       scope.confirmDeleteLicenseGroup(mockGroup);
       scope.deleteLicenseGroup();

@@ -15,10 +15,7 @@
     'CachedStore', 'CLMAppLocations', function(CachedStore, CLMAppLocations) {
       var labelStoreTemplate = {
         getUrl: CLMAppLocations.getLabelsUrl,
-        template: labelTemplate,
-        params: {
-          timestamp: new Date().getTime()
-        }
+        template: labelTemplate
       };
 
       return CachedStore.get(labelStoreTemplate);
@@ -62,9 +59,7 @@
         $scope.error = null;
         $scope.applicableLabels = null;
         var promises = [
-          LabelStore.refresh(), $http.get(clmAppLocations.getApplicableLabelsUrl(), {
-            params: { timestamp: new Date().getTime() }
-          })
+          LabelStore.refresh(), $http.get(clmAppLocations.getApplicableLabelsUrl())
         ];
 
         $q.all(promises).then(function(results) {

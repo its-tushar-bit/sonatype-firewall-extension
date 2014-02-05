@@ -46,7 +46,7 @@
 
   (function() {
     var policyViolationApp = angular.module('PolicyViolations',
-            ['CommonServices', 'UnauthenticatedResponseHttpInterceptor']);
+            ['CommonServices', 'HttpInterceptors', 'UnauthenticatedResponseHttpInterceptor']);
 
     policyViolationApp.controller('PolicyViolationsController', [
       '$http', '$scope', '$q', '$modal', 'PolicyViolationData', 'Messages',
@@ -59,11 +59,7 @@
         }
 
         function doLoad() {
-          $q.all([$http.get(CLM.path + 'rest/policy/actionType'), $http.get('policyalerts.json', {
-            params: {
-              timestamp: new Date().getTime()
-            }
-          })]).then(function (result) {
+          $q.all([$http.get(CLM.path + 'rest/policy/actionType'), $http.get('policyalerts.json')]).then(function (result) {
             $scope.actionTypes = result[0].data;
             $scope.policyAlerts = result[1].data.aaData || [];
 
@@ -209,11 +205,7 @@
           $scope.waiversLoading = true;
           // get the waivers from the server
           $http.get(CLM.path + 'rest/policyWaiver/application/' + policyViolationData.appId + '/component/' +
-              policyViolationData.hash, {
-            params: {
-              timestamp: new Date().getTime()
-            }
-          }).success(function(data) {
+              policyViolationData.hash).success(function(data) {
             $scope.waiversLoading = false;
             $scope.waivers = [];
             angular.forEach(data.waiversByOwner, function(waiversByOwner, ownerIndex) {

@@ -32,11 +32,7 @@
         var promises = [];
 
         promises.push($http.get(clmLocations.getActionStageUrl()));
-        promises.push($http.get(clmLocations.getApplicationSummariesUrl(), {
-          params: {
-            timestamp: new Date().getTime()
-          }
-        }));
+        promises.push($http.get(clmLocations.getApplicationSummariesUrl()));
 
         $q.all(promises).then(function(results) {
           $scope.stages = results[0].data;

@@ -23,7 +23,7 @@ describe('ProductLicenseController', function() {
       }
     };
 
-    module('ProductLicense', function($provide) {
+    module('ProductLicense', 'HttpInterceptors', function($provide) {
       $provide.value('$window', mockWindow);
     });
   });
@@ -54,7 +54,7 @@ describe('ProductLicenseController', function() {
     });
 
     it('should be able to uninstall the license', inject(function($compile, $httpBackend, $timeout, $window) {
-      $httpBackend.expectDELETE(scope.uploadUrl).respond(200);
+      $httpBackend.expectDELETE(SpecUtil.toRegExp(scope.uploadUrl)).respond(200);
 
       scope.uninstallLicense();
 
@@ -64,7 +64,7 @@ describe('ProductLicenseController', function() {
     }));
 
     it('should broadcast an error if uninstall fails on the server', inject(function($compile, $httpBackend) {
-      $httpBackend.expectDELETE(scope.uploadUrl).respond(500);
+      $httpBackend.expectDELETE(SpecUtil.toRegExp(scope.uploadUrl)).respond(500);
       var broadCastError = spyOn(scope, '$broadcast');
 
       scope.uninstallLicense();

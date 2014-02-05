@@ -34,9 +34,6 @@
               });
             }
             return o;
-          },
-          params: {
-            timestamp: new Date().getTime()
           }
         },
         policyStores = {};
@@ -72,20 +69,14 @@
     'CLMLocations', 'CLMAppLocations', 'CLMResource', '$q', function(clmLocations, clmAppLocations, clmResource, $q) {
       var conditionTypeStore = clmResource.getStore({
         id: 'id',
-        url: clmLocations.getConditionTypeUrl(),
-        params: {
-          timestamp: new Date().getTime()
-        }
+        url: clmLocations.getConditionTypeUrl()
       });
 
       return {
         'get': function() {
           var conditionValueTypeStore = clmResource.getStore({
               id: 'id',
-              url: clmAppLocations.getConditionValueTypeUrl(),
-              params: {
-                timestamp: new Date().getTime()
-              }
+              url: clmAppLocations.getConditionValueTypeUrl()
             }),
             conditionDeferred = $q.all([conditionTypeStore.get(), conditionValueTypeStore.get()]);
           return conditionDeferred;

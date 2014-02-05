@@ -13,10 +13,7 @@
     'CachedStore', 'CLMAppLocations', 'CLMLocations', '$http', function(CachedStore, CLMAppLocations, CLMLocations, $http) {
       var tagStoreTemplate = {
         getUrl: CLMAppLocations.getTagsUrl,
-        template: {id: null, organizationId: null, name: null, description: null, color:null},
-        params: {
-          timestamp: new Date().getTime()
-        }
+        template: {id: null, organizationId: null, name: null, description: null, color:null}
       };
       var tagStores = CachedStore.get(tagStoreTemplate);
 

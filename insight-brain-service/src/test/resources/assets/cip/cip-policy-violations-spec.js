@@ -18,7 +18,7 @@ describe('CIP Policy Waiver tests', function() {
       _scope = $rootScope.$new();
 
       $httpBackend.expectGET(SpecUtil.toRegExp('../brain/rest/policy/actionType')).respond({});
-      $httpBackend.expectGET(SpecUtil.toRegExp('policyalerts.json')).respond({
+      $httpBackend.expectGET('policyalerts.json').respond({
         aaData: [
           {
             trigger: {
@@ -141,7 +141,7 @@ describe('CIP Policy Waiver tests', function() {
         _scope.owner.type = 'organization';
       });
 
-      $httpBackend.expectPOST('../brain/rest/policyWaiver/organization/orgId', {
+      $httpBackend.expectPOST(SpecUtil.toRegExp('../brain/rest/policyWaiver/organization/orgId'), {
         hash: "1",
         ownerId : 'orgId',
         policyId: "policyId",
@@ -163,7 +163,7 @@ describe('CIP Policy Waiver tests', function() {
         _scope.owner.type = 'application';
       });
 
-      $httpBackend.expectPOST('../brain/rest/policyWaiver/application/appId', {
+      $httpBackend.expectPOST(SpecUtil.toRegExp('../brain/rest/policyWaiver/application/appId'), {
         hash: "1",
         ownerId : 'appId',
         policyId: "policyId",
@@ -254,7 +254,7 @@ describe('CIP Policy Waiver tests', function() {
       _viewScope.remove(_viewScope.waivers[0]);
       expect(_viewScope.confirmDelete).toEqual(_viewScope.waivers[0]);
 
-      $httpBackend.expectDELETE(CLM.path + 'rest/policyWaiver/application/appId/id').respond(200);
+      $httpBackend.expectDELETE(SpecUtil.toRegExp(CLM.path + 'rest/policyWaiver/application/appId/id')).respond(200);
       _viewScope.removeWaiver();
       $httpBackend.flush();
       expect(_viewScope.confirmDelete).toEqual(null);

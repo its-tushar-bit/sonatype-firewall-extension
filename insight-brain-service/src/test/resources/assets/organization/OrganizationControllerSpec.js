@@ -1,6 +1,6 @@
 describe('Tests for the OrganizationController', function() {
 
-  beforeEach(module('OrganizationModule', function($provide) {
+  beforeEach(module('OrganizationModule', 'HttpInterceptors', function($provide) {
     $provide.value('OrganizationId', {
       encoded: function() {
         return '1';
@@ -24,7 +24,7 @@ describe('Tests for the OrganizationController', function() {
 
       var organizationsData = OrganizationMockData.getGETResponse();
       mockOrganization = organizationsData[0];
-      httpBackend.whenGET(SpecUtil.toRegExp(CLMAppLocations.getEntitiesUrl())).respond(organizationsData);
+      httpBackend.expectGET(SpecUtil.toRegExp(CLMAppLocations.getEntitiesUrl())).respond(organizationsData);
 
       scope = $rootScope.$new();
 

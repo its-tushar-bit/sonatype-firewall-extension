@@ -55,10 +55,7 @@
         lastName: '',
         email: ''
       },
-      url: clmLocations.getUserUrl(),
-      params: {
-        timestamp: new Date().getTime()
-      }
+      url: clmLocations.getUserUrl()
     }, store = clmResource.getStore(config);
 
     return store;

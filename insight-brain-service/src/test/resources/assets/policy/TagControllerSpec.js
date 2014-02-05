@@ -27,7 +27,7 @@ describe('TagController.js', function() {
       }
     ];
 
-  beforeEach(module('Tags', function($provide) {
+  beforeEach(module('Tags', 'HttpInterceptors', function($provide) {
     $provide.value('$modal', {
       open: function(config) {
         dialogScope = testScope.$new();
@@ -86,8 +86,8 @@ describe('TagController.js', function() {
         organizationId: bomId
       };
       $state.current.name = 'management.organization';
-      $httpBackend.expectGET(CLMLocations.getOrganizationTagUrl(bomId)).respond(angular.copy(organizationTags));
-      $httpBackend.expectGET(CLMLocations.getApplicationTagUrl('applicationPublicId')).respond(angular.copy(applicationTags));
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getOrganizationTagUrl(bomId))).respond(angular.copy(organizationTags));
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getApplicationTagUrl('applicationPublicId'))).respond(angular.copy(applicationTags));
       tagApplicationController = $controller('TagApplicationController', { $scope: scope, selectedApplication: selectedApplication });
       $httpBackend.flush();
     }));
@@ -117,7 +117,7 @@ describe('TagController.js', function() {
     });
 
     it('Applies a tag', inject(function($httpBackend, CLMLocations) {
-      $httpBackend.expectPOST(CLMLocations.getApplicationTagUrl('applicationPublicId')).respond();
+      $httpBackend.expectPOST(SpecUtil.toRegExp(CLMLocations.getApplicationTagUrl('applicationPublicId'))).respond();
       scope.toggleApply(scope.tags[1]);
       $httpBackend.flush();
 
@@ -125,7 +125,7 @@ describe('TagController.js', function() {
     }));
 
     it('Detaches a tag', inject(function($httpBackend, CLMLocations) {
-      $httpBackend.expectDELETE(CLMLocations.getDeleteApplicationTagUrl('applicationPublicId', scope.tags[0].id)).respond();
+      $httpBackend.expectDELETE(SpecUtil.toRegExp(CLMLocations.getDeleteApplicationTagUrl('applicationPublicId', scope.tags[0].id))).respond();
       scope.toggleApply(scope.tags[0]);
       $httpBackend.flush();
 
@@ -176,7 +176,7 @@ describe('TagController.js', function() {
       scope = testScope.$new();
       testScope.alerts = [];
       $httpBackend.whenGET(SpecUtil.toRegExp(CLMAppLocations.getTagsUrl())).respond(tags);
-      $httpBackend.expectGET(CLMLocations.getOrganizationAppliedTagUrl(bomId)).respond(appliedTags);
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getOrganizationAppliedTagUrl(bomId))).respond(appliedTags);
       $httpBackend.whenGET(SpecUtil.toRegExp(CLMLocations.getApplicationsUrl())).respond(applications);
       $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getConditionTypeUrl())).respond(PolicyMockData.getConditionTypeData());
       $httpBackend.expectGET(SpecUtil.toRegExp(CLMAppLocations.getConditionValueTypeUrl())).respond(PolicyMockData.getConditionValueTypeData());
@@ -206,8 +206,8 @@ describe('TagController.js', function() {
 
     it('Can delete a tag', inject(function($httpBackend, CLMAppLocations) {
       expect(testScope.tags.length).toEqual(2);
-      $httpBackend.expectDELETE(CLMAppLocations.getTagsUrl() + '/' +
-        testScope.tags[0].id).respond(204);
+      $httpBackend.expectDELETE(SpecUtil.toRegExp(CLMAppLocations.getTagsUrl() + '/' +
+        testScope.tags[0].id)).respond(204);
       scope.deleteTag(testScope.tags[0], { stopPropagation : angular.noop });
       expect(dialogScope.body).toContain('It is in use by the following applications: applicationName, applicationName2.');
       dialogScope.buttons[1].click();
@@ -226,7 +226,7 @@ describe('TagController.js', function() {
       scope.createNew();
       scope.appliedPolicyIds.push(PolicyMockData.getPolicyData()[0].id);
       $httpBackend.expectPOST(SpecUtil.toRegExp(CLMAppLocations.getTagsUrl())).respond(204);
-      $httpBackend.expectPOST(CLMAppLocations.getPolicyTagUrl(PolicyMockData.getPolicyData()[0].id)).respond(204);
+      $httpBackend.expectPOST(SpecUtil.toRegExp(CLMAppLocations.getPolicyTagUrl(PolicyMockData.getPolicyData()[0].id))).respond(204);
 
       scope.saveTag();
       $httpBackend.flush();
@@ -234,12 +234,12 @@ describe('TagController.js', function() {
 
     it('Can save a tag with detached policy', inject(function($httpBackend, CLMAppLocations) {
       scope.editTag(testScope.tags[0]);
-      $httpBackend.expectGET(CLMAppLocations.getTagAppliedPoliciesUrl(testScope.tags[0].id)).respond(appliedPolicyTags);
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMAppLocations.getTagAppliedPoliciesUrl(testScope.tags[0].id))).respond(appliedPolicyTags);
       $httpBackend.flush();
 
       scope.appliedPolicyIds.splice(0, 1);
       $httpBackend.expectPUT(SpecUtil.toRegExp(CLMAppLocations.getTagsUrl())).respond(204);
-      $httpBackend.expectDELETE(CLMAppLocations.getDeletePolicyTagUrl(PolicyMockData.getPolicyData()[0].id, testScope.tags[0].id)).respond(204);
+      $httpBackend.expectDELETE(SpecUtil.toRegExp(CLMAppLocations.getDeletePolicyTagUrl(PolicyMockData.getPolicyData()[0].id, testScope.tags[0].id))).respond(204);
       scope.saveTag();
       $httpBackend.flush();
     }));
@@ -257,7 +257,7 @@ describe('TagController.js', function() {
 
       it('Existing Tag', inject(function($httpBackend, CLMAppLocations) {
         scope.editTag(testScope.tags[0]);
-        $httpBackend.expectGET(CLMAppLocations.getTagAppliedPoliciesUrl(testScope.tags[0].id)).respond([]);
+        $httpBackend.expectGET(SpecUtil.toRegExp(CLMAppLocations.getTagAppliedPoliciesUrl(testScope.tags[0].id))).respond([]);
         $httpBackend.flush();
 
         scope.alerts.push({type: 'mock', 'msg': 'mock alert'});
@@ -318,7 +318,7 @@ describe('TagController.js', function() {
       describe('Dirty Existing Tag', function() {
         beforeEach(inject(function($httpBackend, CLMAppLocations) {
           scope.editTag(testScope.tags[0]);
-          $httpBackend.expectGET(CLMAppLocations.getTagAppliedPoliciesUrl(testScope.tags[0].id)).respond([]);
+          $httpBackend.expectGET(SpecUtil.toRegExp(CLMAppLocations.getTagAppliedPoliciesUrl(testScope.tags[0].id))).respond([]);
           $httpBackend.flush();
 
           scope.selectedTag.name = 'foo';
@@ -344,7 +344,7 @@ describe('TagController.js', function() {
       describe('Dirty By Applied Policy Existing Tag', function() {
         beforeEach(inject(function($httpBackend, CLMAppLocations) {
           scope.editTag(testScope.tags[0]);
-          $httpBackend.expectGET(CLMAppLocations.getTagAppliedPoliciesUrl(testScope.tags[0].id)).respond([]);
+          $httpBackend.expectGET(SpecUtil.toRegExp(CLMAppLocations.getTagAppliedPoliciesUrl(testScope.tags[0].id))).respond([]);
           $httpBackend.flush();
           scope.appliedPolicyIds.push(PolicyMockData.getPolicyData()[0].id);
 
@@ -368,7 +368,7 @@ describe('TagController.js', function() {
       describe('Unmodified Existing Tag', function() {
         beforeEach(inject(function($httpBackend, CLMAppLocations) {
           scope.editTag(testScope.tags[0]);
-          $httpBackend.expectGET(CLMAppLocations.getTagAppliedPoliciesUrl(testScope.tags[0].id)).respond([]);
+          $httpBackend.expectGET(SpecUtil.toRegExp(CLMAppLocations.getTagAppliedPoliciesUrl(testScope.tags[0].id))).respond([]);
           $httpBackend.flush();
 
           expect(scope.selectedTag.isDirty()).toEqual(false);
@@ -379,7 +379,7 @@ describe('TagController.js', function() {
 
         it('Edit Existing Attempted', inject(function($httpBackend, CLMAppLocations) {
           scope.editTag(testScope.tags[1]);
-          $httpBackend.expectGET(CLMAppLocations.getTagAppliedPoliciesUrl(testScope.tags[1].id)).respond([]);
+          $httpBackend.expectGET(SpecUtil.toRegExp(CLMAppLocations.getTagAppliedPoliciesUrl(testScope.tags[1].id))).respond([]);
           $httpBackend.flush();
 
           expect(scope.alerts.length).toEqual(0);
@@ -401,7 +401,7 @@ describe('TagController.js', function() {
         expect(e.defaultPrevented).toEqual(false);
 
         scope.editTag(testScope.tags[0]);
-        $httpBackend.expectGET(CLMAppLocations.getTagAppliedPoliciesUrl(testScope.tags[0].id)).respond([]);
+        $httpBackend.expectGET(SpecUtil.toRegExp(CLMAppLocations.getTagAppliedPoliciesUrl(testScope.tags[0].id))).respond([]);
         $httpBackend.flush();
 
         expect(scope.alerts.length).toEqual(0);

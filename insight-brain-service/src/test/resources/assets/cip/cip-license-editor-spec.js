@@ -93,9 +93,9 @@
             SelectedComponent.groupId + '/' + SelectedComponent.artifactId + '/' +
             SelectedComponent.version)).respond(getAppliedLicenseOverrides('ACKNOWLEDGED', null, 'OVERRIDDEN', "AFL"));
 
-        $httpBackend.expectGET(new RegExp(CLM.path + 'rest/ci/component/details/licenses/app1\\?artifactId=' +
+        $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/ci/component/details/licenses/app1?artifactId=' +
             SelectedComponent.artifactId +
-            '&groupId=' + SelectedComponent.groupId + '&timestamp=[0-9]+' + '&version=' +
+            '&groupId=' + SelectedComponent.groupId + '&version=' +
             SelectedComponent.version)).respond(getLicenseWithThreats());
 
         $controller('LicenseEditorController', {
@@ -124,7 +124,7 @@
       });
 
       it('Delete', inject(function($httpBackend) {
-        $httpBackend.expectDELETE(CLM.path + 'rest/licenseOverride/application/app1/app1override').respond(204);
+        $httpBackend.expectDELETE(SpecUtil.toRegExp(CLM.path + 'rest/licenseOverride/application/app1/app1override')).respond(204);
         scope.$apply(function() {
           scope.override.status = 'DELETE';
           scope.save();
@@ -148,9 +148,9 @@
             SelectedComponent.groupId + '/' + SelectedComponent.artifactId + '/' +
             SelectedComponent.version)).respond(getAppliedLicenseOverrides(null, null, null, null));
 
-        $httpBackend.expectGET(new RegExp(CLM.path + 'rest/ci/component/details/licenses/app1\\?artifactId=' +
+        $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/ci/component/details/licenses/app1?artifactId=' +
             SelectedComponent.artifactId +
-            '&groupId=' + SelectedComponent.groupId + '&timestamp=[0-9]+' + '&version=' +
+            '&groupId=' + SelectedComponent.groupId + '&version=' +
             SelectedComponent.version)).respond(getLicenseWithThreats());
 
         $controller('LicenseEditorController', {
@@ -169,7 +169,7 @@
       });
 
       it('Add Org', inject(function($httpBackend, SelectedComponent) {
-        $httpBackend.expectPOST(CLM.path + 'rest/licenseOverride/organization/org1').respond(function(method, url, data,
+        $httpBackend.expectPOST(SpecUtil.toRegExp(CLM.path + 'rest/licenseOverride/organization/org1')).respond(function(method, url, data,
                                                                                                       headers)
         {
           var post = angular.fromJson(data);
@@ -196,7 +196,7 @@
       }));
 
       it('Add App', inject(function($httpBackend, SelectedComponent) {
-        $httpBackend.expectPOST(CLM.path + 'rest/licenseOverride/application/app1').respond(function(method, url, data,
+        $httpBackend.expectPOST(SpecUtil.toRegExp(CLM.path + 'rest/licenseOverride/application/app1')).respond(function(method, url, data,
                                                                                                      headers)
         {
           var post = angular.fromJson(data);
@@ -231,9 +231,9 @@
             SelectedComponent.groupId + '/' + SelectedComponent.artifactId + '/' +
             SelectedComponent.version)).respond(getAppliedLicenseOverrides(null, null, 'OVERRIDDEN', "AFL"));
 
-        $httpBackend.expectGET(new RegExp(CLM.path + 'rest/ci/component/details/licenses/app1\\?artifactId=' +
+        $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/ci/component/details/licenses/app1?artifactId=' +
             SelectedComponent.artifactId +
-            '&groupId=' + SelectedComponent.groupId + '&timestamp=[0-9]+' + '&version=' +
+            '&groupId=' + SelectedComponent.groupId + '&version=' +
             SelectedComponent.version)).respond(getLicenseWithThreats());
 
         $controller('LicenseEditorController', {
@@ -267,7 +267,7 @@
           scope.override.status = 'ACKNOWLEDGED';
         });
 
-        $httpBackend.expectPOST(CLM.path + 'rest/licenseOverride/application/app1').respond(function(method, url, data,
+        $httpBackend.expectPOST(SpecUtil.toRegExp(CLM.path + 'rest/licenseOverride/application/app1')).respond(function(method, url, data,
                                                                                                      headers)
         {
           var posted = angular.fromJson(data);
@@ -303,9 +303,9 @@
             SelectedComponent.groupId + '/' + SelectedComponent.artifactId + '/' +
             SelectedComponent.version)).respond(getAppliedLicenseOverrides('OVERRIDDEN', "AFL", null, null));
 
-        $httpBackend.expectGET(new RegExp(CLM.path + 'rest/ci/component/details/licenses/app1\\?artifactId=' +
+        $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/ci/component/details/licenses/app1?artifactId=' +
             SelectedComponent.artifactId +
-            '&groupId=' + SelectedComponent.groupId + '&timestamp=[0-9]+' + '&version=' +
+            '&groupId=' + SelectedComponent.groupId + '&version=' +
             SelectedComponent.version)).respond(getLicenseWithThreats());
 
         $controller('LicenseEditorController', {
@@ -340,7 +340,7 @@
           scope.override.status = 'ACKNOWLEDGED';
         });
 
-        $httpBackend.expectPOST(CLM.path + 'rest/licenseOverride/organization/org1').respond(function(method, url, data,
+        $httpBackend.expectPOST(SpecUtil.toRegExp(CLM.path + 'rest/licenseOverride/organization/org1')).respond(function(method, url, data,
                                                                                                       headers)
         {
           var posted = angular.fromJson(data);
@@ -380,9 +380,9 @@
             SelectedComponent.groupId + '/' + SelectedComponent.artifactId + '/' +
             SelectedComponent.version)).respond(getAppliedLicenseOverrides('OVERRIDDEN', 'AFL'));
 
-        $httpBackend.expectGET(new RegExp(CLM.path + 'rest/ci/component/details/licenses/app1\\?artifactId=' +
+        $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/ci/component/details/licenses/app1?artifactId=' +
             SelectedComponent.artifactId +
-            '&groupId=' + SelectedComponent.groupId + '&timestamp=[0-9]+' + '&version=' +
+            '&groupId=' + SelectedComponent.groupId + '&version=' +
             SelectedComponent.version)).respond(getLicenseWithThreats());
 
         $controller('LicenseEditorController', {
@@ -408,7 +408,7 @@
         });
         expect(scope.override.licenseId).toEqual(null);
 
-        $httpBackend.expectPOST(CLM.path + 'rest/licenseOverride/application/app1').respond(function(method, url, data,
+        $httpBackend.expectPOST(SpecUtil.toRegExp(CLM.path + 'rest/licenseOverride/application/app1')).respond(function(method, url, data,
                                                                                                      headers)
         {
           var posted = angular.fromJson(data);

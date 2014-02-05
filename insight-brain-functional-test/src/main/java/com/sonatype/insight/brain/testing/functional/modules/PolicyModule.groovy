@@ -11,29 +11,38 @@ import geb.Module
  * Since 1.9
  */
 class PolicyModule
-    extends Module
-{
+    extends Module {
   static content = {
     newPolicyButton { $('.new-entity-button', text: 'New Policy') }
+    policyEditors(required: false) { moduleList PolicyEditorModule, $('#policyList div', 'ng-repeat': 'policy in policies') }
+  }
 
-    //TODO KR - separate this out to a composed module, since technically it's all in a List
-    policiesAccordion(requied:false) { $('#policyList .accordion.policies') }
-    policyHeader(required:false) { name -> policiesAccordion.find('.accordion-heading', text: '  ' + name) }
-    policyEditButton(required:false) { name -> policyHeader(name).find('button', 'ng-click': 'edit(policy)') }
-    policyEditors(required:false) { policiesAccordion.find('.accordion-body.in') }  //assumes a single one is open at a time
-    policyEditorButtons(required:false){ module ButtonsModule, policyEditors}
-    tagsHeader(required:false) { policyEditors.find('h5', text: 'Application Matching') }
-    policyTag(required:false) { policyEditors.find('.policy-tag') }
-    policyTagError(required:false) { policyTag.find('div')[-1] }
-    tagRadioButtons(required: false) { policyEditors.find('.policy-tag input[type=radio]') }
-    radioButton {option -> policyEditors.find('.policy-tag input[type=radio]', 'ng-value': option) }
-    allApplicationRadioButton {radioButton('false')}
-    taggedApplicationRadioButton {radioButton('true')}
-    tags(required:false) { policyEditors.find('span', items: 'tags') }
-    tagsDropdownButton(required:false) { tags.find('button') }
-    tagsDropdownList(required:false) { tags.find('ul') }
-    tagsDropdownCheck(required:false) { name -> tagsDropdownList.find('a', text: name).find('input') }
-    tagsDropdownColor(required:false) { name -> tagsDropdownList.find('a', text: name).find('span.multi-dropdown-item-color') }
+  def findPolicyEditor(String policyName){
+    return policyEditors.find{ it.header.text().endsWith(policyName) }
+  }
+}
+
+/**
+ * Since 1.9
+ */
+class PolicyEditorModule
+    extends Module {
+  static content = {
+    header { $('.accordion-heading') }
+    editButton { header.find('button', 'ng-click': 'edit(policy)') }
+    editor { $('.accordion-body.in') }
+    buttons { module ButtonsModule }
+    tagsHeader { $('h5', text: 'Application Matching') }
+    policyTag { $('.policy-tag') }
+    policyTagError { policyTag.find('div')[-1] }
+    radioButton { option -> $('input[type=radio]', 'ng-value': option) }
+    allApplicationRadioButton { radioButton('false') }
+    taggedApplicationRadioButton { radioButton('true') }
+    tags { $('span', items: 'tags') }
+    tagsDropdownButton { tags.find('button') }
+    tagsDropdownList { tags.find('ul') }
+    tagsDropdownCheck { name -> tagsDropdownList.find('a', text: name).find('input') }
+    tagsDropdownColor { name -> tagsDropdownList.find('a', text: name).find('span.multi-dropdown-item-color') }
   }
 
   def toggleTag(String name) {
@@ -42,11 +51,11 @@ class PolicyModule
     hideDropdown()
   }
 
-  def areTagsApplied(List<String> names){
+  def areTagsApplied(List<String> names) {
     showDropdown()
     boolean isApplied = true;
-    for(String name in names){
-      if(! tagsDropdownCheck(name).value()){
+    for (String name in names) {
+      if (!tagsDropdownCheck(name).value()) {
         isApplied = false
         break
       }
@@ -55,10 +64,10 @@ class PolicyModule
     return isApplied
   }
 
-  def areTagsColored(Map<String, String> namesToColors){
+  def areTagsColored(Map<String, String> namesToColors) {
     showDropdown()
     boolean hasColor = true
-    namesToColors.each{String name, String color ->
+    namesToColors.each { String name, String color ->
       def contains = tagsDropdownColor(name).classes().contains("${color}Label".toString())
       hasColor = hasColor && contains
     }
@@ -66,16 +75,16 @@ class PolicyModule
     return hasColor
   }
 
-  def isSelected(radioButton){
+  def isSelected(radioButton) {
     return radioButton.firstElement().selected
   }
 
-  def showDropdown(){
+  def showDropdown() {
     tagsDropdownButton.click()
     waitFor { tagsDropdownList.displayed }
   }
 
-  def hideDropdown(){
+  def hideDropdown() {
     tagsHeader.click()
     waitFor { !tagsDropdownList.displayed }
   }

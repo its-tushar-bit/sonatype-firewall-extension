@@ -31,78 +31,91 @@ class PolicyTagSpec
 
   def 'Initially a policy applies to all applications'(){
     when: 'We edit a policy that has no tags'
-      policies.policyEditButton('Architecture-Quality').click()
-      waitFor { policies.policyEditors.displayed }
-      policies.showDropdown()
+      def editor = policies.findPolicyEditor('Architecture-Quality')
+      editor.editButton.click()
+      waitFor { editor.tagsHeader.displayed }
+      editor.showDropdown()
 
     then: 'the "All Applications" option is selected'
-      policies.isSelected(policies.allApplicationRadioButton)
-      !policies.isSelected(policies.taggedApplicationRadioButton)
+      editor.isSelected(editor.allApplicationRadioButton)
+      !editor.isSelected(editor.taggedApplicationRadioButton)
 
     and: 'expected Tags are available to choose'
       [tag1.name, tag2.name].each{ name ->
-        policies.tagsDropdownCheck(name).displayed
+        editor.tagsDropdownCheck(name).displayed
       }
 
     cleanup:
-      policies.hideDropdown()
+      editor.hideDropdown()
   }
 
   def 'We can add tags to the policy'() {
+    given :
+      def editor = policies.findPolicyEditor('Architecture-Quality')
+
     when: 'Toggling the first tag'
-      policies.toggleTag(tag1.name)
+      editor.toggleTag(tag1.name)
 
     then: 'the tag name shows up in the text of the button'
-      policies.tagsDropdownButton.text() == tag1.name
+      editor.tagsDropdownButton.text() == tag1.name
 
     and: 'the "Applications with tags" option should now be selected'
-      policies.isSelected(policies.taggedApplicationRadioButton)
-      !policies.isSelected(policies.allApplicationRadioButton)
+      editor.isSelected(editor.taggedApplicationRadioButton)
+      !editor.isSelected(editor.allApplicationRadioButton)
 
     when: 'adding a second tag'
-      policies.toggleTag(tag2.name)
+      editor.toggleTag(tag2.name)
 
     then: 'both names are shown on the text of the button, and both are checked'
       def tagNames = [tag1.name, tag2.name]
-      policies.tagsDropdownButton.text() == tagNames.join(', ')
-      policies.areTagsApplied(tagNames)
+      editor.tagsDropdownButton.text() == tagNames.join(', ')
+      editor.areTagsApplied(tagNames)
 
     and: 'they are styled in the list with the appropriate color'
-      policies.areTagsColored([(tag1.name): tag1.color, (tag2.name): tag2.color])
+      editor.areTagsColored([(tag1.name): tag1.color, (tag2.name): tag2.color])
   }
 
   def 'We can save the Tag changes'(){
-    when: 'We save'
-      policies.policyEditorButtons(0).save.click()
+    given :
+      def editor = policies.findPolicyEditor('Architecture-Quality')
+
+    when: 'We save and refresh the page'
+      editor.buttons.save.click()
       driver.navigate().refresh()
-      policies.policyEditButton('Architecture-Quality').click()
-      waitFor { policies.policyEditors.displayed }
+      editor = policies.findPolicyEditor('Architecture-Quality')
+      editor.editButton.click()
+      waitFor { editor.tagsHeader.displayed }
 
     then: 'We can observe the persisted changes'
       def tagNames = [tag1.name, tag2.name]
-      policies.tagsDropdownButton.text() == tagNames.join(', ')
-      policies.areTagsApplied(tagNames)
+      editor.tagsDropdownButton.text() == tagNames.join(', ')
+      editor.areTagsApplied(tagNames)
   }
 
   def 'We can clear all Tags'(){
+    given :
+      def editor = policies.findPolicyEditor('Architecture-Quality')
+
     when: 'We choose the "All Applications" option'
-      policies.allApplicationRadioButton.click()
+      editor.allApplicationRadioButton.click()
 
     then:
-      policies.isSelected(policies.allApplicationRadioButton)
-      !policies.isSelected(policies.taggedApplicationRadioButton)
-      policies.tagsDropdownButton.text() == 'None selected'
+      editor.isSelected(editor.allApplicationRadioButton)
+      !editor.isSelected(editor.taggedApplicationRadioButton)
+      editor.tagsDropdownButton.text() == 'None selected'
   }
 
   def 'We cannot save if we do not select Tags and "All Applications" is not selected'(){
+    given :
+      def editor = policies.findPolicyEditor('Architecture-Quality')
     when: 'We click on the "Applications with Tags" option'
-      policies.taggedApplicationRadioButton.click()
+      editor.taggedApplicationRadioButton.click()
 
     then: 'We are presented with an error message'
-      policies.policyTag.classes().contains('error')
-      policies.policyTagError.text() == 'Must select tags to associate with the policy.'
+      editor.policyTag.classes().contains('error')
+      editor.policyTagError.text() == 'Must select tags to associate with the policy.'
 
     cleanup:
-      policies.policyEditorButtons(0).cancel.click()
+      editor.buttons.cancel.click()
   }
 }

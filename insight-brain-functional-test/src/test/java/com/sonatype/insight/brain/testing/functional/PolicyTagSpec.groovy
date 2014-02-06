@@ -94,7 +94,9 @@ class PolicyTagSpec
 
     when: 'We save and refresh the page'
       editor.buttons.save.click()
+      waitFor{ !editor.tagsHeader.present }
       driver.navigate().refresh()
+      waitFor{ policies.findPolicyEditor(POLICY_NAME).displayed }
       editor = policies.findPolicyEditor(POLICY_NAME)
       editor.editButton.click()
       waitFor { editor.tagsHeader.displayed }
@@ -139,6 +141,8 @@ class PolicyTagSpec
     when: 'We save the policy with no tags applied'
       editor.allApplicationRadioButton.click()
       editor.buttons.save.click()
+      waitFor { policies.findPolicyEditor(POLICY_NAME).displayed }
+      editor = policies.findPolicyEditor(POLICY_NAME)
 
     then: 'the form closes and the icon is removed'
       !editor.tagsHeader.present

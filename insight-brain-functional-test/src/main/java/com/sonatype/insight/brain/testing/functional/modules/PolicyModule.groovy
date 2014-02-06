@@ -31,13 +31,14 @@ class PolicyEditorModule
     header { $('.accordion-heading') }
     editButton { header.find('button', 'ng-click': 'edit(policy)') }
     chicklet { header.find('span.threat-chiclet')}
-    tagsHeader(required: false) { $('h5', text: 'Application Matching') }
-    buttons { module ButtonsModule }
-    policyTag { $('.policy-tag') }
+    body { $('.accordion-body') }
+    tagsHeader(required: false) { body.find('h5', text: 'Application Matching') }
+    buttons { module ButtonsModule, body }
+    policyTag { body.find('.policy-tag') }
     policyTagError { policyTag.find('div')[-1] }
-    allApplicationRadioButton { $('#radio-all-applications') }
-    taggedApplicationRadioButton { $('#radio-tag-applications') }
-    tags { $('span', items: 'tags') }
+    allApplicationRadioButton { body.find('#radio-all-applications') }
+    taggedApplicationRadioButton { body.find('#radio-tag-applications') }
+    tags { body.find('span', items: 'tags') }
     tagsDropdownButton { tags.find('button') }
     tagsDropdownList { tags.find('ul') }
     tagsDropdownCheck { name -> tagsDropdownList.find('a', text: name).find('input') }
@@ -80,6 +81,10 @@ class PolicyEditorModule
 
   boolean showsTagIcon(){
     return chicklet.classes().contains('icon-tags')
+  }
+
+  boolean isExpanded(){
+    return body.classes().contains('in')
   }
 
   void showDropdown() {

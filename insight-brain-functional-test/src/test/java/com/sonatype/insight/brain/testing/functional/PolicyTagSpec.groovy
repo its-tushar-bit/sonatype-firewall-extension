@@ -36,7 +36,7 @@ class PolicyTagSpec
       def editor = policies.findPolicyEditor(POLICY_NAME)
       editor.editButton.click()
       waitFor { editor.tagsHeader.displayed }
-      editor.showDropdown()
+      editor.showTagDropdown()
 
     then: 'the policy does not show a Tag icon in its header'
       !editor.showsTagIcon()
@@ -51,7 +51,7 @@ class PolicyTagSpec
       }
 
     cleanup:
-      editor.hideDropdown()
+      editor.hideTagDropdown()
   }
 
   def 'We can add tags to the policy'() {
@@ -59,7 +59,7 @@ class PolicyTagSpec
       def editor = policies.findPolicyEditor(POLICY_NAME)
 
     when: 'We click the input'
-      editor.showDropdown()
+      editor.showTagDropdown()
 
     then: 'it opens and shows the available tags'
       editor.tagsDropdownList.find('a')*.text() == [tag1.name, tag2.name]
@@ -69,7 +69,7 @@ class PolicyTagSpec
       report('dropdown open')
 
     when: 'Toggling the first tag'
-      editor.hideDropdown()
+      editor.hideTagDropdown()
       editor.toggleTag(tag1.name)
 
     then: 'the tag name shows up in the text of the button'

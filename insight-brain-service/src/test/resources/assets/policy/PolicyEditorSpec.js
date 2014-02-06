@@ -6,13 +6,10 @@ describe('PolicyEditor.js', function() {
       {id: 'tagId1', ownerId: bomId, name: 'foo', description: 'foo'},
       {id: 'tagId2', ownerId: bomId, name: 'bar', description: 'bar'},
       {id: 'tagId3', ownerId: bomId, name: 'baz', description: 'baz'}
-    ],
-    policyTagMap = {'053e89a476b34d7dac5d97665d2d241e':
-      [angular.extend(tags[1], {policyId: '053e89a476b34d7dac5d97665d2d241e'})]};
+    ];
 
   function getPolicyEditorScope(){
     var scope = angular.element('.inline-policy-editor').scope();
-    scope.policyTagMap = angular.copy(policyTagMap);
     return  scope;
   }
   function getController(controllerName) {
@@ -109,7 +106,6 @@ describe('PolicyEditor.js', function() {
     beforeEach(inject(function($compile, $httpBackend) {
       testScope.policy = createNewPolicy();
       testScope.tags = tags;
-      testScope.policyTagMap = angular.copy(policyTagMap);
       getPolicyEditorController();
       var node = $("<div id='testInlinePolicyCreator' inline-policy-creator tags='tags' policy-tag-map='policyTagMap'></div>");
       node.appendTo('body');
@@ -382,7 +378,6 @@ describe('PolicyEditor.js', function() {
       });
 
       policyScope.policy.name = 'asdflkasdfkljasfdklj';
-      policyScope.policyTagMap = angular.copy(policyTagMap);
       expect(policyScope.policy.isDirty()).toEqual(true);
 
       $httpBackend.expectPUT(SpecUtil.toRegExp(CLMAppLocations.getPolicyUrl())).respond(angular.extend(angular.copy(policyScope.policy.$getOriginal()),
@@ -472,11 +467,12 @@ describe('PolicyEditor.js', function() {
 
       scope.appliedTagIds.splice(0, 1);
       scope.appliedTagIds.push('tagId3');
-      scope.policyTagMap = angular.copy(policyTagMap);
-      scope.policyTagMap[scope.policy.id] = [
-        angular.extend(tags[0], {policyId: scope.policy.id}),
-        angular.extend(tags[1], {policyId: scope.policy.id})
-      ];
+
+      var policyId, policyTags;
+      scope.$on('policySaveComplete', function(event, id, tags){
+        policyId = id;
+        policyTags = tags;
+      });
 
       $httpBackend.expectPUT(SpecUtil.toRegExp(CLMAppLocations.getPolicyUrl())).respond(testScope.policy);
       $httpBackend.expectDELETE(CLMAppLocations.getPolicyTagUrl(undefined).substring(0, CLMAppLocations.getPolicyTagUrl(undefined).indexOf('?')) + '/tagId1?orgId=null').respond(204);
@@ -484,11 +480,11 @@ describe('PolicyEditor.js', function() {
       scope.savePolicy();
       $httpBackend.flush();
       expect(scope.hide).toHaveBeenCalled();
-      expect(scope.policyTagMap[testScope.policy.id]).toBeDefined();
-      expect(scope.policyTagMap[testScope.policy.id].length).toBe(2);
-      //should have added tagId3 to the mapping and removed tagId1
-      expect(scope.policyTagMap[testScope.policy.id][0].id).toBe('tagId2');
-      expect(scope.policyTagMap[testScope.policy.id][1].id).toBe('tagId3');
+      expect(policyId).toBeUndefined(); //we didn't actually
+      expect(policyTags).toBeDefined();
+      expect(policyTags.length).toBe(2);
+      expect(policyTags[0].id).toBe('tagId2');
+      expect(policyTags[1].id).toBe('tagId3');
     }));
   });
 

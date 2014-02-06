@@ -154,9 +154,9 @@ describe('PolicyController tests', function() {
 
 describe('PolicyController organization tests', function() {
   var scope, bomId = 'bom1-12345678', tags = [
-    {id: 1, ownerId: bomId, name: 'tag one name', description: 'foo'},
-    {id: 2, ownerId: bomId, name: 'tag two name', description: 'bar'}
-  ];
+      {id: '1', ownerId: bomId, name: 'tag one name', description: 'foo'},
+      {id: '2', ownerId: bomId, name: 'tag two name', description: 'bar'}
+    ], orgPolicyId, policyTagId;
 
   beforeEach(module('Policy', function($provide) {
     $provide.value('ApplicationId', {
@@ -173,13 +173,14 @@ describe('PolicyController organization tests', function() {
 
   beforeEach(inject(function($rootScope, $state, $httpBackend, $controller, CLMLocations, CLMAppLocations) {
     $state.current.name = 'management.organization';
-
+    orgPolicyId = OrganizationMockData.getApplicablePolicies().policiesByOwner[0].policies[0].id;
+    policyTagId = OrganizationMockData.getApplicablePolicies().policiesByOwner[0].policyTags[0].id;
     scope = $rootScope.$new();
 
     $httpBackend.expectGET(CLMLocations.getActionTypeUrl()).respond(PolicyMockData.getActionTypeData());
     $httpBackend.expectGET(CLMLocations.getActionStageUrl()).respond(MockData.getActionStageData());
     $httpBackend.expectGET(SpecUtil.toRegExp(CLMAppLocations.getPolicyUrl())).respond(PolicyMockData.getPolicyData());
-    $httpBackend.expectGET(SpecUtil.toRegExp(CLMAppLocations.getApplicablePolicies())).respond(ApplicationMockData.getApplicablePolicies());
+    $httpBackend.expectGET(SpecUtil.toRegExp(CLMAppLocations.getApplicablePolicies())).respond(OrganizationMockData.getApplicablePolicies());
     $httpBackend.expectGET(CLMAppLocations.getApplicablePolicyMonitoring()).respond(PolicyMonitoringMockData);
     $httpBackend.expectGET(SpecUtil.toRegExp(CLMAppLocations.getTagsUrl())).respond(tags);
     $httpBackend.whenGET(SpecUtil.toRegExp(CLMLocations.getConditionTypeUrl())).respond(PolicyMockData.getConditionTypeData());
@@ -205,4 +206,19 @@ describe('PolicyController organization tests', function() {
     expect(scope.tags[0].ownerId).toBe(tags[0].ownerId);
     expect(scope.tags[0].description).toBe(tags[0].description);
   });
-})
+
+  it('creates a map from policy to tags', function() {
+    var keys = Object.keys(scope.policyTagMap);
+    expect(keys.length).toBe(1);
+    expect(keys[0]).toBe(orgPolicyId);
+    expect(scope.policyTagMap[orgPolicyId].length).toBe(1);
+    expect(scope.policyTagMap[orgPolicyId][0].id).toBe(policyTagId);
+  });
+
+  if('responds to policy save events', function(){
+    scope.$emit('policySaveComplete', orgPolicyId, tags);
+    expect(scope.policyTagMap[orgPolicyId].length).toBe(2);
+    expect(scope.policyTagMap[orgPolicyId][0].id).toBe(tags[0].id);
+    expect(scope.policyTagMap[orgPolicyId][1].id).toBe(tags[1].id);
+  });
+});

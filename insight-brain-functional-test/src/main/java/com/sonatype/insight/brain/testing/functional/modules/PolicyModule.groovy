@@ -46,13 +46,13 @@ class PolicyEditorModule
   }
 
   void toggleTag(String name) {
-    showDropdown()
+    showTagDropdown()
     this.tagsDropdownCheck(name).click()
-    hideDropdown()
+    hideTagDropdown()
   }
 
   boolean areTagsApplied(List<String> names) {
-    showDropdown()
+    showTagDropdown()
     boolean isApplied = true;
     for (String name in names) {
       if (!tagsDropdownCheck(name).value()) {
@@ -60,7 +60,7 @@ class PolicyEditorModule
         break
       }
     }
-    hideDropdown()
+    hideTagDropdown()
     return isApplied
   }
 
@@ -85,12 +85,12 @@ class PolicyEditorModule
     return body.classes().contains('in')
   }
 
-  void showDropdown() {
+  void showTagDropdown() {
     tagsDropdownButton.click()
     waitFor { tagsDropdownList.displayed }
   }
 
-  void hideDropdown() {
+  void hideTagDropdown() {
     tagsHeader.click()
     waitFor { !tagsDropdownList.displayed }
   }

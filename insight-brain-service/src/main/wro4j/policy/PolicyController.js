@@ -118,6 +118,10 @@
 
       $scope.$on('ownerChanged', ownerChange.getEventHandler($scope, 'applicablePolicies'));
       $scope.$on('refresh', $scope.doLoad);
+      //update mapping of Policy -> Tag whenever we save a Policy
+      $scope.$on('policySaveComplete', function(event, policyId, policyTags){
+        $scope.policyTagMap[policyId] = policyTags;
+      });
 
       function toggleExpanded(selector, action) {
         selector.find('.accordion-body').collapse(action);

@@ -58,4 +58,22 @@ describe('HttpInterceptors.js', function() {
     
     $httpBackend.flush();
   }));
+  
+  it('Validate that /rest/ and .json paths contains cachebuster, others ignored', inject(function($http, $httpBackend){
+    $httpBackend.expectGET(SpecUtil.toRegExp('/rest/test')).respond(200);
+    $httpBackend.expectPOST(SpecUtil.toRegExp('/test/rest/test')).respond(200);
+    $httpBackend.expectGET(SpecUtil.toRegExp('test.json')).respond(200);
+    $httpBackend.expectGET('/unrest/test').respond(200);
+    $httpBackend.expectPOST('/test/unrest/test').respond(200);
+    $httpBackend.expectGET('test.notjson').respond(200);
+    
+    $http.get('/rest/test');
+    $http.post('/test/rest/test');
+    $http.get('test.json');
+    $http.get('/unrest/test');
+    $http.post('/test/unrest/test');
+    $http.get('test.notjson');
+    
+    $httpBackend.flush();
+  }));
 });

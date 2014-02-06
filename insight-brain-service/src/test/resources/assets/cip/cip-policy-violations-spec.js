@@ -18,7 +18,7 @@ describe('CIP Policy Waiver tests', function() {
       _scope = $rootScope.$new();
 
       $httpBackend.expectGET(SpecUtil.toRegExp('../brain/rest/policy/actionType')).respond({});
-      $httpBackend.expectGET('policyalerts.json').respond({
+      $httpBackend.expectGET(SpecUtil.toRegExp('policyalerts.json')).respond({
         aaData: [
           {
             trigger: {

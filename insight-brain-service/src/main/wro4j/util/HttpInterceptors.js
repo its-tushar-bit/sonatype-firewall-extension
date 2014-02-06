@@ -36,7 +36,7 @@
   httpInterceptors.factory('cacheBusterHttpInterceptor', [function() {
     return {
       request: function(config) {
-        if (config.url.indexOf('/rest/') > -1 && config.url.indexOf('timestamp=') < 0) {
+        if ((config.url.indexOf('/rest/') > -1 || config.url.indexOf('.json') > -1) && config.url.indexOf('timestamp=') < 0) {
           config.params = config.params || {};
           config.params.timestamp = new Date().getTime();
         }

@@ -55,9 +55,9 @@ public class ScanTaskRepository
   /**
    * Creates a new scan task and schedules it for execution.
    */
-  public ScanTask newScanTask(Application app, File binFile, Stage stage, boolean sendNotifications) {
+  public ScanTask newScanTask(Application app, File binFile, String filename, Stage stage, boolean sendNotifications) {
     ScanTask scanTask = scanTaskProvider.get();
-    scanTask.init(app, binFile, stage, sendNotifications);
+    scanTask.init(app, binFile, filename, stage, sendNotifications);
     scanTasks.put(scanTask.getId(), scanTask);
     log.debug("Scheduling scan task {}", scanTask.getId());
     executor.submit(scanTask);

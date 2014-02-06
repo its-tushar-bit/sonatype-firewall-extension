@@ -60,6 +60,7 @@ public class ScanTaskTest
   private Stage stage = new Stage(Stage.ID_BUILD);
   private ScanReceipt scanReceipt = new ScanReceipt();
   private File bundleFile;
+  private String bundleFilename;
   private File scanDir;
   private File scanFile;
   private File tmpScanFile;
@@ -71,6 +72,7 @@ public class ScanTaskTest
   public void init() throws Exception {
     scanReceipt.setScanId("scan-id");
     bundleFile = tmpDir.newFile("app.zip");
+    bundleFilename = "test-app.zip";
     scanDir = tmpDir.newFolder(app.getId());
     scanFile = new File(scanDir, "scan-" + scanReceipt.getScanId() + ".xml.gz");
     tmpScanFile = new File(scanDir, "temp.xml.gz");
@@ -78,7 +80,7 @@ public class ScanTaskTest
     when(work.getScanDir(eq(app.getId()))).thenReturn(scanDir);
     when(work.getScanFile(eq(app.getId()), eq(scanReceipt.getScanId()))).thenReturn(scanFile);
     when(uploader.upload(eq(tmpScanFile), eq(app.getPublicId()), anyString())).thenReturn(scanReceipt);
-    when(scanner.scan(eq(bundleFile), eq(scanDir))).thenReturn(tmpScanFile);
+    when(scanner.scan(eq(bundleFile), eq(bundleFilename), eq(scanDir))).thenReturn(tmpScanFile);
   }
 
   private static class StageMatcher
@@ -115,19 +117,19 @@ public class ScanTaskTest
   public void stateForScheduledTaskIsPending() {
     assertThat("New task state", task.getState(), equalTo(State.PENDING));
 
-    task.init(newApp("any"), new File("any"), new Stage(Stage.ID_BUILD), false);
+    task.init(newApp("any"), new File("any"), "any", new Stage(Stage.ID_BUILD), false);
     assertThat("Initialized task state", task.getState(), equalTo(State.PENDING));
   }
 
   @Test
   public void savedApplicationBinaryIsScanned() throws IOException {
-    task.init(app, bundleFile, stage, false);
+    task.init(app, bundleFile, bundleFilename, stage, false);
 
     assertThat(tmpScanFile.isFile(), is(true));
     assertThat(scanFile.isFile(), is(false));
     task.run();
 
-    verify(scanner).scan(eq(bundleFile), eq(scanDir));
+    verify(scanner).scan(eq(bundleFile), eq(bundleFilename), eq(scanDir));
     assertThat(tmpScanFile.isFile(), is(false));
     assertThat(scanFile.isFile(), is(true));
   }
@@ -142,7 +144,7 @@ public class ScanTaskTest
    */
   @Test
   public void successfulTaskHasTicketWithIdsForUiToRouteToReport() {
-    task.init(app, bundleFile, stage, false);
+    task.init(app, bundleFile, bundleFilename, stage, false);
     task.run();
 
     assertThatTaskCompletedSuccessfully(task);
@@ -158,11 +160,11 @@ public class ScanTaskTest
   @Test
   @SuppressWarnings("unchecked")
   public void erorredTaskHasTicketWithErrorMessage() throws IOException {
-    task.init(app, bundleFile, stage, false);
+    task.init(app, bundleFile, bundleFilename, stage, false);
 
-    when(scanner.scan((File) any(), (File) any())).thenThrow(RuntimeException.class);
+    when(scanner.scan((File) any(), (String) any(), (File) any())).thenThrow(RuntimeException.class);
 
-    task.init(app, bundleFile, stage, false);
+    task.init(app, bundleFile, bundleFilename, stage, false);
     task.run();
 
     assertThatTaskCompletedUnsuccessfully(task);
@@ -177,7 +179,7 @@ public class ScanTaskTest
   @Test
   public void policyEvaluationConsidersStageParameter() throws IOException {
     stage = new Stage(Stage.ID_RELEASE);
-    task.init(app, bundleFile, stage, false);
+    task.init(app, bundleFile, bundleFilename, stage, false);
 
     task.run();
 
@@ -187,10 +189,10 @@ public class ScanTaskTest
   @Test
   @SuppressWarnings("unchecked")
   public void erorredTaskDeletesTemporaryApplicationBinary() throws IOException {
-    when(scanner.scan((File) any(), (File) any())).thenThrow(RuntimeException.class);
+    when(scanner.scan((File) any(), (String) any(), (File) any())).thenThrow(RuntimeException.class);
 
     File appBinary = new File("any");
-    task.init(app, appBinary, stage, false);
+    task.init(app, appBinary, bundleFilename, stage, false);
     task.run();
 
     assertThatTaskCompletedUnsuccessfully(task);
@@ -199,7 +201,7 @@ public class ScanTaskTest
 
   @Test
   public void sendsNotifications() throws IOException {
-    task.init(app, bundleFile, stage, true);
+    task.init(app, bundleFile, bundleFilename, stage, true);
 
     List<PolicyAlert> oldAlerts = new ArrayList<>();
     List<PolicyAlert> newAlerts = new ArrayList<>();

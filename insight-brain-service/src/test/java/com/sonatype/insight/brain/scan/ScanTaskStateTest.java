@@ -52,7 +52,7 @@ public class ScanTaskStateTest
 
   @Before
   public void init() {
-    task.init(new Application("any", "MyApp", null), new File("any"), new Stage(Stage.ID_BUILD), false);
+    task.init(new Application("any", "MyApp", null), new File("any"), "any", new Stage(Stage.ID_BUILD), false);
   }
 
   @Test
@@ -63,7 +63,7 @@ public class ScanTaskStateTest
 
   @Test
   public void scanning() throws IOException {
-    when(scanner.scan((File) any(), (File) any())).then(captureState);
+    when(scanner.scan((File) any(), (String) any(), (File) any())).then(captureState);
 
     task.run();
 
@@ -113,7 +113,7 @@ public class ScanTaskStateTest
   @Test
   @SuppressWarnings("unchecked")
   public void error() throws IOException {
-    when(scanner.scan((File) any(), (File) any())).thenThrow(RuntimeException.class);
+    when(scanner.scan((File) any(), (String) any(), (File) any())).thenThrow(RuntimeException.class);
 
     task.run();
 

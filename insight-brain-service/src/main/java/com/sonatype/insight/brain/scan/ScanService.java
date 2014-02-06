@@ -64,7 +64,7 @@ class ScanService
     }
     File binFile = saveBinary(is, filename);
 
-    ScanTask task = newScanTask(appPublicId, binFile, stage, sendNotifications);
+    ScanTask task = newScanTask(appPublicId, binFile, filename, stage, sendNotifications);
     return task.getTicket();
   }
 
@@ -116,9 +116,9 @@ class ScanService
     return ext;
   }
 
-  private ScanTask newScanTask(String appPublicId, File binFile, Stage stage, boolean sendNotifications) {
+  private ScanTask newScanTask(String appPublicId, File binFile, String filename, Stage stage, boolean sendNotifications) {
     Application app = new ApplicationDAO().getByPublicIdNotNull(appPublicId);
-    ScanTask scanTask = taskRepository.newScanTask(app, binFile, stage, sendNotifications);
+    ScanTask scanTask = taskRepository.newScanTask(app, binFile, filename, stage, sendNotifications);
     return scanTask;
   }
 }

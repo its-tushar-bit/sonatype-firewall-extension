@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.scan;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Properties;
 
 import javax.inject.Inject;
@@ -69,7 +68,7 @@ class Scanner
   /**
    * Scans the specified target file and returns the resulting scan file, using the given directory as parent.
    */
-  public File scan(File target, File scanDir) throws IOException {
+  public File scan(File target, String filename, File scanDir) throws IOException {
     scanDir.mkdirs();
     File scanFile = File.createTempFile("temp-", ".xml.gz", scanDir);
     log.debug("Saving scan of {} to {}", target, scanFile);
@@ -82,7 +81,7 @@ class Scanner
         writer.writeConfiguration(scan.getConfiguration());
         scan.getSummary().setStartTime();
         clientScanner.scan(new ClientScanRequest(scan));
-        fileScanner.scan(new FileScanRequest(scan, null, Arrays.asList(target), writer));
+        fileScanner.scan(new FileScanRequest(scan, null, null, writer).addFile(target, filename, null));
         scan.getSummary().setEndTime();
         writer.writeSummary(scan.getSummary());
         writer.closeScan();

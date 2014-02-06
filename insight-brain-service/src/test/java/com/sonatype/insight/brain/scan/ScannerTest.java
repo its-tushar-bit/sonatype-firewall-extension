@@ -52,7 +52,7 @@ public class ScannerTest
   @Test
   public void testScan() throws Exception {
     File appFile = new File("src/test/resources/ScannerTest/app01.zip");
-    File scanFile = scanner.scan(appFile, new File(tempDir.getRoot(), "not-yet-existent"));
+    File scanFile = scanner.scan(appFile, "test-app.zip", new File(tempDir.getRoot(), "not-yet-existent"));
     assertThat(scanFile, is(notNullValue()));
     assertThat(scanFile.isFile(), is(true));
 
@@ -60,7 +60,7 @@ public class ScannerTest
     assertThat(scan, is(notNullValue()));
     assertThat(scan.getItems(), hasSize(1));
     ScanItem item = scan.getItems().get(0);
-    assertThat(item.getPath(), is("app01.zip"));
+    assertThat(item.getPath(), is("test-app.zip"));
     assertThat(item.getItems(), hasSize(1));
     item = item.getItems().get(0);
     assertThat(item.getPath(), is("proprietary.jar"));

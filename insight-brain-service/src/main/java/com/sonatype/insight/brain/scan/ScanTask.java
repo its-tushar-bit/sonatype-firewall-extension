@@ -88,6 +88,8 @@ class ScanTask
 
   private File binFile;
 
+  private String filename;
+
   private Stage stage;
 
   private boolean sendNotifications;
@@ -118,9 +120,10 @@ class ScanTask
   /**
    * @param binFile the binary file of what to scan
    */
-  public void init(Application app, File binFile, Stage stage, boolean sendNotifications) {
+  public void init(Application app, File binFile, String filename, Stage stage, boolean sendNotifications) {
     this.app = app;
     this.binFile = binFile;
+    this.filename = filename;
     this.stage = stage;
     this.sendNotifications = sendNotifications;
   }
@@ -176,7 +179,7 @@ class ScanTask
 
       // create the scan data
       state = State.SCANNING_COMPONENTS;
-      File scanFile = scanner.scan(binFile, work.getScanDir(app.getId()));
+      File scanFile = scanner.scan(binFile, filename, work.getScanDir(app.getId()));
 
       // upload the scan
       state = State.UPLOADING_SCAN;

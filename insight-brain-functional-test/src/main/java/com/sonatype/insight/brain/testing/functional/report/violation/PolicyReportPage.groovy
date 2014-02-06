@@ -31,6 +31,13 @@ class PolicyReportPage
     results { moduleList PolicyReportRow, $(class: 'slick-row') }
     resultsWithNoScore { results.findAll { it.threatGroup == none } }
     waiver { module AddPolicyWaiver, $('#add-waiver-modal') }
+    summaryViolations { $('#policy-violation-filter li a', text : 'Summary') }
+    allViolations { $('#policy-violation-filter li a', text : 'All') }
+    waivedViolations { $('#policy-violation-filter li a', text : 'Waived') }
+  }
+
+  String getSelectedViolationFilter() {
+    return $('#policy-violation-filter li.active a').text();
   }
 }
 
@@ -48,6 +55,8 @@ class PolicyReportRow
     cip { module Cip, parents().find('#informationPanel') }
     // can't rely on the text within the cell since it's only shown for the first row with that score
     threatGroup { $(class: iEndsWith('Score')).classes()[0] }
+    coordinates { $('.l1').text() }
+    waived(required : false) { $('.waiver-icon-container') }
 
     // private, use page methods for interaction
     // click a cell, not the row, to make the CIP appear

@@ -22,9 +22,10 @@ class ModalModule
   def static content = {
     modals(required: false) { $('div.modal') }
     modal { modals.has('h3', text: title) }
-    confirm { modal.find('button', text: confirmText ) }
-    cancel { modal.find('button', text: cancelText) }
+    buttons { module ButtonsModule, modal }
+    confirm { buttons.button(confirmText) }
+    cancel { buttons.button(cancelText) }
+    ok(required: false) { buttons.button(okText) }
     text { modal.find('p').text() }
-    ok(required: false) { modal.find('button', text: okText) }
   }
 }

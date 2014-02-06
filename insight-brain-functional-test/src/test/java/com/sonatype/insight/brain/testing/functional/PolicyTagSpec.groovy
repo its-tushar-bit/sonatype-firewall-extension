@@ -63,6 +63,9 @@ class PolicyTagSpec
 
     then: 'it opens and shows the available tags'
       editor.tagsDropdownList.find('a')*.text() == [tag1.name, tag2.name]
+
+    and: 'they are styled in the list with the appropriate color'
+      editor.areTagsColored([(tag1.name): tag1.color, (tag2.name): tag2.color])
       report('dropdown open')
 
     when: 'Toggling the first tag'
@@ -83,9 +86,6 @@ class PolicyTagSpec
       def tagNames = [tag1.name, tag2.name]
       editor.tagsDropdownButton.text() == tagNames.join(', ')
       editor.areTagsApplied(tagNames)
-
-    and: 'they are styled in the list with the appropriate color'
-      editor.areTagsColored([(tag1.name): tag1.color, (tag2.name): tag2.color])
   }
 
   def 'We can save the Tag changes'(){

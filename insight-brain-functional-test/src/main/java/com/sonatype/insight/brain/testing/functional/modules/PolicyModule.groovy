@@ -64,15 +64,13 @@ class PolicyEditorModule
     return isApplied
   }
 
+  /**
+   * Assumes that the tag dropdown is already open
+   */
   boolean areTagsColored(Map<String, String> namesToColors) {
-    showDropdown()
-    boolean hasColor = true
-    namesToColors.each { String name, String color ->
-      def contains = tagsDropdownColor(name).classes().contains("${color}Label".toString())
-      hasColor = hasColor && contains
+    return namesToColors.every { String name, String color ->
+      tagsDropdownColor(name).classes().contains("${color}Label".toString())
     }
-    hideDropdown()
-    return hasColor
   }
 
   boolean isSelected(radioButton) {

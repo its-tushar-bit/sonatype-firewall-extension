@@ -9,6 +9,7 @@ import com.sonatype.insight.brain.testing.functional.modules.ButtonsModule
 import com.sonatype.insight.brain.testing.functional.modules.EditorToolsModule
 import com.sonatype.insight.brain.testing.functional.modules.ContextTabsModule
 import com.sonatype.insight.brain.testing.functional.modules.ImportPolicyModule
+import com.sonatype.insight.brain.testing.functional.modules.PolicyModule
 import com.sonatype.insight.brain.testing.functional.modules.PolicyMonitoringModule
 import com.sonatype.insight.brain.testing.functional.modules.TagApplicationModule
 
@@ -49,6 +50,7 @@ class ApplicationPage
 
     policyImport { module ImportPolicyModule }
 
+    policies { module PolicyModule, tabs.policiesTab }
     policyMonitoring { module PolicyMonitoringModule }
 
     tabs { module ContextTabsModule }

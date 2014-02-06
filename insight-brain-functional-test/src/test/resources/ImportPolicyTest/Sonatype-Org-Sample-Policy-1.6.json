@@ -1008,11 +1008,24 @@
     "color": "red"
   },
   {
-    "id": "aedb24ea13e844b69e8a8253f4b284ba",
+    "id": "aedb24ea13e844b69e8a8253f4b284bb",
     "organizationId": "6c0a425633cd4bb0be0598f4010a1345",
     "name": "Policy Tag 2",
     "nameLowercaseNoWhitespace": "policyTag2",
     "description": "Another Tag used for testing",
     "color": "blue"
   }
-]}
+],
+  "policyTags": [
+    {
+      "id": "f4705ca239604edcb0bd1a62d867d7c7",
+      "policyId": "fc0423e9f3784dc29afb9befa1511ef7",
+      "tagId": "aedb24ea13e844b69e8a8253f4b284ba"
+    },
+    {
+      "id": "f5014de14af9495e8e6a16be8b3ed9bc",
+      "policyId": "beaa151de80f4a15aeb86235216c85f6",
+      "tagId": "aedb24ea13e844b69e8a8253f4b284bb"
+    }
+  ]
+}

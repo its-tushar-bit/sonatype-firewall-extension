@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.testing.functional
 
+import com.sonatype.insight.brain.testing.functional.modules.ImportPolicyModule
 import spock.lang.Stepwise
 
 /**
@@ -14,9 +15,12 @@ import spock.lang.Stepwise
 class TagSpec
     extends BaseSpec
 {
+  static Map samplePolicy
+
   def setupSpec() {
     OrganizationManagementPage organizationManagementPage = loginAsAdminVia(OrganizationManagementPage)
-    organizationManagementPage.createOrgWithDefaultPolicy('TagSpec')
+    organizationManagementPage.createOrgWithDefaultPolicy('TagSpec', ImportPolicyModule.sampleOrgPolicyFile)
+    samplePolicy = ImportPolicyModule.parsePolicyFile(ImportPolicyModule.sampleOrgPolicyFile)
   }
 
   def cleanupSpec() {
@@ -30,7 +34,7 @@ class TagSpec
     then: 'the url changes and we are presented with an empty list of Tags'
       waitFor { tags.newTagButton.displayed }
       driver.currentUrl.endsWith('tags')
-      tags.tagList.empty
+      tags.tagList.size() == samplePolicy.tags.size()
   }
 
   def "Can add a new Tag"() {
@@ -42,7 +46,7 @@ class TagSpec
       waitFor { !tags.tagEditor.displayed }
 
     and: 'The tag is added to the list of available tags'
-      waitFor { tags.tagList.size() == 1 }
+      waitFor { tags.tagList.size() == samplePolicy.tags.size() + 1 }
       tags.tag(0).text() == 'New Tag'
       tags.tag(0).classes().contains('blackLabel')
       tags.serverAlerts.children().size() == 0
@@ -58,7 +62,7 @@ class TagSpec
       tags.color('black').classes().contains('active')
 
     when: 'We update the tag name and description'
-      tags.name = 'Updated New Tag'
+      tags.name = 'New Tag Updated'
       tags.description = 'Updated Tag Description'
       tags.color('green').click()
       tags.buttons.save.click()
@@ -74,7 +78,7 @@ class TagSpec
       tags.tag(0).click()
 
     then: 'The form is populated with the updated name, description and policy of the chosen Tag'
-      tags.name == 'Updated New Tag'
+      tags.name == 'New Tag Updated'
       tags.description == 'Updated Tag Description'
       tags.color('green').classes().contains('active')
       tags.buttons.cancel.click()
@@ -88,14 +92,14 @@ class TagSpec
       tagModal.confirm.click()
 
     then:
-      waitFor { tags.tagList.empty }
+      waitFor { tags.tagList.size() == samplePolicy.tags.size() }
   }
 
   def "We are prevented from saving if the form won't validate"(){
     when: 'We try to add a second tag with an existing name'
       tags.createNewTag()
       tags.buttons.save.click()
-      waitFor { tags.tagList.size() == 1 }
+      waitFor { tags.tagList.size() == samplePolicy.tags.size() + 1 }
       tags.createNewTag()
 
     then: 'We are presented with an error message'
@@ -133,19 +137,26 @@ class TagSpec
       tags.buttons.save.click()
 
     then: 'the value displayed will be truncated'
-      waitFor { tags.tagList.size() == 2 }
+      waitFor { tags.tagList.size() == samplePolicy.tags.size() + 2 }
       tags.tagList[0].text() == (('A' * 22) + '...')
   }
 
   def "Already applied tags warn they are used on deletion"(){
-    given: 'An Application to appy tags to'
+    given: 'An Application to apply tags to'
       def applicationManagementPage = to(ApplicationManagementPage)
       applicationManagementPage
       applicationManagementPage.createApp('TagSpec', 'TagSpec', 'TagSpec')
       waitFor{ tabs.tabLinks.displayed }
-      tabs.tagTabButton.click()
+
+    when: 'Viewing the inherited organization policies'
+      tabs.policiesTabButton.click()
+      waitFor{ policies.findPolicyEditor('Security-High').displayed }
+
+    then: 'The inherited policy is marked to show it will be  applied only if we have one of the corresponding tags'
+      policies.findPolicyEditor('Security-High').showsTagIcon()
 
     when: 'Applying a Tag to an Application'
+      tabs.tagTabButton.click()
       waitFor { tags.availableTagList.size() > 0 }
       tags.availableTagList[0].click()
 
@@ -170,5 +181,11 @@ class TagSpec
     then: 'We are warned that it is in use'
       waitFor { tagModal.modal.displayed }
       tagModal.text.contains('It is in use by the following applications: TagSpec.')
+
+    when:
+      tagModal.confirm.click()
+
+    then:
+      true
   }
 }

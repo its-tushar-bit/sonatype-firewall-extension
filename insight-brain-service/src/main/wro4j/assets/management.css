@@ -468,6 +468,11 @@ h4 {
 .policy-top.collapsed, .licenseGroup-top.collapsed {
     border-bottom: 1px solid transparent;
 }
+/* Slight tweak to allow the icon to fit inside its parent container */
+.policy-top .icon-tags {
+  background-position: -24px -47px;
+  height: inherit;
+}
 .accordion-group {
 	border: 1px solid transparent;
 }

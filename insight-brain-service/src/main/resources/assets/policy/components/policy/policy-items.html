@@ -6,7 +6,9 @@
 				<button type='button' class="btn btn-mini policy-button" title="Remove Policy" ng-click="remove(policy)"><i class="icon-trash"></i></button>
 			</div>
 			<a class="accordion-toggle policy-top collapsed" data-toggle="collapse" data-target="#collapse{{policy.id}}">
-				<span class='threat-chiclet threat-level-{{policy.threatLevel}}'>&nbsp;</span>
+				<span class='threat-chiclet threat-level-{{policy.threatLevel}}'
+                                  ng-class="{'icon-tags icon-white': isTagged(policy)}"
+                                  title="{{ getTitle(policy) }}">&nbsp;</span>
 				<h3>{{policy.name}}</h3>
 			</a>
 		</div>

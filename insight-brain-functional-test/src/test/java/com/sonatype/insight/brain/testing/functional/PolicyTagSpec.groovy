@@ -15,6 +15,8 @@ class PolicyTagSpec
   static Map tag1
   static Map tag2
 
+  public static final String POLICY_NAME = 'Architecture-Quality'
+
   def setupSpec() {
     OrganizationManagementPage organizationManagementPage = loginAsAdminVia(OrganizationManagementPage)
     organizationManagementPage.createOrgWithDefaultPolicy('PolicyTagSpec', ImportPolicyModule.sampleOrgPolicyFile)
@@ -31,12 +33,15 @@ class PolicyTagSpec
 
   def 'Initially a policy applies to all applications'(){
     when: 'We edit a policy that has no tags'
-      def editor = policies.findPolicyEditor('Architecture-Quality')
+      def editor = policies.findPolicyEditor(POLICY_NAME)
       editor.editButton.click()
       waitFor { editor.tagsHeader.displayed }
       editor.showDropdown()
 
-    then: 'the "All Applications" option is selected'
+    then: 'the policy does not show a Tag icon in its header'
+      !editor.showsTagIcon()
+
+    and: 'the "All Applications" option is selected'
       editor.isSelected(editor.allApplicationRadioButton)
       !editor.isSelected(editor.taggedApplicationRadioButton)
 
@@ -51,9 +56,17 @@ class PolicyTagSpec
 
   def 'We can add tags to the policy'() {
     given :
-      def editor = policies.findPolicyEditor('Architecture-Quality')
+      def editor = policies.findPolicyEditor(POLICY_NAME)
+
+    when: 'We click the input'
+      editor.showDropdown()
+
+    then: 'it opens and shows the available tags'
+      editor.tagsDropdownList.find('a')*.text() == [tag1.name, tag2.name]
+      report('dropdown open')
 
     when: 'Toggling the first tag'
+      editor.hideDropdown()
       editor.toggleTag(tag1.name)
 
     then: 'the tag name shows up in the text of the button'
@@ -77,12 +90,12 @@ class PolicyTagSpec
 
   def 'We can save the Tag changes'(){
     given :
-      def editor = policies.findPolicyEditor('Architecture-Quality')
+      def editor = policies.findPolicyEditor(POLICY_NAME)
 
     when: 'We save and refresh the page'
       editor.buttons.save.click()
       driver.navigate().refresh()
-      editor = policies.findPolicyEditor('Architecture-Quality')
+      editor = policies.findPolicyEditor(POLICY_NAME)
       editor.editButton.click()
       waitFor { editor.tagsHeader.displayed }
 
@@ -90,16 +103,19 @@ class PolicyTagSpec
       def tagNames = [tag1.name, tag2.name]
       editor.tagsDropdownButton.text() == tagNames.join(', ')
       editor.areTagsApplied(tagNames)
+
+    and: 'The policy should be marked as having Tags in the header'
+      editor.showsTagIcon()
   }
 
   def 'We can clear all Tags'(){
     given :
-      def editor = policies.findPolicyEditor('Architecture-Quality')
+      def editor = policies.findPolicyEditor(POLICY_NAME)
 
     when: 'We choose the "All Applications" option'
       editor.allApplicationRadioButton.click()
 
-    then:
+    then: 'all presently selected tags are removed'
       editor.isSelected(editor.allApplicationRadioButton)
       !editor.isSelected(editor.taggedApplicationRadioButton)
       editor.tagsDropdownButton.text() == 'None selected'
@@ -107,15 +123,25 @@ class PolicyTagSpec
 
   def 'We cannot save if we do not select Tags and "All Applications" is not selected'(){
     given :
-      def editor = policies.findPolicyEditor('Architecture-Quality')
+      def editor = policies.findPolicyEditor(POLICY_NAME)
     when: 'We click on the "Applications with Tags" option'
       editor.taggedApplicationRadioButton.click()
 
     then: 'We are presented with an error message'
       editor.policyTag.classes().contains('error')
       editor.policyTagError.text() == 'Must select tags to associate with the policy.'
+  }
 
-    cleanup:
-      editor.buttons.cancel.click()
+  def 'The header tags icon is removed if no tags are selected'(){
+    given :
+      def editor = policies.findPolicyEditor(POLICY_NAME)
+
+    when: 'We save the policy with no tags applied'
+      editor.allApplicationRadioButton.click()
+      editor.buttons.save.click()
+
+    then: 'the form closes and the icon is removed'
+      !editor.tagsHeader.present
+      !editor.showsTagIcon()
   }
 }

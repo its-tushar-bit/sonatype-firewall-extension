@@ -1,13 +1,20 @@
 describe('PolicyEditor.js', function() {
   var testScope = null,
-      dialogScope = null,
-      bomId = 'bom1-12345678',
-      tags = [
-        {id: 'tagId1', ownerId: bomId, name: 'foo', description: 'foo'},
-        {id: 'tagId2', ownerId: bomId, name: 'bar', description: 'bar'},
-        {id: 'tagId3', ownerId: bomId, name: 'baz', description: 'baz'}
-      ];
+    dialogScope = null,
+    bomId = 'bom1-12345678',
+    tags = [
+      {id: 'tagId1', ownerId: bomId, name: 'foo', description: 'foo'},
+      {id: 'tagId2', ownerId: bomId, name: 'bar', description: 'bar'},
+      {id: 'tagId3', ownerId: bomId, name: 'baz', description: 'baz'}
+    ],
+    policyTagMap = {'053e89a476b34d7dac5d97665d2d241e':
+      [angular.extend(tags[1], {policyId: '053e89a476b34d7dac5d97665d2d241e'})]};
 
+  function getPolicyEditorScope(){
+    var scope = angular.element('.inline-policy-editor').scope();
+    scope.policyTagMap = angular.copy(policyTagMap);
+    return  scope;
+  }
   function getController(controllerName) {
     var controller = null,
         scope = null;
@@ -102,8 +109,9 @@ describe('PolicyEditor.js', function() {
     beforeEach(inject(function($compile, $httpBackend) {
       testScope.policy = createNewPolicy();
       testScope.tags = tags;
+      testScope.policyTagMap = angular.copy(policyTagMap);
       getPolicyEditorController();
-      var node = $("<div id='testInlinePolicyCreator' inline-policy-creator tags='tags'></div>");
+      var node = $("<div id='testInlinePolicyCreator' inline-policy-creator tags='tags' policy-tag-map='policyTagMap'></div>");
       node.appendTo('body');
       scope = testScope.$new(); // testScope's destruction cascades
       $httpBackend.whenGET("policy-quick-add").respond('<div ng-if="policy">' + template + '</div>');
@@ -132,7 +140,7 @@ describe('PolicyEditor.js', function() {
       createScope.click();
       scope.$digest();
 
-      var policyEditorScope = angular.element('.inline-policy-editor').scope();
+      var policyEditorScope = getPolicyEditorScope();
       // short-circuit the validation in a way we can still confirm this was called
       spyOn(policyEditorScope, 'validate').andReturn(true);
       $httpBackend.whenGET("../assets/components/policy-editor/condition-editor.html?").respond(conditionTemplate);
@@ -154,7 +162,7 @@ describe('PolicyEditor.js', function() {
       createScope.click();
       scope.$digest();
 
-      var policyEditorScope = angular.element('.inline-policy-editor').scope();
+      var policyEditorScope = getPolicyEditorScope();
       expect(policyEditorScope.policy).not.toBeNull();
       $httpBackend.whenGET("../assets/components/policy-editor/condition-editor.html?").respond(conditionTemplate);
       $httpBackend.whenGET('../assets/components/policy-editor/constraint-editor.html?').respond(constraintEditorTemplate);
@@ -207,7 +215,7 @@ describe('PolicyEditor.js', function() {
         createScope.click();
         scope.$digest();
 
-        var policyEditorScope = angular.element('.inline-policy-editor').scope();
+        var policyEditorScope = getPolicyEditorScope();
         $httpBackend.whenGET("../assets/components/policy-editor/condition-editor.html?").respond(conditionTemplate);
         $httpBackend.whenGET('../assets/components/policy-editor/constraint-editor.html?').respond(constraintEditorTemplate);
         $httpBackend.flush();
@@ -219,7 +227,7 @@ describe('PolicyEditor.js', function() {
         createScope.click();
         scope.$digest();
 
-        var policyEditorScope = angular.element('.inline-policy-editor').scope();
+        var policyEditorScope = getPolicyEditorScope();
         $httpBackend.whenGET("../assets/components/policy-editor/condition-editor.html?").respond(conditionTemplate);
         $httpBackend.whenGET('../assets/components/policy-editor/constraint-editor.html?').respond(constraintEditorTemplate);
         $httpBackend.flush();
@@ -286,7 +294,7 @@ describe('PolicyEditor.js', function() {
       parentScope.$digest();
       scope.policy.constraints = [];
 
-      var policyEditorScope = angular.element('.inline-policy-editor').scope();
+      var policyEditorScope = getPolicyEditorScope();
       policyEditorScope[scope.getFormName()] = form;
       validateValidation(policyEditorScope, 'Policy name is required.');
       form.name.$error.required = false;
@@ -374,6 +382,7 @@ describe('PolicyEditor.js', function() {
       });
 
       policyScope.policy.name = 'asdflkasdfkljasfdklj';
+      policyScope.policyTagMap = angular.copy(policyTagMap);
       expect(policyScope.policy.isDirty()).toEqual(true);
 
       $httpBackend.expectPUT(SpecUtil.toRegExp(CLMAppLocations.getPolicyUrl())).respond(angular.extend(angular.copy(policyScope.policy.$getOriginal()),
@@ -463,6 +472,11 @@ describe('PolicyEditor.js', function() {
 
       scope.appliedTagIds.splice(0, 1);
       scope.appliedTagIds.push('tagId3');
+      scope.policyTagMap = angular.copy(policyTagMap);
+      scope.policyTagMap[scope.policy.id] = [
+        angular.extend(tags[0], {policyId: scope.policy.id}),
+        angular.extend(tags[1], {policyId: scope.policy.id})
+      ];
 
       $httpBackend.expectPUT(SpecUtil.toRegExp(CLMAppLocations.getPolicyUrl())).respond(testScope.policy);
       $httpBackend.expectDELETE(CLMAppLocations.getPolicyTagUrl(undefined).substring(0, CLMAppLocations.getPolicyTagUrl(undefined).indexOf('?')) + '/tagId1?orgId=null').respond(204);
@@ -470,6 +484,11 @@ describe('PolicyEditor.js', function() {
       scope.savePolicy();
       $httpBackend.flush();
       expect(scope.hide).toHaveBeenCalled();
+      expect(scope.policyTagMap[testScope.policy.id]).toBeDefined();
+      expect(scope.policyTagMap[testScope.policy.id].length).toBe(2);
+      //should have added tagId3 to the mapping and removed tagId1
+      expect(scope.policyTagMap[testScope.policy.id][0].id).toBe('tagId2');
+      expect(scope.policyTagMap[testScope.policy.id][1].id).toBe('tagId3');
     }));
   });
 

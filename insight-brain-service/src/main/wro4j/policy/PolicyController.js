@@ -39,8 +39,8 @@
       $scope.alerts = [];
       $scope.location = $location;
       $scope.policyMonitoringAlerts = [];
-      
-      
+      $scope.policyTagMap = {};
+
       $scope.isPolicyMonitoringLicensed = function() {
         return ProductFeatures.isAvailable('policy-monitoring');
       };
@@ -101,6 +101,11 @@
             if (index === 0) {
               applicablePolicy.policies = results[0];
             }
+            angular.forEach(applicablePolicy.policyTags, function(policyTag){
+              var tags = $scope.policyTagMap[policyTag.policyId] || [];
+              tags.push(policyTag);
+              $scope.policyTagMap[policyTag.policyId] = tags;
+            });
           });
 
           if (results.length > 3) {
@@ -183,7 +188,8 @@
           policies: '=policyItems',
           editable: '=editable',
           remove: '=',
-          tags: '='
+          tags: '=',
+          policyTagMap: '='
         },
         priority: 99,
         link: function(scope) {
@@ -216,6 +222,18 @@
           scope.edit = function(policy) {
             scope.policyEditMap[policy.id] = true;
             $('#collapse' + policy.id).collapse('show');
+          };
+
+          scope.isTagged = function(policy){
+            return (policy.id in scope.policyTagMap && scope.policyTagMap[policy.id].length > 0);
+          };
+
+          scope.getTitle = function(policy){
+            var title = '';
+            if(scope.isTagged(policy)){
+              title = 'This Policy applies only to Applications with one of the corresponding Tags';
+            }
+            return title;
           };
         }
       };

@@ -37,6 +37,7 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.model.tag.PolicyTag;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzErrorMsg;
@@ -127,6 +128,7 @@ public class PolicyResource
     policiesByOwner.ownerName = organization.getName();
     policiesByOwner.ownerType = IdUtils.TYPE_ORGANIZATION;
     policiesByOwner.policies = new PolicyDAO().getByOwnerId(organization.getId());
+    policiesByOwner.policyTags = new PolicyTagDAO().getByOrganizationId(organization.getId());
     result.policiesByOwner.add(policiesByOwner);
 
     return result;
@@ -325,5 +327,7 @@ public class PolicyResource
     public String ownerType;
 
     public List<Policy> policies;
+
+    public List<PolicyTag> policyTags = new ArrayList<>();
   }
 }

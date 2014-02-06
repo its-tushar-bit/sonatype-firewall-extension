@@ -30,14 +30,13 @@ class PolicyEditorModule
   static content = {
     header { $('.accordion-heading') }
     editButton { header.find('button', 'ng-click': 'edit(policy)') }
-    editor { $('.accordion-body.in') }
+    chicklet { header.find('span.threat-chiclet')}
+    tagsHeader(required: false) { $('h5', text: 'Application Matching') }
     buttons { module ButtonsModule }
-    tagsHeader { $('h5', text: 'Application Matching') }
     policyTag { $('.policy-tag') }
     policyTagError { policyTag.find('div')[-1] }
-    radioButton { option -> $('input[type=radio]', 'ng-value': option) }
-    allApplicationRadioButton { radioButton('false') }
-    taggedApplicationRadioButton { radioButton('true') }
+    allApplicationRadioButton { $('#radio-all-applications') }
+    taggedApplicationRadioButton { $('#radio-tag-applications') }
     tags { $('span', items: 'tags') }
     tagsDropdownButton { tags.find('button') }
     tagsDropdownList { tags.find('ul') }
@@ -45,13 +44,13 @@ class PolicyEditorModule
     tagsDropdownColor { name -> tagsDropdownList.find('a', text: name).find('span.multi-dropdown-item-color') }
   }
 
-  def toggleTag(String name) {
+  void toggleTag(String name) {
     showDropdown()
     this.tagsDropdownCheck(name).click()
     hideDropdown()
   }
 
-  def areTagsApplied(List<String> names) {
+  boolean areTagsApplied(List<String> names) {
     showDropdown()
     boolean isApplied = true;
     for (String name in names) {
@@ -64,7 +63,7 @@ class PolicyEditorModule
     return isApplied
   }
 
-  def areTagsColored(Map<String, String> namesToColors) {
+  boolean areTagsColored(Map<String, String> namesToColors) {
     showDropdown()
     boolean hasColor = true
     namesToColors.each { String name, String color ->
@@ -75,16 +74,20 @@ class PolicyEditorModule
     return hasColor
   }
 
-  def isSelected(radioButton) {
+  boolean isSelected(radioButton) {
     return radioButton.firstElement().selected
   }
 
-  def showDropdown() {
+  boolean showsTagIcon(){
+    return chicklet.classes().contains('icon-tags')
+  }
+
+  void showDropdown() {
     tagsDropdownButton.click()
     waitFor { tagsDropdownList.displayed }
   }
 
-  def hideDropdown() {
+  void hideDropdown() {
     tagsHeader.click()
     waitFor { !tagsDropdownList.displayed }
   }

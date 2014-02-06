@@ -39,7 +39,10 @@ class TagSpec
       tags.togglePolicy('Security-High')
       tags.buttons.save.click()
 
-    then: 'it is added to the list of available Tags'
+    then: 'The tag editor is disposed'
+      waitFor { !tags.tagEditor.displayed }
+
+    and: 'The tag is added to the list of available tags'
       waitFor { tags.tagList.size() == 1 }
       tags.tag(0).text() == 'New Tag'
       tags.tag(0).classes().contains('blackLabel')
@@ -54,7 +57,7 @@ class TagSpec
       tags.name == 'New Tag'
       tags.description == 'Tag description'
       tags.color('black').classes().contains('active')
-      tags.isPolicyApplied('Security-High')
+      waitFor { tags.isPolicyApplied('Security-High') }
 
     when: 'We update the tag name and description'
       tags.name = 'Updated New Tag'
@@ -63,7 +66,10 @@ class TagSpec
       tags.togglePolicy('Security-High')
       tags.buttons.save.click()
 
-    then:
+    then: 'The tag editor is disposed'
+      waitFor { !tags.tagEditor.displayed }
+
+    and: 'The listed tag is updated'
       waitFor { tags.tag(0).text() == 'Updated New Tag' }
       tags.tag(0).classes().contains('greenLabel')
 

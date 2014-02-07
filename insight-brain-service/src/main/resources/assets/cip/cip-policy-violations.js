@@ -4,7 +4,7 @@
  * http://links.sonatype.com/products/clm/attributions. "Sonatype" is a
  * trademark of Sonatype, Inc.
  */
-/*global angular, $, window, CLM */
+/*global angular, $, CLM */
 (function() {
   'use strict';
   function PolicyViolationTab(node, options) {
@@ -57,52 +57,147 @@
             msg: messages.getHttpErrorMessage(arguments)
           });
         }
+        
 
-        function doLoad() {
+        // because we need to support reports generated from older servers, we must tweak the data so that it
+        // fits what the html expects
+        function processConstraint(constraint) {
+          var processedConstraint = {
+            constraintId: constraint.constraintId,
+            constraintName: constraint.constraintName,
+            constraintOperator: constraint.operatorName,
+            conditions: []
+          };
+
+          angular.forEach(constraint.conditionFacts, function(conditionFact) {
+            processedConstraint.conditions.push({
+              conditionType: conditionFact.conditionTypeId,
+              conditionSummary: conditionFact.summary,
+              conditionReason: conditionFact.reason
+            });
+          });
+
+          return processedConstraint;
+        }
+        
+        function addIfNotFound(actions, action) {
+          if (!action) {
+            return;
+          }
+          for ( var i = 0 ; i < actions.length ; i++ ) {
+            if (actions[i].actionSummary === action.actionSummary) {
+              //found a match, bail out
+              return;
+            }
+          }
+          actions.push(action);
+        }
+        
+        function processAction(action, actionTypes) {
+          var processedAction = null;
+          $.each(actionTypes, function(){
+            if (this.id === action.actionTypeId) {
+              processedAction = {
+                actionSummary: this.summary
+              };
+              return false;
+            }
+          });
+          return processedAction;
+        }
+        
+        function buildPolicyAlert(data) {
+          return angular.extend(data, {
+            color: data.threatLevel > 7 ? 'red' : data.threatLevel > 3 ? 'orange' : data.threatLevel > 1 ? 'yellow'
+                    : data.threatLevel > 0 ? 'darkblue' : 'blue'
+          });
+        }
+        
+        function sortPolicyAlerts() {
+          $scope.processedPolicyAlerts.sort(function(a, b) {
+            return b.threatLevel - a.threatLevel;
+          });
+        }
+        
+        function handleError(error) {
+          $scope.alerts.push({
+            type: 'error',
+            msg: messages.getHttpErrorMessage(error)
+          });
+        }
+        
+        function doLegacyLoad() {
           $q.all([$http.get(CLM.path + 'rest/policy/actionType'), $http.get('policyalerts.json')]).then(function (result) {
-            $scope.actionTypes = result[0].data;
-            $scope.policyAlerts = result[1].data.aaData || [];
+            var actionTypes = result[0].data;
+            var policyAlerts = result[1].data.aaData || [];
 
             $scope.processedPolicyAlerts = [];
-            angular.forEach($scope.policyAlerts, function(policyAlert, policyAlertIndex) {
-              var actions = [];
+            angular.forEach(policyAlerts, function(policyAlert, policyAlertIndex) {
+              var processedActions = [];
               angular.forEach(policyAlert.actions, function(action, actionIndex) {
-                angular.forEach($scope.actionTypes, function(actionType, actionTypeIndex) {
-                  if (actionType.id === action.actionTypeId && jQuery.inArray(actionType.summary, actions) === -1) {
-                    actions.push(actionType.summary);
-                    return false;
-                  }
-                });
+                addIfNotFound(processedActions, processAction(action, actionTypes));
               });
+              
               angular.forEach(policyAlert.trigger.componentFacts, function(componentFact, componentFactIndex) {
                 if (componentFact.hash === policyViolationData.hash) {
-                  var tLvl = policyAlert.trigger.threatLevel;
-                  $scope.processedPolicyAlerts.push({
-                    id: policyAlert.trigger.policyId,
-                    name: policyAlert.trigger.policyName,
-                    threatLevel: tLvl,
-                    groupId: componentFact.groupId,
-                    artifactId: componentFact.artifactId,
-                    version: componentFact.version,
-                    hash: componentFact.hash,
-                    color: tLvl > 7 ? 'red' : tLvl > 3 ? 'orange' : tLvl > 1 ? 'yellow' : tLvl >
-                        0 ? 'darkblue' : 'blue',
-                    constraints: componentFact.constraintFacts,
-                    actions: actions
+                  var processedConstraints = [];
+                  angular.forEach(componentFact.constraintFacts, function(constraintFact){
+                    processedConstraints.push(processConstraint(constraintFact));
                   });
+                  $scope.processedPolicyAlerts.push(
+                    buildPolicyAlert({
+                      id: policyAlert.trigger.policyId,
+                      name: policyAlert.trigger.policyName,
+                      threatLevel: policyAlert.trigger.threatLevel,
+                      groupId: componentFact.groupId,
+                      artifactId: componentFact.artifactId,
+                      version: componentFact.version,
+                      hash: componentFact.hash,
+                      constraints: processedConstraints,
+                      actions: processedActions
+                    }));
                 }
               });
             });
-            $scope.processedPolicyAlerts.sort(function(policyA, policyB) {
-              return policyA.threatLevel > policyB.threatLevel ? -11 : policyA.threatLevel <
-                  policyB.threatLevel ? 1 : 0;
-            });
-          }, function (error) {
-            $scope.alerts.push({
-              type: 'error',
-              msg: messages.getHttpErrorMessage(error)
-            });
-          });
+            sortPolicyAlerts();
+          }, handleError);
+        }
+
+        function doLoad() {
+          $http.get('policythreats.json').then(function(result) {
+            // if version isn't set we are dealing with old data, so revert to old request and massage data as
+            // necessary
+            if (!result.data.version) {
+              doLegacyLoad();
+            } else {
+              var policyThreats = result.data.aaData || [];
+              $scope.processedPolicyAlerts = [];
+
+              angular.forEach(policyThreats, function(policyThreat, policyThreatIndex) {
+                if (policyThreat.hash === policyViolationData.hash) {
+                  angular.forEach(policyThreat.activeViolations, function(activeViolation, activeViolationIndex) {
+                    var actions = [];
+                    angular.forEach(activeViolation.actions, function(action){
+                      addIfNotFound(actions, action);
+                    });
+                    $scope.processedPolicyAlerts.push(buildPolicyAlert({
+                      id: activeViolation.policyId,
+                      name: activeViolation.policyName,
+                      threatLevel: activeViolation.policyThreatLevel,
+                      groupId: policyThreat.groupId,
+                      artifactId: policyThreat.artifactId,
+                      version: policyThreat.version,
+                      hash: policyThreat.hash,
+                      constraints: activeViolation.constraints,
+                      actions: actions
+                    }));
+                  });
+                }
+              });
+
+              sortPolicyAlerts();
+            }
+          }, handleError);
         }
 
         $scope.waiveComponent = function(policyAlert) {
@@ -195,8 +290,8 @@
     ]);
 
     policyViolationApp.controller('ViewWaiverController', [
-      '$scope', '$http', '$q', 'PolicyViolationData', 'Messages',
-      function($scope, $http, $q, policyViolationData, messages) {
+      '$scope', '$http', 'PolicyViolationData', 'Messages',
+      function($scope, $http, policyViolationData, messages) {
         function handleHttpError(data, status, headerFn, config) {
           $scope.appError = messages.getHttpErrorMessage(arguments);
         }

@@ -110,12 +110,12 @@
 					<b>{{policyAlert.name}}</b>
 				</div>
 				<ul style="color: #555555;">
-					<li ng-repeat="action in policyAlert.actions"><i>{{action}}</i></li>
+					<li ng-repeat="action in policyAlert.actions"><i>{{action.actionSummary}}</i></li>
 				</ul>
 			</td>
 			<td valign="top" align="left">
 				<div ng-repeat="constraint in policyAlert.constraints">
-					<div ng-repeat="conditionFact in constraint.conditionFacts">
+					<div ng-repeat="condition in constraint.conditions">
 						<div style="color: #555555;" ng-show="$index == 0">
 							<b>{{constraint.constraintName}}</b>
 						</div>
@@ -125,7 +125,7 @@
 			</td>
 			<td>
 				<div ng-repeat="constraint in policyAlert.constraints">
-					<div ng-repeat="conditionFact in constraint.conditionFacts" style="color: #555555;">{{conditionFact.reason}}</div>
+					<div ng-repeat="condition in constraint.conditions" style="color: #555555;">{{condition.conditionReason}}</div>
 				</div>
 			</td>
 			<td style="vertical-align:middle;">

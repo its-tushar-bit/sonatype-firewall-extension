@@ -16,85 +16,274 @@ describe('CIP Policy Waiver tests', function() {
     // setup our http backend to return what we want
     beforeEach(inject(function($rootScope, $controller, $httpBackend) {
       _scope = $rootScope.$new();
-
-      $httpBackend.expectGET(SpecUtil.toRegExp('../brain/rest/policy/actionType')).respond({});
-      $httpBackend.expectGET(SpecUtil.toRegExp('policyalerts.json')).respond({
-        aaData: [
-          {
-            trigger: {
+    }));
+    
+    describe('Current JSON data', function(){
+      // setup our http backend to return what we want
+      beforeEach(inject(function($rootScope, $controller, $httpBackend) {
+        $httpBackend.expectGET(SpecUtil.toRegExp('policythreats.json')).respond({
+          version: 1,
+          aaData: [{
+            groupId: "bsh",
+            artifactId: "bsh",
+            version: "1.3.0",
+            hash: "1",
+            policyId: "policyId",
+            policyName: "name",
+            threatLevel: 5,
+            activeViolations: [{
               policyId: "policyId",
               policyName: "name",
-              threatLevel: 5,
-              componentFacts: [
-                {
-                  groupId: "bsh",
-                  artifactId: "bsh",
-                  version: "1.3.0",
-                  hash: "1fed35193d56470f46c0",
-                  constraintFacts: [
-                    {
-                      constraintId: "c7ad07e00c4948c59651cce82163e50a",
-                      constraintName: "test3",
-                      operatorName: "AND",
-                      conditionFacts: [
-                        {
-                          conditionTypeId: "AgeInDays",
-                          summary: "Age older than 1825",
-                          reason: "Age was 7 years, 8 months and 17 days"
-                        },
-                        {
-                          conditionTypeId: "AgeInDays",
-                          summary: "Age older than 730",
-                          reason: "Age was 7 years, 8 months and 17 days"
-                        }
-                      ]
-                    }
-                  ]
-                }
-              ]
-            },
-            actions: []
+              policyThreatLevel: 5,
+              actions: [{
+                actionType: '1',
+                actionSummary: 'This is an action'
+              },{
+                actionType: '2',
+                actionSummary: 'This is another action'
+              }],
+              constraints: [{
+                constraintId: "c7ad07e00c4948c59651cce82163e50a",
+                constraintName: "test3",
+                constraintOperator: "AND",
+                conditions: [{
+                  conditionType: "AgeInDays",
+                  conditionSummary: "Age older than 1825",
+                  conditionReason: "Age was 7 years, 8 months and 17 days"
+                },{
+                  conditionType: "AgeInDays",
+                  conditionSummary: "Age older than 730",
+                  conditionReason: "Age was 7 years, 8 months and 17 days"
+                }]
+              }]
+            }]
+          },{
+            groupId: "bsh",
+            artifactId: "bsh",
+            version: "1.3.0",
+            hash: "1",
+            policyId: "policyId2",
+            policyName: "name2",
+            threatLevel: 7,
+            activeViolations: [{
+              policyId: "policyId2",
+              policyName: "name2",
+              policyThreatLevel: 7,
+              actions: [{
+                actionType: '1',
+                actionSummary: 'This is an action'
+              },{
+                actionType: '1',
+                actionSummary: 'This is an action'
+              }],
+              constraints: [{
+                constraintId: "d7ad07e00c4948c59651cce82163e50a",
+                constraintName: "test4",
+                constraintOperator: "AND",
+                conditions: [{
+                  conditionType: "AgeInDays",
+                  conditionSummary: "Age older than 1825",
+                  conditionReason: "Age was 7 years, 8 months and 17 days"
+                },{
+                  conditionType: "AgeInDays",
+                  conditionSummary: "Age older than 730",
+                  conditionReason: "Age was 7 years, 8 months and 17 days"
+                }]
+              }]
+            }]
+          }]
+        });
+
+        $controller('PolicyViolationsController', {
+          $scope: _scope,
+          PolicyViolationData: {
+            hash: "1",
+            appId: "appId"
           }
-        ]
-      });
+        });
 
-      $controller('PolicyViolationsController', {
-        $scope: _scope,
-        PolicyViolationData: {
-          hash: "1",
-          appId: "appId"
-        }
-      });
+        $httpBackend.flush();
+      }));
+      it('Validate loaded', inject(function($httpBackend) {
+        //policyId2 first as we need to account for sorting
+        expect(_scope.processedPolicyAlerts).toEqual([{
+          id: 'policyId2',
+          name: 'name2',
+          threatLevel: 7,
+          groupId: 'bsh',
+          artifactId: 'bsh',
+          version: '1.3.0',
+          hash: '1',
+          color: 'orange',
+          constraints: [{
+            constraintId: 'd7ad07e00c4948c59651cce82163e50a',
+            constraintName: 'test4',
+            constraintOperator: 'AND',
+            conditions: [{
+              conditionType: 'AgeInDays',
+              conditionSummary: 'Age older than 1825',
+              conditionReason: 'Age was 7 years, 8 months and 17 days'
+            }, {
+              conditionType: 'AgeInDays',
+              conditionSummary: 'Age older than 730',
+              conditionReason: 'Age was 7 years, 8 months and 17 days'
+            }]
+          }],
+          actions: [{
+            actionType : '1',
+            actionSummary : 'This is an action'
+          }]
+        },{
+          id: 'policyId',
+          name: 'name',
+          threatLevel: 5,
+          groupId: 'bsh',
+          artifactId: 'bsh',
+          version: '1.3.0',
+          hash: '1',
+          color: 'orange',
+          constraints: [{
+            constraintId: 'c7ad07e00c4948c59651cce82163e50a',
+            constraintName: 'test3',
+            constraintOperator: 'AND',
+            conditions: [{
+              conditionType: 'AgeInDays',
+              conditionSummary: 'Age older than 1825',
+              conditionReason: 'Age was 7 years, 8 months and 17 days'
+            }, {
+              conditionType: 'AgeInDays',
+              conditionSummary: 'Age older than 730',
+              conditionReason: 'Age was 7 years, 8 months and 17 days'
+            }]
+          }],
+          actions: [{
+            actionType : '1',
+            actionSummary : 'This is an action'
+          }, {
+            actionType : '2',
+            actionSummary : 'This is another action'
+          }]
+        }]);
+      }));
+      it('Open Add Waiver', inject(function ($modal) {
+        var modalSpy = spyOn($modal, 'open');
+        _scope.waiveComponent(_scope.processedPolicyAlerts[0]);
 
-      $httpBackend.flush();
-    }));
+        expect(modalSpy).toHaveBeenCalledWith({
+          templateUrl : 'add-waiver-modal-tmpl',
+          controller : 'AddWaiverController',
+          backdrop : 'static',
+          keyboard : false,
+          resolve : {
+            policy : jasmine.any(Function)
+          }
+        });
+      }));
 
-    it('Open Add Waiver', inject(function ($modal) {
-      var modalSpy = spyOn($modal, 'open');
-      _scope.waiveComponent(_scope.policyAlerts[0]);
+      it('Open View Waiver', inject(function ($modal) {
+        var modalSpy = spyOn($modal, 'open');
+        _scope.viewWaivers();
 
-      expect(modalSpy).toHaveBeenCalledWith({
-        templateUrl : 'add-waiver-modal-tmpl',
-        controller : 'AddWaiverController',
-        backdrop : 'static',
-        keyboard : false,
-        resolve : {
-          policy : jasmine.any(Function)
-        }
-      });
-    }));
+        expect(modalSpy).toHaveBeenCalledWith({
+          templateUrl : 'view-waivers-modal-tmpl',
+          controller : 'ViewWaiverController',
+          backdrop : 'static',
+          keyboard : false
+        });
+      }));
+    });
+    
+    describe('Legacy JSON data', function(){
+      // setup our http backend to return what we want
+      beforeEach(inject(function($rootScope, $controller, $httpBackend) {
+        $httpBackend.expectGET('policythreats.json').respond({});
+        $httpBackend.expectGET(SpecUtil.toRegExp('../brain/rest/policy/actionType')).respond([{
+          id: '1',
+          summary: 'test'
+        }]);
+        $httpBackend.expectGET('policyalerts.json').respond({
+          aaData: [
+            {
+              trigger: {
+                policyId: "policyId",
+                policyName: "name",
+                threatLevel: 5,
+                componentFacts: [
+                  {
+                    groupId: "bsh",
+                    artifactId: "bsh",
+                    version: "1.3.0",
+                    hash: "1",
+                    constraintFacts: [
+                      {
+                        constraintId: "c7ad07e00c4948c59651cce82163e50a",
+                        constraintName: "test3",
+                        operatorName: "AND",
+                        conditionFacts: [
+                          {
+                            conditionTypeId: "AgeInDays",
+                            summary: "Age older than 1825",
+                            reason: "Age was 7 years, 8 months and 17 days"
+                          },
+                          {
+                            conditionTypeId: "AgeInDays",
+                            summary: "Age older than 730",
+                            reason: "Age was 7 years, 8 months and 17 days"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              actions: [{
+                actionTypeId: '1'
+              }]
+            }
+          ]
+        });
 
-    it('Open View Waiver', inject(function ($modal) {
-      var modalSpy = spyOn($modal, 'open');
-      _scope.viewWaivers();
+        $controller('PolicyViolationsController', {
+          $scope: _scope,
+          PolicyViolationData: {
+            hash: "1",
+            appId: "appId"
+          }
+        });
 
-      expect(modalSpy).toHaveBeenCalledWith({
-        templateUrl : 'view-waivers-modal-tmpl',
-        controller : 'ViewWaiverController',
-        backdrop : 'static',
-        keyboard : false
-      });
-    }));
+        $httpBackend.flush();
+      }));
+
+      it('Validate loaded', inject(function($httpBackend) {
+        expect(_scope.processedPolicyAlerts).toEqual([{
+          id: 'policyId',
+          name: 'name',
+          threatLevel: 5,
+          groupId: 'bsh',
+          artifactId: 'bsh',
+          version: '1.3.0',
+          hash: '1',
+          color: 'orange',
+          constraints: [{
+            constraintId: 'c7ad07e00c4948c59651cce82163e50a',
+            constraintName: 'test3',
+            constraintOperator: 'AND',
+            conditions: [{
+              conditionType: 'AgeInDays',
+              conditionSummary: 'Age older than 1825',
+              conditionReason: 'Age was 7 years, 8 months and 17 days'
+            }, {
+              conditionType: 'AgeInDays',
+              conditionSummary: 'Age older than 730',
+              conditionReason: 'Age was 7 years, 8 months and 17 days'
+            }]
+          }],
+          actions: [{
+            actionSummary: 'test'
+          }]
+        }]);
+      }));
+    });
   });
 
   describe('AddWaiverController', function () {

@@ -46,6 +46,7 @@ public class PolicyTagResourceTest
     assertThat(policyTag, is(notNullValue()));
     assertThat(policyTag.getId(), is(notNullValue()));
     assertThat(policyTag.getId(), is(tag.getId()));
+    assertThat(policyTag.getName(), is("tag name"));
     assertThat(policyTag.getOrganizationId(), is(org.getId()));
 
     // Get

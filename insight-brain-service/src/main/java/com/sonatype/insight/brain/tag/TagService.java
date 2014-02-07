@@ -97,11 +97,12 @@ class TagService
   }
 
   @Authorize(permission = Permission.WRITE)
-  public PolicyTag addPolicyTag(@AuthzContext(AuthzContext.Key.ORGANIZATION_ID) String orgId, String policyId, Tag tag)
+  public Tag addPolicyTag(@AuthzContext(AuthzContext.Key.ORGANIZATION_ID) String orgId, String policyId, Tag tag)
   {
+    final String tagId = tag.getId();
     PolicyTag policyTag = new PolicyTag(policyId, tag.getId());
     new PolicyTagDAO().insert(policyTag);
-    return policyTag;
+    return new TagDAO().getById(tagId);
   }
 
   @Authorize(permission = Permission.WRITE)

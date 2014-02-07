@@ -51,8 +51,7 @@ public class PolicyTagResource
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces({ MediaType.APPLICATION_JSON })
   public Tag addPolicyTag(@QueryParam("orgId") String orgId, @PathParam("policyId") String policyId, Tag tag) {
-    tagService.addPolicyTag(orgId, policyId, tag);
-    return tag;
+    return tagService.addPolicyTag(orgId, policyId, tag);
   }
 
   @DELETE

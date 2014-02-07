@@ -145,6 +145,7 @@ describe('PolicyEditor.js', function() {
       $httpBackend.expectPOST(SpecUtil.toRegExp(CLMAppLocations.getPolicyUrl())).respond({
         id: 'foo'
       });
+      $httpBackend.expectGET(CLMAppLocations.getPolicyTagUrl('foo')).respond([]);
 
       policyEditorScope.savePolicy();
       $httpBackend.flush();

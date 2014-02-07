@@ -360,17 +360,10 @@
               }
             }
             $q.all(promises).then(function() {
-              var policyTags = [];
-              angular.forEach($scope.appliedTagIds, function(id) {
-                var tags = jQuery.grep($scope.tags, function(tag) {
-                  return tag.id === id;
-                });
-                if (tags.length > 0) {
-                  policyTags.push(tags[0]);
-                }
-              });
-              $scope.$emit('policySaveComplete', $scope.policy.id, policyTags);
-              $scope.hide();
+              PolicyTagStore.getByPolicyId($scope.policy.id).get().then(function(policyTags) {
+                $scope.$emit('policySaveComplete', $scope.policy.id, policyTags);
+                $scope.hide();
+              }, errorFunction);
             }, errorFunction);
           }, errorFunction);
         }

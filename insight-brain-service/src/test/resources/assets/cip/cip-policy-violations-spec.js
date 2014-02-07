@@ -196,12 +196,12 @@ describe('CIP Policy Waiver tests', function() {
     describe('Legacy JSON data', function(){
       // setup our http backend to return what we want
       beforeEach(inject(function($rootScope, $controller, $httpBackend) {
-        $httpBackend.expectGET('policythreats.json').respond({});
+        $httpBackend.expectGET(SpecUtil.toRegExp('policythreats.json')).respond({});
         $httpBackend.expectGET(SpecUtil.toRegExp('../brain/rest/policy/actionType')).respond([{
           id: '1',
           summary: 'test'
         }]);
-        $httpBackend.expectGET('policyalerts.json').respond({
+        $httpBackend.expectGET(SpecUtil.toRegExp('policyalerts.json')).respond({
           aaData: [
             {
               trigger: {

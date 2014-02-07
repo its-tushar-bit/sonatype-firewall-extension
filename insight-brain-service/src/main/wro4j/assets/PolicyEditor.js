@@ -343,18 +343,20 @@
         if ($scope.validate()) {
           $scope.policy.$save().then(function() {
             var promises = [];
-            var originalPolicyTagIds = jQuery.map(originalTags, function(tag) { return tag.id; });
-            var tagGrepper = function(tag) { return tag.id === tagId; };
-            for (var i = 0; i < $scope.tags.length; i++) {
-              var tag = $scope.tags[i];
-              var tagId = tag.id;
-              if ($scope.appliedTagIds.indexOf(tagId) > -1 && originalPolicyTagIds.indexOf(tagId) === -1) {
-                var newPolicyTag = PolicyTagStore.getByPolicyId($scope.policy.id).create();
-                angular.extend(newPolicyTag, { id: tagId });
-                promises.push(newPolicyTag.$save());
-              } else if ($scope.appliedTagIds.indexOf(tagId) === -1 && originalPolicyTagIds.indexOf(tagId) > -1) {
-                var oldPolicyTag = jQuery.grep(originalTags, tagGrepper)[0];
-                promises.push(oldPolicyTag.$delete());
+            if (!$scope.isApplication) {
+              var originalPolicyTagIds = jQuery.map(originalTags, function(tag) { return tag.id; });
+              var tagGrepper = function(tag) { return tag.id === tagId; };
+              for (var i = 0; i < $scope.tags.length; i++) {
+                var tag = $scope.tags[i];
+                var tagId = tag.id;
+                if ($scope.appliedTagIds.indexOf(tagId) > -1 && originalPolicyTagIds.indexOf(tagId) === -1) {
+                  var newPolicyTag = PolicyTagStore.getByPolicyId($scope.policy.id).create();
+                  angular.extend(newPolicyTag, { id: tagId });
+                  promises.push(newPolicyTag.$save());
+                } else if ($scope.appliedTagIds.indexOf(tagId) === -1 && originalPolicyTagIds.indexOf(tagId) > -1) {
+                  var oldPolicyTag = jQuery.grep(originalTags, tagGrepper)[0];
+                  promises.push(oldPolicyTag.$delete());
+                }
               }
             }
             $q.all(promises).then(function() {

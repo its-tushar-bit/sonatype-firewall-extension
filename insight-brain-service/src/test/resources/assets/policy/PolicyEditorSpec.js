@@ -105,7 +105,7 @@ describe('PolicyEditor.js', function() {
 
     beforeEach(inject(function($compile, $httpBackend) {
       testScope.policy = createNewPolicy();
-      testScope.tags = tags;
+      testScope.tags = [];
       getPolicyEditorController();
       var node = $("<div id='testInlinePolicyCreator' inline-policy-creator tags='tags' policy-tag-map='policyTagMap'></div>");
       node.appendTo('body');
@@ -243,7 +243,7 @@ describe('PolicyEditor.js', function() {
 
     beforeEach(inject(function($compile, $httpBackend, CLMLocations, CLMAppLocations) {
       testScope.policy = createNewPolicy();
-      testScope.tags = tags;
+      testScope.tags = [];
       var node = $("<div><div ng-if='policyEditMap[policy.id]'><div id='testInlinePolicyEditor' inline-policy-editor tags='tags'></div></div></div>");
       node.appendTo('body');
       expectActionRequests()

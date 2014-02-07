@@ -97,33 +97,33 @@ public class TagServiceAuthzTest
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testApplyTagToApplication_Unauthorized() throws Exception {
+  public void testAddApplicationTag_Unauthorized() throws Exception {
     grantReadPermission(app.getId());
     Tag tag = tempEntity.newTag(org.getId(), "name");
-    tagService.applyTagToApplication(app.getPublicId(), tag);
+    tagService.addApplicationTag(app.getPublicId(), tag);
   }
 
   @Test
-  public void testApplyTagToApplication_Authorized() throws Exception {
+  public void testAddApplicationTag_Authorized() throws Exception {
     grantWritePermission(app.getId());
     Tag tag = tempEntity.newTag(org.getId(), "name");
-    tagService.applyTagToApplication(app.getPublicId(), tag);
+    tagService.addApplicationTag(app.getPublicId(), tag);
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testRemoveApplicationTag_Unauthorized() throws Exception {
+  public void testDeleteApplicationTag_Unauthorized() throws Exception {
     grantReadPermission(app.getId());
     Tag tag = tempEntity.newTag(org.getId(), "name");
     tempEntity.newApplicationTag(app.getId(), tag.getId());
-    tagService.removeApplicationTag(app.getPublicId(), tag.getId());
+    tagService.deleteApplicationTag(app.getPublicId(), tag.getId());
   }
 
   @Test
-  public void testRemoveApplicationTag_Authorized() throws Exception {
+  public void testDeleteApplicationTag_Authorized() throws Exception {
     grantWritePermission(app.getId());
     Tag tag = tempEntity.newTag(org.getId(), "name");
     tempEntity.newApplicationTag(app.getId(), tag.getId());
-    tagService.removeApplicationTag(app.getPublicId(), tag.getId());
+    tagService.deleteApplicationTag(app.getPublicId(), tag.getId());
   }
 
   @Test(expected = UnauthorizedException.class)

@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.tag;
 import java.util.List;
 
 import javax.inject.Named;
+
 import com.sonatype.insight.brain.dataaccess.tag.ApplicationTagDAO;
 import com.sonatype.insight.brain.dataaccess.tag.PolicyTagDAO;
 import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
@@ -69,14 +70,18 @@ class TagService
   }
 
   @Authorize(permission = Permission.WRITE)
-  public ApplicationTag applyTagToApplication(@AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String applicationPublicId, Tag tag) {
+  public ApplicationTag addApplicationTag(
+      @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String applicationPublicId, Tag tag)
+  {
     ApplicationTag appTag = new ApplicationTag(IdUtils.getInternalOwnerId(IdUtils.TYPE_APPLICATION, applicationPublicId), tag.getId());
     new ApplicationTagDAO().insert(appTag);
     return appTag;
   }
 
   @Authorize(permission = Permission.WRITE)
-  public void removeApplicationTag(@AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String applicationPublicId, String tagId) {
+  public void deleteApplicationTag(@AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String applicationPublicId,
+      String tagId)
+  {
     ApplicationTagDAO appTagDAO = new ApplicationTagDAO();
     ApplicationTag appTag = appTagDAO.getByApplicationIdAndTagId(IdUtils.getInternalOwnerId(IdUtils.TYPE_APPLICATION, applicationPublicId), tagId);
     if(appTag == null) {

@@ -47,13 +47,15 @@ public class ApplicationTagResource
 
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
-  public void applyTag(@PathParam("applicationPublicId") String applicationPublicId, Tag tag) {
-    tagService.applyTagToApplication(applicationPublicId, tag);
+  public void addApplicationTag(@PathParam("applicationPublicId") String applicationPublicId, Tag tag) {
+    tagService.addApplicationTag(applicationPublicId, tag);
   }
 
   @DELETE
   @Path("{tagId}")
-  public void removeApplicationTag(@PathParam("applicationPublicId") String applicationPublicId, @PathParam("tagId") String tagId) {
-    tagService.removeApplicationTag(applicationPublicId, tagId);
+  public void deleteApplicationTag(@PathParam("applicationPublicId") String applicationPublicId,
+      @PathParam("tagId") String tagId)
+  {
+    tagService.deleteApplicationTag(applicationPublicId, tagId);
   }
 }

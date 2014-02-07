@@ -95,14 +95,14 @@ public class ComponentLabelResource
   }
 
   /**
-   * Removes the component label given by the owning context and label id.
+   * Deletes the component label given by the owning context and label id.
    * 
    * @since 1.6
    */
   @DELETE
   @Path("{labelId}")
   @Authorize(permission = Permission.WRITE)
-  public void removeComponentLabel(@AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") String ownerType,
+  public void deleteComponentLabel(@AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") String ownerType,
       @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId, @PathParam("hash") String hash,
       @PathParam("labelId") String labelId)
   {

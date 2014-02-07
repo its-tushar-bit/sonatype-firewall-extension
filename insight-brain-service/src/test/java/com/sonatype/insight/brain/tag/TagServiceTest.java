@@ -57,7 +57,7 @@ public class TagServiceTest extends InjectedTest
   }
 
   @Test
-  public void testRemovalOfUnappliedApplicationTag() throws Exception {
+  public void testDeleteApplicationTag_NotFound() throws Exception {
     Organization organization = tempEntity.newOrganization();
     Application application1 = tempEntity.newApplication(organization.getId());
     Application application2 = tempEntity.newApplication(organization.getId());
@@ -65,7 +65,7 @@ public class TagServiceTest extends InjectedTest
     tempEntity.newApplicationTag(application1.getId(), tag.getId());
 
     try {
-      tagService.removeApplicationTag(application2.getPublicId(), tag.getId());
+      tagService.deleteApplicationTag(application2.getPublicId(), tag.getId());
       fail("Should have thrown NotFoundException");
     }
     catch (NotFoundException e) {

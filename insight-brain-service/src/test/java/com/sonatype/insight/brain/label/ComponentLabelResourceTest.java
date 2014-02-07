@@ -142,7 +142,7 @@ public class ComponentLabelResourceTest
   }
 
   @Test
-  public void testRemoveComponentLabel_AppLevel() throws Exception {
+  public void testDeleteComponentLabel_AppLevel() throws Exception {
     ComponentLabel appComponentLabel = new ComponentLabel(app.getId(), appLabel.getId(), componentHash);
     ComponentLabel orgComponentLabel = new ComponentLabel(app.getOrganizationId(), orgLabel.getId(), componentHash);
     componentLabelDAO.insert(appComponentLabel);
@@ -162,7 +162,7 @@ public class ComponentLabelResourceTest
   }
 
   @Test
-  public void testRemoveComponentLabel_OrgLevel() throws Exception {
+  public void testDeleteComponentLabel_OrgLevel() throws Exception {
     ComponentLabel appComponentLabel = new ComponentLabel(app.getId(), appLabel.getId(), componentHash);
     ComponentLabel orgComponentLabel = new ComponentLabel(app.getOrganizationId(), orgLabel.getId(), componentHash);
     componentLabelDAO.insert(appComponentLabel);

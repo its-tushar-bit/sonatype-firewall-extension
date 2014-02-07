@@ -179,12 +179,12 @@ describe('PolicyController organization tests', function() {
 
     $httpBackend.expectGET(CLMLocations.getActionTypeUrl()).respond(PolicyMockData.getActionTypeData());
     $httpBackend.expectGET(CLMLocations.getActionStageUrl()).respond(MockData.getActionStageData());
-    $httpBackend.expectGET(SpecUtil.toRegExp(CLMAppLocations.getPolicyUrl())).respond(PolicyMockData.getPolicyData());
-    $httpBackend.expectGET(SpecUtil.toRegExp(CLMAppLocations.getApplicablePolicies())).respond(OrganizationMockData.getApplicablePolicies());
+    $httpBackend.expectGET(CLMLocations.getConditionTypeUrl()).respond(PolicyMockData.getConditionTypeData());
+    $httpBackend.expectGET(CLMAppLocations.getConditionValueTypeUrl()).respond(PolicyMockData.getConditionValueTypeData());
+    $httpBackend.expectGET(CLMAppLocations.getPolicyUrl()).respond(PolicyMockData.getPolicyData());
+    $httpBackend.expectGET(CLMAppLocations.getApplicablePolicies()).respond(OrganizationMockData.getApplicablePolicies());
     $httpBackend.expectGET(CLMAppLocations.getApplicablePolicyMonitoring()).respond(PolicyMonitoringMockData);
-    $httpBackend.expectGET(SpecUtil.toRegExp(CLMAppLocations.getTagsUrl())).respond(tags);
-    $httpBackend.whenGET(SpecUtil.toRegExp(CLMLocations.getConditionTypeUrl())).respond(PolicyMockData.getConditionTypeData());
-    $httpBackend.whenGET(SpecUtil.toRegExp(CLMAppLocations.getConditionValueTypeUrl())).respond(PolicyMockData.getConditionValueTypeData());
+    $httpBackend.expectGET(CLMAppLocations.getTagsUrl()).respond(tags);
 
     $controller('PolicyController', {
       $scope: scope,

@@ -56,7 +56,7 @@ class TagSpec
     when: 'We click on an existing Tag'
       tags.tag(0).click()
 
-    then: 'The form is populated with the name, description and policy of the chosen Tag'
+    then: 'The form is populated with the name and description of the chosen Tag'
       tags.name == 'New Tag'
       tags.description == 'Tag description'
       tags.color('black').classes().contains('active')
@@ -71,7 +71,7 @@ class TagSpec
       waitFor { !tags.tagEditor.displayed }
 
     and: 'The listed tag is updated'
-      waitFor { tags.tag(0).text() == 'Updated New Tag' }
+      waitFor { tags.tag(0).text() == 'New Tag Updated' }
       tags.tag(0).classes().contains('greenLabel')
 
     when:

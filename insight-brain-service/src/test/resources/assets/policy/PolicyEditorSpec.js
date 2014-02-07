@@ -145,7 +145,7 @@ describe('PolicyEditor.js', function() {
       $httpBackend.expectPOST(SpecUtil.toRegExp(CLMAppLocations.getPolicyUrl())).respond({
         id: 'foo'
       });
-      $httpBackend.expectGET(CLMAppLocations.getPolicyTagUrl('foo')).respond([]);
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMAppLocations.getPolicyTagUrl('foo'))).respond([]);
 
       policyEditorScope.savePolicy();
       $httpBackend.flush();
@@ -368,7 +368,7 @@ describe('PolicyEditor.js', function() {
       var policyStoreContents;
       $httpBackend.whenGET(SpecUtil.toRegExp(CLMAppLocations.getPolicyUrl())).respond(PolicyMockData.getPolicyData());
       $httpBackend.whenGET(SpecUtil.toRegExp(CLMAppLocations.getApplicablePolicies())).respond(ApplicationMockData.getApplicablePolicies());
-      $httpBackend.whenGET(CLMAppLocations.getPolicyTagUrl(PolicyMockData.getPolicyData()[0].id)).respond(tags);
+      $httpBackend.whenGET(SpecUtil.toRegExp(CLMAppLocations.getPolicyTagUrl(PolicyMockData.getPolicyData()[0].id))).respond(tags);
       PolicyStore.get().get().then(function() {
         policyStoreContents = arguments[0];
         policyScope.policy = policyStoreContents[0];
@@ -393,7 +393,7 @@ describe('PolicyEditor.js', function() {
       var policyStoreContents;
       $httpBackend.whenGET(SpecUtil.toRegExp(CLMAppLocations.getPolicyUrl())).respond(PolicyMockData.getPolicyData());
       $httpBackend.whenGET(SpecUtil.toRegExp(CLMAppLocations.getApplicablePolicies())).respond(ApplicationMockData.getApplicablePolicies());
-      $httpBackend.whenGET(CLMAppLocations.getPolicyTagUrl(PolicyMockData.getPolicyData()[0].id)).respond(tags);
+      $httpBackend.whenGET(SpecUtil.toRegExp(CLMAppLocations.getPolicyTagUrl(PolicyMockData.getPolicyData()[0].id))).respond(tags);
       PolicyStore.get().get().then(function() {
         policyStoreContents = arguments[0];
         policyScope.policy = policyStoreContents[0];
@@ -435,7 +435,7 @@ describe('PolicyEditor.js', function() {
       testScope.tags = tags;
       expectActionRequests();
 
-      $httpBackend.whenGET(CLMAppLocations.getPolicyTagUrl(undefined)).respond(appliedTags);
+      $httpBackend.whenGET(SpecUtil.toRegExp(CLMAppLocations.getPolicyTagUrl(undefined))).respond(appliedTags);
       scope = getController('PolicyEditorController').scope;
     }));
 
@@ -476,8 +476,8 @@ describe('PolicyEditor.js', function() {
       });
 
       $httpBackend.expectPUT(SpecUtil.toRegExp(CLMAppLocations.getPolicyUrl())).respond(testScope.policy);
-      $httpBackend.expectDELETE(CLMAppLocations.getPolicyTagUrl(undefined).substring(0, CLMAppLocations.getPolicyTagUrl(undefined).indexOf('?')) + '/tagId1?orgId=null').respond(204);
-      $httpBackend.expectPOST(CLMAppLocations.getPolicyTagUrl(undefined)).respond(200);
+      $httpBackend.expectDELETE(SpecUtil.toRegExp(CLMAppLocations.getPolicyTagUrl(undefined).substring(0, CLMAppLocations.getPolicyTagUrl(undefined).indexOf('?')) + '/tagId1?orgId=null')).respond(204);
+      $httpBackend.expectPOST(SpecUtil.toRegExp(CLMAppLocations.getPolicyTagUrl(undefined))).respond(200);
       scope.savePolicy();
       $httpBackend.flush();
       expect(scope.hide).toHaveBeenCalled();

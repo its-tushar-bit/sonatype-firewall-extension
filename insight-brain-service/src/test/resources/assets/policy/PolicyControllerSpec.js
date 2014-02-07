@@ -57,6 +57,14 @@ describe('PolicyController tests', function() {
     $httpBackend.flush();
     expect(scope.isPolicyMonitoringLicensed()).toBe(true);
   }));
+  
+  it('Test policy monitoring disabled', inject(function(CLMLocations, ProductFeatures, $httpBackend){
+    expect(scope.isPolicyMonitoringLicensed()).toBe(false);
+    $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getProductFeaturesUrl())).respond([]);
+    ProductFeatures.load();
+    $httpBackend.flush();
+    expect(scope.isPolicyMonitoringLicensed()).toBe(false);
+  }));
 
   it('Test Summary', inject(function($compile, $httpBackend) {
     $httpBackend.expectGET('../policy-assets/components/policy/policy-items.html?').respond('');

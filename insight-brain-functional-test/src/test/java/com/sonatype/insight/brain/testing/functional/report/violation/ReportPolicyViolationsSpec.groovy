@@ -21,7 +21,7 @@ import spock.lang.Stepwise
 
 @Stepwise // Share the login and browser instance to reduce execution time
 class ReportPolicyViolationsSpec
-extends BaseSpec
+    extends BaseSpec
 {
   @Shared
   private static PolicyDAO policyDAO = new PolicyDAO()
@@ -58,6 +58,7 @@ extends BaseSpec
   def "Validate the summary view"() {
     when: "we view summary"
       navigation.toPolicyReportPage()
+
     then: "waived violations are hidden"
       // verify Summary is selected
       getSelectedViolationFilter() == 'Summary'
@@ -70,6 +71,7 @@ extends BaseSpec
   def "Validate the all view"() {
     when: "we view all"
       allViolations.click()
+
     then: "all policy violations are visible"
       waitFor { getSelectedViolationFilter() == 'All' }
       waitFor { results.size() == 5 }
@@ -83,6 +85,7 @@ extends BaseSpec
   def "Validate the waived view"() {
     when: "we view waived"
       waivedViolations.click()
+
     then: "only waived violations are visible"
       waitFor { getSelectedViolationFilter() == 'Waived' }
       waitFor { results.size() == 2 }

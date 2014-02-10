@@ -189,6 +189,7 @@
         restrict: 'A',
         templateUrl: '../policy-assets/components/policy/policy-items.html?' + clmBuildTimestamp,
         scope: {
+          ownerName: '=',
           policies: '=policyItems',
           editable: '=editable',
           remove: '=',

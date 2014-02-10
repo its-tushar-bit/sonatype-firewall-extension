@@ -13,11 +13,11 @@
           </div>
           <div class='policy-tag' ng-class='{ error : hasPolicyTags && appliedTagIds.length == 0 }'>
             <div>
-              <input id='radio-all-applications' type='radio' name='policy-tag' ng-click='clearTags()' ng-model='hasPolicyTags' ng-value='false'>
+              <input id='radio-all-applications' type='radio' name='policy-tag{{policy.id}}' ng-click='clearTags()' ng-model='hasPolicyTags' ng-value='false'>
               <label for='radio-all-applications'>All Applications in {{ ownerName }}</label>
             </div>
             <div>
-              <input id='radio-tag-applications' type='radio' name='policy-tag' ng-model='hasPolicyTags' ng-value='true'>
+              <input id='radio-tag-applications' type='radio' name='policy-tag{{policy.id}}' ng-model='hasPolicyTags' ng-value='true'>
               <label for='radio-tag-applications'>Applications with one or more of these tags</label>
               <span class='multi-dropdown' multi-select items='tags' selected-ids='appliedTagIds'></span>
             </div>

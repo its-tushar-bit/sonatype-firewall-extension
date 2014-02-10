@@ -119,15 +119,7 @@ public class PolicyResource
     }
     Organization organization = new OrganizationDAO().getByIdNotNull(organizationId);
     policiesByOwnerId.put(organizationId, new PoliciesByOwner(organization.getId(), organization.getName(),
-        IdUtils.TYPE_ORGANIZATION));
-
-    PoliciesByOwner policiesByOwner = new PoliciesByOwner();
-    policiesByOwner.ownerId = organization.getId();
-    policiesByOwner.ownerName = organization.getName();
-    policiesByOwner.ownerType = IdUtils.TYPE_ORGANIZATION;
-    policiesByOwner.policies = new PolicyDAO().getByOwnerId(organization.getId());
-    policiesByOwner.policyTags = new PolicyTagDAO().getByOrganizationId(organization.getId());
-    result.policiesByOwner.add(policiesByOwner);
+        IdUtils.TYPE_ORGANIZATION, new PolicyTagDAO().getByOrganizationId(organization.getId())));
 
     List<Policy> policies = new PolicyDAO().getApplicableByOwnerId(internalOwnerId);
     for (Policy policy : policies) {
@@ -330,9 +322,14 @@ public class PolicyResource
     }
 
     public PoliciesByOwner(String ownerId, String ownerName, String ownerType) {
+      this(ownerId, ownerName, ownerType, new ArrayList<PolicyTag>());
+    }
+
+    public PoliciesByOwner(String ownerId, String ownerName, String ownerType, List<PolicyTag> policyTags) {
       this.ownerId = ownerId;
       this.ownerName = ownerName;
       this.ownerType = ownerType;
+      this.policyTags = policyTags;
       policies = new ArrayList<>();
     }
 
@@ -344,6 +341,6 @@ public class PolicyResource
 
     public List<Policy> policies;
 
-    public List<PolicyTag> policyTags = new ArrayList<>();
+    public List<PolicyTag> policyTags;
   }
 }

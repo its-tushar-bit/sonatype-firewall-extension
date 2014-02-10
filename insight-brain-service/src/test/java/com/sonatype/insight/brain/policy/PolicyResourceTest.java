@@ -317,10 +317,7 @@ public class PolicyResourceTest
     String orgId = tempEntity.newOrganization(orgName).getId();
     String appName = "testGetApplicablePoliciesApp";
     String appPublicId = appName;
-    Application app = new Application(appPublicId, appName, orgId);
-    ApplicationDAO appDAO = new ApplicationDAO();
-    appDAO.insert(app);
-    tempEntity.register(app);
+    Application app = tempEntity.newApplication(appName, appPublicId, orgId);
     String appId = app.getId();
 
     // Verify the applicable policies for the application
@@ -341,15 +338,7 @@ public class PolicyResourceTest
     assertPoliciesByOwner(orgId, orgName, "organization", 0, applicablePolicies.policiesByOwner.get(0));
 
     // Create a policy for the application
-    Policy appPolicy = new Policy();
-    appPolicy.setName("testGetApplicablePolicies App Policy");
-    Constraint constraint = new Constraint();
-    constraint.setName("testGetApplicablePolicies App constraint");
-    constraint.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
-    appPolicy.addConstraint(constraint);
-    response = AuthedRestAccess.post(getServiceURL(APP, appPublicId), asJson(appPolicy));
-    assertResponseStatus(200, response);
-    appPolicy = JsonHelpers.fromJson(response.getResponseBody(), Policy.class);
+    Policy appPolicy = tempEntity.newPolicy(appId, "testGetApplicablePolicies App Policy");
 
     // Verify the applicable policies for the application
     response = AuthedRestAccess.get(getServiceURL(APP, appPublicId) + "/applicable");
@@ -370,15 +359,7 @@ public class PolicyResourceTest
     assertPoliciesByOwner(orgId, orgName, "organization", 0, applicablePolicies.policiesByOwner.get(0));
 
     // Create a policy for the organization
-    Policy orgPolicy = new Policy();
-    orgPolicy.setName("testGetApplicablePolicies Org Policy");
-    constraint = new Constraint();
-    constraint.setName("testGetApplicablePolicies Org constraint");
-    constraint.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
-    orgPolicy.addConstraint(constraint);
-    response = AuthedRestAccess.post(getServiceURL(ORG, orgId), asJson(orgPolicy));
-    assertResponseStatus(200, response);
-    orgPolicy = JsonHelpers.fromJson(response.getResponseBody(), Policy.class);
+    Policy orgPolicy = tempEntity.newPolicy(orgId, "testGetApplicablePolicies Org Policy");
 
     // Verify the applicable policies for the application
     response = AuthedRestAccess.get(getServiceURL(APP, appPublicId) + "/applicable");
@@ -399,6 +380,34 @@ public class PolicyResourceTest
     Assert.assertEquals(1, applicablePolicies.policiesByOwner.size());
     assertPoliciesByOwner(orgId, orgName, "organization", 1, applicablePolicies.policiesByOwner.get(0));
     Assert.assertEquals(orgPolicy.getId(), applicablePolicies.policiesByOwner.get(0).policies.get(0).getId());
+  }
+
+  @Test
+  public void testGetApplicablePolicies_FilteredByTag() throws Exception {
+    // Create an organization and an application
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplication(org.getId());
+
+    // Create a tagged policy that doesn't match an app tag. This policy should not appear in the result.
+    Policy orgPolicy1 = tempEntity.newPolicy(org.getId(), "testGetApplicablePolicies Org Policy 1");
+    Tag tag1 = tempEntity.newTag(org.getId());
+    tempEntity.newPolicyTag(orgPolicy1.getId(), tag1.getId());
+
+    // Create another tagged policy that matches an app tag. This policy should appear in the result.
+    Policy orgPolicy2 = tempEntity.newPolicy(org.getId(), "testGetApplicablePolicies Org Policy 2");
+    Tag tag2 = tempEntity.newTag(org.getId());
+    tempEntity.newPolicyTag(orgPolicy2.getId(), tag2.getId());
+    tempEntity.newApplicationTag(app.getId(), tag2.getId());
+
+    // Verify the applicable policies for the application
+    Response response = AuthedRestAccess.get(getServiceURL(APP, app.getPublicId()) + "/applicable");
+    assertResponseStatus(200, response);
+    ApplicablePolicies applicablePolicies = JsonHelpers.fromJson(response.getResponseBody(), ApplicablePolicies.class);
+    assertNotNull(applicablePolicies);
+    Assert.assertEquals(2, applicablePolicies.policiesByOwner.size());
+    assertPoliciesByOwner(app.getId(), app.getName(), "application", 0, applicablePolicies.policiesByOwner.get(0));
+    assertPoliciesByOwner(org.getId(), org.getName(), "organization", 1, applicablePolicies.policiesByOwner.get(1));
+    Assert.assertEquals(orgPolicy2.getId(), applicablePolicies.policiesByOwner.get(1).policies.get(0).getId());
   }
 
   /**

@@ -8,7 +8,9 @@ package com.sonatype.insight.brain.policy;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -104,25 +106,21 @@ public class PolicyResource
 
     String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
 
-    ApplicablePolicies result = new ApplicablePolicies();
-
-    result.policiesByOwner = new ArrayList<>();
+    Map<String, PoliciesByOwner> policiesByOwnerId = new LinkedHashMap<>();
     String organizationId;
     if (IdUtils.TYPE_APPLICATION.equals(ownerType)) {
       Application application = new ApplicationDAO().getByIdNotNull(internalOwnerId);
-      PoliciesByOwner policiesByOwner = new PoliciesByOwner();
-      policiesByOwner.ownerId = application.getId();
-      policiesByOwner.ownerName = application.getName();
-      policiesByOwner.ownerType = IdUtils.TYPE_APPLICATION;
-      policiesByOwner.policies = new PolicyDAO().getByOwnerId(application.getId());
-      result.policiesByOwner.add(policiesByOwner);
+      policiesByOwnerId.put(internalOwnerId, new PoliciesByOwner(application.getId(), application.getName(),
+          IdUtils.TYPE_APPLICATION));
       organizationId = application.getOrganizationId();
     }
     else {
       organizationId = internalOwnerId;
     }
-
     Organization organization = new OrganizationDAO().getByIdNotNull(organizationId);
+    policiesByOwnerId.put(organizationId, new PoliciesByOwner(organization.getId(), organization.getName(),
+        IdUtils.TYPE_ORGANIZATION));
+
     PoliciesByOwner policiesByOwner = new PoliciesByOwner();
     policiesByOwner.ownerId = organization.getId();
     policiesByOwner.ownerName = organization.getName();
@@ -131,6 +129,14 @@ public class PolicyResource
     policiesByOwner.policyTags = new PolicyTagDAO().getByOrganizationId(organization.getId());
     result.policiesByOwner.add(policiesByOwner);
 
+    List<Policy> policies = new PolicyDAO().getApplicableByOwnerId(internalOwnerId);
+    for (Policy policy : policies) {
+      policiesByOwnerId.get(policy.getOwnerId()).policies.add(policy);
+    }
+
+    ApplicablePolicies result = new ApplicablePolicies();
+    result.policiesByOwner = new ArrayList<>();
+    result.policiesByOwner.addAll(policiesByOwnerId.values());
     return result;
   }
 
@@ -320,6 +326,16 @@ public class PolicyResource
 
   public static class PoliciesByOwner
   {
+    public PoliciesByOwner() {
+    }
+
+    public PoliciesByOwner(String ownerId, String ownerName, String ownerType) {
+      this.ownerId = ownerId;
+      this.ownerName = ownerName;
+      this.ownerType = ownerType;
+      policies = new ArrayList<>();
+    }
+
     public String ownerId;
 
     public String ownerName;

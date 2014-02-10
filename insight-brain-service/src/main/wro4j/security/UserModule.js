@@ -251,12 +251,13 @@
   });
   
   module.directive('zeroClipboard', function() {
+    ZeroClipboard.config({
+      moviePath: '../assets/lib/zeroclipboard/ZeroClipboard-1.3.2.swf'
+    });
     return {
       restrict: 'A',
       link: function(scope, element, attrs) {
-        var clip = new ZeroClipboard( element, {
-          moviePath: '../assets/lib/zeroclipboard/ZeroClipboard-1.2.3.swf'
-        });
+        var clip = new ZeroClipboard(element);
         
         clip.on('dataRequested', function () {
           clip.setText( $('#' + attrs.zeroClipboard).val() );

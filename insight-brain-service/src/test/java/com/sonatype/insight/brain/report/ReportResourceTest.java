@@ -660,7 +660,7 @@ public class ReportResourceTest
         + UrlUtils.encodeUrlComponent("{\"hash\":\"1249e25aebb15358bedd\"}"));
     assertResponseStatus(200, response);
 
-    String feed = "{ \"aaData\" : [ { \"hash\" : \"1249e25aebb15358bedd\", \"reference\" : \"CVE-2007-5333\", \"state\" : \"accepted\", \"user\" : \"test\", \"ip\" : \"127.0.0.1\", \"where\" : \"ReportResourceTest\", \"filename\" : \"security.json\" } ] }";
+    String feed = "{ \"aaData\" : [ { \"hash\" : \"1249e25aebb15358bedd\", \"reference\" : \"CVE-2007-5333\", \"state\" : \"accepted\", \"user\" : \"admin\", \"ip\" : \"127.0.0.1\", \"where\" : \"ReportResourceTest\", \"filename\" : \"security.json\" } ] }";
 
     assertThat(response.getResponseBody().replaceFirst("\"time\" : [0-9]+,", ""), equalToIgnoringWhiteSpace(feed));
 
@@ -679,8 +679,8 @@ public class ReportResourceTest
         + UrlUtils.encodeUrlComponent("{\"hash\":\"1249e25aebb15358bedd\"}"));
     assertResponseStatus(200, response);
 
-    feed = "{ \"aaData\" : [ { \"hash\" : \"1249e25aebb15358bedd\", \"reference\" : \"CVE-2007-5333\", \"state\" : \"confirmed\", \"user\" : \"test\", \"ip\" : \"127.0.0.1\", \"where\" : \"ReportResourceTest\", \"filename\" : \"security.json\" }, "
-        + "{ \"hash\" : \"1249e25aebb15358bedd\", \"reference\" : \"CVE-2007-5333\", \"state\" : \"accepted\", \"user\" : \"test\", \"ip\" : \"127.0.0.1\", \"where\" : \"ReportResourceTest\", \"filename\" : \"security.json\" } ] }";
+    feed = "{ \"aaData\" : [ { \"hash\" : \"1249e25aebb15358bedd\", \"reference\" : \"CVE-2007-5333\", \"state\" : \"confirmed\", \"user\" : \"admin\", \"ip\" : \"127.0.0.1\", \"where\" : \"ReportResourceTest\", \"filename\" : \"security.json\" }, "
+        + "{ \"hash\" : \"1249e25aebb15358bedd\", \"reference\" : \"CVE-2007-5333\", \"state\" : \"accepted\", \"user\" : \"admin\", \"ip\" : \"127.0.0.1\", \"where\" : \"ReportResourceTest\", \"filename\" : \"security.json\" } ] }";
 
     assertThat(response.getResponseBody().replaceAll("\"time\" : [0-9]+,", ""), equalToIgnoringWhiteSpace(feed));
 
@@ -963,7 +963,7 @@ public class ReportResourceTest
         + UrlUtils.encodeUrlComponent("{\"hash\":\"1249e25aebb15358bedd\"}"));
     assertResponseStatus(200, response);
 
-    final String feed = "{ \"aaData\" : [ { \"hash\" : \"1249e25aebb15358bedd\", \"reference\" : \"CVE-2007-5333\", \"state\" : \"accepted\", \"user\" : \"test\", \"ip\" : \"127.0.0.1\", \"where\" : \"ReportResourceTest\", \"filename\" : \"security.json\" } ] }";
+    final String feed = "{ \"aaData\" : [ { \"hash\" : \"1249e25aebb15358bedd\", \"reference\" : \"CVE-2007-5333\", \"state\" : \"accepted\", \"user\" : \"admin\", \"ip\" : \"127.0.0.1\", \"where\" : \"ReportResourceTest\", \"filename\" : \"security.json\" } ] }";
 
     assertThat(response.getResponseBody().replaceFirst("\"time\" : [0-9]+,", ""), equalToIgnoringWhiteSpace(feed));
 
@@ -1016,7 +1016,7 @@ public class ReportResourceTest
     response = AuthedRestAccess.get(resourcePrefix + "/auditLog/extra.json");
     assertResponseStatus(200, response);
 
-    final String feed = "{ \"aaData\" : [ { \"policy\" : \"TEST\", \"result\" : \"OK\", \"user\" : \"test\", \"ip\" : \"127.0.0.1\", \"where\" : \"ReportResourceTest\", \"filename\" : \"extra.json\" } ] }";
+    final String feed = "{ \"aaData\" : [ { \"policy\" : \"TEST\", \"result\" : \"OK\", \"user\" : \"admin\", \"ip\" : \"127.0.0.1\", \"where\" : \"ReportResourceTest\", \"filename\" : \"extra.json\" } ] }";
 
     assertThat(response.getResponseBody().replaceFirst("\"time\" : [0-9]+,", ""), equalToIgnoringWhiteSpace(feed));
   }

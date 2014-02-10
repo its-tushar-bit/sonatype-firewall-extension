@@ -41,6 +41,7 @@ import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.model.security.UserPrincipal;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluationLog;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluationUtils;
 import com.sonatype.insight.brain.security.Authorize;
@@ -58,6 +59,7 @@ import com.sonatype.insight.json.store.JsonUtils;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ContainerNode;
 import com.google.common.cache.CacheBuilder;
+import org.apache.shiro.SecurityUtils;
 import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.IOUtil;
 import org.codehaus.plexus.util.StringUtils;
@@ -231,8 +233,8 @@ public class ReportResource
   @Authorize(permission = Permission.WRITE)
   public Response augmentData(
       @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) @PathParam("applicationPublicId") final String applicationPublicId,
-      @PathParam("path") final String path, @QueryParam("user") final String user,
-      @QueryParam("where") final String where, @Context final HttpServletRequest request, final InputStream stream)
+      @PathParam("path") final String path, @QueryParam("where") final String where,
+      @Context final HttpServletRequest request, final InputStream stream)
       throws IOException
   {
     Application application = applicationDAO.getByPublicIdNotNull(applicationPublicId);
@@ -249,7 +251,10 @@ public class ReportResource
 
       // Save the data in the audit log
       final JsonStore store = JsonUtils.fileStore(work.getAuditDir(appId));
-      store.commit(path, JsonUtils.stamp(user, AuditUtils.findIP(request), where, data));
+      store.commit(
+          path,
+          JsonUtils.stamp(((UserPrincipal) SecurityUtils.getSubject().getPrincipal()).username,
+              AuditUtils.findIP(request), where, data));
 
       if ("licenses.json".equals(path)) {
         // Save the data as license overrides

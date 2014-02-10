@@ -55,13 +55,13 @@ public class LicenseOverrideResourceTest
   }
 
   private void testCRUD(String ownerType, String ownerPublicId, String ownerId) throws Exception {
-    String user = "Picard";
+    String user = "admin";
     String where = "EdgeOfSpace";
 
     // Create
     LicenseOverride licenseOverride = new LicenseOverride(null /* ownerId */, "g1", "a1", "v1",
         LicenseOverrideStatus.OVERRIDDEN, "Apache-2.0", "My comment");
-    Response response = AuthedRestAccess.post(getServiceURL(ownerType, ownerPublicId) + "?user=" + user + "&where=" + where,
+    Response response = AuthedRestAccess.post(getServiceURL(ownerType, ownerPublicId) + "?where=" + where,
         JsonHelpers.asJson(licenseOverride));
     assertResponseStatus(200, response);
     licenseOverride = JsonHelpers.fromJson(response.getResponseBody(), LicenseOverride.class);
@@ -78,7 +78,7 @@ public class LicenseOverrideResourceTest
     // Update (i.e. add again)
     licenseOverride = new LicenseOverride(null /* ownerId */, "g1", "a1", "v1", LicenseOverrideStatus.OVERRIDDEN,
         "GPL-2.0", "My comment updated");
-    response = AuthedRestAccess.post(getServiceURL(ownerType, ownerPublicId) + "?user=" + user + "&where=" + where,
+    response = AuthedRestAccess.post(getServiceURL(ownerType, ownerPublicId) + "?where=" + where,
         JsonHelpers.asJson(licenseOverride));
     assertResponseStatus(200, response);
     licenseOverride = JsonHelpers.fromJson(response.getResponseBody(), LicenseOverride.class);

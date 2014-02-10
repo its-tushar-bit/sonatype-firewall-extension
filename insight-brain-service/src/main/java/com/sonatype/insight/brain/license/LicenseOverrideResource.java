@@ -32,6 +32,7 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.model.security.UserPrincipal;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.service.InsightWork;
@@ -40,6 +41,8 @@ import com.sonatype.insight.client.utils.AuditUtils;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.json.store.JsonStore;
 import com.sonatype.insight.json.store.JsonUtils;
+
+import org.apache.shiro.SecurityUtils;
 
 /**
  * @since 1.6
@@ -66,7 +69,7 @@ public class LicenseOverrideResource
   public LicenseOverride addLicenseOverride(
       @AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") String ownerType,
       @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId, LicenseOverride licenseOverride,
-      @QueryParam("user") String user, @QueryParam("where") String where, @Context final HttpServletRequest request)
+      @QueryParam("where") String where, @Context final HttpServletRequest request)
       throws IOException
   {
     String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
@@ -85,6 +88,7 @@ public class LicenseOverrideResource
       licenseOverrideDAO.insert(licenseOverride);
     }
 
+    String user = ((UserPrincipal) SecurityUtils.getSubject().getPrincipal()).username;
     String ipAddress = AuditUtils.findIP(request);
     auditLicenseOverride(internalOwnerId, licenseOverride, user, where, ipAddress, false /* isDelete */);
 
@@ -113,8 +117,8 @@ public class LicenseOverrideResource
   @Authorize(permission = Permission.WRITE)
   public void deleteLicenseOverride(@AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") String ownerType,
       @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId,
-      @PathParam("licenseOverrideId") String licenseOverrideId, @QueryParam("user") String user,
-      @QueryParam("where") String where, @Context final HttpServletRequest request) throws IOException
+      @PathParam("licenseOverrideId") String licenseOverrideId, @QueryParam("where") String where,
+      @Context final HttpServletRequest request) throws IOException
   {
     String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
 
@@ -125,6 +129,7 @@ public class LicenseOverrideResource
           + " id " + ownerId);
     }
 
+    String user = ((UserPrincipal) SecurityUtils.getSubject().getPrincipal()).username;
     String ipAddress = AuditUtils.findIP(request);
     auditLicenseOverride(internalOwnerId, licenseOverride, user, where, ipAddress, true /* isDelete */);
 

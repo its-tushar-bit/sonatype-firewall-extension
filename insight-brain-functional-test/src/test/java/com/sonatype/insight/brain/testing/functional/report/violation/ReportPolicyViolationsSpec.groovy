@@ -62,10 +62,11 @@ class ReportPolicyViolationsSpec
     then: "waived violations are hidden"
       // verify Summary is selected
       selectedViolationFilter == 'Summary'
-      waitFor{ results.size() == 3 }
+      waitFor{ results.size() == 4 }
       hasRow(results, 'javancss : javancss : 29.50')
       hasRow(results, 'ch.qos.logback : logback-access : 0.6')
       hasRow(results, 'org.mortbay.jetty : jetty : 6.1.15')
+      hasRow(results, 'org.apache.geronimo.framework : geronimo-security : 2.1')
   }
 
   def "Validate the all view"() {

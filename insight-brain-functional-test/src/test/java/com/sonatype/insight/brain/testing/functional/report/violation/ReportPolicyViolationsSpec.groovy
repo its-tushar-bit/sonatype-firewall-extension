@@ -61,7 +61,7 @@ class ReportPolicyViolationsSpec
 
     then: "waived violations are hidden"
       // verify Summary is selected
-      getSelectedViolationFilter() == 'Summary'
+      selectedViolationFilter == 'Summary'
       waitFor{ results.size() == 3 }
       hasRow(results, 'javancss : javancss : 29.50')
       hasRow(results, 'ch.qos.logback : logback-access : 0.6')
@@ -73,7 +73,7 @@ class ReportPolicyViolationsSpec
       allViolations.click()
 
     then: "all policy violations are visible"
-      waitFor { getSelectedViolationFilter() == 'All' }
+      waitFor { selectedViolationFilter == 'All' }
       waitFor { results.size() == 5 }
       hasRow(results, 'javancss : javancss : 29.50')
       hasRow(results, 'ch.qos.logback : logback-access : 0.6')
@@ -87,7 +87,7 @@ class ReportPolicyViolationsSpec
       waivedViolations.click()
 
     then: "only waived violations are visible"
-      waitFor { getSelectedViolationFilter() == 'Waived' }
+      waitFor { selectedViolationFilter == 'Waived' }
       waitFor { results.size() == 2 }
       hasRow(results, 'org.apache.geronimo.framework : geronimo-security : 2.1', true)
       hasRow(results, 'org.mortbay.jetty : jetty : 6.1.15', true)

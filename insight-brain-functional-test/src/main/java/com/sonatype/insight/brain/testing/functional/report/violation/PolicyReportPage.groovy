@@ -34,10 +34,7 @@ class PolicyReportPage
     summaryViolations { $('#policy-violation-filter li a', text : 'Summary') }
     allViolations { $('#policy-violation-filter li a', text : 'All') }
     waivedViolations { $('#policy-violation-filter li a', text : 'Waived') }
-  }
-
-  String getSelectedViolationFilter() {
-    return $('#policy-violation-filter li.active a').text();
+    selectedViolationFilter { $('#policy-violation-filter li.active a').text() }
   }
 }
 

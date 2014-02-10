@@ -120,7 +120,7 @@
       });
 
       $rootScope.$on('logout', function () {
-        $window.location.replace('..');
+        $window.location.assign('..');
       });
       
       $rootScope.$on('$stateChangeError', function(event, toState, toParams, fromState, fromParams, error) {

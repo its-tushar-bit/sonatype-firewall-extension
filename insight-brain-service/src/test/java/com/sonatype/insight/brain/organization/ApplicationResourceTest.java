@@ -9,12 +9,12 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URL;
 import java.util.Arrays;
 import java.util.Map;
 
 import javax.imageio.ImageIO;
 
+import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.AuthedRestAccess;
@@ -227,9 +227,7 @@ public class ApplicationResourceTest
 
     File saasScanFile = getScanResponseFile(licenseFingerprint);
     saasScanFile.delete();
-
-    URL testScanResultUrl = getClass().getResource("/CIResourceTest/scan.json");
-    FileUtils.copyFile(new File(testScanResultUrl.getFile()), saasScanFile);
+    makeScanReceipt(saasScanFile);
 
     Response response = AuthedRestAccess.put(getScanURL(applicationPublicId), "");
 
@@ -473,10 +471,7 @@ public class ApplicationResourceTest
 
     // Scans count
     final File saasScanFile = getScanResponseFile(licenseFingerprint);
-    saasScanFile.delete();
-
-    final URL testScanResultUrl = getClass().getResource("/CIResourceTest/scan.json");
-    FileUtils.copyFile(new File(testScanResultUrl.getFile()), saasScanFile);
+    makeScanReceipt(saasScanFile);
 
     AuthedRestAccess.put(getScanURL(applicationPublicId), "");
 
@@ -675,6 +670,15 @@ public class ApplicationResourceTest
 
   private String getScanURL(final String appId) {
     return getRestBaseUrl() + CIResource.SERVICE_PATH + "/scan/" + appId;
+  }
+
+  private void makeScanReceipt(File saasScanFile) throws Exception {
+    ScanReceipt scanReceipt = new ScanReceipt();
+    scanReceipt.setScanId("f75365d9d93b4f1ea2dd8457a25dc44d");
+    scanReceipt.setTimeToReport(30L);
+    saasScanFile.delete();
+    saasScanFile.getParentFile().mkdirs();
+    FileUtils.fileWrite(saasScanFile, "UTF-8", toJson(scanReceipt));
   }
 
   private void assertContact(ContactDTO actualContact, ContactDTO expectedContact) {

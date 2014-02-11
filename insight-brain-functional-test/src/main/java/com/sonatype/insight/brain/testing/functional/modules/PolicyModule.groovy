@@ -36,8 +36,8 @@ class PolicyEditorModule
     buttons { module ButtonsModule, body }
     policyTag { body.find('.policy-tag') }
     policyTagError { policyTag.find('div')[-1] }
-    allApplicationRadioButton { body.find('#radio-all-applications') }
-    taggedApplicationRadioButton { body.find('#radio-tag-applications') }
+    allApplicationRadioButton { body.find('[id^="radio-all-applications"]') }
+    taggedApplicationRadioButton { body.find('[id^="radio-tag-applications"]') }
     tags { body.find('span', items: 'tags') }
     tagsDropdownButton { tags.find('button') }
     tagsDropdownList { tags.find('ul') }

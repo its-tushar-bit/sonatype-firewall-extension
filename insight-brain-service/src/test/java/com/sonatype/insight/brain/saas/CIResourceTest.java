@@ -85,6 +85,7 @@ public class CIResourceTest
     ScanReceipt scanReceipt = new ScanReceipt();
     scanReceipt.setScanId("f75365d9d93b4f1ea2dd8457a25dc44d");
     scanReceipt.setTimeToReport(30L);
+    saasScanFile.getParentFile().mkdirs();
     FileUtils.fileWrite(saasScanFile, "UTF-8", toJson(scanReceipt));
 
     final Response response = AuthedRestAccess.put(getServiceURL() + "/scan/" + applicationPublicId, "");

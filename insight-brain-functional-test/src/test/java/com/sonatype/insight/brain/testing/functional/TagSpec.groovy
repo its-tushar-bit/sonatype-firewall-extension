@@ -146,15 +146,27 @@ class TagSpec
       def applicationManagementPage = to(ApplicationManagementPage)
       applicationManagementPage
       applicationManagementPage.createApp('TagSpec', 'TagSpec', 'TagSpec')
+
+    when: 'Viewing the inherited organization policies before tag application'
       waitFor{ tabs.tabLinks.displayed }
+
+    then: 'The non effective policy is not shown'
+      !policies.findPolicyEditor('Security-High')
 
     when: 'Applying a Tag to an Application'
       tabs.tagTabButton.click()
       waitFor { tags.availableTagList.size() > 0 }
-      tags.availableTagList[0].click()
+      tags.availableTag('Policy Tag 1').click()
 
     then: 'It appears in the list of applied tags'
       waitFor { tags.appliedTagList.size() == 1 }
+
+    when: 'Viewing the inherited organization policies after tag application'
+      tabs.policiesTabButton.click()
+      waitFor { policies.findPolicyEditor('Security-High').displayed }
+
+    then: 'The effective inherited policy is marked to show it will be  applied only if we have one of the corresponding tags'
+      policies.findPolicyEditor('Security-High').showsTagIcon()
 
     when: 'We view the Tags in the Organization view'
       to OrganizationManagementPage
@@ -164,12 +176,12 @@ class TagSpec
     then: 'The newly applied Tag is visually shown to be applied'
       waitFor { tags.tagList.size() > 0 }
       report 'applied count is shown'
-      def marker = tags.appliedMarker(tags.tagList[0])
+      def marker = tags.appliedMarker(tags.tagList[2])
       marker.displayed
       marker.text() == '1'
 
     when: 'We try to delete the tag'
-      tags.delete(tags.tagList[0])
+      tags.delete(tags.tagList[2])
 
     then: 'We are warned that it is in use'
       waitFor { tagModal.modal.displayed }

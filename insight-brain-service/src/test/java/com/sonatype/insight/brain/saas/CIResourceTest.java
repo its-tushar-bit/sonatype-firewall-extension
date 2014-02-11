@@ -6,8 +6,8 @@
 package com.sonatype.insight.brain.saas;
 
 import java.io.File;
-import java.net.URL;
 
+import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.insight.brain.AuthedRestAccess;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.model.Application;
@@ -21,7 +21,8 @@ import org.junit.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.equalToIgnoringWhiteSpace;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
 
 public class CIResourceTest
     extends AbstractResourceTest
@@ -81,14 +82,23 @@ public class CIResourceTest
     final File saasScanFile = getScanResponseFile(licenseFingerprint);
     saasScanFile.delete();
 
-    final URL testScanResultUrl = getClass().getResource("/CIResourceTest/scan.json");
-    FileUtils.copyFile(new File(testScanResultUrl.getFile()), saasScanFile);
+    ScanReceipt scanReceipt = new ScanReceipt();
+    scanReceipt.setScanId("f75365d9d93b4f1ea2dd8457a25dc44d");
+    scanReceipt.setTimeToReport(30L);
+    FileUtils.fileWrite(saasScanFile, "UTF-8", toJson(scanReceipt));
 
     final Response response = AuthedRestAccess.put(getServiceURL() + "/scan/" + applicationPublicId, "");
 
     assertResponseStatus(200, response);
 
-    assertThat(response.getResponseBody(), equalToIgnoringWhiteSpace(FileUtils.fileRead(saasScanFile, "UTF-8")));
+    ScanReceipt receipt = fromJson(response, ScanReceipt.class);
+    assertThat(receipt, is(notNullValue()));
+    assertThat(receipt.getScanId(), is(scanReceipt.getScanId()));
+    assertThat(receipt.getTimeToReport(), is(scanReceipt.getTimeToReport()));
+    assertThat(receipt.getReportUrl(),
+        is("ui/links/application/" + applicationPublicId + "/report/" + receipt.getScanId()));
+    assertThat(receipt.getPdfUrl(), is("ui/links/application/" + applicationPublicId + "/report/" + receipt.getScanId()
+        + "/pdf"));
   }
 
   @Test

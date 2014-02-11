@@ -148,13 +148,6 @@ class TagSpec
       applicationManagementPage.createApp('TagSpec', 'TagSpec', 'TagSpec')
       waitFor{ tabs.tabLinks.displayed }
 
-    when: 'Viewing the inherited organization policies'
-      tabs.policiesTabButton.click()
-      waitFor{ policies.findPolicyEditor('Security-High').displayed }
-
-    then: 'The inherited policy is marked to show it will be  applied only if we have one of the corresponding tags'
-      policies.findPolicyEditor('Security-High').showsTagIcon()
-
     when: 'Applying a Tag to an Application'
       tabs.tagTabButton.click()
       waitFor { tags.availableTagList.size() > 0 }

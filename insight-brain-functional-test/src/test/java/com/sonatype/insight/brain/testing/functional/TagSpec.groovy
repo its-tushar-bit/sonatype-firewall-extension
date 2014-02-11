@@ -187,10 +187,10 @@ class TagSpec
       waitFor { tagModal.modal.displayed }
       tagModal.text.contains('It is in use by the following applications: TagSpec.')
 
-    when:
+    when: 'We confirm the delete'
       tagModal.confirm.click()
 
-    then:
-      true
+    then: 'We are shown an error message since the Tag is associated with Policies'
+      tags.serverAlerts.text().contains('Cannot delete the tag because it is associated with policies')
   }
 }

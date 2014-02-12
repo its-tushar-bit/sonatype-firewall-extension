@@ -358,13 +358,16 @@
                   promises.push(oldPolicyTag.$delete());
                 }
               }
-            }
-            $q.all(promises).then(function() {
-              PolicyTagStore.getByPolicyId($scope.policy.id).get().then(function(policyTags) {
-                $scope.$emit('policySaveComplete', $scope.policy.id, policyTags);
-                $scope.hide();
+              $q.all(promises).then(function() {
+                PolicyTagStore.getByPolicyId($scope.policy.id).get().then(function(policyTags) {
+                  $scope.$emit('policySaveComplete', $scope.policy.id, policyTags);
+                  $scope.hide();
+                }, errorFunction);
               }, errorFunction);
-            }, errorFunction);
+            }
+            else {
+              $scope.hide();
+            }
           }, errorFunction);
         }
       };

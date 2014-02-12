@@ -137,6 +137,7 @@ describe('PolicyEditor.js', function() {
       scope.$digest();
 
       var policyEditorScope = getPolicyEditorScope();
+      policyEditorScope.policy = testScope.policy;
       // short-circuit the validation in a way we can still confirm this was called
       spyOn(policyEditorScope, 'validate').andReturn(true);
       $httpBackend.whenGET("../assets/components/policy-editor/condition-editor.html?").respond(conditionTemplate);

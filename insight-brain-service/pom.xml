@@ -721,8 +721,11 @@
             </goals>
             <configuration>
               <includes>
+                <include>**/PortAllocator*</include>
                 <include>**/AbstractBrainServiceTest*</include>
+                <include>**/InsightMockServerRule*</include>
                 <include>**/TestInsightBrainService*</include>
+                <include>**/TestInsightBrainServiceRule*</include>
                 <include>**/AbstractLicenseTest*</include>
                 <include>**/AbstractResourceTest*</include>
                 <include>**/TestLicenseFingerprinter*</include>

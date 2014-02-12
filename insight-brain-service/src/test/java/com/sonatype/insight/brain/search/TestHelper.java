@@ -18,7 +18,7 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluationLog;
-import com.sonatype.insight.brain.service.TestInsightBrainService;
+import com.sonatype.insight.brain.service.TestInsightBrainServiceRule;
 
 import org.codehaus.plexus.util.FileUtils;
 
@@ -26,9 +26,9 @@ class TestHelper
 {
   private final TemporaryEntity tempEntity;
 
-  private final TestInsightBrainService brain;
+  private final TestInsightBrainServiceRule brain;
 
-  public TestHelper(TemporaryEntity tempEntity, TestInsightBrainService brain) {
+  public TestHelper(TemporaryEntity tempEntity, TestInsightBrainServiceRule brain) {
     this.tempEntity = tempEntity;
     this.brain = brain;
   }

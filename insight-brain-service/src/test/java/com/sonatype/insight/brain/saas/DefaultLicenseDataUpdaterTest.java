@@ -20,7 +20,6 @@ import com.sonatype.insight.brain.saas.DefaultLicenseDataUpdater.LicenseData;
 import com.sonatype.insight.brain.service.AbstractBrainServiceTest;
 
 import com.yammer.dropwizard.testing.JsonHelpers;
-import org.junit.After;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
@@ -32,11 +31,6 @@ import static org.junit.Assert.fail;
 public class DefaultLicenseDataUpdaterTest
     extends AbstractBrainServiceTest
 {
-  @After
-  public void after() {
-    setSaasResponseForURI(DefaultLicenseDataUpdater.SAAS_LICENSE_PATH, null, 404);
-  }
-
   @Test
   public void testLicenseCategory() throws Exception {
     LicenseData licenseData = createLicenseData();
@@ -120,7 +114,7 @@ public class DefaultLicenseDataUpdaterTest
 
   @Test
   public void testNoSaaSServer() {
-    saas.stop();
+    insightMockServer.stop();
 
     String newId = "New license id";
     MultiLicenseDAO multiLicenseDAO = new MultiLicenseDAO();

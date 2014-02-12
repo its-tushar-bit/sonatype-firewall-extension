@@ -226,7 +226,6 @@ public class ApplicationResourceTest
     setLicenseFingerprint(licenseFingerprint);
 
     File saasScanFile = getScanResponseFile(licenseFingerprint);
-    saasScanFile.delete();
     makeScanReceipt(saasScanFile);
 
     Response response = AuthedRestAccess.put(getScanURL(applicationPublicId), "");

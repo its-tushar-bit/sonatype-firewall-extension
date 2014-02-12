@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.saas;
 
 import java.io.File;
-import java.net.URL;
 import java.util.EnumSet;
 
 import com.sonatype.clm.dto.model.ScanReceipt;
@@ -40,21 +39,24 @@ public class RepoManResourceTest
     final File saasScanFile = getScanResponseFile(licenseFingerprint);
     saasScanFile.delete();
 
-    final URL testScanResultUrl = getClass().getResource("/RepoManResourceTest/scan.json");
-    FileUtils.copyFile(new File(testScanResultUrl.getFile()), saasScanFile);
+    ScanReceipt scanReceipt = new ScanReceipt();
+    scanReceipt.setScanId("f75365d9d93b4f1ea2dd8457a25dc44d");
+    scanReceipt.setTimeToReport(30L);
+    saasScanFile.getParentFile().mkdirs();
+    FileUtils.fileWrite(saasScanFile, "UTF-8", toJson(scanReceipt));
 
     final Response response = AuthedRestAccess.put(getServiceURL() + "/scan/" + applicationPublicId, "");
 
     assertResponseStatus(200, response);
 
-    ScanReceipt scanReceipt = JsonHelpers.fromJson(response.getResponseBody(), ScanReceipt.class);
-    assertNotNull(scanReceipt);
-    assertEquals("f75365d9d93b4f1ea2dd8457a25dc44d", scanReceipt.getScanId());
-    assertEquals(Long.valueOf(30), scanReceipt.getTimeToReport());
+    ScanReceipt receipt = JsonHelpers.fromJson(response.getResponseBody(), ScanReceipt.class);
+    assertNotNull(receipt);
+    assertEquals(scanReceipt.getScanId(), receipt.getScanId());
+    assertEquals(scanReceipt.getTimeToReport(), receipt.getTimeToReport());
     assertEquals("ui/links/application/RepoManResourceTest_AppId/report/f75365d9d93b4f1ea2dd8457a25dc44d",
-        scanReceipt.getReportUrl());
+        receipt.getReportUrl());
     assertEquals("ui/links/application/RepoManResourceTest_AppId/report/f75365d9d93b4f1ea2dd8457a25dc44d/pdf",
-        scanReceipt.getPdfUrl());
+        receipt.getPdfUrl());
   }
 
   @Test

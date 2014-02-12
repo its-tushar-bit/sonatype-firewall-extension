@@ -6,14 +6,15 @@
 /**
  * @since 1.7
  */
-@Grab(group = 'com.sonatype.insight.brain', module = 'insight-brain-functional-test', version = '1.7.0-SNAPSHOT', changing = true)
-@Grab('org.seleniumhq.selenium:selenium-firefox-driver:2.35.0')
+@Grab(group = 'com.sonatype.insight.brain', module = 'insight-brain-functional-test', version = '1.8.1-SNAPSHOT', changing = true)
+@Grab('org.seleniumhq.selenium:selenium-firefox-driver:2.39.0')
 import com.sonatype.insight.brain.testing.functional.*
-import com.sonatype.insight.brain.testing.functional.configuration.LDAPConfigurationPage
-import com.sonatype.insight.brain.testing.functional.configuration.LDAPConnectionConfigurationPage
-import com.sonatype.insight.brain.testing.functional.configuration.LDAPUserAndGroupMappingConfigurationPage
+import com.sonatype.insight.brain.testing.functional.configuration.LdapConfigurationPage
+import com.sonatype.insight.brain.testing.functional.configuration.LdapConnectionConfigurationPage
+import com.sonatype.insight.brain.testing.functional.configuration.LdapUserAndGroupMappingConfigurationPage
 import geb.Browser
 import org.openqa.selenium.Keys
+import org.openqa.selenium.firefox.FirefoxDriver
 
 /**
  * Connect
@@ -117,21 +118,20 @@ if (options.m) {
       break
   }
 }
-
-Browser browser = new Browser(baseUrl: options.s ?: 'http://localhost:8070/')
+Browser browser = new Browser(baseUrl: options.s ?: 'http://localhost:8070/', driver: new FirefoxDriver( ))
 browser.getDriver().manage().window().maximize()
 Browser.drive(browser) {
 
-  to ReportViolationsPage
+  via ReportViolationsPage
   login.loginAsAdmin()
-  to LDAPConfigurationPage
+  to LdapConfigurationPage
 
   // delete any existing ldap configuration
   if (delete?.present && delete.displayed) {
     delete.click()
     deleteConfirm.click()
-    to LDAPConfigurationPage
-    waitFor { at LDAPConfigurationPage }
+    to LdapConfigurationPage
+    waitFor { at LdapConfigurationPage }
   }
 
   // add new ldap configuration
@@ -139,7 +139,7 @@ Browser.drive(browser) {
   inlineEditor.value(selectedConfig.name)
   save.click()
 
-  waitFor { at LDAPConnectionConfigurationPage }
+  waitFor { at LdapConnectionConfigurationPage }
 
   //fill out the required fields and save
   protocol.value(selectedConfig.protocol)
@@ -165,7 +165,7 @@ Browser.drive(browser) {
   //configure user/group
   userAndGroupSettingsTab.click()
 
-  at LDAPUserAndGroupMappingConfigurationPage
+  at LdapUserAndGroupMappingConfigurationPage
 
   userBaseDN << selectedConfig.baseDN
   userObjectClass << selectedConfig.objectClass

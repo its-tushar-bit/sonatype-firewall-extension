@@ -31,7 +31,7 @@ class PolicyMonitoringSpec
   def "Initially policy monitoring is not configured"() {
     setup:
       loginAsAdminVia(OrganizationPage, org.id, 'policies')
-      waitFor { policyMonitoring.expandButton.displayed }
+      waitFor { policyMonitoring.expandButton.present }
 
     when:
       policyMonitoring.expandButton.click()

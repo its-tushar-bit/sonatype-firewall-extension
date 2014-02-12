@@ -43,11 +43,13 @@
 }
 .multi-dropdown a {
   padding: 0px !important;
+  width: 194px;
+  overflow: hidden;
 }
 .threat-level-dropdown a {
 	padding: 5px 8px;
 }
-.label-drop-down a, .label-drop-down>li>a, .multi-dropdown a {
+.label-drop-down a, .label-drop-down>li>a {
 	width: 194px;
 	overflow: hidden;
 	text-overflow: ellipsis;

@@ -14,6 +14,7 @@ class PolicyModule
     extends Module {
   static content = {
     newPolicyButton { $('.new-entity-button', text: 'New Policy') }
+    newPolicyEditor {module PolicyEditorModule, $('.inline-policy-editor')}
     policyEditors(required: false) { moduleList PolicyEditorModule, $('#policyList div', 'ng-repeat': 'policy in policies') }
   }
 
@@ -28,17 +29,23 @@ class PolicyModule
 class PolicyEditorModule
     extends Module {
   static content = {
-    header { $('.accordion-heading') }
-    editButton { header.find('button', 'ng-click': 'edit(policy)') }
-    chicklet { header.find('span.threat-chiclet')}
-    body { $('.accordion-body') }
-    tagsHeader(required: false) { body.find('h5', text: 'Application Matching') }
-    buttons { module ButtonsModule, body }
-    policyTag { body.find('.policy-tag') }
+    //header elements are only present for existing Policies
+    header(required:false) { $('.accordion-heading') }
+    editButton(required:false) { header.find('button', 'ng-click': 'edit(policy)') }
+    chicklet(required:false) { header.find('span.threat-chiclet')}
+
+    //Policy specifics
+    name{ $('input#policyName') }
+    constraints { moduleList ConstraintModule, $('.accordion-group', 'ng-repeat': 'constraint in policy.constraints')}
+
+    //Tags related to Policies
+    tagsHeader(required: false) { $('h5', text: 'Application Matching') }
+    buttons { module ButtonsModule }
+    policyTag { $('.policy-tag') }
     policyTagError { policyTag.find('div')[-1] }
-    allApplicationRadioButton { body.find('[id^="radio-all-applications"]') }
-    taggedApplicationRadioButton { body.find('[id^="radio-tag-applications"]') }
-    tags { body.find('span', items: 'tags') }
+    allApplicationRadioButton { $('[id^="radio-all-applications"]') }
+    taggedApplicationRadioButton { $('[id^="radio-tag-applications"]') }
+    tags { $('span', items: 'tags') }
     tagsDropdownButton { tags.find('button') }
     tagsDropdownList { tags.find('ul') }
     tagsDropdownCheck { name -> tagsDropdownList.find('a', text: name).find('input') }
@@ -93,5 +100,21 @@ class PolicyEditorModule
   void hideTagDropdown() {
     tagsHeader.click()
     waitFor { !tagsDropdownList.displayed }
+  }
+}
+
+class ConstraintModule extends Module{
+  static content = {
+    editButton {$('button', title: 'Edit Constraint')}
+    constraintName {$('input', 'ng-model': 'constraint.name')}
+    conditions { moduleList ConditionModule, $('div', 'ng-repeat': 'condition in constraint.conditions')}
+  }
+}
+
+class ConditionModule extends Module{
+  static content = {
+    conditionTypes {$('select', 'ng-model': 'condition.conditionTypeId')}
+    operators {$('select', 'ng-model': 'condition.operator')}
+    value {$('span', 'ng-model': 'condition.value').find('input')}
   }
 }

@@ -71,4 +71,20 @@ class ApplicationSpec
       waitFor { applicationList.size() == 2 }
       applicationList.collect{ it.text() } == ['A','Z']
   }
+
+  def "Can add a new Policy"(){
+    when: "We add a new Policy"
+      policies.newPolicyButton.click()
+      def policyEditor = policies.newPolicyEditor
+      policyEditor.name = 'NewPolicy'
+
+      def constraint = policyEditor.constraints[0]
+      constraint.editButton.click()
+      constraint.constraintName = 'Constraint'
+      constraint.conditions[0].value = '1'
+      policyEditor.buttons.save.click()
+
+    then: "it shows up in the list of policies"
+      waitFor { policies.findPolicyEditor('NewPolicy').displayed }
+  }
 }

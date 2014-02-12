@@ -52,6 +52,9 @@ class LdapConfigurationSpec
     and: "the defaults are loaded"
       waitFor { port.value() == '389' }
 
+    and: "the save button is disabled"
+      save.disabled
+
     when: "filling out the required fields in the form"
       requiredFields.each{
         it << 'foo'
@@ -83,6 +86,7 @@ class LdapConfigurationSpec
     and: "controls are disabled"
       checkUserMapping.disabled
       checkUserLogin.disabled
+      save.disabled
 
     when: "filling out required fields"
       requiredFields.each{
@@ -93,6 +97,7 @@ class LdapConfigurationSpec
       report 'form is ready to save'
       waitFor { !checkUserMapping.disabled }
       !checkUserLogin.disabled
+      !save.disabled
 
     when: "resetting form to discard changes"
       reset.click()

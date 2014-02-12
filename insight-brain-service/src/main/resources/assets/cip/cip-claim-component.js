@@ -104,7 +104,6 @@
                       (1000 * 60 * 60 * 24)) : null
                 }));
                 dataView.endUpdate();
-                return false;
               }
             });
 

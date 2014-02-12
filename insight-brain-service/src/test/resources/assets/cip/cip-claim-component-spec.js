@@ -1,10 +1,19 @@
 /*global window*/
+var dataTableItems = [];
+var current = 0;
 var InsightDatatable = {
   getActiveTable: function() {
     return {
       dataView: {
         getItems: function() {
-          return [];
+          return dataTableItems;
+        },
+        beginUpdate: function() {
+        },
+        updateItem: function(id, data) {
+          dataTableItems[current++] = data;
+        },
+        endUpdate: function() {
         }
       }
     };
@@ -18,6 +27,7 @@ describe('CIP Claim Component tests', function() {
   beforeEach(module('ClaimComponent'));
   // setup our http backend to return what we want
   beforeEach(inject(function($rootScope, $controller, $httpBackend, $location) {
+    dataTableItems = [];
     $http = $httpBackend;
     scope = $rootScope.$new();
     //simply so we don't have to worry about comparing urls against ../../../../.././ etc etc
@@ -25,13 +35,15 @@ describe('CIP Claim Component tests', function() {
     $controller('ClaimComponentController', {
       $scope: scope,
       global: {},
-      CurrentData: function() {
-        return {
-          hash: "1",
-          createTime: 1
-        };
+      CurrentData: {
+        hash: "1",
+        createTime: 1
       }
     });
+    
+    scope.claimForm = {
+      $valid: true
+    };
   }));
 
   afterEach(inject(function($httpBackend) {
@@ -48,13 +60,45 @@ describe('CIP Claim Component tests', function() {
     scope.claimData.version = 'version';
     expect(scope.formValid()).toEqual(true);
 
-    scope.claimForm = {
-      $valid: true
-    };
-
     $http.expectPOST(SpecUtil.toRegExp('../brain/rest/component/identified')).respond({});
     scope.claimSubmit();
     $http.flush();
+  });
+  
+  it('Test multiple duplicate hashes handled properly', function() {
+    dataTableItems = [{
+      hash: '1',
+      id: '1'
+    }, {
+      hash: '1',
+      id: '1'
+    }];
+    $http.expectPOST(SpecUtil.toRegExp('../brain/rest/component/identified')).respond({
+      groupId: 'testg',
+      artifactId: 'testa',
+      version: 'testv',
+      createTime: 100
+    });
+    scope.claimSubmit();
+    $http.flush();   
+    
+    var items = InsightDatatable.getActiveTable().dataView.getItems();
+    
+    expect(items.length).toEqual(2);
+    
+    function validateItem(item) {
+      expect(item.hash).toEqual('1');
+      expect(item.id).toEqual('1');
+      expect(item.identificationSource).toEqual('Manual');
+      expect(item.matchState).toEqual('exact');
+      expect(item.groupId).toEqual('testg');
+      expect(item.artifactId).toEqual('testa');
+      expect(item.version).toEqual('testv');
+      expect(item.createTime).toEqual(100);
+    }
+    
+    validateItem(items[0]);
+    validateItem(items[1]);
   });
 
   // Functional tests for the clm datepicker since we do not have a functional tests for the cip components

@@ -9,6 +9,7 @@ import javax.inject.Inject;
 
 import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.tag.PolicyTag;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 
@@ -180,5 +181,19 @@ public class TagServiceAuthzTest
     Tag tag = tempEntity.newTag(org.getId(), "name");
     tempEntity.newApplicationTag(app.getId(), tag.getId());
     tagService.getApplicationTagsByOrgId(org.getId());
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testGetPolicyTagsByOrgId_Unauthorized() throws Exception {
+    login();
+    tagService.getPolicyTagsByOrgId(org.getId());
+  }
+
+  @Test
+  public void testGetPolicyTagsByOrgId_Authorize() throws Exception {
+    grantReadPermission(org.getId());
+    Tag tag = tempEntity.newTag(org.getId(), "name");
+    PolicyTag policyTag = tempEntity.newPolicyTag(policyId, tag.getId());
+    tagService.getPolicyTagsByOrgId(org.getId());
   }
 }

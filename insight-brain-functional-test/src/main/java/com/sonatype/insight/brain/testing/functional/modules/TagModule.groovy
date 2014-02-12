@@ -19,7 +19,7 @@ class TagModule
     tagList(required:false) { $('span', 'ng-repeat': startsWith('tag in tags')) }
     tag(required:false) { index -> tagList(index).find('span') }
     delete { tag -> tag.find('i', title: startsWith('Delete')).click() }
-    appliedMarker { tag -> tag.find('.appliedTagCount') }
+    appliedMarker { tag -> tag.find('.applied-tag-count') }
 
     //form controls(only visible while editing)
     tagEditor(required:false) { $('form', name: 'tagEditor') }

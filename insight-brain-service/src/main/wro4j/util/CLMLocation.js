@@ -114,6 +114,9 @@
         getOrganizationAppliedTagUrl : function(organizationId) {
           return this.getOrganizationTagUrl(organizationId) + '/applied';
         },
+        getOrganizationPolicyTagUrl : function(organizationId) {
+          return this.getOrganizationTagUrl(organizationId) + '/policy';
+        },
         getApplicationTagUrl : function(applicationPublicId) {
           return baseUrl.get() + '/rest/appliedTag/application/' + encodeURIComponent(applicationPublicId);
         },

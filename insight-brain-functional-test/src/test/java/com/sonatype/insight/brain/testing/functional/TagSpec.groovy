@@ -141,7 +141,7 @@ class TagSpec
       tags.tagList[0].text() == (('A' * 22) + '...')
   }
 
-  def "Already applied tags warn they are used on deletion"(){
+  def "Policy tags adjust the effective polices and cannot be deleted"(){
     given: 'An Application to apply tags to'
       def applicationManagementPage = to(ApplicationManagementPage)
       applicationManagementPage
@@ -185,12 +185,48 @@ class TagSpec
 
     then: 'We are warned that it is in use'
       waitFor { tagModal.modal.displayed }
+      tagModal.text.contains('You cannot delete this tag because it is associated with the following policies: Security-High.')
+      tagModal.cancel.click()
+  }
+
+  def "Applied tags warn on deletion"(){
+    given: 'An Application to apply tags to'
+      def applicationManagementPage = to(ApplicationManagementPage)
+      applicationManagementPage
+      applicationManagementPage.createApp('TagSpec', 'TagSpec', 'TagSpec')
+      waitFor{ tabs.tabLinks.displayed }
+
+    when: 'Applying a Tag to an Application'
+      tabs.tagTabButton.click()
+      waitFor { tags.availableTagList.size() > 0 }
+      tags.availableTag('New Tag').click()
+
+    then: 'It appears in the list of applied tags'
+      waitFor { tags.appliedTagList.size() == 2 }
+
+    when: 'We view the Tags in the Organization view'
+      to OrganizationManagementPage
+      organization('TagSpec').click()
+      tabs.tagTabButton.click()
+
+    then: 'The newly applied Tag is visually shown to be applied'
+      waitFor { tags.tagList.size() > 0 }
+      report 'applied count is shown'
+      def marker = tags.appliedMarker(tags.tagList[1])
+      marker.displayed
+      marker.text() == '1'
+
+    when: 'We try to delete the tag'
+      tags.delete(tags.tagList[1])
+
+    then: 'We are warned that it is in use'
+      waitFor { tagModal.modal.displayed }
       tagModal.text.contains('It is in use by the following applications: TagSpec.')
 
     when: 'We confirm the delete'
       tagModal.confirm.click()
 
-    then: 'We are shown an error message since the Tag is associated with Policies'
-      tags.serverAlerts.text().contains('Cannot delete the tag because it is associated with policies')
+    then: 'The tag has been deleted'
+      tags.tagList.size() == samplePolicy.tags.size() + 1
   }
 }

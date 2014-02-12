@@ -20,6 +20,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.model.tag.ApplicationTag;
+import com.sonatype.insight.brain.model.tag.PolicyTag;
 import com.sonatype.insight.brain.model.tag.Tag;
 
 @Named
@@ -47,8 +48,15 @@ public class TagResource
   @GET
   @Path("/applied")
   @Produces({ MediaType.APPLICATION_JSON })
-  public List<ApplicationTag> getApplicationTagsForOrg(@PathParam("organizationId") String organizationId) {
+  public List<ApplicationTag> getApplicationTagsByOrgId(@PathParam("organizationId") String organizationId) {
     return service.getApplicationTagsByOrgId(organizationId);
+  }
+
+  @GET
+  @Path("/policy")
+  @Produces({MediaType.APPLICATION_JSON})
+  public List<PolicyTag> getPolicyTagsByOrgId(@PathParam("organizationId") String organizationId) {
+    return service.getPolicyTagsByOrgId(organizationId);
   }
 
   @POST

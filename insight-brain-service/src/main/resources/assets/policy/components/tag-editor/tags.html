@@ -10,7 +10,7 @@
           <span>{{ ao.selected.name }} Tags</span>
         </h4>
       </div>
-      <div class="label-list">
+      <div class="tag-list">
         <button type='button' class='btn add-new new-entity-button' ng-click='createNew()' style='margin-bottom: 7px;'>
           <i class='icon icon-plus'></i> New Tag
         </button>
@@ -21,7 +21,7 @@
               <span>{{tag.name | truncate}}</span>
               <i ng-click='deleteTag(tag, $event)' class='icon-remove label-remove' title="Delete {{tag.name}}"></i>
             </span>
-            <span ng-if="tag.appliedTags.length > 0" class="appliedTagCount">{{ tag.appliedTags.length }}</span>
+            <span ng-if="tag.appliedTags.length > 0" class="applied-tag-count">{{ tag.appliedTags.length }}</span>
           </span>
         </span>
         <em ng-show='tags.length == 0'>No tags available</em>

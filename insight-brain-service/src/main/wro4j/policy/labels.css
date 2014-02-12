@@ -129,7 +129,7 @@ form[name="labelEditor"] .clmLabel {
 	-moz-box-shadow: inset 0 1px 1px rgba(0,0,0,0.075),0 0 8px rgba(82,168,236,0.6);
 	box-shadow: inset 0 1px 1px rgba(0,0,0,0.075),0 0 8px rgba(82,168,236,0.6);
 }
-.label-list {
+.label-list, .tag-list {
 	margin-left: 25px;
 	margin-bottom: 10px;
 }
@@ -196,12 +196,9 @@ form[name="labelEditor"] .clmLabel {
 }
 
 /* hover a box over the corner of the parent container */
-.appliedTagCount {
+.applied-tag-count {
   position: relative;
-  top: -1em;
-  right: -0.5em;
   color: white;
-  background-color: #eb1213;
   border-radius: 0.25em;
   -webkit-border-radius: 0.25em;
   -moz-border-radius: 0.25em;
@@ -211,4 +208,7 @@ form[name="labelEditor"] .clmLabel {
   margin-left: -1.25em;
   z-index: 999;
   line-height: 1.25em;
+  top: -1em;
+  right: -0.5em;
+  background-color: #eb1213;
 }

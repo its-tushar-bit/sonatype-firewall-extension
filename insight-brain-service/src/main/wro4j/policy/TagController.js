@@ -27,7 +27,8 @@
     }
   ]);
 
-  tagModule.service('PolicyTagStore', ['CachedStore', 'CLMAppLocations', function(CachedStore, CLMAppLocations) {
+  tagModule.service('PolicyTagStore', ['$http', 'CachedStore', 'CLMAppLocations', 'CLMLocations',
+    function($http, CachedStore, CLMAppLocations, CLMLocations) {
     var policyId, policyTagTemplate = {
       getKey: function() { return policyId; },
       getUrl: function() { return CLMAppLocations.getPolicyTagUrl(policyId); },
@@ -38,6 +39,9 @@
       getByPolicyId: function(id) {
         policyId = id;
         return store;
+      },
+      getApplied: function() {
+        return $http.get(CLMLocations.getOrganizationPolicyTagUrl(CLMAppLocations.getEntityId()));
       }
     };
   }]);
@@ -48,8 +52,8 @@
   }
 
   tagModule.controller('TagController', [
-    '$scope', '$http', '$q', 'CLMAppLocations', 'Messages', 'CLMResource', 'TagStore', 'ownerChange', 'Dialog', 'ApplicationStore',
-    function($scope, $http, $q, clmAppLocations, messages, clmResource, TagStore, ownerChange, Dialog, ApplicationStore) {
+    '$scope', '$http', '$q', 'CLMAppLocations', 'Messages', 'CLMResource', 'TagStore', 'ownerChange', 'Dialog', 'ApplicationStore', 'PolicyStore', 'PolicyTagStore',
+    function($scope, $http, $q, clmAppLocations, messages, clmResource, TagStore, ownerChange, Dialog, ApplicationStore, PolicyStore, PolicyTagStore) {
       $scope.alerts = [];
       $scope.colors = [null, 'white', 'grey', 'black', 'green', 'yellow', 'orange', 'red', 'blue'];
 
@@ -74,7 +78,7 @@
       $scope.doLoad = function() {
         $scope.error = null;
         $scope.tags = null;
-        $q.all([TagStore.refresh(), TagStore.getApplied(), ApplicationStore.get()]).then(function(results) {
+        $q.all([TagStore.refresh(), TagStore.getApplied(), ApplicationStore.get(), PolicyTagStore.getApplied(), PolicyStore.get().get()]).then(function(results) {
           $scope.tags = results[0];
           $scope.appliedTags = results[1].data;
           $scope.applications = results[2];
@@ -82,15 +86,27 @@
           angular.forEach($scope.applications, function(application){
             mappedApplications[application.id] = application.name;
           });
+          var mappedPolicies = {};
+          var policyTags = results[3].data;
+          var policies = results[4];
+          angular.forEach(policies, function(policy) {
+            mappedPolicies[policy.id] = policy.name;
+          });
           var mappedTags = {};
           angular.forEach($scope.tags, function(tag){
             tag.appliedTags = [];
+            tag.policies = [];
             mappedTags[tag.id] = tag;
           });
           angular.forEach($scope.appliedTags, function(ApplicationTag){
             var appliedTags = mappedTags[ApplicationTag.tagId].appliedTags;
             ApplicationTag.applicationName = mappedApplications[ApplicationTag.applicationId];
             appliedTags.push(ApplicationTag);
+          });
+          angular.forEach(policyTags, function(policyTag) {
+            var policies = mappedTags[policyTag.tagId].policies;
+            policyTag.policyName = mappedPolicies[policyTag.policyId];
+            policies.push(policyTag);
           });
         }, function(error) {
           $scope.error = error;
@@ -125,40 +141,52 @@
 
       $scope.deleteTag = function(tag, $event) {
         $event.stopPropagation();
-        var body = 'Are you sure you want to delete this tag?';
-        var length = tag.appliedTags ? tag.appliedTags.length : 0;
-        if (length > 0) {
-          body += ' It is in use by the following applications: ';
-          body += jQuery.map(tag.appliedTags, function(ApplicationTag){
-            return ApplicationTag.applicationName;
-          }).join(', ') + '.';
-        }
-        Dialog.open({
+        var body;
+        var dialogOptions = {
           title: 'Delete Tag',
-          body: body,
           buttons: [
             {
               name: 'Cancel'
-            },
-            {
-              name: 'Delete',
-              type: 'danger',
-              click: function() {
-                tag.$delete().then(function() {
-                  if ($scope.selectedTag && tag.id === $scope.selectedTag.id) {
-                    $scope.selectedTag = null;
-                  }
-                }, function(error) {
-                  showAlert($scope.alerts, {
-                    type: 'error',
-                    msg: 'An error occurred while deleting the tag ' + tag.name + '. (' +
-                      messages.getHttpErrorMessage(error) + ')'
-                  });
-                });
-              }
             }
           ]
-        });
+        };
+        var policyLength = tag.policies ? tag.policies.length : 0;
+        // If there are policies associated with a tag, prevent the user from deleting the tag
+        if (policyLength > 0) {
+          body = 'You cannot delete this tag because it is associated with the following policies: ';
+          body += jQuery.map(tag.policies, function(policy) {
+            return policy.policyName;
+          }).join(', ') + '.';
+        // Else notify the user if there are associated applications and allow deletion
+        } else {
+          body = 'Are you sure you want to delete this tag?';
+          var appliedTagsLength = tag.appliedTags ? tag.appliedTags.length : 0;
+          if (appliedTagsLength > 0) {
+            body += ' It is in use by the following applications: ';
+            body += jQuery.map(tag.appliedTags, function(ApplicationTag){
+              return ApplicationTag.applicationName;
+            }).join(', ') + '.';
+          }
+          dialogOptions.buttons.push({
+            name: 'Delete',
+            type: 'danger',
+            click: function() {
+              tag.$delete().then(function() {
+                if ($scope.selectedTag && tag.id === $scope.selectedTag.id) {
+                  $scope.selectedTag = null;
+                }
+              }, function(error) {
+                showAlert($scope.alerts, {
+                  type: 'error',
+                  msg: 'An error occurred while deleting the tag ' + tag.name + '. (' +
+                    messages.getHttpErrorMessage(error) + ')'
+                });
+              });
+            }
+          });
+        }
+        dialogOptions.body = body;
+        Dialog.open(dialogOptions);
       };
 
       $scope.$on('tags.cancelEditTag', function(event) {

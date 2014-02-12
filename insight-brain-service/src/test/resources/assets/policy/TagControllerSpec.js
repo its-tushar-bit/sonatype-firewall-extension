@@ -167,7 +167,7 @@ describe('TagController.js', function() {
       appliedPolicyTags = [
         {
           id: 'appliedPolicyTagId',
-          tagId: appliedTags[0].id,
+          tagId: tags[1].id,
           policyId: PolicyMockData.getPolicyData()[0].id
         }
       ];
@@ -177,6 +177,10 @@ describe('TagController.js', function() {
       testScope.alerts = [];
       $httpBackend.whenGET(SpecUtil.toRegExp(CLMAppLocations.getTagsUrl())).respond(tags);
       $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getOrganizationAppliedTagUrl(bomId))).respond(appliedTags);
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getOrganizationPolicyTagUrl(bomId))).respond(appliedPolicyTags);
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getConditionTypeUrl())).respond(PolicyMockData.getConditionTypeData());
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMAppLocations.getConditionValueTypeUrl())).respond(PolicyMockData.getConditionValueTypeData());
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMAppLocations.getPolicyUrl())).respond(PolicyMockData.getPolicyData());
       $httpBackend.whenGET(SpecUtil.toRegExp(CLMLocations.getApplicationsUrl())).respond(applications);
       tagController = $controller('TagController', {$scope: testScope});
       tagEditorController = $controller('TagEditorController', {$scope: scope});
@@ -199,6 +203,14 @@ describe('TagController.js', function() {
       spyOn(scope, '$emit');
       scope.cancelEditTag();
       expect(scope.$emit).toHaveBeenCalledWith('tags.cancelEditTag');
+    });
+
+    it('Cannot delete a tag associated with policy', function() {
+      expect(testScope.tags.length).toEqual(2);
+      scope.deleteTag(testScope.tags[1], { stopPropagation : angular.noop });
+      expect(dialogScope.body).toContain('You cannot delete this tag because it is associated with the following policies: asdffffrfff.');
+      dialogScope.buttons[0].click();
+      expect(testScope.tags.length).toEqual(2);
     });
 
     it('Can delete a tag', inject(function($httpBackend, CLMAppLocations) {

@@ -117,4 +117,10 @@ class TagService
 
     policyTagDAO.delete(policyTag);
   }
+
+  @Authorize(permission = Permission.READ)
+  public List<PolicyTag> getPolicyTagsByOrgId(@AuthzContext(AuthzContext.Key.ORGANIZATION_ID) final String organizationId) {
+    PolicyTagDAO policyTagDAO = new PolicyTagDAO();
+    return policyTagDAO.getByOrganizationId(organizationId);
+  }
 }

@@ -120,6 +120,9 @@
         getApplicationTagUrl : function(applicationPublicId) {
           return baseUrl.get() + '/rest/appliedTag/application/' + encodeURIComponent(applicationPublicId);
         },
+        getApplicableOrganizationTags : function(applicationPublicId) {
+          return baseUrl.get() + '/rest/tag/application/' + encodeURIComponent(applicationPublicId) + '/applicable';
+        },
         getDeleteApplicationTagUrl : function(applicationPublicId, tagId) {
           return this.getApplicationTagUrl(applicationPublicId) + '/' + tagId;
         },

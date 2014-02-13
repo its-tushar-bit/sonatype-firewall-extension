@@ -27,7 +27,7 @@ public class TagResourceTest
   public void testCRUD() throws Exception {
     Organization org = tempEntity.newOrganization("TagResourceTest");
 
-    String url = getRestUrl(TagResource.SERVICE_PATH, org.getId());
+    String url = getRestUrl(TagResource.SERVICE_PATH + "/" + TagResource.ORGANIZATION_PATH, org.getId());
     // Get
     Response response = AuthedRestAccess.get(url);
     assertResponseStatus(200, response);

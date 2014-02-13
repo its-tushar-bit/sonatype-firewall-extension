@@ -5,14 +5,13 @@
  */
 package com.sonatype.insight.brain.testing.functional
 
-import com.google.common.io.Resources
-import com.sonatype.insight.brain.dataaccess.TemporaryEntity
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO
-import com.sonatype.insight.brain.service.InsightConfig
-import com.sonatype.insight.brain.service.TestInsightBrainService
+import com.sonatype.insight.brain.dataaccess.TemporaryEntity
+import com.sonatype.insight.brain.service.PortAllocator
+import com.sonatype.insight.brain.service.TestInsightBrainServiceRule
 import com.sonatype.insight.brain.testing.functional.utils.InsightMockServerRule
-import com.yammer.dropwizard.testing.junit.DropwizardServiceRule
+
 import geb.Page
 import geb.spock.GebReportingSpec
 import groovy.util.logging.Slf4j
@@ -34,7 +33,8 @@ abstract class BaseSpec
 
   @Shared
   @ClassRule
-  TestRule serviceRule = new DropwizardServiceRule<InsightConfig>(TestInsightBrainService.class,Resources.getResource('config-test.yml').getPath())
+  TestInsightBrainServiceRule serviceRule = new TestInsightBrainServiceRule(PortAllocator.findFreePort(8070),
+    PortAllocator.findFreePort(8071), null, null, false, null)
 
   @Shared
   @ClassRule
@@ -52,7 +52,7 @@ abstract class BaseSpec
 
   def setupSpec() {
     // Use port as reported by service under test since it's not known until runtime.
-    System.setProperty("geb.build.baseUrl", "http://localhost:" + serviceRule.getLocalPort() + "/")
+    System.setProperty("geb.build.baseUrl", "http://localhost:" + serviceRule.getPort() + "/")
   }
 
   def cleanupSpec(){

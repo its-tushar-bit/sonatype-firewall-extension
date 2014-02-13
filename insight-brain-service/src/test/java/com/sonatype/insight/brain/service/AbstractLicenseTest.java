@@ -6,7 +6,9 @@
 package com.sonatype.insight.brain.service;
 
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 import com.sonatype.insight.brain.AuthedRestAccess;
@@ -20,6 +22,7 @@ import org.sonatype.licensing.product.ProductLicenseManager;
 import org.sonatype.licensing.product.util.LicenseFingerprinter;
 
 import com.google.inject.AbstractModule;
+import com.google.inject.Module;
 import com.ning.http.client.AsyncHttpClient;
 import com.ning.http.client.Response;
 import com.ning.http.multipart.ByteArrayPartSource;
@@ -40,9 +43,9 @@ public abstract class AbstractLicenseTest
   private final TestLicenseFingerprinter licenseFingerprinter = new TestLicenseFingerprinter();
 
   @Override
-  protected void configureBrain(TestInsightBrainService brain) {
-    super.configureBrain(brain);
-    brain.addModule(new AbstractModule()
+  protected List<Module> addBrainModules() {
+    List<Module> modules = new ArrayList<>();
+    modules.add(new AbstractModule()
     {
       @Override
       protected void configure() {
@@ -50,6 +53,12 @@ public abstract class AbstractLicenseTest
         bind(LicenseFingerprinter.class).toInstance(licenseFingerprinter);
       }
     });
+
+    List<Module> superModules = super.addBrainModules();
+    if (superModules != null) {
+      modules.addAll(superModules);
+    }
+    return modules;
   }
 
   protected TestProductLicenseManager getTestProductLicenseManager() {

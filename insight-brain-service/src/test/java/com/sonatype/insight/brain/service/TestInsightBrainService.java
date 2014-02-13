@@ -62,6 +62,8 @@ public class TestInsightBrainService
 
   private LicenseDataUpdater savedLicenseDataUpdater;
 
+  private InsightConfig insightConfig;
+
   public void setHttpPort(final int port) {
     testPort = port;
   }
@@ -206,6 +208,7 @@ public class TestInsightBrainService
     if (testProxyConfig != null) {
       config.setProxyConfig(testProxyConfig);
     }
+    insightConfig = config;
 
     new FileCleaner().delete(config.getSonatypeWork());
 
@@ -333,5 +336,9 @@ public class TestInsightBrainService
 
   public File getReportDir(String applicationId, String scanId) {
     return new File(new File(new File(getWorkDir(), "report"), applicationId), scanId);
+  }
+
+  public InsightConfig getConfiguration() {
+    return insightConfig;
   }
 }

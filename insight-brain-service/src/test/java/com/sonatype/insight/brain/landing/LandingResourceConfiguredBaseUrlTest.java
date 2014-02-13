@@ -14,14 +14,19 @@ import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 
-public class LandingResourceTest
+public class LandingResourceConfiguredBaseUrlTest
     extends AbstractResourceTest
 {
+  @Override
+  protected String getBrainBaseUrl() {
+    return "http://clm.sonatype.com/test";
+  }
+
   @Test
-  public void testHome_RequestBaseUrl() throws Exception {
+  public void testHome_ConfiguredBaseUrl() throws Exception {
     Response response = AuthedRestAccess.get(getRestBaseUrl() + "?x=y&a=b");
     assertResponseStatus(303, response);
-    assertEquals(getRestBaseUrl() + InsightBrainService.BRAIN_ASSET_PATH.substring(1) + "reports.html?x=y&a=b",
-        response.getHeader("Location"));
+    assertEquals("http://clm.sonatype.com/test/" + InsightBrainService.BRAIN_ASSET_PATH.substring(1)
+        + "reports.html?x=y&a=b", response.getHeader("Location"));
   }
 }

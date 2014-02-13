@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.trending;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
@@ -16,11 +18,11 @@ import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.trending.TrendingReport;
 import com.sonatype.insight.brain.service.AbstractResourceAuthzTest;
-import com.sonatype.insight.brain.service.TestInsightBrainService;
 import com.sonatype.insight.brain.trending.TrendingReportProcessor.ProgressMonitor;
 import com.sonatype.insight.test.RestAccess;
 
 import com.google.inject.AbstractModule;
+import com.google.inject.Module;
 import com.google.inject.Provider;
 import com.ning.http.client.Response;
 import com.yammer.dropwizard.testing.JsonHelpers;
@@ -103,9 +105,9 @@ public class TrendingReportResourceTest
   }
 
   @Override
-  protected void configureBrain(TestInsightBrainService brain) {
-    super.configureBrain(brain);
-    brain.addModule(new AbstractModule()
+  protected List<Module> addBrainModules() {
+    List<Module> modules = new ArrayList<>();
+    modules.add(new AbstractModule()
     {
       @Override
       protected void configure() {
@@ -157,11 +159,16 @@ public class TrendingReportResourceTest
         });
       }
     });
+
+    List<Module> superModules = super.addBrainModules();
+    if (superModules != null) {
+      modules.addAll(superModules);
+    }
+    return modules;
   }
 
-  @Override
-  public void startService() throws Exception {
-    super.startService();
+  @Before
+  public void before() throws Exception {
     brain.getInjector().getInstance(TrendingReportCache.class).getCacheFile().delete();
   }
 

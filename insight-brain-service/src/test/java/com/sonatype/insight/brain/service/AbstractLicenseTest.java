@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.service;
 
 import java.io.InputStream;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -43,8 +42,7 @@ public abstract class AbstractLicenseTest
   private final TestLicenseFingerprinter licenseFingerprinter = new TestLicenseFingerprinter();
 
   @Override
-  protected List<Module> addBrainModules() {
-    List<Module> modules = new ArrayList<>();
+  protected void addBrainModules(List<Module> modules) {
     modules.add(new AbstractModule()
     {
       @Override
@@ -53,12 +51,7 @@ public abstract class AbstractLicenseTest
         bind(LicenseFingerprinter.class).toInstance(licenseFingerprinter);
       }
     });
-
-    List<Module> superModules = super.addBrainModules();
-    if (superModules != null) {
-      modules.addAll(superModules);
-    }
-    return modules;
+    super.addBrainModules(modules);
   }
 
   protected TestProductLicenseManager getTestProductLicenseManager() {

@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.service;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.ws.rs.core.UriBuilder;
@@ -46,22 +47,27 @@ public abstract class AbstractBrainServiceTest
   @Rule
   public TestInsightBrainServiceRule brain = new TestInsightBrainServiceRule(PortAllocator.findFreePort(8070),
       PortAllocator.findFreePort(8071), getBrainBaseUrl(), "http://localhost:" + insightMockServerPort,
-      isProxyRequiredToReachSaas(), addBrainModules());
+      isProxyRequiredToReachSaas(), getBrainModules());
 
   @AfterClass
   public static void afterClass() {
     DataSourceFactory.clear_ForTestsOnly();
   }
 
+  private List<Module> getBrainModules() {
+    List<Module> modules = new ArrayList<>();
+    addBrainModules(modules);
+    return modules;
+  }
+
   /**
-   * Returns modules to be added to the test brain server's injector.
+   * Allows subclasses to provide modules to be added to the test brain server's injector.
    * This method is called before the test brain is initialized. Calling this method after the test brain server is
    * initialized (i.e. from a test method) has no effect.
    * 
    * @since 1.9.1
    */
-  protected List<Module> addBrainModules() {
-    return null;
+  protected void addBrainModules(List<Module> modules) {
   }
 
   protected String getBrainBaseUrl() {

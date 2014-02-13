@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.trending;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -105,8 +104,7 @@ public class TrendingReportResourceTest
   }
 
   @Override
-  protected List<Module> addBrainModules() {
-    List<Module> modules = new ArrayList<>();
+  protected void addBrainModules(List<Module> modules) {
     modules.add(new AbstractModule()
     {
       @Override
@@ -159,12 +157,7 @@ public class TrendingReportResourceTest
         });
       }
     });
-
-    List<Module> superModules = super.addBrainModules();
-    if (superModules != null) {
-      modules.addAll(superModules);
-    }
-    return modules;
+    super.addBrainModules(modules);
   }
 
   @Before

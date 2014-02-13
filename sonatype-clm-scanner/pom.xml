@@ -19,6 +19,7 @@
   <artifactId>sonatype-clm-scanner</artifactId>
 
   <properties>
+    <!-- PO has requested the clients still support 1.6 -->
     <maven.compiler.source>1.6</maven.compiler.source>
     <maven.compiler.target>1.6</maven.compiler.target>
   </properties>

@@ -16,7 +16,7 @@
 
   <groupId>com.sonatype.insight.brain</groupId>
   <artifactId>insight-brain</artifactId>
-  <version>1.9.1-SNAPSHOT</version>
+  <version>1.9.0-02</version>
   <packaging>pom</packaging>
 
   <name>Insight Brain Parent POM</name>
@@ -46,7 +46,7 @@
     <connection>scm:git:git@github.com/sonatype/insight-brain.git</connection>
     <developerConnection>scm:git:ssh://git@github.com/sonatype/insight-brain.git</developerConnection>
     <url>http://github.com/sonatype/insight-brain</url>
-    <tag>HEAD</tag>
+    <tag>insight-brain-1.9.0-02</tag>
   </scm>
 
   <modules>
@@ -68,56 +68,56 @@
       <dependency>
         <groupId>com.sonatype.insight.brain</groupId>
         <artifactId>insight-brain-client</artifactId>
-        <version>1.9.1-SNAPSHOT</version>
+        <version>1.9.0-02</version>
       </dependency>
       <dependency>
         <groupId>com.sonatype.insight.brain</groupId>
         <artifactId>insight-brain-data</artifactId>
-        <version>1.9.1-SNAPSHOT</version>
+        <version>1.9.0-02</version>
       </dependency>
       <dependency>
         <groupId>com.sonatype.insight.brain</groupId>
         <artifactId>insight-brain-data</artifactId>
-        <version>1.9.1-SNAPSHOT</version>
+        <version>1.9.0-02</version>
         <type>test-jar</type>
         <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>com.sonatype.insight.brain</groupId>
         <artifactId>insight-brain-db</artifactId>
-        <version>1.9.1-SNAPSHOT</version>
+        <version>1.9.0-02</version>
       </dependency>
       <dependency>
         <groupId>com.sonatype.insight.brain</groupId>
         <artifactId>insight-brain-common</artifactId>
-        <version>1.9.1-SNAPSHOT</version>
+        <version>1.9.0-02</version>
       </dependency>
       <dependency>
         <groupId>com.sonatype.insight.brain</groupId>
         <artifactId>insight-brain-service</artifactId>
-        <version>1.9.1-SNAPSHOT</version>
+        <version>1.9.0-02</version>
       </dependency>
       <dependency>
         <groupId>com.sonatype.insight.brain</groupId>
         <artifactId>insight-brain-service</artifactId>
-        <version>1.9.1-SNAPSHOT</version>
+        <version>1.9.0-02</version>
         <classifier>tests</classifier>
         <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>com.sonatype.insight.brain</groupId>
         <artifactId>insight-json-store</artifactId>
-        <version>1.9.1-SNAPSHOT</version>
+        <version>1.9.0-02</version>
       </dependency>
       <dependency>
         <groupId>com.sonatype.insight.brain</groupId>
         <artifactId>insight-brain-ldap</artifactId>
-        <version>1.9.1-SNAPSHOT</version>
+        <version>1.9.0-02</version>
       </dependency>
       <dependency>
         <groupId>com.sonatype.insight.brain</groupId>
         <artifactId>insight-brain-ldap</artifactId>
-        <version>1.9.1-SNAPSHOT</version>
+        <version>1.9.0-02</version>
         <classifier>tests</classifier>
         <scope>test</scope>
       </dependency>

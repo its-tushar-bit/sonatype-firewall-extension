@@ -174,24 +174,24 @@ public class LdapRealmTest
 
   public void runAuthTests() {
     if (authentication.getMethod().endsWith("MD5")) {
-      assertBadCredentials("anonymous", null);
-      assertBadCredentials("anonymous", "");
+      assertEmptyPassword("anonymous", null);
+      assertEmptyPassword("anonymous", "");
       assertBadCredentials("anonymous", "guest");
       assertBadCredentials("anonymous", "s3cr3t");
 
-      assertBadCredentials("test_sasl_user", null);
-      assertBadCredentials("test_sasl_user", "");
+      assertEmptyPassword("test_sasl_user", null);
+      assertEmptyPassword("test_sasl_user", "");
       assertBadCredentials("test_sasl_user", "guest");
       assertGoodCredentials("test_sasl_user", "Test", "s3cr3t");
     }
     else {
-      assertBadCredentials("anonymous", null);
-      assertBadCredentials("anonymous", "");
+      assertEmptyPassword("anonymous", null);
+      assertEmptyPassword("anonymous", "");
       assertBadCredentials("anonymous", "guest");
       assertBadCredentials("anonymous", "far2simple");
 
-      assertBadCredentials("test_user", null);
-      assertBadCredentials("test_user", "");
+      assertEmptyPassword("test_user", null);
+      assertEmptyPassword("test_user", "");
       assertBadCredentials("test_user", "guest");
       assertGoodCredentials("test_user", "Test", "far2simple", "Gamma", "Theta", "Omega");
     }
@@ -219,6 +219,17 @@ public class LdapRealmTest
       fail("Expected IncorrectCredentialsException");
     }
     catch (AuthenticationException expected) {
+    }
+  }
+
+  public void assertEmptyPassword(String username, String password) {
+    UsernamePasswordToken usernamePasswordToken = new UsernamePasswordToken(username, password);
+    try {
+      realm.getAuthenticationInfo(usernamePasswordToken);
+      fail("Expected AuthenticationException");
+    }
+    catch (AuthenticationException expected) {
+      assertThat(expected.getMessage(), is("Password must not be empty"));
     }
   }
 

@@ -477,13 +477,10 @@ a:focus {
 }
 .content-header {
 	border-bottom: 1px solid rgba(255, 255, 255, .6);
-	margin: 20px 0 10px 25px;
+	margin: 0px 0 10px 0px;
 }
 .content-header h4 {
 	border-bottom: 1px solid rgba(0, 0, 0, .1);
-}
-.policies, .licenseGroups, .roles, .monitoringContent {
-	margin-left: 25px;
 }
 .policies .accordion-heading .accordion-toggle,
 .licenseGroups .accordion-heading .accordion-toggle,
@@ -629,7 +626,7 @@ a:focus {
         vertical-align : text-top;
 }
 .inline-editor.head input {
-        width: 500px;
+  width: 460px;
 }
 .inline-editor.head .editable-error {
         font-size: 14px;
@@ -760,10 +757,6 @@ ul.tri-pane {
 	padding-right: 12px; /* Ensures underline is full width with the above margin */
 	list-style-type: none;
 	min-width: 500px;
-	border-bottom: 1px solid rgba(0, 0, 0, .1);
-	-webkit-box-shadow: 0px 1px 0px rgba(255,255,255,.6);
-	-moz-box-shadow: 0px 1px 0px rgba(255,255,255,.6);
-	box-shadow: 0px 1px 0px rgba(255,255,255,.6);
 }
 .tri-pane a {
 	text-decoration: none;
@@ -797,6 +790,22 @@ ul.tri-pane {
 	width: 0;
 	margin: -5px auto 0;
 }
+ul.tri-pane {
+  margin-bottom : 0px;
+}
+ul.tri-pane.underline {
+  margin-bottom : 10px;
+}
+ul.tri-pane.left li:first-child a {
+  padding-left: 0px;
+}
+ul.tri-pane.left li:first-child {
+  margin-left: 0px;
+}
+ul.tri-pane.left {
+  margin-left: 0px;
+}
+
 /**
  * Accordion
  */
@@ -898,9 +907,6 @@ ul.tri-pane {
 }
 .slide.in {
 	height: auto;
-}
-.configuration .control-group {
-	margin: 20px 0 10px 25px;
 }
 .configuration .control-label {
 	text-align: left;

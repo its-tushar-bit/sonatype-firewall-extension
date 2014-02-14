@@ -111,17 +111,17 @@
         if (data === 402) {
           // Server is unlicensed, redirect to product licensing page
           if ($window.location.href.indexOf('/index.html') === -1) {
-            $window.location.replace('index.html#/management/configuration/productlicense');
+            $window.location.replace('index.html#/productlicense');
           }
           else {
             stateChangePrevention(); // Remove existing block
             $rootScope.$on('$stateChangeStart', function(event, toState) {
-              if (toState.name !== 'management.configuration.productlicense') {
+              if (toState.name !== 'productlicense') {
                 event.preventDefault();
               }
             });
             $rootScope.initialized = true;
-            $state.transitionTo('management.configuration.productlicense');
+            $state.transitionTo('productlicense');
           }
         }
         else {

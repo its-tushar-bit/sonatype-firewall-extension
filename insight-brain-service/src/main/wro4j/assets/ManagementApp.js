@@ -37,16 +37,6 @@
         name: 'Applications',
         state: 'management/application',
         isEnabled: true
-      },
-      {
-        name: 'Security',
-        state: 'management/security',
-        isEnabled: true
-      },
-      {
-        name: 'Configuration',
-        state: 'management/configuration',
-        isEnabled: true
       }
     ];
 

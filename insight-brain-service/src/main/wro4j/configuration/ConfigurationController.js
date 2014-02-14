@@ -16,16 +16,14 @@
         url: '/configuration',
         controller: 'ConfigurationController',
         templateUrl: '../configuration-assets/components/configuration-navigator.html?' + clmBuildTimestamp
-      }).state('management.configuration.productlicense', {
-        parent: 'management.configuration',
+      }).state('productlicense', {
         url: '/productlicense',
         controller: 'ProductLicenseController',
         templateUrl: '../configuration-assets/components/license.html?' + clmBuildTimestamp,
         data : {
           title : 'Product License'
         }
-      }).state('management.configuration.proprietarycomponents', {
-        parent: 'management.configuration',
+      }).state('proprietarycomponents', {
         url: '/proprietarycomponents',
         controller: 'ProprietaryConfigurationController',
         templateUrl: '../configuration-assets/components/proprietary.html?' + clmBuildTimestamp,
@@ -33,51 +31,6 @@
           title : 'Proprietary Configuration'
         }
       });
-    }
-  ]);
-
-  module.controller('ConfigurationController', [
-    '$scope', '$state', 'commonCodeFactory', '$location', function($scope, $state, commonCodeFactory, $location) {
-      $scope.$state = $state;
-      $scope.$location = $location;
-
-      $scope.configurationPanes = [
-        {
-          name: 'Product License',
-          state: 'management/configuration/productlicense',
-          isEnabled: true
-        },
-        {
-          name: 'Proprietary Components',
-          state: 'management/configuration/proprietarycomponents',
-          isEnabled: true
-        },
-        {
-          name: 'LDAP',
-          state: 'management/configuration/ldap',
-          isEnabled: true
-        }
-      ];
-
-      for (var i = 0; i < $scope.configurationPanes.length; i++) {
-        var normalizedState = $scope.configurationPanes[i].state.replace(/\//g, '.');
-        if ($scope.$state.current.name.indexOf(normalizedState) !== -1) {
-          $scope.$state.selectedPane = $scope.configurationPanes[i];
-          break;
-        }
-      }
-
-      $scope.$watch('$state.current.name', function() {
-        if ($state.current.name === 'management.configuration') {
-          $state.transitionTo('management.configuration.productlicense');
-        }
-      });
-
-      $scope.syncAlerts = [];
-      var error = commonCodeFactory.getEncodedQueryString('errorMessage');
-      if (error) {
-        $scope.syncAlerts.push({ type: 'error', msg: decodeURIComponent(error) });
-      }
     }
   ]);
 

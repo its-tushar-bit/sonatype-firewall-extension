@@ -338,7 +338,7 @@
       </div>
     </div>
     <div ng-if='ao.selected && !ao.isNew()' style='clear:both'>
-      <ul class='tri-pane'>
+      <ul class='tri-pane underline'>
         <li ng-class='{ active : isCurrentTab("policies") || isCurrentTab("policies.edit") || isCurrentTab("policies.new") }'>
           <a id='tab-button-policies' ng-href='#/management/{{ao.type}}/{{ao.getPublicId()}}/policies'>POLICIES</a>
         </li>
@@ -355,7 +355,7 @@
           <a id='tab-button-security' ng-href='#/management/{{ao.type}}/{{ao.getPublicId()}}/security'>SECURITY</a>
         </li>
       </ul>
-      <div ui-view></div>
+      <div ui-view style='margin:25px'></div>
     </div>
   </div>
 </div>

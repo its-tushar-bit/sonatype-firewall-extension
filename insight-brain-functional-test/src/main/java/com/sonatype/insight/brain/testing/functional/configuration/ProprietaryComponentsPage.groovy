@@ -14,9 +14,8 @@ import geb.Module
  * @since 1.11
  */
 class ProprietaryComponentsPage
-    extends BasePage
-{
-  static url = 'assets/index.html#/management/configuration/proprietarycomponents'
+extends BasePage {
+  static url = 'assets/index.html#/proprietarycomponents'
 
   static at = { $('#proprietaryTable').displayed }
 

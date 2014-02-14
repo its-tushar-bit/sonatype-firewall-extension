@@ -29,7 +29,7 @@ describe('Tests for the LdapConfigurationController', function() {
     beforeEach(inject(function($httpBackend, $rootScope, $controller, $state, CLMLocations) {
       httpBackend = $httpBackend;
 
-      $state.current.name = 'management.configuration.ldap';
+      $state.current.name = 'ldap';
 
       scope = $rootScope.$new();
       scope.ldapNameForm = {
@@ -153,7 +153,7 @@ describe('Tests for the LdapConfigurationController', function() {
         return CLMLocations.getLdapConfig() + '/123/' + service;
       };
 
-      $state.current.name = 'management.configuration.ldap.connection';
+      $state.current.name = 'ldap.connection';
 
       scope = $rootScope.$new();
       state = $state;
@@ -341,15 +341,6 @@ describe('Tests for the LdapConfigurationController', function() {
     }));
   });
 
-
-
-  
-  
-  
-  
-  
-  
-  
   describe('LdapUsermappingController', function() {
     var httpBackend, state, getConfigLdapUrl;
 
@@ -360,7 +351,7 @@ describe('Tests for the LdapConfigurationController', function() {
         return CLMLocations.getLdapConfig() + '/123/userMapping';
       };
 
-      $state.current.name = 'management.configuration.ldap.usermapping';
+      $state.current.name = 'ldap.usermapping';
 
       scope = $rootScope.$new();
       state = $state;

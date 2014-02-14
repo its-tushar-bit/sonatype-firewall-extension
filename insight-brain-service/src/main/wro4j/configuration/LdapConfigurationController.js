@@ -15,20 +15,19 @@
   var module = angular.module('LdapConfiguration',
   ['CLMLocation', 'ResourceModule', 'ui.router', 'AngularCommon', 'CommonServices', 'Configuration'],
   ['$stateProvider', function($stateProvider) {
-    $stateProvider.state('management.configuration.ldap', {
-      parent: 'management.configuration',
+    $stateProvider.state('ldap', {
       url: '/ldap',
       controller: 'LdapConfigurationController',
       templateUrl: '../configuration-assets/components/ldap.html?' + clmBuildTimestamp,
       data : {
         title : 'LDAP Configuration'
       }
-    }).state('management.configuration.ldap.connection', {
-      parent: 'management.configuration.ldap',
+    }).state('ldap.connection', {
+      parent: 'ldap',
       controller: 'LdapConnectionController',
       templateUrl: '../configuration-assets/components/ldap-connection.html?' + clmBuildTimestamp
-    }).state('management.configuration.ldap.usermapping', {
-      parent: 'management.configuration.ldap',
+    }).state('ldap.usermapping', {
+      parent: 'ldap',
       controller: 'LdapUsermappingController',
       templateUrl: '../configuration-assets/components/ldap-usermapping.html?' + clmBuildTimestamp
     });
@@ -129,7 +128,7 @@
       }
 
       function setCurrentTab(tabname) {
-        var ldapState = 'management.configuration.ldap', targetState = ldapState + '.' + tabname;
+        var ldapState = 'ldap', targetState = ldapState + '.' + tabname;
 
         if ($state.current.name !== targetState && $scope.ldap && $scope.ldap.id) {
           // if the current scope/state isDirty, ask the user if it's okay to discard the changes
@@ -152,7 +151,7 @@
       preventPageChange($scope);
 
       $scope.$on('$stateChangeSuccess', function() {
-        if ($state.current.name === 'management.configuration.ldap') {
+        if ($state.current.name === 'ldap') {
           setCurrentTab('connection');
         }
       });
@@ -167,7 +166,7 @@
         $scope.saving = true;
         $scope.ldap.$save().then(function() {
           $scope.saving = false;
-          if ($state.current.name === 'management.configuration.ldap') {
+          if ($state.current.name === 'ldap') {
             setCurrentTab('connection');
           }
         }, function() {

@@ -6,35 +6,17 @@
  /* global angular, AngularUtils, ZeroClipboard, clmBuildTimestamp, $ */
 (function() {
   'use strict';
-  var module = angular.module('SecurityModule', ['ui.router', 'ManagementModule', 'AngularCommon', 'ApplicationSecurityModule'], ['$stateProvider',
+  angular.module('SecurityModule', ['ui.router', 'ManagementModule', 'AngularCommon', 'ApplicationSecurityModule'], ['$stateProvider',
       function($stateProvider) {
-        $stateProvider.state('management.security', {
-          parent: 'management',
-          url: '/security',
-          templateUrl: '../security-assets/security-navigation.html?' + clmBuildTimestamp,
-          controller: 'SecurityMenuController',
-          data : {
-            title : 'Users'
-          }
-        }).state('management.security.global', {
-          parent: 'management.security',
+        $stateProvider.state('global', {
           url: '/global',
-          template : '<h1 class="page-title">Global Roles</h1><div ng-controller="AppSecurityController" ng-include="\'../policy-assets/components/app-security/app-security.html?' + clmBuildTimestamp + '\'"></div>',
+          template : '<div class="mid-content"><h1 class="page-title"><div class="container">Global Roles</div></h1></div>' +
+                     '<div class="container" ng-controller="AppSecurityController" ng-include="\'../policy-assets/components/app-security/app-security.html?' + clmBuildTimestamp + '\'"></div>',
           data : {
             title : 'Global Roles'
           }
         });
       }]);
-
-  module.controller('SecurityMenuController', ['$state', '$scope', function($state, $scope) {
-    $scope.$state = $state;
-
-    $scope.$watch('$state.current.name', function() {
-      if ($state.current.name === 'management.security') {
-        $state.transitionTo('management.security.users');
-      }
-    });
-  }]);
 }());
 
 (function() {
@@ -42,11 +24,13 @@
 
   var module = angular.module('UserModule', ['ui.router', 'SecurityModule', 'CLMLocation', 'ResourceModule'],
           ['$stateProvider', function($stateProvider) {
-            $stateProvider.state('management.security.users', {
-              parent: 'management.security',
+            $stateProvider.state('users', {
               url: '/users',
               controller: 'UserListController',
-              templateUrl: '../security-assets/user-list.html?' + clmBuildTimestamp
+              templateUrl: '../security-assets/user-list.html?' + clmBuildTimestamp,
+              data : {
+                title : 'Users'
+              }
             });
           }]);
 

@@ -41,15 +41,14 @@ import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.security.Permission;
-import com.sonatype.insight.brain.model.security.UserPrincipal;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluationLog;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluationUtils;
+import com.sonatype.insight.brain.security.AuditUtils;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.MediaTypeUtils;
-import com.sonatype.insight.client.utils.AuditUtils;
 import com.sonatype.insight.client.utils.UrlUtils;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -59,7 +58,6 @@ import com.sonatype.insight.json.store.JsonUtils;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ContainerNode;
 import com.google.common.cache.CacheBuilder;
-import org.apache.shiro.SecurityUtils;
 import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.IOUtil;
 import org.codehaus.plexus.util.StringUtils;
@@ -251,10 +249,7 @@ public class ReportResource
 
       // Save the data in the audit log
       final JsonStore store = JsonUtils.fileStore(work.getAuditDir(appId));
-      store.commit(
-          path,
-          JsonUtils.stamp(((UserPrincipal) SecurityUtils.getSubject().getPrincipal()).username,
-              AuditUtils.findIP(request), where, data));
+      store.commit(path, JsonUtils.stamp(AuditUtils.findUser(), AuditUtils.findIP(request), where, data));
 
       if ("licenses.json".equals(path)) {
         // Save the data as license overrides

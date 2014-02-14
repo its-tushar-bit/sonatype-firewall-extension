@@ -32,17 +32,14 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.security.Permission;
-import com.sonatype.insight.brain.model.security.UserPrincipal;
+import com.sonatype.insight.brain.security.AuditUtils;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.IdUtils;
-import com.sonatype.insight.client.utils.AuditUtils;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.json.store.JsonStore;
 import com.sonatype.insight.json.store.JsonUtils;
-
-import org.apache.shiro.SecurityUtils;
 
 /**
  * @since 1.6
@@ -88,7 +85,7 @@ public class LicenseOverrideResource
       licenseOverrideDAO.insert(licenseOverride);
     }
 
-    String user = ((UserPrincipal) SecurityUtils.getSubject().getPrincipal()).username;
+    String user = AuditUtils.findUser();
     String ipAddress = AuditUtils.findIP(request);
     auditLicenseOverride(internalOwnerId, licenseOverride, user, where, ipAddress, false /* isDelete */);
 
@@ -129,7 +126,7 @@ public class LicenseOverrideResource
           + " id " + ownerId);
     }
 
-    String user = ((UserPrincipal) SecurityUtils.getSubject().getPrincipal()).username;
+    String user = AuditUtils.findUser();
     String ipAddress = AuditUtils.findIP(request);
     auditLicenseOverride(internalOwnerId, licenseOverride, user, where, ipAddress, true /* isDelete */);
 

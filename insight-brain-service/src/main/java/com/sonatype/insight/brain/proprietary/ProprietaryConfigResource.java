@@ -21,9 +21,9 @@ import com.sonatype.clm.dto.model.ProprietaryConfig;
 import com.sonatype.insight.brain.dataaccess.ProprietaryConfigDAO;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.policy.PolicyResource;
+import com.sonatype.insight.brain.security.AuditUtils;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.service.InsightWork;
-import com.sonatype.insight.client.utils.AuditUtils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,12 +59,12 @@ public class ProprietaryConfigResource
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   @Authorize(permission = Permission.ADMIN)
-  public void update(@QueryParam("user") final String user, @QueryParam("where") final String where,
-      @Context final HttpServletRequest request, final ProprietaryConfig config)
+  public void update(@QueryParam("where") final String where, @Context final HttpServletRequest request,
+      final ProprietaryConfig config)
   {
     log.debug("Received request to update proprietary component configuration");
 
-    newDAO().session(user, AuditUtils.findIP(request), where).update(config);
+    newDAO().session(AuditUtils.findUser(), AuditUtils.findIP(request), where).update(config);
   }
 
   private ProprietaryConfigDAO newDAO() {

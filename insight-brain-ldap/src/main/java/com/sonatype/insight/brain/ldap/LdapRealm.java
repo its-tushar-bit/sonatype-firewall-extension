@@ -14,7 +14,6 @@ import javax.naming.NamingException;
 
 import com.sonatype.insight.brain.model.security.UserPrincipal;
 
-import org.apache.shiro.authc.AuthenticationException;
 import org.apache.shiro.authc.AuthenticationInfo;
 import org.apache.shiro.authc.AuthenticationToken;
 import org.apache.shiro.authc.SimpleAuthenticationInfo;
@@ -56,14 +55,6 @@ public class LdapRealm
   {
     String username = ((UsernamePasswordToken) token).getUsername();
     char[] password = ((UsernamePasswordToken) token).getPassword();
-
-    // Verify non-empty password
-    // Per RFC 4513, section 5.1.2, clients should disallow an empty password input
-    // to a Name/Password Authentication user interface
-    // There is also a known security issue with shiro related to passing an empty password for an ldap authentication
-    if (password == null || password.length == 0) {
-      throw new AuthenticationException("Password must not be empty");
-    }
 
     LdapUser ldapUser = ldapManager.authenticateUser(username, password);
     Set<String> membership = ldapUser.getMembership();

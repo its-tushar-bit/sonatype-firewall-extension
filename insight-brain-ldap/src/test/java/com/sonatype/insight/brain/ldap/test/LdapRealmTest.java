@@ -229,7 +229,7 @@ public class LdapRealmTest
       fail("Expected AuthenticationException");
     }
     catch (AuthenticationException expected) {
-      assertThat(expected.getMessage(), is("Password must not be empty"));
+      assertThat(expected.getCause().getMessage(), is("Password must not be empty"));
     }
   }
 

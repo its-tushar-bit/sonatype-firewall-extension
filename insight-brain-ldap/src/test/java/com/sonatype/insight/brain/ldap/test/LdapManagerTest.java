@@ -10,6 +10,7 @@ import java.util.Collections;
 import java.util.List;
 
 import javax.inject.Inject;
+import javax.naming.AuthenticationException;
 import javax.naming.NamingException;
 
 import com.sonatype.insight.brain.configuration.ldap.LdapConnection;
@@ -303,6 +304,33 @@ public class LdapManagerTest
     }
     catch (NamingException expected) {
       manager.testUserLogin(umap, "test_user", "far2simple".toCharArray());
+    }
+  }
+
+  @Test
+  public void testRejectEmptyPasswordAsPerRfc4513Section5_1_2() throws Exception {
+    startLdapServer();
+
+    LdapConnection conn = createLdapConnection();
+    conn.setSearchBase("dc=company,dc=com");
+    manager.saveConnection(conn);
+    LdapUserMapping umap = createUserMapping();
+    new LdapUserMappingDAO().insert(umap);
+
+    try {
+      manager.authenticateUser("test_user", "".toCharArray());
+      fail("Expected exception");
+    }
+    catch (AuthenticationException expected) {
+      // expected
+    }
+
+    try {
+      manager.testUserLogin(umap, "test_user", "".toCharArray());
+      fail("Expected exception");
+    }
+    catch (AuthenticationException expected) {
+      // expected
     }
   }
 

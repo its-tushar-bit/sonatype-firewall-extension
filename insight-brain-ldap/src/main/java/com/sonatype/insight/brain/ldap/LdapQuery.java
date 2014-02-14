@@ -84,6 +84,13 @@ class LdapQuery
    * Authenticates the given user and password against LDAP.
    */
   public LdapUser authenticateUser(String username, char[] password, boolean withMembership) throws NamingException {
+    // Verify non-empty password
+    // Per RFC 4513, section 5.1.2, clients should disallow an empty password input
+    // to a Name/Password Authentication user interface
+    if (password == null || password.length == 0) {
+      throw new AuthenticationException("Password must not be empty");
+    }
+
     LdapUser ldapUser = getUser(username, withMembership);
 
     if (StringUtils.isBlank(umap.getUserPasswordAttribute())) {
@@ -99,7 +106,7 @@ class LdapQuery
   /**
    * Authenticates the given user and password by delegating to the LDAP server via bind.
    */
-  public void authenticateWithBind(LdapUser user, char[] password) throws NamingException {
+  private void authenticateWithBind(LdapUser user, char[] password) throws NamingException {
     String boundName = user.getDn();
     if (ctxFactory.getAuthenticationMechanism().endsWith("MD5")) {
       boundName = user.getUsername();
@@ -117,7 +124,7 @@ class LdapQuery
   /**
    * Authenticates the given user and password by comparing against the credentials from LDAP.
    */
-  public void authenticateWithPassword(LdapUser user, char[] password) throws NamingException {
+  private void authenticateWithPassword(LdapUser user, char[] password) throws NamingException {
     byte[] receivedCredentials = Strings.getBytesUtf8(password != null ? new String(password) : null);
     byte[] storedCredentials = Strings.getBytesUtf8(user.getPassword());
 

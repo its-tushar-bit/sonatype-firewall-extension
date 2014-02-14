@@ -5,49 +5,11 @@
 }
 
 .users {
-	min-width: 466px;
-	max-width: 466px;
+	min-width: 469px;
+	max-width: 469px;
 }
 
-.user-editor .accordion-group,.user-editor .accordion-group:hover {
-	border-width: 1px 1px 0 1px;
-	border-color: rgba(0, 0, 0, .1);
-	margin: 0;
-	border-radius: 0;
-}
-
-.user-editor div.accordion-group:nth-child(odd) {
-	background-color: #f9f9f9;
-}
-
-.user-editor div.accordion-group:first-child {
-	-webkit-border-radius: 4px 4px 0 0;
-	-moz-border-radius: 4px 4px 0 0;
-	border-radius: 4px 4px 0 0;
-}
-
-.user-editor div.accordion-group:last-child {
-	-webkit-border-radius: 0 0 4px 4px;
-	-moz-border-radius: 0 0 4px 4px;
-	border-radius: 0 0 4px 4px;
-}
-
-.user-editor div.accordion-group .hover-buttons {
-	visibility: hidden;
-}
-
-.user-editor div.accordion-group:hover .btn-group {
-	visibility: visible;
-}
-
-.user-editor .accordion {
-	border-bottom: 1px solid rgba(0, 0, 0, .1);
-	-webkit-border-radius: 0 0 4px 4px;
-	-moz-border-radius: 0 0 4px 4px;
-	border-radius: 0 0 4px 4px;
-}
-
-.user-editor>form {
+.users form, .users .accordion {
 	margin: 0px;
 }
 
@@ -74,10 +36,14 @@
 .user-button-bar {
 	text-align:right;
 	padding-bottom:5px;
-	padding-right:2px;
+	padding-right:5px;
 }
 
 .user-list-loading {
 	text-align: center; 
 	margin: 30px;
+}
+
+.users .accordion-heading > .floatRight {
+	padding-right : 5px;
 }

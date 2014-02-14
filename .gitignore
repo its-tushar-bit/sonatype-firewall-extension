@@ -9,3 +9,6 @@ dependency-reduced-pom.xml
 *.iml
 *.eml
 .DS_Store
+insight-brain-service/grunt/working/
+insight-brain-service/grunt/metrics/
+insight-brain-service/node_modules/

@@ -274,12 +274,12 @@ describe('Tests for the OrganizationController', function() {
         expect(spy).toHaveBeenCalledWith('organizations.delete', originalMockOrganization.id);
       }));
 
-      it('Can respond to errors when trying to delete an organization', inject(function(CLMAppLocations, $modal, $q) {
-        var spy = spyOn(scope, '$broadcast').andReturn({defaultPrevented: false}),
-        modalDeferred = $q.defer(),
-        modalSpy = spyOn($modal, 'open').andReturn({
-          result : modalDeferred.promise
-        });
+      it('Can respond to errors when trying to delete an organization', inject(function(CLMAppLocations, $modal, $q, ErrorDialog) {
+        var spy = spyOn(ErrorDialog, 'open'),
+            modalDeferred = $q.defer(),
+            modalSpy = spyOn($modal, 'open').andReturn({
+              result : modalDeferred.promise
+            });
         scope.confirmDelete();
 
         expect(modalSpy).toHaveBeenCalled();
@@ -289,7 +289,7 @@ describe('Tests for the OrganizationController', function() {
         scope.$apply(function () {
           modalDeferred.reject(['foo', 400, null, null]);
         });
-        expect(spy).toHaveBeenCalledWith('showServerError', ['foo', 400, null, null]);
+        expect(spy).toHaveBeenCalledWith(['foo', 400, null, null]);
       }));
 
       it('displays confirmation dialog when navigating away from edited data', function() {

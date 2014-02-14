@@ -398,8 +398,8 @@ describe('ApplicationEditorController', function() {
       expect(mockApplication.policyEvaluationsResults.build.moderateComponentCount).toEqual(policyResponse.moderateComponentCount);
     }));
 
-    it('Can respond to errors when trying to delete an application', inject(function(CLMAppLocations, CLMLocations, $modal, $q) {
-      var spy = spyOn(scope, '$broadcast'),
+    it('Can respond to errors when trying to delete an application', inject(function(CLMAppLocations, CLMLocations, $modal, $q, ErrorDialog) {
+      var spy = spyOn(ErrorDialog, 'open'),
           modalDeferred = $q.defer(),
           serverFailure = ['Foo', 400, null, null],
           modalSpy = spyOn($modal, 'open').andReturn({
@@ -415,7 +415,7 @@ describe('ApplicationEditorController', function() {
         modalDeferred.reject(serverFailure);
       });
 
-      expect(spy).toHaveBeenCalledWith('showServerError', serverFailure);
+      expect(spy).toHaveBeenCalledWith(serverFailure);
     }));
 
     it('Refreshes the list of applications when informed that an organization has been deleted',

@@ -114,8 +114,8 @@
   }
   
   module.controller('LdapConfigurationController', [
-    '$scope', '$state', '$modal', 'Dialog', 'LdapConfigurationStore', 'CLMLocations',
-    function($scope, $state, $modal, Dialog, ldapStore, clmLocations) {
+    '$scope', '$state', '$modal', 'Dialog', 'LdapConfigurationStore', 'CLMLocations', 'ErrorDialog',
+    function($scope, $state, $modal, Dialog, ldapStore, clmLocations, ErrorDialog) {
       function isDirty() {
         if ($scope.ldapNameForm && $scope.ldapNameForm.$visible) {
           return true;
@@ -169,7 +169,7 @@
           }
         }, function() {
           $scope.saving = false;
-          $scope.$broadcast('showServerError', arguments);
+          ErrorDialog.open(arguments[0]);
         });
       };
 
@@ -192,7 +192,7 @@
           $scope.ldap = null;
           $state.transitionTo('management.configuration');
         }, function() {
-          $scope.$broadcast('showServerError', arguments);
+          ErrorDialog.open(arguments[0]);
         });
       };
 
@@ -216,8 +216,8 @@
   ]);
   
   module.controller('LdapConnectionController', [
-    '$scope', '$modal', '$http',
-    function($scope, $modal, $http) {
+    '$scope', '$modal', '$http', 'ErrorDialog',
+    function($scope, $modal, $http, ErrorDialog) {
       $scope.ldapProtocols = ['LDAP', 'LDAPS'];
       $scope.ldapMethods = ['NONE', 'SIMPLE', 'DIGESTMD5', 'CRAMMD5'];
       $scope.alerts = [];
@@ -257,7 +257,7 @@
           showAlert($scope.alerts, {type:'success', msg: 'Configuration saved.'});
         }).error(function() {
           $scope.saving = false;
-          $scope.$broadcast('showServerError', arguments);
+          ErrorDialog.open(arguments);
         });
       };
 
@@ -273,13 +273,13 @@
         origLdapConn = data;
         $scope.ldapConn = angular.copy(origLdapConn);
       }).error(function() {
-        $scope.$broadcast('showServerError', arguments);
+        ErrorDialog.open(arguments);
       });
     }
   ]);
 
-  module.controller('LdapUsermappingController', ['$scope', '$modal', '$http',
-    function($scope, $modal, $http) {
+  module.controller('LdapUsermappingController', ['$scope', '$modal', '$http', 'ErrorDialog',
+    function($scope, $modal, $http, ErrorDialog) {
       $scope.alerts = [];
       delete $scope.ldapUserMapping;// make sure the scope is clean while we query backend
 
@@ -313,7 +313,7 @@
           showAlert($scope.alerts,{type:'success', msg: 'Configuration saved.'});
         }).error(function() {
           $scope.saving = false;
-          $scope.$broadcast('showServerError', arguments);
+          ErrorDialog.open(arguments);
         });
       };
 
@@ -369,7 +369,7 @@
         origLdapUserMapping = data;
         $scope.ldapUserMapping = angular.copy(origLdapUserMapping);
       }).error(function() {
-        $scope.$broadcast('showServerError', arguments);
+        ErrorDialog.open(arguments);
       });
     }
   ]);

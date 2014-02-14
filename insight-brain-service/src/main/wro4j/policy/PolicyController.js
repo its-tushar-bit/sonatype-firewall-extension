@@ -31,10 +31,10 @@
   ]);
 
   policyModule.controller('PolicyController', [
-    '$scope', '$location', '$http', '$rootScope', '$q', 'PolicyStore', 'ActionStore',
+    '$scope', '$location', '$http', '$rootScope', '$q', 'PolicyStore', 'ActionStore', 'ErrorDialog',
     'CLMAppLocations', 'Dialog', 'ownerChange', 'PolicyMonitoringStore', 'Messages', 'ProductFeatures', 'TagStore',
-    function($scope, $location, $http, $rootScope, $q, policyStore, actionStore, clmAppLocations, Dialog, ownerChange,
-             PolicyMonitoringStore, messages, ProductFeatures, TagStore) {
+    function($scope, $location, $http, $rootScope, $q, policyStore, actionStore, ErrorDialog, clmAppLocations, Dialog,
+            ownerChange, PolicyMonitoringStore, messages, ProductFeatures, TagStore) {
 
       $scope.alerts = [];
       $scope.location = $location;
@@ -56,7 +56,7 @@
             type : 'danger',
             click : function () {
               policy.$delete().then(angular.noop, function() {
-                $scope.$broadcast('showServerError', arguments);
+                ErrorDialog.open(arguments[0]);
               });
             }
           }]

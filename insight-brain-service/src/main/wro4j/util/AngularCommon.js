@@ -47,52 +47,7 @@ var AngularUtils = {
   'use strict';
 
   var angularCommon;
-  angularCommon = angular.module('AngularCommon', ['CommonServices']);
-
-  angularCommon.directive('errorModal', function() {
-    return {
-      replace: true,
-      scope: true,
-      templateUrl: '../assets/components/errorModal.html?' + clmBuildTimestamp,
-      link: function($scope, element) {
-        function showError(errorResponse) {
-          $scope.errorResponse = errorResponse;
-          element.modal('show');
-        }
-
-        function showServerError(data, status, headersFn, config) {
-
-          if (typeof data === 'object') {
-            status = data.status;
-            headersFn = data.headers;
-            config = data.config;
-            data = data.data;
-          }
-          var header = headersFn ? headersFn() : [];
-          if (header['content-type'] && header['content-type'].indexOf('text/html') === 0) {
-            $scope.errorResponse = 'Server Error';
-          }
-          else if (status === 0) {
-            $scope.errorResponse = 'Unable to connect to CLM server';
-          }
-          else {
-            $scope.errorResponse = data;
-          }
-          element.modal('show');
-        }
-
-        $scope.$on('showServerError', function(event, arg) {
-          showServerError.apply(null, arg);
-        });
-        $scope.$on('showError', function(event, arg) {
-          showError(arg);
-        });
-        $scope.hideError = function() {
-          element.modal('hide');
-        };
-      }
-    };
-  });
+  angularCommon = angular.module('AngularCommon', ['CommonServices', 'ui.bootstrap']);
 
   angularCommon.controller('DeleteResourceController', ['$scope', '$http', 'CLMAppLocations', 'selected', function ($scope, $http, CLMAppLocations, selected) {
     $scope.deletedEnabled = true;
@@ -758,6 +713,24 @@ var AngularUtils = {
         }, config);
 
         return $modal.open(config);
+      }
+    };
+  }]);
+
+  angularCommon.service('ErrorDialog', ['Dialog', 'Messages', function (Dialog, Messages) {
+    return {
+      open : function (body, title) {
+        if (typeof body !== 'string') {
+          body = Messages.getHttpErrorMessage(body);
+        }
+        return Dialog.open({
+          keyboard : true,
+          title : title || 'Error',
+          body : body,
+          buttons : [{
+            name : 'Close'
+          }]
+        });
       }
     };
   }]);

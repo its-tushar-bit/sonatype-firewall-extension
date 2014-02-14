@@ -63,14 +63,14 @@ describe('ProductLicenseController', function() {
       expect($window.location.reload).toHaveBeenCalled();
     }));
 
-    it('should broadcast an error if uninstall fails on the server', inject(function($compile, $httpBackend) {
+    it('should broadcast an error if uninstall fails on the server', inject(function($compile, $httpBackend, ErrorDialog) {
       $httpBackend.expectDELETE(SpecUtil.toRegExp(scope.uploadUrl)).respond(500);
-      var broadCastError = spyOn(scope, '$broadcast');
+      var broadCastError = spyOn(ErrorDialog, 'open');
 
       scope.uninstallLicense();
 
       $httpBackend.flush();
-      expect(broadCastError).toHaveBeenCalledWith('showServerError', jasmine.any(Object));
+      expect(broadCastError).toHaveBeenCalledWith(jasmine.any(Object));
     }));
   });
 
@@ -157,8 +157,8 @@ describe('ProductLicenseController', function() {
       expect($window.location.reload).toHaveBeenCalled();
     }));
 
-    it('Should hide the eula, clear file value and show an error if license install fails', inject(function($window, $timeout){
-      spyOn(scope, '$broadcast');
+    it('Should hide the eula, clear file value and show an error if license install fails', inject(function($window, $timeout, ErrorDialog) {
+      var dialogSpy = spyOn(ErrorDialog, 'open');
 
       scope.clearValue = angular.noop;
       spyOn(scope, 'clearValue');
@@ -176,7 +176,7 @@ describe('ProductLicenseController', function() {
 
       expect(eulaModal.hasClass('in')).toBeFalsy();
       expect(licenseInstalledModal.hasClass('in')).toBeFalsy();
-      expect(scope.$broadcast).toHaveBeenCalledWith('showError', jasmine.any(Object));
+      expect(dialogSpy).toHaveBeenCalledWith(jasmine.any(Object));
       expect(scope.clearValue).toHaveBeenCalled();
     }));
 

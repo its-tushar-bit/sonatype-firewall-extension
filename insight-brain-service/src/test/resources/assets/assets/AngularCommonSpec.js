@@ -18,13 +18,6 @@ describe('AngularCommon', function() {
     httpBackend.verifyNoOutstandingRequest();
   });
 
-  it('implements errorModal directive', function() {
-    httpBackend.expectGET('../assets/components/errorModal.html?').respond("<div id='errorModal'></div>");
-    var element = compile("<div error-Modal></div>")(scope);
-    httpBackend.flush();
-    expect(element).not.toBeUndefined();
-  });
-
   it('provides regex to match unicode characters', function() {
     var allLettersRegex = new RegExp('[' + regex.allLetters().source + ']');
     expect('a'.match(allLettersRegex)).toBeTruthy();

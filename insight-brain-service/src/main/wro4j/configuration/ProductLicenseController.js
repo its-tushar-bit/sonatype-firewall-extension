@@ -11,8 +11,8 @@
   var module = angular.module('ProductLicense', ['AngularCommon', 'ngUpload', 'CLMLocation']);
 
   module.controller('ProductLicenseController', [
-    '$http', '$scope', 'CLMLocations', '$timeout', '$window', 'Messages',
-    function($http, $scope, clmLocations, $timeout, $window, Messages) {
+    '$http', '$scope', 'CLMLocations', '$timeout', '$window', 'Messages', 'ErrorDialog',
+    function($http, $scope, clmLocations, $timeout, $window, Messages, ErrorDialog) {
 
       $scope.summaryUrl = clmLocations.getLicenseSummaryUrl();
       $scope.uploadUrl = clmLocations.getLicenseUploadUrl();
@@ -42,7 +42,7 @@
 
       function showError(content) {
         $('#eulaModal').modal('hide');
-        $scope.$broadcast('showError', content);
+        ErrorDialog.open(content);
       }
 
       $scope.reload = function() {
@@ -101,8 +101,8 @@
           $('#licenseUninstalledModal').modal('show');
           $timeout($scope.reload, 5000);
         }).error(function() {
-              $scope.$broadcast('showServerError', arguments);
-            });
+          ErrorDialog.open(arguments);
+        });
       };
 
       $scope.isLoaded = function() {

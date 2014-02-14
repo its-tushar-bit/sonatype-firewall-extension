@@ -54,8 +54,8 @@
   ]);
 
   licenseGroupModule.controller('LicenseThreatGroupController', [
-    '$scope', '$http', '$q', 'CLMLocations', 'CLMAppLocations', 'licenseStore', 'licenseGroupStore', 'ownerChange',
-    function($scope, $http, $q, CLMLocations, CLMAppLocations, licenseStore, licenseGroupStore, ownerChange) {
+    '$scope', '$http', '$q', 'CLMLocations', 'CLMAppLocations', 'licenseStore', 'licenseGroupStore', 'ownerChange', 'ErrorDialog',
+    function($scope, $http, $q, CLMLocations, CLMAppLocations, licenseStore, licenseGroupStore, ownerChange, ErrorDialog) {
       function sortLicense(a, b) {
         if (a.id < b.id) {
           return -1;
@@ -159,9 +159,9 @@
           deselect();
           $('#deleteLicenseGroupModal').modal('hide');
         }).error(function() {
-              $('#deleteLicenseGroupModal').modal('hide');
-              $scope.$broadcast('showServerError', arguments);
-            });
+          $('#deleteLicenseGroupModal').modal('hide');
+          ErrorDialog.open(arguments);
+        });
       };
 
       $scope.$on('pageChangeStarted', function(event) {

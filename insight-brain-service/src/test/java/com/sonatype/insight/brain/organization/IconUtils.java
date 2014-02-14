@@ -15,7 +15,7 @@ class IconUtils
 {
   private static byte[] loadImage(String resource) throws IOException {
     InputStream iconStream = IconUtils.class.getResourceAsStream(resource);
-    Assert.assertNotNull(iconStream);
+    Assert.assertNotNull("Missing resource: " + resource, iconStream);
     try {
       return IOUtil.toByteArray(iconStream);
     }
@@ -25,7 +25,7 @@ class IconUtils
   }
 
   public static byte[] loadInvalidIcon() throws IOException {
-    return loadImage("/assets/assets/components/errorModal.html");
+    return loadImage("/assets/assets/index.html");
   }
 
   public static byte[] loadIcon(String name) throws IOException {

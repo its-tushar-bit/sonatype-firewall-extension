@@ -118,9 +118,9 @@
 
   organizationModule.controller('OrganizationEditorController', [
     '$scope', '$state', '$location', '$http', '$rootScope', '$modal', 'regexFactory', 'CLMLocations', 'editorTools',
-    'CLMAppLocations', 'Messages', 'CLMAppLocations', 'selectedOrganization',
+    'CLMAppLocations', 'Messages', 'CLMAppLocations', 'selectedOrganization', 'ErrorDialog',
     function($scope, $state, $location, $http, $rootScope, $modal, regexFactory, CLMLocations, editorTools,
-             clmAppLocations, messages, CLMAppLocations, selectedOrganization)
+             clmAppLocations, messages, CLMAppLocations, selectedOrganization, ErrorDialog)
     {
       var me = this;
       angular.extend(me,
@@ -326,7 +326,7 @@
           $state.transitionTo('management.organization');
         }, function (error) {
           if (error) {
-            $scope.$broadcast('showServerError', error);
+            ErrorDialog.open(error);
           }
         });
       };

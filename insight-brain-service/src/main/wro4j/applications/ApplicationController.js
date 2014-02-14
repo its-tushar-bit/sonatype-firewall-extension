@@ -104,9 +104,11 @@
     }
   ]);
 
-  applicationModule.controller('applicationEditorController',
+  applicationModule.controller('applicationEditorController', [
+      '$scope', '$state', '$http', '$q', '$modal', 'OrganizationStore', 'CLMLocations', 'CLMAppLocations',
+      'Messages', 'editorTools', 'ActionStore', 'policyEvaluator', 'selectedApplication', 'ErrorDialog',
       function($scope, $state, $http, $q, $modal, OrganizationStore, CLMLocations, CLMAppLocations, Messages,
-               editorTools, ActionStore, policyEvaluator, selectedApplication)
+               editorTools, ActionStore, policyEvaluator, selectedApplication, ErrorDialog)
       {
         var me = this;
         angular.extend(me,
@@ -354,7 +356,7 @@
             $state.transitionTo('management.application');
           }, function (error) {
             if (error) {
-              $scope.$broadcast('showServerError', error);
+              ErrorDialog.open(error);
             }
           });
         };
@@ -476,7 +478,8 @@
             selectedApplication.contact = contact;
           }, angular.noop);
         };
-      });
+      }
+    ]);
 
   applicationModule.service('ApplicationId', [
     'commonCodeFactory', '$state', function(commonCodeFactory, $state) {

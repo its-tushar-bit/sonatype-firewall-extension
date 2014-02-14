@@ -1,0 +1,36 @@
+/*
+ * Copyright (c) 2011-2014 Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.landing;
+
+import java.net.URI;
+
+import javax.inject.Inject;
+import javax.ws.rs.core.UriBuilder;
+
+import com.sonatype.insight.brain.service.BaseUrl;
+import com.sonatype.insight.brain.service.InsightBrainService;
+
+/**
+ * Determines the actual target page when users browse to the server's context root.
+ */
+public class LandingService
+{
+  private final BaseUrl baseUrl;
+
+  @Inject
+  public LandingService(BaseUrl baseUrl) {
+    this.baseUrl = baseUrl;
+  }
+
+  /**
+   * Gets the URI the browser should redirect to in order to access the main page of the application.
+   */
+  public URI getDestination() {
+    UriBuilder uriBuilder = baseUrl.redirect();
+    uriBuilder.path(InsightBrainService.BRAIN_ASSET_PATH.substring(1) + "reports.html");
+    return uriBuilder.build();
+  }
+}

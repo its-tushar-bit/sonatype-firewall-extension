@@ -5,23 +5,22 @@
  */
 package com.sonatype.insight.brain.landing;
 
-import com.sonatype.insight.brain.AuthedRestAccess;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
-import com.sonatype.insight.brain.service.InsightBrainService;
+import com.sonatype.insight.test.RestAccess;
 
 import com.ning.http.client.Response;
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
+import static org.hamcrest.Matchers.startsWith;
+import static org.junit.Assert.assertThat;
 
 public class LandingResourceTest
     extends AbstractResourceTest
 {
   @Test
-  public void testHome_RequestBaseUrl() throws Exception {
-    Response response = AuthedRestAccess.get(getRestBaseUrl() + "?x=y&a=b");
+  public void testHome() throws Exception {
+    Response response = RestAccess.get(getRestBaseUrl());
     assertResponseStatus(303, response);
-    assertEquals(getRestBaseUrl() + InsightBrainService.BRAIN_ASSET_PATH.substring(1) + "reports.html?x=y&a=b",
-        response.getHeader("Location"));
+    assertThat(response.getHeader("Location"), startsWith(getRestBaseUrl()));
   }
 }

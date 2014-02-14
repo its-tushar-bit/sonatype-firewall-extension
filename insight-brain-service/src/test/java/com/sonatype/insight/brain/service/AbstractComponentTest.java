@@ -35,6 +35,11 @@ public class AbstractComponentTest
       throw new IllegalStateException(e);
     }
     config.setSaasAddress("http://unknownhost");
+    customizeConfig(config);
     binder.bind(InsightConfig.class).toInstance(config);
+  }
+
+  protected void customizeConfig(InsightConfig config) {
+    // hook for tests to tweak config before components grab it
   }
 }

@@ -82,12 +82,12 @@ public class InsightBrainService
   public void run(InsightConfig configuration, Environment environment) throws Exception {
     super.run(configuration, environment);
 
-    LicenseDataUpdater.setUpdater(getInjector().getInstance(DefaultLicenseDataUpdater.class));
+    LicenseDataUpdater.setUpdater(getInstance(DefaultLicenseDataUpdater.class));
 
-    LicenseOverrideMigrator licenseOverrideMigrator = getInjector().getInstance(LicenseOverrideMigrator.class);
+    LicenseOverrideMigrator licenseOverrideMigrator = getInstance(LicenseOverrideMigrator.class);
     licenseOverrideMigrator.migrate();
 
-    PolicyMigrator policyMigrator = getInjector().getInstance(PolicyMigrator.class);
+    PolicyMigrator policyMigrator = getInstance(PolicyMigrator.class);
     policyMigrator.migrate();
   }
 
@@ -171,7 +171,7 @@ public class InsightBrainService
     env.setJerseyProperty(ResourceConfig.PROPERTY_DEFAULT_RESOURCE_COMPONENT_PROVIDER_FACTORY_CLASS,
         SingletonFactory.class);
 
-    env.addFilter(getInjector().getInstance(GuiceShiroFilter.class), "/*");
+    env.addFilter(getInstance(GuiceShiroFilter.class), "/*");
 
     log.info("Server base URL: {}", config.getBaseUrl());
     log.debug("SaaS address: {}", config.getSaasAddress());

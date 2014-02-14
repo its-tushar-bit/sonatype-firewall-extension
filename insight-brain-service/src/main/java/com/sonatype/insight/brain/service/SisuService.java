@@ -60,6 +60,10 @@ public abstract class SisuService<T extends Configuration>
     return injector;
   }
 
+  public <C> C getInstance(Class<C> type) {
+    return getInjector().getInstance(type);
+  }
+
   @Override
   public void run(T configuration, Environment environment) throws Exception {
     injector = createInjector(configuration);

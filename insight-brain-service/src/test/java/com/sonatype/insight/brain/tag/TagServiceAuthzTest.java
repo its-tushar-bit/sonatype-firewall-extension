@@ -195,4 +195,16 @@ public class TagServiceAuthzTest
     tempEntity.newPolicyTag(policyId, tag.getId());
     tagService.getPolicyTagsByOrgId(org.getId());
   }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testGetTagsByApplicationPublicId_Unauthorized() throws Exception {
+    login();
+    tagService.getTagsByApplicationPublicId(app.getPublicId());
+  }
+
+  @Test
+  public void testGetTagsByApplicationPublicId_Authorized() throws Exception {
+    grantReadPermission(app.getId());
+    tagService.getTagsByApplicationPublicId(app.getPublicId());
+  }
 }

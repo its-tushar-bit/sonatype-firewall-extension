@@ -9,6 +9,7 @@ import java.util.List;
 
 import javax.inject.Named;
 
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.tag.ApplicationTagDAO;
 import com.sonatype.insight.brain.dataaccess.tag.PolicyTagDAO;
 import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
@@ -122,5 +123,13 @@ class TagService
   public List<PolicyTag> getPolicyTagsByOrgId(@AuthzContext(AuthzContext.Key.ORGANIZATION_ID) final String organizationId) {
     PolicyTagDAO policyTagDAO = new PolicyTagDAO();
     return policyTagDAO.getByOrganizationId(organizationId);
+  }
+
+  @Authorize(permission = Permission.READ)
+  public List<Tag> getTagsByApplicationPublicId(
+      @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) final String applicationPublicId) {
+    ApplicationDAO applicationDAO = new ApplicationDAO();
+    String organizationId = applicationDAO.getByPublicIdNotNull(applicationPublicId).getOrganizationId();
+    return new TagDAO().getByOrganizationId(organizationId);
   }
 }

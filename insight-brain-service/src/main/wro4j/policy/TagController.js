@@ -251,7 +251,7 @@
   tagModule.controller('TagApplicationController', ['$scope', '$http', '$q', 'CLMLocations', 'selectedApplication', 'Messages',
     function($scope, $http, $q, CLMLocations, selectedApplication, Messages) {
       $scope.alerts = [];
-      var promises = [ $http.get(CLMLocations.getOrganizationTagUrl(selectedApplication.organizationId)),
+      var promises = [ $http.get(CLMLocations.getApplicableOrganizationTags(selectedApplication.publicId)),
                        $http.get(CLMLocations.getApplicationTagUrl(selectedApplication.publicId)) ];
 
       $scope.doLoad = function() {

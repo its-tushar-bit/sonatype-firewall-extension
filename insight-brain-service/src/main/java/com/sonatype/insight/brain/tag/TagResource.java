@@ -30,7 +30,9 @@ import com.sonatype.insight.brain.model.tag.Tag;
  */
 public class TagResource
 {
-  public static final String SERVICE_PATH = "rest/tag/organization/{organizationId}";
+  public static final String SERVICE_PATH = "rest/tag/";
+  public static final String APPLICATION_PATH = "application/{applicationPublicId}";
+  public static final String ORGANIZATION_PATH = "organization/{organizationId}";
 
   private final TagService service;
 
@@ -40,26 +42,35 @@ public class TagResource
   }
 
   @GET
+  @Path(ORGANIZATION_PATH)
   @Produces({ MediaType.APPLICATION_JSON })
   public List<Tag> getTags(@PathParam("organizationId") String organizationId) {
     return service.getTags(organizationId);
   }
 
   @GET
-  @Path("/applied")
+  @Path(APPLICATION_PATH + "/applicable")
+  @Produces({MediaType.APPLICATION_JSON})
+  public List<Tag> getTagsByApplicationPublicId(@PathParam("applicationPublicId") String applicationId) {
+    return service.getTagsByApplicationPublicId(applicationId);
+  }
+
+  @GET
+  @Path(ORGANIZATION_PATH + "/applied")
   @Produces({ MediaType.APPLICATION_JSON })
   public List<ApplicationTag> getApplicationTagsByOrgId(@PathParam("organizationId") String organizationId) {
     return service.getApplicationTagsByOrgId(organizationId);
   }
 
   @GET
-  @Path("/policy")
+  @Path(ORGANIZATION_PATH + "/policy")
   @Produces({MediaType.APPLICATION_JSON})
   public List<PolicyTag> getPolicyTagsByOrgId(@PathParam("organizationId") String organizationId) {
     return service.getPolicyTagsByOrgId(organizationId);
   }
 
   @POST
+  @Path(ORGANIZATION_PATH)
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   public Tag addTag(@PathParam("organizationId") String organizationId, Tag tag) {
@@ -67,6 +78,7 @@ public class TagResource
   }
 
   @PUT
+  @Path(ORGANIZATION_PATH)
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   public Tag updateTag(@PathParam("organizationId") String organizationId, Tag tag) {
@@ -74,7 +86,7 @@ public class TagResource
   }
 
   @DELETE
-  @Path("{tagId}")
+  @Path(ORGANIZATION_PATH + "/{tagId}")
   public void deleteTag(@PathParam("organizationId") String organizationId, @PathParam("tagId") String tagId) {
     service.deleteTag(organizationId, tagId);
   }

@@ -86,7 +86,7 @@ describe('TagController.js', function() {
         organizationId: bomId
       };
       $state.current.name = 'management.organization';
-      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getOrganizationTagUrl(bomId))).respond(angular.copy(organizationTags));
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getApplicableOrganizationTags('applicationPublicId'))).respond(angular.copy(organizationTags));
       $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getApplicationTagUrl('applicationPublicId'))).respond(angular.copy(applicationTags));
       tagApplicationController = $controller('TagApplicationController', { $scope: scope, selectedApplication: selectedApplication });
       $httpBackend.flush();

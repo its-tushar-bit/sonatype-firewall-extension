@@ -192,7 +192,7 @@ public class InsightBrainService
     }
 
     // Add our own mapper for exceptions.
-    environment.addProvider(new JaxRsExceptionMapper(new ErrorResponseGenerator()));
+    environment.addProvider(getInstance(JaxRsExceptionMapper.class));
   }
 
   @Override
@@ -213,6 +213,7 @@ public class InsightBrainService
         bind(new TypeLiteral<LoadingCache<ReleaseGraphKey, byte[]>>()
         {
         }).toInstance(cache);
+        bind(com.sonatype.insight.error.ErrorResponseGenerator.class).to(ErrorResponseGenerator.class);
       }
     }, new CLMShiroModule(), new CLMShiroAopModule());
   }

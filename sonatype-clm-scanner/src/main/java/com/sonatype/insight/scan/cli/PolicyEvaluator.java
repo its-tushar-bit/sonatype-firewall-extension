@@ -213,20 +213,7 @@ public class PolicyEvaluator
 
     String reportUrl = receipt.resolveReportUrl(params.getServerUrl());
 
-    if (params.getResultFile() != null) {
-      ResultData resultData = new ResultData();
-      resultData.applicationId = params.getApplicationId();
-      resultData.scanId = receipt.getScanId();
-      resultData.reportHtmlUrl = reportUrl;
-      resultData.reportPdfUrl = receipt.resolvePdfUrl(params.getServerUrl());
-      try {
-        JsonUtils.write(params.getResultFile(), resultData);
-      }
-      catch (IOException e) {
-        log.error("The policy evaluation results could not be exported to {}", params.getResultFile(), e);
-        throw new ExitException(params.isIgnoreSystemErrors(), e);
-      }
-    }
+    saveResultFile(params, receipt);
 
     if (!PolicyAction.NONE.equals(outcome)) {
       log.info("");
@@ -262,6 +249,23 @@ public class PolicyEvaluator
     catch (IOException e) {
       log.error("The scan could not be submitted to the CLM server", e);
       throw new ExitException(params.isIgnoreSystemErrors(), e);
+    }
+  }
+
+  private void saveResultFile(Parameters params, ScanReceipt receipt) throws ExitException {
+    if (params.getResultFile() != null) {
+      ResultData resultData = new ResultData();
+      resultData.applicationId = params.getApplicationId();
+      resultData.scanId = receipt.getScanId();
+      resultData.reportHtmlUrl = receipt.resolveReportUrl(params.getServerUrl());
+      resultData.reportPdfUrl = receipt.resolvePdfUrl(params.getServerUrl());
+      try {
+        JsonUtils.write(params.getResultFile(), resultData);
+      }
+      catch (IOException e) {
+        log.error("The policy evaluation results could not be exported to {}", params.getResultFile(), e);
+        throw new ExitException(params.isIgnoreSystemErrors(), e);
+      }
     }
   }
 }

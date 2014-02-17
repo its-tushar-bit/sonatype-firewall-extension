@@ -22,6 +22,7 @@ import com.sonatype.insight.brain.report.ReportData.LicenseData;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.json.store.JsonUtils;
 
@@ -58,9 +59,16 @@ public class ReportDataService
       throw new NotFoundException("Could not find a report with id " + scanId);
     }
 
+    ReportEntry bomEntry = Report.getEntry(reportFile, "bom.json");
+    ReportEntry securityEntry = Report.getEntry(reportFile, "security.json");
+    ReportEntry licenseEntry = Report.getEntry(reportFile, "licenses.json");
+    if (bomEntry == null || securityEntry == null || licenseEntry == null) {
+      throw new BadRequestException("The report with id " + scanId + " contains no component data");
+    }
+
     ReportData data = new ReportData();
 
-    JsonNode bomNode = JsonUtils.parse(Report.getEntry(reportFile, "bom.json").buf);
+    JsonNode bomNode = JsonUtils.parse(bomEntry.buf);
     Map<String, ReportData.Component> componentsByHash = new HashMap<>();
     for (JsonNode node : bomNode.get("aaData")) {
       ReportData.Component component = new ReportData.Component();
@@ -86,7 +94,7 @@ public class ReportDataService
       data.components.add(component);
     }
 
-    JsonNode securityNode = JsonUtils.parse(Report.getEntry(reportFile, "security.json").buf);
+    JsonNode securityNode = JsonUtils.parse(securityEntry.buf);
     for (JsonNode node : securityNode.get("aaData")) {
       String hash = JsonUtils.getNullableString(node.get("hash"));
       ReportData.SecurityIssue sv = new ReportData.SecurityIssue();
@@ -101,7 +109,7 @@ public class ReportDataService
       component.securityData.securityIssues.add(sv);
     }
 
-    JsonNode licenseNode = JsonUtils.parse(Report.getEntry(reportFile, "licenses.json").buf);
+    JsonNode licenseNode = JsonUtils.parse(licenseEntry.buf);
     for (JsonNode node : licenseNode.get("aaData")) {
       String hash = JsonUtils.getNullableString(node.get("hash"));
       ReportData.Component component = componentsByHash.get(hash);

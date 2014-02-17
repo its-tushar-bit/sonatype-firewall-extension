@@ -18,6 +18,7 @@ import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.codehaus.plexus.util.FileUtils;
 import org.junit.Before;
@@ -49,12 +50,17 @@ public class ReportDataServiceTest
 
   private String scanId;
 
-  private void makeReport(String resource) throws Exception {
+  private File makeReportFile() throws Exception {
     File reportFile = work.getReportFile(app.getId(), scanId);
     reportFile.getParentFile().mkdirs();
     try (ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(reportFile))) {
       zos.putNextEntry(new ZipEntry("index.html"));
     }
+    return reportFile;
+  }
+
+  private void makeReport(String resource) throws Exception {
+    File reportFile = makeReportFile();
     String[] filenames = { "bom.json", "security.json", "licenses.json" };
     for (String filename : filenames) {
       File file = Report.getCacheFile(reportFile, filename);
@@ -124,5 +130,11 @@ public class ReportDataServiceTest
     assertThat(component.pathnames, containsInAnyOrder("sample-application.zip"));
     assertThat(component.licenseData, is(nullValue()));
     assertThat(component.securityData, is(nullValue()));
+  }
+
+  @Test(expected = BadRequestException.class)
+  public void testGetData_ErrorReport() throws Exception {
+    makeReportFile();
+    reportDataService.getData(app.getPublicId(), scanId);
   }
 }

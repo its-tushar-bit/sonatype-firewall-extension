@@ -67,7 +67,7 @@
         $scope.error = null;
         $scope.applicablePolicies = null;
         $scope.actionStageList = null;
-        $scope.tags = null;
+        $scope.tags = [];
 
         var promises = [
           policyStore.get().refresh(),

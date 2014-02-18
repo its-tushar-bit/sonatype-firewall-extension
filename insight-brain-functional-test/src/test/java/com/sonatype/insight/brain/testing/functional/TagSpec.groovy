@@ -144,7 +144,6 @@ class TagSpec
   def "Policy tags adjust the effective polices and cannot be deleted"(){
     given: 'An Application to apply tags to'
       def applicationManagementPage = to(ApplicationManagementPage)
-      applicationManagementPage
       applicationManagementPage.createApp('TagSpec', 'TagSpec', 'TagSpec')
 
     when: 'Viewing the inherited organization policies before tag application'
@@ -191,9 +190,7 @@ class TagSpec
 
   def "Applied tags warn on deletion"(){
     given: 'An Application to apply tags to'
-      def applicationManagementPage = to(ApplicationManagementPage)
-      applicationManagementPage
-      applicationManagementPage.createApp('TagSpec', 'TagSpec', 'TagSpec')
+      to ApplicationPage, 'TagSpec'
       waitFor{ tabs.tabLinks.displayed }
 
     when: 'Applying a Tag to an Application'

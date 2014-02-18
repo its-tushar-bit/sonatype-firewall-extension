@@ -194,7 +194,7 @@ public class ApplicationResourceTest
   }
 
   private byte[] loadDefaultIcon() throws IOException {
-    return IconUtils.loadIcon("defaulticon_application.png");
+    return IconUtils.loadIconFromProductAssets("defaulticon_application.png");
   }
 
   private void testValidIconResponse(Response iconResponse) throws Exception {

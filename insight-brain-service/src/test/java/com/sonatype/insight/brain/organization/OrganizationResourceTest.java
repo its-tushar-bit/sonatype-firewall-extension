@@ -189,6 +189,6 @@ public class OrganizationResourceTest
   }
 
   private byte[] loadDefaultIcon() throws IOException {
-    return IconUtils.loadIcon("defaulticon_organization.png");
+    return IconUtils.loadIconFromProductAssets("defaulticon_organization.png");
   }
 }

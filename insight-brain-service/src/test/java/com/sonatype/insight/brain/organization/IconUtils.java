@@ -25,10 +25,10 @@ class IconUtils
   }
 
   public static byte[] loadInvalidIcon() throws IOException {
-    return loadImage("/assets/assets/index.html");
+    return loadImage("/IconUtils/index.html");
   }
 
-  public static byte[] loadIcon(String name) throws IOException {
+  public static byte[] loadIconFromProductAssets(String name) throws IOException {
     return loadImage("/assets/assets/img/" + name);
   }
 }

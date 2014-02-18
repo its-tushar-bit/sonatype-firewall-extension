@@ -212,7 +212,7 @@ public final class Report
       ObjectNode licenseNode = (ObjectNode) licenseJsonNode;
       Integer threatLevel = component.getLicenseThreatLevel();
       licenseNode.put("effectiveLicenseThreat", threatLevel);
-      if (component.getLicenseOverrideId() != null) {
+      if (component.isLicenseOverridden()) {
         licenseNode.put("overriddenLicenseThreat", threatLevel);
       }
 

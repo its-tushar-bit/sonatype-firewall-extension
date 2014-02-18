@@ -204,6 +204,11 @@ public class Component
     this.licenseOverrideStatus = licenseOverrideStatus;
   }
 
+  @JsonIgnore
+  public boolean isLicenseOverridden() {
+    return getLicenseOverrideId() != null;
+  }
+
   public MatchState getMatchState() {
     return matchState;
   }

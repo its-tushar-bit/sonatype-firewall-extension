@@ -29,7 +29,7 @@ class ApplicationPage
     applicationIdField(required: false) { $('input', 'placeholder':'Enter ID') }
     applicationIdSaved(required:false){ $('div.setappid')}
     applicationOrgField(required: false) { $('div', 'on': 'selectedApplication.id && selectedApplication.organizationId').find('a') }
-    applicationOrgName(required: false) { orgName -> $('a', text: orgName) }
+    applicationOrgName(required: false) { orgName -> $('#applicationEditor a', text: orgName) }
 
     applicationContactField(required: false) { $('#contact-field') }
     applicationContactDialog(wait: true) { $('#contact-modal-dialog') }

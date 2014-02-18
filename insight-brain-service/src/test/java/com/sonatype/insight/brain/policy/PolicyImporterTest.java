@@ -98,9 +98,10 @@ public class PolicyImporterTest
     oldLabelToUpdate.setId("label1Old");
     labelDAO.insert(oldLabelToUpdate);
 
-    Label oldLabelToDelete = new Label(toOrg.getId(), "deleteMe", Color.red);
-    labelDAO.insert(oldLabelToDelete);
-    List<Label> oldLabels = Lists.newArrayList(oldLabelToUpdate, oldLabelToDelete);
+    Label oldLabelToKeep = new Label(toOrg.getId(), "keepMe", Color.red);
+    labelDAO.insert(oldLabelToKeep);
+    
+    List<Label> oldLabels = Lists.newArrayList(oldLabelToUpdate, oldLabelToKeep);
 
     EntityManager em = labelDAO.createEntityManager();
     try {
@@ -113,16 +114,21 @@ public class PolicyImporterTest
     }
 
     List<Label> labels = labelDAO.getByOwnerId(toOrg.getId());
-    assertThat(labels, hasSize(2));
-    Label oldlabel = labels.get(0);
-    assertThat(oldlabel.getColor(), is(Color.black)); // updated
-    assertThat(oldlabel.getLabel(), is("LABEL1")); // updated from the lowercase version
-    assertThat(oldlabel.getId(), is("label1Old")); // id remains the same
-    assertThat(oldlabel.getDescription(), nullValue()); // existing description is removed
+    assertThat(labels, hasSize(3));
+    
+    Label keptLabel = labels.get(0);
+    assertThat(keptLabel.getColor(), is(Color.red));
+    assertThat(keptLabel.getLabel(), is("keepMe"));
+    
+    Label updatedLabel = labels.get(1);
+    assertThat(updatedLabel.getColor(), is(Color.black)); // updated
+    assertThat(updatedLabel.getLabel(), is("LABEL1")); // updated from the lowercase version
+    assertThat(updatedLabel.getId(), is("label1Old")); // id remains the same
+    assertThat(updatedLabel.getDescription(), nullValue()); // existing description is removed
 
-    Label newLabel = labels.get(1);
-    assertThat(newLabel.getColor(), is(Color.blue));
-    assertThat(newLabel.getLabel(), is("LABEL2"));
+    Label importedLabel = labels.get(2);
+    assertThat(importedLabel.getColor(), is(Color.blue));
+    assertThat(importedLabel.getLabel(), is("LABEL2"));
 
     assertThat(exportDTO.policies.get(0).getConstraints().get(0).getConditions().get(0).getValue(), is("label1Old"));
   }
@@ -148,9 +154,10 @@ public class PolicyImporterTest
     oldLabelToUpdate.setId("label1Old");
     labelDAO.insert(oldLabelToUpdate);
 
-    Label oldLabelToDelete = new Label(toApp.getId(), "deleteMe", Color.red);
-    labelDAO.insert(oldLabelToDelete);
-    List<Label> oldLabels = Lists.newArrayList(oldLabelToUpdate, oldLabelToDelete);
+    Label oldLabelToKeep = new Label(toApp.getId(), "keepMe", Color.red);
+    labelDAO.insert(oldLabelToKeep);
+    
+    List<Label> oldLabels = Lists.newArrayList(oldLabelToUpdate, oldLabelToKeep);
 
     EntityManager em = labelDAO.createEntityManager();
     try {
@@ -163,17 +170,21 @@ public class PolicyImporterTest
     }
 
     List<Label> labels = labelDAO.getByOwnerId(toApp.getId());
-    assertThat(labels, hasSize(2));
-    Label oldlabel = labels.get(0);
+    assertThat(labels, hasSize(3));
+    
+    Label keptLabel = labels.get(0);
+    assertThat(keptLabel.getColor(), is(Color.red));
+    assertThat(keptLabel.getLabel(), is("keepMe"));
+    
+    Label updatedLabel = labels.get(1);
+    assertThat(updatedLabel.getColor(), is(Color.black)); // updated
+    assertThat(updatedLabel.getLabel(), is("LABEL1")); // updated from the lowercase version
+    assertThat(updatedLabel.getId(), is("label1Old")); // id remains the same
+    assertThat(updatedLabel.getDescription(), nullValue()); // existing description is removed
 
-    assertThat(oldlabel.getColor(), is(Color.black)); // updated
-    assertThat(oldlabel.getLabel(), is("LABEL1")); // updated from the lowercase version
-    assertThat(oldlabel.getId(), is("label1Old")); // id remains the same
-    assertThat(oldlabel.getDescription(), nullValue()); // existing description is removed
-
-    Label newLabel = labels.get(1);
-    assertThat(newLabel.getColor(), is(Color.blue));
-    assertThat(newLabel.getLabel(), is("LABEL2"));
+    Label importedLabel = labels.get(2);
+    assertThat(importedLabel.getColor(), is(Color.blue));
+    assertThat(importedLabel.getLabel(), is("LABEL2"));
 
     assertThat(exportDTO.policies.get(0).getConstraints().get(0).getConditions().get(0).getValue(), is("label1Old"));
     assertThat(exportDTO.policies.get(1).getConstraints().get(0).getConditions().get(0).getValue(), is(orgLabel.getId()));

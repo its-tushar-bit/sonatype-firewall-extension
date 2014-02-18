@@ -14,11 +14,14 @@ import com.sonatype.insight.brain.model.Organization;
 public interface PolicyImporter
 {
   /**
-   * Import policy into an Application. Existing polices are deleted from the application.
-   * Application Labels will be merged if they match(case-insensitive by name) existing data; this preserves any
-   * related ComponentLabels.
+   * <p>
+   * Import policy into an Application. Existing polices are deleted from the application. Application Labels will be
+   * merged if they match(case-insensitive by name) existing data; this preserves any related ComponentLabels.
+   * </p>
+   * <p>
    * License Threat Groups and associated Licenses are all deleted as part of the import.
-   *
+   * </p>
+   * 
    * @param application app to import policy to
    * @param exportDTO data to import
    * @return result embedding the url of the application
@@ -26,12 +29,16 @@ public interface PolicyImporter
   public PolicyImportResult importApplication(Application application, PolicyExportResult exportDTO);
 
   /**
-   * Import policy into an Organization.  Existing polices are deleted from the organization and all child applications.
-   * This includes deletion of data from child Applications(Labels, License Threat Groups and associated Licenses).
-   * Organization Labels will be merged if they match(case-insensitive by name) existing data; this preserves any
-   * related ComponentLabels.
+   * <p>
+   * Import policy into an Organization. Existing polices are deleted from the organization and all child applications.
+   * This includes deletion of data from child Applications(License Threat Groups and associated Licenses). Organization
+   * Labels will be merged if they match(case-insensitive by name) existing data; this preserves any related
+   * ComponentLabels.
+   * </p>
+   * <p>
    * License Threat Groups and associated Licenses are all deleted as part of the import.
-   *
+   * </p>
+   * 
    * @param organization org to import policy to
    * @param exportDTO data to import
    * @return result embedding the url of the organization

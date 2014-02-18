@@ -135,7 +135,7 @@ public class PolicyResourceTest
     label1 = tempEntity.newLabel(appId, label1.getLabel().toUpperCase(Locale.ENGLISH), Color.black);
     // Delete one label - it should be re-created by the import.
     labelDAO.delete(label2);
-    // Add a new label - it should be deleted by the import.
+    // Add a new label - it should be retained through the import.
     tempEntity.newLabel(appId, "label3", Color.red);
 
     // Import
@@ -150,7 +150,8 @@ public class PolicyResourceTest
     tempEntity.register(application);
     assertNotNull(application);
     List<Label> labels = labelDAO.getByOwnerId(application.getId());
-    Assert.assertEquals(2, labels.size());
+    // All labels retained.
+    Assert.assertEquals(3, labels.size());
     Assert.assertEquals(label1.getId(), labels.get(0).getId());
     Assert.assertEquals("label1", labels.get(0).getLabel());
     Assert.assertEquals(Color.blue, labels.get(0).getColor());
@@ -428,15 +429,19 @@ public class PolicyResourceTest
     assertThat(licenseThreatGroupLicenseDAO.getByOwnerId(org.getId()), is(empty()));
     assertThat(licenseThreatGroupDAO.getByOwnerId(org.getId()), is(empty()));
     assertThat(policyDAO().getByOwnerId(org.getId()), is(empty()));
-    assertThat(labelDAO.getByOwnerId(org.getId()), is(empty()));
-    assertThat(componentLabelDao.getByOwnerId(org.getId()), is(empty()));
+    
+    // verify that org label data is preserved.
+    assertThat(labelDAO.getByOwnerId(org.getId()), hasSize(1));
+    assertThat(componentLabelDao.getByOwnerId(org.getId()), hasSize(1));
 
     //verify that we delete all data from the app
     assertThat(licenseThreatGroupLicenseDAO.getByOwnerId(app.getId()), is(empty()));
     assertThat(licenseThreatGroupDAO.getByOwnerId(app.getId()), is(empty()));
     assertThat(policyDAO().getByOwnerId(app.getId()), is(empty()));
-    assertThat(componentLabelDao.getByOwnerId(app.getId()), is(empty()));
-    assertThat(labelDAO.getByOwnerId(app.getId()), is(empty()));
+    
+    // verify that the app label data is preserved.
+    assertThat(componentLabelDao.getByOwnerId(app.getId()), hasSize(1));
+    assertThat(labelDAO.getByOwnerId(app.getId()), hasSize(1));
   }
 
   /**
@@ -454,18 +459,21 @@ public class PolicyResourceTest
     assertResponseStatus(200, response);
 
     // verify that org data is untouched
-    assertThat(licenseThreatGroupLicenseDAO.getByOwnerId(org.getId()).size(), is(greaterThan(100))); //127 at time of writing, should only break if we remove many
+    //127 at time of writing, should only break if we remove many
+    assertThat(licenseThreatGroupLicenseDAO.getByOwnerId(org.getId()).size(), is(greaterThan(100)));
     assertThat(licenseThreatGroupDAO.getByOwnerId(org.getId()), hasSize(5));
     assertThat(policyDAO().getByOwnerId(org.getId()), hasSize(1));
     assertThat(labelDAO.getByOwnerId(org.getId()), hasSize(1));
     assertThat(componentLabelDao.getByOwnerId(org.getId()), hasSize(1));
 
-    //verify that we delete all data from the app
+    // verify that we delete all data from the app
     assertThat(licenseThreatGroupLicenseDAO.getByOwnerId(app.getId()), is(empty()));
     assertThat(licenseThreatGroupDAO.getByOwnerId(app.getId()), is(empty()));
     assertThat(policyDAO().getByOwnerId(app.getId()), is(empty()));
-    assertThat(componentLabelDao.getByOwnerId(app.getId()), is(empty()));
-    assertThat(labelDAO.getByOwnerId(app.getId()), is(empty()));
+    
+    // Verify that app label data is retained.
+    assertThat(componentLabelDao.getByOwnerId(app.getId()), hasSize(1));
+    assertThat(labelDAO.getByOwnerId(app.getId()), hasSize(1));
   }
 
   @Test
@@ -515,7 +523,8 @@ public class PolicyResourceTest
     assertThat(labels.get(0).getId(), is(not(label.getId())));
     assertThat(labels.get(0).getLabel(), is(label.getLabel()));
     assertThat(labels.get(0).getColor(), is(label.getColor()));
-    assertThat(componentLabelDao.getByOwnerId(org.getId()), hasSize(1)); //preserved by import of labels
+    //preserved by import of labels
+    assertThat(componentLabelDao.getByOwnerId(org.getId()), hasSize(1)); 
     List<Tag> tags = tagDAO.getByOrganizationId(org.getId());
     assertThat(tags, hasSize(1));
     assertThat(tags.get(0).getId(), is(not(tag.getId())));
@@ -530,8 +539,10 @@ public class PolicyResourceTest
     assertThat(licenseThreatGroupDAO.getByOwnerId(app.getId()), is(empty()));
     assertThat(licenseThreatGroupLicenseDAO.getByOwnerId(app.getId()), is(empty()));
     assertThat(policyDAO().getByOwnerId(app.getId()), is(empty()));
-    assertThat(componentLabelDao.getByOwnerId(app.getId()), is(empty()));
-    assertThat(labelDAO.getByOwnerId(app.getId()), is(empty()));
+    
+    // verify that app label data was preserved during import.
+    assertThat(componentLabelDao.getByOwnerId(app.getId()), hasSize(1));
+    assertThat(labelDAO.getByOwnerId(app.getId()), hasSize(1));
   }
 
   @Test
@@ -614,7 +625,7 @@ public class PolicyResourceTest
     Label label = tempEntity.newLabel(app.getId(), Color.white);
     LicenseThreatGroup licenseThreatGroup = tempEntity.newLicenseThreatGroup(app.getId());
     tempEntity.newLicenseThreatGroupLicense(app.getId(), licenseThreatGroup.getId());
-    // use both the label and the LTG in Policy Conditions to ensure that they are deleted as part of the import
+    // use both the label and the LTG in Policy Conditions to ensure that the LTG is deleted and the label is preserved as part of the import.
     Policy appPolicy = createDefaultPolicy(label.getId(), licenseThreatGroup.getId(), app.getName());
     appPolicy.getConstraints().get(0).getConditions()
         .add(new Condition(LicenseThreatGroupConditionType.ID, "is", licenseThreatGroup.getId()));
@@ -630,7 +641,7 @@ public class PolicyResourceTest
     Label label = tempEntity.newLabel(org.getId(), org.getId(), Color.white);
     LicenseThreatGroup licenseThreatGroup = tempEntity.newLicenseThreatGroup(org.getId());
     tempEntity.newLicenseThreatGroupLicense(org.getId(), licenseThreatGroup.getId());
-    // use both the label and the LTG in Policy Conditions to ensure that they are deleted as part of the import
+    // use both the label and the LTG in Policy Conditions to ensure that the LTG is deleted and the label is preserved as part of the import.
     Policy orgPolicy = createDefaultPolicy(label.getId(), licenseThreatGroup.getId(),  org.getName());
     orgPolicy.getConstraints().get(0).getConditions()
         .add(new Condition(LicenseThreatGroupConditionType.ID, "is", licenseThreatGroup.getId()));

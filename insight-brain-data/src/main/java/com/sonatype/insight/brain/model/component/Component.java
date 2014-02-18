@@ -53,6 +53,8 @@ public class Component
 
   private IdentificationSource identificationSource = IdentificationSource.SONATYPE;
 
+  private List<String> pathnames = new ArrayList<>();
+
   public Component() {
   }
 
@@ -295,5 +297,13 @@ public class Component
 
   public String getLicenseOverrideId() {
     return licenseOverrideId;
+  }
+
+  public List<String> getPathnames() {
+    return pathnames;
+  }
+
+  public void addPathname(String pathname) {
+    pathnames.add(pathname);
   }
 }

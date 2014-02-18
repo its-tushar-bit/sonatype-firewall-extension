@@ -7,16 +7,20 @@ package com.sonatype.insight.brain.report;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.component.ComponentDAO;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.component.Component;
+import com.sonatype.insight.brain.model.component.MatchState;
+import com.sonatype.insight.brain.model.component.SecurityVulnerability;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.report.ReportData.LicenseData;
 import com.sonatype.insight.brain.security.Authorize;
@@ -24,9 +28,6 @@ import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
-import com.sonatype.insight.json.store.JsonUtils;
-
-import com.fasterxml.jackson.databind.JsonNode;
 
 /**
  * Provides data from an application's composition report in a format suitable for consumption by 3rd-party clients.
@@ -42,11 +43,14 @@ public class ReportDataService
 
   private final MultiLicenseDAO multiLicenseDAO;
 
+  private final ComponentDAO componentDAO;
+
   @Inject
-  public ReportDataService(InsightWork work, ApplicationDAO appDAO, MultiLicenseDAO multiLicenseDAO) {
+  public ReportDataService(InsightWork work, ApplicationDAO appDAO, MultiLicenseDAO multiLicenseDAO, ComponentDAO componentDAO) {
     this.work = work;
     this.appDAO = appDAO;
     this.multiLicenseDAO = multiLicenseDAO;
+    this.componentDAO = componentDAO;
   }
 
   @Authorize(permission = Permission.READ)
@@ -66,74 +70,55 @@ public class ReportDataService
       throw new BadRequestException("The report with id " + scanId + " contains no component data");
     }
 
-    ReportData data = new ReportData();
+    List<Component> components = componentDAO.getAll(app, licenseEntry.buf, securityEntry.buf, bomEntry.buf);
 
-    JsonNode bomNode = JsonUtils.parse(bomEntry.buf);
-    Map<String, ReportData.Component> componentsByHash = new HashMap<>();
-    for (JsonNode node : bomNode.get("aaData")) {
+    ReportData data = new ReportData();
+    for (Component comp : components) {
       ReportData.Component component = new ReportData.Component();
-      component.hash = JsonUtils.getNullableString(node.get("hash"));
-      if (component.hash != null) {
-        componentsByHash.put(component.hash, component);
-      }
+      component.hash = comp.getHash();
       ReportData.Coordinates coords = new ReportData.Coordinates();
-      coords.groupId = JsonUtils.getNullableString(node.get("groupId"));
+      coords.groupId = comp.getGroupId();
       if (coords.groupId != null) {
-        coords.artifactId = JsonUtils.getNullableString(node.get("artifactId"));
-        coords.version = JsonUtils.getNullableString(node.get("version"));
+        coords.artifactId = comp.getArtifactId();
+        coords.version = comp.getVersion();
         component.mavenCoordinates = coords;
       }
-      component.matchState = JsonUtils.getNullableString(node.get("matchState"));
-      component.proprietary = node.path("proprietary").asBoolean();
-      for (JsonNode path : node.path("pathnames")) {
-        String pathname = path.asText();
+      component.matchState = comp.getMatchState().getId();
+      component.proprietary = comp.isProprietary();
+      for (String pathname : comp.getPathnames()) {
         if (!pathname.startsWith("dependency:")) {
           component.pathnames.add(pathname);
+        }
+      }
+      if (!MatchState.UNKNOWN.equals(comp.getMatchState())) {
+        component.securityData = new ReportData.SecurityData();
+        for (SecurityVulnerability vuln : comp.getSecurityVulnerabilities()) {
+          ReportData.SecurityIssue sv = new ReportData.SecurityIssue();
+          sv.source = vuln.getSource();
+          sv.reference = vuln.getRefId();
+          sv.score = vuln.getSeverity();
+          sv.status = vuln.getStatus().getName();
+          component.securityData.securityIssues.add(sv);
+        }
+        component.licenseData = new LicenseData();
+        component.licenseData.status = comp.getLicenseOverrideStatus().getName();
+        convertLicenses(component.licenseData.declaredLicenses, comp.getDeclaredLicenseIds());
+        convertLicenses(component.licenseData.observedLicenses, comp.getObservedLicenseIds());
+        if (comp.getLicenseOverrideId() != null) {
+          convertLicenses(component.licenseData.overriddenLicenses, Collections.singleton(comp.getLicenseOverrideId()));
         }
       }
       data.components.add(component);
     }
 
-    JsonNode securityNode = JsonUtils.parse(securityEntry.buf);
-    for (JsonNode node : securityNode.get("aaData")) {
-      String hash = JsonUtils.getNullableString(node.get("hash"));
-      ReportData.SecurityIssue sv = new ReportData.SecurityIssue();
-      sv.source = JsonUtils.getNullableString(node.get("source"));
-      sv.reference = JsonUtils.getNullableString(node.get("reference"));
-      sv.score = JsonUtils.getNullableFloat(node.get("score"));
-      sv.status = getStatus(JsonUtils.getNullableString(node.get("status")));
-      ReportData.Component component = componentsByHash.get(hash);
-      if (component.securityData == null) {
-        component.securityData = new ReportData.SecurityData();
-      }
-      component.securityData.securityIssues.add(sv);
-    }
-
-    JsonNode licenseNode = JsonUtils.parse(licenseEntry.buf);
-    for (JsonNode node : licenseNode.get("aaData")) {
-      String hash = JsonUtils.getNullableString(node.get("hash"));
-      ReportData.Component component = componentsByHash.get(hash);
-      if (component.licenseData == null) {
-        component.licenseData = new LicenseData();
-      }
-      component.licenseData.status = getStatus(JsonUtils.getNullableString(node.get("status")));
-      convertLicenses(component.licenseData.declaredLicenses, node.path("declaredLicenses"));
-      convertLicenses(component.licenseData.observedLicenses, node.path("observedLicenses"));
-      convertLicenses(component.licenseData.overriddenLicenses, node.path("overriddenLicenses"));
-    }
-
     return data;
   }
 
-  private static String getStatus(String status) {
-    return (status != null) ? status : "Open";
-  }
-
-  private void convertLicenses(List<ReportData.License> licenses, JsonNode licensesNode) {
-    for (JsonNode node : licensesNode) {
+  private void convertLicenses(List<ReportData.License> licenses, Collection<String> licenseIds) {
+    for (String licenseId : licenseIds) {
       ReportData.License license = new ReportData.License();
-      license.licenseName = node.asText();
-      license.licenseId = multiLicenseDAO.getByNameNotNull(license.licenseName).getId();
+      license.licenseId = licenseId;
+      license.licenseName = multiLicenseDAO.getByIdNotNull(licenseId).getShortDisplayName();
       licenses.add(license);
     }
   }

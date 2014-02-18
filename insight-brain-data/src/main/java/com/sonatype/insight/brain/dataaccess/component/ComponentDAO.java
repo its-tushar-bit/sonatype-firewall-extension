@@ -67,7 +67,7 @@ public class ComponentDAO
     final Map<String, Component> componentsByHash = new LinkedHashMap<String, Component>();
 
     // Load bom data
-    List<Component> unknownComponents = new ArrayList<Component>();
+    List<Component> unhashedComponents = new ArrayList<Component>();
     JsonNode bomJson = loadJson(bomData);
     if (bomJson != null) {
       bomJson = bomJson.get("aaData");
@@ -81,14 +81,16 @@ public class ComponentDAO
               .get("identificationSource"));
           final IdentificationSource identificationSource = IdentificationSource.getById(identificationSourceString);
           final boolean proprietary = componentJson.get("proprietary").booleanValue();
-          String hash = componentJson.get("hash").asText();
+          String hash = JsonUtils.getNullableString(componentJson.get("hash"));
 
           Component component = new Component();
           component.setHash(hash);
           component.setMatchState(matchState);
           component.setProprietary(proprietary);
           component.setIdentificationSource(identificationSource);
-          componentsByHash.put(hash, component);
+          for (JsonNode path : componentJson.path("pathnames")) {
+            component.addPathname(path.asText());
+          }
           if (!matchState.equals(MatchState.UNKNOWN)) {
             final String groupId = componentJson.get("groupId").asText();
             final String artifactId = componentJson.get("artifactId").asText();
@@ -111,9 +113,11 @@ public class ComponentDAO
             }
             components.add(component);
           }
+          if (hash != null) {
+            componentsByHash.put(hash, component);
+          }
           else {
-            // Unknown component
-            unknownComponents.add(component);
+            unhashedComponents.add(component);
           }
         }
       }
@@ -179,7 +183,7 @@ public class ComponentDAO
 
     final List<Component> result = new ArrayList<Component>();
     result.addAll(componentsByHash.values());
-    result.addAll(unknownComponents);
+    result.addAll(unhashedComponents);
 
     // Load license threat group data
     for (Component component : result) {

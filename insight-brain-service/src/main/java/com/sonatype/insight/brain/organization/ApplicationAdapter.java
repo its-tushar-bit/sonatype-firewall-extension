@@ -168,7 +168,7 @@ public class ApplicationAdapter
     return summary;
   }
 
-  private ContactDTO getContact(final String internalName) {
+  public ContactDTO getContact(final String internalName) {
 
     return getContacts(Arrays.asList(internalName))[0];
   }

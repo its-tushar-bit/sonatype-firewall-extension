@@ -41,14 +41,17 @@ import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.model.security.UserPrincipal;
+import com.sonatype.insight.brain.organization.ApplicationAdapter;
+import com.sonatype.insight.brain.organization.ContactDTO;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluationLog;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluationUtils;
-import com.sonatype.insight.brain.security.AuditUtils;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.MediaTypeUtils;
+import com.sonatype.insight.client.utils.AuditUtils;
 import com.sonatype.insight.client.utils.UrlUtils;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -58,6 +61,7 @@ import com.sonatype.insight.json.store.JsonUtils;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ContainerNode;
 import com.google.common.cache.CacheBuilder;
+import org.apache.shiro.SecurityUtils;
 import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.IOUtil;
 import org.codehaus.plexus.util.StringUtils;
@@ -88,18 +92,21 @@ public class ReportResource
 
   private ApplicationDAO applicationDAO = new ApplicationDAO();
 
+  private ApplicationAdapter applicationAdapter;
+
   private final ReportDownloader reportDownloader;
 
   private final PolicyEvaluationUtils policyEvaluationUtils;
 
   @Inject
   public ReportResource(final ReportDownloader reportDownloader, final PolicyEvaluationUtils policyEvaluationUtils,
-      InsightWork work, BaseUrl baseUrl)
+      InsightWork work, BaseUrl baseUrl, ApplicationAdapter applicationAdapter)
   {
     this.reportDownloader = reportDownloader;
     this.policyEvaluationUtils = policyEvaluationUtils;
     this.work = work;
     this.baseUrl = baseUrl;
+    this.applicationAdapter = applicationAdapter;
   }
 
   /**
@@ -216,12 +223,13 @@ public class ReportResource
   {
     Application application = applicationDAO.getByPublicIdNotNull(applicationPublicId);
     String appId = application.getId();
+    ContactDTO contact = applicationAdapter.getContact(application.getContactInternalName());
 
     final File reportFile = fetchReport(reportDownloader, work, appId, scanId, true);
 
     final ResponseBuilder response = Response.ok();
 
-    Report.printPdf(reportFile, StringUtils.defaultString(projectName, "clm"), buildNumber, response);
+    Report.printPdf(reportFile, StringUtils.defaultString(projectName, "clm"), buildNumber, contact, response);
 
     return response.build();
   }
@@ -249,7 +257,10 @@ public class ReportResource
 
       // Save the data in the audit log
       final JsonStore store = JsonUtils.fileStore(work.getAuditDir(appId));
-      store.commit(path, JsonUtils.stamp(AuditUtils.findUser(), AuditUtils.findIP(request), where, data));
+      store.commit(
+          path,
+          JsonUtils.stamp(((UserPrincipal) SecurityUtils.getSubject().getPrincipal()).username,
+              AuditUtils.findIP(request), where, data));
 
       if ("licenses.json".equals(path)) {
         // Save the data as license overrides

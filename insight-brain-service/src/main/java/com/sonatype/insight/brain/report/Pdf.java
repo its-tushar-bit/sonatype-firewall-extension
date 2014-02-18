@@ -24,10 +24,12 @@ import javax.ws.rs.core.StreamingOutput;
 
 import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.common.io.FileCleaner.FileDeletionException;
+import com.sonatype.insight.brain.organization.ContactDTO;
 import com.sonatype.insight.client.utils.UrlUtils;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.base.Strings;
 import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.IOUtil;
 import org.eclipse.birt.core.exception.BirtException;
@@ -66,12 +68,13 @@ final class Pdf
   }
 
   public static void generate(final File reportFile, final File cacheDir, final boolean sample,
-      final String projectName, final int buildNumber, final ResponseBuilder response) throws IOException
+      final String projectName, final int buildNumber, final ContactDTO contact, final ResponseBuilder response)
+      throws IOException
   {
     final File pdfFile = getPdfFile(reportFile);
 
     if (!pdfFile.isFile() || pdfFile.length() == 0) {
-      final File templateDir = setupTemplateDir(reportFile, cacheDir, projectName, buildNumber);
+      final File templateDir = setupTemplateDir(reportFile, cacheDir, projectName, buildNumber, contact);
       try {
         generate(pdfFile, templateDir, sample);
       }
@@ -107,7 +110,7 @@ final class Pdf
   }
 
   private static File setupTemplateDir(final File reportFile, final File cacheDir, final String projectName,
-      final int buildNumber) throws IOException
+      final int buildNumber, final ContactDTO contact) throws IOException
   {
     final File templateDir = new File(reportFile.getParentFile(), "pdf");
 
@@ -137,8 +140,7 @@ final class Pdf
           }
           if ("summary.json".equals(name)) {
             final ObjectNode summary = JsonUtils.read(extractedFile);
-            summary.put("projectName", projectName);
-            summary.put("buildNumber", Integer.toString(buildNumber));
+            fillSummary(summary, projectName, buildNumber, contact);
             JsonUtils.write(extractedFile, summary);
           }
         }
@@ -164,6 +166,22 @@ final class Pdf
       return true;
     }
     return false;
+  }
+
+  static void fillSummary(final ObjectNode summary, final String projectName, final int buildNumber,
+      final ContactDTO contact)
+  {
+    summary.put("projectName", projectName);
+    summary.put("buildNumber", Integer.toString(buildNumber));
+    if (contact != null) {
+      if (!Strings.isNullOrEmpty(contact.getEmail())) {
+        summary.put("applicationContactEmail", contact.getEmail());
+      }
+
+      if (!Strings.isNullOrEmpty(contact.getDisplayName())) {
+        summary.put("applicationContactName", contact.getDisplayName());
+      }
+    }
   }
 
   private static File generate(final File pdfFile, final File templateDir, final boolean sample) throws IOException {

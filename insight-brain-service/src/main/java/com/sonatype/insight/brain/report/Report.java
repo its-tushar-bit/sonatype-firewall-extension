@@ -38,6 +38,7 @@ import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.license.License;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.license.MultiLicense;
+import com.sonatype.insight.brain.organization.ContactDTO;
 import com.sonatype.insight.json.store.JsonStore;
 import com.sonatype.insight.json.store.JsonUtils;
 
@@ -541,10 +542,10 @@ public final class Report
   }
 
   public static void printPdf(final File reportFile, final String projectName, final int buildNumber,
-      final ResponseBuilder response) throws IOException
+      final ContactDTO contact, final ResponseBuilder response) throws IOException
   {
     Pdf.generate(reportFile, getCacheDir(reportFile), ReportType.SAMPLE.equals(getType(reportFile)), projectName,
-        buildNumber, response);
+        buildNumber, contact, response);
   }
 
   public static void deletePdf(final File reportFile) {

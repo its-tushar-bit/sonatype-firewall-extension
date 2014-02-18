@@ -69,6 +69,9 @@ class OrganizationSpec
   }
 
   def "Can add a new Policy"(){
+    given: 'The policy tab has loaded'
+      waitFor { policies.displayed }
+
     when: "We add a new Policy"
       policies.newPolicyButton.click()
       def policyEditor = policies.newPolicyEditor
@@ -77,6 +80,7 @@ class OrganizationSpec
       def constraint = policyEditor.constraints[0]
       constraint.editButton.click()
       constraint.constraintName = 'Constraint'
+      waitFor  { constraint.conditions[0].value.displayed }
       constraint.conditions[0].value = '1'
       policyEditor.buttons.save.click()
 

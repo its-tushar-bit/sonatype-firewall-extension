@@ -23,7 +23,7 @@ class ApplicationManagementPage
     newApplicationButton.click()
     browser.with {
       ApplicationPage applicationPage = at(ApplicationPage)
-      applicationPage.createApp(name, id, orgName)
+      applicationPage.editNewApp(name, id, orgName)
     }
   }
 }

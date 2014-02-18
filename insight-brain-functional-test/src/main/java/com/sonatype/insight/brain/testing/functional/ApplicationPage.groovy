@@ -59,8 +59,7 @@ class ApplicationPage
     tags { module TagApplicationModule, tabs.tagTab }
   }
 
-  void createApp(String name = 'test application', String id = 'test application', String orgName = 'test organization'){
-    newApplicationButton.click()
+  void editNewApp(String name = 'test application', String id = 'test application', String orgName = 'test organization'){
     applicationId.click()
     waitFor { applicationIdField.displayed }
     applicationIdField = id

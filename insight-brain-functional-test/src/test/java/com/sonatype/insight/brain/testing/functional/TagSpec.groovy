@@ -224,6 +224,6 @@ class TagSpec
       tagModal.confirm.click()
 
     then: 'The tag has been deleted'
-      tags.tagList.size() == samplePolicy.tags.size() + 1
+      waitFor { tags.tagList.size() == samplePolicy.tags.size() + 1 }
   }
 }

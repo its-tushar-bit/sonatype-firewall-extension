@@ -49,6 +49,10 @@ public class RestClientFactory
       return new ScanClient(config, appId).uploadCiScan(scanFile);
     }
 
+    public void saveResults(String appId, File resultFile, ScanReceipt receipt) throws IOException {
+      new ScanClient(config, appId).saveResultData(resultFile, receipt);
+    }
+
     public PolicyEvaluationResult evaluatePolicy(String appId, String scanId, String stageId) throws IOException {
       return new PolicyClient(config, appId).evaluate(scanId, new Stage(stageId));
     }

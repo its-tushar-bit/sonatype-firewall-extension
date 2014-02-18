@@ -24,11 +24,14 @@ public class ScanClient
 {
   private static final ContentType GZIP_CONTENT_TYPE = ContentType.create("application/x-gzip");
 
+  private final String serverUrl;
+
   private final String appId;
 
   public ScanClient(final Configuration config, final String appId) {
     super(config);
 
+    this.serverUrl = config.getServerUrl();
     this.appId = UrlUtils.encodeUrlComponent(appId);
   }
 
@@ -49,5 +52,20 @@ public class ScanClient
       throw new HttpResponseException(status, (text == null || text.isEmpty()) ? result.reason() : text);
     }
     return JsonUtils.parse(text, ScanReceipt.class);
+  }
+
+  /**
+   * Exports links to the results of the scan to the specified output JSON file for use by 3rd-party tools.
+   * 
+   * @since 1.10
+   */
+  public void saveResultData(File resultFile, ScanReceipt receipt) throws IOException {
+    ResultData resultData = new ResultData();
+    resultData.applicationId = appId;
+    resultData.scanId = receipt.getScanId();
+    resultData.reportHtmlUrl = receipt.resolveReportUrl(serverUrl);
+    resultData.reportPdfUrl = receipt.resolvePdfUrl(serverUrl);
+    resultData.reportDataUrl = receipt.resolveDataUrl(serverUrl);
+    JsonUtils.write(resultFile, resultData);
   }
 }

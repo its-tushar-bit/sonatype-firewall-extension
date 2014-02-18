@@ -23,7 +23,6 @@ import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.insight.client.utils.ClientException;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.client.utils.SimpleAuthentication;
-import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.scan.cli.RestClientFactory.RestClient;
 
 import org.apache.http.client.HttpResponseException;
@@ -213,7 +212,7 @@ public class PolicyEvaluator
 
     String reportUrl = receipt.resolveReportUrl(params.getServerUrl());
 
-    saveResultFile(params, receipt);
+    saveResultFile(params, restClient, receipt);
 
     if (!PolicyAction.NONE.equals(outcome)) {
       log.info("");
@@ -252,15 +251,10 @@ public class PolicyEvaluator
     }
   }
 
-  private void saveResultFile(Parameters params, ScanReceipt receipt) throws ExitException {
+  private void saveResultFile(Parameters params, RestClient restClient, ScanReceipt receipt) throws ExitException {
     if (params.getResultFile() != null) {
-      ResultData resultData = new ResultData();
-      resultData.applicationId = params.getApplicationId();
-      resultData.scanId = receipt.getScanId();
-      resultData.reportHtmlUrl = receipt.resolveReportUrl(params.getServerUrl());
-      resultData.reportPdfUrl = receipt.resolvePdfUrl(params.getServerUrl());
       try {
-        JsonUtils.write(params.getResultFile(), resultData);
+        restClient.saveResults(params.getApplicationId(), params.getResultFile(), receipt);
       }
       catch (IOException e) {
         log.error("The policy evaluation results could not be exported to {}", params.getResultFile(), e);

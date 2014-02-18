@@ -3,14 +3,14 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.scan.cli;
+package com.sonatype.insight.brain.client;
 
 /**
  * DTO that presents the data structure for the exported result file.
  * 
- * @since 1.9
+ * @since 1.10
  */
-public class ResultData
+class ResultData
 {
   public String applicationId;
 
@@ -19,4 +19,6 @@ public class ResultData
   public String reportHtmlUrl;
 
   public String reportPdfUrl;
+
+  public String reportDataUrl;
 }

@@ -87,12 +87,40 @@ class TagSpec
   def "Can delete the newly added Tag"() {
     when:
       tags.delete(tags.tagList[0])
-      waitFor { tagModal.modal.displayed }
+      waitFor { deleteModal.modal.displayed }
       report 'modal dialog shown'
-      tagModal.confirm.click()
+      deleteModal.confirm.click()
 
     then:
       waitFor { tags.tagList.size() == samplePolicy.tags.size() }
+  }
+
+  def "Are warned when attempting to change tags while editing"(){
+    when: 'We click on an existing tag'
+      tags.tag(0).click()
+
+    then: 'The form is populated with the name and description of the chosen tag'
+      tags.name == samplePolicy.tags[0].name
+
+    when: 'We make a change then attempt to edit another tag'
+      tags.name = 'Policy Tag Updated'
+      tags.tag(1).click()
+
+    then: 'We are presented with a modal warning that we have existing edits'
+      waitFor { isEditingModal.modal.displayed }
+      isEditingModal.text() == 'Editing another tag will discard edits on this tag. Would you like to continue?'
+      isEditingModal.cancel.click()
+      tags.name == 'Policy Tag Updated'
+
+    when: 'We once again attempt to edit another tag'
+      tags.tag(1).click()
+
+    then: 'We can discard changes and edit another tag'
+      waitFor { isEditingModal.modal.displayed }
+      isEditingModal.text() == 'Editing another tag will discard edits on this tag. Would you like to continue?'
+      isEditingModal.buttons.button('Continue').click()
+      tags.name == samplePolicy.tags[1].name
+      tags.buttons.cancel.click()
   }
 
   def "We are prevented from saving if the form won't validate"(){
@@ -183,9 +211,9 @@ class TagSpec
       tags.delete(tags.tagList[2])
 
     then: 'We are warned that it is in use'
-      waitFor { tagModal.modal.displayed }
-      tagModal.text.contains('You cannot delete this tag because it is associated with the following policies: Security-High.')
-      tagModal.cancel.click()
+      waitFor { deleteModal.modal.displayed }
+      deleteModal.text.contains('You cannot delete this tag because it is associated with the following policies: Security-High.')
+      deleteModal.cancel.click()
   }
 
   def "Applied tags warn on deletion"(){
@@ -217,11 +245,11 @@ class TagSpec
       tags.delete(tags.tagList[1])
 
     then: 'We are warned that it is in use'
-      waitFor { tagModal.modal.displayed }
-      tagModal.text.contains('It is in use by the following applications: TagSpec.')
+      waitFor { deleteModal.modal.displayed }
+      deleteModal.text.contains('It is in use by the following applications: TagSpec.')
 
     when: 'We confirm the delete'
-      tagModal.confirm.click()
+      deleteModal.confirm.click()
 
     then: 'The tag has been deleted'
       waitFor { tags.tagList.size() == samplePolicy.tags.size() + 1 }

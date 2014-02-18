@@ -41,7 +41,6 @@ describe('TagController.js', function() {
         return {
           result: {
             then: function(success, failure) {
-              success();
             }
           }
         };
@@ -267,13 +266,15 @@ describe('TagController.js', function() {
 
         it('Create New Attempted', function() {
           scope.createNew();
-          expect(scope.alerts.length).toEqual(1);
+          expect(dialogScope).not.toBeUndefined();
+          expect(dialogScope.body).toBe('Editing another tag will discard edits on this tag. Would you like to continue?')
           expect(scope.selectedTag.name).toEqual('foo');
         });
 
         it('Edit Existing Attempted', function() {
           scope.editTag(testScope.tags[0]);
-          expect(scope.alerts.length).toEqual(1);
+          expect(dialogScope).not.toBeUndefined();
+          expect(dialogScope.body).toBe('Editing another tag will discard edits on this tag. Would you like to continue?')
           expect(scope.selectedTag.name).toEqual('foo');
         });
       });
@@ -291,13 +292,15 @@ describe('TagController.js', function() {
 
         it('Edit Existing Attempted', function() {
           scope.editTag(testScope.tags[1]);
-          expect(scope.alerts.length).toEqual(1);
+          expect(dialogScope).not.toBeUndefined();
+          expect(dialogScope.body).toBe('Editing another tag will discard edits on this tag. Would you like to continue?')
           expect(scope.selectedTag.name).toEqual('foo');
         });
 
         it('Create New Attempted', function() {
           scope.createNew();
-          expect(scope.alerts.length).toEqual(1);
+          expect(dialogScope).not.toBeUndefined();
+          expect(dialogScope.body).toBe('Editing another tag will discard edits on this tag. Would you like to continue?')
           expect(scope.selectedTag.name).toEqual('foo');
         });
       });

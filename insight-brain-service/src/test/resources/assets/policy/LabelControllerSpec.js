@@ -225,13 +225,16 @@ describe('LabelController.js', function() {
 
         it('Create New Attempted', function() {
           scope.createNew();
-          expect(scope.alerts.length).toEqual(1);
+
+          expect(dialogScope).not.toBeUndefined();
+          expect(dialogScope.body).toBe('Editing another label will discard edits on this label. Would you like to continue?')
           expect(scope.selectedLabel.name).toEqual('foo');
         });
 
         it('Edit Existing Attempted', function() {
           scope.editLabel(true, testScope.applicableLabels[0].labels[0]);
-          expect(scope.alerts.length).toEqual(1);
+          expect(dialogScope).not.toBeUndefined();
+          expect(dialogScope.body).toBe('Editing another label will discard edits on this label. Would you like to continue?')
           expect(scope.selectedLabel.name).toEqual('foo');
         });
       });
@@ -248,13 +251,15 @@ describe('LabelController.js', function() {
 
         it('Edit Existing Attempted', function() {
           scope.editLabel(true, testScope.applicableLabels[0].labels[1]);
-          expect(scope.alerts.length).toEqual(1);
+          expect(dialogScope).not.toBeUndefined();
+          expect(dialogScope.body).toBe('Editing another label will discard edits on this label. Would you like to continue?')
           expect(scope.selectedLabel.name).toEqual('foo');
         });
 
         it('Create New Attempted', function() {
           scope.createNew();
-          expect(scope.alerts.length).toEqual(1);
+          expect(dialogScope).not.toBeUndefined();
+          expect(dialogScope.body).toBe('Editing another label will discard edits on this label. Would you like to continue?')
           expect(scope.selectedLabel.name).toEqual('foo');
         });
       });

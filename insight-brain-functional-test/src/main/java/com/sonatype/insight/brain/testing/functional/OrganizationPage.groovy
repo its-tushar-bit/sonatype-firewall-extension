@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.testing.functional
 
 import com.sonatype.insight.brain.testing.functional.modules.ImportPolicyModule
+import com.sonatype.insight.brain.testing.functional.modules.LabelModule
 import com.sonatype.insight.brain.testing.functional.modules.ModalModule
 import com.sonatype.insight.brain.testing.functional.modules.ContextTabsModule
 import com.sonatype.insight.brain.testing.functional.modules.EditorToolsModule
@@ -33,9 +34,11 @@ class OrganizationPage
     tools(required: false) { module EditorToolsModule }
     policies { module PolicyModule, tabs.policiesTab }
     policyMonitoring { module PolicyMonitoringModule, tabs.policiesTab }
+    labels { module LabelModule, tabs.labelsTab }
     tags { module TagModule, tabs.tagTab }
-    tagModal { module ModalModule, title: 'Delete Tag' }
+    deleteModal { module ModalModule, title: startsWith('Delete ') }
     policyImport { module ImportPolicyModule }
+    isEditingModal { module ModalModule, title: 'Discard Changes' }
   }
 
   def editOrg(name) {

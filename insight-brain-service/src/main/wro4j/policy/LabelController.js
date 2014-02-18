@@ -28,8 +28,8 @@
   }
 
   labelModule.controller('LabelController', [
-    '$scope', '$http', '$q', '$modal', 'CLMAppLocations', 'Messages', 'CLMResource', 'LabelStore', 'ownerChange',
-    function($scope, $http, $q, $modal, clmAppLocations, messages, clmResource, LabelStore, ownerChange) {
+    '$scope', '$http', '$q', '$modal', 'Dialog', 'CLMAppLocations', 'Messages', 'CLMResource', 'LabelStore', 'ownerChange',
+    function($scope, $http, $q, $modal, Dialog, clmAppLocations, messages, clmResource, LabelStore, ownerChange) {
       $scope.alerts = [];
 
       function deselect() {
@@ -43,9 +43,19 @@
 
       function executeIfClean(fn) {
         if ($scope.selectedLabel && $scope.selectedLabel.isDirty()) {
-          showAlert($scope.alerts, {
-            type: 'error',
-            msg: 'Please finish editing before trying to modify another label.'
+          Dialog.open({
+            title: 'Discard Changes',
+            body: 'Editing another label will discard edits on this label. Would you like to continue?',
+            buttons: [
+              {
+                name: 'Cancel'
+              },
+              {
+                name : 'Continue',
+                type : 'danger',
+                click : fn
+              }
+            ]
           });
         }
         else {

@@ -18,6 +18,7 @@ class ModalModule
   def confirmText = 'Delete'
   def cancelText = 'Cancel'
   def okText = 'OK'
+  def continueText = 'Continue'
 
   def static content = {
     modals(required: false) { $('div.modal') }
@@ -26,6 +27,7 @@ class ModalModule
     confirm { buttons.button(confirmText) }
     cancel { buttons.button(cancelText) }
     ok(required: false) { buttons.button(okText) }
+    continueButton { buttons.button(continueText) }
     text { modal.find('p').text() }
   }
 }

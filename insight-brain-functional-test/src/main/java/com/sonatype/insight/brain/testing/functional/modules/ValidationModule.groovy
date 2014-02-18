@@ -20,10 +20,12 @@ class ValidationModule
     //parameterized matchers to find content
     div(required: false) { text -> $('div', text: text) }
     divStartsWith(required: false) { text -> $('div', text: startsWith(text)) }
+    span(required: false) { text -> $('span', text: text) }
 
     //validation elements
     required(required: false) { div(REQUIRED) }
     alphaNumeric(required: false) { div(ALPHA_NUMERIC) }
+    invalidCharacters(required: false) { span(INVALID_CHARACTERS) }
     noSpaces(required: false) { divStartsWith(NO_SPACES) }
     invalidEmail(required: false) { div(INVALID_EMAIL) }
     pattern(required: false) { div(PATTERN) }

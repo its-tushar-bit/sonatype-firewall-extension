@@ -8,28 +8,28 @@ package com.sonatype.insight.brain.testing.functional.modules
 import geb.Module
 
 /**
- * @since 1.8
+ * @since 1.9
  */
-class TagModule
+class LabelModule
     extends Module
 {
   static content = {
-    newTagButton { $('button', 'ng-click': 'createNew()') }
+    newLabelButton { $('button', 'ng-click': 'createNew()') }
 
-    tagList(required:false) { $('span', 'ng-repeat': startsWith('tag in tags')) }
-    tag(required:false) { index -> tagList[index].find('span') }
+    labelList(required:false) { $('span', 'ng-repeat': startsWith('label in applicableLabel.labels')) }
+    label(required:false) { index -> labelList[index].find('span') }
     delete { tag -> tag.find('i', title: startsWith('Delete')).click() }
-    appliedMarker { tag -> tag.find('.applied-tag-count') }
 
     //form controls(only visible while editing)
-    tagEditor(required:false) { $('form', name: 'tagEditor') }
-    name(required:false)  { tagEditor.name() }
-    description(required:false)  { tagEditor.description() }
-    color(requied:false) { name -> tagEditor.find('.' + name + 'Label') }
-    buttons { module ButtonsModule }
+    labelEditor(required:false) { $('form', name: 'labelEditor') }
+    name(required:false)  { labelEditor.label() }
+    description(required:false)  { labelEditor.description() }
+    color(requied:false) { name -> labelEditor.find('.' + name + 'Label') }
+    buttons { module ButtonsModule, labelEditor }
 
     //client validation error messaging
     nameValidations(required: false) { module ValidationModule, name.parent() }
+    errorFree { nameValidations.errorFree && serverAlerts.children().size() == 0 }
 
     //server error messaging
     serverAlerts { $('div', 'clm-alerts': 'alerts') }
@@ -38,9 +38,9 @@ class TagModule
     cancelEditAlert { editAlerts.find('button') }
   }
 
-  def createNewTag(name = 'New Tag', description = 'Tag description', color = 'black') {
-    waitFor { newTagButton.displayed }
-    newTagButton.click()
+  def createNewLabel(name = 'NewLabel', description = 'Label description', color = 'black') {
+    waitFor { newLabelButton.displayed }
+    newLabelButton.click()
     this.name = name
     this.description = description
     this.color(color).click()

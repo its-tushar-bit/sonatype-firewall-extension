@@ -14,6 +14,8 @@ class ValidationConstants
 
   public static final String ALPHA_NUMERIC = 'Must be alpha numeric.'
 
+  public static final String INVALID_CHARACTERS = 'Invalid Character(s)'
+
   public static final String INVALID_EMAIL = 'Use valid format: abc@xyz.com'
 
   public static final String NO_SPACES = 'No leading'

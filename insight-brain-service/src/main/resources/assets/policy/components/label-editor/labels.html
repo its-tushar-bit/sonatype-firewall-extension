@@ -55,7 +55,8 @@
                 </div>
               </div>
               <div class="control-group">
-                <textarea maxlength="255" rows="3" style="width:530px;resize:none;" ng-model='selectedLabel.description' placeholder="Enter Description"></textarea>
+                <textarea name='description' maxlength="255" rows="3" style="width:530px;resize:none;" ng-model='selectedLabel.description'
+                          placeholder="Enter Description"></textarea>
               </div>
               <div class="control-group">
                 <span ng-repeat="color in colors" ng-click='setColor(color);'>

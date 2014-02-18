@@ -67,10 +67,20 @@
       }
 
       function showEditingAlert() {
-        showAlert($scope.alerts, {
-          type: 'error',
-          msg: 'Please finish editing before trying to modify another tag.'
-        });
+        return Dialog.open({
+          title: 'Discard Changes',
+          body: 'Editing another tag will discard edits on this tag. Would you like to continue?',
+          buttons: [
+            {
+              name: 'Cancel',
+              dismiss: true
+            },
+            {
+              name : 'Continue',
+              type : 'danger'
+            }
+          ]
+        }).result;
       }
 
       $scope.deselect = deselect;
@@ -122,7 +132,9 @@
           deselect();
           $scope.selectedTag = tag.$clone();
         } else {
-          showEditingAlert();
+          showEditingAlert().then(function() {
+            $scope.selectedTag = tag.$clone();
+          });
         }
       };
 
@@ -135,7 +147,9 @@
         if (!e.defaultPrevented) {
           $scope.selectedTag = TagStore.create();
         } else {
-          showEditingAlert();
+          showEditingAlert().then(function() {
+            $scope.selectedTag = TagStore.create();
+          });
         }
       };
 

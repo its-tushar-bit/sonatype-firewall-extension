@@ -13,7 +13,7 @@ import static org.hamcrest.Matchers.is;
 public class ComponentTest
 {
   @Test
-  public void defaultDoesNotNotOverrideLicense() {
+  public void defaultDoesNotOverrideLicense() {
     assertThat(new Component().isLicenseOverridden(), is(false));
   }
 

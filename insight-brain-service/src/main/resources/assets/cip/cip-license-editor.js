@@ -220,7 +220,7 @@
               version: SelectedComponent.version,
               status: $scope.override.status.toUpperCase(),
               licenseId: null,
-              comment: $scope.override.comment
+              comment: $scope.override.comment || ''
             },
             owner = null;
 

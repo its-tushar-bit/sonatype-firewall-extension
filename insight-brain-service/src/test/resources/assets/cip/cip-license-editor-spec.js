@@ -180,7 +180,8 @@
             groupId: SelectedComponent.groupId,
             version: SelectedComponent.version,
             status: 'ACKNOWLEDGED',
-            licenseId: null
+            licenseId: null,
+            comment : ''
           });
           post.id = 'saveOverrideId';
           return [200, post, headers];
@@ -207,7 +208,8 @@
             groupId: SelectedComponent.groupId,
             version: SelectedComponent.version,
             status: 'ACKNOWLEDGED',
-            licenseId: null
+            licenseId: null,
+            comment : ''
           });
           post.id = 'saveOverrideId';
           return [200, post, headers];
@@ -278,7 +280,8 @@
             groupId: SelectedComponent.groupId,
             version: SelectedComponent.version,
             status: 'ACKNOWLEDGED',
-            licenseId: null
+            licenseId: null,
+            comment : ''
           });
           posted.id = 'AddApplication';
           return [200, posted, headers]
@@ -351,7 +354,8 @@
             groupId: SelectedComponent.groupId,
             version: SelectedComponent.version,
             status: 'ACKNOWLEDGED',
-            licenseId: null
+            licenseId: null,
+            comment : ''
           });
           posted.id = 'AddApplication';
           return [200, posted, headers]
@@ -419,7 +423,8 @@
             groupId: SelectedComponent.groupId,
             version: SelectedComponent.version,
             status: 'ACKNOWLEDGED',
-            licenseId: null
+            licenseId: null,
+            comment : ''
           });
           posted.id = 'AddApplication';
           return [200, posted, headers]

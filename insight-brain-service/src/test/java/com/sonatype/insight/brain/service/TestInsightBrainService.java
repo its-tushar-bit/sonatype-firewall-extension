@@ -13,9 +13,7 @@ import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.dataaccess.license.LicenseDataUpdater;
 import com.sonatype.insight.brain.policy.evaluator.PolicyMonitorScheduler;
 import com.sonatype.insight.brain.security.CLMRealm;
-import com.sonatype.insight.client.utils.AbstractClient;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
-import com.sonatype.insight.client.utils.Result;
 import com.sonatype.insight.db.DatabaseConfig;
 
 import ch.qos.logback.classic.spi.ILoggingEvent;
@@ -57,8 +55,6 @@ public class TestInsightBrainService
   private ProxyConfig testProxyConfig;
 
   private Server testBrainServer;
-
-  private Exception brainFault;
 
   private LicenseDataUpdater savedLicenseDataUpdater;
 
@@ -129,60 +125,19 @@ public class TestInsightBrainService
     // This reduces the test execution time for this module by ~30%.
     CLMRealm.useWeakHashIterationForTestsOnly();
 
-    new Thread("TestInsightBrainService")
-    {
-      @Override
-      public void run() {
-        brainFault = null;
-        try {
-          String[] args;
-          File dropWizardConfigFile = new File("target/test-classes/config-test.yml");
-          if (dropWizardConfigFile.exists()) {
-            // I have no idea why, but INFO level is not enabled at this point
-            log.warn("Using DropWizard config file {}", dropWizardConfigFile.getAbsolutePath());
-            args = new String[] { "server", dropWizardConfigFile.getAbsolutePath() };
-          }
-          else {
-            log.warn("Cannot find DropWizard config file {}", dropWizardConfigFile.getAbsolutePath());
-            args = new String[] { "server" };
-          }
-
-          // this method will only return when the service is stopped...
-          TestInsightBrainService.this.run(args);
-        }
-        catch (final Exception e) {
-          log.error(e.getMessage(), e);
-          brainFault = e;
-        }
-      }
-    }.start();
-
-    final Configuration configuration = getClientConfiguration();
-    final StatusClient client = new StatusClient(configuration);
-
-    final long start = System.currentTimeMillis();
-    Exception serverStartException = null;
-    for (int retries = 0; retries < 60 * 20; retries++) {
-      if (brainFault != null) {
-        throw brainFault;
-      }
-      try {
-        Thread.sleep(50);
-        if (client.check()) {
-          serverStartException = null;
-          break;
-        }
-      }
-      catch (final Exception e) {
-        // server is still booting...
-        serverStartException = e;
-      }
+    String[] args;
+    File dropWizardConfigFile = new File("target/test-classes/config-test.yml");
+    if (dropWizardConfigFile.exists()) {
+      // I have no idea why, but INFO level is not enabled at this point
+      log.warn("Using DropWizard config file {}", dropWizardConfigFile.getAbsolutePath());
+      args = new String[] { "server", dropWizardConfigFile.getAbsolutePath() };
     }
-    if (serverStartException != null) {
-      log.error(serverStartException.getMessage(), serverStartException);
-      throw serverStartException;
+    else {
+      log.warn("Cannot find DropWizard config file {}", dropWizardConfigFile.getAbsolutePath());
+      args = new String[] { "server" };
     }
-    log.debug("Detected server started in {}", System.currentTimeMillis() - start);
+
+    TestInsightBrainService.this.run(args);
   }
 
   @Override
@@ -240,9 +195,6 @@ public class TestInsightBrainService
       testBrainServer = null;
 
       LicenseDataUpdater.setUpdater(savedLicenseDataUpdater);
-    }
-    if (brainFault != null) {
-      throw brainFault;
     }
   }
 
@@ -304,19 +256,6 @@ public class TestInsightBrainService
       catch (IllegalAccessException e) {
         throw new RuntimeException(e);
       }
-    }
-  }
-
-  private static class StatusClient
-      extends AbstractClient
-  {
-    StatusClient(final Configuration configuration) {
-      super(configuration);
-    }
-
-    public boolean check() throws Exception {
-      Result result = adminPath("healthcheck").timeout(5000).get();
-      return result.status() == 200;
     }
   }
 

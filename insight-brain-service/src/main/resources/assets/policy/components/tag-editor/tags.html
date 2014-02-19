@@ -14,6 +14,8 @@
         <button type='button' class='btn add-new new-entity-button' ng-click='createNew()' style='margin-bottom: 7px;'>
           <i class='icon icon-plus'></i> New Tag
         </button>
+      </div>
+      <div class="tag-list">
         <span>
           <span ng-repeat='tag in tags | orderBy:"name"' ng-click='editTag(tag)'>
             <span class='clm-tag {{tag.color}}Label' ng-class="{active: selectedTag.id == tag.id}"
@@ -28,7 +30,7 @@
 
         <div clm-alerts='alerts'></div>
       </div>
-      <div ng-if='selectedTag' style='margin-left:25px'>
+      <div ng-if='selectedTag' class="tag-list">
         <div class='fade in' style='width:544px;padding-bottom:15px' ng-controller='TagEditorController'>
           <form name='tagEditor' class='form-horizontal' style='margin-bottom:0' ng-submit='saveTag()'>
             <div class="control-group"

@@ -32,6 +32,8 @@
               <i class='icon icon-plus'></i> New Label
             </button>
           </span>
+        </div>
+        <div class="label-list">
           <span ng-repeat='label in applicableLabel.labels | orderBy:"label"' ng-click='editLabel(applicableLabel.editable, label)'>
             <span class='clmLabel {{label.color}}Label' ng-class="{active: selectedLabel.id == label.id}">
               <span data-tooltip="{{label.description}}" data-tooltip-placement="bottom">{{label.label}}</span>
@@ -44,7 +46,7 @@
             <div clm-alerts='alerts'></div>
           </div>
         </div>
-        <div ng-if='applicableLabel.editable && selectedLabel' style='margin-left:25px'>
+        <div ng-if='applicableLabel.editable && selectedLabel' class="label-list">
           <div class='fade in' style='width:544px;padding-bottom:15px' ng-controller='LabelEditorController'>
             <form name='labelEditor' class='form-horizontal' style='margin-bottom:0' ng-submit='saveLabel()'>
               <div class="control-group" ng-class='{ error : labelEditor.label.$error.duplicate || labelEditor.label.$error.invalid }'>

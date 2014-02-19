@@ -19,7 +19,9 @@
             id: null,
             publicId: null,
             name: null,
-            organizationId: null
+            organizationId: null,
+            organizationName: null,
+            contact : null
           }
         });
         $rootScope.$on('organizations.delete', function() {

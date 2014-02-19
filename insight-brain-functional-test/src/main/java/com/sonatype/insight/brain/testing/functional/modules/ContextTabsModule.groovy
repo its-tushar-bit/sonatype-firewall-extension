@@ -18,9 +18,9 @@ class ContextTabsModule
     labelsTab { $('#labels') }
     ltgTabButton { tabLinks.find { it.text() == 'LICENSES' } }
     ltgTab { $('#ltg') }
-    securityTabButton { tabLinks.find { it.text() == 'SECURITY' } }
-    securityTab { module RoleMappingModule }
     tagTabButton { tabLinks.find { it.text() == 'TAGS' } }
     tagTab { $('#tags') }
+    securityTabButton { tabLinks.find { it.text() == 'SECURITY' } }
+    securityTab { module RoleMappingModule }
   }
 }

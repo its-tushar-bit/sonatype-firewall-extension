@@ -683,9 +683,13 @@ var AngularUtils = {
   }]);
   
   angularCommon.service('Dialog', ['$modal', function ($modal) {
-    function wrapClick(fn, scope) {
+    function wrapClick(fn, scope, dismiss) {
       return function () {
-        scope.$close();
+        if (dismiss) {
+          scope.$dismiss();
+        } else {
+          scope.$close();
+        }
         if (fn) {
           fn();
         }
@@ -707,7 +711,7 @@ var AngularUtils = {
             scope.body = config.body;
 
             angular.forEach(scope.buttons, function (button) {
-              button.click = wrapClick(button.click, scope);
+              button.click = wrapClick(button.click, scope, button.dismiss);
             });
           }]
         }, config);

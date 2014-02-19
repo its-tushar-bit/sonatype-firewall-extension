@@ -85,6 +85,9 @@ class LabelSpec
       labels.createNewLabel('AnotherNewLabel')
       labels.buttons.save.click()
 
+    and: 'The label editor has been disposed'
+      waitFor { !labels.labelEditor.displayed }
+
     when: 'We click on an existing label'
       labels.label(0).click()
 

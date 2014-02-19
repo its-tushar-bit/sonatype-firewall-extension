@@ -33,10 +33,10 @@
 	<div ng-switch-when="complete">
 		<div class="modal-body">
 			<span style="margin-right:10px;">The new password for <strong>{{user.username}}</strong> is</span>
-			<span style="margin-bottom:0px;" class="input-append">
-				<input id="generatedPassword" style="width:120px;height:22px;cursor:auto;" type="text" ng-model="newPassword" readonly select-text focus-input="state == 'complete'"/>
-				<button ng-show="flashInstalled()" title="Copy to clipboard" style="height:32px;width:32px;" class="btn" type="button" zero-clipboard="generatedPassword">
-					<i class="glyphicons-sonatype clipboard">&nbsp;</i>
+			<span style="margin-bottom:0px;" ng-class="{ 'input-append' : flashInstalled() }">
+				<input id="generatedPassword" style="width:120px;cursor:auto;" type="text" ng-model="newPassword" readonly select-text focus-input="state == 'complete'"/>
+				<button ng-show="flashInstalled()" title="Copy to clipboard" class="btn" type="button" zero-clipboard="generatedPassword">
+					<i class="glyphicons-sonatype clipboard"></i>
 				</button>
 			</span>
 		</div>

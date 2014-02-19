@@ -8,7 +8,7 @@ package com.sonatype.insight.brain.client;
 /**
  * DTO that presents the data structure for the exported result file.
  * 
- * @since 1.10
+ * @since 1.9.1
  */
 class ResultData
 {

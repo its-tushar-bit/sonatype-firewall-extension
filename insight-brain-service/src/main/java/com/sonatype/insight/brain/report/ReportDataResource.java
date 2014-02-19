@@ -17,7 +17,7 @@ import javax.ws.rs.core.UriBuilder;
 /**
  * Provides data from an application's composition report in a format suitable for consumption by 3rd-party clients.
  * 
- * @since 1.10
+ * @since 1.9.1
  */
 @Named
 @Path(ReportDataResource.SERVICE_PATH)

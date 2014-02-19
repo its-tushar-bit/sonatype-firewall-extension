@@ -19,7 +19,7 @@ import org.apache.shiro.SecurityUtils;
 /**
  * Helps to populate the audit log.
  * 
- * @since 1.10
+ * @since 1.9.1
  */
 public final class AuditUtils
 {

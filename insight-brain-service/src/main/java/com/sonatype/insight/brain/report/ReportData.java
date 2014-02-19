@@ -11,7 +11,7 @@ import java.util.List;
 /**
  * DTO describing the data for an application composition report (at least the bits we expose as public API so far).
  * 
- * @since 1.10
+ * @since 1.9.1
  */
 public class ReportData
 {

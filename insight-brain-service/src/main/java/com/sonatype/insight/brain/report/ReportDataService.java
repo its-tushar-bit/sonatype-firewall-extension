@@ -32,7 +32,7 @@ import com.sonatype.insight.error.exception.NotFoundException;
 /**
  * Provides data from an application's composition report in a format suitable for consumption by 3rd-party clients.
  * 
- * @since 1.10
+ * @since 1.9.1
  */
 @Named
 public class ReportDataService

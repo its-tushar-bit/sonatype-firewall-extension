@@ -57,7 +57,7 @@ public class ScanClient
   /**
    * Exports links to the results of the scan to the specified output JSON file for use by 3rd-party tools.
    * 
-   * @since 1.10
+   * @since 1.9.1
    */
   public void saveResultData(File resultFile, ScanReceipt receipt) throws IOException {
     ResultData resultData = new ResultData();

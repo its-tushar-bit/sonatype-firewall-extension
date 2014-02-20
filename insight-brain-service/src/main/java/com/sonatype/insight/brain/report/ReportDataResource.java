@@ -23,7 +23,7 @@ import javax.ws.rs.core.UriBuilder;
 @Path(ReportDataResource.SERVICE_PATH)
 public class ReportDataResource
 {
-  public static final String SERVICE_PATH = "api/v1/application/{applicationPublicId}/report/{scanId}/data";
+  public static final String SERVICE_PATH = "api/v1/applications/{applicationPublicId}/reports/{scanId}";
 
   private final ReportDataService reportDataService;
 

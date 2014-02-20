@@ -28,6 +28,6 @@ public class ScanUploaderTest
     scanUploader.augmentScanReceipt("app id", receipt);
     assertThat(receipt.getReportUrl(), is("ui/links/application/app%20id/report/scan%20id"));
     assertThat(receipt.getPdfUrl(), is("ui/links/application/app%20id/report/scan%20id/pdf"));
-    assertThat(receipt.getDataUrl(), is("api/v1/application/app%20id/report/scan%20id/data"));
+    assertThat(receipt.getDataUrl(), is("api/v1/applications/app%20id/reports/scan%20id"));
   }
 }

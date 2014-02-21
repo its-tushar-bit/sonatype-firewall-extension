@@ -44,8 +44,8 @@
       function executeIfClean(fn) {
         if ($scope.selectedLabel && $scope.selectedLabel.isDirty()) {
           Dialog.open({
-            title: 'Discard Changes',
-            body: 'Editing another label will discard edits on this label. Would you like to continue?',
+            title: 'Unsaved Changes',
+            body: 'This label may contain unsaved changes, continuing will discard them.',
             buttons: [
               {
                 name: 'Cancel'

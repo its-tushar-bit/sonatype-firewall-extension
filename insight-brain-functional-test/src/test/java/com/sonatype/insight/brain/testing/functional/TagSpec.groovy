@@ -108,7 +108,7 @@ class TagSpec
 
     then: 'We are presented with a modal warning that we have existing edits'
       waitFor { isEditingModal.modal.displayed }
-      isEditingModal.text() == 'Editing another tag will discard edits on this tag. Would you like to continue?'
+      isEditingModal.text() == 'This tag may contain unsaved changes, continuing will discard them.'
       isEditingModal.cancel.click()
       tags.name == 'Policy Tag Updated'
 
@@ -117,7 +117,7 @@ class TagSpec
 
     then: 'We can discard changes and edit another tag'
       waitFor { isEditingModal.modal.displayed }
-      isEditingModal.text() == 'Editing another tag will discard edits on this tag. Would you like to continue?'
+      isEditingModal.text() == 'This tag may contain unsaved changes, continuing will discard them.'
       isEditingModal.buttons.button('Continue').click()
       tags.name == samplePolicy.tags[1].name
       tags.buttons.cancel.click()

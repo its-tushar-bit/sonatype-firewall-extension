@@ -38,7 +38,7 @@ class OrganizationPage
     tags { module TagModule, tabs.tagTab }
     deleteModal { module ModalModule, title: startsWith('Delete ') }
     policyImport { module ImportPolicyModule }
-    isEditingModal { module ModalModule, title: 'Discard Changes' }
+    isEditingModal { module ModalModule, title: 'Unsaved Changes' }
   }
 
   def editOrg(name) {

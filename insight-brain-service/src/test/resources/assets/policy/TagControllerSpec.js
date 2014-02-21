@@ -267,14 +267,14 @@ describe('TagController.js', function() {
         it('Create New Attempted', function() {
           scope.createNew();
           expect(dialogScope).not.toBeUndefined();
-          expect(dialogScope.body).toBe('Editing another tag will discard edits on this tag. Would you like to continue?')
+          expect(dialogScope.body).toBe('This tag may contain unsaved changes, continuing will discard them.');
           expect(scope.selectedTag.name).toEqual('foo');
         });
 
         it('Edit Existing Attempted', function() {
           scope.editTag(testScope.tags[0]);
           expect(dialogScope).not.toBeUndefined();
-          expect(dialogScope.body).toBe('Editing another tag will discard edits on this tag. Would you like to continue?')
+          expect(dialogScope.body).toBe('This tag may contain unsaved changes, continuing will discard them.');
           expect(scope.selectedTag.name).toEqual('foo');
         });
       });
@@ -293,14 +293,14 @@ describe('TagController.js', function() {
         it('Edit Existing Attempted', function() {
           scope.editTag(testScope.tags[1]);
           expect(dialogScope).not.toBeUndefined();
-          expect(dialogScope.body).toBe('Editing another tag will discard edits on this tag. Would you like to continue?')
+          expect(dialogScope.body).toBe('This tag may contain unsaved changes, continuing will discard them.');
           expect(scope.selectedTag.name).toEqual('foo');
         });
 
         it('Create New Attempted', function() {
           scope.createNew();
           expect(dialogScope).not.toBeUndefined();
-          expect(dialogScope.body).toBe('Editing another tag will discard edits on this tag. Would you like to continue?')
+          expect(dialogScope.body).toBe('This tag may contain unsaved changes, continuing will discard them.');
           expect(scope.selectedTag.name).toEqual('foo');
         });
       });

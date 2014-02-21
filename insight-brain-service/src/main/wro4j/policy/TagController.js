@@ -68,8 +68,8 @@
 
       function showEditingAlert() {
         return Dialog.open({
-          title: 'Discard Changes',
-          body: 'Editing another tag will discard edits on this tag. Would you like to continue?',
+          title: 'Unsaved Changes',
+          body: 'This tag may contain unsaved changes, continuing will discard them.',
           buttons: [
             {
               name: 'Cancel',

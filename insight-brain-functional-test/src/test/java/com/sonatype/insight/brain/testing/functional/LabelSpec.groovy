@@ -100,7 +100,7 @@ class LabelSpec
 
     then: 'We are presented with a modal warning that we have existing edits'
       waitFor { isEditingModal.modal.displayed }
-      isEditingModal.text() == 'Editing another label will discard edits on this label. Would you like to continue?'
+      isEditingModal.text() == 'This label may contain unsaved changes, continuing will discard them.'
       isEditingModal.cancel.click()
       labels.name == 'NewLabelUpdatedAgain'
 
@@ -109,7 +109,7 @@ class LabelSpec
 
     then: 'We can discard changes and edit another tag'
       waitFor { isEditingModal.modal.displayed }
-      isEditingModal.text() == 'Editing another label will discard edits on this label. Would you like to continue?'
+      isEditingModal.text() == 'This label may contain unsaved changes, continuing will discard them.'
       isEditingModal.continueButton.click()
       labels.name == 'NewLabelUpdated'
       labels.buttons.cancel.click()

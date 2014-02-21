@@ -105,11 +105,11 @@ public class ReportDataServiceTest
     }
   }
 
-  private void assertSv(ReportData.SecurityIssue sv, String status, String source, String ref, Float score) {
+  private void assertSv(ReportData.SecurityIssue sv, String status, String source, String ref, Float severity) {
     assertThat(sv.status, is(status));
     assertThat(sv.source, is(source));
     assertThat(sv.reference, is(ref));
-    assertThat(sv.score, is(score));
+    assertThat(sv.severity, is(severity));
   }
 
   @Test

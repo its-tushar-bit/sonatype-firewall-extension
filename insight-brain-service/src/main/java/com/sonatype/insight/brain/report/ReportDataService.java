@@ -96,7 +96,7 @@ public class ReportDataService
           ReportData.SecurityIssue sv = new ReportData.SecurityIssue();
           sv.source = vuln.getSource();
           sv.reference = vuln.getRefId();
-          sv.score = vuln.getSeverity();
+          sv.severity = vuln.getSeverity();
           sv.status = vuln.getStatus().getName();
           component.securityData.securityIssues.add(sv);
         }

@@ -67,7 +67,7 @@ public class ReportData
   {
     public String source;
     public String reference;
-    public Float score;
+    public Float severity;
     public String status;
   }
 }

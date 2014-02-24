@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.landing;
 import java.net.URI;
 
 import javax.inject.Inject;
+import javax.inject.Named;
 import javax.ws.rs.core.UriBuilder;
 
 import com.sonatype.insight.brain.service.BaseUrl;
@@ -16,6 +17,7 @@ import com.sonatype.insight.brain.service.InsightBrainService;
 /**
  * Determines the actual target page when users browse to the server's context root.
  */
+@Named
 public class LandingService
 {
   private final BaseUrl baseUrl;

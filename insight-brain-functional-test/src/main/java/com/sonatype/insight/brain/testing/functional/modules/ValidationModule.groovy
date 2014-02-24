@@ -31,7 +31,7 @@ class ValidationModule
     pattern(required: false) { div(PATTERN) }
     passwordMatches(required: false) { div(PASSWORDS_MUST_MATCH) }
 
-    allValidations(requred: false) { [required, alphaNumeric, noSpaces, invalidEmail, pattern, passwordMatches] }
+    allValidations(required: false) { [required, alphaNumeric, noSpaces, invalidEmail, pattern, passwordMatches] }
 
     //returns true if no validations are displayed
     errorFree(required: false) { !allValidations.any { it?.displayed == true } }

@@ -72,7 +72,7 @@ public class CLMShiroModule
     manager.createChain("/rest/policy/*/evaluate", "anon");
     manager.createChain("/rest/ci/validate/*", "anon");
     manager.createChain("/rest/ci/scan/*", "anon");
-    manager.createChain("/rest/rm/**", "anon");
+    manager.createChain("/rest/rm/scan/*", "anon");
   }
 
   @Override

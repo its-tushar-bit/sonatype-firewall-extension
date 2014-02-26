@@ -428,6 +428,30 @@ public class ReportResourceTest
   }
 
   @Test
+  public void testBrowseReport_NoDirectoryTraversal() throws Exception {
+    final String applicationPublicId = "ReportResourceTest_AppId";
+    final String appId = tempEntity.newApplicationWithParent(applicationPublicId).getId();
+    final String scanId = "ReportResourceTest_ScanId";
+    final String licenseFingerprint = "ReportResourceTest_LicenseFingerprint";
+    setLicenseFingerprint(licenseFingerprint);
+
+    final File saasReportFile = getReportResponseFile(licenseFingerprint, scanId);
+    final URL testReportResultUrl = getClass().getResource("/ReportResourceTest/report.zip");
+    FileUtils.copyURLToFile(testReportResultUrl, saasReportFile);
+    File reportDir = brain.getReportDir(appId, scanId);
+    reportDir.mkdirs();
+    new File(reportDir, "restricted.txt").createNewFile();
+
+    final String resourcePrefix = getServiceURL(applicationPublicId, scanId);
+
+    Response response = AuthedRestAccess.get(resourcePrefix + "/browseReport/../restricted.txt");
+    assertResponseStatus(404, response);
+
+    response = AuthedRestAccess.get(resourcePrefix + "/browseReport/%2E%2E/restricted.txt");
+    assertResponseStatus(404, response);
+  }
+
+  @Test
   public void testEmbedReport() throws Exception {
     String scanId = "abcdefg12345";
     String appPublicId = "bom1-12345678";

@@ -61,6 +61,10 @@ public final class Report
   }
 
   public static ReportEntry getEntry(final File reportFile, final String name) throws IOException {
+    if (name.contains("../")) {
+      // legit callers use normalized paths, no directory traversal into restricted areas
+      return null;
+    }
     final File cacheFile = getCacheFile(reportFile, name);
     if (cacheFile.canRead()) {
       return new ReportEntry(name, cacheFile.lastModified(), fetch(cacheFile));

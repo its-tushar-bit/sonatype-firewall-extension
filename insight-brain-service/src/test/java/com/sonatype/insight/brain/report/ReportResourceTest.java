@@ -449,6 +449,9 @@ public class ReportResourceTest
 
     response = AuthedRestAccess.get(resourcePrefix + "/browseReport/%2E%2E/restricted.txt");
     assertResponseStatus(404, response);
+
+    response = AuthedRestAccess.get(resourcePrefix + "/browseReport/%2E%2E%5Crestricted.txt");
+    assertResponseStatus(404, response);
   }
 
   @Test

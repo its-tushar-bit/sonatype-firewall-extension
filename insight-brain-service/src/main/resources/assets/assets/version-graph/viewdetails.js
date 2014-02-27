@@ -1,0 +1,221 @@
+/**
+ * @license Copyright (c) 2013 Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+/*global angular, $, clmBuildTimestamp, window, document, Brain */
+(function() {
+  'use strict';
+  var query,
+      module;
+
+  function toLicenseNames(licenses) {
+    var names = [];
+    angular.forEach(licenses, function(license) {
+      names.push(license.licenseName);
+    });
+    return names;
+  }
+
+  function decode(encodedString) {
+    return decodeURIComponent((encodedString || '').replace(/\+/g, '%20'));
+  }
+
+  function compareStringProperty(a, b, field) {
+    var aUpper = a[field].toUpperCase(),
+        bUpper = b[field].toUpperCase();
+    return aUpper < bUpper ? -1 : (aUpper > bUpper ? 1 : 0);
+  }
+
+  query = (function() {
+    var search = window.location.search,
+        result = {};
+    if (search.length === 0) {
+      return result;
+    }
+    search = search.substring(1).split('&');
+    angular.forEach(search, function(item, index) {
+      var field = item.split('=');
+      result[decode(field[0])] = decode(field[1]);
+    });
+    return result;
+  }());
+
+  (function() {
+    var style = '<style type="text/css">body { font-family: ',
+        head = document.head || document.getElementsByTagName("head")[0];
+
+    if (query.fontName) {
+      style += query.fontName + ',';
+    }
+    style += 'Arial, Helvetica, sans-serif;}';
+    style += '.table th, .table td {';
+    if (query.fontSize) {
+      style += 'font-size:' + query.fontSize + 'pt;';
+    }
+    style += "line-height: normal;}";
+
+    style += "td.scoreCol {	font-weight: bold;color: #656565;padding: 8px 5px 2px 15px !important;";
+    if (query.fontSize) {
+      style += 'font-size:' + (3 + Number(query.fontSize)) + 'pt;}';
+      style += " h5 { font-size: " + (1 + Number(query.fontSize)) + "pt;";
+    }
+    style += "}</style>";
+    angular.element(head).append(style);
+  }());
+
+  function transformPolicyAlerts(alerts) {
+    var retval = [];
+    angular.forEach(alerts, function(alert, alertIndex) {
+      var threat;
+      if (alert.trigger.threatLevel > 7) {
+        threat = 4;
+      }
+      else if (alert.trigger.threatLevel > 3) {
+        threat = 3;
+      }
+      else if (alert.trigger.threatLevel > 1) {
+        threat = 2;
+      }
+      else if (alert.trigger.threatLevel === 1) {
+        threat = 1;
+      }
+      else {
+        threat = 0;
+      }
+      angular.forEach(alert.trigger.componentFacts, function(componentFact) {
+        angular.forEach(componentFact.constraintFacts, function(constraintFact) {
+          angular.forEach(constraintFact.conditionFacts, function(conditionFact) {
+            retval.push({
+              policyName: alert.trigger.policyName,
+              threat: threat,
+              constraintName: constraintFact.constraintName,
+              reason: conditionFact.reason
+            });
+          });
+        });
+      });
+    });
+    retval.sort(function(a, b) {
+      var retVal;
+      if (a.threat !== b.threat) {
+        return b.threat - a.threat;
+      }
+      retVal = compareStringProperty(a, b, 'policyName');
+      if (retVal !== 0) {
+        return retVal;
+      }
+      return compareStringProperty(a, b, 'constraintName');
+    });
+    return retval;
+  }
+
+  module = angular.module('viewdetails', []);
+  module.constant('query', query);
+  module.controller('view', [
+    '$http', '$scope', 'query', '$window', function($http, $scope, query, $window) {
+      function setClmHeaders(headers) {
+        angular.extend($http.defaults.headers.common, headers);
+        $scope.reload();
+      }
+      angular.extend($window, {
+        'setClmHeaders' : setClmHeaders
+      });
+
+      // TODO Determine where the GAV is coming from, should it be a query string or should Eclipse call a JS function?
+      $scope.data = null;
+
+      function getErrorMessage(data, status, headersFn) {
+        var message = '',
+            headers = headersFn ? headersFn() : {};
+        if (status === 0 || status >= 1000) {
+          message = 'Network error while contacting server';
+        }
+        else if (data && headers['content-type'] && headers['content-type'].indexOf('text/plain') >= 0) {
+          message = data;
+        }
+        else if (status === 502) {
+          message = 'Bad Gateway';
+        }
+        else if (status === 503) {
+          message = 'Service Unavailable';
+        }
+        else if (status === 504) {
+          message = 'Gateway Timeout';
+        }
+        else {
+          message = 'Error ' + status;
+        }
+        return message;
+      }
+      $scope.reload = function() {
+        $scope.error = null;
+        $scope.errorMessage = null;
+        $http.get(Brain.ide.getArtifactInfoUrl(query),
+            { params: query, headers: { "Accept": "application/json" } }).success(function(data) {
+          $scope.data = data;
+          $scope.data.observedLicenses = toLicenseNames($scope.data.observedLicenses);
+          $scope.data.declaredLicenses = toLicenseNames($scope.data.declaredLicenses);
+          $scope.data.overriddenLicenses = toLicenseNames($scope.data.overriddenLicenses);
+
+          $scope.data.policyAlerts = transformPolicyAlerts($scope.data.policyAlerts);
+          angular.forEach($scope.data.securityVulnerabilities, function(item, index) {
+            if (item.severity !== null) {
+              item.severity = Math.floor(item.severity);
+            }
+          });
+          $scope.data.securityVulnerabilities.sort(function(a, b) {
+            if (b.severity == null) {
+              return a.severity == null ? 0 : -1;
+            }
+            else if (a.severity == null) {
+              return 1;
+            }
+            return b.severity - a.severity;
+          });
+        }).error(function(data, status, headersFn, config) {
+          $scope.error = status;
+          $scope.errorMessage = getErrorMessage(data, status, headersFn);
+        });
+      };
+      if (query.deferLoad !== 'true') {
+        $scope.reload();
+      }
+
+      $scope.isSvGrouped = function(index) {
+        if (index === 0) {
+          return false;
+        }
+        return $scope.data.securityVulnerabilities[index - 1].severity ===
+            $scope.data.securityVulnerabilities[index].severity;
+      };
+      $scope.getSvUrl = function(item) {
+        if (item.source === 'osvdb') {
+          return "http://osvdb.org/" + item.refId;
+        }
+        else if (item.source === 'cve') {
+          return "http://cve.mitre.org/cgi-bin/cvename.cgi?name=" + item.refId;
+        }
+      };
+      $scope.getSvName = function(issue) {
+        var retVal = issue.refId.toUpperCase();
+        if (retVal.indexOf(issue.source.toUpperCase()) !== 0) {
+          retVal = issue.source.toUpperCase() + '-' + retVal;
+        }
+        return retVal;
+      };
+      $scope.isPolicyGrouped = function(index) {
+        if (index === 0) {
+          return false;
+        }
+        return $scope.data.policyAlerts[index - 1].policyName === $scope.data.policyAlerts[index].policyName;
+      };
+      $scope.isConstraintGrouped = function(index) {
+        if (index === 0) {
+          return false;
+        }
+        return $scope.data.policyAlerts[index - 1].constraintName === $scope.data.policyAlerts[index].constraintName;
+      };
+    }
+  ]);
+}());

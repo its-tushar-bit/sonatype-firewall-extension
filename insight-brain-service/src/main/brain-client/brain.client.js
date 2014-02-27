@@ -54,6 +54,13 @@ var clmBuildTimestamp = '${build.timestamp}';
       return false;
     },
     /**
+     * Get the list of applications
+     * @since version 1.10
+     */
+    'getApplicationListUrl' : function () {
+      return basePath + 'rest/application/services/names';
+    },
+    /**
      * Get the Brain's version.
      * @since version 1.1
      */
@@ -119,6 +126,24 @@ var clmBuildTimestamp = '${build.timestamp}';
        */
       'getComponentDetailsListUrl': function(arg) {
         return basePath + 'rest/ide/component/details/list/' + encodeURIComponent(arg.appId) + '?' +
+            param({ groupId: arg.groupId, artifactId: arg.artifactId, version: arg.version, instanceId: arg.instanceId });
+      }
+    },
+    'rm' : {
+      /**
+       * Get the URL for a specific GAV. (Used to generate the table in the CIP)
+       * @since version 1.10
+       */
+      'getArtifactInfoUrl': function(arg) {
+        return basePath + 'rest/rm/component/details/' + encodeURIComponent(arg.appId) + '?' +
+            param({ groupId: arg.groupId, artifactId: arg.artifactId, version: arg.version, hash: arg.hash, instanceId: arg.instanceId, ts: new Date().getTime() });
+      },
+      /**
+       * Get the URL for all versions from a specific GAV. (Used to generate the versions graph in the CIP)
+       * @since version 1.10
+       */
+      'getComponentDetailsListUrl': function(arg) {
+        return basePath + 'rest/rm/component/details/list/' + encodeURIComponent(arg.appId) + '?' +
             param({ groupId: arg.groupId, artifactId: arg.artifactId, version: arg.version, instanceId: arg.instanceId });
       }
     }

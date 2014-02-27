@@ -26,6 +26,7 @@
     <saga.version>1.5.2</saga.version>
     <jasmine.brain.id>test-brain-assets</jasmine.brain.id>
     <jasmine.cip.id>test-cip-assets</jasmine.cip.id>
+    <jasmine.version.graph.id>test-version-graph-assets</jasmine.version.graph.id>
     <phantomjs-maven-plugin.version>0.2.1</phantomjs-maven-plugin.version>
     <phantomjs.version>1.9.7</phantomjs.version>
   </properties>
@@ -544,14 +545,18 @@
               <sourceIncludes>
                 <include>resources/assets/assets/lib/jquery/jquery-*.min.js</include>
                 <include>resources/assets/assets/lib/bootstrap/bootstrap-*.min.js</include>
-                <include>resources/assets/assets/lib/angular/angular-${angularjs.version}.min.js</include>    
-                <include>resources/assets/assets/lib/angular/angular-route-${angularjs.version}.min.js'</include>
-                <include>resources/assets/assets/lib/angular/angular-sanitize-${angularjs.version}.min.js'</include>
+                <include>resources/assets/assets/lib/angular/angular-${angularjs.version}.min.js</include>
+                <include>resources/assets/assets/lib/angular/angular-route-${angularjs.version}.min.js</include>
+                <include>resources/assets/assets/lib/angular/angular-sanitize-${angularjs.version}.min.js</include>
                 <include>resources/assets/assets/lib/ui-bootstrap-tpls-0.3.0.min.js</include>
                 <include>resources/assets/assets/lib/X-editable/bootstrap-editable.min.js</include>
                 <include>resources/assets/assets/**/*.js</include>
                 <include>wro4j/**/*.js</include>
               </sourceIncludes>
+              <sourceExcludes>
+                <exclude>resources/assets/assets/version-graph/protovis-msie.min.js</exclude>
+                <exclude>wro4j/version-graph/*.js</exclude>
+              </sourceExcludes>
               <specIncludes>
                 <include>resources/assets/SpecUtil.js</include>
                 <include>resources/assets/**/lib/*.js</include>
@@ -562,8 +567,32 @@
               <specExcludes>
                 <exclude>resources/assets/**/cip*.js</exclude>
                 <exclude>resources/assets/**/CIP*.js</exclude>
+                <exclude>resources/assets/version-graph/**/*.js</exclude>
               </specExcludes>
               <junitXmlReportFileName>TEST-server.xml</junitXmlReportFileName>
+            </configuration>
+          </execution>
+          <execution>
+            <id>${jasmine.version.graph.id}</id>
+            <phase>test</phase>
+            <goals>
+              <goal>test</goal>
+            </goals>
+            <configuration>
+              <sourceIncludes>
+                <include>resources/assets/assets/lib/jquery/jquery-*.min.js</include>
+                <include>resources/assets/assets/lib/angular/angular-${angularjs.version}.min.js</include>
+                <include>resources/assets/assets/lib/angular/angular-route-${angularjs.version}.min.js</include>
+                <include>brain-client/*.js</include>
+                <include>wro4j/version-graph/protovis.min.js</include>
+                <include>wro4j/version-graph/appcheck.js</include>
+                <include>wro4j/version-graph/cip.js</include>
+                <include>resources/assets/assets/version-graph/viewdetails.js</include>
+              </sourceIncludes>
+              <specIncludes>
+                <include>resources/assets/**/lib/*.js</include>
+                <include>resources/assets/version-graph/**/*.js</include>
+              </specIncludes>
             </configuration>
           </execution>
         </executions>
@@ -703,6 +732,17 @@
               <cssDestinationFolder>${project.build.directory}/generated/assets/cip/</cssDestinationFolder>
             </configuration>
           </execution>
+          <execution>
+            <id>version-graph</id>
+            <phase>generate-resources</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <targetGroups>version-graph,viewdetails</targetGroups>
+              <destinationFolder>${project.build.directory}/generated/assets/assets/version-graph/</destinationFolder>
+            </configuration>
+          </execution>
         </executions>
         <configuration>
           <wroFile>${basedir}/wro.xml</wroFile>
@@ -813,6 +853,12 @@
       <id>test-brain</id>
       <properties>
         <jasmine.brain.id>default-cli</jasmine.brain.id>
+      </properties>
+    </profile>
+    <profile>
+      <id>test-version-graph</id>
+      <properties>
+        <jasmine.version.graph.id>default-cli</jasmine.version.graph.id>
       </properties>
     </profile>
     <profile>

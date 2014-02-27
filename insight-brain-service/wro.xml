@@ -87,4 +87,17 @@
     <css>/cip/cip-policy-violations.css</css>
     <css>/cip/cip-license-editor.css</css>
   </group>
+
+  <group name='version-graph'>
+    <css>/lib/bootstrap/bootstrap-2.3.1.min.css</css>
+    <css>/version-graph/content.css</css>
+    <js>/version-graph/protovis.min.js</js>
+    <js>/version-graph/appcheck.js</js>
+    <js>/version-graph/cip.js</js>
+  </group>
+
+  <group name='viewdetails'>
+    <css>/lib/bootstrap/bootstrap-2.3.1.min.css</css>
+    <css>/version-graph/viewdetails.css</css>
+  </group>
 </groups>

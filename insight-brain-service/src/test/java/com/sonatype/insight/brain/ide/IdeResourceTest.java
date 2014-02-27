@@ -9,6 +9,8 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
+import javax.ws.rs.core.Response.Status;
+
 import com.sonatype.clm.dto.model.SecurityVulnerability;
 import com.sonatype.clm.dto.model.ide.IdeMatchedComponent;
 import com.sonatype.clm.dto.model.ide.MatchedComponent;
@@ -648,10 +650,10 @@ public class IdeResourceTest
 
   @Test
   public void testGetAsset() throws Exception {
-    setSaasResponseForURI("ide/sub/dir/some%20space.html?x=y&a=b", "OK", 200);
-    Response response = RestAccess.get(getServiceURL() + "/asset/sub/dir/some%20space.html?x=y&a=b");
-    assertResponseStatus(200, response);
-    Assert.assertEquals("OK", response.getResponseBody());
+    Response response = RestAccess.get(getServiceURL() + "/asset/eclipse/index.html");
+    assertResponseStatus(Status.TEMPORARY_REDIRECT.getStatusCode(), response);
+    Assert.assertEquals(getRestBaseUrl() + "assets/version-graph/ide/eclipse/index.html",
+        response.getHeader("Location"));
   }
 
   @Test

@@ -1,0 +1,28 @@
+<!doctype html>
+<html ng-app='CIP'>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+		<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+		<title>Component Information Panel</title>
+		<!-- Insight 3566b5df-329e-49a0-9b9c-57f047aade27  -->
+		<link type="text/css" rel='stylesheet' href='../../version-graph.css?${build.timestamp}'>
+		<script src='../../../../policy-assets/js/brain.client.js?${build.timestamp}'></script>
+		<script src="../../../lib/jquery/jquery-1.8.3.min.js"></script>
+		<script src="../../../lib/angular/angular-${angularjs.version}.min.js"></script>
+		<script src="../../../lib/angular/angular-route-${angularjs.version}.min.js"></script>
+		<script src="../../version-graph.js?${build.timestamp}"></script>
+		<script>
+			var clmEndpoint = {
+				type : 'ide',
+				migrate : true,
+				selectApplication : false,
+				openView : function (args) {
+					Eclipse_openView(args);
+				}
+			};
+		</script>
+		<!--[if lt IE 9]><script src="../../protovis-msie.min.js?${build.timestamp}"></script><![endif]-->
+	</head>
+	<body ng-view>
+	</body>
+</html>

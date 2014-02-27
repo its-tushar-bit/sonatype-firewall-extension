@@ -1,0 +1,147 @@
+<div>
+	<div class='alert alert-error cipContentBox' ng-if='errorMessage'>
+		<h5>Error</h5>
+		<p>Unfortunately an error occurred while contacting the CLM server, if the problem persists please contact <a href='http://links.sonatype.com/products/clm/eclipse/support' target='_blank'>Sonatype Support</a>.</p>
+		<p>{{errorMessage}}</p>
+		<p><button class='btn btn-danger' ng-click='retryFn()'><i class='icon-white icon-refresh'></i> Retry</button></p>
+	</div>
+	<div ng-hide='errorMessage'>
+		<div ng-if='selectApplication'
+				ng-controller='ApplicationController' style='background:#f5f5f5;border-bottom:1px solid #e5e5e5;padding:10px'>
+			<form ng-show='applications' class='form-horizontal'>
+				<div class='control-group'>
+					<label for='selectApp' class='control-label'>Application: </label>
+					<div class='controls'>
+						<select id='selectApp' class='input-xlarge' ng-model='selectedApplication'
+								ng-options='key as value for (key,value) in applications'></select>
+					</div>
+				</div>
+			</form>
+			<span ng-hide='applications'><h5><i class='icon-time'></i> Loading...</h5></span>
+		</div>
+		<div ng-if='canLoad()'>
+			<div ng-controller='StatusController' ng-show='!gav'>
+				<div ng-if='!state' style='padding-top:20px'>
+					<div class='alert alert-info fade in' style='margin:auto;width:50%;text-align:middle;vertical-align:middle'>
+						<p>Select a component to view details.</p>
+					</div>
+				</div>
+				<!-- filtered -->
+				<div class='alert alert-info cipContentBox' ng-if="state == 'filtered'">
+					<p>All components are filtered out of the view. Adjust your <a href='#' ng-click='openView($event, "filter")'>filter settings</a> to view components.</p>
+				</div>
+				<!-- Pend -->
+				<div class='alert alert-info cipContentBox' ng-if="state == 'pending'">
+					<p>The data for the component {{stateArgs.filename}} is still pending.</p>
+				</div>
+				<!-- failure -->
+				<div class='alert alert-error cipContentBox' ng-if="state == 'failure'">
+					<h5>Error</h5>
+					<p>The component {{filename}} could not be evaluated:</p>
+					<p>{{errorMessage}}</p>
+				</div>
+				<!-- Cred -->
+				<div class='alert alert-error cipContentBox' ng-if="state == 'invalid-credentials'">
+					<h5>Authentication failure</h5>
+					<p>Please verify you supplied the proper credentials in the <a href='#' ng-click='openView($event, "config")'>plugin configuration</a>.</p>
+				</div>
+				<!-- AppID -->
+				<div class='alert alert-error cipContentBox' ng-if="state == 'invalid-appid'">
+					<h5>Invalid application ID</h5>
+					<p>The application ID <strong>{{appId}}</strong> is invalid or you do not have permission to use it. Please verify the <a href='#' ng-click='openView($event, "config")'>plugin configuration</a>.</p>
+				</div>
+				<!-- Unassigned -->
+				<div class='alert cipContentBox' ng-if="state == 'unassigned'">
+					<p>No open projects are assigned application IDs, please verify the <a href='#' ng-click='openView($event, "config")'>Sonatype CLM for Eclipse configuration</a>.</p>
+				</div>
+			</div>
+			<div style='padding-top:20px' ng-if='isUnknown()'>
+				<div class='alert fade in' style='margin:auto;width:50%;text-align:middle;vertical-align:middle'>
+					<p style='float: left; font-size: 50px; font-weight: bold; line-height: normal'>?</p>
+					<div style='padding-left: 40px'>
+						<p>The component is unknown.</p>
+						<p ng-if='gav.artifactId'>
+							{{gav.groupId}} : {{gav.artifactId}} : {{gav.version}}
+						</p>
+						<p ng-if='!gav.artifactId'>{{gav.filename}}</p>
+					</div>
+				</div>
+			</div>
+			<div ng-show='!isUnknown()'>
+				<div class='cip-box' ng-controller='DetailsController'>
+					<div ng-show='loaded' id='detailsparent'>
+						<table id='infoPanelArtifactTable' style='border-collapse: collapse'>
+							<tr id='artifactInfoDeclaredLicenseRow' ng-if="isManual()">
+								<td>License:</td>
+								<td>Unavailable, Claimed Component</td>
+							</tr>
+							<tr id='artifactInfoDeclaredLicenseRow' ng-if="!isManual()">
+								<td>Overridden License:</td>
+								<td licenses='componentDetails.overriddenLicenses' empty-text='-'></td>
+							</tr>
+							<tr id='artifactInfoDeclaredLicenseRow' ng-if="!isManual()">
+								<td>Declared License:</td>
+								<td licenses='componentDetails.declaredLicenses'></td>
+							</tr>
+							<tr id='artifactInfoObservedLicenseRow' ng-if="!isManual()">
+								<td>Observed License:</td>
+								<td licenses='componentDetails.observedLicenses'></td>
+							</tr>
+							<tr id='artifactInfoGroupIdRow'>
+								<td>Group:</td>
+								<td>{{componentDetails.groupId}}</td>
+							</tr>
+							<tr id='artifactInfoArtifactIdRow'>
+								<td>Artifact:</td>
+								<td>{{componentDetails.artifactId}}</td>
+							</tr>
+							<tr id='artifactInfoVersionRow'>
+								<td>Version:</td>
+								<td>{{componentDetails.version}}</td>
+							</tr>
+							<tr id='artifactInfoSecurityThreatRow'>
+								<td>Highest Security Threat:</td>
+								<td ng-if="isManual()">
+									Unavailable, Claimed Component
+								</td>
+								<td ng-if="!isManual()">
+									<div class="artifactInfoSecurity {{getColorClass()}}">{{getMaximumSeverity()}}</div>
+									<span ng-if='componentDetails.securityVulnerabilities.length > 1'> within {{componentDetails.securityVulnerabilities.length}} security issues</span>
+								</td>
+							</tr>
+							<tr>
+								<td>Patch Available:</td>
+								<td>None</td>
+							</tr>
+							<tr id='artifactInfoCatalogDateRow'>
+								<td>Cataloged:</td>
+								<td ng-if='componentDetails.catalogDate'>{{componentDetails.catalogDate | ago}} ago</td>
+								<td ng-if='!componentDetails.catalogDate'>-</td>
+							</tr>
+							<tr id='artifactInfoSimilarityScoreRow' ng-if='componentDetails.currentMatchState'>
+								<td>Match State:</td>
+								<td>{{componentDetails.currentMatchState}}</td>
+							</tr>
+							<tr id='artifactInfoIdentificatonSource'>
+								<td>Identification Source:</td>
+								<td>{{componentDetails.identificationSource}}</td>
+							</tr>
+							<tr id='artifactInfoClaimComment' ng-if='componentDetails.identificationSourceComment'>
+								<td>Identification Comment:</td>
+								<td>{{componentDetails.identificationSourceComment}}</td>
+							</tr>
+							<tr>
+								<td><button class='btn' ng-click='viewDetails()'>View Details</button></td>
+								<td><button class='btn' ng-disabled='selectedGav' ng-click='markUpgrade()' ng-if='canMigrate'>Migrate</button></td>
+							</tr>
+						</table>
+					</div>
+				</div>
+				<div class='cip-box' id='aiVersionChart' graph='componentDetailsList' class='margin-left:10px'></div>
+				<div ng-if='gav && !componentDetailsList'>
+					<h5><i class='icon-time'></i> Loading...</h5>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>

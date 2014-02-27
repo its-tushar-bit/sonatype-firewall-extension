@@ -1,0 +1,107 @@
+#infoPanelArtifactTable tr td:first-child {
+    font-size:11px;
+    color:#333333;
+    text-align: right;
+    vertical-align: top;
+    width: 120px;
+}
+
+#infoPanelArtifactTable tr td:last-child {
+    font-family:Arial;
+    font-size:12px;
+    font-weight:bold;
+    font-style:normal;
+    text-decoration:none;
+    color:#333333;
+    padding-left: 5px;
+    width: 200px;
+    word-wrap: break-word;
+}
+#infoPanelArtifactTable .license {
+	display: inline-block;
+}
+
+.artifactInfoSecurity {
+	display:inline-block;
+    height: 18px;
+    padding: 0px 5px;
+    text-align: center;
+    border-radius: 2px;
+}
+
+.artifactInfoSecurityCritical {
+    background-color:#ee1b24;
+    border: 1px solid #b71218;
+    color:white;
+}
+
+.artifactInfoSecuritySevere {
+    background-color:#f7941d;
+    border: 1px solid #c67a22;
+    color:black;
+}
+
+.artifactInfoSecurityModerate {
+    background-color:#fedf15;
+    border: 1px solid #ddbe18;
+    color:black;
+}
+
+.artifactInfoSecurityUnspecified {
+    background-color:#d9dade;
+    border: 1px solid #84858a;
+    color:#444549;
+}
+#aiVersionChartContainer {
+	background:rgb(247,251,254);
+	border-radius:4px;
+	border:1px solid #D8DBE0;
+	font-size:0;
+	height:298px;
+	padding:2px;
+	margin-top:4px;
+}
+#aiVersionChartLabels, #aiVersionChartViz {
+	display:inline-block;
+	vertical-align:top;
+}
+
+.cipContentBox {
+	margin:auto;
+	margin-top:20px;
+	width:50%
+}
+
+#detailsparent {
+	background-image:url("artifactInfoIcon.png");
+	background-repeat:no-repeat;
+	width:328px;
+	min-height:50px;
+	padding-left:20px;
+}
+
+.cip-box {
+	display:inline-block;
+	vertical-align:top;
+}
+
+#custom {
+	border: 1px #C9C9C9 solid;
+	border-radius: 4px;
+	padding: 4px;
+	margin-top:5px;
+	height:40px;
+	color:#C9C9C9;
+	background:#EFEFEF;
+	width:481px;
+}
+
+form.form-horizontal .controls {
+	margin-left : 100px;
+}
+form.form-horizontal .control-label {
+	width : 80px
+}
+form, form .control-group {
+	margin: 0px !important
+}

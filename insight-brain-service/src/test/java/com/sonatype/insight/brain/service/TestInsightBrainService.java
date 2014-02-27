@@ -114,6 +114,26 @@ public class TestInsightBrainService
     return BeanScanning.CACHE;
   }
 
+  @Override
+  protected boolean acceptComponent(Class<?> type) {
+    if (!super.acceptComponent(type)) {
+      return false;
+    }
+    // the test classpath can be messy when used in Hudson/Nexus/etc., so let's be a little defensive
+    String name = type.getName();
+    if (name.startsWith("com.sonatype.insight.") || name.startsWith("com.sonatype.clm.")) {
+      return true;
+    }
+    if (name.startsWith("org.sonatype.licensing.") || name.startsWith("codeguard.licensing.")) {
+      return true;
+    }
+    if (name.startsWith("org.sonatype.micromailer.")) {
+      return true;
+    }
+    log.debug("Excluding {} from test CLM server", name);
+    return false;
+  }
+
   public void start() throws Exception {
     if (testBrainServer != null) {
       throw new IllegalStateException("Brain server already started");

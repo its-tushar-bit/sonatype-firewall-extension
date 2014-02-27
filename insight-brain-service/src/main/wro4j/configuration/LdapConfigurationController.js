@@ -353,7 +353,7 @@
           backdrop: 'static',
           scope: $scope,
           templateUrl: '../configuration-assets/components/ldap-checklogin.html?' + clmBuildTimestamp,
-          controller: 'LdapCheckLoginController',
+          controller: 'LdapCheckLoginController'
         }).result.then(function() {
           $scope.testInProgress = false;
         }, function() {

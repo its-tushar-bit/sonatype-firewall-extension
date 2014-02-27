@@ -23,8 +23,8 @@
         save: function(policyMonitoring) {
           return $http.put(CLMAppLocations.getPolicyMonitoringUrl(), policyMonitoring);
         },
-        delete: function(){
-          return $http.delete(CLMAppLocations.getPolicyMonitoringUrl());
+        remove: function(){
+          return $http['delete'](CLMAppLocations.getPolicyMonitoringUrl());
         }
       };
     }
@@ -152,7 +152,7 @@
 
       $scope.savePolicyMonitoring = function() {
         if ($scope.policyMonitoring.stageTypeId === null) {
-          PolicyMonitoringStore.delete().then(clearPolicyMonitoringAlerts, function(error) {
+          PolicyMonitoringStore.remove().then(clearPolicyMonitoringAlerts, function(error) {
             $scope.policyMonitoringAlerts.push({
               type: 'error',
               msg: 'An error occurred while turning off policy monitoring. (' +

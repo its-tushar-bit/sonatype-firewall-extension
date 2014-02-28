@@ -56,6 +56,10 @@
       <artifactId>insight-scanner-model</artifactId>
     </dependency>
     <dependency>
+      <groupId>com.sonatype.insight.scan</groupId>
+      <artifactId>insight-scanner-model-io</artifactId>
+    </dependency>
+    <dependency>
       <groupId>com.sonatype.clm</groupId>
       <artifactId>com.sonatype.clm.dto.model</artifactId>
     </dependency>
@@ -130,6 +134,10 @@
                   <exclude>*:slf4j-api</exclude>
                   <exclude>*:httpcore</exclude>
                   <exclude>*:httpclient</exclude>
+                  <!-- for smooth interop with RHC, let these through as is -->
+                  <exclude>*:insight-scanner-core</exclude>
+                  <exclude>*:insight-scanner-model</exclude>
+                  <exclude>*:insight-scanner-model-io</exclude>
                 </excludes>
               </artifactSet>
               <filters>

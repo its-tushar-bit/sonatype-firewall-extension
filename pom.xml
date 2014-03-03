@@ -31,7 +31,7 @@
     <logback.version>1.0.13</logback.version>
     <jackson.version>2.1.2</jackson.version>
     <openjpa.version>2.3.0</openjpa.version>
-    <shiro.version>1.2.2</shiro.version>
+    <shiro.version>1.2.3</shiro.version>
     <sisu-inject.version>0.1.1</sisu-inject.version>
     <sisu-guice.version>3.1.6</sisu-guice.version>
     <clm.model.version>1.4.3</clm.model.version>

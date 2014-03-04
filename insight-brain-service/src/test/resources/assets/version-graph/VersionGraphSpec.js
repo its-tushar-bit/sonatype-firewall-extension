@@ -242,7 +242,7 @@ var clmEndpoint = clmEndpointTemplate = {
         scope.$destroy();
       });
 
-      it('Http Requests', inject(function ($httpBackend) {
+      it('Http Requests', inject(function ($httpBackend, GAV) {
         var gav = {
           groupId : 'foo',
           artifactId : 'bar',
@@ -264,6 +264,30 @@ var clmEndpoint = clmEndpointTemplate = {
         $httpBackend.expectGET(Brain[clmEndpoint.type].getArtifactInfoUrl(angular.extend({ appId : 'myFirstApp' }, gav))).respond({ securityVulnerabilities : [] });
         Insight.setGav(gav);
         $httpBackend.flush();
+        expect(Brain[clmEndpoint.type].getArtifactInfoUrl).toHaveBeenCalledWith({
+          groupId : 'foo',
+          artifactId : 'bar',
+          version : '1',
+          appId : 'myFirstApp'
+        });
+
+        // Another version selected
+        $httpBackend.expectGET(Brain[clmEndpoint.type].getArtifactInfoUrl(angular.extend({}, gav, {
+          appId: 'myFirstApp',
+          version: '2'
+        }))).respond({
+          securityVulnerabilities: []
+        });
+        GAV.setSelected(angular.extend({}, gav, { version : '2' }));
+        scope.$apply(function () {
+        });
+        $httpBackend.flush();
+        expect(Brain[clmEndpoint.type].getArtifactInfoUrl).toHaveBeenCalledWith({
+          groupId : 'foo',
+          artifactId : 'bar',
+          version : '2',
+          appId : 'myFirstApp'
+        });
       }));
 
       it('isManual', inject(function ($httpBackend) {

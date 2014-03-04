@@ -24,7 +24,7 @@
               status = error[1],
               headers = error[2],
               message = '';
-    
+
           if (status === 0 || status >= 1000) {
             message = 'Network error while contacting server';
           }
@@ -232,26 +232,23 @@
 
   module.controller('CIPController', ['$scope', '$http', 'SelectedApp', 'GAV', function ($scope, $http, SelectedApp, GAV) {
     function gavChanged() {
-      var gav = GAV.get(),
-          appId = SelectedApp.get();
+      var gav = GAV.get() ? angular.extend({ appId : SelectedApp.get() }, GAV.get()) : null;
 
-      $scope.componentDetailsList = null;
-      $scope.loaded = false; 
-      $scope.gav = gav;
+      if (!angular.equals($scope.gav, gav)) {
+        $scope.componentDetailsList = null;
+        $scope.loaded = false;
+        $scope.gav = gav;
 
-      if (gav && !$scope.isUnknown() && appId && !angular.equals(last.gav, gav) && !angular.equals(last.appId, appId)) {
-        last.gav = gav;
-        last.appId = gav.appId = appId;
-
-        $http.get(Brain[clmEndpoint.type].getComponentDetailsListUrl(gav)).success(function (data) {
-          $scope.componentDetailsList = data.list ? data.list : data;
-          $scope.loaded = true;
-        }).error(function () {
-          $scope.setError(arguments);
-        });
+        if (gav && gav.appId && !$scope.isUnknown() ) {
+          $http.get(Brain[clmEndpoint.type].getComponentDetailsListUrl(gav)).success(function (data) {
+            $scope.componentDetailsList = data.list ? data.list : data;
+            $scope.loaded = true;
+          }).error(function () {
+            $scope.setError(arguments);
+          });
+        }
       }
     }
-    var last = {};
 
     $scope.isUnknown = function () {
       var gav = GAV.get(),
@@ -263,10 +260,7 @@
       return !$scope.selectApplication || SelectedApp.get();
     };
 
-    $scope.$on('reload', function () {
-      last = {};
-      gavChanged();
-    });
+    $scope.$on('reload', gavChanged);
 
     $scope.$watch(function () {
       return GAV.get();
@@ -328,40 +322,39 @@
 
   module.controller('DetailsController', ['$scope', '$http', 'SelectedApp', 'GAV', function ($scope, $http, SelectedApp, GAV) {
     function gavChanged() {
-      var gav = GAV.getSelected(),
-          appId = SelectedApp.get();
+      var gav = GAV.getSelected() ? angular.extend({ appId : SelectedApp.get() }, GAV.getSelected()) : null;
 
-      $scope.componentDetails = null;
+      if (!angular.equals(last, gav)) {
+        $scope.componentDetails = null;
+        last = gav;
 
-      if (gav && appId && !angular.equals(last.gav, gav) && !angular.equals(last.appId, appId)) {
-        last.appId = appId;
-        last.appId = gav.appId = appId;
+        if (gav && gav.appId) {
+          $http.get(Brain[clmEndpoint.type].getArtifactInfoUrl(gav)).success(function (data) {
+            $scope.componentDetails = data;
 
-        $http.get(Brain[clmEndpoint.type].getArtifactInfoUrl(gav)).success(function (data) {
-          $scope.componentDetails = data;
-
-          var i = 0;
-          while (i < $scope.componentDetails.securityVulnerabilities.length) {
-            if ($scope.componentDetails.securityVulnerabilities[i].status === 'Not Applicable') {
-              $scope.componentDetails.securityVulnerabilities.splice(i, 1);
-            } else {
-              i++;
+            var i = 0;
+            while (i < $scope.componentDetails.securityVulnerabilities.length) {
+              if ($scope.componentDetails.securityVulnerabilities[i].status === 'Not Applicable') {
+                $scope.componentDetails.securityVulnerabilities.splice(i, 1);
+              } else {
+                i++;
+              }
             }
-          }
 
-          $scope.componentDetails.securityVulnerabilities.sort(function (a, b) {
-            if (a.severity === b.severity) {
-              return 0;
-            } else if (a.severity === null) {
-              return 1;
-            } else if (b.severity === null) {
-              return -1;
-            }
-            return b.severity - a.severity;
+            $scope.componentDetails.securityVulnerabilities.sort(function (a, b) {
+              if (a.severity === b.severity) {
+                return 0;
+              } else if (a.severity === null) {
+                return 1;
+              } else if (b.severity === null) {
+                return -1;
+              }
+              return b.severity - a.severity;
+            });
+          }).error(function () {
+            $scope.setError(arguments);
           });
-        }).error(function () {
-          $scope.setError(arguments);
-        });
+        }
       }
     }
     var last = {};

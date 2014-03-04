@@ -7,7 +7,10 @@ package com.sonatype.insight.rm.rest;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URISyntaxException;
+import java.util.Collections;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import com.sonatype.clm.dto.model.ProprietaryConfig;
 import com.sonatype.clm.dto.model.ScanReceipt;
@@ -15,12 +18,15 @@ import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.client.ConfigurationClient;
 import com.sonatype.insight.brain.client.PolicyClient;
+import com.sonatype.insight.brain.client.ResourceClient;
 import com.sonatype.insight.brain.client.ScanClient;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
+import com.sonatype.insight.client.utils.Result;
 import com.sonatype.insight.rm.rest.RestClient.App;
 import com.sonatype.insight.rm.rest.RestClient.Scan;
 
 import org.apache.http.client.HttpResponseException;
+import org.apache.http.client.utils.URIBuilder;
 
 public class RestClientFactory
 {
@@ -93,6 +99,29 @@ public class RestClientFactory
       return e;
     }
 
+    @Override
+    public Resource getResource(String path) throws IOException, URISyntaxException {
+      return getResource(path, Collections.<String, String[]> emptyMap());
+    }
+
+    @Override
+    public Resource getResource(String path, Map<String, String[]> params) throws IOException, URISyntaxException {
+      URIBuilder builder = new URIBuilder();
+      builder.setPath(path);
+
+      for (Entry<String, String[]> param : params.entrySet()) {
+        for (String value : param.getValue()) {
+          builder.addParameter(param.getKey(), value);
+        }
+      }
+      path = builder.build().toString();
+
+      Result result = new ResourceClient(config).getResource(path);
+      if (result.status() != 200) {
+        throw new IOException(result.text());
+      }
+      return new Resource(result.data(), result.header("Content-Type"));
+    }
   }
 
   private class AppSpecificClient
@@ -167,4 +196,25 @@ public class RestClientFactory
 
   }
 
+  private static class Resource
+      implements RestClient.Resource
+  {
+    private byte[] data;
+    private String contentType;
+
+    Resource(byte[] data, String contentType) {
+      this.data = data;
+      this.contentType = contentType;
+    }
+
+    @Override
+    public byte[] getData() {
+      return data;
+    }
+
+    @Override
+    public String getContentType() {
+      return contentType;
+    }
+  }
 }

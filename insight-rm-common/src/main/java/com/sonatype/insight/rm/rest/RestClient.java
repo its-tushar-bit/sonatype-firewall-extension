@@ -7,6 +7,7 @@ package com.sonatype.insight.rm.rest;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.Map;
 
 import com.sonatype.clm.dto.model.ProprietaryConfig;
@@ -26,6 +27,10 @@ public interface RestClient
     ProprietaryConfig getProprietaryConfiguration() throws IOException;
 
     App forApplication(String appId);
+
+    Resource getResource(String path) throws IOException, URISyntaxException;
+
+    Resource getResource(String path, Map<String, String[]> params) throws IOException, URISyntaxException;
 
   }
 
@@ -47,4 +52,10 @@ public interface RestClient
 
   }
 
+  interface Resource
+  {
+    byte[] getData();
+
+    String getContentType();
+  }
 }

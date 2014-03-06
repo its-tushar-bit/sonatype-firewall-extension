@@ -350,8 +350,17 @@
           }
 
           $scope.componentDetails.securityVulnerabilities.sort(function (a, b) {
+            if (a.severity === b.severity) {
+              return 0;
+            } else if (a.severity === null) {
+              return 1;
+            } else if (b.severity === null) {
+              return -1;
+            }
             return b.severity - a.severity;
           });
+        }).error(function () {
+          $scope.setError(arguments);
         });
       }
     }

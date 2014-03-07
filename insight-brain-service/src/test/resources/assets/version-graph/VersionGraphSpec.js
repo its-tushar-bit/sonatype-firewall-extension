@@ -278,8 +278,8 @@ var clmEndpoint = clmEndpointTemplate = {
         }))).respond({
           securityVulnerabilities: []
         });
-        GAV.setSelected(angular.extend({}, gav, { version : '2' }));
         scope.$apply(function () {
+          GAV.setSelected(angular.extend({}, gav, { version : '2' }));
         });
         $httpBackend.flush();
         expect(Brain[clmEndpoint.type].getArtifactInfoUrl).toHaveBeenCalledWith({

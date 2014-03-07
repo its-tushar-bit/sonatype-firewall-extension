@@ -11,6 +11,7 @@ import java.net.URISyntaxException;
 import java.util.Map;
 
 import com.sonatype.clm.dto.model.ProprietaryConfig;
+import com.sonatype.clm.dto.model.Resource;
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 
@@ -30,7 +31,8 @@ public interface RestClient
 
     Resource getResource(String path) throws IOException, URISyntaxException;
 
-    Resource getResource(String path, Map<String, String[]> params) throws IOException, URISyntaxException;
+    Resource getResource(String path, Map<String, String[]> params) throws IOException,
+        URISyntaxException;
 
   }
 
@@ -50,12 +52,5 @@ public interface RestClient
 
     PolicyEvaluationResult evaluatePolicies(Stage stage) throws IOException;
 
-  }
-
-  interface Resource
-  {
-    byte[] getData();
-
-    String getContentType();
   }
 }

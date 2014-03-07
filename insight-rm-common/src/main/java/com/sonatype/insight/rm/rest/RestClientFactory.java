@@ -13,6 +13,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import com.sonatype.clm.dto.model.ProprietaryConfig;
+import com.sonatype.clm.dto.model.Resource;
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.clm.dto.model.policy.Stage;
@@ -21,7 +22,6 @@ import com.sonatype.insight.brain.client.PolicyClient;
 import com.sonatype.insight.brain.client.ResourceClient;
 import com.sonatype.insight.brain.client.ScanClient;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
-import com.sonatype.insight.client.utils.Result;
 import com.sonatype.insight.rm.rest.RestClient.App;
 import com.sonatype.insight.rm.rest.RestClient.Scan;
 
@@ -114,13 +114,8 @@ public class RestClientFactory
           builder.addParameter(param.getKey(), value);
         }
       }
-      path = builder.build().toString();
 
-      Result result = new ResourceClient(config).getResource(path);
-      if (result.status() != 200) {
-        throw new IOException(result.text());
-      }
-      return new Resource(result.data(), result.header("Content-Type"));
+      return new ResourceClient(config).getResource(builder.build().toString());
     }
   }
 
@@ -194,27 +189,5 @@ public class RestClientFactory
       return new PolicyClient(config, appId).evaluate(scanId, st);
     }
 
-  }
-
-  private static class Resource
-      implements RestClient.Resource
-  {
-    private byte[] data;
-    private String contentType;
-
-    Resource(byte[] data, String contentType) {
-      this.data = data;
-      this.contentType = contentType;
-    }
-
-    @Override
-    public byte[] getData() {
-      return data;
-    }
-
-    @Override
-    public String getContentType() {
-      return contentType;
-    }
   }
 }

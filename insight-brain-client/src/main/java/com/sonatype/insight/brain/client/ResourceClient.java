@@ -7,9 +7,12 @@ package com.sonatype.insight.brain.client;
 
 import java.io.IOException;
 
+import com.sonatype.clm.dto.model.Resource;
 import com.sonatype.insight.client.utils.AbstractClient;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.client.utils.Result;
+
+import org.apache.http.client.HttpResponseException;
 
 /**
  * Used to access arbitrary CLM resources
@@ -24,7 +27,12 @@ public class ResourceClient
     super(config);
   }
 
-  public Result getResource(String path) throws IOException {
-    return path(path).get();
+  public Resource getResource(String path) throws IOException {
+    Result result = path(path).get();
+
+    if (result.status() != 200) {
+      throw new HttpResponseException(result.status(), result.reason());
+    }
+    return new Resource(result.data(), result.header("Content-Type"));
   }
 }

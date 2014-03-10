@@ -8,6 +8,7 @@
   'use strict';
 
   var injector = null,
+      authHandler = null,
       module = angular.module('CIP', ['ngRoute']).config(['$routeProvider', function ($routeProvider) {
         $routeProvider.when('/', {
           templateUrl : '../../version-graph.html',
@@ -129,6 +130,9 @@
             }
           });
         }]);
+      },
+      "setAuthFailureHandler" : function (handler) {
+        authHandler = hander;
       },
       "setPending": createStateFn('pending'),
       "setUnassigned": createStateFn('unassigned'),

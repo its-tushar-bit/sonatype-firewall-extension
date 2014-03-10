@@ -31,7 +31,7 @@ public class ResourceClient
     Result result = path(path).get();
 
     if (result.status() != 200) {
-      throw new HttpResponseException(result.status(), result.reason());
+      throw new HttpResponseException(result.status(), result.text());
     }
     return new Resource(result.data(), result.header("Content-Type"));
   }

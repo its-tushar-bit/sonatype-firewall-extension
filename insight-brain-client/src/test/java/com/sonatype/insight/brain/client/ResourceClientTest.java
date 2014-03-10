@@ -26,6 +26,7 @@ public class ResourceClientTest
     }
     catch (HttpResponseException e) {
       assertEquals(404, e.getStatusCode());
+      assertTrue(e.getMessage().contains("Problem accessing /assets/foo/bar. Reason"));
       return;
     }
     fail("No exception thrown");

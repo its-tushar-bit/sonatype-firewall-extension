@@ -8,7 +8,7 @@ package com.sonatype.insight.brain.client;
 import com.sonatype.clm.dto.model.Resource;
 import com.sonatype.insight.brain.service.AbstractLicenseTest;
 
-import org.eclipse.jetty.http.HttpException;
+import org.apache.http.client.HttpResponseException;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
@@ -24,8 +24,8 @@ public class ResourceClientTest
     try {
       new ResourceClient(brain.getClientConfiguration()).getResource("/assets/foo/bar");
     }
-    catch (HttpException e) {
-      assertEquals(404, e.getStatus());
+    catch (HttpResponseException e) {
+      assertEquals(404, e.getStatusCode());
       return;
     }
     fail("No exception thrown");

@@ -47,7 +47,7 @@ public class ScanTaskRepository
   public ScanTaskRepository(Provider<ScanTask> scanTaskProvider) {
     this.scanTaskProvider = scanTaskProvider;
     scanTasks = new ConcurrentHashMap<>();
-    executor = new ThreadPoolExecutor(1, 2, 5L, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>(),
+    executor = new ThreadPoolExecutor(2, 2, 5L, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>(),
         new ThreadFactoryBuilder().setDaemon(true).setNameFormat("ScanTask-%s").build());
     executor.allowCoreThreadTimeOut(true);
   }

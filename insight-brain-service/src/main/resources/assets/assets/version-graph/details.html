@@ -1,0 +1,111 @@
+<div style='width: 900px; margin: auto'>
+	<div class='container ng-cloak'>
+		<div ng-show='data == null && error == null'>
+			<div class='alert alert-info' style='margin: auto; margin-top: 20px; padding-top: 5px; width: 450px'>
+				<p>Loading component data...</p>
+			</div>
+		</div>
+		<div ng-show='data != null'>
+			<div ng-show='showContext()'>
+				<h5>CLM Details for {{data.groupId}}:{{data.artifactId}}:{{data.version}} in the context of CLM Application {{data.appName}}</h5>
+				<br>
+			</div>
+			<h5 class='policy-header'>Policy Violations</h5>
+			<div ng-show='!data.policyAlerts || data.policyAlerts.length == 0'>None</div>
+			<table class='table table-striped table-bordered' ng-show='data.policyAlerts && data.policyAlerts.length > 0'>
+				<thead>
+					<tr>
+						<th style='width: 120px'>Policy</th>
+						<th style='width: 120px'>Constraint</th>
+						<th>Summary</th>
+					</tr>
+				</thead>
+				<tr ng-repeat='issue in data.policyAlerts'>
+					<td class='scoreCol'
+						ng-class='{ criticalScore : issue.threat == 4, severeScore : issue.threat == 3, moderateScore : issue.threat == 2, ignoreScore : issue.threat == 1, liberalScore : issue.threat == 0, grouped : isPolicyGrouped($index) }'>
+						<span ng-show='!isPolicyGrouped($index)'>{{issue.policyName}}</span> <span ng-show='isPolicyGrouped($index)'> </span>
+					</td>
+					<td ng-class='{ grouped : isPolicyGrouped($index) && isConstraintGrouped($index) }'><span
+						ng-show='!(isPolicyGrouped($index) && isConstraintGrouped($index))'>{{issue.constraintName}}</span> <span
+						ng-show='isPolicyGrouped($index) && isConstraintGrouped($index)'> </span></td>
+					<td>{{issue.reason}}</td>
+				</tr>
+			</table>
+			<br />
+
+			<h5 class='license-header'>License Analysis</h5>
+			<div ng-show='data.matchState == "unknown"'>The component is unknown, license data is not available.</div>
+			<div ng-show='data.identificationSource == "Manual"'>The component is claimed, license data is not available.</div>
+			<table class='table table-striped table-bordered' ng-show='data.matchState != "unknown" && data.identificationSource != "Manual"'>
+				<thead>
+					<tr>
+						<th style='width: 70px'>Threat Level</th>
+						<th ng-show='data.overriddenLicenses.length > 0'>Overridden License</th>
+						<th>Declared License(s)</th>
+						<th>Observed License(s)</th>
+					</tr>
+				</thead>
+				<tr>
+					<td>
+						<div
+							ng-class='{ red : data.licenseThreatLevel >= 8, orange : data.licenseThreatLevel >= 4 && data.licenseThreatLevel < 8, yellow : data.licenseThreatLevel >= 1 && data.licenseThreatLevel < 4, blue : data.licenseThreatLevel == 0, unknown : data.licenseThreatLevel == null }'></div>
+					</td>
+					<td ng-show='data.overriddenLicenses.length > 0'><span ng-repeat='license in data.overriddenLicenses'>{{license}}<span
+							ng-show='!$last'>, </span></span></td>
+					<td><span ng-repeat='license in data.declaredLicenses'>{{license}}<span ng-show='!$last'>, </span></span></td>
+					<td><span ng-repeat='license in data.observedLicenses'>{{license}}<span ng-show='!$last'>, </span></span></td>
+				</tr>
+			</table>
+			<br />
+
+			<h5 class='security-header'>Security Issues</h5>
+			<div ng-show='data.matchState == "unknown"'>The component is unknown, security data is not available.</div>
+			<div ng-show='data.identificationSource == "Manual"'>The component is claimed, security data is not available.</div>
+			<div
+				ng-show='data.identificationSource != "Manual" && data.matchState != "unknown" && (!data.securityVulnerabilities || data.securityVulnerabilities.length == 0)'>None</div>
+			<table class='table table-striped table-bordered' ng-show='data.securityVulnerabilities && data.securityVulnerabilities.length > 0'>
+				<thead>
+					<tr>
+						<th style='width: 12ex'>Threat Level</th>
+						<th style='width: 7ex'>Problem Code</th>
+						<th>Status</th>
+						<th>Summary</th>
+					</tr>
+				</thead>
+				<tr ng-repeat='issue in data.securityVulnerabilities'>
+					<td class='scoreCol'
+						ng-class='{ unspecifiedScore : issue.severity == null, criticalScore : issue.severity >= 7, severeScore : issue.severity < 7 && issue.severity >= 4, moderateScore : issue.severity < 4, grouped : isSvGrouped($index) }'>
+						<span ng-show='!isSvGrouped($index)'> <span ng-show='issue.severity != null'>{{issue.severity}}</span> <span
+							ng-show='issue.severity == null'>Unscored</span>
+					</span> <span ng-show='isSvGrouped($index)'> </span>
+					</td>
+					<td class='refCol'><a ng-href='{{getSvUrl(issue)}}'>{{getSvName(issue)}}</a></td>
+					<td class='refCol'>{{issue.status}}</td>
+					<td>{{issue.summary}}</td>
+				</tr>
+			</table>
+		</div>
+		<div ng-show='error != null'>
+			<div class='alert alert-error' style='margin: auto; margin-top: 20px; padding-top: 5px; width: 450px'>
+				<h4>Error</h4>
+				<div ng-switch='error'>
+					<div ng-switch-when='401'>
+						<p>Authentication with the CLM Server failed. Please verify you supplied the proper credentials in the plugin configuration. Once the issue
+							has been resolved, you will need to close and re-open this page.</p>
+					</div>
+					<div ng-switch-when='403'>
+						<p>This component has been associated with an invalid application ID. Please verify your plugin configuration or contact your CLM
+							administrator to verify your permissions. Once the issue has been resolved, you will need to close and re-open this page.</p>
+					</div>
+					<div ng-switch-default>
+						<p>Unfortunately an error occurred while contacting the Sonatype CLM Server, if the problem persists please contact support.</p>
+						<p>{{errorMessage}}</p>
+						<p>
+							<a href='#' class='btn btn-danger' ng-click='reload()'><i class='icon-white icon-refresh'></i> Retry</a>
+						</p>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>

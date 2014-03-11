@@ -48,14 +48,24 @@
         $rootScope.type = clmEndpoint.type;
       }]);
 
+  function waitOnInjector(fn, args) {
+    if (injector) {
+      fn(args);
+    } else {
+      setTimeout(waitOnInjector(fn, args), 500);
+    }
+  }
+	  
   function createStateFn(stateName) {
     return function (arg) {
-      injector.invoke(['$rootScope', 'GAV', 'State', function ($rootScope, GAV, State) {
-        $rootScope.$apply(function () {
-          GAV.set(null);
-          State.set(stateName, arg);
-        });
-      }]);
+      waitOnInjector(function(){
+        injector.invoke(['$rootScope', 'GAV', 'State', function ($rootScope, GAV, State) {
+          $rootScope.$apply(function () {
+            GAV.set(null);
+            State.set(stateName, arg);
+          });
+        }]);
+      });
     };
   }
 
@@ -70,66 +80,78 @@
   $.extend(true, window, {
     "Insight": {
       "clearGav": function () {
-        injector.invoke(['GAV', '$rootScope', function (GAV, $rootScope) {
-          $rootScope.$apply(function () {
-            GAV.set(null);
-          });
-        }]);
+        waitOnInjector(function(){
+          injector.invoke(['GAV', '$rootScope', function (GAV, $rootScope) {
+            $rootScope.$apply(function () {
+              GAV.set(null);
+            });
+          }]);
+        });
       },
       "registerMarkUpgradeListener": function (listener) {
-        injector.invoke(['$rootScope', function ($rootScope) {
-          $rootScope.$on('markUpgrade', function (event, gav) {
-            listener(gav.groupId, gav.artifactId, gav.version);
-          });
-        }]);
+        waitOnInjector(function(){
+          injector.invoke(['$rootScope', function ($rootScope) {
+            $rootScope.$on('markUpgrade', function (event, gav) {
+              listener(gav.groupId, gav.artifactId, gav.version);
+            });
+          }]);
+        });
       },
       "registerViewDetailsListener": function (listener) {
-        injector.invoke(['GAV', 'SelectedApp', '$rootScope', function (GAV, SelectedApp, $rootScope) {
-          $rootScope.$on('viewDetails', function (event, version) {
-            var gav = GAV.get();
+        waitOnInjector(function(){
+          injector.invoke(['GAV', 'SelectedApp', '$rootScope', function (GAV, SelectedApp, $rootScope) {
+            $rootScope.$on('viewDetails', function (event, version) {
+              var gav = GAV.get();
 
-            listener(SelectedApp.get(),
-                    gav.groupId,
-                    gav.artifactId,
-                    version,
-                    gav.classifier,
-                    gav.extension,
-                    version === gav.version ? gav.hash : null,
-                    version === gav.version ? gav.matchState : null,
-                    gav.proprietary);
-          });
-        }]);
+              listener(SelectedApp.get(),
+                      gav.groupId,
+                      gav.artifactId,
+                      version,
+                      gav.classifier,
+                      gav.extension,
+                      version === gav.version ? gav.hash : null,
+                      version === gav.version ? gav.matchState : null,
+                      gav.proprietary);
+            });
+          }]);
+        });
       },
       "setGav": function (arg) {
-        injector.invoke(['GAV', '$rootScope', function (GAV, $rootScope) {
-          $rootScope.$apply(function () {
-            GAV.set(arg);
-          });
-        }]);
+        waitOnInjector(function(){
+          injector.invoke(['GAV', '$rootScope', function (GAV, $rootScope) {
+            $rootScope.$apply(function () {
+              GAV.set(arg);
+            });
+          }]);
+        });
       },
       "setHeaders" : function (headers) {
-        injector.invoke(['$http', '$rootScope', function ($http, $rootScope) {
-          $rootScope.$apply(function () {
-            angular.extend($http.defaults.headers.common, headers);
-          });
-        }]);
+        waitOnInjector(function(){
+          injector.invoke(['$http', '$rootScope', function ($http, $rootScope) {
+            $rootScope.$apply(function () {
+              angular.extend($http.defaults.headers.common, headers);
+            });
+          }]);
+        });
       },
       "setError": function (arg) {
-        injector.invoke(['$rootScope', 'GAV', 'State', function ($rootScope, GAV, State) {
-          $rootScope.$apply(function () {
-            GAV.set(null);
+        waitOnInjector(function(){
+          injector.invoke(['$rootScope', 'GAV', 'State', function ($rootScope, GAV, State) {
+            $rootScope.$apply(function () {
+              GAV.set(null);
 
-            if (isInvalidAppId(arg.errorCode)) {
-              State.set('invalid-appid', arg);
-            }
-            else if (arg.errorCode === 401) {
-              State.set('invalid-credentials', arg);
-            }
-            else {
-              State.set('failure', arg);
-            }
-          });
-        }]);
+              if (isInvalidAppId(arg.errorCode)) {
+                State.set('invalid-appid', arg);
+              }
+              else if (arg.errorCode === 401) {
+                State.set('invalid-credentials', arg);
+              }
+              else {
+                State.set('failure', arg);
+              }
+            });
+          }]);
+        });
       },
       "setAuthFailureHandler" : function (handler) {
         authHandler = hander;

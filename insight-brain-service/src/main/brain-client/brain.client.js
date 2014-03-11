@@ -14,7 +14,9 @@ var clmBuildTimestamp = '${build.timestamp}';
         var string = '',
             field;
         for (field in obj) {
-          string += '&' + encodeURIComponent(field) + '=' + encodeURIComponent(obj[field] == null ? "" : obj[field]);
+          if (obj[field]) {
+            string += '&' + encodeURIComponent(field) + '=' + encodeURIComponent(obj[field]);
+          }
         }
         return string.substring(1);
       },

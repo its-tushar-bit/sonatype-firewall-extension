@@ -110,10 +110,19 @@
     return retval;
   }
 
-  module = angular.module('viewdetails', []);
+  module = angular.module('viewdetails', ['ngRoute']).config(['$routeProvider', function ($routeProvider) {
+    $routeProvider.when('/', {
+      templateUrl : '../../details.html',
+      controller : 'view'
+    });
+    $routeProvider.otherwise({
+      redirect : '/'
+    });
+  }]);
+
   module.constant('query', query);
   module.controller('view', [
-    '$http', '$scope', 'query', '$window', function($http, $scope, query, $window) {
+    '$http', '$scope', 'query', '$window', '$q', function($http, $scope, query, $window, $q) {
       function setClmHeaders(headers) {
         angular.extend($http.defaults.headers.common, headers);
         $scope.reload();
@@ -151,13 +160,23 @@
       $scope.reload = function() {
         $scope.error = null;
         $scope.errorMessage = null;
-        $http.get(Brain.ide.getArtifactInfoUrl(query),
-            { params: query, headers: { "Accept": "application/json" } }).success(function(data) {
-          $scope.data = data;
+
+        var promises = [];
+
+        promises.push($http.get(Brain[clmEndpoint.type].getArtifactInfoUrl(query), {
+          headers: {
+            "Accept": "application/json"
+          }
+        }));
+        if (clmEndpoint.showContext) {
+          promises.push($http.get(Brain.getApplicationListUrl()));
+        }
+
+        $q.all(promises).then(function(results) {
+          $scope.data = results[0].data;
           $scope.data.observedLicenses = toLicenseNames($scope.data.observedLicenses);
           $scope.data.declaredLicenses = toLicenseNames($scope.data.declaredLicenses);
           $scope.data.overriddenLicenses = toLicenseNames($scope.data.overriddenLicenses);
-
           $scope.data.policyAlerts = transformPolicyAlerts($scope.data.policyAlerts);
           angular.forEach($scope.data.securityVulnerabilities, function(item, index) {
             if (item.severity !== null) {
@@ -173,9 +192,12 @@
             }
             return b.severity - a.severity;
           });
-        }).error(function(data, status, headersFn, config) {
-          $scope.error = status;
-          $scope.errorMessage = getErrorMessage(data, status, headersFn);
+          if (clmEndpoint.showContext) {
+            $scope.data.appName = results[1].data[query.appId];
+          }
+        }, function(errorData) {
+          $scope.error = errorData.status;
+          $scope.errorMessage = getErrorMessage(errorData.data, errorData.status, errorData.headers);
         });
       };
       if (query.deferLoad !== 'true') {
@@ -215,6 +237,9 @@
           return false;
         }
         return $scope.data.policyAlerts[index - 1].constraintName === $scope.data.policyAlerts[index].constraintName;
+      };
+      $scope.showContext = function() {
+        return clmEndpoint.showContext;
       };
     }
   ]);

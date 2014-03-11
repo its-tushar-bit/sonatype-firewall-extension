@@ -1,10 +1,13 @@
 <div>
-	<div class='alert alert-error cipContentBox' ng-if='errorMessage'>
-		<h5>Error</h5>
-		<p>Unfortunately an error occurred while contacting the CLM server, if the problem persists please contact <a href='http://links.sonatype.com/products/clm/eclipse/support' target='_blank'>Sonatype Support</a>.</p>
-		<p>{{errorMessage}}</p>
-		<p><button class='btn btn-danger' ng-click='retryFn()'><i class='icon-white icon-refresh'></i> Retry</button></p>
-	</div>
+	<script type='text/ng-template' id='error'>
+		<div class='alert alert-error cipContentBox' ng-if='errorMessage'>
+			<h5>Error</h5>
+			<p>Unfortunately an error occurred while contacting the CLM server, if the problem persists please contact <a href='http://links.sonatype.com/products/clm/eclipse/support' target='_blank'>Sonatype Support</a>.</p>
+			<p>{{errorMessage}}</p>
+			<p><button class='btn btn-danger' ng-click='retryFn()'><i class='icon-white icon-refresh'></i> Retry</button></p>
+		</div>
+	</script>
+	<div ng-include='"error"'></div>
 	<div ng-hide='errorMessage'>
 		<div ng-if='selectApplication'
 				ng-controller='ApplicationController' style='background:#f5f5f5;border-bottom:1px solid #e5e5e5;padding:10px'>
@@ -19,7 +22,8 @@
 			</form>
 			<span ng-hide='applications'><h5><i class='icon-time'></i> Loading...</h5></span>
 		</div>
-		<div ng-if='canLoad()'>
+		<div ng-if='canLoad()' ng-controller='ComponentController'>
+			<div ng-include='"error"'></div>
 			<div ng-controller='StatusController' ng-show='!gav'>
 				<div ng-if='!state' style='padding-top:20px'>
 					<div class='alert alert-info fade in' style='margin:auto;width:50%;text-align:middle;vertical-align:middle'>
@@ -138,7 +142,7 @@
 					</div>
 				</div>
 				<div class='cip-box' id='aiVersionChart' graph='componentDetailsList' class='margin-left:10px'></div>
-				<div ng-if='gav && !componentDetailsList'>
+				<div ng-if='gav && !componentDetailsList && !errorMessage'>
 					<h5><i class='icon-time'></i> Loading...</h5>
 				</div>
 			</div>

@@ -7,6 +7,46 @@
 (function () {
   'use strict';
 
+  function createStateFn(stateName) {
+    return function (arg) {
+      injector.invoke(['$rootScope', 'GAV', 'State', function ($rootScope, GAV, State) {
+        $rootScope.$apply(function () {
+          GAV.set(null);
+          State.set(stateName, arg);
+        });
+      }]);
+    };
+  }
+
+  function waitOnInjector(fn, args) {
+    if (injector) {
+      fn(args);
+    } else {
+      setTimeout(waitOnInjector(fn, args), 500);
+    }
+  }
+
+  function isInvalidAppId(status) {
+    // Eclipse plugin 2.0 goes against the SaaS which returns 402, Eclipse plugin 2.1+ goes against the Brain which returns 404
+    return Brain.getVersion ? (status === 404 || status === 403) : (status === 402);
+  }
+
+  function getErrorMessage(error) {
+    var responseText = error[0],
+        status = error[1],
+        headers = error[2];
+
+    if (status === 0 || status >= 1000) {
+      return 'Network error while contacting server';
+    }
+    else if (responseText && (headers('Content-Type') || '').indexOf('text/plain') >= 0) {
+      return responseText;
+    }
+    else {
+      return 'Error ' + status;
+    }
+  }
+
   var injector = null,
       authHandler = null,
       module = angular.module('CIP', ['ngRoute']).config(['$routeProvider', function ($routeProvider) {
@@ -21,21 +61,7 @@
         injector = $injector;
 
         $rootScope.setError = function (error) {
-          var responseText = error[0],
-              status = error[1],
-              headers = error[2],
-              message = '';
-
-          if (status === 0 || status >= 1000) {
-            message = 'Network error while contacting server';
-          }
-          else if (responseText && (headers('Content-Type') || '').indexOf('text/plain') >= 0) {
-            message = responseText;
-          }
-          else {
-            message = 'Error ' + status;
-          }
-          $rootScope.errorMessage = message;
+          $rootScope.errorMessage = getErrorMessage(error);
         };
 
         $rootScope.retryFn = function () {
@@ -47,32 +73,6 @@
         $rootScope.canMigrate = clmEndpoint.migrate;
         $rootScope.type = clmEndpoint.type;
       }]);
-
-  function waitOnInjector(fn, args) {
-    if (injector) {
-      fn(args);
-    } else {
-      setTimeout(waitOnInjector(fn, args), 500);
-    }
-  }
-	  
-  function createStateFn(stateName) {
-    return function (arg) {
-      waitOnInjector(function(){
-        injector.invoke(['$rootScope', 'GAV', 'State', function ($rootScope, GAV, State) {
-          $rootScope.$apply(function () {
-            GAV.set(null);
-            State.set(stateName, arg);
-          });
-        }]);
-      });
-    };
-  }
-
-  function isInvalidAppId(status) {
-    // Eclipse plugin 2.0 goes against the SaaS which returns 402, Eclipse plugin 2.1+ goes against the Brain which returns 404
-    return Brain.getVersion ? (status === 404 || status === 403) : (status === 402);
-  }
 
   $.ajaxSetup = function (ajaxConfig) {
     Insight.setHeaders(ajaxConfig.headers);
@@ -256,45 +256,10 @@
     };
   }]);
 
-  module.controller('CIPController', ['$scope', '$http', 'SelectedApp', 'GAV', function ($scope, $http, SelectedApp, GAV) {
-    function gavChanged() {
-      var gav = GAV.get() ? angular.extend({ appId : SelectedApp.get() }, GAV.get()) : null;
-
-      if (!angular.equals($scope.gav, gav)) {
-        $scope.componentDetailsList = null;
-        $scope.loaded = false;
-        $scope.gav = gav;
-
-        if (gav && gav.appId && !$scope.isUnknown() ) {
-          $http.get(Brain[clmEndpoint.type].getComponentDetailsListUrl(gav)).success(function (data) {
-            $scope.componentDetailsList = data.list ? data.list : data;
-            $scope.loaded = true;
-          }).error(function () {
-            $scope.setError(arguments);
-          });
-        }
-      }
-    }
-
-    $scope.isUnknown = function () {
-      var gav = GAV.get(),
-          matchState = gav && gav.matchState ? gav.matchState.toLowerCase() : null;
-      return matchState === 'unknown';
-    };
-
+  module.controller('CIPController', ['$scope', 'SelectedApp', function ($scope, SelectedApp) {
     $scope.canLoad = function () {
       return !$scope.selectApplication || SelectedApp.get();
     };
-
-    $scope.$on('reload', gavChanged);
-
-    $scope.$watch(function () {
-      return GAV.get();
-    }, gavChanged);
-
-    $scope.$watch(function () {
-      return SelectedApp.get();
-    }, gavChanged);
   }]);
 
   module.controller('ApplicationController', ['$scope', 'Applications', 'SelectedApp', function ($scope, Applications, SelectedApp) {
@@ -319,6 +284,56 @@
     });
 
     $scope.doLoad();
+  }]);
+
+  module.controller('ComponentController', ['$scope', 'GAV', 'SelectedApp', '$http', function ($scope, GAV, SelectedApp, $http) {
+    function gavChanged() {
+      var gav = GAV.get() ? angular.extend({ appId : SelectedApp.get() }, GAV.get()) : null;
+
+      $scope.errorMessage = null;
+
+      if (!angular.equals($scope.gav, gav)) {
+        $scope.componentDetailsList = null;
+        $scope.loaded = false;
+        $scope.gav = gav;
+
+        if (gav && gav.appId && !$scope.isUnknown() ) {
+          $http.get(Brain[clmEndpoint.type].getComponentDetailsListUrl(gav)).success(function (data) {
+            $scope.componentDetailsList = data.list ? data.list : data;
+            $scope.loaded = true;
+          }).error(function () {
+            $scope.setError(arguments);
+          });
+        }
+      }
+    }
+
+    $scope.setError = function (error) {
+      $scope.errorMessage = getErrorMessage(error);
+    };
+
+    $scope.retryFn = function () {
+      $scope.$broadcast('reload');
+    };
+
+    $scope.isUnknown = function () {
+      var gav = GAV.get(),
+          matchState = gav && gav.matchState ? gav.matchState.toLowerCase() : null;
+      return matchState === 'unknown';
+    };
+
+    $scope.$on('reload', function () {
+      $scope.gav = null;
+      gavChanged();
+    });
+
+    $scope.$watch(function () {
+      return GAV.get();
+    }, gavChanged);
+
+    $scope.$watch(function () {
+      return SelectedApp.get();
+    }, gavChanged);
   }]);
 
   module.controller('StatusController', ['$scope', 'State', 'GAV', 'SelectedApp', function ($scope, State, GAV, SelectedApp) {

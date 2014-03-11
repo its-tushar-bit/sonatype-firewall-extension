@@ -193,12 +193,12 @@ var clmEndpoint = clmEndpointTemplate = {
     describe('IDE', createApplicationsTests('ide'));
     describe('Nexus', createApplicationsTests('nexus'));
 
-    describe('CIPController', function () {
+    describe('ComponentController', function () {
       var scope = null;
 
       beforeEach(inject(function ($controller, $rootScope) {
         scope = $rootScope.$new();
-        $controller('CIPController', {
+        $controller('ComponentController', {
           $scope : scope
         });
       }));

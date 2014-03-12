@@ -110,15 +110,7 @@
     return retval;
   }
 
-  module = angular.module('viewdetails', ['ngRoute']).config(['$routeProvider', function ($routeProvider) {
-    $routeProvider.when('/', {
-      templateUrl : '../../details.html',
-      controller : 'view'
-    });
-    $routeProvider.otherwise({
-      redirect : '/'
-    });
-  }]);
+  module = angular.module('viewdetails', []);
 
   module.constant('query', query);
   module.controller('view', [

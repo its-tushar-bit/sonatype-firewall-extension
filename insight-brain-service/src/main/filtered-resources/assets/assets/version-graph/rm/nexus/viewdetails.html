@@ -17,6 +17,6 @@
 			};
 		</script>
 	</head>
-	<body ng-view>
+	<body ng-include='"../../details.html?${build.timestamp}"' ng-controller='view'>
 	</body>
 </html>

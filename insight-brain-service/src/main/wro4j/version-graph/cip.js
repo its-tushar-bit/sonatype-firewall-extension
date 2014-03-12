@@ -7,25 +7,6 @@
 (function () {
   'use strict';
 
-  function createStateFn(stateName) {
-    return function (arg) {
-      injector.invoke(['$rootScope', 'GAV', 'State', function ($rootScope, GAV, State) {
-        $rootScope.$apply(function () {
-          GAV.set(null);
-          State.set(stateName, arg);
-        });
-      }]);
-    };
-  }
-
-  function waitOnInjector(fn, args) {
-    if (injector) {
-      fn(args);
-    } else {
-      setTimeout(waitOnInjector(fn, args), 10);
-    }
-  }
-
   function isInvalidAppId(status) {
     // Eclipse plugin 2.0 goes against the SaaS which returns 402, Eclipse plugin 2.1+ goes against the Brain which returns 404
     return Brain.getVersion ? (status === 404 || status === 403) : (status === 402);
@@ -73,6 +54,29 @@
         $rootScope.canMigrate = clmEndpoint.migrate;
         $rootScope.type = clmEndpoint.type;
       }]);
+
+  function waitOnInjector(fn) {
+    if (injector) {
+      fn();
+    } else {
+      setTimeout(function() {
+        waitOnInjector(fn);
+      }, 10);
+    }
+  }
+  
+  function createStateFn(stateName) {
+    return function (arg) {
+      waitOnInjector(function(){
+        injector.invoke(['$rootScope', 'GAV', 'State', function ($rootScope, GAV, State) {
+          $rootScope.$apply(function () {
+            GAV.set(null);
+            State.set(stateName, arg);
+          });
+        }]);  
+      });
+    };
+  }
 
   $.ajaxSetup = function (ajaxConfig) {
     Insight.setHeaders(ajaxConfig.headers);
@@ -154,7 +158,7 @@
         });
       },
       "setAuthFailureHandler" : function (handler) {
-        authHandler = hander;
+        authHandler = handler;
       },
       "setPending": createStateFn('pending'),
       "setUnassigned": createStateFn('unassigned'),

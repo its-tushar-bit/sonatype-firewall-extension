@@ -22,7 +22,7 @@
     if (injector) {
       fn(args);
     } else {
-      setTimeout(waitOnInjector(fn, args), 500);
+      setTimeout(waitOnInjector(fn, args), 10);
     }
   }
 

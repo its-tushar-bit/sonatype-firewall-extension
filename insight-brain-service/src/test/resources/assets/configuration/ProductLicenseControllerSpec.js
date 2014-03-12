@@ -49,7 +49,7 @@ describe('ProductLicenseController', function() {
     it('should be set with data', function() {
       expect(scope.summaryUrl).toBeDefined();
       expect(scope.uploadUrl).toBeDefined();
-      expect(scope.license).toBe(mockLicenseSummary);
+      expect(scope.license).toEqual(mockLicenseSummary);
       expect(scope.isLoaded()).toBeTruthy();
     });
 

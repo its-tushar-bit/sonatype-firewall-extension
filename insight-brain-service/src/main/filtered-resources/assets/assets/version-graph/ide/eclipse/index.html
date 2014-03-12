@@ -20,6 +20,11 @@
 					Eclipse_openView(args);
 				}
 			};
+
+			// disable the context menu to prevent the user from reloading the page which would break the integration with the IDE plugin's Java code
+			$(document).bind('contextmenu', function(e) {
+				return false;
+			});
 		</script>
 		<!--[if lt IE 9]><script src="../../protovis-msie.min.js?${build.timestamp}"></script><![endif]-->
 	</head>

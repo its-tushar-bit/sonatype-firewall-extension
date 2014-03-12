@@ -15,6 +15,11 @@
 				type : 'ide',
 				showContext : false
 			};
+
+			// disable the context menu to prevent the user from reloading the page which would break the integration with the IDE plugin's Java code
+			$(document).bind('contextmenu', function(e) {
+				return false;
+			});
 		</script>
 	</head>
 	<body ng-include='"../../details.html?${build.timestamp}"' ng-controller='view'>

@@ -126,6 +126,8 @@
       // TODO Determine where the GAV is coming from, should it be a query string or should Eclipse call a JS function?
       $scope.data = null;
 
+      $scope.linkTarget = clmEndpoint.linkTarget;
+
       function getErrorMessage(data, status, headersFn) {
         var message = '',
             headers = headersFn ? headersFn() : {};

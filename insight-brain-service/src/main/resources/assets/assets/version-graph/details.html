@@ -79,7 +79,7 @@
 							ng-show='issue.severity == null'>Unscored</span>
 					</span> <span ng-show='isSvGrouped($index)'> </span>
 					</td>
-					<td class='refCol'><a ng-href='{{getSvUrl(issue)}}'>{{getSvName(issue)}}</a></td>
+					<td class='refCol'><a ng-href='{{getSvUrl(issue)}}' target='{{linkTarget}}'>{{getSvName(issue)}}</a></td>
 					<td class='refCol'>{{issue.status}}</td>
 					<td>{{issue.summary}}</td>
 				</tr>

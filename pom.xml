@@ -58,9 +58,9 @@
     <module>insight-brain-service</module>
     <module>insight-brain-client</module>
     <module>insight-rm-common</module>
-    <module>insight-brain-functional-test</module>
     <module>sonatype-clm-server</module>
     <module>sonatype-clm-scanner</module>
+    <module>insight-brain-functional-test</module>
   </modules>
 
   <dependencyManagement>

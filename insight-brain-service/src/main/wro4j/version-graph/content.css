@@ -68,7 +68,6 @@
 
 .cipContentBox {
 	margin:auto;
-	margin-top:20px;
 	width:50%
 }
 
@@ -104,4 +103,16 @@ form.form-horizontal .control-label {
 }
 form, form .control-group {
 	margin: 0px !important
+}
+.alert-centered {
+	margin: auto;
+	text-align: center;
+	vertical-align: middle;
+	width: 50%;
+}
+.application-header {
+	background : #f5f5f5;
+	border-bottom : 1px solid #e5e5e5;
+	margin-bottom : 20px;
+	padding : 10px;
 }

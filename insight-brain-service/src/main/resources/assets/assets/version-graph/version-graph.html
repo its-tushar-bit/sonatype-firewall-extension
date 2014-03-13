@@ -9,34 +9,36 @@
 	</script>
 	<div ng-include='"error"'></div>
 	<div ng-hide='errorMessage'>
-		<div ng-if='selectApplication'
-				ng-controller='ApplicationController' style='background:#f5f5f5;border-bottom:1px solid #e5e5e5;padding:10px'>
-			<form ng-show='applications' class='form-horizontal'>
-				<div class='control-group'>
-					<label for='selectApp' class='control-label'>Application: </label>
-					<div class='controls'>
-						<select id='selectApp' class='input-xlarge' ng-model='selectedApplication'
-								ng-options='key as value for (key,value) in applications'></select>
+		<div ng-if='selectApplication' ng-controller='ApplicationController'>
+			<div class='application-header'>
+				<form ng-show='applications' class='form-horizontal'>
+					<div class='control-group'>
+						<label for='selectApp' class='control-label'>Application: </label>
+						<div class='controls'>
+							<select id='selectApp' class='input-xlarge' ng-model='selectedApplication'
+									ng-options='key as value for (key,value) in applications'></select>
+						</div>
 					</div>
-				</div>
-			</form>
-			<span ng-hide='applications'><h5><i class='icon-time'></i> Loading...</h5></span>
+				</form>
+				<span ng-hide='applications'><h5><i class='icon-time'></i> Loading...</h5></span>
+			</div>
+			<div ng-if='!selectedApplication' class='alert alert-info alert-centered fade in'>
+				Select an application.
+			</div>
 		</div>
 		<div ng-if='canLoad()' ng-controller='ComponentController'>
 			<div ng-include='"error"'></div>
 			<div ng-controller='StatusController' ng-show='!gav'>
-				<div ng-if='!state' style='padding-top:20px'>
-					<div class='alert alert-info fade in' style='margin:auto;width:50%;text-align:middle;vertical-align:middle'>
-						<p>Select a component to view details.</p>
-					</div>
+				<div ng-if='!state' class='alert alert-info alert-centered fade in'>
+						Select a component to view details.
 				</div>
 				<!-- filtered -->
 				<div class='alert alert-info cipContentBox' ng-if="state == 'filtered'">
-					<p>All components are filtered out of the view. Adjust your <a href='#' ng-click='openView($event, "filter")'>filter settings</a> to view components.</p>
+					All components are filtered out of the view. Adjust your <a href='#' ng-click='openView($event, "filter")'>filter settings</a> to view components.
 				</div>
 				<!-- Pend -->
 				<div class='alert alert-info cipContentBox' ng-if="state == 'pending'">
-					<p>The data for the component {{stateArgs.filename}} is still pending.</p>
+					The data for the component {{stateArgs.filename}} is still pending.
 				</div>
 				<!-- failure -->
 				<div class='alert alert-error cipContentBox' ng-if="state == 'failure'">
@@ -56,19 +58,17 @@
 				</div>
 				<!-- Unassigned -->
 				<div class='alert cipContentBox' ng-if="state == 'unassigned'">
-					<p>No open projects are assigned application IDs, please verify the <a href='#' ng-click='openView($event, "config")'>Sonatype CLM for Eclipse configuration</a>.</p>
+					No open projects are assigned application IDs, please verify the <a href='#' ng-click='openView($event, "config")'>Sonatype CLM for Eclipse configuration</a>.
 				</div>
 			</div>
-			<div style='padding-top:20px' ng-if='isUnknown()'>
-				<div class='alert fade in' style='margin:auto;width:50%;text-align:middle;vertical-align:middle'>
-					<p style='float: left; font-size: 50px; font-weight: bold; line-height: normal'>?</p>
-					<div style='padding-left: 40px'>
-						<p>The component is unknown.</p>
-						<p ng-if='gav.artifactId'>
-							{{gav.groupId}} : {{gav.artifactId}} : {{gav.version}}
-						</p>
-						<p ng-if='!gav.artifactId'>{{gav.filename}}</p>
-					</div>
+			<div ng-if='isUnknown()' class='alert alert-centered fade in'>
+				<p style='float: left; font-size: 50px; font-weight: bold; line-height: normal'>?</p>
+				<div style='padding-left: 40px'>
+					<p>The component is unknown.</p>
+					<p ng-if='gav.artifactId'>
+						{{gav.groupId}} : {{gav.artifactId}} : {{gav.version}}
+					</p>
+					<p ng-if='!gav.artifactId'>{{gav.filename}}</p>
 				</div>
 			</div>
 			<div ng-show='!isUnknown()'>

@@ -11,7 +11,9 @@ import com.sonatype.insight.brain.service.AbstractLicenseTest;
 import org.apache.http.client.HttpResponseException;
 import org.junit.Test;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -23,13 +25,12 @@ public class ResourceClientTest
   public void testMissingFile() throws Exception {
     try {
       new ResourceClient(brain.getClientConfiguration()).getResource("/assets/foo/bar");
+      fail("No exception thrown");
     }
     catch (HttpResponseException e) {
       assertEquals(404, e.getStatusCode());
-      assertTrue(e.getMessage().contains("Problem accessing /assets/foo/bar. Reason"));
-      return;
+      assertThat(e.getMessage(), containsString("Problem accessing /assets/foo/bar. Reason"));
     }
-    fail("No exception thrown");
   }
 
   @Test

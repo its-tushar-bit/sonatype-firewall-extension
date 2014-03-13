@@ -122,9 +122,9 @@
 								<td ng-if='componentDetails.catalogDate'>{{componentDetails.catalogDate | ago}} ago</td>
 								<td ng-if='!componentDetails.catalogDate'>-</td>
 							</tr>
-							<tr id='artifactInfoSimilarityScoreRow' ng-if='componentDetails.currentMatchState'>
+							<tr id='artifactInfoSimilarityScoreRow' ng-if='componentDetails.matchState'>
 								<td>Match State:</td>
-								<td>{{componentDetails.currentMatchState}}</td>
+								<td>{{componentDetails.matchState}}</td>
 							</tr>
 							<tr id='artifactInfoIdentificatonSource'>
 								<td>Identification Source:</td>

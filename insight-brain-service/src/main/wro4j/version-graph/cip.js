@@ -74,13 +74,24 @@
     return function (arg) {
       waitOnInjector(function(){
         injector.invoke(['$rootScope', 'GAV', 'State', function ($rootScope, GAV, State) {
-          $rootScope.$apply(function () {
+          safeApply($rootScope, function () {
             GAV.set(null);
             State.set(stateName, arg);
           });
         }]);  
       });
     };
+  }
+
+  function safeApply(scope, fn) {
+    if (scope.$$phase || scope.$root.$$phase) {
+      //already apply in progress, just call the function
+      fn();
+    }
+    else {
+      //otherwise wrap the function in apply
+      scope.$apply(fn);
+    }
   }
 
   $.ajaxSetup = function (ajaxConfig) {
@@ -91,7 +102,7 @@
       "clearGav": function () {
         waitOnInjector(function(){
           injector.invoke(['GAV', '$rootScope', function (GAV, $rootScope) {
-            $rootScope.$apply(function () {
+            safeApply($rootScope, function () {
               GAV.set(null);
             });
           }]);
@@ -128,7 +139,7 @@
       "setGav": function (arg) {
         waitOnInjector(function(){
           injector.invoke(['GAV', '$rootScope', function (GAV, $rootScope) {
-            $rootScope.$apply(function () {
+            safeApply($rootScope, function () {
               GAV.set(arg);
             });
           }]);
@@ -137,7 +148,7 @@
       "setHeaders" : function (headers) {
         waitOnInjector(function(){
           injector.invoke(['$http', '$rootScope', function ($http, $rootScope) {
-            $rootScope.$apply(function () {
+            safeApply($rootScope, function () {
               angular.extend($http.defaults.headers.common, headers);
             });
           }]);
@@ -146,7 +157,7 @@
       "setError": function (arg) {
         waitOnInjector(function(){
           injector.invoke(['$rootScope', 'GAV', 'State', function ($rootScope, GAV, State) {
-            $rootScope.$apply(function () {
+            safeApply($rootScope, function () {
               GAV.set(null);
 
               if (isInvalidAppId(arg.errorCode)) {

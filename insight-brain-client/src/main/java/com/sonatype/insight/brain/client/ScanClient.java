@@ -47,11 +47,10 @@ public class ScanClient
 
   private ScanReceipt handleUpload(Result result) throws IOException {
     final int status = result.status();
-    final String text = result.text();
     if (status >= 300) {
-      throw new HttpResponseException(status, (text == null || text.isEmpty()) ? result.reason() : text);
+      throw new HttpResponseException(status, result.message());
     }
-    return JsonUtils.parse(text, ScanReceipt.class);
+    return JsonUtils.parse(result.text(), ScanReceipt.class);
   }
 
   /**

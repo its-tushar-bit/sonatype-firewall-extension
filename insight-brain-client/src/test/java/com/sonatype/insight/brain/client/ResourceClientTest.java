@@ -29,7 +29,7 @@ public class ResourceClientTest
     }
     catch (HttpResponseException e) {
       assertEquals(404, e.getStatusCode());
-      assertThat(e.getMessage(), containsString("Problem accessing /assets/foo/bar. Reason"));
+      assertThat(e.getMessage(), containsString("Not Found"));
     }
   }
 

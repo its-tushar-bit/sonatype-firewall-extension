@@ -37,7 +37,7 @@ public class ConfigurationClient
     }
     final int status = result.status();
     if (status >= 300) {
-      String msg = result.text();
+      String msg = result.message();
       if (status == 401) {
         /*
          * Until the client uses authentication, a misconfigured base URL will make the client encounter authentication

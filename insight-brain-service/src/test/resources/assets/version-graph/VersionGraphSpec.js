@@ -288,6 +288,12 @@ var clmEndpoint = clmEndpointTemplate = {
           version : '2',
           appId : 'myFirstApp'
         });
+
+        // Unknown GAV
+        scope.$apply(function () {
+          GAV.setSelected(angular.extend({}, gav, { matchState : 'unknown' }));
+        });
+        $httpBackend.verifyNoOutstandingRequest();
       }));
 
       it('isManual', inject(function ($httpBackend) {

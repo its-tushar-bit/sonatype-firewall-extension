@@ -12,6 +12,11 @@
     return Brain.getVersion ? (status === 404 || status === 403) : (status === 402);
   }
 
+  function isUnknown(gav) {
+    var matchState = gav && gav.matchState ? gav.matchState.toLowerCase() : null;
+    return matchState === 'unknown';
+  };
+
   function getErrorMessage(error) {
     var responseText = error[0],
         status = error[1],
@@ -301,7 +306,7 @@
         $scope.loaded = false;
         $scope.gav = gav;
 
-        if (gav && gav.appId && !$scope.isUnknown() ) {
+        if (gav && gav.appId && !isUnknown(gav)) {
           $http.get(Brain[clmEndpoint.type].getComponentDetailsListUrl(gav)).success(function (data) {
             $scope.componentDetailsList = data.list ? data.list : data;
             $scope.loaded = true;
@@ -321,9 +326,7 @@
     };
 
     $scope.isUnknown = function () {
-      var gav = GAV.get(),
-          matchState = gav && gav.matchState ? gav.matchState.toLowerCase() : null;
-      return matchState === 'unknown';
+      return isUnknown(GAV.get());
     };
 
     $scope.$on('reload', function () {
@@ -373,7 +376,7 @@
         $scope.componentDetails = null;
         last = gav;
 
-        if (gav && gav.appId) {
+        if (gav && gav.appId && !isUnknown(gav)) {
           $http.get(Brain[clmEndpoint.type].getArtifactInfoUrl(gav)).success(function (data) {
             $scope.componentDetails = data;
 

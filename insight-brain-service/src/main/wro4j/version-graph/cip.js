@@ -56,7 +56,7 @@
         };
 
         $rootScope.selectApplication = clmEndpoint.selectApplication;
-        $rootScope.canMigrate = clmEndpoint.migrate;
+        $rootScope.migrateSupported = clmEndpoint.migrate;
         $rootScope.type = clmEndpoint.type;
       }]);
 
@@ -422,6 +422,13 @@
       return $scope.componentDetails && $scope.componentDetails.identificationSource == 'Manual';
     };
 
+    $scope.canMigrate = function () {
+      var gav = GAV.get(),
+          selectedGav = GAV.getSelected();
+
+      return gav && selectedGav && gav.version !== selectedGav.version;
+    };
+
     $scope.getMaximumSeverity = function () {
       if ($scope.componentDetails) {
         if ($scope.componentDetails.securityVulnerabilities.length === 0) {
@@ -463,8 +470,6 @@
     $scope.markUpgrade = function () {
       $scope.$emit('markUpgrade', GAV.getSelected());
     };
-
-    $scope.canMigrate = clmEndpoint.migrate;
 
     $scope.$on('reload', function () {
       last = {};

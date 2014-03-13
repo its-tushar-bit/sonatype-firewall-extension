@@ -310,6 +310,25 @@ var clmEndpoint = clmEndpointTemplate = {
         expect(scope.isManual()).toBeFalsy();
       }));
 
+      it('canMigrate', inject(function (GAV) {
+        var gav = {
+              groupId : 'foo',
+              artifactId : 'bar',
+              version : '1'
+            },
+            selected = angular.copy(gav);
+
+        expect(scope.canMigrate()).toBeFalsy();
+
+        spyOn(GAV, 'get').andReturn(gav);
+        spyOn(GAV, 'getSelected').andReturn(selected);
+
+        expect(scope.canMigrate()).toBeFalsy();
+
+        selected.version = '2';
+        expect(scope.canMigrate()).toBeTruthy();
+      }));
+
       it('getMaximumSeverity', inject(function($httpBackend, GAV) {
         scope.componentDetails = {
           securityVulnerabilities : []

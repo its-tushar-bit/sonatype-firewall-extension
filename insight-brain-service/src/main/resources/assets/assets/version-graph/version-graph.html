@@ -136,7 +136,7 @@
 							</tr>
 							<tr>
 								<td><button class='btn' ng-click='viewDetails()'>View Details</button></td>
-								<td><button class='btn' ng-disabled='selectedGav' ng-click='markUpgrade()' ng-if='canMigrate'>Migrate</button></td>
+								<td><button class='btn' ng-disabled='!canMigrate()' ng-click='markUpgrade()' ng-if='migrateSupported'>Migrate</button></td>
 							</tr>
 						</table>
 					</div>

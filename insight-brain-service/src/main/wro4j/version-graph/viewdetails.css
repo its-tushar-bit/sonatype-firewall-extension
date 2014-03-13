@@ -1,11 +1,29 @@
 a { text-decoration : none }
 a:hover { text-decoration : underline }
-td.criticalScore { background: transparent url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAABCAYAAADn9T9+AAAAAXNSR0IArs4c6QAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB9wCCBUdIia9QRgAAAAdaVRYdENvbW1lbnQAAAAAAENyZWF0ZWQgd2l0aCBHSU1QZC5lBwAAABBJREFUCNdjfCut8p+BCAAAU6oCLXbQFe8AAAAASUVORK5CYII=) 0 0 repeat-y; }
-td.severeScore { background: transparent url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAABCAYAAADn9T9+AAAAAXNSR0IArs4c6QAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB9wCCBUeBN+dlyYAAAAdaVRYdENvbW1lbnQAAAAAAENyZWF0ZWQgd2l0aCBHSU1QZC5lBwAAABBJREFUCNdj/DFV4T8DEQAAZ2ACrl8w/gsAAAAASUVORK5CYII=) 0 0 repeat-y; }
-td.moderateScore { background: transparent url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAABCAYAAADn9T9+AAAAAXNSR0IArs4c6QAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB9wCCBUcL0EXDOQAAAAdaVRYdENvbW1lbnQAAAAAAENyZWF0ZWQgd2l0aCBHSU1QZC5lBwAAABBJREFUCNdj/H9P9D8DEQAAcfUC85DMExcAAAAASUVORK5CYII=) 0 0 repeat-y; }
-td.liberalScore { background: transparent url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAABCAYAAADn9T9+AAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAAEnQAABJ0Ad5mH3gAAAAHdElNRQfcAggVHSImvUEYAAAAHWlUWHRDb21tZW50AAAAAABDcmVhdGVkIHdpdGggR0lNUGQuZQcAAAAQSURBVBhXY8ybeeE/AxEAAGyMAtggMeakAAAAAElFTkSuQmCC) 0 0 repeat-y; }
-td.ignoreScore { background: transparent url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAABCAYAAADn9T9+AAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH3QYHBSEE/dp7WQAAAB1pVFh0Q29tbWVudAAAAAAAQ3JlYXRlZCB3aXRoIEdJTVBkLmUHAAAAEElEQVQI12NkcN/0n4EIAABKagH68UmfzgAAAABJRU5ErkJggg==) 0 0 repeat-y; }
-td.unspecifiedScore { background: transparent url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAABCAYAAADn9T9+AAAAAXNSR0IArs4c6QAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB9wCCBUcL0EXDOQAAAAdaVRYdENvbW1lbnQAAAAAAENyZWF0ZWQgd2l0aCBHSU1QZC5lBwAAABBJREFUCNdj/H9P9D8DEQAAcfUC85DMExcAAAAASUVORK5CYII=) 0 0 repeat-y; }
+
+.clm-bar {
+    border-left-style: solid !important;
+    border-left-width: 10px !important;
+}
+.clm-bar.severe {
+    border-left-color: #F7941E;
+}
+.clm-bar.critical {
+    border-left-color: #DB2852;
+}
+.clm-bar.moderate {
+    border-left-color: #F5C649;
+}
+.clm-bar.none {
+    border-left-color: #0047b2;
+}
+.clm-bar.ignore {
+    border-left-color: #0081c2;
+}
+.clm-bar.unspecified {
+    border-left-color: #9D9D9D;
+}
+
 td.grouped { border-top:0px }
 td.refCol { 
 	white-space: nowrap; 

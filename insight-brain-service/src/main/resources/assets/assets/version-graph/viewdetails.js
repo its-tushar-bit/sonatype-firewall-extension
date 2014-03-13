@@ -55,7 +55,7 @@
     }
     style += "line-height: normal;}";
 
-    style += "td.scoreCol {	font-weight: bold;color: #656565;padding: 8px 5px 2px 15px !important;";
+    style += "td.clm-bar {	font-weight: bold;color: #656565;padding: 8px 5px 2px 15px !important;";
     if (query.fontSize) {
       style += 'font-size:' + (3 + Number(query.fontSize)) + 'pt;}';
       style += " h5 { font-size: " + (1 + Number(query.fontSize)) + "pt;";

@@ -199,10 +199,20 @@ public abstract class AbstractComponentInfoResource
     }
     if (!component.getLicenseThreatGroups().isEmpty()) {
       int licenseThreatLevel = 0;
+      List<String> licenseThreatGroupNames = new ArrayList<>();
       for (LicenseThreatGroup licenseThreatGroup : component.getLicenseThreatGroups()) {
-        licenseThreatLevel = Math.max(licenseThreatLevel, licenseThreatGroup.getThreatLevel());
+        final int groupThreatLevel = licenseThreatGroup.getThreatLevel();
+        if (groupThreatLevel > licenseThreatLevel) {
+          licenseThreatLevel = groupThreatLevel;
+          licenseThreatGroupNames.clear();
+          licenseThreatGroupNames.add(licenseThreatGroup.getName());
+        } else if (groupThreatLevel == licenseThreatLevel) {
+          licenseThreatGroupNames.add(licenseThreatGroup.getName());
+        }
       }
       componentDetails.setLicenseThreatLevel(licenseThreatLevel);
+      Collections.sort(licenseThreatGroupNames, String.CASE_INSENSITIVE_ORDER);
+      componentDetails.setLicenseThreatGroupNames(licenseThreatGroupNames);
     }
     if (componentDetails.getSecurityVulnerabilities() != null) {
       for (SecurityVulnerability issue : componentDetails.getSecurityVulnerabilities()) {

@@ -347,6 +347,13 @@ public class TemporaryEntity
     return ltg;
   }
 
+  public LicenseThreatGroup newLicenseThreatGroup(String ownerId, String name, int threatLevel) {
+    LicenseThreatGroup ltg = new LicenseThreatGroup(ownerId, name, threatLevel);
+    licenseThreatGroupDAO.insert(ltg);
+    licenseThreatGroups.add(ltg);
+    return ltg;
+  }
+
   public LicenseThreatGroupLicense newLicenseThreatGroupLicense(String ownerId, String licenseThreatGroupId) {
     LicenseThreatGroupLicense licenseThreatGroupLicense = new LicenseThreatGroupLicense(ownerId, licenseThreatGroupId,
         "Apache-2.0");

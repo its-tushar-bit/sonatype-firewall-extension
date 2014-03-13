@@ -60,6 +60,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
@@ -229,15 +230,22 @@ public abstract class AbstractComponentInfoResourceTest
     Application application = tempEntity.newApplication(applicationPublicId, applicationPublicId, organization.getId());
     String appId = application.getId();
     // Create license threat groups
-    LicenseThreatGroupDAO licenseThreatGroupDAO = new LicenseThreatGroupDAO();
     LicenseThreatGroupLicenseDAO licenseThreatGroupLicenseDAO = new LicenseThreatGroupLicenseDAO();
-    LicenseThreatGroup licenseThreatGroup = new LicenseThreatGroup(appId, "Group1", 9);
-    licenseThreatGroupDAO.insert(licenseThreatGroup);
+    LicenseThreatGroup licenseThreatGroup = tempEntity.newLicenseThreatGroup(appId, "Group1", 9);
     Set<String> licenseIds = new LinkedHashSet<String>();
     licenseIds.add("Apache-2.0");
     licenseThreatGroupLicenseDAO.setLicenses(licenseThreatGroup.getId(), licenseIds);
-    licenseThreatGroup = new LicenseThreatGroup(appId, "Group2", 1);
-    licenseThreatGroupDAO.insert(licenseThreatGroup);
+
+    // Various LTG groups to test case insensitive ordering
+    licenseThreatGroup = tempEntity.newLicenseThreatGroup(appId, "groupA", 1);
+    licenseIds.clear();
+    licenseIds.add("GPL-2.0");
+    licenseThreatGroupLicenseDAO.setLicenses(licenseThreatGroup.getId(), licenseIds);
+    licenseThreatGroup = tempEntity.newLicenseThreatGroup(appId, "Groupb", 1);
+    licenseIds.clear();
+    licenseIds.add("GPL-2.0");
+    licenseThreatGroupLicenseDAO.setLicenses(licenseThreatGroup.getId(), licenseIds);
+    licenseThreatGroup = tempEntity.newLicenseThreatGroup(appId, "GroupC", 1);
     licenseIds.clear();
     licenseIds.add("GPL-2.0");
     licenseThreatGroupLicenseDAO.setLicenses(licenseThreatGroup.getId(), licenseIds);
@@ -272,11 +280,15 @@ public abstract class AbstractComponentInfoResourceTest
     Assert.assertEquals(artifactId, componentDetails.getArtifactId());
     Assert.assertEquals(version, componentDetails.getVersion());
     Assert.assertEquals(new Integer(9), componentDetails.getLicenseThreatLevel());
+    Assert.assertEquals(1, componentDetails.getLicenseThreatGroupNames().size());
+    Assert.assertEquals("Group1", componentDetails.getLicenseThreatGroupNames().get(0));
     componentDetails = componentDetailsList.getList().get(1);
     Assert.assertEquals(groupId, componentDetails.getGroupId());
     Assert.assertEquals(artifactId, componentDetails.getArtifactId());
     Assert.assertEquals("2.0.0", componentDetails.getVersion());
     Assert.assertEquals(new Integer(1), componentDetails.getLicenseThreatLevel());
+    Assert.assertEquals(3, componentDetails.getLicenseThreatGroupNames().size());
+    Assert.assertThat(componentDetails.getLicenseThreatGroupNames(), contains("groupA", "Groupb", "GroupC"));
   }
 
   @Test
@@ -369,6 +381,8 @@ public abstract class AbstractComponentInfoResourceTest
     Assert.assertEquals("GPL-2.0", overriddenLicense.getLicenseId());
     Assert.assertEquals("GPL-2.0", overriddenLicense.getLicenseName());
     Assert.assertEquals(new Integer(9), componentDetails.getLicenseThreatLevel());
+    Assert.assertEquals(1, componentDetails.getLicenseThreatGroupNames().size());
+    Assert.assertEquals("Copyleft", componentDetails.getLicenseThreatGroupNames().get(0));
   }
 
   @Test

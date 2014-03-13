@@ -21,8 +21,8 @@
 					</tr>
 				</thead>
 				<tr ng-repeat='issue in data.policyAlerts'>
-					<td class='scoreCol'
-						ng-class='{ criticalScore : issue.threat == 4, severeScore : issue.threat == 3, moderateScore : issue.threat == 2, ignoreScore : issue.threat == 1, liberalScore : issue.threat == 0, grouped : isPolicyGrouped($index) }'>
+					<td class='clm-bar'
+						ng-class='{ critical : issue.threat == 4, severe : issue.threat == 3, moderate : issue.threat == 2, none : issue.threat == 1, ignore : issue.threat == 0, grouped : isPolicyGrouped($index) }'>
 						<span ng-show='!isPolicyGrouped($index)'>{{issue.policyName}}</span> <span ng-show='isPolicyGrouped($index)'> </span>
 					</td>
 					<td ng-class='{ grouped : isPolicyGrouped($index) && isConstraintGrouped($index) }'><span
@@ -46,9 +46,9 @@
 					</tr>
 				</thead>
 				<tr>
-					<td>
-						<div
-							ng-class='{ red : data.licenseThreatLevel >= 8, orange : data.licenseThreatLevel >= 4 && data.licenseThreatLevel < 8, yellow : data.licenseThreatLevel >= 1 && data.licenseThreatLevel < 4, blue : data.licenseThreatLevel == 0, unknown : data.licenseThreatLevel == null }'></div>
+					<td class='clm-bar'
+                            ng-class='{ critical : data.licenseThreatLevel >= 8, severe : data.licenseThreatLevel >= 4 && data.licenseThreatLevel < 8, moderate : data.licenseThreatLevel >= 1 && data.licenseThreatLevel < 4, ignore : data.licenseThreatLevel == 0, severe : data.licenseThreatLevel == null }'>
+                      {{data.licenseThreatGroupNames.join('\n')}}
 					</td>
 					<td ng-show='data.overriddenLicenses.length > 0'><span ng-repeat='license in data.overriddenLicenses'>{{license}}<span
 							ng-show='!$last'>, </span></span></td>
@@ -73,8 +73,8 @@
 					</tr>
 				</thead>
 				<tr ng-repeat='issue in data.securityVulnerabilities'>
-					<td class='scoreCol'
-						ng-class='{ unspecifiedScore : issue.severity == null, criticalScore : issue.severity >= 7, severeScore : issue.severity < 7 && issue.severity >= 4, moderateScore : issue.severity < 4, grouped : isSvGrouped($index) }'>
+					<td class='clm-bar'
+						ng-class='{ unspecified : issue.severity == null, critical : issue.severity >= 7, severe : issue.severity < 7 && issue.severity >= 4, moderate : issue.severity < 4, grouped : isSvGrouped($index) }'>
 						<span ng-show='!isSvGrouped($index)'> <span ng-show='issue.severity != null'>{{issue.severity}}</span> <span
 							ng-show='issue.severity == null'>Unscored</span>
 					</span> <span ng-show='isSvGrouped($index)'> </span>

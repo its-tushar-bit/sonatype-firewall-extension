@@ -7,7 +7,8 @@
 (function() {
   'use strict';
   var query,
-      module;
+      module,
+      injector;
 
   function toLicenseNames(licenses) {
     var names = [];
@@ -110,17 +111,47 @@
     return retval;
   }
 
-  module = angular.module('viewdetails', []);
+  function waitOnInjector(method) {
+    if (injector) {
+      injector.invoke(method);
+    } else {
+      setTimeout(function () {
+        waitOnInjector(method);
+      }, 10);
+    }
+  }
+
+  function safeApply(scope, fn) {
+    if (scope.$$phase || scope.$root.$$phase) {
+      // already apply in progress, just call the function
+      fn();
+    }
+    else {
+      // otherwise wrap the function in apply
+      scope.$apply(fn);
+    }
+  }
+
+  angular.extend(window, {
+    'setClmHeaders': function setClmHeaders(headers) {
+      waitOnInjector(['$rootScope', '$http', function ($rootScope, $http) {
+        angular.extend($http.defaults.headers.common, headers);
+        safeApply($rootScope, function () {
+          $rootScope.$broadcast('reload');
+        });
+      }]);
+    }
+  });
+
+  module = angular.module('viewdetails', []).run(['$injector', function ($injector) {
+    injector = $injector;
+  }]);
 
   module.constant('query', query);
   module.controller('view', [
-    '$http', '$scope', 'query', '$window', '$q', function($http, $scope, query, $window, $q) {
-      function setClmHeaders(headers) {
-        angular.extend($http.defaults.headers.common, headers);
+    '$http', '$scope', 'query', '$q', function($http, $scope, query, $q) {
+      $scope.$on('reload', function () {
         $scope.reload();
-      }
-      angular.extend($window, {
-        'setClmHeaders' : setClmHeaders
       });
 
       // TODO Determine where the GAV is coming from, should it be a query string or should Eclipse call a JS function?
@@ -178,10 +209,10 @@
             }
           });
           $scope.data.securityVulnerabilities.sort(function(a, b) {
-            if (b.severity == null) {
-              return a.severity == null ? 0 : -1;
+            if (b.severity === null) {
+              return a.severity === null ? 0 : -1;
             }
-            else if (a.severity == null) {
+            else if (a.severity === null) {
               return 1;
             }
             return b.severity - a.severity;

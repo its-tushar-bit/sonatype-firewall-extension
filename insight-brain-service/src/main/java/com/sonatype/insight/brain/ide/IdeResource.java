@@ -82,7 +82,7 @@ public class IdeResource
    */
   @GET
   @Path("asset/{path:.*}")
-  public Response getAsset(@PathParam("path") String path, @Context HttpServletRequest req) throws IOException {
+  public Response getAsset(@PathParam("path") String path, @Context HttpServletRequest req) {
     UriBuilder uriBuilder = baseUrl.redirect().path("assets/version-graph/ide").path(path);
 
     return Response.temporaryRedirect(uriBuilder.build()).build();

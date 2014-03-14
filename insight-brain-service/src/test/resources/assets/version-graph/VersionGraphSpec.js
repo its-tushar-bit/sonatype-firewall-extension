@@ -222,7 +222,7 @@ var clmEndpoint = clmEndpointTemplate = {
         $httpBackend.verifyNoOutstandingRequest();
 
         spyOn(Brain[clmEndpoint.type], 'getComponentDetailsListUrl').andReturn('foo');
-        $httpBackend.expectGET(Brain[clmEndpoint.type].getComponentDetailsListUrl(angular.extend({ appId : 'myFirstApp' }, gav))).respond({ securityVulnerabilities : [] });
+        $httpBackend.expectGET(Brain[clmEndpoint.type].getComponentDetailsListUrl(angular.extend({ appId : 'myFirstApp' }, gav))).respond({ securityVulnerabilities : [], policyAlerts: [] });
         Insight.setGav(gav);
         $httpBackend.flush();
       }));
@@ -261,7 +261,7 @@ var clmEndpoint = clmEndpointTemplate = {
         $httpBackend.verifyNoOutstandingRequest();
 
         spyOn(Brain[clmEndpoint.type], 'getArtifactInfoUrl').andReturn('foo');
-        $httpBackend.expectGET(Brain[clmEndpoint.type].getArtifactInfoUrl(angular.extend({ appId : 'myFirstApp' }, gav))).respond({ securityVulnerabilities : [] });
+        $httpBackend.expectGET(Brain[clmEndpoint.type].getArtifactInfoUrl(angular.extend({ appId : 'myFirstApp' }, gav))).respond({ securityVulnerabilities : [], policyAlerts: [] });
         Insight.setGav(gav);
         $httpBackend.flush();
         expect(Brain[clmEndpoint.type].getArtifactInfoUrl).toHaveBeenCalledWith({
@@ -349,7 +349,8 @@ var clmEndpoint = clmEndpointTemplate = {
 
         spyOn(Brain[clmEndpoint.type], 'getArtifactInfoUrl').andReturn('foo');
         $httpBackend.expectGET(Brain[clmEndpoint.type].getArtifactInfoUrl(gav)).respond({
-          securityVulnerabilities : [{ severity : null }, { severity : 2 }, { severity : 9 }, { severity : 8 }]
+          securityVulnerabilities : [{ severity : null }, { severity : 2 }, { severity : 9 }, { severity : 8 }],
+          policyAlerts: []
         });
 
         scope.$apply(function () {
@@ -364,27 +365,61 @@ var clmEndpoint = clmEndpointTemplate = {
         scope.componentDetails = {
           securityVulnerabilities : []
         };
-        expect(scope.getColorClass()).toEqual(' artifactInfoSecurityUnspecified');
+        expect(scope.getColorClass()).toEqual(' unspecified');
 
         scope.componentDetails = {
           securityVulnerabilities : [{ severity : null }]
         };
-        expect(scope.getColorClass()).toEqual(' artifactInfoSecurityModerate');
+        expect(scope.getColorClass()).toEqual(' moderate');
 
         scope.componentDetails = {
           securityVulnerabilities : [{ severity : 0 }]
         };
-        expect(scope.getColorClass()).toEqual(' artifactInfoSecurityModerate');
+        expect(scope.getColorClass()).toEqual(' moderate');
 
         scope.componentDetails = {
           securityVulnerabilities : [{ severity : 4 }]
         };
-        expect(scope.getColorClass()).toEqual(' artifactInfoSecuritySevere');
+        expect(scope.getColorClass()).toEqual(' severe');
 
         scope.componentDetails = {
           securityVulnerabilities : [{ severity : 8 }]
         };
-        expect(scope.getColorClass()).toEqual(' artifactInfoSecurityCritical');
+        expect(scope.getColorClass()).toEqual(' critical');
+      }));
+
+      it('calculates highestPolicyThreat', inject(function($httpBackend, GAV) {
+        var gav = {
+          groupId : 'groupId',
+          artifactId : 'artifactId',
+          version : 'version',
+          appId : 'appId'
+        };
+        expect(scope.highestPolicyThreat).toEqual(null);
+
+        spyOn(Brain[clmEndpoint.type], 'getArtifactInfoUrl').andReturn('foo');
+        $httpBackend.expectGET(Brain[clmEndpoint.type].getArtifactInfoUrl(gav)).respond({
+          securityVulnerabilities : [],
+          policyAlerts: [{
+            trigger: {
+              policyName: 'foo',
+              threatLevel: 1
+            }
+           }, {
+            trigger: {
+              policyName: 'bar',
+              threatLevel: 10
+            }
+          }]
+        });
+
+        scope.$apply(function () {
+          GAV.set(gav);
+        });
+        $httpBackend.flush();
+
+        expect(scope.highestPolicyThreat.level).toEqual(10);
+        expect(scope.highestPolicyThreat.violatedPolicies).toEqual(2);
       }));
     });
 
@@ -399,7 +434,6 @@ var clmEndpoint = clmEndpointTemplate = {
         parentScope.componentDetails = [{
           "version": "sources",
           "popularity": 1,
-          "licenseConflict": false,
           "majorRevisionStep": false,
           "observedLicenseThreats": ["LIBERAL"],
           "declaredLicenseThreats": ["NOT-PROVIDED"],
@@ -408,7 +442,6 @@ var clmEndpoint = clmEndpointTemplate = {
         }, {
           "version": "4.0.4",
           "popularity": 4,
-          "licenseConflict": null,
           "majorRevisionStep": false,
           "observedLicenseThreats": ["NOT-PROVIDED"],
           "declaredLicenseThreats": ["NOT-PROVIDED"],
@@ -417,7 +450,6 @@ var clmEndpoint = clmEndpointTemplate = {
         }, {
           "version": "4.0.6",
           "popularity": 2,
-          "licenseConflict": null,
           "majorRevisionStep": false,
           "observedLicenseThreats": ["NOT-PROVIDED"],
           "declaredLicenseThreats": ["NOT-PROVIDED"],
@@ -426,7 +458,6 @@ var clmEndpoint = clmEndpointTemplate = {
         }, {
           "version": "4.1.9",
           "popularity": 13,
-          "licenseConflict": null,
           "majorRevisionStep": false,
           "observedLicenseThreats": ["NOT-PROVIDED"],
           "declaredLicenseThreats": ["NOT-PROVIDED"],
@@ -435,7 +466,6 @@ var clmEndpoint = clmEndpointTemplate = {
         }, {
           "version": "4.1.31",
           "popularity": 2,
-          "licenseConflict": null,
           "majorRevisionStep": false,
           "observedLicenseThreats": ["NOT-PROVIDED"],
           "declaredLicenseThreats": ["NOT-PROVIDED"],
@@ -444,7 +474,6 @@ var clmEndpoint = clmEndpointTemplate = {
         }, {
           "version": "4.1.34",
           "popularity": 0,
-          "licenseConflict": null,
           "majorRevisionStep": false,
           "observedLicenseThreats": ["NOT-PROVIDED"],
           "declaredLicenseThreats": ["NOT-PROVIDED"],
@@ -453,7 +482,6 @@ var clmEndpoint = clmEndpointTemplate = {
         }, {
           "version": "4.1.36",
           "popularity": 1,
-          "licenseConflict": null,
           "majorRevisionStep": false,
           "observedLicenseThreats": ["NOT-PROVIDED"],
           "declaredLicenseThreats": ["NOT-PROVIDED"],
@@ -462,7 +490,6 @@ var clmEndpoint = clmEndpointTemplate = {
         }, {
           "version": "5.0.16",
           "popularity": 3,
-          "licenseConflict": null,
           "majorRevisionStep": false,
           "observedLicenseThreats": ["NOT-PROVIDED"],
           "declaredLicenseThreats": ["NOT-PROVIDED"],
@@ -471,7 +498,6 @@ var clmEndpoint = clmEndpointTemplate = {
         }, {
           "version": "5.0.18",
           "popularity": 1,
-          "licenseConflict": null,
           "majorRevisionStep": false,
           "observedLicenseThreats": ["NOT-PROVIDED"],
           "declaredLicenseThreats": ["NOT-PROVIDED"],
@@ -480,7 +506,6 @@ var clmEndpoint = clmEndpointTemplate = {
         }, {
           "version": "5.0.28",
           "popularity": 67,
-          "licenseConflict": null,
           "majorRevisionStep": false,
           "observedLicenseThreats": ["NOT-PROVIDED"],
           "declaredLicenseThreats": ["NOT-PROVIDED"],
@@ -489,7 +514,6 @@ var clmEndpoint = clmEndpointTemplate = {
         }, {
           "version": "5.5.4",
           "popularity": 3,
-          "licenseConflict": false,
           "majorRevisionStep": false,
           "observedLicenseThreats": ["LIBERAL"],
           "declaredLicenseThreats": ["NOT-PROVIDED"],
@@ -498,7 +522,6 @@ var clmEndpoint = clmEndpointTemplate = {
         }, {
           "version": "5.5.7-alpha",
           "popularity": 2,
-          "licenseConflict": null,
           "majorRevisionStep": false,
           "observedLicenseThreats": ["NOT-PROVIDED"],
           "declaredLicenseThreats": ["NOT-PROVIDED"],
@@ -507,7 +530,6 @@ var clmEndpoint = clmEndpointTemplate = {
         }, {
           "version": "5.5.7",
           "popularity": 2,
-          "licenseConflict": null,
           "majorRevisionStep": false,
           "observedLicenseThreats": ["NOT-PROVIDED"],
           "declaredLicenseThreats": ["NOT-PROVIDED"],
@@ -516,7 +538,6 @@ var clmEndpoint = clmEndpointTemplate = {
         }, {
           "version": "5.5.8-alpha",
           "popularity": 1,
-          "licenseConflict": null,
           "majorRevisionStep": false,
           "observedLicenseThreats": ["NOT-PROVIDED"],
           "declaredLicenseThreats": ["NOT-PROVIDED"],
@@ -525,7 +546,6 @@ var clmEndpoint = clmEndpointTemplate = {
         }, {
           "version": "5.5.9-alpha",
           "popularity": 2,
-          "licenseConflict": null,
           "majorRevisionStep": false,
           "observedLicenseThreats": ["NOT-PROVIDED"],
           "declaredLicenseThreats": ["NOT-PROVIDED"],
@@ -534,7 +554,6 @@ var clmEndpoint = clmEndpointTemplate = {
         }, {
           "version": "5.5.9",
           "popularity": 8,
-          "licenseConflict": null,
           "majorRevisionStep": false,
           "observedLicenseThreats": ["NOT-PROVIDED"],
           "declaredLicenseThreats": ["NOT-PROVIDED"],
@@ -543,7 +562,6 @@ var clmEndpoint = clmEndpointTemplate = {
         }, {
           "version": "5.5.12",
           "popularity": 3,
-          "licenseConflict": null,
           "majorRevisionStep": false,
           "observedLicenseThreats": ["NOT-PROVIDED"],
           "declaredLicenseThreats": ["NOT-PROVIDED"],
@@ -552,7 +570,6 @@ var clmEndpoint = clmEndpointTemplate = {
         }, {
           "version": "5.5.15",
           "popularity": 14,
-          "licenseConflict": false,
           "majorRevisionStep": false,
           "observedLicenseThreats": ["NOT-PROVIDED"],
           "declaredLicenseThreats": ["LIBERAL"],
@@ -561,7 +578,6 @@ var clmEndpoint = clmEndpointTemplate = {
         }, {
           "version": "5.5.23",
           "popularity": 100,
-          "licenseConflict": false,
           "majorRevisionStep": false,
           "observedLicenseThreats": ["LIBERAL"],
           "declaredLicenseThreats": ["LIBERAL"],
@@ -586,7 +602,6 @@ var clmEndpoint = clmEndpointTemplate = {
          expect(GAV.getSelected()).toEqual({
            "version": "5.5.23",
            "popularity": 100,
-           "licenseConflict": false,
            "majorRevisionStep": false,
            "observedLicenseThreats": ["LIBERAL"],
            "declaredLicenseThreats": ["LIBERAL"],

@@ -1,4 +1,4 @@
-<div>
+<div class='content'>
 	<script type='text/ng-template' id='error'>
 		<div class='alert alert-error cipContentBox' ng-if='errorMessage'>
 			<h5>Error</h5>
@@ -75,6 +75,18 @@
 				<div class='cip-box' ng-controller='DetailsController'>
 					<div ng-show='loaded' id='detailsparent'>
 						<table id='infoPanelArtifactTable' style='border-collapse: collapse'>
+                            <tr id='artifactInfoGroupIdRow'>
+                                <td>Group:</td>
+                                <td>{{componentDetails.groupId}}</td>
+                            </tr>
+                            <tr id='artifactInfoArtifactIdRow'>
+                                <td>Artifact:</td>
+                                <td>{{componentDetails.artifactId}}</td>
+                            </tr>
+                            <tr id='artifactInfoVersionRow'>
+                                <td>Version:</td>
+                                <td>{{componentDetails.version}}</td>
+                            </tr>
 							<tr id='artifactInfoDeclaredLicenseRow' ng-if="isManual()">
 								<td>License:</td>
 								<td>Unavailable, Claimed Component</td>
@@ -91,35 +103,34 @@
 								<td>Observed License:</td>
 								<td licenses='componentDetails.observedLicenses'></td>
 							</tr>
-							<tr id='artifactInfoGroupIdRow'>
-								<td>Group:</td>
-								<td>{{componentDetails.groupId}}</td>
-							</tr>
-							<tr id='artifactInfoArtifactIdRow'>
-								<td>Artifact:</td>
-								<td>{{componentDetails.artifactId}}</td>
-							</tr>
-							<tr id='artifactInfoVersionRow'>
-								<td>Version:</td>
-								<td>{{componentDetails.version}}</td>
-							</tr>
+                            <tr>
+                                <td>Highest Policy Threat:</td>
+                                <td>
+                                    <div class='clm-chiclet'
+                                        ng-class='{ critical : highestPolicyThreat.level > 7,
+                                        severe : highestPolicyThreat.level <= 7 && highestPolicyThreat.level > 3,
+                                        moderate : highestPolicyThreat.level <= 3 && highestPolicyThreat.level > 1,
+                                        none : highestPolicyThreat.level == 1,
+                                        ignore : highestPolicyThreat.level == 0,
+                                        unspecified : highestPolicyThreat.level == null }'>
+                                        {{highestPolicyThreat.level != null ? highestPolicyThreat.level : 'NA'}}
+                                    </div>
+                                    <span ng-if='highestPolicyThreat.violatedPolicies > 1'>within {{highestPolicyThreat.violatedPolicies}} policies</span>
+                                </td>
+                            </tr>
 							<tr id='artifactInfoSecurityThreatRow'>
 								<td>Highest Security Threat:</td>
 								<td ng-if="isManual()">
 									Unavailable, Claimed Component
 								</td>
 								<td ng-if="!isManual()">
-									<div class="artifactInfoSecurity {{getColorClass()}}">{{getMaximumSeverity()}}</div>
+									<div class="clm-chiclet {{getColorClass()}}">{{getMaximumSeverity()}}</div>
 									<span ng-if='componentDetails.securityVulnerabilities.length > 1'> within {{componentDetails.securityVulnerabilities.length}} security issues</span>
 								</td>
 							</tr>
-							<tr>
-								<td>Patch Available:</td>
-								<td>None</td>
-							</tr>
 							<tr id='artifactInfoCatalogDateRow'>
 								<td>Cataloged:</td>
-								<td ng-if='componentDetails.catalogDate'>{{componentDetails.catalogDate | ago}} ago</td>
+								<td ng-if='componentDetails.catalogDate'>{{componentDetails.catalogDate | ago}}</td>
 								<td ng-if='!componentDetails.catalogDate'>-</td>
 							</tr>
 							<tr id='artifactInfoSimilarityScoreRow' ng-if='componentDetails.matchState'>

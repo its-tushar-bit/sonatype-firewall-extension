@@ -1,3 +1,7 @@
+.content {
+    padding: 5px;
+}
+
 #infoPanelArtifactTable tr td:first-child {
     font-size:11px;
     color:#333333;
@@ -21,37 +25,42 @@
 	display: inline-block;
 }
 
-.artifactInfoSecurity {
-	display:inline-block;
+.clm-chiclet {
+    display:inline-block;
     height: 18px;
-    padding: 0px 5px;
+    width: 18px;
+    padding: 0 5px;
     text-align: center;
     border-radius: 2px;
-}
-
-.artifactInfoSecurityCritical {
-    background-color:#ee1b24;
-    border: 1px solid #b71218;
     color:white;
 }
 
-.artifactInfoSecuritySevere {
-    background-color:#f7941d;
-    border: 1px solid #c67a22;
+.clm-chiclet.critical {
+    background-color:#DB2852;
+}
+
+.clm-chiclet.severe {
+    background-color:#F7941E;
+}
+
+.clm-chiclet.moderate {
+    background-color:#F5C649;
     color:black;
 }
 
-.artifactInfoSecurityModerate {
-    background-color:#fedf15;
-    border: 1px solid #ddbe18;
-    color:black;
+.clm-chiclet.none {
+  background-color:#0047b2;
 }
 
-.artifactInfoSecurityUnspecified {
+.clm-chiclet.ignore {
+  background-color:#0081c2;
+}
+
+.clm-chiclet.unspecified {
     background-color:#d9dade;
-    border: 1px solid #84858a;
     color:#444549;
 }
+
 #aiVersionChartContainer {
 	background:rgb(247,251,254);
 	border-radius:4px;
@@ -76,7 +85,7 @@
 	background-repeat:no-repeat;
 	width:328px;
 	min-height:50px;
-	padding-left:20px;
+	padding-left:40px;
 }
 
 .cip-box {

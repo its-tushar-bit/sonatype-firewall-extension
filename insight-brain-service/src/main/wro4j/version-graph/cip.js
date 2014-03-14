@@ -385,6 +385,7 @@
 
       if (!angular.equals(last, gav)) {
         $scope.componentDetails = null;
+        $scope.highestPolicyThreat = null;
         last = gav;
 
         if (gav && gav.appId && !isUnknown(gav)) {
@@ -410,6 +411,14 @@
               }
               return b.severity - a.severity;
             });
+
+            $scope.componentDetails.policyAlerts.sort(function(alertA, alertB) {
+              return alertB.trigger.threatLevel - alertA.trigger.threatLevel;
+            });
+            $scope.highestPolicyThreat = {
+              level: $scope.componentDetails.policyAlerts.length > 0 ? $scope.componentDetails.policyAlerts[0].trigger.threatLevel : null,
+              violatedPolicies: $scope.componentDetails.policyAlerts.length
+            };
           }).error(function () {
             $scope.setError(arguments);
           });
@@ -446,19 +455,16 @@
     $scope.getColorClass = function () {
       if ($scope.componentDetails) {
         if ($scope.componentDetails.securityVulnerabilities.length === 0) {
-          return ' artifactInfoSecurityUnspecified';
+          return ' unspecified';
         }
         else if ($scope.componentDetails.securityVulnerabilities[0].severity >= 8) {
-          return ' artifactInfoSecurityCritical';
+          return ' critical';
         }
         else if ($scope.componentDetails.securityVulnerabilities[0].severity >= 4) {
-          return ' artifactInfoSecuritySevere';
-        }
-        else if ($scope.componentDetails.securityVulnerabilities[0].severity >= 0) {
-          return ' artifactInfoSecurityModerate';
+          return ' severe';
         }
         else {
-          return ' artifactInfoSecurityModerate';
+          return ' moderate';
         }
       }
     };
@@ -495,7 +501,6 @@
                      '<div id="aiVersionChartLabels"></div>' +
                      '<div id="aiVersionChartViz" style="overflow:hidden"></div>' +
                    '</div>' +
-                   '<div id="custom">No Custom Metadata</div>' +
                  '</div>',
       link : function (scope, element) {
         scope.$watch('versions', function (versions) {
@@ -527,8 +532,6 @@
                 scope.$emit('viewDetails', version);
               }
             });
-            $('#custom').height($('#custom').height() + $('#detailsparent').outerHeight() -
-                    $('#aiVersionChart').height());
           }
         });
       }
@@ -561,32 +564,32 @@
 
       if (diff > 12 * 30 * 24 * 60 * 60 * 1000) {
         val = diff / (12 * 30 * 24 * 60 * 60 * 1000);
-        unit = 'Year';
+        unit = 'year';
       }
       else if (diff > 30 * 24 * 60 * 60 * 1000) {
         val = diff / (30 * 24 * 60 * 60 * 1000);
-        unit = 'Month';
+        unit = 'month';
       }
       else if (diff > 24 * 60 * 60 * 1000) {
         val = diff / (24 * 60 * 60 * 1000);
-        unit = 'Day';
+        unit = 'day';
       }
       else if (diff > 60 * 60 * 1000) {
         val = diff / (60 * 60 * 1000);
-        unit = 'Hour';
+        unit = 'hour';
       }
       else if (diff > 60 * 1000) {
         val = diff / (60 * 1000);
-        unit = 'Minute';
+        unit = 'minute';
       }
       else {
-        return 'Seconds Ago';
+        return 'seconds ago';
       }
       val = Math.floor(val);
       if (val > 1) {
         unit += 's';
       }
-      return val + ' ' + unit + ' Ago';
+      return val + ' ' + unit + ' ago';
     };
   });
 

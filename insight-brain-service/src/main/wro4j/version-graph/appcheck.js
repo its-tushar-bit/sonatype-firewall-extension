@@ -31,16 +31,18 @@
     return !isNullOrUndefined(obj);
   }
 
-  var blue = '#6e99d0',
+  var blue = '#0047b2',
+      orange = '#F7941E',
+      yellow = '#F5C649',
+      red = '#DB2852',
       grey = '#d9dade',
-      orange = '#f7941d',
-      yellow = '#fedf15',
-      red = '#ee1b24',
+
       darkRed = '#b71218',
       darkOrange = '#c67a22',
       darkYellow = '#ddbe18',
       darkBlue = '#6185b7',
       darkGrey = '#84858a',
+
       bgBlue = '#f7fbfe',
       bgBorder = '#eef2fb',
       textColor = '#575757',
@@ -584,7 +586,7 @@
             return config.topPadding + this.contentRows(config) * (config.barWidth + config.barGap) + 1;
           },
           contentRows: function(config) {
-            return config.partialDisplay ? 4 : 12;
+            return config.partialDisplay ? 4 : 10;
           },
           bottomPadding: function(config) {
             return config.partialDisplay ? 20 : 0;
@@ -631,33 +633,17 @@
         };
 
     function getSeverity(threatLevel) {
-      if (typeof threatLevel === 'number') {
-        if (threatLevel >= 8) {
-          return 0; // CRITICAL
-        }
-        else if (threatLevel >= 4) {
-          return 1; // SEVERE
-        }
-        else if (threatLevel > 0) {
-          return 2; //MODERATE;
-        }
-        else if (threatLevel === 0) {
-          return 3;
-        }
+      if (threatLevel >= 8) {
+        return 0; // CRITICAL
       }
-      else if (typeof threatLevel === 'string') {
-        if (threatLevel === 'COPYLEFT') {
-          return 0;
-        }
-        else if (threatLevel === 'NOT-PROVIDED' || threatLevel === 'NON-STANDARD') {
-          return 1;
-        }
-        else if (threatLevel === 'WEAKCOPYLEFT') {
-          return 2;
-        }
-        else if (threatLevel === 'LIBERAL') {
-          return 3;
-        }
+      else if (threatLevel >= 4) {
+        return 1; // SEVERE
+      }
+      else if (threatLevel > 0) {
+        return 2; //MODERATE;
+      }
+      else if (threatLevel === 0) {
+        return 3;
       }
       return 4;
     }
@@ -668,7 +654,6 @@
             versions: [],
             versionPopularity: [],
             majorRevIndices: [],
-            conflictVersions: [],
             effectiveLicenses: [],
             securityLevels: [
               [],
@@ -688,9 +673,6 @@
         }
         if (item.majorRevisionStep) {
           data.majorRevIndices.push(index);
-        }
-        if (item.licenseConflict) {
-          data.conflictVersions.push(index);
         }
         data.effectiveLicenses.push(getSeverity(item.effectiveLicenseThreat || item.licenseThreatLevel));
         if (item.securityThreats) {
@@ -899,19 +881,6 @@
       }).fillStyle('#edf1f4');
     }
 
-    function createLicenseConflictPanel(vis, config) {
-      //TODO: we may be supporting adding a second color circle here for unknown license conflicts
-      var inner = vis.add(pv.Panel).width(config.width).top(config.top).height(config.spacer).left(config.left);
-
-      inner.add(pv.Dot).data(config.data.conflictVersions).left(function(d) {
-        return config.barWidth / 2 + getLeftPositionFn(config)(d);
-      }).radius(config.barWidth / 2).fillStyle(red).strokeStyle(darkRed);
-
-      config.top += config.spacer * 2;
-
-      return vis;
-    }
-
     function createEffectiveLicensePanel(vis, config) {
       var inner = vis.add(pv.Panel).width(config.width).top(config.top).height(config.spacer).left(config.left);
 
@@ -934,15 +903,15 @@
           }).strokeStyle(function(d) {
             switch (d) {
               case 0:
-                return darkRed;
+                return red;
               case 1:
-                return darkOrange;
+                return orange;
               case 2:
-                return darkYellow;
+                return yellow;
               case 3:
-                return darkBlue;
+                return blue;
               default:
-                return darkGrey;
+                return grey;
             }
           });
 
@@ -951,46 +920,9 @@
       return vis;
     }
 
-    function createLicenseLevelPanel(vis, config, data) {
-      $.each(data, function(index, item) {
-        var offset = (index + 1 >= data.length) ? 0 : 3,
-            row = vis.add(pv.Panel).width(config.width).top(config.top).height(config.spacer).left(config.left),
-            strokeColor = darkGrey,
-            fillColor = grey;
-
-        switch (index) {
-          case 0:
-            fillColor = red;
-            strokeColor = darkRed;
-            break;
-          case 1:
-            fillColor = orange;
-            strokeColor = darkOrange;
-            break;
-          case 2:
-            fillColor = yellow;
-            strokeColor = darkYellow;
-            break;
-          case 3:
-            fillColor = blue;
-            strokeColor = darkBlue;
-            break;
-        }
-        row.add(pv.Dot).data(item).left(function(d) {
-          return config.barWidth / 2 + getLeftPositionFn(config)(d);
-        }).radius(config.barWidth / 2).fillStyle(fillColor).strokeStyle(strokeColor);
-
-        config.top += config.spacer;
-      });
-      config.top += config.spacer;
-
-      return vis;
-    }
-
     function createSecurityLevelPanel(vis, config) {
       $.each(config.data.securityLevels, function(index, item) {
-        var offset = (index + 1 >= config.data.securityLevels.length) ? 0 : 3,
-            row = vis.add(pv.Panel).width(config.width).top(config.top).height(config.spacer).left(config.left),
+        var row = vis.add(pv.Panel).width(config.width).top(config.top).height(config.spacer).left(config.left),
             strokeColor = darkGrey,
             fillColor = grey;
 
@@ -1084,7 +1016,7 @@
           .strokeStyle(gridLine)
           .strokeDasharray('1 1');
 
-      $.each(config.partialDisplay ? [] : [5, 7, 9, 10, 11], function(index, row) {
+      $.each(config.partialDisplay ? [] : [5, 7, 8, 9], function(index, row) {
         fillRow(vizContent, $.extend({}, config, { top: config.top + (row - 1) * config.spacer }));
       });
 
@@ -1104,9 +1036,6 @@
 
       //these values are all hidden unless paid for
       if (!config.partialDisplay) {
-        vizLabels.add(pv.Label).left(0).top(config.top + 10).textAlign("left").text("License Conflict");
-        createLicenseConflictPanel(vizContent, config);
-
         vizLabels.add(pv.Label).left(0).top(config.top + 10).textAlign("left").text("License Risk");
         createEffectiveLicensePanel(vizContent, config);
 

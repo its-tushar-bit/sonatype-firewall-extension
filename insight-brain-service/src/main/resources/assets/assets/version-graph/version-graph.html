@@ -141,6 +141,12 @@
 								<td>Identification Source:</td>
 								<td>{{componentDetails.identificationSource}}</td>
 							</tr>
+							<tr id='artifactWebsite' ng-if='componentDetails.website'>
+  							  <td>Website:</td>
+							  <td>
+							    <a href='{{componentDetails.website}}' target='_blank'><i class='icon-info-sign'></i></a>
+							  </td>
+							</tr>
 							<tr id='artifactInfoClaimComment' ng-if='componentDetails.identificationSourceComment'>
 								<td>Identification Comment:</td>
 								<td>{{componentDetails.identificationSourceComment}}</td>

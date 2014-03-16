@@ -584,7 +584,8 @@ clmEndpoint = clmEndpointTemplate = {
           "observedLicenseThreats": ["LIBERAL"],
           "declaredLicenseThreats": ["LIBERAL"],
           "effectiveLicenseThreat": "LIBERAL",
-          "securityThreats": ["Moderate", "Severe"]
+          "securityThreats": ["Moderate", "Severe"],
+          "website": "http://tomcat.apache.org/"
         }];
 
         GAV.set({
@@ -608,7 +609,8 @@ clmEndpoint = clmEndpointTemplate = {
            "observedLicenseThreats": ["LIBERAL"],
            "declaredLicenseThreats": ["LIBERAL"],
            "effectiveLicenseThreat": "LIBERAL",
-           "securityThreats": ["Moderate", "Severe"]
+           "securityThreats": ["Moderate", "Severe"],
+           "website": "http://tomcat.apache.org/"
          });
       }));
 

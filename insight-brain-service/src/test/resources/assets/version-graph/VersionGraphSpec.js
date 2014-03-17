@@ -276,7 +276,7 @@ var clmEndpoint = clmEndpointTemplate = {
           appId: 'myFirstApp',
           version: '2'
         }))).respond({
-          securityVulnerabilities: []
+          securityVulnerabilities: [], policyAlerts: []
         });
         scope.$apply(function () {
           GAV.setSelected(angular.extend({}, gav, { version : '2' }));

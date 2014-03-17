@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.trending;
 
-import java.io.IOException;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.inject.Inject;
@@ -61,7 +60,7 @@ public class TrendingReportAsyncProcessor
           TrendingReport report = processor.calculate(newProgressMonitor());
           cache.writeCache(report);
         }
-        catch (IOException e) {
+        catch (Exception e) {
           log.error("Could not generate trending report", e);
         }
         finally {

@@ -76,6 +76,11 @@ div,p,a,li,td {
 									<td valign="baseline"><span style="font-family: Helvetica, Arial, sans-serif; font-size: 10px; color: #9E9E9E;">WHEN</span></td>
 									<td valign="baseline"><span style="font-family: Helvetica, Arial, sans-serif; color: #5D5D5D; font-size: 13px; line-height: 14px;">${policyThreatTime}</span></td>
 								</tr>
+								<#if applicationContactName?has_content>
+								<tr>
+									<td valign="baseline"><span style="font-family: Helvetica, Arial, sans-serif; font-size: 10px; color: #9E9E9E;">CONTACT</span></td>
+									<td valign="baseline"><span style="font-family: Helvetica, Arial, sans-serif; color: #5D5D5D; font-size: 13px; line-height: 14px;"><#if applicationContactEmail?has_content><a href="mailto:${applicationContactEmail}">${applicationContactName}</a><#else>${applicationContactName}</#if></span></td>
+								</tr></#if>
 							</table>
 						</td>
 					</tr>

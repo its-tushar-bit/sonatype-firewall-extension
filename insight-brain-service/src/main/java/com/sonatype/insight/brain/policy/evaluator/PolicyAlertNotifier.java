@@ -24,10 +24,14 @@ import javax.inject.Named;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
+import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.actions.ActionTypes;
 import com.sonatype.insight.brain.model.policy.actions.NotifyActionType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
+import com.sonatype.insight.brain.organization.ApplicationAdapter;
+import com.sonatype.insight.brain.organization.ContactDTO;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightMail;
 import com.sonatype.insight.brain.utils.TemplateUtils;
@@ -54,10 +58,15 @@ public class PolicyAlertNotifier
 
   private final BaseUrl baseUrl;
 
+  private final ApplicationDAO applicationDAO = new ApplicationDAO();
+
+  private final ApplicationAdapter applicationAdapter;
+
   @Inject
-  public PolicyAlertNotifier(InsightMail mail, BaseUrl baseUrl) {
+  public PolicyAlertNotifier(InsightMail mail, BaseUrl baseUrl, ApplicationAdapter applicationAdapter) {
     this.mail = mail;
     this.baseUrl = baseUrl;
+    this.applicationAdapter = applicationAdapter;
   }
 
   /**
@@ -142,8 +151,13 @@ public class PolicyAlertNotifier
       final Stage stage, final List<PolicyAlert> policyAlerts) throws IOException
   {
     final Map<String, Object> model = createPolicyMailModel(baseUrl.get(), mail.getCdnUrl(), applicationPublicId,
-        scanId, stage, policyAlerts);
+        scanId, stage, getContact(applicationPublicId), policyAlerts);
     return TemplateUtils.render(getPolicyThreatsTemplate(), model);
+  }
+
+  private ContactDTO getContact(String applicationPublicId) {
+    Application application = applicationDAO.getByPublicIdNotNull(applicationPublicId);
+    return applicationAdapter.getContact(application.getContactInternalName());
   }
 
   private synchronized static Template getPolicyThreatsTemplate() throws IOException {
@@ -154,7 +168,8 @@ public class PolicyAlertNotifier
   }
 
   static Map<String, Object> createPolicyMailModel(final String serverUrl, final String cdnUrl,
-      final String applicationPublicId, final String scanId, final Stage stage, final List<PolicyAlert> policyAlerts)
+      final String applicationPublicId, final String scanId, final Stage stage, ContactDTO contact,
+      final List<PolicyAlert> policyAlerts)
   {
     MailPolicyAlertCounts counts = new MailPolicyAlertCounts(policyAlerts);
 
@@ -186,6 +201,10 @@ public class PolicyAlertNotifier
     model.put("policyThreatDarkBlueCount", counts.darkBlue);
     model.put("policyThreatBlueCount", counts.blue);
     model.put("actionTypes", ActionTypes.getAll());
+    if (contact != null) {
+      model.put("applicationContactEmail", contact.getEmail());
+      model.put("applicationContactName", contact.getDisplayName());
+    }
 
     return model;
   }

@@ -47,6 +47,7 @@ import com.sonatype.insight.brain.model.policy.conditions.LicenseStatusCondition
 import com.sonatype.insight.brain.model.policy.conditions.MatchStateConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityConditionType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
+import com.sonatype.insight.brain.organization.ContactDTO;
 import com.sonatype.insight.brain.policy.PolicyResource;
 import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.report.ReportResource;
@@ -654,7 +655,7 @@ public class PolicyEvaluateResourceTest
     PolicyEvaluationResult policyEval = JsonHelpers.fromJson(response.getResponseBody(), PolicyEvaluationResult.class);
     List<PolicyAlert> policyAlerts = policyEval.getAlerts();
     Map<String, Object> model = PolicyAlertNotifier.createPolicyMailModel(serverUrl, cdnUrl, applicationPublicId,
-        scanId, stage, policyAlerts);
+        scanId, stage, new ContactDTO(null, "displayName", "email", null), policyAlerts);
     Assert.assertNotNull(model);
     Assert.assertEquals(policyAlerts, model.get("policyAlerts"));
     Assert.assertEquals(cdnUrl, model.get("cdnUrl"));
@@ -666,6 +667,8 @@ public class PolicyEvaluateResourceTest
     Assert.assertEquals(21, model.get("policyThreatBlueCount"));
     Assert.assertEquals("Build", model.get("policyThreatStage"));
     Assert.assertEquals(applicationPublicId, model.get("policyThreatApp"));
+    Assert.assertEquals("displayName", model.get("applicationContactName"));
+    Assert.assertEquals("email", model.get("applicationContactEmail"));
     Assert.assertNotNull(model.get("policyThreatTime"));
   }
 

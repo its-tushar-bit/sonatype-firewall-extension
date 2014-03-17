@@ -394,4 +394,52 @@ describe('AngularCommon', function() {
       expect(truncated.length).toBe(10);
     });
   });
+
+  describe('multiSelect', function () {
+    var directiveScope = null;
+
+    beforeEach(inject(function ($compile) {
+      var element = angular.element('<div  multi-select items="tags" selected-ids="appliedTagIds"></div>');
+      scope.tags = [{ id : 'foo', name : 'Foo' }, { id : 'bar', name : 'Bar' }];
+      scope.appliedTagIds = [];
+      scope.$apply(function () {
+        $compile(element)(scope);
+      });
+      directiveScope = scope.$$childHead
+    }));
+
+    it('getText', function () {
+      expect(directiveScope.getText()).toEqual('None selected');
+      scope.$apply(function () {
+        scope.appliedTagIds = ['bar'];
+      });
+      expect(directiveScope.getText()).toEqual('Bar');
+      scope.$apply(function () {
+        scope.appliedTagIds = ['foo', 'bar'];
+      });
+      expect(directiveScope.getText()).toEqual('Foo, Bar');
+    });
+
+    it('updateSelectedIds', function () {
+      expect(scope.appliedTagIds).toEqual([]);
+
+      directiveScope.$apply(function () {
+        directiveScope.selected['foo'] = true; // normally checkbox model does this
+        directiveScope.updateSelectedIds('foo');
+      });
+      expect(scope.appliedTagIds).toEqual(['foo']);
+
+      directiveScope.$apply(function () {
+        directiveScope.selected['bar'] = true; // normally checkbox model does this
+        directiveScope.updateSelectedIds('bar');
+      });
+      expect(scope.appliedTagIds).toEqual(['foo', 'bar']);
+
+      directiveScope.$apply(function () {
+        directiveScope.selected['bar'] = false; // normally checkbox model does this
+        directiveScope.updateSelectedIds('bar');
+      });
+      expect(scope.appliedTagIds).toEqual(['foo']);
+    });
+  });
 });

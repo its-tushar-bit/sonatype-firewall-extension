@@ -743,60 +743,77 @@ var AngularUtils = {
   * Angular directive for bootstrap-multiselect. Does not do a collection watch for selected items so if this
   * collection is modified outside of the multi select control, update to use $watchCollection
   */
-  angularCommon.directive('multiSelect', ['$timeout', function($timeout) {
+  angularCommon.directive('multiSelect', [function () {
     return {
-      scope: {
-        items: '=',
-        selectedIds: '='
+      template : '<div class="btn-group multiselect" ng-class="{ open : open }">' +
+                   '<button class="btn" ng-click="open = !open"><div>{{getText()}}</div> <span class="caret"></span></button>' +
+                   '<ul class="dropdown-menu multiselect-container">' +
+                     '<li ng-if="items.length > 9"><input type="text" ng-model="filter.name" style="margin:0;width:160px" placeholder="Search"></li>' +
+                     '<li ng-repeat="item in items | filter: { name : filter.name }">' +
+                       '<label class="checkbox">' +
+                         '<input type="checkbox" ng-model="selected[item.id]" ng-change="updateSelectedIds(item.id)">' +
+                         '<span class="multi-dropdown-item">{{item.name}}</span><span class="multi-dropdown-item-color {{item.color}}Label"></span>' +
+                       '</label>' +
+                     '</li>' +
+                   '</ul>' +
+                 '</div>',
+      scope : {
+        items : '=',
+        selectedIds : '='
       },
-      template: '<select multiple="multiple"><option ng-repeat="item in items" value="{{item.id}}" color="{{item.color}}">{{ item.name }}</option></select>',
-      link: function(scope, element) {
-        var selectElement = element.children('select');
-        function updateItems() {
-          $timeout(function() {
-            selectElement.multiselect('rebuild');
-          }, 0);
-        }
-        function updateSelections() {
-          if (!scope.selectedIds) {
-            return;
-          }
-          for (var i = 0; i < scope.items.length; i++) {
-            if (scope.selectedIds.indexOf(scope.items[i].id) > -1) {
-              selectElement.multiselect('select', scope.items[i].id);
-            } else {
-              selectElement.multiselect('deselect', scope.items[i].id);
-            }
+      link : function (scope, element) {
+        function updateSelection() {
+          scope.selected = {};
+          if (scope.selectedIds) {
+            angular.forEach(scope.selectedIds, function (id) {
+              scope.selected[id] = true;
+            });
           }
         }
-        scope.$watch('items', updateItems);
-        scope.$watch('selectedIds', updateSelections);
-        selectElement.multiselect({
-          onChange: function(element, checked) {
-            if (!scope.selectedIds) {
-              return;
-            }
-            if (!checked) {
-              scope.$apply(function() {
-                for (var i = 0; i < scope.selectedIds.length; i++) {
-                  if (scope.selectedIds[i] === element.attr('value')) {
-                    scope.selectedIds.splice(i, 1);
-                  }
-                }
-              });
-            } else {
-              scope.$apply(function() {
-                scope.selectedIds.push(element.attr('value'));
+        function hide(event) {
+          if (scope.open) {
+            var parents = $(event.target).parentsUntil(element);
+            if (parents.length > 0 && parents[parents.length-1].tagName === 'HTML') {
+              scope.$apply(function () {
+                scope.open = false;
               });
             }
-          },
-          label: function(element) {
-            return '<span class="multi-dropdown-item ng-binding">' + $(element).html() + '</span><span class="multi-dropdown-item-color ' + $(element).attr('color') + 'Label"></span>';
-          },
-          numberDisplayed: 6,
-          selectedClass: null,
-          maxHeight: 300,
-          enableCaseInsensitiveFiltering: scope.items.length > 10
+          }
+        }
+
+        scope.getText = function () {
+          if (!scope.selectedIds || scope.selectedIds.length === 0) {
+            return 'None selected';
+          }
+          var names = '';
+          angular.forEach(scope.items, function (item) {
+            if (scope.selected[item.id]) {
+              names += item.name + ', ';
+            }
+          });
+
+          return names.substring(0, names.length - 2);
+        };
+
+        scope.updateSelectedIds = function (id) {
+          if (scope.selected[id]) {
+            /* add */
+            scope.selectedIds.push(id);
+          } else if (scope.selectedIds) {
+            /* remove */
+            var index = scope.selectedIds.indexOf(id);
+            if (index !== -1) {
+              scope.selectedIds.splice(index, 1);
+            }
+          }
+        };
+        scope.filter = { name: '' };
+
+        $(document).click(hide);
+        scope.$watch('selectedIds', updateSelection);
+        scope.$watch('items' , updateSelection);
+        scope.$on('$destroy', function () {
+          $(document).unbind('click', hide);
         });
       }
     };

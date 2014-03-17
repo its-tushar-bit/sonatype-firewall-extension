@@ -62,7 +62,7 @@ class PolicyTagSpec
       editor.showTagDropdown()
 
     then: 'it opens and shows the available tags'
-      editor.tagsDropdownList.find('a')*.text() == [tag1.name, tag2.name]
+      editor.tagsDropdownList.find('label')*.text() == [tag1.name, tag2.name]
 
     and: 'they are styled in the list with the appropriate color'
       editor.areTagsColored([(tag1.name): tag1.color, (tag2.name): tag2.color])

@@ -48,8 +48,8 @@ class PolicyEditorModule
     tags { $('span', items: 'tags') }
     tagsDropdownButton { tags.find('button') }
     tagsDropdownList { tags.find('ul') }
-    tagsDropdownCheck { name -> tagsDropdownList.find('a', text: name).find('input') }
-    tagsDropdownColor { name -> tagsDropdownList.find('a', text: name).find('span.multi-dropdown-item-color') }
+    tagsDropdownCheck { name -> tagsDropdownList.find('label', text: name).find('input') }
+    tagsDropdownColor { name -> tagsDropdownList.find('label', text: name).find('span.multi-dropdown-item-color') }
   }
 
   void toggleTag(String name) {

@@ -74,13 +74,14 @@
         }
       ];
       _results = [];
+      function validateInput(input,expected) {
+        return it("should show the threat level number: " + expected + " for the # " + input + " policy", function() {
+          return expect(scope.threatLevel(input)).toEqual(expected);
+        });
+      }
       for (_i = 0, _len = threatLevelTestCases.length; _i < _len; _i++) {
         testCase = threatLevelTestCases[_i];
-        _results.push((function(input, expected) {
-          return it("should show the threat level number: " + expected + " for the # " + input + " policy", function() {
-            return expect(scope.threatLevel(input)).toEqual(expected);
-          });
-        })(testCase.input, testCase.expected));
+        _results.push(validateInput(testCase.input, testCase.expected));
       }
       return _results;
     });
@@ -105,13 +106,14 @@
         }
       ];
       _results = [];
+      function validateInput(input, expected) {
+        return it("should show this value: " + expected + " for this difference between policy evaluations results: " + input, function() {
+          return expect(scope.abs(input)).toEqual(expected);
+        });
+      }
       for (_i = 0, _len = absTestCases.length; _i < _len; _i++) {
         testCase = absTestCases[_i];
-        _results.push((function(input, expected) {
-          return it("should show this value: " + expected + " for this difference between policy evaluations results: " + input, function() {
-            return expect(scope.abs(input)).toEqual(expected);
-          });
-        })(testCase.input, testCase.expected));
+        _results.push(validateInput(testCase.input, testCase.expected));
       }
       return _results;
     });

@@ -186,16 +186,16 @@
               componentLabelEditorGAV.hash).success(function(data) {
             $scope.itemLabels = flattenLabelList(data);
           }).error(errorFn);
-        };
+        }
         function reloadAppLabels() {
           $http.get(CLM.path + 'rest/label/application/' + componentLabelEditorGAV.applicationId + '/applicable').success(function(data) {
             $scope.availableLabels = flattenLabelList(data);
           }).error(errorFn);
-        };
+        }
         $scope.loadLabelData = function() {
           reloadLabels();
           reloadAppLabels();
-        }
+        };
         $scope.removeLabel = function(label) {
           currentLabelData.set(label);
           $('#labelRemoveModal').modal('show');

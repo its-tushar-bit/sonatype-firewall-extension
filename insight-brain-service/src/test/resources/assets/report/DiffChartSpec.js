@@ -7,7 +7,7 @@
   'use strict';
   var mockData;
 
-  mockData = angular.extend(angular.copy(TrendingReportMockData.get()),  ChartMockData.getDiffData())
+  mockData = angular.extend(angular.copy(TrendingReportMockData.get()),  ChartMockData.getDiffData());
 
   describe('Controller: DiffChartCtrl', function() {
     var DiffchartCtrl, scope;

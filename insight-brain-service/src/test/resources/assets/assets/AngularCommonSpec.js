@@ -62,7 +62,7 @@ describe('AngularCommon', function() {
             "</form>"
 
     );
-    scope.app = {name: null}
+    scope.app = {name: null};
     scope.applications = [
       {name: 'a'}
     ];
@@ -129,14 +129,15 @@ describe('AngularCommon', function() {
       { input: function() {
         return '';
       }, expected: '' }
-    ]
+    ];
+    function validateFilter(input, expected) {
+      it('should filter to: ' + expected, function() {
+        expect(ago(input())).toMatch(expected);
+      });
+    }
     for (var i = 0; i < testCases.length; i++) {
       var testCase = testCases[i];
-      (function(input, expected) {
-        it('should filter to: ' + expected, function() {
-          expect(ago(input())).toMatch(expected);
-        });
-      })(testCase['input'], testCase['expected']);
+      validateFilter(testCase.input, testCase.expected);
     }
   });
 
@@ -162,7 +163,7 @@ describe('AngularCommon', function() {
       angular.forEach(chiclets, function(chiclet){
         expect($(chiclet).text()).toBe('1');
         expect($(chiclet).is(':visible')).toBeTruthy();
-      })
+      });
     });
     it('should show all chiclets even if not set when "alwaysShow" specified', function(){
       chicletElement = compileElement('<div chiclets always-show="true"></div>');
@@ -171,7 +172,7 @@ describe('AngularCommon', function() {
       angular.forEach(chiclets, function(chiclet){
         expect($(chiclet).text()).toBe('');
         expect($(chiclet).is(':visible')).toBeTruthy();
-      })
+      });
     });
     it('should show nothing if there is no chiclet data', function(){
       chicletElement = compileElement('<div chiclets></div>');
@@ -179,7 +180,7 @@ describe('AngularCommon', function() {
       expect(chiclets.length).toBe(4);
       angular.forEach(chiclets, function(chiclet){
         expect($(chiclet).is(':visible')).toBeFalsy();
-      })
+      });
     });
     it('should set a default margin if one is not specified', function(){
       chicletElement = compileElement('<div chiclets critical="1" severe="1" moderate="1" none="1"></div>');
@@ -187,7 +188,7 @@ describe('AngularCommon', function() {
       expect(chiclets.length).toBe(4);
       angular.forEach(chiclets, function(chiclet){
         expect($(chiclet).css('margin-top')).toBe('2px');
-      })
+      });
     });
     it('should respect a provided margin', function(){
       chicletElement = compileElement('<div chiclets critical="1" severe="1" moderate="1" none="1" margin="5cm"></div>');
@@ -258,7 +259,7 @@ describe('AngularCommon', function() {
       scope.refresh = function() {
         return {
           then: angular.noop
-        }
+        };
       };
       var refreshSpy = spyOn(scope, 'refresh').andCallThrough();
       compile(element)(scope);
@@ -273,7 +274,7 @@ describe('AngularCommon', function() {
         expect(element.find('i').attr('style')).toMatch(/rotate\(/);
         return {
           then: angular.noop
-        }
+        };
       };
       var refreshSpy = spyOn(scope, 'refresh').andCallThrough();
       compile(element)(scope);

@@ -164,7 +164,7 @@ describe('LabelController.js', function() {
     it('Can set color', function() {
       scope.createNew();
       var color = scope.colors[0];
-      scope.setColor(color)
+      scope.setColor(color);
       expect(scope.selectedLabel.color).toEqual(color);
     });
 

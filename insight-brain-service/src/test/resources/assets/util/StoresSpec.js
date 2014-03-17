@@ -49,4 +49,4 @@ describe('Stores', function() {
     expect(data.length).toBe(1);
     expect(data[0].id).toBe('qux');
   }));
-})
+});

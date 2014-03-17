@@ -493,7 +493,7 @@ describe('Resource', function() {
     it('Array Property', function() {
       data[0].arr.push('c');
       expect(data[0].isDirty()).toEqual(true);
-      data[0].arr.pop()
+      data[0].arr.pop();
       expect(data[0].isDirty()).toEqual(false);
     });
 
@@ -517,7 +517,7 @@ describe('Resource', function() {
       expect(data[0].isDirty()).toBeTruthy();
       data[0].related.push(sliced[0]);
       expect(data[0].isDirty()).not.toBeTruthy();
-    })
+    });
   });
 
   describe('Delete', function() {

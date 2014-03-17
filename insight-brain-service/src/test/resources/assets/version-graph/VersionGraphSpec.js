@@ -1,4 +1,6 @@
-var clmEndpoint = clmEndpointTemplate = {
+var clmEndpoint, clmEndpointTemplate;
+
+clmEndpoint = clmEndpointTemplate = {
   openView : angular.noop,
   type : 'ide'
 };

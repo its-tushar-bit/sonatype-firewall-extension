@@ -124,7 +124,7 @@ describe('ApplicationEditorController', function() {
       var selectedApplication = ApplicationStore.create();
 
       parentScope.applications = [selectedApplication];
-      parentScope.applicationIconTimestamp = {}
+      parentScope.applicationIconTimestamp = {};
       $controller('applicationEditorController', { $scope: scope, $state: state, selectedApplication : selectedApplication });
 
       $httpBackend.flush();
@@ -149,7 +149,7 @@ describe('ApplicationEditorController', function() {
       var selectedApplication = ApplicationStore.create();
 
       parentScope.applications = [selectedApplication];
-      parentScope.applicationIconTimestamp = {}
+      parentScope.applicationIconTimestamp = {};
 
       var organizationData = OrganizationMockData.getGETResponse();
       mockOrganization = organizationData[0];
@@ -205,7 +205,7 @@ describe('ApplicationEditorController', function() {
       getOriginalSpy = spyOn(selectedApplication, '$getOriginal').andReturn(originalMockApplication);
 
       parentScope.applications = [selectedApplication];
-      parentScope.applicationIconTimestamp = {}
+      parentScope.applicationIconTimestamp = {};
       $controller('applicationEditorController', { $scope: scope, $state: state, selectedApplication : selectedApplication });
 
       httpBackend.flush();
@@ -354,17 +354,17 @@ describe('ApplicationEditorController', function() {
       httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getApplicationSummaryUrl(mockApplication.publicId))).respond(ApplicationMockData.getApplicationSummaryData('build'));
       scope.$broadcast('refreshSummary', mockApplication.publicId);
       httpBackend.flush();
-      expect(scope.applicationSummary[0].policyEvaluations['release']).toBeUndefined();
-      expect(scope.applicationSummary[0].policyEvaluationsResults['release']).toBeUndefined();
-      expect(scope.applicationSummary[0].policyEvaluations['build']).toBeDefined();
-      expect(scope.applicationSummary[0].policyEvaluationsResults['build']).toBeDefined();
+      expect(scope.applicationSummary[0].policyEvaluations.release).toBeUndefined();
+      expect(scope.applicationSummary[0].policyEvaluationsResults.release).toBeUndefined();
+      expect(scope.applicationSummary[0].policyEvaluations.build).toBeDefined();
+      expect(scope.applicationSummary[0].policyEvaluationsResults.build).toBeDefined();
       httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getApplicationSummaryUrl(mockApplication.publicId))).respond(ApplicationMockData.getApplicationSummaryData('release'));
       scope.$broadcast('refreshSummary', mockApplication.publicId);
       httpBackend.flush();
-      expect(scope.applicationSummary[0].policyEvaluations['build']).toBeUndefined();
-      expect(scope.applicationSummary[0].policyEvaluationsResults['build']).toBeUndefined();
-      expect(scope.applicationSummary[0].policyEvaluations['release']).toBeDefined();
-      expect(scope.applicationSummary[0].policyEvaluationsResults['release']).toBeDefined();
+      expect(scope.applicationSummary[0].policyEvaluations.build).toBeUndefined();
+      expect(scope.applicationSummary[0].policyEvaluationsResults.build).toBeUndefined();
+      expect(scope.applicationSummary[0].policyEvaluations.release).toBeDefined();
+      expect(scope.applicationSummary[0].policyEvaluationsResults.release).toBeDefined();
     }));
 
     it('reevaluates policy', inject(function($httpBackend, CLMLocations) {
@@ -435,7 +435,7 @@ describe('ApplicationEditorController', function() {
       expect(e.defaultPrevented).not.toBeTruthy();
 
       scope.generateIcon();
-      var e = scope.$broadcast('pageChangeStarted');
+      e = scope.$broadcast('pageChangeStarted');
       expect(e.defaultPrevented).toBeTruthy();
 
       scope.cancel();

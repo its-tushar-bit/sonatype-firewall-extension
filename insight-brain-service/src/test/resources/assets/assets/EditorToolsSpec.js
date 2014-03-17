@@ -242,7 +242,7 @@ describe('EditorToolsSpec', function() {
       });
       $window.FileReader = FakeReader;
 
-      FakeReader.prototype.readAsText = function () {}
+      FakeReader.prototype.readAsText = function () {};
     }));
     
     it('Initial State', inject(function ($timeout) {
@@ -271,30 +271,30 @@ describe('EditorToolsSpec', function() {
 
       it('Error', inject(function ($window) {
         expect(scope.requestActive).toBeTruthy();
-        expect(scope.error).toBeFalsy()
+        expect(scope.error).toBeFalsy();
 
         // Progress notification
         scope.uploaded('Please wait...', false);
         expect(scope.requestActive).toBeTruthy();
-        expect(scope.error).toBeFalsy()
+        expect(scope.error).toBeFalsy();
 
         scope.uploaded('Error', true);
         expect(scope.requestActive).toBeFalsy();
-        expect(scope.error).toEqual('Error')
+        expect(scope.error).toEqual('Error');
       }));
 
       it('Successful', inject(function ($window) {
         expect(scope.requestActive).toBeTruthy();
-        expect(scope.error).toBeFalsy()
+        expect(scope.error).toBeFalsy();
 
         // Progress notification
         scope.uploaded('Please wait...', false);
         expect(scope.requestActive).toBeTruthy();
-        expect(scope.error).toBeFalsy()
+        expect(scope.error).toBeFalsy();
 
         scope.uploaded('', true);
         expect(scope.requestActive).toBeFalsy();
-        expect(scope.error).toBeFalsy()
+        expect(scope.error).toBeFalsy();
       }));
     });
 
@@ -307,7 +307,7 @@ describe('EditorToolsSpec', function() {
       it('Simulate Firefox exception', inject(function ($timeout) {
         FakeReader.prototype.readAsText = function () {
           throw new Error("Foo");
-        }
+        };
         scope.doSubmit();
         expect(scope.error).toEqual('Foo');
       }));

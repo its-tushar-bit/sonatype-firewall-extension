@@ -229,7 +229,7 @@ describe('PolicyEditor.js', function() {
         $httpBackend.whenGET("../assets/components/policy-editor/condition-editor.html?").respond(conditionTemplate);
         $httpBackend.whenGET('../assets/components/policy-editor/constraint-editor.html?').respond(constraintEditorTemplate);
         $httpBackend.flush();
-        policyEditorScope.policy.constraints[0].name = 'foo'
+        policyEditorScope.policy.constraints[0].name = 'foo';
         expect(testScope.$broadcast('pageChangeStarted').defaultPrevented).toEqual(true);
       }));
     });
@@ -248,7 +248,7 @@ describe('PolicyEditor.js', function() {
       testScope.tags = [];
       var node = $("<div><div ng-if='policyEditMap[policy.id]'><div id='testInlinePolicyEditor' inline-policy-editor tags='tags'></div></div></div>");
       node.appendTo('body');
-      expectActionRequests()
+      expectActionRequests();
       $httpBackend.whenGET(SpecUtil.toRegExp(CLMLocations.getConditionTypeUrl())).respond(PolicyMockData.getConditionTypeData());
       $httpBackend.whenGET(SpecUtil.toRegExp(CLMAppLocations.getConditionValueTypeUrl())).respond(PolicyMockData.getConditionValueTypeData());
       $httpBackend.whenGET("../assets/components/policy-editor/policy-inline-editor.html?").respond(template);
@@ -464,7 +464,7 @@ describe('PolicyEditor.js', function() {
     });
 
     it('saves updated policy tag information', inject(function($httpBackend, CLMAppLocations) {
-      scope.getFormName = function() { return null; }
+      scope.getFormName = function() { return null; };
       scope.hide = jasmine.createSpy('hide');
 
       scope.appliedTagIds.splice(0, 1);

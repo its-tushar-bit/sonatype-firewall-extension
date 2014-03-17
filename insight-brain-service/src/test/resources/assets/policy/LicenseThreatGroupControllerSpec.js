@@ -144,7 +144,7 @@ describe('LicenseThreatGroup', function() {
     it('Selected', function() {
       expect(getSelectedGroupLicenses().length).toEqual(2);
       expect(editorScope.selectedGroupLicenses['AFL-UNSPECIFIED']).toEqual(true);
-      expect(editorScope.selectedGroupLicenses['AAL']).toEqual(true);
+      expect(editorScope.selectedGroupLicenses.AAL).toEqual(true);
     });
     it('Add License', function() {
       // editor
@@ -171,7 +171,7 @@ describe('LicenseThreatGroup', function() {
       expect(editorScope.selectedGroup.licenses.length).toEqual(1);
       expect(getSelectedGroupLicenses().length).toEqual(1);
       expect(editorScope.selectedGroupLicenses['AFL-UNSPECIFIED']).toEqual(true);
-      expect(editorScope.selectedGroupLicenses['AAL']).toEqual(null);
+      expect(editorScope.selectedGroupLicenses.AAL).toEqual(null);
     });
   });
 });

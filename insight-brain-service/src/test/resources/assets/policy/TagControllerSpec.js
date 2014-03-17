@@ -194,7 +194,7 @@ describe('TagController.js', function() {
     it('Can set color', function() {
       scope.createNew();
       var color = scope.colors[0];
-      scope.setColor(color)
+      scope.setColor(color);
       expect(scope.selectedTag.color).toEqual(color);
     });
 

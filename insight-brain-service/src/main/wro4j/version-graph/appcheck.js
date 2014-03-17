@@ -139,7 +139,7 @@
     else {
       var vis = new pv.Panel().width(config.width).height(config.height);
 
-      if (config.element != null) {
+      if (config.element) {
         vis.canvas(config.element);
       }
 
@@ -189,7 +189,7 @@
         .width(config.w)
         .height(config.h);
 
-    if (config.element != null) {
+    if (config.element) {
       vis.canvas(config.element);
     }
 
@@ -323,7 +323,7 @@
         .width(config.width)
         .height(config.height);
 
-    if (config.element != null) {
+    if (config.element) {
       vis.canvas(config.element);
     }
 
@@ -447,7 +447,7 @@
         .width(w + 20)
         .height(h + 20);
 
-    if (config.element != null) {
+    if (config.element) {
       root.canvas(config.element);
     }
 

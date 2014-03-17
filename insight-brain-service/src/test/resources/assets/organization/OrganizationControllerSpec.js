@@ -148,7 +148,7 @@ describe('Tests for the OrganizationController', function() {
         selectedOrganization.$updateOriginal(originalMockOrganization);
 
         parentScope.organizations = [originalMockOrganization];
-        parentScope.organizationIconTimestamp = {}
+        parentScope.organizationIconTimestamp = {};
 
         $controller('OrganizationEditorController', {
           $scope: scope,
@@ -302,7 +302,7 @@ describe('Tests for the OrganizationController', function() {
         expect(e.defaultPrevented).not.toBeTruthy();
 
         scope.generateIcon();
-        var e = scope.$broadcast('pageChangeStarted');
+        e = scope.$broadcast('pageChangeStarted');
         expect(e.defaultPrevented).toBeTruthy();
 
         scope.cancel();

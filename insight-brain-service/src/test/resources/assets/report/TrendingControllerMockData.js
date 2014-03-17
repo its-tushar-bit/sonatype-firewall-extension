@@ -688,6 +688,6 @@ ChartMockData = {
         value: 10,
         color: 'black'
       }
-    ]
+    ];
   }
 };

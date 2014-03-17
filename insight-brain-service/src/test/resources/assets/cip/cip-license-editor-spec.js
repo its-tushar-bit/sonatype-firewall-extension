@@ -284,7 +284,7 @@
             comment : ''
           });
           posted.id = 'AddApplication';
-          return [200, posted, headers]
+          return [200, posted, headers];
         });
         scope.save();
         $httpBackend.flush();
@@ -358,7 +358,7 @@
             comment : ''
           });
           posted.id = 'AddApplication';
-          return [200, posted, headers]
+          return [200, posted, headers];
         });
         scope.save();
         $httpBackend.flush();
@@ -427,7 +427,7 @@
             comment : ''
           });
           posted.id = 'AddApplication';
-          return [200, posted, headers]
+          return [200, posted, headers];
         });
         scope.save();
         $httpBackend.flush();

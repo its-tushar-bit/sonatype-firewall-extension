@@ -438,13 +438,14 @@ describe('TrendingController tests', function() {
       }
     ];
     _results = [];
+    function validateInput(input, expected){
+      return it("should be colored: " + expected + " for the threat level: " + input, function() {
+        return expect(colors.threatLevelClass(input)).toEqual(expected);
+      });
+    }
     for (_i = 0, _len = testCases.length; _i < _len; _i++) {
       testCase = testCases[_i];
-      _results.push((function(input, expected) {
-        return it("should be colored: " + expected + " for the threat level: " + input, function() {
-          return expect(colors.threatLevelClass(input)).toEqual(expected);
-        });
-      })(testCase.input, testCase.expected));
+      _results.push(validateInput(testCase.input, testCase.expected));
     }
   });
 });

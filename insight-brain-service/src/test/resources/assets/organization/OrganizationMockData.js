@@ -19,7 +19,7 @@ OrganizationMockData = {
     return {
       "id": "newid",
       "name": name
-    }
+    };
   },
   getApplicablePolicies: function() {
     return {

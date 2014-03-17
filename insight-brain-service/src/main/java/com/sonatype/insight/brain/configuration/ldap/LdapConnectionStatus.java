@@ -12,7 +12,6 @@ public class LdapConnectionStatus
 {
   public static enum Status
   {
-    @SuppressWarnings("hiding")
     OK, FAILURE;
   }
 

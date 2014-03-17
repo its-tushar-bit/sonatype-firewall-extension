@@ -159,6 +159,6 @@ ApplicationMockData = {
       "criticalComponentCount": 5,
       "severeComponentCount": 3,
       "moderateComponentCount": 2
-    }
+    };
   }
 };

@@ -312,31 +312,31 @@ describe('Tests for the LdapConfigurationController', function() {
       // empty
       scope.ldapConn.protocol = 'LDAP';
       scope.ldapConn.port = undefined;
-      scope.$apply()
+      scope.$apply();
       expect(scope.ldapConn.port).toBe(389);
       scope.ldapConn.protocol = 'LDAPS';
       scope.ldapConn.port = undefined;
-      scope.$apply()
+      scope.$apply();
       expect(scope.ldapConn.port).toBe(636);
 
       // default
       scope.ldapConn.protocol = 'LDAP';
       scope.ldapConn.port = 636; // old value
-      scope.$apply()
+      scope.$apply();
       expect(scope.ldapConn.port).toBe(389);
       scope.ldapConn.protocol = 'LDAPS';
       scope.ldapConn.port = 389; // old value
-      scope.$apply()
+      scope.$apply();
       expect(scope.ldapConn.port).toBe(636);
 
       // non default non empty is preserved as is
       scope.ldapConn.protocol = 'LDAP';
       scope.ldapConn.port = 1; // old value
-      scope.$apply()
+      scope.$apply();
       expect(scope.ldapConn.port).toBe(1);
       scope.ldapConn.protocol = 'LDAPS';
       scope.ldapConn.port = 1; // old value
-      scope.$apply()
+      scope.$apply();
       expect(scope.ldapConn.port).toBe(1);
     }));
   });

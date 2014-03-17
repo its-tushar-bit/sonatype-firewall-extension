@@ -105,7 +105,7 @@ describe('Configuration', function() {
     //see CLM-1097
     it('Should treat an empty entry as valid', function(){
       expect(scope.validatePackage('')).toBe(null);
-    })
+    });
 
     it('Bad Inputs', function() {
       expect(scope.validatePackage('com sonatype')).toMatch(/invalid.*/i);

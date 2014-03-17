@@ -15,7 +15,7 @@
   function isUnknown(gav) {
     var matchState = gav && gav.matchState ? gav.matchState.toLowerCase() : null;
     return matchState === 'unknown';
-  };
+  }
 
   function getErrorMessage(error) {
     var responseText = error[0],

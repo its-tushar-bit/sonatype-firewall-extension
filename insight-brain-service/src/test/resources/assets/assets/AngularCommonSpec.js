@@ -86,40 +86,40 @@ describe('AngularCommon', function() {
     var testCases = [
       { input: function() {
         return new Date();
-      }, expected: 'Seconds Ago' },
+      }, expected: 'seconds ago' },
       { input: function() {
         return new Date().getTime();
-      }, expected: 'Seconds Ago' },
+      }, expected: 'seconds ago' },
       { input: function() {
         var today = new Date();
         return new Date(today.getFullYear() - 2, today.getMonth(), today.getDate());
-      }, expected: '2 Years Ago' },
+      }, expected: '2 years ago' },
       { input: function() {
         var today = new Date();
         return new Date(today.getFullYear(), today.getMonth(), today.getDate() - 3 * 30);
-      }, expected: '3 Months Ago' },
+      }, expected: '3 months ago' },
       { input: function() {
         var today = new Date();
         return new Date(today.getFullYear(), today.getMonth(), today.getDate() - 10);
-      }, expected: '10 Days Ago' },
+      }, expected: '10 days ago' },
       { input: function() {
         var today = new Date();
         return new Date(today.getTime() - (23 * 60 + 30) * 60 * 1000 );
-      }, expected: '23 Hours Ago' },
+      }, expected: '23 hours ago' },
       { input: function() {
         var today = new Date();
         return new Date(today.getFullYear(), today.getMonth(), today.getDate(), today.getHours(),
           today.getMinutes() - 58);
-      }, expected: '5[8|9] Minutes Ago' },
+      }, expected: '5[8|9] minutes ago' },
       { input: function() {
         var today = new Date();
         return new Date(today.getFullYear(), today.getMonth(), today.getDate(), today.getHours(),
           today.getMinutes() - 1);
-      }, expected: '[1|2] Minute[s]? Ago' },
+      }, expected: '[1|2] minute[s]? ago' },
       { input: function() {
         var today = new Date();
         return new Date(today.getFullYear() + 100, today.getMonth(), today.getDate());
-      }, expected: 'Seconds Ago' },
+      }, expected: 'seconds ago' },
       { input: function() {
         return null;
       }, expected: '' },

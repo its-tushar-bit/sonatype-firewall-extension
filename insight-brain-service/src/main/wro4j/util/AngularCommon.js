@@ -861,32 +861,32 @@ var AngularUtils = {
 
       if (diff > 12 * 30 * 24 * 60 * 60 * 1000) {
         val = diff / (12 * 30 * 24 * 60 * 60 * 1000);
-        unit = 'Year';
+        unit = 'year';
       }
       else if (diff > 30 * 24 * 60 * 60 * 1000) {
         val = diff / (30 * 24 * 60 * 60 * 1000);
-        unit = 'Month';
+        unit = 'month';
       }
       else if (diff > 24 * 60 * 60 * 1000) {
         val = diff / (24 * 60 * 60 * 1000);
-        unit = 'Day';
+        unit = 'day';
       }
       else if (diff > 60 * 60 * 1000) {
         val = diff / (60 * 60 * 1000);
-        unit = 'Hour';
+        unit = 'hour';
       }
       else if (diff > 60 * 1000) {
         val = diff / (60 * 1000);
-        unit = 'Minute';
+        unit = 'minute';
       }
       else {
-        return 'Seconds Ago';
+        return 'seconds ago';
       }
       val = Math.floor(val);
       if (val > 1) {
         unit += 's';
       }
-      return val + ' ' + unit + ' Ago';
+      return val + ' ' + unit + ' ago';
     };
   });
 

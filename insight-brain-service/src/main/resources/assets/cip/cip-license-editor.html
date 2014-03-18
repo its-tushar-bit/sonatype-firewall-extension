@@ -13,11 +13,13 @@
 				<ul class="nav nav-list" id="licenseList">
 					<li class="nav-header">Declared Licenses</li>
 					<li class="license" ng-repeat='licenseWithThreat in component.declaredlicenses'>
-						<img ng-src="public/{{getColor(licenseWithThreat.threatLevel)}}.png"> {{licenseWithThreat.license.licenseName}}</li>
+						<div class='nx-clm-square {{getLicenseThreatClass(licenseWithThreat.threatLevel)}}'>
+                          {{licenseWithThreat.license.licenseName}}</div></li>
 					<li class="license" ng-show="isClaimedComponent()">Unavailable, Claimed Component</li>
 					<li class="divider"></li><li class="nav-header">Observed Licenses</li>
 					<li class="license" ng-repeat='licenseWithThreat in component.observedlicenses'>
-						<img ng-src="public/{{getColor(licenseWithThreat.threatLevel)}}.png"> {{licenseWithThreat.license.licenseName}}</li>
+                      <div class='nx-clm-square {{getLicenseThreatClass(licenseWithThreat.threatLevel)}}'>
+                        {{licenseWithThreat.license.licenseName}}</div></li>
 					<li class="license" ng-show="isClaimedComponent()">Unavailable, Claimed Component</li>
 				</ul>
 			</div>

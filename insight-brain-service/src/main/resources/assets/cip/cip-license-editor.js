@@ -278,21 +278,21 @@
         }
       };
 
-      $scope.getColor = function(threat) {
+      $scope.getLicenseThreatClass = function(threat) {
         if (threat === null) {
-          return 'grey';
+          return 'unspecified';
         }
         else if (threat > 7) {
-          return 'red';
+          return 'severe';
         }
         else if (threat > 3) {
-          return 'orange';
+          return 'critical';
         }
         else if (threat > 0) {
-          return 'yellow';
+          return 'moderate';
         }
         else {
-          return 'blue';
+          return 'none';
         }
       };
 

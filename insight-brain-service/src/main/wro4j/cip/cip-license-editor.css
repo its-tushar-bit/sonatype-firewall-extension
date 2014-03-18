@@ -18,3 +18,24 @@
 	margin-left : 10px;
 	padding : 15px
 }
+
+.nx-clm-square {
+  padding-left: 5px;
+  border-left-style: solid !important;
+  border-left-width: 10px !important;
+}
+.nx-clm-square.severe {
+  border-left-color: #F7941E;
+}
+.nx-clm-square.critical {
+  border-left-color: #DB2852;
+}
+.nx-clm-square.moderate {
+  border-left-color: #F5C649;
+}
+.nx-clm-square.none {
+  border-left-color: #0047b2;
+}
+.nx-clm-square.unspecified {
+  border-left-color: #9D9D9D;
+}

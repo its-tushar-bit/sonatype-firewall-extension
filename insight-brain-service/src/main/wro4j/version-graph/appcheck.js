@@ -35,7 +35,7 @@
       orange = '#F7941E',
       yellow = '#F5C649',
       red = '#DB2852',
-      grey = '#d9dade',
+      grey = '#9D9D9D',
 
       darkRed = '#b71218',
       darkOrange = '#c67a22',

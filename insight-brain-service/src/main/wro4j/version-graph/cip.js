@@ -280,6 +280,7 @@
     $scope.canLoad = function () {
       return !$scope.selectApplication || SelectedApp.get();
     };
+    $scope.linkTarget = clmEndpoint.linkTarget;
   }]);
 
   module.controller('ApplicationController', ['$scope', 'Applications', 'SelectedApp', function ($scope, Applications, SelectedApp) {

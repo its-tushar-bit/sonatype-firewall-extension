@@ -299,6 +299,10 @@
       $scope.isClaimedComponent = function() {
         return SelectedComponent.identificationSource === 'Manual';
       };
+      
+      $scope.isSubmitEnabled = function() {
+        return $scope.licenseEditorForm && $scope.licenseEditorForm.$dirty && !$scope.licenseEditorForm.$invalid && !$scope.saving;
+      };
 
       // Remove license when changing away from Override/Selected status
       $scope.$watch('override.status', function(val) {

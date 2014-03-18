@@ -108,6 +108,20 @@
         $httpBackend.verifyNoOutstandingExpectation();
         $httpBackend.verifyNoOutstandingRequest();
       }));
+      
+      it('Submit disabled when expected', function() {
+        expect(scope.isSubmitEnabled()).toBeFalsy();
+        scope.licenseEditorForm = {};
+        expect(scope.isSubmitEnabled()).toBeFalsy();
+        scope.licenseEditorForm.$invalid = true;
+        scope.saving = true;
+        scope.licenseEditorForm.$dirty = true;
+        expect(scope.isSubmitEnabled()).toBeFalsy();
+        scope.saving = false;
+        expect(scope.isSubmitEnabled()).toBeFalsy();
+        scope.licenseEditorForm.$invalid = false;
+        expect(scope.isSubmitEnabled()).toBeTruthy();
+      });
 
       it('Default Selection', function() {
         expect(scope.override).toEqual({

@@ -11,8 +11,8 @@
 		<script src="../../../lib/angular/angular-${angularjs.version}.min.js"></script>
 		<script src="../../../lib/angular/angular-route-${angularjs.version}.min.js"></script>
 		<script src="../../version-graph.js?${build.timestamp}"></script>
-      <!-- CLM-2003 the only important characteristic for newer eclipse plugin versions is that we set a "linkTarget" to enable links
-            being embedded in the CIP in newer clients -->
+      <!-- CLM-2003 the only important characteristic for older eclipse plugin versions is that we do not set a "linkTarget" to prevent links from
+         being embedded in the CIP in older clients -->
 		<script>
 			var clmEndpoint = {
 				type : 'ide',
@@ -20,8 +20,7 @@
 				selectApplication : false,
 				openView : function (args) {
 					Eclipse_openView(args);
-				},
-				linkTarget : '_self'
+				}
 			};
 
 			// disable the context menu to prevent the user from reloading the page which would break the integration with the IDE plugin's Java code

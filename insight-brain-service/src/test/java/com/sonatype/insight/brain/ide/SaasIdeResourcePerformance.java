@@ -85,7 +85,7 @@ public class SaasIdeResourcePerformance
 
     this.iterations = iterations * connections;
     work = SaasIdeResourcePerformanceUtils.createInsightWork();
-    resource = new IdeResource(work, null, SaasIdeResourcePerformanceUtils.createSaasClient(server));
+    resource = new IdeResource(work, null, SaasIdeResourcePerformanceUtils.createSaasClient(server), new NoOpPathAdjuster());
 
     // trigger db
     testApplication = new Application();
@@ -140,6 +140,16 @@ public class SaasIdeResourcePerformance
       long start = System.currentTimeMillis();
       resource.doScan("simple", applicationId, hash, false, request);
       return System.currentTimeMillis() - start;
+    }
+  }
+
+  private static class NoOpPathAdjuster
+      implements AssetPathAdjuster
+  {
+    @Override
+    public String adjustPath(final String path, final String userAgent) {
+      //just return original path
+      return path;
     }
   }
 }

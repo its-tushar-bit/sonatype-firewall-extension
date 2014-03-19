@@ -13,12 +13,14 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.GET;
+import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
@@ -67,11 +69,14 @@ public class IdeResource
 
   private final BaseUrl baseUrl;
 
+  private final AssetPathAdjuster assetPathAdjuster;
+
   @Inject
-  public IdeResource(InsightWork work, BaseUrl baseUrl, SaasClient client) {
+  public IdeResource(InsightWork work, BaseUrl baseUrl, SaasClient client, AssetPathAdjuster assetPathAdjuster) {
     this.work = work;
     this.baseUrl = baseUrl;
     this.client = client;
+    this.assetPathAdjuster = assetPathAdjuster;
   }
 
   /**
@@ -82,8 +87,9 @@ public class IdeResource
    */
   @GET
   @Path("asset/{path:.*}")
-  public Response getAsset(@PathParam("path") String path, @Context HttpServletRequest req) {
-    UriBuilder uriBuilder = baseUrl.redirect().path("assets/version-graph/ide").path(path);
+  public Response getAsset(@PathParam("path") String path, @HeaderParam(HttpHeaders.USER_AGENT) String userAgent) {
+    UriBuilder uriBuilder = baseUrl.redirect().path("assets/version-graph/ide")
+        .path(assetPathAdjuster.adjustPath(path, userAgent));
 
     return Response.temporaryRedirect(uriBuilder.build()).build();
   }

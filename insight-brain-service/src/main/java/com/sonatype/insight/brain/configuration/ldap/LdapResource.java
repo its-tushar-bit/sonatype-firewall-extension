@@ -176,7 +176,7 @@ public class LdapResource
 
     try {
       ldapManager.testConnection(conn);
-      return LdapConnectionStatus.OK;
+      return LdapConnectionStatus.SUCCESS;
     }
     catch (NamingException e) {
       return new LdapConnectionStatus(Status.FAILURE, e.toString());
@@ -222,7 +222,7 @@ public class LdapResource
 
     try {
       ldapManager.testUserLogin(umap, request.getUsername(), request.getPassword().toCharArray());
-      return LdapConnectionStatus.OK;
+      return LdapConnectionStatus.SUCCESS;
     }
     catch (IllegalStateException e) {
       // happens when ldap server connection is not configured

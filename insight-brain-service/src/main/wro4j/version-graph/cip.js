@@ -35,6 +35,7 @@
 
   var injector = null,
       authHandler = null,
+      injectorTimeout = null,
       module = angular.module('CIP', ['ngRoute']).config(['$routeProvider', function ($routeProvider) {
         $routeProvider.when('/', {
           templateUrl : '../../version-graph.html',
@@ -60,26 +61,39 @@
         $rootScope.type = clmEndpoint.type;
       }]);
 
-  function waitOnInjector(fn) {
+  /**
+   * Waits on the AngularJS application to boot then calls the specified function
+   *
+   * fn - AngularJS function to call
+   * single - only the last function with single set to true will be called
+   */
+  function waitOnInjector(fn, single) {
+    if (single && injectorTimeout) {
+      clearTimeout(injectorTimeout);
+      injectorTimeout = null;
+    }
+
     if (injector) {
-      fn();
-    } else {
-      setTimeout(function() {
+      injector.invoke(fn);
+    }
+    else {
+      var timeout = setTimeout(function() {
         waitOnInjector(fn);
       }, 10);
+      if (single) {
+        injectorTimeout = timeout;
+      }
     }
   }
-  
+
   function createStateFn(stateName) {
     return function (arg) {
-      waitOnInjector(function(){
-        injector.invoke(['$rootScope', 'GAV', 'State', function ($rootScope, GAV, State) {
-          safeApply($rootScope, function () {
-            GAV.set(null);
-            State.set(stateName, arg);
-          });
-        }]);  
-      });
+      waitOnInjector(['$rootScope', 'GAV', 'State', function ($rootScope, GAV, State) {
+        safeApply($rootScope, function () {
+          GAV.set(null);
+          State.set(stateName, arg);
+        });
+      }], true);
     };
   }
 
@@ -100,78 +114,66 @@
   $.extend(true, window, {
     "Insight": {
       "clearGav": function () {
-        waitOnInjector(function(){
-          injector.invoke(['GAV', '$rootScope', function (GAV, $rootScope) {
-            safeApply($rootScope, function () {
-              GAV.set(null);
-            });
-          }]);
-        });
+        waitOnInjector(['GAV', '$rootScope', function (GAV, $rootScope) {
+          safeApply($rootScope, function () {
+            GAV.set(null);
+          });
+        }], true);
       },
       "registerMarkUpgradeListener": function (listener) {
-        waitOnInjector(function(){
-          injector.invoke(['$rootScope', function ($rootScope) {
-            $rootScope.$on('markUpgrade', function (event, gav) {
-              listener(gav.groupId, gav.artifactId, gav.version);
-            });
-          }]);
-        });
+        waitOnInjector(['$rootScope', function ($rootScope) {
+          $rootScope.$on('markUpgrade', function (event, gav) {
+            listener(gav.groupId, gav.artifactId, gav.version);
+          });
+        }]);
       },
       "registerViewDetailsListener": function (listener) {
-        waitOnInjector(function(){
-          injector.invoke(['GAV', 'SelectedApp', '$rootScope', function (GAV, SelectedApp, $rootScope) {
-            $rootScope.$on('viewDetails', function (event, version) {
-              var gav = GAV.get();
+        waitOnInjector(['GAV', 'SelectedApp', '$rootScope', function (GAV, SelectedApp, $rootScope) {
+          $rootScope.$on('viewDetails', function (event, version) {
+            var gav = GAV.get();
 
-              listener(SelectedApp.get(),
-                      gav.groupId,
-                      gav.artifactId,
-                      version,
-                      gav.classifier,
-                      gav.extension,
-                      version === gav.version ? gav.hash : null,
-                      version === gav.version ? gav.matchState : null,
-                      gav.proprietary);
-            });
-          }]);
-        });
+            listener(SelectedApp.get(),
+                    gav.groupId,
+                    gav.artifactId,
+                    version,
+                    gav.classifier,
+                    gav.extension,
+                    version === gav.version ? gav.hash : null,
+                    version === gav.version ? gav.matchState : null,
+                    gav.proprietary);
+          });
+        }]);
       },
       "setGav": function (arg) {
-        waitOnInjector(function(){
-          injector.invoke(['GAV', '$rootScope', function (GAV, $rootScope) {
-            safeApply($rootScope, function () {
-              GAV.set(arg);
-            });
-          }]);
-        });
+        waitOnInjector(['GAV', '$rootScope', function (GAV, $rootScope) {
+          safeApply($rootScope, function () {
+            GAV.set(arg);
+          });
+        }], true);
       },
       "setHeaders" : function (headers) {
-        waitOnInjector(function(){
-          injector.invoke(['$http', '$rootScope', function ($http, $rootScope) {
-            safeApply($rootScope, function () {
-              angular.extend($http.defaults.headers.common, headers);
-            });
-          }]);
-        });
+        waitOnInjector(['$http', '$rootScope', function ($http, $rootScope) {
+          safeApply($rootScope, function () {
+            angular.extend($http.defaults.headers.common, headers);
+          });
+        }]);
       },
       "setError": function (arg) {
-        waitOnInjector(function(){
-          injector.invoke(['$rootScope', 'GAV', 'State', function ($rootScope, GAV, State) {
-            safeApply($rootScope, function () {
-              GAV.set(null);
+        waitOnInjector(['$rootScope', 'GAV', 'State', function ($rootScope, GAV, State) {
+          safeApply($rootScope, function () {
+            GAV.set(null);
 
-              if (isInvalidAppId(arg.errorCode)) {
-                State.set('invalid-appid', arg);
-              }
-              else if (arg.errorCode === 401) {
-                State.set('invalid-credentials', arg);
-              }
-              else {
-                State.set('failure', arg);
-              }
-            });
-          }]);
-        });
+            if (isInvalidAppId(arg.errorCode)) {
+              State.set('invalid-appid', arg);
+            }
+            else if (arg.errorCode === 401) {
+              State.set('invalid-credentials', arg);
+            }
+            else {
+              State.set('failure', arg);
+            }
+          });
+        }], true);
       },
       "setAuthFailureHandler" : function (handler) {
         authHandler = handler;

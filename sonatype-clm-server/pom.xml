@@ -13,7 +13,7 @@
   <parent>
     <groupId>com.sonatype.insight.brain</groupId>
     <artifactId>insight-brain</artifactId>
-    <version>1.9.2-SNAPSHOT</version>
+    <version>1.10.0-M1</version>
   </parent>
 
   <artifactId>sonatype-clm-server</artifactId>

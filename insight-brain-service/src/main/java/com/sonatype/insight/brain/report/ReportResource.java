@@ -74,6 +74,8 @@ public class ReportResource
 
   public static final String PRINT_PATH = "printReport";
 
+  public static final String DOWNLOAD_BUNDLE_PATH = "downloadBundle";
+
   private static final Logger log = LoggerFactory.getLogger(ReportResource.class);
 
   private static final ConcurrentMap<String, Lock> LOCK_TABLE = CacheBuilder.newBuilder().weakValues()
@@ -229,6 +231,29 @@ public class ReportResource
 
     Report.printPdf(reportFile, StringUtils.defaultString(projectName, "clm"), buildNumber, contact, response);
 
+    return response.build();
+  }
+
+  /**
+   * Retrieves a self-contained ZIP bundle of the specified report for use by 3rd-party integrators like HP Fortify.
+   * Obviously, the employed report template also needs to support self-containment.
+   * 
+   * @since 1.10
+   */
+  @GET
+  @Path(DOWNLOAD_BUNDLE_PATH)
+  @Produces("application/zip")
+  @Authorize(permission = Permission.READ)
+  public Response downloadBundle(
+      @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) @PathParam("applicationPublicId") final String applicationPublicId,
+      @PathParam("scanId") final String scanId) throws IOException
+  {
+    Application app = applicationDAO.getByPublicIdNotNull(applicationPublicId);
+    File reportFile = fetchReport(reportDownloader, work, app.getId(), scanId, true);
+    String filename = "report-" + scanId + ".zip";
+    final ResponseBuilder response = Response.ok();
+    response.entity(reportFile);
+    response.header("Content-Disposition", "attachment; filename=" + UrlUtils.encodeUrlComponent(filename));
     return response.build();
   }
 

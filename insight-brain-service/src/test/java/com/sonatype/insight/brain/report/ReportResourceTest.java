@@ -6,8 +6,10 @@
 package com.sonatype.insight.brain.report;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
@@ -75,6 +77,7 @@ import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.equalToIgnoringWhiteSpace;
 import static org.hamcrest.Matchers.greaterThan;
+import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.stringContainsInOrder;
 import static org.junit.Assert.assertEquals;
@@ -1055,6 +1058,31 @@ public class ReportResourceTest
     Response response = AuthedRestAccess.get(url + "/brain/" + path);
     assertResponseStatus(307, response);
     Assert.assertEquals(getRestBaseUrl() + path, response.getHeader("Location"));
+  }
+
+  @Test
+  public void testDownloadBundle() throws Exception {
+    final String applicationPublicId = "ReportResourceTest_AppId";
+    tempEntity.newApplicationWithParent(applicationPublicId).getId();
+    final String scanId = "ReportResourceTest_ScanId";
+    final String licenseFingerprint = "ReportResourceTest_LicenseFingerprint";
+    setLicenseFingerprint(licenseFingerprint);
+
+    final File saasReportFile = getReportResponseFile(licenseFingerprint, scanId);
+    final URL testReportResultUrl = getClass().getResource("/ReportResourceTest/report.zip");
+    FileUtils.copyURLToFile(testReportResultUrl, saasReportFile);
+
+    String url = getRestUrl(ReportResource.SERVICE_PATH + '/' + ReportResource.DOWNLOAD_BUNDLE_PATH,
+        applicationPublicId, scanId);
+    Response response = AuthedRestAccess.get(url);
+    assertResponseStatus(200, response);
+    assertThat(response.getContentType(), is("application/zip"));
+    assertThat(response.getHeader("Content-Length"), is(Long.toString(saasReportFile.length())));
+    assertThat(response.getHeader("Content-Disposition"), containsString("filename="));
+    try (InputStream expected = new FileInputStream(saasReportFile);
+        InputStream actual = response.getResponseBodyAsStream()) {
+      assertThat(IOUtil.contentEquals(expected, actual), is(true));
+    }
   }
 
   private void testDataJsonApplyChanges(String json) throws IOException {

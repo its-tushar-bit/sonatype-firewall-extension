@@ -63,6 +63,19 @@ public class ReportResourceAuthzTest
   }
 
   @Test
+  public void testDownloadBundle() throws Exception {
+    String scanId = "scanId";
+    File saasReportFile = getReportResponseFile(getLicenseFingerprint(), scanId);
+    FileUtils.copyURLToFile(getClass().getResource("/ReportResourceTest/report.zip"), saasReportFile);
+
+    grantReadPermission(app.getId());
+
+    String url = getRestUrl(ReportResource.SERVICE_PATH + '/' + ReportResource.DOWNLOAD_BUNDLE_PATH, app.getPublicId(),
+        scanId);
+    testAuthzGet(url);
+  }
+
+  @Test
   public void testReevaluatePolicy() throws Exception {
     String scanId = "scanId";
     File saasReportFile = getReportResponseFile(getLicenseFingerprint(), scanId);

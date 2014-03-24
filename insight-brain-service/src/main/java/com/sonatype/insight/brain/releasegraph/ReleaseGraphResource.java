@@ -16,9 +16,6 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
 
-import com.sonatype.insight.brain.product.license.CLMLicenseManager;
-import com.sonatype.insight.brain.report.ReportDownloader;
-import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.error.HttpStatusCode;
 
 import com.google.common.cache.LoadingCache;
@@ -31,24 +28,13 @@ public class ReleaseGraphResource
 {
   private static final Logger log = LoggerFactory.getLogger(ReleaseGraphResource.class);
 
-  private final InsightWork work;
-
   private final LoadingCache<ReleaseGraphKey, byte[]> cache;
 
   private static final long YEAR = 365 * 24 * 60 * 60 * 1000;
 
-  private final ReportDownloader reportDownloader;
-
-  private final CLMLicenseManager licenseManager;
-
   @Inject
-  public ReleaseGraphResource(LoadingCache<ReleaseGraphKey, byte[]> cache, InsightWork work,
-      ReportDownloader reportDownloader, CLMLicenseManager licenseManager)
-  {
+  public ReleaseGraphResource(LoadingCache<ReleaseGraphKey, byte[]> cache) {
     this.cache = cache;
-    this.work = work;
-    this.reportDownloader = reportDownloader;
-    this.licenseManager = licenseManager;
   }
 
   @GET
@@ -59,8 +45,8 @@ public class ReleaseGraphResource
     log.debug("Creating popularity graph for {}:{}:{} for scan {}", groupId, artifactId, version, scanId);
     try {
       return Response
-          .ok(cache.get(new ReleaseGraphKey(groupId, artifactId, version, new ReportItemKey(reportDownloader,
-              licenseManager.getLicenseFingerprint(), applicationPublicId, scanId, work))), "image/png")
+          .ok(cache.get(new ReleaseGraphKey(groupId, artifactId, version,
+              new ReportItemKey(applicationPublicId, scanId))), "image/png")
           .expires(new Date(System.currentTimeMillis() + YEAR)).build();
     }
     catch (Exception e) {

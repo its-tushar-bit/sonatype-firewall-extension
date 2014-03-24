@@ -7,6 +7,9 @@ package com.sonatype.insight.brain.releasegraph;
 
 import java.util.concurrent.TimeUnit;
 
+import javax.inject.Inject;
+import javax.inject.Named;
+
 import com.sonatype.insight.brain.model.GAVPopularity;
 import com.sonatype.insight.brain.model.ReportPopularity;
 
@@ -16,13 +19,18 @@ import com.google.common.cache.LoadingCache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@Named
 public class ReleaseGraphCacheLoader
     extends CacheLoader<ReleaseGraphKey, byte[]>
 {
   private static final Logger log = LoggerFactory.getLogger(ReleaseGraphCacheLoader.class);
 
-  private LoadingCache<ReportItemKey, ReportPopularity> cache = CacheBuilder.newBuilder()
-      .expireAfterAccess(5, TimeUnit.MINUTES).build(new ReportItemCacheLoader());
+  private final LoadingCache<ReportItemKey, ReportPopularity> cache;
+
+  @Inject
+  public ReleaseGraphCacheLoader(ReportItemCacheLoader cacheLoader) {
+    cache = CacheBuilder.newBuilder().expireAfterAccess(5, TimeUnit.MINUTES).build(cacheLoader);
+  }
 
   @Override
   public byte[] load(ReleaseGraphKey key) throws Exception {

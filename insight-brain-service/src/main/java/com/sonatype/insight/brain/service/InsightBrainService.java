@@ -18,19 +18,14 @@ import com.sonatype.insight.brain.common.io.FileCleaner.FileDeletionException;
 import com.sonatype.insight.brain.dataaccess.license.LicenseDataUpdater;
 import com.sonatype.insight.brain.db.DatamartProvider;
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
-import com.sonatype.insight.brain.releasegraph.ReleaseGraphCacheLoader;
-import com.sonatype.insight.brain.releasegraph.ReleaseGraphKey;
 import com.sonatype.insight.brain.saas.DefaultLicenseDataUpdater;
 import com.sonatype.insight.brain.security.CLMShiroAopModule;
 import com.sonatype.insight.brain.security.CLMShiroModule;
 import com.sonatype.insight.db.DatabaseConfig;
 import com.sonatype.insight.error.JaxRsExceptionMapper;
 
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.LoadingCache;
 import com.google.inject.AbstractModule;
 import com.google.inject.Module;
-import com.google.inject.TypeLiteral;
 import com.sun.jersey.api.core.ResourceConfig;
 import com.sun.jersey.server.impl.resource.SingletonFactory;
 import com.yammer.dropwizard.assets.AssetsBundle;
@@ -208,11 +203,6 @@ public class InsightBrainService
     {
       @Override
       protected void configure() {
-        final LoadingCache<ReleaseGraphKey, byte[]> cache = CacheBuilder.newBuilder()
-            .maximumSize(config.getReleaseGraphCacheSize()).build(new ReleaseGraphCacheLoader());
-        bind(new TypeLiteral<LoadingCache<ReleaseGraphKey, byte[]>>()
-        {
-        }).toInstance(cache);
         bind(com.sonatype.insight.error.ErrorResponseGenerator.class).to(ErrorResponseGenerator.class);
       }
     }, new CLMShiroModule(), new CLMShiroAopModule());

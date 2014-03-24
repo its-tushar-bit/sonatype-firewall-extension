@@ -23,14 +23,11 @@ import java.util.concurrent.TimeUnit;
 import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
 
-import com.sonatype.insight.brain.TestLicenseFingerprinter;
-import com.sonatype.insight.brain.TestProductLicenseManager;
 import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.GAVPopularity;
 import com.sonatype.insight.brain.model.ReportPopularity;
-import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.json.store.JsonUtils;
@@ -52,15 +49,14 @@ public class ReleaseGraphPerformance
 
   private ReleaseGraphResource reportResource;
 
-  private LoadingCache<ReleaseGraphKey, byte[]> cache = CacheBuilder.newBuilder().maximumSize(1000)
-      .build(new ReleaseGraphCacheLoader());
+  private LoadingCache<ReleaseGraphKey, byte[]> cache;
 
   private ReleaseGraphPerformance(int threads, InsightWork work) throws Exception {
     callables = new LinkedList<UserCallable>();
     pool = new ThreadPoolExecutor(threads, threads, 1, TimeUnit.SECONDS, new ArrayBlockingQueue<Runnable>(threads));
-
-    reportResource = new ReleaseGraphResource(cache, work, null, new CLMLicenseManager(new TestProductLicenseManager(
-        true), new TestLicenseFingerprinter()));
+    cache = CacheBuilder.newBuilder().maximumSize(1000)
+        .build(new ReleaseGraphCacheLoader(new ReportItemCacheLoader(work, null, new ApplicationDAO())));
+    reportResource = new ReleaseGraphResource(cache);
 
     // trigger db
     testApplication = new Application();

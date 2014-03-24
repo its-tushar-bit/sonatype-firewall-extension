@@ -56,6 +56,8 @@ public class PolicyEvaluationUtils
 
   public static final String POLICY_ALERTS_FILENAME = "policyalerts.json";
 
+  public static final String POLICY_THREATS_FILENAME = "policythreats.json";
+
   private final InsightWork work;
 
   private final ReportDownloader reportDownloader;
@@ -120,7 +122,7 @@ public class PolicyEvaluationUtils
       Report.putEntry(reportFile, PRIMARY_POLICY_ALERTS_FILENAME, alertsFileContent);
     }
 
-    Report.putEntry(reportFile, "policythreats.json", JsonUtils.generate(toPolicyThreats(policyResults)));
+    Report.putEntry(reportFile, POLICY_THREATS_FILENAME, JsonUtils.generate(toPolicyThreats(policyResults)));
 
     ReportResource.flushReportChanges(appId, scanId); // ensure policy count is recalculated on fetch
 

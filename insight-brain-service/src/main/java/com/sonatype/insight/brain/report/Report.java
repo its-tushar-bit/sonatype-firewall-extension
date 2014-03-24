@@ -39,6 +39,7 @@ import com.sonatype.insight.brain.model.license.License;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.license.MultiLicense;
 import com.sonatype.insight.brain.organization.ContactDTO;
+import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluationUtils;
 import com.sonatype.insight.json.store.JsonStore;
 import com.sonatype.insight.json.store.JsonUtils;
 
@@ -132,7 +133,7 @@ public final class Report
     applyComponentRelatedChanges(application, reportFile, auditStore);
 
     // this data item is not in the original report, but is placed in the cache by the policy evaluator
-    final ReportEntry policyReportEntry = getEntry(reportFile, "policythreats.json");
+    final ReportEntry policyReportEntry = getEntry(reportFile, PolicyEvaluationUtils.POLICY_THREATS_FILENAME);
 
     // these data items have already had changes applied as part of applyComponentRelatedChanges above
     final ContainerNode<?> security = JsonUtils.parse(getEntry(reportFile, "security.json").buf);

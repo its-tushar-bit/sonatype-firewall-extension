@@ -852,6 +852,6 @@ public class PolicyEvaluateResourceTest
   private String getThreatsURL(final String applicationPublicId, final String scanId) {
     return getRestBaseUrl()
         + ReportResource.SERVICE_PATH.replace("{applicationPublicId}", applicationPublicId).replace("{scanId}", scanId)
-        + "/browseReport/policythreats.json";
+        + "/browseReport/" + PolicyEvaluationUtils.POLICY_THREATS_FILENAME;
   }
 }

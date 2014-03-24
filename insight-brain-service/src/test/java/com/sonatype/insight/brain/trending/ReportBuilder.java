@@ -18,6 +18,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 import com.sonatype.insight.brain.model.component.MatchState;
+import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluationUtils;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -162,7 +163,7 @@ public class ReportBuilder
 
     ObjectNode policythreats = mapper.createObjectNode();
     policythreats.putArray("aaData");
-    write(policythreats, new File(cacheDir, "policythreats.json"));
+    write(policythreats, new File(cacheDir, PolicyEvaluationUtils.POLICY_THREATS_FILENAME));
 
     ObjectNode dependencies = mapper.createObjectNode();
     write(dependencies, new File(cacheDir, "dependencies.json"));

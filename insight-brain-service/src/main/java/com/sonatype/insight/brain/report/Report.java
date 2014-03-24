@@ -13,15 +13,18 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
+import java.util.zip.ZipOutputStream;
 
 import javax.ws.rs.core.Response.ResponseBuilder;
 
@@ -553,6 +556,13 @@ public final class Report
         buildNumber, contact, response);
   }
 
+  public static File printPdf(final File reportFile, final String projectName, final int buildNumber,
+      final ContactDTO contact) throws IOException
+  {
+    return Pdf.generate(reportFile, getCacheDir(reportFile), ReportType.SAMPLE.equals(getType(reportFile)),
+        projectName, buildNumber, contact);
+  }
+
   public static void deletePdf(final File reportFile) {
     Pdf.delete(reportFile);
   }
@@ -626,6 +636,36 @@ public final class Report
     }
     finally {
       IOUtil.close(os);
+    }
+  }
+
+  public static File extendZip(File reportZip, Map<String, File> toAdd, Set<String> exclusions) throws IOException {
+    try (ZipFile srcZip = new ZipFile(reportZip)) {
+      File dest = File.createTempFile("report", "zip");
+
+      try (ZipOutputStream zipOut = new ZipOutputStream(new FileOutputStream(dest))) {
+        // copy existing
+        for (Enumeration<? extends ZipEntry> entries = srcZip.entries(); entries.hasMoreElements();) {
+          ZipEntry srcEntry = entries.nextElement();
+          if (!toAdd.containsKey(srcEntry.getName()) && !exclusions.contains(srcEntry.getName())) {
+            ZipEntry entry = new ZipEntry(srcEntry.getName());
+            zipOut.putNextEntry(entry);
+            try (InputStream in = srcZip.getInputStream(srcEntry)) {
+              IOUtil.copy(in, zipOut);
+            }
+          }
+        }
+
+        // add new entries
+        for (Entry<String, File> addition : toAdd.entrySet()) {
+          ZipEntry entry = new ZipEntry(addition.getKey());
+          zipOut.putNextEntry(entry);
+          try (InputStream in = new FileInputStream(addition.getValue())) {
+            IOUtil.copy(in, zipOut);
+          }
+        }
+        return dest;
+      }
     }
   }
 

@@ -67,8 +67,8 @@ final class Pdf
     }
   }
 
-  public static void generate(final File reportFile, final File cacheDir, final boolean sample,
-      final String projectName, final int buildNumber, final ContactDTO contact, final ResponseBuilder response)
+  public static File generate(final File reportFile, final File cacheDir, final boolean sample,
+      final String projectName, final int buildNumber, final ContactDTO contact)
       throws IOException
   {
     final File pdfFile = getPdfFile(reportFile);
@@ -82,7 +82,14 @@ final class Pdf
         new FileCleaner().delete(templateDir);
       }
     }
+    return pdfFile;
+  }
 
+  public static void generate(final File reportFile, final File cacheDir, final boolean sample,
+      final String projectName, final int buildNumber, final ContactDTO contact, final ResponseBuilder response)
+      throws IOException
+  {
+    final File pdfFile = generate(reportFile, cacheDir, sample, projectName, buildNumber, contact);
     final Date now = new Date();
 
     response.lastModified(now);

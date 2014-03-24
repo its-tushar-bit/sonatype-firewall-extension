@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.report;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Collections;
 import java.util.Date;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.locks.Lock;
@@ -251,6 +252,13 @@ public class ReportResource
     Application app = applicationDAO.getByPublicIdNotNull(applicationPublicId);
     File reportFile = fetchReport(reportDownloader, work, app.getId(), scanId, true);
     String filename = "report-" + scanId + ".zip";
+
+    ContactDTO contact = applicationAdapter.getContact(app.getContactInternalName());
+    File report = Report.printPdf(reportFile, "", 0, contact);
+
+    reportFile = Report.extendZip(reportFile, Collections.singletonMap("report.pdf", report),
+        Collections.singleton("detail.rptdesign"));
+
     final ResponseBuilder response = Response.ok();
     response.entity(reportFile);
     response.header("Content-Disposition", "attachment; filename=" + UrlUtils.encodeUrlComponent(filename));

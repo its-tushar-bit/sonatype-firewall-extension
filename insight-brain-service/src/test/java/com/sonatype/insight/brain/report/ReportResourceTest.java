@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.report;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -68,6 +67,7 @@ import com.yammer.dropwizard.testing.JsonHelpers;
 import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.IOUtil;
 import org.codehaus.plexus.util.StringUtils;
+import org.codehaus.plexus.util.io.RawInputStreamFacade;
 import org.junit.Assert;
 import org.junit.Test;
 import org.jvnet.mock_javamail.Mailbox;
@@ -1077,11 +1077,14 @@ public class ReportResourceTest
     Response response = AuthedRestAccess.get(url);
     assertResponseStatus(200, response);
     assertThat(response.getContentType(), is("application/zip"));
-    assertThat(response.getHeader("Content-Length"), is(Long.toString(saasReportFile.length())));
     assertThat(response.getHeader("Content-Disposition"), containsString("filename="));
-    try (InputStream expected = new FileInputStream(saasReportFile);
-        InputStream actual = response.getResponseBodyAsStream()) {
-      assertThat(IOUtil.contentEquals(expected, actual), is(true));
+    try (InputStream actual = response.getResponseBodyAsStream()) {
+      File temp = File.createTempFile("report", "zip");
+      FileUtils.copyStreamToFile(new RawInputStreamFacade(actual), temp);
+      try (ZipFile zip = new ZipFile(temp)) {
+        Assert.assertNotNull(zip.getEntry("report.pdf"));
+        Assert.assertNull(zip.getEntry("detail.rptdesign"));
+      }
     }
   }
 

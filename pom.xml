@@ -60,6 +60,7 @@
     <module>insight-rm-common</module>
     <module>sonatype-clm-server</module>
     <module>sonatype-clm-scanner</module>
+    <module>sonatype-integrator-scanner</module>
     <module>insight-brain-functional-test</module>
   </modules>
 

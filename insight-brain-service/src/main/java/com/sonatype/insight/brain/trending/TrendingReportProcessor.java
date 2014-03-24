@@ -12,7 +12,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -63,6 +62,8 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableMap.Builder;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @since 1.7
@@ -70,6 +71,8 @@ import com.google.common.collect.Sets;
 @Named
 public class TrendingReportProcessor
 {
+  private static final Logger log = LoggerFactory.getLogger(TrendingReportProcessor.class);
+
   public static final String CATEGORY_OTHER = "other";
 
   public static final String CATEGORY_QUALITY = "quality";
@@ -151,9 +154,9 @@ public class TrendingReportProcessor
    * @since 1.7
    */
   public TrendingReport calculate(ProgressMonitor monitor) throws IOException {
-    final long now = new Date().getTime();
+    final long start = System.currentTimeMillis();
 
-    TrendingReportMetadata meta = new TrendingReportMetadata(now, now - TWENTY_DAYS_MS, now);
+    TrendingReportMetadata meta = new TrendingReportMetadata(start, start - TWENTY_DAYS_MS, start);
 
     // total component counts in all applications based on latest application reports
     Map<String, Map<String, Integer>> components = new HashMap<String, Map<String, Integer>>();
@@ -204,7 +207,7 @@ public class TrendingReportProcessor
           continue;
         }
 
-        int period = PERIOD_COUNT - ((int) ((now - eval.getTime()) / PERIOD_LENGTH_MS));
+        int period = PERIOD_COUNT - ((int) ((start - eval.getTime()) / PERIOD_LENGTH_MS));
 
         if (period < 0) {
           period = 0;
@@ -323,10 +326,14 @@ public class TrendingReportProcessor
 
     monitor.tick(applications.size(), applications.size());
 
-    return new TrendingReport(meta, toComponentsSummary(components), toApplications(applicationRisks),
-        toPolicyViolations(policyViolations), toPartialMatches(partialMatches), toDiffData(categories,
-        previousCategories), toTopCategoryComponentRisks(componentRisks),
+    TrendingReport trendingReport = new TrendingReport(meta, toComponentsSummary(components),
+        toApplications(applicationRisks), toPolicyViolations(policyViolations), toPartialMatches(partialMatches),
+        toDiffData(categories, previousCategories), toTopCategoryComponentRisks(componentRisks),
         toPoliciesSummary(policyViolations.values()));
+
+    log.debug("Calculated trending report in {} ms.", System.currentTimeMillis() - start);
+
+    return trendingReport;
   }
 
   private PoliciesSummary toPoliciesSummary(Collection<PolicyViolation> violations) {

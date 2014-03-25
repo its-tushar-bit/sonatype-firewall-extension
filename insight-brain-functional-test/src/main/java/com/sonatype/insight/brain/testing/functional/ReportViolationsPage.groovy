@@ -5,7 +5,7 @@
  */
 package com.sonatype.insight.brain.testing.functional
 
-import com.sonatype.insight.brain.testing.functional.modules.DashboardModule
+import com.sonatype.insight.brain.testing.functional.modules.MainModule
 import com.sonatype.insight.brain.testing.functional.modules.NavListModule
 import com.sonatype.insight.brain.testing.functional.modules.ReportViolationsRow
 
@@ -18,7 +18,7 @@ class ReportViolationsPage
   static at = { title == 'CLM Management' }
 
   static content = {
-    dashboardModule { module DashboardModule }
+    mainModule { module MainModule }
     nav { module NavListModule }
 
     emptyMessage { $('div h5', text: startsWith('Welcome to Sonatype CLM. Get started by')) }

@@ -7,7 +7,7 @@
 (function() {
   'use strict';
 
-  var module = angular.module('DashboardHeader', ['ui.router', 'AngularCommon', 'CLMLocation']);
+  var module = angular.module('MainHeader', ['ui.router', 'AngularCommon', 'CLMLocation']);
 
   module.controller('LogoutController', ['$scope', '$http', 'CLMLocations', function ($scope, $http, CLMLocations) {
       $scope.logout = function () {
@@ -58,7 +58,7 @@
     };
   }]);
 
-  module.controller('dashboardHeaderController', ['$scope', '$state', 'CurrentUser', function($scope, $state, currentUser) {
+  module.controller('mainHeaderController', ['$scope', '$state', 'CurrentUser', function($scope, $state, currentUser) {
     $scope.$state = $state;
 
     currentUser.then(function(status) {
@@ -70,11 +70,11 @@
     };
   }]);
 
-  module.directive('dashboardHeader', function () {
+  module.directive('mainHeader', function () {
     return {
       restrict: 'A',
-      controller: 'dashboardHeaderController',
-      templateUrl : '../assets/components/dashboard-header/dashboard-header.html?' + clmBuildTimestamp
+      controller: 'mainHeaderController',
+      templateUrl : '../assets/components/main-header/main-header.html?' + clmBuildTimestamp
     };
   });
 

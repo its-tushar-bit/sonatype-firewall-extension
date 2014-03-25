@@ -17,8 +17,8 @@
   </group>
 
   <group name='core'>
-    <js>/assets/DashboardHeader.js</js>
-    <js>/assets/DashboardModule.js</js>
+    <js>/assets/MainHeader.js</js>
+    <js>/assets/MainModule.js</js>
     <js>/assets/EditorTools.js</js>
     <js>/assets/ListEditor.js</js>
     <js>/assets/ManagementApp.js</js>

@@ -7,7 +7,7 @@
 (function() {
   'use strict';
   angular.module('managementApp',
-    ['DashboardModule', 'OrganizationModule', 'ApplicationModule', 'Configuration', 'UserModule', 'LdapConfiguration'],
+    ['MainModule', 'OrganizationModule', 'ApplicationModule', 'Configuration', 'UserModule', 'LdapConfiguration'],
     ['$urlRouterProvider',
       function($urlRouterProvider) {
         $urlRouterProvider.when('', '/management/application');

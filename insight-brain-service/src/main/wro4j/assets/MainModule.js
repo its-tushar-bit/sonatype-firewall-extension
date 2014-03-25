@@ -22,8 +22,8 @@
     masterModalShown = false;
   };
 
-  var dashboardApp = angular.module('DashboardModule', ['ui.router', 'ui.bootstrap', 'CLMLocation', 'CommonServices',
-    'ReportModule', 'Report', 'DashboardHeader', 'ngRoute', 'UnauthenticatedResponseHttpInterceptor', 'xeditable',
+  var mainApp = angular.module('MainModule', ['ui.router', 'ui.bootstrap', 'CLMLocation', 'CommonServices',
+    'ReportModule', 'Report', 'MainHeader', 'ngRoute', 'UnauthenticatedResponseHttpInterceptor', 'xeditable',
     'ProductFeaturesModule', 'HttpInterceptors'],
     ['$stateProvider', '$routeProvider', '$urlRouterProvider',
     function($stateProvider, $routeProvider, $urlRouterProvider) {
@@ -42,7 +42,7 @@
     }]
   );
 
-  dashboardApp.run([
+  mainApp.run([
     '$rootScope',
     '$location',
     '$window',
@@ -181,7 +181,7 @@
    * Allow for images to be sourced from blobs. This was removed from AngularJS with closed issue:
    * https://github.com/angular/angular.js/issues/3889
    */
-  dashboardApp.config(['$compileProvider', function($compileProvider) {
+  mainApp.config(['$compileProvider', function($compileProvider) {
     $compileProvider.imgSrcSanitizationWhitelist(/^\s*(https?|ftp|file|blob):|data:image\//);
   }]);
 
@@ -197,7 +197,7 @@
     });
   };
 
-  dashboardApp.controller('UnsavedController', ['$rootScope', '$scope', '$location',
+  mainApp.controller('UnsavedController', ['$rootScope', '$scope', '$location',
       function($rootScope, $scope, $location) {
         $scope.close = function(shouldContinue) {
           hideMasterModal();
@@ -209,35 +209,7 @@
         };
       }]);
 
-  dashboardApp.controller('dashboardController', ['$scope', '$state', '$window',
-      function($scope, $state, $window) {
-        function switchDashboard() {
-          for ( var i = 0; i < $scope.availableDashboards.length; i++) {
-            if ($window.location.href && $window.location.href.indexOf($scope.availableDashboards[i].selector) !== -1) {
-              $scope.selectedDashboard = $scope.availableDashboards[i];
-              break;
-            }
-          }
-        }
-
-        $scope.$state = $state;
-        $scope.availableDashboards = [{
-          name: 'Management',
-          icon: 'management',
-          href: 'index.html#/management/application',
-          selector: '#/management'
-        }, {
-          name: 'Reports',
-          icon: 'reports',
-          href: 'index.html#/reports/violations',
-          selector: '#/reports'
-        }];
-
-        $scope.$watch('$state.current.name', switchDashboard);
-        switchDashboard();
-      }]);
-
-  dashboardApp.service('licenseChecker', ['$http', '$q', 'CLMLocations', function($http, $q, CLMLocations) {
+  mainApp.service('licenseChecker', ['$http', '$q', 'CLMLocations', function($http, $q, CLMLocations) {
     return {
       check: function() {
         var deferred = $q.defer();

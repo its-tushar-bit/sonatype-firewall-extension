@@ -1,11 +1,11 @@
-describe('dashboardHeader', function() {
+describe('mainHeader', function() {
   var scope, state,
     parentScope = null,
     dialogScope = null,
     currentUserSuccess = null,
     currentUserFail = null;
 
-  beforeEach(module('DashboardHeader', function($provide) {
+  beforeEach(module('MainHeader', function($provide) {
     $provide.value('$window', {
       location: {
         href: 'http://blah/index.html',
@@ -53,7 +53,7 @@ describe('dashboardHeader', function() {
     scope = $rootScope.$new();
     state = $state;
 
-    $controller('dashboardHeaderController', {
+    $controller('mainHeaderController', {
       $scope: scope,
       $state: state
     });
@@ -69,7 +69,7 @@ describe('dashboardHeader', function() {
     $httpBackend.verifyNoOutstandingRequest();
   }));
 
-  describe('Dashboard Header User Controls', function () {
+  describe('Main Header User Controls', function () {
     describe('LogoutController', function () {
       beforeEach(inject(function ($controller, $rootScope) {
         parentScope = $rootScope.$new();

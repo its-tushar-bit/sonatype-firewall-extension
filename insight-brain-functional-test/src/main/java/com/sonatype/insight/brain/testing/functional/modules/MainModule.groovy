@@ -13,7 +13,7 @@ import geb.Module
 /**
  * @since 1.7
  */
-class DashboardModule
+class MainModule
     extends Module
 {
   static content = {

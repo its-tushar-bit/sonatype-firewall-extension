@@ -5,7 +5,7 @@
  */
 package com.sonatype.insight.brain.testing.functional
 
-class DashboardHeaderSpec
+class MainHeaderSpec
     extends BaseSpec 
 {
   def setup() {
@@ -22,7 +22,7 @@ class DashboardHeaderSpec
       def props = new Properties()
       props.load(getClass().getResourceAsStream("/version.properties"));
     expect: "version is shown"
-      waitFor { dashboardModule.version.displayed }
-      waitFor { dashboardModule.version.text() == props["version"] }
+      waitFor { mainModule.version.displayed }
+      waitFor { mainModule.version.text() == props["version"] }
   }
 }

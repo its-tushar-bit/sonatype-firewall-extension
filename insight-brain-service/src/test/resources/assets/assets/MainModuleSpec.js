@@ -2,7 +2,7 @@ describe('dashboardApp', function() {
   'use strict';
   var scope, state, currentUserSuccess, currentUserFail, licenseCheckerFail, licenseCheckerSuccess;
 
-  beforeEach(module('DashboardModule', function($stateProvider, $provide) {
+  beforeEach(module('MainModule', function($stateProvider, $provide) {
     $provide.value('$window', {
       location: {
         href: 'http://blah/index.html',

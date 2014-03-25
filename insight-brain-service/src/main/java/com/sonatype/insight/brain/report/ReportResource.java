@@ -45,6 +45,7 @@ import com.sonatype.insight.brain.organization.ApplicationAdapter;
 import com.sonatype.insight.brain.organization.ContactDTO;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluationLog;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluationUtils;
+import com.sonatype.insight.brain.releasegraph.ReleaseGraphService;
 import com.sonatype.insight.brain.security.AuditUtils;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
@@ -100,9 +101,12 @@ public class ReportResource
 
   private final ReportDataService reportDataService;
 
+  private final ReleaseGraphService releaseGraphService;
+
   @Inject
   public ReportResource(final ReportDownloader reportDownloader, final PolicyEvaluationUtils policyEvaluationUtils,
-      InsightWork work, BaseUrl baseUrl, ApplicationAdapter applicationAdapter, ReportDataService reportDataService)
+      InsightWork work, BaseUrl baseUrl, ApplicationAdapter applicationAdapter, ReportDataService reportDataService,
+      ReleaseGraphService releaseGraphService)
   {
     this.reportDownloader = reportDownloader;
     this.policyEvaluationUtils = policyEvaluationUtils;
@@ -110,6 +114,7 @@ public class ReportResource
     this.baseUrl = baseUrl;
     this.applicationAdapter = applicationAdapter;
     this.reportDataService = reportDataService;
+    this.releaseGraphService = releaseGraphService;
   }
 
   /**
@@ -258,11 +263,22 @@ public class ReportResource
     ContactDTO contact = applicationAdapter.getContact(app.getContactInternalName());
     File pdfFile = Report.printPdf(reportFile, "", 0, contact);
 
+    ReportData reportData = reportDataService.getData(applicationPublicId, scanId);
+
     File updatedFile = File.createTempFile("report", "zip");
     try (ReportBundleUpdater updater = new ReportBundleUpdater(reportFile, updatedFile)) {
       updater.remove("detail.rptdesign");
       updater.add("report.pdf", pdfFile);
-      updater.add("components.json", reportDataService.getData(applicationPublicId, scanId));
+      updater.add("components.json", reportData);
+      for (ReportData.Component component : reportData.components) {
+        ReportData.Coordinates gav = component.mavenCoordinates;
+        if (gav != null) {
+          String imagePath = "release-graph/" + gav.groupId + "/" + gav.artifactId + "/" + gav.version + ".png";
+          byte[] imageData = releaseGraphService.getImage(applicationPublicId, scanId, gav.groupId, gav.artifactId,
+              gav.version);
+          updater.add(imagePath, imageData);
+        }
+      }
     }
 
     final ResponseBuilder response = Response.ok();

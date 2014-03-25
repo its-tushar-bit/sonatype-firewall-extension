@@ -1085,6 +1085,7 @@ public class ReportResourceTest
         Assert.assertNotNull(zip.getEntry("report.pdf"));
         Assert.assertNull(zip.getEntry("detail.rptdesign"));
         Assert.assertNotNull(zip.getEntry("components.json"));
+        Assert.assertNotNull(zip.getEntry("release-graph/tomcat/tomcat-util/5.5.23.png"));
       }
     }
   }

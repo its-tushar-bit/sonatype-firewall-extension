@@ -650,10 +650,12 @@ public class IdeResourceTest
 
   @Test
   public void testGetAsset() throws Exception {
-    Response response = RestAccess.get(getServiceURL() + "/asset/eclipse/index.html");
-    assertResponseStatus(Status.TEMPORARY_REDIRECT.getStatusCode(), response);
-    Assert.assertEquals(getRestBaseUrl() + "assets/version-graph/ide/eclipse/index.html",
-        response.getHeader("Location"));
+    // Note this is now deprecated functionality, only legacy (2.5.0 and earlier) versions of the ide plugin will access
+    // this resource
+    setSaasResponseForURI("ide/sub/dir/some%20space.html?x=y&a=b", "OK", 200);
+    Response response = RestAccess.get(getServiceURL() + "/asset/sub/dir/some%20space.html?x=y&a=b");
+    assertResponseStatus(200, response);
+    Assert.assertEquals("OK", response.getResponseBody());
   }
 
   @Test

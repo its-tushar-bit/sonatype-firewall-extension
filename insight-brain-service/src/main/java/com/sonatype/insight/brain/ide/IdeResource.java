@@ -69,14 +69,11 @@ public class IdeResource
 
   private final BaseUrl baseUrl;
 
-  private final AssetPathAdjuster assetPathAdjuster;
-
   @Inject
-  public IdeResource(InsightWork work, BaseUrl baseUrl, SaasClient client, AssetPathAdjuster assetPathAdjuster) {
+  public IdeResource(InsightWork work, BaseUrl baseUrl, SaasClient client) {
     this.work = work;
     this.baseUrl = baseUrl;
     this.client = client;
-    this.assetPathAdjuster = assetPathAdjuster;
   }
 
   /**
@@ -84,14 +81,16 @@ public class IdeResource
    * 
    * @return the response from the SaaS
    * @since 1.2
+   * @deprecated supporting ide plugins up to version 2.5.0, newer plugins will directly access the
+   *             brains assets
    */
   @GET
   @Path("asset/{path:.*}")
-  public Response getAsset(@PathParam("path") String path, @HeaderParam(HttpHeaders.USER_AGENT) String userAgent) {
-    UriBuilder uriBuilder = baseUrl.redirect().path("assets/version-graph/ide")
-        .path(assetPathAdjuster.adjustPath(path, userAgent));
-
-    return Response.temporaryRedirect(uriBuilder.build()).build();
+  @Deprecated
+  public Response getAsset(@PathParam("path") String path, @Context HttpServletRequest request,
+      @HeaderParam(HttpHeaders.USER_AGENT) String userAgent) throws IOException
+  {
+    return client.doProxy(request, "ide/{path}", path);
   }
 
   /**

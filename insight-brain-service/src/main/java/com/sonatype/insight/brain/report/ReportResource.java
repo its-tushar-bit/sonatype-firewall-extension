@@ -8,10 +8,7 @@ package com.sonatype.insight.brain.report;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Collections;
 import java.util.Date;
-import java.util.LinkedHashMap;
-import java.util.Map;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -259,23 +256,17 @@ public class ReportResource
     String filename = "report-" + scanId + ".zip";
 
     ContactDTO contact = applicationAdapter.getContact(app.getContactInternalName());
-    File report = Report.printPdf(reportFile, "", 0, contact);
+    File pdfFile = Report.printPdf(reportFile, "", 0, contact);
 
-    File componentDataFile = File.createTempFile("temp-", ".json");
-    try {
-      ReportData reportData = reportDataService.getData(applicationPublicId, scanId);
-      JsonUtils.write(componentDataFile, reportData);
-      Map<String, File> addFilesMap = new LinkedHashMap<>();
-      addFilesMap.put("report.pdf", report);
-      addFilesMap.put("components.json", componentDataFile);
-      reportFile = Report.extendZip(reportFile, addFilesMap, Collections.singleton("detail.rptdesign"));
-    }
-    finally {
-      FileUtils.forceDelete(componentDataFile);
+    File updatedFile = File.createTempFile("report", "zip");
+    try (ReportBundleUpdater updater = new ReportBundleUpdater(reportFile, updatedFile)) {
+      updater.remove("detail.rptdesign");
+      updater.add("report.pdf", pdfFile);
+      updater.add("components.json", reportDataService.getData(applicationPublicId, scanId));
     }
 
     final ResponseBuilder response = Response.ok();
-    response.entity(reportFile);
+    response.entity(updatedFile);
     response.header("Content-Disposition", "attachment; filename=" + UrlUtils.encodeUrlComponent(filename));
     return response.build();
   }

@@ -56,7 +56,7 @@ public class ReleaseGraphPerformance
     pool = new ThreadPoolExecutor(threads, threads, 1, TimeUnit.SECONDS, new ArrayBlockingQueue<Runnable>(threads));
     cache = CacheBuilder.newBuilder().maximumSize(1000)
         .build(new ReleaseGraphCacheLoader(new ReportItemCacheLoader(work, null, new ApplicationDAO())));
-    reportResource = new ReleaseGraphResource(cache);
+    reportResource = new ReleaseGraphResource(new ReleaseGraphService(cache));
 
     // trigger db
     testApplication = new Application();

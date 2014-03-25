@@ -24,7 +24,6 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateResource;
-import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluationLog;
 import com.sonatype.insight.brain.saas.CIResource;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.brain.service.InsightConfig;
@@ -362,7 +361,7 @@ public class ApplicationResourceTest
 
     PolicyEvaluation evaluation = summary.getPolicyEvaluations().get(Stage.ID_BUILD);
     Assert.assertEquals(scanId1, evaluation.getScanId());
-    Assert.assertTrue(evaluation.getTime() > startTime);
+    Assert.assertTrue(evaluation.getTime().getTime() > startTime);
 
     // Verify Response for scan 2
     response = AuthedRestAccess.get(getApplicationManagementSummaryUrl(application.getPublicId(), scanId2));
@@ -382,7 +381,7 @@ public class ApplicationResourceTest
 
     evaluation = summary.getPolicyEvaluations().get(Stage.ID_RELEASE);
     Assert.assertEquals(scanId2, evaluation.getScanId());
-    Assert.assertTrue(evaluation.getTime() > startTime);
+    Assert.assertTrue(evaluation.getTime().getTime() > startTime);
 
     // 1-800-DIAL-A-SCAN
     response = AuthedRestAccess.get(getApplicationManagementSummaryUrl(application.getPublicId(), "12345678"));
@@ -446,10 +445,10 @@ public class ApplicationResourceTest
     Assert.assertNotNull(policyEvaluations);
     Assert.assertEquals(2, policyEvaluations.size());
     Assert.assertEquals(Stage.ID_BUILD, stageTypeIds[0]);
-    Assert.assertEquals(Stage.ID_BUILD, policyEvaluations.get(stageTypeIds[0]).getStage().getStageTypeId());
+    Assert.assertEquals(Stage.ID_BUILD, policyEvaluations.get(stageTypeIds[0]).getStageTypeId());
     Assert.assertEquals(scanId2, policyEvaluations.get(stageTypeIds[0]).getScanId());
     Assert.assertEquals(Stage.ID_RELEASE, stageTypeIds[1]);
-    Assert.assertEquals(Stage.ID_RELEASE, policyEvaluations.get(stageTypeIds[1]).getStage().getStageTypeId());
+    Assert.assertEquals(Stage.ID_RELEASE, policyEvaluations.get(stageTypeIds[1]).getStageTypeId());
     Assert.assertEquals(scanId1, policyEvaluations.get(stageTypeIds[1]).getScanId());
 
     Map<String, PolicyEvaluationResult> policyEvaluationsResults = applications[0].getPolicyEvaluationsResults();
@@ -501,10 +500,10 @@ public class ApplicationResourceTest
     Assert.assertNotNull(policyEvaluations);
     Assert.assertEquals(2, policyEvaluations.size());
     Assert.assertEquals(Stage.ID_BUILD, stageTypeIds[0]);
-    Assert.assertEquals(Stage.ID_BUILD, policyEvaluations.get(stageTypeIds[0]).getStage().getStageTypeId());
+    Assert.assertEquals(Stage.ID_BUILD, policyEvaluations.get(stageTypeIds[0]).getStageTypeId());
     Assert.assertEquals(scanId2, applications[0].getPolicyEvaluations().get(stageTypeIds[0]).getScanId());
     Assert.assertEquals(Stage.ID_RELEASE, stageTypeIds[1]);
-    Assert.assertEquals(Stage.ID_RELEASE, policyEvaluations.get(stageTypeIds[1]).getStage().getStageTypeId());
+    Assert.assertEquals(Stage.ID_RELEASE, policyEvaluations.get(stageTypeIds[1]).getStageTypeId());
     Assert.assertEquals(scanId1, applications[0].getPolicyEvaluations().get(stageTypeIds[1]).getScanId());
 
     policyEvaluationsResults = applicationSummary.getPolicyEvaluationsResults();
@@ -532,8 +531,7 @@ public class ApplicationResourceTest
     final String scanId = "ApplicationResourceTest-ScanId";
 
     // create eval log entry pointing at missing report
-    PolicyEvaluationLog evalLog = new PolicyEvaluationLog(brain.getAuditDir(appId));
-    evalLog.add(new PolicyEvaluation(new Stage(Stage.ID_BUILD), scanId), "anonymous", "127.0.0.1");
+    tempEntity.newPolicyEvaluation(appId, Stage.ID_BUILD, scanId);
     setSaasResponseForURI("/rest/ci/report?scanId=" + scanId, "Not Found", 404);
 
     Response response = AuthedRestAccess.get(getServiceURL());

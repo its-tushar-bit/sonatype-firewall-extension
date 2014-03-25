@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.policy.evaluator;
 
 import java.io.File;
-import java.io.IOException;
 import java.net.URL;
 import java.util.Date;
 import java.util.List;
@@ -23,6 +22,7 @@ import com.sonatype.insight.brain.dataaccess.component.HashGAVDAO;
 import com.sonatype.insight.brain.dataaccess.label.ComponentLabelDAO;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.Component;
@@ -286,9 +286,9 @@ public class PolicyEvaluateResourceTest
         FailActionType.ID, constraint1.getId(), "Constraint 1", LabelConditionType.ID, policyAlerts);
   }
 
-  private void assertPolicyEvaluation(String applicationId, String scanId, boolean isReevaluation) throws IOException {
-    PolicyEvaluationLog policyEvaluationLog = new PolicyEvaluationLog(brain.getAuditDir(applicationId));
-    PolicyEvaluation policyEvaluation = policyEvaluationLog.lastByScan(scanId);
+  private void assertPolicyEvaluation(String applicationId, String scanId, boolean isReevaluation) {
+    PolicyEvaluation policyEvaluation = new PolicyEvaluationDAO()
+        .getLastByApplicationIdAndScanId(applicationId, scanId);
     Assert.assertNotNull(policyEvaluation);
     Assert.assertEquals(isReevaluation, policyEvaluation.isReevaluation());
   }
@@ -689,8 +689,7 @@ public class PolicyEvaluateResourceTest
     Response response = AuthedRestAccess.post(getServiceURL(applicationPublicId, scanId), JsonHelpers.asJson(Stage.ID_BUILD));
     assertResponseStatus(400, response);
 
-    PolicyEvaluationLog evalLog = new PolicyEvaluationLog(brain.getAuditDir(appId));
-    PolicyEvaluation eval = evalLog.lastByStage(Stage.ID_BUILD);
+    PolicyEvaluation eval = new PolicyEvaluationDAO().getLastByApplicationIdAndStageId(appId, Stage.ID_BUILD);
     Assert.assertNull(eval);
   }
 
@@ -839,8 +838,7 @@ public class PolicyEvaluateResourceTest
         JsonHelpers.asJson(new Stage(Stage.ID_BUILD)));
     assertResponseStatus(404, response);
 
-    PolicyEvaluationLog evalLog = new PolicyEvaluationLog(brain.getAuditDir(appId));
-    PolicyEvaluation eval = evalLog.lastByStage(Stage.ID_BUILD);
+    PolicyEvaluation eval = new PolicyEvaluationDAO().getLastByApplicationIdAndStageId(appId, Stage.ID_BUILD);
     Assert.assertNull(eval);
   }
 

@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.policy.evaluator;
 import java.io.File;
 import java.net.URL;
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -19,6 +20,7 @@ import com.sonatype.clm.dto.model.policy.NotifyAction;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.AuthedRestAccess;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
@@ -104,24 +106,24 @@ public class PolicyMonitorTest
     FileUtils.copyFile(new File(testReportFileUrl.getFile()), saasReportFile);
 
     evaluatePolicy(app.getPublicId(), scanId, stage);
-    PolicyEvaluationLog policyEvaluationLog = new PolicyEvaluationLog(brain.getAuditDir(app.getId()));
 
     setLicenseProducts(new String[0]);
 
     Collection<StageType> stageTypes = StageTypes.getAll();
 
-    Map<StageType, Long> lastRun = new HashMap<StageType, Long>();
+    Map<StageType, Date> lastRun = new HashMap<StageType, Date>();
+    PolicyEvaluationDAO policyEvaluationDAO = new PolicyEvaluationDAO();
     for (StageType stageType : stageTypes) {
-      PolicyEvaluation eval = policyEvaluationLog.lastByStage(stageType.getId());
-      lastRun.put(stageType, eval == null ? null : Long.valueOf(eval.getTime()));
+      PolicyEvaluation eval = policyEvaluationDAO.getLastByApplicationIdAndStageId(app.getId(), stageType.getId());
+      lastRun.put(stageType, eval == null ? null : eval.getTime());
     }
 
     policyMonitor.run();
 
     // There should be no new policy evaluations
     for (StageType stageType : stageTypes) {
-      PolicyEvaluation eval = policyEvaluationLog.lastByStage(stageType.getId());
-      Long val = lastRun.get(stageType);
+      PolicyEvaluation eval = policyEvaluationDAO.getLastByApplicationIdAndStageId(app.getId(), stageType.getId());
+      Date val = lastRun.get(stageType);
       assertThat((val == null && eval == null) || (val != null && eval != null && val.equals(eval.getTime())), is(true));
     }
   }
@@ -138,21 +140,19 @@ public class PolicyMonitorTest
     // Seed policy evaluations for all stages. These should be the last evaluations after we run the policy monitoring,
     // i.e. no re-evaluations happened.
     Map<StageType, PolicyEvaluation> policyEvaluations = new LinkedHashMap<>();
-    PolicyEvaluationLog policyEvaluationLog = new PolicyEvaluationLog(brain.getAuditDir(notMonitoredApp.getId()));
     for (StageType stageType : StageTypes.getAll()) {
-      policyEvaluationLog
-          .add(new PolicyEvaluation(new Stage(stageType.getId()), "fakeScanId"), "someUser", "127.0.0.1");
-      PolicyEvaluation policyEvaluation = policyEvaluationLog.lastByStage(stageType.getId());
-      assertThat(policyEvaluation, is(notNullValue()));
+      PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(notMonitoredApp.getId(), stageType.getId(),
+          "fakeScanId");
       policyEvaluations.put(stageType, policyEvaluation);
     }
 
     policyMonitor.run();
 
     // There should be no new policy evaluations
+    PolicyEvaluationDAO policyEvaluationDAO = new PolicyEvaluationDAO();
     for (StageType stageType : StageTypes.getAll()) {
-      assertThat(policyEvaluationLog.lastByStage(stageType.getId()).getTime(), is(policyEvaluations.get(stageType)
-          .getTime()));
+      assertThat(policyEvaluationDAO.getLastByApplicationIdAndStageId(notMonitoredApp.getId(), stageType.getId())
+          .getTime(), is(policyEvaluations.get(stageType).getTime()));
     }
   }
 
@@ -166,9 +166,9 @@ public class PolicyMonitorTest
     policyMonitor.run();
 
     // There should be no policy evaluations
-    PolicyEvaluationLog policyEvaluationLog = new PolicyEvaluationLog(brain.getAuditDir(app.getId()));
+    PolicyEvaluationDAO policyEvaluationDAO = new PolicyEvaluationDAO();
     for (StageType stageType : StageTypes.getAll()) {
-      assertThat(policyEvaluationLog.lastByStage(stageType.getId()), is(nullValue()));
+      assertThat(policyEvaluationDAO.getLastByApplicationIdAndStageId(app.getId(), stageType.getId()), is(nullValue()));
     }
   }
 
@@ -236,15 +236,15 @@ public class PolicyMonitorTest
     notificationsDeveloper.clear();
     assertThat(notificationsMonitor1, is(empty()));
     assertThat(notificationsMonitor2, is(empty()));
-    PolicyEvaluationLog policyEvaluationLog = new PolicyEvaluationLog(brain.getAuditDir(app.getId()));
-    PolicyEvaluation policyEvaluation1 = policyEvaluationLog.lastByStage(stage.getStageTypeId());
+    PolicyEvaluationDAO policyEvaluationDAO = new PolicyEvaluationDAO();
+    PolicyEvaluation policyEvaluation1 = policyEvaluationDAO.getLastByApplicationIdAndStageId(app.getId(),
+        stage.getStageTypeId());
 
     // Run the policy monitor. There should be a new policy evaluation, but no notifications because nothing changed.
     policyMonitor.run();
-    PolicyEvaluation policyEvaluation2 = policyEvaluationLog.lastByStage(stage.getStageTypeId());
+    PolicyEvaluation policyEvaluation2 = policyEvaluationDAO.getLastByApplicationIdAndStageId(app.getId(),
+        stage.getStageTypeId());
     assertThat(policyEvaluation2.getTime(), is(greaterThan(policyEvaluation1.getTime())));
-    assertThat(policyEvaluationLog.lastByStage(stage.getStageTypeId()).getTime(),
-        is(greaterThan(policyEvaluation1.getTime())));
     assertThat(notificationsDeveloper, is(empty()));
     assertThat(notificationsMonitor1, is(empty()));
     assertThat(notificationsMonitor2, is(empty()));
@@ -254,10 +254,9 @@ public class PolicyMonitorTest
     policy3.setName(policy3.getName() + "Updated");
     updatePolicy(IdUtils.TYPE_APPLICATION, app.getPublicId(), policy3);
     policyMonitor.run();
-    PolicyEvaluation policyEvaluation3 = policyEvaluationLog.lastByStage(stage.getStageTypeId());
+    PolicyEvaluation policyEvaluation3 = policyEvaluationDAO.getLastByApplicationIdAndStageId(app.getId(),
+        stage.getStageTypeId());
     assertThat(policyEvaluation3.getTime(), is(greaterThan(policyEvaluation2.getTime())));
-    assertThat(policyEvaluationLog.lastByStage(stage.getStageTypeId()).getTime(),
-        is(greaterThan(policyEvaluation2.getTime())));
     assertThat(notificationsDeveloper, is(empty()));
     assertThat(notificationsMonitor1, is(empty()));
     assertThat(notificationsMonitor2, is(empty()));
@@ -266,10 +265,9 @@ public class PolicyMonitorTest
     policy1.setName(policy1.getName() + "Updated");
     updatePolicy(IdUtils.TYPE_APPLICATION, app.getPublicId(), policy1);
     policyMonitor.run();
-    PolicyEvaluation policyEvaluation4 = policyEvaluationLog.lastByStage(stage.getStageTypeId());
+    PolicyEvaluation policyEvaluation4 = policyEvaluationDAO.getLastByApplicationIdAndStageId(app.getId(),
+        stage.getStageTypeId());
     assertThat(policyEvaluation4.getTime(), is(greaterThan(policyEvaluation3.getTime())));
-    assertThat(policyEvaluationLog.lastByStage(stage.getStageTypeId()).getTime(),
-        is(greaterThan(policyEvaluation3.getTime())));
     assertThat(notificationsDeveloper, is(empty()));
     assertThat(notificationsMonitor1, hasSize(1));
     notificationsMonitor1.clear();
@@ -279,10 +277,9 @@ public class PolicyMonitorTest
     policy2.setName(policy2.getName() + "Updated");
     updatePolicy(IdUtils.TYPE_ORGANIZATION, org.getId(), policy2);
     policyMonitor.run();
-    PolicyEvaluation policyEvaluation5 = policyEvaluationLog.lastByStage(stage.getStageTypeId());
+    PolicyEvaluation policyEvaluation5 = policyEvaluationDAO.getLastByApplicationIdAndStageId(app.getId(),
+        stage.getStageTypeId());
     assertThat(policyEvaluation5.getTime(), is(greaterThan(policyEvaluation4.getTime())));
-    assertThat(policyEvaluationLog.lastByStage(stage.getStageTypeId()).getTime(),
-        is(greaterThan(policyEvaluation4.getTime())));
     assertThat(notificationsDeveloper, is(empty()));
     assertThat(notificationsMonitor1, is(empty()));
     assertThat(notificationsMonitor2, hasSize(1));

@@ -15,7 +15,6 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
-import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
@@ -26,7 +25,6 @@ import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
-import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.conditions.AgeInDaysConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.LicenseThreatGroupConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityConditionType;
@@ -41,7 +39,6 @@ import com.sonatype.insight.brain.model.trending.PoliciesSummary;
 import com.sonatype.insight.brain.model.trending.PolicyViolation;
 import com.sonatype.insight.brain.model.trending.TrendingReport;
 import com.sonatype.insight.brain.model.trending.TrendingReportMetadata;
-import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluationLog;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluationUtils;
 import com.sonatype.insight.brain.report.ReportDownloader;
 import com.sonatype.insight.brain.service.InsightConfig;
@@ -614,8 +611,7 @@ public class TrendingReportProcessorTest
     if (builder != null) {
       builder.build(insightWork.getReportDir(application.getId(), scanId));
     }
-    PolicyEvaluationLog log = new PolicyEvaluationLog(insightWork.getAuditDir(application.getId()));
-    log.add(new PolicyEvaluation(new Stage(BuildStageType.ID), scanId), "nobody", null, time);
+    temporaryEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, scanId, new Date(time));
   }
 
   protected Application createApplication(String appId) {

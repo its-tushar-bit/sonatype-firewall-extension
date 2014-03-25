@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.dataaccess;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
@@ -27,6 +28,7 @@ import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
 import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
@@ -49,6 +51,7 @@ import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityConditionType;
 import com.sonatype.insight.brain.model.security.MemberType;
@@ -95,6 +98,8 @@ public class TemporaryEntity
 
   private final PolicyDAO policyDAO = new PolicyDAO();
 
+  private final PolicyEvaluationDAO policyEvaluationDAO = new PolicyEvaluationDAO();
+
   private final ComponentLabelDAO componentLabelDAO = new ComponentLabelDAO();
 
   private final LicenseThreatGroupDAO licenseThreatGroupDAO = new LicenseThreatGroupDAO();
@@ -139,6 +144,8 @@ public class TemporaryEntity
 
   private Collection<HashGAV> claimedComponents;
 
+  private Collection<PolicyEvaluation> policyEvaluations;
+
   @Override
   protected void before() throws Throwable {
     apps = new ArrayList<Application>();
@@ -154,6 +161,7 @@ public class TemporaryEntity
     appTags = new ArrayList<ApplicationTag>();
     policies = new ArrayList<>();
     claimedComponents = new ArrayList<HashGAV>();
+    policyEvaluations = new ArrayList<>();
   }
 
   @Override
@@ -225,6 +233,12 @@ public class TemporaryEntity
     for (HashGAV claimedComponent : claimedComponents) {
       if (hashGAVDAO.getById(claimedComponent.getId()) != null) {
         hashGAVDAO.delete(claimedComponent);
+      }
+    }
+
+    for (PolicyEvaluation policyEvaluation : policyEvaluations) {
+      if (policyEvaluationDAO.getById(policyEvaluation.getId()) != null) {
+        policyEvaluationDAO.delete(policyEvaluation);
       }
     }
   }
@@ -482,5 +496,32 @@ public class TemporaryEntity
     hashGAVDAO.insert(claimedComponent);
     claimedComponents.add(claimedComponent);
     return claimedComponent;
+  }
+}
+
+  public PolicyEvaluation newPolicyEvaluation(String applicationId, String stageTypeId, String scanId, Date time) {
+    PolicyEvaluation policyEvaluation = new PolicyEvaluation(applicationId, stageTypeId, scanId);
+    policyEvaluation.setTime(time);
+    policyEvaluationDAO.insert(policyEvaluation);
+    policyEvaluations.add(policyEvaluation);
+    return policyEvaluation;
+  }
+
+  public PolicyEvaluation newPolicyEvaluation(String applicationId, String stageTypeId, String scanId) {
+    PolicyEvaluation policyEvaluation = new PolicyEvaluation(applicationId, stageTypeId, scanId);
+    policyEvaluationDAO.insert(policyEvaluation);
+    policyEvaluations.add(policyEvaluation);
+    return policyEvaluation;
+  }
+
+  public PolicyEvaluation newPolicyEvaluation(String applicationId, String stageTypeId, String scanId,
+      boolean isReevaluation, boolean idForMonitoring, Date time)
+  {
+    PolicyEvaluation policyEvaluation = new PolicyEvaluation(applicationId, stageTypeId, scanId, isReevaluation,
+        idForMonitoring);
+    policyEvaluation.setTime(time);
+    policyEvaluationDAO.insert(policyEvaluation);
+    policyEvaluations.add(policyEvaluation);
+    return policyEvaluation;
   }
 }

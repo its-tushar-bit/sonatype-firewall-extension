@@ -18,6 +18,7 @@ import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
@@ -29,6 +30,7 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
+import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyMonitoring;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
@@ -293,6 +295,12 @@ public class ApplicationDAO
     PolicyMonitoring policyMonitoring = policyMonitoringDAO.getByOwnerId(em, application.getId());
     if (policyMonitoring != null) {
       policyMonitoringDAO.delete(em, policyMonitoring);
+    }
+
+    // Cascade to policy evaluations
+    PolicyEvaluationDAO policyEvaluationDAO = new PolicyEvaluationDAO();
+    for (PolicyEvaluation policyEvaluation : policyEvaluationDAO.getByApplicationId(em, application.getId())) {
+      policyEvaluationDAO.delete(em, policyEvaluation);
     }
 
     // Cascade to applied tags

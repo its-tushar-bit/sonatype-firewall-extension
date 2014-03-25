@@ -8,8 +8,6 @@ package com.sonatype.insight.brain.report;
 import java.io.File;
 
 import com.sonatype.clm.dto.model.policy.Stage;
-import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
-import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluationLog;
 import com.sonatype.insight.brain.service.AbstractResourceAuthzTest;
 
 import org.codehaus.plexus.util.FileUtils;
@@ -80,8 +78,7 @@ public class ReportResourceAuthzTest
     String scanId = "scanId";
     File saasReportFile = getReportResponseFile(getLicenseFingerprint(), scanId);
     FileUtils.copyURLToFile(getClass().getResource("/ReportResourceTest/report.zip"), saasReportFile);
-    PolicyEvaluationLog evalLog = new PolicyEvaluationLog(brain.getAuditDir(app.getId()));
-    evalLog.add(new PolicyEvaluation(new Stage(Stage.ID_BUILD), scanId), "nobody", "127.0.0.1");
+    tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, scanId);
 
     grantReadPermission(app.getId());
 

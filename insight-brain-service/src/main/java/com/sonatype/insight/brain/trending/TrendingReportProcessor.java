@@ -32,6 +32,7 @@ import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.Condition;
@@ -49,7 +50,6 @@ import com.sonatype.insight.brain.model.trending.PoliciesSummary;
 import com.sonatype.insight.brain.model.trending.PolicyViolation;
 import com.sonatype.insight.brain.model.trending.TrendingReport;
 import com.sonatype.insight.brain.model.trending.TrendingReportMetadata;
-import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluationLog;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluationUtils;
 import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.report.ReportResource;
@@ -194,12 +194,13 @@ public class TrendingReportProcessor
 
       // alerts counts in this application
       int criticalAlerts = 0, severeAlerts = 0, moderateAlerts = 0, totalAlerts = 0;
-      PolicyEvaluationLog evalLog = new PolicyEvaluationLog(work.getAuditDir(application.getId()));
+      PolicyEvaluationDAO policyEvaluationDAO = new PolicyEvaluationDAO();
 
       // most recent evaluation in each reporting period
       // index==0 is most recent evaluation *before* first reporting period
       PolicyEvaluation[] periods = new PolicyEvaluation[PERIOD_COUNT + 1];
-      List<PolicyEvaluation> policyEvaluations = evalLog.allByStage(STAGE_ID);
+      List<PolicyEvaluation> policyEvaluations = policyEvaluationDAO.getAllByApplicationIdAndStageId(
+          application.getId(), STAGE_ID);
       for (PolicyEvaluation eval : policyEvaluations) {
         // If the report is not available for whatever reason, ignore this policy evaluation as we're strictly looking
         // at these data points for possible inspection later.
@@ -207,7 +208,7 @@ public class TrendingReportProcessor
           continue;
         }
 
-        int period = PERIOD_COUNT - ((int) ((start - eval.getTime()) / PERIOD_LENGTH_MS));
+        int period = PERIOD_COUNT - ((int) ((start - eval.getTime().getTime()) / PERIOD_LENGTH_MS));
 
         if (period < 0) {
           period = 0;
@@ -309,7 +310,7 @@ public class TrendingReportProcessor
 
       // previous categories
       PolicyEvaluation firstEval = periods[0];
-      if (firstEval != null && lastEval.getTime() > firstEval.getTime()) {
+      if (firstEval != null && lastEval.getTime().getTime() > firstEval.getTime().getTime()) {
         for (PolicyAlert alert : policyEvaluationUtils.findPolicyAlerts(application.getId(), firstEval.getScanId())) {
           PolicyFact policyFact = alert.getTrigger();
           int level = policyFact.getThreatLevel();

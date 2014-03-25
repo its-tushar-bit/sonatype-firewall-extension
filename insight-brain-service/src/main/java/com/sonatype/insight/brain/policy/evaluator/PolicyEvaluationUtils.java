@@ -29,6 +29,7 @@ import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
@@ -101,9 +102,10 @@ public class PolicyEvaluationUtils
     }
 
     // add new entry in the rolling log (TODO: populate invoker's details)
-    PolicyEvaluationLog evalLog = new PolicyEvaluationLog(work.getAuditDir(appId));
-    boolean isReevaluation = (evalLog.lastByScan(scanId) != null);
-    evalLog.add(new PolicyEvaluation(stage, scanId, isReevaluation, forMonitoring), "anonymous", "127.0.0.1");
+    PolicyEvaluationDAO policyEvaluationDAO = new PolicyEvaluationDAO();
+    boolean isReevaluation = (policyEvaluationDAO.getLastByApplicationIdAndScanId(appId, scanId) != null);
+    policyEvaluationDAO.insert(new PolicyEvaluation(appId, stage.getStageTypeId(), scanId, isReevaluation,
+        forMonitoring));
 
     final List<Component> components = new ComponentDAO().getAll(application, licenseReportEntry.buf,
         securityReportEntry.buf, bomReportEntry.buf);
@@ -181,12 +183,10 @@ public class PolicyEvaluationUtils
   }
 
   public List<PolicyAlert> findLastPrimaryPolicyAlerts(final String applicationPublicId, String appId, final Stage stage)
-      throws IOException
   {
-    PolicyEvaluationLog evalLog = new PolicyEvaluationLog(work.getAuditDir(appId));
-
     // retrieve last known scanId for stage
-    PolicyEvaluation lastPrimaryPolicyEvaluation = evalLog.lastPrimaryByStage(stage.getStageTypeId());
+    PolicyEvaluation lastPrimaryPolicyEvaluation = new PolicyEvaluationDAO().getLastPrimaryByApplicationIdAndStageId(
+        appId, stage.getStageTypeId());
     final String lastScanId = (lastPrimaryPolicyEvaluation != null) ? lastPrimaryPolicyEvaluation.getScanId() : null;
 
     if (!StringUtils.isBlank(lastScanId)) {

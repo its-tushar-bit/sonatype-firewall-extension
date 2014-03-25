@@ -38,6 +38,7 @@ import com.sonatype.insight.brain.dataaccess.component.HashGAVDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
 import com.sonatype.insight.brain.license.LicenseOverrideResource;
 import com.sonatype.insight.brain.model.Application;
@@ -55,7 +56,6 @@ import com.sonatype.insight.brain.model.policy.actions.NotifyActionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityConditionType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateResource;
-import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluationLog;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluationUtils;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.brain.utils.IdUtils;
@@ -567,8 +567,9 @@ public class ReportResourceTest
     final URL testReportResultUrl = getClass().getResource("/ReportResourceTest/report.zip");
     FileUtils.copyFile(new File(testReportResultUrl.getFile()), saasReportFile);
 
-    PolicyEvaluationLog evalLog = new PolicyEvaluationLog(brain.getAuditDir(application.getId()));
-    PolicyEvaluation policyEvaluation = evalLog.lastByScan(scanId);
+    PolicyEvaluationDAO policyEvaluationDAO = new PolicyEvaluationDAO();
+    PolicyEvaluation policyEvaluation = policyEvaluationDAO
+        .getLastByApplicationIdAndScanId(application.getId(), scanId);
     Assert.assertNull(policyEvaluation);
 
     final Constraint constraint = new Constraint("C1", "testReevaluateReport constraint 1", LogicalOperator.AND);
@@ -593,12 +594,11 @@ public class ReportResourceTest
             + "?scanId=" + scanId, JsonHelpers.asJson(stage));
     assertResponseStatus(200, response);
 
-    policyEvaluation = evalLog.lastByScan(scanId);
+    policyEvaluation = policyEvaluationDAO.getLastByApplicationIdAndScanId(application.getId(), scanId);
     Assert.assertNotNull(policyEvaluation);
     Assert.assertEquals(scanId, policyEvaluation.getScanId());
-    Assert.assertNotNull(policyEvaluation.getStage());
-    Assert.assertEquals(BuildStageType.ID, policyEvaluation.getStage().getStageTypeId());
-    assertTrue(System.currentTimeMillis() - policyEvaluation.getTime() < 60 * 1000);
+    Assert.assertEquals(BuildStageType.ID, policyEvaluation.getStageTypeId());
+    assertTrue(System.currentTimeMillis() - policyEvaluation.getTime().getTime() < 60 * 1000);
     Assert.assertFalse(policyEvaluation.isReevaluation());
 
     Assert.assertEquals(1, notifications.size());
@@ -613,12 +613,12 @@ public class ReportResourceTest
     response = AuthedRestAccess.get(resourcePrefix + "/reevaluatePolicy");
     assertResponseStatus(200, response);
 
-    PolicyEvaluation policyReEvaluation = evalLog.lastByScan(scanId);
+    PolicyEvaluation policyReEvaluation = policyEvaluationDAO.getLastByApplicationIdAndScanId(application.getId(),
+        scanId);
     Assert.assertNotNull(policyReEvaluation);
     Assert.assertEquals(scanId, policyReEvaluation.getScanId());
-    Assert.assertNotNull(policyReEvaluation.getStage());
-    Assert.assertEquals(BuildStageType.ID, policyReEvaluation.getStage().getStageTypeId());
-    assertTrue(policyReEvaluation.getTime() > policyEvaluation.getTime());
+    Assert.assertEquals(BuildStageType.ID, policyReEvaluation.getStageTypeId());
+    assertTrue(policyReEvaluation.getTime().getTime() > policyEvaluation.getTime().getTime());
     assertTrue(policyReEvaluation.isReevaluation());
 
     Assert.assertEquals(0, notifications.size());
@@ -634,12 +634,11 @@ public class ReportResourceTest
             + "?scanId=" + scanId, JsonHelpers.asJson(stage));
     assertResponseStatus(200, response);
 
-    policyEvaluation = evalLog.lastByScan(scanId);
+    policyEvaluation = policyEvaluationDAO.getLastByApplicationIdAndScanId(application.getId(), scanId);
     Assert.assertNotNull(policyEvaluation);
     Assert.assertEquals(scanId, policyEvaluation.getScanId());
-    Assert.assertNotNull(policyEvaluation.getStage());
-    Assert.assertEquals(BuildStageType.ID, policyEvaluation.getStage().getStageTypeId());
-    assertTrue(System.currentTimeMillis() - policyEvaluation.getTime() < 60 * 1000);
+    Assert.assertEquals(BuildStageType.ID, policyEvaluation.getStageTypeId());
+    assertTrue(System.currentTimeMillis() - policyEvaluation.getTime().getTime() < 60 * 1000);
     Assert.assertFalse(policyEvaluation.isReevaluation());
 
     Assert.assertEquals(1, notifications.size());

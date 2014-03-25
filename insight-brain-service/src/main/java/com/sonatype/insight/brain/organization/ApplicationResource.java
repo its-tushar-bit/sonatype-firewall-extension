@@ -33,15 +33,14 @@ import javax.ws.rs.core.Response;
 
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
-import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.InvalidApplicationException;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.security.Permission;
-import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluationLog;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluationUtils;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.saas.SaasClient;
@@ -206,7 +205,7 @@ public class ApplicationResource
   @Authorize(permission = Permission.READ)
   public ApplicationManagementSummaryDTO getApplicationManagementSummary(
       @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) @PathParam("applicationPublicId") final String applicationPublicId,
-      @PathParam("scanId") final String scanId) throws IOException
+      @PathParam("scanId") final String scanId)
   {
     final Application application = applicationDAO.getByPublicIdNotNull(applicationPublicId);
     return getApplicationManagementSummary(application, scanId);
@@ -364,19 +363,18 @@ public class ApplicationResource
   }
 
   private ApplicationManagementSummaryDTO getApplicationManagementSummary(final Application application, String scanId)
-      throws IOException
   {
     final String applicationPublicId = application.getPublicId();
     final String applicationId = application.getId();
     log.debug("Found application with public id {}", applicationPublicId);
 
-    PolicyEvaluation evaluation = new PolicyEvaluationLog(work.getAuditDir(applicationId)).lastByScan(scanId);
+    PolicyEvaluation evaluation = new PolicyEvaluationDAO().getLastByApplicationIdAndScanId(applicationId, scanId);
     if (evaluation == null) {
       throw new NotFoundException("Unable to locate requested scan");
     }
     ApplicationManagementSummaryDTO summary = applicationAdapter
         .createApplicationManagementSummary(application);
-    summary.setPolicyEvaluations(Collections.singletonMap(evaluation.getStage().getStageTypeId(), evaluation));
+    summary.setPolicyEvaluations(Collections.singletonMap(evaluation.getStageTypeId(), evaluation));
     return summary;
   }
 
@@ -393,8 +391,7 @@ public class ApplicationResource
     Map<String, PolicyEvaluation> policyEvaluations = new HashMap<String, PolicyEvaluation>();
     Map<String, PolicyEvaluationResult> policyEvaluationResults = new HashMap<String, PolicyEvaluationResult>();
     for (PolicyEvaluation policyEvaluation : policyEvaluationList) {
-      final Stage stage = policyEvaluation.getStage();
-      policyEvaluations.put(stage.getStageTypeId(), policyEvaluation);
+      policyEvaluations.put(policyEvaluation.getStageTypeId(), policyEvaluation);
 
       List<PolicyAlert> alerts = policyEvaluationUtils.findPolicyAlerts(applicationId, policyEvaluation.getScanId());
       final PolicyEvaluationResult policyEvaluationResult = new PolicyEvaluationResult();
@@ -404,18 +401,18 @@ public class ApplicationResource
       // Alerts are not needed by the Application Management UI and greatly bloat the JSON response
       policyEvaluationResult.setAlerts(null);
 
-      policyEvaluationResults.put(stage.getStageTypeId(), policyEvaluationResult);
+      policyEvaluationResults.put(policyEvaluation.getStageTypeId(), policyEvaluationResult);
     }
 
     applicationManagement.setPolicyEvaluations(policyEvaluations);
     applicationManagement.setPolicyEvaluationsResults(policyEvaluationResults);
   }
 
-  private List<PolicyEvaluation> getMostRecentPolicyEvaluations(final String appId) throws IOException {
+  private List<PolicyEvaluation> getMostRecentPolicyEvaluations(final String appId) {
     final List<PolicyEvaluation> policyEvaluations = new ArrayList<PolicyEvaluation>();
-    PolicyEvaluationLog evalLog = new PolicyEvaluationLog(work.getAuditDir(appId));
+    PolicyEvaluationDAO policyEvaluationDAO = new PolicyEvaluationDAO();
     for (StageType stageType : StageTypes.getAll()) {
-      PolicyEvaluation eval = evalLog.lastByStage(stageType.getId());
+      PolicyEvaluation eval = policyEvaluationDAO.getLastByApplicationIdAndStageId(appId, stageType.getId());
       if (eval != null) {
         policyEvaluations.add(eval);
       }

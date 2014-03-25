@@ -20,6 +20,7 @@ import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
@@ -113,8 +114,8 @@ public class PolicyMonitor
     log.info("Policy monitoring is enabled for application '{}' and stage '{}'", app.getName(),
         policyMonitoring.getStageTypeId());
 
-    PolicyEvaluationLog policyEvaluationLog = new PolicyEvaluationLog(work.getAuditDir(app.getId()));
-    PolicyEvaluation policyEvaluation = policyEvaluationLog.lastPrimaryByStage(policyMonitoring.getStageTypeId());
+    PolicyEvaluation policyEvaluation = new PolicyEvaluationDAO().getLastPrimaryByApplicationIdAndStageId(app.getId(),
+        policyMonitoring.getStageTypeId());
     if (policyEvaluation == null) {
       log.info("There is nothing to monitor for application '{}' because there is no scan for stage '{}'",
           app.getName(), policyMonitoring.getStageTypeId());

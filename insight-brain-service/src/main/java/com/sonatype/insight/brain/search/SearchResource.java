@@ -21,13 +21,13 @@ import javax.ws.rs.core.MediaType;
 import com.sonatype.clm.dto.model.policy.ComponentFact;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.conditions.ArtifactCoordinate;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.security.Permission;
-import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluationLog;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluationUtils;
 import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.report.ReportResource;
@@ -114,9 +114,9 @@ public class SearchResource
     results.criteria.artifactId = artifactId;
     results.criteria.version = version;
     String baseUrl = this.baseUrl.get();
+    PolicyEvaluationDAO policyEvaluationDAO = new PolicyEvaluationDAO();
     for (Application app : getApplicationsWithReadPermission()) {
-      PolicyEvaluationLog evalLog = new PolicyEvaluationLog(work.getAuditDir(app.getId()));
-      PolicyEvaluation eval = evalLog.lastPrimaryByStage(stageId);
+      PolicyEvaluation eval = policyEvaluationDAO.getLastPrimaryByApplicationIdAndStageId(app.getId(), stageId);
       if (eval == null) {
         continue;
       }

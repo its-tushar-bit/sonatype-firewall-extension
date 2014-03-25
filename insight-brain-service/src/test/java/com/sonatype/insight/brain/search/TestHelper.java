@@ -12,12 +12,9 @@ import java.util.UUID;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
-import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
-import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
-import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluationLog;
 import com.sonatype.insight.brain.service.TestInsightBrainServiceRule;
 
 import org.codehaus.plexus.util.FileUtils;
@@ -47,8 +44,7 @@ class TestHelper
     FileUtils.copyURLToFile(getClass().getResource("/SearchResourceTest/" + resPath + "/policyalerts.json"),
         getReportCacheEntry(appId, scanId, "policyalerts.json"));
     createReport(appId, scanId);
-    PolicyEvaluationLog log = new PolicyEvaluationLog(brain.getAuditDir(appId));
-    log.add(new PolicyEvaluation(new Stage(stageId), scanId), "nobody", null);
+    tempEntity.newPolicyEvaluation(appId, stageId, scanId);
   }
 
   private File getReportCacheEntry(String appId, String scanId, String name) {

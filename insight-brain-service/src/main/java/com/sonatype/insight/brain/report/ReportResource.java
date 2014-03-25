@@ -43,8 +43,11 @@ import com.sonatype.clm.dto.model.ide.ComponentDetailsList;
 import com.sonatype.clm.dto.model.policy.ComponentFact;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
@@ -53,7 +56,6 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.organization.ApplicationAdapter;
 import com.sonatype.insight.brain.organization.ContactDTO;
-import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluationLog;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluationUtils;
 import com.sonatype.insight.brain.releasegraph.ReleaseGraphService;
 import com.sonatype.insight.brain.saas.ComponentDetailsLoader;
@@ -222,14 +224,13 @@ public class ReportResource
   {
     Application application = applicationDAO.getByPublicIdNotNull(applicationPublicId);
     String appId = application.getId();
-    PolicyEvaluationLog evalLog = new PolicyEvaluationLog(work.getAuditDir(appId));
-    PolicyEvaluation policyEvaluation = evalLog.lastByScan(scanId);
+    PolicyEvaluation policyEvaluation = new PolicyEvaluationDAO().getLastByApplicationIdAndScanId(appId, scanId);
 
     if (policyEvaluation == null) {
       throw new BadRequestException("Policy evaluation for scan " + scanId + " does not exist on the server");
     }
 
-    policyEvaluationUtils.evaluate(applicationPublicId, scanId, policyEvaluation.getStage());
+    policyEvaluationUtils.evaluate(applicationPublicId, scanId, new Stage(policyEvaluation.getStageTypeId()));
 
     return Response.ok().build();
   }

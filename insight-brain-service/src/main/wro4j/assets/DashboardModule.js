@@ -23,7 +23,8 @@
   };
 
   var dashboardApp = angular.module('DashboardModule', ['ui.router', 'ui.bootstrap', 'CLMLocation', 'CommonServices',
-    'DashboardHeader', 'ngRoute', 'UnauthenticatedResponseHttpInterceptor', 'xeditable', 'ProductFeaturesModule', 'HttpInterceptors'],
+    'ReportModule', 'Report', 'DashboardHeader', 'ngRoute', 'UnauthenticatedResponseHttpInterceptor', 'xeditable',
+    'ProductFeaturesModule', 'HttpInterceptors'],
     ['$stateProvider', '$routeProvider', '$urlRouterProvider',
     function($stateProvider, $routeProvider, $urlRouterProvider) {
       $stateProvider.state('home', {
@@ -228,7 +229,7 @@
         }, {
           name: 'Reports',
           icon: 'reports',
-          href: 'reports.html#/reports/violations',
+          href: 'index.html#/reports/violations',
           selector: '#/reports'
         }];
 

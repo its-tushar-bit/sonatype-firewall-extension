@@ -21,7 +21,7 @@ class AppSecurityManagementSpec
 
   def "validate organization roles"() {
     when: "Open Security Tab"
-      createOrganization();
+      createOrganization('validateOrgRolesOrg');
       tabs.securityTabButton.click()
 
     then: "security tab content is shown"
@@ -33,8 +33,8 @@ class AppSecurityManagementSpec
   def "validate application roles"() {
 
     when: "create a new application"
-      createOrganization();
-      createApplication();
+      createOrganization('validateAppRolesOrg');
+      createApplication('validateAllRolesApp', 'validateAppRolesAppId', 'validateAppRolesOrg');
 
     then: "see the security tab shown"
       waitFor { tabs.securityTabButton.displayed }

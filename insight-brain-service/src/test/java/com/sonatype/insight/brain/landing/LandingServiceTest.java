@@ -45,6 +45,6 @@ public class LandingServiceTest
   public void testGetDestination() {
     URI dst = landingService.getDestination();
     assertThat(dst, is(notNullValue()));
-    assertThat(dst.toString(), is(BASE_URL + InsightBrainService.BRAIN_ASSET_PATH + "reports.html"));
+    assertThat(dst.toString(), is(BASE_URL + InsightBrainService.BRAIN_ASSET_PATH + "index.html#/reports"));
   }
 }

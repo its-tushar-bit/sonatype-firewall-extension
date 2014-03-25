@@ -140,7 +140,7 @@
 
       $scope.getReportUrl = function() {
         if ($scope.evaluationStatus.scanId) {
-          return 'reports.html#/reports/' + encodeURIComponent($scope.evaluationStatus.applicationPublicId) + '/' + $scope.evaluationStatus.scanId;
+          return 'index.html#/reports/' + encodeURIComponent($scope.evaluationStatus.applicationPublicId) + '/' + $scope.evaluationStatus.scanId;
         }
         return '';
       };

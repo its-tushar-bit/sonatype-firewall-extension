@@ -42,6 +42,10 @@ class AppEvaluationSpec
     then: 'User see the app eval dialog and no application is selected'
       waitFor { orgPage.tools.appEval.dialog.displayed }
       waitFor { orgPage.tools.appEval.application.value() == '' }
+
+    and: 'Dialog can be canceled'
+      orgPage.tools.appEval.cancel.click()
+      waitFor { !orgPage.tools.appEval.dialog.displayed }
   }
 
   def "validate application evaluation available from application screen"() {
@@ -61,6 +65,10 @@ class AppEvaluationSpec
       waitFor { appPage.tools.appEval.dialog.displayed }
       appPage.tools.appEval.application.value() == '1'
       appPage.tools.appEval.getSelectedApplicationOption() == "AppEvaluationApp2"
+
+    and: 'Dialog can be canceled'
+      appPage.tools.appEval.cancel.click()
+      waitFor { !appPage.tools.appEval.dialog.displayed }
   }
 
   def "validate upload"() {
@@ -94,7 +102,11 @@ class AppEvaluationSpec
     then: 'new tab is open on the report page'
       waitFor { getAvailableWindows().size() == 2 }
       withWindow(close: true, availableWindows[1]) {
-        driver.currentUrl.contains('reports.html#/reports/AppEvaluationApp2')
+        driver.currentUrl.contains('index.html#/reports/AppEvaluationApp2')
       }
+
+    and: 'Dialog can be closed'
+      appPage.tools.appEval.close.click()
+      waitFor { !appPage.tools.appEval.dialog.displayed }
   }
 }

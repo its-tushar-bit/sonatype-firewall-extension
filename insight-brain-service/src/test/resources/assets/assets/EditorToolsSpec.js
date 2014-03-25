@@ -109,7 +109,7 @@ describe('EditorToolsSpec', function() {
         scanId: 'scanIdtest'
       };
       
-      expect(scope.getReportUrl()).toEqual('reports.html#/reports/appIdtest/scanIdtest');
+      expect(scope.getReportUrl()).toEqual('index.html#/reports/appIdtest/scanIdtest');
       
       scope.evaluationStatus.scanId = null;
       

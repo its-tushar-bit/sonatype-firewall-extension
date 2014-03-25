@@ -228,7 +228,7 @@
          }
        },
        useminPrepare: {
-         src: ['<%= config.gruntFiltered %>/assets/index.html', '<%= config.gruntFiltered %>/assets/reports.html'],
+         src: ['<%= config.gruntFiltered %>/assets/index.html'],
          options: {
            dest: '<%= config.dist %>',
            staging: '<%= config.tmp %>',

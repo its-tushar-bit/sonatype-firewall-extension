@@ -6,16 +6,10 @@
 /* global angular, clmBuildTimestamp */
 (function() {
   'use strict';
-  angular.module('reportApp', ['ReportModule', 'Report', 'ngRoute'], ['$urlRouterProvider', function($urlRouterProvider) {
-    $urlRouterProvider.when('', '/reports/violations');
-  }]);
-}());
-
-(function() {
-  'use strict';
 
   var reportModule = angular.module('ReportModule', ['ui.router', 'DashboardModule', 'DashboardHeader', 'ReportViolations', 'ReportTrending'],
-    ['$stateProvider', function($stateProvider) {
+    ['$stateProvider', '$urlRouterProvider', function($stateProvider, $urlRouterProvider) {
+      $urlRouterProvider.when('/reports', '/reports/violations');
       $stateProvider.state('reports', {
         url: '/reports',
         templateUrl: '../assets/management.html?' + clmBuildTimestamp,

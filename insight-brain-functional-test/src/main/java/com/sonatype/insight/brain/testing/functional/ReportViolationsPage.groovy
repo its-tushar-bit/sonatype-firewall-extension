@@ -13,9 +13,9 @@ import com.sonatype.insight.brain.testing.functional.modules.ReportViolationsRow
 class ReportViolationsPage
     extends BasePage
 {
-  static url = "assets/reports.html#/reports/violations"
+  static url = "assets/index.html#/reports/violations"
 
-  static at = { title == 'CLM Reports' }
+  static at = { title == 'CLM Management' }
 
   static content = {
     dashboardModule { module DashboardModule }

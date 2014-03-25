@@ -68,7 +68,7 @@ public class UserInterfaceLinksResource
       @PathParam("scanId") String scanId)
   {
     UriBuilder uriBuilder = baseUrl.redirect();
-    uriBuilder.path(InsightBrainService.BRAIN_ASSET_PATH + "reports.html").fragment(
+    uriBuilder.path(InsightBrainService.BRAIN_ASSET_PATH + "index.html").fragment(
         "/reports/{applicationPublicId}/{scanId}");
     return redirect(uriBuilder.build(applicationPublicId, scanId));
   }

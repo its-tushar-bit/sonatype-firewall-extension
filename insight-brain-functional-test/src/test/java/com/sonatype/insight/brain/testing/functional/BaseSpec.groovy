@@ -132,17 +132,17 @@ abstract class BaseSpec
     return page
   }
 
-  void createOrganization() {
+  void createOrganization(name = 'test organization') {
     OrganizationManagementPage organizationManagementPage = to(OrganizationManagementPage)
     int size = !organizationList?.empty ? organizationList.size() : 0
-    organizationManagementPage.createOrg()
+    organizationManagementPage.createOrg(name)
     waitFor{ organizationList.size() > size }
   }
 
-  void createApplication() {
+  void createApplication(name = 'test application', id = 'test application', orgName = 'test organization') {
     ApplicationManagementPage applicationManagementPage = to(ApplicationManagementPage)
     int size = !applicationList?.empty ? applicationList.size() : 0
-    applicationManagementPage.createApp()
+    applicationManagementPage.createApp(name, id, orgName)
     waitFor{ applicationList.size() > size }
   }
 }

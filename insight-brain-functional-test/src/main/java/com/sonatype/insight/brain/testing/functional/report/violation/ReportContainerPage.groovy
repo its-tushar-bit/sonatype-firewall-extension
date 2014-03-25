@@ -25,9 +25,9 @@ class ReportContainerPage
 {
   /**
    * The proper url will be created from the supplied appPublicId and scanId and should look like:
-   * assets/reports.html#/reports/{appPublicId/{scanId}
+   * assets/index.html#/reports/{appPublicId/{scanId}
    */
-  static url = 'assets/reports.html#/reports'
+  static url = 'assets/index.html#/reports'
 
   static at = { $('#evaluationReportContainer') }
 

@@ -7,7 +7,7 @@
 				</span>
 				<div ng-if='applicationSummary.policyEvaluationsResults[stage.id]'>
 					<a class='no-hover-underline' style='vertical-align: middle;' title='View Report - {{applicationSummary.policyEvaluations[stage.id].time | ago}}'
-					   ng-href='reports.html#/reports/{{encodeURIComponent(applicationSummary.publicId)}}/{{applicationSummary.policyEvaluations[stage.id].scanId}}' target='_blank'>
+					   ng-href='index.html#/reports/{{encodeURIComponent(applicationSummary.publicId)}}/{{applicationSummary.policyEvaluations[stage.id].scanId}}' target='_blank'>
 						<span chiclets critical="applicationSummary.policyEvaluationsResults[stage.id].criticalComponentCount"
 							 severe="applicationSummary.policyEvaluationsResults[stage.id].severeComponentCount"
 							 moderate="applicationSummary.policyEvaluationsResults[stage.id].moderateComponentCount"></span>

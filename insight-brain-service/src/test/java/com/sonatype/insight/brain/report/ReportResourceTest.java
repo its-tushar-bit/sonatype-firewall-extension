@@ -1084,6 +1084,7 @@ public class ReportResourceTest
       try (ZipFile zip = new ZipFile(temp)) {
         Assert.assertNotNull(zip.getEntry("report.pdf"));
         Assert.assertNull(zip.getEntry("detail.rptdesign"));
+        Assert.assertNotNull(zip.getEntry("components.json"));
       }
     }
   }

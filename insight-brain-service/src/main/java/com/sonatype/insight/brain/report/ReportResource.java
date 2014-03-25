@@ -10,6 +10,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collections;
 import java.util.Date;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -99,15 +101,18 @@ public class ReportResource
 
   private final PolicyEvaluationUtils policyEvaluationUtils;
 
+  private final ReportDataService reportDataService;
+
   @Inject
   public ReportResource(final ReportDownloader reportDownloader, final PolicyEvaluationUtils policyEvaluationUtils,
-      InsightWork work, BaseUrl baseUrl, ApplicationAdapter applicationAdapter)
+      InsightWork work, BaseUrl baseUrl, ApplicationAdapter applicationAdapter, ReportDataService reportDataService)
   {
     this.reportDownloader = reportDownloader;
     this.policyEvaluationUtils = policyEvaluationUtils;
     this.work = work;
     this.baseUrl = baseUrl;
     this.applicationAdapter = applicationAdapter;
+    this.reportDataService = reportDataService;
   }
 
   /**
@@ -256,8 +261,18 @@ public class ReportResource
     ContactDTO contact = applicationAdapter.getContact(app.getContactInternalName());
     File report = Report.printPdf(reportFile, "", 0, contact);
 
-    reportFile = Report.extendZip(reportFile, Collections.singletonMap("report.pdf", report),
-        Collections.singleton("detail.rptdesign"));
+    File componentDataFile = File.createTempFile("temp-", ".json");
+    try {
+      ReportData reportData = reportDataService.getData(applicationPublicId, scanId);
+      JsonUtils.write(componentDataFile, reportData);
+      Map<String, File> addFilesMap = new LinkedHashMap<>();
+      addFilesMap.put("report.pdf", report);
+      addFilesMap.put("components.json", componentDataFile);
+      reportFile = Report.extendZip(reportFile, addFilesMap, Collections.singleton("detail.rptdesign"));
+    }
+    finally {
+      FileUtils.forceDelete(componentDataFile);
+    }
 
     final ResponseBuilder response = Response.ok();
     response.entity(reportFile);

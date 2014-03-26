@@ -74,6 +74,7 @@ public class PolicyEvaluator
     log.info("Validating application ID {} with CLM server {}...", params.getApplicationId(), params.getServerUrl());
     Collection<String> appIds;
     try {
+      restClient.validateAuthentication();
       appIds = restClient.getApplications().keySet();
     }
     catch (Exception e) {
@@ -84,6 +85,9 @@ public class PolicyEvaluator
         }
         else if (resp.getStatusCode() == 407) {
           log.error("The proxy server {} requires authentication: {}", params.getProxy(), e.getMessage());
+        }
+        else if (resp.getStatusCode() == 401) {
+          log.error("The CLM server {} rejected the supplied credentials.", params.getServerUrl());
         }
         else {
           log.error("The CLM server {} could not be contacted: {} ({})", params.getServerUrl(), e.getMessage(),

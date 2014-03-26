@@ -86,4 +86,12 @@ public class ConfigurationClient
     Result result = get(path("rest/config/proprietary"));
     return JsonUtils.parse(result.text(), ProprietaryConfig.class);
   }
+
+  public void validateAuthentication() throws IOException {
+    final Result result = path("rest/user/session").post(null);
+    final int status = result.status();
+    if (status >= 300) {
+      throw new HttpResponseException(status, result.message());
+    }
+  }
 }

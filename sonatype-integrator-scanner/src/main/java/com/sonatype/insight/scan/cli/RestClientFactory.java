@@ -60,5 +60,9 @@ public class RestClientFactory
     public void saveReportBundle(String appId, String scanId, File bundleFile) throws IOException {
       new ReportClient(config, appId, scanId).downloadBundle(bundleFile);
     }
+
+    public void validateAuthentication() throws IOException {
+      new ConfigurationClient(config).validateAuthentication();
+    }
   }
 }

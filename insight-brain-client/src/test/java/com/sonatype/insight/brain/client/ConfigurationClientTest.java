@@ -16,13 +16,16 @@ import com.sonatype.insight.brain.dataaccess.ProprietaryConfigDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.service.AbstractLicenseTest;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
+import com.sonatype.insight.client.utils.SimpleAuthentication;
 
 import org.apache.http.client.HttpResponseException;
+import org.hamcrest.MatcherAssert;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.startsWith;
+import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
@@ -167,5 +170,59 @@ public class ConfigurationClientTest
     config = new ConfigurationClient(brain.getClientConfiguration()).getProprietaryConfiguration();
 
     assertEquals(packages, config.getPackages());
+  }
+
+
+  @Test
+  public void testValidLogin() throws Exception {
+
+    Configuration config = brain.getClientConfiguration();
+    config.setServerAuth(SimpleAuthentication.parse("admin:admin123"));
+    ConfigurationClient client = new ConfigurationClient(config);
+    client.validateAuthentication();
+  }
+
+  @Test
+  public void testInvalidPassword() throws Exception {
+
+    Configuration config = brain.getClientConfiguration();
+    config.setServerAuth(SimpleAuthentication.parse("admin:invalidpassword"));
+    ConfigurationClient client = new ConfigurationClient(config);
+    try {
+      client.validateAuthentication();
+      fail("Expected an HttpResponseException for Unauthorized");
+    }
+    catch (HttpResponseException e) {
+      MatcherAssert.assertThat(e.getMessage(), is("Unauthorized"));
+    }
+  }
+
+  @Test
+  public void testInvalidUser() throws Exception {
+
+    Configuration config = brain.getClientConfiguration();
+    config.setServerAuth(SimpleAuthentication.parse("invaliduser:invalidpassword"));
+    ConfigurationClient client = new ConfigurationClient(config);
+    try {
+      client.validateAuthentication();
+      fail("Expected an HttpResponseException for Unauthorized");
+    }
+    catch (HttpResponseException e) {
+      MatcherAssert.assertThat(e.getMessage(), is("Unauthorized"));
+    }
+  }
+
+  @Test
+  public void testNoAuthProvided() throws Exception {
+
+    Configuration config = brain.getClientConfiguration();
+    ConfigurationClient client = new ConfigurationClient(config);
+    try {
+      client.validateAuthentication();
+      fail("Expected an HttpResponseException for Unauthorized");
+    }
+    catch (HttpResponseException e) {
+      MatcherAssert.assertThat(e.getMessage(), is("Unauthorized"));
+    }
   }
 }

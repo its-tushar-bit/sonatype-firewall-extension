@@ -34,6 +34,7 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.Component;
+import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
@@ -154,14 +155,16 @@ public class PolicyEvaluationUtils
       policyEvaluationDAO.insert(em, policyEvaluation);
 
       // Persist the policy violations
+      PolicyDAO policyDAO = new PolicyDAO();
       PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
       for (PolicyAlert policyAlert : policyResults.getActiveAlerts()) {
         PolicyFact policyFact = policyAlert.getTrigger();
+        Policy policy = policyDAO.getByIdNotNull(policyFact.getPolicyId());
+        PolicyThreatCategory threatCategory = policy.getThreatCategory();
         for (ComponentFact componentFact : policyFact.getComponentFacts()) {
-          PolicyViolation policyViolation = new PolicyViolation(policyEvaluation.getId(), policyFact.getPolicyId(),
-              policyFact.getThreatLevel(), PolicyThreatCategory.SECURITY, componentFact.getHash(),
-              componentFact.getGroupId(), componentFact.getArtifactId(), componentFact.getVersion(),
-              componentFact.getConstraintFacts());
+          PolicyViolation policyViolation = new PolicyViolation(policyEvaluation.getId(), policy.getId(),
+              policyFact.getThreatLevel(), threatCategory, componentFact.getHash(), componentFact.getGroupId(),
+              componentFact.getArtifactId(), componentFact.getVersion(), componentFact.getConstraintFacts());
           policyViolationDAO.insert(em, policyViolation);
         }
       }

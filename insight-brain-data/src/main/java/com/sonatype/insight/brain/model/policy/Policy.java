@@ -9,8 +9,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+
+import javax.annotation.Nullable;
 
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.NotifyAction;
@@ -20,12 +23,22 @@ import com.sonatype.insight.brain.model.policy.actions.ActionTypes;
 import com.sonatype.insight.brain.model.policy.actions.NotifyActionType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 
+import com.google.common.base.Predicate;
+import com.google.common.collect.Sets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class Policy
 {
   private static final Logger log = LoggerFactory.getLogger(Policy.class);
+
+  private static final Predicate<String> IS_SECURITY = new StartsWithPredicate("security");
+
+  private static final Predicate<String> IS_LICENSE = new StartsWithPredicate("license");
+
+  private static final Predicate<String> IS_AGE = new StartsWithPredicate("age");
+
+  private static final Predicate<String> IS_POPULARITY = new StartsWithPredicate("popularity");
 
   private String id;
 
@@ -255,5 +268,54 @@ public class Policy
       monitorNotifyActions = new ArrayList<>();
     }
     monitorNotifyActions.add(notifyAction);
+  }
+
+  /**
+   * @since 1.11
+   */
+  public PolicyThreatCategory getThreatCategory() {
+    Set<String> conditionTypeIds = new LinkedHashSet<>();
+    for (Constraint constraint : getConstraints()) {
+      for (Condition condition : constraint.getConditions()) {
+        conditionTypeIds.add(condition.getConditionTypeId().toLowerCase(Locale.ENGLISH));
+      }
+    }
+
+    return determineCategory(conditionTypeIds);
+  }
+
+  // TODO Hide this method - CLM-2112
+  public static PolicyThreatCategory determineCategory(Set<String> conditionTypeIds) {
+    // A policy can have conditions in more than one category, but only one category is considered as *the* policy
+    // threat category, in this order:
+    if (Sets.filter(conditionTypeIds, IS_SECURITY).size() > 0) {
+      return PolicyThreatCategory.SECURITY;
+    }
+    if (Sets.filter(conditionTypeIds, IS_LICENSE).size() > 0) {
+      return PolicyThreatCategory.LICENSE;
+    }
+    if (Sets.filter(conditionTypeIds, IS_AGE).size() > 0
+        || Sets.filter(conditionTypeIds, IS_POPULARITY).size() > 0) {
+      return PolicyThreatCategory.QUALITY;
+    }
+    return PolicyThreatCategory.OTHER;
+  }
+
+  /**
+   * Predicate wrapper for finding Strings starting with a given value in a collection.
+   */
+  private static class StartsWithPredicate
+      implements Predicate<String>
+  {
+    private final String startsWith;
+
+    StartsWithPredicate(String startsWith) {
+      this.startsWith = startsWith;
+    }
+
+    @Override
+    public boolean apply(@Nullable final String input) {
+      return input.startsWith(startsWith);
+    }
   }
 }

@@ -100,7 +100,7 @@
     "count" : 1
   } ],
   "diffData" : {
-    "security" : [ {
+    "SECURITY" : [ {
       "threat" : "critical",
       "violations" : 3,
       "previousViolations" : 2
@@ -117,7 +117,7 @@
       "violations" : 0,
       "previousViolations" : 0
     } ],
-    "license" : [ {
+    "LICENSE" : [ {
       "threat" : "critical",
       "violations" : 6,
       "previousViolations" : 4
@@ -134,7 +134,7 @@
       "violations" : 0,
       "previousViolations" : 0
     } ],
-    "quality" : [ {
+    "QUALITY" : [ {
       "threat" : "critical",
       "violations" : 0,
       "previousViolations" : 0
@@ -151,7 +151,7 @@
       "violations" : 23,
       "previousViolations" : 20
     } ],
-    "other" : [ {
+    "OTHER" : [ {
       "threat" : "critical",
       "violations" : 1,
       "previousViolations" : 0

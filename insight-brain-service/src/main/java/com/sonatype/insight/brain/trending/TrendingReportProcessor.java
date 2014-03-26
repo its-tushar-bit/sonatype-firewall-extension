@@ -35,10 +35,9 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.MatchState;
-import com.sonatype.insight.brain.model.policy.Condition;
-import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.trending.ApplicationRiskSummary;
 import com.sonatype.insight.brain.model.trending.Applications;
@@ -58,7 +57,6 @@ import com.sonatype.insight.json.store.JsonUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.base.Function;
-import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableMap.Builder;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -72,16 +70,6 @@ import org.slf4j.LoggerFactory;
 public class TrendingReportProcessor
 {
   private static final Logger log = LoggerFactory.getLogger(TrendingReportProcessor.class);
-
-  public static final String CATEGORY_OTHER = "other";
-
-  public static final String CATEGORY_QUALITY = "quality";
-
-  public static final String CATEGORY_LICENSE = "license";
-
-  public static final String CATEGORY_SECURITY = "security";
-
-  public static final String[] CATEGORIES = { CATEGORY_SECURITY, CATEGORY_LICENSE, CATEGORY_QUALITY, CATEGORY_OTHER };
 
   public static final String[] THREAT_LEVELS = { "critical", "severe", "moderate", "none" };
 
@@ -126,14 +114,6 @@ public class TrendingReportProcessor
 
   private final PolicyEvaluationUtils policyEvaluationUtils;
 
-  private final Predicate<String> isSecurity = new StartsWithPredicate("security");
-
-  private final Predicate<String> isLicense = new StartsWithPredicate("license");
-
-  private final Predicate<String> isAge = new StartsWithPredicate("age");
-
-  private final Predicate<String> isPopularity = new StartsWithPredicate("popularity");
-
   private static final String EXACT_COMPONENTS = "exact";
 
   private static final String SIMILAR_COMPONENTS = "similar";
@@ -172,16 +152,16 @@ public class TrendingReportProcessor
 
     Map<List<String>, Set<String>> partialMatches = new HashMap<List<String>, Set<String>>();
 
-    Map<String, int[]> categories = new HashMap<String, int[]>();
-    Map<String, int[]> previousCategories = new HashMap<String, int[]>();
-    for (String category : CATEGORIES) {
+    Map<PolicyThreatCategory, int[]> categories = new HashMap<>();
+    Map<PolicyThreatCategory, int[]> previousCategories = new HashMap<>();
+    for (PolicyThreatCategory category : PolicyThreatCategory.values()) {
       categories.put(category, new int[THREAT_LEVELS.length]);
       previousCategories.put(category, new int[THREAT_LEVELS.length]);
     }
 
     Map<String, Map<List<String>, int[]>> componentRisks = new LinkedHashMap<String, Map<List<String>, int[]>>();
-    for (String category : CATEGORIES) {
-      componentRisks.put(category, new HashMap<List<String>, int[]>());
+    for (PolicyThreatCategory category : PolicyThreatCategory.values()) {
+      componentRisks.put(category.getName(), new HashMap<List<String>, int[]>());
     }
     componentRisks.put("all", new HashMap<List<String>, int[]>());
 
@@ -190,7 +170,7 @@ public class TrendingReportProcessor
       monitor.tick(applications.size(), applicationNo);
 
       final Application application = applications.get(applicationNo);
-      final Map<String, String> applicationPolicyCategories = determinePolicyCategories(application);
+      final Map<String, PolicyThreatCategory> applicationPolicyCategories = determinePolicyCategories(application);
 
       // alerts counts in this application
       int criticalAlerts = 0, severeAlerts = 0, moderateAlerts = 0, totalAlerts = 0;
@@ -243,12 +223,13 @@ public class TrendingReportProcessor
           for (PolicyAlert alert : policyEvaluationUtils.findPolicyAlerts(application.getId(), eval.getScanId())) {
             PolicyFact policyFact = alert.getTrigger();
             for (ComponentFact componentFact : policyFact.getComponentFacts()) {
-              String category = determineCategory(policyFact.getPolicyId(), applicationPolicyCategories, componentFact);
+              PolicyThreatCategory category = determineCategory(policyFact.getPolicyId(), applicationPolicyCategories,
+                  componentFact);
               String policyViolationsKey = policyFact.getPolicyId() + ":" + category;
               PolicyViolation violations = policyViolations.get(policyViolationsKey);
               if (violations == null) {
-                violations = new PolicyViolation(policyFact.getPolicyName(), category, policyFact.getThreatLevel(),
-                    new int[PERIOD_COUNT]);
+                violations = new PolicyViolation(policyFact.getPolicyName(), category.getName(),
+                    policyFact.getThreatLevel(), new int[PERIOD_COUNT]);
                 policyViolations.put(policyViolationsKey, violations);
               }
               violations.getViolations()[period - 1]++; // ain't perty but works
@@ -297,13 +278,14 @@ public class TrendingReportProcessor
           levelIdx = 2;
         }
         for (ComponentFact componentFact : componentFacts) {
-          String category = determineCategory(policyFact.getPolicyId(), applicationPolicyCategories, componentFact);
+          PolicyThreatCategory category = determineCategory(policyFact.getPolicyId(), applicationPolicyCategories,
+              componentFact);
           categories.get(category)[levelIdx]++;
           String g = componentFact.getGroupId(), a = componentFact.getArtifactId(), v = componentFact.getVersion();
           if (g != null && a != null && v != null) {
             List<String> componentKey = Arrays.asList(g, a, v);
             incrementComponentRisk(componentRisks, componentKey, "all", levelIdx);
-            incrementComponentRisk(componentRisks, componentKey, category, levelIdx);
+            incrementComponentRisk(componentRisks, componentKey, category.getName(), levelIdx);
           }
         }
       }
@@ -399,9 +381,11 @@ public class TrendingReportProcessor
     });
   }
 
-  private Map<String, List<DiffData>> toDiffData(Map<String, int[]> categories, Map<String, int[]> previousCategories) {
-    Map<String, List<DiffData>> diffData = new LinkedHashMap<String, List<DiffData>>();
-    for (String category : CATEGORIES) {
+  private Map<PolicyThreatCategory, List<DiffData>> toDiffData(Map<PolicyThreatCategory, int[]> categories,
+      Map<PolicyThreatCategory, int[]> previousCategories)
+  {
+    Map<PolicyThreatCategory, List<DiffData>> diffData = new LinkedHashMap<>();
+    for (PolicyThreatCategory category : PolicyThreatCategory.values()) {
       List<DiffData> categoryDiffData = new ArrayList<DiffData>(THREAT_LEVELS.length);
       for (int level = 0; level < THREAT_LEVELS.length; level++) {
         categoryDiffData.add(new DiffData(THREAT_LEVELS[level], categories.get(category)[level], previousCategories
@@ -455,25 +439,13 @@ public class TrendingReportProcessor
   /**
    * Find and categorize all policies for the given application.
    */
-  private Map<String, String> determinePolicyCategories(final Application application) {
-    Builder<String,String> builder = new Builder<String, String>();
+  private Map<String, PolicyThreatCategory> determinePolicyCategories(final Application application) {
+    Builder<String, PolicyThreatCategory> builder = new Builder<>();
     PolicyDAO policyDAO = new PolicyDAO();
-    List<Policy> policies = policyDAO.getByOwnerId(application.getId());
-    policies.addAll(policyDAO.getByOwnerId(application.getOrganizationId()));
+    List<Policy> policies = policyDAO.getApplicableByOwnerId(application.getId());
 
     for (Policy policy : policies) {
-      Set<String> conditionTypeIds = Sets.newHashSet();
-      for (Constraint constraint : policy.getConstraints()) {
-        conditionTypeIds.addAll(Lists.transform(constraint.getConditions(), new Function<Condition, String>()
-        {
-          @Nullable
-          @Override
-          public String apply(@Nullable final Condition input) {
-            return input.getConditionTypeId().toLowerCase(Locale.ENGLISH);
-          }
-        }));
-      }
-      builder.put(policy.getId(), determineCategory(conditionTypeIds));
+      builder.put(policy.getId(), policy.getThreatCategory());
     }
     return builder.build();
   }
@@ -482,15 +454,16 @@ public class TrendingReportProcessor
    * Attempt to determine the category based upon the present policy, and if that policy has been
    * deleted already, fall back to examining the violation data.
    */
-  private String determineCategory(final String policyId, final Map<String, String> applicationPolicyCategories,
-                                   final ComponentFact componentFact)
+  private PolicyThreatCategory determineCategory(final String policyId,
+      final Map<String, PolicyThreatCategory> applicationPolicyCategories, final ComponentFact componentFact)
   {
-    String policyCategory = applicationPolicyCategories.get(policyId);
+    PolicyThreatCategory policyCategory = applicationPolicyCategories.get(policyId);
     return policyCategory != null ? policyCategory : getViolationCategoryFromConstraintFacts(
         componentFact.getConstraintFacts());
   }
 
-  private String getViolationCategoryFromConstraintFacts(List<ConstraintFact> constraintFacts) {
+  // TODO get the threat category from com.sonatype.insight.brain.model.policy.PolicyViolation - CLM-2112
+  private PolicyThreatCategory getViolationCategoryFromConstraintFacts(List<ConstraintFact> constraintFacts) {
     Set<String> conditionTypeIds = Sets.newHashSet();
     for (ConstraintFact constraintFact : constraintFacts) {
         conditionTypeIds.addAll(Lists.transform(constraintFact.getConditionFacts(), new Function<ConditionFact, String>()
@@ -502,22 +475,7 @@ public class TrendingReportProcessor
           }
         }));
       }
-    return determineCategory(conditionTypeIds);
-  }
-
-  private String determineCategory(final Set<String> conditionTypeIds) {
-
-    if (Sets.filter(conditionTypeIds, isSecurity).size() > 0) {
-      return CATEGORY_SECURITY;
-    }
-    else if (Sets.filter(conditionTypeIds, isLicense).size() > 0) {
-      return CATEGORY_LICENSE;
-    }
-    else if (Sets.filter(conditionTypeIds, isAge).size() > 0 ||
-        Sets.filter(conditionTypeIds, isPopularity).size() > 0) {
-      return CATEGORY_QUALITY;
-    }
-    return CATEGORY_OTHER;
+    return Policy.determineCategory(conditionTypeIds);
   }
 
   private static ComponentsSummary toComponentsSummary(Map<String, Map<String, Integer>> components) {
@@ -544,19 +502,5 @@ public class TrendingReportProcessor
   private static String getAttribute(JsonNode parent, String childname) {
     JsonNode child = parent.path(childname);
     return !child.isNull() ? child.asText() : null;
-  }
-
-  /**
-   * Predicate wrapper for finding Strings starting with a given value in a collection.
-   */
-  private static class StartsWithPredicate implements Predicate<String>{
-    private final String startsWith;
-    StartsWithPredicate(String startsWith){
-      this.startsWith = startsWith;
-    }
-    @Override
-    public boolean apply(@Nullable final String input) {
-      return input.startsWith(startsWith);
-    }
   }
 }

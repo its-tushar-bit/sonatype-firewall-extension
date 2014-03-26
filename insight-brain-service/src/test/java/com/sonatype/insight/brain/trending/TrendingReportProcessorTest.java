@@ -25,6 +25,7 @@ import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.conditions.AgeInDaysConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.LicenseThreatGroupConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityConditionType;
@@ -413,12 +414,12 @@ public class TrendingReportProcessorTest
 
     TrendingReport report = calculateReport();
 
-    Map<String, List<DiffData>> diffData = report.getDiffData();
+    Map<PolicyThreatCategory, List<DiffData>> diffData = report.getDiffData();
 
-    assertDiffData(diffData.get("security"), new int[] { 0, 0, 0, 1 }, new int[] { 0, 0, 0, 1 });
-    assertDiffData(diffData.get("license"), new int[] { 1, 0, 0, 0 }, new int[] { 0, 0, 0, 0 });
-    assertDiffData(diffData.get("quality"), new int[] { 0, 0, 0, 0 }, new int[] { 0, 0, 0, 0 });
-    assertDiffData(diffData.get("other"), new int[] { 0, 0, 0, 0 }, new int[] { 0, 0, 0, 0 });
+    assertDiffData(diffData.get(PolicyThreatCategory.SECURITY), new int[] { 0, 0, 0, 1 }, new int[] { 0, 0, 0, 1 });
+    assertDiffData(diffData.get(PolicyThreatCategory.LICENSE), new int[] { 1, 0, 0, 0 }, new int[] { 0, 0, 0, 0 });
+    assertDiffData(diffData.get(PolicyThreatCategory.QUALITY), new int[] { 0, 0, 0, 0 }, new int[] { 0, 0, 0, 0 });
+    assertDiffData(diffData.get(PolicyThreatCategory.OTHER), new int[] { 0, 0, 0, 0 }, new int[] { 0, 0, 0, 0 });
   }
 
   @Test
@@ -433,9 +434,9 @@ public class TrendingReportProcessorTest
 
     TrendingReport report = calculateReport();
 
-    Map<String, List<DiffData>> diffData = report.getDiffData();
+    Map<PolicyThreatCategory, List<DiffData>> diffData = report.getDiffData();
 
-    assertDiffData(diffData.get("security"), new int[] { 0, 0, 0, 0 }, new int[] { 0, 0, 0, 1 });
+    assertDiffData(diffData.get(PolicyThreatCategory.SECURITY), new int[] { 0, 0, 0, 0 }, new int[] { 0, 0, 0, 1 });
   }
 
   @Test
@@ -450,9 +451,9 @@ public class TrendingReportProcessorTest
 
     TrendingReport report = calculateReport();
 
-    Map<String, List<DiffData>> diffData = report.getDiffData();
+    Map<PolicyThreatCategory, List<DiffData>> diffData = report.getDiffData();
 
-    assertDiffData(diffData.get("security"), new int[] { 0, 0, 0, 0 }, new int[] { 0, 0, 0, 1 });
+    assertDiffData(diffData.get(PolicyThreatCategory.SECURITY), new int[] { 0, 0, 0, 0 }, new int[] { 0, 0, 0, 1 });
   }
 
   @Test

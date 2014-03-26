@@ -8,6 +8,8 @@ package com.sonatype.insight.brain.model.trending;
 import java.util.List;
 import java.util.Map;
 
+import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
+
 /**
  * Application policy violations trending report
  * 
@@ -21,7 +23,7 @@ public class TrendingReport
   private Applications applications;
   private List<PolicyViolation> violations;
   private List<PartialMatch> partialMatches;
-  private Map<String, List<DiffData>> diffData;
+  private Map<PolicyThreatCategory, List<DiffData>> diffData;
   private Map<String, List<ComponentRiskSummary>> topPolicyViolations;
   private PoliciesSummary policies;
 
@@ -29,8 +31,9 @@ public class TrendingReport
   }
 
   public TrendingReport(TrendingReportMetadata meta, ComponentsSummary components, Applications applications,
-      List<PolicyViolation> violations, List<PartialMatch> partialMatches, Map<String, List<DiffData>> diffData,
-      Map<String, List<ComponentRiskSummary>> topPolicyViolations, PoliciesSummary policies)
+      List<PolicyViolation> violations, List<PartialMatch> partialMatches,
+      Map<PolicyThreatCategory, List<DiffData>> diffData, Map<String, List<ComponentRiskSummary>> topPolicyViolations,
+      PoliciesSummary policies)
   {
     this.meta = meta;
     this.components = components;
@@ -88,12 +91,11 @@ public class TrendingReport
   }
 
   /**
-   * Returns before/after number of violations grouped by threat category.
+   * Returns before/after number of violations grouped by policy threat category.
    * 
-   * @see com.sonatype.insight.brain.trending.TrendingReportProcessor#CATEGORIES
    * @since 1.7
    */
-  public Map<String, List<DiffData>> getDiffData() {
+  public Map<PolicyThreatCategory, List<DiffData>> getDiffData() {
     return diffData;
   }
 

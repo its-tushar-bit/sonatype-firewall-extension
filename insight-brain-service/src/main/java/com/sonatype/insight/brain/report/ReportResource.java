@@ -8,10 +8,16 @@ package com.sonatype.insight.brain.report;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.Enumeration;
+import java.util.List;
+import java.util.Properties;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -32,6 +38,10 @@ import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriBuilder;
 
+import com.sonatype.clm.dto.model.ide.ComponentDetails;
+import com.sonatype.clm.dto.model.ide.ComponentDetailsList;
+import com.sonatype.clm.dto.model.policy.ComponentFact;
+import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
@@ -46,6 +56,7 @@ import com.sonatype.insight.brain.organization.ContactDTO;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluationLog;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluationUtils;
 import com.sonatype.insight.brain.releasegraph.ReleaseGraphService;
+import com.sonatype.insight.brain.saas.ComponentDetailsLoader;
 import com.sonatype.insight.brain.security.AuditUtils;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
@@ -103,10 +114,12 @@ public class ReportResource
 
   private final ReleaseGraphService releaseGraphService;
 
+  private final ComponentDetailsLoader componentDetailsLoader;
+
   @Inject
   public ReportResource(final ReportDownloader reportDownloader, final PolicyEvaluationUtils policyEvaluationUtils,
       InsightWork work, BaseUrl baseUrl, ApplicationAdapter applicationAdapter, ReportDataService reportDataService,
-      ReleaseGraphService releaseGraphService)
+      ReleaseGraphService releaseGraphService, ComponentDetailsLoader componentDetailsLoader)
   {
     this.reportDownloader = reportDownloader;
     this.policyEvaluationUtils = policyEvaluationUtils;
@@ -115,6 +128,7 @@ public class ReportResource
     this.applicationAdapter = applicationAdapter;
     this.reportDataService = reportDataService;
     this.releaseGraphService = releaseGraphService;
+    this.componentDetailsLoader = componentDetailsLoader;
   }
 
   /**
@@ -260,16 +274,22 @@ public class ReportResource
     File reportFile = fetchReport(reportDownloader, work, app.getId(), scanId, true);
     String filename = "report-" + scanId + ".zip";
 
+    Properties templateProps = Report.getTemplateProperties(reportFile);
+    String cipDetailsPath = templateProps.getProperty("cip.details.path", "");
+    String cipListPath = templateProps.getProperty("cip.list.path", "");
+
     ContactDTO contact = applicationAdapter.getContact(app.getContactInternalName());
     File pdfFile = Report.printPdf(reportFile, "", 0, contact);
 
     ReportData reportData = reportDataService.getData(applicationPublicId, scanId);
+    List<PolicyAlert> alerts = policyEvaluationUtils.findPolicyAlerts(app.getId(), scanId);
 
     File updatedFile = File.createTempFile("report", "zip");
     try (ReportBundleUpdater updater = new ReportBundleUpdater(reportFile, updatedFile)) {
       updater.remove("detail.rptdesign");
       updater.add("report.pdf", pdfFile);
       updater.add("components.json", reportData);
+
       for (ReportData.Component component : reportData.components) {
         ReportData.Coordinates gav = component.mavenCoordinates;
         if (gav != null) {
@@ -279,12 +299,69 @@ public class ReportResource
           updater.add(imagePath, imageData);
         }
       }
+
+      File[] cachedFiles = Report.getCacheDir(reportFile).listFiles();
+      if (cachedFiles != null) {
+        for (File cachedFile : cachedFiles) {
+          updater.add(cachedFile.getName(), cachedFile);
+        }
+      }
+
+      try (ZipFile reportZip = new ZipFile(reportFile)) {
+        for (Enumeration<? extends ZipEntry> en = reportZip.entries(); en.hasMoreElements();) {
+          ZipEntry entry = en.nextElement();
+          if (entry.isDirectory()) {
+            continue;
+          }
+          if (!cipDetailsPath.isEmpty() && entry.getName().startsWith(cipDetailsPath)) {
+            final ComponentDetails hdsDetails = JsonUtils
+                .parse(reportZip.getInputStream(entry), ComponentDetails.class);
+            ComponentDetails clmDetails = componentDetailsLoader.getComponentDetails(hdsDetails.getGroupId(),
+                hdsDetails.getArtifactId(), hdsDetails.getVersion(), hdsDetails.getHash(), hdsDetails.getMatchState(),
+                new ComponentDetailsLoader.HostedDataServicesSource()
+                {
+                  @Override
+                  public ComponentDetails getDetails() throws IOException {
+                    return hdsDetails;
+                  }
+                });
+            componentDetailsLoader.augmentComponentDetails(app, clmDetails);
+            clmDetails.setPolicyAlerts(getAlertsForComponent(clmDetails.getHash(), alerts));
+            updater.add(entry.getName(), clmDetails);
+          }
+          if (!cipListPath.isEmpty() && entry.getName().startsWith(cipListPath)) {
+            final ComponentDetailsList list = JsonUtils.parse(reportZip.getInputStream(entry),
+                ComponentDetailsList.class);
+            for (ComponentDetails details : list.getList()) {
+              componentDetailsLoader.augmentComponentDetails(app, details);
+            }
+            updater.add(entry.getName(), list);
+          }
+        }
+      }
     }
 
     final ResponseBuilder response = Response.ok();
     response.entity(updatedFile);
     response.header("Content-Disposition", "attachment; filename=" + UrlUtils.encodeUrlComponent(filename));
     return response.build();
+  }
+
+  private List<PolicyAlert> getAlertsForComponent(String hash, List<PolicyAlert> appAlerts) {
+    List<PolicyAlert> componentAlerts = new ArrayList<>();
+    for (PolicyAlert appAlert : appAlerts) {
+      PolicyAlert componentAlert = null;
+      for (ComponentFact fact : appAlert.getTrigger().getComponentFacts()) {
+        if (hash.equals(fact.getHash())) {
+          if (componentAlert == null) {
+            componentAlert = appAlert.with(appAlert.getTrigger().with(new ArrayList<ComponentFact>()));
+            componentAlerts.add(componentAlert);
+          }
+          componentAlert.getTrigger().addComponentFact(fact);
+        }
+      }
+    }
+    return componentAlerts;
   }
 
   @POST

@@ -8,6 +8,7 @@ package com.sonatype.insight.json.store;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -133,6 +134,16 @@ public final class JsonUtils
 
   public static <T> T parse(final String json, final Class<? extends T> type) throws IOException {
     return parse(json.getBytes("UTF-8"), type);
+  }
+
+  public static <T> T parse(final InputStream stream, final Class<? extends T> type) throws IOException {
+    final JsonParser parser = JSON.createParser(stream);
+    try {
+      return parser.readValueAs(type);
+    }
+    finally {
+      parser.close();
+    }
   }
 
   public static byte[] generate(final JsonNode data) throws IOException {

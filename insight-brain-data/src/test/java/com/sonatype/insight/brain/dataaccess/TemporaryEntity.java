@@ -17,6 +17,7 @@ import com.sonatype.insight.brain.configuration.ldap.LdapGroupMappingType;
 import com.sonatype.insight.brain.configuration.ldap.LdapProtocol;
 import com.sonatype.insight.brain.configuration.ldap.LdapServer;
 import com.sonatype.insight.brain.configuration.ldap.LdapUserMapping;
+import com.sonatype.insight.brain.dataaccess.component.HashGAVDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapConnectionDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapServerDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapUserMappingDAO;
@@ -37,6 +38,7 @@ import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.component.HashGAV;
 import com.sonatype.insight.brain.model.label.ComponentLabel;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
@@ -109,6 +111,8 @@ public class TemporaryEntity
 
   private final LdapUserMappingDAO ldapUserMappingDAO = new LdapUserMappingDAO();
 
+  private final HashGAVDAO hashGAVDAO = new HashGAVDAO();
+
   private Collection<Application> apps;
 
   private Collection<Organization> orgs;
@@ -133,6 +137,8 @@ public class TemporaryEntity
 
   private Collection<Policy> policies;
 
+  private Collection<HashGAV> claimedComponents;
+
   @Override
   protected void before() throws Throwable {
     apps = new ArrayList<Application>();
@@ -147,6 +153,7 @@ public class TemporaryEntity
     tags = new ArrayList<Tag>();
     appTags = new ArrayList<ApplicationTag>();
     policies = new ArrayList<>();
+    claimedComponents = new ArrayList<HashGAV>();
   }
 
   @Override
@@ -213,6 +220,11 @@ public class TemporaryEntity
     for (Policy policy : policies) {
       if (policyDAO.getById(policy.getId()) != null) {
         policyDAO.delete(policy);
+      }
+    }
+    for (HashGAV claimedComponent : claimedComponents) {
+      if (hashGAVDAO.getById(claimedComponent.getId()) != null) {
+        hashGAVDAO.delete(claimedComponent);
       }
     }
   }
@@ -462,5 +474,13 @@ public class TemporaryEntity
     policyDAO.insert(policy);
     policies.add(policy);
     return policy;
+  }
+
+  public HashGAV newClaimedComponent(String hash, String groupId, String artifactId, String version) {
+    HashGAV claimedComponent = new HashGAV(hash, groupId, artifactId, version, "jar", "");
+    claimedComponent.setComment("testing");
+    hashGAVDAO.insert(claimedComponent);
+    claimedComponents.add(claimedComponent);
+    return claimedComponent;
   }
 }

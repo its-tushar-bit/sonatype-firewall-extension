@@ -9,8 +9,6 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.Path;
 
-import com.sonatype.insight.brain.service.InsightWork;
-
 @Path(CIComponentInfoResource.SERVICE_PATH)
 @Named
 public class CIComponentInfoResource
@@ -19,8 +17,8 @@ public class CIComponentInfoResource
   public static final String SERVICE_PATH = "rest/ci/component/details";
 
   @Inject
-  public CIComponentInfoResource(SaasClient client, InsightWork work) {
-    super(client, work);
+  public CIComponentInfoResource(SaasClient client, ComponentDetailsLoader componentDetailsLoader) {
+    super(client, componentDetailsLoader);
   }
 
   @Override

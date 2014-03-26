@@ -23,34 +23,25 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 
 import com.sonatype.clm.dto.model.License;
-import com.sonatype.clm.dto.model.SecurityVulnerability;
 import com.sonatype.clm.dto.model.ide.ComponentDetails;
 import com.sonatype.clm.dto.model.ide.ComponentDetailsList;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
-import com.sonatype.insight.brain.dataaccess.component.ComponentDAO;
-import com.sonatype.insight.brain.dataaccess.component.HashGAVDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.Component;
-import com.sonatype.insight.brain.model.component.HashGAV;
-import com.sonatype.insight.brain.model.component.IdentificationSource;
 import com.sonatype.insight.brain.model.component.MatchState;
-import com.sonatype.insight.brain.model.component.SecurityVulnerabilityStatus;
-import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.license.MultiLicense;
 import com.sonatype.insight.brain.model.policy.stages.DevelopStageType;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluator;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
-import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.error.exception.NotFoundException;
 
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -66,14 +57,14 @@ public abstract class AbstractComponentInfoResource
 
   private final SaasClient client;
 
-  private final InsightWork work;
+  private final ComponentDetailsLoader componentDetailsLoader;
 
   @Context
   private HttpServletRequest request;
 
-  protected AbstractComponentInfoResource(SaasClient client, InsightWork work) {
+  protected AbstractComponentInfoResource(SaasClient client, ComponentDetailsLoader componentDetailsLoader) {
     this.client = client;
-    this.work = work;
+    this.componentDetailsLoader = componentDetailsLoader;
   }
 
   @GET
@@ -138,95 +129,31 @@ public abstract class AbstractComponentInfoResource
     return componentDetails;
   }
 
-  private ComponentDetails getComponentDetails(String groupId, String artifactId, String version, String hash,
-      String matchState) throws IOException
+  private ComponentDetails getComponentDetails(final String groupId, final String artifactId, final String version,
+      String hash, String matchState) throws IOException
   {
-    ComponentDetails componentDetails = null;
-
-    // Look among claimed components first
-    final HashGAV hashGAV;
-    HashGAVDAO hashGAVDAO = new HashGAVDAO();
-    if (hash != null && !hash.trim().isEmpty()) {
-      hashGAV = hashGAVDAO.getByHash(hash);
-    }
-    else {
-      hashGAV = hashGAVDAO.getByGAV(groupId, artifactId, version);
-    }
-    if (hashGAV != null) {
-      componentDetails = new ComponentDetails(hashGAV.getGroupId(), hashGAV.getArtifactId(), hashGAV.getVersion());
-      componentDetails.setHash(hashGAV.getHash());
-      componentDetails.setMatchState(MatchState.EXACT.getId());
-      componentDetails.setCatalogDate(hashGAV.getCreateTimeLong());
-      componentDetails.setIdentificationSource(IdentificationSource.MANUAL.getId());
-      componentDetails.setIdentificationSourceComment(hashGAV.getComment());
-    }
-
-    // Get component details from the SaaS server, if not found locally
-    if (componentDetails == null) {
-      try {
-        componentDetails = client.get(request, ComponentDetails.class, "rest/ide/component/details");
-        componentDetails.setMatchState(MatchState.EXACT.getId());
-      }
-      catch (NotFoundException e) {
-        // GAV is unknown to SaaS, still want to provide minimal data for details view
-        componentDetails = new ComponentDetails(groupId, artifactId, version);
-        componentDetails.setMatchState(MatchState.UNKNOWN.getId());
-      }
-
-      componentDetails.setHash(hash); // SaaS does not set hash
-      if (matchState != null && !matchState.trim().isEmpty()) {
-        componentDetails.setMatchState(matchState);
-      }
-      componentDetails.setIdentificationSource(IdentificationSource.SONATYPE.getId());
-    }
-
-    return componentDetails;
+    return componentDetailsLoader.getComponentDetails(groupId, artifactId, version, hash, matchState,
+        new ComponentDetailsLoader.HostedDataServicesSource()
+        {
+          @Override
+          public ComponentDetails getDetails() throws IOException {
+            ComponentDetails componentDetails = null;
+            try {
+              componentDetails = client.get(request, ComponentDetails.class, "rest/ide/component/details");
+              componentDetails.setMatchState(MatchState.EXACT.getId());
+            }
+            catch (NotFoundException e) {
+              // GAV is unknown to HDS, still want to provide minimal data for details view
+              componentDetails = new ComponentDetails(groupId, artifactId, version);
+              componentDetails.setMatchState(MatchState.UNKNOWN.getId());
+            }
+            return componentDetails;
+          }
+        });
   }
 
   private Component loadComponent(Application application, ComponentDetails componentDetails) throws IOException {
-    // Load the augmented data for licenses and security vulnerabilities
-    ArrayNode svData = AugmentUtil.getSVData(work, application.getId(), componentDetails.getGroupId(),
-        componentDetails.getArtifactId(), componentDetails.getVersion(), componentDetails.getSecurityVulnerabilities());
-    ComponentDAO componentDAO = new ComponentDAO();
-    Component component = componentDAO.getComponent(application, componentDetails, svData);
-
-    // Use CLM data to populate the component details
-    if (component.getLicenseOverrideId() != null) {
-      com.sonatype.insight.brain.model.license.License overriddenLicense = licenseDAO.getByIdNotNull(component
-          .getLicenseOverrideId());
-      componentDetails.getOverriddenLicenses().add(
-          new License(overriddenLicense.getId(), overriddenLicense.getShortDisplayName()));
-    }
-    if (!component.getLicenseThreatGroups().isEmpty()) {
-      int licenseThreatLevel = 0;
-      List<String> licenseThreatGroupNames = new ArrayList<>();
-      for (LicenseThreatGroup licenseThreatGroup : component.getLicenseThreatGroups()) {
-        final int groupThreatLevel = licenseThreatGroup.getThreatLevel();
-        if (groupThreatLevel > licenseThreatLevel) {
-          licenseThreatLevel = groupThreatLevel;
-          licenseThreatGroupNames.clear();
-          licenseThreatGroupNames.add(licenseThreatGroup.getName());
-        } else if (groupThreatLevel == licenseThreatLevel) {
-          licenseThreatGroupNames.add(licenseThreatGroup.getName());
-        }
-      }
-      componentDetails.setLicenseThreatLevel(licenseThreatLevel);
-      Collections.sort(licenseThreatGroupNames, String.CASE_INSENSITIVE_ORDER);
-      componentDetails.setLicenseThreatGroupNames(licenseThreatGroupNames);
-    }
-    if (componentDetails.getSecurityVulnerabilities() != null) {
-      for (SecurityVulnerability issue : componentDetails.getSecurityVulnerabilities()) {
-        issue.setStatus(SecurityVulnerabilityStatus.OPEN.getName());
-        for (com.sonatype.insight.brain.model.component.SecurityVulnerability sv : component
-            .getSecurityVulnerabilities()) {
-          if (issue.getRefId().equals(sv.getRefId()) && issue.getSource().equals(sv.getSource())) {
-            issue.setStatus(sv.getStatus().getName());
-            break;
-          }
-        }
-      }
-    }
-    return component;
+    return componentDetailsLoader.augmentComponentDetails(application, componentDetails);
   }
 
   private PolicyDAO policyDAO() {

@@ -28,6 +28,8 @@ import java.util.zip.ZipFile;
 import javax.mail.Message;
 
 import com.sonatype.clm.dto.model.ComponentSummary;
+import com.sonatype.clm.dto.model.ide.ComponentDetails;
+import com.sonatype.clm.dto.model.ide.ComponentDetailsList;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.AuthedRestAccess;
@@ -54,6 +56,7 @@ import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityC
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateResource;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluationLog;
+import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluationUtils;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.client.utils.UrlUtils;
@@ -73,13 +76,7 @@ import org.junit.Test;
 import org.jvnet.mock_javamail.Mailbox;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.equalToIgnoringWhiteSpace;
-import static org.hamcrest.Matchers.greaterThan;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.not;
-import static org.hamcrest.Matchers.stringContainsInOrder;
+import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -1063,18 +1060,31 @@ public class ReportResourceTest
   @Test
   public void testDownloadBundle() throws Exception {
     final String applicationPublicId = "ReportResourceTest_AppId";
-    tempEntity.newApplicationWithParent(applicationPublicId).getId();
+    String appId = tempEntity.newApplicationWithParent(applicationPublicId).getId();
     final String scanId = "ReportResourceTest_ScanId";
     final String licenseFingerprint = "ReportResourceTest_LicenseFingerprint";
     setLicenseFingerprint(licenseFingerprint);
 
     final File saasReportFile = getReportResponseFile(licenseFingerprint, scanId);
-    final URL testReportResultUrl = getClass().getResource("/ReportResourceTest/report.zip");
+    final URL testReportResultUrl = getClass().getResource("/ReportResourceTest/fortify.zip");
     FileUtils.copyURLToFile(testReportResultUrl, saasReportFile);
+
+    HashGAV claimedCompenent = tempEntity.newClaimedComponent("f0776db1593e215146d2", "commons-httpclient",
+        "commons-httpclient", "3.1.SONATYPE");
+    LicenseOverride licenseOverride = tempEntity
+        .newLicenseOverride(appId, claimedCompenent.getGroupId(), claimedCompenent.getArtifactId(),
+            claimedCompenent.getVersion(), LicenseOverrideStatus.OVERRIDDEN, "GPL-2.0");
+    LicenseOverride licenseOverride2 = tempEntity.newLicenseOverride(appId, "tomcat", "tomcat-util", "5.5.23",
+        LicenseOverrideStatus.OVERRIDDEN, "EPL-1.0");
+    Policy policy = tempEntity.newPolicy(appId, testName.getMethodName());
+
+    Response response = AuthedRestAccess.post(getRestUrl(PolicyEvaluateResource.SERVICE_PATH, applicationPublicId)
+        + "?scanId=" + scanId, toJson(new Stage(Stage.ID_BUILD)));
+    assertResponseStatus(200, response);
 
     String url = getRestUrl(ReportResource.SERVICE_PATH + '/' + ReportResource.DOWNLOAD_BUNDLE_PATH,
         applicationPublicId, scanId);
-    Response response = AuthedRestAccess.get(url);
+    response = AuthedRestAccess.get(url);
     assertResponseStatus(200, response);
     assertThat(response.getContentType(), is("application/zip"));
     assertThat(response.getHeader("Content-Disposition"), containsString("filename="));
@@ -1082,12 +1092,55 @@ public class ReportResourceTest
       File temp = File.createTempFile("report", "zip");
       FileUtils.copyStreamToFile(new RawInputStreamFacade(actual), temp);
       try (ZipFile zip = new ZipFile(temp)) {
-        Assert.assertNotNull(zip.getEntry("report.pdf"));
-        Assert.assertNull(zip.getEntry("detail.rptdesign"));
-        Assert.assertNotNull(zip.getEntry("components.json"));
-        Assert.assertNotNull(zip.getEntry("release-graph/tomcat/tomcat-util/5.5.23.png"));
+        assertNotNull(zip.getEntry("report.pdf"));
+        assertNull(zip.getEntry("detail.rptdesign"));
+        assertNotNull(zip.getEntry("components.json"));
+        assertNotNull(zip.getEntry("release-graph/tomcat/tomcat-util/5.5.23.png"));
+        assertNotNull(zip.getEntry(PolicyEvaluationUtils.POLICY_THREATS_FILENAME));
+
+        ComponentDetails details = JsonUtils.parse(
+            zip.getInputStream(zip.getEntry("cip/details/f0776db1593e215146d2.json")), ComponentDetails.class);
+        assertThat(details.getMatchState(), is("exact"));
+        assertThat(details.getGroupId(), is(claimedCompenent.getGroupId()));
+        assertThat(details.getArtifactId(), is(claimedCompenent.getArtifactId()));
+        assertThat(details.getVersion(), is(claimedCompenent.getVersion()));
+        assertThat(details.getCatalogDate(), is(claimedCompenent.getCreateTimeLong()));
+        assertThat(details.getOverriddenLicenses(), hasSize(1));
+        assertThat(details.getOverriddenLicenses().iterator().next().getLicenseId(), is(licenseOverride.getLicenseId()));
+        assertThat(details.getLicenseThreatGroupNames(), containsInAnyOrder("Copyleft"));
+        assertThat(details.getLicenseThreatLevel(), is(9));
+        assertThat(details.getIdentificationSource(), is(IdentificationSource.MANUAL.getId()));
+        assertThat(details.getIdentificationSourceComment(), is(claimedCompenent.getComment()));
+
+        details = JsonUtils.parse(zip.getInputStream(zip.getEntry("cip/details/1249e25aebb15358bedd.json")),
+            ComponentDetails.class);
+        assertThat(details.getMatchState(), is("exact"));
+        assertThat(details.getIdentificationSource(), is(IdentificationSource.SONATYPE.getId()));
+        assertThat(details.getIdentificationSourceComment(), is(nullValue()));
+        assertThat(details.getPolicyAlerts(), hasSize(1));
+        assertThat(details.getPolicyAlerts().get(0).getTrigger().getPolicyId(), is(policy.getId()));
+        assertThat(details.getPolicyAlerts().get(0).getTrigger().getComponentFacts(), hasSize(1));
+
+        ComponentDetailsList list = JsonUtils.parse(
+            zip.getInputStream(zip.getEntry("cip/list/tomcat/tomcat-util/5.5.23.json")), ComponentDetailsList.class);
+        details = findGAV(list, "tomcat", "tomcat-util", "5.5.23");
+        assertThat(details, is(notNullValue()));
+        assertThat(details.getOverriddenLicenses(), hasSize(1));
+        assertThat(details.getOverriddenLicenses().iterator().next().getLicenseId(),
+            is(licenseOverride2.getLicenseId()));
+        assertThat(details.getLicenseThreatGroupNames(), containsInAnyOrder("Weak Copyleft"));
+        assertThat(details.getLicenseThreatLevel(), is(2));
       }
     }
+  }
+
+  private ComponentDetails findGAV(ComponentDetailsList list, String g, String a, String v) {
+    for (ComponentDetails details : list.getList()) {
+      if (g.equals(details.getGroupId()) && a.equals(details.getArtifactId()) && v.equals(details.getVersion())) {
+        return details;
+      }
+    }
+    return null;
   }
 
   private void testDataJsonApplyChanges(String json) throws IOException {

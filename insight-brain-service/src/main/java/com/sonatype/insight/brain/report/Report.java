@@ -19,6 +19,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -613,6 +614,20 @@ public final class Report
     }
     finally {
       archive.close();
+    }
+  }
+
+  /**
+   * Gets the contents of the {@code template.properties} embedded in the report from the HDS or an empty map if none.
+   */
+  public static Properties getTemplateProperties(File reportFile) throws IOException {
+    try (ZipFile archive = new ZipFile(reportFile)) {
+      Properties props = new Properties();
+      ZipEntry entry = archive.getEntry("template.properties");
+      if (entry != null) {
+        props.load(archive.getInputStream(entry));
+      }
+      return props;
     }
   }
 

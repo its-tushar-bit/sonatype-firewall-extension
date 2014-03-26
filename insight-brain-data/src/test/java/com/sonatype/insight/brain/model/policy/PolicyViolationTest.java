@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.model.policy;
 
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -25,7 +24,7 @@ public class PolicyViolationTest
   @Test
   public void testConstructorConstraintFacts() throws Exception {
     List<ConstraintFact> constraintFacts = createConstraintFacts(2);
-    String constraintFactsJson = new String(JsonUtils.generate(constraintFacts), Charset.forName("UTF-8"));
+    String constraintFactsJson = JsonUtils.format(constraintFacts);
     PolicyViolation policyViolation = new PolicyViolation("policyEvaluationId", "policyId", 5 /* threatLevel */,
         PolicyThreatCategory.LICENSE, "hash", "groupId", "artifactId", "version", constraintFacts);
     assertThat(policyViolation.getConstraintFactsJson(), is(constraintFactsJson));
@@ -35,7 +34,7 @@ public class PolicyViolationTest
   @Test
   public void testConstructorConstraintFactsJson() throws Exception {
     List<ConstraintFact> constraintFacts = createConstraintFacts(2);
-    String constraintFactsJson = new String(JsonUtils.generate(constraintFacts), Charset.forName("UTF-8"));
+    String constraintFactsJson = JsonUtils.format(constraintFacts);
     PolicyViolation policyViolation = new PolicyViolation("policyEvaluationId", "policyId", 5 /* threatLevel */,
         PolicyThreatCategory.LICENSE, "hash", "groupId", "artifactId", "version", constraintFactsJson);
     assertThat(policyViolation.getConstraintFactsJson(), is(constraintFactsJson));
@@ -47,7 +46,7 @@ public class PolicyViolationTest
     PolicyViolation policyViolation = new PolicyViolation();
 
     List<ConstraintFact> constraintFacts = createConstraintFacts(2);
-    String constraintFactsJson = new String(JsonUtils.generate(constraintFacts), Charset.forName("UTF-8"));
+    String constraintFactsJson = JsonUtils.format(constraintFacts);
     policyViolation.setConstraintFactsJson(constraintFactsJson);
     assertThat(policyViolation.getConstraintFactsJson(), is(constraintFactsJson));
     assertConstraintFacts(policyViolation.getConstraintFacts(), constraintFacts);

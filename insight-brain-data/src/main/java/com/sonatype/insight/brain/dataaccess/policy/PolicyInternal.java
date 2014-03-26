@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.dataaccess.policy;
 
 import java.io.IOException;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -124,7 +123,7 @@ class PolicyInternal
     result.setOwnerId(policy.getOwnerId());
     result.setThreatLevel(policy.getThreatLevel());
     try {
-      result.setContent(new String(JsonUtils.generate(policy), Charset.forName("UTF-8")));
+      result.setContent(JsonUtils.format(policy));
     }
     catch (IOException e) {
       throw new RuntimeException(e);

@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.model.policy;
 
 import java.io.IOException;
-import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.List;
 
@@ -191,7 +190,7 @@ public class PolicyViolation
 
     this.constraintFacts = constraintFacts;
     try {
-      constraintFactsJson = new String(JsonUtils.generate(constraintFacts), Charset.forName("UTF-8"));
+      constraintFactsJson = JsonUtils.format(constraintFacts);
     }
     catch (IOException e) {
       throw new RuntimeException(e);

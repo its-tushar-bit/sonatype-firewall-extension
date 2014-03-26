@@ -11,7 +11,6 @@ CREATE TABLE policy_evaluation (
   CONSTRAINT policy_evaluation_pk PRIMARY KEY (policy_evaluation_id),
   CONSTRAINT policy_evaluation_app_fk FOREIGN KEY (application_id) REFERENCES application(application_id)
 );
-CREATE INDEX policy_evaluation_application_id_idx ON policy_evaluation(application_id);
 CREATE INDEX policy_evaluation_scan_id_idx ON policy_evaluation(scan_id);
 CREATE INDEX policy_evaluation_time_idx ON policy_evaluation(time);
 

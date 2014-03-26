@@ -12,6 +12,7 @@ import javax.persistence.EntityManager;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.model.policy.PolicyViolation;
 
 /**
  * @since 1.10
@@ -74,5 +75,17 @@ public class PolicyEvaluationDAO
   @Override
   public void update(EntityManager em, PolicyEvaluation entity) {
     throw new UnsupportedOperationException("The PolicyEvaluation table does not support update operations");
+  }
+
+  @Override
+  public void delete(EntityManager em, PolicyEvaluation entity) {
+    // Cascade to policy violations
+    PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
+    List<PolicyViolation> policyViolations = policyViolationDAO.getByEvaluationId(em, entity.getId());
+    for (PolicyViolation policyViolation : policyViolations) {
+      policyViolationDAO.delete(em, policyViolation);
+    }
+
+    super.delete(em, entity);
   }
 }

@@ -267,6 +267,12 @@ public class ApplicationDAO
       labelDAO.delete(em, label);
     }
 
+    // Cascade to policy evaluations
+    PolicyEvaluationDAO policyEvaluationDAO = new PolicyEvaluationDAO();
+    for (PolicyEvaluation policyEvaluation : policyEvaluationDAO.getByApplicationId(em, application.getId())) {
+      policyEvaluationDAO.delete(em, policyEvaluation);
+    }
+
     // Cascade to policies
     new PolicyDAO().deleteByOwnerId(em, application.getId());
 
@@ -295,12 +301,6 @@ public class ApplicationDAO
     PolicyMonitoring policyMonitoring = policyMonitoringDAO.getByOwnerId(em, application.getId());
     if (policyMonitoring != null) {
       policyMonitoringDAO.delete(em, policyMonitoring);
-    }
-
-    // Cascade to policy evaluations
-    PolicyEvaluationDAO policyEvaluationDAO = new PolicyEvaluationDAO();
-    for (PolicyEvaluation policyEvaluation : policyEvaluationDAO.getByApplicationId(em, application.getId())) {
-      policyEvaluationDAO.delete(em, policyEvaluation);
     }
 
     // Cascade to applied tags

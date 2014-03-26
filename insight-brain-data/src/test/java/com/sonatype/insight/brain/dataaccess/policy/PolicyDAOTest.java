@@ -17,8 +17,10 @@ import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.InvalidPolicyException;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityConditionType;
+import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.brain.model.tag.PolicyTag;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -29,7 +31,9 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
 
 public class PolicyDAOTest
     extends AbstractDbDAOTest
@@ -602,5 +606,18 @@ public class PolicyDAOTest
     policyDAO.delete(policy);
     policyTags = policyTagDAO.getByPolicyId(policy.getId());
     assertEquals(0, policyTags.size());
+  }
+
+  @Test
+  public void testCascadeDeleteToPolicyViolations() {
+    Policy policy = tempEntity.newPolicy(applicationId, "testCascadeDeleteToPolicyViolations");
+    PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(applicationId, ReleaseStageType.ID,
+        "PolicyEvaluationDAOTest");
+    tempEntity.newPolicyViolation(policyEvaluation.getId(), policy.getId());
+    PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
+    assertThat(policyViolationDAO.getByEvaluationId(policyEvaluation.getId()), hasSize(1));
+
+    policyDAO.delete(policy);
+    assertThat(policyViolationDAO.getByEvaluationId(policyEvaluation.getId()), hasSize(0));
   }
 }

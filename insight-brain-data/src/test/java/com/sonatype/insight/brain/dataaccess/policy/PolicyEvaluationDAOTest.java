@@ -8,12 +8,14 @@ package com.sonatype.insight.brain.dataaccess.policy;
 import java.util.Date;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
+import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 
 import org.junit.Test;
 
 import static org.hamcrest.Matchers.greaterThan;
+import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.lessThan;
 import static org.hamcrest.Matchers.notNullValue;
@@ -128,6 +130,19 @@ public class PolicyEvaluationDAOTest
     PolicyEvaluation policyEvaluation = dao.getLastPrimaryByApplicationIdAndStageId(applicationId, ReleaseStageType.ID);
     assertThat(policyEvaluation, is(notNullValue()));
     assertThat(policyEvaluation.getTime(), is(time1));
+  }
+
+  @Test
+  public void testCascadeDeleteToPolicyViolations() {
+    Policy policy = tempEntity.newPolicy(applicationId, "testCascadeDeleteToPolicyViolations");
+    PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(applicationId, ReleaseStageType.ID,
+        "PolicyEvaluationDAOTest");
+    tempEntity.newPolicyViolation(policyEvaluation.getId(), policy.getId());
+    PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
+    assertThat(policyViolationDAO.getByEvaluationId(policyEvaluation.getId()), hasSize(1));
+
+    new PolicyEvaluationDAO().delete(policyEvaluation);
+    assertThat(policyViolationDAO.getByEvaluationId(policyEvaluation.getId()), hasSize(0));
   }
 
   private void assertPolicyEvaluation(String applicationId, String stageTypeId, String scanId, boolean reevaluation,

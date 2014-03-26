@@ -20,6 +20,7 @@
     <class>com.sonatype.insight.brain.dataaccess.policy.PolicyInternal</class>
     <class>com.sonatype.insight.brain.model.policy.PolicyEvaluation</class>
     <class>com.sonatype.insight.brain.model.policy.PolicyMonitoring</class>
+    <class>com.sonatype.insight.brain.model.policy.PolicyViolation</class>
     <class>com.sonatype.insight.brain.model.policy.PolicyWaiver</class>
     <class>com.sonatype.insight.brain.model.security.MembershipMapping</class>
     <class>com.sonatype.insight.brain.model.security.Role</class>

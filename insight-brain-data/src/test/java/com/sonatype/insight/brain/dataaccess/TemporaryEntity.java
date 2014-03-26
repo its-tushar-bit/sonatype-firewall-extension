@@ -29,6 +29,7 @@ import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
 import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
@@ -52,6 +53,8 @@ import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
+import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityConditionType;
 import com.sonatype.insight.brain.model.security.MemberType;
@@ -100,6 +103,8 @@ public class TemporaryEntity
 
   private final PolicyEvaluationDAO policyEvaluationDAO = new PolicyEvaluationDAO();
 
+  private final PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
+
   private final ComponentLabelDAO componentLabelDAO = new ComponentLabelDAO();
 
   private final LicenseThreatGroupDAO licenseThreatGroupDAO = new LicenseThreatGroupDAO();
@@ -146,6 +151,8 @@ public class TemporaryEntity
 
   private Collection<PolicyEvaluation> policyEvaluations;
 
+  private Collection<PolicyViolation> policyViolations;
+
   @Override
   protected void before() throws Throwable {
     apps = new ArrayList<Application>();
@@ -162,6 +169,7 @@ public class TemporaryEntity
     policies = new ArrayList<>();
     claimedComponents = new ArrayList<HashGAV>();
     policyEvaluations = new ArrayList<>();
+    policyViolations = new ArrayList<>();
   }
 
   @Override
@@ -173,6 +181,16 @@ public class TemporaryEntity
           policyTagDAO.delete(policyTag);
         }
         tagDAO.delete(tag);
+      }
+    }
+    for (PolicyViolation policyViolation : policyViolations) {
+      if (policyViolationDAO.getById(policyViolation.getId()) != null) {
+        policyViolationDAO.delete(policyViolation);
+      }
+    }
+    for (PolicyEvaluation policyEvaluation : policyEvaluations) {
+      if (policyEvaluationDAO.getById(policyEvaluation.getId()) != null) {
+        policyEvaluationDAO.delete(policyEvaluation);
       }
     }
     for (Application app : apps) {
@@ -240,8 +258,6 @@ public class TemporaryEntity
       if (policyEvaluationDAO.getById(policyEvaluation.getId()) != null) {
         policyEvaluationDAO.delete(policyEvaluation);
       }
-    }
-  }
 
   public String uuid() {
     return UUID.randomUUID().toString().replace("-", "");
@@ -524,4 +540,13 @@ public class TemporaryEntity
     policyEvaluations.add(policyEvaluation);
     return policyEvaluation;
   }
+
+  public PolicyViolation newPolicyViolation(String policyEvaluationId, String policyId)
+  {
+    PolicyViolation policyViolation = new PolicyViolation(policyEvaluationId, policyId, 5,
+        PolicyThreatCategory.LICENSE, "acacacacacac", "Group1", "Artifact1", "Version1", "constraints json");
+    policyViolationDAO.insert(policyViolation);
+    policyViolations.add(policyViolation);
+    return policyViolation;
+}
 }

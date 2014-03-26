@@ -17,6 +17,7 @@ import java.util.Map;
 
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.persistence.EntityManager;
 
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.ComponentFact;
@@ -30,9 +31,12 @@ import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
+import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.actions.ActionTypes;
 import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.report.ReportDownloader;
@@ -101,16 +105,15 @@ public class PolicyEvaluationUtils
       throw new BadRequestException("Unable to evaluate policy, the scan " + scanId + " could not be processed");
     }
 
-    // add new entry in the rolling log (TODO: populate invoker's details)
-    PolicyEvaluationDAO policyEvaluationDAO = new PolicyEvaluationDAO();
-    boolean isReevaluation = (policyEvaluationDAO.getLastByApplicationIdAndScanId(appId, scanId) != null);
-    policyEvaluationDAO.insert(new PolicyEvaluation(appId, stage.getStageTypeId(), scanId, isReevaluation,
-        forMonitoring));
-
+    // Load data about components
     final List<Component> components = new ComponentDAO().getAll(application, licenseReportEntry.buf,
         securityReportEntry.buf, bomReportEntry.buf);
 
+    // Evaluate the policies
     PolicyResults policyResults = new PolicyEvaluator().evaluate(appId, stage, policyDAO, components, forMonitoring);
+
+    // Save the policy evaluation and violations
+    PolicyEvaluation policyEvaluation = persistPolicyResults(appId, scanId, stage, forMonitoring, policyResults);
     final List<PolicyAlert> alerts = policyResults.getActiveAlerts();
 
     byte[] alertsFileContent = JsonUtils.generate(JsonUtils.aaData(alerts));
@@ -120,7 +123,7 @@ public class PolicyEvaluationUtils
     else {
       Report.putEntry(reportFile, POLICY_ALERTS_FILENAME, alertsFileContent);
     }
-    if (!isReevaluation) {
+    if (!policyEvaluation.isReevaluation()) {
       Report.putEntry(reportFile, PRIMARY_POLICY_ALERTS_FILENAME, alertsFileContent);
     }
 
@@ -131,9 +134,45 @@ public class PolicyEvaluationUtils
     final PolicyEvaluationResult policyEvaluationResult = new PolicyEvaluationResult();
     policyEvaluationResult.setAlerts(alerts);
     calculateCounters(policyEvaluationResult);
-    policyEvaluationResult.setReevaluation(isReevaluation);
+    policyEvaluationResult.setReevaluation(policyEvaluation.isReevaluation());
 
     return policyEvaluationResult;
+  }
+
+  private PolicyEvaluation persistPolicyResults(String appId, String scanId, Stage stage, boolean forMonitoring,
+      PolicyResults policyResults)
+  {
+    PolicyEvaluationDAO policyEvaluationDAO = new PolicyEvaluationDAO();
+    boolean isReevaluation = (policyEvaluationDAO.getLastByApplicationIdAndScanId(appId, scanId) != null);
+    EntityManager em = policyEvaluationDAO.createEntityManager();
+    try {
+      em.getTransaction().begin();
+
+      // Persist the policy evaluation
+      PolicyEvaluation policyEvaluation = new PolicyEvaluation(appId, stage.getStageTypeId(), scanId, isReevaluation,
+          forMonitoring);
+      policyEvaluationDAO.insert(em, policyEvaluation);
+
+      // Persist the policy violations
+      PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
+      for (PolicyAlert policyAlert : policyResults.getActiveAlerts()) {
+        PolicyFact policyFact = policyAlert.getTrigger();
+        for (ComponentFact componentFact : policyFact.getComponentFacts()) {
+          PolicyViolation policyViolation = new PolicyViolation(policyEvaluation.getId(), policyFact.getPolicyId(),
+              policyFact.getThreatLevel(), PolicyThreatCategory.SECURITY, componentFact.getHash(),
+              componentFact.getGroupId(), componentFact.getArtifactId(), componentFact.getVersion(),
+              componentFact.getConstraintFacts());
+          policyViolationDAO.insert(em, policyViolation);
+        }
+      }
+
+      em.getTransaction().commit();
+
+      return policyEvaluation;
+    }
+    finally {
+      PolicyEvaluationDAO.close(em);
+    }
   }
 
   public void calculateCounters(PolicyEvaluationResult policyEvaluationResult) {

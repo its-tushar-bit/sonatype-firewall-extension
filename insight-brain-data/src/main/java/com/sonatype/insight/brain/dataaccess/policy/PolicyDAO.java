@@ -18,6 +18,7 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.InvalidPolicyException;
 import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.ValidationResult;
 import com.sonatype.insight.brain.model.tag.ApplicationTag;
 import com.sonatype.insight.brain.model.tag.PolicyTag;
@@ -140,6 +141,13 @@ public class PolicyDAO
   }
 
   public void delete(EntityManager em, Policy policy) {
+    // Cascade to policy violations
+    PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
+    List<PolicyViolation> policyViolations = policyViolationDAO.getByPolicyId(em, policy.getId());
+    for (PolicyViolation policyViolation : policyViolations) {
+      policyViolationDAO.delete(em, policyViolation);
+    }
+
     PolicyInternal policyInternal = PolicyInternal.fromPolicy(policy);
     policyInternalDAO.delete(em, policyInternal);
   }

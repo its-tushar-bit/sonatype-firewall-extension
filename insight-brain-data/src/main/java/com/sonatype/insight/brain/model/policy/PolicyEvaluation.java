@@ -15,7 +15,7 @@ import javax.persistence.Table;
 import com.sonatype.insight.model.HasStringId;
 
 /**
- * @since 1.10
+ * @since 1.11
  */
 @Entity
 @Table(name = "policy_evaluation")

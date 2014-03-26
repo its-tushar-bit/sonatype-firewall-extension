@@ -24,7 +24,7 @@ import com.sonatype.insight.model.HasStringId;
 import org.codehaus.plexus.util.StringUtils;
 
 /**
- * @since 1.10
+ * @since 1.11
  */
 @Entity
 @Table(name = "policy_violation")

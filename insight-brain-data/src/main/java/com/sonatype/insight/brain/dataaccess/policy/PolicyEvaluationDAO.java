@@ -15,7 +15,7 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 
 /**
- * @since 1.10
+ * @since 1.11
  */
 public class PolicyEvaluationDAO
     extends AbstractOperationalSqlDAO<PolicyEvaluation>

@@ -6,7 +6,7 @@
 package com.sonatype.insight.brain.model.policy;
 
 /**
- * @since 1.10
+ * @since 1.11
  */
 public enum PolicyThreatCategory
 {

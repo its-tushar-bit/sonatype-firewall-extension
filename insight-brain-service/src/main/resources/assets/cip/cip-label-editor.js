@@ -14,8 +14,7 @@
   function createPlugin() {
     LabelTab.prototype = new Insight.InformationPanelPlugin({ priority: 112 });
     LabelTab.prototype.isVisible = function() {
-      return !((freemium && !this.options.sampleData) || this.gav.matchState === 'unknown') &&
-          Brain.hasFeature('labels');
+      return this.gav.matchState !== 'unknown';
     };
     LabelTab.prototype.create = function() {
       var timestamp = new Date().getTime(),

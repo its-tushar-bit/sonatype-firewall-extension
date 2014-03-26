@@ -23,6 +23,7 @@
 }
 #infoPanelArtifactTable .license {
 	display: inline-block;
+	margin-right: 1ex;
 }
 
 .clm-chiclet {

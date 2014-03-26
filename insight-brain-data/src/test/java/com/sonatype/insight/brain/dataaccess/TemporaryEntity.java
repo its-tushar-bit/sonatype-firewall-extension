@@ -253,11 +253,7 @@ public class TemporaryEntity
         hashGAVDAO.delete(claimedComponent);
       }
     }
-
-    for (PolicyEvaluation policyEvaluation : policyEvaluations) {
-      if (policyEvaluationDAO.getById(policyEvaluation.getId()) != null) {
-        policyEvaluationDAO.delete(policyEvaluation);
-      }
+  }
 
   public String uuid() {
     return UUID.randomUUID().toString().replace("-", "");
@@ -513,7 +509,6 @@ public class TemporaryEntity
     claimedComponents.add(claimedComponent);
     return claimedComponent;
   }
-}
 
   public PolicyEvaluation newPolicyEvaluation(String applicationId, String stageTypeId, String scanId, Date time) {
     PolicyEvaluation policyEvaluation = new PolicyEvaluation(applicationId, stageTypeId, scanId);
@@ -541,12 +536,11 @@ public class TemporaryEntity
     return policyEvaluation;
   }
 
-  public PolicyViolation newPolicyViolation(String policyEvaluationId, String policyId)
-  {
+  public PolicyViolation newPolicyViolation(String policyEvaluationId, String policyId) {
     PolicyViolation policyViolation = new PolicyViolation(policyEvaluationId, policyId, 5,
         PolicyThreatCategory.LICENSE, "acacacacacac", "Group1", "Artifact1", "Version1", "constraints json");
     policyViolationDAO.insert(policyViolation);
     policyViolations.add(policyViolation);
     return policyViolation;
-}
+  }
 }

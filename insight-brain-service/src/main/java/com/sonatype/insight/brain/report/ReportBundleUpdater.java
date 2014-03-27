@@ -87,6 +87,13 @@ class ReportBundleUpdater
     addedEntries.add(entryName);
   }
 
+  /**
+   * Checks whether the given name has already been added to the update set.
+   */
+  public boolean contains(String entryName) {
+    return addedEntries.contains(entryName);
+  }
+
   @Override
   public void close() throws IOException {
     try {

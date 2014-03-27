@@ -89,6 +89,15 @@ public class ReportBundleUpdaterTest
   }
 
   @Test
+  public void testContains() throws Exception {
+    try (ReportBundleUpdater updater = new ReportBundleUpdater(originalFile, updatedFile)) {
+      assertThat(updater.contains("added.pdf"), is(false));
+      updater.add("added.pdf", tmpDir.newFile());
+      assertThat(updater.contains("added.pdf"), is(true));
+    }
+  }
+
+  @Test
   public void testOverwrite() throws Exception {
     try (ReportBundleUpdater updater = new ReportBundleUpdater(originalFile, updatedFile)) {
       updater.add("one.txt", tmpDir.newFile());

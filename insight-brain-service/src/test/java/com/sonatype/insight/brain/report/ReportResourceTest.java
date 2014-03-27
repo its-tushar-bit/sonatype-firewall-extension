@@ -1110,6 +1110,11 @@ public class ReportResourceTest
         assertThat(details.getLicenseThreatLevel(), is(9));
         assertThat(details.getIdentificationSource(), is(IdentificationSource.MANUAL.getId()));
         assertThat(details.getIdentificationSourceComment(), is(claimedCompenent.getComment()));
+        ComponentDetailsList list = JsonUtils.parse(
+            zip.getInputStream(zip.getEntry("cip/list/" + claimedCompenent.getGroupId() + "/"
+                + claimedCompenent.getArtifactId() + "/" + claimedCompenent.getVersion() + ".json")),
+            ComponentDetailsList.class);
+        assertThat(list.getList(), hasSize(0));
 
         details = JsonUtils.parse(zip.getInputStream(zip.getEntry("cip/details/1249e25aebb15358bedd.json")),
             ComponentDetails.class);
@@ -1120,8 +1125,8 @@ public class ReportResourceTest
         assertThat(details.getPolicyAlerts().get(0).getTrigger().getPolicyId(), is(policy.getId()));
         assertThat(details.getPolicyAlerts().get(0).getTrigger().getComponentFacts(), hasSize(1));
 
-        ComponentDetailsList list = JsonUtils.parse(
-            zip.getInputStream(zip.getEntry("cip/list/tomcat/tomcat-util/5.5.23.json")), ComponentDetailsList.class);
+        list = JsonUtils.parse(zip.getInputStream(zip.getEntry("cip/list/tomcat/tomcat-util/5.5.23.json")),
+            ComponentDetailsList.class);
         details = findGAV(list, "tomcat", "tomcat-util", "5.5.23");
         assertThat(details, is(notNullValue()));
         assertThat(details.getOverriddenLicenses(), hasSize(1));

@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.List;
@@ -49,6 +50,7 @@ import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.component.IdentificationSource;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
@@ -328,6 +330,18 @@ public class ReportResource
             componentDetailsLoader.augmentComponentDetails(app, clmDetails);
             clmDetails.setPolicyAlerts(getAlertsForComponent(clmDetails.getHash(), alerts));
             updater.add(entry.getName(), clmDetails);
+
+            if (!cipListPath.isEmpty()
+                && IdentificationSource.MANUAL.getId().equals(clmDetails.getIdentificationSource())) {
+              String listPath = cipListPath + clmDetails.getGroupId() + "/" + clmDetails.getArtifactId() + "/"
+                  + clmDetails.getVersion() + ".json";
+              if (reportZip.getEntry(listPath) == null && !updater.contains(listPath)) {
+                // CIP expects this to be an empty (!) array for every GAV but the HDS doesn't know about claimed components
+                ComponentDetailsList list = new ComponentDetailsList();
+                list.setList(Collections.<ComponentDetails> emptyList());
+                updater.add(listPath, list);
+              }
+            }
           }
           if (!cipListPath.isEmpty() && entry.getName().startsWith(cipListPath)) {
             final ComponentDetailsList list = JsonUtils.parse(reportZip.getInputStream(entry),

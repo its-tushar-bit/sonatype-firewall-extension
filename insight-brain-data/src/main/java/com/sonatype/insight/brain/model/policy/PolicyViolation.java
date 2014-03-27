@@ -189,12 +189,7 @@ public class PolicyViolation
     }
 
     this.constraintFacts = constraintFacts;
-    try {
-      constraintFactsJson = JsonUtils.format(constraintFacts);
-    }
-    catch (IOException e) {
-      throw new RuntimeException(e);
-    }
+    constraintFactsJson = JsonUtils.format(constraintFacts);
   }
 
   public List<ConstraintFact> getConstraintFacts() {

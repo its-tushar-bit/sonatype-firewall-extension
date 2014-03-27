@@ -122,12 +122,7 @@ class PolicyInternal
     result.setName(policy.getName());
     result.setOwnerId(policy.getOwnerId());
     result.setThreatLevel(policy.getThreatLevel());
-    try {
-      result.setContent(JsonUtils.format(policy));
-    }
-    catch (IOException e) {
-      throw new RuntimeException(e);
-    }
+    result.setContent(JsonUtils.format(policy));
 
     return result;
   }

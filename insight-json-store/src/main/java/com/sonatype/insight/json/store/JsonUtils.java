@@ -170,8 +170,13 @@ public final class JsonUtils
     return os.toByteArray();
   }
 
-  public static String format(Object pojo) throws IOException {
-    return new String(generate(pojo), "UTF-8");
+  public static String format(Object pojo) {
+    try {
+      return new String(generate(pojo), "UTF-8");
+    }
+    catch (IOException e) {
+      throw new UncheckedIOException(e);
+    }
   }
 
   public static <T extends ContainerNode<?>> T asTree(final Object pojo) {

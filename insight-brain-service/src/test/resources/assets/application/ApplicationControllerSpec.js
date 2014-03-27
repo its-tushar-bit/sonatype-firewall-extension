@@ -374,9 +374,7 @@ describe('ApplicationEditorController', function() {
               policyEvaluations: {
                 build: {
                   scanId: 'scanId',
-                  stage: {
-                    stageTypeId: 'build'
-                  }
+                  stageTypeId: 'build'
                 }
               },
               policyEvaluationsResults: {

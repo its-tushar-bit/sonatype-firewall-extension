@@ -25,9 +25,7 @@ ApplicationMockData = {
     }
     
     result.policyEvaluations[stage] = {
-      "stage": {
-        "stageTypeId": stage
-      },
+      "stageTypeId": stage,
       "scanId": "2e12e6a9811347a78031b8969b604c49",
       "time": 1371487786570,
       "user": "anonymous"

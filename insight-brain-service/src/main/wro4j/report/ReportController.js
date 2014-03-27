@@ -38,8 +38,8 @@
           });
 
           for (var i = 0; i < results[0].data.length; i++) {
-            if (results[0].data[i].id === $scope.policyEvaluation.stage.stageTypeId) {
-              $scope.policyEvaluation.stage.stageName = results[0].data[i].name;
+            if (results[0].data[i].id === $scope.policyEvaluation.stageTypeId) {
+              $scope.policyEvaluation.stageName = results[0].data[i].name;
               break;
             }
           }

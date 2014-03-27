@@ -497,7 +497,7 @@
     return {
       evaluate: function(application, policyEvaluation) {
         var deferred = $q.defer();
-        var stage = policyEvaluation.stage;
+        var stage = { stageTypeId : policyEvaluation.stageTypeId };
         $http.post(CLMLocations.evaluatePolicyUrl(application.publicId, policyEvaluation.scanId),
                 stage).success(function(data) {
           policyEvaluation.time = new Date();

@@ -547,7 +547,7 @@
         licenses : '=',
         emptyText : '@'
       },
-      template : '<span ng-repeat="license in licenses" class="license">{{license.licenseName}}{{$index < licenses.length - 1 ? "," : ""}}</span>' +
+      template : '<span ng-repeat="license in licenses" class="license">{{license.licenseName}}{{!$last ? "," : ""}}</span>' +
                  '<span ng-if="licenses.length == 0">{{emptyText}}</span>'
     };
   });

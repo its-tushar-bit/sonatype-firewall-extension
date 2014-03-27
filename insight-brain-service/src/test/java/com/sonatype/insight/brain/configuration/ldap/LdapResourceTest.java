@@ -8,11 +8,13 @@ package com.sonatype.insight.brain.configuration.ldap;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.util.Arrays;
 
 import com.sonatype.insight.brain.AuthedRestAccess;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapConnectionDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapServerDAO;
 import com.sonatype.insight.brain.ldap.LdapManager;
+import com.sonatype.insight.brain.ldap.LdapUser;
 import com.sonatype.insight.brain.ldap.TestLdapServer;
 import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
@@ -26,10 +28,12 @@ import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.anyOf;
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
@@ -477,6 +481,66 @@ public class LdapResourceTest
         System.getProperties().remove(SYSPROP_SSLTRUSTSTORE);
       }
     }
+  }
+
+  @Test
+  public void testTestUserMapping() throws Exception {
+    ldapServer.start();
+    ldapServer.loadData("/LdapResourceTest/ldap_users.ldif");
+
+    server = createLdapServer("test");
+    serverDao.insert(server);
+
+    LdapUserMapping mapping = tempEntity.newLdapUserMapping(server.getId());
+    String url = getRestUrl(LdapResource.SERVICE_PATH + "/{ldapServerId}/testUserMapping", mapping.getServerId());
+
+    Response response = AuthedRestAccess.put(url, toJson(mapping));
+    assertResponseStatus(400, response);
+
+    tempEntity.newLdapConnection(server.getId(), ldapServer.getPort());
+
+    response = AuthedRestAccess.put(url, toJson(mapping));
+    assertResponseStatus(200, response);
+    LdapUser[] users = fromJson(response, LdapUser[].class);
+    Arrays.sort(users);
+    assertThat(users.length, is(2));
+    assertThat(users[0].getUsername(), is("Beta"));
+    assertThat(users[0].getRealName(), is("Beta User"));
+    assertThat(users[0].getEmail(), is("beta.user@company.com"));
+  }
+
+  @Test
+  public void testTestLogin() throws Exception {
+    ldapServer.start();
+    ldapServer.loadData("/LdapResourceTest/ldap_users.ldif");
+
+    server = createLdapServer("test");
+    serverDao.insert(server);
+
+    LdapUserMapping mapping = tempEntity.newLdapUserMapping(server.getId());
+    LdapTestLoginRequest request = new LdapTestLoginRequest();
+    request.setUserMapping(mapping);
+    request.setUsername("testuser");
+    request.setPassword("bad");
+    String url = getRestUrl(LdapResource.SERVICE_PATH + "/{ldapServerId}/testLogin", mapping.getServerId());
+
+    Response response = AuthedRestAccess.put(url, toJson(request));
+    assertResponseStatus(200, response);
+    LdapConnectionStatus status = fromJson(response, LdapConnectionStatus.class);
+    assertThat(status.getStatus(), is(LdapConnectionStatus.Status.FAILURE));
+
+    tempEntity.newLdapConnection(server.getId(), ldapServer.getPort());
+
+    response = AuthedRestAccess.put(url, toJson(request));
+    assertResponseStatus(200, response);
+    status = fromJson(response, LdapConnectionStatus.class);
+    assertThat(status.getStatus(), is(LdapConnectionStatus.Status.FAILURE));
+
+    request.setPassword("far2simple");
+    response = AuthedRestAccess.put(url, toJson(request));
+    assertResponseStatus(200, response);
+    status = fromJson(response, LdapConnectionStatus.class);
+    assertThat(status.getStatus(), is(LdapConnectionStatus.Status.OK));
   }
 
   private File getTestResourceFile(String path) throws IOException {

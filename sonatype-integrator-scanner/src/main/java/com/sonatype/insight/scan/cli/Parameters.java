@@ -92,7 +92,7 @@ public class Parameters
   @Parameter(names = { "-h", "--help" }, description = "Show this help screen")
   private boolean help;
 
-  @Parameter(names = { "-b", "--bundle-file" }, description = "Path to file where the report bundle ZIP file will be downloaded", required = true)
+  @Parameter(names = { "-b", "--bundle-file" }, description = "Path to file where the report bundle ZIP file will be downloaded")
   private File reportBundleFile = new File("report.zip");
 
   public Parameters() {

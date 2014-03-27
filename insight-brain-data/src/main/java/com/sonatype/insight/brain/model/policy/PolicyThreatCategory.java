@@ -6,13 +6,11 @@
 package com.sonatype.insight.brain.model.policy;
 
 /**
- * @since 1.11
- */
  * The threat category for a policy is based on the conditions in the constraints of that policy.
  * 
  * @see Policy#getThreatCategory
  * 
- * @since 1.10
+ * @since 1.11
  */
 public enum PolicyThreatCategory
 {

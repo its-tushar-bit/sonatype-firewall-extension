@@ -154,7 +154,7 @@ public class TemporaryEntity
   private Collection<PolicyViolation> policyViolations;
 
   @Override
-  protected void before() throws Throwable {
+  protected void before() {
     apps = new ArrayList<Application>();
     orgs = new ArrayList<Organization>();
     users = new ArrayList<User>();

@@ -43,8 +43,8 @@
 				<!-- failure -->
 				<div class='alert alert-error cipContentBox' ng-if="state == 'failure'">
 					<h5>Error</h5>
-					<p>The component {{filename}} could not be evaluated:</p>
-					<p>{{errorMessage}}</p>
+					<p>The component {{stateArgs.filename}} could not be evaluated:</p>
+					<p>{{stateArgs.errorMessage}}</p>
 				</div>
 				<!-- Cred -->
 				<div class='alert alert-error cipContentBox' ng-if="state == 'invalid-credentials'">
@@ -54,7 +54,7 @@
 				<!-- AppID -->
 				<div class='alert alert-error cipContentBox' ng-if="state == 'invalid-appid'">
 					<h5>Invalid application ID</h5>
-					<p>The application ID <strong>{{appId}}</strong> is invalid or you do not have permission to use it. Please verify the <a href='#' ng-click='openView($event, "config")'>plugin configuration</a>.</p>
+					<p>The application ID <strong>{{stateArgs.appId}}</strong> is invalid or you do not have permission to use it. Please verify the <a href='#' ng-click='openView($event, "config")'>plugin configuration</a>.</p>
 				</div>
 				<!-- Unassigned -->
 				<div class='alert cipContentBox' ng-if="state == 'unassigned'">

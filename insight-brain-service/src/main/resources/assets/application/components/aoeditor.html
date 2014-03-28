@@ -60,7 +60,7 @@
 					<div style='padding-left:3px;font-weight:bold' id='evaluate-bundle-status'>{{evaluationStatus.currentStepName}}</div>
 				</div>
 				<div class='modal-footer'>
-					<span style="margin:0px;padding: 4px 35px 4px 14px;float:left;max-width:330px" ng-class="{'alert alert-error': error }" ng-show="error">{{error}}</span>
+					<span style="margin:0px;padding: 4px 35px 4px 14px;float:left;max-width:300px" ng-class="{'alert alert-error': error }" ng-show="error">{{error}}</span>
 					<button class='btn' type='button' ng-disabled='!pollingUrl' ng-click='$close()'>Close</button>
 					<a class='btn btn-primary' ng-disabled='!evaluationStatus.scanId' ng-href='{{getReportUrl()}}' target='_blank'>View Report</a>
 				</div>

@@ -37,7 +37,8 @@ public class PolicyViolationDAO
 
   public List<PolicyViolation> getByEvaluationId(EntityManager em, String evaluationId) {
     String sQuery = "SELECT entity FROM PolicyViolation entity" + //
-        " WHERE entity.policyEvaluationId=?1";
+        " WHERE entity.policyEvaluationId=?1" + //
+        " ORDER BY entity.policyId, entity.groupId, entity.artifactId, entity.version, entity.hash";
     return getList(em, sQuery, evaluationId);
   }
 

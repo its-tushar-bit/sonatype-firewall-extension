@@ -7,16 +7,15 @@ package com.sonatype.insight.brain.scan;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
-import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.policy.evaluator.PolicyAlertNotifier;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluationUtils;
 import com.sonatype.insight.brain.saas.ScanUploader;
@@ -39,7 +38,6 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.argThat;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Matchers.same;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -199,23 +197,18 @@ public class ScanTaskTest
     verify(fileCleaner).delete(appBinary);
   }
 
+  @SuppressWarnings("unchecked")
   @Test
-  public void sendsNotifications() throws IOException {
+  public void sendsNotifications() throws Exception {
     task.init(app, bundleFile, bundleFilename, stage, true);
 
-    List<PolicyAlert> oldAlerts = new ArrayList<>();
-    List<PolicyAlert> newAlerts = new ArrayList<>();
-    when(evaluator.findLastPrimaryPolicyAlerts(eq(app.getPublicId()), eq(app.getId()), match(stage))).thenReturn(
-        oldAlerts);
-
-    PolicyEvaluationResult evalResult = new PolicyEvaluationResult();
-    evalResult.setAlerts(newAlerts);
-    when(evaluator.evaluate(eq(app.getPublicId()), eq(scanReceipt.getScanId()), match(stage))).thenReturn(evalResult);
+    when(evaluator.evaluate(eq(app.getPublicId()), eq(scanReceipt.getScanId()), match(stage))).thenReturn(
+        new PolicyEvaluation());
 
     task.run();
 
     verify(notifier).sendNotifications(eq(app.getPublicId()), eq(app.getId()), eq("scan-id"), match(stage),
-        same(newAlerts), same(oldAlerts));
+        (List<PolicyAlert>) any(), (List<PolicyAlert>) any());
   }
 
   private void assertThatTaskCompletedSuccessfully(ScanTask task) {

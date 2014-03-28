@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.policy.evaluator;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -17,7 +16,6 @@ import javax.inject.Named;
 
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
-import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
@@ -114,33 +112,34 @@ public class PolicyMonitor
     log.info("Policy monitoring is enabled for application '{}' and stage '{}'", app.getName(),
         policyMonitoring.getStageTypeId());
 
-    PolicyEvaluation policyEvaluation = new PolicyEvaluationDAO().getLastPrimaryByApplicationIdAndStageId(app.getId(),
-        policyMonitoring.getStageTypeId());
-    if (policyEvaluation == null) {
+    PolicyEvaluationDAO policyEvaluationDAO = new PolicyEvaluationDAO();
+    PolicyEvaluation lastPrimaryPolicyEvaluation = policyEvaluationDAO.getLastPrimaryByApplicationIdAndStageId(
+        app.getId(), policyMonitoring.getStageTypeId());
+    if (lastPrimaryPolicyEvaluation == null) {
       log.info("There is nothing to monitor for application '{}' because there is no scan for stage '{}'",
           app.getName(), policyMonitoring.getStageTypeId());
       return;
     }
 
-    String scanId = policyEvaluation.getScanId();
+    String scanId = lastPrimaryPolicyEvaluation.getScanId();
     File scanFile = work.getScanFile(app.getId(), scanId);
     ScanReceipt scanReceipt = uploader.upload(scanFile, app.getPublicId(), "rest/ci/scan");
     scanReceipt.waitForReport();
 
-    Stage stage = new Stage(policyMonitoring.getStageTypeId());
-    List<PolicyAlert> oldAlerts;
-    try {
-      oldAlerts = policyEvaluationUtils.findLastPolicyAlertsForMonitoring(app.getId(), scanId);
-    }
-    catch (final Exception e) {
-      // don't abort sending notifications if old results are corrupt or missing, just means full digest will be sent
-      log.warn("Cannot load last policy evaluation results for app id {}", app.getPublicId(), e);
-      oldAlerts = Collections.emptyList();
-    }
+    PolicyEvaluation lastMonitoringPolicyEvaluation = policyEvaluationDAO.getLastMonitoringByApplicationIdAndScanId(
+        app.getId(), scanId);
 
-    PolicyEvaluationResult policyEvaluationResult = policyEvaluationUtils.evaluateForMonitoring(app.getPublicId(),
+    Stage stage = new Stage(policyMonitoring.getStageTypeId());
+    PolicyEvaluation policyEvaluation = policyEvaluationUtils.evaluateForMonitoring(app.getPublicId(),
         scanId, stage);
-    List<PolicyAlert> newAlerts = policyEvaluationResult.getAlerts();
+    List<PolicyAlert> newAlerts = PolicyAlertUtil.createPolicyAlerts(policyEvaluation);
+    List<PolicyAlert> oldAlerts;
+    if (lastMonitoringPolicyEvaluation != null) {
+      oldAlerts = PolicyAlertUtil.createPolicyAlerts(lastMonitoringPolicyEvaluation);
+    }
+    else {
+      oldAlerts = PolicyAlertUtil.createPolicyAlerts(lastPrimaryPolicyEvaluation);
+    }
     policyAlertNotifier.sendNotifications(app.getPublicId(), app.getId(), scanId, stage, newAlerts, oldAlerts);
 
     log.debug("Policy monitoring evaluated for application '{}' in {} ms", app.getName(), System.currentTimeMillis()

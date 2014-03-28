@@ -536,8 +536,8 @@ public class TemporaryEntity
     return policyEvaluation;
   }
 
-  public PolicyViolation newPolicyViolation(String policyEvaluationId, String policyId) {
-    PolicyViolation policyViolation = new PolicyViolation(policyEvaluationId, policyId, 5,
+  public PolicyViolation newPolicyViolation(String policyEvaluationId, Policy policy) {
+    PolicyViolation policyViolation = new PolicyViolation(policyEvaluationId, policy.getId(), policy.getName(), 5,
         PolicyThreatCategory.LICENSE, "acacacacacac", "Group1", "Artifact1", "Version1", "constraints json");
     policyViolationDAO.insert(policyViolation);
     policyViolations.add(policyViolation);

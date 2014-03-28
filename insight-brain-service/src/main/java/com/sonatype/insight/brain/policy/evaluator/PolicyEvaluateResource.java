@@ -23,7 +23,9 @@ import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -63,12 +65,17 @@ public class PolicyEvaluateResource
     Application application = applicationDAO.getByPublicIdNotNull(applicationPublicId);
     String appId = application.getId();
 
-    final List<PolicyAlert> oldAlerts = policyEvaluationUtils.findLastPrimaryPolicyAlerts(applicationPublicId, appId, stage);
+    PolicyEvaluationDAO policyEvaluationDAO = new PolicyEvaluationDAO();
+    PolicyEvaluation lastPrimaryPolicyEvaluation = policyEvaluationDAO.getLastPrimaryByApplicationIdAndStageId(appId,
+        stage.getStageTypeId());
 
-    PolicyEvaluationResult policyEvaluationResult = policyEvaluationUtils.evaluate(applicationPublicId, scanId, stage);
+    PolicyEvaluation policyEvaluation = policyEvaluationUtils.evaluate(applicationPublicId, scanId, stage);
+    PolicyEvaluationResult policyEvaluationResult = policyEvaluationUtils
+        .createPolicyEvaluationResult(policyEvaluation);
 
     if (!policyEvaluationResult.isReevaluation()) {
-      final List<PolicyAlert> newAlerts = policyEvaluationResult.getAlerts();
+      List<PolicyAlert> newAlerts = policyEvaluationResult.getAlerts();
+      List<PolicyAlert> oldAlerts = PolicyAlertUtil.createPolicyAlerts(lastPrimaryPolicyEvaluation);
       policyAlertNotifier.sendNotifications(applicationPublicId, appId, scanId, stage, newAlerts, oldAlerts);
     }
 

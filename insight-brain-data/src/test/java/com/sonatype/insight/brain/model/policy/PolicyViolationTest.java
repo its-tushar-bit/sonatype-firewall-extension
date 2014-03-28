@@ -25,8 +25,8 @@ public class PolicyViolationTest
   public void testConstructorConstraintFacts() throws Exception {
     List<ConstraintFact> constraintFacts = createConstraintFacts(2);
     String constraintFactsJson = JsonUtils.format(constraintFacts);
-    PolicyViolation policyViolation = new PolicyViolation("policyEvaluationId", "policyId", 5 /* threatLevel */,
-        PolicyThreatCategory.LICENSE, "hash", "groupId", "artifactId", "version", constraintFacts);
+    PolicyViolation policyViolation = new PolicyViolation("policyEvaluationId", "policyId", "policyName",
+        5 /* threatLevel */, PolicyThreatCategory.LICENSE, "hash", "groupId", "artifactId", "version", constraintFacts);
     assertThat(policyViolation.getConstraintFactsJson(), is(constraintFactsJson));
     assertConstraintFacts(policyViolation.getConstraintFacts(), constraintFacts);
   }
@@ -35,8 +35,9 @@ public class PolicyViolationTest
   public void testConstructorConstraintFactsJson() throws Exception {
     List<ConstraintFact> constraintFacts = createConstraintFacts(2);
     String constraintFactsJson = JsonUtils.format(constraintFacts);
-    PolicyViolation policyViolation = new PolicyViolation("policyEvaluationId", "policyId", 5 /* threatLevel */,
-        PolicyThreatCategory.LICENSE, "hash", "groupId", "artifactId", "version", constraintFactsJson);
+    PolicyViolation policyViolation = new PolicyViolation("policyEvaluationId", "policyId", "policyName",
+        5 /* threatLevel */, PolicyThreatCategory.LICENSE, "hash", "groupId", "artifactId", "version",
+        constraintFactsJson);
     assertThat(policyViolation.getConstraintFactsJson(), is(constraintFactsJson));
     assertConstraintFacts(policyViolation.getConstraintFacts(), constraintFacts);
   }
@@ -80,8 +81,8 @@ public class PolicyViolationTest
   public void testConstructorConstraintFactsJson_Null() throws Exception {
     try {
       String constraintFactsJson = null;
-      new PolicyViolation("policyEvaluationId", "policyId", 5 /* threatLevel */, PolicyThreatCategory.LICENSE, "hash",
-          "groupId", "artifactId", "version", constraintFactsJson);
+      new PolicyViolation("policyEvaluationId", "policyId", "policyName", 5 /* threatLevel */,
+          PolicyThreatCategory.LICENSE, "hash", "groupId", "artifactId", "version", constraintFactsJson);
       fail("Expected IllegalArgumentException");
     }
     catch (IllegalArgumentException expected) {
@@ -92,8 +93,8 @@ public class PolicyViolationTest
   public void testConstructorConstraintFactsJson_Empty() throws Exception {
     try {
       String constraintFactsJson = " ";
-      new PolicyViolation("policyEvaluationId", "policyId", 5 /* threatLevel */, PolicyThreatCategory.LICENSE, "hash",
-          "groupId", "artifactId", "version", constraintFactsJson);
+      new PolicyViolation("policyEvaluationId", "policyId", "policyName", 5 /* threatLevel */,
+          PolicyThreatCategory.LICENSE, "hash", "groupId", "artifactId", "version", constraintFactsJson);
       fail("Expected IllegalArgumentException");
     }
     catch (IllegalArgumentException expected) {
@@ -104,8 +105,8 @@ public class PolicyViolationTest
   public void testConstructorConstraintFacts_Null() throws Exception {
     try {
       List<ConstraintFact> constraintFacts = null;
-      new PolicyViolation("policyEvaluationId", "policyId", 5 /* threatLevel */, PolicyThreatCategory.LICENSE, "hash",
-          "groupId", "artifactId", "version", constraintFacts);
+      new PolicyViolation("policyEvaluationId", "policyId", "policyName", 5 /* threatLevel */,
+          PolicyThreatCategory.LICENSE, "hash", "groupId", "artifactId", "version", constraintFacts);
       fail("Expected IllegalArgumentException");
     }
     catch (IllegalArgumentException expected) {
@@ -116,8 +117,8 @@ public class PolicyViolationTest
   public void testConstructorConstraintFacts_Empty() throws Exception {
     try {
       List<ConstraintFact> constraintFacts = new ArrayList<>();
-      new PolicyViolation("policyEvaluationId", "policyId", 5 /* threatLevel */, PolicyThreatCategory.LICENSE, "hash",
-          "groupId", "artifactId", "version", constraintFacts);
+      new PolicyViolation("policyEvaluationId", "policyId", "policyName", 5 /* threatLevel */,
+          PolicyThreatCategory.LICENSE, "hash", "groupId", "artifactId", "version", constraintFacts);
       fail("Expected IllegalArgumentException");
     }
     catch (IllegalArgumentException expected) {

@@ -49,7 +49,6 @@ import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityC
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.organization.ContactDTO;
 import com.sonatype.insight.brain.policy.PolicyResource;
-import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.report.ReportResource;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.json.store.JsonUtils;
@@ -691,73 +690,6 @@ public class PolicyEvaluateResourceTest
 
     PolicyEvaluation eval = new PolicyEvaluationDAO().getLastByApplicationIdAndStageId(appId, Stage.ID_BUILD);
     Assert.assertNull(eval);
-  }
-
-  @Test
-  public void testNotifications_No_primarypolicyalertsjson() throws Exception {
-    String applicationPublicId = "testNotificationsNoprimarypolicyalertsjson";
-    Application application = tempEntity.newApplicationWithParent(applicationPublicId);
-    String scanId = "testNotificationsNoprimarypolicyalertsjson";
-    String licenseFingerprint = "testNotificationsNoprimarypolicyalertsjson";
-    setLicenseFingerprint(licenseFingerprint);
-
-    File saasReportFile = getReportResponseFile(licenseFingerprint, scanId);
-    saasReportFile.delete();
-
-    Constraint constraint1 = new Constraint("C1", "PolicyEvaluateResourceTest constraint 1", LogicalOperator.AND);
-    Condition condition1 = new Condition(SecurityVulnerabilityConditionType.ID, "present");
-    constraint1.addCondition(condition1);
-    Policy policy1 = new Policy("P1", "PolicyEvaluateResourceTest policy1");
-    policy1.setThreatLevel(8);
-    policy1.addConstraint(constraint1);
-    Action notifyAction = new Action(NotifyActionType.ID);
-    notifyAction.setTarget("manager@test.corp");
-    policy1.addAction(BuildStageType.ID, notifyAction);
-    addPolicy(applicationPublicId, policy1);
-
-    Stage stage = new Stage(BuildStageType.ID);
-
-    // Simulate that the report is available
-    URL testReportFileUrl = getClass().getResource("/PolicyEvaluateResourceTest/report.zip");
-    FileUtils.copyFile(new File(testReportFileUrl.getFile()), saasReportFile);
-
-    List<Message> notifications = Mailbox.get("manager@test.corp");
-    notifications.clear();
-
-    // Evaluate policy
-    Response response = AuthedRestAccess.post(getServiceURL(applicationPublicId, scanId), JsonHelpers.asJson(stage));
-    assertResponseStatus(200, response);
-    PolicyEvaluationResult policyEval = JsonHelpers.fromJson(response.getResponseBody(), PolicyEvaluationResult.class);
-    Assert.assertNotNull(policyEval);
-    List<PolicyAlert> policyAlerts = policyEval.getAlerts();
-    Assert.assertNotNull(policyAlerts);
-    Assert.assertEquals(1, policyAlerts.size());
-
-    // Notification message should have been sent
-    Assert.assertEquals(1, notifications.size());
-    notifications.clear();
-
-    // Delete the primarypolicyalerts.json file. The code should fall back to policyalerts.json.
-    File reportDir = brain.getReportDir(application.getId(), scanId);
-    File reportFile = new File(reportDir, "report.zip");
-    File reportCacheDir = Report.getCacheDir(reportFile);
-    File primaryPolicyAlertsFile = new File(reportCacheDir, PolicyEvaluationUtils.PRIMARY_POLICY_ALERTS_FILENAME);
-    Assert.assertTrue(primaryPolicyAlertsFile.getAbsolutePath(), primaryPolicyAlertsFile.exists());
-    Assert.assertTrue(primaryPolicyAlertsFile.getAbsolutePath(), primaryPolicyAlertsFile.delete());
-
-    // Evaluate policy again for a new scan
-    scanId += "1";
-    saasReportFile = getReportResponseFile(licenseFingerprint, scanId);
-    FileUtils.copyFile(new File(testReportFileUrl.getFile()), saasReportFile);
-    response = AuthedRestAccess.post(getServiceURL(applicationPublicId, scanId), JsonHelpers.asJson(stage));
-    assertResponseStatus(200, response);
-    policyEval = JsonHelpers.fromJson(response.getResponseBody(), PolicyEvaluationResult.class);
-    Assert.assertNotNull(policyEval);
-    Assert.assertEquals(1, policyAlerts.size());
-    assertPolicyEvaluation(application.getId(), scanId, false /* isReevaluation */);
-
-    // Notification message should not have been sent since the results are the same
-    Assert.assertTrue(notifications.isEmpty());
   }
 
   @Test

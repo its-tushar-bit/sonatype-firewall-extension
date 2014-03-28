@@ -27,6 +27,13 @@ public class PolicyEvaluationDAO
     return get(em, sQuery, id);
   }
 
+  public PolicyEvaluation getLastMonitoringByApplicationIdAndScanId(String appId, String scanId) {
+    String sQuery = "SELECT entity FROM PolicyEvaluation entity" + //
+        " WHERE entity.applicationId=?1 AND entity.scanId=?2 AND entity.isForMonitoring=true" + //
+        " ORDER BY entity.time DESC";
+    return createQuery(sQuery, appId, scanId).forceSingleResult().get();
+  }
+
   public PolicyEvaluation getLastByApplicationIdAndScanId(String appId, String scanId) {
     String sQuery = "SELECT entity FROM PolicyEvaluation entity" + //
         " WHERE entity.applicationId=?1 AND entity.scanId=?2" + //

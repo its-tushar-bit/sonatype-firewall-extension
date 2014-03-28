@@ -40,6 +40,9 @@ public class PolicyViolation
   @Column(name = "policy_id")
   private String policyId;
 
+  @Column(name = "policy_name")
+  private String policyName;
+
   @Column(name = "threat_level")
   private int threatLevel;
 
@@ -67,12 +70,13 @@ public class PolicyViolation
   public PolicyViolation() {
   }
 
-  public PolicyViolation(String policyEvaluationId, String policyId, int threatLevel,
+  public PolicyViolation(String policyEvaluationId, String policyId, String policyName, int threatLevel,
       PolicyThreatCategory threatCategory, String hash, String groupId, String artifactId, String version,
       String constraintFactsJson)
   {
     this.policyEvaluationId = policyEvaluationId;
     this.policyId = policyId;
+    this.policyName = policyName;
     this.threatLevel = threatLevel;
     this.threatCategory = threatCategory;
     this.hash = hash;
@@ -82,12 +86,13 @@ public class PolicyViolation
     setConstraintFactsJson(constraintFactsJson);
   }
 
-  public PolicyViolation(String policyEvaluationId, String policyId, int threatLevel,
+  public PolicyViolation(String policyEvaluationId, String policyId, String policyName, int threatLevel,
       PolicyThreatCategory threatCategory, String hash, String groupId, String artifactId, String version,
       List<ConstraintFact> constraintFacts)
   {
     this.policyEvaluationId = policyEvaluationId;
     this.policyId = policyId;
+    this.policyName = policyName;
     this.threatLevel = threatLevel;
     this.threatCategory = threatCategory;
     this.hash = hash;
@@ -121,6 +126,14 @@ public class PolicyViolation
 
   public void setPolicyId(String policyId) {
     this.policyId = policyId;
+  }
+
+  public String getPolicyName() {
+    return policyName;
+  }
+
+  public void setPolicyName(String policyName) {
+    this.policyName = policyName;
   }
 
   public int getThreatLevel() {

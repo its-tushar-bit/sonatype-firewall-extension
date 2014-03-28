@@ -47,19 +47,9 @@ import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.json.store.JsonUtils;
 
-import org.codehaus.plexus.util.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 @Named
 public class PolicyEvaluationUtils
 {
-  private static final Logger log = LoggerFactory.getLogger(PolicyEvaluationUtils.class);
-
-  public static final String MONITOR_POLICY_ALERTS_FILENAME = "monitorpolicyalerts.json";
-
-  public static final String PRIMARY_POLICY_ALERTS_FILENAME = "primarypolicyalerts.json";
-
   public static final String POLICY_ALERTS_FILENAME = "policyalerts.json";
 
   public static final String POLICY_THREATS_FILENAME = "policythreats.json";
@@ -76,19 +66,19 @@ public class PolicyEvaluationUtils
     this.reportDownloader = reportDownloader;
   }
 
-  public PolicyEvaluationResult evaluate(final String applicationPublicId, final String scanId, final Stage stage)
+  public PolicyEvaluation evaluate(final String applicationPublicId, final String scanId, final Stage stage)
       throws IOException
   {
     return evaluate(applicationPublicId, scanId, stage, false /* forMonitoring */);
   }
 
-  public PolicyEvaluationResult evaluateForMonitoring(String applicationPublicId, String scanId, Stage stage)
+  public PolicyEvaluation evaluateForMonitoring(String applicationPublicId, String scanId, Stage stage)
       throws IOException
   {
     return evaluate(applicationPublicId, scanId, stage, true /* forMonitoring */);
   }
 
-  private PolicyEvaluationResult evaluate(final String applicationPublicId, final String scanId, final Stage stage,
+  private PolicyEvaluation evaluate(final String applicationPublicId, final String scanId, final Stage stage,
       boolean forMonitoring) throws IOException
   {
     Application application = applicationDAO.getByPublicIdNotNull(applicationPublicId);
@@ -118,26 +108,15 @@ public class PolicyEvaluationUtils
     final List<PolicyAlert> alerts = policyResults.getActiveAlerts();
 
     byte[] alertsFileContent = JsonUtils.generate(JsonUtils.aaData(alerts));
-    if (forMonitoring) {
-      Report.putEntry(reportFile, MONITOR_POLICY_ALERTS_FILENAME, alertsFileContent);
-    }
-    else {
+    if (!forMonitoring) {
       Report.putEntry(reportFile, POLICY_ALERTS_FILENAME, alertsFileContent);
-    }
-    if (!policyEvaluation.isReevaluation()) {
-      Report.putEntry(reportFile, PRIMARY_POLICY_ALERTS_FILENAME, alertsFileContent);
     }
 
     Report.putEntry(reportFile, POLICY_THREATS_FILENAME, JsonUtils.generate(toPolicyThreats(policyResults)));
 
     ReportResource.flushReportChanges(appId, scanId); // ensure policy count is recalculated on fetch
 
-    final PolicyEvaluationResult policyEvaluationResult = new PolicyEvaluationResult();
-    policyEvaluationResult.setAlerts(alerts);
-    calculateCounters(policyEvaluationResult);
-    policyEvaluationResult.setReevaluation(policyEvaluation.isReevaluation());
-
-    return policyEvaluationResult;
+    return policyEvaluation;
   }
 
   private PolicyEvaluation persistPolicyResults(String appId, String scanId, Stage stage, boolean forMonitoring,
@@ -163,8 +142,9 @@ public class PolicyEvaluationUtils
         PolicyThreatCategory threatCategory = policy.getThreatCategory();
         for (ComponentFact componentFact : policyFact.getComponentFacts()) {
           PolicyViolation policyViolation = new PolicyViolation(policyEvaluation.getId(), policy.getId(),
-              policyFact.getThreatLevel(), threatCategory, componentFact.getHash(), componentFact.getGroupId(),
-              componentFact.getArtifactId(), componentFact.getVersion(), componentFact.getConstraintFacts());
+              policy.getName(), policyFact.getThreatLevel(), threatCategory, componentFact.getHash(),
+              componentFact.getGroupId(), componentFact.getArtifactId(), componentFact.getVersion(),
+              componentFact.getConstraintFacts());
           policyViolationDAO.insert(em, policyViolation);
         }
       }
@@ -208,58 +188,6 @@ public class PolicyEvaluationUtils
     policyEvaluationResult.setCriticalComponentCount(criticalCount);
     policyEvaluationResult.setSevereComponentCount(severeCount);
     policyEvaluationResult.setModerateComponentCount(moderateCount);
-  }
-
-  public List<PolicyAlert> findLastPolicyAlertsForMonitoring(String appId, String scanId)
-      throws IOException
-  {
-    File reportFile = ReportResource.fetchReport(reportDownloader, work, appId, scanId, true /* waitForReport */);
-    ReportEntry reportEntry = Report.getEntry(reportFile, MONITOR_POLICY_ALERTS_FILENAME);
-    if (reportEntry == null) {
-      reportEntry = getPrimaryPolicyAlertsReportEntry(reportFile, appId, scanId);
-    }
-    if (reportEntry != null) {
-      return Arrays.asList(JsonUtils.parse(reportEntry.buf, PolicyAlert[].class));
-    }
-    return Collections.emptyList();
-  }
-
-  public List<PolicyAlert> findLastPrimaryPolicyAlerts(final String applicationPublicId, String appId, final Stage stage)
-  {
-    // retrieve last known scanId for stage
-    PolicyEvaluation lastPrimaryPolicyEvaluation = new PolicyEvaluationDAO().getLastPrimaryByApplicationIdAndStageId(
-        appId, stage.getStageTypeId());
-    final String lastScanId = (lastPrimaryPolicyEvaluation != null) ? lastPrimaryPolicyEvaluation.getScanId() : null;
-
-    if (!StringUtils.isBlank(lastScanId)) {
-      try {
-        final File reportFile = ReportResource
-            .fetchReport(reportDownloader, work, appId, lastScanId, true /* waitForReport */);
-        ReportEntry reportEntry = getPrimaryPolicyAlertsReportEntry(reportFile, appId, lastScanId);
-        if (reportEntry != null) {
-          return Arrays.asList(JsonUtils.parse(reportEntry.buf, PolicyAlert[].class));
-        }
-      }
-      catch (final Exception e) {
-        // don't abort sending notifications if old results are corrupt, just means full digest will be sent
-        log.warn("Cannot load last policy evaluation results for app id {}", applicationPublicId, e);
-      }
-    }
-    return Collections.emptyList();
-  }
-
-  private ReportEntry getPrimaryPolicyAlertsReportEntry(File reportFile, String appId, String scanId)
-      throws IOException
-  {
-    ReportEntry reportEntry = Report.getEntry(reportFile, PRIMARY_POLICY_ALERTS_FILENAME);
-    if (reportEntry == null) {
-      // Prior to 1.6, reports did not have a PRIMARY_POLICY_ALERTS_FILENAME, so fall back to
-      // POLICY_ALERTS_FILENAME.
-      log.info("Could not find {} for app id {}, scan id {}", PRIMARY_POLICY_ALERTS_FILENAME, appId, scanId);
-      reportEntry = Report.getEntry(reportFile, POLICY_ALERTS_FILENAME);
-    }
-
-    return reportEntry;
   }
 
   public List<PolicyAlert> findPolicyAlerts(final String appId, final String scanId) throws IOException {
@@ -348,5 +276,14 @@ public class PolicyEvaluationUtils
       violation.constraints.add(constraint);
     }
     return violation;
+  }
+
+  public PolicyEvaluationResult createPolicyEvaluationResult(PolicyEvaluation policyEvaluation) {
+    List<PolicyAlert> policyAlerts = PolicyAlertUtil.createPolicyAlerts(policyEvaluation);
+    PolicyEvaluationResult policyEvaluationResult = new PolicyEvaluationResult();
+    policyEvaluationResult.setAlerts(policyAlerts);
+    calculateCounters(policyEvaluationResult);
+    policyEvaluationResult.setReevaluation(policyEvaluation.isReevaluation());
+    return policyEvaluationResult;
   }
 }

@@ -99,6 +99,9 @@ public class PolicyEvaluator
     return policyResults;
   }
 
+  /**
+   * Creates one PolicyAlert for each policy for which there are MatchFacts.
+   */
   static List<PolicyAlert> createAlerts(final List<Policy> policies, final List<MatchFact> facts, final Stage stage,
       boolean forMonitoring)
   {

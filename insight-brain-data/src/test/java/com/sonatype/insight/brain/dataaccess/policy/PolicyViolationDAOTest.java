@@ -32,8 +32,8 @@ public class PolicyViolationDAOTest
     PolicyViolationDAO dao = new PolicyViolationDAO();
 
     // Create
-    PolicyViolation policyViolation = new PolicyViolation(policyEvaluation.getId(), policy.getId(), 5,
-        PolicyThreatCategory.LICENSE, "acacacacacac", "Group1", "Artifact1", "Version1", "constraint data");
+    PolicyViolation policyViolation = new PolicyViolation(policyEvaluation.getId(), policy.getId(), policy.getName(),
+        5, PolicyThreatCategory.LICENSE, "acacacacacac", "Group1", "Artifact1", "Version1", "constraint data");
     assertThat(policyViolation.getId(), is(nullValue()));
     dao.insert(policyViolation);
     assertThat(policyViolation.getId(), is(notNullValue()));
@@ -41,8 +41,8 @@ public class PolicyViolationDAOTest
     // Read
     policyViolation = dao.getById(policyViolation.getId());
     assertThat(policyViolation, is(notNullValue()));
-    assertPolicyViolation(policyEvaluation.getId(), policy.getId(), 5, PolicyThreatCategory.LICENSE, "acacacacacac",
-        "Group1", "Artifact1", "Version1", policyViolation);
+    assertPolicyViolation(policyEvaluation.getId(), policy.getId(), policy.getName(), 5, PolicyThreatCategory.LICENSE,
+        "acacacacacac", "Group1", "Artifact1", "Version1", policyViolation);
 
     // Update is not allowed
     try {
@@ -60,12 +60,13 @@ public class PolicyViolationDAOTest
     assertThat(policyViolation, is(nullValue()));
   }
 
-  private void assertPolicyViolation(String policyEvaluationId, String policyId, int threatLevel,
+  private void assertPolicyViolation(String policyEvaluationId, String policyId, String policyName, int threatLevel,
       PolicyThreatCategory threatCategory, String hash, String groupId, String artifactId, String version,
       PolicyViolation actual)
   {
     assertThat(actual.getPolicyEvaluationId(), is(policyEvaluationId));
     assertThat(actual.getPolicyId(), is(policyId));
+    assertThat(actual.getPolicyName(), is(policyName));
     assertThat(actual.getThreatLevel(), is(threatLevel));
     assertThat(actual.getThreatCategory(), is(threatCategory));
     assertThat(actual.getHash(), is(hash));

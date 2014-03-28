@@ -291,6 +291,7 @@ CREATE TABLE policy_violation (
   policy_violation_id varchar(50) NOT NULL,
   policy_evaluation_id varchar(50) NOT NULL,
   policy_id varchar(50) NOT NULL,
+  policy_name varchar(60) NOT NULL, -- the policy name as it was when the policy violation was generated
   threat_level smallint(2) NOT NULL,
   threat_category varchar(20) NOT NULL,
   hash varchar(20),
@@ -300,5 +301,6 @@ CREATE TABLE policy_violation (
   constraint_facts_json CLOB NOT NULL, -- the constraint facts (that caused the policy violation) stored in json format
   CONSTRAINT policy_violation_pk PRIMARY KEY (policy_violation_id),
   CONSTRAINT policy_violation_evaluation_fk FOREIGN KEY (policy_evaluation_id) REFERENCES policy_evaluation(policy_evaluation_id),
-  CONSTRAINT policy_violation_policy_fk FOREIGN KEY (policy_id) REFERENCES policy(policy_id)
+  CONSTRAINT policy_violation_policy_fk FOREIGN KEY (policy_id) REFERENCES policy(policy_id),
+  CONSTRAINT policy_violation_uk UNIQUE KEY (policy_evaluation_id, policy_id, group_id, artifact_id, version, hash)
 );

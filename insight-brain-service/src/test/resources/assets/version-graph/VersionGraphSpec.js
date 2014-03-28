@@ -26,18 +26,23 @@ clmEndpoint = clmEndpointTemplate = {
       }));
 
       it('Selected', inject(function (GAV) {
-        GAV.set({
-          id : 'setGAV'
-        });
-        GAV.setSelected({
-          id : 'Selected'
-        });
-        expect(GAV.get()).toEqual({
-          id : 'setGAV'
-        });
-        expect(GAV.getSelected()).toEqual({
-          id : 'Selected'
-        });
+        var gav = {
+          groupId : 'gid',
+          artifactId : 'aid',
+          version : '1',
+          hash : '12345678901234567890',
+          matchState : 'similar'
+        }, sel = {
+          groupId : 'gid',
+          artifactId : 'aid',
+          version : '2'
+        };
+        GAV.set(gav);
+        GAV.setSelected(sel);
+        expect(GAV.get()).toEqual(gav);
+        expect(GAV.getSelected()).toEqual(sel);
+        GAV.setSelected(angular.extend({}, sel, { version : gav.version }));
+        expect(GAV.getSelected()).toEqual(gav);
       }));
 
       it('Insight.setGAV', inject(function (GAV) {
@@ -264,13 +269,14 @@ clmEndpoint = clmEndpointTemplate = {
 
         spyOn(Brain[clmEndpoint.type], 'getArtifactInfoUrl').andReturn('foo');
         $httpBackend.expectGET(Brain[clmEndpoint.type].getArtifactInfoUrl(angular.extend({ appId : 'myFirstApp' }, gav))).respond({ securityVulnerabilities : [], policyAlerts: [] });
-        Insight.setGav(gav);
+        Insight.setGav(angular.extend({ matchState : 'similar' }, gav));
         $httpBackend.flush();
         expect(Brain[clmEndpoint.type].getArtifactInfoUrl).toHaveBeenCalledWith({
           groupId : 'foo',
           artifactId : 'bar',
           version : '1',
-          appId : 'myFirstApp'
+          appId : 'myFirstApp',
+          matchState : 'similar'
         });
 
         // Another version selected
@@ -294,7 +300,7 @@ clmEndpoint = clmEndpointTemplate = {
 
         // Unknown GAV
         scope.$apply(function () {
-          GAV.setSelected(angular.extend({}, gav, { matchState : 'unknown' }));
+          GAV.setSelected({ matchState : 'unknown' });
         });
         $httpBackend.verifyNoOutstandingRequest();
       }));

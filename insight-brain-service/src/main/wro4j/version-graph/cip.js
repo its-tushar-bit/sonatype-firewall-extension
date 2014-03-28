@@ -199,7 +199,11 @@
         return selected || gav;
       },
       setSelected : function (g) {
-        selected = g;
+        if (g && gav && g.version === gav.version) {
+          selected = null;
+        } else {
+          selected = g;
+        }
       }
     };
   });

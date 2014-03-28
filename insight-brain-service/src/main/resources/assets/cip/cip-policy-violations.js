@@ -14,9 +14,7 @@
 
   function createPlugin() {
     PolicyViolationTab.prototype = new Insight.InformationPanelPlugin({ priority: 32 });
-    PolicyViolationTab.prototype.isVisible = function() {
-      return this.gav.matchState !== 'unknown';
-    };
+
     PolicyViolationTab.prototype.create = function() {
       var timestamp = (new Date()).getTime(),
           container = $('<div clm-include="\'' + CLM.path + 'cip/cip-policy-violations.html\'"></div>'),

@@ -473,8 +473,8 @@ public class ReportResourceTest
     String scanId = "abcdefg12345";
     String appPublicId = "bom1-12345678";
 
-    Response response = RestAccess.get(getRestUrl(ReportResource.SERVICE_PATH + "/embedReport/policyalerts.json",
-        appPublicId, scanId));
+    Response response = RestAccess.get(getRestUrl(ReportResource.SERVICE_PATH + "/embedReport/"
+        + PolicyEvaluationUtils.POLICY_ALERTS_FILENAME, appPublicId, scanId));
     assertResponseStatus(404, response);
     assertEquals("Reports have been moved.  Clear cache and reload.", response.getResponseBody());
   }

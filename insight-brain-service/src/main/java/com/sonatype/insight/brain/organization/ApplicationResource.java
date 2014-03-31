@@ -41,6 +41,7 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.policy.evaluator.PolicyAlertUtil;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluationUtils;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.saas.SaasClient;
@@ -139,7 +140,7 @@ public class ApplicationResource
   @GET
   @Path(GET_APPLICATION_MANAGEMENT_SUMMARIES)
   @Produces(MediaType.APPLICATION_JSON)
-  public List<ApplicationManagementSummaryDTO> getApplicationManagementSummaries() throws IOException {
+  public List<ApplicationManagementSummaryDTO> getApplicationManagementSummaries() {
     final List<Application> applications = getApplicationsWithReadPermission();
 
     final List<ApplicationManagementSummaryDTO> applicationManagements = getApplicationManagementSummaries(
@@ -188,7 +189,6 @@ public class ApplicationResource
   @Authorize(permission = Permission.READ)
   public ApplicationManagementSummaryDTO getApplicationManagementSummary(
       @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) @PathParam("applicationPublicId") final String applicationPublicId)
-      throws IOException
   {
     final Application application = applicationDAO.getByPublicIdNotNull(applicationPublicId);
     return getApplicationManagementSummary(application);
@@ -336,8 +336,7 @@ public class ApplicationResource
     applicationCleaner.delete(em, application);
   }
 
-  private List<ApplicationManagementSummaryDTO> getApplicationManagementSummaries(
-      final List<Application> applications) throws IOException
+  private List<ApplicationManagementSummaryDTO> getApplicationManagementSummaries(final List<Application> applications)
   {
 
     // Create the summary DTOs from the applications
@@ -346,18 +345,16 @@ public class ApplicationResource
 
     // Now evaluate the policy for each
     for (ApplicationManagementSummaryDTO applicationManagement : applicationManagementSummaryDTOs) {
-      evaluatePolicy(applicationManagement);
+      loadPolicyEvaluations(applicationManagement);
     }
 
     return applicationManagementSummaryDTOs;
   }
 
-  private ApplicationManagementSummaryDTO getApplicationManagementSummary(final Application application)
-      throws IOException
-  {
+  private ApplicationManagementSummaryDTO getApplicationManagementSummary(final Application application) {
     final ApplicationManagementSummaryDTO applicationManagement = applicationAdapter
         .createApplicationManagementSummary(application);
-    evaluatePolicy(applicationManagement);
+    loadPolicyEvaluations(applicationManagement);
 
     return applicationManagement;
   }
@@ -378,10 +375,9 @@ public class ApplicationResource
     return summary;
   }
 
-  private void evaluatePolicy(final ApplicationManagementSummaryDTO applicationManagement) throws IOException {
+  private void loadPolicyEvaluations(final ApplicationManagementSummaryDTO applicationManagement) {
 
     final String applicationPublicId = applicationManagement.getPublicId();
-    final String applicationId = applicationManagement.getId();
     log.debug("Found application with public id {}", applicationPublicId);
 
     File[] scans = work.getScanDir(applicationManagement.getId()).listFiles();
@@ -393,7 +389,7 @@ public class ApplicationResource
     for (PolicyEvaluation policyEvaluation : policyEvaluationList) {
       policyEvaluations.put(policyEvaluation.getStageTypeId(), policyEvaluation);
 
-      List<PolicyAlert> alerts = policyEvaluationUtils.findPolicyAlerts(applicationId, policyEvaluation.getScanId());
+      List<PolicyAlert> alerts = PolicyAlertUtil.createPolicyAlerts(policyEvaluation);
       final PolicyEvaluationResult policyEvaluationResult = new PolicyEvaluationResult();
       policyEvaluationResult.setAlerts(alerts);
       policyEvaluationUtils.calculateCounters(policyEvaluationResult);

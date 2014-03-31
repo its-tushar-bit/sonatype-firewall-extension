@@ -13,27 +13,41 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
+import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
+import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.MatchState;
+import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
+import com.sonatype.insight.brain.model.policy.PolicyViolation;
+import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluationUtils;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.codehaus.plexus.util.IOUtil;
 
 public class ReportBuilder
 {
+  private final TemporaryEntity tempEntity;
+
   private ObjectMapper mapper = new ObjectMapper();
 
   private List<JsonNode> bomNodes = new ArrayList<JsonNode>();
 
-  private List<JsonNode> policyAlertsNodes = new ArrayList<JsonNode>();
+  private List<PolicyViolation> policyViolations = new ArrayList<PolicyViolation>();
+
+  public ReportBuilder(TemporaryEntity tempEntity) {
+    this.tempEntity = tempEntity;
+  }
 
   public class ComponentBuilder
   {
@@ -66,75 +80,53 @@ public class ReportBuilder
     }
   }
 
-  public class ConstraintFactBuilder
-  {
-    private final ArrayNode conditionFacts;
-
-    public ConstraintFactBuilder(ObjectNode constraintFact) {
-      conditionFacts = constraintFact.putArray("conditionFacts");
-    }
-
-    public void addConditionFact(String conditionTypeId) {
-      ObjectNode conditionFact = conditionFacts.addObject();
-      conditionFact.put("conditionTypeId", conditionTypeId);
-    }
-  }
-
-  public class ComponentFactBuilder
-  {
-    private final ObjectNode component;
-    private final ArrayNode constraintFacts;
-
-    public ComponentFactBuilder(ObjectNode component) {
-      this.component = component;
-      this.constraintFacts = component.putArray("constraintFacts");
-    }
-
-    public ConstraintFactBuilder addConstraintFact() {
-      return new ConstraintFactBuilder(constraintFacts.addObject());
-    }
-
-    public ComponentFactBuilder setGAV(String g, String a, String v) {
-      component.put("groupId", g);
-      component.put("artifactId", a);
-      component.put("version", v);
-      return this;
-    }
-
-  }
-
-  public class PolicyAlertBuilder
-  {
-    private final ArrayNode componentFacts;
-
-    public PolicyAlertBuilder(ObjectNode trigger) {
-      componentFacts = trigger.putArray("componentFacts");
-    }
-
-    public ComponentFactBuilder addComponentFact(String hash) {
-      ObjectNode componentFact = componentFacts.addObject();
-      componentFact.put("hash", hash);
-      return new ComponentFactBuilder(componentFact);
-    }
-  }
-
   public ComponentBuilder addComponent() {
     ObjectNode component = mapper.createObjectNode();
     bomNodes.add(component);
     return new ComponentBuilder(component);
   }
 
-  public PolicyAlertBuilder addPolicyAlert(String policyId, int threatLevel) {
-    ObjectNode policyAlertNode = mapper.createObjectNode();
-    policyAlertsNodes.add(policyAlertNode);
-    ObjectNode triggerNode = policyAlertNode.putObject("trigger");
-    triggerNode.put("policyId", policyId);
-    triggerNode.put("policyName", policyId);
-    triggerNode.put("threatLevel", threatLevel);
-    return new PolicyAlertBuilder(triggerNode);
+  public void addPolicyViolation(String policyId, int threatLevel, String hash) {
+    addPolicyViolation(policyId, threatLevel, PolicyThreatCategory.OTHER, hash);
   }
 
-  public void build(File reportDir) throws IOException {
+  public void addPolicyViolation(String policyId, int threatLevel, PolicyThreatCategory threatCategory, String hash) {
+    addPolicyViolation(policyId, threatLevel, threatCategory, hash, null, null, null);
+  }
+
+  public void addPolicyViolation(String policyId, int threatLevel, PolicyThreatCategory threatCategory, String hash,
+      String g, String a, String v)
+  {
+    PolicyViolation policyViolation = new PolicyViolation();
+    policyViolation.setPolicyId(policyId);
+    policyViolation.setThreatLevel(threatLevel);
+    policyViolation.setThreatCategory(threatCategory);
+    policyViolation.setHash(hash);
+    policyViolation.setGroupId(g);
+    policyViolation.setArtifactId(a);
+    policyViolation.setVersion(v);
+    policyViolations.add(policyViolation);
+  }
+
+  private void createPolicy(String appId, String policyId) {
+    if (new PolicyDAO().getById(policyId) == null) {
+      tempEntity.newPolicy(appId, policyId, policyId);
+    }
+  }
+
+  public void build(Application app, String scanId, Date time, File reportDir) throws IOException {
+    // Create policies, policy evaluation and policy violations
+    PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
+    PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, scanId, time);
+    for (PolicyViolation policyViolation : policyViolations) {
+      createPolicy(app.getId(), policyViolation.getPolicyId());
+      policyViolation.setId(null);
+      policyViolation.setPolicyEvaluationId(policyEvaluation.getId());
+      policyViolation.setPolicyName(policyViolation.getPolicyId());
+      policyViolation.setConstraintFactsJson("constraint facts");
+      policyViolationDAO.insert(policyViolation);
+    }
+
     File cacheDir = new File(reportDir, "report.cache");
 
     if (!cacheDir.exists() && !cacheDir.mkdirs()) {
@@ -144,10 +136,6 @@ public class ReportBuilder
     ObjectNode bom = mapper.createObjectNode();
     bom.putArray("aaData").addAll(bomNodes);
     write(bom, new File(cacheDir, "bom.json"));
-
-    ObjectNode policyAlerts = mapper.createObjectNode();
-    policyAlerts.putArray("aaData").addAll(policyAlertsNodes);
-    write(policyAlerts, new File(cacheDir, "policyalerts.json"));
 
     ObjectNode licenses = mapper.createObjectNode();
     licenses.putArray("aaData");

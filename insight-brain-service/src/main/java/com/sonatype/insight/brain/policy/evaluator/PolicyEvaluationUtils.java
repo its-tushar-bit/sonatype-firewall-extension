@@ -8,8 +8,6 @@ package com.sonatype.insight.brain.policy.evaluator;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -188,17 +186,6 @@ public class PolicyEvaluationUtils
     policyEvaluationResult.setCriticalComponentCount(criticalCount);
     policyEvaluationResult.setSevereComponentCount(severeCount);
     policyEvaluationResult.setModerateComponentCount(moderateCount);
-  }
-
-  public List<PolicyAlert> findPolicyAlerts(final String appId, final String scanId) throws IOException {
-    final File reportFile = ReportResource.getReport(work, appId, scanId);
-    if (reportFile != null) {
-      final ReportEntry reportEntry = Report.getEntry(reportFile, POLICY_ALERTS_FILENAME);
-      if (reportEntry != null) {
-        return Arrays.asList(JsonUtils.parse(reportEntry.buf, PolicyAlert[].class));
-      }
-    }
-    return Collections.emptyList();
   }
 
   PolicyThreats toPolicyThreats(final PolicyResults policyResults) {

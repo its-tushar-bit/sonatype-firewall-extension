@@ -38,7 +38,7 @@ public class Policy
 
   private static final Predicate<String> IS_AGE = new StartsWithPredicate("age");
 
-  private static final Predicate<String> IS_POPULARITY = new StartsWithPredicate("popularity");
+  private static final Predicate<String> IS_POPULARITY = new StartsWithPredicate("relativepopularity");
 
   private String id;
 
@@ -284,8 +284,7 @@ public class Policy
     return determineCategory(conditionTypeIds);
   }
 
-  // TODO Hide this method - CLM-2112
-  public static PolicyThreatCategory determineCategory(Set<String> conditionTypeIds) {
+  private static PolicyThreatCategory determineCategory(Set<String> conditionTypeIds) {
     // A policy can have conditions in more than one category, but only one category is considered as *the* policy
     // threat category, in this order:
     if (Sets.filter(conditionTypeIds, IS_SECURITY).size() > 0) {

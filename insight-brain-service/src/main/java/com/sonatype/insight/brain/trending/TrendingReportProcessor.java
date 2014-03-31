@@ -16,26 +16,18 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.inject.Named;
 
-import com.sonatype.clm.dto.model.policy.ComponentFact;
-import com.sonatype.clm.dto.model.policy.ConditionFact;
-import com.sonatype.clm.dto.model.policy.ConstraintFact;
-import com.sonatype.clm.dto.model.policy.PolicyAlert;
-import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
-import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.MatchState;
-import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
@@ -49,17 +41,12 @@ import com.sonatype.insight.brain.model.trending.PoliciesSummary;
 import com.sonatype.insight.brain.model.trending.PolicyViolation;
 import com.sonatype.insight.brain.model.trending.TrendingReport;
 import com.sonatype.insight.brain.model.trending.TrendingReportMetadata;
-import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluationUtils;
 import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.report.ReportResource;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.google.common.base.Function;
-import com.google.common.collect.ImmutableMap.Builder;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -112,8 +99,6 @@ public class TrendingReportProcessor
 
   private final InsightWork work;
 
-  private final PolicyEvaluationUtils policyEvaluationUtils;
-
   private static final String EXACT_COMPONENTS = "exact";
 
   private static final String SIMILAR_COMPONENTS = "similar";
@@ -123,9 +108,8 @@ public class TrendingReportProcessor
   private static final String PROPRIETARY_COMPONENTS = "proprietary";
 
   @Inject
-  public TrendingReportProcessor(InsightWork work, PolicyEvaluationUtils policyEvaluationUtils) {
+  public TrendingReportProcessor(InsightWork work) {
     this.work = work;
-    this.policyEvaluationUtils = policyEvaluationUtils;
   }
 
   /**
@@ -165,16 +149,17 @@ public class TrendingReportProcessor
     }
     componentRisks.put("all", new HashMap<List<String>, int[]>());
 
+    PolicyEvaluationDAO policyEvaluationDAO = new PolicyEvaluationDAO();
+    PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
+
     final List<Application> applications = new ArrayList<Application>(new ApplicationDAO().getAll());
     for (int applicationNo = 0; applicationNo < applications.size(); applicationNo++) {
       monitor.tick(applications.size(), applicationNo);
 
       final Application application = applications.get(applicationNo);
-      final Map<String, PolicyThreatCategory> applicationPolicyCategories = determinePolicyCategories(application);
 
       // alerts counts in this application
       int criticalAlerts = 0, severeAlerts = 0, moderateAlerts = 0, totalAlerts = 0;
-      PolicyEvaluationDAO policyEvaluationDAO = new PolicyEvaluationDAO();
 
       // most recent evaluation in each reporting period
       // index==0 is most recent evaluation *before* first reporting period
@@ -224,20 +209,17 @@ public class TrendingReportProcessor
       for (int period = 1; period < periods.length; period++) {
         PolicyEvaluation eval = periods[period];
         if (eval != null) {
-          for (PolicyAlert alert : policyEvaluationUtils.findPolicyAlerts(application.getId(), eval.getScanId())) {
-            PolicyFact policyFact = alert.getTrigger();
-            for (ComponentFact componentFact : policyFact.getComponentFacts()) {
-              PolicyThreatCategory category = determineCategory(policyFact.getPolicyId(), applicationPolicyCategories,
-                  componentFact);
-              String policyViolationsKey = policyFact.getPolicyId() + ":" + category;
-              PolicyViolation violations = policyViolations.get(policyViolationsKey);
-              if (violations == null) {
-                violations = new PolicyViolation(policyFact.getPolicyName(), category.getName(),
-                    policyFact.getThreatLevel(), new int[PERIOD_COUNT]);
-                policyViolations.put(policyViolationsKey, violations);
-              }
-              violations.getViolations()[period - 1]++; // ain't perty but works
+          for (com.sonatype.insight.brain.model.policy.PolicyViolation policyEvaluationViolation : policyViolationDAO
+              .getByEvaluationId(eval.getId())) {
+            PolicyThreatCategory threatCategory = policyEvaluationViolation.getThreatCategory();
+            String policyViolationsKey = policyEvaluationViolation.getPolicyId() + ":" + threatCategory.getName();
+            PolicyViolation violations = policyViolations.get(policyViolationsKey);
+            if (violations == null) {
+              violations = new PolicyViolation(policyEvaluationViolation.getPolicyName(), threatCategory.getName(),
+                  policyEvaluationViolation.getThreatLevel(), new int[PERIOD_COUNT]);
+              policyViolations.put(policyViolationsKey, violations);
             }
+            violations.getViolations()[period - 1]++; // ain't pretty but works
           }
         }
       }
@@ -262,49 +244,43 @@ public class TrendingReportProcessor
       }
 
       // application policy alert counts in the latest report
-      for (PolicyAlert alert : policyEvaluationUtils.findPolicyAlerts(application.getId(), lastEval.getScanId())) {
-        PolicyFact policyFact = alert.getTrigger();
-        int level = policyFact.getThreatLevel();
-        List<ComponentFact> componentFacts = policyFact.getComponentFacts();
-        int componentCount = componentFacts.size();
-        totalAlerts += componentCount;
+      for (com.sonatype.insight.brain.model.policy.PolicyViolation policyEvaluationViolation : policyViolationDAO
+          .getByEvaluationId(lastEval.getId())) {
+        int level = policyEvaluationViolation.getThreatLevel();
+        totalAlerts++;
         int levelIdx = 3; // other
         if (level >= 8) {
-          criticalAlerts += componentCount;
+          criticalAlerts++;
           levelIdx = 0;
         }
         else if (level >= 4) {
-          severeAlerts += componentCount;
+          severeAlerts++;
           levelIdx = 1;
         }
         else if (level >= 2) {
-          moderateAlerts += componentCount;
+          moderateAlerts++;
           levelIdx = 2;
         }
-        for (ComponentFact componentFact : componentFacts) {
-          PolicyThreatCategory category = determineCategory(policyFact.getPolicyId(), applicationPolicyCategories,
-              componentFact);
+        PolicyThreatCategory category = policyEvaluationViolation.getThreatCategory();
           categories.get(category)[levelIdx]++;
-          String g = componentFact.getGroupId(), a = componentFact.getArtifactId(), v = componentFact.getVersion();
-          if (g != null && a != null && v != null) {
-            List<String> componentKey = Arrays.asList(g, a, v);
-            incrementComponentRisk(componentRisks, componentKey, "all", levelIdx);
-            incrementComponentRisk(componentRisks, componentKey, category.getName(), levelIdx);
-          }
+        String g = policyEvaluationViolation.getGroupId();
+        String a = policyEvaluationViolation.getArtifactId();
+        String v = policyEvaluationViolation.getVersion();
+        if (g != null && a != null && v != null) {
+          List<String> componentKey = Arrays.asList(g, a, v);
+          incrementComponentRisk(componentRisks, componentKey, "all", levelIdx);
+          incrementComponentRisk(componentRisks, componentKey, category.getName(), levelIdx);
         }
       }
 
       // previous categories
       PolicyEvaluation firstEval = periods[0];
       if (firstEval != null && lastEval.getTime().getTime() > firstEval.getTime().getTime()) {
-        for (PolicyAlert alert : policyEvaluationUtils.findPolicyAlerts(application.getId(), firstEval.getScanId())) {
-          PolicyFact policyFact = alert.getTrigger();
-          int level = policyFact.getThreatLevel();
-          List<ComponentFact> componentFacts = policyFact.getComponentFacts();
+        for (com.sonatype.insight.brain.model.policy.PolicyViolation policyEvaluationViolation : policyViolationDAO
+            .getByEvaluationId(firstEval.getId())) {
+          int level = policyEvaluationViolation.getThreatLevel();
           int levelIdx = getThreatLevelIdx(level);
-          for (ComponentFact componentFact : componentFacts) {
-            previousCategories.get(determineCategory(policyFact.getPolicyId(), applicationPolicyCategories, componentFact))[levelIdx]++;
-          }
+          previousCategories.get(policyEvaluationViolation.getThreatCategory())[levelIdx]++;
         }
       }
       applicationRisks.add(new ApplicationRiskSummary(application.getName(), criticalAlerts, severeAlerts,
@@ -439,48 +415,6 @@ public class TrendingReportProcessor
       top.subList(count, top.size()).clear();
     }
     return top;
-  }
-
-  /**
-   * Find and categorize all policies for the given application.
-   */
-  private Map<String, PolicyThreatCategory> determinePolicyCategories(final Application application) {
-    Builder<String, PolicyThreatCategory> builder = new Builder<>();
-    PolicyDAO policyDAO = new PolicyDAO();
-    List<Policy> policies = policyDAO.getApplicableByOwnerId(application.getId());
-
-    for (Policy policy : policies) {
-      builder.put(policy.getId(), policy.getThreatCategory());
-    }
-    return builder.build();
-  }
-
-  /**
-   * Attempt to determine the category based upon the present policy, and if that policy has been
-   * deleted already, fall back to examining the violation data.
-   */
-  private PolicyThreatCategory determineCategory(final String policyId,
-      final Map<String, PolicyThreatCategory> applicationPolicyCategories, final ComponentFact componentFact)
-  {
-    PolicyThreatCategory policyCategory = applicationPolicyCategories.get(policyId);
-    return policyCategory != null ? policyCategory : getViolationCategoryFromConstraintFacts(
-        componentFact.getConstraintFacts());
-  }
-
-  // TODO get the threat category from com.sonatype.insight.brain.model.policy.PolicyViolation - CLM-2112
-  private PolicyThreatCategory getViolationCategoryFromConstraintFacts(List<ConstraintFact> constraintFacts) {
-    Set<String> conditionTypeIds = Sets.newHashSet();
-    for (ConstraintFact constraintFact : constraintFacts) {
-        conditionTypeIds.addAll(Lists.transform(constraintFact.getConditionFacts(), new Function<ConditionFact, String>()
-        {
-          @Nullable
-          @Override
-          public String apply(@Nullable final ConditionFact input) {
-            return input.getConditionTypeId().toLowerCase(Locale.ENGLISH);
-          }
-        }));
-      }
-    return Policy.determineCategory(conditionTypeIds);
   }
 
   private static ComponentsSummary toComponentsSummary(Map<String, Map<String, Integer>> components) {

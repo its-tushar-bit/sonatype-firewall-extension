@@ -492,7 +492,11 @@ public class TemporaryEntity
   }
 
   public Policy newPolicy(String ownerId, String name) {
-    Policy policy = new Policy(null, name);
+    return newPolicy(ownerId, null /* id */, name);
+  }
+
+  public Policy newPolicy(String ownerId, String id, String name) {
+    Policy policy = new Policy(id, name);
     policy.setOwnerId(ownerId);
     Constraint constraint = new Constraint(null, "Test Constraint", LogicalOperator.AND);
     constraint.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));

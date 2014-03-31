@@ -16,20 +16,9 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
-import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
-import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.MatchState;
-import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
-import com.sonatype.insight.brain.model.policy.Condition;
-import com.sonatype.insight.brain.model.policy.Constraint;
-import com.sonatype.insight.brain.model.policy.LogicalOperator;
-import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
-import com.sonatype.insight.brain.model.policy.conditions.AgeInDaysConditionType;
-import com.sonatype.insight.brain.model.policy.conditions.LicenseThreatGroupConditionType;
-import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityConditionType;
-import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.trending.ApplicationRiskSummary;
 import com.sonatype.insight.brain.model.trending.Applications;
 import com.sonatype.insight.brain.model.trending.ComponentRiskSummary;
@@ -40,13 +29,8 @@ import com.sonatype.insight.brain.model.trending.PoliciesSummary;
 import com.sonatype.insight.brain.model.trending.PolicyViolation;
 import com.sonatype.insight.brain.model.trending.TrendingReport;
 import com.sonatype.insight.brain.model.trending.TrendingReportMetadata;
-import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluationUtils;
-import com.sonatype.insight.brain.report.ReportDownloader;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightWork;
-import com.sonatype.insight.brain.trending.ReportBuilder.ComponentFactBuilder;
-import com.sonatype.insight.brain.trending.ReportBuilder.ConstraintFactBuilder;
-import com.sonatype.insight.brain.trending.ReportBuilder.PolicyAlertBuilder;
 import com.sonatype.insight.brain.trending.TrendingReportProcessor.ProgressMonitor;
 
 import org.junit.Assert;
@@ -74,9 +58,7 @@ public class TrendingReportProcessorTest
     config.setSonatypeWork(workDir.getRoot().getAbsolutePath());
     insightWork = new InsightWork(config);
 
-    ReportDownloader reportDownloader = null; // no downloading is expected, let them fail with NPE
-    PolicyEvaluationUtils policyEvaluationUtils = new PolicyEvaluationUtils(insightWork, reportDownloader);
-    processor = new TrendingReportProcessor(insightWork, policyEvaluationUtils);
+    processor = new TrendingReportProcessor(insightWork);
   }
 
   @Test
@@ -93,7 +75,7 @@ public class TrendingReportProcessorTest
   @Test
   public void testComponentSummary() throws Exception {
     Application application = createApplication("testApp");
-    ReportBuilder builder = new ReportBuilder();
+    ReportBuilder builder = newReportBuilder();
     builder.addComponent().setGAV("a", "a", "a").setHash("A").setMatchState(MatchState.EXACT);
     builder.addComponent().setGAV("b", "b", "b").setHash("B").setMatchState(MatchState.SIMILAR);
     builder.addComponent().setGAV("c", "c", "c").setHash("C").setMatchState(MatchState.UNKNOWN);
@@ -109,7 +91,7 @@ public class TrendingReportProcessorTest
     Assert.assertEquals(0, components.getProprietary());
     Assert.assertEquals(4, components.getInApplication());
 
-    builder = new ReportBuilder();
+    builder = newReportBuilder();
     builder.addComponent().setGAV("a", "a", "a").setHash("A").setMatchState(MatchState.EXACT);
     builder.addComponent().setGAV("b", "b", "b").setHash("B").setMatchState(MatchState.SIMILAR);
     builder.addComponent().setGAV("c", "c", "c").setHash("C").setMatchState(MatchState.UNKNOWN);
@@ -126,36 +108,39 @@ public class TrendingReportProcessorTest
     Assert.assertEquals(4, components.getInApplication());
   }
 
+  private ReportBuilder newReportBuilder() {
+    return new ReportBuilder(temporaryEntity);
+  }
+
   @Test
   public void testApplications() throws Exception {
-    ReportBuilder builder = new ReportBuilder();
+    ReportBuilder builder = newReportBuilder();
     // 1
-    builder.addPolicyAlert("a", 10).addComponentFact("a").addConstraintFact().addConditionFact("a");
-    PolicyAlertBuilder policyAlertB = builder.addPolicyAlert("b", 6);
-    policyAlertB.addComponentFact("a").addConstraintFact().addConditionFact("b");
-    policyAlertB.addComponentFact("b").addConstraintFact().addConditionFact("b");
-    builder.addPolicyAlert("c", 2).addComponentFact("c").addConstraintFact().addConditionFact("c");
-    builder.addPolicyAlert("d", 0).addComponentFact("d").addConstraintFact().addConditionFact("d");
+    builder.addPolicyViolation("a", 10, "a");
+    builder.addPolicyViolation("b", 6, "a");
+    builder.addPolicyViolation("b", 6, "b");
+    builder.addPolicyViolation("c", 2, "c");
+    builder.addPolicyViolation("d", 0, "d");
     createScan(createApplication("testApp1"), builder);
     // 2
-    builder = new ReportBuilder();
-    builder.addPolicyAlert("e", 9).addComponentFact("e").addConstraintFact().addConditionFact("e");
+    builder = newReportBuilder();
+    builder.addPolicyViolation("e", 9, "e");
     createScan(createApplication("testApp2"), builder);
     // 3
-    builder = new ReportBuilder();
-    builder.addPolicyAlert("f", 8).addComponentFact("f").addConstraintFact().addConditionFact("f");
+    builder = newReportBuilder();
+    builder.addPolicyViolation("f", 8, "f");
     createScan(createApplication("testApp3"), builder);
     // 4
-    builder = new ReportBuilder();
-    builder.addPolicyAlert("g", 7).addComponentFact("g").addConstraintFact().addConditionFact("g");
+    builder = newReportBuilder();
+    builder.addPolicyViolation("g", 7, "g");
     createScan(createApplication("testApp4"), builder);
     // 5
-    builder = new ReportBuilder();
-    builder.addPolicyAlert("h", 6).addComponentFact("h").addConstraintFact().addConditionFact("h");
+    builder = newReportBuilder();
+    builder.addPolicyViolation("h", 6, "h");
     createScan(createApplication("testApp5"), builder);
     // 6 cut off
-    builder = new ReportBuilder();
-    builder.addPolicyAlert("i", 5).addComponentFact("i").addConstraintFact().addConditionFact("i");
+    builder = newReportBuilder();
+    builder.addPolicyViolation("i", 5, "i");
     createScan(createApplication("testApp6"), builder);
 
     TrendingReport report = calculateReport();
@@ -182,16 +167,28 @@ public class TrendingReportProcessorTest
   @Test
   public void testPolicyViolationsPeriods() throws Exception {
     Application application = createApplication("testApp");
-    ReportBuilder builder = new ReportBuilder();
-    builder.addPolicyAlert("a", 10).addComponentFact("a").addConstraintFact().addConditionFact("a");
 
     long time = System.currentTimeMillis();
+    ReportBuilder builder = newReportBuilder();
+    builder.addPolicyViolation("a", 10, "a");
     createScan(application, builder, time - (40 * ONE_DAY_MS)); // this is expected to be ignored
+    builder = newReportBuilder();
+    builder.addPolicyViolation("a", 10, "a");
     createScan(application, builder, time - (21 * ONE_DAY_MS)); // this is expected to be ignored
+    builder = newReportBuilder();
+    builder.addPolicyViolation("a", 10, "a");
     createScan(application, builder, time - (16 * ONE_DAY_MS));
+    builder = newReportBuilder();
+    builder.addPolicyViolation("a", 10, "a");
     createScan(application, builder, time - (11 * ONE_DAY_MS));
+    builder = newReportBuilder();
+    builder.addPolicyViolation("a", 10, "a");
     createScan(application, builder, time - (6 * ONE_DAY_MS));
+    builder = newReportBuilder();
+    builder.addPolicyViolation("a", 10, "a");
     createScan(application, builder, time - (1 * ONE_DAY_MS)); // this is expected to be ignored
+    builder = newReportBuilder();
+    builder.addPolicyViolation("a", 10, "a");
     createScan(application, builder, time);
 
     TrendingReport report = calculateReport();
@@ -204,8 +201,8 @@ public class TrendingReportProcessorTest
   @Test
   public void testPolicyViolationsPeriods_veryOldReport() throws Exception {
     Application application = createApplication("testApp");
-    ReportBuilder builder = new ReportBuilder();
-    builder.addPolicyAlert("a", 10).addComponentFact("a").addConstraintFact().addConditionFact("a");
+    ReportBuilder builder = newReportBuilder();
+    builder.addPolicyViolation("a", 10, "a");
 
     long time = System.currentTimeMillis();
     createScan(application, builder, time - (40 * ONE_DAY_MS));
@@ -220,8 +217,8 @@ public class TrendingReportProcessorTest
   @Test
   public void testPolicyViolationsPeriods_beforeReportStart() throws Exception {
     Application application = createApplication("testApp");
-    ReportBuilder builder = new ReportBuilder();
-    builder.addPolicyAlert("a", 10).addComponentFact("a").addConstraintFact().addConditionFact("a");
+    ReportBuilder builder = newReportBuilder();
+    builder.addPolicyViolation("a", 10, "a");
 
     long time = System.currentTimeMillis();
     createScan(application, builder, time - (21 * ONE_DAY_MS));
@@ -236,8 +233,8 @@ public class TrendingReportProcessorTest
   @Test
   public void testPolicyViolationsPeriods_endOfReport() throws Exception {
     Application application = createApplication("testApp");
-    ReportBuilder builder = new ReportBuilder();
-    builder.addPolicyAlert("a", 10).addComponentFact("a").addConstraintFact().addConditionFact("a");
+    ReportBuilder builder = newReportBuilder();
+    builder.addPolicyViolation("a", 10, "a");
 
     long time = System.currentTimeMillis();
     createScan(application, builder, time);
@@ -252,8 +249,8 @@ public class TrendingReportProcessorTest
   @Test
   public void testPolicyViolationsPeriods_emptyEvaluation() throws Exception {
     Application application = createApplication("testApp");
-    ReportBuilder builder = new ReportBuilder();
-    builder.addPolicyAlert("a", 10).addComponentFact("a").addConstraintFact().addConditionFact("a");
+    ReportBuilder builder = newReportBuilder();
+    builder.addPolicyViolation("a", 10, "a");
 
     long time = System.currentTimeMillis();
     createScan(application, builder, time - (1 * ONE_DAY_MS));
@@ -269,27 +266,12 @@ public class TrendingReportProcessorTest
   @Test
   public void testPolicyViolationsCategories() throws Exception {
     Application application = createApplication("testApp");
-    ReportBuilder builder = new ReportBuilder();
-    ComponentFactBuilder componentFactBuilder = builder.addPolicyAlert("a", 0).addComponentFact("a");
-    ConstraintFactBuilder security = componentFactBuilder.addConstraintFact();
-    security.addConditionFact("security");
-    security.addConditionFact("license");
-    security.addConditionFact("quality");
-    security.addConditionFact("other");
-    ConstraintFactBuilder licenseAfterSecurity = componentFactBuilder.addConstraintFact();
-    licenseAfterSecurity.addConditionFact("license");
-    ConstraintFactBuilder license = builder.addPolicyAlert("b", 1).addComponentFact("b").addConstraintFact();
-    license.addConditionFact("license");
-    license.addConditionFact("quality");
-    license.addConditionFact("other");
-    ConstraintFactBuilder quality1 = builder.addPolicyAlert("c1", 2).addComponentFact("c1").addConstraintFact();
-    quality1.addConditionFact("age");
-    quality1.addConditionFact("other");
-    ConstraintFactBuilder quality2 = builder.addPolicyAlert("c2", 3).addComponentFact("c2").addConstraintFact();
-    quality2.addConditionFact("popularity");
-    quality2.addConditionFact("other");
-    ConstraintFactBuilder other = builder.addPolicyAlert("d", 4).addComponentFact("d").addConstraintFact();
-    other.addConditionFact("other");
+    ReportBuilder builder = newReportBuilder();
+    builder.addPolicyViolation("a", 0, PolicyThreatCategory.SECURITY, "a");
+    builder.addPolicyViolation("b", 1, PolicyThreatCategory.LICENSE, "b");
+    builder.addPolicyViolation("c1", 2, PolicyThreatCategory.QUALITY, "c1");
+    builder.addPolicyViolation("c2", 3, PolicyThreatCategory.QUALITY, "c2");
+    builder.addPolicyViolation("d", 4, PolicyThreatCategory.OTHER, "d");
     createScan(application, builder);
 
     TrendingReport report = calculateReport();
@@ -303,59 +285,9 @@ public class TrendingReportProcessorTest
   }
 
   @Test
-  public void testPolicyViolationsCategoriesFromPolicyDAO() throws Exception {
-    Application application = createApplication("testApp");
-    PolicyDAO policyDAO = new PolicyDAO();
-
-    List<LicenseThreatGroup> licenseThreatGroups = new LicenseThreatGroupDAO().getByOwnerId(application.getOrganizationId());
-    LicenseThreatGroup licenseThreatGroup = licenseThreatGroups.get(0);
-
-    // this policy should always be interpreted as 'license' category, even if a different kind of condition is violated
-    Policy licensePolicy = new Policy(null, "license");
-    licensePolicy.setOwnerId(application.getId());
-    licensePolicy.setThreatLevel(1);
-
-    Constraint licenseConstraint = new Constraint(null, "license", LogicalOperator.AND);
-    licenseConstraint.addCondition(new Condition(LicenseThreatGroupConditionType.ID, "is", licenseThreatGroup.getId() ));
-    Constraint otherConstraint = new Constraint(null, "other", LogicalOperator.AND);
-    otherConstraint.addCondition(new Condition(AgeInDaysConditionType.ID, "older than", "1" ));
-    licensePolicy.addConstraint(otherConstraint);
-    licensePolicy.addConstraint(licenseConstraint);
-
-    // this policy should always be interpreted as 'security' category, even if a different kind of condition is violated
-    Policy securityPolicy = new Policy(null, "security");
-    securityPolicy.setOwnerId(application.getId());
-    securityPolicy.setThreatLevel(10);
-    Constraint securityConstraint = new Constraint(null, "security", LogicalOperator.AND);
-    securityConstraint.addCondition(new Condition(AgeInDaysConditionType.ID, "older than", "1" ));
-    securityConstraint.addCondition(new Condition(LicenseThreatGroupConditionType.ID, "is", licenseThreatGroup.getId() ));
-    securityConstraint.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
-    securityPolicy.addConstraint(securityConstraint);
-    policyDAO.insert(licensePolicy);
-    policyDAO.insert(securityPolicy);
-
-    ReportBuilder builder = new ReportBuilder();
-    ComponentFactBuilder componentFactBuilder = builder.addPolicyAlert(licensePolicy.getId(), 0).addComponentFact("a");
-    ConstraintFactBuilder license = componentFactBuilder.addConstraintFact();
-    license.addConditionFact("other");
-
-    componentFactBuilder = builder.addPolicyAlert(securityPolicy.getId(), 1).addComponentFact("a");
-    ConstraintFactBuilder security = componentFactBuilder.addConstraintFact();
-    security.addConditionFact("other");
-    security.addConditionFact("license");
-    createScan(application, builder);
-
-    TrendingReport report = calculateReport();
-    List<PolicyViolation> violations = report.getViolations();
-    Assert.assertEquals(2, violations.size());
-    assertPolicyViolations(violations, licensePolicy.getId(), "license", 0);
-    assertPolicyViolations(violations, securityPolicy.getId(), "security", 1);
-  }
-
-  @Test
   public void testPartialMatches() throws Exception {
     Application application = createApplication("testApp");
-    ReportBuilder builder = new ReportBuilder();
+    ReportBuilder builder = newReportBuilder();
     builder.addComponent().setGAV("a", "a", "1").setHash("1").setMatchState(MatchState.SIMILAR);
     builder.addComponent().setGAV("a", "a", "1").setHash("2").setMatchState(MatchState.SIMILAR);
     builder.addComponent().setGAV("a", "a", "1").setHash("3").setMatchState(MatchState.SIMILAR);
@@ -402,14 +334,14 @@ public class TrendingReportProcessorTest
     Application application = createApplication("testApp");
     long now = System.currentTimeMillis();
 
-    ReportBuilder builder = new ReportBuilder();
+    ReportBuilder builder = newReportBuilder();
     // previous
-    builder.addPolicyAlert("a", 0).addComponentFact("a").addConstraintFact().addConditionFact("security");
-    builder.addPolicyAlert("b", 10).addComponentFact("b").addConstraintFact().addConditionFact("license");
+    builder.addPolicyViolation("a", 0, PolicyThreatCategory.SECURITY, "a");
+    builder.addPolicyViolation("b", 10, PolicyThreatCategory.LICENSE, "b");
     createScan(application, builder, now - (21 * ONE_DAY_MS));
     // now
-    builder = new ReportBuilder();
-    builder.addPolicyAlert("a", 0).addComponentFact("a").addConstraintFact().addConditionFact("security");
+    builder = newReportBuilder();
+    builder.addPolicyViolation("a", 0, PolicyThreatCategory.SECURITY, "a");
     createScan(application, builder, now - (1 * ONE_DAY_MS)); // previous
 
     TrendingReport report = calculateReport();
@@ -427,9 +359,9 @@ public class TrendingReportProcessorTest
     Application application = createApplication("testApp");
     long now = System.currentTimeMillis();
 
-    ReportBuilder builder = new ReportBuilder();
+    ReportBuilder builder = newReportBuilder();
     // previous
-    builder.addPolicyAlert("a", 0).addComponentFact("a").addConstraintFact().addConditionFact("security");
+    builder.addPolicyViolation("a", 0, PolicyThreatCategory.SECURITY, "a");
     createScan(application, builder, now - (21 * ONE_DAY_MS));
 
     TrendingReport report = calculateReport();
@@ -444,9 +376,9 @@ public class TrendingReportProcessorTest
     Application application = createApplication("testApp");
     long now = System.currentTimeMillis();
 
-    ReportBuilder builder = new ReportBuilder();
+    ReportBuilder builder = newReportBuilder();
     // previous
-    builder.addPolicyAlert("a", 0).addComponentFact("a").addConstraintFact().addConditionFact("security");
+    builder.addPolicyViolation("a", 0, PolicyThreatCategory.SECURITY, "a");
     createScan(application, builder, now - (1 * ONE_DAY_MS));
 
     TrendingReport report = calculateReport();
@@ -459,31 +391,22 @@ public class TrendingReportProcessorTest
   @Test
   public void testComponentRisks() throws Exception {
     Application application = createApplication("testApp");
-    ReportBuilder builder = new ReportBuilder();
+    ReportBuilder builder = newReportBuilder();
     // critical x2
-    builder.addPolicyAlert("a", 10).addComponentFact("a").setGAV("a", "a", "a").addConstraintFact()
-        .addConditionFact("license");
-    builder.addPolicyAlert("a", 10).addComponentFact("a").setGAV("a", "a", "a").addConstraintFact()
-        .addConditionFact("security");
-    builder.addPolicyAlert("a2", 10).addComponentFact("a").setGAV("a", "a", "a").addConstraintFact()
-        .addConditionFact("security");
+    builder.addPolicyViolation("a", 10, PolicyThreatCategory.SECURITY, "a", "a", "a", "a");
+    builder.addPolicyViolation("a1", 10, PolicyThreatCategory.LICENSE, "a", "a", "a", "a");
+    builder.addPolicyViolation("a2", 10, PolicyThreatCategory.SECURITY, "a", "a", "a", "a");
     // critical
-    builder.addPolicyAlert("b", 10).addComponentFact("b").setGAV("b", "b", "b").addConstraintFact()
-        .addConditionFact("security");
+    builder.addPolicyViolation("b", 10, PolicyThreatCategory.SECURITY, "b", "b", "b", "b");
     // severe x2
-    builder.addPolicyAlert("c", 6).addComponentFact("c").setGAV("c", "c", "c").addConstraintFact()
-        .addConditionFact("security");
-    builder.addPolicyAlert("c2", 6).addComponentFact("c").setGAV("c", "c", "c").addConstraintFact()
-        .addConditionFact("security");
+    builder.addPolicyViolation("c", 6, PolicyThreatCategory.SECURITY, "c", "c", "c", "c");
+    builder.addPolicyViolation("c2", 6, PolicyThreatCategory.SECURITY, "c", "c", "c", "c");
     // severe
-    builder.addPolicyAlert("d", 6).addComponentFact("d").setGAV("d", "d", "d").addConstraintFact()
-        .addConditionFact("security");
+    builder.addPolicyViolation("d", 6, PolicyThreatCategory.SECURITY, "d", "d", "d", "d");
     // moderate
-    builder.addPolicyAlert("e", 3).addComponentFact("e").setGAV("e", "e", "e").addConstraintFact()
-        .addConditionFact("security");
+    builder.addPolicyViolation("e", 3, PolicyThreatCategory.SECURITY, "e", "e", "e", "e");
     // none
-    builder.addPolicyAlert("f", 0).addComponentFact("f").setGAV("f", "f", "f").addConstraintFact()
-        .addConditionFact("security");
+    builder.addPolicyViolation("f", 0, PolicyThreatCategory.SECURITY, "f", "f", "f", "f");
     createScan(application, builder);
 
     TrendingReport report = calculateReport();
@@ -504,21 +427,16 @@ public class TrendingReportProcessorTest
   @Test
   public void testPoliciesSummary() throws Exception {
     Application application = createApplication("testApp");
-    ReportBuilder builder = new ReportBuilder();
+    ReportBuilder builder = newReportBuilder();
     // critical
-    builder.addPolicyAlert("a", 10).addComponentFact("a").setGAV("a", "a", "a").addConstraintFact()
-        .addConditionFact("security");
+    builder.addPolicyViolation("a", 10, PolicyThreatCategory.SECURITY,"a", "a", "a", "a");
     // severe x2
-    builder.addPolicyAlert("b", 6).addComponentFact("b").setGAV("b", "b", "b").addConstraintFact()
-        .addConditionFact("security");
-    builder.addPolicyAlert("c", 6).addComponentFact("c").setGAV("c", "c", "c").addConstraintFact()
-        .addConditionFact("security");
+    builder.addPolicyViolation("b", 6, PolicyThreatCategory.SECURITY,"b", "b", "b", "b");
+    builder.addPolicyViolation("c", 6, PolicyThreatCategory.SECURITY,"c", "c", "c", "c");
     // moderate
-    builder.addPolicyAlert("d", 3).addComponentFact("d").setGAV("d", "d", "d").addConstraintFact()
-        .addConditionFact("security");
+    builder.addPolicyViolation("d", 3, PolicyThreatCategory.SECURITY, "d", "d", "d", "d");
     // none
-    builder.addPolicyAlert("e", 0).addComponentFact("e").setGAV("e", "e", "e").addConstraintFact()
-        .addConditionFact("security");
+    builder.addPolicyViolation("e", 0, PolicyThreatCategory.SECURITY, "e", "e", "e", "e");
     createScan(application, builder);
 
     TrendingReport report = calculateReport();
@@ -610,9 +528,8 @@ public class TrendingReportProcessorTest
   private void createScan(Application application, ReportBuilder builder, long time) throws IOException {
     String scanId = UUID.randomUUID().toString().replace("-", "");
     if (builder != null) {
-      builder.build(insightWork.getReportDir(application.getId(), scanId));
+      builder.build(application, scanId, new Date(time), insightWork.getReportDir(application.getId(), scanId));
     }
-    temporaryEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, scanId, new Date(time));
   }
 
   protected Application createApplication(String appId) {

@@ -28,7 +28,7 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.conditions.ArtifactCoordinate;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.security.Permission;
-import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluationUtils;
+import com.sonatype.insight.brain.policy.evaluator.PolicyAlertUtil;
 import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.report.ReportResource;
 import com.sonatype.insight.brain.security.AuthzFilter;
@@ -59,13 +59,10 @@ public class SearchResource
 
   private final BaseUrl baseUrl;
 
-  private final PolicyEvaluationUtils policyEvaluationUtils;
-
   @Inject
-  public SearchResource(InsightWork work, BaseUrl baseUrl, PolicyEvaluationUtils policyEvaluationUtils) {
+  public SearchResource(InsightWork work, BaseUrl baseUrl) {
     this.work = work;
     this.baseUrl = baseUrl;
-    this.policyEvaluationUtils = policyEvaluationUtils;
   }
 
   /**
@@ -152,7 +149,7 @@ public class SearchResource
         results.results.add(result);
 
         if (alerts == null) {
-          alerts = policyEvaluationUtils.findPolicyAlerts(app.getId(), eval.getScanId());
+          alerts = PolicyAlertUtil.createPolicyAlerts(eval);
         }
         result.threatLevel = null;
         for (PolicyAlert alert : alerts) {

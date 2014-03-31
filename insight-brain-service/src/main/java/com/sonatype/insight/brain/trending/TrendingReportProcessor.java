@@ -181,10 +181,13 @@ public class TrendingReportProcessor
       PolicyEvaluation[] periods = new PolicyEvaluation[PERIOD_COUNT + 1];
       List<PolicyEvaluation> policyEvaluations = policyEvaluationDAO.getAllByApplicationIdAndStageId(
           application.getId(), STAGE_ID);
+      log.debug("Inspecting {} policy evaluations for application {}", policyEvaluations.size(), application.getId());
       for (PolicyEvaluation eval : policyEvaluations) {
         // If the report is not available for whatever reason, ignore this policy evaluation as we're strictly looking
         // at these data points for possible inspection later.
         if (!work.getReportFile(application.getId(), eval.getScanId()).exists()) {
+          log.debug("Ignoring policy evaluation from {} for application {} and scan {}, report missing",
+              eval.getTime(), eval.getApplicationId(), eval.getScanId());
           continue;
         }
 
@@ -212,6 +215,7 @@ public class TrendingReportProcessor
 
       PolicyEvaluation lastEval = periods[PERIOD_COUNT];
       if (lastEval == null) {
+        log.debug("Ignoring application {}, no policy evaluations within reporting period", application.getId());
         continue;
       }
 
@@ -314,7 +318,8 @@ public class TrendingReportProcessor
         toDiffData(categories, previousCategories), toTopCategoryComponentRisks(componentRisks),
         toPoliciesSummary(policyViolations.values()));
 
-    log.debug("Calculated trending report in {} ms.", System.currentTimeMillis() - start);
+    log.debug("Calculated trending report for {}/{} applications in {} ms.", trendingReport.getApplications()
+        .getTotal(), applications.size(), System.currentTimeMillis() - start);
 
     return trendingReport;
   }

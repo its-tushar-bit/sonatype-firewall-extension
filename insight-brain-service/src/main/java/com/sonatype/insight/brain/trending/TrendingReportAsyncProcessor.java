@@ -53,30 +53,35 @@ public class TrendingReportAsyncProcessor
     @Override
     public void run() {
       log.debug("Starting TrendingReportAsyncProcessor worker thread '{}'", getName());
-
-      while (true) {
-        try {
-          beforeStart();
-          TrendingReport report = processor.calculate(newProgressMonitor());
-          cache.writeCache(report);
-        }
-        catch (Exception e) {
-          log.error("Could not generate trending report", e);
-        }
-        finally {
-          afterFinish();
-        }
-
-        synchronized (processorLock) {
+      try {
+        while (true) {
           try {
-            processorLock.wait();
+            log.debug("Resuming TrendingReportAsyncProcessor worker execution '{}'", getName());
+            beforeStart();
+            TrendingReport report = processor.calculate(newProgressMonitor());
+            cache.writeCache(report);
           }
-          catch (InterruptedException e) {
-            break;
+          catch (Exception e) {
+            log.error("Could not generate trending report", e);
+          }
+          finally {
+            afterFinish();
+          }
+
+          log.debug("Suspending TrendingReportAsyncProcessor worker execution '{}'", getName());
+          synchronized (processorLock) {
+            try {
+              processorLock.wait();
+            }
+            catch (InterruptedException e) {
+              break;
+            }
           }
         }
       }
-      log.info(getName() + " terminated");
+      finally {
+        log.debug("Terminating TrendingReportAsyncProcessor worker thread '{}'", getName());
+      }
     }
 
     public void schedule() {

@@ -48,6 +48,7 @@ public class TrendingReportCache
     cacheLock.writeLock().lock();
     try {
       JsonUtils.write(getCacheFile(), report);
+      log.debug("Updated trending report cache: {}", getCacheFile());
     }
     finally {
       cacheLock.writeLock().unlock();

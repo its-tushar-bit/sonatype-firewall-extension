@@ -76,7 +76,7 @@ var clmBuildTimestamp = '${build.timestamp}';
        */
       'getArtifactInfoUrl': function(arg) {
         return '/rest/ci/component/details/' + encodeURIComponent(arg.appId) + '?' +
-            param({ groupId: arg.groupId, artifactId: arg.artifactId, version: arg.version, hash: arg.hash, matchState: arg.matchState, instanceId: arg.instanceId, ts: new Date().getTime() });
+            param({ groupId: arg.groupId, artifactId: arg.artifactId, version: arg.version, hash: arg.hash, matchState: arg.matchState, proprietary: arg.proprietary, instanceId: arg.instanceId, ts: new Date().getTime() });
       },
       /**
        * Get the URL for all versions from a specific GAV. (Used to generate the versions graph in the CIP)
@@ -111,7 +111,7 @@ var clmBuildTimestamp = '${build.timestamp}';
        */
       'getArtifactInfoUrl': function(arg) {
         return basePath + 'rest/ide/component/details/' + encodeURIComponent(arg.appId) + '?' +
-            param({ groupId: arg.groupId, artifactId: arg.artifactId, version: arg.version, hash: arg.hash, matchState: arg.matchState, instanceId: arg.instanceId, ts: new Date().getTime() });
+            param({ groupId: arg.groupId, artifactId: arg.artifactId, version: arg.version, hash: arg.hash, matchState: arg.matchState, proprietary: arg.proprietary, instanceId: arg.instanceId, ts: new Date().getTime() });
       },
       /**
        * Get the URL for all versions from a specific GAV. (Used to generate the versions graph in the CIP)
@@ -138,7 +138,7 @@ var clmBuildTimestamp = '${build.timestamp}';
        */
       'getArtifactInfoUrl': function(arg) {
         return basePath + 'rest/rm/component/details/' + encodeURIComponent(arg.appId) + '?' +
-            param({ groupId: arg.groupId, artifactId: arg.artifactId, version: arg.version, hash: arg.hash, matchState: arg.matchState, instanceId: arg.instanceId, ts: new Date().getTime() });
+            param({ groupId: arg.groupId, artifactId: arg.artifactId, version: arg.version, hash: arg.hash, matchState: arg.matchState, proprietary: arg.proprietary, instanceId: arg.instanceId, ts: new Date().getTime() });
       },
       /**
        * Get the URL for all versions from a specific GAV. (Used to generate the versions graph in the CIP)

@@ -327,6 +327,9 @@
         if (gav && gav.appId && !isUnknown(gav)) {
           $http.get(Brain[clmEndpoint.type].getComponentDetailsListUrl(gav)).success(function (data) {
             $scope.componentDetailsList = data.list ? data.list : data;
+            for (var i = 0; i < $scope.componentDetailsList.length; i++) {
+              $scope.componentDetailsList[i].proprietary = gav.proprietary;
+            }
             $scope.loaded = true;
           }).error(function () {
             $scope.setError(arguments);

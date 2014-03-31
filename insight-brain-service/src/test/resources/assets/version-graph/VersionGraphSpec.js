@@ -214,7 +214,8 @@ clmEndpoint = clmEndpointTemplate = {
         var gav = {
           groupId : 'foo',
           artifactId : 'bar',
-          version : '1'
+          version : '1',
+          proprietary : true
         };
         clmEndpoint.selectApplication = true;
 
@@ -229,9 +230,12 @@ clmEndpoint = clmEndpointTemplate = {
         $httpBackend.verifyNoOutstandingRequest();
 
         spyOn(Brain[clmEndpoint.type], 'getComponentDetailsListUrl').andReturn('foo');
-        $httpBackend.expectGET(Brain[clmEndpoint.type].getComponentDetailsListUrl(angular.extend({ appId : 'myFirstApp' }, gav))).respond({ securityVulnerabilities : [], policyAlerts: [] });
+        $httpBackend.expectGET(Brain[clmEndpoint.type].getComponentDetailsListUrl(angular.extend({ appId : 'myFirstApp' }, gav))).respond({ list: [ {} ] });
         Insight.setGav(gav);
         $httpBackend.flush();
+        expect(scope.componentDetailsList).not.toBeNull();
+        expect(scope.componentDetailsList.length).toEqual(1);
+        expect(scope.componentDetailsList[0].proprietary).toEqual(true);
       }));
     });
 
@@ -253,7 +257,8 @@ clmEndpoint = clmEndpointTemplate = {
         var gav = {
           groupId : 'foo',
           artifactId : 'bar',
-          version : '1'
+          version : '1',
+          proprietary : true
         };
         clmEndpoint.selectApplication = true;
 
@@ -276,7 +281,8 @@ clmEndpoint = clmEndpointTemplate = {
           artifactId : 'bar',
           version : '1',
           appId : 'myFirstApp',
-          matchState : 'similar'
+          matchState : 'similar',
+          proprietary : true
         });
 
         // Another version selected
@@ -295,7 +301,8 @@ clmEndpoint = clmEndpointTemplate = {
           groupId : 'foo',
           artifactId : 'bar',
           version : '2',
-          appId : 'myFirstApp'
+          appId : 'myFirstApp',
+          proprietary : true
         });
 
         // Unknown GAV

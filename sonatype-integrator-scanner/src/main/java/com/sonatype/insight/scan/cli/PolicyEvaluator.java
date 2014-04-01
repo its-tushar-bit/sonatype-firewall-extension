@@ -255,6 +255,7 @@ public class PolicyEvaluator
   }
 
   private void saveReportBundleFile(Parameters params, RestClient restClient, ScanReceipt receipt) throws ExitException {
+    log.info("Downloading report bundle from CLM server...");
     try {
       restClient.saveReportBundle(params.getApplicationId(), receipt.getScanId(), params.getReportBundleFile());
     }

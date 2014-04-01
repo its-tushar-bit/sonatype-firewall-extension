@@ -395,6 +395,10 @@
       <artifactId>license-bundle</artifactId>
       <version>${licensing.version}</version>
     </dependency>
+    <dependency>
+      <groupId>org.sonatype.aether</groupId>
+      <artifactId>aether-util</artifactId>
+    </dependency>
 
     <dependency>
       <groupId>org.apache.shiro</groupId>

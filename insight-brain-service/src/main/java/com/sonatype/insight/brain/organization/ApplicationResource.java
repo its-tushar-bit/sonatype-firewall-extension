@@ -48,7 +48,6 @@ import com.sonatype.insight.brain.saas.SaasClient;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzErrorMsg;
-import com.sonatype.insight.brain.security.AuthzFilter;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.dataaccess.AbstractDAO;
@@ -96,10 +95,13 @@ public class ApplicationResource
 
   private ApplicationCleaner applicationCleaner;
 
+  private ApplicationService applicationService;
+
   @Inject
   public ApplicationResource(final InsightWork work, final BaseUrl baseUrl, final CLMLicenseManager licenseManager,
       final SaasClient client, final PolicyEvaluationUtils policyEvaluationUtils,
-      final ApplicationAdapter applicationAdapter, ApplicationCleaner applicationCleaner)
+      final ApplicationAdapter applicationAdapter, ApplicationCleaner applicationCleaner,
+      ApplicationService applicationService)
   {
     super(client, baseUrl);
     this.work = work;
@@ -107,6 +109,7 @@ public class ApplicationResource
     this.policyEvaluationUtils = policyEvaluationUtils;
     this.applicationAdapter = applicationAdapter;
     this.applicationCleaner = applicationCleaner;
+    this.applicationService = applicationService;
   }
 
   @GET
@@ -122,13 +125,8 @@ public class ApplicationResource
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   public List<ApplicationDTO> getApplications() {
-    final List<ApplicationDTO> applications = applicationAdapter.convert(getApplicationsWithReadPermission());
-    return applications;
-  }
-  
-  @AuthzFilter(permission = Permission.READ, context = AuthzFilter.Context.APPLICATION)
-  List<Application> getApplicationsWithReadPermission() {
-    final List<Application> applications = applicationDAO.getAll();
+    final List<ApplicationDTO> applications = applicationAdapter.convert(applicationService
+        .getApplicationsWithReadPermission());
     return applications;
   }
 
@@ -141,7 +139,7 @@ public class ApplicationResource
   @Path(GET_APPLICATION_MANAGEMENT_SUMMARIES)
   @Produces(MediaType.APPLICATION_JSON)
   public List<ApplicationManagementSummaryDTO> getApplicationManagementSummaries() {
-    final List<Application> applications = getApplicationsWithReadPermission();
+    final List<Application> applications = applicationService.getApplicationsWithReadPermission();
 
     final List<ApplicationManagementSummaryDTO> applicationManagements = getApplicationManagementSummaries(
         applications);

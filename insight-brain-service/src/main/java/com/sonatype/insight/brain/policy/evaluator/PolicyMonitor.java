@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.policy.evaluator;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -134,11 +135,18 @@ public class PolicyMonitor
         scanId, stage);
     List<PolicyAlert> newAlerts = PolicyAlertUtil.createPolicyAlerts(policyEvaluation);
     List<PolicyAlert> oldAlerts;
-    if (lastMonitoringPolicyEvaluation != null) {
-      oldAlerts = PolicyAlertUtil.createPolicyAlerts(lastMonitoringPolicyEvaluation);
+    try {
+      if (lastMonitoringPolicyEvaluation != null) {
+        oldAlerts = PolicyAlertUtil.createPolicyAlerts(lastMonitoringPolicyEvaluation);
+      }
+      else {
+        oldAlerts = PolicyAlertUtil.createPolicyAlerts(lastPrimaryPolicyEvaluation);
+      }
     }
-    else {
-      oldAlerts = PolicyAlertUtil.createPolicyAlerts(lastPrimaryPolicyEvaluation);
+    catch (final Exception e) {
+      // don't abort sending notifications if old results are corrupt or missing, just means full digest will be sent
+      log.warn("Cannot load last policy evaluation results for app id {}", app.getPublicId(), e);
+      oldAlerts = Collections.emptyList();
     }
     policyAlertNotifier.sendNotifications(app.getPublicId(), app.getId(), scanId, stage, newAlerts, oldAlerts);
 

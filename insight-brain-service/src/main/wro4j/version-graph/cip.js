@@ -401,6 +401,7 @@
         if (gav && gav.appId && !isUnknown(gav)) {
           $http.get(Brain[clmEndpoint.type].getArtifactInfoUrl(gav)).success(function (data) {
             $scope.componentDetails = data;
+            $scope.componentDetails.proprietary = gav.proprietary;
 
             var i = 0;
             while (i < $scope.componentDetails.securityVulnerabilities.length) {

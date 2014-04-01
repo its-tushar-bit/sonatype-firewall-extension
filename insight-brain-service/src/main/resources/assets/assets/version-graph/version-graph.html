@@ -135,7 +135,7 @@
 							</tr>
 							<tr id='artifactInfoSimilarityScoreRow' ng-if='componentDetails.matchState'>
 								<td>Match State:</td>
-								<td>{{componentDetails.matchState}}</td>
+								<td>{{componentDetails.matchState}} <span ng-if='componentDetails.proprietary'>(proprietary)</span></td>
 							</tr>
 							<tr id='artifactInfoIdentificatonSource'>
 								<td>Identification Source:</td>

@@ -284,6 +284,7 @@ clmEndpoint = clmEndpointTemplate = {
           matchState : 'similar',
           proprietary : true
         });
+        expect(scope.componentDetails.proprietary).toEqual(true);
 
         // Another version selected
         $httpBackend.expectGET(Brain[clmEndpoint.type].getArtifactInfoUrl(angular.extend({}, gav, {

@@ -29,30 +29,6 @@ public class PolicyViolationAdapter
   }
 
   public PolicyViolationDTO createPolicyViolationDTO(Application application, PolicyViolation violation) {
-    return newPolicyViolationDTO(application, violation);
-  }
-
-  public List<PolicyViolationDTO> createPolicyViolationDTOs(Application application, List<PolicyEvaluation> evaluations)
-  {
-    List<PolicyViolationDTO> policyViolationDTOs = new ArrayList<>();
-
-    if (evaluations == null) {
-      return policyViolationDTOs;
-    }
-
-    for (PolicyEvaluation evaluation : evaluations) {
-      List<PolicyViolation> violations = policyViolationDAO.getByEvaluationId(evaluation.getId());
-      if (violations != null) {
-        for (PolicyViolation violation : violations) {
-          policyViolationDTOs.add(newPolicyViolationDTO(application, violation));
-        }
-      }
-    }
-
-    return policyViolationDTOs;
-  }
-
-  private PolicyViolationDTO newPolicyViolationDTO(Application application, PolicyViolation violation) {
     PolicyViolationDTO dto = new PolicyViolationDTO();
     dto.applicationId = application.getId();
     dto.applicationName = application.getName();
@@ -67,5 +43,25 @@ public class PolicyViolationAdapter
     dto.threatLevel = violation.getThreatLevel();
     dto.version = violation.getVersion();
     return dto;
+  }
+
+  public List<PolicyViolationDTO> createPolicyViolationDTOs(Application application, List<PolicyEvaluation> evaluations)
+  {
+    List<PolicyViolationDTO> policyViolationDTOs = new ArrayList<>();
+
+    if (evaluations == null) {
+      return policyViolationDTOs;
+    }
+
+    for (PolicyEvaluation evaluation : evaluations) {
+      List<PolicyViolation> violations = policyViolationDAO.getByEvaluationId(evaluation.getId());
+      if (violations != null) {
+        for (PolicyViolation violation : violations) {
+          policyViolationDTOs.add(createPolicyViolationDTO(application, violation));
+        }
+      }
+    }
+
+    return policyViolationDTOs;
   }
 }

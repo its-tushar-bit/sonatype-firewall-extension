@@ -119,6 +119,11 @@ public class ApplicationDAO
     }
   }
 
+  public List<Application> getByContactInternalName(String contactInternalName) {
+    String sQuery = "SELECT entity FROM Application entity WHERE entity.contactInternalName=?1";
+    return getList(sQuery, contactInternalName);
+  }
+
   public List<Application> getAll(EntityManager em) {
     String sQuery = "SELECT entity FROM Application entity" + //
         " ORDER BY entity.publicIdLowercase";

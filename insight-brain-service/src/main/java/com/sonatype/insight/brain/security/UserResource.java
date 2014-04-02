@@ -26,10 +26,12 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
 import com.sonatype.insight.brain.ldap.LdapGroup;
 import com.sonatype.insight.brain.ldap.LdapManager;
 import com.sonatype.insight.brain.ldap.LdapUser;
+import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.User;
@@ -72,6 +74,8 @@ public class UserResource
   private final SessionDAO sessionDAO;
 
   private final LdapManager ldapManager;
+
+  private static final ApplicationDAO applicationDAO = new ApplicationDAO();
 
   @Inject
   public UserResource(CLMRealm clmRealm, SessionDAO sessionDAO, LdapManager ldapManager) {
@@ -199,6 +203,14 @@ public class UserResource
     }
 
     dao.delete(user);
+    try {
+      if (!isLdapUser(user)) {
+        removeApplicationContact(user);
+      }
+    }
+    catch (NamingException e) {
+      log.error(e.getMessage(), e);
+    }
 
     for (Session session : sessionDAO.getActiveSessions()) {
       Subject subject = new Subject.Builder().session(session).buildSubject();
@@ -266,6 +278,25 @@ public class UserResource
   {
     public String oldPassword;
     public String newPassword;
+  }
+
+  private boolean isLdapUser(final User user) throws NamingException {
+    if (!ldapManager.isLdapEnabled()) {
+      return false;
+    }
+    final String[] userNames = {user.getUsername()};
+    final List<LdapUser> ldapUsers = ldapManager.getUsers(userNames, userNames.length);
+    return !ldapUsers.isEmpty();
+  }
+
+  // Remove the contact from the applications that have it
+  private void removeApplicationContact(final User user) {
+    final String userName = user.getUsername();
+    final List<Application> applicationList = applicationDAO.getByContactInternalName(userName);
+    for (final Application application : applicationList) {
+      application.setContactInternalName(null);
+      applicationDAO.update(application);
+    }
   }
 
   public static class FindMembersDTO

@@ -9,9 +9,12 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 import javax.imageio.ImageIO;
 
@@ -51,6 +54,7 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
@@ -480,5 +484,34 @@ public class ApplicationDAOTest
     applicationDAO.delete(application);
 
     assertThat(policyMonitoringDAO.getByOwnerId(application.getId()), is(nullValue()));
+  }
+
+  @Test
+  public void testGetApplicationsByContact() {
+    final String contactName = "contactName";
+    // Create some applications with and without contact name
+    final int numApplications = 5;
+    final Map<String, Application> expecteApplications = new HashMap<>();
+    for (int i = 1; i <= numApplications; i++) {
+      // Create some with contact name
+      Application application = tempEntity
+          .newApplication("app-with-contact-" + i, tempEntity.uuid(), organization.getId(), contactName);
+      expecteApplications.put(application.getId(), application);
+      // Create some without
+      tempEntity.newApplication(organization.getId());
+    }
+
+    final List<Application> applications = applicationDAO.getByContactInternalName(contactName);
+    assertThat(applications, hasSize(numApplications));
+    for (final Application app : applications) {
+      validateApplication(app, expecteApplications.get(app.getId()));
+    }
+  }
+
+  private void validateApplication(Application actualApp, Application expectedApp) {
+    Assert.assertThat(actualApp.getName(), is(expectedApp.getName()));
+    Assert.assertThat(actualApp.getContactInternalName(), is(expectedApp.getContactInternalName()));
+    Assert.assertThat(actualApp.getOrganizationId(), is(expectedApp.getOrganizationId()));
+    Assert.assertThat(actualApp.getPublicId(), is(expectedApp.getPublicId()));
   }
 }

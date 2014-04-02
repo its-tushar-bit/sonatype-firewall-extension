@@ -12,9 +12,12 @@ import java.util.List;
 
 import com.sonatype.insight.brain.AuthedRestAccess;
 import com.sonatype.insight.brain.configuration.ldap.LdapServer;
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
 import com.sonatype.insight.brain.ldap.TestLdapServer;
+import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Role;
@@ -34,6 +37,7 @@ import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
 
+import static org.hamcrest.Matchers.emptyArray;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
@@ -49,6 +53,8 @@ public class UserResourceTest
 
   @Rule
   public TestLdapServer embeddedLdapServer = new TestLdapServer();
+
+  private ApplicationDAO applicationDao = new ApplicationDAO();
 
   @After
   public void after() throws Exception {
@@ -302,6 +308,102 @@ public class UserResourceTest
     response = AuthedRestAccess.delete(getServiceURL() + "/" + user.getId(), userCookie);
     assertResponseStatus(400, response);
     assertThat(response.getResponseBody(), is("Cannot delete the currently logged in user."));
+  }
+
+  @Test
+  public void testDeleteUserNoLdapRemovesContact() throws Exception {
+    // Create a user
+    final String clmUserName = "test-user";
+    final User user = tempEntity.newUser(clmUserName);
+
+    // Create an application with the user as the contact
+    Application application = createApplication(user);
+    // Check to see that the contact is the userName
+    assertThat(application.getContactInternalName(), is(clmUserName));
+
+    // Delete the user
+    final Response response = AuthedRestAccess.delete(getServiceURL() + "/" + user.getId());
+    assertResponseStatus(204, response);
+
+    // Check to see if the contact has also been deleted
+    application = applicationDao.getById(application.getId());
+    assertThat(application, notNullValue());
+    assertThat(application.getContactInternalName(), is(nullValue()));
+  }
+
+  @Test
+  public void testDeleteUserNoLdapMatchRemovesContact() throws Exception {
+    embeddedLdapServer.start();
+    embeddedLdapServer.loadData("/UserResourceTest/ldap_users.ldif");
+
+    final LdapServer ldapServer = tempEntity.newLdapServer("LDAP");
+    tempEntity.newLdapConnection(ldapServer.getId(), embeddedLdapServer.getPort());
+    tempEntity.newLdapUserMapping(ldapServer.getId());
+
+    final String clmUserName = "clm-test-user";
+
+    // Make sure the clm user is not in LDAP
+    Response response = AuthedRestAccess.get(getSearchUrl(clmUserName));
+    final FindMembersDTO dto = fromJson(response, FindMembersDTO.class);
+    final List<Member> dtoMembers = dto.getMembers();
+    final Member[] members = dtoMembers.toArray(new Member[dtoMembers.size()]);
+    assertThat(members, emptyArray());
+
+    // Add the user to CLM
+    final User user = tempEntity.newUser(clmUserName);
+
+    // Create an application with the user as the contact
+    Application application = createApplication(user);
+    // Check to see that the contact is the userName
+    assertThat(application.getContactInternalName(), is(clmUserName));
+
+    // Delete the user
+    response = AuthedRestAccess.delete(getServiceURL() + "/" + user.getId());
+    assertResponseStatus(204, response);
+
+    // Check to see if the application contact has also been deleted
+    application = applicationDao.getById(application.getId());
+    assertThat(application, notNullValue());
+    assertThat(application.getContactInternalName(), is(nullValue()));
+  }
+
+  @Test
+  public void testDeleteUserWithLdapMatchDoesNotRemoveContact() throws Exception {
+    embeddedLdapServer.start();
+    embeddedLdapServer.loadData("/UserResourceTest/ldap_users.ldif");
+
+    final LdapServer ldapServer = tempEntity.newLdapServer("LDAP");
+    tempEntity.newLdapConnection(ldapServer.getId(), embeddedLdapServer.getPort());
+    tempEntity.newLdapUserMapping(ldapServer.getId());
+
+    final String clmAndLDapUserName = "testuser";
+
+    // Check LDAP for the user
+    Response response = AuthedRestAccess.get(getSearchUrl("John"));
+    assertMember(response, null, MemberType.USER, clmAndLDapUserName, "John Doe", "test.user@company.com", "LDAP");
+
+    // Create the same user in CLM
+    final User user = tempEntity.newUser(clmAndLDapUserName);
+
+    // Create an application with the user as the contact
+    Application application = createApplication(user);
+    // Check to see that the contact is the userName
+    assertThat(application.getContactInternalName(), is(clmAndLDapUserName));
+
+    // Delete the user
+    response = AuthedRestAccess.delete(getServiceURL() + "/" + user.getId());
+    assertResponseStatus(204, response);
+
+    // Check to see if the application contact has not been deleted
+    application = applicationDao.getById(application.getId());
+    assertThat(application, notNullValue());
+    assertThat(application.getContactInternalName(), is(clmAndLDapUserName));
+  }
+
+  private Application createApplication(User contactUser) {
+    // Create an organization and application
+    final Organization organization = tempEntity.newOrganization("ApplicationResourceTest");
+    return tempEntity.newApplication("My App", "my-app", organization.getId(), contactUser.getUsername());
   }
 
   @Test

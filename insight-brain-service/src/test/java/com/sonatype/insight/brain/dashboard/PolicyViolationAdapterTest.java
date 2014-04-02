@@ -58,7 +58,7 @@ public class PolicyViolationAdapterTest
   }
 
   @Test
-  public void testCreatePolicyViolationDTOs() {
+  public void testCreatePolicyViolationDTOsWithPolicyEvaluations() {
     Organization org = tempEntity.newOrganization();
     Policy policy = tempEntity.newPolicy(org.getId(), "build-policy");
     Application app = tempEntity.newApplication(org.getId());
@@ -81,6 +81,24 @@ public class PolicyViolationAdapterTest
     assertPolicyViolationDTO(dtos, evaluation1violation2, app, policy);
     assertPolicyViolationDTO(dtos, evaluation2violation1, app, policy);
     assertPolicyViolationDTO(dtos, evaluation2violation2, app, policy);
+  }
+
+  @Test
+  public void testCreatePolicyViolationDTOsWithPolicyEvaluation() {
+    Organization org = tempEntity.newOrganization();
+    Policy policy = tempEntity.newPolicy(org.getId(), "build-policy");
+    Application app = tempEntity.newApplication(org.getId());
+
+    PolicyEvaluation policyEvaluation1 = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "scan-id");
+    PolicyViolation evaluation1violation1 = tempEntity.newPolicyViolation(policyEvaluation1.getId(), policy);
+    PolicyViolation evaluation1violation2 = tempEntity.newPolicyViolation(policyEvaluation1.getId(), policy);
+
+    List<PolicyViolationDTO> dtos = policyViolationAdapter.createPolicyViolationDTOs(app, policyEvaluation1);
+
+    assertNotNull(dtos);
+    assertThat(dtos, hasSize(2));
+    assertPolicyViolationDTO(dtos, evaluation1violation1, app, policy);
+    assertPolicyViolationDTO(dtos, evaluation1violation2, app, policy);
   }
 
   @Test
@@ -108,7 +126,20 @@ public class PolicyViolationAdapterTest
     Organization org = tempEntity.newOrganization();
     Application app = tempEntity.newApplication(org.getId());
 
-    List<PolicyViolationDTO> dtos = policyViolationAdapter.createPolicyViolationDTOs(app, null);
+    List<PolicyEvaluation> evaluations = null;
+    List<PolicyViolationDTO> dtos = policyViolationAdapter.createPolicyViolationDTOs(app, evaluations);
+
+    assertNotNull(dtos);
+    assertThat(dtos, empty());
+  }
+
+  @Test
+  public void testCreatePolicyViolationDTOsWithNullPolicyEvaluation() {
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplication(org.getId());
+
+    PolicyEvaluation evaluation = null;
+    List<PolicyViolationDTO> dtos = policyViolationAdapter.createPolicyViolationDTOs(app, evaluation);
 
     assertNotNull(dtos);
     assertThat(dtos, empty());

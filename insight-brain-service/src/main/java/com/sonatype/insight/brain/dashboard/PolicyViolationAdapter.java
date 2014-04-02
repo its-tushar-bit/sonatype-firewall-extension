@@ -54,11 +54,23 @@ public class PolicyViolationAdapter
     }
 
     for (PolicyEvaluation evaluation : evaluations) {
-      List<PolicyViolation> violations = policyViolationDAO.getByEvaluationId(evaluation.getId());
-      if (violations != null) {
-        for (PolicyViolation violation : violations) {
-          policyViolationDTOs.add(createPolicyViolationDTO(application, violation));
-        }
+      policyViolationDTOs.addAll(createPolicyViolationDTOs(application, evaluation));
+    }
+
+    return policyViolationDTOs;
+  }
+
+  public List<PolicyViolationDTO> createPolicyViolationDTOs(Application application, PolicyEvaluation evaluation) {
+    List<PolicyViolationDTO> policyViolationDTOs = new ArrayList<>();
+
+    if (evaluation == null) {
+      return policyViolationDTOs;
+    }
+
+    List<PolicyViolation> violations = policyViolationDAO.getByEvaluationId(evaluation.getId());
+    if (violations != null) {
+      for (PolicyViolation violation : violations) {
+        policyViolationDTOs.add(createPolicyViolationDTO(application, violation));
       }
     }
 

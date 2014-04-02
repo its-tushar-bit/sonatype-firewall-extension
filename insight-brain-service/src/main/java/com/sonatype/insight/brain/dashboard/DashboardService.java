@@ -103,9 +103,9 @@ public class DashboardService
 
     List<PolicyViolationDTO> policyViolationDTOs = new ArrayList<>();
     for (Application application : applications) {
-      List<PolicyEvaluation> policyEvaluations = policyEvaluationDAO.getAllByApplicationIdAndStageId(
-          application.getId(), stage.getId());
-      policyViolationDTOs.addAll(policyViolationAdapter.createPolicyViolationDTOs(application, policyEvaluations));
+      PolicyEvaluation policyEvaluation = policyEvaluationDAO.getLastByApplicationIdAndStageId(application.getId(),
+          stage.getId());
+      policyViolationDTOs.addAll(policyViolationAdapter.createPolicyViolationDTOs(application, policyEvaluation));
     }
 
     return sort(policyViolationDTOs);
@@ -221,14 +221,14 @@ public class DashboardService
 
     Application application = applicationDAO.getByPublicIdNotNull(applicationPublicId);
 
-    List<PolicyEvaluation> policyEvaluations = policyEvaluationDAO.getAllByApplicationIdAndStageId(application.getId(),
+    PolicyEvaluation policyEvaluation = policyEvaluationDAO.getLastByApplicationIdAndStageId(application.getId(),
         stage.getId());
 
     if (sort) {
-      return sort(policyViolationAdapter.createPolicyViolationDTOs(application, policyEvaluations));
+      return sort(policyViolationAdapter.createPolicyViolationDTOs(application, policyEvaluation));
     }
 
-    return policyViolationAdapter.createPolicyViolationDTOs(application, policyEvaluations);
+    return policyViolationAdapter.createPolicyViolationDTOs(application, policyEvaluation);
   }
 
   private StageType getStageType(String stageTypeId) {

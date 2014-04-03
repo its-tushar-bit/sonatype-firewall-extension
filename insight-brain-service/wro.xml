@@ -40,6 +40,10 @@
     <css>/user/user.css</css>
   </group>
 
+  <group name='dashboard'>
+    <js>/assets/DashboardModule.js</js>
+  </group>
+
   <group name='lib'>
     <css>/lib/bootstrap/bootstrap-2.3.1.min.css</css>
     <css>/lib/glyphicons/glyphicons.css</css>

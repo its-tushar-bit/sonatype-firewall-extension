@@ -196,6 +196,11 @@
              src: '{,*/}{,*/}*'
            }, {
              expand: true,
+             cwd: '<%= config.components %>/dashboard',
+             dest: '<%= config.debug %>/dashboard-assets',
+             src: '{,*/}{,*/}*'
+           }, {
+             expand: true,
              cwd: '<%= config.assets %>/',
              dest: '<%= config.debug %>/assets',
              src: '{,*/}{,*/}*'

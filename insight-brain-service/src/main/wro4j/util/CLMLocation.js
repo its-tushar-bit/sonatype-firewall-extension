@@ -128,6 +128,9 @@
         },
         getProductFeaturesUrl : function() {
           return baseUrl.get() + '/rest/features';
+        },
+        getPolicyViolationsUrl: function() {
+          return baseUrl.get() + '/rest/dashboard/policy/violations';
         }
       };
     }

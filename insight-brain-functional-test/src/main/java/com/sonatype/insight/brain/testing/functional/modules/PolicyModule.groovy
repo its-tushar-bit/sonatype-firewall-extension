@@ -45,39 +45,8 @@ class PolicyEditorModule
     policyTagError { policyTag.find('div')[-1] }
     allApplicationRadioButton { $('[id^="radio-all-applications"]') }
     taggedApplicationRadioButton { $('[id^="radio-tag-applications"]') }
-    tags { $('span', items: 'tags') }
-    tagsDropdownButton { tags.find('button') }
-    tagsDropdownList { tags.find('ul') }
-    tagsDropdownCheck { name -> tagsDropdownList.find('label', text: name).find('input') }
-    tagsDropdownColor { name -> tagsDropdownList.find('label', text: name).find('span.multi-dropdown-item-color') }
-  }
 
-  void toggleTag(String name) {
-    showTagDropdown()
-    this.tagsDropdownCheck(name).click()
-    hideTagDropdown()
-  }
-
-  boolean areTagsApplied(List<String> names) {
-    showTagDropdown()
-    boolean isApplied = true;
-    for (String name in names) {
-      if (!tagsDropdownCheck(name).value()) {
-        isApplied = false
-        break
-      }
-    }
-    hideTagDropdown()
-    return isApplied
-  }
-
-  /**
-   * Assumes that the tag dropdown is already open
-   */
-  boolean areTagsColored(Map<String, String> namesToColors) {
-    return namesToColors.every { String name, String color ->
-      tagsDropdownColor(name).classes().contains("${color}Label".toString())
-    }
+    tagsDropdown { module DropdownMultiSelect, $('span', items: 'tags') }
   }
 
   boolean isSelected(radioButton) {
@@ -90,16 +59,6 @@ class PolicyEditorModule
 
   boolean isExpanded(){
     return body.classes().contains('in')
-  }
-
-  void showTagDropdown() {
-    tagsDropdownButton.click()
-    waitFor { tagsDropdownList.displayed }
-  }
-
-  void hideTagDropdown() {
-    tagsHeader.click()
-    waitFor { !tagsDropdownList.displayed }
   }
 }
 

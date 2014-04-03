@@ -36,7 +36,7 @@ class PolicyTagSpec
       def editor = policies.findPolicyEditor(POLICY_NAME)
       editor.editButton.click()
       waitFor { editor.tagsHeader.displayed }
-      editor.showTagDropdown()
+      editor.tagsDropdown.showDropdown()
 
     then: 'the policy does not show a Tag icon in its header'
       !editor.showsTagIcon()
@@ -47,11 +47,11 @@ class PolicyTagSpec
 
     and: 'expected Tags are available to choose'
       [tag1.name, tag2.name].each{ name ->
-        editor.tagsDropdownCheck(name).displayed
+        editor.tagsDropdown.dropdownCheck(name).displayed
       }
 
     cleanup:
-      editor.hideTagDropdown()
+      editor.tagsDropdown.hideDropdown()
   }
 
   def 'We can add tags to the policy'() {
@@ -59,33 +59,33 @@ class PolicyTagSpec
       def editor = policies.findPolicyEditor(POLICY_NAME)
 
     when: 'We click the input'
-      editor.showTagDropdown()
+      editor.tagsDropdown.showDropdown()
 
     then: 'it opens and shows the available tags'
-      editor.tagsDropdownList.find('label')*.text() == [tag1.name, tag2.name]
+      editor.tagsDropdown.dropdownList.find('label')*.text() == [tag1.name, tag2.name]
 
     and: 'they are styled in the list with the appropriate color'
-      editor.areTagsColored([(tag1.name): tag1.color, (tag2.name): tag2.color])
+      editor.tagsDropdown.areOptionsColored([(tag1.name): tag1.color, (tag2.name): tag2.color])
       report('dropdown open')
 
     when: 'Toggling the first tag'
-      editor.hideTagDropdown()
-      editor.toggleTag(tag1.name)
+      editor.tagsDropdown.hideDropdown()
+      editor.tagsDropdown.toggleOption(tag1.name)
 
     then: 'the tag name shows up in the text of the button'
-      editor.tagsDropdownButton.text() == tag1.name
+      editor.tagsDropdown.dropdownButton.text() == tag1.name
 
     and: 'the "Applications with tags" option should now be selected'
       editor.isSelected(editor.taggedApplicationRadioButton)
       !editor.isSelected(editor.allApplicationRadioButton)
 
     when: 'adding a second tag'
-      editor.toggleTag(tag2.name)
+      editor.tagsDropdown.toggleOption(tag2.name)
 
     then: 'both names are shown on the text of the button, and both are checked'
       def tagNames = [tag1.name, tag2.name]
-      editor.tagsDropdownButton.text() == tagNames.join(', ')
-      editor.areTagsApplied(tagNames)
+      editor.tagsDropdown.dropdownButton.text() == tagNames.join(', ')
+      editor.tagsDropdown.areOptionsApplied(tagNames)
   }
 
   def 'We can save the Tag changes'(){
@@ -103,8 +103,8 @@ class PolicyTagSpec
 
     then: 'We can observe the persisted changes'
       def tagNames = [tag1.name, tag2.name]
-      editor.tagsDropdownButton.text() == tagNames.join(', ')
-      editor.areTagsApplied(tagNames)
+      editor.tagsDropdown.dropdownButton.text() == tagNames.join(', ')
+      editor.tagsDropdown.areOptionsApplied(tagNames)
 
     and: 'The policy should be marked as having Tags in the header'
       editor.showsTagIcon()
@@ -120,7 +120,7 @@ class PolicyTagSpec
     then: 'all presently selected tags are removed'
       editor.isSelected(editor.allApplicationRadioButton)
       !editor.isSelected(editor.taggedApplicationRadioButton)
-      editor.tagsDropdownButton.text() == 'None selected'
+      editor.tagsDropdown.dropdownButton.text() == 'None selected'
   }
 
   def 'We cannot save if we do not select Tags and "All Applications" is not selected'(){

@@ -28,6 +28,10 @@
   font-size: 18px;
 }
 
+.sonatype-icons.dashboard:before {
+  content: '\e601';
+}
+
 .sonatype-icons.reporting:before {
   content: '\e604';
 }

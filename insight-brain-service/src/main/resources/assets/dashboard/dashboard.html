@@ -1,0 +1,53 @@
+<div class='container dashboard-content'>
+  <div class='row'>
+    <div class='span11'>
+      <h1>Dashboard</h1>
+    </div>
+    <div class='span1 bottom-align-h1'>
+      Filters&nbsp;<i class='icon-filter'></i>
+    </div>
+  </div>
+  <div class='row'>
+    <div class='span12'>
+      <div class='well well-large dashboard-filters'>
+        <table>
+          <tbody>
+          <tr>
+            <td><h5>Applications:</h5></td>
+            <td><span id='applications' class='multi-dropdown' multi-select items='applications'
+                      selected-ids='appliedApplicationPublicIds' effective-id-field='publicId'
+                      none-selected-text='All Applications'></span></td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class='row'>
+    <div class='span12'>
+      <h4>Highest Risk</h4>
+      <table class='table'>
+        <thead>
+        <tr>
+          <th colspan='2'>RISK</th>
+          <th>POLICY</th>
+          <th>APPLICATION</th>
+          <th>COMPONENT</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr ng-repeat='risk in highestRisks'>
+          <td class='clm-bar'
+              ng-class='{ critical : risk.threatLevel >= 8, severe : risk.threatLevel >= 4 && risk.threatLevel < 8,
+                moderate : risk.threatLevel >= 1 && risk.threatLevel < 4, none : risk.threatLevel == 1,
+                ignore : risk.threatLevel == 0 }'></td>
+          <td>{{risk.threatLevel}}</td>
+          <td>{{risk.policyName}}</td>
+          <td>{{risk.applicationName}}</td>
+          <td>{{risk.groupId}}:{{risk.artifactId}}:{{risk.version}}</td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

@@ -1,7 +1,8 @@
-describe('dashboardApp', function() {
+describe('mainModuleSpec', function() {
   'use strict';
   var scope, state, currentUserSuccess, currentUserFail, licenseCheckerFail, licenseCheckerSuccess;
 
+  beforeEach(module('Configuration'));
   beforeEach(module('MainModule', function($stateProvider, $provide) {
     $provide.value('$window', {
       location: {
@@ -45,8 +46,7 @@ describe('dashboardApp', function() {
       }
     });
 
-    $stateProvider.state('test', {url: '/test/:testId'}).state('management', {}).state('management.configuration', {}).state(
-            'management.configuration.productlicense', {});
+    $stateProvider.state('test', {url: '/test/:testId'});
   }));
 
   afterEach(inject(function($httpBackend) {
@@ -108,8 +108,12 @@ describe('dashboardApp', function() {
       expect($stateParams).toEqual(toParams);
     }));
 
-    it('bad license', inject(function($rootScope, $state, $stateParams) {
+    it('bad license', inject(function($rootScope, $state, $stateParams, $httpBackend) {
       var event = null;
+      $httpBackend.expectGET('../assets/management.html?').respond('<div></div>');
+      $httpBackend.expectGET('../configuration-assets/components/configuration-navigator.html?').respond('<div></div>');
+      $httpBackend.expectGET('../configuration-assets/components/license.html?').respond('<div></div>');
+
       scope.$apply(function () {
         currentUserSuccess({
           username: 'user',
@@ -118,6 +122,8 @@ describe('dashboardApp', function() {
         licenseCheckerFail(402);
         event = $rootScope.$broadcast('$stateChangeStart', 'test', {}, '', {});
       });
+
+      $httpBackend.flush();
 
       expect(event.defaultPrevented).toBeTruthy();
       expect($rootScope.initialized).toBeTruthy();

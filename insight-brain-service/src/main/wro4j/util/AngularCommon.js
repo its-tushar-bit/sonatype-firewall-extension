@@ -746,22 +746,26 @@ var AngularUtils = {
   angularCommon.directive('multiSelect', [function () {
     return {
       template : '<div class="btn-group multiselect" ng-class="{ open : open }">' +
-                   '<button class="btn" ng-click="open = !open"><div>{{getText()}}</div> <span class="caret"></span></button>' +
+                   '<button class="btn" ng-click="open = !open"><span>{{getText()}}</span> <span class="caret"></span></button>' +
                    '<ul class="dropdown-menu multiselect-container">' +
                      '<li ng-if="items.length > 9"><input type="text" ng-model="filter.name" style="margin:0;width:160px" placeholder="Search"></li>' +
                      '<li ng-repeat="item in items | filter: { name : filter.name }">' +
                        '<label class="checkbox">' +
                          '<input type="checkbox" ng-model="selected[item.id]" ng-change="updateSelectedIds(item.id)">' +
-                         '<span class="multi-dropdown-item">{{item.name}}</span><span class="multi-dropdown-item-color {{item.color}}Label"></span>' +
+                         '<span class="multi-dropdown-item">{{item.name}}</span><span ng-if="item.color" class="multi-dropdown-item-color {{item.color}}Label"></span>' +
                        '</label>' +
                      '</li>' +
                    '</ul>' +
                  '</div>',
       scope : {
         items : '=',
-        selectedIds : '='
+        selectedIds : '=',
+        effectiveIdField : '@',
+        noneSelectedText : '@'
       },
       link : function (scope, element) {
+        var effectiveIdField = scope.effectiveIdField ? scope.effectiveIdField : 'id';
+
         function updateSelection() {
           scope.selected = {};
           if (scope.selectedIds) {
@@ -781,9 +785,19 @@ var AngularUtils = {
           }
         }
 
+        function getEffectiveIdFromId(id) {
+          for (var i = 0; i < scope.items.length; i++) {
+            var item = scope.items[i];
+            if (item.id === id) {
+              return item[effectiveIdField];
+            }
+          }
+          return id;
+        }
+
         scope.getText = function () {
           if (!scope.selectedIds || scope.selectedIds.length === 0) {
-            return 'None selected';
+            return scope.noneSelectedText ? scope.noneSelectedText : 'None selected';
           }
           var names = '';
           angular.forEach(scope.items, function (item) {
@@ -796,12 +810,13 @@ var AngularUtils = {
         };
 
         scope.updateSelectedIds = function (id) {
+          var effectiveId = getEffectiveIdFromId(id);
           if (scope.selected[id]) {
             /* add */
-            scope.selectedIds.push(id);
+            scope.selectedIds.push(effectiveId);
           } else if (scope.selectedIds) {
             /* remove */
-            var index = scope.selectedIds.indexOf(id);
+            var index = scope.selectedIds.indexOf(effectiveId);
             if (index !== -1) {
               scope.selectedIds.splice(index, 1);
             }

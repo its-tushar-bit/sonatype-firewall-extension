@@ -94,6 +94,11 @@
       </div>
       <div class='dashboard-responsive'>
         <ul class='inline dashboard-navigation'>
+          <li ng-class="{ 'active' : $state.includes('dashboard') }">
+            <a href='index.html#/dashboard' tooltip='Dashboard' tooltip-placement='bottom'>
+              <span><i class='sonatype-icons medium dashboard'></i></span>
+            </a>
+          </li>
           <li ng-class="{ 'active' : $state.includes('reports') }">
             <a href='index.html#/reports/violations' tooltip='Reporting' tooltip-placement='bottom'>
               <span><i class='sonatype-icons medium reporting'></i></span>

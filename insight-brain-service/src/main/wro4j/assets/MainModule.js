@@ -24,7 +24,7 @@
 
   var mainApp = angular.module('MainModule', ['ui.router', 'ui.bootstrap', 'CLMLocation', 'CommonServices',
     'ReportModule', 'Report', 'MainHeader', 'ngRoute', 'UnauthenticatedResponseHttpInterceptor', 'xeditable',
-    'ProductFeaturesModule', 'HttpInterceptors'],
+    'ProductFeaturesModule', 'HttpInterceptors', 'DashboardModule'],
     ['$stateProvider', '$routeProvider', '$urlRouterProvider',
     function($stateProvider, $routeProvider, $urlRouterProvider) {
       $stateProvider.state('home', {

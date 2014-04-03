@@ -18,6 +18,7 @@ import com.sonatype.insight.brain.common.io.FileCleaner.FileDeletionException;
 import com.sonatype.insight.brain.dataaccess.license.LicenseDataUpdater;
 import com.sonatype.insight.brain.db.DatamartProvider;
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
+import com.sonatype.insight.brain.landing.IndexCacheControlFilter;
 import com.sonatype.insight.brain.saas.DefaultLicenseDataUpdater;
 import com.sonatype.insight.brain.security.CLMShiroAopModule;
 import com.sonatype.insight.brain.security.CLMShiroModule;
@@ -167,6 +168,7 @@ public class InsightBrainService
         SingletonFactory.class);
 
     env.addFilter(getInstance(GuiceShiroFilter.class), "/*");
+    env.addFilter(getInstance(IndexCacheControlFilter.class), IndexCacheControlFilter.URL_PATTERN);
 
     log.info("Server base URL: {}", config.getBaseUrl());
     log.debug("SaaS address: {}", config.getSaasAddress());

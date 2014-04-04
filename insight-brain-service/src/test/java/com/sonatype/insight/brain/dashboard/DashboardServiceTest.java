@@ -62,9 +62,13 @@ public class DashboardServiceTest
     app1Policy = tempEntity.newPolicy(app1.getId(), "app owned policy");
     app1PolicyEvaluation = tempEntity.newPolicyEvaluation(app1.getId(), BuildStageType.ID, "test scan app1 id");
     app2PolicyEvaluation = tempEntity.newPolicyEvaluation(app2.getId(), BuildStageType.ID, "test scan app2 id");
+    long start = System.currentTimeMillis();
     orgPolicyViolation = tempEntity.newPolicyViolation(app1PolicyEvaluation.getId(), orgPolicy);
     app1PolicyViolation = tempEntity.newPolicyViolation(app1PolicyEvaluation.getId(), app1Policy);
     app2PolicyViolation = tempEntity.newPolicyViolation(app2PolicyEvaluation.getId(), orgPolicy);
+    while (System.currentTimeMillis() <= start) {
+      // just spinning until next policy eval time is guaranteed to be greater than time for the evals created above
+    }
   }
 
   @Test

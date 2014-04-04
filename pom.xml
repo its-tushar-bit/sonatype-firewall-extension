@@ -10,7 +10,7 @@
   <parent>
     <groupId>com.sonatype.buildsupport</groupId>
     <artifactId>private-parent</artifactId>
-    <version>5</version>
+    <version>6</version>
     <relativePath />
   </parent>
 
@@ -370,9 +370,6 @@
               <exclude>**/*.css</exclude>
               <exclude>**/*.html</exclude>
             </excludes>
-            <mapping>
-              <groovy>SLASHSTAR_STYLE</groovy>
-            </mapping>
           </configuration>
         </plugin>
         <plugin>

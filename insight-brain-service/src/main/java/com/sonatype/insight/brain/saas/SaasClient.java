@@ -29,12 +29,11 @@ import com.sonatype.insight.brain.service.InsightProxy;
 import com.sonatype.insight.brain.version.VersionResource;
 import com.sonatype.insight.client.utils.HttpClientUtils;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
+import com.sonatype.insight.error.exception.BadGatewayException;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.ConflictException;
 import com.sonatype.insight.error.exception.GatewayTimeoutException;
 import com.sonatype.insight.error.exception.InternalServerException;
-import com.sonatype.insight.error.exception.NotAuthenticatedException;
-import com.sonatype.insight.error.exception.NotAuthorizedException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.error.exception.PaymentRequiredException;
 import com.sonatype.insight.json.store.JsonUtils;
@@ -127,47 +126,29 @@ public class SaasClient
   }
 
   private <T> T fromHttpResponse(HttpResponse response, Class<T> clazz) throws IOException {
+    throwErrorIfNeeded(response);
     boolean usingStream = false;
     try {
-      switch (response.getStatusLine().getStatusCode()) {
-        case 200:
-        case 202:
-          HttpEntity entity = response.getEntity();
-          if (entity == null) {
-            return null;
-          }
-          else if (String.class.equals(clazz)) {
-            return clazz.cast(EntityUtils.toString(entity, "UTF-8"));
-          }
-          else if (InputStream.class.equals(clazz)) {
-            usingStream = true;
-            return clazz.cast(entity.getContent());
-          }
-          else {
-            InputStream in = null;
-            try {
-              in = entity.getContent();
-              return JsonUtils.parse(IOUtil.toByteArray(in), clazz);
-            }
-            finally {
-              IOUtil.close(in);
-            }
-          }
-        case 400:
-          throw new BadRequestException(getErrorMessage(response));
-        case 401:
-          throw new NotAuthenticatedException(getErrorMessage(response));
-        case 402:
-          throw new PaymentRequiredException(getErrorMessage(response));
-        case 403:
-          throw new NotAuthorizedException(getErrorMessage(response));
-        case 404:
-          throw new NotFoundException(getErrorMessage(response));
-        case 409:
-          throw new ConflictException(getErrorMessage(response));
-        default:
-          throw new InternalServerException("SaaS Error " + response.getStatusLine().getStatusCode() + ": "
-              + getErrorMessage(response));
+      HttpEntity entity = response.getEntity();
+      if (entity == null) {
+        return null;
+      }
+      else if (String.class.equals(clazz)) {
+        return clazz.cast(EntityUtils.toString(entity, "UTF-8"));
+      }
+      else if (InputStream.class.equals(clazz)) {
+        usingStream = true;
+        return clazz.cast(entity.getContent());
+      }
+      else {
+        InputStream in = null;
+        try {
+          in = entity.getContent();
+          return JsonUtils.parse(IOUtil.toByteArray(in), clazz);
+        }
+        finally {
+          IOUtil.close(in);
+        }
       }
     }
     finally {
@@ -179,6 +160,45 @@ public class SaasClient
           log.error("Failed to consume response entity", e);
         }
       }
+    }
+  }
+
+  private void throwErrorIfNeeded(HttpResponse response) throws IOException {
+    try {
+      int status = response.getStatusLine().getStatusCode();
+      switch (status) {
+        case 200:
+        case 201:
+        case 202:
+        case 204:
+          return;
+        case 400:
+          throw new BadRequestException(getErrorMessage(response));
+        case 401:
+        case 403:
+        case 407:
+          // The HDS don't require auth, so these errors indicate bad proxy or URL config
+          throw new BadGatewayException(
+              "Could not contact Sonatype HDS, please verify the network configuration of your CLM server. HDS error "
+                  + status + ": " + getErrorMessage(response));
+        case 402:
+          throw new PaymentRequiredException(getErrorMessage(response));
+        case 404:
+          throw new NotFoundException(getErrorMessage(response));
+        case 409:
+          throw new ConflictException(getErrorMessage(response));
+        case 502:
+          // coming from Apache when webapp is down
+        case 503:
+          throw new BadGatewayException(
+              "The Sonatype HDS is currently out of service, please retry in a bit. If the outage persists, please contact Sonatype Support.");
+        default:
+          throw new InternalServerException("HDS error " + status + ": " + getErrorMessage(response));
+      }
+    }
+    catch (RuntimeException | IOException e) {
+      EntityUtils.consumeQuietly(response.getEntity());
+      throw e;
     }
   }
 
@@ -290,7 +310,8 @@ public class SaasClient
     req.setHeader("X-CLM-Token", licenseManager.getLicenseFingerprint());
   }
 
-  private Response buildResponse(final HttpResponse response) {
+  private Response buildResponse(final HttpResponse response) throws IOException {
+    throwErrorIfNeeded(response);
     ResponseBuilder builder = Response.status(response.getStatusLine().getStatusCode());
 
     // pass-back response metadata+content to servlet

@@ -20,8 +20,10 @@ import javax.servlet.http.HttpServletResponse;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightProxy;
+import com.sonatype.insight.error.exception.BadGatewayException;
 
 import org.eclipse.jetty.http.HttpHeaders;
+import org.eclipse.jetty.http.HttpStatus;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.AbstractHandler;
@@ -29,11 +31,12 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.isIn;
 import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertThat;
-import static org.mockito.Mockito.any;
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -89,6 +92,7 @@ public class SaasClientTest
         for (Enumeration<String> en = request.getHeaderNames(); en.hasMoreElements();) {
           headers.add(en.nextElement().toLowerCase(Locale.ENGLISH));
         }
+        baseRequest.setHandled(true);
       }
     };
 
@@ -107,4 +111,126 @@ public class SaasClientTest
     assertThat(headers, not(empty()));
   }
 
+  @Test
+  public void testTransformAuthErrors_401() throws Exception {
+    handler = new AbstractHandler()
+    {
+
+      @Override
+      public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
+          throws IOException, ServletException
+      {
+        response.setStatus(HttpStatus.UNAUTHORIZED_401);
+        response.setContentType("text/plain;charset=UTF-8");
+        response.getWriter().println("PASSED");
+        baseRequest.setHandled(true);
+      }
+    };
+
+    try {
+      client.get(String.class, "/any", null);
+    }
+    catch (BadGatewayException e) {
+      assertThat(e.getMessage(), containsString("401"));
+      assertThat(e.getMessage(), containsString("PASSED"));
+    }
+  }
+
+  @Test
+  public void testTransformAuthErrors_403() throws Exception {
+    handler = new AbstractHandler()
+    {
+
+      @Override
+      public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
+          throws IOException, ServletException
+      {
+        response.setStatus(HttpStatus.FORBIDDEN_403);
+        response.setContentType("text/plain;charset=UTF-8");
+        response.getWriter().println("PASSED");
+        baseRequest.setHandled(true);
+      }
+    };
+
+    try {
+      client.get(String.class, "/any", null);
+    }
+    catch (BadGatewayException e) {
+      assertThat(e.getMessage(), containsString("403"));
+      assertThat(e.getMessage(), containsString("PASSED"));
+    }
+  }
+
+  @Test
+  public void testTransformAuthErrors_407() throws Exception {
+    handler = new AbstractHandler()
+    {
+
+      @Override
+      public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
+          throws IOException, ServletException
+      {
+        response.setStatus(HttpStatus.PROXY_AUTHENTICATION_REQUIRED_407);
+        response.setContentType("text/plain;charset=UTF-8");
+        response.getWriter().println("PASSED");
+        baseRequest.setHandled(true);
+      }
+    };
+
+    try {
+      client.get(String.class, "/any", null);
+    }
+    catch (BadGatewayException e) {
+      assertThat(e.getMessage(), containsString("407"));
+      assertThat(e.getMessage(), containsString("PASSED"));
+    }
+  }
+
+  @Test
+  public void testTransformServiceUnavailable() throws Exception {
+    handler = new AbstractHandler()
+    {
+
+      @Override
+      public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
+          throws IOException, ServletException
+      {
+        response.setStatus(HttpStatus.SERVICE_UNAVAILABLE_503);
+        response.setContentType("text/plain;charset=UTF-8");
+        response.getWriter().println("PASSED");
+        baseRequest.setHandled(true);
+      }
+    };
+
+    try {
+      client.get(String.class, "/any", null);
+    }
+    catch (BadGatewayException e) {
+      assertThat(e.getMessage(), containsString("Sonatype Support"));
+    }
+  }
+
+  @Test
+  public void testTransformBadGateway() throws Exception {
+    handler = new AbstractHandler()
+    {
+
+      @Override
+      public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
+          throws IOException, ServletException
+      {
+        response.setStatus(HttpStatus.BAD_GATEWAY_502);
+        response.setContentType("text/plain;charset=UTF-8");
+        response.getWriter().println("PASSED");
+        baseRequest.setHandled(true);
+      }
+    };
+
+    try {
+      client.get(String.class, "/any", null);
+    }
+    catch (BadGatewayException e) {
+      assertThat(e.getMessage(), containsString("Sonatype Support"));
+    }
+  }
 }

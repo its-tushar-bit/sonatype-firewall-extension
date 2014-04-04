@@ -372,7 +372,7 @@
   ]);
 
   licenseGroupModule.directive('ltgCreator', [
-    'licenseGroupStore', 'Dialog', function(licenseGroupStore, Dialog) {
+    'licenseGroupStore', 'Dialog', '$state', function(licenseGroupStore, Dialog, $state) {
       return {
         restrict: 'A',
         templateUrl: 'ltgcreator',
@@ -383,6 +383,9 @@
           };
           scope.hide = function() {
             scope.selectedGroup = null;
+            if ($state.$current.data && $state.$current.data.openNew) {
+              $state.go($state.$current.parent);
+            }
           };
           scope.cancelLicenseGroupEdit = function() {
             if (scope.selectedGroup && scope.selectedGroup.isDirty()) {
@@ -394,6 +397,13 @@
               scope.hide();
             }
           };
+          
+          scope.$state = $state;
+          scope.$watch('$state.$current.data.openNew',function(value){
+            if (value) {
+              scope.createNew();
+            }
+          });
         }
       };
     }

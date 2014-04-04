@@ -85,7 +85,7 @@ describe('Tests for the OrganizationController', function() {
       expect($state.current.data.passThroughAlerts[0].type).toEqual('error');
     }));
     
-    it('new state sets proper flag', inject(function($state, $httpBackend) {
+    it('new policy state sets proper flag', inject(function($state, $httpBackend) {
       $httpBackend.expectGET('../assets/management.html?').respond('<div></div>');
       $httpBackend.expectGET('../organization-assets/components/organization-navigator.html?').respond('<div></div>');
       $httpBackend.expectGET('../application-assets/components/aoeditor.html?').respond('<div></div>');
@@ -97,7 +97,7 @@ describe('Tests for the OrganizationController', function() {
 
       $httpBackend.flush();
 
-      expect($state.current.data.openNewPolicy).toBeFalsy();
+      expect($state.current.data.openNew).toBeFalsy();
       
       $state.transitionTo('management.organization.view.policies.new', {
         organizationId : '12345'
@@ -106,7 +106,55 @@ describe('Tests for the OrganizationController', function() {
       //need to do this so that the transition gets completed properly, as there are no http requests we can wait on to trigger this
       scope.$apply();
 
-      expect($state.current.data.openNewPolicy).toBeTruthy();
+      expect($state.current.data.openNew).toBeTruthy();
+    }));
+    
+    it('new label state sets proper flag', inject(function($state, $httpBackend) {
+      $httpBackend.expectGET('../assets/management.html?').respond('<div></div>');
+      $httpBackend.expectGET('../organization-assets/components/organization-navigator.html?').respond('<div></div>');
+      $httpBackend.expectGET('../application-assets/components/aoeditor.html?').respond('<div></div>');
+      $httpBackend.expectGET('../policy-assets/components/label-editor/labels.html?').respond('<div></div>');
+
+      $state.transitionTo('management.organization.view.labels', {
+        organizationId : '12345'
+      });
+
+      $httpBackend.flush();
+
+      expect($state.current.data.openNew).toBeFalsy();
+      
+      $state.transitionTo('management.organization.view.labels.new', {
+        organizationId : '12345'
+      });
+      
+      //need to do this so that the transition gets completed properly, as there are no http requests we can wait on to trigger this
+      scope.$apply();
+
+      expect($state.current.data.openNew).toBeTruthy();
+    }));
+  
+    it('new license state sets proper flag', inject(function($state, $httpBackend) {
+      $httpBackend.expectGET('../assets/management.html?').respond('<div></div>');
+      $httpBackend.expectGET('../organization-assets/components/organization-navigator.html?').respond('<div></div>');
+      $httpBackend.expectGET('../application-assets/components/aoeditor.html?').respond('<div></div>');
+      $httpBackend.expectGET('../policy-assets/components/license-threat-group/license-threat-group.html?').respond('<div></div>');
+  
+      $state.transitionTo('management.organization.view.licenses', {
+        organizationId : '12345'
+      });
+  
+      $httpBackend.flush();
+  
+      expect($state.current.data.openNew).toBeFalsy();
+      
+      $state.transitionTo('management.organization.view.licenses.new', {
+        organizationId : '12345'
+      });
+      
+      //need to do this so that the transition gets completed properly, as there are no http requests we can wait on to trigger this
+      scope.$apply();
+  
+      expect($state.current.data.openNew).toBeTruthy();
     }));
   });
 

@@ -74,6 +74,10 @@
       return $state.params.applicationPublicId;
     }
     
+    function getBasePath() {
+      return '#/management/' + (isOrgState() ? 'organization' : 'application') + '/' + encodeURIComponent(getCurrentId());
+    }
+    
     $scope.$state = $state;
     
     currentUser.then(function(status) {
@@ -89,7 +93,15 @@
     };
     
     $scope.getPolicyPath = function() {
-      return '#/management/' + (isOrgState() ? 'organization' : 'application') + '/' + encodeURIComponent(getCurrentId()) + '/policies/new';
+      return getBasePath() + '/policies/new';
+    };
+    
+    $scope.getLabelPath = function() {
+      return getBasePath() + '/labels/new';
+    };
+    
+    $scope.getLicensePath = function() {
+      return getBasePath() + '/licenses/new';
     };
   }]);
 

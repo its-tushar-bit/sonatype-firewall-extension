@@ -28,8 +28,8 @@
   }
 
   labelModule.controller('LabelController', [
-    '$scope', '$http', '$q', '$modal', 'Dialog', 'CLMAppLocations', 'Messages', 'CLMResource', 'LabelStore', 'ownerChange',
-    function($scope, $http, $q, $modal, Dialog, clmAppLocations, messages, clmResource, LabelStore, ownerChange) {
+    '$scope', '$http', '$q', '$modal', 'Dialog', 'CLMAppLocations', 'Messages', 'CLMResource', 'LabelStore', 'ownerChange', '$state',
+    function($scope, $http, $q, $modal, Dialog, clmAppLocations, messages, clmResource, LabelStore, ownerChange, $state) {
       $scope.alerts = [];
 
       function deselect() {
@@ -140,6 +140,16 @@
       $scope.$on('labels.cancelEditLabel', function(event) {
         event.stopPropagation();
         deselect();
+        if ($state.$current.data && $state.$current.data.openNew) {
+          $state.go($state.$current.parent);
+        }
+      });
+      
+      $scope.$state = $state;
+      $scope.$watch('$state.$current.data.openNew',function(value){
+        if (value) {
+          $scope.createNew();
+        }
       });
 
       $scope.doLoad();

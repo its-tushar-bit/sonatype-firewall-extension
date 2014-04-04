@@ -671,6 +671,9 @@
         link: function(scope) {
           scope.hide = function() {
             scope.policy = null;
+            if ($state.$current.data && $state.$current.data.openNew) {
+              $state.go($state.$current.parent);
+            }
           };
           scope.createPolicy = function() {
             return policyStore.get().create();
@@ -685,7 +688,7 @@
           };
           
           scope.$state = $state;
-          scope.$watch('$state.$current.data.openNewPolicy',function(value){
+          scope.$watch('$state.$current.data.openNew',function(value){
             if (value) {
               scope.click();
             }

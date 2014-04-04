@@ -56,7 +56,7 @@
         controller: 'PolicyController',
         data: {
           passThroughAlerts: [],
-          openNewPolicy: true
+          openNew: true
         },
         templateUrl: '../policy-assets/components/policy/policy.html?' + clmBuildTimestamp
       }).state('management.organization.view.labels', {
@@ -64,12 +64,31 @@
         url: '/labels',
         controller: 'LabelController',
         templateUrl: '../policy-assets/components/label-editor/labels.html?' + clmBuildTimestamp
+      }).state('management.organization.view.labels.new', {
+        parent: 'management.organization.view.labels',
+        url: '/new',
+        controller: 'LabelController',
+        data: {
+          passThroughAlerts: [],
+          openNew: true
+        },
+        templateUrl: '../policy-assets/components/label-editor/labels.html?' + clmBuildTimestamp
       }).state('management.organization.view.licenses', {
         parent: 'management.organization.view',
         url: '/licenses',
         controller: 'LicenseThreatGroupController',
         templateUrl: '../policy-assets/components/license-threat-group/license-threat-group.html?' +
             clmBuildTimestamp
+      }).state('management.organization.view.licenses.new', {
+        parent: 'management.organization.view.licenses',
+        url: '/new',
+        controller: 'LicenseThreatGroupController',
+        data: {
+          passThroughAlerts: [],
+          openNew: true
+        },
+        templateUrl: '../policy-assets/components/license-threat-group/license-threat-group.html?' +
+        clmBuildTimestamp
       }).state('management.organization.view.security', {
         parent: 'management.organization.view',
         url: '/security',

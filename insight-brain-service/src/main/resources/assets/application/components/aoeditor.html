@@ -338,10 +338,10 @@
 				<li ng-class='{ active : isCurrentTab("policies") || isCurrentTab("policies.edit") || isCurrentTab("policies.new") }'>
 					<a ng-href='#/management/{{ao.type}}/{{ao.getPublicId()}}/policies'>POLICIES</a>
 				</li>
-				<li ng-class='{ active : isCurrentTab("labels")}'>
+				<li ng-class='{ active : isCurrentTab("labels") || isCurrentTab("labels.new")}'>
 					<a ng-href='#/management/{{ao.type}}/{{ao.getPublicId()}}/labels'>LABELS</a>
 				</li>
-				<li ng-class='{ active : isCurrentTab("licenses")}'>
+				<li ng-class='{ active : isCurrentTab("licenses") || isCurrentTab("licenses.new")}'>
 					<a ng-href='#/management/{{ao.type}}/{{ao.getPublicId()}}/licenses'>LICENSES</a>
 				</li>
               <li ng-class='{ active : isCurrentTab("tags")}'>

@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.policy.evaluator;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -39,9 +40,12 @@ public class PolicyAlertUtil
         policyFact = new PolicyFact(policyId, policyViolation.getPolicyName(), policyViolation.getThreatLevel());
         policyFactsByPolicyId.put(policyId, policyFact);
 
-        Policy policy = policyDAO.getByIdNotNull(policyId);
+        Policy policy = policyDAO.getById(policyId);
         List<? extends Action> actions;
-        if (policyEvaluation.isForMonitoring()) {
+        if (policy == null) {
+          actions = Collections.emptyList();
+        }
+        else if (policyEvaluation.isForMonitoring()) {
           actions = policy.getMonitorNotifyActions();
         }
         else {

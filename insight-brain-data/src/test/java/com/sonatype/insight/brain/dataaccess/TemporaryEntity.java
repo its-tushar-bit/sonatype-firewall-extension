@@ -27,6 +27,7 @@ import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupLicenseDAO;
+import com.sonatype.insight.brain.dataaccess.policy.NewestPolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
@@ -51,6 +52,7 @@ import com.sonatype.insight.brain.model.license.LicenseThreatGroupLicense;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
+import com.sonatype.insight.brain.model.policy.NewestPolicyViolation;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
@@ -104,6 +106,8 @@ public class TemporaryEntity
   private final PolicyEvaluationDAO policyEvaluationDAO = new PolicyEvaluationDAO();
 
   private final PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
+
+  private final NewestPolicyViolationDAO newestPolicyViolationDAO = new NewestPolicyViolationDAO();
 
   private final ComponentLabelDAO componentLabelDAO = new ComponentLabelDAO();
 
@@ -568,5 +572,14 @@ public class TemporaryEntity
     policyViolationDAO.insert(policyViolation);
     policyViolations.add(policyViolation);
     return policyViolation;
+  }
+
+  public NewestPolicyViolation newNewestPolicyViolation(String policyViolationId, String applicationId,
+      String stageTypeId, Date time)
+  {
+    NewestPolicyViolation newestPolicyViolation = new NewestPolicyViolation(policyViolationId, applicationId,
+        stageTypeId, time);
+    newestPolicyViolationDAO.insert(newestPolicyViolation);
+    return newestPolicyViolation;
   }
 }

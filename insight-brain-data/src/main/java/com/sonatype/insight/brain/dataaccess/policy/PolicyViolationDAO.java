@@ -10,6 +10,7 @@ import java.util.List;
 import javax.persistence.EntityManager;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
+import com.sonatype.insight.brain.model.policy.NewestPolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 
 /**
@@ -48,8 +49,32 @@ public class PolicyViolationDAO
     return getList(em, sQuery, policyId);
   }
 
+  /**
+   * This is just an example for a getter for newest policy violations. I'm not sure yet what getters we actually need.
+   */
+  public List<PolicyViolation> getNewestByApplicationId(String appId) {
+    // TODO Filter by newestPolicyViolation.time?
+    String sQuery = "SELECT policyViolation" + //
+        " FROM PolicyViolation policyViolation, NewestPolicyViolation newestPolicyViolation" + //
+        " WHERE policyViolation.id=newestPolicyViolation.id AND newestPolicyViolation.applicationId=?1" + //
+        " ORDER BY policyViolation.policyId, policyViolation.groupId, policyViolation.artifactId, policyViolation.version, policyViolation.hash";
+    return getList(sQuery, appId);
+  }
+
   @Override
   public void update(EntityManager em, PolicyViolation entity) {
     throw new UnsupportedOperationException("The PolicyViolation table does not support update operations");
+  }
+
+  @Override
+  public void delete(EntityManager em, PolicyViolation entity) {
+    // Cascade to newest policy violation
+    NewestPolicyViolationDAO newestPolicyViolationDAO = new NewestPolicyViolationDAO();
+    NewestPolicyViolation newestPolicyViolation = newestPolicyViolationDAO.getById(em, entity.getId());
+    if (newestPolicyViolation != null) {
+      newestPolicyViolationDAO.delete(em, newestPolicyViolation);
+    }
+
+    super.delete(em, entity);
   }
 }

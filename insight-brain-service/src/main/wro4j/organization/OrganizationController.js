@@ -50,6 +50,15 @@
           passThroughAlerts: []
         },
         templateUrl: '../policy-assets/components/policy/policy.html?' + clmBuildTimestamp
+      }).state('management.organization.view.policies.new', {
+        parent: 'management.organization.view.policies',
+        url: '/new',
+        controller: 'PolicyController',
+        data: {
+          passThroughAlerts: [],
+          openNewPolicy: true
+        },
+        templateUrl: '../policy-assets/components/policy/policy.html?' + clmBuildTimestamp
       }).state('management.organization.view.labels', {
         parent: 'management.organization.view',
         url: '/labels',

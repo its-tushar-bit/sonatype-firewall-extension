@@ -68,6 +68,19 @@ describe('mainHeader', function() {
     $httpBackend.verifyNoOutstandingExpectation();
     $httpBackend.verifyNoOutstandingRequest();
   }));
+  
+  describe('Main Header Add Menu', function(){
+    describe('Policy item', function(){
+      it('proper path is retreived for org', inject(function($state){
+        $state.params.organizationId = '123';
+        expect(scope.getPolicyPath()).toEqual('#/management/organization/123/policies/new');
+      }));
+      it('proper path is retreived for app', inject(function($state){
+        $state.params.applicationPublicId = '123';
+        expect(scope.getPolicyPath()).toEqual('#/management/application/123/policies/new');
+      }));
+    });
+  });
 
   describe('Main Header User Controls', function () {
     describe('LogoutController', function () {

@@ -59,14 +59,37 @@
   }]);
 
   module.controller('mainHeaderController', ['$scope', '$state', 'CurrentUser', function($scope, $state, currentUser) {
+    function isOrgState() {
+      return $state.params.organizationId && $state.params.organizationId !== '_new_';
+    }
+    
+    function isAppState() {
+      return $state.params.applicationPublicId && $state.params.applicationPublicId !== '_new_';
+    }
+    
+    function getCurrentId() {
+      if (isOrgState()) {
+        return $state.params.organizationId;
+      }
+      return $state.params.applicationPublicId;
+    }
+    
     $scope.$state = $state;
-
+    
     currentUser.then(function(status) {
       $scope.displayName = status.displayName;
     });
     
     $scope.getServerVersion = function() {
       return clmServerVersion;
+    };
+    
+    $scope.isOrgOrAppState = function() {
+      return isOrgState() || isAppState();
+    };
+    
+    $scope.getPolicyPath = function() {
+      return '#/management/' + (isOrgState() ? 'organization' : 'application') + '/' + encodeURIComponent(getCurrentId()) + '/policies/new';
     };
   }]);
 

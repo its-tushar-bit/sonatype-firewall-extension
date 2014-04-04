@@ -70,6 +70,30 @@ describe('ApplicationController', function() {
     expect($state.current.data.passThroughAlerts[0].msg).toEqual('apptest');
     expect($state.current.data.passThroughAlerts[0].type).toEqual('error');
   }));
+  
+  it('new state sets proper flag', inject(function($state, $httpBackend) {
+    $httpBackend.expectGET('../assets/management.html?').respond('<div></div>');
+    $httpBackend.expectGET('../application-assets/components/application-navigator.html?').respond('<div></div>');
+    $httpBackend.expectGET('../application-assets/components/aoeditor.html?').respond('<div></div>');
+    $httpBackend.expectGET('../policy-assets/components/policy/policy.html?').respond('<div></div>');
+
+    $state.transitionTo('management.application.view.policies', {
+      applicationPublicId : '12345'
+    });
+
+    $httpBackend.flush();
+
+    expect($state.current.data.openNewPolicy).toBeFalsy();
+    
+    $state.transitionTo('management.application.view.policies.new', {
+      applicationPublicId : '12345'
+    });
+    
+    //need to do this so that the transition gets completed properly, as there are no http requests we can wait on to trigger this
+    scope.$apply();
+
+    expect($state.current.data.openNewPolicy).toBeTruthy();
+  }));
 });
 
 describe('ApplicationEditorController', function() {

@@ -335,7 +335,7 @@
 		</div>
 		<div ng-if='ao.selected && !ao.isNew()' style='clear:both'>
 			<ul class='tri-pane'>
-				<li ng-class='{ active : isCurrentTab("policies") || isCurrentTab("policies.edit") }'>
+				<li ng-class='{ active : isCurrentTab("policies") || isCurrentTab("policies.edit") || isCurrentTab("policies.new") }'>
 					<a ng-href='#/management/{{ao.type}}/{{ao.getPublicId()}}/policies'>POLICIES</a>
 				</li>
 				<li ng-class='{ active : isCurrentTab("labels")}'>

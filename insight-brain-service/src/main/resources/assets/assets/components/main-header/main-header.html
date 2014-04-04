@@ -127,6 +127,9 @@
                 <li>
                   <a href='#/management/application/_new_'>New Application</a>
                 </li>
+                <li ng-if='isOrgOrAppState()'>
+                  <a ng-href='{{getPolicyPath()}}'>New Policy</a>
+                </li>
               </ul>
             </div>
           </li>

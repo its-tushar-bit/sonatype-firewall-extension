@@ -149,12 +149,14 @@
 
       function isAppliedTagsChanged() {
         var originalPolicyTagIds = jQuery.map(originalTags, function(tag) { return tag.id; });
-        for (var i = 0; i < $scope.tags.length; i++) {
-          var tag = $scope.tags[i];
-          var tagId = tag.id;
-          if ($scope.appliedTagIds.indexOf(tagId) > -1 && originalPolicyTagIds.indexOf(tagId) === -1 ||
-            $scope.appliedTagIds.indexOf(tagId) === -1 && originalPolicyTagIds.indexOf(tagId) > -1) {
-            return true;
+        if ($scope.tags) {
+          for (var i = 0; i < $scope.tags.length; i++) {
+            var tag = $scope.tags[i];
+            var tagId = tag.id;
+            if ($scope.appliedTagIds.indexOf(tagId) > -1 && originalPolicyTagIds.indexOf(tagId) === -1 ||
+              $scope.appliedTagIds.indexOf(tagId) === -1 && originalPolicyTagIds.indexOf(tagId) > -1) {
+              return true;
+            }
           }
         }
         return false;
@@ -658,7 +660,7 @@
   ]);
 
   module.directive('inlinePolicyCreator', [
-    'PolicyStore', function(policyStore) {
+    'PolicyStore', '$state', function(policyStore, $state) {
       return {
         restrict: 'A',
         templateUrl: 'policy-quick-add',
@@ -681,6 +683,13 @@
               scope.policy = policyStore.get().create();
             }
           };
+          
+          scope.$state = $state;
+          scope.$watch('$state.$current.data.openNewPolicy',function(value){
+            if (value) {
+              scope.click();
+            }
+          });
         }
       };
     }

@@ -609,8 +609,8 @@ public class PolicyDAOTest
   }
 
   @Test
-  public void testCascadeDeleteToPolicyViolations() {
-    Policy policy = tempEntity.newPolicy(applicationId, "testCascadeDeleteToPolicyViolations");
+  public void testCascadeDoesNotDeleteToPolicyViolations() {
+    Policy policy = tempEntity.newPolicy(applicationId, "testCascadeDoesNotDeleteToPolicyViolations");
     PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(applicationId, ReleaseStageType.ID,
         "PolicyEvaluationDAOTest");
     tempEntity.newPolicyViolation(policyEvaluation.getId(), policy);
@@ -618,6 +618,6 @@ public class PolicyDAOTest
     assertThat(policyViolationDAO.getByEvaluationId(policyEvaluation.getId()), hasSize(1));
 
     policyDAO.delete(policy);
-    assertThat(policyViolationDAO.getByEvaluationId(policyEvaluation.getId()), hasSize(0));
+    assertThat(policyViolationDAO.getByEvaluationId(policyEvaluation.getId()), hasSize(1));
   }
 }

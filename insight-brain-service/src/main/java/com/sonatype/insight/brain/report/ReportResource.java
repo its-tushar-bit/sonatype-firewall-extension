@@ -184,7 +184,7 @@ public class ReportResource
     String appId = application.getId();
 
     final String name = Report.toEntryName(path);
-    final File reportFile = fetchReport(reportDownloader, work, appId, scanId, false);
+    final File reportFile = fetchReport(reportDownloader, work, appId, scanId, false, false);
     ReportEntry reportEntry = null;
     try {
       reportEntry = Report.getEntry(reportFile, name);
@@ -250,7 +250,7 @@ public class ReportResource
     String appId = application.getId();
     ContactDTO contact = applicationAdapter.getContact(application.getContactInternalName());
 
-    final File reportFile = fetchReport(reportDownloader, work, appId, scanId, true);
+    final File reportFile = fetchReport(reportDownloader, work, appId, scanId, true, false);
 
     final ResponseBuilder response = Response.ok();
 
@@ -274,7 +274,7 @@ public class ReportResource
       @PathParam("scanId") final String scanId) throws IOException
   {
     Application app = applicationDAO.getByPublicIdNotNull(applicationPublicId);
-    File reportFile = fetchReport(reportDownloader, work, app.getId(), scanId, true);
+    File reportFile = fetchReport(reportDownloader, work, app.getId(), scanId, true, false);
     String filename = "report-" + scanId + ".zip";
 
     Properties templateProps = Report.getTemplateProperties(reportFile);
@@ -506,7 +506,7 @@ public class ReportResource
   }
 
   public static File fetchReport(final ReportDownloader reportDownloader, final InsightWork work, final String appId,
-      final String scanId, final boolean waitForReport) throws IOException
+      final String scanId, final boolean waitForReport, final boolean skipUpdate) throws IOException
   {
     final File reportFile = work.getReportFile(appId, scanId);
     if (reportDownloader == null && !reportFile.exists()) {
@@ -535,19 +535,21 @@ public class ReportResource
         FileUtils.rename(tempFile, reportFile);
       }
 
-      final File appAuditDir = work.getAuditDir(appId);
-      int newCount = JsonUtils.fileStore(appAuditDir).modificationCount();
-      Application application = new ApplicationDAO().getByIdNotNull(appId);
-      File orgAuditDir = work.getAuditDir(application.getOrganizationId());
-      newCount += JsonUtils.fileStore(orgAuditDir).modificationCount();
-      final Integer oldCount = MODIFICATION_COUNTS.get(appId + '-' + scanId);
+      if (!skipUpdate) {
+        final File appAuditDir = work.getAuditDir(appId);
+        int newCount = JsonUtils.fileStore(appAuditDir).modificationCount();
+        Application application = new ApplicationDAO().getByIdNotNull(appId);
+        File orgAuditDir = work.getAuditDir(application.getOrganizationId());
+        newCount += JsonUtils.fileStore(orgAuditDir).modificationCount();
+        final Integer oldCount = MODIFICATION_COUNTS.get(appId + '-' + scanId);
 
-      if (oldCount == null || oldCount < newCount) {
-        Report.deletePdf(reportFile);
+        if (oldCount == null || oldCount < newCount) {
+          Report.deletePdf(reportFile);
 
-        Report.applyChanges(application, reportFile, appAuditDir);
+          Report.applyChanges(application, reportFile, appAuditDir);
 
-        MODIFICATION_COUNTS.put(appId + '-' + scanId, newCount);
+          MODIFICATION_COUNTS.put(appId + '-' + scanId, newCount);
+        }
       }
 
       return reportFile;
@@ -557,8 +559,13 @@ public class ReportResource
     }
   }
 
+  public static File getReport(final InsightWork work, final String appId, final String scanId,
+                               final boolean skipUpdate) throws IOException {
+    return fetchReport(null, work, appId, scanId, false, skipUpdate);
+  }
+
   public static File getReport(final InsightWork work, final String appId, final String scanId) throws IOException {
-    return fetchReport(null, work, appId, scanId, false);
+    return fetchReport(null, work, appId, scanId, false, false);
   }
 
   public static void flushReportChanges(final String appId, final String scanId) {

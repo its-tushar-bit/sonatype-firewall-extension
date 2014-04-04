@@ -1,0 +1,15 @@
+[
+  {
+    "time": 1395857108659,
+    "user": "anonymous",
+    "ip": "127.0.0.1",
+    "where": "",
+    "data": {
+      "stage": {
+        "stageTypeId": "release"
+      },
+      "scanId": "86239d1f600444968309a763c71955e7",
+      "reevaluation": false
+    }
+  }
+]

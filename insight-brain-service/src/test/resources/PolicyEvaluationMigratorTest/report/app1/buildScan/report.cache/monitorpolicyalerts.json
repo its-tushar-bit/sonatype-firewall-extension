@@ -1,0 +1,44 @@
+{
+  "aaData": [
+    {
+      "trigger": {
+        "policyId": "492542d33d1d42e8bc37a55e7130cbc0",
+        "policyName": "License-Declared Only",
+        "threatLevel": 5,
+        "componentFacts": [
+          {
+            "groupId": "com.carrotsearch",
+            "artifactId": "hppc",
+            "version": "0.5.2",
+            "hash": "074bcc9d152a928a4ea9",
+            "constraintFacts": [
+              {
+                "constraintId": "a1240bc42f704d8491b5d254e3005654",
+                "constraintName": "Declared - Not Provided",
+                "operatorName": "AND",
+                "conditionFacts": [
+                  {
+                    "conditionTypeId": "License",
+                    "summary": "License is not 'Not Declared'",
+                    "reason": "Found 'Not Provided' and 'Apache-2.0' Licenses"
+                  },
+                  {
+                    "conditionTypeId": "License",
+                    "summary": "License is 'Not Provided'",
+                    "reason": "Found 'Not Provided' and 'Apache-2.0' Licenses"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "actions": [
+        {
+          "actionTypeId": "warn",
+          "target": null
+        }
+      ]
+    }
+  ]
+}

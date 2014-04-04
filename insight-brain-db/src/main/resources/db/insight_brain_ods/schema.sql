@@ -300,6 +300,5 @@ CREATE TABLE policy_violation (
   version varchar(100),
   constraint_facts_json CLOB NOT NULL, -- the constraint facts (that caused the policy violation) stored in json format
   CONSTRAINT policy_violation_pk PRIMARY KEY (policy_violation_id),
-  CONSTRAINT policy_violation_evaluation_fk FOREIGN KEY (policy_evaluation_id) REFERENCES policy_evaluation(policy_evaluation_id),
-  CONSTRAINT policy_violation_policy_fk FOREIGN KEY (policy_id) REFERENCES policy(policy_id)
+  CONSTRAINT policy_violation_evaluation_fk FOREIGN KEY (policy_evaluation_id) REFERENCES policy_evaluation(policy_evaluation_id)
 );

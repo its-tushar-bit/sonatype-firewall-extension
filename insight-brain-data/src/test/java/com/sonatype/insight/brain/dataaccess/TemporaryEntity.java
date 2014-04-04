@@ -323,6 +323,14 @@ public class TemporaryEntity
     return app;
   }
 
+  public Application newApplicationWithSpecificId(String id, String name, String publicId, String orgId) {
+    Application app = new Application(publicId, name, orgId);
+    app.setId(id);
+    appDAO.insert(app);
+    apps.add(app);
+    return app;
+  }
+
   public List<Application> newApplications(String orgId, int appCount) {
     List<Application> applications = new ArrayList<>();
     for (int index = 0; index < appCount; ++index) {

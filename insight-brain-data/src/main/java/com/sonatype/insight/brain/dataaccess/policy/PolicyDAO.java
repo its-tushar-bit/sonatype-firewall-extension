@@ -42,6 +42,10 @@ public class PolicyDAO
     return PolicyInternal.toPolicy(policyInternalDAO.getById(id));
   }
 
+  public Policy getById(EntityManager em, String id) {
+    return PolicyInternal.toPolicy(policyInternalDAO.getById(em, id));
+  }
+
   public Policy getByIdNotNull(String id) {
     return PolicyInternal.toPolicy(policyInternalDAO.getByIdNotNull(id));
   }
@@ -141,13 +145,6 @@ public class PolicyDAO
   }
 
   public void delete(EntityManager em, Policy policy) {
-    // Cascade to policy violations
-    PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
-    List<PolicyViolation> policyViolations = policyViolationDAO.getByPolicyId(em, policy.getId());
-    for (PolicyViolation policyViolation : policyViolations) {
-      policyViolationDAO.delete(em, policyViolation);
-    }
-
     PolicyInternal policyInternal = PolicyInternal.fromPolicy(policy);
     policyInternalDAO.delete(em, policyInternal);
   }

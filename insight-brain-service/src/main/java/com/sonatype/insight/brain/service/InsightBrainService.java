@@ -87,6 +87,9 @@ public class InsightBrainService
 
     PolicyMigrator policyMigrator = getInstance(PolicyMigrator.class);
     policyMigrator.migrate();
+
+    PolicyEvaluationMigrator policyEvaluationMigrator = getInstance(PolicyEvaluationMigrator.class);
+    policyEvaluationMigrator.migrate();
   }
 
   private static boolean validateTempDir() {

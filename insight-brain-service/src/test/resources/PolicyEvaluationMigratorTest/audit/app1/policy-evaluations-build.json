@@ -1,0 +1,67 @@
+[
+  {
+    "time": 1395857108660,
+    "user": "anonymous",
+    "ip": "127.0.0.1",
+    "where": "",
+    "data": {
+      "stage": {
+        "stageTypeId": "build"
+      },
+      "scanId": "buildScan2",
+      "reevaluation": true
+    }
+  },
+  {
+    "time": 1395857108659,
+    "user": "anonymous",
+    "ip": "127.0.0.1",
+    "where": "",
+    "data": {
+      "stage": {
+        "stageTypeId": "build"
+      },
+      "scanId": "buildScan2",
+      "reevaluation": false
+    }
+  },
+  {
+    "time": 1395857108658,
+    "user": "anonymous",
+    "ip": "127.0.0.1",
+    "where": "",
+    "data": {
+      "stage": {
+        "stageTypeId": "build"
+      },
+      "scanId": "buildScan",
+      "reevaluation": true
+    }
+  },
+  {
+    "time": 1395857108657,
+    "user": "anonymous",
+    "ip": "127.0.0.1",
+    "where": "",
+    "data": {
+      "stage": {
+        "stageTypeId": "build"
+      },
+      "scanId": "buildScan",
+      "reevaluation": true
+    }
+  },
+  {
+    "time": 1395857108656,
+    "user": "anonymous",
+    "ip": "127.0.0.1",
+    "where": "",
+    "data": {
+      "stage": {
+        "stageTypeId": "build"
+      },
+      "scanId": "buildScan",
+      "reevaluation": false
+    }
+  }
+]

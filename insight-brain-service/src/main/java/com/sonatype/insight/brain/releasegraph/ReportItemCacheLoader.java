@@ -46,7 +46,7 @@ public class ReportItemCacheLoader
     String appId = application.getId();
 
     final String name = Report.toEntryName("popularity.json");
-    final File reportFile = ReportResource.fetchReport(reportDownloader, work, appId, key.getScanId(), false);
+    final File reportFile = ReportResource.fetchReport(reportDownloader, work, appId, key.getScanId(), false, false);
     ReportEntry reportEntry = Report.getEntry(reportFile, name);
 
     if (reportEntry == null) {

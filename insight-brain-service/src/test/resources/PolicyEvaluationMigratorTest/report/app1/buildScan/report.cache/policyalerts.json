@@ -1,0 +1,44 @@
+{
+  "aaData": [
+    {
+      "trigger": {
+        "policyId": "492542d33d1d42e8bc37a55e7130cbc0",
+        "policyName": "License-Declared Only",
+        "threatLevel": 5,
+        "componentFacts": [
+          {
+            "groupId": "antlr",
+            "artifactId": "antlr",
+            "version": "2.7.7",
+            "hash": "83cd2cd674a217ade95a",
+            "constraintFacts": [
+              {
+                "constraintId": "1182e1d74861493883202fd8bf411c13",
+                "constraintName": "Declared - No Source code",
+                "operatorName": "AND",
+                "conditionFacts": [
+                  {
+                    "conditionTypeId": "License",
+                    "summary": "License is not 'Not Declared'",
+                    "reason": "Found 'No Sources' and 'BSD-3-Clause' Licenses"
+                  },
+                  {
+                    "conditionTypeId": "License",
+                    "summary": "License is 'No Sources'",
+                    "reason": "Found 'No Sources' and 'BSD-3-Clause' Licenses"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "actions": [
+        {
+          "actionTypeId": "warn",
+          "target": null
+        }
+      ]
+    }
+  ]
+}

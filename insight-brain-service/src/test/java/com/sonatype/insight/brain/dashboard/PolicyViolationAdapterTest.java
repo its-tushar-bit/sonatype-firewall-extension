@@ -26,6 +26,7 @@ import org.junit.Test;
 import static com.sonatype.insight.brain.dashboard.PolicyViolationDTOTestUtils.assertPolicyViolationDTO;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 
@@ -108,8 +109,8 @@ public class PolicyViolationAdapterTest
     Application app = tempEntity.newApplication(org.getId());
 
     PolicyEvaluation policyEvaluation1 = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "scan-id");
-    tempEntity.newPolicyViolation(policyEvaluation1.getId(), policy);
-    tempEntity.newPolicyViolation(policyEvaluation1.getId(), policy);
+    PolicyViolation policyViolation1 = tempEntity.newPolicyViolation(policyEvaluation1.getId(), policy);
+    PolicyViolation policyViolation2 = tempEntity.newPolicyViolation(policyEvaluation1.getId(), policy);
 
     PolicyDAO policyDAO = new PolicyDAO();
     policyDAO.delete(policy);
@@ -118,7 +119,12 @@ public class PolicyViolationAdapterTest
         Lists.newArrayList(policyEvaluation1));
 
     assertNotNull(dtos);
-    assertThat(dtos, empty());
+    assertThat(dtos, hasSize(2));
+    assertThat(policyViolation1.getPolicyName(), is(policy.getName()));
+    assertThat(policyViolation1.getPolicyId(), is(policy.getId()));
+
+    assertThat(policyViolation2.getPolicyName(), is(policy.getName()));
+    assertThat(policyViolation2.getPolicyId(), is(policy.getId()));
   }
 
   @Test

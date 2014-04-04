@@ -1,0 +1,28 @@
+[
+  {
+    "time": 1395854414876,
+    "user": "anonymous",
+    "ip": "127.0.0.1",
+    "where": "",
+    "data": {
+      "stage": {
+        "stageTypeId": "stage-release"
+      },
+      "scanId": "stageReleaseScan",
+      "reevaluation": true
+    }
+  },
+  {
+    "time": 1395854414875,
+    "user": "anonymous",
+    "ip": "127.0.0.1",
+    "where": "",
+    "data": {
+      "stage": {
+        "stageTypeId": "stage-release"
+      },
+      "scanId": "stageReleaseScan",
+      "reevaluation": false
+    }
+  }
+]

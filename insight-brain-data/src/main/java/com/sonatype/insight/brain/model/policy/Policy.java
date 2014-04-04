@@ -24,7 +24,7 @@ import com.sonatype.insight.brain.model.policy.actions.NotifyActionType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 
 import com.google.common.base.Predicate;
-import com.google.common.collect.Sets;
+import com.google.common.collect.Iterables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -284,17 +284,19 @@ public class Policy
     return determineCategory(conditionTypeIds);
   }
 
-  private static PolicyThreatCategory determineCategory(Set<String> conditionTypeIds) {
-    // A policy can have conditions in more than one category, but only one category is considered as *the* policy
-    // threat category, in this order:
-    if (Sets.filter(conditionTypeIds, IS_SECURITY).size() > 0) {
+  /**
+   *  A policy can have conditions in more than one category, but only one category is considered as *the* policy
+   *  threat category, in this order: SECURITY, LICENSE, QUALITY, OTHER
+   */
+  public static PolicyThreatCategory determineCategory(Set<String> conditionTypeIds) {
+
+    if (Iterables.any(conditionTypeIds, IS_SECURITY)) {
       return PolicyThreatCategory.SECURITY;
     }
-    if (Sets.filter(conditionTypeIds, IS_LICENSE).size() > 0) {
+    if (Iterables.any(conditionTypeIds, IS_LICENSE)) {
       return PolicyThreatCategory.LICENSE;
     }
-    if (Sets.filter(conditionTypeIds, IS_AGE).size() > 0
-        || Sets.filter(conditionTypeIds, IS_POPULARITY).size() > 0) {
+    if (Iterables.any(conditionTypeIds, IS_AGE) || Iterables.any(conditionTypeIds, IS_POPULARITY)) {
       return PolicyThreatCategory.QUALITY;
     }
     return PolicyThreatCategory.OTHER;

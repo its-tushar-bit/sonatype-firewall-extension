@@ -120,4 +120,17 @@ public class PolicyEvaluation
   public void setTime(Date time) {
     this.time = time;
   }
+
+  @Override
+  public String toString() {
+    return "PolicyEvaluation{" +
+        "id='" + id + '\'' +
+        ", applicationId='" + applicationId + '\'' +
+        ", stageTypeId='" + stageTypeId + '\'' +
+        ", scanId='" + scanId + '\'' +
+        ", isReevaluation=" + isReevaluation +
+        ", isForMonitoring=" + isForMonitoring +
+        ", time=" + time +
+        '}';
+  }
 }

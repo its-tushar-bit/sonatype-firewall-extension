@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.model.policy.stages;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -25,7 +26,7 @@ public class StageTypes
   }
 
   public static Collection<StageType> getAll() {
-    return allStageTypes.values();
+    return Collections.unmodifiableCollection(allStageTypes.values());
   }
 
   private static void add(final StageType stageType) {

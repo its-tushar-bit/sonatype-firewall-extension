@@ -82,7 +82,7 @@ public class PolicyEvaluationUtils
     Application application = applicationDAO.getByPublicIdNotNull(applicationPublicId);
     String appId = application.getId();
 
-    final File reportFile = ReportResource.fetchReport(reportDownloader, work, appId, scanId, true);
+    final File reportFile = ReportResource.fetchReport(reportDownloader, work, appId, scanId, true, false);
 
     final PolicyDAO policyDAO = new PolicyDAO();
 

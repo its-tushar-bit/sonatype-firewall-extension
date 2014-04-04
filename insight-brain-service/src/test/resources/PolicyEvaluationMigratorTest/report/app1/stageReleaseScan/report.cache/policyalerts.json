@@ -1,0 +1,79 @@
+{
+  "aaData": [
+    {
+      "trigger": {
+        "policyId": "492542d33d1d42e8bc37a55e7130cbc0",
+        "policyName": "License-Declared Only",
+        "threatLevel": 5,
+        "componentFacts": [
+          {
+            "groupId": "com.carrotsearch",
+            "artifactId": "hppc",
+            "version": "0.5.2",
+            "hash": "074bcc9d152a928a4ea9",
+            "constraintFacts": [
+              {
+                "constraintId": "a1240bc42f704d8491b5d254e3005654",
+                "constraintName": "Declared - Not Provided",
+                "operatorName": "AND",
+                "conditionFacts": [
+                  {
+                    "conditionTypeId": "License",
+                    "summary": "License is not 'Not Declared'",
+                    "reason": "Found 'Not Provided' and 'Apache-2.0' Licenses"
+                  },
+                  {
+                    "conditionTypeId": "License",
+                    "summary": "License is 'Not Provided'",
+                    "reason": "Found 'Not Provided' and 'Apache-2.0' Licenses"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "actions": [
+        {
+          "actionTypeId": "warn",
+          "target": null
+        }
+      ]
+    },
+    {
+      "trigger": {
+        "policyId": "f8d39103fab24ec8a2677942640d3527",
+        "policyName": "Component-Unknown",
+        "threatLevel": 1,
+        "componentFacts": [
+          {
+            "groupId": null,
+            "artifactId": null,
+            "version": null,
+            "hash": "318ed314c3e5bfb0bacb",
+            "constraintFacts": [
+              {
+                "constraintId": "c899bdec96414571b1d22427c240045a",
+                "constraintName": "Unknown Component",
+                "operatorName": "AND",
+                "conditionFacts": [
+                  {
+                    "conditionTypeId": "MatchState",
+                    "summary": "Match State is unknown",
+                    "reason": "Match State was unknown"
+                  },
+                  {
+                    "conditionTypeId": "Proprietary",
+                    "summary": "Proprietary is false",
+                    "reason": "Component does not contain proprietary packages"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "actions": []
+    }
+  ]
+}

@@ -69,3 +69,9 @@
 .glyphicons-sonatype.help:before {
   content: '\e195'
 }
+
+.glyphicons-halflings-sonatype.plus:before {
+	content: '\002b';
+	/*18px font-size the icon looks horrible*/
+	font-size: 16px;
+}

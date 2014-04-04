@@ -161,7 +161,7 @@ a:focus {
 .dashboard-navigation > li {
   padding: 0 !important;
 }
-.dashboard-navigation > li span, .dashboard-menus > li {
+.dashboard-navigation > li span, .dashboard-menus > li, .dashboard-add {
   display: inline-block;
   padding-bottom: 8px;
 }

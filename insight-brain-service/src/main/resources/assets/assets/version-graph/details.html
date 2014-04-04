@@ -80,7 +80,7 @@
 				</thead>
 				<tr ng-repeat='issue in data.securityVulnerabilities'>
                     <td class='clm-bar'
-                        ng-class='{ unspecified : issue.severity == null, critical : issue.severity >= 7, severe : issue.severity < 7 && issue.severity >= 4, moderate : issue.severity < 4, grouped : isSvGrouped($index) }'>
+                        ng-class='{ unspecified : issue.severity == null, critical : issue.severity >= 8, severe : issue.severity < 8 && issue.severity >= 4, moderate : issue.severity < 4, grouped : isSvGrouped($index) }'>
                     </td>
 					<td class='severity-column' ng-class='{ grouped : isSvGrouped($index) }'>
 						<span ng-show='!isSvGrouped($index)'> <span ng-show='issue.severity != null'>{{issue.severity}}</span> <span

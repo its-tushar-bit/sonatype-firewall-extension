@@ -127,8 +127,23 @@
                 <li>
                   <a href='#/management/application/_new_'>New Application</a>
                 </li>
-                <li ng-if='isOrgOrAppState()'>
-                  <a ng-href='{{getPolicyPath()}}'>New Policy</a>
+                <li ng-if='$state.params.organizationId && $state.params.organizationId != "_new_"'>
+                  <a ui-sref='management.organization.view.policies.new({organizationId: $state.params.organizationId})'>New Policy</a>
+                </li>
+                <li ng-if='$state.params.applicationPublicId && $state.params.applicationPublicId != "_new_"'>
+                  <a ui-sref='management.application.view.policies.new({applicationPublicId: $state.params.applicationPublicId})'>New Policy</a>
+                </li>
+                <li ng-if='$state.params.organizationId && $state.params.organizationId != "_new_"'>
+                  <a ui-sref='management.organization.view.labels.new({organizationId: $state.params.organizationId})'>New Label</a>
+                </li>
+                <li ng-if='$state.params.applicationPublicId && $state.params.applicationPublicId != "_new_"'>
+                  <a ui-sref='management.application.view.labels.new({applicationPublicId: $state.params.applicationPublicId})'>New Label</a>
+                </li>
+                <li ng-if='$state.params.organizationId && $state.params.organizationId != "_new_"'>
+                  <a ui-sref='management.organization.view.licenses.new({organizationId: $state.params.organizationId})'>New License Threat Group</a>
+                </li>
+                <li ng-if='$state.params.applicationPublicId && $state.params.applicationPublicId != "_new_"'>
+                  <a ui-sref='management.application.view.licenses.new({applicationPublicId: $state.params.applicationPublicId})'>New License Threat Group</a>
                 </li>
                 <li ng-if='isOrgOrAppState()'>
                   <a ng-href='{{getLabelPath()}}'>New Label</a>

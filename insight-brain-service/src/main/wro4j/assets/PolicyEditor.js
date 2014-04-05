@@ -671,9 +671,7 @@
         link: function(scope) {
           scope.hide = function() {
             scope.policy = null;
-            if ($state.$current.data && $state.$current.data.openNew) {
-              $state.go($state.$current.parent);
-            }
+            AngularStateUtils.toParentStateIfNewItem(scope);
           };
           scope.createPolicy = function() {
             return policyStore.get().create();
@@ -684,15 +682,12 @@
           scope.click = function() {
             if (!scope.policy) {
               scope.policy = policyStore.get().create();
+              AngularStateUtils.toNewItemState(scope);
             }
           };
           
           scope.$state = $state;
-          scope.$watch('$state.$current.data.openNew',function(value){
-            if (value) {
-              scope.click();
-            }
-          });
+          AngularStateUtils.fnOnNewItemState(scope, scope.click);
         }
       };
     }

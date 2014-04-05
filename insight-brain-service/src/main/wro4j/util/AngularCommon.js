@@ -42,6 +42,25 @@ var AngularUtils = {
     return false;
   }
 };
+var AngularStateUtils = {
+  toParentStateIfNewItem: function(scope) {
+    if (scope.$state.$current.name.indexOf('.new') > -1) {
+      scope.$state.go(scope.$state.$current.parent);
+    }
+  },
+  fnOnNewItemState: function(scope, fn) {
+    scope.$watch('$state.$current.name',function(value){
+      if (value.indexOf('.new') > -1) {
+          fn();
+      }
+    });
+  },
+  toNewItemState: function(scope) {
+    if (scope.$state.$current.name) {
+      scope.$state.go(scope.$state.$current.name + '.new');
+    }
+  }
+};
 /* jshint strict:true */
 (function() {
   'use strict';

@@ -380,12 +380,11 @@
         link: function(scope) {
           scope.createNew = function() {
             scope.selectedGroup = licenseGroupStore.create();
+            AngularStateUtils.toNewItemState(scope);
           };
           scope.hide = function() {
             scope.selectedGroup = null;
-            if ($state.$current.data && $state.$current.data.openNew) {
-              $state.go($state.$current.parent);
-            }
+            AngularStateUtils.toParentStateIfNewItem(scope);
           };
           scope.cancelLicenseGroupEdit = function() {
             if (scope.selectedGroup && scope.selectedGroup.isDirty()) {
@@ -399,11 +398,7 @@
           };
           
           scope.$state = $state;
-          scope.$watch('$state.$current.data.openNew',function(value){
-            if (value) {
-              scope.createNew();
-            }
-          });
+          AngularStateUtils.fnOnNewItemState(scope, scope.createNew);
         }
       };
     }

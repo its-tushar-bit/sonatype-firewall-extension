@@ -55,8 +55,7 @@
           url: '/new',
           controller: 'PolicyController',
           data: {
-            passThroughAlerts: [],
-            openNew: true
+            passThroughAlerts: []
           },
           templateUrl: '../policy-assets/components/policy/policy.html?' + clmBuildTimestamp
         }).state('management.application.view.labels', {
@@ -69,8 +68,7 @@
           url: '/new',
           controller: 'LabelController',
           data: {
-            passThroughAlerts: [],
-            openNew: true
+            passThroughAlerts: []
           },
           templateUrl: '../policy-assets/components/label-editor/labels.html?' + clmBuildTimestamp
         }).state('management.application.view.licenses', {
@@ -83,8 +81,7 @@
           url: '/new',
           controller: 'LicenseThreatGroupController',
           data: {
-            passThroughAlerts: [],
-            openNew: true
+            passThroughAlerts: []
           },
           templateUrl: '../policy-assets/components/license-threat-group/license-threat-group.html?' + clmBuildTimestamp
         }).state('management.application.view.security', {

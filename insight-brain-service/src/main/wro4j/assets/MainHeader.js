@@ -59,25 +59,6 @@
   }]);
 
   module.controller('mainHeaderController', ['$scope', '$state', 'CurrentUser', function($scope, $state, currentUser) {
-    function isOrgState() {
-      return $state.params.organizationId && $state.params.organizationId !== '_new_';
-    }
-    
-    function isAppState() {
-      return $state.params.applicationPublicId && $state.params.applicationPublicId !== '_new_';
-    }
-    
-    function getCurrentId() {
-      if (isOrgState()) {
-        return $state.params.organizationId;
-      }
-      return $state.params.applicationPublicId;
-    }
-    
-    function getBasePath() {
-      return '#/management/' + (isOrgState() ? 'organization' : 'application') + '/' + encodeURIComponent(getCurrentId());
-    }
-    
     $scope.$state = $state;
     
     currentUser.then(function(status) {
@@ -86,22 +67,6 @@
     
     $scope.getServerVersion = function() {
       return clmServerVersion;
-    };
-    
-    $scope.isOrgOrAppState = function() {
-      return isOrgState() || isAppState();
-    };
-    
-    $scope.getPolicyPath = function() {
-      return getBasePath() + '/policies/new';
-    };
-    
-    $scope.getLabelPath = function() {
-      return getBasePath() + '/labels/new';
-    };
-    
-    $scope.getLicensePath = function() {
-      return getBasePath() + '/licenses/new';
     };
   }]);
 

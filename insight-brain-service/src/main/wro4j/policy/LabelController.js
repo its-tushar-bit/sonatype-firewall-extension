@@ -102,6 +102,7 @@
         executeIfClean(function() {
           $scope.label = LabelStore.create();
           $scope.selectedLabel = $scope.label;
+          AngularStateUtils.toNewItemState($scope);
         });
       };
 
@@ -140,17 +141,11 @@
       $scope.$on('labels.cancelEditLabel', function(event) {
         event.stopPropagation();
         deselect();
-        if ($state.$current.data && $state.$current.data.openNew) {
-          $state.go($state.$current.parent);
-        }
+        AngularStateUtils.toParentStateIfNewItem($scope);
       });
       
       $scope.$state = $state;
-      $scope.$watch('$state.$current.data.openNew',function(value){
-        if (value) {
-          $scope.createNew();
-        }
-      });
+      AngularStateUtils.fnOnNewItemState($scope, $scope.createNew);
 
       $scope.doLoad();
     }

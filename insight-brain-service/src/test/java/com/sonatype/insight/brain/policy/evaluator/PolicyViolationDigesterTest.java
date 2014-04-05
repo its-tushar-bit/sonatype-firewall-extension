@@ -27,14 +27,14 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 
-public class PolicyAlertDigesterTest
+public class PolicyViolationDigesterTest
 {
   @Test
   public void testDigest_Nothing() {
     final List<PolicyViolation> oldViolations = Collections.emptyList();
     final List<PolicyViolation> newViolations = Collections.emptyList();
 
-    final PolicyViolationDiff results = PolicyAlertDigester.digestPolicyViolations(newViolations, oldViolations);
+    final PolicyViolationDiff results = PolicyViolationDigester.digestPolicyViolations(newViolations, oldViolations);
 
     assertThat(results, notNullValue());
     assertThat(results.getAppeared(), empty());
@@ -42,11 +42,11 @@ public class PolicyAlertDigesterTest
   }
 
   @Test
-  public void testDigest_UnknownPolicyAlert() {
+  public void testDigest_UnknownPolicyViolation() {
     final List<PolicyViolation> oldViolations = Collections.emptyList();
     final List<PolicyViolation> newViolations = defaultPolicyViolations();
 
-    final PolicyViolationDiff results = PolicyAlertDigester.digestPolicyViolations(newViolations, oldViolations);
+    final PolicyViolationDiff results = PolicyViolationDigester.digestPolicyViolations(newViolations, oldViolations);
 
     assertThat(results.getAppeared(), contains(newViolations.get(0)));
     assertThat(results.getCleared(), empty());
@@ -57,7 +57,7 @@ public class PolicyAlertDigesterTest
     final List<PolicyViolation> oldViolations = defaultPolicyViolations();
     final List<PolicyViolation> newViolations = defaultPolicyViolations();
 
-    final PolicyViolationDiff results = PolicyAlertDigester.digestPolicyViolations(newViolations, oldViolations);
+    final PolicyViolationDiff results = PolicyViolationDigester.digestPolicyViolations(newViolations, oldViolations);
 
     assertThat(results, notNullValue());
     assertThat(results.getAppeared(), empty());
@@ -65,65 +65,65 @@ public class PolicyAlertDigesterTest
   }
 
   @Test
-  public void testDigest_ClearedPolicyAlert() {
+  public void testDigest_ClearedPolicyViolation() {
     final List<PolicyViolation> oldViolations = defaultPolicyViolations();
     final List<PolicyViolation> newViolations = Collections.emptyList();
 
-    final PolicyViolationDiff results = PolicyAlertDigester.digestPolicyViolations(newViolations, oldViolations);
+    final PolicyViolationDiff results = PolicyViolationDigester.digestPolicyViolations(newViolations, oldViolations);
 
     assertThat(results.getAppeared(), empty());
     assertThat(results.getCleared(), contains(oldViolations.get(0)));
   }
 
   @Test
-  public void testDigest_UnknownPolicyAlertBefore() {
+  public void testDigest_UnknownPolicyViolationBefore() {
     final List<PolicyViolation> oldViolations = defaultPolicyViolations();
     final List<PolicyViolation> newViolations = defaultPolicyViolations();
 
     newViolations.add(0, newPolicyViolation("policy_1", "Policy 1", 0));
 
-    final PolicyViolationDiff results = PolicyAlertDigester.digestPolicyViolations(newViolations, oldViolations);
+    final PolicyViolationDiff results = PolicyViolationDigester.digestPolicyViolations(newViolations, oldViolations);
 
     assertThat(results.getAppeared(), contains(newViolations.get(0)));
     assertThat(results.getCleared(), empty());
   }
 
   @Test
-  public void testDigest_UnknownPolicyAlertAfter() {
+  public void testDigest_UnknownPolicyViolationAfter() {
     final List<PolicyViolation> oldViolations = defaultPolicyViolations();
     final List<PolicyViolation> newViolations = defaultPolicyViolations();
 
     newViolations.add(newPolicyViolation("policy_8", "Policy 8", 0));
 
-    final PolicyViolationDiff results = PolicyAlertDigester.digestPolicyViolations(newViolations, oldViolations);
+    final PolicyViolationDiff results = PolicyViolationDigester.digestPolicyViolations(newViolations, oldViolations);
 
     assertThat(results.getAppeared(), contains(newViolations.get(1)));
     assertThat(results.getCleared(), empty());
   }
 
   @Test
-  public void testDigest_UnknownPolicyAlertBeforeAndAfter() {
+  public void testDigest_UnknownPolicyViolationBeforeAndAfter() {
     final List<PolicyViolation> oldViolations = defaultPolicyViolations();
     final List<PolicyViolation> newViolations = defaultPolicyViolations();
 
     newViolations.add(0, newPolicyViolation("policy_1", "Policy 1", 0));
     newViolations.add(newPolicyViolation("policy_8", "Policy 8", 0));
 
-    final PolicyViolationDiff results = PolicyAlertDigester.digestPolicyViolations(newViolations, oldViolations);
+    final PolicyViolationDiff results = PolicyViolationDigester.digestPolicyViolations(newViolations, oldViolations);
 
     assertThat(results.getAppeared(), contains(newViolations.get(0), newViolations.get(2)));
     assertThat(results.getCleared(), empty());
   }
 
   @Test
-  public void testDigest_UnknownPolicyAlertBeforeAndAfterClearedPolicyAlert() {
+  public void testDigest_UnknownPolicyViolationBeforeAndAfterClearedPolicyViolation() {
     final List<PolicyViolation> oldViolations = defaultPolicyViolations();
     final List<PolicyViolation> newViolations = new ArrayList<PolicyViolation>();
 
     newViolations.add(newPolicyViolation("policy_1", "Policy 1", 0));
     newViolations.add(newPolicyViolation("policy_8", "Policy 8", 0));
 
-    final PolicyViolationDiff results = PolicyAlertDigester.digestPolicyViolations(newViolations, oldViolations);
+    final PolicyViolationDiff results = PolicyViolationDigester.digestPolicyViolations(newViolations, oldViolations);
 
     assertThat(results.getAppeared(), contains(newViolations.get(0), newViolations.get(1)));
     assertThat(results.getCleared(), contains(oldViolations.get(0)));
@@ -137,7 +137,7 @@ public class PolicyAlertDigesterTest
     newPolicyViolation.setHash("1H");
     newViolations.add(0, newPolicyViolation);
 
-    final PolicyViolationDiff results = PolicyAlertDigester.digestPolicyViolations(newViolations, oldViolations);
+    final PolicyViolationDiff results = PolicyViolationDigester.digestPolicyViolations(newViolations, oldViolations);
 
     assertThat(results.getAppeared(), hasSize(1));
     assertThat(results.getAppeared().get(0).getHash(), is("1H"));
@@ -152,7 +152,7 @@ public class PolicyAlertDigesterTest
     newPolicyViolation.setHash("H1");
     newViolations.add(newPolicyViolation);
 
-    final PolicyViolationDiff results = PolicyAlertDigester.digestPolicyViolations(newViolations, oldViolations);
+    final PolicyViolationDiff results = PolicyViolationDigester.digestPolicyViolations(newViolations, oldViolations);
 
     assertThat(results.getAppeared(), hasSize(1));
     assertThat(results.getAppeared().get(0).getHash(), is("H1"));
@@ -167,7 +167,7 @@ public class PolicyAlertDigesterTest
     final ConstraintFact newFact = constraintFact("constraint_1", "Constraint 1", "AND");
     newViolations.get(0).setConstraintFacts(Collections.singletonList(newFact));
 
-    final PolicyViolationDiff results = PolicyAlertDigester.digestPolicyViolations(newViolations, oldViolations);
+    final PolicyViolationDiff results = PolicyViolationDigester.digestPolicyViolations(newViolations, oldViolations);
 
     assertThat(results.getAppeared(), hasSize(1));
     assertThat(results.getAppeared().get(0).getConstraintFacts().get(0).getConstraintId(), is("constraint_1"));
@@ -182,7 +182,7 @@ public class PolicyAlertDigesterTest
 
     newViolations.get(0).setPolicyName("Policy 4~");
 
-    PolicyViolationDiff results = PolicyAlertDigester.digestPolicyViolations(newViolations, oldViolations);
+    PolicyViolationDiff results = PolicyViolationDigester.digestPolicyViolations(newViolations, oldViolations);
 
     assertThat(results.getAppeared(), hasSize(1));
     assertThat(results.getAppeared().get(0).getPolicyName(), is("Policy 4~"));
@@ -197,7 +197,7 @@ public class PolicyAlertDigesterTest
 
     newViolations.get(0).setThreatLevel(10);
 
-    PolicyViolationDiff results = PolicyAlertDigester.digestPolicyViolations(newViolations, oldViolations);
+    PolicyViolationDiff results = PolicyViolationDigester.digestPolicyViolations(newViolations, oldViolations);
 
     assertThat(results.getAppeared(), hasSize(1));
     assertThat(results.getAppeared().get(0).getThreatLevel(), is(10));

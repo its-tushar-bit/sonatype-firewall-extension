@@ -12,7 +12,7 @@ import java.util.List;
 
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 
-public class PolicyAlertDigester
+public class PolicyViolationDigester
 {
   private static final Comparator<PolicyViolation> POLICY_VIOLATION_COMPARATOR = new Comparator<PolicyViolation>()
   {

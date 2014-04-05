@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 /* global angular, window, ActiveXObject, clmBuildTimestamp, jQuery */
-/* exported AngularUtils */
+/* exported AngularUtils, AngularStateUtils */
 
 //global function
 /* jshint strict:false */
@@ -42,6 +42,7 @@ var AngularUtils = {
     return false;
   }
 };
+
 var AngularStateUtils = {
   toParentStateIfNewItem: function(scope) {
     if (scope.$state.$current.name.indexOf('.new') > -1) {
@@ -51,7 +52,7 @@ var AngularStateUtils = {
   fnOnNewItemState: function(scope, fn) {
     scope.$watch('$state.$current.name',function(value){
       if (value.indexOf('.new') > -1) {
-          fn();
+        fn();
       }
     });
   },

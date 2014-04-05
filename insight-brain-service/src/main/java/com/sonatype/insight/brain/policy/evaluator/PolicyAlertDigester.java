@@ -6,239 +6,125 @@
 package com.sonatype.insight.brain.policy.evaluator;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
-import com.sonatype.clm.dto.model.policy.ComponentFact;
-import com.sonatype.clm.dto.model.policy.ConditionFact;
-import com.sonatype.clm.dto.model.policy.ConstraintFact;
-import com.sonatype.clm.dto.model.policy.PolicyAlert;
-import com.sonatype.clm.dto.model.policy.PolicyFact;
-
-import org.codehaus.plexus.util.StringUtils;
+import com.sonatype.insight.brain.model.policy.PolicyViolation;
 
 public class PolicyAlertDigester
 {
-  @SuppressWarnings("unchecked")
-  public static List<PolicyAlert>[] digestPolicyAlerts(final List<PolicyAlert> newAlerts,
-      final List<PolicyAlert> oldAlerts)
+  private static final Comparator<PolicyViolation> POLICY_VIOLATION_COMPARATOR = new Comparator<PolicyViolation>()
   {
-    final List<PolicyAlert> appeared = new ArrayList<PolicyAlert>();
-    final List<PolicyAlert> cleared = new ArrayList<PolicyAlert>();
-
-    int i = 0, j = 0;
-    while (true) {
-      if (j >= oldAlerts.size()) {
-        if (i >= newAlerts.size()) {
-          break; // nothing left
-        }
-        appeared.add(newAlerts.get(i++));
+    @Override
+    public int compare(PolicyViolation v1, PolicyViolation v2) {
+      // Policy id
+      int result = v1.getPolicyId().compareTo(v2.getPolicyId());
+      if (result != 0) {
+        return result;
       }
-      else if (i >= newAlerts.size()) {
-        cleared.add(oldAlerts.get(j++));
+
+      // Policy name
+      result = v1.getPolicyName().compareTo(v2.getPolicyName());
+      if (result != 0) {
+        return result;
       }
-      else {
-        final PolicyAlert newAlert = newAlerts.get(i);
-        final PolicyAlert oldAlert = oldAlerts.get(j);
 
-        final PolicyFact newTrigger = newAlert.getTrigger();
-        final PolicyFact oldTrigger = oldAlert.getTrigger();
-
-        final int comparison = newTrigger.getPolicyId().compareTo(oldTrigger.getPolicyId());
-
-        if (comparison < 0) {
-          appeared.add(newAlert);
-          i++;
-        }
-        else if (comparison > 0) {
-          cleared.add(oldAlert);
-          j++;
-        }
-        else if (oldTrigger.getThreatLevel() != newTrigger.getThreatLevel()
-            || !StringUtils.equalsIgnoreCase(oldTrigger.getPolicyName(), newTrigger.getPolicyName())) {
-          appeared.add(newAlert);
-          cleared.add(oldAlert);
-          i++;
-          j++;
-        }
-        else {
-          final List<ComponentFact>[] results = digestComponentFacts(newTrigger.getComponentFacts(),
-              oldTrigger.getComponentFacts());
-
-          if (results != null) {
-            if (!results[0].isEmpty()) {
-              appeared.add(newAlert.with(newTrigger.with(results[0])));
-            }
-            if (!results[1].isEmpty()) {
-              cleared.add(oldAlert.with(oldTrigger.with(results[1])));
-            }
-          }
-
-          i++;
-          j++;
-        }
+      // Threat level
+      result = v1.getThreatLevel() - v2.getThreatLevel();
+      if (result != 0) {
+        return result;
       }
+
+      // Hash
+      result = compareNullableStrings(v1.getHash(), v2.getHash());
+      if (result != 0) {
+        return result;
+      }
+
+      // Group id
+      result = compareNullableStrings(v1.getGroupId(), v2.getGroupId());
+      if (result != 0) {
+        return result;
+      }
+
+      // Artifact id
+      result = compareNullableStrings(v1.getArtifactId(), v2.getArtifactId());
+      if (result != 0) {
+        return result;
+      }
+
+      // Version
+      result = compareNullableStrings(v1.getVersion(), v2.getVersion());
+      if (result != 0) {
+        return result;
+      }
+
+      // Constraint facts
+      result = v1.getConstraintFactsJson().compareTo(v2.getConstraintFactsJson());
+      if (result != 0) {
+        return result;
+      }
+
+      return 0;
     }
 
-    if (appeared.isEmpty() && cleared.isEmpty()) {
-      return null;
+    // null is greater than not null
+    private int compareNullableStrings(String s1, String s2) {
+      if (s1 == null) {
+        if (s2 == null) {
+          return 0;
+        }
+        return 1;
+      }
+      if (s2 == null) {
+        return -1;
+      }
+      return s1.compareTo(s2);
     }
-
-    return new List[] { appeared, cleared };
+  };
+  
+  private static List<PolicyViolation> sort(List<PolicyViolation> policyViolations) {
+    List<PolicyViolation> result = new ArrayList<>();
+    result.addAll(policyViolations);
+    Collections.sort(result, POLICY_VIOLATION_COMPARATOR);
+    return result;
   }
 
-  @SuppressWarnings("unchecked")
-  public static List<ComponentFact>[] digestComponentFacts(final List<ComponentFact> newFacts,
-      final List<ComponentFact> oldFacts)
+  public static PolicyViolationDiff digestPolicyViolations(List<PolicyViolation> newViolations,
+      List<PolicyViolation> oldViolations)
   {
-    final List<ComponentFact> appeared = new ArrayList<ComponentFact>();
-    final List<ComponentFact> cleared = new ArrayList<ComponentFact>();
+    PolicyViolationDiff diff = new PolicyViolationDiff();
+
+    if (oldViolations == null) {
+      diff.addAppeared(newViolations);
+      return diff;
+    }
+    newViolations = sort(newViolations);
+    oldViolations = sort(oldViolations);
 
     int i = 0, j = 0;
     while (true) {
-      if (j >= oldFacts.size()) {
-        if (i >= newFacts.size()) {
+      if (j >= oldViolations.size()) {
+        if (i >= newViolations.size()) {
           break; // nothing left
         }
-        appeared.add(newFacts.get(i++));
+        diff.addAppeared(newViolations.get(i++));
       }
-      else if (i >= newFacts.size()) {
-        cleared.add(oldFacts.get(j++));
+      else if (i >= newViolations.size()) {
+        diff.addCleared(oldViolations.get(j++));
       }
       else {
-        final ComponentFact newFact = newFacts.get(i);
-        final ComponentFact oldFact = oldFacts.get(j);
+        final PolicyViolation newViolation = newViolations.get(i);
+        final PolicyViolation oldViolation = oldViolations.get(j);
 
-        final int comparison = newFact.getComponentId().compareTo(oldFact.getComponentId());
-
+        final int comparison = POLICY_VIOLATION_COMPARATOR.compare(newViolation, oldViolation);
         if (comparison < 0) {
-          appeared.add(newFact);
+          diff.addAppeared(newViolation);
           i++;
         }
         else if (comparison > 0) {
-          cleared.add(oldFact);
-          j++;
-        }
-        else {
-          final List<ConstraintFact>[] results = digestConstraintFacts(newFact.getConstraintFacts(),
-              oldFact.getConstraintFacts());
-
-          if (results != null) {
-            if (!results[0].isEmpty()) {
-              appeared.add(newFact.with(results[0]));
-            }
-            if (!results[1].isEmpty()) {
-              cleared.add(oldFact.with(results[1]));
-            }
-          }
-
-          i++;
-          j++;
-        }
-      }
-    }
-
-    if (appeared.isEmpty() && cleared.isEmpty()) {
-      return null;
-    }
-
-    return new List[] { appeared, cleared };
-  }
-
-  @SuppressWarnings("unchecked")
-  public static List<ConstraintFact>[] digestConstraintFacts(final List<ConstraintFact> newFacts,
-      final List<ConstraintFact> oldFacts)
-  {
-    final List<ConstraintFact> appeared = new ArrayList<ConstraintFact>();
-    final List<ConstraintFact> cleared = new ArrayList<ConstraintFact>();
-
-    int i = 0, j = 0;
-    while (true) {
-      if (j >= oldFacts.size()) {
-        if (i >= newFacts.size()) {
-          break; // nothing left
-        }
-        appeared.add(newFacts.get(i++));
-      }
-      else if (i >= newFacts.size()) {
-        cleared.add(oldFacts.get(j++));
-      }
-      else {
-        final ConstraintFact newFact = newFacts.get(i);
-        final ConstraintFact oldFact = oldFacts.get(j);
-
-        final int comparison = newFact.getConstraintId().compareTo(oldFact.getConstraintId());
-
-        if (comparison < 0) {
-          appeared.add(newFact);
-          i++;
-        }
-        else if (comparison > 0) {
-          cleared.add(oldFact);
-          j++;
-        }
-        else if (!StringUtils.equalsIgnoreCase(oldFact.getOperatorName(), newFact.getOperatorName())
-            || !StringUtils.equalsIgnoreCase(oldFact.getConstraintName(), newFact.getConstraintName())) {
-          appeared.add(newFact);
-          cleared.add(oldFact);
-          i++;
-          j++;
-        }
-        else {
-          final List<ConditionFact>[] results = digestConditionFacts(newFact.getConditionFacts(),
-              oldFact.getConditionFacts());
-
-          if (results != null) {
-            if (!results[0].isEmpty()) {
-              appeared.add(newFact.with(results[0]));
-            }
-            if (!results[1].isEmpty()) {
-              cleared.add(oldFact.with(results[1]));
-            }
-          }
-
-          i++;
-          j++;
-        }
-      }
-    }
-
-    if (appeared.isEmpty() && cleared.isEmpty()) {
-      return null;
-    }
-
-    return new List[] { appeared, cleared };
-  }
-
-  @SuppressWarnings("unchecked")
-  public static List<ConditionFact>[] digestConditionFacts(final List<ConditionFact> newFacts,
-      final List<ConditionFact> oldFacts)
-  {
-    final List<ConditionFact> appeared = new ArrayList<ConditionFact>();
-    final List<ConditionFact> cleared = new ArrayList<ConditionFact>();
-
-    int i = 0, j = 0;
-    while (true) {
-      if (j >= oldFacts.size()) {
-        if (i >= newFacts.size()) {
-          break; // nothing left
-        }
-        appeared.add(newFacts.get(i++));
-      }
-      else if (i >= newFacts.size()) {
-        cleared.add(oldFacts.get(j++));
-      }
-      else {
-        final ConditionFact newFact = newFacts.get(i);
-        final ConditionFact oldFact = oldFacts.get(j);
-
-        final int comparison = newFact.getSummary().compareTo(oldFact.getSummary());
-
-        if (comparison < 0) {
-          appeared.add(newFact);
-          i++;
-        }
-        else if (comparison > 0) {
-          cleared.add(oldFact);
+          diff.addCleared(oldViolation);
           j++;
         }
         else {
@@ -248,10 +134,6 @@ public class PolicyAlertDigester
       }
     }
 
-    if (appeared.isEmpty() && cleared.isEmpty()) {
-      return null;
-    }
-
-    return new List[] { appeared, cleared };
+    return diff;
   }
 }

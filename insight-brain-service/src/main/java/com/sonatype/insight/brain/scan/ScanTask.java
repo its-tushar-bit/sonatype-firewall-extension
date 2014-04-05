@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.scan;
 
 import java.io.File;
-import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -14,7 +13,6 @@ import javax.inject.Inject;
 import javax.inject.Named;
 
 import com.sonatype.clm.dto.model.ScanReceipt;
-import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.common.io.FileCleaner.FileDeletionException;
@@ -22,7 +20,6 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.policy.evaluator.PolicyAlertNotifier;
-import com.sonatype.insight.brain.policy.evaluator.PolicyAlertUtil;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluationUtils;
 import com.sonatype.insight.brain.saas.ScanUploader;
 import com.sonatype.insight.brain.service.InsightWork;
@@ -202,10 +199,8 @@ class ScanTask
       // PolicyEvaluationUtils will fetch report if it's not there
       PolicyEvaluation policyEvaluation = policyEvaluationUtils.evaluate(appPublicId, scanReceipt.getScanId(), stage);
       if (sendNotifications) {
-        List<PolicyAlert> newAlerts = PolicyAlertUtil.createPolicyAlerts(policyEvaluation);
-        List<PolicyAlert> oldAlerts = PolicyAlertUtil.createPolicyAlerts(lastPrimaryPolicyEvaluation);
-        policyAlertNotifier.sendNotifications(appPublicId, app.getId(), scanReceipt.getScanId(), stage, newAlerts,
-            oldAlerts);
+        policyAlertNotifier.sendNotifications(appPublicId, app.getId(), scanReceipt.getScanId(), stage,
+            policyEvaluation, lastPrimaryPolicyEvaluation);
       }
 
       // provide report/scanId once evaluation is completed successfully

@@ -25,8 +25,11 @@ import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.actions.ActionTypes;
 import com.sonatype.insight.brain.model.policy.actions.NotifyActionType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
@@ -70,20 +73,24 @@ public class PolicyAlertNotifier
   }
 
   /**
-   * Sends notifications in case of a difference between the current and previous policy alerts for a given application
-   * and stage.
+   * Sends notifications in case of a difference between the current and previous policy violations for a given
+   * application and stage.
    */
   public void sendNotifications(final String applicationPublicId, String appId, final String scanId, final Stage stage,
-      final List<PolicyAlert> currentAlerts, final List<PolicyAlert> previousAlerts)
+      final PolicyEvaluation currentEvaluation, final PolicyEvaluation previousEvaluation)
   {
-    @SuppressWarnings("unchecked")
-    List<PolicyAlert>[] digest = new List[] { currentAlerts, Collections.emptyList() };
-    if (!previousAlerts.isEmpty()) {
-      digest = PolicyAlertDigester.digestPolicyAlerts(currentAlerts, previousAlerts);
+    PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
+    List<PolicyViolation> currentViolations = policyViolationDAO.getByEvaluationId(currentEvaluation.getId());
+    List<PolicyViolation> previousViolations = null;
+    if (previousEvaluation != null) {
+      previousViolations = policyViolationDAO.getByEvaluationId(previousEvaluation.getId());
     }
+    PolicyViolationDiff diff = PolicyAlertDigester.digestPolicyViolations(currentViolations, previousViolations);
 
-    if (digest != null) {
-      sendNotifications(applicationPublicId, appId, scanId, stage, digest[0]);
+    if (!diff.getAppeared().isEmpty()) {
+      List<PolicyAlert> policyAlerts = PolicyAlertUtil.createPolicyAlerts(diff.getAppeared(),
+          currentEvaluation.getStageTypeId(), currentEvaluation.isForMonitoring());
+      sendNotifications(applicationPublicId, appId, scanId, stage, policyAlerts);
     }
   }
 

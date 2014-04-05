@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.policy.evaluator;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -16,7 +15,6 @@ import javax.inject.Inject;
 import javax.inject.Named;
 
 import com.sonatype.clm.dto.model.ScanReceipt;
-import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
@@ -133,22 +131,8 @@ public class PolicyMonitor
     Stage stage = new Stage(policyMonitoring.getStageTypeId());
     PolicyEvaluation policyEvaluation = policyEvaluationUtils.evaluateForMonitoring(app.getPublicId(),
         scanId, stage);
-    List<PolicyAlert> newAlerts = PolicyAlertUtil.createPolicyAlerts(policyEvaluation);
-    List<PolicyAlert> oldAlerts;
-    try {
-      if (lastMonitoringPolicyEvaluation != null) {
-        oldAlerts = PolicyAlertUtil.createPolicyAlerts(lastMonitoringPolicyEvaluation);
-      }
-      else {
-        oldAlerts = PolicyAlertUtil.createPolicyAlerts(lastPrimaryPolicyEvaluation);
-      }
-    }
-    catch (final Exception e) {
-      // don't abort sending notifications if old results are corrupt or missing, just means full digest will be sent
-      log.warn("Cannot load last policy evaluation results for app id {}", app.getPublicId(), e);
-      oldAlerts = Collections.emptyList();
-    }
-    policyAlertNotifier.sendNotifications(app.getPublicId(), app.getId(), scanId, stage, newAlerts, oldAlerts);
+    policyAlertNotifier.sendNotifications(app.getPublicId(), app.getId(), scanId, stage, policyEvaluation,
+        lastMonitoringPolicyEvaluation != null ? lastMonitoringPolicyEvaluation : lastPrimaryPolicyEvaluation);
 
     log.debug("Policy monitoring evaluated for application '{}' in {} ms", app.getName(), System.currentTimeMillis()
         - start);

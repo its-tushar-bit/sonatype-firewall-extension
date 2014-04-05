@@ -25,14 +25,20 @@ import com.sonatype.insight.brain.model.policy.PolicyViolation;
 public class PolicyAlertUtil
 {
   public static List<PolicyAlert> createPolicyAlerts(PolicyEvaluation policyEvaluation) {
-    List<PolicyAlert> result = new ArrayList<>();
     if (policyEvaluation == null) {
-      return result;
+      return Collections.emptyList();
     }
 
+    List<PolicyViolation> policyViolations = new PolicyViolationDAO().getByEvaluationId(policyEvaluation.getId());
+    return createPolicyAlerts(policyViolations, policyEvaluation.getStageTypeId(), policyEvaluation.isForMonitoring());
+  }
+
+  public static List<PolicyAlert> createPolicyAlerts(List<PolicyViolation> policyViolations, String stageTypeId,
+      boolean forMonitoring)
+  {
+    List<PolicyAlert> result = new ArrayList<>();
     PolicyDAO policyDAO = new PolicyDAO();
     Map<String, PolicyFact> policyFactsByPolicyId = new LinkedHashMap<>();
-    List<PolicyViolation> policyViolations = new PolicyViolationDAO().getByEvaluationId(policyEvaluation.getId());
     for (PolicyViolation policyViolation : policyViolations) {
       String policyId = policyViolation.getPolicyId();
       PolicyFact policyFact = policyFactsByPolicyId.get(policyId);
@@ -45,11 +51,11 @@ public class PolicyAlertUtil
         if (policy == null) {
           actions = Collections.emptyList();
         }
-        else if (policyEvaluation.isForMonitoring()) {
+        else if (forMonitoring) {
           actions = policy.getMonitorNotifyActions();
         }
         else {
-          actions = policy.getActions(policyEvaluation.getStageTypeId());
+          actions = policy.getActions(stageTypeId);
         }
         PolicyAlert policyAlert = new PolicyAlert(policyFact, actions);
         result.add(policyAlert);

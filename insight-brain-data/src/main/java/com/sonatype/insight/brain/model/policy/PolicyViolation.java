@@ -196,7 +196,7 @@ public class PolicyViolation
     constraintFacts = null;
   }
 
-  private void setConstraintFacts(List<ConstraintFact> constraintFacts) {
+  public void setConstraintFacts(List<ConstraintFact> constraintFacts) {
     if (constraintFacts == null || constraintFacts.isEmpty()) {
       throw new IllegalArgumentException("ConstraintFacts cannot be null or empty");
     }

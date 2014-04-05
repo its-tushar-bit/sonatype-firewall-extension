@@ -22,7 +22,6 @@ import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.AuthedRestAccess;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
-import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.Condition;
@@ -31,8 +30,6 @@ import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyMonitoring;
-import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
-import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityConditionType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
@@ -289,86 +286,6 @@ public class PolicyMonitorTest
     assertThat(policyEvaluation5.getTime(), is(greaterThan(policyEvaluation4.getTime())));
     assertThat(notificationsDeveloper, is(empty()));
     assertThat(notificationsMonitor1, is(empty()));
-    assertThat(notificationsMonitor2, hasSize(1));
-    notificationsMonitor2.clear();
-  }
-
-  @Test
-  public void testPreviousResultsCorrupted() throws Exception {
-    Organization org = tempEntity.newOrganization();
-    Application app = tempEntity.newApplication("MonitoredApp", org.getId());
-
-    Stage stage = new Stage(ReleaseStageType.ID);
-
-    PolicyMonitoring policyMonitoring = new PolicyMonitoring(app.getId(), stage.getStageTypeId());
-    new PolicyMonitoringDAO().insert(policyMonitoring);
-
-    String licenseFingerprint = "PolicyMonitorTest_LicenseFingerprint";
-    setLicenseFingerprint(licenseFingerprint);
-    String scanId = "PolicyMonitorTest_scanId";
-    File saasReportFile = getReportResponseFile(licenseFingerprint, scanId);
-    saasReportFile.delete();
-    File scanFile = insightWork.getScanFile(app.getId(), scanId);
-    scanFile.delete();
-
-    String notifyEmail = "developer@sonatype.com";
-    String monitorNotifyEmail1 = "monitor1@sonatype.com";
-    String monitorNotifyEmail2 = "monitor2@sonatype.com";
-    Policy policy1 = createPolicy(IdUtils.TYPE_APPLICATION, app.getPublicId(), "Policy1", stage, notifyEmail,
-        monitorNotifyEmail1);
-    createPolicy(IdUtils.TYPE_ORGANIZATION, org.getId(), "Policy2", stage, notifyEmail, monitorNotifyEmail2);
-
-    // Create the scan file
-    URL testScanFileUrl = getClass().getResource("/PolicyMonitorTest/scan.xml.gz");
-    FileUtils.copyFile(new File(testScanFileUrl.getFile()), scanFile);
-
-    // Simulate that the report is available
-    URL testReportFileUrl = getClass().getResource("/PolicyMonitorTest/report.zip");
-    FileUtils.copyFile(new File(testReportFileUrl.getFile()), saasReportFile);
-
-    // Prepare to receive email notifications
-    List<Message> notificationsDeveloper = Mailbox.get(notifyEmail);
-    List<Message> notificationsMonitor1 = Mailbox.get(monitorNotifyEmail1);
-    List<Message> notificationsMonitor2 = Mailbox.get(monitorNotifyEmail2);
-    notificationsDeveloper.clear();
-    notificationsMonitor1.clear();
-    notificationsMonitor2.clear();
-
-    // Evaluate the policy. Only the developer should receive a notification.
-    evaluatePolicy(app.getPublicId(), scanId, stage);
-    assertThat(notificationsDeveloper, hasSize(1));
-    notificationsDeveloper.clear();
-    assertThat(notificationsMonitor1, is(empty()));
-    assertThat(notificationsMonitor2, is(empty()));
-
-    // Simulate that the first alerts are corrupted
-    PolicyEvaluationDAO policyEvaluationDAO = new PolicyEvaluationDAO();
-    PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
-    PolicyEvaluation policyEvaluation = policyEvaluationDAO.getLastByApplicationIdAndStageId(app.getId(),
-        stage.getStageTypeId());
-    PolicyViolation policyViolation = new PolicyViolation(policyEvaluation.getId(), policy1.getId(), policy1.getName(),
-        policy1.getThreatLevel(), PolicyThreatCategory.OTHER, null, null, null, null, "invalid constraint facts json");
-    policyViolationDAO.insert(policyViolation);
-
-    // Run the policy monitor. There should be new notifications because the previous alerts could not be loaded.
-    policyMonitor.run();
-    assertThat(notificationsDeveloper, is(empty()));
-    assertThat(notificationsMonitor1, hasSize(1));
-    notificationsMonitor1.clear();
-    assertThat(notificationsMonitor2, hasSize(1));
-    notificationsMonitor2.clear();
-
-    // Simulate that the previous alerts are corrupted
-    policyEvaluation = policyEvaluationDAO.getLastByApplicationIdAndStageId(app.getId(), stage.getStageTypeId());
-    policyViolation = new PolicyViolation(policyEvaluation.getId(), policy1.getId(), policy1.getName(),
-        policy1.getThreatLevel(), PolicyThreatCategory.OTHER, null, null, null, null, "invalid constraint facts json");
-    policyViolationDAO.insert(policyViolation);
-
-    // Run the policy monitor. There should be new notifications because the previous alerts could not be loaded.
-    policyMonitor.run();
-    assertThat(notificationsDeveloper, is(empty()));
-    assertThat(notificationsMonitor1, hasSize(1));
-    notificationsMonitor1.clear();
     assertThat(notificationsMonitor2, hasSize(1));
     notificationsMonitor2.clear();
   }

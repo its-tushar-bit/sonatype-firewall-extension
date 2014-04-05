@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.policy.evaluator;
 
 import java.io.IOException;
-import java.util.List;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -19,7 +18,6 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
-import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
@@ -74,9 +72,8 @@ public class PolicyEvaluateResource
         .createPolicyEvaluationResult(policyEvaluation);
 
     if (!policyEvaluationResult.isReevaluation()) {
-      List<PolicyAlert> newAlerts = policyEvaluationResult.getAlerts();
-      List<PolicyAlert> oldAlerts = PolicyAlertUtil.createPolicyAlerts(lastPrimaryPolicyEvaluation);
-      policyAlertNotifier.sendNotifications(applicationPublicId, appId, scanId, stage, newAlerts, oldAlerts);
+      policyAlertNotifier.sendNotifications(applicationPublicId, appId, scanId, stage, policyEvaluation,
+          lastPrimaryPolicyEvaluation);
     }
 
     return policyEvaluationResult;

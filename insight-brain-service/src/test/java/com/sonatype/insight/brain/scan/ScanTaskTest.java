@@ -7,10 +7,8 @@ package com.sonatype.insight.brain.scan;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
 
 import com.sonatype.clm.dto.model.ScanReceipt;
-import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
@@ -197,7 +195,6 @@ public class ScanTaskTest
     verify(fileCleaner).delete(appBinary);
   }
 
-  @SuppressWarnings("unchecked")
   @Test
   public void sendsNotifications() throws Exception {
     task.init(app, bundleFile, bundleFilename, stage, true);
@@ -208,7 +205,7 @@ public class ScanTaskTest
     task.run();
 
     verify(notifier).sendNotifications(eq(app.getPublicId()), eq(app.getId()), eq("scan-id"), match(stage),
-        (List<PolicyAlert>) any(), (List<PolicyAlert>) any());
+        (PolicyEvaluation) any(), (PolicyEvaluation) any());
   }
 
   private void assertThatTaskCompletedSuccessfully(ScanTask task) {

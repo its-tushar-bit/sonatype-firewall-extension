@@ -28,9 +28,6 @@ import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.PolicyFact;
-import com.sonatype.clm.dto.model.policy.Stage;
-import com.sonatype.insight.brain.common.io.FileCleaner;
-import com.sonatype.insight.brain.common.io.FileCleaner.FileDeletionException;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
@@ -45,13 +42,12 @@ import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.report.ReportResource;
+import com.sonatype.insight.brain.trending.TrendingReportCache;
 import com.sonatype.insight.json.store.JsonStore;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ContainerNode;
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
@@ -103,6 +99,8 @@ public class PolicyEvaluationMigrator
 
   private final InsightWork insightWork;
 
+  private final TrendingReportCache trendingReportCache;
+
   private final ApplicationDAO appDAO = new ApplicationDAO();
 
   private final PolicyDAO policyDAO = new PolicyDAO();
@@ -112,8 +110,9 @@ public class PolicyEvaluationMigrator
   private final PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
 
   @Inject
-  public PolicyEvaluationMigrator(InsightWork insightWork) {
+  public PolicyEvaluationMigrator(InsightWork insightWork, TrendingReportCache trendingReportCache) {
     this.insightWork = insightWork;
+    this.trendingReportCache = trendingReportCache;
   }
 
   public void migrate() throws IOException {
@@ -167,6 +166,9 @@ public class PolicyEvaluationMigrator
       }
 
       em.getTransaction().commit();
+
+      //remove existing trending report cache as API changes will have invalidated its format
+      trendingReportCache.purgeCache();
     }
     finally {
       ApplicationDAO.close(em);

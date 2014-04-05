@@ -79,8 +79,7 @@ public class TrendingReportCache
   }
 
   /**
-   * For testing purposes
-   * 
+   *
    * @since 1.7
    */
   public void purgeCache() {

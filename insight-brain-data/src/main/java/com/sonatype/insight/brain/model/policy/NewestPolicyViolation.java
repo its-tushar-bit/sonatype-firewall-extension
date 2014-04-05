@@ -15,6 +15,8 @@ import javax.persistence.Table;
 import com.sonatype.insight.model.HasStringId;
 
 /**
+ * The first occurrence (in time) of a policy violation which still exists, in the scope of an application and stage.
+ * 
  * @since 1.11
  */
 @Entity

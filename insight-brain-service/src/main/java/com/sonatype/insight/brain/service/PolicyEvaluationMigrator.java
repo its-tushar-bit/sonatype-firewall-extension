@@ -12,10 +12,9 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
-import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
@@ -117,7 +116,7 @@ public class PolicyEvaluationMigrator
 
   public void migrate() throws IOException {
     long start = System.currentTimeMillis();
-    log.debug("Migrating policy evaluation data...");
+    log.info("Migrating policy evaluation data...");
 
     File markerFile = new File(insightWork.getWorkDir(), MARKER_FILE_NAME);
     if (markerFile.exists()) {
@@ -129,10 +128,13 @@ public class PolicyEvaluationMigrator
     int evaluationCount = 0;
 
     EntityManager em = appDAO.createEntityManager();
+
     try {
       em.getTransaction().begin();
 
       for (Application application : appDAO.getAll(em)) {
+        Set<String> monitoringScans = new HashSet<>();
+        long appStart = System.currentTimeMillis();
         ownerCount++;
         File auditDir = insightWork.getAuditDir(application.getId());
         JsonStore auditStore = JsonUtils.fileStore(auditDir);
@@ -141,14 +143,16 @@ public class PolicyEvaluationMigrator
           String stageId = stageType.getId();
           List<PolicyEvaluation> policyEvaluations = allByStage(stageId, auditStore);
 
-          if (!policyEvaluations.isEmpty()) {
-            log.debug("Migrating {} policy evaluations for Application named: {} and Stage: {}",
-                policyEvaluations.size(), application.getName(), stageId);
+          if (policyEvaluations.isEmpty()) {
+            continue;
           }
+
+          log.debug("Migrating {} policy evaluations for Application named: {} and Stage: {}",
+              policyEvaluations.size(), application.getName(), stageId);
 
           //all original policy evaluations
           Collection<PolicyEvaluation> primaryEvaluations = Collections2.filter(policyEvaluations, IS_PRIMARY_EVALUATION);
-          savePolicyEvaluations(em, application.getId(), stageId, primaryEvaluations);
+          savePolicyEvaluations(em, application.getId(), stageId, primaryEvaluations, monitoringScans);
           evaluationCount += primaryEvaluations.size();
 
           //and the rest
@@ -159,10 +163,13 @@ public class PolicyEvaluationMigrator
               .index(policyEvaluations, GROUP_BY_SCAN);
           for (Entry<String, Collection<PolicyEvaluation>> scanIdToPolicyEvaluation : groupedByScanId.asMap().entrySet()) {
             List<PolicyEvaluation> reevaluations = Lists.newArrayList(Iterables.limit(scanIdToPolicyEvaluation.getValue(), 1));
-            savePolicyEvaluations(em, application.getId(), stageId, reevaluations);
+            savePolicyEvaluations(em, application.getId(), stageId, reevaluations, monitoringScans);
             evaluationCount += reevaluations.size();
           }
         }
+        evaluationCount += monitoringScans.size();
+        log.debug("Migration of policy evaluations for Application named: {} complete in {} ms.", application.getName(),
+            System.currentTimeMillis() - appStart);
       }
 
       em.getTransaction().commit();
@@ -182,12 +189,13 @@ public class PolicyEvaluationMigrator
   }
 
   private void savePolicyEvaluations(final EntityManager em, final String applicationId, final String stageId,
-      final Collection<PolicyEvaluation> policyEvaluations) throws IOException {
+                                     final Collection<PolicyEvaluation> policyEvaluations,
+                                     final Set<String> monitoringScans) throws IOException {
     for (PolicyEvaluation policyEvaluation : policyEvaluations) {
       policyEvaluation.setStageTypeId(stageId);
       policyEvaluation.setApplicationId(applicationId);
       policyEvaluationDAO.insert(em, policyEvaluation);
-      log.debug("Migrated: {}", policyEvaluation);
+      log.trace("Migrated: {}", policyEvaluation);
 
       String scanId = policyEvaluation.getScanId();
       List<PolicyAlert> policyAlerts = findPolicyAlerts(applicationId, scanId,
@@ -195,7 +203,8 @@ public class PolicyEvaluationMigrator
       savePolicyAlerts(em, policyEvaluation.getId(), policyAlerts);
 
       /* check for existence of monitoring results */
-      if (policyEvaluationDAO.getLastMonitoringByApplicationIdAndScanId(em, applicationId, scanId) == null) {
+
+      if (!monitoringScans.contains(policyEvaluation.getScanId())) {
         //could only have one of these per scan on the file system
         List<PolicyAlert> monitoringAlerts = findPolicyAlerts(applicationId, scanId, MONITOR_POLICY_ALERTS_FILE);
         if (!monitoringAlerts.isEmpty()) {
@@ -203,8 +212,9 @@ public class PolicyEvaluationMigrator
           PolicyEvaluation monitoringEvaluation = new PolicyEvaluation(applicationId, stageId, scanId, true, true);
           monitoringEvaluation.setTime(new Date(time));
           policyEvaluationDAO.insert(em, monitoringEvaluation);
-          log.debug("Migrated policy monitoring evaluation: {}", monitoringEvaluation);
+          log.trace("Migrated policy monitoring evaluation: {}", monitoringEvaluation);
           savePolicyAlerts(em, monitoringEvaluation.getId(), monitoringAlerts);
+          monitoringScans.add(monitoringEvaluation.getScanId());
         }
       }
     }
@@ -286,9 +296,5 @@ public class PolicyEvaluationMigrator
 
   private String determineStageEvaluationFilename(String stageId) {
     return "policy-evaluations-" + stageId + ".json";
-  }
-
-  private String stageId(JsonNode stampedLogEntry) {
-    return stampedLogEntry.get("data").get("stage").get("stageTypeId").asText();
   }
 }

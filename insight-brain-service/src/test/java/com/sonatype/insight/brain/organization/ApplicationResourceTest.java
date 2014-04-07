@@ -406,16 +406,17 @@ public class ApplicationResourceTest
 
     // Create policy
     tempEntity.newPolicy(application.getId(), "policy 1");
-    final String scanId1 = "ScanId1", scanId2 = "ScanId2";
+    final String scanId1 = "ScanId1", scanId2 = "ScanId2", scanId3 = "ScanId3";
     final File saasReportFile1 = getReportResponseFile(licenseFingerprint, scanId1);
     FileUtils.copyURLToFile(getClass().getResource("/PolicyEvaluateResourceTest/report.zip"), saasReportFile1);
     FileUtils.copyFile(saasReportFile1, getReportResponseFile(licenseFingerprint, scanId2));
+    FileUtils.copyFile(saasReportFile1, getReportResponseFile(licenseFingerprint, scanId3));
 
     // Eval policy
     Response response = AuthedRestAccess.post(getEvalURL(applicationPublicId, scanId1),
         JsonHelpers.asJson(new Stage(Stage.ID_BUILD)));
     assertResponseStatus(200, response);
-    response = AuthedRestAccess.post(getEvalURL(applicationPublicId, scanId1),
+    response = AuthedRestAccess.post(getEvalURL(applicationPublicId, scanId3),
         JsonHelpers.asJson(new Stage(Stage.ID_RELEASE)));
     assertResponseStatus(200, response);
     response = AuthedRestAccess.post(getEvalURL(applicationPublicId, scanId2), JsonHelpers.asJson(new Stage(Stage.ID_BUILD)));
@@ -449,7 +450,7 @@ public class ApplicationResourceTest
     Assert.assertEquals(scanId2, policyEvaluations.get(stageTypeIds[0]).getScanId());
     Assert.assertEquals(Stage.ID_RELEASE, stageTypeIds[1]);
     Assert.assertEquals(Stage.ID_RELEASE, policyEvaluations.get(stageTypeIds[1]).getStageTypeId());
-    Assert.assertEquals(scanId1, policyEvaluations.get(stageTypeIds[1]).getScanId());
+    Assert.assertEquals(scanId3, policyEvaluations.get(stageTypeIds[1]).getScanId());
 
     Map<String, PolicyEvaluationResult> policyEvaluationsResults = applications[0].getPolicyEvaluationsResults();
     stageTypeIds = policyEvaluationsResults.keySet().toArray(new String[0]);
@@ -504,7 +505,7 @@ public class ApplicationResourceTest
     Assert.assertEquals(scanId2, applications[0].getPolicyEvaluations().get(stageTypeIds[0]).getScanId());
     Assert.assertEquals(Stage.ID_RELEASE, stageTypeIds[1]);
     Assert.assertEquals(Stage.ID_RELEASE, policyEvaluations.get(stageTypeIds[1]).getStageTypeId());
-    Assert.assertEquals(scanId1, applications[0].getPolicyEvaluations().get(stageTypeIds[1]).getScanId());
+    Assert.assertEquals(scanId3, applications[0].getPolicyEvaluations().get(stageTypeIds[1]).getScanId());
 
     policyEvaluationsResults = applicationSummary.getPolicyEvaluationsResults();
     stageTypeIds = policyEvaluationsResults.keySet().toArray(new String[0]);

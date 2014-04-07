@@ -518,6 +518,11 @@ describe('Resource', function() {
       data[0].related.push(sliced[0]);
       expect(data[0].isDirty()).not.toBeTruthy();
     });
+
+    it('Property with explicitly undefined value', function() {
+      data[0].blah = undefined;
+      expect(data[0].isDirty()).toEqual(false);
+    });
   });
 
   describe('Delete', function() {

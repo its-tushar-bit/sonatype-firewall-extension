@@ -140,7 +140,7 @@
           // Ignore methods we added, or that AngularJS has (prefixed with $$)
           angular.forEach(this, function(value, key) {
             if (!(me[key] instanceof LinkedResource) && resourceStore.objectMethods.indexOf(key) === -1 &&
-                !(key.length >= 2 && key.substring(0, 2) === '$$')) {
+                !(key.length >= 2 && key.substring(0, 2) === '$$') && me[key] !== undefined) {
               currentProperties.push(key);
             }
           });

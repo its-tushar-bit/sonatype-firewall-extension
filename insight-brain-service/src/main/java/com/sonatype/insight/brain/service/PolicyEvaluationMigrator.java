@@ -11,10 +11,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
@@ -28,16 +31,20 @@ import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.policy.NewestPolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.policy.NewestPolicyViolation;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
+import com.sonatype.insight.brain.policy.evaluator.PolicyViolationDiff;
+import com.sonatype.insight.brain.policy.evaluator.PolicyViolationDigester;
 import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.report.ReportResource;
@@ -108,6 +115,8 @@ public class PolicyEvaluationMigrator
 
   private final PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
 
+  private final NewestPolicyViolationDAO newestPolicyViolationDAO = new NewestPolicyViolationDAO();
+
   @Inject
   public PolicyEvaluationMigrator(InsightWork insightWork, TrendingReportCache trendingReportCache) {
     this.insightWork = insightWork;
@@ -133,8 +142,12 @@ public class PolicyEvaluationMigrator
       em.getTransaction().begin();
 
       for (Application application : appDAO.getAll(em)) {
-        Set<String> monitoringScans = new HashSet<>();
         long appStart = System.currentTimeMillis();
+
+        Set<String> monitoringScans = new HashSet<>();
+        List<PolicyEvaluation> policyEvaluationsCache = new ArrayList<>();
+        Map<String, List<PolicyViolation>> policyViolationsByEvaluationCache = new LinkedHashMap<>();
+        
         ownerCount++;
         File auditDir = insightWork.getAuditDir(application.getId());
         JsonStore auditStore = JsonUtils.fileStore(auditDir);
@@ -150,24 +163,28 @@ public class PolicyEvaluationMigrator
           log.debug("Migrating {} policy evaluations for Application named: {} and Stage: {}",
               policyEvaluations.size(), application.getName(), stageId);
 
-          //all original policy evaluations
-          Collection<PolicyEvaluation> primaryEvaluations = Collections2.filter(policyEvaluations, IS_PRIMARY_EVALUATION);
-          savePolicyEvaluations(em, application.getId(), stageId, primaryEvaluations, monitoringScans);
+          // Migrate all primary policy evaluations
+          Collection<PolicyEvaluation> primaryEvaluations = Collections2.filter(policyEvaluations,
+              IS_PRIMARY_EVALUATION);
+          savePolicyEvaluations(em, application.getId(), stageId, primaryEvaluations, monitoringScans,
+              policyEvaluationsCache, policyViolationsByEvaluationCache);
           evaluationCount += primaryEvaluations.size();
 
-          //and the rest
+          // Migrate only the most recent re-evaluation for each scan
           policyEvaluations.removeAll(primaryEvaluations);
-
-          //only the most recent re-evaluation for each scan
-          ImmutableListMultimap<String, PolicyEvaluation> groupedByScanId = Multimaps
-              .index(policyEvaluations, GROUP_BY_SCAN);
+          ImmutableListMultimap<String, PolicyEvaluation> groupedByScanId = Multimaps.index(policyEvaluations,
+              GROUP_BY_SCAN);
           for (Entry<String, Collection<PolicyEvaluation>> scanIdToPolicyEvaluation : groupedByScanId.asMap().entrySet()) {
             List<PolicyEvaluation> reevaluations = Lists.newArrayList(Iterables.limit(scanIdToPolicyEvaluation.getValue(), 1));
-            savePolicyEvaluations(em, application.getId(), stageId, reevaluations, monitoringScans);
+            savePolicyEvaluations(em, application.getId(), stageId, reevaluations, monitoringScans,
+                policyEvaluationsCache, policyViolationsByEvaluationCache);
             evaluationCount += reevaluations.size();
           }
         }
         evaluationCount += monitoringScans.size();
+
+        saveNewestPolicyViolations(em, policyEvaluationsCache, policyViolationsByEvaluationCache);
+
         log.debug("Migration of policy evaluations for Application named: {} complete in {} ms.", application.getName(),
             System.currentTimeMillis() - appStart);
       }
@@ -188,19 +205,53 @@ public class PolicyEvaluationMigrator
         ownerCount, evaluationCount, System.currentTimeMillis() - start);
   }
 
+  private void saveNewestPolicyViolations(EntityManager em, List<PolicyEvaluation> policyEvaluations,
+      Map<String, List<PolicyViolation>> policyViolationsByEvaluation)
+  {
+    // Sort policy evaluations by time
+    Collections.sort(policyEvaluations, new Comparator<PolicyEvaluation>()
+    {
+      @Override
+      public int compare(PolicyEvaluation e1, PolicyEvaluation e2) {
+        return e1.getTime().compareTo(e2.getTime());
+      }
+    });
+
+    // Calculate "newest" policy violations
+    List<PolicyViolation> newestPolicyViolations = new ArrayList<>();
+    Map<String, PolicyEvaluation> policyEvaluationsById = new LinkedHashMap<>();
+    for (PolicyEvaluation policyEvaluation : policyEvaluations) {
+      PolicyViolationDiff diff = PolicyViolationDigester.digestPolicyViolations(
+          policyViolationsByEvaluation.get(policyEvaluation.getId()), newestPolicyViolations);
+      newestPolicyViolations.addAll(diff.getAppeared());
+      newestPolicyViolations.removeAll(diff.getCleared());
+      policyEvaluationsById.put(policyEvaluation.getId(), policyEvaluation);
+    }
+    // Persist "newest" policy violations
+    for (PolicyViolation policyViolation : newestPolicyViolations) {
+      PolicyEvaluation policyEvaluation = policyEvaluationsById.get(policyViolation.getPolicyEvaluationId());
+      NewestPolicyViolation newestPolicyViolation = new NewestPolicyViolation(policyViolation.getId(),
+          policyEvaluation.getApplicationId(), policyEvaluation.getStageTypeId(), policyEvaluation.getTime());
+      newestPolicyViolationDAO.insert(em, newestPolicyViolation);
+    }
+  }
+
   private void savePolicyEvaluations(final EntityManager em, final String applicationId, final String stageId,
-                                     final Collection<PolicyEvaluation> policyEvaluations,
-                                     final Set<String> monitoringScans) throws IOException {
+      final Collection<PolicyEvaluation> policyEvaluations, final Set<String> monitoringScans,
+      final List<PolicyEvaluation> policyEvaluationsCache,
+      final Map<String, List<PolicyViolation>> policyViolationsByEvaluationCache) throws IOException
+  {
     for (PolicyEvaluation policyEvaluation : policyEvaluations) {
       policyEvaluation.setStageTypeId(stageId);
       policyEvaluation.setApplicationId(applicationId);
       policyEvaluationDAO.insert(em, policyEvaluation);
+      policyEvaluationsCache.add(policyEvaluation);
       log.trace("Migrated: {}", policyEvaluation);
 
       String scanId = policyEvaluation.getScanId();
       List<PolicyAlert> policyAlerts = findPolicyAlerts(applicationId, scanId,
           determinePolicyAlertsFileName(policyEvaluation));
-      savePolicyAlerts(em, policyEvaluation.getId(), policyAlerts);
+      savePolicyAlerts(em, policyEvaluation.getId(), policyAlerts, policyViolationsByEvaluationCache);
 
       /* check for existence of monitoring results */
 
@@ -212,15 +263,20 @@ public class PolicyEvaluationMigrator
           PolicyEvaluation monitoringEvaluation = new PolicyEvaluation(applicationId, stageId, scanId, true, true);
           monitoringEvaluation.setTime(new Date(time));
           policyEvaluationDAO.insert(em, monitoringEvaluation);
+          policyEvaluationsCache.add(monitoringEvaluation);
           log.trace("Migrated policy monitoring evaluation: {}", monitoringEvaluation);
-          savePolicyAlerts(em, monitoringEvaluation.getId(), monitoringAlerts);
+          savePolicyAlerts(em, monitoringEvaluation.getId(), monitoringAlerts, policyViolationsByEvaluationCache);
           monitoringScans.add(monitoringEvaluation.getScanId());
         }
       }
     }
   }
 
-  private void savePolicyAlerts(final EntityManager em, final String policyEvaluationId, final List<PolicyAlert> policyAlerts) {
+  private void savePolicyAlerts(final EntityManager em, final String policyEvaluationId,
+      final List<PolicyAlert> policyAlerts, final Map<String, List<PolicyViolation>> policyViolationsByEvaluationCache)
+  {
+    List<PolicyViolation> policyViolations = new ArrayList<>();
+    policyViolationsByEvaluationCache.put(policyEvaluationId, policyViolations);
     for (PolicyAlert policyAlert : policyAlerts) {
       PolicyFact policyFact = policyAlert.getTrigger();
       Policy policy = policyDAO.getById(em, policyFact.getPolicyId());
@@ -236,6 +292,7 @@ public class PolicyEvaluationMigrator
             componentFact.getConstraintFacts());
 
         policyViolationDAO.insert(em, policyViolation);
+        policyViolations.add(policyViolation);
       }
     }
   }

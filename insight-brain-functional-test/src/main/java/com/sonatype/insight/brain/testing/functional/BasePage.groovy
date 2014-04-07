@@ -6,8 +6,8 @@
 package com.sonatype.insight.brain.testing.functional
 
 import com.sonatype.insight.brain.testing.functional.modules.ChangePasswordModule
+import com.sonatype.insight.brain.testing.functional.modules.HelpModule
 import com.sonatype.insight.brain.testing.functional.modules.LoginModule
-
 import com.sonatype.insight.brain.testing.functional.modules.UserOptionsModule
 import geb.Page
 

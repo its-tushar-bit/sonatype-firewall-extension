@@ -25,6 +25,10 @@ public class StageTypes
     add(new OperateStageType());
   }
 
+  public static Map<String, StageType> getMap() {
+    return Collections.unmodifiableMap(allStageTypes);
+  }
+
   public static Collection<StageType> getAll() {
     return Collections.unmodifiableCollection(allStageTypes.values());
   }

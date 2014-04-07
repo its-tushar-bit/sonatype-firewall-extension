@@ -8,7 +8,7 @@ package com.sonatype.insight.brain.testing.functional
 import spock.lang.Stepwise
 
 @Stepwise
-class HelpModuleSpec
+class HelpSpec
     extends BaseSpec 
 {
 

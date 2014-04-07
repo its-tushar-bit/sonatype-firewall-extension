@@ -71,7 +71,7 @@ public class Parameters
   private String proxyUser;
 
   @Parameter(names = { "-t", "--stage" }, validateValueWith = StageParameterValidator.class, converter = StageParameterConverter.class, description = "CLM stage to run analysis against. Accepted values: "
-      + Stage.ID_PROCURE + "|" + Stage.ID_DEVELOP + "|" + Stage.ID_BUILD + "|" + Stage.ID_STAGE_RELEASE + "|" + Stage.ID_RELEASE + "|" + Stage.ID_OPERATE)
+      + Stage.ID_DEVELOP + "|" + Stage.ID_BUILD + "|" + Stage.ID_STAGE_RELEASE + "|" + Stage.ID_RELEASE + "|" + Stage.ID_OPERATE)
   private Stage stage = new Stage(Stage.ID_BUILD);
 
   @Parameter(names = { "-r", "--result-file" }, description = "Path to a JSON file where the results "
@@ -239,7 +239,7 @@ public class Parameters
   {
     @Override
     public void validate(String name, Stage value) throws ParameterException {
-      if (!Stage.isValidStageTypeId(value.getStageTypeId())) {
+      if (!Stage.isValidExternalStageTypeId(value.getStageTypeId())) {
         throw new ParameterException("An invalid CLM stage was specified: " + name + " " + value);
       }
     }

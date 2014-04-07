@@ -13,6 +13,7 @@ import java.util.Date;
 import java.util.List;
 
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
@@ -23,6 +24,7 @@ import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
+import com.sonatype.insight.brain.trending.TrendingReportCache;
 
 import org.apache.commons.io.FileUtils;
 import org.junit.Before;
@@ -53,6 +55,8 @@ public class PolicyEvaluationMigratorTest
 
   private InsightConfig insightConfig;
 
+  private InsightWork insightWork;
+
   private PolicyEvaluationMigrator policyEvaluationMigrator;
 
   private Application app1;
@@ -65,7 +69,8 @@ public class PolicyEvaluationMigratorTest
     String tempFolderPath = sonatypeWork.getAbsolutePath();
     insightConfig = new InsightConfig();
     insightConfig.setSonatypeWork(tempFolderPath);
-    policyEvaluationMigrator = new PolicyEvaluationMigrator(new InsightWork(insightConfig));
+    insightWork = new InsightWork(insightConfig);
+    policyEvaluationMigrator = new PolicyEvaluationMigrator(insightWork, new TrendingReportCache(insightWork, new FileCleaner()));
 
     //provide evaluation logs and dummied up reports(zip has no content and the report.cache files are loaded) for test purposes
     FileUtils.copyDirectory(new File("target/test-classes/PolicyEvaluationMigratorTest"), sonatypeWork);
@@ -182,6 +187,15 @@ public class PolicyEvaluationMigratorTest
     for (StageType stageType : StageTypes.getAll()) {
       assertThat(policyEvaluationDAO.getAllByApplicationIdAndStageId(appNoEvals.getId(), stageType.getId()), empty());
     }
+  }
+
+  @Test
+  public void testDeletionOfTrendingReport() throws Exception {
+    assertThat("Trending report file is present before migration",
+        new File(insightWork.getReportDir(), "trending-report.json").exists(), is(true));
+    policyEvaluationMigrator.migrate();
+    assertThat("Trending report file is deleted after migration",
+        new File(insightWork.getReportDir(), "trending-report.json").exists(), is(false));
   }
 
   private void assertUnknownComponent(final String evaluationId, final PolicyViolation policyViolation) {

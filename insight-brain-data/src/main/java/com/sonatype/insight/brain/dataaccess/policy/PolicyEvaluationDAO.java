@@ -41,11 +41,21 @@ public class PolicyEvaluationDAO
     return createQuery(sQuery, appId, scanId).forceSingleResult().get(em);
   }
 
-  public PolicyEvaluation getLastByApplicationIdAndScanId(String appId, String scanId) {
+
     String sQuery = "SELECT entity FROM PolicyEvaluation entity" + //
         " WHERE entity.applicationId=?1 AND entity.scanId=?2" + //
         " ORDER BY entity.time DESC";
-    return createQuery(sQuery, appId, scanId).forceSingleResult().get();
+    return createQuery(sQuery, appId, scanId).forceSingleResult().get(em);
+  }
+
+  public PolicyEvaluation getLastByApplicationIdAndScanId(String appId, String scanId) {
+    EntityManager em = createEntityManager();
+    try {
+      return getLastByApplicationIdAndScanId(em, appId, scanId);
+    }
+    finally {
+      close(em);
+    }
   }
 
   public PolicyEvaluation getLastByApplicationIdAndStageId(String appId, String stageTypeId) {
@@ -58,11 +68,24 @@ public class PolicyEvaluationDAO
   /**
    * Returns the last primary evaluation (i.e. not a reevaluation) for the given application and stage.
    */
-  public PolicyEvaluation getLastPrimaryByApplicationIdAndStageId(String appId, String stageTypeId) {
+  public PolicyEvaluation getLastPrimaryByApplicationIdAndStageId(EntityManager em, String appId, String stageTypeId) {
     String sQuery = "SELECT entity FROM PolicyEvaluation entity" + //
         " WHERE entity.applicationId=?1 AND entity.stageTypeId=?2 AND entity.isReevaluation=false" + //
         " ORDER BY entity.time DESC";
-    return createQuery(sQuery, appId, stageTypeId).forceSingleResult().get();
+    return createQuery(sQuery, appId, stageTypeId).forceSingleResult().get(em);
+  }
+
+  /**
+   * Returns the last primary evaluation (i.e. not a reevaluation) for the given application and stage.
+   */
+  public PolicyEvaluation getLastPrimaryByApplicationIdAndStageId(String appId, String stageTypeId) {
+    EntityManager em = createEntityManager();
+    try {
+      return getLastPrimaryByApplicationIdAndStageId(em, appId, stageTypeId);
+    }
+    finally {
+      close(em);
+    }
   }
 
   public List<PolicyEvaluation> getAllByApplicationIdAndStageId(String appId, String stageTypeId) {

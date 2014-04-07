@@ -49,16 +49,22 @@ public class PolicyViolationDAO
     return getList(em, sQuery, policyId);
   }
 
-  /**
-   * This is just an example for a getter for newest policy violations. I'm not sure yet what getters we actually need.
-   */
-  public List<PolicyViolation> getNewestByApplicationId(String appId) {
-    // TODO Filter by newestPolicyViolation.time?
+  public List<PolicyViolation> getNewestByApplicationId(EntityManager em, String appId) {
     String sQuery = "SELECT policyViolation" + //
         " FROM PolicyViolation policyViolation, NewestPolicyViolation newestPolicyViolation" + //
         " WHERE policyViolation.id=newestPolicyViolation.id AND newestPolicyViolation.applicationId=?1" + //
         " ORDER BY policyViolation.policyId, policyViolation.groupId, policyViolation.artifactId, policyViolation.version, policyViolation.hash";
-    return getList(sQuery, appId);
+    return getList(em, sQuery, appId);
+  }
+
+  public List<PolicyViolation> getNewestByApplicationId(String appId) {
+    EntityManager em = createEntityManager();
+    try {
+      return getNewestByApplicationId(em, appId);
+    }
+    finally {
+      close(em);
+    }
   }
 
   @Override

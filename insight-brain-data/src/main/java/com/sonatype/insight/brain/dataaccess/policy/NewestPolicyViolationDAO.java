@@ -17,7 +17,7 @@ public class NewestPolicyViolationDAO
     extends AbstractOperationalSqlDAO<NewestPolicyViolation>
 {
   @Override
-  protected NewestPolicyViolation getById(EntityManager em, String id) {
+  public NewestPolicyViolation getById(EntityManager em, String id) {
     String sQuery = "SELECT entity FROM NewestPolicyViolation entity" + //
         " WHERE entity.id=?1";
     return get(em, sQuery, id);

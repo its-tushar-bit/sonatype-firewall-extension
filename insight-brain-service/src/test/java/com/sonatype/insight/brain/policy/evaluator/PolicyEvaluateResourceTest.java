@@ -22,7 +22,10 @@ import com.sonatype.insight.brain.dataaccess.component.HashGAVDAO;
 import com.sonatype.insight.brain.dataaccess.label.ComponentLabelDAO;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
+import com.sonatype.insight.brain.dataaccess.policy.NewestPolicyViolationDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.Component;
@@ -35,8 +38,10 @@ import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
+import com.sonatype.insight.brain.model.policy.NewestPolicyViolation;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.model.policy.actions.NotifyActionType;
 import com.sonatype.insight.brain.model.policy.conditions.AgeInDaysConditionType;
@@ -61,6 +66,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.jvnet.mock_javamail.Mailbox;
 
+import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertThat;
@@ -772,6 +778,64 @@ public class PolicyEvaluateResourceTest
 
     PolicyEvaluation eval = new PolicyEvaluationDAO().getLastByApplicationIdAndStageId(appId, Stage.ID_BUILD);
     Assert.assertNull(eval);
+  }
+
+  @Test
+  public void testEvaluate_NewestPolicyViolations() throws Exception {
+    String applicationPublicId = "testEvaluateNewestPolicyViolations";
+    Application app = tempEntity.newApplicationWithParent(applicationPublicId);
+    String scanId = "testEvaluateNewestPolicyViolations";
+    String licenseFingerprint = "testEvaluateNewestPolicyViolations";
+    setLicenseFingerprint(licenseFingerprint);
+
+    File saasReportFile = getReportResponseFile(licenseFingerprint, scanId);
+    saasReportFile.delete();
+
+    Constraint constraint1 = new Constraint("C1", "PolicyEvaluateResourceTest constraint 1", LogicalOperator.OR);
+    Condition condition1 = new Condition(CoordinatesConditionType.ID, "match", "tomcat:tomcat-util:5.5.23");
+    constraint1.addCondition(condition1);
+    Condition condition2 = new Condition(CoordinatesConditionType.ID, "match", "commons-pool:commons-pool:1.4");
+    constraint1.addCondition(condition2);
+    Policy policy = new Policy("P1", "PolicyEvaluateResourceTest policy");
+    policy.setThreatLevel(8);
+    policy.addConstraint(constraint1);
+    policy.setOwnerId(app.getId());
+    PolicyDAO policyDAO = new PolicyDAO();
+    policyDAO.insert(policy);
+
+    Stage stage = new Stage(BuildStageType.ID);
+
+    // Simulate that the report is available
+    URL testReportFileUrl = getClass().getResource("/PolicyEvaluateResourceTest/report.zip");
+    FileUtils.copyFile(new File(testReportFileUrl.getFile()), saasReportFile);
+
+    // Evaluate policy
+    Response response = AuthedRestAccess.post(getServiceURL(applicationPublicId, scanId), JsonHelpers.asJson(stage));
+    assertResponseStatus(200, response);
+    PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
+    List<PolicyViolation> policyViolations1 = policyViolationDAO.getNewestByApplicationId(app.getId());
+    assertThat(policyViolations1, hasSize(2));
+    assertThat(policyViolations1.get(0).getGroupId(), is("commons-pool"));
+    assertThat(policyViolations1.get(1).getGroupId(), is("tomcat"));
+    NewestPolicyViolationDAO newestPolicyViolationDAO = new NewestPolicyViolationDAO();
+    NewestPolicyViolation newestPolicyViolationUnchanged1 = newestPolicyViolationDAO.getById(policyViolations1.get(0)
+        .getId());
+
+    // Change one of the policy conditions and re-evaluate the policy.
+    // This should cause a policy violation to be cleared and a new policy violation to appear.
+    policy.getConstraints().get(0).getConditions().get(0).setValue("commons-dbcp:commons-dbcp:1.4");
+    policyDAO.update(policy);
+    // Evaluate policy again for the same scan
+    response = AuthedRestAccess.post(getServiceURL(applicationPublicId, scanId), JsonHelpers.asJson(stage));
+    assertResponseStatus(200, response);
+    List<PolicyViolation> policyViolations2 = policyViolationDAO.getNewestByApplicationId(app.getId());
+    assertThat(policyViolations2, hasSize(2));
+    assertThat(policyViolations2.get(0).getGroupId(), is("commons-dbcp"));
+    assertThat(policyViolations2.get(1).getGroupId(), is("commons-pool"));
+    NewestPolicyViolation newestPolicyViolationUnchanged2 = newestPolicyViolationDAO.getById(policyViolations2.get(1)
+        .getId());
+    assertThat(newestPolicyViolationUnchanged2.getId(), is(newestPolicyViolationUnchanged1.getId()));
+    assertThat(newestPolicyViolationUnchanged2.getTime(), is(newestPolicyViolationUnchanged1.getTime()));
   }
 
   private String getServiceURL(final String appId, final String scanId) {

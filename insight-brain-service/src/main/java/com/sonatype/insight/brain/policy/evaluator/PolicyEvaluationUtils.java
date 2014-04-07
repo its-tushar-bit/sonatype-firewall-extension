@@ -12,6 +12,8 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -27,11 +29,13 @@ import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentDAO;
+import com.sonatype.insight.brain.dataaccess.policy.NewestPolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.Component;
+import com.sonatype.insight.brain.model.policy.NewestPolicyViolation;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
@@ -51,6 +55,8 @@ public class PolicyEvaluationUtils
   public static final String POLICY_ALERTS_FILENAME = "policyalerts.json";
 
   public static final String POLICY_THREATS_FILENAME = "policythreats.json";
+
+  private static final ConcurrentMap<String, String> PERSISTENCE_LOCKS_BY_APPID = new ConcurrentHashMap<>();
 
   private final InsightWork work;
 
@@ -120,39 +126,73 @@ public class PolicyEvaluationUtils
   private PolicyEvaluation persistPolicyResults(String appId, String scanId, Stage stage, boolean forMonitoring,
       PolicyResults policyResults)
   {
-    PolicyEvaluationDAO policyEvaluationDAO = new PolicyEvaluationDAO();
-    boolean isReevaluation = (policyEvaluationDAO.getLastByApplicationIdAndScanId(appId, scanId) != null);
-    EntityManager em = policyEvaluationDAO.createEntityManager();
-    try {
-      em.getTransaction().begin();
-
-      // Persist the policy evaluation
-      PolicyEvaluation policyEvaluation = new PolicyEvaluation(appId, stage.getStageTypeId(), scanId, isReevaluation,
-          forMonitoring);
-      policyEvaluationDAO.insert(em, policyEvaluation);
-
-      // Persist the policy violations
-      PolicyDAO policyDAO = new PolicyDAO();
-      PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
-      for (PolicyAlert policyAlert : policyResults.getActiveAlerts()) {
-        PolicyFact policyFact = policyAlert.getTrigger();
-        Policy policy = policyDAO.getByIdNotNull(policyFact.getPolicyId());
-        PolicyThreatCategory threatCategory = policy.getThreatCategory();
-        for (ComponentFact componentFact : policyFact.getComponentFacts()) {
-          PolicyViolation policyViolation = new PolicyViolation(policyEvaluation.getId(), policy.getId(),
-              policy.getName(), policyFact.getThreatLevel(), threatCategory, componentFact.getHash(),
-              componentFact.getGroupId(), componentFact.getArtifactId(), componentFact.getVersion(),
-              componentFact.getConstraintFacts());
-          policyViolationDAO.insert(em, policyViolation);
+    Object lock = getPersistenceLock(appId);
+    synchronized (lock) {
+      PolicyEvaluationDAO policyEvaluationDAO = new PolicyEvaluationDAO();
+      EntityManager em = policyEvaluationDAO.createEntityManager();
+      try {
+        em.getTransaction().begin();
+  
+        boolean isReevaluation = (policyEvaluationDAO.getLastByApplicationIdAndScanId(em, appId, scanId) != null);
+  
+        // Persist the policy evaluation
+        PolicyEvaluation policyEvaluation = new PolicyEvaluation(appId, stage.getStageTypeId(), scanId, isReevaluation,
+            forMonitoring);
+        policyEvaluationDAO.insert(em, policyEvaluation);
+  
+        // Persist the policy violations
+        List<PolicyViolation> newPolicyViolations = new ArrayList<>();
+        PolicyDAO policyDAO = new PolicyDAO();
+        PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
+        for (PolicyAlert policyAlert : policyResults.getActiveAlerts()) {
+          PolicyFact policyFact = policyAlert.getTrigger();
+          Policy policy = policyDAO.getByIdNotNull(policyFact.getPolicyId());
+          PolicyThreatCategory threatCategory = policy.getThreatCategory();
+          for (ComponentFact componentFact : policyFact.getComponentFacts()) {
+            PolicyViolation policyViolation = new PolicyViolation(policyEvaluation.getId(), policy.getId(),
+                policy.getName(), policyFact.getThreatLevel(), threatCategory, componentFact.getHash(),
+                componentFact.getGroupId(), componentFact.getArtifactId(), componentFact.getVersion(),
+                componentFact.getConstraintFacts());
+            policyViolationDAO.insert(em, policyViolation);
+            newPolicyViolations.add(policyViolation);
+          }
         }
+
+        // Persist the "newest" policy violations only if there isn't a more recent primary policy evaluation, since any
+        // reevaluation (even for monitoring) may be for an older scan.
+        boolean persistNewestPolicyViolations = true;
+        if (isReevaluation) {
+          PolicyEvaluation lastPrimaryPolicyEvaluation = policyEvaluationDAO.getLastPrimaryByApplicationIdAndStageId(
+              em, appId, stage.getStageTypeId());
+          persistNewestPolicyViolations = lastPrimaryPolicyEvaluation.getScanId().equals(scanId);
+        }
+        if (persistNewestPolicyViolations) {
+          // Calculate a diff between the current policy violations and the previous "newest" policy violations
+          List<PolicyViolation> oldPolicyViolations = policyViolationDAO.getNewestByApplicationId(em, appId);
+          PolicyViolationDiff policyViolationDiff = PolicyViolationDigester.digestPolicyViolations(newPolicyViolations,
+              oldPolicyViolations);
+          NewestPolicyViolationDAO newestPolicyViolationDAO = new NewestPolicyViolationDAO();
+          // Delete cleared "newest" policy violations
+          for (PolicyViolation clearedPolicyViolation : policyViolationDiff.getCleared()) {
+            NewestPolicyViolation newestPolicyViolation = newestPolicyViolationDAO.getById(em,
+                clearedPolicyViolation.getId());
+            newestPolicyViolationDAO.delete(em, newestPolicyViolation);
+          }
+          // Add new "newest" policy violations
+          for (PolicyViolation appearedPolicyViolation : policyViolationDiff.getAppeared()) {
+            NewestPolicyViolation newestPolicyViolation = new NewestPolicyViolation(appearedPolicyViolation.getId(),
+                appId, stage.getStageTypeId(), policyEvaluation.getTime());
+            newestPolicyViolationDAO.insert(em, newestPolicyViolation);
+          }
+        }
+  
+        em.getTransaction().commit();
+  
+        return policyEvaluation;
       }
-
-      em.getTransaction().commit();
-
-      return policyEvaluation;
-    }
-    finally {
-      PolicyEvaluationDAO.close(em);
+      finally {
+        PolicyEvaluationDAO.close(em);
+      }
     }
   }
 
@@ -272,5 +312,16 @@ public class PolicyEvaluationUtils
     calculateCounters(policyEvaluationResult);
     policyEvaluationResult.setReevaluation(policyEvaluation.isReevaluation());
     return policyEvaluationResult;
+  }
+
+  private static Object getPersistenceLock(String appId) {
+    Object lock = PERSISTENCE_LOCKS_BY_APPID.get(appId);
+    if (lock == null) {
+      lock = PERSISTENCE_LOCKS_BY_APPID.putIfAbsent(appId, appId);
+      if (lock == null) {
+        lock = appId;
+      }
+    }
+    return lock;
   }
 }

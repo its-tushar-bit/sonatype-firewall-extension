@@ -766,7 +766,7 @@ var AngularStateUtils = {
   angularCommon.directive('multiSelect', [function () {
     return {
       template : '<div class="btn-group multiselect" ng-class="{ open : open }">' +
-                   '<button class="btn" ng-click="open = !open"><span>{{getText()}}</span> <span class="caret"></span></button>' +
+                   '<button class="btn" ng-click="open = !open"><span><div>{{getText()}}</div></span> <span class="caret"></span></button>' +
                    '<ul class="dropdown-menu multiselect-container">' +
                      '<li ng-if="items.length > 9"><input type="text" ng-model="filter.name" style="margin:0;width:160px" placeholder="Search"></li>' +
                      '<li ng-repeat="item in items | filter: { name : filter.name }">' +
@@ -789,7 +789,8 @@ var AngularStateUtils = {
         function updateSelection() {
           scope.selected = {};
           if (scope.selectedIds) {
-            angular.forEach(scope.selectedIds, function (id) {
+            angular.forEach(scope.selectedIds, function (effectiveId) {
+              var id = getIdFromEffectiveId(effectiveId);
               scope.selected[id] = true;
             });
           }
@@ -813,6 +814,16 @@ var AngularStateUtils = {
             }
           }
           return id;
+        }
+
+        function getIdFromEffectiveId(effectiveId) {
+          for (var i = 0; i < scope.items.length; i++) {
+            var item = scope.items[i];
+            if (item[effectiveIdField] === effectiveId) {
+              return item.id;
+            }
+          }
+          return effectiveId;
         }
 
         scope.getText = function () {

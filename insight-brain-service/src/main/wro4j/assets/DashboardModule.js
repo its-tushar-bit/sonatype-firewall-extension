@@ -15,9 +15,10 @@
     });
   }]);
 
-  dashboardModule.controller('DashboardController', ['$scope', '$q', 'ApplicationStore', '$http', 'CLMLocations',
-    function($scope, $q, ApplicationStore, $http, CLMLocations) {
+  dashboardModule.controller('DashboardController', ['$scope', '$q', 'ApplicationStore', '$http', 'CLMLocations', '$timeout',
+    function($scope, $q, ApplicationStore, $http, CLMLocations, $timeout) {
     $scope.appliedApplicationPublicIds = [];
+    $scope.queuedApplicationPublicIds = [];
 
     function load() {
       var promises = [
@@ -38,11 +39,41 @@
       ];
       $q.all(promises).then(function(data) {
         $scope.applications = data[0];
-
-        $scope.$watchCollection('appliedApplicationPublicIds', load);
       });
     }
 
     loadFilters();
+    load();
+    $scope.applyFilters = function() {
+      $scope.appliedApplicationPublicIds = angular.copy($scope.queuedApplicationPublicIds);
+      load();
+      $scope.toggleCollapse();
+    };
+
+    $scope.cancelFilters = function() {
+      $scope.queuedApplicationPublicIds = angular.copy($scope.appliedApplicationPublicIds);
+      $scope.toggleCollapse();
+    };
+
+    $scope.getSelectedApplicationNames = function() {
+      if (!$scope.applications || $scope.appliedApplicationPublicIds.length === 0) {
+        return 'All Applications';
+      }
+      var applicationNames = [];
+      for (var i = 0; i < $scope.applications.length; i++) {
+        var application = $scope.applications[i];
+        if ($scope.appliedApplicationPublicIds.indexOf(application.publicId) > -1) {
+          applicationNames.push(application.name);
+        }
+      }
+      return applicationNames.join(', ');
+    };
+
+    $scope.toggleCollapse = function() {
+      // Dropdown leaves artifact on screen w/o $timeout
+      $timeout(function() {
+        $('.accordion-body').collapse('toggle');
+      }, 10);
+    };
   }]);
 }());

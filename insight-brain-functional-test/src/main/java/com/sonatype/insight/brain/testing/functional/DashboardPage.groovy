@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.testing.functional
 
+import com.sonatype.insight.brain.testing.functional.modules.ButtonsModule
 import com.sonatype.insight.brain.testing.functional.modules.DropdownMultiSelect
 
 /**
@@ -15,10 +16,16 @@ class DashboardPage
 {
   static url = "assets/index.html#/dashboard"
 
-  static at = { applicationFiltersDropdown.displayed }
+  static at = { filterPanelToggle.displayed }
 
   static content = {
-    applicationFiltersDropdown { module DropdownMultiSelect, $('span', items: 'applications') }
+    filterPanelToggle { $('a', 'ng-click': 'toggleCollapse()') }
+    filterPanel(required: false) { $('div', 'ng-if': 'appliedApplicationPublicIds.length > 0') }
+    filterButtons(required: false) { module ButtonsModule, $('.dashboard-filters .pull-right') }
+
+    applicationFilters(required: false) { filterPanel.find('tr:nth-child(1) td:nth-child(2)')}
+    applicationFiltersDropdown(required: false) { module DropdownMultiSelect, $('span', items: 'applications') }
+
     highestRiskTable { $('tr', 'ng-repeat': 'risk in highestRisks') }
     policyViolation { i -> highestRiskTable[i] }
     policyViolationRisk { i -> policyViolation(i).find('td')[1] }

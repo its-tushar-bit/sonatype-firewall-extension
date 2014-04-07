@@ -4,26 +4,47 @@
       <h1>Dashboard</h1>
     </div>
     <div class='span1 bottom-align-h1'>
-      Filters&nbsp;<i class='icon-filter'></i>
+      <a ng-click='toggleCollapse()'>Filters&nbsp;<i class='glyphicons-sonatype filter'></i></a>
     </div>
   </div>
   <div class='row'>
     <div class='span12'>
-      <div class='well well-large dashboard-filters'>
-        <table>
-          <tbody>
-          <tr>
-            <td><h5>Applications:</h5></td>
-            <td><span id='applications' class='multi-dropdown' multi-select items='applications'
-                      selected-ids='appliedApplicationPublicIds' effective-id-field='publicId'
-                      none-selected-text='All Applications'></span></td>
-          </tr>
-          </tbody>
-        </table>
+      <div class='dashboard-filters'>
+        <div class='accordion-body collapse filter-edit' delayed-overflow>
+          <div class='accordion-inner'>
+            <div class='filter-edit-body'>
+              <table>
+                <tbody>
+                  <tr>
+                    <td><h5>Applications:</h5></td>
+                    <td><span id='applications' class='multi-dropdown' multi-select items='applications'
+                              selected-ids='queuedApplicationPublicIds' effective-id-field='publicId'
+                              none-selected-text='All Applications'></span></td>
+                  </tr>
+                </tbody>
+              </table>
+              <div class='pull-right'>
+                <button class='btn' type='button' ng-click='cancelFilters()'>Cancel</button>
+                <button class='btn btn-primary' type='button' ng-click='applyFilters()'>Apply</button>
+              </div>
+              <div style='clear: both'></div>
+            </div>
+          </div>
+        </div>
+        <div ng-if='appliedApplicationPublicIds.length > 0'>
+          <table>
+            <tbody>
+            <tr>
+              <td><h5>Applications:</h5></td>
+              <td>{{getSelectedApplicationNames()}}</td>
+            </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   </div>
-  <div class='row'>
+  <div class='row dashboard-charts'>
     <div class='span12'>
       <h4>Highest Risk</h4>
       <table class='table'>

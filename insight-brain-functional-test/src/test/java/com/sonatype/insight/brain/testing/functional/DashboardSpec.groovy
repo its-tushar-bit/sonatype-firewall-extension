@@ -40,14 +40,24 @@ class DashboardSpec
   }
 
   def 'Dashboard Filters'() {
-    when: 'application filters are shown'
-      applicationFiltersDropdown.displayed
+    when: 'dashboard filters are shown'
+      filterPanelToggle.click()
+      waitFor { applicationFiltersDropdown.displayed }
 
     then: 'application filters are loaded'
       applicationFiltersDropdown.showDropdown()
       applicationFiltersDropdown.dropdownCheck(firstApp.name).displayed
       applicationFiltersDropdown.dropdownCheck(secondApp.name).displayed
       applicationFiltersDropdown.hideDropdown()
+
+    when: 'dashboard filters are applied'
+      applicationFiltersDropdown.toggleOption(firstApp.name)
+      applicationFiltersDropdown.toggleOption(secondApp.name)
+      filterButtons.button('Apply').click()
+      waitFor { !applicationFiltersDropdown.displayed }
+
+    then: 'filters show up in readonly mode'
+      applicationFilters.text() == firstApp.name + ', ' + secondApp.name
   }
 
   def 'Highest Risk Table'() {
@@ -64,7 +74,10 @@ class DashboardSpec
       policyViolationApplication(1).text() == firstApp.name
 
     when: 'filtering to an application'
+      filterPanelToggle.click()
       applicationFiltersDropdown.toggleOption(firstApp.name)
+      filterButtons.button('Apply').click()
+      waitFor { !applicationFiltersDropdown.displayed }
 
     then: 'only violations from that application are shown'
       highestRiskTable.size() == 1

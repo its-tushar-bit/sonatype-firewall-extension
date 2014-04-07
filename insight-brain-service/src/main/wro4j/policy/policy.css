@@ -163,20 +163,8 @@ table.policy-actions td:last-child {
   margin-right: 10px;
   margin-top: 0px;
 }
-.policy-tag span {
+.policy-tag .multi-dropdown {
   margin-left: 10px;
-}
-.policy-tag button div {
-  display: inline-block;
-  max-width: 200px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  vertical-align: middle;
-}
-.policy-tag .dropdown-menu {
-   max-height: 300px;
-   overflow-x: hidden;
-   overflow-y: auto;
 }
 .policy-tag label {
   display: inline;

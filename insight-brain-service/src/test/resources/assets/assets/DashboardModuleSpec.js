@@ -79,14 +79,25 @@ describe('dashboardApp', function() {
     });
 
     it('filters policy violations by application', inject(function($httpBackend, CLMLocations) {
-      scope.appliedApplicationPublicIds = ['fooID'];
+      expect(scope.appliedApplicationPublicIds.length).toBe(0);
+      scope.queuedApplicationPublicIds = ['fooID'];
+      scope.applyFilters();
       $httpBackend.expectGET(CLMLocations.getPolicyViolationsUrl() + '?applicationPublicIds=fooID').respond([
         policyViolations[0],
         policyViolations[1]
       ]);
       scope.$digest();
       $httpBackend.flush();
+      expect(scope.appliedApplicationPublicIds.length).toBe(1);
       expect(scope.highestRisks.length).toBe(2);
     }));
+
+    it('cancels filters', function() {
+      scope.appliedApplicationPublicIds = [];
+      scope.queuedApplicationPublicIds = ['fooID'];
+      scope.cancelFilters();
+
+      expect(scope.appliedApplicationPublicIds.length).toBe(0);
+    });
   });
 });

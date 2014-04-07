@@ -75,3 +75,10 @@
 	/*18px font-size the icon looks horrible*/
 	font-size: 16px;
 }
+
+.glyphicons-sonatype.filter:before {
+  content: '\e321';
+  font-size: 12px;
+  color: black;
+  vertical-align: middle;
+}

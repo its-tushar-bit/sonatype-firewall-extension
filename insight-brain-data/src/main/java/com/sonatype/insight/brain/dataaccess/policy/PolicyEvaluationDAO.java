@@ -41,7 +41,7 @@ public class PolicyEvaluationDAO
     return createQuery(sQuery, appId, scanId).forceSingleResult().get(em);
   }
 
-
+  public PolicyEvaluation getLastByApplicationIdAndScanId(EntityManager em, String appId, String scanId) {
     String sQuery = "SELECT entity FROM PolicyEvaluation entity" + //
         " WHERE entity.applicationId=?1 AND entity.scanId=?2" + //
         " ORDER BY entity.time DESC";

@@ -13,6 +13,8 @@ import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.model.policy.NewestPolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 
+import org.joda.time.DateTime;
+
 /**
  * @since 1.11
  */
@@ -65,6 +67,16 @@ public class PolicyViolationDAO
     finally {
       close(em);
     }
+  }
+
+  public List<PolicyViolation> getNewestByApplicationIdAndLastNDays(String appId, int lastNDays) {
+    String sQuery = "SELECT policyViolation" + //
+        " FROM PolicyViolation policyViolation, NewestPolicyViolation newestPolicyViolation" + //
+        " WHERE policyViolation.id=newestPolicyViolation.id AND newestPolicyViolation.applicationId=?1" + //
+        " AND newestPolicyViolation.time>?2" + //
+        " ORDER BY policyViolation.policyId, policyViolation.groupId, policyViolation.artifactId, policyViolation.version, policyViolation.hash";
+    DateTime now = new DateTime();
+    return getList(sQuery, appId, now.minusDays(lastNDays).toDate());
   }
 
   @Override

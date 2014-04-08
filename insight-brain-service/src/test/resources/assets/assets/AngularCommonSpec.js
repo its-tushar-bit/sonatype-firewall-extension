@@ -96,11 +96,11 @@ describe('AngularCommon', function() {
       }, expected: '2 years ago' },
       { input: function() {
         var today = new Date();
-        return new Date(today.getFullYear(), today.getMonth(), today.getDate() - 3 * 30);
+        return new Date(today.getFullYear(), today.getMonth(), today.getDate() - 3 * 30, today.getHours() - 6);
       }, expected: '3 months ago' },
       { input: function() {
         var today = new Date();
-        return new Date(today.getFullYear(), today.getMonth(), today.getDate() - 10);
+        return new Date(today.getFullYear(), today.getMonth(), today.getDate() - 10, today.getHours() - 6);
       }, expected: '10 days ago' },
       { input: function() {
         var today = new Date();

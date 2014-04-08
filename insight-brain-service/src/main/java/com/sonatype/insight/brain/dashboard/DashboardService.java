@@ -10,13 +10,16 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.inject.Named;
 
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
@@ -30,6 +33,9 @@ import org.sonatype.aether.util.version.GenericVersionScheme;
 import org.sonatype.aether.version.InvalidVersionSpecificationException;
 import org.sonatype.aether.version.Version;
 
+import com.google.common.base.Predicate;
+import com.google.common.collect.Collections2;
+import com.google.common.collect.Lists;
 import org.codehaus.plexus.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,19 +56,24 @@ public class DashboardService
 
   private PolicyViolationAdapter policyViolationAdapter;
 
+  private PolicyViolationDAO policyViolationDAO;
+
   @Inject
   public DashboardService(ApplicationDAO applicationDAO, ApplicationService applicationService,
-      PolicyEvaluationDAO policyEvaluationDAO, PolicyViolationAdapter policyViolationAdapter)
+      PolicyEvaluationDAO policyEvaluationDAO, PolicyViolationAdapter policyViolationAdapter,
+      PolicyViolationDAO policyViolationDAO)
   {
     this.applicationDAO = applicationDAO;
     this.applicationService = applicationService;
     this.policyEvaluationDAO = policyEvaluationDAO;
     this.policyViolationAdapter = policyViolationAdapter;
+    this.policyViolationDAO = policyViolationDAO;
   }
 
   /**
    * @param applicationPublicIds A list of application public ids to get policy violations.
    * @param stageTypeId The stage to get policy violations for, defaults to {@link BuildStageType#ID}.
+   * @param violationFilter A filter for violations, defaults to accept all violations.
    * @return A list of {@link PolicyViolationDTO}s for the provided application public ids.
    * @throws BadRequestException Thrown if the list of application public ids is null, empty, the stage type id is
    *           unknown, or the first element is an empty string.
@@ -73,7 +84,7 @@ public class DashboardService
    *           applications provided.
    */
   public List<PolicyViolationDTO> getPolicyViolationsByApplicationIds(List<String> applicationPublicIds,
-      String stageTypeId)
+      @Nullable String stageTypeId, @Nullable Predicate<PolicyViolation> violationFilter)
   {
     StageType stage = getStageType(stageTypeId);
     List<PolicyViolationDTO> policyViolationDTOs = new ArrayList<>();
@@ -86,7 +97,8 @@ public class DashboardService
 
     for (String applicationPublicId : applicationPublicIds) {
       // getPolicyViolations is handling the read authentication for each application public Id.
-      policyViolationDTOs.addAll(getPolicyViolationsByApplicationId(applicationPublicId, stage, false));
+      policyViolationDTOs
+          .addAll(getPolicyViolationsByApplicationId(applicationPublicId, stage, violationFilter, false));
     }
 
     return sort(policyViolationDTOs);
@@ -94,10 +106,13 @@ public class DashboardService
 
   /**
    * @param stageTypeId The stage to get policy violations for, defaults to {@link BuildStageType#ID}.
+   * @param violationFilter A filter for violations, defaults to accept all violations.
    * @return A list of {@link PolicyViolationDTO}s for all applications with read permissions.
    * @throws BadRequestException Thrown if the stageTypeId does not match a known {@link StageType}.
    */
-  public List<PolicyViolationDTO> getPolicyViolations(String stageTypeId) {
+  public List<PolicyViolationDTO> getPolicyViolations(@Nullable String stageTypeId,
+      @Nullable Predicate<PolicyViolation> violationFilter)
+  {
     StageType stage = getStageType(stageTypeId);
     List<Application> applications = applicationService.getApplicationsWithReadPermission();
 
@@ -105,7 +120,13 @@ public class DashboardService
     for (Application application : applications) {
       PolicyEvaluation policyEvaluation = policyEvaluationDAO.getLastByApplicationIdAndStageId(application.getId(),
           stage.getId());
-      policyViolationDTOs.addAll(policyViolationAdapter.createPolicyViolationDTOs(application, policyEvaluation));
+
+      if (policyEvaluation != null) {
+        List<PolicyViolation> filteredViolations = filter(
+            policyViolationDAO.getByEvaluationId(policyEvaluation.getId()), violationFilter);
+
+        policyViolationDTOs.addAll(policyViolationAdapter.createPolicyViolationDTOs(application, filteredViolations));
+      }
     }
 
     return sort(policyViolationDTOs);
@@ -114,6 +135,7 @@ public class DashboardService
   /**
    * @param applicationPublicId An application public id to get policy violations.
    * @param stageTypeId The stage to get policy violations for, defaults to {@link BuildStageType#ID}.
+   * @param violationFilter A filter for violations, defaults to accept all violations.
    * @return A list of {@link PolicyViolationDTO}s for the provided application.
    * @throws BadRequestException Thrown if the application public id is null, empty, or the stage type id is unknown.
    * @throws com.sonatype.insight.error.exception.NotFoundException Thrown if the provided application id does not match
@@ -122,15 +144,25 @@ public class DashboardService
    * @throws org.apache.shiro.authz.UnauthorizedException Thrown if the user is not authorized to read the provided
    *           application.
    */
-  public List<PolicyViolationDTO> getPolicyViolationsByApplicationId(String applicationPublicId, String stageTypeId) {
-    return getPolicyViolationsByApplicationId(applicationPublicId, getStageType(stageTypeId), true);
+  public List<PolicyViolationDTO> getPolicyViolationsByApplicationId(String applicationPublicId,
+      @Nullable String stageTypeId, @Nullable Predicate<PolicyViolation> violationFilter)
+  {
+    return getPolicyViolationsByApplicationId(applicationPublicId, getStageType(stageTypeId), violationFilter, true);
+  }
+
+  List<PolicyViolation> filter(List<PolicyViolation> violations, Predicate<PolicyViolation> violationFilter) {
+    if (violationFilter == null || violations == null || violations.isEmpty()) {
+      return violations;
+    }
+
+    return Lists.newArrayList(Collections2.filter(violations, violationFilter));
   }
 
   /**
    * @param dtos
    * @return Sort by threat level (descending), policy name, application name, and then coordinates.
    */
-  static List<PolicyViolationDTO> sort(List<PolicyViolationDTO> dtos) {
+  List<PolicyViolationDTO> sort(List<PolicyViolationDTO> dtos) {
     Collections.sort(dtos, new Comparator<PolicyViolationDTO>()
     {
 
@@ -158,7 +190,7 @@ public class DashboardService
     return dtos;
   }
 
-  private static int compareCoordinates(PolicyViolationDTO v1, PolicyViolationDTO v2) {
+  private int compareCoordinates(PolicyViolationDTO v1, PolicyViolationDTO v2) {
     int result = 0;
 
     // Null elements are infinitely large.
@@ -213,7 +245,8 @@ public class DashboardService
 
   @Authorize(permission = Permission.READ)
   protected List<PolicyViolationDTO> getPolicyViolationsByApplicationId(
-      @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String applicationPublicId, StageType stage, boolean sort)
+      @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String applicationPublicId, StageType stage,
+      @Nullable Predicate<PolicyViolation> violationFilter, boolean sort)
   {
     if (StringUtils.isBlank(applicationPublicId)) {
       throw new BadRequestException("Unable to get policy violations for null or empty application public id.");
@@ -224,11 +257,18 @@ public class DashboardService
     PolicyEvaluation policyEvaluation = policyEvaluationDAO.getLastByApplicationIdAndStageId(application.getId(),
         stage.getId());
 
-    if (sort) {
-      return sort(policyViolationAdapter.createPolicyViolationDTOs(application, policyEvaluation));
+    if (policyEvaluation == null) {
+      return Lists.newArrayList();
     }
 
-    return policyViolationAdapter.createPolicyViolationDTOs(application, policyEvaluation);
+    List<PolicyViolation> filteredViolations = filter(policyViolationDAO.getByEvaluationId(policyEvaluation.getId()),
+        violationFilter);
+
+    if (sort) {
+      return sort(policyViolationAdapter.createPolicyViolationDTOs(application, filteredViolations));
+    }
+
+    return policyViolationAdapter.createPolicyViolationDTOs(application, filteredViolations);
   }
 
   private StageType getStageType(String stageTypeId) {

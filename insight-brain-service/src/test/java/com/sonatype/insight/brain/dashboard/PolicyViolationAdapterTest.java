@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.dashboard;
 
+import java.util.Collections;
 import java.util.List;
 
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
@@ -40,14 +41,13 @@ public class PolicyViolationAdapterTest
 
   @Before
   public void setup() {
-    policyViolationAdapter = new PolicyViolationAdapter(new PolicyViolationDAO());
+    policyViolationAdapter = new PolicyViolationAdapter();
   }
 
   @Test
   public void testCreatePolicyViolationDTO() {
-    Organization org = tempEntity.newOrganization();
-    Policy policy = tempEntity.newPolicy(org.getId(), "build-policy");
-    Application app = tempEntity.newApplication(org.getId());
+    Application app = tempEntity.newApplicationWithParent("test-application");
+    Policy policy = tempEntity.newPolicy(app.getId(), "build-policy");
 
     PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "scan-id");
     PolicyViolation violation = tempEntity.newPolicyViolation(policyEvaluation.getId(), policy);
@@ -59,10 +59,9 @@ public class PolicyViolationAdapterTest
   }
 
   @Test
-  public void testCreatePolicyViolationDTOsWithPolicyEvaluations() {
-    Organization org = tempEntity.newOrganization();
-    Policy policy = tempEntity.newPolicy(org.getId(), "build-policy");
-    Application app = tempEntity.newApplication(org.getId());
+  public void testCreatePolicyViolationDTOsWithPolicyViolations() {
+    Application app = tempEntity.newApplicationWithParent("test-application");
+    Policy policy = tempEntity.newPolicy(app.getId(), "build-policy");
 
     PolicyEvaluation policyEvaluation1 = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "scan-id");
     PolicyViolation evaluation1violation1 = tempEntity.newPolicyViolation(policyEvaluation1.getId(), policy);
@@ -73,8 +72,12 @@ public class PolicyViolationAdapterTest
     PolicyViolation evaluation2violation1 = tempEntity.newPolicyViolation(policyEvaluation2.getId(), policy);
     PolicyViolation evaluation2violation2 = tempEntity.newPolicyViolation(policyEvaluation2.getId(), policy);
 
-    List<PolicyViolationDTO> dtos = policyViolationAdapter.createPolicyViolationDTOs(app,
-        Lists.newArrayList(policyEvaluation1, policyEvaluation2));
+    List<PolicyViolation> violations = Lists.newArrayList();
+    PolicyViolationDAO violationDAO = new PolicyViolationDAO();
+    violations.addAll(violationDAO.getByEvaluationId(policyEvaluation1.getId()));
+    violations.addAll(violationDAO.getByEvaluationId(policyEvaluation2.getId()));
+
+    List<PolicyViolationDTO> dtos = policyViolationAdapter.createPolicyViolationDTOs(app, violations);
 
     assertNotNull(dtos);
     assertThat(dtos, hasSize(4));
@@ -82,24 +85,6 @@ public class PolicyViolationAdapterTest
     assertPolicyViolationDTO(dtos, evaluation1violation2, app, policy);
     assertPolicyViolationDTO(dtos, evaluation2violation1, app, policy);
     assertPolicyViolationDTO(dtos, evaluation2violation2, app, policy);
-  }
-
-  @Test
-  public void testCreatePolicyViolationDTOsWithPolicyEvaluation() {
-    Organization org = tempEntity.newOrganization();
-    Policy policy = tempEntity.newPolicy(org.getId(), "build-policy");
-    Application app = tempEntity.newApplication(org.getId());
-
-    PolicyEvaluation policyEvaluation1 = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "scan-id");
-    PolicyViolation evaluation1violation1 = tempEntity.newPolicyViolation(policyEvaluation1.getId(), policy);
-    PolicyViolation evaluation1violation2 = tempEntity.newPolicyViolation(policyEvaluation1.getId(), policy);
-
-    List<PolicyViolationDTO> dtos = policyViolationAdapter.createPolicyViolationDTOs(app, policyEvaluation1);
-
-    assertNotNull(dtos);
-    assertThat(dtos, hasSize(2));
-    assertPolicyViolationDTO(dtos, evaluation1violation1, app, policy);
-    assertPolicyViolationDTO(dtos, evaluation1violation2, app, policy);
   }
 
   @Test
@@ -116,7 +101,7 @@ public class PolicyViolationAdapterTest
     policyDAO.delete(policy);
 
     List<PolicyViolationDTO> dtos = policyViolationAdapter.createPolicyViolationDTOs(app,
-        Lists.newArrayList(policyEvaluation1));
+        new PolicyViolationDAO().getByEvaluationId(policyEvaluation1.getId()));
 
     assertNotNull(dtos);
     assertThat(dtos, hasSize(2));
@@ -128,24 +113,10 @@ public class PolicyViolationAdapterTest
   }
 
   @Test
-  public void testCreatePolicyViolationDTOsWithNullPolicyEvaluations() {
-    Organization org = tempEntity.newOrganization();
-    Application app = tempEntity.newApplication(org.getId());
+  public void testCreatePolicyViolationDTOsWithNullPolicyViolations() {
+    Application app = tempEntity.newApplicationWithParent("test-application");
 
-    List<PolicyEvaluation> evaluations = null;
-    List<PolicyViolationDTO> dtos = policyViolationAdapter.createPolicyViolationDTOs(app, evaluations);
-
-    assertNotNull(dtos);
-    assertThat(dtos, empty());
-  }
-
-  @Test
-  public void testCreatePolicyViolationDTOsWithNullPolicyEvaluation() {
-    Organization org = tempEntity.newOrganization();
-    Application app = tempEntity.newApplication(org.getId());
-
-    PolicyEvaluation evaluation = null;
-    List<PolicyViolationDTO> dtos = policyViolationAdapter.createPolicyViolationDTOs(app, evaluation);
+    List<PolicyViolationDTO> dtos = policyViolationAdapter.createPolicyViolationDTOs(app, null);
 
     assertNotNull(dtos);
     assertThat(dtos, empty());
@@ -153,13 +124,10 @@ public class PolicyViolationAdapterTest
 
   @Test
   public void testCreatePolicyViolationDTOsWithNoPolicyViolations() {
-    Organization org = tempEntity.newOrganization();
-    Application app = tempEntity.newApplication(org.getId());
+    Application app = tempEntity.newApplicationWithParent("test-application");
 
-    PolicyEvaluation policyEvaluation1 = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "scan-id");
-
-    List<PolicyViolationDTO> dtos = policyViolationAdapter.createPolicyViolationDTOs(app,
-        Lists.newArrayList(policyEvaluation1));
+    List<PolicyViolation> emptyList = Collections.emptyList();
+    List<PolicyViolationDTO> dtos = policyViolationAdapter.createPolicyViolationDTOs(app, emptyList);
 
     assertNotNull(dtos);
     assertThat(dtos, empty());

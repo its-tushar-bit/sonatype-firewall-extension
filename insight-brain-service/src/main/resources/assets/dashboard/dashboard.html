@@ -65,7 +65,8 @@
           <td>{{risk.threatLevel}}</td>
           <td>{{risk.policyName}}</td>
           <td>{{risk.applicationName}}</td>
-          <td>{{risk.groupId}}:{{risk.artifactId}}:{{risk.version}}</td>
+          <td ng-if='risk.groupId'>{{risk.groupId}}:{{risk.artifactId}}:{{risk.version}}</td>
+          <td ng-if='!risk.groupId'><em>Unknown</em></td>
         </tr>
         </tbody>
       </table>

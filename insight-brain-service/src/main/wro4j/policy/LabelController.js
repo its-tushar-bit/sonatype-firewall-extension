@@ -39,6 +39,7 @@
         $scope.selectedLabel = null;
         $scope.submitActive = false;
         $scope.alerts.length = 0;
+        AngularStateUtils.toParentStateIfNewItem($scope);
       }
 
       function executeIfClean(fn) {

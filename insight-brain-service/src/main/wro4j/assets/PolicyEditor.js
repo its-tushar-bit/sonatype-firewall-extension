@@ -609,7 +609,8 @@
 
         $scope.constraint.conditions.push({
           conditionTypeId: conditionType.id,
-          operator: conditionType.supportedOperators[0]
+          operator: conditionType.supportedOperators[0],
+          value: null
         });
       };
 
@@ -735,6 +736,7 @@
             scope.model = '' + (scope.value * scope.modifier);
           }
           else {
+            // NOTE: Keep this in sync with all the places where the AgeInDays condition is initialized for a policy constraint or dirty checks will fail
             scope.model = null;
           }
         }

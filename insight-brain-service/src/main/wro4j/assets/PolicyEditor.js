@@ -673,9 +673,6 @@
             scope.policy = null;
             AngularStateUtils.toParentStateIfNewItem(scope);
           };
-          scope.createPolicy = function() {
-            return policyStore.get().create();
-          };
           scope.getFormName = function() {
             return 'inlinePolicyForm';
           };

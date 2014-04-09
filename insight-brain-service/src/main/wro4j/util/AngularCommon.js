@@ -1030,16 +1030,16 @@ var AngularStateUtils = {
   }]);
   
   services.service('LastSelectedOrganization', [function(){
-    var _org = {};
+    var lastOrg = {};
     return {
       get: function() {
-        return _org;
+        return lastOrg;
       },
       set: function(org) {
-        _org = angular.copy(org);
+        lastOrg = angular.copy(org);
       },
       clear: function() {
-        _org = {};
+        lastOrg = {};
       }
     };
   }]);

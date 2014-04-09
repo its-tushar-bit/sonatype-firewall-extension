@@ -31,8 +31,7 @@ class DashboardSpec
     temporaryEntity.newPolicyViolation(firstPolicyEvaluation.id, policy, 5, PolicyThreatCategory.LICENSE, "Group1",
         "Artifact1", "Version1")
     def secondPolicyEvaluation = temporaryEntity.newPolicyEvaluation(secondApp.id, BuildStageType.ID, 'DashboardSpecSecondEvaluation')
-    temporaryEntity.newPolicyViolation(secondPolicyEvaluation.id, policy, 10, PolicyThreatCategory.QUALITY, "Group2",
-        "Artifact2", "Version2")
+    temporaryEntity.newPolicyViolation(secondPolicyEvaluation.id, policy, 10, PolicyThreatCategory.QUALITY, null, null, null)
   }
 
   def setup() {
@@ -69,9 +68,12 @@ class DashboardSpec
       policyViolationRisk(0).text() == '10'
       policyViolationPolicy(0).text() == 'DashboardSpecPolicy'
       policyViolationApplication(0).text() == secondApp.name
+      policyViolationComponent(0).text() == 'Unknown'
+
       policyViolationRisk(1).text() == '5'
       policyViolationPolicy(1).text() == 'DashboardSpecPolicy'
       policyViolationApplication(1).text() == firstApp.name
+      policyViolationComponent(1).text() == ["Group1", "Artifact1", "Version1"].join(':')
 
     when: 'filtering to an application'
       filterPanelToggle.click()

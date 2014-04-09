@@ -25,7 +25,7 @@ public class PolicyViolationDigester
       }
 
       // Policy name
-      result = v1.getPolicyName().compareTo(v2.getPolicyName());
+      result = v1.getPolicyName().compareToIgnoreCase(v2.getPolicyName());
       if (result != 0) {
         return result;
       }

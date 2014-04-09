@@ -191,6 +191,20 @@ public class PolicyViolationDigesterTest
   }
 
   @Test
+  public void testDigest_PolicyNameCaseChange() {
+    final List<PolicyViolation> oldViolations = defaultPolicyViolations();
+    final List<PolicyViolation> newViolations = defaultPolicyViolations();
+
+    // Policy name case changes are ignored
+    newViolations.get(0).setPolicyName("policy 4");
+
+    PolicyViolationDiff results = PolicyViolationDigester.digestPolicyViolations(newViolations, oldViolations);
+
+    assertThat(results.getAppeared(), empty());
+    assertThat(results.getCleared(), empty());
+  }
+
+  @Test
   public void testDigest_PolicyThreatLevelChange() {
     final List<PolicyViolation> oldViolations = defaultPolicyViolations();
     final List<PolicyViolation> newViolations = defaultPolicyViolations();

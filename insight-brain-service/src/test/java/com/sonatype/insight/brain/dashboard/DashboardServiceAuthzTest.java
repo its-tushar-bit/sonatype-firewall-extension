@@ -91,26 +91,6 @@ public class DashboardServiceAuthzTest
     }
   }
 
-  @Test
-  public void testGetPolicyViolationsByApplicationId() throws Exception {
-    try {
-      dashboardService.getPolicyViolationsByApplicationId(app.getPublicId(), null, null);
-      fail("Should throw an UnauthenticatedException as we haven't logged in.");
-    }
-    catch (UnauthenticatedException e) {
-      // Properly thrown exception.
-    }
-
-    grantReadPermission(app.getId());
-
-    PolicyViolation violation = createPolicyViolation(app.getId());
-    List<PolicyViolationDTO> result = dashboardService
-        .getPolicyViolationsByApplicationId(app.getPublicId(), null, null);
-    assertThat(result, hasSize(1));
-    PolicyViolationDTO dto = result.get(0);
-    assertThat(dto.id, is(violation.getId()));
-  }
-
   private PolicyViolation createPolicyViolation(String appId) {
     PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(appId, BuildStageType.ID, "test scan id");
     return tempEntity.newPolicyViolation(evaluation.getId(), tempEntity.newPolicy(app.getId(), "test policy name"));

@@ -204,41 +204,6 @@ public class DashboardServiceTest
   }
 
   @Test
-  public void testGetPolicyViolationsByApplicationId() {
-    List<PolicyViolationDTO> policyViolationDTOs = dashboardService.getPolicyViolationsByApplicationId(
-        app1.getPublicId(), null, null);
-    assertThat(policyViolationDTOs, hasSize(2));
-
-    assertPolicyViolationDTO(policyViolationDTOs, orgPolicyViolation, app1, orgPolicy);
-    assertPolicyViolationDTO(policyViolationDTOs, app1PolicyViolation, app1, app1Policy);
-
-    policyViolationDTOs = dashboardService.getPolicyViolationsByApplicationId(app2.getPublicId(), null, null);
-    assertThat(policyViolationDTOs, hasSize(1));
-
-    assertPolicyViolationDTO(policyViolationDTOs, app2PolicyViolation, app2, orgPolicy);
-  }
-
-  @Test
-  public void testGetPolicyViolationsByApplicationIdReturnsLatest() {
-    // Re-scan app1 and give it one violation.
-    PolicyEvaluation newApp1PolicyEvaluation = tempEntity.newPolicyEvaluation(app1.getId(), BuildStageType.ID,
-        "re-scan app1");
-    PolicyViolation sameOldApp1PolicyViolation = tempEntity.newPolicyViolation(newApp1PolicyEvaluation.getId(),
-        app1Policy);
-    List<PolicyViolationDTO> policyViolationDTOs = dashboardService.getPolicyViolationsByApplicationId(
-        app1.getPublicId(), null, null);
-
-    // Now only returns the 1 application violation.
-    assertThat(policyViolationDTOs, hasSize(1));
-    assertPolicyViolationDTO(policyViolationDTOs, sameOldApp1PolicyViolation, app1, app1Policy);
-
-    policyViolationDTOs = dashboardService.getPolicyViolationsByApplicationId(app2.getPublicId(), null, null);
-    assertThat(policyViolationDTOs, hasSize(1));
-
-    assertPolicyViolationDTO(policyViolationDTOs, app2PolicyViolation, app2, orgPolicy);
-  }
-
-  @Test
   public void testGetPolicyViolationsByApplicationIds() {
     List<PolicyViolationDTO> policyViolationDTOs = dashboardService.getPolicyViolationsByApplicationIds(
         Lists.newArrayList(app1.getPublicId(), app2.getPublicId()), null, null);

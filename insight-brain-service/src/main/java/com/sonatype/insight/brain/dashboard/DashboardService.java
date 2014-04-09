@@ -132,24 +132,6 @@ public class DashboardService
     return sort(policyViolationDTOs);
   }
 
-  /**
-   * @param applicationPublicId An application public id to get policy violations.
-   * @param stageTypeId The stage to get policy violations for, defaults to {@link BuildStageType#ID}.
-   * @param violationFilter A filter for violations, defaults to accept all violations.
-   * @return A list of {@link PolicyViolationDTO}s for the provided application.
-   * @throws BadRequestException Thrown if the application public id is null, empty, or the stage type id is unknown.
-   * @throws com.sonatype.insight.error.exception.NotFoundException Thrown if the provided application id does not match
-   *           an existing application.
-   * @throws org.apache.shiro.authz.UnauthenticatedException Thrown if the user has not logged in.
-   * @throws org.apache.shiro.authz.UnauthorizedException Thrown if the user is not authorized to read the provided
-   *           application.
-   */
-  public List<PolicyViolationDTO> getPolicyViolationsByApplicationId(String applicationPublicId,
-      @Nullable String stageTypeId, @Nullable Predicate<PolicyViolation> violationFilter)
-  {
-    return getPolicyViolationsByApplicationId(applicationPublicId, getStageType(stageTypeId), violationFilter, true);
-  }
-
   List<PolicyViolation> filter(List<PolicyViolation> violations, Predicate<PolicyViolation> violationFilter) {
     if (violationFilter == null || violations == null || violations.isEmpty()) {
       return violations;
@@ -159,7 +141,6 @@ public class DashboardService
   }
 
   /**
-   * @param dtos
    * @return Sort by threat level (descending), policy name, application name, and then coordinates.
    */
   List<PolicyViolationDTO> sort(List<PolicyViolationDTO> dtos) {
@@ -264,11 +245,12 @@ public class DashboardService
     List<PolicyViolation> filteredViolations = filter(policyViolationDAO.getByEvaluationId(policyEvaluation.getId()),
         violationFilter);
 
+    List<PolicyViolationDTO> result = policyViolationAdapter.createPolicyViolationDTOs(application, filteredViolations);
     if (sort) {
-      return sort(policyViolationAdapter.createPolicyViolationDTOs(application, filteredViolations));
+      return sort(result);
     }
 
-    return policyViolationAdapter.createPolicyViolationDTOs(application, filteredViolations);
+    return result;
   }
 
   private StageType getStageType(String stageTypeId) {

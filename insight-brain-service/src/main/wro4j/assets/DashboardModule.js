@@ -25,12 +25,14 @@
     $scope.maxResults = 20;
 
     function load() {
+      var appliedPolicyThreatCategoryParam =
+          $scope.appliedPolicyThreatCategories.length > 0 ? $scope.appliedPolicyThreatCategories.join(',') : null;
       var promises = [
         $http.get(CLMLocations.getPolicyViolationsUrl(), {
           params: {
             maxResults: $scope.maxResults,
             applicationPublicIds: $scope.appliedApplicationPublicIds,
-            policyThreatCategories: $scope.appliedPolicyThreatCategories
+            policyThreatCategories: appliedPolicyThreatCategoryParam
           }
         })
       ];

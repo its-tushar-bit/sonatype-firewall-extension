@@ -97,7 +97,7 @@ describe('DashboardModule', function() {
       scope.queuedPolicyThreatCategories = ['security', 'other'];
       scope.applyFilters();
       $httpBackend.expectGET(CLMLocations.getPolicyViolationsUrl() +
-        '?maxResults=20&policyThreatCategories=security&policyThreatCategories=other').respond([policyViolations[0]]);
+        '?maxResults=20&policyThreatCategories=security,other').respond([policyViolations[0]]);
       scope.$digest();
       $httpBackend.flush();
       expect(scope.appliedPolicyThreatCategories).toEqual(['security', 'other']);

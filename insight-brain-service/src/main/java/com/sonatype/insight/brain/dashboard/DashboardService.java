@@ -35,6 +35,7 @@ import org.sonatype.aether.version.Version;
 
 import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import org.codehaus.plexus.util.StringUtils;
 import org.slf4j.Logger;
@@ -74,6 +75,7 @@ public class DashboardService
    * @param applicationPublicIds A list of application public ids to get policy violations.
    * @param stageTypeId The stage to get policy violations for, defaults to {@link BuildStageType#ID}.
    * @param violationFilter A filter for violations, defaults to accept all violations.
+   * @param limit If not null returns only the top violations limited by this amount
    * @return A list of {@link PolicyViolationDTO}s for the provided application public ids.
    * @throws BadRequestException Thrown if the list of application public ids is null, empty, the stage type id is
    *           unknown, or the first element is an empty string.
@@ -84,7 +86,7 @@ public class DashboardService
    *           applications provided.
    */
   public List<PolicyViolationDTO> getPolicyViolationsByApplicationIds(List<String> applicationPublicIds,
-      @Nullable String stageTypeId, @Nullable Predicate<PolicyViolation> violationFilter)
+      @Nullable String stageTypeId, @Nullable Predicate<PolicyViolation> violationFilter, @Nullable Integer limit)
   {
     StageType stage = getStageType(stageTypeId);
     List<PolicyViolationDTO> policyViolationDTOs = new ArrayList<>();
@@ -101,17 +103,19 @@ public class DashboardService
           .addAll(getPolicyViolationsByApplicationId(applicationPublicId, stage, violationFilter, false));
     }
 
-    return sort(policyViolationDTOs);
+    List<PolicyViolationDTO> sortedPolicyViolationDTOs = sort(policyViolationDTOs);
+    return limit != null ? Lists.newArrayList(Iterables.limit(sortedPolicyViolationDTOs, limit)) : sortedPolicyViolationDTOs;
   }
 
   /**
    * @param stageTypeId The stage to get policy violations for, defaults to {@link BuildStageType#ID}.
+   * @param limit If not null returns only the top violations limited by this amount
    * @param violationFilter A filter for violations, defaults to accept all violations.
    * @return A list of {@link PolicyViolationDTO}s for all applications with read permissions.
    * @throws BadRequestException Thrown if the stageTypeId does not match a known {@link StageType}.
    */
   public List<PolicyViolationDTO> getPolicyViolations(@Nullable String stageTypeId,
-      @Nullable Predicate<PolicyViolation> violationFilter)
+      @Nullable Predicate<PolicyViolation> violationFilter, @Nullable Integer limit)
   {
     StageType stage = getStageType(stageTypeId);
     List<Application> applications = applicationService.getApplicationsWithReadPermission();
@@ -129,7 +133,8 @@ public class DashboardService
       }
     }
 
-    return sort(policyViolationDTOs);
+    List<PolicyViolationDTO> sortedPolicyViolationDTOs = sort(policyViolationDTOs);
+    return limit != null ? Lists.newArrayList(Iterables.limit(sortedPolicyViolationDTOs, limit)) : sortedPolicyViolationDTOs;
   }
 
   List<PolicyViolation> filter(List<PolicyViolation> violations, Predicate<PolicyViolation> violationFilter) {

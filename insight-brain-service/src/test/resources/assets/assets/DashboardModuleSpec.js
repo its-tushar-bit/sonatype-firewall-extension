@@ -63,7 +63,7 @@ describe('dashboardApp', function() {
       applicationsData = ApplicationMockData.getApplicationsData();
 
       $httpBackend.expectGET(CLMLocations.getApplicationsUrl()).respond(applicationsData);
-      $httpBackend.expectGET(CLMLocations.getPolicyViolationsUrl() + '?').respond(policyViolations);
+      $httpBackend.expectGET(CLMLocations.getPolicyViolationsUrl() + '?maxResults=20').respond(policyViolations);
       $controller('DashboardController', { $scope: scope });
       $httpBackend.flush();
     }));
@@ -82,7 +82,7 @@ describe('dashboardApp', function() {
       expect(scope.appliedApplicationPublicIds.length).toBe(0);
       scope.queuedApplicationPublicIds = ['fooID'];
       scope.applyFilters();
-      $httpBackend.expectGET(CLMLocations.getPolicyViolationsUrl() + '?applicationPublicIds=fooID').respond([
+      $httpBackend.expectGET(CLMLocations.getPolicyViolationsUrl() + '?applicationPublicIds=fooID&maxResults=20').respond([
         policyViolations[0],
         policyViolations[1]
       ]);

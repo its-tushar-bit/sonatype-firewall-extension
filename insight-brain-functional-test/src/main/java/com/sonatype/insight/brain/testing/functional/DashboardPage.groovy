@@ -26,7 +26,7 @@ class DashboardPage
     applicationFilters(required: false) { filterPanel.find('tr:nth-child(1) td:nth-child(2)')}
     applicationFiltersDropdown(required: false) { module DropdownMultiSelect, $('span', items: 'applications') }
 
-    highestRiskTable { $('tr', 'ng-repeat': 'risk in highestRisks') }
+    highestRiskTable { $('tr', 'ng-repeat': startsWith('risk in highestRisks')) }
     policyViolation { i -> highestRiskTable[i] }
     policyViolationRisk { i -> policyViolation(i).find('td')[1] }
     policyViolationPolicy { i -> policyViolation(i).find('td')[2] }

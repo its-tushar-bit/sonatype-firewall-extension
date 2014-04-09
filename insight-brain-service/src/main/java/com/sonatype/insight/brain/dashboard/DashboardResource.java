@@ -9,6 +9,7 @@ import java.util.List;
 
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -29,7 +30,7 @@ public class DashboardResource
   public static final String SERVICE_PATH = "rest/dashboard";
 
   public static final String GET_POLICY_VIOLATIONS_PATH = "policy/violations";
-
+  
   private DashboardService dashboardService;
 
   @Inject
@@ -43,15 +44,16 @@ public class DashboardResource
   public List<PolicyViolationDTO> getPolicyViolations(
       @QueryParam("applicationPublicIds") List<String> applicationPublicIds, @QueryParam("stageId") String stageId,
       @QueryParam("policyThreatCategories") PolicyThreatCategoryFilter policyThreatCategoryFilter,
-      @QueryParam("policyThreatLevelRange") PolicyThreatLevelFilter policyThreatLevelFilter)
+      @QueryParam("policyThreatLevelRange") PolicyThreatLevelFilter policyThreatLevelFilter,
+      @QueryParam("maxResults") @DefaultValue("1000") int maxResults)
   {
     Predicate<PolicyViolation> filter = buildFilter(policyThreatCategoryFilter, policyThreatLevelFilter);
 
     if (applicationPublicIds == null || applicationPublicIds.isEmpty()) {
-      return dashboardService.getPolicyViolations(stageId, filter);
+      return dashboardService.getPolicyViolations(stageId, filter, maxResults);
     }
 
-    return dashboardService.getPolicyViolationsByApplicationIds(applicationPublicIds, stageId, filter);
+    return dashboardService.getPolicyViolationsByApplicationIds(applicationPublicIds, stageId, filter, maxResults);
   }
 
   private Predicate<PolicyViolation> buildFilter(PolicyThreatCategoryFilter threatCategoryFilter,

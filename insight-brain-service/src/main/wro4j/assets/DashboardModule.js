@@ -19,11 +19,13 @@
     function($scope, $q, ApplicationStore, $http, CLMLocations, $timeout) {
     $scope.appliedApplicationPublicIds = [];
     $scope.queuedApplicationPublicIds = [];
+    $scope.maxResults = 20;
 
     function load() {
       var promises = [
         $http.get(CLMLocations.getPolicyViolationsUrl(), {
           params: {
+            maxResults: $scope.maxResults,
             applicationPublicIds: $scope.appliedApplicationPublicIds,
           }
         })

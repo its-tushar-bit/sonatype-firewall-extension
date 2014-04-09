@@ -24,7 +24,7 @@
     $scope.filtersExpanded = false;
     $scope.maxResults = 20;
 
-    function load() {
+    $scope.doLoad = function() {
       var appliedPolicyThreatCategoryParam =
           $scope.appliedPolicyThreatCategories.length > 0 ? $scope.appliedPolicyThreatCategories.join(',') : null;
       var promises = [
@@ -38,8 +38,10 @@
       ];
       $q.all(promises).then(function(data) {
         $scope.highestRisks = data[0].data;
+      }, function(error) {
+        $scope.error = error;
       });
-    }
+    };
 
     function loadFilters() {
       var promises = [
@@ -58,11 +60,11 @@
     }
 
     loadFilters();
-    load();
+    $scope.doLoad();
     $scope.applyFilters = function() {
       $scope.appliedApplicationPublicIds = $scope.queuedApplicationPublicIds;
       $scope.appliedPolicyThreatCategories = $scope.queuedPolicyThreatCategories;
-      load();
+      $scope.doLoad();
       $scope.toggleCollapse();
     };
 

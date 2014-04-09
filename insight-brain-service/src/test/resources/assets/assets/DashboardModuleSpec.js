@@ -138,5 +138,16 @@ describe('DashboardModule', function() {
     it('converts from policyThreatCategory.id to policyThreatCategory.name', function(){
       expect(scope.policyThreatCategoryNameFor('security')).toBe('Security');
     });
+
+    it('handles http errors', inject(function($httpBackend, CLMLocations){
+      expect(scope.error).toBeUndefined();
+      scope.applyFilters();
+      $httpBackend.expectGET(CLMLocations.getPolicyViolationsUrl() +'?maxResults=20').respond(500, 'An error');
+      scope.$digest();
+      $httpBackend.flush();
+      expect(scope.error).toBeDefined();
+      expect(scope.error.status).toBe(500);
+      expect(scope.error.data).toBe('An error');
+    }));
   });
 });

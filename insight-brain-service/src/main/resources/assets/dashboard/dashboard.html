@@ -52,7 +52,8 @@
       </div>
     </div>
   </div>
-  <div class='row dashboard-charts'>
+  <div load-error='error' reload='doLoad()'></div>
+  <div class='row dashboard-charts' ng-hide='error'>
     <div class='span12'>
       <h4>Highest Risk</h4>
       <table class='table'>

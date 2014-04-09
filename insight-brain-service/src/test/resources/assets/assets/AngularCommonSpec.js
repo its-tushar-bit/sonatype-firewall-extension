@@ -442,4 +442,20 @@ describe('AngularCommon', function() {
       expect(scope.appliedTagIds).toEqual(['foo']);
     });
   });
+  
+  describe('LastSelectedOrganization', function() {
+    it('Set/Get/Clear', inject(function(LastSelectedOrganization) {
+      expect(LastSelectedOrganization.get()).toEqual({});
+      LastSelectedOrganization.set({
+        id: 'anid',
+        name: 'aname'
+      });
+      expect(LastSelectedOrganization.get()).toEqual({
+        id: 'anid',
+        name: 'aname'
+      });
+      LastSelectedOrganization.clear();
+      expect(LastSelectedOrganization.get()).toEqual({});
+    }));
+  });  
 });

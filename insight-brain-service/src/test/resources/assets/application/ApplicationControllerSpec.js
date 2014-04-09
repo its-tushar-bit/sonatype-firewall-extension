@@ -105,6 +105,7 @@ describe('ApplicationEditorController', function() {
       rootScope = $rootScope;
 
       $state.current.name = 'management.application';
+      $state.params.applicationPublicId = '_new_';
 
       var applicationsData = ApplicationMockData.getApplicationsData();
       mockApplication = applicationsData[0];
@@ -141,6 +142,7 @@ describe('ApplicationEditorController', function() {
       rootScope = $rootScope;
 
       $state.current.name = 'management.application';
+      $state.params.applicationPublicId = '_new_';
 
       parentScope = $rootScope.$new();
       scope = parentScope.$new();

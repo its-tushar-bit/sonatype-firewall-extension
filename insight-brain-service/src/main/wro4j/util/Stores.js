@@ -10,18 +10,21 @@
 
   var storesModule = angular.module('Stores', ['CLMLocation', 'CLMAppLocation', 'ResourceModule']);
 
-  storesModule.service('ApplicationStore', ['$rootScope', 'CLMLocations', 'CLMResource',
-      function($rootScope, clmLocations, clmResource) {
+  storesModule.service('ApplicationStore', ['$rootScope', 'CLMLocations', 'CLMResource', 'LastSelectedOrganization',
+      function($rootScope, clmLocations, clmResource, LastSelectedOrganization) {
         var applicationStore = clmResource.getStore({
           id: 'publicId',
           url: clmLocations.getApplicationsUrl(),
-          template: {
-            id: null,
-            publicId: null,
-            name: null,
-            organizationId: null,
-            organizationName: null,
-            contact : null
+          template: function() {
+            var lastOrg = LastSelectedOrganization.get();
+            return {
+              id: null,
+              publicId: null,
+              name: null,
+              organizationId: lastOrg.id,
+              organizationName: lastOrg.name,
+              contact: null
+            };
           }
         });
         $rootScope.$on('organizations.delete', function() {

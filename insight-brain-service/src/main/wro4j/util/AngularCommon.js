@@ -1028,4 +1028,19 @@ var AngularStateUtils = {
       }
     };
   }]);
+  
+  services.service('LastSelectedOrganization', [function(){
+    var _org = {};
+    return {
+      get: function() {
+        return _org;
+      },
+      set: function(org) {
+        _org = angular.copy(org);
+      },
+      clear: function() {
+        _org = {};
+      }
+    };
+  }]);
 }());

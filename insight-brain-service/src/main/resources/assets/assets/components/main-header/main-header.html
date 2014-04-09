@@ -122,10 +122,10 @@
               </a>
               <ul class="dropdown-menu dropdown-menu-arrow">
                 <li>
-                  <a href='#/management/organization/_new_'>New Organization</a>
+                  <a ui-sref='management.organization.view({organizationId: "_new_"})'>New Organization</a>
                 </li>
                 <li>
-                  <a href='#/management/application/_new_'>New Application</a>
+                  <a ui-sref='management.application.view({applicationPublicId: "_new_"})'>New Application</a>
                 </li>
                 <li ng-if='$state.params.organizationId && $state.params.organizationId != "_new_"'>
                   <a ui-sref='management.organization.view.policies.new({organizationId: $state.params.organizationId})'>New Policy</a>

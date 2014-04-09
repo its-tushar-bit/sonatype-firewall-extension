@@ -130,9 +130,9 @@
 
   applicationModule.controller('applicationEditorController', [
       '$scope', '$state', '$http', '$q', '$modal', 'OrganizationStore', 'CLMLocations', 'CLMAppLocations',
-      'Messages', 'editorTools', 'ActionStore', 'policyEvaluator', 'selectedApplication', 'ErrorDialog',
+      'Messages', 'editorTools', 'ActionStore', 'policyEvaluator', 'selectedApplication', 'ErrorDialog', 'LastSelectedOrganization',
       function($scope, $state, $http, $q, $modal, OrganizationStore, CLMLocations, CLMAppLocations, Messages,
-               editorTools, ActionStore, policyEvaluator, selectedApplication, ErrorDialog)
+               editorTools, ActionStore, policyEvaluator, selectedApplication, ErrorDialog, LastSelectedOrganization)
       {
         var me = this;
         angular.extend(me,
@@ -220,7 +220,7 @@
           }
 
           // New application, or an application without an organization
-          if (!selectedApplication.organizationId) {
+          if (ao.isNew()) {
             promises.push(OrganizationStore.get());
           }
           
@@ -243,10 +243,11 @@
 
             if (selectedApplication.publicId) {
               assignAppSummary(results[1].data);
-              if (results.length > 2) {
+              if (ao.isNew()) {
                 $scope.organizations = results[2];
               }
-            } else {
+            }
+            else if (ao.isNew()) {
               $scope.organizations = results[1];
             }
           }, function (error) {
@@ -336,6 +337,8 @@
 
         $scope.$on('pageChangeAccepted', function(event, destination) {
           if (isExternalDestination(destination)) {
+            //clear on leaving, don't want to keep around forever
+            LastSelectedOrganization.clear();
             $scope.cancel();
           }
         });

@@ -143,9 +143,9 @@
 
   organizationModule.controller('OrganizationEditorController', [
     '$scope', '$state', '$location', '$http', '$rootScope', '$modal', 'regexFactory', 'CLMLocations', 'editorTools',
-    'CLMAppLocations', 'Messages', 'CLMAppLocations', 'selectedOrganization', 'ErrorDialog',
+    'CLMAppLocations', 'Messages', 'CLMAppLocations', 'selectedOrganization', 'ErrorDialog', 'LastSelectedOrganization',
     function($scope, $state, $location, $http, $rootScope, $modal, regexFactory, CLMLocations, editorTools,
-             clmAppLocations, messages, CLMAppLocations, selectedOrganization, ErrorDialog)
+             clmAppLocations, messages, CLMAppLocations, selectedOrganization, ErrorDialog, LastSelectedOrganization)
     {
       var me = this;
       angular.extend(me,
@@ -228,6 +228,16 @@
       $scope.$on('pageChangeAccepted', function(event, destination) {
         if (isExternalDestination(destination)) {
           $scope.cancel();
+        }
+      });
+      
+      $scope.$on('$stateChangeStart', function(event, toState, toParams, fromState, fromParams){
+        //if we are going to the new app page, make sure to set the default org
+        if ($scope.selectedOrganization && toState.name === 'management.application.view') {
+          LastSelectedOrganization.set({
+            id: $scope.selectedOrganization.id,
+            name: $scope.selectedOrganization.name
+          });
         }
       });
 

@@ -70,7 +70,9 @@
         $scope.tags = [];
 
         var promises = [
-          policyStore.get().refresh(),
+          policyStore.get().then(function(store) {
+            return store.refresh();
+          }),
           $http.get(clmAppLocations.getApplicablePolicies()),
           actionStore.get(),
           PolicyMonitoringStore.getApplicable()

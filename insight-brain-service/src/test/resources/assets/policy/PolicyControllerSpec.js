@@ -25,11 +25,11 @@ describe('PolicyController tests', function() {
   beforeEach(inject(function($httpBackend, $rootScope, $controller, CLMLocations, CLMAppLocations, $state) {
     $state.current.name = "management.application";
 
-    $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getActionTypeUrl())).respond(PolicyMockData.getActionTypeData());
-    $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getActionStageUrl())).respond(MockData.getActionStageData());
-    $httpBackend.expectGET(SpecUtil.toRegExp(CLMAppLocations.getPolicyUrl())).respond(PolicyMockData.getPolicyData());
-    $httpBackend.expectGET(SpecUtil.toRegExp(CLMAppLocations.getApplicablePolicies())).respond(ApplicationMockData.getApplicablePolicies());
-    $httpBackend.expectGET(SpecUtil.toRegExp(CLMAppLocations.getApplicablePolicyMonitoring())).respond(PolicyMonitoringMockData);
+    $httpBackend.whenGET(SpecUtil.toRegExp(CLMLocations.getActionTypeUrl())).respond(PolicyMockData.getActionTypeData());
+    $httpBackend.whenGET(SpecUtil.toRegExp(CLMLocations.getActionStageUrl())).respond(MockData.getActionStageData());
+    $httpBackend.whenGET(SpecUtil.toRegExp(CLMAppLocations.getPolicyUrl())).respond(PolicyMockData.getPolicyData());
+    $httpBackend.whenGET(SpecUtil.toRegExp(CLMAppLocations.getApplicablePolicies())).respond(ApplicationMockData.getApplicablePolicies());
+    $httpBackend.whenGET(SpecUtil.toRegExp(CLMAppLocations.getApplicablePolicyMonitoring())).respond(PolicyMonitoringMockData);
     $httpBackend.whenGET(SpecUtil.toRegExp(CLMLocations.getConditionTypeUrl())).respond(PolicyMockData.getConditionTypeData());
     $httpBackend.whenGET(SpecUtil.toRegExp(CLMAppLocations.getConditionValueTypeUrl())).respond(PolicyMockData.getConditionValueTypeData());
 
@@ -113,9 +113,9 @@ describe('PolicyController tests', function() {
   });
 
   it('handles owner changes', inject(function($httpBackend, CLMAppLocations) {
-    $httpBackend.expectGET(SpecUtil.toRegExp(CLMAppLocations.getPolicyUrl())).respond(PolicyMockData.getPolicyData());
     $httpBackend.expectGET(SpecUtil.toRegExp(CLMAppLocations.getApplicablePolicies())).respond(ApplicationMockData.getApplicablePolicies());
     $httpBackend.expectGET(SpecUtil.toRegExp(CLMAppLocations.getApplicablePolicyMonitoring())).respond(PolicyMonitoringMockData);
+    $httpBackend.expectGET(SpecUtil.toRegExp(CLMAppLocations.getPolicyUrl())).respond(PolicyMockData.getPolicyData());
     scope.$broadcast('ownerChanged', {
       ownerId : ApplicationMockData.getApplicablePolicies().policiesByOwner[0].ownerId,
       changes : [ { field : 'organizationId', newValue : 'new_org_id' } ]
@@ -177,14 +177,14 @@ describe('PolicyController organization tests', function() {
     policyTagId = OrganizationMockData.getApplicablePolicies().policiesByOwner[0].policyTags[0].id;
     scope = $rootScope.$new();
 
-    $httpBackend.expectGET(CLMLocations.getActionTypeUrl()).respond(PolicyMockData.getActionTypeData());
-    $httpBackend.expectGET(CLMLocations.getActionStageUrl()).respond(MockData.getActionStageData());
-    $httpBackend.expectGET(CLMLocations.getConditionTypeUrl()).respond(PolicyMockData.getConditionTypeData());
-    $httpBackend.expectGET(CLMAppLocations.getConditionValueTypeUrl()).respond(PolicyMockData.getConditionValueTypeData());
-    $httpBackend.expectGET(CLMAppLocations.getPolicyUrl()).respond(PolicyMockData.getPolicyData());
-    $httpBackend.expectGET(CLMAppLocations.getApplicablePolicies()).respond(OrganizationMockData.getApplicablePolicies());
-    $httpBackend.expectGET(CLMAppLocations.getApplicablePolicyMonitoring()).respond(PolicyMonitoringMockData);
-    $httpBackend.expectGET(CLMAppLocations.getTagsUrl()).respond(tags);
+    $httpBackend.whenGET(CLMLocations.getActionTypeUrl()).respond(PolicyMockData.getActionTypeData());
+    $httpBackend.whenGET(CLMLocations.getActionStageUrl()).respond(MockData.getActionStageData());
+    $httpBackend.whenGET(CLMLocations.getConditionTypeUrl()).respond(PolicyMockData.getConditionTypeData());
+    $httpBackend.whenGET(CLMAppLocations.getConditionValueTypeUrl()).respond(PolicyMockData.getConditionValueTypeData());
+    $httpBackend.whenGET(CLMAppLocations.getPolicyUrl()).respond(PolicyMockData.getPolicyData());
+    $httpBackend.whenGET(CLMAppLocations.getApplicablePolicies()).respond(OrganizationMockData.getApplicablePolicies());
+    $httpBackend.whenGET(CLMAppLocations.getApplicablePolicyMonitoring()).respond(PolicyMonitoringMockData);
+    $httpBackend.whenGET(CLMAppLocations.getTagsUrl()).respond(tags);
 
     $controller('PolicyController', {
       $scope: scope,

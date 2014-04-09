@@ -88,7 +88,7 @@
       $scope.doLoad = function() {
         $scope.error = null;
         $scope.tags = null;
-        $q.all([TagStore.refresh(), TagStore.getApplied(), ApplicationStore.get(), PolicyTagStore.getApplied(), PolicyStore.get().get()]).then(function(results) {
+        $q.all([TagStore.refresh(), TagStore.getApplied(), ApplicationStore.get(), PolicyTagStore.getApplied(), PolicyStore.get().then(function(store) {return store.get();})]).then(function(results) {
           $scope.tags = results[0];
           $scope.appliedTags = results[1].data;
           $scope.applications = results[2];

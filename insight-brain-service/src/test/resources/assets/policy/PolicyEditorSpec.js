@@ -37,7 +37,14 @@ describe('PolicyEditor.js', function() {
     inject(function(PolicyStore, $httpBackend, CLMLocations, CLMAppLocations) {
       $httpBackend.whenGET(SpecUtil.toRegExp(CLMLocations.getConditionTypeUrl())).respond(PolicyMockData.getConditionTypeData());
       $httpBackend.whenGET(SpecUtil.toRegExp(CLMAppLocations.getConditionValueTypeUrl())).respond(PolicyMockData.getConditionValueTypeData());
-      policy = PolicyStore.get().create();
+      PolicyStore.get().then(function(store) {
+        policy = store.create();
+      });
+      try {
+        $httpBackend.flush();
+      } catch (e) {
+        // condition types were already loaded by policy store, that's fine
+      }
     });
     return policy;
   }
@@ -125,6 +132,7 @@ describe('PolicyEditor.js', function() {
       var createScope = angular.element('#testInlinePolicyCreator').scope().$$childTail;
 
       createScope.click();
+      $httpBackend.flush();
       expect(createScope.policy).not.toBeUndefined();
 
       expect(angular.element('#testInlinePolicyCreator').scope().$$childTail.policy).toBeDefined();
@@ -370,7 +378,9 @@ describe('PolicyEditor.js', function() {
       $httpBackend.whenGET(SpecUtil.toRegExp(CLMAppLocations.getPolicyUrl())).respond(PolicyMockData.getPolicyData());
       $httpBackend.whenGET(SpecUtil.toRegExp(CLMAppLocations.getApplicablePolicies())).respond(ApplicationMockData.getApplicablePolicies());
       $httpBackend.whenGET(SpecUtil.toRegExp(CLMAppLocations.getPolicyTagUrl(PolicyMockData.getPolicyData()[0].id))).respond(tags);
-      PolicyStore.get().get().then(function() {
+      PolicyStore.get().then(function(store) {
+        return store.get();
+      }).then(function() {
         policyStoreContents = arguments[0];
         policyScope.policy = policyStoreContents[0];
       });
@@ -395,7 +405,9 @@ describe('PolicyEditor.js', function() {
       $httpBackend.whenGET(SpecUtil.toRegExp(CLMAppLocations.getPolicyUrl())).respond(PolicyMockData.getPolicyData());
       $httpBackend.whenGET(SpecUtil.toRegExp(CLMAppLocations.getApplicablePolicies())).respond(ApplicationMockData.getApplicablePolicies());
       $httpBackend.whenGET(SpecUtil.toRegExp(CLMAppLocations.getPolicyTagUrl(PolicyMockData.getPolicyData()[0].id))).respond(tags);
-      PolicyStore.get().get().then(function() {
+      PolicyStore.get().then(function(store) {
+        return store.get();
+      }).then(function() {
         policyStoreContents = arguments[0];
         policyScope.policy = policyStoreContents[0];
       });
@@ -537,7 +549,6 @@ describe('PolicyEditor.js', function() {
         controller.scope.constraint.conditions.push({});
         e = testScope.$broadcast('pageChangeStarted', null);
         expect(e.defaultPrevented).toEqual(true);
-        $httpBackend.flush();
       }));
 
       xit('figures dirty state of existing constraint', inject(function() {
@@ -598,10 +609,9 @@ describe('PolicyEditor.js', function() {
   describe('PolicyStore', function() {
     it('Default Values', inject(function($httpBackend) {
       var newPolicy = createNewPolicy();
-      $httpBackend.flush();
       expect(newPolicy.threatLevel).toEqual(5);
       expect(newPolicy.constraints).toEqual([
-        { conditions: [], operator: 'OR', id: jasmine.any(String) }
+        { conditions: [ { conditionTypeId: 'AgeInDays', operator: 'older than', value: null } ], operator: 'OR', id: jasmine.any(String) }
       ]);
     }));
   });

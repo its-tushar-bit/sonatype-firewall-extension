@@ -12,8 +12,8 @@
   ]);
 
   module.service('PolicyStore', [
-    'ConstraintStore', 'CLMLocations', 'CLMAppLocations', 'CLMResource',
-    function(constraintStore, clmLocations, clmAppLocations, clmResource) {
+    'ConstraintStore', 'CLMLocations', 'CLMAppLocations', 'CLMResource', '$q',
+    function(constraintStore, clmLocations, clmAppLocations, clmResource, $q) {
       var conditionTypes = null,
         policyStoreTemplate = {
           id: 'id',
@@ -24,15 +24,12 @@
                 { conditions: [], operator: 'OR', id: '' + new Date().getTime() }
               ],
               actions: {}
-            };
-            if (conditionTypes) {
-              var conditionType = conditionTypes.AgeInDays;
-              o.constraints[0].conditions.push({
-                conditionTypeId: conditionType.id,
-                operator: conditionType.supportedOperators[0],
-                value: null
-              });
-            }
+            }, conditionType = conditionTypes.AgeInDays;
+            o.constraints[0].conditions.push({
+              conditionTypeId: conditionType.id,
+              operator: conditionType.supportedOperators[0],
+              value: null
+            });
             return o;
           }
         },
@@ -41,22 +38,29 @@
       return {
         get: function() {
           var ownerId = clmAppLocations.getEntityId(),
-            store = policyStores[ownerId];
+            store = policyStores[ownerId],
+            deferred = $q.defer();
           if (!store) {
             constraintStore.get().then(function(results) {
               conditionTypes = {};
               angular.forEach(results[0], function(type) {
                 conditionTypes[type.id] = type;
               });
+              // Expire existing stores, prevents user from encountering stale data
+              angular.forEach(policyStores, function(value, key) {
+                policyStores[key] = null;
+              });
+              store = clmResource.getStore(angular.extend({ url: clmAppLocations.getPolicyUrl() }, policyStoreTemplate));
+              policyStores[ownerId] = store;
+              deferred.resolve(store);
+            }, function(reason) {
+              deferred.reject(reason);
             });
-            // Expire existing stores, prevents user from encountering stale data
-            angular.forEach(policyStores, function(value, key) {
-              policyStores[key] = null;
-            });
-            store = clmResource.getStore(angular.extend({ url: clmAppLocations.getPolicyUrl() }, policyStoreTemplate));
-            policyStores[ownerId] = store;
           }
-          return store;
+          else {
+            deferred.resolve(store);
+          }
+          return deferred.promise;
         },
         getConditionTypes: function() {
           return conditionTypes;
@@ -679,8 +683,10 @@
           };
           scope.click = function() {
             if (!scope.policy) {
-              scope.policy = policyStore.get().create();
-              AngularStateUtils.toNewItemState(scope);
+              policyStore.get().then(function(store) {
+                scope.policy = store.create();
+                AngularStateUtils.toNewItemState(scope);
+              });
             }
           };
           

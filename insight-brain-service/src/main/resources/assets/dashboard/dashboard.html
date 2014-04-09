@@ -39,13 +39,13 @@
           <div class="span3" ng-if='appliedApplicationPublicIds.length > 0'>
             <span><strong>Applications</strong></span>
             <span ng-repeat="applicationId in appliedApplicationPublicIds">
-              <span>{{applicationNameFor(applicationId)}}{{!$last ? "," : ""}}</span>
+              {{applicationNameFor(applicationId)}}{{!$last ? "," : ""}}
             </span>
           </div>
           <div class="span3" style="display: inline;" ng-if='appliedPolicyThreatCategories.length > 0'>
             <span><strong>Policy Categories</strong></span>
             <span ng-repeat="policyThreatCategoryId in appliedPolicyThreatCategories">
-              <span>{{policyThreatCategoryNameFor(policyThreatCategoryId)}}{{!$last ? "," : ""}}</span>
+              {{policyThreatCategoryNameFor(policyThreatCategoryId)}}{{!$last ? "," : ""}}
             </span>
           </div>
         </div>

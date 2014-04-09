@@ -9,6 +9,8 @@ import com.sonatype.insight.brain.testing.functional.modules.ButtonsModule
 import com.sonatype.insight.brain.testing.functional.modules.EditorToolsModule
 import com.sonatype.insight.brain.testing.functional.modules.ContextTabsModule
 import com.sonatype.insight.brain.testing.functional.modules.ImportPolicyModule
+import com.sonatype.insight.brain.testing.functional.modules.LabelModule
+import com.sonatype.insight.brain.testing.functional.modules.LicenseThreatGroupModule
 import com.sonatype.insight.brain.testing.functional.modules.PolicyModule
 import com.sonatype.insight.brain.testing.functional.modules.PolicyMonitoringModule
 import com.sonatype.insight.brain.testing.functional.modules.TagApplicationModule
@@ -56,6 +58,8 @@ class ApplicationPage
     tabs { module ContextTabsModule }
     tools { module EditorToolsModule }
 
+    labels { module LabelModule, tabs.labelsTab }
+    licenseThreatGroups { module LicenseThreatGroupModule, tabs.ltgTab }
     tags { module TagApplicationModule, tabs.tagTab }
   }
 

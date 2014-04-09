@@ -11,18 +11,22 @@
     <div class='span12'>
       <div class='dashboard-filters'>
         <div class='accordion-body collapse filter-edit' delayed-overflow>
-          <div class='accordion-inner'>
-            <div class='filter-edit-body'>
-              <table>
-                <tbody>
-                  <tr>
-                    <td><h5>Applications:</h5></td>
-                    <td><span id='applications' class='multi-dropdown' multi-select items='applications'
-                              selected-ids='queuedApplicationPublicIds' effective-id-field='publicId'
-                              none-selected-text='All Applications'></span></td>
-                  </tr>
-                </tbody>
-              </table>
+          <div class='accordion-inner' style="border: 0px;">
+            <div class='filter-edit-body' style='background-color: #E8E8E8; border-radius: 5px;'>
+              <div class='row-fluid'>
+                <div class="span3">
+                  <h5>Applications</h5>
+                  <span id='applications' class='multi-dropdown' multi-select items='applications'
+                        selected-ids='queuedApplicationPublicIds' effective-id-field='publicId'
+                        summarize-with='applications' none-selected-text='All Applications'></span>
+                </div>
+                <div class="span3">
+                  <h5>Policy Categories</h5>
+                  <span id='policy-types' class='multi-dropdown' multi-select items='policyThreatCategories'
+                        selected-ids='queuedPolicyThreatCategories'
+                        none-selected-text='All Policy Categories'></span>
+                </div>
+              </div>
               <div class='pull-right'>
                 <button class='btn' type='button' ng-click='cancelFilters()'>Cancel</button>
                 <button class='btn btn-primary' type='button' ng-click='applyFilters()'>Apply</button>
@@ -31,15 +35,19 @@
             </div>
           </div>
         </div>
-        <div ng-if='appliedApplicationPublicIds.length > 0'>
-          <table>
-            <tbody>
-            <tr>
-              <td><h5>Applications:</h5></td>
-              <td>{{getSelectedApplicationNames()}}</td>
-            </tr>
-            </tbody>
-          </table>
+        <div ng-show="!filtersExpanded" class="row-fluid" style="font-size: .75em; background-color: #E8E8E8; border-radius: 5px;">
+          <div class="span3" ng-if='appliedApplicationPublicIds.length > 0'>
+            <span><strong>Applications</strong></span>
+            <span ng-repeat="applicationId in appliedApplicationPublicIds">
+              <span>{{applicationNameFor(applicationId)}}{{!$last ? "," : ""}}</span>
+            </span>
+          </div>
+          <div class="span3" style="display: inline;" ng-if='appliedPolicyThreatCategories.length > 0'>
+            <span><strong>Policy Categories</strong></span>
+            <span ng-repeat="policyThreatCategoryId in appliedPolicyThreatCategories">
+              <span>{{policyThreatCategoryNameFor(policyThreatCategoryId)}}{{!$last ? "," : ""}}</span>
+            </span>
+          </div>
         </div>
       </div>
     </div>

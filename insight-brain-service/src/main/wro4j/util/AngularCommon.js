@@ -765,10 +765,10 @@ var AngularStateUtils = {
   */
   angularCommon.directive('multiSelect', [function () {
     return {
-      template : '<div class="btn-group multiselect" ng-class="{ open : open }">' +
+      template : '<div class="btn-group" ng-class="{ open : open }">' +
                    '<button class="btn" ng-click="open = !open"><span><div>{{getText()}}</div></span> <span class="caret"></span></button>' +
                    '<ul class="dropdown-menu multiselect-container">' +
-                     '<li ng-if="items.length > 9"><input type="text" ng-model="filter.name" style="margin:0;width:160px" placeholder="Search"></li>' +
+                     '<li ng-if="items.length > 9"><input type="text" ng-model="filter.name" placeholder="Search"></li>' +
                      '<li ng-repeat="item in items | filter: { name : filter.name }">' +
                        '<label class="checkbox">' +
                          '<input type="checkbox" ng-model="selected[item.id]" ng-change="updateSelectedIds(item.id)">' +
@@ -781,7 +781,8 @@ var AngularStateUtils = {
         items : '=',
         selectedIds : '=',
         effectiveIdField : '@',
-        noneSelectedText : '@'
+        noneSelectedText : '@',
+        summarizeWith : '@'
       },
       link : function (scope, element) {
         var effectiveIdField = scope.effectiveIdField ? scope.effectiveIdField : 'id';
@@ -830,6 +831,11 @@ var AngularStateUtils = {
           if (!scope.selectedIds || scope.selectedIds.length === 0) {
             return scope.noneSelectedText ? scope.noneSelectedText : 'None selected';
           }
+
+          if(scope.summarizeWith && scope.selectedIds.length >= 3){
+            return scope.selectedIds.length + ' ' + scope.summarizeWith;
+          }
+
           var names = '';
           angular.forEach(scope.items, function (item) {
             if (scope.selected[item.id]) {

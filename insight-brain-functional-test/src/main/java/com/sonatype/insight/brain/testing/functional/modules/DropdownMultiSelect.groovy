@@ -14,7 +14,7 @@ class DropdownMultiSelect
     extends Module
 {
   static content = {
-    dropdown { $('.btn-group.multiselect') }
+    dropdown { $('.btn-group') }
     dropdownButton { dropdown.find('button') }
     dropdownList { dropdown.find('ul') }
     dropdownCheck { name -> dropdownList.find('label', text: name).find('input') }

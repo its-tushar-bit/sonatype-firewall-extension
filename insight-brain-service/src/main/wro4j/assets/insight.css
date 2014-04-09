@@ -197,7 +197,7 @@ a {
 
 .multi-dropdown button div {
   display: inline-block;
-  max-width: 200px;
+  max-width: 190px;
   overflow: hidden;
   text-overflow: ellipsis;
   vertical-align: middle;

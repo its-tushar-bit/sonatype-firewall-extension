@@ -23,7 +23,9 @@ class DashboardPage
     filterPanel(required: false) { $('div', 'ng-if': 'appliedApplicationPublicIds.length > 0') }
     filterButtons(required: false) { module ButtonsModule, $('.dashboard-filters .pull-right') }
 
-    applicationFilters(required: false) { filterPanel.find('tr:nth-child(1) td:nth-child(2)')}
+    applicationFilters(required: false) {
+      filterPanel.find('span', 'ng-repeat': 'applicationId in appliedApplicationPublicIds')
+    }
     applicationFiltersDropdown(required: false) { module DropdownMultiSelect, $('span', items: 'applications') }
 
     highestRiskTable { $('tr', 'ng-repeat': startsWith('risk in highestRisks')) }

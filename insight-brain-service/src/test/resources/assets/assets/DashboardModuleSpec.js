@@ -1,4 +1,4 @@
-describe('dashboardApp', function() {
+describe('DashboardModule', function() {
   var scope;
   var policyViolations = [
     {
@@ -25,7 +25,7 @@ describe('dashboardApp', function() {
       policyEvaluationId: "2cca57dc20b947e999cc348f83da1e5b",
       policyId: "f219cdc1b9bd4bd089343dcdc542e757",
       policyName: "Bar Policy",
-      threatCategory: "SECURITY",
+      threatCategory: "OTHER",
       threatLevel: 10,
       version: "2.1"
     },
@@ -92,12 +92,51 @@ describe('dashboardApp', function() {
       expect(scope.highestRisks.length).toBe(2);
     }));
 
+    it('filters policy violations by policy threat category', inject(function($httpBackend, CLMLocations) {
+      expect(scope.queuedPolicyThreatCategories.length).toBe(0);
+      scope.queuedPolicyThreatCategories = ['security', 'other'];
+      scope.applyFilters();
+      $httpBackend.expectGET(CLMLocations.getPolicyViolationsUrl() +
+        '?maxResults=20&policyThreatCategories=security&policyThreatCategories=other').respond([policyViolations[0]]);
+      scope.$digest();
+      $httpBackend.flush();
+      expect(scope.appliedPolicyThreatCategories).toEqual(['security', 'other']);
+      expect(scope.highestRisks.length).toBe(1);
+    }));
+
     it('cancels filters', function() {
       scope.appliedApplicationPublicIds = [];
       scope.queuedApplicationPublicIds = ['fooID'];
+      scope.appliedPolicyThreatCategories = [];
+      scope.queuedPolicyThreatCategories = ['security'];
       scope.cancelFilters();
 
       expect(scope.appliedApplicationPublicIds.length).toBe(0);
+      expect(scope.queuedApplicationPublicIds.length).toBe(0);
+      expect(scope.appliedPolicyThreatCategories.length).toBe(0);
+      expect(scope.queuedPolicyThreatCategories.length).toBe(0);
+    });
+
+    it('sets filtersExpanded', inject(function($compile, $timeout){
+      var element = angular.element('<div class="accordion-body collapse filter-edit"></div>');
+      scope.$apply(function () {
+        $compile(element)(scope);
+        angular.element('body').append(element);
+      });
+      expect(scope.filtersExpanded).toBe(false);
+
+      scope.toggleCollapse();
+      $timeout.flush();
+      scope.$digest();
+      expect(scope.filtersExpanded).toBe(true);
+    }));
+
+    it('converts from application.publicId to application.name', function(){
+      expect(scope.applicationNameFor('bom1-12345678')).toBe('applicationName');
+    });
+
+    it('converts from policyThreatCategory.id to policyThreatCategory.name', function(){
+      expect(scope.policyThreatCategoryNameFor('security')).toBe('Security');
     });
   });
 });

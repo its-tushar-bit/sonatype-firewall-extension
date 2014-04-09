@@ -19,6 +19,9 @@
     function($scope, $q, ApplicationStore, $http, CLMLocations, $timeout) {
     $scope.appliedApplicationPublicIds = [];
     $scope.queuedApplicationPublicIds = [];
+    $scope.appliedPolicyThreatCategories = [];
+    $scope.queuedPolicyThreatCategories = [];
+    $scope.filtersExpanded = false;
     $scope.maxResults = 20;
 
     function load() {
@@ -27,6 +30,7 @@
           params: {
             maxResults: $scope.maxResults,
             applicationPublicIds: $scope.appliedApplicationPublicIds,
+            policyThreatCategories: $scope.appliedPolicyThreatCategories
           }
         })
       ];
@@ -41,41 +45,56 @@
       ];
       $q.all(promises).then(function(data) {
         $scope.applications = data[0];
+
+        $scope.policyThreatCategories = [
+          {id:'security', name:'Security'},
+          {id:'license', name:'License'},
+          {id:'quality', name:'Quality'},
+          {id:'other', name:'Other'}
+        ];
       });
     }
 
     loadFilters();
     load();
     $scope.applyFilters = function() {
-      $scope.appliedApplicationPublicIds = angular.copy($scope.queuedApplicationPublicIds);
+      $scope.appliedApplicationPublicIds = $scope.queuedApplicationPublicIds;
+      $scope.appliedPolicyThreatCategories = $scope.queuedPolicyThreatCategories;
       load();
       $scope.toggleCollapse();
     };
 
     $scope.cancelFilters = function() {
       $scope.queuedApplicationPublicIds = angular.copy($scope.appliedApplicationPublicIds);
+      $scope.queuedPolicyThreatCategories = angular.copy($scope.appliedPolicyThreatCategories);
       $scope.toggleCollapse();
     };
 
-    $scope.getSelectedApplicationNames = function() {
-      if (!$scope.applications || $scope.appliedApplicationPublicIds.length === 0) {
-        return 'All Applications';
-      }
-      var applicationNames = [];
+    $scope.applicationNameFor = function(applicationId) {
       for (var i = 0; i < $scope.applications.length; i++) {
         var application = $scope.applications[i];
-        if ($scope.appliedApplicationPublicIds.indexOf(application.publicId) > -1) {
-          applicationNames.push(application.name);
+        if (application.publicId === applicationId) {
+          return application.name;
         }
       }
-      return applicationNames.join(', ');
+    };
+
+    $scope.policyThreatCategoryNameFor = function(policyThreatCategoryId) {
+      for (var i = 0; i < $scope.policyThreatCategories.length; i++) {
+        var policyThreatCategory = $scope.policyThreatCategories[i];
+        if (policyThreatCategory.id === policyThreatCategoryId) {
+          return policyThreatCategory.name;
+        }
+      }
     };
 
     $scope.toggleCollapse = function() {
       // Dropdown leaves artifact on screen w/o $timeout
       $timeout(function() {
         $('.accordion-body').collapse('toggle');
-      }, 10);
+      }, 10).then(function(){
+        $scope.filtersExpanded = $('.accordion-body').hasClass('in');
+      });
     };
   }]);
 }());

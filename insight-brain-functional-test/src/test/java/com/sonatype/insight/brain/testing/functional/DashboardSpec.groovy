@@ -53,10 +53,10 @@ class DashboardSpec
       applicationFiltersDropdown.toggleOption(firstApp.name)
       applicationFiltersDropdown.toggleOption(secondApp.name)
       filterButtons.button('Apply').click()
-      waitFor { !applicationFiltersDropdown.displayed }
+      waitFor { filterPanel.displayed }
 
     then: 'filters show up in readonly mode'
-      applicationFilters.text() == firstApp.name + ', ' + secondApp.name
+      applicationFilters.collect{it.text()}.join('') == firstApp.name + ',' + secondApp.name
   }
 
   def 'Highest Risk Table'() {

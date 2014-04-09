@@ -16,6 +16,7 @@ import com.sonatype.insight.brain.utils.IdUtils;
 
 import com.ning.http.client.Response;
 import com.yammer.dropwizard.testing.JsonHelpers;
+import org.eclipse.jetty.http.HttpStatus;
 import org.junit.Test;
 
 import static org.hamcrest.Matchers.is;
@@ -147,6 +148,20 @@ public class PolicyMonitoringResourceTest
     assertThat(applicablePolicyMonitors.appPolicyMonitor, nullValue());
     assertThat(applicablePolicyMonitors.orgPolicyMonitor, notNullValue());
     assertThat(applicablePolicyMonitors.orgPolicyMonitor.getStageTypeId(), is(Stage.ID_RELEASE));
+  }
+
+  @Test
+  public void testInvalidStage() throws Exception {
+    Organization organization = tempEntity.newOrganization("testInvalidStageOrgId");
+    Application application = tempEntity.newApplication("testInvalidStageAppId", "testInvalidStageAppId",
+        organization.getId());
+
+    PolicyMonitoring policyMonitoring = new PolicyMonitoring(null /* ownerId */, "fakestage");
+
+    Response response = AuthedRestAccess.put(getServiceURL(IdUtils.TYPE_APPLICATION, application.getPublicId()),
+        JsonHelpers.asJson(policyMonitoring));
+
+    assertResponseStatus(HttpStatus.BAD_REQUEST_400, response);
   }
 
   private void assertPolicyMonitoring(String ownerId, String stageTypeId, PolicyMonitoring actual) {

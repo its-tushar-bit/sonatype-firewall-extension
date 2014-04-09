@@ -62,6 +62,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.ning.http.client.Response;
 import com.yammer.dropwizard.testing.JsonHelpers;
 import org.codehaus.plexus.util.FileUtils;
+import org.eclipse.jetty.http.HttpStatus;
 import org.junit.Assert;
 import org.junit.Test;
 import org.jvnet.mock_javamail.Mailbox;
@@ -836,6 +837,13 @@ public class PolicyEvaluateResourceTest
         .getId());
     assertThat(newestPolicyViolationUnchanged2.getId(), is(newestPolicyViolationUnchanged1.getId()));
     assertThat(newestPolicyViolationUnchanged2.getTime(), is(newestPolicyViolationUnchanged1.getTime()));
+  }
+
+  @Test
+  public void testInvalidStage() throws Exception {
+    Response response = AuthedRestAccess.post(getServiceURL("irrelevant", "scanid"),
+        JsonHelpers.asJson(new Stage("foobar")));
+    assertResponseStatus(HttpStatus.BAD_REQUEST_400, response);
   }
 
   private String getServiceURL(final String appId, final String scanId) {

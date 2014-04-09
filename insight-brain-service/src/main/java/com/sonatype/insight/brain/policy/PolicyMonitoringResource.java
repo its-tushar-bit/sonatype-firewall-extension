@@ -15,6 +15,7 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
+import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
 import com.sonatype.insight.brain.model.Application;
@@ -23,6 +24,7 @@ import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.utils.IdUtils;
+import com.sonatype.insight.error.exception.BadRequestException;
 
 /**
  * @since 1.8
@@ -73,6 +75,10 @@ public class PolicyMonitoringResource
       @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId, PolicyMonitoring policyMonitoring)
   {
     ownerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
+
+    if (!Stage.isValidExternalStageTypeId(policyMonitoring.getStageTypeId())) {
+      throw new BadRequestException("Invalid stage: " + policyMonitoring.getStageTypeId());
+    }
 
     policyMonitoring.setOwnerId(ownerId);
     new PolicyMonitoringDAO().set(policyMonitoring);

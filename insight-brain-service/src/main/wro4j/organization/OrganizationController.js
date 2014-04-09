@@ -231,7 +231,7 @@
         }
       });
       
-      $scope.$on('$stateChangeStart', function(event, toState, toParams, fromState, fromParams){
+      $scope.$on('$stateChangeStart', function(event, toState){
         //if we are going to the new app page, make sure to set the default org
         if ($scope.selectedOrganization && toState.name === 'management.application.view') {
           LastSelectedOrganization.set({

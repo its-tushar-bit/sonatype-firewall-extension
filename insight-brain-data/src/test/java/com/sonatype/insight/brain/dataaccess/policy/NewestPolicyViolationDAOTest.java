@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.dataaccess.policy;
 
+import java.util.Date;
+
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.model.policy.NewestPolicyViolation;
 import com.sonatype.insight.brain.model.policy.Policy;
@@ -41,7 +43,8 @@ public class NewestPolicyViolationDAOTest
     // Read
     newestPolicyViolation = dao.getById(newestPolicyViolation.getId());
     assertThat(newestPolicyViolation, is(notNullValue()));
-    assertNewestPolicyViolation(policyViolation.getId(), applicationId, ReleaseStageType.ID, newestPolicyViolation);
+    assertNewestPolicyViolation(policyViolation.getId(), applicationId, ReleaseStageType.ID,
+        policyEvaluation.getTime(), newestPolicyViolation);
 
     // Update is not allowed
     try {
@@ -59,11 +62,12 @@ public class NewestPolicyViolationDAOTest
     assertThat(newestPolicyViolation, is(nullValue()));
   }
 
-  private void assertNewestPolicyViolation(String id, String applicationId, String stageTypeId,
+  private void assertNewestPolicyViolation(String id, String applicationId, String stageTypeId, Date time,
       NewestPolicyViolation actual)
   {
     assertThat(actual.getId(), is(id));
     assertThat(actual.getApplicationId(), is(applicationId));
     assertThat(actual.getStageTypeId(), is(stageTypeId));
+    assertThat(actual.getTime(), is(time));
   }
 }

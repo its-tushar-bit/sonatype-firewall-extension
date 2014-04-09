@@ -31,5 +31,6 @@ class DashboardPage
     policyViolationRisk { i -> policyViolation(i).find('td')[1] }
     policyViolationPolicy { i -> policyViolation(i).find('td')[2] }
     policyViolationApplication { i -> policyViolation(i).find('td')[3] }
+    policyViolationComponent { i -> policyViolation(i).find('td')[4] }
   }
 }

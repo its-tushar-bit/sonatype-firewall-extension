@@ -38,3 +38,29 @@
 .sonatype-icons.organizational-design:before {
   content: '\e605';
 }
+.sonatype-icon-menu:before {
+  font-size: 28px !important;
+  padding-right: 10px !important;
+  line-height: 28px !important;
+  vertical-align: middle;
+}
+.sonatype-icons.add-organization:before {
+  content: '\e60e';
+  font-size: 31px !important;
+}
+.sonatype-icons.add-application:before {
+  content: '\e008';
+}
+.sonatype-icons.add-policy:before {
+  content: '\e60d';
+  font-size: 32px !important;
+}
+.sonatype-icons.add-label:before {
+  content: '\e608';
+}
+.sonatype-icons.add-license-threat-group:before {
+  content: '\e609';
+}
+.sonatype-icons.add-tag:before {
+  content: '\e60a';
+}

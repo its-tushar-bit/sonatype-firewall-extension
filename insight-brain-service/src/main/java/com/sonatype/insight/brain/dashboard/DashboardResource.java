@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.dashboard;
 
 import java.util.List;
+import java.util.Set;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -42,18 +43,21 @@ public class DashboardResource
   @Path(GET_POLICY_VIOLATIONS_PATH)
   @Produces(MediaType.APPLICATION_JSON)
   public List<PolicyViolationDTO> getPolicyViolations(
-      @QueryParam("applicationPublicIds") List<String> applicationPublicIds, @QueryParam("stageId") String stageId,
+      @QueryParam("applicationPublicIds") Set<String> applicationPublicIds,
+      @QueryParam("stageIds") Set<String> stageIds,
       @QueryParam("policyThreatCategories") PolicyThreatCategoryFilter policyThreatCategoryFilter,
       @QueryParam("policyThreatLevelRange") PolicyThreatLevelFilter policyThreatLevelFilter,
-      @QueryParam("maxResults") @DefaultValue("1000") int maxResults)
+      @QueryParam("maxResults") @DefaultValue("1000") int maxResults,
+      @QueryParam("newest") @DefaultValue("false") boolean newest)
   {
     Predicate<PolicyViolation> filter = buildFilter(policyThreatCategoryFilter, policyThreatLevelFilter);
 
     if (applicationPublicIds == null || applicationPublicIds.isEmpty()) {
-      return dashboardService.getPolicyViolations(stageId, filter, maxResults);
+      return dashboardService.getPolicyViolations(stageIds, filter, maxResults, newest);
     }
 
-    return dashboardService.getPolicyViolationsByApplicationIds(applicationPublicIds, stageId, filter, maxResults);
+    return dashboardService.getPolicyViolationsByApplicationIds(applicationPublicIds, stageIds, filter, maxResults,
+        newest);
   }
 
   private Predicate<PolicyViolation> buildFilter(PolicyThreatCategoryFilter threatCategoryFilter,

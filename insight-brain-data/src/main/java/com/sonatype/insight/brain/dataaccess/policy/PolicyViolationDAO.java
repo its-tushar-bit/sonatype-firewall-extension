@@ -69,14 +69,17 @@ public class PolicyViolationDAO
     }
   }
 
-  public List<PolicyViolation> getNewestByApplicationIdAndLastNDays(String appId, int lastNDays) {
+  public List<PolicyViolation> getNewestByApplicationIdAndStageTypeIdAndLastNDays(String appId, String stageTypeId,
+      int lastNDays)
+  {
     String sQuery = "SELECT policyViolation" + //
         " FROM PolicyViolation policyViolation, NewestPolicyViolation newestPolicyViolation" + //
         " WHERE policyViolation.id=newestPolicyViolation.id AND newestPolicyViolation.applicationId=?1" + //
-        " AND newestPolicyViolation.time>?2" + //
+        " AND newestPolicyViolation.stageTypeId=?2" + //
+        " AND newestPolicyViolation.time>?3" + //
         " ORDER BY policyViolation.policyId, policyViolation.groupId, policyViolation.artifactId, policyViolation.version, policyViolation.hash";
     DateTime now = new DateTime();
-    return getList(sQuery, appId, now.minusDays(lastNDays).toDate());
+    return getList(sQuery, appId, stageTypeId, now.minusDays(lastNDays).toDate());
   }
 
   @Override

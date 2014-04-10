@@ -14,6 +14,7 @@ import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
+import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 
 import org.joda.time.DateTime;
@@ -112,25 +113,38 @@ public class PolicyViolationDAOTest
   }
 
   @Test
-  public void testGetNewestByApplicationIdAndLastNDays() {
-    Policy policy = tempEntity.newPolicy(applicationId, "testGetNewestByApplicationIdAndLastNDays");
-    PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(applicationId, ReleaseStageType.ID,
-        "PolicyViolationDAOTest");
+  public void testGetNewestByApplicationIdAndStageTypeIdAndLastNDays() {
+    Policy policy = tempEntity.newPolicy(applicationId, "testGetNewestByApplicationIdAndStageTypeIdAndLastNDays");
+    PolicyEvaluation buildPolicyEvaluation = tempEntity.newPolicyEvaluation(applicationId, BuildStageType.ID,
+        "PolicyViolationDAOTest-build");
+    PolicyEvaluation releasePolicyEvaluation = tempEntity.newPolicyEvaluation(applicationId, ReleaseStageType.ID,
+        "PolicyViolationDAOTest-release");
     int nDays = 30;
     DateTime now = new DateTime();
 
     // Add a policy violation that is before nDays
-    PolicyViolation policyViolation = tempEntity.newPolicyViolation(policyEvaluation.getId(), policy);
+    PolicyViolation releasePolicyViolation = tempEntity.newPolicyViolation(releasePolicyEvaluation.getId(), policy);
     Date beforeNDays = now.minusDays(nDays).minusMillis(1).toDate();
-    tempEntity.newNewestPolicyViolation(policyViolation.getId(), applicationId, ReleaseStageType.ID, beforeNDays);
+    tempEntity
+        .newNewestPolicyViolation(releasePolicyViolation.getId(), applicationId, ReleaseStageType.ID, beforeNDays);
     // Add a policy violation that is after nDays
-    policyViolation = tempEntity.newPolicyViolation(policyEvaluation.getId(), policy);
+    releasePolicyViolation = tempEntity.newPolicyViolation(releasePolicyEvaluation.getId(), policy);
     Date afterNDays = now.minusDays(nDays).plusSeconds(5).toDate();
-    tempEntity.newNewestPolicyViolation(policyViolation.getId(), applicationId, ReleaseStageType.ID, afterNDays);
+    tempEntity.newNewestPolicyViolation(releasePolicyViolation.getId(), applicationId, ReleaseStageType.ID, afterNDays);
+    // Add another policy violation, with a different stage type id, that is after nDays
+    PolicyViolation buildPolicyViolation = tempEntity.newPolicyViolation(buildPolicyEvaluation.getId(), policy);
+    tempEntity.newNewestPolicyViolation(buildPolicyViolation.getId(), applicationId, BuildStageType.ID, afterNDays);
 
-    List<PolicyViolation> newestPolicyViolations = new PolicyViolationDAO().getNewestByApplicationIdAndLastNDays(
-        applicationId, nDays);
-    assertThat(newestPolicyViolations, hasSize(1));
-    assertThat(newestPolicyViolations.get(0).getId(), is(policyViolation.getId()));
+    PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
+
+    List<PolicyViolation> newestReleasePolicyViolations = policyViolationDAO
+        .getNewestByApplicationIdAndStageTypeIdAndLastNDays(applicationId, ReleaseStageType.ID, nDays);
+    assertThat(newestReleasePolicyViolations, hasSize(1));
+    assertThat(newestReleasePolicyViolations.get(0).getId(), is(releasePolicyViolation.getId()));
+
+    List<PolicyViolation> newestBuildPolicyViolations = policyViolationDAO
+        .getNewestByApplicationIdAndStageTypeIdAndLastNDays(applicationId, BuildStageType.ID, nDays);
+    assertThat(newestBuildPolicyViolations, hasSize(1));
+    assertThat(newestBuildPolicyViolations.get(0).getId(), is(buildPolicyViolation.getId()));
   }
 }

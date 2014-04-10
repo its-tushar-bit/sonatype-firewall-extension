@@ -25,6 +25,7 @@
     $scope.maxResults = 20;
 
     $scope.doLoad = function() {
+      $scope.error = null;
       var appliedPolicyThreatCategoryParam =
           $scope.appliedPolicyThreatCategories.length > 0 ? $scope.appliedPolicyThreatCategories.join(',') : null;
       var promises = [

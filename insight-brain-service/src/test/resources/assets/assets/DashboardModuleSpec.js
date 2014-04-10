@@ -140,7 +140,7 @@ describe('DashboardModule', function() {
     });
 
     it('handles http errors', inject(function($httpBackend, CLMLocations){
-      expect(scope.error).toBeUndefined();
+      expect(scope.error).toBeNull();
       scope.applyFilters();
       $httpBackend.expectGET(CLMLocations.getPolicyViolationsUrl() +'?maxResults=20').respond(500, 'An error');
       scope.$digest();
@@ -148,6 +148,12 @@ describe('DashboardModule', function() {
       expect(scope.error).toBeDefined();
       expect(scope.error.status).toBe(500);
       expect(scope.error.data).toBe('An error');
+
+      scope.applyFilters();
+      $httpBackend.expectGET(CLMLocations.getPolicyViolationsUrl() +'?maxResults=20').respond([policyViolations[0]]);
+      scope.$digest();
+      $httpBackend.flush();
+      expect(scope.error).toBeNull();
     }));
   });
 });

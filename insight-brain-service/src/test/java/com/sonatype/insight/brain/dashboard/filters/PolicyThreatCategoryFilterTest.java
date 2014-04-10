@@ -152,7 +152,7 @@ public class PolicyThreatCategoryFilterTest
   @Test
   public void testStringConstructionWithMalFormedStrings() {
     String emptyCategory = ",license";
-    String nonExistantCategory = "category1,category2";
+    String nonExistentCategory = "category1,category2";
     String emptyString = "";
     String nullString = null;
 
@@ -165,7 +165,7 @@ public class PolicyThreatCategoryFilterTest
     }
 
     try {
-      new PolicyThreatCategoryFilter(nonExistantCategory);
+      new PolicyThreatCategoryFilter(nonExistentCategory);
       fail("Filter should throw a bad request exception for the first category not being a real category.");
     }
     catch (BadRequestException e) {

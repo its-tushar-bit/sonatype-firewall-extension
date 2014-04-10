@@ -142,7 +142,7 @@ public class LabelResourceTest
   }
 
   @Test
-  public void testDeleteAppLabel_Nonexistant() throws Exception {
+  public void testDeleteAppLabel_Nonexistent() throws Exception {
     String appPublicId = "LabelResourceTest_AppId";
     tempEntity.newApplicationWithParent(appPublicId);
 
@@ -318,7 +318,7 @@ public class LabelResourceTest
   }
 
   @Test
-  public void testDeleteOrgLabel_Nonexistant() throws Exception {
+  public void testDeleteOrgLabel_Nonexistent() throws Exception {
     String orgName = "LabelResourceTestOrgName";
     Organization organization = tempEntity.newOrganization(orgName);
 

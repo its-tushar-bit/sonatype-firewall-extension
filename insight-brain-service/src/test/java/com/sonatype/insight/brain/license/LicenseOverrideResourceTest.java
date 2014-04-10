@@ -151,7 +151,7 @@ public class LicenseOverrideResourceTest
   }
 
   @Test
-  public void testDelete_Nonexistant_Application() throws Exception {
+  public void testDelete_Nonexistent_Application() throws Exception {
     String appPublicId = "LicenseOverrideResourceTest";
     tempEntity.newApplicationWithParent(appPublicId);
 
@@ -161,7 +161,7 @@ public class LicenseOverrideResourceTest
   }
 
   @Test
-  public void testDelete_Nonexistant_Organization() throws Exception {
+  public void testDelete_Nonexistent_Organization() throws Exception {
     Organization organization = tempEntity.newOrganization("LicenseOverrideResourceTest");
 
     Response response = AuthedRestAccess.delete(getServiceURL(IdUtils.TYPE_ORGANIZATION, organization.getId()) + "/YettiId");

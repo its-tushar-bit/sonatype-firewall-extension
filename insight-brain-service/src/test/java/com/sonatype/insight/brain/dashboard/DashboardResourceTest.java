@@ -331,7 +331,7 @@ public class DashboardResourceTest
   }
 
   @Test
-  public void testGetPolicyViolationsWithNonExistantStageTypeId() throws Exception {
+  public void testGetPolicyViolationsWithNonExistentStageTypeId() throws Exception {
     Response response = AuthedRestAccess.get(getRestUrl(DashboardResource.SERVICE_PATH + '/'
         + DashboardResource.GET_POLICY_VIOLATIONS_PATH)
         + "?stageIds=" + "not-a-real-id");
@@ -341,7 +341,7 @@ public class DashboardResourceTest
   }
 
   @Test
-  public void testGetPolicyViolationsWithNonExistantPolicyThreatCategory() throws Exception {
+  public void testGetPolicyViolationsWithNonExistentPolicyThreatCategory() throws Exception {
     Response response = AuthedRestAccess.get(getRestUrl(DashboardResource.SERVICE_PATH + '/'
         + DashboardResource.GET_POLICY_VIOLATIONS_PATH)
         + "?policyThreatCategories=" + "not-a-real-policy-threat-category");

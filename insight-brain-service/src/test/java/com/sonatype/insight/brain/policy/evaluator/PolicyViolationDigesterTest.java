@@ -160,7 +160,7 @@ public class PolicyViolationDigesterTest
   }
 
   @Test
-  public void testDigest_DifferentConstraintFacts() {
+  public void testDigest_DifferentConstraintFactsAreIgnored() {
     final List<PolicyViolation> oldViolations = defaultPolicyViolations();
     final List<PolicyViolation> newViolations = defaultPolicyViolations();
 

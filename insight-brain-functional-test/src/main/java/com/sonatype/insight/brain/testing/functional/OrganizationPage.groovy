@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.testing.functional
 
 import com.sonatype.insight.brain.testing.functional.modules.ImportPolicyModule
 import com.sonatype.insight.brain.testing.functional.modules.LabelModule
+import com.sonatype.insight.brain.testing.functional.modules.LicenseThreatGroupModule
 import com.sonatype.insight.brain.testing.functional.modules.ModalModule
 import com.sonatype.insight.brain.testing.functional.modules.ContextTabsModule
 import com.sonatype.insight.brain.testing.functional.modules.EditorToolsModule
@@ -33,6 +34,7 @@ class OrganizationPage
     tabs { module ContextTabsModule }
     tools(required: false) { module EditorToolsModule }
     policies { module PolicyModule, tabs.policiesTab }
+    licenseThreatGroups { module LicenseThreatGroupModule, tabs.ltgTab }
     policyMonitoring { module PolicyMonitoringModule, tabs.policiesTab }
     labels { module LabelModule, tabs.labelsTab }
     tags { module TagModule, tabs.tagTab }

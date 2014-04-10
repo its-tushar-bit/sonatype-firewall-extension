@@ -64,7 +64,7 @@ class GlobalCreateSpec
       waitFor { applicationOrgField.text() == 'Testing' }
   }
 
-  def 'Clicking global create button allows to create new policy'() {
+  def 'Clicking global create button allows to create new policy from application'() {
     given: 'viewing an existing application'
       to ApplicationPage, app.publicId
 
@@ -81,8 +81,26 @@ class GlobalCreateSpec
       waitFor { policies.displayed }
       waitFor { policies.newPolicyEditor.displayed }
   }
+  
+  def 'Clicking global create button allows to create new policy from organization'() {
+    given: 'viewing an existing organization'
+      to OrganizationPage, app.organizationId
 
-  def 'Clicking global create button allows to create new label'() {
+    when: 'clicking the create button'
+      globalCreate.dropdown.click()
+
+    then: 'the "New Policy" entry is displayed'
+      waitFor { globalCreate.newPolicy.displayed }
+
+    when: 'clicking "New Policy"'
+      globalCreate.newPolicy.click()
+
+    then: 'the policy editor is brought up'
+      waitFor { policies.displayed }
+      waitFor { policies.newPolicyEditor.displayed }
+  }
+
+  def 'Clicking global create button allows to create new label from application'() {
     given: 'viewing an existing application'
       to ApplicationPage, app.publicId
 
@@ -99,10 +117,46 @@ class GlobalCreateSpec
       waitFor { labels.displayed }
       waitFor { labels.labelEditor.displayed }
   }
+  
+  def 'Clicking global create button allows to create new label from organization'() {
+    given: 'viewing an existing organization'
+      to OrganizationPage, app.organizationId
 
-  def 'Clicking global create button allows to create new license threat group'() {
+    when: 'clicking the create button'
+      globalCreate.dropdown.click()
+
+    then: 'the "New Label" entry is displayed'
+      waitFor { globalCreate.newLabel.displayed }
+
+    when: 'clicking "New Label"'
+      globalCreate.newLabel.click()
+
+    then: 'the label editor is brought up'
+      waitFor { labels.displayed }
+      waitFor { labels.labelEditor.displayed }
+  }
+
+  def 'Clicking global create button allows to create new license threat group from application'() {
     given: 'viewing an existing application'
       to ApplicationPage, app.publicId
+
+    when: 'clicking the create button'
+      globalCreate.dropdown.click()
+
+    then: 'the "New License Threat Group" entry is displayed'
+      waitFor { globalCreate.newLicenseThreatGroup.displayed }
+
+    when: 'clicking "New License Threat Group"'
+      globalCreate.newLicenseThreatGroup.click()
+
+    then: 'the license threat group editor is brought up'
+      waitFor { licenseThreatGroups.displayed }
+      waitFor { licenseThreatGroups.ltgEditor.displayed }
+  }
+  
+  def 'Clicking global create button allows to create new license threat group from organization'() {
+    given: 'viewing an existing organization'
+      to OrganizationPage, app.organizationId
 
     when: 'clicking the create button'
       globalCreate.dropdown.click()

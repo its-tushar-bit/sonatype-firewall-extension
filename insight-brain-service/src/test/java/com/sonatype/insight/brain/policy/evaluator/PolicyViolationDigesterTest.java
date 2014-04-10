@@ -169,10 +169,8 @@ public class PolicyViolationDigesterTest
 
     final PolicyViolationDiff results = PolicyViolationDigester.digestPolicyViolations(newViolations, oldViolations);
 
-    assertThat(results.getAppeared(), hasSize(1));
-    assertThat(results.getAppeared().get(0).getConstraintFacts().get(0).getConstraintId(), is("constraint_1"));
-    assertThat(results.getCleared(), hasSize(1));
-    assertThat(results.getCleared().get(0).getConstraintFacts().get(0).getConstraintId(), is("constraint_4"));
+    assertThat(results.getAppeared(), empty());
+    assertThat(results.getCleared(), empty());
   }
 
   @Test

@@ -60,12 +60,6 @@ public class PolicyViolationDigester
         return result;
       }
 
-      // Constraint facts
-      result = v1.getConstraintFactsJson().compareTo(v2.getConstraintFactsJson());
-      if (result != 0) {
-        return result;
-      }
-
       return 0;
     }
 

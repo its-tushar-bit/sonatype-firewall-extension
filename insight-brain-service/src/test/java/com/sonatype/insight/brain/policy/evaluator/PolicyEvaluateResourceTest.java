@@ -70,6 +70,7 @@ import org.jvnet.mock_javamail.Mailbox;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 
 public class PolicyEvaluateResourceTest
@@ -841,9 +842,12 @@ public class PolicyEvaluateResourceTest
 
   @Test
   public void testInvalidStage() throws Exception {
-    Response response = AuthedRestAccess.post(getServiceURL("irrelevant", "scanid"),
+    String applicationPublicId = "testInvalidStage";
+    tempEntity.newApplicationWithParent(applicationPublicId);
+    Response response = AuthedRestAccess.post(getServiceURL(applicationPublicId, "scanid"),
         JsonHelpers.asJson(new Stage("foobar")));
     assertResponseStatus(HttpStatus.BAD_REQUEST_400, response);
+    assertEquals("Invalid stage id=foobar", response.getResponseBody());
   }
 
   private String getServiceURL(final String appId, final String scanId) {

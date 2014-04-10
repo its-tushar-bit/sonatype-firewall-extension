@@ -17,16 +17,11 @@ public class StageTypes
   private static final Map<String, StageType> allStageTypes = new LinkedHashMap<String, StageType>();
 
   static {
-    add(new ProcureStageType());
     add(new DevelopStageType());
     add(new BuildStageType());
     add(new StageReleaseStageType());
     add(new ReleaseStageType());
     add(new OperateStageType());
-  }
-
-  public static Map<String, StageType> getMap() {
-    return Collections.unmodifiableMap(allStageTypes);
   }
 
   public static Collection<StageType> getAll() {

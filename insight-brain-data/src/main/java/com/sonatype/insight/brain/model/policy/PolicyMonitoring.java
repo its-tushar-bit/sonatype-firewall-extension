@@ -10,6 +10,7 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
+import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.model.HasStringId;
 
 /**
@@ -61,6 +62,9 @@ public class PolicyMonitoring
   }
 
   public void setStageTypeId(String stageTypeId) {
+    if (!Stage.isValidStageTypeId(stageTypeId)) {
+      throw new InvalidStageException("Invalid stage id=" + stageTypeId);
+    }
     this.stageTypeId = stageTypeId;
   }
 }

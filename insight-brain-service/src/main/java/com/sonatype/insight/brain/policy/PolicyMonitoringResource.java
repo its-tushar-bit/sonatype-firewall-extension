@@ -76,7 +76,7 @@ public class PolicyMonitoringResource
   {
     ownerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
 
-    if (!Stage.isValidExternalStageTypeId(policyMonitoring.getStageTypeId())) {
+    if (!Stage.isValidStageTypeId(policyMonitoring.getStageTypeId())) {
       throw new BadRequestException("Invalid stage: " + policyMonitoring.getStageTypeId());
     }
 

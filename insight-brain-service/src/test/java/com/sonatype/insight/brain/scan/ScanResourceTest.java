@@ -17,7 +17,6 @@ import com.ning.http.client.Response;
 import com.ning.http.multipart.ByteArrayPartSource;
 import com.ning.http.multipart.FilePart;
 import org.codehaus.plexus.util.IOUtil;
-import org.eclipse.jetty.http.HttpStatus;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -70,12 +69,6 @@ public class ScanResourceTest
     assertResponseStatus(200, response);
     assertThat(response.getContentType(), startsWith("text/plain"));
     assertThat(response.getResponseBody(), is("Could not find an application with public id bad-app-id."));
-  }
-
-  @Test
-  public void testInvalidStage() throws Exception {
-    Response response = upload("app01.zip", getUploadUrl("bad-app-id", "invalidstage") + "&noFormData=true");
-    assertResponseStatus(HttpStatus.BAD_REQUEST_400, response);
   }
 
   private void waitForScanTaskToBeProcessed(String appPublicId, String scanTicketId) throws Exception {

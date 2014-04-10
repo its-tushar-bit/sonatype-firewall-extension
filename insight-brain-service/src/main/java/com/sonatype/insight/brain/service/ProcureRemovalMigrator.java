@@ -14,7 +14,6 @@ import javax.inject.Inject;
 import javax.inject.Named;
 
 import com.sonatype.clm.dto.model.policy.Action;
-import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
@@ -36,6 +35,8 @@ import org.slf4j.LoggerFactory;
 @Named
 public class ProcureRemovalMigrator
 {
+  public static final String ID_PROCURE = "procure";
+
   private static final Logger log = LoggerFactory.getLogger(ProcureRemovalMigrator.class);
 
   static final String MARKER_FILE_NAME = "procure-removal";
@@ -74,7 +75,7 @@ public class ProcureRemovalMigrator
     log.info("Removing procure monitors");
 
     for (PolicyMonitoring monitor : policyMonitoringDAO.getAll()) {
-      if (Stage.ID_PROCURE.equals(monitor.getStageTypeId())) {
+      if (ID_PROCURE.equals(monitor.getStageTypeId())) {
         policyMonitoringDAO.delete(monitor);
       }
     }
@@ -102,9 +103,9 @@ public class ProcureRemovalMigrator
     for (Policy policy : policyDAO.getByOwnerId(context.getId())) {
       log.debug("Checking policy {}", policy.getName());
       Map<String, List<Action>> actions = policy.getActions();
-      List<Action> procureActions = actions != null ? actions.get(Stage.ID_PROCURE) : null;
+      List<Action> procureActions = actions != null ? actions.get(ID_PROCURE) : null;
       if (procureActions != null && !procureActions.isEmpty()) {
-        actions.remove(Stage.ID_PROCURE);
+        actions.remove(ID_PROCURE);
         log.debug("Removing procure action");
         policyDAO.update(policy);
       }

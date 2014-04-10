@@ -56,11 +56,11 @@ public class ProcureRemovalMigratorTest
   }
 
   @Test
-  public void testPolicyMonitorsRemoved() throws Exception {
+  public void testPolicyActionsRemoved() throws Exception {
     String appId = createApplication();
     PolicyDAO dao = new PolicyDAO();
     Policy policy = tempEntity.newPolicy(appId, "testPolicyMonitorsRemoved");
-    policy.setActions(Stage.ID_PROCURE, Collections.singletonList(new Action(Action.ID_WARN)));
+    policy.setActions(ProcureRemovalMigrator.ID_PROCURE, Collections.singletonList(new Action(Action.ID_WARN)));
     policy.setActions(Stage.ID_BUILD, Collections.singletonList(new Action(Action.ID_WARN)));
     dao.update(policy);
 
@@ -68,14 +68,14 @@ public class ProcureRemovalMigratorTest
 
     policy = dao.getById(policy.getId());
 
-    assertNull(policy.getActions(Stage.ID_PROCURE));
+    assertNull(policy.getActions(ProcureRemovalMigrator.ID_PROCURE));
     assertEquals(1, policy.getActions(Stage.ID_BUILD).size());
   }
 
   @Test
-  public void testPolicyActionsRemoved() throws IOException {
+  public void testPolicyMonitorsRemoved() throws IOException {
     PolicyMonitoringDAO dao = new PolicyMonitoringDAO();
-    dao.insert(new PolicyMonitoring(createApplication(), Stage.ID_PROCURE));
+    dao.insert(new PolicyMonitoring(createApplication(), ProcureRemovalMigrator.ID_PROCURE));
     dao.insert(new PolicyMonitoring(createApplication(), Stage.ID_BUILD));
 
     procureRemovalMigrator.migrate();

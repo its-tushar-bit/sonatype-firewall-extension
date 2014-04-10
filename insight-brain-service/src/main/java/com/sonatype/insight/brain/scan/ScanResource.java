@@ -22,7 +22,6 @@ import javax.ws.rs.core.Response;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.service.ErrorResponseGenerator;
 import com.sonatype.insight.error.ErrorResponse;
-import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import com.sun.jersey.core.header.FormDataContentDisposition;
@@ -60,10 +59,6 @@ public class ScanResource
       @QueryParam("noFormData") boolean noFormData) 
           throws Exception
   {
-    if (!Stage.isValidExternalStageTypeId(stageId)) {
-      throw new BadRequestException("Invalid stage: " + stageId);
-    }
-
     try {
       ScanTicket result = scanService.scanBinary(appPublicId, is, fileDetail.getFileName(), new Stage(stageId),
           sendNotifications);

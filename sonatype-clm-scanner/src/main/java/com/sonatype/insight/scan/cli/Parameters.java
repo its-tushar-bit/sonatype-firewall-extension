@@ -239,7 +239,7 @@ public class Parameters
   {
     @Override
     public void validate(String name, Stage value) throws ParameterException {
-      if (!Stage.isValidExternalStageTypeId(value.getStageTypeId())) {
+      if (!Stage.isValidStageTypeId(value.getStageTypeId())) {
         throw new ParameterException("An invalid CLM stage was specified: " + name + " " + value);
       }
     }

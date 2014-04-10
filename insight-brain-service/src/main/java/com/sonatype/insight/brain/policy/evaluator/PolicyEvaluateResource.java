@@ -24,7 +24,6 @@ import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
-import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -60,10 +59,6 @@ public class PolicyEvaluateResource
   {
     log.debug("Received request to evaluate policy for app id {}, scan id {}, stageTypeId {}", applicationPublicId,
         scanId, stage.getStageTypeId());
-
-    if (!Stage.isValidExternalStageTypeId(stage.getStageTypeId())) {
-      throw new BadRequestException("Invalid stage: " + stage.getStageTypeId());
-    }
 
     Application application = applicationDAO.getByPublicIdNotNull(applicationPublicId);
     String appId = application.getId();

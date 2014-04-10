@@ -6,8 +6,6 @@
 package com.sonatype.insight.brain.policy;
 
 import java.util.Collection;
-import java.util.LinkedHashMap;
-import java.util.Map;
 
 import javax.inject.Named;
 import javax.ws.rs.GET;
@@ -16,7 +14,6 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.model.policy.StageType;
-import com.sonatype.insight.brain.model.policy.stages.ProcureStageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 
 import org.slf4j.Logger;
@@ -30,19 +27,11 @@ public class StageTypeResource
 
   private static final Logger log = LoggerFactory.getLogger(StageTypeResource.class);
 
-  private static final Collection<StageType> STAGE_TYPES;
-
-  static {
-    Map<String, StageType> types = new LinkedHashMap<>(StageTypes.getMap());
-    types.remove(ProcureStageType.ID);
-    STAGE_TYPES = types.values();
-  }
-
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   public Collection<StageType> getStageTypes() {
     log.debug("Received request to get all stage types");
 
-    return STAGE_TYPES;
+    return StageTypes.getAll();
   }
 }

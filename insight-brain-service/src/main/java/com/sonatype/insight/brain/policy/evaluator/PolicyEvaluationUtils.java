@@ -35,6 +35,7 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.Component;
+import com.sonatype.insight.brain.model.policy.InvalidStageException;
 import com.sonatype.insight.brain.model.policy.NewestPolicyViolation;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
@@ -85,6 +86,10 @@ public class PolicyEvaluationUtils
   private PolicyEvaluation evaluate(final String applicationPublicId, final String scanId, final Stage stage,
       boolean forMonitoring) throws IOException
   {
+    if (!Stage.isValidStageTypeId(stage.getStageTypeId())) {
+      throw new InvalidStageException("Invalid stage id=" + stage.getStageTypeId());
+    }
+
     Application application = applicationDAO.getByPublicIdNotNull(applicationPublicId);
     String appId = application.getId();
 

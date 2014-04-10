@@ -19,7 +19,7 @@ import com.sonatype.insight.error.exception.NotFoundException;
 /**
  * @since 1.9
  */
-class PolicyInternalDAO
+public class PolicyInternalDAO
     extends AbstractOperationalSqlDAO<PolicyInternal>
 {
   @Override

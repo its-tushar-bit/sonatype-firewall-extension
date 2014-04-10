@@ -31,7 +31,7 @@ import com.sonatype.insight.model.HasStringId;
  */
 @Entity
 @Table(name = "policy")
-class PolicyInternal
+public class PolicyInternal
     implements HasStringId
 {
   @Id
@@ -112,7 +112,7 @@ class PolicyInternal
     this.content = content;
   }
 
-  static PolicyInternal fromPolicy(Policy policy) {
+  public static PolicyInternal fromPolicy(Policy policy) {
     if (policy == null) {
       return null;
     }

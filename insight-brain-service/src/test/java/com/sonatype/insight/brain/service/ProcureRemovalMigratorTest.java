@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.service;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.util.Collections;
 import java.util.List;
 
@@ -14,6 +15,8 @@ import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyInternal;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyInternalDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.Policy;
@@ -45,6 +48,8 @@ public class ProcureRemovalMigratorTest
 
   private int x = 0;
 
+  private static PolicyInternalDAO policyInternalDAO = new PolicyInternalDAO();
+
   @Before
   public void setup() throws IOException {
     sonatypeWork = temporaryFolder.newFolder();
@@ -62,7 +67,8 @@ public class ProcureRemovalMigratorTest
     Policy policy = tempEntity.newPolicy(appId, "testPolicyMonitorsRemoved");
     policy.setActions(ProcureRemovalMigrator.ID_PROCURE, Collections.singletonList(new Action(Action.ID_WARN)));
     policy.setActions(Stage.ID_BUILD, Collections.singletonList(new Action(Action.ID_WARN)));
-    dao.update(policy);
+
+    policyInternalDAO.update(PolicyInternal.fromPolicy(policy));
 
     procureRemovalMigrator.migrate();
 
@@ -73,10 +79,10 @@ public class ProcureRemovalMigratorTest
   }
 
   @Test
-  public void testPolicyMonitorsRemoved() throws IOException {
+  public void testPolicyMonitorsRemoved() throws Exception {
     PolicyMonitoringDAO dao = new PolicyMonitoringDAO();
-    dao.insert(new PolicyMonitoring(createApplication(), ProcureRemovalMigrator.ID_PROCURE));
-    dao.insert(new PolicyMonitoring(createApplication(), Stage.ID_BUILD));
+    dao.insert(createPolicyMonitoring(createApplication(), ProcureRemovalMigrator.ID_PROCURE));
+    dao.insert(createPolicyMonitoring(createApplication(), Stage.ID_BUILD));
 
     procureRemovalMigrator.migrate();
 
@@ -88,5 +94,14 @@ public class ProcureRemovalMigratorTest
   private String createApplication() {
     Application app = tempEntity.newApplicationWithParent("ProcureRemovalMigratorTest" + x++);
     return app.getId();
+  }
+
+  private PolicyMonitoring createPolicyMonitoring(String ownerId, String stageTypeId) throws Exception {
+    Field field = PolicyMonitoring.class.getDeclaredField("stageTypeId");
+    field.setAccessible(true);
+    PolicyMonitoring monitoring = new PolicyMonitoring();
+    monitoring.setOwnerId(ownerId);
+    field.set(monitoring, stageTypeId);
+    return monitoring;
   }
 }

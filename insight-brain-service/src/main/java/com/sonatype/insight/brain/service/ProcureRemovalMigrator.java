@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.service;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -99,13 +98,11 @@ public class ProcureRemovalMigrator
     log.info("Finished procure policy actions removal in {} ms.", System.currentTimeMillis() - start);
   }
 
-  @SuppressWarnings("unchecked")
   private void migrate(HasStringId context) {
     for (Policy policy : policyDAO.getByOwnerId(context.getId())) {
       log.debug("Checking policy {}", policy.getName());
       Map<String, List<Action>> actions = policy.getActions();
-      List<Action> procureActions = (List<Action>) (actions != null ? actions.get(Stage.ID_PROCURE) : Collections
-          .emptyList());
+      List<Action> procureActions = actions != null ? actions.get(Stage.ID_PROCURE) : null;
       if (procureActions != null && !procureActions.isEmpty()) {
         actions.remove(Stage.ID_PROCURE);
         log.debug("Removing procure action");

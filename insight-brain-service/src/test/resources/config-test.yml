@@ -11,5 +11,6 @@ logging:
     "com.sonatype.insight.error.ErrorResponseGenerator": TRACE
     "org.apache.shiro.realm.AuthenticatingRealm": INFO
     "org.springframework.jdbc.datasource.SimpleDriverDataSource" : INFO
+    "org.apache.commons.beanutils.converters": INFO
   console:
     logFormat: "%date %level [%thread%X{DC}] %logger - %msg%n"

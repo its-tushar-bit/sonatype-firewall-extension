@@ -69,7 +69,7 @@ public class RepoManResourceTest
   @Test
   public void testUploadScan_EnforcementPointUnlicensed() throws Exception {
     // note these enforcement point should not apply to this request
-    setEnforcementPoints(CLMEnforcementPoint.Build, CLMEnforcementPoint.Develop, CLMEnforcementPoint.Procure);
+    setEnforcementPoints(CLMEnforcementPoint.Build, CLMEnforcementPoint.Develop);
 
     Response response = AuthedRestAccess.put(getServiceURL() + "/scan/unlicensedappid", "");
     assertResponseStatus(402, response);

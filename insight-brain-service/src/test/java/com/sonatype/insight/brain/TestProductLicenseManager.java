@@ -60,7 +60,6 @@ public class TestProductLicenseManager
   public TestProductLicenseManager(boolean valid) {
     enforcementPoints.add(CLMEnforcementPoint.Build);
     enforcementPoints.add(CLMEnforcementPoint.Develop);
-    enforcementPoints.add(CLMEnforcementPoint.Procure);
     enforcementPoints.add(CLMEnforcementPoint.Release);
     enforcementPoints.add(CLMEnforcementPoint.StageRelease);
 

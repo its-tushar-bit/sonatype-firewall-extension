@@ -206,6 +206,10 @@ public class CLMLicenseManager
         .split(",");
     for (String enforcementPointId : enforcementPointIds) {
       enforcementPointId = enforcementPointId.trim();
+      if ("Procure".equals(enforcementPointId)) {
+        // ignore, unsupported
+        continue;
+      }
       try {
         enforcementPoints.add(CLMEnforcementPoint.valueOf(enforcementPointId));
       }
@@ -240,7 +244,6 @@ public class CLMLicenseManager
     enforcementPoints = EnumSet.copyOf(enforcementPoints);
     enforcementPoints.remove(CLMEnforcementPoint.StageRelease);
     enforcementPoints.remove(CLMEnforcementPoint.Release);
-    enforcementPoints.remove(CLMEnforcementPoint.Procure);
     return enforcementPoints.isEmpty();
   }
 

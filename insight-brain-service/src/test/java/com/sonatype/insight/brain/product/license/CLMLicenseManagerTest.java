@@ -118,8 +118,7 @@ public class CLMLicenseManagerTest
   public void testHasPolicyMonitoring_NexusClmLicense_Legacy() throws Exception {
     licenseManager.setVersion(0);
     licenseManager.setProducts();
-    licenseManager.setEnforcementPoints(CLMEnforcementPoint.StageRelease, CLMEnforcementPoint.Release,
-        CLMEnforcementPoint.Procure);
+    licenseManager.setEnforcementPoints(CLMEnforcementPoint.StageRelease, CLMEnforcementPoint.Release);
     installLicense();
     assertThat(clmLicenseManager.hasPolicyMonitoring(), is(false));
   }
@@ -135,8 +134,7 @@ public class CLMLicenseManagerTest
   @Test
   public void testHasPolicyMonitoring_NexusClmLicense() throws Exception {
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_NEXUS);
-    licenseManager.setEnforcementPoints(CLMEnforcementPoint.StageRelease, CLMEnforcementPoint.Release,
-        CLMEnforcementPoint.Procure);
+    licenseManager.setEnforcementPoints(CLMEnforcementPoint.StageRelease, CLMEnforcementPoint.Release);
     installLicense();
     assertThat(clmLicenseManager.hasPolicyMonitoring(), is(false));
   }
@@ -163,6 +161,13 @@ public class CLMLicenseManagerTest
   @Test
   public void testInstallLicense_UnknownEnforcementPointIsIgnored() throws Exception {
     licenseManager.setProperty(ProductLicenseDetails.PROPERTY_ENFORCEMENT_POINTS, "Invalid,Build");
+    installLicense();
+    assertThat(clmLicenseManager.getEnforcementPoints(), containsInAnyOrder(CLMEnforcementPoint.Build));
+  }
+
+  @Test
+  public void testInstallLicense_DeprecatedEnforcementPointIsIgnored() throws Exception {
+    licenseManager.setProperty(ProductLicenseDetails.PROPERTY_ENFORCEMENT_POINTS, "Build,Procure");
     installLicense();
     assertThat(clmLicenseManager.getEnforcementPoints(), containsInAnyOrder(CLMEnforcementPoint.Build));
   }

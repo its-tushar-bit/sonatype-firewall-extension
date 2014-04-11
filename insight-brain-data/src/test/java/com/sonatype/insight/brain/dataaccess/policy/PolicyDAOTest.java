@@ -27,9 +27,7 @@ import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.assertEquals;
@@ -38,9 +36,6 @@ import static org.junit.Assert.assertThat;
 public class PolicyDAOTest
     extends AbstractDbDAOTest
 {
-  @Rule
-  public TemporaryFolder tempDir = new TemporaryFolder();
-
   private PolicyDAO policyDAO;
 
   @Before

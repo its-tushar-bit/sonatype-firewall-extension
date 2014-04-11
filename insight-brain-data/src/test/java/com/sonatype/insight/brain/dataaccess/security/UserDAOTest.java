@@ -20,6 +20,7 @@ import org.junit.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.empty;
+import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
@@ -582,6 +583,17 @@ public class UserDAOTest
     UserDAO dao = new UserDAO();
     List<User> users = dao.findUsersByName("foo");
     assertEquals(0, users.size());
+  }
+
+  @Test
+  public void testFindUser_MatchesAgainstFullName() {
+    createUser("user1", "secret", "John", "Doe", "xxx@xxx.xxx");
+    User user2 = createUser("user2", "secret", "Jane", "Doe", "xxx@xxx.xxx");
+
+    UserDAO dao = new UserDAO();
+    List<User> users = dao.findUsersByName("Jane D");
+    assertThat(users, hasSize(1));
+    assertThat(users.get(0).getUsername(), is(user2.getUsername()));
   }
 
   private User createUser(String username) {

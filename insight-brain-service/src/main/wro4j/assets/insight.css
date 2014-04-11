@@ -313,10 +313,6 @@ a {
   margin-right: 0px;
 }
 
-.dashboard-filters .multi-dropdown {
-  margin-left: 10px;
-}
-
 .dashboard-filters {
   background: #f4f4f4;
 }
@@ -339,11 +335,11 @@ a {
 /* .filter-edit needs a embedded div to prevent the collapse plugin from including the dropdowns in scrollheight */
 .dashboard-content .filter-edit>div {
   background-color: #E8E8E8;
-  border-radius: 5px;
+  border: 1px solid #C1C1C1;
 }
 
 .dashboard-content .filter-edit-body {
-  padding: 20px 0px 20px 10px;
+  padding: 10px 0px 10px 10px;
 }
 
 .dashboard-content .filter-edit-buttons {
@@ -355,7 +351,12 @@ a {
 .dashboard-content .filter-readonly {
   font-size: .75em;
   background-color: #E8E8E8;
-  border-radius: 5px;
+  border: solid #C1C1C1 1px;
+  box-sizing: border-box;
+}
+
+.dashboard-content .filter-readonly div {
+  padding: 10px;
 }
 
 .dashboard-charts td[colspan="2"] {

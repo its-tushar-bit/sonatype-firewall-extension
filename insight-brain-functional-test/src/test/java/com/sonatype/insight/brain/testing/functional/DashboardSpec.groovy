@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.testing.functional
 import com.sonatype.insight.brain.model.Application
 import com.sonatype.insight.brain.model.Organization
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory
-import com.sonatype.insight.brain.model.policy.PolicyViolation
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType
 
 /**
@@ -50,12 +49,21 @@ class DashboardSpec
     when: 'dashboard filters are shown'
       filterPanelToggle.click()
       waitFor { applicationFiltersDropdown.displayed }
+      policyThreatFiltersDropdown.displayed
 
     then: 'application filters are loaded'
       applicationFiltersDropdown.showDropdown()
       applicationFiltersDropdown.dropdownCheck(firstApp.name).displayed
       applicationFiltersDropdown.dropdownCheck(secondApp.name).displayed
       applicationFiltersDropdown.hideDropdown()
+
+    and: 'policy threat category filters are shown'
+      policyThreatFiltersDropdown.showDropdown()
+      policyThreatFiltersDropdown.dropdownCheck('Security').displayed
+      policyThreatFiltersDropdown.dropdownCheck('License').displayed
+      policyThreatFiltersDropdown.dropdownCheck('Quality').displayed
+      policyThreatFiltersDropdown.dropdownCheck('Other').displayed
+      policyThreatFiltersDropdown.hideDropdown()
 
     when: 'dashboard filters are applied'
       applicationFiltersDropdown.toggleOption(firstApp.name)
@@ -72,6 +80,7 @@ class DashboardSpec
       highestRiskTable.displayed
 
     then: 'policy violations are listed by threat level'
+      !noDataAvailableHighest.displayed
       highestRiskTable.size() == 2
       policyViolationRisk(highestRiskTable, 0).text() == '10'
       policyViolationPolicy(highestRiskTable, 0).text() == 'DashboardSpecPolicy'
@@ -102,6 +111,7 @@ class DashboardSpec
       newestViolationTable.displayed
 
     then: 'policy violations are listed by threat level'
+      !noDataAvailableNewest.displayed
       newestViolationTable.size() == 1
       policyViolationRisk(newestViolationTable, 0).text() == '5'
       policyViolationPolicy(newestViolationTable, 0).text() == 'DashboardSpecPolicy'
@@ -117,5 +127,20 @@ class DashboardSpec
 
     then: 'no violations are shown'
       !newestViolationTable
+      noDataAvailableNewest.displayed
+  }
+
+  def 'Filter out all results'() {
+    when: 'selecting filters that match no results'
+      filterPanelToggle.click()
+      waitFor { policyThreatFiltersDropdown.displayed }
+      policyThreatFiltersDropdown.toggleOption('Security')
+      policyThreatFiltersDropdown.toggleOption('Other')
+      filterButtons.button('Apply').click()
+
+    then: 'the tables are replaced by text indicating there are no results'
+      waitFor { noDataAvailableHighest.displayed }
+      noDataAvailableNewest.displayed
+      !filterPanel.displayed
   }
 }

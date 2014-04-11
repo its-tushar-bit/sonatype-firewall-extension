@@ -26,7 +26,13 @@ class DashboardPage
     applicationFilters(required: false) {
       filterPanel.find('span', 'ng-repeat': 'applicationId in appliedApplicationPublicIds')
     }
+
+    noAvailableApplications(required: false) { $('#no-permissions') }
+    noDataAvailableHighest(required: false) { $('#no-data-highest')}
+    noDataAvailableNewest(required: false) { $('#no-data-newest')}
+
     applicationFiltersDropdown(required: false) { module DropdownMultiSelect, $('span', items: 'applications') }
+    policyThreatFiltersDropdown(required: false) { module DropdownMultiSelect, $('span', items: 'policyThreatCategories') }
 
     highestRiskTable(required: false) { $('tr', 'ng-repeat': startsWith('risk in highestRisks')) }
     newestViolationTable(required: false) { $('tr', 'ng-repeat': startsWith('risk in newestRisks')) }

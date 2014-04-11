@@ -14,9 +14,10 @@
           <div class='row-fluid filter-edit-body'>
             <div class="span3">
               <h5>Applications</h5>
-              <span id='applications' class='multi-dropdown' multi-select items='applications'
-                    selected-ids='queuedApplicationPublicIds' effective-id-field='publicId'
-                    summarize-with='applications' none-selected-text='All Applications'></span>
+              <span ng-if='applications.length > 0' id='applications' class='multi-dropdown' multi-select items='applications'
+                        selected-ids='queuedApplicationPublicIds' effective-id-field='publicId'
+                        summarize-with='applications' none-selected-text='All Applications'></span>
+              <span ng-if='applications.length === 0'><em id='no-permissions'>No applications available.</em></span>
             </div>
             <div class="span3">
               <h5>Policy Categories</h5>
@@ -73,6 +74,9 @@
               <td ng-if='risk.groupId'>{{risk.groupId}}<span class="wrap-force-break"> : </span>{{risk.artifactId}}<span class="wrap-force-break"> : </span>{{risk.version}}</td>
               <td ng-if='!risk.groupId'><em>Unknown</em></td>
             </tr>
+            <tr ng-if='newestRisks.length === 0'>
+              <td colspan='5'><em id='no-data-newest'>No data available given the applied filters and available permissions.</em></td>
+            </tr>
           </tbody>
         </table>
       </div>
@@ -98,6 +102,9 @@
             <td>{{risk.applicationName}}</td>
             <td ng-if='risk.groupId'>{{risk.groupId}}<span class="wrap-force-break"> : </span>{{risk.artifactId}}<span class="wrap-force-break"> : </span>{{risk.version}}</td>
             <td ng-if='!risk.groupId'><em>Unknown</em></td>
+          </tr>
+          <tr ng-if='highestRisks.length === 0'>
+            <td colspan='5'><em id='no-data-highest'>No data available given the applied filters and available permissions.</em></td>
           </tr>
           </tbody>
         </table>

@@ -132,6 +132,23 @@ abstract class BaseSpec
     return page
   }
 
+  /**
+   * Log in as an arbitrary user via a specific Page.
+   * Once logged in we will verify that the specified Page is loaded.
+   *
+   * @param username
+   * @param password
+   * @param initialPage the Page to navigate to while logging in
+   * @param args additional path segments for the Page
+   * @return a reference to the newly loaded Page
+   */
+  Page loginAsUserVia(String username, String password, initialPage = ReportViolationsPage, Object[] args) {
+    via initialPage, args
+    login.login(username, password)
+    verifyAt()
+    return page
+  }
+
   void createOrganization(name = 'test organization') {
     OrganizationManagementPage organizationManagementPage = to(OrganizationManagementPage)
     int size = !organizationList?.empty ? organizationList.size() : 0

@@ -34,9 +34,8 @@
             if (Insight && Insight.InformationPanelPlugins) {
               var plugin = createPluginFn();
               if (tabName) {
-                var index = getPluginMap()[tabName];
-                if (index) {
-                  Insight.InformationPanelPlugins[index] = plugin;
+                if (getPluginMap().hasOwnProperty(tabName)) {
+                  Insight.InformationPanelPlugins[getPluginMap()[tabName]] = plugin;
                   return;
                 }
               }
@@ -192,10 +191,10 @@
   }
 
   var head = $('head'),
-       scripts = ['assets/lib/datepicker/bootstrap-datepicker.js',
+       scripts = ['assets/lib/datepicker/bootstrap-datepicker.js', 'assets/lib/angular/angular-route-${angularjs.version}.min.js',
         'assets/lib/ui-bootstrap-tpls-0.6.0.min.js', 'assets/lib/Base64.js', 'cip/cip-label-editor.js',
         'cip/cip-policy-violations.js', 'cip/cip-claim-component.js', 'cip/cip-license-editor.js',
-        'assets/js/util.js'],
+        'cip/cip-version-graph.js', 'assets/version-graph/version-graph.js', 'assets/js/util.js'],
       styles = ['assets/lib/datepicker/datepicker.css', 'cip/cip.css'],
       clmBuildTimestamp = '${build.timestamp}';
   

@@ -90,12 +90,12 @@
     <css>/cip/cip-label-editor.css</css>
     <css>/cip/cip-policy-violations.css</css>
     <css>/cip/cip-license-editor.css</css>
+    <css>/version-graph/content.css</css>
   </group>
 
   <group name='version-graph'>
     <css>/lib/bootstrap/bootstrap-2.3.1.min.css</css>
     <css>/version-graph/content.css</css>
-    <js>/version-graph/protovis.min.js</js>
     <js>/version-graph/appcheck.js</js>
     <js>/version-graph/cip.js</js>
   </group>

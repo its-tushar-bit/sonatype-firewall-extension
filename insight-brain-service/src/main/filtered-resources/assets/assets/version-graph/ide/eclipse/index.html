@@ -10,16 +10,19 @@
 		<script src="../../../lib/jquery/jquery-1.8.3.min.js"></script>
 		<script src="../../../lib/angular/angular-${angularjs.version}.min.js"></script>
 		<script src="../../../lib/angular/angular-route-${angularjs.version}.min.js"></script>
+		<script src="../../protovis.min.js?${build.timestamp}"></script>
 		<script src="../../version-graph.js?${build.timestamp}"></script>
 		<script>
 			var clmEndpoint = {
 				type : 'ide',
 				migrate : true,
 				selectApplication : false,
+				viewDetails : true,
 				openView : function (args) {
 					Eclipse_openView(args);
 				},
-				linkTarget : '_self'
+				linkTarget : '_self',
+				path : '../../'
 			};
 
 			// disable the context menu to prevent the user from reloading the page which would break the integration with the IDE plugin's Java code

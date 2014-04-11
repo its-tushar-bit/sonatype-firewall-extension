@@ -10,16 +10,19 @@
 		<script src="../../../lib/jquery/jquery-1.8.3.min.js"></script>
 		<script src="../../../lib/angular/angular-${angularjs.version}.min.js"></script>
 		<script src="../../../lib/angular/angular-route-${angularjs.version}.min.js"></script>
+		<script src="../../protovis.min.js?${build.timestamp}"></script>
 		<script src="../../version-graph.js?${build.timestamp}"></script>
 		<script>
 			var clmEndpoint = {
 				type : 'rm',
 				migrate : false,
+				viewDetails : true,
 				selectApplication : true,
 				openView : function (args) {
 					Eclipse_openView(args);
 				},
-				linkTarget : '_blank'
+				linkTarget : '_blank',
+				path : '../../'
 			};
 		</script>
 		<!--[if lt IE 9]><script src="protovis-msie.min.js?${build.timestamp}"></script><![endif]-->

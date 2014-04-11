@@ -38,7 +38,7 @@
       injectorTimeout = null,
       module = angular.module('CIP', ['ngRoute']).config(['$routeProvider', function ($routeProvider) {
         $routeProvider.when('/', {
-          templateUrl : '../../version-graph.html',
+          templateUrl : clmEndpoint.path + 'version-graph.html',
           controller : 'CIPController'
         });
         $routeProvider.otherwise({
@@ -58,6 +58,7 @@
 
         $rootScope.selectApplication = clmEndpoint.selectApplication;
         $rootScope.migrateSupported = clmEndpoint.migrate;
+        $rootScope.viewDetailsSupported = clmEndpoint.viewDetails;
         $rootScope.type = clmEndpoint.type;
       }]);
 
@@ -108,8 +109,12 @@
     }
   }
 
+  var ajaxSetup = $.ajaxSetup
   $.ajaxSetup = function (ajaxConfig) {
-    Insight.setHeaders(ajaxConfig.headers);
+    if (ajaxConfig && ajaxConfig.headers) {
+      Insight.setHeaders(ajaxConfig.headers);
+    }
+    return ajaxSetup.apply($, arguments);
   };
   $.extend(true, window, {
     "Insight": {

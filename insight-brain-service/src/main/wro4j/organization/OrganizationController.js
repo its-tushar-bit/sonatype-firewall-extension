@@ -96,6 +96,11 @@
         url: '/tags',
         controller: 'TagController',
         templateUrl: '../policy-assets/components/tag-editor/tags.html?' + clmBuildTimestamp
+      }).state('management.organization.view.tags.new', {
+        parent: 'management.organization.view.tags',
+        url: '/new',
+        controller: 'TagController',
+        templateUrl: '../policy-assets/components/tag-editor/tags.html?' + clmBuildTimestamp
       });
     }
   ]);

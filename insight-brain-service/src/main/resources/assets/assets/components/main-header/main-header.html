@@ -145,6 +145,10 @@
                 <li ng-if='$state.params.applicationPublicId && $state.params.applicationPublicId != "_new_"'>
                   <a id='global-create-ltg' class='sonatype-icons sonatype-icon-menu add-license-threat-group' ui-sref='management.application.view.licenses.new({applicationPublicId: $state.params.applicationPublicId})'>New License Threat Group</a>
                 </li>
+                <li ng-if='$state.params.organizationId && $state.params.organizationId != "_new_"'>
+                  <a id='global-create-tag' class='sonatype-icons sonatype-icon-menu add-tag' ui-sref='management.organization.view.tags.new({organizationId: $state.params.organizationId})'>New Tag</a>
+                </li>
+                
               </ul>
             </div>
           </li>

@@ -58,9 +58,13 @@ describe('TagController.js', function() {
       }
     });
     $provide.value('$state', {
+      $current: {
+        name: 'organization'
+      }, 
       current: {
         name: 'organization'
-      }
+      },
+      go: angular.noop
     });
   }));
 
@@ -171,9 +175,10 @@ describe('TagController.js', function() {
         }
       ];
 
-    beforeEach(inject(function($rootScope, $controller, $httpBackend, CLMAppLocations, CLMLocations) {
+    beforeEach(inject(function($rootScope, $controller, $httpBackend, CLMAppLocations, CLMLocations, $state) {
       scope = testScope.$new();
       testScope.alerts = [];
+      testScope.$state = $state;
       $httpBackend.whenGET(SpecUtil.toRegExp(CLMAppLocations.getTagsUrl())).respond(tags);
       $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getOrganizationAppliedTagUrl(bomId))).respond(appliedTags);
       $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getOrganizationPolicyTagUrl(bomId))).respond(appliedPolicyTags);

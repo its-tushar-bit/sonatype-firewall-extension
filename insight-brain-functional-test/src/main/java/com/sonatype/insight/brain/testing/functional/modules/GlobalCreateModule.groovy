@@ -19,5 +19,6 @@ class GlobalCreateModule
     newPolicy(required: false) { $('#global-create-policy') }
     newLabel(required: false) { $('#global-create-label') }
     newLicenseThreatGroup(required: false) { $('#global-create-ltg') }
+    newTag(required: false) { $('#global-create-tag') }
   }
 }

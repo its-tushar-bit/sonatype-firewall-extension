@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-/*global angular*/
+/* global angular, AngularStateUtils */
 (function() {
   'use strict';
 
@@ -146,9 +146,11 @@
         var e = $scope.$broadcast('tagChangeStarted');
         if (!e.defaultPrevented) {
           $scope.selectedTag = TagStore.create();
+          AngularStateUtils.toNewItemState($scope);
         } else {
           showEditingAlert().then(function() {
             $scope.selectedTag = TagStore.create();
+            AngularStateUtils.toNewItemState($scope);
           });
         }
       };
@@ -206,7 +208,10 @@
       $scope.$on('tags.cancelEditTag', function(event) {
         event.stopPropagation();
         deselect();
+        AngularStateUtils.toParentStateIfNewItem($scope);
       });
+      
+      AngularStateUtils.fnOnNewItemState($scope, $scope.createNew);
 
       $scope.doLoad();
     }

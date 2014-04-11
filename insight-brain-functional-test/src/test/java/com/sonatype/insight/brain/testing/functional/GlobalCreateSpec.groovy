@@ -171,4 +171,36 @@ class GlobalCreateSpec
       waitFor { licenseThreatGroups.displayed }
       waitFor { licenseThreatGroups.ltgEditor.displayed }
   }
+  
+  def 'Clicking global create button allows to create new tag from organization'() {
+    given: 'viewing an existing organization'
+      to OrganizationPage, app.organizationId
+
+    when: 'clicking the create button'
+      globalCreate.dropdown.click()
+
+    then: 'the "New Tag" entry is displayed'
+      waitFor { globalCreate.newTag.displayed }
+
+    when: 'clicking "New Tag"'
+      globalCreate.newTag.click()
+
+    then: 'the tag editor is brought up'
+      waitFor { tags.displayed }
+      waitFor { tags.tagEditor.displayed }
+  }
+  
+  def 'Clicking global create button does not allow to create new tag from application'() {
+    given: 'viewing an existing application'
+      to ApplicationPage, app.publicId
+
+    when: 'clicking the create button'
+      globalCreate.dropdown.click()
+
+    then: 'the dropdown is displayed'
+      waitFor { globalCreate.newLicenseThreatGroup.displayed }
+
+    and: 'the "New Tag" entry is not displayed'
+      waitFor { !globalCreate.newTag.displayed }
+  }
 }

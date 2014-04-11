@@ -7,7 +7,7 @@
 @font-face {
   font-family: Proxima Nova Regular;
   src: url('../fonts/proximanova-reg-webfont.eot');
-  src: url('../fonts/proximanova-reg-webfont.woff') format('woff')
+  src: url('../fonts/proximanova-reg-webfont.woff') format('woff'),
     url('../fonts/proximanova-reg-webfont.ttf') format('truetype'),
     url('../fonts/proximanova-reg-webfont.svg#webfont') format('svg');
 }
@@ -15,7 +15,7 @@
   font-family: Proxima Nova Bold;
   font-weight: bold;
   src: url('../fonts/proximanova-bold-webfont.eot');
-    src: url('../fonts/proximanova-bold-webfont.woff') format('woff')
+    src: url('../fonts/proximanova-bold-webfont.woff') format('woff'),
     url('../fonts/proximanova-bold-webfont.ttf') format('truetype'),
     url('../fonts/proximanova-bold-webfont.svg#webfont') format('svg');
 }
@@ -23,7 +23,7 @@
   font-family: Proxima Nova Semibold;
   font-weight: bold;
   src: url('../fonts/proximanova-Sbold-webfont.eot');
-    src: url('../fonts/proximanova-Sbold-webfont.woff') format('woff')
+  src: url('../fonts/proximanova-Sbold-webfont.woff') format('woff'),
     url('../fonts/proximanova-Sbold-webfont.ttf') format('truetype'),
     url('../fonts/proximanova-Sbold-webfont.svg#webfont') format('svg');
 }

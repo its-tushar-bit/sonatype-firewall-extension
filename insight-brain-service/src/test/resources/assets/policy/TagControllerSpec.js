@@ -58,9 +58,6 @@ describe('TagController.js', function() {
       }
     });
     $provide.value('$state', {
-      $current: {
-        name: 'organization'
-      }, 
       current: {
         name: 'organization'
       },

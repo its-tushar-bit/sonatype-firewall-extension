@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.dataaccess.security;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -17,7 +16,6 @@ import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.User;
 
 import org.apache.commons.lang.StringUtils;
-import org.junit.After;
 import org.junit.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -35,19 +33,6 @@ import static org.junit.Assert.fail;
 public class UserDAOTest
     extends AbstractDbDAOTest
 {
-  private List<User> usersToDelete = new ArrayList<User>();
-
-  @After
-  public void after() {
-    UserDAO dao = new UserDAO();
-    for (User user : usersToDelete) {
-      user = dao.getById(user.getId());
-      if (user != null) {
-        dao.delete(user);
-      }
-    }
-  }
-
   @Test
   public void testCRUD() throws Exception {
     UserDAO dao = new UserDAO();
@@ -605,9 +590,6 @@ public class UserDAOTest
   }
 
   private User createUser(String username, String password, String firstName, String lastName, String email) {
-    User user = new User(username, password, firstName, lastName, email);
-    new UserDAO().insert(user);
-    usersToDelete.add(user);
-    return user;
+    return tempEntity.newUser(username, password, firstName, lastName, email);
   }
 }

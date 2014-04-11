@@ -348,10 +348,15 @@ public class TemporaryEntity
   }
 
   public User newUser(String username) {
-    User user = new User(username, USER_PASSWORD_HASH, "John", "Doe", username + "@void.com");
+    User user = newUser(username, USER_PASSWORD_HASH, "John", "Doe", username + "@void.com");
+    user.setPassword(USER_PASSWORD_CLEAR);
+    return user;
+  }
+
+  public User newUser(String username, String passwordHash, String firstName, String lastName, String email) {
+    User user = new User(username, passwordHash, firstName, lastName, email);
     userDAO.insert(user);
     users.add(user);
-    user.setPassword(USER_PASSWORD_CLEAR);
     return user;
   }
 

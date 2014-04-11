@@ -7,6 +7,12 @@ package com.sonatype.insight.brain.service;
 
 import java.io.IOException;
 
+import com.sonatype.insight.brain.TestLicenseFingerprinter;
+import com.sonatype.insight.brain.TestProductLicenseManager;
+
+import org.sonatype.licensing.product.ProductLicenseManager;
+import org.sonatype.licensing.product.util.LicenseFingerprinter;
+
 import com.google.inject.Binder;
 import org.eclipse.sisu.launch.InjectedTest;
 import org.junit.Rule;
@@ -37,6 +43,9 @@ public class AbstractComponentTest
     config.setSaasAddress("http://unknownhost");
     customizeConfig(config);
     binder.bind(InsightConfig.class).toInstance(config);
+    binder.bind(ProductLicenseManager.class).to(TestProductLicenseManager.class);
+    binder.bind(TestProductLicenseManager.class).toInstance(new TestProductLicenseManager(true));
+    binder.bind(LicenseFingerprinter.class).to(TestLicenseFingerprinter.class);
   }
 
   protected void customizeConfig(InsightConfig config) {

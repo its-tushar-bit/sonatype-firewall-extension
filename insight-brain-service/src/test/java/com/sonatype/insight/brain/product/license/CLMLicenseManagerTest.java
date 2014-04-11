@@ -22,6 +22,7 @@ import org.sonatype.licensing.feature.Feature;
 import org.sonatype.licensing.feature.FeatureValidator;
 import org.sonatype.licensing.internal.DefaultFeatureValidator;
 import org.sonatype.licensing.product.ProductLicenseManager;
+import org.sonatype.licensing.product.internal.DefaultProductLicenseManager;
 
 import com.google.inject.Binder;
 import org.junit.Test;
@@ -54,13 +55,14 @@ public class CLMLicenseManagerTest
 
   @Override
   public void configure(Binder binder) {
-    super.configure(binder);
     if ("testLicenseLacksClmFeature".equals(testName.getMethodName())) {
       binder.bind(FeatureValidator.class).toInstance(new NegativeFeatureValidator());
+      binder.bind(ProductLicenseManager.class).to(DefaultProductLicenseManager.class);
     }
     else {
       binder.bind(ProductLicenseManager.class).toInstance(licenseManager);
     }
+    super.configure(binder);
   }
 
   private void installLicense() throws IOException, LicensingException {

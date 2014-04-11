@@ -44,6 +44,36 @@ describe('DashboardModule', function() {
       version: "6.1.15"
     }
   ];
+  var newestViolations = [
+    {
+      applicationId: "fooID",
+      applicationName: "Foo App",
+      artifactId: "geronimo-security",
+      groupId: "org.apache.geronimo.framework",
+      hash: "848d7549ef7ec13ce546",
+      id: "5e833e5982534083a035019c07d66507",
+      policyEvaluationId: "2cca57dc20b947e999cc348f83da1e5b",
+      policyId: "f219cdc1b9bd4bd089343dcdc542e757",
+      policyName: "Bar Policy",
+      threatCategory: "OTHER",
+      threatLevel: 10,
+      version: "2.1"
+    },
+    {
+      applicationId: "barID",
+      applicationName: "Bar App",
+      artifactId: "jetty",
+      groupId: "org.mortbay.jetty",
+      hash: "494308fc2d433720c778",
+      id: "ea3eab1e0cb04c898714d235b236fa26",
+      policyEvaluationId: "2cca57dc20b947e999cc348f83da1e5b",
+      policyId: "f219cdc1b9bd4bd089343dcdc542e757",
+      policyName: "Bar Policy",
+      threatCategory: "SECURITY",
+      threatLevel: 10,
+      version: "6.1.15"
+    }
+  ];
 
   beforeEach(module('DashboardModule'));
 
@@ -64,6 +94,7 @@ describe('DashboardModule', function() {
 
       $httpBackend.expectGET(CLMLocations.getApplicationsUrl()).respond(applicationsData);
       $httpBackend.expectGET(CLMLocations.getPolicyViolationsUrl() + '?maxResults=20').respond(policyViolations);
+      $httpBackend.expectGET(CLMLocations.getPolicyViolationsUrl() + '?maxResults=20&newest=true').respond(newestViolations);
       $controller('DashboardController', { $scope: scope });
       $httpBackend.flush();
     }));
@@ -76,6 +107,9 @@ describe('DashboardModule', function() {
     it('loads policy violations', function() {
       expect(scope.highestRisks.length).toBe(policyViolations.length);
       expect(scope.highestRisks[0].id).toBe(policyViolations[0].id);
+
+      expect(scope.newestRisks.length).toBe(newestViolations.length);
+      expect(scope.newestRisks[0].id).toBe(newestViolations[0].id);
     });
 
     it('filters policy violations by application', inject(function($httpBackend, CLMLocations) {
@@ -86,10 +120,14 @@ describe('DashboardModule', function() {
         policyViolations[0],
         policyViolations[1]
       ]);
+      $httpBackend.expectGET(CLMLocations.getPolicyViolationsUrl() + '?applicationPublicIds=fooID&maxResults=20&newest=true').respond([
+        newestViolations[0]
+      ]);
       scope.$digest();
       $httpBackend.flush();
       expect(scope.appliedApplicationPublicIds.length).toBe(1);
       expect(scope.highestRisks.length).toBe(2);
+      expect(scope.newestRisks.length).toBe(1);
     }));
 
     it('filters policy violations by policy threat category', inject(function($httpBackend, CLMLocations) {
@@ -98,10 +136,13 @@ describe('DashboardModule', function() {
       scope.applyFilters();
       $httpBackend.expectGET(CLMLocations.getPolicyViolationsUrl() +
         '?maxResults=20&policyThreatCategories=security,other').respond([policyViolations[0]]);
+      $httpBackend.expectGET(CLMLocations.getPolicyViolationsUrl() +
+        '?maxResults=20&newest=true&policyThreatCategories=security,other').respond([newestViolations[0]]);
       scope.$digest();
       $httpBackend.flush();
       expect(scope.appliedPolicyThreatCategories).toEqual(['security', 'other']);
       expect(scope.highestRisks.length).toBe(1);
+      expect(scope.newestRisks.length).toBe(1);
     }));
 
     it('cancels filters', function() {
@@ -117,20 +158,6 @@ describe('DashboardModule', function() {
       expect(scope.queuedPolicyThreatCategories.length).toBe(0);
     });
 
-    it('sets filtersExpanded', inject(function($compile, $timeout){
-      var element = angular.element('<div class="accordion-body collapse filter-edit"></div>');
-      scope.$apply(function () {
-        $compile(element)(scope);
-        angular.element('body').append(element);
-      });
-      expect(scope.filtersExpanded).toBe(false);
-
-      scope.toggleCollapse();
-      $timeout.flush();
-      scope.$digest();
-      expect(scope.filtersExpanded).toBe(true);
-    }));
-
     it('converts from application.publicId to application.name', function(){
       expect(scope.applicationNameFor('bom1-12345678')).toBe('applicationName');
     });
@@ -143,6 +170,7 @@ describe('DashboardModule', function() {
       expect(scope.error).toBeNull();
       scope.applyFilters();
       $httpBackend.expectGET(CLMLocations.getPolicyViolationsUrl() +'?maxResults=20').respond(500, 'An error');
+      $httpBackend.expectGET(CLMLocations.getPolicyViolationsUrl() +'?maxResults=20&newest=true').respond([newestViolations[0]]);
       scope.$digest();
       $httpBackend.flush();
       expect(scope.error).toBeDefined();
@@ -151,6 +179,16 @@ describe('DashboardModule', function() {
 
       scope.applyFilters();
       $httpBackend.expectGET(CLMLocations.getPolicyViolationsUrl() +'?maxResults=20').respond([policyViolations[0]]);
+      $httpBackend.expectGET(CLMLocations.getPolicyViolationsUrl() +'?maxResults=20&newest=true').respond(500, 'An error');
+      scope.$digest();
+      $httpBackend.flush();
+      expect(scope.error).toBeDefined();
+      expect(scope.error.status).toBe(500);
+      expect(scope.error.data).toBe('An error');
+
+      scope.applyFilters();
+      $httpBackend.expectGET(CLMLocations.getPolicyViolationsUrl() +'?maxResults=20').respond([policyViolations[0]]);
+      $httpBackend.expectGET(CLMLocations.getPolicyViolationsUrl() +'?maxResults=20&newest=true').respond([newestViolations[0]]);
       scope.$digest();
       $httpBackend.flush();
       expect(scope.error).toBeNull();

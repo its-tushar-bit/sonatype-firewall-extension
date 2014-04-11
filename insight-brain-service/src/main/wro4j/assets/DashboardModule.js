@@ -21,7 +21,6 @@
     $scope.queuedApplicationPublicIds = [];
     $scope.appliedPolicyThreatCategories = [];
     $scope.queuedPolicyThreatCategories = [];
-    $scope.filtersExpanded = false;
     $scope.maxResults = 20;
 
     $scope.doLoad = function() {
@@ -35,10 +34,19 @@
             applicationPublicIds: $scope.appliedApplicationPublicIds,
             policyThreatCategories: appliedPolicyThreatCategoryParam
           }
+        }),
+        $http.get(CLMLocations.getPolicyViolationsUrl(), {
+          params: {
+            maxResults: $scope.maxResults,
+            applicationPublicIds: $scope.appliedApplicationPublicIds,
+            policyThreatCategories: appliedPolicyThreatCategoryParam,
+            newest: true
+          }
         })
       ];
       $q.all(promises).then(function(data) {
         $scope.highestRisks = data[0].data;
+        $scope.newestRisks = data[1].data;
       }, function(error) {
         $scope.error = error;
       });
@@ -96,10 +104,8 @@
     $scope.toggleCollapse = function() {
       // Dropdown leaves artifact on screen w/o $timeout
       $timeout(function() {
-        $('.accordion-body').collapse('toggle');
-      }, 10).then(function(){
-        $scope.filtersExpanded = $('.accordion-body').hasClass('in');
-      });
+        $('.filter-edit').collapse('toggle');
+      }, 10);
     };
   }]);
 }());

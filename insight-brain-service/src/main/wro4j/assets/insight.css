@@ -221,7 +221,9 @@ a {
 }
 
 .dashboard-content {
-  padding-top: 45px;
+  padding-top: 45px !important;
+  padding-left: 10px !important;
+  padding-right: 10px !important;
 }
 
 .dashboard-content a {
@@ -242,6 +244,23 @@ a {
   border-top: 0px;
 }
 
+.dashboard-content .span6 {
+  min-width: 660px;
+}
+
+.dashboard-content .row-fluid [class*="span"] {
+  margin-left: 0px;
+  margin-right: 2.127659574468085%;
+}
+
+.dashboard-content .row-fluid [class*="span"]:nth-last-child(1) {
+  margin-right: 0px;
+}
+
+.dashboard-filters .multi-dropdown {
+  margin-left: 10px;
+}
+
 .dashboard-filters {
   background: #f4f4f4;
 }
@@ -255,15 +274,36 @@ a {
   padding: 0;
 }
 
-.filter-edit {
+.dashboard-content .filter-edit {
   position: absolute;
-  width: 940px;
+  left: 10px;
+  right: 10px;
 }
 
-.filter-edit-body {
-  background: #f4f4f4;
-  width: 908px;
-  padding: 20px 15px;
+/* .filter-edit needs a embedded div to prevent the collapse plugin from including the dropdowns in scrollheight */
+.dashboard-content .filter-edit>div {
+  background-color: #E8E8E8;
+  border-radius: 5px;
+}
+
+.dashboard-content .filter-edit-body {
+  padding: 20px 0px 20px 10px;
+}
+
+.dashboard-content .filter-edit-buttons {
+   margin-right: 10px;
+   margin-bottom: 10px;
+   float: right;
+}
+
+.dashboard-content .filter-readonly {
+  font-size: .75em;
+  background-color: #E8E8E8;
+  border-radius: 5px;
+}
+
+.dashboard-charts td[colspan="2"] {
+  text-indent: -8px;
 }
 
 .clm-bar {

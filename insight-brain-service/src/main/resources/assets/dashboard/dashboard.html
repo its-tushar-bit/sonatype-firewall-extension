@@ -1,5 +1,5 @@
-<div class='container dashboard-content'>
-  <div class='row'>
+<div class='container-fluid dashboard-content'>
+  <div class='row-fluid'>
     <div class='span11'>
       <h1>Dashboard</h1>
     </div>
@@ -7,78 +7,101 @@
       <a ng-click='toggleCollapse()'>Filters&nbsp;<i class='glyphicons-sonatype filter'></i></a>
     </div>
   </div>
-  <div class='row'>
-    <div class='span12'>
-      <div class='dashboard-filters'>
-        <div class='accordion-body collapse filter-edit' delayed-overflow>
-          <div class='accordion-inner' style="border: 0px;">
-            <div class='filter-edit-body' style='background-color: #E8E8E8; border-radius: 5px;'>
-              <div class='row-fluid'>
-                <div class="span3">
-                  <h5>Applications</h5>
-                  <span id='applications' class='multi-dropdown' multi-select items='applications'
-                        selected-ids='queuedApplicationPublicIds' effective-id-field='publicId'
-                        summarize-with='applications' none-selected-text='All Applications'></span>
-                </div>
-                <div class="span3">
-                  <h5>Policy Categories</h5>
-                  <span id='policy-types' class='multi-dropdown' multi-select items='policyThreatCategories'
-                        selected-ids='queuedPolicyThreatCategories'
-                        none-selected-text='All Policy Categories'></span>
-                </div>
-              </div>
-              <div class='pull-right'>
-                <button class='btn' type='button' ng-click='cancelFilters()'>Cancel</button>
-                <button class='btn btn-primary' type='button' ng-click='applyFilters()'>Apply</button>
-              </div>
-              <div style='clear: both'></div>
+  <div class='row-fluid'>
+    <div class='span12 dashboard-filters'>
+      <div class='filter-edit collapse' delayed-overflow>
+        <div>
+          <div class='row-fluid filter-edit-body'>
+            <div class="span3">
+              <h5>Applications</h5>
+              <span id='applications' class='multi-dropdown' multi-select items='applications'
+                    selected-ids='queuedApplicationPublicIds' effective-id-field='publicId'
+                    summarize-with='applications' none-selected-text='All Applications'></span>
+            </div>
+            <div class="span3">
+              <h5>Policy Categories</h5>
+              <span id='policy-types' class='multi-dropdown' multi-select items='policyThreatCategories'
+                    selected-ids='queuedPolicyThreatCategories'
+                    none-selected-text='All Policy Categories'></span>
             </div>
           </div>
+          <div class='filter-edit-buttons'>
+            <button class='btn' type='button' ng-click='cancelFilters()'>Cancel</button>
+            <button class='btn btn-primary' type='button' ng-click='applyFilters()'>Apply</button>
+          </div>
+          <div style='clear: both'></div>
         </div>
-        <div ng-show="!filtersExpanded" class="row-fluid" style="font-size: .75em; background-color: #E8E8E8; border-radius: 5px;">
-          <div class="span3" ng-if='appliedApplicationPublicIds.length > 0'>
-            <span><strong>Applications</strong></span>
-            <span ng-repeat="applicationId in appliedApplicationPublicIds">
-              {{applicationNameFor(applicationId)}}{{!$last ? "," : ""}}
-            </span>
-          </div>
-          <div class="span3" style="display: inline;" ng-if='appliedPolicyThreatCategories.length > 0'>
-            <span><strong>Policy Categories</strong></span>
-            <span ng-repeat="policyThreatCategoryId in appliedPolicyThreatCategories">
-              {{policyThreatCategoryNameFor(policyThreatCategoryId)}}{{!$last ? "," : ""}}
-            </span>
-          </div>
+      </div>
+      <div class='row-fluid filter-readonly'>
+        <div class="span3" ng-if='appliedApplicationPublicIds.length > 0'>
+          <span><strong>Applications</strong></span>
+          <span ng-repeat="applicationId in appliedApplicationPublicIds">
+            {{applicationNameFor(applicationId)}}{{!$last ? "," : ""}}
+          </span>
+        </div>
+        <div class="span3" style="display: inline;" ng-if='appliedPolicyThreatCategories.length > 0'>
+          <span><strong>Policy Categories</strong></span>
+          <span ng-repeat="policyThreatCategoryId in appliedPolicyThreatCategories">
+            {{policyThreatCategoryNameFor(policyThreatCategoryId)}}{{!$last ? "," : ""}}
+          </span>
         </div>
       </div>
     </div>
   </div>
   <div load-error='error' reload='doLoad()'></div>
-  <div class='row dashboard-charts' ng-hide='error'>
-    <div class='span12'>
-      <h4>Highest Risk</h4>
-      <table class='table'>
-        <thead>
-        <tr>
-          <th colspan='2'>RISK</th>
-          <th>POLICY</th>
-          <th>APPLICATION</th>
-          <th>COMPONENT</th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr ng-repeat='risk in highestRisks | limitTo: maxResults'>
-          <td class='clm-bar'
-              ng-class='{ critical : risk.threatLevel >= 8, severe : risk.threatLevel >= 4 && risk.threatLevel < 8,
-                moderate : risk.threatLevel >= 1 && risk.threatLevel < 4, none : risk.threatLevel == 1,
-                ignore : risk.threatLevel == 0 }'></td>
-          <td>{{risk.threatLevel}}</td>
-          <td>{{risk.policyName}}</td>
-          <td>{{risk.applicationName}}</td>
-          <td ng-if='risk.groupId'>{{risk.groupId}}:{{risk.artifactId}}:{{risk.version}}</td>
-          <td ng-if='!risk.groupId'><em>Unknown</em></td>
-        </tr>
-        </tbody>
-      </table>
+    <div class='row-fluid dashboard-charts' ng-hide='error'>
+      <div class='span6'>
+        <h4>Newest Risk</h4>
+        <table class='table'>
+          <thead>
+            <tr>
+              <th colspan='2'>RISK</th>
+              <th>POLICY</th>
+              <th>APPLICATION</th>
+              <th>COMPONENT</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr ng-repeat='risk in newestRisks'>
+              <td class='clm-bar'
+                  ng-class='{ critical : risk.threatLevel >= 8, severe : risk.threatLevel >= 4 && risk.threatLevel < 8,
+                    moderate : risk.threatLevel >= 1 && risk.threatLevel < 4, none : risk.threatLevel == 1,
+                    ignore : risk.threatLevel == 0 }'></td>
+              <td>{{risk.threatLevel}}</td>
+              <td>{{risk.policyName}}</td>
+              <td>{{risk.applicationName}}</td>
+              <td ng-if='risk.groupId'>{{risk.groupId}}<span class="wrap-force-break"> : </span>{{risk.artifactId}}<span class="wrap-force-break"> : </span>{{risk.version}}</td>
+              <td ng-if='!risk.groupId'><em>Unknown</em></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class='span6'>
+        <h4>Highest Risk</h4>
+        <table class='table'>
+          <thead>
+          <tr>
+            <th colspan='2'>RISK</th>
+            <th>POLICY</th>
+            <th>APPLICATION</th>
+            <th>COMPONENT</th>
+          </tr>
+          </thead>
+          <tbody>
+          <tr ng-repeat='risk in highestRisks | limitTo: maxResults'>
+            <td class='clm-bar'
+                ng-class='{ critical : risk.threatLevel >= 8, severe : risk.threatLevel >= 4 && risk.threatLevel < 8,
+                  moderate : risk.threatLevel >= 1 && risk.threatLevel < 4, none : risk.threatLevel == 1,
+                  ignore : risk.threatLevel == 0 }'></td>
+            <td>{{risk.threatLevel}}</td>
+            <td>{{risk.policyName}}</td>
+            <td>{{risk.applicationName}}</td>
+            <td ng-if='risk.groupId'>{{risk.groupId}}<span class="wrap-force-break"> : </span>{{risk.artifactId}}<span class="wrap-force-break"> : </span>{{risk.version}}</td>
+            <td ng-if='!risk.groupId'><em>Unknown</em></td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
 </div>

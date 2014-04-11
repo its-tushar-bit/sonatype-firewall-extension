@@ -21,18 +21,19 @@ class DashboardPage
   static content = {
     filterPanelToggle { $('a', 'ng-click': 'toggleCollapse()') }
     filterPanel(required: false) { $('div', 'ng-if': 'appliedApplicationPublicIds.length > 0') }
-    filterButtons(required: false) { module ButtonsModule, $('.dashboard-filters .pull-right') }
+    filterButtons(required: false) { module ButtonsModule, $('.filter-edit-buttons') }
 
     applicationFilters(required: false) {
       filterPanel.find('span', 'ng-repeat': 'applicationId in appliedApplicationPublicIds')
     }
     applicationFiltersDropdown(required: false) { module DropdownMultiSelect, $('span', items: 'applications') }
 
-    highestRiskTable { $('tr', 'ng-repeat': startsWith('risk in highestRisks')) }
-    policyViolation { i -> highestRiskTable[i] }
-    policyViolationRisk { i -> policyViolation(i).find('td')[1] }
-    policyViolationPolicy { i -> policyViolation(i).find('td')[2] }
-    policyViolationApplication { i -> policyViolation(i).find('td')[3] }
-    policyViolationComponent { i -> policyViolation(i).find('td')[4] }
+    highestRiskTable(required: false) { $('tr', 'ng-repeat': startsWith('risk in highestRisks')) }
+    newestViolationTable(required: false) { $('tr', 'ng-repeat': startsWith('risk in newestRisks')) }
+    policyViolation { table, i -> table[i] }
+    policyViolationRisk { table, i -> table[i].find('td')[1] }
+    policyViolationPolicy { table, i -> table[i].find('td')[2] }
+    policyViolationApplication { table, i -> table[i].find('td')[3] }
+    policyViolationComponent { table, i -> table[i].find('td')[4] }
   }
 }

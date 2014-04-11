@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.testing.functional
 import com.sonatype.insight.brain.model.Application
 import com.sonatype.insight.brain.model.Organization
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory
+import com.sonatype.insight.brain.model.policy.PolicyViolation
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType
 
 /**
@@ -27,11 +28,18 @@ class DashboardSpec
 
     def policy = temporaryEntity.newPolicy(org.id, 'DashboardSpecPolicy')
 
-    def firstPolicyEvaluation = temporaryEntity.newPolicyEvaluation(firstApp.id, BuildStageType.ID, 'DashboardSpecFistEvaluation')
-    temporaryEntity.newPolicyViolation(firstPolicyEvaluation.id, policy, 5, PolicyThreatCategory.LICENSE, "Group1",
-        "Artifact1", "Version1")
-    def secondPolicyEvaluation = temporaryEntity.newPolicyEvaluation(secondApp.id, BuildStageType.ID, 'DashboardSpecSecondEvaluation')
-    temporaryEntity.newPolicyViolation(secondPolicyEvaluation.id, policy, 10, PolicyThreatCategory.QUALITY, null, null, null)
+    def now = new Date()
+    def firstPolicyEvaluation = temporaryEntity.newPolicyEvaluation(firstApp.id, BuildStageType.ID,
+        'DashboardSpecFistEvaluation', now)
+    def firstViolation = temporaryEntity.newPolicyViolation(firstPolicyEvaluation.id, policy, 5,
+        PolicyThreatCategory.LICENSE, "Group1", "Artifact1", "Version1")
+    temporaryEntity.newNewestPolicyViolation(firstViolation.id, firstPolicyEvaluation.applicationId,
+        firstPolicyEvaluation.stageTypeId, now)
+
+    def secondPolicyEvaluation = temporaryEntity.newPolicyEvaluation(secondApp.id, BuildStageType.ID,
+        'DashboardSpecSecondEvaluation', now)
+    temporaryEntity.newPolicyViolation(secondPolicyEvaluation.id, policy, 10,
+        PolicyThreatCategory.QUALITY, null, null, null)
   }
 
   def setup() {
@@ -65,26 +73,49 @@ class DashboardSpec
 
     then: 'policy violations are listed by threat level'
       highestRiskTable.size() == 2
-      policyViolationRisk(0).text() == '10'
-      policyViolationPolicy(0).text() == 'DashboardSpecPolicy'
-      policyViolationApplication(0).text() == secondApp.name
-      policyViolationComponent(0).text() == 'Unknown'
+      policyViolationRisk(highestRiskTable, 0).text() == '10'
+      policyViolationPolicy(highestRiskTable, 0).text() == 'DashboardSpecPolicy'
+      policyViolationApplication(highestRiskTable, 0).text() == secondApp.name
+      policyViolationComponent(highestRiskTable, 0).text() == 'Unknown'
 
-      policyViolationRisk(1).text() == '5'
-      policyViolationPolicy(1).text() == 'DashboardSpecPolicy'
-      policyViolationApplication(1).text() == firstApp.name
-      policyViolationComponent(1).text() == ["Group1", "Artifact1", "Version1"].join(':')
+      policyViolationRisk(highestRiskTable, 1).text() == '5'
+      policyViolationPolicy(highestRiskTable, 1).text() == 'DashboardSpecPolicy'
+      policyViolationApplication(highestRiskTable, 1).text() == firstApp.name
+      policyViolationComponent(highestRiskTable, 1).text() == ["Group1", "Artifact1", "Version1"].join(' : ')
 
     when: 'filtering to an application'
       filterPanelToggle.click()
+      waitFor { applicationFiltersDropdown.displayed }
       applicationFiltersDropdown.toggleOption(firstApp.name)
       filterButtons.button('Apply').click()
       waitFor { !applicationFiltersDropdown.displayed }
 
     then: 'only violations from that application are shown'
       highestRiskTable.size() == 1
-      policyViolationRisk(0).text() == '5'
-      policyViolationPolicy(0).text() == 'DashboardSpecPolicy'
-      policyViolationApplication(0).text() == firstApp.name
+      policyViolationRisk(highestRiskTable, 0).text() == '5'
+      policyViolationPolicy(highestRiskTable, 0).text() == 'DashboardSpecPolicy'
+      policyViolationApplication(highestRiskTable, 0).text() == firstApp.name
+  }
+
+  def 'Newest Risk Table'() {
+    when: 'newest risk table is shown'
+      newestViolationTable.displayed
+
+    then: 'policy violations are listed by threat level'
+      newestViolationTable.size() == 1
+      policyViolationRisk(newestViolationTable, 0).text() == '5'
+      policyViolationPolicy(newestViolationTable, 0).text() == 'DashboardSpecPolicy'
+      policyViolationApplication(newestViolationTable, 0).text() == firstApp.name
+      policyViolationComponent(newestViolationTable, 0).text() == ["Group1", "Artifact1", "Version1"].join(' : ')
+
+    when: 'filtering to an application'
+      filterPanelToggle.click()
+      waitFor { applicationFiltersDropdown.displayed }
+      applicationFiltersDropdown.toggleOption(secondApp.name)
+      filterButtons.button('Apply').click()
+      waitFor { !applicationFiltersDropdown.displayed }
+
+    then: 'no violations are shown'
+      !newestViolationTable
   }
 }

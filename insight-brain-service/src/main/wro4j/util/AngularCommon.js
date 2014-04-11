@@ -768,11 +768,12 @@ var AngularStateUtils = {
       template : '<div class="btn-group" ng-class="{ open : open }">' +
                    '<button class="btn" ng-click="open = !open"><span><div>{{getText()}}</div></span> <span class="caret"></span></button>' +
                    '<ul class="dropdown-menu multiselect-container">' +
-                     '<li ng-if="items.length > 9"><input type="text" ng-model="filter.name" placeholder="Search"></li>' +
-                     '<li ng-repeat="item in items | filter: { name : filter.name }">' +
+                     '<li ng-if="items.length > 9"><input type="text" ng-model="filter.name" style="margin:0;width:160px" placeholder="Search"></li>' +
+                     '<li ng-repeat="item in items | filter: { name : filter.name }" ng-class="{ selected : selected[item.id]  }">' +
                        '<label class="checkbox">' +
                          '<input type="checkbox" ng-model="selected[item.id]" ng-change="updateSelectedIds(item.id)">' +
-                         '<span class="multi-dropdown-item">{{item.name}}</span><span ng-if="item.color" class="multi-dropdown-item-color {{item.color}}Label"></span>' +
+                         '<span class="multi-dropdown-item" ng-class="{ \'no-color\' : !item.color, color : item.color }">{{item.name}}</span>' +
+                         '<span ng-if="item.color" class="multi-dropdown-item-color {{item.color}}Label"></span>' +
                        '</label>' +
                      '</li>' +
                    '</ul>' +

@@ -200,7 +200,7 @@ a:focus {
   margin: 0px 1px 9px;
 }
 .dashboard-user .dropdown-menu > li > a:hover, .dashboard-menus .dropdown-menu > li > a:hover,
-.multiselect-container.dropdown-menu > li > a:hover {
+.dropdown-menu.multiselect-container > li:hover {
   color: black;
   background-color: #E0E0E0;
   background-image: none;

@@ -53,7 +53,17 @@ public class ApplicationDAO
   }
 
   public Application getByIdNotNull(String id) {
-    Application application = getById(id);
+    EntityManager em = createEntityManager();
+    try {
+      return getByIdNotNull(em, id);
+    }
+    finally {
+      close(em);
+    }
+  }
+
+  public Application getByIdNotNull(EntityManager em, String id) {
+    Application application = getById(em, id);
     if (application == null) {
       throw new NotFoundException("Could not find an application with id " + id + ".");
     }

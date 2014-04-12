@@ -14,6 +14,7 @@ import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
+import com.sonatype.insight.brain.security.AuthzContext.Key;
 import com.sonatype.insight.brain.utils.IdUtils;
 
 import com.google.common.collect.Iterables;
@@ -154,16 +155,27 @@ class ContextResolver
       }
     }
     else if (count == 2) {
-      String id = get(parameters, AuthzContext.Key.ID, String.class);
       String type = get(parameters, AuthzContext.Key.TYPE, String.class);
-      if (IdUtils.TYPE_APPLICATION.equals(type)) {
-        return APPLICATION_PUBLIC_ID.resolveContextIds(id);
-      }
-      else if (IdUtils.TYPE_ORGANIZATION.equals(type)) {
-        return ORGANIZATION_ID.resolveContextIds(id);
-      }
-      else if (IdUtils.TYPE_GLOBAL.equals(type)) {
-        return GLOBAL_CONTEXT;
+      switch (type) {
+        case IdUtils.TYPE_APPLICATION:
+          if (parameters.get(Key.ID) != null) {
+            String id = get(parameters, Key.ID, String.class);
+            return APPLICATION_PUBLIC_ID.resolveContextIds(id);
+          }
+          else {
+            String id = get(parameters, Key.INTERNAL_ID, String.class);
+            return APPLICATION_ID.resolveContextIds(id);
+          }
+        case IdUtils.TYPE_ORGANIZATION:
+          String id;
+          if (parameters.get(Key.ID) != null) {
+            id = get(parameters, Key.ID, String.class);
+          } else {
+            id = get(parameters, Key.INTERNAL_ID, String.class);
+          }
+          return ORGANIZATION_ID.resolveContextIds(id);
+        case IdUtils.TYPE_GLOBAL:
+          return GLOBAL_CONTEXT;
       }
     }
     throw new IllegalArgumentException("Cannot resolve context from " + parameters);

@@ -80,35 +80,48 @@ public class MembershipMappingDAO
     try {
       em.getTransaction().begin();
 
-      Map<String, MembershipMapping> mappingsByMember = new HashMap<String, MembershipMapping>();
-      for (MembershipMapping existingMapping : getByContextIdAndRoleId(em, contextId, roleId)) {
-        mappingsByMember.put(getMemberKey(existingMapping), existingMapping);
-      }
-
-      // Create new values
-      for (MembershipMapping newMapping : mappings) {
-        newMapping.setContextId(contextId);
-        newMapping.setRoleId(roleId);
-
-        String memberKey = getMemberKey(newMapping);
-        if (!mappingsByMember.containsKey(memberKey)) {
-          newMapping.setId(null);
-          insert(em, newMapping);
-        }
-        mappingsByMember.put(memberKey, null);
-      }
-
-      // Delete old values
-      for (MembershipMapping oldMapping : mappingsByMember.values()) {
-        if (oldMapping != null) {
-          delete(em, oldMapping);
-        }
-      }
+      setMembershipMappingsForContextAndRole(em, contextId, roleId, mappings);
 
       em.getTransaction().commit();
     }
     finally {
       close(em);
+    }
+  }
+
+  /**
+   * Sets the membership mappings for a given context and role.
+   * Allows caller to provide the entity manager.
+   *
+   * @since 1.11.0
+   */
+  public void setMembershipMappingsForContextAndRole(EntityManager em, String contextId, String roleId,
+                                                     List<MembershipMapping> mappings)
+  {
+
+    Map<String, MembershipMapping> mappingsByMember = new HashMap<>();
+    for (MembershipMapping existingMapping : getByContextIdAndRoleId(em, contextId, roleId)) {
+      mappingsByMember.put(getMemberKey(existingMapping), existingMapping);
+    }
+
+    // Create new values
+    for (MembershipMapping newMapping : mappings) {
+      newMapping.setContextId(contextId);
+      newMapping.setRoleId(roleId);
+
+      String memberKey = getMemberKey(newMapping);
+      if (!mappingsByMember.containsKey(memberKey)) {
+        newMapping.setId(null);
+        insert(em, newMapping);
+      }
+      mappingsByMember.put(memberKey, null);
+    }
+
+    // Delete old values
+    for (MembershipMapping oldMapping : mappingsByMember.values()) {
+      if (oldMapping != null) {
+        delete(em, oldMapping);
+      }
     }
   }
 

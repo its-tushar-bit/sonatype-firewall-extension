@@ -34,6 +34,11 @@ public @interface AuthzContext
     ID,
 
     /**
+     * Internal ID of an existing org/app, goes together with {@link #TYPE} to denote the context. Note use this or ID with TYPE.
+     */
+    INTERNAL_ID,
+
+    /**
      * One of {@link IdUtils#TYPE_APPLICATION} or {@link IdUtils#TYPE_ORGANIZATION}, goes together with {@link #ID} to
      * denote the context.
      */

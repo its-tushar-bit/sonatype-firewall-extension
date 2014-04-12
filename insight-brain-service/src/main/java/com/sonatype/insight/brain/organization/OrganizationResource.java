@@ -5,14 +5,12 @@
  */
 package com.sonatype.insight.brain.organization;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
 import javax.inject.Inject;
 import javax.inject.Named;
-import javax.persistence.EntityManager;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -26,20 +24,14 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import com.sonatype.insight.brain.common.io.FileCleaner;
-import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
-import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
-import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.saas.SaasClient;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzErrorMsg;
-import com.sonatype.insight.brain.security.AuthzFilter;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightWork;
-import com.sonatype.insight.dataaccess.AbstractDAO;
 
 import com.sun.jersey.core.header.FormDataContentDisposition;
 import com.sun.jersey.multipart.FormDataParam;
@@ -59,22 +51,17 @@ public class OrganizationResource
 
   private static final Logger log = LoggerFactory.getLogger(OrganizationResource.class);
 
-  private final OrganizationDAO organizationDAO = new OrganizationDAO();
+  private final OrganizationService organizationService;
 
   private final InsightWork work;
 
-  private final FileCleaner fileCleaner;
-
-  private final ApplicationCleaner applicationCleaner;
-
   @Inject
-  public OrganizationResource(InsightWork work, SaasClient client, BaseUrl baseUrl,
-      ApplicationCleaner applicationCleaner, FileCleaner fileCleaner)
+  public OrganizationResource(final InsightWork work, final SaasClient client, final BaseUrl baseUrl,
+                              final OrganizationService organizationService)
   {
     super(client, baseUrl);
     this.work = work;
-    this.applicationCleaner = applicationCleaner;
-    this.fileCleaner = fileCleaner;
+    this.organizationService = organizationService;
   }
 
   /**
@@ -82,9 +69,8 @@ public class OrganizationResource
    */
   @GET
   @Produces(MediaType.APPLICATION_JSON)
-  @AuthzFilter(permission = Permission.READ, context = AuthzFilter.Context.ORGANIZATION)
   public List<Organization> getAll() {
-    return organizationDAO.getAll();
+    return organizationService.getAll();
   }
 
   /**
@@ -93,11 +79,8 @@ public class OrganizationResource
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-  @Authorize(permission = Permission.WRITE)
   public Organization addOrganization(@AuthzContext(AuthzContext.Key.ORGANIZATION_OWNER) Organization organization) {
-    organizationDAO.insert(organization);
-
-    return organization;
+    return organizationService.addOrganization(organization);
   }
 
   /**
@@ -106,11 +89,8 @@ public class OrganizationResource
   @PUT
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-  @Authorize(permission = Permission.WRITE)
   public Organization updateOrganization(@AuthzContext(AuthzContext.Key.ORGANIZATION) Organization organization) {
-    organizationDAO.update(organization);
-
-    return organization;
+    return organizationService.updateOrganization(organization);
   }
 
   @Override
@@ -194,40 +174,10 @@ public class OrganizationResource
    */
   @DELETE
   @Path(DELETE_ORGANIZATION_PATH)
-  @Authorize(permission = Permission.WRITE)
   public void deleteOrganization(
       @AuthzContext(AuthzContext.Key.ORGANIZATION_ID) @PathParam("organizationId") final String organizationId)
       throws IOException
   {
-    EntityManager em = organizationDAO.createEntityManager();
-    try {
-      em.getTransaction().begin();
-      deleteOrganization(em, organizationId);
-      em.getTransaction().commit();
-    }
-    finally {
-      AbstractDAO.close(em);
-    }
+    organizationService.deleteOrganization(organizationId);
   }
-
-  private void deleteOrganization(final EntityManager em, final String organizationId) throws IOException {
-    Organization organization = organizationDAO.getByIdNotNull(em, organizationId);
-
-    // cascade to applications first
-    for (Application application : new ApplicationDAO().getByOrganizationId(em, organizationId)) {
-      applicationCleaner.delete(em, application);
-    }
-
-    File organizationIconDirectory = new File(work.getOrganizationIconDir(), organizationId);
-    try {
-      fileCleaner.delete(organizationIconDirectory);
-    }
-    catch (IOException e) {
-      log.error("Could not delete organization icons: {}" + organizationIconDirectory, e);
-    }
-
-    // delete organization last, this way the operation can be retried later if anything goes wrong
-    organizationDAO.delete(em, organization);
-  }
-
 }

@@ -12,6 +12,7 @@ import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
+import com.sonatype.insight.brain.security.AuthzContext.Key;
 import com.sonatype.insight.brain.utils.IdUtils;
 
 import org.junit.Rule;
@@ -39,6 +40,17 @@ public class ContextResolverTest
     Application app = tempEntity.newApplication(org.getId());
     Map<AuthzContext.Key, Object> parameters = new HashMap<AuthzContext.Key, Object>();
     parameters.put(AuthzContext.Key.ID, app.getPublicId());
+    parameters.put(AuthzContext.Key.TYPE, IdUtils.TYPE_APPLICATION);
+    assertThat(resolver.resolveContextIds(parameters),
+        contains(app.getId(), org.getId(), MembershipMapping.GLOBAL_CONTEXT_ID));
+  }
+
+  @Test
+  public void testResolveContextIds_TypedContext_Application_InternalId() {
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplication(org.getId());
+    Map<AuthzContext.Key, Object> parameters = new HashMap<AuthzContext.Key, Object>();
+    parameters.put(Key.INTERNAL_ID, app.getId());
     parameters.put(AuthzContext.Key.TYPE, IdUtils.TYPE_APPLICATION);
     assertThat(resolver.resolveContextIds(parameters),
         contains(app.getId(), org.getId(), MembershipMapping.GLOBAL_CONTEXT_ID));

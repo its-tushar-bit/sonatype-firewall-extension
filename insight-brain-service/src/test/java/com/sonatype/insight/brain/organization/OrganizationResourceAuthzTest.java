@@ -6,8 +6,6 @@
 package com.sonatype.insight.brain.organization;
 
 import com.sonatype.insight.brain.AuthedRestAccess;
-import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
-import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.service.AbstractResourceAuthzTest;
 import com.sonatype.insight.test.RestAccess;
 
@@ -16,29 +14,12 @@ import com.ning.http.client.Response;
 import com.ning.http.multipart.StringPart;
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.emptyArray;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 
 public class OrganizationResourceAuthzTest
     extends AbstractResourceAuthzTest
 {
-  @Test
-  public void testGetAll() throws Exception {
-    grantReadPermission(org.getId());
-
-    String url = getRestUrl(OrganizationResource.SERVICE_PATH);
-    Response response = RestAccess.get(url, unauthorized.getUsername(), unauthorized.getPassword());
-    assertResponseStatus(200, response);
-    Organization[] entities = fromJson(response, Organization[].class);
-    assertThat(entities, is(emptyArray()));
-
-    response = RestAccess.get(url, authorized.getUsername(), authorized.getPassword());
-    assertResponseStatus(200, response);
-    entities = fromJson(response, Organization[].class);
-    assertThat(entities.length, is(1));
-    assertThat(entities[0].getId(), is(org.getId()));
-  }
 
   @Test
   public void testGenerateIcon() throws Exception {
@@ -47,25 +28,6 @@ public class OrganizationResourceAuthzTest
     setSaasResponseForURI("rest/application/icon/generate/" + hash, 200, new byte[0]);
     Response response = RestAccess.get(url, authorized.getUsername(), authorized.getPassword());
     assertResponseStatus(200, response);
-  }
-
-  @Test
-  public void testAddOrganization() throws Exception {
-    Organization org = new Organization("test-org");
-    grantWritePermission();
-
-    String url = getRestUrl(OrganizationResource.SERVICE_PATH);
-    Response response = testAuthzPost(url, toJson(org));
-    org = fromJson(response, Organization.class);
-    new OrganizationDAO().delete(org);
-  }
-
-  @Test
-  public void testUpdateOrganization() throws Exception {
-    grantWritePermission(org.getId());
-
-    String url = getRestUrl(OrganizationResource.SERVICE_PATH);
-    testAuthzPut(url, toJson(org));
   }
 
   @Test
@@ -118,14 +80,5 @@ public class OrganizationResourceAuthzTest
     response = builder.execute().get();
     assertResponseStatus(200, response);
     assertThat(response.getResponseBody(), is(""));
-  }
-
-  @Test
-  public void testDeleteOrganization() throws Exception {
-    grantWritePermission(org.getId());
-
-    String url = getRestUrl(OrganizationResource.SERVICE_PATH + '/' + OrganizationResource.DELETE_ORGANIZATION_PATH,
-        org.getId());
-    testAuthzDelete(url);
   }
 }

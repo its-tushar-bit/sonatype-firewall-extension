@@ -22,9 +22,6 @@ import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
-import com.sonatype.insight.brain.security.MembershipMappingResource.ApplicableMembershipMappings;
-import com.sonatype.insight.brain.security.MembershipMappingResource.MembersByOwner;
-import com.sonatype.insight.brain.security.MembershipMappingResource.MembersByRole;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.brain.utils.IdUtils;
 

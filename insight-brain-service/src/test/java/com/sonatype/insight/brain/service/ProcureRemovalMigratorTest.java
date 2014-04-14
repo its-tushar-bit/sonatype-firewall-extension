@@ -65,7 +65,7 @@ public class ProcureRemovalMigratorTest
     String appId = createApplication();
     PolicyDAO dao = new PolicyDAO();
     Policy policy = tempEntity.newPolicy(appId, "testPolicyMonitorsRemoved");
-    policy.setActions(ProcureRemovalMigrator.ID_PROCURE, Collections.singletonList(new Action(Action.ID_WARN)));
+    policy.setActions(ProcureRemovalMigrator.ID_PROCURE, Collections.<Action> emptyList());
     policy.setActions(Stage.ID_BUILD, Collections.singletonList(new Action(Action.ID_WARN)));
 
     policyInternalDAO.update(PolicyInternal.fromPolicy(policy));

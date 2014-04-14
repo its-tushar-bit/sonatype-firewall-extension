@@ -103,8 +103,7 @@ public class ProcureRemovalMigrator
     for (Policy policy : policyDAO.getByOwnerId(context.getId())) {
       log.debug("Checking policy {}", policy.getName());
       Map<String, List<Action>> actions = policy.getActions();
-      List<Action> procureActions = actions != null ? actions.get(ID_PROCURE) : null;
-      if (procureActions != null && !procureActions.isEmpty()) {
+      if (actions != null && actions.containsKey(ID_PROCURE)) {
         actions.remove(ID_PROCURE);
         log.debug("Removing procure action");
         policyDAO.update(policy);

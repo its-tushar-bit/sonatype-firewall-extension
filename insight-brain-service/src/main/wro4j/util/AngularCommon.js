@@ -40,6 +40,9 @@ var AngularUtils = {
       if (navigator.mimeTypes['application/x-shockwave-flash'] !== undefined) { return true; }
     }
     return false;
+  },
+  endsWith: function(str, check) {
+    return str.indexOf(check, str.length - check.length) > -1;
   }
 };
 
@@ -57,7 +60,10 @@ var AngularStateUtils = {
     });
   },
   toNewItemState: function(scope) {
-    if (scope.$state.current.name) {
+    //if user clicks new while the new state is already active
+    //(or multiple events are fired causing this method to be called multiple times)
+    //it will now only act once, rather than generating multiple .new suffixes
+    if (scope.$state.current.name && !AngularUtils.endsWith(scope.$state.current.name, '.new')) {
       scope.$state.go(scope.$state.current.name + '.new');
     }
   }

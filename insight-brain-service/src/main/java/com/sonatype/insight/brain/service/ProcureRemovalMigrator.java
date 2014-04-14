@@ -7,22 +7,12 @@ package com.sonatype.insight.brain.service;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
-import java.util.Map;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 
-import com.sonatype.clm.dto.model.policy.Action;
-import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
-import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
-import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
-import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.Organization;
-import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyMonitoring;
-import com.sonatype.insight.model.HasStringId;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,12 +31,6 @@ public class ProcureRemovalMigrator
 
   static final String MARKER_FILE_NAME = "procure-removal";
 
-  private final ApplicationDAO appDAO = new ApplicationDAO();
-
-  private final OrganizationDAO orgDAO = new OrganizationDAO();
-
-  private final PolicyDAO policyDAO = new PolicyDAO();
-
   private final PolicyMonitoringDAO policyMonitoringDAO = new PolicyMonitoringDAO();
 
   private final InsightWork insightWork;
@@ -63,7 +47,10 @@ public class ProcureRemovalMigrator
     if (markerFile.exists()) {
       return;
     }
-    migratePolicyActions();
+    
+    //moved policy action migration to PolicyMigrator, the actions need
+    //to be pruned prior to being placed in the database
+    
     migratePolicyMonitors();
 
     markerFile.getParentFile().mkdirs();
@@ -80,34 +67,5 @@ public class ProcureRemovalMigrator
       }
     }
     log.info("Finished procure policy monitoring removal in {} ms.", System.currentTimeMillis() - start);
-  }
-
-  private void migratePolicyActions() {
-    long start = System.currentTimeMillis();
-    log.info("Removing policy procure actions...");
-
-    for (Application app : appDAO.getAll()) {
-      log.debug("Checking application {}", app.getName());
-      migrate(app);
-    }
-
-    for (Organization org : orgDAO.getAll()) {
-      log.debug("Checking organization {}", org.getName());
-      migrate(org);
-    }
-
-    log.info("Finished procure policy actions removal in {} ms.", System.currentTimeMillis() - start);
-  }
-
-  private void migrate(HasStringId context) {
-    for (Policy policy : policyDAO.getByOwnerId(context.getId())) {
-      log.debug("Checking policy {}", policy.getName());
-      Map<String, List<Action>> actions = policy.getActions();
-      if (actions != null && actions.containsKey(ID_PROCURE)) {
-        actions.remove(ID_PROCURE);
-        log.debug("Removing procure action");
-        policyDAO.update(policy);
-      }
-    }
   }
 }

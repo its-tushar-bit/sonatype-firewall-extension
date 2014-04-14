@@ -1,0 +1,34 @@
+[ {
+  "time" : 1391186815172,
+  "user" : null,
+  "ip" : "127.0.0.1",
+  "where" : null,
+  "data" : [ {
+    "id" : "7e7a659ba7cd44e281824f43b38ada0b",
+    "name" : "Test Policy 1",
+    "ownerId" : "aa237c327b0f4dc18a04a59c31bbc0fc",
+    "enabled" : true,
+    "threatLevel" : 5,
+    "constraints" : [ {
+      "id" : "57c34312cc204297997e87ec3b58c789",
+      "name" : "License Constraint",
+      "enabled" : true,
+      "operator" : "OR",
+      "conditions" : [ {
+        "conditionTypeId" : "License",
+        "operator" : "is",
+        "value" : "GPL-2.0"
+      } ]
+    } ],
+    "actions" : {
+      "procure" : [ {
+        "actionTypeId" : "fail",
+        "target" : null
+      } ],
+      "release" : [ {
+        "actionTypeId" : "warn",
+        "target" : null
+      } ]
+    }
+  } ]
+} ]

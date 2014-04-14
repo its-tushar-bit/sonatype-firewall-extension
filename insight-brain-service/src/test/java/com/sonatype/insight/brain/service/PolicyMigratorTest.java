@@ -155,6 +155,35 @@ public class PolicyMigratorTest
 
     assertTrue(markerFile.exists());
   }
+  
+  @Test
+  public void testMigrate_ProcureAction() throws Exception {
+    Organization org = tempEntity.newOrganization("PolicyMigratorTest Org");
+    
+    // Create the policy data to be migrated
+    InsightWork insightWork = createInsightWork();
+    File policyDir = new File(insightWork.getWorkDir(), "policy");
+    File orgPolicyDir = new File(policyDir, org.getId());
+    orgPolicyDir.mkdirs();
+    assertTrue(orgPolicyDir.isDirectory());
+    
+    URL testPolicyFileUrl = getClass().getResource("/PolicyMigratorTest/policy-procure.json");
+    FileUtils.copyFile(new File(testPolicyFileUrl.getFile()), new File(orgPolicyDir, "policy.json"));
+    
+    // Remove the db foreign keys that must be created only after the policy data is migrated
+    new H2DatabaseMigrator().runScript(OperationalDataStoreProvider.getDataSource(),
+        "/PolicyMigratorTest/remove_foreign_keys.sql");
+
+    PolicyMigrator migrator = new PolicyMigrator(insightWork);
+    migrator.migrate();
+
+    // Assert the migrated policies
+    PolicyDAO policyDAO = new PolicyDAO();
+    List<Policy> orgPolicies = policyDAO.getByOwnerId(org.getId());
+    assertThat(orgPolicies, hasSize(1));
+    assertThat(orgPolicies.get(0).getActions().keySet(), hasSize(1));
+    assertThat(orgPolicies.get(0).getActions().containsKey("procure"), is(false));
+  }
 
   private InsightWork createInsightWork() throws IOException {
     InsightConfig insightConfig = new InsightConfig();

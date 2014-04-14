@@ -8,9 +8,7 @@ package com.sonatype.insight.brain.common.io;
 import java.io.File;
 import java.io.IOException;
 
-import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.common.io.FileCleaner.FileDeletionException;
-
 
 import org.junit.Rule;
 import org.junit.Test;
@@ -42,6 +40,7 @@ public class FileCleanerTest
 
     // simulate system that couldn't delete the file
     when(file.delete()).thenReturn(false);
+    when(file.exists()).thenReturn(true);
 
     // satisfy encapsulated library calls
     when(file.getCanonicalFile().exists()).thenReturn(true);
@@ -55,6 +54,7 @@ public class FileCleanerTest
 
     // specific call from encapsulated library that can cause exceptions
     when(file.getCanonicalFile()).thenThrow(new IOException("BOOM"));
+    when(file.exists()).thenReturn(true);
 
     new FileCleaner().delete(file);
   }
@@ -62,5 +62,12 @@ public class FileCleanerTest
   @Test
   public void ignoresNullFileObjects() throws FileDeletionException {
     new FileCleaner().delete(null);
+  }
+
+  @Test
+  public void ignoresNonExistentFileObjects() throws Exception {
+    File file = new File(folder.getRoot(), "lochness.monster");
+    assertThat(file.exists(), is(false));
+    new FileCleaner().delete(file);
   }
 }

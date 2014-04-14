@@ -26,7 +26,9 @@ public class FileCleaner
    * Delete a file. If file is directory delete it with all sub-directories and containing files.
    */
   public void delete(File file) throws FileDeletionException {
-    if (file != null) {
+    // FileUtils.forceDelete(file) will try to delete the file even if it doesn't exist and that will also cause a call
+    // to System.gc() and a 10 millisec sleep, which can cause performance problems.
+    if (file != null && file.exists()) {
       try {
         FileUtils.forceDelete(file);
       }

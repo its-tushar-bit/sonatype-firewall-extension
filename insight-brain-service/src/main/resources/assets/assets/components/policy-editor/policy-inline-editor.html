@@ -1,5 +1,5 @@
 <div class='inline-policy-editor' ng-controller='PolicyEditorController' style="width:875px;">
-	<form name='inlinePolicyForm'>
+	<form name='inlinePolicyForm' novalidate>
 		<div class="control-group" ng-class='{ error : inlinePolicyForm.name.$error.alphaNumeric || inlinePolicyForm.name.$error.spaces }'>
 			<input id='policyName' name='name' type='text' placeholder='Enter Policy Name' ng-model='policy.name' required maxlength='60' alpha-numeric has-whitespace='suggestedName' focus-input="true">
 			<span class='policy'><span threat-box selected='policy.threatLevel' one='1' zero='0 (None)'></span></span>

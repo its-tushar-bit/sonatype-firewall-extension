@@ -12,8 +12,11 @@ import java.util.Map;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
@@ -38,11 +41,14 @@ public class HashGAVResource
 {
   public static final String SERVICE_PATH = "rest/component/identified";
 
-  private SaasClient client;
+  private final SaasClient client;
+
+  private final HashGAVDAO hashGAVDAO;
 
   @Inject
-  public HashGAVResource(SaasClient saasClient) {
+  public HashGAVResource(SaasClient saasClient, HashGAVDAO hashGAVDAO) {
     this.client = saasClient;
+    this.hashGAVDAO = hashGAVDAO;
   }
 
   /**
@@ -52,18 +58,51 @@ public class HashGAVResource
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   public HashGAV setHashGAV(HashGAV hashGAV) throws IOException {
+    ensureUnknownComponent(hashGAV);
+
+    hashGAV.setId(null);
+    hashGAVDAO.insert(hashGAV);
+
+    ReportResource.flushReportChanges();
+
+    return hashGAV;
+  }
+
+  @PUT
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Produces(MediaType.APPLICATION_JSON)
+  public HashGAV updateHashGAV(HashGAV hashGAV) throws IOException {
+    ensureUnknownComponent(hashGAV);
+
+    HashGAV existingHashGAV = hashGAVDAO.getByHash(hashGAV.getHash());
+    hashGAV.setId(existingHashGAV.getId() );
+    hashGAVDAO.update(hashGAV);
+
+    ReportResource.flushReportChanges();
+
+    return hashGAV;
+  }
+
+  @DELETE
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Produces(MediaType.APPLICATION_JSON)
+  @Path("{hash}")
+  public void deleteHashGAV(@PathParam("hash") String hash) throws IOException {
+    HashGAV toDelete = hashGAVDAO.getByHash(hash);
+    if(toDelete == null){
+      throw new BadRequestException("Unable to find a claimed component with hash: " + hash );
+    }
+
+    hashGAVDAO.delete(toDelete);
+    ReportResource.flushReportChanges();
+  }
+
+  private void ensureUnknownComponent(final HashGAV hashGAV) throws IOException {
     ComponentSummary componentSummary = getComponentSummary(hashGAV.getCoordinates());
 
     if (componentSummary.isKnown()) {
       throw new BadRequestException("The '" + hashGAV.getGAVECString() + "' coordinates are already in use");
     }
-
-    hashGAV.setId(null);
-    new HashGAVDAO().insert(hashGAV);
-
-    ReportResource.flushReportChanges();
-
-    return hashGAV;
   }
 
   private ComponentSummary getComponentSummary(MavenCoordinates coordinates) throws IOException {

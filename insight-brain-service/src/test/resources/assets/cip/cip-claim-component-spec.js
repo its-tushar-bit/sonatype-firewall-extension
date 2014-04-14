@@ -28,6 +28,7 @@ describe('CIP Claim Component tests', function() {
   // setup our http backend to return what we want
   beforeEach(inject(function($rootScope, $controller, $httpBackend, $location) {
     dataTableItems = [];
+    current = 0;
     $http = $httpBackend;
     scope = $rootScope.$new();
     //simply so we don't have to worry about comparing urls against ../../../../.././ etc etc
@@ -80,25 +81,33 @@ describe('CIP Claim Component tests', function() {
       createTime: 100
     });
     scope.claimSubmit();
-    $http.flush();   
-    
-    var items = InsightDatatable.getActiveTable().dataView.getItems();
-    
-    expect(items.length).toEqual(2);
-    
-    function validateItem(item) {
-      expect(item.hash).toEqual('1');
-      expect(item.id).toEqual('1');
-      expect(item.identificationSource).toEqual('Manual');
-      expect(item.matchState).toEqual('exact');
-      expect(item.groupId).toEqual('testg');
-      expect(item.artifactId).toEqual('testa');
-      expect(item.version).toEqual('testv');
-      expect(item.createTime).toEqual(100);
-    }
-    
-    validateItem(items[0]);
-    validateItem(items[1]);
+    $http.flush();
+
+    confirmDataViewUpdated(2);
+  });
+
+  it('Can revoke a claim on a component', function(){
+    $http.expectDELETE(SpecUtil.toRegExp('../brain/rest/component/identified/1')).respond(204);
+    scope.unclaimSubmit();
+    $http.flush();
+  });
+
+  it('Can update a claim on a component', function(){
+    dataTableItems = [
+      {
+        hash: '1',
+        id: '1'
+      }
+    ];
+    $http.expectPUT(SpecUtil.toRegExp('../brain/rest/component/identified')).respond({
+      groupId: 'testg',
+      artifactId: 'testa',
+      version: 'testv',
+      createTime: 100
+    });
+    scope.claimUpdateSubmit();
+    $http.flush();
+    confirmDataViewUpdated(1);
   });
 
   // Functional tests for the clm datepicker since we do not have a functional tests for the cip components
@@ -122,4 +131,25 @@ describe('CIP Claim Component tests', function() {
       expect(scope.claimData.createTimeText).toBe('12/01/2012');
     });
   });
+
+  function confirmDataViewUpdated(number) {
+    var items = InsightDatatable.getActiveTable().dataView.getItems();
+
+    expect(items.length).toEqual(number);
+
+    function validateItem(item) {
+      expect(item.hash).toEqual('1');
+      expect(item.id).toEqual('1');
+      expect(item.identificationSource).toEqual('Manual');
+      expect(item.matchState).toEqual('exact');
+      expect(item.groupId).toEqual('testg');
+      expect(item.artifactId).toEqual('testa');
+      expect(item.version).toEqual('testv');
+      expect(item.createTime).toEqual(100);
+    }
+
+    for (var i = 0; i < number; i++) {
+      validateItem(items[i]);
+    }
+  }
 });

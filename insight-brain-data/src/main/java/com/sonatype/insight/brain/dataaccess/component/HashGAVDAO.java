@@ -62,11 +62,6 @@ public class HashGAVDAO
     super.insert(em, entity);
   }
 
-  @Override
-  public void update(EntityManager em, HashGAV entity) {
-    throw new UnsupportedOperationException();
-  }
-
   public HashGAV getByGAV(String groupId, String artifactId, String version) {
     EntityManager em = createEntityManager();
     try {

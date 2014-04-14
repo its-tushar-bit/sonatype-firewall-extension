@@ -21,9 +21,16 @@
       me.node.empty();
       container.appendTo(this.node);
       angular.module('componentProvider' + timestamp, []).run(function() {
-        Insight.setGav(angular.extend({
-          appId : applicationId
-        }, angular.copy(me.gav)));
+        Insight.setGav({
+          appId : applicationId,
+          groupId : me.gav.groupId,
+          artifactId : me.gav.artifactId,
+          version : me.gav.version,
+          filename : me.gav.matchState === 'unknown' ? me.gav.coordinates : null,
+          hash : me.gav.hash,
+          matchState : me.gav.matchState,
+          proprietary : me.gav.proprietary
+        });
       });
       angular.bootstrap(container[0], ['CIP', 'componentProvider' + timestamp, 'HttpInterceptors',
           'UnauthenticatedResponseHttpInterceptor']);

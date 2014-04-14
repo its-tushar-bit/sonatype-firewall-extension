@@ -118,10 +118,10 @@ form, form .control-group {
 	margin-top : 10px;
 }
 .alert-centered {
-	margin: 10px auto;
+	margin: 10px auto !important;
 	text-align: center;
 	vertical-align: middle;
-	width: 50%;
+	width: 50% !important;
 }
 .application-header {
 	background : #f5f5f5;

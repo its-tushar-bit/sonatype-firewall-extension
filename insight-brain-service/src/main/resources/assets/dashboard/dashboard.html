@@ -1,7 +1,40 @@
+<script type='text/ng-template' id='risk-table'>
+  <h4>{{ title }}</h4>
+  <table class='table' id='{{ riskId }}'>
+    <thead>
+    <tr>
+      <th colspan='2' class='clm-bar-text-offset'>RISK</th>
+      <th>POLICY</th>
+      <th>APPLICATION</th>
+      <th>COMPONENT</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr ng-repeat='risk in risks'>
+      <td class='clm-bar'
+          ng-class='{ critical : risk.threatLevel >= 8, severe : risk.threatLevel >= 4 && risk.threatLevel < 8,
+             moderate : risk.threatLevel >= 1 && risk.threatLevel < 4, none : risk.threatLevel == 1,
+             ignore : risk.threatLevel == 0 }'></td>
+      <td>{{risk.threatLevel}}</td>
+      <td>{{risk.policyName}}</td>
+      <td>{{risk.applicationName}}</td>
+      <td ng-if='risk.groupId'>{{risk.groupId}}<span class='wrap-force-break'> : </span>{{risk.artifactId}}
+        <span class='wrap-force-break'> : </span>{{risk.version}}
+      </td>
+      <td ng-if='!risk.groupId'><em>Unknown</em></td>
+    </tr>
+    <tr ng-show='risks.length === 0'>
+      <td colspan='5' class='clm-bar-text-offset'>
+        <em id='no-data-{{ riskId }}'>No data available given the applied filters and available permissions.</em>
+      </td>
+    </tr>
+    </tbody>
+  </table>
+</script>
 <div class='container-fluid dashboard-content'>
   <div class='row-fluid'>
     <div class='span11'>
-      <h1>Dashboard</h1>
+      <h1 class="left-align-h1">Dashboard</h1>
     </div>
     <div class='span1 bottom-align-h1'>
       <a ng-click='toggleCollapse()'>Filters&nbsp;<i class='glyphicons-sonatype filter'></i></a>
@@ -50,65 +83,10 @@
     </div>
   </div>
   <div load-error='error' reload='doLoad()'></div>
-    <div class='row-fluid dashboard-charts' ng-hide='error'>
-      <div class='span6'>
-        <h4>Newest Risk</h4>
-        <table class='table'>
-          <thead>
-            <tr>
-              <th colspan='2'>RISK</th>
-              <th>POLICY</th>
-              <th>APPLICATION</th>
-              <th>COMPONENT</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr ng-repeat='risk in newestRisks'>
-              <td class='clm-bar'
-                  ng-class='{ critical : risk.threatLevel >= 8, severe : risk.threatLevel >= 4 && risk.threatLevel < 8,
-                    moderate : risk.threatLevel >= 1 && risk.threatLevel < 4, none : risk.threatLevel == 1,
-                    ignore : risk.threatLevel == 0 }'></td>
-              <td>{{risk.threatLevel}}</td>
-              <td>{{risk.policyName}}</td>
-              <td>{{risk.applicationName}}</td>
-              <td ng-if='risk.groupId'>{{risk.groupId}}<span class="wrap-force-break"> : </span>{{risk.artifactId}}<span class="wrap-force-break"> : </span>{{risk.version}}</td>
-              <td ng-if='!risk.groupId'><em>Unknown</em></td>
-            </tr>
-            <tr ng-if='newestRisks.length === 0'>
-              <td colspan='5'><em id='no-data-newest'>No data available given the applied filters and available permissions.</em></td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-      <div class='span6'>
-        <h4>Highest Risk</h4>
-        <table class='table'>
-          <thead>
-          <tr>
-            <th colspan='2'>RISK</th>
-            <th>POLICY</th>
-            <th>APPLICATION</th>
-            <th>COMPONENT</th>
-          </tr>
-          </thead>
-          <tbody>
-          <tr ng-repeat='risk in highestRisks | limitTo: maxResults'>
-            <td class='clm-bar'
-                ng-class='{ critical : risk.threatLevel >= 8, severe : risk.threatLevel >= 4 && risk.threatLevel < 8,
-                  moderate : risk.threatLevel >= 1 && risk.threatLevel < 4, none : risk.threatLevel == 1,
-                  ignore : risk.threatLevel == 0 }'></td>
-            <td>{{risk.threatLevel}}</td>
-            <td>{{risk.policyName}}</td>
-            <td>{{risk.applicationName}}</td>
-            <td ng-if='risk.groupId'>{{risk.groupId}}<span class="wrap-force-break"> : </span>{{risk.artifactId}}<span class="wrap-force-break"> : </span>{{risk.version}}</td>
-            <td ng-if='!risk.groupId'><em>Unknown</em></td>
-          </tr>
-          <tr ng-if='highestRisks.length === 0'>
-            <td colspan='5'><em id='no-data-highest'>No data available given the applied filters and available permissions.</em></td>
-          </tr>
-          </tbody>
-        </table>
-      </div>
+  <div class='row-fluid dashboard-charts' ng-hide='error'>
+    <div class="span12">
+      <div class='span6' risk-table risks='newestRisks' title='Newest Risk' risk-id='newest-risk'></div>
+      <div class='span6' risk-table risks='highestRisks' title='Highest Risk' risk-id='highest-risk'></div></div>
     </div>
   </div>
 </div>

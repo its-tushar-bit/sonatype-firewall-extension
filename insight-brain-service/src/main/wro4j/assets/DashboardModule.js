@@ -108,4 +108,15 @@
       }, 10);
     };
   }]);
+
+  dashboardModule.directive('riskTable', [function() {
+    return {
+      scope: {
+        risks: '=',
+        title: '@',
+        riskId: '@'
+      },
+      templateUrl: 'risk-table'
+    };
+  }]);
 }());

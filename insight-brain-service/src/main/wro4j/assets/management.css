@@ -139,7 +139,7 @@ a:focus {
 	padding: 10px 25px 10px 0;
 }
 .container-fluid {
-	padding: 0px;
+  padding: 0px;
 }
 .dashboard-navigation, .dashboard-menus, .dashboard-user {
   display: inline;

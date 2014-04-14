@@ -35,8 +35,6 @@ import com.sonatype.insight.brain.service.InsightWork;
 
 import com.sun.jersey.core.header.FormDataContentDisposition;
 import com.sun.jersey.multipart.FormDataParam;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 @Named
 @Path(OrganizationResource.SERVICE_PATH)
@@ -48,8 +46,6 @@ public class OrganizationResource
   public static final String GET_ICON_PATH = ICON_PATH + "/{organizationId}";
 
   public static final String DELETE_ORGANIZATION_PATH = "{organizationId}";
-
-  private static final Logger log = LoggerFactory.getLogger(OrganizationResource.class);
 
   private final OrganizationService organizationService;
 

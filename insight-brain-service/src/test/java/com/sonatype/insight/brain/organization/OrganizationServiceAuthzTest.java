@@ -15,10 +15,10 @@ import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 import org.apache.shiro.authz.UnauthenticatedException;
 import org.junit.Test;
 
-import static junit.framework.Assert.fail;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.core.Is.is;
+import static org.junit.Assert.fail;
 
 public class OrganizationServiceAuthzTest
     extends AbstractServiceAuthzTest
@@ -63,7 +63,7 @@ public class OrganizationServiceAuthzTest
 
     try {
       organizationService.addOrganization(orgToAdd);
-      fail();
+      fail("Expected UnauthenticatedException");
     }
     catch (UnauthenticatedException ignore) {
       // Properly thrown exception
@@ -91,7 +91,7 @@ public class OrganizationServiceAuthzTest
 
     try {
       organizationService.addOrganization(orgToUpdate);
-      fail();
+      fail("Expected UnauthenticatedException");
     }
     catch (UnauthenticatedException ignore) {
       // Properly thrown exception
@@ -109,7 +109,7 @@ public class OrganizationServiceAuthzTest
   public void testDeleteOrganization_Unauthenticated() throws Exception {
     try {
       organizationService.deleteOrganization(org.getId());
-      fail();
+      fail("Expected UnauthenticatedException");
     }
     catch (UnauthenticatedException ignore) {
       // Properly thrown exception

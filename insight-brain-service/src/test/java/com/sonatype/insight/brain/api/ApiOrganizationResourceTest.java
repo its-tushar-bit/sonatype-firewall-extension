@@ -16,7 +16,6 @@ import com.sonatype.insight.brain.api.dto.ApiRoleMemberMappingDTO;
 import com.sonatype.insight.brain.api.dto.ApiRoleMemberMappingListDTO;
 import com.sonatype.insight.brain.configuration.ldap.LdapServer;
 import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
-import com.sonatype.insight.brain.dataaccess.security.UserDAO;
 import com.sonatype.insight.brain.ldap.TestLdapServer;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.security.MemberType;
@@ -26,7 +25,6 @@ import com.sonatype.insight.brain.service.AbstractResourceTest;
 
 import com.ning.http.client.Response;
 import com.yammer.dropwizard.testing.JsonHelpers;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -43,8 +41,6 @@ public class ApiOrganizationResourceTest
 {
   private RoleDAO roleDAO = new RoleDAO();
 
-  private UserDAO userDAO = new UserDAO();
-
   private Organization organization;
 
   private User userA;
@@ -57,20 +53,8 @@ public class ApiOrganizationResourceTest
   @Before
   public void setUp() throws Exception {
     organization = tempEntity.newOrganization("test-org");
-    userA = new User("user-a", "secret", "John", "Doe", "void@void.com");
-    userDAO.insert(userA);
-    userB = new User("user-b", "secret", "Jane", "Doe", "void@void.com");
-    userDAO.insert(userB);
-  }
-
-  @After
-  public void tearDown() throws Exception {
-    if (userA != null) {
-      userDAO.delete(userA);
-    }
-    if (userB != null) {
-      userDAO.delete(userB);
-    }
+    userA = tempEntity.newUser("user-a", "John", "Doe", "void@void.com");
+    userB = tempEntity.newUser("user-b", "Jane", "Doe", "void@void.com");
   }
 
   @Test

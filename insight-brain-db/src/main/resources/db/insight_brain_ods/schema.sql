@@ -290,6 +290,7 @@ CREATE INDEX policy_evaluation_time_idx ON policy_evaluation(time);
 CREATE TABLE policy_violation (
   policy_violation_id varchar(50) NOT NULL,
   policy_evaluation_id varchar(50) NOT NULL,
+  time datetime NOT NULL,
   policy_id varchar(50) NOT NULL,
   policy_name varchar(60) NOT NULL, -- the policy name as it was when the policy violation was generated
   threat_level smallint(2) NOT NULL,
@@ -302,12 +303,12 @@ CREATE TABLE policy_violation (
   CONSTRAINT policy_violation_pk PRIMARY KEY (policy_violation_id),
   CONSTRAINT policy_violation_evaluation_fk FOREIGN KEY (policy_evaluation_id) REFERENCES policy_evaluation(policy_evaluation_id)
 );
+CREATE INDEX policy_violation_time_idx ON policy_violation(time);
 
 CREATE TABLE newest_policy_violation (
   policy_violation_id varchar(50) NOT NULL,
   application_id varchar(50) NOT NULL,
   stage_type_id varchar(30) NOT NULL,
-  time datetime NOT NULL,
   CONSTRAINT newest_policy_violation_pk PRIMARY KEY (policy_violation_id),
   CONSTRAINT newest_policy_violation_violation_fk FOREIGN KEY (policy_violation_id) REFERENCES policy_violation(policy_violation_id),
   CONSTRAINT newest_policy_violation_application_fk FOREIGN KEY (application_id) REFERENCES application(application_id)

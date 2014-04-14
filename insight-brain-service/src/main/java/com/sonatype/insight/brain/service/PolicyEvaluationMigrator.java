@@ -231,7 +231,7 @@ public class PolicyEvaluationMigrator
     for (PolicyViolation policyViolation : newestPolicyViolations) {
       PolicyEvaluation policyEvaluation = policyEvaluationsById.get(policyViolation.getPolicyEvaluationId());
       NewestPolicyViolation newestPolicyViolation = new NewestPolicyViolation(policyViolation.getId(),
-          policyEvaluation.getApplicationId(), policyEvaluation.getStageTypeId(), policyEvaluation.getTime());
+          policyEvaluation.getApplicationId(), policyEvaluation.getStageTypeId());
       newestPolicyViolationDAO.insert(em, newestPolicyViolation);
     }
   }

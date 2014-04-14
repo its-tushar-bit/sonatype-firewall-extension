@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.dashboard;
 
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 
 import com.sonatype.insight.brain.AuthedRestAccess;
@@ -79,7 +78,7 @@ public class DashboardResourceTest
 
     createPolicyViolation(app, buildPolicy, BuildStageType.ID);
     PolicyViolation violation = createPolicyViolation(app, buildPolicy, BuildStageType.ID);
-    tempEntity.newNewestPolicyViolation(violation.getId(), app.getId(), BuildStageType.ID, new Date());
+    tempEntity.newNewestPolicyViolation(violation.getId(), app.getId(), BuildStageType.ID);
 
     Response response = AuthedRestAccess.get(getRestUrl(DashboardResource.SERVICE_PATH + '/'
         + DashboardResource.GET_POLICY_VIOLATIONS_PATH)
@@ -156,7 +155,7 @@ public class DashboardResourceTest
     createPolicyViolation(app1, anotherBuildPolicy, BuildStageType.ID);
     createPolicyViolation(app2, app2BuildPolicy, BuildStageType.ID);
     PolicyViolation app2Violation = createPolicyViolation(app2, app2BuildPolicy, BuildStageType.ID);
-    tempEntity.newNewestPolicyViolation(app2Violation.getId(), app2.getId(), BuildStageType.ID, new Date());
+    tempEntity.newNewestPolicyViolation(app2Violation.getId(), app2.getId(), BuildStageType.ID);
 
     Response response = AuthedRestAccess.get(getRestUrl(DashboardResource.SERVICE_PATH + '/'
         + DashboardResource.GET_POLICY_VIOLATIONS_PATH)

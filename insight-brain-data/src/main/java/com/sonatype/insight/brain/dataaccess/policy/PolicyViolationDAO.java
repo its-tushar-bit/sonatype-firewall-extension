@@ -11,6 +11,7 @@ import javax.persistence.EntityManager;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.model.policy.NewestPolicyViolation;
+import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 
 import org.joda.time.DateTime;
@@ -76,7 +77,7 @@ public class PolicyViolationDAO
         " FROM PolicyViolation policyViolation, NewestPolicyViolation newestPolicyViolation" + //
         " WHERE policyViolation.id=newestPolicyViolation.id AND newestPolicyViolation.applicationId=?1" + //
         " AND newestPolicyViolation.stageTypeId=?2" + //
-        " AND newestPolicyViolation.time>?3" + //
+        " AND policyViolation.time>?3" + //
         " ORDER BY policyViolation.policyId, policyViolation.groupId, policyViolation.artifactId, policyViolation.version, policyViolation.hash";
     DateTime now = new DateTime();
     return getList(sQuery, appId, stageTypeId, now.minusDays(lastNDays).toDate());
@@ -97,5 +98,12 @@ public class PolicyViolationDAO
     }
 
     super.delete(em, entity);
+  }
+
+  @Override
+  public void insert(EntityManager em, PolicyViolation entity) {
+    PolicyEvaluation policyEvaluation = new PolicyEvaluationDAO().getById(em, entity.getPolicyEvaluationId());
+    entity.setTime(policyEvaluation.getTime());
+    super.insert(em, entity);
   }
 }

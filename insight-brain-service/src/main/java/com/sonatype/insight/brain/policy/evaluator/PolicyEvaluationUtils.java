@@ -186,7 +186,7 @@ public class PolicyEvaluationUtils
           // Add new "newest" policy violations
           for (PolicyViolation appearedPolicyViolation : policyViolationDiff.getAppeared()) {
             NewestPolicyViolation newestPolicyViolation = new NewestPolicyViolation(appearedPolicyViolation.getId(),
-                appId, stage.getStageTypeId(), policyEvaluation.getTime());
+                appId, stage.getStageTypeId());
             newestPolicyViolationDAO.insert(em, newestPolicyViolation);
           }
         }

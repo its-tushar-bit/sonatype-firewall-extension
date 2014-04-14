@@ -584,10 +584,10 @@ public class TemporaryEntity
   }
 
   public NewestPolicyViolation newNewestPolicyViolation(String policyViolationId, String applicationId,
-      String stageTypeId, Date time)
+      String stageTypeId)
   {
     NewestPolicyViolation newestPolicyViolation = new NewestPolicyViolation(policyViolationId, applicationId,
-        stageTypeId, time);
+        stageTypeId);
     newestPolicyViolationDAO.insert(newestPolicyViolation);
     return newestPolicyViolation;
   }

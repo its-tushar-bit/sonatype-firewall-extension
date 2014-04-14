@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.dashboard;
 
-import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -76,9 +75,9 @@ public class DashboardServiceTest
     orgPolicyViolation = tempEntity.newPolicyViolation(app1PolicyEvaluation.getId(), orgPolicy);
     app1PolicyViolation = tempEntity.newPolicyViolation(app1PolicyEvaluation.getId(), app1Policy);
     app2PolicyViolation = tempEntity.newPolicyViolation(app2PolicyEvaluation.getId(), orgPolicy);
-    tempEntity.newNewestPolicyViolation(orgPolicyViolation.getId(), app1.getId(), BuildStageType.ID, new Date());
-    tempEntity.newNewestPolicyViolation(app1PolicyViolation.getId(), app1.getId(), BuildStageType.ID, new Date());
-    tempEntity.newNewestPolicyViolation(app2PolicyViolation.getId(), app2.getId(), BuildStageType.ID, new Date());
+    tempEntity.newNewestPolicyViolation(orgPolicyViolation.getId(), app1.getId(), BuildStageType.ID);
+    tempEntity.newNewestPolicyViolation(app1PolicyViolation.getId(), app1.getId(), BuildStageType.ID);
+    tempEntity.newNewestPolicyViolation(app2PolicyViolation.getId(), app2.getId(), BuildStageType.ID);
     while (System.currentTimeMillis() <= start) {
       // just spinning until next policy eval time is guaranteed to be greater than time for the evals created above
     }

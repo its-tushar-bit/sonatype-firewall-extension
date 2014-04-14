@@ -14,10 +14,10 @@ import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
-public class PolicyViolationDTOTestUtils
+class PolicyViolationDTOTestUtils
 {
 
-  public static void assertPolicyViolationDTO(List<PolicyViolationDTO> dtos, PolicyViolation violation,
+  static void assertPolicyViolationDTO(List<PolicyViolationDTO> dtos, PolicyViolation violation,
       Application application, Policy policy)
   {
     for (PolicyViolationDTO dto : dtos) {
@@ -34,6 +34,7 @@ public class PolicyViolationDTOTestUtils
         assertEquals(dto.threatCategory, violation.getThreatCategory());
         assertEquals(dto.threatLevel, violation.getThreatLevel());
         assertEquals(dto.version, violation.getVersion());
+        assertEquals(dto.time, violation.getTime().getTime());
         return;
       }
     }

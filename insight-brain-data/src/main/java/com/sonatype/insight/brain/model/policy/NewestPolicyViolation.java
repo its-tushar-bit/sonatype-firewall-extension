@@ -5,8 +5,6 @@
  */
 package com.sonatype.insight.brain.model.policy;
 
-import java.util.Date;
-
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -15,7 +13,7 @@ import javax.persistence.Table;
 import com.sonatype.insight.model.HasStringId;
 
 /**
- * The first occurrence (in time) of a policy violation which still exists, in the scope of an application and stage.
+ * The first occurrence (in time) of a policy violation which still exists, in the scope of an application.
  * 
  * @since 1.11
  */
@@ -34,17 +32,13 @@ public class NewestPolicyViolation
   @Column(name = "stage_type_id")
   private String stageTypeId;
 
-  @Column(name = "time")
-  private Date time;
-
   public NewestPolicyViolation() {
   }
 
-  public NewestPolicyViolation(String policyViolationId, String applicationId, String stageTypeId, Date time) {
+  public NewestPolicyViolation(String policyViolationId, String applicationId, String stageTypeId) {
     id = policyViolationId;
     this.applicationId = applicationId;
     this.stageTypeId = stageTypeId;
-    this.time = time;
   }
 
   @Override
@@ -71,13 +65,5 @@ public class NewestPolicyViolation
 
   public void setStageTypeId(String stageTypeId) {
     this.stageTypeId = stageTypeId;
-  }
-
-  public Date getTime() {
-    return time;
-  }
-
-  public void setTime(Date time) {
-    this.time = time;
   }
 }

@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.model.policy;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 
 import javax.persistence.Column;
@@ -36,6 +37,9 @@ public class PolicyViolation
 
   @Column(name = "policy_evaluation_id")
   private String policyEvaluationId;
+
+  @Column(name = "time")
+  private Date time;
 
   @Column(name = "policy_id")
   private String policyId;
@@ -215,5 +219,13 @@ public class PolicyViolation
       }
     }
     return constraintFacts;
+  }
+
+  public Date getTime() {
+    return time;
+  }
+
+  public void setTime(Date time) {
+    this.time = time;
   }
 }

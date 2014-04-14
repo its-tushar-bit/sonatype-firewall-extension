@@ -27,16 +27,15 @@ class DashboardSpec
 
     def policy = temporaryEntity.newPolicy(org.id, 'DashboardSpecPolicy')
 
-    def now = new Date()
     def firstPolicyEvaluation = temporaryEntity.newPolicyEvaluation(firstApp.id, BuildStageType.ID,
-        'DashboardSpecFistEvaluation', now)
+        'DashboardSpecFistEvaluation')
     def firstViolation = temporaryEntity.newPolicyViolation(firstPolicyEvaluation.id, policy, 5,
         PolicyThreatCategory.LICENSE, "Group1", "Artifact1", "Version1")
     temporaryEntity.newNewestPolicyViolation(firstViolation.id, firstPolicyEvaluation.applicationId,
-        firstPolicyEvaluation.stageTypeId, now)
+        firstPolicyEvaluation.stageTypeId)
 
     def secondPolicyEvaluation = temporaryEntity.newPolicyEvaluation(secondApp.id, BuildStageType.ID,
-        'DashboardSpecSecondEvaluation', now)
+        'DashboardSpecSecondEvaluation')
     temporaryEntity.newPolicyViolation(secondPolicyEvaluation.id, policy, 10,
         PolicyThreatCategory.QUALITY, null, null, null)
   }

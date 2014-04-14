@@ -5,8 +5,6 @@
  */
 package com.sonatype.insight.brain.dataaccess.policy;
 
-import java.util.Date;
-
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.model.policy.NewestPolicyViolation;
 import com.sonatype.insight.brain.model.policy.Policy;
@@ -36,15 +34,14 @@ public class NewestPolicyViolationDAOTest
 
     // Create
     NewestPolicyViolation newestPolicyViolation = new NewestPolicyViolation(policyViolation.getId(), applicationId,
-        ReleaseStageType.ID, policyEvaluation.getTime());
+        ReleaseStageType.ID);
     dao.insert(newestPolicyViolation);
     assertThat(newestPolicyViolation.getId(), is(policyViolation.getId()));
 
     // Read
     newestPolicyViolation = dao.getById(newestPolicyViolation.getId());
     assertThat(newestPolicyViolation, is(notNullValue()));
-    assertNewestPolicyViolation(policyViolation.getId(), applicationId, ReleaseStageType.ID,
-        policyEvaluation.getTime(), newestPolicyViolation);
+    assertNewestPolicyViolation(policyViolation.getId(), applicationId, ReleaseStageType.ID, newestPolicyViolation);
 
     // Update is not allowed
     try {
@@ -62,12 +59,11 @@ public class NewestPolicyViolationDAOTest
     assertThat(newestPolicyViolation, is(nullValue()));
   }
 
-  private void assertNewestPolicyViolation(String id, String applicationId, String stageTypeId, Date time,
+  private void assertNewestPolicyViolation(String id, String applicationId, String stageTypeId,
       NewestPolicyViolation actual)
   {
     assertThat(actual.getId(), is(id));
     assertThat(actual.getApplicationId(), is(applicationId));
     assertThat(actual.getStageTypeId(), is(stageTypeId));
-    assertThat(actual.getTime(), is(time));
   }
 }

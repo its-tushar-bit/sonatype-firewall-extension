@@ -35,4 +35,6 @@ public class PolicyViolationDTO
   public int threatLevel;
 
   public String version;
+
+  public long time;
 }

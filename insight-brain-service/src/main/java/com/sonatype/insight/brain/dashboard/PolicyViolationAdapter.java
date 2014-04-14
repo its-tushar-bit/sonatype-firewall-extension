@@ -49,6 +49,7 @@ public class PolicyViolationAdapter
     dto.threatCategory = violation.getThreatCategory();
     dto.threatLevel = violation.getThreatLevel();
     dto.version = violation.getVersion();
+    dto.time = violation.getTime().getTime();
     return dto;
   }
 }

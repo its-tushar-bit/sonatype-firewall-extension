@@ -178,7 +178,6 @@ public class PolicyEvaluationMigratorTest
     NewestPolicyViolation newestPolicyViolation = newestPolicyViolationDAO.getById(newestPolicyViolations.get(0)
         .getId());
     assertThat(newestPolicyViolation.getStageTypeId(), is(Stage.ID_STAGE_RELEASE));
-    assertThat(newestPolicyViolation.getTime(), is(stageReleaseMonitoringEvaluation.getTime()));
 
     //second app
     List<PolicyEvaluation> app2BuildEvaluations = policyEvaluationDAO.getAllByApplicationIdAndStageId(app2.getId(), Stage.ID_RELEASE);
@@ -203,10 +202,8 @@ public class PolicyEvaluationMigratorTest
     assertUnknownComponent(policyEvaluation.getId(), newestPolicyViolations.get(1));
     newestPolicyViolation = newestPolicyViolationDAO.getById(newestPolicyViolations.get(0).getId());
     assertThat(newestPolicyViolation.getStageTypeId(), is(Stage.ID_RELEASE));
-    assertThat(newestPolicyViolation.getTime(), is(policyEvaluation.getTime()));
     newestPolicyViolation = newestPolicyViolationDAO.getById(newestPolicyViolations.get(1).getId());
     assertThat(newestPolicyViolation.getStageTypeId(), is(Stage.ID_RELEASE));
-    assertThat(newestPolicyViolation.getTime(), is(policyEvaluation.getTime()));
   }
 
   @Test

@@ -837,7 +837,6 @@ public class PolicyEvaluateResourceTest
     NewestPolicyViolation newestPolicyViolationUnchanged2 = newestPolicyViolationDAO.getById(policyViolations2.get(1)
         .getId());
     assertThat(newestPolicyViolationUnchanged2.getId(), is(newestPolicyViolationUnchanged1.getId()));
-    assertThat(newestPolicyViolationUnchanged2.getTime(), is(newestPolicyViolationUnchanged1.getTime()));
   }
 
   @Test

@@ -110,10 +110,12 @@ public final class Report
   private static void embedApplicationPublicId(Application application, File reportFile) throws IOException {
     String filename = "index.html";
     ReportEntry reportEntry = extractEntry(reportFile, filename);
-    String indexHtmlContent = new String(reportEntry.buf, Charset.forName("UTF-8"));
-    indexHtmlContent = indexHtmlContent.replace("applicationId = ''", "applicationId = '" + application.getPublicId()
-        + "'");
-    cache(getCacheFile(reportFile, filename), indexHtmlContent.getBytes("UTF-8"));
+    String originalIndexHtmlContent = new String(reportEntry.buf, Charset.forName("UTF-8"));
+    String augmentedIndexHtmlContent = originalIndexHtmlContent.replace("applicationId = ''", "applicationId = '"
+        + application.getPublicId() + "'");
+    if (!augmentedIndexHtmlContent.equals(originalIndexHtmlContent)) {
+      cache(getCacheFile(reportFile, filename), augmentedIndexHtmlContent.getBytes("UTF-8"));
+    }
   }
 
   public static int[] applyChanges(final Application application, final File reportFile, final File auditDir)

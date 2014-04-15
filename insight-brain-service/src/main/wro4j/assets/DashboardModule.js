@@ -23,6 +23,9 @@
     $scope.queuedPolicyThreatCategories = [];
     $scope.maxResults = 20;
 
+    $scope.noDataHighestRiskMessage = 'No data available given the applied filters and available permissions.';
+    $scope.noDataNewestRiskMessage = 'No data for the last 30 days available given the applied filters and available permissions.';
+
     $scope.doLoad = function() {
       $scope.error = null;
       var appliedPolicyThreatCategoryParam =
@@ -114,7 +117,8 @@
       scope: {
         risks: '=',
         title: '@',
-        riskId: '@'
+        riskId: '@',
+        emptyMessage: '='
       },
       templateUrl: 'risk-table',
       controller: ['$scope', function($scope) {

@@ -32,7 +32,7 @@
     </tr>
     <tr ng-show='risks.length === 0'>
       <td colspan='5' class='clm-bar-text-offset'>
-        <em id='no-data-{{ riskId }}'>No data available given the applied filters and available permissions.</em>
+        <em id='no-data-{{ riskId }}'>{{ emptyMessage }}</em>
       </td>
     </tr>
     </tbody>
@@ -92,8 +92,8 @@
   <div load-error='error' reload='doLoad()'></div>
   <div class='row-fluid dashboard-charts' ng-hide='error'>
     <div class="span12">
-      <div class='span6' risk-table risks='newestRisks' title='Newest Risk' risk-id='newest-risk'></div>
-      <div class='span6' risk-table risks='highestRisks' title='Highest Risk' risk-id='highest-risk'></div></div>
+      <div class='span6' risk-table risks='newestRisks' title='Newest Risk' risk-id='newest-risk' empty-message="noDataNewestRiskMessage"></div>
+      <div class='span6' risk-table risks='highestRisks' title='Highest Risk' risk-id='highest-risk' empty-message="noDataHighestRiskMessage"></div></div>
     </div>
   </div>
 </div>

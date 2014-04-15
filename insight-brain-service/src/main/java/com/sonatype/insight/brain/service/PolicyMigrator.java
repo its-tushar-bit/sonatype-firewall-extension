@@ -7,14 +7,11 @@ package com.sonatype.insight.brain.service;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
-import java.util.Map;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.persistence.EntityManager;
 
-import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
@@ -43,14 +40,15 @@ public class PolicyMigrator
   private static final Logger log = LoggerFactory.getLogger(PolicyMigrator.class);
 
   private final InsightWork insightWork;
+  
+  private final ProcureRemovalMigrator procureMigrator;
 
   static final String MARKER_FILE_NAME = "policies-migrated";
-  
-  public static final String ID_PROCURE = "procure";
 
   @Inject
-  public PolicyMigrator(InsightWork insightWork) {
+  public PolicyMigrator(InsightWork insightWork, ProcureRemovalMigrator procureMigrator) {
     this.insightWork = insightWork;
+    this.procureMigrator = procureMigrator;
   }
 
   void migrate() throws IOException {
@@ -120,7 +118,7 @@ public class PolicyMigrator
               Policy policy = JsonUtils.asPojo(policyJsonNode, Policy.class);
               policy.setOwnerId(ownerId);
               // we need to migrate the procure items out now, otherwise we will be inserting invalid data into the database
-              migratePolicyActions(policy);
+              procureMigrator.pruneProcurement(policy);
               policyDAO.insert(em, policy);
             }
             log.info("Migrated {} policies for application or organization {} (id {}).", policyJsonData.size(),
@@ -159,14 +157,6 @@ public class PolicyMigrator
         cause = cause.getCause();
       }
       throw new RuntimeException(e);
-    }
-  }
-  
-  private void migratePolicyActions(Policy policy) {
-    log.debug("Checking policy {}", policy.getName());
-    Map<String, List<Action>> actions = policy.getActions();
-    if (actions != null && actions.remove(ID_PROCURE) != null) {
-      log.debug("Removing procure action");
     }
   }
 }

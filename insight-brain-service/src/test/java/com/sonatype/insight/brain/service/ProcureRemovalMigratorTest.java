@@ -8,12 +8,18 @@ package com.sonatype.insight.brain.service;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.util.Collections;
 import java.util.List;
 
+import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyInternal;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyInternalDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyMonitoring;
 
 import org.junit.Before;
@@ -22,6 +28,7 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
 public class ProcureRemovalMigratorTest
 {
@@ -41,6 +48,8 @@ public class ProcureRemovalMigratorTest
 
   private int x = 0;
 
+  private static PolicyInternalDAO policyInternalDAO = new PolicyInternalDAO();
+
   @Before
   public void setup() throws IOException {
     sonatypeWork = temporaryFolder.newFolder();
@@ -49,6 +58,24 @@ public class ProcureRemovalMigratorTest
     insightConfig.setSonatypeWork(tempFolderPath);
     insightWork = new InsightWork(insightConfig);
     procureRemovalMigrator = new ProcureRemovalMigrator(insightWork);
+  }
+
+  @Test
+  public void testPolicyActionsRemoved() throws Exception {
+    String appId = createApplication();
+    PolicyDAO dao = new PolicyDAO();
+    Policy policy = tempEntity.newPolicy(appId, "testPolicyMonitorsRemoved");
+    policy.setActions(ProcureRemovalMigrator.ID_PROCURE, Collections.<Action> emptyList());
+    policy.setActions(Stage.ID_BUILD, Collections.singletonList(new Action(Action.ID_WARN)));
+
+    policyInternalDAO.update(PolicyInternal.fromPolicy(policy));
+
+    procureRemovalMigrator.migrate();
+
+    policy = dao.getById(policy.getId());
+
+    assertNull(policy.getActions(ProcureRemovalMigrator.ID_PROCURE));
+    assertEquals(1, policy.getActions(Stage.ID_BUILD).size());
   }
 
   @Test

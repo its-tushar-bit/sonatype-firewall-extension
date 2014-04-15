@@ -66,7 +66,7 @@ public class PolicyMigratorTest
     new H2DatabaseMigrator().runScript(OperationalDataStoreProvider.getDataSource(),
         "/PolicyMigratorTest/remove_foreign_keys.sql");
 
-    PolicyMigrator migrator = new PolicyMigrator(insightWork);
+    PolicyMigrator migrator = new PolicyMigrator(insightWork, new ProcureRemovalMigrator(insightWork));
     migrator.migrate();
 
     // Assert the migrated policies
@@ -118,7 +118,7 @@ public class PolicyMigratorTest
     assertFalse(policyDir.exists());
     File markerFile = new File(insightWork.getWorkDir(), PolicyMigrator.MARKER_FILE_NAME);
 
-    PolicyMigrator migrator = new PolicyMigrator(insightWork);
+    PolicyMigrator migrator = new PolicyMigrator(insightWork, new ProcureRemovalMigrator(insightWork));
     migrator.migrate();
 
     assertTrue(markerFile.exists());
@@ -134,7 +134,7 @@ public class PolicyMigratorTest
     File markerFile = new File(insightWork.getWorkDir(), PolicyMigrator.MARKER_FILE_NAME);
     assertFalse(markerFile.exists());
 
-    PolicyMigrator migrator = new PolicyMigrator(insightWork);
+    PolicyMigrator migrator = new PolicyMigrator(insightWork, new ProcureRemovalMigrator(insightWork));
     migrator.migrate();
 
     assertTrue(markerFile.exists());
@@ -150,7 +150,7 @@ public class PolicyMigratorTest
     File markerFile = new File(insightWork.getWorkDir(), PolicyMigrator.MARKER_FILE_NAME);
     assertFalse(markerFile.exists());
 
-    PolicyMigrator migrator = new PolicyMigrator(insightWork);
+    PolicyMigrator migrator = new PolicyMigrator(insightWork, new ProcureRemovalMigrator(insightWork));
     migrator.migrate();
 
     assertTrue(markerFile.exists());
@@ -174,7 +174,7 @@ public class PolicyMigratorTest
     new H2DatabaseMigrator().runScript(OperationalDataStoreProvider.getDataSource(),
         "/PolicyMigratorTest/remove_foreign_keys.sql");
 
-    PolicyMigrator migrator = new PolicyMigrator(insightWork);
+    PolicyMigrator migrator = new PolicyMigrator(insightWork, new ProcureRemovalMigrator(insightWork));
     migrator.migrate();
 
     // Assert the migrated policies

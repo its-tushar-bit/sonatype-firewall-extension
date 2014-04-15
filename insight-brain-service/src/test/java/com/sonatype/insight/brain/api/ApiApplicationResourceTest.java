@@ -73,10 +73,10 @@ public class ApiApplicationResourceTest
     final String applicationName = "test-application-name";
 
     final ApiApplicationDTO applicationDTO = new ApiApplicationDTO();
-    applicationDTO.setPublicId(applicationPublicId);
-    applicationDTO.setName(applicationName);
-    applicationDTO.setOrganizationId(organization.getId());
-    applicationDTO.setContactUserName(userA.getUsername());
+    applicationDTO.publicId = applicationPublicId;
+    applicationDTO.name = applicationName;
+    applicationDTO.organizationId = organization.getId();
+    applicationDTO.contactUserName = userA.getUsername();
 
     // Test the post
     Response response = AuthedRestAccess.post(getServiceURL(), JsonHelpers.asJson(applicationDTO));
@@ -85,16 +85,16 @@ public class ApiApplicationResourceTest
     assertApplication(applicationResult, applicationDTO);
 
     // Test the get
-    response = AuthedRestAccess.get(getServiceURL() + "/" + applicationResult.getId());
+    response = AuthedRestAccess.get(getServiceURL() + "/" + applicationResult.id);
     assertResponseStatus(200, response);
     applicationResult = JsonHelpers.fromJson(response.getResponseBody(), ApiApplicationDTO.class);
     assertApplication(applicationResult, applicationDTO);
 
     // Test the delete
-    response = AuthedRestAccess.delete(getServiceURL() + "/" + applicationResult.getId());
+    response = AuthedRestAccess.delete(getServiceURL() + "/" + applicationResult.id);
     assertResponseStatus(204, response);
 
-    final Application application = applicationDAO.getById(applicationResult.getId());
+    final Application application = applicationDAO.getById(applicationResult.id);
     assertThat(application, nullValue());
   }
 
@@ -118,9 +118,9 @@ public class ApiApplicationResourceTest
     final String applicationName = "test-application-name";
 
     final ApiApplicationDTO applicationDTO = new ApiApplicationDTO();
-    applicationDTO.setPublicId(app.getPublicId());
-    applicationDTO.setName(applicationName);
-    applicationDTO.setOrganizationId(app.getOrganizationId());
+    applicationDTO.publicId = app.getPublicId();
+    applicationDTO.name = applicationName;
+    applicationDTO.organizationId = app.getOrganizationId();
 
     final Response response = AuthedRestAccess.post(getServiceURL(), JsonHelpers.asJson(applicationDTO));
     assertResponseStatus(400, response);
@@ -133,11 +133,11 @@ public class ApiApplicationResourceTest
     final String applicationName = "test-application-name";
 
     final ApiApplicationDTO applicationDTO = new ApiApplicationDTO();
-    applicationDTO.setId("BadIdAsWeAreCallingAddApplication");
-    applicationDTO.setPublicId(applicationPublicId);
-    applicationDTO.setName(applicationName);
-    applicationDTO.setOrganizationId(organization.getId());
-    applicationDTO.setContactUserName(userA.getUsername());
+    applicationDTO.id = "BadIdAsWeAreCallingAddApplication";
+    applicationDTO.publicId = applicationPublicId;
+    applicationDTO.name = applicationName;
+    applicationDTO.organizationId = organization.getId();
+    applicationDTO.contactUserName = userA.getUsername();
 
     // Test the post
     Response response = AuthedRestAccess.post(getServiceURL(), JsonHelpers.asJson(applicationDTO));
@@ -152,10 +152,10 @@ public class ApiApplicationResourceTest
     final String contactUserName = "testContact";
 
     final ApiApplicationDTO applicationDTO = new ApiApplicationDTO();
-    applicationDTO.setPublicId(applicationPublicId);
-    applicationDTO.setName(applicationName);
-    applicationDTO.setOrganizationId(organization.getId());
-    applicationDTO.setContactUserName(contactUserName);
+    applicationDTO.publicId = applicationPublicId;
+    applicationDTO.name = applicationName;
+    applicationDTO.organizationId = organization.getId();
+    applicationDTO.contactUserName = contactUserName;
 
     // Test the post
     Response response = AuthedRestAccess.post(getServiceURL(), JsonHelpers.asJson(applicationDTO));
@@ -187,9 +187,9 @@ public class ApiApplicationResourceTest
     final String orgId = "invalidOrgId";
 
     final ApiApplicationDTO applicationDTO = new ApiApplicationDTO();
-    applicationDTO.setPublicId(applicationPublicId);
-    applicationDTO.setName(applicationName);
-    applicationDTO.setOrganizationId(orgId);
+    applicationDTO.publicId = applicationPublicId;
+    applicationDTO.name = applicationName;
+    applicationDTO.organizationId = orgId;
 
     final Response response = AuthedRestAccess.post(getServiceURL(), JsonHelpers.asJson(applicationDTO));
     assertResponseStatus(400, response);
@@ -203,9 +203,9 @@ public class ApiApplicationResourceTest
     final String applicationName = "test-application-name";
 
     final ApiApplicationDTO applicationDTO = new ApiApplicationDTO();
-    applicationDTO.setPublicId(applicationPublicId);
-    applicationDTO.setName(applicationName);
-    applicationDTO.setOrganizationId(null);
+    applicationDTO.publicId = applicationPublicId;
+    applicationDTO.name = applicationName;
+    applicationDTO.organizationId = null;
 
     final Response response = AuthedRestAccess.post(getServiceURL(), JsonHelpers.asJson(applicationDTO));
     assertResponseStatus(400, response);
@@ -369,10 +369,10 @@ public class ApiApplicationResourceTest
   }
 
   private void assertApplication(final ApiApplicationDTO actual, final ApiApplicationDTO expected) {
-    assertThat(actual.getPublicId(), equalTo(expected.getPublicId()));
-    assertThat(actual.getName(), equalTo(expected.getName()));
-    assertThat(actual.getOrganizationId(), equalTo(expected.getOrganizationId()));
-    assertThat(actual.getContactUserName(), equalTo(expected.getContactUserName()));
+    assertThat(actual.publicId, equalTo(expected.publicId));
+    assertThat(actual.name, equalTo(expected.name));
+    assertThat(actual.organizationId, equalTo(expected.organizationId));
+    assertThat(actual.contactUserName, equalTo(expected.contactUserName));
   }
 
   private String getGetRoleMembersUrl(final String applicationId) {

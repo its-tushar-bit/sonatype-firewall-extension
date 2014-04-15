@@ -9,14 +9,17 @@ import java.util.List;
 
 import javax.inject.Inject;
 
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 
+import org.apache.shiro.authz.UnauthenticatedException;
 import org.junit.Assert;
 import org.junit.Test;
 
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
+import static org.junit.Assert.fail;
 
 public class ApplicationServiceAuthzTest
     extends AbstractServiceAuthzTest
@@ -38,6 +41,56 @@ public class ApplicationServiceAuthzTest
     grantReadPermission(newApp.getId());
     applications = applicationService.getApplicationsWithReadPermission();
     Assert.assertThat(applications, hasSize(2));
+  }
+
+  @Test
+  public void testGetApplication_Authorized() {
+    grantReadPermission(app.getId());
+    applicationService.getApplicationById(app.getId());
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testGetApplication_Unauthenticated() {
+    applicationService.getApplicationById(app.getId());
+  }
+
+  @Test
+  public void testAddApplication_Authorized() {
+    grantWritePermission(org.getId());
+
+    Application application = new Application();
+    application.setName("My Application");
+    application.setOrganizationId(org.getId());
+    application.setPublicId("MyApp");
+
+    // Test the add application
+    application = applicationService.addApplication(application);
+
+    // Now clean up by deleting the application
+    tempEntity.register(application);
+  }
+
+  @Test
+  public void testAddApplication_Unauthenticated() {
+    final Application application = new Application();
+    try {
+      applicationService.addApplication(application);
+      fail("Expected UnauthenticatedException");
+    }
+    catch (UnauthenticatedException ignore) {
+      // Properly thrown exception.
+    }
+  }
+
+  @Test
+  public void testDeleteApplicationAuthorized() throws Exception {
+    grantWritePermission(app.getId());
+    applicationService.deleteApplicationById(app.getId());
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testDeleteApplication_Unauthenticated() throws Exception {
+    applicationService.deleteApplicationById(app.getId());
   }
 
 }

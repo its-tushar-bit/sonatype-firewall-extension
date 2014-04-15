@@ -18,8 +18,11 @@ import com.sonatype.insight.brain.security.Member;
 import com.sonatype.insight.brain.security.MembersByOwner;
 import com.sonatype.insight.brain.security.MembersByRole;
 
+/**
+ * @since 1.11.0
+ */
 @Named
-public class ApiMemberMappingAdaptor
+public class ApiMemberMappingAdapter
 {
   public ApiRoleMemberMappingListDTO convert(final ApplicableMembershipMappings mappings, final String ownerType) {
     final List<ApiRoleMemberMappingDTO> roleMemberMappingDTOs = new ArrayList<>();

@@ -43,16 +43,16 @@ public class ApiOrganizationResource
 
   private final MembershipMappingService membershipMappingService;
 
-  private final ApiMemberMappingAdaptor apiMemberMappingAdaptor;
+  private final ApiMemberMappingAdapter apiMemberMappingAdapter;
 
   @Inject
   public ApiOrganizationResource(final OrganizationService organizationService,
       final MembershipMappingService membershipMappingService,
-      final ApiMemberMappingAdaptor apiMemberMappingAdaptor)
+      final ApiMemberMappingAdapter apiMemberMappingAdapter)
   {
     this.organizationService = organizationService;
     this.membershipMappingService = membershipMappingService;
-    this.apiMemberMappingAdaptor = apiMemberMappingAdaptor;
+    this.apiMemberMappingAdapter = apiMemberMappingAdapter;
   }
 
   @GET
@@ -70,7 +70,7 @@ public class ApiOrganizationResource
   {
     final ApplicableMembershipMappings mappings = membershipMappingService
         .getApplicableMembershipMappingsByInternalId(IdUtils.TYPE_ORGANIZATION, organizationId);
-    return apiMemberMappingAdaptor.convert(mappings, IdUtils.TYPE_ORGANIZATION);
+    return apiMemberMappingAdapter.convert(mappings, IdUtils.TYPE_ORGANIZATION);
   }
 
   @PUT
@@ -80,7 +80,7 @@ public class ApiOrganizationResource
       @PathParam("organizationId") final String organizationId,
       final ApiRoleMemberMappingDTO roleMemberMappingDTO)
   {
-    final List<Member> memberList = apiMemberMappingAdaptor.convert(roleMemberMappingDTO.getMembers());
+    final List<Member> memberList = apiMemberMappingAdapter.convert(roleMemberMappingDTO.getMembers());
     membershipMappingService
         .setMembershipMappingForRoleByInternalId(IdUtils.TYPE_ORGANIZATION, organizationId,
             roleMemberMappingDTO.getRoleId(), memberList);

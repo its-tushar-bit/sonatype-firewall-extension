@@ -5,6 +5,9 @@
  */
 package com.sonatype.insight.brain.api.dto;
 
+/**
+ * @since 1.11.0
+ */
 public class ApiOrganizationDTO
 {
   private String id;

@@ -130,7 +130,7 @@ public class DashboardService
   {
     Set<StageType> stages = getStageTypes(stageTypeIds);
 
-    List<Application> applications = applicationService.getApplicationsWithReadPermission();
+    List<Application> applications = applicationService.getApplications();
 
     List<PolicyViolationDTO> policyViolationDTOs = new ArrayList<>();
     for (Application application : applications) {

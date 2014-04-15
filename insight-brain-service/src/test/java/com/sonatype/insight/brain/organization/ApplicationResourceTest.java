@@ -199,13 +199,9 @@ public class ApplicationResourceTest
   private void testValidIconResponse(Response iconResponse) throws Exception {
     assertResponseStatus(200, iconResponse);
     Assert.assertNotNull(iconResponse.getResponseBodyAsBytes());
-    InputStream iconStream = iconResponse.getResponseBodyAsStream();
     BufferedImage icon = null;
-    try {
+    try (InputStream iconStream = iconResponse.getResponseBodyAsStream()) {
       icon = ImageIO.read(iconStream);
-    }
-    finally {
-      iconStream.close();
     }
     Assert.assertNotNull(icon);
     Assert.assertEquals(420, icon.getHeight());
@@ -573,7 +569,7 @@ public class ApplicationResourceTest
 
     Response response = AuthedRestAccess.post(getServiceURL(), JsonHelpers.asJson(application));
     assertResponseStatus(400, response);
-    Assert.assertEquals("Applications must have a parent organization.", response.getResponseBody());
+    Assert.assertEquals("Application must have a parent organization.", response.getResponseBody());
   }
 
   @Test

@@ -70,7 +70,7 @@ public class ApiApplicationResource
   public ApiApplicationDTO getApplication(
       @PathParam("applicationId") final String applicationId)
   {
-    final Application application = applicationService.getApplicationById(applicationId);
+    final Application application = applicationService.getApplicationByIdNotNull(applicationId);
     return apiApplicationAdapter.convert(application);
   }
 

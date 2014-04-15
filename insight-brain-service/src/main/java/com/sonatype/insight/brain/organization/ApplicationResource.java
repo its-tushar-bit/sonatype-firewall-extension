@@ -11,13 +11,11 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
 import javax.inject.Inject;
 import javax.inject.Named;
-import javax.persistence.EntityManager;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -33,8 +31,6 @@ import javax.ws.rs.core.Response;
 
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
-import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
-import com.sonatype.insight.brain.dataaccess.InvalidApplicationException;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
@@ -43,16 +39,13 @@ import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.policy.evaluator.PolicyAlertUtil;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluationUtils;
-import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.saas.SaasClient;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzErrorMsg;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightWork;
-import com.sonatype.insight.dataaccess.AbstractDAO;
 import com.sonatype.insight.error.exception.NotFoundException;
-import com.sonatype.insight.error.exception.PaymentRequiredException;
 
 import com.sun.jersey.core.header.FormDataContentDisposition;
 import com.sun.jersey.multipart.FormDataParam;
@@ -83,32 +76,23 @@ public class ApplicationResource
 
   private static final Logger log = LoggerFactory.getLogger(ApplicationResource.class);
 
-  private static final ApplicationDAO applicationDAO = new ApplicationDAO();
-  
   private final ApplicationAdapter applicationAdapter;
 
   private final InsightWork work;
 
-  private final CLMLicenseManager licenseManager;
-
   private final PolicyEvaluationUtils policyEvaluationUtils;
-
-  private ApplicationCleaner applicationCleaner;
 
   private ApplicationService applicationService;
 
   @Inject
-  public ApplicationResource(final InsightWork work, final BaseUrl baseUrl, final CLMLicenseManager licenseManager,
+  public ApplicationResource(final InsightWork work, final BaseUrl baseUrl,
       final SaasClient client, final PolicyEvaluationUtils policyEvaluationUtils,
-      final ApplicationAdapter applicationAdapter, ApplicationCleaner applicationCleaner,
-      ApplicationService applicationService)
+      final ApplicationAdapter applicationAdapter, final ApplicationService applicationService)
   {
     super(client, baseUrl);
     this.work = work;
-    this.licenseManager = licenseManager;
     this.policyEvaluationUtils = policyEvaluationUtils;
     this.applicationAdapter = applicationAdapter;
-    this.applicationCleaner = applicationCleaner;
     this.applicationService = applicationService;
   }
 
@@ -116,7 +100,7 @@ public class ApplicationResource
   @Path(VALIDATE_PATH)
   @Produces(MediaType.TEXT_PLAIN)
   public String validateApplicationPublicId(@PathParam("applicationPublicId") final String applicationPublicId) {
-    return validateApplicationPublicIdInternal(applicationPublicId);
+    return applicationService.validateApplicationPublicId(applicationPublicId);
   }
 
   /**
@@ -126,7 +110,7 @@ public class ApplicationResource
   @Produces(MediaType.APPLICATION_JSON)
   public List<ApplicationDTO> getApplications() {
     final List<ApplicationDTO> applications = applicationAdapter.convert(applicationService
-        .getApplicationsWithReadPermission());
+        .getApplications());
     return applications;
   }
 
@@ -139,7 +123,7 @@ public class ApplicationResource
   @Path(GET_APPLICATION_MANAGEMENT_SUMMARIES)
   @Produces(MediaType.APPLICATION_JSON)
   public List<ApplicationManagementSummaryDTO> getApplicationManagementSummaries() {
-    final List<Application> applications = applicationService.getApplicationsWithReadPermission();
+    final List<Application> applications = applicationService.getApplications();
 
     final List<ApplicationManagementSummaryDTO> applicationManagements = getApplicationManagementSummaries(
         applications);
@@ -151,15 +135,7 @@ public class ApplicationResource
   @Path(GET_APPLICATION_NAMES)
   @Produces(MediaType.APPLICATION_JSON)
   public Map<String, String> getApplicationNames() {
-    final List<Application> applications = applicationDAO.getAll();
-    Map<String, String> applicationPublicIDNamePairs = new LinkedHashMap<String, String>();
-
-    for (Application application : applications) {
-      log.debug("Found application with public id {}", application.getPublicId());
-      applicationPublicIDNamePairs.put(application.getPublicId(), application.getName());
-    }
-
-    return applicationPublicIDNamePairs;
+    return applicationService.getApplicationNames();
   }
 
   /**
@@ -168,12 +144,10 @@ public class ApplicationResource
   @GET
   @Path(GET_APPLICATION_PATH)
   @Produces(MediaType.APPLICATION_JSON)
-  @Authorize(permission = Permission.READ)
-  public ApplicationDTO getApplication(
-      @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) @PathParam("applicationPublicId") final String applicationPublicId)
+  public ApplicationDTO getApplication(@PathParam("applicationPublicId") final String applicationPublicId)
   {
-    final ApplicationDTO application = applicationAdapter.convert(applicationDAO.getByPublicIdNotNull(applicationPublicId));
-    return application;
+    Application application = applicationService.getApplicationByPublicIdNotNull(applicationPublicId);
+    return applicationAdapter.convert(application);
   }
 
   /**
@@ -184,11 +158,10 @@ public class ApplicationResource
   @GET
   @Path(GET_APPLICATION_MANAGEMENT_SUMMARY)
   @Produces(MediaType.APPLICATION_JSON)
-  @Authorize(permission = Permission.READ)
   public ApplicationManagementSummaryDTO getApplicationManagementSummary(
-      @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) @PathParam("applicationPublicId") final String applicationPublicId)
+      @PathParam("applicationPublicId") final String applicationPublicId)
   {
-    final Application application = applicationDAO.getByPublicIdNotNull(applicationPublicId);
+    final Application application = applicationService.getApplicationByPublicIdNotNull(applicationPublicId);
     return getApplicationManagementSummary(application);
   }
 
@@ -200,12 +173,11 @@ public class ApplicationResource
   @GET
   @Path(GET_SCAN_APPLICATION_MANAGEMENT_SUMMARY)
   @Produces(MediaType.APPLICATION_JSON)
-  @Authorize(permission = Permission.READ)
   public ApplicationManagementSummaryDTO getApplicationManagementSummary(
-      @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) @PathParam("applicationPublicId") final String applicationPublicId,
+      @PathParam("applicationPublicId") final String applicationPublicId,
       @PathParam("scanId") final String scanId)
   {
-    final Application application = applicationDAO.getByPublicIdNotNull(applicationPublicId);
+    final Application application = applicationService.getApplicationByPublicIdNotNull(applicationPublicId);
     return getApplicationManagementSummary(application, scanId);
   }
 
@@ -225,13 +197,11 @@ public class ApplicationResource
   @GET
   @Path(GET_APPLICATION_ICON_PATH)
   @Produces("image/png")
-  @Authorize(permission = Permission.READ)
-  public Response getIcon(
-      @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) @PathParam("applicationPublicId") final String applicationPublicId)
+  public Response getIcon(@PathParam("applicationPublicId") final String applicationPublicId)
       throws IOException
   {
     String applicationId = null;
-    Application application = applicationDAO.getByPublicId(applicationPublicId);
+    Application application = applicationService.getApplicationByPublicId(applicationPublicId);
     if (application != null) {
       applicationId = application.getId();
     }
@@ -280,58 +250,26 @@ public class ApplicationResource
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-  @Authorize(permission = Permission.WRITE)
-  public ApplicationDTO addApplication(@AuthzContext(AuthzContext.Key.APPLICATION_OWNER) Application application) {
-    int appLimit = licenseManager.getApplicationCountLimit();
-
-    if (applicationDAO.getAll().size() >= appLimit) {
-      throw new PaymentRequiredException("You have exceeded the licensed limit of " + appLimit + " applications.");
-    }
-
-    if (application.getOrganizationId() == null) {
-      throw new InvalidApplicationException("Applications must have a parent organization.");
-    }
-
-    applicationDAO.insert(application);
-
+  public ApplicationDTO addApplication(Application application) {
+    application = applicationService.addApplication(application);
     return applicationAdapter.convert(application);
   }
 
   @PUT
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-  @Authorize(permission = Permission.WRITE)
-  public ApplicationDTO updateApplication(@AuthzContext(AuthzContext.Key.APPLICATION) Application application) {
-    if (application.getOrganizationId() == null) {
-      throw new InvalidApplicationException("Applications must have a parent organization.");
-    }
-
-    applicationDAO.update(application);
-
+  public ApplicationDTO updateApplication(Application application) {
+    application = applicationService.updateApplication(application);
     return applicationAdapter.convert(application);
   }
 
   @DELETE
   @Path(GET_APPLICATION_PATH)
-  @Authorize(permission = Permission.WRITE)
   public void deleteApplication(
-      @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) @PathParam("applicationPublicId") final String applicationPublicId)
+      @PathParam("applicationPublicId") final String applicationPublicId)
       throws IOException
   {
-    EntityManager em = applicationDAO.createEntityManager();
-    try {
-      em.getTransaction().begin();
-      deleteApplication(em, applicationPublicId);
-      em.getTransaction().commit();
-    }
-    finally {
-      AbstractDAO.close(em);
-    }
-  }
-
-  public void deleteApplication(final EntityManager em, final String applicationPublicId) throws IOException {    
-    Application application = applicationDAO.getByPublicIdNotNull(em, applicationPublicId);
-    applicationCleaner.delete(em, application);
+    applicationService.deleteApplicationByPublicId(applicationPublicId);
   }
 
   private List<ApplicationManagementSummaryDTO> getApplicationManagementSummaries(final List<Application> applications)
@@ -412,15 +350,6 @@ public class ApplicationResource
       }
     }
     return policyEvaluations;
-  }
-
-  public static String validateApplicationPublicIdInternal(String applicationPublicId) {
-    if (applicationDAO.getByPublicId(applicationPublicId) == null) {
-      return "Invalid application id " + applicationPublicId;
-    }
-
-    log.debug("Found application with public id {}", applicationPublicId);
-    return "OK";
   }
 
   @Override

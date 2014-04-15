@@ -19,7 +19,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 
 import com.sonatype.clm.dto.model.ScanReceipt;
-import com.sonatype.insight.brain.organization.ApplicationResource;
+import com.sonatype.insight.brain.organization.ApplicationService;
 import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
 import com.sonatype.insight.license.model.CLMEnforcementPoint;
 
@@ -32,9 +32,12 @@ public class CIResource
 
   private final ScanUploader uploader;
 
+  private final ApplicationService applicationService;
+
   @Inject
-  public CIResource(final ScanUploader uploader) {
+  public CIResource(final ScanUploader uploader, final ApplicationService applicationService) {
     this.uploader = uploader;
+    this.applicationService = applicationService;
   }
 
   /**
@@ -44,7 +47,7 @@ public class CIResource
   @Path("validate/{applicationPublicId}")
   @Produces(MediaType.TEXT_PLAIN)
   public String validateToken(@PathParam("applicationPublicId") final String applicationPublicId) throws Exception {
-    return ApplicationResource.validateApplicationPublicIdInternal(applicationPublicId);
+    return applicationService.validateApplicationPublicId(applicationPublicId);
   }
 
   @PUT

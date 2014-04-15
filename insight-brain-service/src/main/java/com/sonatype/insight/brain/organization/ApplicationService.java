@@ -7,7 +7,9 @@ package com.sonatype.insight.brain.organization;
 
 import java.io.IOException;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import javax.inject.Inject;
@@ -28,9 +30,13 @@ import com.sonatype.insight.brain.security.AuthzFilter;
 import com.sonatype.insight.dataaccess.AbstractDAO;
 import com.sonatype.insight.error.exception.PaymentRequiredException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 @Named
 public class ApplicationService
 {
+  private static final Logger log = LoggerFactory.getLogger(ApplicationService.class);
 
   private final ApplicationDAO applicationDAO;
 
@@ -43,8 +49,10 @@ public class ApplicationService
   private final CLMLicenseManager licenseManager;
 
   @Inject
-  public ApplicationService(ApplicationDAO applicationDAO, final OrganizationDAO organizationDAO, final UserValidationService userValidationService,
-      final ApplicationCleaner applicationCleaner, final CLMLicenseManager licenseManager) {
+  public ApplicationService(ApplicationDAO applicationDAO, final OrganizationDAO organizationDAO,
+      final UserValidationService userValidationService,
+      final ApplicationCleaner applicationCleaner, final CLMLicenseManager licenseManager)
+  {
     this.applicationDAO = applicationDAO;
     this.licenseManager = licenseManager;
     this.organizationDAO = organizationDAO;
@@ -52,13 +60,49 @@ public class ApplicationService
     this.applicationCleaner = applicationCleaner;
   }
 
+  public String validateApplicationPublicId(final String applicationPublicId) {
+    if (applicationDAO.getByPublicId(applicationPublicId) == null) {
+      return "Invalid application id " + applicationPublicId;
+    }
+
+    log.debug("Found application with public id {}", applicationPublicId);
+    return "OK";
+  }
+
+  public Map<String, String> getApplicationNames() {
+    List<Application> applications = applicationDAO.getAll();
+    Map<String, String> applicationPublicIDNamePairs = new LinkedHashMap<>();
+
+    for (Application application : applications) {
+      log.debug("Found application with public id {}", application.getPublicId());
+      applicationPublicIDNamePairs.put(application.getPublicId(), application.getName());
+    }
+
+    return applicationPublicIDNamePairs;
+  }
+
+  @Authorize(permission = Permission.READ)
+  public Application getApplicationByPublicIdNotNull(
+      @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String applicationPublicId)
+  {
+    return applicationDAO.getByPublicIdNotNull(applicationPublicId);
+  }
+
+  @Authorize(permission = Permission.READ)
+  public Application getApplicationByPublicId(
+      @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String applicationPublicId)
+  {
+    return applicationDAO.getByPublicId(applicationPublicId);
+  }
+
   @AuthzFilter(permission = Permission.READ, context = AuthzFilter.Context.APPLICATION)
-  public List<Application> getApplicationsWithReadPermission() {
+  public List<Application> getApplications() {
     return applicationDAO.getAll();
   }
 
   @Authorize(permission = Permission.READ)
-  public Application getApplicationById(@AuthzContext(AuthzContext.Key.APPLICATION_ID) final String applicationId) {
+  public Application getApplicationByIdNotNull(
+      @AuthzContext(AuthzContext.Key.APPLICATION_ID) final String applicationId) {
 
     return applicationDAO.getByIdNotNull(applicationId);
   }
@@ -72,6 +116,33 @@ public class ApplicationService
     applicationDAO.insert(application);
 
     return application;
+  }
+
+  @Authorize(permission = Permission.WRITE)
+  public Application updateApplication(@AuthzContext(AuthzContext.Key.APPLICATION) Application application) {
+    if (application.getOrganizationId() == null) {
+      throw new InvalidApplicationException("Applications must have a parent organization.");
+    }
+    applicationDAO.update(application);
+
+    return application;
+  }
+
+  @Authorize(permission = Permission.WRITE)
+  public void deleteApplicationByPublicId(
+      @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) final String applicationPublicId)
+      throws IOException
+  {
+    EntityManager em = applicationDAO.createEntityManager();
+    try {
+      em.getTransaction().begin();
+      Application application = applicationDAO.getByPublicIdNotNull(em, applicationPublicId);
+      applicationCleaner.delete(em, application);
+      em.getTransaction().commit();
+    }
+    finally {
+      AbstractDAO.close(em);
+    }
   }
 
   @Authorize(permission = Permission.WRITE)

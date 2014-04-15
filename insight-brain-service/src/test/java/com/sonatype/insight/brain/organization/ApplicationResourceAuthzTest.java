@@ -6,8 +6,6 @@
 package com.sonatype.insight.brain.organization;
 
 import com.sonatype.insight.brain.AuthedRestAccess;
-import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
-import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.service.AbstractResourceAuthzTest;
 import com.sonatype.insight.test.RestAccess;
@@ -24,23 +22,6 @@ import static org.junit.Assert.assertThat;
 public class ApplicationResourceAuthzTest
     extends AbstractResourceAuthzTest
 {
-  @Test
-  public void testGetAll() throws Exception {
-    grantReadPermission(app.getId());
-
-    String url = getRestUrl(ApplicationResource.SERVICE_PATH);
-    Response response = RestAccess.get(url, unauthorized.getUsername(), unauthorized.getPassword());
-    assertResponseStatus(200, response);
-    Application[] entities = fromJson(response, Application[].class);
-    assertThat(entities, is(emptyArray()));
-
-    response = RestAccess.get(url, authorized.getUsername(), authorized.getPassword());
-    assertResponseStatus(200, response);
-    entities = fromJson(response, Application[].class);
-    assertThat(entities.length, is(1));
-    assertThat(entities[0].getId(), is(app.getId()));
-  }
-
   @Test
   public void testGetScanApplicationManagementSummary() throws Exception {
     grantReadPermission(app.getId());
@@ -80,15 +61,6 @@ public class ApplicationResourceAuthzTest
     setSaasResponseForURI("rest/application/icon/generate/" + hash, 200, new byte[0]);
     Response response = RestAccess.get(url, user.getUsername(), user.getPassword());
     assertResponseStatus(200, response);
-  }
-
-  @Test
-  public void testGetApplication() throws Exception {
-    grantReadPermission(app.getId());
-
-    String url = getRestUrl(ApplicationResource.SERVICE_PATH + '/' + ApplicationResource.GET_APPLICATION_PATH,
-        app.getPublicId());
-    testAuthzGet(url);
   }
 
   @Test
@@ -151,33 +123,5 @@ public class ApplicationResourceAuthzTest
     response = builder.execute().get();
     assertResponseStatus(200, response);
     assertThat(response.getResponseBody(), is(""));
-  }
-
-  @Test
-  public void testAddApplication() throws Exception {
-    Application app = new Application("test-app", "test-app", org.getId());
-    grantWritePermission(org.getId());
-
-    String url = getRestUrl(ApplicationResource.SERVICE_PATH);
-    Response response = testAuthzPost(url, toJson(app));
-    app = fromJson(response, Application.class);
-    new ApplicationDAO().delete(app);
-  }
-
-  @Test
-  public void testUpdateApplication() throws Exception {
-    grantWritePermission(app.getId());
-
-    String url = getRestUrl(ApplicationResource.SERVICE_PATH);
-    testAuthzPut(url, toJson(app));
-  }
-
-  @Test
-  public void testDeleteApplication() throws Exception {
-    grantWritePermission(app.getId());
-
-    String url = getRestUrl(ApplicationResource.SERVICE_PATH + '/' + ApplicationResource.GET_APPLICATION_PATH,
-        app.getPublicId());
-    testAuthzDelete(url);
   }
 }

@@ -18,6 +18,8 @@ import org.junit.Test;
 
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
 public class ApplicationServiceAuthzTest
@@ -32,25 +34,25 @@ public class ApplicationServiceAuthzTest
     grantReadPermission(app.getId());
     Application newApp = tempEntity.newApplication(org.getId());
 
-    List<Application> applications = applicationService.getApplicationsWithReadPermission();
+    List<Application> applications = applicationService.getApplications();
 
     Assert.assertThat(applications, hasSize(1));
     Assert.assertThat(app.getId(), equalTo(applications.get(0).getId()));
 
     grantReadPermission(newApp.getId());
-    applications = applicationService.getApplicationsWithReadPermission();
+    applications = applicationService.getApplications();
     Assert.assertThat(applications, hasSize(2));
   }
 
   @Test
-  public void testGetApplication_Authorized() {
+  public void testGetApplicationById_Authorized() {
     grantReadPermission(app.getId());
-    applicationService.getApplicationById(app.getId());
+    applicationService.getApplicationByIdNotNull(app.getId());
   }
 
   @Test(expected = UnauthenticatedException.class)
-  public void testGetApplication_Unauthenticated() {
-    applicationService.getApplicationById(app.getId());
+  public void testGetApplicationById_Unauthenticated() {
+    applicationService.getApplicationByIdNotNull(app.getId());
   }
 
   @Test
@@ -82,14 +84,79 @@ public class ApplicationServiceAuthzTest
   }
 
   @Test
-  public void testDeleteApplicationAuthorized() throws Exception {
+  public void testDeleteApplicationById_Authorized() throws Exception {
     grantWritePermission(app.getId());
     applicationService.deleteApplicationById(app.getId());
   }
 
   @Test(expected = UnauthenticatedException.class)
-  public void testDeleteApplication_Unauthenticated() throws Exception {
+  public void testDeleteApplicationById_Unauthenticated() throws Exception {
     applicationService.deleteApplicationById(app.getId());
   }
 
+  @Test
+  public void testDeleteApplicationByPublicId_Authorized() throws Exception {
+    grantWritePermission(app.getId());
+    applicationService.deleteApplicationByPublicId(app.getPublicId());
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testDeleteApplicationByPublicId_Unauthenticated() throws Exception {
+    applicationService.deleteApplicationByPublicId(app.getPublicId());
+  }
+
+  @Test
+  public void testGetAllApplications_Authorized() throws Exception {
+    grantReadPermission(app.getId());
+    final List<Application> applications = applicationService.getApplications();
+    assertThat(applications, hasSize(1));
+    final Application application = applications.get(0);
+    assertThat(application.getId(), is(app.getId()));
+    assertThat(application.getName(), is(app.getName()));
+  }
+
+  @Test
+  public void testGetAllApplications_Unauthenticated() throws Exception {
+    List<Application> applications = applicationService.getApplications();
+    assertThat(applications, hasSize(0));
+  }
+
+  @Test
+  public void testGetApplicationByPublicId_Authorized() throws Exception {
+    grantReadPermission(app.getId());
+
+    applicationService.getApplicationByPublicId(app.getPublicId());
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testGetApplicationByPublicId_Unauthenticated() throws Exception {
+    applicationService.getApplicationByPublicId(app.getPublicId());
+  }
+
+  @Test
+  public void testGetApplicationByPublicIdNotNull_Authorized() throws Exception {
+    grantReadPermission(app.getId());
+
+    applicationService.getApplicationByPublicIdNotNull(app.getPublicId());
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testGetApplicationByPublicIdNotNull_Unauthenticated() throws Exception {
+    applicationService.getApplicationByPublicIdNotNull(app.getPublicId());
+  }
+
+  @Test
+  public void testUpdateApplication_Authorized() throws Exception {
+    grantWritePermission(app.getId());
+
+    String newName = "TestUpdateName";
+    app.setName(newName);
+    applicationService.updateApplication(app);
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testUpdateApplication_Unauthenticated() throws Exception {
+    app.setName("TestUpdateName");
+    applicationService.updateApplication(app);
+  }
 }

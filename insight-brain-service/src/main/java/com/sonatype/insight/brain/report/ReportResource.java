@@ -280,6 +280,7 @@ public class ReportResource
     Properties templateProps = Report.getTemplateProperties(reportFile);
     String cipDetailsPath = templateProps.getProperty("cip.details.path", "");
     String cipListPath = templateProps.getProperty("cip.list.path", "");
+    String dataPath = "data/";
 
     ContactDTO contact = applicationAdapter.getContact(app.getContactInternalName());
     File pdfFile = Report.printPdf(reportFile, "", 0, contact);
@@ -289,15 +290,17 @@ public class ReportResource
     List<PolicyAlert> alerts = PolicyAlertUtil.createPolicyAlerts(policyEvaluation);
 
     File updatedFile = File.createTempFile("report", "zip");
-    try (ReportBundleUpdater updater = new ReportBundleUpdater(reportFile, updatedFile)) {
+    try (ReportBundleUpdater updater = new ReportBundleUpdater(reportFile, updatedFile,
+        new ReportBundleUpdater.FilenameMapping("^.*\\.json$", dataPath + "$0"))) {
       updater.remove("detail.rptdesign");
-      updater.add("report.pdf", pdfFile);
-      updater.add("components.json", reportData);
+      updater.add(dataPath + "report.pdf", pdfFile);
+      updater.add(dataPath + "components.json", reportData);
 
       for (ReportData.Component component : reportData.components) {
         ReportData.Coordinates gav = component.mavenCoordinates;
         if (gav != null) {
-          String imagePath = "release-graph/" + gav.groupId + "/" + gav.artifactId + "/" + gav.version + ".png";
+          String imagePath = dataPath + "release-graph/" + gav.groupId + "/" + gav.artifactId + "/" + gav.version
+              + ".png";
           byte[] imageData = releaseGraphService.getImage(applicationPublicId, scanId, gav.groupId, gav.artifactId,
               gav.version);
           updater.add(imagePath, imageData);
@@ -307,7 +310,7 @@ public class ReportResource
       File[] cachedFiles = Report.getCacheDir(reportFile).listFiles();
       if (cachedFiles != null) {
         for (File cachedFile : cachedFiles) {
-          updater.add(cachedFile.getName(), cachedFile);
+          updater.add(dataPath + cachedFile.getName(), cachedFile);
         }
       }
 
@@ -331,17 +334,18 @@ public class ReportResource
                 });
             componentDetailsLoader.augmentComponentDetails(app, clmDetails);
             clmDetails.setPolicyAlerts(getAlertsForComponent(clmDetails.getHash(), alerts));
-            updater.add(entry.getName(), clmDetails);
+            updater.add(dataPath + entry.getName(), clmDetails);
 
             if (!cipListPath.isEmpty()
                 && IdentificationSource.MANUAL.getId().equals(clmDetails.getIdentificationSource())) {
               String listPath = cipListPath + clmDetails.getGroupId() + "/" + clmDetails.getArtifactId() + "/"
                   + clmDetails.getVersion() + ".json";
-              if (reportZip.getEntry(listPath) == null && !updater.contains(listPath)) {
-                // CIP expects this to be an empty (!) array for every GAV but the HDS doesn't know about claimed components
+              if (reportZip.getEntry(listPath) == null && !updater.contains(dataPath + listPath)) {
+                // CIP expects this to be an empty (!) array for every GAV but the HDS doesn't know about claimed
+                // components
                 ComponentDetailsList list = new ComponentDetailsList();
                 list.setList(Collections.<ComponentDetails> emptyList());
-                updater.add(listPath, list);
+                updater.add(dataPath + listPath, list);
               }
             }
           }
@@ -351,7 +355,7 @@ public class ReportResource
             for (ComponentDetails details : list.getList()) {
               componentDetailsLoader.augmentComponentDetails(app, details);
             }
-            updater.add(entry.getName(), list);
+            updater.add(dataPath + entry.getName(), list);
           }
         }
       }

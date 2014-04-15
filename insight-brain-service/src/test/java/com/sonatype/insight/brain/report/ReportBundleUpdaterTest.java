@@ -15,6 +15,8 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipOutputStream;
 
+import com.sonatype.insight.brain.report.ReportBundleUpdater.FilenameMapping;
+
 import org.codehaus.plexus.util.IOUtil;
 import org.junit.Before;
 import org.junit.Rule;
@@ -23,6 +25,7 @@ import org.junit.rules.TemporaryFolder;
 
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
 
 public class ReportBundleUpdaterTest
@@ -106,9 +109,28 @@ public class ReportBundleUpdaterTest
   }
 
   @Test
+  public void testOverwrite_WithFilenameMapping() throws Exception {
+    try (ReportBundleUpdater updater = new ReportBundleUpdater(originalFile, updatedFile, new FilenameMapping(
+        ".*\\.txt", "data/$0"))) {
+      updater.add("data/one.txt", tmpDir.newFile());
+    }
+    assertThat(read(updatedFile).get("data/one.txt"), is(""));
+    assertThat(read(updatedFile).get("one.txt"), is(nullValue()));
+  }
+
+  @Test
   public void testRemove() throws Exception {
     try (ReportBundleUpdater updater = new ReportBundleUpdater(originalFile, updatedFile)) {
       updater.remove("one.txt");
+    }
+    assertThat(read(updatedFile).keySet(), containsInAnyOrder("two.html"));
+  }
+
+  @Test
+  public void testRemove_WithFilenameMapping() throws Exception {
+    try (ReportBundleUpdater updater = new ReportBundleUpdater(originalFile, updatedFile, new FilenameMapping(
+        ".*\\.txt", "data/$0"))) {
+      updater.remove("data/one.txt");
     }
     assertThat(read(updatedFile).keySet(), containsInAnyOrder("two.html"));
   }

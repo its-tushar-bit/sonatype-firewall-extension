@@ -11,9 +11,11 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Enumeration;
 import java.util.HashSet;
+import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipOutputStream;
@@ -29,6 +31,25 @@ class ReportBundleUpdater
     implements Closeable
 {
 
+  /**
+   * Renames entries from the original report before inclusion in the updated bundle.
+   */
+  public static class FilenameMapping
+  {
+    private final Pattern pattern;
+
+    private final String replacement;
+
+    public FilenameMapping(String regexp, String replacement) {
+      this.pattern = Pattern.compile(regexp);
+      this.replacement = replacement;
+    }
+
+    public String apply(String entryName) {
+      return pattern.matcher(entryName).replaceAll(replacement);
+    }
+  }
+
   private final File originalFile;
 
   private final ZipOutputStream zipStream;
@@ -37,15 +58,21 @@ class ReportBundleUpdater
 
   private final Collection<String> removedEntries;
 
+  private final Collection<FilenameMapping> filenameMappings;
+
   /**
-   * Creates an updater for the specified {@code report.zip}, using the given location for the updated bundle.
+   * Creates an updater for the specified {@code report.zip}, using the given location for the updated bundle. The
+   * supplied filename mapping chain allows to move/rename files from the original report.
    */
-  public ReportBundleUpdater(File originalFile, File updatedFile) throws IOException {
+  public ReportBundleUpdater(File originalFile, File updatedFile, FilenameMapping... filenameMappings)
+      throws IOException
+  {
     this.originalFile = originalFile;
     updatedFile.getParentFile().mkdirs();
     zipStream = new ZipOutputStream(new FileOutputStream(updatedFile));
     addedEntries = new HashSet<>();
     removedEntries = new HashSet<String>();
+    this.filenameMappings = Arrays.asList(filenameMappings);
   }
 
   /**
@@ -100,7 +127,10 @@ class ReportBundleUpdater
       try (ZipFile zipFile = new ZipFile(originalFile)) {
         for (Enumeration<? extends ZipEntry> entries = zipFile.entries(); entries.hasMoreElements();) {
           ZipEntry entry = entries.nextElement();
-          String entryName = entry.getName();
+          if (entry.isDirectory()) {
+            continue;
+          }
+          String entryName = applyFilenameMappings(entry.getName());
           if (!addedEntries.contains(entryName) && !removedEntries.contains(entryName)) {
             ZipEntry zipEntry = new ZipEntry(entryName);
             zipStream.putNextEntry(zipEntry);
@@ -114,5 +144,12 @@ class ReportBundleUpdater
     finally {
       zipStream.close();
     }
+  }
+
+  private String applyFilenameMappings(String entryName) {
+    for (FilenameMapping filenameMapping : filenameMappings) {
+      entryName = filenameMapping.apply(entryName);
+    }
+    return entryName;
   }
 }

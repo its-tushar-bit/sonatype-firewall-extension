@@ -1091,14 +1091,16 @@ public class ReportResourceTest
       File temp = File.createTempFile("report", "zip");
       FileUtils.copyStreamToFile(new RawInputStreamFacade(actual), temp);
       try (ZipFile zip = new ZipFile(temp)) {
-        assertNotNull(zip.getEntry("report.pdf"));
+        assertNotNull(zip.getEntry("data/report.pdf"));
         assertNull(zip.getEntry("detail.rptdesign"));
-        assertNotNull(zip.getEntry("components.json"));
-        assertNotNull(zip.getEntry("release-graph/tomcat/tomcat-util/5.5.23.png"));
-        assertNotNull(zip.getEntry(PolicyEvaluationUtils.POLICY_THREATS_FILENAME));
+        assertNull(zip.getEntry("data/index.html"));
+        assertNotNull(zip.getEntry("data/components.json"));
+        assertNotNull(zip.getEntry("data/release-graph/tomcat/tomcat-util/5.5.23.png"));
+        assertNotNull(zip.getEntry("data/" + PolicyEvaluationUtils.POLICY_THREATS_FILENAME));
 
+        assertNull(zip.getEntry("cip/details/f0776db1593e215146d2.json"));
         ComponentDetails details = JsonUtils.parse(
-            zip.getInputStream(zip.getEntry("cip/details/f0776db1593e215146d2.json")), ComponentDetails.class);
+            zip.getInputStream(zip.getEntry("data/cip/details/f0776db1593e215146d2.json")), ComponentDetails.class);
         assertThat(details.getMatchState(), is("exact"));
         assertThat(details.getGroupId(), is(claimedCompenent.getGroupId()));
         assertThat(details.getArtifactId(), is(claimedCompenent.getArtifactId()));
@@ -1111,12 +1113,12 @@ public class ReportResourceTest
         assertThat(details.getIdentificationSource(), is(IdentificationSource.MANUAL.getId()));
         assertThat(details.getIdentificationSourceComment(), is(claimedCompenent.getComment()));
         ComponentDetailsList list = JsonUtils.parse(
-            zip.getInputStream(zip.getEntry("cip/list/" + claimedCompenent.getGroupId() + "/"
+            zip.getInputStream(zip.getEntry("data/cip/list/" + claimedCompenent.getGroupId() + "/"
                 + claimedCompenent.getArtifactId() + "/" + claimedCompenent.getVersion() + ".json")),
             ComponentDetailsList.class);
         assertThat(list.getList(), hasSize(0));
 
-        details = JsonUtils.parse(zip.getInputStream(zip.getEntry("cip/details/1249e25aebb15358bedd.json")),
+        details = JsonUtils.parse(zip.getInputStream(zip.getEntry("data/cip/details/1249e25aebb15358bedd.json")),
             ComponentDetails.class);
         assertThat(details.getMatchState(), is("exact"));
         assertThat(details.getIdentificationSource(), is(IdentificationSource.SONATYPE.getId()));
@@ -1125,7 +1127,7 @@ public class ReportResourceTest
         assertThat(details.getPolicyAlerts().get(0).getTrigger().getPolicyId(), is(policy.getId()));
         assertThat(details.getPolicyAlerts().get(0).getTrigger().getComponentFacts(), hasSize(1));
 
-        list = JsonUtils.parse(zip.getInputStream(zip.getEntry("cip/list/tomcat/tomcat-util/5.5.23.json")),
+        list = JsonUtils.parse(zip.getInputStream(zip.getEntry("data/cip/list/tomcat/tomcat-util/5.5.23.json")),
             ComponentDetailsList.class);
         details = findGAV(list, "tomcat", "tomcat-util", "5.5.23");
         assertThat(details, is(notNullValue()));

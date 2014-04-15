@@ -9,7 +9,6 @@ import java.util.List;
 
 import javax.inject.Inject;
 
-import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 

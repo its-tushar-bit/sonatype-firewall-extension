@@ -372,8 +372,8 @@ a {
   font-size: 14px;
 }
 
-.dashboard-charts td[colspan="2"] {
-  text-indent: -8px;
+.dashboard-content th[id$='-threat-header'] {
+  min-width: 45px;
 }
 
 .clm-bar {

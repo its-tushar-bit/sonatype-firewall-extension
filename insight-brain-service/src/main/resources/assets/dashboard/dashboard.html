@@ -3,14 +3,21 @@
   <table class='table' id='{{ riskId }}'>
     <thead>
     <tr>
-      <th colspan='2' class='clm-bar-text-offset'>RISK</th>
+      <th id='{{riskId}}-threat-header' colspan='2' class='clm-bar-text-offset'>
+        <a ng-click='setSort("threatLevel")'>
+          RISK
+          <i ng-class="{ 'sonatype-icons down' : orderColumn == 'threatLevel' && orderDirection,
+            'sonatype-icons up' : orderColumn == 'threatLevel' && !orderDirection,
+            'emptyIconGlyph' : orderColumn != 'threatLevel' }"></i>
+        </a>
+      </th>
       <th>POLICY</th>
       <th>APPLICATION</th>
       <th>COMPONENT</th>
     </tr>
     </thead>
     <tbody>
-    <tr ng-repeat='risk in risks'>
+    <tr ng-repeat='risk in risks | orderBy:orderColumn:orderDirection'>
       <td class='clm-bar'
           ng-class='{ critical : risk.threatLevel >= 8, severe : risk.threatLevel >= 4 && risk.threatLevel < 8,
              moderate : risk.threatLevel >= 1 && risk.threatLevel < 4, none : risk.threatLevel == 1,

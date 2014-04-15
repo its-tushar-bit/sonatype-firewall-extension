@@ -36,6 +36,7 @@ class DashboardPage
 
     highestRiskTable(required: false) { $('#highest-risk tr', 'ng-repeat': startsWith('risk in risks')) }
     newestViolationTable(required: false) { $('#newest-risk tr', 'ng-repeat': startsWith('risk in risks')) }
+    threatLevelHeader(required: false) { $('#highest-risk-threat-header a') }
     policyViolation { table, i -> table[i] }
     policyViolationRisk { table, i -> table[i].find('td')[1] }
     policyViolationPolicy { table, i -> table[i].find('td')[2] }

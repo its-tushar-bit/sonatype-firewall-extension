@@ -64,3 +64,9 @@
 .sonatype-icons.add-tag:before {
   content: '\e60a';
 }
+.sonatype-icons.up:before {
+  content: '\e0d4';
+}
+.sonatype-icons.down:before {
+  content: '\e0d6';
+}

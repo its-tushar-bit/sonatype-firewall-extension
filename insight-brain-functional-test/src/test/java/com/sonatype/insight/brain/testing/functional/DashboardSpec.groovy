@@ -74,6 +74,22 @@ class DashboardSpec
       applicationFilters.collect{it.text()}.join('') == firstApp.name + ',' + secondApp.name
   }
 
+  def 'Risk Tables'() {
+    when: 'highest risk table is shown'
+      highestRiskTable.displayed
+
+    then: 'risks are sorted by descending threat level'
+      policyViolationRisk(highestRiskTable, 0).text() == '10'
+      policyViolationRisk(highestRiskTable, 1).text() == '5'
+
+    when: 'table is sorted by ascending threat level'
+      threatLevelHeader.click()
+
+    then: 'risks are sorted by ascending threat level'
+      policyViolationRisk(highestRiskTable, 0).text() == '5'
+      policyViolationRisk(highestRiskTable, 1).text() == '10'
+  }
+
   def 'Highest Risk Table'() {
     when: 'highest risk table is shown'
       highestRiskTable.displayed

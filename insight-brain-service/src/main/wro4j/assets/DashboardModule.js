@@ -116,7 +116,17 @@
         title: '@',
         riskId: '@'
       },
-      templateUrl: 'risk-table'
+      templateUrl: 'risk-table',
+      controller: ['$scope', function($scope) {
+        $scope.orderColumn = 'threatLevel';
+        $scope.orderDirection = true;
+        $scope.setSort = function (field) {
+          $scope.orderDirection = (field === $scope.orderColumn && !$scope.orderDirection) ||
+            // Threat level is orderDirection true by default
+            (field === 'threatLevel' && (!$scope.orderDirection || field !== $scope.orderColumn));
+          $scope.orderColumn = field;
+        };
+      }]
     };
   }]);
 }());

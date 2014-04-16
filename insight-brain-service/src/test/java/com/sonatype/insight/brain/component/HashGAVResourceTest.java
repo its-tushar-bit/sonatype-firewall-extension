@@ -26,22 +26,28 @@ public class HashGAVResourceTest
 {
 
   private static final String hash = "ab1234ab1234ab";
+
   private static final String groupId = "HashGAVResourceTest_G";
+
   private static final String artifactId = "HashGAVResourceTest_A";
+
   private static final String version = "HashGAVResourceTest_V";
+
   private static final String extension = "HashGAVResourceTest_E";
+
   private static final String classifier = "HashGAVResourceTest_C";
+
   private static final String comment = "HashGAVResourceTest_Comment";
 
   HashGAV hashGAV;
 
   @Before
-  public void setup(){
+  public void setup() {
     hashGAV = new HashGAV(hash, groupId, artifactId, version, extension, classifier);
   }
 
   @After
-  public void teardown(){
+  public void teardown() {
     new HashGAVDAO().delete(hashGAV);
   }
 
@@ -50,8 +56,10 @@ public class HashGAVResourceTest
     Date createTime = new Date();
 
     setSaasResponseForURI("rest/ide/component?groupId=" + groupId + "&artifactId=" + artifactId + "&version=" + version
-        + "&extension=" + extension + "&classifier=" + classifier, JsonHelpers.asJson(ComponentSummary.create(false)),
-        200);
+            + "&extension=" + extension + "&classifier=" + classifier,
+        JsonHelpers.asJson(ComponentSummary.create(false)),
+        200
+    );
 
     hashGAV.setComment(comment);
     hashGAV.setCreateTime(createTime);
@@ -64,13 +72,16 @@ public class HashGAVResourceTest
   @Test
   public void testSetHashGAV_KnownToSaaS() throws Exception {
     setSaasResponseForURI("rest/ide/component?groupId=" + groupId + "&artifactId=" + artifactId + "&version=" + version
-        + "&extension=" + extension + "&classifier=" + classifier, JsonHelpers.asJson(ComponentSummary.create(true)),
-        200);
+            + "&extension=" + extension + "&classifier=" + classifier,
+        JsonHelpers.asJson(ComponentSummary.create(true)),
+        200
+    );
 
     Response response = AuthedRestAccess.post(getServiceURL(), JsonHelpers.asJson(hashGAV));
     assertResponseStatus(400, response);
     assertEquals(
-        "The 'HashGAVResourceTest_G:HashGAVResourceTest_A:HashGAVResourceTest_V:HashGAVResourceTest_E:HashGAVResourceTest_C' coordinates are already in use",
+        "The 'HashGAVResourceTest_G:HashGAVResourceTest_A:HashGAVResourceTest_V:HashGAVResourceTest_E" +
+            ":HashGAVResourceTest_C' coordinates are already in use",
         response.getResponseBody());
   }
 
@@ -79,8 +90,10 @@ public class HashGAVResourceTest
     Date createTime = new Date();
 
     setSaasResponseForURI("rest/ide/component?groupId=" + groupId + "&artifactId=" + artifactId + "&version=" + version
-            + "&extension=" + extension + "&classifier=" + classifier, JsonHelpers.asJson(ComponentSummary.create(false)),
-        200);
+            + "&extension=" + extension + "&classifier=" + classifier,
+        JsonHelpers.asJson(ComponentSummary.create(false)),
+        200
+    );
 
     hashGAV.setComment(comment);
     hashGAV.setCreateTime(createTime);
@@ -93,8 +106,7 @@ public class HashGAVResourceTest
   }
 
   private void assertHashGAV(String hash, String groupId, String artifactId, String version, String extension,
-      String classifier, String comment, Date createTime, HashGAV hashGAV)
-  {
+      String classifier, String comment, Date createTime, HashGAV hashGAV) {
     assertEquals(hash, hashGAV.getHash());
     assertEquals(groupId, hashGAV.getGroupId());
     assertEquals(artifactId, hashGAV.getArtifactId());

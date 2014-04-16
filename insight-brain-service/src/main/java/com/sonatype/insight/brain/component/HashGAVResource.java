@@ -32,7 +32,7 @@ import org.codehaus.plexus.util.StringUtils;
 
 /**
  * Associates component hash to a Maven GAV.
- * 
+ *
  * @since 1.4.1
  */
 @Named
@@ -75,7 +75,7 @@ public class HashGAVResource
     ensureUnknownComponent(hashGAV);
 
     HashGAV existingHashGAV = hashGAVDAO.getByHash(hashGAV.getHash());
-    hashGAV.setId(existingHashGAV.getId() );
+    hashGAV.setId(existingHashGAV.getId());
     hashGAVDAO.update(hashGAV);
 
     ReportResource.flushReportChanges();
@@ -89,8 +89,8 @@ public class HashGAVResource
   @Path("{hash}")
   public void deleteHashGAV(@PathParam("hash") String hash) throws IOException {
     HashGAV toDelete = hashGAVDAO.getByHash(hash);
-    if(toDelete == null){
-      throw new BadRequestException("Unable to find a claimed component with hash: " + hash );
+    if (toDelete == null) {
+      throw new BadRequestException("Unable to find a claimed component with hash: " + hash);
     }
 
     hashGAVDAO.delete(toDelete);

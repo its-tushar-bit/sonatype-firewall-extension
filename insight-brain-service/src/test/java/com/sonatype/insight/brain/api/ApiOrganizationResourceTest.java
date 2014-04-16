@@ -12,6 +12,8 @@ import java.util.Map;
 
 import com.sonatype.insight.brain.AuthedRestAccess;
 import com.sonatype.insight.brain.api.dto.ApiMemberDTO;
+import com.sonatype.insight.brain.api.dto.ApiOrganizationDTO;
+import com.sonatype.insight.brain.api.dto.ApiOrganizationListDTO;
 import com.sonatype.insight.brain.api.dto.ApiRoleMemberMappingDTO;
 import com.sonatype.insight.brain.api.dto.ApiRoleMemberMappingListDTO;
 import com.sonatype.insight.brain.configuration.ldap.LdapServer;
@@ -61,12 +63,14 @@ public class ApiOrganizationResourceTest
   public void testGetAll() throws Exception {
     final Response response = AuthedRestAccess.get(getServiceURL());
     assertResponseStatus(200, response);
-    final Organization[] organizations = JsonHelpers.fromJson(response.getResponseBody(), Organization[].class);
-    assertThat(organizations, notNullValue());
-    assertThat(organizations, arrayWithSize(1));
+    final ApiOrganizationListDTO organizationListDTO = JsonHelpers.fromJson(response.getResponseBody(), ApiOrganizationListDTO.class);
+    assertThat(organizationListDTO, notNullValue());
 
-    final Organization organization = organizations[0];
-    assertThat(organization, notNullValue());
+    List<ApiOrganizationDTO> organizations = organizationListDTO.getOrganizations();
+    assertThat(organizations, notNullValue());
+    assertThat(organizations, hasSize(1));
+
+    final ApiOrganizationDTO organization = organizations.get(0);
     assertThat(organization.getId(), equalTo(organization.getId()));
     assertThat(organization.getName(), equalTo(organization.getName()));
   }

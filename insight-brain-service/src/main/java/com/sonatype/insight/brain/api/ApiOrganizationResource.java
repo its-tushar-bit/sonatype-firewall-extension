@@ -19,6 +19,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.api.dto.ApiOrganizationDTO;
+import com.sonatype.insight.brain.api.dto.ApiOrganizationListDTO;
 import com.sonatype.insight.brain.api.dto.ApiRoleMemberMappingDTO;
 import com.sonatype.insight.brain.api.dto.ApiRoleMemberMappingListDTO;
 import com.sonatype.insight.brain.model.Organization;
@@ -57,7 +58,7 @@ public class ApiOrganizationResource
 
   @GET
   @Produces(MediaType.APPLICATION_JSON)
-  public List<ApiOrganizationDTO> getAllOrganizations() {
+  public ApiOrganizationListDTO getAllOrganizations() {
     final List<Organization> organizations = organizationService.getAll();
     return convert(organizations);
   }
@@ -86,12 +87,14 @@ public class ApiOrganizationResource
             roleMemberMappingDTO.getRoleId(), memberList);
   }
 
-  private List<ApiOrganizationDTO> convert(final List<Organization> organizations) {
+  private ApiOrganizationListDTO convert(final List<Organization> organizations) {
     final List<ApiOrganizationDTO> dtoList = new ArrayList<>(organizations.size());
     for (final Organization organization : organizations) {
       dtoList.add(convert(organization));
     }
-    return dtoList;
+    ApiOrganizationListDTO organizationListDTO = new ApiOrganizationListDTO();
+    organizationListDTO.setOrganizations(dtoList);
+    return organizationListDTO;
   }
 
   private ApiOrganizationDTO convert(final Organization organization) {

@@ -12,7 +12,7 @@ class GlobalCreateModule
 {
   String browserClassName
 
-  static base = { $('li.dashboard-add') }
+  static base = { $('#global-create') }
 
   static content = {
     dropdown {

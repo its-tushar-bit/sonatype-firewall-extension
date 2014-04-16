@@ -7,7 +7,7 @@ package com.sonatype.insight.brain.testing.functional
 
 import com.sonatype.insight.brain.testing.functional.modules.MainModule
 import com.sonatype.insight.brain.testing.functional.modules.NavListModule
-import com.sonatype.insight.brain.testing.functional.modules.ReportViolationsRow
+import com.sonatype.insight.brain.testing.functional.modules.ReportViolationsRowModule
 
 
 class ReportViolationsPage
@@ -24,7 +24,7 @@ class ReportViolationsPage
     emptyMessage { $('div h5', text: startsWith('Welcome to Sonatype CLM. Get started by')) }
 
     filter(require: false) { $('input') }
-    reportViolationRows(require: false) { moduleList ReportViolationsRow, $('table.clm-table tbody tr') }
+    reportViolationRows(require: false) { moduleList ReportViolationsRowModule, $('table.clm-table tbody tr') }
     appNameHeader(require: false) { $('table.clm-table thead th:first-child') }
     orgNameHeader(require: false) { $('table.clm-table thead th:last-child') }
   }

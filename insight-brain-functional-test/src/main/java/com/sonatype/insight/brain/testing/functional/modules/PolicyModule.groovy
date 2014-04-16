@@ -46,7 +46,7 @@ class PolicyEditorModule
     allApplicationRadioButton { $('[id^="radio-all-applications"]') }
     taggedApplicationRadioButton { $('[id^="radio-tag-applications"]') }
 
-    tagsDropdown { module DropdownMultiSelect, $('span', items: 'tags') }
+    tagsDropdown { module DropdownMultiSelectModule, $('span', items: 'tags') }
   }
 
   boolean isSelected(radioButton) {

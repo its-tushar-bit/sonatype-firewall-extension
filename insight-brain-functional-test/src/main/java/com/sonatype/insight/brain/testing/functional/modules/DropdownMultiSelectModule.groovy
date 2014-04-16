@@ -10,7 +10,7 @@ import geb.Module
 /**
  * Since 1.11
  */
-class DropdownMultiSelect
+class DropdownMultiSelectModule
     extends Module
 {
   static content = {

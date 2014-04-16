@@ -6,7 +6,7 @@
 package com.sonatype.insight.brain.testing.functional
 
 import com.sonatype.insight.brain.testing.functional.modules.ButtonsModule
-import com.sonatype.insight.brain.testing.functional.modules.DropdownMultiSelect
+import com.sonatype.insight.brain.testing.functional.modules.DropdownMultiSelectModule
 
 /**
  * Since 1.11
@@ -31,8 +31,8 @@ class DashboardPage
     noDataAvailableHighest(required: false) { $('#no-data-highest-risk')}
     noDataAvailableNewest(required: false) { $('#no-data-newest-risk')}
 
-    applicationFiltersDropdown(required: false) { module DropdownMultiSelect, $('span', items: 'applications') }
-    policyThreatFiltersDropdown(required: false) { module DropdownMultiSelect, $('span', items: 'policyThreatCategories') }
+    applicationFiltersDropdown(required: false) { module DropdownMultiSelectModule, $('span', items: 'applications') }
+    policyThreatFiltersDropdown(required: false) { module DropdownMultiSelectModule, $('span', items: 'policyThreatCategories') }
 
     highestRiskTable(required: false) { $('#highest-risk tr', 'ng-repeat': startsWith('risk in risks')) }
     newestViolationTable(required: false) { $('#newest-risk tr', 'ng-repeat': startsWith('risk in risks')) }

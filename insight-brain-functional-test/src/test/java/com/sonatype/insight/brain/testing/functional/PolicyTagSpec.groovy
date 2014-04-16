@@ -103,7 +103,7 @@ class PolicyTagSpec
 
     then: 'We can observe the persisted changes'
       def tagNames = [tag1.name, tag2.name]
-      editor.tagsDropdown.dropdownButton.text() == tagNames.join(', ')
+      waitFor { editor.tagsDropdown.dropdownButton.text() == tagNames.join(', ') }
       editor.tagsDropdown.areOptionsApplied(tagNames)
 
     and: 'The policy should be marked as having Tags in the header'
@@ -141,10 +141,9 @@ class PolicyTagSpec
     when: 'We save the policy with no tags applied'
       editor.allApplicationRadioButton.click()
       editor.buttons.save.click()
-      waitFor { policies.findPolicyEditor(POLICY_NAME).displayed }
-      editor = policies.findPolicyEditor(POLICY_NAME)
 
     then: 'the form closes and the icon is removed'
+      waitFor { !editor.buttons.save.displayed }
       !editor.tagsHeader.present
       !editor.showsTagIcon()
   }

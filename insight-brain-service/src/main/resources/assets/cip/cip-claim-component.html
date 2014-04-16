@@ -5,7 +5,7 @@
 		<p><button type='button' class='btn btn-danger' ng-click='createError = null'><i class='icon-white  icon-arrow-left'></i> Back</button></p>
 	</div>
 	<div class='well' ng-hide='createSuccess || createError'>
-		<form name="claimForm" novalidate ng-submit="claimSubmit()">
+		<form name="claimForm" novalidate>
 			<table>
 				<tr>
 					<td>
@@ -69,8 +69,14 @@
 					<td class='validation-error'>{{getValidationMessage()}}</td>
 					<td>
 						<div class='controls' style='text-align: right;'>
-							<button type='none' class='btn btn-primary' ng-disabled="disableSubmit" disablenav>Claim</button>
+                          <button type='none' class='btn btn-danger' ng-show="claimData.identificationSource === 'Manual'"
+                                  ng-click="unclaimSubmit()" disablenav>Revoke Claim</button>
+                          <button type='none' class='btn btn-primary' ng-show="claimData.identificationSource === 'Manual'"
+                                  ng-click="claimUpdateSubmit()" disablenav>Update</button>
+                          <button type='none' class='btn btn-primary' ng-show="claimData.identificationSource !== 'Manual'"
+                                  ng-disabled="disableSubmit" ng-click="claimSubmit()" disablenav>Claim</button>
 						</div>
+                      </div>
 					</td>
 				</tr>
 			</table>

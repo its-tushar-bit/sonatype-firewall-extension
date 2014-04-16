@@ -65,6 +65,10 @@ public class AuthedRestAccess
     return RestAccess.delete(urlString, null /* params */, null /* username */, null /* password */, cookie);
   }
 
+  public static Response delete(String urlString, String body) throws Exception {
+    return RestAccess.delete(urlString, null, ADMIN_USERNAME, ADMIN_PASSWORD, null, body);
+  }
+
   public static Response execute(BoundRequestBuilder builder, String username, String password) throws Exception {
     RestAccess.addAuthorization(builder, username, password);
     return builder.execute().get();

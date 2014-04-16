@@ -27,7 +27,7 @@
 
     var parts = str.split('/');
 
-    if (parts.length != 3) {
+    if (parts.length !== 3) {
       return null;
     }
 
@@ -52,10 +52,9 @@
         container.appendTo(node);
 
         angular.module('claimComponent' + timestamp, []).service('CurrentData', function() {
-          return {
-            hash: component.hash,
+          return angular.extend({
             createTime: component.lastModifiedEntryTime ? component.lastModifiedEntryTime : component.lastModifiedTime
-          };
+          }, component);
         });
         angular.bootstrap(container[0], ['ClaimComponent', 'claimComponent' + timestamp, 'AngularCommon']);
 
@@ -73,59 +72,138 @@
         $scope.claimData.createTimeText = CurrentData.createTime ? dateToString(new Date(CurrentData.createTime)) : null;
         $scope.submitted = false;
         $scope.disableSubmit = false;
+
+        // If we have previously claimed this component, use the stored values
+        if(CurrentData.identificationSource === 'Manual') {
+          angular.extend($scope.claimData, CurrentData);
+          $scope.disableSubmit = true;
+        }
       };
 
-      $scope.claimSubmit = function() {
+      var servicePath = CLM.path + 'rest/component/identified';
+
+      var errorHandler = function(data, status, headersFn, config) {
+        var header = headersFn();
+        if (header['content-type'] && header['content-type'].indexOf('text/html') === 0) {
+          $scope.createError = 'Server Error';
+        }
+        else if (status === 0) {
+          $scope.errorResponse = 'Unable to connect to CLM server';
+        }
+        else {
+          $scope.createError = data;
+        }
+        $scope.disableSubmit = false;
+      };
+
+      /**
+       * Update the data table and inform the UI after claiming a component.
+       * @param {Object} data
+       */
+      function updateView(data) {
+        var dataView = InsightDatatable.getActiveTable().dataView;
+
+        $.each(dataView.getItems(), function(index, item) {
+          if (item.hash === CurrentData.hash) {
+            dataView.beginUpdate();
+            dataView.updateItem(item.id, $.extend({}, item, {
+              identificationSource: 'Manual',
+              matchState: 'exact',
+              groupId: data.groupId,
+              artifactId: data.artifactId,
+              version: data.version,
+              classifier: data.classifier,
+              extension: data.extension,
+              createTime: data.createTime,
+              age: data.createTime ? Math.floor((new Date().getTime() - data.createTime) /
+                (1000 * 60 * 60 * 24)) : null
+            }));
+            dataView.endUpdate();
+          }
+        });
+        $scope.createSuccess = 'Component successfully claimed as ' + data.groupId + ':' + data.artifactId + ':' +
+          data.version;
+        $scope.resetClaimData();
+      }
+
+      /**
+       * Clear messages and update state to indicate we're submitting the form
+       */
+      function updateStateForSubmit() {
         $scope.createError = '';
         $scope.createSuccess = '';
         $scope.submitted = true;
-        if ($scope.claimForm.$valid) {
-          $scope.disableSubmit = true;
-          $scope.claimData.hash = CurrentData.hash;
-          if ($scope.claimData.createTimeText) {
-            $scope.claimData.createTime = stringToDate($scope.claimData.createTimeText).getTime();
-          }
-          $http.post(CLM.path + 'rest/component/identified', $scope.claimData).success(function(data) {
-            var dataView = InsightDatatable.getActiveTable().dataView, currentItem;
+      }
 
-            $.each(dataView.getItems(), function(index, item) {
-              if (item.hash === CurrentData.hash) {
-                dataView.beginUpdate();
-                dataView.updateItem(item.id, $.extend({}, item, {
-                  identificationSource: 'Manual',
-                  matchState: 'exact',
-                  groupId: data.groupId,
-                  artifactId: data.artifactId,
-                  version: data.version,
-                  classifier: data.classifier,
-                  extension: data.extension,
-                  createTime: data.createTime,
-                  age: data.createTime ? Math.floor((new Date().getTime() - data.createTime) /
-                      (1000 * 60 * 60 * 24)) : null
-                }));
-                dataView.endUpdate();
-              }
-            });
-
-            $scope.createSuccess = 'Component successfully claimed as ' + data.groupId + ':' + data.artifactId + ':' +
-                data.version;
-            $scope.resetClaimData();
-            // TODO: need to close the info panel as the available
-            // tabs no longer match??
-          }).error(function(data, status, headersFn, config) {
-                var header = headersFn();
-                if (header['content-type'] && header['content-type'].indexOf('text/html') === 0) {
-                  $scope.createError = 'Server Error';
-                }
-                else if (status === 0) {
-                  $scope.errorResponse = 'Unable to connect to CLM server';
-                }
-                else {
-                  $scope.createError = data;
-                }
-                $scope.disableSubmit = false;
-              });
+      /**
+       * Inform the UI a submit is in process and fill in additional required data before submit.
+       */
+      function prepareForSubmit() {
+        $scope.disableSubmit = true;
+        $scope.claimData.hash = CurrentData.hash;
+        if ($scope.claimData.createTimeText) {
+          $scope.claimData.createTime = stringToDate($scope.claimData.createTimeText).getTime();
         }
+      }
+
+      /**
+       * Claim the presently selected component
+       */
+      $scope.claimSubmit = function() {
+        updateStateForSubmit();
+        if ($scope.claimForm.$valid) {
+          prepareForSubmit();
+          $http.post(servicePath, $scope.claimData).success(function(data) {
+            updateView(data);
+          }).error(errorHandler);
+        }
+      };
+
+      /**
+       * Update the claim information for the presently selected component
+       */
+      $scope.claimUpdateSubmit = function() {
+        updateStateForSubmit();
+        if ($scope.claimForm.$valid) {
+          prepareForSubmit();
+          $http.put(servicePath, $scope.claimData).success(function(data) {
+            updateView(data);
+          }).error(errorHandler);
+        }
+      };
+
+      /**
+       * Remove(delete) an existing claim on a component
+       */
+      $scope.unclaimSubmit = function() {
+        updateStateForSubmit();
+        $http.delete(servicePath + '/' + CurrentData.hash).success(function(data) {
+          var dataView = InsightDatatable.getActiveTable().dataView;
+
+          $.each(dataView.getItems(), function(index, item) {
+            if (item.hash === CurrentData.hash) {
+              dataView.beginUpdate();
+              dataView.updateItem(item.id, $.extend({}, item, {
+                matchState: 'unknown',
+                groupId: null,
+                artifactId: null,
+                version: null,
+                classifier: null,
+                extension: null,
+                identificationSource: null,
+                createTime: data.createTime,
+                age: data.createTime ? Math.floor((new Date().getTime() - data.createTime) /
+                  (1000 * 60 * 60 * 24)) : null
+              }));
+              dataView.endUpdate();
+            }
+          });
+          $scope.createSuccess = 'Component claim has been revoked';
+        }).error(errorHandler);
+      };
+
+      $scope.isClaimedComponent = function() {
+        return CurrentData.identificationSource === 'Manual';
       };
 
       $scope.formValid = function() {
@@ -161,7 +239,7 @@
     return function(scope, element, attrs) {
       element.bind("keydown.nav", function(e) {
         // 9 is tab, others are arrow keys
-        if (e.keyCode == 9 || (e.keyCode >= 37 && e.keyCode <= 40)) {
+        if (e.keyCode === 9 || (e.keyCode >= 37 && e.keyCode <= 40)) {
           e.stopPropagation();
         }
       });
@@ -199,12 +277,13 @@
     ClaimComponentTab.prototype = new Insight.InformationPanelPlugin({ priority: 128 });
 
     ClaimComponentTab.prototype.isVisible = function() {
-      return this.gav.matchState !== 'exact';
+      return this.gav.matchState !== 'exact' || this.gav.identificationSource === 'Manual';
     };
 
     ClaimComponentTab.prototype.create = function() {
       var timestamp = (new Date()).getTime(), container = $('<div id="claim-component-' + timestamp +
-          '"></div>'), me = this, retry = function() {
+          '"></div>'), me = this,
+        retry = function() {
         if (Insight.ClaimComponent) {
           Insight.ClaimComponent(container, applicationId, me.gav);
         }

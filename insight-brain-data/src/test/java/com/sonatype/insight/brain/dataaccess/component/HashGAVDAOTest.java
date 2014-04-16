@@ -13,9 +13,12 @@ import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.junit.Test;
 
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.isEmptyOrNullString;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -47,14 +50,16 @@ public class HashGAVDAOTest
     hashGAV = dao.getById(hashGAV.getId());
     assertNotNull(hashGAV);
     assertHashGAV(truncatedHash, groupId, artifactId, version, extension, classifier, createTime, hashGAV);
+    assertThat(hashGAV.getComment(), isEmptyOrNullString());
 
-    // Update is not allowed
-    try {
-      dao.update(hashGAV);
-      fail("Expected UnsupportedOperationException, updates to HashGAV are not allowed");
-    }
-    catch (UnsupportedOperationException expected) {
-    }
+    // Update
+    String comment = "Comment for update";
+    hashGAV.setComment(comment);
+    dao.update(hashGAV);
+    hashGAV = dao.getById(hashGAV.getId());
+    assertNotNull(hashGAV);
+    assertHashGAV(truncatedHash, groupId, artifactId, version, extension, classifier, createTime, hashGAV);
+    assertThat(hashGAV.getComment(), is(comment));
 
     // Delete
     dao.delete(hashGAV);

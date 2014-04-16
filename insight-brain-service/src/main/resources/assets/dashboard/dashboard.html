@@ -25,8 +25,9 @@
       <td>{{risk.threatLevel}}</td>
       <td>{{risk.policyName}}</td>
       <td>{{risk.applicationName}}</td>
-      <td ng-if='risk.groupId'>{{risk.groupId}}<span class='wrap-force-break'> : </span>{{risk.artifactId}}
-        <span class='wrap-force-break'> : </span>{{risk.version}}
+      <td ng-if='risk.groupId'>
+        <!-- This line cannot break as it causes spaces between the GAV -->
+        {{risk.groupId}}<span class='wrap-force-break'> : </span>{{risk.artifactId}}<span class='wrap-force-break'> : </span>{{risk.version}}
       </td>
       <td ng-if='!risk.groupId'><em>Unknown</em></td>
     </tr>

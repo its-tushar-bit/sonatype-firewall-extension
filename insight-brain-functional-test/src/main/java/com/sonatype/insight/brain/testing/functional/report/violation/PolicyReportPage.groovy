@@ -116,7 +116,7 @@ class PolicyRow
 
   AddPolicyWaiver addWaiver() {
     addWaiverTrigger.click()
-    waitFor { waiver.displayed }
+    waitFor { waiver.apply.displayed }
 
     return waiver
   }

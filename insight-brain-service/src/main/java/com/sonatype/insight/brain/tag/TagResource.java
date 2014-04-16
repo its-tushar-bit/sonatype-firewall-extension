@@ -31,6 +31,7 @@ import com.sonatype.insight.brain.model.tag.Tag;
 public class TagResource
 {
   public static final String SERVICE_PATH = "rest/tag/";
+  public static final String USED_BY_APPLICATION_PATH = "application";
   public static final String APPLICATION_PATH = "application/{applicationPublicId}";
   public static final String ORGANIZATION_PATH = "organization/{organizationId}";
 
@@ -39,6 +40,13 @@ public class TagResource
   @Inject
   public TagResource(TagService service) {
     this.service = service;
+  }
+
+  @GET
+  @Path(USED_BY_APPLICATION_PATH)
+  @Produces({MediaType.APPLICATION_JSON})
+  public List<Tag> getTagsUsedByApplications() {
+    return service.getTagsUsedByApplications();
   }
 
   @GET

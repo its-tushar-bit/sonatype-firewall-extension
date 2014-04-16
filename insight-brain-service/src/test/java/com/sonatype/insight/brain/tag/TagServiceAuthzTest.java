@@ -5,8 +5,11 @@
  */
 package com.sonatype.insight.brain.tag;
 
+import java.util.List;
+
 import javax.inject.Inject;
 
+import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.tag.Tag;
@@ -15,6 +18,10 @@ import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 import org.apache.shiro.authz.UnauthorizedException;
 import org.junit.Before;
 import org.junit.Test;
+
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.Matchers.hasSize;
+import static org.junit.Assert.assertThat;
 
 public class TagServiceAuthzTest
     extends AbstractServiceAuthzTest
@@ -206,5 +213,23 @@ public class TagServiceAuthzTest
   public void testGetTagsByApplicationPublicId_Authorized() throws Exception {
     grantReadPermission(app.getId());
     tagService.getTagsByApplicationPublicId(app.getPublicId());
+  }
+
+  @Test
+  public void testGetAllTagsWithReadPermission() {
+    Organization organization1 = tempEntity.newOrganization("testGetAllTagsOrg1");
+    Application application1 = tempEntity.newApplication(organization1.getId());
+    Tag tag1 = tempEntity.newTag(organization1.getId());
+    tempEntity.newApplicationTag(application1.getId(), tag1.getId());
+    grantReadPermission(application1.getId());
+
+    Organization organization2 = tempEntity.newOrganization("testGetAllTagsOrg2");
+    Application application2 = tempEntity.newApplication(organization2.getId());
+    Tag tag2 = tempEntity.newTag(organization2.getId());
+    tempEntity.newApplicationTag(application2.getId(), tag2.getId());
+
+    List<Tag> allTags = tagService.getTagsUsedByApplications();
+    assertThat(allTags, hasSize(1));
+    assertThat(allTags.get(0).getId(), is(tag1.getId()));
   }
 }

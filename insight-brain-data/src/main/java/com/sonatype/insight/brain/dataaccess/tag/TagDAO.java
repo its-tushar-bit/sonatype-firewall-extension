@@ -53,6 +53,12 @@ public class TagDAO
     return getList(em, sQuery, organizationId);
   }
 
+  public List<Tag> getUsedByApplicationId(String applicationId) {
+    String sQuery = "SELECT tag FROM Tag tag, ApplicationTag appTag, Tag tag" + //
+        " WHERE tag.id = appTag.tagId AND appTag.applicationId =?1";
+    return getList(sQuery, applicationId);
+  }
+
   public Tag getByOrganizationIdAndName(EntityManager em, String organizationId, String name) {
     if (name == null || name.trim().isEmpty()) {
       throw new DataAccessException("The tag name cannot be null or empty.");

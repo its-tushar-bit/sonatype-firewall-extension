@@ -8,6 +8,9 @@ package com.sonatype.insight.brain.utils;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
+import com.sonatype.insight.model.HasStringId;
+
+import com.google.common.base.Predicate;
 
 public class IdUtils
 {
@@ -29,5 +32,14 @@ public class IdUtils
     }
 
     throw new IllegalStateException("Unknown owner type: " + ownerType);
+  }
+
+  public static Predicate<HasStringId> getIsEqualPredicate(final HasStringId compareTo) {
+    return new Predicate<HasStringId>() {
+      @Override
+      public boolean apply(final HasStringId existing) {
+        return existing.getId().equals(compareTo.getId());
+      }
+    };
   }
 }

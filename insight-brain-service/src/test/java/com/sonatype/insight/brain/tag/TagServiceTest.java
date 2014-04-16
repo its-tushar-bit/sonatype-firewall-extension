@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.tag;
 
+import java.util.List;
+
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
@@ -18,6 +20,7 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
@@ -68,5 +71,21 @@ public class TagServiceTest extends InjectedTest
       assertThat(e.getMessage(), is("Tag with id " + tag.getId() + " is not applied to application with id "
           + application2.getPublicId()));
     }
+  }
+
+  @Test
+  public void testGetAllTags() {
+    Organization organization1 = tempEntity.newOrganization("testGetAllTagsOrg1");
+    Application application1 = tempEntity.newApplication(organization1.getId());
+    Tag tag1 = tempEntity.newTag(organization1.getId());
+    tempEntity.newApplicationTag(application1.getId(), tag1.getId());
+
+    Organization organization2 = tempEntity.newOrganization("testGetAllTagsOrg2");
+    Application application2 = tempEntity.newApplication(organization2.getId());
+    Tag tag2 = tempEntity.newTag(organization2.getId());
+    tempEntity.newApplicationTag(application2.getId(), tag2.getId());
+
+    List<Tag> allTags = tagService.getTagsUsedByApplications();
+    assertThat(allTags, hasSize(2));
   }
 }

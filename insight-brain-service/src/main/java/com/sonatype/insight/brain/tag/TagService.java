@@ -5,22 +5,28 @@
  */
 package com.sonatype.insight.brain.tag;
 
+import java.util.ArrayList;
 import java.util.List;
 
+import javax.inject.Inject;
 import javax.inject.Named;
 
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.tag.ApplicationTagDAO;
 import com.sonatype.insight.brain.dataaccess.tag.PolicyTagDAO;
 import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
+import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.tag.ApplicationTag;
 import com.sonatype.insight.brain.model.tag.PolicyTag;
 import com.sonatype.insight.brain.model.tag.Tag;
+import com.sonatype.insight.brain.organization.ApplicationService;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.error.exception.NotFoundException;
+
+import com.google.common.collect.Iterables;
 
 @Named
 /**
@@ -28,6 +34,30 @@ import com.sonatype.insight.error.exception.NotFoundException;
  */
 class TagService
 {
+  private final ApplicationService applicationService;
+
+  @Inject
+  public TagService(ApplicationService applicationService) {
+    this.applicationService = applicationService;
+  }
+
+  public List<Tag> getTagsUsedByApplications() {
+    List<Application> applications = applicationService.getApplicationsWithReadPermission();
+    List<Tag> allTags = new ArrayList<>();
+
+    for (Application application : applications) {
+      final List<Tag> applicationTags = new TagDAO().getUsedByApplicationId(application.getId());
+
+      for (final Tag tag : applicationTags) {
+        if (!Iterables.any(allTags, IdUtils.getIsEqualPredicate(tag))) {
+          allTags.add(tag);
+        }
+      }
+    }
+
+    return allTags;
+  }
+
   @Authorize(permission = Permission.READ)
   public List<Tag> getTags(@AuthzContext(AuthzContext.Key.ORGANIZATION_ID) String organizationId) {
     return new TagDAO().getByOrganizationId(organizationId);

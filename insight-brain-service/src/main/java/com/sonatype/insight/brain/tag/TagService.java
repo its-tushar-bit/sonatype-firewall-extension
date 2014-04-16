@@ -42,7 +42,7 @@ class TagService
   }
 
   public List<Tag> getTagsUsedByApplications() {
-    List<Application> applications = applicationService.getApplicationsWithReadPermission();
+    List<Application> applications = applicationService.getApplications();
     List<Tag> allTags = new ArrayList<>();
 
     for (Application application : applications) {

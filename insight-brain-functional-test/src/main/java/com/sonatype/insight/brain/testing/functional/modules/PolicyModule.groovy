@@ -13,7 +13,7 @@ import geb.Module
 class PolicyModule
     extends Module {
   static content = {
-    newPolicyButton { $('.new-entity-button', text: 'New Policy') }
+    newPolicyButton(wait: true) { $('.new-entity-button', text: 'New Policy') }
     newPolicyEditor {module PolicyEditorModule, $('.inline-policy-editor')}
     policyEditors(required: false) { moduleList PolicyEditorModule, $('#policyList div', 'ng-repeat': 'policy in policies') }
   }

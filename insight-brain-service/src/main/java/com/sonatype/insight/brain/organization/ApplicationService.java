@@ -16,7 +16,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.persistence.EntityManager;
 
-import com.sonatype.insight.brain.api.service.UserValidationService;
+import com.sonatype.insight.brain.security.UserValidationService;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.InvalidApplicationException;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;

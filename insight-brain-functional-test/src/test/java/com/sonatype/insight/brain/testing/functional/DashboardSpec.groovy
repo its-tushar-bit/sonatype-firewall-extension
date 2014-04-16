@@ -45,12 +45,14 @@ class DashboardSpec
   }
 
   def 'Dashboard Filters'() {
-    when: 'dashboard filters are shown'
+    when: 'clicking the filter toggle button'
       filterPanelToggle.click()
+
+    then: 'the dashboard filters are shown'
       waitFor { applicationFiltersDropdown.displayed }
       policyThreatFiltersDropdown.displayed
 
-    then: 'application filters are loaded'
+    and: 'application filters are loaded'
       applicationFiltersDropdown.showDropdown()
       applicationFiltersDropdown.dropdownCheck(firstApp.name).displayed
       applicationFiltersDropdown.dropdownCheck(secondApp.name).displayed
@@ -68,9 +70,9 @@ class DashboardSpec
       applicationFiltersDropdown.toggleOption(firstApp.name)
       applicationFiltersDropdown.toggleOption(secondApp.name)
       filterButtons.button('Apply').click()
-      waitFor { filterPanel.displayed }
 
     then: 'filters show up in readonly mode'
+      waitFor { filterPanel.displayed }
       applicationFilters.collect{it.text()}.join('') == firstApp.name + ',' + secondApp.name
   }
 

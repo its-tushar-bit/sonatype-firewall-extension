@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.component;
 
+import java.io.IOException;
 import java.util.Date;
 
 import com.sonatype.clm.dto.model.ComponentSummary;
@@ -19,7 +20,9 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
 
 public class HashGAVResourceTest
     extends AbstractResourceTest
@@ -52,21 +55,37 @@ public class HashGAVResourceTest
   }
 
   @Test
-  public void testSetHashGAV_UnknownToSaaS() throws Exception {
+  public void testCRUD() throws Exception {
     Date createTime = new Date();
-
-    setSaasResponseForURI("rest/ide/component?groupId=" + groupId + "&artifactId=" + artifactId + "&version=" + version
-            + "&extension=" + extension + "&classifier=" + classifier,
-        JsonHelpers.asJson(ComponentSummary.create(false)),
-        200
-    );
-
     hashGAV.setComment(comment);
     hashGAV.setCreateTime(createTime);
+
+    // component must be unknown or we cannot claim it
+    setSaasResponse(groupId);
+
+    // create
     Response response = AuthedRestAccess.post(getServiceURL(), JsonHelpers.asJson(hashGAV));
     assertResponseStatus(200, response);
     hashGAV = JsonHelpers.fromJson(response.getResponseBody(), HashGAV.class);
     assertHashGAV(hash, groupId, artifactId, version, extension, classifier, comment, createTime, hashGAV);
+
+    // read - no GET use case for this resource(as of yet)
+
+    // update
+    String updatedGroupId = groupId + "_updated";
+    hashGAV.setGroupId(updatedGroupId);
+    setSaasResponse(updatedGroupId);
+    response = AuthedRestAccess.put(getServiceURL(), JsonHelpers.asJson(hashGAV));
+    assertResponseStatus(200, response);
+    hashGAV = JsonHelpers.fromJson(response.getResponseBody(), HashGAV.class);
+    assertHashGAV(hash, updatedGroupId, artifactId, version, extension, classifier, comment, createTime, hashGAV);
+
+    // delete
+    response = AuthedRestAccess.delete(getServiceURL() + "/" + hashGAV.getHash());
+    assertResponseStatus(204, response);
+
+    // resource has no use case for GET so look directly in DB to ensure that record is deleted
+    assertThat(new HashGAVDAO().getByHash(hashGAV.getHash()), nullValue());
   }
 
   @Test
@@ -82,27 +101,8 @@ public class HashGAVResourceTest
     assertEquals(
         "The 'HashGAVResourceTest_G:HashGAVResourceTest_A:HashGAVResourceTest_V:HashGAVResourceTest_E" +
             ":HashGAVResourceTest_C' coordinates are already in use",
-        response.getResponseBody());
-  }
-
-  @Test
-  public void testUnclaimComponent() throws Exception {
-    Date createTime = new Date();
-
-    setSaasResponseForURI("rest/ide/component?groupId=" + groupId + "&artifactId=" + artifactId + "&version=" + version
-            + "&extension=" + extension + "&classifier=" + classifier,
-        JsonHelpers.asJson(ComponentSummary.create(false)),
-        200
+        response.getResponseBody()
     );
-
-    hashGAV.setComment(comment);
-    hashGAV.setCreateTime(createTime);
-    Response response = AuthedRestAccess.post(getServiceURL(), JsonHelpers.asJson(hashGAV));
-    assertResponseStatus(200, response);
-    hashGAV = JsonHelpers.fromJson(response.getResponseBody(), HashGAV.class);
-
-    response = AuthedRestAccess.delete(getServiceURL() + "/" + hashGAV.getHash());
-    assertResponseStatus(204, response);
   }
 
   private void assertHashGAV(String hash, String groupId, String artifactId, String version, String extension,
@@ -119,5 +119,14 @@ public class HashGAVResourceTest
 
   private String getServiceURL() {
     return getRestBaseUrl() + HashGAVResource.SERVICE_PATH;
+  }
+
+  private void setSaasResponse(final String groupId) throws IOException {
+    setSaasResponseForURI(
+        "rest/ide/component?groupId=" + groupId + "&artifactId=" + artifactId + "&version=" + version
+            + "&extension=" + extension + "&classifier=" + classifier,
+        JsonHelpers.asJson(ComponentSummary.create(false)),
+        200
+    );
   }
 }

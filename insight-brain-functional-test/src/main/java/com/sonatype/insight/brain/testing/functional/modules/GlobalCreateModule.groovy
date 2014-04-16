@@ -10,10 +10,15 @@ import geb.Module
 class GlobalCreateModule
     extends Module 
 {
-  static base = { $('#global-create') }
+  String browserClassName
+
+  static base = { $('li.dashboard-add') }
 
   static content = {
-    dropdown { $('a', 'data-toggle': 'dropdown') }
+    dropdown {
+      def navigator = $('a', 'data-toggle': 'dropdown')
+      browserClassName == 'ChromeDriver' ? navigator.parent() : navigator
+    }
     newOrganization(required: false) { $('#global-create-org') }
     newApplication(required: false) { $('#global-create-app') }
     newPolicy(required: false) { $('#global-create-policy') }

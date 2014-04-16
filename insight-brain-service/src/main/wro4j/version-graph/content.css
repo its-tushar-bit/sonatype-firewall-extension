@@ -111,7 +111,7 @@ form.form-horizontal .controls {
 form.form-horizontal .control-label {
 	width : 80px
 }
-form, form .control-group {
+#version-graph form, #version-graph form .control-group {
 	margin: 0px !important
 }
 .alert {

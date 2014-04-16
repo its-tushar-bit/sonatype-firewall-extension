@@ -76,7 +76,7 @@ class DashboardSpec
 
   def 'Risk Tables'() {
     when: 'highest risk table is shown'
-      highestRiskTable.displayed
+      waitFor { highestRiskTable.displayed }
 
     then: 'risks are sorted by descending threat level'
       policyViolationRisk(highestRiskTable, 0).text() == '10'
@@ -92,7 +92,7 @@ class DashboardSpec
 
   def 'Highest Risk Table'() {
     when: 'highest risk table is shown'
-      highestRiskTable.displayed
+      waitFor { highestRiskTable.displayed }
 
     then: 'policy violations are listed by threat level'
       !noDataAvailableHighest.displayed
@@ -115,7 +115,7 @@ class DashboardSpec
       waitFor { !applicationFiltersDropdown.displayed }
 
     then: 'only violations from that application are shown'
-      highestRiskTable.size() == 1
+      waitFor { highestRiskTable.size() == 1 }
       policyViolationRisk(highestRiskTable, 0).text() == '5'
       policyViolationPolicy(highestRiskTable, 0).text() == 'DashboardSpecPolicy'
       policyViolationApplication(highestRiskTable, 0).text() == firstApp.name
@@ -123,7 +123,7 @@ class DashboardSpec
 
   def 'Newest Risk Table'() {
     when: 'newest risk table is shown'
-      newestViolationTable.displayed
+      waitFor { newestViolationTable.displayed }
 
     then: 'policy violations are listed by threat level'
       !noDataAvailableNewest.displayed
@@ -141,7 +141,7 @@ class DashboardSpec
       waitFor { !applicationFiltersDropdown.displayed }
 
     then: 'no violations are shown'
-      !newestViolationTable
+      waitFor { !newestViolationTable }
       noDataAvailableNewest.displayed
   }
 

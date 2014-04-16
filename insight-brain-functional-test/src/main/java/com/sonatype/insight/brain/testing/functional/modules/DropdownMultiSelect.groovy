@@ -23,7 +23,7 @@ class DropdownMultiSelect
 
   void toggleOption(String name) {
     showDropdown()
-    this.dropdownCheck(name).click()
+    waitFor { dropdownCheck(name) }.click()
     hideDropdown()
   }
 

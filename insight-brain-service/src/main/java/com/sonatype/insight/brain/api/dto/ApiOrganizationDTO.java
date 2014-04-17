@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.api.dto;
 
+import java.util.List;
+
 /**
  * @since 1.11.0
  */
@@ -13,6 +15,8 @@ public class ApiOrganizationDTO
   private String id;
 
   private String name;
+
+  private List<ApiTagDTO> tags;
 
   public ApiOrganizationDTO() {
   }
@@ -31,5 +35,13 @@ public class ApiOrganizationDTO
 
   public void setName(final String name) {
     this.name = name;
+  }
+
+  public List<ApiTagDTO> getTags() {
+    return tags;
+  }
+
+  public void setTags(final List<ApiTagDTO> tags) {
+    this.tags = tags;
   }
 }

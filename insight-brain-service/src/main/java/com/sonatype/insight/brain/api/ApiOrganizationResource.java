@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.api;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -18,12 +17,10 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
-import com.sonatype.insight.brain.api.dto.ApiOrganizationDTO;
 import com.sonatype.insight.brain.api.dto.ApiOrganizationListDTO;
 import com.sonatype.insight.brain.api.dto.ApiRoleMemberMappingDTO;
 import com.sonatype.insight.brain.api.dto.ApiRoleMemberMappingListDTO;
-import com.sonatype.insight.brain.model.Organization;
-import com.sonatype.insight.brain.organization.OrganizationService;
+import com.sonatype.insight.brain.api.service.ApiOrganizationService;
 import com.sonatype.insight.brain.security.ApplicableMembershipMappings;
 import com.sonatype.insight.brain.security.Member;
 import com.sonatype.insight.brain.security.MembershipMappingService;
@@ -40,18 +37,18 @@ public class ApiOrganizationResource
 
   public static final String ROLE_MEMBERS_PATH = "{organizationId}/roleMembers";
 
-  private final OrganizationService organizationService;
+  private final ApiOrganizationService apiOrganizationService;
 
   private final MembershipMappingService membershipMappingService;
 
   private final ApiMemberMappingAdapter apiMemberMappingAdapter;
 
   @Inject
-  public ApiOrganizationResource(final OrganizationService organizationService,
+  public ApiOrganizationResource(final ApiOrganizationService apiOrganizationService,
       final MembershipMappingService membershipMappingService,
       final ApiMemberMappingAdapter apiMemberMappingAdapter)
   {
-    this.organizationService = organizationService;
+    this.apiOrganizationService = apiOrganizationService;
     this.membershipMappingService = membershipMappingService;
     this.apiMemberMappingAdapter = apiMemberMappingAdapter;
   }
@@ -59,8 +56,7 @@ public class ApiOrganizationResource
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   public ApiOrganizationListDTO getAllOrganizations() {
-    final List<Organization> organizations = organizationService.getAll();
-    return convert(organizations);
+    return apiOrganizationService.getAll();
   }
 
   @GET
@@ -85,22 +81,5 @@ public class ApiOrganizationResource
     membershipMappingService
         .setMembershipMappingForRoleByInternalId(IdUtils.TYPE_ORGANIZATION, organizationId,
             roleMemberMappingDTO.getRoleId(), memberList);
-  }
-
-  private ApiOrganizationListDTO convert(final List<Organization> organizations) {
-    final List<ApiOrganizationDTO> dtoList = new ArrayList<>(organizations.size());
-    for (final Organization organization : organizations) {
-      dtoList.add(convert(organization));
-    }
-    ApiOrganizationListDTO organizationListDTO = new ApiOrganizationListDTO();
-    organizationListDTO.setOrganizations(dtoList);
-    return organizationListDTO;
-  }
-
-  private ApiOrganizationDTO convert(final Organization organization) {
-    final ApiOrganizationDTO dto = new ApiOrganizationDTO();
-    dto.setId(organization.getId());
-    dto.setName(organization.getName());
-    return dto;
   }
 }

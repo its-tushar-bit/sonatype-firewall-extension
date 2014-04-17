@@ -16,6 +16,7 @@ import com.sonatype.insight.brain.api.dto.ApiOrganizationDTO;
 import com.sonatype.insight.brain.api.dto.ApiOrganizationListDTO;
 import com.sonatype.insight.brain.api.dto.ApiRoleMemberMappingDTO;
 import com.sonatype.insight.brain.api.dto.ApiRoleMemberMappingListDTO;
+import com.sonatype.insight.brain.api.dto.ApiTagDTO;
 import com.sonatype.insight.brain.configuration.ldap.LdapServer;
 import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
 import com.sonatype.insight.brain.ldap.TestLdapServer;
@@ -23,6 +24,7 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
+import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
 import com.ning.http.client.Response;
@@ -33,7 +35,6 @@ import org.junit.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.arrayWithSize;
-import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
@@ -61,18 +62,29 @@ public class ApiOrganizationResourceTest
 
   @Test
   public void testGetAll() throws Exception {
+    Tag tag = tempEntity.newTag(organization.getId());
+
     final Response response = AuthedRestAccess.get(getServiceURL());
     assertResponseStatus(200, response);
-    final ApiOrganizationListDTO organizationListDTO = JsonHelpers.fromJson(response.getResponseBody(), ApiOrganizationListDTO.class);
+    final ApiOrganizationListDTO organizationListDTO = JsonHelpers
+        .fromJson(response.getResponseBody(), ApiOrganizationListDTO.class);
     assertThat(organizationListDTO, notNullValue());
 
-    List<ApiOrganizationDTO> organizations = organizationListDTO.getOrganizations();
-    assertThat(organizations, notNullValue());
-    assertThat(organizations, hasSize(1));
+    List<ApiOrganizationDTO> retrievedOrgs = organizationListDTO.getOrganizations();
+    assertThat(retrievedOrgs, notNullValue());
+    assertThat(retrievedOrgs, hasSize(1));
 
-    final ApiOrganizationDTO organization = organizations.get(0);
-    assertThat(organization.getId(), equalTo(organization.getId()));
-    assertThat(organization.getName(), equalTo(organization.getName()));
+    ApiOrganizationDTO retrievedOrg = retrievedOrgs.get(0);
+    assertThat(retrievedOrg.getId(), is(organization.getId()));
+    assertThat(retrievedOrg.getName(), is(organization.getName()));
+
+    List<ApiTagDTO> retrievedTags = retrievedOrg.getTags();
+    assertThat(retrievedTags, hasSize(1));
+
+    ApiTagDTO retrievedTag = retrievedTags.get(0);
+    assertThat(retrievedTag.id, is(tag.getId()));
+    assertThat(retrievedTag.name, is(tag.getName()));
+    assertThat(retrievedTag.description, is(tag.getDescription()));
   }
 
   @Test

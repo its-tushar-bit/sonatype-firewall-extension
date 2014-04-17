@@ -1,0 +1,52 @@
+/*
+ * Copyright (c) 2011-2014 Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.api.service;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import javax.inject.Named;
+
+import com.sonatype.insight.brain.api.dto.ApiOrganizationDTO;
+import com.sonatype.insight.brain.api.dto.ApiOrganizationListDTO;
+import com.sonatype.insight.brain.api.dto.ApiTagDTO;
+import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.tag.Tag;
+
+/**
+ * @since 1.11.0
+ */
+@Named
+public class ApiOrganizationAdapter
+{
+
+  public ApiOrganizationListDTO convert(List<Organization> organizations, Map<String, List<Tag>> orgTagMap) {
+    final List<ApiOrganizationDTO> dtoList = new ArrayList<>(organizations.size());
+    for (final Organization organization : organizations) {
+      dtoList.add(convert(organization, orgTagMap.get(organization.getId())));
+    }
+    ApiOrganizationListDTO organizationListDTO = new ApiOrganizationListDTO();
+    organizationListDTO.setOrganizations(dtoList);
+    return organizationListDTO;
+  }
+
+  private ApiOrganizationDTO convert(Organization organization, List<Tag> tags) {
+    ApiOrganizationDTO apiOrganizationDTO = new ApiOrganizationDTO();
+    apiOrganizationDTO.setId(organization.getId());
+    apiOrganizationDTO.setName(organization.getName());
+    List<ApiTagDTO> apiTagDTOList = new ArrayList<>(tags.size());
+    for (Tag tag : tags) {
+      ApiTagDTO apiTagDTO = new ApiTagDTO();
+      apiTagDTO.id = tag.getId();
+      apiTagDTO.name = tag.getName();
+      apiTagDTO.description = tag.getDescription();
+      apiTagDTOList.add(apiTagDTO);
+    }
+    apiOrganizationDTO.setTags(apiTagDTOList);
+    return apiOrganizationDTO;
+  }
+}

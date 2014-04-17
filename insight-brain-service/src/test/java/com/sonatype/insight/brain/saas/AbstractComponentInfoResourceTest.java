@@ -303,7 +303,7 @@ public abstract class AbstractComponentInfoResourceTest
   public void testGetComponentDetails_PolicyAlerts() throws Exception {
     String applicationPublicId = "IdeResourceTest_AppId";
     Application application = tempEntity.newApplicationWithParent(applicationPublicId);
-    Label label = new Label(application.getId(), "white", null);
+    Label label = new Label(application.getId(), "white");
     new LabelDAO().insert(label);
     new ComponentLabelDAO().insert(new ComponentLabel(application.getId(), label.getId(), "01234567890123456789"));
 
@@ -614,7 +614,7 @@ public abstract class AbstractComponentInfoResourceTest
     String hash = "01234567890123456789";
     String applicationPublicId = "IdeResourceTest_AppId";
     Application app = tempEntity.newApplicationWithParent(applicationPublicId);
-    Label label = new Label(orgLabel ? app.getOrganizationId() : app.getId(), "red", null);
+    Label label = new Label(orgLabel ? app.getOrganizationId() : app.getId(), "red");
     new LabelDAO().insert(label);
     new ComponentLabelDAO().insert(new ComponentLabel(orgComponentLabel ? app.getOrganizationId() : app.getId(), label
         .getId(), hash));

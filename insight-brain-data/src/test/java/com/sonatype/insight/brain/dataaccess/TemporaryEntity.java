@@ -391,11 +391,15 @@ public class TemporaryEntity
   }
 
   public Label newLabel(String ownerId) {
-    return newLabel(ownerId, null);
+    return newLabel(ownerId, uuid());
   }
 
   public Label newLabel(String ownerId, Color color) {
     return newLabel(ownerId, uuid(), color);
+  }
+  
+  public Label newLabel(String ownerId, String labelText) {
+    return newLabel(ownerId, labelText, Color.white);
   }
 
   public Label newLabel(String ownerId, String labelText, Color color){

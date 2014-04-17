@@ -191,30 +191,33 @@ public class LabelDAOTest
   }
 
   @Test
-  public void testSetColorBackToNull() throws Exception {
+  public void testSetColorToNull() throws Exception {
     LabelDAO dao = new LabelDAO();
     Label label = new Label();
     label.setOwnerId(applicationId);
     label.setLabel("MyLabel");
-    label.setColor(Color.blue);
-    dao.insert(label);
-    Assert.assertNotNull(label.getId());
-    label = dao.getById(label.getId());
-    Assert.assertNotNull(label);
-    assertLabel(applicationId, "MyLabel", Color.blue, null, label);
+    label.setColor(null);
+    
+    // Insert
+    try {
+      dao.insert(label);
+      fail("Expected InvalidLabelException");
+    }
+    catch (InvalidLabelException e) {
+      assertEquals("The label color must be assigned.", e.getMessage());
+    }
 
-    // Update the color using a new Label instance. This is important because an instance that was not retrieved
-    // from the db was never marked as attached/detached by openjpa.
-    Label updatedLabel = new Label();
-    updatedLabel.setId(label.getId());
-    updatedLabel.setOwnerId(label.getOwnerId());
-    updatedLabel.setLabel(label.getLabel());
-    updatedLabel.setColor(null);
-    dao.update(updatedLabel);
-    Assert.assertNull(updatedLabel.getColor());
-    updatedLabel = dao.getById(updatedLabel.getId());
-    Assert.assertNotNull(updatedLabel);
-    Assert.assertNull(updatedLabel.getColor());
+    // Update
+    label.setColor(Color.white);
+    dao.insert(label);
+    label.setColor(null);
+    try {
+      dao.update(label);
+      fail("Expected InvalidLabelException");
+    }
+    catch (InvalidLabelException e) {
+      assertEquals("The label color must be assigned.", e.getMessage());
+    }
   }
 
   @Test

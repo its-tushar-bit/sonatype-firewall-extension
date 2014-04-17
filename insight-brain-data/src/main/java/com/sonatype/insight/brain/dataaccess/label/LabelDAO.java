@@ -14,6 +14,7 @@ import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.label.ComponentLabel;
 import com.sonatype.insight.brain.model.label.Label;
@@ -157,6 +158,7 @@ public class LabelDAO
     validateLabelText(label.getLabel());
     validateLabelUnique(em, label, false);
     validateLabelDescription(label.getDescription());
+    validateLabelColor(label.getColor());
     super.insert(em, label);
   }
 
@@ -164,6 +166,12 @@ public class LabelDAO
     if (description != null && description.length() > MAX_DESC_SIZE) {
       throw new InvalidLabelException("The label description can't be longer than " + MAX_DESC_SIZE
           + " characters, the one supplied has " + description.length() + " characters. ");
+    }
+  }
+  
+  private void validateLabelColor(Color color) {
+    if (color == null) {
+      throw new InvalidLabelException("The label color must be assigned.");
     }
   }
 
@@ -221,6 +229,7 @@ public class LabelDAO
     validateLabelText(label.getLabel());
     validateLabelUnique(em, label, true);
     validateLabelDescription(label.getDescription());
+    validateLabelColor(label.getColor());
     super.update(em, label);
   }
 }

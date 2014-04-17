@@ -11,6 +11,7 @@ import javax.persistence.EntityManager;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.DataAccessException;
+import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.model.tag.ApplicationTag;
@@ -107,11 +108,18 @@ public class TagDAO
           + " characters, the one supplied has " + description.length() + " characters.");
     }
   }
+  
+  private void validateColor(Color color) {
+    if (color == null) {
+      throw new InvalidTagException("The tag color must be assigned.");
+    }
+  }
 
   @Override
   public void insert(EntityManager em, Tag entity) {
     NameHelper.validate(entity.getName());
     validateDescription(entity.getDescription());
+    validateColor(entity.getColor());
 
     if (getByOrganizationIdAndName(em, entity.getOrganizationId(), entity.getName()) != null) {
       throw new InvalidNameException(entity.getName() + " is already used as a name.");
@@ -124,6 +132,7 @@ public class TagDAO
   public void update(EntityManager em, Tag entity) {
     NameHelper.validate(entity.getName());
     validateDescription(entity.getDescription());
+    validateColor(entity.getColor());
 
     Tag existingEntity = getByOrganizationIdAndName(em, entity.getOrganizationId(), entity.getName());
     if (existingEntity != null && !existingEntity.getId().equals(entity.getId())) {

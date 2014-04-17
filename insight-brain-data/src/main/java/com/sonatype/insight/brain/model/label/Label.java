@@ -43,14 +43,18 @@ public class Label
 
   @Column(name = "color")
   @Enumerated(EnumType.STRING)
-  private Color color;
+  private Color color = Color.white;
 
   public Label() {
   }
-
-  public Label(String ownerId, String label, Color color) {
+  
+  public Label(String ownerId, String label) {
     this.ownerId = ownerId;
     setLabel(label);
+  }
+
+  public Label(String ownerId, String label, Color color) {
+    this(ownerId, label);
     this.color = color;
   }
 

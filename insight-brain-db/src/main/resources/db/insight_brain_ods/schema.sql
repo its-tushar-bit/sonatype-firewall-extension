@@ -34,7 +34,7 @@ CREATE TABLE label (
   owner_id varchar(50) NOT NULL,
   label varchar(50) NOT NULL,
   label_lowercase varchar(50) NOT NULL,
-  color varchar(20) NULL,
+  color varchar(20) NOT NULL,
   description varchar(255) NULL,
   CONSTRAINT label_pk PRIMARY KEY (label_id),
   CONSTRAINT label_uk UNIQUE KEY (owner_id, label_lowercase)
@@ -247,7 +247,7 @@ CREATE TABLE tag (
   name varchar(60) NOT NULL,
   name_lowercase_no_whitespace varchar(60) NOT NULL,
   description varchar(255) NOT NULL,
-  color varchar(20) NULL,
+  color varchar(20) NOT NULL,
   CONSTRAINT tag_pk PRIMARY KEY (tag_id),
   CONSTRAINT tag_uk UNIQUE KEY (organization_id, name_lowercase_no_whitespace),
   CONSTRAINT tag_organization_fk FOREIGN KEY (organization_id) REFERENCES organization(organization_id)

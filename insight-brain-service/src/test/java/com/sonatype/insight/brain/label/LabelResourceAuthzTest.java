@@ -63,7 +63,7 @@ public class LabelResourceAuthzTest
   public void testAddLabel() throws Exception {
     grantWritePermission(app.getId());
 
-    Label label = new Label(null, "testing", null);
+    Label label = new Label(null, "testing");
     String url = getRestUrl(LabelResource.SERVICE_PATH, IdUtils.TYPE_APPLICATION, app.getPublicId());
     Response response = testAuthzPost(url, toJson(label));
     label = fromJson(response, Label.class);
@@ -71,7 +71,7 @@ public class LabelResourceAuthzTest
 
     grantWritePermission(org.getId());
 
-    label = new Label(null, "testing", null);
+    label = new Label(null, "testing");
     url = getRestUrl(LabelResource.SERVICE_PATH, IdUtils.TYPE_ORGANIZATION, org.getId());
     response = testAuthzPost(url, toJson(label));
     label = fromJson(response, Label.class);

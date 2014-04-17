@@ -32,7 +32,7 @@ public class LabelValueTypeTest
   public void setUp() throws Exception {
     org = tempEntity.newOrganization("orgName");
     app = tempEntity.newApplication("appName", "appId", org.getId());
-    tempEntity.newLabel(app.getId(), "appLabel", null);
+    tempEntity.newLabel(app.getId(), "appLabel");
   }
 
   @Test

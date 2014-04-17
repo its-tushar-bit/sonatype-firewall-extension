@@ -7,7 +7,7 @@
 (function() {
   'use strict';
 
-  var tagTemplate = {id: null, organizationId: null, name: null, description: null, color:null};
+  var tagTemplate = {id: null, organizationId: null, name: null, description: null, color:'white'};
 
   var tagModule = angular.module('Tags', ['AngularCommon', 'CLMAppLocation', 'CLMLocation', 'CommonServices', 'ResourceModule', 'Stores']);
 
@@ -55,7 +55,7 @@
     '$scope', '$http', '$q', 'CLMAppLocations', 'Messages', 'CLMResource', 'TagStore', 'ownerChange', 'Dialog', 'ApplicationStore', 'PolicyStore', 'PolicyTagStore',
     function($scope, $http, $q, clmAppLocations, messages, clmResource, TagStore, ownerChange, Dialog, ApplicationStore, PolicyStore, PolicyTagStore) {
       $scope.alerts = [];
-      $scope.colors = [null, 'white', 'grey', 'black', 'green', 'yellow', 'orange', 'red', 'blue'];
+      $scope.colors = ['white', 'grey', 'black', 'green', 'yellow', 'orange', 'red', 'blue'];
 
       function deselect() {
         if ($scope.selectedTag) {

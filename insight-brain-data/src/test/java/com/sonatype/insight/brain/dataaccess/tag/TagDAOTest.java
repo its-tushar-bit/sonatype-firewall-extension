@@ -367,34 +367,30 @@ public class TagDAOTest
   }
 
   @Test
-  public void testNullColor() {
-    // Create with null color
+  public void testValidateNullColor_Insert() {
     Tag tag = new Tag(organization.getId(), "name", "description", null);
+    try {
+      dao.insert(tag);
+      fail("Expected InvalidTagException");
+    }
+    catch (InvalidTagException expected) {
+      assertEquals("The tag color must be assigned.", expected.getMessage());
+    }
+  }
+  
+  @Test
+  public void testValidateNullColor_Update() {
+    Tag tag = new Tag(organization.getId(), "name", "description", Color.yellow);
     dao.insert(tag);
-    assertThat(tag.getId(), notNullValue());
 
-    // Get
-    tag = dao.getById(tag.getId());
-    assertThat(tag, notNullValue());
-    assertTag(organization.getId(), "name", "description", null, tag);
-
-    // Update color from null to something
-    tag.setColor(Color.black);
-    dao.update(tag);
-
-    // Get
-    tag = dao.getById(tag.getId());
-    assertThat(tag, notNullValue());
-    assertTag(organization.getId(), "name", "description", Color.black, tag);
-
-    // Update color back to null
     tag.setColor(null);
-    dao.update(tag);
-
-    // Get
-    tag = dao.getById(tag.getId());
-    assertThat(tag, notNullValue());
-    assertTag(organization.getId(), "name", "description", null, tag);
+    try {
+      dao.update(tag);
+      fail("Expected InvalidTagException");
+    }
+    catch (InvalidTagException expected) {
+      assertEquals("The tag color must be assigned.", expected.getMessage());
+    }
   }
 
   @Test

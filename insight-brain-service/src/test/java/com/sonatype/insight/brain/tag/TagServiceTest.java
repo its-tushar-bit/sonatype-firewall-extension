@@ -11,6 +11,7 @@ import javax.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -77,15 +78,17 @@ public class TagServiceTest extends InjectedTest
   public void testGetAllTags() {
     Organization organization1 = tempEntity.newOrganization("testGetAllTagsOrg1");
     Application application1 = tempEntity.newApplication(organization1.getId());
-    Tag tag1 = tempEntity.newTag(organization1.getId());
+    Tag tag1 = tempEntity.newTag(organization1.getId(), "name");
     tempEntity.newApplicationTag(application1.getId(), tag1.getId());
 
     Organization organization2 = tempEntity.newOrganization("testGetAllTagsOrg2");
     Application application2 = tempEntity.newApplication(organization2.getId());
-    Tag tag2 = tempEntity.newTag(organization2.getId());
+    Tag tag2 = tempEntity.newTag(organization2.getId(), "name2");
     tempEntity.newApplicationTag(application2.getId(), tag2.getId());
 
     List<Tag> allTags = tagService.getTagsUsedByApplications();
     assertThat(allTags, hasSize(2));
+    assertThat(allTags.get(0).getColor(), is(Color.yellow));
+    assertThat(allTags.get(1).getColor(), is(Color.yellow));
   }
 }

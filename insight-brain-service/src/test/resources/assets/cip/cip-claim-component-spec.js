@@ -86,11 +86,30 @@ describe('CIP Claim Component tests', function() {
     confirmDataViewUpdated(2);
   });
 
-  it('Can revoke a claim on a component', function(){
+  it('Can revoke a claim on a component', inject(function(Dialog){
+    spyOn(Dialog, 'open')
     $http.expectDELETE(SpecUtil.toRegExp('../brain/rest/component/identified/1')).respond(204);
-    scope.unclaimSubmit();
+
+    scope.revokeClaimSubmit();
+
+    expect(Dialog.open).toHaveBeenCalledWith({
+      title: 'Revoke Claim',
+      body: 'Are you sure you want to revoke the claim on this component?' +
+        ' This change will not be reflected until a new policy evaluation is triggered.',
+      buttons: [
+        {
+          name: 'Cancel'
+        },
+        {
+          name : 'Revoke',
+          type : 'danger',
+          click : jasmine.any(Function)
+        }
+      ]
+    });
+    Dialog.open.mostRecentCall.args[0].buttons[1].click();
     $http.flush();
-  });
+  }));
 
   it('Can update a claim on a component', function(){
     dataTableItems = [

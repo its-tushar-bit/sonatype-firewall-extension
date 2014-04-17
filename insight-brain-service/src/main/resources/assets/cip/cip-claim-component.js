@@ -66,7 +66,7 @@
   var claimApp = angular.module('ClaimComponent', ['HttpInterceptors', 'UnauthenticatedResponseHttpInterceptor']);
 
   claimApp.controller('ClaimComponentController', [
-    '$http', '$scope', 'CurrentData', function($http, $scope, CurrentData) {
+    '$http', '$scope','CurrentData', 'Dialog', function($http, $scope, CurrentData, Dialog) {
       $scope.resetClaimData = function() {
         $scope.claimData = {};
         $scope.claimData.createTimeText = CurrentData.createTime ? dateToString(new Date(CurrentData.createTime)) : null;
@@ -97,33 +97,51 @@
       };
 
       /**
+       * Update the table data to match the updated model
+       * @param {Object} newData
+       */
+      function updateDataView(newData, hash) {
+        var dataView = InsightDatatable.getActiveTable().dataView;
+
+        $.each(dataView.getItems(), function(index, item) {
+          if (item.hash === hash) {
+            dataView.beginUpdate();
+            dataView.updateItem(item.id, $.extend({}, item, newData));
+            dataView.endUpdate();
+          }
+        });
+      }
+
+      /**
        * Update the data table and inform the UI after claiming a component.
        * @param {Object} data
        */
       function updateView(data) {
-        var dataView = InsightDatatable.getActiveTable().dataView;
+        updateDataView({
+          identificationSource: 'Manual',
+          matchState: 'exact',
+          groupId: data.groupId,
+          artifactId: data.artifactId,
+          version: data.version,
+          classifier: data.classifier,
+          extension: data.extension,
+          createTime: data.createTime,
+          age: establishAge(data.createTime)
+        }, CurrentData.hash);
 
-        $.each(dataView.getItems(), function(index, item) {
-          if (item.hash === CurrentData.hash) {
-            dataView.beginUpdate();
-            dataView.updateItem(item.id, $.extend({}, item, {
-              identificationSource: 'Manual',
-              matchState: 'exact',
-              groupId: data.groupId,
-              artifactId: data.artifactId,
-              version: data.version,
-              classifier: data.classifier,
-              extension: data.extension,
-              createTime: data.createTime,
-              age: data.createTime ? Math.floor((new Date().getTime() - data.createTime) /
-                (1000 * 60 * 60 * 24)) : null
-            }));
-            dataView.endUpdate();
-          }
-        });
         $scope.createSuccess = 'Component successfully claimed as ' + data.groupId + ':' + data.artifactId + ':' +
           data.version;
         $scope.resetClaimData();
+      }
+
+      /**
+       * Decide how old the component is
+       * @param {Object} data
+       * @returns {number}
+       */
+      function establishAge(createTime) {
+        return createTime ? Math.floor((new Date().getTime() - createTime) /
+          (1000 * 60 * 60 * 24)) : null;
       }
 
       /**
@@ -175,31 +193,41 @@
       /**
        * Remove(delete) an existing claim on a component
        */
-      $scope.unclaimSubmit = function() {
-        updateStateForSubmit();
-        $http.delete(servicePath + '/' + CurrentData.hash).success(function(data) {
-          var dataView = InsightDatatable.getActiveTable().dataView;
+      $scope.revokeClaimSubmit = function() {
 
-          $.each(dataView.getItems(), function(index, item) {
-            if (item.hash === CurrentData.hash) {
-              dataView.beginUpdate();
-              dataView.updateItem(item.id, $.extend({}, item, {
-                matchState: 'unknown',
-                groupId: null,
-                artifactId: null,
-                version: null,
-                classifier: null,
-                extension: null,
-                identificationSource: null,
-                createTime: data.createTime,
-                age: data.createTime ? Math.floor((new Date().getTime() - data.createTime) /
-                  (1000 * 60 * 60 * 24)) : null
-              }));
-              dataView.endUpdate();
+        function deleteClaim() {
+          updateStateForSubmit();
+          $http.delete(servicePath + '/' + CurrentData.hash).success(function(data) {
+            updateDataView({
+              matchState: 'unknown',
+              groupId: null,
+              artifactId: null,
+              version: null,
+              classifier: null,
+              extension: null,
+              identificationSource: null,
+              createTime: null,
+              age: null
+            }, CurrentData.hash);
+            $scope.createSuccess = 'Component claim has been revoked';
+          }).error(errorHandler);
+        }
+
+        Dialog.open({
+          title: 'Revoke Claim',
+          body: 'Are you sure you want to revoke the claim on this component?' +
+            ' This change will not be reflected until a new policy evaluation is triggered.',
+          buttons: [
+            {
+              name: 'Cancel'
+            },
+            {
+              name : 'Revoke',
+              type : 'danger',
+              click : deleteClaim
             }
-          });
-          $scope.createSuccess = 'Component claim has been revoked';
-        }).error(errorHandler);
+          ]
+        });
       };
 
       $scope.isClaimedComponent = function() {

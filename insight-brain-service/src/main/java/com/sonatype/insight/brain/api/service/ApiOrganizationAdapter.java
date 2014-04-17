@@ -30,14 +30,14 @@ public class ApiOrganizationAdapter
       dtoList.add(convert(organization, orgTagMap.get(organization.getId())));
     }
     ApiOrganizationListDTO organizationListDTO = new ApiOrganizationListDTO();
-    organizationListDTO.setOrganizations(dtoList);
+    organizationListDTO.organizations = dtoList;
     return organizationListDTO;
   }
 
   private ApiOrganizationDTO convert(Organization organization, List<Tag> tags) {
     ApiOrganizationDTO apiOrganizationDTO = new ApiOrganizationDTO();
-    apiOrganizationDTO.setId(organization.getId());
-    apiOrganizationDTO.setName(organization.getName());
+    apiOrganizationDTO.id = organization.getId();
+    apiOrganizationDTO.name = organization.getName();
     List<ApiTagDTO> apiTagDTOList = new ArrayList<>(tags.size());
     for (Tag tag : tags) {
       ApiTagDTO apiTagDTO = new ApiTagDTO();
@@ -46,7 +46,7 @@ public class ApiOrganizationAdapter
       apiTagDTO.description = tag.getDescription();
       apiTagDTOList.add(apiTagDTO);
     }
-    apiOrganizationDTO.setTags(apiTagDTOList);
+    apiOrganizationDTO.tags = apiTagDTOList;
     return apiOrganizationDTO;
   }
 }

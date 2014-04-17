@@ -28,9 +28,9 @@ public class ApiMemberMappingAdapter
     final List<ApiRoleMemberMappingDTO> roleMemberMappingDTOs = new ArrayList<>();
     for (final MembersByRole membersByRole : mappings.membersByRole) {
       final ApiRoleMemberMappingDTO roleMemberMappingDTO = new ApiRoleMemberMappingDTO();
-      roleMemberMappingDTO.setRoleId(membersByRole.roleId);
-      roleMemberMappingDTO.setRoleName(membersByRole.roleName);
-      roleMemberMappingDTO.setRoleDescription(membersByRole.roleDescription);
+      roleMemberMappingDTO.roleId = membersByRole.roleId;
+      roleMemberMappingDTO.roleName = membersByRole.roleName;
+      roleMemberMappingDTO.roleDescription = membersByRole.roleDescription;
       final List<ApiMemberDTO> memberDTOs = new ArrayList<>();
 
       for (final MembersByOwner membersByOwner : membersByRole.membersByOwner) {
@@ -41,11 +41,11 @@ public class ApiMemberMappingAdapter
           }
         }
       }
-      roleMemberMappingDTO.setMembers(memberDTOs);
+      roleMemberMappingDTO.members = memberDTOs;
       roleMemberMappingDTOs.add(roleMemberMappingDTO);
     }
     final ApiRoleMemberMappingListDTO memberMappingDTO = new ApiRoleMemberMappingListDTO();
-    memberMappingDTO.setMemberMappings(roleMemberMappingDTOs);
+    memberMappingDTO.memberMappings = roleMemberMappingDTOs;
     return memberMappingDTO;
   }
 
@@ -54,8 +54,8 @@ public class ApiMemberMappingAdapter
     if (memberDTOs != null) {
       for (final ApiMemberDTO memberDTO : memberDTOs) {
         final Member member = new Member();
-        member.setType(memberDTO.getType());
-        member.setInternalName(memberDTO.getUserOrGroupName());
+        member.setType(memberDTO.type);
+        member.setInternalName(memberDTO.userOrGroupName);
         memberList.add(member);
       }
     }

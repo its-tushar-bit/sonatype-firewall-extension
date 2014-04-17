@@ -101,10 +101,10 @@ public class ApiApplicationResource
       @PathParam("applicationId") final String applicationId,
       final ApiRoleMemberMappingDTO roleMemberMappingDTO)
   {
-    final List<Member> memberList = apiMemberMappingAdapter.convert(roleMemberMappingDTO.getMembers());
+    final List<Member> memberList = apiMemberMappingAdapter.convert(roleMemberMappingDTO.members);
     membershipMappingService
         .setMembershipMappingForRoleByInternalId(IdUtils.TYPE_APPLICATION, applicationId,
-            roleMemberMappingDTO.getRoleId(), memberList);
+            roleMemberMappingDTO.roleId, memberList);
   }
 
   @DELETE

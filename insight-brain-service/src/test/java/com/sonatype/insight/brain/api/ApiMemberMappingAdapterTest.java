@@ -70,8 +70,8 @@ public class ApiMemberMappingAdapterTest
   public void testConvertMemberDTOToEntity() {
     final List<ApiMemberDTO> memberDTOs = new ArrayList<>();
     final ApiMemberDTO memberDTO = new ApiMemberDTO();
-    memberDTO.setType(memberType);
-    memberDTO.setUserOrGroupName(testUserName);
+    memberDTO.type = memberType;
+    memberDTO.userOrGroupName = testUserName;
     memberDTOs.add(memberDTO);
 
     final List<Member> members = apiMemberMappingAdapter.convert(memberDTOs);
@@ -84,18 +84,16 @@ public class ApiMemberMappingAdapterTest
   private void assertRoleMemberMappingDTO(final ApiRoleMemberMappingListDTO apiRoleMemberMappingListDTO)
   {
     assertThat(apiRoleMemberMappingListDTO, notNullValue());
-    final List<ApiRoleMemberMappingDTO> roleMemberMappingDTOs = apiRoleMemberMappingListDTO.getMemberMappings();
-    assertThat(roleMemberMappingDTOs, hasSize(1));
-    final ApiRoleMemberMappingDTO roleMemberMappingDTO = roleMemberMappingDTOs.get(0);
-    assertThat(roleMemberMappingDTO.getRoleId(), is(roleId));
-    assertThat(roleMemberMappingDTO.getRoleName(), is(roleName));
-    assertThat(roleMemberMappingDTO.getRoleDescription(), is(roleDescription));
-    final List<ApiMemberDTO> membersDTO = roleMemberMappingDTO.getMembers();
-    assertThat(membersDTO, hasSize(1));
-    final ApiMemberDTO memberDTO = membersDTO.get(0);
+    assertThat(apiRoleMemberMappingListDTO.memberMappings, hasSize(1));
+    final ApiRoleMemberMappingDTO roleMemberMappingDTO = apiRoleMemberMappingListDTO.memberMappings.get(0);
+    assertThat(roleMemberMappingDTO.roleId, is(roleId));
+    assertThat(roleMemberMappingDTO.roleName, is(roleName));
+    assertThat(roleMemberMappingDTO.roleDescription, is(roleDescription));
+    assertThat(roleMemberMappingDTO.members, hasSize(1));
+    final ApiMemberDTO memberDTO = roleMemberMappingDTO.members.get(0);
     assertThat(memberDTO, notNullValue());
-    assertThat(memberDTO.getType(), is(memberType));
-    assertThat(memberDTO.getUserOrGroupName(), is(testUserName));
+    assertThat(memberDTO.type, is(memberType));
+    assertThat(memberDTO.userOrGroupName, is(testUserName));
   }
 
   private ApplicableMembershipMappings createApplicableMembershipMappings(final String ownerType) {

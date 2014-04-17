@@ -19,7 +19,4 @@ public class ApiApplicationDTO
   public String organizationId;
 
   public String contactUserName;
-
-  public ApiApplicationDTO() {
-  }
 }

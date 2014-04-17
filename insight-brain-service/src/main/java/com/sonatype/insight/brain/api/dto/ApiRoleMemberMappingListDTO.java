@@ -12,16 +12,5 @@ import java.util.List;
  */
 public class ApiRoleMemberMappingListDTO
 {
-  private List<ApiRoleMemberMappingDTO> memberMappings;
-
-  public ApiRoleMemberMappingListDTO() {
-  }
-
-  public List<ApiRoleMemberMappingDTO> getMemberMappings() {
-    return memberMappings;
-  }
-
-  public void setMemberMappings(final List<ApiRoleMemberMappingDTO> memberMappings) {
-    this.memberMappings = memberMappings;
-  }
+  public List<ApiRoleMemberMappingDTO> memberMappings;
 }

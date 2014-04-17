@@ -12,16 +12,5 @@ import java.util.List;
  */
 public class ApiOrganizationListDTO
 {
-  private List<ApiOrganizationDTO> organizations;
-
-  public ApiOrganizationListDTO() {
-  }
-
-  public List<ApiOrganizationDTO> getOrganizations() {
-    return organizations;
-  }
-
-  public void setOrganizations(final List<ApiOrganizationDTO> organizations) {
-    this.organizations = organizations;
-  }
+  public List<ApiOrganizationDTO> organizations;
 }

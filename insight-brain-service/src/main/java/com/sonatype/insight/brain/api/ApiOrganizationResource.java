@@ -77,9 +77,9 @@ public class ApiOrganizationResource
       @PathParam("organizationId") final String organizationId,
       final ApiRoleMemberMappingDTO roleMemberMappingDTO)
   {
-    final List<Member> memberList = apiMemberMappingAdapter.convert(roleMemberMappingDTO.getMembers());
+    final List<Member> memberList = apiMemberMappingAdapter.convert(roleMemberMappingDTO.members);
     membershipMappingService
         .setMembershipMappingForRoleByInternalId(IdUtils.TYPE_ORGANIZATION, organizationId,
-            roleMemberMappingDTO.getRoleId(), memberList);
+            roleMemberMappingDTO.roleId, memberList);
   }
 }

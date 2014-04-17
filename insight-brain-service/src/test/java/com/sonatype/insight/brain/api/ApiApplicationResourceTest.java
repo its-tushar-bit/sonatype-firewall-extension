@@ -232,7 +232,7 @@ public class ApiApplicationResourceTest
     ApiRoleMemberMappingListDTO roleMemberMappings = JsonHelpers.fromJson(response.getResponseBody(),
         ApiRoleMemberMappingListDTO.class);
     assertThat(roleMemberMappings, is(notNullValue()));
-    assertThat(roleMemberMappings.getMemberMappings(), hasSize(appRoles.size()));
+    assertThat(roleMemberMappings.memberMappings, hasSize(appRoles.size()));
 
     // Create
     final ApiRoleMemberMappingDTO roleMemberMappingDTO = newMemberMapping(
@@ -251,16 +251,16 @@ public class ApiApplicationResourceTest
         ApiRoleMemberMappingListDTO.class);
 
     assertThat(returnedRoleMemberMappings, is(notNullValue()));
-    final List<ApiRoleMemberMappingDTO> returnedRoleMemberMappingList = returnedRoleMemberMappings.getMemberMappings();
+    final List<ApiRoleMemberMappingDTO> returnedRoleMemberMappingList = returnedRoleMemberMappings.memberMappings;
     assertThat(returnedRoleMemberMappingList, is(notNullValue()));
     assertThat(returnedRoleMemberMappingList, hasSize(appRoles.size()));
 
     for (final ApiRoleMemberMappingDTO roleMember : returnedRoleMemberMappingList) {
-      if (roleMember.getRoleId().equals(appRoles.get(0).getId())) {
-        assertThat(roleMember.getMembers(), hasSize(3));
+      if (roleMember.roleId.equals(appRoles.get(0).getId())) {
+        assertThat(roleMember.members, hasSize(3));
         final Map<String, MemberType> memberMap = new HashMap<>();
-        for (final ApiMemberDTO member : roleMember.getMembers()) {
-          memberMap.put(member.getUserOrGroupName(), member.getType());
+        for (final ApiMemberDTO member : roleMember.members) {
+          memberMap.put(member.userOrGroupName, member.type);
         }
         MemberType type = memberMap.get("Alpha");
         assertThat(type, is(MemberType.GROUP));
@@ -270,7 +270,7 @@ public class ApiApplicationResourceTest
         assertThat(type, is(MemberType.USER));
       }
       else {
-        assertThat(roleMember.getMembers(), hasSize(0));
+        assertThat(roleMember.members, hasSize(0));
       }
     }
   }
@@ -288,7 +288,7 @@ public class ApiApplicationResourceTest
     ApiRoleMemberMappingListDTO roleMemberMappings = JsonHelpers.fromJson(response.getResponseBody(),
         ApiRoleMemberMappingListDTO.class);
     assertThat(roleMemberMappings, is(notNullValue()));
-    assertThat(roleMemberMappings.getMemberMappings(), hasSize(appRoles.size()));
+    assertThat(roleMemberMappings.memberMappings, hasSize(appRoles.size()));
 
     // Create
     ApiRoleMemberMappingDTO roleMemberMappingDTO = newMemberMapping(
@@ -304,13 +304,13 @@ public class ApiApplicationResourceTest
         ApiRoleMemberMappingListDTO.class);
 
     assertThat(returnedRoleMemberMappings, is(notNullValue()));
-    List<ApiRoleMemberMappingDTO> returnedRoleMemberMappingList = returnedRoleMemberMappings.getMemberMappings();
+    List<ApiRoleMemberMappingDTO> returnedRoleMemberMappingList = returnedRoleMemberMappings.memberMappings;
     assertThat(returnedRoleMemberMappingList, is(notNullValue()));
     assertThat(returnedRoleMemberMappingList, hasSize(appRoles.size()));
 
     ApiRoleMemberMappingDTO returnedRoleMemberMapping = null;
     for (final ApiRoleMemberMappingDTO roleMemberMapping : returnedRoleMemberMappingList) {
-      if (appRoles.get(0).getId().equals(roleMemberMapping.getRoleId())) {
+      if (appRoles.get(0).getId().equals(roleMemberMapping.roleId)) {
         returnedRoleMemberMapping = roleMemberMapping;
         break;
       }
@@ -335,16 +335,16 @@ public class ApiApplicationResourceTest
     assertResponseStatus(200, response);
     returnedRoleMemberMappings = JsonHelpers.fromJson(response.getResponseBody(), ApiRoleMemberMappingListDTO.class);
     assertThat(returnedRoleMemberMappings, is(notNullValue()));
-    returnedRoleMemberMappingList = returnedRoleMemberMappings.getMemberMappings();
+    returnedRoleMemberMappingList = returnedRoleMemberMappings.memberMappings;
     assertThat(returnedRoleMemberMappingList, is(notNullValue()));
     assertThat(returnedRoleMemberMappingList, hasSize(appRoles.size()));
 
     ApiRoleMemberMappingDTO[] returnedRoleMemberMappingArray = new ApiRoleMemberMappingDTO[2];
     for (final ApiRoleMemberMappingDTO roleMemberMapping : returnedRoleMemberMappingList) {
-      if (appRoles.get(0).getId().equals(roleMemberMapping.getRoleId())) {
+      if (appRoles.get(0).getId().equals(roleMemberMapping.roleId)) {
         returnedRoleMemberMappingArray[0] = roleMemberMapping;
       }
-      else if (appRoles.get(1).getId().equals(roleMemberMapping.getRoleId())) {
+      else if (appRoles.get(1).getId().equals(roleMemberMapping.roleId)) {
         returnedRoleMemberMappingArray[1] = roleMemberMapping;
       }
     }
@@ -355,8 +355,8 @@ public class ApiApplicationResourceTest
 
   private ApiRoleMemberMappingDTO newMemberMapping(final List<ApiMemberDTO> memberList, final String roleId) {
     final ApiRoleMemberMappingDTO memberMappingDTO = new ApiRoleMemberMappingDTO();
-    memberMappingDTO.setMembers(memberList);
-    memberMappingDTO.setRoleId(roleId);
+    memberMappingDTO.members = memberList;
+    memberMappingDTO.roleId = roleId;
     return memberMappingDTO;
   }
 
@@ -387,10 +387,9 @@ public class ApiApplicationResourceTest
       final String roleId, final User user, final MemberType type)
   {
     assertThat(apiRoleMemberMappingDTO, notNullValue());
-    assertThat(apiRoleMemberMappingDTO.getRoleId(), is(roleId));
-    final List<ApiMemberDTO> returnedMembers = apiRoleMemberMappingDTO.getMembers();
-    assertThat(returnedMembers, hasSize(1));
-    assertThat(returnedMembers.get(0).getType(), is(type));
-    assertThat(returnedMembers.get(0).getUserOrGroupName(), is(user.getUsername()));
+    assertThat(apiRoleMemberMappingDTO.roleId, is(roleId));
+    assertThat(apiRoleMemberMappingDTO.members, hasSize(1));
+    assertThat(apiRoleMemberMappingDTO.members.get(0).type, is(type));
+    assertThat(apiRoleMemberMappingDTO.members.get(0).userOrGroupName, is(user.getUsername()));
   }
 }

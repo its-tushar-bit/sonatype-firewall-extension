@@ -12,46 +12,11 @@ import java.util.List;
  */
 public class ApiRoleMemberMappingDTO
 {
-  private String roleId;
+  public String roleId;
 
-  private String roleName;
+  public String roleName;
 
-  private String roleDescription;
+  public String roleDescription;
 
-  private List<ApiMemberDTO> members;
-
-  public ApiRoleMemberMappingDTO() {
-  }
-
-  public String getRoleId() {
-    return roleId;
-  }
-
-  public void setRoleId(final String roleId) {
-    this.roleId = roleId;
-  }
-
-  public String getRoleName() {
-    return roleName;
-  }
-
-  public void setRoleName(final String roleName) {
-    this.roleName = roleName;
-  }
-
-  public String getRoleDescription() {
-    return roleDescription;
-  }
-
-  public void setRoleDescription(final String roleDescription) {
-    this.roleDescription = roleDescription;
-  }
-
-  public List<ApiMemberDTO> getMembers() {
-    return members;
-  }
-
-  public void setMembers(final List<ApiMemberDTO> members) {
-    this.members = members;
-  }
+  public List<ApiMemberDTO> members;
 }

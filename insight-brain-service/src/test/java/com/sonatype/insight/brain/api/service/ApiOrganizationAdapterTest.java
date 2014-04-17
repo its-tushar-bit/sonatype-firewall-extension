@@ -49,17 +49,15 @@ public class ApiOrganizationAdapterTest
     ApiOrganizationListDTO apiOrganizationListDTO = apiOrganizationAdapter.convert(organizations, orgTagMap);
     assertThat(apiOrganizationListDTO, notNullValue());
 
-    List<ApiOrganizationDTO> apiOrganizationDTOs = apiOrganizationListDTO.getOrganizations();
-    assertThat(apiOrganizationDTOs, hasSize(1));
+    assertThat(apiOrganizationListDTO.organizations, hasSize(1));
 
-    ApiOrganizationDTO organizationDTO = apiOrganizationDTOs.get(0);
-    assertThat(organizationDTO.getId(), is(org.getId()));
-    assertThat(organizationDTO.getName(), is(org.getName()));
+    ApiOrganizationDTO organizationDTO = apiOrganizationListDTO.organizations.get(0);
+    assertThat(organizationDTO.id, is(org.getId()));
+    assertThat(organizationDTO.name, is(org.getName()));
 
-    List<ApiTagDTO> apiTagDTOs = organizationDTO.getTags();
-    assertThat(apiTagDTOs, hasSize(1));
+    assertThat(organizationDTO.tags, hasSize(1));
 
-    ApiTagDTO apiTagDTO = apiTagDTOs.get(0);
+    ApiTagDTO apiTagDTO = organizationDTO.tags.get(0);
     assertThat(apiTagDTO.id, is(tag.getId()));
     assertThat(apiTagDTO.name, is(tag.getName()));
     assertThat(apiTagDTO.description, is(tag.getDescription()));

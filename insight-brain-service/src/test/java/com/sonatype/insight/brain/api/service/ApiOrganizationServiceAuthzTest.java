@@ -29,16 +29,16 @@ public class ApiOrganizationServiceAuthzTest
     grantReadPermission(org.getId());
     ApiOrganizationListDTO apiOrganizationListDTO = apiOrganizationService.getAll();
     assertThat(apiOrganizationListDTO, notNullValue());
-    assertThat(apiOrganizationListDTO.getOrganizations(), hasSize(1));
-    assertThat(apiOrganizationListDTO.getOrganizations().get(0).getId(), is(org.getId()));
-    assertThat(apiOrganizationListDTO.getOrganizations().get(0).getName(), is(org.getName()));
+    assertThat(apiOrganizationListDTO.organizations, hasSize(1));
+    assertThat(apiOrganizationListDTO.organizations.get(0).id, is(org.getId()));
+    assertThat(apiOrganizationListDTO.organizations.get(0).name, is(org.getName()));
   }
 
   @Test
   public void testGetAll_Unauthenticated() {
     ApiOrganizationListDTO apiOrganizationListDTO = apiOrganizationService.getAll();
     assertThat(apiOrganizationListDTO, notNullValue());
-    assertThat(apiOrganizationListDTO.getOrganizations(), hasSize(0));
+    assertThat(apiOrganizationListDTO.organizations, hasSize(0));
   }
 
   @Test
@@ -46,6 +46,6 @@ public class ApiOrganizationServiceAuthzTest
     login();
     ApiOrganizationListDTO apiOrganizationListDTO = apiOrganizationService.getAll();
     assertThat(apiOrganizationListDTO, notNullValue());
-    assertThat(apiOrganizationListDTO.getOrganizations(), hasSize(0));
+    assertThat(apiOrganizationListDTO.organizations, hasSize(0));
   }
 }

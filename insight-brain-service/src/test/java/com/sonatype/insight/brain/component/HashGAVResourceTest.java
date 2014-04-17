@@ -16,7 +16,6 @@ import com.sonatype.insight.brain.service.AbstractResourceTest;
 
 import com.ning.http.client.Response;
 import com.yammer.dropwizard.testing.JsonHelpers;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -47,11 +46,7 @@ public class HashGAVResourceTest
   @Before
   public void setup() {
     hashGAV = new HashGAV(hash, groupId, artifactId, version, extension, classifier);
-  }
-
-  @After
-  public void teardown() {
-    new HashGAVDAO().delete(hashGAV);
+    tempEntity.register(hashGAV);
   }
 
   @Test
@@ -69,7 +64,10 @@ public class HashGAVResourceTest
     hashGAV = JsonHelpers.fromJson(response.getResponseBody(), HashGAV.class);
     assertHashGAV(hash, groupId, artifactId, version, extension, classifier, comment, createTime, hashGAV);
 
-    // read - no GET use case for this resource(as of yet)
+    // read - no GET use case for this resource - use DAO to verify
+    HashGAVDAO hashGAVDAO = new HashGAVDAO();
+    hashGAV = hashGAVDAO.getByHash(hashGAV.getHash());
+    assertHashGAV(hash, groupId, artifactId, version, extension, classifier, comment, createTime, hashGAV);
 
     // update
     String updatedGroupId = groupId + "_updated";
@@ -80,12 +78,16 @@ public class HashGAVResourceTest
     hashGAV = JsonHelpers.fromJson(response.getResponseBody(), HashGAV.class);
     assertHashGAV(hash, updatedGroupId, artifactId, version, extension, classifier, comment, createTime, hashGAV);
 
+    // read - no GET use case for this resource - use DAO to verify
+    hashGAV = hashGAVDAO.getByHash(hashGAV.getHash());
+    assertHashGAV(hash, updatedGroupId, artifactId, version, extension, classifier, comment, createTime, hashGAV);
+
     // delete
     response = AuthedRestAccess.delete(getServiceURL() + "/" + hashGAV.getHash());
     assertResponseStatus(204, response);
 
     // resource has no use case for GET so look directly in DB to ensure that record is deleted
-    assertThat(new HashGAVDAO().getByHash(hashGAV.getHash()), nullValue());
+    assertThat(hashGAVDAO.getByHash(hashGAV.getHash()), nullValue());
   }
 
   @Test

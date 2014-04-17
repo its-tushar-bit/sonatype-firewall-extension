@@ -294,6 +294,10 @@ public class TemporaryEntity
     Collections.addAll(orgs, organizations);
   }
 
+  public void register(HashGAV... hashGAVs) {
+    Collections.addAll(claimedComponents, hashGAVs);
+  }
+
   public Application newApplicationWithParent(String appPublicId) {
     // Application Name must be unique
     return newApplicationWithParent(appPublicId, "DUMMY-NAME-" + uuid());

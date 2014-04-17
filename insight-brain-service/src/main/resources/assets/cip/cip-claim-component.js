@@ -206,8 +206,8 @@
               classifier: null,
               extension: null,
               identificationSource: null,
-              createTime: CurrentData.createTime,
-              age: establishAge(CurrentData.createTime)
+              createTime: null,
+              age: null
             }, CurrentData.hash);
             $scope.createSuccess = 'Component claim has been revoked';
           }).error(errorHandler);

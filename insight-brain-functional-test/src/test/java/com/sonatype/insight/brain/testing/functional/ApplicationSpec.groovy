@@ -61,7 +61,7 @@ class ApplicationSpec
       waitFor { applicationList.empty }
   }
 
-  def "When adding new Applications, they are listed alphabetically"(){
+  def "When adding new Applications, they are listed alphabetically"() {
     when: 'we add multiple Applications'
       createApp('Z')
       waitFor { applicationList.size() == 1 }
@@ -72,7 +72,7 @@ class ApplicationSpec
       applicationList.collect{ it.text() } == ['A','Z']
   }
 
-  def "Can add a new Policy"(){
+  def "Can add a new Policy"() {
     given: 'The policy tab has loaded'
       waitFor { policies.displayed }
 

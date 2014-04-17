@@ -73,7 +73,7 @@ class DashboardSpec
 
     then: 'filters show up in readonly mode'
       waitFor { filterPanel.displayed }
-      applicationFilters.collect{it.text()}.join('') == firstApp.name + ',' + secondApp.name
+      applicationFilters.collect{ it.text() }.join('') == firstApp.name + ',' + secondApp.name
   }
 
   def 'Risk Tables'() {

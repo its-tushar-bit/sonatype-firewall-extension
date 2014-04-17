@@ -55,7 +55,7 @@ class TrendingReportSpec
       waitFor(10, 0.05) { loadingText.startsWith('CLM Server is generating the trending report') }
   }
 
-  def "We can load the (empty) report"(){
+  def "We can load the (empty) report"() {
     when: 'the report is generated and we refresh the page'
       browser.driver.navigate().refresh()
 
@@ -69,7 +69,7 @@ class TrendingReportSpec
       violationCount == '0 Violations'
   }
 
-  def "A non-admin user cannot regenerate the report"(){
+  def "A non-admin user cannot regenerate the report"() {
     when: 'we log in as a non-admin user'
       userOptions.logoutClick()
       via TrendingReportPage

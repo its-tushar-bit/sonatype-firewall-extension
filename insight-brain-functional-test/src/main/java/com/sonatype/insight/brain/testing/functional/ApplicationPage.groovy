@@ -29,7 +29,7 @@ class ApplicationPage
     applicationNameField(required: false) { $('input', 'placeholder':'Enter Application Name') }
     applicationId(required: false) { $('#applicationPublicId .editable') }
     applicationIdField(required: false) { $('input', 'placeholder':'Enter ID') }
-    applicationIdSaved(required:false){ $('div.setappid')}
+    applicationIdSaved(required:false) { $('div.setappid') }
     applicationOrgField(required: false) { $('div', 'on': 'selectedApplication.id && selectedApplication.organizationId').find('a') }
     applicationOrgName(required: false) { orgName -> $('#applicationEditor a', text: orgName) }
 
@@ -63,7 +63,7 @@ class ApplicationPage
     tags { module TagApplicationModule, tabs.tagTab }
   }
 
-  void editNewApp(String name = 'test application', String id = 'test application', String orgName = 'test organization'){
+  void editNewApp(String name = 'test application', String id = 'test application', String orgName = 'test organization') {
     applicationId.click()
     waitFor { applicationIdField.displayed }
     applicationIdField = id

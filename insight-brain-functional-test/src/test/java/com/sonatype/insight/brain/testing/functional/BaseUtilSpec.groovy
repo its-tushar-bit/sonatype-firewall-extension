@@ -16,15 +16,15 @@ class BaseUtilSpec
     extends BaseSpec
 {
 
-  def setup(){
+  def setup() {
     loginAsAdminVia(ApplicationManagementPage)
   }
 
-  def cleanup(){
+  def cleanup() {
     addHtmlToPage(functionalTestingSupport, '')
   }
 
-  def "We can inject text into the page"(){
+  def "We can inject text into the page"() {
     when:
       addHtmlToPage(functionalTestingSupport, "<em>$testName.methodName</em>")
 
@@ -33,7 +33,7 @@ class BaseUtilSpec
       report 'text on page'
   }
 
-  def "We can highlight an element on the page"(){
+  def "We can highlight an element on the page"() {
     when:
       addHtmlToPage(functionalTestingSupport, testName.methodName)
       highlightElement(newApplicationButton)
@@ -56,7 +56,7 @@ class BaseUtilSpec
     then:
       List<LogEntry> output = getConsoleOutput()
       !output.isEmpty()
-      output.find { LogEntry entry -> entry.message.contains('BaseUtilSpec')}
+      output.find { LogEntry entry -> entry.message.contains('BaseUtilSpec') }
       report 'text on page3'
   }
 }

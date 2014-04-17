@@ -31,7 +31,7 @@ class PolicyTagSpec
     cleanAppsAndOrgs()
   }
 
-  def 'Initially a policy applies to all applications'(){
+  def 'Initially a policy applies to all applications'() {
     when: 'We edit a policy that has no tags'
       def editor = policies.findPolicyEditor(POLICY_NAME)
       editor.editButton.click()
@@ -88,7 +88,7 @@ class PolicyTagSpec
       editor.tagsDropdown.areOptionsApplied(tagNames)
   }
 
-  def 'We can save the Tag changes'(){
+  def 'We can save the Tag changes'() {
     given :
       def editor = policies.findPolicyEditor(POLICY_NAME)
 
@@ -110,7 +110,7 @@ class PolicyTagSpec
       editor.showsTagIcon()
   }
 
-  def 'We can clear all Tags'(){
+  def 'We can clear all Tags'() {
     given :
       def editor = policies.findPolicyEditor(POLICY_NAME)
 
@@ -123,7 +123,7 @@ class PolicyTagSpec
       editor.tagsDropdown.dropdownButton.text() == 'None selected'
   }
 
-  def 'We cannot save if we do not select Tags and "All Applications" is not selected'(){
+  def 'We cannot save if we do not select Tags and "All Applications" is not selected'() {
     given :
       def editor = policies.findPolicyEditor(POLICY_NAME)
     when: 'We click on the "Applications with Tags" option'
@@ -134,7 +134,7 @@ class PolicyTagSpec
       editor.policyTagError.text() == 'Must select tags to associate with the policy.'
   }
 
-  def 'The header tags icon is removed if no tags are selected'(){
+  def 'The header tags icon is removed if no tags are selected'() {
     given :
       def editor = policies.findPolicyEditor(POLICY_NAME)
 

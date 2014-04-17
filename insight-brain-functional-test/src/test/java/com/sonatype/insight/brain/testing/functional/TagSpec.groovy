@@ -52,7 +52,7 @@ class TagSpec
       tags.serverAlerts.children().size() == 0
   }
 
-  def "Can edit an existing tag"(){
+  def "Can edit an existing tag"() {
     when: 'We click on an existing Tag'
       tags.tag(0).click()
 
@@ -95,7 +95,7 @@ class TagSpec
       waitFor { tags.tagList.size() == samplePolicy.tags.size() }
   }
 
-  def "Are warned when attempting to change tags while editing"(){
+  def "Are warned when attempting to change tags while editing"() {
     when: 'We click on an existing tag'
       tags.tag(0).click()
 
@@ -123,7 +123,7 @@ class TagSpec
       tags.buttons.cancel.click()
   }
 
-  def "We are prevented from saving if the form won't validate"(){
+  def "We are prevented from saving if the form won't validate"() {
     when: 'We try to add a second tag with an existing name'
       tags.createNewTag()
       tags.buttons.save.click()
@@ -150,7 +150,7 @@ class TagSpec
       !tags.buttons.save.@disabled
   }
 
-  def "We cancel the form"(){
+  def "We cancel the form"() {
     when: 'We click the cancel button'
       tags.buttons.cancel.click()
 
@@ -169,7 +169,7 @@ class TagSpec
       tags.tagList[0].text() == (('A' * 22) + '...')
   }
 
-  def "Policy tags adjust the effective polices and cannot be deleted"(){
+  def "Policy tags adjust the effective polices and cannot be deleted"() {
     given: 'An Application to apply tags to'
       def applicationManagementPage = to(ApplicationManagementPage)
       applicationManagementPage.createApp('TagSpec', 'TagSpec', 'TagSpec')
@@ -216,7 +216,7 @@ class TagSpec
       deleteModal.cancel.click()
   }
 
-  def "Applied tags warn on deletion"(){
+  def "Applied tags warn on deletion"() {
     given: 'An Application to apply tags to'
       to ApplicationPage, 'TagSpec'
       waitFor{ tabs.tabLinks.displayed }

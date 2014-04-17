@@ -16,7 +16,7 @@ import com.sonatype.insight.brain.testing.functional.configuration.LdapUserAndGr
 class LdapConfigurationSpec
     extends BaseSpec
 {
-  def "create a new LDAP and navigate the connection and user/group mappings forms"(){
+  def "create a new LDAP and navigate the connection and user/group mappings forms"() {
     setup: "login"
       loginAsAdminVia()
 
@@ -119,7 +119,7 @@ class LdapConfigurationSpec
    */
   def cleanup() {
     to LdapConfigurationPage
-    if(delete?.present){
+    if (delete?.present) {
       delete.click()
       waitFor{ deleteConfirm?.present }
       deleteConfirm.click()

@@ -101,7 +101,7 @@ environments {
     }
     driver = {
       DesiredCapabilities capabilities =  DesiredCapabilities.phantomjs()
-      if(phantomJsBinary){
+      if (phantomJsBinary) {
         capabilities.setCapability('phantomjs.binary.path', phantomJsBinary)
       }
       capabilities.setCapability(PhantomJSDriverService.PHANTOMJS_CLI_ARGS, ['--webdriver-loglevel=DEBUG'] as String[]);

@@ -22,7 +22,7 @@ class AppEvaluationSpec
     }
   }
 
-  def setup(){
+  def setup() {
     loginAsAdminVia()
   }
 

@@ -15,10 +15,10 @@ class TagApplicationModule
 {
   static content = {
     appliedTagList(required:false) { $('span', 'ng-repeat': startsWith('tag in appliedTags')).find('span') }
-    appliedTagEmptyText(required:false) { $('em', 'ng-show': startsWith('appliedTags.length') )}
+    appliedTagEmptyText(required:false) { $('em', 'ng-show': startsWith('appliedTags.length') ) }
     availableTagList(required:false) { $('span', 'ng-repeat': startsWith('tag in availableTags')).find('span') }
     availableTag(required:false) { name -> availableTagList.filter(text: name) }
-    availableTagEmptyText(required:false) { $('em', 'ng-show': startsWith('availableTags.length') )}
+    availableTagEmptyText(required:false) { $('em', 'ng-show': startsWith('availableTags.length') ) }
 
     tagFilterInput(required:false) { $('input', 'ng-model': 'tagSearch') }
   }

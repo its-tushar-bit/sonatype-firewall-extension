@@ -57,7 +57,7 @@ class UserManagementPage
     deleteModal { module ModalModule, title: 'Delete User'}
 
     resetModal { module ModalModule, title: 'Reset Password', confirmText: 'Reset'}
-    newPasswordField(required: false){$('#generatedPassword') }
+    newPasswordField(required: false) { $('#generatedPassword') }
 
     summarySection { index -> $('div.accordion-inner', index) }
   }

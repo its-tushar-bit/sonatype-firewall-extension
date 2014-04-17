@@ -19,7 +19,7 @@ class NavigationLinksSpec
     loginAsAdminVia()
   }
 
-  def "Can use navigation to view the Management application"(){
+  def "Can use navigation to view the Management application"() {
     when: 'clicking the dropdown and then the Management link'
       mainModule.toManagement()
 
@@ -28,7 +28,7 @@ class NavigationLinksSpec
   }
 
 
-  def "Can use navigation to view the Report application"(){
+  def "Can use navigation to view the Report application"() {
     when: 'clicking the dropdown and then the Reports link'
       mainModule.toReports()
 

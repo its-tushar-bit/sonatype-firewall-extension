@@ -27,14 +27,14 @@ class LdapConfigurationPage
     deleteConfirm(required: false) { $('button', text: 'Delete') }
 
     //requires confirmation to discard changes
-    discard(required: false) { $('button', text: 'Discard')}
+    discard(required: false) { $('button', text: 'Discard') }
 
     // in-page navigation
     connectionTab(required: false, to: LdapConnectionConfigurationPage) { $('a', text: 'CONNECTION') }
     userAndGroupSettingsTab(required: false, to: LdapUserAndGroupMappingConfigurationPage) { $('a', text: 'USER & GROUP SETTINGS') }
   }
 
-  static isActiveTab(tab){
+  static isActiveTab(tab) {
     tab?.parent().hasClass('active')
   }
 }

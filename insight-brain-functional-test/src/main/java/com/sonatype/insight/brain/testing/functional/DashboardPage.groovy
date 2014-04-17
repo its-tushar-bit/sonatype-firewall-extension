@@ -28,8 +28,8 @@ class DashboardPage
     }
 
     noAvailableApplications(required: false) { $('#no-permissions') }
-    noDataAvailableHighest(required: false) { $('#no-data-highest-risk')}
-    noDataAvailableNewest(required: false) { $('#no-data-newest-risk')}
+    noDataAvailableHighest(required: false) { $('#no-data-highest-risk') }
+    noDataAvailableNewest(required: false) { $('#no-data-newest-risk') }
 
     applicationFiltersDropdown(required: false) { module DropdownMultiSelectModule, $('span', items: 'applications') }
     policyThreatFiltersDropdown(required: false) { module DropdownMultiSelectModule, $('span', items: 'policyThreatCategories') }

@@ -38,7 +38,7 @@ class ImportPolicyModule
     waitFor { policyList.size() == policy.policies.size() }
   }
 
-  static Map parsePolicyFile(File file){
+  static Map parsePolicyFile(File file) {
     return new JsonSlurper().parse(file.newReader())
   }
 }

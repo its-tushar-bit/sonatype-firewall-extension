@@ -48,7 +48,7 @@ class LabelSpec
       labels.errorFree
   }
 
-  def "Can edit an existing label"(){
+  def "Can edit an existing label"() {
     when: 'We click on an existing label'
       labels.label(0).click()
 
@@ -80,7 +80,7 @@ class LabelSpec
       labels.buttons.cancel.click()
   }
 
-  def 'Are warned when attempting to change labels while editing'(){
+  def 'Are warned when attempting to change labels while editing'() {
     given: 'We create another new label'
       labels.createNewLabel('AnotherNewLabel')
       labels.buttons.save.click()
@@ -115,7 +115,7 @@ class LabelSpec
       labels.buttons.cancel.click()
   }
 
-  def "We are prevented from saving if the form won't validate"(){
+  def "We are prevented from saving if the form won't validate"() {
     when: 'We try to add another label with an invalid name'
       labels.createNewLabel('Another New Label')
 
@@ -137,7 +137,7 @@ class LabelSpec
       !labels.buttons.save.@disabled
   }
 
-  def "We cancel the form"(){
+  def "We cancel the form"() {
     when: 'We click the cancel button'
       labels.buttons.cancel.click()
 

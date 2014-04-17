@@ -93,7 +93,7 @@ class ImportPolicySpec
 
     then: 'Policy file is imported'
       waitFor { policyImport.policyList.size() == 4 }
-      def names = policyImport.policyList.collect{ it.text().trim()}
+      def names = policyImport.policyList.collect{ it.text().trim() }
       names.contains("Security-High")
       names.contains("Security-Medium")
       names.contains("License-Copyleft")

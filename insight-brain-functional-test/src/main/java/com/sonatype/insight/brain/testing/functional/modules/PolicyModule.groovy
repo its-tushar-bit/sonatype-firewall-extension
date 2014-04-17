@@ -14,11 +14,11 @@ class PolicyModule
     extends Module {
   static content = {
     newPolicyButton(wait: true) { $('.new-entity-button', text: 'New Policy') }
-    newPolicyEditor {module PolicyEditorModule, $('.inline-policy-editor')}
+    newPolicyEditor {module PolicyEditorModule, $('.inline-policy-editor') }
     policyEditors(required: false) { moduleList PolicyEditorModule, $('#policyList div', 'ng-repeat': 'policy in policies') }
   }
 
-  def findPolicyEditor(String policyName){
+  def findPolicyEditor(String policyName) {
     return policyEditors.find{ it.header.text().endsWith(policyName) }
   }
 }
@@ -32,11 +32,11 @@ class PolicyEditorModule
     //header elements are only present for existing Policies
     header(required:false) { $('.accordion-heading') }
     editButton(required:false) { header.find('button', 'ng-click': 'edit(policy)') }
-    chicklet(required:false) { header.find('span.threat-chiclet')}
+    chicklet(required:false) { header.find('span.threat-chiclet') }
 
     //Policy specifics
     name{ $('input#policyName') }
-    constraints { moduleList ConstraintModule, $('.accordion-group', 'ng-repeat': 'constraint in policy.constraints')}
+    constraints { moduleList ConstraintModule, $('.accordion-group', 'ng-repeat': 'constraint in policy.constraints') }
 
     //Tags related to Policies
     tagsHeader(required: false) { $('h5', text: 'Application Matching') }
@@ -53,27 +53,27 @@ class PolicyEditorModule
     return radioButton.firstElement().selected
   }
 
-  boolean showsTagIcon(){
+  boolean showsTagIcon() {
     return chicklet.classes().contains('icon-tags')
   }
 
-  boolean isExpanded(){
+  boolean isExpanded() {
     return body.classes().contains('in')
   }
 }
 
 class ConstraintModule extends Module{
   static content = {
-    editButton {$('button', title: 'Edit Constraint')}
-    constraintName {$('input', 'ng-model': 'constraint.name')}
-    conditions { moduleList ConditionModule, $('div', 'ng-repeat': 'condition in constraint.conditions')}
+    editButton { $('button', title: 'Edit Constraint') }
+    constraintName { $('input', 'ng-model': 'constraint.name') }
+    conditions { moduleList ConditionModule, $('div', 'ng-repeat': 'condition in constraint.conditions') }
   }
 }
 
 class ConditionModule extends Module{
   static content = {
-    conditionTypes {$('select', 'ng-model': 'condition.conditionTypeId')}
-    operators {$('select', 'ng-model': 'condition.operator')}
-    value {$('span', 'ng-model': 'condition.value').find('input')}
+    conditionTypes { $('select', 'ng-model': 'condition.conditionTypeId') }
+    operators { $('select', 'ng-model': 'condition.operator') }
+    value { $('span', 'ng-model': 'condition.value').find('input') }
   }
 }

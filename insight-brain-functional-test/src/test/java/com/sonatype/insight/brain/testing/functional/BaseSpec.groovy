@@ -55,7 +55,7 @@ abstract class BaseSpec
     System.setProperty("geb.build.baseUrl", "http://localhost:" + serviceRule.getPort() + "/")
   }
 
-  def cleanupSpec(){
+  def cleanupSpec() {
     cleanAppsAndOrgs()
   }
 
@@ -77,14 +77,14 @@ abstract class BaseSpec
   /**
    * Set a red border around an element
    */
-  def highlightElement(element){
+  def highlightElement(element) {
     setElementCss(element, ['border': '2px solid red'])
   }
 
   /**
    * Remove the border of an element
    */
-  def unHighlightElement(element){
+  def unHighlightElement(element) {
     setElementCss(element, ['border': '0px'])
   }
 
@@ -94,7 +94,7 @@ abstract class BaseSpec
    * @param styles Map of css properties to values, i.e. ['border': '2px solid red']
    */
   def setElementCss(element, Map<String, String> styles = [:]) {
-    if(!element.empty){
+    if (!element.empty) {
       styles.each{ key, value ->
         browser.js.exec(element.firstElement(), key, value, 'jQuery(arguments[0]).css(arguments[1], arguments[2]);')
       }

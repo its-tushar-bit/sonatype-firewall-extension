@@ -33,14 +33,23 @@
         return applicationStore;
       }]);
 
-  storesModule.service('ActionStore', ['CLMLocations', 'CLMResource', '$q', function(clmLocations, clmResource, $q) {
+  storesModule.service('StageTypeStore', ['CLMResource', 'CLMLocations', function(CLMResource, CLMLocations){
+    var stageTypeStore = CLMResource.getStore({
+      id: 'id',
+      url: CLMLocations.getActionStageUrl()
+    }), promise = stageTypeStore.get();
+    return {
+      'get' : function() {
+        return promise;
+      }
+    };
+  }]);
+  
+  storesModule.service('ActionStore', ['StageTypeStore', 'CLMLocations', 'CLMResource', '$q', function(StageTypeStore, clmLocations, clmResource, $q) {
     var actionTypeStore = clmResource.getStore({
       id: 'id',
       url: clmLocations.getActionTypeUrl()
-    }), actionStageStore = clmResource.getStore({
-      id: 'id',
-      url: clmLocations.getActionStageUrl()
-    }), actionPromise = $q.all([actionTypeStore.get(), actionStageStore.get()]);
+    }), actionPromise = $q.all([actionTypeStore.get(), StageTypeStore.get()]);
     return {
       'get': function() {
         return actionPromise;

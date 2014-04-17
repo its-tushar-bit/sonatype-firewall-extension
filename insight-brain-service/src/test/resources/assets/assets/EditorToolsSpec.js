@@ -37,8 +37,8 @@ describe('EditorToolsSpec', function() {
   
   describe('Bundle Upload', function(){
     beforeEach(inject(function ($controller, $httpBackend, CLMLocations) {
-      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getActionTypeUrl())).respond(MockData.getActionTypeData());
       $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getActionStageUrl())).respond(MockData.getActionStageData());
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getActionTypeUrl())).respond(MockData.getActionTypeData());
       $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getApplicationsUrl())).respond([{
         "id": "0",
         "publicId": "bom0-12345678",

@@ -65,6 +65,15 @@ class DashboardSpec
       policyThreatFiltersDropdown.dropdownCheck('Quality').displayed
       policyThreatFiltersDropdown.dropdownCheck('Other').displayed
       policyThreatFiltersDropdown.hideDropdown()
+      
+    and: 'stage type filters are shown'
+      stageTypeFiltersDropdown.showDropdown()
+      stageTypeFiltersDropdown.dropdownCheck('Develop').displayed
+      stageTypeFiltersDropdown.dropdownCheck('Build').displayed
+      stageTypeFiltersDropdown.dropdownCheck('Stage Release').displayed
+      stageTypeFiltersDropdown.dropdownCheck('Release').displayed
+      stageTypeFiltersDropdown.dropdownCheck('Operate').displayed
+      stageTypeFiltersDropdown.hideDropdown()
 
     when: 'dashboard filters are applied'
       applicationFiltersDropdown.toggleOption(firstApp.name)

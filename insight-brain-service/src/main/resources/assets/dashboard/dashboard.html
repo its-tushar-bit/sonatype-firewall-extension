@@ -66,6 +66,12 @@
                     selected-ids='queuedPolicyThreatCategories'
                     none-selected-text='All Policy Categories'></span>
             </div>
+            <div class="span3">
+              <h5>Stages</h5>
+              <span id='stage-types' class='multi-dropdown' multi-select items='stageTypes'
+                    selected-ids='queuedStageTypeIds'
+                    none-selected-text='All Stages'></span>
+            </div>
           </div>
           <div class='filter-edit-buttons'>
             <button class='btn' type='button' ng-click='cancelFilters()'>Cancel</button>
@@ -85,6 +91,12 @@
           <span><strong>Policy Categories</strong></span>
           <span ng-repeat="policyThreatCategoryId in appliedPolicyThreatCategories">
             {{policyThreatCategoryNameFor(policyThreatCategoryId)}}{{!$last ? "," : ""}}
+          </span>
+        </div>
+        <div class="span3" style="display: inline;" ng-if='appliedStageTypeIds.length > 0'>
+          <span><strong>Stages</strong></span>
+          <span ng-repeat="stageTypeId in appliedStageTypeIds">
+            {{stageTypeNameFor(stageTypeId)}}{{!$last ? "," : ""}}
           </span>
         </div>
       </div>

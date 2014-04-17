@@ -15,12 +15,14 @@
     });
   }]);
 
-  dashboardModule.controller('DashboardController', ['$scope', '$q', 'ApplicationStore', '$http', 'CLMLocations', '$timeout',
-    function($scope, $q, ApplicationStore, $http, CLMLocations, $timeout) {
+  dashboardModule.controller('DashboardController', ['$scope', '$q', 'ApplicationStore', '$http', 'CLMLocations', '$timeout', 'StageTypeStore',
+    function($scope, $q, ApplicationStore, $http, CLMLocations, $timeout, StageTypeStore) {
     $scope.appliedApplicationPublicIds = [];
     $scope.queuedApplicationPublicIds = [];
     $scope.appliedPolicyThreatCategories = [];
     $scope.queuedPolicyThreatCategories = [];
+    $scope.appliedStageTypeIds = [];
+    $scope.queuedStageTypeIds = [];
     $scope.maxResults = 20;
 
     $scope.noDataHighestRiskMessage = 'No data available given the applied filters and available permissions.';
@@ -35,7 +37,8 @@
           params: {
             maxResults: $scope.maxResults,
             applicationPublicIds: $scope.appliedApplicationPublicIds,
-            policyThreatCategories: appliedPolicyThreatCategoryParam
+            policyThreatCategories: appliedPolicyThreatCategoryParam,
+            stageIds: $scope.appliedStageTypeIds
           }
         }),
         $http.get(CLMLocations.getPolicyViolationsUrl(), {
@@ -43,6 +46,7 @@
             maxResults: $scope.maxResults,
             applicationPublicIds: $scope.appliedApplicationPublicIds,
             policyThreatCategories: appliedPolicyThreatCategoryParam,
+            stageIds: $scope.appliedStageTypeIds,
             newest: true
           }
         })
@@ -57,10 +61,12 @@
 
     function loadFilters() {
       var promises = [
-        ApplicationStore.get()
+        ApplicationStore.get(),
+        StageTypeStore.get()
       ];
       $q.all(promises).then(function(data) {
         $scope.applications = data[0];
+        $scope.stageTypes = data[1];
 
         $scope.policyThreatCategories = [
           {id:'security', name:'Security'},
@@ -76,6 +82,7 @@
     $scope.applyFilters = function() {
       $scope.appliedApplicationPublicIds = $scope.queuedApplicationPublicIds;
       $scope.appliedPolicyThreatCategories = $scope.queuedPolicyThreatCategories;
+      $scope.appliedStageTypeIds = $scope.queuedStageTypeIds;
       $scope.doLoad();
       $scope.toggleCollapse();
     };
@@ -83,6 +90,7 @@
     $scope.cancelFilters = function() {
       $scope.queuedApplicationPublicIds = angular.copy($scope.appliedApplicationPublicIds);
       $scope.queuedPolicyThreatCategories = angular.copy($scope.appliedPolicyThreatCategories);
+      $scope.queuedStageTypeIds = angular.copy($scope.appliedStageTypeIds);
       $scope.toggleCollapse();
     };
 
@@ -100,6 +108,14 @@
         var policyThreatCategory = $scope.policyThreatCategories[i];
         if (policyThreatCategory.id === policyThreatCategoryId) {
           return policyThreatCategory.name;
+        }
+      }
+    };
+    
+    $scope.stageTypeNameFor = function(stageTypeId) {
+      for (var i = 0; i < $scope.stageTypes.length; i++) {
+        if ($scope.stageTypes[i].id === stageTypeId) {
+          return $scope.stageTypes[i].name;
         }
       }
     };

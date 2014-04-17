@@ -86,12 +86,20 @@ describe('DashboardModule', function() {
   }));
 
   describe('dashboardController', function() {
-    var applicationsData;
+    var applicationsData, stageTypeData;
 
     beforeEach(inject(function($rootScope, $controller, $httpBackend, CLMLocations) {
       scope = $rootScope.$new();
       applicationsData = ApplicationMockData.getApplicationsData();
+      stageTypeData = [{
+        id: 'type1',
+        name: 'Type 1'
+      },{
+        id: 'type2',
+        name: 'Type 2'
+      }];
 
+      $httpBackend.expectGET(CLMLocations.getActionStageUrl()).respond(stageTypeData);
       $httpBackend.expectGET(CLMLocations.getApplicationsUrl()).respond(applicationsData);
       $httpBackend.expectGET(CLMLocations.getPolicyViolationsUrl() + '?maxResults=20').respond(policyViolations);
       $httpBackend.expectGET(CLMLocations.getPolicyViolationsUrl() + '?maxResults=20&newest=true').respond(newestViolations);
@@ -103,6 +111,12 @@ describe('DashboardModule', function() {
       expect(scope.applications.length).toBe(applicationsData.length);
       expect(scope.applications[0].id).toBe(applicationsData[0].id);
     });
+    
+    it('loads stage types', function() {
+      expect(scope.stageTypes.length).toBe(stageTypeData.length);
+      expect(scope.stageTypes[0].id).toBe(stageTypeData[0].id);
+      expect(scope.stageTypes[1].id).toBe(stageTypeData[1].id);
+    })
 
     it('loads policy violations', function() {
       expect(scope.highestRisks.length).toBe(policyViolations.length);
@@ -123,7 +137,6 @@ describe('DashboardModule', function() {
       $httpBackend.expectGET(CLMLocations.getPolicyViolationsUrl() + '?applicationPublicIds=fooID&maxResults=20&newest=true').respond([
         newestViolations[0]
       ]);
-      scope.$digest();
       $httpBackend.flush();
       expect(scope.appliedApplicationPublicIds.length).toBe(1);
       expect(scope.highestRisks.length).toBe(2);
@@ -138,9 +151,22 @@ describe('DashboardModule', function() {
         '?maxResults=20&policyThreatCategories=security,other').respond([policyViolations[0]]);
       $httpBackend.expectGET(CLMLocations.getPolicyViolationsUrl() +
         '?maxResults=20&newest=true&policyThreatCategories=security,other').respond([newestViolations[0]]);
-      scope.$digest();
       $httpBackend.flush();
       expect(scope.appliedPolicyThreatCategories).toEqual(['security', 'other']);
+      expect(scope.highestRisks.length).toBe(1);
+      expect(scope.newestRisks.length).toBe(1);
+    }));
+    
+    it('filters policy violations by stage type', inject(function($httpBackend, CLMLocations) {
+      expect(scope.queuedStageTypeIds.length).toBe(0);
+      scope.queuedStageTypeIds = ['type1', 'type2'];
+      scope.applyFilters();
+      $httpBackend.expectGET(CLMLocations.getPolicyViolationsUrl() +
+        '?maxResults=20&stageIds=type1&stageIds=type2').respond([policyViolations[0]]);
+      $httpBackend.expectGET(CLMLocations.getPolicyViolationsUrl() +
+        '?maxResults=20&newest=true&stageIds=type1&stageIds=type2').respond([newestViolations[0]]);
+      $httpBackend.flush();
+      expect(scope.appliedStageTypeIds).toEqual(['type1', 'type2']);
       expect(scope.highestRisks.length).toBe(1);
       expect(scope.newestRisks.length).toBe(1);
     }));
@@ -150,12 +176,16 @@ describe('DashboardModule', function() {
       scope.queuedApplicationPublicIds = ['fooID'];
       scope.appliedPolicyThreatCategories = [];
       scope.queuedPolicyThreatCategories = ['security'];
+      scope.appliedStageTypeIds = [];
+      scope.queuedStageTypeIds = ['type1'];
       scope.cancelFilters();
 
       expect(scope.appliedApplicationPublicIds.length).toBe(0);
       expect(scope.queuedApplicationPublicIds.length).toBe(0);
       expect(scope.appliedPolicyThreatCategories.length).toBe(0);
       expect(scope.queuedPolicyThreatCategories.length).toBe(0);
+      expect(scope.appliedStageTypeIds.length).toBe(0);
+      expect(scope.queuedStageTypeIds.length).toBe(0);
     });
 
     it('converts from application.publicId to application.name', function(){
@@ -165,13 +195,16 @@ describe('DashboardModule', function() {
     it('converts from policyThreatCategory.id to policyThreatCategory.name', function(){
       expect(scope.policyThreatCategoryNameFor('security')).toBe('Security');
     });
+    
+    it('converts from stageType.id to stageType.name', function(){
+      expect(scope.stageTypeNameFor('type1')).toBe('Type 1');
+    });
 
     it('handles http errors', inject(function($httpBackend, CLMLocations){
       expect(scope.error).toBeNull();
       scope.applyFilters();
       $httpBackend.expectGET(CLMLocations.getPolicyViolationsUrl() +'?maxResults=20').respond(500, 'An error');
       $httpBackend.expectGET(CLMLocations.getPolicyViolationsUrl() +'?maxResults=20&newest=true').respond([newestViolations[0]]);
-      scope.$digest();
       $httpBackend.flush();
       expect(scope.error).toBeDefined();
       expect(scope.error.status).toBe(500);
@@ -180,7 +213,6 @@ describe('DashboardModule', function() {
       scope.applyFilters();
       $httpBackend.expectGET(CLMLocations.getPolicyViolationsUrl() +'?maxResults=20').respond([policyViolations[0]]);
       $httpBackend.expectGET(CLMLocations.getPolicyViolationsUrl() +'?maxResults=20&newest=true').respond(500, 'An error');
-      scope.$digest();
       $httpBackend.flush();
       expect(scope.error).toBeDefined();
       expect(scope.error.status).toBe(500);
@@ -189,7 +221,6 @@ describe('DashboardModule', function() {
       scope.applyFilters();
       $httpBackend.expectGET(CLMLocations.getPolicyViolationsUrl() +'?maxResults=20').respond([policyViolations[0]]);
       $httpBackend.expectGET(CLMLocations.getPolicyViolationsUrl() +'?maxResults=20&newest=true').respond([newestViolations[0]]);
-      scope.$digest();
       $httpBackend.flush();
       expect(scope.error).toBeNull();
     }));

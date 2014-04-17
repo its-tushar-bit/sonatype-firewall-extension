@@ -33,6 +33,7 @@ class DashboardPage
 
     applicationFiltersDropdown(required: false) { module DropdownMultiSelectModule, $('span', items: 'applications') }
     policyThreatFiltersDropdown(required: false) { module DropdownMultiSelectModule, $('span', items: 'policyThreatCategories') }
+    stageTypeFiltersDropdown(required: false) { module DropdownMultiSelectModule, $('span', items: 'stageTypes') }
 
     highestRiskTable(required: false) { $('#highest-risk tr', 'ng-repeat': startsWith('risk in risks')) }
     newestViolationTable(required: false) { $('#newest-risk tr', 'ng-repeat': startsWith('risk in risks')) }

@@ -197,7 +197,7 @@ public class PolicyImporterTest
     Label appLabel = tempEntity.newLabel(toApp.getId(), Color.black);
     
     List<Policy> policies = createPolicies(toApp.getId(), appLabel.getId());
-    policyDAO().insert(policies.get(0));
+    new PolicyDAO().insert(policies.get(0));
     Policy appPolicy = policies.get(0);
     tempEntity.newWaiver("hash", appPolicy.getId(), toApp.getId());
     PolicyWaiverDAO policyWaiverDAO = new PolicyWaiverDAO();
@@ -217,10 +217,11 @@ public class PolicyImporterTest
     Label orgLabel = tempEntity.newLabel(toOrg.getId(), Color.black);
     Label appLabel = tempEntity.newLabel(toApp.getId(), Color.black);
     List<Policy> orgPolicies = createPolicies(toOrg.getId(), orgLabel.getId());
-    policyDAO().insert(orgPolicies.get(0));
+    PolicyDAO policyDAO = new PolicyDAO();
+    policyDAO.insert(orgPolicies.get(0));
     Policy orgPolicy = orgPolicies.get(0);
     List<Policy> appPolicies = createPolicies(toApp.getId(), appLabel.getId());
-    policyDAO().insert(appPolicies.get(0));
+    policyDAO.insert(appPolicies.get(0));
     Policy appPolicy = appPolicies.get(0);
     tempEntity.newWaiver("hash", orgPolicy.getId(), toOrg.getId());
     tempEntity.newWaiver("hash", appPolicy.getId(), toApp.getId());
@@ -337,9 +338,5 @@ public class PolicyImporterTest
     Label label2 = new Label(ownerId, "LABEL2", Color.blue);
     label2.setId("label2");
     return Lists.newArrayList(label1, label2);
-  }
-
-  private PolicyDAO policyDAO() {
-    return new PolicyDAO();
   }
 }

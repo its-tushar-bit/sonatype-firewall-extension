@@ -70,6 +70,8 @@ public class PolicyImporterImpl
 
   private final TagDAO tagDAO = new TagDAO();
 
+  private final PolicyDAO policyDAO = new PolicyDAO();
+
   private final PolicyTagDAO policyTagDAO = new PolicyTagDAO();
 
   private final BaseUrl baseUrl;
@@ -91,7 +93,7 @@ public class PolicyImporterImpl
       em.getTransaction().begin();
       deleteLicenseThreatGroups(em, appId, null);
       deletePolicyWaivers(em, appId, null);
-      policyDAO().deleteByOwnerId(em, appId);
+      policyDAO.deleteByOwnerId(em, appId);
       importAndMergeLabels(em, exportDTO, labelDAO.getByOwnerId(em, appId), appId, orgId);
       importLicenseThreatGroups(em, exportDTO, appId);
       // Must commit before inserting the policies because policy insert() calls validate(), which needs to access some
@@ -105,7 +107,7 @@ public class PolicyImporterImpl
       for (Policy policy : exportDTO.policies) {
         policy.setId(null);
         policy.setOwnerId(appId);
-        policyDAO().insert(em, policy);
+        policyDAO.insert(em, policy);
       }
       em.getTransaction().commit();
     }
@@ -128,7 +130,6 @@ public class PolicyImporterImpl
       deleteFromOwnedApplications(em, orgId);
       deletePolicyWaivers(em, orgId, null);
       deleteLicenseThreatGroups(em, orgId, null);
-      PolicyDAO policyDAO = policyDAO();
       policyDAO.deleteByOwnerId(em, orgId);
       for (Application application : applicationDAO.getByOrganizationId(em, orgId)) {
         policyDAO.deleteByOwnerId(em, application.getId());
@@ -367,10 +368,6 @@ public class PolicyImporterImpl
       }
     }
     return null;
-  }
-
-  private PolicyDAO policyDAO() {
-    return new PolicyDAO();
   }
 
   private PolicyImportResult createResult(String name, String id, String type) {

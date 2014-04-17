@@ -143,8 +143,8 @@ public class IdeResource
       ComponentDAO componentDAO = new ComponentDAO();
       Component component = componentDAO.getComponent(app, matchedComponent, svData);
       component.setProprietary(proprietary);
-      List<PolicyAlert> policyAlerts = evaluator.evaluate(applicationId, new Stage(DevelopStageType.ID), policyDAO(),
-          Collections.singletonList(component));
+      List<PolicyAlert> policyAlerts = evaluator.evaluate(applicationId, new Stage(DevelopStageType.ID),
+          new PolicyDAO(), Collections.singletonList(component));
       ideComponent.setAlerts(policyAlerts);
     }
     return ideComponent;
@@ -166,10 +166,6 @@ public class IdeResource
       @QueryParam("proprietary") boolean proprietary, @Context HttpServletRequest req) throws IOException
   {
     return doScan(scanType, applicationPublicId, path, proprietary, req);
-  }
-
-  private PolicyDAO policyDAO() {
-    return new PolicyDAO();
   }
 
   private IdeMatchedComponent getComponent(MatchedComponent mComponent) {

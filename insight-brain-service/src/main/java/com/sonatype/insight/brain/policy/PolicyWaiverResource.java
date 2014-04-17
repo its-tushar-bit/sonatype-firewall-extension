@@ -115,7 +115,7 @@ public class PolicyWaiverResource
   private List<PolicyWaiverDTO> getAppliedWaivers(String ownerId, String hash) {
     List<PolicyWaiver> waivers = new PolicyWaiverDAO().getByOwnerIdAndHash(ownerId, hash);
     Map<String, String> policyNamesById = new HashMap<String, String>();
-    for (Policy policy : policyDAO().getApplicableByOwnerId(ownerId)) {
+    for (Policy policy : new PolicyDAO().getApplicableByOwnerId(ownerId)) {
       policyNamesById.put(policy.getId(), policy.getName());
     }
     List<PolicyWaiverDTO> dtos = new ArrayList<PolicyWaiverDTO>(waivers.size());
@@ -149,15 +149,15 @@ public class PolicyWaiverResource
     // from the policy id and the application public id.
     //
     // Hopefully that will be simplified in the new storage.
-
+    PolicyDAO policyDAO = new PolicyDAO();
     Application application = new ApplicationDAO().getByPublicIdNotNull(applicationPublicId);
-    Policy policy = policyDAO().getByOwnerIdAndPolicyId(application.getId(), policyId);
+    Policy policy = policyDAO.getByOwnerIdAndPolicyId(application.getId(), policyId);
     if (policy != null) {
       // The policy belongs to the application
       return new ApplicableContext(application.getPublicId(), application.getName(), IdUtils.TYPE_APPLICATION);
     }
 
-    policy = policyDAO().getByOwnerIdAndPolicyId(application.getOrganizationId(), policyId);
+    policy = policyDAO.getByOwnerIdAndPolicyId(application.getOrganizationId(), policyId);
     if (policy == null) {
       throw new NotFoundException("Cannot find a policy with id " + policyId + " for application public id "
           + applicationPublicId);
@@ -173,10 +173,6 @@ public class PolicyWaiverResource
     result.getChildren().add(
         new ApplicableContext(application.getPublicId(), application.getName(), IdUtils.TYPE_APPLICATION));
     return result;
-  }
-
-  private PolicyDAO policyDAO() {
-    return new PolicyDAO();
   }
 
   /**

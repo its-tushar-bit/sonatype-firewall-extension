@@ -119,7 +119,7 @@ public abstract class AbstractComponentInfoResource
     component.setProprietary(proprietary);
 
     // Evaluate the policies
-    List<PolicyAlert> policyAlerts = evaluator.evaluate(applicationId, new Stage(DevelopStageType.ID), policyDAO(),
+    List<PolicyAlert> policyAlerts = evaluator.evaluate(applicationId, new Stage(DevelopStageType.ID), new PolicyDAO(),
         Collections.singletonList(component));
     componentDetails.setPolicyAlerts(policyAlerts);
 
@@ -154,10 +154,6 @@ public abstract class AbstractComponentInfoResource
 
   private Component loadComponent(Application application, ComponentDetails componentDetails) throws IOException {
     return componentDetailsLoader.augmentComponentDetails(application, componentDetails);
-  }
-
-  private PolicyDAO policyDAO() {
-    return new PolicyDAO();
   }
 
   @GET

@@ -117,6 +117,7 @@ class DashboardSpec
       policyViolationPolicy(highestRiskTable, 1).text() == 'DashboardSpecPolicy'
       policyViolationApplication(highestRiskTable, 1).text() == firstApp.name
       policyViolationComponent(highestRiskTable, 1).text() == ["Group1", "Artifact1", "Version1"].join(' : ')
+      policyViolationTime(highestRiskTable, 1).text() == null
 
     when: 'filtering to an application'
       filterPanelToggle.click()
@@ -143,7 +144,8 @@ class DashboardSpec
       policyViolationPolicy(newestViolationTable, 0).text() == 'DashboardSpecPolicy'
       policyViolationApplication(newestViolationTable, 0).text() == firstApp.name
       policyViolationComponent(newestViolationTable, 0).text() == ["Group1", "Artifact1", "Version1"].join(' : ')
-
+      policyViolationTime(newestViolationTable, 0).text().contains("ago")
+      
     when: 'filtering to an application'
       filterPanelToggle.click()
       waitFor { applicationFiltersDropdown.displayed }

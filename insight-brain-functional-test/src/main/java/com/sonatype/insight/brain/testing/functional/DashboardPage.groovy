@@ -43,5 +43,6 @@ class DashboardPage
     policyViolationPolicy { table, i -> table[i].find('td')[2] }
     policyViolationApplication { table, i -> table[i].find('td')[3] }
     policyViolationComponent { table, i -> table[i].find('td')[4] }
+    policyViolationTime(required: false) { table, i -> table[i].find('td')[5] }
   }
 }

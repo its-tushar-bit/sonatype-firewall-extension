@@ -14,6 +14,7 @@
       <th>POLICY</th>
       <th>APPLICATION</th>
       <th>COMPONENT</th>
+      <th ng-if='riskId == "newest-risk"'>AGE</th>
     </tr>
     </thead>
     <tbody>
@@ -30,6 +31,7 @@
         {{risk.groupId}}<span class='wrap-force-break'> : </span>{{risk.artifactId}}<span class='wrap-force-break'> : </span>{{risk.version}}
       </td>
       <td ng-if='!risk.groupId'><em>Unknown</em></td>
+      <td ng-if='riskId == "newest-risk"'>{{risk.time | ago}}</td>
     </tr>
     <tr ng-show='risks.length === 0'>
       <td colspan='5' class='clm-bar-text-offset'>

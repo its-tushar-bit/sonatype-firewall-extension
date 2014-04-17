@@ -20,11 +20,11 @@ class DashboardPage
 
   static content = {
     filterPanelToggle { $('a', 'ng-click': 'toggleCollapse()') }
-    filterPanel(required: false) { $('div', 'ng-if': 'appliedApplicationPublicIds.length > 0') }
+    filterPanel(required: false) { $('div', 'ng-if': 'filters.applicationPublicIds.applied.length > 0') }
     filterButtons(required: false) { module ButtonsModule, $('.filter-edit-buttons') }
 
     applicationFilters(required: false) {
-      filterPanel.find('span', 'ng-repeat': 'applicationId in appliedApplicationPublicIds')
+      filterPanel.find('span', 'ng-repeat': 'applicationId in filters.applicationPublicIds.applied')
     }
 
     noAvailableApplications(required: false) { $('#no-permissions') }

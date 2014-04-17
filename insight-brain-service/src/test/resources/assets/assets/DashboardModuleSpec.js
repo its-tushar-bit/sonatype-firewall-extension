@@ -127,8 +127,8 @@ describe('DashboardModule', function() {
     });
 
     it('filters policy violations by application', inject(function($httpBackend, CLMLocations) {
-      expect(scope.appliedApplicationPublicIds.length).toBe(0);
-      scope.queuedApplicationPublicIds = ['fooID'];
+      expect(scope.filters.applicationPublicIds.applied.length).toBe(0);
+      scope.filters.applicationPublicIds.queued = ['fooID'];
       scope.applyFilters();
       $httpBackend.expectGET(CLMLocations.getPolicyViolationsUrl() + '?applicationPublicIds=fooID&maxResults=20').respond([
         policyViolations[0],
@@ -138,54 +138,54 @@ describe('DashboardModule', function() {
         newestViolations[0]
       ]);
       $httpBackend.flush();
-      expect(scope.appliedApplicationPublicIds.length).toBe(1);
+      expect(scope.filters.applicationPublicIds.applied.length).toBe(1);
       expect(scope.highestRisks.length).toBe(2);
       expect(scope.newestRisks.length).toBe(1);
     }));
 
     it('filters policy violations by policy threat category', inject(function($httpBackend, CLMLocations) {
-      expect(scope.queuedPolicyThreatCategories.length).toBe(0);
-      scope.queuedPolicyThreatCategories = ['security', 'other'];
+      expect(scope.filters.policyThreatCategories.applied.length).toBe(0);
+      scope.filters.policyThreatCategories.queued = ['security', 'other'];
       scope.applyFilters();
       $httpBackend.expectGET(CLMLocations.getPolicyViolationsUrl() +
         '?maxResults=20&policyThreatCategories=security,other').respond([policyViolations[0]]);
       $httpBackend.expectGET(CLMLocations.getPolicyViolationsUrl() +
         '?maxResults=20&newest=true&policyThreatCategories=security,other').respond([newestViolations[0]]);
       $httpBackend.flush();
-      expect(scope.appliedPolicyThreatCategories).toEqual(['security', 'other']);
+      expect(scope.filters.policyThreatCategories.applied).toEqual(['security', 'other']);
       expect(scope.highestRisks.length).toBe(1);
       expect(scope.newestRisks.length).toBe(1);
     }));
     
     it('filters policy violations by stage type', inject(function($httpBackend, CLMLocations) {
-      expect(scope.queuedStageTypeIds.length).toBe(0);
-      scope.queuedStageTypeIds = ['type1', 'type2'];
+      expect(scope.filters.stageTypeIds.applied.length).toBe(0);
+      scope.filters.stageTypeIds.queued = ['type1', 'type2'];
       scope.applyFilters();
       $httpBackend.expectGET(CLMLocations.getPolicyViolationsUrl() +
         '?maxResults=20&stageIds=type1&stageIds=type2').respond([policyViolations[0]]);
       $httpBackend.expectGET(CLMLocations.getPolicyViolationsUrl() +
         '?maxResults=20&newest=true&stageIds=type1&stageIds=type2').respond([newestViolations[0]]);
       $httpBackend.flush();
-      expect(scope.appliedStageTypeIds).toEqual(['type1', 'type2']);
+      expect(scope.filters.stageTypeIds.applied).toEqual(['type1', 'type2']);
       expect(scope.highestRisks.length).toBe(1);
       expect(scope.newestRisks.length).toBe(1);
     }));
 
     it('cancels filters', function() {
-      scope.appliedApplicationPublicIds = [];
-      scope.queuedApplicationPublicIds = ['fooID'];
-      scope.appliedPolicyThreatCategories = [];
-      scope.queuedPolicyThreatCategories = ['security'];
-      scope.appliedStageTypeIds = [];
-      scope.queuedStageTypeIds = ['type1'];
+      scope.filters.applicationPublicIds.applied = [];
+      scope.filters.applicationPublicIds.queued = ['fooID'];
+      scope.filters.policyThreatCategories.applied = [];
+      scope.filters.policyThreatCategories.queued = ['security'];
+      scope.filters.stageTypeIds.applied = [];
+      scope.filters.stageTypeIds.queued = ['type1'];
       scope.cancelFilters();
 
-      expect(scope.appliedApplicationPublicIds.length).toBe(0);
-      expect(scope.queuedApplicationPublicIds.length).toBe(0);
-      expect(scope.appliedPolicyThreatCategories.length).toBe(0);
-      expect(scope.queuedPolicyThreatCategories.length).toBe(0);
-      expect(scope.appliedStageTypeIds.length).toBe(0);
-      expect(scope.queuedStageTypeIds.length).toBe(0);
+      expect(scope.filters.applicationPublicIds.applied.length).toBe(0);
+      expect(scope.filters.applicationPublicIds.queued.length).toBe(0);
+      expect(scope.filters.policyThreatCategories.applied.length).toBe(0);
+      expect(scope.filters.policyThreatCategories.queued.length).toBe(0);
+      expect(scope.filters.stageTypeIds.applied.length).toBe(0);
+      expect(scope.filters.stageTypeIds.queued.length).toBe(0);
     });
 
     it('converts from application.publicId to application.name', function(){

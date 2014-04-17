@@ -58,14 +58,14 @@
             <div class="span3">
               <h5>Applications</h5>
               <span ng-if='applications.length > 0' id='applications' class='multi-dropdown' multi-select items='applications'
-                        selected-ids='queuedApplicationPublicIds' effective-id-field='publicId'
+                        selected-ids='filters.applicationPublicIds.queued' effective-id-field='publicId'
                         summarize-with='applications' none-selected-text='All Applications'></span>
               <span ng-if='applications.length === 0'><em id='no-permissions'>No applications available.</em></span>
             </div>
             <div class="span3">
               <h5>Policy Categories</h5>
               <span id='policy-types' class='multi-dropdown' multi-select items='policyThreatCategories'
-                    selected-ids='queuedPolicyThreatCategories'
+                    selected-ids='filters.policyThreatCategories.queued'
                     none-selected-text='All Policy Categories'></span>
             </div>
             <div class="span3">
@@ -83,15 +83,15 @@
         </div>
       </div>
       <div class='row-fluid filter-readonly'>
-        <div class="span3" ng-if='appliedApplicationPublicIds.length > 0'>
+        <div class="span3" ng-if='filters.applicationPublicIds.applied.length > 0'>
           <span><strong>Applications</strong></span>
-          <span ng-repeat="applicationId in appliedApplicationPublicIds">
+          <span ng-repeat="applicationId in filters.applicationPublicIds.applied">
             {{applicationNameFor(applicationId)}}{{!$last ? "," : ""}}
           </span>
         </div>
-        <div class="span3" style="display: inline;" ng-if='appliedPolicyThreatCategories.length > 0'>
+        <div class="span3" style="display: inline;" ng-if='filters.policyThreatCategories.applied.length > 0'>
           <span><strong>Policy Categories</strong></span>
-          <span ng-repeat="policyThreatCategoryId in appliedPolicyThreatCategories">
+          <span ng-repeat="policyThreatCategoryId in filters.policyThreatCategories.applied">
             {{policyThreatCategoryNameFor(policyThreatCategoryId)}}{{!$last ? "," : ""}}
           </span>
         </div>

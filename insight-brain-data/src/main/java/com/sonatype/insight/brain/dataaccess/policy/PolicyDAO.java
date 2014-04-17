@@ -26,17 +26,6 @@ public class PolicyDAO
 {
   private static PolicyInternalDAO policyInternalDAO = new PolicyInternalDAO();
 
-  public Policy getByOwnerIdAndPolicyId(String ownerId, String policyId) {
-    List<Policy> policies = getByOwnerId(ownerId);
-    for (Policy policy : policies) {
-      if (policy.getId().equals(policyId)) {
-        return policy;
-      }
-    }
-
-    return null;
-  }
-
   public Policy getById(String id) {
     return PolicyInternal.toPolicy(policyInternalDAO.getById(id));
   }

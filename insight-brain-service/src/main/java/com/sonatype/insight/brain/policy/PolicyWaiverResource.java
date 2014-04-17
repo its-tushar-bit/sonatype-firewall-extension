@@ -142,23 +142,15 @@ public class PolicyWaiverResource
       @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) @PathParam("ownerId") String applicationPublicId,
       @PathParam("policyId") String policyId)
   {
-    // Currently it is impossible to retrieve a policy by its id without traversing all policy stores. That's why we
-    // require a owner id and type here. Unfortunately, the UI doesn't know the exact owner id for a policy id. When
-    // starting from a policy violation, the UI knows the policy id and the public id of the application for which
-    // the policy was evaluated. But the policy may belong to an organization. So we have to find the policy's owner id
-    // from the policy id and the application public id.
-    //
-    // Hopefully that will be simplified in the new storage.
     PolicyDAO policyDAO = new PolicyDAO();
     Application application = new ApplicationDAO().getByPublicIdNotNull(applicationPublicId);
-    Policy policy = policyDAO.getByOwnerIdAndPolicyId(application.getId(), policyId);
-    if (policy != null) {
+    Policy policy = policyDAO.getByIdNotNull(policyId);
+    if (application.getId().equals(policy.getOwnerId())) {
       // The policy belongs to the application
       return new ApplicableContext(application.getPublicId(), application.getName(), IdUtils.TYPE_APPLICATION);
     }
 
-    policy = policyDAO.getByOwnerIdAndPolicyId(application.getOrganizationId(), policyId);
-    if (policy == null) {
+    if (!application.getOrganizationId().equals(policy.getOwnerId())) {
       throw new NotFoundException("Cannot find a policy with id " + policyId + " for application public id "
           + applicationPublicId);
     }

@@ -87,7 +87,7 @@ public class HashGAVResource
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   @Path("{hash}")
-  public void deleteHashGAV(@PathParam("hash") String hash) throws IOException {
+  public void deleteHashGAV(@PathParam("hash") String hash) {
     HashGAV toDelete = hashGAVDAO.getByHash(hash);
     if (toDelete == null) {
       throw new BadRequestException("Unable to find a claimed component with hash: " + hash);

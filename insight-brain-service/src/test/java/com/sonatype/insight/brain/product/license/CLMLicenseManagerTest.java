@@ -11,7 +11,9 @@ import java.util.Date;
 
 import javax.inject.Inject;
 
+import com.sonatype.insight.brain.TestLicenseFingerprinter;
 import com.sonatype.insight.brain.TestProductLicenseManager;
+import com.sonatype.insight.brain.product.license.CLMLicenseManager.LicenseSummary;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.license.model.CLMEnforcementPoint;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
@@ -23,12 +25,14 @@ import org.sonatype.licensing.feature.FeatureValidator;
 import org.sonatype.licensing.internal.DefaultFeatureValidator;
 import org.sonatype.licensing.product.ProductLicenseManager;
 import org.sonatype.licensing.product.internal.DefaultProductLicenseManager;
+import org.sonatype.licensing.product.util.LicenseFingerprinter;
 
 import com.google.inject.Binder;
 import org.junit.Test;
 
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
@@ -41,6 +45,8 @@ public class CLMLicenseManagerTest
 {
   @Inject
   private CLMLicenseManager clmLicenseManager;
+
+  private TestLicenseFingerprinter licenseFingerprinter = new TestLicenseFingerprinter();
 
   private TestProductLicenseManager licenseManager = new TestProductLicenseManager(true);
 
@@ -61,6 +67,7 @@ public class CLMLicenseManagerTest
     }
     else {
       binder.bind(ProductLicenseManager.class).toInstance(licenseManager);
+      binder.bind(LicenseFingerprinter.class).toInstance(licenseFingerprinter);
     }
     super.configure(binder);
   }
@@ -198,5 +205,15 @@ public class CLMLicenseManagerTest
     installLicense();
     clmLicenseManager.uninstallLicense();
     verify(listener).licenseChanged();
+  }
+
+  @Test
+  public void testGetLicenseSummary_IncludesFingerprint() throws Exception {
+    String fingerprint = "test-passed";
+    licenseFingerprinter.setDummyLicenseFingerprint(fingerprint);
+    installLicense();
+    LicenseSummary summary = clmLicenseManager.getLicenseSummary();
+    assertThat(summary, is(notNullValue()));
+    assertThat(summary.fingerprint, is(fingerprint));
   }
 }

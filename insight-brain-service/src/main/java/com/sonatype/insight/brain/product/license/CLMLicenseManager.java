@@ -62,10 +62,12 @@ public class CLMLicenseManager
 
   public final class LicenseSummary
   {
+    public final String fingerprint;
     public final long expiryTimestamp;
     public final String[] features;
 
-    public LicenseSummary(long timestamp, String[] features) {
+    public LicenseSummary(String fingerprint, long timestamp, String[] features) {
+      this.fingerprint = fingerprint;
       this.expiryTimestamp = timestamp;
       this.features = features;
     }
@@ -187,7 +189,8 @@ public class CLMLicenseManager
   }
 
   public LicenseSummary getLicenseSummary() {
-    return new LicenseSummary(this.licenseCache.expirationTimestamp, this.licenseCache.getFeatures());
+    return new LicenseSummary(licenseCache.getFingerprint(), licenseCache.expirationTimestamp,
+        licenseCache.getFeatures());
   }
 
   private void populateLicenseCache() throws LicensingException {

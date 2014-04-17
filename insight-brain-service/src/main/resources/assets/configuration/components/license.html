@@ -1,12 +1,12 @@
 <div class='face'>
-    <div style="padding-top: 10px;">
+    <div id='license' style="padding-top: 10px;">
         <h1 class='page-title'>Product License</h1>
         <div load-error='error' reload='doLoad()'></div>
         <div ng-show='!error && !isLoaded()'>
             <h5><i class='icon icon-time'></i> Loading...</h5>
         </div>
-        <div ng-show='!error && isLoaded()' style="padding-left: 25px;padding-top:10px">
-          <div ng-show='!license'>
+        <div ng-show='!error && isLoaded()'>
+          <div ng-show='!license' style="padding-left: 25px;padding-top:10px">
               <form ng-upload action='{{uploadUrl}}' class='form' style='margin: 0px;' method='post'>
                   <label for="license-input" firefox-input-click class='btn btn-primary'>
                       <i class='icon-white icon-plus-sign'></i>&nbsp;Install License
@@ -16,13 +16,20 @@
               </form>
           </div>
           <div ng-show='license'>
-            <div class='form-horizontal'>
-              <button class='btn btn-remove btn-danger pull-left' ng-click='viewUninstallLicense()'>
-                <i class='icon-white icon-minus-sign'></i>&nbsp;Uninstall License
-              </button>
-              <label class='control-label'><strong style="padding-right: 10px;">Expires</strong></label>
-
-              <div class='controls' style='padding-top:5px'>{{license.expiryTimestamp | date:'MMMM dd, yyyy'}}</div>
+            <div class='form-horizontal configuration'>
+              <div class='control-group'>
+                <label class='control-label'>Expires:</label>
+                <div id='license-expiry' class='controls' style='padding-top:5px'>{{license.expiryTimestamp | date:'MMMM dd, yyyy'}}</div>
+              </div>
+              <div class='control-group'>
+                <label class='control-label'>Fingerprint:</label>
+                <div id='license-fingerprint' class='controls' style='padding-top:5px'>{{license.fingerprint}}</div>
+              </div>
+              <div class='control-group'>
+                <button class='btn btn-remove btn-danger pull-left' ng-click='viewUninstallLicense()'>
+                  <i class='icon-white icon-minus-sign'></i>&nbsp;Uninstall License
+                </button>
+              </div>
             </div>
           </div>
         </div>

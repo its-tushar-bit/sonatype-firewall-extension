@@ -25,7 +25,7 @@ class TagModule
     tagEditor(required:false) { $('form', name: 'tagEditor') }
     name(required:false)  { tagEditor.name() }
     description(required:false)  { tagEditor.description() }
-    color(requied:false) { name -> tagEditor.find('.' + name + 'Label') }
+    color(required:false) { name -> tagEditor.find('.' + name + 'Label') }
     buttons { module ButtonsModule }
 
     //client validation error messaging

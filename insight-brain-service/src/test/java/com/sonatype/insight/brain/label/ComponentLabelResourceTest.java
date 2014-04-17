@@ -44,8 +44,8 @@ public class ComponentLabelResourceTest
   @Before
   public void init() throws Exception {
     app = tempEntity.newApplicationWithParent("test-app", "Test");
-    appLabel = new Label(app.getId(), "app", null);
-    orgLabel = new Label(app.getOrganizationId(), "org", null);
+    appLabel = new Label(app.getId(), "app");
+    orgLabel = new Label(app.getOrganizationId(), "org");
     LabelDAO labelDAO = new LabelDAO();
     labelDAO.insert(appLabel);
     labelDAO.insert(orgLabel);

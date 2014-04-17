@@ -588,7 +588,7 @@ public class IdeResourceTest
     String hash = "abababababababababab";
     String applicationPublicId = "IdeResourceTest_AppId";
     Application app = tempEntity.newApplicationWithParent(applicationPublicId);
-    Label label = new Label(orgLabel ? app.getOrganizationId() : app.getId(), "red", null);
+    Label label = new Label(orgLabel ? app.getOrganizationId() : app.getId(), "red");
     new LabelDAO().insert(label);
     new ComponentLabelDAO().insert(new ComponentLabel(orgComponentLabel ? app.getOrganizationId() : app.getId(), label
         .getId(), hash));

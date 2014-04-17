@@ -248,7 +248,7 @@ public class PolicyEvaluateResourceTest
     String scanId = "testEvaluate_Label_ScanId";
     String licenseFingerprint = "testEvaluate_Label_LicenseFingerprint";
     setLicenseFingerprint(licenseFingerprint);
-    Label label = new Label(orgLabel ? app.getOrganizationId() : app.getId(), "red", null);
+    Label label = new Label(orgLabel ? app.getOrganizationId() : app.getId(), "red");
     new LabelDAO().insert(label);
     new ComponentLabelDAO().insert(new ComponentLabel(orgComponentLabel ? app.getOrganizationId() : app.getId(), label
         .getId(), hash));

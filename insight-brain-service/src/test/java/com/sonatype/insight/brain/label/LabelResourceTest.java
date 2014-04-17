@@ -65,7 +65,7 @@ public class LabelResourceTest
     response = AuthedRestAccess.post(getServiceURLForApplication(appPublicId), JsonHelpers.asJson(label));
     assertResponseStatus(200, response);
     label = JsonHelpers.fromJson(response.getResponseBody(), Label.class);
-    assertLabel(application.getId(), "MyLabel", null /* color */, label);
+    assertLabel(application.getId(), "MyLabel", Color.white, label);
 
     // Get all labels
     response = AuthedRestAccess.get(getServiceURLForApplication(appPublicId));
@@ -73,14 +73,14 @@ public class LabelResourceTest
     labels = JsonHelpers.fromJson(response.getResponseBody(), Label[].class);
     Assert.assertNotNull(labels);
     Assert.assertEquals(1, labels.length);
-    assertLabel(application.getId(), "MyLabel", null /* color */, labels[0]);
+    assertLabel(application.getId(), "MyLabel", Color.white, labels[0]);
 
     // Update a label
     label.setLabel("MyUpdatedLabel");
     response = AuthedRestAccess.put(getServiceURLForApplication(appPublicId), JsonHelpers.asJson(label));
     assertResponseStatus(200, response);
     label = JsonHelpers.fromJson(response.getResponseBody(), Label.class);
-    assertLabel(application.getId(), "MyUpdatedLabel", null /* color */, label);
+    assertLabel(application.getId(), "MyUpdatedLabel", Color.white, label);
 
     // Get all labels
     response = AuthedRestAccess.get(getServiceURLForApplication(appPublicId));
@@ -88,7 +88,7 @@ public class LabelResourceTest
     labels = JsonHelpers.fromJson(response.getResponseBody(), Label[].class);
     Assert.assertNotNull(labels);
     Assert.assertEquals(1, labels.length);
-    assertLabel(application.getId(), "MyUpdatedLabel", null /* color */, labels[0]);
+    assertLabel(application.getId(), "MyUpdatedLabel", Color.white, labels[0]);
 
     // Delete a label
     response = AuthedRestAccess.delete(getServiceURLForApplication(appPublicId) + "/" + label.getId());
@@ -197,7 +197,7 @@ public class LabelResourceTest
     response = AuthedRestAccess.post(getServiceURL(ORG, organization.getId()), JsonHelpers.asJson(label));
     assertResponseStatus(200, response);
     label = JsonHelpers.fromJson(response.getResponseBody(), Label.class);
-    assertLabel(organization.getId(), "MyLabel", null /* color */, label);
+    assertLabel(organization.getId(), "MyLabel", Color.white, label);
 
     // Get all labels
     response = AuthedRestAccess.get(getServiceURL(ORG, organization.getId()));
@@ -205,14 +205,14 @@ public class LabelResourceTest
     labels = JsonHelpers.fromJson(response.getResponseBody(), Label[].class);
     Assert.assertNotNull(labels);
     Assert.assertEquals(1, labels.length);
-    assertLabel(organization.getId(), "MyLabel", null /* color */, labels[0]);
+    assertLabel(organization.getId(), "MyLabel", Color.white, labels[0]);
 
     // Update a label
     label.setLabel("MyUpdatedLabel");
     response = AuthedRestAccess.put(getServiceURL(ORG, organization.getId()), JsonHelpers.asJson(label));
     assertResponseStatus(200, response);
     label = JsonHelpers.fromJson(response.getResponseBody(), Label.class);
-    assertLabel(organization.getId(), "MyUpdatedLabel", null /* color */, label);
+    assertLabel(organization.getId(), "MyUpdatedLabel", Color.white, label);
 
     // Get all labels
     response = AuthedRestAccess.get(getServiceURL(ORG, organization.getId()));
@@ -220,7 +220,7 @@ public class LabelResourceTest
     labels = JsonHelpers.fromJson(response.getResponseBody(), Label[].class);
     Assert.assertNotNull(labels);
     Assert.assertEquals(1, labels.length);
-    assertLabel(organization.getId(), "MyUpdatedLabel", null /* color */, labels[0]);
+    assertLabel(organization.getId(), "MyUpdatedLabel", Color.white, labels[0]);
 
     // Delete a label
     response = AuthedRestAccess.delete(getServiceURL(ORG, organization.getId()) + "/" + label.getId());
@@ -444,9 +444,9 @@ public class LabelResourceTest
   public void testGetApplicableContexts() throws Exception {
     Organization org = tempEntity.newOrganization("orgName");
     Application app = tempEntity.newApplication("appName", "appPublicId", org.getId());
-    Label orgLabel = new Label(org.getId(), "orgLabel", null);
+    Label orgLabel = new Label(org.getId(), "orgLabel");
     new LabelDAO().insert(orgLabel);
-    Label appLabel = new Label(app.getId(), "appLabel", null);
+    Label appLabel = new Label(app.getId(), "appLabel");
     new LabelDAO().insert(appLabel);
 
     Response response = AuthedRestAccess.get(getContextsURL(APP, app.getPublicId(), appLabel.getId()));

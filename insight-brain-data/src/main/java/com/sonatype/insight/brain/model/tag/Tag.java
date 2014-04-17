@@ -42,15 +42,19 @@ public class Tag
 
   @Column(name = "color")
   @Enumerated(EnumType.STRING)
-  private Color color;
+  private Color color = Color.white;
 
   public Tag() {
   }
-
-  public Tag(String organizationId, String name, String description, Color color) {
+  
+  public Tag(String organizationId, String name, String description) {
     this.organizationId = organizationId;
     setName(name);
     this.description = description;
+  }
+
+  public Tag(String organizationId, String name, String description, Color color) {
+    this(organizationId, name, description);
     this.color = color;
   }
 

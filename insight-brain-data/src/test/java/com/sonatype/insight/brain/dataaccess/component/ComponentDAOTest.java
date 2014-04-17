@@ -83,9 +83,9 @@ public class ComponentDAOTest
 
   @Test
   public void testGetComponent() {
-    Label appLabel = new Label(applicationId, "red", null);
+    Label appLabel = new Label(applicationId, "red");
     labelDAO.insert(appLabel);
-    Label orgLabel = new Label(application.getOrganizationId(), "blue", null);
+    Label orgLabel = new Label(application.getOrganizationId(), "blue");
     labelDAO.insert(orgLabel);
     componentLabelDAO.insert(new ComponentLabel(applicationId, appLabel.getId(), COMP_HASH));
     componentLabelDAO.insert(new ComponentLabel(application.getOrganizationId(), orgLabel.getId(), COMP_HASH));

@@ -7,7 +7,7 @@
 (function() {
   'use strict';
 
-  var labelTemplate = {id: null, ownerId: null, label: '', labelLowercase: null, color: null, description: null};
+  var labelTemplate = {id: null, ownerId: null, label: '', labelLowercase: null, color: 'white', description: null};
 
   var labelModule = angular.module('Labels', ['AngularCommon', 'CLMAppLocation', 'CommonServices', 'Stores']);
 
@@ -164,7 +164,7 @@
 
       $scope.editorAlerts = [];
 
-      $scope.colors = [null, 'white', 'grey', 'black', 'green', 'yellow', 'orange', 'red', 'blue'];
+      $scope.colors = ['white', 'grey', 'black', 'green', 'yellow', 'orange', 'red', 'blue'];
 
       $scope.setColor = function(color) {
         $scope.selectedLabel.color = color;

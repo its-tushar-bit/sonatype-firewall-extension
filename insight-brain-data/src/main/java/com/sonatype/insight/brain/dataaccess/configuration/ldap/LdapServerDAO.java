@@ -31,17 +31,7 @@ public class LdapServerDAO
   }
 
   public LdapServer getByIdNotNull(String id) {
-    EntityManager em = createEntityManager();
-    try {
-      return getByIdNotNull(em, id);
-    }
-    finally {
-      close(em);
-    }
-  }
-
-  public LdapServer getByIdNotNull(EntityManager em, String id) {
-    LdapServer config = getById(em, id);
+    LdapServer config = getById(id);
     if (config == null) {
       throw new NotFoundException("Cannot find LdapServer with id " + id + ".");
     }

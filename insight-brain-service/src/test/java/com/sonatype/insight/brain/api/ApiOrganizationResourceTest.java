@@ -83,6 +83,7 @@ public class ApiOrganizationResourceTest
     assertThat(retrievedTag.id, is(tag.getId()));
     assertThat(retrievedTag.name, is(tag.getName()));
     assertThat(retrievedTag.description, is(tag.getDescription()));
+    assertThat(retrievedTag.color, is(tag.getColor()));
   }
 
   @Test

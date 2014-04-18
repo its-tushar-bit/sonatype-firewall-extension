@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.api.dto;
 
+import com.sonatype.insight.brain.model.Color;
+
 /**
  * @since 1.11.0
  */
@@ -15,4 +17,6 @@ public class ApiTagDTO
   public String name;
 
   public String description;
+
+  public Color color;
 }

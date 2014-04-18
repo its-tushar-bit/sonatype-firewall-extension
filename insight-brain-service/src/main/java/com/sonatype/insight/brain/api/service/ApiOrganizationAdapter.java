@@ -44,6 +44,7 @@ public class ApiOrganizationAdapter
       apiTagDTO.id = tag.getId();
       apiTagDTO.name = tag.getName();
       apiTagDTO.description = tag.getDescription();
+      apiTagDTO.color = tag.getColor();
       apiTagDTOList.add(apiTagDTO);
     }
     apiOrganizationDTO.tags = apiTagDTOList;

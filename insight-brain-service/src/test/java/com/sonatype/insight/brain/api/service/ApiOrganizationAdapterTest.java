@@ -61,5 +61,6 @@ public class ApiOrganizationAdapterTest
     assertThat(apiTagDTO.id, is(tag.getId()));
     assertThat(apiTagDTO.name, is(tag.getName()));
     assertThat(apiTagDTO.description, is(tag.getDescription()));
+    assertThat(apiTagDTO.color, is(tag.getColor()));
   }
 }

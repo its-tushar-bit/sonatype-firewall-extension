@@ -113,10 +113,7 @@ public class PolicyWaiverResourceTest
     Application application = tempEntity.newApplication("PolicyWaiverResourceTest AppId1", appPublicId, organization.getId());
     Policy policy = createPolicy(IdUtils.TYPE_ORGANIZATION, organization.getId());
 
-    PolicyWaiver waiver1 = new PolicyWaiver("12345678901234567890", policy.getId(), application.getId(), "My comment");
-
-    PolicyWaiverDAO policyWaiverDAO = new PolicyWaiverDAO();
-    policyWaiverDAO.insert(waiver1);
+    tempEntity.newWaiver("12345678901234567890", policy.getId(), application.getId(), "My comment");
 
     Response response = AuthedRestAccess.get(getServiceURL(IdUtils.TYPE_APPLICATION, application.getPublicId())
         + "/component/12345678901234567890");
@@ -132,8 +129,7 @@ public class PolicyWaiverResourceTest
     assertPolicyWaiver(policy.getId(), application.getPublicId(), "My comment",
         waivers.waiversByOwner.get(0).waivers.get(0));
 
-    PolicyWaiver waiver2 = new PolicyWaiver("12345678901234567890", policy.getId(), organization.getId(), "My comment");
-    policyWaiverDAO.insert(waiver2);
+    tempEntity.newWaiver("12345678901234567890", policy.getId(), organization.getId(), "My comment");
 
     response = AuthedRestAccess.get(getServiceURL(IdUtils.TYPE_APPLICATION, application.getPublicId())
         + "/component/12345678901234567890");

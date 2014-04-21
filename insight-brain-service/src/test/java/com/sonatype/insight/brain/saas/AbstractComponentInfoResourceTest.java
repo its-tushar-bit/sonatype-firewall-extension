@@ -22,11 +22,6 @@ import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.insight.brain.AuthedRestAccess;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.component.HashGAVDAO;
-import com.sonatype.insight.brain.dataaccess.label.ComponentLabelDAO;
-import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
-import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
-import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
-import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Application;
@@ -34,11 +29,8 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.component.HashGAV;
 import com.sonatype.insight.brain.model.component.IdentificationSource;
 import com.sonatype.insight.brain.model.component.MatchState;
-import com.sonatype.insight.brain.model.label.ComponentLabel;
 import com.sonatype.insight.brain.model.label.Label;
-import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
-import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.license.MultiLicense;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
@@ -161,12 +153,8 @@ public abstract class AbstractComponentInfoResourceTest
     assertThat(licenses.observedlicenses, empty());
 
     // Verify component with licenses
-    LicenseThreatGroupDAO licenseThreatGroupDAO = new LicenseThreatGroupDAO();
-    LicenseThreatGroup licenseThreatGroup = new LicenseThreatGroup(application.getId(), "ComponentInfoResourceTest", 5 /* threatLevel */);
-    licenseThreatGroupDAO.insert(licenseThreatGroup);
-    LicenseThreatGroupLicenseDAO licenseThreatGroupLicenseDAO = new LicenseThreatGroupLicenseDAO();
-    licenseThreatGroupLicenseDAO.setLicenses(licenseThreatGroup.getId(), toLicenseIdSet("LGPL-2.0", "BSD-3-Clause"));
-
+    tempEntity.newLicenseThreatGroup(application.getId(), "ComponentInfoResourceTest", 5, "LGPL-2.0", "BSD-3-Clause");
+    
     saasComponentDetails.setDeclaredLicenses(toLicenseSet("Apache-2.0", "LGPL-2.0-MPL-1.1"));
     saasComponentDetails.setObservedLicenses(toLicenseSet("GPL-2.0", "AFL-2.1-BSD-3-Clause"));
     setSaasResponseForURI(getSaasComponentDetailsUrl(groupId, artifactId, version), toJson(saasComponentDetails), 200);
@@ -230,26 +218,12 @@ public abstract class AbstractComponentInfoResourceTest
     Application application = tempEntity.newApplication(applicationPublicId, applicationPublicId, organization.getId());
     String appId = application.getId();
     // Create license threat groups
-    LicenseThreatGroupLicenseDAO licenseThreatGroupLicenseDAO = new LicenseThreatGroupLicenseDAO();
-    LicenseThreatGroup licenseThreatGroup = tempEntity.newLicenseThreatGroup(appId, "Group1", 9);
-    Set<String> licenseIds = new LinkedHashSet<String>();
-    licenseIds.add("Apache-2.0");
-    licenseThreatGroupLicenseDAO.setLicenses(licenseThreatGroup.getId(), licenseIds);
-
+    tempEntity.newLicenseThreatGroup(appId, "Group1", 9, "Apache-2.0");
     // Various LTG groups to test case insensitive ordering
-    licenseThreatGroup = tempEntity.newLicenseThreatGroup(appId, "groupA", 1);
-    licenseIds.clear();
-    licenseIds.add("GPL-2.0");
-    licenseThreatGroupLicenseDAO.setLicenses(licenseThreatGroup.getId(), licenseIds);
-    licenseThreatGroup = tempEntity.newLicenseThreatGroup(appId, "Groupb", 1);
-    licenseIds.clear();
-    licenseIds.add("GPL-2.0");
-    licenseThreatGroupLicenseDAO.setLicenses(licenseThreatGroup.getId(), licenseIds);
-    licenseThreatGroup = tempEntity.newLicenseThreatGroup(appId, "GroupC", 1);
-    licenseIds.clear();
-    licenseIds.add("GPL-2.0");
-    licenseThreatGroupLicenseDAO.setLicenses(licenseThreatGroup.getId(), licenseIds);
-
+    tempEntity.newLicenseThreatGroup(appId, "groupA", 1, "GPL-2.0");
+    tempEntity.newLicenseThreatGroup(appId, "Groupb", 1, "GPL-2.0");
+    tempEntity.newLicenseThreatGroup(appId, "GroupC", 1, "GPL-2.0");
+    
     // Create the mocked saas response
     String groupId = "g1";
     String artifactId = "a1";
@@ -303,9 +277,8 @@ public abstract class AbstractComponentInfoResourceTest
   public void testGetComponentDetails_PolicyAlerts() throws Exception {
     String applicationPublicId = "IdeResourceTest_AppId";
     Application application = tempEntity.newApplicationWithParent(applicationPublicId);
-    Label label = new Label(application.getId(), "white");
-    new LabelDAO().insert(label);
-    new ComponentLabelDAO().insert(new ComponentLabel(application.getId(), label.getId(), "01234567890123456789"));
+    Label label = tempEntity.newLabel(application.getId(), "white");
+    tempEntity.newComponentLabel(application.getId(), label.getId(), "01234567890123456789");
 
     Constraint constraint1 = new Constraint("C1", "Constraint 1", LogicalOperator.AND);
     Condition condition1 = new Condition(SecurityVulnerabilityConditionType.ID, "present");
@@ -356,9 +329,8 @@ public abstract class AbstractComponentInfoResourceTest
     String applicationPublicId = "IdeResourceTest_AppId";
     Application application = tempEntity.newApplicationWithParent(applicationPublicId);
 
-    LicenseOverride licenseOverride = new LicenseOverride(application.getId(), "g1", "a1", "v1",
+    tempEntity.newLicenseOverride(application.getId(), "g1", "a1", "v1",
         LicenseOverrideStatus.OVERRIDDEN, "GPL-2.0", null /* comment */);
-    new LicenseOverrideDAO().insert(licenseOverride);
 
     String groupId = "g1";
     String artifactId = "a1";
@@ -614,10 +586,9 @@ public abstract class AbstractComponentInfoResourceTest
     String hash = "01234567890123456789";
     String applicationPublicId = "IdeResourceTest_AppId";
     Application app = tempEntity.newApplicationWithParent(applicationPublicId);
-    Label label = new Label(orgLabel ? app.getOrganizationId() : app.getId(), "red");
-    new LabelDAO().insert(label);
-    new ComponentLabelDAO().insert(new ComponentLabel(orgComponentLabel ? app.getOrganizationId() : app.getId(), label
-        .getId(), hash));
+    Label label = tempEntity.newLabel(orgLabel ? app.getOrganizationId() : app.getId(), "red");
+    tempEntity.newComponentLabel(orgComponentLabel ? app.getOrganizationId() : app.getId(), label
+        .getId(), hash);
 
     Constraint constraint1 = new Constraint("C1", "Constraint 1", LogicalOperator.AND);
     constraint1.addCondition(new Condition(LabelConditionType.ID, "is", label.getId()));
@@ -671,14 +642,6 @@ public abstract class AbstractComponentInfoResourceTest
     for (String licenseId : licenseIds) {
       MultiLicense multiLicense = dao.getByIdNotNull(licenseId);
       result.add(new License(multiLicense.getId(), multiLicense.getShortDisplayName()));
-    }
-    return result;
-  }
-
-  private Set<String> toLicenseIdSet(String... licenseIds) {
-    Set<String> result = new LinkedHashSet<String>();
-    for (String licenseId : licenseIds) {
-      result.add(licenseId);
     }
     return result;
   }

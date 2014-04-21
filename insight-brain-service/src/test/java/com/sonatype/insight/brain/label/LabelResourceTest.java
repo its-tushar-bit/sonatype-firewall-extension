@@ -11,7 +11,6 @@ import java.util.Locale;
 
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.insight.brain.AuthedRestAccess;
-import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dto.ApplicableContext;
 import com.sonatype.insight.brain.label.LabelResource.ApplicableLabels;
 import com.sonatype.insight.brain.label.LabelResource.LabelsByOwner;
@@ -107,13 +106,8 @@ public class LabelResourceTest
     // Create an application with one label
     String appPublicId = "LabelResourceTest_AppId";
     Application application = tempEntity.newApplicationWithParent(appPublicId);
-    Label label = new Label();
-    label.setColor(Color.blue);
-    label.setLabel("MyLabel");
-    Response response = AuthedRestAccess.post(getServiceURLForApplication(appPublicId), JsonHelpers.asJson(label));
-    assertResponseStatus(200, response);
-    label = JsonHelpers.fromJson(response.getResponseBody(), Label.class);
-
+    Label label = tempEntity.newLabel(application.getId(), "MyLabel", Color.blue);
+    
     // Create a policy that uses the label
     Condition condition = new Condition(LabelConditionType.ID, "is", label.getId());
     Constraint constraint = new Constraint("ConstraintId1", "Constraint name 1", LogicalOperator.AND);
@@ -123,7 +117,7 @@ public class LabelResourceTest
     Policy policy = new Policy("PolicyId1", "Policy Name 1");
     policy.setConstraints(constraints);
     policy.addAction(BuildStageType.ID, new Action(FailActionType.ID));
-    response = AuthedRestAccess.post(getRestUrl(PolicyResource.SERVICE_PATH, "application", appPublicId),
+    Response response = AuthedRestAccess.post(getRestUrl(PolicyResource.SERVICE_PATH, "application", appPublicId),
         JsonHelpers.asJson(policy));
     assertResponseStatus(200, response);
 
@@ -157,15 +151,9 @@ public class LabelResourceTest
     Application application1 = tempEntity.newApplicationWithParent(appPublicId1);
     String appPublicId2 = "LabelResourceTest_AppId2";
     tempEntity.newApplicationWithParent(appPublicId2);
-
-    Label label = new Label();
-    label.setColor(Color.blue);
-    label.setLabel("MyLabel");
-    Response response = AuthedRestAccess.post(getServiceURLForApplication(appPublicId1), JsonHelpers.asJson(label));
-    assertResponseStatus(200, response);
-    label = JsonHelpers.fromJson(response.getResponseBody(), Label.class);
-
-    response = AuthedRestAccess.delete(getServiceURLForApplication(appPublicId2) + "/" + label.getId());
+    Label label = tempEntity.newLabel(application1.getId(), "MyLabel", Color.blue);
+    
+    Response response = AuthedRestAccess.delete(getServiceURLForApplication(appPublicId2) + "/" + label.getId());
     assertResponseStatus(404, response);
     Assert.assertEquals("Cannot find a label with id " + label.getId() + " for application id " + appPublicId2,
         response.getResponseBody());
@@ -239,13 +227,8 @@ public class LabelResourceTest
     // Create an organization with one label
     String orgName = "LabelResourceTestOrgName";
     Organization organization = tempEntity.newOrganization(orgName);
-    Label label = new Label();
-    label.setColor(Color.blue);
-    label.setLabel("MyLabel");
-    Response response = AuthedRestAccess.post(getServiceURLForOrganization(organization.getId()), JsonHelpers.asJson(label));
-    assertResponseStatus(200, response);
-    label = JsonHelpers.fromJson(response.getResponseBody(), Label.class);
-
+    Label label = tempEntity.newLabel(organization.getId(), "MyLabel", Color.blue);
+    
     // Create a policy that uses the label
     Condition condition = new Condition(LabelConditionType.ID, "is", label.getId());
     Constraint constraint = new Constraint("ConstraintId1", "Constraint name 1", LogicalOperator.AND);
@@ -255,7 +238,7 @@ public class LabelResourceTest
     Policy policy = new Policy("PolicyId1", "Policy Name 1");
     policy.setConstraints(constraints);
     policy.addAction(BuildStageType.ID, new Action(FailActionType.ID));
-    response = AuthedRestAccess.post(
+    Response response = AuthedRestAccess.post(
         getRestUrl(PolicyResource.SERVICE_PATH, "organization", organization.getId()),
         JsonHelpers.asJson(policy));
     assertResponseStatus(200, response);
@@ -282,13 +265,8 @@ public class LabelResourceTest
     String organizationId = application.getOrganizationId();
 
     // Create an organization label
-    Label label = new Label();
-    label.setColor(Color.blue);
-    label.setLabel("MyLabel");
-    Response response = AuthedRestAccess.post(getServiceURLForOrganization(organizationId), JsonHelpers.asJson(label));
-    assertResponseStatus(200, response);
-    label = JsonHelpers.fromJson(response.getResponseBody(), Label.class);
-
+    Label label = tempEntity.newLabel(organizationId, "MyLabel", Color.blue);
+    
     // Create an app policy that uses the label
     Condition condition = new Condition(LabelConditionType.ID, "is", label.getId());
     Constraint constraint = new Constraint("ConstraintId1", "Constraint name 1", LogicalOperator.AND);
@@ -298,7 +276,7 @@ public class LabelResourceTest
     Policy policy = new Policy("PolicyId1", "Policy Name 1");
     policy.setConstraints(constraints);
     policy.addAction(BuildStageType.ID, new Action(FailActionType.ID));
-    response = AuthedRestAccess.post(getRestUrl(PolicyResource.SERVICE_PATH, "application", appPublicId),
+    Response response = AuthedRestAccess.post(getRestUrl(PolicyResource.SERVICE_PATH, "application", appPublicId),
         JsonHelpers.asJson(policy));
     assertResponseStatus(200, response);
 
@@ -334,14 +312,9 @@ public class LabelResourceTest
     String orgName2 = "LabelResourceTestOrgName2";
     Organization organization2 = tempEntity.newOrganization(orgName2);
 
-    Label label = new Label();
-    label.setColor(Color.blue);
-    label.setLabel("MyLabel");
-    Response response = AuthedRestAccess.post(getServiceURLForOrganization(organization1.getId()), JsonHelpers.asJson(label));
-    assertResponseStatus(200, response);
-    label = JsonHelpers.fromJson(response.getResponseBody(), Label.class);
-
-    response = AuthedRestAccess.delete(getServiceURLForOrganization(organization2.getId()) + "/" + label.getId());
+    Label label = tempEntity.newLabel(organization1.getId(), "MyLabel", Color.blue);
+    
+    Response response = AuthedRestAccess.delete(getServiceURLForOrganization(organization2.getId()) + "/" + label.getId());
     assertResponseStatus(404, response);
     Assert.assertEquals(
         "Cannot find a label with id " + label.getId() + " for organization id " + organization2.getId(),
@@ -388,11 +361,7 @@ public class LabelResourceTest
     assertLabelsByOwner(orgId, orgName, "organization", 0, applicableLabels.labelsByOwner.get(0));
 
     // Create a label for the application
-    Label appLabel = new Label();
-    appLabel.setLabel("testGetApplicableLabels_App_label");
-    response = AuthedRestAccess.post(getServiceURL(APP, appPublicId), JsonHelpers.asJson(appLabel));
-    assertResponseStatus(200, response);
-    appLabel = JsonHelpers.fromJson(response.getResponseBody(), Label.class);
+    Label appLabel = tempEntity.newLabel(app.getId(), "testGetApplicableLabels_App_label");
 
     // Verify the applicable labels for the application
     response = AuthedRestAccess.get(getServiceURL(APP, appPublicId) + "/applicable");
@@ -413,11 +382,7 @@ public class LabelResourceTest
     assertLabelsByOwner(orgId, orgName, "organization", 0, applicableLabels.labelsByOwner.get(0));
 
     // Create a label for the organization
-    Label orgLabel = new Label();
-    orgLabel.setLabel("testGetApplicableLabels_Org_label");
-    response = AuthedRestAccess.post(getServiceURL(ORG, orgId), JsonHelpers.asJson(orgLabel));
-    assertResponseStatus(200, response);
-    orgLabel = JsonHelpers.fromJson(response.getResponseBody(), Label.class);
+    Label orgLabel = tempEntity.newLabel(orgId, "testGetApplicableLabels_Org_label");
 
     // Verify the applicable labels for the application
     response = AuthedRestAccess.get(getServiceURL(APP, appPublicId) + "/applicable");
@@ -444,10 +409,8 @@ public class LabelResourceTest
   public void testGetApplicableContexts() throws Exception {
     Organization org = tempEntity.newOrganization("orgName");
     Application app = tempEntity.newApplication("appName", "appPublicId", org.getId());
-    Label orgLabel = new Label(org.getId(), "orgLabel");
-    new LabelDAO().insert(orgLabel);
-    Label appLabel = new Label(app.getId(), "appLabel");
-    new LabelDAO().insert(appLabel);
+    Label orgLabel = tempEntity.newLabel(org.getId(), "orgLabel");
+    Label appLabel = tempEntity.newLabel(app.getId(), "appLabel");
 
     Response response = AuthedRestAccess.get(getContextsURL(APP, app.getPublicId(), appLabel.getId()));
     assertResponseStatus(200, response);

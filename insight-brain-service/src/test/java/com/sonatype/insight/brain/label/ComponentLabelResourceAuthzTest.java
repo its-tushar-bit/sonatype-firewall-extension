@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.label;
 
 import com.sonatype.insight.brain.dataaccess.label.ComponentLabelDAO;
-import com.sonatype.insight.brain.model.label.ComponentLabel;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.service.AbstractResourceAuthzTest;
 import com.sonatype.insight.brain.utils.IdUtils;
@@ -54,16 +53,14 @@ public class ComponentLabelResourceAuthzTest
     Label label = tempEntity.newLabel(org.getId());
     String hash = "bad";
 
-    ComponentLabel compLabel = new ComponentLabel(app.getId(), label.getId(), hash);
-    compLabelDAO.insert(compLabel);
+    tempEntity.newComponentLabel(app.getId(), label.getId(), hash);
     String url = getRestUrl(ComponentLabelResource.SERVICE_PATH + "/{labelId}", IdUtils.TYPE_APPLICATION,
         app.getPublicId(), hash, label.getId());
     testAuthzDelete(url);
 
     grantWritePermission(org.getId());
 
-    compLabel = new ComponentLabel(org.getId(), label.getId(), hash);
-    compLabelDAO.insert(compLabel);
+    tempEntity.newComponentLabel(org.getId(), label.getId(), hash);
     url = getRestUrl(ComponentLabelResource.SERVICE_PATH + "/{labelId}", IdUtils.TYPE_ORGANIZATION, org.getId(), hash,
         label.getId());
     testAuthzDelete(url);

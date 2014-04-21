@@ -7,13 +7,11 @@ package com.sonatype.insight.brain.license;
 
 import com.sonatype.insight.brain.AuthedRestAccess;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
-import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.license.LicenseThreatGroupResource.ApplicableLicenseThreatGroups;
 import com.sonatype.insight.brain.license.LicenseThreatGroupResource.LicenseThreatGroupWithLicenses;
 import com.sonatype.insight.brain.license.LicenseThreatGroupResource.LicenseThreatGroupsByOwner;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
-import com.sonatype.insight.brain.model.license.LicenseThreatGroupLicense;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
@@ -155,16 +153,6 @@ abstract class AbstractLicenseThreatGroupResourceTest
     Response response = AuthedRestAccess.get(getApplicableUrl(ownerId));
     assertResponseStatus(200, response);
     return JsonHelpers.fromJson(response.getResponseBody(), ApplicableLicenseThreatGroups.class);
-  }
-
-  protected LicenseThreatGroup createLicenseThreatGroup(String name, String ownerId, String... licenseIds) {
-    LicenseThreatGroup ltg = new LicenseThreatGroup(ownerId, name, 5);
-    new LicenseThreatGroupDAO().insert(ltg);
-    for (String licenseId : licenseIds) {
-      LicenseThreatGroupLicense ltgl = new LicenseThreatGroupLicense(ownerId, ltg.getId(), licenseId);
-      new LicenseThreatGroupLicenseDAO().insert(ltgl);
-    }
-    return ltg;
   }
 
   protected void assertLicenseThreatGroupsByOwner(String ownerId, String ownerName, String ownerType,

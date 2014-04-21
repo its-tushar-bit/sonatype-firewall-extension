@@ -14,10 +14,8 @@ import java.util.zip.ZipOutputStream;
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
-import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
@@ -80,9 +78,8 @@ public class ReportDataServiceTest
             String version = node.get("version").asText();
             String licenseName = node.get("overriddenLicenses").get(0).asText();
             String licenseId = multiLicenseDAO.getByNameNotNull(licenseName).getId();
-            LicenseOverride override = new LicenseOverride(app.getId(), groupId, artifactId, version,
+            tempEntity.newLicenseOverride(app.getId(), groupId, artifactId, version,
                 LicenseOverrideStatus.getByName(status), licenseId, "testing");
-            new LicenseOverrideDAO().insert(override);
           }
         }
       }

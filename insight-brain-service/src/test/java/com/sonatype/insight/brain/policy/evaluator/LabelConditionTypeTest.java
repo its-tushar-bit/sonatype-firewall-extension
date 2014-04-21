@@ -12,7 +12,6 @@ import java.util.List;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.Stage;
-import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.Organization;
@@ -27,7 +26,6 @@ import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.model.policy.conditions.LabelConditionType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 
-import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -40,16 +38,6 @@ public class LabelConditionTypeTest
   private static String organizationId;
 
   private static String applicationId;
-
-  @After
-  public void cleanup() {
-    for (Label label : labelDAO.getByOwnerId(applicationId)) {
-      labelDAO.delete(label);
-    }
-    for (Label label : labelDAO.getByOwnerId(organizationId)) {
-      labelDAO.delete(label);
-    }
-  }
 
   @Before
   public void createApplication() {
@@ -64,16 +52,12 @@ public class LabelConditionTypeTest
     return createConstraint("ConstraintId1", "Constraint Name 1", LabelConditionType.ID, operator, value);
   }
 
-  private LabelDAO labelDAO = new LabelDAO();
-
   @Test
   public void testEvaluateIs() {
     // Create some labels
-    Label label1 = new Label(applicationId, "Good", Color.green);
-    labelDAO.insert(label1);
+    Label label1 = tempEntity.newLabel(applicationId, "Good", Color.green);
     String labelId1 = label1.getId();
-    Label label2 = new Label(applicationId, "Bad", Color.red);
-    labelDAO.insert(label2);
+    Label label2 = tempEntity.newLabel(applicationId, "Bad", Color.red);
     String labelId2 = label2.getId();
 
     // Create policy constraints
@@ -111,11 +95,9 @@ public class LabelConditionTypeTest
   @Test
   public void testEvaluateIsNot() {
     // Create some labels
-    Label label1 = new Label(applicationId, "Good", Color.green);
-    labelDAO.insert(label1);
+    Label label1 = tempEntity.newLabel(applicationId, "Good", Color.green);
     String labelId1 = label1.getId();
-    Label label2 = new Label(applicationId, "Bad", Color.red);
-    labelDAO.insert(label2);
+    Label label2 = tempEntity.newLabel(applicationId, "Bad", Color.red);
     String labelId2 = label2.getId();
 
     // Create policy constraints
@@ -155,11 +137,9 @@ public class LabelConditionTypeTest
   @Test
   public void testOrganizationLabelIs() {
     // Create some labels
-    Label label1 = new Label(organizationId, "Good", Color.green);
-    labelDAO.insert(label1);
+    Label label1 = tempEntity.newLabel(organizationId, "Good", Color.green);
     String labelId1 = label1.getId();
-    Label label2 = new Label(organizationId, "Bad", Color.red);
-    labelDAO.insert(label2);
+    Label label2 = tempEntity.newLabel(organizationId, "Bad", Color.red);
     String labelId2 = label2.getId();
 
     // Create policy constraints
@@ -210,8 +190,7 @@ public class LabelConditionTypeTest
 
   @Test
   public void testEvaluateLabelNameEdgeCase() {
-    Label label1 = new Label(applicationId, "*/comment-end", Color.green);
-    labelDAO.insert(label1);
+    Label label1 = tempEntity.newLabel(applicationId, "*/comment-end", Color.green);
     String labelId1 = label1.getId();
 
     List<Constraint> constraints = new ArrayList<Constraint>();

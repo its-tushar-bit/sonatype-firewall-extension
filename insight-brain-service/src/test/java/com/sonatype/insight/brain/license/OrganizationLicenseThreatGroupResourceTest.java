@@ -50,8 +50,8 @@ public class OrganizationLicenseThreatGroupResourceTest
   @Test
   public void testGetApplicable() throws Exception {
     Organization org = tempEntity.newOrganization("orgName", false);
-    createLicenseThreatGroup("LTG-0", org.getId(), "Apache-2.0");
-    createLicenseThreatGroup("LTG-1", org.getId(), "EPL-1.0");
+    tempEntity.newLicenseThreatGroup(org.getId(), "LTG-0", 5, "Apache-2.0");
+    tempEntity.newLicenseThreatGroup(org.getId(), "LTG-1", 5, "EPL-1.0");
 
     ApplicableLicenseThreatGroups altgs = getApplicableLicenseThreatGroups(org.getId());
     assertNotNull(altgs);

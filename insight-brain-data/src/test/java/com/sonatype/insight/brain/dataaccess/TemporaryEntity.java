@@ -135,27 +135,9 @@ public class TemporaryEntity
 
   private Collection<Role> roles;
 
-  private Collection<Label> labels;
-
-  private Collection<LicenseThreatGroup> licenseThreatGroups;
-
-  private Collection<LicenseOverride> licenseOverrides;
-
-  private Collection<PolicyWaiver> waivers;
-
   private Collection<LdapServer> ldapServers;
 
-  private Collection<Tag> tags;
-
-  private Collection<ApplicationTag> appTags;
-
-  private Collection<Policy> policies;
-
   private Collection<HashGAV> claimedComponents;
-
-  private Collection<PolicyEvaluation> policyEvaluations;
-
-  private Collection<PolicyViolation> policyViolations;
 
   @Override
   protected void before() {
@@ -163,40 +145,12 @@ public class TemporaryEntity
     orgs = new ArrayList<Organization>();
     users = new ArrayList<User>();
     roles = new ArrayList<Role>();
-    labels = new ArrayList<Label>();
-    licenseThreatGroups = new ArrayList<LicenseThreatGroup>();
-    licenseOverrides = new ArrayList<LicenseOverride>();
-    waivers = new ArrayList<PolicyWaiver>();
     ldapServers = new ArrayList<LdapServer>();
-    tags = new ArrayList<Tag>();
-    appTags = new ArrayList<ApplicationTag>();
-    policies = new ArrayList<>();
     claimedComponents = new ArrayList<HashGAV>();
-    policyEvaluations = new ArrayList<>();
-    policyViolations = new ArrayList<>();
   }
 
   @Override
   protected void after() {
-    for (Tag tag : tags) {
-      if (tagDAO.getById(tag.getId()) != null) {
-        PolicyTagDAO policyTagDAO = new PolicyTagDAO();
-        for (PolicyTag policyTag : policyTagDAO.getByTagId(tag.getId())) {
-          policyTagDAO.delete(policyTag);
-        }
-        tagDAO.delete(tag);
-      }
-    }
-    for (PolicyViolation policyViolation : policyViolations) {
-      if (policyViolationDAO.getById(policyViolation.getId()) != null) {
-        policyViolationDAO.delete(policyViolation);
-      }
-    }
-    for (PolicyEvaluation policyEvaluation : policyEvaluations) {
-      if (policyEvaluationDAO.getById(policyEvaluation.getId()) != null) {
-        policyEvaluationDAO.delete(policyEvaluation);
-      }
-    }
     for (Application app : apps) {
       if (appDAO.getById(app.getId()) != null) {
         appDAO.delete(app);
@@ -217,39 +171,9 @@ public class TemporaryEntity
         roleDAO.delete(role);
       }
     }
-    for (Label label : labels) {
-      if (labelDAO.getById(label.getId()) != null) {
-        labelDAO.delete(label);
-      }
-    }
-    for (LicenseThreatGroup ltg : licenseThreatGroups) {
-      if (licenseThreatGroupDAO.getById(ltg.getId()) != null) {
-        licenseThreatGroupDAO.delete(ltg);
-      }
-    }
-    for (LicenseOverride override : licenseOverrides) {
-      if (licenseOverrideDAO.getById(override.getId()) != null) {
-        licenseOverrideDAO.delete(override);
-      }
-    }
-    for (PolicyWaiver waiver : waivers) {
-      if (waiverDAO.getById(waiver.getId()) != null) {
-        waiverDAO.delete(waiver);
-      }
-    }
     for (LdapServer ldapServer : ldapServers) {
       if (ldapServerDAO.getById(ldapServer.getId()) != null) {
         ldapServerDAO.delete(ldapServer);
-      }
-    }
-    for (ApplicationTag appTag : appTags) {
-      if (appTagDAO.getById(appTag.getId()) != null) {
-        appTagDAO.delete(appTag);
-      }
-    }
-    for (Policy policy : policies) {
-      if (policyDAO.getById(policy.getId()) != null) {
-        policyDAO.delete(policy);
       }
     }
     for (HashGAV claimedComponent : claimedComponents) {
@@ -405,43 +329,60 @@ public class TemporaryEntity
   public Label newLabel(String ownerId, String labelText, Color color){
     Label label = new Label(ownerId, labelText, color);
     labelDAO.insert(label);
-    labels.add(label);
     return label;
   }
 
   public ComponentLabel newComponentLabel(String ownerId, String labelId){
-    ComponentLabel componentLabel = new ComponentLabel(ownerId, labelId, uuid().substring(0, 19));
+    return newComponentLabel(ownerId, labelId, uuid().substring(0, 19));
+  }
+  
+  public ComponentLabel newComponentLabel(String ownerId, String labelId, String hash){
+    ComponentLabel componentLabel = new ComponentLabel(ownerId, labelId, hash);
     componentLabelDAO.insert(componentLabel);
     return componentLabel;
   }
 
   public LicenseThreatGroup newLicenseThreatGroup(String ownerId) {
-    LicenseThreatGroup ltg = new LicenseThreatGroup(ownerId, "LTG " + uuid(), 5);
-    licenseThreatGroupDAO.insert(ltg);
-    licenseThreatGroups.add(ltg);
-    return ltg;
+    return newLicenseThreatGroup(ownerId, "LTG" + uuid(), 5);
   }
 
   public LicenseThreatGroup newLicenseThreatGroup(String ownerId, String name, int threatLevel) {
+    return newLicenseThreatGroup(ownerId, name, threatLevel, new String[0]);
+  }
+  
+  public LicenseThreatGroup newLicenseThreatGroup(String ownerId, String name, int threatLevel, String... licenseIds) {
     LicenseThreatGroup ltg = new LicenseThreatGroup(ownerId, name, threatLevel);
     licenseThreatGroupDAO.insert(ltg);
-    licenseThreatGroups.add(ltg);
+    
+    for (String licenseId : licenseIds) {
+      newLicenseThreatGroupLicense(ownerId, ltg.getId(), licenseId);
+    }
+    
     return ltg;
   }
-
+  
   public LicenseThreatGroupLicense newLicenseThreatGroupLicense(String ownerId, String licenseThreatGroupId) {
+    return newLicenseThreatGroupLicense(ownerId, licenseThreatGroupId, "Apache-2.0");
+  }
+  
+  public LicenseThreatGroupLicense newLicenseThreatGroupLicense(String ownerId, String licenseThreatGroupId, String licenseId) {
     LicenseThreatGroupLicense licenseThreatGroupLicense = new LicenseThreatGroupLicense(ownerId, licenseThreatGroupId,
-        "Apache-2.0");
+        licenseId);
     licenseThreatGroupLicenseDAO.insert(licenseThreatGroupLicense);
     return licenseThreatGroupLicense;
   }
-
+  
   public LicenseOverride newLicenseOverride(String ownerId, String groupId, String artifactId, String version,
       LicenseOverrideStatus status, String licenseId)
   {
-    LicenseOverride override = new LicenseOverride(ownerId, groupId, artifactId, version, status, licenseId, "testing");
+    return newLicenseOverride(ownerId, groupId, artifactId, version, status, licenseId, "testing");
+  }
+
+  public LicenseOverride newLicenseOverride(String ownerId, String groupId, String artifactId, String version,
+      LicenseOverrideStatus status, String licenseId, String comment)
+  {
+    LicenseOverride override = new LicenseOverride(ownerId, groupId, artifactId, version, status, licenseId, comment);
     licenseOverrideDAO.insert(override);
-    licenseOverrides.add(override);
     return override;
   }
 
@@ -450,9 +391,12 @@ public class TemporaryEntity
   }
 
   public PolicyWaiver newWaiver(String hash, String policyId, String ownerId) {
-    PolicyWaiver waiver = new PolicyWaiver(hash, policyId, ownerId, "testing");
+    return newWaiver(hash, policyId, ownerId, "testing");
+  }
+  
+  public PolicyWaiver newWaiver(String hash, String policyId, String ownerId, String comment) {
+    PolicyWaiver waiver = new PolicyWaiver(hash, policyId, ownerId, comment);
     waiverDAO.insert(waiver);
-    waivers.add(waiver);
     return waiver;
   }
 
@@ -511,14 +455,12 @@ public class TemporaryEntity
   public Tag newTag(String orgId, String name, Color color) {
     Tag tag = new Tag(orgId, name, "description", color);
     tagDAO.insert(tag);
-    tags.add(tag);
     return tag;
   }
 
   public ApplicationTag newApplicationTag(String appId, String tagId) {
     ApplicationTag appTag = new ApplicationTag(appId, tagId);
     appTagDAO.insert(appTag);
-    appTags.add(appTag);
     return appTag;
   }
 
@@ -539,7 +481,6 @@ public class TemporaryEntity
     constraint.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
     policy.addConstraint(constraint);
     policyDAO.insert(policy);
-    policies.add(policy);
     return policy;
   }
 
@@ -555,14 +496,12 @@ public class TemporaryEntity
     PolicyEvaluation policyEvaluation = new PolicyEvaluation(applicationId, stageTypeId, scanId);
     policyEvaluation.setTime(time);
     policyEvaluationDAO.insert(policyEvaluation);
-    policyEvaluations.add(policyEvaluation);
     return policyEvaluation;
   }
 
   public PolicyEvaluation newPolicyEvaluation(String applicationId, String stageTypeId, String scanId) {
     PolicyEvaluation policyEvaluation = new PolicyEvaluation(applicationId, stageTypeId, scanId);
     policyEvaluationDAO.insert(policyEvaluation);
-    policyEvaluations.add(policyEvaluation);
     return policyEvaluation;
   }
 
@@ -573,7 +512,6 @@ public class TemporaryEntity
         idForMonitoring);
     policyEvaluation.setTime(time);
     policyEvaluationDAO.insert(policyEvaluation);
-    policyEvaluations.add(policyEvaluation);
     return policyEvaluation;
   }
 
@@ -587,7 +525,6 @@ public class TemporaryEntity
     PolicyViolation policyViolation = new PolicyViolation(policyEvaluationId, policy.getId(), policy.getName(), threatLevel,
         category, "hash", groupId, artifactId, version, "[]");
     policyViolationDAO.insert(policyViolation);
-    policyViolations.add(policyViolation);
     return policyViolation;
   }
 

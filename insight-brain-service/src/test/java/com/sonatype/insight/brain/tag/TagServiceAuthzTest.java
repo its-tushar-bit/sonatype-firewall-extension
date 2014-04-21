@@ -29,11 +29,10 @@ public class TagServiceAuthzTest
   @Inject
   private TagService tagService;
 
-  String policyId = "TagServiceAuthzTest_PolicyId";
+  String policyId;
 
   @Before
   public void init() {
-    Organization org = tempEntity.newOrganization("TagServiceAuthzTest");
     policyId = tempEntity.newPolicy(org.getId(), "TagServiceAuthzTest").getId();
   }
 

@@ -19,9 +19,6 @@ import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.AuthedRestAccess;
 import com.sonatype.insight.brain.dataaccess.component.HashGAVDAO;
-import com.sonatype.insight.brain.dataaccess.label.ComponentLabelDAO;
-import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
-import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.dataaccess.policy.NewestPolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
@@ -31,9 +28,7 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.HashGAV;
 import com.sonatype.insight.brain.model.component.MatchState;
-import com.sonatype.insight.brain.model.label.ComponentLabel;
 import com.sonatype.insight.brain.model.label.Label;
-import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
@@ -248,10 +243,9 @@ public class PolicyEvaluateResourceTest
     String scanId = "testEvaluate_Label_ScanId";
     String licenseFingerprint = "testEvaluate_Label_LicenseFingerprint";
     setLicenseFingerprint(licenseFingerprint);
-    Label label = new Label(orgLabel ? app.getOrganizationId() : app.getId(), "red");
-    new LabelDAO().insert(label);
-    new ComponentLabelDAO().insert(new ComponentLabel(orgComponentLabel ? app.getOrganizationId() : app.getId(), label
-        .getId(), hash));
+    Label label = tempEntity.newLabel(orgLabel ? app.getOrganizationId() : app.getId(), "red");
+    tempEntity.newComponentLabel(orgComponentLabel ? app.getOrganizationId() : app.getId(), label
+        .getId(), hash);
 
     File saasReportFile = getReportResponseFile(licenseFingerprint, scanId);
     saasReportFile.delete();
@@ -565,10 +559,8 @@ public class PolicyEvaluateResourceTest
     FileUtils.copyFile(new File(testReportFileUrl.getFile()), saasReportFile);
     
     // Override the license at org level
-    LicenseOverrideDAO licenseOverrideDAO = new LicenseOverrideDAO();
-    LicenseOverride orgLicenseOverride = new LicenseOverride(application.getOrganizationId(), "commons-pool",
+    tempEntity.newLicenseOverride(application.getOrganizationId(), "commons-pool",
         "commons-pool", "1.4", LicenseOverrideStatus.OVERRIDDEN, "ZPL-2.0", " My comment");
-    licenseOverrideDAO.insert(orgLicenseOverride);
 
     // Evaluate policy
     response = AuthedRestAccess.post(getServiceURL(applicationPublicId, scanId), JsonHelpers.asJson(stage));
@@ -592,9 +584,8 @@ public class PolicyEvaluateResourceTest
 
     // Override the license at app level. This must supersede the override at org level, so the policy should not
     // trigger any alerts.
-    LicenseOverride appLicenseOverride = new LicenseOverride(application.getId(), "commons-pool", "commons-pool",
+    tempEntity.newLicenseOverride(application.getId(), "commons-pool", "commons-pool",
         "1.4", LicenseOverrideStatus.ACKNOWLEDGED, null /* licenseId */, " My comment");
-    licenseOverrideDAO.insert(appLicenseOverride);
 
     // Evaluate policy
     response = AuthedRestAccess.post(getServiceURL(applicationPublicId, scanId), JsonHelpers.asJson(stage));

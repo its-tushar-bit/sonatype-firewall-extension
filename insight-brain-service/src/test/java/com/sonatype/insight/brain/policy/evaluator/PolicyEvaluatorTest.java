@@ -645,9 +645,7 @@ public class PolicyEvaluatorTest
         constraint2.getName(), SecurityVulnerabilityConditionType.ID, policyAlerts);
 
     // Waive policy1 for component1 and re-evaluate
-    PolicyWaiver policyWaiver = new PolicyWaiver("hash1", policy1.getId(), app.getId(), null /* comment */);
-    PolicyWaiverDAO policyWaiverDAO = new PolicyWaiverDAO();
-    policyWaiverDAO.insert(policyWaiver);
+    tempEntity.newWaiver("hash1", policy1.getId(), app.getId(), null /* comment */);
     policyAlerts = evaluator.evaluate(app.getId(), stage, Arrays.asList(policy1, policy2), components);
     Assert.assertNotNull(policyAlerts);
     Assert.assertEquals(2, policyAlerts.size());
@@ -659,7 +657,5 @@ public class PolicyEvaluatorTest
         constraint2.getName(), SecurityVulnerabilityConditionType.ID, policyAlerts);
     assertContainsPolicyAlert(component2, policy2.getId(), policy2.getName(), FailActionType.ID, constraint2.getId(),
         constraint2.getName(), SecurityVulnerabilityConditionType.ID, policyAlerts);
-
-    policyWaiverDAO.delete(policyWaiver);
   }
 }

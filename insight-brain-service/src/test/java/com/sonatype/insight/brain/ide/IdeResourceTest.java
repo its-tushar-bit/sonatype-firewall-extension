@@ -18,18 +18,13 @@ import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.insight.brain.AuthedRestAccess;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.component.HashGAVDAO;
-import com.sonatype.insight.brain.dataaccess.label.ComponentLabelDAO;
-import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
-import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.HashGAV;
 import com.sonatype.insight.brain.model.component.IdentificationSource;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.component.SecurityVulnerabilityStatus;
-import com.sonatype.insight.brain.model.label.ComponentLabel;
 import com.sonatype.insight.brain.model.label.Label;
-import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
@@ -175,9 +170,8 @@ public class IdeResourceTest
 
     // Override the license and evaluate the policy again
 
-    LicenseOverride licenseOverride = new LicenseOverride(application.getId(), "g1", "a1", "v1",
+    tempEntity.newLicenseOverride(application.getId(), "g1", "a1", "v1",
         LicenseOverrideStatus.OVERRIDDEN, "GPL-2.0", null /* comment */);
-    new LicenseOverrideDAO().insert(licenseOverride);
     response = AuthedRestAccess.get(serviceUrl);
     assertResponseStatus(200, response);
     ideMatchedComponent = JsonHelpers.fromJson(response.getResponseBody(), IdeMatchedComponent.class);
@@ -228,9 +222,8 @@ public class IdeResourceTest
 
     // Override the license and evaluate the policy again
 
-    LicenseOverride licenseOverride = new LicenseOverride(application.getId(), "g1", "a1", "v1",
+    tempEntity.newLicenseOverride(application.getId(), "g1", "a1", "v1",
         LicenseOverrideStatus.OVERRIDDEN, "GPL-2.0", null /* comment */);
-    new LicenseOverrideDAO().insert(licenseOverride);
     response = AuthedRestAccess.get(serviceUrl);
     assertResponseStatus(200, response);
     ideMatchedComponent = JsonHelpers.fromJson(response.getResponseBody(), IdeMatchedComponent.class);
@@ -588,10 +581,9 @@ public class IdeResourceTest
     String hash = "abababababababababab";
     String applicationPublicId = "IdeResourceTest_AppId";
     Application app = tempEntity.newApplicationWithParent(applicationPublicId);
-    Label label = new Label(orgLabel ? app.getOrganizationId() : app.getId(), "red");
-    new LabelDAO().insert(label);
-    new ComponentLabelDAO().insert(new ComponentLabel(orgComponentLabel ? app.getOrganizationId() : app.getId(), label
-        .getId(), hash));
+    Label label = tempEntity.newLabel(orgLabel ? app.getOrganizationId() : app.getId(), "red");
+    tempEntity.newComponentLabel(orgComponentLabel ? app.getOrganizationId() : app.getId(), label
+        .getId(), hash);
 
     Constraint constraint1 = new Constraint("C1", "Constraint 1", LogicalOperator.AND);
     constraint1.addCondition(new Condition(LabelConditionType.ID, "is", label.getId()));

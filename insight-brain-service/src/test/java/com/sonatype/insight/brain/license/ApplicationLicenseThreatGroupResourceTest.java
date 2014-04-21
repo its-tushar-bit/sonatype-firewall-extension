@@ -47,12 +47,12 @@ public class ApplicationLicenseThreatGroupResourceTest
   @Test
   public void testGetApplicable() throws Exception {
     Organization org = tempEntity.newOrganization("orgName", false);
-    createLicenseThreatGroup("LTG-2", org.getId(), "GPL-2.0", "GPL-3.0");
+    tempEntity.newLicenseThreatGroup(org.getId(), "LTG-2", 5, "GPL-2.0", "GPL-3.0");
     Application app = tempEntity.newApplication("appName", "appPublicId", org.getId());
     app.setOrganizationId(org.getId());
     new ApplicationDAO().update(app);
-    createLicenseThreatGroup("LTG-0", app.getId(), "Apache-2.0");
-    createLicenseThreatGroup("LTG-1", app.getId(), "EPL-1.0");
+    tempEntity.newLicenseThreatGroup(app.getId(), "LTG-0", 5, "Apache-2.0");
+    tempEntity.newLicenseThreatGroup(app.getId(), "LTG-1", 5, "EPL-1.0");
 
     ApplicableLicenseThreatGroups altgs = getApplicableLicenseThreatGroups(app.getPublicId());
     assertNotNull(altgs);

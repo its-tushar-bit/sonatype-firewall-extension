@@ -76,7 +76,17 @@ import org.junit.Test;
 import org.jvnet.mock_javamail.Mailbox;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.equalToIgnoringWhiteSpace;
+import static org.hamcrest.Matchers.greaterThan;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.nullValue;
+import static org.hamcrest.Matchers.stringContainsInOrder;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -191,9 +201,8 @@ public class ReportResourceTest
     Application application = tempEntity.newApplicationWithParent(applicationPublicId);
 
     String licenseId = new LicenseDAO().getByIdNotNull("GPL-3.0").getId(); // db lookup to make sure licenseId is valid
-    LicenseOverride licenseOverride = new LicenseOverride(application.getId(), groupId, artifactId, version,
+    tempEntity.newLicenseOverride(application.getId(), groupId, artifactId, version,
         LicenseOverrideStatus.OVERRIDDEN, licenseId, "manual override");
-    new LicenseOverrideDAO().insert(licenseOverride);
 
     String scanId = "testClaimedComponent_ScanId";
     String licenseFingerprint = "ReportResourceTest_LicenseFingerprint";

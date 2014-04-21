@@ -14,13 +14,11 @@ import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.component.ComponentDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
-import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupLicenseDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
-import com.sonatype.insight.brain.model.license.LicenseThreatGroupLicense;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.InvalidConditionException;
@@ -49,16 +47,12 @@ public class LicenseThreatGroupConditionTypeTest
     org = tempEntity.newOrganization("LicenseThreatGroupConditionTypeTest", false /* createLicenseThreatGroups */);
     app = tempEntity.newApplication("test", "LicenseThreatGroupConditionTypeTest_AppId", org.getId());
 
-    LicenseThreatGroup licenseThreatGroup = new LicenseThreatGroup(app.getId(), "Copyleft", 8);
-    new LicenseThreatGroupDAO().insert(licenseThreatGroup);
-    LicenseThreatGroupLicense licenseThreatGroupLicense = new LicenseThreatGroupLicense(app.getId(),
+    LicenseThreatGroup licenseThreatGroup = tempEntity.newLicenseThreatGroup(app.getId(), "Copyleft", 8);
+    tempEntity.newLicenseThreatGroupLicense(app.getId(),
         licenseThreatGroup.getId(), "GPL-2.0");
-    new LicenseThreatGroupLicenseDAO().insert(licenseThreatGroupLicense);
 
-    licenseThreatGroup = new LicenseThreatGroup(app.getId(), "Liberal", 2);
-    new LicenseThreatGroupDAO().insert(licenseThreatGroup);
-    licenseThreatGroupLicense = new LicenseThreatGroupLicense(app.getId(), licenseThreatGroup.getId(), "Apache-2.0");
-    new LicenseThreatGroupLicenseDAO().insert(licenseThreatGroupLicense);
+    licenseThreatGroup = tempEntity.newLicenseThreatGroup(app.getId(), "Liberal", 2);
+    tempEntity.newLicenseThreatGroupLicense(app.getId(), licenseThreatGroup.getId(), "Apache-2.0");
   }
 
   private Constraint createConstraint(String operator, String value) {
@@ -351,13 +345,11 @@ public class LicenseThreatGroupConditionTypeTest
 
   @Test
   public void testEvaluate_LicenseThreatGroupFromOrganization() {
-    LicenseThreatGroup orgLicenseThreatGroup = new LicenseThreatGroup(org.getId(),
+    LicenseThreatGroup orgLicenseThreatGroup = tempEntity.newLicenseThreatGroup(org.getId(),
         "testEvaluate-LicenseThreatGroupFromOrganization", 5);
-    new LicenseThreatGroupDAO().insert(orgLicenseThreatGroup);
-    LicenseThreatGroupLicense licenseThreatGroupLicense = new LicenseThreatGroupLicense(org.getId(),
+    tempEntity.newLicenseThreatGroupLicense(org.getId(),
         orgLicenseThreatGroup.getId(), "Apache-2.0");
-    new LicenseThreatGroupLicenseDAO().insert(licenseThreatGroupLicense);
-
+    
     // Create policy constraints
     Constraint constraint = createConstraint("is", orgLicenseThreatGroup.getId());
     List<Constraint> constraints = new ArrayList<Constraint>();

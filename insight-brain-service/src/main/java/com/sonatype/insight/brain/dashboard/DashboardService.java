@@ -35,11 +35,13 @@ import org.sonatype.aether.util.version.GenericVersionScheme;
 import org.sonatype.aether.version.InvalidVersionSpecificationException;
 import org.sonatype.aether.version.Version;
 
+import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import org.apache.commons.collections.CollectionUtils;
 import org.codehaus.plexus.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -79,6 +81,7 @@ public class DashboardService
   /**
    * @param applicationPublicIds A list of application public ids to get policy violations.
    * @param stageTypeIds The stages to get policy violations for, defaults to {@link BuildStageType#ID}.
+   * @param tagIds The tag ids to filter the applications for which to get policy violations, defaults to all applications
    * @param violationFilter A filter for violations, defaults to accept all violations.
    * @param limit If not null returns only the top violations limited by this amount.
    * @param newest A flag indicating that only newly observed violations should be returned.
@@ -92,8 +95,8 @@ public class DashboardService
    *           applications provided.
    */
   public List<PolicyViolationDTO> getPolicyViolationsByApplicationIds(Set<String> applicationPublicIds,
-      @Nullable Set<String> stageTypeIds, @Nullable Predicate<PolicyViolation> violationFilter,
-      @Nullable Integer limit, boolean newest)
+      @Nullable Set<String> stageTypeIds, @Nullable Set<String> tagIds,
+      @Nullable Predicate<PolicyViolation> violationFilter, @Nullable Integer limit, boolean newest)
   {
     Set<StageType> stages = getStageTypes(stageTypeIds);
 
@@ -104,6 +107,18 @@ public class DashboardService
     if (applicationPublicIds == null || applicationPublicIds.isEmpty()
         || applicationPublicIds.iterator().next().isEmpty()) {
       throw new BadRequestException("Unable to get policy violations for null or empty application public IDs.");
+    }
+
+    if (!CollectionUtils.isEmpty(tagIds)) {
+      List<Application> filteredApplications = applicationDAO.getByPublicIdsThatHaveTags(applicationPublicIds, tagIds);
+
+      applicationPublicIds = new HashSet<>(Lists.transform(filteredApplications, new Function<Application, String>()
+      {
+        @Override
+        public String apply(final Application application) {
+          return application.getPublicId();
+        }
+      }));
     }
 
     for (String applicationPublicId : applicationPublicIds) {
@@ -119,6 +134,7 @@ public class DashboardService
 
   /**
    * @param stageTypeIds The stages to get policy violations for, defaults to {@link BuildStageType#ID}.
+   * @param tagIds The tag ids to filter the applications for which to get policy violations, defaults to all applications
    * @param violationFilter A filter for violations, defaults to accept all violations.
    * @param limit If not null returns only the top violations limited by this amount.
    * @param newest A flag indicating that only newly observed violations should be returned.
@@ -126,11 +142,23 @@ public class DashboardService
    * @throws BadRequestException Thrown if the stageTypeId does not match a known {@link StageType}.
    */
   public List<PolicyViolationDTO> getPolicyViolations(@Nullable Set<String> stageTypeIds,
-      @Nullable Predicate<PolicyViolation> violationFilter, @Nullable Integer limit, boolean newest)
+      @Nullable final Set<String> tagIds, @Nullable Predicate<PolicyViolation> violationFilter, @Nullable Integer limit,
+      boolean newest)
   {
     Set<StageType> stages = getStageTypes(stageTypeIds);
 
     List<Application> applications = applicationService.getApplications();
+
+    if (!CollectionUtils.isEmpty(tagIds)) {
+      Set<String> applicationPublicIds = new HashSet<>(Lists.transform(applications, new Function<Application, String>()
+      {
+        @Override
+        public String apply(final Application application) {
+          return application.getPublicId();
+        }
+      }));
+      applications = applicationDAO.getByPublicIdsThatHaveTags(applicationPublicIds, tagIds);
+    }
 
     List<PolicyViolationDTO> policyViolationDTOs = new ArrayList<>();
     for (Application application : applications) {

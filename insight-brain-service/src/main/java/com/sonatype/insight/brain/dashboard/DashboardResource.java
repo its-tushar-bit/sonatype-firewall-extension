@@ -45,6 +45,7 @@ public class DashboardResource
   public List<PolicyViolationDTO> getPolicyViolations(
       @QueryParam("applicationPublicIds") Set<String> applicationPublicIds,
       @QueryParam("stageIds") Set<String> stageIds,
+      @QueryParam("tagIds") Set<String> tagIds,
       @QueryParam("policyThreatCategories") PolicyThreatCategoryFilter policyThreatCategoryFilter,
       @QueryParam("policyThreatLevelRange") PolicyThreatLevelFilter policyThreatLevelFilter,
       @QueryParam("maxResults") @DefaultValue("1000") int maxResults,
@@ -53,10 +54,10 @@ public class DashboardResource
     Predicate<PolicyViolation> filter = buildFilter(policyThreatCategoryFilter, policyThreatLevelFilter);
 
     if (applicationPublicIds == null || applicationPublicIds.isEmpty()) {
-      return dashboardService.getPolicyViolations(stageIds, filter, maxResults, newest);
+      return dashboardService.getPolicyViolations(stageIds, tagIds, filter, maxResults, newest);
     }
 
-    return dashboardService.getPolicyViolationsByApplicationIds(applicationPublicIds, stageIds, filter, maxResults,
+    return dashboardService.getPolicyViolationsByApplicationIds(applicationPublicIds, stageIds, tagIds, filter, maxResults,
         newest);
   }
 

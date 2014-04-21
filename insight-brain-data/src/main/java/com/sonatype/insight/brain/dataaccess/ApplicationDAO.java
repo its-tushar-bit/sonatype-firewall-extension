@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 
 import javax.persistence.EntityManager;
 
@@ -165,6 +166,14 @@ public class ApplicationDAO
     finally {
       close(em);
     }
+  }
+
+  public List<Application> getByPublicIdsThatHaveTags(Set<String> applicationPublicIds, Set<String> tagIds) {
+    String sQuery = "SELECT application FROM Application application, ApplicationTag applicationTag" + //
+        " WHERE application.id = applicationTag.applicationId" + //
+        " AND application.publicId IN (?1)" +
+        " AND applicationTag.tagId IN (?2)";
+    return getList(sQuery, applicationPublicIds, tagIds);
   }
 
   @Override

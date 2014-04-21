@@ -37,14 +37,14 @@ public class DashboardServiceAuthzTest
   public void testGetPolicyViolations() throws Exception {
     login();
 
-    List<PolicyViolationDTO> result = dashboardService.getPolicyViolations(null, null, null, false);
+    List<PolicyViolationDTO> result = dashboardService.getPolicyViolations(null, null, null, null, false);
     // We don't have read permissions for any application.
     assertThat(result, empty());
 
     grantReadPermission(app.getId());
 
     PolicyViolation violation = createPolicyViolation(app.getId());
-    result = dashboardService.getPolicyViolations(null, null, null, false);
+    result = dashboardService.getPolicyViolations(null, null, null, null, false);
     assertThat(result, hasSize(1));
     PolicyViolationDTO dto = result.get(0);
     assertThat(dto.id, is(violation.getId()));
@@ -53,7 +53,7 @@ public class DashboardServiceAuthzTest
   @Test
   public void testGetPolicyViolationsByApplicationIds() throws Exception {
     try {
-      dashboardService.getPolicyViolationsByApplicationIds(Sets.newHashSet(app.getPublicId()), null, null, null,
+      dashboardService.getPolicyViolationsByApplicationIds(Sets.newHashSet(app.getPublicId()), null, null, null, null,
           false);
       fail("Should throw an UnauthenticatedException as we haven't logged in.");
     }
@@ -64,7 +64,7 @@ public class DashboardServiceAuthzTest
     login();
 
     try {
-      dashboardService.getPolicyViolationsByApplicationIds(Sets.newHashSet(app.getPublicId()), null, null, null,
+      dashboardService.getPolicyViolationsByApplicationIds(Sets.newHashSet(app.getPublicId()), null, null, null, null,
           false);
       fail("Should throw an UnauthorizedException as the application does not have read permissions.");
     }
@@ -76,7 +76,7 @@ public class DashboardServiceAuthzTest
 
     PolicyViolation violation = createPolicyViolation(app.getId());
     List<PolicyViolationDTO> result = dashboardService.getPolicyViolationsByApplicationIds(
-        Sets.newHashSet(app.getPublicId()), null, null, null, false);
+        Sets.newHashSet(app.getPublicId()), null, null, null, null, false);
     assertThat(result, hasSize(1));
     PolicyViolationDTO dto = result.get(0);
     assertThat(dto.id, is(violation.getId()));
@@ -85,7 +85,7 @@ public class DashboardServiceAuthzTest
 
     try {
       dashboardService.getPolicyViolationsByApplicationIds(
-          Sets.newHashSet(app.getPublicId(), application.getPublicId()), null, null, null, false);
+          Sets.newHashSet(app.getPublicId(), application.getPublicId()), null, null, null, null, false);
       fail("Should throw an UnauthorizedException as one of the applications does not have read permissions.");
     }
     catch (UnauthorizedException e) {

@@ -73,6 +73,10 @@
         $scope.submitted = false;
         $scope.disableSubmit = false;
 
+        if ($scope.claimForm) {
+          //if the form has already been dirtied, reset its state
+          $scope.claimForm.$setPristine();
+        }
         // If we have previously claimed this component, use the stored values
         if(CurrentData.identificationSource === 'Manual') {
           angular.extend($scope.claimData, CurrentData);
@@ -126,7 +130,8 @@
           classifier: data.classifier,
           extension: data.extension,
           createTime: data.createTime,
-          age: establishAge(data.createTime)
+          age: establishAge(data.createTime),
+          comment: data.comment
         }, CurrentData.hash);
 
         $scope.createSuccess = 'Component successfully claimed as ' + data.groupId + ':' + data.artifactId + ':' +
@@ -197,7 +202,7 @@
 
         function deleteClaim() {
           updateStateForSubmit();
-          $http.delete(servicePath + '/' + CurrentData.hash).success(function(data) {
+          $http.delete(servicePath + '/' + CurrentData.hash).success(function() {
             updateDataView({
               matchState: 'unknown',
               groupId: null,
@@ -207,7 +212,8 @@
               extension: null,
               identificationSource: null,
               createTime: null,
-              age: null
+              age: null,
+              comment: null
             }, CurrentData.hash);
             $scope.createSuccess = 'Component claim has been revoked';
           }).error(errorHandler);
@@ -283,10 +289,11 @@
         clearBtn: true,
         forceParse: false
       }).on('changeDate', function(event) {
-            scope.$apply(function() {
-              scope.claimData.createTimeText = dateToString(event.date);
-            });
-          });
+        scope.$apply(function() {
+          scope.claimData.createTimeText = dateToString(event.date);
+          scope.claimForm.$setDirty();
+        });
+      });
       element.datepicker('update', scope.claimData.createTimeText);
     };
   });

@@ -309,6 +309,7 @@ public final class Report
         bomObjectNode.put("createTime", hashGAV.getCreateTimeLong());
         bomObjectNode.put("relativePopularity", 0F);
         bomObjectNode.put("identificationSource", IdentificationSource.MANUAL.getId());
+        bomObjectNode.put("comment", hashGAV.getComment());
         claimedHashes.put(hash, hashGAV);
       }
       gavs.add(bomJsonNode.get("groupId").asText() + ':' + bomJsonNode.get("artifactId").asText() + ':'

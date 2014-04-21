@@ -71,8 +71,10 @@
             <div class='controls' style='text-align: right;'>
                           <button type='none' class='btn btn-danger' ng-show="claimData.identificationSource === 'Manual'"
                                   ng-click='revokeClaimSubmit()' disablenav>Revoke Claim</button>
+                          <button type='none' class='btn' ng-show="claimData.identificationSource === 'Manual'"
+                                  ng-disabled='!claimForm.$dirty' ng-click="resetClaimData()" disablenav>Cancel</button>
                           <button type='none' class='btn btn-primary' ng-show="claimData.identificationSource === 'Manual'"
-                                  ng-disabled='!claimForm.$dirty' ng-click="claimUpdateSubmit()" disablenav>Update</button>
+                          ng-disabled='!claimForm.$dirty' ng-click="claimUpdateSubmit()" disablenav>Update</button>
                           <button type='none' class='btn btn-primary' ng-show="claimData.identificationSource !== 'Manual'"
                                   ng-disabled='disableSubmit || !claimForm.$dirty' ng-click='claimSubmit()' disablenav>Claim</button>
             </div>

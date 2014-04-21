@@ -19,10 +19,17 @@ var InsightDatatable = {
     };
   }
 };
+var hashGAV = {
+  groupId: 'testg',
+  artifactId: 'testa',
+  version: 'testv',
+  createTime: 100,
+  comment: 'testc'
+};
 
 describe('CIP Claim Component tests', function() {
   'use strict';
-  var scope, $http;
+  var scope, $http, formSetPristineSpy;
 
   beforeEach(module('ClaimComponent'));
   // setup our http backend to return what we want
@@ -43,8 +50,10 @@ describe('CIP Claim Component tests', function() {
     });
     
     scope.claimForm = {
-      $valid: true
+      $valid: true,
+      $setPristine: angular.noop
     };
+    formSetPristineSpy = spyOn(scope.claimForm, '$setPristine');
   }));
 
   afterEach(inject(function($httpBackend) {
@@ -64,6 +73,7 @@ describe('CIP Claim Component tests', function() {
     $http.expectPOST(SpecUtil.toRegExp('../brain/rest/component/identified')).respond({});
     scope.claimSubmit();
     $http.flush();
+    expect(formSetPristineSpy).toHaveBeenCalled();
   });
   
   it('Test multiple duplicate hashes handled properly', function() {
@@ -74,16 +84,12 @@ describe('CIP Claim Component tests', function() {
       hash: '1',
       id: '1'
     }];
-    $http.expectPOST(SpecUtil.toRegExp('../brain/rest/component/identified')).respond({
-      groupId: 'testg',
-      artifactId: 'testa',
-      version: 'testv',
-      createTime: 100
-    });
+    $http.expectPOST(SpecUtil.toRegExp('../brain/rest/component/identified')).respond(hashGAV);
     scope.claimSubmit();
     $http.flush();
 
     confirmDataViewUpdated(2);
+    expect(formSetPristineSpy).toHaveBeenCalled();
   });
 
   it('Can revoke a claim on a component', inject(function(Dialog){
@@ -118,12 +124,8 @@ describe('CIP Claim Component tests', function() {
         id: '1'
       }
     ];
-    $http.expectPUT(SpecUtil.toRegExp('../brain/rest/component/identified')).respond({
-      groupId: 'testg',
-      artifactId: 'testa',
-      version: 'testv',
-      createTime: 100
-    });
+
+    $http.expectPUT(SpecUtil.toRegExp('../brain/rest/component/identified')).respond(hashGAV);
     scope.claimUpdateSubmit();
     $http.flush();
     confirmDataViewUpdated(1);
@@ -131,13 +133,16 @@ describe('CIP Claim Component tests', function() {
 
   // Functional tests for the clm datepicker since we do not have a functional tests for the cip components
   describe('clm datepicker test', function() {
-    var compiled, element, scope;
+    var compiled, element, scope, formSetDirtySpy;
 
     beforeEach(inject(function($rootScope, $compile) {
       scope = $rootScope.$new();
       scope.claimData = {};
 
       scope.claimData.createTimeText = '12/12/2012';
+
+      scope.claimForm = { $setDirty: angular.noop };
+      formSetDirtySpy = spyOn(scope.claimForm, '$setDirty');
 
       element = angular.element('<div clm-datepicker><input name="foo" ng-model="claimData.createTimeText"></div>');
       compiled = $compile(element)(scope);
@@ -148,6 +153,7 @@ describe('CIP Claim Component tests', function() {
 
       element.find('td.day:contains(1)').first().click();
       expect(scope.claimData.createTimeText).toBe('12/01/2012');
+      expect(formSetDirtySpy).toHaveBeenCalled();
     });
   });
 
@@ -161,10 +167,11 @@ describe('CIP Claim Component tests', function() {
       expect(item.id).toEqual('1');
       expect(item.identificationSource).toEqual('Manual');
       expect(item.matchState).toEqual('exact');
-      expect(item.groupId).toEqual('testg');
-      expect(item.artifactId).toEqual('testa');
-      expect(item.version).toEqual('testv');
-      expect(item.createTime).toEqual(100);
+      expect(item.groupId).toEqual(hashGAV.groupId);
+      expect(item.artifactId).toEqual(hashGAV.artifactId);
+      expect(item.version).toEqual(hashGAV.version);
+      expect(item.createTime).toEqual(hashGAV.createTime);
+      expect(item.comment).toEqual(hashGAV.comment);
     }
 
     for (var i = 0; i < number; i++) {

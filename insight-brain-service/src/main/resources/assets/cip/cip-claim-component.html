@@ -2,7 +2,11 @@
   <div ng-show='createError' class='alert alert-error'>
     <h4>Error</h4>
     <p>{{createError}}</p>
-    <p><button type='button' class='btn btn-danger' ng-click='createError = null'><i class='icon-white  icon-arrow-left'></i> Back</button></p>
+    <p>
+      <button type='button' class='btn btn-danger' ng-click='createError = null'>
+        <i class='icon-white  icon-arrow-left'></i> Back
+      </button>
+    </p>
   </div>
   <div class='well' ng-hide='createSuccess || createError'>
     <form name="claimForm" novalidate>
@@ -13,27 +17,33 @@
               <div class='control-group' ng-class='{ error : submitted && claimForm.groupId.$error.required }'>
                 <label class='control-label'>Group ID</label>
                 <div class='controls'>
-                  <input name="groupId" class='input-xlarge' type='text' ng-model='claimData.groupId' placeholder='Enter Group ID' disablenav required />
+                  <input name="groupId" class='input-xlarge' type='text' ng-model='claimData.groupId'
+                         placeholder='Enter Group ID' disablenav required/>
                 </div>
               </div>
               <div class='control-group' ng-class='{ error : submitted && claimForm.artifactId.$error.required }'>
                 <label class='control-label'>Artifact ID</label>
+
                 <div class='controls'>
-                  <input name='artifactId' class='input-xlarge' type='text' ng-model='claimData.artifactId' placeholder='Enter Artifact ID' disablenav
-                    required />
+                  <input name='artifactId' class='input-xlarge' type='text' ng-model='claimData.artifactId'
+                         placeholder='Enter Artifact ID' disablenav
+                         required/>
                 </div>
               </div>
               <div class='control-group' ng-class='{ error : submitted && claimForm.version.$error.required }'>
                 <label class='control-label'>Version</label>
+
                 <div class='controls'>
-                  <input name='version' class='input-xlarge' id='claimVersion' type='text' ng-model='claimData.version' placeholder='Enter Version'
-                    disablenav required />
+                  <input name='version' class='input-xlarge' id='claimVersion' type='text' ng-model='claimData.version'
+                         placeholder='Enter Version'
+                         disablenav required/>
                 </div>
               </div>
               <div class='control-group'>
                 <label class='control-label'>Classifier</label>
+
                 <div class='controls'>
-                  <input class='input-xlarge' type='text' ng-model='claimData.classifier' disablenav />
+                  <input class='input-xlarge' type='text' ng-model='claimData.classifier' disablenav/>
                 </div>
               </div>
             </div>
@@ -42,24 +52,30 @@
             <div class='form-horizontal'>
               <div class='control-group'>
                 <label class='control-label'>Extension</label>
+
                 <div class='controls'>
-                  <input class='input-xlarge' type='text' ng-model='claimData.extension' disablenav />
+                  <input class='input-xlarge' type='text' ng-model='claimData.extension' disablenav/>
                 </div>
               </div>
-              <div class='control-group' ng-class='{ error : claimForm.createTimeText.$dirty && claimForm.createTimeText.$error.pattern }'>
+              <div class='control-group'
+                   ng-class='{ error : claimForm.createTimeText.$dirty && claimForm.createTimeText.$error.pattern }'>
                 <label class='control-label'>Created</label>
+
                 <div class='controls'>
                   <div class="input-append date" clm-datepicker>
                     <input class="span2" name="createTimeText" type="text" ng-model="claimData.createTimeText"
-                      ng-pattern='/^(0?[1-9]|1[012])\/(0?[1-9]|[12][0-9]|3[01])\/(199\d|[2-9]\d{3})$/' disablenav><span class="add-on"><i
-                      class="icon-calendar"></i></span>
+                           ng-pattern='/^(0?[1-9]|1[012])\/(0?[1-9]|[12][0-9]|3[01])\/(199\d|[2-9]\d{3})$/'
+                           disablenav><span class="add-on"><i
+                          class="icon-calendar"></i></span>
                   </div>
                 </div>
               </div>
               <div class='control-group'>
                 <label class='control-label'>Comment</label>
+
                 <div class='controls'>
-                  <textarea class='input-xlarge' ng-model='claimData.comment' style='height: 86px;' disablenav></textarea>
+                  <textarea class='input-xlarge' ng-model='claimData.comment' style='height: 86px;'
+                            disablenav></textarea>
                 </div>
               </div>
             </div>
@@ -69,16 +85,19 @@
           <td class='validation-error'>{{getValidationMessage()}}</td>
           <td>
             <div class='controls' style='text-align: right;'>
-                          <button type='none' class='btn btn-danger' ng-show="claimData.identificationSource === 'Manual'"
-                                  ng-click='revokeClaimSubmit()' disablenav>Revoke Claim</button>
-                          <button type='none' class='btn' ng-show="claimData.identificationSource === 'Manual'"
-                                  ng-disabled='!claimForm.$dirty' ng-click="resetClaimData()" disablenav>Cancel</button>
-                          <button type='none' class='btn btn-primary' ng-show="claimData.identificationSource === 'Manual'"
-                          ng-disabled='!claimForm.$dirty' ng-click="claimUpdateSubmit()" disablenav>Update</button>
-                          <button type='none' class='btn btn-primary' ng-show="claimData.identificationSource !== 'Manual'"
-                                  ng-disabled='disableSubmit || !claimForm.$dirty' ng-click='claimSubmit()' disablenav>Claim</button>
+              <button type='none' class='btn btn-danger' ng-show="claimData.identificationSource === 'Manual'"
+                      ng-click='revokeClaimSubmit()' disablenav>Revoke Claim
+              </button>
+              <button type='none' class='btn' ng-show="claimData.identificationSource === 'Manual'"
+                      ng-disabled='!claimForm.$dirty' ng-click="resetClaimData()" disablenav>Cancel
+              </button>
+              <button type='none' class='btn btn-primary' ng-show="claimData.identificationSource === 'Manual'"
+                      ng-disabled='!claimForm.$dirty' ng-click="claimUpdateSubmit()" disablenav>Update
+              </button>
+              <button type='none' class='btn btn-primary' ng-show="claimData.identificationSource !== 'Manual'"
+                      ng-disabled='disableSubmit || !claimForm.$dirty' ng-click='claimSubmit()' disablenav>Claim
+              </button>
             </div>
-                      </div>
           </td>
         </tr>
       </table>

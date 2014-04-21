@@ -143,16 +143,16 @@ describe('DashboardModule', function() {
       expect(scope.newestRisks.length).toBe(1);
     }));
 
-    it('filters policy violations by policy threat category', inject(function($httpBackend, CLMLocations) {
-      expect(scope.filters.policyThreatCategories.applied.length).toBe(0);
-      scope.filters.policyThreatCategories.queued = ['security', 'other'];
+    it('filters policy violations by policy threat type', inject(function($httpBackend, CLMLocations) {
+      expect(scope.filters.policyThreatTypes.applied.length).toBe(0);
+      scope.filters.policyThreatTypes.queued = ['security', 'other'];
       scope.applyFilters();
       $httpBackend.expectGET(CLMLocations.getPolicyViolationsUrl() +
         '?maxResults=20&policyThreatCategories=security,other').respond([policyViolations[0]]);
       $httpBackend.expectGET(CLMLocations.getPolicyViolationsUrl() +
         '?maxResults=20&newest=true&policyThreatCategories=security,other').respond([newestViolations[0]]);
       $httpBackend.flush();
-      expect(scope.filters.policyThreatCategories.applied).toEqual(['security', 'other']);
+      expect(scope.filters.policyThreatTypes.applied).toEqual(['security', 'other']);
       expect(scope.highestRisks.length).toBe(1);
       expect(scope.newestRisks.length).toBe(1);
     }));
@@ -174,16 +174,16 @@ describe('DashboardModule', function() {
     it('cancels filters', function() {
       scope.filters.applicationPublicIds.applied = [];
       scope.filters.applicationPublicIds.queued = ['fooID'];
-      scope.filters.policyThreatCategories.applied = [];
-      scope.filters.policyThreatCategories.queued = ['security'];
+      scope.filters.policyThreatTypes.applied = [];
+      scope.filters.policyThreatTypes.queued = ['security'];
       scope.filters.stageTypeIds.applied = [];
       scope.filters.stageTypeIds.queued = ['type1'];
       scope.cancelFilters();
 
       expect(scope.filters.applicationPublicIds.applied.length).toBe(0);
       expect(scope.filters.applicationPublicIds.queued.length).toBe(0);
-      expect(scope.filters.policyThreatCategories.applied.length).toBe(0);
-      expect(scope.filters.policyThreatCategories.queued.length).toBe(0);
+      expect(scope.filters.policyThreatTypes.applied.length).toBe(0);
+      expect(scope.filters.policyThreatTypes.queued.length).toBe(0);
       expect(scope.filters.stageTypeIds.applied.length).toBe(0);
       expect(scope.filters.stageTypeIds.queued.length).toBe(0);
     });
@@ -193,7 +193,7 @@ describe('DashboardModule', function() {
     });
 
     it('converts from policyThreatCategory.id to policyThreatCategory.name', function(){
-      expect(scope.policyThreatCategoryNameFor('security')).toBe('Security');
+      expect(scope.policyThreatTypeNameFor('security')).toBe('Security');
     });
     
     it('converts from stageType.id to stageType.name', function(){

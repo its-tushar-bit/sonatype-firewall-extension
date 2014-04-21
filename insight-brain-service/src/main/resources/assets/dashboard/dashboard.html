@@ -63,10 +63,10 @@
               <span ng-if='applications.length === 0'><em id='no-permissions'>No applications available.</em></span>
             </div>
             <div class="span3">
-              <h5>Policy Categories</h5>
-              <span id='policy-types' class='multi-dropdown' multi-select items='policyThreatCategories'
-                    selected-ids='filters.policyThreatCategories.queued'
-                    none-selected-text='All Policy Categories'></span>
+              <h5>Policy Types</h5>
+              <span id='policy-types' class='multi-dropdown' multi-select items='policyThreatTypes'
+                    selected-ids='filters.policyThreatTypes.queued'
+                    none-selected-text='All Policy Types'></span>
             </div>
             <div class="span3">
               <h5>Stages</h5>
@@ -89,10 +89,10 @@
             {{applicationNameFor(applicationId)}}{{!$last ? "," : ""}}
           </span>
         </div>
-        <div class="span3" style="display: inline;" ng-if='filters.policyThreatCategories.applied.length > 0'>
-          <span><strong>Policy Categories</strong></span>
-          <span ng-repeat="policyThreatCategoryId in filters.policyThreatCategories.applied">
-            {{policyThreatCategoryNameFor(policyThreatCategoryId)}}{{!$last ? "," : ""}}
+        <div class="span3" style="display: inline;" ng-if='filters.policyThreatTypes.applied.length > 0'>
+          <span><strong>Policy Types</strong></span>
+          <span ng-repeat="policyThreatTypeId in filters.policyThreatTypes.applied">
+            {{policyThreatTypeNameFor(policyThreatTypeId)}}{{!$last ? "," : ""}}
           </span>
         </div>
         <div class="span3" style="display: inline;" ng-if='appliedStageTypeIds.length > 0'>

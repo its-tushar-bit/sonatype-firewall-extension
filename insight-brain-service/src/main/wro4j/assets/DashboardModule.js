@@ -22,7 +22,7 @@
         applied: [],
         queued: []
       },
-      policyThreatCategories: {
+      policyThreatTypes: {
         applied: [],
         queued: []
       },
@@ -42,8 +42,8 @@
       var params = {
         maxResults: $scope.maxResults,
         applicationPublicIds: $scope.filters.applicationPublicIds.applied,
-        policyThreatCategories: $scope.filters.policyThreatCategories.applied.length > 0 ?
-                                $scope.filters.policyThreatCategories.applied.join(',') : null,
+        policyThreatCategories: $scope.filters.policyThreatTypes.applied.length > 0 ?
+                                $scope.filters.policyThreatTypes.applied.join(',') : null,
         stageIds: $scope.filters.stageTypeIds.applied
       };
       var promises = [
@@ -73,7 +73,7 @@
         $scope.applications = data[0];
         $scope.stageTypes = data[1];
 
-        $scope.policyThreatCategories = [
+        $scope.policyThreatTypes = [
           {id:'security', name:'Security'},
           {id:'license', name:'License'},
           {id:'quality', name:'Quality'},
@@ -113,11 +113,11 @@
       }
     };
 
-    $scope.policyThreatCategoryNameFor = function(policyThreatCategoryId) {
-      for (var i = 0; i < $scope.policyThreatCategories.length; i++) {
-        var policyThreatCategory = $scope.policyThreatCategories[i];
-        if (policyThreatCategory.id === policyThreatCategoryId) {
-          return policyThreatCategory.name;
+    $scope.policyThreatTypeNameFor = function(policyThreatTypeId) {
+      for (var i = 0; i < $scope.policyThreatTypes.length; i++) {
+        var policyThreatType = $scope.policyThreatTypes[i];
+        if (policyThreatType.id === policyThreatTypeId) {
+          return policyThreatType.name;
         }
       }
     };

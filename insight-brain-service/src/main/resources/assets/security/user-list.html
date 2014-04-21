@@ -1,220 +1,220 @@
 <div>
-	<script type='text/ng-template' id='delete-user-modal'>
+  <script type='text/ng-template' id='delete-user-modal'>
 <div class="modal-header"><h3>Delete User</h3></div>
 <div class="modal-body"><p>Are you sure you want to delete user <strong>{{username}}</strong>?</p></div>
 <div class="modal-footer">
-	<button class="btn" ng-click="cancel()">Cancel</button>
-	<button class="btn btn-danger" ng-click="discard()">Delete</button>
+  <button class="btn" ng-click="cancel()">Cancel</button>
+  <button class="btn btn-danger" ng-click="discard()">Delete</button>
 </div>
 <div style="margin-left:10px;margin-right:10px;" ng-class="{'alert alert-error': errorMsg }">{{errorMsg}}</div>
-	</script>
-	<script type='text/ng-template' id='reset-password-modal'>
+  </script>
+  <script type='text/ng-template' id='reset-password-modal'>
 <div class="modal-header">
-	<button type="button" class="close" ng-click="$close()">&times</button>
-	<h3>Reset Password</h3>
+  <button type="button" class="close" ng-click="$close()">&times</button>
+  <h3>Reset Password</h3>
 </div>
 <div ng-switch="state">
-	<div ng-switch-when="ready">
-		<div class="modal-body">
-			<p>Are you sure you want to reset the password for <strong>{{user.username}}</strong>? This action cannot be undone.</p>
-		</div>
-		<div class="modal-footer">
-			<button class="btn" ng-click="cancelClick()">Cancel</button>
-			<button class="btn btn-danger" ng-click="resetClick()">Reset</button>
-		</div>
-	</div>
-	<div ng-switch-when="pending">
-		<div class="modal-body">
-			<span>Reset pending...</span>
-		</div>
-		<div class="modal-footer">
-		</div>	
-	</div>
-	<div ng-switch-when="complete">
-		<div class="modal-body">
-			<span style="margin-right:10px;">The new password for <strong>{{user.username}}</strong> is</span>
-			<span style="margin-bottom:0px;" ng-class="{ 'input-append' : flashInstalled() }">
-				<input id="generatedPassword" style="width:120px;cursor:auto;" type="text" ng-model="newPassword" readonly select-text focus-input="state == 'complete'"/>
-				<button ng-show="flashInstalled()" title="Copy to clipboard" class="btn" type="button" zero-clipboard="generatedPassword">
-					<i class="glyphicons-sonatype clipboard"></i>
-				</button>
-			</span>
-		</div>
-		<div class="modal-footer">
-			<button class="btn btn-primary" ng-click="okClick()">OK</button>
-		</div>	
-	</div>
-	<div ng-switch-when="failed">
-		<div class="modal-body">
-			<span>{{error}}</span>
-		</div>
-		<div class="modal-footer">
-		</div>	
-	</div>
+  <div ng-switch-when="ready">
+    <div class="modal-body">
+      <p>Are you sure you want to reset the password for <strong>{{user.username}}</strong>? This action cannot be undone.</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" ng-click="cancelClick()">Cancel</button>
+      <button class="btn btn-danger" ng-click="resetClick()">Reset</button>
+    </div>
+  </div>
+  <div ng-switch-when="pending">
+    <div class="modal-body">
+      <span>Reset pending...</span>
+    </div>
+    <div class="modal-footer">
+    </div>
+  </div>
+  <div ng-switch-when="complete">
+    <div class="modal-body">
+      <span style="margin-right:10px;">The new password for <strong>{{user.username}}</strong> is</span>
+      <span style="margin-bottom:0px;" ng-class="{ 'input-append' : flashInstalled() }">
+        <input id="generatedPassword" style="width:120px;cursor:auto;" type="text" ng-model="newPassword" readonly select-text focus-input="state == 'complete'"/>
+        <button ng-show="flashInstalled()" title="Copy to clipboard" class="btn" type="button" zero-clipboard="generatedPassword">
+          <i class="glyphicons-sonatype clipboard"></i>
+        </button>
+      </span>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-primary" ng-click="okClick()">OK</button>
+    </div>
+  </div>
+  <div ng-switch-when="failed">
+    <div class="modal-body">
+      <span>{{error}}</span>
+    </div>
+    <div class="modal-footer">
+    </div>
+  </div>
 </div>
-	</script>
-	<script type='text/ng-template' id='change-password-modal'>
+  </script>
+  <script type='text/ng-template' id='change-password-modal'>
 <form name="changePasswordForm" ng-submit="save()" style="margin-bottom:0px;">
-	<div class="modal-header"><h3>Change Password</h3></div>
-	<div class="modal-body">	
-		<div class="form-horizontal">
-			<div class="control-group" ng-class="{ error : changePasswordForm.currentPassword.$invalid && changePasswordForm.currentPassword.$dirty }">
-				<label class="control-label">Current Password</label>
-				<div class="controls">
-					<input class="input-xlarge" name="currentPassword" type="password" ng-required="true" placeholder="Enter Old Password" ng-model="currentPassword">
-					<div ng-if="changePasswordForm.currentPassword.$error.required && changePasswordForm.currentPassword.$dirty" class="text-error">Field is required.</div>
-				</div>
-			</div>
-			<div class="control-group" ng-class="{ error : changePasswordForm.newPassword.$invalid && changePasswordForm.newPassword.$dirty }">
-				<label class="control-label">New Password</label>
-				<div class="controls">
-					<input class="input-xlarge" name="newPassword" type="password" ng-required="true" placeholder="Enter New Password" ng-model="newPassword">
-					<div ng-if="changePasswordForm.newPassword.$error.required && changePasswordForm.newPassword.$dirty" class="text-error">Field is required.</div>
-				</div>
-			</div>
-			<div class="control-group" ng-class="{ error : changePasswordForm.validatePassword.$invalid && changePasswordForm.validatePassword.$dirty }">
-				<label class="control-label">Validate</label>
-				<div class="controls">
-					<input class="input-xlarge" name="validatePassword" type="password" ng-required="true" match="{{newPassword}}" placeholder="Re-enter Password" ng-model="validatePassword">
-					<div ng-if="changePasswordForm.validatePassword.$error.match && changePasswordForm.validatePassword.$dirty" class="text-error">Passwords must match!</div>
-					<div ng-if="changePasswordForm.newPassword.$error.required && !changePasswordForm.validatePassword.$error.match && changePasswordForm.validatePassword.$dirty" class="text-error">Field is required.</div>
-				</div>
-			</div>
-		</div>
-	</div>
-	<div class="modal-footer">
-		<button type="button" class="btn" ng-click="cancel()">Cancel</button>
-		<button type="submit" class="btn btn-primary" ng-disabled="changePasswordForm.$invalid || saving">Save</button>
-	</div>
-	<div style="margin-left:0px;margin-right:0px;margin-bottom:0px;" ng-class="{'alert alert-error': errorMsg }" ng-show="errorMsg">{{errorMsg}}</div>
+  <div class="modal-header"><h3>Change Password</h3></div>
+  <div class="modal-body">
+    <div class="form-horizontal">
+      <div class="control-group" ng-class="{ error : changePasswordForm.currentPassword.$invalid && changePasswordForm.currentPassword.$dirty }">
+        <label class="control-label">Current Password</label>
+        <div class="controls">
+          <input class="input-xlarge" name="currentPassword" type="password" ng-required="true" placeholder="Enter Old Password" ng-model="currentPassword">
+          <div ng-if="changePasswordForm.currentPassword.$error.required && changePasswordForm.currentPassword.$dirty" class="text-error">Field is required.</div>
+        </div>
+      </div>
+      <div class="control-group" ng-class="{ error : changePasswordForm.newPassword.$invalid && changePasswordForm.newPassword.$dirty }">
+        <label class="control-label">New Password</label>
+        <div class="controls">
+          <input class="input-xlarge" name="newPassword" type="password" ng-required="true" placeholder="Enter New Password" ng-model="newPassword">
+          <div ng-if="changePasswordForm.newPassword.$error.required && changePasswordForm.newPassword.$dirty" class="text-error">Field is required.</div>
+        </div>
+      </div>
+      <div class="control-group" ng-class="{ error : changePasswordForm.validatePassword.$invalid && changePasswordForm.validatePassword.$dirty }">
+        <label class="control-label">Validate</label>
+        <div class="controls">
+          <input class="input-xlarge" name="validatePassword" type="password" ng-required="true" match="{{newPassword}}" placeholder="Re-enter Password" ng-model="validatePassword">
+          <div ng-if="changePasswordForm.validatePassword.$error.match && changePasswordForm.validatePassword.$dirty" class="text-error">Passwords must match!</div>
+          <div ng-if="changePasswordForm.newPassword.$error.required && !changePasswordForm.validatePassword.$error.match && changePasswordForm.validatePassword.$dirty" class="text-error">Field is required.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn" ng-click="cancel()">Cancel</button>
+    <button type="submit" class="btn btn-primary" ng-disabled="changePasswordForm.$invalid || saving">Save</button>
+  </div>
+  <div style="margin-left:0px;margin-right:0px;margin-bottom:0px;" ng-class="{'alert alert-error': errorMsg }" ng-show="errorMsg">{{errorMsg}}</div>
 </form>
-	</script>
-	<script type='text/ng-template' id='user-item'>
+  </script>
+  <script type='text/ng-template' id='user-item'>
 <div ng-show='context.users' class="accordion users">
-	<button ng-show='!user' type='button' class='btn add-new new-user-button' ng-click='newUserClick()'>
-		<i class='icon icon-plus'></i> New User
-	</button>
-	<div ng-if='user'>
-		<ul ng-show="!user.id" class="tri-pane" style="min-width:0px;margin-top:10px;margin-bottom:10px;">
-			<li class="active">
-				<a style="text-transform:none;">Add New User</a>
-			</li>
-		</ul>
-		<form name="userForm" ng-submit="saveClick(user)">
-			<div class="form-horizontal">
-				<div class="control-group" ng-class="{ error : userForm.firstName.$invalid && userForm.firstName.$dirty }">
-					<label class="control-label user-form-label">First Name:</label>
-					<div class="controls">
-						<input class="input-xlarge" name="firstName" type="text" ng-required="true" alpha-numeric placeholder="Enter First Name" ng-model="user.firstName" focus-input="user" has-whitespace="suggestedFirstName">
-						<div ng-if="userForm.firstName.$error.alphaNumeric && userForm.firstName.$dirty" class="text-error">Must be alpha numeric.</div>
-						<div ng-if="userForm.firstName.$error.required && userForm.firstName.$dirty" class="text-error">Field is required.</div>
-						<div ng-if="userForm.firstName.$error.spaces && !userForm.firstName.$error.alphaNumeric && userForm.firstName.$dirty" class="text-error">No leading, trailing or double spaces or tabs, suggested name: {{suggestedFirstName}}</div>
-					</div>
-				</div>
-				<div class="control-group" ng-class="{ error : userForm.lastName.$invalid && userForm.lastName.$dirty }">
-					<label class="control-label user-form-label">Last Name:</label>
-					<div class="controls">
-						<input class="input-xlarge" name="lastName" type="text" ng-required="true" alpha-numeric placeholder="Enter Last Name" ng-model="user.lastName" has-whitespace="suggestedLastName">
-						<div ng-if="userForm.lastName.$error.alphaNumeric && userForm.lastName.$dirty" class="text-error">Must be alpha numeric.</div>
-						<div ng-if="userForm.lastName.$error.required && !userForm.lastName.$error.alphaNumeric && userForm.lastName.$dirty" class="text-error">Field is required.</div>
-						<div ng-if="userForm.lastName.$error.spaces && !userForm.lastName.$error.alphaNumeric && userForm.lastName.$dirty" class="text-error">No leading, trailing or double spaces or tabs, suggested name: {{suggestedLastName}}</div>
-					</div>
-				</div>
-				<div class="control-group" ng-class="{ error : userForm.email.$invalid && userForm.email.$dirty }">
-					<label class="control-label user-form-label">E-mail Address:</label>
-					<div class="controls">
-						<input class="input-xlarge" name="email" type="email" ng-required="true" placeholder="Enter E-mail Address" ng-model="user.email">
-						<div ng-if="userForm.email.$error.email && userForm.email.$dirty" class="text-error">Use valid format: abc@xyz.com</div>
-						<div ng-if="userForm.email.$error.required && !userForm.email.$error.alphaNumeric && userForm.email.$dirty" class="text-error">Field is required.</div>
-					</div>
-				</div>
-				<div class="control-group" ng-show="!user.id" ng-class="{ error : userForm.username.$invalid && userForm.username.$dirty }">
-					<label class="control-label user-form-label">Username:</label>
-					<div class="controls">
-						<input class="input-xlarge" name="username" type="text" ng-required="!user.id" ng-pattern="/^\S*$/" alpha-numeric is-duplicate is-duplicate-array="context.users" is-duplicate-id-field="id" is-duplicate-case-sensitive="false" placeholder="Enter Username" ng-model="user.username">
-						<div ng-if="userForm.username.$error.alphaNumeric && userForm.username.$dirty" class="text-error">Must be alpha numeric.</div>
-						<div ng-if="userForm.username.$error.pattern && !userForm.username.$error.alphaNumeric && userForm.username.$dirty" class="text-error">Must not contain spaces.</div>
-						<div ng-if="userForm.username.$error.duplicate && userForm.username.$dirty" class="text-error">Enter a unique username</div>
-						<div ng-if="userForm.username.$error.required && userForm.username.$dirty" class="text-error">Field is required.</div>
-					</div>
-				</div>
-				<div class="control-group" ng-show="!user.id" ng-class="{ error : userForm.password.$invalid && userForm.password.$dirty }">
-					<label class="control-label user-form-label">Password:</label>
-					<div class="controls">
-						<input class="input-xlarge" name="password" type="password" ng-required="!user.id" placeholder="Enter Password" ng-model="user.password">
-						<div ng-if="userForm.password.$error.required && userForm.password.$dirty" class="text-error">Field is required.</div>
-					</div>
-				</div>
-				<div class="control-group" ng-show="!user.id" ng-class="{ error : userForm.passwordValidate.$invalid && userForm.passwordValidate.$dirty }">
-					<label class="control-label user-form-label">Validate:</label>
-					<div class="controls">
-						<input class="input-xlarge" name="passwordValidate" type="password" ng-required="!user.id" match="{{user.password}}" placeholder="Re-enter Password" ng-model="user.passwordValidate">
-						<div ng-if="userForm.passwordValidate.$error.match && userForm.passwordValidate.$dirty" class="text-error">Passwords must match!</div>
-						<div ng-if="userForm.passwordValidate.$error.required && userForm.passwordValidate.$dirty && !userForm.passwordValidate.$error.match" class="text-error">Field is required.</div>
-					</div>
-				</div>
-			</div>
-			<div class="user-button-bar">
-				<button type="button" class='btn' type='button' ng-click='cancelClick(user)'>Cancel</button>
-				<button type="submit" class='btn btn-primary' type='button' ng-click='saveClick(user)' ng-disabled='userForm.$invalid || saving'>Save</button>
-			</div>
-			<div style="margin-left:25px;" ng-class="{'alert alert-error': errorMsg }">{{errorMsg}}</div>
-		</form>
-	</div>
+  <button ng-show='!user' type='button' class='btn add-new new-user-button' ng-click='newUserClick()'>
+    <i class='icon icon-plus'></i> New User
+  </button>
+  <div ng-if='user'>
+    <ul ng-show="!user.id" class="tri-pane" style="min-width:0px;margin-top:10px;margin-bottom:10px;">
+      <li class="active">
+        <a style="text-transform:none;">Add New User</a>
+      </li>
+    </ul>
+    <form name="userForm" ng-submit="saveClick(user)">
+      <div class="form-horizontal">
+        <div class="control-group" ng-class="{ error : userForm.firstName.$invalid && userForm.firstName.$dirty }">
+          <label class="control-label user-form-label">First Name:</label>
+          <div class="controls">
+            <input class="input-xlarge" name="firstName" type="text" ng-required="true" alpha-numeric placeholder="Enter First Name" ng-model="user.firstName" focus-input="user" has-whitespace="suggestedFirstName">
+            <div ng-if="userForm.firstName.$error.alphaNumeric && userForm.firstName.$dirty" class="text-error">Must be alpha numeric.</div>
+            <div ng-if="userForm.firstName.$error.required && userForm.firstName.$dirty" class="text-error">Field is required.</div>
+            <div ng-if="userForm.firstName.$error.spaces && !userForm.firstName.$error.alphaNumeric && userForm.firstName.$dirty" class="text-error">No leading, trailing or double spaces or tabs, suggested name: {{suggestedFirstName}}</div>
+          </div>
+        </div>
+        <div class="control-group" ng-class="{ error : userForm.lastName.$invalid && userForm.lastName.$dirty }">
+          <label class="control-label user-form-label">Last Name:</label>
+          <div class="controls">
+            <input class="input-xlarge" name="lastName" type="text" ng-required="true" alpha-numeric placeholder="Enter Last Name" ng-model="user.lastName" has-whitespace="suggestedLastName">
+            <div ng-if="userForm.lastName.$error.alphaNumeric && userForm.lastName.$dirty" class="text-error">Must be alpha numeric.</div>
+            <div ng-if="userForm.lastName.$error.required && !userForm.lastName.$error.alphaNumeric && userForm.lastName.$dirty" class="text-error">Field is required.</div>
+            <div ng-if="userForm.lastName.$error.spaces && !userForm.lastName.$error.alphaNumeric && userForm.lastName.$dirty" class="text-error">No leading, trailing or double spaces or tabs, suggested name: {{suggestedLastName}}</div>
+          </div>
+        </div>
+        <div class="control-group" ng-class="{ error : userForm.email.$invalid && userForm.email.$dirty }">
+          <label class="control-label user-form-label">E-mail Address:</label>
+          <div class="controls">
+            <input class="input-xlarge" name="email" type="email" ng-required="true" placeholder="Enter E-mail Address" ng-model="user.email">
+            <div ng-if="userForm.email.$error.email && userForm.email.$dirty" class="text-error">Use valid format: abc@xyz.com</div>
+            <div ng-if="userForm.email.$error.required && !userForm.email.$error.alphaNumeric && userForm.email.$dirty" class="text-error">Field is required.</div>
+          </div>
+        </div>
+        <div class="control-group" ng-show="!user.id" ng-class="{ error : userForm.username.$invalid && userForm.username.$dirty }">
+          <label class="control-label user-form-label">Username:</label>
+          <div class="controls">
+            <input class="input-xlarge" name="username" type="text" ng-required="!user.id" ng-pattern="/^\S*$/" alpha-numeric is-duplicate is-duplicate-array="context.users" is-duplicate-id-field="id" is-duplicate-case-sensitive="false" placeholder="Enter Username" ng-model="user.username">
+            <div ng-if="userForm.username.$error.alphaNumeric && userForm.username.$dirty" class="text-error">Must be alpha numeric.</div>
+            <div ng-if="userForm.username.$error.pattern && !userForm.username.$error.alphaNumeric && userForm.username.$dirty" class="text-error">Must not contain spaces.</div>
+            <div ng-if="userForm.username.$error.duplicate && userForm.username.$dirty" class="text-error">Enter a unique username</div>
+            <div ng-if="userForm.username.$error.required && userForm.username.$dirty" class="text-error">Field is required.</div>
+          </div>
+        </div>
+        <div class="control-group" ng-show="!user.id" ng-class="{ error : userForm.password.$invalid && userForm.password.$dirty }">
+          <label class="control-label user-form-label">Password:</label>
+          <div class="controls">
+            <input class="input-xlarge" name="password" type="password" ng-required="!user.id" placeholder="Enter Password" ng-model="user.password">
+            <div ng-if="userForm.password.$error.required && userForm.password.$dirty" class="text-error">Field is required.</div>
+          </div>
+        </div>
+        <div class="control-group" ng-show="!user.id" ng-class="{ error : userForm.passwordValidate.$invalid && userForm.passwordValidate.$dirty }">
+          <label class="control-label user-form-label">Validate:</label>
+          <div class="controls">
+            <input class="input-xlarge" name="passwordValidate" type="password" ng-required="!user.id" match="{{user.password}}" placeholder="Re-enter Password" ng-model="user.passwordValidate">
+            <div ng-if="userForm.passwordValidate.$error.match && userForm.passwordValidate.$dirty" class="text-error">Passwords must match!</div>
+            <div ng-if="userForm.passwordValidate.$error.required && userForm.passwordValidate.$dirty && !userForm.passwordValidate.$error.match" class="text-error">Field is required.</div>
+          </div>
+        </div>
+      </div>
+      <div class="user-button-bar">
+        <button type="button" class='btn' type='button' ng-click='cancelClick(user)'>Cancel</button>
+        <button type="submit" class='btn btn-primary' type='button' ng-click='saveClick(user)' ng-disabled='userForm.$invalid || saving'>Save</button>
+      </div>
+      <div style="margin-left:25px;" ng-class="{'alert alert-error': errorMsg }">{{errorMsg}}</div>
+    </form>
+  </div>
 </div>
 </script>
-	<div load-error='error' reload='doLoad()'></div>
-	<div expand-user-on-event='userEditClick'></div>
-	<div ng-hide='error'>
-		<h1 class='page-title'>Users</h1>
-		<div style="margin-left:10px;">
-			<div ng-hide='context.users' class="user-list-loading">
-				<h5>
-					<i class='icon-time'></i> Loading...
-				</h5>
-			</div>
-			<div ng-show='context.users' class="accordion users">
-				<div user-item context="context" user="user"></div>
-			</div>
-			<div class="accordion-group users" ng-class="{'white': isCurrentUser(user) }" ng-repeat='user in context.users'>
-				<div class="accordion-heading">
-					<div class='btn-group floatRight'>
-						<button type='button' class="btn btn-mini user-button hover-buttons" title="Edit User" ng-disabled='context.userEditMap[user.id]' ng-click="editClick(user)">
-							<i class="icon-pencil"></i>
-						</button>
-						<button type='button' class="btn btn-mini user-button hover-buttons" title="Reset Password" ng-click="resetPasswordClick(user)">
-							<i class="icon-reset-pw"></i>
-						</button>
-						<button type='button' class="btn btn-mini user-button hover-buttons" title="Remove User" ng-click="removeClick(user)">
-							<i class="icon-trash"></i>
-						</button>
-					</div>
-					<a class="accordion-toggle user-top collapsed" style="padding-bottom:4px;" data-toggle="collapse" data-target="#collapse{{user.id}}">
-						<h4 style="display:inline;margin-top:0px;margin-bottom:4px;">{{user.username}} ({{user.firstName}} {{user.lastName}})</h4><span ng-if="isCurrentUser(user)" style="margin-left:5px;font-size:10px;color:darkgreen;">Current User</span>
-					</a>
-				</div>
-				<div id="collapse{{user.id}}" class="accordion-body collapse">
-					<div class="accordion-inner" style="padding:0px 15px;" ng-if="!context.userEditMap[user.id]">
-						<table style="margin-bottom:5px;">
-							<tr>
-								<td class="summary-label">First Name:</td>
-								<td>{{user.firstName}}</td>
-							</tr>
-							<tr>
-								<td class="summary-label">Last Name:</td>
-								<td>{{user.lastName}}</td>
-							</tr>
-							<tr>
-								<td class="summary-label">E-mail Address:</td>
-								<td>{{user.email}}</td>
-							</tr>
-						</table>
-					</div>
-					<div class="accordion-inner" style="padding:0px;" ng-if="context.userEditMap[user.id]">
-						<div user-item user='user' context='context'></div>
-					</div>
-				</div>
-			</div>
-		</div>
-	</div>
+  <div load-error='error' reload='doLoad()'></div>
+  <div expand-user-on-event='userEditClick'></div>
+  <div ng-hide='error'>
+    <h1 class='page-title'>Users</h1>
+    <div style="margin-left:10px;">
+      <div ng-hide='context.users' class="user-list-loading">
+        <h5>
+          <i class='icon-time'></i> Loading...
+        </h5>
+      </div>
+      <div ng-show='context.users' class="accordion users">
+        <div user-item context="context" user="user"></div>
+      </div>
+      <div class="accordion-group users" ng-class="{'white': isCurrentUser(user) }" ng-repeat='user in context.users'>
+        <div class="accordion-heading">
+          <div class='btn-group floatRight'>
+            <button type='button' class="btn btn-mini user-button hover-buttons" title="Edit User" ng-disabled='context.userEditMap[user.id]' ng-click="editClick(user)">
+              <i class="icon-pencil"></i>
+            </button>
+            <button type='button' class="btn btn-mini user-button hover-buttons" title="Reset Password" ng-click="resetPasswordClick(user)">
+              <i class="icon-reset-pw"></i>
+            </button>
+            <button type='button' class="btn btn-mini user-button hover-buttons" title="Remove User" ng-click="removeClick(user)">
+              <i class="icon-trash"></i>
+            </button>
+          </div>
+          <a class="accordion-toggle user-top collapsed" style="padding-bottom:4px;" data-toggle="collapse" data-target="#collapse{{user.id}}">
+            <h4 style="display:inline;margin-top:0px;margin-bottom:4px;">{{user.username}} ({{user.firstName}} {{user.lastName}})</h4><span ng-if="isCurrentUser(user)" style="margin-left:5px;font-size:10px;color:darkgreen;">Current User</span>
+          </a>
+        </div>
+        <div id="collapse{{user.id}}" class="accordion-body collapse">
+          <div class="accordion-inner" style="padding:0px 15px;" ng-if="!context.userEditMap[user.id]">
+            <table style="margin-bottom:5px;">
+              <tr>
+                <td class="summary-label">First Name:</td>
+                <td>{{user.firstName}}</td>
+              </tr>
+              <tr>
+                <td class="summary-label">Last Name:</td>
+                <td>{{user.lastName}}</td>
+              </tr>
+              <tr>
+                <td class="summary-label">E-mail Address:</td>
+                <td>{{user.email}}</td>
+              </tr>
+            </table>
+          </div>
+          <div class="accordion-inner" style="padding:0px;" ng-if="context.userEditMap[user.id]">
+            <div user-item user='user' context='context'></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>

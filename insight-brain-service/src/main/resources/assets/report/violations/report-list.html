@@ -1,78 +1,78 @@
 <div class='content report-content' style='margin-right: 25px'>
-	<div load-error='error' reload='doLoad()'></div>
-	<div ng-hide='error'>
-		<div ng-hide='stages'><h5><i class='icon icon-time'></i> Loading...</h5></div>
-		<div ng-show='applications.length == 0'>
+  <div load-error='error' reload='doLoad()'></div>
+  <div ng-hide='error'>
+    <div ng-hide='stages'><h5><i class='icon icon-time'></i> Loading...</h5></div>
+    <div ng-show='applications.length == 0'>
           <h5>
             Welcome to Sonatype CLM. Get started by <a href='index.html#/management/organization/_new_'>creating an organization</a>.
           </h5>
         </div>
-		<div ng-show='applications.length > 0'>
-			<div class='input-prepend'>
-				<span class='add-on'><i ng-class="{'icon-search': !appFilter, 'icon-remove': appFilter}" ng-click="appFilter = ''"></i></span>
-				<input type='text' ng-model='appFilter' autocomplete="off" placeholder='Filter Applications' />
-			</div>
-			<table class='clm-table table table-striped table-bordered' style='margin-bottom:0px;background-color: white'>
-				<thead>
-					<tr>
-						<th class='sortable' ng-click="setSort('name')"
-							ng-class="{ 'sorted' : orderColumn == 'name' }">
-							Application Name
-							<i ng-class="{ 'icon-chevron-down' : orderColumn == 'name' && orderDirection,
-									'icon-chevron-up' : orderColumn == 'name' && !orderDirection,
-									'emptyIconGlyph' : orderColumn != 'name' }"></i>
-						</th>
-						<th ng-repeat='stage in stages | filterReportColumns'>
-							{{stage.name}} Violations
-						</th>
-						<th>Contact</th>
-						<th class='sortable' ng-click="setSort('organizationName')"
-							ng-class="{ 'sorted' : orderColumn == 'organizationName' }">
-							Organization
-							<i ng-class="{ 'icon-chevron-down' : orderColumn == 'organizationName' && orderDirection,
-									'icon-chevron-up' : orderColumn == 'organizationName' && !orderDirection,
-									'emptyIconGlyph' : orderColumn != 'organizationName' }"></i>
-						</th>
-					</tr>
-				</thead>
-				<tr ng-repeat='application in applications | filter: isVisible | orderBy:orderColumn:orderDirection'>
-					<td>
-						<a href='index.html#/management/application/{{encodeURIComponent(application.publicId)}}/policies'>
-							<img ng-src='../rest/application/icon/{{encodeURIComponent(application.publicId)}}'
-								onerror="this.src='../assets/img/defaulticon_application.png';"
-								style='height: 24px; width: 24px; margin-right:5px;'/>{{application.name}}
-						</a>
-					</td>
-					<td ng-repeat='stage in stages | filterReportColumns'>
-						<div ng-if='application.policyEvaluationsResults[stage.id]'>
-							<div>
-								<a class='no-hover-underline' style='vertical-align: middle;' title='View Report'
-										href='#/reports/{{encodeURIComponent(application.publicId)}}/{{application.policyEvaluations[stage.id].scanId}}'>
-									<div chiclets critical="application.policyEvaluationsResults[stage.id].criticalComponentCount"
-										severe="application.policyEvaluationsResults[stage.id].severeComponentCount"
-										moderate="application.policyEvaluationsResults[stage.id].moderateComponentCount"></div>
-									<span ng-show='!(application.policyEvaluationsResults[stage.id].criticalComponentCount + application.policyEvaluationsResults[stage.id].severeComponentCount + application.policyEvaluationsResults[stage.id].moderateComponentCount)' style="color:#000000;">No violations</span>
-								</a>
-							</div>
-							<div>
-								<a title='View Report' href='#/reports/{{encodeURIComponent(application.publicId)}}/{{application.policyEvaluations[stage.id].scanId}}'>
-									{{application.policyEvaluations[stage.id].time | ago}}</a>
-							</div>
-						</div>
-					</td>
-					<td>
-						<span ng-if='application.contact.error'>
-							<i class='icon-warning-sign' tooltip='{{application.contact.error}}' tooltip-placement='left'></i>
-						</span>
-						<span>{{application.contact.displayName || application.contact.internalName}}</span>
-					</td>
-					<td>
-						<a href='index.html#/management/organization/{{encodeURIComponent(application.organizationId)}}/policies'>
-							{{application.organizationName}}
-						</a>
-					</td>
-				</tr>
-			</table>
-		</div>
-	</div>
+    <div ng-show='applications.length > 0'>
+      <div class='input-prepend'>
+        <span class='add-on'><i ng-class="{'icon-search': !appFilter, 'icon-remove': appFilter}" ng-click="appFilter = ''"></i></span>
+        <input type='text' ng-model='appFilter' autocomplete="off" placeholder='Filter Applications' />
+      </div>
+      <table class='clm-table table table-striped table-bordered' style='margin-bottom:0px;background-color: white'>
+        <thead>
+          <tr>
+            <th class='sortable' ng-click="setSort('name')"
+              ng-class="{ 'sorted' : orderColumn == 'name' }">
+              Application Name
+              <i ng-class="{ 'icon-chevron-down' : orderColumn == 'name' && orderDirection,
+                  'icon-chevron-up' : orderColumn == 'name' && !orderDirection,
+                  'emptyIconGlyph' : orderColumn != 'name' }"></i>
+            </th>
+            <th ng-repeat='stage in stages | filterReportColumns'>
+              {{stage.name}} Violations
+            </th>
+            <th>Contact</th>
+            <th class='sortable' ng-click="setSort('organizationName')"
+              ng-class="{ 'sorted' : orderColumn == 'organizationName' }">
+              Organization
+              <i ng-class="{ 'icon-chevron-down' : orderColumn == 'organizationName' && orderDirection,
+                  'icon-chevron-up' : orderColumn == 'organizationName' && !orderDirection,
+                  'emptyIconGlyph' : orderColumn != 'organizationName' }"></i>
+            </th>
+          </tr>
+        </thead>
+        <tr ng-repeat='application in applications | filter: isVisible | orderBy:orderColumn:orderDirection'>
+          <td>
+            <a href='index.html#/management/application/{{encodeURIComponent(application.publicId)}}/policies'>
+              <img ng-src='../rest/application/icon/{{encodeURIComponent(application.publicId)}}'
+                onerror="this.src='../assets/img/defaulticon_application.png';"
+                style='height: 24px; width: 24px; margin-right:5px;'/>{{application.name}}
+            </a>
+          </td>
+          <td ng-repeat='stage in stages | filterReportColumns'>
+            <div ng-if='application.policyEvaluationsResults[stage.id]'>
+              <div>
+                <a class='no-hover-underline' style='vertical-align: middle;' title='View Report'
+                    href='#/reports/{{encodeURIComponent(application.publicId)}}/{{application.policyEvaluations[stage.id].scanId}}'>
+                  <div chiclets critical="application.policyEvaluationsResults[stage.id].criticalComponentCount"
+                    severe="application.policyEvaluationsResults[stage.id].severeComponentCount"
+                    moderate="application.policyEvaluationsResults[stage.id].moderateComponentCount"></div>
+                  <span ng-show='!(application.policyEvaluationsResults[stage.id].criticalComponentCount + application.policyEvaluationsResults[stage.id].severeComponentCount + application.policyEvaluationsResults[stage.id].moderateComponentCount)' style="color:#000000;">No violations</span>
+                </a>
+              </div>
+              <div>
+                <a title='View Report' href='#/reports/{{encodeURIComponent(application.publicId)}}/{{application.policyEvaluations[stage.id].scanId}}'>
+                  {{application.policyEvaluations[stage.id].time | ago}}</a>
+              </div>
+            </div>
+          </td>
+          <td>
+            <span ng-if='application.contact.error'>
+              <i class='icon-warning-sign' tooltip='{{application.contact.error}}' tooltip-placement='left'></i>
+            </span>
+            <span>{{application.contact.displayName || application.contact.internalName}}</span>
+          </td>
+          <td>
+            <a href='index.html#/management/organization/{{encodeURIComponent(application.organizationId)}}/policies'>
+              {{application.organizationName}}
+            </a>
+          </td>
+        </tr>
+      </table>
+    </div>
+  </div>
 </div>

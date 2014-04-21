@@ -1,61 +1,61 @@
 <div ng-controller="LabelsController" style='padding:5px' class='labelEditor'>
-	<div clm-alerts='alerts'></div>
-	<div style='float:right;width:49.5%;margin-bottom:10px'>
-		<h5>Available <i class='icon-refresh' ng-click='loadLabelData()' spinner></i></h5>
-		<div class='labelContainer'>
-			<span ng-repeat='label in availableLabels  | filter:isApplied | orderBy:"label"' class='clmLabel {{label.color}}Label'>
+  <div clm-alerts='alerts'></div>
+  <div style='float:right;width:49.5%;margin-bottom:10px'>
+    <h5>Available <i class='icon-refresh' ng-click='loadLabelData()' spinner></i></h5>
+    <div class='labelContainer'>
+      <span ng-repeat='label in availableLabels  | filter:isApplied | orderBy:"label"' class='clmLabel {{label.color}}Label'>
               <span title='{{label.description || label.label}}' tip>{{label.label}}</span>&nbsp;
               <i class='icon-plus-sign' ng-class='{ "icon-white" : isWhite(label) }' ng-click='addLabel(label)'></i>
             </span>
-		</div>
-	</div>
-	<div style='width:49.5%;margin-bottom:10px'>
-		<h5>Applied <i class='icon-refresh' ng-click='loadLabelData()' spinner></i></h5>
-		<div class='labelContainer'>
-			<span ng-repeat='label in itemLabels' class='clmLabel {{label.color}}Label'>
+    </div>
+  </div>
+  <div style='width:49.5%;margin-bottom:10px'>
+    <h5>Applied <i class='icon-refresh' ng-click='loadLabelData()' spinner></i></h5>
+    <div class='labelContainer'>
+      <span ng-repeat='label in itemLabels' class='clmLabel {{label.color}}Label'>
               <span title='{{label.description || label.label}}' tip>{{label.label}}</span>&nbsp;
               <i class='icon-minus-sign' ng-class='{ "icon-white" : isWhite(label) }' ng-click='removeLabel(label)'></i>
             </span>
-		</div>
-	</div>
-	<div id="labelAssignScopeModal" data-keyboard="false" data-backdrop="static" class="modal hide fade" ng-controller="LabelAddController">
-		<div class="modal-header">
-			<button type="button" class="close" ng-click="declineAddLabel()" aria-hidden="true">&times;</button>
-			<h3>Label Assignment</h3>
-		</div>
-		<div class="modal-body" ng-show="labelLoading">
-		    <span>Loading data...</span>
-		</div>
-		<div class="modal-body" ng-show="!labelLoading">
-			<div ng-repeat="labelOwner in labelOwners">
-				<label class="radio">
-				  <input type="radio" ng-model="label.selectedOwner" name="selectedOwner" value="{{labelOwner.id + '$$' + labelOwner.type}}">
-				  <span>Assign label </span><span ng-show="groupId">to component <em>{{groupId + ':' + artifactId + ':' + version}}</em> </span><span>for </span>
-				  <span ng-switch on="labelOwner.type">
-			          <span ng-switch-when="organization"><span>all of organization </span><strong>{{labelOwner.name}}</strong></span>
-			          <span ng-switch-when="application"><span>application </span><strong>{{labelOwner.name}}</strong></span>
-			      </span>
-				</label>
-			</div>
-		</div>
-		<div class="modal-footer">
-			<span class="alert alert-error" ng-show="labelAddError" style="float: left; padding-top: 4px; padding-bottom: 4px; margin: 0">{{labelAddError}}</span>
-			<button type='button' class="btn" ng-click="decline()" ng-disabled="labelSaving">Cancel</button>
-			<button type='button' class="btn btn-primary" ng-click="accept()" ng-disabled="labelSaving">Save</button>
-		</div>
-	</div>
-	<div id="labelRemoveModal" data-keyboard="false" data-backdrop="static" class="modal hide fade" ng-controller="LabelRemoveController">
-		<div class="modal-header">
-			<button type="button" class="close" ng-click="declineRemoveLabel()" aria-hidden="true">&times;</button>
-			<h3>Remove Label</h3>
-		</div>
-		<div class="modal-body">
-			Are you sure you want to remove this label?
-		</div>
-		<div class="modal-footer">
-			<span class="alert alert-error" ng-show="labelRemoveError" style="float: left; padding-top: 4px; padding-bottom: 4px; margin: 0">{{labelRemoveError}}</span>
-			<button type='button' class="btn" ng-click="decline()" ng-disabled="labelDeleting">Cancel</button>
-			<button type='button' class="btn btn-danger" ng-click="accept()" ng-disabled="labelDeleting">Remove</button>
-		</div>
-	</div>
+    </div>
+  </div>
+  <div id="labelAssignScopeModal" data-keyboard="false" data-backdrop="static" class="modal hide fade" ng-controller="LabelAddController">
+    <div class="modal-header">
+      <button type="button" class="close" ng-click="declineAddLabel()" aria-hidden="true">&times;</button>
+      <h3>Label Assignment</h3>
+    </div>
+    <div class="modal-body" ng-show="labelLoading">
+        <span>Loading data...</span>
+    </div>
+    <div class="modal-body" ng-show="!labelLoading">
+      <div ng-repeat="labelOwner in labelOwners">
+        <label class="radio">
+          <input type="radio" ng-model="label.selectedOwner" name="selectedOwner" value="{{labelOwner.id + '$$' + labelOwner.type}}">
+          <span>Assign label </span><span ng-show="groupId">to component <em>{{groupId + ':' + artifactId + ':' + version}}</em> </span><span>for </span>
+          <span ng-switch on="labelOwner.type">
+                <span ng-switch-when="organization"><span>all of organization </span><strong>{{labelOwner.name}}</strong></span>
+                <span ng-switch-when="application"><span>application </span><strong>{{labelOwner.name}}</strong></span>
+            </span>
+        </label>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <span class="alert alert-error" ng-show="labelAddError" style="float: left; padding-top: 4px; padding-bottom: 4px; margin: 0">{{labelAddError}}</span>
+      <button type='button' class="btn" ng-click="decline()" ng-disabled="labelSaving">Cancel</button>
+      <button type='button' class="btn btn-primary" ng-click="accept()" ng-disabled="labelSaving">Save</button>
+    </div>
+  </div>
+  <div id="labelRemoveModal" data-keyboard="false" data-backdrop="static" class="modal hide fade" ng-controller="LabelRemoveController">
+    <div class="modal-header">
+      <button type="button" class="close" ng-click="declineRemoveLabel()" aria-hidden="true">&times;</button>
+      <h3>Remove Label</h3>
+    </div>
+    <div class="modal-body">
+      Are you sure you want to remove this label?
+    </div>
+    <div class="modal-footer">
+      <span class="alert alert-error" ng-show="labelRemoveError" style="float: left; padding-top: 4px; padding-bottom: 4px; margin: 0">{{labelRemoveError}}</span>
+      <button type='button' class="btn" ng-click="decline()" ng-disabled="labelDeleting">Cancel</button>
+      <button type='button' class="btn btn-danger" ng-click="accept()" ng-disabled="labelDeleting">Remove</button>
+    </div>
+  </div>
 </div>

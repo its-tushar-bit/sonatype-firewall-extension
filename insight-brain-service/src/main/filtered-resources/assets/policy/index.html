@@ -7,27 +7,27 @@
 
 -->
 <html lang="en">
-	<head>
-		<script type='text/javascript'>
-			// backward-compatibility: redirect old clients (e.g. CI plugin 2.9) to the new management UI
-			function loadFn() {
-				var query = window.location.search.substring(1).split('&'),
-					baseUrl = window.location.href.split('policy-assets')[0];
+  <head>
+    <script type='text/javascript'>
+      // backward-compatibility: redirect old clients (e.g. CI plugin 2.9) to the new management UI
+      function loadFn() {
+        var query = window.location.search.substring(1).split('&'),
+          baseUrl = window.location.href.split('policy-assets')[0];
 
-				baseUrl += "assets/index.html#/management/application/";
+        baseUrl += "assets/index.html#/management/application/";
 
-				for (var i=0; i<query.length; i++) {
-					var appId = query[i].split('=');
-					if (appId.length > 0 && appId[0] === 'appId') {
-						window.location.href = baseUrl + appId[1] + "/policies";
-						return;
-					}
-				}
-				window.location.href = baseUrl;
-			}
-		</script>
-	</head>
-	<body onload='javascript:loadFn()'>
-		Redirecting...
-	</body>
+        for (var i=0; i<query.length; i++) {
+          var appId = query[i].split('=');
+          if (appId.length > 0 && appId[0] === 'appId') {
+            window.location.href = baseUrl + appId[1] + "/policies";
+            return;
+          }
+        }
+        window.location.href = baseUrl;
+      }
+    </script>
+  </head>
+  <body onload='javascript:loadFn()'>
+    Redirecting...
+  </body>
 </html>

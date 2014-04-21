@@ -1,154 +1,154 @@
 <div id='ltg'>
-	<script type='text/ng-template' id='ltgcreator'>
-		<div>
-			<div ng-hide='selectedGroup' style='margin-bottom:5px'>
-				<button type="button" class="btn add-new new-entity-button"  ng-click="createNew()" id='createLTG'><i class="icon icon-plus"></i> New License Threat Group</button>
-			</div>
-			<div ng-if="selectedGroup" class='border-box' style='width:530px;margin-bottom:5px'>
-				<div ng-controller='LicenseThreatGroupEditorController'>
-					<form name='licenseGroupEditor' class='form' style='margin-bottom: 0px' ng-submit='saveClick();'>
-						<div ng-include="'ltgeditor'"></div>
-						<div clm-alerts='alerts' style='clear:both;'></div>
-						<div style='text-align:right'>
-							<button class='btn' type='button' ng-click='cancelLicenseGroupEdit()'>Cancel</button>
-							<button class='btn btn-primary' type='submit' ng-disabled='!canSaveEdit(licenseGroupEditor.$valid)'>Save</button>
-						</div>
-					</form>
-				</div>
-			</div>
-		</div>
-	</script>
-	<script type='text/ng-template' id='ltgInlineEditor'>
-		<div style='width:530px'>
-			<form name='licenseGroupEditor' class='form' style='margin-bottom: 0px' ng-submit='saveClick();'>
-				<div ng-include='"ltgeditor"'></div>
-				<div clm-alerts='alerts' style='clear:both;'></div>
-				<div style='text-align:right'>
-					<button class='btn' type='button' ng-click='cancelLicenseGroupEdit()'>Cancel</button>
-					<button class='btn btn-primary' type='submit' ng-disabled='!canSaveEdit(licenseGroupEditor.$valid)'>Save</button>
-				</div>
-			</form>
-		</div>
-	</script>
-	<script type='text/ng-template' id='ltgeditor'>
+  <script type='text/ng-template' id='ltgcreator'>
+    <div>
+      <div ng-hide='selectedGroup' style='margin-bottom:5px'>
+        <button type="button" class="btn add-new new-entity-button"  ng-click="createNew()" id='createLTG'><i class="icon icon-plus"></i> New License Threat Group</button>
+      </div>
+      <div ng-if="selectedGroup" class='border-box' style='width:530px;margin-bottom:5px'>
+        <div ng-controller='LicenseThreatGroupEditorController'>
+          <form name='licenseGroupEditor' class='form' style='margin-bottom: 0px' ng-submit='saveClick();'>
+            <div ng-include="'ltgeditor'"></div>
+            <div clm-alerts='alerts' style='clear:both;'></div>
+            <div style='text-align:right'>
+              <button class='btn' type='button' ng-click='cancelLicenseGroupEdit()'>Cancel</button>
+              <button class='btn btn-primary' type='submit' ng-disabled='!canSaveEdit(licenseGroupEditor.$valid)'>Save</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </script>
+  <script type='text/ng-template' id='ltgInlineEditor'>
+    <div style='width:530px'>
+      <form name='licenseGroupEditor' class='form' style='margin-bottom: 0px' ng-submit='saveClick();'>
+        <div ng-include='"ltgeditor"'></div>
+        <div clm-alerts='alerts' style='clear:both;'></div>
+        <div style='text-align:right'>
+          <button class='btn' type='button' ng-click='cancelLicenseGroupEdit()'>Cancel</button>
+          <button class='btn btn-primary' type='submit' ng-disabled='!canSaveEdit(licenseGroupEditor.$valid)'>Save</button>
+        </div>
+      </form>
+    </div>
+  </script>
+  <script type='text/ng-template' id='ltgeditor'>
 <div>
-	<div class='control-group halfSize'
-			ng-class='{ error : licenseGroupEditor.name.$error.duplicate || licenseGroupEditor.name.$error.alphaNumeric
-			|| licenseGroupEditor.name.$error.spaces}'>
-		<div class='controls'>
-			<input id='licenseGroupEditorName' name='name' type='text'
-				class='input' maxlength='60' ng-model='selectedGroup.name'
-				required alpha-numeric is-duplicate is-duplicate-array='licenseGroups' is-duplicate-id-field='id'
-				placeholder="Enter Name" style='width:248px;' focus-input="true">
-		 <div>
-			<span ng-show="licenseGroupEditor.name.$error.alphaNumeric" class="help-inline">Must be alpha numeric</span>
-			<span ng-show="licenseGroupEditor.name.$error.duplicate" class="help-inline">Name is already in use</span>
-		 </div>
-		</div>
-	</div>
-	<div class='control-group halfSize'>
-		<div class='controls'>
-			<span threat-box selected='selectedGroup.threatLevel' one='1' zero='No Threat'></span>
-		</div>
-	</div>
-	<div class='control-group clear'>
-		<div class='input-prepend fullWidthPrependedTextBox'>
-			<span class='add-on'><i ng-class="{'icon-search': !licenseSearch, 'icon-remove': licenseSearch}" ng-click="licenseSearch = ''"></i></span>
-			<input type='text' placeholder='Find License' ng-model='licenseSearch' enter-down='searchEnter()' prevent-submit style='width:221px'>
-		</div>
-		<div class='selectList'>
-			<h5>Applied Licenses</h5>
-			<div>
-				<div>
-					<div ng-repeat='l in selectedGroup.licenses | toLicense | filter: { shortDisplayName: licenseSearch } | orderBy: "shortDisplayName"'
-						ng-click='removeLicense(l)' class='licenseSelectListItem'>
-						<i class='icon-minus-sign'></i>&nbsp;<span title='{{l.shortDisplayName}}'>{{l.shortDisplayName}}</span>
-					</div>
-				</div>
-			</div>
-		</div>
-		<div class='selectList'>
-			<h5>Available Licenses</h5>
-			<div>
-				<div>
-					<div ng-repeat='l in allLicenses | filterLicenses: { groupLicenses: selectedGroupLicenses, searchLicense: licenseSearch } | orderBy: "shortDisplayName"'
-							ng-click='addLicense(l)' class='licenseSelectListItem'>
-						<i class='icon-plus-sign'></i>&nbsp;<span title='{{l.shortDisplayName}}'>{{l.shortDisplayName}}</span>
-					</div>
-				</div>
-			</div>
-		</div>
-	</div>
+  <div class='control-group halfSize'
+      ng-class='{ error : licenseGroupEditor.name.$error.duplicate || licenseGroupEditor.name.$error.alphaNumeric
+      || licenseGroupEditor.name.$error.spaces}'>
+    <div class='controls'>
+      <input id='licenseGroupEditorName' name='name' type='text'
+        class='input' maxlength='60' ng-model='selectedGroup.name'
+        required alpha-numeric is-duplicate is-duplicate-array='licenseGroups' is-duplicate-id-field='id'
+        placeholder="Enter Name" style='width:248px;' focus-input="true">
+     <div>
+      <span ng-show="licenseGroupEditor.name.$error.alphaNumeric" class="help-inline">Must be alpha numeric</span>
+      <span ng-show="licenseGroupEditor.name.$error.duplicate" class="help-inline">Name is already in use</span>
+     </div>
+    </div>
+  </div>
+  <div class='control-group halfSize'>
+    <div class='controls'>
+      <span threat-box selected='selectedGroup.threatLevel' one='1' zero='No Threat'></span>
+    </div>
+  </div>
+  <div class='control-group clear'>
+    <div class='input-prepend fullWidthPrependedTextBox'>
+      <span class='add-on'><i ng-class="{'icon-search': !licenseSearch, 'icon-remove': licenseSearch}" ng-click="licenseSearch = ''"></i></span>
+      <input type='text' placeholder='Find License' ng-model='licenseSearch' enter-down='searchEnter()' prevent-submit style='width:221px'>
+    </div>
+    <div class='selectList'>
+      <h5>Applied Licenses</h5>
+      <div>
+        <div>
+          <div ng-repeat='l in selectedGroup.licenses | toLicense | filter: { shortDisplayName: licenseSearch } | orderBy: "shortDisplayName"'
+            ng-click='removeLicense(l)' class='licenseSelectListItem'>
+            <i class='icon-minus-sign'></i>&nbsp;<span title='{{l.shortDisplayName}}'>{{l.shortDisplayName}}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class='selectList'>
+      <h5>Available Licenses</h5>
+      <div>
+        <div>
+          <div ng-repeat='l in allLicenses | filterLicenses: { groupLicenses: selectedGroupLicenses, searchLicense: licenseSearch } | orderBy: "shortDisplayName"'
+              ng-click='addLicense(l)' class='licenseSelectListItem'>
+            <i class='icon-plus-sign'></i>&nbsp;<span title='{{l.shortDisplayName}}'>{{l.shortDisplayName}}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
-	</script>
-	<div class='content-section'>
-		<div load-error='error' reload='doLoad()'></div>
-		<div style='margin:25px' ng-show='!applicableLicenseGroups && !error'>
-			<h5><i class='icon-time'></i> Loading...</h5>
-		</div>
-		<div ng-show='!error'>
-			<div id='{{applicableLicenseGroup.ownerId}}' ng-repeat='applicableLicenseGroup in applicableLicenseGroups' ng-show='applicableLicenseGroup.editable || applicableLicenseGroup.licenseThreatGroups.length > 0'>
-				<div class="content-header">
-					<h4>
-						<span ng-switch='applicableLicenseGroup.editable'>
-							<span ng-switch-when='true'>{{applicableLicenseGroup.ownerName}} License Threat Groups</span>
-							<span ng-switch-default>License Threat Groups Inherited from {{applicableLicenseGroup.ownerName}}</span>
-						</span>
-						<div class='common-expand-toggle' ng-switch on='isExpanded(applicableLicenseGroup)'>
-							<a ng-switch-when="false" ng-click='toggleAll(applicableLicenseGroup)'><i class="glyphicons-halflings-sonatype expand"></i></a>
-							<a ng-switch-when="true" ng-click='toggleAll(applicableLicenseGroup)'><i class="glyphicons-halflings-sonatype collapse"></i></a>
-						</div>
-					</h4>
-				</div>
-				<div class="accordion licenseGroups">
-					<div ng-if='applicableLicenseGroup.editable'>
-						<div ltg-creator></div>
-					</div>
-					<div class="accordion-group" ng-repeat='licenseGroup in applicableLicenseGroup.licenseThreatGroups | orderBy: "threatLevel" : true'>
-						<div class="accordion-heading">
-							<div class='btn-group hover-buttons floatRight' ng-show='applicableLicenseGroup.editable'>
-								<button class="btn btn-mini" title="Edit License Threat Group" ng-click='showEditor(licenseGroup)' ng-disabled='ltgEditorMap[licenseGroup.id]' type="button">
-									<i class='icon-pencil'></i>
-								</button>
-								<a type="button" class="btn btn-mini" title="Remove License Threat Group" ng-click='confirmDeleteLicenseGroup(licenseGroup)'><i class='icon-trash'></i></a>
-							</div>
-							<a class="accordion-toggle licenseGroup-top collapsed" data-toggle="collapse" data-parent="applicableLicenseGroup.licenseThreatGroups" data-target="#collapse{{licenseGroup.id}}">
-								<span class='threat-chiclet threat-level-{{licenseGroup.threatLevel}}'>&nbsp;</span>
-								<h3>{{licenseGroup.name}}</h3>
-							</a>
-						</div>
-						<div id="collapse{{licenseGroup.id}}" class="accordion-body collapse" ng-class='{ in : isExpanded(applicableLicenseGroup) }'>
-							<div class="accordion-inner">
-								<div ng-if='ltgEditorMap[licenseGroup.id]'>
-									<div ltg-editor='licenseGroup' hide='ltgEditorMap[licenseGroup.id] = false'></div>
-								</div>
-								<div ng-if='!ltgEditorMap[licenseGroup.id]'>
-									<b>Licenses</b>
-									<ul class="unstyled max-height-scrollable">
-										<li ng-repeat='l in licenseGroup.licenses | orderBy: getDisplayName'>
-											{{getDisplayName(l)}}</li>
-									</ul>
-								</div>
-							</div>
-						</div>
-					</div>
-				</div>
-			</div>
-		</div>
-	</div>
-	<div id='deleteLicenseGroupModal' data-backdrop='static' class='modal hide fade'>
-		<div class='modal-header'>
-			<button type='button' class='close' data-dismiss='modal'>&times;</button>
-			<h3>Delete License Threat Group</h3>
-		</div>
-		<div class='modal-body'>
-			<p>Are you sure you want to delete the license threat group <strong>{{selectedGroup.name}}</strong>?</p>
-		</div>
-		<div class='modal-footer'>
-			<button class='btn' data-dismiss='modal'>Cancel</button>
-			<button class='btn btn-danger' ng-disabled='!deletedEnabled' ng-click='deleteLicenseGroup();'>Delete
-			</button>
-		</div>
-	</div>
-	<div error-Modal></div>
+  </script>
+  <div class='content-section'>
+    <div load-error='error' reload='doLoad()'></div>
+    <div style='margin:25px' ng-show='!applicableLicenseGroups && !error'>
+      <h5><i class='icon-time'></i> Loading...</h5>
+    </div>
+    <div ng-show='!error'>
+      <div id='{{applicableLicenseGroup.ownerId}}' ng-repeat='applicableLicenseGroup in applicableLicenseGroups' ng-show='applicableLicenseGroup.editable || applicableLicenseGroup.licenseThreatGroups.length > 0'>
+        <div class="content-header">
+          <h4>
+            <span ng-switch='applicableLicenseGroup.editable'>
+              <span ng-switch-when='true'>{{applicableLicenseGroup.ownerName}} License Threat Groups</span>
+              <span ng-switch-default>License Threat Groups Inherited from {{applicableLicenseGroup.ownerName}}</span>
+            </span>
+            <div class='common-expand-toggle' ng-switch on='isExpanded(applicableLicenseGroup)'>
+              <a ng-switch-when="false" ng-click='toggleAll(applicableLicenseGroup)'><i class="glyphicons-halflings-sonatype expand"></i></a>
+              <a ng-switch-when="true" ng-click='toggleAll(applicableLicenseGroup)'><i class="glyphicons-halflings-sonatype collapse"></i></a>
+            </div>
+          </h4>
+        </div>
+        <div class="accordion licenseGroups">
+          <div ng-if='applicableLicenseGroup.editable'>
+            <div ltg-creator></div>
+          </div>
+          <div class="accordion-group" ng-repeat='licenseGroup in applicableLicenseGroup.licenseThreatGroups | orderBy: "threatLevel" : true'>
+            <div class="accordion-heading">
+              <div class='btn-group hover-buttons floatRight' ng-show='applicableLicenseGroup.editable'>
+                <button class="btn btn-mini" title="Edit License Threat Group" ng-click='showEditor(licenseGroup)' ng-disabled='ltgEditorMap[licenseGroup.id]' type="button">
+                  <i class='icon-pencil'></i>
+                </button>
+                <a type="button" class="btn btn-mini" title="Remove License Threat Group" ng-click='confirmDeleteLicenseGroup(licenseGroup)'><i class='icon-trash'></i></a>
+              </div>
+              <a class="accordion-toggle licenseGroup-top collapsed" data-toggle="collapse" data-parent="applicableLicenseGroup.licenseThreatGroups" data-target="#collapse{{licenseGroup.id}}">
+                <span class='threat-chiclet threat-level-{{licenseGroup.threatLevel}}'>&nbsp;</span>
+                <h3>{{licenseGroup.name}}</h3>
+              </a>
+            </div>
+            <div id="collapse{{licenseGroup.id}}" class="accordion-body collapse" ng-class='{ in : isExpanded(applicableLicenseGroup) }'>
+              <div class="accordion-inner">
+                <div ng-if='ltgEditorMap[licenseGroup.id]'>
+                  <div ltg-editor='licenseGroup' hide='ltgEditorMap[licenseGroup.id] = false'></div>
+                </div>
+                <div ng-if='!ltgEditorMap[licenseGroup.id]'>
+                  <b>Licenses</b>
+                  <ul class="unstyled max-height-scrollable">
+                    <li ng-repeat='l in licenseGroup.licenses | orderBy: getDisplayName'>
+                      {{getDisplayName(l)}}</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div id='deleteLicenseGroupModal' data-backdrop='static' class='modal hide fade'>
+    <div class='modal-header'>
+      <button type='button' class='close' data-dismiss='modal'>&times;</button>
+      <h3>Delete License Threat Group</h3>
+    </div>
+    <div class='modal-body'>
+      <p>Are you sure you want to delete the license threat group <strong>{{selectedGroup.name}}</strong>?</p>
+    </div>
+    <div class='modal-footer'>
+      <button class='btn' data-dismiss='modal'>Cancel</button>
+      <button class='btn btn-danger' ng-disabled='!deletedEnabled' ng-click='deleteLicenseGroup();'>Delete
+      </button>
+    </div>
+  </div>
+  <div error-Modal></div>
 </div>

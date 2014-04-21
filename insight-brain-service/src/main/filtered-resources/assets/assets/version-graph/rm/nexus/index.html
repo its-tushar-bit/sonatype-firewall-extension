@@ -1,32 +1,32 @@
 <!doctype html>
 <html ng-app='CIP'>
-	<head>
-		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-		<meta http-equiv="X-UA-Compatible" content="IE=edge" />
-		<!-- Insight 3566b5df-329e-49a0-9b9c-57f047aade27  -->
-		<title>Component Information Panel</title>
-		<link type="text/css" rel='stylesheet' href='../../version-graph.css?${build.timestamp}'>
-		<script src='../../../../policy-assets/js/brain.client.js?${build.timestamp}'></script>
-		<script src="../../../lib/jquery/jquery-1.8.3.min.js"></script>
-		<script src="../../../lib/angular/angular-${angularjs.version}.min.js"></script>
-		<script src="../../../lib/angular/angular-route-${angularjs.version}.min.js"></script>
-		<script src="../../protovis.min.js?${build.timestamp}"></script>
-		<script src="../../version-graph.js?${build.timestamp}"></script>
-		<script>
-			var clmEndpoint = {
-				type : 'rm',
-				migrate : false,
-				viewDetails : true,
-				selectApplication : true,
-				openView : function (args) {
-					Eclipse_openView(args);
-				},
-				linkTarget : '_blank',
-				path : '../../'
-			};
-		</script>
-		<!--[if lt IE 9]><script src="protovis-msie.min.js?${build.timestamp}"></script><![endif]-->
-	</head>
-	<body ng-view>
-	</body>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <!-- Insight 3566b5df-329e-49a0-9b9c-57f047aade27  -->
+    <title>Component Information Panel</title>
+    <link type="text/css" rel='stylesheet' href='../../version-graph.css?${build.timestamp}'>
+    <script src='../../../../policy-assets/js/brain.client.js?${build.timestamp}'></script>
+    <script src="../../../lib/jquery/jquery-1.8.3.min.js"></script>
+    <script src="../../../lib/angular/angular-${angularjs.version}.min.js"></script>
+    <script src="../../../lib/angular/angular-route-${angularjs.version}.min.js"></script>
+    <script src="../../protovis.min.js?${build.timestamp}"></script>
+    <script src="../../version-graph.js?${build.timestamp}"></script>
+    <script>
+      var clmEndpoint = {
+        type : 'rm',
+        migrate : false,
+        viewDetails : true,
+        selectApplication : true,
+        openView : function (args) {
+          Eclipse_openView(args);
+        },
+        linkTarget : '_blank',
+        path : '../../'
+      };
+    </script>
+    <!--[if lt IE 9]><script src="protovis-msie.min.js?${build.timestamp}"></script><![endif]-->
+  </head>
+  <body ng-view>
+  </body>
 </html>

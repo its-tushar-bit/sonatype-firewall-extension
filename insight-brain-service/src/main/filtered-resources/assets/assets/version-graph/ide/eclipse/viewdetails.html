@@ -1,27 +1,27 @@
 <!doctype html>
 <html ng-app='viewdetails'>
-	<head>
-		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-		<meta http-equiv="X-UA-Compatible" content="IE=edge" />
-		<title>Component Detail</title>
-		<link type="text/css" rel='stylesheet' href='../../viewdetails.css?${build.timestamp}'>
-		<script src='../../../../policy-assets/js/brain.client.js?${build.timestamp}'></script>
-		<script src="../../../lib/jquery/jquery-1.8.3.min.js"></script>
-		<script src="../../../lib/angular/angular-${angularjs.version}.min.js"></script>
-		<script src='../../viewdetails.js?${build.timestamp}'></script>
-		<script>
-			var clmEndpoint = {
-				type : 'ide',
-				showContext : false,
-				linkTarget : '_self'
-			};
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <title>Component Detail</title>
+    <link type="text/css" rel='stylesheet' href='../../viewdetails.css?${build.timestamp}'>
+    <script src='../../../../policy-assets/js/brain.client.js?${build.timestamp}'></script>
+    <script src="../../../lib/jquery/jquery-1.8.3.min.js"></script>
+    <script src="../../../lib/angular/angular-${angularjs.version}.min.js"></script>
+    <script src='../../viewdetails.js?${build.timestamp}'></script>
+    <script>
+      var clmEndpoint = {
+        type : 'ide',
+        showContext : false,
+        linkTarget : '_self'
+      };
 
-			// disable the context menu to prevent the user from reloading the page which would break the integration with the IDE plugin's Java code
-			$(document).bind('contextmenu', function(e) {
-				return false;
-			});
-		</script>
-	</head>
-	<body ng-include='"../../details.html?${build.timestamp}"' ng-controller='view'>
-	</body>
+      // disable the context menu to prevent the user from reloading the page which would break the integration with the IDE plugin's Java code
+      $(document).bind('contextmenu', function(e) {
+        return false;
+      });
+    </script>
+  </head>
+  <body ng-include='"../../details.html?${build.timestamp}"' ng-controller='view'>
+  </body>
 </html>

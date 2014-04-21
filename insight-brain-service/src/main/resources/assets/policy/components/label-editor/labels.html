@@ -1,14 +1,14 @@
 <div id='labels'>
   <script type='text/ng-template' id='delete-label-modal'>
-	<div class="modal-header"><h3>Delete Label</h3></div>
-	<div class="modal-body">
-		Are you sure you want to delete the label <strong>{{label.label}}</strong>?
-		This will delete all associated component labels, if any.
-	</div>
-	<div class="modal-footer">
-		<button class="btn" ng-click="$dismiss()">Cancel</button>
-		<button class="btn btn-danger" ng-click="$close()">Delete</button>
-	</div>
+  <div class="modal-header"><h3>Delete Label</h3></div>
+  <div class="modal-body">
+    Are you sure you want to delete the label <strong>{{label.label}}</strong>?
+    This will delete all associated component labels, if any.
+  </div>
+  <div class="modal-footer">
+    <button class="btn" ng-click="$dismiss()">Cancel</button>
+    <button class="btn btn-danger" ng-click="$close()">Delete</button>
+  </div>
   </script>
   <div class="content-section">
     <div load-error='error' reload='doLoad()'></div>

@@ -1,21 +1,21 @@
 <div>
-	<div class='control-group' style="margin-bottom: 0px;">
-		<div style="text-align: left;" ng-repeat="condition in constraint.conditions">
-			<span clm-include='"../assets/components/policy-editor/condition-editor.html"'></span>
-			<div class="btn-group" style='vertical-align: top'>
-				<button class="btn" type='button' ng-click="removeCondition($index)" title="Remove Condition" ng-disabled="constraint.conditions.length <= 1">
-					<i class="icon-minus-sign"></i>
-				</button>
-				<button class="btn" type='button' ng-click="addCondition()" title="Add Condition">
-					<i class="icon-plus-sign"></i>
-				</button>
-			</div>
-		</div>
-	</div>
-	<div ng-show='constraint.conditions.length > 1'>
-		<select ng-model="constraint.operator"
-			ng-options="operator.value as operator.name for operator in constraintConditionChoices" required style='margin: 0'>
-			<option value="" ng-selected="constraint.operator == null">Any or All</option>
-		</select> of the above conditions will trigger this constraint.
-	</div>
+  <div class='control-group' style="margin-bottom: 0px;">
+    <div style="text-align: left;" ng-repeat="condition in constraint.conditions">
+      <span clm-include='"../assets/components/policy-editor/condition-editor.html"'></span>
+      <div class="btn-group" style='vertical-align: top'>
+        <button class="btn" type='button' ng-click="removeCondition($index)" title="Remove Condition" ng-disabled="constraint.conditions.length <= 1">
+          <i class="icon-minus-sign"></i>
+        </button>
+        <button class="btn" type='button' ng-click="addCondition()" title="Add Condition">
+          <i class="icon-plus-sign"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+  <div ng-show='constraint.conditions.length > 1'>
+    <select ng-model="constraint.operator"
+      ng-options="operator.value as operator.name for operator in constraintConditionChoices" required style='margin: 0'>
+      <option value="" ng-selected="constraint.operator == null">Any or All</option>
+    </select> of the above conditions will trigger this constraint.
+  </div>
 </div>

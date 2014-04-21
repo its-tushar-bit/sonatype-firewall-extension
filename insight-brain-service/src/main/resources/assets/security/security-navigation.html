@@ -1,13 +1,13 @@
 <div>
-	<div class="subnavigation">
-			<ul class="nav nav-list">
-				<li ng-class="{'active': $state.is('management.security.users') }">
-					<a href='#/management/security/users'>Users</a>
-				</li>
-				<li ng-class="{'active': $state.is('management.security.global') }">
-					<a href='#/management/security/global'>Global Roles</a>
-				</li>
-			</ul>
-	</div>
-	<div class="content" ui-view></div>
+  <div class="subnavigation">
+      <ul class="nav nav-list">
+        <li ng-class="{'active': $state.is('management.security.users') }">
+          <a href='#/management/security/users'>Users</a>
+        </li>
+        <li ng-class="{'active': $state.is('management.security.global') }">
+          <a href='#/management/security/global'>Global Roles</a>
+        </li>
+      </ul>
+  </div>
+  <div class="content" ui-view></div>
 </div>

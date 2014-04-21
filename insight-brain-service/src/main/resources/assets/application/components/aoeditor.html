@@ -1,357 +1,357 @@
 <div>
-	<script type='text/ng-template' id='recent-policy-eval'>
-		<div ng-show='applicationSummary.stageCount'>
-			<div ng-repeat='stage in state.actionStageList | filterReportColumns' class="report-summary">
-				{{stage.name}}
-				<span ng-if='applicationSummary.policyEvaluationsResults[stage.id]'>
-				</span>
-				<div ng-if='applicationSummary.policyEvaluationsResults[stage.id]'>
-					<a class='no-hover-underline' style='vertical-align: middle;' title='View Report - {{applicationSummary.policyEvaluations[stage.id].time | ago}}'
-					   ng-href='index.html#/reports/{{encodeURIComponent(applicationSummary.publicId)}}/{{applicationSummary.policyEvaluations[stage.id].scanId}}' target='_blank'>
-						<span chiclets critical="applicationSummary.policyEvaluationsResults[stage.id].criticalComponentCount"
-							 severe="applicationSummary.policyEvaluationsResults[stage.id].severeComponentCount"
-							 moderate="applicationSummary.policyEvaluationsResults[stage.id].moderateComponentCount"></span>
-						<span ng-show='!(applicationSummary.policyEvaluationsResults[stage.id].criticalComponentCount + applicationSummary.policyEvaluationsResults[stage.id].severeComponentCount + applicationSummary.policyEvaluationsResults[stage.id].moderateComponentCount)' style="color:#000000;">No violations</span>
-					</a>
-					<span class="refresh-chiclet" refresh-button='reEvaluatePolicy(applicationSummary.policyEvaluations[stage.id])' title='Re-evaluate Policy'></span>
-				</div>
-			</div>
-		</div>
-	</script>
-	<script type='text/ng-template' id='evaluate-bundle-modal'>
-	<div id='evaluate-bundle-dialog'>
-		<div class='modal-header'>
-			<button type="button" class="close"  ng-click='$dismiss()' aria-hidden="true">&times;</button>
-			<div ng-switch='state'>
-				<div ng-switch-when='polling'>
-					<h3>Evaluation Status</h3>
-				</div>
-				<div ng-switch-default>
-					<h3>Evaluate an Application</h3>
-				</div>
-			</div>
-		</div>
-		<div ng-switch='state'>
-			<div ng-switch-when="loading">
-				<i class='icon icon-time'></i> Loading...
-			</div>
-			<div ng-switch-when="polling">
-				<div class="modal-body">
-					<p>Closing this panel will not interrupt the evaluation. It will still progress until it is complete. When the evaluation has been completed you can view the results by clicking on the button below.</p>
-					<div class="well well-small">
-						<table>
-							<tr>
-								<td style><b>File:</b></td>
-								<td style="padding-left:10px;">{{bundle.filename}}</td>
-							</tr>
-							<tr>
-								<td><b>Application:</td>
-								<td style="padding-left:10px;">{{bundle.applicationName}}</td>
-							</tr>
-							<tr>
-								<td><b>Stage:</td>
-								<td style="padding-left:10px;">{{bundle.stage}}</td>
-							</tr>
-						</table>
-					</div>
-					<div style="margin-bottom:3px;" class="progress progress-striped" ng-class="{active: !evaluationStatus.scanId}">
-						<div class="bar" ng-style="{width: getProgressWidth() + '%'}"></div>
-					</div>
-					<div style='padding-left:3px;font-weight:bold' id='evaluate-bundle-status'>{{evaluationStatus.currentStepName}}</div>
-				</div>
-				<div class='modal-footer'>
-					<span style="margin:0px;padding: 4px 35px 4px 14px;float:left;max-width:300px" ng-class="{'alert alert-error': error }" ng-show="error">{{error}}</span>
-					<button class='btn' type='button' ng-disabled='!pollingUrl' ng-click='$close()'>Close</button>
-					<a class='btn btn-primary' ng-disabled='!evaluationStatus.scanId' ng-href='{{getReportUrl()}}' target='_blank'>View Report</a>
-				</div>
-			</div>
-			<div ng-switch-default>
-				<form name='evaluateBundle' action='{{evaluateBundleAction}}' enctype='multipart/form-data' method='post' ng-upload style='margin-bottom:0px'>
-					<div class='modal-body'>
-						<div class='control-group'>
-							<label class="control-label" for='bundleFile'>Select the file you want evaluated:</label>
-							<div class='controls'>
-								<input type='file' ng-model='bundle.file' id='bundleFile' name='file' onchange="angular.element(this).scope().fileChanged(this)">
-							</div>
-						</div>
-						<div class='control-group'>
-							<label class="control-label" for='bundleApplication'>Which application is this file associated with?</label>
-							<div class='controls'>
-								<select id='bundleApplication' ng-required="true" ng-model="bundle.applicationPublicId" ng-change="updateFormActionUrl()" ng-options="app.publicId as app.name for app in applications">
-									<option value="">-- Select Application --</option>
-								</select>
-							</div>
-						</div>
-						<div class='control-group'>
-							<label class="control-label" for='bundleStage'>Which CLM stage should this evaluation be associated with?</label>
-							<div class='controls'>
-								<select id='bundleStage' ng-required="true" ng-model="bundle.stage" ng-change="updateFormActionUrl()" ng-options="stage.id as stage.name for stage in stages">
-									<option value="">-- Select CLM Stage --</option>
-								</select>
-							</div>
-						</div>
-						<div class='control-group'>
-							<label class="control-label" for='bundleNotifications'>Should notifications be sent if this application violates any policies?</label>
-							<div class='controls'>
-								<label class="radio">
-									<input type="radio" ng-model="bundle.notify" ng-change="updateFormActionUrl()" value="true"/>
-									Yes
-								</label>
-								<label class="radio">
-									<input type="radio" ng-model="bundle.notify" ng-change="updateFormActionUrl()" value="false"/>
-									No
-								</label>
-							</div>
-						</div>
-					</div>
-					<div class='modal-footer'>
-						<span style="margin:0px;padding: 4px 35px 4px 14px;float:left;max-width:330px" ng-class="{'alert alert-error': error }" ng-show="error">{{error}}</span>
-						<button class='btn' type='button' ng-click='$close()'>Cancel</button>
-						<button class='btn btn-primary' type='button' ng-disabled='state != "ready" || !isFormValid()' ng-click='doSubmit()'>Upload</button>
-					</div>
-					<input type='submit' upload-submit='uploaded(content, completed)' class='hide' />
-				</form>
-			</div>		
-		</div>
-	</div>
-	</script>
-	<script type='text/ng-template' id='import-policy-modal'>
-	<div id='import-policy-dialog'>
-		<div class='modal-header'>
-			<button type="button" class="close"  ng-click='$dismiss()' aria-hidden="true">&times;</button>
-			<h3>Import Policy</h3>
-		</div>
-		<form name='importPolicy' action='{{importPolicyUrl}}' enctype='multipart/form-data' method='post' ng-upload class='form-horizontal' style='margin-bottom:0px'>
-			<div class='modal-body'>
-				<div class='control-group'>
-					<label class="control-label" for='policyFile'>Policies File</label>
-					<div class='controls'>
-						<input type='file' ng-model='import.file' id='policyFile' name='file' accept='.json'>
-					</div>
-				</div>
-				<p class="text-error"><strong>Note:</strong> Importing policies is <strong>destructive</strong> and will replace existing policies and license threat groups</p>
-			</div>
-			<div class='modal-footer'>
-				<span style="margin:0px;padding: 4px 35px 4px 14px;float:left;max-width:330px" ng-class="{'alert alert-error': error }" ng-show="error">{{error}}</span>
-				<button class='btn' type='button' ng-click='$dismiss()'>Cancel</button>
-				<button class='btn btn-primary' type='button' ng-disabled='btnDisabled || requestActive' ng-click='doSubmit()'>Import</button>
-			</div>
-			<input type='submit' upload-submit='uploaded(content, completed)' class='hide' />
-		</form>
-	</div>
-	</script>
-	<script type='text/ng-template' id='delete-app-modal'>
-		<div class='modal-header'>
-			<button type='button' class='close' ng-click='$dismiss()'>&times;</button>
-			<h3>Delete Application</h3>
-		</div>
-		<div class='modal-body'>
-			<p>Are you sure you want to delete the application <strong>{{selected.name}}</strong>? This will delete all
-				policies and license groups associated with this application.</p>
-		</div>
-		<div class='modal-footer'>
-			<button class='btn' ng-click='$dismiss()'>Cancel</button>
-			<button class='btn btn-danger' ng-disabled='!deletedEnabled' ng-click='doDelete();'>Delete</button>
-		</div>
-	</script>
-	<script type='text/ng-template' id='delete-org-modal'>
-		<div class='modal-header'>
-			<button type='button' class='close' ng-click='$dismiss()'>&times;</button>
-			<h3>Delete Organization</h3>
-		</div>
-		<div class='modal-body'>
-			<p>Are you sure you want to delete the organization <strong>{{selected.name}}</strong>? This will delete all
-				policies, license groups and applications associated with this organization.</p>
-		</div>
-		<div class='modal-footer'>
-			<button class='btn' ng-click='$dismiss()'>Cancel</button>
-			<button class='btn btn-danger' ng-disabled='!deletedEnabled' ng-click='doDelete();'>Delete</button>
-		</div>
-	</script>
-	<script type='text/ng-template' id='contact-modal'>
-	<div id='contact-modal-dialog'>
-		<div class='modal-header'>
-			<h3>Contact User</h3>
-		</div>
-		<div class='modal-body'>
-			<div style='width:75%;margin:auto'>
-				<div app-user-search
-					set-results='setQueryResults($members, $error)'
-					query-string='queryString'
-					request-active='requestActive'
-					owner-type='organization'
-					owner-id='{{organizationId}}'
-					groups='false'></div>
-				<div class='selectList-large' style='width:100%'>
-					<h5>Available</h5>
-					<div>
-						<div>
-							<div class='large-select-query-item' ng-show="!queryString">Search above to find users</div>
-							<div ng-repeat='user in queryResults | memberNotIn:mappings | filter: { type: grouping.type } | orderBy:"displayName"'>
-								<div user-list-item='user'
-									 icon-class='emptyIconGlyph'
-									 query-string='{{queryString}}'
-									 selected='selectedUser.internalName == user.internalName'
-									 ng-click='selectUser(user)'></div>
-							</div>
-							<div class='licenseSelectListItem' ng-show='queryString && !requestActive && queryResults.length == 0'>
-								<i class='emptyIconGlyph'></i>&nbsp;<em>No results</em>
-							</div>
-						</div>
-					</div>
-				</div>
-			</div>
-		</div>
-		<div class='modal-footer'>
-			<span style="margin:0px;padding: 4px 14px;max-width:290px" ng-class="{'alert alert-error pull-left': error }" ng-show="error">{{error}}</span>
-			<button class='btn btn-danger' ng-click='$close(null)'>Remove Contact</button>
-			<button class='btn btn-primary' ng-click='$dismiss()'>Cancel</button>
-		</div>
-	</div>
-	</script>
-	<div ng-if='!error && ao == null' class='editor-header' style='margin:20px;'>
-		<h5><i class='icon icon-time'></i> Loading...</h5>
-	</div>
-	<div ng-if='ao && ao.selected == null' class='alert alert-error fade in' style='margin:36px;width:50%;max-width:450px'>
-		<h4>{{ao.typeName}} Missing</h4>
-		<p>The {{ao.type}} with id <strong>{{ao.getPublicId()}}</strong> has been moved, deleted or the current user does not have permission to view it.</p>
-	</div>
-	<div load-error='error' reload='doLoad()'></div>
-	<div class='fade' ng-class='{ in : ao.selected != null }'>
-		<div clm-alerts='alerts'></div>
-		<div id="editor-toolbar" style="float:right; margin:10px;" class='btn-group'>
-			<a id="policy-import-button" class="btn btn-mini" title="Import Policies" ng-click="openImport()" ng-if='ao.getId()'>
-				<img src='../assets/img/icon-import.png' alt='Import Policy' style='width:16px;height:16px;padding:6px 0px'>
-			</a>
-			<a id="app-evaluate-button" class="btn btn-mini" title="Evaluate an Application" ng-click="openEvaluate()" ng-if='ao.getId()'>
-				<img src='../assets/img/icon-add-bundle.png' alt='Evaluate an Application' style='width:16px;height:16px;padding:6px 0px'>
-			</a>
-			<a id="remove-app-org-button" class="btn btn-mini" title="Remove {{ao.typeName}}" ng-click="confirmDelete()" ng-if='ao.getId()'>
-				<i class='glyphicons-sonatype bin'></i>
-			</a>
-		</div>
-		<div ng-show='isUploadingIcon'>
-			<div class="alert alert-info">
-				<strong>Uploading Icon...</strong>
-			</div>
-		</div>
-		<div class="editor-header">
-			<div class='editor-image'>
-				<div class='display-image'>
-					<div ng-switch on='hasRobotSource'>
-						<img ng-switch-when='false' id='userIcon' ng-src='{{userIconSource}}' />
-						<img ng-switch-when='true' id='robotIcon' ng-src='../rest/{{ao.type}}/services/generateIcon/{{robotHash}}'/>
-					</div>
-				</div>
-				<div class='edit-image'>
-					<form id='iconUploadForm' name='iconUploadForm' ng-upload action='{{ao.addSync}}' class='form' style='margin: 0px;' method='post'>
-						<label for='file' firefox-input-click>Choose Icon</label>
-						<input style='position:absolute;left:-9999em;' id="file" type="file" name="file" accept='image/*'
-								onchange='angular.element(this).scope().fileChanged(this)' />
-						<input type='submit' upload-submit='iconUploadComplete(content, completed)' ng-show='false' />
-						<a ng-click='generateIcon()'>Want a robot?</a>
-						<input name='{{ao.type}}Id' value='{{ao.getId()}}' type='hidden'/>
-						<input name='hasRobotSource' ng-model='hasRobotSource' type='hidden'/>
-						<input name='robotHash' ng-model='robotHash' type='hidden'/>
-					</form>
-				</div>
-			</div>
-			<div id='{{ao.type}}Editor'>
-				<div id='aoName'
-					class='inline-editor head'
-					clm-editable
-					model='ao.selected'
-					model-field='name'
-					e-form='aoEditorName'
-					empty-text='Enter {{ao.typeName}} Name'
-					whitespace-check='true'
-					invalid='aoEditor.$invalid'
-					duplicate-array='ao.siblings'
-					duplicate-id-field='id'>
-				</div>
-				<div ng-if='ao.type == "application"' class='inline-editor' style='margin-bottom:10px'>
-					<div style='vertical-align:top'>
-						Application
-						<div class="setappid" ng-switch on='selectedApplication.id' style='display: inline-block;vertical-align:top'>
-							<div ng-switch-when='null'>
-								<div class='inline-editor'
-									id='applicationPublicId'
-									clm-editable
-									e-form='$parent.$parent.appPublicIdForm'
-									model='selectedApplication'
-									model-field='publicId'
-									empty-text='Enter ID'
-									whitespace-check='false'
-									invalid='$parent.$parent.aoIdEditor.$invalid'
-									duplicate-array='ao.siblings'
-									duplicate-id-field='id'>
-								</div>
-							</div>
-							<span class="appid" ng-switch-default>{{selectedApplication.publicId}}</span>
-						</div>
-						in
-						<div ng-switch on='selectedApplication.id && selectedApplication.organizationId' style='display: inline-block;'>
-							<div ng-switch-when='null' class='btn-group'>
-								<a class="dropdown-toggle editable editable-empty" data-toggle="dropdown" href="#"
-								   ng-class='{ selected: selectedApplication.organizationId }' style="line-height: 20px;">
-									{{getOrganizationName()}}
-									<span class="caret" style='vertical-align:middle'></span>
-								</a>
-								<ul class="dropdown-menu">
-									<li ng-repeat='organization in organizations'>
-										<a ng-click='setOrganization(organization)'>{{organization.name}}</a>
-									</li>
-								</ul>
-							</div>
-							<span class="orgname" ng-switch-default>{{getOrganizationName()}}</span>
-						</div>
-					</div>
-					<div>
-						<span>Contact:</span>
-						<span ng-if='(ao.selected.organizationId || ao.selected.id)'
-							id='contact-field'
-							class='editable'
-							ng-class='{ "editable-empty" : !ao.selected.contact, "error" : ao.selected.contact.error }'
-							ng-click='openContact()'>{{ao.selected.contact.displayName || ao.selected.contact.internalName || "None"}}</span>
-						<span ng-if='!(ao.selected.organizationId || ao.selected.id)'
-							class='editable-empty editable'
-							tooltip='Must select an organization first'>None</span>
-						<span ng-if='ao.selected.contact.error'
-							class='error'> - {{ao.selected.contact.error}}</span>
-					</div>
-				</div>
-				<div ng-switch='ao.selected && !ao.selected.id || isFormDirty() || aoEditorName.$visible'>
-					<div ng-switch-when='true' class="application-save">
-						<button class='btn' type='button' ng-click='cancel()'>Cancel</button>
-						<button class='btn btn-primary' ng-disabled='!canSaveEdit()' type="button" ng-click='save()'>Save</button>
-					</div>
-					<div ng-switch-default>
-						<div ng-if='applicationSummary'>
-							<div ng-include='"recent-policy-eval"'></div>
-						</div>
-					</div>
-				</div>
-			</div>
-		</div>
-		<div ng-if='ao.selected && !ao.isNew()' style='clear:both'>
-			<ul class='tri-pane'>
-				<li ng-class='{ active : isCurrentTab("policies") || isCurrentTab("policies.edit") || isCurrentTab("policies.new") }'>
-					<a ng-href='#/management/{{ao.type}}/{{ao.getPublicId()}}/policies'>POLICIES</a>
-				</li>
-				<li ng-class='{ active : isCurrentTab("labels") || isCurrentTab("labels.new")}'>
-					<a ng-href='#/management/{{ao.type}}/{{ao.getPublicId()}}/labels'>LABELS</a>
-				</li>
-				<li ng-class='{ active : isCurrentTab("licenses") || isCurrentTab("licenses.new")}'>
-					<a ng-href='#/management/{{ao.type}}/{{ao.getPublicId()}}/licenses'>LICENSES</a>
-				</li>
+  <script type='text/ng-template' id='recent-policy-eval'>
+    <div ng-show='applicationSummary.stageCount'>
+      <div ng-repeat='stage in state.actionStageList | filterReportColumns' class="report-summary">
+        {{stage.name}}
+        <span ng-if='applicationSummary.policyEvaluationsResults[stage.id]'>
+        </span>
+        <div ng-if='applicationSummary.policyEvaluationsResults[stage.id]'>
+          <a class='no-hover-underline' style='vertical-align: middle;' title='View Report - {{applicationSummary.policyEvaluations[stage.id].time | ago}}'
+             ng-href='index.html#/reports/{{encodeURIComponent(applicationSummary.publicId)}}/{{applicationSummary.policyEvaluations[stage.id].scanId}}' target='_blank'>
+            <span chiclets critical="applicationSummary.policyEvaluationsResults[stage.id].criticalComponentCount"
+               severe="applicationSummary.policyEvaluationsResults[stage.id].severeComponentCount"
+               moderate="applicationSummary.policyEvaluationsResults[stage.id].moderateComponentCount"></span>
+            <span ng-show='!(applicationSummary.policyEvaluationsResults[stage.id].criticalComponentCount + applicationSummary.policyEvaluationsResults[stage.id].severeComponentCount + applicationSummary.policyEvaluationsResults[stage.id].moderateComponentCount)' style="color:#000000;">No violations</span>
+          </a>
+          <span class="refresh-chiclet" refresh-button='reEvaluatePolicy(applicationSummary.policyEvaluations[stage.id])' title='Re-evaluate Policy'></span>
+        </div>
+      </div>
+    </div>
+  </script>
+  <script type='text/ng-template' id='evaluate-bundle-modal'>
+  <div id='evaluate-bundle-dialog'>
+    <div class='modal-header'>
+      <button type="button" class="close"  ng-click='$dismiss()' aria-hidden="true">&times;</button>
+      <div ng-switch='state'>
+        <div ng-switch-when='polling'>
+          <h3>Evaluation Status</h3>
+        </div>
+        <div ng-switch-default>
+          <h3>Evaluate an Application</h3>
+        </div>
+      </div>
+    </div>
+    <div ng-switch='state'>
+      <div ng-switch-when="loading">
+        <i class='icon icon-time'></i> Loading...
+      </div>
+      <div ng-switch-when="polling">
+        <div class="modal-body">
+          <p>Closing this panel will not interrupt the evaluation. It will still progress until it is complete. When the evaluation has been completed you can view the results by clicking on the button below.</p>
+          <div class="well well-small">
+            <table>
+              <tr>
+                <td style><b>File:</b></td>
+                <td style="padding-left:10px;">{{bundle.filename}}</td>
+              </tr>
+              <tr>
+                <td><b>Application:</td>
+                <td style="padding-left:10px;">{{bundle.applicationName}}</td>
+              </tr>
+              <tr>
+                <td><b>Stage:</td>
+                <td style="padding-left:10px;">{{bundle.stage}}</td>
+              </tr>
+            </table>
+          </div>
+          <div style="margin-bottom:3px;" class="progress progress-striped" ng-class="{active: !evaluationStatus.scanId}">
+            <div class="bar" ng-style="{width: getProgressWidth() + '%'}"></div>
+          </div>
+          <div style='padding-left:3px;font-weight:bold' id='evaluate-bundle-status'>{{evaluationStatus.currentStepName}}</div>
+        </div>
+        <div class='modal-footer'>
+          <span style="margin:0px;padding: 4px 35px 4px 14px;float:left;max-width:300px" ng-class="{'alert alert-error': error }" ng-show="error">{{error}}</span>
+          <button class='btn' type='button' ng-disabled='!pollingUrl' ng-click='$close()'>Close</button>
+          <a class='btn btn-primary' ng-disabled='!evaluationStatus.scanId' ng-href='{{getReportUrl()}}' target='_blank'>View Report</a>
+        </div>
+      </div>
+      <div ng-switch-default>
+        <form name='evaluateBundle' action='{{evaluateBundleAction}}' enctype='multipart/form-data' method='post' ng-upload style='margin-bottom:0px'>
+          <div class='modal-body'>
+            <div class='control-group'>
+              <label class="control-label" for='bundleFile'>Select the file you want evaluated:</label>
+              <div class='controls'>
+                <input type='file' ng-model='bundle.file' id='bundleFile' name='file' onchange="angular.element(this).scope().fileChanged(this)">
+              </div>
+            </div>
+            <div class='control-group'>
+              <label class="control-label" for='bundleApplication'>Which application is this file associated with?</label>
+              <div class='controls'>
+                <select id='bundleApplication' ng-required="true" ng-model="bundle.applicationPublicId" ng-change="updateFormActionUrl()" ng-options="app.publicId as app.name for app in applications">
+                  <option value="">-- Select Application --</option>
+                </select>
+              </div>
+            </div>
+            <div class='control-group'>
+              <label class="control-label" for='bundleStage'>Which CLM stage should this evaluation be associated with?</label>
+              <div class='controls'>
+                <select id='bundleStage' ng-required="true" ng-model="bundle.stage" ng-change="updateFormActionUrl()" ng-options="stage.id as stage.name for stage in stages">
+                  <option value="">-- Select CLM Stage --</option>
+                </select>
+              </div>
+            </div>
+            <div class='control-group'>
+              <label class="control-label" for='bundleNotifications'>Should notifications be sent if this application violates any policies?</label>
+              <div class='controls'>
+                <label class="radio">
+                  <input type="radio" ng-model="bundle.notify" ng-change="updateFormActionUrl()" value="true"/>
+                  Yes
+                </label>
+                <label class="radio">
+                  <input type="radio" ng-model="bundle.notify" ng-change="updateFormActionUrl()" value="false"/>
+                  No
+                </label>
+              </div>
+            </div>
+          </div>
+          <div class='modal-footer'>
+            <span style="margin:0px;padding: 4px 35px 4px 14px;float:left;max-width:330px" ng-class="{'alert alert-error': error }" ng-show="error">{{error}}</span>
+            <button class='btn' type='button' ng-click='$close()'>Cancel</button>
+            <button class='btn btn-primary' type='button' ng-disabled='state != "ready" || !isFormValid()' ng-click='doSubmit()'>Upload</button>
+          </div>
+          <input type='submit' upload-submit='uploaded(content, completed)' class='hide' />
+        </form>
+      </div>
+    </div>
+  </div>
+  </script>
+  <script type='text/ng-template' id='import-policy-modal'>
+  <div id='import-policy-dialog'>
+    <div class='modal-header'>
+      <button type="button" class="close"  ng-click='$dismiss()' aria-hidden="true">&times;</button>
+      <h3>Import Policy</h3>
+    </div>
+    <form name='importPolicy' action='{{importPolicyUrl}}' enctype='multipart/form-data' method='post' ng-upload class='form-horizontal' style='margin-bottom:0px'>
+      <div class='modal-body'>
+        <div class='control-group'>
+          <label class="control-label" for='policyFile'>Policies File</label>
+          <div class='controls'>
+            <input type='file' ng-model='import.file' id='policyFile' name='file' accept='.json'>
+          </div>
+        </div>
+        <p class="text-error"><strong>Note:</strong> Importing policies is <strong>destructive</strong> and will replace existing policies and license threat groups</p>
+      </div>
+      <div class='modal-footer'>
+        <span style="margin:0px;padding: 4px 35px 4px 14px;float:left;max-width:330px" ng-class="{'alert alert-error': error }" ng-show="error">{{error}}</span>
+        <button class='btn' type='button' ng-click='$dismiss()'>Cancel</button>
+        <button class='btn btn-primary' type='button' ng-disabled='btnDisabled || requestActive' ng-click='doSubmit()'>Import</button>
+      </div>
+      <input type='submit' upload-submit='uploaded(content, completed)' class='hide' />
+    </form>
+  </div>
+  </script>
+  <script type='text/ng-template' id='delete-app-modal'>
+    <div class='modal-header'>
+      <button type='button' class='close' ng-click='$dismiss()'>&times;</button>
+      <h3>Delete Application</h3>
+    </div>
+    <div class='modal-body'>
+      <p>Are you sure you want to delete the application <strong>{{selected.name}}</strong>? This will delete all
+        policies and license groups associated with this application.</p>
+    </div>
+    <div class='modal-footer'>
+      <button class='btn' ng-click='$dismiss()'>Cancel</button>
+      <button class='btn btn-danger' ng-disabled='!deletedEnabled' ng-click='doDelete();'>Delete</button>
+    </div>
+  </script>
+  <script type='text/ng-template' id='delete-org-modal'>
+    <div class='modal-header'>
+      <button type='button' class='close' ng-click='$dismiss()'>&times;</button>
+      <h3>Delete Organization</h3>
+    </div>
+    <div class='modal-body'>
+      <p>Are you sure you want to delete the organization <strong>{{selected.name}}</strong>? This will delete all
+        policies, license groups and applications associated with this organization.</p>
+    </div>
+    <div class='modal-footer'>
+      <button class='btn' ng-click='$dismiss()'>Cancel</button>
+      <button class='btn btn-danger' ng-disabled='!deletedEnabled' ng-click='doDelete();'>Delete</button>
+    </div>
+  </script>
+  <script type='text/ng-template' id='contact-modal'>
+  <div id='contact-modal-dialog'>
+    <div class='modal-header'>
+      <h3>Contact User</h3>
+    </div>
+    <div class='modal-body'>
+      <div style='width:75%;margin:auto'>
+        <div app-user-search
+          set-results='setQueryResults($members, $error)'
+          query-string='queryString'
+          request-active='requestActive'
+          owner-type='organization'
+          owner-id='{{organizationId}}'
+          groups='false'></div>
+        <div class='selectList-large' style='width:100%'>
+          <h5>Available</h5>
+          <div>
+            <div>
+              <div class='large-select-query-item' ng-show="!queryString">Search above to find users</div>
+              <div ng-repeat='user in queryResults | memberNotIn:mappings | filter: { type: grouping.type } | orderBy:"displayName"'>
+                <div user-list-item='user'
+                   icon-class='emptyIconGlyph'
+                   query-string='{{queryString}}'
+                   selected='selectedUser.internalName == user.internalName'
+                   ng-click='selectUser(user)'></div>
+              </div>
+              <div class='licenseSelectListItem' ng-show='queryString && !requestActive && queryResults.length == 0'>
+                <i class='emptyIconGlyph'></i>&nbsp;<em>No results</em>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class='modal-footer'>
+      <span style="margin:0px;padding: 4px 14px;max-width:290px" ng-class="{'alert alert-error pull-left': error }" ng-show="error">{{error}}</span>
+      <button class='btn btn-danger' ng-click='$close(null)'>Remove Contact</button>
+      <button class='btn btn-primary' ng-click='$dismiss()'>Cancel</button>
+    </div>
+  </div>
+  </script>
+  <div ng-if='!error && ao == null' class='editor-header' style='margin:20px;'>
+    <h5><i class='icon icon-time'></i> Loading...</h5>
+  </div>
+  <div ng-if='ao && ao.selected == null' class='alert alert-error fade in' style='margin:36px;width:50%;max-width:450px'>
+    <h4>{{ao.typeName}} Missing</h4>
+    <p>The {{ao.type}} with id <strong>{{ao.getPublicId()}}</strong> has been moved, deleted or the current user does not have permission to view it.</p>
+  </div>
+  <div load-error='error' reload='doLoad()'></div>
+  <div class='fade' ng-class='{ in : ao.selected != null }'>
+    <div clm-alerts='alerts'></div>
+    <div id="editor-toolbar" style="float:right; margin:10px;" class='btn-group'>
+      <a id="policy-import-button" class="btn btn-mini" title="Import Policies" ng-click="openImport()" ng-if='ao.getId()'>
+        <img src='../assets/img/icon-import.png' alt='Import Policy' style='width:16px;height:16px;padding:6px 0px'>
+      </a>
+      <a id="app-evaluate-button" class="btn btn-mini" title="Evaluate an Application" ng-click="openEvaluate()" ng-if='ao.getId()'>
+        <img src='../assets/img/icon-add-bundle.png' alt='Evaluate an Application' style='width:16px;height:16px;padding:6px 0px'>
+      </a>
+      <a id="remove-app-org-button" class="btn btn-mini" title="Remove {{ao.typeName}}" ng-click="confirmDelete()" ng-if='ao.getId()'>
+        <i class='glyphicons-sonatype bin'></i>
+      </a>
+    </div>
+    <div ng-show='isUploadingIcon'>
+      <div class="alert alert-info">
+        <strong>Uploading Icon...</strong>
+      </div>
+    </div>
+    <div class="editor-header">
+      <div class='editor-image'>
+        <div class='display-image'>
+          <div ng-switch on='hasRobotSource'>
+            <img ng-switch-when='false' id='userIcon' ng-src='{{userIconSource}}' />
+            <img ng-switch-when='true' id='robotIcon' ng-src='../rest/{{ao.type}}/services/generateIcon/{{robotHash}}'/>
+          </div>
+        </div>
+        <div class='edit-image'>
+          <form id='iconUploadForm' name='iconUploadForm' ng-upload action='{{ao.addSync}}' class='form' style='margin: 0px;' method='post'>
+            <label for='file' firefox-input-click>Choose Icon</label>
+            <input style='position:absolute;left:-9999em;' id="file" type="file" name="file" accept='image/*'
+                onchange='angular.element(this).scope().fileChanged(this)' />
+            <input type='submit' upload-submit='iconUploadComplete(content, completed)' ng-show='false' />
+            <a ng-click='generateIcon()'>Want a robot?</a>
+            <input name='{{ao.type}}Id' value='{{ao.getId()}}' type='hidden'/>
+            <input name='hasRobotSource' ng-model='hasRobotSource' type='hidden'/>
+            <input name='robotHash' ng-model='robotHash' type='hidden'/>
+          </form>
+        </div>
+      </div>
+      <div id='{{ao.type}}Editor'>
+        <div id='aoName'
+          class='inline-editor head'
+          clm-editable
+          model='ao.selected'
+          model-field='name'
+          e-form='aoEditorName'
+          empty-text='Enter {{ao.typeName}} Name'
+          whitespace-check='true'
+          invalid='aoEditor.$invalid'
+          duplicate-array='ao.siblings'
+          duplicate-id-field='id'>
+        </div>
+        <div ng-if='ao.type == "application"' class='inline-editor' style='margin-bottom:10px'>
+          <div style='vertical-align:top'>
+            Application
+            <div class="setappid" ng-switch on='selectedApplication.id' style='display: inline-block;vertical-align:top'>
+              <div ng-switch-when='null'>
+                <div class='inline-editor'
+                  id='applicationPublicId'
+                  clm-editable
+                  e-form='$parent.$parent.appPublicIdForm'
+                  model='selectedApplication'
+                  model-field='publicId'
+                  empty-text='Enter ID'
+                  whitespace-check='false'
+                  invalid='$parent.$parent.aoIdEditor.$invalid'
+                  duplicate-array='ao.siblings'
+                  duplicate-id-field='id'>
+                </div>
+              </div>
+              <span class="appid" ng-switch-default>{{selectedApplication.publicId}}</span>
+            </div>
+            in
+            <div ng-switch on='selectedApplication.id && selectedApplication.organizationId' style='display: inline-block;'>
+              <div ng-switch-when='null' class='btn-group'>
+                <a class="dropdown-toggle editable editable-empty" data-toggle="dropdown" href="#"
+                   ng-class='{ selected: selectedApplication.organizationId }' style="line-height: 20px;">
+                  {{getOrganizationName()}}
+                  <span class="caret" style='vertical-align:middle'></span>
+                </a>
+                <ul class="dropdown-menu">
+                  <li ng-repeat='organization in organizations'>
+                    <a ng-click='setOrganization(organization)'>{{organization.name}}</a>
+                  </li>
+                </ul>
+              </div>
+              <span class="orgname" ng-switch-default>{{getOrganizationName()}}</span>
+            </div>
+          </div>
+          <div>
+            <span>Contact:</span>
+            <span ng-if='(ao.selected.organizationId || ao.selected.id)'
+              id='contact-field'
+              class='editable'
+              ng-class='{ "editable-empty" : !ao.selected.contact, "error" : ao.selected.contact.error }'
+              ng-click='openContact()'>{{ao.selected.contact.displayName || ao.selected.contact.internalName || "None"}}</span>
+            <span ng-if='!(ao.selected.organizationId || ao.selected.id)'
+              class='editable-empty editable'
+              tooltip='Must select an organization first'>None</span>
+            <span ng-if='ao.selected.contact.error'
+              class='error'> - {{ao.selected.contact.error}}</span>
+          </div>
+        </div>
+        <div ng-switch='ao.selected && !ao.selected.id || isFormDirty() || aoEditorName.$visible'>
+          <div ng-switch-when='true' class="application-save">
+            <button class='btn' type='button' ng-click='cancel()'>Cancel</button>
+            <button class='btn btn-primary' ng-disabled='!canSaveEdit()' type="button" ng-click='save()'>Save</button>
+          </div>
+          <div ng-switch-default>
+            <div ng-if='applicationSummary'>
+              <div ng-include='"recent-policy-eval"'></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div ng-if='ao.selected && !ao.isNew()' style='clear:both'>
+      <ul class='tri-pane'>
+        <li ng-class='{ active : isCurrentTab("policies") || isCurrentTab("policies.edit") || isCurrentTab("policies.new") }'>
+          <a ng-href='#/management/{{ao.type}}/{{ao.getPublicId()}}/policies'>POLICIES</a>
+        </li>
+        <li ng-class='{ active : isCurrentTab("labels") || isCurrentTab("labels.new")}'>
+          <a ng-href='#/management/{{ao.type}}/{{ao.getPublicId()}}/labels'>LABELS</a>
+        </li>
+        <li ng-class='{ active : isCurrentTab("licenses") || isCurrentTab("licenses.new")}'>
+          <a ng-href='#/management/{{ao.type}}/{{ao.getPublicId()}}/licenses'>LICENSES</a>
+        </li>
               <li ng-class='{ active : isCurrentTab("tags")}'>
                 <a ng-href='#/management/{{ao.type}}/{{ao.getPublicId()}}/tags'>TAGS</a>
               </li>
-				<li ng-class='{ active : isCurrentTab("security")}'>
-					<a ng-href='#/management/{{ao.type}}/{{ao.getPublicId()}}/security'>SECURITY</a>
-				</li>
-			</ul>
-			<div ui-view></div>
-		</div>
-	</div>
+        <li ng-class='{ active : isCurrentTab("security")}'>
+          <a ng-href='#/management/{{ao.type}}/{{ao.getPublicId()}}/security'>SECURITY</a>
+        </li>
+      </ul>
+      <div ui-view></div>
+    </div>
+  </div>
 </div>

@@ -1,23 +1,23 @@
 <div>
-	<div class="subnavigation" ng-class="{'subnavigation-expanded' : !$state.params.applicationPublicId}">
-		<div load-error='error' reload='doLoad()'></div>
-		<div ng-hide='error'>
-			<a class="new-entity-button btn" href='#/management/application/_new_'>
-				<i class="icon-plus"></i>&nbsp;New Application
-			</a>
-			<div class='search input-prepend'>
-				<span class='add-on'><i	ng-class="{'icon-search': !appFilter.name, 'icon-remove': appFilter.name}"
-					ng-click="appFilter.name = ''"></i></span>
-					<input type='text' ng-model='appFilter.name' autocomplete="off"	/>
-			</div>
-			<ul class="nav nav-list">
-				<li ng-repeat='application in applications | filter: appFilter | orderBy: "name"'
-					ng-class="{'active': $state.params.applicationPublicId == application.publicId }">
-						<a href='#/management/application/{{application.publicId}}/policies'>{{application.name}}</a>
-				</li>
-				<li ng-show='!applications'><h5><i class='icon icon-time'></i> Loading...</h5></li>
-			</ul>
-		</div>
-	</div>
-	<div ng-hide='error' class="content" ui-view></div>
+  <div class="subnavigation" ng-class="{'subnavigation-expanded' : !$state.params.applicationPublicId}">
+    <div load-error='error' reload='doLoad()'></div>
+    <div ng-hide='error'>
+      <a class="new-entity-button btn" href='#/management/application/_new_'>
+        <i class="icon-plus"></i>&nbsp;New Application
+      </a>
+      <div class='search input-prepend'>
+        <span class='add-on'><i  ng-class="{'icon-search': !appFilter.name, 'icon-remove': appFilter.name}"
+          ng-click="appFilter.name = ''"></i></span>
+          <input type='text' ng-model='appFilter.name' autocomplete="off"  />
+      </div>
+      <ul class="nav nav-list">
+        <li ng-repeat='application in applications | filter: appFilter | orderBy: "name"'
+          ng-class="{'active': $state.params.applicationPublicId == application.publicId }">
+            <a href='#/management/application/{{application.publicId}}/policies'>{{application.name}}</a>
+        </li>
+        <li ng-show='!applications'><h5><i class='icon icon-time'></i> Loading...</h5></li>
+      </ul>
+    </div>
+  </div>
+  <div ng-hide='error' class="content" ui-view></div>
 </div>

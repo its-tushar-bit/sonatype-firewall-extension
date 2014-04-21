@@ -1,9 +1,9 @@
 <div class='marginless-alert' clm-alerts='syncAlerts'></div>
 <div class="navigation">
-	<ul class="nav nav-list">
-		<li ng-repeat='pane in panes' ng-class="{'active': $state.current.name.indexOf(pane.state.replace('/', '.')) !== -1, 'disabled': !pane.isEnabled}">
-			<a href='#/{{pane.state}}' ng-click='$state.selectedPane = pane'>{{pane.name}}</a>
-		</li>
-	</ul>
+  <ul class="nav nav-list">
+    <li ng-repeat='pane in panes' ng-class="{'active': $state.current.name.indexOf(pane.state.replace('/', '.')) !== -1, 'disabled': !pane.isEnabled}">
+      <a href='#/{{pane.state}}' ng-click='$state.selectedPane = pane'>{{pane.name}}</a>
+    </li>
+  </ul>
 </div>
 <div ui-view></div>

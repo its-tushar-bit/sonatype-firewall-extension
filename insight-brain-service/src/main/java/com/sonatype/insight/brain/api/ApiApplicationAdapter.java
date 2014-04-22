@@ -23,7 +23,7 @@ public class ApiApplicationAdapter
    * @param application the entity to convert
    * @return ApiApplicationDTO or null if null passed in
    */
-  public ApiApplicationDTO convert(final Application application) {
+  public ApiApplicationDTO convertToDTO(final Application application) {
     if (application == null) {
       return null;
     }
@@ -44,7 +44,7 @@ public class ApiApplicationAdapter
    * @param applicationDTO the application DTO object to convert
    * @return Application or null if null passed in
    */
-  public Application convert(final ApiApplicationDTO applicationDTO) {
+  public Application convertFromDTO(final ApiApplicationDTO applicationDTO) {
     if (applicationDTO == null) {
       return null;
     }

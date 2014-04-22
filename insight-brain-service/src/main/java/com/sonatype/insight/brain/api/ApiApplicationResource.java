@@ -23,8 +23,7 @@ import javax.ws.rs.core.MediaType;
 import com.sonatype.insight.brain.api.dto.ApiApplicationDTO;
 import com.sonatype.insight.brain.api.dto.ApiRoleMemberMappingDTO;
 import com.sonatype.insight.brain.api.dto.ApiRoleMemberMappingListDTO;
-import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.organization.ApplicationService;
+import com.sonatype.insight.brain.api.service.ApiApplicationService;
 import com.sonatype.insight.brain.security.ApplicableMembershipMappings;
 import com.sonatype.insight.brain.security.Member;
 import com.sonatype.insight.brain.security.MembershipMappingService;
@@ -44,24 +43,20 @@ public class ApiApplicationResource
 
   public static final String ROLE_MEMBERS_PATH = APPLICATION_ID + "/roleMembers";
 
-  private final ApplicationService applicationService;
+  private final ApiApplicationService apiApplicationService;
 
   private final MembershipMappingService membershipMappingService;
 
   private final ApiMemberMappingAdapter apiMemberMappingAdapter;
 
-  private final ApiApplicationAdapter apiApplicationAdapter;
-
   @Inject
-  public ApiApplicationResource(final ApplicationService applicationService,
+  public ApiApplicationResource(final ApiApplicationService apiApplicationService,
       final MembershipMappingService membershipMappingService,
-      final ApiMemberMappingAdapter apiMemberMappingAdapter,
-      final ApiApplicationAdapter apiApplicationAdapter)
+      final ApiMemberMappingAdapter apiMemberMappingAdapter)
   {
-    this.applicationService = applicationService;
+    this.apiApplicationService = apiApplicationService;
     this.membershipMappingService = membershipMappingService;
     this.apiMemberMappingAdapter = apiMemberMappingAdapter;
-    this.apiApplicationAdapter = apiApplicationAdapter;
   }
 
   @GET
@@ -70,17 +65,14 @@ public class ApiApplicationResource
   public ApiApplicationDTO getApplication(
       @PathParam("applicationId") final String applicationId)
   {
-    final Application application = applicationService.getApplicationByIdNotNull(applicationId);
-    return apiApplicationAdapter.convert(application);
+    return apiApplicationService.getApplicationById(applicationId);
   }
 
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   public ApiApplicationDTO addApplication(final ApiApplicationDTO applicationDTO) {
-    final Application application = apiApplicationAdapter.convert(applicationDTO);
-    final Application returnedApp = applicationService.addApplication(application);
-    return apiApplicationAdapter.convert(returnedApp);
+    return apiApplicationService.addApplication(applicationDTO);
   }
 
   @GET
@@ -112,6 +104,6 @@ public class ApiApplicationResource
   public void deleteApplication(@PathParam("applicationId") final String applicationId)
       throws IOException
   {
-    applicationService.deleteApplicationById(applicationId);
+    apiApplicationService.deleteApplication(applicationId);
   }
 }

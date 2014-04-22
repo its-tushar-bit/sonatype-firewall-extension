@@ -342,7 +342,7 @@ public class ApplicationDAO
 
     final String applicationPublicId = application.getPublicId();
     if (applicationPublicId == null || applicationPublicId.trim().isEmpty()) {
-      throw new InvalidApplicationException("ID is required.");
+      throw new InvalidApplicationException("publicId is required.");
     }
   }
 

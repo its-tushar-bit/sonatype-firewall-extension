@@ -22,7 +22,7 @@ public class ApiApplicationAdapterTest
 
   @Test
   public void testConvertToApplicationDTO_nullValue() {
-    final ApiApplicationDTO apiApplicationDTO = apiApplicationAdapter.convert((Application) null);
+    final ApiApplicationDTO apiApplicationDTO = apiApplicationAdapter.convertToDTO(null);
     assertThat(apiApplicationDTO, nullValue());
   }
 
@@ -35,7 +35,7 @@ public class ApiApplicationAdapterTest
     application.setOrganizationId("orgId");
     application.setContactInternalName("appContactUserName");
 
-    final ApiApplicationDTO apiApplicationDTO = apiApplicationAdapter.convert(application);
+    ApiApplicationDTO apiApplicationDTO = apiApplicationAdapter.convertToDTO(application);
     assertThat(apiApplicationDTO, notNullValue());
     assertThat(apiApplicationDTO.id, is(application.getId()));
     assertThat(apiApplicationDTO.publicId, is(application.getPublicId()));

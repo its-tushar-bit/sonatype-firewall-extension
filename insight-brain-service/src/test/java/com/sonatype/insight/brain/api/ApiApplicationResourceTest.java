@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.api;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -12,6 +13,7 @@ import java.util.Map;
 
 import com.sonatype.insight.brain.AuthedRestAccess;
 import com.sonatype.insight.brain.api.dto.ApiApplicationDTO;
+import com.sonatype.insight.brain.api.dto.ApiApplicationTagDTO;
 import com.sonatype.insight.brain.api.dto.ApiMemberDTO;
 import com.sonatype.insight.brain.api.dto.ApiRoleMemberMappingDTO;
 import com.sonatype.insight.brain.api.dto.ApiRoleMemberMappingListDTO;
@@ -24,6 +26,7 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
+import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
 import com.ning.http.client.Response;
@@ -56,6 +59,8 @@ public class ApiApplicationResourceTest
 
   private User userB;
 
+  private Tag tag;
+
   @Rule
   public TestLdapServer embeddedLdapServer = new TestLdapServer();
 
@@ -65,6 +70,7 @@ public class ApiApplicationResourceTest
     app = tempEntity.newApplication("test-app", "test-app", organization.getId());
     userA = tempEntity.newUser("user-a", "John", "Doe", "void@void.com");
     userB = tempEntity.newUser("user-b", "Jane", "Doe", "void@void.com");
+    tag = tempEntity.newTag(organization.getId());
   }
 
   @Test
@@ -77,6 +83,10 @@ public class ApiApplicationResourceTest
     applicationDTO.name = applicationName;
     applicationDTO.organizationId = organization.getId();
     applicationDTO.contactUserName = userA.getUsername();
+    applicationDTO.applicationTags = new ArrayList<>();
+    ApiApplicationTagDTO applicationTagDTO = new ApiApplicationTagDTO();
+    applicationTagDTO.tagId = tag.getId();
+    applicationDTO.applicationTags.add(applicationTagDTO);
 
     // Test the post
     Response response = AuthedRestAccess.post(getServiceURL(), JsonHelpers.asJson(applicationDTO));
@@ -368,11 +378,16 @@ public class ApiApplicationResourceTest
     return Arrays.asList(members);
   }
 
-  private void assertApplication(final ApiApplicationDTO actual, final ApiApplicationDTO expected) {
-    assertThat(actual.publicId, equalTo(expected.publicId));
-    assertThat(actual.name, equalTo(expected.name));
-    assertThat(actual.organizationId, equalTo(expected.organizationId));
-    assertThat(actual.contactUserName, equalTo(expected.contactUserName));
+  private void assertApplication(final ApiApplicationDTO returnedDTO, final ApiApplicationDTO sendDTO) {
+    assertThat(returnedDTO.publicId, equalTo(sendDTO.publicId));
+    assertThat(returnedDTO.name, equalTo(sendDTO.name));
+    assertThat(returnedDTO.organizationId, equalTo(sendDTO.organizationId));
+    assertThat(returnedDTO.contactUserName, equalTo(sendDTO.contactUserName));
+
+    assertThat(returnedDTO.applicationTags.size(), is(sendDTO.applicationTags.size()));
+    assertThat(returnedDTO.applicationTags.size(), is(1));
+    assertThat(returnedDTO.applicationTags.get(0).tagId, is(sendDTO.applicationTags.get(0).tagId));
+    assertThat(returnedDTO.applicationTags.get(0).applicationId, is(returnedDTO.id));
   }
 
   private String getGetRoleMembersUrl(final String applicationId) {

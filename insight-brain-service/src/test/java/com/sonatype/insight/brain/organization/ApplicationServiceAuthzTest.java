@@ -45,17 +45,6 @@ public class ApplicationServiceAuthzTest
   }
 
   @Test
-  public void testGetApplicationById_Authorized() {
-    grantReadPermission(app.getId());
-    applicationService.getApplicationByIdNotNull(app.getId());
-  }
-
-  @Test(expected = UnauthenticatedException.class)
-  public void testGetApplicationById_Unauthenticated() {
-    applicationService.getApplicationByIdNotNull(app.getId());
-  }
-
-  @Test
   public void testAddApplication_Authorized() {
     grantWritePermission(org.getId());
 
@@ -81,17 +70,6 @@ public class ApplicationServiceAuthzTest
     catch (UnauthenticatedException ignore) {
       // Properly thrown exception.
     }
-  }
-
-  @Test
-  public void testDeleteApplicationById_Authorized() throws Exception {
-    grantWritePermission(app.getId());
-    applicationService.deleteApplicationById(app.getId());
-  }
-
-  @Test(expected = UnauthenticatedException.class)
-  public void testDeleteApplicationById_Unauthenticated() throws Exception {
-    applicationService.deleteApplicationById(app.getId());
   }
 
   @Test

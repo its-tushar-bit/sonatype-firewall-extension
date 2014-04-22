@@ -147,7 +147,7 @@ public class ApplicationDAOTest
       fail("Expected InvalidApplicationException");
     }
     catch (InvalidApplicationException expected) {
-      assertEquals("ID is required.", expected.getMessage());
+      assertEquals("publicId is required.", expected.getMessage());
     }
   }
 
@@ -160,7 +160,7 @@ public class ApplicationDAOTest
       fail("Expected InvalidApplicationException");
     }
     catch (InvalidApplicationException expected) {
-      assertEquals("ID is required.", expected.getMessage());
+      assertEquals("publicId is required.", expected.getMessage());
     }
   }
 

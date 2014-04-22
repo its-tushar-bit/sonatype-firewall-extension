@@ -5,22 +5,16 @@
  */
 package com.sonatype.insight.brain.api.dto;
 
-import java.util.List;
-
 /**
  * @since 1.11.0
  */
-public class ApiApplicationDTO
+public class ApiApplicationTagDTO
 {
+
   public String id;
 
-  public String publicId;
+  public String tagId;
 
-  public String name;
+  public String applicationId;
 
-  public String organizationId;
-
-  public String contactUserName;
-
-  public List<ApiApplicationTagDTO> applicationTags;
 }

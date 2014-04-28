@@ -136,6 +136,7 @@ class ClaimComponentSpec
       revokeClaimModal.buttons.button('Revoke').click()
 
     then: 'the modal should disappear and the form should be cleared'
+      waitFor { component.claim.present }
       FORM_FIELDS.keySet().each { name ->
         component.claimForm."$name" == ''
       }

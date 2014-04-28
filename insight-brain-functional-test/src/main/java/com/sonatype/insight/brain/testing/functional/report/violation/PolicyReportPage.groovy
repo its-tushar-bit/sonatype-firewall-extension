@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.testing.functional.report.violation
 
+import com.sonatype.insight.brain.testing.functional.modules.ButtonsModule
+import com.sonatype.insight.brain.testing.functional.modules.ModalModule
 import geb.Module
 import geb.Page
 
@@ -35,6 +37,7 @@ class PolicyReportPage
     allViolations { $('#policy-violation-filter li a', text : 'All') }
     waivedViolations { $('#policy-violation-filter li a', text : 'Waived') }
     selectedViolationFilter { $('#policy-violation-filter li.active a').text() }
+    revokeClaimModal(required: false) { module ModalModule, title: 'Revoke Claim' }
   }
 }
 
@@ -49,7 +52,7 @@ class PolicyReportRow
     extends Module 
 {
   static content = {
-    cip { module Cip, parents().find('#informationPanel') }
+    cip { module Cip, parent().find('#informationPanel') }
     // can't rely on the text within the cell since it's only shown for the first row with that score
     threatGroup { $(class: iEndsWith('Score')).classes()[0] }
     coordinates { $('.l1').text() }
@@ -80,6 +83,7 @@ class Cip
 {
   static content = {
     policy { module PolicyDetail }
+    claimComponent(required: false) { module ClaimComponentModule }
     // implement other tabs as needed
   }
 }
@@ -152,5 +156,18 @@ class AddPolicyWaiver
 
   void cancel() {
     cancelTrigger.click()
+  }
+}
+
+class ClaimComponentModule
+    extends Module
+{
+  static content = {
+    claimForm { $('form[name=claimForm]') }
+    buttons { module ButtonsModule, claimForm }
+    claim(required: false) { buttons.button('Claim') }
+    revoke(required: false) { buttons.button('Revoke Claim') }
+    update(required: false) { buttons.button('Update') }
+    showTrigger { $('a', text: 'Claim Component') }
   }
 }

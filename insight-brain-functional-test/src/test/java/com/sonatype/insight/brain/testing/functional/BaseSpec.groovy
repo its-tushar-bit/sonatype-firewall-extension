@@ -38,7 +38,7 @@ abstract class BaseSpec
 
   @Shared
   @ClassRule
-  TestRule saasRule = new InsightMockServerRule();
+  InsightMockServerRule saasRule = new InsightMockServerRule();
 
   @Shared
   @ClassRule

@@ -59,4 +59,12 @@ public class InsightMockServerRule
       throw new RuntimeException(e);
     }
   }
+
+  void setResponseForURI(String uri, Object body, int status) {
+    saas.setResponseForURI(uri, body, status);
+  }
+
+  void setResponseForURI(String uri, String body, int status) {
+    saas.setResponseForURI(uri, body, status);
+  }
 }

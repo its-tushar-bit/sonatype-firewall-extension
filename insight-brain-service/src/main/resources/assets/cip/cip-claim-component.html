@@ -43,7 +43,7 @@
                 <label class='control-label'>Classifier</label>
 
                 <div class='controls'>
-                  <input class='input-xlarge' type='text' ng-model='claimData.classifier' disablenav/>
+                  <input name='classifier' class='input-xlarge' type='text' ng-model='claimData.classifier' disablenav/>
                 </div>
               </div>
             </div>
@@ -54,7 +54,7 @@
                 <label class='control-label'>Extension</label>
 
                 <div class='controls'>
-                  <input class='input-xlarge' type='text' ng-model='claimData.extension' disablenav/>
+                  <input name='extension' class='input-xlarge' type='text' ng-model='claimData.extension' disablenav/>
                 </div>
               </div>
               <div class='control-group'
@@ -74,7 +74,7 @@
                 <label class='control-label'>Comment</label>
 
                 <div class='controls'>
-                  <textarea class='input-xlarge' ng-model='claimData.comment' style='height: 86px;'
+                  <textarea name='comment' class='input-xlarge' ng-model='claimData.comment' style='height: 86px;'
                             disablenav></textarea>
                 </div>
               </div>
@@ -86,17 +86,13 @@
           <td>
             <div class='controls' style='text-align: right;'>
               <button type='none' class='btn btn-danger' ng-show="claimData.identificationSource === 'Manual'"
-                      ng-click='revokeClaimSubmit()' disablenav>Revoke Claim
-              </button>
+                      ng-click='revokeClaimSubmit()' disablenav>Revoke Claim</button>
               <button type='none' class='btn' ng-show="claimData.identificationSource === 'Manual'"
-                      ng-disabled='!claimForm.$dirty' ng-click="resetClaimData()" disablenav>Cancel
-              </button>
+                      ng-disabled='!claimForm.$dirty' ng-click="resetClaimData()" disablenav>Cancel</button>
               <button type='none' class='btn btn-primary' ng-show="claimData.identificationSource === 'Manual'"
-                      ng-disabled='!claimForm.$dirty' ng-click="claimUpdateSubmit()" disablenav>Update
-              </button>
+                      ng-disabled='!claimForm.$dirty' ng-click="claimUpdateSubmit()" disablenav>Update</button>
               <button type='none' class='btn btn-primary' ng-show="claimData.identificationSource !== 'Manual'"
-                      ng-disabled='disableSubmit || !claimForm.$dirty' ng-click='claimSubmit()' disablenav>Claim
-              </button>
+                      ng-disabled='disableSubmit || !claimForm.$dirty' ng-click='claimSubmit()' disablenav>Claim</button>
             </div>
           </td>
         </tr>

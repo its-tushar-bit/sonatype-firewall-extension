@@ -68,11 +68,8 @@ class DashboardSpec
       
     and: 'stage type filters are shown'
       stageTypeFiltersDropdown.showDropdown()
-      stageTypeFiltersDropdown.dropdownCheck('Develop').displayed
-      stageTypeFiltersDropdown.dropdownCheck('Build').displayed
-      stageTypeFiltersDropdown.dropdownCheck('Stage Release').displayed
+      //note only checking for items available from every product type
       stageTypeFiltersDropdown.dropdownCheck('Release').displayed
-      stageTypeFiltersDropdown.dropdownCheck('Operate').displayed
       stageTypeFiltersDropdown.hideDropdown()
 
     when: 'dashboard filters are applied'

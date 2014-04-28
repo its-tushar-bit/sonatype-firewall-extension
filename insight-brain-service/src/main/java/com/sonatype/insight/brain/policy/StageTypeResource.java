@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.policy;
 
 import java.util.Collection;
 
+import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -14,7 +15,6 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.model.policy.StageType;
-import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,11 +27,18 @@ public class StageTypeResource
 
   private static final Logger log = LoggerFactory.getLogger(StageTypeResource.class);
 
+  private final StageTypeService stageTypeService;
+
+  @Inject
+  public StageTypeResource(final StageTypeService stageTypeService) {
+    this.stageTypeService = stageTypeService;
+  }
+
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   public Collection<StageType> getStageTypes() {
     log.debug("Received request to get all stage types");
 
-    return StageTypes.getAll();
+    return stageTypeService.getLicensedStageTypes();
   }
 }

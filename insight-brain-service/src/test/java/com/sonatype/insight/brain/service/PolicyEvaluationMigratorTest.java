@@ -72,7 +72,8 @@ public class PolicyEvaluationMigratorTest
     insightConfig = new InsightConfig();
     insightConfig.setSonatypeWork(tempFolderPath);
     insightWork = new InsightWork(insightConfig);
-    policyEvaluationMigrator = new PolicyEvaluationMigrator(insightWork, new TrendingReportCache(insightWork, new FileCleaner()));
+    policyEvaluationMigrator = new PolicyEvaluationMigrator(insightWork,
+        new TrendingReportCache(insightWork, new FileCleaner()));
 
     //provide evaluation logs and dummied up reports(zip has no content and the report.cache files are loaded) for test purposes
     FileUtils.copyDirectory(new File("target/test-classes/PolicyEvaluationMigratorTest"), sonatypeWork);

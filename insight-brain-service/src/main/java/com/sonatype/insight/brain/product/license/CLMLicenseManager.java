@@ -135,6 +135,15 @@ public class CLMLicenseManager
     return false;
   }
 
+  public boolean hasProduct(String productId) {
+    Set<String> products = licenseCache.getProducts();
+    return products != null && products.contains(productId);
+  }
+
+  public boolean hasEnforcementPoint(CLMEnforcementPoint enforcementPoint) {
+    return getEnforcementPoints().contains(enforcementPoint);
+  }
+
   /**
    * Get whether the license is currently valid
    * 
@@ -182,7 +191,11 @@ public class CLMLicenseManager
     throw new InvalidLicenseException("None of the enforcement points " + enforcementPoints + " is licensed!");
   }
 
-  Set<CLMEnforcementPoint> getEnforcementPoints() {
+  public Set<String> getProducts() {
+    return licenseCache.getProducts();
+  }
+
+  public Set<CLMEnforcementPoint> getEnforcementPoints() {
     Set<CLMEnforcementPoint> enforcementPoints = EnumSet.noneOf(CLMEnforcementPoint.class);
     Collections.addAll(enforcementPoints, licenseCache.getEnforcementPoints());
     return enforcementPoints;

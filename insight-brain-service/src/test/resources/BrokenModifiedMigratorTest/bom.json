@@ -1,0 +1,25 @@
+[ {
+  "time" : 1397658171562,
+  "user" : "admin",
+  "ip" : "0:0:0:0:0:0:0:1",
+  "where" : null,
+  "data" : {
+    "groupId" : "tomcat",
+    "artifactId" : "tomcat-util",
+    "version" : "5.5.23",
+    "hash" : null,
+    "modified" : true
+  }
+}, {
+  "time" : 1397657707486,
+  "user" : "admin",
+  "ip" : "0:0:0:0:0:0:0:1",
+  "where" : null,
+  "data" : [ {
+    "modified" : true,
+    "hash" : "848d7549ef7ec13ce546",
+    "groupId" : "org.apache.geronimo.framework",
+    "artifactId" : "geronimo-security",
+    "version" : "2.1"
+  } ]
+} ]

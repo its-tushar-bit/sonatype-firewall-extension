@@ -16,7 +16,6 @@ public class BomAudit
   private String groupId;
   private String artifactId;
   private String version;
-  private String hash;
   private boolean modified;
 
   public BomAudit() {
@@ -51,14 +50,6 @@ public class BomAudit
 
   public void setVersion(String version) {
     this.version = version;
-  }
-
-  public String getHash() {
-    return hash;
-  }
-
-  public void setHash(String hash) {
-    this.hash = hash;
   }
 
   public boolean isModified() {

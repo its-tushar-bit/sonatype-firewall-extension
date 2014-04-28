@@ -93,6 +93,9 @@ public class InsightBrainService
 
     ProcureRemovalMigrator procureRemovalMigrator = getInstance(ProcureRemovalMigrator.class);
     procureRemovalMigrator.migrate();
+
+    NullHashModifiedMigrator modifiedMigrator = getInstance(NullHashModifiedMigrator.class);
+    modifiedMigrator.migrate();
   }
 
   private static boolean validateTempDir() {

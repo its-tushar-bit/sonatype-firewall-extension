@@ -6,9 +6,11 @@
 package com.sonatype.insight.brain.testing.functional
 
 import com.sonatype.insight.brain.model.Application
+import com.sonatype.insight.brain.model.Color
 import com.sonatype.insight.brain.model.Organization
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType
+import com.sonatype.insight.brain.model.tag.Tag
 
 /**
  * Since 1.11
@@ -18,11 +20,15 @@ class DashboardSpec
 {
   static Organization org
   static Application firstApp
+  static Tag firstAppTag
   static Application secondApp
 
   def setupSpec() {
     org = temporaryEntity.newOrganization('DashboardSpec')
     firstApp = temporaryEntity.newApplication('DashboardSpecAppOne', 'DashboardSpecAppOne', org.id)
+    firstAppTag = temporaryEntity.newTag(org.id, 'DashboardSpecAppOneTag', Color.blue)
+    temporaryEntity.newApplicationTag(firstApp.id, firstAppTag.id)
+
     secondApp = temporaryEntity.newApplication('DashboardSpecAppTwo', 'DashboardSpecAppTwo', org.id)
 
     def policy = temporaryEntity.newPolicy(org.id, 'DashboardSpecPolicy')
@@ -72,14 +78,22 @@ class DashboardSpec
       stageTypeFiltersDropdown.dropdownCheck('Release').displayed
       stageTypeFiltersDropdown.hideDropdown()
 
+    and: 'application tag filters are shown'
+      applicationTagFiltersDropdown.showDropdown()
+      applicationTagFiltersDropdown.dropdownCheck(firstAppTag.name).displayed
+      applicationTagFiltersDropdown.areOptionsColored([(firstAppTag.name): "blue"])
+      applicationTagFiltersDropdown.hideDropdown()
+
     when: 'dashboard filters are applied'
       applicationFiltersDropdown.toggleOption(firstApp.name)
       applicationFiltersDropdown.toggleOption(secondApp.name)
+      applicationTagFiltersDropdown.toggleOption(firstAppTag.name)
       filterButtons.button('Apply').click()
 
     then: 'filters show up in readonly mode'
       waitFor { filterPanel.displayed }
-      applicationFilters.collect{ it.text() }.join('') == firstApp.name + ',' + secondApp.name
+      applicationFilters.collect{it.text()}.join('') == firstApp.name + ',' + secondApp.name
+      applicationTagFilters.text() == firstAppTag.name
   }
 
   def 'Risk Tables'() {
@@ -166,6 +180,6 @@ class DashboardSpec
     then: 'the tables are replaced by text indicating there are no results'
       waitFor { noDataAvailableHighest.displayed }
       noDataAvailableNewest.displayed
-      !filterPanel.displayed
+      filterPanel.displayed
   }
 }

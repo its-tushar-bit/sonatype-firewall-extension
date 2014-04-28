@@ -20,11 +20,14 @@ class DashboardPage
 
   static content = {
     filterPanelToggle { $('a', 'ng-click': 'toggleCollapse()') }
-    filterPanel(required: false) { $('div', 'ng-if': 'filters.applicationPublicIds.applied.length > 0') }
+    filterPanel(required: false) { $('.filter-readonly') }
     filterButtons(required: false) { module ButtonsModule, $('.filter-edit-buttons') }
 
     applicationFilters(required: false) {
       filterPanel.find('span', 'ng-repeat': 'applicationId in filters.applicationPublicIds.applied')
+    }
+    applicationTagFilters(required: false) {
+      filterPanel.find('span[ng-repeat="applicationTagId in filters.applicationTagIds.applied"]')
     }
 
     noAvailableApplications(required: false) { $('#no-permissions') }
@@ -34,6 +37,7 @@ class DashboardPage
     applicationFiltersDropdown(required: false) { module DropdownMultiSelectModule, $('span', items: 'applications') }
     policyThreatFiltersDropdown(required: false) { module DropdownMultiSelectModule, $('span', items: 'policyThreatTypes') }
     stageTypeFiltersDropdown(required: false) { module DropdownMultiSelectModule, $('span', items: 'stageTypes') }
+    applicationTagFiltersDropdown(required: false) { module DropdownMultiSelectModule, $('span[items="applicationTags"]') }
 
     highestRiskTable(required: false) { $('#highest-risk tr', 'ng-repeat': startsWith('risk in risks')) }
     newestViolationTable(required: false) { $('#newest-risk tr', 'ng-repeat': startsWith('risk in risks')) }

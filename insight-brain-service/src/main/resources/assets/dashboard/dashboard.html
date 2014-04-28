@@ -71,8 +71,13 @@
             <div class="span3">
               <h5>Stages</h5>
               <span id='stage-types' class='multi-dropdown' multi-select items='stageTypes'
-                    selected-ids='queuedStageTypeIds'
+                    selected-ids='filters.stageTypeIds.queued'
                     none-selected-text='All Stages'></span>
+            </div>
+            <div class='span3'>
+              <h5>Application Tags</h5>
+              <span id='application-tags' class='multi-dropdown' multi-select items='applicationTags'
+                    selected-ids='filters.applicationTagIds.queued' none-selected-text='All Applications'></span>
             </div>
           </div>
           <div class='filter-edit-buttons'>
@@ -95,10 +100,16 @@
             {{policyThreatTypeNameFor(policyThreatTypeId)}}{{!$last ? "," : ""}}
           </span>
         </div>
-        <div class="span3" style="display: inline;" ng-if='appliedStageTypeIds.length > 0'>
+        <div class="span3" style="display: inline;" ng-if='filters.stageTypeIds.applied.length > 0'>
           <span><strong>Stages</strong></span>
-          <span ng-repeat="stageTypeId in appliedStageTypeIds">
+          <span ng-repeat="stageTypeId in filters.stageTypeIds.applied">
             {{stageTypeNameFor(stageTypeId)}}{{!$last ? "," : ""}}
+          </span>
+        </div>
+        <div class='span3' ng-if='filters.applicationTagIds.applied.length > 0'>
+          <span><strong>Application Tags</strong></span>
+          <span ng-repeat='applicationTagId in filters.applicationTagIds.applied'>
+            {{applicationTagNameFor(applicationTagId)}}{{!$last ? "," : ""}}
           </span>
         </div>
       </div>

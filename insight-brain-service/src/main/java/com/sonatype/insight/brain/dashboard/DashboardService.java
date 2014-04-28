@@ -56,6 +56,14 @@ public class DashboardService
 
   private static final int DEFAULT_NEWEST_POLICY_VIOLATION_TIME_RANGE = 30;
 
+  private static final Function<Application, String> applicationPublicIdSelector = new Function<Application, String>()
+  {
+    @Override
+    public String apply(final Application application) {
+      return application.getPublicId();
+    }
+  };
+
   private ApplicationDAO applicationDAO;
 
   private ApplicationService applicationService;
@@ -111,14 +119,7 @@ public class DashboardService
 
     if (!CollectionUtils.isEmpty(tagIds)) {
       List<Application> filteredApplications = applicationDAO.getByPublicIdsThatHaveTags(applicationPublicIds, tagIds);
-
-      applicationPublicIds = new HashSet<>(Lists.transform(filteredApplications, new Function<Application, String>()
-      {
-        @Override
-        public String apply(final Application application) {
-          return application.getPublicId();
-        }
-      }));
+      applicationPublicIds = new HashSet<>(Lists.transform(filteredApplications, applicationPublicIdSelector));
     }
 
     for (String applicationPublicId : applicationPublicIds) {
@@ -150,13 +151,7 @@ public class DashboardService
     List<Application> applications = applicationService.getApplications();
 
     if (!CollectionUtils.isEmpty(tagIds)) {
-      Set<String> applicationPublicIds = new HashSet<>(Lists.transform(applications, new Function<Application, String>()
-      {
-        @Override
-        public String apply(final Application application) {
-          return application.getPublicId();
-        }
-      }));
+      Set<String> applicationPublicIds = new HashSet<>(Lists.transform(applications, applicationPublicIdSelector));
       applications = applicationDAO.getByPublicIdsThatHaveTags(applicationPublicIds, tagIds);
     }
 

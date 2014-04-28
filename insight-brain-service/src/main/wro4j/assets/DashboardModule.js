@@ -29,9 +29,12 @@
       stageTypeIds: {
         applied: [],
         queued: []
+      },
+      applicationTagIds: {
+        applied: [],
+        queued: []
       }
     };
-
     $scope.maxResults = 20;
 
     $scope.noDataHighestRiskMessage = 'No data available given the applied filters and available permissions.';
@@ -44,7 +47,8 @@
         applicationPublicIds: $scope.filters.applicationPublicIds.applied,
         policyThreatCategories: $scope.filters.policyThreatTypes.applied.length > 0 ?
                                 $scope.filters.policyThreatTypes.applied.join(',') : null,
-        stageIds: $scope.filters.stageTypeIds.applied
+        stageIds: $scope.filters.stageTypeIds.applied,
+        tagIds: $scope.filters.applicationTagIds.applied
       };
       var promises = [
         $http.get(CLMLocations.getPolicyViolationsUrl(), {
@@ -67,11 +71,13 @@
     function loadFilters() {
       var promises = [
         ApplicationStore.get(),
-        StageTypeStore.get()
+        StageTypeStore.get(),
+        $http.get(CLMLocations.getApplicationTags())
       ];
       $q.all(promises).then(function(data) {
         $scope.applications = data[0];
         $scope.stageTypes = data[1];
+        $scope.applicationTags = data[2].data;
 
         $scope.policyThreatTypes = [
           {id:'security', name:'Security'},
@@ -90,7 +96,6 @@
           $scope.filters[filter].applied = angular.copy($scope.filters[filter].queued);
         }
       }
-
       $scope.doLoad();
       $scope.toggleCollapse();
     };
@@ -126,6 +131,15 @@
       for (var i = 0; i < $scope.stageTypes.length; i++) {
         if ($scope.stageTypes[i].id === stageTypeId) {
           return $scope.stageTypes[i].name;
+        }
+      }
+    };
+
+    $scope.applicationTagNameFor = function(applicationTagId) {
+      for (var i = 0; i < $scope.applicationTags.length; i++) {
+        var applicationTag = $scope.applicationTags[i];
+        if (applicationTag.id === applicationTagId) {
+          return applicationTag.name;
         }
       }
     };

@@ -15,6 +15,7 @@ import javax.persistence.EntityManager;
 
 import com.sonatype.insight.brain.api.ApiApplicationAdapter;
 import com.sonatype.insight.brain.api.dto.ApiApplicationDTO;
+import com.sonatype.insight.brain.dataaccess.InvalidApplicationException;
 import com.sonatype.insight.brain.dataaccess.tag.ApplicationTagDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.security.Permission;
@@ -103,6 +104,9 @@ public class ApiApplicationService
 
   private void addTags(final EntityManager entityManager, final List<ApplicationTag> applicationTags) {
     for (ApplicationTag applicationTag : applicationTags) {
+      if (applicationTag.getTagId() == null) {
+        throw new InvalidApplicationException("Application tag must have an ID.");
+      }
       applicationTagDAO.insert(entityManager, applicationTag);
     }
   }

@@ -6,8 +6,8 @@
 /**
  * @since 1.7
  */
-@Grab(group = 'com.sonatype.insight.brain', module = 'insight-brain-functional-test', version = '1.8.1-SNAPSHOT', changing = true)
-@Grab('org.seleniumhq.selenium:selenium-firefox-driver:2.39.0')
+@Grab(group = 'com.sonatype.insight.brain', module = 'insight-brain-functional-test', version = '1.11.0-SNAPSHOT', changing = true)
+@Grab('org.seleniumhq.selenium:selenium-firefox-driver:2.41.0')
 import com.sonatype.insight.brain.testing.functional.*
 import com.sonatype.insight.brain.testing.functional.configuration.LdapConfigurationPage
 import com.sonatype.insight.brain.testing.functional.configuration.LdapConnectionConfigurationPage

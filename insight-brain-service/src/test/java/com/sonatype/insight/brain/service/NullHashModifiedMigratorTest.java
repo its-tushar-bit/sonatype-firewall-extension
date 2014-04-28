@@ -39,7 +39,7 @@ public class NullHashModifiedMigratorTest
 
   private InsightWork insightWork;
 
-  private NullHashModifiedMigrator brokenModifiedMigrator;
+  private NullHashModifiedMigrator nullHashModifiedMigrator;
 
   private Application app;
 
@@ -50,12 +50,12 @@ public class NullHashModifiedMigratorTest
     insightConfig = new InsightConfig();
     insightConfig.setSonatypeWork(tempFolderPath);
     insightWork = new InsightWork(insightConfig);
-    brokenModifiedMigrator = new NullHashModifiedMigrator(insightWork);
+    nullHashModifiedMigrator = new NullHashModifiedMigrator(insightWork);
 
-    app = tempEntity.newApplicationWithParent("BrokenModifiedMigratorTest");
+    app = tempEntity.newApplicationWithParent("NullHashModifiedMigratorTest");
     File auditDir = insightWork.getAuditDir(app.getId());
     auditDir.mkdir();
-    FileUtils.copyFile(new File("target/test-classes/BrokenModifiedMigratorTest/bom.json"), new File(auditDir,
+    FileUtils.copyFile(new File("target/test-classes/NullHashModifiedMigratorTest/bom.json"), new File(auditDir,
         "bom.json"));
   }
 
@@ -68,7 +68,7 @@ public class NullHashModifiedMigratorTest
     assertNotModified("tomcat", "tomcat-util", "5.5.23", augmentedBom);
     assertModified("org.apache.geronimo.framework", "geronimo-security", "2.1", augmentedBom);
 
-    brokenModifiedMigrator.migrate();
+    nullHashModifiedMigrator.migrate();
 
     auditStore = JsonUtils.fileStore(insightWork.getAuditDir(app.getId()));
     bom = createBom();
@@ -109,11 +109,10 @@ public class NullHashModifiedMigratorTest
   private static boolean isModified(String groupId, String artifactId, String version, ArrayNode nodes)
       throws IOException
   {
-    for (int i = 0; i < nodes.size(); i++) {
-      JsonNode node = nodes.get(i);
+    for (JsonNode node : nodes) {
       if (groupId.equals(node.get("groupId").asText()) && artifactId.equals(node.get("artifactId").asText())
           && version.equals(node.get("version").asText())) {
-        return node.has("modified") && node.get("modified").asBoolean(false);
+        return node.path("modified").asBoolean(false);
       }
     }
     throw new IllegalArgumentException("Unable to find " + groupId + ":" + artifactId + ":" + version);

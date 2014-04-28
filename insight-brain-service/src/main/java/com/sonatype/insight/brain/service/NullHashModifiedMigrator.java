@@ -11,7 +11,9 @@ import java.io.IOException;
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -28,11 +30,13 @@ public class NullHashModifiedMigrator
 {
   private static final Logger log = LoggerFactory.getLogger(NullHashModifiedMigrator.class);
 
-  static final String MARKER_FILE_NAME = "license-override-modified";
+  static final String MARKER_FILE_NAME = "null-hash-license-modified";
 
   private InsightWork work;
 
   private ApplicationDAO appDAO = new ApplicationDAO();
+
+  private OrganizationDAO orgDAO = new OrganizationDAO();
 
   @Inject
   public NullHashModifiedMigrator(InsightWork work) {
@@ -40,7 +44,7 @@ public class NullHashModifiedMigrator
   }
 
   void migrate() throws IOException {
-    File markerFile = new File(work.getWorkDir(), MARKER_FILE_NAME);
+    File markerFile = new File(work.getAuditDir(), MARKER_FILE_NAME);
 
     if (markerFile.exists()) {
       return;
@@ -51,34 +55,47 @@ public class NullHashModifiedMigrator
     for (Application app : appDAO.getAll()) {
       log.debug("Checking application {}", app.getPublicId());
 
-      File bom = new File(work.getAuditDir(app.getId()), "bom.json");
-      if (bom.exists()) {
-        try {
-          final ArrayNode content = JsonUtils.read(bom);
+      try {
+        migrate(app.getId());
+      }
+      catch (IOException e) {
+        log.error("Failed to update modified flags for application {}", app.getPublicId(), e);
+      }
+    }
+    for (Organization org : orgDAO.getAll()) {
+      log.debug("Checking application {}", org.getId());
 
-          for (int i=0; i<content.size(); i++) {
-            ObjectNode node = (ObjectNode) content.get(i);
-
-            log.debug("Checking node {}", node.toString());
-            if (node.has("data") && node.get("data").isObject()) {
-              node = (ObjectNode) node.get("data");
-              if (node.has("hash") && node.get("hash").isNull()) {
-                log.debug("Removing hash");
-                node.remove("hash");
-              }
-            }
-          }
-          JsonUtils.write(bom, content);
-        }
-        catch (IOException e) {
-          log.error("Failed to update modified flags for application {}", app.getPublicId(), e);
-        }
+      try {
+        migrate(org.getId());
+      }
+      catch (IOException e) {
+        log.error("Failed to update modified flags for organization {}", org.getName(), e);
       }
     }
     log.info("Finished updating modified flags in {} ms.", System.currentTimeMillis() - start);
 
     markerFile.getParentFile().mkdirs();
     markerFile.createNewFile();
+  }
 
+  private void migrate(String id) throws IOException {
+    File bom = new File(work.getAuditDir(id), "bom.json");
+    if (bom.exists()) {
+      final ArrayNode content = JsonUtils.read(bom);
+
+      for (int i = 0; i < content.size(); i++) {
+        ObjectNode node = (ObjectNode) content.get(i);
+
+        log.debug("Checking node {}", node);
+        if (node.path("data").isObject()) {
+          node = (ObjectNode) node.get("data");
+          if (node.path("hash").isNull()) {
+            log.debug("Removing hash");
+            node.remove("hash");
+          }
+        }
+      }
+      JsonUtils.write(bom, content);
+    }
   }
 }

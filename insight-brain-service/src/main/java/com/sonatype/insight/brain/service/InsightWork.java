@@ -34,6 +34,10 @@ public class InsightWork
     return new File(getScanDir(appId), "scan-" + scanId + ".xml.gz");
   }
 
+  public File getAuditDir() {
+    return new File(insightConfig.getSonatypeWork(), "audit");
+  }
+
   public File getAuditDir(final String appId) {
     return new File(insightConfig.getSonatypeWork(), "audit/" + appId);
   }

@@ -94,21 +94,15 @@ public class NullHashModifiedMigratorTest
     return node;
   }
 
-  private static void assertModified(String groupId, String artifactId, String version, ArrayNode store)
-      throws IOException
-  {
+  private static void assertModified(String groupId, String artifactId, String version, ArrayNode store) {
     Assert.assertTrue(isModified(groupId, artifactId, version, store));
   }
 
-  private static void assertNotModified(String groupId, String artifactId, String version, ArrayNode store)
-      throws IOException
-  {
+  private static void assertNotModified(String groupId, String artifactId, String version, ArrayNode store) {
     Assert.assertFalse(isModified(groupId, artifactId, version, store));
   }
 
-  private static boolean isModified(String groupId, String artifactId, String version, ArrayNode nodes)
-      throws IOException
-  {
+  private static boolean isModified(String groupId, String artifactId, String version, ArrayNode nodes) {
     for (JsonNode node : nodes) {
       if (groupId.equals(node.get("groupId").asText()) && artifactId.equals(node.get("artifactId").asText())
           && version.equals(node.get("version").asText())) {

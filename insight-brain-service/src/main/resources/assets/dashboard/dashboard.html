@@ -14,7 +14,7 @@
       <th>POLICY</th>
       <th>APPLICATION</th>
       <th>COMPONENT</th>
-      <th ng-if='riskId == "newest-risk"'>
+      <th id='{{riskId}}-time-header' ng-if='riskId === "newest-risk"'>
         <a ng-click='setSort("time")'>
           AGE
           <i class='sonatype-icons' ng-class="{ 'up' : orderColumn == 'time' && orderDirection,
@@ -38,7 +38,7 @@
         {{risk.groupId}}<span class='wrap-force-break'> : </span>{{risk.artifactId}}<span class='wrap-force-break'> : </span>{{risk.version}}
       </td>
       <td ng-if='!risk.groupId'><em>Unknown</em></td>
-      <td ng-if='riskId == "newest-risk"'>{{risk.time | ago}}</td>
+      <td ng-if='riskId === "newest-risk"'>{{risk.time | ago}}</td>
     </tr>
     <tr ng-if='risks.length === 0'>
       <td colspan='5' class='clm-bar-text-offset'>

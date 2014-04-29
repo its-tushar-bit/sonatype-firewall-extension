@@ -295,6 +295,12 @@ a {
   }
 }
 
+@media (max-width: 1365px) {
+  .dashboard-content .span6 {
+    width: 100%;
+  }
+}
+
 .left-align-h1 {
   margin-left: -2px;
 }
@@ -328,17 +334,8 @@ a {
   border-top: 0px;
 }
 
-.dashboard-content .span6 {
-  min-width: 660px;
-}
-
-.dashboard-content .row-fluid [class*="span"] {
-  margin-left: 0px;
-  margin-right: 2.127659574468085%;
-}
-
-.dashboard-content .row-fluid [class*="span"]:nth-last-child(1) {
-  margin-right: 0px;
+.dashboard-content .table tbody>tr:nth-child(odd)>td {
+  background-color: #E8E8E8;
 }
 
 .dashboard-filters {
@@ -397,6 +394,10 @@ a {
 
 .dashboard-content th[id$='-threat-header'] {
   min-width: 45px;
+}
+
+.dashboard-content th[id$='-time-header'] {
+  min-width: 80px;
 }
 
 .clm-bar {

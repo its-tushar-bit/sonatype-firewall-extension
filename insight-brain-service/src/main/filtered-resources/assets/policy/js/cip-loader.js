@@ -191,7 +191,7 @@
   }
 
   var head = $('head'),
-       scripts = ['assets/lib/datepicker/bootstrap-datepicker.js', 'assets/lib/angular/angular-route-${angularjs.version}.min.js',
+       scripts = ['assets/lib/datepicker/bootstrap-datepicker.js', 'assets/lib/angular-${angularjs.version}/angular-route.min.js',
         'assets/lib/ui-bootstrap-tpls-0.6.0.min.js', 'assets/lib/Base64.js', 'cip/cip-label-editor.js',
         'cip/cip-policy-violations.js', 'cip/cip-claim-component.js', 'cip/cip-license-editor.js',
         'cip/cip-version-graph.js', 'assets/version-graph/version-graph.js', 'assets/js/util.js'],
@@ -201,7 +201,7 @@
   applyHttpOverride();
 
   if (!window.angular) {
-    loadScript(null, 'assets/lib/angular/angular-${angularjs.version}.min.js', function() {
+    loadScript(null, 'assets/lib/angular-${angularjs.version}/angular.min.js', function() {
       createApplicationIdProvider();
       $.each(scripts, loadScript);
     });

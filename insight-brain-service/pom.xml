@@ -21,7 +21,7 @@
     <freemarker.version>2.3.19</freemarker.version>
     <wro4j.version>1.7.3</wro4j.version>
     <licensing.version>1.4</licensing.version>
-    <angularjs.version>1.2.12</angularjs.version>
+    <angularjs.version>1.2.16</angularjs.version>
     <jasmine.version>1.3.1.4</jasmine.version>
     <saga.version>1.5.2</saga.version>
     <jasmine.brain.id>test-brain-assets</jasmine.brain.id>
@@ -523,7 +523,7 @@
               <sourceIncludes>
                 <include>resources/assets/assets/lib/jquery/jquery-*.min.js</include>
                 <include>resources/assets/assets/lib/bootstrap/bootstrap-*.min.js</include>
-                <include>resources/assets/assets/lib/angular/angular-${angularjs.version}.js</include>
+                <include>resources/assets/assets/lib/angular-${angularjs.version}/angular.js</include>
                 <include>resources/assets/cip/*.js</include>
                 <include>resources/assets/assets/lib/ui-bootstrap-tpls-*.min.js</include>
                 <include>resources/assets/assets/lib/datepicker/bootstrap-datepicker.js</include>
@@ -549,9 +549,9 @@
               <sourceIncludes>
                 <include>resources/assets/assets/lib/jquery/jquery-*.min.js</include>
                 <include>resources/assets/assets/lib/bootstrap/bootstrap-*.min.js</include>
-                <include>resources/assets/assets/lib/angular/angular-${angularjs.version}.min.js</include>
-                <include>resources/assets/assets/lib/angular/angular-route-${angularjs.version}.min.js</include>
-                <include>resources/assets/assets/lib/angular/angular-sanitize-${angularjs.version}.min.js</include>
+                <include>resources/assets/assets/lib/angular-${angularjs.version}/angular.min.js</include>
+                <include>resources/assets/assets/lib/angular-${angularjs.version}/angular-route.min.js</include>
+                <include>resources/assets/assets/lib/angular-${angularjs.version}/angular-sanitize.min.js</include>
                 <include>resources/assets/assets/lib/ui-bootstrap-tpls-0.3.0.min.js</include>
                 <include>resources/assets/assets/lib/X-editable/bootstrap-editable.min.js</include>
                 <include>resources/assets/assets/**/*.js</include>
@@ -585,8 +585,8 @@
             <configuration>
               <sourceIncludes>
                 <include>resources/assets/assets/lib/jquery/jquery-*.min.js</include>
-                <include>resources/assets/assets/lib/angular/angular-${angularjs.version}.min.js</include>
-                <include>resources/assets/assets/lib/angular/angular-route-${angularjs.version}.min.js</include>
+                <include>resources/assets/assets/lib/angular-${angularjs.version}/angular.min.js</include>
+                <include>resources/assets/assets/lib/angular-${angularjs.version}/angular-route.min.js</include>
                 <include>brain-client/*.js</include>
                 <include>wro4j/version-graph/protovis.min.js</include>
                 <include>wro4j/version-graph/appcheck.js</include>

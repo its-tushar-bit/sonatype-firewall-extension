@@ -36,7 +36,7 @@ public class StageTypeServiceTest
   private CLMLicenseManager clmLicenseManager;
 
   @Inject
-  TestProductLicenseManager productLicenseManager;
+  private TestProductLicenseManager productLicenseManager;
 
   @Test
   public void checkStageTypes_RiskRemediation() throws Exception {
@@ -71,9 +71,8 @@ public class StageTypeServiceTest
   @Test
   public void checkStageTypes_Legacy() throws Exception {
     productLicenseManager.setProducts("");
-    productLicenseManager
-        .setEnforcementPoints(CLMEnforcementPoint.Build.Build, CLMEnforcementPoint.Develop, CLMEnforcementPoint.Release,
-            CLMEnforcementPoint.StageRelease);
+    productLicenseManager.setEnforcementPoints(CLMEnforcementPoint.Build, CLMEnforcementPoint.Develop,
+        CLMEnforcementPoint.Release, CLMEnforcementPoint.StageRelease);
     clmLicenseManager.installLicense(null);
 
     assertThat(stageTypeService.getLicensedStageTypes(),

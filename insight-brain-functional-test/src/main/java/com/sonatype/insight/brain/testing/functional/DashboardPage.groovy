@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.testing.functional
 
 import com.sonatype.insight.brain.testing.functional.modules.ButtonsModule
 import com.sonatype.insight.brain.testing.functional.modules.DropdownMultiSelectModule
+import com.sonatype.insight.brain.testing.functional.modules.ThreatTableModule
 
 /**
  * Since 1.11
@@ -39,14 +40,7 @@ class DashboardPage
     stageTypeFiltersDropdown(required: false) { module DropdownMultiSelectModule, $('span', items: 'stageTypes') }
     applicationTagFiltersDropdown(required: false) { module DropdownMultiSelectModule, $('span[items="applicationTags"]') }
 
-    highestRiskTable(required: false) { $('#highest-risk tr', 'ng-repeat': startsWith('risk in risks')) }
-    newestViolationTable(required: false) { $('#newest-risk tr', 'ng-repeat': startsWith('risk in risks')) }
-    threatLevelHeader(required: false) { $('#highest-risk-threat-header a') }
-    policyViolation { table, i -> table[i] }
-    policyViolationRisk { table, i -> table[i].find('td')[1] }
-    policyViolationPolicy { table, i -> table[i].find('td')[2] }
-    policyViolationApplication { table, i -> table[i].find('td')[3] }
-    policyViolationComponent { table, i -> table[i].find('td')[4] }
-    policyViolationTime(required: false) { table, i -> table[i].find('td')[5] }
+    highestRiskTable(required: false) { module ThreatTableModule, $('#highest-risk') }
+    newestViolationTable(required: false) { module ThreatTableModule, $('#newest-risk') }
   }
 }

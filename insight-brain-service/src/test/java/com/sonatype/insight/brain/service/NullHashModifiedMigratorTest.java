@@ -53,28 +53,30 @@ public class NullHashModifiedMigratorTest
     nullHashModifiedMigrator = new NullHashModifiedMigrator(insightWork);
 
     app = tempEntity.newApplicationWithParent("NullHashModifiedMigratorTest");
-    File auditDir = insightWork.getAuditDir(app.getId());
-    auditDir.mkdir();
-    FileUtils.copyFile(new File("target/test-classes/NullHashModifiedMigratorTest/bom.json"), new File(auditDir,
-        "bom.json"));
+    copyBom("/NullHashModifiedMigratorTest/app-bom.json", app.getId());
+    copyBom("/NullHashModifiedMigratorTest/org-bom.json", app.getOrganizationId());
   }
 
   @Test
   public void testMigrator() throws Exception {
-    JsonStore auditStore = JsonUtils.fileStore(insightWork.getAuditDir(app.getId()));
+    JsonStore appAuditStore = JsonUtils.fileStore(insightWork.getAuditDir(app.getId()));
+    JsonStore orgAuditStore = JsonUtils.fileStore(insightWork.getAuditDir(app.getOrganizationId()));
     ArrayNode bom = createBom();
-    ArrayNode augmentedBom = auditStore.augment(bom, "bom.json");
+    ArrayNode augmentedBom = appAuditStore.augment(bom, "bom.json");
 
-    assertNotModified("tomcat", "tomcat-util", "5.5.23", augmentedBom);
-    assertModified("org.apache.geronimo.framework", "geronimo-security", "2.1", augmentedBom);
+    assertNotModified("tomcat", "tomcat-util", "5.5.23", augmentedBom); // null hash from app
+    assertNotModified("org.apache.geronimo.framework", "geronimo-security", "2.2", augmentedBom); // null hash from org
+    assertModified("org.apache.geronimo.framework", "geronimo-security", "2.1", augmentedBom); // hash from app
 
     nullHashModifiedMigrator.migrate();
 
-    auditStore = JsonUtils.fileStore(insightWork.getAuditDir(app.getId()));
+    appAuditStore = JsonUtils.fileStore(insightWork.getAuditDir(app.getId()));
     bom = createBom();
-    augmentedBom = auditStore.augment(bom, "bom.json");
+    augmentedBom = orgAuditStore.augment(bom, "bom.json");
+    augmentedBom = appAuditStore.augment(augmentedBom, "bom.json");
 
     assertModified("tomcat", "tomcat-util", "5.5.23", augmentedBom);
+    assertModified("org.apache.geronimo.framework", "geronimo-security", "2.2", augmentedBom);
     assertModified("org.apache.geronimo.framework", "geronimo-security", "2.1", augmentedBom);
   }
 
@@ -82,6 +84,7 @@ public class NullHashModifiedMigratorTest
     ArrayNode node = new ArrayNode(JsonNodeFactory.instance);
     node.add(createGav("tomcat", "tomcat-util", "5.5.23", "555d7549ef7ec13ce546"));
     node.add(createGav("org.apache.geronimo.framework", "geronimo-security", "2.1", "848d7549ef7ec13ce546"));
+    node.add(createGav("org.apache.geronimo.framework", "geronimo-security", "2.2", "aaaa7549ef7ec13ce546"));
     return node;
   }
 
@@ -110,5 +113,11 @@ public class NullHashModifiedMigratorTest
       }
     }
     throw new IllegalArgumentException("Unable to find " + groupId + ":" + artifactId + ":" + version);
+  }
+
+  private void copyBom(String source, String destinationId) throws IOException {
+    File appAuditDir = insightWork.getAuditDir(destinationId);
+    appAuditDir.mkdir();
+    FileUtils.copyFile(new File(getClass().getResource(source).getFile()), new File(appAuditDir, "bom.json"));
   }
 }

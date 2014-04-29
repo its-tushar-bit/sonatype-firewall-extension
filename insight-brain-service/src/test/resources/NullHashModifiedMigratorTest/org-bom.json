@@ -1,0 +1,13 @@
+[ {
+  "time" : 1397657707486,
+  "user" : "admin",
+  "ip" : "0:0:0:0:0:0:0:1",
+  "where" : null,
+  "data" : {
+    "modified" : true,
+    "hash" : null,
+    "groupId" : "org.apache.geronimo.framework",
+    "artifactId" : "geronimo-security",
+    "version" : "2.2"
+  }
+} ]

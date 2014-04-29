@@ -6,8 +6,8 @@
       <th id='{{riskId}}-threat-header' colspan='2' class='clm-bar-text-offset'>
         <a ng-click='setSort("threatLevel")'>
           RISK
-          <i ng-class="{ 'sonatype-icons down' : orderColumn == 'threatLevel' && orderDirection,
-            'sonatype-icons up' : orderColumn == 'threatLevel' && !orderDirection,
+          <i class='sonatype-icons' ng-class="{ 'down' : orderColumn == 'threatLevel' && orderDirection,
+            'up' : orderColumn == 'threatLevel' && !orderDirection,
             'emptyIconGlyph' : orderColumn != 'threatLevel' }"></i>
         </a>
       </th>
@@ -17,8 +17,8 @@
       <th ng-if='riskId == "newest-risk"'>
         <a ng-click='setSort("time")'>
           AGE
-          <i ng-class="{ 'sonatype-icons up' : orderColumn == 'time' && orderDirection,
-            'sonatype-icons down' : orderColumn == 'time' && !orderDirection,
+          <i class='sonatype-icons' ng-class="{ 'up' : orderColumn == 'time' && orderDirection,
+            'down' : orderColumn == 'time' && !orderDirection,
             'emptyIconGlyph' : orderColumn != 'time' }"></i>
         </a>
       </th>

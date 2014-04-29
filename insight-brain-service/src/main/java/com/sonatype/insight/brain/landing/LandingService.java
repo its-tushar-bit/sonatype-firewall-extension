@@ -32,7 +32,7 @@ public class LandingService
    */
   public URI getDestination() {
     UriBuilder uriBuilder = baseUrl.redirect();
-    uriBuilder.path(InsightBrainService.BRAIN_ASSET_PATH.substring(1) + "index.html").fragment("/reports");
+    uriBuilder.path(InsightBrainService.BRAIN_ASSET_PATH.substring(1) + "index.html").fragment("/reports/violations");
     return uriBuilder.build();
   }
 }

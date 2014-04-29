@@ -108,6 +108,7 @@ class DashboardSpec
   def 'Highest Risk Table can be sorted'() {
     when: 'highest risk table is shown'
       waitFor { highestRiskTable.displayed }
+      waitFor { highestRiskTable.rows.size() >= 2 }
 
     then: 'risks are sorted by descending threat level'
       highestRiskTable.rows[0].risk == 10
@@ -124,6 +125,7 @@ class DashboardSpec
   def 'Newest Risk table can be sorted by age'() {
     when: 'the newest risk table is shown'
       waitFor{ newestViolationTable.displayed }
+      waitFor { newestViolationTable.rows.size() >= 2 }
 
     then: 'risks are sorted by descending threat level, with the most recent results shown first'
       newestViolationTable.rows[0].risk == 10
@@ -142,10 +144,10 @@ class DashboardSpec
   def 'Highest Risk Table can be filtered'() {
     when: 'highest risk table is shown'
       waitFor { highestRiskTable.displayed }
+      waitFor { highestRiskTable.rows.size() == 2 }
 
     then: 'policy violations are listed by threat level'
       !noDataAvailableHighest.displayed
-      highestRiskTable.rows.size() == 2
 
       highestRiskTable.rows[0].risk == 10
       highestRiskTable.rows[0].policy == 'DashboardSpecPolicy'
@@ -175,10 +177,10 @@ class DashboardSpec
   def 'Newest Risk Table can be filtered'() {
     when: 'newest risk table is shown'
       waitFor { newestViolationTable.displayed }
+      waitFor { newestViolationTable.rows.size() == 2 }
 
     then: 'policy violations are listed by threat level'
       !noDataAvailableNewest.displayed
-      newestViolationTable.rows.size() == 2
 
       newestViolationTable.rows[0].risk == 10
       newestViolationTable.rows[0].policy == 'DashboardSpecPolicy'

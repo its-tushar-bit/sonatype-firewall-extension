@@ -43,6 +43,7 @@ public class CIResource
   /**
    * @deprecated Use ApplicationResource.validateApplicationPublicId() instead.
    */
+  @Deprecated
   @GET
   @Path("validate/{applicationPublicId}")
   @Produces(MediaType.TEXT_PLAIN)

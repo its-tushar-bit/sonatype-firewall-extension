@@ -458,8 +458,9 @@ public final class Report
   }
 
   /**
-   * @deprecated As of INSIGHT-4409, key findings are now longer included in the reports.
+   * @deprecated As of INSIGHT-4409, key findings are no longer included in the reports.
    */
+  @Deprecated
   private static void filterKeyFindings(final ObjectNode data, final ContainerNode<?> security) {
     final Set<String> textSet = new HashSet<String>();
 

@@ -83,6 +83,7 @@ public class LdapServer
    * 
    * @deprecated This method should not be used explicitly.
    */
+  @Deprecated
   @SuppressWarnings("unused")
   private void setNameLowercaseNoWhitespace(String nameLowercaseNoWhitespace) {
   }

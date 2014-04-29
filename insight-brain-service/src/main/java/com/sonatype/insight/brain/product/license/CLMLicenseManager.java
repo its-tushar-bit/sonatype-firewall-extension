@@ -239,7 +239,7 @@ public class CLMLicenseManager
     Set<String> features = new LinkedHashSet<String>();
     if (version < 1) {
       // legacy license without product info
-      if (!isNexusClmLicense(enforcementPoints)) {
+      if (!isLegacyNexusClmLicense(enforcementPoints)) {
         features.add(FEATURE_POLICY_MONITORING);
       }
     }
@@ -256,7 +256,11 @@ public class CLMLicenseManager
     notifyListeners();
   }
 
-  private static boolean isNexusClmLicense(Set<CLMEnforcementPoint> enforcementPoints) {
+  public boolean isLegacyNexusClmLicense() {
+    return isLegacyNexusClmLicense(getEnforcementPoints());
+  }
+
+  private boolean isLegacyNexusClmLicense(Set<CLMEnforcementPoint> enforcementPoints) {
     enforcementPoints = EnumSet.copyOf(enforcementPoints);
     enforcementPoints.remove(CLMEnforcementPoint.StageRelease);
     enforcementPoints.remove(CLMEnforcementPoint.Release);

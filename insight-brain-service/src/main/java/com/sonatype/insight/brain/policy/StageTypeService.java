@@ -15,6 +15,7 @@ import javax.inject.Named;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.DevelopStageType;
+import com.sonatype.insight.brain.model.policy.stages.OperateStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.brain.model.policy.stages.StageReleaseStageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
@@ -73,6 +74,10 @@ public class StageTypeService
     }
     if (licenseManager.hasEnforcementPoint(CLMEnforcementPoint.StageRelease)) {
       types.add(StageTypes.getById(StageReleaseStageType.ID));
+    }
+
+    if (!licenseManager.isLegacyNexusClmLicense()) {
+      types.add(StageTypes.getById(OperateStageType.ID));
     }
 
     return types;

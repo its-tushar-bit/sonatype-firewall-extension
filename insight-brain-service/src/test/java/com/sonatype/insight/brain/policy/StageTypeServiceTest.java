@@ -77,7 +77,19 @@ public class StageTypeServiceTest
 
     assertThat(stageTypeService.getLicensedStageTypes(),
         containsInAnyOrder(StageTypes.getById(BuildStageType.ID), StageTypes.getById(DevelopStageType.ID),
-            StageTypes.getById(ReleaseStageType.ID), StageTypes.getById(StageReleaseStageType.ID))
+            StageTypes.getById(ReleaseStageType.ID), StageTypes.getById(StageReleaseStageType.ID),
+            StageTypes.getById(OperateStageType.ID))
+    );
+  }
+
+  @Test
+  public void checkStageTypes_LegacyNexus() throws Exception {
+    productLicenseManager.setProducts("");
+    productLicenseManager.setEnforcementPoints(CLMEnforcementPoint.Release, CLMEnforcementPoint.StageRelease);
+    clmLicenseManager.installLicense(null);
+
+    assertThat(stageTypeService.getLicensedStageTypes(),
+        containsInAnyOrder(StageTypes.getById(ReleaseStageType.ID), StageTypes.getById(StageReleaseStageType.ID))
     );
   }
 }

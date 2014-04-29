@@ -17,6 +17,7 @@
      filtered: 'src/main/filtered-resources/assets',
      gruntFiltered: 'grunt/filtered',
      assets: 'src/main/wro4j',
+     brainClientAssets: 'src/main/brain-client',
      dist: 'grunt/working/dist',
      tmp: 'grunt/working/.tmp',
      debug: 'grunt/working/debug'
@@ -34,7 +35,8 @@
          },
          all: [
            'Gruntfile.js',
-           '<%= config.assets %>/{,*/}*.js'
+           '<%= config.assets %>/{,*/}*.js',
+           '<%= config.brainClientAssets %>/{,*/}*.js'
          ]
        },
        clean: {
@@ -74,7 +76,7 @@
                  proxySnippet,
                  mountFolder(connect, config.components),
                  mountFolder(connect, config.gruntFiltered),
-                 mountFolder(connect, config.debug),
+                 mountFolder(connect, config.debug)
                ];
              }
            }
@@ -90,7 +92,7 @@
                  },
                  mountFolder(connect, config.components),
                  mountFolder(connect, config.gruntFiltered),
-                 mountFolder(connect, config.debug),
+                 mountFolder(connect, config.debug)
                ];
              }
            }
@@ -137,7 +139,7 @@
              cwd: '<%= config.gruntFiltered %>',
              dest: '<%= config.dist %>',
              src: [
-               '{,*/}{,*/}*.html',
+               '{,*/}{,*/}*.html'
              ]
            }]
          },
@@ -204,6 +206,11 @@
              cwd: '<%= config.assets %>/',
              dest: '<%= config.debug %>/assets',
              src: '{,*/}{,*/}*'
+           }, {
+             expand: true,
+             cwd: '<%= config.brainClientAssets %>/',
+             dest: '<%= config.debug %>/policy-assets/js',
+             src: '{,*/}{,*/}*'
            },
            /* This is a hack to get around how we currently minify lib css into a css directory */
            {
@@ -264,6 +271,10 @@
        watch: {
          assets: {
            files: ['<%= config.assets %>/{,*/}{,*/}*'],
+           tasks: ['copy:debug']
+         },
+         brainClientAssets: {
+           files: ['<%= config.brainClientAssets %>/{,*/}{,*/}*'],
            tasks: ['copy:debug']
          },
          components: {

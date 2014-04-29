@@ -1,4 +1,4 @@
-describe('AngularCommon', function() {
+ describe('AngularCommon', function() {
   var scope, compile, httpBackend, regex, mockModel, form;
 
   beforeEach(module('AngularCommon', 'CommonServices'));
@@ -139,6 +139,23 @@ describe('AngularCommon', function() {
       var testCase = testCases[i];
       validateFilter(testCase.input, testCase.expected);
     }
+  });
+
+  describe('agoLastDay filter', function() {
+    var filter, filteredAnswer = 'In the last day';
+    beforeEach(inject(function($filter) {
+      filter = $filter('agoLastDay');
+    }));
+
+    it('Should filter anything in the last few seconds', function(){
+      expect(filter('seconds ago')).toBe(filteredAnswer);
+    });
+    it('Should filter anything in the last few minutes', function(){
+      expect(filter('59 minutes ago')).toBe(filteredAnswer);
+    });
+    it('Should filter anything in the last few hours', function(){
+      expect(filter('1 hour ago')).toBe(filteredAnswer);
+    });
   });
 
   describe('chiclet directive', function() {

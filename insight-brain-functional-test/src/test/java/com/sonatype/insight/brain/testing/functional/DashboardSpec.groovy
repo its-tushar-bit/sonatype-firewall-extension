@@ -89,6 +89,7 @@ class DashboardSpec
     and: 'application tag filters are shown'
       applicationTagFiltersDropdown.showDropdown()
       applicationTagFiltersDropdown.dropdownCheck(firstAppTag.name).displayed
+      applicationTagFiltersDropdown.dropdownOwner(firstAppTag.name).text() == 'in ' + org.name
       applicationTagFiltersDropdown.areOptionsColored([(firstAppTag.name): "blue"])
       applicationTagFiltersDropdown.hideDropdown()
 

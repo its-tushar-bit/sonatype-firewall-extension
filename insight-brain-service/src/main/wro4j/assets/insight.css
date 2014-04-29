@@ -216,11 +216,21 @@ a {
 }
 
 .multi-dropdown-item {
-  display: inline-block;
   overflow-x: hidden;
   text-overflow: ellipsis;
+}
+
+.multi-dropdown-item.name {
+  display: inline-block;
   margin-top: 3px;
   margin-left: 7px;
+}
+
+.multi-dropdown-item.owner {
+  font-size: 11px;
+  margin-left: 25px;
+  color: #444444;
+  font-style: italic;
 }
 
 .multi-dropdown-item.color {
@@ -240,9 +250,17 @@ a {
   width: 100%;
 }
 
+.multi-dropdown .checkbox.has-owner {
+  line-height: 16px;
+}
+
 .multi-dropdown .checkbox input {
   margin-left: 5px;
   margin-top: 8px;
+}
+
+.multi-dropdown .checkbox.has-owner input {
+  margin-top: 14px;
 }
 
 .multi-dropdown li {
@@ -258,11 +276,16 @@ a {
   height: 24px;
   position: absolute;
   margin-top: 1px;
-  right: 1px;
+  right: 2px;
   border: solid 1px #E0E0E0 !important;
   -webkit-border-radius: 6px;
   -moz-border-radius: 6px;
   border-radius: 6px;
+}
+
+.multi-dropdown .checkbox.has-owner .multi-dropdown-item-color {
+  height: 39px;
+  width: 39px;
 }
 
 /* Dashboard Style */

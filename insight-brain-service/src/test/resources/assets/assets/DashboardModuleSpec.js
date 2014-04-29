@@ -87,6 +87,22 @@ describe('DashboardModule', function() {
       nameLowercaseNoWhitespace: "tagtwo",
       description: "Tag Two Description"
     }
+  ], applications = [
+    {
+      id: 'applicationId1',
+      publicId: 'applicationPublicId1',
+      name: 'ApplicationOne',
+      organizationId: 'orgId1'
+    }
+  ], organizations = [
+    {
+      id: 'orgId1',
+      name: 'OrganizationOne'
+    },
+    {
+      id: 'orgId2',
+      name: 'OrganizationTwo'
+    }
   ];
 
   beforeEach(module('DashboardModule'));
@@ -100,11 +116,11 @@ describe('DashboardModule', function() {
   }));
 
   describe('dashboardController', function() {
-    var applicationsData, stageTypeData;
+    var stageTypeData;
 
     beforeEach(inject(function($rootScope, $controller, $httpBackend, CLMLocations) {
       scope = $rootScope.$new();
-      applicationsData = ApplicationMockData.getApplicationsData();
+
       stageTypeData = [{
         id: 'type1',
         name: 'Type 1'
@@ -114,7 +130,8 @@ describe('DashboardModule', function() {
       }];
 
       $httpBackend.expectGET(CLMLocations.getActionStageUrl()).respond(stageTypeData);
-      $httpBackend.expectGET(CLMLocations.getApplicationsUrl()).respond(applicationsData);
+      $httpBackend.expectGET(CLMLocations.getApplicationsUrl()).respond(applications);
+      $httpBackend.expectGET(CLMLocations.getOrganizationsUrl()).respond(organizations);
       $httpBackend.expectGET(CLMLocations.getApplicationTags()).respond(tags);
       $httpBackend.expectGET(CLMLocations.getPolicyViolationsUrl() + '?maxResults=20').respond(policyViolations);
       $httpBackend.expectGET(CLMLocations.getPolicyViolationsUrl() + '?maxResults=20&newest=true').respond(newestViolations);
@@ -123,8 +140,8 @@ describe('DashboardModule', function() {
     }));
 
     it('loads applications', function() {
-      expect(scope.applications.length).toBe(applicationsData.length);
-      expect(scope.applications[0].id).toBe(applicationsData[0].id);
+      expect(scope.applications.length).toBe(applications.length);
+      expect(scope.applications[0].id).toBe(applications[0].id);
     });
     
     it('loads stage types', function() {
@@ -136,6 +153,7 @@ describe('DashboardModule', function() {
     it('loads application tags', function() {
       expect(scope.applicationTags.length).toBe(tags.length);
       expect(scope.applicationTags[0].id).toBe(tags[0].id);
+      expect(scope.applicationTags[0].owner).toBe(organizations[0].name);
     });
 
     it('loads policy violations', function() {
@@ -231,7 +249,7 @@ describe('DashboardModule', function() {
     });
 
     it('converts from application.publicId to application.name', function(){
-      expect(scope.applicationNameFor('bom1-12345678')).toBe('applicationName');
+      expect(scope.applicationNameFor('applicationPublicId1')).toBe('ApplicationOne');
     });
 
     it('converts from policyThreatCategory.id to policyThreatCategory.name', function(){

@@ -15,8 +15,9 @@
     });
   }]);
 
-  dashboardModule.controller('DashboardController', ['$scope', '$q', 'ApplicationStore', '$http', 'CLMLocations',
-    '$timeout', 'StageTypeStore' ,function($scope, $q, ApplicationStore, $http, CLMLocations, $timeout, StageTypeStore) {
+  dashboardModule.controller('DashboardController', ['$scope', '$q', 'ApplicationStore', 'OrganizationStore', '$http',
+    'CLMLocations', '$timeout', 'StageTypeStore', function($scope, $q, ApplicationStore, OrganizationStore, $http,
+    CLMLocations, $timeout, StageTypeStore) {
     $scope.filters = {
       applicationPublicIds: {
         applied: [],
@@ -72,12 +73,23 @@
       var promises = [
         ApplicationStore.get(),
         StageTypeStore.get(),
+        OrganizationStore.get(),
         $http.get(CLMLocations.getApplicationTags())
       ];
       $q.all(promises).then(function(data) {
         $scope.applications = data[0];
         $scope.stageTypes = data[1];
-        $scope.applicationTags = data[2].data;
+        $scope.applicationTags = data[3].data;
+
+        var organizations = data[2];
+        angular.forEach($scope.applicationTags, function(tag) {
+          for (var i = 0; i < organizations.length; i++) {
+            if (tag.organizationId === organizations[i].id) {
+              tag.owner = organizations[i].name;
+              break;
+            }
+          }
+        });
 
         $scope.policyThreatTypes = [
           {id:'security', name:'Security'},

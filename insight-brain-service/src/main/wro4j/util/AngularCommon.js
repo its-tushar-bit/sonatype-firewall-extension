@@ -776,10 +776,11 @@ var AngularStateUtils = {
                    '<ul class="dropdown-menu multiselect-container">' +
                      '<li ng-if="items.length > 9"><input type="text" ng-model="filter.name" style="margin:0;width:160px" placeholder="Search"></li>' +
                      '<li ng-repeat="item in items | filter: { name : filter.name }" ng-class="{ selected : selected[item.id]  }">' +
-                       '<label class="checkbox">' +
+                       '<label class="checkbox" ng-class="{ \'has-owner\': item.owner }">' +
                          '<input type="checkbox" ng-model="selected[item.id]" ng-change="updateSelectedIds(item.id)">' +
-                         '<span class="multi-dropdown-item" ng-class="{ \'no-color\' : !item.color, color : item.color }">{{item.name}}</span>' +
                          '<span ng-if="item.color" class="multi-dropdown-item-color {{item.color}}Label"></span>' +
+                         '<div class="multi-dropdown-item name" ng-class="{ \'no-color\' : !item.color, color : item.color }">{{item.name}}</div>' +
+                         '<div ng-if="item.owner" class="multi-dropdown-item owner" ng-class="{ \'no-color\' : !item.color, color : item.color }">in {{item.owner}}</div>' +
                        '</label>' +
                      '</li>' +
                    '</ul>' +

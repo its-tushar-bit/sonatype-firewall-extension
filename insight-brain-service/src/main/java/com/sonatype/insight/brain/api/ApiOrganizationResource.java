@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.api;
 
 import java.util.List;
+import java.util.Map;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -18,7 +19,6 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.api.dto.ApiOrganizationListDTO;
-import com.sonatype.insight.brain.api.dto.ApiRoleMemberMappingDTO;
 import com.sonatype.insight.brain.api.dto.ApiRoleMemberMappingListDTO;
 import com.sonatype.insight.brain.api.service.ApiOrganizationService;
 import com.sonatype.insight.brain.security.ApplicableMembershipMappings;
@@ -75,11 +75,10 @@ public class ApiOrganizationResource
   @Consumes({MediaType.APPLICATION_JSON})
   public void setMembershipMappingForRole(
       @PathParam("organizationId") final String organizationId,
-      final ApiRoleMemberMappingDTO roleMemberMappingDTO)
+      final ApiRoleMemberMappingListDTO roleMemberMappingDTOs)
   {
-    final List<Member> memberList = apiMemberMappingAdapter.convert(roleMemberMappingDTO.members);
+    Map<String, List<Member>> roleToMembers = apiMemberMappingAdapter.convert(roleMemberMappingDTOs);
     membershipMappingService
-        .setMembershipMappingForRoleByInternalId(IdUtils.TYPE_ORGANIZATION, organizationId,
-            roleMemberMappingDTO.roleId, memberList);
+        .setMembershipMappingForRolesByInternalId(IdUtils.TYPE_ORGANIZATION, organizationId, roleToMembers);
   }
 }

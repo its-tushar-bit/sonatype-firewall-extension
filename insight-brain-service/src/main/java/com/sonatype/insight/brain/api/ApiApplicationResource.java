@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.api;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -21,7 +22,6 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.api.dto.ApiApplicationDTO;
-import com.sonatype.insight.brain.api.dto.ApiRoleMemberMappingDTO;
 import com.sonatype.insight.brain.api.dto.ApiRoleMemberMappingListDTO;
 import com.sonatype.insight.brain.api.service.ApiApplicationService;
 import com.sonatype.insight.brain.security.ApplicableMembershipMappings;
@@ -91,12 +91,11 @@ public class ApiApplicationResource
   @Consumes({MediaType.APPLICATION_JSON})
   public void setMembershipMappingForRole(
       @PathParam("applicationId") final String applicationId,
-      final ApiRoleMemberMappingDTO roleMemberMappingDTO)
+      final ApiRoleMemberMappingListDTO roleMemberMappingDTOs)
   {
-    final List<Member> memberList = apiMemberMappingAdapter.convert(roleMemberMappingDTO.members);
+    Map<String, List<Member>> roleToMembers = apiMemberMappingAdapter.convert(roleMemberMappingDTOs);
     membershipMappingService
-        .setMembershipMappingForRoleByInternalId(IdUtils.TYPE_APPLICATION, applicationId,
-            roleMemberMappingDTO.roleId, memberList);
+        .setMembershipMappingForRolesByInternalId(IdUtils.TYPE_APPLICATION, applicationId, roleToMembers);
   }
 
   @DELETE

@@ -6,7 +6,9 @@
 package com.sonatype.insight.brain.api;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.inject.Named;
 
@@ -49,7 +51,15 @@ public class ApiMemberMappingAdapter
     return memberMappingDTO;
   }
 
-  public List<Member> convert(final List<ApiMemberDTO> memberDTOs) {
+  public Map<String, List<Member>> convert(final ApiRoleMemberMappingListDTO memberMappingDTOs) {
+    Map<String, List<Member>> roleToMembers = new LinkedHashMap<>();
+    for (ApiRoleMemberMappingDTO memberMappingDTO : memberMappingDTOs.memberMappings) {
+      roleToMembers.put(memberMappingDTO.roleId, convert(memberMappingDTO.members));
+    }
+    return roleToMembers;
+  }
+
+  private List<Member> convert(final List<ApiMemberDTO> memberDTOs) {
     final List<Member> memberList = new ArrayList<>();
     if (memberDTOs != null) {
       for (final ApiMemberDTO memberDTO : memberDTOs) {

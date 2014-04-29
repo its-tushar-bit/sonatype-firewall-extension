@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.api;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import com.sonatype.insight.brain.api.dto.ApiMemberDTO;
 import com.sonatype.insight.brain.api.dto.ApiRoleMemberMappingDTO;
@@ -67,16 +68,30 @@ public class ApiMemberMappingAdapterTest
   }
 
   @Test
-  public void testConvertMemberDTOToEntity() {
-    final List<ApiMemberDTO> memberDTOs = new ArrayList<>();
+  public void testConvertRoleMemberMappingListToRoleMemberMap() {
+    ApiRoleMemberMappingListDTO apiRoleMemberMappingListDTO = new ApiRoleMemberMappingListDTO();
+    apiRoleMemberMappingListDTO.memberMappings = new ArrayList<>();
+    ApiRoleMemberMappingDTO apiRoleMemberMappingDTO = new ApiRoleMemberMappingDTO();
+    apiRoleMemberMappingDTO.roleId = roleId;
+    apiRoleMemberMappingDTO.members = new ArrayList<>();
     final ApiMemberDTO memberDTO = new ApiMemberDTO();
     memberDTO.type = memberType;
     memberDTO.userOrGroupName = testUserName;
-    memberDTOs.add(memberDTO);
+    apiRoleMemberMappingDTO.members.add(memberDTO);
+    apiRoleMemberMappingListDTO.memberMappings.add(apiRoleMemberMappingDTO);
 
-    final List<Member> members = apiMemberMappingAdapter.convert(memberDTOs);
+    Map<String, List<Member>> roleToMembers = apiMemberMappingAdapter.convert(apiRoleMemberMappingListDTO);
+    assertRoleToMemberMap(roleToMembers);
+  }
+
+  private void assertRoleToMemberMap(Map<String, List<Member>> roleToMembers) {
+
+    assertThat(roleToMembers, notNullValue());
+    assertThat(roleToMembers.size(), is(1));
+    List<Member> members = roleToMembers.get(roleId);
+    assertThat(members, notNullValue());
     assertThat(members, hasSize(1));
-    final Member member = members.get(0);
+    Member member = members.get(0);
     assertThat(member.getType(), is(memberType));
     assertThat(member.getInternalName(), is(testUserName));
   }

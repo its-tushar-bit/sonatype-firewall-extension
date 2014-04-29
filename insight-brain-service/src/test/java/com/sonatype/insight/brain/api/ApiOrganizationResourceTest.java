@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.api;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -117,13 +118,13 @@ public class ApiOrganizationResourceTest
     assertThat(roleMemberMappings.memberMappings, hasSize(orgRoles.size()));
 
     // Create
-    final ApiRoleMemberMappingDTO roleMemberMappingDTO = newMemberMapping(
+    final ApiRoleMemberMappingListDTO roleMemberMappingListDTO = newMemberMapping(
         newMemberList(newMember(MemberType.USER, User.ADMIN_USERNAME), newMember(MemberType.USER, "testuser"),
             newMember(MemberType.GROUP, "Alpha")),
         orgRoles.get(0).getId()
     );
 
-    response = AuthedRestAccess.put(url, JsonHelpers.asJson(roleMemberMappingDTO));
+    response = AuthedRestAccess.put(url, JsonHelpers.asJson(roleMemberMappingListDTO));
     assertResponseStatus(204, response);
 
     // Read for created data
@@ -173,10 +174,10 @@ public class ApiOrganizationResourceTest
     assertThat(roleMemberMappings.memberMappings, hasSize(orgRoles.size()));
 
     // Create
-    ApiRoleMemberMappingDTO roleMemberMappingDTO = newMemberMapping(
+    ApiRoleMemberMappingListDTO roleMemberMappingListDTO = newMemberMapping(
         newMemberList(newMember(MemberType.USER, userB.getUsername())),
         orgRoles.get(0).getId());
-    response = AuthedRestAccess.put(url, JsonHelpers.asJson(roleMemberMappingDTO));
+    response = AuthedRestAccess.put(url, JsonHelpers.asJson(roleMemberMappingListDTO));
     assertResponseStatus(204, response);
 
     // Read for created data
@@ -199,16 +200,16 @@ public class ApiOrganizationResourceTest
     assertApiRoleMemberMappingDTO(returnedRoleMemberMapping, orgRoles.get(0).getId(), userB, MemberType.USER);
 
     // Update
-    roleMemberMappingDTO = newMemberMapping(
+    roleMemberMappingListDTO = newMemberMapping(
         newMemberList(newMember(MemberType.USER, userA.getUsername())),
         orgRoles.get(0).getId());
-    response = AuthedRestAccess.put(url, JsonHelpers.asJson(roleMemberMappingDTO));
+    response = AuthedRestAccess.put(url, JsonHelpers.asJson(roleMemberMappingListDTO));
     assertResponseStatus(204, response);
 
-    roleMemberMappingDTO = newMemberMapping(
+    roleMemberMappingListDTO = newMemberMapping(
         newMemberList(newMember(MemberType.USER, userB.getUsername())),
         orgRoles.get(1).getId());
-    response = AuthedRestAccess.put(url, JsonHelpers.asJson(roleMemberMappingDTO));
+    response = AuthedRestAccess.put(url, JsonHelpers.asJson(roleMemberMappingListDTO));
     assertResponseStatus(204, response);
 
     // Read for updated data
@@ -233,11 +234,15 @@ public class ApiOrganizationResourceTest
     assertApiRoleMemberMappingDTO(returnedRoleMemberMappingArray[1], orgRoles.get(1).getId(), userB, MemberType.USER);
   }
 
-  private ApiRoleMemberMappingDTO newMemberMapping(final List<ApiMemberDTO> memberList, final String roleId) {
+  private ApiRoleMemberMappingListDTO newMemberMapping(final List<ApiMemberDTO> memberList, final String roleId) {
     final ApiRoleMemberMappingDTO memberMappingDTO = new ApiRoleMemberMappingDTO();
     memberMappingDTO.members = memberList;
     memberMappingDTO.roleId = roleId;
-    return memberMappingDTO;
+
+    ApiRoleMemberMappingListDTO memberMappingListDTO = new ApiRoleMemberMappingListDTO();
+    memberMappingListDTO.memberMappings = new ArrayList<>();
+    memberMappingListDTO.memberMappings.add(memberMappingDTO);
+    return memberMappingListDTO;
   }
 
   private ApiMemberDTO newMember(final MemberType type, final String name) {

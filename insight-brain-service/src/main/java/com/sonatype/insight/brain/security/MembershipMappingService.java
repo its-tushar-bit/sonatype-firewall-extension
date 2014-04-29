@@ -9,9 +9,11 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.persistence.EntityManager;
 
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
@@ -25,6 +27,7 @@ import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
 import com.sonatype.insight.brain.utils.IdUtils;
+import com.sonatype.insight.dataaccess.AbstractDAO;
 import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.slf4j.Logger;
@@ -54,9 +57,8 @@ public class MembershipMappingService
 
 
   @Inject
-  public MembershipMappingService(final ApplicationDAO appDAO, OrganizationDAO orgDAO,
-                                  final RoleDAO roleDAO, final MembershipMappingDAO memberMapDAO,
-                                  final LdapManager ldapManager)
+  public MembershipMappingService(final ApplicationDAO appDAO, OrganizationDAO orgDAO, final RoleDAO roleDAO,
+      final MembershipMappingDAO memberMapDAO, final LdapManager ldapManager)
   {
     this.appDAO = appDAO;
     this.orgDAO = orgDAO;
@@ -144,12 +146,25 @@ public class MembershipMappingService
   }
 
   @Authorize(permission = Permission.WRITE)
-  public void setMembershipMappingForRoleByInternalId(
+  public void setMembershipMappingForRolesByInternalId(
       @AuthzContext(AuthzContext.Key.TYPE) final String ownerType,
       @AuthzContext(Key.INTERNAL_ID) final String ownerId,
-      final String roleId, final List<Member> members)
+      final Map<String, List<Member>> roleToMembers)
   {
-    setMembershipMappingForRole(ownerType, ownerId, roleId, members, internalMapper);
+    EntityManager em = memberMapDAO.createEntityManager();
+    try {
+      em.getTransaction().begin();
+
+      for (Entry<String, List<Member>> entry : roleToMembers.entrySet()) {
+        String roleId = entry.getKey();
+        List<Member> members = entry.getValue();
+        setMembershipMappingForRole(em, ownerType, ownerId, roleId, members, internalMapper);
+      }
+
+      em.getTransaction().commit();
+    } finally {
+      AbstractDAO.close(em);
+    }
   }
 
   @Authorize(permission = Permission.WRITE)
@@ -158,12 +173,21 @@ public class MembershipMappingService
       @AuthzContext(AuthzContext.Key.ID) final String ownerId,
       final String roleId, final List<Member> members)
   {
-    setMembershipMappingForRole(ownerType, ownerId, roleId, members, publicMapper);
+    EntityManager em = memberMapDAO.createEntityManager();
+    try {
+      em.getTransaction().begin();
+
+      setMembershipMappingForRole(em, ownerType, ownerId, roleId, members, publicMapper);
+
+      em.getTransaction().commit();
+    } finally {
+      AbstractDAO.close(em);
+    }
   }
 
 
-  private void setMembershipMappingForRole(final String ownerType, final String ownerId, final String roleId,
-                                           final List<Member> members, final OwnerMapper ownerMapper)
+  private void setMembershipMappingForRole(final EntityManager entityManager, final String ownerType,
+      final String ownerId, final String roleId, final List<Member> members, final OwnerMapper ownerMapper)
   {
     log.debug("Setting membership mappings for {} id {} and role id {}", ownerType, ownerId, roleId);
 
@@ -182,7 +206,7 @@ public class MembershipMappingService
       final MembershipMapping memberMap = new MembershipMapping(member.getInternalName(), member.getType());
       memberMaps.add(memberMap);
     }
-    memberMapDAO.setMembershipMappingsForContextAndRole(internalOwnerId, roleId, memberMaps);
+    memberMapDAO.setMembershipMappingsForContextAndRole(entityManager, internalOwnerId, roleId, memberMaps);
   }
 
   private Role validateRole(final String ownerType, final String roleId) {

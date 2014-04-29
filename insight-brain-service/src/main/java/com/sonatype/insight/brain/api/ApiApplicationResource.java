@@ -22,6 +22,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.api.dto.ApiApplicationDTO;
+import com.sonatype.insight.brain.api.dto.ApiRoleListDTO;
 import com.sonatype.insight.brain.api.dto.ApiRoleMemberMappingListDTO;
 import com.sonatype.insight.brain.api.service.ApiApplicationService;
 import com.sonatype.insight.brain.security.ApplicableMembershipMappings;
@@ -40,6 +41,8 @@ public class ApiApplicationResource
    * Internal application Id
    */
   public static final String APPLICATION_ID = "{applicationId}";
+
+  public static final String ROLE_PATH = "/roles";
 
   public static final String ROLE_MEMBERS_PATH = APPLICATION_ID + "/roleMembers";
 
@@ -73,6 +76,13 @@ public class ApiApplicationResource
   @Produces(MediaType.APPLICATION_JSON)
   public ApiApplicationDTO addApplication(final ApiApplicationDTO applicationDTO) {
     return apiApplicationService.addApplication(applicationDTO);
+  }
+
+  @GET
+  @Path(ROLE_PATH)
+  @Produces({MediaType.APPLICATION_JSON})
+  public ApiRoleListDTO getApplicationRoles() {
+    return apiApplicationService.getApplicationRoles();
   }
 
   @GET

@@ -5,14 +5,14 @@
  */
 package com.sonatype.insight.brain.api.dto;
 
-import java.util.List;
-
 /**
  * @since 1.11.0
  */
-public class ApiRoleMemberMappingDTO
+public class ApiRoleDTO
 {
-  public String roleId;
+  public String id;
 
-  public List<ApiMemberDTO> members;
+  public String name;
+
+  public String description;
 }

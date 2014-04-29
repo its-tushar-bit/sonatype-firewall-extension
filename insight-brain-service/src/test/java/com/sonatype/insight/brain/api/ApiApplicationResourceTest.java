@@ -8,13 +8,17 @@ package com.sonatype.insight.brain.api;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import com.sonatype.insight.brain.AuthedRestAccess;
 import com.sonatype.insight.brain.api.dto.ApiApplicationDTO;
 import com.sonatype.insight.brain.api.dto.ApiApplicationTagDTO;
 import com.sonatype.insight.brain.api.dto.ApiMemberDTO;
+import com.sonatype.insight.brain.api.dto.ApiRoleDTO;
+import com.sonatype.insight.brain.api.dto.ApiRoleListDTO;
 import com.sonatype.insight.brain.api.dto.ApiRoleMemberMappingDTO;
 import com.sonatype.insight.brain.api.dto.ApiRoleMemberMappingListDTO;
 import com.sonatype.insight.brain.configuration.ldap.LdapServer;
@@ -38,6 +42,7 @@ import org.junit.Test;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.arrayWithSize;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
@@ -363,6 +368,23 @@ public class ApiApplicationResourceTest
     assertApiRoleMemberMappingDTO(returnedRoleMemberMappingArray[1], appRoles.get(1).getId(), userB, MemberType.USER);
   }
 
+  @Test
+  public void testGetApplicationRoles() throws Exception {
+    final String url = getApplicationRolesUrl();
+    Response response = AuthedRestAccess.get(url);
+    assertResponseStatus(200, response);
+
+    ApiRoleListDTO appRoles = JsonHelpers.fromJson(response.getResponseBody(), ApiRoleListDTO.class);
+    assertThat(appRoles, notNullValue());
+    assertThat(appRoles.roles, hasSize(2));
+
+    Set<String> roleNames = new HashSet<>();
+    for (ApiRoleDTO appRole : appRoles.roles) {
+      roleNames.add(appRole.name);
+    }
+    assertThat(roleNames, hasItems("Owner", "Developer"));
+  }
+
   private ApiRoleMemberMappingListDTO newMemberMapping(final List<ApiMemberDTO> memberList, final String roleId) {
     final ApiRoleMemberMappingDTO memberMappingDTO = new ApiRoleMemberMappingDTO();
     memberMappingDTO.members = memberList;
@@ -400,6 +422,10 @@ public class ApiApplicationResourceTest
 
   private String getServiceURL() {
     return getRestBaseUrl() + PublicApiPaths.APP_SERVICE_PATH;
+  }
+
+  private String getApplicationRolesUrl() {
+    return getServiceURL() + "/" + ApiApplicationResource.ROLE_PATH;
   }
 
   private void assertApiRoleMemberMappingDTO(final ApiRoleMemberMappingDTO apiRoleMemberMappingDTO,

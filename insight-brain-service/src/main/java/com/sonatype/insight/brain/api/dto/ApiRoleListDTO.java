@@ -10,9 +10,7 @@ import java.util.List;
 /**
  * @since 1.11.0
  */
-public class ApiRoleMemberMappingDTO
+public class ApiRoleListDTO
 {
-  public String roleId;
-
-  public List<ApiMemberDTO> members;
+  public List<ApiRoleDTO> roles;
 }

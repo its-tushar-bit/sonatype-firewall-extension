@@ -33,10 +33,6 @@ public class ApiMemberMappingAdapterTest
 
   private final String roleId = "testRoleId";
 
-  private final String roleName = "testRoleName";
-
-  private final String roleDescription = "testRoleDescription";
-
   private final String ownerId = "ownerId";
 
   private final String ownerName = "ownerName";
@@ -102,8 +98,6 @@ public class ApiMemberMappingAdapterTest
     assertThat(apiRoleMemberMappingListDTO.memberMappings, hasSize(1));
     final ApiRoleMemberMappingDTO roleMemberMappingDTO = apiRoleMemberMappingListDTO.memberMappings.get(0);
     assertThat(roleMemberMappingDTO.roleId, is(roleId));
-    assertThat(roleMemberMappingDTO.roleName, is(roleName));
-    assertThat(roleMemberMappingDTO.roleDescription, is(roleDescription));
     assertThat(roleMemberMappingDTO.members, hasSize(1));
     final ApiMemberDTO memberDTO = roleMemberMappingDTO.members.get(0);
     assertThat(memberDTO, notNullValue());
@@ -116,8 +110,6 @@ public class ApiMemberMappingAdapterTest
     mappings.membersByRole = new ArrayList<>();
     final MembersByRole membersByRole = new MembersByRole();
     membersByRole.roleId = roleId;
-    membersByRole.roleName = roleName;
-    membersByRole.roleDescription = roleDescription;
     membersByRole.membersByOwner = new ArrayList<>();
     final MembersByOwner membersByOwner = new MembersByOwner();
     membersByOwner.ownerId = ownerId;

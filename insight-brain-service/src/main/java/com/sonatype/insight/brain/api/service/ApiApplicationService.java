@@ -15,10 +15,13 @@ import javax.persistence.EntityManager;
 
 import com.sonatype.insight.brain.api.ApiApplicationAdapter;
 import com.sonatype.insight.brain.api.dto.ApiApplicationDTO;
+import com.sonatype.insight.brain.api.dto.ApiRoleListDTO;
 import com.sonatype.insight.brain.dataaccess.InvalidApplicationException;
+import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
 import com.sonatype.insight.brain.dataaccess.tag.ApplicationTagDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.tag.ApplicationTag;
 import com.sonatype.insight.brain.organization.ApplicationHelper;
 import com.sonatype.insight.brain.security.Authorize;
@@ -37,17 +40,25 @@ public class ApiApplicationService
 
   private final ApplicationTagDAO applicationTagDAO;
 
+  private final RoleDAO roleDAO;
+
+  private final ApiRoleAdapter roleAdapter;
+
   private final ApplicationHelper applicationHelper;
 
   @Inject
   public ApiApplicationService(final ApiApplicationAdapter apiApplicationAdapter,
       final ApiApplicationTagAdapter apiApplicationTagAdapter,
       final ApplicationTagDAO applicationTagDAO,
+      final RoleDAO roleDAO,
+      final ApiRoleAdapter roleAdapter,
       final ApplicationHelper applicationHelper)
   {
     this.apiApplicationAdapter = apiApplicationAdapter;
     this.apiApplicationTagAdapter = apiApplicationTagAdapter;
     this.applicationTagDAO = applicationTagDAO;
+    this.roleDAO = roleDAO;
+    this.roleAdapter = roleAdapter;
     this.applicationHelper = applicationHelper;
   }
 
@@ -100,6 +111,11 @@ public class ApiApplicationService
       @AuthzContext(AuthzContext.Key.APPLICATION_OWNER) final Application application)
   {
     return applicationHelper.addApplication(entityManager, application);
+  }
+
+  public ApiRoleListDTO getApplicationRoles() {
+    List<Role> roles = roleDAO.getApplicationRoles();
+    return roleAdapter.convertToDTO(roles);
   }
 
   private void addTags(final EntityManager entityManager, final List<ApplicationTag> applicationTags) {

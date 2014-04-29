@@ -31,8 +31,6 @@ public class ApiMemberMappingAdapter
     for (final MembersByRole membersByRole : mappings.membersByRole) {
       final ApiRoleMemberMappingDTO roleMemberMappingDTO = new ApiRoleMemberMappingDTO();
       roleMemberMappingDTO.roleId = membersByRole.roleId;
-      roleMemberMappingDTO.roleName = membersByRole.roleName;
-      roleMemberMappingDTO.roleDescription = membersByRole.roleDescription;
       final List<ApiMemberDTO> memberDTOs = new ArrayList<>();
 
       for (final MembersByOwner membersByOwner : membersByRole.membersByOwner) {

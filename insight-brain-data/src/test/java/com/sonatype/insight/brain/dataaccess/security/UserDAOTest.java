@@ -15,10 +15,13 @@ import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.User;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.apache.commons.lang.StringUtils;
 import org.junit.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
@@ -63,6 +66,40 @@ public class UserDAOTest
     // Get
     user = dao.getById(userId);
     assertThat(user, nullValue());
+  }
+
+  @Test
+  public void testGetByUsernames() throws Exception {
+    UserDAO dao = new UserDAO();
+    User testUser1 = createUser("testUser1");
+    User testUser2 = createUser("testUser2");
+    List<User> users = dao.getByUsernames(Sets.newHashSet("testUser1", "testUser2"));
+    assertThat(users, notNullValue());
+    assertThat(users, hasSize(2));
+    List<String> userIds = Lists.newArrayList();
+    for (User user : users) {
+      userIds.add(user.getId());
+    }
+
+    // getByUsernames returns users ordered by lower case user names.
+    assertThat(userIds, contains(testUser1.getId(), testUser2.getId()));
+  }
+
+  @Test
+  public void testGetByUsernames_CaseInsensitive() throws Exception {
+    UserDAO dao = new UserDAO();
+    User testUser1 = createUser("testUser1");
+    User testUser2 = createUser("testUser2");
+    List<User> users = dao.getByUsernames(Sets.newHashSet("TESTuser1", "testUSER2"));
+    assertThat(users, notNullValue());
+    assertThat(users, hasSize(2));
+    List<String> userIds = Lists.newArrayList();
+    for (User user : users) {
+      userIds.add(user.getId());
+    }
+
+    // getByUsernames returns users ordered by lower case user names.
+    assertThat(userIds, contains(testUser1.getId(), testUser2.getId()));
   }
 
   @Test

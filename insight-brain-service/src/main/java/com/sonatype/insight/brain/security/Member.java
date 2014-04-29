@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.security;
 
+import java.util.Locale;
+
 import com.sonatype.insight.brain.model.security.MemberType;
 
 /**
@@ -38,6 +40,10 @@ public class Member
 
   public void setInternalName(final String internalName) {
     this.internalName = internalName;
+  }
+
+  public String getInternalNameLowerCase() {
+    return (internalName != null) ? internalName.toLowerCase(Locale.ENGLISH) : null;
   }
 
   public String getDisplayName() {

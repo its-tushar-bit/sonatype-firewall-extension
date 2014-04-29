@@ -7,32 +7,26 @@ package com.sonatype.insight.brain.organization;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
-
-import javax.naming.NamingException;
+import java.util.Set;
 
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
-import com.sonatype.insight.brain.dataaccess.security.UserDAO;
-import com.sonatype.insight.brain.ldap.LdapManager;
-import com.sonatype.insight.brain.ldap.LdapUser;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
-import com.sonatype.insight.brain.model.security.User;
+import com.sonatype.insight.brain.model.security.MemberType;
+import com.sonatype.insight.brain.security.Member;
+import com.sonatype.insight.brain.security.UserDirectory;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 
 import static org.hamcrest.Matchers.is;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -41,21 +35,17 @@ import static org.mockito.Mockito.when;
 public class ApplicationAdapterTest
 {
 
-  private static final String LDAP_REALM = "LDAP";
+  private static final String REALM = "REALM";
 
-  private static final String CLM_REALM = "CLM";
-
-  private static final String LDAP_ERROR = "LDAP error";
+  private static final String USER_DIRECTORY_ERROR = "User directory query result error.";
 
   private static final String TEST_MESSAGE = "Test Exception Message";
 
   private ApplicationAdapter applicationAdapter;
 
-  private LdapManager mockLdapManager;
+  private UserDirectory mockUserDirectory;
 
   private OrganizationDAO mockOrganizationDAO;
-
-  private UserDAO mockUserDAO;
 
   // Application variables
   private String applicationId = "AppId";
@@ -68,9 +58,6 @@ public class ApplicationAdapterTest
 
   private String organizationName = "My Organization";
 
-  // User/Contact variables
-  private String userId = "userId";
-
   private String contactInternalName = "jsmith";
 
   private String userFirstName = "John";
@@ -82,10 +69,9 @@ public class ApplicationAdapterTest
   @Before
   public void setUp() {
 
-    mockLdapManager = Mockito.mock(LdapManager.class);
     mockOrganizationDAO = Mockito.mock(OrganizationDAO.class);
-    mockUserDAO = Mockito.mock(UserDAO.class);
-    applicationAdapter = new ApplicationAdapter(mockLdapManager, mockOrganizationDAO, mockUserDAO);
+    mockUserDirectory = Mockito.mock(UserDirectory.class);
+    applicationAdapter = new ApplicationAdapter(mockUserDirectory, mockOrganizationDAO);
 
     // Return this organization when ever the mock organization DAO getByIdNotNull method is called
     Organization organization = new Organization(organizationName);
@@ -94,16 +80,17 @@ public class ApplicationAdapterTest
   }
 
   @Test
-  public void testConvertApplicationWithUserFromClmRealm() {
+  public void testConvertApplication() {
 
     Application application = createApplication(organizationId, applicationName, applicationId, contactInternalName);
 
-    // Return this user when ever the mock user DAO getByUsernameLowercase method is called
-    User user = createUser(userId, contactInternalName, userFirstName, userLastName, userEmail);
-    when(mockUserDAO.getByUsername(contactInternalName)).thenReturn(user);
+    // Return this member when ever the mock user directory get members by names is called.
+    Member member = createMember(contactInternalName, userFirstName + " " + userLastName, userEmail, REALM);
+    Set<String> userNames = Sets.newHashSet(contactInternalName);
+    setQueryResultForGetMembersByNames(mockUserDirectory, userNames, Lists.newArrayList(member), null);
 
     ContactDTO expectedContactDTO = createExpectedContact(contactInternalName, userFirstName + " " + userLastName,
-        CLM_REALM, userEmail);
+        REALM, userEmail);
     ApplicationDTO expectedApplicationDTO = createExpectedDTO(applicationName, applicationId, expectedContactDTO);
 
     ApplicationDTO actualApplicationDTO = applicationAdapter.convert(application);
@@ -111,49 +98,18 @@ public class ApplicationAdapterTest
   }
 
   @Test
-  public void testConvertApplicationWithUserFromLdapRealm() throws NamingException {
+  public void testConvertApplication_WithUpperCaseInternalName() {
 
     Application application = createApplication(organizationId, applicationName, applicationId, contactInternalName);
 
-    List<LdapUser> ldapUsers = new ArrayList<>();
-    LdapUser ldapUser = createLdapUser(contactInternalName, userFirstName + " " + userLastName, userEmail);
-    ldapUsers.add(ldapUser);
-
-    // Return null when ever the mock user DAO getByUsernameLowercase method is called
-    when(mockUserDAO.getByUsername(contactInternalName)).thenReturn(null);
-    // Return true when ever the mock ldap manager's isLdapEnabled method is called
-    when(mockLdapManager.isLdapEnabled()).thenReturn(true);
-    when(mockLdapManager.getLdapServerName()).thenReturn(LDAP_REALM);
-    when(mockLdapManager.getUsers(any(String[].class), anyInt())).thenReturn(ldapUsers);
-
-    ContactDTO expectedContactDTO = createExpectedContact(contactInternalName, userFirstName + " " + userLastName,
-        LDAP_REALM, userEmail);
-    ApplicationDTO expectedApplicationDTO = createExpectedDTO(applicationName, applicationId, expectedContactDTO);
-
-    ApplicationDTO actualApplicationDTO = applicationAdapter.convert(application);
-    assertApplication(actualApplicationDTO, expectedApplicationDTO);
-  }
-
-  @Test
-  public void testConvertApplicationWithUserFromLdapCase() throws NamingException {
-
-    Application application = createApplication(organizationId, applicationName, applicationId, contactInternalName);
-
-    List<LdapUser> ldapUsers = new ArrayList<>();
-    LdapUser ldapUser = createLdapUser(contactInternalName.toUpperCase(Locale.ENGLISH),
-        userFirstName + " " + userLastName, userEmail);
-    ldapUsers.add(ldapUser);
-
-    // Return null when ever the mock user DAO getByUsernameLowercase method is called
-    when(mockUserDAO.getByUsername(contactInternalName)).thenReturn(null);
-    // Return true when ever the mock ldap manager's isLdapEnabled method is called
-    when(mockLdapManager.isLdapEnabled()).thenReturn(true);
-    when(mockLdapManager.getLdapServerName()).thenReturn(LDAP_REALM);
-    when(mockLdapManager.getUsers(any(String[].class), anyInt())).thenReturn(ldapUsers);
+    // Member has a name that is in all upper case but searching is done in a case-insensitive manner.
+    Member member = createMember(contactInternalName.toUpperCase(Locale.ENGLISH), userFirstName + " " + userLastName,
+        userEmail, REALM);
+    Set<String> userNames = Sets.newHashSet(contactInternalName);
+    setQueryResultForGetMembersByNames(mockUserDirectory, userNames, Lists.newArrayList(member), null);
 
     ContactDTO expectedContactDTO = createExpectedContact(contactInternalName.toUpperCase(Locale.ENGLISH),
-        userFirstName + " " + userLastName,
-        LDAP_REALM, userEmail);
+        userFirstName + " " + userLastName, REALM, userEmail);
     ApplicationDTO expectedApplicationDTO = createExpectedDTO(applicationName, applicationId, expectedContactDTO);
 
     ApplicationDTO actualApplicationDTO = applicationAdapter.convert(application);
@@ -161,15 +117,11 @@ public class ApplicationAdapterTest
   }
 
   @Test
-  public void testConvertApplicationWithUserFromLdapRealmUserNotFound() throws NamingException {
+  public void testConvertApplication_WithUnfoundUser() {
 
     Application application = createApplication(organizationId, applicationName, applicationId, contactInternalName);
-    List<LdapUser> ldapUsers = Collections.emptyList();
-
-    when(mockUserDAO.getByUsername(contactInternalName)).thenReturn(null);
-    when(mockLdapManager.isLdapEnabled()).thenReturn(true);
-    when(mockLdapManager.getLdapServerName()).thenReturn(LDAP_REALM);
-    when(mockLdapManager.getUsers(any(String[].class), anyInt())).thenReturn(ldapUsers);
+    setQueryResultForGetMembersByNames(mockUserDirectory, Sets.newHashSet(contactInternalName),
+        new ArrayList<Member>(), null);
 
     ContactDTO expectedContact = createExpectedContactForNotFoundError(contactInternalName);
     ApplicationDTO expectedApplicationDTO = createExpectedDTO(applicationName, applicationId, expectedContact);
@@ -179,15 +131,13 @@ public class ApplicationAdapterTest
   }
 
   @Test
-  public void testConvertApplicationWithUserFromLdapRealmLdapNotConfigured() {
+  public void testConvertApplication_WithUserDirectoryException() {
 
     Application application = createApplication(organizationId, applicationName, applicationId, contactInternalName);
+    setQueryResultForGetMembersByNames(mockUserDirectory, Sets.newHashSet(contactInternalName),
+        new ArrayList<Member>(), new Exception(TEST_MESSAGE));
 
-    when(mockUserDAO.getByUsername(contactInternalName)).thenReturn(null);
-    when(mockLdapManager.isLdapEnabled()).thenReturn(true);
-    when(mockLdapManager.getLdapServerName()).thenThrow(new IllegalStateException(TEST_MESSAGE));
-
-    ContactDTO expectedContactDTO = createExpectedContactForLdapError(contactInternalName);
+    ContactDTO expectedContactDTO = createExpectedContactForUserDirectoryError(contactInternalName);
     ApplicationDTO expectedApplicationDTO = createExpectedDTO(applicationName, applicationId, expectedContactDTO);
 
     ApplicationDTO actualApplicationDTO = applicationAdapter.convert(application);
@@ -195,28 +145,12 @@ public class ApplicationAdapterTest
   }
 
   @Test
-  public void testConvertApplicationWithUserFromLdapRealmLdapErrorOnGetUsers() throws NamingException {
-
-    Application application = createApplication(organizationId, applicationName, applicationId, contactInternalName);
-
-    when(mockUserDAO.getByUsername(contactInternalName)).thenReturn(null);
-    when(mockLdapManager.isLdapEnabled()).thenReturn(true);
-    when(mockLdapManager.getLdapServerName()).thenReturn(LDAP_REALM);
-    when(mockLdapManager.getUsers(any(String[].class), anyInt())).thenThrow(new NamingException(TEST_MESSAGE));
-
-    ContactDTO expectedContactDTO = createExpectedContactForLdapError(contactInternalName);
-    ApplicationDTO expectedApplicationDTO = createExpectedDTO(applicationName, applicationId, expectedContactDTO);
-
-    ApplicationDTO actualApplicationDTO = applicationAdapter.convert(application);
-    assertApplication(actualApplicationDTO, expectedApplicationDTO);
-  }
-
-  @Test
-  public void testCreateApplicationsWithUsersFromClm() {
-
+  public void testCreateApplications() {
     List<ApplicationDTO> expectedApplicationDTOs = new ArrayList<>();
-
     List<Application> applications = new ArrayList<>();
+    List<Member> members = new ArrayList<>();
+    Set<String> memberNames = new HashSet<String>();
+
     for (int i = 1; i <= 5; i++) {
       String orgId = organizationId;
       String appName = applicationName + "-" + i;
@@ -230,25 +164,31 @@ public class ApplicationAdapterTest
       Application application = createApplication(orgId, appName, appId, contactName);
       applications.add(application);
 
-      ContactDTO expectedContactDTO = createExpectedContact(contactName, displayName, CLM_REALM, email);
+      ContactDTO expectedContactDTO = createExpectedContact(contactName, displayName, REALM, email);
       ApplicationDTO expectedApplicationDTO = createExpectedDTO(appName, appId, expectedContactDTO);
       expectedApplicationDTOs.add(expectedApplicationDTO);
-      // Return this user when ever the mock user DAO getByUsernameLowercase method is called
-      User user = createUser(userId + "-" + i, contactName, firstName, lastName, email);
-      when(mockUserDAO.getByUsername(contactName)).thenReturn(user);
+
+      // These members will be returned by the user directory.
+      Member member = createMember(contactName, firstName + " " + lastName, email, REALM);
+      members.add(member);
+      memberNames.add(contactName);
     }
-    when(mockLdapManager.isLdapEnabled()).thenReturn(false);
+
+    setQueryResultForGetMembersByNames(mockUserDirectory, memberNames, members, null);
 
     List<ApplicationDTO> actualApplicationDTOs = applicationAdapter.convert(applications);
     assertApplications(actualApplicationDTOs, expectedApplicationDTOs);
   }
 
   @Test
-  public void testCreateApplicationManagementSummariesWithUserFromClm() {
+  public void testCreateApplicationManagementSummaries() {
 
     List<ApplicationManagementSummaryDTO> expectedDTOs = new ArrayList<>();
 
+    Set<String> memberNames = new HashSet<>();
+    List<Member> members = new ArrayList<>();
     List<Application> applications = new ArrayList<>();
+
     for (int i = 1; i <= 5; i++) {
       String orgId = organizationId;
       String orgName = organizationName;
@@ -263,57 +203,18 @@ public class ApplicationAdapterTest
       Application application = createApplication(orgId, appName, appId, contactName);
       applications.add(application);
 
-      ContactDTO expectedContact = createExpectedContact(contactName, displayName, CLM_REALM, email);
-      expectedDTOs.add(createExpectedApplicationManagementSummaryDTO(orgId, orgName, appName, appId, expectedContact));
-      // Return this user when ever the mock user DAO getByUsernameLowercase method is called
-      User user = createUser(userId + "-" + i, contactName, firstName, lastName, email);
-      when(mockUserDAO.getByUsername(contactName)).thenReturn(user);
-    }
-    when(mockLdapManager.isLdapEnabled()).thenReturn(false);
-
-    List<ApplicationManagementSummaryDTO> actualDTOs = applicationAdapter.createApplicationManagementSummaries(
-        applications);
-
-    assertApplicationManagementSummaryDTOs(actualDTOs, expectedDTOs);
-  }
-
-  @Test
-  public void testCreateApplicationManagementSummariesWithUserFromLdap() throws NamingException {
-
-    LdapGetUsersAnswer ldapGetUsersAnswer = new LdapGetUsersAnswer();
-    List<ApplicationManagementSummaryDTO> expectedDTOs = new ArrayList<>();
-
-    List<Application> applications = new ArrayList<>();
-    for (int i = 1; i <= 5; i++) {
-      String orgId = organizationId;
-      String orgName = organizationName;
-      String appName = applicationName + "-" + i;
-      String appId = applicationId + "-" + i;
-      String contactName = contactInternalName + "-" + i;
-      String firstName = userFirstName + "-" + i;
-      String lastName = userLastName + "-" + i;
-      String email = userEmail + "-" + i;
-      String displayName = firstName + " " + lastName;
-
-      Application application = createApplication(orgId, appName, appId, contactName);
-      applications.add(application);
-
-      ContactDTO expectedContact = createExpectedContact(contactName, displayName, LDAP_REALM, email);
+      ContactDTO expectedContact = createExpectedContact(contactName, displayName, REALM, email);
       expectedDTOs.add(createExpectedApplicationManagementSummaryDTO(orgId, orgName, appName, appId, expectedContact));
 
-      LdapUser ldapUser = createLdapUser(contactName, displayName, email);
-      ldapGetUsersAnswer.addLdapUser(ldapUser);
+      Member member = createMember(contactName, firstName + " " + lastName, email, REALM);
+      memberNames.add(contactName);
+      members.add(member);
     }
 
-    // Return null when ever the mock user DAO getByUsernameLowercase method is called
-    when(mockUserDAO.getByUsername(anyString())).thenReturn(null);
-    // Return true when ever the mock ldap manager's isLdapEnabled method is called
-    when(mockLdapManager.isLdapEnabled()).thenReturn(true);
-    when(mockLdapManager.getLdapServerName()).thenReturn(LDAP_REALM);
-    when(mockLdapManager.getUsers(any(String[].class), anyInt())).thenAnswer(ldapGetUsersAnswer);
+    setQueryResultForGetMembersByNames(mockUserDirectory, memberNames, members, null);
 
-    List<ApplicationManagementSummaryDTO> actualDTOs = applicationAdapter.createApplicationManagementSummaries(
-        applications);
+    List<ApplicationManagementSummaryDTO> actualDTOs = applicationAdapter
+        .createApplicationManagementSummaries(applications);
 
     assertApplicationManagementSummaryDTOs(actualDTOs, expectedDTOs);
 
@@ -322,11 +223,12 @@ public class ApplicationAdapterTest
   }
 
   @Test
-  public void testCreateApplicationManagementSummariesWithUserFromLdapUserNotFound() throws NamingException {
+  public void testCreateApplicationManagementSummaries_WithUnfoundUsers() {
 
     List<ApplicationManagementSummaryDTO> expectedDTOs = new ArrayList<>();
     List<Application> applications = new ArrayList<>();
 
+    Set<String> memberNames = new HashSet<>();
     for (int i = 1; i <= 5; i++) {
       String orgId = organizationId;
       String orgName = organizationName;
@@ -339,31 +241,31 @@ public class ApplicationAdapterTest
 
       ContactDTO expectedContact = createExpectedContactForNotFoundError(contactName);
       expectedDTOs.add(createExpectedApplicationManagementSummaryDTO(orgId, orgName, appName, appId, expectedContact));
+
+      // The names of the members that will be queried but not found.
+      memberNames.add(contactName);
     }
 
-    List<LdapUser> ldapUsers = Collections.emptyList();
+    List<Member> members = Collections.emptyList();
 
-    // Return null when ever the mock user DAO getByUsernameLowercase method is called
-    when(mockUserDAO.getByUsername(anyString())).thenReturn(null);
-    // Return true when ever the mock ldap manager's isLdapEnabled method is called
-    when(mockLdapManager.isLdapEnabled()).thenReturn(true);
-    when(mockLdapManager.getLdapServerName()).thenReturn(LDAP_REALM);
-    when(mockLdapManager.getUsers(any(String[].class), anyInt())).thenReturn(ldapUsers);
+    setQueryResultForGetMembersByNames(mockUserDirectory, memberNames, members, null);
 
-    List<ApplicationManagementSummaryDTO> actualDTOs = applicationAdapter.createApplicationManagementSummaries(
-        applications);
+    List<ApplicationManagementSummaryDTO> actualDTOs = applicationAdapter
+        .createApplicationManagementSummaries(applications);
 
     assertApplicationManagementSummaryDTOs(actualDTOs, expectedDTOs);
+
     // Expect only one call as all applications in the test have the same organization
     verify(mockOrganizationDAO, times(1)).getByIdNotNull(anyString());
   }
 
   @Test
-  public void testCreateApplicationManagementSummariesWithUserFromLdapNotConfigured() {
+  public void testCreateApplicationManagementSummaries_WithUserDirectoryException() {
 
     List<ApplicationManagementSummaryDTO> expectedDTOs = new ArrayList<>();
     List<Application> applications = new ArrayList<>();
 
+    Set<String> memberNames = new HashSet<>();
     for (int i = 1; i <= 5; i++) {
       String orgId = organizationId;
       String orgName = organizationName;
@@ -374,111 +276,28 @@ public class ApplicationAdapterTest
       Application application = createApplication(orgId, appName, appId, contactName);
       applications.add(application);
 
-      ContactDTO expectedContact = createExpectedContactForLdapError(contactName);
+      ContactDTO expectedContact = createExpectedContactForUserDirectoryError(contactName);
       expectedDTOs.add(createExpectedApplicationManagementSummaryDTO(orgId, orgName, appName, appId, expectedContact));
+
+      memberNames.add(contactName);
     }
 
-    when(mockUserDAO.getByUsername(anyString())).thenReturn(null);
-    when(mockLdapManager.isLdapEnabled()).thenReturn(true);
-    when(mockLdapManager.getLdapServerName()).thenThrow(new IllegalStateException(TEST_MESSAGE));
+    List<Member> members = Collections.emptyList();
 
-    List<ApplicationManagementSummaryDTO> actualDTOs = applicationAdapter.createApplicationManagementSummaries(
-        applications);
+    setQueryResultForGetMembersByNames(mockUserDirectory, memberNames, members,
+ new Exception(TEST_MESSAGE));
+
+    List<ApplicationManagementSummaryDTO> actualDTOs = applicationAdapter
+        .createApplicationManagementSummaries(applications);
 
     assertApplicationManagementSummaryDTOs(actualDTOs, expectedDTOs);
+
     // Expect only one call as all applications in the test have the same organization
     verify(mockOrganizationDAO, times(1)).getByIdNotNull(anyString());
   }
 
   @Test
-  public void testCreateApplicationManagementSummariesWithUserFromLdapErrorOnGetUsers()
-      throws NamingException
-  {
-
-    List<ApplicationManagementSummaryDTO> expectedDTOs = new ArrayList<>();
-    List<Application> applications = new ArrayList<>();
-
-    for (int i = 1; i <= 5; i++) {
-      String orgId = organizationId;
-      String orgName = organizationName;
-      String appName = applicationName + "-" + i;
-      String appId = applicationId + "-" + i;
-      String contactName = contactInternalName + "-" + i;
-
-      Application application = createApplication(orgId, appName, appId, contactName);
-      applications.add(application);
-
-      ContactDTO expectedContact = createExpectedContactForLdapError(contactName);
-      expectedDTOs.add(createExpectedApplicationManagementSummaryDTO(orgId, orgName, appName, appId, expectedContact));
-    }
-
-
-    when(mockUserDAO.getByUsername(anyString())).thenReturn(null);
-    when(mockLdapManager.isLdapEnabled()).thenReturn(true);
-    when(mockLdapManager.getLdapServerName()).thenReturn(LDAP_REALM);
-    when(mockLdapManager.getUsers(any(String[].class), anyInt())).thenThrow(new NamingException(TEST_MESSAGE));
-
-    List<ApplicationManagementSummaryDTO> actualDTOs = applicationAdapter.createApplicationManagementSummaries(
-        applications);
-
-    assertApplicationManagementSummaryDTOs(actualDTOs, expectedDTOs);
-    // Expect only one call as all applications in the test have the same organization
-    verify(mockOrganizationDAO, times(1)).getByIdNotNull(anyString());
-  }
-
-  @Test
-  public void testCreateApplicationManagementSummariesWithUserFromClmAndLdap() throws NamingException {
-
-    List<ApplicationManagementSummaryDTO> expectedDTOs = new ArrayList<>();
-    List<Application> applications = new ArrayList<>();
-    LdapGetUsersAnswer ldapGetUsersAnswer = new LdapGetUsersAnswer();
-
-    for (int i = 1; i <= 5; i++) {
-      String orgId = organizationId;
-      String orgName = organizationName;
-      String appName = applicationName + "-" + i;
-      String appId = applicationId + "-" + i;
-      String contactName = contactInternalName + "-" + i;
-      String firstName = userFirstName + "-" + i;
-      String lastName = userLastName + "-" + i;
-      String email = userEmail + "-" + i;
-      String displayName = firstName + " " + lastName;
-
-      Application application = createApplication(orgId, appName, appId, contactName);
-      applications.add(application);
-
-      ContactDTO expectedContact;
-
-      if (i % 2 == 0) {
-        // Even numbered will be CLM
-        User user = createUser(userId + "-" + i, contactName, firstName, lastName, email);
-        when(mockUserDAO.getByUsername(contactName)).thenReturn(user);
-        expectedContact = createExpectedContact(contactName, displayName, CLM_REALM, email);
-      }
-      else {
-        // Odd numbered will be LDAP
-        LdapUser ldapUser = createLdapUser(contactName, displayName, email);
-        ldapGetUsersAnswer.addLdapUser(ldapUser);
-        when(mockUserDAO.getByUsername(contactName)).thenReturn(null);
-        expectedContact = createExpectedContact(contactName, displayName, LDAP_REALM, email);
-      }
-      expectedDTOs.add(createExpectedApplicationManagementSummaryDTO(orgId, orgName, appName, appId, expectedContact));
-    }
-
-    when(mockLdapManager.isLdapEnabled()).thenReturn(true);
-    when(mockLdapManager.getLdapServerName()).thenReturn(LDAP_REALM);
-    when(mockLdapManager.getUsers(any(String[].class), anyInt())).thenAnswer(ldapGetUsersAnswer);
-
-    List<ApplicationManagementSummaryDTO> actualDTOs = applicationAdapter.createApplicationManagementSummaries(
-        applications);
-
-    assertApplicationManagementSummaryDTOs(actualDTOs, expectedDTOs);
-    // Expect only one call as all applications in the test have the same organization
-    verify(mockOrganizationDAO, times(1)).getByIdNotNull(anyString());
-  }
-
-  @Test
-  public void testCreateApplicationManagementSummariesWithNullContacts() throws NamingException {
+  public void testCreateApplicationManagementSummaries_WithNullUserNames() {
 
     List<ApplicationManagementSummaryDTO> expectedDTOs = new ArrayList<>();
     List<Application> applications = new ArrayList<>();
@@ -495,20 +314,26 @@ public class ApplicationAdapterTest
       expectedDTOs.add(createExpectedApplicationManagementSummaryDTO(orgId, orgName, appName, appId, null));
     }
 
-    when(mockLdapManager.isLdapEnabled()).thenReturn(true);
-    when(mockLdapManager.getLdapServerName()).thenReturn(LDAP_REALM);
-    when(mockLdapManager.getUsers(any(String[].class), anyInt())).thenThrow(new IllegalStateException(TEST_MESSAGE));
+    // Internally the null contact names get converted into a list of nulls, which gets converted into a set which would
+    // only contain one null.
+    Set<String> nullMemberNames = new HashSet<>();
+    nullMemberNames.add(null);
+    List<Member> members = Collections.emptyList();
+        
+    setQueryResultForGetMembersByNames(mockUserDirectory, nullMemberNames, members,
+        null);
 
-    List<ApplicationManagementSummaryDTO> actualDTOs = applicationAdapter.createApplicationManagementSummaries(
-        applications);
+    List<ApplicationManagementSummaryDTO> actualDTOs = applicationAdapter
+        .createApplicationManagementSummaries(applications);
 
     assertApplicationManagementSummaryDTOs(actualDTOs, expectedDTOs);
+
     // Expect only one call as all applications in the test have the same organization
     verify(mockOrganizationDAO, times(1)).getByIdNotNull(anyString());
   }
 
   @Test
-  public void testCreateApplicationManagementSummariesWithSameUserFromLdap() throws NamingException {
+  public void testCreateApplicationManagementSummaries_WithSameUser() {
 
     String displayName = userFirstName + " " + userLastName;
 
@@ -524,122 +349,32 @@ public class ApplicationAdapterTest
       Application application = createApplication(orgId, appName, appId, contactInternalName);
       applications.add(application);
 
-      ContactDTO expectedContact = createExpectedContact(contactInternalName, displayName, LDAP_REALM, userEmail);
+      ContactDTO expectedContact = createExpectedContact(contactInternalName, displayName, REALM, userEmail);
       expectedDTOs.add(createExpectedApplicationManagementSummaryDTO(orgId, orgName, appName, appId, expectedContact));
     }
 
-    List<LdapUser> ldapUsers = new ArrayList<>();
-    LdapUser ldapUser = createLdapUser(contactInternalName, displayName, userEmail);
-    ldapUsers.add(ldapUser);
+    Set<String> memberNames = Sets.newHashSet(contactInternalName);
+    List<Member> members = new ArrayList<>();
+    members.add(createMember(contactInternalName, displayName, userEmail, REALM));
 
-    // Return null when ever the mock user DAO getByUsernameLowercase method is called
-    when(mockUserDAO.getByUsername(anyString())).thenReturn(null);
-    // Return true when ever the mock ldap manager's isLdapEnabled method is called
-    when(mockLdapManager.isLdapEnabled()).thenReturn(true);
-    when(mockLdapManager.getLdapServerName()).thenReturn(LDAP_REALM);
-    when(mockLdapManager.getUsers(any(String[].class), anyInt())).thenReturn(ldapUsers);
+    setQueryResultForGetMembersByNames(mockUserDirectory, memberNames, members, null);
 
-    List<ApplicationManagementSummaryDTO> actualDTOs = applicationAdapter.createApplicationManagementSummaries(
-        applications);
+    List<ApplicationManagementSummaryDTO> actualDTOs = applicationAdapter
+        .createApplicationManagementSummaries(applications);
 
     assertApplicationManagementSummaryDTOs(actualDTOs, expectedDTOs);
+
     // Expect only one call as all applications in the test have the same organization
     verify(mockOrganizationDAO, times(1)).getByIdNotNull(anyString());
   }
 
   @Test
-  public void testCreateApplicationManagementSummariesWithSameUserFromClm() {
-
-    String displayName = userFirstName + " " + userLastName;
+  public void testCreateApplicationManagementSummaries_NotAllUsersFound() {
 
     List<ApplicationManagementSummaryDTO> expectedDTOs = new ArrayList<>();
     List<Application> applications = new ArrayList<>();
-
-    for (int i = 1; i <= 5; i++) {
-      String orgId = organizationId;
-      String orgName = organizationName;
-      String appName = applicationName + "-" + i;
-      String appId = applicationId + "-" + i;
-
-      Application application = createApplication(orgId, appName, appId, contactInternalName);
-      applications.add(application);
-
-      ContactDTO expectedContact = createExpectedContact(contactInternalName, displayName, CLM_REALM, userEmail);
-      expectedDTOs.add(createExpectedApplicationManagementSummaryDTO(orgId, orgName, appName, appId, expectedContact));
-
-      // Return this user when ever the mock user DAO getByUsernameLowercase method is called
-      User user = createUser(userId, contactInternalName, userFirstName, userLastName, userEmail);
-      when(mockUserDAO.getByUsername(contactInternalName)).thenReturn(user);
-    }
-
-    List<ApplicationManagementSummaryDTO> actualDTOs = applicationAdapter.createApplicationManagementSummaries(
-        applications);
-
-    assertApplicationManagementSummaryDTOs(actualDTOs, expectedDTOs);
-    // Expect only one call as all applications in the test have the same organization
-    verify(mockOrganizationDAO, times(1)).getByIdNotNull(anyString());
-  }
-
-  @Test
-  public void testCreateApplicationManagementSummariesWithSameUserFromClmAndLdap() throws NamingException {
-
-    List<ApplicationManagementSummaryDTO> expectedDTOs = new ArrayList<>();
-    List<Application> applications = new ArrayList<>();
-    List<LdapUser> ldapUsers = new ArrayList<>();
-    Map<String, LdapUser> ldapUserMap = new LinkedHashMap<>();
-
-    for (int i = 1; i <= 5; i++) {
-      String orgId = organizationId;
-      String orgName = organizationName;
-      String appName = applicationName + "-" + i;
-      String appId = applicationId + "-" + i;
-
-      String suffix = "-" + i % 2;
-      String contactName = contactInternalName + suffix;
-      String firstName = userFirstName + suffix;
-      String lastName = userLastName + suffix;
-      String email = userEmail + suffix;
-      String displayName = firstName + " " + lastName;
-
-      ContactDTO expectedContact;
-      if (i % 2 == 0) {
-        // Even numbered will be CLM
-        User user = createUser(userId, contactName, firstName, lastName, email);
-        when(mockUserDAO.getByUsername(contactName)).thenReturn(user);
-        expectedContact = createExpectedContact(contactName, displayName, CLM_REALM, email);
-      }
-      else {
-        // Odd numbered will be LDAP
-        LdapUser ldapUser = createLdapUser(contactName, displayName, email);
-        ldapUserMap.put(ldapUser.getUsername(), ldapUser);
-        when(mockUserDAO.getByUsername(contactName)).thenReturn(null);
-        expectedContact = createExpectedContact(contactName, displayName, LDAP_REALM, email);
-      }
-      expectedDTOs.add(createExpectedApplicationManagementSummaryDTO(orgId, orgName, appName, appId, expectedContact));
-
-      Application application = createApplication(orgId, appName, appId, contactName);
-      applications.add(application);
-    }
-    ldapUsers.addAll(ldapUserMap.values());
-
-    when(mockLdapManager.isLdapEnabled()).thenReturn(true);
-    when(mockLdapManager.getLdapServerName()).thenReturn(LDAP_REALM);
-    when(mockLdapManager.getUsers(any(String[].class), anyInt())).thenReturn(ldapUsers);
-
-    List<ApplicationManagementSummaryDTO> actualDTOs = applicationAdapter.createApplicationManagementSummaries(
-        applications);
-
-    assertApplicationManagementSummaryDTOs(actualDTOs, expectedDTOs);
-    // Expect only one call as all applications in the test have the same organization
-    verify(mockOrganizationDAO, times(1)).getByIdNotNull(anyString());
-  }
-
-  @Test
-  public void testCreateApplicationManagementSummariesWithUserFromLdapNotAllFound() throws NamingException {
-
-    LdapGetUsersAnswer ldapGetUsersAnswer = new LdapGetUsersAnswer();
-    List<ApplicationManagementSummaryDTO> expectedDTOs = new ArrayList<>();
-    List<Application> applications = new ArrayList<>();
+    Set<String> memberNames = new HashSet<>();
+    List<Member> members = new ArrayList<>();
 
     for (int i = 1; i <= 5; i++) {
       String orgId = organizationId;
@@ -657,11 +392,12 @@ public class ApplicationAdapterTest
 
       ContactDTO expectedContact;
 
-      // Every other item will be found by LDAP
+      // All names will be passed to the user directory, but only half of them will be found.
+      memberNames.add(contactName);
       if (i % 2 == 0) {
-        LdapUser ldapUser = createLdapUser(contactName, displayName, email);
-        ldapGetUsersAnswer.addLdapUser(ldapUser);
-        expectedContact = createExpectedContact(contactName, displayName, LDAP_REALM, email);
+        Member member = createMember(contactName, displayName, email, REALM);
+        members.add(member);
+        expectedContact = createExpectedContact(contactName, displayName, REALM, email);
       }
       else {
         expectedContact = createExpectedContactForNotFoundError(contactName);
@@ -669,69 +405,19 @@ public class ApplicationAdapterTest
       expectedDTOs.add(createExpectedApplicationManagementSummaryDTO(orgId, orgName, appName, appId, expectedContact));
     }
 
-    // Return null when ever the mock user DAO getByUsernameLowercase method is called
-    when(mockUserDAO.getByUsername(anyString())).thenReturn(null);
-    // Return true when ever the mock ldap manager's isLdapEnabled method is called
-    when(mockLdapManager.isLdapEnabled()).thenReturn(true);
-    when(mockLdapManager.getLdapServerName()).thenReturn(LDAP_REALM);
-    when(mockLdapManager.getUsers(any(String[].class), anyInt())).thenAnswer(ldapGetUsersAnswer);
+    setQueryResultForGetMembersByNames(mockUserDirectory, memberNames, members, null);
 
-    List<ApplicationManagementSummaryDTO> actualDTOs = applicationAdapter.createApplicationManagementSummaries(
-        applications);
+    List<ApplicationManagementSummaryDTO> actualDTOs = applicationAdapter
+        .createApplicationManagementSummaries(applications);
 
     assertApplicationManagementSummaryDTOs(actualDTOs, expectedDTOs);
+
     // Expect only one call as all applications in the test have the same organization
     verify(mockOrganizationDAO, times(1)).getByIdNotNull(anyString());
   }
 
-  @Test
-  public void testCreateApplicationManagementSummariesWithUserFromClmNotAllFound() {
-
-    List<ApplicationManagementSummaryDTO> expectedDTOs = new ArrayList<>();
-    List<Application> applications = new ArrayList<>();
-
-    for (int i = 1; i <= 5; i++) {
-      String orgId = organizationId;
-      String orgName = organizationName;
-      String appName = applicationName + "-" + i;
-      String appId = applicationId + "-" + i;
-      String contactName = contactInternalName + "-" + i;
-      String firstName = userFirstName + "-" + i;
-      String lastName = userLastName + "-" + i;
-      String email = userEmail + "-" + i;
-      String displayName = firstName + " " + lastName;
-
-      Application application = createApplication(orgId, appName, appId, contactName);
-      applications.add(application);
-
-      ContactDTO expectedContact;
-
-      // Every other item will be found by LDAP
-      if (i % 2 == 0) {
-        // Return this user when ever the mock user DAO getByUsernameLowercase method is called
-        User user = createUser(userId + "-" + i, contactName, firstName, lastName, email);
-        when(mockUserDAO.getByUsername(contactName)).thenReturn(user);
-        expectedContact = createExpectedContact(contactName, displayName, CLM_REALM, email);
-      }
-      else {
-        when(mockUserDAO.getByUsername(contactName)).thenReturn(null);
-        expectedContact = createExpectedContactForNotFoundError(contactName);
-      }
-
-      expectedDTOs.add(createExpectedApplicationManagementSummaryDTO(orgId, orgName, appName, appId, expectedContact));
-    }
-    when(mockLdapManager.isLdapEnabled()).thenReturn(false);
-
-    List<ApplicationManagementSummaryDTO> actualDTOs = applicationAdapter.createApplicationManagementSummaries(
-        applications);
-
-    assertApplicationManagementSummaryDTOs(actualDTOs, expectedDTOs);
-    // Expect only one call as all applications in the test have the same organization
-    verify(mockOrganizationDAO, times(1)).getByIdNotNull(anyString());
-  }
-
-  private ApplicationManagementSummaryDTO createExpectedApplicationManagementSummaryDTO(String orgId, String orgName, String appName,
-      String appId, ContactDTO contact)
+  private ApplicationManagementSummaryDTO createExpectedApplicationManagementSummaryDTO(String orgId, String orgName,
+      String appName, String appId, ContactDTO contact)
   {
 
     ApplicationManagementSummaryDTO dto = new ApplicationManagementSummaryDTO();
@@ -744,7 +430,6 @@ public class ApplicationAdapterTest
 
     return dto;
   }
-
 
   private ApplicationDTO createExpectedDTO(String appName, String appId, ContactDTO contact) {
 
@@ -762,19 +447,18 @@ public class ApplicationAdapterTest
   private ContactDTO createExpectedContactForNotFoundError(String internalName) {
 
     ContactDTO expectedContact = createExpectedContact(internalName, null, null, null);
-    expectedContact.setError("The username " + internalName + " no longer exists");
+    expectedContact.setError("The username " + internalName + " no longer exists.");
 
     return expectedContact;
   }
 
-  private ContactDTO createExpectedContactForLdapError(String internalName) {
+  private ContactDTO createExpectedContactForUserDirectoryError(String internalName) {
 
     ContactDTO expectedContact = createExpectedContact(internalName, null, null, null);
-    expectedContact.setError(LDAP_ERROR);
+    expectedContact.setError(USER_DIRECTORY_ERROR);
 
     return expectedContact;
   }
-
 
   private ContactDTO createExpectedContact(String internalName, String displayName, String realm, String email) {
 
@@ -795,25 +479,15 @@ public class ApplicationAdapterTest
     return application;
   }
 
-  private User createUser(String id, String internalName, String firstName, String lastName, String email) {
+  private Member createMember(String internalName, String displayName, String email, String realm) {
+    Member member = new Member();
+    member.setInternalName(internalName);
+    member.setDisplayName(displayName);
+    member.setEmail(email);
+    member.setRealm(realm);
+    member.setType(MemberType.USER);
 
-    User user = new User();
-    user.setId(id);
-    user.setUsername(internalName);
-    user.setFirstName(firstName);
-    user.setLastName(lastName);
-    user.setEmail(email);
-
-    return user;
-  }
-
-  private LdapUser createLdapUser(String internalName, String realName, String email) {
-
-    LdapUser user = new LdapUser();
-    user.setEmail(email);
-    user.setUsername(internalName);
-    user.setRealName(realName);
-    return user;
+    return member;
   }
 
   private void assertApplications(List<ApplicationDTO> actualApplicationDTOs,
@@ -879,44 +553,11 @@ public class ApplicationAdapterTest
     assertContact(actual.getContact(), expected.getContact());
   }
 
-  class LdapGetUsersAnswer
-      implements Answer<List<LdapUser>>
+  private void setQueryResultForGetMembersByNames(UserDirectory userDirectory, Set<String> names,
+      List<Member> members, Exception exception)
   {
-
-    private Map<String, LdapUser> ldapUserMap = new HashMap<>();
-
-    public LdapGetUsersAnswer() {
-
-    }
-
-    public void addLdapUser(LdapUser user) {
-
-      ldapUserMap.put(user.getUsername().toLowerCase(Locale.ENGLISH), user);
-    }
-
-    public LdapUser getLdapUser(String userName) {
-
-      return ldapUserMap.get(userName.toLowerCase(Locale.ENGLISH));
-    }
-
-    @Override
-    public List<LdapUser> answer(final InvocationOnMock invocationOnMock) throws Throwable {
-
-      Object[] objects = invocationOnMock.getArguments();
-      String[] names = (String[]) objects[0];
-      if (names == null || names.length == 0) {
-        return Collections.emptyList();
-      }
-
-      List<LdapUser> users = new ArrayList<>(names.length);
-      for (String name : names) {
-        LdapUser user = getLdapUser(name);
-        if (user != null) {
-          users.add(user);
-        }
-      }
-
-      return users;
-    }
+    UserDirectory.QueryResult result = new UserDirectory.QueryResult(members, exception);
+    when(userDirectory.getMembersByNames(names, false)).thenReturn(result);
   }
+
 }

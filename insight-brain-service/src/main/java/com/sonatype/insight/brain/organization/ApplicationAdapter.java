@@ -9,28 +9,21 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
-import javax.naming.NamingException;
 
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
-import com.sonatype.insight.brain.dataaccess.security.UserDAO;
-import com.sonatype.insight.brain.ldap.LdapManager;
-import com.sonatype.insight.brain.ldap.LdapUser;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
-import com.sonatype.insight.brain.model.security.User;
-import com.sonatype.insight.brain.security.CLMRealm;
+import com.sonatype.insight.brain.security.Member;
+import com.sonatype.insight.brain.security.UserDirectory;
 
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.ListMultimap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,19 +40,16 @@ public class ApplicationAdapter
 
   private final OrganizationDAO organizationDAO;
 
-  private final UserDAO userDAO;
-
-  private final LdapManager ldapManager;
+  private final UserDirectory userDirectory;
 
   @Inject
-  public ApplicationAdapter(final LdapManager ldapManager) {
-    this(ldapManager, new OrganizationDAO(), new UserDAO());
+  public ApplicationAdapter(UserDirectory userDirectory) {
+    this(userDirectory, new OrganizationDAO());
   }
 
-  public ApplicationAdapter(final LdapManager ldapManager, OrganizationDAO organizationDAO, UserDAO userDAO) {
-    this.ldapManager = ldapManager;
+  public ApplicationAdapter(UserDirectory userDirectory, OrganizationDAO organizationDAO) {
+    this.userDirectory = userDirectory;
     this.organizationDAO = organizationDAO;
-    this.userDAO = userDAO;
   }
 
   /**
@@ -169,109 +159,98 @@ public class ApplicationAdapter
   }
 
   public ContactDTO getContact(final String internalName) {
-
     return getContacts(Arrays.asList(internalName))[0];
   }
 
   /**
    * Get the contact DTO from the contact internal name (username)
-   *
+   * 
    * @param internalNamesList the list of contact internal names to look up
    * @return the contact DTO array (guaranteed to be the same size as the input list)
    */
   private ContactDTO[] getContacts(List<String> internalNamesList) {
-
     if (internalNamesList == null || internalNamesList.isEmpty()) {
       return new ContactDTO[0];
     }
 
-    final ContactDTO[] contacts = new ContactDTO[internalNamesList.size()];
+    // Preserving the original choice of an array and ordering as other parts of the API depend on this.
+    ContactDTO[] contacts = new ContactDTO[internalNamesList.size()];
 
-    // Multi-map to keep the internal names that need to be looked up in LDAP (also the positions in the array)
-    final ListMultimap<String, Integer> notFoundInClmMap = ArrayListMultimap.create();
+    Map<String, ContactDTO> nameToContactMap = null;
+    UserDirectory.QueryResult result = userDirectory.getMembersByNames(new HashSet<String>(internalNamesList), false);
+    if (result.hasException()) {
+      log.error(
+          "An exception occurred while trying to resolve user names; attempting to resolve user names using the local CLM realm.",
+          result.getException());
 
-    // First look up each internal name in the CLM database
-    int i = 0;
-    for (String internalName : internalNamesList) {
-      if (internalName == null) {
-        // No internal name for this entry, so set the contact to null
-        contacts[i] = null;
-      }
-      else {
-        // Look up user in database
-        User user = userDAO.getByUsername(internalName);
-        if (user != null) {
-          // Found in CLM database so add contact for this entry
-          ContactDTO contact = new ContactDTO(user.getUsername(), user.calculateDisplayName(), user.getEmail(),
-              CLMRealm.DISPLAY_NAME);
-          contacts[i] = contact;
-        }
-        else if (ldapManager.isLdapEnabled()) {
-          // Not found in CLM and LDAP is configured so add to the LDAP map
-          // Since LDAP is case-insensitive we normalize the map with only lowercase keys
-          notFoundInClmMap.put(internalName.toLowerCase(Locale.ENGLISH), i);
-        }
-        else {
-          // No contact found in CLM and LDAP not configured, so create a contact with an error message
-          ContactDTO contact = createErrorContact(internalName, "The username " + internalName + " no longer exists");
-          contacts[i] = contact;
-        }
-      }
-      i++;
+      // Map the existing names potentially loaded by the CLM data store.
+      nameToContactMap = mapNameToContact(result.get());
+      // Add the remaining names as user directory errors.
+      putUserDirectoryErrorContacts(internalNamesList, nameToContactMap);
+    }
+    else {
+      nameToContactMap = mapNameToContact(result.get());
     }
 
-    // Now look up the items not found in the CLM database from LDAP
-    // If LDAP is enabled we lookup any users not found in the CLM database
-    // Note this map will be empty if ldap is not enabled or if all users found in CLM database
-    if (!notFoundInClmMap.isEmpty()) {
+    putUnknownErrorContacts(internalNamesList, nameToContactMap);
 
-      List<LdapUser> ldapUsers = null;
-      String ldapServerName = null;
-
-      Set<String> keys = notFoundInClmMap.keySet();
-      String[] internalNames = keys.toArray(new String[keys.size()]);
-      try {
-        ldapServerName = ldapManager.getLdapServerName();
-        ldapUsers = ldapManager.getUsers(internalNames, internalNames.length);
-      }
-      catch (NamingException | IllegalStateException e) {
-        log.error("LDAP exception when trying to resolve user names", e);
-
-        // Create LDAP general error for all items in the map and return the contact list
-        for (Entry<String, Integer> entry : notFoundInClmMap.entries()) {
-          String internalName = entry.getKey();
-          Integer index = entry.getValue();
-          ContactDTO contact = createErrorContact(internalName, "LDAP error");
-          contacts[index] = contact;
-        }
-        return contacts;
-      }
-
-      if (ldapUsers != null) {
-        for (LdapUser ldapUser : ldapUsers) {
-          // Create the contact member and set it on the application DTO
-          final ContactDTO contact = new ContactDTO(ldapUser.getUsername(), ldapUser.getRealName(), ldapUser.getEmail(),
-              ldapServerName);
-          // remove the item from the map and add the contact to the list at the desired positions
-          // Since LDAP is case-insensitive we normalize the map with only lowercase keys
-          final List<Integer> positions = notFoundInClmMap
-              .removeAll(contact.getInternalName().toLowerCase(Locale.ENGLISH));
-          for (int position : positions) {
-            contacts[position] = contact;
-          }
-        }
-      }
-
-      // Create errors for any items left in the map
-      for (final Entry<String, Integer> entry : notFoundInClmMap.entries()) {
-        String internalName = entry.getKey();
-        Integer index = entry.getValue();
-        ContactDTO contact = createErrorContact(internalName, "The username " + internalName + " no longer exists");
-        contacts[index] = contact;
-      }
+    // Place the contacts into the contact array in the order the names were given.
+    for (int i = 0; i < contacts.length; i++) {
+      contacts[i] = nameToContactMap.get(toLowerCase(internalNamesList.get(i)));
     }
 
     return contacts;
+  }
+
+  private String toLowerCase(String string) {
+    if (string == null) {
+      return null;
+    }
+
+    return string.toLowerCase(Locale.ENGLISH);
+  }
+
+  private void putUnknownErrorContacts(List<String> internalNamesList,
+      Map<String, ContactDTO> nameToContactMap)
+  {
+    // If we've already mapped all the names no work needs to be done.
+    if (nameToContactMap.size() == internalNamesList.size()) {
+      return;
+    }
+
+    for (String internalName : internalNamesList) {
+      if (internalName != null && !nameToContactMap.containsKey(toLowerCase(internalName))) {
+        nameToContactMap.put(toLowerCase(internalName),
+            createErrorContact(internalName, "The username " + internalName + " no longer exists."));
+      }
+    }
+  }
+
+  private void putUserDirectoryErrorContacts(List<String> internalNamesList,
+      Map<String, ContactDTO> nameToContactMap)
+  {
+    // If we've already mapped all the names no work needs to be done.
+    if (nameToContactMap.size() == internalNamesList.size()) {
+      return;
+    }
+
+    for (String internalName : internalNamesList) {
+      if (internalName != null && !nameToContactMap.containsKey(toLowerCase(internalName))) {
+        nameToContactMap.put(toLowerCase(internalName),
+            createErrorContact(internalName, "User directory query result error."));
+      }
+    }
+  }
+
+  private Map<String, ContactDTO> mapNameToContact(List<Member> members) {
+    Map<String, ContactDTO> result = new HashMap<String, ContactDTO>();
+
+    for (Member member : members) {
+      result.put(member.getInternalNameLowerCase(), new ContactDTO(member.getInternalName(), member.getDisplayName(),
+          member.getEmail(), member.getRealm()));
+    }
+
+    return result;
   }
 
   private ContactDTO createErrorContact(String internalName, String errorMessage) {

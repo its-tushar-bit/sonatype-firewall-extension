@@ -5,8 +5,10 @@
  */
 package com.sonatype.insight.brain.dataaccess.security;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 
 import javax.persistence.EntityManager;
 
@@ -34,6 +36,24 @@ public class UserDAO
     String sQuery = "SELECT entity FROM User entity" + //
         " WHERE entity.usernameLowercase=?1";
     return get(em, sQuery, username.toLowerCase(Locale.ENGLISH));
+  }
+
+  /**
+   * Looks up users by their (case-insensitive) usernames.
+   * 
+   * @param usernames The usernames to look up, must not be {@code null}.
+   * @return List of matching User objects ordered by their lower case usernames.
+   */
+  public List<User> getByUsernames(Set<String> usernames) {
+    List<String> lowerCaseUsernames = new ArrayList<>();
+    for (String username : usernames) {
+      lowerCaseUsernames.add(username.toLowerCase(Locale.ENGLISH));
+    }
+
+    String sQuery = "SELECT entity from User entity" + //
+        " WHERE entity.usernameLowercase IN ?1" + //
+        " ORDER BY entity.usernameLowercase";
+    return getList(sQuery, lowerCaseUsernames);
   }
 
   /**

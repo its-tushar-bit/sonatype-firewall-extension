@@ -19,7 +19,7 @@ import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
-import com.sonatype.insight.brain.security.UserValidationService;
+import com.sonatype.insight.brain.security.UserDirectory;
 import com.sonatype.insight.dataaccess.AbstractDAO;
 import com.sonatype.insight.error.exception.PaymentRequiredException;
 
@@ -33,7 +33,7 @@ public class ApplicationHelper
 
   private final OrganizationDAO organizationDAO;
 
-  private final UserValidationService userValidationService;
+  private final UserDirectory userDirectory;
 
   private final ApplicationCleaner applicationCleaner;
 
@@ -41,13 +41,13 @@ public class ApplicationHelper
 
   @Inject
   public ApplicationHelper(final ApplicationDAO applicationDAO, final OrganizationDAO organizationDAO,
-      final UserValidationService userValidationService, final ApplicationCleaner applicationCleaner,
+      final UserDirectory userDirectory, final ApplicationCleaner applicationCleaner,
       final CLMLicenseManager licenseManager)
   {
     this.applicationDAO = applicationDAO;
     this.licenseManager = licenseManager;
     this.organizationDAO = organizationDAO;
-    this.userValidationService = userValidationService;
+    this.userDirectory = userDirectory;
     this.applicationCleaner = applicationCleaner;
   }
 
@@ -112,7 +112,7 @@ public class ApplicationHelper
     if (contact != null) {
       final Set<String> users = new HashSet<>();
       users.add(contact);
-      final Set<String> invalidUsers = userValidationService.validateUsers(users);
+      final Set<String> invalidUsers = userDirectory.validateUsers(users);
       if (!invalidUsers.isEmpty()) {
         throw new InvalidApplicationException(
             "Application has a contactUserName=" + invalidUsers.iterator().next() + " that does not exist.");

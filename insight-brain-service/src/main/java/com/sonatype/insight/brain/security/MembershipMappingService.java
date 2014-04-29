@@ -19,7 +19,6 @@ import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
 import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
-import com.sonatype.insight.brain.ldap.LdapManager;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
@@ -49,7 +48,7 @@ public class MembershipMappingService
 
   private final MembershipMappingDAO memberMapDAO;
 
-  private final LdapManager ldapManager;
+  private final UserDirectory userDirectory;
 
   private final OwnerMapper publicMapper = new PublicIdOwnerMapper();
 
@@ -58,13 +57,13 @@ public class MembershipMappingService
 
   @Inject
   public MembershipMappingService(final ApplicationDAO appDAO, OrganizationDAO orgDAO, final RoleDAO roleDAO,
-      final MembershipMappingDAO memberMapDAO, final LdapManager ldapManager)
+      final MembershipMappingDAO memberMapDAO, UserDirectory userDirectory)
   {
     this.appDAO = appDAO;
     this.orgDAO = orgDAO;
     this.roleDAO = roleDAO;
     this.memberMapDAO = memberMapDAO;
-    this.ldapManager = ldapManager;
+    this.userDirectory = userDirectory;
   }
 
   @Authorize(permission = Permission.READ)
@@ -107,7 +106,7 @@ public class MembershipMappingService
       byRole.roleDescription = role.getDescription();
       membersByRoleByRoleId.put(byRole.roleId, byRole);
     }
-    final MemberAttributeResolver memberAttributeResolver = new MemberAttributeResolver(ldapManager);
+    final MemberAttributeResolver memberAttributeResolver = new MemberAttributeResolver(userDirectory);
 
     String organizationId = null;
     // Add app members

@@ -5,11 +5,7 @@
  */
 package com.sonatype.insight.brain.security;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Locale;
-import java.util.Map;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -28,11 +24,7 @@ import javax.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
-import com.sonatype.insight.brain.ldap.LdapGroup;
-import com.sonatype.insight.brain.ldap.LdapManager;
-import com.sonatype.insight.brain.ldap.LdapUser;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.model.security.UserPrincipal;
@@ -73,15 +65,16 @@ public class UserResource
 
   private final SessionDAO sessionDAO;
 
-  private final LdapManager ldapManager;
-
   private static final ApplicationDAO applicationDAO = new ApplicationDAO();
 
+  private final UserDirectory userDirectory;
+
   @Inject
-  public UserResource(CLMRealm clmRealm, SessionDAO sessionDAO, LdapManager ldapManager) {
+  public UserResource(CLMRealm clmRealm, SessionDAO sessionDAO, UserDirectory userDirectory)
+  {
     this.clmRealm = clmRealm;
     this.sessionDAO = sessionDAO;
-    this.ldapManager = ldapManager;
+    this.userDirectory = userDirectory;
   }
 
   /**
@@ -99,46 +92,18 @@ public class UserResource
       throw new BadRequestException("No search term specified.");
     }
 
-    // Users are shaded by any user from a higher up realm that has the same username
-    Map<String, Member> users = new LinkedHashMap<>();
-    Map<String, Member> groups = new LinkedHashMap<>();
     String connectionError = null;
-
-    UserDAO dao = new UserDAO();
-    for (User user : dao.findUsersByName(query)) {
-      Member member = new Member(MemberType.USER, user.getUsername(), user.calculateDisplayName(), user.getEmail(), CLMRealm.DISPLAY_NAME);
-      users.put(member.getInternalName().toLowerCase(Locale.ENGLISH), member);
+    UserDirectory.QueryResult result = userDirectory.getMembersByQuery(query, groupsEnabled);
+    if (result.getException() instanceof NamingException) {
+      log.error("Unable to connect to LDAP server.", result.getException());
+      connectionError = "LDAP error, displaying local users only.";
+    }
+    else if (result.hasException()) {
+      log.error("An error occurred while attempting to access full user directories.", result.getException());
+      connectionError = "Unable to access full user directories, attempting to display local users only.";
     }
 
-    if (ldapManager.isLdapEnabled()) {
-      String ldapName = ldapManager.getLdapServerName();
-      try {
-        for (LdapUser user : ldapManager.findUsersByName(query, 100)) {
-          Member member = new Member(MemberType.USER, user.getUsername(), user.getRealName(), user.getEmail(), ldapName);
-          String key = member.getInternalName().toLowerCase(Locale.ENGLISH);
-          if (!users.containsKey(key)) {
-            users.put(key, member);
-          }
-        }
-        if (groupsEnabled && ldapManager.isLdapGroupEnabled()) {
-          for (LdapGroup group : ldapManager.findGroupsByName(query, 100)) {
-            final String groupName = group.getGroupname();
-            Member member = new Member(MemberType.GROUP, groupName, groupName, null, ldapName);
-            groups.put(groupName, member);
-          }
-        }
-      }
-      catch (NamingException ex) {
-        log.error("Unable to connect to ldap server", ex);
-        connectionError = "LDAP error, displaying local users only.";
-      }
-    }
-
-    List<Member> members = new ArrayList<>();
-    members.addAll(users.values());
-    members.addAll(groups.values());
-
-    return new FindMembersDTO(members, connectionError);
+    return new FindMembersDTO(result.get(), connectionError);
   }
 
   @GET
@@ -204,7 +169,7 @@ public class UserResource
 
     dao.delete(user);
     try {
-      if (!isLdapUser(user)) {
+      if (!userDirectory.isLdapUser(user)) {
         removeApplicationContact(user);
       }
     }
@@ -278,15 +243,6 @@ public class UserResource
   {
     public String oldPassword;
     public String newPassword;
-  }
-
-  private boolean isLdapUser(final User user) throws NamingException {
-    if (!ldapManager.isLdapEnabled()) {
-      return false;
-    }
-    final String[] userNames = {user.getUsername()};
-    final List<LdapUser> ldapUsers = ldapManager.getUsers(userNames, userNames.length);
-    return !ldapUsers.isEmpty();
   }
 
   // Remove the contact from the applications that have it

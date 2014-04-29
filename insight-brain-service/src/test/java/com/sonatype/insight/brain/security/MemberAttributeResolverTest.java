@@ -10,9 +10,8 @@ import java.util.List;
 
 import javax.inject.Inject;
 
-import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.configuration.ldap.LdapServer;
-import com.sonatype.insight.brain.ldap.LdapManager;
+import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.ldap.TestLdapServer;
 import com.sonatype.insight.brain.model.security.MemberType;
 
@@ -29,7 +28,7 @@ import static org.junit.Assert.assertThat;
 public class MemberAttributeResolverTest extends InjectedTest
 {
   @Inject
-  private LdapManager manager;
+  private UserDirectory userDirectory;
 
   private MemberAttributeResolver memberAttributeResolver;
 
@@ -41,7 +40,7 @@ public class MemberAttributeResolverTest extends InjectedTest
 
   @Before
   public void init() {
-    memberAttributeResolver = new MemberAttributeResolver(manager);
+    memberAttributeResolver = new MemberAttributeResolver(userDirectory);
   }
 
   @Test
@@ -111,7 +110,7 @@ public class MemberAttributeResolverTest extends InjectedTest
 
     tempEntity.newUser("testuser");
     // Need to reinitialize attribute resolver to clear cache
-    memberAttributeResolver = new MemberAttributeResolver(manager);
+    memberAttributeResolver = new MemberAttributeResolver(userDirectory);
 
     memberAttributeResolver.resolve(members);
 

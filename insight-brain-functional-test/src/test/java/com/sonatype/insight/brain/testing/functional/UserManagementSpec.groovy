@@ -197,10 +197,13 @@ class UserManagementSpec
     then: 'login succeeds'
       !login.isDisplayed()
       userOptions.logoutClick()
-      loginAsAdminVia(UserManagementPage)
   }
 
   def "The newly added user can be deleted"() {
+    setup: 'log back in as an admin'
+      login.loginAsAdmin()
+      to UserManagementPage
+
     when: 'hovering over the header of the user in the list'
       interact {
         moveToElement(header(0))

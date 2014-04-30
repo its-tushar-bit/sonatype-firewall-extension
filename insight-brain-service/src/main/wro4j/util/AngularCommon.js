@@ -967,7 +967,7 @@ var AngularStateUtils = {
   });
 
   /**
-   * Intended to reduce the granularity of results from the 'ago' filter for cases where precision is not need for the
+   * Intended to reduce the granularity of results from the 'ago' filter for cases where precision is not needed for the
    * last 24 hours.
    */
   services.filter('agoLastDay', function() {

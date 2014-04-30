@@ -82,20 +82,7 @@ public class InsightBrainService
 
     LicenseDataUpdater.setUpdater(getInstance(DefaultLicenseDataUpdater.class));
 
-    LicenseOverrideMigrator licenseOverrideMigrator = getInstance(LicenseOverrideMigrator.class);
-    licenseOverrideMigrator.migrate();
-
-    PolicyMigrator policyMigrator = getInstance(PolicyMigrator.class);
-    policyMigrator.migrate();
-
-    PolicyEvaluationMigrator policyEvaluationMigrator = getInstance(PolicyEvaluationMigrator.class);
-    policyEvaluationMigrator.migrate();
-
-    ProcureRemovalMigrator procureRemovalMigrator = getInstance(ProcureRemovalMigrator.class);
-    procureRemovalMigrator.migrate();
-
-    NullHashModifiedMigrator modifiedMigrator = getInstance(NullHashModifiedMigrator.class);
-    modifiedMigrator.migrate();
+    getInstance(DataMigrator.class).migrate();
   }
 
   private static boolean validateTempDir() {

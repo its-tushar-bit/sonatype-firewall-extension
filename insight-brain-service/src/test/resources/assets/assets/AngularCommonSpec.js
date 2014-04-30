@@ -1,5 +1,5 @@
- describe('AngularCommon', function() {
-  var scope, compile, httpBackend, regex, mockModel, form;
+describe('AngularCommon', function() {
+  var scope, compile, httpBackend, regex, form;
 
   beforeEach(module('AngularCommon', 'CommonServices'));
   beforeEach(inject(function($httpBackend, $rootScope, $compile, regexFactory, $timeout) {
@@ -142,7 +142,7 @@
   });
 
   describe('agoLastDay filter', function() {
-    var filter, filteredAnswer = 'In the last day';
+    var filter, filteredAnswer = 'Less than a day ago';
     beforeEach(inject(function($filter) {
       filter = $filter('agoLastDay');
     }));

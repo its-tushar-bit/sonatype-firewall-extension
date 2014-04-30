@@ -973,7 +973,7 @@ var AngularStateUtils = {
   services.filter('agoLastDay', function() {
     return function(agoString) {
       if(agoString.indexOf('seconds ago') > -1 || agoString.indexOf('minute') > -1 || agoString.indexOf('hour') > -1){
-        return 'In the last day';
+        return 'Less than a day ago';
       }
       return agoString;
     };

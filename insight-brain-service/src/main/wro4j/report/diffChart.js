@@ -14,10 +14,10 @@ Includes the third-party code listed at http://links.sonatype.com/products/clm/a
     '$scope', 'colors', function($scope, colors) {
       $scope.$watch('data', function(newData) {
         $scope.barGraphDatas = [];
-        $scope.barGraphDatas.push(newData.diffData.security);
-        $scope.barGraphDatas.push(newData.diffData.license);
-        $scope.barGraphDatas.push(newData.diffData.quality);
-        $scope.barGraphDatas.push(newData.diffData.other);
+        $scope.barGraphDatas.push(newData.diffData.SECURITY);
+        $scope.barGraphDatas.push(newData.diffData.LICENSE);
+        $scope.barGraphDatas.push(newData.diffData.QUALITY);
+        $scope.barGraphDatas.push(newData.diffData.OTHER);
         $scope.barGraphMax = Math.max.apply(null, $.map($scope.barGraphDatas, function(data) {
           return $.map(data, function(threatValue) {
             if (threatValue.violations > threatValue.previousViolations) {

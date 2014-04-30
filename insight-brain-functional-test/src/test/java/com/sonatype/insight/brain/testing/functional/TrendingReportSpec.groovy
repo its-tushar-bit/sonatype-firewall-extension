@@ -10,6 +10,7 @@ import com.sonatype.insight.brain.model.security.User
 import com.sonatype.insight.brain.security.CLMRealm
 import org.codehaus.plexus.util.FileUtils
 import org.codehaus.plexus.util.IOUtil
+import spock.lang.Issue
 import spock.lang.Shared
 import spock.lang.Stepwise
 
@@ -104,5 +105,20 @@ class TrendingReportSpec
       exactComponentBar.getWidth() / chartWidth == 0.5
       partialComponentBar.getWidth() / chartWidth == 0.3
       unknownComponentBar.getWidth() / chartWidth == 0.2
+  }
+
+  @Issue('CLM-2287')
+  def "We display an accurate bar chart breaking down risk by policy threat category"() {
+    when: 'we view the bar chart'
+    //no-op
+
+    then: 'we see 4 points of data for each of the 4 categories of policy'
+      barCharts.size() == 4
+      List barText = barChartText
+      // renders the numbers on the 4 bars as one line of text
+      barText[0] == '3970'
+      barText[1] == '6030'
+      barText[2] == '00023'
+      barText[3] == '1000'
   }
 }

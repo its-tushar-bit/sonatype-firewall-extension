@@ -341,7 +341,7 @@ describe('TrendingController tests', function() {
       }));
       it('should allow for data selection', inject(function($compile) {
         var element, rects, svg;
-        scope.data = mockDiffData.diffData.security;
+        scope.data = mockDiffData.diffData.SECURITY;
         scope.selector = function(d) {
           return d.violations;
         };
@@ -356,7 +356,7 @@ describe('TrendingController tests', function() {
       }));
       it('should allow for diff values', inject(function($compile) {
         var element, rects, svg;
-        scope.data = mockDiffData.diffData.security;
+        scope.data = mockDiffData.diffData.SECURITY;
         scope.selector = function(d) {
           return d.violations;
         };

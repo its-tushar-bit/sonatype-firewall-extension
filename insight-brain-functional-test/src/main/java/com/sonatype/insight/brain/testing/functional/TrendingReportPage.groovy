@@ -26,10 +26,15 @@ class TrendingReportPage
     violationCount(require: false) { count(3).text() }
     tooltip(require: false) { $('div.tooltip .tooltip-inner') }
     reportDate(require: false) { $('#trending-data .pull-right strong') }
+
     percentageChartControl(require: false) { $('div#percChart') }
     componentBars(require: false) { percentageChartControl.find('rect') }
     exactComponentBar(require: false) { componentBars[0] }
     partialComponentBar(require: false) { componentBars[1] }
     unknownComponentBar(require: false) { componentBars[2] }
+
+    barChartControl { $('div#diffChart') }
+    barCharts { barChartControl.find('svg.chart') }
+    barChartText { barCharts.collect{ it.text() } }
   }
 }

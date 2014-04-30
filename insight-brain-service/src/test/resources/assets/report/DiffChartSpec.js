@@ -25,31 +25,31 @@
     it('should provide a data selector for previous violations', function() {
       var value;
       expect(scope.barGraphSelector).not.toBe(null);
-      value = scope.barGraphSelector(mockData.diffData.security[0]);
+      value = scope.barGraphSelector(mockData.diffData.SECURITY[0]);
       return expect(value).toBe(10);
     });
     it('should provide a data selector for current violations', function() {
       var value;
       expect(scope.barGraphSelector).not.toBe(null);
-      value = scope.barGraphSelector(mockData.diffData.license[0]);
+      value = scope.barGraphSelector(mockData.diffData.LICENSE[0]);
       return expect(value).toBe(22);
     });
     it('should provide a diff selector', function() {
       var value;
       expect(scope.barGraphDiffSelector).not.toBe(null);
-      value = scope.barGraphDiffSelector(mockData.diffData.security[0]);
+      value = scope.barGraphDiffSelector(mockData.diffData.SECURITY[0]);
       return expect(value).toBe(20);
     });
     it('should provide a color renderer', function() {
       var color;
       expect(scope.barGraphRenderer).not.toBe(null);
-      color = scope.barGraphRenderer(mockData.diffData.security[0]);
+      color = scope.barGraphRenderer(mockData.diffData.SECURITY[0]);
       return expect(color).toBe('#DB2852');
     });
     it('should provide a text color renderer', function() {
       var color;
       expect(scope.barGraphTextRenderer).not.toBe(null);
-      color = scope.barGraphTextRenderer(mockData.diffData.security[0]);
+      color = scope.barGraphTextRenderer(mockData.diffData.SECURITY[0]);
       return expect(color).toBe('white');
     });
     return it('should provide a background color renderer', function() {

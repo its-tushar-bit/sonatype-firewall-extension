@@ -670,13 +670,13 @@ TrendingReportMockData = {
 ChartMockData = {
   getDiffData: function() {
     return {
-      diffData: {"security": [
+      diffData: {"SECURITY": [
         {"threat": "critical", "violations": 10, "previousViolations": 20}
-      ], "license": [
+      ], "LICENSE": [
         {"threat": "critical", "violations": 22, "previousViolations": 7}
-      ], "quality": [
+      ], "QUALITY": [
         {"threat": "critical", "violations": 4, "previousViolations": 4}
-      ], "other": [
+      ], "OTHER": [
         {"threat": "critical", "violations": 0, "previousViolations": 0}
       ]}
     };

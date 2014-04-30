@@ -5,7 +5,7 @@
     "Sonatype" is a trademark of Sonatype, Inc.
 
 -->
-<div ng-controller='DiffChartCtrl' class='diff-chart'>
+<div id='diffChart' ng-controller='DiffChartCtrl' class='diff-chart'>
   <ul class='inline'>
     <li ng-repeat='barGraphData in barGraphDatas' ng-class="{ 'striped-li': ($index % 2 == 0) }">
       <h2 class="section-header" style="margin: 0" ng-switch='$index'>

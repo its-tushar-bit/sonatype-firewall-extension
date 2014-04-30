@@ -77,4 +77,16 @@ class DashboardAuthzSpec
       waitFor { noAvailableApplications.displayed }
       !applicationFiltersDropdown.displayed
   }
+
+  def 'Should only see application tag dropdown when application tags exist'() {
+    setup: 'Logging in as a user without permission to any applications'
+      loginAsUserVia(userWithoutPermission.username, userWithoutPermission.password, DashboardPage)
+
+    when: 'looking at available application tag filters'
+      filterPanelToggle.click()
+
+    then: 'the select is not shown, and instead a message is presented'
+      waitFor { noAvailableApplicationTags.displayed }
+      !applicationTagFiltersDropdown.displayed
+  }
 }

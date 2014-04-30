@@ -32,6 +32,7 @@ class DashboardPage
     }
 
     noAvailableApplications(required: false) { $('#no-permissions') }
+    noAvailableApplicationTags(required: false) { $('#no-application-tags') }
     noDataAvailableHighest(required: false) { $('#no-data-highest-risk') }
     noDataAvailableNewest(required: false) { $('#no-data-newest-risk') }
 

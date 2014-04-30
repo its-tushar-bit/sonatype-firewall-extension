@@ -968,6 +968,19 @@ var AngularStateUtils = {
   });
 
   /**
+   * Intended to reduce the granularity of results from the 'ago' filter for cases where precision is not needed for the
+   * last 24 hours.
+   */
+  services.filter('agoLastDay', function() {
+    return function(agoString) {
+      if(agoString.indexOf('seconds ago') > -1 || agoString.indexOf('minute') > -1 || agoString.indexOf('hour') > -1){
+        return 'Less than a day ago';
+      }
+      return agoString;
+    };
+  });
+
+  /**
    * Filter strings to fit within a set length, padding the end with ellipsis.
    * Default length is 25, but can be overridden.
    * i.e.

@@ -41,7 +41,7 @@
       <td ng-if='riskId === "newest-risk"'>{{risk.time | ago}}</td>
     </tr>
     <tr ng-if='risks.length === 0'>
-      <td colspan='5' class='clm-bar-text-offset'>
+      <td colspan='{{riskId === "newest-risk" ? 6 : 5}}' class='clm-bar-text-offset'>
         <em id='no-data-{{ riskId }}'>{{ emptyMessage }}</em>
       </td>
     </tr>

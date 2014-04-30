@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.IOException;
 
 import javax.inject.Inject;
+import javax.inject.Named;
 
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
@@ -26,6 +27,7 @@ import org.slf4j.LoggerFactory;
  * 
  * @since 1.11
  */
+@Named
 public class NullHashModifiedMigrator
 {
   private static final Logger log = LoggerFactory.getLogger(NullHashModifiedMigrator.class);

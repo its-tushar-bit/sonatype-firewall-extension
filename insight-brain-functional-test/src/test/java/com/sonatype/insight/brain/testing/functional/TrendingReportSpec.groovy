@@ -19,7 +19,7 @@ import spock.lang.Stepwise
  */
 @Stepwise
 class TrendingReportSpec
-    extends BaseSpec 
+    extends BaseSpec
 {
 
   private static final File TEST_FILE = new File('target/test-brain-work/report/trending-report.json')
@@ -110,22 +110,16 @@ class TrendingReportSpec
   @Issue('CLM-2287')
   def "We display an accurate bar chart breaking down risk by policy threat category"() {
     when: 'we view the bar chart'
-    //no-op
+      //no-op
 
     then: 'we see 4 points of data for each of the 4 categories of policy'
       barCharts.size() == 4
       List barText = barChartText
       // renders the numbers on the 4 bars as one line of text
-      sanitize(barText[0]) == '3970'
-      sanitize(barText[1]) == '6030'
-      sanitize(barText[2]) == '00023'
-      sanitize(barText[3]) == '1000'
-  }
 
-  /**
-   * Depending on the browser, text embedded in SVG may or may not contain line-separators and whitespace
-   */
-  String sanitize(String input){
-    return input.replaceAll('[\\n\\s\\r]', '')
+      barText[0] == '3970'
+      barText[1] == '6030'
+      barText[2] == '00023'
+      barText[3] == '1000'
   }
 }

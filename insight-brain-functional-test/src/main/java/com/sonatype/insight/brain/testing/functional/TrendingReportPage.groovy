@@ -35,6 +35,6 @@ class TrendingReportPage
 
     barChartControl { $('div#diffChart') }
     barCharts { barChartControl.find('svg.chart') }
-    barChartText { barCharts.collect{ it.text()replaceAll('[\\n\\s\\r]', '') } }
+    barChartText { barCharts.collect{ it.text().replaceAll('[\\n\\s\\r]', '') } }
   }
 }

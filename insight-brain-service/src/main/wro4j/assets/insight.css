@@ -316,6 +316,16 @@ a {
   margin-right: 10px;
 }
 
+/* Bootstrap margins flipped sides to allow for a responsive design */
+.dashboard-content .row-fluid [class*="span"] {
+  margin-left: 0px;
+  margin-right: 2.127659574468085%;
+}
+
+.dashboard-content .row-fluid [class*="span"]:nth-last-child(1) {
+  margin-right: 0px;
+}
+
 .dashboard-content a {
   color: black;
   text-decoration: none;

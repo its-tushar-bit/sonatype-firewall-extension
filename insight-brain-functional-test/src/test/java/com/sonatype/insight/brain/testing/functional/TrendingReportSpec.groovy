@@ -116,9 +116,16 @@ class TrendingReportSpec
       barCharts.size() == 4
       List barText = barChartText
       // renders the numbers on the 4 bars as one line of text
-      barText[0] == '3970'
-      barText[1] == '6030'
-      barText[2] == '00023'
-      barText[3] == '1000'
+      sanitize(barText[0]) == '3970'
+      sanitize(barText[1]) == '6030'
+      sanitize(barText[2]) == '00023'
+      sanitize(barText[3]) == '1000'
+  }
+
+  /**
+   * Depending on the browser, text embedded in SVG may or may not contain line-separators and whitespace
+   */
+  String sanitize(String input){
+    return input.replaceAll('[\\n\\s\\r]', '')
   }
 }

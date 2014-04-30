@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.dashboard;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -12,6 +13,7 @@ import java.util.UUID;
 
 import javax.inject.Inject;
 
+import com.sonatype.insight.brain.TestProductLicenseManager;
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatCategoryFilter;
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatLevelFilter;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
@@ -25,8 +27,10 @@ import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.brain.model.tag.Tag;
+import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.error.exception.BadRequestException;
+import com.sonatype.insight.license.model.ProductLicenseDetails;
 
 import com.google.common.base.Predicates;
 import com.google.common.collect.Lists;
@@ -51,6 +55,12 @@ public class DashboardServiceTest
 
   @Inject
   private DashboardService dashboardService;
+
+  @Inject
+  private CLMLicenseManager clmLicenseManager;
+
+  @Inject
+  private TestProductLicenseManager productLicenseManager;
 
   private Organization org;
   private Application app1;
@@ -94,6 +104,49 @@ public class DashboardServiceTest
     catch (BadRequestException e) {
       assertEquals(e.getMessage(), "Unknown stage type: " + badStageTypeId + ".");
     }
+  }
+
+  @Test
+  public void testGetPolicyViolationsWithUnlicensedStageTypeIds() throws Exception {
+    productLicenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK);
+    clmLicenseManager.installLicense(null);
+
+    // Since we are not licensed for the build stage existing violations will not be returned.
+    List<PolicyViolationDTO> policyViolationDTOs = dashboardService.getPolicyViolations(null, null, null, null, false);
+    assertThat(policyViolationDTOs, hasSize(0));
+
+    Set<String> stageTypeIds = Sets.newHashSet(BuildStageType.ID);
+    try {
+      policyViolationDTOs = dashboardService.getPolicyViolations(stageTypeIds, null, null, null, false);
+    }
+    catch (BadRequestException e) {
+      assertEquals(e.getMessage(), "Current license does not support stage type: " + BuildStageType.ID + ".");
+    }
+  }
+
+  @Test
+  public void testGetPolicyViolationsWithNullOrEmptyStageTypeIds() {
+    PolicyEvaluation newApp1PolicyEvaluation = tempEntity.newPolicyEvaluation(app1.getId(), ReleaseStageType.ID,
+        "re-scan app1");
+    PolicyViolation violation = tempEntity.newPolicyViolation(newApp1PolicyEvaluation.getId(), app1Policy);
+
+    // If no stages are given return violations for all stages.
+    List<PolicyViolationDTO> policyViolationDTOs = dashboardService.getPolicyViolations(null, null, null, null, false);
+
+    assertThat(policyViolationDTOs, hasSize(4));
+    assertPolicyViolationDTO(policyViolationDTOs, orgPolicyViolation, app1, orgPolicy);
+    assertPolicyViolationDTO(policyViolationDTOs, app1PolicyViolation, app1, app1Policy);
+    assertPolicyViolationDTO(policyViolationDTOs, app2PolicyViolation, app2, orgPolicy);
+    assertPolicyViolationDTO(policyViolationDTOs, violation, app1, app1Policy);
+
+    Set<String> stageTypeIds = Collections.emptySet();
+    policyViolationDTOs = dashboardService.getPolicyViolations(stageTypeIds, null, null, null, false);
+
+    assertThat(policyViolationDTOs, hasSize(4));
+    assertPolicyViolationDTO(policyViolationDTOs, orgPolicyViolation, app1, orgPolicy);
+    assertPolicyViolationDTO(policyViolationDTOs, app1PolicyViolation, app1, app1Policy);
+    assertPolicyViolationDTO(policyViolationDTOs, app2PolicyViolation, app2, orgPolicy);
+    assertPolicyViolationDTO(policyViolationDTOs, violation, app1, app1Policy);
   }
 
   @Test

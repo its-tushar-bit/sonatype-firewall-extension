@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.dashboard;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
@@ -27,6 +28,7 @@ import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.organization.ApplicationService;
+import com.sonatype.insight.brain.policy.StageTypeService;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -40,7 +42,6 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import org.apache.commons.collections.CollectionUtils;
 import org.codehaus.plexus.util.StringUtils;
 import org.slf4j.Logger;
@@ -74,16 +75,19 @@ public class DashboardService
 
   private PolicyViolationDAO policyViolationDAO;
 
+  private StageTypeService stageTypeService;
+
   @Inject
   public DashboardService(ApplicationDAO applicationDAO, ApplicationService applicationService,
       PolicyEvaluationDAO policyEvaluationDAO, PolicyViolationAdapter policyViolationAdapter,
-      PolicyViolationDAO policyViolationDAO)
+      PolicyViolationDAO policyViolationDAO, StageTypeService stageTypeService)
   {
     this.applicationDAO = applicationDAO;
     this.applicationService = applicationService;
     this.policyEvaluationDAO = policyEvaluationDAO;
     this.policyViolationAdapter = policyViolationAdapter;
     this.policyViolationDAO = policyViolationDAO;
+    this.stageTypeService = stageTypeService;
   }
 
   /**
@@ -284,15 +288,21 @@ public class DashboardService
   }
 
   private Set<StageType> getStageTypes(Set<String> stageTypeIds) {
+
+    Collection<StageType> licensedStageTypes = stageTypeService.getLicensedStageTypes();
+
     if (stageTypeIds == null || stageTypeIds.isEmpty()) {
-      return Sets.newHashSet(StageTypes.getById(BuildStageType.ID));
+      return new HashSet<StageType>(licensedStageTypes);
     }
 
-    Set<StageType> stages = new HashSet<StageType>();
+    Set<StageType> stages = new HashSet<>();
     for (String stageTypeId : stageTypeIds) {
       StageType stage = StageTypes.getById(stageTypeId);
       if (stage == null) {
         throw new BadRequestException("Unknown stage type: " + stageTypeId + ".");
+      }
+      else if (!licensedStageTypes.contains(stage)) {
+        throw new BadRequestException("Current license does not support stage type: " + stageTypeId + ".");
       }
 
       stages.add(stage);

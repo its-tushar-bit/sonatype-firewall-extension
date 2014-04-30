@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.testing.functional
 
+import com.sonatype.insight.brain.TestLicenseFingerprinter
+import com.sonatype.insight.brain.TestProductLicenseManager
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity
@@ -12,6 +14,10 @@ import com.sonatype.insight.brain.service.PortAllocator
 import com.sonatype.insight.brain.service.TestInsightBrainServiceRule
 import com.sonatype.insight.brain.testing.functional.utils.InsightMockServerRule
 
+import org.sonatype.licensing.product.ProductLicenseManager
+import org.sonatype.licensing.product.util.LicenseFingerprinter
+
+import com.google.inject.AbstractModule;
 import geb.Page
 import geb.spock.GebReportingSpec
 import groovy.util.logging.Slf4j
@@ -34,7 +40,7 @@ abstract class BaseSpec
   @Shared
   @ClassRule
   TestInsightBrainServiceRule serviceRule = new TestInsightBrainServiceRule(PortAllocator.findFreePort(8070),
-    PortAllocator.findFreePort(8071), null, null, false, null)
+    PortAllocator.findFreePort(8071), null, null, false, getBrainModules())
 
   @Shared
   @ClassRule
@@ -49,6 +55,17 @@ abstract class BaseSpec
   
   static OrganizationDAO organizationDAO = new OrganizationDAO()
   static ApplicationDAO  applicationDAO = new ApplicationDAO()
+
+  def getBrainModules() {
+    return Arrays.asList(new AbstractModule()
+    {
+      @Override
+      protected void configure() {
+        bind(ProductLicenseManager.class).to(TestProductLicenseManager.class)
+        bind(LicenseFingerprinter.class).to(TestLicenseFingerprinter.class)
+      }
+    });
+  }
 
   def setupSpec() {
     // Use port as reported by service under test since it's not known until runtime.

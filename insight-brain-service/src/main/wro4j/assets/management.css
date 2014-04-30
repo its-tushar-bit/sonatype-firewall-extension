@@ -177,6 +177,9 @@ a:focus {
 .dashboard-navigation i:before, .dashboard-menus i:before, .dashboard-user i:before {
   font-size: 24px;
 }
+.dashboard-navigation span {
+  border-bottom: 3px solid transparent;
+}
 .dashboard-navigation .active span {
   border-bottom: 3px solid #2476FC;
 }

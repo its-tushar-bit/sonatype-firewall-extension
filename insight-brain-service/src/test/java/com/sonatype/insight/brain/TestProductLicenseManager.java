@@ -59,7 +59,7 @@ public class TestProductLicenseManager
   private boolean forceInstallIOFailure = false;
 
   public TestProductLicenseManager() {
-    this(false);
+    this(true);
   }
 
   public TestProductLicenseManager(boolean valid) {

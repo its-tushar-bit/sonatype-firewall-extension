@@ -44,7 +44,6 @@ public class AbstractComponentTest
     customizeConfig(config);
     binder.bind(InsightConfig.class).toInstance(config);
     binder.bind(ProductLicenseManager.class).to(TestProductLicenseManager.class);
-    binder.bind(TestProductLicenseManager.class).toInstance(new TestProductLicenseManager(true));
     binder.bind(LicenseFingerprinter.class).to(TestLicenseFingerprinter.class);
   }
 

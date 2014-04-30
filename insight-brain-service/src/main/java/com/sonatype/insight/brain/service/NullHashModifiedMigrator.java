@@ -47,6 +47,7 @@ public class NullHashModifiedMigrator
     File markerFile = new File(work.getAuditDir(), MARKER_FILE_NAME);
 
     if (markerFile.exists()) {
+      log.debug("BOM modified flags already migrated.");
       return;
     }
 

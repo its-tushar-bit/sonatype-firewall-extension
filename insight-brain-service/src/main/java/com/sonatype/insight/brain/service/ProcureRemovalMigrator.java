@@ -61,6 +61,7 @@ public class ProcureRemovalMigrator
     File markerFile = new File(insightWork.getWorkDir(), MARKER_FILE_NAME);
 
     if (markerFile.exists()) {
+      log.debug("References to procure stage already migrated.");
       return;
     }
     migratePolicyActions();

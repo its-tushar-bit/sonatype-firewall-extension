@@ -14,6 +14,9 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
+import javax.inject.Named;
+import javax.inject.Singleton;
+
 import com.sonatype.insight.brain.product.license.CLMFeature;
 import com.sonatype.insight.license.model.CLMEnforcementPoint;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
@@ -30,6 +33,8 @@ import org.apache.commons.lang.StringUtils;
 /**
  * Simple replacement for a ProductLicenseManager.
  */
+@Named
+@Singleton
 public class TestProductLicenseManager
     implements ProductLicenseManager
 {

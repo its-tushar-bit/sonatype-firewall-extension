@@ -201,7 +201,7 @@ public class LicenseThreatGroupLicenseDAOTest
     dao.insert(licenseThreatGroupLicense2);
     Assert.assertNotNull(licenseThreatGroupLicense2.getId());
 
-    Assert.assertFalse(licenseThreatGroupLicense1.getId() == licenseThreatGroupLicense2.getId());
+    Assert.assertFalse(licenseThreatGroupLicense1.getId().equals(licenseThreatGroupLicense2.getId()));
   }
 
   private void assertLicenseThreatGroupLicense(String ownerId, String licenseThreatGroupId, String licenseId,

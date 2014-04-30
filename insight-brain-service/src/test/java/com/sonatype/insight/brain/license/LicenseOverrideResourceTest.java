@@ -295,8 +295,7 @@ public class LicenseOverrideResourceTest
     assertEquals("Cannot find a license override with id " + licenseOverride.getId() + " for " + ownerType + " id "
         + ownerPublicId2, response.getResponseBody());
     // Verify that the license override was not deleted
-    LicenseOverrideDAO licenseOverrideDAO = new LicenseOverrideDAO();
-    licenseOverride = licenseOverrideDAO.getById(licenseOverride.getId());
+    new LicenseOverrideDAO().getByIdNotNull(licenseOverride.getId());
   }
 
   private void assertLicenseOverrideByOwner(String ownerId, String ownerName, String ownerType,

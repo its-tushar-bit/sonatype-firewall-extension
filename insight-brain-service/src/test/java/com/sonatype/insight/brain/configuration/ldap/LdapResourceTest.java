@@ -108,10 +108,14 @@ public class LdapResourceTest
     server = JsonHelpers.fromJson(response.getResponseBody(), LdapServer.class);
 
     assertNotNull(server);
-    assertEquals(ldapServerId, ldapServerId);
+    assertEquals(ldapServerId, server.getId());
     assertEquals(name, server.getName());
 
     raw = serverDao.getById(server.getId());
+    assertNotNull(raw);
+    assertEquals(ldapServerId, raw.getId());
+    assertEquals(name, raw.getName());
+    assertEquals(NameHelper.normalize(name), raw.getNameLowercaseNoWhitespace());
 
     // Delete
     response = AuthedRestAccess.delete(getServiceURL() + "/" + ldapServerId);

@@ -251,7 +251,6 @@ public class TrendingReportResourceTest
     response = RestAccess.get(getServiceURL(), unauthorized.getUsername(), unauthorized.getPassword());
     assertResponseStatus(200, response);
     report = JsonHelpers.fromJson(response.getResponseBody(), TrendingReport.class);
-    report = JsonHelpers.fromJson(response.getResponseBody(), TrendingReport.class);
     awaitCheckpoint(Checkpoint.FINISHED); // waits generation complete, fails with timeout if generation didn't happen
 
     // from cache

@@ -13,6 +13,7 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory
 import com.sonatype.insight.brain.model.policy.PolicyViolation
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType
+import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType
 import com.sonatype.insight.brain.model.tag.Tag
 
 /**
@@ -46,7 +47,7 @@ class DashboardSpec
     temporaryEntity.newNewestPolicyViolation(firstViolation.id, firstPolicyEvaluation.applicationId,
         firstPolicyEvaluation.stageTypeId)
 
-    PolicyEvaluation secondPolicyEvaluation = temporaryEntity.newPolicyEvaluation(secondApp.id, BuildStageType.ID,
+    PolicyEvaluation secondPolicyEvaluation = temporaryEntity.newPolicyEvaluation(secondApp.id, ReleaseStageType.ID,
         'DashboardSpecSecondEvaluation', now)
     PolicyViolation secondViolation = temporaryEntity.newPolicyViolation(secondPolicyEvaluation.id, policy, 10,
         PolicyThreatCategory.QUALITY, null, null, null)
@@ -172,6 +173,24 @@ class DashboardSpec
       highestRiskTable.rows[0].risk == 5
       highestRiskTable.rows[0].policy == 'DashboardSpecPolicy'
       highestRiskTable.rows[0].application == firstApp.name
+      
+    when: 'filtering to a stage'
+      filterPanelToggle.click()
+      // Toggle off previous application filter.
+      waitFor { applicationFiltersDropdown.displayed }
+      applicationFiltersDropdown.toggleOption(firstApp.name)
+      waitFor { stageTypeFiltersDropdown.displayed }
+      stageTypeFiltersDropdown.toggleOption('Release')
+      filterButtons.button('Apply').click()
+    
+    then: 'only violations from that stage are shown'
+      waitFor { highestRiskTable.rows.size() == 1 }
+      !stageTypeFiltersDropdown.displayed
+      highestRiskTable.rows[0].risk == 10
+      highestRiskTable.rows[0].policy == 'DashboardSpecPolicy'
+      highestRiskTable.rows[0].application == secondApp.name
+      highestRiskTable.rows[0].component == 'Unknown'
+      highestRiskTable.rows[0].age == null
   }
 
   def 'Newest Risk Table can be filtered'() {
@@ -186,6 +205,7 @@ class DashboardSpec
       newestViolationTable.rows[0].policy == 'DashboardSpecPolicy'
       newestViolationTable.rows[0].application == secondApp.name
       newestViolationTable.rows[0].component == 'Unknown'
+      newestViolationTable.rows[0].age.contains("ago")
 
       newestViolationTable.rows[1].risk == 5
       newestViolationTable.rows[1].policy == 'DashboardSpecPolicy'
@@ -199,13 +219,29 @@ class DashboardSpec
       applicationFiltersDropdown.toggleOption(secondApp.name)
       filterButtons.button('Apply').click()
 
-    then: 'no violations are shown'
+    then: 'only violations from that application are shown'
       waitFor { newestViolationTable.rows.size() == 1 }
       !applicationFiltersDropdown.displayed
       newestViolationTable.rows[0].risk == 10
       newestViolationTable.rows[0].policy == 'DashboardSpecPolicy'
       newestViolationTable.rows[0].application == secondApp.name
       newestViolationTable.rows[0].component == 'Unknown'
+      newestViolationTable.rows[0].age.contains("ago")
+      
+    when: 'filtering to a stage'
+      filterPanelToggle.click()
+      waitFor { stageTypeFiltersDropdown.displayed }
+      stageTypeFiltersDropdown.toggleOption('Release')
+      filterButtons.button('Apply').click()
+    
+    then: 'only violations from that stage are shown'
+      waitFor { highestRiskTable.rows.size() == 1 }
+      !stageTypeFiltersDropdown.displayed
+      newestViolationTable.rows[0].risk == 10
+      newestViolationTable.rows[0].policy == 'DashboardSpecPolicy'
+      newestViolationTable.rows[0].application == secondApp.name
+      newestViolationTable.rows[0].component == 'Unknown'
+      newestViolationTable.rows[0].age.contains("ago")
   }
 
   def 'Filter out all results'() {

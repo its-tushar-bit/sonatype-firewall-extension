@@ -10,6 +10,7 @@ import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.ConditionType;
 import com.sonatype.insight.brain.model.policy.InvalidConditionException;
+import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 
 public abstract class AbstractConditionType<T>
     implements ConditionType<T>
@@ -79,5 +80,10 @@ public abstract class AbstractConditionType<T>
   protected static String asDroolsInteger(String value) {
     // We've seen issues similar to https://issues.jboss.org/browse/JBRULES-3628 so we use explicit boxing
     return "Integer.valueOf( " + value + " )";
+  }
+
+  @Override
+  public PolicyThreatCategory getThreatCategory() {
+    return PolicyThreatCategory.OTHER;
   }
 }

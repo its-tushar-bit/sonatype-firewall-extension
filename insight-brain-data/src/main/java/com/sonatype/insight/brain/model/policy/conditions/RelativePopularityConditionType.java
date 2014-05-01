@@ -10,6 +10,7 @@ import java.util.List;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.InvalidConditionException;
+import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.conditions.valuetype.PercentageValueType;
 
 public class RelativePopularityConditionType
@@ -82,5 +83,10 @@ public class RelativePopularityConditionType
       return component.getRelativePopularity() > value;
     }
     return component.getRelativePopularity() >= value;
+  }
+
+  @Override
+  public PolicyThreatCategory getThreatCategory() {
+    return PolicyThreatCategory.QUALITY;
   }
 }

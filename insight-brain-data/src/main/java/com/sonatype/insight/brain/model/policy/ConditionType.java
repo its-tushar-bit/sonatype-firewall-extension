@@ -25,6 +25,8 @@ public interface ConditionType<T>
 
   String getValueHint();
 
+  PolicyThreatCategory getThreatCategory();
+
   String generateDroolsConditionValue(String value);
 
   String generateDroolsCode(Condition condition);

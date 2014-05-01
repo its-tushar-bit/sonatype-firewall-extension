@@ -12,6 +12,7 @@ import java.util.Locale;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.InvalidConditionException;
+import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.conditions.valuetype.AgeInDaysValueType;
 
 import org.joda.time.Interval;
@@ -100,5 +101,10 @@ public class AgeInDaysConditionType
     else {
       return ageInDays <= value;
     }
+  }
+
+  @Override
+  public PolicyThreatCategory getThreatCategory() {
+    return PolicyThreatCategory.QUALITY;
   }
 }

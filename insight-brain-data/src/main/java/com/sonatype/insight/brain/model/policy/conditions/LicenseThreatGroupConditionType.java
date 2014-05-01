@@ -14,6 +14,7 @@ import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.InvalidConditionException;
+import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.conditions.valuetype.LicenseThreatGroupValueType;
 
 public class LicenseThreatGroupConditionType
@@ -103,5 +104,10 @@ public class LicenseThreatGroupConditionType
   protected boolean internalEvaluateCondition(Component component, String operator, String value) {
     boolean result = component.hasLicenseInLicenseThreatGroup(value);
     return "is".equals(operator) ? result : !result;
+  }
+
+  @Override
+  public PolicyThreatCategory getThreatCategory() {
+    return PolicyThreatCategory.LICENSE;
   }
 }

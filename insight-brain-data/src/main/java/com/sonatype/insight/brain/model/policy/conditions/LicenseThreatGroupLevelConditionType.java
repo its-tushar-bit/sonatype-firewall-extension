@@ -14,6 +14,7 @@ import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.InvalidConditionException;
+import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.conditions.valuetype.IntegerValueType;
 
 public class LicenseThreatGroupLevelConditionType
@@ -107,5 +108,10 @@ public class LicenseThreatGroupLevelConditionType
       }
     }
     return result;
+  }
+
+  @Override
+  public PolicyThreatCategory getThreatCategory() {
+    return PolicyThreatCategory.LICENSE;
   }
 }

@@ -12,6 +12,7 @@ import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.InvalidConditionException;
+import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.conditions.valuetype.LicenseStatusValueType;
 
 public class LicenseStatusConditionType
@@ -54,6 +55,11 @@ public class LicenseStatusConditionType
   @Override
   public String getValueTypeId() {
     return LicenseStatusValueType.ID;
+  }
+
+  @Override
+  public PolicyThreatCategory getThreatCategory() {
+    return PolicyThreatCategory.LICENSE;
   }
 
   @Override

@@ -9,11 +9,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
-
-import javax.annotation.Nullable;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.NotifyAction;
@@ -21,24 +20,15 @@ import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.model.policy.actions.ActionTypes;
 import com.sonatype.insight.brain.model.policy.actions.NotifyActionType;
+import com.sonatype.insight.brain.model.policy.conditions.ConditionTypes;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 
-import com.google.common.base.Predicate;
-import com.google.common.collect.Iterables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class Policy
 {
   private static final Logger log = LoggerFactory.getLogger(Policy.class);
-
-  private static final Predicate<String> IS_SECURITY = new StartsWithPredicate("security");
-
-  private static final Predicate<String> IS_LICENSE = new StartsWithPredicate("license");
-
-  private static final Predicate<String> IS_AGE = new StartsWithPredicate("age");
-
-  private static final Predicate<String> IS_POPULARITY = new StartsWithPredicate("relativepopularity");
 
   private String id;
 
@@ -271,52 +261,24 @@ public class Policy
   }
 
   /**
+   *  A policy can have conditions in more than one category, but only one category is considered as *the* policy
+   *  threat category, in this order: SECURITY, LICENSE, QUALITY, OTHER.
+   *
    * @since 1.11
    */
   public PolicyThreatCategory getThreatCategory() {
-    Set<String> conditionTypeIds = new LinkedHashSet<>();
+    SortedSet<PolicyThreatCategory> threatCategories = new TreeSet<>();
     for (Constraint constraint : getConstraints()) {
       for (Condition condition : constraint.getConditions()) {
-        conditionTypeIds.add(condition.getConditionTypeId().toLowerCase(Locale.ENGLISH));
+        ConditionType<?> conditionType = ConditionTypes.getById(condition.getConditionTypeId());
+        threatCategories.add(conditionType.getThreatCategory());
       }
     }
 
-    return determineCategory(conditionTypeIds);
-  }
-
-  /**
-   *  A policy can have conditions in more than one category, but only one category is considered as *the* policy
-   *  threat category, in this order: SECURITY, LICENSE, QUALITY, OTHER
-   */
-  public static PolicyThreatCategory determineCategory(Set<String> conditionTypeIds) {
-
-    if (Iterables.any(conditionTypeIds, IS_SECURITY)) {
-      return PolicyThreatCategory.SECURITY;
-    }
-    if (Iterables.any(conditionTypeIds, IS_LICENSE)) {
-      return PolicyThreatCategory.LICENSE;
-    }
-    if (Iterables.any(conditionTypeIds, IS_AGE) || Iterables.any(conditionTypeIds, IS_POPULARITY)) {
-      return PolicyThreatCategory.QUALITY;
-    }
-    return PolicyThreatCategory.OTHER;
-  }
-
-  /**
-   * Predicate wrapper for finding Strings starting with a given value in a collection.
-   */
-  private static class StartsWithPredicate
-      implements Predicate<String>
-  {
-    private final String startsWith;
-
-    StartsWithPredicate(String startsWith) {
-      this.startsWith = startsWith;
+    if (threatCategories.isEmpty()) {
+      return PolicyThreatCategory.OTHER;
     }
 
-    @Override
-    public boolean apply(@Nullable final String input) {
-      return input.startsWith(startsWith);
-    }
+    return threatCategories.first();
   }
 }

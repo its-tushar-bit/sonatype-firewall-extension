@@ -16,10 +16,11 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -36,12 +37,14 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.policy.ConditionType;
 import com.sonatype.insight.brain.model.policy.NewestPolicyViolation;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.StageType;
+import com.sonatype.insight.brain.model.policy.conditions.ConditionTypes;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationDiff;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationDigester;
@@ -61,7 +64,6 @@ import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimaps;
-import com.google.common.collect.Sets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -79,11 +81,15 @@ public class PolicyEvaluationMigrator
 
   private static final String MONITOR_POLICY_ALERTS_FILE = "monitorpolicyalerts.json";
 
-  private static final Function<ConditionFact, String> CONDITION_TYPE_ID_TRANSFORMER = new Function<ConditionFact, String>()
+  private static final Function<ConditionFact, PolicyThreatCategory> CONDITION_FACT_TRANSFORMER = new Function<ConditionFact, PolicyThreatCategory>()
   {
     @Override
-    public String apply(final ConditionFact input) {
-      return input.getConditionTypeId().toLowerCase(Locale.ENGLISH);
+    public PolicyThreatCategory apply(final ConditionFact conditionFact) {
+      ConditionType<?> conditionType = ConditionTypes.getById(conditionFact.getConditionTypeId());
+      if (conditionType == null) {
+        return PolicyThreatCategory.OTHER;
+      }
+      return conditionType.getThreatCategory();
     }
   };
 
@@ -283,8 +289,8 @@ public class PolicyEvaluationMigrator
 
       for (ComponentFact componentFact : policyFact.getComponentFacts()) {
         // threat category is decided by policy if it is available, otherwise by the subset of stored policy data
-        PolicyThreatCategory threatCategory = policy != null ? policy.getThreatCategory() :
-            determineCategory(componentFact.getConstraintFacts());
+        PolicyThreatCategory threatCategory = policy != null ? policy.getThreatCategory()
+            : determinePolicyThreatCategory(componentFact.getConstraintFacts());
 
         PolicyViolation policyViolation = new PolicyViolation(policyEvaluationId, policyFact.getPolicyId(),
             policyFact.getPolicyName(), policyFact.getThreatLevel(), threatCategory, componentFact.getHash(),
@@ -341,14 +347,19 @@ public class PolicyEvaluationMigrator
   }
 
   /**
-   * Figure out the threatCategory based on the stored data
+   * Figure out the policy threat category based on the stored constraint facts.
    */
-  private PolicyThreatCategory determineCategory(List<ConstraintFact> constraintFacts) {
-    Set<String> conditionTypeIds = Sets.newHashSet();
+  private PolicyThreatCategory determinePolicyThreatCategory(List<ConstraintFact> constraintFacts) {
+    SortedSet<PolicyThreatCategory> policyThreatCategories = new TreeSet<>();
     for (ConstraintFact constraintFact : constraintFacts) {
-      conditionTypeIds.addAll(Lists.transform(constraintFact.getConditionFacts(), CONDITION_TYPE_ID_TRANSFORMER));
+      policyThreatCategories.addAll(Lists.transform(constraintFact.getConditionFacts(), CONDITION_FACT_TRANSFORMER));
     }
-    return Policy.determineCategory(conditionTypeIds);
+
+    if (policyThreatCategories.isEmpty()) {
+      return PolicyThreatCategory.OTHER;
+    }
+
+    return policyThreatCategories.first();
   }
 
   private String determineStageEvaluationFilename(String stageId) {

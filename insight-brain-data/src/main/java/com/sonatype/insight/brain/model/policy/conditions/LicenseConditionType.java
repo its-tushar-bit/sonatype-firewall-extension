@@ -14,6 +14,7 @@ import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.license.License;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.InvalidConditionException;
+import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.conditions.valuetype.LicenseValueType;
 
 public class LicenseConditionType
@@ -93,5 +94,10 @@ public class LicenseConditionType
   protected boolean internalEvaluateCondition(Component component, String operator, String value) {
     boolean hasLicense = component.hasLicenseId(value);
     return "is".equals(operator) ? hasLicense : !hasLicense;
+  }
+
+  @Override
+  public PolicyThreatCategory getThreatCategory() {
+    return PolicyThreatCategory.LICENSE;
   }
 }

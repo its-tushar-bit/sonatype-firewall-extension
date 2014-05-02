@@ -289,41 +289,24 @@ a {
 }
 
 /* Dashboard Style */
-@media (max-width: 800px) {
+@media (max-width: 979px) {
   .dashboard-content {
-    padding-top: 85px !important;
-  }
-}
-
-@media (max-width: 1365px) {
-  .dashboard-content .span6 {
-    width: 100%;
+    padding-top: 0px !important;
   }
 }
 
 .left-align-h1 {
   margin-left: -2px;
 }
+
 .bottom-align-h1 {
-  margin-top: 30px;
+  float: right;
+  margin-top: -30px;
 }
 
 .dashboard-content {
-  padding-top: 45px !important;
+  padding-top: 45px;
   padding-left: 10px !important;
-  padding-right: 10px !important;
-  margin-left: 10px;
-  margin-right: 10px;
-}
-
-/* Bootstrap margins flipped sides to allow for a responsive design */
-.dashboard-content .row-fluid [class*="span"] {
-  margin-left: 0px;
-  margin-right: 2.127659574468085%;
-}
-
-.dashboard-content .row-fluid [class*="span"]:nth-last-child(1) {
-  margin-right: 0px;
 }
 
 .dashboard-content a {
@@ -363,8 +346,53 @@ a {
 
 .dashboard-content .filter-edit {
   position: absolute;
-  left: 10px;
-  right: 10px;
+  margin-left: -10px;
+}
+
+.dashboard-content .filter-edit, .dashboard-content .filter-readonly {
+  width: 960px;
+}
+
+@media (max-width: 767px) {
+  .dashboard-content .filter-edit, .dashboard-content .filter-readonly {
+    left: 10px;
+    right: 10px;
+    margin-left: 0px !important;
+    width: auto;
+    position: absolute;
+  }
+}
+
+@media (max-width: 979px) and (min-width: 768px) {
+  .dashboard-content .filter-edit, .dashboard-content .filter-readonly {
+    width: 744px;
+  }
+
+  .dashboard-charts .span6 {
+    width: 724px;
+  }
+}
+
+@media (min-width: 980px) and (max-width: 1199px) {
+  .dashboard-content .filter-edit, .dashboard-content .filter-readonly {
+    width: 980px;
+  }
+
+  .dashboard-charts .span6 {
+    width: 960px;
+  }
+}
+
+@media (min-width: 1200px) {
+  .dashboard-content .filter-edit, .dashboard-content .filter-readonly {
+    width: 1190px;
+  }
+}
+
+@media (min-width: 1656px) {
+  .dashboard-content .filter-edit, .dashboard-content .filter-readonly {
+    width: 1646px;
+  }
 }
 
 /* .filter-edit needs a embedded div to prevent the collapse plugin from including the dropdowns in scrollheight */
@@ -389,7 +417,6 @@ a {
   border: solid #C1C1C1 1px;
   box-sizing: border-box;
   margin-left: -10px;
-  width: 101%;
 }
 
 .dashboard-content .filter-readonly div {

@@ -1,0 +1,177 @@
+/* A larger snap for bootstraps fluid responsive layout. The snap addresses users with large monitors with
+  resolution greater than 1650px */
+@media (min-width: 1656px) {
+  .row {
+    margin-left: -30px;
+    *zoom: 1;
+  }
+  .row:before,
+  .row:after {
+    display: table;
+    line-height: 0;
+    content: "";
+  }
+  .row:after {
+    clear: both;
+  }
+  [class*="span"] {
+    float: left;
+    min-height: 1px;
+    margin-left: 30px;
+  }
+  .container,
+  .navbar-static-top .container,
+  .navbar-fixed-top .container,
+  .navbar-fixed-bottom .container {
+    width: 1626px;
+  }
+  .span12 {
+    width: 1626px;
+  }
+  .span11 {
+    width: 1488px;
+  }
+  .span10 {
+    width: 1350px;
+  }
+  .span9 {
+    width: 1212px;
+  }
+  .span8 {
+    width: 1074px;
+  }
+  .span7 {
+    width: 936px;
+  }
+  .span6 {
+    width: 798px;
+  }
+  .span5 {
+    width: 660px;
+  }
+  .span4 {
+    width: 522px;
+  }
+  .span3 {
+    width: 384px;
+  }
+  .span2 {
+    width: 246px;
+  }
+  .span1 {
+    width: 108px;
+  }
+  .offset12 {
+    margin-left: 1686px;
+  }
+  .offset11 {
+    margin-left: 1548px;
+  }
+  .offset10 {
+    margin-left: 1410px;
+  }
+  .offset9 {
+    margin-left: 1272px;
+  }
+  .offset8 {
+    margin-left: 1134px;
+  }
+  .offset7 {
+    margin-left: 996px;
+  }
+  .offset6 {
+    margin-left: 858px;
+  }
+  .offset5 {
+    margin-left: 720px;
+  }
+  .offset4 {
+    margin-left: 582px;
+  }
+  .offset3 {
+    margin-left: 444px;
+  }
+  .offset2 {
+    margin-left: 306px;
+  }
+  .offset1 {
+    margin-left: 168px;
+  }
+  input,
+  textarea,
+  .uneditable-input {
+    margin-left: 0;
+  }
+  .controls-row [class*="span"] + [class*="span"] {
+    margin-left: 30px;
+  }
+  input.span12,
+  textarea.span12,
+  .uneditable-input.span12 {
+    width: 1612px;
+  }
+  input.span11,
+  textarea.span11,
+  .uneditable-input.span11 {
+    width: 1474px;
+  }
+  input.span10,
+  textarea.span10,
+  .uneditable-input.span10 {
+    width: 1336px;
+  }
+  input.span9,
+  textarea.span9,
+  .uneditable-input.span9 {
+    width: 1198px;
+  }
+  input.span8,
+  textarea.span8,
+  .uneditable-input.span8 {
+    width: 1060px;
+  }
+  input.span7,
+  textarea.span7,
+  .uneditable-input.span7 {
+    width: 922px;
+  }
+  input.span6,
+  textarea.span6,
+  .uneditable-input.span6 {
+    width: 784px;
+  }
+  input.span5,
+  textarea.span5,
+  .uneditable-input.span5 {
+    width: 646px;
+  }
+  input.span4,
+  textarea.span4,
+  .uneditable-input.span4 {
+    width: 508px;
+  }
+  input.span3,
+  textarea.span3,
+  .uneditable-input.span3 {
+    width: 370px;
+  }
+  input.span2,
+  textarea.span2,
+  .uneditable-input.span2 {
+    width: 232px;
+  }
+  input.span1,
+  textarea.span1,
+  .uneditable-input.span1 {
+    width: 94px;
+  }
+  .thumbnails {
+    margin-left: -30px;
+  }
+  .thumbnails > li {
+    margin-left: 30px;
+  }
+  .row-fluid .thumbnails {
+    margin-left: 0;
+  }
+}

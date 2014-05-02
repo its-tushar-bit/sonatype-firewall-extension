@@ -30,6 +30,7 @@
   <group name='css'>
     <css>/applications/application.css</css>
     <css>/assets/app-security.css</css>
+    <css>/assets/clm-large-responsive.css</css>
     <css>/assets/insight.css</css>
     <css>/assets/management.css</css>
     <css>/assets/sonatype-icons.css</css>
@@ -46,6 +47,7 @@
 
   <group name='lib'>
     <css>/lib/bootstrap/bootstrap-2.3.1.min.css</css>
+    <css>/lib/bootstrap/bootstrap-responsive-2.3.1.css</css>
     <css>/lib/glyphicons/glyphicons.css</css>
     <css>/lib/glyphicons/halflings.css</css>
     <css>/lib/X-editable/xeditable.css</css>

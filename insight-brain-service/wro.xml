@@ -48,6 +48,7 @@
   <group name='lib'>
     <css>/lib/bootstrap/bootstrap-2.3.1.min.css</css>
     <css>/lib/bootstrap/bootstrap-responsive-2.3.1.css</css>
+    <css>/lib/bootstrap/bootstrap-slider-2.0.0.css</css>
     <css>/lib/glyphicons/glyphicons.css</css>
     <css>/lib/glyphicons/halflings.css</css>
     <css>/lib/X-editable/xeditable.css</css>

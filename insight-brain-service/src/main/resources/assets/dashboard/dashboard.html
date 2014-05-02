@@ -85,6 +85,12 @@
                     selected-ids='filters.policyThreatTypes.queued'
                     none-selected-text='All Policy Types'></span>
             </div>
+            <div class='span3'>
+              <h5>Policy Threat Level</h5>
+              <div id="policy-threat-levels">
+                <div slider ng-model="filters.policyThreatLevel.queued" min="0" max="10"></div>
+              </div>
+            </div>
           </div>
           <div class='filter-edit-buttons'>
             <button class='btn' type='button' ng-click='cancelFilters()'>Cancel</button>
@@ -117,6 +123,9 @@
           <span ng-repeat='applicationTagId in filters.applicationTagIds.applied'>
             {{applicationTagNameFor(applicationTagId)}}{{!$last ? "," : ""}}
           </span>
+        </div>
+        <div class='span3' ng-if='filters.policyThreatLevel.applied[0] > 0 || filters.policyThreatLevel.applied[1] < 10'>
+          <span><strong>Policy Threat Levels {{filters.policyThreatLevel.applied[0]}} through {{filters.policyThreatLevel.applied[1]}}</strong></span>
         </div>
       </div>
     </div>

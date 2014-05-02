@@ -34,6 +34,10 @@
       applicationTagIds: {
         applied: [],
         queued: []
+      },
+      policyThreatLevel: {
+        applied: [0,10],
+        queued: [0,10]
       }
     };
     $scope.maxResults = 20;
@@ -51,6 +55,12 @@
         stageIds: $scope.filters.stageTypeIds.applied,
         tagIds: $scope.filters.applicationTagIds.applied
       };
+
+      //don't add this unless outside of defaults
+      var threatLvls = $scope.filters.policyThreatLevel.applied;
+      if (threatLvls[0] > 0 || threatLvls[1] < 10) {
+        params.policyThreatLevelRange = threatLvls.join();
+      }
       var promises = [
         $http.get(CLMLocations.getPolicyViolationsUrl(), {
           params: angular.copy(params)
@@ -185,4 +195,33 @@
       }]
     };
   }]);
+
+  //integrating the bootstrap-slider
+  dashboardModule.directive('slider', function() {
+    return {
+      restrict: 'A',
+      scope: {
+        model: '=ngModel',
+        min: '@',
+        max: '@'
+      },
+      link: function(scope, element) {
+        $(element).slider({
+          min: parseInt(scope.min),
+          max: parseInt(scope.max),
+          value: scope.model,
+          orientation: 'horizontal',
+          selection: 'after',
+          handle: 'square',
+          tooltip: 'none',
+          labels: true,
+          showHandleValues: true
+        }).on('slide', function(event){
+          scope.$apply(function () {
+            scope.model = event.value;
+          });
+        });
+      }
+    };
+  });
 }());

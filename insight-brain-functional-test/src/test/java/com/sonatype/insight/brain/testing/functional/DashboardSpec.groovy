@@ -94,6 +94,11 @@ class DashboardSpec
       applicationTagFiltersDropdown.areOptionsColored([(firstAppTag.name): "blue"])
       applicationTagFiltersDropdown.hideDropdown()
 
+    and: 'policy threat level filter is shown'
+      policyThreatLevelSlider.slider.displayed
+      policyThreatLevelSlider.minLabel.text() == "0"
+      policyThreatLevelSlider.maxLabel.text() == "10"
+
     when: 'dashboard filters are applied'
       applicationFiltersDropdown.toggleOption(firstApp.name)
       applicationFiltersDropdown.toggleOption(secondApp.name)

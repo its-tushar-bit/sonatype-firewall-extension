@@ -66,14 +66,23 @@ public class InsightBrainService
 
   public static final String DASHBOARD_ASSET_PATH = "/dashboard-assets/";
 
-  public static void main(final String[] args) throws Exception {
-    JavaRuntimeChecker.checkJreIsSupported();
+  public static void main(final String[] args) {
+    try {
+      JavaRuntimeChecker.checkJreIsSupported();
 
-    if (!validateTempDir()) {
-      System.exit(1);
+      if (!validateTempDir()) {
+        System.exit(1);
+      }
+
+      new InsightBrainService().run(args.length > 0 ? args : new String[] { "server" });
     }
-
-    new InsightBrainService().run(args.length > 0 ? args : new String[] { "server" });
+    catch (Throwable t) {
+      // Try to log to stderr before the trying the standard logging because the standard logging may not be
+      // operational at this point.
+      t.printStackTrace();
+      log.error(t.getMessage(), t);
+      System.exit(2);
+    }
   }
 
   @Override

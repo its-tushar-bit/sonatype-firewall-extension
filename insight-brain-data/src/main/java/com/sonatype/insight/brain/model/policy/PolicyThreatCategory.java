@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.model.policy;
 
+import java.util.SortedSet;
+
 /**
  * The threat category for a policy is based on the conditions in the constraints of that policy.
  * 
@@ -36,6 +38,13 @@ public enum PolicyThreatCategory
     }
 
     throw new IllegalArgumentException("Unknown policy threat category with name: " + name);
+  }
+
+  public static PolicyThreatCategory getCategory(SortedSet<PolicyThreatCategory> policyThreatCategories) {
+    if (policyThreatCategories.isEmpty()) {
+      return OTHER;
+    }
+    return policyThreatCategories.first();
   }
 
   public String getId() {

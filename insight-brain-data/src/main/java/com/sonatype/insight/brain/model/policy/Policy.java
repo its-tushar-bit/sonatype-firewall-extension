@@ -274,11 +274,6 @@ public class Policy
         threatCategories.add(conditionType.getThreatCategory());
       }
     }
-
-    if (threatCategories.isEmpty()) {
-      return PolicyThreatCategory.OTHER;
-    }
-
-    return threatCategories.first();
+    return PolicyThreatCategory.getCategory(threatCategories);
   }
 }

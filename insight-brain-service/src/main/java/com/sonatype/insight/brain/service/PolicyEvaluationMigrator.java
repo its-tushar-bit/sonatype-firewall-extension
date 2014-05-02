@@ -354,12 +354,7 @@ public class PolicyEvaluationMigrator
     for (ConstraintFact constraintFact : constraintFacts) {
       policyThreatCategories.addAll(Lists.transform(constraintFact.getConditionFacts(), CONDITION_FACT_TRANSFORMER));
     }
-
-    if (policyThreatCategories.isEmpty()) {
-      return PolicyThreatCategory.OTHER;
-    }
-
-    return policyThreatCategories.first();
+    return PolicyThreatCategory.getCategory(policyThreatCategories);
   }
 
   private String determineStageEvaluationFilename(String stageId) {

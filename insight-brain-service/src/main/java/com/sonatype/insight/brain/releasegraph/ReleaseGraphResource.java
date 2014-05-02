@@ -19,7 +19,7 @@ import javax.ws.rs.core.Response;
 @Path("rest/report/{applicationId}/{scanId}/releaseGraph")
 public class ReleaseGraphResource
 {
-  private static final long YEAR = 365 * 24 * 60 * 60 * 1000;
+  private static final long YEAR = 365L * 24 * 60 * 60 * 1000;
 
   private final ReleaseGraphService releaseGraphService;
 

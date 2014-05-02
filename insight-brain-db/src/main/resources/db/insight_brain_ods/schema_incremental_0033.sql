@@ -1,3 +1,4 @@
+-- Since 1.8
 SET SCHEMA insight_brain_ods;
 
 ALTER TABLE application

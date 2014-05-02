@@ -1,3 +1,4 @@
+-- Since 1.9
 SET SCHEMA insight_brain_ods;
 
 SET MAX_LENGTH_INPLACE_LOB 100000;

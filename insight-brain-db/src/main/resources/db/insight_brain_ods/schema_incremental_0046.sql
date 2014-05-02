@@ -1,3 +1,4 @@
+-- Since 1.11
 SET SCHEMA insight_brain_ods;
 
 UPDATE label SET color='white' WHERE color IS NULL;

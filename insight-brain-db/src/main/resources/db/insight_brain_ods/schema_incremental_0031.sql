@@ -1,3 +1,4 @@
+-- Since 1.7
 SET SCHEMA insight_brain_ods;
 
 CREATE TABLE role (

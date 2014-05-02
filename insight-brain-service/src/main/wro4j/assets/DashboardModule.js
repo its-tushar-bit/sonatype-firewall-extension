@@ -172,6 +172,8 @@
         $('.filter-edit').collapse('toggle');
       }, 10);
     };
+
+    $scope.highestRisk = 'policy-violations';
   }]);
 
   dashboardModule.directive('riskTable', [function() {

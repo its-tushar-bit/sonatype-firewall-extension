@@ -318,9 +318,38 @@ a {
   color: #2476FC;
 }
 
+.dashboard-content table {
+  font-size : 12px;
+}
+.dashboard-content table tr td:nth-child(2) {
+  font-weight: bold;
+}
+
 .dashboard-content th {
-  border-top: 1px solid #ddd !important;
   border-bottom: 1px solid #ddd;
+}
+#newest-risk h4 {
+  margin-bottom: 8px;
+}
+#newest-risk th {
+  border-top: 1px solid #ddd !important;
+}
+
+.dashboard-content .nav.nav-tabs {
+  margin:0px;
+}
+
+.dashboard-content .nav.nav-tabs .active a {
+  border-bottom:1px solid #2476FC;
+}
+
+.dashboard-content h4 {
+  font-size : 19.5px
+}
+
+.dashboard-content .nav.nav-tabs h4 {
+  margin:0px;
+  padding-top: 8px;
 }
 
 .dashboard-content td {
@@ -368,7 +397,7 @@ a {
     width: 744px;
   }
 
-  .dashboard-charts .span6 {
+  .dashboard-tables .span6 {
     width: 724px;
   }
 }
@@ -378,7 +407,7 @@ a {
     width: 980px;
   }
 
-  .dashboard-charts .span6 {
+  .dashboard-tables .span6 {
     width: 960px;
   }
 }
@@ -426,7 +455,7 @@ a {
 .dashboard-content i:before {
   line-height: 20px;
   vertical-align: top;
-  font-size: 14px;
+  font-size: 12px;
 }
 
 .dashboard-content th[id$='-threat-header'] {

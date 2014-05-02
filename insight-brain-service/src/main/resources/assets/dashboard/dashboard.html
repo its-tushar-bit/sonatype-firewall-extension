@@ -1,6 +1,4 @@
 <script type='text/ng-template' id='risk-table'>
-  <h4>{{ title }}</h4>
-  <table class='table' id='{{ riskId }}'>
     <thead>
     <tr>
       <th id='{{riskId}}-threat-header' colspan='2' class='clm-bar-text-offset'>
@@ -46,7 +44,6 @@
       </td>
     </tr>
     </tbody>
-  </table>
 </script>
 <div class='container dashboard-content'>
   <div class='row'>
@@ -55,7 +52,7 @@
       <a class='bottom-align-h1' ng-click='toggleCollapse()'>Filters&nbsp;<i class='glyphicons-sonatype filter'></i></a>
     </div>
   </div>
-  <div class='row'>
+  <div class='row' style='margin-bottom:10px'>
     <div class='span12 dashboard-filters'>
       <div class='filter-edit collapse' delayed-overflow>
         <div>
@@ -131,8 +128,27 @@
     </div>
   </div>
   <div load-error='error' reload='doLoad()'></div>
-  <div class='row dashboard-charts' ng-hide='error'>
-    <div class='span6' risk-table risks='newestRisks' title='Newest Risk' risk-id='newest-risk' empty-message="noDataNewestRiskMessage"></div>
-    <div class='span6' risk-table risks='highestRisks' title='Highest Risk' risk-id='highest-risk' empty-message="noDataHighestRiskMessage"></div>
+  <div class='row dashboard-tables' ng-hide='error'>
+    <div class='span6' id="newest-risk">
+      <h4>Newest Risk</h4>
+      <table class="table" risk-table risks="newestRisks" risk-id="newest-risk" empty-message="noDataNewestRiskMessage"></table>
+    </div>
+    <div class='span6' id="highest-risk">
+      <ul class="nav nav-tabs">
+        <li>
+          <h4>Highest Risk</h4>
+        </li>
+        <li class="pull-right" ng-class="{ active : highestRisk === 'applications' }">
+          <a href="#" ng-click="$event.preventDefault(); highestRisk='applications'">Applications</a>
+        </li>
+        <li class="pull-right" ng-class="{ active : highestRisk === 'components' }">
+          <a href="#" ng-click="$event.preventDefault(); highestRisk='components'">Components</a>
+        </li>
+        <li class="pull-right" ng-class="{ active : highestRisk === 'policy-violations' }">
+          <a href="#" ng-click="$event.preventDefault(); highestRisk='policy-violations'">Policy Violations</a>
+        </li>
+      </ul>
+      <table class="table" risk-table risks="highestRisks" risk-id="highest-risk" empty-message="noDataHighestRiskMessage"></table>
+    </div>
   </div>
 </div>

@@ -1,3 +1,25 @@
+/* Disable responsive for trending report. Temp fix until report removed (CLM-2345) */
+.report-content .row {
+  margin-left: -20px;
+}
+.report-content [class*="span"] {
+  float: left;
+  min-height: 1px;
+  margin-left: 20px;
+}
+.report-content .span12 {
+  width: 940px;
+}
+.report-content .span6 {
+  width: 460px;
+}
+.report-content .span4 {
+  width: 300px;
+}
+.report-content .span2 {
+  width: 140px;
+}
+
 .tag {
   font-family: "ProximaNova", Helvetica, Arial, sans-serif;
   color: #36424E;

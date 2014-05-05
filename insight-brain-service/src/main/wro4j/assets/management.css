@@ -1035,3 +1035,21 @@ ul.tri-pane {
   font-weight: bold;
   vertical-align: middle;
 }
+
+#policy-threat-levels {
+  min-width: 210px;
+}
+
+.slider {
+  width: 150px !important;
+}
+
+@media (max-width: 979px) {
+  .filter-edit-body > .span2:nth-child(4) {
+    clear: left;
+    margin-left:0px;
+  }
+  .row-fluid .span2 {
+    width: 30% !important;
+  }
+}

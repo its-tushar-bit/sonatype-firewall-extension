@@ -19,10 +19,6 @@ import javax.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatCategoryFilter;
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatLevelFilter;
-import com.sonatype.insight.brain.model.policy.PolicyViolation;
-
-import com.google.common.base.Predicate;
-import com.google.common.base.Predicates;
 
 @Named
 @Path(DashboardResource.SERVICE_PATH)
@@ -51,26 +47,6 @@ public class DashboardResource
       @QueryParam("maxResults") @DefaultValue("1000") int maxResults,
       @QueryParam("newest") @DefaultValue("false") boolean newest)
   {
-    Predicate<PolicyViolation> filter = buildFilter(policyThreatCategoryFilter, policyThreatLevelFilter);
-
-    if (applicationPublicIds == null || applicationPublicIds.isEmpty()) {
-      return dashboardService.getPolicyViolations(stageIds, tagIds, filter, maxResults, newest);
-    }
-
-    return dashboardService.getPolicyViolationsByApplicationIds(applicationPublicIds, stageIds, tagIds, filter, maxResults,
-        newest);
-  }
-
-  private Predicate<PolicyViolation> buildFilter(PolicyThreatCategoryFilter threatCategoryFilter,
-      PolicyThreatLevelFilter threatLevelFilter)
-  {
-    if (threatCategoryFilter == null && threatLevelFilter == null) {
-      return null;
-    }
-    else if (threatCategoryFilter != null && threatLevelFilter != null) {
-      return Predicates.and(threatCategoryFilter, threatLevelFilter);
-    }
-
-    return (threatCategoryFilter != null) ? threatCategoryFilter : threatLevelFilter;
+    return dashboardService.getPolicyViolations(applicationPublicIds, stageIds, tagIds, policyThreatCategoryFilter, policyThreatLevelFilter, maxResults, newest);
   }
 }

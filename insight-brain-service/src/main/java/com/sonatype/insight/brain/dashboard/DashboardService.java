@@ -17,6 +17,8 @@ import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import com.sonatype.insight.brain.dashboard.filters.PolicyThreatCategoryFilter;
+import com.sonatype.insight.brain.dashboard.filters.PolicyThreatLevelFilter;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
@@ -39,6 +41,7 @@ import org.sonatype.aether.version.Version;
 
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
+import com.google.common.base.Predicates;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
@@ -88,6 +91,36 @@ public class DashboardService
     this.policyViolationAdapter = policyViolationAdapter;
     this.policyViolationDAO = policyViolationDAO;
     this.stageTypeService = stageTypeService;
+  }
+
+  /**
+   * Gets the policy violations matching the specified filter criteria. Empty or null filter criteria generally mean
+   * "all available" violations for that aspect.
+   */
+  public List<PolicyViolationDTO> getPolicyViolations(Set<String> applicationPublicIds, Set<String> stageIds,
+      Set<String> tagIds, PolicyThreatCategoryFilter policyThreatCategoryFilter,
+      PolicyThreatLevelFilter policyThreatLevelFilter, int maxResults, boolean newest)
+  {
+    Predicate<PolicyViolation> filter = buildFilter(policyThreatCategoryFilter, policyThreatLevelFilter);
+
+    if (applicationPublicIds == null || applicationPublicIds.isEmpty()) {
+      return getPolicyViolations(stageIds, tagIds, filter, maxResults, newest);
+    }
+
+    return getPolicyViolationsByApplicationIds(applicationPublicIds, stageIds, tagIds, filter, maxResults, newest);
+  }
+
+  private Predicate<PolicyViolation> buildFilter(PolicyThreatCategoryFilter threatCategoryFilter,
+      PolicyThreatLevelFilter threatLevelFilter)
+  {
+    if (threatCategoryFilter == null && threatLevelFilter == null) {
+      return null;
+    }
+    else if (threatCategoryFilter != null && threatLevelFilter != null) {
+      return Predicates.and(threatCategoryFilter, threatLevelFilter);
+    }
+
+    return (threatCategoryFilter != null) ? threatCategoryFilter : threatLevelFilter;
   }
 
   /**

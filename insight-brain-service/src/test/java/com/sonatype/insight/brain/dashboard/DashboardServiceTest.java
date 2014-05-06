@@ -41,6 +41,7 @@ import org.junit.Test;
 
 import static com.sonatype.insight.brain.dashboard.PolicyViolationDTOTestUtils.assertPolicyViolationDTO;
 import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
@@ -78,8 +79,8 @@ public class DashboardServiceTest
     org = tempEntity.newOrganization();
     app1 = tempEntity.newApplication(org.getId());
     app2 = tempEntity.newApplication(org.getId());
-    orgPolicy = tempEntity.newPolicy(org.getId(), "org owned policy");
-    app1Policy = tempEntity.newPolicy(app1.getId(), "app owned policy");
+    orgPolicy = tempEntity.newPolicy(org.getId(), "org owned policy", 3);
+    app1Policy = tempEntity.newPolicy(app1.getId(), "app owned policy", 5);
     app1PolicyEvaluation = tempEntity.newPolicyEvaluation(app1.getId(), BuildStageType.ID, "test scan app1 id");
     app2PolicyEvaluation = tempEntity.newPolicyEvaluation(app2.getId(), BuildStageType.ID, "test scan app2 id");
     long start = System.currentTimeMillis();
@@ -522,5 +523,111 @@ public class DashboardServiceTest
     dto.artifactId = artifactId;
     dto.version = version;
     return dto;
+  }
+
+  @Test
+  public void testGetComponentRisks_DedupViolationsForSameAppAndPolicyByPickingMostRecentViolationAcrossStages()
+      throws Exception
+  {
+    PolicyEvaluation evaluation = tempEntity
+        .newPolicyEvaluation(app1.getId(), ReleaseStageType.ID, "test scan app1 id");
+    PolicyViolation violation = tempEntity.newPolicyViolation(evaluation.getId(), app1Policy,
+        app1Policy.getThreatLevel() + 1, PolicyThreatCategory.LICENSE, "Group1", "Artifact1", "Version1");
+
+    List<ComponentRiskDTO> riskDTOs = dashboardService.getComponentRisks(null, null, null, null, null, 1000);
+    assertThat(riskDTOs, hasSize(1));
+    ComponentRiskDTO riskDTO = riskDTOs.get(0);
+    assertThat(riskDTO.hash, is(violation.getHash()));
+    assertThat(
+        riskDTO.gavs,
+        containsInAnyOrder(new ComponentRiskDTO.GavDTO(violation.getGroupId(), violation.getArtifactId(), violation
+            .getVersion())));
+    assertThat(riskDTO.affectedApplicationNames, containsInAnyOrder(app1.getName(), app2.getName()));
+    assertThat(riskDTO.violatedPolicyNames, containsInAnyOrder(app1Policy.getName(), orgPolicy.getName()));
+    assertThat(riskDTO.score, is(violation.getThreatLevel() + orgPolicy.getThreatLevel() * 2));
+  }
+
+  @Test
+  public void testGetComponentRisks_FilterByApplication() throws Exception {
+    List<ComponentRiskDTO> riskDTOs = dashboardService.getComponentRisks(Collections.singleton(app2.getPublicId()),
+        null, null, null, null, 1000);
+    assertThat(riskDTOs, hasSize(1));
+    ComponentRiskDTO riskDTO = riskDTOs.get(0);
+    assertThat(riskDTO.hash, is(app2PolicyViolation.getHash()));
+    assertThat(riskDTO.gavs, containsInAnyOrder(new ComponentRiskDTO.GavDTO(app2PolicyViolation.getGroupId(),
+        app2PolicyViolation.getArtifactId(), app2PolicyViolation.getVersion())));
+    assertThat(riskDTO.affectedApplicationNames, containsInAnyOrder(app2.getName()));
+    assertThat(riskDTO.violatedPolicyNames, containsInAnyOrder(orgPolicy.getName()));
+    assertThat(riskDTO.score, is(orgPolicy.getThreatLevel()));
+  }
+
+  @Test
+  public void testGetComponentRisks_FilterByStage() throws Exception {
+    PolicyEvaluation evaluation = tempEntity
+        .newPolicyEvaluation(app1.getId(), ReleaseStageType.ID, "test scan app1 id");
+    PolicyViolation violation = tempEntity.newPolicyViolation(evaluation.getId(), app1Policy);
+
+    List<ComponentRiskDTO> riskDTOs = dashboardService.getComponentRisks(null,
+        Collections.singleton(ReleaseStageType.ID), null, null, null, 1000);
+    assertThat(riskDTOs, hasSize(1));
+    ComponentRiskDTO riskDTO = riskDTOs.get(0);
+    assertThat(riskDTO.hash, is(violation.getHash()));
+    assertThat(
+        riskDTO.gavs,
+        containsInAnyOrder(new ComponentRiskDTO.GavDTO(violation.getGroupId(), violation.getArtifactId(), violation
+            .getVersion())));
+    assertThat(riskDTO.affectedApplicationNames, containsInAnyOrder(app1.getName()));
+    assertThat(riskDTO.violatedPolicyNames, containsInAnyOrder(app1Policy.getName()));
+    assertThat(riskDTO.score, is(app1Policy.getThreatLevel()));
+  }
+
+  @Test
+  public void testGetComponentRisks_FilterByTag() throws Exception {
+    Tag app2Tag = tempEntity.newTag(org.getId());
+    tempEntity.newApplicationTag(app2.getId(), app2Tag.getId());
+
+    List<ComponentRiskDTO> riskDTOs = dashboardService.getComponentRisks(null, null,
+        Collections.singleton(app2Tag.getId()), null, null, 1000);
+    assertThat(riskDTOs, hasSize(1));
+    ComponentRiskDTO riskDTO = riskDTOs.get(0);
+    assertThat(riskDTO.hash, is(app2PolicyViolation.getHash()));
+    assertThat(riskDTO.gavs, containsInAnyOrder(new ComponentRiskDTO.GavDTO(app2PolicyViolation.getGroupId(),
+        app2PolicyViolation.getArtifactId(), app2PolicyViolation.getVersion())));
+    assertThat(riskDTO.affectedApplicationNames, containsInAnyOrder(app2.getName()));
+    assertThat(riskDTO.violatedPolicyNames, containsInAnyOrder(orgPolicy.getName()));
+    assertThat(riskDTO.score, is(orgPolicy.getThreatLevel()));
+  }
+
+  @Test
+  public void testGetComponentRisks_FilterPolicyThreatCategory() throws Exception {
+    PolicyViolation violation = tempEntity.newPolicyViolation(app1PolicyEvaluation.getId(), app1Policy, 5,
+        PolicyThreatCategory.SECURITY, "gid", "aid", "1");
+
+    List<ComponentRiskDTO> riskDTOs = dashboardService.getComponentRisks(null, null, null,
+        new PolicyThreatCategoryFilter(PolicyThreatCategory.SECURITY), null, 1000);
+    assertThat(riskDTOs, hasSize(1));
+    ComponentRiskDTO riskDTO = riskDTOs.get(0);
+    assertThat(riskDTO.hash, is(violation.getHash()));
+    assertThat(
+        riskDTO.gavs,
+        containsInAnyOrder(new ComponentRiskDTO.GavDTO(violation.getGroupId(), violation.getArtifactId(), violation
+            .getVersion())));
+    assertThat(riskDTO.affectedApplicationNames, containsInAnyOrder(app1.getName()));
+    assertThat(riskDTO.violatedPolicyNames, containsInAnyOrder(app1Policy.getName()));
+    assertThat(riskDTO.score, is(app1Policy.getThreatLevel()));
+  }
+
+  @Test
+  public void testGetComponentRisks_FilterPolicyThreatLevel() throws Exception {
+    List<ComponentRiskDTO> riskDTOs = dashboardService.getComponentRisks(null, null, null, null,
+        new PolicyThreatLevelFilter(3, 3), 1000);
+    assertThat(riskDTOs, hasSize(1));
+    ComponentRiskDTO riskDTO = riskDTOs.get(0);
+    assertThat(riskDTO.hash, is(orgPolicyViolation.getHash()));
+    assertThat(riskDTO.gavs, containsInAnyOrder(new ComponentRiskDTO.GavDTO(orgPolicyViolation.getGroupId(),
+        orgPolicyViolation.getArtifactId(), orgPolicyViolation.getVersion())));
+    assertThat(riskDTO.affectedApplicationNames, containsInAnyOrder(app1.getName(), app2.getName()));
+    assertThat(riskDTO.violatedPolicyNames, containsInAnyOrder(orgPolicy.getName()));
+    assertThat(riskDTO.score, is(orgPolicy.getThreatLevel() * 2));
   }
 }

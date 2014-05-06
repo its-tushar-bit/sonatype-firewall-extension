@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.dashboard;
 
+import java.util.Collections;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -98,4 +99,40 @@ public class DashboardServiceAuthzTest
     return tempEntity.newPolicyViolation(evaluation.getId(), tempEntity.newPolicy(app.getId(), "test policy name"));
   }
 
+  @Test(expected = UnauthenticatedException.class)
+  public void testGetComponentRisks_ExplicitApplicationFilter_Unauthenticated() {
+    dashboardService.getComponentRisks(Collections.singleton(app.getPublicId()), null, null, null, null, 1);
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testGetComponentRisks_ExplicitApplicationFilter_Unauthorized() {
+    login();
+    dashboardService.getComponentRisks(Collections.singleton(app.getPublicId()), null, null, null, null, 1);
+  }
+
+  @Test
+  public void testGetComponentRisks_ExplicitApplicationFilter_Authorized() {
+    grantReadPermission(app.getId());
+    dashboardService.getComponentRisks(Collections.singleton(app.getPublicId()), null, null, null, null, 1);
+  }
+
+  @Test
+  public void testGetComponentRisks_ImplicitApplicationFilter_Unauthenticated() {
+    createPolicyViolation(app.getId());
+    assertThat(dashboardService.getComponentRisks(null, null, null, null, null, 1), hasSize(0));
+  }
+
+  @Test
+  public void testGetComponentRisks_ImplicitApplicationFilter_Unauthorized() {
+    createPolicyViolation(app.getId());
+    login();
+    assertThat(dashboardService.getComponentRisks(null, null, null, null, null, 1), hasSize(0));
+  }
+
+  @Test
+  public void testGetComponentRisks_ImplicitApplicationFilter_Authorized() {
+    createPolicyViolation(app.getId());
+    grantReadPermission(app.getId());
+    assertThat(dashboardService.getComponentRisks(null, null, null, null, null, 1), hasSize(1));
+  }
 }

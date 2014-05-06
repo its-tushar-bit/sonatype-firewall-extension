@@ -27,6 +27,8 @@ public class DashboardResource
   public static final String SERVICE_PATH = "rest/dashboard";
 
   public static final String GET_POLICY_VIOLATIONS_PATH = "policy/violations";
+
+  public static final String GET_COMPONENT_RISKS_PATH = "policy/componentRisks";
   
   private DashboardService dashboardService;
 
@@ -48,5 +50,18 @@ public class DashboardResource
       @QueryParam("newest") @DefaultValue("false") boolean newest)
   {
     return dashboardService.getPolicyViolations(applicationPublicIds, stageIds, tagIds, policyThreatCategoryFilter, policyThreatLevelFilter, maxResults, newest);
+  }
+
+  @GET
+  @Path(GET_COMPONENT_RISKS_PATH)
+  @Produces(MediaType.APPLICATION_JSON)
+  public List<ComponentRiskDTO> getComponentRisks(@QueryParam("applicationPublicIds") Set<String> applicationPublicIds,
+      @QueryParam("stageIds") Set<String> stageIds, @QueryParam("tagIds") Set<String> tagIds,
+      @QueryParam("policyThreatCategories") PolicyThreatCategoryFilter policyThreatCategoryFilter,
+      @QueryParam("policyThreatLevelRange") PolicyThreatLevelFilter policyThreatLevelFilter,
+      @QueryParam("maxResults") @DefaultValue("1000") int maxResults)
+  {
+    return dashboardService.getComponentRisks(applicationPublicIds, stageIds, tagIds, policyThreatCategoryFilter,
+        policyThreatLevelFilter, maxResults);
   }
 }

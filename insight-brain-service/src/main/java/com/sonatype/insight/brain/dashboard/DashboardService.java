@@ -10,7 +10,9 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import javax.annotation.Nullable;
@@ -357,5 +359,61 @@ public class DashboardService
     }
 
     return policyViolationDAO.getByEvaluationId(policyEvaluation.getId());
+  }
+
+  /**
+   * Gets the risk per component by rolling up the policy violations matching the specified filter criteria. Empty or
+   * null filter criteria generally mean "all available" violations for that aspect. The results are in no particular
+   * order.
+   */
+  public List<ComponentRiskDTO> getComponentRisks(Set<String> applicationPublicIds, Set<String> stageIds,
+      Set<String> tagIds, PolicyThreatCategoryFilter policyThreatCategoryFilter,
+      PolicyThreatLevelFilter policyThreatLevelFilter, int maxResults)
+  {
+    List<PolicyViolationDTO> violations = getPolicyViolations(applicationPublicIds, stageIds, tagIds,
+        policyThreatCategoryFilter, policyThreatLevelFilter, maxResults, false);
+    Map<String, ComponentViolationRollUp> componentsByHash = new LinkedHashMap<>();
+    for (PolicyViolationDTO violation : violations) {
+      ComponentViolationRollUp component = componentsByHash.get(violation.hash);
+      if (component == null) {
+        component = new ComponentViolationRollUp();
+        componentsByHash.put(violation.hash, component);
+      }
+      component.add(violation);
+    }
+
+    List<ComponentRiskDTO> dtos = new ArrayList<>(componentsByHash.size());
+    for (ComponentViolationRollUp component : componentsByHash.values()) {
+      dtos.add(component.toDTO());
+    }
+    return dtos;
+  }
+
+  private static class ComponentViolationRollUp
+  {
+    Map<String, PolicyViolationDTO> violationsByAppAndPolicyId = new LinkedHashMap<>();
+
+    void add(PolicyViolationDTO violation) {
+      String id = violation.applicationId + "\t" + violation.policyId;
+      PolicyViolationDTO existing = violationsByAppAndPolicyId.get(id);
+      if (existing == null || existing.time < violation.time) {
+        // count violations for a given app+policy combo only once, using the data from the most recent evaluation
+        violationsByAppAndPolicyId.put(id, violation);
+      }
+    }
+
+    public ComponentRiskDTO toDTO() {
+      ComponentRiskDTO dto = new ComponentRiskDTO();
+      for (PolicyViolationDTO violation : violationsByAppAndPolicyId.values()) {
+        dto.hash = violation.hash;
+        dto.score += violation.threatLevel;
+        if (StringUtils.isNotEmpty(violation.groupId)) {
+          dto.gavs.add(new ComponentRiskDTO.GavDTO(violation.groupId, violation.artifactId, violation.version));
+        }
+        dto.affectedApplicationNames.add(violation.applicationName);
+        dto.violatedPolicyNames.add(violation.policyName);
+      }
+      return dto;
+    }
   }
 }

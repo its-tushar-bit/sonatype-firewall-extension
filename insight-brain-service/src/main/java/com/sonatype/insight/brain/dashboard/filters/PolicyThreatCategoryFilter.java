@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.dashboard.filters;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.Locale;
 import java.util.Set;
@@ -48,6 +49,12 @@ public class PolicyThreatCategoryFilter
   public PolicyThreatCategoryFilter(Collection<PolicyThreatCategory> categories) {
     if (categories != null) {
       policyThreatCategories.addAll(categories);
+    }
+  }
+
+  public PolicyThreatCategoryFilter(PolicyThreatCategory... categories) {
+    if (categories != null) {
+      Collections.addAll(policyThreatCategories, categories);
     }
   }
 

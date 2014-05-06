@@ -11,7 +11,6 @@ import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.error.exception.BadRequestException;
 
-import com.google.common.collect.Lists;
 import org.junit.Test;
 
 import static org.hamcrest.Matchers.is;
@@ -25,7 +24,7 @@ public class PolicyThreatCategoryFilterTest
 
   @Test
   public void testSinglePolicyThreatCategory() {
-    PolicyThreatCategoryFilter filter = new PolicyThreatCategoryFilter(Lists.newArrayList(PolicyThreatCategory.LICENSE));
+    PolicyThreatCategoryFilter filter = new PolicyThreatCategoryFilter(PolicyThreatCategory.LICENSE);
     PolicyViolation trueViolation = new PolicyViolation();
     trueViolation.setThreatCategory(PolicyThreatCategory.LICENSE);
 
@@ -38,8 +37,8 @@ public class PolicyThreatCategoryFilterTest
 
   @Test
   public void testMultiplePolicyThreatCategories() {
-    PolicyThreatCategoryFilter filter = new PolicyThreatCategoryFilter(Lists.newArrayList(PolicyThreatCategory.LICENSE,
-        PolicyThreatCategory.OTHER, PolicyThreatCategory.QUALITY, PolicyThreatCategory.SECURITY));
+    PolicyThreatCategoryFilter filter = new PolicyThreatCategoryFilter(PolicyThreatCategory.LICENSE,
+        PolicyThreatCategory.OTHER, PolicyThreatCategory.QUALITY, PolicyThreatCategory.SECURITY);
     PolicyViolation v1 = new PolicyViolation();
     PolicyViolation v2 = new PolicyViolation();
     PolicyViolation v3 = new PolicyViolation();
@@ -57,8 +56,7 @@ public class PolicyThreatCategoryFilterTest
 
   @Test
   public void testEmptyPolicyThreatCategories() {
-    List<PolicyThreatCategory> empty = Lists.newArrayList();
-    PolicyThreatCategoryFilter filter = new PolicyThreatCategoryFilter(empty);
+    PolicyThreatCategoryFilter filter = new PolicyThreatCategoryFilter();
     PolicyViolation v1 = new PolicyViolation();
     PolicyViolation v2 = new PolicyViolation();
     PolicyViolation v3 = new PolicyViolation();
@@ -95,7 +93,7 @@ public class PolicyThreatCategoryFilterTest
 
   @Test
   public void testNullViolationThreatCategory() {
-    PolicyThreatCategoryFilter filter = new PolicyThreatCategoryFilter(Lists.newArrayList(PolicyThreatCategory.LICENSE));
+    PolicyThreatCategoryFilter filter = new PolicyThreatCategoryFilter(PolicyThreatCategory.LICENSE);
     PolicyViolation v1 = new PolicyViolation();
     v1.setThreatCategory(null);
 
@@ -104,7 +102,7 @@ public class PolicyThreatCategoryFilterTest
 
   @Test
   public void testNullViolation() {
-    PolicyThreatCategoryFilter filter = new PolicyThreatCategoryFilter(Lists.newArrayList(PolicyThreatCategory.LICENSE));
+    PolicyThreatCategoryFilter filter = new PolicyThreatCategoryFilter(PolicyThreatCategory.LICENSE);
 
     assertThat(filter.apply(null), is(false));
   }

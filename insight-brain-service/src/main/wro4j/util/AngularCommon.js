@@ -310,6 +310,33 @@ var AngularStateUtils = {
       };
     }
   ]);
+  
+  angularCommon.directive('loadWrapper', ['Messages', function(messages) {
+    return {
+      restrict : 'A',
+      priority : 99,
+      transclude : true,
+      replace : true,
+      template : '<div><div ng-show="!error" ng-transclude></div>' +
+        '<div ng-if="error != null" class="alert alert-error clm-error">' +
+          '<p><strong>Error</strong></p>' +
+          '<p><span>An error occurred loading data. </span>' +
+            '<span ng-switch on="error.status">' +
+              '<span ng-switch-when="0">(Unable to reach CLM server)</span>' +
+              '<span ng-switch-default>({{getDetails()}})</span>' +
+            '</span></p>' +
+          '<p><button type="button" class="btn btn-danger" ng-click="reload()">Reload</button></p></div>',
+      scope : {
+        error : '=loadWrapper',
+        reload : '&'
+      },
+      link: function($scope) {
+        $scope.getDetails = function() {
+          return messages.getHttpErrorMessage($scope.error);
+        };
+      }
+    };
+  }]);
 
   /**
    * Full width closeable bootstrap alerts built from an array

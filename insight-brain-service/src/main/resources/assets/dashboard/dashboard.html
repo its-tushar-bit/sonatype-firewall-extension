@@ -76,7 +76,7 @@
 <script type='text/ng-template' id='risk-table'>
   <div class='scrollable-container'>
     <div class='scrollable-container-inner'>
-      <table class='table'>
+      <table class='table policy-violation-table'>
         <thead>
         <tr>
           <th id='{{riskId}}-threat-header' colspan='2' class='clm-bar-text-offset'>
@@ -159,18 +159,57 @@
         <li>
           <h4>Highest Risk</h4>
         </li>
-        <li class="pull-right" ng-class="{ active : highestRisk === 'applications' }">
-          <a href="#" ng-click="$event.preventDefault(); highestRisk='applications'">Applications</a>
+        <li class="pull-right" ng-class="{ active : riskTable === 'applications' }">
+          <a href="#" ng-click="$event.preventDefault(); riskTable='applications'">Applications</a>
         </li>
-        <li class="pull-right" ng-class="{ active : highestRisk === 'components' }">
-          <a href="#" ng-click="$event.preventDefault(); highestRisk='components'">Components</a>
+        <li class="pull-right" ng-class="{ active : riskTable === 'components' }">
+          <a href="#" ng-click="$event.preventDefault(); riskTable='components'">Components</a>
         </li>
-        <li class="pull-right" ng-class="{ active : highestRisk === 'policy-violations' }">
-          <a href="#" ng-click="$event.preventDefault(); highestRisk='policy-violations'">Policy Violations</a>
+        <li class="pull-right" ng-class="{ active : riskTable === 'policy-violations' }">
+          <a href="#" ng-click="$event.preventDefault(); riskTable='policy-violations'">Policy Violations</a>
         </li>
       </ul>
-      <div risk-table risks="highestRisks" risk-id="highest-risk"
-             empty-message="noDataHighestRiskMessage" max-results="maxResults"></div>
+      <div ng-switch="riskTable">
+        <div ng-switch-when="applications"></div>
+        <div ng-switch-when="components" ng-controller="componentRiskTableController">
+          <div load-wrapper="error" reload="doLoad()">
+            <div class='scrollable-container'>
+              <div class='scrollable-container-inner'>
+                <table class="table table-risk" id="component-risk">
+                  <thead>
+                    <tr>
+                      <th>COMPONENT</th>
+                      <th>NET RISK</th>
+                      <th>CRITICAL</th>
+                      <th>SEVERE</th>
+                      <th>MODERATE</th>
+                      <th>LOW</th>
+                    </tr>
+                  </thead>
+                  <tr ng-repeat="component in data | limitTo: maxResults">
+                    <td ng-if="component.gavs.length">
+                      {{component.gavs[0].groupId}}<span class="wrap-force-break"> : </span>{{component.gavs[0].artifactId}}<span class="wrap-force-break"> : </span>{{component.gavs[0].version}}
+                    </td>
+                    <td ng-if="!component.gavs.length"><em>Unknown</em></td>
+                    <td>{{component.score}}</td>
+                    <td>{{component.scoreCritical}}</td>
+                    <td>{{component.scoreSevere}}</td>
+                    <td>{{component.scoreModerate}}</td>
+                    <td>{{component.scoreLow}}</td>
+                  </tr>
+                </table>
+              </div>
+            </div>
+            <span id="component-risk-max-results-shown" class="pull-right" ng-if="data.length > maxResults">
+              Showing the top {{maxResults}} results
+            </span>
+          </div>
+        </div>
+        <div ng-switch-when="policy-violations" ng-controller="policyRiskTableController">
+          <div risk-table risks="data" risk-id="highest-risk"
+                 empty-message="noDataHighestRiskMessage" max-results="maxResults"></div>
+        </div>
+      </div>
     </div>
   </div>
 </div>

@@ -129,14 +129,12 @@ describe('DashboardModule', function() {
         };
       });
 
-      $httpBackend.expectGET(CLMLocations.getPolicyViolationsUrl() + '?maxResults=101').respond(policyViolations);
       $httpBackend.expectGET(CLMLocations.getPolicyViolationsUrl() + '?maxResults=101&newest=true').respond(newestViolations);
       $controller('DashboardController', { $scope: scope });
       $httpBackend.flush();
     }));
 
     it('Reacts to filter changes', inject(function($httpBackend, CLMLocations) {
-      $httpBackend.expectGET(CLMLocations.getPolicyViolationsUrl() +'?applicationPublicIds=foo&maxResults=101').respond([policyViolations[0]]);
       $httpBackend.expectGET(CLMLocations.getPolicyViolationsUrl() +'?applicationPublicIds=foo&maxResults=101&newest=true').respond([newestViolations[0]]);
       scope.$apply(function () {
         scope.filters = {
@@ -153,26 +151,8 @@ describe('DashboardModule', function() {
     it('handles http errors', inject(function($httpBackend, CLMLocations){
       expect(scope.error).toBeNull();
 
-      $httpBackend.expectGET(CLMLocations.getPolicyViolationsUrl() +'?applicationPublicIds=foo&maxResults=101').respond(500, 'An error');
-      $httpBackend.expectGET(CLMLocations.getPolicyViolationsUrl() +'?applicationPublicIds=foo&maxResults=101&newest=true').respond([newestViolations[0]]);
-      scope.$apply(function () {
-        scope.filters = {
-          applicationPublicIds: ['foo'],
-          policyThreatTypes: [],
-          stageTypeIds: [],
-          applicationTagIds: [],
-          policyThreatLevel: [0,10]
-        };
-      });
-      $httpBackend.flush();
-
-      expect(scope.error).toBeDefined();
-      expect(scope.error.status).toBe(500);
-      expect(scope.error.data).toBe('An error');
-
-      $httpBackend.expectGET(CLMLocations.getPolicyViolationsUrl() +'?maxResults=101').respond([policyViolations[0]]);
       $httpBackend.expectGET(CLMLocations.getPolicyViolationsUrl() +'?maxResults=101&newest=true').respond(500, 'An error');
-      scope.$apply(function () {
+       scope.$apply(function () {
         scope.filters = {
           applicationPublicIds: [],
           policyThreatTypes: [],
@@ -183,10 +163,9 @@ describe('DashboardModule', function() {
       });
       $httpBackend.flush();
       expect(scope.error).toBeDefined();
-      expect(scope.error.status).toBe(500);
-      expect(scope.error.data).toBe('An error');
+      expect(scope.error[0]).toBe('An error');
+      expect(scope.error[1]).toBe(500);
 
-      $httpBackend.expectGET(CLMLocations.getPolicyViolationsUrl() +'?applicationPublicIds=foo&maxResults=101').respond([policyViolations[0]]);
       $httpBackend.expectGET(CLMLocations.getPolicyViolationsUrl() +'?applicationPublicIds=foo&maxResults=101&newest=true').respond([newestViolations[0]]);
       scope.$apply(function () {
         scope.filters = {
@@ -202,9 +181,6 @@ describe('DashboardModule', function() {
     }));
 
     it('loads policy violations', function() {
-      expect(scope.highestRisks.length).toBe(policyViolations.length);
-      expect(scope.highestRisks[0].id).toBe(policyViolations[0].id);
-
       expect(scope.newestRisks.length).toBe(newestViolations.length);
       expect(scope.newestRisks[0].id).toBe(newestViolations[0].id);
     });

@@ -129,6 +129,15 @@
         getProductFeaturesUrl : function() {
           return baseUrl.get() + '/rest/features';
         },
+
+        /**
+         * Retrieve the list of components with violations in the most recent stage.  Supports filters
+         * @since 1.11
+         */
+        getComponentRisksUrl : function () {
+          return baseUrl.get() + '/rest/dashboard/policy/componentRisks';
+        },
+
         getPolicyViolationsUrl: function() {
           return baseUrl.get() + '/rest/dashboard/policy/violations';
         },

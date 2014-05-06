@@ -26,10 +26,10 @@ class DashboardPage
     filterButtons(required: false) { module ButtonsModule, $('.filter-edit-buttons') }
 
     applicationFilters(required: false) {
-      filterPanel.find('span', 'ng-repeat': 'applicationId in filters.applicationPublicIds.applied')
+      filterPanel.find('span', 'ng-repeat': 'applicationId in filter.applicationPublicIds')
     }
     applicationTagFilters(required: false) {
-      filterPanel.find('span[ng-repeat="applicationTagId in filters.applicationTagIds.applied"]')
+      filterPanel.find('span[ng-repeat="applicationTagId in filter.applicationTagIds"]')
     }
 
     noAvailableApplications(required: false) { $('#no-permissions') }

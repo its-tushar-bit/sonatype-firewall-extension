@@ -474,8 +474,17 @@ public class TemporaryEntity
     return newPolicy(ownerId, null /* id */, name);
   }
 
+  public Policy newPolicy(String ownerId, String name, int threatLevel) {
+    return newPolicy(ownerId, null, name, threatLevel);
+  }
+
   public Policy newPolicy(String ownerId, String id, String name) {
+    return newPolicy(ownerId, id, name, 5);
+  }
+
+  private Policy newPolicy(String ownerId, String id, String name, int threatLevel) {
     Policy policy = new Policy(id, name);
+    policy.setThreatLevel(threatLevel);
     policy.setOwnerId(ownerId);
     Constraint constraint = new Constraint(null, "Test Constraint", LogicalOperator.AND);
     constraint.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
@@ -516,8 +525,8 @@ public class TemporaryEntity
   }
 
   public PolicyViolation newPolicyViolation(String policyEvaluationId, Policy policy) {
-    return newPolicyViolation(policyEvaluationId, policy, 5, PolicyThreatCategory.LICENSE, "Group1", "Artifact1",
-        "Version1");
+    return newPolicyViolation(policyEvaluationId, policy, policy.getThreatLevel(), PolicyThreatCategory.LICENSE,
+        "Group1", "Artifact1", "Version1");
   }
 
   public PolicyViolation newPolicyViolation(String policyEvaluationId, Policy policy, int threatLevel,

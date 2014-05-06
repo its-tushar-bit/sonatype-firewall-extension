@@ -209,7 +209,7 @@ public class DashboardService
   }
 
   /**
-   * @return Sort by threat level (descending), policy name, application name, coordinates, and then pathnames.
+   * @return Sort by threat level (descending), policy name, application name, coordinates, and then hashes.
    */
   private List<PolicyViolationDTO> sort(List<PolicyViolationDTO> dtos) {
     Collections.sort(dtos, POLICY_VIOLATION_DTO_COMPARATOR);

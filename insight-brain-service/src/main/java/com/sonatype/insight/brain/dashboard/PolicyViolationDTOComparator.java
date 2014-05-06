@@ -16,7 +16,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Compares policy violations by threat level (descending), policy name, application name, coordinates, and then
- * pathnames.
+ * hashes.
  * 
  * @since 1.11.0
  */

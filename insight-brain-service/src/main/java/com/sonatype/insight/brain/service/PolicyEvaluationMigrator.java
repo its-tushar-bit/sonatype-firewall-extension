@@ -13,6 +13,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -32,11 +33,13 @@ import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.component.ComponentDAO;
 import com.sonatype.insight.brain.dataaccess.policy.NewestPolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.policy.ConditionType;
 import com.sonatype.insight.brain.model.policy.NewestPolicyViolation;
 import com.sonatype.insight.brain.model.policy.Policy;
@@ -64,6 +67,8 @@ import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimaps;
+import com.google.common.collect.Sets;
+import org.codehaus.plexus.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -257,7 +262,8 @@ public class PolicyEvaluationMigrator
       String scanId = policyEvaluation.getScanId();
       List<PolicyAlert> policyAlerts = findPolicyAlerts(applicationId, scanId,
           determinePolicyAlertsFileName(policyEvaluation));
-      savePolicyAlerts(em, policyEvaluation.getId(), policyAlerts, policyViolationsByEvaluationCache);
+      Map<String, List<String>> hashToPathnames = loadPathnames(applicationId, scanId);
+      savePolicyAlerts(em, policyEvaluation.getId(), policyAlerts, policyViolationsByEvaluationCache, hashToPathnames);
 
       /* check for existence of monitoring results */
 
@@ -271,7 +277,8 @@ public class PolicyEvaluationMigrator
           policyEvaluationDAO.insert(em, monitoringEvaluation);
           policyEvaluationsCache.add(monitoringEvaluation);
           log.trace("Migrated policy monitoring evaluation: {}", monitoringEvaluation);
-          savePolicyAlerts(em, monitoringEvaluation.getId(), monitoringAlerts, policyViolationsByEvaluationCache);
+          savePolicyAlerts(em, monitoringEvaluation.getId(), monitoringAlerts, policyViolationsByEvaluationCache,
+              hashToPathnames);
           monitoringScans.add(monitoringEvaluation.getScanId());
         }
       }
@@ -279,7 +286,8 @@ public class PolicyEvaluationMigrator
   }
 
   private void savePolicyAlerts(final EntityManager em, final String policyEvaluationId,
-      final List<PolicyAlert> policyAlerts, final Map<String, List<PolicyViolation>> policyViolationsByEvaluationCache)
+      final List<PolicyAlert> policyAlerts, final Map<String, List<PolicyViolation>> policyViolationsByEvaluationCache,
+      final Map<String, List<String>> hashToPathnames)
   {
     List<PolicyViolation> policyViolations = new ArrayList<>();
     policyViolationsByEvaluationCache.put(policyEvaluationId, policyViolations);
@@ -292,10 +300,12 @@ public class PolicyEvaluationMigrator
         PolicyThreatCategory threatCategory = policy != null ? policy.getThreatCategory()
             : determinePolicyThreatCategory(componentFact.getConstraintFacts());
 
+        List<String> pathnames = hashToPathnames.get(componentFact.getHash());
+
         PolicyViolation policyViolation = new PolicyViolation(policyEvaluationId, policyFact.getPolicyId(),
             policyFact.getPolicyName(), policyFact.getThreatLevel(), threatCategory, componentFact.getHash(),
             componentFact.getGroupId(), componentFact.getArtifactId(), componentFact.getVersion(),
-            componentFact.getConstraintFacts());
+            componentFact.getConstraintFacts(), pathnames);
 
         policyViolationDAO.insert(em, policyViolation);
         policyViolations.add(policyViolation);
@@ -359,5 +369,53 @@ public class PolicyEvaluationMigrator
 
   private String determineStageEvaluationFilename(String stageId) {
     return "policy-evaluations-" + stageId + ".json";
+  }
+
+  private Map<String, List<String>> loadPathnames(String appId, String scanId) {
+    Application application = appDAO.getById(appId);
+
+    File reportFile = insightWork.getReportFile(appId, scanId);
+    if (reportFile == null || !reportFile.exists()) {
+      log.warn(
+          "Unable to load component pathnames for {} for scan {} as the report file does not exist. Migrated evaluations will exclude pathnames.",
+          application.getPublicId(), scanId);
+      return Collections.emptyMap();
+    }
+
+    ReportEntry bomReportEntry = null;
+    try {
+      bomReportEntry = Report.getEntry(reportFile, "bom.json");
+
+      if (bomReportEntry == null) {
+        log.warn(
+            "Unable to load component pathnames for {} for scan {} as bom.json could not be loaded. Migrated evaluations will exclude pathnames.",
+            application.getPublicId(), scanId);
+        return Collections.emptyMap();
+      }
+
+      return toHashToPathnamesMap(new ComponentDAO().getAll(application, null, null, bomReportEntry.buf));
+    }
+    catch (Exception e) {
+      log.warn(
+          "An error occured while attempting to load component pathnames for {} for scan {}. Migrated evaluations will exclude pathnames.",
+          application.getPublicId(), scanId, e);
+      return Collections.emptyMap();
+    }
+  }
+
+  private Map<String, List<String>> toHashToPathnamesMap(List<Component> components) {
+    Map<String, List<String>> mappedComponents = new HashMap<String, List<String>>();
+
+    if (components == null || components.isEmpty()) {
+      return mappedComponents;
+    }
+
+    for (Component component : components) {
+      if (!StringUtils.isBlank(component.getHash())) {
+        mappedComponents.put(component.getHash(), component.getPathnames());
+      }
+    }
+
+    return mappedComponents;
   }
 }

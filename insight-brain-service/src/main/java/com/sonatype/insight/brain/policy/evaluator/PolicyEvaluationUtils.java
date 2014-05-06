@@ -157,7 +157,7 @@ public class PolicyEvaluationUtils
             PolicyViolation policyViolation = new PolicyViolation(policyEvaluation.getId(), policy.getId(),
                 policy.getName(), policyFact.getThreatLevel(), threatCategory, componentFact.getHash(),
                 componentFact.getGroupId(), componentFact.getArtifactId(), componentFact.getVersion(),
-                componentFact.getConstraintFacts());
+                componentFact.getConstraintFacts(), componentFact.getPathnames());
             policyViolationDAO.insert(em, policyViolation);
             newPolicyViolations.add(policyViolation);
           }

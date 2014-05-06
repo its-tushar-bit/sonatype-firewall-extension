@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.dashboard;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -37,10 +36,6 @@ import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 
-import org.sonatype.aether.util.version.GenericVersionScheme;
-import org.sonatype.aether.version.InvalidVersionSpecificationException;
-import org.sonatype.aether.version.Version;
-
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
@@ -49,16 +44,12 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import org.apache.commons.collections.CollectionUtils;
 import org.codehaus.plexus.util.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 @Named
 public class DashboardService
 {
 
-  private static final Logger log = LoggerFactory.getLogger(DashboardService.class);
-
-  private static GenericVersionScheme versionScheme = new GenericVersionScheme();
+  private static final PolicyViolationDTOComparator POLICY_VIOLATION_DTO_COMPARATOR = new PolicyViolationDTOComparator();
 
   private static final int DEFAULT_NEWEST_POLICY_VIOLATION_TIME_RANGE = 30;
 
@@ -218,87 +209,11 @@ public class DashboardService
   }
 
   /**
-   * @return Sort by threat level (descending), policy name, application name, and then coordinates.
+   * @return Sort by threat level (descending), policy name, application name, coordinates, and then pathnames.
    */
-  List<PolicyViolationDTO> sort(List<PolicyViolationDTO> dtos) {
-    Collections.sort(dtos, new Comparator<PolicyViolationDTO>()
-    {
-
-      @Override
-      public int compare(PolicyViolationDTO v1, PolicyViolationDTO v2) {
-        int result = v2.threatLevel - v1.threatLevel;
-        if (result != 0) {
-          return result;
-        }
-
-        result = v1.policyName.compareToIgnoreCase(v2.policyName);
-        if (result != 0) {
-          return result;
-        }
-
-        result = v1.applicationName.compareToIgnoreCase(v2.applicationName);
-        if (result != 0) {
-          return result;
-        }
-
-        return compareCoordinates(v1, v2);
-      }
-
-    });
+  private List<PolicyViolationDTO> sort(List<PolicyViolationDTO> dtos) {
+    Collections.sort(dtos, POLICY_VIOLATION_DTO_COMPARATOR);
     return dtos;
-  }
-
-  private int compareCoordinates(PolicyViolationDTO v1, PolicyViolationDTO v2) {
-    int result = 0;
-
-    // Null elements are infinitely large.
-    if (v1.groupId == null && v2.groupId != null) {
-      return 1;
-    }
-    else if (v1.groupId != null && v2.groupId == null) {
-      return -1;
-    }
-    else if (v1.groupId != null && v2.groupId != null) {
-      result = v1.groupId.compareToIgnoreCase(v2.groupId);
-      if (result != 0) {
-        return result;
-      }
-    }
-
-    if (v1.artifactId == null && v2.artifactId != null) {
-      return 1;
-    }
-    else if (v1.artifactId != null && v2.artifactId == null) {
-      return -1;
-    }
-    else if (v1.artifactId != null && v2.artifactId != null) {
-      result = v1.artifactId.compareToIgnoreCase(v2.artifactId);
-      if (result != 0) {
-        return result;
-      }
-    }
-
-    if (v1.version == null && v2.version != null) {
-      return 1;
-    }
-    else if (v1.version != null && v2.version == null) {
-      return -1;
-    }
-    else if (v1.version != null && v2.version != null) {
-      try {
-        Version parsedVersion1 = versionScheme.parseVersion(v1.version);
-        Version parsedVersion2 = versionScheme.parseVersion(v2.version);
-        return parsedVersion1.compareTo(parsedVersion2);
-      }
-      catch (InvalidVersionSpecificationException e) {
-        log.error(
-            "Unable to parse policy violation versions for policy violations with IDs {} {} and versions {} {}, defaulting to string comparison.",
-            v1.id, v2.id, v1.version, v2.version, e);
-      }
-      return v1.version.compareToIgnoreCase(v2.version);
-    }
-
-    return result;
   }
 
   @Authorize(permission = Permission.READ)

@@ -300,6 +300,7 @@ CREATE TABLE policy_violation (
   artifact_id varchar(100),
   version varchar(100),
   constraint_facts_json CLOB NOT NULL, -- the constraint facts (that caused the policy violation) stored in json format
+  pathnames CLOB, -- the paths to the component that caused the policy violation, paths are new line delimited
   CONSTRAINT policy_violation_pk PRIMARY KEY (policy_violation_id),
   CONSTRAINT policy_violation_evaluation_fk FOREIGN KEY (policy_evaluation_id) REFERENCES policy_evaluation(policy_evaluation_id)
 );

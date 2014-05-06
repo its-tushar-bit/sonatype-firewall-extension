@@ -229,7 +229,7 @@ public class PolicyViolationDigesterTest
     constraintFact.addConditionFact(conditionFact);
     
     PolicyViolation policyViolation = new PolicyViolation(null, "policy_4", "Policy 4", 0, PolicyThreatCategory.OTHER,
-        "H", "G", "A", "V", Collections.singletonList(constraintFact));
+        "H", "G", "A", "V", Collections.singletonList(constraintFact), Collections.singletonList("pathnames"));
 
     return policyViolation;
   }

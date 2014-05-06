@@ -68,7 +68,7 @@ class TestHelper
         PolicyViolation policyViolation = new PolicyViolation(policyEvaluation.getId(), policyFact.getPolicyId(),
             policyFact.getPolicyName(), policyFact.getThreatLevel(), PolicyThreatCategory.OTHER,
             componentFact.getHash(), componentFact.getGroupId(), componentFact.getArtifactId(),
-            componentFact.getVersion(), componentFact.getConstraintFacts());
+            componentFact.getVersion(), componentFact.getConstraintFacts(), componentFact.getPathnames());
         policyViolationDAO.insert(policyViolation);
       }
     }

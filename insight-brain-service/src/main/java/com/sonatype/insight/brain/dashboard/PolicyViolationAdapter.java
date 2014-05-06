@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.dashboard;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import javax.inject.Named;
@@ -50,6 +51,10 @@ public class PolicyViolationAdapter
     dto.threatLevel = violation.getThreatLevel();
     dto.version = violation.getVersion();
     dto.time = violation.getTime().getTime();
+    if (violation.getPathnames() != null) {
+      dto.pathnames = new ArrayList<String>(violation.getPathnames());
+      Collections.sort(dto.pathnames);
+    }
     return dto;
   }
 }

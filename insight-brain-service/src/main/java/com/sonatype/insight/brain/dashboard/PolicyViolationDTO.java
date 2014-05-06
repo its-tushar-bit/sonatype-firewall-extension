@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.dashboard;
 
+import java.util.List;
+
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 
 /**
@@ -37,4 +39,6 @@ public class PolicyViolationDTO
   public String version;
 
   public long time;
+
+  public List<String> pathnames;
 }

@@ -17,6 +17,7 @@ import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 
+import com.google.common.collect.Lists;
 import org.joda.time.DateTime;
 import org.junit.Test;
 
@@ -40,7 +41,8 @@ public class PolicyViolationDAOTest
 
     // Create
     PolicyViolation policyViolation = new PolicyViolation(policyEvaluation.getId(), policy.getId(), policy.getName(),
-        5, PolicyThreatCategory.LICENSE, "acacacacacac", "Group1", "Artifact1", "Version1", "constraint data");
+        5, PolicyThreatCategory.LICENSE, "acacacacacac", "Group1", "Artifact1", "Version1", "constraint data",
+        "pathnames string");
     assertThat(policyViolation.getId(), is(nullValue()));
     dao.insert(policyViolation);
     assertThat(policyViolation.getId(), is(notNullValue()));
@@ -50,7 +52,8 @@ public class PolicyViolationDAOTest
     policyViolation = dao.getById(policyViolation.getId());
     assertThat(policyViolation, is(notNullValue()));
     assertPolicyViolation(policyEvaluation.getId(), policy.getId(), policy.getName(), 5, PolicyThreatCategory.LICENSE,
-        "acacacacacac", "Group1", "Artifact1", "Version1", policyEvaluation.getTime(), policyViolation);
+        "acacacacacac", "Group1", "Artifact1", "Version1", Lists.newArrayList("pathnames string"),
+        policyEvaluation.getTime(), policyViolation);
 
     // Update is not allowed
     try {
@@ -69,8 +72,8 @@ public class PolicyViolationDAOTest
   }
 
   private void assertPolicyViolation(String policyEvaluationId, String policyId, String policyName, int threatLevel,
-      PolicyThreatCategory threatCategory, String hash, String groupId, String artifactId, String version, Date time,
-      PolicyViolation actual)
+      PolicyThreatCategory threatCategory, String hash, String groupId, String artifactId, String version,
+      List<String> pathnames, Date time, PolicyViolation actual)
   {
     assertThat(actual.getPolicyEvaluationId(), is(policyEvaluationId));
     assertThat(actual.getPolicyId(), is(policyId));
@@ -81,6 +84,7 @@ public class PolicyViolationDAOTest
     assertThat(actual.getGroupId(), is(groupId));
     assertThat(actual.getArtifactId(), is(artifactId));
     assertThat(actual.getVersion(), is(version));
+    assertThat(actual.getPathnames(), is(pathnames));
     assertThat(actual.getTime(), is(time));
   }
 

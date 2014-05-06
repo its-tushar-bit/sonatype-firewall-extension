@@ -9,7 +9,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.UUID;
 
 import javax.inject.Inject;
 
@@ -487,42 +486,6 @@ public class DashboardServiceTest
     assertPolicyViolationDTO(policyViolationDTOs, orgPolicyViolation, app1, orgPolicy);
     assertPolicyViolationDTO(policyViolationDTOs, app1PolicyViolation, app1, app1Policy);
     assertPolicyViolationDTO(policyViolationDTOs, app2PolicyViolation, app2, orgPolicy);
-  }
-
-  @Test
-  public void testPolicyViolationDTOSort() {
-    PolicyViolationDTO dto9AA = buildPolicyViolationDTO(9, "A", "A", null, null, null);
-    PolicyViolationDTO dto8AA = buildPolicyViolationDTO(8, "A", "A", null, null, null);
-    PolicyViolationDTO dto8BA = buildPolicyViolationDTO(8, "B", "A", null, null, null);
-    PolicyViolationDTO dto8BB = buildPolicyViolationDTO(8, "B", "B", null, null, null);
-    PolicyViolationDTO dto7AAAAA = buildPolicyViolationDTO(7, "A", "A", "A", "A", "A");
-    PolicyViolationDTO dto7AAAAB = buildPolicyViolationDTO(7, "A", "A", "A", "A", "B");
-    PolicyViolationDTO dto7AAA_NULL_A = buildPolicyViolationDTO(7, "A", "A", "A", null, "A");
-    PolicyViolationDTO dto7AAA_NULL_B = buildPolicyViolationDTO(7, "A", "A", "A", null, "B");
-    PolicyViolationDTO dto7BAAAB = buildPolicyViolationDTO(7, "B", "A", "A", "A", "B");
-    PolicyViolationDTO dto7BAACA = buildPolicyViolationDTO(7, "B", "A", "A", "C", "A");
-
-    List<PolicyViolationDTO> unsorted = Lists.newArrayList(dto7AAA_NULL_A, dto7BAACA, dto8BA, dto7BAAAB, dto9AA,
-        dto7AAAAB, dto7AAA_NULL_B, dto8AA, dto8BB, dto7AAAAA);
-    List<PolicyViolationDTO> sorted = dashboardService.sort(unsorted);
-    List<PolicyViolationDTO> expected = Lists.newArrayList(dto9AA, dto8AA, dto8BA, dto8BB, dto7AAAAA, dto7AAAAB,
-        dto7AAA_NULL_A, dto7AAA_NULL_B, dto7BAAAB, dto7BAACA);
-
-    assertThat(sorted, is(expected));
-  }
-
-  private PolicyViolationDTO buildPolicyViolationDTO(int threatLevel, String policyName, String applicationName,
-      String groupId, String artifactId, String version)
-  {
-    PolicyViolationDTO dto = new PolicyViolationDTO();
-    dto.id = UUID.randomUUID().toString();
-    dto.policyName = policyName;
-    dto.applicationName = applicationName;
-    dto.threatLevel = threatLevel;
-    dto.groupId = groupId;
-    dto.artifactId = artifactId;
-    dto.version = version;
-    return dto;
   }
 
   @Test

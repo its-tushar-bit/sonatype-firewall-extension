@@ -21,6 +21,7 @@ import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.model.HasStringId;
 
+import com.google.common.base.Joiner;
 import org.codehaus.plexus.util.StringUtils;
 
 /**
@@ -31,6 +32,12 @@ import org.codehaus.plexus.util.StringUtils;
 public class PolicyViolation
     implements HasStringId
 {
+
+  static final char PATHNAMES_DELIMITER_CHAR = '\n';
+  
+  /** The pathnames delimiter character escaped for regular expressions. */
+  static final String PATHNAMES_DELIMITER_REGEX = "\\" + PATHNAMES_DELIMITER_CHAR;
+
   @Id
   @Column(name = "policy_violation_id")
   private String id;
@@ -69,14 +76,19 @@ public class PolicyViolation
   @Column(name = "constraint_facts_json")
   private String constraintFactsJson;
 
+  @Column(name = "pathnames")
+  private String pathnamesString;
+
   private List<ConstraintFact> constraintFacts;
+
+  private List<String> pathnames;
 
   public PolicyViolation() {
   }
 
   public PolicyViolation(String policyEvaluationId, String policyId, String policyName, int threatLevel,
       PolicyThreatCategory threatCategory, String hash, String groupId, String artifactId, String version,
-      String constraintFactsJson)
+      String constraintFactsJson, String pathnames)
   {
     this.policyEvaluationId = policyEvaluationId;
     this.policyId = policyId;
@@ -88,11 +100,12 @@ public class PolicyViolation
     this.artifactId = artifactId;
     this.version = version;
     setConstraintFactsJson(constraintFactsJson);
+    setPathnamesString(pathnames);
   }
 
   public PolicyViolation(String policyEvaluationId, String policyId, String policyName, int threatLevel,
       PolicyThreatCategory threatCategory, String hash, String groupId, String artifactId, String version,
-      List<ConstraintFact> constraintFacts)
+      List<ConstraintFact> constraintFacts, List<String> pathnames)
   {
     this.policyEvaluationId = policyEvaluationId;
     this.policyId = policyId;
@@ -104,6 +117,7 @@ public class PolicyViolation
     this.artifactId = artifactId;
     this.version = version;
     setConstraintFacts(constraintFacts);
+    setPathnames(pathnames);
   }
 
   @Override
@@ -192,6 +206,28 @@ public class PolicyViolation
     return constraintFactsJson;
   }
 
+  String getPathnamesString() {
+    return this.pathnamesString;
+  }
+
+  private void setPathnamesString(String pathnames) {
+    this.pathnamesString = StringUtils.isBlank(pathnames) ? null : pathnames;
+    this.pathnames = null;
+  }
+
+  public void setPathnames(List<String> pathnames) {
+    if (pathnames == null || pathnames.isEmpty()) {
+      // If the path names are null we want to persist a null value.
+      this.pathnames = null;
+      this.pathnamesString = null;
+      return;
+    }
+
+    this.pathnames = pathnames;
+
+    pathnamesString = Joiner.on(PATHNAMES_DELIMITER_CHAR).skipNulls().join(this.pathnames);
+  }
+
   public void setConstraintFactsJson(String constraintFactsJson) {
     if (StringUtils.isEmpty(constraintFactsJson)) {
       throw new IllegalArgumentException("ConstraintFactsJson cannot be null or empty");
@@ -219,6 +255,14 @@ public class PolicyViolation
       }
     }
     return constraintFacts;
+  }
+
+  public List<String> getPathnames() {
+    if (pathnames == null && !StringUtils.isBlank(pathnamesString)) {
+      pathnames = Arrays.asList(pathnamesString.split(PATHNAMES_DELIMITER_REGEX));
+    }
+
+    return pathnames;
   }
 
   public Date getTime() {

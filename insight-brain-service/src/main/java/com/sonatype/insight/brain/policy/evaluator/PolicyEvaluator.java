@@ -116,6 +116,7 @@ public class PolicyEvaluator
         final Component component = byComponent.getKey();
         final ComponentFact componentFact = new ComponentFact(component.getGroupId(), component.getArtifactId(),
             component.getVersion(), component.getHash());
+        componentFact.addPathnames(component.getPathnames());
         for (final Entry<Constraint, List<MatchFact>> byConstraints : byConstraint(policy.getConstraints(),
             byComponent.getValue()).entrySet()) {
           final Constraint constraint = byConstraints.getKey();

@@ -314,3 +314,10 @@ CREATE TABLE newest_policy_violation (
   CONSTRAINT newest_policy_violation_violation_fk FOREIGN KEY (policy_violation_id) REFERENCES policy_violation(policy_violation_id),
   CONSTRAINT newest_policy_violation_application_fk FOREIGN KEY (application_id) REFERENCES application(application_id)
 );
+
+CREATE TABLE dashboard_filter (
+  dashboard_filter_id varchar(50) NOT NULL,
+  username varchar(60) NOT NULL, -- The internal name of the User (CLM User or LDAP user)
+  filter_json CLOB NOT NULL, -- The dashboard filter stored in json format
+  CONSTRAINT dashboard_filter_pk PRIMARY KEY (dashboard_filter_id)
+);

@@ -30,6 +30,7 @@
     <class>com.sonatype.insight.brain.model.tag.ApplicationTag</class>
     <class>com.sonatype.insight.brain.model.tag.PolicyTag</class>
     <class>com.sonatype.insight.brain.model.tag.Tag</class>
+    <class>com.sonatype.insight.brain.model.filter.DashboardFilter</class>
     <class>com.sonatype.insight.brain.configuration.ldap.LdapServer</class>
     <class>com.sonatype.insight.brain.configuration.ldap.LdapConnection</class>
     <class>com.sonatype.insight.brain.configuration.ldap.LdapUserMapping</class>

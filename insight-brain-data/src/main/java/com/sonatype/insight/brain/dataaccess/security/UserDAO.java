@@ -13,8 +13,10 @@ import java.util.Set;
 import javax.persistence.EntityManager;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
+import com.sonatype.insight.brain.dataaccess.filter.DashboardFilterDAO;
 import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.NameHelper;
+import com.sonatype.insight.brain.model.filter.DashboardFilter;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -175,6 +177,13 @@ public class UserDAO
     MembershipMappingDAO membershipMappingDAO = new MembershipMappingDAO();
     for (MembershipMapping membershipMapping : membershipMappingDAO.getByUser(em, entity.getUsername())) {
       membershipMappingDAO.delete(em, membershipMapping);
+    }
+
+    // Cascade to dashboard filter
+    DashboardFilterDAO dashboardFilterDAO = new DashboardFilterDAO();
+    DashboardFilter dashboardFilter = dashboardFilterDAO.getByUsername(em, entity.getUsername());
+    if (dashboardFilter != null) {
+      dashboardFilterDAO.delete(em, dashboardFilter);
     }
 
     super.delete(em, entity);

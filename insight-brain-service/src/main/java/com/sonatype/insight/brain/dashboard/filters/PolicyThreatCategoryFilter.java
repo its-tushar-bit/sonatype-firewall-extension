@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.dashboard.filters;
 
 import java.util.Collection;
 import java.util.EnumSet;
+import java.util.Locale;
 import java.util.Set;
 
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
@@ -36,7 +37,7 @@ public class PolicyThreatCategoryFilter
 
     try {
       for (String category : categories.split(",")) {
-        policyThreatCategories.add(PolicyThreatCategory.getByName(category.trim().toLowerCase()));
+        policyThreatCategories.add(PolicyThreatCategory.getByName(category.trim().toLowerCase(Locale.ENGLISH)));
       }
     }
     catch (IllegalArgumentException e) {

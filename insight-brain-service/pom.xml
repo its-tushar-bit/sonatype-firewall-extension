@@ -549,15 +549,16 @@
               <sourceIncludes>
                 <include>resources/assets/assets/lib/jquery/jquery-*.min.js</include>
                 <include>resources/assets/assets/lib/bootstrap/bootstrap-*.js</include>
-                <include>resources/assets/assets/lib/angular-${angularjs.version}/angular.min.js</include>
-                <include>resources/assets/assets/lib/angular-${angularjs.version}/angular-route.min.js</include>
-                <include>resources/assets/assets/lib/angular-${angularjs.version}/angular-sanitize.min.js</include>
+                <include>resources/assets/assets/lib/angular-${angularjs.version}/angular.js</include>
+                <include>resources/assets/assets/lib/angular-${angularjs.version}/angular-route.js</include>
+                <include>resources/assets/assets/lib/angular-${angularjs.version}/angular-sanitize.js</include>
                 <include>resources/assets/assets/lib/ui-bootstrap-tpls-0.3.0.min.js</include>
                 <include>resources/assets/assets/lib/X-editable/bootstrap-editable.min.js</include>
                 <include>resources/assets/assets/**/*.js</include>
                 <include>wro4j/**/*.js</include>
               </sourceIncludes>
               <sourceExcludes>
+                <exclude>resources/assets/assets/lib/angular-${angularjs.version}/*.min.js</exclude>
                 <exclude>resources/assets/assets/version-graph/protovis-msie.min.js</exclude>
                 <exclude>wro4j/version-graph/*.js</exclude>
               </sourceExcludes>

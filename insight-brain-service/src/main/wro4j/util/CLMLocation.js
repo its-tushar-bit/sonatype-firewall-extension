@@ -138,6 +138,14 @@
           return baseUrl.get() + '/rest/dashboard/policy/componentRisks';
         },
 
+        /**
+         * Retrieve the list of application risk in the most recent stage.  Supports filters
+         * @since 1.11
+         */
+        getApplicationRisksUrl : function () {
+          return baseUrl.get() + '/rest/dashboard/policy/applicationRisks';
+        },
+
         getPolicyViolationsUrl: function() {
           return baseUrl.get() + '/rest/dashboard/policy/violations';
         },

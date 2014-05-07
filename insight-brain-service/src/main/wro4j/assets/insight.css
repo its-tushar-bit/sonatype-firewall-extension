@@ -1,3 +1,7 @@
+.clickable {
+  cursor : pointer;
+}
+
 /* Table headers */
 table.clm-table thead tr th.sortable {
     cursor: pointer;
@@ -343,6 +347,11 @@ table.policy-violation-table tr td:nth-child(2) {
 
 table.table-risk thead th:nth-child(1n + 2) {
   text-align : center;
+}
+
+table.table-risk tr.stage td:first-child {
+  font-weight : bold;
+  text-align : right;
 }
 
 table.table-risk tbody td:nth-child(1n + 2) {

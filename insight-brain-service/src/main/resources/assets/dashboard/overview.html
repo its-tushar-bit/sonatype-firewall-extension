@@ -182,7 +182,43 @@
         </li>
       </ul>
       <div ng-switch="riskTable">
-        <div ng-switch-when="applications"></div>
+        <div ng-switch-when="applications" ng-controller="applicationRiskTable">
+          <table class="table table-risk">
+            <thead>
+              <tr>
+                <th><div>APPLICATION</div></th>
+                <th><div>NET RISK</div></th>
+                <th><div>CRITICAL</div></th>
+                <th><div>SEVERE</div></th>
+                <th><div>MODERATE</div></th>
+                <th><div>LOW</div></th>
+              </tr>
+            </thead>
+              <tbody>
+                <tr ng-repeat-start="application in data">
+                  <td><i ng-class="{ clickable : canExpand(application),
+                                    'icon-plus-sign' : canExpand(application),
+                                    'icon-minus-sign' : isExpanded(application),
+                                    'emptyIconGlyph' : !canExpand(application) }"
+                         ng-click='expand(application)'></i> {{application.applicationName}}</td>
+                  <td>{{application.totalApplicationRisk.totalRisk}}</td>
+                  <td>{{application.totalApplicationRisk.criticalRisk}}</td>
+                  <td>{{application.totalApplicationRisk.severeRisk}}</td>
+                  <td>{{application.totalApplicationRisk.moderateRisk}}</td>
+                  <td>{{application.totalApplicationRisk.lowRisk}}</td>
+                </tr>
+                <tr class='stage' ng-repeat-end
+                    ng-repeat='stage in application.stageRisks | orderBy:getStageName'
+                    ng-if='expanded[application.applicationId]'>
+                  <td>{{getStageName(stage)}}</td>
+                  <td>{{stage.risk.totalRisk}}</td>
+                  <td>{{stage.risk.criticalRisk}}</td>
+                  <td>{{stage.risk.severeRisk}}</td>
+                  <td>{{stage.risk.moderateRisk}}</td>
+                  <td>{{stage.risk.lowRisk}}</td>
+                </tr>
+          </table>
+        </div>
         <div ng-switch-when="components" ng-controller="componentRiskTableController">
           <div load-wrapper="error" reload="doLoad()">
             <div class='scrollable-container'>

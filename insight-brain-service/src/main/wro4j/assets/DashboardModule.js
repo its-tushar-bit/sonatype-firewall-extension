@@ -346,12 +346,20 @@
   }
 
   dashboardModule.controller('policyRiskTableController', ['$scope', '$http', 'CLMLocations', function ($scope, $http, CLMLocations) {
+    var filterChangedFn = createFilterWatch($scope, $http, CLMLocations.getPolicyViolationsUrl());
+    $scope.doLoad = function () {
+      filterChangedFn($scope.filters);
+    };
     $scope.noDataHighestRiskMessage = 'No data available given the applied filters and available permissions.';
-    $scope.$watch('filters', createFilterWatch($scope, $http, CLMLocations.getPolicyViolationsUrl()));
+    $scope.$watch('filters', filterChangedFn);
   }]);
 
   dashboardModule.controller('componentRiskTableController', ['$scope', '$http', 'CLMLocations', function ($scope, $http, CLMLocations) {
-    $scope.$watch('filters', createFilterWatch($scope, $http, CLMLocations.getComponentRisksUrl()));
+    var filterChangedFn =  createFilterWatch($scope, $http, CLMLocations.getComponentRisksUrl());
+    $scope.doLoad = function () {
+      filterChangedFn($scope.filters);
+    };
+    $scope.$watch('filters', filterChangedFn);
   }]);
 
   dashboardModule.directive('breadcrumb', ['$state', function($state) {
@@ -384,5 +392,40 @@
         scope.states = states;
       }
     };
+  }]);
+
+  dashboardModule.controller('applicationRiskTable', ['$scope', '$http', 'CLMLocations', 'StageTypeStore', function ($scope, $http, CLMLocations, StageTypeStore) {
+    var filterChangedFn =  createFilterWatch($scope, $http, CLMLocations.getApplicationRisksUrl()),
+        stages = null;
+
+    $scope.doLoad = function () {
+      filterChangedFn($scope.filters);
+    };
+
+    $scope.getStageName = function(stageRisk) {
+      return stages[stageRisk.stageTypeId];
+    };
+
+    $scope.expanded = {};
+
+    $scope.canExpand = function (application) {
+      return application.stageRisks.length > 0;
+    };
+    $scope.isExpanded = function (application) {
+      return $scope.expanded[application.applicationId];
+    };
+    $scope.expand = function (application) {
+      if ($scope.canExpand(application)) {
+        $scope.expanded[application.applicationId] = !$scope.expanded[application.applicationId];
+      }
+    };
+
+    $scope.$watch('filters', filterChangedFn);
+    StageTypeStore.get().then(function (data) {
+      stages = [];
+      angular.forEach(data, function (stage) {
+        stages[stage.id] = stage.name;
+      });
+    }, angular.noop);
   }]);
 }());

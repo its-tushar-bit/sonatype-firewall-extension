@@ -322,6 +322,18 @@ public class DashboardService
       for (PolicyViolationDTO violation : violationsByAppAndPolicyId.values()) {
         dto.hash = violation.hash;
         dto.score += violation.threatLevel;
+        if (violation.threatLevel >= 8) {
+          dto.scoreCritical += violation.threatLevel;
+        }
+        else if (violation.threatLevel >= 4) {
+          dto.scoreSevere += violation.threatLevel;
+        }
+        else if (violation.threatLevel >= 2) {
+          dto.scoreModerate += violation.threatLevel;
+        }
+        else {
+          dto.scoreLow += violation.threatLevel;
+        }
         if (StringUtils.isNotEmpty(violation.groupId)) {
           dto.gavs.add(new ComponentRiskDTO.GavDTO(violation.groupId, violation.artifactId, violation.version));
         }

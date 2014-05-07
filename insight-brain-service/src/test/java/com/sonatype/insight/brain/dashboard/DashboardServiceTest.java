@@ -593,4 +593,25 @@ public class DashboardServiceTest
     assertThat(riskDTO.violatedPolicyNames, containsInAnyOrder(orgPolicy.getName()));
     assertThat(riskDTO.score, is(orgPolicy.getThreatLevel() * 2));
   }
+
+  @Test
+  public void testGetComponentRisks_ScoreBreakdown() throws Exception {
+    for (int i = 0; i <= 10; i++) {
+      if (i == app2PolicyViolation.getThreatLevel()) {
+        continue;
+      }
+      Policy orgPolicy = tempEntity.newPolicy(org.getId(), "policy " + i, i);
+      tempEntity.newPolicyViolation(app2PolicyEvaluation.getId(), orgPolicy);
+    }
+
+    List<ComponentRiskDTO> riskDTOs = dashboardService.getComponentRisks(Collections.singleton(app2.getPublicId()),
+        null, null, null, null, 1000);
+    assertThat(riskDTOs, hasSize(1));
+    ComponentRiskDTO riskDTO = riskDTOs.get(0);
+    assertThat(riskDTO.scoreCritical, is(27));
+    assertThat(riskDTO.scoreSevere, is(22));
+    assertThat(riskDTO.scoreModerate, is(5));
+    assertThat(riskDTO.scoreLow, is(1));
+    assertThat(riskDTO.score, is(55));
+  }
 }

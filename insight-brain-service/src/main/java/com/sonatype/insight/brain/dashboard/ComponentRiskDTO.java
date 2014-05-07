@@ -19,6 +19,14 @@ public class ComponentRiskDTO
 
   public int score;
 
+  public int scoreCritical;
+
+  public int scoreSevere;
+
+  public int scoreModerate;
+
+  public int scoreLow;
+
   public Set<GavDTO> gavs = new HashSet<>();
 
   public Set<String> affectedApplicationNames = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);

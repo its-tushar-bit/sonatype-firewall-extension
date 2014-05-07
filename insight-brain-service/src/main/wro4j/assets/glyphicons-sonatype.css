@@ -71,9 +71,10 @@
 }
 
 .glyphicons-halflings-sonatype.plus:before {
-	content: '\002b';
-	/*18px font-size the icon looks horrible*/
-	font-size: 16px;
+  content: '\002b';
+  /*18px font-size the icon looks horrible*/
+  font-size: 19px;
+  line-height: 28px;
 }
 
 .glyphicons-sonatype.filter:before {

@@ -129,15 +129,15 @@ describe('DashboardModule', function() {
         };
       });
 
-      $httpBackend.expectGET(CLMLocations.getPolicyViolationsUrl() + '?maxResults=20').respond(policyViolations);
-      $httpBackend.expectGET(CLMLocations.getPolicyViolationsUrl() + '?maxResults=20&newest=true').respond(newestViolations);
+      $httpBackend.expectGET(CLMLocations.getPolicyViolationsUrl() + '?maxResults=101').respond(policyViolations);
+      $httpBackend.expectGET(CLMLocations.getPolicyViolationsUrl() + '?maxResults=101&newest=true').respond(newestViolations);
       $controller('DashboardController', { $scope: scope });
       $httpBackend.flush();
     }));
 
     it('Reacts to filter changes', inject(function($httpBackend, CLMLocations) {
-      $httpBackend.expectGET(CLMLocations.getPolicyViolationsUrl() +'?applicationPublicIds=foo&maxResults=20').respond([policyViolations[0]]);
-      $httpBackend.expectGET(CLMLocations.getPolicyViolationsUrl() +'?applicationPublicIds=foo&maxResults=20&newest=true').respond([newestViolations[0]]);
+      $httpBackend.expectGET(CLMLocations.getPolicyViolationsUrl() +'?applicationPublicIds=foo&maxResults=101').respond([policyViolations[0]]);
+      $httpBackend.expectGET(CLMLocations.getPolicyViolationsUrl() +'?applicationPublicIds=foo&maxResults=101&newest=true').respond([newestViolations[0]]);
       scope.$apply(function () {
         scope.filters = {
           applicationPublicIds: ['foo'],
@@ -153,8 +153,8 @@ describe('DashboardModule', function() {
     it('handles http errors', inject(function($httpBackend, CLMLocations){
       expect(scope.error).toBeNull();
 
-      $httpBackend.expectGET(CLMLocations.getPolicyViolationsUrl() +'?applicationPublicIds=foo&maxResults=20').respond(500, 'An error');
-      $httpBackend.expectGET(CLMLocations.getPolicyViolationsUrl() +'?applicationPublicIds=foo&maxResults=20&newest=true').respond([newestViolations[0]]);
+      $httpBackend.expectGET(CLMLocations.getPolicyViolationsUrl() +'?applicationPublicIds=foo&maxResults=101').respond(500, 'An error');
+      $httpBackend.expectGET(CLMLocations.getPolicyViolationsUrl() +'?applicationPublicIds=foo&maxResults=101&newest=true').respond([newestViolations[0]]);
       scope.$apply(function () {
         scope.filters = {
           applicationPublicIds: ['foo'],
@@ -170,8 +170,8 @@ describe('DashboardModule', function() {
       expect(scope.error.status).toBe(500);
       expect(scope.error.data).toBe('An error');
 
-      $httpBackend.expectGET(CLMLocations.getPolicyViolationsUrl() +'?maxResults=20').respond([policyViolations[0]]);
-      $httpBackend.expectGET(CLMLocations.getPolicyViolationsUrl() +'?maxResults=20&newest=true').respond(500, 'An error');
+      $httpBackend.expectGET(CLMLocations.getPolicyViolationsUrl() +'?maxResults=101').respond([policyViolations[0]]);
+      $httpBackend.expectGET(CLMLocations.getPolicyViolationsUrl() +'?maxResults=101&newest=true').respond(500, 'An error');
       scope.$apply(function () {
         scope.filters = {
           applicationPublicIds: [],
@@ -186,8 +186,8 @@ describe('DashboardModule', function() {
       expect(scope.error.status).toBe(500);
       expect(scope.error.data).toBe('An error');
 
-      $httpBackend.expectGET(CLMLocations.getPolicyViolationsUrl() +'?applicationPublicIds=foo&maxResults=20').respond([policyViolations[0]]);
-      $httpBackend.expectGET(CLMLocations.getPolicyViolationsUrl() +'?applicationPublicIds=foo&maxResults=20&newest=true').respond([newestViolations[0]]);
+      $httpBackend.expectGET(CLMLocations.getPolicyViolationsUrl() +'?applicationPublicIds=foo&maxResults=101').respond([policyViolations[0]]);
+      $httpBackend.expectGET(CLMLocations.getPolicyViolationsUrl() +'?applicationPublicIds=foo&maxResults=101&newest=true').respond([newestViolations[0]]);
       scope.$apply(function () {
         scope.filters = {
           applicationPublicIds: ['foo'],

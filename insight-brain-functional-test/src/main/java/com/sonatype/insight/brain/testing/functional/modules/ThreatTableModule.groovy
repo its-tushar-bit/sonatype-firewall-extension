@@ -18,6 +18,7 @@ class ThreatTableModule
     riskHeader { headerLinks(0) }
     ageHeader(required: false) { headerLinks(1) }
     rows(required: false) { moduleList ThreatTableRow, $('tr').tail() }
+    maxResults(required: false) { $('span[id$="-max-results-shown"]') }
   }
 }
 

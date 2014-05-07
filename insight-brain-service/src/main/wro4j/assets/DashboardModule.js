@@ -16,8 +16,7 @@
   }]);
 
   dashboardModule.controller('DashboardController', ['$scope', '$q', '$http', 'CLMLocations', function($scope, $q, $http, CLMLocations) {
-
-    $scope.maxResults = 20;
+    $scope.maxResults = 100;
 
     $scope.noDataHighestRiskMessage = 'No data available given the applied filters and available permissions.';
     $scope.noDataNewestRiskMessage = 'No data for the last 30 days available given the applied filters and available permissions.';
@@ -25,7 +24,7 @@
     $scope.doLoad = function() {
       $scope.error = null;
       var params = {
-        maxResults: $scope.maxResults,
+        maxResults: $scope.maxResults + 1,
         applicationPublicIds: $scope.filters.applicationPublicIds,
         policyThreatCategories: $scope.filters.policyThreatTypes.length > 0 ?
                                 $scope.filters.policyThreatTypes.join(',') : null,
@@ -70,7 +69,8 @@
         risks: '=',
         title: '@',
         riskId: '@',
-        emptyMessage: '='
+        emptyMessage: '=',
+        maxResults: '='
       },
       templateUrl: 'risk-table',
       controller: ['$scope', function($scope) {

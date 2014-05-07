@@ -43,7 +43,7 @@ class DashboardPage
     applicationTagFiltersDropdown(required: false) { module DropdownMultiSelectModule, $('span[items="applicationTags"]') }
     policyThreatLevelSlider(required: false) { module SliderModule, $('#policy-threat-levels') }
 
-    highestRiskTable(required: false) { module ThreatTableModule, $('#highest-risk table') }
-    newestViolationTable(required: false) { module ThreatTableModule, $('#newest-risk table') }
+    highestRiskTable(required: false) { module ThreatTableModule, $('#highest-risk') }
+    newestViolationTable(required: false) { module ThreatTableModule, $('#newest-risk') }
   }
 }

@@ -376,6 +376,7 @@ a {
 .dashboard-content .filter-edit {
   position: absolute;
   margin-left: -10px;
+  z-index: 200;
 }
 
 .dashboard-content .filter-edit, .dashboard-content .filter-readonly {
@@ -404,17 +405,22 @@ a {
 
 @media (min-width: 980px) and (max-width: 1199px) {
   .dashboard-content .filter-edit, .dashboard-content .filter-readonly {
-    width: 980px;
+    width: 960px;
   }
 
-  .dashboard-tables .span6 {
-    width: 960px;
+  .dashboard-charts .span6 {
+    width: 940px;
   }
 }
 
 @media (min-width: 1200px) {
   .dashboard-content .filter-edit, .dashboard-content .filter-readonly {
     width: 1190px;
+  }
+
+  /* Extend first table in two column layouts to prevent horizontal scrollbars */
+  .dashboard-charts .span6:first-child .scrollable-container {
+    margin-right: -20px;
   }
 }
 
@@ -453,9 +459,52 @@ a {
 }
 
 .dashboard-content i:before {
-  line-height: 20px;
+  line-height: 30px;
   vertical-align: top;
   font-size: 12px;
+}
+
+.scrollable-container {
+  height: 500px;
+  position: relative;
+  padding-top: 30px;
+}
+
+.scrollable-container-inner {
+  overflow-x: hidden;
+  overflow-y: auto;
+  height: 100%;
+}
+
+.scrollable-container-inner table {
+  width: 100%;
+  overflow-x: hidden;
+  overflow-y: auto;
+  margin-bottom: 0px;
+}
+
+.scrollable-container th {
+  padding: 0 5px;
+}
+
+.scrollable-container th>div {
+  position: absolute;
+  top: 0;
+  line-height: 30px;
+  padding-left: 5px;
+  margin-left: -5px;
+}
+
+.dashboard-content .application-header {
+  min-width: 86px;
+}
+
+.dashboard-content .policy-header {
+  min-width: 50px;
+}
+
+.dashboard-content .component-header {
+  min-width: 84px;
 }
 
 .dashboard-content th[id$='-threat-header'] {

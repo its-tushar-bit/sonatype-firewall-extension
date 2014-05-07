@@ -28,6 +28,7 @@ class DashboardSpec
   static Application firstApp
   static Tag firstAppTag
   static Application secondApp
+  static Policy policy
 
   def setupSpec() {
     org = temporaryEntity.newOrganization('DashboardSpec')
@@ -37,7 +38,7 @@ class DashboardSpec
 
     secondApp = temporaryEntity.newApplication('DashboardSpecAppTwo', 'DashboardSpecAppTwo', org.id)
 
-    Policy policy = temporaryEntity.newPolicy(org.id, 'DashboardSpecPolicy')
+    policy = temporaryEntity.newPolicy(org.id, 'DashboardSpecPolicy')
 
     Date now = new Date()
     PolicyEvaluation firstPolicyEvaluation = temporaryEntity.newPolicyEvaluation(firstApp.id, BuildStageType.ID,
@@ -261,5 +262,35 @@ class DashboardSpec
       waitFor { noDataAvailableHighest.displayed }
       noDataAvailableNewest.displayed
       filterPanel.displayed
+  }
+
+  def 'Limits results to 100 records'() {
+    setup: 'Add over 100 records'
+      for (i in 0..100) {
+        Date now = new Date()
+        PolicyEvaluation policyEvaluation = temporaryEntity.newPolicyEvaluation(firstApp.id, BuildStageType.ID,
+            'DashboardSpecFistEvaluation', now - 7)
+        PolicyViolation violation = temporaryEntity.newPolicyViolation(policyEvaluation.id, policy, 5,
+            PolicyThreatCategory.SECURITY, "Group${i}", "Artifact${i}", "Version${i}")
+        temporaryEntity.newNewestPolicyViolation(violation.id, policyEvaluation.applicationId,
+            policyEvaluation.stageTypeId)
+      }
+
+    when: 'Refreshing to page'
+      driver.navigate().refresh()
+
+    then: 'Only the first 500 pixels of results are shown'
+      waitFor { newestViolationTable.rows[0].displayed }
+      int tableBottom = newestViolationTable.y + newestViolationTable.height
+
+      // It is a reasonable expectation that the first 5 rows will render within 500 px in every browser
+      for (i in 0..5)
+        assert newestViolationTable.rows[i].y < tableBottom
+      // And that rows 44-49 will not render within the scroll view
+      for (i in 44..49)
+        assert newestViolationTable.rows[i].y > tableBottom
+
+    and: 'A message is displayed to show that only the top results are shown'
+      newestViolationTable.maxResults.text() == 'Showing the top 100 results'
   }
 }

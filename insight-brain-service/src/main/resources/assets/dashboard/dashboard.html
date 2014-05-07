@@ -74,51 +74,70 @@
   </div>
 </script>
 <script type='text/ng-template' id='risk-table'>
-    <thead>
-    <tr>
-      <th id='{{riskId}}-threat-header' colspan='2' class='clm-bar-text-offset'>
-        <a ng-click='setSort("threatLevel")'>
-          RISK
-          <i class='sonatype-icons' ng-class="{ 'down' : orderColumn == 'threatLevel' && orderDirection,
-            'up' : orderColumn == 'threatLevel' && !orderDirection,
-            'emptyIconGlyph' : orderColumn != 'threatLevel' }"></i>
-        </a>
-      </th>
-      <th>POLICY</th>
-      <th>APPLICATION</th>
-      <th>COMPONENT</th>
-      <th id='{{riskId}}-time-header' ng-if='riskId === "newest-risk"'>
-        <a ng-click='setSort("time")'>
-          AGE
-          <i class='sonatype-icons' ng-class="{ 'up' : orderColumn == 'time' && orderDirection,
-            'down' : orderColumn == 'time' && !orderDirection,
-            'emptyIconGlyph' : orderColumn != 'time' }"></i>
-        </a>
-      </th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr ng-repeat='risk in risks | orderBy:orderColumn:orderDirection'>
-      <td class='clm-bar'
-          ng-class='{ critical : risk.threatLevel >= 8, severe : risk.threatLevel >= 4 && risk.threatLevel < 8,
-             moderate : risk.threatLevel >= 1 && risk.threatLevel < 4, none : risk.threatLevel == 1,
-             ignore : risk.threatLevel == 0 }'></td>
-      <td>{{risk.threatLevel}}</td>
-      <td>{{risk.policyName}}</td>
-      <td>{{risk.applicationName}}</td>
-      <td ng-if='risk.groupId'>
-        <!-- This line cannot break as it causes spaces between the GAV -->
-        {{risk.groupId}}<span class='wrap-force-break'> : </span>{{risk.artifactId}}<span class='wrap-force-break'> : </span>{{risk.version}}
-      </td>
-      <td ng-if='!risk.groupId'><em>Unknown</em></td>
-      <td ng-if='riskId === "newest-risk"'>{{risk.time | ago}}</td>
-    </tr>
-    <tr ng-if='risks.length === 0'>
-      <td colspan='6' class='clm-bar-text-offset'>
-        <em id='no-data-{{ riskId }}'>{{ emptyMessage }}</em>
-      </td>
-    </tr>
-    </tbody>
+  <div class='scrollable-container'>
+    <div class='scrollable-container-inner'>
+      <table class='table'>
+        <thead>
+        <tr>
+          <th id='{{riskId}}-threat-header' colspan='2' class='clm-bar-text-offset'>
+            <div>
+              <a ng-click='setSort("threatLevel")'>
+                RISK
+                <i class='sonatype-icons' ng-class="{ 'down' : orderColumn == 'threatLevel' && orderDirection,
+                  'up' : orderColumn == 'threatLevel' && !orderDirection,
+                  'emptyIconGlyph' : orderColumn != 'threatLevel' }"></i>
+              </a>
+            </div>
+          </th>
+          <th class='policy-header'>
+            <div>POLICY</div>
+          </th>
+          <th class='application-header'>
+            <div>APPLICATION</div>
+          </th>
+          <th class='component-header'>
+            <div>COMPONENT</div>
+          </th>
+          <th id='{{riskId}}-time-header' ng-if='riskId === "newest-risk"'>
+            <div>
+              <a ng-click='setSort("time")'>
+                AGE
+                <i class='sonatype-icons' ng-class="{ 'up' : orderColumn == 'time' && orderDirection,
+                  'down' : orderColumn == 'time' && !orderDirection,
+                  'emptyIconGlyph' : orderColumn != 'time' }"></i>
+              </a>
+            </div>
+          </th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr ng-repeat='risk in risks | orderBy:orderColumn:orderDirection | limitTo: maxResults'>
+          <td class='clm-bar'
+              ng-class='{ critical : risk.threatLevel >= 8, severe : risk.threatLevel >= 4 && risk.threatLevel < 8,
+                 moderate : risk.threatLevel >= 1 && risk.threatLevel < 4, none : risk.threatLevel == 1,
+                 ignore : risk.threatLevel == 0 }'></td>
+          <td>{{risk.threatLevel}}</td>
+          <td>{{risk.policyName}}</td>
+          <td>{{risk.applicationName}}</td>
+          <td ng-if='risk.groupId'>
+            <!-- This line cannot break as it causes spaces between the GAV -->
+            {{risk.groupId}}<span class='wrap-force-break'> : </span>{{risk.artifactId}}<span class='wrap-force-break'> : </span>{{risk.version}}
+          </td>
+          <td ng-if='!risk.groupId'><em>Unknown</em></td>
+          <td ng-if='riskId === "newest-risk"'>{{risk.time | ago}}</td>
+        </tr>
+        <tr ng-if='risks.length === 0'>
+          <td colspan='6' class='clm-bar-text-offset'>
+            <em id='no-data-{{ riskId }}'>{{ emptyMessage }}</em>
+          </td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <span id='{{riskId}}-max-results-shown' class='pull-right' ng-if='risks.length > maxResults'>
+    Showing the top {{maxResults}} results
+  </span>
 </script>
 <div class='container dashboard-content'>
   <div class='row'>
@@ -132,7 +151,8 @@
   <div class='row dashboard-tables' ng-hide='error'>
     <div class='span6' id="newest-risk">
       <h4>Newest Risk</h4>
-      <table class="table" risk-table risks="newestRisks" risk-id="newest-risk" empty-message="noDataNewestRiskMessage"></table>
+      <div class="table" risk-table risks="newestRisks" risk-id="newest-risk" empty-message="noDataNewestRiskMessage"
+             max-results="maxResults"></div>
     </div>
     <div class='span6' id="highest-risk">
       <ul class="nav nav-tabs">
@@ -149,7 +169,8 @@
           <a href="#" ng-click="$event.preventDefault(); highestRisk='policy-violations'">Policy Violations</a>
         </li>
       </ul>
-      <table class="table" risk-table risks="highestRisks" risk-id="highest-risk" empty-message="noDataHighestRiskMessage"></table>
+      <div class="table" risk-table risks="highestRisks" risk-id="highest-risk"
+             empty-message="noDataHighestRiskMessage" max-results="maxResults"></div>
     </div>
   </div>
 </div>

@@ -9,6 +9,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -42,6 +44,7 @@ import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import com.google.common.base.Function;
+import com.google.common.base.Joiner;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
 import com.google.common.collect.Collections2;
@@ -57,6 +60,8 @@ public class DashboardService
   private static final PolicyViolationDTOComparator POLICY_VIOLATION_DTO_COMPARATOR = new PolicyViolationDTOComparator();
 
   private static final int DEFAULT_NEWEST_POLICY_VIOLATION_TIME_RANGE = 30;
+
+  private static final String SECRET_JOIN_STRING = "$";
 
   private static final Function<Application, String> applicationPublicIdSelector = new Function<Application, String>()
   {
@@ -83,7 +88,8 @@ public class DashboardService
   @Inject
   public DashboardService(ApplicationDAO applicationDAO, ApplicationService applicationService,
       PolicyEvaluationDAO policyEvaluationDAO, PolicyViolationAdapter policyViolationAdapter,
-      PolicyViolationDAO policyViolationDAO, StageTypeService stageTypeService, DashboardFilterDAO dashboardFilterDAO)
+      PolicyViolationDAO policyViolationDAO, StageTypeService stageTypeService,
+      DashboardFilterDAO dashboardFilterDAO)
   {
     this.applicationDAO = applicationDAO;
     this.applicationService = applicationService;
@@ -216,6 +222,147 @@ public class DashboardService
     return Lists.newArrayList(Collections2.filter(violations, violationFilter));
   }
 
+
+  /**
+   * @since 1.11.0
+   */
+  public List<ApplicationRiskScoreDTO> getApplicationRisks(final Set<String> applicationPublicIds,
+      final Set<String> stageIds, final Set<String> tagIds, final PolicyThreatCategoryFilter policyThreatCategoryFilter,
+      final PolicyThreatLevelFilter policyThreatLevelFilter, final int maxResults)
+  {
+
+    List<Application> appsToSearch = determineAppsToSearch(applicationPublicIds);
+    Set<String> stageIdsToSearch = getStageIds(stageIds);
+
+    Predicate<PolicyViolation> filter = buildFilter(policyThreatCategoryFilter, policyThreatLevelFilter);
+
+    List<ApplicationRiskScoreDTO> applicationRisks = new ArrayList<>();
+    for (Application application : appsToSearch) {
+      applicationRisks.add(getApplicationRisk(application, stageIdsToSearch, tagIds, filter));
+    }
+
+    List<ApplicationRiskScoreDTO> sortedApplicationRisks = sortApplicationRiskScore(applicationRisks);
+    return sortedApplicationRisks.subList(0, Math.min(sortedApplicationRisks.size(), maxResults));
+
+  }
+
+  private List<Application> determineAppsToSearch(final Set<String> applicationPublicIds) {
+    if (applicationPublicIds == null || applicationPublicIds.isEmpty()) {
+      return applicationService.getApplications();
+    }
+    else {
+      List<Application> applications = new ArrayList<>();
+      for (String appId : applicationPublicIds) {
+        applications.add(applicationService.getApplicationByPublicIdNotNull(appId));
+      }
+      return applications;
+    }
+  }
+
+  private ApplicationRiskScoreDTO getApplicationRisk(final Application application, final Set<String> stageIds,
+      final Set<String> tagIds, final Predicate<PolicyViolation> filter)
+  {
+
+    Set<String> appPublicIdSet = Collections.singleton(application.getPublicId());
+    ApplicationRiskScoreDTO applicationRiskScore = new ApplicationRiskScoreDTO(application.getName(),
+        application.getPublicId());
+
+
+    List<PolicyViolationDTO> allViolations = new ArrayList<>();
+    for (String stageId : stageIds) {
+      List<PolicyViolationDTO> violationsForStage = getPolicyViolationsByApplicationIds(appPublicIdSet,
+          Collections.singleton(stageId), tagIds, filter, null, false);
+      for (PolicyViolationDTO violation : violationsForStage) {
+        updateStageRisk(applicationRiskScore, violation, stageId);
+      }
+      allViolations.addAll(violationsForStage);
+    }
+
+    updateTotalApplicationRisks(applicationRiskScore, allViolations);
+
+
+    return applicationRiskScore;
+
+  }
+
+  private void updateTotalApplicationRisks(final ApplicationRiskScoreDTO applicationRiskScore,
+      final List<PolicyViolationDTO> allViolations)
+  {
+    //squish down any dupes we have across stages
+    final Map<String, PolicyViolationDTO> compHashToViolation = new HashMap<>();
+    for (final PolicyViolationDTO violation1 : allViolations) {
+      String vioHash = createUniqueHashForPolicy(violation1);
+      PolicyViolationDTO existing = compHashToViolation.get(vioHash);
+      if (existing == null) {
+        //first time we see a violation, we make it
+        compHashToViolation.put(vioHash, violation1);
+      }
+      else if (violation1.time > existing.time) {
+        //we have a newer violation, update existing
+        compHashToViolation.put(vioHash, violation1);
+      }
+    }
+
+    //now use this to update the total risk
+    for (final PolicyViolationDTO violation : compHashToViolation.values()) {
+      updateRisk(applicationRiskScore.totalApplicationRisk, violation.threatLevel);
+    }
+  }
+
+  private void updateStageRisk(ApplicationRiskScoreDTO applicationRiskScore, PolicyViolationDTO violation,
+      String stageId)
+  {
+
+    StageRiskScoreDTO currentStageRiskScore = applicationRiskScore.getStageRiskScore(stageId);
+    if (currentStageRiskScore == null) {
+      currentStageRiskScore = new StageRiskScoreDTO(stageId);
+      applicationRiskScore.addStageRiskScore(currentStageRiskScore);
+    }
+    updateRisk(currentStageRiskScore.risk, violation.threatLevel);
+  }
+
+  private void updateRisk(RiskDTO risk, int threatLevel) {
+    if (threatLevel >= 8) {
+      risk.criticalRisk += threatLevel;
+    }
+    else if (threatLevel >= 4) {
+      risk.severeRisk += threatLevel;
+    }
+    else if (threatLevel >= 2) {
+      risk.moderateRisk += threatLevel;
+    }
+    else {
+      risk.lowRisk += threatLevel;
+    }
+    risk.totalRisk += threatLevel;
+  }
+
+
+  private String createUniqueHashForPolicy(PolicyViolationDTO policyViolation) {
+    return Joiner.on(SECRET_JOIN_STRING)
+        .join(policyViolation.policyId, policyViolation.applicationId, policyViolation.hash);
+  }
+
+  /**
+   * @param applicationRisks - Risks we want to sort.
+   * @return the risks sorted in descending order by the Risk.
+   */
+  private List<ApplicationRiskScoreDTO> sortApplicationRiskScore(final List<ApplicationRiskScoreDTO> applicationRisks) {
+    Collections.sort(applicationRisks, new Comparator<ApplicationRiskScoreDTO>()
+    {
+      @Override
+      public int compare(final ApplicationRiskScoreDTO o1, final ApplicationRiskScoreDTO o2) {
+        int result = Long.compare(o2.totalApplicationRisk.totalRisk, o1.totalApplicationRisk.totalRisk);
+        if (result == 0) {
+          result = o1.applicationId.compareTo(o2.applicationId);
+        }
+        return result;
+      }
+    });
+    return applicationRisks;
+  }
+
+
   /**
    * @return Sort by threat level (descending), policy name, application name, coordinates, and then hashes.
    */
@@ -250,7 +397,7 @@ public class DashboardService
     Collection<StageType> licensedStageTypes = stageTypeService.getLicensedStageTypes();
 
     if (stageTypeIds == null || stageTypeIds.isEmpty()) {
-      return new HashSet<StageType>(licensedStageTypes);
+      return new HashSet<>(licensedStageTypes);
     }
 
     Set<StageType> stages = new HashSet<>();
@@ -267,6 +414,15 @@ public class DashboardService
     }
 
     return stages;
+  }
+
+  private Set<String>  getStageIds(final Set<String> stageIds) {
+    Set<StageType> stageTypes = getStageTypes(stageIds);
+    Set<String> stageIdsToSearch = new HashSet<>();
+    for (StageType stageType : stageTypes) {
+      stageIdsToSearch.add(stageType.getId());
+    }
+    return stageIdsToSearch;
   }
 
   private List<PolicyViolation> getPolicyViolations(String applicationId, String stageId, boolean newest) {
@@ -337,7 +493,8 @@ public class DashboardService
     DashboardFilter existingDashboardFilter = dashboardFilterDAO.getByUsername(AuditUtils.findUser());
     if (existingDashboardFilter == null) {
       dashboardFilterDAO.insert(dashboardFilter);
-    } else {
+    }
+    else {
       dashboardFilter.setId(existingDashboardFilter.getId());
       dashboardFilterDAO.update(dashboardFilter);
     }

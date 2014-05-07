@@ -151,7 +151,7 @@
   <div class='row dashboard-tables' ng-hide='error'>
     <div class='span6' id="newest-risk">
       <h4>Newest Risk</h4>
-      <div class="table" risk-table risks="newestRisks" risk-id="newest-risk" empty-message="noDataNewestRiskMessage"
+      <div risk-table risks="newestRisks" risk-id="newest-risk" empty-message="noDataNewestRiskMessage"
              max-results="maxResults"></div>
     </div>
     <div class='span6' id="highest-risk">
@@ -169,7 +169,7 @@
           <a href="#" ng-click="$event.preventDefault(); highestRisk='policy-violations'">Policy Violations</a>
         </li>
       </ul>
-      <div class="table" risk-table risks="highestRisks" risk-id="highest-risk"
+      <div risk-table risks="highestRisks" risk-id="highest-risk"
              empty-message="noDataHighestRiskMessage" max-results="maxResults"></div>
     </div>
   </div>

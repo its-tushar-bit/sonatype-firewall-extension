@@ -329,10 +329,8 @@ a {
   border-bottom: 1px solid #ddd;
 }
 #newest-risk h4 {
-  margin-bottom: 8px;
-}
-#newest-risk th {
-  border-top: 1px solid #ddd !important;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #ddd !important;
 }
 
 .dashboard-content .nav.nav-tabs {
@@ -358,10 +356,6 @@ a {
 
 .dashboard-content .table tbody>tr:nth-child(odd)>td {
   background-color: #E8E8E8;
-}
-
-.dashboard-filters {
-  background: #f4f4f4;
 }
 
 .dashboard-filters tr td:nth-child(2) {
@@ -492,7 +486,7 @@ a {
   top: 0;
   line-height: 30px;
   padding-left: 5px;
-  margin-left: -5px;
+  margin-left: -2px;
 }
 
 .dashboard-content .application-header {

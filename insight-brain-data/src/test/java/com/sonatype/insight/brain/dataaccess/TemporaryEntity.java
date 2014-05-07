@@ -22,6 +22,7 @@ import com.sonatype.insight.brain.dataaccess.component.HashGAVDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapConnectionDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapServerDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapUserMappingDAO;
+import com.sonatype.insight.brain.dataaccess.filter.DashboardFilterDAO;
 import com.sonatype.insight.brain.dataaccess.label.ComponentLabelDAO;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
@@ -43,6 +44,7 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.component.HashGAV;
+import com.sonatype.insight.brain.model.filter.DashboardFilter;
 import com.sonatype.insight.brain.model.label.ComponentLabel;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
@@ -127,6 +129,8 @@ public class TemporaryEntity
 
   private final HashGAVDAO hashGAVDAO = new HashGAVDAO();
 
+  private final DashboardFilterDAO dashboardFilterDAO = new DashboardFilterDAO();
+
   private Collection<Application> apps;
 
   private Collection<Organization> orgs;
@@ -139,6 +143,8 @@ public class TemporaryEntity
 
   private Collection<HashGAV> claimedComponents;
 
+  private Collection<DashboardFilter> dashboardFilters;
+
   @Override
   protected void before() {
     apps = new ArrayList<Application>();
@@ -147,10 +153,16 @@ public class TemporaryEntity
     roles = new ArrayList<Role>();
     ldapServers = new ArrayList<LdapServer>();
     claimedComponents = new ArrayList<HashGAV>();
+    dashboardFilters = new ArrayList<>();
   }
 
   @Override
   protected void after() {
+    for (DashboardFilter dashboardFilter : dashboardFilters) {
+      if (dashboardFilterDAO.getByUsername(dashboardFilter.getUsername()) != null) {
+        dashboardFilterDAO.delete(dashboardFilter);
+      }
+    }
     for (Application app : apps) {
       if (appDAO.getById(app.getId()) != null) {
         appDAO.delete(app);
@@ -187,6 +199,15 @@ public class TemporaryEntity
     return UUID.randomUUID().toString().replace("-", "");
   }
 
+  public DashboardFilter newDashboardFilter(String username, String filter) {
+    DashboardFilter dashboardFilter = new DashboardFilter();
+    dashboardFilter.setUsername(username);
+    dashboardFilter.setFilter(filter);
+    dashboardFilterDAO.insert(dashboardFilter);
+    dashboardFilters.add(dashboardFilter);
+    return dashboardFilter;
+  }
+
   public Organization newOrganization() {
     return newOrganization("Test Org " + uuid());
   }
@@ -208,6 +229,10 @@ public class TemporaryEntity
       organizations.add(newOrganization());
     }
     return organizations;
+  }
+
+  public void register(DashboardFilter... dashboardFilters) {
+    Collections.addAll(this.dashboardFilters, dashboardFilters);
   }
 
   public void register(Application... applications) {

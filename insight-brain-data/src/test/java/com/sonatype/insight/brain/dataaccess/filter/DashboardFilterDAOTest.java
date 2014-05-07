@@ -24,11 +24,7 @@ public class DashboardFilterDAOTest
   @Test
   public void testCRUD() {
     // Add filter
-    DashboardFilter dashboardFilter = new DashboardFilter();
-    dashboardFilter.setId(tempEntity.uuid());
-    dashboardFilter.setUsername("joe");
-    dashboardFilter.setFilter("testFilterString");
-    dashboardFilterDAO.insert(dashboardFilter);
+    DashboardFilter dashboardFilter = tempEntity.newDashboardFilter("admin", "testFilterString");
 
     // Retrieve filter and test
     DashboardFilter returnedFilter = dashboardFilterDAO.getByUsername(dashboardFilter.getUsername());

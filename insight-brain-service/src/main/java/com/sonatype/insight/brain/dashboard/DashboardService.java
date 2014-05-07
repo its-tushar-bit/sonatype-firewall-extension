@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.dashboard;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -21,9 +22,11 @@ import javax.inject.Named;
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatCategoryFilter;
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatLevelFilter;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.filter.DashboardFilterDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.filter.DashboardFilter;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.StageType;
@@ -32,9 +35,11 @@ import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.organization.ApplicationService;
 import com.sonatype.insight.brain.policy.StageTypeService;
+import com.sonatype.insight.brain.security.AuditUtils;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.error.exception.BadRequestException;
+import com.sonatype.insight.json.store.JsonUtils;
 
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
@@ -73,10 +78,12 @@ public class DashboardService
 
   private StageTypeService stageTypeService;
 
+  private DashboardFilterDAO dashboardFilterDAO;
+
   @Inject
   public DashboardService(ApplicationDAO applicationDAO, ApplicationService applicationService,
       PolicyEvaluationDAO policyEvaluationDAO, PolicyViolationAdapter policyViolationAdapter,
-      PolicyViolationDAO policyViolationDAO, StageTypeService stageTypeService)
+      PolicyViolationDAO policyViolationDAO, StageTypeService stageTypeService, DashboardFilterDAO dashboardFilterDAO)
   {
     this.applicationDAO = applicationDAO;
     this.applicationService = applicationService;
@@ -84,6 +91,7 @@ public class DashboardService
     this.policyViolationAdapter = policyViolationAdapter;
     this.policyViolationDAO = policyViolationDAO;
     this.stageTypeService = stageTypeService;
+    this.dashboardFilterDAO = dashboardFilterDAO;
   }
 
   /**
@@ -302,6 +310,48 @@ public class DashboardService
       dtos.add(component.toDTO());
     }
     return dtos;
+  }
+
+  /**
+   * @since 1.11.0
+   */
+  public DashboardFilterDTO getDashboardFilterForCurrentUser() throws IOException {
+    String username = AuditUtils.findUser();
+    DashboardFilter dashboardFilter = dashboardFilterDAO.getByUsername(username);
+    if (dashboardFilter == null) {
+      return null;
+    }
+    return JsonUtils.parse(dashboardFilter.getFilter(), DashboardFilterDTO.class);
+  }
+
+  /**
+   * @since 1.11.0
+   */
+  public DashboardFilterDTO createOrUpdateDashboardFilterForCurrentUser(DashboardFilterDTO dashboardFilterDTO) {
+    DashboardFilter dashboardFilter = new DashboardFilter();
+    dashboardFilter.setUsername(AuditUtils.findUser());
+    dashboardFilter.setFilter(JsonUtils.format(dashboardFilterDTO));
+
+    DashboardFilter existingDashboardFilter = dashboardFilterDAO.getByUsername(AuditUtils.findUser());
+    if (existingDashboardFilter == null) {
+      dashboardFilterDAO.insert(dashboardFilter);
+    } else {
+      dashboardFilter.setId(existingDashboardFilter.getId());
+      dashboardFilterDAO.update(dashboardFilter);
+    }
+
+    return dashboardFilterDTO;
+  }
+
+  /**
+   * @since 1.11.0
+   */
+  public void deleteDashboardFilterForCurrentUser() {
+    String username = AuditUtils.findUser();
+    DashboardFilter dashboardFilter = dashboardFilterDAO.getByUsername(username);
+    if (dashboardFilter != null) {
+      dashboardFilterDAO.delete(dashboardFilter);
+    }
   }
 
   private static class ComponentViolationRollUp

@@ -191,7 +191,7 @@ class DashboardSpec
     then: 'only violations from that stage are shown'
       waitFor { highestRiskTable.rows.size() == 1 }
       !stageTypeFiltersDropdown.displayed
-      highestRiskTable.rows[0].risk == 10
+      waitFor { highestRiskTable.rows[0].risk == 10 }
       highestRiskTable.rows[0].policy == 'DashboardSpecPolicy'
       highestRiskTable.rows[0].application == secondApp.name
       highestRiskTable.rows[0].component == 'Unknown'

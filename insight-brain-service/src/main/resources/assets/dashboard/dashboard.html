@@ -114,7 +114,7 @@
         <tr ng-repeat='risk in risks | orderBy:orderColumn:orderDirection | limitTo: maxResults'>
           <td class='clm-bar'
               ng-class='{ critical : risk.threatLevel >= 8, severe : risk.threatLevel >= 4 && risk.threatLevel < 8,
-                 moderate : risk.threatLevel >= 1 && risk.threatLevel < 4, none : risk.threatLevel == 1,
+                 moderate : risk.threatLevel >= 2 && risk.threatLevel < 4, none : risk.threatLevel == 1,
                  ignore : risk.threatLevel == 0 }'></td>
           <td>{{risk.threatLevel}}</td>
           <td>{{risk.policyName}}</td>

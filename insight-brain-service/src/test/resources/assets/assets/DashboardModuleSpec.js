@@ -201,17 +201,33 @@ describe('DashboardModule', function() {
         name: 'Type 2'
       }];
 
-      $templateCache.put('dashboard-filter', '<div></div>')
+      $templateCache.put('dashboard-filter', '<div></div>');
       $httpBackend.expectGET(CLMLocations.getActionStageUrl()).respond(stageTypeData);
       $httpBackend.expectGET(CLMLocations.getApplicationsUrl()).respond(applications);
       $httpBackend.expectGET(CLMLocations.getOrganizationsUrl()).respond(organizations);
       $httpBackend.expectGET(CLMLocations.getApplicationTagsUrl()).respond(tags);
+      $httpBackend.expectGET(CLMLocations.getDashboardFilters()).respond({
+        policyThreatCategoryFilters: ['SECURITY','OTHER'],
+        stageTypeFilters: ['type1','type2'],
+        tagFilters: ['tag1','tag2'],
+        applicationFilters: ['app1','app2'],
+        minPolicyThreatLevel: 3,
+        maxPolicyThreatLevel: 6
+      });
 
       $compile(angular.element('<div dashboard-filter="filters" toggle="foo"></div>'))(scope);
       $httpBackend.flush();
       directiveScope = scope.$$childHead;
       directiveScope.$digest();
     }));
+
+    it('persisted data in scope', function() {
+      expect(scope.filters.policyThreatTypes).toEqual(['SECURITY','OTHER']);
+      expect(scope.filters.stageTypeIds).toEqual(['type1','type2']);
+      expect(scope.filters.applicationTagIds).toEqual(['tag1','tag2']);
+      expect(scope.filters.applicationPublicIds).toEqual(['app1','app2']);
+      expect(scope.filters.policyThreatLevel).toEqual([3,6]);
+    });
 
     it('loads applications', function() {
       expect(directiveScope.applications.length).toBe(applications.length);
@@ -230,44 +246,62 @@ describe('DashboardModule', function() {
       expect(directiveScope.applicationTags[0].owner).toBe(organizations[0].name);
     });
 
-    it('filters policy violations by application', inject(function() {
-      expect(scope.filters.applicationPublicIds.length).toBe(0);
-      directiveScope.$apply(function () {
-        directiveScope.dirtyFilter.applicationPublicIds = ['fooID'];
-        directiveScope.applyFilter();
-      });
+    function expectFilterPUT($httpBackend, CLMLocations, applicationFilters, policyThreatCategoryFilters, stageTypeFilters,
+                       tagFilters, minPolicyThreatLevel, maxPolicyThreatLevel)
+    {
+      $httpBackend.expectPUT(CLMLocations.getDashboardFilters(), {
+        applicationFilters: applicationFilters !== undefined ? applicationFilters : ['app1','app2'],
+        policyThreatCategoryFilters: policyThreatCategoryFilters !== undefined ? policyThreatCategoryFilters : ['SECURITY','OTHER'],
+        stageTypeFilters: stageTypeFilters !== undefined ? stageTypeFilters : ['type1', 'type2'],
+        tagFilters: tagFilters !== undefined ? tagFilters : ['tag1','tag2'],
+        minPolicyThreatLevel: minPolicyThreatLevel !== undefined ? minPolicyThreatLevel : 3,
+        maxPolicyThreatLevel: maxPolicyThreatLevel !== undefined ? maxPolicyThreatLevel : 6
+      }).respond(null);
+    }
+
+    it('filters policy violations by application', inject(function($httpBackend, CLMLocations) {
+      directiveScope.dirtyFilter.applicationPublicIds = ['fooID'];
+      expectFilterPUT($httpBackend, CLMLocations, ['fooID']);
+      directiveScope.applyFilter();
+      $httpBackend.flush();
 
       expect(scope.filters.applicationPublicIds.length).toBe(1);
     }));
 
     it('filters policy violations by policy threat type', inject(function($httpBackend, CLMLocations) {
-      expect(scope.filters.policyThreatTypes.length).toBe(0);
-      directiveScope.$apply(function () {
-        directiveScope.dirtyFilter.policyThreatTypes = ['security', 'other'];
-        directiveScope.applyFilter();
-      });
+      directiveScope.dirtyFilter.policyThreatTypes = ['SECURITY2', 'OTHER2'];
+      expectFilterPUT($httpBackend, CLMLocations, undefined, ['SECURITY2','OTHER2']);
+      directiveScope.applyFilter();
+      $httpBackend.flush();
 
-      expect(scope.filters.policyThreatTypes).toEqual(['security', 'other']);
+      expect(scope.filters.policyThreatTypes).toEqual(['SECURITY2', 'OTHER2']);
     }));
 
     it('filters policy violations by stage type', inject(function($httpBackend, CLMLocations) {
-      expect(scope.filters.stageTypeIds.length).toBe(0);
-      directiveScope.$apply(function () {
-        directiveScope.dirtyFilter.stageTypeIds = ['type1', 'type2'];
-        directiveScope.applyFilter();
-      });
+      directiveScope.dirtyFilter.stageTypeIds = ['type3', 'type4'];
+      expectFilterPUT($httpBackend, CLMLocations, undefined, undefined, ['type3','type4']);
+      directiveScope.applyFilter();
+      $httpBackend.flush();
 
-      expect(scope.filters.stageTypeIds).toEqual(['type1', 'type2']);
+      expect(scope.filters.stageTypeIds).toEqual(['type3', 'type4']);
     }));
 
     it('filters policy violations by application tag', inject(function($httpBackend, CLMLocations) {
-      expect(scope.filters.applicationTagIds.length).toBe(0);
-      directiveScope.$apply(function () {
-        directiveScope.dirtyFilter.applicationTagIds = ['fooID'];
-        directiveScope.applyFilter();
-      });
+      directiveScope.dirtyFilter.applicationTagIds = ['fooID'];
+      expectFilterPUT($httpBackend, CLMLocations, undefined, undefined, undefined, ['fooID']);
+      directiveScope.applyFilter();
+      $httpBackend.flush();
 
       expect(scope.filters.applicationTagIds).toEqual(['fooID']);
+    }));
+
+    it('filters policy violations by policy threat level', inject(function($httpBackend, CLMLocations) {
+      directiveScope.dirtyFilter.policyThreatLevel = [2,7];
+      expectFilterPUT($httpBackend, CLMLocations, undefined, undefined, undefined, undefined, 2, 7);
+      directiveScope.applyFilter();
+      $httpBackend.flush();
+
+      expect(scope.filters.policyThreatLevel).toEqual([2,7]);
     }));
 
     it('cancels filters', function() {
@@ -300,7 +334,7 @@ describe('DashboardModule', function() {
     });
 
     it('converts from policyThreatCategory.id to policyThreatCategory.name', function(){
-      expect(directiveScope.policyThreatTypeNameFor('security')).toBe('Security');
+      expect(directiveScope.policyThreatTypeNameFor('SECURITY')).toBe('Security');
     });
 
     it('converts from stageType.id to stageType.name', function(){

@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.testing.functional
 
+import com.sonatype.insight.brain.dataaccess.filter.DashboardFilterDAO
 import com.sonatype.insight.brain.model.Application
 import com.sonatype.insight.brain.model.Color
 import com.sonatype.insight.brain.model.Organization
@@ -57,6 +58,8 @@ class DashboardSpec
   }
 
   def setup() {
+    DashboardFilterDAO dao = new DashboardFilterDAO();
+    dao.delete(dao.getByUsername("admin"));
     loginAsAdminVia(DashboardPage)
   }
 

@@ -9,22 +9,26 @@
 
   function filterToParams(filter, maxResults) {
     var params = {
-      maxResults: maxResults + 1,
-      applicationPublicIds: filter.applicationPublicIds,
-      policyThreatCategories: filter.policyThreatTypes.length > 0 ?
-                              filter.policyThreatTypes.join(',') : null,
-      stageIds: filter.stageTypeIds,
-      tagIds: filter.applicationTagIds
+      maxResults: maxResults + 1
     };
-    //don't add this unless outside of defaults
-    var threatLvls = filter.policyThreatLevel;
-    if (threatLvls[0] > 0 || threatLvls[1] < 10) {
-      params.policyThreatLevelRange = threatLvls.join();
+    if (filter) {
+      params.applicationPublicIds = filter.applicationPublicIds;
+      params.policyThreatCategories = (filter.policyThreatTypes &&
+          filter.policyThreatTypes.length > 0) ?
+          filter.policyThreatTypes.join(',') : undefined;
+      params.stageIds = filter.stageTypeIds;
+      params.tagIds = filter.applicationTagIds;
+
+      //don't add this unless outside of defaults
+      var threatLvls = filter.policyThreatLevel;
+      if (threatLvls && (threatLvls[0] > 0 || threatLvls[1] < 10)) {
+        params.policyThreatLevelRange = threatLvls.join();
+      }
     }
     return params;
   }
 
-  var dashboardModule = angular.module('DashboardModule', ['ui.router', 'Stores', 'AngularCommon'], ['$stateProvider', function($stateProvider) {
+  var dashboardModule = angular.module('DashboardModule', ['ui.router', 'Stores', 'AngularCommon', 'CommonServices'], ['$stateProvider', function($stateProvider) {
     $stateProvider.state('dashboard', {
       url: '/dashboard',
       templateUrl: '../dashboard-assets/dashboard.html?' + clmBuildTimestamp,
@@ -82,8 +86,8 @@
   }]);
 
   dashboardModule.directive('dashboardFilter',
-          ['$timeout', '$http', '$q', 'ApplicationStore', 'OrganizationStore', 'StageTypeStore', 'CLMLocations',
-          function ($timeout, $http, $q, ApplicationStore, OrganizationStore, StageTypeStore, CLMLocations) {
+          ['$timeout', '$http', '$q', 'ApplicationStore', 'OrganizationStore', 'StageTypeStore', 'CLMLocations', 'Messages',
+          function ($timeout, $http, $q, ApplicationStore, OrganizationStore, StageTypeStore, CLMLocations, Messages) {
     return {
       scope : {
         filter : '=dashboardFilter',
@@ -99,7 +103,8 @@
             ApplicationStore.get(),
             StageTypeStore.get(),
             OrganizationStore.get(),
-            $http.get(CLMLocations.getApplicationTagsUrl())
+            $http.get(CLMLocations.getApplicationTagsUrl()),
+            $http.get(CLMLocations.getDashboardFilters())
           ];
           $q.all(promises).then(function(data) {
             scope.applications = data[0];
@@ -117,22 +122,36 @@
             });
 
             scope.policyThreatTypes = [
-              {id:'security', name:'Security'},
-              {id:'license', name:'License'},
-              {id:'quality', name:'Quality'},
-              {id:'other', name:'Other'}
+              {id:'SECURITY', name:'Security'},
+              {id:'LICENSE', name:'License'},
+              {id:'QUALITY', name:'Quality'},
+              {id:'OTHER', name:'Other'}
             ];
+
+            if (data[4].data) {
+              scope.filter = {
+                applicationPublicIds: data[4].data.applicationFilters,
+                policyThreatTypes: data[4].data.policyThreatCategoryFilters,
+                stageTypeIds: data[4].data.stageTypeFilters,
+                applicationTagIds: data[4].data.tagFilters,
+                policyThreatLevel: [data[4].data.minPolicyThreatLevel, data[4].data.maxPolicyThreatLevel]
+              };
+              resetFilter();
+            }
+            else {
+              //need to init the filter to something, to trigger a data load
+              scope.filter = {};
+              //we don't want to update the data to be saved until they hit apply button
+              scope.dirtyFilter = {
+                applicationPublicIds: [],
+                policyThreatTypes: [],
+                stageTypeIds: [],
+                applicationTagIds: [],
+                policyThreatLevel: [0,10]
+              };
+            }
           });
         }
-
-        scope.filter = {
-          applicationPublicIds: [],
-          policyThreatTypes: [],
-          stageTypeIds: [],
-          applicationTagIds: [],
-          policyThreatLevel: [0,10]
-        };
-        resetFilter();
 
         // TODO we should use load error n' stuff
         loadFilters();
@@ -173,9 +192,21 @@
         };
 
         scope.applyFilter = function () {
+          scope.applyError = null;
           // We copy it so the object is not shared
           scope.filter = angular.copy(scope.dirtyFilter);
-          scope.toggle();
+          $http.put(CLMLocations.getDashboardFilters(), {
+            applicationFilters : scope.filter.applicationPublicIds,
+            policyThreatCategoryFilters : scope.filter.policyThreatTypes,
+            stageTypeFilters : scope.filter.stageTypeIds,
+            tagFilters : scope.filter.applicationTagIds,
+            minPolicyThreatLevel : scope.filter.policyThreatLevel[0],
+            maxPolicyThreatLevel : scope.filter.policyThreatLevel[1]
+          }).then(function(){
+            scope.toggle();
+          }, function() {
+            scope.applyError = Messages.getHttpErrorMessage(arguments);
+          });
         };
 
         scope.cancelFilter = function () {
@@ -218,6 +249,10 @@
           scope.$apply(function () {
             scope.model = event.value;
           });
+        });
+
+        scope.$watch('model', function(newValue){
+          $(element).slider('setValue', newValue);
         });
       }
     };

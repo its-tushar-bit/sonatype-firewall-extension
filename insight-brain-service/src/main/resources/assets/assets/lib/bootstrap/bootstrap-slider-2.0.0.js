@@ -20,7 +20,26 @@
 !function( $ ) {
 
   var Slider = function(element, options) {
+    this.validateNumericValue = function(value) {
+      if (!value) {
+        return this.range ? [this.min, this.max] : this.min;
+      }
+      if (value instanceof Array) {
+        value[0] = parseInt(value[0]) || this.min;
+        value[1] = parseInt(value[1]) || this.max;
+        return value;
+      }
+      return parseInt(value) || this.min;
+    }
     this.element = $(element);
+    this.min = this.element.data('slider-min')||options.min;
+    this.max = this.element.data('slider-max')||options.max;
+    this.step = this.element.data('slider-step')||options.step;
+    this.value = this.element.data('slider-value')||options.value;
+    if (this.value[1]) {
+      this.range = true;
+    }
+    options.value = this.validateNumericValue(options.value);
     this.picker = $('<div class="slider">'+
         '<div class="slider-track">'+
         '<div class="slider-selection"></div>'+
@@ -68,14 +87,6 @@
         this.sizePos = 'offsetWidth';
         this.tooltip.addClass('top')[0].style.top = -this.tooltip.outerHeight() - 14 + 'px';
         break;
-    }
-
-    this.min = this.element.data('slider-min')||options.min;
-    this.max = this.element.data('slider-max')||options.max;
-    this.step = this.element.data('slider-step')||options.step;
-    this.value = this.element.data('slider-value')||options.value;
-    if (this.value[1]) {
-      this.range = true;
     }
 
     this.selection = this.element.data('slider-selection')||options.selection;
@@ -340,7 +351,7 @@
     },
 
     setValue: function(val) {
-      this.value = val;
+      this.value = this.validateNumericValue(val);
 
       if (this.range) {
         this.value[0] = Math.max(this.min, Math.min(this.max, this.value[0]));
@@ -360,6 +371,10 @@
             (this.value[1]-this.min)*100/this.diff,
             this.step*100/this.diff
       ];
+      if (this.showHandleValues) {
+        this.handle1.text(this.formater(this.value[0]));
+        this.handle2.text(this.formater(this.value[1]));
+      }
       this.layout();
     }
   };

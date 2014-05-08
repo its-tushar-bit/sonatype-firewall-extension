@@ -143,6 +143,9 @@
         },
         getApplicationTagsUrl : function() {
           return baseUrl.get() + '/rest/tag/application';
+        },
+        getDashboardFilters : function() {
+          return baseUrl.get() + '/rest/dashboard/filters';
         }
       };
     }

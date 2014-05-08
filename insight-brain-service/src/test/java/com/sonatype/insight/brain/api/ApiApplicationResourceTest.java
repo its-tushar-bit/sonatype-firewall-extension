@@ -55,7 +55,9 @@ public class ApiApplicationResourceTest
 
   private final ApplicationDAO applicationDAO = new ApplicationDAO();
 
-  private RoleDAO roleDAO = new RoleDAO();
+  private final ApiApplicationAdapter apiApplicationAdapter = new ApiApplicationAdapter();
+
+  private final RoleDAO roleDAO = new RoleDAO();
 
   private Organization organization;
 
@@ -84,18 +86,7 @@ public class ApiApplicationResourceTest
 
   @Test
   public void testCRUD() throws Exception {
-    final String applicationPublicId = "testID";
-    final String applicationName = "test-application-name";
-
-    ApiApplicationDTO applicationDTO = new ApiApplicationDTO();
-    applicationDTO.publicId = applicationPublicId;
-    applicationDTO.name = applicationName;
-    applicationDTO.organizationId = organization.getId();
-    applicationDTO.contactUserName = userA.getUsername();
-    applicationDTO.applicationTags = new ArrayList<>();
-    ApiApplicationTagDTO applicationTagADTO = new ApiApplicationTagDTO();
-    applicationTagADTO.tagId = tagA.getId();
-    applicationDTO.applicationTags.add(applicationTagADTO);
+    ApiApplicationDTO applicationDTO = createApplicationDTO(null);
 
     // Test the post
     Response response = AuthedRestAccess.post(getServiceURL(), JsonHelpers.asJson(applicationDTO));
@@ -116,7 +107,7 @@ public class ApiApplicationResourceTest
     applicationTagBDTO.tagId = tagB.getId();
     applicationDTO.applicationTags.clear();
     applicationDTO.applicationTags.add(applicationTagBDTO);
-    response = AuthedRestAccess.put(getServiceURL(), JsonHelpers.asJson(applicationDTO));
+    response = AuthedRestAccess.put(getServiceURL() + "/" + applicationResult.id, JsonHelpers.asJson(applicationDTO));
     assertResponseStatus(200, response);
     applicationResult = JsonHelpers.fromJson(response.getResponseBody(), ApiApplicationDTO.class);
     assertApplication(applicationResult, applicationDTO);
@@ -127,6 +118,44 @@ public class ApiApplicationResourceTest
 
     final Application application = applicationDAO.getById(applicationResult.id);
     assertThat(application, nullValue());
+  }
+
+  @Test
+  public void testUpdateApplication_MismatchedIds() throws Exception {
+    ApiApplicationDTO applicationDTO = createApplicationDTO("Junk");
+    // Test the update
+    Response response = AuthedRestAccess.put(getServiceURL() + "/" + app.getId(), JsonHelpers.asJson(applicationDTO));
+    assertResponseStatus(400, response);
+    String errorMessage = response.getResponseBody();
+    assertThat(errorMessage,
+        is("The applicationId=" + app.getId() + " provided in the url did not match the id=" + applicationDTO.id +
+            " provided in the json."));
+  }
+
+  @Test
+  public void testUpdateApplication_NullId() throws Exception {
+    ApiApplicationDTO applicationDTO = apiApplicationAdapter.convertToDTO(app);
+    applicationDTO.id = null;
+    addApplicationTagDTOs(applicationDTO);
+
+    // Test the update
+    Response response = AuthedRestAccess.put(getServiceURL() + "/" + app.getId(), JsonHelpers.asJson(applicationDTO));
+    assertResponseStatus(200, response);
+    ApiApplicationDTO applicationResult = JsonHelpers.fromJson(response.getResponseBody(), ApiApplicationDTO.class);
+    assertApplication(applicationResult, applicationDTO);
+  }
+
+  @Test
+  public void testUpdateApplication_EmptyId() throws Exception {
+    ApiApplicationDTO applicationDTO = apiApplicationAdapter.convertToDTO(app);
+    applicationDTO.id = "  ";
+    addApplicationTagDTOs(applicationDTO);
+
+    // Test the update
+    Response response = AuthedRestAccess.put(getServiceURL() + "/" + app.getId(), JsonHelpers.asJson(applicationDTO));
+    assertResponseStatus(200, response);
+    ApiApplicationDTO applicationResult = JsonHelpers.fromJson(response.getResponseBody(), ApiApplicationDTO.class);
+    assertApplication(applicationResult, applicationDTO);
   }
 
   @Test
@@ -452,5 +481,23 @@ public class ApiApplicationResourceTest
     assertThat(apiRoleMemberMappingDTO.members, hasSize(1));
     assertThat(apiRoleMemberMappingDTO.members.get(0).type, is(type));
     assertThat(apiRoleMemberMappingDTO.members.get(0).userOrGroupName, is(user.getUsername()));
+  }
+
+  private ApiApplicationDTO createApplicationDTO(String applicationId) {
+    ApiApplicationDTO applicationDTO = new ApiApplicationDTO();
+    applicationDTO.id = applicationId;
+    applicationDTO.publicId = "testID";
+    applicationDTO.name = "test-application-name";
+    applicationDTO.organizationId = organization.getId();
+    applicationDTO.contactUserName = userA.getUsername();
+    addApplicationTagDTOs(applicationDTO);
+    return applicationDTO;
+  }
+
+  private void addApplicationTagDTOs(ApiApplicationDTO applicationDTO) {
+    applicationDTO.applicationTags = new ArrayList<>();
+    ApiApplicationTagDTO applicationTagADTO = new ApiApplicationTagDTO();
+    applicationTagADTO.tagId = tagA.getId();
+    applicationDTO.applicationTags.add(applicationTagADTO);
   }
 }

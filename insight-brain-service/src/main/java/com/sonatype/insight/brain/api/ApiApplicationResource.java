@@ -25,10 +25,13 @@ import com.sonatype.insight.brain.api.dto.ApiApplicationDTO;
 import com.sonatype.insight.brain.api.dto.ApiRoleListDTO;
 import com.sonatype.insight.brain.api.dto.ApiRoleMemberMappingListDTO;
 import com.sonatype.insight.brain.api.service.ApiApplicationService;
+import com.sonatype.insight.brain.dataaccess.InvalidApplicationException;
 import com.sonatype.insight.brain.security.ApplicableMembershipMappings;
 import com.sonatype.insight.brain.security.Member;
 import com.sonatype.insight.brain.security.MembershipMappingService;
 import com.sonatype.insight.brain.utils.IdUtils;
+
+import org.codehaus.plexus.util.StringUtils;
 
 /**
  * @since 1.11.0
@@ -79,9 +82,21 @@ public class ApiApplicationResource
   }
 
   @PUT
+  @Path(APPLICATION_ID)
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-  public ApiApplicationDTO updateApplication(final ApiApplicationDTO applicationDTO) {
+  public ApiApplicationDTO updateApplication(final ApiApplicationDTO applicationDTO,
+      @PathParam("applicationId") final String applicationId)
+  {
+    if (StringUtils.isBlank(applicationDTO.id)) {
+      applicationDTO.id = applicationId;
+    }
+
+    if (!applicationId.equals(applicationDTO.id)) {
+      throw new InvalidApplicationException(
+          "The applicationId=" + applicationId + " provided in the url did not match the id=" + applicationDTO.id +
+              " provided in the json.");
+    }
     return apiApplicationService.updateApplication(applicationDTO);
   }
 

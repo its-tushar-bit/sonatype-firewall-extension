@@ -205,7 +205,7 @@ describe('DashboardModule', function() {
       $httpBackend.expectGET(CLMLocations.getActionStageUrl()).respond(stageTypeData);
       $httpBackend.expectGET(CLMLocations.getApplicationsUrl()).respond(applications);
       $httpBackend.expectGET(CLMLocations.getOrganizationsUrl()).respond(organizations);
-      $httpBackend.expectGET(CLMLocations.getApplicationTags()).respond(tags);
+      $httpBackend.expectGET(CLMLocations.getApplicationTagsUrl()).respond(tags);
 
       $compile(angular.element('<div dashboard-filter="filters" toggle="foo"></div>'))(scope);
       $httpBackend.flush();

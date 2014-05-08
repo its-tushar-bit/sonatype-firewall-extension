@@ -99,7 +99,7 @@
             ApplicationStore.get(),
             StageTypeStore.get(),
             OrganizationStore.get(),
-            $http.get(CLMLocations.getApplicationTags())
+            $http.get(CLMLocations.getApplicationTagsUrl())
           ];
           $q.all(promises).then(function(data) {
             scope.applications = data[0];

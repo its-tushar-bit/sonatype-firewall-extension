@@ -141,7 +141,7 @@
         getPolicyViolationsUrl: function() {
           return baseUrl.get() + '/rest/dashboard/policy/violations';
         },
-        getApplicationTags : function() {
+        getApplicationTagsUrl : function() {
           return baseUrl.get() + '/rest/tag/application';
         }
       };

@@ -47,7 +47,12 @@ import static org.junit.Assert.fail;
 
 public class PolicyEvaluationMigratorTest
 {
+  private static final String COMPONENT_HASH_ANTLR = "83cd2cd674a217ade95a";
 
+  private static final String COMPONENT_HASH_CARROT = "074bcc9d152a928a4ea9";
+
+  private static final String COMPONENT_HASH_UNKNOWN = "318ed314c3e5bfb0bacb";
+  
   @Rule
   public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
@@ -304,25 +309,25 @@ public class PolicyEvaluationMigratorTest
 
   private void assertUnknownPolicyViolation(final String evaluationId, final PolicyViolation policyViolation) {
     assertPolicyViolation(evaluationId, policyViolation, "f8d39103fab24ec8a2677942640d3527", "Component-Unknown", 1,
-        null, null, null, "318ed314c3e5bfb0bacb", PolicyThreatCategory.OTHER,
+        null, null, null, COMPONENT_HASH_UNKNOWN, PolicyThreatCategory.OTHER,
         Lists.newArrayList("commons-httpclient-3.1.SONATYPE.jar"));
   }
 
   private void assertAntlrPolicyViolation(final String evaluationId, final PolicyViolation policyViolation) {
     assertPolicyViolation(evaluationId, policyViolation, "492542d33d1d42e8bc37a55e7130cbc0", "License-Declared Only",
-        5, "antlr", "antlr", "2.7.7", "83cd2cd674a217ade95a", PolicyThreatCategory.LICENSE,
+        5, "antlr", "antlr", "2.7.7", COMPONENT_HASH_ANTLR, PolicyThreatCategory.LICENSE,
         Lists.newArrayList("antlr.antlr.2.7.7.jar", "shaded-product.jar"));
   }
 
   private void assertCarrotPolicyViolation(final String evaluationId, final PolicyViolation policyViolation) {
     assertPolicyViolation(evaluationId, policyViolation, "492542d33d1d42e8bc37a55e7130cbc0", "License-Declared Only",
-        5, "com.carrotsearch", "hppc", "0.5.2", "074bcc9d152a928a4ea9", PolicyThreatCategory.LICENSE,
+        5, "com.carrotsearch", "hppc", "0.5.2", COMPONENT_HASH_CARROT, PolicyThreatCategory.LICENSE,
         Lists.newArrayList("com.carrotsearch.hppc.0.5.2.jar"));
   }
 
   private void assertUnknownAppComponent(List<ApplicationComponent> appComponents, String stageTypeId) {
     for (ApplicationComponent appComponent : appComponents) {
-      if ("318ed314c3e5bfb0bacb".equals(appComponent.getHash())) {
+      if (COMPONENT_HASH_UNKNOWN.equals(appComponent.getHash())) {
         assertAppComponent(appComponent, null /* groupId */, null /* artifactId */, null /* version */, stageTypeId,
             MatchState.UNKNOWN.getId(), IdentificationSource.SONATYPE.getId(), false /* proprietary */,
             Lists.newArrayList("commons-httpclient-3.1.SONATYPE.jar"));
@@ -334,7 +339,7 @@ public class PolicyEvaluationMigratorTest
 
   private void assertCarrotAppComponent(List<ApplicationComponent> appComponents, String stageTypeId) {
     for (ApplicationComponent appComponent : appComponents) {
-      if ("074bcc9d152a928a4ea9".equals(appComponent.getHash())) {
+      if (COMPONENT_HASH_CARROT.equals(appComponent.getHash())) {
         assertAppComponent(appComponent, "com.carrotsearch", "hppc", "0.5.2", stageTypeId, MatchState.EXACT.getId(),
             IdentificationSource.SONATYPE.getId(), false /* proprietary */,
             Lists.newArrayList("com.carrotsearch.hppc.0.5.2.jar"));
@@ -346,7 +351,7 @@ public class PolicyEvaluationMigratorTest
 
   private void assertAntlrAppComponent(List<ApplicationComponent> appComponents, String stageTypeId) {
     for (ApplicationComponent appComponent : appComponents) {
-      if ("83cd2cd674a217ade95a".equals(appComponent.getHash())) {
+      if (COMPONENT_HASH_ANTLR.equals(appComponent.getHash())) {
         assertAppComponent(appComponent, "antlr", "antlr", "2.7.7", stageTypeId, MatchState.EXACT.getId(),
             IdentificationSource.SONATYPE.getId(), false /* proprietary */,
             Lists.newArrayList("antlr.antlr.2.7.7.jar", "shaded-product.jar"));

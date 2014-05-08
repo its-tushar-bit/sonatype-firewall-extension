@@ -32,6 +32,7 @@ import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.PolicyFact;
+import com.sonatype.insight.brain.dataaccess.ApplicationComponentDAO;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentDAO;
 import com.sonatype.insight.brain.dataaccess.policy.NewestPolicyViolationDAO;
@@ -39,6 +40,7 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.ApplicationComponent;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.policy.ConditionType;
 import com.sonatype.insight.brain.model.policy.NewestPolicyViolation;
@@ -67,7 +69,6 @@ import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimaps;
-import com.google.common.collect.Sets;
 import org.codehaus.plexus.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -128,6 +129,8 @@ public class PolicyEvaluationMigrator
 
   private final NewestPolicyViolationDAO newestPolicyViolationDAO = new NewestPolicyViolationDAO();
 
+  private final ApplicationComponentDAO applicationComponentDAO = new ApplicationComponentDAO();
+
   @Inject
   public PolicyEvaluationMigrator(InsightWork insightWork, TrendingReportCache trendingReportCache) {
     this.insightWork = insightWork;
@@ -158,6 +161,7 @@ public class PolicyEvaluationMigrator
         Set<String> monitoringScans = new HashSet<>();
         List<PolicyEvaluation> policyEvaluationsCache = new ArrayList<>();
         Map<String, List<PolicyViolation>> policyViolationsByEvaluationCache = new LinkedHashMap<>();
+        Map<String, List<Component>> componentsByScanCache = new LinkedHashMap<>();
         
         ownerCount++;
         File auditDir = insightWork.getAuditDir(application.getId());
@@ -177,8 +181,8 @@ public class PolicyEvaluationMigrator
           // Migrate all primary policy evaluations
           Collection<PolicyEvaluation> primaryEvaluations = Collections2.filter(policyEvaluations,
               IS_PRIMARY_EVALUATION);
-          savePolicyEvaluations(em, application.getId(), stageId, primaryEvaluations, monitoringScans,
-              policyEvaluationsCache, policyViolationsByEvaluationCache);
+          savePolicyEvaluations(em, application, stageId, primaryEvaluations, monitoringScans, policyEvaluationsCache,
+              policyViolationsByEvaluationCache, componentsByScanCache);
           evaluationCount += primaryEvaluations.size();
 
           // Migrate only the most recent re-evaluation for each scan
@@ -187,10 +191,13 @@ public class PolicyEvaluationMigrator
               GROUP_BY_SCAN);
           for (Entry<String, Collection<PolicyEvaluation>> scanIdToPolicyEvaluation : groupedByScanId.asMap().entrySet()) {
             List<PolicyEvaluation> reevaluations = Lists.newArrayList(Iterables.limit(scanIdToPolicyEvaluation.getValue(), 1));
-            savePolicyEvaluations(em, application.getId(), stageId, reevaluations, monitoringScans,
-                policyEvaluationsCache, policyViolationsByEvaluationCache);
+            savePolicyEvaluations(em, application, stageId, reevaluations, monitoringScans, policyEvaluationsCache,
+                policyViolationsByEvaluationCache, componentsByScanCache);
             evaluationCount += reevaluations.size();
           }
+
+          // Migrate the components in use in each application, by stage.
+          saveApplicationComponents(em, application.getId(), stageId, componentsByScanCache);
         }
         evaluationCount += monitoringScans.size();
 
@@ -247,11 +254,13 @@ public class PolicyEvaluationMigrator
     }
   }
 
-  private void savePolicyEvaluations(final EntityManager em, final String applicationId, final String stageId,
+  private void savePolicyEvaluations(final EntityManager em, final Application app, final String stageId,
       final Collection<PolicyEvaluation> policyEvaluations, final Set<String> monitoringScans,
       final List<PolicyEvaluation> policyEvaluationsCache,
-      final Map<String, List<PolicyViolation>> policyViolationsByEvaluationCache) throws IOException
+      final Map<String, List<PolicyViolation>> policyViolationsByEvaluationCache,
+      final Map<String, List<Component>> componentsByScanCache) throws IOException
   {
+    String applicationId = app.getId();
     for (PolicyEvaluation policyEvaluation : policyEvaluations) {
       policyEvaluation.setStageTypeId(stageId);
       policyEvaluation.setApplicationId(applicationId);
@@ -262,7 +271,12 @@ public class PolicyEvaluationMigrator
       String scanId = policyEvaluation.getScanId();
       List<PolicyAlert> policyAlerts = findPolicyAlerts(applicationId, scanId,
           determinePolicyAlertsFileName(policyEvaluation));
-      Map<String, List<String>> hashToPathnames = loadPathnames(applicationId, scanId);
+      List<Component> components = componentsByScanCache.get(scanId);
+      if (components == null) {
+        components = loadComponents(app, scanId);
+        componentsByScanCache.put(scanId, components);
+      }
+      Map<String, List<String>> hashToPathnames = loadPathnames(components);
       savePolicyAlerts(em, policyEvaluation.getId(), policyAlerts, policyViolationsByEvaluationCache, hashToPathnames);
 
       /* check for existence of monitoring results */
@@ -310,6 +324,30 @@ public class PolicyEvaluationMigrator
         policyViolationDAO.insert(em, policyViolation);
         policyViolations.add(policyViolation);
       }
+    }
+  }
+
+  private void saveApplicationComponents(EntityManager em, String appId, String stageTypeId,
+      Map<String, List<Component>> componentsByScanCache)
+  {
+    PolicyEvaluation policyEvaluation = policyEvaluationDAO.getLastByApplicationIdAndStageId(em, appId, stageTypeId);
+    if (policyEvaluation == null) {
+      return;
+    }
+
+    List<Component> components = componentsByScanCache.get(policyEvaluation.getScanId());
+    if (components == null || components.isEmpty()) {
+      return;
+    }
+
+    for (Component component : components) {
+      if (component.getHash() == null) {
+        continue;
+      }
+      ApplicationComponent applicationComponent = new ApplicationComponent(appId, stageTypeId, component.getHash(),
+          component.getGroupId(), component.getArtifactId(), component.getVersion(), component.getMatchState().getId(),
+          component.getIdentificationSource().getId(), component.isProprietary(), component.getPathnames());
+      applicationComponentDAO.insert(em, applicationComponent);
     }
   }
 
@@ -371,39 +409,29 @@ public class PolicyEvaluationMigrator
     return "policy-evaluations-" + stageId + ".json";
   }
 
-  private Map<String, List<String>> loadPathnames(String appId, String scanId) {
-    Application application = appDAO.getById(appId);
-
-    File reportFile = insightWork.getReportFile(appId, scanId);
-    if (reportFile == null || !reportFile.exists()) {
-      log.warn(
-          "Unable to load component pathnames for {} for scan {} as the report file does not exist. Migrated evaluations will exclude pathnames.",
-          application.getPublicId(), scanId);
-      return Collections.emptyMap();
-    }
-
-    ReportEntry bomReportEntry = null;
+  private List<Component> loadComponents(Application app, String scanId) {
     try {
-      bomReportEntry = Report.getEntry(reportFile, "bom.json");
-
-      if (bomReportEntry == null) {
-        log.warn(
-            "Unable to load component pathnames for {} for scan {} as bom.json could not be loaded. Migrated evaluations will exclude pathnames.",
-            application.getPublicId(), scanId);
-        return Collections.emptyMap();
+      File reportFile = insightWork.getReportFile(app.getId(), scanId);
+      if (reportFile == null || !reportFile.exists()) {
+        throw new RuntimeException("Report does not exist.");
       }
 
-      return toHashToPathnamesMap(new ComponentDAO().getAll(application, null, null, bomReportEntry.buf));
+      ReportEntry bomReportEntry = Report.getEntry(reportFile, "bom.json");
+      if (bomReportEntry == null) {
+        throw new RuntimeException("bom.json does not exist.");
+      }
+
+      return new ComponentDAO().getAll(app, null, null, bomReportEntry.buf);
     }
     catch (Exception e) {
       log.warn(
-          "An error occured while attempting to load component pathnames for {} for scan {}. Migrated evaluations will exclude pathnames.",
-          application.getPublicId(), scanId, e);
-      return Collections.emptyMap();
+          "An error occured while attempting to load component data for application {} and scan {}. Migrated evaluations will miss component details. Details: {}",
+          app.getName(), scanId, e.getMessage(), e);
+      return Collections.emptyList();
     }
   }
 
-  private Map<String, List<String>> toHashToPathnamesMap(List<Component> components) {
+  private Map<String, List<String>> loadPathnames(List<Component> components) {
     Map<String, List<String>> mappedComponents = new HashMap<String, List<String>>();
 
     if (components == null || components.isEmpty()) {

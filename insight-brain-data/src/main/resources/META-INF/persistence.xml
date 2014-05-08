@@ -10,6 +10,7 @@
   <persistence-unit name="InsightBrainODS" transaction-type="RESOURCE_LOCAL">
     <provider>org.apache.openjpa.persistence.PersistenceProviderImpl</provider>
     <class>com.sonatype.insight.brain.model.Application</class>
+    <class>com.sonatype.insight.brain.model.ApplicationComponent</class>
     <class>com.sonatype.insight.brain.model.Organization</class>
     <class>com.sonatype.insight.brain.model.component.HashGAV</class>
     <class>com.sonatype.insight.brain.model.label.Label</class>
@@ -50,6 +51,8 @@
       http://openjpa.apache.org/builds/2.2.1/apache-openjpa/docs/ref_guide_remote.html#ref_guide_detach_graph
       -->
       <property name="openjpa.DetachState" value="all"/>
+      <!-- By default, openjpa re-orders SQL operations to do inserts, updates, deletes. We don't want that. -->
+      <property name="openjpa.jdbc.UpdateManager" value="batching-operation-order"/>
       <!-- To log queries and query parameter values:
       <property name="openjpa.ConnectionFactoryProperties" value="PrintParameters=True"/>      
       <property name="openjpa.Log" value="DefaultLevel=TRACE, Runtime=INFO, Tool=INFO, SQL=TRACE"/>

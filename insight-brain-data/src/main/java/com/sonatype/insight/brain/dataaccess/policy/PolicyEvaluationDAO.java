@@ -61,11 +61,21 @@ public class PolicyEvaluationDAO
     }
   }
 
-  public PolicyEvaluation getLastByApplicationIdAndStageId(String appId, String stageTypeId) {
+  public PolicyEvaluation getLastByApplicationIdAndStageId(EntityManager em, String appId, String stageTypeId) {
     String sQuery = "SELECT entity FROM PolicyEvaluation entity" + //
         " WHERE entity.applicationId=?1 AND entity.stageTypeId=?2" + //
         " ORDER BY entity.time DESC";
-    return createQuery(sQuery, appId, stageTypeId).forceSingleResult().get();
+    return createQuery(sQuery, appId, stageTypeId).forceSingleResult().get(em);
+  }
+
+  public PolicyEvaluation getLastByApplicationIdAndStageId(String appId, String stageTypeId) {
+    EntityManager em = createEntityManager();
+    try {
+      return getLastByApplicationIdAndStageId(em, appId, stageTypeId);
+    }
+    finally {
+      close(em);
+    }
   }
 
   /**

@@ -12,6 +12,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
+import com.sonatype.clm.dto.model.policy.ConditionFact;
+import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.insight.brain.configuration.ldap.LdapAuthenticationMethod;
 import com.sonatype.insight.brain.configuration.ldap.LdapConnection;
 import com.sonatype.insight.brain.configuration.ldap.LdapGroupMappingType;
@@ -41,9 +43,12 @@ import com.sonatype.insight.brain.dataaccess.tag.ApplicationTagDAO;
 import com.sonatype.insight.brain.dataaccess.tag.PolicyTagDAO;
 import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.ApplicationComponent;
 import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.component.HashGAV;
+import com.sonatype.insight.brain.model.component.IdentificationSource;
+import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.filter.DashboardFilter;
 import com.sonatype.insight.brain.model.label.ComponentLabel;
 import com.sonatype.insight.brain.model.label.Label;
@@ -98,6 +103,8 @@ public class TemporaryEntity
   private final LabelDAO labelDAO = new LabelDAO();
 
   private final TagDAO tagDAO = new TagDAO();
+
+  private final ApplicationComponentDAO appComponentDAO = new ApplicationComponentDAO();
 
   private final ApplicationTagDAO appTagDAO = new ApplicationTagDAO();
 
@@ -495,12 +502,19 @@ public class TemporaryEntity
     return policyTag;
   }
 
-  public Policy newPolicy(String ownerId, String name) {
-    return newPolicy(ownerId, null /* id */, name);
+  public Policy newPolicy(String ownerId, String name, int threatLevel) {
+    Policy policy = new Policy(null /* id */, name);
+    policy.setOwnerId(ownerId);
+    policy.setThreatLevel(threatLevel);
+    Constraint constraint = new Constraint(null, "Test Constraint", LogicalOperator.AND);
+    constraint.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
+    policy.addConstraint(constraint);
+    policyDAO.insert(policy);
+    return policy;
   }
 
-  public Policy newPolicy(String ownerId, String name, int threatLevel) {
-    return newPolicy(ownerId, null, name, threatLevel);
+  public Policy newPolicy(String ownerId, String name) {
+    return newPolicy(ownerId, null /* id */, name);
   }
 
   public Policy newPolicy(String ownerId, String id, String name) {
@@ -549,6 +563,22 @@ public class TemporaryEntity
     return policyEvaluation;
   }
 
+  public PolicyViolation newPolicyViolation(String policyEvaluationId, Policy policy, String groupId,
+      String artifactId, String version, String hash, String reason)
+  {
+    Constraint constraint = policy.getConstraints().get(0);
+    Condition condition = constraint.getConditions().get(0);
+    ConstraintFact constraintFact = new ConstraintFact(constraint.getId(), constraint.getName(), constraint
+        .getOperator().name());
+    ConditionFact conditionFact = new ConditionFact(condition.getConditionTypeId(), "summary", reason);
+    constraintFact.addConditionFact(conditionFact);
+    PolicyViolation policyViolation = new PolicyViolation(policyEvaluationId, policy.getId(), policy.getName(),
+        policy.getThreatLevel(), policy.getThreatCategory(), hash, groupId, artifactId, version,
+        Collections.singletonList(constraintFact), null /* pathnames */);
+    policyViolationDAO.insert(policyViolation);
+    return policyViolation;
+  }
+
   public PolicyViolation newPolicyViolation(String policyEvaluationId, Policy policy) {
     return newPolicyViolation(policyEvaluationId, policy, policy.getThreatLevel(), PolicyThreatCategory.LICENSE,
         "Group1", "Artifact1", "Version1");
@@ -556,9 +586,15 @@ public class TemporaryEntity
 
   public PolicyViolation newPolicyViolation(String policyEvaluationId, Policy policy, int threatLevel,
                                             PolicyThreatCategory category, String groupId, String artifactId, String version) {
+    return newPolicyViolation(policyEvaluationId, policy, threatLevel, category, groupId, artifactId, version, "hash");
+  }
+
+  public PolicyViolation newPolicyViolation(String policyEvaluationId, Policy policy, int threatLevel,
+      PolicyThreatCategory category, String groupId, String artifactId, String version, String hash)
+  {
     PolicyViolation policyViolation = new PolicyViolation(policyEvaluationId, policy.getId(), policy.getName(),
-        threatLevel, category, "hash", groupId, artifactId, version, "[]", groupId + "." + artifactId + "." + version
-            + ".jar");
+        threatLevel, category, hash, groupId, artifactId, version, "[]", groupId + "." + artifactId + "." + version
+        + ".jar");
     policyViolationDAO.insert(policyViolation);
     return policyViolation;
   }
@@ -571,4 +607,14 @@ public class TemporaryEntity
     newestPolicyViolationDAO.insert(newestPolicyViolation);
     return newestPolicyViolation;
   }
+
+  public ApplicationComponent newApplicationComponent(String applicationId, String stageTypeId, String hash,
+      String groupId, String artifactId, String version)
+  {
+    ApplicationComponent applicationComponent = new ApplicationComponent(applicationId, stageTypeId, hash, groupId,
+        artifactId, version, MatchState.EXACT.getId(), IdentificationSource.SONATYPE.getId(), false /* proprietary */,
+        null /* pathnames */);
+    appComponentDAO.insert(applicationComponent);
+    return applicationComponent;
+}
 }

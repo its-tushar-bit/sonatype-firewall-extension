@@ -18,6 +18,7 @@ import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.AuthedRestAccess;
+import com.sonatype.insight.brain.dataaccess.ApplicationComponentDAO;
 import com.sonatype.insight.brain.dataaccess.component.HashGAVDAO;
 import com.sonatype.insight.brain.dataaccess.policy.NewestPolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
@@ -25,6 +26,7 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.ApplicationComponent;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.HashGAV;
 import com.sonatype.insight.brain.model.component.MatchState;
@@ -47,6 +49,7 @@ import com.sonatype.insight.brain.model.policy.conditions.LicenseStatusCondition
 import com.sonatype.insight.brain.model.policy.conditions.MatchStateConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityConditionType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
+import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.brain.organization.ContactDTO;
 import com.sonatype.insight.brain.policy.PolicyResource;
 import com.sonatype.insight.brain.report.ReportResource;
@@ -62,6 +65,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.jvnet.mock_javamail.Mailbox;
 
+import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
@@ -340,6 +344,10 @@ public class PolicyEvaluateResourceTest
     messagesA.clear();
     messagesB.clear();
 
+    ApplicationComponentDAO appComponentDAO = new ApplicationComponentDAO();
+    assertThat(appComponentDAO.getByApplicationIdAndStageTypeId(application.getId(), stage.getStageTypeId()),
+        is(empty()));
+
     // evaluate policy
     Response response = AuthedRestAccess.post(getServiceURL(applicationPublicId, scanId), JsonHelpers.asJson(stage));
     assertResponseStatus(200, response);
@@ -362,6 +370,10 @@ public class PolicyEvaluateResourceTest
     Assert.assertNotNull(policyThreats);
     Assert.assertTrue(policyThreats.size() > 0);
     Assert.assertEquals(8, policyThreats.get(0).get("policyThreatLevel").asInt());
+
+    // check components are associated with the application and stage
+    assertThat(appComponentDAO.getByApplicationIdAndStageTypeId(application.getId(), stage.getStageTypeId()),
+        hasSize(28));
 
     // notification message should also have been sent
     Assert.assertEquals(1, messagesA.size());
@@ -828,6 +840,83 @@ public class PolicyEvaluateResourceTest
     NewestPolicyViolation newestPolicyViolationUnchanged2 = newestPolicyViolationDAO.getById(policyViolations2.get(1)
         .getId());
     assertThat(newestPolicyViolationUnchanged2.getId(), is(newestPolicyViolationUnchanged1.getId()));
+  }
+
+  @Test
+  public void testEvaluate_PersistApplicationComponents() throws Exception {
+    String applicationPublicId = "testEvaluatePersistApplicationComponents";
+    Application app = tempEntity.newApplicationWithParent(applicationPublicId);
+    String licenseFingerprint = "testEvaluatePersistApplicationComponents";
+    setLicenseFingerprint(licenseFingerprint);
+
+    Stage stage1 = new Stage(BuildStageType.ID);
+    Stage stage2 = new Stage(ReleaseStageType.ID);
+
+    // Simulate that the report is available
+    String scanId1 = "testEvaluatePersistApplicationComponents1";
+    File saasReportFile1 = getReportResponseFile(licenseFingerprint, scanId1);
+    saasReportFile1.delete();
+    URL testReportFileUrl1 = getClass().getResource(
+        "/PolicyEvaluateResourceTest/PersistApplicationComponents/report1.zip");
+    FileUtils.copyFile(new File(testReportFileUrl1.getFile()), saasReportFile1);
+    String scanId2 = "testEvaluatePersistApplicationComponents2";
+    File saasReportFile2 = getReportResponseFile(licenseFingerprint, scanId2);
+    saasReportFile2.delete();
+    URL testReportFileUrl2 = getClass().getResource(
+        "/PolicyEvaluateResourceTest/PersistApplicationComponents/report2.zip");
+    FileUtils.copyFile(new File(testReportFileUrl2.getFile()), saasReportFile2);
+    String scanId3 = "testEvaluatePersistApplicationComponents3";
+    File saasReportFile3 = getReportResponseFile(licenseFingerprint, scanId3);
+    saasReportFile3.delete();
+    URL testReportFileUrl3 = getClass().getResource(
+        "/PolicyEvaluateResourceTest/PersistApplicationComponents/report3.zip");
+    FileUtils.copyFile(new File(testReportFileUrl3.getFile()), saasReportFile3);
+
+    // Evaluate policy
+    ApplicationComponentDAO appComponentDAO = new ApplicationComponentDAO();
+    assertThat(appComponentDAO.getByApplicationIdAndStageTypeId(app.getId(), stage1.getStageTypeId()), is(empty()));
+    Response response = AuthedRestAccess.post(getServiceURL(applicationPublicId, scanId1), JsonHelpers.asJson(stage1));
+    assertResponseStatus(200, response);
+    List<ApplicationComponent> appComponents1 = appComponentDAO.getByApplicationIdAndStageTypeId(app.getId(),
+        stage1.getStageTypeId());
+    assertThat(appComponents1, hasSize(1));
+    ApplicationComponent appComponent1 = appComponents1.get(0);
+    assertApplicationComponent("commons-dbcp", "commons-dbcp", "1.4", appComponent1);
+
+    // Evaluate policy for a different stage. It should not touch the app<->component assocs for the first stage.
+    assertThat(appComponentDAO.getByApplicationIdAndStageTypeId(app.getId(), stage2.getStageTypeId()), is(empty()));
+    response = AuthedRestAccess.post(getServiceURL(applicationPublicId, scanId2), JsonHelpers.asJson(stage2));
+    assertResponseStatus(200, response);
+    List<ApplicationComponent> appComponents2 = appComponentDAO.getByApplicationIdAndStageTypeId(app.getId(),
+        stage2.getStageTypeId());
+    assertThat(appComponents2, hasSize(1));
+    ApplicationComponent appComponent2 = appComponents2.get(0);
+    assertApplicationComponent("geronimo", "geronimo-tomcat", "1.0", appComponent2);
+    appComponents1 = appComponentDAO.getByApplicationIdAndStageTypeId(app.getId(), stage1.getStageTypeId());
+    assertThat(appComponents1, hasSize(1));
+    assertApplicationComponent("commons-dbcp", "commons-dbcp", "1.4", appComponents1.get(0));
+    assertThat(appComponents1.get(0).getId(), is(appComponent1.getId()));
+
+    // Evaluate again for the first stage. It should replace the app<->component assocs for the first stage and it
+    // should not touch the app<->component assocs for the second stage.
+    response = AuthedRestAccess.post(getServiceURL(applicationPublicId, scanId3), JsonHelpers.asJson(stage1));
+    assertResponseStatus(200, response);
+    List<ApplicationComponent> appComponents3 = appComponentDAO.getByApplicationIdAndStageTypeId(app.getId(),
+        stage1.getStageTypeId());
+    assertThat(appComponents3, hasSize(1));
+    ApplicationComponent appComponent3 = appComponents3.get(0);
+    assertApplicationComponent("tomcat", "tomcat-util", "5.5.23", appComponent3);
+    appComponents2 = appComponentDAO.getByApplicationIdAndStageTypeId(app.getId(), stage2.getStageTypeId());
+    assertThat(appComponents2, hasSize(1));
+    assertApplicationComponent("geronimo", "geronimo-tomcat", "1.0", appComponents2.get(0));
+    assertThat(appComponents2.get(0).getId(), is(appComponent2.getId()));
+  }
+
+  private void assertApplicationComponent(String groupId, String artifactId, String version, ApplicationComponent actual)
+  {
+    assertThat(actual.getGroupId(), is(groupId));
+    assertThat(actual.getArtifactId(), is(artifactId));
+    assertThat(actual.getVersion(), is(version));
   }
 
   @Test

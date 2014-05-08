@@ -106,4 +106,11 @@ public class PolicyViolationDAO
     entity.setTime(policyEvaluation.getTime());
     super.insert(em, entity);
   }
+
+  public List<PolicyViolation> getByEvaluationIdAndHash(String evaluationId, String hash) {
+    String sQuery = "SELECT entity FROM PolicyViolation entity" + //
+        " WHERE entity.policyEvaluationId=?1 AND entity.hash=?2" + //
+        " ORDER BY entity.policyId";
+    return getList(sQuery, evaluationId, hash);
+  }
 }

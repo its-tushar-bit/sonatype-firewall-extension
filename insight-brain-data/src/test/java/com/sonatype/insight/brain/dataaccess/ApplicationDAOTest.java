@@ -28,6 +28,7 @@ import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
 import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
 import com.sonatype.insight.brain.dataaccess.tag.ApplicationTagDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.ApplicationComponent;
 import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.NameHelper;
@@ -438,6 +439,16 @@ public class ApplicationDAOTest
     applicationDAO.delete(application);
 
     assertThat(appTagDAO.getByApplicationId(applicationId), is(empty()));
+  }
+
+  @Test
+  public void testCascadeDeleteToApplicationComponents() {
+    ApplicationComponent applicationComponent = tempEntity.newApplicationComponent(applicationId, BuildStageType.ID,
+        "hash", "groupId", "artifactId", "version");
+
+    applicationDAO.delete(application);
+
+    assertThat(new ApplicationComponentDAO().getById(applicationComponent.getId()), is(nullValue()));
   }
 
   @Test

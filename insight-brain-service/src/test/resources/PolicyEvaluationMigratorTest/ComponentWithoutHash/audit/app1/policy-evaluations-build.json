@@ -1,0 +1,15 @@
+[
+  {
+    "time": 1395857108660,
+    "user": "anonymous",
+    "ip": "127.0.0.1",
+    "where": "",
+    "data": {
+      "stage": {
+        "stageTypeId": "build"
+      },
+      "scanId": "buildScan",
+      "reevaluation": false
+    }
+  }
+]

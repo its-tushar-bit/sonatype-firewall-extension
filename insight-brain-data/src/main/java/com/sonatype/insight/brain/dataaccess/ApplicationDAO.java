@@ -25,6 +25,7 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
 import com.sonatype.insight.brain.dataaccess.tag.ApplicationTagDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.ApplicationComponent;
 import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.model.Organization;
@@ -332,6 +333,13 @@ public class ApplicationDAO
     List<ApplicationTag> appTags = applicationTagDAO.getByApplicationId(em, application.getId());
     for (ApplicationTag appTag : appTags) {
       applicationTagDAO.delete(em, appTag);
+    }
+
+    // Cascade to components
+    ApplicationComponentDAO applicationComponentDAO = new ApplicationComponentDAO();
+    List<ApplicationComponent> appComponents = applicationComponentDAO.getByApplicationId(em, application.getId());
+    for (ApplicationComponent appComponent : appComponents) {
+      applicationComponentDAO.delete(em, appComponent);
     }
 
     super.delete(em, application);

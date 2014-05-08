@@ -26,6 +26,7 @@ import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
 import com.sonatype.insight.brain.ldap.TestLdapServer;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.Role;
@@ -64,7 +65,9 @@ public class ApiApplicationResourceTest
 
   private User userB;
 
-  private Tag tag;
+  private Tag tagA;
+
+  private Tag tagB;
 
   @Rule
   public TestLdapServer embeddedLdapServer = new TestLdapServer();
@@ -75,7 +78,8 @@ public class ApiApplicationResourceTest
     app = tempEntity.newApplication("test-app", "test-app", organization.getId());
     userA = tempEntity.newUser("user-a", "John", "Doe", "void@void.com");
     userB = tempEntity.newUser("user-b", "Jane", "Doe", "void@void.com");
-    tag = tempEntity.newTag(organization.getId());
+    tagA = tempEntity.newTag(organization.getId(), "TagA", Color.red);
+    tagB = tempEntity.newTag(organization.getId(), "TagB", Color.red);
   }
 
   @Test
@@ -83,15 +87,15 @@ public class ApiApplicationResourceTest
     final String applicationPublicId = "testID";
     final String applicationName = "test-application-name";
 
-    final ApiApplicationDTO applicationDTO = new ApiApplicationDTO();
+    ApiApplicationDTO applicationDTO = new ApiApplicationDTO();
     applicationDTO.publicId = applicationPublicId;
     applicationDTO.name = applicationName;
     applicationDTO.organizationId = organization.getId();
     applicationDTO.contactUserName = userA.getUsername();
     applicationDTO.applicationTags = new ArrayList<>();
-    ApiApplicationTagDTO applicationTagDTO = new ApiApplicationTagDTO();
-    applicationTagDTO.tagId = tag.getId();
-    applicationDTO.applicationTags.add(applicationTagDTO);
+    ApiApplicationTagDTO applicationTagADTO = new ApiApplicationTagDTO();
+    applicationTagADTO.tagId = tagA.getId();
+    applicationDTO.applicationTags.add(applicationTagADTO);
 
     // Test the post
     Response response = AuthedRestAccess.post(getServiceURL(), JsonHelpers.asJson(applicationDTO));
@@ -101,6 +105,18 @@ public class ApiApplicationResourceTest
 
     // Test the get
     response = AuthedRestAccess.get(getServiceURL() + "/" + applicationResult.id);
+    assertResponseStatus(200, response);
+    applicationResult = JsonHelpers.fromJson(response.getResponseBody(), ApiApplicationDTO.class);
+    assertApplication(applicationResult, applicationDTO);
+
+    // Test the update
+    applicationDTO = applicationResult;
+    applicationDTO.contactUserName = userB.getUsername();
+    ApiApplicationTagDTO applicationTagBDTO = new ApiApplicationTagDTO();
+    applicationTagBDTO.tagId = tagB.getId();
+    applicationDTO.applicationTags.clear();
+    applicationDTO.applicationTags.add(applicationTagBDTO);
+    response = AuthedRestAccess.put(getServiceURL(), JsonHelpers.asJson(applicationDTO));
     assertResponseStatus(200, response);
     applicationResult = JsonHelpers.fromJson(response.getResponseBody(), ApiApplicationDTO.class);
     assertApplication(applicationResult, applicationDTO);

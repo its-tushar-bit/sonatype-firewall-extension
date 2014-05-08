@@ -580,7 +580,7 @@ public class ApplicationResourceTest
 
     Response response = AuthedRestAccess.put(getServiceURL(), JsonHelpers.asJson(application));
     assertResponseStatus(400, response);
-    Assert.assertEquals("Applications must have a parent organization.", response.getResponseBody());
+    Assert.assertEquals("Cannot change the parent organization of an application.", response.getResponseBody());
   }
 
   @Test

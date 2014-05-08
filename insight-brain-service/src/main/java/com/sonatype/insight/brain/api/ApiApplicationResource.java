@@ -78,6 +78,13 @@ public class ApiApplicationResource
     return apiApplicationService.addApplication(applicationDTO);
   }
 
+  @PUT
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Produces(MediaType.APPLICATION_JSON)
+  public ApiApplicationDTO updateApplication(final ApiApplicationDTO applicationDTO) {
+    return apiApplicationService.updateApplication(applicationDTO);
+  }
+
   @GET
   @Path(ROLE_PATH)
   @Produces({MediaType.APPLICATION_JSON})

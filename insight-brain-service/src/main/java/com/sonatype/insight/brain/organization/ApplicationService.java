@@ -15,7 +15,6 @@ import javax.inject.Named;
 import javax.persistence.EntityManager;
 
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
-import com.sonatype.insight.brain.dataaccess.InvalidApplicationException;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.security.Authorize;
@@ -97,11 +96,7 @@ public class ApplicationService
 
   @Authorize(permission = Permission.WRITE)
   public Application updateApplication(@AuthzContext(AuthzContext.Key.APPLICATION) Application application) {
-    if (application.getOrganizationId() == null) {
-      throw new InvalidApplicationException("Applications must have a parent organization.");
-    }
     applicationDAO.update(application);
-
     return application;
   }
 

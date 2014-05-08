@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.api.service;
 
 import javax.inject.Inject;
 
+import com.sonatype.insight.brain.api.ApiApplicationAdapter;
 import com.sonatype.insight.brain.api.dto.ApiApplicationDTO;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
@@ -25,6 +26,7 @@ public class ApiApplicationServiceAuthzTest
 
   private ApplicationDAO applicationDAO = new ApplicationDAO();
 
+  private ApiApplicationAdapter apiApplicationAdapter = new ApiApplicationAdapter();
 
   @Test
   public void testGetApplication_Authorized() {
@@ -62,9 +64,29 @@ public class ApiApplicationServiceAuthzTest
 
   @Test(expected = UnauthorizedException.class)
   public void testAddApplication_UnauthorizedButAuthenticated() {
-    login();
+    grantReadPermission(app.getId());
     ApiApplicationDTO applicationDTO = createApplicationDTO();
     apiApplicationService.addApplication(applicationDTO);
+  }
+
+  @Test
+  public void testUpdateApplication_Authorized() {
+    grantWritePermission(app.getId());
+    ApiApplicationDTO applicationDTO = apiApplicationAdapter.convertToDTO(app);
+    apiApplicationService.updateApplication(applicationDTO);
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testUpdateApplication_Unauthenticated() {
+    ApiApplicationDTO applicationDTO = apiApplicationAdapter.convertToDTO(app);
+    apiApplicationService.updateApplication(applicationDTO);
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testUpdateApplication_UnauthorizedButAuthenticated() {
+    grantReadPermission(app.getId());
+    ApiApplicationDTO applicationDTO = apiApplicationAdapter.convertToDTO(app);
+    apiApplicationService.updateApplication(applicationDTO);
   }
 
   @Test

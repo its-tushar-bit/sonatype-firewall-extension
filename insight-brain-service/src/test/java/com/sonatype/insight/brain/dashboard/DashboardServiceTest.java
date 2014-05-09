@@ -505,8 +505,6 @@ public class DashboardServiceTest
         riskDTO.gavs,
         containsInAnyOrder(new ComponentRiskDTO.GavDTO(violation.getGroupId(), violation.getArtifactId(), violation
             .getVersion())));
-    assertThat(riskDTO.affectedApplicationNames, containsInAnyOrder(app1.getName(), app2.getName()));
-    assertThat(riskDTO.violatedPolicyNames, containsInAnyOrder(app1Policy.getName(), orgPolicy.getName()));
     assertThat(riskDTO.score, is(violation.getThreatLevel() + orgPolicy.getThreatLevel() * 2));
   }
 
@@ -519,8 +517,6 @@ public class DashboardServiceTest
     assertThat(riskDTO.hash, is(app2PolicyViolation.getHash()));
     assertThat(riskDTO.gavs, containsInAnyOrder(new ComponentRiskDTO.GavDTO(app2PolicyViolation.getGroupId(),
         app2PolicyViolation.getArtifactId(), app2PolicyViolation.getVersion())));
-    assertThat(riskDTO.affectedApplicationNames, containsInAnyOrder(app2.getName()));
-    assertThat(riskDTO.violatedPolicyNames, containsInAnyOrder(orgPolicy.getName()));
     assertThat(riskDTO.score, is(orgPolicy.getThreatLevel()));
   }
 
@@ -539,8 +535,6 @@ public class DashboardServiceTest
         riskDTO.gavs,
         containsInAnyOrder(new ComponentRiskDTO.GavDTO(violation.getGroupId(), violation.getArtifactId(), violation
             .getVersion())));
-    assertThat(riskDTO.affectedApplicationNames, containsInAnyOrder(app1.getName()));
-    assertThat(riskDTO.violatedPolicyNames, containsInAnyOrder(app1Policy.getName()));
     assertThat(riskDTO.score, is(app1Policy.getThreatLevel()));
   }
 
@@ -556,8 +550,6 @@ public class DashboardServiceTest
     assertThat(riskDTO.hash, is(app2PolicyViolation.getHash()));
     assertThat(riskDTO.gavs, containsInAnyOrder(new ComponentRiskDTO.GavDTO(app2PolicyViolation.getGroupId(),
         app2PolicyViolation.getArtifactId(), app2PolicyViolation.getVersion())));
-    assertThat(riskDTO.affectedApplicationNames, containsInAnyOrder(app2.getName()));
-    assertThat(riskDTO.violatedPolicyNames, containsInAnyOrder(orgPolicy.getName()));
     assertThat(riskDTO.score, is(orgPolicy.getThreatLevel()));
   }
 
@@ -575,8 +567,6 @@ public class DashboardServiceTest
         riskDTO.gavs,
         containsInAnyOrder(new ComponentRiskDTO.GavDTO(violation.getGroupId(), violation.getArtifactId(), violation
             .getVersion())));
-    assertThat(riskDTO.affectedApplicationNames, containsInAnyOrder(app1.getName()));
-    assertThat(riskDTO.violatedPolicyNames, containsInAnyOrder(app1Policy.getName()));
     assertThat(riskDTO.score, is(app1Policy.getThreatLevel()));
   }
 
@@ -589,8 +579,6 @@ public class DashboardServiceTest
     assertThat(riskDTO.hash, is(orgPolicyViolation.getHash()));
     assertThat(riskDTO.gavs, containsInAnyOrder(new ComponentRiskDTO.GavDTO(orgPolicyViolation.getGroupId(),
         orgPolicyViolation.getArtifactId(), orgPolicyViolation.getVersion())));
-    assertThat(riskDTO.affectedApplicationNames, containsInAnyOrder(app1.getName(), app2.getName()));
-    assertThat(riskDTO.violatedPolicyNames, containsInAnyOrder(orgPolicy.getName()));
     assertThat(riskDTO.score, is(orgPolicy.getThreatLevel() * 2));
   }
 

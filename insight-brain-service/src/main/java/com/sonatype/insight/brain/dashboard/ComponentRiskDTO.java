@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.dashboard;
 
 import java.util.HashSet;
 import java.util.Set;
-import java.util.TreeSet;
 
 /**
  * Carries the data backing the "Highest Risk Component View", i.e. roll-up of violations by component.
@@ -28,10 +27,6 @@ public class ComponentRiskDTO
   public int scoreLow;
 
   public Set<GavDTO> gavs = new HashSet<>();
-
-  public Set<String> affectedApplicationNames = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
-
-  public Set<String> violatedPolicyNames = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
 
   public static class GavDTO
   {

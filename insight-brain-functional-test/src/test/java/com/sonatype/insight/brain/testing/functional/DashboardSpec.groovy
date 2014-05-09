@@ -320,6 +320,7 @@ class DashboardSpec
       dto.applicationFilters.contains(secondApp.publicId)
       dto.tagFilters.contains(firstAppTag.id)
       dto.policyThreatCategoryFilters.contains(PolicyThreatCategory.SECURITY)
+      dto.policyThreatCategoryFilters.contains(PolicyThreatCategory.OTHER)
       dto.stageTypeFilters.contains('release')
   }
 

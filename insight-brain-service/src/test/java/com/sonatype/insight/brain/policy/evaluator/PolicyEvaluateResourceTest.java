@@ -51,7 +51,6 @@ import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityC
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.brain.organization.ContactDTO;
-import com.sonatype.insight.brain.policy.PolicyResource;
 import com.sonatype.insight.brain.report.ReportResource;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.json.store.JsonUtils;
@@ -62,6 +61,7 @@ import com.yammer.dropwizard.testing.JsonHelpers;
 import org.codehaus.plexus.util.FileUtils;
 import org.eclipse.jetty.http.HttpStatus;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 import org.jvnet.mock_javamail.Mailbox;
 
@@ -75,30 +75,23 @@ import static org.junit.Assert.assertThat;
 public class PolicyEvaluateResourceTest
     extends AbstractResourceTest
 {
-  private Response addPolicy(final String applicationPublicId, final Policy policy) throws Exception {
-    final Response response = AuthedRestAccess.post(
-        getRestUrl(PolicyResource.SERVICE_PATH, "application", applicationPublicId),
-        JsonHelpers.asJson(policy));
-    assertResponseStatus(200, response);
-    return response;
-  }
+  private String applicationPublicId = "PolicyEvaluateResourceTestAppPublicId";
 
-  private Response updatePolicy(final String applicationPublicId, final Policy policy) throws Exception {
-    final Response response = AuthedRestAccess.put(
-        getRestUrl(PolicyResource.SERVICE_PATH, "application", applicationPublicId),
-        JsonHelpers.asJson(policy));
-    assertResponseStatus(200, response);
+  private String licenseFingerprint = "PolicyEvaluateResourceTest_LicenseFingerprint";
 
-    return response;
+  private PolicyDAO policyDAO = new PolicyDAO();
+
+  private Application app;
+
+  @Before
+  public void before() throws Exception {
+    app = tempEntity.newApplicationWithParent(applicationPublicId);
+    setLicenseFingerprint(licenseFingerprint);
   }
 
   @Test
   public void testEvaluate_MultipleMatchesForSameGAV() throws Exception {
-    String applicationPublicId = "testEvaluate_MultipleMatchesForSameGAV_AppId";
-    tempEntity.newApplicationWithParent(applicationPublicId);
     String scanId = "testEvaluate_MultipleMatchesForSameGAV_ScanId";
-    String licenseFingerprint = "testEvaluate_MultipleMatchesForSameGAV_LicenseFingerprint";
-    setLicenseFingerprint(licenseFingerprint);
 
     File saasReportFile = getReportResponseFile(licenseFingerprint, scanId);
     saasReportFile.delete();
@@ -117,15 +110,15 @@ public class PolicyEvaluateResourceTest
     policy1.addConstraint(constraintLicense);
     policy1.addConstraint(constraintSV);
     policy1.addAction(BuildStageType.ID, action);
-    Response response = addPolicy(applicationPublicId, policy1);
-    policy1 = JsonHelpers.fromJson(response.getResponseBody(), Policy.class);
+    policy1.setOwnerId(app.getId());
+    policyDAO.insert(policy1);
     constraintLicense = policy1.getConstraints().get(0);
     constraintSV = policy1.getConstraints().get(1);
 
     Stage stage = new Stage(BuildStageType.ID);
 
     // The report file is not available yet
-    response = AuthedRestAccess.post(getServiceURL(applicationPublicId, scanId), JsonHelpers.asJson(stage));
+    Response response = AuthedRestAccess.post(getServiceURL(applicationPublicId, scanId), JsonHelpers.asJson(stage));
     assertResponseStatus(404, response);
 
     // Simulate that the report is available
@@ -165,11 +158,7 @@ public class PolicyEvaluateResourceTest
 
   @Test
   public void testEvaluate_ManuallyIdentifiedComponent() throws Exception {
-    String applicationPublicId = "testEvaluate_ManuallyIdentifiedComponent_AppId";
-    tempEntity.newApplicationWithParent(applicationPublicId);
     String scanId = "testEvaluate_ManuallyIdentifiedComponent_ScanId";
-    String licenseFingerprint = "testEvaluate_ManuallyIdentifiedComponent_LicenseFingerprint";
-    setLicenseFingerprint(licenseFingerprint);
 
     File saasReportFile = getReportResponseFile(licenseFingerprint, scanId);
     saasReportFile.delete();
@@ -184,8 +173,8 @@ public class PolicyEvaluateResourceTest
     policy1.setThreatLevel(5);
     policy1.addConstraint(constraint1);
     policy1.addAction(BuildStageType.ID, action);
-    Response response = addPolicy(applicationPublicId, policy1);
-    policy1 = JsonHelpers.fromJson(response.getResponseBody(), Policy.class);
+    policy1.setOwnerId(app.getId());
+    policyDAO.insert(policy1);
     constraint1 = policy1.getConstraints().get(0);
 
     Stage stage = new Stage(BuildStageType.ID);
@@ -199,7 +188,7 @@ public class PolicyEvaluateResourceTest
     HashGAVDAO hashGAVDAO = new HashGAVDAO();
     hashGAVDAO.insert(hashGAV);
     // The report file is not available yet
-    response = AuthedRestAccess.post(getServiceURL(applicationPublicId, scanId), JsonHelpers.asJson(stage));
+    Response response = AuthedRestAccess.post(getServiceURL(applicationPublicId, scanId), JsonHelpers.asJson(stage));
     assertResponseStatus(404, response);
 
     // Simulate that the report is available
@@ -242,11 +231,7 @@ public class PolicyEvaluateResourceTest
 
   private void testEvaluate_Label(boolean orgLabel, boolean orgComponentLabel) throws Exception {
     String hash = "1249e25aebb15358bedd";
-    String applicationPublicId = "testEvaluate_Label";
-    Application app = tempEntity.newApplicationWithParent(applicationPublicId);
     String scanId = "testEvaluate_Label_ScanId";
-    String licenseFingerprint = "testEvaluate_Label_LicenseFingerprint";
-    setLicenseFingerprint(licenseFingerprint);
     Label label = tempEntity.newLabel(orgLabel ? app.getOrganizationId() : app.getId(), "red");
     tempEntity.newComponentLabel(orgComponentLabel ? app.getOrganizationId() : app.getId(), label
         .getId(), hash);
@@ -261,8 +246,8 @@ public class PolicyEvaluateResourceTest
     policy1.setThreatLevel(5);
     policy1.addConstraint(constraint1);
     policy1.addAction(BuildStageType.ID, action);
-    Response response = addPolicy(applicationPublicId, policy1);
-    policy1 = JsonHelpers.fromJson(response.getResponseBody(), Policy.class);
+    policy1.setOwnerId(app.getId());
+    policyDAO.insert(policy1);
     constraint1 = policy1.getConstraints().get(0);
 
     Stage stage = new Stage(BuildStageType.ID);
@@ -273,7 +258,7 @@ public class PolicyEvaluateResourceTest
 
     URL testReportFileUrl = getClass().getResource("/PolicyEvaluateResourceTest/report.zip");
     FileUtils.copyFile(new File(testReportFileUrl.getFile()), saasReportFile);
-    response = AuthedRestAccess.post(getServiceURL(applicationPublicId, scanId), JsonHelpers.asJson(stage));
+    Response response = AuthedRestAccess.post(getServiceURL(applicationPublicId, scanId), JsonHelpers.asJson(stage));
     assertResponseStatus(200, response);
     PolicyEvaluationResult policyEval = JsonHelpers.fromJson(response.getResponseBody(), PolicyEvaluationResult.class);
     assertThat(policyEval, is(notNullValue()));
@@ -300,11 +285,7 @@ public class PolicyEvaluateResourceTest
 
   @Test
   public void testEvaluate() throws Exception {
-    final String applicationPublicId = "PolicyEvaluateResourceTest_AppId";
-    Application application = tempEntity.newApplicationWithParent(applicationPublicId);
     final String scanId = "PolicyEvaluateResourceTest_ScanId";
-    String licenseFingerprint = "PolicyEvaluateResourceTest_LicenseFingerprint";
-    setLicenseFingerprint(licenseFingerprint);
 
     final File saasReportFile = getReportResponseFile(licenseFingerprint, scanId);
     saasReportFile.delete();
@@ -321,7 +302,8 @@ public class PolicyEvaluateResourceTest
     final Action notifyAction2 = new Action(NotifyActionType.ID);
     notifyAction2.setTarget("john.doe@test.corp");
     policy1.addAction(BuildStageType.ID, notifyAction2);
-    addPolicy(applicationPublicId, policy1);
+    policy1.setOwnerId(app.getId());
+    policyDAO.insert(policy1);
 
     final Constraint constraint2 = new Constraint("C2", "PolicyEvaluateResourceTest constraint 2", LogicalOperator.AND);
     final Condition condition2 = new Condition(SecurityVulnerabilityConditionType.ID, "present");
@@ -330,7 +312,8 @@ public class PolicyEvaluateResourceTest
     final Policy policy2 = new Policy("P2", "PolicyEvaluateResourceTest policy2");
     policy2.setThreatLevel(3);
     policy2.addConstraint(constraint2);
-    addPolicy(applicationPublicId, policy2);
+    policy2.setOwnerId(app.getId());
+    policyDAO.insert(policy2);
 
     final Stage stage = new Stage(BuildStageType.ID);
 
@@ -345,7 +328,7 @@ public class PolicyEvaluateResourceTest
     messagesB.clear();
 
     ApplicationComponentDAO appComponentDAO = new ApplicationComponentDAO();
-    assertThat(appComponentDAO.getByApplicationIdAndStageTypeId(application.getId(), stage.getStageTypeId()),
+    assertThat(appComponentDAO.getByApplicationIdAndStageTypeId(app.getId(), stage.getStageTypeId()),
         is(empty()));
 
     // evaluate policy
@@ -361,7 +344,7 @@ public class PolicyEvaluateResourceTest
     Assert.assertNotNull(policyAlerts);
     Assert.assertEquals(2, policyAlerts.size());
     AbstractPolicyEvaluationTest.assertFactCounts(1, 7, policyAlerts.get(0));
-    assertPolicyEvaluation(application.getId(), scanId, false /* isReevaluation */);
+    assertPolicyEvaluation(app.getId(), scanId, false /* isReevaluation */);
 
     // check the calculated policy threat
     response = AuthedRestAccess.get(getThreatsURL(applicationPublicId, scanId));
@@ -372,7 +355,7 @@ public class PolicyEvaluateResourceTest
     Assert.assertEquals(8, policyThreats.get(0).get("policyThreatLevel").asInt());
 
     // check components are associated with the application and stage
-    assertThat(appComponentDAO.getByApplicationIdAndStageTypeId(application.getId(), stage.getStageTypeId()),
+    assertThat(appComponentDAO.getByApplicationIdAndStageTypeId(app.getId(), stage.getStageTypeId()),
         hasSize(28));
 
     // notification message should also have been sent
@@ -393,7 +376,7 @@ public class PolicyEvaluateResourceTest
     Assert.assertNotNull(policyAlerts);
     Assert.assertEquals(2, policyAlerts.size());
     AbstractPolicyEvaluationTest.assertFactCounts(1, 7, policyAlerts.get(0));
-    assertPolicyEvaluation(application.getId(), scanId, true /* isReevaluation */);
+    assertPolicyEvaluation(app.getId(), scanId, true /* isReevaluation */);
 
     // notification message should not have been sent since the results are the same
     Assert.assertTrue(messagesA.isEmpty());
@@ -402,11 +385,7 @@ public class PolicyEvaluateResourceTest
 
   @Test
   public void testPolicyThreatLevelCounts() throws Exception {
-    final String applicationPublicId = "PolicyThreatCountResourceTest_AppId";
-    tempEntity.newApplicationWithParent(applicationPublicId);
     final String scanId = "PolicyThreatCountResourceTest_ScanId";
-    String licenseFingerprint = "PolicyThreatCountResourceTest_LicenseFingerprint";
-    setLicenseFingerprint(licenseFingerprint);
 
     final File saasReportFile = getReportResponseFile(licenseFingerprint, scanId);
     saasReportFile.delete();
@@ -418,8 +397,8 @@ public class PolicyEvaluateResourceTest
     Policy policy = new Policy("P1", "PolicyThreatCountResourceTest policy1");
     policy.setThreatLevel(1);
     policy.addConstraint(constraint);
-    Response addPolicyResponse = addPolicy(applicationPublicId, policy);
-    policy = JsonHelpers.fromJson(addPolicyResponse.getResponseBody(), Policy.class);
+    policy.setOwnerId(app.getId());
+    policyDAO.insert(policy);
 
     final Stage stage = new Stage(BuildStageType.ID);
 
@@ -443,7 +422,7 @@ public class PolicyEvaluateResourceTest
     Assert.assertEquals(0, policyEval.getModerateComponentCount());
 
     policy.setThreatLevel(2);
-    updatePolicy(applicationPublicId, policy);
+    policyDAO.update(policy);
 
     // Threat Level 2 should show up as moderate
     response = AuthedRestAccess.post(getServiceURL(applicationPublicId, scanId), JsonHelpers.asJson(stage));
@@ -456,7 +435,7 @@ public class PolicyEvaluateResourceTest
     Assert.assertEquals(7, policyEval.getModerateComponentCount());
 
     policy.setThreatLevel(4);
-    updatePolicy(applicationPublicId, policy);
+    policyDAO.update(policy);
 
     // Threat Level 4 should show up as severe
     response = AuthedRestAccess.post(getServiceURL(applicationPublicId, scanId), JsonHelpers.asJson(stage));
@@ -469,7 +448,7 @@ public class PolicyEvaluateResourceTest
     Assert.assertEquals(0, policyEval.getModerateComponentCount());
 
     policy.setThreatLevel(8);
-    updatePolicy(applicationPublicId, policy);
+    policyDAO.update(policy);
 
     // Threat Level 8 should show up as severe
     response = AuthedRestAccess.post(getServiceURL(applicationPublicId, scanId), JsonHelpers.asJson(stage));
@@ -484,11 +463,7 @@ public class PolicyEvaluateResourceTest
 
   @Test
   public void testEvaluate_MultiLicense() throws Exception {
-    String applicationPublicId = "testEvaluate_MultiLicense_AppId";
-    tempEntity.newApplicationWithParent(applicationPublicId);
     String scanId = "testEvaluate_MultiLicense_ScanId";
-    String licenseFingerprint = "testEvaluate_MultiLicense_LicenseFingerprint";
-    setLicenseFingerprint(licenseFingerprint);
 
     File saasReportFile = getReportResponseFile(licenseFingerprint, scanId);
     saasReportFile.delete();
@@ -503,14 +478,14 @@ public class PolicyEvaluateResourceTest
     policy1.setThreatLevel(5);
     policy1.addConstraint(constraint1);
     policy1.addAction(BuildStageType.ID, action);
-    Response response = addPolicy(applicationPublicId, policy1);
-    policy1 = JsonHelpers.fromJson(response.getResponseBody(), Policy.class);
+    policy1.setOwnerId(app.getId());
+    policyDAO.insert(policy1);
     constraint1 = policy1.getConstraints().get(0);
 
     Stage stage = new Stage(BuildStageType.ID);
 
     // The report file is not available yet
-    response = AuthedRestAccess.post(getServiceURL(applicationPublicId, scanId), JsonHelpers.asJson(stage));
+    Response response = AuthedRestAccess.post(getServiceURL(applicationPublicId, scanId), JsonHelpers.asJson(stage));
     assertResponseStatus(404, response);
 
     // Simulate that the report is available
@@ -536,11 +511,7 @@ public class PolicyEvaluateResourceTest
 
   @Test
   public void testEvaluate_LicenseOverride_DefinedAtOrgLevel() throws Exception {
-    String applicationPublicId = "testEvaluate_LicenseOverride_DefinedAtOrgLevel";
-    Application application = tempEntity.newApplicationWithParent(applicationPublicId);
     String scanId = "testEvaluate_LicenseOverride_DefinedAtOrgLevel";
-    String licenseFingerprint = "testEvaluate_LicenseOverride_DefinedAtOrgLevel";
-    setLicenseFingerprint(licenseFingerprint);
 
     File saasReportFile = getReportResponseFile(licenseFingerprint, scanId);
     saasReportFile.delete();
@@ -559,8 +530,8 @@ public class PolicyEvaluateResourceTest
     policy1.addConstraint(constraint1);
     policy1.addConstraint(constraint2);
     policy1.addAction(BuildStageType.ID, action);
-    Response response = addPolicy(applicationPublicId, policy1);
-    policy1 = JsonHelpers.fromJson(response.getResponseBody(), Policy.class);
+    policy1.setOwnerId(app.getId());
+    policyDAO.insert(policy1);
     constraint1 = policy1.getConstraints().get(0);
     constraint2 = policy1.getConstraints().get(1);
 
@@ -571,11 +542,11 @@ public class PolicyEvaluateResourceTest
     FileUtils.copyFile(new File(testReportFileUrl.getFile()), saasReportFile);
     
     // Override the license at org level
-    tempEntity.newLicenseOverride(application.getOrganizationId(), "commons-pool",
+    tempEntity.newLicenseOverride(app.getOrganizationId(), "commons-pool",
         "commons-pool", "1.4", LicenseOverrideStatus.OVERRIDDEN, "ZPL-2.0", " My comment");
 
     // Evaluate policy
-    response = AuthedRestAccess.post(getServiceURL(applicationPublicId, scanId), JsonHelpers.asJson(stage));
+    Response response = AuthedRestAccess.post(getServiceURL(applicationPublicId, scanId), JsonHelpers.asJson(stage));
     assertResponseStatus(200, response);
     PolicyEvaluationResult policyEval = JsonHelpers.fromJson(response.getResponseBody(), PolicyEvaluationResult.class);
     Assert.assertNotNull(policyEval);
@@ -596,7 +567,7 @@ public class PolicyEvaluateResourceTest
 
     // Override the license at app level. This must supersede the override at org level, so the policy should not
     // trigger any alerts.
-    tempEntity.newLicenseOverride(application.getId(), "commons-pool", "commons-pool",
+    tempEntity.newLicenseOverride(app.getId(), "commons-pool", "commons-pool",
         "1.4", LicenseOverrideStatus.ACKNOWLEDGED, null /* licenseId */, " My comment");
 
     // Evaluate policy
@@ -615,11 +586,7 @@ public class PolicyEvaluateResourceTest
 
   @Test
   public void testNotificationEmailModel() throws Exception {
-    final String applicationPublicId = "PolicyEvaluateResourceTest_AppId";
-    tempEntity.newApplicationWithParent(applicationPublicId);
     final String scanId = "PolicyEvaluateResourceTest_ScanId";
-    String licenseFingerprint = "PolicyEvaluateResourceTest_LicenseFingerprint";
-    setLicenseFingerprint(licenseFingerprint);
 
     final File saasReportFile = getReportResponseFile(licenseFingerprint, scanId);
     saasReportFile.delete();
@@ -629,28 +596,32 @@ public class PolicyEvaluateResourceTest
     final Policy policy1 = new Policy("P1", "PolicyEvaluateResourceTest policy1");
     policy1.setThreatLevel(8);
     policy1.addConstraint(constraint1);
-    addPolicy(applicationPublicId, policy1);
+    policy1.setOwnerId(app.getId());
+    policyDAO.insert(policy1);
 
     final Constraint constraint2 = new Constraint("C2", "PolicyEvaluateResourceTest constraint 2", LogicalOperator.AND);
     constraint2.addCondition(new Condition(CoordinatesConditionType.ID, "match", "tomcat"));
     final Policy policy2 = new Policy("P2", "PolicyEvaluateResourceTest policy2");
     policy2.setThreatLevel(4);
     policy2.addConstraint(constraint2);
-    addPolicy(applicationPublicId, policy2);
+    policy2.setOwnerId(app.getId());
+    policyDAO.insert(policy2);
 
     final Constraint constraint3 = new Constraint("C3", "PolicyEvaluateResourceTest constraint 3", LogicalOperator.AND);
     constraint3.addCondition(new Condition(CoordinatesConditionType.ID, "match", "org.*"));
     final Policy policy3 = new Policy("P3", "PolicyEvaluateResourceTest policy3");
     policy3.setThreatLevel(3);
     policy3.addConstraint(constraint3);
-    addPolicy(applicationPublicId, policy3);
+    policy3.setOwnerId(app.getId());
+    policyDAO.insert(policy3);
 
     final Constraint constraint4 = new Constraint("C4", "PolicyEvaluateResourceTest constraint 1", LogicalOperator.AND);
     constraint4.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "absent"));
     final Policy policy4 = new Policy("P4", "PolicyEvaluateResourceTest policy4");
     policy4.setThreatLevel(0);
     policy4.addConstraint(constraint4);
-    addPolicy(applicationPublicId, policy4);
+    policy4.setOwnerId(app.getId());
+    policyDAO.insert(policy4);
 
     final Stage stage = new Stage(BuildStageType.ID);
 
@@ -684,11 +655,7 @@ public class PolicyEvaluateResourceTest
 
   @Test
   public void testErrorReport() throws Exception {
-    final String applicationPublicId = "PolicyEvaluateResourceTest_AppId";
-    final String appId = tempEntity.newApplicationWithParent(applicationPublicId).getId();
     final String scanId = "PolicyEvaluateResourceTest_ScanId";
-    String licenseFingerprint = "PolicyEvaluateResourceTest_LicenseFingerprint";
-    setLicenseFingerprint(licenseFingerprint);
 
     final File saasReportFile = getReportResponseFile(licenseFingerprint, scanId);
     saasReportFile.delete();
@@ -699,17 +666,13 @@ public class PolicyEvaluateResourceTest
     Response response = AuthedRestAccess.post(getServiceURL(applicationPublicId, scanId), JsonHelpers.asJson(Stage.ID_BUILD));
     assertResponseStatus(400, response);
 
-    PolicyEvaluation eval = new PolicyEvaluationDAO().getLastByApplicationIdAndStageId(appId, Stage.ID_BUILD);
+    PolicyEvaluation eval = new PolicyEvaluationDAO().getLastByApplicationIdAndStageId(app.getId(), Stage.ID_BUILD);
     Assert.assertNull(eval);
   }
 
   @Test
   public void testReEvaluate() throws Exception {
-    String applicationPublicId = "testReEvaluation";
-    Application application = tempEntity.newApplicationWithParent(applicationPublicId);
     String scanId = "testReEvaluation";
-    String licenseFingerprint = "testReEvaluation";
-    setLicenseFingerprint(licenseFingerprint);
 
     File saasReportFile = getReportResponseFile(licenseFingerprint, scanId);
     saasReportFile.delete();
@@ -723,8 +686,8 @@ public class PolicyEvaluateResourceTest
     Action notifyAction = new Action(NotifyActionType.ID);
     notifyAction.setTarget("manager@test.corp");
     policy1.addAction(BuildStageType.ID, notifyAction);
-    Response response = addPolicy(applicationPublicId, policy1);
-    policy1 = JsonHelpers.fromJson(response.getResponseBody(), Policy.class);
+    policy1.setOwnerId(app.getId());
+    policyDAO.insert(policy1);
 
     Stage stage = new Stage(BuildStageType.ID);
 
@@ -736,7 +699,7 @@ public class PolicyEvaluateResourceTest
     notifications.clear();
 
     // Evaluate policy
-    response = AuthedRestAccess.post(getServiceURL(applicationPublicId, scanId), JsonHelpers.asJson(stage));
+    Response response = AuthedRestAccess.post(getServiceURL(applicationPublicId, scanId), JsonHelpers.asJson(stage));
     assertResponseStatus(200, response);
     PolicyEvaluationResult policyEvaluationResult = JsonHelpers.fromJson(response.getResponseBody(),
         PolicyEvaluationResult.class);
@@ -745,7 +708,7 @@ public class PolicyEvaluateResourceTest
     Assert.assertNotNull(policyAlerts);
     Assert.assertEquals(1, policyAlerts.size());
     Assert.assertFalse(policyEvaluationResult.isReevaluation());
-    assertPolicyEvaluation(application.getId(), scanId, false /* isReevaluation */);
+    assertPolicyEvaluation(app.getId(), scanId, false /* isReevaluation */);
 
     // Notification message should have been sent
     Assert.assertEquals(1, notifications.size());
@@ -753,7 +716,7 @@ public class PolicyEvaluateResourceTest
 
     // Change the policy name
     policy1.setName(policy1.getName() + "Updated");
-    updatePolicy(applicationPublicId, policy1);
+    policyDAO.update(policy1);
 
     // Evaluate policy again for the same scan
     response = AuthedRestAccess.post(getServiceURL(applicationPublicId, scanId), JsonHelpers.asJson(stage));
@@ -762,7 +725,7 @@ public class PolicyEvaluateResourceTest
     Assert.assertNotNull(policyEvaluationResult);
     Assert.assertEquals(1, policyAlerts.size());
     Assert.assertTrue(policyEvaluationResult.isReevaluation());
-    assertPolicyEvaluation(application.getId(), scanId, true /* isReevaluation */);
+    assertPolicyEvaluation(app.getId(), scanId, true /* isReevaluation */);
 
     // Notification message should not have been sent since this is a re-evaluation
     Assert.assertTrue(notifications.isEmpty());
@@ -770,28 +733,20 @@ public class PolicyEvaluateResourceTest
 
   @Test
   public void testEvaluate_NoPolicyEvalAuditEntryCreatedIfReportMissing() throws Exception {
-    final String applicationPublicId = "PolicyEvaluateResourceTest_AppId";
-    final String appId = tempEntity.newApplicationWithParent(applicationPublicId).getId();
     final String scanId = "PolicyEvaluateResourceTest_ScanId";
-    String licenseFingerprint = "PolicyEvaluateResourceTest_LicenseFingerprint";
-    setLicenseFingerprint(licenseFingerprint);
 
     setSaasResponseForURI("/rest/ci/report?scanId=" + scanId, "Internal Error", 500);
     Response response = AuthedRestAccess.post(getServiceURL(applicationPublicId, scanId),
         JsonHelpers.asJson(new Stage(Stage.ID_BUILD)));
     assertResponseStatus(404, response);
 
-    PolicyEvaluation eval = new PolicyEvaluationDAO().getLastByApplicationIdAndStageId(appId, Stage.ID_BUILD);
+    PolicyEvaluation eval = new PolicyEvaluationDAO().getLastByApplicationIdAndStageId(app.getId(), Stage.ID_BUILD);
     Assert.assertNull(eval);
   }
 
   @Test
   public void testEvaluate_NewestPolicyViolations() throws Exception {
-    String applicationPublicId = "testEvaluateNewestPolicyViolations";
-    Application app = tempEntity.newApplicationWithParent(applicationPublicId);
     String scanId = "testEvaluateNewestPolicyViolations";
-    String licenseFingerprint = "testEvaluateNewestPolicyViolations";
-    setLicenseFingerprint(licenseFingerprint);
 
     File saasReportFile = getReportResponseFile(licenseFingerprint, scanId);
     saasReportFile.delete();
@@ -844,11 +799,6 @@ public class PolicyEvaluateResourceTest
 
   @Test
   public void testEvaluate_PersistApplicationComponents() throws Exception {
-    String applicationPublicId = "testEvaluatePersistApplicationComponents";
-    Application app = tempEntity.newApplicationWithParent(applicationPublicId);
-    String licenseFingerprint = "testEvaluatePersistApplicationComponents";
-    setLicenseFingerprint(licenseFingerprint);
-
     Stage stage1 = new Stage(BuildStageType.ID);
     Stage stage2 = new Stage(ReleaseStageType.ID);
 
@@ -921,8 +871,6 @@ public class PolicyEvaluateResourceTest
 
   @Test
   public void testInvalidStage() throws Exception {
-    String applicationPublicId = "testInvalidStage";
-    tempEntity.newApplicationWithParent(applicationPublicId);
     Response response = AuthedRestAccess.post(getServiceURL(applicationPublicId, "scanid"),
         JsonHelpers.asJson(new Stage("foobar")));
     assertResponseStatus(HttpStatus.BAD_REQUEST_400, response);

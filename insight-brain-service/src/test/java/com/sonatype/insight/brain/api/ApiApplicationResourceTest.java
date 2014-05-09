@@ -159,6 +159,35 @@ public class ApiApplicationResourceTest
   }
 
   @Test
+  public void testUpdateApplication_ChangeOrganizationId() throws Exception {
+    ApiApplicationDTO applicationDTO = apiApplicationAdapter.convertToDTO(app);
+    applicationDTO.id = null;
+    Organization anotherOrg = tempEntity.newOrganization("Another Org");
+    applicationDTO.organizationId = anotherOrg.getId();
+    addApplicationTagDTOs(applicationDTO);
+
+    // Test the update
+    Response response = AuthedRestAccess.put(getServiceURL() + "/" + app.getId(), JsonHelpers.asJson(applicationDTO));
+    assertResponseStatus(400, response);
+    String errorMessage = response.getResponseBody();
+    assertThat(errorMessage, is("Cannot change the parent organization of an application."));
+  }
+
+  @Test
+  public void testUpdateApplication_ChangePublicId() throws Exception {
+    ApiApplicationDTO applicationDTO = apiApplicationAdapter.convertToDTO(app);
+    applicationDTO.id = null;
+    applicationDTO.publicId = "NewPublicId";
+    addApplicationTagDTOs(applicationDTO);
+
+    // Test the update
+    Response response = AuthedRestAccess.put(getServiceURL() + "/" + app.getId(), JsonHelpers.asJson(applicationDTO));
+    assertResponseStatus(400, response);
+    String errorMessage = response.getResponseBody();
+    assertThat(errorMessage, is("Cannot change Public ID of existing application."));
+  }
+
+  @Test
   public void testDeleteNonExistentApplication() throws Exception {
     final String appId = "invalidAppId";
     final Response response = AuthedRestAccess.delete(getServiceURL() + "/" + appId);

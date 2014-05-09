@@ -31,6 +31,15 @@ class DashboardPage
     applicationTagFilters(required: false) {
       filterPanel.find('span[ng-repeat="applicationTagId in filter.applicationTagIds"]')
     }
+    stageTypeFilters(required: false) {
+      filterPanel.find('span[ng-repeat="stageTypeId in filter.stageTypeIds"]')
+    }
+    policyThreatTypeFilters(required: false) {
+      filterPanel.find('span[ng-repeat="policyThreatTypeId in filter.policyThreatTypes"]')
+    }
+    policyThreatLevelFilters(required: false) {
+      filterPanel.find('div[ng-if="filter.policyThreatLevel[0] > 0 || filter.policyThreatLevel[1] < 10"]').find('strong')
+    }
 
     noAvailableApplications(required: false) { $('#no-permissions') }
     noAvailableApplicationTags(required: false) { $('#no-application-tags') }

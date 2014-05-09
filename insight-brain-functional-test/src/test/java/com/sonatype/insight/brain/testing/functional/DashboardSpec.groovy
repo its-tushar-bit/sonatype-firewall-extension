@@ -5,6 +5,9 @@
  */
 package com.sonatype.insight.brain.testing.functional
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.sonatype.clm.dto.model.policy.Stage
+import com.sonatype.insight.brain.dashboard.DashboardFilterDTO
 import com.sonatype.insight.brain.dataaccess.filter.DashboardFilterDAO
 import com.sonatype.insight.brain.model.Application
 import com.sonatype.insight.brain.model.Color
@@ -295,5 +298,52 @@ class DashboardSpec
 
     and: 'A message is displayed to show that only the top results are shown'
       newestViolationTable.maxResults.text() == 'Showing the top 100 results'
+  }
+
+  def 'Filters stored as expected'() {
+    when: 'dashboard filters are applied'
+      filterPanelToggle.click()
+      waitFor { applicationFiltersDropdown.displayed }
+      policyThreatFiltersDropdown.displayed
+      applicationFiltersDropdown.toggleOption(firstApp.name)
+      applicationFiltersDropdown.toggleOption(secondApp.name)
+      applicationTagFiltersDropdown.toggleOption(firstAppTag.name)
+      policyThreatFiltersDropdown.toggleOption('Security')
+      policyThreatFiltersDropdown.toggleOption('Other')
+      stageTypeFiltersDropdown.toggleOption('Release')
+      filterButtons.button('Apply').click()
+      waitFor { !applicationFiltersDropdown.displayed }
+
+    then: 'filters are stored to disk'
+      DashboardFilterDTO dto = new ObjectMapper().readValue(new DashboardFilterDAO().getByUsername("admin").filter, DashboardFilterDTO.class);
+      dto.applicationFilters.contains(firstApp.publicId)
+      dto.applicationFilters.contains(secondApp.publicId)
+      dto.tagFilters.contains(firstAppTag.id)
+      dto.policyThreatCategoryFilters.contains(PolicyThreatCategory.SECURITY)
+      dto.stageTypeFilters.contains('release')
+  }
+
+  def 'Stored filters loaded on view of dashboard'() {
+    setup: 'Add filter for admin user'
+      DashboardFilterDTO dto = new DashboardFilterDTO()
+      dto.applicationFilters = [firstApp.publicId, secondApp.publicId]
+      dto.maxPolicyThreatLevel = 6
+      dto.minPolicyThreatLevel = 3
+      dto.policyThreatCategoryFilters = [PolicyThreatCategory.SECURITY, PolicyThreatCategory.OTHER]
+      dto.stageTypeFilters = [Stage.ID_RELEASE]
+      dto.tagFilters = [firstAppTag.id]
+
+      temporaryEntity.newDashboardFilter('admin', new ObjectMapper().writeValueAsString(dto));
+
+    when: 'Refresh the page to reload the filters'
+      driver.navigate().refresh()
+
+    then: 'See proper values set in the filters'
+      waitFor { applicationFilters.displayed }
+      applicationFilters.collect { it.text() }.join('') == firstApp.name + ',' + secondApp.name
+      applicationTagFilters.text() == firstAppTag.name
+      stageTypeFilters.text() == 'Release'
+      policyThreatTypeFilters.collect { it.text() }.join('') == 'Security,Other'
+      policyThreatLevelFilters.text() == 'Policy Threat Levels 3 through 6'
   }
 }

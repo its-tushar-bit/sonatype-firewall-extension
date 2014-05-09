@@ -203,9 +203,7 @@ public class UserDirectory
   }
 
   /**
-   * <p>
    * Validate the users in the list and return a list of the invalid users.
-   * </p>
    * 
    * @param userNames The set of user name to lookup.
    * @return Set of invalid user names.

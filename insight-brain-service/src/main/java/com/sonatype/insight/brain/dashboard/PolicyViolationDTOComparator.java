@@ -104,9 +104,7 @@ public class PolicyViolationDTOComparator
   }
 
   /**
-   * <p>
    * Null objects should be treated as infinitely large.
-   * </p>
    * 
    * @return 1 if o1 is not null while o2 is, or -1 if o2 is not null and o1 is. 0 if both objects are either null or
    *         not null.

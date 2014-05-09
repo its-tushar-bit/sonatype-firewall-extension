@@ -18,6 +18,8 @@ import javax.ws.rs.core.MediaType;
 import com.sonatype.insight.brain.product.license.UnlicensedPath;
 
 import org.codehaus.plexus.util.IOUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Named
 @Path(VersionResource.SERVICE_PATH)
@@ -26,22 +28,37 @@ public class VersionResource
 {
   public static final String SERVICE_PATH = "rest/version";
 
+  private static final Logger log = LoggerFactory.getLogger(VersionResource.class);
+
+  private static final String FILE_NAME = "version.properties";
+
+  private static Properties properties;
+
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   public Properties getVersionInfo() throws Exception {
     return get();
   }
 
-  public static Properties get() throws IOException {
-    Properties props = new Properties();
-    InputStream is = VersionResource.class.getResourceAsStream("version.properties");
-    try {
-      props.load(is);
+  public synchronized static Properties get() throws IOException {
+    if (properties == null) {
+      properties = new Properties();
+      InputStream is = VersionResource.class.getResourceAsStream(FILE_NAME);
+      if (is != null) {
+        try {
+          properties.load(is);
+        }
+        catch (IOException e) {
+          log.error(e.getMessage(), e);
+        }
+        finally {
+          IOUtil.close(is);
+        }
+      } else {
+        log.error("Missing properties file {}", FILE_NAME);
+      }
     }
-    finally {
-      IOUtil.close(is);
-    }
-    return props;
+    return properties;
 
   }
 }

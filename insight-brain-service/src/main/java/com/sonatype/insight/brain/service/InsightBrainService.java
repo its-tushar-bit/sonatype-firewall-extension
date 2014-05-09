@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Properties;
 import java.util.Set;
 
 import javax.inject.Named;
@@ -22,6 +23,7 @@ import com.sonatype.insight.brain.landing.IndexCacheControlFilter;
 import com.sonatype.insight.brain.saas.DefaultLicenseDataUpdater;
 import com.sonatype.insight.brain.security.CLMShiroAopModule;
 import com.sonatype.insight.brain.security.CLMShiroModule;
+import com.sonatype.insight.brain.version.VersionResource;
 import com.sonatype.insight.db.DatabaseConfig;
 import com.sonatype.insight.error.JaxRsExceptionMapper;
 
@@ -87,11 +89,22 @@ public class InsightBrainService
 
   @Override
   public void run(InsightConfig configuration, Environment environment) throws Exception {
+    printVersion();
     super.run(configuration, environment);
 
     LicenseDataUpdater.setUpdater(getInstance(DefaultLicenseDataUpdater.class));
 
     getInstance(DataMigrator.class).migrate();
+  }
+
+  private void printVersion() throws IOException {
+    Properties prop = VersionResource.get();
+    String version = prop.getProperty("version", "Unknown");
+    log.info("|------------------------------------------");
+    log.info("|");
+    log.info("| Initializing Sonatype CLM {}", version);
+    log.info("|");
+    log.info("|------------------------------------------");
   }
 
   private static boolean validateTempDir() {

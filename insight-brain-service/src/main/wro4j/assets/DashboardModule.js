@@ -62,6 +62,30 @@
     $scope.riskTable = 'policy-violations';
   }]);
 
+  /**
+   * Returns the last element of a path with the assumption that it is a file name. Path elements are assumed to be
+   * delimited by a '/'.
+   */
+  dashboardModule.filter('fileName', function() {
+    return function(path) {
+      var pathDelimiter = '/';
+      var stringPath = String(path);
+      // Avoid checking the last character as paths might end in a delimiter.
+      var lastIndexOfDelimiter = stringPath.lastIndexOf(pathDelimiter, stringPath.length - 2);
+
+      if (lastIndexOfDelimiter > -1) {
+        // If the last character is a delimiter, do not return it.
+        if (stringPath.charAt(stringPath.length - 1) === pathDelimiter) {
+          return stringPath.substring(lastIndexOfDelimiter + 1, stringPath.length - 1);
+        }
+
+        return stringPath.substring(lastIndexOfDelimiter + 1);
+      }
+
+      return stringPath;
+    };
+  });
+  
   dashboardModule.directive('riskTable', [function() {
     return {
       scope: {
@@ -84,6 +108,34 @@
       }]
     };
   }]);
+
+  dashboardModule.directive('pathnamesPopover', function() {
+    return {
+      restrict: 'A',
+      link: function(scope, element, attrs) {
+        scope.$watch(attrs.pathnamesPopover, function(pathnames) {
+          if (!pathnames) {
+            return;
+          }
+
+          var pathnamesTitle = 'Component Path';
+          if (pathnames.length > 1) {
+            pathnamesTitle = 'Component Path, ' + pathnames.length + ' Locations';
+          }
+
+          var options = {
+            trigger: 'hover',
+            placement: 'top',
+            content: pathnames[0],
+            title: pathnamesTitle,
+            // Attach the popover to the parent, as placing the popover in the td could resize it.
+            container: element.parent()
+          };
+          $(element).popover(options);
+        });
+      }
+    };
+  });
 
   dashboardModule.directive('dashboardFilter',
           ['$timeout', '$http', '$q', 'ApplicationStore', 'OrganizationStore', 'StageTypeStore', 'CLMLocations', 'Messages',

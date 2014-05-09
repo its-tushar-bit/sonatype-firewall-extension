@@ -19,9 +19,11 @@ import com.sonatype.insight.brain.model.policy.PolicyViolation
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType
 import com.sonatype.insight.brain.model.tag.Tag
+import com.sonatype.insight.brain.testing.functional.modules.ThreatTableRow
+import org.openqa.selenium.WebElement
 
 /**
- * Since 1.11
+ * Since 1.11.0
  */
 class DashboardSpec
   extends BaseSpec
@@ -118,6 +120,34 @@ class DashboardSpec
       applicationTagFilters.text() == firstAppTag.name
   }
 
+  def 'Unknown components have popover displaying pathnames'() {
+    when: 'highest risk table is shown'
+      waitFor { highestRiskTable.displayed }
+      waitFor { highestRiskTable.rows.size() >= 2 }
+      WebElement unknownComponentCell = $(highestRiskTable.rows[0].cell(ThreatTableRow.COMPONENT)).firstElement()
+      interact {
+        moveToElement(unknownComponentCell)
+      }
+      waitFor { highestRiskTable.unknownComponentPopover.displayed }
+      
+    then: 'highest risk popover is properly displayed'
+      highestRiskTable.unknownComponentPopoverTitle == 'Component Path'
+      highestRiskTable.unknownComponentPopoverText == 'unknown.jar'
+      
+    when: 'newest risk table is shown'
+      waitFor { newestViolationTable.displayed }
+      waitFor { newestViolationTable.rows.size() >= 2 }
+      unknownComponentCell = $(newestViolationTable.rows[0].cell(ThreatTableRow.COMPONENT)).firstElement()
+      interact {
+        moveToElement(unknownComponentCell)
+      }
+      waitFor { newestViolationTable.unknownComponentPopover.displayed }
+      
+    then: 'newest risk popover is properly displayed'
+      newestViolationTable.unknownComponentPopoverTitle == 'Component Path'
+      newestViolationTable.unknownComponentPopoverText == 'unknown.jar'
+  }
+  
   def 'Highest Risk Table can be sorted'() {
     when: 'highest risk table is shown'
       waitFor { highestRiskTable.displayed }
@@ -165,7 +195,7 @@ class DashboardSpec
       highestRiskTable.rows[0].risk == 10
       highestRiskTable.rows[0].policy == 'DashboardSpecPolicy'
       highestRiskTable.rows[0].application == secondApp.name
-      highestRiskTable.rows[0].component == 'Unknown'
+      highestRiskTable.rows[0].component == 'unknown.jar'
 
       highestRiskTable.rows[1].risk == 5
       highestRiskTable.rows[1].policy == 'DashboardSpecPolicy'
@@ -201,7 +231,7 @@ class DashboardSpec
       waitFor { highestRiskTable.rows[0].risk == 10 }
       highestRiskTable.rows[0].policy == 'DashboardSpecPolicy'
       highestRiskTable.rows[0].application == secondApp.name
-      highestRiskTable.rows[0].component == 'Unknown'
+      highestRiskTable.rows[0].component == 'unknown.jar'
       highestRiskTable.rows[0].age == null
   }
 
@@ -216,7 +246,7 @@ class DashboardSpec
       newestViolationTable.rows[0].risk == 10
       newestViolationTable.rows[0].policy == 'DashboardSpecPolicy'
       newestViolationTable.rows[0].application == secondApp.name
-      newestViolationTable.rows[0].component == 'Unknown'
+      newestViolationTable.rows[0].component == 'unknown.jar'
       newestViolationTable.rows[0].age.contains("ago")
 
       newestViolationTable.rows[1].risk == 5
@@ -237,7 +267,7 @@ class DashboardSpec
       newestViolationTable.rows[0].risk == 10
       newestViolationTable.rows[0].policy == 'DashboardSpecPolicy'
       newestViolationTable.rows[0].application == secondApp.name
-      newestViolationTable.rows[0].component == 'Unknown'
+      newestViolationTable.rows[0].component == 'unknown.jar'
       newestViolationTable.rows[0].age.contains("ago")
       
     when: 'filtering to a stage'
@@ -252,7 +282,7 @@ class DashboardSpec
       newestViolationTable.rows[0].risk == 10
       newestViolationTable.rows[0].policy == 'DashboardSpecPolicy'
       newestViolationTable.rows[0].application == secondApp.name
-      newestViolationTable.rows[0].component == 'Unknown'
+      newestViolationTable.rows[0].component == 'unknown.jar'
       newestViolationTable.rows[0].age.contains("ago")
   }
 

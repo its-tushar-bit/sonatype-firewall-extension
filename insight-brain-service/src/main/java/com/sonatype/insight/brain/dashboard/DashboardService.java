@@ -387,6 +387,9 @@ public class DashboardService
         if (StringUtils.isNotEmpty(violation.groupId)) {
           dto.gavs.add(new ComponentRiskDTO.GavDTO(violation.groupId, violation.artifactId, violation.version));
         }
+        if (violation.pathnames != null) {
+          dto.pathnames.addAll(violation.pathnames);
+        }
       }
       return dto;
     }

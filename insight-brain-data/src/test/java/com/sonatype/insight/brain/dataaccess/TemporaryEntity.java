@@ -593,8 +593,7 @@ public class TemporaryEntity
       PolicyThreatCategory category, String groupId, String artifactId, String version, String hash)
   {
     PolicyViolation policyViolation = new PolicyViolation(policyEvaluationId, policy.getId(), policy.getName(),
-        threatLevel, category, hash, groupId, artifactId, version, "[]", groupId + "." + artifactId + "." + version
-        + ".jar");
+        threatLevel, category, hash, groupId, artifactId, version, "[]", "unknown.jar");
     policyViolationDAO.insert(policyViolation);
     return policyViolation;
   }

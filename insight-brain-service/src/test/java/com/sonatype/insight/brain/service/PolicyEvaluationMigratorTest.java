@@ -98,8 +98,8 @@ public class PolicyEvaluationMigratorTest
   }
 
   @Test
-  public void testMigrateApps() throws Exception {
-    setup("PolicyEvaluationMigratorTest");
+  public void testMigrateMultipleApps() throws Exception {
+    setup("PolicyEvaluationMigratorTest/MultipleApplications");
 
     policyEvaluationMigrator.migrate();
 
@@ -236,6 +236,12 @@ public class PolicyEvaluationMigratorTest
     assertThat(appComponents, hasSize(2));
     assertCarrotAppComponent(appComponents, Stage.ID_RELEASE);
     assertUnknownAppComponent(appComponents, Stage.ID_RELEASE);
+
+    // application without policy evaluations
+    for (StageType stageType : StageTypes.getAll()) {
+      assertThat(policyEvaluationDAO.getAllByApplicationIdAndStageId(appNoEvals.getId(), stageType.getId()), empty());
+    }
+    assertThat(policyViolationDAO.getNewestByApplicationId(appNoEvals.getId()), hasSize(0));
   }
 
   @Test
@@ -286,19 +292,8 @@ public class PolicyEvaluationMigratorTest
   }
 
   @Test
-  public void testAppWithNoEvals() throws Exception {
-    setup("PolicyEvaluationMigratorTest");
-
-    policyEvaluationMigrator.migrate();
-    for (StageType stageType : StageTypes.getAll()) {
-      assertThat(policyEvaluationDAO.getAllByApplicationIdAndStageId(appNoEvals.getId(), stageType.getId()), empty());
-    }
-    assertThat(policyViolationDAO.getNewestByApplicationId(appNoEvals.getId()), hasSize(0));
-  }
-
-  @Test
   public void testDeletionOfTrendingReport() throws Exception {
-    setup("PolicyEvaluationMigratorTest");
+    setup("PolicyEvaluationMigratorTest/MultipleApplications");
 
     assertThat("Trending report file is present before migration",
         new File(insightWork.getReportDir(), "trending-report.json").exists(), is(true));

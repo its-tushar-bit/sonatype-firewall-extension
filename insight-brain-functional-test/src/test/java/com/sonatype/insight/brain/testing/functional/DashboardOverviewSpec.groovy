@@ -20,6 +20,9 @@ import com.sonatype.insight.brain.model.policy.stages.BuildStageType
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType
 import com.sonatype.insight.brain.model.tag.Tag
 import com.sonatype.insight.brain.testing.functional.modules.ThreatTableRow
+
+import geb.Module;
+
 import org.openqa.selenium.WebElement
 
 /**
@@ -395,5 +398,19 @@ class DashboardOverviewSpec
       stageTypeFilters.text() == 'Release'
       policyThreatTypeFilters.collect { it.text() }.join('') == 'Security,Other'
       policyThreatLevelFilters.text() == 'Policy Threat Levels 3 through 6'
+  }
+
+  def 'Components Table'() {
+    when: 'Switch to Components Tab'
+      tabLinks.componentsTabButton.click()
+
+    then: 'Component Table Displayed'
+      waitFor { componentViolationsTable.rows.size() == 1 }
+      componentViolationsTable.rows[0].component.text() == "Group1 : Artifact1 : Version1"
+      componentViolationsTable.rows[0].netRisk.text() == "15"
+      componentViolationsTable.rows[0].criticalRisk.text() == "10"
+      componentViolationsTable.rows[0].severeRisk.text() == "5"
+      componentViolationsTable.rows[0].moderateRisk.text() == "0"
+      componentViolationsTable.rows[0].lowRisk.text() == "0"
   }
 }

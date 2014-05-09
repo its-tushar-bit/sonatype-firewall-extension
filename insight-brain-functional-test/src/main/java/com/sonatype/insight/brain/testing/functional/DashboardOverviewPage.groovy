@@ -9,6 +9,7 @@ import com.sonatype.insight.brain.testing.functional.modules.ButtonsModule
 import com.sonatype.insight.brain.testing.functional.modules.DropdownMultiSelectModule
 import com.sonatype.insight.brain.testing.functional.modules.SliderModule
 import com.sonatype.insight.brain.testing.functional.modules.ThreatTableModule
+import geb.Module
 
 /**
   @since 1.11
@@ -53,11 +54,49 @@ class DashboardOverviewPage
 
     highestRiskTable(required: false) { module ThreatTableModule, $('#highest-risk') }
     newestViolationTable(required: false) { module ThreatTableModule, $('#newest-risk') }
+    componentViolationsTable(required: false) { module ComponentViolationsTable, $('#component-risk') }
+    applicationViolationsTable(required: false) { module ApplicationViolationsTable, $('#application-risk') }
+
+    tabLinks { module DashboardTabsModule, $('ul.nav.nav-tabs') }
   }
 
   void applyFilter() {
     applyButton.click()
     // NOTE: Wait for filter to be persisted before the next test tries to reset it
     waitFor { !applyButton.displayed }
+  }
+}
+
+class ComponentViolationsTable extends Module {
+  static content = {
+    rows { moduleList ComponentViolationsTableRow, $('tbody tr') }
+  }
+}
+
+class ComponentViolationsTableRow extends Module {
+  static content = {
+    component { $('td:first-child') }
+    netRisk { $('td:nth-child(2)') }
+    criticalRisk { $('td:nth-child(3)') }
+    severeRisk { $('td:nth-child(4)') }
+    moderateRisk { $('td:nth-child(5)') }
+    lowRisk { $('td:nth-child(6)') }
+  }
+}
+
+class ApplicationViolationsTable extends Module {
+  static content = {
+    rows { moduleList ApplicationViolationsTableRow, $('tbody tr') }
+  }
+}
+
+class ApplicationViolationsTableRow extends Module {
+  static content = {
+    application { $('td:first-child') }
+    netRisk { $('td:nth-child(2)') }
+    criticalRisk { $('td:nth-child(3)') }
+    severeRisk { $('td:nth-child(4)') }
+    moderateRisk { $('td:nth-child(5)') }
+    lowRisk { $('td:nth-child(6)') }
   }
 }

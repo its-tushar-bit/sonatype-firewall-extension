@@ -151,6 +151,15 @@
           scope.dirtyFilter = angular.copy(scope.filter);
         }
         function loadFilters() {
+          //we don't want to update the data to be saved until they hit apply button
+          scope.dirtyFilter = {
+            applicationPublicIds: [],
+            policyThreatTypes: [],
+            stageTypeIds: [],
+            applicationTagIds: [],
+            policyThreatLevel: [0,10]
+          };
+
           var promises = [
             ApplicationStore.get(),
             StageTypeStore.get(),
@@ -158,6 +167,7 @@
             $http.get(CLMLocations.getApplicationTagsUrl()),
             $http.get(CLMLocations.getDashboardFilters())
           ];
+
           $q.all(promises).then(function(data) {
             scope.applications = data[0];
             scope.stageTypes = data[1];
@@ -193,15 +203,10 @@
             else {
               //need to init the filter to something, to trigger a data load
               scope.filter = {};
-              //we don't want to update the data to be saved until they hit apply button
-              scope.dirtyFilter = {
-                applicationPublicIds: [],
-                policyThreatTypes: [],
-                stageTypeIds: [],
-                applicationTagIds: [],
-                policyThreatLevel: [0,10]
-              };
             }
+            scope.filtersLoaded = true;
+          }, function(){
+            scope.filtersLoaded = true;
           });
         }
 
@@ -267,10 +272,7 @@
         };
 
         scope.toggle = function() {
-          // Dropdown leaves artifact on screen w/o $timeout
-          $timeout(function() {
-            $('.filter-edit').collapse('toggle');
-          }, 10);
+          $('.filter-edit').collapse('toggle');
         };
       }
     };

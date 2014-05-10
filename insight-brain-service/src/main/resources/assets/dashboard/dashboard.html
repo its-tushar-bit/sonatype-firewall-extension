@@ -3,39 +3,42 @@
     <div class='filter-edit collapse' delayed-overflow>
       <div ng-if='dirtyFilter'>
         <div class='row-fluid filter-edit-body'>
-          <div class='span2'>
-            <h5>Applications</h5>
-            <span ng-if='applications.length > 0' id='applications' class='multi-dropdown' multi-select items='applications'
-                      selected-ids='dirtyFilter.applicationPublicIds' effective-id-field='publicId'
-                      summarize-with='applications' none-selected-text='All Applications'></span>
-            <span ng-if='applications.length === 0'><em id='no-permissions'>No applications available.</em></span>
-          </div>
-          <div class='span2'>
-            <h5>Application Tags</h5>
-            <span ng-if='applicationTags.length > 0' id='application-tags' class='multi-dropdown' multi-select items='applicationTags'
-                  selected-ids='dirtyFilter.applicationTagIds' none-selected-text='All Applications'></span>
-            <span ng-if='applicationTags.length === 0'><em id='no-application-tags'>No application tags available.</em></span>
-          </div>
-          <div class='span2'>
-            <h5>Stages</h5>
-            <span id='stage-types' class='multi-dropdown' multi-select items='stageTypes'
-                  selected-ids='dirtyFilter.stageTypeIds'
-                  none-selected-text='All Stages'></span>
-          </div>
-          <div class='span2'>
-            <h5>Policy Types</h5>
-            <span id='policy-types' class='multi-dropdown' multi-select items='policyThreatTypes'
-                  selected-ids='dirtyFilter.policyThreatTypes'
-                  none-selected-text='All Policy Types'></span>
-          </div>
-          <div class='span2'>
-            <h5>Policy Threat Level</h5>
-            <div id="policy-threat-levels">
-              <div slider ng-model="dirtyFilter.policyThreatLevel" min="0" max="10"></div>
+          <div ng-if='filtersLoaded'>
+            <div class='span2'>
+              <h5>Applications</h5>
+              <span ng-if='applications.length > 0' id='applications' class='multi-dropdown' multi-select items='applications'
+                        selected-ids='dirtyFilter.applicationPublicIds' effective-id-field='publicId'
+                        summarize-with='applications' none-selected-text='All Applications'></span>
+              <span ng-if='applications.length === 0'><em id='no-permissions'>No applications available.</em></span>
+            </div>
+            <div class='span2'>
+              <h5>Application Tags</h5>
+              <span ng-if='applicationTags.length > 0' id='application-tags' class='multi-dropdown' multi-select items='applicationTags'
+                    selected-ids='dirtyFilter.applicationTagIds' none-selected-text='All Applications'></span>
+              <span ng-if='applicationTags.length === 0'><em id='no-application-tags'>No application tags available.</em></span>
+            </div>
+            <div class='span2'>
+              <h5>Stages</h5>
+              <span id='stage-types' class='multi-dropdown' multi-select items='stageTypes'
+                    selected-ids='dirtyFilter.stageTypeIds'
+                    none-selected-text='All Stages'></span>
+            </div>
+            <div class='span2'>
+              <h5>Policy Types</h5>
+              <span id='policy-types' class='multi-dropdown' multi-select items='policyThreatTypes'
+                    selected-ids='dirtyFilter.policyThreatTypes'
+                    none-selected-text='All Policy Types'></span>
+            </div>
+            <div class='span2'>
+              <h5>Policy Threat Level</h5>
+              <div id="policy-threat-levels">
+                <div slider ng-model="dirtyFilter.policyThreatLevel" min="0" max="10"></div>
+              </div>
             </div>
           </div>
+          <div ng-if="!filtersLoaded">Loading filters...</div>
         </div>
-        <div class='filter-edit-buttons'>
+        <div ng-if="filtersLoaded" class='filter-edit-buttons'>
           <span class="alert alert-error error-left-of-buttons" ng-if="applyError">{{applyError}}</span>
           <button class='btn' type='button' ng-click='cancelFilter()'>Cancel</button>
           <button class='btn btn-primary' type='button' ng-click='applyFilter()'>Apply</button>

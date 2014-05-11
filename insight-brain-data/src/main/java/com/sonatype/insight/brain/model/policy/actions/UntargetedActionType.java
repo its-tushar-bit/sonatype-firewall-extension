@@ -9,7 +9,7 @@ import java.util.List;
 
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.insight.brain.model.policy.ActionType;
-import com.sonatype.insight.brain.model.policy.ValidationResult;
+import com.sonatype.insight.brain.model.ValidationResult;
 
 /**
  * An {@link ActionType} that does not support targets.

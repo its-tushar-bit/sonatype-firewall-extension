@@ -162,14 +162,17 @@ public class ConfigurationClientTest
   @Test
   public void testGetProprietaryConfiguration() throws Exception {
     List<String> packages = Arrays.asList("org.sonatype", "com.sonatype");
+    List<String> regexes = Arrays.asList("org.sonatype.*", "com.sonatype.*");
     ProprietaryConfig config = new ProprietaryConfig();
     config.setPackages(packages);
+    config.setRegexes(regexes);
     ProprietaryConfigDAO dao = new ProprietaryConfigDAO(brain.getDataDir());
     dao.update(config);
 
     config = new ConfigurationClient(brain.getClientConfiguration()).getProprietaryConfiguration();
 
     assertEquals(packages, config.getPackages());
+    assertEquals(regexes, config.getRegexes());
   }
 
 

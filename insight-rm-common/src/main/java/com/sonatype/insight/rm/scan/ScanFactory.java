@@ -20,10 +20,11 @@ import java.util.Set;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
+import com.sonatype.clm.dto.model.ProprietaryConfig;
 import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.common.io.FileCleaner.FileDeletionException;
-import com.sonatype.insight.scan.archive.PathSelector;
-import com.sonatype.insight.scan.archive.PathSelector.Selection;
+import com.sonatype.insight.scan.archive.Selector;
+import com.sonatype.insight.scan.archive.Selector.Selection;
 import com.sonatype.insight.scan.client.ClientScanRequest;
 import com.sonatype.insight.scan.config.ScanPropertiesLoader;
 import com.sonatype.insight.scan.file.Config;
@@ -121,7 +122,7 @@ public class ScanFactory
         .getRepositoryFormat(), null));
     scanWriter.writeConfiguration(scan.getConfiguration());
 
-    PathSelector proprietarySelector = new Config(scan.getConfiguration()).hiddenResourceNamePathSelector;
+    Selector proprietarySelector = new Config(scan.getConfiguration()).hiddenResourceNamePathSelector;
 
     int archives = 0, files = 0, classFiles = 0;
     for (RepositoryItem item : config.getScanItems()) {
@@ -274,8 +275,9 @@ public class ScanFactory
   private ScanConfiguration getConfiguration(com.sonatype.insight.rm.scan.ScanConfiguration config) throws IOException {
     final Properties properties = new Properties();
     if (config.getProprietaryConfig() != null) {
-      String proprietaryPackages = StringUtils.join(config.getProprietaryConfig().getPackages().iterator(), ",");
-      properties.setProperty("proprietaryPackages", proprietaryPackages);
+      ProprietaryConfig proprietaryConfig = config.getProprietaryConfig();
+      properties.put("proprietaryPackages", StringUtils.join(proprietaryConfig.getPackages().iterator(), ","));
+      properties.put("proprietaryRegexes", StringUtils.join(proprietaryConfig.getRegexes().iterator(), ":::"));
     }
     properties.putAll(config.getScanOptions());
     final ScanPropertiesLoader loader = new ScanPropertiesLoader(LoggerFactory.getLogger(ScanPropertiesLoader.class));

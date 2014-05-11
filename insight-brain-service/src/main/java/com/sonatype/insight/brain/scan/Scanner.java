@@ -109,6 +109,7 @@ class Scanner
     ProprietaryConfig proprietaryConfig = proprietaryConfigDAO.get();
     if (proprietaryConfig != null) {
       props.put("proprietaryPackages", StringUtils.join(proprietaryConfig.getPackages().iterator(), ","));
+      props.put("proprietaryRegexes", StringUtils.join(proprietaryConfig.getRegexes().iterator(), ":::"));
     }
     configLoader.loadDefaults(props, null);
     configLoader.resolveAliases(props);

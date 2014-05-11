@@ -198,7 +198,21 @@ public class ScanFactoryTest
   public void testScan_Proprietary() throws Exception {
     ProprietaryConfig proprietaryConfig = new ProprietaryConfig();
     proprietaryConfig.setPackages(Arrays.asList("com.sonatype", "org.sonatype"));
-    ScanConfiguration config = newConfig();
+    assertRepoH(proprietaryConfig);
+  }
+
+  /**
+   * Regex equivalent of testScan_Proprietary using package matching.
+   * @since 1.11
+   */
+  @Test
+  public void testScan_ProprietaryRegex() throws Exception {
+    ProprietaryConfig proprietaryConfig = new ProprietaryConfig();
+    proprietaryConfig.setRegexes(Arrays.asList(".*com.sonatype.*"));
+    assertRepoH(proprietaryConfig);
+  }
+
+  private void assertRepoH(final ProprietaryConfig proprietaryConfig) throws Exception {ScanConfiguration config = newConfig();
     config.setProprietaryConfig(proprietaryConfig);
     TestRepositoryItem.add(config, new File("src/test/repos/h"));
     File scanFile = newScan(config);

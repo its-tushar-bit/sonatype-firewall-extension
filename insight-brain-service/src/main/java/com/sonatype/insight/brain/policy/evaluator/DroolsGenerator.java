@@ -13,7 +13,7 @@ import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.InvalidPolicyException;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
-import com.sonatype.insight.brain.model.policy.ValidationResult;
+import com.sonatype.insight.brain.model.ValidationResult;
 import com.sonatype.insight.brain.model.policy.conditions.ConditionTypes;
 
 import org.slf4j.Logger;

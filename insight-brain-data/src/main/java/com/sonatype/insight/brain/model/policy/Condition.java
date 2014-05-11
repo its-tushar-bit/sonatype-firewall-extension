@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.model.policy;
 
+import com.sonatype.insight.brain.model.ValidationResult;
 import com.sonatype.insight.brain.model.policy.conditions.ConditionTypes;
 
 public class Condition

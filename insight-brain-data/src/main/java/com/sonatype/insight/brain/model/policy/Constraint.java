@@ -8,6 +8,8 @@ package com.sonatype.insight.brain.model.policy;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.sonatype.insight.brain.model.ValidationResult;
+
 public class Constraint
 {
   private String id;

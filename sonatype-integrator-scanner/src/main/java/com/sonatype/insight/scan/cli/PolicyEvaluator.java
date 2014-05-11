@@ -152,6 +152,7 @@ public class PolicyEvaluator
     Properties props = new Properties();
     if (proprietaryConfig != null) {
       props.put("proprietaryPackages", StringUtils.join(proprietaryConfig.getPackages().iterator(), ","));
+      props.put("proprietaryRegexes", StringUtils.join(proprietaryConfig.getRegexes().iterator(), ":::"));
     }
     for (String property : params.getProperties()) {
       int eq = property.indexOf('=');

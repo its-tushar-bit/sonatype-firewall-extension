@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.proprietary;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -47,8 +48,10 @@ public class ProprietaryConfigResourceTest
   @Test
   public void testUpdate() throws Exception {
     List<String> packages = Arrays.asList("org.sonatype", "com.sonatype");
+    List<String> regexes = Arrays.asList(".*\\.zip");
     ProprietaryConfig config = new ProprietaryConfig();
     config.setPackages(packages);
+    config.setRegexes(regexes);
     Response response = AuthedRestAccess.put(getServiceUrl() + "/update", JsonHelpers.asJson(config));
     assertResponseStatus(204, response);
 
@@ -58,4 +61,30 @@ public class ProprietaryConfigResourceTest
     assertEquals(packages, config.getPackages());
   }
 
+  @Test
+  public void testInvalidRegex() throws Exception {
+    assertInvalidRegex(Arrays.asList("*"), "Dangling meta character '*' near index 0\n*\n^");
+  }
+
+  @Test
+  public void testInvalidRegexNPE() throws Exception {
+    List<String> regexes = new ArrayList<>();
+    regexes.add(null);
+    assertInvalidRegex(regexes, "null");
+  }
+
+  @Test
+  public void testInvalidRegexBlacklisted() throws Exception {
+    assertInvalidRegex(Arrays.asList(".*", "^.*$"), "This regex is specifically disallowed: .*\nThis regex is " +
+        "specifically disallowed: ^.*$");
+  }
+
+  private void assertInvalidRegex(final List<String> regexes,
+      final String expectedMessage) throws Exception {
+    ProprietaryConfig config = new ProprietaryConfig();
+    config.setRegexes(regexes);
+    Response response = AuthedRestAccess.put(getServiceUrl() + "/update", JsonHelpers.asJson(config));
+    assertResponseStatus(400, response);
+    assertEquals(expectedMessage, response.getResponseBody());
+  }
 }

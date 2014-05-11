@@ -11,7 +11,7 @@ import javax.mail.internet.InternetAddress;
 
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.insight.brain.model.policy.ActionType;
-import com.sonatype.insight.brain.model.policy.ValidationResult;
+import com.sonatype.insight.brain.model.ValidationResult;
 
 public class NotifyActionType
     implements ActionType

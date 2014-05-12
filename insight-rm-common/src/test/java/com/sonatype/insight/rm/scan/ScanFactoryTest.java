@@ -212,7 +212,8 @@ public class ScanFactoryTest
     assertRepoH(proprietaryConfig);
   }
 
-  private void assertRepoH(final ProprietaryConfig proprietaryConfig) throws Exception {ScanConfiguration config = newConfig();
+  private void assertRepoH(final ProprietaryConfig proprietaryConfig) throws Exception {
+    ScanConfiguration config = newConfig();
     config.setProprietaryConfig(proprietaryConfig);
     TestRepositoryItem.add(config, new File("src/test/repos/h"));
     File scanFile = newScan(config);

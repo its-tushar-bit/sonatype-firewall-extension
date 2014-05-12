@@ -97,7 +97,7 @@ public class InsightBrainService
     getInstance(DataMigrator.class).migrate();
   }
 
-  private void printVersion() throws IOException {
+  private void printVersion() {
     Properties prop = VersionResource.get();
     String version = prop.getProperty("version", "Unknown");
     log.info("|------------------------------------------");

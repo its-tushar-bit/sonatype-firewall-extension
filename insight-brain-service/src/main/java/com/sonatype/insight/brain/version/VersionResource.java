@@ -40,7 +40,7 @@ public class VersionResource
     return get();
   }
 
-  public synchronized static Properties get() throws IOException {
+  public synchronized static Properties get() {
     if (properties == null) {
       properties = new Properties();
       InputStream is = VersionResource.class.getResourceAsStream(FILE_NAME);

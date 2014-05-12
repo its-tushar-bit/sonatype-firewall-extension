@@ -388,7 +388,7 @@ public class SaasClient
       Properties prop = VersionResource.get();
       version = prop.getProperty("version", "Unknown");
     }
-    catch (IOException e) {
+    catch (RuntimeException e) {
       log.error("Failed to load version", e);
       version = "Unknown";
     }

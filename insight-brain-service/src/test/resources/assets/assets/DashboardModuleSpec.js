@@ -395,4 +395,95 @@ describe('DashboardModule', function() {
       validateFilter(testCase.input, testCase.expected);
     }
   });
+
+  describe('Risk Table Controllers', function () {
+    var controllers = [{
+      name : 'policyRiskTableController',
+      urlFn : 'getPolicyViolationsUrl'
+    }, {
+      name : 'componentRiskTableController',
+      urlFn : 'getComponentRisksUrl'
+    }];
+
+    angular.forEach(controllers, function (controller) {
+      function startsWith(url) {
+        return new RegExp('^' + url + '\?.*');
+      }
+
+      describe(controller.name, function () {
+        var directiveScope;
+
+        beforeEach(inject(function ($controller, $httpBackend, $rootScope) {
+          scope = $rootScope.$new();
+          scope.maxResults = 123;
+          directiveScope = scope.$new();
+
+          $controller(controller.name, { $scope: directiveScope });
+          $httpBackend.verifyNoOutstandingRequest();
+        }));
+
+        it('Filter Set', inject(function (CLMLocations, $httpBackend) {
+          $httpBackend.expectGET(startsWith(CLMLocations[controller.urlFn]())).respond('foo');
+          scope.$apply(function () {
+            scope.filters =  {
+              applicationPublicIds: ['foo'],
+              policyThreatTypes: [],
+              stageTypeIds: [],
+              applicationTagIds: [],
+              policyThreatLevel: [0,10]
+            };;
+          });
+          $httpBackend.flush();
+          expect(directiveScope.data).toEqual('foo');
+
+          // Filter is changed
+          $httpBackend.expectGET(startsWith(CLMLocations[controller.urlFn]())).respond('bar');
+          scope.$apply(function () {
+            scope.filters = angular.copy(scope.filters);
+            scope.filters.applicationPublicIds = ['bar'];
+          });
+          $httpBackend.flush();
+          expect(directiveScope.data).toEqual('bar');
+        }));
+
+        it('Drops Requests That Don\'t Match', inject(function (CLMLocations, $httpBackend) {
+          $httpBackend.expectGET(startsWith(CLMLocations[controller.urlFn]())).respond('foo');
+          scope.$apply(function () {
+            scope.filters =  {
+              applicationPublicIds: ['foo'],
+              policyThreatTypes: [],
+              stageTypeIds: [],
+              applicationTagIds: [],
+              policyThreatLevel: [0,10]
+            };;
+          });
+
+          // Before the request completes the user alters the filter again
+          $httpBackend.expectGET(startsWith(CLMLocations[controller.urlFn]())).respond('bar');
+          scope.$apply(function () {
+            scope.filters = angular.copy(scope.filters);
+            scope.filters.applicationPublicIds = ['bar'];
+          });
+          $httpBackend.flush();
+          expect(directiveScope.data).toEqual('bar');
+        }));
+
+        it('Errors', inject(function (CLMLocations, $httpBackend) {
+          $httpBackend.expectGET(startsWith(CLMLocations[controller.urlFn]())).respond(500, 'foo');
+          scope.$apply(function () {
+            scope.filters =  {
+              applicationPublicIds: ['foo'],
+              policyThreatTypes: [],
+              stageTypeIds: [],
+              applicationTagIds: [],
+              policyThreatLevel: [0,10]
+            };;
+          });
+          $httpBackend.flush();
+          expect(directiveScope.error).toBeTruthy();
+          expect(directiveScope.data).toBeFalsy();
+        }));
+      });
+    });
+  });
 });

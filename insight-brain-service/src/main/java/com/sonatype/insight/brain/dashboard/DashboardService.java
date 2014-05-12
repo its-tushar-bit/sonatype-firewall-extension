@@ -100,7 +100,7 @@ public class DashboardService
    */
   public List<PolicyViolationDTO> getPolicyViolations(Set<String> applicationPublicIds, Set<String> stageIds,
       Set<String> tagIds, PolicyThreatCategoryFilter policyThreatCategoryFilter,
-      PolicyThreatLevelFilter policyThreatLevelFilter, int maxResults, boolean newest)
+      PolicyThreatLevelFilter policyThreatLevelFilter, Integer maxResults, boolean newest)
   {
     Predicate<PolicyViolation> filter = buildFilter(policyThreatCategoryFilter, policyThreatLevelFilter);
 
@@ -286,15 +286,15 @@ public class DashboardService
 
   /**
    * Gets the risk per component by rolling up the policy violations matching the specified filter criteria. Empty or
-   * null filter criteria generally mean "all available" violations for that aspect. The results are in no particular
-   * order.
+   * null filter criteria generally mean "all available" violations for that aspect. The results are sorted by
+   * descending component risk scores.
    */
   public List<ComponentRiskDTO> getComponentRisks(Set<String> applicationPublicIds, Set<String> stageIds,
       Set<String> tagIds, PolicyThreatCategoryFilter policyThreatCategoryFilter,
       PolicyThreatLevelFilter policyThreatLevelFilter, int maxResults)
   {
     List<PolicyViolationDTO> violations = getPolicyViolations(applicationPublicIds, stageIds, tagIds,
-        policyThreatCategoryFilter, policyThreatLevelFilter, maxResults, false);
+        policyThreatCategoryFilter, policyThreatLevelFilter, null, false);
     Map<String, ComponentViolationRollUp> componentsByHash = new LinkedHashMap<>();
     for (PolicyViolationDTO violation : violations) {
       ComponentViolationRollUp component = componentsByHash.get(violation.hash);
@@ -309,6 +309,8 @@ public class DashboardService
     for (ComponentViolationRollUp component : componentsByHash.values()) {
       dtos.add(component.toDTO());
     }
+    Collections.sort(dtos, ComponentRiskDTOComparator.INSTANCE);
+    dtos.subList(Math.min(dtos.size(), maxResults), dtos.size()).clear();
     return dtos;
   }
 

@@ -602,4 +602,21 @@ public class DashboardServiceTest
     assertThat(riskDTO.scoreLow, is(1));
     assertThat(riskDTO.score, is(55));
   }
+
+  @Test
+  public void testGetComponentRisks_ResultCapping() throws Exception {
+    String gid = "gid", aid = "aid", ver = "1", hash = "somehash";
+    tempEntity.newPolicyViolation(app1PolicyEvaluation.getId(), orgPolicy, 4, PolicyThreatCategory.SECURITY, gid, aid,
+        ver, hash);
+    tempEntity.newPolicyViolation(app1PolicyEvaluation.getId(), app1Policy, 4, PolicyThreatCategory.SECURITY, gid, aid,
+        ver, hash);
+    tempEntity.newPolicyViolation(app2PolicyEvaluation.getId(), orgPolicy, 4, PolicyThreatCategory.SECURITY, gid, aid,
+        ver, hash);
+
+    List<ComponentRiskDTO> riskDTOs = dashboardService.getComponentRisks(null, null, null, null, null, 1);
+    assertThat(riskDTOs, hasSize(1));
+    ComponentRiskDTO riskDTO = riskDTOs.get(0);
+    assertThat(riskDTO.hash, is(hash));
+    assertThat(riskDTO.score, is(12));
+  }
 }

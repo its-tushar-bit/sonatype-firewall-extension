@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.dataaccess;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.LinkedList;
 import java.util.List;
 
 import com.sonatype.clm.dto.model.ProprietaryConfig;

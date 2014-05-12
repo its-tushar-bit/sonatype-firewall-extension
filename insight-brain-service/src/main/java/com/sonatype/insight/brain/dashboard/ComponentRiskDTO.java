@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.dashboard;
 
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -27,7 +26,7 @@ public class ComponentRiskDTO
 
   public int scoreLow;
 
-  public Set<GavDTO> gavs = new HashSet<>();
+  public Set<GavDTO> gavs = new LinkedHashSet<>();
 
   // Insertion order matters, as the first path will be used as the display name throughout the UI for unknown
   // components.

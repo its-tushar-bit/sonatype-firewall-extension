@@ -7,6 +7,8 @@ package com.sonatype.insight.brain.api;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -15,6 +17,7 @@ import java.util.Set;
 
 import com.sonatype.insight.brain.AuthedRestAccess;
 import com.sonatype.insight.brain.api.dto.ApiApplicationDTO;
+import com.sonatype.insight.brain.api.dto.ApiApplicationListDTO;
 import com.sonatype.insight.brain.api.dto.ApiApplicationTagDTO;
 import com.sonatype.insight.brain.api.dto.ApiMemberDTO;
 import com.sonatype.insight.brain.api.dto.ApiRoleDTO;
@@ -121,6 +124,38 @@ public class ApiApplicationResourceTest
   }
 
   @Test
+  public void testGetApplications() throws Exception {
+    int numApps = 2;
+    tempEntity.newApplications(organization.getId(), numApps);
+
+    Response response = AuthedRestAccess.get(getServiceURL());
+    assertResponseStatus(200, response);
+    ApiApplicationListDTO applicationListDTO = JsonHelpers
+        .fromJson(response.getResponseBody(), ApiApplicationListDTO.class);
+    assertThat(applicationListDTO, notNullValue());
+    assertThat(applicationListDTO.applications, hasSize(numApps + 1));
+  }
+
+  @Test
+  public void testGetApplications_ByPublicId() throws Exception {
+    int numApps = 2;
+    List<Application> applications = tempEntity.newApplications(organization.getId(), numApps);
+    String publicIds = "?publicId=" + applications.get(0).getPublicId();
+    publicIds += "&publicId=" + applications.get(1).getPublicId();
+
+    Response response = AuthedRestAccess.get(getServiceURL() + publicIds);
+    assertResponseStatus(200, response);
+    ApiApplicationListDTO applicationListDTO = JsonHelpers
+        .fromJson(response.getResponseBody(), ApiApplicationListDTO.class);
+    assertThat(applicationListDTO, notNullValue());
+    List<ApiApplicationDTO> expectedApplications = new ArrayList<>(numApps);
+    for (Application application : applications) {
+      expectedApplications.add(apiApplicationAdapter.convertToDTO(application));
+    }
+    assertApplications(applicationListDTO.applications, expectedApplications);
+  }
+
+  @Test
   public void testUpdateApplication_MismatchedIds() throws Exception {
     ApiApplicationDTO applicationDTO = createApplicationDTO("Junk");
     // Test the update
@@ -129,7 +164,8 @@ public class ApiApplicationResourceTest
     String errorMessage = response.getResponseBody();
     assertThat(errorMessage,
         is("The applicationId=" + app.getId() + " provided in the url did not match the id=" + applicationDTO.id +
-            " provided in the json."));
+            " provided in the json.")
+    );
   }
 
   @Test
@@ -484,10 +520,14 @@ public class ApiApplicationResourceTest
     assertThat(returnedDTO.organizationId, equalTo(sendDTO.organizationId));
     assertThat(returnedDTO.contactUserName, equalTo(sendDTO.contactUserName));
 
-    assertThat(returnedDTO.applicationTags.size(), is(sendDTO.applicationTags.size()));
-    assertThat(returnedDTO.applicationTags.size(), is(1));
-    assertThat(returnedDTO.applicationTags.get(0).tagId, is(sendDTO.applicationTags.get(0).tagId));
-    assertThat(returnedDTO.applicationTags.get(0).applicationId, is(returnedDTO.id));
+    if (returnedDTO.applicationTags == null) {
+      assertThat(sendDTO.applicationTags, nullValue());
+    } else {
+      assertThat(returnedDTO.applicationTags.size(), is(sendDTO.applicationTags.size()));
+      assertThat(returnedDTO.applicationTags.size(), is(1));
+      assertThat(returnedDTO.applicationTags.get(0).tagId, is(sendDTO.applicationTags.get(0).tagId));
+      assertThat(returnedDTO.applicationTags.get(0).applicationId, is(returnedDTO.id));
+    }
   }
 
   private String getGetRoleMembersUrl(final String applicationId) {
@@ -528,5 +568,60 @@ public class ApiApplicationResourceTest
     ApiApplicationTagDTO applicationTagADTO = new ApiApplicationTagDTO();
     applicationTagADTO.tagId = tagA.getId();
     applicationDTO.applicationTags.add(applicationTagADTO);
+  }
+
+  private void assertApplications(List<ApiApplicationDTO> actualApplications,
+      List<ApiApplicationDTO> expectedApplications)
+  {
+    assertThat(actualApplications.size(), is(expectedApplications.size()));
+
+    Collections.sort(actualApplications, new ApiApplicationDTOComparator());
+    Collections.sort(expectedApplications, new ApiApplicationDTOComparator());
+
+    for (int i = 0; i < actualApplications.size(); i++) {
+      ApiApplicationDTO actualApplication = actualApplications.get(i);
+      ApiApplicationDTO expectedApplication = expectedApplications.get(i);
+      assertThat(actualApplication.id, is(expectedApplication.id));
+      assertThat(actualApplication.name, is(expectedApplication.name));
+      assertThat(actualApplication.organizationId, is(expectedApplication.organizationId));
+      assertThat(actualApplication.publicId, is(expectedApplication.publicId));
+      assertThat(actualApplication.contactUserName, is(expectedApplication.contactUserName));
+
+      assertTags(actualApplication.applicationTags, expectedApplication.applicationTags);
+    }
+  }
+
+  private void assertTags(List<ApiApplicationTagDTO> actualTags, List<ApiApplicationTagDTO> expectedTags) {
+    if (actualTags == null) {
+      assertThat(expectedTags, nullValue());
+      return;
+    }
+
+    assertThat(actualTags.size(), is(expectedTags.size()));
+
+    Collections.sort(actualTags, new ApiApplicationTagDTOComparator());
+    Collections.sort(expectedTags, new ApiApplicationTagDTOComparator());
+
+    for (int i = 0; i < actualTags.size(); i++) {
+      assertThat(actualTags.get(i).id, is(expectedTags.get(i).id));
+      assertThat(actualTags.get(i).tagId, is(expectedTags.get(i).tagId));
+      assertThat(actualTags.get(i).applicationId, is(expectedTags.get(i).applicationId));
+    }
+  }
+
+  private static class ApiApplicationDTOComparator implements Comparator<ApiApplicationDTO>
+  {
+    @Override
+    public int compare(final ApiApplicationDTO o1, final ApiApplicationDTO o2) {
+      return o1.id.compareTo(o2.id);
+    }
+  }
+
+  private static class ApiApplicationTagDTOComparator implements Comparator<ApiApplicationTagDTO>
+  {
+    @Override
+    public int compare(final ApiApplicationTagDTO o1, final ApiApplicationTagDTO o2) {
+      return o1.id.compareTo(o2.id);
+    }
   }
 }

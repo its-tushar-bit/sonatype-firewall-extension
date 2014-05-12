@@ -9,11 +9,16 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
 import javax.imageio.ImageIO;
 
@@ -124,6 +129,32 @@ public class ApplicationDAOTest
     // getAll should return appCount + 1, to account for app created by AbstractDbDAOTest
     assertThat(applicationDAO.getAll(), hasSize(appCount + 1));
   }
+
+  @Test
+  public void testGetApplicationsByPublicIds() throws Exception {
+    // Create a few applications
+    int numApplication = 3;
+    List<Application> applications = tempEntity.newApplications(organization.getId(), numApplication);
+    Set<String> publicIds = new HashSet<>();
+    for (Application app : applications) {
+      publicIds.add(app.getPublicId());
+    }
+
+    // Note: applicationDAO.getByPublicIds returns an unmodifiable list, since we need to sort the list we create one
+    List<Application> retrievedApplications = new ArrayList<>(applicationDAO.getByPublicIds(publicIds));
+    assertThat(retrievedApplications, hasSize(numApplication));
+    assertApplications(retrievedApplications, applications);
+  }
+
+  @Test
+  public void testGetApplicationsByPublicIds_EmptySet() throws Exception {
+    // Create a few applications
+    tempEntity.newApplications(organization.getId(), 3);
+    Set<String> publicIds = new HashSet<>();
+    List<Application> retrievedApplications = new ArrayList<>(applicationDAO.getByPublicIds(publicIds));
+    assertThat(retrievedApplications, hasSize(0));
+  }
+
 
   @Test
   public void testUpdateOrganizationId() {
@@ -522,5 +553,29 @@ public class ApplicationDAOTest
     Assert.assertThat(actualApp.getContactInternalName(), is(expectedApp.getContactInternalName()));
     Assert.assertThat(actualApp.getOrganizationId(), is(expectedApp.getOrganizationId()));
     Assert.assertThat(actualApp.getPublicId(), is(expectedApp.getPublicId()));
+  }
+
+  private void assertApplications(List<Application> actual, List<Application> expected) {
+    Collections.sort(actual, new ApplicationComparator());
+    Collections.sort(expected, new ApplicationComparator());
+
+    for (int i = 0; i < actual.size(); i++) {
+      Application actualApplication = actual.get(i);
+      Application expectedApplication = expected.get(i);
+      assertThat(actualApplication.getId(), is(expectedApplication.getId()));
+      assertThat(actualApplication.getName(), is(expectedApplication.getName()));
+      assertThat(actualApplication.getOrganizationId(), is(expectedApplication.getOrganizationId()));
+      assertThat(actualApplication.getPublicId(), is(expectedApplication.getPublicId()));
+      assertThat(actualApplication.getPublicIdLowercase(), is(expectedApplication.getPublicIdLowercase()));
+      assertThat(actualApplication.getContactInternalName(), is(expectedApplication.getContactInternalName()));
+      assertThat(actualApplication.getNameLowercaseNoWhitespace(), is(expectedApplication.getNameLowercaseNoWhitespace()));
+    }
+  }
+
+  class ApplicationComparator implements Comparator<Application> {
+    @Override
+    public int compare(final Application o1, final Application o2) {
+      return o1.getId().compareTo(o2.getId());
+    }
   }
 }

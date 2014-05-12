@@ -5,16 +5,23 @@
  */
 package com.sonatype.insight.brain.api.service;
 
+import java.util.Collections;
+import java.util.List;
+
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.api.ApiApplicationAdapter;
 import com.sonatype.insight.brain.api.dto.ApiApplicationDTO;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 
 import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;
 import org.junit.Test;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.hasSize;
 
 
 public class ApiApplicationServiceAuthzTest
@@ -46,6 +53,25 @@ public class ApiApplicationServiceAuthzTest
   }
 
   @Test
+  public void testGetApplications_Authorized() {
+    grantReadPermission(app.getId());
+    apiApplicationService.getApplications(Collections.<String>emptySet());
+  }
+
+  @Test
+  public void testGetApplications_Unauthenticated() {
+    List<Application> applications = apiApplicationService.getApplications(Collections.<String>emptySet());
+    assertThat(applications, hasSize(0));
+  }
+
+  @Test
+  public void testGetApplications_UnauthorizedButAuthenticated() {
+    login();
+    List<Application> applications = apiApplicationService.getApplications(Collections.<String>emptySet());
+    assertThat(applications, hasSize(0));
+  }
+
+  @Test
   public void testAddApplication_Authorized() {
     grantWritePermission(org.getId());
 
@@ -64,7 +90,7 @@ public class ApiApplicationServiceAuthzTest
 
   @Test(expected = UnauthorizedException.class)
   public void testAddApplication_UnauthorizedButAuthenticated() {
-    grantReadPermission(app.getId());
+    login();
     ApiApplicationDTO applicationDTO = createApplicationDTO();
     apiApplicationService.addApplication(applicationDTO);
   }
@@ -84,7 +110,7 @@ public class ApiApplicationServiceAuthzTest
 
   @Test(expected = UnauthorizedException.class)
   public void testUpdateApplication_UnauthorizedButAuthenticated() {
-    grantReadPermission(app.getId());
+    login();
     ApiApplicationDTO applicationDTO = apiApplicationAdapter.convertToDTO(app);
     apiApplicationService.updateApplication(applicationDTO);
   }

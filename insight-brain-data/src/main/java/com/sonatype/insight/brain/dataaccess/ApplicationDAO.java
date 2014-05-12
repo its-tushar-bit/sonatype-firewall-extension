@@ -177,6 +177,12 @@ public class ApplicationDAO
     return getList(sQuery, applicationPublicIds, tagIds);
   }
 
+  public List<Application> getByPublicIds(Set<String> applicationPublicIds) {
+    String sQuery = "SELECT entity FROM Application entity" + //
+        " WHERE entity.publicId IN (?1)";
+    return getList(sQuery, applicationPublicIds);
+  }
+
   @Override
   public void insert(EntityManager em, Application application) {
     validate(application);

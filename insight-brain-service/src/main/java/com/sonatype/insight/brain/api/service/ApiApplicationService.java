@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.api.service;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Set;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -27,6 +28,7 @@ import com.sonatype.insight.brain.model.tag.ApplicationTag;
 import com.sonatype.insight.brain.organization.ApplicationHelper;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
+import com.sonatype.insight.brain.security.AuthzFilter;
 import com.sonatype.insight.dataaccess.AbstractDAO;
 
 /**
@@ -76,6 +78,26 @@ public class ApiApplicationService
     ApiApplicationDTO apiApplicationDTO = apiApplicationAdapter.convertToDTO(application);
     apiApplicationDTO.applicationTags = apiApplicationTagAdapter.convertToDTO(tags);
     return apiApplicationDTO;
+  }
+
+  /**
+   * Get all applications filtered by the set of publicIdsFilter.
+   * If the publicIdsFilter is empty then all applications are returned
+   *
+   * @param publicIdsFilter The set of public ids to filter on (cannot be null)
+   * @return The list of applications found
+   */
+  @AuthzFilter(permission = Permission.READ, context = AuthzFilter.Context.APPLICATION)
+  public List<Application> getApplications(final Set<String> publicIdsFilter) {
+    List<Application> applications;
+    if (publicIdsFilter.isEmpty()) {
+      applications = applicationDAO.getAll();
+    }
+    else {
+      applications = applicationDAO.getByPublicIds(publicIdsFilter);
+    }
+
+    return applications;
   }
 
   public ApiApplicationDTO addApplication(final ApiApplicationDTO applicationDTO) {
@@ -168,7 +190,7 @@ public class ApiApplicationService
       final List<ApplicationTag> applicationTags)
   {
     // Delete existing tags
-    for (ApplicationTag applicationTag :applicationTagDAO.getByApplicationId(entityManager, application.getId())) {
+    for (ApplicationTag applicationTag : applicationTagDAO.getByApplicationId(entityManager, application.getId())) {
       applicationTagDAO.delete(entityManager, applicationTag);
     }
     // Now add the new tags

@@ -567,7 +567,7 @@ table.table-risk  tbody tr:first-child  td:nth-child(6) {
 }
 
 .dashboard-content th[id$='-time-header'] {
-  min-width: 80px;
+  min-width: 90px;
 }
 
 .clm-bar {

@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.testing.functional
 
+import spock.lang.IgnoreIf
+import spock.lang.Issue
 import spock.lang.Stepwise
 
 /**
@@ -68,6 +70,11 @@ class OrganizationSpec
       organizationList.collect{ it.text() } == ['A','Z']
   }
 
+  /**
+   * See associated issue for why we ignore this on FF(temporarily)
+   */
+  @Issue('CLM-2399')
+  @IgnoreIf({ System.getProperty('geb.env', 'unset') == 'unset' })
   def "Can add a new Policy"() {
     given: 'The policy tab has loaded'
       waitFor { policies.displayed }

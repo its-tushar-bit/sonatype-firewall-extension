@@ -31,6 +31,9 @@ import org.codehaus.plexus.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static com.sonatype.clm.dto.model.ProprietaryConfig.PACKAGE_DELIM;
+import static com.sonatype.clm.dto.model.ProprietaryConfig.REGEX_DELIM;
+
 /**
  * Scans application bundles.
  *
@@ -108,8 +111,8 @@ class Scanner
     props.setProperty("hashJavaTypes", "true");
     ProprietaryConfig proprietaryConfig = proprietaryConfigDAO.get();
     if (proprietaryConfig != null) {
-      props.put("proprietaryPackages", StringUtils.join(proprietaryConfig.getPackages().iterator(), ","));
-      props.put("proprietaryRegexes", StringUtils.join(proprietaryConfig.getRegexes().iterator(), ":::"));
+      props.put("proprietaryPackages", StringUtils.join(proprietaryConfig.getPackages().iterator(), PACKAGE_DELIM));
+      props.put("proprietaryRegexes", StringUtils.join(proprietaryConfig.getRegexes().iterator(), REGEX_DELIM));
     }
     configLoader.loadDefaults(props, null);
     configLoader.resolveAliases(props);

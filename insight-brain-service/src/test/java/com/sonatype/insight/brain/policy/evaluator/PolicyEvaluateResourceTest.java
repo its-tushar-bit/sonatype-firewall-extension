@@ -831,7 +831,10 @@ public class PolicyEvaluateResourceTest
         stage1.getStageTypeId());
     assertThat(appComponents1, hasSize(1));
     ApplicationComponent appComponent1 = appComponents1.get(0);
-    assertApplicationComponent("commons-dbcp", "commons-dbcp", "1.4", appComponent1);
+    PolicyEvaluationDAO policyEvaluationDAO = new PolicyEvaluationDAO();
+    PolicyEvaluation policyEvaluation1 = policyEvaluationDAO.getLastByApplicationIdAndStageId(app.getId(),
+        stage1.getStageTypeId());
+    assertApplicationComponent("commons-dbcp", "commons-dbcp", "1.4", policyEvaluation1.getTime(), appComponent1);
 
     // Evaluate policy for a different stage. It should not touch the app<->component assocs for the first stage.
     assertThat(appComponentDAO.getByApplicationIdAndStageTypeId(app.getId(), stage2.getStageTypeId()), is(empty()));
@@ -841,10 +844,13 @@ public class PolicyEvaluateResourceTest
         stage2.getStageTypeId());
     assertThat(appComponents2, hasSize(1));
     ApplicationComponent appComponent2 = appComponents2.get(0);
-    assertApplicationComponent("geronimo", "geronimo-tomcat", "1.0", appComponent2);
+    PolicyEvaluation policyEvaluation2 = policyEvaluationDAO.getLastByApplicationIdAndStageId(app.getId(),
+        stage2.getStageTypeId());
+    assertApplicationComponent("geronimo", "geronimo-tomcat", "1.0", policyEvaluation2.getTime(), appComponent2);
     appComponents1 = appComponentDAO.getByApplicationIdAndStageTypeId(app.getId(), stage1.getStageTypeId());
     assertThat(appComponents1, hasSize(1));
-    assertApplicationComponent("commons-dbcp", "commons-dbcp", "1.4", appComponents1.get(0));
+    assertApplicationComponent("commons-dbcp", "commons-dbcp", "1.4", policyEvaluation1.getTime(),
+        appComponents1.get(0));
     assertThat(appComponents1.get(0).getId(), is(appComponent1.getId()));
 
     // Evaluate again for the first stage. It should replace the app<->component assocs for the first stage and it
@@ -855,18 +861,21 @@ public class PolicyEvaluateResourceTest
         stage1.getStageTypeId());
     assertThat(appComponents3, hasSize(1));
     ApplicationComponent appComponent3 = appComponents3.get(0);
-    assertApplicationComponent("tomcat", "tomcat-util", "5.5.23", appComponent3);
+    policyEvaluation1 = policyEvaluationDAO.getLastByApplicationIdAndStageId(app.getId(), stage1.getStageTypeId());
+    assertApplicationComponent("tomcat", "tomcat-util", "5.5.23", policyEvaluation1.getTime(), appComponent3);
     appComponents2 = appComponentDAO.getByApplicationIdAndStageTypeId(app.getId(), stage2.getStageTypeId());
     assertThat(appComponents2, hasSize(1));
-    assertApplicationComponent("geronimo", "geronimo-tomcat", "1.0", appComponents2.get(0));
+    assertApplicationComponent("geronimo", "geronimo-tomcat", "1.0", policyEvaluation2.getTime(), appComponents2.get(0));
     assertThat(appComponents2.get(0).getId(), is(appComponent2.getId()));
   }
 
-  private void assertApplicationComponent(String groupId, String artifactId, String version, ApplicationComponent actual)
+  private void assertApplicationComponent(String groupId, String artifactId, String version, Date time,
+      ApplicationComponent actual)
   {
     assertThat(actual.getGroupId(), is(groupId));
     assertThat(actual.getArtifactId(), is(artifactId));
     assertThat(actual.getVersion(), is(version));
+    assertThat(actual.getTime(), is(time));
   }
 
   @Test

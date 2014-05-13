@@ -37,4 +37,11 @@ public class ComponentDetailResource
   public List<ApplicationComponentDetailsDTO> getApplicationDetailsByHash(@QueryParam("hash") String hash) {
     return componentDetailService.getApplicationDetailsByHash(hash);
   }
+
+  @GET
+  @Path("name")
+  @Produces(MediaType.APPLICATION_JSON)
+  public String getComponentNameByHash(@QueryParam("hash") String hash) {
+    return componentDetailService.getComponentNameByHash(hash);
+  }
 }

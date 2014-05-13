@@ -327,6 +327,7 @@ CREATE TABLE application_component (
   application_component_id varchar(50) NOT NULL,
   application_id varchar(50) NOT NULL,
   stage_type_id varchar(30) NOT NULL,
+  time datetime NOT NULL,
   hash varchar(20) NOT NULL,
   group_id varchar(100),
   artifact_id varchar(100),
@@ -340,3 +341,4 @@ CREATE TABLE application_component (
   CONSTRAINT application_component_uk UNIQUE KEY (application_id, stage_type_id, hash)
 );
 CREATE INDEX application_component_hash_idx ON application_component(hash);
+CREATE INDEX application_component_time_idx ON application_component(time);

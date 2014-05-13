@@ -16,6 +16,7 @@ import org.junit.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.arrayWithSize;
+import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 
 public class ComponentDetailResourceTest
@@ -32,6 +33,23 @@ public class ComponentDetailResourceTest
         ApplicationComponentDetailsDTO[].class);
     assertThat(applicationComponentDetailsDTOs, notNullValue());
     assertThat(applicationComponentDetailsDTOs, arrayWithSize(1));
+  }
+
+  @Test
+  public void testGetComponentNameByHash() throws Exception {
+    Application app = tempEntity.newApplicationWithParent("testGetComponentNameByHash");
+    String hash = "ababababab";
+    String url = getServiceURL() + "/name?hash=" + hash;
+
+    Response response = AuthedRestAccess.get(url);
+    assertResponseStatus(400, response);
+    assertThat(response.getResponseBody(), is("Unknown component with hash ababababab"));
+
+    tempEntity.newApplicationComponent(app.getId(), BuildStageType.ID, hash, "groupId", "artifactId", "version");
+    response = AuthedRestAccess.get(url);
+    assertResponseStatus(200, response);
+    String name = response.getResponseBody();
+    assertThat(name, is("groupId:artifactId:version"));
   }
 
   private String getServiceURL() {

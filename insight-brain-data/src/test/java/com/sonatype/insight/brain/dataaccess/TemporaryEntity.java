@@ -76,6 +76,7 @@ import com.sonatype.insight.brain.model.tag.ApplicationTag;
 import com.sonatype.insight.brain.model.tag.PolicyTag;
 import com.sonatype.insight.brain.model.tag.Tag;
 
+import org.codehaus.plexus.util.StringUtils;
 import org.junit.rules.ExternalResource;
 
 /**
@@ -610,10 +611,17 @@ public class TemporaryEntity
   public ApplicationComponent newApplicationComponent(String applicationId, String stageTypeId, String hash,
       String groupId, String artifactId, String version)
   {
-    ApplicationComponent applicationComponent = new ApplicationComponent(applicationId, stageTypeId, hash, groupId,
-        artifactId, version, MatchState.EXACT.getId(), IdentificationSource.SONATYPE.getId(), false /* proprietary */,
-        null /* pathnames */);
+    return newApplicationComponent(applicationId, stageTypeId, hash, groupId, artifactId, version, null /* pathnames */);
+  }
+
+  public ApplicationComponent newApplicationComponent(String applicationId, String stageTypeId, String hash,
+      String groupId, String artifactId, String version, String pathnamesString)
+  {
+    List<String> pathnames = StringUtils.isBlank(pathnamesString) ? null : Collections.singletonList(pathnamesString);
+    ApplicationComponent applicationComponent = new ApplicationComponent(applicationId, stageTypeId, new Date(), hash,
+        groupId, artifactId, version, MatchState.EXACT.getId(), IdentificationSource.SONATYPE.getId(),
+        false /* proprietary */, pathnames);
     appComponentDAO.insert(applicationComponent);
     return applicationComponent;
-}
+  }
 }

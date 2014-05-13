@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.policy.evaluator;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -193,7 +194,7 @@ public class PolicyEvaluationUtils
             newestPolicyViolationDAO.insert(em, newestPolicyViolation);
           }
 
-          persistApplicationComponents(em, appId, stage, components);
+          persistApplicationComponents(em, appId, stage, policyEvaluation.getTime(), components);
         }
   
         em.getTransaction().commit();
@@ -206,7 +207,9 @@ public class PolicyEvaluationUtils
     }
   }
 
-  private void persistApplicationComponents(EntityManager em, String appId, Stage stage, List<Component> components) {
+  private void persistApplicationComponents(EntityManager em, String appId, Stage stage, Date time,
+      List<Component> components)
+  {
     ApplicationComponentDAO applicationComponentDAO = new ApplicationComponentDAO();
 
     // Delete all app->component associations for the specified stage
@@ -222,7 +225,7 @@ public class PolicyEvaluationUtils
         continue;
       }
 
-      ApplicationComponent applicationComponent = new ApplicationComponent(appId, stage.getStageTypeId(),
+      ApplicationComponent applicationComponent = new ApplicationComponent(appId, stage.getStageTypeId(), time,
           component.getHash(), component.getGroupId(), component.getArtifactId(), component.getVersion(), component
               .getMatchState().getId(), component.getIdentificationSource().getId(), component.isProprietary(),
           component.getPathnames());

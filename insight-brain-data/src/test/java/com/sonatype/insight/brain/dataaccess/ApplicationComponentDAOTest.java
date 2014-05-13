@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.dataaccess;
 
+import java.util.Date;
+
 import com.sonatype.insight.brain.model.ApplicationComponent;
 import com.sonatype.insight.brain.model.component.IdentificationSource;
 import com.sonatype.insight.brain.model.component.MatchState;
@@ -26,8 +28,9 @@ public class ApplicationComponentDAOTest
   @Test
   public void testCRUD() throws Exception {
     // Create
-    ApplicationComponent appComponent = new ApplicationComponent(applicationId, BuildStageType.ID, "hash", "groupId",
-        "artifactId", "version", MatchState.EXACT.getId(), IdentificationSource.SONATYPE.getId(),
+    Date now = new Date();
+    ApplicationComponent appComponent = new ApplicationComponent(applicationId, BuildStageType.ID, now, "hash",
+        "groupId", "artifactId", "version", MatchState.EXACT.getId(), IdentificationSource.SONATYPE.getId(),
         true /* proprietary */, null /* pathnames */);
     dao.insert(appComponent);
     assertThat(appComponent.getId(), notNullValue());
@@ -35,7 +38,7 @@ public class ApplicationComponentDAOTest
     // Get
     appComponent = dao.getById(appComponent.getId());
     assertThat(appComponent, notNullValue());
-    assertApplicationComponent(applicationId, BuildStageType.ID, "hash", "groupId", "artifactId", "version",
+    assertApplicationComponent(applicationId, BuildStageType.ID, now, "hash", "groupId", "artifactId", "version",
         MatchState.EXACT.getId(), IdentificationSource.SONATYPE.getId(), true /* proprietary */, null /* pathnames */,
         appComponent);
 
@@ -55,13 +58,14 @@ public class ApplicationComponentDAOTest
     assertThat(appComponent, nullValue());
   }
 
-  private void assertApplicationComponent(String applicationId, String stageTypeId, String hash, String groupId,
-      String artifactId, String version, String matchStateId, String identificationSourceId, boolean proprietary,
-      String pathnames, ApplicationComponent actual)
+  private void assertApplicationComponent(String applicationId, String stageTypeId, Date time, String hash,
+      String groupId, String artifactId, String version, String matchStateId, String identificationSourceId,
+      boolean proprietary, String pathnames, ApplicationComponent actual)
   {
     assertThat(actual.getApplicationId(), is(applicationId));
     assertThat(actual.getStageTypeId(), is(stageTypeId));
     assertThat(actual.getHash(), is(hash));
+    assertThat(actual.getTime(), is(time));
     assertThat(actual.getGroupId(), is(groupId));
     assertThat(actual.getArtifactId(), is(artifactId));
     assertThat(actual.getVersion(), is(version));

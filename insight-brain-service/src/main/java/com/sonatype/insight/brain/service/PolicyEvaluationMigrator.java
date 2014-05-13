@@ -344,9 +344,10 @@ public class PolicyEvaluationMigrator
       if (component.getHash() == null) {
         continue;
       }
-      ApplicationComponent applicationComponent = new ApplicationComponent(appId, stageTypeId, component.getHash(),
-          component.getGroupId(), component.getArtifactId(), component.getVersion(), component.getMatchState().getId(),
-          component.getIdentificationSource().getId(), component.isProprietary(), component.getPathnames());
+      ApplicationComponent applicationComponent = new ApplicationComponent(appId, stageTypeId,
+          policyEvaluation.getTime(), component.getHash(), component.getGroupId(), component.getArtifactId(),
+          component.getVersion(), component.getMatchState().getId(), component.getIdentificationSource().getId(),
+          component.isProprietary(), component.getPathnames());
       applicationComponentDAO.insert(em, applicationComponent);
     }
   }

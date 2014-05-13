@@ -29,6 +29,7 @@ import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.organization.ApplicationAdapter;
 import com.sonatype.insight.brain.organization.ApplicationService;
+import com.sonatype.insight.error.exception.BadRequestException;
 
 @Named
 /**
@@ -109,5 +110,23 @@ public class ComponentDetailService
     }
 
     return result;
+  }
+
+  public String getComponentNameByHash(String hash) {
+    ApplicationComponent applicationComponent = new ApplicationComponentDAO().getLastByHash(hash);
+    if (applicationComponent == null) {
+      throw new BadRequestException("Unknown component with hash " + hash);
+    }
+
+    if (applicationComponent.getGroupId() != null) {
+      return applicationComponent.getGroupId() + ':' + applicationComponent.getArtifactId() + ':'
+          + applicationComponent.getVersion();
+    }
+
+    if (!applicationComponent.getPathnames().isEmpty()) {
+      return applicationComponent.getPathnames().get(0);
+    }
+
+    return null;
   }
 }

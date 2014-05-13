@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.model;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 
 import javax.persistence.Column;
@@ -44,6 +45,9 @@ public class ApplicationComponent
   @Column(name = "stage_type_id")
   private String stageTypeId;
 
+  @Column(name = "time")
+  private Date time;
+
   @Column(name = "hash")
   private String hash;
 
@@ -71,11 +75,13 @@ public class ApplicationComponent
   public ApplicationComponent() {
   }
 
-  public ApplicationComponent(String applicationId, String stageTypeId, String hash, String groupId, String artifactId,
-      String version, String matchStateId, String identificationSourceId, boolean proprietary, List<String> pathnames)
+  public ApplicationComponent(String applicationId, String stageTypeId, Date time, String hash, String groupId,
+      String artifactId, String version, String matchStateId, String identificationSourceId, boolean proprietary,
+      List<String> pathnames)
   {
     this.applicationId = applicationId;
     this.stageTypeId = stageTypeId;
+    this.time = time;
     this.hash = hash;
     this.groupId = groupId;
     this.artifactId = artifactId;
@@ -198,5 +204,13 @@ public class ApplicationComponent
   public String toString() {
     return "ApplicationComponent [applicationId=" + applicationId + ", stageTypeId=" + stageTypeId + ", hash=" + hash
         + ", GAV=" + groupId + ":" + artifactId + ":" + version + ", matchStateId=" + matchStateId + "]";
+  }
+
+  public Date getTime() {
+    return time;
+  }
+
+  public void setTime(Date time) {
+    this.time = time;
   }
 }

@@ -19,6 +19,7 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.junit.Rule;
 import org.junit.Test;
@@ -28,6 +29,8 @@ import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.nullValue;
+import static org.junit.Assert.fail;
 
 public class ComponentDetailServiceTest
     extends AbstractComponentTest
@@ -130,6 +133,54 @@ public class ComponentDetailServiceTest
     ReasonDTO reasonDTO = policyViolationSummaryDTO.reasons.get(0);
     assertThat(reasonDTO.constraintName, is("Test Constraint"));
     assertThat(reasonDTO.reasons, containsInAnyOrder("reason"));
+  }
+
+  @Test
+  public void testGetComponentNameByHash() throws Exception {
+    String hash = "ababababab";
+    Application app = tempEntity.newApplicationWithParent("app");
+    tempEntity.newApplicationComponent(app.getId(), BuildStageType.ID, hash, "groupId1", "artifactId1", "version1");
+    // Force different times on the two ApplicationComponents
+    Thread.sleep(1);
+    tempEntity.newApplicationComponent(app.getId(), ReleaseStageType.ID, hash, "groupId2", "artifactId2", "version2");
+
+    String name = componentDetailService.getComponentNameByHash(hash);
+    assertThat(name, is("groupId2:artifactId2:version2"));
+  }
+
+  @Test
+  public void testGetComponentNameByHash_UnnownHash() throws Exception {
+    String hash = "ababababab";
+
+    try {
+      componentDetailService.getComponentNameByHash(hash);
+      fail("Expected BadRequestException");
+    }
+    catch (BadRequestException expected) {
+      assertThat(expected.getMessage(), is("Unknown component with hash ababababab"));
+    }
+  }
+
+  @Test
+  public void testGetComponentNameByHash_NoGAV() throws Exception {
+    String hash = "ababababab";
+    Application app = tempEntity.newApplicationWithParent("app");
+    tempEntity.newApplicationComponent(app.getId(), ReleaseStageType.ID, hash, null /* groupId */,
+        null /* artifactId */, null /* version */, "somepath");
+
+    String name = componentDetailService.getComponentNameByHash(hash);
+    assertThat(name, is("somepath"));
+  }
+
+  @Test
+  public void testGetComponentNameByHash_NoGAVOrPathnames() throws Exception {
+    String hash = "ababababab";
+    Application app = tempEntity.newApplicationWithParent("app");
+    tempEntity.newApplicationComponent(app.getId(), ReleaseStageType.ID, hash, null /* groupId */,
+        null /* artifactId */, null /* version */);
+
+    String name = componentDetailService.getComponentNameByHash(hash);
+    assertThat(name, nullValue());
   }
 
   private PolicyViolationSummaryDTO getPolicyViolationSummaryDTO(String policyId,

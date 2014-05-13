@@ -196,14 +196,14 @@ public class PolicyEvaluationMigratorTest
     List<ApplicationComponent> appComponents = applicationComponentDAO.getByApplicationIdAndStageTypeId(app1.getId(),
         Stage.ID_BUILD);
     assertThat(appComponents, hasSize(3));
-    assertCarrotAppComponent(appComponents, Stage.ID_BUILD);
-    assertAntlrAppComponent(appComponents, Stage.ID_BUILD);
-    assertUnknownAppComponent(appComponents, Stage.ID_BUILD);
+    assertCarrotAppComponent(appComponents, Stage.ID_BUILD, buildMonitoring.getTime());
+    assertAntlrAppComponent(appComponents, Stage.ID_BUILD, buildMonitoring.getTime());
+    assertUnknownAppComponent(appComponents, Stage.ID_BUILD, buildMonitoring.getTime());
     appComponents = applicationComponentDAO.getByApplicationIdAndStageTypeId(app1.getId(), Stage.ID_STAGE_RELEASE);
     assertThat(appComponents, hasSize(4));
-    assertCarrotAppComponent(appComponents, Stage.ID_STAGE_RELEASE);
-    assertAntlrAppComponent(appComponents, Stage.ID_STAGE_RELEASE);
-    assertUnknownAppComponent(appComponents, Stage.ID_STAGE_RELEASE);
+    assertCarrotAppComponent(appComponents, Stage.ID_STAGE_RELEASE, stageReleaseMonitoringEvaluation.getTime());
+    assertAntlrAppComponent(appComponents, Stage.ID_STAGE_RELEASE, stageReleaseMonitoringEvaluation.getTime());
+    assertUnknownAppComponent(appComponents, Stage.ID_STAGE_RELEASE, stageReleaseMonitoringEvaluation.getTime());
 
     //second app
     List<PolicyEvaluation> app2BuildEvaluations = policyEvaluationDAO.getAllByApplicationIdAndStageId(app2.getId(), Stage.ID_RELEASE);
@@ -234,8 +234,8 @@ public class PolicyEvaluationMigratorTest
     // application components for app2
     appComponents = applicationComponentDAO.getByApplicationIdAndStageTypeId(app2.getId(), Stage.ID_RELEASE);
     assertThat(appComponents, hasSize(2));
-    assertCarrotAppComponent(appComponents, Stage.ID_RELEASE);
-    assertUnknownAppComponent(appComponents, Stage.ID_RELEASE);
+    assertCarrotAppComponent(appComponents, Stage.ID_RELEASE, policyEvaluation.getTime());
+    assertUnknownAppComponent(appComponents, Stage.ID_RELEASE, policyEvaluation.getTime());
 
     // application without policy evaluations
     for (StageType stageType : StageTypes.getAll()) {
@@ -320,11 +320,11 @@ public class PolicyEvaluationMigratorTest
         Lists.newArrayList("com.carrotsearch.hppc.0.5.2.jar"));
   }
 
-  private void assertUnknownAppComponent(List<ApplicationComponent> appComponents, String stageTypeId) {
+  private void assertUnknownAppComponent(List<ApplicationComponent> appComponents, String stageTypeId, Date time) {
     for (ApplicationComponent appComponent : appComponents) {
       if (COMPONENT_HASH_UNKNOWN.equals(appComponent.getHash())) {
         assertAppComponent(appComponent, null /* groupId */, null /* artifactId */, null /* version */, stageTypeId,
-            MatchState.UNKNOWN.getId(), IdentificationSource.SONATYPE.getId(), false /* proprietary */,
+            time, MatchState.UNKNOWN.getId(), IdentificationSource.SONATYPE.getId(), false /* proprietary */,
             Lists.newArrayList("commons-httpclient-3.1.SONATYPE.jar"));
         return;
       }
@@ -332,11 +332,11 @@ public class PolicyEvaluationMigratorTest
     fail("Cannot find unknown ApplicationComponent");
   }
 
-  private void assertCarrotAppComponent(List<ApplicationComponent> appComponents, String stageTypeId) {
+  private void assertCarrotAppComponent(List<ApplicationComponent> appComponents, String stageTypeId, Date time) {
     for (ApplicationComponent appComponent : appComponents) {
       if (COMPONENT_HASH_CARROT.equals(appComponent.getHash())) {
-        assertAppComponent(appComponent, "com.carrotsearch", "hppc", "0.5.2", stageTypeId, MatchState.EXACT.getId(),
-            IdentificationSource.SONATYPE.getId(), false /* proprietary */,
+        assertAppComponent(appComponent, "com.carrotsearch", "hppc", "0.5.2", stageTypeId, time,
+            MatchState.EXACT.getId(), IdentificationSource.SONATYPE.getId(), false /* proprietary */,
             Lists.newArrayList("com.carrotsearch.hppc.0.5.2.jar"));
         return;
       }
@@ -344,10 +344,10 @@ public class PolicyEvaluationMigratorTest
     fail("Cannot find carrot ApplicationComponent");
   }
 
-  private void assertAntlrAppComponent(List<ApplicationComponent> appComponents, String stageTypeId) {
+  private void assertAntlrAppComponent(List<ApplicationComponent> appComponents, String stageTypeId, Date time) {
     for (ApplicationComponent appComponent : appComponents) {
       if (COMPONENT_HASH_ANTLR.equals(appComponent.getHash())) {
-        assertAppComponent(appComponent, "antlr", "antlr", "2.7.7", stageTypeId, MatchState.EXACT.getId(),
+        assertAppComponent(appComponent, "antlr", "antlr", "2.7.7", stageTypeId, time, MatchState.EXACT.getId(),
             IdentificationSource.SONATYPE.getId(), false /* proprietary */,
             Lists.newArrayList("antlr.antlr.2.7.7.jar", "shaded-product.jar"));
         return;
@@ -357,13 +357,14 @@ public class PolicyEvaluationMigratorTest
   }
 
   private void assertAppComponent(ApplicationComponent actual, String groupId, String artifactId, String version,
-      String stageTypeId, String matchStateId, String identificationSourceId, boolean proprietary,
+      String stageTypeId, Date time, String matchStateId, String identificationSourceId, boolean proprietary,
       List<String> pathnames)
   {
     assertThat(actual.getGroupId(), is(groupId));
     assertThat(actual.getArtifactId(), is(artifactId));
     assertThat(actual.getVersion(), is(version));
     assertThat(actual.getStageTypeId(), is(stageTypeId));
+    assertThat(actual.getTime(), is(time));
     assertThat(actual.getMatchStateId(), is(matchStateId));
     assertThat(actual.getIdentificationSourceId(), is(identificationSourceId));
     assertThat(actual.isProprietary(), is(proprietary));

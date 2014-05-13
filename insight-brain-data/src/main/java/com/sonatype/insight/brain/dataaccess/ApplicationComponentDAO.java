@@ -57,4 +57,11 @@ public class ApplicationComponentDAO
         " WHERE entity.applicationId=?1 AND entity.hash=?2";
     return getList(sQuery, appId, hash);
   }
+
+  public ApplicationComponent getLastByHash(String hash) {
+    String sQuery = "SELECT entity FROM ApplicationComponent entity" + //
+        " WHERE entity.hash=?1" + //
+        " ORDER BY entity.time DESC";
+    return createQuery(sQuery, hash).forceSingleResult().get();
+  }
 }

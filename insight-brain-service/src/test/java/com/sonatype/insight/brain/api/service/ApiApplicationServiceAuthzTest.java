@@ -55,7 +55,8 @@ public class ApiApplicationServiceAuthzTest
   @Test
   public void testGetApplications_Authorized() {
     grantReadPermission(app.getId());
-    apiApplicationService.getApplications(Collections.<String>emptySet());
+    List<Application> applications = apiApplicationService.getApplications(Collections.<String>emptySet());
+    assertThat(applications, hasSize(1));
   }
 
   @Test

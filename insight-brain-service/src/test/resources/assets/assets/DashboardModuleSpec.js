@@ -219,6 +219,7 @@ describe('DashboardModule', function() {
       $httpBackend.flush();
       directiveScope = scope.$$childHead;
       directiveScope.$digest();
+      expect(directiveScope.filtersLoaded).toBeTruthy();
     }));
 
     it('persisted data in scope', function() {

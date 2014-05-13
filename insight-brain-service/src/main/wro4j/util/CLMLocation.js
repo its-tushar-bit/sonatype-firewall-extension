@@ -151,6 +151,9 @@
 
         getComponentDetailsUrl: function(hash) {
           return baseUrl.get() + '/rest/componentDetails/applications?hash=' + hash;
+        },
+        getComponentNameUrl: function(hash) {
+          return baseUrl.get() + '/rest/componentDetails/name?hash=' + hash;
         }
       };
     }

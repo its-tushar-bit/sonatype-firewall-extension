@@ -61,6 +61,7 @@ describe('ComponentController tests', function() {
     beforeEach(inject(function($rootScope, $controller, $httpBackend, CLMLocations) {
       scope = $rootScope.$new();
       $httpBackend.expectGET(CLMLocations.getComponentDetailsUrl()).respond(applicationComponents);
+      $httpBackend.expectGET(CLMLocations.getComponentNameUrl()).respond('foo');
       $controller('componentController', { $scope: scope });
       $httpBackend.flush();
     }));
@@ -80,6 +81,10 @@ describe('ComponentController tests', function() {
 
     it('calculates the total risk', function() {
       expect(scope.totalRisk).toBe(16);
+    });
+
+    it('loads a component name', function() {
+      expect(scope.name).toBe('foo');
     });
   });
 

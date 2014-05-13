@@ -863,7 +863,8 @@ var AngularStateUtils = {
         }
 
         scope.getText = function () {
-          if (!scope.selectedIds || scope.selectedIds.length === 0) {
+          // upon page load, getText() gets called before our watcher calls updateSelection() to sync scope.selected
+          if (!scope.selectedIds || scope.selectedIds.length === 0 || !scope.selected) {
             return scope.noneSelectedText ? scope.noneSelectedText : 'None selected';
           }
 

@@ -425,6 +425,12 @@ describe('AngularCommon', function() {
       directiveScope = scope.$$childHead
     }));
 
+    it('can handle getText being called before the watcher on selectedIds', function () {
+      directiveScope.selectedIds = ['bar'];
+      delete directiveScope.selected;
+      expect(directiveScope.getText()).toEqual('None selected');
+    });
+
     it('getText', function () {
       expect(directiveScope.getText()).toEqual('None selected');
       scope.$apply(function () {

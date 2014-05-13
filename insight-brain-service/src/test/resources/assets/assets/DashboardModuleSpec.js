@@ -511,4 +511,56 @@ describe('DashboardModule', function() {
       expect(scope.states[1].state).toBe('dashboard.component');
     }));
   });
+
+  describe('sortable', function() {
+    var barScope, fooScope;
+
+    beforeEach(inject(function ($rootScope, $compile) {
+      scope = $rootScope.$new();
+      $compile('<div sortable sortable-direction="true" sortable-field="bar">' +
+              '<span sort-column="foo">foo</span><span sort-column="bar" sort-inverse="true">bar</span></div>')(scope);
+      fooScope = scope.$$childHead;
+      barScope = scope.$$childHead.$$nextSibling.$$nextSibling;
+    }));
+
+    it('tests', function () {
+      expect(fooScope.isUp()).toBeFalsy();
+      expect(fooScope.isDown()).toBeFalsy();
+      expect(barScope.isUp()).toBeTruthy();
+      expect(barScope.isDown()).toBeFalsy();
+      expect(scope.getSortField()).toEqual('bar');
+      expect(scope.getSortReverse()).toBeFalsy();
+
+      fooScope.$apply(function () {
+        barScope.setSort();
+      });
+      expect(fooScope.isUp()).toBeFalsy();
+      expect(fooScope.isDown()).toBeFalsy();
+      expect(barScope.isUp()).toBeFalsy();
+      expect(barScope.isDown()).toBeTruthy();
+      expect(scope.getSortField()).toEqual('bar');
+      expect(scope.getSortReverse()).toBeTruthy();
+
+      fooScope.$apply(function () {
+        fooScope.setSort();
+      });
+      expect(fooScope.isUp()).toBeFalsy();
+      expect(fooScope.isDown()).toBeTruthy();
+      expect(barScope.isUp()).toBeFalsy();
+      expect(barScope.isDown()).toBeFalsy();
+      expect(scope.getSortField()).toEqual('foo');
+      expect(scope.getSortReverse()).toBeFalsy();
+
+      fooScope.$apply(function () {
+        fooScope.setSort();
+      });
+      expect(fooScope.isUp()).toBeTruthy();
+      expect(fooScope.isDown()).toBeFalsy();
+      expect(barScope.isUp()).toBeFalsy();
+      expect(barScope.isDown()).toBeFalsy();
+      expect(scope.getSortField()).toEqual('foo');
+      expect(scope.getSortReverse()).toBeTruthy();
+    });
+
+  });
 });

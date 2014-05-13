@@ -108,17 +108,7 @@
         emptyMessage: '=',
         maxResults: '='
       },
-      templateUrl: 'risk-table',
-      controller: ['$scope', function($scope) {
-        $scope.orderColumn = 'threatLevel';
-        $scope.orderDirection = true;
-        $scope.setSort = function (field) {
-          $scope.orderDirection = (field === $scope.orderColumn && !$scope.orderDirection) ||
-            // Threat level is orderDirection true by default
-            (field === 'threatLevel' && (!$scope.orderDirection || field !== $scope.orderColumn));
-          $scope.orderColumn = field;
-        };
-      }]
+      templateUrl: 'risk-table'
     };
   }]);
 
@@ -461,4 +451,66 @@
       });
     }, angular.noop);
   }]);
+
+  dashboardModule.directive('sortColumn', function () {
+    return {
+      require : '^sortable',
+      scope : {
+        field : '@sortColumn',
+        inverse : '@?sortInverse'
+      },
+      transclude : true,
+      template : '<a ng-click="setSort()"><span ng-transclude></span> <i class="sonatype-icons" ng-class="{ up : isUp(), down : isDown(), emptyIconGlyph : !isUp() && !isDown() }"></i></a>',
+      link : function (scope, element, attrs, sortableCtrl) {
+        scope.setSort = function () {
+          sortableCtrl.setSort(scope.field, scope.inverse);
+        };
+
+        scope.isUp = function () {
+          var reverse = sortableCtrl.sort.reverse,
+              inverse = scope.inverse;
+          return scope.field === sortableCtrl.sort.field && ((inverse && !reverse) || (!inverse && reverse));
+        };
+
+        scope.isDown = function () {
+          var reverse = sortableCtrl.sort.reverse,
+              inverse = scope.inverse;
+          return scope.field === sortableCtrl.sort.field && !((inverse && !reverse) || (!inverse && reverse));
+        };
+      }
+    };
+  });
+
+  dashboardModule.directive('sortable', function () {
+    return {
+      require : 'sortable',
+      controller : ['$scope', function ($scope) {
+        var me = this;
+        me.sort = {};
+
+        $scope.getSortReverse = function () {
+          return me.sort.reverse;
+        };
+        $scope.getSortField = function () {
+          return me.sort.field;
+        };
+        me.setSort = function (field, defaultReverse) {
+          if (me.sort.field === field) {
+            me.sort.reverse = ! me.sort.reverse;
+          } else {
+            me.sort = {
+              field : field,
+              reverse : defaultReverse
+            };
+          }
+        };
+      }],
+      link : function (scope, element, attrs, sortable) {
+        sortable.sort = {
+          field : attrs.sortableField,
+          reverse : attrs.sortableReverse
+        };
+      }
+    };
+  });
 }());

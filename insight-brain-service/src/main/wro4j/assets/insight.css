@@ -366,6 +366,11 @@ table.table-risk  tbody tr:first-child td {
   border-top : 2px solid transparent;
 }
 
+table.table-risk thead tr th:nth-child(n+2), table.table-risk thead tr th:nth-child(n+2) div {
+  min-width: 100px;
+  padding-left: 8px
+}
+
 table.table-risk  tbody tr:first-child  td:nth-child(2) {
   border-top-color : rgb(123,123,123);
 }

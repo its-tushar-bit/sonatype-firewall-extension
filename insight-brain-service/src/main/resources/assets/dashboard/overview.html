@@ -83,17 +83,12 @@
 <script type='text/ng-template' id='risk-table'>
   <div class='scrollable-container'>
     <div class='scrollable-container-inner'>
-      <table class='table policy-violation-table'>
+      <table class='table policy-violation-table' sortable sortable-reverse="true" sortable-field="threatLevel">
         <thead>
         <tr>
           <th id='{{riskId}}-threat-header' colspan='2' class='clm-bar-text-offset'>
-            <div>
-              <a ng-click='setSort("threatLevel")'>
-                RISK
-                <i class='sonatype-icons' ng-class="{ 'down' : orderColumn == 'threatLevel' && orderDirection,
-                  'up' : orderColumn == 'threatLevel' && !orderDirection,
-                  'emptyIconGlyph' : orderColumn != 'threatLevel' }"></i>
-              </a>
+            <div sort-column="threatLevel" sort-inverse="true">
+              RISK
             </div>
           </th>
           <th class='policy-header'>
@@ -106,19 +101,14 @@
             <div>COMPONENT</div>
           </th>
           <th id='{{riskId}}-time-header' ng-if='riskId === "newest-risk"'>
-            <div>
-              <a ng-click='setSort("time")'>
-                AGE
-                <i class='sonatype-icons' ng-class="{ 'up' : orderColumn == 'time' && orderDirection,
-                  'down' : orderColumn == 'time' && !orderDirection,
-                  'emptyIconGlyph' : orderColumn != 'time' }"></i>
-              </a>
+            <div sort-column="time">
+              AGE
             </div>
           </th>
         </tr>
         </thead>
         <tbody>
-        <tr ng-repeat='risk in risks | orderBy:orderColumn:orderDirection | limitTo: maxResults'>
+        <tr ng-repeat='risk in risks | orderBy:getSortField():getSortReverse() | limitTo: maxResults'>
           <td class='clm-bar' threat-class="risk.threatLevel"></td>
           <td>{{risk.threatLevel}}</td>
           <td>{{risk.policyName}}</td>
@@ -186,63 +176,68 @@
       </ul>
       <div ng-switch="riskTable">
         <div ng-switch-when="applications" ng-controller="applicationRiskTable">
-          <table class="table table-risk">
-            <thead>
-              <tr>
-                <th><div>APPLICATION</div></th>
-                <th><div>TOTAL RISK</div></th>
-                <th><div>CRITICAL</div></th>
-                <th><div>SEVERE</div></th>
-                <th><div>MODERATE</div></th>
-                <th><div>LOW</div></th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr ng-repeat-start="application in data">
-                <td><i ng-class="{ clickable : canExpand(application),
-                                  'icon-plus-sign' : canExpand(application),
-                                  'icon-minus-sign' : isExpanded(application),
-                                  'emptyIconGlyph' : !canExpand(application) }"
-                       ng-click='expand(application)'></i> {{application.applicationName}}</td>
-                <td>{{application.totalApplicationRisk.totalRisk}}</td>
-                <td>{{application.totalApplicationRisk.criticalRisk}}</td>
-                <td>{{application.totalApplicationRisk.severeRisk}}</td>
-                <td>{{application.totalApplicationRisk.moderateRisk}}</td>
-                <td>{{application.totalApplicationRisk.lowRisk}}</td>
-              </tr>
-              <tr class='stage' ng-repeat-end
-                  ng-repeat='stage in application.stageRisks | orderBy:getStageName'
-                  ng-if='expanded[application.applicationId]'>
-                <td>{{getStageName(stage)}}</td>
-                <td>{{stage.risk.totalRisk}}</td>
-                <td>{{stage.risk.criticalRisk}}</td>
-                <td>{{stage.risk.severeRisk}}</td>
-                <td>{{stage.risk.moderateRisk}}</td>
-                <td>{{stage.risk.lowRisk}}</td>
-              </tr>
-            </tbody>
-          </table>
+          <div load-wrapper="error" reload="doLoad()">
+            <div class='scrollable-container'>
+              <div class='scrollable-container-inner'>
+                <table class="table table-risk" id="application-risk" sortable sortable-reverse="true" sortable-field="totalApplicationRisk.totalRisk">
+                  <thead>
+                    <tr>
+                      <th><div sort-column="applicationName">APPLICATION</div></th>
+                      <th><div sort-column="totalApplicationRisk.totalRisk" sort-inverse="true">TOTAL RISK</div></th>
+                      <th><div sort-column="totalApplicationRisk.criticalRisk" sort-inverse="true">CRITICAL</div></th>
+                      <th><div sort-column="totalApplicationRisk.severeRisk" sort-inverse="true">SEVERE</div></th>
+                      <th><div sort-column="totalApplicationRisk.moderateRisk" sort-inverse="true">MODERATE</div></th>
+                      <th><div sort-column="totalApplicationRisk.lowRisk" sort-inverse="true">LOW</div></th>
+                    </tr>
+                  </thead>
+                    <tr ng-repeat-start="application in data | limitTo: maxResults | orderBy:getSortField():getSortReverse()">
+                      <td><i ng-class="{ clickable : canExpand(application),
+                                        'icon-plus-sign' : canExpand(application),
+                                        'icon-minus-sign' : isExpanded(application),
+                                        'emptyIconGlyph' : !canExpand(application) }"
+                             ng-click='expand(application)'></i> {{application.applicationName}}</td>
+                      <td>{{application.totalApplicationRisk.totalRisk}}</td>
+                      <td>{{application.totalApplicationRisk.criticalRisk}}</td>
+                      <td>{{application.totalApplicationRisk.severeRisk}}</td>
+                      <td>{{application.totalApplicationRisk.moderateRisk}}</td>
+                      <td>{{application.totalApplicationRisk.lowRisk}}</td>
+                    </tr>
+                    <tr class='stage' ng-repeat-end
+                        ng-repeat='stage in application.stageRisks | orderBy:getStageName'
+                        ng-if='expanded[application.applicationId]'>
+                      <td>{{getStageName(stage)}}</td>
+                      <td>{{stage.risk.totalRisk}}</td>
+                      <td>{{stage.risk.criticalRisk}}</td>
+                      <td>{{stage.risk.severeRisk}}</td>
+                      <td>{{stage.risk.moderateRisk}}</td>
+                      <td>{{stage.risk.lowRisk}}</td>
+                    </tr>
+                </table>
+              </div>
+            </div>
+            <span id="component-risk-max-results-shown" class="pull-right" ng-if="data.length > maxResults">
+              Showing the top {{maxResults}} results
+            </span>
+          </div>
         </div>
         <div ng-switch-when="components" ng-controller="componentRiskTableController">
           <div load-wrapper="error" reload="doLoad()">
             <div class='scrollable-container'>
               <div class='scrollable-container-inner'>
-                <table class="table table-risk" id="component-risk">
+                <table class="table table-risk" id="component-risk" sortable sortable-reverse="true" sortable-field="score">
                   <thead>
-                  <tr>
-                    <th><div>COMPONENT</div></th>
-                    <th><div>TOTAL RISK</div></th>
-                    <th><div>CRITICAL</div></th>
-                    <th><div>SEVERE</div></th>
-                    <th><div>MODERATE</div></th>
-                    <th><div>LOW</div></th>
-                  </tr>
+                    <tr>
+                      <th><div>COMPONENT</div></th>
+                      <th><div sort-column="score" sort-inverse="true">TOTAL RISK</div></th>
+                      <th><div sort-column="scoreCritical" sort-inverse="true">CRITICAL</div></th>
+                      <th><div sort-column="scoreSevere" sort-inverse="true">SEVERE</div></th>
+                      <th><div sort-column="scoreModerate" sort-inverse="true">MODERATE</div></th>
+                      <th><div sort-column="scoreLow" sort-inverse="true">LOW</div></th>
+                    </tr>
                   </thead>
-                  <tr ng-repeat="component in data | limitTo: maxResults">
+                  <tr ng-repeat="component in data | limitTo: maxResults | orderBy:getSortField():getSortReverse()">
                     <td ng-if="component.gavs.length">
-                      <a ui-sref="dashboard.component({ hash: component.hash })">
-                        {{component.gavs[0].groupId}}<span class="wrap-force-break"> : </span>{{component.gavs[0].artifactId}}<span class="wrap-force-break"> : </span>{{component.gavs[0].version}}
-                      </a>
+                      {{component.gavs[0].groupId}}<span class="wrap-force-break"> : </span>{{component.gavs[0].artifactId}}<span class="wrap-force-break"> : </span>{{component.gavs[0].version}}
                     </td>
                     <td ng-if="!component.gavs.length && component.pathnames.length" pathnames-popover='component.pathnames'>
                       <a ui-sref="dashboard.component({ hash: component.hash })">

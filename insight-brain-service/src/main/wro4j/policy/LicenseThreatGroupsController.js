@@ -306,6 +306,8 @@
 
       angular.forEach(items, function(license) {
         if (filter.groupLicenses && filter.groupLicenses[license.id] !== true &&
+            //explain this little doozy http://www.joezimjs.com/javascript/great-mystery-of-the-tilde/
+            /*jslint bitwise: true */
             (!searchLicense || ~license.shortDisplayName.toLowerCase().indexOf(searchLicense.toLowerCase()))) {
           filteredLicenses.push(license);
         }

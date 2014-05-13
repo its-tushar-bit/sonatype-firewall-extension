@@ -5,7 +5,7 @@
  */
 /*global $, pv, window, navigator, document */
 (function() {
-
+  'use strict';
   function useGradients() {
     function isIE() {
       return $.browser.msie ? true : false;
@@ -107,7 +107,7 @@
     config.h = config.height;
     config.w = config.width;
 
-    this.donutChart([known, 1 - known], config);
+    donutChart([known, 1 - known], config);
   }
 
   var _licenseChartDefaults = {
@@ -134,7 +134,7 @@
           [darkRed, darkOrange, darkYellow, darkBlue];
       config.textColors = data.length === 3 ? ['#9d0c11', '#83740d', 'white'] :
           ['#9d0c11', darkOrange, '#83740d', 'white'];
-      this.donutChart(data, config);
+      donutChart(data, config);
     }
     else {
       var vis = new pv.Panel().width(config.width).height(config.height);
@@ -561,7 +561,6 @@
   }
 
   ComponentInformation = (function() {
-    "use strict";
     var defaults = {
           partialDisplay: false,
           selectable: false,

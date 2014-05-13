@@ -4,7 +4,7 @@
  *          http://links.sonatype.com/products/clm/attributions. "Sonatype" is a
  *          trademark of Sonatype, Inc.
  */
-/* global angular, $, window, CLM, setTimeout */
+/* global angular, $, window, CLM, setTimeout, InsightDatatable, Insight, applicationId */
 (function() {
   'use strict';
 

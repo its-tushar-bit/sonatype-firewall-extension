@@ -4,9 +4,9 @@
  * http://links.sonatype.com/products/clm/attributions. "Sonatype" is a
  * trademark of Sonatype, Inc.
  */
-/* global angular */
+/* global angular, $, CLM, Insight, InsightDatatable */
 (function() {
-
+  'use strict';
   function BrainLicenseEditorTab(node, options) {
     this.node = node;
     this.options = options;

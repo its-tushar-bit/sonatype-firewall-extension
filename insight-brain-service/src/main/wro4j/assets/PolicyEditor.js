@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-/*global angular, $, Option, clmBuildTimestamp, AngularStateUtils */
+/*global angular, $, Option, clmBuildTimestamp, AngularStateUtils, jQuery */
 (function() {
   'use strict';
   var module = angular.module('PolicyEditor', [

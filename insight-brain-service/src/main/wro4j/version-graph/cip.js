@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/rhc/oss/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-/*global $, angular, Insight, Brain */
+/*global $, angular, Insight, Brain, clmEndpoint */
 (function () {
   'use strict';
 
@@ -109,7 +109,7 @@
     }
   }
 
-  var ajaxSetup = $.ajaxSetup
+  var ajaxSetup = $.ajaxSetup;
   $.ajaxSetup = function (ajaxConfig) {
     if (ajaxConfig && ajaxConfig.headers) {
       Insight.setHeaders(ajaxConfig.headers);
@@ -444,7 +444,7 @@
     var last = {};
 
     $scope.isManual = function () {
-      return $scope.componentDetails && $scope.componentDetails.identificationSource == 'Manual';
+      return $scope.componentDetails && $scope.componentDetails.identificationSource === 'Manual';
     };
 
     $scope.canMigrate = function () {

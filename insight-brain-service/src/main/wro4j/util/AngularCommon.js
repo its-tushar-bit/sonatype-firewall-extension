@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-/* global angular, window, ActiveXObject, clmBuildTimestamp, jQuery */
+/* global angular, window, ActiveXObject, clmBuildTimestamp, jQuery, $ */
 /* exported AngularUtils, AngularStateUtils */
 
 //global function

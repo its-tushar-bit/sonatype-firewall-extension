@@ -4,7 +4,7 @@
  *          http://links.sonatype.com/products/clm/attributions. "Sonatype" is a
  *          trademark of Sonatype, Inc.
  */
-/* global angular, AngularUtils */
+/* global angular, AngularUtils, $ */
 (function() {
   'use strict';
   var module = angular.module('EditorTools', ['CommonServices', 'CLMAppLocation', 'Stores', 'AngularCommon', 'xeditable']),
@@ -378,6 +378,7 @@
             else {
               for (var i = 0; i < name.length; i++) {
                 var charAtI = name.charCodeAt(i);
+                /*jslint bitwise: true */
                 hash = ((hash << 5) - hash) + charAtI;
                 hash = hash & hash;
               }

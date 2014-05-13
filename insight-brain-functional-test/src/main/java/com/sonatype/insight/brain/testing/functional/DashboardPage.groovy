@@ -24,6 +24,7 @@ class DashboardPage
     filterPanelToggle { $('a', 'ng-click': 'toggleCollapse()') }
     filterPanel(required: false) { $('.filter-readonly') }
     filterButtons(required: false) { module ButtonsModule, $('.filter-edit-buttons') }
+    applyButton(required: false) { filterButtons.button('Apply') }
 
     applicationFilters(required: false) {
       filterPanel.find('span', 'ng-repeat': 'applicationId in filter.applicationPublicIds')
@@ -54,5 +55,11 @@ class DashboardPage
 
     highestRiskTable(required: false) { module ThreatTableModule, $('#highest-risk') }
     newestViolationTable(required: false) { module ThreatTableModule, $('#newest-risk') }
+  }
+
+  void applyFilter() {
+    applyButton.click()
+    // NOTE: Wait for filter to be persisted before the next test tries to reset it
+    waitFor { !applyButton.displayed }
   }
 }

@@ -112,7 +112,7 @@ class DashboardSpec
       applicationFiltersDropdown.toggleOption(firstApp.name)
       applicationFiltersDropdown.toggleOption(secondApp.name)
       applicationTagFiltersDropdown.toggleOption(firstAppTag.name)
-      filterButtons.button('Apply').click()
+      applyFilter()
 
     then: 'filters show up in readonly mode'
       waitFor { filterPanel.displayed }
@@ -207,7 +207,7 @@ class DashboardSpec
       filterPanelToggle.click()
       waitFor { applicationFiltersDropdown.displayed }
       applicationFiltersDropdown.toggleOption(firstApp.name)
-      filterButtons.button('Apply').click()
+      applyFilter()
 
     then: 'only violations from that application are shown'
       waitFor { highestRiskTable.rows.size() == 1 }
@@ -223,7 +223,7 @@ class DashboardSpec
       applicationFiltersDropdown.toggleOption(firstApp.name)
       waitFor { stageTypeFiltersDropdown.displayed }
       stageTypeFiltersDropdown.toggleOption('Release')
-      filterButtons.button('Apply').click()
+      applyFilter()
     
     then: 'only violations from that stage are shown'
       waitFor { highestRiskTable.rows.size() == 1 }
@@ -259,7 +259,7 @@ class DashboardSpec
       filterPanelToggle.click()
       waitFor { applicationFiltersDropdown.displayed }
       applicationFiltersDropdown.toggleOption(secondApp.name)
-      filterButtons.button('Apply').click()
+      applyFilter()
 
     then: 'only violations from that application are shown'
       waitFor { newestViolationTable.rows.size() == 1 }
@@ -274,7 +274,7 @@ class DashboardSpec
       filterPanelToggle.click()
       waitFor { stageTypeFiltersDropdown.displayed }
       stageTypeFiltersDropdown.toggleOption('Release')
-      filterButtons.button('Apply').click()
+      applyFilter()
     
     then: 'only violations from that stage are shown'
       waitFor { highestRiskTable.rows.size() == 1 }
@@ -292,7 +292,7 @@ class DashboardSpec
       waitFor { policyThreatFiltersDropdown.displayed }
       policyThreatFiltersDropdown.toggleOption('Security')
       policyThreatFiltersDropdown.toggleOption('Other')
-      filterButtons.button('Apply').click()
+      applyFilter()
 
     then: 'the tables are replaced by text indicating there are no results'
       waitFor { noDataAvailableHighest.displayed }
@@ -341,8 +341,7 @@ class DashboardSpec
       policyThreatFiltersDropdown.toggleOption('Security')
       policyThreatFiltersDropdown.toggleOption('Other')
       stageTypeFiltersDropdown.toggleOption('Release')
-      filterButtons.button('Apply').click()
-      waitFor { !applicationFiltersDropdown.displayed }
+      applyFilter()
 
     then: 'filters are stored to disk'
       DashboardFilterDTO dto = new ObjectMapper().readValue(new DashboardFilterDAO().getByUsername("admin").filter, DashboardFilterDTO.class);

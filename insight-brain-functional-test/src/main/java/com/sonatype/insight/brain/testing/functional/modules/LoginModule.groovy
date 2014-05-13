@@ -14,11 +14,11 @@ class LoginModule
     extends Module
 {
   static content = {
-    modal ( required: false ) { $('div', id: 'loginModalHeader').parent() }
-    usernameInput { $(id: "login-username") }
-    passwordInput { $(id: "login-password") }
-    loginAction { $(id: "login-action") }
-    errorMessage(required: false, wait: true) { $(id: "login-error") }
+    modal ( required: false ) { $('#loginModalHeader').parent() }
+    usernameInput { $('#login-username') }
+    passwordInput { $('#login-password') }
+    loginAction { $('#login-action') }
+    errorMessage(required: false, wait: true) { $('#login-error') }
   }
 
   def loginAsAdmin() {

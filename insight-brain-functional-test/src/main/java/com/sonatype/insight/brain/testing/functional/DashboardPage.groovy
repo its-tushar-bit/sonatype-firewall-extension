@@ -21,13 +21,13 @@ class DashboardPage
   static at = { filterPanelToggle.displayed }
 
   static content = {
-    filterPanelToggle { $('a', 'ng-click': 'toggleCollapse()') }
+    filterPanelToggle { $('a[ng-click="toggleCollapse()"]') }
     filterPanel(required: false) { $('.filter-readonly') }
     filterButtons(required: false) { module ButtonsModule, $('.filter-edit-buttons') }
     applyButton(required: false) { filterButtons.button('Apply') }
 
     applicationFilters(required: false) {
-      filterPanel.find('span', 'ng-repeat': 'applicationId in filter.applicationPublicIds')
+      filterPanel.find('span[ng-repeat="applicationId in filter.applicationPublicIds"]')
     }
     applicationTagFilters(required: false) {
       filterPanel.find('span[ng-repeat="applicationTagId in filter.applicationTagIds"]')
@@ -47,9 +47,9 @@ class DashboardPage
     noDataAvailableHighest(required: false) { $('#no-data-highest-risk') }
     noDataAvailableNewest(required: false) { $('#no-data-newest-risk') }
 
-    applicationFiltersDropdown(required: false) { module DropdownMultiSelectModule, $('span', items: 'applications') }
-    policyThreatFiltersDropdown(required: false) { module DropdownMultiSelectModule, $('span', items: 'policyThreatTypes') }
-    stageTypeFiltersDropdown(required: false) { module DropdownMultiSelectModule, $('span', items: 'stageTypes') }
+    applicationFiltersDropdown(required: false) { module DropdownMultiSelectModule, $('span[items="applications"]') }
+    policyThreatFiltersDropdown(required: false) { module DropdownMultiSelectModule, $('span[items="policyThreatTypes"]') }
+    stageTypeFiltersDropdown(required: false) { module DropdownMultiSelectModule, $('span[items="stageTypes"]') }
     applicationTagFiltersDropdown(required: false) { module DropdownMultiSelectModule, $('span[items="applicationTags"]') }
     policyThreatLevelSlider(required: false) { module SliderModule, $('#policy-threat-levels') }
 

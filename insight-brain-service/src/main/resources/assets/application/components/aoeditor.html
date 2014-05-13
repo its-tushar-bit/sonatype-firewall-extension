@@ -336,19 +336,19 @@
     <div ng-if='ao.selected && !ao.isNew()' style='clear:both'>
       <ul class='tri-pane'>
         <li ng-class='{ active : isCurrentTab("policies") || isCurrentTab("policies.edit") || isCurrentTab("policies.new") }'>
-          <a ng-href='#/management/{{ao.type}}/{{ao.getPublicId()}}/policies'>POLICIES</a>
+          <a id='tab-button-policies' ng-href='#/management/{{ao.type}}/{{ao.getPublicId()}}/policies'>POLICIES</a>
         </li>
         <li ng-class='{ active : isCurrentTab("labels") || isCurrentTab("labels.new")}'>
-          <a ng-href='#/management/{{ao.type}}/{{ao.getPublicId()}}/labels'>LABELS</a>
+          <a id='tab-button-labels' ng-href='#/management/{{ao.type}}/{{ao.getPublicId()}}/labels'>LABELS</a>
         </li>
         <li ng-class='{ active : isCurrentTab("licenses") || isCurrentTab("licenses.new")}'>
-          <a ng-href='#/management/{{ao.type}}/{{ao.getPublicId()}}/licenses'>LICENSES</a>
+          <a id='tab-button-licenses' ng-href='#/management/{{ao.type}}/{{ao.getPublicId()}}/licenses'>LICENSES</a>
         </li>
         <li ng-class='{ active : isCurrentTab("tags")}'>
-          <a ng-href='#/management/{{ao.type}}/{{ao.getPublicId()}}/tags'>TAGS</a>
+          <a id='tab-button-tags' ng-href='#/management/{{ao.type}}/{{ao.getPublicId()}}/tags'>TAGS</a>
         </li>
         <li ng-class='{ active : isCurrentTab("security")}'>
-          <a ng-href='#/management/{{ao.type}}/{{ao.getPublicId()}}/security'>SECURITY</a>
+          <a id='tab-button-security' ng-href='#/management/{{ao.type}}/{{ao.getPublicId()}}/security'>SECURITY</a>
         </li>
       </ul>
       <div ui-view></div>

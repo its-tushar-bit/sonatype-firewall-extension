@@ -11,16 +11,15 @@ class ContextTabsModule
     extends Module
 {
   static content = {
-    tabLinks { $('ul.tri-pane a') }
-    policiesTabButton { tabLinks.find { it.text() == 'POLICIES' } }
+    policiesTabButton { $('#tab-button-policies') }
     policiesTab { $('#policy') }
-    labelsTabButton { tabLinks.find { it.text() == 'LABELS' } }
+    labelsTabButton { $('#tab-button-labels') }
     labelsTab { $('#labels') }
-    ltgTabButton { tabLinks.find { it.text() == 'LICENSES' } }
+    ltgTabButton { $('#tab-button-licenses') }
     ltgTab { $('#ltg') }
-    tagTabButton { tabLinks.find { it.text() == 'TAGS' } }
+    tagTabButton { $('#tab-button-tags') }
     tagTab { $('#tags') }
-    securityTabButton { tabLinks.find { it.text() == 'SECURITY' } }
+    securityTabButton { $('#tab-button-security') }
     securityTab { module RoleMappingModule }
   }
 }

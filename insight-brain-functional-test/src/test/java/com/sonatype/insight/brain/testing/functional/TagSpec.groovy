@@ -175,7 +175,7 @@ class TagSpec
       applicationManagementPage.createApp('TagSpec', 'TagSpec', 'TagSpec')
 
     when: 'Viewing the inherited organization policies before tag application'
-      waitFor{ tabs.tabLinks.displayed }
+      waitFor{ tabs.tagTabButton.displayed }
 
     then: 'The non effective policy is not shown'
       !policies.findPolicyEditor('Security-High')
@@ -219,7 +219,7 @@ class TagSpec
   def "Applied tags warn on deletion"() {
     given: 'An Application to apply tags to'
       to ApplicationPage, 'TagSpec'
-      waitFor{ tabs.tabLinks.displayed }
+      waitFor{ tabs.tagTabButton.displayed }
 
     when: 'Applying a Tag to an Application'
       tabs.tagTabButton.click()

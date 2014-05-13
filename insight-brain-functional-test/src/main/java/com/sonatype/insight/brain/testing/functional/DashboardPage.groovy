@@ -6,11 +6,10 @@
 package com.sonatype.insight.brain.testing.functional
 
 /**
-  @since 1.11
+ @since 1.11
  */
 class DashboardPage
-  extends BasePage
-{
+extends BasePage {
   static url = "assets/index.html#/dashboard"
 
   static at = { breadcrumb.displayed }

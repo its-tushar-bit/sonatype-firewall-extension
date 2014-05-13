@@ -413,4 +413,39 @@ class DashboardOverviewSpec
       componentViolationsTable.rows[0].moderateRisk.text() == "0"
       componentViolationsTable.rows[0].lowRisk.text() == "0"
   }
+
+  def 'Applications Table'() {
+    when: 'Switch to Applications Tab'
+      tabLinks.applicationsTabButton.click()
+    then:
+      waitFor { applicationViolationsTable.rows.size() == 2 }
+      applicationViolationsTable.rows[0].application.text() == secondApp.getName()
+      applicationViolationsTable.rows[0].netRisk.text() == "10"
+      applicationViolationsTable.rows[0].criticalRisk.text() == "10"
+      applicationViolationsTable.rows[0].severeRisk.text() == "0"
+      applicationViolationsTable.rows[0].moderateRisk.text() == "0"
+      applicationViolationsTable.rows[0].lowRisk.text() == "0"
+      applicationViolationsTable.rows[0].expand.displayed
+      applicationViolationsTable.rows[1].application.text() == firstApp.getName()
+      applicationViolationsTable.rows[1].netRisk.text() == "5"
+      applicationViolationsTable.rows[1].criticalRisk.text() == "0"
+      applicationViolationsTable.rows[1].severeRisk.text() == "5"
+      applicationViolationsTable.rows[1].moderateRisk.text() == "0"
+      applicationViolationsTable.rows[1].lowRisk.text() == "0"
+      applicationViolationsTable.rows[1].expand.displayed
+
+    when: 'Expand'
+      applicationViolationsTable.rows[0].expand.click()
+    then: 'Stage shown'
+      waitFor { applicationViolationsTable.rows.size() == 3 }
+      applicationViolationsTable.rows[0].collapse.displayed
+      applicationViolationsTable.rows[1].application.text() == new ReleaseStageType().getName()
+
+    when: 'Expand'
+      applicationViolationsTable.rows[2].expand.click()
+    then: 'Stage shown'
+      waitFor { applicationViolationsTable.rows.size() == 4 }
+      applicationViolationsTable.rows[2].collapse.displayed
+      applicationViolationsTable.rows[3].application.text() == new BuildStageType().getName()
+  }
 }

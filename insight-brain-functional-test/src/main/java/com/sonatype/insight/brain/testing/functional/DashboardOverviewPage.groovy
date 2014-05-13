@@ -92,6 +92,8 @@ class ApplicationViolationsTable extends Module {
 
 class ApplicationViolationsTableRow extends Module {
   static content = {
+    expand(required: false) { $('td:first-child i.icon-plus-sign') }
+    collapse(required: false) { $('td:first-child i.icon-minus-sign') }
     application { $('td:first-child') }
     netRisk { $('td:nth-child(2)') }
     criticalRisk { $('td:nth-child(3)') }

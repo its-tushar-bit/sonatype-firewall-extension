@@ -1,4 +1,5 @@
-<div class="container">
+<div load-error="error" reload="doLoad()"></div>
+<div class="container" ng-hide="error">
   <div class="row">
     <div class="span12">
       <div breadcrumb></div>
@@ -6,15 +7,14 @@
   </div>
   <div class="row">
     <div class="span12">
-      <h1 class="left-align-h1">{{hash}}</h1>
+      <h2 class="left-align-h1">{{name}}</h2>
       <div class="bottom-align-h1-with-header pull-right">
         <span>TOTAL RISK</span>
-        <h1>{{totalRisk}}</h1>
+        <h2>{{totalRisk}}</h2>
       </div>
     </div>
   </div>
-  <div load-error="error" reload="doLoad()"></div>
-  <div class="row" ng-hide="error">
+  <div class="row">
     <div class="span12">
       <table class="table component-application-table">
         <thead>

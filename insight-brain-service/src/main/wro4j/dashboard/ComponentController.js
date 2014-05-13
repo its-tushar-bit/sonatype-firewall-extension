@@ -16,11 +16,13 @@
     $scope.doLoad = function() {
       var hash = $state.params.hash;
       var promises = [
-        $http.get(CLMLocations.getComponentDetailsUrl(hash))
+        $http.get(CLMLocations.getComponentDetailsUrl(hash)),
+        $http.get(CLMLocations.getComponentNameUrl(hash))
       ];
 
       $q.all(promises).then(function(results) {
         $scope.applicationComponents = results[0].data;
+        $scope.name = results[1].data;
 
         var totalRisk = 0;
         for (var i = 0; i < $scope.applicationComponents.length; i++) {
@@ -34,6 +36,8 @@
           totalRisk += applicationComponent.risk;
         }
         $scope.totalRisk = totalRisk;
+      }, function (error) {
+        $scope.error = error;
       });
     };
 

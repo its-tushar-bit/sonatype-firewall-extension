@@ -126,8 +126,16 @@
               {{risk.groupId}}<span class='wrap-force-break'> : </span>{{risk.artifactId}}<span class='wrap-force-break'> : </span>{{risk.version}}
             </a>
           </td>
-          <td ng-if='!risk.groupId && risk.pathnames' pathnames-popover='risk.pathnames'><em>{{risk.pathnames[0] | fileName}}</em></td>
-          <td ng-if='!risk.groupId && !risk.pathnames'><em>Unknown</em></td>
+          <td ng-if='!risk.groupId && risk.pathnames' pathnames-popover='risk.pathnames'>
+            <a ui-sref="dashboard.component({ hash: risk.hash })">
+              <em>{{risk.pathnames[0] | fileName}}</em>
+            </a>
+          </td>
+          <td ng-if='!risk.groupId && !risk.pathnames'>
+            <a ui-sref="dashboard.component({ hash: risk.hash })">
+              <em>Unknown</em>
+            </a>
+          </td>
           <td ng-if='riskId === "newest-risk"'>{{risk.time | ago}}</td>
         </tr>
         <tr ng-if='risks.length === 0'>
@@ -196,8 +204,16 @@
                         {{component.gavs[0].groupId}}<span class="wrap-force-break"> : </span>{{component.gavs[0].artifactId}}<span class="wrap-force-break"> : </span>{{component.gavs[0].version}}
                       </a>
                     </td>
-                    <td ng-if="!component.gavs.length && component.pathnames" pathnames-popover='component.pathnames'><em>{{component.pathnames[0] | fileName}}</em></td>
-                    <td ng-if="!component.gavs.length && !component.pathnames"><em>Unknown</em></td>
+                    <td ng-if="!component.gavs.length && component.pathnames" pathnames-popover='component.pathnames'>
+                      <a ui-sref="dashboard.component({ hash: component.hash })">
+                        <em>{{component.pathnames[0] | fileName}}</em>
+                      </a>
+                    </td>
+                    <td ng-if="!component.gavs.length && !component.pathnames">
+                      <a ui-sref="dashboard.component({ hash: component.hash })">
+                        <em>Unknown</em>
+                      </a>
+                    </td>
                     <td>{{component.score}}</td>
                     <td>{{component.scoreCritical}}</td>
                     <td>{{component.scoreSevere}}</td>

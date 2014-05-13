@@ -9,15 +9,6 @@
 (function() {
   'use strict';
 
-  function getMessage(data, status) {
-    if (status === 0) {
-      return 'Error: Unable to contact server';
-    }
-    else {
-      return 'Error: ' + status + ' ' + data;
-    }
-  }
-
   var module = angular.module('Configuration',
     ['ListEditor', 'ui.router', 'ManagementModule', 'ProductLicense'], ['$stateProvider', function($stateProvider) {
       $stateProvider.state('management.configuration', {
@@ -30,9 +21,9 @@
         url: '/productlicense',
         controller: 'ProductLicenseController',
         templateUrl: '../configuration-assets/components/license.html?' + clmBuildTimestamp
-      }).state('management.configuration.proprietarypackages', {
+      }).state('management.configuration.proprietarycomponents', {
         parent: 'management.configuration',
-        url: '/proprietarypackages',
+        url: '/proprietarycomponents',
         controller: 'ProprietaryConfigurationController',
         templateUrl: '../configuration-assets/components/proprietary.html?' + clmBuildTimestamp
       });
@@ -51,8 +42,8 @@
           isEnabled: true
         },
         {
-          name: 'Proprietary Packages',
-          state: 'management/configuration/proprietarypackages',
+          name: 'Proprietary Components',
+          state: 'management/configuration/proprietarycomponents',
           isEnabled: true
         },
         {
@@ -85,21 +76,45 @@
   ]);
 
   module.controller('ProprietaryConfigurationController', [
-    '$scope', '$http', 'CLMLocations', function($scope, $http, clmLocations) {
+    '$scope', '$http', 'CLMLocations', 'Messages', function($scope, $http, clmLocations, Messages) {
       var PACKAGE_REGEXP = new RegExp('^[^ /.][^ /]*[^ /.]$');
+      $scope.isRegex = false;
+
+      $scope.add = function() {
+        if ($scope.isRegex === true) {
+          if ($scope.validateRegex($scope.currentEntry)) {
+            $scope.regexes.push($scope.currentEntry);
+          }
+        }
+        else {
+          if ($scope.validatePackage($scope.currentEntry)) {
+            $scope.packages.push($scope.currentEntry);
+          }
+        }
+        $scope.currentEntry = '';
+        $scope.isRegex = false;
+      };
+
+      $scope.remove = function(index) {
+        $scope.packages.splice(index, 1);
+      };
+
+      $scope.removeRegex = function(index) {
+        $scope.regexes.splice(index, 1);
+      };
 
       $scope.doLoad = function() {
-        $http.get(clmLocations.getProprietaryConfig(),
-            { params: { 'ts': new Date().getTime() } }).success(function(data) {
-          $scope.proprietary = data;
-          $scope.reset();
-        }).error(function() {
-              $scope.loadError = getMessage.apply(null, arguments);
-            });
+        $http.get(clmLocations.getProprietaryConfig()).success(function(data) {
+            $scope.proprietary = data;
+            $scope.reset();
+          }).error(function() {
+            $scope.loadError = Messages.getHttpErrorMessage(arguments);
+          });
       };
 
       $scope.save = function() {
-        var proprietary = angular.extend({}, $scope.proprietary, { packages: angular.copy($scope.packages) });
+        var proprietary = angular.extend({}, $scope.proprietary,
+          { packages: angular.copy($scope.packages), regexes: angular.copy($scope.regexes) });
 
         $scope.saving = true;
 
@@ -109,30 +124,42 @@
           $scope.reset();
         }).error(function() {
           $scope.saving = false;
-          $scope.error = getMessage.apply(null, arguments);
+          $scope.error =  Messages.getHttpErrorMessage(arguments);
         });
       };
 
       $scope.reset = function() {
         $scope.packages = angular.copy($scope.proprietary.packages);
+        $scope.regexes = angular.copy($scope.proprietary.regexes);
       };
 
       $scope.isDirty = function() {
-        return $scope.packages && $scope.proprietary && !angular.equals($scope.packages, $scope.proprietary.packages);
-      };
-
-      $scope.setEditorError = function(error) {
-        $scope.error = error;
+        return $scope.packages && $scope.proprietary &&
+          (!angular.equals($scope.packages, $scope.proprietary.packages) ||
+            !angular.equals($scope.regexes, $scope.proprietary.regexes));
       };
 
       $scope.validatePackage = function(value) {
-        if (value && !PACKAGE_REGEXP.test(value)) {
-          return 'Invalid package prefix, enter e.g. com.mycompany';
+        if($scope.packages.indexOf(value) !== -1) {
+          $scope.error = 'Package already specified';
+        }
+        else if (value && !PACKAGE_REGEXP.test(value)) {
+          $scope.error = 'Invalid package prefix, enter e.g. com.mycompany';
         }
         else if (value && value.indexOf('*') >= 0) {
-          return 'Wildcards are not allowed/required';
+          $scope.error = 'Wildcards are not allowed/required for packages';
         }
-        return null;
+        else {
+          $scope.error = null;
+        }
+        return $scope.error === null;
+      };
+
+      $scope.validateRegex = function(value) {
+        if ($scope.regexes.indexOf(value) !== -1) {
+          $scope.error = 'Regex already specified';
+        }
+        return $scope.error === null;
       };
 
       $scope.doLoad();

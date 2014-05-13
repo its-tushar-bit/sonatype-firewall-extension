@@ -17,7 +17,7 @@ class ConfigurationPage
 
   static content = {
     productLicense { $('a', text: 'Product License') }
-    proprietaryPackages { $('a', text: 'Proprietary Packages') }
+    proprietaryComponents { $('a', text: 'Proprietary Components') }
     ldap { $('a', text: 'LDAP') }
   }
 }

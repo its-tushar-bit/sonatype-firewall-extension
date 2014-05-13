@@ -1,17 +1,68 @@
 <div style="padding-top: 10px;">
-  <h1 class='page-title'>Proprietary Packages</h1>
-  <div style="max-width: 510px; padding-left: 25px">
+  <h1 class='page-title'>Proprietary Components</h1>
+
+  <div class="fixed-width-small-form" style="padding-left: 25px;">
     <div ng-show='loadError'>An Error Occurred</div>
     <div ng-show='!loadError && !proprietary'><i class='icon-time'></i> Loading</div>
     <div ng-show='!loadError && proprietary'>
-      <p>These entries are provided to CLM scanners and are used to help identify internal components.</p>
-      <div list-editor place-holder='Prefix of Proprietary Packages' max-length='50' entries='packages' set-error='setEditorError' validator='validatePackage'></div>
-      <span ng-show='error' class="alert alert-error" style="float: left; padding-top: 4px; padding-bottom: 4px;">{{ error }}</span>
-      <span ng-show='!saving && proprietary' style="float: right;">
-        <button class="btn" ng-click="reset()">Reset</button>
+      <p>These entries are provided to CLM scanners and are used to help identify internal components.
+        If a specified package or file is contained within a component, it will be considered proprietary.</p>
+      <div>
+        <form ng-submit='add()' name='neditor' style='margin-bottom:0px'>
+          <div class='control-group' ng-class='{ error : neditor.$invalid }'>
+            <div class='input-append controls' style='width: 100%; margin-bottom: 0px;'>
+              <input type='text' style='width: 89%;' name='currentEntry' ng-model='currentEntry' maxlength='50'
+                     placeholder='Enter Regex or Package Prefix for Proprietary Components' required entersubmit>
+              <button class='btn' ng-disabled='neditor.$invalid' title='Add Prefix/Regex for Proprietary Components'>
+                Add
+              </button>
+            </div>
+          </div>
+          <div class='control-group'>
+            <div class='input-append controls'>
+              <input type='checkbox' id='isRegex' name='isRegex' ng-model='isRegex' class="floatLeft">
+              <label for='isRegex' class="floatRight" style="padding-left: 5px;">Regular expression</label>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div style="clear: both;"></div>
+      <div class='well well-small' style='padding: 3px; margin-bottom: 5px; height: 120px;width: 100%;'>
+        <div style='height:100%;overflow-y:auto'>
+          <table id='proprietaryTable' style='margin:auto'>
+            <tr ng-repeat='entry in packages' style='border-bottom: 1px solid #DDDDDD;'>
+              <td style='width: 1%; max-width: 510px;'>
+                <div style='max-width: 100%; text-overflow:ellipsis; overflow:hidden' title='{{entry}}'>{{entry}}</div>
+              </td>
+              <td style='width: 99%; text-align: right; '>
+                <button class='btn btn-mini' ng-click='remove($index)' title='Remove {{placeHolder}}'>
+                  <i class='icon-minus-sign'></i>
+                </button>
+              </td>
+            </tr>
+            <tr ng-repeat='entry in regexes' style='border-bottom: 1px solid #DDDDDD;'>
+              <td style='width: 1%; max-width: 510px;'>
+                <div style='max-width: 100%; text-overflow:ellipsis; overflow:hidden' title='{{entry}}'>{{entry}}</div>
+              </td>
+              <td style='width: 99%; text-align: right; '>
+                <span><em>(regex)</em></span>
+                <button class='btn btn-mini' ng-click='removeRegex($index)' title='Remove {{placeHolder}}'>
+                  <i class='icon-minus-sign'></i>
+                </button>
+              </td>
+            </tr>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div>
+      <span ng-show='error' class="alert alert-error pull-left" id='proprietaryError'
+            style="padding-top: 4px; padding-bottom: 4px;width: 330px;">{{ error }}</span>
+      <span ng-show='!saving && proprietary' class="pull-right" id='proprietaryButtons'>
+        <button class="btn" ng-click="reset(); error = null;" ng-disabled="!isDirty() && !error">Reset</button>
         <button class="btn btn-primary" ng-disabled="!isDirty()" ng-click="save()">Save</button>
       </span>
-      <span ng-show='saving' style='height:30px'><i class='icon-time'></i> Saving</span>
-    </div>
+      <span ng-show='saving' style='height:30px'><i class='icon-time'></i> Saving</span></div>
   </div>
+</div>
 </div>

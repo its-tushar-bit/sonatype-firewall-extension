@@ -952,7 +952,7 @@ ul.tri-pane {
 .ldap-loading {
   margin: 20px;
 }
-.ldap-form{
+.fixed-width-small-form {
   margin-bottom: 0px;
   max-width: 510px;
 }

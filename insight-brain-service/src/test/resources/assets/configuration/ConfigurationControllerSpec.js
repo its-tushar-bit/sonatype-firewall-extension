@@ -1,12 +1,9 @@
-describe('Configuration', function() {
+describe('Proprietary components', function() {
   'use strict';
 
   var scope,
-      controller;
-
-  function toRegExp(getUrl) {
-    return new RegExp(getUrl + '\\?ts=[0-9]+');
-  }
+    controller,
+    proprietaryConfig = { packages: ['foo'], regexes: ['bar']};
 
   beforeEach(module('Configuration', 'CLMLocation'));
   afterEach(inject(function($httpBackend) {
@@ -16,50 +13,57 @@ describe('Configuration', function() {
     $httpBackend.verifyNoOutstandingRequest();
   }));
 
-  describe('Load', function() {
+  describe('Load data from the server', function() {
     it('Success', inject(function($controller, $rootScope, $httpBackend, CLMLocations) {
       scope = $rootScope.$new();
-      $httpBackend.expectGET(toRegExp(CLMLocations.getProprietaryConfig())).respond({ packages: ['foo']});
+      $httpBackend.expectGET(CLMLocations.getProprietaryConfig()).respond(proprietaryConfig);
       controller = $controller('ProprietaryConfigurationController', { $scope: scope });
       $httpBackend.flush();
 
       expect(scope.packages).toEqual(['foo']);
+      expect(scope.regexes).toEqual(['bar']);
       expect(scope.loadError).toBeUndefined();
     }));
 
-    it('Error', inject(function($controller, $rootScope, $httpBackend, CLMLocations) {
+    it('Error from the server', inject(function($controller, $rootScope, $httpBackend, CLMLocations) {
       scope = $rootScope.$new();
-      $httpBackend.expectGET(toRegExp(CLMLocations.getProprietaryConfig())).respond(500, 'A Random Error');
+      $httpBackend.expectGET(CLMLocations.getProprietaryConfig()).respond(500, 'A Random Error');
       controller = $controller('ProprietaryConfigurationController', { $scope: scope });
       $httpBackend.flush();
       expect(scope.packages).toBeUndefined();
-      expect(scope.loadError).toEqual('Error: 500 A Random Error');
+      expect(scope.regexes).toBeUndefined();
+      expect(scope.loadError).toEqual('A Random Error');
     }));
   });
 
-  it('Reset', inject(function($controller, $rootScope, $httpBackend, CLMLocations) {
+  it('Reset local data before saving', inject(function($controller, $rootScope, $httpBackend, CLMLocations) {
     scope = $rootScope.$new();
 
-    $httpBackend.expectGET(toRegExp(CLMLocations.getProprietaryConfig())).respond({ packages: ['foo']});
+    $httpBackend.expectGET(CLMLocations.getProprietaryConfig()).respond(proprietaryConfig);
     controller = $controller('ProprietaryConfigurationController', { $scope: scope });
     $httpBackend.flush();
 
     expect(scope.packages).toEqual(['foo']);
+    expect(scope.regexes).toEqual(['bar']);
     scope.packages.push('bar');
+    scope.regexes.push('foo');
     expect(scope.proprietary.packages).toEqual(['foo']);
+    expect(scope.proprietary.regexes).toEqual(['bar']);
 
     scope.reset();
     expect(scope.packages).toEqual(['foo']);
+    expect(scope.regexes).toEqual(['bar']);
   }));
 
-  describe('Save', function() {
+  describe('Save local changes back to the server', function() {
     it('Success', inject(function($controller, $rootScope, $httpBackend, CLMLocations) {
       scope = $rootScope.$new();
-      $httpBackend.expectGET(toRegExp(CLMLocations.getProprietaryConfig())).respond({ packages: ['foo']});
+      $httpBackend.expectGET(CLMLocations.getProprietaryConfig()).respond(proprietaryConfig);
       controller = $controller('ProprietaryConfigurationController', { $scope: scope });
       $httpBackend.flush();
 
       scope.packages.push('bar');
+      scope.regexes.push('foo');
 
       $httpBackend.expectPUT(CLMLocations.getProprietaryConfig() + '/update').respond(204);
       scope.save();
@@ -69,15 +73,18 @@ describe('Configuration', function() {
       expect(scope.saving).toEqual(false);
       expect(scope.packages).toEqual(['foo', 'bar']);
       expect(scope.proprietary.packages).toEqual(['foo', 'bar']);
+      expect(scope.regexes).toEqual(['bar', 'foo']);
+      expect(scope.proprietary.regexes).toEqual(['bar', 'foo']);
     }));
 
-    it('Error', inject(function($controller, $rootScope, $httpBackend, CLMLocations) {
+    it('Error saving changes', inject(function($controller, $rootScope, $httpBackend, CLMLocations) {
       scope = $rootScope.$new();
-      $httpBackend.expectGET(toRegExp(CLMLocations.getProprietaryConfig())).respond({ packages: ['foo']});
+      $httpBackend.expectGET(CLMLocations.getProprietaryConfig()).respond(proprietaryConfig);
       controller = $controller('ProprietaryConfigurationController', { $scope: scope });
       $httpBackend.flush();
 
       scope.packages.push('bar');
+      scope.regexes.push('foo');
 
       $httpBackend.expectPUT(CLMLocations.getProprietaryConfig() + '/update').respond(500, 'A Random Error');
       scope.save();
@@ -85,92 +92,106 @@ describe('Configuration', function() {
 
       expect(scope.proprietary.packages).toEqual(['foo']);
       expect(scope.packages).toEqual(['foo', 'bar']);
-      expect(scope.error).toEqual('Error: 500 A Random Error');
+      expect(scope.proprietary.regexes).toEqual(['bar']);
+      expect(scope.regexes).toEqual(['bar', 'foo']);
+      expect(scope.error).toEqual('A Random Error');
     }));
   });
 
-  describe('Validate', function() {
+  describe('Validation of inputs', function() {
 
     beforeEach(inject(function($controller, $rootScope, $httpBackend, CLMLocations){
       scope = $rootScope.$new();
-      $httpBackend.expectGET(toRegExp(CLMLocations.getProprietaryConfig())).respond({ packages: ['foo']});
+      $httpBackend.expectGET(CLMLocations.getProprietaryConfig()).respond(proprietaryConfig);
       controller = $controller('ProprietaryConfigurationController', { $scope: scope });
       $httpBackend.flush();
     }));
 
     it('Good Inputs', function() {
-      expect(scope.validatePackage('com.sonatype')).toBe(null);
+      expect(scope.validatePackage('com.sonatype')).toBeTruthy();
+      expect(scope.error).toBeNull();
     });
 
     //see CLM-1097
     it('Should treat an empty entry as valid', function(){
-      expect(scope.validatePackage('')).toBe(null);
+      expect(scope.validatePackage('')).toBeTruthy();
+      expect(scope.error).toBeNull();
     });
 
-    it('Bad Inputs', function() {
-      expect(scope.validatePackage('com sonatype')).toMatch(/invalid.*/i);
-      expect(scope.validatePackage('com/sonatype')).toMatch(/invalid.*/i);
-      expect(scope.validatePackage('com.sonatype.')).toMatch(/invalid.*/i);
-      expect(scope.validatePackage('.com.sonatype')).toMatch(/invalid.*/i);
-      expect(scope.validatePackage('com.sonatype.*')).toMatch(/wildcards.*/i);
-      expect(scope.validatePackage('com.sonatype.**')).toMatch(/wildcards.*/i);
-      expect(scope.validatePackage('com.sona*')).toMatch(/wildcards.*/i);
-      expect(scope.validatePackage('*.sonatype')).toMatch(/wildcards.*/i);
+    it('Bad package inputs', function() {
+      expect(scope.validatePackage('com sonatype')).toBeFalsy();
+      expect(scope.error).toMatch(/invalid.*/i);
+      expect(scope.validatePackage('com/sonatype')).toBeFalsy();
+      expect(scope.error).toMatch(/invalid.*/i);
+      expect(scope.validatePackage('com.sonatype.')).toBeFalsy();
+      expect(scope.error).toMatch(/invalid.*/i);
+      expect(scope.validatePackage('.com.sonatype')).toBeFalsy();
+      expect(scope.error).toMatch(/invalid.*/i);
+      expect(scope.validatePackage('com.sonatype.*')).toBeFalsy();
+      expect(scope.error).toMatch(/wildcards.*/i);
+      expect(scope.validatePackage('com.sonatype.**')).toBeFalsy();
+      expect(scope.error).toMatch(/wildcards.*/i);
+      expect(scope.validatePackage('com.sona*')).toBeFalsy();
+      expect(scope.error).toMatch(/wildcards.*/i);
+      expect(scope.validatePackage('*.sonatype')).toBeFalsy();
+      expect(scope.error).toMatch(/wildcards.*/i);
+      expect(scope.validatePackage('foo')).toBeFalsy();
+      expect(scope.error).toBe('Package already specified');
+    });
+
+    it('Bad regex inputs', function() {
+      //presently only checking to ensure regexes are unique
+      expect(scope.validateRegex('bar')).toBeFalsy();
+      expect(scope.error).toBe('Regex already specified');
     });
   });
 
   describe('ProprietaryConfigurationController "isDirty"', function() {
-    it('Should be true if we have added a proprietary package',
-        inject(function($controller, $rootScope, $httpBackend, CLMLocations) {
-          scope = $rootScope.$new();
-          $httpBackend.expectGET(toRegExp(CLMLocations.getProprietaryConfig())).respond({ packages: ['foo']});
-          controller = $controller('ProprietaryConfigurationController', { $scope: scope });
-          $httpBackend.flush();
-          expect(scope.isDirty()).toBeFalsy();
+    beforeEach(inject(function($controller, $rootScope, $httpBackend, CLMLocations) {
+        scope = $rootScope.$new();
+        $httpBackend.expectGET(CLMLocations.getProprietaryConfig()).respond(proprietaryConfig);
+        controller = $controller('ProprietaryConfigurationController', { $scope: scope });
+        $httpBackend.flush();
+        expect(scope.isDirty()).toBeFalsy();
+      }
+    ));
+    it('Should be true if we have added a proprietary package', function() {
+      scope.packages.push('bar');
+      expect(scope.isDirty()).toBeTruthy();
+    });
 
-          scope.packages.push('bar');
-          expect(scope.isDirty()).toBeTruthy();
-        }));
+    it('Should be true if we have added a proprietary regex', function() {
+      scope.regexes.push('bar');
+      expect(scope.isDirty()).toBeTruthy();
+    });
 
-    it('Should be true if we have deleted a proprietary package',
-        inject(function($controller, $rootScope, $httpBackend, CLMLocations) {
-          scope = $rootScope.$new();
-          $httpBackend.expectGET(toRegExp(CLMLocations.getProprietaryConfig())).respond({ packages: ['foo']});
-          controller = $controller('ProprietaryConfigurationController', { $scope: scope });
-          $httpBackend.flush();
-          expect(scope.isDirty()).toBeFalsy();
-
-          scope.packages.length = 0;
-          expect(scope.isDirty()).toBeTruthy();
-        }));
-
-    it('Should be false if we have both added and deleted the same proprietary package',
-        inject(function($controller, $rootScope, $httpBackend, CLMLocations) {
-          scope = $rootScope.$new();
-          $httpBackend.expectGET(toRegExp(CLMLocations.getProprietaryConfig())).respond({ packages: ['foo']});
-          controller = $controller('ProprietaryConfigurationController', { $scope: scope });
-          $httpBackend.flush();
-          expect(scope.isDirty()).toBeFalsy();
-
-          scope.packages.length = 0;
-          expect(scope.isDirty()).toBeTruthy();
-
-          scope.packages.push('foo');
-          expect(scope.isDirty()).toBeFalsy();
-        }));
-
-    it('Should be false if we have reset', inject(function($controller, $rootScope, $httpBackend, CLMLocations) {
-      scope = $rootScope.$new();
-      $httpBackend.expectGET(toRegExp(CLMLocations.getProprietaryConfig())).respond({ packages: ['foo']});
-      controller = $controller('ProprietaryConfigurationController', { $scope: scope });
-      $httpBackend.flush();
-      expect(scope.isDirty()).toBeFalsy();
-
+    it('Should be true if we have deleted a proprietary package', function() {
       scope.packages.length = 0;
+      expect(scope.isDirty()).toBeTruthy();
+    });
+
+    it('Should be true if we have deleted a proprietary reges', function() {
+      scope.regexes.length = 0;
+      expect(scope.isDirty()).toBeTruthy();
+    });
+
+    it('Should be false if we have both added and deleted the same proprietary regex', function() {
+      scope.regexes.length = 0;
+      expect(scope.isDirty()).toBeTruthy();
+
+      scope.regexes.push('bar');
+      expect(scope.isDirty()).toBeFalsy();
+    });
+
+    it('Should be false if we have reset', function() {
+      scope.packages.length = 0;
+      scope.regexes.length = 0;
       expect(scope.isDirty()).toBeTruthy();
 
       scope.reset();
       expect(scope.isDirty()).toBeFalsy();
-    }));
+      expect(scope.packages.length).toBeGreaterThan(0);
+      expect(scope.regexes.length).toBeGreaterThan(0);
+    });
   });
 });

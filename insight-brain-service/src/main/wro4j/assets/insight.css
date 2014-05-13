@@ -300,12 +300,16 @@ a {
 }
 
 .bottom-align-h1 {
-  float: right;
   margin-top: -30px;
 }
 
+.bottom-align-h1-with-header {
+  margin-top: -80px;
+  text-align: right;
+}
+
 .dashboard-content {
-  padding-top: 45px;
+  padding-top: 55px;
   padding-left: 10px !important;
 }
 
@@ -316,6 +320,17 @@ a {
 
 .dashboard-content a:hover, .dashboard-content a:hover i:before {
   color: #2476FC;
+}
+
+.dashboard-content .nav-crumb i:before {
+  font-size: 14px;
+  vertical-align: middle;
+  margin-right: 10px;
+}
+
+.dashboard-content .nav-crumb a {
+  vertical-align: middle;
+  margin-right: 10px;
 }
 
 .dashboard-content table {
@@ -513,7 +528,7 @@ table.table-risk  tbody tr:first-child  td:nth-child(6) {
   padding: 10px;
 }
 
-.dashboard-content i:before {
+.dashboard-content .up:before, .dashboard-content .down:before {
   line-height: 30px;
   vertical-align: top;
   font-size: 12px;
@@ -570,6 +585,64 @@ table.table-risk  tbody tr:first-child  td:nth-child(6) {
   min-width: 90px;
 }
 
+.image-thumbnail {
+  height: 24px;
+  width: 24px;
+  margin-right:5px;
+}
+
+/* Component table has hidden alternating rows to display details. Alternate background of every 4th row
+  as well to provide a striped look */
+.component-application-table tbody>tr:nth-child(4n-1).expandable-row {
+  background-color: #f4f4f4 !important;
+}
+
+.component-application-table .accordion-column .in {
+  border-top: 2px solid #C1C1C1;
+  border-bottom: 1px solid #C1C1C1;
+}
+
+.component-application-table .expandable-row:hover {
+  cursor: pointer;
+}
+
+.component-application-table a {
+  vertical-align: middle;
+}
+
+.component-application-table i:before {
+  font-size: 12px;
+}
+
+.component-violations-table {
+  margin-left: 60px;
+}
+
+.component-violations-table .table {
+  background: #f4f4f4;
+  margin-bottom: 0px;
+}
+
+.expandable-header {
+  width: 10px;
+}
+
+.component-violations-table .threat-column {
+  width: 20px;
+}
+
+.share-risk-header, .risk-header {
+  width: 200px;
+}
+.component-violations-table .share-risk-column, .component-violations-table .risk-column {
+  width: 194px;
+  padding: 8px 12px;
+}
+
+.accordion-column {
+  padding: 0px !important;
+}
+
 .clm-bar {
   padding: 0 !important;
   width: 10px;
@@ -601,4 +674,18 @@ table.table-risk  tbody tr:first-child  td:nth-child(6) {
 
 .clm-bar-text-offset {
   text-indent: -8px;
+}
+
+.clm-arc.application circle, .clm-arc.violation circle {
+  fill: #f4f4f4;
+  stroke: #C1C1C1;
+}
+
+.clm-arc.application path {
+  fill: #BC0430 !important;
+}
+
+.clm-arc.violation path {
+  fill: #f4f4f4 !important;
+  stroke: #BC0430 !important;
 }

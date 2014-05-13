@@ -474,5 +474,37 @@ describe('AngularCommon', function() {
       LastSelectedOrganization.clear();
       expect(LastSelectedOrganization.get()).toEqual({});
     }));
-  });  
+  });
+
+  describe('threatClass', function() {
+    it('applies threat classes', inject(function($compile) {
+      var expectedResults = [
+        {
+          clazz: 'ignore',
+          threatLevels: [0]
+        }, {
+          clazz: 'none',
+          threatLevels: [1]
+        }, {
+          clazz: 'moderate',
+          threatLevels: [2,3]
+        }, {
+          clazz: 'severe',
+          threatLevels: [4,5,6,7]
+        }, {
+          clazz: 'critical',
+          threatLevels: [8,9,10]
+        },
+      ];
+
+      angular.forEach(expectedResults, function(result) {
+        angular.forEach(result.threatLevels, function(threatLevel) {
+          scope.threatLevel = threatLevel;
+          element = angular.element('<div threat-class="threatLevel"></div>');
+          element = $compile(element)(scope);
+          expect(element.attr('class')).toContain(result.clazz);
+        });
+      });
+    }));
+  });
 });

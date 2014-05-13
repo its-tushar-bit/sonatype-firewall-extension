@@ -905,6 +905,29 @@ var AngularStateUtils = {
       }
     };
   }]);
+
+  angularCommon.directive('threatClass', function() {
+    return {
+      scope: {
+        threatClass: '='
+      },
+      link: function(scope, element) {
+        var clazz;
+        if (scope.threatClass >= 8) {
+          clazz = 'critical';
+        } else if (scope.threatClass >= 4) {
+          clazz = 'severe';
+        } else if (scope.threatClass >= 2) {
+          clazz = 'moderate';
+        } else if (scope.threatClass === 1) {
+          clazz = 'none';
+        } else {
+          clazz = 'ignore';
+        }
+        element.addClass(clazz);
+      }
+    };
+  });
 }());
 
 (function() {
@@ -1096,5 +1119,9 @@ var AngularStateUtils = {
         lastOrg = {};
       }
     };
+  }]);
+
+  services.filter('EncodeURIComponent', ['$window', function($window) {
+    return $window.encodeURIComponent;
   }]);
 }());

@@ -341,7 +341,7 @@ describe('DashboardModule', function() {
       expect(directiveScope.stageTypeNameFor('type1')).toBe('Type 1');
     });
   });
-  
+
   describe('dashboard "fileName" filter', function() {
     var fileNameFilter;
     beforeEach(inject(function($filter) {
@@ -485,5 +485,29 @@ describe('DashboardModule', function() {
         }));
       });
     });
+  });
+
+  describe('breadcrump', function() {
+    var scope;
+
+    beforeEach(inject(function($rootScope) {
+      scope = $rootScope.$new();
+    }));
+
+    it('builds list of parent states', inject(function($state, $compile, $httpBackend) {
+      $httpBackend.expectGET('../dashboard-assets/dashboard.html?').respond('<div></div>');
+      $httpBackend.expectGET('../dashboard-assets/component.html?').respond('<div></div>');
+      scope.$apply(function() {
+        $state.go('dashboard.component');
+      });
+      $httpBackend.flush();
+
+      element = angular.element('<div breadcrumb></div>');
+      element = $compile(element)(scope);
+
+      expect(scope.states.length).toBe(2);
+      expect(scope.states[0].state).toBe('dashboard.overview');
+      expect(scope.states[1].state).toBe('dashboard.component');
+    }));
   });
 });

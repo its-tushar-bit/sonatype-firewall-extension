@@ -82,9 +82,6 @@ a, a:hover, a:active, a:focus {
 a:focus {
   text-decoration: none;
 }
-.glyphicons-sonatype:before {
-	font: 14px/28px 'Glyphicons';
-}
 .first-row {
 	border-bottom: 1px solid #d8d8d8;
 }

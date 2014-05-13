@@ -43,6 +43,7 @@
 
   <group name='dashboard'>
     <js>/assets/DashboardModule.js</js>
+    <js>/dashboard/ComponentController.js</js>
   </group>
 
   <group name='lib'>

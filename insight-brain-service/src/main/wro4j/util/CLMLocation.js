@@ -144,8 +144,13 @@
         getApplicationTagsUrl : function() {
           return baseUrl.get() + '/rest/tag/application';
         },
+
         getDashboardFilters : function() {
           return baseUrl.get() + '/rest/dashboard/filters';
+        },
+
+        getComponentDetailsUrl: function(hash) {
+          return baseUrl.get() + '/rest/componentDetails/applications?hash=' + hash;
         }
       };
     }

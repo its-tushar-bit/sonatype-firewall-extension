@@ -40,7 +40,7 @@
             <a href='index.html#/management/application/{{encodeURIComponent(application.publicId)}}/policies'>
               <img ng-src='../rest/application/icon/{{encodeURIComponent(application.publicId)}}'
                 onerror="this.src='../assets/img/defaulticon_application.png';"
-                style='height: 24px; width: 24px; margin-right:5px;'/>{{application.name}}
+                class='image-thumbnail'/>{{application.name}}
             </a>
           </td>
           <td ng-repeat='stage in stages | filterReportColumns'>

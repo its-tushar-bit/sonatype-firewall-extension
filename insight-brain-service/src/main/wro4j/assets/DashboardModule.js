@@ -28,11 +28,24 @@
     return params;
   }
 
-  var dashboardModule = angular.module('DashboardModule', ['ui.router', 'Stores', 'AngularCommon', 'CommonServices'], ['$stateProvider', function($stateProvider) {
+  var dashboardModule = angular.module('DashboardModule', ['ui.router', 'Stores', 'AngularCommon', 'CommonServices', 'ComponentModule'],
+    // To avoid hacking dependency order, states must be declared with their parent.
+    // Fixed https://github.com/angular-ui/ui-router/pull/492
+    ['$stateProvider', function($stateProvider) {
     $stateProvider.state('dashboard', {
       url: '/dashboard',
       templateUrl: '../dashboard-assets/dashboard.html?' + clmBuildTimestamp,
-      controller: 'DashboardController'
+      abstract: true
+    }).state('dashboard.overview', {
+      parent: 'dashboard',
+      url: '',
+      controller: 'DashboardController',
+      templateUrl: '../dashboard-assets/overview.html?' + clmBuildTimestamp
+    }).state('dashboard.component', {
+      parent: 'dashboard',
+      url: '/component/{hash}',
+      controller: 'componentController',
+      templateUrl: '../dashboard-assets/component.html?' + clmBuildTimestamp
     });
   }]);
 
@@ -339,5 +352,37 @@
 
   dashboardModule.controller('componentRiskTableController', ['$scope', '$http', 'CLMLocations', function ($scope, $http, CLMLocations) {
     $scope.$watch('filters', createFilterWatch($scope, $http, CLMLocations.getComponentRisksUrl()));
+  }]);
+
+  dashboardModule.directive('breadcrumb', ['$state', function($state) {
+    var stateLookup = {
+      'dashboard': {
+        name: 'Dashboard',
+        icon: 'sonatype-icons dashboard'
+      },
+      'dashboard.component': {
+        name: 'Component Details'
+      }
+    };
+    return {
+      template: '<p class="nav-crumb"><a ng-repeat="state in states" ui-sref="{{state.state}}">' +
+                '<i ng-if="!$first" class="glyphicons-sonatype play"></i>' +
+                '<i ng-if="state.icon" class="{{state.icon}}"></i>&nbsp;{{state.name}}' +
+                '</a></p>',
+      link: function(scope) {
+        var states = [];
+        var state = $state.$current;
+        while (state && state.name) {
+          states.unshift(angular.extend(stateLookup[state.name],
+            {
+              // dashboard is an abstract state an ui-sref will throw an exception rather than routing to default
+              state: state.name === 'dashboard' ? 'dashboard.overview' : state.name
+            }
+          ));
+          state = state.parent;
+        }
+        scope.states = states;
+      }
+    };
   }]);
 }());

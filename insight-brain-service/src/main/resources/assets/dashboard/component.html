@@ -1,0 +1,95 @@
+<div class="container">
+  <div class="row">
+    <div class="span12">
+      <div breadcrumb></div>
+    </div>
+  </div>
+  <div class="row">
+    <div class="span12">
+      <h1 class="left-align-h1">{{hash}}</h1>
+      <div class="bottom-align-h1-with-header pull-right">
+        <span>TOTAL RISK</span>
+        <h1>{{totalRisk}}</h1>
+      </div>
+    </div>
+  </div>
+  <div load-error="error" reload="doLoad()"></div>
+  <div class="row" ng-hide="error">
+    <div class="span12">
+      <table class="table component-application-table">
+        <thead>
+          <tr>
+            <th class="expandable-header"></th>
+            <th>
+              <div>APPLICATION</div>
+            </th>
+            <th class="share-risk-header">
+              <div>SHARE OF RISK</div>
+            </th>
+            <th class="risk-header">
+              <div>RISK</div>
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr ng-repeat-start="applicationComponent in applicationComponents | orderBy:'risk':true"
+              data-toggle="collapse" data-target="#application-{{applicationComponent.application.id}}"
+              class="expandable-row" ng-click="applicationComponent.isExpanded = !applicationComponent.isExpanded"
+              ng-class="{ expanded: applicationComponent.isExpanded }">
+            <td>
+              <a class="glyphicons"
+                 ng-class="{ 'circle_plus': !applicationComponent.isExpanded, 'circle_minus': applicationComponent.isExpanded }"
+                 ng-if="applicationComponent.policyViolations.length > 0">
+                <i></i>
+              </a>
+            </td>
+            <td>
+              <img class="image-thumbnail"
+                ng-src="{{'../rest/application/icon/' + (applicationComponent.application.publicId | EncodeURIComponent)}}">
+              {{applicationComponent.application.organizationName}} : {{applicationComponent.application.name}}
+            </td>
+            <td><span risk-pie risk="{{totalRisk === 0 ? 0 : (applicationComponent.risk/totalRisk)}}" height="24" width="24"
+                      clazz="clm-arc application"></span>
+              &nbsp;{{totalRisk === 0 ? 0 : (applicationComponent.risk/totalRisk*100 | number:0)}}%
+            </td>
+            <td>
+              {{applicationComponent.risk}}
+            </td>
+          </tr>
+          <tr ng-repeat-end>
+            <td colspan="4" class="accordion-column">
+              <div id="application-{{applicationComponent.application.id}}" class="accordion-body collapse">
+                <div class="component-violations-table">
+                  <table class="table">
+                    <tbody>
+                      <tr ng-repeat="policyViolation in applicationComponent.policyViolations | orderBy:'threatLevel':true">
+                        <td class="clm-bar" threat-class="policyViolation.threatLevel"></td>
+                        <td class="threat-column">{{policyViolation.threatLevel}}</td>
+                        <td>
+                          {{policyViolation.policyName}}
+                        </td>
+                        <td class="share-risk-column">
+                          <span risk-pie risk="{{totalRisk === 0 ? 0 : (policyViolation.threatLevel/totalRisk)}}"
+                                  height="24" width="24" clazz="clm-arc violation"></span>
+                          &nbsp;{{totalRisk === 0 ? 0 : (policyViolation.threatLevel/totalRisk*100 | number:0)}}%
+                        </td>
+                        <td class="risk-column">
+                          {{policyViolation.threatLevel}}
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </td>
+          </tr>
+          <tr ng-if="applicationComponents.length === 0">
+            <td colspan="3">
+              <em>No application risk data available for this component.</em>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

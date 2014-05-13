@@ -15,8 +15,8 @@ class OrganizationManagementPage
   static at = { newOrganizationButton.displayed }
 
   static content = {
-    newOrganizationButton(wait: true, to: OrganizationPage) { $('a', text: contains('New Organization')) }
-    organizationList(required: false) { $('li', 'ng-repeat': startsWith('organization in organizations')).find('a') }
+    newOrganizationButton(wait: true, to: OrganizationPage) { $('#nav-create-org') }
+    organizationList(required: false) { $('#nav-org-list > li[ng-repeat] > a') }
     organization(to: OrganizationPage) { name -> organizationList.find {it.text() == name} }
   }
 

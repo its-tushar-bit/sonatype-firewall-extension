@@ -14,8 +14,8 @@ class ApplicationManagementPage
   static at = { newApplicationButton.displayed }
 
   static content = {
-    newApplicationButton(wait: true, to: ApplicationPage) { $('a', text:contains('New Application')) }
-    applicationList(required: false) { $('li', 'ng-repeat': startsWith('application in applications')).find('a') }
+    newApplicationButton(wait: true, to: ApplicationPage) { $('#nav-create-app') }
+    applicationList(required: false) { $('#nav-app-list > li[ng-repeat] > a') }
     application { name -> applicationList.find {it.text() == name} }
   }
 

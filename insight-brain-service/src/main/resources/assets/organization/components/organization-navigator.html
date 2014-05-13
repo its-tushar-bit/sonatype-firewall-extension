@@ -2,7 +2,7 @@
   <div class="subnavigation" ng-class="{'subnavigation-expanded' : !$state.params.organizationId}">
     <div load-error='error' reload='doLoad()'></div>
     <div ng-hide='error'>
-      <a class="btn new-entity-button" href='#/management/organization/_new_'>
+      <a id='nav-create-org' class="btn new-entity-button" href='#/management/organization/_new_'>
         <i class="icon-plus"></i>&nbsp;New Organization
       </a>
       <div class='search input-prepend'>
@@ -11,7 +11,7 @@
           ng-click="orgFilter.name = ''"></i></span> <input type='text'
           ng-model='orgFilter.name' autocomplete="off" />
       </div>
-      <ul class="nav nav-list">
+      <ul id='nav-org-list' class="nav nav-list">
         <li ng-repeat='organization in organizations | filter: orgFilter | orderBy: "name"'
           ng-class="{'active': $state.params.organizationId == organization.id }">
             <a href='#/management/organization/{{organization.id}}/policies'>{{organization.name}}</a></li>

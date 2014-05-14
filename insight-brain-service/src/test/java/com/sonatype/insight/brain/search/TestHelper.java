@@ -69,6 +69,7 @@ class TestHelper
             policyFact.getPolicyName(), policyFact.getThreatLevel(), PolicyThreatCategory.OTHER,
             componentFact.getHash(), componentFact.getGroupId(), componentFact.getArtifactId(),
             componentFact.getVersion(), componentFact.getConstraintFacts(), componentFact.getPathnames());
+        policyViolation.setTime(policyEvaluation.getTime());
         policyViolationDAO.insert(policyViolation);
       }
     }

@@ -277,7 +277,7 @@ public class PolicyEvaluationMigrator
         componentsByScanCache.put(scanId, components);
       }
       Map<String, List<String>> hashToPathnames = loadPathnames(components);
-      savePolicyAlerts(em, policyEvaluation.getId(), policyAlerts, policyViolationsByEvaluationCache, hashToPathnames);
+      savePolicyAlerts(em, policyEvaluation.getId(), policyEvaluation.getTime(), policyAlerts, policyViolationsByEvaluationCache, hashToPathnames);
 
       /* check for existence of monitoring results */
 
@@ -291,7 +291,7 @@ public class PolicyEvaluationMigrator
           policyEvaluationDAO.insert(em, monitoringEvaluation);
           policyEvaluationsCache.add(monitoringEvaluation);
           log.trace("Migrated policy monitoring evaluation: {}", monitoringEvaluation);
-          savePolicyAlerts(em, monitoringEvaluation.getId(), monitoringAlerts, policyViolationsByEvaluationCache,
+          savePolicyAlerts(em, monitoringEvaluation.getId(), monitoringEvaluation.getTime(), monitoringAlerts, policyViolationsByEvaluationCache,
               hashToPathnames);
           monitoringScans.add(monitoringEvaluation.getScanId());
         }
@@ -300,7 +300,8 @@ public class PolicyEvaluationMigrator
   }
 
   private void savePolicyAlerts(final EntityManager em, final String policyEvaluationId,
-      final List<PolicyAlert> policyAlerts, final Map<String, List<PolicyViolation>> policyViolationsByEvaluationCache,
+      final Date time, final List<PolicyAlert> policyAlerts,
+      final Map<String, List<PolicyViolation>> policyViolationsByEvaluationCache,
       final Map<String, List<String>> hashToPathnames)
   {
     List<PolicyViolation> policyViolations = new ArrayList<>();
@@ -320,7 +321,7 @@ public class PolicyEvaluationMigrator
             policyFact.getPolicyName(), policyFact.getThreatLevel(), threatCategory, componentFact.getHash(),
             componentFact.getGroupId(), componentFact.getArtifactId(), componentFact.getVersion(),
             componentFact.getConstraintFacts(), pathnames);
-
+        policyViolation.setTime(time);
         policyViolationDAO.insert(em, policyViolation);
         policyViolations.add(policyViolation);
       }

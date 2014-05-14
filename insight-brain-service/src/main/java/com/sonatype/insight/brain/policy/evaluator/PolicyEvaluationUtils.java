@@ -162,6 +162,7 @@ public class PolicyEvaluationUtils
                 policy.getName(), policyFact.getThreatLevel(), threatCategory, componentFact.getHash(),
                 componentFact.getGroupId(), componentFact.getArtifactId(), componentFact.getVersion(),
                 componentFact.getConstraintFacts(), componentFact.getPathnames());
+            policyViolation.setTime(policyEvaluation.getTime());
             policyViolationDAO.insert(em, policyViolation);
             newPolicyViolations.add(policyViolation);
           }

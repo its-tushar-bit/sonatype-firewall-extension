@@ -124,6 +124,7 @@ public class ReportBuilder
       policyViolation.setPolicyEvaluationId(policyEvaluation.getId());
       policyViolation.setPolicyName(policyViolation.getPolicyId());
       policyViolation.setConstraintFactsJson("constraint facts");
+      policyViolation.setTime(policyEvaluation.getTime());
       policyViolationDAO.insert(policyViolation);
     }
 

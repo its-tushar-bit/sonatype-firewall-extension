@@ -83,9 +83,12 @@ public class DashboardServiceTest
     app1PolicyEvaluation = tempEntity.newPolicyEvaluation(app1.getId(), BuildStageType.ID, "test scan app1 id");
     app2PolicyEvaluation = tempEntity.newPolicyEvaluation(app2.getId(), BuildStageType.ID, "test scan app2 id");
     long start = System.currentTimeMillis();
-    orgPolicyViolation = tempEntity.newPolicyViolation(app1PolicyEvaluation.getId(), orgPolicy);
-    app1PolicyViolation = tempEntity.newPolicyViolation(app1PolicyEvaluation.getId(), app1Policy);
-    app2PolicyViolation = tempEntity.newPolicyViolation(app2PolicyEvaluation.getId(), orgPolicy);
+    orgPolicyViolation = tempEntity
+        .newPolicyViolation(app1PolicyEvaluation.getId(), app1PolicyEvaluation.getTime(), orgPolicy);
+    app1PolicyViolation = tempEntity
+        .newPolicyViolation(app1PolicyEvaluation.getId(), app1PolicyEvaluation.getTime(), app1Policy);
+    app2PolicyViolation = tempEntity
+        .newPolicyViolation(app2PolicyEvaluation.getId(), app2PolicyEvaluation.getTime(), orgPolicy);
     tempEntity.newNewestPolicyViolation(orgPolicyViolation.getId(), app1.getId(), BuildStageType.ID);
     tempEntity.newNewestPolicyViolation(app1PolicyViolation.getId(), app1.getId(), BuildStageType.ID);
     tempEntity.newNewestPolicyViolation(app2PolicyViolation.getId(), app2.getId(), BuildStageType.ID);
@@ -128,7 +131,7 @@ public class DashboardServiceTest
   public void testGetPolicyViolationsWithNullOrEmptyStageTypeIds() {
     PolicyEvaluation newApp1PolicyEvaluation = tempEntity.newPolicyEvaluation(app1.getId(), ReleaseStageType.ID,
         "re-scan app1");
-    PolicyViolation violation = tempEntity.newPolicyViolation(newApp1PolicyEvaluation.getId(), app1Policy);
+    PolicyViolation violation = tempEntity.newPolicyViolation(newApp1PolicyEvaluation.getId(), newApp1PolicyEvaluation.getTime(), app1Policy);
 
     // If no stages are given return violations for all stages.
     List<PolicyViolationDTO> policyViolationDTOs = dashboardService.getPolicyViolations(null, null, null, null, false);
@@ -208,7 +211,8 @@ public class DashboardServiceTest
   public void testGetPolicyViolationsWithMultipleStages() {
     PolicyEvaluation newApp1PolicyEvaluation = tempEntity.newPolicyEvaluation(app1.getId(), ReleaseStageType.ID,
         "re-scan app1");
-    PolicyViolation violation = tempEntity.newPolicyViolation(newApp1PolicyEvaluation.getId(), app1Policy);
+    PolicyViolation violation = tempEntity
+        .newPolicyViolation(newApp1PolicyEvaluation.getId(), newApp1PolicyEvaluation.getTime(), app1Policy);
 
     List<PolicyViolationDTO> policyViolationDTOs = dashboardService.getPolicyViolations(
         Sets.newHashSet(BuildStageType.ID, ReleaseStageType.ID), null, null, null, false);
@@ -223,7 +227,8 @@ public class DashboardServiceTest
   public void testGetPolicyViolationsWithPolicyThreatCategories() {
     PolicyEvaluation newApp1PolicyEvaluation = tempEntity.newPolicyEvaluation(app1.getId(), ReleaseStageType.ID,
         "re-scan app1");
-    PolicyViolation violation = tempEntity.newPolicyViolation(newApp1PolicyEvaluation.getId(), app1Policy);
+    PolicyViolation violation = tempEntity
+        .newPolicyViolation(newApp1PolicyEvaluation.getId(), newApp1PolicyEvaluation.getTime(), app1Policy);
 
     List<PolicyViolationDTO> policyViolationDTOs = dashboardService.getPolicyViolations(
         Sets.newHashSet(ReleaseStageType.ID), null,
@@ -243,7 +248,7 @@ public class DashboardServiceTest
   public void testGetPolicyViolationsWithPolicyThreatLevel() {
     PolicyEvaluation newApp1PolicyEvaluation = tempEntity.newPolicyEvaluation(app1.getId(), ReleaseStageType.ID,
         "re-scan app1");
-    PolicyViolation violation = tempEntity.newPolicyViolation(newApp1PolicyEvaluation.getId(), app1Policy);
+    PolicyViolation violation = tempEntity.newPolicyViolation(newApp1PolicyEvaluation.getId(), newApp1PolicyEvaluation.getTime(), app1Policy);
 
     // Violation out of threat level range.
     List<PolicyViolationDTO> policyViolationDTOs = dashboardService.getPolicyViolations(
@@ -265,7 +270,7 @@ public class DashboardServiceTest
   public void testGetPolicyViolationsWithPolicyThreatLevelAndPolicyThreatCategories() {
     PolicyEvaluation newApp1PolicyEvaluation = tempEntity.newPolicyEvaluation(app1.getId(), ReleaseStageType.ID,
         "re-scan app1");
-    PolicyViolation violation = tempEntity.newPolicyViolation(newApp1PolicyEvaluation.getId(), app1Policy);
+    PolicyViolation violation = tempEntity.newPolicyViolation(newApp1PolicyEvaluation.getId(), newApp1PolicyEvaluation.getTime(), app1Policy);
 
     // Violation out of threat level range and wrong threat category.
     List<PolicyViolationDTO> policyViolationDTOs = dashboardService.getPolicyViolations(Sets
@@ -320,7 +325,7 @@ public class DashboardServiceTest
   public void testGetPolicyViolationsByApplicationIdsWithMultipleStages() {
     PolicyEvaluation newApp1PolicyEvaluation = tempEntity.newPolicyEvaluation(app1.getId(), ReleaseStageType.ID,
         "re-scan app1");
-    PolicyViolation violation = tempEntity.newPolicyViolation(newApp1PolicyEvaluation.getId(), app1Policy);
+    PolicyViolation violation = tempEntity.newPolicyViolation(newApp1PolicyEvaluation.getId(), newApp1PolicyEvaluation.getTime(), app1Policy);
 
     List<PolicyViolationDTO> policyViolationDTOs = dashboardService.getPolicyViolationsByApplicationIds(
         Sets.newHashSet(app1.getPublicId(), app2.getPublicId()),
@@ -494,7 +499,7 @@ public class DashboardServiceTest
   {
     PolicyEvaluation evaluation = tempEntity
         .newPolicyEvaluation(app1.getId(), ReleaseStageType.ID, "test scan app1 id");
-    PolicyViolation violation = tempEntity.newPolicyViolation(evaluation.getId(), app1Policy,
+    PolicyViolation violation = tempEntity.newPolicyViolation(evaluation.getId(), evaluation.getTime(), app1Policy,
         app1Policy.getThreatLevel() + 1, PolicyThreatCategory.LICENSE, "Group1", "Artifact1", "Version1");
 
     List<ComponentRiskDTO> riskDTOs = dashboardService.getComponentRisks(null, null, null, null, null, 1000);
@@ -524,7 +529,7 @@ public class DashboardServiceTest
   public void testGetComponentRisks_FilterByStage() throws Exception {
     PolicyEvaluation evaluation = tempEntity
         .newPolicyEvaluation(app1.getId(), ReleaseStageType.ID, "test scan app1 id");
-    PolicyViolation violation = tempEntity.newPolicyViolation(evaluation.getId(), app1Policy);
+    PolicyViolation violation = tempEntity.newPolicyViolation(evaluation.getId(), evaluation.getTime(), app1Policy);
 
     List<ComponentRiskDTO> riskDTOs = dashboardService.getComponentRisks(null,
         Collections.singleton(ReleaseStageType.ID), null, null, null, 1000);
@@ -555,8 +560,9 @@ public class DashboardServiceTest
 
   @Test
   public void testGetComponentRisks_FilterPolicyThreatCategory() throws Exception {
-    PolicyViolation violation = tempEntity.newPolicyViolation(app1PolicyEvaluation.getId(), app1Policy, 5,
-        PolicyThreatCategory.SECURITY, "gid", "aid", "1");
+    PolicyViolation violation = tempEntity
+        .newPolicyViolation(app1PolicyEvaluation.getId(), app1PolicyEvaluation.getTime(), app1Policy, 5,
+            PolicyThreatCategory.SECURITY, "gid", "aid", "1");
 
     List<ComponentRiskDTO> riskDTOs = dashboardService.getComponentRisks(null, null, null,
         new PolicyThreatCategoryFilter(PolicyThreatCategory.SECURITY), null, 1000);
@@ -589,7 +595,7 @@ public class DashboardServiceTest
         continue;
       }
       Policy orgPolicy = tempEntity.newPolicy(org.getId(), "policy " + i, i);
-      tempEntity.newPolicyViolation(app2PolicyEvaluation.getId(), orgPolicy);
+      tempEntity.newPolicyViolation(app2PolicyEvaluation.getId(), app2PolicyEvaluation.getTime(), orgPolicy);
     }
 
     List<ComponentRiskDTO> riskDTOs = dashboardService.getComponentRisks(Collections.singleton(app2.getPublicId()),
@@ -606,11 +612,11 @@ public class DashboardServiceTest
   @Test
   public void testGetComponentRisks_ResultCapping() throws Exception {
     String gid = "gid", aid = "aid", ver = "1", hash = "somehash";
-    tempEntity.newPolicyViolation(app1PolicyEvaluation.getId(), orgPolicy, 4, PolicyThreatCategory.SECURITY, gid, aid,
+    tempEntity.newPolicyViolation(app1PolicyEvaluation.getId(), app1PolicyEvaluation.getTime(), orgPolicy, 4, PolicyThreatCategory.SECURITY, gid, aid,
         ver, hash);
-    tempEntity.newPolicyViolation(app1PolicyEvaluation.getId(), app1Policy, 4, PolicyThreatCategory.SECURITY, gid, aid,
+    tempEntity.newPolicyViolation(app1PolicyEvaluation.getId(), app1PolicyEvaluation.getTime(), app1Policy, 4, PolicyThreatCategory.SECURITY, gid, aid,
         ver, hash);
-    tempEntity.newPolicyViolation(app2PolicyEvaluation.getId(), orgPolicy, 4, PolicyThreatCategory.SECURITY, gid, aid,
+    tempEntity.newPolicyViolation(app2PolicyEvaluation.getId(), app2PolicyEvaluation.getTime(), orgPolicy, 4, PolicyThreatCategory.SECURITY, gid, aid,
         ver, hash);
 
     List<ComponentRiskDTO> riskDTOs = dashboardService.getComponentRisks(null, null, null, null, null, 1);

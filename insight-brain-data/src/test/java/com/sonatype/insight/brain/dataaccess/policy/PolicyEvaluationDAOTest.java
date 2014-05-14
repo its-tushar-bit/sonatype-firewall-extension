@@ -137,7 +137,7 @@ public class PolicyEvaluationDAOTest
     Policy policy = tempEntity.newPolicy(applicationId, "testCascadeDeleteToPolicyViolations");
     PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(applicationId, ReleaseStageType.ID,
         "PolicyEvaluationDAOTest");
-    tempEntity.newPolicyViolation(policyEvaluation.getId(), policy);
+    tempEntity.newPolicyViolation(policyEvaluation.getId(), policyEvaluation.getTime(), policy);
     PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
     assertThat(policyViolationDAO.getByEvaluationId(policyEvaluation.getId()), hasSize(1));
 

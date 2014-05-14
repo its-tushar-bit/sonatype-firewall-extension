@@ -17,11 +17,11 @@ class UserManagementPage
   static at = { newUserButton.displayed }
 
   static content = {
-    newUserButton(wait: true) { $('.new-user-button') }
-    userForm(required: false) { $('form', name: 'userForm') }
+    newUserButton(wait: true) { $('#user-new') }
+    userForm(required: false) { $('#user-form') }
 
     firstNameInput(required: false) { userForm.firstName() }
-    firstNameValidations(required: false) { module ValidationModule,  userForm.firstName().parent() }
+    firstNameValidations(required: false) { module ValidationModule, firstNameInput.parent() }
 
     lastNameInput(required: false) { userForm.lastName() }
     lastNameValidations(required: false) { module ValidationModule, lastNameInput.parent() }
@@ -46,13 +46,13 @@ class UserManagementPage
     }
 
     errorFree(required: false) { !validations.any { !it.errorFree } && !uniqueUserValidation?.displayed }
-    save(required: false) { $('button', 'ng-click': 'saveClick(user)') }
-    cancel(required: false) { $('button', 'ng-click': 'cancelClick(user)') }
+    save(required: false) { $('#user-form-save') }
+    cancel(required: false) { $('#user-form-cancel') }
     headers(required: false) { $('a.accordion-toggle') }
     header(required: false) { index -> $('a.accordion-toggle', index) }
-    currentUsers(required: false) { $('span', 'ng-if': 'isCurrentUser(user)').findAll( { it.displayed } ).parent().find('h4') }
-    deleteUserButton(required: false) { index -> header(index).parent().find('button', 'ng-click': 'removeClick(user)') }
-    resetUserButton(required: false) { index -> header(index).parent().find('button', 'ng-click': 'resetPasswordClick(user)') }
+    currentUsers(required: false) { $('span[ng-if="isCurrentUser(user)"]').parent().find('h4') }
+    deleteUserButton(required: false) { index -> header(index).parent().find('button[ng-click="removeClick(user)"]') }
+    resetUserButton(required: false) { index -> header(index).parent().find('button[ng-click="resetPasswordClick(user)"]') }
 
     deleteModal { module ModalModule, title: 'Delete User'}
 

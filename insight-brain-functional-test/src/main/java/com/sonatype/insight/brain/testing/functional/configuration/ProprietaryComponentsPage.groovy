@@ -16,7 +16,7 @@ class ProprietaryComponentsPage
 {
   static url = "${ConfigurationPage.url}/proprietarycomponents"
 
-  static at = { pageTitle.displayed }
+  static at = { $('#proprietaryTable').displayed }
 
   static content = {
     pageTitle { $('h1.page-title', text: 'Proprietary Components') }

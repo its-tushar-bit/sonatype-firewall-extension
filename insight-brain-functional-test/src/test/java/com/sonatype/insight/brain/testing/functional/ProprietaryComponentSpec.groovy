@@ -71,8 +71,11 @@ class ProprietaryComponentSpec
     when: 'we save the new entries'
       buttons.save.click()
 
-    then: 'the data is pushed to the server and the buttons disable'
+    then: 'the data is pushed to the server'
       rows.size() == 4
+      waitFor { buttons.displayed }
+
+    and: 'the buttons disable'
       buttons.button('Reset').disabled
       buttons.save.disabled
   }

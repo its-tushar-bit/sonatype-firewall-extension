@@ -96,7 +96,8 @@ public class DashboardServiceAuthzTest
 
   private PolicyViolation createPolicyViolation(String appId) {
     PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(appId, BuildStageType.ID, "test scan id");
-    return tempEntity.newPolicyViolation(evaluation.getId(), tempEntity.newPolicy(app.getId(), "test policy name"));
+    return tempEntity.newPolicyViolation(evaluation.getId(), evaluation.getTime(),
+        tempEntity.newPolicy(app.getId(), "test policy name"));
   }
 
   @Test(expected = UnauthenticatedException.class)

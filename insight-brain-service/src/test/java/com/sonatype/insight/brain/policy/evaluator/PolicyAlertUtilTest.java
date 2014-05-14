@@ -32,7 +32,7 @@ public class PolicyAlertUtilTest
     Application app = tempEntity.newApplicationWithParent("app-id");
     Policy policy = new Policy("id", "Deleted Policy");
     PolicyEvaluation policyEval = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "some-scan");
-    tempEntity.newPolicyViolation(policyEval.getId(), policy);
+    tempEntity.newPolicyViolation(policyEval.getId(), policyEval.getTime(), policy);
     List<PolicyAlert> alerts = PolicyAlertUtil.createPolicyAlerts(policyEval);
     assertThat(alerts, hasSize(1));
     PolicyAlert alert = alerts.get(0);

@@ -49,15 +49,17 @@ class DashboardOverviewSpec
     Date now = new Date()
     PolicyEvaluation firstPolicyEvaluation = temporaryEntity.newPolicyEvaluation(firstApp.id, BuildStageType.ID,
         'DashboardSpecFistEvaluation', now - 7)
-    PolicyViolation firstViolation = temporaryEntity.newPolicyViolation(firstPolicyEvaluation.id, policy, 5,
-        PolicyThreatCategory.LICENSE, "Group1", "Artifact1", "Version1")
+    PolicyViolation firstViolation = temporaryEntity.
+        newPolicyViolation(firstPolicyEvaluation.id, firstPolicyEvaluation.time, policy, 5,
+            PolicyThreatCategory.LICENSE, "Group1", "Artifact1", "Version1")
     temporaryEntity.newNewestPolicyViolation(firstViolation.id, firstPolicyEvaluation.applicationId,
         firstPolicyEvaluation.stageTypeId)
 
     PolicyEvaluation secondPolicyEvaluation = temporaryEntity.newPolicyEvaluation(secondApp.id, ReleaseStageType.ID,
         'DashboardSpecSecondEvaluation', now)
-    PolicyViolation secondViolation = temporaryEntity.newPolicyViolation(secondPolicyEvaluation.id, policy, 10,
-        PolicyThreatCategory.QUALITY, null, null, null)
+    PolicyViolation secondViolation = temporaryEntity.
+        newPolicyViolation(secondPolicyEvaluation.id, secondPolicyEvaluation.time, policy, 10,
+            PolicyThreatCategory.QUALITY, null, null, null)
     temporaryEntity.newNewestPolicyViolation(secondViolation.id, secondPolicyEvaluation.applicationId,
         secondPolicyEvaluation.stageTypeId)
   }
@@ -97,7 +99,7 @@ class DashboardOverviewSpec
       policyThreatFiltersDropdown.dropdownCheck('Quality').displayed
       policyThreatFiltersDropdown.dropdownCheck('Other').displayed
       policyThreatFiltersDropdown.hideDropdown()
-      
+
     and: 'stage type filters are shown'
       stageTypeFiltersDropdown.showDropdown()
       //note only checking for items available from every product type
@@ -137,11 +139,11 @@ class DashboardOverviewSpec
         moveToElement(unknownComponentCell)
       }
       waitFor { highestRiskTable.unknownComponentPopover.displayed }
-      
+
     then: 'highest risk popover is properly displayed'
       highestRiskTable.unknownComponentPopoverTitle == 'Component Path'
       highestRiskTable.unknownComponentPopoverText == 'unknown.jar'
-      
+
     when: 'newest risk table is shown'
       waitFor { newestViolationTable.displayed }
       waitFor { newestViolationTable.rows.size() >= 2 }
@@ -150,12 +152,12 @@ class DashboardOverviewSpec
         moveToElement(unknownComponentCell)
       }
       waitFor { newestViolationTable.unknownComponentPopover.displayed }
-      
+
     then: 'newest risk popover is properly displayed'
       newestViolationTable.unknownComponentPopoverTitle == 'Component Path'
       newestViolationTable.unknownComponentPopoverText == 'unknown.jar'
   }
-  
+
   def 'Highest Risk Table can be sorted'() {
     when: 'highest risk table is shown'
       waitFor { highestRiskTable.displayed }
@@ -223,7 +225,7 @@ class DashboardOverviewSpec
       highestRiskTable.rows[0].risk == 5
       highestRiskTable.rows[0].policy == 'DashboardSpecPolicy'
       highestRiskTable.rows[0].application == firstApp.name
-      
+
     when: 'filtering to a stage'
       filterPanelToggle.click()
       // Toggle off previous application filter.
@@ -232,7 +234,7 @@ class DashboardOverviewSpec
       waitFor { stageTypeFiltersDropdown.displayed }
       stageTypeFiltersDropdown.toggleOption('Release')
       applyFilter()
-    
+
     then: 'only violations from that stage are shown'
       waitFor { highestRiskTable.rows.size() == 1 }
       !stageTypeFiltersDropdown.displayed
@@ -262,7 +264,7 @@ class DashboardOverviewSpec
       newestViolationTable.rows[1].application == firstApp.name
       newestViolationTable.rows[1].component == ["Group1", "Artifact1", "Version1"].join(' : ')
       newestViolationTable.rows[1].age.contains("ago")
-      
+
     when: 'filtering to an application'
       filterPanelToggle.click()
       waitFor { applicationFiltersDropdown.displayed }
@@ -277,13 +279,13 @@ class DashboardOverviewSpec
       newestViolationTable.rows[0].application == secondApp.name
       newestViolationTable.rows[0].component == 'unknown.jar'
       newestViolationTable.rows[0].age.contains("ago")
-      
+
     when: 'filtering to a stage'
       filterPanelToggle.click()
       waitFor { stageTypeFiltersDropdown.displayed }
       stageTypeFiltersDropdown.toggleOption('Release')
       applyFilter()
-    
+
     then: 'only violations from that stage are shown'
       waitFor { highestRiskTable.rows.size() == 1 }
       !stageTypeFiltersDropdown.displayed
@@ -314,8 +316,9 @@ class DashboardOverviewSpec
         Date now = new Date()
         PolicyEvaluation policyEvaluation = temporaryEntity.newPolicyEvaluation(firstApp.id, BuildStageType.ID,
             'DashboardSpecFistEvaluation', now - 7)
-        PolicyViolation violation = temporaryEntity.newPolicyViolation(policyEvaluation.id, policy, 5,
-            PolicyThreatCategory.SECURITY, "Group${i}", "Artifact${i}", "Version${i}")
+        PolicyViolation violation = temporaryEntity.
+            newPolicyViolation(policyEvaluation.id, policyEvaluation.time, policy, 5, PolicyThreatCategory.SECURITY,
+                "Group${i}", "Artifact${i}", "Version${i}")
         temporaryEntity.newNewestPolicyViolation(violation.id, policyEvaluation.applicationId,
             policyEvaluation.stageTypeId)
       }

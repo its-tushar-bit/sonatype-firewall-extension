@@ -280,7 +280,7 @@ public class TestInsightBrainService
   }
 
   @Override
-  protected DatabaseConfig getDatabaseConfig(File databaseDir, String databaseName) {
+  protected DatabaseConfig getDatabaseConfig(File databaseDir, String databaseName, final String additionalDBParams) {
     // Use in memory db
     return null;
   }

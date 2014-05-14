@@ -698,3 +698,7 @@ table.table-risk  tbody tr:first-child  td:nth-child(6) {
   fill: #f4f4f4 !important;
   stroke: #BC0430 !important;
 }
+
+.popover-content {
+  word-break: break-all;
+}

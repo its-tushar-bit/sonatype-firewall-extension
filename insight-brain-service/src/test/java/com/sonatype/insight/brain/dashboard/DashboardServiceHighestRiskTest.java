@@ -162,13 +162,6 @@ public class DashboardServiceHighestRiskTest
 
   private Set<String> stageIds = Sets.newHashSet(buildStage.getId());
 
-  private void netAsserts(final long expectedRisk, final List<ApplicationRiskScoreDTO> result) {
-    assertEquals("One result expected", 1, result.size());
-    assertEquals("Total Risk was correct", expectedRisk, result.get(0).totalApplicationRisk.totalRisk);
-    assertEquals("Risk name was set right", appName, result.get(0).applicationName);
-    assertEquals("Risk public appID was set right", appPublicId1, result.get(0).applicationId);
-  }
-
   private void mockGetByPublicId(final List<StageType> stages, String inputPublicAppId, Application returnApp) {
     when(stageTypeService.getLicensedStageTypes()).thenReturn(stages);
     when(applicationService.getApplicationByPublicIdNotNull(inputPublicAppId)).thenReturn(returnApp);
@@ -182,15 +175,15 @@ public class DashboardServiceHighestRiskTest
     when(policyViolationDAO.getByEvaluationId(policyEval.getId())).thenReturn(resultViolation);
   }
 
-  private void assertStageRisk(StageRiskScoreDTO stageRisk, long criticalRisk, long severeRisk, long moderateRisk,
-      long lowRisk, long netRisk)
+  private void assertRisk(RiskDTO risk, int criticalRisk, int severeRisk, int moderateRisk,
+      int lowRisk, int netRisk)
   {
-    assertNotNull("Stage risk is set", stageRisk);
-    assertEquals(criticalRisk, stageRisk.risk.criticalRisk);
-    assertEquals(severeRisk, stageRisk.risk.severeRisk);
-    assertEquals(moderateRisk, stageRisk.risk.moderateRisk);
-    assertEquals(lowRisk, stageRisk.risk.lowRisk);
-    assertEquals(netRisk, stageRisk.risk.totalRisk);
+    assertNotNull("Stage risk is set", risk);
+    assertEquals(criticalRisk, risk.criticalRisk);
+    assertEquals(severeRisk, risk.severeRisk);
+    assertEquals(moderateRisk, risk.moderateRisk);
+    assertEquals(lowRisk, risk.lowRisk);
+    assertEquals(netRisk, risk.totalRisk);
   }
 
   @Test
@@ -202,11 +195,14 @@ public class DashboardServiceHighestRiskTest
         .getApplicationRisks(Collections.singleton(appPublicId1), Collections.singleton(buildStage.getId()),
             Collections.<String>emptySet(), null, null, Integer.MAX_VALUE);
 
-    netAsserts(5L, result);
+    assertEquals("One result expected", 1, result.size());
+    assertRisk(result.get(0).totalApplicationRisk, 0, 5, 0, 0, 5);
+    assertEquals("Risk name was set right", appName, result.get(0).applicationName);
+    assertEquals("Risk public appID was set right", appPublicId1, result.get(0).applicationId);
     assertEquals("One stage risk in map", 1, result.get(0).stageRisks.size());
 
     StageRiskScoreDTO buildStageRisk = result.get(0).getStageRiskScore(buildStage.getId());
-    assertStageRisk(buildStageRisk, 0, 5, 0, 0, 5);
+    assertRisk(buildStageRisk.risk, 0, 5, 0, 0, 5);
   }
 
 
@@ -230,14 +226,17 @@ public class DashboardServiceHighestRiskTest
     List<ApplicationRiskScoreDTO> result = dashboardService.getApplicationRisks(Collections.singleton(appPublicId1),
         inputStageIds, Collections.<String>emptySet(), null, null, maxResults);
 
-    netAsserts(12L, result);
+    assertEquals("One result expected", 1, result.size());
+    assertRisk(result.get(0).totalApplicationRisk, 0, 12, 0, 0, 12);
+    assertEquals("Risk name was set right", appName, result.get(0).applicationName);
+    assertEquals("Risk public appID was set right", appPublicId1, result.get(0).applicationId);
     assertEquals("Two stage risk in map", 2, result.get(0).stageRisks.size());
 
     StageRiskScoreDTO buildStageRisk = result.get(0).getStageRiskScore(buildStage.getId());
-    assertStageRisk(buildStageRisk, 0, 5, 0, 0, 5);
+    assertRisk(buildStageRisk.risk, 0, 5, 0, 0, 5);
 
     StageRiskScoreDTO releaseStageRisk = result.get(0).getStageRiskScore(releaseStage.getId());
-    assertStageRisk(releaseStageRisk, 0, 7, 0, 0, 7);
+    assertRisk(releaseStageRisk.risk, 0, 7, 0, 0, 7);
   }
 
   @Test
@@ -318,11 +317,13 @@ public class DashboardServiceHighestRiskTest
     vio5.setTime(vio5Date);
     Date vio51Date = new Date(4000L);
     String groupId2 = "group2";
+    String artifactId2 = "artifact2";
+    String versionId2 = "1.2";
+    String vioHash2 = "bargoblyh";
     PolicyViolation vio51 = new PolicyViolation(policyEvalId5, policyEvalId5, policyName5, 9,
-        PolicyThreatCategory.LICENSE, vioHash1, groupId2, artifactId1, versionId1, "[]", "");
+        PolicyThreatCategory.LICENSE, vioHash2, groupId2, artifactId2, versionId2, "[]", "");
     vio51.setTime(vio51Date);
     List<PolicyViolation> violations5 = Lists.newArrayList(vio5, vio51);
-
 
     List<StageType> stages = Lists.newArrayList(buildStage);
     Set<String> stageIds = Sets.newHashSet(buildStage.getId());
@@ -333,16 +334,19 @@ public class DashboardServiceHighestRiskTest
     List<ApplicationRiskScoreDTO> result = dashboardService.getApplicationRisks(Collections.singleton(appPublicId1),
         stageIds, Collections.<String>emptySet(), null, null, Integer.MAX_VALUE);
 
-    netAsserts(9L, result);
+    assertEquals("One result expected", 1, result.size());
+    assertRisk(result.get(0).totalApplicationRisk, 9, 0, 3, 0, 12);
+    assertEquals("Risk name was set right", appName, result.get(0).applicationName);
+    assertEquals("Risk public appID was set right", appPublicId1, result.get(0).applicationId);
     assertEquals("One stage risk in map", 1, result.get(0).stageRisks.size());
 
     StageRiskScoreDTO buildStageRisk = result.get(0).getStageRiskScore(buildStage.getId());
-    assertStageRisk(buildStageRisk, 9, 0, 3, 0, 12);
+    assertRisk(buildStageRisk.risk, 9, 0, 3, 0, 12);
 
   }
 
   @Test
-  public void testGetAllApplicationExcludesDupesAcrossStages() {
+  public void testGetAllApplicationTotalApplicationRiskDeDupesAcrossStages() {
     List<StageType> stages = Lists.newArrayList(buildStage, releaseStage);
     Set<String> stageIds = Sets.newHashSet(buildStage.getId(), releaseStage.getId());
 
@@ -353,14 +357,43 @@ public class DashboardServiceHighestRiskTest
     List<ApplicationRiskScoreDTO> result = dashboardService.getApplicationRisks(Collections.singleton(appPublicId1),
         stageIds, Collections.<String>emptySet(), null, null, Integer.MAX_VALUE);
 
-    netAsserts(5L, result);
+    assertEquals("One result expected", 1, result.size());
+    assertRisk(result.get(0).totalApplicationRisk, 0, 5, 0, 0, 5);
+    assertEquals("Risk name was set right", appName, result.get(0).applicationName);
+    assertEquals("Risk public appID was set right", appPublicId1, result.get(0).applicationId);
     assertEquals("Two stage risk in map", 2, result.get(0).stageRisks.size());
 
     StageRiskScoreDTO buildStageRisk = result.get(0).getStageRiskScore(buildStage.getId());
-    assertStageRisk(buildStageRisk, 0, 5, 0, 0, 5);
+    assertRisk(buildStageRisk.risk, 0, 5, 0, 0, 5);
 
     StageRiskScoreDTO releaseStageRisk = result.get(0).getStageRiskScore(releaseStage.getId());
-    assertStageRisk(releaseStageRisk, 0, 5, 0, 0, 5);
+    assertRisk(releaseStageRisk.risk, 0, 5, 0, 0, 5);
   }
+
+  @Test
+  public void testGetAllApplicationExcludesRisksOfZero() {
+    List<StageType> stages = Lists.newArrayList(buildStage);
+    Set<String> stageIds = Sets.newHashSet(buildStage.getId());
+
+    String policyEvalId5 = "polEval5";
+    String policyName5 = "fifthPolicy";
+    PolicyEvaluation policyEvaluation5 = new PolicyEvaluation(appId1, buildStage.getId(), scanId);
+    policyEvaluation5.setId(policyEvalId5);
+    Date vio5Date = new Date(4000L);
+    PolicyViolation vio5 = new PolicyViolation(policyEvalId5, policyEvalId5, policyName5, 0,
+        PolicyThreatCategory.LICENSE, vioHash1, groupId1, artifactId1, versionId1, "[]", "");
+    vio5.setTime(vio5Date);
+    List<PolicyViolation> violations5 = Lists.newArrayList(vio5);
+
+
+    mockGetByPublicId(stages, appPublicId1, application1);
+    mockPolicyEval(appId1, buildStage.getId(), policyEvaluation1, violations5);
+
+    List<ApplicationRiskScoreDTO> result = dashboardService.getApplicationRisks(Collections.singleton(appPublicId1),
+        stageIds, Collections.<String>emptySet(), null, null, Integer.MAX_VALUE);
+
+    assertEquals("No result expected", 0, result.size());
+  }
+
 
 }

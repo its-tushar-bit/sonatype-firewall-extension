@@ -241,7 +241,7 @@ public class DashboardService
       applicationRisks.add(getApplicationRisk(application, stageIdsToSearch, tagIds, filter));
     }
 
-    List<ApplicationRiskScoreDTO> sortedApplicationRisks = sortApplicationRiskScore(applicationRisks);
+    List<ApplicationRiskScoreDTO> sortedApplicationRisks = sortAndFilterApplicationRiskScore(applicationRisks);
     return sortedApplicationRisks.subList(0, Math.min(sortedApplicationRisks.size(), maxResults));
 
   }
@@ -288,6 +288,7 @@ public class DashboardService
   private void updateTotalApplicationRisks(final ApplicationRiskScoreDTO applicationRiskScore,
       final List<PolicyViolationDTO> allViolations)
   {
+
     //squish down any dupes we have across stages
     final Map<String, PolicyViolationDTO> compHashToViolation = new HashMap<>();
     for (final PolicyViolationDTO violation1 : allViolations) {
@@ -303,10 +304,11 @@ public class DashboardService
       }
     }
 
-    //now use this to update the total risk
+    //update the total risks based on the deduped risks
     for (final PolicyViolationDTO violation : compHashToViolation.values()) {
       updateRisk(applicationRiskScore.totalApplicationRisk, violation.threatLevel);
     }
+
   }
 
   private void updateStageRisk(ApplicationRiskScoreDTO applicationRiskScore, PolicyViolationDTO violation,
@@ -345,21 +347,36 @@ public class DashboardService
 
   /**
    * @param applicationRisks - Risks we want to sort.
-   * @return the risks sorted in descending order by the Risk.
+   * @return the risks sorted in descending order by the Risk. Any guys with a Risk of 0 are removed.
    */
-  private List<ApplicationRiskScoreDTO> sortApplicationRiskScore(final List<ApplicationRiskScoreDTO> applicationRisks) {
-    Collections.sort(applicationRisks, new Comparator<ApplicationRiskScoreDTO>()
-    {
-      @Override
-      public int compare(final ApplicationRiskScoreDTO o1, final ApplicationRiskScoreDTO o2) {
-        int result = Long.compare(o2.totalApplicationRisk.totalRisk, o1.totalApplicationRisk.totalRisk);
-        if (result == 0) {
-          result = o1.applicationId.compareTo(o2.applicationId);
+  private List<ApplicationRiskScoreDTO> sortAndFilterApplicationRiskScore(
+      final List<ApplicationRiskScoreDTO> applicationRisks)
+  {
+
+    List<ApplicationRiskScoreDTO> filteredApplicationRiskScores = Lists
+        .newArrayList(Iterables.filter(applicationRisks, new Predicate<ApplicationRiskScoreDTO>()
+        {
+
+          @Override
+          public boolean apply(@Nullable final ApplicationRiskScoreDTO input) {
+            return input != null && input.totalApplicationRisk.totalRisk > 0;
+          }
+        }));
+
+    Collections.sort(
+        filteredApplicationRiskScores, new Comparator<ApplicationRiskScoreDTO>()
+        {
+          @Override
+          public int compare(final ApplicationRiskScoreDTO o1, final ApplicationRiskScoreDTO o2) {
+            int result = Integer.compare(o2.totalApplicationRisk.totalRisk, o1.totalApplicationRisk.totalRisk);
+            if (result == 0) {
+              result = o1.applicationId.compareTo(o2.applicationId);
+            }
+            return result;
+          }
         }
-        return result;
-      }
-    });
-    return applicationRisks;
+    );
+    return filteredApplicationRiskScores;
   }
 
 

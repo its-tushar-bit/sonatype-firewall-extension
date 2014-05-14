@@ -553,6 +553,8 @@ table.table-risk  tbody tr:first-child  td:nth-child(6) {
   overflow-x: hidden;
   overflow-y: auto;
   height: 100%;
+  border-top: 1px solid #C6C6C6;
+  border-bottom: 1px solid #C6C6C6;
 }
 
 .scrollable-container-inner table {

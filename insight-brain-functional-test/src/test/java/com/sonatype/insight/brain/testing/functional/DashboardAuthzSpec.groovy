@@ -54,7 +54,7 @@ class DashboardAuthzSpec
 
   def 'Should only see one of two available applications based on READ permission to one'() {
     setup: 'Logging in as a user permission to 1 of 2 applications'
-      loginAsUserVia(userWithPermission.username, userWithPermission.password, DashboardPage)
+      loginAsUserVia(userWithPermission.username, userWithPermission.password, DashboardOverviewPage)
 
     when: 'looking at available applications to filter on'
       filterPanelToggle.click()
@@ -68,7 +68,7 @@ class DashboardAuthzSpec
 
   def 'Should be advised that there are no applications to choose from without permissions'() {
     setup: 'Logging in as a user without permission to any applications'
-      loginAsUserVia(userWithoutPermission.username, userWithoutPermission.password, DashboardPage)
+      loginAsUserVia(userWithoutPermission.username, userWithoutPermission.password, DashboardOverviewPage)
 
     when: 'looking at available applications to filter on'
       filterPanelToggle.click()
@@ -80,7 +80,7 @@ class DashboardAuthzSpec
 
   def 'Should only see application tag dropdown when application tags exist'() {
     setup: 'Logging in as a user without permission to any applications'
-      loginAsUserVia(userWithoutPermission.username, userWithoutPermission.password, DashboardPage)
+      loginAsUserVia(userWithoutPermission.username, userWithoutPermission.password, DashboardOverviewPage)
 
     when: 'looking at available application tag filters'
       filterPanelToggle.click()

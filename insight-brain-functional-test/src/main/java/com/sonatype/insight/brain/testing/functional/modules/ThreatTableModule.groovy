@@ -46,6 +46,7 @@ class ThreatTableRow
     policy { cell(POLICY).text() }
     application { cell(APPLICATION).text() }
     component { cell(COMPONENT).text() }
+    componentLink { cell(COMPONENT).find('a') }
     age(required: false) { cell(AGE).text() }
   }
 }

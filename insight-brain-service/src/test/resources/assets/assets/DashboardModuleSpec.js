@@ -488,7 +488,7 @@ describe('DashboardModule', function() {
     });
   });
 
-  describe('breadcrump', function() {
+  describe('breadcrumb', function() {
     var scope;
 
     beforeEach(inject(function($rootScope) {
@@ -503,8 +503,8 @@ describe('DashboardModule', function() {
       });
       $httpBackend.flush();
 
-      element = angular.element('<div breadcrumb></div>');
-      element = $compile(element)(scope);
+      $compile(angular.element('<div breadcrumb></div>'))(scope);
+      scope.$digest();
 
       expect(scope.states.length).toBe(2);
       expect(scope.states[0].state).toBe('dashboard.overview');

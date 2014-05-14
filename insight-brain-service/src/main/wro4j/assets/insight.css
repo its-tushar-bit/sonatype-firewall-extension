@@ -330,6 +330,7 @@ a {
   font-size: 14px;
   vertical-align: middle;
   margin-right: 10px;
+  line-height: 16px;
 }
 
 .dashboard-content .nav-crumb a {

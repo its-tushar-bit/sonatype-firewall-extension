@@ -23,9 +23,9 @@ import com.sonatype.insight.brain.testing.functional.modules.ThreatTableRow
 import org.openqa.selenium.WebElement
 
 /**
- * Since 1.11.0
+ * @since 1.11
  */
-class DashboardSpec
+class DashboardOverviewSpec
   extends BaseSpec
 {
   static final String RECENT_AGE = /.*(seconds|minute|minutes) ago/
@@ -65,7 +65,15 @@ class DashboardSpec
   def setup() {
     DashboardFilterDAO dao = new DashboardFilterDAO();
     dao.delete(dao.getByUsername("admin"));
-    loginAsAdminVia(DashboardPage)
+    loginAsAdminVia(DashboardOverviewPage)
+  }
+
+  def 'Dashboard Overview Breadcrumb'() {
+    when: 'The dashboard overview is loaded'
+      waitFor { breadcrumbs.size() == 1 }
+    then: 'Only the dashboard breadcrumb is shown'
+      crumb('dashboard.overview').displayed
+      crumb('dashboard.overview').text() == ' Dashboard'
   }
 
   def 'Dashboard Filters'() {

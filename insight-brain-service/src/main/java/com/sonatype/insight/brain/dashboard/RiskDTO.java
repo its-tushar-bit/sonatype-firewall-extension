@@ -7,21 +7,21 @@ package com.sonatype.insight.brain.dashboard;
 
 public class RiskDTO
 {
-  public long totalRisk;
+  public int totalRisk;
 
-  public long criticalRisk;
+  public int criticalRisk;
 
-  public long severeRisk;
+  public int severeRisk;
 
-  public long moderateRisk;
+  public int moderateRisk;
 
-  public long lowRisk;
+  public int lowRisk;
 
   public RiskDTO() {
   }
 
-  public RiskDTO(final long totalRisk, final long criticalRisk, final long severeRisk,
-      final long moderateRisk, final long lowRisk)
+  public RiskDTO(final int totalRisk, final int criticalRisk, final int severeRisk,
+      final int moderateRisk, final int lowRisk)
   {
     this.totalRisk = totalRisk;
     this.criticalRisk = criticalRisk;

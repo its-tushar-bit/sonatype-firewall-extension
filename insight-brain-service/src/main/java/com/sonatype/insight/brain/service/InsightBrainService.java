@@ -166,11 +166,19 @@ public class InsightBrainService
     bootstrap.getObjectMapperFactory().registerModule(new HttpConfig.Module());
   }
 
-  protected DatabaseConfig getDatabaseConfig(File databaseDir, String databaseName) {
+  protected DatabaseConfig getDatabaseConfig(File databaseDir, String databaseName, String additionalDBParams) {
     DatabaseConfig databaseConfig = new DatabaseConfig();
     databaseConfig.setDriverClassName("org.h2.Driver");
-    databaseConfig.setUrl("jdbc:h2:" + databaseDir.getAbsolutePath() + '/' + databaseName
-        + ";DATABASE_TO_UPPER=FALSE;DB_CLOSE_DELAY=-1;LOCK_TIMEOUT=10000");
+    StringBuilder urlBuilder = new StringBuilder()
+        .append("jdbc:h2:")
+        .append(databaseDir.getAbsolutePath())
+        .append('/')
+        .append(databaseName)
+        .append(";DATABASE_TO_UPPER=FALSE;DB_CLOSE_DELAY=-1;LOCK_TIMEOUT=10000");
+    if (additionalDBParams != null) {
+      urlBuilder.append(";").append(additionalDBParams);
+    }
+    databaseConfig.setUrl(urlBuilder.toString());
     databaseConfig.setUsername("sa");
     databaseConfig.setPassword("");
     databaseConfig.setMaxConnections(50);
@@ -217,9 +225,9 @@ public class InsightBrainService
   protected List<Module> modules(final InsightConfig config) {
     // NOTE: The ReleaseGraphCacheLoader indirectly uses the ApplicationDAO so we better setup the DB before
     File databaseDir = new File(config.getSonatypeWork(), "data");
-    DatabaseConfig dmDatabaseConfig = getDatabaseConfig(databaseDir, "dm");
+    DatabaseConfig dmDatabaseConfig = getDatabaseConfig(databaseDir, "dm", config.getAdditionalDBParams());
     DatamartProvider.init(dmDatabaseConfig);
-    DatabaseConfig odsDatabaseConfig = getDatabaseConfig(databaseDir, "ods");
+    DatabaseConfig odsDatabaseConfig = getDatabaseConfig(databaseDir, "ods", config.getAdditionalDBParams());
     OperationalDataStoreProvider.init(odsDatabaseConfig);
 
     return Arrays.<Module> asList(new AbstractModule()

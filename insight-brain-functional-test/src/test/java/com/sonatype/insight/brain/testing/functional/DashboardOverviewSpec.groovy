@@ -102,8 +102,11 @@ class DashboardOverviewSpec
 
     and: 'stage type filters are shown'
       stageTypeFiltersDropdown.showDropdown()
-      //note only checking for items available from every product type
+      stageTypeFiltersDropdown.dropdownCheck('Build').displayed
+      stageTypeFiltersDropdown.dropdownCheck('Develop').displayed
       stageTypeFiltersDropdown.dropdownCheck('Release').displayed
+      stageTypeFiltersDropdown.dropdownCheck('Stage Release').displayed
+      stageTypeFiltersDropdown.dropdownCheck('Operate').displayed
       stageTypeFiltersDropdown.hideDropdown()
 
     and: 'application tag filters are shown'

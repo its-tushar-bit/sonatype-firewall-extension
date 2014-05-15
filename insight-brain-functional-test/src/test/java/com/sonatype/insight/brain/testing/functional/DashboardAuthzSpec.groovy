@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.testing.functional
 
 import com.sonatype.insight.brain.model.Application
 import com.sonatype.insight.brain.model.Organization
+import com.sonatype.insight.brain.model.policy.PolicyEvaluation
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType
 import com.sonatype.insight.brain.model.security.Permission
@@ -36,14 +37,14 @@ class DashboardAuthzSpec
 
     def policy = temporaryEntity.newPolicy(org.id, 'DashboardAuthzSpecPolicy')
 
-    def firstPolicyEvaluation = temporaryEntity.
+    PolicyEvaluation firstPolicyEvaluation = temporaryEntity.
         newPolicyEvaluation(firstApp.id, BuildStageType.ID, 'DashboardAuthzSpecFistEvaluation')
-    temporaryEntity.newPolicyViolation(firstPolicyEvaluation.id, policy, 5, PolicyThreatCategory.LICENSE, "Group1",
-        "Artifact1", "Version1")
-    def secondPolicyEvaluation = temporaryEntity.
+    temporaryEntity.newPolicyViolation(firstPolicyEvaluation, policy, 5,
+        PolicyThreatCategory.LICENSE, "Group1", "Artifact1", "Version1")
+    PolicyEvaluation secondPolicyEvaluation = temporaryEntity.
         newPolicyEvaluation(secondApp.id, BuildStageType.ID, 'DashboardAuthzSpecSecondEvaluation')
-    temporaryEntity.
-        newPolicyViolation(secondPolicyEvaluation.id, policy, 10, PolicyThreatCategory.QUALITY, null, null, null)
+    temporaryEntity.newPolicyViolation(secondPolicyEvaluation, policy, 10,
+        PolicyThreatCategory.QUALITY, null, null, null)
 
     userWithPermission = temporaryEntity.newUser();
     Role role = temporaryEntity.newRole(false, Permission.READ);
@@ -54,7 +55,7 @@ class DashboardAuthzSpec
 
   def 'Should only see one of two available applications based on READ permission to one'() {
     setup: 'Logging in as a user permission to 1 of 2 applications'
-      loginAsUserVia(userWithPermission.username, userWithPermission.password, DashboardPage)
+      loginAsUserVia(userWithPermission.username, userWithPermission.password, DashboardOverviewPage)
 
     when: 'looking at available applications to filter on'
       filterPanelToggle.click()
@@ -68,7 +69,7 @@ class DashboardAuthzSpec
 
   def 'Should be advised that there are no applications to choose from without permissions'() {
     setup: 'Logging in as a user without permission to any applications'
-      loginAsUserVia(userWithoutPermission.username, userWithoutPermission.password, DashboardPage)
+      loginAsUserVia(userWithoutPermission.username, userWithoutPermission.password, DashboardOverviewPage)
 
     when: 'looking at available applications to filter on'
       filterPanelToggle.click()
@@ -80,7 +81,7 @@ class DashboardAuthzSpec
 
   def 'Should only see application tag dropdown when application tags exist'() {
     setup: 'Logging in as a user without permission to any applications'
-      loginAsUserVia(userWithoutPermission.username, userWithoutPermission.password, DashboardPage)
+      loginAsUserVia(userWithoutPermission.username, userWithoutPermission.password, DashboardOverviewPage)
 
     when: 'looking at available application tag filters'
       filterPanelToggle.click()

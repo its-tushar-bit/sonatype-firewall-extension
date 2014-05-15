@@ -57,6 +57,12 @@ public class InsightConfig
   @JsonProperty
   private int releaseGraphCacheSize = 1000;
 
+  /**
+   * will be appended to the jdbc url, primarily intended for diagnostic usage
+   */
+  @JsonProperty
+  private String additionalDBParams;
+
   @NotNull
   @JsonProperty
   @Min(0)
@@ -181,5 +187,13 @@ public class InsightConfig
    */
   public void setPolicyMonitoringHour(final int policyMonitoringHour) {
     this.policyMonitoringHour = policyMonitoringHour;
+  }
+
+  public String getAdditionalDBParams() {
+    return additionalDBParams;
+  }
+
+  public void setAdditionalDBParams(final String additionalDBParams) {
+    this.additionalDBParams = additionalDBParams;
   }
 }

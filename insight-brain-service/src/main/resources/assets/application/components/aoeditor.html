@@ -61,8 +61,8 @@
         </div>
         <div class='modal-footer'>
           <span style="margin:0px;padding: 4px 35px 4px 14px;float:left;max-width:300px" ng-class="{'alert alert-error': error }" ng-show="error">{{error}}</span>
-          <button class='btn' type='button' ng-disabled='!pollingUrl' ng-click='$close()'>Close</button>
-          <a class='btn btn-primary' ng-disabled='!evaluationStatus.scanId' ng-href='{{getReportUrl()}}' target='_blank'>View Report</a>
+          <button id='evaluate-bundle-close' class='btn' type='button' ng-disabled='!pollingUrl' ng-click='$close()'>Close</button>
+          <a id='evaluate-bundle-view' class='btn btn-primary' ng-disabled='!evaluationStatus.scanId' ng-href='{{getReportUrl()}}' target='_blank'>View Report</a>
         </div>
       </div>
       <div ng-switch-default>
@@ -106,8 +106,8 @@
           </div>
           <div class='modal-footer'>
             <span style="margin:0px;padding: 4px 35px 4px 14px;float:left;max-width:330px" ng-class="{'alert alert-error': error }" ng-show="error">{{error}}</span>
-            <button class='btn' type='button' ng-click='$close()'>Cancel</button>
-            <button class='btn btn-primary' type='button' ng-disabled='state != "ready" || !isFormValid()' ng-click='doSubmit()'>Upload</button>
+            <button id='evaluate-bundle-cancel' class='btn' type='button' ng-click='$close()'>Cancel</button>
+            <button id='evaluate-bundle-upload' class='btn btn-primary' type='button' ng-disabled='state != "ready" || !isFormValid()' ng-click='doSubmit()'>Upload</button>
           </div>
           <input type='submit' upload-submit='uploaded(content, completed)' class='hide' />
         </form>

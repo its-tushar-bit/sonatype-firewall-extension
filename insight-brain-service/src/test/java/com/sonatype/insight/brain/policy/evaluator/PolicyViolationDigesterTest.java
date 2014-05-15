@@ -14,6 +14,7 @@ import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.Condition;
+import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.conditions.MatchStateConditionType;
@@ -228,8 +229,10 @@ public class PolicyViolationDigesterTest
     final ConstraintFact constraintFact = constraintFact("constraint_4", "Constraint 4", "OR");
     constraintFact.addConditionFact(conditionFact);
     
-    PolicyViolation policyViolation = new PolicyViolation(null, "policy_4", "Policy 4", 0, PolicyThreatCategory.OTHER,
-        "H", "G", "A", "V", Collections.singletonList(constraintFact), Collections.singletonList("pathnames"));
+    PolicyEvaluation evaluation = new PolicyEvaluation();
+    PolicyViolation policyViolation = new PolicyViolation(evaluation, "policy_4", "Policy 4", 0,
+        PolicyThreatCategory.OTHER, "H", "G", "A", "V", Collections.singletonList(constraintFact),
+        Collections.singletonList("pathnames"));
 
     return policyViolation;
   }

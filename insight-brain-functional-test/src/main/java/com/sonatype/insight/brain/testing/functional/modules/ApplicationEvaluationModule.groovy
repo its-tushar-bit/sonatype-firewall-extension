@@ -20,10 +20,10 @@ class ApplicationEvaluationModule
     application(required: false) { $('#bundleApplication') }
     stage(required: false) { $('#bundleStage') }
     status(required: false) { $('#evaluate-bundle-status') }
-    viewReport(required: false) { dialog.find('a', text: 'View Report') }
-    close(required: false) { dialog.find('button', text: 'Close') }
-    upload(required: false) { dialog.find('button', text: 'Upload') }
-    cancel(required: false) { dialog.find('button', text: 'Cancel') }
+    viewReport(required: false) { $('#evaluate-bundle-view') }
+    close(required: false) { $('#evaluate-bundle-close') }
+    upload(required: false) { $('#evaluate-bundle-upload') }
+    cancel(required: false) { $('#evaluate-bundle-cancel') }
   }
   
   def getSelectedApplicationOption() {

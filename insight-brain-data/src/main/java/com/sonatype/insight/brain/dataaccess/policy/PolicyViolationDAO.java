@@ -100,13 +100,6 @@ public class PolicyViolationDAO
     super.delete(em, entity);
   }
 
-  @Override
-  public void insert(EntityManager em, PolicyViolation entity) {
-    PolicyEvaluation policyEvaluation = new PolicyEvaluationDAO().getById(em, entity.getPolicyEvaluationId());
-    entity.setTime(policyEvaluation.getTime());
-    super.insert(em, entity);
-  }
-
   public List<PolicyViolation> getByEvaluationIdAndHash(String evaluationId, String hash) {
     String sQuery = "SELECT entity FROM PolicyViolation entity" + //
         " WHERE entity.policyEvaluationId=?1 AND entity.hash=?2" + //

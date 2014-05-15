@@ -277,7 +277,7 @@ public class PolicyEvaluationMigrator
         componentsByScanCache.put(scanId, components);
       }
       Map<String, List<String>> hashToPathnames = loadPathnames(components);
-      savePolicyAlerts(em, policyEvaluation.getId(), policyAlerts, policyViolationsByEvaluationCache, hashToPathnames);
+      savePolicyAlerts(em, policyEvaluation, policyAlerts, policyViolationsByEvaluationCache, hashToPathnames);
 
       /* check for existence of monitoring results */
 
@@ -291,7 +291,7 @@ public class PolicyEvaluationMigrator
           policyEvaluationDAO.insert(em, monitoringEvaluation);
           policyEvaluationsCache.add(monitoringEvaluation);
           log.trace("Migrated policy monitoring evaluation: {}", monitoringEvaluation);
-          savePolicyAlerts(em, monitoringEvaluation.getId(), monitoringAlerts, policyViolationsByEvaluationCache,
+          savePolicyAlerts(em, monitoringEvaluation, monitoringAlerts, policyViolationsByEvaluationCache,
               hashToPathnames);
           monitoringScans.add(monitoringEvaluation.getScanId());
         }
@@ -299,12 +299,12 @@ public class PolicyEvaluationMigrator
     }
   }
 
-  private void savePolicyAlerts(final EntityManager em, final String policyEvaluationId,
+  private void savePolicyAlerts(final EntityManager em, final PolicyEvaluation evaluation,
       final List<PolicyAlert> policyAlerts, final Map<String, List<PolicyViolation>> policyViolationsByEvaluationCache,
       final Map<String, List<String>> hashToPathnames)
   {
     List<PolicyViolation> policyViolations = new ArrayList<>();
-    policyViolationsByEvaluationCache.put(policyEvaluationId, policyViolations);
+    policyViolationsByEvaluationCache.put(evaluation.getId(), policyViolations);
     for (PolicyAlert policyAlert : policyAlerts) {
       PolicyFact policyFact = policyAlert.getTrigger();
       Policy policy = policyDAO.getById(em, policyFact.getPolicyId());
@@ -316,11 +316,10 @@ public class PolicyEvaluationMigrator
 
         List<String> pathnames = hashToPathnames.get(componentFact.getHash());
 
-        PolicyViolation policyViolation = new PolicyViolation(policyEvaluationId, policyFact.getPolicyId(),
+        PolicyViolation policyViolation = new PolicyViolation(evaluation, policyFact.getPolicyId(),
             policyFact.getPolicyName(), policyFact.getThreatLevel(), threatCategory, componentFact.getHash(),
             componentFact.getGroupId(), componentFact.getArtifactId(), componentFact.getVersion(),
             componentFact.getConstraintFacts(), pathnames);
-
         policyViolationDAO.insert(em, policyViolation);
         policyViolations.add(policyViolation);
       }

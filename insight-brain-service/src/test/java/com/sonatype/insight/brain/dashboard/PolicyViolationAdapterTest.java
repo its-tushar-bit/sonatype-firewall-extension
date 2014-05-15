@@ -50,7 +50,7 @@ public class PolicyViolationAdapterTest
     Policy policy = tempEntity.newPolicy(app.getId(), "build-policy");
 
     PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "scan-id");
-    PolicyViolation violation = tempEntity.newPolicyViolation(policyEvaluation.getId(), policy);
+    PolicyViolation violation = tempEntity.newPolicyViolation(policyEvaluation, policy);
 
     PolicyViolationDTO dto = policyViolationAdapter.createPolicyViolationDTO(app, violation);
 
@@ -64,13 +64,13 @@ public class PolicyViolationAdapterTest
     Policy policy = tempEntity.newPolicy(app.getId(), "build-policy");
 
     PolicyEvaluation policyEvaluation1 = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "scan-id");
-    PolicyViolation evaluation1violation1 = tempEntity.newPolicyViolation(policyEvaluation1.getId(), policy);
-    PolicyViolation evaluation1violation2 = tempEntity.newPolicyViolation(policyEvaluation1.getId(), policy);
+    PolicyViolation evaluation1violation1 = tempEntity.newPolicyViolation(policyEvaluation1, policy);
+    PolicyViolation evaluation1violation2 = tempEntity.newPolicyViolation(policyEvaluation1, policy);
 
     PolicyEvaluation policyEvaluation2 = tempEntity.newPolicyEvaluation(app.getId(), StageReleaseStageType.ID,
         "scan-id");
-    PolicyViolation evaluation2violation1 = tempEntity.newPolicyViolation(policyEvaluation2.getId(), policy);
-    PolicyViolation evaluation2violation2 = tempEntity.newPolicyViolation(policyEvaluation2.getId(), policy);
+    PolicyViolation evaluation2violation1 = tempEntity.newPolicyViolation(policyEvaluation2, policy);
+    PolicyViolation evaluation2violation2 = tempEntity.newPolicyViolation(policyEvaluation2, policy);
 
     List<PolicyViolation> violations = Lists.newArrayList();
     PolicyViolationDAO violationDAO = new PolicyViolationDAO();
@@ -94,8 +94,8 @@ public class PolicyViolationAdapterTest
     Application app = tempEntity.newApplication(org.getId());
 
     PolicyEvaluation policyEvaluation1 = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "scan-id");
-    PolicyViolation policyViolation1 = tempEntity.newPolicyViolation(policyEvaluation1.getId(), policy);
-    PolicyViolation policyViolation2 = tempEntity.newPolicyViolation(policyEvaluation1.getId(), policy);
+    PolicyViolation policyViolation1 = tempEntity.newPolicyViolation(policyEvaluation1, policy);
+    PolicyViolation policyViolation2 = tempEntity.newPolicyViolation(policyEvaluation1, policy);
 
     PolicyDAO policyDAO = new PolicyDAO();
     policyDAO.delete(policy);

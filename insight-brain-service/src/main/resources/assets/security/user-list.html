@@ -91,7 +91,7 @@
   </script>
   <script type='text/ng-template' id='user-item'>
 <div ng-show='context.users' class="accordion users">
-  <button ng-show='!user' type='button' class='btn add-new new-user-button' ng-click='newUserClick()'>
+  <button id='user-new' ng-show='!user' type='button' class='btn add-new new-user-button' ng-click='newUserClick()'>
     <i class='icon icon-plus'></i> New User
   </button>
   <div ng-if='user'>
@@ -100,7 +100,7 @@
         <a style="text-transform:none;">Add New User</a>
       </li>
     </ul>
-    <form name="userForm" ng-submit="saveClick(user)">
+    <form id='user-form' name="userForm" ng-submit="saveClick(user)">
       <div class="form-horizontal">
         <div class="control-group" ng-class="{ error : userForm.firstName.$invalid && userForm.firstName.$dirty }">
           <label class="control-label user-form-label">First Name:</label>
@@ -155,8 +155,8 @@
         </div>
       </div>
       <div class="user-button-bar">
-        <button type="button" class='btn' type='button' ng-click='cancelClick(user)'>Cancel</button>
-        <button type="submit" class='btn btn-primary' type='button' ng-click='saveClick(user)' ng-disabled='userForm.$invalid || saving'>Save</button>
+        <button id='user-form-cancel' type="button" class='btn' type='button' ng-click='cancelClick(user)'>Cancel</button>
+        <button id='user-form-save' type="submit" class='btn btn-primary' type='button' ng-click='saveClick(user)' ng-disabled='userForm.$invalid || saving'>Save</button>
       </div>
       <div style="margin-left:25px;" ng-class="{'alert alert-error': errorMsg }">{{errorMsg}}</div>
     </form>

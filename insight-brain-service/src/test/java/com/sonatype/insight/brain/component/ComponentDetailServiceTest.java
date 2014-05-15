@@ -56,16 +56,13 @@ public class ComponentDetailServiceTest
     Policy policy1 = tempEntity.newPolicy(app2.getId(), "policy1", 1);
     Policy policy2 = tempEntity.newPolicy(app2.getId(), "policy2", 1);
     PolicyEvaluation policyEvaluation1 = tempEntity.newPolicyEvaluation(app2.getId(), BuildStageType.ID, "scanId1");
-    tempEntity.newPolicyViolation(policyEvaluation1.getId(), policy1, "groupId", "artifactId", "version", hash,
-        "reason1");
-    tempEntity.newPolicyViolation(policyEvaluation1.getId(), policy2, "groupId", "artifactId", "version", hash,
-        "reason2");
+    tempEntity.newPolicyViolation(policyEvaluation1, policy1, "groupId", "artifactId", "version", hash, "reason1");
+    tempEntity.newPolicyViolation(policyEvaluation1, policy2, "groupId", "artifactId", "version", hash, "reason2");
     // add another policy violation for a different stage and with a different threat level
     policy1.setThreatLevel(2);
     new PolicyDAO().update(policy1);
     PolicyEvaluation policyEvaluation2 = tempEntity.newPolicyEvaluation(app2.getId(), ReleaseStageType.ID, "scanId2");
-    tempEntity.newPolicyViolation(policyEvaluation2.getId(), policy1, "groupId", "artifactId", "version", hash,
-        "reason3");
+    tempEntity.newPolicyViolation(policyEvaluation2, policy1, "groupId", "artifactId", "version", hash, "reason3");
 
     // app3 does not have the component
     tempEntity.newApplicationWithParent("app3");
@@ -112,7 +109,7 @@ public class ComponentDetailServiceTest
     Policy policy = tempEntity.newPolicy(app.getId(), "policy", 1);
     String policyId = policy.getId();
     PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "scanId");
-    tempEntity.newPolicyViolation(policyEvaluation.getId(), policy, "groupId", "artifactId", "version", hash, "reason");
+    tempEntity.newPolicyViolation(policyEvaluation, policy, "groupId", "artifactId", "version", hash, "reason");
     new PolicyDAO().delete(policy);
 
     List<ApplicationComponentDetailsDTO> appComponentDetailsDTOs = componentDetailService

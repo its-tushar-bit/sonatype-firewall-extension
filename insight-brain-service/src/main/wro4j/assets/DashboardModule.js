@@ -378,18 +378,24 @@
                 '<i ng-if="state.icon" class="{{state.icon}}"></i>&nbsp;{{state.name}}' +
                 '</a></p>',
       link: function(scope) {
-        var states = [];
-        var state = $state.$current;
-        while (state && state.name) {
-          states.unshift(angular.extend(stateLookup[state.name],
-            {
-              // dashboard is an abstract state an ui-sref will throw an exception rather than routing to default
-              state: state.name === 'dashboard' ? 'dashboard.overview' : state.name
+        function loadCurrentState() {
+          var state = $state.$current;
+          var states = [];
+          while (state && state.name) {
+            if (state.name !== 'dashboard.overview') {
+              states.unshift(angular.extend(stateLookup[state.name],
+                {
+                  // dashboard is an abstract state an ui-sref will throw an exception rather than routing to default
+                  state: state.name === 'dashboard' ? 'dashboard.overview' : state.name
+                }
+              ));
             }
-          ));
-          state = state.parent;
+            state = state.parent;
+          }
+          scope.states = states;
         }
-        scope.states = states;
+
+        scope.$watch('$state.$current', loadCurrentState);
       }
     };
   }]);

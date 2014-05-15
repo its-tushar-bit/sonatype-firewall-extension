@@ -28,8 +28,7 @@ public class NewestPolicyViolationDAOTest
     Policy policy = tempEntity.newPolicy(applicationId, "testCRUD");
     PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(applicationId, ReleaseStageType.ID,
         "PolicyViolationDAOTestScanId");
-    PolicyViolation policyViolation = tempEntity
-        .newPolicyViolation(policyEvaluation.getId(), policyEvaluation.getTime(), policy);
+    PolicyViolation policyViolation = tempEntity.newPolicyViolation(policyEvaluation, policy);
 
     NewestPolicyViolationDAO dao = new NewestPolicyViolationDAO();
 

@@ -50,7 +50,7 @@ class DashboardOverviewSpec
     PolicyEvaluation firstPolicyEvaluation = temporaryEntity.newPolicyEvaluation(firstApp.id, BuildStageType.ID,
         'DashboardSpecFistEvaluation', now - 7)
     PolicyViolation firstViolation = temporaryEntity.
-        newPolicyViolation(firstPolicyEvaluation.id, firstPolicyEvaluation.time, policy, 5,
+        newPolicyViolation(firstPolicyEvaluation, policy, 5,
             PolicyThreatCategory.LICENSE, "Group1", "Artifact1", "Version1")
     temporaryEntity.newNewestPolicyViolation(firstViolation.id, firstPolicyEvaluation.applicationId,
         firstPolicyEvaluation.stageTypeId)
@@ -58,7 +58,7 @@ class DashboardOverviewSpec
     PolicyEvaluation secondPolicyEvaluation = temporaryEntity.newPolicyEvaluation(secondApp.id, ReleaseStageType.ID,
         'DashboardSpecSecondEvaluation', now)
     PolicyViolation secondViolation = temporaryEntity.
-        newPolicyViolation(secondPolicyEvaluation.id, secondPolicyEvaluation.time, policy, 10,
+        newPolicyViolation(secondPolicyEvaluation, policy, 10,
             PolicyThreatCategory.QUALITY, null, null, null)
     temporaryEntity.newNewestPolicyViolation(secondViolation.id, secondPolicyEvaluation.applicationId,
         secondPolicyEvaluation.stageTypeId)
@@ -317,7 +317,7 @@ class DashboardOverviewSpec
         PolicyEvaluation policyEvaluation = temporaryEntity.newPolicyEvaluation(firstApp.id, BuildStageType.ID,
             'DashboardSpecFistEvaluation', now - 7)
         PolicyViolation violation = temporaryEntity.
-            newPolicyViolation(policyEvaluation.id, policyEvaluation.time, policy, 5, PolicyThreatCategory.SECURITY,
+            newPolicyViolation(policyEvaluation, policy, 5, PolicyThreatCategory.SECURITY,
                 "Group${i}", "Artifact${i}", "Version${i}")
         temporaryEntity.newNewestPolicyViolation(violation.id, policyEvaluation.applicationId,
             policyEvaluation.stageTypeId)

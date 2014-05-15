@@ -564,7 +564,7 @@ public class TemporaryEntity
     return policyEvaluation;
   }
 
-  public PolicyViolation newPolicyViolation(String policyEvaluationId, Date time, Policy policy, String groupId,
+  public PolicyViolation newPolicyViolation(PolicyEvaluation evaluation, Policy policy, String groupId,
       String artifactId, String version, String hash, String reason)
   {
     Constraint constraint = policy.getConstraints().get(0);
@@ -573,30 +573,28 @@ public class TemporaryEntity
         .getOperator().name());
     ConditionFact conditionFact = new ConditionFact(condition.getConditionTypeId(), "summary", reason);
     constraintFact.addConditionFact(conditionFact);
-    PolicyViolation policyViolation = new PolicyViolation(policyEvaluationId, policy.getId(), policy.getName(),
-        policy.getThreatLevel(), policy.getThreatCategory(), hash, groupId, artifactId, version,
+    PolicyViolation policyViolation = new PolicyViolation(evaluation, policy, hash, groupId, artifactId, version,
         Collections.singletonList(constraintFact), null /* pathnames */);
-    policyViolation.setTime(time);
     policyViolationDAO.insert(policyViolation);
     return policyViolation;
   }
 
-  public PolicyViolation newPolicyViolation(String policyEvaluationId, Date time, Policy policy) {
-    return newPolicyViolation(policyEvaluationId, time, policy, policy.getThreatLevel(), PolicyThreatCategory.LICENSE,
-        "Group1", "Artifact1", "Version1");
+  public PolicyViolation newPolicyViolation(PolicyEvaluation evaluation, Policy policy) {
+    return newPolicyViolation(evaluation, policy, policy.getThreatLevel(), PolicyThreatCategory.LICENSE, "Group1",
+        "Artifact1", "Version1");
   }
 
-  public PolicyViolation newPolicyViolation(String policyEvaluationId, Date time, Policy policy, int threatLevel,
-                                            PolicyThreatCategory category, String groupId, String artifactId, String version) {
-    return newPolicyViolation(policyEvaluationId, time, policy, threatLevel, category, groupId, artifactId, version, "hash");
+  public PolicyViolation newPolicyViolation(PolicyEvaluation evaluation, Policy policy, int threatLevel,
+      PolicyThreatCategory category, String groupId, String artifactId, String version)
+  {
+    return newPolicyViolation(evaluation, policy, threatLevel, category, groupId, artifactId, version, "hash");
   }
 
-  public PolicyViolation newPolicyViolation(String policyEvaluationId, Date time, Policy policy, int threatLevel,
+  public PolicyViolation newPolicyViolation(PolicyEvaluation evaluation, Policy policy, int threatLevel,
       PolicyThreatCategory category, String groupId, String artifactId, String version, String hash)
   {
-    PolicyViolation policyViolation = new PolicyViolation(policyEvaluationId, policy.getId(), policy.getName(),
-        threatLevel, category, hash, groupId, artifactId, version, "[]", "unknown.jar");
-    policyViolation.setTime(time);
+    PolicyViolation policyViolation = new PolicyViolation(evaluation, policy.getId(), policy.getName(), threatLevel,
+        category, hash, groupId, artifactId, version, "[]", "unknown.jar");
     policyViolationDAO.insert(policyViolation);
     return policyViolation;
   }

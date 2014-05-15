@@ -158,11 +158,10 @@ public class PolicyEvaluationUtils
           Policy policy = policyDAO.getByIdNotNull(policyFact.getPolicyId());
           PolicyThreatCategory threatCategory = policy.getThreatCategory();
           for (ComponentFact componentFact : policyFact.getComponentFacts()) {
-            PolicyViolation policyViolation = new PolicyViolation(policyEvaluation.getId(), policy.getId(),
+            PolicyViolation policyViolation = new PolicyViolation(policyEvaluation, policy.getId(),
                 policy.getName(), policyFact.getThreatLevel(), threatCategory, componentFact.getHash(),
                 componentFact.getGroupId(), componentFact.getArtifactId(), componentFact.getVersion(),
                 componentFact.getConstraintFacts(), componentFact.getPathnames());
-            policyViolation.setTime(policyEvaluation.getTime());
             policyViolationDAO.insert(em, policyViolation);
             newPolicyViolations.add(policyViolation);
           }

@@ -23,13 +23,15 @@ import static org.junit.Assert.fail;
 
 public class PolicyViolationTest
 {
+  private PolicyEvaluation evaluation = new PolicyEvaluation();
+
   @Test
   public void testConstructorConstraintFacts() throws Exception {
     List<ConstraintFact> constraintFacts = createConstraintFacts(2);
     String constraintFactsJson = JsonUtils.format(constraintFacts);
 
     // Test construction of PolicyViolation with constraint facts.
-    PolicyViolation policyViolation = new PolicyViolation("policyEvaluationId", "policyId", "policyName",
+    PolicyViolation policyViolation = new PolicyViolation(evaluation, "policyId", "policyName",
         5 /* threatLevel */, PolicyThreatCategory.LICENSE, "hash", "groupId", "artifactId", "version", constraintFacts,
         null);
     assertThat(policyViolation.getConstraintFactsJson(), is(constraintFactsJson));
@@ -43,7 +45,7 @@ public class PolicyViolationTest
     // Violations must have constraint facts.
     List<ConstraintFact> constraintFacts = createConstraintFacts(1);
 
-    PolicyViolation policyViolation = new PolicyViolation("policyEvaluationId", "policyId", "policyName",
+    PolicyViolation policyViolation = new PolicyViolation(evaluation, "policyId", "policyName",
         5 /* threatLevel */, PolicyThreatCategory.LICENSE, "hash", "groupId", "artifactId", "version", constraintFacts,
         pathnames);
 
@@ -56,7 +58,7 @@ public class PolicyViolationTest
     List<ConstraintFact> constraintFacts = createConstraintFacts(2);
     String constraintFactsJson = JsonUtils.format(constraintFacts);
 
-    PolicyViolation policyViolation = new PolicyViolation("policyEvaluationId", "policyId", "policyName",
+    PolicyViolation policyViolation = new PolicyViolation(evaluation, "policyId", "policyName",
         5 /* threatLevel */, PolicyThreatCategory.LICENSE, "hash", "groupId", "artifactId", "version",
         constraintFactsJson, null);
     assertThat(policyViolation.getConstraintFactsJson(), is(constraintFactsJson));
@@ -70,7 +72,7 @@ public class PolicyViolationTest
     // Violations must have constraint facts.
     String constraintFactsJson = JsonUtils.format(createConstraintFacts(1));
 
-    PolicyViolation policyViolation = new PolicyViolation("policyEvaluationId", "policyId", "policyName",
+    PolicyViolation policyViolation = new PolicyViolation(evaluation, "policyId", "policyName",
         5 /* threatLevel */, PolicyThreatCategory.LICENSE, "hash", "groupId", "artifactId", "version",
         constraintFactsJson, pathnamesString);
 
@@ -117,7 +119,7 @@ public class PolicyViolationTest
   public void testConstructorConstraintFactsJson_Null() throws Exception {
     try {
       String constraintFactsJson = null;
-      new PolicyViolation("policyEvaluationId", "policyId", "policyName", 5 /* threatLevel */,
+      new PolicyViolation(evaluation, "policyId", "policyName", 5 /* threatLevel */,
           PolicyThreatCategory.LICENSE, "hash", "groupId", "artifactId", "version", constraintFactsJson,
           createPathnamesString(1));
       fail("Expected IllegalArgumentException");
@@ -130,7 +132,7 @@ public class PolicyViolationTest
   public void testConstructorConstraintFactsJson_Empty() throws Exception {
     try {
       String constraintFactsJson = " ";
-      new PolicyViolation("policyEvaluationId", "policyId", "policyName", 5 /* threatLevel */,
+      new PolicyViolation(evaluation, "policyId", "policyName", 5 /* threatLevel */,
           PolicyThreatCategory.LICENSE, "hash", "groupId", "artifactId", "version", constraintFactsJson,
           createPathnamesString(1));
       fail("Expected IllegalArgumentException");
@@ -144,7 +146,7 @@ public class PolicyViolationTest
     try {
       List<String> pathnames = Arrays.asList(createPathnamesString(1));
       List<ConstraintFact> constraintFacts = null;
-      new PolicyViolation("policyEvaluationId", "policyId", "policyName", 5 /* threatLevel */,
+      new PolicyViolation(evaluation, "policyId", "policyName", 5 /* threatLevel */,
           PolicyThreatCategory.LICENSE, "hash", "groupId", "artifactId", "version", constraintFacts, pathnames);
       fail("Expected IllegalArgumentException");
     }
@@ -157,7 +159,7 @@ public class PolicyViolationTest
     try {
       List<String> pathnames = Arrays.asList(createPathnamesString(1));
       List<ConstraintFact> constraintFacts = new ArrayList<>();
-      new PolicyViolation("policyEvaluationId", "policyId", "policyName", 5 /* threatLevel */,
+      new PolicyViolation(evaluation, "policyId", "policyName", 5 /* threatLevel */,
           PolicyThreatCategory.LICENSE, "hash", "groupId", "artifactId", "version", constraintFacts, pathnames);
       fail("Expected IllegalArgumentException");
     }
@@ -168,7 +170,7 @@ public class PolicyViolationTest
   @Test
   public void testConstructorPathnamesString_Null() throws Exception {
     String pathnamesString = null;
-    PolicyViolation policyViolation = new PolicyViolation("policyEvaluationId", "policyId", "policyName",
+    PolicyViolation policyViolation = new PolicyViolation(evaluation, "policyId", "policyName",
         5 /* threatLevel */, PolicyThreatCategory.LICENSE, "hash", "groupId", "artifactId", "version",
         JsonUtils.format(createConstraintFacts(2)), pathnamesString);
 
@@ -178,7 +180,7 @@ public class PolicyViolationTest
   @Test
   public void testConstructorPathnamesString_Empty() throws Exception {
     String pathnamesString = " ";
-    PolicyViolation policyViolation = new PolicyViolation("policyEvaluationId", "policyId", "policyName",
+    PolicyViolation policyViolation = new PolicyViolation(evaluation, "policyId", "policyName",
         5 /* threatLevel */, PolicyThreatCategory.LICENSE, "hash", "groupId", "artifactId", "version",
         JsonUtils.format(createConstraintFacts(2)), pathnamesString);
 
@@ -190,7 +192,7 @@ public class PolicyViolationTest
   public void testConstructorPathnames_Null() throws Exception {
     List<String> pathnames = null;
     List<ConstraintFact> constraintFacts = createConstraintFacts(2);
-    PolicyViolation policyViolation = new PolicyViolation("policyEvaluationId", "policyId", "policyName",
+    PolicyViolation policyViolation = new PolicyViolation(evaluation, "policyId", "policyName",
         5 /* threatLevel */, PolicyThreatCategory.LICENSE, "hash", "groupId", "artifactId", "version", constraintFacts,
         pathnames);
 
@@ -202,7 +204,7 @@ public class PolicyViolationTest
   public void testConstructorPathnames_Empty() throws Exception {
     List<String> pathnames = new ArrayList<>();
     List<ConstraintFact> constraintFacts = createConstraintFacts(2);
-    PolicyViolation policyViolation = new PolicyViolation("policyEvaluationId", "policyId", "policyName",
+    PolicyViolation policyViolation = new PolicyViolation(evaluation, "policyId", "policyName",
         5 /* threatLevel */, PolicyThreatCategory.LICENSE, "hash", "groupId", "artifactId", "version", constraintFacts,
         pathnames);
 

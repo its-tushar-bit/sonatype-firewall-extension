@@ -458,7 +458,7 @@ public class DashboardResourceTest
 
   private PolicyViolation createPolicyViolation(Application app, Policy tempPolicy, String stageTypeId) {
     PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(app.getId(), stageTypeId, "test scan id");
-    return tempEntity.newPolicyViolation(evaluation.getId(), evaluation.getTime(), tempPolicy);
+    return tempEntity.newPolicyViolation(evaluation, tempPolicy);
   }
 
   private String getRestUrl() {

@@ -39,11 +39,11 @@ class DashboardAuthzSpec
 
     PolicyEvaluation firstPolicyEvaluation = temporaryEntity.
         newPolicyEvaluation(firstApp.id, BuildStageType.ID, 'DashboardAuthzSpecFistEvaluation')
-    temporaryEntity.newPolicyViolation(firstPolicyEvaluation.id, firstPolicyEvaluation.time, policy, 5,
+    temporaryEntity.newPolicyViolation(firstPolicyEvaluation, policy, 5,
         PolicyThreatCategory.LICENSE, "Group1", "Artifact1", "Version1")
     PolicyEvaluation secondPolicyEvaluation = temporaryEntity.
         newPolicyEvaluation(secondApp.id, BuildStageType.ID, 'DashboardAuthzSpecSecondEvaluation')
-    temporaryEntity.newPolicyViolation(secondPolicyEvaluation.id, secondPolicyEvaluation.time, policy, 10,
+    temporaryEntity.newPolicyViolation(secondPolicyEvaluation, policy, 10,
         PolicyThreatCategory.QUALITY, null, null, null)
 
     userWithPermission = temporaryEntity.newUser();

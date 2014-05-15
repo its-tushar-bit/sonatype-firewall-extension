@@ -99,6 +99,7 @@ public class DashboardServiceHighestRiskTest
 
   {
     policyEvaluation1.setId(policyEvalId1);
+    policyEvaluation1.setTime(new Date(1000L));
   }
 
   private String policyName = "firstPolicy";
@@ -111,14 +112,8 @@ public class DashboardServiceHighestRiskTest
 
   private String vioHash1 = "bargobl";
 
-  private Date vio1Date = new Date(1000L);
-
-  private PolicyViolation vio1 = new PolicyViolation(policyEvalId1, policyEvalId1, policyName, 5,
+  private PolicyViolation vio1 = new PolicyViolation(policyEvaluation1, policyEvalId1, policyName, 5,
       PolicyThreatCategory.LICENSE, vioHash1, groupId1, artifactId1, versionId1, "[]", "");
-
-  {
-    vio1.setTime(vio1Date);
-  }
 
   private List<PolicyViolation> violations1 = Lists.newArrayList(vio1);
 
@@ -145,16 +140,11 @@ public class DashboardServiceHighestRiskTest
 
   {
     policyEvaluation4.setId(policyEvalId4);
+    policyEvaluation4.setTime(new Date(4000L));
   }
 
-  private Date vio4Date = new Date(4000L);
-
-  private PolicyViolation vio4 = new PolicyViolation(policyEvalId4, policyEvalId4, policyName4, 3,
+  private PolicyViolation vio4 = new PolicyViolation(policyEvaluation4, policyEvalId4, policyName4, 3,
       PolicyThreatCategory.LICENSE, vioHash1, groupId1, artifactId1, versionId1, "[]", "");
-
-  {
-    vio4.setTime(vio4Date);
-  }
 
   private List<PolicyViolation> violations4 = Lists.newArrayList(vio4);
 
@@ -211,10 +201,9 @@ public class DashboardServiceHighestRiskTest
     String policyName2 = "secondPolicy";
     PolicyEvaluation policyEvaluation2 = new PolicyEvaluation(appId1, releaseStage.getId(), scanId);
     policyEvaluation2.setId(policyEvalId2);
-    Date vio2Date = new Date(5000L);
-    PolicyViolation vio2 = new PolicyViolation(policyEvalId2, policyEvalId2, policyName2, 7,
+    policyEvaluation2.setTime(new Date(5000L));
+    PolicyViolation vio2 = new PolicyViolation(policyEvaluation2, policyEvalId2, policyName2, 7,
         PolicyThreatCategory.LICENSE, vioHash1, groupId1, artifactId1, versionId1, "[]", "");
-    vio2.setTime(vio2Date);
     List<PolicyViolation> violations2 = Lists.newArrayList(vio2);
 
     List<StageType> licensedStages = Lists.newArrayList(buildStage, releaseStage);
@@ -311,18 +300,15 @@ public class DashboardServiceHighestRiskTest
     String policyName5 = "fifthPolicy";
     PolicyEvaluation policyEvaluation5 = new PolicyEvaluation(appId1, buildStage.getId(), scanId);
     policyEvaluation5.setId(policyEvalId5);
-    Date vio5Date = new Date(4000L);
-    PolicyViolation vio5 = new PolicyViolation(policyEvalId5, policyEvalId5, policyName5, 3,
+    policyEvaluation5.setTime(new Date(4000L));
+    PolicyViolation vio5 = new PolicyViolation(policyEvaluation5, policyEvalId5, policyName5, 3,
         PolicyThreatCategory.LICENSE, vioHash1, groupId1, artifactId1, versionId1, "[]", "");
-    vio5.setTime(vio5Date);
-    Date vio51Date = new Date(4000L);
     String groupId2 = "group2";
     String artifactId2 = "artifact2";
     String versionId2 = "1.2";
     String vioHash2 = "bargoblyh";
-    PolicyViolation vio51 = new PolicyViolation(policyEvalId5, policyEvalId5, policyName5, 9,
+    PolicyViolation vio51 = new PolicyViolation(policyEvaluation5, policyEvalId5, policyName5, 9,
         PolicyThreatCategory.LICENSE, vioHash2, groupId2, artifactId2, versionId2, "[]", "");
-    vio51.setTime(vio51Date);
     List<PolicyViolation> violations5 = Lists.newArrayList(vio5, vio51);
 
     List<StageType> stages = Lists.newArrayList(buildStage);
@@ -379,10 +365,9 @@ public class DashboardServiceHighestRiskTest
     String policyName5 = "fifthPolicy";
     PolicyEvaluation policyEvaluation5 = new PolicyEvaluation(appId1, buildStage.getId(), scanId);
     policyEvaluation5.setId(policyEvalId5);
-    Date vio5Date = new Date(4000L);
-    PolicyViolation vio5 = new PolicyViolation(policyEvalId5, policyEvalId5, policyName5, 0,
+    policyEvaluation5.setTime(new Date(4000L));
+    PolicyViolation vio5 = new PolicyViolation(policyEvaluation5, policyEvalId5, policyName5, 0,
         PolicyThreatCategory.LICENSE, vioHash1, groupId1, artifactId1, versionId1, "[]", "");
-    vio5.setTime(vio5Date);
     List<PolicyViolation> violations5 = Lists.newArrayList(vio5);
 
 

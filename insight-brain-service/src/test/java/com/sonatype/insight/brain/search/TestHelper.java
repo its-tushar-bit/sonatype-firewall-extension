@@ -65,11 +65,10 @@ class TestHelper
       PolicyFact policyFact = policyAlert.getTrigger();
       createPolicy(appId, policyFact.getPolicyId(), policyFact.getPolicyName());
       for (ComponentFact componentFact : policyFact.getComponentFacts()) {
-        PolicyViolation policyViolation = new PolicyViolation(policyEvaluation.getId(), policyFact.getPolicyId(),
+        PolicyViolation policyViolation = new PolicyViolation(policyEvaluation, policyFact.getPolicyId(),
             policyFact.getPolicyName(), policyFact.getThreatLevel(), PolicyThreatCategory.OTHER,
             componentFact.getHash(), componentFact.getGroupId(), componentFact.getArtifactId(),
             componentFact.getVersion(), componentFact.getConstraintFacts(), componentFact.getPathnames());
-        policyViolation.setTime(policyEvaluation.getTime());
         policyViolationDAO.insert(policyViolation);
       }
     }

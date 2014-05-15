@@ -37,7 +37,7 @@ class ComponentDrilldownSpec
     Date now = new Date()
     PolicyEvaluation policyEvaluation = temporaryEntity.newPolicyEvaluation(app.id, BuildStageType.ID,
         'DashboardSpecFistEvaluation', now - 7)
-    policyViolation = temporaryEntity.newPolicyViolation(policyEvaluation.id, policyEvaluation.time, policy, 5,
+    policyViolation = temporaryEntity.newPolicyViolation(policyEvaluation, policy, 5,
         PolicyThreatCategory.LICENSE, "Group1", "Artifact1", "Version1")
     temporaryEntity.newNewestPolicyViolation(policyViolation.id, policyEvaluation.applicationId,
         policyEvaluation.stageTypeId)

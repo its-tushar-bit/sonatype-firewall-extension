@@ -86,11 +86,12 @@ public class PolicyViolation
   public PolicyViolation() {
   }
 
-  public PolicyViolation(String policyEvaluationId, String policyId, String policyName, int threatLevel,
+  public PolicyViolation(PolicyEvaluation evaluation, String policyId, String policyName, int threatLevel,
       PolicyThreatCategory threatCategory, String hash, String groupId, String artifactId, String version,
       String constraintFactsJson, String pathnames)
   {
-    this.policyEvaluationId = policyEvaluationId;
+    this.policyEvaluationId = evaluation.getId();
+    this.time = evaluation.getTime();
     this.policyId = policyId;
     this.policyName = policyName;
     this.threatLevel = threatLevel;
@@ -103,11 +104,19 @@ public class PolicyViolation
     setPathnamesString(pathnames);
   }
 
-  public PolicyViolation(String policyEvaluationId, String policyId, String policyName, int threatLevel,
+  public PolicyViolation(PolicyEvaluation evaluation, Policy policy, String hash, String groupId, String artifactId,
+      String version, List<ConstraintFact> constraintFacts, List<String> pathnames)
+  {
+    this(evaluation, policy.getId(), policy.getName(), policy.getThreatLevel(), policy.getThreatCategory(), hash,
+        groupId, artifactId, version, constraintFacts, pathnames);
+  }
+
+  public PolicyViolation(PolicyEvaluation evaluation, String policyId, String policyName, int threatLevel,
       PolicyThreatCategory threatCategory, String hash, String groupId, String artifactId, String version,
       List<ConstraintFact> constraintFacts, List<String> pathnames)
   {
-    this.policyEvaluationId = policyEvaluationId;
+    this.policyEvaluationId = evaluation.getId();
+    this.time = evaluation.getTime();
     this.policyId = policyId;
     this.policyName = policyName;
     this.threatLevel = threatLevel;

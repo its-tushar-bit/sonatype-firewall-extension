@@ -159,6 +159,9 @@
         if ($scope.regexes.indexOf(value) !== -1) {
           $scope.error = 'Regex already specified';
         }
+        else {
+          $scope.error = null;
+        }
         return $scope.error === null;
       };
 

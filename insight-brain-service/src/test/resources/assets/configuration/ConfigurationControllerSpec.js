@@ -105,10 +105,16 @@ describe('Proprietary components', function() {
       $httpBackend.expectGET(CLMLocations.getProprietaryConfig()).respond(proprietaryConfig);
       controller = $controller('ProprietaryConfigurationController', { $scope: scope });
       $httpBackend.flush();
+      expect(scope.error).toBeUndefined();
     }));
 
-    it('Good Inputs', function() {
+    it('Good package inputs', function() {
       expect(scope.validatePackage('com.sonatype')).toBeTruthy();
+      expect(scope.error).toBeNull();
+    });
+
+    it('Good regex inputs', function() {
+      expect(scope.validateRegex('com.sonatype.*')).toBeTruthy();
       expect(scope.error).toBeNull();
     });
 

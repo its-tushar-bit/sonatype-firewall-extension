@@ -24,6 +24,7 @@ import com.sonatype.insight.brain.api.dto.ApiRoleDTO;
 import com.sonatype.insight.brain.api.dto.ApiRoleListDTO;
 import com.sonatype.insight.brain.api.dto.ApiRoleMemberMappingDTO;
 import com.sonatype.insight.brain.api.dto.ApiRoleMemberMappingListDTO;
+import com.sonatype.insight.brain.api.service.ApiApplicationTagAdapter;
 import com.sonatype.insight.brain.configuration.ldap.LdapServer;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
@@ -34,6 +35,7 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
+import com.sonatype.insight.brain.model.tag.ApplicationTag;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
@@ -59,6 +61,8 @@ public class ApiApplicationResourceTest
   private final ApplicationDAO applicationDAO = new ApplicationDAO();
 
   private final ApiApplicationAdapter apiApplicationAdapter = new ApiApplicationAdapter();
+
+  private final ApiApplicationTagAdapter apiApplicationTagAdapter = new ApiApplicationTagAdapter();
 
   private final RoleDAO roleDAO = new RoleDAO();
 
@@ -142,6 +146,12 @@ public class ApiApplicationResourceTest
     List<Application> applications = tempEntity.newApplications(organization.getId(), numApps);
     String publicIds = "?publicId=" + applications.get(0).getPublicId();
     publicIds += "&publicId=" + applications.get(1).getPublicId();
+    Map<String, List<ApplicationTag>> appTagMap = new HashMap<>();
+    for (Application application : applications) {
+      List<ApplicationTag> applicationTags = new ArrayList<>();
+      applicationTags.add(tempEntity.newApplicationTag(application.getId(), tagA.getId()));
+      appTagMap.put(application.getId(), applicationTags);
+    }
 
     Response response = AuthedRestAccess.get(getServiceURL() + publicIds);
     assertResponseStatus(200, response);
@@ -150,7 +160,9 @@ public class ApiApplicationResourceTest
     assertThat(applicationListDTO, notNullValue());
     List<ApiApplicationDTO> expectedApplications = new ArrayList<>(numApps);
     for (Application application : applications) {
-      expectedApplications.add(apiApplicationAdapter.convertToDTO(application));
+      ApiApplicationDTO apiApplicationDTO = apiApplicationAdapter.convertToDTO(application);
+      apiApplicationDTO.applicationTags = apiApplicationTagAdapter.convertToDTO(appTagMap.get(apiApplicationDTO.id));
+      expectedApplications.add(apiApplicationDTO);
     }
     assertApplications(applicationListDTO.applications, expectedApplications);
   }

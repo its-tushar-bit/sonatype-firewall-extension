@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.api.service;
 
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -16,6 +17,7 @@ import javax.persistence.EntityManager;
 
 import com.sonatype.insight.brain.api.ApiApplicationAdapter;
 import com.sonatype.insight.brain.api.dto.ApiApplicationDTO;
+import com.sonatype.insight.brain.api.dto.ApiApplicationListDTO;
 import com.sonatype.insight.brain.api.dto.ApiRoleListDTO;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.InvalidApplicationException;
@@ -74,10 +76,19 @@ public class ApiApplicationService
       @AuthzContext(AuthzContext.Key.APPLICATION_ID) final String applicationId)
   {
     Application application = applicationHelper.getApplicationByIdNotNull(applicationId);
-    List<ApplicationTag> tags = applicationTagDAO.getByApplicationId(applicationId);
-    ApiApplicationDTO apiApplicationDTO = apiApplicationAdapter.convertToDTO(application);
-    apiApplicationDTO.applicationTags = apiApplicationTagAdapter.convertToDTO(tags);
-    return apiApplicationDTO;
+    return convertApplicationToDTO(application);
+  }
+
+  public ApiApplicationListDTO getApplicationDTOs(final Set<String> publicIds) {
+    List<Application> applications = getApplications(publicIds);
+    List<ApiApplicationDTO> applicationDTOs = new ArrayList<>(applications.size());
+    for (Application application : applications) {
+      ApiApplicationDTO apiApplicationDTO = convertApplicationToDTO(application);
+      applicationDTOs.add(apiApplicationDTO);
+    }
+    ApiApplicationListDTO applicationListDTO = new ApiApplicationListDTO();
+    applicationListDTO.applications = applicationDTOs;
+    return applicationListDTO;
   }
 
   /**
@@ -88,7 +99,7 @@ public class ApiApplicationService
    * @return The list of applications found
    */
   @AuthzFilter(permission = Permission.READ, context = AuthzFilter.Context.APPLICATION)
-  public List<Application> getApplications(final Set<String> publicIdsFilter) {
+  List<Application> getApplications(final Set<String> publicIdsFilter) {
     List<Application> applications;
     if (publicIdsFilter.isEmpty()) {
       applications = applicationDAO.getAll();
@@ -200,5 +211,12 @@ public class ApiApplicationService
       }
       applicationTagDAO.insert(entityManager, applicationTag);
     }
+  }
+
+  private ApiApplicationDTO convertApplicationToDTO(final Application application) {
+    ApiApplicationDTO apiApplicationDTO = apiApplicationAdapter.convertToDTO(application);
+    List<ApplicationTag> tags = applicationTagDAO.getByApplicationId(application.getId());
+    apiApplicationDTO.applicationTags = apiApplicationTagAdapter.convertToDTO(tags);
+    return apiApplicationDTO;
   }
 }

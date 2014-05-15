@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.api;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -30,7 +29,6 @@ import com.sonatype.insight.brain.api.dto.ApiRoleListDTO;
 import com.sonatype.insight.brain.api.dto.ApiRoleMemberMappingListDTO;
 import com.sonatype.insight.brain.api.service.ApiApplicationService;
 import com.sonatype.insight.brain.dataaccess.InvalidApplicationException;
-import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.security.ApplicableMembershipMappings;
 import com.sonatype.insight.brain.security.Member;
 import com.sonatype.insight.brain.security.MembershipMappingService;
@@ -60,16 +58,12 @@ public class ApiApplicationResource
 
   private final ApiMemberMappingAdapter apiMemberMappingAdapter;
 
-  private final ApiApplicationAdapter apiApplicationAdapter;
-
   @Inject
   public ApiApplicationResource(final ApiApplicationService apiApplicationService,
-      final ApiApplicationAdapter apiApplicationAdapter,
       final MembershipMappingService membershipMappingService,
       final ApiMemberMappingAdapter apiMemberMappingAdapter)
   {
     this.apiApplicationService = apiApplicationService;
-    this.apiApplicationAdapter = apiApplicationAdapter;
     this.membershipMappingService = membershipMappingService;
     this.apiMemberMappingAdapter = apiMemberMappingAdapter;
   }
@@ -88,14 +82,7 @@ public class ApiApplicationResource
   public ApiApplicationListDTO getApplications(
       @QueryParam("publicId") final Set<String> publicIds)
   {
-    List<Application> applications = apiApplicationService.getApplications(publicIds);
-    List<ApiApplicationDTO> applicationDTOs = new ArrayList<>(applications.size());
-    for (Application application : applications) {
-      applicationDTOs.add(apiApplicationAdapter.convertToDTO(application));
-    }
-    ApiApplicationListDTO applicationListDTO = new ApiApplicationListDTO();
-    applicationListDTO.applications = applicationDTOs;
-    return applicationListDTO;
+    return apiApplicationService.getApplicationDTOs(publicIds);
   }
 
   @POST

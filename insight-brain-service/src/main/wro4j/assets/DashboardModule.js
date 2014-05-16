@@ -133,23 +133,50 @@
 
           var pathnamesTitle = 'Component Path';
           if (pathnames.length > 1) {
-            pathnamesTitle = 'Component Path, ' + pathnames.length + ' Locations';
+            pathnamesTitle = 'Component Path, Found in ' + pathnames.length + ' Locations';
           }
 
           var options = {
-            trigger: 'hover',
+            trigger: 'manual',
             placement: 'top',
             content: pathnames[0],
             title: pathnamesTitle,
             // Attach the popover to the parent, as placing the popover in the td could resize it.
-            container: element.parent()
+            container: element.parent(),
+            // Add our styling, pathnames-popover and pathnames-popover-content, to the popover template.
+            template: '<div class="popover pathnames-popover"><div class="arrow"></div><div class="popover-inner"><h3 class="popover-title"></h3><div class="popover-content pathnames-popover-content"><p></p></div></div></div>'
           };
-          $(element).popover(options);
+          
+          // Configure the popover so that it functions modally.
+          var componentElement = $(element);
+          componentElement.popover(options);
+          // Display the popover when hovering over the component element, but only hide
+          // the popover when the mouse leaves the popover.
+          componentElement.on('mouseenter', function() {
+            componentElement.popover('show');
+            // Because we've used the parent of the element as the popover container,
+            // start selecting from the parent.
+            var popover = componentElement.parent().children('.popover');
+            popover.on('mouseleave', function() {
+              componentElement.popover('hide');
+            });
+          });
+          // Also, hide the popover if the mouse leaves the component element and is no
+          // longer hovering over the popover.
+          componentElement.on('mouseleave', function() {
+            var popover = componentElement.parent().children('.popover');
+            setTimeout(function() {
+              if (!popover.is(':hover')) {
+                componentElement.popover('hide');
+              }
+            }, 100);
+          });
+          
         });
       }
     };
   });
-
+  
   dashboardModule.directive('dashboardFilter',
           ['$timeout', '$http', '$q', 'ApplicationStore', 'OrganizationStore', 'StageTypeStore', 'CLMLocations', 'Messages',
           function ($timeout, $http, $q, ApplicationStore, OrganizationStore, StageTypeStore, CLMLocations, Messages) {

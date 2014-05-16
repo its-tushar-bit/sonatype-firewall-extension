@@ -18,9 +18,9 @@ class ThreatTableModule
     riskHeader { headerLinks(0) }
     ageHeader(required: false) { headerLinks(1) }
     rows(required: false) { moduleList ThreatTableRow, $('tr').tail() }
-    unknownComponentPopover(required: false) { $('div.popover.fade.top.in') }
-    unknownComponentPopoverTitle(required: false) { unknownComponentPopover.children('.popover-title').text() }
-    unknownComponentPopoverText(required: false) { unknownComponentPopover.children('.popover-content').text() }
+    unknownComponentPopover(required: false) { $('div.popover.pathnames-popover.fade.top.in') }
+    unknownComponentPopoverTitle(required: false) { unknownComponentPopover.find('.popover-title').text() }
+    unknownComponentPopoverText(required: false) { unknownComponentPopover.find('.popover-content.pathnames-popover-content').text() }
     maxResults(required: false) { $('span[id$="-max-results-shown"]') }
   }
 }

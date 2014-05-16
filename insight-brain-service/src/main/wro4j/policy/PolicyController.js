@@ -213,14 +213,14 @@
           scope.getActionStages = function() {
             return actionStageList;
           };
-          scope.getStageIconPath = function(stage, policy) {
+          scope.getStageClass = function(stage, policy) {
             if (policy.actions[stage.id]) {
               for (var i = 0; i < policy.actions[stage.id].length; i++) {
                 if (policy.actions[stage.id][i].actionTypeId === 'warn') {
-                  return '../assets/img/policyalert.png';
+                  return 'sonatype-icons warn';
                 }
                 else if (policy.actions[stage.id][i].actionTypeId === 'fail') {
-                  return '../assets/img/policyerror.png';
+                  return 'sonatype-icons fail';
                 }
               }
             }

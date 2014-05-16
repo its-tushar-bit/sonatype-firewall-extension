@@ -70,3 +70,30 @@
 .sonatype-icons.down:before {
   content: '\e0d6';
 }
+.sonatype-icons.fail:before {
+  content: '\e037';
+  font-size: inherit;
+  color: inherit;
+}
+.sonatype-icons.warn:before {
+  content: '\e03f';
+  font-size: inherit;
+  color: inherit;
+}
+
+.sonatype-icons-hover:hover:before {
+  *zoom: 1;
+  font: 24px/30px 'sonatype-icons';
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  line-height: inherit;
+  font-size: inherit;
+  opacity:0.4;
+}
+
+.sonatype-icons-hover.warn:hover:before {
+  content: '\e03f';
+}
+.sonatype-icons-hover.fail:hover:before {
+  content: '\e037';
+}

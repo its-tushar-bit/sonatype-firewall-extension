@@ -429,6 +429,10 @@
       return stages[stageRisk.stageTypeId];
     };
 
+    $scope.getReportUrl = function(applicationPublicId, scanId) {
+      return CLMLocations.getReportUrl(applicationPublicId, scanId);
+    };
+
     $scope.expanded = {};
 
     $scope.canExpand = function (application) {

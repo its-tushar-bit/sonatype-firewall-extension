@@ -205,7 +205,7 @@
                     <tr class='stage' ng-repeat-end
                         ng-repeat='stage in application.stageRisks | orderBy:getStageName'
                         ng-if='expanded[application.applicationId]'>
-                      <td>{{getStageName(stage)}}</td>
+                      <td><a ng-href="{{getReportUrl(application.applicationId, stage.scanId)}}" target="_blank">{{getStageName(stage)}}</a></td>
                       <td>{{stage.risk.totalRisk}}</td>
                       <td>{{stage.risk.criticalRisk}}</td>
                       <td>{{stage.risk.severeRisk}}</td>

@@ -142,6 +142,23 @@ class DashboardOverviewSpec
       policyThreatLevelFilters.text() == 'Policy Threat Levels 2 through 7'
   }
 
+  def 'Single value threat level slider filter'() {
+    when: 'clicking the filter toggle button'
+      filterPanelToggle.click()
+
+    then: 'the policy threat level slider is shown'
+      waitFor { policyThreatLevelSlider.slider.displayed }
+      policyThreatLevelSlider.minLabel.text() == "0"
+      policyThreatLevelSlider.maxLabel.text() == "10"
+
+    when: 'threat level filter is applied'
+      policyThreatLevelSlider.setValues(4,4)
+      applyFilter()
+
+    then: 'filter text shows one value'
+      policyThreatLevelFilters.text() == 'Policy Threat Level 4'
+  }
+
   def 'Unknown components have popover displaying pathnames'() {
     when: 'highest risk table is shown'
       waitFor { highestRiskTable.displayed }

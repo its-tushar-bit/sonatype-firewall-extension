@@ -125,12 +125,18 @@ class DashboardOverviewSpec
       applicationFiltersDropdown.toggleOption(firstApp.name)
       applicationFiltersDropdown.toggleOption(secondApp.name)
       applicationTagFiltersDropdown.toggleOption(firstAppTag.name)
+      stageTypeFiltersDropdown.toggleOption('Release')
+      policyThreatFiltersDropdown.toggleOption('Security')
+      policyThreatLevelSlider.setValues(2,7)
       applyFilter()
 
     then: 'filters show up in readonly mode'
       waitFor { filterPanel.displayed }
       applicationFilters.collect{it.text()}.join('') == firstApp.name + ',' + secondApp.name
       applicationTagFilters.text() == firstAppTag.name
+      stageTypeFilters.text() == 'Release'
+      policyThreatTypeFilters.text() == 'Security'
+      policyThreatLevelFilters.text() == 'Policy Threat Levels 2 through 7'
   }
 
   def 'Unknown components have popover displaying pathnames'() {

@@ -9,6 +9,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.sonatype.clm.dto.model.policy.Stage
 import com.sonatype.insight.brain.dashboard.DashboardFilterDTO
 import com.sonatype.insight.brain.dataaccess.filter.DashboardFilterDAO
+import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO
 import com.sonatype.insight.brain.model.Application
 import com.sonatype.insight.brain.model.Color
 import com.sonatype.insight.brain.model.Organization
@@ -339,10 +340,12 @@ class DashboardOverviewSpec
 
   def 'Limits results to 100 records'() {
     setup: 'Add over 100 records'
+      List<PolicyEvaluation> evaluations = new ArrayList<>()
       for (i in 0..100) {
         Date now = new Date()
         PolicyEvaluation policyEvaluation = temporaryEntity.newPolicyEvaluation(firstApp.id, BuildStageType.ID,
             'DashboardSpecFistEvaluation', now - 7)
+        evaluations.add(policyEvaluation)
         PolicyViolation violation = temporaryEntity.
             newPolicyViolation(policyEvaluation, policy, 5, PolicyThreatCategory.SECURITY,
                 "Group${i}", "Artifact${i}", "Version${i}")
@@ -366,6 +369,12 @@ class DashboardOverviewSpec
 
     and: 'A message is displayed to show that only the top results are shown'
       newestViolationTable.maxResults.text() == 'Showing the top 100 results'
+
+    cleanup:
+      PolicyEvaluationDAO dao = new PolicyEvaluationDAO()
+      for (PolicyEvaluation evaluation : evaluations) {
+        dao.delete(evaluation)
+      }
   }
 
   def 'Filters stored as expected'() {

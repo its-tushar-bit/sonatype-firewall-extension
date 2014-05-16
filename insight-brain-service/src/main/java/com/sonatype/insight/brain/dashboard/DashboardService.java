@@ -146,7 +146,7 @@ public class DashboardService
    * @throws org.apache.shiro.authz.UnauthorizedException Thrown if the user is not authorized to read one of the
    *           applications provided.
    */
-  public List<PolicyViolationDTO> getPolicyViolationsByApplicationIds(Set<String> applicationPublicIds,
+  List<PolicyViolationDTO> getPolicyViolationsByApplicationIds(Set<String> applicationPublicIds,
       @Nullable Set<String> stageTypeIds, @Nullable Set<String> tagIds,
       @Nullable Predicate<PolicyViolation> violationFilter, @Nullable Integer limit, boolean newest)
   {
@@ -186,7 +186,7 @@ public class DashboardService
    * @return A list of {@link PolicyViolationDTO}s for all applications with read permissions.
    * @throws BadRequestException Thrown if the stageTypeId does not match a known {@link StageType}.
    */
-  public List<PolicyViolationDTO> getPolicyViolations(@Nullable Set<String> stageTypeIds,
+  List<PolicyViolationDTO> getPolicyViolations(@Nullable Set<String> stageTypeIds,
       @Nullable final Set<String> tagIds, @Nullable Predicate<PolicyViolation> violationFilter, @Nullable Integer limit,
       boolean newest)
   {

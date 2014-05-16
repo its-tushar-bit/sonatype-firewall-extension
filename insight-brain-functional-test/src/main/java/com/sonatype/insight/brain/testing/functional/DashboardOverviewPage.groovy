@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.testing.functional
 
 import com.sonatype.insight.brain.testing.functional.modules.ButtonsModule
+import com.sonatype.insight.brain.testing.functional.modules.DashboardTabsModule
 import com.sonatype.insight.brain.testing.functional.modules.DropdownMultiSelectModule
 import com.sonatype.insight.brain.testing.functional.modules.SliderModule
 import com.sonatype.insight.brain.testing.functional.modules.ThreatTableModule

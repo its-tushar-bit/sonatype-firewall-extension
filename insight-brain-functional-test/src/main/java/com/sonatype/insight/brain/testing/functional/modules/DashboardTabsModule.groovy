@@ -11,8 +11,8 @@ class DashboardTabsModule
   extends Module {
 
   static content = {
-    policyViolationsTabButton { $('li:nth-child(2) a') }
+    policyViolationsTabButton { $('li:nth-child(4) a') }
     componentsTabButton { $('li:nth-child(3) a') }
-    applicationsTabButton { $('li:nth-child(4) a') }
+    applicationsTabButton { $('li:nth-child(2) a') }
   }
 }

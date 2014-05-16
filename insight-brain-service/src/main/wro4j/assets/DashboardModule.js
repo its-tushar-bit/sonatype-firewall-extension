@@ -49,30 +49,9 @@
     });
   }]);
 
-  dashboardModule.controller('DashboardController', ['$scope', '$q', '$http', 'CLMLocations', function($scope, $q, $http, CLMLocations) {
+  dashboardModule.controller('DashboardController', ['$scope', function($scope) {
     $scope.maxResults = 100;
-    $scope.noDataNewestRiskMessage = 'No data for the last 30 days available given the applied filters and available permissions.';
-
-    $scope.doLoad = function() {
-      $scope.error = null;
-
-      $http.get(CLMLocations.getPolicyViolationsUrl(), {
-        params: angular.extend(filterToParams($scope.filters, $scope.maxResults), {
-          newest: true
-        })
-      }).success(function (data) {
-        $scope.newestRisks = data;
-      }).error(function () {
-        $scope.error = arguments;
-      });
-    };
-    $scope.$watch('filters', function (newFilters) {
-      if (newFilters) {
-        $scope.doLoad();
-      }
-    });
-
-    $scope.riskTable = 'policy-violations';
+    $scope.riskTable = 'newest-risk';
   }]);
 
   /**
@@ -98,19 +77,6 @@
       return stringPath;
     };
   });
-  
-  dashboardModule.directive('riskTable', [function() {
-    return {
-      scope: {
-        risks: '=',
-        title: '@',
-        riskId: '@',
-        emptyMessage: '=',
-        maxResults: '='
-      },
-      templateUrl: 'risk-table'
-    };
-  }]);
 
   dashboardModule.directive('pathnamesPopover', function() {
     return {
@@ -349,41 +315,59 @@
     };
   });
 
-  function createFilterWatch($scope, $http, url) {
-    return function (newFilter) {
-      if (newFilter) {
-        $scope.error = $scope.data = null;
+  function dashboardTable(url, additionalParams, noDataMessage) {
+    function createFilterWatch($scope, $http) {
+      return function (newFilter) {
+        if (newFilter) {
+          $scope.error = $scope.data = null;
+          var params = angular.extend(filterToParams($scope.filters, $scope.maxResults), additionalParams);
 
-        $http.get(url, {
-          params : filterToParams($scope.filters, $scope.maxResults)
-        }).success(function (data) {
-          if (angular.equals(newFilter, $scope.filters)) {
-            $scope.data = data;
-          }
-        }).error(function () {
-          if (angular.equals(newFilter, $scope.filters)) {
-            $scope.error = arguments;
-          }
-        });
-      }
+          $http.get(url, {
+            params : params
+          }).success(function (data) {
+            if (angular.equals(newFilter, $scope.filters)) {
+              $scope.data = data;
+            }
+          }).error(function () {
+            if (angular.equals(newFilter, $scope.filters)) {
+              $scope.error = arguments;
+            }
+          });
+        }
+      };
+    }
+
+    return {
+      transclude: true,
+      templateUrl: 'dashboard-table',
+      controller: ['$scope', '$http', function($scope, $http) {
+        var filterChangedFn = createFilterWatch($scope, $http);
+        $scope.doLoad = function () {
+          filterChangedFn($scope.filters);
+        };
+        $scope.noDataMessage = noDataMessage;
+        $scope.$watch('filters', filterChangedFn);
+      }]
     };
   }
 
-  dashboardModule.controller('policyRiskTableController', ['$scope', '$http', 'CLMLocations', function ($scope, $http, CLMLocations) {
-    var filterChangedFn = createFilterWatch($scope, $http, CLMLocations.getPolicyViolationsUrl());
-    $scope.doLoad = function () {
-      filterChangedFn($scope.filters);
-    };
-    $scope.noDataHighestRiskMessage = 'No data available given the applied filters and available permissions.';
-    $scope.$watch('filters', filterChangedFn);
+  dashboardModule.directive('newestRiskTable', ['CLMLocations', function(CLMLocations) {
+    return dashboardTable(CLMLocations.getPolicyViolationsUrl(), {
+        newest: true
+      }, 'No data for the last 30 days available given the applied filters and available permissions.');
   }]);
 
-  dashboardModule.controller('componentRiskTableController', ['$scope', '$http', 'CLMLocations', function ($scope, $http, CLMLocations) {
-    var filterChangedFn =  createFilterWatch($scope, $http, CLMLocations.getComponentRisksUrl());
-    $scope.doLoad = function () {
-      filterChangedFn($scope.filters);
-    };
-    $scope.$watch('filters', filterChangedFn);
+  dashboardModule.directive('applicationRiskTable', ['CLMLocations', function(CLMLocations){
+    return dashboardTable(CLMLocations.getApplicationRisksUrl());
+  }]);
+
+  dashboardModule.directive('componentRiskTable', ['CLMLocations', function(CLMLocations) {
+    return dashboardTable(CLMLocations.getComponentRisksUrl());
+  }]);
+
+  dashboardModule.directive('policyRiskTable', ['CLMLocations', function(CLMLocations) {
+    return dashboardTable(CLMLocations.getPolicyViolationsUrl(), null,
+      'No data available given the applied filters and available permissions.');
   }]);
 
   dashboardModule.directive('breadcrumb', ['$state', function($state) {
@@ -425,12 +409,7 @@
   }]);
 
   dashboardModule.controller('applicationRiskTable', ['$scope', '$http', 'CLMLocations', 'StageTypeStore', function ($scope, $http, CLMLocations, StageTypeStore) {
-    var filterChangedFn =  createFilterWatch($scope, $http, CLMLocations.getApplicationRisksUrl()),
-        stages = null;
-
-    $scope.doLoad = function () {
-      filterChangedFn($scope.filters);
-    };
+    var stages = null;
 
     $scope.getStageName = function(stageRisk) {
       return stages[stageRisk.stageTypeId];
@@ -454,7 +433,6 @@
       }
     };
 
-    $scope.$watch('filters', filterChangedFn);
     StageTypeStore.get().then(function (data) {
       stages = [];
       angular.forEach(data, function (stage) {

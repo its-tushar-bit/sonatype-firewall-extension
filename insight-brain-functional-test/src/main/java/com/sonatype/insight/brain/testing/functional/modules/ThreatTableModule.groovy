@@ -21,7 +21,7 @@ class ThreatTableModule
     unknownComponentPopover(required: false) { $('div.popover.pathnames-popover.fade.top.in') }
     unknownComponentPopoverTitle(required: false) { unknownComponentPopover.find('.popover-title').text() }
     unknownComponentPopoverText(required: false) { unknownComponentPopover.find('.popover-content.pathnames-popover-content').text() }
-    maxResults(required: false) { $('span[id$="-max-results-shown"]') }
+    maxResults(required: false) { $('#max-results-shown') }
   }
 }
 

@@ -44,8 +44,7 @@ class DashboardOverviewPage
 
     noAvailableApplications(required: false) { $('#no-permissions') }
     noAvailableApplicationTags(required: false) { $('#no-application-tags') }
-    noDataAvailableHighest(required: false) { $('#no-data-highest-risk') }
-    noDataAvailableNewest(required: false) { $('#no-data-newest-risk') }
+    noDataAvailable(required: false) { $('#no-data') }
 
     applicationFiltersDropdown(required: false) { module DropdownMultiSelectModule, $('span[items="applications"]') }
     policyThreatFiltersDropdown(required: false) { module DropdownMultiSelectModule, $('span[items="policyThreatTypes"]') }
@@ -53,8 +52,8 @@ class DashboardOverviewPage
     applicationTagFiltersDropdown(required: false) { module DropdownMultiSelectModule, $('span[items="applicationTags"]') }
     policyThreatLevelSlider(required: false) { module SliderModule, $('#policy-threat-levels') }
 
-    highestRiskTable(required: false) { module ThreatTableModule, $('#highest-risk') }
-    newestViolationTable(required: false) { module ThreatTableModule, $('#newest-risk') }
+    highestRiskTable(required: false) { module ThreatTableModule, $('div[ng-switch-when="policy-violations"]') }
+    newestViolationTable(required: false) { module ThreatTableModule, $('div[ng-switch-when="newest-risk"]') }
     componentViolationsTable(required: false) { module ComponentViolationsTable, $('#component-risk') }
     applicationViolationsTable(required: false) { module ApplicationViolationsTable, $('#application-risk') }
 

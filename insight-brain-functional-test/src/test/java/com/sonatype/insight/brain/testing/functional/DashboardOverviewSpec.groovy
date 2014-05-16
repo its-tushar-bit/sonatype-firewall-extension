@@ -22,8 +22,6 @@ import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType
 import com.sonatype.insight.brain.model.tag.Tag
 import com.sonatype.insight.brain.testing.functional.modules.ThreatTableRow
 
-import geb.Module;
-
 import org.openqa.selenium.WebElement
 
 /**
@@ -159,7 +157,8 @@ class DashboardOverviewSpec
   }
 
   def 'Unknown components have popover displaying pathnames'() {
-    when: 'highest risk table is shown'
+    when: 'switching to the highest risk table and highest risk table is shown'
+      tabLinks.policyViolationsTabButton.click()
       waitFor { highestRiskTable.displayed }
       waitFor { highestRiskTable.rows.size() >= 2 }
       WebElement unknownComponentCell = $(highestRiskTable.rows[0].cell(ThreatTableRow.COMPONENT)).firstElement()
@@ -173,6 +172,7 @@ class DashboardOverviewSpec
       highestRiskTable.unknownComponentPopoverText == 'unknown.jar'
 
     when: 'newest risk table is shown'
+      tabLinks.newestRiskTabButton.click()
       waitFor { newestViolationTable.displayed }
       waitFor { newestViolationTable.rows.size() >= 2 }
       unknownComponentCell = $(newestViolationTable.rows[0].cell(ThreatTableRow.COMPONENT)).firstElement()
@@ -187,7 +187,10 @@ class DashboardOverviewSpec
   }
 
   def 'Highest Risk Table can be sorted'() {
-    when: 'highest risk table is shown'
+    when: 'switching to the highest risk table'
+      tabLinks.policyViolationsTabButton.click()
+
+    then: 'highest risk table is shown'
       waitFor { highestRiskTable.displayed }
       waitFor { highestRiskTable.rows.size() >= 2 }
 
@@ -223,12 +226,15 @@ class DashboardOverviewSpec
   }
 
   def 'Highest Risk Table can be filtered'() {
-    when: 'highest risk table is shown'
+    when: 'switching to the highest risk table'
+      tabLinks.policyViolationsTabButton.click()
+
+    then: 'highest risk table is shown'
       waitFor { highestRiskTable.displayed }
       waitFor { highestRiskTable.rows.size() == 2 }
 
     then: 'policy violations are listed by threat level'
-      !noDataAvailableHighest.displayed
+      !noDataAvailable.displayed
 
       highestRiskTable.rows[0].risk == 10
       highestRiskTable.rows[0].policy == 'DashboardSpecPolicy'
@@ -239,7 +245,7 @@ class DashboardOverviewSpec
       highestRiskTable.rows[1].policy == 'DashboardSpecPolicy'
       highestRiskTable.rows[1].application == firstApp.name
       highestRiskTable.rows[1].component == ["Group1", "Artifact1", "Version1"].join(' : ')
-      highestRiskTable.rows[1].age == null
+      highestRiskTable.rows[1].age.contains("ago")
 
     when: 'filtering to an application'
       filterPanelToggle.click()
@@ -270,7 +276,7 @@ class DashboardOverviewSpec
       highestRiskTable.rows[0].policy == 'DashboardSpecPolicy'
       highestRiskTable.rows[0].application == secondApp.name
       highestRiskTable.rows[0].component == 'unknown.jar'
-      highestRiskTable.rows[0].age == null
+      highestRiskTable.rows[0].age.contains("ago")
   }
 
   def 'Newest Risk Table can be filtered'() {
@@ -279,7 +285,7 @@ class DashboardOverviewSpec
       waitFor { newestViolationTable.rows.size() == 2 }
 
     then: 'policy violations are listed by threat level'
-      !noDataAvailableNewest.displayed
+      !noDataAvailable.displayed
 
       newestViolationTable.rows[0].risk == 10
       newestViolationTable.rows[0].policy == 'DashboardSpecPolicy'
@@ -315,7 +321,7 @@ class DashboardOverviewSpec
       applyFilter()
 
     then: 'only violations from that stage are shown'
-      waitFor { highestRiskTable.rows.size() == 1 }
+      waitFor { newestViolationTable.rows.size() == 1 }
       !stageTypeFiltersDropdown.displayed
       newestViolationTable.rows[0].risk == 10
       newestViolationTable.rows[0].policy == 'DashboardSpecPolicy'
@@ -333,8 +339,7 @@ class DashboardOverviewSpec
       applyFilter()
 
     then: 'the tables are replaced by text indicating there are no results'
-      waitFor { noDataAvailableHighest.displayed }
-      noDataAvailableNewest.displayed
+      waitFor { noDataAvailable.displayed }
       filterPanel.displayed
   }
 

@@ -45,8 +45,8 @@ class ComponentDrilldownSpec
         policyViolation.hash, policyViolation.groupId, policyViolation.artifactId, policyViolation.version)
 
     loginAsAdminVia(DashboardOverviewPage)
-    waitFor { highestRiskTable.rows.size() == 1 }
-    highestRiskTable.rows[0].componentLink.click()
+    waitFor { newestViolationTable.rows.size() == 1 }
+    newestViolationTable.rows[0].componentLink.click()
     at ComponentDrilldownPage
   }
 

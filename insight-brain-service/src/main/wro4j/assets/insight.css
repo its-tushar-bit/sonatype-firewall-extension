@@ -594,11 +594,11 @@ table.table-risk  tbody tr:first-child  td:nth-child(6) {
   min-width: 84px;
 }
 
-.dashboard-content th[id$='-threat-header'] {
+.dashboard-content #threat-header {
   min-width: 45px;
 }
 
-.dashboard-content th[id$='-time-header'] {
+.dashboard-content #time-header {
   min-width: 90px;
 }
 

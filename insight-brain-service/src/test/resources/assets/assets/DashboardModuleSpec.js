@@ -128,14 +128,10 @@ describe('DashboardModule', function() {
           policyThreatLevel: [0,10]
         };
       });
-
-      $httpBackend.expectGET(CLMLocations.getPolicyViolationsUrl() + '?maxResults=101&newest=true').respond(newestViolations);
       $controller('DashboardController', { $scope: scope });
-      $httpBackend.flush();
     }));
 
     it('Reacts to filter changes', inject(function($httpBackend, CLMLocations) {
-      $httpBackend.expectGET(CLMLocations.getPolicyViolationsUrl() +'?applicationPublicIds=foo&maxResults=101&newest=true').respond([newestViolations[0]]);
       scope.$apply(function () {
         scope.filters = {
           applicationPublicIds: ['foo'],
@@ -145,45 +141,7 @@ describe('DashboardModule', function() {
           policyThreatLevel: [0,10]
         };
       });
-      $httpBackend.flush();
     }));
-
-    it('handles http errors', inject(function($httpBackend, CLMLocations){
-      expect(scope.error).toBeNull();
-
-      $httpBackend.expectGET(CLMLocations.getPolicyViolationsUrl() +'?maxResults=101&newest=true').respond(500, 'An error');
-       scope.$apply(function () {
-        scope.filters = {
-          applicationPublicIds: [],
-          policyThreatTypes: [],
-          stageTypeIds: [],
-          applicationTagIds: [],
-          policyThreatLevel: [0,10]
-        };
-      });
-      $httpBackend.flush();
-      expect(scope.error).toBeDefined();
-      expect(scope.error[0]).toBe('An error');
-      expect(scope.error[1]).toBe(500);
-
-      $httpBackend.expectGET(CLMLocations.getPolicyViolationsUrl() +'?applicationPublicIds=foo&maxResults=101&newest=true').respond([newestViolations[0]]);
-      scope.$apply(function () {
-        scope.filters = {
-          applicationPublicIds: ['foo'],
-          policyThreatTypes: [],
-          stageTypeIds: [],
-          applicationTagIds: [],
-          policyThreatLevel: [0,10]
-        };
-      });
-      $httpBackend.flush();
-      expect(scope.error).toBeNull();
-    }));
-
-    it('loads policy violations', function() {
-      expect(scope.newestRisks.length).toBe(newestViolations.length);
-      expect(scope.newestRisks[0].id).toBe(newestViolations[0].id);
-    });
   });
 
   describe('dashboardFilter', function () {
@@ -397,34 +355,44 @@ describe('DashboardModule', function() {
     }
   });
 
-  describe('Risk Table Controllers', function () {
-    var controllers = [{
-      name : 'policyRiskTableController',
+  describe('Risk Table Directives', function () {
+    var directives = [{
+      prefix : 'newest',
       urlFn : 'getPolicyViolationsUrl'
     }, {
-      name : 'componentRiskTableController',
+      prefix : 'application',
+      urlFn : 'getApplicationRisksUrl'
+    }, {
+      prefix : 'component',
       urlFn : 'getComponentRisksUrl'
+    }, {
+      prefix : 'policy',
+      urlFn : 'getPolicyViolationsUrl'
     }];
 
-    angular.forEach(controllers, function (controller) {
+    angular.forEach(directives, function (directive) {
       function startsWith(url) {
         return new RegExp('^' + url + '\?.*');
       }
 
-      describe(controller.name, function () {
+      describe(directive.prefix + 'RiskTable', function () {
         var directiveScope;
 
-        beforeEach(inject(function ($controller, $httpBackend, $rootScope) {
+        beforeEach(inject(function ($controller, $compile, $httpBackend, $rootScope) {
           scope = $rootScope.$new();
           scope.maxResults = 123;
           directiveScope = scope.$new();
 
-          $controller(controller.name, { $scope: directiveScope });
+          $httpBackend.expectGET('dashboard-table').respond('<div></div>');
+          $compile(angular.element('<div ' + directive.prefix + '-risk-table></div>'))(scope);
+          scope.$digest();
+          $httpBackend.flush();
+
           $httpBackend.verifyNoOutstandingRequest();
         }));
 
         it('Filter Set', inject(function (CLMLocations, $httpBackend) {
-          $httpBackend.expectGET(startsWith(CLMLocations[controller.urlFn]())).respond('foo');
+          $httpBackend.expectGET(startsWith(CLMLocations[directive.urlFn]())).respond('foo');
           scope.$apply(function () {
             scope.filters =  {
               applicationPublicIds: ['foo'],
@@ -438,7 +406,7 @@ describe('DashboardModule', function() {
           expect(directiveScope.data).toEqual('foo');
 
           // Filter is changed
-          $httpBackend.expectGET(startsWith(CLMLocations[controller.urlFn]())).respond('bar');
+          $httpBackend.expectGET(startsWith(CLMLocations[directive.urlFn]())).respond('bar');
           scope.$apply(function () {
             scope.filters = angular.copy(scope.filters);
             scope.filters.applicationPublicIds = ['bar'];
@@ -448,7 +416,7 @@ describe('DashboardModule', function() {
         }));
 
         it('Drops Requests That Don\'t Match', inject(function (CLMLocations, $httpBackend) {
-          $httpBackend.expectGET(startsWith(CLMLocations[controller.urlFn]())).respond('foo');
+          $httpBackend.expectGET(startsWith(CLMLocations[directive.urlFn]())).respond('foo');
           scope.$apply(function () {
             scope.filters =  {
               applicationPublicIds: ['foo'],
@@ -456,11 +424,11 @@ describe('DashboardModule', function() {
               stageTypeIds: [],
               applicationTagIds: [],
               policyThreatLevel: [0,10]
-            };;
+            };
           });
 
           // Before the request completes the user alters the filter again
-          $httpBackend.expectGET(startsWith(CLMLocations[controller.urlFn]())).respond('bar');
+          $httpBackend.expectGET(startsWith(CLMLocations[directive.urlFn]())).respond('bar');
           scope.$apply(function () {
             scope.filters = angular.copy(scope.filters);
             scope.filters.applicationPublicIds = ['bar'];
@@ -470,7 +438,7 @@ describe('DashboardModule', function() {
         }));
 
         it('Errors', inject(function (CLMLocations, $httpBackend) {
-          $httpBackend.expectGET(startsWith(CLMLocations[controller.urlFn]())).respond(500, 'foo');
+          $httpBackend.expectGET(startsWith(CLMLocations[directive.urlFn]())).respond(500, 'foo');
           scope.$apply(function () {
             scope.filters =  {
               applicationPublicIds: ['foo'],

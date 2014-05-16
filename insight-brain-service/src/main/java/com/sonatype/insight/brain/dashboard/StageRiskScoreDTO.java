@@ -11,6 +11,8 @@ public class StageRiskScoreDTO
 
   public String stageTypeId;
 
+  public String scanId;
+
   public RiskDTO risk = new RiskDTO();
 
   public StageRiskScoreDTO(final String stageTypeId) {

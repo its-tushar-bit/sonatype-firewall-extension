@@ -33,6 +33,8 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.when;
@@ -162,6 +164,7 @@ public class DashboardServiceHighestRiskTest
       final List<PolicyViolation> resultViolation)
   {
     when(policyEvaluationDAO.getLastByApplicationIdAndStageId(givenAppId, stageId)).thenReturn(policyEval);
+    when(policyEvaluationDAO.getById(policyEval.getId())).thenReturn(policyEval);
     when(policyViolationDAO.getByEvaluationId(policyEval.getId())).thenReturn(resultViolation);
   }
 
@@ -193,6 +196,7 @@ public class DashboardServiceHighestRiskTest
 
     StageRiskScoreDTO buildStageRisk = result.get(0).getStageRiskScore(buildStage.getId());
     assertRisk(buildStageRisk.risk, 0, 5, 0, 0, 5);
+    assertThat(buildStageRisk.scanId, is(policyEvaluation1.getScanId()));
   }
 
 
@@ -223,9 +227,11 @@ public class DashboardServiceHighestRiskTest
 
     StageRiskScoreDTO buildStageRisk = result.get(0).getStageRiskScore(buildStage.getId());
     assertRisk(buildStageRisk.risk, 0, 5, 0, 0, 5);
+    assertThat(buildStageRisk.scanId, is(policyEvaluation1.getScanId()));
 
     StageRiskScoreDTO releaseStageRisk = result.get(0).getStageRiskScore(releaseStage.getId());
     assertRisk(releaseStageRisk.risk, 0, 7, 0, 0, 7);
+    assertThat(releaseStageRisk.scanId, is(policyEvaluation2.getScanId()));
   }
 
   @Test
@@ -372,7 +378,7 @@ public class DashboardServiceHighestRiskTest
 
 
     mockGetByPublicId(stages, appPublicId1, application1);
-    mockPolicyEval(appId1, buildStage.getId(), policyEvaluation1, violations5);
+    mockPolicyEval(appId1, buildStage.getId(), policyEvaluation5, violations5);
 
     List<ApplicationRiskScoreDTO> result = dashboardService.getApplicationRisks(Collections.singleton(appPublicId1),
         stageIds, Collections.<String>emptySet(), null, null, Integer.MAX_VALUE);

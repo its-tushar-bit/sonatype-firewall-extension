@@ -318,6 +318,7 @@ public class DashboardService
     StageRiskScoreDTO currentStageRiskScore = applicationRiskScore.getStageRiskScore(stageId);
     if (currentStageRiskScore == null) {
       currentStageRiskScore = new StageRiskScoreDTO(stageId);
+      currentStageRiskScore.scanId = policyEvaluationDAO.getById(violation.policyEvaluationId).getScanId();
       applicationRiskScore.addStageRiskScore(currentStageRiskScore);
     }
     updateRisk(currentStageRiskScore.risk, violation.threatLevel);

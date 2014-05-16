@@ -203,6 +203,13 @@
             scope.stageTypes = data[1];
             scope.applicationTags = data[3].data;
 
+            for (var i=0; i<scope.stageTypes.length; i++) {
+              if (scope.stageTypes[i].id === 'develop') {
+                scope.stageTypes.splice(i, 1);
+                break;
+              }
+            }
+
             var organizations = data[2];
             angular.forEach(scope.applicationTags, function(tag) {
               for (var i = 0; i < organizations.length; i++) {

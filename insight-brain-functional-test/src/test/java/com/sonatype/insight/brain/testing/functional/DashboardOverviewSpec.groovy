@@ -148,15 +148,13 @@ class DashboardOverviewSpec
 
     then: 'the policy threat level slider is shown'
       waitFor { policyThreatLevelSlider.slider.displayed }
-      policyThreatLevelSlider.minLabel.text() == "0"
-      policyThreatLevelSlider.maxLabel.text() == "10"
 
     when: 'threat level filter is applied'
       policyThreatLevelSlider.setValues(4,4)
       applyFilter()
 
     then: 'filter text shows one value'
-      policyThreatLevelFilters.text() == 'Policy Threat Level 4'
+      waitFor { policyThreatLevelFilters.text() == 'Policy Threat Level 4' }
   }
 
   def 'Unknown components have popover displaying pathnames'() {

@@ -107,7 +107,7 @@ class DashboardOverviewSpec
     and: 'stage type filters are shown'
       stageTypeFiltersDropdown.showDropdown()
       stageTypeFiltersDropdown.dropdownCheck('Build').displayed
-      stageTypeFiltersDropdown.dropdownCheck('Develop').displayed
+      !stageTypeFiltersDropdown.dropdownItem('Develop').present
       stageTypeFiltersDropdown.dropdownCheck('Release').displayed
       stageTypeFiltersDropdown.dropdownCheck('Stage Release').displayed
       stageTypeFiltersDropdown.dropdownCheck('Operate').displayed

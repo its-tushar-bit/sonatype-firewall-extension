@@ -17,7 +17,7 @@ class DropdownMultiSelectModule
     dropdown { $('.btn-group') }
     dropdownButton { dropdown.find('button') }
     dropdownList { dropdown.find('ul') }
-    dropdownItem { name -> dropdownList.find('label').has('.multi-dropdown-item.name', text: name) }
+    dropdownItem(required: false) { name -> dropdownList.find('label').has('.multi-dropdown-item.name', text: name) }
     dropdownCheck { name -> dropdownItem(name).find('input') }
     dropdownColor { name -> dropdownItem(name).find('span.multi-dropdown-item-color') }
     dropdownOwner { name -> dropdownItem(name).find('div.multi-dropdown-item.owner') }

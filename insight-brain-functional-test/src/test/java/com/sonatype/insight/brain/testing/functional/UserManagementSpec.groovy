@@ -201,8 +201,7 @@ class UserManagementSpec
 
   def "The newly added user can be deleted"() {
     setup: 'log back in as an admin'
-      login.loginAsAdmin()
-      to UserManagementPage
+      loginAsAdminVia(UserManagementPage)
 
     when: 'hovering over the header of the user in the list'
       interact {

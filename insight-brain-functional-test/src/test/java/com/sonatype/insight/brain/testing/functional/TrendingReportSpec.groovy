@@ -73,8 +73,9 @@ class TrendingReportSpec
   def "A non-admin user cannot regenerate the report"() {
     when: 'we log in as a non-admin user'
       userOptions.logoutClick()
+      via TrendingReportPage
       login.login('test', 'secret')
-      to TrendingReportPage
+      verifyAt()
 
     then: 'no refresh button is displayed, but the report is visible'
       waitFor { trendingData.displayed }

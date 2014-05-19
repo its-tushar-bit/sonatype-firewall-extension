@@ -434,7 +434,7 @@
     StageTypeStore.get().then(function (data) {
       stages = [];
       angular.forEach(data, function (stage) {
-        stages[stage.id] = stage.name;
+        stages[stage.id] = stage.name.toUpperCase();
       });
     }, angular.noop);
   }]);

@@ -484,7 +484,7 @@ class DashboardOverviewSpec
     then: 'Stage shown'
       waitFor { applicationViolationsTable.rows.size() == 3 }
       applicationViolationsTable.rows[0].collapse.displayed
-      applicationViolationsTable.rows[1].application.text() == new ReleaseStageType().getName()
+      applicationViolationsTable.rows[1].application.text() == new ReleaseStageType().getName().toUpperCase()
       applicationViolationsTable.rows[1].reportLink.displayed
 
     when: 'Expand'
@@ -492,7 +492,7 @@ class DashboardOverviewSpec
     then: 'Stage shown'
       waitFor { applicationViolationsTable.rows.size() == 4 }
       applicationViolationsTable.rows[2].collapse.displayed
-      applicationViolationsTable.rows[3].application.text() == new BuildStageType().getName()
+      applicationViolationsTable.rows[3].application.text() == new BuildStageType().getName().toUpperCase()
       applicationViolationsTable.rows[3].reportLink.displayed
 
     and: 'the stage label links to the underlying report'

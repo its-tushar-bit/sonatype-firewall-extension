@@ -50,7 +50,7 @@ class DashboardOverviewSpec
 
     Date now = new Date()
     PolicyEvaluation firstPolicyEvaluation = temporaryEntity.newPolicyEvaluation(firstApp.id, BuildStageType.ID,
-        'DashboardSpecFistEvaluation', now - 7)
+        'DashboardSpecFirstEvaluation', now - 7)
     PolicyViolation firstViolation = temporaryEntity.
         newPolicyViolation(firstPolicyEvaluation, policy, 5,
             PolicyThreatCategory.LICENSE, "Group1", "Artifact1", "Version1")
@@ -349,7 +349,7 @@ class DashboardOverviewSpec
       for (i in 0..100) {
         Date now = new Date()
         PolicyEvaluation policyEvaluation = temporaryEntity.newPolicyEvaluation(firstApp.id, BuildStageType.ID,
-            'DashboardSpecFistEvaluation', now - 7)
+            'DashboardSpecFirstEvaluation', now - 7)
         evaluations.add(policyEvaluation)
         PolicyViolation violation = temporaryEntity.
             newPolicyViolation(policyEvaluation, policy, 5, PolicyThreatCategory.SECURITY,

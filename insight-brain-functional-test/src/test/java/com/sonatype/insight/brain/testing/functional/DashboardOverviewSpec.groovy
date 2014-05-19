@@ -20,8 +20,11 @@ import com.sonatype.insight.brain.model.policy.PolicyViolation
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType
 import com.sonatype.insight.brain.model.tag.Tag
+import com.sonatype.insight.brain.service.InsightWork
 import com.sonatype.insight.brain.testing.functional.modules.ThreatTableRow
+import com.sonatype.insight.brain.testing.functional.report.violation.ReportContainerPage
 
+import org.codehaus.plexus.util.FileUtils;
 import org.openqa.selenium.WebElement
 
 /**
@@ -64,6 +67,10 @@ class DashboardOverviewSpec
             PolicyThreatCategory.QUALITY, null, null, null)
     temporaryEntity.newNewestPolicyViolation(secondViolation.id, secondPolicyEvaluation.applicationId,
         secondPolicyEvaluation.stageTypeId)
+
+    InsightWork work = new InsightWork(serviceRule.configuration)
+    File reportZip = work.getReportFile(firstPolicyEvaluation.getApplicationId(), firstPolicyEvaluation.getScanId())
+    FileUtils.copyURLToFile(getClass().getResource('/canned-reports/small-report.zip'), reportZip)
   }
 
   def setup() {
@@ -469,6 +476,7 @@ class DashboardOverviewSpec
       waitFor { applicationViolationsTable.rows.size() == 3 }
       applicationViolationsTable.rows[0].collapse.displayed
       applicationViolationsTable.rows[1].application.text() == new ReleaseStageType().getName()
+      applicationViolationsTable.rows[1].reportLink.displayed
 
     when: 'Expand'
       applicationViolationsTable.rows[2].expand.click()
@@ -476,5 +484,12 @@ class DashboardOverviewSpec
       waitFor { applicationViolationsTable.rows.size() == 4 }
       applicationViolationsTable.rows[2].collapse.displayed
       applicationViolationsTable.rows[3].application.text() == new BuildStageType().getName()
+      applicationViolationsTable.rows[3].reportLink.displayed
+
+    and: 'the stage label links to the underlying report'
+      withNewWindow(page: ReportContainerPage, { applicationViolationsTable.rows[3].reportLink.click() } ) {
+        verifyAt()
+        reportTitle.text()
+      }  ==~ firstApp.getName() + ' .* Build Report'
   }
 }

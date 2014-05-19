@@ -100,5 +100,6 @@ class ApplicationViolationsTableRow extends Module {
     severeRisk { $('td:nth-child(4)') }
     moderateRisk { $('td:nth-child(5)') }
     lowRisk { $('td:nth-child(6)') }
+    reportLink(required: false) { $('td:first-child > a') }
   }
 }

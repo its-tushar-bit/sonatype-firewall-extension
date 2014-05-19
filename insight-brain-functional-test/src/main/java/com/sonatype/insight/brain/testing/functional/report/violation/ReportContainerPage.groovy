@@ -32,6 +32,7 @@ class ReportContainerPage
   static at = { $('#evaluationReportContainer') }
 
   static content = {
+    reportTitle { $('#report-title') }
     reportFrame { $('iframe') }
   }
 }

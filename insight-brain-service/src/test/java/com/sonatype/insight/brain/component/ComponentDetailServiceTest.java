@@ -17,6 +17,7 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
+import com.sonatype.insight.brain.model.policy.stages.DevelopStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -130,6 +131,35 @@ public class ComponentDetailServiceTest
     ReasonDTO reasonDTO = policyViolationSummaryDTO.reasons.get(0);
     assertThat(reasonDTO.constraintName, is("Test Constraint"));
     assertThat(reasonDTO.reasons, containsInAnyOrder("reason"));
+  }
+
+  @Test
+  public void testGetApplicationDetailsByHash_ExcludesDevelopStage() {
+    String hash = "ababababab";
+
+    Application app1 = tempEntity.newApplicationWithParent("app1");
+    tempEntity.newApplicationComponent(app1.getId(), DevelopStageType.ID, hash, "groupId", "artifactId", "version");
+    Policy policy1 = tempEntity.newPolicy(app1.getId(), "policy1", 1);
+    PolicyEvaluation evaluation1 = tempEntity.newPolicyEvaluation(app1.getId(), DevelopStageType.ID, "scanId1");
+    tempEntity.newPolicyViolation(evaluation1, policy1, "groupId", "artifactId", "version", hash, "reason1");
+
+    Application app2 = tempEntity.newApplicationWithParent("app2");
+    tempEntity.newApplicationComponent(app2.getId(), DevelopStageType.ID, hash, "groupId", "artifactId", "version");
+    Policy policy2 = tempEntity.newPolicy(app2.getId(), "policy2", 1);
+    PolicyEvaluation evaluation2 = tempEntity.newPolicyEvaluation(app2.getId(), DevelopStageType.ID, "scanId1");
+    tempEntity.newPolicyViolation(evaluation2, policy2, "groupId", "artifactId", "version", hash, "reason1");
+    tempEntity.newApplicationComponent(app2.getId(), BuildStageType.ID, hash, "groupId", "artifactId", "version");
+    PolicyEvaluation evaluation3 = tempEntity.newPolicyEvaluation(app2.getId(), BuildStageType.ID, "scanId1");
+    tempEntity.newPolicyViolation(evaluation3, policy2, "groupId", "artifactId", "version", hash, "reason1");
+
+    List<ApplicationComponentDetailsDTO> appComponentDetailsDTOs = componentDetailService
+        .getApplicationDetailsByHash(hash);
+    assertThat(appComponentDetailsDTOs, notNullValue());
+    assertThat(appComponentDetailsDTOs, hasSize(1));
+    ApplicationComponentDetailsDTO dto = appComponentDetailsDTOs.get(0);
+    assertThat(dto.application.getId(), is(app2.getId()));
+    assertThat(dto.policyViolations, hasSize(1));
+    assertThat(dto.policyViolations.get(0).stageTypeIds, containsInAnyOrder(BuildStageType.ID));
   }
 
   @Test

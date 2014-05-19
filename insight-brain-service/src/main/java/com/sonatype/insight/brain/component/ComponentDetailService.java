@@ -41,33 +41,38 @@ public class ComponentDetailService
 
   private final ApplicationAdapter appAdapter;
 
+  private final ApplicationComponentDAO applicationComponentDAO;
+
   @Inject
-  public ComponentDetailService(ApplicationService appService, ApplicationAdapter appAdapter) {
+  public ComponentDetailService(ApplicationService appService, ApplicationAdapter appAdapter,
+      ApplicationComponentDAO applicationComponentDAO)
+  {
     this.appService = appService;
     this.appAdapter = appAdapter;
+    this.applicationComponentDAO = applicationComponentDAO;
   }
 
   public List<ApplicationComponentDetailsDTO> getApplicationDetailsByHash(String hash) {
     List<ApplicationComponentDetailsDTO> result = new ArrayList<>();
 
-    ApplicationComponentDAO applicationComponentDAO = new ApplicationComponentDAO();
     PolicyEvaluationDAO policyEvaluationDAO = new PolicyEvaluationDAO();
     PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
 
     // Get the list of applications the user can see
     List<Application> applications = appService.getApplications();
     for (Application application : applications) {
-      List<ApplicationComponent> appComponents = applicationComponentDAO.getByApplicationIdAndHash(application.getId(),
-          hash);
-      if (appComponents.isEmpty()) {
+      if (!isComponentPartOfApplication(application, hash)) {
         // Ignore this application because it does not contain the specified component.
         continue;
       }
 
       ApplicationComponentDetailsDTO applicationComponentDetails = new ApplicationComponentDetailsDTO();
-      
+
       Map<String, PolicyViolationSummaryDTO> policyViolationDTOsByPolicyId = new LinkedHashMap<>();
       for (StageType stageType : StageTypes.getAll()) {
+        if (StageTypes.isIgnoredForDashboard(stageType.getId())) {
+          continue;
+        }
         PolicyEvaluation policyEvaluation = policyEvaluationDAO.getLastByApplicationIdAndStageId(application.getId(),
             stageType.getId());
         if (policyEvaluation == null) {
@@ -110,6 +115,17 @@ public class ComponentDetailService
     }
 
     return result;
+  }
+
+  private boolean isComponentPartOfApplication(Application application, String hash) {
+    List<ApplicationComponent> appComponents = applicationComponentDAO.getByApplicationIdAndHash(application.getId(),
+        hash);
+    for (ApplicationComponent appComponent : appComponents) {
+      if (!StageTypes.isIgnoredForDashboard(appComponent.getStageTypeId())) {
+        return true;
+      }
+    }
+    return false;
   }
 
   public String getComponentNameByHash(String hash) {

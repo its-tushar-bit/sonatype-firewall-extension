@@ -39,4 +39,8 @@ public class StageTypes
     // TODO throw exception if stageTypeId is unknown
     return allStageTypes.get(stageTypeId);
   }
+
+  public static boolean isIgnoredForDashboard(String stageTypeId) {
+    return DevelopStageType.ID.equals(stageTypeId);
+  }
 }

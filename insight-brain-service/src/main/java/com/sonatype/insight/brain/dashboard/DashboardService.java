@@ -414,21 +414,27 @@ public class DashboardService
 
     Collection<StageType> licensedStageTypes = stageTypeService.getLicensedStageTypes();
 
-    if (stageTypeIds == null || stageTypeIds.isEmpty()) {
-      return new HashSet<>(licensedStageTypes);
-    }
-
     Set<StageType> stages = new HashSet<>();
-    for (String stageTypeId : stageTypeIds) {
-      StageType stage = StageTypes.getById(stageTypeId);
-      if (stage == null) {
-        throw new BadRequestException("Unknown stage type: " + stageTypeId + ".");
-      }
-      else if (!licensedStageTypes.contains(stage)) {
-        throw new BadRequestException("Current license does not support stage type: " + stageTypeId + ".");
-      }
 
-      stages.add(stage);
+    if (stageTypeIds == null || stageTypeIds.isEmpty()) {
+      for (StageType stageType : licensedStageTypes) {
+        if (!StageTypes.isIgnoredForDashboard(stageType.getId())) {
+          stages.add(stageType);
+        }
+      }
+    }
+    else {
+      for (String stageTypeId : stageTypeIds) {
+        StageType stage = StageTypes.getById(stageTypeId);
+        if (stage == null || StageTypes.isIgnoredForDashboard(stage.getId())) {
+          throw new BadRequestException("Invalid stage type: " + stageTypeId + ".");
+        }
+        else if (!licensedStageTypes.contains(stage)) {
+          throw new BadRequestException("Current license does not support stage type: " + stageTypeId + ".");
+        }
+
+        stages.add(stage);
+      }
     }
 
     return stages;

@@ -24,6 +24,7 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
+import com.sonatype.insight.brain.model.policy.stages.DevelopStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
@@ -41,8 +42,10 @@ import org.junit.Test;
 import static com.sonatype.insight.brain.dashboard.PolicyViolationDTOTestUtils.assertPolicyViolationDTO;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
@@ -102,7 +105,7 @@ public class DashboardServiceTest
       fail("Expected BadRequestException to be thrown.");
     }
     catch (BadRequestException e) {
-      assertEquals(e.getMessage(), "Unknown stage type: " + badStageTypeId + ".");
+      assertEquals(e.getMessage(), "Invalid stage type: " + badStageTypeId + ".");
     }
   }
 
@@ -217,6 +220,24 @@ public class DashboardServiceTest
     assertPolicyViolationDTO(policyViolationDTOs, app1PolicyViolation, app1, app1Policy);
     assertPolicyViolationDTO(policyViolationDTOs, app2PolicyViolation, app2, orgPolicy);
     assertPolicyViolationDTO(policyViolationDTOs, violation, app1, app1Policy);
+  }
+
+  @Test
+  public void testGetPolicyViolations_FilterByStage_ExcludesDevelop() {
+    PolicyEvaluation evaluation = tempEntity
+        .newPolicyEvaluation(app1.getId(), DevelopStageType.ID, "test scan app1 id");
+    tempEntity.newPolicyViolation(evaluation, app1Policy);
+
+    List<PolicyViolationDTO> policyViolationDTOs = dashboardService.getPolicyViolations(null, null, null, null, false);
+    assertThat(policyViolationDTOs, hasSize(3));
+
+    try {
+      dashboardService.getPolicyViolations(Collections.singleton(DevelopStageType.ID), null, null, null, false);
+      fail("Expected exception");
+    }
+    catch (BadRequestException e) {
+      assertThat(e.getMessage(), containsString("Invalid stage type"));
+    }
   }
 
   @Test
@@ -539,6 +560,26 @@ public class DashboardServiceTest
   }
 
   @Test
+  public void testGetComponentRisks_FilterByStage_ExcludesDevelop() throws Exception {
+    PolicyEvaluation evaluation = tempEntity
+        .newPolicyEvaluation(app1.getId(), DevelopStageType.ID, "test scan app1 id");
+    tempEntity.newPolicyViolation(evaluation, app1Policy, app1Policy.getThreatLevel(), app1Policy.getThreatCategory(),
+        "g", "a", "v", "somehash");
+
+    List<ComponentRiskDTO> riskDTOs = dashboardService.getComponentRisks(null, null, null, null, null, 1000);
+    assertThat(riskDTOs, hasSize(1));
+    assertThat(riskDTOs.get(0).hash, is(app1PolicyViolation.getHash()));
+
+    try {
+      dashboardService.getComponentRisks(null, Collections.singleton(DevelopStageType.ID), null, null, null, 1000);
+      fail("Expected exception");
+    }
+    catch (BadRequestException e) {
+      assertThat(e.getMessage(), containsString("Invalid stage type"));
+    }
+  }
+
+  @Test
   public void testGetComponentRisks_FilterByTag() throws Exception {
     Tag app2Tag = tempEntity.newTag(org.getId());
     tempEntity.newApplicationTag(app2.getId(), app2Tag.getId());
@@ -618,5 +659,26 @@ public class DashboardServiceTest
     ComponentRiskDTO riskDTO = riskDTOs.get(0);
     assertThat(riskDTO.hash, is(hash));
     assertThat(riskDTO.score, is(12));
+  }
+
+  @Test
+  public void testGetApplicationRisks_FilterByStage_ExcludesDevelop() throws Exception {
+    PolicyEvaluation evaluation = tempEntity
+        .newPolicyEvaluation(app1.getId(), DevelopStageType.ID, "test scan app1 id");
+    tempEntity.newPolicyViolation(evaluation, app1Policy, app1Policy.getThreatLevel(), app1Policy.getThreatCategory(),
+        "g", "a", "v", "somehash");
+
+    List<ApplicationRiskScoreDTO> riskDTOs = dashboardService.getApplicationRisks(null, null, null, null, null, 100);
+    assertThat(riskDTOs, hasSize(2));
+    assertThat(riskDTOs.get(0).getStageRiskScore(DevelopStageType.ID), is(nullValue()));
+    assertThat(riskDTOs.get(1).getStageRiskScore(DevelopStageType.ID), is(nullValue()));
+
+    try {
+      dashboardService.getApplicationRisks(null, Collections.singleton(DevelopStageType.ID), null, null, null, 100);
+      fail("Expected exception");
+    }
+    catch (BadRequestException e) {
+      assertThat(e.getMessage(), containsString("Invalid stage type"));
+    }
   }
 }

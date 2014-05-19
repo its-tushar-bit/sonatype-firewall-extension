@@ -347,7 +347,7 @@ public class DashboardResourceTest
         + "?stageIds=" + "not-a-real-id");
 
     assertResponseStatus(400, response);
-    assertThat(response.getResponseBody(), is("Unknown stage type: not-a-real-id."));
+    assertThat(response.getResponseBody(), is("Invalid stage type: not-a-real-id."));
   }
 
   @Test

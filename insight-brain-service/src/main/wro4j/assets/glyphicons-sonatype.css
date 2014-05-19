@@ -97,6 +97,7 @@
   *zoom: 1;
   font: 10px/10px 'Glyphicons';
   font-style: normal;
+  padding-left: 3px;
 }
 
 .glyphicons-sonatype.link:hover:after {

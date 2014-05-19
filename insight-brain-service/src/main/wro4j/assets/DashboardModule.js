@@ -414,6 +414,9 @@
     $scope.encodeURIComponent = window.encodeURIComponent;
 
     $scope.getStageName = function(stageRisk) {
+      if (!stages) {
+        return;
+      }
       return stages[stageRisk.stageTypeId];
     };
 

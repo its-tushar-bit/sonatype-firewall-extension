@@ -195,7 +195,7 @@ public class DashboardServiceHighestRiskTest
     assertRisk(result.get(0).totalApplicationRisk, 0, 5, 0, 0, 5);
     assertEquals("Risk name was set right", appName, result.get(0).applicationName);
     assertEquals("Risk public appID was set right", appPublicId1, result.get(0).applicationId);
-    assertEquals("One stage risk in map", 1, result.get(0).stageRisks.size());
+    assertThat(result.get(0).stageRisks, hasSize(1));
 
     StageRiskScoreDTO buildStageRisk = result.get(0).getStageRiskScore(buildStage.getId());
     assertRisk(buildStageRisk.risk, 0, 5, 0, 0, 5);
@@ -213,10 +213,11 @@ public class DashboardServiceHighestRiskTest
     PolicyViolation vio2 = new PolicyViolation(policyEvaluation2, "policyHam", policyName2, 7,
         PolicyThreatCategory.LICENSE, vioHash1, groupId1, artifactId1, versionId1, "[]", "");
 
-    List<ApplicationRiskScoreDTO> result = doTest(Lists.newArrayList(buildStage, releaseStage), Lists.newArrayList(application1),
+    List<ApplicationRiskScoreDTO> result = doTest(Lists.newArrayList(buildStage, releaseStage),
+        Lists.newArrayList(application1),
         Lists.newArrayList(policyEvaluation1, policyEvaluation2), Lists.newArrayList(vio1, vio2), Integer.MAX_VALUE);
 
-    assertEquals("One result expected", 1, result.size());
+    assertThat(result, hasSize(1));
     assertRisk(result.get(0).totalApplicationRisk, 0, 12, 0, 0, 12);
     assertEquals("Risk name was set right", appName, result.get(0).applicationName);
     assertEquals("Risk public appID was set right", appPublicId1, result.get(0).applicationId);
@@ -230,6 +231,48 @@ public class DashboardServiceHighestRiskTest
     assertRisk(releaseStageRisk.risk, 0, 7, 0, 0, 7);
     assertThat(releaseStageRisk.scanId, is(policyEvaluation2.getScanId()));
   }
+
+  @Test
+  public void testGetAllApplicationRisksTwoStagesAppOneOneStageAppTwo() {
+    String policyEvalId2 = "polEval2";
+    String policyName2 = "secondPolicy";
+    PolicyEvaluation policyEvaluation2 = new PolicyEvaluation(appId1, releaseStage.getId(), scanId);
+    policyEvaluation2.setId(policyEvalId2);
+    policyEvaluation2.setTime(new Date(5000L));
+    PolicyViolation vio2 = new PolicyViolation(policyEvaluation2, "policyHam", policyName2, 7,
+        PolicyThreatCategory.LICENSE, vioHash1, groupId1, artifactId1, versionId1, "[]", "");
+
+    List<ApplicationRiskScoreDTO> result = doTest(Lists.newArrayList(buildStage, releaseStage),
+        Lists.newArrayList(application1, application2),
+        Lists.newArrayList(policyEvaluation1, policyEvaluation2, policyEvaluation4),
+        Lists.newArrayList(vio1, vio2, vio4), Integer.MAX_VALUE);
+
+    assertThat(result, hasSize(2));
+    assertRisk(result.get(0).totalApplicationRisk, 0, 12, 0, 0, 12);
+    assertEquals("Risk name was set right", appName, result.get(0).applicationName);
+    assertEquals("Risk public appID was set right", appPublicId1, result.get(0).applicationId);
+    assertThat(result.get(0).stageRisks, hasSize(2));
+
+    //application one
+    StageRiskScoreDTO buildStageRisk = result.get(0).getStageRiskScore(buildStage.getId());
+    assertRisk(buildStageRisk.risk, 0, 5, 0, 0, 5);
+    assertThat(buildStageRisk.scanId, is(policyEvaluation1.getScanId()));
+
+    StageRiskScoreDTO releaseStageRisk = result.get(0).getStageRiskScore(releaseStage.getId());
+    assertRisk(releaseStageRisk.risk, 0, 7, 0, 0, 7);
+    assertThat(releaseStageRisk.scanId, is(policyEvaluation2.getScanId()));
+
+    //application two
+    assertRisk(result.get(1).totalApplicationRisk, 0, 0, 3, 0, 3);
+    assertEquals("Risk name was set right", appName2, result.get(1).applicationName);
+    assertEquals("Risk public appID was set right", appPublicId2, result.get(1).applicationId);
+    assertThat(result.get(1).stageRisks, hasSize(1));
+
+    StageRiskScoreDTO appTwoBuildStageRisk = result.get(1).getStageRiskScore(buildStage.getId());
+    assertRisk(appTwoBuildStageRisk.risk, 0, 0, 3, 0, 3);
+    assertThat(appTwoBuildStageRisk.scanId, is(policyEvaluation4.getScanId()));
+  }
+
 
   @Test
   public void testGetAllApplicationRisksSortedByRiskThenAppId() {
@@ -250,7 +293,8 @@ public class DashboardServiceHighestRiskTest
 
     List<ApplicationRiskScoreDTO> result = doTest(Lists.newArrayList(buildStage),
         Lists.newArrayList(application1, application2, application3),
-        Lists.newArrayList(policyEvaluation1, policyEvaluation3, policyEvaluation4), Lists.newArrayList(vio1, vio3, vio4), Integer.MAX_VALUE);
+        Lists.newArrayList(policyEvaluation1, policyEvaluation3, policyEvaluation4),
+        Lists.newArrayList(vio1, vio3, vio4), Integer.MAX_VALUE);
 
     assertThat(result, hasSize(3));
 

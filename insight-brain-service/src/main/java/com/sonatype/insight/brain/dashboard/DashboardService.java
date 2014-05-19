@@ -286,7 +286,7 @@ public class DashboardService
 
       Iterable<PolicyViolationDTO> violationsForApp = getViolationsForApp(allPolicyViolationDTOs, application);
       for (final String stageId : stageIdsToSearch) {
-        for (final PolicyViolationDTO violation : createViolationsForStage(stageId, allPolicyViolationDTOs,
+        for (final PolicyViolationDTO violation : createViolationsForStage(stageId, violationsForApp,
             policyEvaluationsById)) {
           PolicyEvaluation currentPolicyEvaluation = policyEvaluationsById.get(violation.policyEvaluationId);
           updateStageRisk(applicationRisk, violation, stageId, currentPolicyEvaluation.getScanId());
@@ -314,10 +314,10 @@ public class DashboardService
   }
 
   private Iterable<PolicyViolationDTO> createViolationsForStage(final String stageId,
-      final List<PolicyViolationDTO> allPolicyViolationDTOs, final Map<String, PolicyEvaluation> policyEvaluationsById)
+      final Iterable<PolicyViolationDTO> violationsForApp, final Map<String, PolicyEvaluation> policyEvaluationsById)
   {
     return Iterables
-        .filter(allPolicyViolationDTOs, new Predicate<PolicyViolationDTO>()
+        .filter(violationsForApp, new Predicate<PolicyViolationDTO>()
         {
           @Override
           public boolean apply(@Nullable final PolicyViolationDTO violation) {

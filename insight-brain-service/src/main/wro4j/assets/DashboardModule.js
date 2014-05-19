@@ -411,12 +411,10 @@
   dashboardModule.controller('applicationRiskTable', ['$scope', '$http', 'CLMLocations', 'StageTypeStore', function ($scope, $http, CLMLocations, StageTypeStore) {
     var stages = null;
 
+    $scope.encodeURIComponent = window.encodeURIComponent;
+
     $scope.getStageName = function(stageRisk) {
       return stages[stageRisk.stageTypeId];
-    };
-
-    $scope.getReportUrl = function(applicationPublicId, scanId) {
-      return CLMLocations.getReportUrl(applicationPublicId, scanId);
     };
 
     $scope.expanded = {};

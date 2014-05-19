@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.dataaccess.policy;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -15,8 +14,6 @@ import javax.persistence.EntityManager;
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
-
-import com.google.common.collect.Lists;
 
 /**
  * @since 1.11

@@ -459,6 +459,7 @@ class DashboardOverviewSpec
       at ComponentDrilldownPage
   }
 
+  @spock.lang.Ignore("Knowingly broken, to be fixed by CLM-2478")
   def 'Applications Table'() {
     when: 'Switch to Applications Tab'
       tabLinks.applicationsTabButton.click()

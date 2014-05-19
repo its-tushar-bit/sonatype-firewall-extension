@@ -247,7 +247,9 @@
               </thead>
               <tr ng-repeat="component in data | limitTo: maxResults | orderBy:getSortField():getSortReverse()">
                 <td ng-if="component.gavs.length">
-                  {{component.gavs[0].groupId}}<span class="wrap-force-break"> : </span>{{component.gavs[0].artifactId}}<span class="wrap-force-break"> : </span>{{component.gavs[0].version}}
+                  <a ui-sref="dashboard.component({ hash: component.hash })">
+                    {{component.gavs[0].groupId}}<span class="wrap-force-break"> : </span>{{component.gavs[0].artifactId}}<span class="wrap-force-break"> : </span>{{component.gavs[0].version}}
+                  </a>
                 </td>
                 <td ng-if="!component.gavs.length && component.pathnames.length" pathnames-popover='component.pathnames'>
                   <a ui-sref="dashboard.component({ hash: component.hash })">

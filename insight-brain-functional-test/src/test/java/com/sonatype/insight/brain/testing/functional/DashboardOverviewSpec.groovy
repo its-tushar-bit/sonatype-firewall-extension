@@ -59,6 +59,8 @@ class DashboardOverviewSpec
             PolicyThreatCategory.LICENSE, "Group1", "Artifact1", "Version1")
     temporaryEntity.newNewestPolicyViolation(firstViolation.id, firstPolicyEvaluation.applicationId,
         firstPolicyEvaluation.stageTypeId)
+    temporaryEntity.newApplicationComponent(firstPolicyEvaluation.getApplicationId(), firstPolicyEvaluation.getStageTypeId(),
+        firstViolation.getHash(), firstViolation.getGroupId(), firstViolation.getArtifactId(), firstViolation.getVersion())
 
     PolicyEvaluation secondPolicyEvaluation = temporaryEntity.newPolicyEvaluation(secondApp.id, ReleaseStageType.ID,
         'DashboardSpecSecondEvaluation', now)
@@ -448,6 +450,13 @@ class DashboardOverviewSpec
       componentViolationsTable.rows[0].severeRisk.text() == "5"
       componentViolationsTable.rows[0].moderateRisk.text() == "0"
       componentViolationsTable.rows[0].lowRisk.text() == "0"
+      componentViolationsTable.rows[0].componentLink.displayed
+
+    when: 'clicking the component link'
+      componentViolationsTable.rows[0].componentLink.click()
+
+    then: 'the component drilldown page is shown'
+      at ComponentDrilldownPage
   }
 
   def 'Applications Table'() {

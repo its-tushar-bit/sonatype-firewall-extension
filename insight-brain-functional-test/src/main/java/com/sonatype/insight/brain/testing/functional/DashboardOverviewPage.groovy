@@ -76,6 +76,7 @@ class ComponentViolationsTable extends Module {
 class ComponentViolationsTableRow extends Module {
   static content = {
     component { $('td:first-child') }
+    componentLink { $('td:first-child > a') }
     netRisk { $('td:nth-child(2)') }
     criticalRisk { $('td:nth-child(3)') }
     severeRisk { $('td:nth-child(4)') }

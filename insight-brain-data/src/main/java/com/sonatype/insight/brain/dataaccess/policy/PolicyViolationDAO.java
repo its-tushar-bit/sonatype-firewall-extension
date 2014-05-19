@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.dataaccess.policy;
 
 import java.util.List;
+import java.util.Set;
 
 import javax.persistence.EntityManager;
 
@@ -44,6 +45,12 @@ public class PolicyViolationDAO
         " WHERE entity.policyEvaluationId=?1" + //
         " ORDER BY entity.policyId, entity.groupId, entity.artifactId, entity.version, entity.hash";
     return getList(em, sQuery, evaluationId);
+  }
+
+  public List<PolicyViolation> getByEvaluationIds(Set<String> evaluationIds) {
+    String sQuery = "SELECT entity FROM PolicyViolation entity" + //
+        " WHERE entity.policyEvaluationId IN (?1)";
+    return getList(sQuery, evaluationIds);
   }
 
   public List<PolicyViolation> getByPolicyId(EntityManager em, String policyId) {

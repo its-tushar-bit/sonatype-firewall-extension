@@ -51,6 +51,8 @@ import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.tag.ApplicationTag;
 import com.sonatype.insight.brain.model.tag.Tag;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.apache.commons.lang.StringUtils;
 import org.junit.After;
 import org.junit.Assert;
@@ -152,6 +154,27 @@ public class ApplicationDAOTest
     tempEntity.newApplications(organization.getId(), 3);
     Set<String> publicIds = new HashSet<>();
     List<Application> retrievedApplications = new ArrayList<>(applicationDAO.getByPublicIds(publicIds));
+    assertThat(retrievedApplications, hasSize(0));
+  }
+
+  @Test
+  public void testGetApplicationsByTagIds() throws Exception {
+    int numApplication = 3;
+    String tagName = "foo";
+    Tag tag = tempEntity.newTag(organization.getId(), tagName);
+    List<Application> applications = tempEntity.newApplications(organization.getId(), numApplication);
+    for (Application app : applications) {
+      tempEntity.newApplicationTag(app.getId(), tag.getId());
+    }
+    //find all 3 with tag
+    List<Application> retrievedApplications = Lists
+        .newArrayList(applicationDAO.getByTagIds(Sets.newHashSet(tag.getId())));
+    assertThat(retrievedApplications, hasSize(numApplication));
+    assertApplications(retrievedApplications, applications);
+
+    //find nothing without
+    retrievedApplications = Lists
+        .newArrayList(applicationDAO.getByTagIds(Sets.newHashSet("notMyTagId")));
     assertThat(retrievedApplications, hasSize(0));
   }
 

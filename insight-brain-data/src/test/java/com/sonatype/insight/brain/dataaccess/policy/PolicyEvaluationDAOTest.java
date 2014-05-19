@@ -6,12 +6,16 @@
 package com.sonatype.insight.brain.dataaccess.policy;
 
 import java.util.Date;
+import java.util.List;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
+import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 
+import com.google.common.collect.Sets;
 import org.junit.Test;
 
 import static org.hamcrest.Matchers.greaterThan;
@@ -153,5 +157,97 @@ public class PolicyEvaluationDAOTest
     assertThat(actual.getScanId(), is(scanId));
     assertThat(actual.isReevaluation(), is(reevaluation));
     assertThat(actual.isForMonitoring(), is(forMonitoring));
+  }
+
+  @Test
+  public void testGetMostRecentByApplicationIdsAndStageIdsGetsNewest() {
+    PolicyEvaluationDAO dao = new PolicyEvaluationDAO();
+
+    String stageTypeId = ReleaseStageType.ID;
+    String scanId = "PolicyEvaluationDAOTest";
+
+    Date time1 = new Date();
+    tempEntity.newPolicyEvaluation(applicationId, stageTypeId, scanId, time1);
+    Date time2 = new Date(time1.getTime() + 1000);
+    tempEntity.newPolicyEvaluation(applicationId, stageTypeId, scanId, true /* isReevaluation */,
+        false /* forMonitoring */, time2);
+
+    List<PolicyEvaluation> policyEvaluations = dao
+        .getLastByApplicationIdsAndStageIds(Sets.newHashSet(applicationId), Sets.newHashSet(ReleaseStageType.ID));
+    assertThat(policyEvaluations, hasSize(1));
+    PolicyEvaluation policyEvaluation = policyEvaluations.get(0);
+    assertThat(policyEvaluation, is(notNullValue()));
+    assertThat(policyEvaluation.getTime(), is(time2));
+  }
+
+  @Test
+  public void testGetMostRecentByApplicationIdsAndStageIdsFiltersInvalidAppIdsAndStages() {
+    PolicyEvaluationDAO dao = new PolicyEvaluationDAO();
+
+    Application application2 = tempEntity.newApplication("AbstractDbDAOTest-AppName2", "AbstractDbDAOTest_AppPublicId2",
+        organization.getId());
+
+    Date time1 = new Date();
+    tempEntity.newPolicyEvaluation(applicationId, ReleaseStageType.ID, "scan1", time1);
+
+    //wrong stage
+    Date time2 = new Date(time1.getTime() + 1000);
+    tempEntity.newPolicyEvaluation(applicationId, BuildStageType.ID, "scan2", time2);
+
+    //wrong appId
+    Date time3 = new Date(time1.getTime() + 2000);
+    tempEntity.newPolicyEvaluation(application2.getId(), ReleaseStageType.ID, "scan3", time3);
+
+    //wrong both
+    Date time4 = new Date(time1.getTime() + 3000);
+    tempEntity.newPolicyEvaluation(application2.getId(), BuildStageType.ID, "scan4", time4);
+
+    List<PolicyEvaluation> policyEvaluations = dao
+        .getLastByApplicationIdsAndStageIds(Sets.newHashSet(applicationId), Sets.newHashSet(ReleaseStageType.ID));
+    assertThat(policyEvaluations, hasSize(1));
+    PolicyEvaluation policyEvaluation = policyEvaluations.get(0);
+    assertThat(policyEvaluation, is(notNullValue()));
+    assertThat(policyEvaluation.getTime(), is(time1));
+  }
+
+  @Test
+  public void testGetMostRecentByApplicationIdsAndStageIdsDealsWithDuplicateTimes() {
+    PolicyEvaluationDAO dao = new PolicyEvaluationDAO();
+
+    Date time1 = new Date();
+    tempEntity.newPolicyEvaluation(applicationId, ReleaseStageType.ID, "scan1", time1);
+    tempEntity.newPolicyEvaluation(applicationId, BuildStageType.ID, "scan2", time1);
+
+    List<PolicyEvaluation> policyEvaluations = dao
+        .getLastByApplicationIdsAndStageIds(Sets.newHashSet(applicationId), Sets.newHashSet(ReleaseStageType.ID));
+    assertThat(policyEvaluations, hasSize(1));
+    PolicyEvaluation policyEvaluation = policyEvaluations.get(0);
+    assertThat(policyEvaluation, is(notNullValue()));
+    assertThat(policyEvaluation.getTime(), is(time1));
+  }
+
+  @Test
+  public void testGetMostRecentByApplicationIdsAndStageIdsDealsWithTwoApps() {
+    PolicyEvaluationDAO dao = new PolicyEvaluationDAO();
+
+    Date time1 = new Date();
+    tempEntity.newPolicyEvaluation(applicationId, ReleaseStageType.ID, "scan1", time1);
+    Date time2 = new Date(time1.getTime() + 1000);
+    tempEntity.newPolicyEvaluation(applicationId, ReleaseStageType.ID, "scan2", time2);
+
+    //second app
+    Application application2 = tempEntity.newApplication("AbstractDbDAOTest-AppName2", "AbstractDbDAOTest_AppPublicId2",
+        organization.getId());
+    tempEntity.newPolicyEvaluation(application2.getId(), ReleaseStageType.ID, "scan3", time1);
+    tempEntity.newPolicyEvaluation(application2.getId(), ReleaseStageType.ID, "scan4", time2);
+
+    List<PolicyEvaluation> policyEvaluations = dao
+        .getLastByApplicationIdsAndStageIds(Sets.newHashSet(applicationId, application2.getId()),
+            Sets.newHashSet(ReleaseStageType.ID));
+    assertThat(policyEvaluations, hasSize(2));
+    for(PolicyEvaluation pe : policyEvaluations){
+      assertThat(pe, is(notNullValue()));
+      assertThat(pe.getTime(), is(time2));
+    }
   }
 }

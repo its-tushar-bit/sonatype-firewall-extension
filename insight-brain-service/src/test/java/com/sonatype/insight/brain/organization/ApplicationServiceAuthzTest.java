@@ -12,6 +12,7 @@ import javax.inject.Inject;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 
+import com.google.common.collect.Sets;
 import org.apache.shiro.authz.UnauthenticatedException;
 import org.junit.Assert;
 import org.junit.Test;
@@ -137,4 +138,20 @@ public class ApplicationServiceAuthzTest
     app.setName("TestUpdateName");
     applicationService.updateApplication(app);
   }
+
+  @Test
+  public void testGetApplicationsByPublicIdsAndTagIds_Authorized() throws Exception {
+    grantReadPermission(app.getId());
+    final List<Application> applications = applicationService
+        .getApplicationsByPublicIdsAndTagIds(Sets.newHashSet(app.getPublicId()), null);
+    assertThat(applications, hasSize(1));
+  }
+
+  @Test
+  public void testGetApplicationsByPublicIdsAndTagIds_Unauthenticated() throws Exception {
+    final List<Application> applications = applicationService
+        .getApplicationsByPublicIdsAndTagIds(Sets.newHashSet(app.getPublicId()), null);
+    assertThat(applications, hasSize(0));
+  }
+
 }

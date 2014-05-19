@@ -9,7 +9,9 @@ import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.persistence.EntityManager;
@@ -24,6 +26,8 @@ import com.sonatype.insight.dataaccess.AbstractDAO;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static org.apache.commons.collections.CollectionUtils.isEmpty;
 
 @Named
 public class ApplicationService
@@ -79,6 +83,25 @@ public class ApplicationService
       @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String applicationPublicId)
   {
     return applicationDAO.getByPublicId(applicationPublicId);
+  }
+
+  @AuthzFilter(permission = Permission.READ, context = AuthzFilter.Context.APPLICATION)
+  public List<Application> getApplicationsByPublicIdsAndTagIds(
+      @Nullable final Set<String> applicationPublicIds, @Nullable final Set<String> tagIds)
+  {
+    if (isEmpty(applicationPublicIds) && isEmpty(tagIds)) {
+      return applicationDAO.getAll();
+    }
+    else if (isEmpty(applicationPublicIds)) {
+      return applicationDAO.getByTagIds(tagIds);
+    }
+    else if (isEmpty(tagIds)) {
+      return applicationDAO.getByPublicIds(applicationPublicIds);
+    }
+    else {
+      //both filled
+      return applicationDAO.getByPublicIdsThatHaveTags(applicationPublicIds, tagIds);
+    }
   }
 
   @AuthzFilter(permission = Permission.READ, context = AuthzFilter.Context.APPLICATION)

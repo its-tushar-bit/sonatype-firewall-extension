@@ -5,9 +5,7 @@
  */
 package com.sonatype.insight.brain.dashboard;
 
-import java.util.Collections;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -33,10 +31,11 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.when;
 
 
@@ -114,10 +113,8 @@ public class DashboardServiceHighestRiskTest
 
   private String vioHash1 = "bargobl";
 
-  private PolicyViolation vio1 = new PolicyViolation(policyEvaluation1, policyEvalId1, policyName, 5,
+  private PolicyViolation vio1 = new PolicyViolation(policyEvaluation1, "policyW", policyName, 5,
       PolicyThreatCategory.LICENSE, vioHash1, groupId1, artifactId1, versionId1, "[]", "");
-
-  private List<PolicyViolation> violations1 = Lists.newArrayList(vio1);
 
 
   private String appId2 = "wagarbl2";
@@ -145,28 +142,9 @@ public class DashboardServiceHighestRiskTest
     policyEvaluation4.setTime(new Date(4000L));
   }
 
-  private PolicyViolation vio4 = new PolicyViolation(policyEvaluation4, policyEvalId4, policyName4, 3,
+  private PolicyViolation vio4 = new PolicyViolation(policyEvaluation4, "policyFour", policyName4, 3,
       PolicyThreatCategory.LICENSE, vioHash1, groupId1, artifactId1, versionId1, "[]", "");
 
-  private List<PolicyViolation> violations4 = Lists.newArrayList(vio4);
-
-  private List<StageType> stages = Lists.newArrayList(buildStage);
-
-  private Set<String> stageIds = Sets.newHashSet(buildStage.getId());
-
-  private void mockGetByPublicId(final List<StageType> stages, String inputPublicAppId, Application returnApp) {
-    when(stageTypeService.getLicensedStageTypes()).thenReturn(stages);
-    when(applicationService.getApplicationByPublicIdNotNull(inputPublicAppId)).thenReturn(returnApp);
-    when(applicationDAO.getByPublicIdNotNull(inputPublicAppId)).thenReturn(returnApp);
-  }
-
-  private void mockPolicyEval(final String givenAppId, final String stageId, final PolicyEvaluation policyEval,
-      final List<PolicyViolation> resultViolation)
-  {
-    when(policyEvaluationDAO.getLastByApplicationIdAndStageId(givenAppId, stageId)).thenReturn(policyEval);
-    when(policyEvaluationDAO.getById(policyEval.getId())).thenReturn(policyEval);
-    when(policyViolationDAO.getByEvaluationId(policyEval.getId())).thenReturn(resultViolation);
-  }
 
   private void assertRisk(RiskDTO risk, int criticalRisk, int severeRisk, int moderateRisk,
       int lowRisk, int netRisk)
@@ -179,16 +157,41 @@ public class DashboardServiceHighestRiskTest
     assertEquals(netRisk, risk.totalRisk);
   }
 
+  private List<ApplicationRiskScoreDTO> doTest(List<StageType> stages, List<Application> returnApps,
+      List<PolicyEvaluation> policyEvals, List<PolicyViolation> policyViolations, int limit)
+  {
+
+    Set<String> stageIds = Sets.newHashSet();
+    for (StageType stage : stages) {
+      stageIds.add(stage.getId());
+    }
+
+    Set<String> returnAppIds = Sets.newHashSet();
+    for (Application app : returnApps) {
+      returnAppIds.add(app.getId());
+    }
+
+    Set<String> policyEvaluationIds = Sets.newHashSet();
+    for (PolicyEvaluation eval : policyEvals) {
+      policyEvaluationIds.add(eval.getId());
+    }
+
+    when(applicationService.getApplicationsByPublicIdsAndTagIds(returnAppIds, null)).thenReturn(returnApps);
+    when(stageTypeService.getLicensedStageTypes()).thenReturn(stages);
+    when(applicationService.getApplicationsByPublicIdsAndTagIds(returnAppIds, null)).thenReturn(returnApps);
+    when(policyEvaluationDAO.getLastByApplicationIdsAndStageIds(returnAppIds, stageIds)).thenReturn(policyEvals);
+    when(policyViolationDAO.getByEvaluationIds(policyEvaluationIds)).thenReturn(policyViolations);
+
+    return dashboardService
+        .getApplicationRisks(returnAppIds, stageIds, null, null, null, limit);
+  }
+
   @Test
   public void testGetAllApplicationRisksSimple() {
-    mockGetByPublicId(Lists.newArrayList(buildStage), appPublicId1, application1);
-    mockPolicyEval(appId1, buildStage.getId(), policyEvaluation1, violations1);
+    List<ApplicationRiskScoreDTO> result = doTest(Lists.newArrayList(buildStage), Lists.newArrayList(application1),
+        Lists.newArrayList(policyEvaluation1), Lists.newArrayList(vio1), Integer.MAX_VALUE);
 
-    List<ApplicationRiskScoreDTO> result = dashboardService
-        .getApplicationRisks(Collections.singleton(appPublicId1), Collections.singleton(buildStage.getId()),
-            Collections.<String>emptySet(), null, null, Integer.MAX_VALUE);
-
-    assertEquals("One result expected", 1, result.size());
+    assertThat(result, hasSize(1));
     assertRisk(result.get(0).totalApplicationRisk, 0, 5, 0, 0, 5);
     assertEquals("Risk name was set right", appName, result.get(0).applicationName);
     assertEquals("Risk public appID was set right", appPublicId1, result.get(0).applicationId);
@@ -200,30 +203,24 @@ public class DashboardServiceHighestRiskTest
   }
 
 
-  private void doTwoStageTestWithStageIds(final Set<String> inputStageIds, int maxResults) {
+  @Test
+  public void testGetAllApplicationRisksTwoStages() {
     String policyEvalId2 = "polEval2";
     String policyName2 = "secondPolicy";
     PolicyEvaluation policyEvaluation2 = new PolicyEvaluation(appId1, releaseStage.getId(), scanId);
     policyEvaluation2.setId(policyEvalId2);
     policyEvaluation2.setTime(new Date(5000L));
-    PolicyViolation vio2 = new PolicyViolation(policyEvaluation2, policyEvalId2, policyName2, 7,
+    PolicyViolation vio2 = new PolicyViolation(policyEvaluation2, "policyHam", policyName2, 7,
         PolicyThreatCategory.LICENSE, vioHash1, groupId1, artifactId1, versionId1, "[]", "");
-    List<PolicyViolation> violations2 = Lists.newArrayList(vio2);
 
-    List<StageType> licensedStages = Lists.newArrayList(buildStage, releaseStage);
-
-    mockGetByPublicId(licensedStages, appPublicId1, application1);
-    mockPolicyEval(appId1, buildStage.getId(), policyEvaluation1, violations1);
-    mockPolicyEval(appId1, releaseStage.getId(), policyEvaluation2, violations2);
-
-    List<ApplicationRiskScoreDTO> result = dashboardService.getApplicationRisks(Collections.singleton(appPublicId1),
-        inputStageIds, Collections.<String>emptySet(), null, null, maxResults);
+    List<ApplicationRiskScoreDTO> result = doTest(Lists.newArrayList(buildStage, releaseStage), Lists.newArrayList(application1),
+        Lists.newArrayList(policyEvaluation1, policyEvaluation2), Lists.newArrayList(vio1, vio2), Integer.MAX_VALUE);
 
     assertEquals("One result expected", 1, result.size());
     assertRisk(result.get(0).totalApplicationRisk, 0, 12, 0, 0, 12);
     assertEquals("Risk name was set right", appName, result.get(0).applicationName);
     assertEquals("Risk public appID was set right", appPublicId1, result.get(0).applicationId);
-    assertEquals("Two stage risk in map", 2, result.get(0).stageRisks.size());
+    assertThat(result.get(0).stageRisks, hasSize(2));
 
     StageRiskScoreDTO buildStageRisk = result.get(0).getStageRiskScore(buildStage.getId());
     assertRisk(buildStageRisk.risk, 0, 5, 0, 0, 5);
@@ -235,19 +232,7 @@ public class DashboardServiceHighestRiskTest
   }
 
   @Test
-  public void testGetAllApplicationRisksTwoStages() {
-    doTwoStageTestWithStageIds(Sets.newHashSet(buildStage.getId(), releaseStage.getId()), 2);
-  }
-
-  @Test
-  public void testGetAllApplicationRIsksNoStagedPickedGetsAllLicensedStages() {
-    doTwoStageTestWithStageIds(new HashSet<String>(), 2);
-  }
-
-
-  @Test
   public void testGetAllApplicationRisksSortedByRiskThenAppId() {
-
     String appId3 = "zagarbl2";
     String appPublicId3 = "pubbobl3";
     String appName3 = "myApp3";
@@ -255,18 +240,19 @@ public class DashboardServiceHighestRiskTest
     Application application3 = new Application(appPublicId3, appName3, orgId3);
     application3.setId(appId3);
 
-    mockGetByPublicId(stages, appPublicId1, application1);
-    mockGetByPublicId(stages, appPublicId2, application2);
-    mockGetByPublicId(stages, appPublicId3, application3);
-    mockPolicyEval(appId1, buildStage.getId(), policyEvaluation1, violations1);
-    mockPolicyEval(appId2, buildStage.getId(), policyEvaluation4, violations4);
-    mockPolicyEval(appId3, buildStage.getId(), policyEvaluation4, violations4);
+    String policyEvalId3 = "polEval3";
+    String policyName3 = "thirdPolicy";
+    PolicyEvaluation policyEvaluation3 = new PolicyEvaluation(appId3, releaseStage.getId(), scanId);
+    policyEvaluation3.setId(policyEvalId3);
+    policyEvaluation3.setTime(new Date(5000L));
+    PolicyViolation vio3 = new PolicyViolation(policyEvaluation3, "policyCheese", policyName3, 3,
+        PolicyThreatCategory.LICENSE, vioHash1, groupId1, artifactId1, versionId1, "[]", "");
 
-    List<ApplicationRiskScoreDTO> result = dashboardService.getApplicationRisks(
-        Sets.newHashSet(appPublicId1, appPublicId2, appPublicId3),
-        stageIds, Collections.<String>emptySet(), null, null, Integer.MAX_VALUE);
+    List<ApplicationRiskScoreDTO> result = doTest(Lists.newArrayList(buildStage),
+        Lists.newArrayList(application1, application2, application3),
+        Lists.newArrayList(policyEvaluation1, policyEvaluation3, policyEvaluation4), Lists.newArrayList(vio1, vio3, vio4), Integer.MAX_VALUE);
 
-    assertEquals("Three results expected", 3, result.size());
+    assertThat(result, hasSize(3));
 
     assertEquals("App1 name was set", appName, result.get(0).applicationName);
     assertEquals("App1 appId1 was set", appPublicId1, result.get(0).applicationId);
@@ -283,17 +269,12 @@ public class DashboardServiceHighestRiskTest
 
   @Test
   public void testGetAllApplicationsLimitResults() {
+    List<ApplicationRiskScoreDTO> result = doTest(Lists.newArrayList(buildStage),
+        Lists.newArrayList(application1, application2),
+        Lists.newArrayList(policyEvaluation1, policyEvaluation4), Lists.newArrayList(vio1, vio4), 1);
 
-    mockGetByPublicId(stages, appPublicId1, application1);
-    mockGetByPublicId(stages, appPublicId2, application2);
-    mockPolicyEval(appId1, buildStage.getId(), policyEvaluation1, violations1);
-    mockPolicyEval(appId2, buildStage.getId(), policyEvaluation4, violations4);
 
-    List<ApplicationRiskScoreDTO> result = dashboardService.getApplicationRisks(
-        Sets.newHashSet(appPublicId1, appPublicId2),
-        stageIds, Collections.<String>emptySet(), null, null, 1);
-
-    assertEquals("One result expected", 1, result.size());
+    assertThat(result, hasSize(1));
 
     assertEquals("App1 name was set", appName, result.get(0).applicationName);
     assertEquals("App1 appId1 was set", appPublicId1, result.get(0).applicationId);
@@ -307,30 +288,24 @@ public class DashboardServiceHighestRiskTest
     PolicyEvaluation policyEvaluation5 = new PolicyEvaluation(appId1, buildStage.getId(), scanId);
     policyEvaluation5.setId(policyEvalId5);
     policyEvaluation5.setTime(new Date(4000L));
-    PolicyViolation vio5 = new PolicyViolation(policyEvaluation5, policyEvalId5, policyName5, 3,
+    PolicyViolation vio5 = new PolicyViolation(policyEvaluation5, "policyBacon", policyName5, 3,
         PolicyThreatCategory.LICENSE, vioHash1, groupId1, artifactId1, versionId1, "[]", "");
     String groupId2 = "group2";
     String artifactId2 = "artifact2";
     String versionId2 = "1.2";
     String vioHash2 = "bargoblyh";
-    PolicyViolation vio51 = new PolicyViolation(policyEvaluation5, policyEvalId5, policyName5, 9,
+    PolicyViolation vio51 = new PolicyViolation(policyEvaluation5, "policyw", policyName5, 9,
         PolicyThreatCategory.LICENSE, vioHash2, groupId2, artifactId2, versionId2, "[]", "");
-    List<PolicyViolation> violations5 = Lists.newArrayList(vio5, vio51);
 
-    List<StageType> stages = Lists.newArrayList(buildStage);
-    Set<String> stageIds = Sets.newHashSet(buildStage.getId());
 
-    mockGetByPublicId(stages, appPublicId1, application1);
-    mockPolicyEval(appId1, buildStage.getId(), policyEvaluation5, violations5);
+    List<ApplicationRiskScoreDTO> result = doTest(Lists.newArrayList(buildStage), Lists.newArrayList(application1),
+        Lists.newArrayList(policyEvaluation5), Lists.newArrayList(vio5, vio51), Integer.MAX_VALUE);
 
-    List<ApplicationRiskScoreDTO> result = dashboardService.getApplicationRisks(Collections.singleton(appPublicId1),
-        stageIds, Collections.<String>emptySet(), null, null, Integer.MAX_VALUE);
-
-    assertEquals("One result expected", 1, result.size());
+    assertThat(result, hasSize(1));
     assertRisk(result.get(0).totalApplicationRisk, 9, 0, 3, 0, 12);
     assertEquals("Risk name was set right", appName, result.get(0).applicationName);
     assertEquals("Risk public appID was set right", appPublicId1, result.get(0).applicationId);
-    assertEquals("One stage risk in map", 1, result.get(0).stageRisks.size());
+    assertThat(result.get(0).stageRisks, hasSize(1));
 
     StageRiskScoreDTO buildStageRisk = result.get(0).getStageRiskScore(buildStage.getId());
     assertRisk(buildStageRisk.risk, 9, 0, 3, 0, 12);
@@ -339,21 +314,33 @@ public class DashboardServiceHighestRiskTest
 
   @Test
   public void testGetAllApplicationTotalApplicationRiskDeDupesAcrossStages() {
-    List<StageType> stages = Lists.newArrayList(buildStage, releaseStage);
-    Set<String> stageIds = Sets.newHashSet(buildStage.getId(), releaseStage.getId());
+    String sharedPolicyId = "sharedPolicyId";
+    String policyEvalId7 = "policyEvalId";
+    String policyName7 = "seventhPolicy";
+    PolicyEvaluation policyEvaluation7 = new PolicyEvaluation(appId1, buildStage.getId(), scanId);
+    policyEvaluation7.setId(policyEvalId7);
+    policyEvaluation7.setTime(new Date(4000L));
+    PolicyViolation vio7 = new PolicyViolation(policyEvaluation7, sharedPolicyId, policyName7, 5,
+        PolicyThreatCategory.LICENSE, vioHash1, groupId1, artifactId1, versionId1, "[]", "");
 
-    mockGetByPublicId(stages, appPublicId1, application1);
-    mockPolicyEval(appId1, buildStage.getId(), policyEvaluation1, violations1);
-    mockPolicyEval(appId1, releaseStage.getId(), policyEvaluation1, violations1);
+    String policyEvalId8 = "polEval8";
+    String policyName8 = "eightPolicy";
+    PolicyEvaluation policyEvaluation8 = new PolicyEvaluation(appId1, releaseStage.getId(), scanId);
+    policyEvaluation8.setId(policyEvalId8);
+    policyEvaluation8.setTime(new Date(4000L));
+    PolicyViolation vio8 = new PolicyViolation(policyEvaluation8, sharedPolicyId, policyName8, 5,
+        PolicyThreatCategory.LICENSE, vioHash1, groupId1, artifactId1, versionId1, "[]", "");
 
-    List<ApplicationRiskScoreDTO> result = dashboardService.getApplicationRisks(Collections.singleton(appPublicId1),
-        stageIds, Collections.<String>emptySet(), null, null, Integer.MAX_VALUE);
 
-    assertEquals("One result expected", 1, result.size());
+    List<ApplicationRiskScoreDTO> result = doTest(Lists.newArrayList(buildStage, releaseStage),
+        Lists.newArrayList(application1),
+        Lists.newArrayList(policyEvaluation7, policyEvaluation8), Lists.newArrayList(vio7, vio8), Integer.MAX_VALUE);
+
+    assertThat(result, hasSize(1));
     assertRisk(result.get(0).totalApplicationRisk, 0, 5, 0, 0, 5);
     assertEquals("Risk name was set right", appName, result.get(0).applicationName);
     assertEquals("Risk public appID was set right", appPublicId1, result.get(0).applicationId);
-    assertEquals("Two stage risk in map", 2, result.get(0).stageRisks.size());
+    assertThat(result.get(0).stageRisks, hasSize(2));
 
     StageRiskScoreDTO buildStageRisk = result.get(0).getStageRiskScore(buildStage.getId());
     assertRisk(buildStageRisk.risk, 0, 5, 0, 0, 5);
@@ -364,26 +351,18 @@ public class DashboardServiceHighestRiskTest
 
   @Test
   public void testGetAllApplicationExcludesRisksOfZero() {
-    List<StageType> stages = Lists.newArrayList(buildStage);
-    Set<String> stageIds = Sets.newHashSet(buildStage.getId());
-
     String policyEvalId5 = "polEval5";
     String policyName5 = "fifthPolicy";
     PolicyEvaluation policyEvaluation5 = new PolicyEvaluation(appId1, buildStage.getId(), scanId);
     policyEvaluation5.setId(policyEvalId5);
     policyEvaluation5.setTime(new Date(4000L));
-    PolicyViolation vio5 = new PolicyViolation(policyEvaluation5, policyEvalId5, policyName5, 0,
+    PolicyViolation vio5 = new PolicyViolation(policyEvaluation5, "policy5", policyName5, 0,
         PolicyThreatCategory.LICENSE, vioHash1, groupId1, artifactId1, versionId1, "[]", "");
-    List<PolicyViolation> violations5 = Lists.newArrayList(vio5);
 
+    List<ApplicationRiskScoreDTO> result = doTest(Lists.newArrayList(buildStage), Lists.newArrayList(application1),
+        Lists.newArrayList(policyEvaluation5), Lists.newArrayList(vio5), Integer.MAX_VALUE);
 
-    mockGetByPublicId(stages, appPublicId1, application1);
-    mockPolicyEval(appId1, buildStage.getId(), policyEvaluation5, violations5);
-
-    List<ApplicationRiskScoreDTO> result = dashboardService.getApplicationRisks(Collections.singleton(appPublicId1),
-        stageIds, Collections.<String>emptySet(), null, null, Integer.MAX_VALUE);
-
-    assertEquals("No result expected", 0, result.size());
+    assertThat(result, hasSize(0));
   }
 
 

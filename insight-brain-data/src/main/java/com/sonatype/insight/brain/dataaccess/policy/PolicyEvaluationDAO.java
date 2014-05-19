@@ -5,14 +5,18 @@
  */
 package com.sonatype.insight.brain.dataaccess.policy;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 
 import javax.persistence.EntityManager;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
+
+import com.google.common.collect.Lists;
 
 /**
  * @since 1.11
@@ -66,6 +70,19 @@ public class PolicyEvaluationDAO
         " WHERE entity.applicationId=?1 AND entity.stageTypeId=?2" + //
         " ORDER BY entity.time DESC";
     return createQuery(sQuery, appId, stageTypeId).forceSingleResult().get(em);
+  }
+
+  public List<PolicyEvaluation> getLastByApplicationIdsAndStageIds(Set<String> appIds, Set<String> stageTypeIds)
+  {
+    String sQuery = "SELECT pe1 FROM PolicyEvaluation pe1" +
+        " WHERE pe1.applicationId IN (?1)" +
+        " AND pe1.stageTypeId IN (?2)" +
+        " AND pe1.time in (" +
+        "   SELECT max(pe2.time) FROM PolicyEvaluation pe2" +
+        "   WHERE pe1.applicationId = pe2.applicationId" +
+        "   GROUP BY pe2.applicationId, pe2.stageTypeId" +
+        " )";
+    return getList(sQuery, appIds, stageTypeIds);
   }
 
   public PolicyEvaluation getLastByApplicationIdAndStageId(String appId, String stageTypeId) {

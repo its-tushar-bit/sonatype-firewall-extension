@@ -177,6 +177,13 @@ public class ApplicationDAO
     return getList(sQuery, applicationPublicIds, tagIds);
   }
 
+  public List<Application> getByTagIds(Set<String> tagIds) {
+    String sQuery = "SELECT application FROM Application application, ApplicationTag applicationTag" + //
+        " WHERE application.id = applicationTag.applicationId" + //
+        " AND applicationTag.tagId IN (?1)";
+    return getList(sQuery, tagIds);
+  }
+
   public List<Application> getByPublicIds(Set<String> applicationPublicIds) {
     String sQuery = "SELECT entity FROM Application entity" + //
         " WHERE entity.publicId IN (?1)";

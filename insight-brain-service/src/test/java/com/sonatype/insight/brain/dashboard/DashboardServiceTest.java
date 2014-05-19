@@ -42,7 +42,6 @@ import org.junit.Test;
 import static com.sonatype.insight.brain.dashboard.PolicyViolationDTOTestUtils.assertPolicyViolationDTO;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
@@ -236,7 +235,7 @@ public class DashboardServiceTest
       fail("Expected exception");
     }
     catch (BadRequestException e) {
-      assertThat(e.getMessage(), containsString("Invalid stage type"));
+      assertThat(e.getMessage(), is("Invalid stage type: develop."));
     }
   }
 
@@ -575,7 +574,7 @@ public class DashboardServiceTest
       fail("Expected exception");
     }
     catch (BadRequestException e) {
-      assertThat(e.getMessage(), containsString("Invalid stage type"));
+      assertThat(e.getMessage(), is("Invalid stage type: develop."));
     }
   }
 
@@ -678,7 +677,7 @@ public class DashboardServiceTest
       fail("Expected exception");
     }
     catch (BadRequestException e) {
-      assertThat(e.getMessage(), containsString("Invalid stage type"));
+      assertThat(e.getMessage(), is("Invalid stage type: develop."));
     }
   }
 }

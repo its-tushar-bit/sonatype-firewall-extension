@@ -22,10 +22,10 @@
 @font-face {
   font-family: Proxima Nova Semibold;
   font-weight: bold;
-  src: url('../fonts/proximanova-Sbold-webfont.eot');
-  src: url('../fonts/proximanova-Sbold-webfont.woff') format('woff'),
-    url('../fonts/proximanova-Sbold-webfont.ttf') format('truetype'),
-    url('../fonts/proximanova-Sbold-webfont.svg#webfont') format('svg');
+  src: url('../fonts/proximanova-sbold-webfont.eot');
+  src: url('../fonts/proximanova-sbold-webfont.woff') format('woff'),
+    url('../fonts/proximanova-sbold-webfont.ttf') format('truetype'),
+    url('../fonts/proximanova-sbold-webfont.svg#webfont') format('svg');
 }
 body {
   background: url(../img/body_background.gif);

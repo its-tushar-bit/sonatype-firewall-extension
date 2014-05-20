@@ -71,13 +71,13 @@ public class PolicyEvaluationDAO
 
   public List<PolicyEvaluation> getLastByApplicationIdsAndStageIds(Set<String> appIds, Set<String> stageTypeIds)
   {
-    String sQuery = "SELECT pe1 FROM PolicyEvaluation pe1" +
-        " WHERE pe1.applicationId IN (?1)" +
-        " AND pe1.stageTypeId IN (?2)" +
-        " AND pe1.time in (" +
-        "   SELECT max(pe2.time) FROM PolicyEvaluation pe2" +
-        "   WHERE pe1.applicationId = pe2.applicationId" +
-        "   GROUP BY pe2.applicationId, pe2.stageTypeId" +
+    String sQuery = "SELECT pe1 FROM PolicyEvaluation pe1" + //
+        " WHERE pe1.applicationId IN (?1)" + //
+        " AND pe1.stageTypeId IN (?2)" + //
+        " AND pe1.time in (" + //
+        "   SELECT max(pe2.time) FROM PolicyEvaluation pe2" + //
+        "   WHERE pe1.applicationId = pe2.applicationId" + //
+        "   GROUP BY pe2.applicationId, pe2.stageTypeId" + //
         " )";
     return getList(sQuery, appIds, stageTypeIds);
   }

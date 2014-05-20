@@ -43,15 +43,15 @@ public class DashboardResourceTest
   private DashboardFilterDAO dashboardFilterDAO = new DashboardFilterDAO();
 
   @Test
-  public void testGetPolicyViolations() throws Exception {
+  public void testGetNewestPolicyViolations() throws Exception {
     Application app = tempEntity.newApplicationWithParent("app1", "test application");
 
     Policy buildPolicy = tempEntity.newPolicy(app.getId(), "build policy");
 
-    PolicyViolation violation = createPolicyViolation(app, buildPolicy, BuildStageType.ID);
+    PolicyViolation violation = createNewestPolicyViolation(app, buildPolicy, BuildStageType.ID);
 
     Response response = AuthedRestAccess.get(getRestUrl(DashboardResource.SERVICE_PATH + '/'
-        + DashboardResource.GET_POLICY_VIOLATIONS_PATH));
+        + DashboardResource.GET_NEWEST_RISKS_PATH));
 
     assertResponseStatus(200, response);
     PolicyViolationDTO[] dtos = JsonHelpers.fromJson(response.getResponseBody(), PolicyViolationDTO[].class);
@@ -61,15 +61,15 @@ public class DashboardResourceTest
   }
 
   @Test
-  public void testGetPolicyViolationsWithMultipleStages() throws Exception {
+  public void testGetNewestPolicyViolationsWithMultipleStages() throws Exception {
     Application app = tempEntity.newApplicationWithParent("app1", "test application");
     Policy policy = tempEntity.newPolicy(app.getId(), "build policy");
 
-    PolicyViolation buildViolation = createPolicyViolation(app, policy, BuildStageType.ID);
-    PolicyViolation releaseViolation = createPolicyViolation(app, policy, ReleaseStageType.ID);
+    PolicyViolation buildViolation = createNewestPolicyViolation(app, policy, BuildStageType.ID);
+    PolicyViolation releaseViolation = createNewestPolicyViolation(app, policy, ReleaseStageType.ID);
 
     Response response = AuthedRestAccess.get(getRestUrl(DashboardResource.SERVICE_PATH + '/'
-        + DashboardResource.GET_POLICY_VIOLATIONS_PATH)
+        + DashboardResource.GET_NEWEST_RISKS_PATH)
         + "?stageIds=build&stageIds=release");
 
     assertResponseStatus(200, response);
@@ -82,28 +82,7 @@ public class DashboardResourceTest
   }
 
   @Test
-  public void testGetNewestPolicyViolations() throws Exception {
-    Application app = tempEntity.newApplicationWithParent("app1", "test application");
-
-    Policy buildPolicy = tempEntity.newPolicy(app.getId(), "build policy");
-
-    createPolicyViolation(app, buildPolicy, BuildStageType.ID);
-    PolicyViolation violation = createPolicyViolation(app, buildPolicy, BuildStageType.ID);
-    tempEntity.newNewestPolicyViolation(violation.getId(), app.getId(), BuildStageType.ID);
-
-    Response response = AuthedRestAccess.get(getRestUrl(DashboardResource.SERVICE_PATH + '/'
-        + DashboardResource.GET_POLICY_VIOLATIONS_PATH)
-        + "?newest=true");
-
-    assertResponseStatus(200, response);
-    PolicyViolationDTO[] dtos = JsonHelpers.fromJson(response.getResponseBody(), PolicyViolationDTO[].class);
-    assertThat(dtos, arrayWithSize(1));
-
-    assertPolicyViolationDTO(Arrays.asList(dtos), violation, app, buildPolicy);
-  }
-
-  @Test
-  public void testGetPolicyViolationsByApplicationIds() throws Exception {
+  public void testGetNewestPolicyViolationsByApplicationIds() throws Exception {
     Application app1 = tempEntity.newApplicationWithParent("app1", "test application 1");
     Application app2 = tempEntity.newApplicationWithParent("app2", "test application 2");
 
@@ -111,12 +90,12 @@ public class DashboardResourceTest
     Policy anotherBuildPolicy = tempEntity.newPolicy(app1.getId(), "another build policy");
     Policy app2BuildPolicy = tempEntity.newPolicy(app2.getId(), "app2 build policy");
 
-    createPolicyViolation(app1, buildPolicy, BuildStageType.ID);
-    createPolicyViolation(app1, anotherBuildPolicy, BuildStageType.ID);
-    PolicyViolation app2Violation = createPolicyViolation(app2, app2BuildPolicy, BuildStageType.ID);
+    createNewestPolicyViolation(app1, buildPolicy, BuildStageType.ID);
+    createNewestPolicyViolation(app1, anotherBuildPolicy, BuildStageType.ID);
+    PolicyViolation app2Violation = createNewestPolicyViolation(app2, app2BuildPolicy, BuildStageType.ID);
 
     Response response = AuthedRestAccess.get(getRestUrl(DashboardResource.SERVICE_PATH + '/'
-        + DashboardResource.GET_POLICY_VIOLATIONS_PATH)
+        + DashboardResource.GET_NEWEST_RISKS_PATH)
         + "?applicationPublicIds=" + app2.getPublicId());
 
     assertResponseStatus(200, response);
@@ -127,7 +106,7 @@ public class DashboardResourceTest
   }
 
   @Test
-  public void testGetPolicyViolationsByApplicationIdsWithMultipleStages() throws Exception {
+  public void testGetNewestPolicyViolationsByApplicationIdsWithMultipleStages() throws Exception {
     Application app1 = tempEntity.newApplicationWithParent("app1", "test application 1");
     Application app2 = tempEntity.newApplicationWithParent("app2", "test application 2");
 
@@ -135,13 +114,13 @@ public class DashboardResourceTest
     Policy anotherBuildPolicy = tempEntity.newPolicy(app1.getId(), "another build policy");
     Policy app2Policy = tempEntity.newPolicy(app2.getId(), "app2 build policy");
 
-    createPolicyViolation(app1, buildPolicy, BuildStageType.ID);
-    createPolicyViolation(app1, anotherBuildPolicy, BuildStageType.ID);
-    PolicyViolation app2BuildViolation = createPolicyViolation(app2, app2Policy, BuildStageType.ID);
-    PolicyViolation app2ReleaseViolation = createPolicyViolation(app2, app2Policy, ReleaseStageType.ID);
+    createNewestPolicyViolation(app1, buildPolicy, BuildStageType.ID);
+    createNewestPolicyViolation(app1, anotherBuildPolicy, BuildStageType.ID);
+    PolicyViolation app2BuildViolation = createNewestPolicyViolation(app2, app2Policy, BuildStageType.ID);
+    PolicyViolation app2ReleaseViolation = createNewestPolicyViolation(app2, app2Policy, ReleaseStageType.ID);
 
     Response response = AuthedRestAccess.get(getRestUrl(DashboardResource.SERVICE_PATH + '/'
-        + DashboardResource.GET_POLICY_VIOLATIONS_PATH)
+        + DashboardResource.GET_NEWEST_RISKS_PATH)
         + "?applicationPublicIds=" + app2.getPublicId() + "&stageIds=build&stageIds=release");
 
     assertResponseStatus(200, response);
@@ -154,52 +133,26 @@ public class DashboardResourceTest
   }
 
   @Test
-  public void testGetNewestPolicyViolationsByApplicationIds() throws Exception {
-    Application app1 = tempEntity.newApplicationWithParent("app1", "test application 1");
-    Application app2 = tempEntity.newApplicationWithParent("app2", "test application 2");
-
-    Policy buildPolicy = tempEntity.newPolicy(app1.getId(), "build policy");
-    Policy anotherBuildPolicy = tempEntity.newPolicy(app1.getId(), "another build policy");
-    Policy app2BuildPolicy = tempEntity.newPolicy(app2.getId(), "app2 build policy");
-
-    createPolicyViolation(app1, buildPolicy, BuildStageType.ID);
-    createPolicyViolation(app1, anotherBuildPolicy, BuildStageType.ID);
-    createPolicyViolation(app2, app2BuildPolicy, BuildStageType.ID);
-    PolicyViolation app2Violation = createPolicyViolation(app2, app2BuildPolicy, BuildStageType.ID);
-    tempEntity.newNewestPolicyViolation(app2Violation.getId(), app2.getId(), BuildStageType.ID);
-
+  public void testGetNewestPolicyViolationsForNonExistentApplication() throws Exception {
     Response response = AuthedRestAccess.get(getRestUrl(DashboardResource.SERVICE_PATH + '/'
-        + DashboardResource.GET_POLICY_VIOLATIONS_PATH)
-        + "?applicationPublicIds=" + app2.getPublicId() + "&newest=true");
-
-    assertResponseStatus(200, response);
-    PolicyViolationDTO[] dtos = JsonHelpers.fromJson(response.getResponseBody(), PolicyViolationDTO[].class);
-    assertThat(dtos, arrayWithSize(1));
-
-    assertPolicyViolationDTO(Arrays.asList(dtos), app2Violation, app2, app2BuildPolicy);
-  }
-
-  @Test
-  public void testGetPolicyViolationsForNonExistentApplication() throws Exception {
-    Response response = AuthedRestAccess.get(getRestUrl(DashboardResource.SERVICE_PATH + '/'
-        + DashboardResource.GET_POLICY_VIOLATIONS_PATH)
+        + DashboardResource.GET_NEWEST_RISKS_PATH)
         + "?applicationPublicIds=noapp1&applicationPublicIds=noapp2");
 
     assertResponseStatus(404, response);
   }
 
   @Test
-  public void testGetPolicyViolationsWithDifferentStageTypeIds() throws Exception {
+  public void testGetNewestPolicyViolationsWithDifferentStageTypeIds() throws Exception {
     Application app = tempEntity.newApplicationWithParent("app1", "test application");
 
     Policy buildPolicy = tempEntity.newPolicy(app.getId(), "build policy");
     Policy releasePolicy = tempEntity.newPolicy(app.getId(), "release policy");
 
-    createPolicyViolation(app, buildPolicy, BuildStageType.ID);
-    PolicyViolation violationRelease = createPolicyViolation(app, releasePolicy, ReleaseStageType.ID);
+    createNewestPolicyViolation(app, buildPolicy, BuildStageType.ID);
+    PolicyViolation violationRelease = createNewestPolicyViolation(app, releasePolicy, ReleaseStageType.ID);
 
     Response response = AuthedRestAccess.get(getRestUrl(DashboardResource.SERVICE_PATH + '/'
-        + DashboardResource.GET_POLICY_VIOLATIONS_PATH)
+        + DashboardResource.GET_NEWEST_RISKS_PATH)
         + "?stageIds=" + ReleaseStageType.ID);
 
     assertResponseStatus(200, response);
@@ -209,18 +162,18 @@ public class DashboardResourceTest
   }
 
   @Test
-  public void testGetPolicyViolationsWithPolicyThreatLevel() throws Exception {
+  public void testGetNewestPolicyViolationsWithPolicyThreatLevel() throws Exception {
     Application app = tempEntity.newApplicationWithParent("app1", "test application");
 
     Policy buildPolicy = tempEntity.newPolicy(app.getId(), "build policy");
     Policy releasePolicy = tempEntity.newPolicy(app.getId(), "release policy");
 
-    createPolicyViolation(app, buildPolicy, BuildStageType.ID);
-    PolicyViolation violationRelease = createPolicyViolation(app, releasePolicy, ReleaseStageType.ID);
+    createNewestPolicyViolation(app, buildPolicy, BuildStageType.ID);
+    PolicyViolation violationRelease = createNewestPolicyViolation(app, releasePolicy, ReleaseStageType.ID);
 
     // Range resulting in 0 results.
     Response response = AuthedRestAccess.get(getRestUrl(DashboardResource.SERVICE_PATH + '/'
-        + DashboardResource.GET_POLICY_VIOLATIONS_PATH)
+        + DashboardResource.GET_NEWEST_RISKS_PATH)
         + "?stageIds=" + ReleaseStageType.ID + "&policyThreatLevelRange=0,0");
 
     assertResponseStatus(200, response);
@@ -229,7 +182,7 @@ public class DashboardResourceTest
 
     // Range resulting in 1 result.
     response = AuthedRestAccess.get(getRestUrl(DashboardResource.SERVICE_PATH + '/'
-        + DashboardResource.GET_POLICY_VIOLATIONS_PATH)
+        + DashboardResource.GET_NEWEST_RISKS_PATH)
         + "?stageIds=" + ReleaseStageType.ID + "&policyThreatLevelRange=4,6");
 
     assertResponseStatus(200, response);
@@ -239,18 +192,18 @@ public class DashboardResourceTest
   }
 
   @Test
-  public void testGetPolicyViolationsWithPolicyThreatCategories() throws Exception {
+  public void testGetNewestPolicyViolationsWithPolicyThreatCategories() throws Exception {
     Application app = tempEntity.newApplicationWithParent("app1", "test application");
 
     Policy buildPolicy = tempEntity.newPolicy(app.getId(), "build policy");
     Policy releasePolicy = tempEntity.newPolicy(app.getId(), "release policy");
 
-    createPolicyViolation(app, buildPolicy, BuildStageType.ID);
-    PolicyViolation violationRelease = createPolicyViolation(app, releasePolicy, ReleaseStageType.ID);
+    createNewestPolicyViolation(app, buildPolicy, BuildStageType.ID);
+    PolicyViolation violationRelease = createNewestPolicyViolation(app, releasePolicy, ReleaseStageType.ID);
 
     // Filter for a category that will return 0 results.
     Response response = AuthedRestAccess.get(getRestUrl(DashboardResource.SERVICE_PATH + '/'
-        + DashboardResource.GET_POLICY_VIOLATIONS_PATH)
+        + DashboardResource.GET_NEWEST_RISKS_PATH)
         + "?stageIds=" + ReleaseStageType.ID + "&policyThreatCategories=other");
 
     assertResponseStatus(200, response);
@@ -259,7 +212,7 @@ public class DashboardResourceTest
 
     // Filter for a category that will return 1 result.
     response = AuthedRestAccess.get(getRestUrl(DashboardResource.SERVICE_PATH + '/'
-        + DashboardResource.GET_POLICY_VIOLATIONS_PATH)
+        + DashboardResource.GET_NEWEST_RISKS_PATH)
         + "?stageIds=" + ReleaseStageType.ID + "&policyThreatCategories=quality,license");
 
     assertResponseStatus(200, response);
@@ -269,18 +222,18 @@ public class DashboardResourceTest
   }
 
   @Test
-  public void testGetPolicyViolationsWithPolicyThreatLevelRangeAndPolicyThreatCategories() throws Exception {
+  public void testGetNewestPolicyViolationsWithPolicyThreatLevelRangeAndPolicyThreatCategories() throws Exception {
     Application app = tempEntity.newApplicationWithParent("app1", "test application");
 
     Policy buildPolicy = tempEntity.newPolicy(app.getId(), "build policy");
     Policy releasePolicy = tempEntity.newPolicy(app.getId(), "release policy");
 
-    createPolicyViolation(app, buildPolicy, BuildStageType.ID);
-    PolicyViolation violationRelease = createPolicyViolation(app, releasePolicy, ReleaseStageType.ID);
+    createNewestPolicyViolation(app, buildPolicy, BuildStageType.ID);
+    PolicyViolation violationRelease = createNewestPolicyViolation(app, releasePolicy, ReleaseStageType.ID);
 
     // Filter with the correct threat range but the wrong category.
     Response response = AuthedRestAccess.get(getRestUrl(DashboardResource.SERVICE_PATH + '/'
-        + DashboardResource.GET_POLICY_VIOLATIONS_PATH)
+        + DashboardResource.GET_NEWEST_RISKS_PATH)
         + "?stageIds=" + ReleaseStageType.ID + "&policyThreatCategories=other&policyThreatLevelRange=4,6");
 
     assertResponseStatus(200, response);
@@ -289,7 +242,7 @@ public class DashboardResourceTest
 
     // Filter with the correct threat category but the wrong threat range.
     response = AuthedRestAccess.get(getRestUrl(DashboardResource.SERVICE_PATH + '/'
-        + DashboardResource.GET_POLICY_VIOLATIONS_PATH)
+        + DashboardResource.GET_NEWEST_RISKS_PATH)
         + "?stageIds=" + ReleaseStageType.ID + "&policyThreatCategories=license&policyThreatLevelRange=0,0");
 
     assertResponseStatus(200, response);
@@ -298,7 +251,7 @@ public class DashboardResourceTest
 
     // The right category and range, will return 1 result.
     response = AuthedRestAccess.get(getRestUrl(DashboardResource.SERVICE_PATH + '/'
-        + DashboardResource.GET_POLICY_VIOLATIONS_PATH)
+        + DashboardResource.GET_NEWEST_RISKS_PATH)
         + "?stageIds=" + ReleaseStageType.ID + "&policyThreatCategories=license&policyThreatLevelRange=4,6");
 
     assertResponseStatus(200, response);
@@ -308,9 +261,9 @@ public class DashboardResourceTest
   }
 
   @Test
-  public void testGetPolicyViolationsWithEmptyApplicationIdsQueryParameter() throws Exception {
+  public void testGetNewestPolicyViolationsWithEmptyApplicationIdsQueryParameter() throws Exception {
     Response response = AuthedRestAccess.get(getRestUrl(DashboardResource.SERVICE_PATH + '/'
-        + DashboardResource.GET_POLICY_VIOLATIONS_PATH)
+        + DashboardResource.GET_NEWEST_RISKS_PATH)
         + "?applicationPublicIds");
 
     assertResponseStatus(400, response);
@@ -319,9 +272,9 @@ public class DashboardResourceTest
   }
 
   @Test
-  public void testGetPolicyViolationsWithEmptyPolicyThreatCategory() throws Exception {
+  public void testGetNewestPolicyViolationsWithEmptyPolicyThreatCategory() throws Exception {
     Response response = AuthedRestAccess.get(getRestUrl(DashboardResource.SERVICE_PATH + '/'
-        + DashboardResource.GET_POLICY_VIOLATIONS_PATH)
+        + DashboardResource.GET_NEWEST_RISKS_PATH)
         + "?policyThreatCategories");
 
     // Custom query parameter types are parsed as null when left empty, meaning that the filter will then not be
@@ -330,9 +283,9 @@ public class DashboardResourceTest
   }
 
   @Test
-  public void testGetPolicyViolationsWithEmptyPolicyThreatLevelRange() throws Exception {
+  public void testGetNewestPolicyViolationsWithEmptyPolicyThreatLevelRange() throws Exception {
     Response response = AuthedRestAccess.get(getRestUrl(DashboardResource.SERVICE_PATH + '/'
-        + DashboardResource.GET_POLICY_VIOLATIONS_PATH)
+        + DashboardResource.GET_NEWEST_RISKS_PATH)
         + "?policyThreatLevelRange");
 
     // Custom query parameter types are parsed as null when left empty, meaning that the filter will then not be
@@ -341,9 +294,9 @@ public class DashboardResourceTest
   }
 
   @Test
-  public void testGetPolicyViolationsWithNonExistentStageTypeId() throws Exception {
+  public void testGetNewestPolicyViolationsWithNonExistentStageTypeId() throws Exception {
     Response response = AuthedRestAccess.get(getRestUrl(DashboardResource.SERVICE_PATH + '/'
-        + DashboardResource.GET_POLICY_VIOLATIONS_PATH)
+        + DashboardResource.GET_NEWEST_RISKS_PATH)
         + "?stageIds=" + "not-a-real-id");
 
     assertResponseStatus(400, response);
@@ -351,9 +304,9 @@ public class DashboardResourceTest
   }
 
   @Test
-  public void testGetPolicyViolationsWithNonExistentPolicyThreatCategory() throws Exception {
+  public void testGetNewestPolicyViolationsWithNonExistentPolicyThreatCategory() throws Exception {
     Response response = AuthedRestAccess.get(getRestUrl(DashboardResource.SERVICE_PATH + '/'
-        + DashboardResource.GET_POLICY_VIOLATIONS_PATH)
+        + DashboardResource.GET_NEWEST_RISKS_PATH)
         + "?policyThreatCategories=" + "not-a-real-policy-threat-category");
 
     assertResponseStatus(400, response);
@@ -362,9 +315,9 @@ public class DashboardResourceTest
   }
 
   @Test
-  public void testGetPolicyViolationsWithBadPolicyThreatLevelRange() throws Exception {
+  public void testGetNewestPolicyViolationsWithBadPolicyThreatLevelRange() throws Exception {
     Response response = AuthedRestAccess.get(getRestUrl(DashboardResource.SERVICE_PATH + '/'
-        + DashboardResource.GET_POLICY_VIOLATIONS_PATH)
+        + DashboardResource.GET_NEWEST_RISKS_PATH)
         + "?policyThreatLevelRange=1,0");
 
     assertResponseStatus(400, response);
@@ -456,9 +409,11 @@ public class DashboardResourceTest
     return dashboardFilterDTO;
   }
 
-  private PolicyViolation createPolicyViolation(Application app, Policy tempPolicy, String stageTypeId) {
+  private PolicyViolation createNewestPolicyViolation(Application app, Policy tempPolicy, String stageTypeId) {
     PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(app.getId(), stageTypeId, "test scan id");
-    return tempEntity.newPolicyViolation(evaluation, tempPolicy);
+    PolicyViolation violation = tempEntity.newPolicyViolation(evaluation, tempPolicy);
+    tempEntity.newNewestPolicyViolation(violation.getId(), app.getId(), stageTypeId);
+    return violation;
   }
 
   private String getRestUrl() {

@@ -315,12 +315,12 @@
     };
   });
 
-  function dashboardTable(url, additionalParams, noDataMessage) {
+  function dashboardTable(url, noDataMessage) {
     function createFilterWatch($scope, $http) {
       return function (newFilter) {
         if (newFilter) {
           $scope.error = $scope.data = null;
-          var params = angular.extend(filterToParams($scope.filters, $scope.maxResults), additionalParams);
+          var params = filterToParams($scope.filters, $scope.maxResults);
 
           $http.get(url, {
             params : params
@@ -352,9 +352,8 @@
   }
 
   dashboardModule.directive('newestRiskTable', ['CLMLocations', function(CLMLocations) {
-    return dashboardTable(CLMLocations.getPolicyViolationsUrl(), {
-        newest: true
-      }, 'No data for the last 30 days available given the applied filters and available permissions.');
+    return dashboardTable(CLMLocations.getNewestRisksUrl(),
+      'No data for the last 30 days available given the applied filters and available permissions.');
   }]);
 
   dashboardModule.directive('applicationRiskTable', ['CLMLocations', function(CLMLocations){
@@ -363,11 +362,6 @@
 
   dashboardModule.directive('componentRiskTable', ['CLMLocations', function(CLMLocations) {
     return dashboardTable(CLMLocations.getComponentRisksUrl());
-  }]);
-
-  dashboardModule.directive('policyRiskTable', ['CLMLocations', function(CLMLocations) {
-    return dashboardTable(CLMLocations.getPolicyViolationsUrl(), null,
-      'No data available given the applied filters and available permissions.');
   }]);
 
   dashboardModule.directive('breadcrumb', ['$state', function($state) {

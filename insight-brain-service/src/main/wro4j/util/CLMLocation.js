@@ -146,8 +146,8 @@
           return baseUrl.get() + '/rest/dashboard/policy/applicationRisks';
         },
 
-        getPolicyViolationsUrl: function() {
-          return baseUrl.get() + '/rest/dashboard/policy/violations';
+        getNewestRisksUrl: function() {
+          return baseUrl.get() + '/rest/dashboard/policy/newestRisks';
         },
         getApplicationTagsUrl : function() {
           return baseUrl.get() + '/rest/tag/application';

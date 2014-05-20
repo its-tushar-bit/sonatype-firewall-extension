@@ -358,16 +358,13 @@ describe('DashboardModule', function() {
   describe('Risk Table Directives', function () {
     var directives = [{
       prefix : 'newest',
-      urlFn : 'getPolicyViolationsUrl'
+      urlFn : 'getNewestRisksUrl'
     }, {
       prefix : 'application',
       urlFn : 'getApplicationRisksUrl'
     }, {
       prefix : 'component',
       urlFn : 'getComponentRisksUrl'
-    }, {
-      prefix : 'policy',
-      urlFn : 'getPolicyViolationsUrl'
     }];
 
     angular.forEach(directives, function (directive) {

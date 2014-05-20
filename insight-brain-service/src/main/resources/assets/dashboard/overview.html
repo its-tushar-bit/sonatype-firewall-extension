@@ -177,9 +177,6 @@
         <li class="pull-right" ng-class="{ active : riskTable === 'components' }">
           <a id='tab-button-component' href="#" ng-click="$event.preventDefault(); riskTable='components'">By Component</a>
         </li>
-        <li class="pull-right" ng-class="{ active : riskTable === 'policy-violations' }">
-          <a id='tab-button-violation' href="#" ng-click="$event.preventDefault(); riskTable='policy-violations'">Policy Violations</a>
-        </li>
         <li class="pull-right" ng-class="{ active : riskTable === 'newest-risk' }">
           <a id='tab-button-newest' href="#" ng-click="$event.preventDefault(); riskTable='newest-risk'">Newest Risk</a>
         </li>
@@ -268,11 +265,6 @@
                 <td>{{component.scoreLow}}</td>
               </tr>
             </table>
-          </div>
-        </div>
-        <div ng-switch-when="policy-violations">
-          <div policy-risk-table>
-            <div ng-include="'risk-table'"></div>
           </div>
         </div>
       </div>

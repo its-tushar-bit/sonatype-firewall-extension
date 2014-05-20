@@ -13,7 +13,6 @@ class DashboardTabsModule
   static content = {
     applicationsTabButton { $('#tab-button-application') }
     componentsTabButton { $('#tab-button-component') }
-    policyViolationsTabButton { $('#tab-button-violation') }
     newestRiskTabButton { $('#tab-button-newest') }
   }
 }

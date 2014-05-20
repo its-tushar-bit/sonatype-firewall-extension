@@ -77,11 +77,19 @@ class DashboardOverviewSpec
   }
 
   def setup() {
+    clearFilter()
+  }
+
+  /**
+   * Do not clear cookies so we don't have to log back in after every feature test.
+   * Delete the stored filter directly from the database and refresh the page to clear locally cached filter.
+   */
+  private void clearFilter() {
     browser.config.autoClearCookies = false
     DashboardFilterDAO dao = new DashboardFilterDAO();
     dao.delete(dao.getByUsername("admin"));
     driver.navigate().refresh()
-    waitFor{ at DashboardOverviewPage }
+    waitFor { at DashboardOverviewPage }
   }
 
   def 'Dashboard Overview Breadcrumb'() {

@@ -177,25 +177,11 @@ class DashboardOverviewSpec
   }
 
   def 'Unknown components have popover displaying pathnames'() {
-    when: 'switching to the highest risk table and highest risk table is shown'
-      tabLinks.policyViolationsTabButton.click()
-      waitFor { highestRiskTable.displayed }
-      waitFor { highestRiskTable.rows.size() >= 2 }
-      WebElement unknownComponentCell = $(highestRiskTable.rows[0].cell(ThreatTableRow.COMPONENT)).firstElement()
-      interact {
-        moveToElement(unknownComponentCell)
-      }
-      waitFor { highestRiskTable.unknownComponentPopover.displayed }
-
-    then: 'highest risk popover is properly displayed'
-      highestRiskTable.unknownComponentPopoverTitle == 'Component Path'
-      highestRiskTable.unknownComponentPopoverText == 'unknown.jar'
-
     when: 'newest risk table is shown'
       tabLinks.newestRiskTabButton.click()
       waitFor { newestViolationTable.displayed }
       waitFor { newestViolationTable.rows.size() >= 2 }
-      unknownComponentCell = $(newestViolationTable.rows[0].cell(ThreatTableRow.COMPONENT)).firstElement()
+      def unknownComponentCell = $(newestViolationTable.rows[0].cell(ThreatTableRow.COMPONENT)).firstElement()
       interact {
         moveToElement(unknownComponentCell)
       }
@@ -204,26 +190,6 @@ class DashboardOverviewSpec
     then: 'newest risk popover is properly displayed'
       newestViolationTable.unknownComponentPopoverTitle == 'Component Path'
       newestViolationTable.unknownComponentPopoverText == 'unknown.jar'
-  }
-
-  def 'Highest Risk Table can be sorted'() {
-    when: 'switching to the highest risk table'
-      tabLinks.policyViolationsTabButton.click()
-
-    then: 'highest risk table is shown'
-      waitFor { highestRiskTable.displayed }
-      waitFor { highestRiskTable.rows.size() >= 2 }
-
-    then: 'risks are sorted by descending threat level'
-      highestRiskTable.rows[0].risk == 10
-      highestRiskTable.rows[1].risk == 5
-
-    when: 'table is sorted by ascending threat level'
-      highestRiskTable.riskHeader.click()
-
-    then: 'risks are sorted by ascending threat level'
-      highestRiskTable.rows[0].risk == 5
-      highestRiskTable.rows[1].risk == 10
   }
 
   def 'Newest Risk table can be sorted by age'() {
@@ -243,60 +209,6 @@ class DashboardOverviewSpec
     then: 'we should now show the oldest result first'
       newestViolationTable.rows[0].age.endsWith('days ago')
       newestViolationTable.rows[1].age ==~ RECENT_AGE
-  }
-
-  def 'Highest Risk Table can be filtered'() {
-    when: 'switching to the highest risk table'
-      tabLinks.policyViolationsTabButton.click()
-
-    then: 'highest risk table is shown'
-      waitFor { highestRiskTable.displayed }
-      waitFor { highestRiskTable.rows.size() == 2 }
-
-    then: 'policy violations are listed by threat level'
-      !noDataAvailable.displayed
-
-      highestRiskTable.rows[0].risk == 10
-      highestRiskTable.rows[0].policy == 'DashboardSpecPolicy'
-      highestRiskTable.rows[0].application == secondApp.name
-      highestRiskTable.rows[0].component == 'unknown.jar'
-
-      highestRiskTable.rows[1].risk == 5
-      highestRiskTable.rows[1].policy == 'DashboardSpecPolicy'
-      highestRiskTable.rows[1].application == firstApp.name
-      highestRiskTable.rows[1].component == ["Group1", "Artifact1", "Version1"].join(' : ')
-      highestRiskTable.rows[1].age.contains("ago")
-
-    when: 'filtering to an application'
-      filterPanelToggle.click()
-      waitFor { applicationFiltersDropdown.displayed }
-      applicationFiltersDropdown.toggleOption(firstApp.name)
-      applyFilter()
-
-    then: 'only violations from that application are shown'
-      waitFor { highestRiskTable.rows.size() == 1 }
-      !applicationFiltersDropdown.displayed
-      highestRiskTable.rows[0].risk == 5
-      highestRiskTable.rows[0].policy == 'DashboardSpecPolicy'
-      highestRiskTable.rows[0].application == firstApp.name
-
-    when: 'filtering to a stage'
-      filterPanelToggle.click()
-      // Toggle off previous application filter.
-      waitFor { applicationFiltersDropdown.displayed }
-      applicationFiltersDropdown.toggleOption(firstApp.name)
-      waitFor { stageTypeFiltersDropdown.displayed }
-      stageTypeFiltersDropdown.toggleOption('Release')
-      applyFilter()
-
-    then: 'only violations from that stage are shown'
-      waitFor { highestRiskTable.rows.size() == 1 }
-      !stageTypeFiltersDropdown.displayed
-      waitFor { highestRiskTable.rows[0].risk == 10 }
-      highestRiskTable.rows[0].policy == 'DashboardSpecPolicy'
-      highestRiskTable.rows[0].application == secondApp.name
-      highestRiskTable.rows[0].component == 'unknown.jar'
-      highestRiskTable.rows[0].age.contains("ago")
   }
 
   def 'Newest Risk Table can be filtered'() {
@@ -351,16 +263,27 @@ class DashboardOverviewSpec
   }
 
   def 'Filter out all results'() {
-    when: 'selecting filters that match no results'
+    when: 'selecting filters that match no results on the newest risk tab'
       filterPanelToggle.click()
       waitFor { policyThreatFiltersDropdown.displayed }
       policyThreatFiltersDropdown.toggleOption('Security')
       policyThreatFiltersDropdown.toggleOption('Other')
       applyFilter()
 
-    then: 'the tables are replaced by text indicating there are no results'
+    then: 'the table is replaced by no result text'
       waitFor { noDataAvailable.displayed }
-      filterPanel.displayed
+
+    when: 'user clicks the by component tab'
+      tabLinks.componentsTabButton.click()
+
+    then: 'the table is replaced by no result text'
+      waitFor { noDataAvailable.displayed }
+
+    when: 'user clicks the by application tab'
+      tabLinks.applicationsTabButton.click()
+
+    then: 'the table is replaced by no result text'
+      waitFor { noDataAvailable.displayed }
   }
 
   def 'Limits results to 100 records'() {
@@ -369,7 +292,7 @@ class DashboardOverviewSpec
       for (i in 0..100) {
         Date now = new Date()
         PolicyEvaluation policyEvaluation = temporaryEntity.newPolicyEvaluation(firstApp.id, BuildStageType.ID,
-            'DashboardSpecFistEvaluation', now - 7)
+            'DashboardSpecFirstEvaluation', now - 7)
         evaluations.add(policyEvaluation)
         PolicyViolation violation = temporaryEntity.
             newPolicyViolation(policyEvaluation, policy, 5, PolicyThreatCategory.SECURITY,
@@ -461,6 +384,16 @@ class DashboardOverviewSpec
       componentViolationsTable.rows[0].severeRisk.text() == "5"
       componentViolationsTable.rows[0].moderateRisk.text() == "0"
       componentViolationsTable.rows[0].lowRisk.text() == "0"
+      componentViolationsTable.rows[0].componentLink.displayed
+
+    when: 'clicking the component link'
+      componentViolationsTable.rows[0].componentLink.click()
+
+    then: 'the component drilldown page is shown'
+      at ComponentDrilldownPage
+
+    cleanup: 'return to the overview page; hack to ensure we are refreshing the correct page in setup() for next feature'
+      to DashboardOverviewPage
   }
 
   def 'Applications Table'() {
@@ -488,13 +421,21 @@ class DashboardOverviewSpec
     then: 'Stage shown'
       waitFor { applicationViolationsTable.rows.size() == 3 }
       applicationViolationsTable.rows[0].collapse.displayed
-      applicationViolationsTable.rows[1].application.text() == new ReleaseStageType().getName()
+      applicationViolationsTable.rows[1].application.text() == new ReleaseStageType().getName().toUpperCase()
+      applicationViolationsTable.rows[1].reportLink.displayed
 
     when: 'Expand'
       applicationViolationsTable.rows[2].expand.click()
     then: 'Stage shown'
       waitFor { applicationViolationsTable.rows.size() == 4 }
       applicationViolationsTable.rows[2].collapse.displayed
-      applicationViolationsTable.rows[3].application.text() == new BuildStageType().getName()
+      applicationViolationsTable.rows[3].application.text() == new BuildStageType().getName().toUpperCase()
+      applicationViolationsTable.rows[3].reportLink.displayed
+
+    and: 'the stage label links to the underlying report'
+      withNewWindow(page: ReportContainerPage, { applicationViolationsTable.rows[3].reportLink.click() } ) {
+        verifyAt()
+        reportTitle.text()
+      }  ==~ firstApp.getName() + ' .* Build Report'
   }
 }

@@ -1,9 +1,6 @@
 MockData = {
   getActionStageData: function() {
     return [{
-      "name": "Procure",
-      "id": "procure"
-    }, {
       "name": "Develop",
       "id": "develop"
     }, {

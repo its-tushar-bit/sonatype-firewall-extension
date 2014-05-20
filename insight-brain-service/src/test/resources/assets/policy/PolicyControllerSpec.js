@@ -71,12 +71,36 @@ describe('PolicyController tests', function() {
     $httpBackend.expectGET('../policy-assets/components/policy/policy-items.html?').respond('');
     var sc = $compile('<div policy-items></div>')(scope).scope();
     $httpBackend.flush();
-    expect(sc.$$childTail.getActionCount(scope.applicablePolicies[0].policies[0])).toEqual(1);
+    expect(sc.$$childTail.getActionCount(scope.applicablePolicies[0].policies[0])).toEqual(2);
     expect(sc.$$childTail.getActionCount(scope.applicablePolicies[0].policies[1])).toEqual(1);
     expect(sc.$$childTail.getActionCount(scope.applicablePolicies[0].policies[2])).toEqual(0);
     expect(sc.$$childTail.getActionCount(scope.applicablePolicies[0].policies[3])).toEqual(0);
     expect(sc.$$childTail.getActionCount(scope.applicablePolicies[0].policies[4])).toEqual(0);
   }));
+
+  describe('Should be able to match notification actions with appropriate css classes', function() {
+    var sc;
+    beforeEach(inject(function($httpBackend, $compile) {
+      $httpBackend.expectGET('../policy-assets/components/policy/policy-items.html?').respond('');
+      sc = $compile('<div policy-items></div>')(scope).scope();
+      $httpBackend.flush();
+    }));
+
+    it('Should use a warn icon if an action is set for that stage', function() {
+      expect(sc.$$childTail.getStageClass(scope.actionStageList[1],
+        scope.applicablePolicies[0].policies[0])).toEqual('sonatype-icons warn');
+    });
+
+    it('Should use a fail icon if an action is set for that stage', function() {
+      expect(sc.$$childTail.getStageClass(scope.actionStageList[3],
+        scope.applicablePolicies[0].policies[0])).toEqual('sonatype-icons fail');
+    });
+
+    it('Should use no icon if no action is set for that stage', function() {
+      expect(sc.$$childTail.getStageClass(scope.actionStageList[4],
+        scope.applicablePolicies[0].policies[0])).toBeUndefined();
+    });
+  });
 
   it('Test remove policy', inject(function(CLMAppLocations, $httpBackend, Dialog) {
     expect(scope.applicablePolicies[0].policies.length).toEqual(5);

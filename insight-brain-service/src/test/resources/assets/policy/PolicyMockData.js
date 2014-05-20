@@ -332,15 +332,20 @@ PolicyMockData = {
           }
         ],
         "actions": {
-          "procure": [],
           "develop": [],
           "build": [
+            {
+              "actionTypeId": "warn",
+              "target": null
+            }
+          ],
+          "release": [
             {
               "actionTypeId": "fail",
               "target": null
             }
+
           ],
-          "release": [],
           "operate": []
         }
       },
@@ -365,7 +370,6 @@ PolicyMockData = {
           }
         ],
         "actions": {
-          "procure": [],
           "develop": [],
           "build": [
             {
@@ -511,16 +515,6 @@ PolicyMockData = {
         }
       ],
       "actions": {
-        "procure": [
-          {
-            "actionTypeId": "fail",
-            "target": null
-          },
-          {
-            "actionTypeId": "notify",
-            "target": "mail11"
-          }
-        ],
         "develop": [
           {
             "actionTypeId": "warn",

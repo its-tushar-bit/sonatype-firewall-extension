@@ -130,14 +130,6 @@ table.policy-actions>tbody>tr>td:nth-child(2):hover {
 table.policy-actions>tbody>tr>td:nth-child(3):hover {
 	background-color: #FFF;
 }
-table.policy-actions>tbody>tr>td:nth-child(2):hover {
-	background: url("../../assets/img/policyalert-k.png") no-repeat center #FFF;
-	background-size: 13px;
-}
-table.policy-actions>tbody>tr>td:nth-child(3):hover {
-	background: url("../../assets/img/policyerror-k.png") no-repeat center #FFF;
-	background-size: 13px;
-}
 table.policy-actions td:last-child {
 	border-right: 1px solid #ddd;
 }

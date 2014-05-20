@@ -109,7 +109,6 @@ OrganizationMockData = {
                 }
               ],
               "actions": {
-                "procure": [],
                 "develop": [],
                 "build": [
                   {

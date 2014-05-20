@@ -133,7 +133,6 @@ ApplicationMockData = {
                 }
               ],
               "actions": {
-                "procure": [],
                 "develop": [],
                 "build": [
                   {

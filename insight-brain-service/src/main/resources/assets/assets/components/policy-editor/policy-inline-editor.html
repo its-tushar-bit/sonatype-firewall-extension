@@ -73,8 +73,14 @@
       </thead>
       <tr ng-repeat="actionStage in actionStages">
         <td>{{actionStage.name}}</td>
-        <td style="height: 22px;text-align:center;cursor:pointer;" ng-click='toggleWarnAction(actionStage)'><img ng-show='showWarningIcon(actionStage)' src='../assets/img/policyalert.png' style="height: 13px; width: 13px;" /></td>
-        <td style="text-align:center;cursor:pointer;" ng-click='toggleFailureAction(actionStage)'><img ng-show='showFailureIcon(actionStage)' src='../assets/img/policyerror.png' style="height: 13px; width: 13px;" /></td>
+        <td style="height: 22px;text-align:center;cursor:pointer;vertical-align:middle;" ng-click='toggleWarnAction(actionStage)'
+            class="sonatype-icons-hover" ng-class="{'warn': !showWarningIcon(actionStage)}">
+            <i ng-show='showWarningIcon(actionStage)' class='sonatype-icons warn'/>
+        </td>
+        <td style="text-align:center;cursor:pointer;vertical-align:middle;" ng-click='toggleFailureAction(actionStage)'
+            class="sonatype-icons-hover" ng-class="{'fail': !showFailureIcon(actionStage)}">
+          <i ng-show='showFailureIcon(actionStage)' class='sonatype-icons fail'/>
+        </td>
         <td style="width:400px;">
                   <div class="truncate-ellipsis" style="width:400px; cursor:pointer;"
                        ng-click='editNotification(actionStage)' title="Edit Notifications">

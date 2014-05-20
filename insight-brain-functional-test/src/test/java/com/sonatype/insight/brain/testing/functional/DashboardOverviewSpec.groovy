@@ -72,12 +72,24 @@ class DashboardOverviewSpec
     InsightWork work = new InsightWork(serviceRule.configuration)
     File reportZip = work.getReportFile(firstPolicyEvaluation.getApplicationId(), firstPolicyEvaluation.getScanId())
     FileUtils.copyURLToFile(getClass().getResource('/canned-reports/small-report.zip'), reportZip)
+
+    loginAsAdminVia(DashboardOverviewPage)
   }
 
   def setup() {
+    clearFilter()
+  }
+
+  /**
+   * Do not clear cookies so we don't have to log back in after every feature test.
+   * Delete the stored filter directly from the database and refresh the page to clear locally cached filter.
+   */
+  private void clearFilter() {
+    browser.config.autoClearCookies = false
     DashboardFilterDAO dao = new DashboardFilterDAO();
     dao.delete(dao.getByUsername("admin"));
-    loginAsAdminVia(DashboardOverviewPage)
+    driver.navigate().refresh()
+    waitFor { at DashboardOverviewPage }
   }
 
   def 'Dashboard Overview Breadcrumb'() {
@@ -379,6 +391,9 @@ class DashboardOverviewSpec
 
     then: 'the component drilldown page is shown'
       at ComponentDrilldownPage
+
+    cleanup: 'return to the overview page; hack to ensure we are refreshing the correct page in setup() for next feature'
+      to DashboardOverviewPage
   }
 
   def 'Applications Table'() {

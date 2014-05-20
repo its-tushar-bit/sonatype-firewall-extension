@@ -357,11 +357,11 @@
   }]);
 
   dashboardModule.directive('applicationRiskTable', ['CLMLocations', function(CLMLocations){
-    return dashboardTable(CLMLocations.getApplicationRisksUrl());
+    return dashboardTable(CLMLocations.getApplicationRisksUrl(), null, 'No data available given the applied filters and available permissions');
   }]);
 
   dashboardModule.directive('componentRiskTable', ['CLMLocations', function(CLMLocations) {
-    return dashboardTable(CLMLocations.getComponentRisksUrl());
+    return dashboardTable(CLMLocations.getComponentRisksUrl(), null, 'No data available given the applied filters and available permissions');
   }]);
 
   dashboardModule.directive('breadcrumb', ['$state', function($state) {

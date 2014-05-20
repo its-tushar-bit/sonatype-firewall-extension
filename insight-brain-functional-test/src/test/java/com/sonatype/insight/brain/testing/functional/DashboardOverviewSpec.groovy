@@ -251,16 +251,27 @@ class DashboardOverviewSpec
   }
 
   def 'Filter out all results'() {
-    when: 'selecting filters that match no results'
+    when: 'selecting filters that match no results on the newest risk tab'
       filterPanelToggle.click()
       waitFor { policyThreatFiltersDropdown.displayed }
       policyThreatFiltersDropdown.toggleOption('Security')
       policyThreatFiltersDropdown.toggleOption('Other')
       applyFilter()
 
-    then: 'the tables are replaced by text indicating there are no results'
+    then: 'the table is replaced by no result text'
       waitFor { noDataAvailable.displayed }
-      filterPanel.displayed
+
+    when: 'user clicks the by component tab'
+      tabLinks.componentsTabButton.click()
+
+    then: 'the table is replaced by no result text'
+      waitFor { noDataAvailable.displayed }
+
+    when: 'user clicks the by application tab'
+      tabLinks.applicationsTabButton.click()
+
+    then: 'the table is replaced by no result text'
+      waitFor { noDataAvailable.displayed }
   }
 
   def 'Limits results to 100 records'() {

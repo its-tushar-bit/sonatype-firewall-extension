@@ -367,8 +367,11 @@ table.table-risk  tbody tr:first-child td {
 }
 
 table.table-risk thead tr th:nth-child(n+2), table.table-risk thead tr th:nth-child(n+2) div {
-  min-width: 100px;
   padding-left: 8px
+}
+
+table.table-risk thead tr th, table.table-risk thead tr th div {
+  min-width: 100px;
 }
 
 table.table-risk  tbody tr:first-child  td:nth-child(2) {

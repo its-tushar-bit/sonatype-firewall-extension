@@ -200,6 +200,7 @@ public class DashboardServiceHighestRiskTest
     StageRiskScoreDTO buildStageRisk = result.get(0).getStageRiskScore(buildStage.getId());
     assertRisk(buildStageRisk.risk, 0, 5, 0, 0, 5);
     assertThat(buildStageRisk.scanId, is(policyEvaluation1.getScanId()));
+    assertThat(buildStageRisk.stageTypeName, is(buildStage.getName()));
   }
 
 

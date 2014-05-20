@@ -408,17 +408,8 @@
     };
   }]);
 
-  dashboardModule.controller('applicationRiskTable', ['$scope', '$http', 'CLMLocations', 'StageTypeStore', function ($scope, $http, CLMLocations, StageTypeStore) {
-    var stages = null;
-
+  dashboardModule.controller('applicationRiskTable', ['$scope', function ($scope) {
     $scope.encodeURIComponent = window.encodeURIComponent;
-
-    $scope.getStageName = function(stageRisk) {
-      if (!stages) {
-        return;
-      }
-      return stages[stageRisk.stageTypeId];
-    };
 
     $scope.expanded = {};
 
@@ -433,13 +424,6 @@
         $scope.expanded[application.applicationId] = !$scope.expanded[application.applicationId];
       }
     };
-
-    StageTypeStore.get().then(function (data) {
-      stages = [];
-      angular.forEach(data, function (stage) {
-        stages[stage.id] = stage.name.toUpperCase();
-      });
-    }, angular.noop);
   }]);
 
   dashboardModule.directive('sortColumn', function () {

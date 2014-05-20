@@ -62,8 +62,8 @@
     <div clm-alerts='alerts'></div>
     <div class='role-header'>
       <div class='row'>
-        <h4 class='span3'>Role</h4>
-        <h4 class='span7'>Members</h4>
+        <h4 class='role-span'>Role</h4>
+        <h4 class='member-span'>Members</h4>
       </div>
     </div>
 
@@ -71,10 +71,10 @@
       <div class="accordion-group" ng-repeat='role in context.roles'>
         <div class="accordion-heading role">
           <div class='row' ng-click="expanded = !expanded">
-            <div class='span3'>
+            <div class='role-span'>
               <div class='expandable'>{{role.roleName}}</div>
             </div>
-            <div class='span8'>
+            <div class='member-span'>
               <div class='hover-buttons floatRight'>
                 <button type='button' class="btn btn-mini" title="Edit Role" ng-click='editMode = true' ng-disabled='editMode'>
                   <i class="icon-pencil"></i>

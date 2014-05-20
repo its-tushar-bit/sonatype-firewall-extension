@@ -12,7 +12,6 @@ import javax.persistence.EntityManager;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.model.policy.NewestPolicyViolation;
-import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 
 import org.joda.time.DateTime;

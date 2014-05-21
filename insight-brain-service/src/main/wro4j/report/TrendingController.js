@@ -384,7 +384,7 @@
             case 'critical':
               return '#DB2852';
             case 'severe':
-              return '#F7941E';
+              return '#F2862F';
             case 'moderate':
               return '#F5C649';
             case 'none':

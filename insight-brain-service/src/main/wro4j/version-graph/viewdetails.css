@@ -6,7 +6,7 @@ a:hover { text-decoration : underline }
   width: 10px;
 }
 .clm-bar.severe {
-  background-color: #F7941E !important;
+  background-color: #F2862F !important;
 }
 .clm-bar.critical {
   background-color: #DB2852 !important;

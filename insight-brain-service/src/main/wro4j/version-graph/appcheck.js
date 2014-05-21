@@ -32,7 +32,7 @@
   }
 
   var blue = '#0047b2',
-      orange = '#F7941E',
+      orange = '#F2862F',
       yellow = '#F5C649',
       red = '#DB2852',
       grey = '#9D9D9D',

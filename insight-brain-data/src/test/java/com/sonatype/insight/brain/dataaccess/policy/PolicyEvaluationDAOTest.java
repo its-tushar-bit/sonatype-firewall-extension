@@ -76,10 +76,11 @@ public class PolicyEvaluationDAOTest
     Date time1 = new Date();
     tempEntity.newPolicyEvaluation(applicationId, stageTypeId, scanId, time1);
     Date time2 = new Date(time1.getTime() + 1000);
-    tempEntity.newPolicyEvaluation(applicationId, stageTypeId, scanId, time2);
+    PolicyEvaluation pe2 = tempEntity.newPolicyEvaluation(applicationId, stageTypeId, scanId, time2);
 
     PolicyEvaluation policyEvaluation = dao.getLastByApplicationIdAndScanId(applicationId, scanId);
     assertThat(policyEvaluation, is(notNullValue()));
+    assertThat(policyEvaluation.getId(), is(pe2.getId()));
     assertThat(policyEvaluation.getTime(), is(time2));
   }
 
@@ -92,10 +93,11 @@ public class PolicyEvaluationDAOTest
     Date time1 = new Date();
     tempEntity.newPolicyEvaluation(applicationId, stageTypeId, "scanId1", time1);
     Date time2 = new Date(time1.getTime() + 1000);
-    tempEntity.newPolicyEvaluation(applicationId, stageTypeId, "scanId2", time2);
+    PolicyEvaluation pe2 = tempEntity.newPolicyEvaluation(applicationId, stageTypeId, "scanId2", time2);
 
     PolicyEvaluation policyEvaluation = dao.getLastByApplicationIdAndStageId(applicationId, stageTypeId);
     assertThat(policyEvaluation, is(notNullValue()));
+    assertThat(policyEvaluation.getId(), is(pe2.getId()));
     assertThat(policyEvaluation.getTime(), is(time2));
   }
 
@@ -109,11 +111,12 @@ public class PolicyEvaluationDAOTest
     Date time1 = new Date();
     tempEntity.newPolicyEvaluation(applicationId, stageTypeId, scanId, time1);
     Date time2 = new Date(time1.getTime() + 1000);
-    tempEntity.newPolicyEvaluation(applicationId, stageTypeId, scanId, true /* isReevaluation */,
-        false /* forMonitoring */, time2);
+    PolicyEvaluation pe2 = tempEntity.newPolicyEvaluation(applicationId, stageTypeId, scanId,
+        true /* isReevaluation */, false /* forMonitoring */, time2);
 
     PolicyEvaluation policyEvaluation = dao.getLastByApplicationIdAndStageId(applicationId, stageTypeId);
     assertThat(policyEvaluation, is(notNullValue()));
+    assertThat(policyEvaluation.getId(), is(pe2.getId()));
     assertThat(policyEvaluation.getTime(), is(time2));
   }
 
@@ -126,7 +129,7 @@ public class PolicyEvaluationDAOTest
     Date time1 = new Date();
     tempEntity.newPolicyEvaluation(applicationId, stageTypeId, "scanId1", time1);
     Date time2 = new Date(time1.getTime() + 1000);
-    tempEntity.newPolicyEvaluation(applicationId, stageTypeId, "scanId2", time2);
+    PolicyEvaluation pe2 = tempEntity.newPolicyEvaluation(applicationId, stageTypeId, "scanId2", time2);
     // A re-eval of an older scan should not be returned as the last eval
     Date time3 = new Date(time2.getTime() + 1000);
     tempEntity.newPolicyEvaluation(applicationId, stageTypeId, "scanId1", true /* isReevaluation */,
@@ -134,6 +137,7 @@ public class PolicyEvaluationDAOTest
 
     PolicyEvaluation policyEvaluation = dao.getLastByApplicationIdAndStageId(applicationId, stageTypeId);
     assertThat(policyEvaluation, is(notNullValue()));
+    assertThat(policyEvaluation.getId(), is(pe2.getId()));
     assertThat(policyEvaluation.getTime(), is(time2));
   }
 

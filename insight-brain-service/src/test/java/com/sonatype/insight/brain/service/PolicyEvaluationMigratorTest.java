@@ -196,9 +196,9 @@ public class PolicyEvaluationMigratorTest
     List<ApplicationComponent> appComponents = applicationComponentDAO.getByApplicationIdAndStageTypeId(app1.getId(),
         Stage.ID_BUILD);
     assertThat(appComponents, hasSize(3));
-    assertCarrotAppComponent(appComponents, Stage.ID_BUILD, buildMonitoring.getTime());
-    assertAntlrAppComponent(appComponents, Stage.ID_BUILD, buildMonitoring.getTime());
-    assertUnknownAppComponent(appComponents, Stage.ID_BUILD, buildMonitoring.getTime());
+    assertCarrotAppComponent(appComponents, Stage.ID_BUILD, secondScanReeval.getTime());
+    assertAntlrAppComponent(appComponents, Stage.ID_BUILD, secondScanReeval.getTime());
+    assertUnknownAppComponent(appComponents, Stage.ID_BUILD, secondScanReeval.getTime());
     appComponents = applicationComponentDAO.getByApplicationIdAndStageTypeId(app1.getId(), Stage.ID_STAGE_RELEASE);
     assertThat(appComponents, hasSize(4));
     assertCarrotAppComponent(appComponents, Stage.ID_STAGE_RELEASE, stageReleaseMonitoringEvaluation.getTime());

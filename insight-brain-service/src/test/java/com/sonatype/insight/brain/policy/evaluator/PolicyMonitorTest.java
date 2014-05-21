@@ -142,7 +142,7 @@ public class PolicyMonitorTest
     Map<StageType, PolicyEvaluation> policyEvaluations = new LinkedHashMap<>();
     for (StageType stageType : StageTypes.getAll()) {
       PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(notMonitoredApp.getId(), stageType.getId(),
-          "fakeScanId");
+          "fakeScanId" + stageType.getId());
       policyEvaluations.put(stageType, policyEvaluation);
     }
 

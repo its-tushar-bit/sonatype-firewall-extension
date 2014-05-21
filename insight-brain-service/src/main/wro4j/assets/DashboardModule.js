@@ -315,7 +315,7 @@
     };
   });
 
-  function dashboardTable(url, noDataMessage) {
+  function dashboardTable(url) {
     function createFilterWatch($scope, $http) {
       return function (newFilter) {
         if (newFilter) {
@@ -345,15 +345,13 @@
         $scope.doLoad = function () {
           filterChangedFn($scope.filters);
         };
-        $scope.noDataMessage = noDataMessage;
         $scope.$watch('filters', filterChangedFn);
       }]
     };
   }
 
   dashboardModule.directive('newestRiskTable', ['CLMLocations', function(CLMLocations) {
-    return dashboardTable(CLMLocations.getNewestRisksUrl(),
-      'No data for the last 30 days available given the applied filters and available permissions.');
+    return dashboardTable(CLMLocations.getNewestRisksUrl());
   }]);
 
   dashboardModule.directive('applicationRiskTable', ['CLMLocations', function(CLMLocations){

@@ -129,11 +129,6 @@
       </td>
       <td>{{risk.time | ago}}</td>
     </tr>
-    <tr ng-if='data.length === 0'>
-      <td colspan='6' class='clm-bar-text-offset'>
-        <em id='no-data'>{{ noDataMessage }}</em>
-      </td>
-    </tr>
     </tbody>
   </table>
 </script>
@@ -148,6 +143,11 @@
       <div class='scrollable-container'>
         <div class='scrollable-container-inner'>
           <div ng-transclude></div>
+          <div ng-if='data.length === 0'>
+            <span class='clm-bar-text-offset'>
+              <em id='no-data'>No data available given the applied filters and available permissions.</em>
+            </span>
+          </div>
         </div>
       </div>
       <span id="max-results-shown" class="pull-right" ng-if="data.length > maxResults">
@@ -225,11 +225,6 @@
                   <td>{{stage.risk.moderateRisk}}</td>
                   <td>{{stage.risk.lowRisk}}</td>
                 </tr>
-                <tr ng-if='data.length === 0'>
-                  <td colspan='6' class='clm-bar-text-offset'>
-                    <em id='no-data'>{{ noDataMessage }}</em>
-                  </td>
-                </tr>
               </table>
             </div>
           </div>
@@ -268,11 +263,6 @@
                 <td>{{component.scoreSevere}}</td>
                 <td>{{component.scoreModerate}}</td>
                 <td>{{component.scoreLow}}</td>
-              </tr>
-              <tr ng-if='data.length === 0'>
-                <td colspan='6' class='clm-bar-text-offset'>
-                  <em id='no-data'>{{ noDataMessage }}</em>
-                </td>
               </tr>
             </table>
           </div>

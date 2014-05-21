@@ -169,7 +169,7 @@ public class ApplicationDAO
     }
   }
 
-  public List<Application> getByPublicIdsThatHaveTags(Set<String> applicationPublicIds, Set<String> tagIds) {
+  public List<Application> getByPublicIdsAndTagIds(Set<String> applicationPublicIds, Set<String> tagIds) {
     String sQuery = "SELECT application FROM Application application, ApplicationTag applicationTag" + //
         " WHERE application.id = applicationTag.applicationId" + //
         " AND application.publicId IN (?1)" +

@@ -183,7 +183,7 @@ public class DashboardService
     }
 
     if (!CollectionUtils.isEmpty(tagIds)) {
-      List<Application> filteredApplications = applicationDAO.getByPublicIdsThatHaveTags(applicationPublicIds, tagIds);
+      List<Application> filteredApplications = applicationDAO.getByPublicIdsAndTagIds(applicationPublicIds, tagIds);
       applicationPublicIds = new HashSet<>(Lists.transform(filteredApplications, applicationPublicIdSelector));
     }
 
@@ -217,7 +217,7 @@ public class DashboardService
 
     if (!CollectionUtils.isEmpty(tagIds)) {
       Set<String> applicationPublicIds = new HashSet<>(Lists.transform(applications, applicationPublicIdSelector));
-      applications = applicationDAO.getByPublicIdsThatHaveTags(applicationPublicIds, tagIds);
+      applications = applicationDAO.getByPublicIdsAndTagIds(applicationPublicIds, tagIds);
     }
 
     List<PolicyViolationDTO> policyViolationDTOs = new ArrayList<>();
@@ -630,7 +630,7 @@ public class DashboardService
         appsByPublicId.keySet().retainAll(applicationPublicIds);
       }
       if (!CollectionUtils.isEmpty(tagIds)) {
-        matchedApplications = applicationDAO.getByPublicIdsThatHaveTags(appsByPublicId.keySet(), tagIds);
+        matchedApplications = applicationDAO.getByPublicIdsAndTagIds(appsByPublicId.keySet(), tagIds);
       }
       else {
         matchedApplications = appsByPublicId.values();

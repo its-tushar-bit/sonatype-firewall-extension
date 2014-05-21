@@ -100,7 +100,7 @@ public class ApplicationService
     }
     else {
       //both filled
-      return applicationDAO.getByPublicIdsThatHaveTags(applicationPublicIds, tagIds);
+      return applicationDAO.getByPublicIdsAndTagIds(applicationPublicIds, tagIds);
     }
   }
 

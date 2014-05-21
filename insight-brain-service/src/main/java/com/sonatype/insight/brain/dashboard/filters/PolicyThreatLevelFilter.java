@@ -5,14 +5,19 @@
  */
 package com.sonatype.insight.brain.dashboard.filters;
 
+import javax.annotation.Nullable;
+
+import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.error.exception.BadRequestException;
 
+import com.google.common.base.Function;
 import com.google.common.base.Predicate;
+import com.google.common.base.Predicates;
 import org.codehaus.plexus.util.StringUtils;
 
 public class PolicyThreatLevelFilter
-    implements Predicate<PolicyViolation>
+    implements Predicate<Integer>
 {
 
   private int minPolicyThreatLevel = Integer.MIN_VALUE;
@@ -51,12 +56,6 @@ public class PolicyThreatLevelFilter
     initialize(min, max);
   }
 
-  @Override
-  public boolean apply(PolicyViolation input) {
-    return (input != null) ? (minPolicyThreatLevel <= input.getThreatLevel() && input.getThreatLevel() <= maxPolicyThreatLevel)
-        : false;
-  }
-
   private void initialize(Integer min, Integer max) {
     if (min != null) {
       minPolicyThreatLevel = min.intValue();
@@ -77,5 +76,38 @@ public class PolicyThreatLevelFilter
     }
 
     return Integer.parseInt(integer);
+  }
+
+  @Override
+  public boolean apply(Integer threatLevel) {
+    return threatLevel != null && minPolicyThreatLevel <= threatLevel && threatLevel <= maxPolicyThreatLevel;
+  }
+
+  /**
+   * Transforms this predicate into one that applies the same filtering to policy violations.
+   */
+  public Predicate<PolicyViolation> asPolicyViolationPredicate() {
+    return Predicates.compose(this, new Function<PolicyViolation, Integer>()
+    {
+      @Override
+      @Nullable
+      public Integer apply(@Nullable PolicyViolation input) {
+        return (input != null) ? input.getThreatLevel() : null;
+      }
+    });
+  }
+
+  /**
+   * Transforms this predicate into one that applies the same filtering to policies.
+   */
+  public Predicate<Policy> asPolicyPredicate() {
+    return Predicates.compose(this, new Function<Policy, Integer>()
+    {
+      @Override
+      @Nullable
+      public Integer apply(@Nullable Policy input) {
+        return (input != null) ? input.getThreatLevel() : null;
+      }
+    });
   }
 }

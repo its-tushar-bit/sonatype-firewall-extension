@@ -38,6 +38,8 @@ public class DashboardResource
 
   public static final String FILTERS_PATH = "filters";
 
+  public static final String FILTERS_SUMMARY_PATH = "filters/summary";
+
   private DashboardService dashboardService;
 
   @Inject
@@ -115,5 +117,17 @@ public class DashboardResource
   @Path(FILTERS_PATH)
   public void deleteDashboardFilterForCurrentUser() {
     dashboardService.deleteDashboardFilterForCurrentUser();
+  }
+
+  @GET
+  @Path(FILTERS_SUMMARY_PATH)
+  @Produces(MediaType.APPLICATION_JSON)
+  public FilterSummaryDTO getFilterSummary(@QueryParam("applicationPublicIds") Set<String> applicationPublicIds,
+      @QueryParam("stageIds") Set<String> stageIds, @QueryParam("tagIds") Set<String> tagIds,
+      @QueryParam("policyThreatCategories") PolicyThreatCategoryFilter policyThreatCategoryFilter,
+      @QueryParam("policyThreatLevelRange") PolicyThreatLevelFilter policyThreatLevelFilter)
+  {
+    return dashboardService.getFilterSummary(applicationPublicIds, stageIds, tagIds, policyThreatCategoryFilter,
+        policyThreatLevelFilter);
   }
 }

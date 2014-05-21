@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.dataaccess.policy;
 
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 
@@ -30,6 +32,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 
@@ -614,5 +617,22 @@ public class PolicyDAOTest
 
     policyDAO.delete(policy);
     assertThat(policyViolationDAO.getByEvaluationId(policyEvaluation.getId()), hasSize(1));
+  }
+
+  @Test
+  public void testGetByOwnerIds() {
+    Policy appPolicy = tempEntity.newPolicy(application.getId(), "app-policy");
+    tempEntity.newPolicy(organization.getId(), "org-policy");
+    List<Policy> policies;
+
+    policies = policyDAO.getByOwnerIds(null);
+    assertThat(policies, hasSize(0));
+
+    policies = policyDAO.getByOwnerIds(Collections.<String> emptySet());
+    assertThat(policies, hasSize(0));
+
+    policies = policyDAO.getByOwnerIds(Arrays.asList(application.getId(), "non-existent"));
+    assertThat(policies, hasSize(1));
+    assertThat(policies.get(0).getId(), is(appPolicy.getId()));
   }
 }

@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.dataaccess.policy;
 
+import java.util.Collection;
 import java.util.List;
 
 import javax.persistence.EntityManager;
@@ -45,6 +46,13 @@ public class PolicyInternalDAO
     finally {
       close(em);
     }
+  }
+
+  List<PolicyInternal> getByOwnerIds(Collection<String> ownerIds) {
+    String sQuery = "SELECT entity FROM PolicyInternal entity" + //
+        " WHERE entity.ownerId IN (?1)" + //
+        " ORDER BY entity.nameLowercaseNoWhitespace";
+    return getList(sQuery, ownerIds);
   }
 
   List<PolicyInternal> getByOwnerId(String ownerId) {

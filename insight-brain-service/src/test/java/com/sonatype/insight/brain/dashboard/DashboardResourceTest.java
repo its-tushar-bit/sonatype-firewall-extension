@@ -409,6 +409,15 @@ public class DashboardResourceTest
     return dashboardFilterDTO;
   }
 
+  @Test
+  public void testGetFilterSummary() throws Exception {
+    Response response = AuthedRestAccess.get(getRestUrl(DashboardResource.SERVICE_PATH + '/'
+        + DashboardResource.FILTERS_SUMMARY_PATH));
+    assertResponseStatus(200, response);
+    FilterSummaryDTO dto = fromJson(response, FilterSummaryDTO.class);
+    assertThat(dto, is(notNullValue()));
+  }
+
   private PolicyViolation createNewestPolicyViolation(Application app, Policy tempPolicy, String stageTypeId) {
     PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(app.getId(), stageTypeId, "test scan id");
     PolicyViolation violation = tempEntity.newPolicyViolation(evaluation, tempPolicy);

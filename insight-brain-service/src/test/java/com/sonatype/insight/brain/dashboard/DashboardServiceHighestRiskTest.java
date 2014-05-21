@@ -12,6 +12,7 @@ import java.util.Set;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.filter.DashboardFilterDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.model.Application;
@@ -58,6 +59,9 @@ public class DashboardServiceHighestRiskTest
   private PolicyViolationAdapter policyViolationAdapter = new PolicyViolationAdapter();
 
   @Mock
+  private PolicyDAO policyDAO;
+
+  @Mock
   private PolicyViolationDAO policyViolationDAO;
 
   @Mock
@@ -70,7 +74,7 @@ public class DashboardServiceHighestRiskTest
   @Before
   public void init() {
 
-    dashboardService = new DashboardService(applicationDAO, applicationService,
+    dashboardService = new DashboardService(applicationDAO, applicationService, policyDAO,
         policyEvaluationDAO, policyViolationAdapter, policyViolationDAO, stageTypeService, dashboardFilterDAO);
   }
 

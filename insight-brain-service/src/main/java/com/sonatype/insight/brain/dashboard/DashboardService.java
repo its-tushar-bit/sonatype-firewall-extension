@@ -25,10 +25,12 @@ import com.sonatype.insight.brain.dashboard.filters.PolicyThreatCategoryFilter;
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatLevelFilter;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.filter.DashboardFilterDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.filter.DashboardFilter;
+import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.StageType;
@@ -51,13 +53,17 @@ import com.google.common.base.Predicates;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.apache.commons.collections.CollectionUtils;
 import org.codehaus.plexus.util.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Named
 public class DashboardService
 {
+  private static final Logger log = LoggerFactory.getLogger(DashboardService.class);
 
   private static final PolicyViolationDTOComparator POLICY_VIOLATION_DTO_COMPARATOR = new PolicyViolationDTOComparator();
 
@@ -85,6 +91,8 @@ public class DashboardService
 
   private ApplicationService applicationService;
 
+  private final PolicyDAO policyDAO;
+
   private PolicyEvaluationDAO policyEvaluationDAO;
 
   private PolicyViolationAdapter policyViolationAdapter;
@@ -96,13 +104,14 @@ public class DashboardService
   private DashboardFilterDAO dashboardFilterDAO;
 
   @Inject
-  public DashboardService(ApplicationDAO applicationDAO, ApplicationService applicationService,
+  public DashboardService(ApplicationDAO applicationDAO, ApplicationService applicationService, PolicyDAO policyDAO,
       PolicyEvaluationDAO policyEvaluationDAO, PolicyViolationAdapter policyViolationAdapter,
       PolicyViolationDAO policyViolationDAO, StageTypeService stageTypeService,
       DashboardFilterDAO dashboardFilterDAO)
   {
     this.applicationDAO = applicationDAO;
     this.applicationService = applicationService;
+    this.policyDAO = policyDAO;
     this.policyEvaluationDAO = policyEvaluationDAO;
     this.policyViolationAdapter = policyViolationAdapter;
     this.policyViolationDAO = policyViolationDAO;
@@ -118,7 +127,7 @@ public class DashboardService
       Set<String> tagIds, PolicyThreatCategoryFilter policyThreatCategoryFilter,
       PolicyThreatLevelFilter policyThreatLevelFilter, Integer maxResults, boolean newest)
   {
-    Predicate<PolicyViolation> filter = buildFilter(policyThreatCategoryFilter, policyThreatLevelFilter);
+    Predicate<PolicyViolation> filter = buildViolationFilter(policyThreatCategoryFilter, policyThreatLevelFilter);
 
     if (applicationPublicIds == null || applicationPublicIds.isEmpty()) {
       return getPolicyViolations(stageIds, tagIds, filter, maxResults, newest);
@@ -127,17 +136,19 @@ public class DashboardService
     return getPolicyViolationsByApplicationIds(applicationPublicIds, stageIds, tagIds, filter, maxResults, newest);
   }
 
-  private Predicate<PolicyViolation> buildFilter(PolicyThreatCategoryFilter threatCategoryFilter,
+  private Predicate<PolicyViolation> buildViolationFilter(PolicyThreatCategoryFilter threatCategoryFilter,
       PolicyThreatLevelFilter threatLevelFilter)
   {
     if (threatCategoryFilter == null && threatLevelFilter == null) {
       return null;
     }
     else if (threatCategoryFilter != null && threatLevelFilter != null) {
-      return Predicates.and(threatCategoryFilter, threatLevelFilter);
+      return Predicates.and(threatCategoryFilter.asPolicyViolationPredicate(),
+          threatLevelFilter.asPolicyViolationPredicate());
     }
 
-    return (threatCategoryFilter != null) ? threatCategoryFilter : threatLevelFilter;
+    return (threatCategoryFilter != null) ? threatCategoryFilter.asPolicyViolationPredicate() : threatLevelFilter
+        .asPolicyViolationPredicate();
   }
 
   /**
@@ -243,7 +254,7 @@ public class DashboardService
     List<Application> appsToSearch = applicationService
         .getApplicationsByPublicIdsAndTagIds(applicationPublicIds, tagIds);
     Set<StageType> stageTypes = getStageTypes(stageIds);
-    Predicate<PolicyViolation> filter = buildFilter(policyThreatCategoryFilter, policyThreatLevelFilter);
+    Predicate<PolicyViolation> filter = buildViolationFilter(policyThreatCategoryFilter, policyThreatLevelFilter);
 
     List<PolicyEvaluation> evaluations = policyEvaluationDAO.getLastByApplicationIdsAndStageIds(
         Sets.newHashSet(Iterables.transform(appsToSearch, hasIdIdSelector)), getStageIds(stageTypes));
@@ -593,6 +604,84 @@ public class DashboardService
     if (dashboardFilter != null) {
       dashboardFilterDAO.delete(dashboardFilter);
     }
+  }
+
+  /**
+   * Calculates how many of the entities accessible to the current user are matched by the specified dashboard filter
+   * settings.
+   */
+  public FilterSummaryDTO getFilterSummary(Set<String> applicationPublicIds, Set<String> stageIds, Set<String> tagIds,
+      PolicyThreatCategoryFilter policyThreatCategoryFilter, PolicyThreatLevelFilter policyThreatLevelFilter)
+  {
+    long start = System.currentTimeMillis();
+
+    FilterSummaryDTO summary = new FilterSummaryDTO();
+
+    Collection<Application> readableApplications = applicationService.getApplications();
+    summary.totalApplications = readableApplications.size();
+
+    Collection<Application> matchedApplications = readableApplications;
+    if (!CollectionUtils.isEmpty(applicationPublicIds) || !CollectionUtils.isEmpty(tagIds)) {
+      Map<String, Application> appsByPublicId = Maps.newHashMapWithExpectedSize(readableApplications.size());
+      for (Application app : readableApplications) {
+        appsByPublicId.put(app.getPublicId(), app);
+      }
+      if (!CollectionUtils.isEmpty(applicationPublicIds)) {
+        appsByPublicId.keySet().retainAll(applicationPublicIds);
+      }
+      if (!CollectionUtils.isEmpty(tagIds)) {
+        matchedApplications = applicationDAO.getByPublicIdsThatHaveTags(appsByPublicId.keySet(), tagIds);
+      }
+      else {
+        matchedApplications = appsByPublicId.values();
+      }
+    }
+    summary.matchedApplications = matchedApplications.size();
+
+    Set<String> readablePolicyOwnerIds = getPolicyOwnerIds(readableApplications);
+    List<Policy> readablePolicies = policyDAO.getByOwnerIds(readablePolicyOwnerIds);
+    summary.totalPolicies = readablePolicies.size();
+
+    final Set<String> matchedPolicyOwnerIds = getPolicyOwnerIds(matchedApplications);
+    Collection<Policy> matchedPolicies = Collections2.filter(readablePolicies, new Predicate<Policy>()
+    {
+      @Override
+      public boolean apply(@Nullable Policy input) {
+        return input != null && matchedPolicyOwnerIds.contains(input.getOwnerId());
+      }
+    });
+    Predicate<Policy> policyFilter = buildPolicyFilter(policyThreatCategoryFilter, policyThreatLevelFilter);
+    if (policyFilter != null) {
+      matchedPolicies = Collections2.filter(matchedPolicies, policyFilter);
+    }
+    summary.matchedPolicies = matchedPolicies.size();
+
+    log.debug("Calculated filter summary in {} ms", System.currentTimeMillis() - start);
+
+    return summary;
+  }
+
+  private Set<String> getPolicyOwnerIds(Collection<Application> applications) {
+    Set<String> policyOwnerIds = new HashSet<>(applications.size() * 2);
+    for (Application app : applications) {
+      policyOwnerIds.add(app.getId());
+      policyOwnerIds.add(app.getOrganizationId());
+    }
+    return policyOwnerIds;
+  }
+
+  private Predicate<Policy> buildPolicyFilter(PolicyThreatCategoryFilter threatCategoryFilter,
+      PolicyThreatLevelFilter threatLevelFilter)
+  {
+    if (threatCategoryFilter == null && threatLevelFilter == null) {
+      return null;
+    }
+    else if (threatCategoryFilter != null && threatLevelFilter != null) {
+      return Predicates.and(threatCategoryFilter.asPolicyPredicate(), threatLevelFilter.asPolicyPredicate());
+    }
+
+    return (threatCategoryFilter != null) ? threatCategoryFilter.asPolicyPredicate() : threatLevelFilter
+        .asPolicyPredicate();
   }
 
   private static class ComponentViolationRollUp

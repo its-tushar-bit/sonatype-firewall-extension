@@ -136,4 +136,42 @@ public class DashboardServiceAuthzTest
     assertThat(dashboardService.getComponentRisks(null, null, null, null, null, 1), hasSize(1));
   }
 
+  @Test
+  public void testGetFilterSummary_ExplicitApplicationFilter_Unauthenticated() {
+    assertThat(getFilterSummaryTotalApps(false), is(0));
+  }
+
+  @Test
+  public void testGetFilterSummary_ExplicitApplicationFilter_Unauthorized() {
+    login();
+    assertThat(getFilterSummaryTotalApps(false), is(0));
+  }
+
+  @Test
+  public void testGetFilterSummary_ExplicitApplicationFilter_Authorized() {
+    grantReadPermission(app.getId());
+    assertThat(getFilterSummaryTotalApps(false), is(1));
+  }
+
+  @Test
+  public void testGetFilterSummary_ImplicitApplicationFilter_Unauthenticated() {
+    assertThat(getFilterSummaryTotalApps(true), is(0));
+  }
+
+  @Test
+  public void testGetFilterSummary_ImplicitApplicationFilter_Unauthorized() {
+    login();
+    assertThat(getFilterSummaryTotalApps(true), is(0));
+  }
+
+  @Test
+  public void testGetFilterSummary_ImplicitApplicationFilter_Authorized() {
+    grantReadPermission(app.getId());
+    assertThat(getFilterSummaryTotalApps(true), is(1));
+  }
+
+  private int getFilterSummaryTotalApps(boolean all) {
+    return dashboardService.getFilterSummary(all ? null : Collections.singleton(app.getPublicId()), null, null, null,
+        null).totalApplications;
+  }
 }

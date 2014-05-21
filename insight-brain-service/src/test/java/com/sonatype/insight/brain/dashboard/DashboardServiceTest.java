@@ -17,12 +17,17 @@ import com.sonatype.insight.brain.dashboard.filters.PolicyThreatCategoryFilter;
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatLevelFilter;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.policy.NewestPolicyViolationDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.policy.Condition;
+import com.sonatype.insight.brain.model.policy.Constraint;
+import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
+import com.sonatype.insight.brain.model.policy.conditions.LicenseConditionType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.DevelopStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
@@ -247,13 +252,12 @@ public class DashboardServiceTest
 
     List<PolicyViolationDTO> policyViolationDTOs = dashboardService.getPolicyViolations(
         Sets.newHashSet(ReleaseStageType.ID), null,
-        new PolicyThreatCategoryFilter(Lists.newArrayList(PolicyThreatCategory.OTHER)), null, false);
+        new PolicyThreatCategoryFilter(PolicyThreatCategory.OTHER).asPolicyViolationPredicate(), null, false);
 
     assertThat(policyViolationDTOs, hasSize(0));
 
     policyViolationDTOs = dashboardService.getPolicyViolations(Sets.newHashSet(ReleaseStageType.ID), null,
-        new PolicyThreatCategoryFilter(
-        Lists.newArrayList(PolicyThreatCategory.LICENSE)), null, false);
+        new PolicyThreatCategoryFilter(PolicyThreatCategory.LICENSE).asPolicyViolationPredicate(), null, false);
 
     assertThat(policyViolationDTOs, hasSize(1));
     assertPolicyViolationDTO(policyViolationDTOs, violation, app1, app1Policy);
@@ -268,13 +272,13 @@ public class DashboardServiceTest
     // Violation out of threat level range.
     List<PolicyViolationDTO> policyViolationDTOs = dashboardService.getPolicyViolations(
         Sets.newHashSet(ReleaseStageType.ID), null,
-        new PolicyThreatLevelFilter(6, 7), null, false);
+        new PolicyThreatLevelFilter(6, 7).asPolicyViolationPredicate(), null, false);
 
     assertThat(policyViolationDTOs, hasSize(0));
 
     // Violation in range.
     policyViolationDTOs = dashboardService.getPolicyViolations(Sets.newHashSet(ReleaseStageType.ID), null,
-        new PolicyThreatLevelFilter(5, 7),
+        new PolicyThreatLevelFilter(5, 7).asPolicyViolationPredicate(),
         null, false);
 
     assertThat(policyViolationDTOs, hasSize(1));
@@ -290,26 +294,26 @@ public class DashboardServiceTest
     // Violation out of threat level range and wrong threat category.
     List<PolicyViolationDTO> policyViolationDTOs = dashboardService.getPolicyViolations(Sets
         .newHashSet(ReleaseStageType.ID), null, Predicates
-        .and(new PolicyThreatCategoryFilter(Lists.newArrayList(PolicyThreatCategory.OTHER)),
-            new PolicyThreatLevelFilter(6, 7)), null, false);
+        .and(new PolicyThreatCategoryFilter(PolicyThreatCategory.OTHER).asPolicyViolationPredicate(),
+            new PolicyThreatLevelFilter(6, 7).asPolicyViolationPredicate()), null, false);
     assertThat(policyViolationDTOs, hasSize(0));
 
     // Violation out of threat level range and correct threat category.
-    policyViolationDTOs = dashboardService.getPolicyViolations(Sets.newHashSet(ReleaseStageType.ID), null, Predicates.and(
-        new PolicyThreatCategoryFilter(Lists.newArrayList(PolicyThreatCategory.LICENSE)), new PolicyThreatLevelFilter(
-            6, 7)), null, false);
+    policyViolationDTOs = dashboardService.getPolicyViolations(Sets.newHashSet(ReleaseStageType.ID), null, Predicates
+        .and(new PolicyThreatCategoryFilter(PolicyThreatCategory.LICENSE).asPolicyViolationPredicate(),
+            new PolicyThreatLevelFilter(6, 7).asPolicyViolationPredicate()), null, false);
     assertThat(policyViolationDTOs, hasSize(0));
 
     // Violation in range, but wrong threat category.
-    policyViolationDTOs = dashboardService.getPolicyViolations(Sets.newHashSet(ReleaseStageType.ID), null, Predicates.and(
-        new PolicyThreatCategoryFilter(Lists.newArrayList(PolicyThreatCategory.OTHER)), new PolicyThreatLevelFilter(5,
-            7)), null, false);
+    policyViolationDTOs = dashboardService.getPolicyViolations(Sets.newHashSet(ReleaseStageType.ID), null, Predicates
+        .and(new PolicyThreatCategoryFilter(PolicyThreatCategory.OTHER).asPolicyViolationPredicate(),
+            new PolicyThreatLevelFilter(5, 7).asPolicyViolationPredicate()), null, false);
     assertThat(policyViolationDTOs, hasSize(0));
 
     // Violation in range and in the correct category.
-    policyViolationDTOs = dashboardService.getPolicyViolations(Sets.newHashSet(ReleaseStageType.ID), null, Predicates.and(
-        new PolicyThreatCategoryFilter(Lists.newArrayList(PolicyThreatCategory.LICENSE)), new PolicyThreatLevelFilter(
-            5, 7)), null, false);
+    policyViolationDTOs = dashboardService.getPolicyViolations(Sets.newHashSet(ReleaseStageType.ID), null, Predicates
+        .and(new PolicyThreatCategoryFilter(PolicyThreatCategory.LICENSE).asPolicyViolationPredicate(),
+            new PolicyThreatLevelFilter(5, 7).asPolicyViolationPredicate()), null, false);
 
     assertThat(policyViolationDTOs, hasSize(1));
     assertPolicyViolationDTO(policyViolationDTOs, violation, app1, app1Policy);
@@ -413,35 +417,34 @@ public class DashboardServiceTest
     List<PolicyViolation> filtered;
 
     // Test minimum range.
-    filtered = dashboardService.filter(violations, new PolicyThreatLevelFilter(3, null));
+    filtered = dashboardService.filter(violations, new PolicyThreatLevelFilter(3, null).asPolicyViolationPredicate());
     assertThat(filtered, contains(v3, v4, v5, v6));
 
     // Test maximum range.
-    filtered = dashboardService.filter(violations, new PolicyThreatLevelFilter(null, 3));
+    filtered = dashboardService.filter(violations, new PolicyThreatLevelFilter(null, 3).asPolicyViolationPredicate());
     assertThat(filtered, contains(v1, v2, v3));
 
     // Test minimum and maximum range.
-    filtered = dashboardService.filter(violations, new PolicyThreatLevelFilter(3, 3));
+    filtered = dashboardService.filter(violations, new PolicyThreatLevelFilter(3, 3).asPolicyViolationPredicate());
     assertThat(filtered, contains(v3));
 
     // Test single policy threat category.
     filtered = dashboardService.filter(violations,
-        new PolicyThreatCategoryFilter(Lists.newArrayList(PolicyThreatCategory.LICENSE)));
+        new PolicyThreatCategoryFilter(PolicyThreatCategory.LICENSE).asPolicyViolationPredicate());
     assertThat(filtered, contains(v1, v2));
 
     // Test multiple policy threat category.
     filtered = dashboardService
         .filter(
             violations,
-            new PolicyThreatCategoryFilter(Lists.newArrayList(PolicyThreatCategory.LICENSE,
-                PolicyThreatCategory.SECURITY)));
+            new PolicyThreatCategoryFilter(PolicyThreatCategory.LICENSE,
+                PolicyThreatCategory.SECURITY).asPolicyViolationPredicate());
     assertThat(filtered, contains(v1, v2, v5, v6));
 
     // Test multiple policy threat category and threat range.
-    filtered = dashboardService.filter(violations,
-        Predicates.and(
-            new PolicyThreatCategoryFilter(Lists.newArrayList(PolicyThreatCategory.LICENSE,
-                PolicyThreatCategory.SECURITY)), new PolicyThreatLevelFilter(2, 5)));
+    filtered = dashboardService.filter(violations, Predicates.and(new PolicyThreatCategoryFilter(
+        PolicyThreatCategory.LICENSE, PolicyThreatCategory.SECURITY).asPolicyViolationPredicate(),
+        new PolicyThreatLevelFilter(2, 5).asPolicyViolationPredicate()));
     assertThat(filtered, contains(v2, v5));
   }
 
@@ -679,5 +682,62 @@ public class DashboardServiceTest
     catch (BadRequestException e) {
       assertThat(e.getMessage(), is("Invalid stage type: develop."));
     }
+  }
+
+  @Test
+  public void testGetFilterSummary_NoFilter() throws Exception {
+    FilterSummaryDTO summary = dashboardService.getFilterSummary(null, null, null, null, null);
+    assertThat(summary.totalApplications, is(2));
+    assertThat(summary.matchedApplications, is(2));
+    assertThat(summary.totalPolicies, is(2));
+    assertThat(summary.matchedPolicies, is(2));
+  }
+
+  @Test
+  public void testGetFilterSummary_FilterByApp() throws Exception {
+    FilterSummaryDTO summary = dashboardService.getFilterSummary(Collections.singleton(app2.getPublicId()), null, null,
+        null, null);
+    assertThat(summary.totalApplications, is(2));
+    assertThat(summary.matchedApplications, is(1));
+    assertThat(summary.totalPolicies, is(2));
+    assertThat(summary.matchedPolicies, is(1));
+  }
+
+  @Test
+  public void testGetFilterSummary_FilterByTag() throws Exception {
+    Tag app2Tag = tempEntity.newTag(org.getId());
+    tempEntity.newApplicationTag(app2.getId(), app2Tag.getId());
+
+    FilterSummaryDTO summary = dashboardService.getFilterSummary(null, null, Collections.singleton(app2Tag.getId()),
+        null, null);
+    assertThat(summary.totalApplications, is(2));
+    assertThat(summary.matchedApplications, is(1));
+    assertThat(summary.totalPolicies, is(2));
+    assertThat(summary.matchedPolicies, is(1));
+  }
+
+  @Test
+  public void testGetFilterSummary_FilterByPolicyThreatLevel() throws Exception {
+    FilterSummaryDTO summary = dashboardService.getFilterSummary(null, null, null, null, new PolicyThreatLevelFilter(
+        orgPolicy.getThreatLevel(), orgPolicy.getThreatLevel()));
+    assertThat(summary.totalApplications, is(2));
+    assertThat(summary.matchedApplications, is(2));
+    assertThat(summary.totalPolicies, is(2));
+    assertThat(summary.matchedPolicies, is(1));
+  }
+
+  @Test
+  public void testGetFilterSummary_FilterByPolicyThreatCategory() throws Exception {
+    Constraint constraint = new Constraint(null, "Test Constraint", LogicalOperator.AND);
+    constraint.addCondition(new Condition(LicenseConditionType.ID, "is", "GPL-2.0"));
+    orgPolicy.setConstraints(Collections.singletonList(constraint));
+    new PolicyDAO().update(orgPolicy);
+
+    FilterSummaryDTO summary = dashboardService.getFilterSummary(null, null, null, new PolicyThreatCategoryFilter(
+        PolicyThreatCategory.LICENSE), null);
+    assertThat(summary.totalApplications, is(2));
+    assertThat(summary.matchedApplications, is(2));
+    assertThat(summary.totalPolicies, is(2));
+    assertThat(summary.matchedPolicies, is(1));
   }
 }

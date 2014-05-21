@@ -388,7 +388,7 @@ describe('TrendingController tests', function() {
     }));
     it('should get bar color from threat', function() {
       expect(colors.barFromThreatName('critical')).toBe('#DB2852');
-      expect(colors.barFromThreatName('severe')).toBe('#F7941E');
+      expect(colors.barFromThreatName('severe')).toBe('#F2862F');
       expect(colors.barFromThreatName('moderate')).toBe('#F5C649');
       expect(colors.barFromThreatName('none')).toBe('#0047b2');
     });

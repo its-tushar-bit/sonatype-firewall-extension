@@ -103,7 +103,7 @@ table.color-key tr:first-child td {
   color: #DB2852 !important;
 }
 table.color-key tr:nth-child(2) td {
-  color: #F7941E !important;
+  color: #F2862F !important;
 }
 table.color-key tr:nth-child(3) td {
   color: #F5C649 !important;
@@ -281,7 +281,7 @@ li.unknown {
     background-color: #DB2852 !important;
   }
   .threat-chiclet-severe {
-    background-color: #F7941E !important;
+    background-color: #F2862F !important;
   }
   .threat-chiclet-moderate {
     color: #444 !important;

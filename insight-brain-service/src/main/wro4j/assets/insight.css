@@ -682,7 +682,7 @@ table.table-risk  tbody tr:first-child  td:nth-child(6) {
 }
 
 .clm-bar.severe {
-  background-color: #F7941E !important;
+  background-color: #F2862F !important;
 }
 
 .clm-bar.critical {

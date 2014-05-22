@@ -50,36 +50,40 @@
         <div style='clear: both'></div>
       </div>
     </div>
-    <div class='row-fluid filter-readonly'>
-      <div class="span2" ng-if='filter.applicationPublicIds.length > 0'>
-        <span><strong>Applications</strong></span>
+    <div class='row filter-readonly'>
+      <div class="span2 offset1" ng-if='filter.applicationPublicIds.length > 0'>
+        <div><strong>Applications</strong></div>
         <span ng-repeat="applicationId in filter.applicationPublicIds">
           {{applicationNameFor(applicationId)}}{{!$last ? "," : ""}}
         </span>
       </div>
+      <div class='span2' ng-if='filter.applicationTagIds.length > 0'>
+        <div><strong>Application Tags</strong></div>
+        <span ng-repeat='applicationTagId in filter.applicationTagIds'>
+          {{applicationTagNameFor(applicationTagId)}}{{!$last ? "," : ""}}
+        </span>
+      </div>
       <div class="span2" style="display: inline;" ng-if='filter.policyThreatTypes.length > 0'>
-        <span><strong>Policy Types</strong></span>
+        <div><strong>Policy Types</strong></div>
         <span ng-repeat="policyThreatTypeId in filter.policyThreatTypes">
           {{policyThreatTypeNameFor(policyThreatTypeId)}}{{!$last ? "," : ""}}
         </span>
       </div>
       <div class="span2" style="display: inline;" ng-if='filter.stageTypeIds.length > 0'>
-        <span><strong>Stages</strong></span>
+        <div><strong>Stages</strong></div>
         <span ng-repeat="stageTypeId in filter.stageTypeIds">
           {{stageTypeNameFor(stageTypeId)}}{{!$last ? "," : ""}}
         </span>
       </div>
-      <div class='span2' ng-if='filter.applicationTagIds.length > 0'>
-        <span><strong>Application Tags</strong></span>
-        <span ng-repeat='applicationTagId in filter.applicationTagIds'>
-          {{applicationTagNameFor(applicationTagId)}}{{!$last ? "," : ""}}
-        </span>
-      </div>
       <div class='span2' ng-if='filter.policyThreatLevel[0] > 0 || filter.policyThreatLevel[1] < 10'>
-        <span ng-if="filter.policyThreatLevel[0] != filter.policyThreatLevel[1]"><strong>Policy Threat
-          Levels</strong> {{filter.policyThreatLevel[0]}} through {{filter.policyThreatLevel[1]}}</span>
-        <span ng-if="filter.policyThreatLevel[0] == filter.policyThreatLevel[1]"><strong>Policy Threat
-          Level</strong> {{filter.policyThreatLevel[0]}}</span>
+        <div ng-if="filter.policyThreatLevel[0] != filter.policyThreatLevel[1]">
+          <div><strong>Policy Threat Levels</strong></div>
+          <span>{{filter.policyThreatLevel[0]}} through {{filter.policyThreatLevel[1]}}</span>
+        </div>
+        <div ng-if="filter.policyThreatLevel[0] == filter.policyThreatLevel[1]">
+          <div><strong>Policy Threat Level</strong></div>
+          <span>{{filter.policyThreatLevel[0]}}</span>
+        </div>
       </div>
     </div>
   </div>

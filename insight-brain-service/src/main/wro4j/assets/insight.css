@@ -501,7 +501,7 @@ table.table-risk td.low-risk {
     position: absolute;
   }
 
-  .dashboard-content .filter-edit-body {
+  .dashboard-content .filter-edit {
     padding-left: 20px;
   }
 }
@@ -515,11 +515,11 @@ table.table-risk td.low-risk {
     width: 724px;
   }
 
-  .filter-edit-body .span2 {
+  .filter-edit .span2 {
     width: 166px;
   }
 
-  .filter-edit-body .span2:nth-child(4) {
+  .filter-edit .span2:nth-child(4) {
     margin-left: 82px;
   }
 
@@ -588,7 +588,7 @@ table.table-risk td.low-risk {
   margin-left: -10px;
 }
 
-.dashboard-content .filter-readonly div {
+.dashboard-content .filter-readonly>div {
   padding: 10px;
 }
 

@@ -87,11 +87,12 @@ public class ApplicationService
 
   @Authorize(permission = Permission.READ)
   public List<Application> getApplicationsByPublicIdsAndTagIds(
-      @Nullable @AuthzContext(value = AuthzContext.Key.APPLICATION_PUBLIC_ID, multiple = true) final Set<String> applicationPublicIds,
+      @Nullable @AuthzContext(value = AuthzContext.Key.APPLICATION_PUBLIC_ID, multiple = true)
+      final Set<String> applicationPublicIds,
       @Nullable final Set<String> tagIds)
   {
     if (isEmpty(applicationPublicIds) && isEmpty(tagIds)) {
-      return applicationDAO.getAll();
+      return getApplications();
     }
     else if (isEmpty(applicationPublicIds)) {
       return applicationDAO.getByTagIds(tagIds);

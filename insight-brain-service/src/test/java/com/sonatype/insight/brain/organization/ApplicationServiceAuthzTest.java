@@ -155,7 +155,6 @@ public class ApplicationServiceAuthzTest
 
   @Test()
   public void testGetApplicationsByPublicIdsAndTagIds_TwoAppsAuthorized() throws Exception {
-    login();
     Application app2 = tempEntity.newApplication("App2", "appPubId2", org.getId());
     grantReadPermission(app.getId());
     grantReadPermission(app2.getId());
@@ -180,7 +179,6 @@ public class ApplicationServiceAuthzTest
 
   @Test(expected = UnauthorizedException.class)
   public void testGetApplicationsByPublicIdsAndTagIds_TwoAppsOneNotAuthorized() throws Exception {
-    login();
     Application app2 = tempEntity.newApplication("App2", "appPubId2", org.getId());
     grantReadPermission(app.getId());
     applicationService.getApplicationsByPublicIdsAndTagIds(

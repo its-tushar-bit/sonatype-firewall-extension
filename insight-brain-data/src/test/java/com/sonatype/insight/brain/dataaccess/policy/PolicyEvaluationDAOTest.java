@@ -20,6 +20,7 @@ import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.google.common.collect.Sets;
 import org.junit.Test;
 
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.hasSize;
@@ -279,8 +280,7 @@ public class PolicyEvaluationDAOTest
       assertThat(pe.getTime(), is(time2));
     }
     assertThat(policyIds, hasSize(2));
-    assertTrue(policyIds.contains(pe2.getId()));
-    assertTrue(policyIds.contains(pe4.getId()));
+    assertThat(policyIds, containsInAnyOrder(pe2.getId(), pe4.getId()));
   }
 
   @Test
@@ -341,8 +341,9 @@ public class PolicyEvaluationDAOTest
     Date time7 = new Date();
     PolicyEvaluation pe7 = tempEntity.newPolicyEvaluation(application3.getId(), stageTypeId, "scanId7", time7);
     Date time8 = new Date(time7.getTime() + 9000);
-    PolicyEvaluation pe8 = tempEntity.newPolicyEvaluation(application3.getId(), stageTypeId, "scanId7",  true /* isReevaluation */,
-        false /* forMonitoring */, time8);
+    PolicyEvaluation pe8 = tempEntity
+        .newPolicyEvaluation(application3.getId(), stageTypeId, "scanId7", true /* isReevaluation */,
+            false /* forMonitoring */, time8);
 
 
     List<PolicyEvaluation> policyEvaluations = dao
@@ -356,8 +357,6 @@ public class PolicyEvaluationDAOTest
       policyIds.add(pe.getId());
     }
     assertThat(policyIds, hasSize(3));
-    assertTrue(policyIds.contains(pe2.getId()));
-    assertTrue(policyIds.contains(pe5.getId()));
-    assertTrue(policyIds.contains(pe8.getId()));
+    assertThat(policyIds, containsInAnyOrder(pe2.getId(), pe5.getId(), pe8.getId()));
   }
 }

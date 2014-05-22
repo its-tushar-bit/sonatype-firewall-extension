@@ -988,8 +988,7 @@ var AngularStateUtils = {
       seconds: 'seconds ago',
       highlightMultiples: true,
       separator: ' ',
-      suffix: ' ago',
-      includeAgo: true
+      suffix: ' ago'
     };
     return new ElapsedTimeFilterFactory(rules);
   });
@@ -1007,8 +1006,7 @@ var AngularStateUtils = {
       seconds: '1min',
       highlightMultiples: false,
       separator: '',
-      suffix: '',
-      includeAgo: false
+      suffix: ''
     };
     return new ElapsedTimeFilterFactory(rules);
   });

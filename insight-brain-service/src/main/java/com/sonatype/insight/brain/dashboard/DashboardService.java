@@ -23,6 +23,7 @@ import javax.inject.Named;
 
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatCategoryFilter;
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatLevelFilter;
+import com.sonatype.insight.brain.dataaccess.ApplicationComponentDAO;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.filter.DashboardFilterDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
@@ -89,6 +90,8 @@ public class DashboardService
 
   private ApplicationDAO applicationDAO;
 
+  private ApplicationComponentDAO applicationComponentDAO;
+
   private ApplicationService applicationService;
 
   private final PolicyDAO policyDAO;
@@ -104,12 +107,13 @@ public class DashboardService
   private DashboardFilterDAO dashboardFilterDAO;
 
   @Inject
-  public DashboardService(ApplicationDAO applicationDAO, ApplicationService applicationService, PolicyDAO policyDAO,
-      PolicyEvaluationDAO policyEvaluationDAO, PolicyViolationAdapter policyViolationAdapter,
-      PolicyViolationDAO policyViolationDAO, StageTypeService stageTypeService,
-      DashboardFilterDAO dashboardFilterDAO)
+  public DashboardService(ApplicationDAO applicationDAO, ApplicationComponentDAO applicationComponentDAO,
+      ApplicationService applicationService, PolicyDAO policyDAO, PolicyEvaluationDAO policyEvaluationDAO,
+      PolicyViolationAdapter policyViolationAdapter, PolicyViolationDAO policyViolationDAO,
+      StageTypeService stageTypeService, DashboardFilterDAO dashboardFilterDAO)
   {
     this.applicationDAO = applicationDAO;
+    this.applicationComponentDAO = applicationComponentDAO;
     this.applicationService = applicationService;
     this.policyDAO = policyDAO;
     this.policyEvaluationDAO = policyEvaluationDAO;
@@ -512,7 +516,7 @@ public class DashboardService
     return stages;
   }
 
-  private Set<String> getStageIds(final Set<StageType> stageTypes) {
+  private Set<String> getStageIds(final Collection<StageType> stageTypes) {
     Set<String> stageIdsToSearch = new HashSet<>();
     for (StageType stageType : stageTypes) {
       stageIdsToSearch.add(stageType.getId());
@@ -639,6 +643,13 @@ public class DashboardService
       }
     }
     summary.matchedApplications = matchedApplications.size();
+
+    Collection<StageType> allStageTypes = getStageTypes(null);
+    summary.totalComponents = applicationComponentDAO.getUniqueCountByApplicationIdsAndStageTypeIds(
+        Collections2.transform(readableApplications, hasIdIdSelector), getStageIds(allStageTypes));
+    Collection<StageType> matchedStageTypes = getStageTypes(stageIds);
+    summary.matchedComponents = applicationComponentDAO.getUniqueCountByApplicationIdsAndStageTypeIds(
+        Collections2.transform(matchedApplications, hasIdIdSelector), getStageIds(matchedStageTypes));
 
     Set<String> readablePolicyOwnerIds = getPolicyOwnerIds(readableApplications);
     List<Policy> readablePolicies = policyDAO.getByOwnerIds(readablePolicyOwnerIds);

@@ -96,6 +96,8 @@ public class DashboardServiceTest
     tempEntity.newNewestPolicyViolation(orgPolicyViolation.getId(), app1.getId(), BuildStageType.ID);
     tempEntity.newNewestPolicyViolation(app1PolicyViolation.getId(), app1.getId(), BuildStageType.ID);
     tempEntity.newNewestPolicyViolation(app2PolicyViolation.getId(), app2.getId(), BuildStageType.ID);
+    tempEntity.newApplicationComponent(app1.getId(), BuildStageType.ID, "hash-1", "g", "a", "1");
+    tempEntity.newApplicationComponent(app2.getId(), BuildStageType.ID, "hash-2", "g", "a", "2");
     while (System.currentTimeMillis() <= start) {
       // just spinning until next policy eval time is guaranteed to be greater than time for the evals created above
     }
@@ -691,6 +693,8 @@ public class DashboardServiceTest
     assertThat(summary.matchedApplications, is(2));
     assertThat(summary.totalPolicies, is(2));
     assertThat(summary.matchedPolicies, is(2));
+    assertThat(summary.totalComponents, is(2));
+    assertThat(summary.matchedComponents, is(2));
   }
 
   @Test
@@ -701,6 +705,8 @@ public class DashboardServiceTest
     assertThat(summary.matchedApplications, is(1));
     assertThat(summary.totalPolicies, is(2));
     assertThat(summary.matchedPolicies, is(1));
+    assertThat(summary.totalComponents, is(2));
+    assertThat(summary.matchedComponents, is(1));
   }
 
   @Test
@@ -714,6 +720,8 @@ public class DashboardServiceTest
     assertThat(summary.matchedApplications, is(1));
     assertThat(summary.totalPolicies, is(2));
     assertThat(summary.matchedPolicies, is(1));
+    assertThat(summary.totalComponents, is(2));
+    assertThat(summary.matchedComponents, is(1));
   }
 
   @Test
@@ -724,6 +732,8 @@ public class DashboardServiceTest
     assertThat(summary.matchedApplications, is(2));
     assertThat(summary.totalPolicies, is(2));
     assertThat(summary.matchedPolicies, is(1));
+    assertThat(summary.totalComponents, is(2));
+    assertThat(summary.matchedComponents, is(2));
   }
 
   @Test
@@ -739,5 +749,19 @@ public class DashboardServiceTest
     assertThat(summary.matchedApplications, is(2));
     assertThat(summary.totalPolicies, is(2));
     assertThat(summary.matchedPolicies, is(1));
+    assertThat(summary.totalComponents, is(2));
+    assertThat(summary.matchedComponents, is(2));
+  }
+
+  @Test
+  public void testGetFilterSummary_FilterByStage() throws Exception {
+    FilterSummaryDTO summary = dashboardService.getFilterSummary(null, Collections.singleton(ReleaseStageType.ID),
+        null, null, null);
+    assertThat(summary.totalApplications, is(2));
+    assertThat(summary.matchedApplications, is(2));
+    assertThat(summary.totalPolicies, is(2));
+    assertThat(summary.matchedPolicies, is(2));
+    assertThat(summary.totalComponents, is(2));
+    assertThat(summary.matchedComponents, is(0));
   }
 }

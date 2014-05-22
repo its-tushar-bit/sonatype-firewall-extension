@@ -18,4 +18,8 @@ public class FilterSummaryDTO
   public int totalPolicies;
 
   public int matchedPolicies;
+
+  public int totalComponents;
+
+  public int matchedComponents;
 }

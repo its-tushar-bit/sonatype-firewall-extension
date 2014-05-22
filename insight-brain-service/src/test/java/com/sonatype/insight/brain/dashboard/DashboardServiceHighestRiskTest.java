@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Set;
 
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.dataaccess.ApplicationComponentDAO;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.filter.DashboardFilterDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
@@ -53,6 +54,9 @@ public class DashboardServiceHighestRiskTest
   private ApplicationDAO applicationDAO;
 
   @Mock
+  private ApplicationComponentDAO applicationComponentDAO;
+
+  @Mock
   private PolicyEvaluationDAO policyEvaluationDAO;
 
   //no need to mock if pure
@@ -74,7 +78,7 @@ public class DashboardServiceHighestRiskTest
   @Before
   public void init() {
 
-    dashboardService = new DashboardService(applicationDAO, applicationService, policyDAO,
+    dashboardService = new DashboardService(applicationDAO, applicationComponentDAO, applicationService, policyDAO,
         policyEvaluationDAO, policyViolationAdapter, policyViolationDAO, stageTypeService, dashboardFilterDAO);
   }
 

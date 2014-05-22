@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.dataaccess;
 
+import java.util.Collection;
 import java.util.List;
 
 import javax.persistence.EntityManager;
@@ -63,5 +64,13 @@ public class ApplicationComponentDAO
         " WHERE entity.hash=?1" + //
         " ORDER BY entity.time DESC";
     return createQuery(sQuery, hash).forceSingleResult().get();
+  }
+
+  public int getUniqueCountByApplicationIdsAndStageTypeIds(Collection<String> appIds,
+      Collection<String> stageTypeIds)
+  {
+    String sQuery = "SELECT COUNT(DISTINCT entity.hash) FROM ApplicationComponent entity" + //
+        " WHERE entity.applicationId IN (?1) AND entity.stageTypeId IN (?2)";
+    return getSingle(Number.class, sQuery, appIds, stageTypeIds).intValue();
   }
 }

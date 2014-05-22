@@ -207,6 +207,13 @@ a {
   vertical-align: middle;
 }
 
+/* restrict the width in smaller screens to better fit in the dashboard filter layout, otherwise dropdowns can overlap */
+@media (max-width: 1655px) {
+  .dashboard-filters .multi-dropdown button div {
+    max-width: 160px;
+  }
+}
+
 .multi-dropdown .dropdown-menu {
    max-height: 300px;
    overflow-x: hidden;

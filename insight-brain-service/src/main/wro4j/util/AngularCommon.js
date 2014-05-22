@@ -991,7 +991,7 @@ var AngularStateUtils = {
       suffix: ' ago',
       includeAgo: true
     };
-    return AgoFactory(rules);
+    return new ElapsedTimeFilterFactory(rules);
   });
 
   /**
@@ -1010,7 +1010,7 @@ var AngularStateUtils = {
       suffix: '',
       includeAgo: false
     };
-    return AgoFactory(rules);
+    return new ElapsedTimeFilterFactory(rules);
   });
 
   /**
@@ -1019,7 +1019,7 @@ var AngularStateUtils = {
    * @returns {Function}
    * @constructor
    */
-  function AgoFactory(rules){
+  function ElapsedTimeFilterFactory(rules){
     return function(date) {
       var ago = '',
         diff,

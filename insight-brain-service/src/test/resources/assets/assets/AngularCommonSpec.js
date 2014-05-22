@@ -141,6 +141,69 @@ describe('AngularCommon', function() {
     }
   });
 
+  describe('"terseAgo" filter', function() {
+    var ago;
+    beforeEach(inject(function($filter) {
+      ago = $filter('terseAgo');
+    }));
+    var testCases = [
+      { input: function() {
+        return new Date();
+      }, expected: '1min' },
+      { input: function() {
+        return new Date().getTime();
+      }, expected: '1min' },
+      { input: function() {
+        var today = new Date();
+        return new Date(today.getFullYear() - 2, today.getMonth(), today.getDate());
+      }, expected: '2y' },
+      { input: function() {
+        var today = new Date();
+        return new Date(today.getFullYear(), today.getMonth(), today.getDate() - 3 * 30, today.getHours() - 6);
+      }, expected: '3m' },
+      { input: function() {
+        var today = new Date();
+        return new Date(today.getFullYear(), today.getMonth(), today.getDate() - 10, today.getHours() - 6);
+      }, expected: '10d' },
+      { input: function() {
+        var today = new Date();
+        return new Date(today.getTime() - (23 * 60 + 30) * 60 * 1000 );
+      }, expected: '23h' },
+      { input: function() {
+        var today = new Date();
+        return new Date(today.getFullYear(), today.getMonth(), today.getDate(), today.getHours(),
+            today.getMinutes() - 58);
+      }, expected: '5[8|9]min' },
+      { input: function() {
+        var today = new Date();
+        return new Date(today.getFullYear(), today.getMonth(), today.getDate(), today.getHours(),
+            today.getMinutes() - 1);
+      }, expected: '[1|2]min' },
+      { input: function() {
+        var today = new Date();
+        return new Date(today.getFullYear() + 100, today.getMonth(), today.getDate());
+      }, expected: '1min' },
+      { input: function() {
+        return null;
+      }, expected: '' },
+      { input: function() {
+        return undefined;
+      }, expected: '' },
+      { input: function() {
+        return '';
+      }, expected: '' }
+    ];
+    function validateFilter(input, expected) {
+      it('should filter to: ' + expected, function() {
+        expect(ago(input())).toMatch(expected);
+      });
+    }
+    for (var i = 0; i < testCases.length; i++) {
+      var testCase = testCases[i];
+      validateFilter(testCase.input, testCase.expected);
+    }
+  })
+
   describe('agoLastDay filter', function() {
     var filter, filteredAnswer = 'Less than a day ago';
     beforeEach(inject(function($filter) {

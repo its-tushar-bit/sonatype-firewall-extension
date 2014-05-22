@@ -213,6 +213,11 @@ a {
     max-width: 160px;
   }
 }
+@media (max-width: 1199px) {
+  .dashboard-filters .multi-dropdown button div {
+    max-width: 120px;
+  }
+}
 
 .multi-dropdown .dropdown-menu {
    max-height: 300px;

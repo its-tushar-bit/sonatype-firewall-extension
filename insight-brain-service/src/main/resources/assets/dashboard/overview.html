@@ -173,7 +173,7 @@
             </div>
             <span class="label label-default dashboard-label-wrapper">
               <span class="dashboard-label">{{data.matchedApplications}}</span>
-              <span class="dashboard-label-mini">OF ({{formatPercentage(data.matchedApplications, data.totalApplications)}}%)</span>
+              <span class="dashboard-label-mini">OF {{data.totalApplications}} ({{formatPercentage(data.matchedApplications, data.totalApplications)}}%)</span>
             </span>
           </div>
           <div class="pull-left form-group dashboard-viewing-item">
@@ -182,7 +182,7 @@
             </div>
             <span class="label label-default dashboard-label-wrapper">
               <span class="dashboard-label">{{data.matchedPolicies}}</span>
-              <span class="dashboard-label-mini">OF ({{formatPercentage(data.matchedPolicies, data.totalPolicies)}}%)</span>
+              <span class="dashboard-label-mini">OF {{data.totalPolicies}} ({{formatPercentage(data.matchedPolicies, data.totalPolicies)}}%)</span>
             </span>
           </div>
         </form>

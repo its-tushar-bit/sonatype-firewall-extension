@@ -5,22 +5,27 @@
  */
 package com.sonatype.insight.brain.organization;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;
 import org.junit.Assert;
 import org.junit.Test;
 
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
@@ -180,6 +185,27 @@ public class ApplicationServiceAuthzTest
     grantReadPermission(app.getId());
     applicationService.getApplicationsByPublicIdsAndTagIds(
         Sets.newHashSet(app.getPublicId(), app2.getPublicId()), null);
+  }
+
+  @Test()
+  public void testGetApplicationsByPublicIdsAndTagIds_OnlySeesAppsWithPermission() throws Exception {
+    Application app2 = tempEntity.newApplication("App2", "appPubId2", org.getId());
+    grantReadPermission(app.getId());
+
+    //request with nothing specified, should only see app1
+    List<Application> applications = applicationService.getApplicationsByPublicIdsAndTagIds(null, null);
+    assertThat(applications, hasSize(1));
+    assertEquals(app.getId(), applications.get(0).getId());
+
+    //now app2 permission and it should show up
+    grantReadPermission(app2.getId());
+    applications = applicationService.getApplicationsByPublicIdsAndTagIds(null, null);
+    assertThat(applications, hasSize(2));
+    Set<String> ids = new HashSet<>();
+    for (Application a : applications) {
+      ids.add(a.getId());
+    }
+    assertThat(ids, containsInAnyOrder(app.getId(), app2.getId()));
   }
 
 }

@@ -67,7 +67,11 @@ public class AuthorizationChecker
       final Map<Key, ContextParameter> contextParameters)
   {
     ContextParameter parameter = contextParameters.values().iterator().next();
-    if (parameter.object instanceof Collection<?>) {
+    if (parameter.object == null) {
+      //anyone can see nothing
+      return true;
+    }
+    else if (parameter.object instanceof Collection<?>) {
       Collection<?> paramObjects = (Collection) parameter.object;
       for (Object o : paramObjects) {
         Map<Key, Object> contextParamMap = new EnumMap<>(Key.class);

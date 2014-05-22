@@ -180,7 +180,6 @@ public class DashboardServiceHighestRiskTest
       policyEvaluationIds.add(eval.getId());
     }
 
-    when(applicationService.getApplicationsByPublicIdsAndTagIds(returnAppIds, null)).thenReturn(returnApps);
     when(stageTypeService.getLicensedStageTypes()).thenReturn(stages);
     when(applicationService.getApplicationsByPublicIdsAndTagIds(returnAppIds, null)).thenReturn(returnApps);
     when(policyEvaluationDAO.getLastByApplicationIdsAndStageIds(returnAppIds, stageIds)).thenReturn(policyEvals);
@@ -296,7 +295,7 @@ public class DashboardServiceHighestRiskTest
     PolicyViolation vio3 = new PolicyViolation(policyEvaluation3, "policyCheese", policyName3, 3,
         PolicyThreatCategory.LICENSE, vioHash1, groupId1, artifactId1, versionId1, "[]", "");
 
-    List<ApplicationRiskScoreDTO> result = doTest(Lists.newArrayList(buildStage),
+    List<ApplicationRiskScoreDTO> result = doTest(Lists.newArrayList(buildStage, releaseStage),
         Lists.newArrayList(application1, application2, application3),
         Lists.newArrayList(policyEvaluation1, policyEvaluation3, policyEvaluation4),
         Lists.newArrayList(vio1, vio3, vio4), Integer.MAX_VALUE);

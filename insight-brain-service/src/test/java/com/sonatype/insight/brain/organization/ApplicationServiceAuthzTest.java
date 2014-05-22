@@ -14,6 +14,7 @@ import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 
 import com.google.common.collect.Sets;
 import org.apache.shiro.authz.UnauthenticatedException;
+import org.apache.shiro.authz.UnauthorizedException;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -147,11 +148,38 @@ public class ApplicationServiceAuthzTest
     assertThat(applications, hasSize(1));
   }
 
-  @Test
+  @Test()
+  public void testGetApplicationsByPublicIdsAndTagIds_TwoAppsAuthorized() throws Exception {
+    login();
+    Application app2 = tempEntity.newApplication("App2", "appPubId2", org.getId());
+    grantReadPermission(app.getId());
+    grantReadPermission(app2.getId());
+
+    final List<Application> applications = applicationService.getApplicationsByPublicIdsAndTagIds(
+        Sets.newHashSet(app.getPublicId(), app2.getPublicId()), null);
+    assertThat(applications, hasSize(2));
+  }
+
+  @Test(expected = UnauthenticatedException.class)
   public void testGetApplicationsByPublicIdsAndTagIds_Unauthenticated() throws Exception {
-    final List<Application> applications = applicationService
-        .getApplicationsByPublicIdsAndTagIds(Sets.newHashSet(app.getPublicId()), null);
-    assertThat(applications, hasSize(0));
+    applicationService.getApplicationsByPublicIdsAndTagIds(
+        Sets.newHashSet(app.getPublicId()), null);
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testGetApplicationsByPublicIdsAndTagIds_NotAuthorized() throws Exception {
+    login();
+    applicationService.getApplicationsByPublicIdsAndTagIds(
+        Sets.newHashSet(app.getPublicId()), null);
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testGetApplicationsByPublicIdsAndTagIds_TwoAppsOneNotAuthorized() throws Exception {
+    login();
+    Application app2 = tempEntity.newApplication("App2", "appPubId2", org.getId());
+    grantReadPermission(app.getId());
+    applicationService.getApplicationsByPublicIdsAndTagIds(
+        Sets.newHashSet(app.getPublicId(), app2.getPublicId()), null);
   }
 
 }

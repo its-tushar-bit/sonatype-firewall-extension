@@ -84,4 +84,10 @@ public @interface AuthzContext
    * Map key to use for parameter value when calling {@link ContextResolver#resolveContextIds(java.util.Map)}.
    */
   Key value();
+
+  /**
+   * Do we have multiple items to check for? If true, we should pass a {@link java.util.Collection} of items.
+   * Each item in a collection must pass for the authorization to succeed.
+   */
+  boolean multiple() default false;
 }

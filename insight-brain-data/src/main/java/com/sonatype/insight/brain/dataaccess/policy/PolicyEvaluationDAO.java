@@ -86,15 +86,29 @@ public class PolicyEvaluationDAO
     return createQuery(sQuery, appId, stageTypeId).forceSingleResult().get(em);
   }
 
-  public List<PolicyEvaluation> getLastByApplicationIdsAndStageIds(Set<String> appIds, Set<String> stageTypeIds)
-  {
+  public List<PolicyEvaluation> getLastByApplicationIdsAndStageIds(Set<String> appIds, Set<String> stageTypeIds) {
     String sQuery = "SELECT pe1 FROM PolicyEvaluation pe1" + //
         " WHERE pe1.applicationId IN (?1)" + //
         " AND pe1.stageTypeId IN (?2)" + //
-        " AND pe1.time in (" + //
-        "   SELECT max(pe2.time) FROM PolicyEvaluation pe2" + //
-        "   WHERE pe1.applicationId = pe2.applicationId" + //
-        "   GROUP BY pe2.applicationId, pe2.stageTypeId" + //
+        " AND pe1.scanId = (" + //
+        //Find the scan id for the most recent primary evaluation
+        "   SELECT pe2.scanId from PolicyEvaluation pe2" +
+        "   WHERE pe2.applicationId = pe1.applicationId" +
+        "   AND pe2.stageTypeId = pe1.stageTypeId" +
+        "   AND pe2.time = (" + //
+        //Find the time for the most recent primary evaluation
+        "     SELECT max(pe3.time) FROM PolicyEvaluation pe3" + //
+        "     WHERE pe3.applicationId = pe1.applicationId" + //
+        "     AND pe3.stageTypeId = pe1.stageTypeId" +
+        "     AND pe3.isReevaluation=false" +
+        "   )" + //
+        " )" + //
+        " AND pe1.time = (" + //
+        //We are matching all evals of the newest scan ID, lets use time to just pick the newest one of those
+        "   SELECT max(pe4.time) FROM PolicyEvaluation pe4" + //
+        "   WHERE pe4.applicationId = pe1.applicationId" + //
+        "   AND pe4.stageTypeId = pe1.stageTypeId" +
+        "   AND pe4.scanId = pe1.scanId" +
         " )";
     return getList(sQuery, appIds, stageTypeIds);
   }

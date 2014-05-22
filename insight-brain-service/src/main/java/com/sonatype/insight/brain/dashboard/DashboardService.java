@@ -247,7 +247,9 @@ public class DashboardService
   /**
    * @since 1.11.0
    */
-  public List<ApplicationRiskScoreDTO> getApplicationRisks(final Set<String> applicationPublicIds,
+  @Authorize(permission = Permission.READ)
+  public List<ApplicationRiskScoreDTO> getApplicationRisks(
+      @AuthzContext(value = AuthzContext.Key.APPLICATION_PUBLIC_ID, multiple = true) final Set<String> applicationPublicIds,
       final Set<String> stageIds, final Set<String> tagIds, final PolicyThreatCategoryFilter policyThreatCategoryFilter,
       final PolicyThreatLevelFilter policyThreatLevelFilter, final int maxResults)
   {

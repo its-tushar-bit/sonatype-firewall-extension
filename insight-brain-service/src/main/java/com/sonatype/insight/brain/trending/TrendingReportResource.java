@@ -23,6 +23,7 @@ import com.sonatype.insight.brain.model.trending.TrendingReport;
 import com.sonatype.insight.brain.model.trending.TrendingReportGenerationMetadata;
 import com.sonatype.insight.brain.security.AuthorizationChecker;
 import com.sonatype.insight.brain.security.AuthzContext;
+import com.sonatype.insight.brain.security.ContextParameter;
 
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authz.UnauthorizedException;
@@ -71,7 +72,7 @@ public class TrendingReportResource
     final UserPrincipal user = (UserPrincipal)SecurityUtils.getSubject().getPrincipal();
 
     final boolean isAdmin = authChecker.isPermitted(user, Permission.ADMIN,
-        Collections.<AuthzContext.Key, Object> emptyMap());
+        Collections.<AuthzContext.Key, ContextParameter> emptyMap());
 
     if (!isAdmin && force) {
       throw new UnauthorizedException("Not authorized to force trending report regeneration");

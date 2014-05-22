@@ -10,6 +10,7 @@ import java.util.EnumMap;
 import java.util.Map;
 
 import com.sonatype.insight.brain.model.security.UserPrincipal;
+import com.sonatype.insight.brain.security.AuthzContext.Key;
 
 import org.apache.shiro.aop.AnnotationMethodInterceptor;
 import org.apache.shiro.aop.AnnotationResolver;
@@ -63,13 +64,14 @@ class AuthorizeMethodInterceptor
     return mi.proceed();
   }
 
-  static Map<AuthzContext.Key, Object> getContextParameters(MethodInvocation mi) {
-    Map<AuthzContext.Key, Object> parameters = new EnumMap<AuthzContext.Key, Object>(AuthzContext.Key.class);
+  static Map<AuthzContext.Key, ContextParameter> getContextParameters(MethodInvocation mi) {
+    Map<AuthzContext.Key, ContextParameter> parameters = new EnumMap<>(AuthzContext.Key.class);
     Annotation[][] paramAnnos = mi.getMethod().getParameterAnnotations();
     for (int i = 0; i < paramAnnos.length; i++) {
       for (Annotation anno : paramAnnos[i]) {
         if (anno instanceof AuthzContext) {
-          parameters.put(((AuthzContext) anno).value(), mi.getArguments()[i]);
+          AuthzContext ac = (AuthzContext) anno;
+          parameters.put(ac.value(), new ContextParameter(ac.value(), mi.getArguments()[i], ac.multiple()));
           break;
         }
       }
@@ -98,7 +100,8 @@ class AuthorizeMethodInterceptor
       throw new UnauthenticatedException("Anonymous access forbidden", newAuthzException(mi));
     }
     UserPrincipal user = (UserPrincipal)principal;
-    if (!authzChecker.isPermitted(user, anno.permission(), getContextParameters(mi))) {
+    Map<AuthzContext.Key, ContextParameter> contextParameters = getContextParameters(mi);
+    if (!authzChecker.isPermitted(user, anno.permission(), contextParameters)) {
       throw new UnauthorizedException("Insufficient permissions", newAuthzException(mi));
     }
   }

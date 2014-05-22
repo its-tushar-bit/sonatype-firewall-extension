@@ -174,4 +174,24 @@ public class DashboardServiceAuthzTest
     return dashboardService.getFilterSummary(all ? null : Collections.singleton(app.getPublicId()), null, null, null,
         null).totalApplications;
   }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testGetApplicationRisks_ExplicitApplicationFilter_Unauthenticated() {
+    dashboardService.getApplicationRisks(Collections.singleton(app.getPublicId()), null, null, null, null, 1);
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testGetApplicationRisks_ExplicitApplicationFilter_Unauthorized() {
+    login();
+    dashboardService.getApplicationRisks(Collections.singleton(app.getPublicId()), null, null, null, null, 1);
+  }
+
+  @Test
+  public void testGetApplicationRisks_ExplicitApplicationFilter_Authorized() {
+    grantReadPermission(app.getId());
+    dashboardService.getApplicationRisks(Collections.singleton(app.getPublicId()), null, null, null, null, 1);
+  }
+
 }
+
+

@@ -8,9 +8,10 @@
   'use strict';
 
   function filterToParams(filter, maxResults) {
-    var params = {
-      maxResults: maxResults + 1
-    };
+    var params = {};
+    if (maxResults) {
+      params.maxResults = maxResults + 1;
+    }
     if (filter) {
       params.applicationPublicIds = filter.applicationPublicIds;
       params.policyThreatCategories = (filter.policyThreatTypes &&
@@ -477,6 +478,40 @@
           reverse : attrs.sortableReverse
         };
       }
+    };
+  });
+
+  dashboardModule.directive('dashboardViewSummary', function() {
+    return {
+      restrict: 'A',
+      templateUrl: 'dashboard-view-summary',
+      scope: {
+        filters : '=filters'
+      },
+      controller: ['$scope', '$http', 'CLMLocations', function ($scope, $http, CLMLocations) {
+        $scope.doLoad = function(){
+          $scope.data = null;
+          $http.get(CLMLocations.getDashboardViewingSummaryUrl(), {
+            params: filterToParams($scope.filters)
+          }).success(function (data) {
+            $scope.data = data;
+          }).error(function () {
+            $scope.error = arguments;
+          });
+        };
+
+        $scope.formatPercentage = function(matched, total){
+          if (!total) {
+            return "0";
+          }
+
+          return (matched / total * 100).toFixed(0);
+        };
+
+        $scope.$watch('filters', function(){
+          $scope.doLoad();
+        });
+      }]
     };
   });
 }());

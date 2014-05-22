@@ -156,6 +156,40 @@
     </div>
   </div>
 </script>
+<script type="text/ng-template" id="dashboard-view-summary">
+  <div load-wrapper="error" reload="doLoad()">
+    <div ng-if="!data && !error">
+      <h5>
+        <i class='icon-time'></i> Loading...
+      </h5>
+    </div>
+    <div ng-if="data">
+      <div class="span6">
+        <div class="dashboard-viewing-header"><h4>Viewing</h4></div>
+        <form class="form-horizontal" role="form">
+          <div class="pull-left form-group dashboard-viewing-item">
+            <div>
+              <span class="sonatype-icons dashboard-app-icon"></span><span class="dashboard-icon-label">Applications</span>
+            </div>
+            <span class="label label-default dashboard-label-wrapper">
+              <span class="dashboard-label">{{data.matchedApplications}}</span>
+              <span class="dashboard-label-mini">OF ({{formatPercentage(data.matchedApplications, data.totalApplications)}}%)</span>
+            </span>
+          </div>
+          <div class="pull-left form-group dashboard-viewing-item">
+            <div>
+              <span class="sonatype-icons dashboard-policy-icon"></span><span class="dashboard-icon-label">Policies</span>
+            </div>
+            <span class="label label-default dashboard-label-wrapper">
+              <span class="dashboard-label">{{data.matchedPolicies}}</span>
+              <span class="dashboard-label-mini">OF ({{formatPercentage(data.matchedPolicies, data.totalPolicies)}}%)</span>
+            </span>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</script>
 <div class='container'>
   <div class='row'>
     <div class='span12'>
@@ -164,6 +198,7 @@
     </div>
   </div>
   <div class='row' style='margin-bottom:10px' dashboard-filter="filters" toggle="toggleCollapse"></div>
+  <div class='row' dashboard-view-summary filters="filters"></div>
   <div load-error='error' reload='doLoad()'></div>
   <div class='row dashboard-tables' ng-hide='error'>
     <div class='span12' id="highest-risk">

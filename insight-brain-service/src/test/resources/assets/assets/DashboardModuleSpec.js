@@ -453,6 +453,53 @@ describe('DashboardModule', function() {
     });
   });
 
+  describe('Dashboard view summary', function() {
+    var scope;
+
+    beforeEach(inject(function($rootScope, $httpBackend) {
+      scope = $rootScope.$new();
+      $httpBackend.expectGET('dashboard-view-summary').respond('<div></div>');
+    }));
+
+    it('Predefined filters sent in GET request', inject(function($compile, $httpBackend, CLMLocations) {
+      scope.filters = {
+        applicationPublicIds: ['1', '2'],
+        policyThreatTypes: ['3', '4'],
+        stageTypeIds: ['5', '6'],
+        applicationTagIds: ['7', '8'],
+        policyThreatLevel: [3, 9]
+      };
+
+      $httpBackend.expectGET(CLMLocations.getDashboardViewingSummaryUrl() +
+          '?applicationPublicIds=1&applicationPublicIds=2&policyThreatCategories=3,4&policyThreatLevelRange=3,9&stageIds=5&stageIds=6&tagIds=7&tagIds=8').respond();
+      $compile(angular.element('<div dashboard-view-summary filters="filters"></div>'))(scope);
+      $httpBackend.flush();
+      expect(scope.$$childHead.error).not.toBeDefined();
+    }));
+
+    it('Data loaded from server into model properly', inject(function($compile, $httpBackend, CLMLocations) {
+      var data = {
+        totalApplications: 13,
+        totalPolicies: 18,
+        matchedApplications: 2,
+        matchedPolicies: 4
+      };
+
+      $httpBackend.expectGET(CLMLocations.getDashboardViewingSummaryUrl()).respond(data);
+      $compile(angular.element('<div dashboard-view-summary filters="filters"></div>'))(scope);
+      $httpBackend.flush();
+      expect(scope.$$childHead.data).toEqual(data);
+      expect(scope.$$childHead.error).not.toBeDefined();
+    }));
+
+    it('Error propogated to scope', inject(function($compile, $httpBackend, CLMLocations) {
+      $httpBackend.expectGET(CLMLocations.getDashboardViewingSummaryUrl()).respond(404, 'You screwed up');
+      $compile(angular.element('<div dashboard-view-summary filters="filters"></div>'))(scope);
+      $httpBackend.flush();
+      expect(scope.$$childHead.error).toBeDefined();
+    }));
+  });
+
   describe('breadcrumb', function() {
     var scope;
 

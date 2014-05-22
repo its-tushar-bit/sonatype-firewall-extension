@@ -156,6 +156,9 @@
         getDashboardFilters : function() {
           return baseUrl.get() + '/rest/dashboard/filters';
         },
+        getDashboardViewingSummaryUrl : function() {
+          return baseUrl.get() + '/rest/dashboard/filters/summary';
+        },
 
         getComponentDetailsUrl: function(hash) {
           return baseUrl.get() + '/rest/componentDetails/applications?hash=' + hash;

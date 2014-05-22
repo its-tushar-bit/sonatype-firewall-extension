@@ -502,7 +502,7 @@
 
         $scope.formatPercentage = function(matched, total){
           if (!total) {
-            return "0";
+            return '0';
           }
 
           return (matched / total * 100).toFixed(0);

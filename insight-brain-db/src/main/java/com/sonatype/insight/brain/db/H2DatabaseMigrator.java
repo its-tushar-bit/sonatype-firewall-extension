@@ -69,8 +69,10 @@ public class H2DatabaseMigrator
 
       File backupDir = new File(databaseDir, "backup");
       if (backupDir.exists()) {
-        throw new IllegalStateException("Cannot migrate database. The backup directory '" + backupDir.getAbsolutePath()
-            + "' already exists.");
+        throw new IllegalStateException(
+            "Cannot migrate database. The backup directory '"
+                + backupDir.getAbsolutePath()
+                + "' already exists, indicating that a previous migration failed. Please contact support for further assistance.");
       }
       backup(databaseDir, databaseFilename, backupDir);
 
@@ -85,11 +87,11 @@ public class H2DatabaseMigrator
       FileUtils.fileWrite(databaseVersionFile, "UTF-8", String.valueOf(desiredVersion));
       new FileCleaner().delete(backupDir);
     }
-    catch (IOException e) {
+    catch (IOException | SQLException e) {
       throw new RuntimeException(e);
     }
-    catch (SQLException e) {
-      throw new RuntimeException(e);
+    catch (RuntimeException e) {
+      throw enhanceException(e);
     }
   }
 
@@ -110,6 +112,23 @@ public class H2DatabaseMigrator
       catch (SQLException ignored) {
       }
     }
+  }
+
+  private RuntimeException enhanceException(RuntimeException exception) {
+    String reason = createCustomErrorMessage(exception.getMessage());
+    if (reason != null) {
+      return new RuntimeException(reason, exception);
+    }
+
+    return exception;
+  }
+
+  private String createCustomErrorMessage(String message) {
+    if (message != null && message.contains("db/insight_brain_ods/schema_incremental_0039.sql")) {
+      return "Failed to migrate database, exception likely caused by applications without parent organizations. Please contact support for further assistance.";
+    }
+
+    return null;
   }
 
   public void runScript(DataSource dataSource, String scriptName) throws SQLException {

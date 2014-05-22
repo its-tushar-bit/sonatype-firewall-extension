@@ -158,8 +158,12 @@
                 <i class='glyphicons-sonatype medium user'></i><span class="user-name">{{ displayName }}</span>
               </a>
               <ul class="dropdown-menu dropdown-menu-arrow">
-                <li ng-controller='ChangePassword' ng-show='canChangePassword()'><a ng-click="change()">Change Password</a></li>
-                <li ng-controller='LogoutController'><a ng-click="logout()">Logout</a></li>
+                <li ng-controller='ChangePassword' ng-show='canChangePassword()'>
+                  <a id='change-password' ng-click="change()">Change Password</a>
+                </li>
+                <li ng-controller='LogoutController'>
+                  <a id='logout' ng-click="logout()">Logout</a>
+                </li>
               </ul>
             </div>
           </li>

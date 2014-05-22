@@ -20,26 +20,25 @@ class UserOptionsModule
 
   static content = {
     displayName(wait: true) { $('.user-name') }
-    optionsDropdown(wait: true) { $('.dashboard-user a.btn') }
-    logout (wait: true, to: ReportViolationsPage) { $('li:last-child a') }
-    openChangePassword { $('li:first-child a') }
+    optionsDropdown(wait: true) { $('a.btn') }
+    logout (wait: true, to: ReportViolationsPage) { $('#logout') }
+    openChangePassword(wait: true) { $('#change-password') }
   }
 
   void logoutClick() {
     optionsDropdown.click()
-    def body = $('body').firstElement();
+    def body = page.$('body').firstElement();
     logout.click()
     /*
      * NOTE: Logout triggers navigation to a new page. Any page content that is accessed directly after the click event
      * is at danger of becoming stale during use once the browser starts loading the new page. To avoid this trouble,
-     * we wait until the browser has started loading the new page as witnissed by a previous element becoming stale.
+     * we wait until the browser has started loading the new page as witnessed by a previous element becoming stale.
      */
     waitFor { isStale(body) }
   }
 
   void changePasswordClick() {
     optionsDropdown.click()
-    waitFor { openChangePassword.displayed }
     openChangePassword.click()
   }
 

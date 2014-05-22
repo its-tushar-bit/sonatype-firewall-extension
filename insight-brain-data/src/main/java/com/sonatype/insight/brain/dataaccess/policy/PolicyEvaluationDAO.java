@@ -92,7 +92,11 @@ public class PolicyEvaluationDAO
     List<PolicyEvaluation> result = new ArrayList<>(appIds.size() * stageTypeIds.size());
     for (String stageTypeId : stageTypeIds) {
       for (String appId : appIds) {
-        result.add(getLastByApplicationIdAndStageId(appId, stageTypeId));
+        PolicyEvaluation eval = getLastByApplicationIdAndStageId(appId, stageTypeId);
+        if (eval != null) {
+          //can get null due to the code above :/
+          result.add(eval);
+        }
       }
     }
     return result;

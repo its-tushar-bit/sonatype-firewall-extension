@@ -386,49 +386,50 @@ table.table-risk thead tr th, table.table-risk thead tr th div {
   min-width: 100px;
 }
 
-table.table-risk  tbody tr:first-child  td:nth-child(2) {
-  border-top-color : rgb(123,123,123);
+table.table-risk .stage td:first-child {
+  background-color: #FCFCFC;
 }
 
-table.table-risk tbody tr:nth-child(n) td:nth-child(2) {
-  background-color : rgba(255, 255, 255, 0.5);
-  color : rgb(123,123,123);
+table.table-risk .stage td:not(:first-child) {
+  background-color: #FFF;
 }
 
-table.table-risk tbody tr:nth-child(n) td:nth-child(3) {
-  background-color : rgba(246, 221, 219, 0.5);
-  color : #c01a00;
+table.table-risk td.total-risk {
+  background-color : #444;
+  color : #FFF;
+  font-size: 14px;
 }
 
-table.table-risk  tbody tr:first-child  td:nth-child(3) {
-  border-top-color : #c01a00
+table.table-risk .stage td.total-risk, table.table-risk td.total-risk.black-text {
+  color: #000;
 }
 
-table.table-risk tbody tr:nth-child(n) td:nth-child(4) {
-  background-color : rgba(252, 236, 221, 0.78);
-  color : #ed8800;
+table.table-risk td.critical-risk {
+  background-color : #E6A29F;
+  color : #880D10;
+  border-left: 2px solid white;
+  border-bottom: 2px solid white;
 }
 
-table.table-risk  tbody tr:first-child  td:nth-child(4) {
-  border-top-color : #ed8800
+table.table-risk td.severe-risk {
+  background-color : #E7C2A1;
+  color : #64460A;
+  border-left: 2px solid white;
+  border-bottom: 2px solid white;
 }
 
-table.table-risk tbody tr:nth-child(n) td:nth-child(5) {
-  background-color : rgba(250, 247, 222, 0.73);
-  color : #BEAE00;
+table.table-risk td.moderate-risk {
+  background-color : #E8D9A1;
+  color : #968900;
+  border-left: 2px solid white;
+  border-bottom: 2px solid white;
 }
 
-table.table-risk  tbody tr:first-child  td:nth-child(5) {
-  border-top-color : #e2cf02
-}
-
-table.table-risk tbody tr:nth-child(n) td:nth-child(6) {
-  background-color : rgba(229, 229, 246, 0.71);
-  color : #011ca1;
-}
-
-table.table-risk  tbody tr:first-child  td:nth-child(6) {
-  border-top-color : #011ca1
+table.table-risk td.low-risk {
+  background-color : #B8D7E8;
+  color : #233894;
+  border-left: 2px solid white;
+  border-bottom: 2px solid white;
 }
 
 .dashboard-content th {

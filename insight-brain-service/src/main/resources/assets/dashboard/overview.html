@@ -242,11 +242,22 @@
                                         'icon-minus-sign' : isExpanded(application),
                                         'emptyIconGlyph' : !canExpand(application) }"
                          ng-click='expand(application)'></i> {{application.applicationName}}</td>
-                  <td>{{application.totalApplicationRisk.totalRisk}}</td>
-                  <td>{{application.totalApplicationRisk.criticalRisk}}</td>
-                  <td>{{application.totalApplicationRisk.severeRisk}}</td>
-                  <td>{{application.totalApplicationRisk.moderateRisk}}</td>
-                  <td>{{application.totalApplicationRisk.lowRisk}}</td>
+                  <td class="total-risk" alpha-background="{{application.totalApplicationRisk.totalRisk | safeDivide:totalRisk}}"
+                      ng-class="{ 'black-text': (application.totalApplicationRisk.totalRisk | safeDivide:totalRisk) < 0.5 }">
+                    {{application.totalApplicationRisk.totalRisk}}
+                  </td>
+                  <td class="critical-risk" alpha-background="{{application.totalApplicationRisk.criticalRisk | safeDivide:criticalRisk}}">
+                    {{application.totalApplicationRisk.criticalRisk}}
+                  </td>
+                  <td class="severe-risk" alpha-background="{{application.totalApplicationRisk.severeRisk | safeDivide:severeRisk}}">
+                    {{application.totalApplicationRisk.severeRisk}}
+                  </td>
+                  <td class="moderate-risk" alpha-background="{{application.totalApplicationRisk.moderateRisk | safeDivide:moderateRisk}}">
+                    {{application.totalApplicationRisk.moderateRisk}}
+                  </td>
+                  <td class="low-risk" alpha-background="{{application.totalApplicationRisk.lowRisk | safeDivide:lowRisk}}">
+                    {{application.totalApplicationRisk.lowRisk}}
+                  </td>
                 </tr>
                 <tr class='stage' ng-repeat-end
                     ng-repeat='stage in application.stageRisks | orderBy:"stageTypeName"'
@@ -254,11 +265,11 @@
                   <td><a title="View application report" class="glyphicons-sonatype link"
                          ng-href="index.html#/reports/{{encodeURIComponent(application.applicationId)}}/{{stage.scanId}}"
                          target="_blank">{{stage.stageTypeName | uppercase}}</a></td>
-                  <td>{{stage.risk.totalRisk}}</td>
-                  <td>{{stage.risk.criticalRisk}}</td>
-                  <td>{{stage.risk.severeRisk}}</td>
-                  <td>{{stage.risk.moderateRisk}}</td>
-                  <td>{{stage.risk.lowRisk}}</td>
+                  <td class="total-risk">{{stage.risk.totalRisk}}</td>
+                  <td class="critical-risk">{{stage.risk.criticalRisk}}</td>
+                  <td class="severe-risk">{{stage.risk.severeRisk}}</td>
+                  <td class="moderate-risk">{{stage.risk.moderateRisk}}</td>
+                  <td class="low-risk">{{stage.risk.lowRisk}}</td>
                 </tr>
               </table>
             </div>
@@ -266,40 +277,53 @@
         </div>
         <div ng-switch-when="components">
           <div component-risk-table>
-            <table class="table table-risk" id="component-risk" sortable sortable-reverse="true" sortable-field="score">
-              <thead>
-                <tr>
-                  <th><div>COMPONENT</div></th>
-                  <th><div sort-column="score" sort-inverse="true">TOTAL RISK</div></th>
-                  <th><div sort-column="scoreCritical" sort-inverse="true">CRITICAL</div></th>
-                  <th><div sort-column="scoreSevere" sort-inverse="true">SEVERE</div></th>
-                  <th><div sort-column="scoreModerate" sort-inverse="true">MODERATE</div></th>
-                  <th><div sort-column="scoreLow" sort-inverse="true">LOW</div></th>
+            <div ng-controller="componentRiskTable">
+              <table class="table table-risk" id="component-risk" sortable sortable-reverse="true" sortable-field="score">
+                <thead>
+                  <tr>
+                    <th><div>COMPONENT</div></th>
+                    <th><div sort-column="score" sort-inverse="true">TOTAL RISK</div></th>
+                    <th><div sort-column="scoreCritical" sort-inverse="true">CRITICAL</div></th>
+                    <th><div sort-column="scoreSevere" sort-inverse="true">SEVERE</div></th>
+                    <th><div sort-column="scoreModerate" sort-inverse="true">MODERATE</div></th>
+                    <th><div sort-column="scoreLow" sort-inverse="true">LOW</div></th>
+                  </tr>
+                </thead>
+                <tr ng-repeat="component in data | limitTo: maxResults | orderBy:getSortField():getSortReverse()">
+                  <td ng-if="component.gavs.length">
+                    <a ui-sref="dashboard.component({ hash: component.hash })">
+                      {{component.gavs[0].groupId}}<span class="wrap-force-break"> : </span>{{component.gavs[0].artifactId}}<span class="wrap-force-break"> : </span>{{component.gavs[0].version}}
+                    </a>
+                  </td>
+                  <td ng-if="!component.gavs.length && component.pathnames.length" pathnames-popover='component.pathnames'>
+                    <a ui-sref="dashboard.component({ hash: component.hash })">
+                      <em>{{component.pathnames[0] | fileName}}</em>
+                    </a>
+                  </td>
+                  <td ng-if="!component.gavs.length && !component.pathnames.length">
+                    <a ui-sref="dashboard.component({ hash: component.hash })">
+                      <em>Unknown</em>
+                    </a>
+                  </td>
+                  <td class="total-risk" alpha-background="{{component.score | safeDivide:totalRisk}}"
+                      ng-class="{ 'black-text': (component.score | safeDivide:totalRisk) < 0.5 }">
+                    {{component.score}}
+                  </td>
+                  <td class="critical-risk" alpha-background="{{component.scoreCritical | safeDivide:criticalRisk}}">
+                    {{component.scoreCritical}}
+                  </td>
+                  <td class="severe-risk" alpha-background="{{component.scoreSevere | safeDivide:severeRisk}}">
+                    {{component.scoreSevere}}
+                  </td>
+                  <td class="moderate-risk" alpha-background="{{component.scoreModerate | safeDivide:moderateRisk}}">
+                    {{component.scoreModerate}}
+                  </td>
+                  <td class="low-risk" alpha-background="{{component.scoreLow | safeDivide:lowRisk}}">
+                    {{component.scoreLow}}
+                  </td>
                 </tr>
-              </thead>
-              <tr ng-repeat="component in data | limitTo: maxResults | orderBy:getSortField():getSortReverse()">
-                <td ng-if="component.gavs.length">
-                  <a ui-sref="dashboard.component({ hash: component.hash })">
-                    {{component.gavs[0].groupId}}<span class="wrap-force-break"> : </span>{{component.gavs[0].artifactId}}<span class="wrap-force-break"> : </span>{{component.gavs[0].version}}
-                  </a>
-                </td>
-                <td ng-if="!component.gavs.length && component.pathnames.length" pathnames-popover='component.pathnames'>
-                  <a ui-sref="dashboard.component({ hash: component.hash })">
-                    <em>{{component.pathnames[0] | fileName}}</em>
-                  </a>
-                </td>
-                <td ng-if="!component.gavs.length && !component.pathnames.length">
-                  <a ui-sref="dashboard.component({ hash: component.hash })">
-                    <em>Unknown</em>
-                  </a>
-                </td>
-                <td>{{component.score}}</td>
-                <td>{{component.scoreCritical}}</td>
-                <td>{{component.scoreSevere}}</td>
-                <td>{{component.scoreModerate}}</td>
-                <td>{{component.scoreLow}}</td>
-              </tr>
-            </table>
+              </table>
+            </div>
           </div>
         </div>
       </div>

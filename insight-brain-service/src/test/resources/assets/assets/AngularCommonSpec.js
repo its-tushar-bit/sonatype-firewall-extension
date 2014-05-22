@@ -513,4 +513,19 @@ describe('AngularCommon', function() {
       });
     }));
   });
+
+  describe('safeDivide', function() {
+    var safeDivide;
+    beforeEach(inject(function($filter) {
+      safeDivide = $filter('safeDivide');
+    }));
+
+    it('divides two numbers', function() {
+      expect(safeDivide(1, 2)).toBe(0.5);
+    });
+
+    it('safely divides by zero', function() {
+      expect(safeDivide(1, 0)).toBe(0);
+    });
+  });
 });

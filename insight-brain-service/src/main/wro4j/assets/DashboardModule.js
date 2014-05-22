@@ -401,6 +401,21 @@
     };
   }]);
 
+  dashboardModule.controller('componentRiskTable', ['$scope', function($scope) {
+    $scope.totalRisk = 0;
+    $scope.criticalRisk = 0;
+    $scope.severeRisk = 0;
+    $scope.moderateRisk = 0;
+    $scope.lowRisk = 0;
+    angular.forEach($scope.data, function(data) {
+      $scope.totalRisk = Math.max($scope.totalRisk, data.score);
+      $scope.criticalRisk = Math.max($scope.criticalRisk, data.scoreCritical);
+      $scope.severeRisk = Math.max($scope.severeRisk, data.scoreSevere);
+      $scope.moderateRisk = Math.max($scope.moderateRisk, data.scoreModerate);
+      $scope.lowRisk = Math.max($scope.lowRisk, data.scoreLow);
+    });
+  }]);
+
   dashboardModule.controller('applicationRiskTable', ['$scope', function ($scope) {
     $scope.encodeURIComponent = window.encodeURIComponent;
 
@@ -415,6 +430,45 @@
     $scope.expand = function (application) {
       if ($scope.canExpand(application)) {
         $scope.expanded[application.applicationId] = !$scope.expanded[application.applicationId];
+      }
+    };
+
+    $scope.totalRisk = 0;
+    $scope.criticalRisk = 0;
+    $scope.severeRisk = 0;
+    $scope.moderateRisk = 0;
+    $scope.lowRisk = 0;
+    angular.forEach($scope.data, function(data) {
+      $scope.totalRisk = Math.max($scope.totalRisk, data.totalApplicationRisk.totalRisk);
+      $scope.criticalRisk = Math.max($scope.criticalRisk, data.totalApplicationRisk.criticalRisk);
+      $scope.severeRisk = Math.max($scope.severeRisk, data.totalApplicationRisk.severeRisk);
+      $scope.moderateRisk = Math.max($scope.moderateRisk, data.totalApplicationRisk.moderateRisk);
+      $scope.lowRisk = Math.max($scope.lowRisk, data.totalApplicationRisk.lowRisk);
+    });
+  }]);
+
+  dashboardModule.directive('alphaBackground', [function() {
+    return {
+      scope: {
+        alphaBackground: '@'
+      },
+      link: function(scope, element) {
+        var backgroundProperty = 'background-color';
+        var background = element.css(backgroundProperty);
+        var backgroundMatched = /(rgb|rgba)\((.*)\)/.exec(background);
+        if (!backgroundMatched || backgroundMatched.length < 2) {
+          return;
+        }
+        var rgb = backgroundMatched[2].split(',').map(function(color) {
+          return parseInt(color);
+        });
+        if (rgb.length === 4) {
+          rgb[3] = scope.alphaBackground;
+        } else {
+          rgb.push(scope.alphaBackground);
+        }
+        background = 'rgba(' + rgb.join(',') + ')';
+        element.css(backgroundProperty, background);
       }
     };
   }]);

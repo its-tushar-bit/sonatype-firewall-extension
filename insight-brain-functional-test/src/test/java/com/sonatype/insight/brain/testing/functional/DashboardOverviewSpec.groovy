@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.testing.functional
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.sonatype.clm.dto.model.policy.Stage
 import com.sonatype.insight.brain.dashboard.DashboardFilterDTO
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO
 import com.sonatype.insight.brain.dataaccess.filter.DashboardFilterDAO
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO
 import com.sonatype.insight.brain.model.Application
@@ -24,7 +25,7 @@ import com.sonatype.insight.brain.service.InsightWork
 import com.sonatype.insight.brain.testing.functional.modules.ThreatTableRow
 import com.sonatype.insight.brain.testing.functional.report.violation.ReportContainerPage
 
-import org.codehaus.plexus.util.FileUtils;
+import org.codehaus.plexus.util.FileUtils
 
 /**
  * @since 1.11
@@ -33,6 +34,12 @@ class DashboardOverviewSpec
   extends BaseSpec
 {
   static final String RECENT_AGE = /.*(seconds|minute|minutes) ago/
+
+  static final String alphaMatcher = /background-color: rgba\([0-9][0-9][0-9]?, [0-9][0-9][0-9]?, [0-9][0-9][0-9]?, (.*)\);/
+  boolean assertAlpha(style, percentage) {
+    // Different browsers render opacity differently. Epsilon 0.05 provides an accurate comparison of alpha.
+    Math.abs((style =~ alphaMatcher)[0][1].toBigDecimal() - percentage) < 0.05
+  }
 
   static Organization org
   static Application firstApp
@@ -284,6 +291,70 @@ class DashboardOverviewSpec
 
     then: 'the table is replaced by no result text'
       waitFor { noDataAvailable.displayed }
+  }
+
+  def 'Threat level cells heat map'() {
+    setup: 'Add a few records'
+      List<Application> applications = new ArrayList<Application>();
+      for (i in 0..2) {
+        Date now = new Date()
+        def application = temporaryEntity.newApplication("DashboardSpecApp${i}", "DashboardSpecApp${i}", org.id)
+        applications.add(application)
+        def policyEvaluation = temporaryEntity.newPolicyEvaluation(application.id, BuildStageType.ID,
+          "DashboardSpecFirstEvaluation${i}", now - 7)
+        def violation = temporaryEntity.newPolicyViolation(policyEvaluation, policy, 4 * i,
+          PolicyThreatCategory.SECURITY, "Group${i}", "Artifact${i}", "Version${i}", "hash${i}")
+        temporaryEntity.newNewestPolicyViolation(violation.id, policyEvaluation.applicationId,
+          policyEvaluation.stageTypeId)
+      }
+
+    when: 'Switching to Components Tab'
+      tabLinks.componentsTabButton.click()
+
+    then: 'Components tab heat map is shown'
+      waitFor { componentViolationsTable.rows.size() == 4 }
+      assertAlpha(componentViolationsTable.rows[1].netRisk.attr('style'), 8d/15)
+      assertAlpha(componentViolationsTable.rows[2].netRisk.attr('style'), 4d/15)
+      assertAlpha(componentViolationsTable.rows[3].netRisk.attr('style'), 0)
+      assertAlpha(componentViolationsTable.rows[1].criticalRisk.attr('style'), 8d/10)
+      assertAlpha(componentViolationsTable.rows[2].criticalRisk.attr('style'), 0)
+      assertAlpha(componentViolationsTable.rows[3].criticalRisk.attr('style'), 0)
+      assertAlpha(componentViolationsTable.rows[1].severeRisk.attr('style'), 0)
+      assertAlpha(componentViolationsTable.rows[2].severeRisk.attr('style'), 4d/5)
+      assertAlpha(componentViolationsTable.rows[3].severeRisk.attr('style'), 0)
+      assertAlpha(componentViolationsTable.rows[1].moderateRisk.attr('style'), 0)
+      assertAlpha(componentViolationsTable.rows[2].moderateRisk.attr('style'), 0)
+      assertAlpha(componentViolationsTable.rows[3].moderateRisk.attr('style'), 0)
+      assertAlpha(componentViolationsTable.rows[1].lowRisk.attr('style'), 0)
+      assertAlpha(componentViolationsTable.rows[2].lowRisk.attr('style'), 0)
+      assertAlpha(componentViolationsTable.rows[3].lowRisk.attr('style'), 0)
+
+    when: 'Switching to Applications Tab'
+      tabLinks.applicationsTabButton.click()
+
+    then: 'Applications tab heat map is shown'
+      waitFor { applicationViolationsTable.rows.size() == 4 }
+      assertAlpha(applicationViolationsTable.rows[1].netRisk.attr('style'), 8d/10)
+      assertAlpha(applicationViolationsTable.rows[2].netRisk.attr('style'), 5d/10)
+      assertAlpha(applicationViolationsTable.rows[3].netRisk.attr('style'), 4d/10)
+      assertAlpha(applicationViolationsTable.rows[1].criticalRisk.attr('style'), 8d/10)
+      assertAlpha(applicationViolationsTable.rows[2].criticalRisk.attr('style'), 0)
+      assertAlpha(applicationViolationsTable.rows[3].criticalRisk.attr('style'), 0)
+      assertAlpha(applicationViolationsTable.rows[0].severeRisk.attr('style'), 0)
+      assertAlpha(applicationViolationsTable.rows[1].severeRisk.attr('style'), 0)
+      assertAlpha(applicationViolationsTable.rows[3].severeRisk.attr('style'), 4d/5)
+      assertAlpha(applicationViolationsTable.rows[1].moderateRisk.attr('style'), 0)
+      assertAlpha(applicationViolationsTable.rows[2].moderateRisk.attr('style'), 0)
+      assertAlpha(applicationViolationsTable.rows[3].moderateRisk.attr('style'), 0)
+      assertAlpha(applicationViolationsTable.rows[1].lowRisk.attr('style'), 0)
+      assertAlpha(applicationViolationsTable.rows[2].lowRisk.attr('style'), 0)
+      assertAlpha(applicationViolationsTable.rows[3].lowRisk.attr('style'), 0)
+
+    cleanup:
+      ApplicationDAO dao = new ApplicationDAO()
+      for (Application application : applications) {
+        dao.delete(application)
+      }
   }
 
   def 'Limits results to 100 records'() {

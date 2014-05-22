@@ -1,4 +1,8 @@
 describe('DashboardModule', function() {
+  function startsWith(url) {
+    return new RegExp('^' + url + '\?.*');
+  }
+
   var scope;
   var policyViolations = [
     {
@@ -355,6 +359,70 @@ describe('DashboardModule', function() {
     }
   });
 
+  describe('Risk Table Controllers', function() {
+    var controllers = [{
+      prefix: 'application',
+      urlFn: 'getApplicationRisksUrl',
+      data: [
+        {
+          totalApplicationRisk: {
+            totalRisk:11,
+            criticalRisk:5,
+            severeRisk:3,
+            moderateRisk:2,
+            lowRisk:1
+          }
+        },
+        {
+          totalApplicationRisk: {
+            totalRisk:48,
+            criticalRisk:17,
+            severeRisk:13,
+            moderateRisk:11,
+            lowRisk:7
+          }
+        },
+      ]
+    }, {
+      prefix: 'component',
+      urlFn: 'getComponentRisksUrl',
+      data: [{
+        score:11,
+        scoreCritical:5,
+        scoreSevere:3,
+        scoreModerate:2,
+        scoreLow:1
+      }, {
+        score:48,
+        scoreCritical:17,
+        scoreSevere:13,
+        scoreModerate:11,
+        scoreLow:7
+      }]
+    }];
+
+    angular.forEach(controllers, function(controller) {
+      describe(controller.prefix + 'RiskTable', function() {
+        var scope;
+
+        beforeEach(inject(function($rootScope, $controller) {
+          scope = $rootScope.$new();
+
+          scope.data = controller.data;
+          $controller(controller.prefix + 'RiskTable', { $scope: scope });
+        }));
+
+        it('calculates maximum risk', function() {
+          expect(scope.totalRisk).toBe(48);
+          expect(scope.criticalRisk).toBe(17);
+          expect(scope.severeRisk).toBe(13);
+          expect(scope.moderateRisk).toBe(11);
+          expect(scope.lowRisk).toBe(7);
+        });
+      });
+    })
+  })
+
   describe('Risk Table Directives', function () {
     var directives = [{
       prefix : 'newest',
@@ -368,10 +436,6 @@ describe('DashboardModule', function() {
     }];
 
     angular.forEach(directives, function (directive) {
-      function startsWith(url) {
-        return new RegExp('^' + url + '\?.*');
-      }
-
       describe(directive.prefix + 'RiskTable', function () {
         var directiveScope;
 

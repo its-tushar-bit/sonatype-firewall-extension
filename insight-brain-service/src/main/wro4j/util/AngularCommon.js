@@ -1125,4 +1125,10 @@ var AngularStateUtils = {
   services.filter('EncodeURIComponent', ['$window', function($window) {
     return $window.encodeURIComponent;
   }]);
+
+  services.filter('safeDivide', function() {
+    return function(value, max) {
+      return max === 0 ? 0 : value/max;
+    };
+  });
 }());

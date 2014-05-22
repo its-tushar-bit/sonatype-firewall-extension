@@ -1039,27 +1039,9 @@ ul.tri-pane {
   vertical-align: middle;
 }
 
-#policy-threat-levels {
-  min-width: 210px;
-}
-
-.slider {
-  width: 150px !important;
-}
-
 .error-left-of-buttons {
   margin: 0px 10px 0px 0px;
   padding: 4px 10px 4px 10px;
   float: left;
   max-width: 400px;
-}
-
-@media (max-width: 979px) {
-  .filter-edit-body > .span2:nth-child(4) {
-    clear: left;
-    margin-left:0px;
-  }
-  .row-fluid .span2 {
-    width: 30% !important;
-  }
 }

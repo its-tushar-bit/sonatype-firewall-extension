@@ -51,7 +51,7 @@
       </div>
     </div>
     <div class='row filter-readonly'>
-      <div class="span2 offset1" ng-if='filter.applicationPublicIds.length > 0'>
+      <div class="span2" ng-if='filter.applicationPublicIds.length > 0'>
         <div><strong>Applications</strong></div>
         <span ng-repeat="applicationId in filter.applicationPublicIds">
           {{applicationNameFor(applicationId)}}{{!$last ? "," : ""}}

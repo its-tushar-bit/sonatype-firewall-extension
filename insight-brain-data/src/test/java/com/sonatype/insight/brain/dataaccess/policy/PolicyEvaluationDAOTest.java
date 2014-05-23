@@ -193,7 +193,7 @@ public class PolicyEvaluationDAOTest
     String stageTypeId = ReleaseStageType.ID;
 
     Date time1 = new Date();
-    PolicyEvaluation pe1 = tempEntity.newPolicyEvaluation(applicationId, stageTypeId, "scanId1", time1);
+    tempEntity.newPolicyEvaluation(applicationId, stageTypeId, "scanId1", time1);
     Date time2 = new Date(time1.getTime() + 1000);
     PolicyEvaluation pe2 = tempEntity.newPolicyEvaluation(applicationId, stageTypeId, "scanId2", time2);
 
@@ -242,7 +242,7 @@ public class PolicyEvaluationDAOTest
 
     Date time1 = new Date();
     PolicyEvaluation pe1 = tempEntity.newPolicyEvaluation(applicationId, ReleaseStageType.ID, "scan1", time1);
-    PolicyEvaluation pe2 = tempEntity.newPolicyEvaluation(applicationId, BuildStageType.ID, "scan2", time1);
+    tempEntity.newPolicyEvaluation(applicationId, BuildStageType.ID, "scan2", time1);
 
     List<PolicyEvaluation> policyEvaluations = dao
         .getLastByApplicationIdsAndStageIds(Sets.newHashSet(applicationId), Sets.newHashSet(ReleaseStageType.ID));
@@ -258,14 +258,14 @@ public class PolicyEvaluationDAOTest
     PolicyEvaluationDAO dao = new PolicyEvaluationDAO();
 
     Date time1 = new Date();
-    PolicyEvaluation pe1 = tempEntity.newPolicyEvaluation(applicationId, ReleaseStageType.ID, "scan1", time1);
+    tempEntity.newPolicyEvaluation(applicationId, ReleaseStageType.ID, "scan1", time1);
     Date time2 = new Date(time1.getTime() + 1000);
     PolicyEvaluation pe2 = tempEntity.newPolicyEvaluation(applicationId, ReleaseStageType.ID, "scan2", time2);
 
     //second app
     Application application2 = tempEntity.newApplication("AbstractDbDAOTest-AppName2", "AbstractDbDAOTest_AppPublicId2",
         organization.getId());
-    PolicyEvaluation pe3 = tempEntity.newPolicyEvaluation(application2.getId(), ReleaseStageType.ID, "scan3", time1);
+    tempEntity.newPolicyEvaluation(application2.getId(), ReleaseStageType.ID, "scan3", time1);
     PolicyEvaluation pe4 = tempEntity.newPolicyEvaluation(application2.getId(), ReleaseStageType.ID, "scan4", time2);
 
     List<PolicyEvaluation> policyEvaluations = dao
@@ -289,7 +289,7 @@ public class PolicyEvaluationDAOTest
     String stageTypeId = ReleaseStageType.ID;
 
     Date time1 = new Date();
-    PolicyEvaluation pe1 = tempEntity.newPolicyEvaluation(applicationId, stageTypeId, "scanId1", time1);
+    tempEntity.newPolicyEvaluation(applicationId, stageTypeId, "scanId1", time1);
     Date time2 = new Date(time1.getTime() + 1000);
     PolicyEvaluation pe2 = tempEntity.newPolicyEvaluation(applicationId, stageTypeId, "scanId2", time2);
     // A re-eval of an older scan should not be returned as the last eval
@@ -312,33 +312,31 @@ public class PolicyEvaluationDAOTest
     String stageTypeId = ReleaseStageType.ID;
 
     Date time1 = new Date();
-    PolicyEvaluation pe1 = tempEntity.newPolicyEvaluation(applicationId, stageTypeId, "scanId1", time1);
+    tempEntity.newPolicyEvaluation(applicationId, stageTypeId, "scanId1", time1);
     Date time2 = new Date(time1.getTime() + 1000);
     PolicyEvaluation pe2 = tempEntity.newPolicyEvaluation(applicationId, stageTypeId, "scanId2", time2);
     // A re-eval of an older scan should not be returned as the last eval
     Date time3 = new Date(time2.getTime() + 1000);
-    PolicyEvaluation pe3 = tempEntity
-        .newPolicyEvaluation(applicationId, stageTypeId, "scanId1", true /* isReevaluation */,
-            false /* forMonitoring */, time3);
+    tempEntity.newPolicyEvaluation(applicationId, stageTypeId, "scanId1", true /* isReevaluation */,
+        false /* forMonitoring */, time3);
 
     //second app
     Application application2 = tempEntity.newApplication("AbstractDbDAOTest-AppName2", "AbstractDbDAOTest_AppPublicId2",
         organization.getId());
     Date time4 = new Date(time3.getTime() + 1000);
-    PolicyEvaluation pe4 = tempEntity.newPolicyEvaluation(application2.getId(), stageTypeId, "scanId5", time4);
+    tempEntity.newPolicyEvaluation(application2.getId(), stageTypeId, "scanId5", time4);
     Date time5 = new Date(time4.getTime() + 1000);
     PolicyEvaluation pe5 = tempEntity.newPolicyEvaluation(application2.getId(), stageTypeId, "scanId6", time5);
     // A re-eval of an older scan should not be returned as the last eval
     Date time6 = new Date(time5.getTime() + 1000);
-    PolicyEvaluation pe6 = tempEntity
-        .newPolicyEvaluation(application2.getId(), stageTypeId, "scanId5", true /* isReevaluation */,
-            false /* forMonitoring */, time6);
+    tempEntity.newPolicyEvaluation(application2.getId(), stageTypeId, "scanId5", true /* isReevaluation */,
+        false /* forMonitoring */, time6);
 
     //third app
     Application application3 = tempEntity.newApplication("AbstractDbDAOTest-AppName3", "AbstractDbDAOTest_AppPublicId3",
         organization.getId());
     Date time7 = new Date();
-    PolicyEvaluation pe7 = tempEntity.newPolicyEvaluation(application3.getId(), stageTypeId, "scanId7", time7);
+    tempEntity.newPolicyEvaluation(application3.getId(), stageTypeId, "scanId7", time7);
     Date time8 = new Date(time7.getTime() + 9000);
     PolicyEvaluation pe8 = tempEntity
         .newPolicyEvaluation(application3.getId(), stageTypeId, "scanId7", true /* isReevaluation */,

@@ -97,30 +97,21 @@ public class PolicyAlertNotifier
 
   private void updatePolicyViolations(List<PolicyViolation> policyViolations, List<PolicyAlert> policyAlerts) {
     Map<String, PolicyAlert> policyAlertsByPolicyId = new HashMap<>();
+    for (PolicyAlert policyAlert : policyAlerts) {
+      policyAlertsByPolicyId.put(policyAlert.getTrigger().getPolicyId(), policyAlert);
+    }
+
     for (PolicyViolation policyViolation : policyViolations) {
       PolicyAlert policyAlert = policyAlertsByPolicyId.get(policyViolation.getPolicyId());
-      if (policyAlert == null) {
-        for (PolicyAlert policyAlert1 : policyAlerts) {
-          if (policyViolation.getPolicyId().equals(policyAlert1.getTrigger().getPolicyId())) {
-            policyAlert = policyAlert1;
-            policyAlertsByPolicyId.put(policyAlert.getTrigger().getPolicyId(), policyAlert);
-            break;
-          }
+      List<String> notifications = new ArrayList<>();
+      for (Action action : policyAlert.getActions()) {
+        if (Action.ID_NOTIFY.equals(action.getActionTypeId())) {
+          notifications.add(action.getTarget());
         }
       }
-      updatePolicyViolation(policyViolation, policyAlert);
+      policyViolation.setNotifications(notifications);
+      new PolicyViolationDAO().update(policyViolation);
     }
-  }
-
-  private void updatePolicyViolation(PolicyViolation policyViolation, PolicyAlert policyAlert) {
-    List<String> notifications = new ArrayList<>();
-    for (Action action : policyAlert.getActions()) {
-      if (Action.ID_NOTIFY.equals(action.getActionTypeId())) {
-        notifications.add(action.getTarget());
-      }
-    }
-    policyViolation.setNotifications(notifications);
-    new PolicyViolationDAO().update(policyViolation);
   }
 
   private void sendNotifications(final String applicationPublicId, String appId, final String scanId, final Stage stage,

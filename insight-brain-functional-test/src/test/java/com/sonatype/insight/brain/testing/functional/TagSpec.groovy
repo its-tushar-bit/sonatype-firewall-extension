@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.testing.functional
 
 import com.sonatype.insight.brain.testing.functional.modules.ImportPolicyModule
+import com.sonatype.insight.brain.testing.functional.modules.Tag
 import spock.lang.Stepwise
 
 /**
@@ -47,8 +48,9 @@ class TagSpec
 
     and: 'The tag is added to the list of available tags'
       waitFor { tags.tagList.size() == samplePolicy.tags.size() + 1 }
-      tags.tagList[0].text() == 'New Tag'
-      tags.tagList[0].classes().contains('blackLabel')
+      Tag tag = tags.tagList[0]
+      tag.text == 'New Tag'
+      tag.isColor('black')
       tags.serverAlerts.children().size() == 0
   }
 
@@ -71,8 +73,8 @@ class TagSpec
       waitFor { !tags.tagEditor.displayed }
 
     and: 'The listed tag is updated'
-      waitFor { tags.tagList[0].text() == 'New Tag Updated' }
-      tags.tagList[0].classes().contains('greenLabel')
+      waitFor { tags.tagList[0].text == 'New Tag Updated' }
+      tags.tagList[0].isColor('green')
 
     when:
       tags.tagList[0].click()
@@ -166,7 +168,7 @@ class TagSpec
 
     then: 'the value displayed will be truncated'
       waitFor { tags.tagList.size() == samplePolicy.tags.size() + 2 }
-      tags.tagList[0].text() == (('A' * 22) + '...')
+      tags.tagList[0].text == (('A' * 22) + '...')
   }
 
   def "Policy tags adjust the effective polices and cannot be deleted"() {
@@ -203,7 +205,7 @@ class TagSpec
     then: 'The newly applied Tag is visually shown to be applied'
       waitFor { tags.tagList.size() > 0 }
       report 'applied count is shown'
-      def marker = tags.appliedMarker(tags.tagList[2])
+      def marker = tags.tagList[2].appliedMarker
       marker.displayed
       marker.text() == '1'
 
@@ -237,7 +239,7 @@ class TagSpec
     then: 'The newly applied Tag is visually shown to be applied'
       waitFor { tags.tagList.size() > 0 }
       report 'applied count is shown'
-      def marker = tags.appliedMarker(tags.tagList[1])
+      def marker = tags.tagList[1].appliedMarker
       marker.displayed
       marker.text() == '1'
 

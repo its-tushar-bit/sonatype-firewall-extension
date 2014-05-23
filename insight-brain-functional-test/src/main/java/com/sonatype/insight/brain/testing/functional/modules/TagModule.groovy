@@ -16,8 +16,7 @@ class TagModule
   static content = {
     newTagButton { $('#tags .tag-list button') }
 
-    tagList(required:false) { moduleList Tag, $('.clm-tag') }
-    appliedMarker { $('.applied-tag-count') }
+    tagList(required:false) { moduleList Tag, $('span[ng-click="editTag(tag)"]') }
 
     //form controls(only visible while editing)
     tagEditor(required:false) { $('form[name="tagEditor"]') }
@@ -51,5 +50,9 @@ class Tag
 {
   static content = {
     delete { $('i.icon-remove.label-remove') }
+    appliedMarker(required: false) { $('.applied-tag-count') }
+    body { $('.clm-tag') }
+    text { body.text() }
+    isColor { String color -> body.classes().contains("${color}Label".toString())}
   }
 }

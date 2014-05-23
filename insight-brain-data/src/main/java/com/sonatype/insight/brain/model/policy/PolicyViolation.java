@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.model.policy;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
@@ -312,11 +313,12 @@ public class PolicyViolation
    */
   private void setNotificationsString(String notificationsString) {
     this.notificationsString = notificationsString;
+    notifications = null;
   }
 
   public void setNotifications(List<String> notifications) {
     if (notifications == null || notifications.isEmpty()) {
-      this.notifications = null;
+      this.notifications = Collections.emptyList();
       notificationsString = null;
       return;
     }
@@ -326,8 +328,13 @@ public class PolicyViolation
   }
 
   public List<String> getNotifications() {
-    if (notifications == null && !StringUtils.isBlank(notificationsString)) {
-      notifications = Arrays.asList(notificationsString.split(NOTIFICATIONS_DELIMITER_REGEX));
+    if (notifications == null) {
+      if (!StringUtils.isBlank(notificationsString)) {
+        notifications = Arrays.asList(notificationsString.split(NOTIFICATIONS_DELIMITER_REGEX));
+      }
+      else {
+        notifications = Collections.emptyList();
+      }
     }
 
     return notifications;

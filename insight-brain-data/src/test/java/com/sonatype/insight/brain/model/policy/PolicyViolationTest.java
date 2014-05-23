@@ -280,7 +280,7 @@ public class PolicyViolationTest
         PolicyThreatCategory.LICENSE, "hash", "groupId", "artifactId", "version", constraintFacts, null /* pathnames */);
     policyViolation.setNotifications(notifications);
 
-    assertThat(policyViolation.getNotifications(), is(nullValue()));
+    assertThat(policyViolation.getNotifications(), hasSize(0));
     assertThat(policyViolation.getNotificationsString(), is(nullValue()));
   }
 
@@ -294,7 +294,7 @@ public class PolicyViolationTest
         PolicyThreatCategory.LICENSE, "hash", "groupId", "artifactId", "version", constraintFacts, null /* pathnames */);
     policyViolation.setNotifications(notifications);
 
-    assertThat(policyViolation.getNotifications(), is(nullValue()));
+    assertThat(policyViolation.getNotifications(), hasSize(0));
     assertThat(policyViolation.getNotificationsString(), is(nullValue()));
   }
 }

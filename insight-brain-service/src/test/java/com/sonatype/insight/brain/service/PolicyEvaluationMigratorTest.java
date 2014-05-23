@@ -44,8 +44,6 @@ import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
@@ -106,10 +104,9 @@ public class PolicyEvaluationMigratorTest
   {
     assertThat(policyViolation.getActionTypeId(), is(actionTypeId));
     if (notifications.length == 0) {
-      assertThat(policyViolation.getNotifications(), is(nullValue()));
+      assertThat(policyViolation.getNotifications(), hasSize(0));
     }
     else {
-      assertThat(policyViolation.getNotifications(), is(notNullValue()));
       assertThat(policyViolation.getNotifications(), containsInAnyOrder(notifications));
     }
   }

@@ -14,7 +14,6 @@ import javax.inject.Inject;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;

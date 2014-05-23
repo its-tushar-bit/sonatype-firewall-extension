@@ -10,8 +10,6 @@ import java.util.EnumMap;
 import java.util.Map;
 
 import com.sonatype.insight.brain.model.security.UserPrincipal;
-import com.sonatype.insight.brain.security.AuthzContext.Key;
-
 import org.apache.shiro.aop.AnnotationMethodInterceptor;
 import org.apache.shiro.aop.AnnotationResolver;
 import org.apache.shiro.aop.MethodInvocation;

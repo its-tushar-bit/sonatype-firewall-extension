@@ -975,12 +975,55 @@ var AngularStateUtils = {
     };
   });
 
+  /**
+   * English language phrases for elapsed time.
+   */
   services.filter('ago', function() {
+    var rules = {
+      year: 'year',
+      month: 'month',
+      day: 'day',
+      hour: 'hour',
+      minute: 'minute',
+      seconds: 'seconds ago',
+      highlightMultiples: true,
+      separator: ' ',
+      suffix: ' ago'
+    };
+    return new ElapsedTimeFilterFactory(rules);
+  });
+
+  /**
+   * English language abbreviations for elapsed time.
+   */
+  services.filter('terseAgo', function(){
+    var rules = {
+      year: 'y',
+      month: 'm',
+      day: 'd',
+      hour: 'h',
+      minute: 'min',
+      seconds: '1min',
+      highlightMultiples: false,
+      separator: '',
+      suffix: ''
+    };
+    return new ElapsedTimeFilterFactory(rules);
+  });
+
+  /**
+   * Factory function to share elapsed time calculations while allowing for separate output formats.
+   * @param rules
+   * @returns {Function}
+   * @constructor
+   */
+  function ElapsedTimeFilterFactory(rules){
     return function(date) {
       var ago = '',
-          diff,
-          unit,
-          val;
+        diff,
+        unit,
+        val,
+        localRules = rules;
 
       if (!date) {
         return ago;
@@ -989,34 +1032,36 @@ var AngularStateUtils = {
 
       if (diff > 12 * 30 * 24 * 60 * 60 * 1000) {
         val = diff / (12 * 30 * 24 * 60 * 60 * 1000);
-        unit = 'year';
+        unit = localRules.year;
       }
       else if (diff > 30 * 24 * 60 * 60 * 1000) {
         val = diff / (30 * 24 * 60 * 60 * 1000);
-        unit = 'month';
+        unit = localRules.month;
       }
       else if (diff > 24 * 60 * 60 * 1000) {
         val = diff / (24 * 60 * 60 * 1000);
-        unit = 'day';
+        unit = localRules.day;
       }
       else if (diff > 60 * 60 * 1000) {
         val = diff / (60 * 60 * 1000);
-        unit = 'hour';
+        unit = localRules.hour;
       }
       else if (diff > 60 * 1000) {
         val = diff / (60 * 1000);
-        unit = 'minute';
+        unit = localRules.minute;
       }
       else {
-        return 'seconds ago';
+        return localRules.seconds;
       }
       val = Math.floor(val);
-      if (val > 1) {
-        unit += 's';
+      if (rules.highlightMultiples) {
+        if (val > 1) {
+          unit += 's';
+        }
       }
-      return val + ' ' + unit + ' ago';
+      return val + localRules.separator + unit + localRules.suffix;
     };
-  });
+  }
 
   /**
    * Intended to reduce the granularity of results from the 'ago' filter for cases where precision is not needed for the

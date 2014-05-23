@@ -29,6 +29,7 @@
     <jasmine.version.graph.id>test-version-graph-assets</jasmine.version.graph.id>
     <phantomjs-maven-plugin.version>0.2.1</phantomjs-maven-plugin.version>
     <phantomjs.version>1.9.7</phantomjs.version>
+    <phantomjs.baseUrl>http://cdn.bitbucket.org/ariya/phantomjs/downloads/</phantomjs.baseUrl>
   </properties>
 
   <dependencies>
@@ -498,10 +499,6 @@
             </goals>
           </execution>
         </executions>
-        <configuration>
-          <version>${phantomjs.version}</version>
-          <baseUrl>http://cdn.bitbucket.org/ariya/phantomjs/downloads/</baseUrl>
-        </configuration>
       </plugin>
       <plugin>
         <groupId>com.github.searls</groupId>

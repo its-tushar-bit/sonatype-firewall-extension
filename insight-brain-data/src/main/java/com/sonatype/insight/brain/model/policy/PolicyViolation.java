@@ -32,6 +32,10 @@ import org.codehaus.plexus.util.StringUtils;
 public class PolicyViolation
     implements HasStringId
 {
+  static final char NOTIFICATIONS_DELIMITER_CHAR = '\n';
+
+  /** The notifications delimiter character escaped for regular expressions. */
+  static final String NOTIFICATIONS_DELIMITER_REGEX = "\\" + NOTIFICATIONS_DELIMITER_CHAR;
 
   static final char PATHNAMES_DELIMITER_CHAR = '\n';
   
@@ -79,9 +83,17 @@ public class PolicyViolation
   @Column(name = "pathnames")
   private String pathnamesString;
 
+  @Column(name = "action_type_id")
+  private String actionTypeId;
+
+  @Column(name = "notifications")
+  private String notificationsString;
+
   private List<ConstraintFact> constraintFacts;
 
   private List<String> pathnames;
+
+  private List<String> notifications;
 
   public PolicyViolation() {
   }
@@ -280,5 +292,44 @@ public class PolicyViolation
 
   public void setTime(Date time) {
     this.time = time;
+  }
+
+  public String getActionTypeId() {
+    return actionTypeId;
+  }
+
+  public void setActionTypeId(String actionTypeId) {
+    this.actionTypeId = actionTypeId;
+  }
+
+  public String getNotificationsString() {
+    return notificationsString;
+  }
+
+  @SuppressWarnings("unused")
+  /**
+   * Only used by JPA.
+   */
+  private void setNotificationsString(String notificationsString) {
+    this.notificationsString = notificationsString;
+  }
+
+  public void setNotifications(List<String> notifications) {
+    if (notifications == null || notifications.isEmpty()) {
+      this.notifications = null;
+      notificationsString = null;
+      return;
+    }
+
+    this.notifications = notifications;
+    notificationsString = Joiner.on(NOTIFICATIONS_DELIMITER_CHAR).skipNulls().join(notifications);
+  }
+
+  public List<String> getNotifications() {
+    if (notifications == null && !StringUtils.isBlank(notificationsString)) {
+      notifications = Arrays.asList(notificationsString.split(NOTIFICATIONS_DELIMITER_REGEX));
+    }
+
+    return notifications;
   }
 }

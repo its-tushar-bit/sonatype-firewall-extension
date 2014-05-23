@@ -18,6 +18,7 @@ import org.junit.Test;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
 
@@ -231,6 +232,17 @@ public class PolicyViolationTest
     return builder.toString();
   }
 
+  private String createNotificationsString(int count) {
+    StringBuilder builder = new StringBuilder();
+    for (int i = 0; i < count; i++) {
+      if (builder.length() > 0) {
+        builder.append(PolicyViolation.NOTIFICATIONS_DELIMITER_CHAR);
+      }
+      builder.append("DonaldDuck").append(i).append("@example.com");
+    }
+    return builder.toString();
+  }
+
   private void assertConstraintFacts(List<ConstraintFact> actual, List<ConstraintFact> expected) {
     assertThat(actual, hasSize(expected.size()));
     for (int i = 0; i < expected.size(); i++) {
@@ -240,5 +252,49 @@ public class PolicyViolationTest
       assertThat(actualConstraintFact.getConstraintName(), is(expectedConstraintFact.getConstraintName()));
       assertThat(actualConstraintFact.getOperatorName(), is(expectedConstraintFact.getOperatorName()));
     }
+  }
+
+  @Test
+  public void testSetNotifications() throws Exception {
+    String notificationsString = createNotificationsString(2);
+    List<String> notifications = Arrays
+        .asList(notificationsString.split(PolicyViolation.NOTIFICATIONS_DELIMITER_REGEX));
+    // Violations must have constraint facts.
+    List<ConstraintFact> constraintFacts = createConstraintFacts(1);
+
+    PolicyViolation policyViolation = new PolicyViolation(evaluation, "policyId", "policyName", 5 /* threatLevel */,
+        PolicyThreatCategory.LICENSE, "hash", "groupId", "artifactId", "version", constraintFacts, null /* pathnames */);
+    policyViolation.setNotifications(notifications);
+
+    assertThat(policyViolation.getNotifications(), is(notifications));
+    assertThat(policyViolation.getNotificationsString(), is(notificationsString));
+  }
+
+  @Test
+  public void testSetNotifications_Empty() throws Exception {
+    List<String> notifications = new ArrayList<String>();
+    // Violations must have constraint facts.
+    List<ConstraintFact> constraintFacts = createConstraintFacts(1);
+
+    PolicyViolation policyViolation = new PolicyViolation(evaluation, "policyId", "policyName", 5 /* threatLevel */,
+        PolicyThreatCategory.LICENSE, "hash", "groupId", "artifactId", "version", constraintFacts, null /* pathnames */);
+    policyViolation.setNotifications(notifications);
+
+    assertThat(policyViolation.getNotifications(), is(nullValue()));
+    assertThat(policyViolation.getNotificationsString(), is(nullValue()));
+  }
+
+  @Test
+  public void testSetNotifications_Null() throws Exception {
+    List<String> notifications = null;
+    // Violations must have constraint facts.
+    List<ConstraintFact> constraintFacts = createConstraintFacts(1);
+
+    PolicyViolation policyViolation = new PolicyViolation(evaluation, "policyId", "policyName", 5 /* threatLevel */,
+        PolicyThreatCategory.LICENSE, "hash", "groupId", "artifactId", "version", constraintFacts, null /* pathnames */);
+    policyViolation.setNotifications(notifications);
+
+    assertThat(policyViolation.getNotifications(), is(nullValue()));
+    assertThat(policyViolation.getNotificationsString(), is(nullValue()));
   }
 }

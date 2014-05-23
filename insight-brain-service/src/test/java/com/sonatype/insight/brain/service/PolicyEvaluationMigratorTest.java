@@ -12,6 +12,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
+import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.dataaccess.ApplicationComponentDAO;
@@ -39,9 +40,12 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
@@ -97,6 +101,19 @@ public class PolicyEvaluationMigratorTest
         organization.getId());
   }
 
+  private void assertPolicyViolationActions(PolicyViolation policyViolation, String actionTypeId,
+      String... notifications)
+  {
+    assertThat(policyViolation.getActionTypeId(), is(actionTypeId));
+    if (notifications.length == 0) {
+      assertThat(policyViolation.getNotifications(), is(nullValue()));
+    }
+    else {
+      assertThat(policyViolation.getNotifications(), is(notNullValue()));
+      assertThat(policyViolation.getNotifications(), containsInAnyOrder(notifications));
+    }
+  }
+  
   @Test
   public void testMigrateMultipleApps() throws Exception {
     setup("PolicyEvaluationMigratorTest/MultipleApplications");
@@ -113,6 +130,7 @@ public class PolicyEvaluationMigratorTest
     List<PolicyViolation> violations = policyViolationDAO.getByEvaluationId(buildMonitoring.getId());
     assertThat(violations, hasSize(1));
     assertCarrotPolicyViolation(buildMonitoring.getId(), violations.get(0));
+    assertPolicyViolationActions(violations.get(0), Action.ID_WARN, "monitor@example.com");
 
     // build: re-eval of second scan
     PolicyEvaluation secondScanReeval = appBuildEvaluations.get(1);
@@ -120,6 +138,7 @@ public class PolicyEvaluationMigratorTest
     violations = policyViolationDAO.getByEvaluationId(secondScanReeval.getId());
     assertThat(violations, hasSize(1));
     assertAntlrPolicyViolation(secondScanReeval.getId(), violations.get(0));
+    assertPolicyViolationActions(violations.get(0), Action.ID_FAIL, "me@example.com", "you@example.com");
 
     // build: subset of results from other "original" scan, just newer
     PolicyEvaluation secondScan = appBuildEvaluations.get(2);
@@ -127,6 +146,7 @@ public class PolicyEvaluationMigratorTest
     violations = policyViolationDAO.getByEvaluationId(secondScan.getId());
     assertThat(violations, hasSize(1));
     assertAntlrPolicyViolation(secondScan.getId(), violations.get(0));
+    assertPolicyViolationActions(violations.get(0), Action.ID_WARN, "him@example.com");
 
     // build: next, only one of the two re-evaluations in the log is recorded
     PolicyEvaluation buildReEvaluation = appBuildEvaluations.get(3);
@@ -134,6 +154,7 @@ public class PolicyEvaluationMigratorTest
     violations = policyViolationDAO.getByEvaluationId(buildReEvaluation.getId());
     assertThat(violations, hasSize(1));
     assertAntlrPolicyViolation(buildReEvaluation.getId(), violations.get(0));
+    assertPolicyViolationActions(violations.get(0), Action.ID_WARN);
 
     // build: last is the original build evaluation
     PolicyEvaluation buildEvaluation = appBuildEvaluations.get(4);
@@ -141,7 +162,9 @@ public class PolicyEvaluationMigratorTest
     violations = policyViolationDAO.getByEvaluationId(buildEvaluation.getId());
     assertThat(violations, hasSize(2));
     assertAntlrPolicyViolation(buildEvaluation.getId(), violations.get(0));
+    assertPolicyViolationActions(violations.get(0), Action.ID_FAIL, "her@example.com");
     assertUnknownPolicyViolation(buildEvaluation.getId(), violations.get(1));
+    assertPolicyViolationActions(violations.get(1), null /* actionTypeId */);
 
     //we should also find 3 records for the first app in stage-release, monitoring, a re-eval and the original
     List<PolicyEvaluation> stageReleaseEvaluations = policyEvaluationDAO.getAllByApplicationIdAndStageId(app1.getId(), Stage.ID_STAGE_RELEASE);
@@ -154,6 +177,7 @@ public class PolicyEvaluationMigratorTest
         .getByEvaluationId(stageReleaseMonitoringEvaluation.getId());
     assertThat(stageReleaseMonitoringViolations, hasSize(1));
     assertAntlrPolicyViolation(stageReleaseMonitoringEvaluation.getId(), stageReleaseMonitoringViolations.get(0));
+    assertPolicyViolationActions(stageReleaseMonitoringViolations.get(0), Action.ID_WARN);
 
     // stage: re-evaluation
     PolicyEvaluation stageReleaseReevaluation = stageReleaseEvaluations.get(1);
@@ -164,6 +188,8 @@ public class PolicyEvaluationMigratorTest
     assertThat(stageReleaseReevalViolations, hasSize(2));
     assertCarrotPolicyViolation(stageReleaseReevaluation.getId(), stageReleaseReevalViolations.get(0));
     assertUnknownPolicyViolation(stageReleaseReevaluation.getId(), stageReleaseReevalViolations.get(1));
+    assertPolicyViolationActions(stageReleaseReevalViolations.get(0), Action.ID_WARN);
+    assertPolicyViolationActions(stageReleaseReevalViolations.get(1), null /* actionTypeId */);
 
     // stage: original evaluation
     PolicyEvaluation originalStageReleaseEvaluation = stageReleaseEvaluations.get(2);
@@ -174,6 +200,8 @@ public class PolicyEvaluationMigratorTest
     assertThat(stageReleaseViolations, hasSize(2));
     assertCarrotPolicyViolation(originalStageReleaseEvaluation.getId(), stageReleaseViolations.get(0));
     assertUnknownPolicyViolation(originalStageReleaseEvaluation.getId(), stageReleaseViolations.get(1));
+    assertPolicyViolationActions(stageReleaseViolations.get(0), Action.ID_WARN);
+    assertPolicyViolationActions(stageReleaseViolations.get(1), null /* actionTypeId */);
 
     Collection<StageType> emptyStages = new ArrayList<>(StageTypes.getAll());
     emptyStages.remove(StageTypes.getById(Stage.ID_BUILD));

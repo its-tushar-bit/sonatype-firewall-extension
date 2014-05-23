@@ -90,11 +90,6 @@ public class PolicyViolationDAO
   }
 
   @Override
-  public void update(EntityManager em, PolicyViolation entity) {
-    throw new UnsupportedOperationException("The PolicyViolation table does not support update operations");
-  }
-
-  @Override
   public void delete(EntityManager em, PolicyViolation entity) {
     // Cascade to newest policy violation
     NewestPolicyViolationDAO newestPolicyViolationDAO = new NewestPolicyViolationDAO();

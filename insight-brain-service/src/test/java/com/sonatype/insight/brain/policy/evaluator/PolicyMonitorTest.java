@@ -16,12 +16,14 @@ import java.util.Map;
 
 import javax.mail.Message;
 
+import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.NotifyAction;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.AuthedRestAccess;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.Condition;
@@ -30,7 +32,9 @@ import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyMonitoring;
+import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.StageType;
+import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityConditionType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
@@ -239,6 +243,11 @@ public class PolicyMonitorTest
     PolicyEvaluationDAO policyEvaluationDAO = new PolicyEvaluationDAO();
     PolicyEvaluation policyEvaluation1 = policyEvaluationDAO.getLastByApplicationIdAndStageId(app.getId(),
         stage.getStageTypeId());
+    PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
+    for (PolicyViolation policyViolation : policyViolationDAO.getByEvaluationId(policyEvaluation1.getId())) {
+      assertThat(policyViolation.getActionTypeId(), is(Action.ID_FAIL));
+      assertThat(policyViolation.getNotificationsString(), is(notifyEmail));
+    }
 
     // Run the policy monitor. There should be a new policy evaluation, but no notifications because nothing changed.
     policyMonitor.run();
@@ -246,6 +255,10 @@ public class PolicyMonitorTest
         stage.getStageTypeId());
     assertThat(policyEvaluation2.getId(), not(is(policyEvaluation1.getId())));
     assertThat(policyEvaluation2.getTime(), is(greaterThan(policyEvaluation1.getTime())));
+    for (PolicyViolation policyViolation : policyViolationDAO.getByEvaluationId(policyEvaluation2.getId())) {
+      assertThat(policyViolation.getActionTypeId(), is(nullValue()));
+      assertThat(policyViolation.getNotificationsString(), is(nullValue()));
+    }
     assertThat(notificationsDeveloper, is(empty()));
     assertThat(notificationsMonitor1, is(empty()));
     assertThat(notificationsMonitor2, is(empty()));
@@ -259,6 +272,10 @@ public class PolicyMonitorTest
         stage.getStageTypeId());
     assertThat(policyEvaluation3.getId(), not(is(policyEvaluation2.getId())));
     assertThat(policyEvaluation3.getTime(), is(greaterThan(policyEvaluation2.getTime())));
+    for (PolicyViolation policyViolation : policyViolationDAO.getByEvaluationId(policyEvaluation3.getId())) {
+      assertThat(policyViolation.getActionTypeId(), is(nullValue()));
+      assertThat(policyViolation.getNotificationsString(), is(nullValue()));
+    }
     assertThat(notificationsDeveloper, is(empty()));
     assertThat(notificationsMonitor1, is(empty()));
     assertThat(notificationsMonitor2, is(empty()));
@@ -271,6 +288,15 @@ public class PolicyMonitorTest
         stage.getStageTypeId());
     assertThat(policyEvaluation4.getId(), not(is(policyEvaluation3.getId())));
     assertThat(policyEvaluation4.getTime(), is(greaterThan(policyEvaluation3.getTime())));
+    for (PolicyViolation policyViolation : policyViolationDAO.getByEvaluationId(policyEvaluation4.getId())) {
+      assertThat(policyViolation.getActionTypeId(), is(nullValue()));
+      if (policyViolation.getPolicyId().equals(policy1.getId())) {
+        assertThat(policyViolation.getNotificationsString(), is(monitorNotifyEmail1));
+      }
+      else {
+        assertThat(policyViolation.getNotificationsString(), is(nullValue()));
+      }
+    }
     assertThat(notificationsDeveloper, is(empty()));
     assertThat(notificationsMonitor1, hasSize(1));
     notificationsMonitor1.clear();
@@ -284,6 +310,15 @@ public class PolicyMonitorTest
         stage.getStageTypeId());
     assertThat(policyEvaluation5.getId(), not(is(policyEvaluation4.getId())));
     assertThat(policyEvaluation5.getTime(), is(greaterThan(policyEvaluation4.getTime())));
+    for (PolicyViolation policyViolation : policyViolationDAO.getByEvaluationId(policyEvaluation5.getId())) {
+      assertThat(policyViolation.getActionTypeId(), is(nullValue()));
+      if (policyViolation.getPolicyId().equals(policy2.getId())) {
+        assertThat(policyViolation.getNotificationsString(), is(monitorNotifyEmail2));
+      }
+      else {
+        assertThat(policyViolation.getNotificationsString(), is(nullValue()));
+      }
+    }
     assertThat(notificationsDeveloper, is(empty()));
     assertThat(notificationsMonitor1, is(empty()));
     assertThat(notificationsMonitor2, hasSize(1));
@@ -302,6 +337,7 @@ public class PolicyMonitorTest
     NotifyAction notifyAction = new NotifyAction();
     notifyAction.setTarget(notifyEmail);
     policy.addAction(stage.getStageTypeId(), notifyAction);
+    policy.addAction(stage.getStageTypeId(), new Action(FailActionType.ID));
     if (monitorNotifyEmail != null) {
       NotifyAction monitorNotifyAction = new NotifyAction();
       monitorNotifyAction.setTarget(monitorNotifyEmail);

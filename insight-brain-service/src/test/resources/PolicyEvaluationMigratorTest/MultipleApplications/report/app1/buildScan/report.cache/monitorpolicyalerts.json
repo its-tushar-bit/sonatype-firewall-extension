@@ -37,6 +37,10 @@
         {
           "actionTypeId": "warn",
           "target": null
+        },
+        {
+          "actionTypeId": "notify",
+          "target": "monitor@example.com"
         }
       ]
     }

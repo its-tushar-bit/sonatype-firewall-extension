@@ -27,6 +27,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.persistence.EntityManager;
 
+import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.ComponentFact;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
@@ -320,6 +321,16 @@ public class PolicyEvaluationMigrator
             policyFact.getPolicyName(), policyFact.getThreatLevel(), threatCategory, componentFact.getHash(),
             componentFact.getGroupId(), componentFact.getArtifactId(), componentFact.getVersion(),
             componentFact.getConstraintFacts(), pathnames);
+        List<String> notifications = new ArrayList<>();
+        for (Action action : policyAlert.getActions()) {
+          if (Action.ID_NOTIFY.equals(action.getActionTypeId())) {
+            notifications.add(action.getTarget());
+          }
+          else {
+            policyViolation.setActionTypeId(action.getActionTypeId());
+          }
+        }
+        policyViolation.setNotifications(notifications);
         policyViolationDAO.insert(em, policyViolation);
         policyViolations.add(policyViolation);
       }

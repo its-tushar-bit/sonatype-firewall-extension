@@ -35,8 +35,12 @@
       },
       "actions": [
         {
-          "actionTypeId": "warn",
+          "actionTypeId": "fail",
           "target": null
+        },
+        {
+          "actionTypeId": "notify",
+          "target": "her@example.com"
         }
       ]
     },

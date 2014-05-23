@@ -162,6 +162,15 @@ public class PolicyEvaluationUtils
                 policy.getName(), policyFact.getThreatLevel(), threatCategory, componentFact.getHash(),
                 componentFact.getGroupId(), componentFact.getArtifactId(), componentFact.getVersion(),
                 componentFact.getConstraintFacts(), componentFact.getPathnames());
+            for (Action action : policyAlert.getActions()) {
+              // Don't save notification data into policy violations here because at this point we don't really know if
+              // the notifications will be sent or not.
+              // The notifier component will take care of saving the notification data.
+              if (!Action.ID_NOTIFY.equals(action.getActionTypeId())) {
+                policyViolation.setActionTypeId(action.getActionTypeId());
+                break;
+              }
+            }
             policyViolationDAO.insert(em, policyViolation);
             newPolicyViolations.add(policyViolation);
           }

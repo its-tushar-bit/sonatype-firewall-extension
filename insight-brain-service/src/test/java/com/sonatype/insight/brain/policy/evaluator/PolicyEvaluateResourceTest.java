@@ -69,6 +69,7 @@ import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 
@@ -297,11 +298,13 @@ public class PolicyEvaluateResourceTest
     policy1.setThreatLevel(8);
     policy1.addConstraint(constraint1);
     final Action notifyAction = new Action(NotifyActionType.ID);
-    notifyAction.setTarget("manager@test.corp");
+    notifyAction.setTarget("manager@example.com");
     policy1.addAction(BuildStageType.ID, notifyAction);
     final Action notifyAction2 = new Action(NotifyActionType.ID);
-    notifyAction2.setTarget("john.doe@test.corp");
+    notifyAction2.setTarget("john.doe@example.com");
     policy1.addAction(BuildStageType.ID, notifyAction2);
+    Action failAction1 = new Action(FailActionType.ID);
+    policy1.addAction(BuildStageType.ID, failAction1);
     policy1.setOwnerId(app.getId());
     policyDAO.insert(policy1);
 
@@ -313,6 +316,11 @@ public class PolicyEvaluateResourceTest
     policy2.setThreatLevel(3);
     policy2.addConstraint(constraint2);
     policy2.setOwnerId(app.getId());
+    Action notifyAction3 = new Action(NotifyActionType.ID);
+    notifyAction3.setTarget("Mark.MyWords@example.com");
+    policy2.addAction(ReleaseStageType.ID, notifyAction2);
+    Action failAction2 = new Action(FailActionType.ID);
+    policy2.addAction(ReleaseStageType.ID, failAction2);
     policyDAO.insert(policy2);
 
     final Stage stage = new Stage(BuildStageType.ID);
@@ -321,8 +329,8 @@ public class PolicyEvaluateResourceTest
     final URL testReportFileUrl = getClass().getResource("/PolicyEvaluateResourceTest/report.zip");
     FileUtils.copyFile(new File(testReportFileUrl.getFile()), saasReportFile);
 
-    final List<Message> messagesA = Mailbox.get("manager@test.corp");
-    final List<Message> messagesB = Mailbox.get("john.doe@test.corp");
+    final List<Message> messagesA = Mailbox.get("manager@example.com");
+    final List<Message> messagesB = Mailbox.get("john.doe@example.com");
 
     messagesA.clear();
     messagesB.clear();
@@ -344,7 +352,22 @@ public class PolicyEvaluateResourceTest
     Assert.assertNotNull(policyAlerts);
     Assert.assertEquals(2, policyAlerts.size());
     AbstractPolicyEvaluationTest.assertFactCounts(1, 7, policyAlerts.get(0));
+    PolicyEvaluationDAO policyEvaluationDAO = new PolicyEvaluationDAO();
+    PolicyEvaluation policyEvaluation = policyEvaluationDAO.getLastByApplicationIdAndScanId(app.getId(), scanId);
+    assertThat(policyEvaluation, notNullValue());
+    assertThat(policyEvaluation.isReevaluation(), is(false));
     assertPolicyEvaluation(app.getId(), scanId, false /* isReevaluation */);
+    PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
+    for (PolicyViolation policyViolation : policyViolationDAO.getByEvaluationId(policyEvaluation.getId())) {
+      if (policyViolation.getPolicyId().equals(policy1.getId())) {
+        assertThat(policyViolation.getActionTypeId(), is(Action.ID_FAIL));
+        assertThat(policyViolation.getNotificationsString(), is("manager@example.com\njohn.doe@example.com"));
+      }
+      else {
+        assertThat(policyViolation.getActionTypeId(), is(nullValue()));
+        assertThat(policyViolation.getNotificationsString(), is(nullValue()));
+      }
+    }
 
     // check the calculated policy threat
     response = AuthedRestAccess.get(getThreatsURL(applicationPublicId, scanId));
@@ -376,7 +399,18 @@ public class PolicyEvaluateResourceTest
     Assert.assertNotNull(policyAlerts);
     Assert.assertEquals(2, policyAlerts.size());
     AbstractPolicyEvaluationTest.assertFactCounts(1, 7, policyAlerts.get(0));
-    assertPolicyEvaluation(app.getId(), scanId, true /* isReevaluation */);
+    policyEvaluation = policyEvaluationDAO.getLastByApplicationIdAndScanId(app.getId(), scanId);
+    assertThat(policyEvaluation, notNullValue());
+    assertThat(policyEvaluation.isReevaluation(), is(true));
+    for (PolicyViolation policyViolation : policyViolationDAO.getByEvaluationId(policyEvaluation.getId())) {
+      if (policyViolation.getPolicyId().equals(policy1.getId())) {
+        assertThat(policyViolation.getActionTypeId(), is(Action.ID_FAIL));
+      }
+      else {
+        assertThat(policyViolation.getActionTypeId(), is(nullValue()));
+      }
+      assertThat(policyViolation.getNotificationsString(), is(nullValue()));
+    }
 
     // notification message should not have been sent since the results are the same
     Assert.assertTrue(messagesA.isEmpty());

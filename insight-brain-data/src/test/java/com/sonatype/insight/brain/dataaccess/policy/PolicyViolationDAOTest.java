@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.dataaccess.policy;
 import java.util.Date;
 import java.util.List;
 
+import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.model.policy.NewestPolicyViolation;
 import com.sonatype.insight.brain.model.policy.Policy;
@@ -26,7 +27,6 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
 
 public class PolicyViolationDAOTest
     extends AbstractDbDAOTest
@@ -55,14 +55,16 @@ public class PolicyViolationDAOTest
         "acacacacacac", "Group1", "Artifact1", "Version1", Lists.newArrayList("pathnames string"),
         policyEvaluation.getTime(), policyViolation);
 
-    // Update is not allowed
-    try {
-      dao.update(policyViolation);
-      fail("Expected UnsupportedOperationException");
-    }
-    catch (UnsupportedOperationException expected) {
-      assertThat(expected.getMessage(), is("The PolicyViolation table does not support update operations"));
-    }
+    policyViolation.setActionTypeId(Action.ID_FAIL);
+    dao.update(policyViolation);
+
+    // Read
+    policyViolation = dao.getById(policyViolation.getId());
+    assertThat(policyViolation, is(notNullValue()));
+    assertPolicyViolation(policyEvaluation.getId(), policy.getId(), policy.getName(), 5, PolicyThreatCategory.LICENSE,
+        "acacacacacac", "Group1", "Artifact1", "Version1", Lists.newArrayList("pathnames string"),
+        policyEvaluation.getTime(), policyViolation);
+    assertThat(policyViolation.getActionTypeId(), is(Action.ID_FAIL));
 
     // Delete
     dao.delete(policyViolation);

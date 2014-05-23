@@ -343,6 +343,25 @@ public class PolicyValidationTest
     Assert.assertTrue(result.isValid());
   }
 
+  @Test
+  public void testValidate_ActionType_FailVsWarn() {
+    Policy policy = new Policy("PolicyId", "Policy Name");
+    Constraint constraint = new Constraint("Constraint Id", "Constraint Name", LogicalOperator.AND);
+    constraint.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
+    policy.addConstraint(constraint);
+    policy.addAction(BuildStageType.ID, new Action(WarnActionType.ID));
+    policy.addAction(BuildStageType.ID, new Action(FailActionType.ID));
+    policy.addAction(BuildStageType.ID, new Action(NotifyActionType.ID, "foo@bar.com"));
+    ValidationResult result = policy.validate(applicationId);
+    assertValidationResultHasErrors(result, "Policy 'Policy Name' has invalid actions:",
+        "Ambiguous action types: [warn, fail]");
+
+    // Fix the actions and validate again
+    policy.getActions(BuildStageType.ID).remove(0);
+    result = policy.validate(applicationId);
+    Assert.assertTrue(result.isValid());
+  }
+
   private void assertValidationResultHasErrors(ValidationResult result, String... errors) {
     Assert.assertNotNull(result);
     Assert.assertFalse(result.isValid());

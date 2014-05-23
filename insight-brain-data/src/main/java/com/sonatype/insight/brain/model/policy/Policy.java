@@ -188,7 +188,9 @@ public class Policy
           actionResult.addError("Invalid stage type id: '" + stageTypeId + "'");
         }
         
+        Set<String> actionTypeIds = new LinkedHashSet<>();
         for (Action action : actions.get(stageTypeId)) {
+          actionTypeIds.add(action.getActionTypeId());
           ActionType actionType = ActionTypes.getById(action.getActionTypeId());
 
           if (actionType == null) {
@@ -197,6 +199,10 @@ public class Policy
           else {
             actionResult.merge(actionType.validateAction(action));
           }
+        }
+        actionTypeIds.remove(NotifyActionType.ID);
+        if (actionTypeIds.size() > 1) {
+          actionResult.addError("Ambiguous action types: " + actionTypeIds);
         }
       }
       if (!actionResult.isValid()) {

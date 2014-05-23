@@ -537,5 +537,17 @@ class DashboardOverviewSpec
     and: 'the percentage of matched policies is shown'
       summaryPercentPolicies.displayed
       summaryPercentPolicies.text() == '100%'
+
+    and: 'the count of total components is shown'
+      summaryTotalComponents.displayed
+      summaryTotalComponents.text() == '1'
+
+    and: 'the count of matched components is shown'
+      summaryMatchedComponents.displayed
+      summaryMatchedComponents.text() == '1'
+
+    and: 'the percentage of matched components is shown'
+      summaryPercentComponents.displayed
+      summaryPercentComponents.text() == '100%'
   }
 }

@@ -545,8 +545,10 @@ describe('DashboardModule', function() {
       var data = {
         totalApplications: 13,
         totalPolicies: 18,
+        totalComponents: 1843,
         matchedApplications: 2,
-        matchedPolicies: 4
+        matchedPolicies: 4,
+        matchedComponents: 300
       };
 
       $httpBackend.expectGET(CLMLocations.getDashboardViewingSummaryUrl()).respond(data);

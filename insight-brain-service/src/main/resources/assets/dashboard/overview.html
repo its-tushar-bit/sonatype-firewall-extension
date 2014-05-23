@@ -167,7 +167,7 @@
       <div class="span6">
         <div class="dashboard-viewing-header"><h4>Viewing</h4></div>
         <form class="form-horizontal" role="form">
-          <div class="pull-left form-group dashboard-viewing-item">
+          <div class="form-group dashboard-viewing-item first span2">
             <div>
               <span class="sonatype-icons dashboard-app-icon"></span><span class="dashboard-icon-label">Applications</span>
             </div>
@@ -176,13 +176,22 @@
               <span class="dashboard-label-mini">OF <span id='summary-total-applications'>{{data.totalApplications}}</span> (<span id='summary-percent-applications'>{{formatPercentage(data.matchedApplications, data.totalApplications)}}%</span>)</span>
             </span>
           </div>
-          <div class="pull-left form-group dashboard-viewing-item">
+          <div class="form-group dashboard-viewing-item span2">
             <div>
               <span class="sonatype-icons dashboard-policy-icon"></span><span class="dashboard-icon-label">Policies</span>
             </div>
             <span class="label label-default dashboard-label-wrapper">
               <span class="dashboard-label" id='summary-matched-policies'>{{data.matchedPolicies}}</span>
               <span class="dashboard-label-mini">OF <span id='summary-total-policies'>{{data.totalPolicies}}</span> (<span id='summary-percent-policies'>{{formatPercentage(data.matchedPolicies, data.totalPolicies)}}%</span>)</span>
+            </span>
+          </div>
+          <div class="form-group dashboard-viewing-item span2">
+            <div>
+              <span class="sonatype-icons dashboard-component-icon"></span><span class="dashboard-icon-label">Components</span>
+            </div>
+            <span class="label label-default dashboard-label-wrapper">
+              <span class="dashboard-label" id='summary-matched-components'>{{data.matchedComponents}}</span>
+              <span class="dashboard-label-mini">OF <span id='summary-total-components'>{{data.totalComponents}}</span>  (<span id='summary-percent-components'>{{formatPercentage(data.matchedComponents, data.totalComponents)}}%</span>)</span>
             </span>
           </div>
         </form>

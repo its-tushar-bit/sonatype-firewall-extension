@@ -66,6 +66,9 @@ class DashboardOverviewPage
     summaryTotalPolicies(required: false) { $('#summary-total-policies') }
     summaryMatchedPolicies(required: false) { $('#summary-matched-policies') }
     summaryPercentPolicies(required: false) { $('#summary-percent-policies') }
+    summaryTotalComponents(required: false) { $('#summary-total-components') }
+    summaryMatchedComponents(required: false) { $('#summary-matched-components') }
+    summaryPercentComponents(required: false) { $('#summary-percent-components') }
   }
 
   void applyFilter() {

@@ -165,7 +165,7 @@ class DashboardOverviewSpec
       applicationTagFilters.text() == firstAppTag.name
       stageTypeFilters.text() == 'Release'
       policyThreatTypeFilters.text() == 'Security'
-      policyThreatLevelFilters.text() == 'Policy Threat Levels 2 through 7'
+      policyThreatLevelFilters.text() ==~ /(?ms)Policy Threat Levels.*2 through 7/
   }
 
   def 'Single value threat level slider filter'() {
@@ -180,7 +180,7 @@ class DashboardOverviewSpec
       applyFilter()
 
     then: 'filter text shows one value'
-      waitFor { policyThreatLevelFilters.text() == 'Policy Threat Level 4' }
+      waitFor { policyThreatLevelFilters.text() ==~ /(?ms)Policy Threat Level.*4/ }
   }
 
   def 'Unknown components have popover displaying pathnames'() {
@@ -440,7 +440,7 @@ class DashboardOverviewSpec
       applicationTagFilters.text() == firstAppTag.name
       stageTypeFilters.text() == 'Release'
       policyThreatTypeFilters.collect { it.text() }.join('') == 'Security,Other'
-      policyThreatLevelFilters.text() == 'Policy Threat Levels 3 through 6'
+      policyThreatLevelFilters.text() ==~ /(?ms)Policy Threat Levels.*3 through 6/
   }
 
   def 'Components Table'() {

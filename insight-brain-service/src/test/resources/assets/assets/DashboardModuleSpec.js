@@ -538,7 +538,7 @@ describe('DashboardModule', function() {
           '?applicationPublicIds=1&applicationPublicIds=2&policyThreatCategories=3,4&policyThreatLevelRange=3,9&stageIds=5&stageIds=6&tagIds=7&tagIds=8').respond();
       $compile(angular.element('<div dashboard-view-summary filters="filters"></div>'))(scope);
       $httpBackend.flush();
-      expect(scope.$$childHead.error).not.toBeDefined();
+      expect(scope.$$childHead.error).toBeNull();
     }));
 
     it('Data loaded from server into model properly', inject(function($compile, $httpBackend, CLMLocations) {
@@ -555,7 +555,7 @@ describe('DashboardModule', function() {
       $compile(angular.element('<div dashboard-view-summary filters="filters"></div>'))(scope);
       $httpBackend.flush();
       expect(scope.$$childHead.data).toEqual(data);
-      expect(scope.$$childHead.error).not.toBeDefined();
+      expect(scope.$$childHead.error).toBeNull();
     }));
 
     it('Error propogated to scope', inject(function($compile, $httpBackend, CLMLocations) {

@@ -545,6 +545,7 @@
       controller: ['$scope', '$http', 'CLMLocations', function ($scope, $http, CLMLocations) {
         $scope.doLoad = function(){
           $scope.data = null;
+          $scope.error = null;
           $http.get(CLMLocations.getDashboardViewingSummaryUrl(), {
             params: filterToParams($scope.filters)
           }).success(function (data) {

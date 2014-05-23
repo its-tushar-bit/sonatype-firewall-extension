@@ -509,4 +509,33 @@ class DashboardOverviewSpec
         reportTitle.text()
       }  ==~ firstApp.getName() + ' .* Build Report'
   }
+
+  def 'Dashboard Filter Summary'() {
+    when: 'the filter summary data is loaded'
+      waitFor { summaryData.displayed }
+
+    then: 'the count of total applications is shown'
+      summaryTotalApplications.displayed
+      summaryTotalApplications.text() == '2'
+
+    and: 'the count of matched applications is shown'
+      summaryMatchedApplications.displayed
+      summaryMatchedApplications.text() == '2'
+
+    and: 'the percentage of matched applications is shown'
+      summaryPercentApplications.displayed
+      summaryPercentApplications.text() == '100%'
+
+    and: 'the count of total policies is shown'
+      summaryTotalPolicies.displayed
+      summaryTotalPolicies.text() == '1'
+
+    and: 'the count of matched policies is shown'
+      summaryMatchedPolicies.displayed
+      summaryMatchedPolicies.text() == '1'
+
+    and: 'the percentage of matched policies is shown'
+      summaryPercentPolicies.displayed
+      summaryPercentPolicies.text() == '100%'
+  }
 }

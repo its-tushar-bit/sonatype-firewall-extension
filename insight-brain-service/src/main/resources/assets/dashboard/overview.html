@@ -163,7 +163,7 @@
         <i class='icon-time'></i> Loading...
       </h5>
     </div>
-    <div ng-if="data">
+    <div id='summary-data' ng-if="data">
       <div class="span6">
         <div class="dashboard-viewing-header"><h4>Viewing</h4></div>
         <form class="form-horizontal" role="form">
@@ -172,8 +172,8 @@
               <span class="sonatype-icons dashboard-app-icon"></span><span class="dashboard-icon-label">Applications</span>
             </div>
             <span class="label label-default dashboard-label-wrapper">
-              <span class="dashboard-label">{{data.matchedApplications}}</span>
-              <span class="dashboard-label-mini">OF {{data.totalApplications}} ({{formatPercentage(data.matchedApplications, data.totalApplications)}}%)</span>
+              <span class="dashboard-label" id='summary-matched-applications'>{{data.matchedApplications}}</span>
+              <span class="dashboard-label-mini">OF <span id='summary-total-applications'>{{data.totalApplications}}</span> (<span id='summary-percent-applications'>{{formatPercentage(data.matchedApplications, data.totalApplications)}}%</span>)</span>
             </span>
           </div>
           <div class="pull-left form-group dashboard-viewing-item">
@@ -181,8 +181,8 @@
               <span class="sonatype-icons dashboard-policy-icon"></span><span class="dashboard-icon-label">Policies</span>
             </div>
             <span class="label label-default dashboard-label-wrapper">
-              <span class="dashboard-label">{{data.matchedPolicies}}</span>
-              <span class="dashboard-label-mini">OF {{data.totalPolicies}} ({{formatPercentage(data.matchedPolicies, data.totalPolicies)}}%)</span>
+              <span class="dashboard-label" id='summary-matched-policies'>{{data.matchedPolicies}}</span>
+              <span class="dashboard-label-mini">OF <span id='summary-total-policies'>{{data.totalPolicies}}</span> (<span id='summary-percent-policies'>{{formatPercentage(data.matchedPolicies, data.totalPolicies)}}%</span>)</span>
             </span>
           </div>
         </form>

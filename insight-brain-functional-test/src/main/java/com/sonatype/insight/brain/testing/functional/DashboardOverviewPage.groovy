@@ -58,6 +58,14 @@ class DashboardOverviewPage
     applicationViolationsTable(required: false) { module ApplicationViolationsTable, $('#application-risk') }
 
     tabLinks { module DashboardTabsModule, $('ul.nav.nav-tabs') }
+
+    summaryData(required: false) { $('#summary-data') }
+    summaryTotalApplications(required: false) { $('#summary-total-applications') }
+    summaryMatchedApplications(required: false) { $('#summary-matched-applications') }
+    summaryPercentApplications(required: false) { $('#summary-percent-applications') }
+    summaryTotalPolicies(required: false) { $('#summary-total-policies') }
+    summaryMatchedPolicies(required: false) { $('#summary-matched-policies') }
+    summaryPercentPolicies(required: false) { $('#summary-percent-policies') }
   }
 
   void applyFilter() {

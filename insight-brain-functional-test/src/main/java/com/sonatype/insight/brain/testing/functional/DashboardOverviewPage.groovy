@@ -48,10 +48,10 @@ class DashboardOverviewPage
     noAvailableApplicationTags(required: false) { $('#no-application-tags') }
     noDataAvailable(required: false) { $('#no-data') }
 
-    applicationFiltersDropdown(required: false) { module DropdownMultiSelectModule, $('span[items="applications"]') }
-    policyThreatFiltersDropdown(required: false) { module DropdownMultiSelectModule, $('span[items="policyThreatTypes"]') }
-    stageTypeFiltersDropdown(required: false) { module DropdownMultiSelectModule, $('span[items="stageTypes"]') }
-    applicationTagFiltersDropdown(required: false) { module DropdownMultiSelectModule, $('span[items="applicationTags"]') }
+    applicationFiltersDropdown(required: false) { module DropdownMultiSelectModule, $('span[items="applications"]'), emptyText: 'All Applications' }
+    policyThreatFiltersDropdown(required: false) { module DropdownMultiSelectModule, $('span[items="policyThreatTypes"]'), emptyText: 'All Policy Types' }
+    stageTypeFiltersDropdown(required: false) { module DropdownMultiSelectModule, $('span[items="stageTypes"]'), emptyText: 'All Stages' }
+    applicationTagFiltersDropdown(required: false) { module DropdownMultiSelectModule, $('span[items="applicationTags"]'), emptyText: 'All Applications' }
     policyThreatLevelSlider(required: false) { module SliderModule, $('#policy-threat-levels') }
 
     highestRiskTable(required: false) { module ThreatTableModule, $('div[ng-switch-when="policy-violations"]') }

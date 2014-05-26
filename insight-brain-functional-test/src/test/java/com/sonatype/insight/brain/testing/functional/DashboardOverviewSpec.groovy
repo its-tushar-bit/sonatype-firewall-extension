@@ -214,6 +214,29 @@ class DashboardOverviewSpec
       policyThreatLevelFilters.text() == '2 through 7'
   }
 
+  def 'Filter reset'() {
+    when: 'clicking the filter toggle button'
+      filterPanelToggle.click()
+
+    and: 'Set some filters'
+      applicationFiltersDropdown.toggleOption(firstApp.name)
+      applicationTagFiltersDropdown.toggleOption(firstAppTag.name)
+      stageTypeFiltersDropdown.toggleOption('Release')
+      policyThreatFiltersDropdown.toggleOption('Security')
+      policyThreatLevelSlider.setValues(2,7)
+
+    and: 'reset the filter'
+      resetButton.click()
+
+    then: 'filters are empty'
+      applicationFiltersDropdown.isEmpty()
+      applicationTagFiltersDropdown.isEmpty()
+      stageTypeFiltersDropdown.isEmpty()
+      policyThreatFiltersDropdown.isEmpty()
+      policyThreatLevelSlider.minValue.text() == '2'
+      policyThreatLevelSlider.maxValue.text() == '10'
+  }
+
   def 'Single value threat level slider filter'() {
     when: 'clicking the filter toggle button'
       filterPanelToggle.click()

@@ -13,6 +13,8 @@ import geb.Module
 class DropdownMultiSelectModule
     extends Module
 {
+  def emptyText
+
   static content = {
     dropdown { $('.btn-group') }
     dropdownButton { $('.btn-group button') }
@@ -61,5 +63,10 @@ class DropdownMultiSelectModule
   void hideDropdown() {
     dropdownButton.click()
     waitFor { !dropdownList.displayed }
+  }
+
+  boolean isEmpty() {
+    assert emptyText, 'This dropdown does not have an empty value specified'
+    return dropdownButton.text() == emptyText
   }
 }

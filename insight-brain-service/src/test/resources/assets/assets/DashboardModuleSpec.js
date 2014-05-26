@@ -143,6 +143,26 @@ describe('DashboardModule', function() {
       expect(directiveScope.applicationTags[0].owner).toBe(organizations[0].name);
     });
 
+    it('reset filter', function () {
+      directiveScope.resetFilter();
+
+      // only dirty state should be modified
+      expect(scope.filters).toEqual({
+        policyThreatTypes: ['SECURITY','OTHER'],
+        stageTypeIds: ['type1','type2'],
+        applicationTagIds: ['tag1','tag2'],
+        applicationPublicIds: ['app1','app2'],
+        policyThreatLevel: [3,6]
+      });
+      expect(directiveScope.dirtyFilter).toEqual({
+        applicationPublicIds: [],
+        policyThreatTypes: [],
+        stageTypeIds: [],
+        applicationTagIds: [],
+        policyThreatLevel: [2,10]
+      });
+    });
+
     function expectFilterPUT($httpBackend, CLMLocations, applicationFilters, policyThreatCategoryFilters, stageTypeFilters,
                        tagFilters, minPolicyThreatLevel, maxPolicyThreatLevel)
     {

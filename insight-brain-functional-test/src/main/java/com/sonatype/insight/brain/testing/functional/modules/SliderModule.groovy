@@ -17,6 +17,8 @@ class SliderModule
     slider { $('.slider') }
     minLabel { slider.previous() }
     maxLabel { slider.next() }
+    minValue { $('.slider-handle', 0) }
+    maxValue { $('.slider-handle', 1) }
   }
 
   void setValues(int min, int max) {

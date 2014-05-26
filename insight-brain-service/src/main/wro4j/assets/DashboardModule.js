@@ -182,18 +182,21 @@
       },
       templateUrl : 'dashboard-filter',
       link : function (scope) {
+        function getEmptyFilter() {
+          return {
+            applicationPublicIds: [],
+            policyThreatTypes: [],
+            stageTypeIds: [],
+            applicationTagIds: [],
+            policyThreatLevel: [2,10]
+          };
+        }
         function resetFilter() {
           scope.dirtyFilter = angular.copy(scope.filter);
         }
         function loadFilters() {
           //we don't want to update the data to be saved until they hit apply button
-          scope.dirtyFilter = {
-            applicationPublicIds: [],
-            policyThreatTypes: [],
-            stageTypeIds: [],
-            applicationTagIds: [],
-            policyThreatLevel: [0,10]
-          };
+          scope.dirtyFilter = getEmptyFilter();
 
           var promises = [
             ApplicationStore.get(),
@@ -311,6 +314,10 @@
         scope.cancelFilter = function () {
           resetFilter();
           scope.toggle();
+        };
+
+        scope.resetFilter = function () {
+          scope.dirtyFilter = getEmptyFilter();
         };
 
         scope.toggle = function() {

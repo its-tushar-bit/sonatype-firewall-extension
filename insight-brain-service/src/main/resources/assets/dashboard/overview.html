@@ -44,6 +44,7 @@
         </div>
         <div ng-if="filtersLoaded" class='filter-edit-buttons'>
           <span class="alert alert-error error-left-of-buttons" ng-if="applyError">{{applyError}}</span>
+          <button class='btn' type='button' ng-click='resetFilter()'>Reset</button>
           <button class='btn' type='button' ng-click='cancelFilter()'>Cancel</button>
           <button class='btn btn-primary' type='button' ng-click='applyFilter()'>Apply</button>
         </div>

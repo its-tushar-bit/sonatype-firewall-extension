@@ -57,7 +57,6 @@ import com.sonatype.insight.brain.policy.evaluator.PolicyViolationDigester;
 import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.report.ReportResource;
-import com.sonatype.insight.brain.trending.TrendingReportCache;
 import com.sonatype.insight.json.store.JsonStore;
 import com.sonatype.insight.json.store.JsonUtils;
 
@@ -118,8 +117,6 @@ public class PolicyEvaluationMigrator
 
   private final InsightWork insightWork;
 
-  private final TrendingReportCache trendingReportCache;
-
   private final ApplicationDAO appDAO = new ApplicationDAO();
 
   private final PolicyDAO policyDAO = new PolicyDAO();
@@ -133,9 +130,8 @@ public class PolicyEvaluationMigrator
   private final ApplicationComponentDAO applicationComponentDAO = new ApplicationComponentDAO();
 
   @Inject
-  public PolicyEvaluationMigrator(InsightWork insightWork, TrendingReportCache trendingReportCache) {
+  public PolicyEvaluationMigrator(InsightWork insightWork) {
     this.insightWork = insightWork;
-    this.trendingReportCache = trendingReportCache;
   }
 
   public void migrate() throws IOException {
@@ -209,9 +205,6 @@ public class PolicyEvaluationMigrator
       }
 
       em.getTransaction().commit();
-
-      //remove existing trending report cache as API changes will have invalidated its format
-      trendingReportCache.purgeCache();
     }
     finally {
       ApplicationDAO.close(em);

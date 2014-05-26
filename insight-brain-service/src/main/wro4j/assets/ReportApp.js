@@ -7,48 +7,13 @@
 (function() {
   'use strict';
 
-  var reportModule = angular.module('ReportModule', ['ui.router', 'MainModule', 'MainHeader', 'ReportViolations', 'ReportTrending'],
+  angular.module('ReportModule', ['ui.router', 'MainModule', 'MainHeader', 'ReportViolations'],
     ['$stateProvider', '$urlRouterProvider', function($stateProvider, $urlRouterProvider) {
       $urlRouterProvider.when('/reports', '/reports/violations');
-      $stateProvider.state('reports', {
-        url: '/reports',
-        templateUrl: '../assets/management.html?' + clmBuildTimestamp,
-        controller: 'ReportsController'
-      }).state('reports.violations', {
-          url: '/violations',
-          templateUrl: '../report-assets/violations/report-list.html?' + clmBuildTimestamp,
-          parent: 'reports',
-          controller: 'ReportViolationsController'
-        }).state('reports.trending', {
-          url: '/trending',
-          templateUrl: '../report-assets/trending/trending-report.html?' + clmBuildTimestamp,
-          parent: 'reports',
-          controller: 'TrendingReportController'
-        });
+      $stateProvider.state('violations', {
+        url: '/reports/violations',
+        templateUrl: '../report-assets/violations/report-list.html?' + clmBuildTimestamp,
+        controller: 'ReportViolationsController'
+      });
     }]);
-
-  reportModule.controller('ReportsController', ['$scope', '$state', function($scope, $state) {
-    $scope.$state = $state;
-
-    $scope.panes = [
-      {
-        name: 'Violations',
-        state: 'reports/violations',
-        isEnabled: true
-      },
-      {
-        name: 'Trending',
-        state: 'reports/trending',
-        isEnabled: true
-      }
-    ];
-
-    for (var i = 0; i < $scope.panes.length; i++) {
-      var normalizedState = $scope.panes[i].state.replace('/', '.');
-      if ($scope.$state.current.name.indexOf(normalizedState) !== -1) {
-        $scope.$state.selectedPane = $scope.panes[i];
-        break;
-      }
-    }
-  }]);
 }());

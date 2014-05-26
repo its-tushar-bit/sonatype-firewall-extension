@@ -37,7 +37,6 @@
     <css>/assets/threat.css</css>
     <css>/policy/labels.css</css>
     <css>/policy/policy.css</css>
-    <css>/trending/trending.css</css>
     <css>/user/user.css</css>
   </group>
 
@@ -67,10 +66,6 @@
   </group>
 
   <group name='report'>
-    <js>/report/TrendingController.js</js>
-    <js>/report/diffChart.js</js>
-    <js>/report/percChart.js</js>
-    <js>/report/policyProgression.js</js>
     <js>/report/ReportController.js</js>
     <js>/report/ReportViolationsController.js</js>
   </group>

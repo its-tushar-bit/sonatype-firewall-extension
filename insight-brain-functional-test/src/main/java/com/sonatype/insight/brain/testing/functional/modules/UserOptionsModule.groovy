@@ -39,6 +39,7 @@ class UserOptionsModule
 
   void changePasswordClick() {
     optionsDropdown.click()
+    waitFor { openChangePassword.displayed }
     openChangePassword.click()
   }
 

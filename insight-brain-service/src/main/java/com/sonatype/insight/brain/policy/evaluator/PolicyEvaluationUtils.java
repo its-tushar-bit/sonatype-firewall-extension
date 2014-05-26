@@ -186,7 +186,8 @@ public class PolicyEvaluationUtils
         }
         if (isForLatestScan) {
           // Calculate a diff between the current policy violations and the previous "newest" policy violations
-          List<PolicyViolation> oldPolicyViolations = policyViolationDAO.getNewestByApplicationId(em, appId);
+          List<PolicyViolation> oldPolicyViolations = policyViolationDAO.getNewestByApplicationIdAndStageTypeId(em,
+              appId, stage.getStageTypeId());
           PolicyViolationDiff policyViolationDiff = PolicyViolationDigester.digestPolicyViolations(newPolicyViolations,
               oldPolicyViolations);
           NewestPolicyViolationDAO newestPolicyViolationDAO = new NewestPolicyViolationDAO();

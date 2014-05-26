@@ -68,6 +68,7 @@ import org.jvnet.mock_javamail.Mailbox;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertEquals;
@@ -779,7 +780,7 @@ public class PolicyEvaluateResourceTest
   }
 
   @Test
-  public void testEvaluate_NewestPolicyViolations() throws Exception {
+  public void testEvaluate_NewestPolicyViolations_OneStage() throws Exception {
     String scanId = "testEvaluateNewestPolicyViolations";
 
     File saasReportFile = getReportResponseFile(licenseFingerprint, scanId);
@@ -794,7 +795,6 @@ public class PolicyEvaluateResourceTest
     policy.setThreatLevel(8);
     policy.addConstraint(constraint1);
     policy.setOwnerId(app.getId());
-    PolicyDAO policyDAO = new PolicyDAO();
     policyDAO.insert(policy);
 
     Stage stage = new Stage(BuildStageType.ID);
@@ -807,7 +807,8 @@ public class PolicyEvaluateResourceTest
     Response response = AuthedRestAccess.post(getServiceURL(applicationPublicId, scanId), JsonHelpers.asJson(stage));
     assertResponseStatus(200, response);
     PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
-    List<PolicyViolation> policyViolations1 = policyViolationDAO.getNewestByApplicationId(app.getId());
+    List<PolicyViolation> policyViolations1 = policyViolationDAO.getNewestByApplicationIdAndStageTypeId(app.getId(),
+        stage.getStageTypeId());
     assertThat(policyViolations1, hasSize(2));
     assertThat(policyViolations1.get(0).getGroupId(), is("commons-pool"));
     assertThat(policyViolations1.get(1).getGroupId(), is("tomcat"));
@@ -822,13 +823,66 @@ public class PolicyEvaluateResourceTest
     // Evaluate policy again for the same scan
     response = AuthedRestAccess.post(getServiceURL(applicationPublicId, scanId), JsonHelpers.asJson(stage));
     assertResponseStatus(200, response);
-    List<PolicyViolation> policyViolations2 = policyViolationDAO.getNewestByApplicationId(app.getId());
+    List<PolicyViolation> policyViolations2 = policyViolationDAO.getNewestByApplicationIdAndStageTypeId(app.getId(),
+        stage.getStageTypeId());
     assertThat(policyViolations2, hasSize(2));
     assertThat(policyViolations2.get(0).getGroupId(), is("commons-dbcp"));
     assertThat(policyViolations2.get(1).getGroupId(), is("commons-pool"));
     NewestPolicyViolation newestPolicyViolationUnchanged2 = newestPolicyViolationDAO.getById(policyViolations2.get(1)
         .getId());
     assertThat(newestPolicyViolationUnchanged2.getId(), is(newestPolicyViolationUnchanged1.getId()));
+  }
+
+  @Test
+  public void testEvaluate_NewestPolicyViolations_TwoStages() throws Exception {
+    Constraint constraint1 = new Constraint("C1", "PolicyEvaluateResourceTest constraint 1", LogicalOperator.OR);
+    Condition condition1 = new Condition(CoordinatesConditionType.ID, "match", "commons-pool:commons-pool:1.4");
+    constraint1.addCondition(condition1);
+    Policy policy = new Policy("P1", "PolicyEvaluateResourceTest policy");
+    policy.setThreatLevel(8);
+    policy.addConstraint(constraint1);
+    policy.setOwnerId(app.getId());
+    policyDAO.insert(policy);
+
+    // Evaluate policy for the Build stage
+    String scanBuildId = "scanBuildId";
+    File saasReportFileBuild = getReportResponseFile(licenseFingerprint, scanBuildId);
+    saasReportFileBuild.delete();
+    URL testReportFileUrl = getClass().getResource("/PolicyEvaluateResourceTest/report.zip");
+    FileUtils.copyFile(new File(testReportFileUrl.getFile()), saasReportFileBuild);
+    Response response = AuthedRestAccess.post(getServiceURL(applicationPublicId, scanBuildId),
+        JsonHelpers.asJson(BuildStageType.ID));
+    assertResponseStatus(200, response);
+    PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
+    List<PolicyViolation> policyViolationsBuild = policyViolationDAO.getNewestByApplicationIdAndStageTypeId(
+        app.getId(), BuildStageType.ID);
+    assertThat(policyViolationsBuild, hasSize(1));
+    assertThat(policyViolationsBuild.get(0).getGroupId(), is("commons-pool"));
+    NewestPolicyViolationDAO newestPolicyViolationDAO = new NewestPolicyViolationDAO();
+    NewestPolicyViolation newestPolicyViolationBuild = newestPolicyViolationDAO.getById(policyViolationsBuild
+        .get(0).getId());
+
+    // Evaluate policy for the Release stage
+    String scanReleaseId = "scanReleaseId";
+    File saasReportFileRelease = getReportResponseFile(licenseFingerprint, scanReleaseId);
+    saasReportFileRelease.delete();
+    FileUtils.copyFile(new File(testReportFileUrl.getFile()), saasReportFileRelease);
+    response = AuthedRestAccess.post(getServiceURL(applicationPublicId, scanReleaseId),
+        JsonHelpers.asJson(ReleaseStageType.ID));
+    assertResponseStatus(200, response);
+    List<PolicyViolation> policyViolationsRelease = policyViolationDAO.getNewestByApplicationIdAndStageTypeId(
+        app.getId(), ReleaseStageType.ID);
+    assertThat(policyViolationsRelease, hasSize(1));
+    assertThat(policyViolationsRelease.get(0).getGroupId(), is("commons-pool"));
+    NewestPolicyViolation newestPolicyViolationRelease = newestPolicyViolationDAO.getById(policyViolationsRelease
+        .get(0).getId());
+    assertThat(newestPolicyViolationRelease.getId(), is(not(newestPolicyViolationBuild.getId())));
+
+    policyViolationsBuild = policyViolationDAO.getNewestByApplicationIdAndStageTypeId(app.getId(), BuildStageType.ID);
+    assertThat(policyViolationsBuild, hasSize(1));
+    NewestPolicyViolation newestPolicyViolationBuild1 = newestPolicyViolationDAO.getById(policyViolationsBuild.get(0)
+        .getId());
+    assertThat(newestPolicyViolationBuild1.getId(), is(newestPolicyViolationBuild.getId()));
   }
 
   @Test

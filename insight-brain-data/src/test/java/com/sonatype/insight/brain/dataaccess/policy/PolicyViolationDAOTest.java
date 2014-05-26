@@ -104,19 +104,31 @@ public class PolicyViolationDAOTest
   }
 
   @Test
-  public void testGetNewestByApplicationId() {
-    Policy policy = tempEntity.newPolicy(applicationId, "testGetNewestByApplicationId");
-    PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(applicationId, ReleaseStageType.ID,
-        "PolicyViolationDAOTest");
-    // Add a policy violation that is not newest
-    tempEntity.newPolicyViolation(policyEvaluation, policy);
-    // Add a policy violation that is newest
-    PolicyViolation newestPolicyViolation = tempEntity.newPolicyViolation(policyEvaluation, policy);
-    tempEntity.newNewestPolicyViolation(newestPolicyViolation.getId(), applicationId, ReleaseStageType.ID);
+  public void testGetNewestByApplicationIdAndStageTypeId() {
+    Policy policy = tempEntity.newPolicy(applicationId, "testGetNewestByApplicationIdAndStageTypeId");
 
-    List<PolicyViolation> newestPolicyViolations = new PolicyViolationDAO().getNewestByApplicationId(applicationId);
-    assertThat(newestPolicyViolations, hasSize(1));
-    assertThat(newestPolicyViolations.get(0).getId(), is(newestPolicyViolation.getId()));
+    // Add policy violations for Release stage
+    PolicyEvaluation policyEvaluationRelease = tempEntity.newPolicyEvaluation(applicationId, ReleaseStageType.ID,
+        "ScanReleaseId");
+    // Add a policy violation that is not newest
+    tempEntity.newPolicyViolation(policyEvaluationRelease, policy);
+    // Add a policy violation that is newest
+    PolicyViolation newestPolicyViolationRelease = tempEntity.newPolicyViolation(policyEvaluationRelease, policy);
+    tempEntity.newNewestPolicyViolation(newestPolicyViolationRelease.getId(), applicationId, ReleaseStageType.ID);
+
+    // Add policy violations for Build stage
+    PolicyEvaluation policyEvaluationBuild = tempEntity.newPolicyEvaluation(applicationId, BuildStageType.ID,
+        "ScanBuildId");
+    // Add a policy violation that is not newest
+    tempEntity.newPolicyViolation(policyEvaluationBuild, policy);
+    // Add a policy violation that is newest
+    PolicyViolation newestPolicyViolationBuild = tempEntity.newPolicyViolation(policyEvaluationBuild, policy);
+    tempEntity.newNewestPolicyViolation(newestPolicyViolationBuild.getId(), applicationId, BuildStageType.ID);
+
+    List<PolicyViolation> newestPolicyViolationsRelease = new PolicyViolationDAO()
+        .getNewestByApplicationIdAndStageTypeId(applicationId, ReleaseStageType.ID);
+    assertThat(newestPolicyViolationsRelease, hasSize(1));
+    assertThat(newestPolicyViolationsRelease.get(0).getId(), is(newestPolicyViolationRelease.getId()));
   }
 
   @Test

@@ -208,12 +208,19 @@ public class PolicyEvaluationMigratorTest
     }
 
     // "newest" policy violations for app1
-    List<PolicyViolation> newestPolicyViolations = policyViolationDAO.getNewestByApplicationId(app1.getId());
+    List<PolicyViolation> newestPolicyViolations = policyViolationDAO.getNewestByApplicationIdAndStageTypeId(
+        app1.getId(), Stage.ID_BUILD);
     assertThat(newestPolicyViolations, hasSize(1));
-    assertAntlrPolicyViolation(stageReleaseMonitoringEvaluation.getId(), newestPolicyViolations.get(0));
+    assertAntlrPolicyViolation(buildEvaluation.getId(), newestPolicyViolations.get(0));
     NewestPolicyViolationDAO newestPolicyViolationDAO = new NewestPolicyViolationDAO();
     NewestPolicyViolation newestPolicyViolation = newestPolicyViolationDAO.getById(newestPolicyViolations.get(0)
         .getId());
+    assertThat(newestPolicyViolation.getStageTypeId(), is(Stage.ID_BUILD));
+    newestPolicyViolations = policyViolationDAO.getNewestByApplicationIdAndStageTypeId(app1.getId(),
+        Stage.ID_STAGE_RELEASE);
+    assertThat(newestPolicyViolations, hasSize(1));
+    assertAntlrPolicyViolation(stageReleaseMonitoringEvaluation.getId(), newestPolicyViolations.get(0));
+    newestPolicyViolation = newestPolicyViolationDAO.getById(newestPolicyViolations.get(0).getId());
     assertThat(newestPolicyViolation.getStageTypeId(), is(Stage.ID_STAGE_RELEASE));
 
     // application components for app1
@@ -247,7 +254,7 @@ public class PolicyEvaluationMigratorTest
     }
 
     // "newest" policy violations for app2
-    newestPolicyViolations = policyViolationDAO.getNewestByApplicationId(app2.getId());
+    newestPolicyViolations = policyViolationDAO.getNewestByApplicationIdAndStageTypeId(app2.getId(), Stage.ID_RELEASE);
     assertThat(newestPolicyViolations, hasSize(2));
     assertCarrotPolicyViolation(policyEvaluation.getId(), newestPolicyViolations.get(0));
     assertUnknownPolicyViolation(policyEvaluation.getId(), newestPolicyViolations.get(1));
@@ -266,7 +273,6 @@ public class PolicyEvaluationMigratorTest
     for (StageType stageType : StageTypes.getAll()) {
       assertThat(policyEvaluationDAO.getAllByApplicationIdAndStageId(appNoEvals.getId(), stageType.getId()), empty());
     }
-    assertThat(policyViolationDAO.getNewestByApplicationId(appNoEvals.getId()), hasSize(0));
   }
 
   @Test

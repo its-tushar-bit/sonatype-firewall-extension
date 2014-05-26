@@ -237,21 +237,44 @@ public class PolicyEvaluationMigrator
     });
 
     // Calculate "newest" policy violations
-    List<PolicyViolation> newestPolicyViolations = new ArrayList<>();
+    Map<String, String> lastScanIdsByStageId = new LinkedHashMap<>();
+    Map<String, List<PolicyViolation>> newestPolicyViolationsByStageId = new LinkedHashMap<>();
     Map<String, PolicyEvaluation> policyEvaluationsById = new LinkedHashMap<>();
     for (PolicyEvaluation policyEvaluation : policyEvaluations) {
-      PolicyViolationDiff diff = PolicyViolationDigester.digestPolicyViolations(
-          policyViolationsByEvaluation.get(policyEvaluation.getId()), newestPolicyViolations);
-      newestPolicyViolations.addAll(diff.getAppeared());
-      newestPolicyViolations.removeAll(diff.getCleared());
+      if (policyEvaluation.isReevaluation()) {
+        if (!policyEvaluation.getScanId().equals(lastScanIdsByStageId.get(policyEvaluation.getStageTypeId()))) {
+          // Policy re-evaluation for a scan older then the last scan. It should not change "newest" policy violations.
+          continue;
+        }
+      }
+      else {
+        lastScanIdsByStageId.put(policyEvaluation.getStageTypeId(), policyEvaluation.getScanId());
+      }
+
+      List<PolicyViolation> policyViolations = policyViolationsByEvaluation.get(policyEvaluation.getId());
+      List<PolicyViolation> newestPolicyViolations = newestPolicyViolationsByStageId.get(policyEvaluation
+          .getStageTypeId());
+      if (newestPolicyViolations == null) {
+        newestPolicyViolationsByStageId.put(policyEvaluation.getStageTypeId(), policyViolations);
+      }
+      else {
+        PolicyViolationDiff diff = PolicyViolationDigester.digestPolicyViolations(policyViolations,
+            newestPolicyViolations);
+        newestPolicyViolations.addAll(diff.getAppeared());
+        newestPolicyViolations.removeAll(diff.getCleared());
+      }
       policyEvaluationsById.put(policyEvaluation.getId(), policyEvaluation);
     }
+
     // Persist "newest" policy violations
-    for (PolicyViolation policyViolation : newestPolicyViolations) {
-      PolicyEvaluation policyEvaluation = policyEvaluationsById.get(policyViolation.getPolicyEvaluationId());
-      NewestPolicyViolation newestPolicyViolation = new NewestPolicyViolation(policyViolation.getId(),
-          policyEvaluation.getApplicationId(), policyEvaluation.getStageTypeId());
-      newestPolicyViolationDAO.insert(em, newestPolicyViolation);
+    for (Entry<String, List<PolicyViolation>> newestPolicyViolationsEntry : newestPolicyViolationsByStageId.entrySet()) {
+      String stageTypeId = newestPolicyViolationsEntry.getKey();
+      for (PolicyViolation policyViolation : newestPolicyViolationsEntry.getValue()) {
+        PolicyEvaluation policyEvaluation = policyEvaluationsById.get(policyViolation.getPolicyEvaluationId());
+        NewestPolicyViolation newestPolicyViolation = new NewestPolicyViolation(policyViolation.getId(),
+            policyEvaluation.getApplicationId(), stageTypeId);
+        newestPolicyViolationDAO.insert(em, newestPolicyViolation);
+      }
     }
   }
 

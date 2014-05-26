@@ -58,18 +58,20 @@ public class PolicyViolationDAO
     return getList(em, sQuery, policyId);
   }
 
-  public List<PolicyViolation> getNewestByApplicationId(EntityManager em, String appId) {
+  public List<PolicyViolation> getNewestByApplicationIdAndStageTypeId(EntityManager em, String appId, String stageTypeId)
+  {
     String sQuery = "SELECT policyViolation" + //
         " FROM PolicyViolation policyViolation, NewestPolicyViolation newestPolicyViolation" + //
         " WHERE policyViolation.id=newestPolicyViolation.id AND newestPolicyViolation.applicationId=?1" + //
+        " AND newestPolicyViolation.stageTypeId=?2" + //
         " ORDER BY policyViolation.policyId, policyViolation.groupId, policyViolation.artifactId, policyViolation.version, policyViolation.hash";
-    return getList(em, sQuery, appId);
+    return getList(em, sQuery, appId, stageTypeId);
   }
 
-  public List<PolicyViolation> getNewestByApplicationId(String appId) {
+  public List<PolicyViolation> getNewestByApplicationIdAndStageTypeId(String appId, String stageTypeId) {
     EntityManager em = createEntityManager();
     try {
-      return getNewestByApplicationId(em, appId);
+      return getNewestByApplicationIdAndStageTypeId(em, appId, stageTypeId);
     }
     finally {
       close(em);

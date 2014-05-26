@@ -25,6 +25,7 @@ class DashboardOverviewPage
     filterPanel(required: false) { $('.filter-readonly') }
     filterButtons(required: false) { module ButtonsModule, $('.filter-edit-buttons') }
     applyButton(required: false) { filterButtons.button('Apply') }
+    resetButton(required: false) { filterButtons.button('Reset') }
 
     applicationFilters(required: false) {
       filterPanel.find('span[ng-repeat="applicationId in filter.applicationPublicIds"]')

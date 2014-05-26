@@ -62,6 +62,9 @@ public class ComponentDetailServiceTest
     // add another policy violation for a different stage and with a different threat level
     policy1.setThreatLevel(2);
     new PolicyDAO().update(policy1);
+    while (System.currentTimeMillis() <= policyEvaluation1.getTime().getTime()) {
+      // just spinning until next policy eval time is guaranteed to be greater than time for the eval created above
+    }
     PolicyEvaluation policyEvaluation2 = tempEntity.newPolicyEvaluation(app2.getId(), ReleaseStageType.ID, "scanId2");
     tempEntity.newPolicyViolation(policyEvaluation2, policy1, "groupId", "artifactId", "version", hash, "reason3");
 

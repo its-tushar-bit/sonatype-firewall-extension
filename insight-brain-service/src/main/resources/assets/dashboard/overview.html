@@ -75,15 +75,10 @@
           {{stageTypeNameFor(stageTypeId)}}{{!$last ? "," : ""}}
         </span>
       </div>
-      <div class='span2' ng-if='filter.policyThreatLevel[0] > 0 || filter.policyThreatLevel[1] < 10'>
-        <div ng-if="filter.policyThreatLevel[0] != filter.policyThreatLevel[1]">
-          <div><strong>Policy Threat Levels</strong></div>
-          <span>{{filter.policyThreatLevel[0]}} through {{filter.policyThreatLevel[1]}}</span>
-        </div>
-        <div ng-if="filter.policyThreatLevel[0] == filter.policyThreatLevel[1]" id="filter-summary-threat-level">
-          <div><strong>Policy Threat Level</strong></div>
-          <span>{{filter.policyThreatLevel[0]}}</span>
-        </div>
+      <div class='span2' ng-if='filter.policyThreatLevel[0] > 0 || filter.policyThreatLevel[1] < 10' id="filter-summary-threat-level">
+        <div><strong>Policy Threat Levels</strong></div>
+        <span ng-if="filter.policyThreatLevel[0] != filter.policyThreatLevel[1]">{{filter.policyThreatLevel[0]}} through {{filter.policyThreatLevel[1]}}</span>
+        <span ng-if="filter.policyThreatLevel[0] == filter.policyThreatLevel[1]">{{filter.policyThreatLevel[0]}}</span>
       </div>
     </div>
   </div>

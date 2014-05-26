@@ -21,7 +21,7 @@ class ReportViolationsPage
     mainModule { module MainModule }
     nav { module NavListModule }
 
-    emptyMessage { $('div h5', text: startsWith('Welcome to Sonatype CLM. Get started by')) }
+    emptyMessage { $('div h5#clm-welcome-message') }
 
     filter(require: false) { $('input') }
     reportViolationRows(require: false) { moduleList ReportViolationsRowModule, $('table.clm-table tbody tr') }

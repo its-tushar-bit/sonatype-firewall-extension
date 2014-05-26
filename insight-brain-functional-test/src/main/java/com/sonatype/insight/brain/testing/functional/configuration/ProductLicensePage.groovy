@@ -5,10 +5,12 @@
  */
 package com.sonatype.insight.brain.testing.functional.configuration
 
+import com.sonatype.insight.brain.testing.functional.BasePage
+
 class ProductLicensePage
-    extends ConfigurationPage
+    extends BasePage
 {
-  static url = "${ConfigurationPage.url}/productlicense"
+  static url = 'assets/index.html#/management/configuration/productlicense'
 
   static at = { $('#license').displayed }
 

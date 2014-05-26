@@ -4,10 +4,10 @@
   <div ng-hide='error'>
     <div ng-hide='stages'><h5><i class='icon icon-time'></i> Loading...</h5></div>
     <div ng-show='applications.length == 0'>
-          <h5>
-            Welcome to Sonatype CLM. Get started by <a href='index.html#/management/organization/_new_'>creating an organization</a>.
-          </h5>
-        </div>
+      <h5 id="clm-welcome-message">
+        Welcome to Sonatype CLM. Get started by <a href='index.html#/management/organization/_new_'>creating an organization</a>.
+      </h5>
+    </div>
     <div ng-show='applications.length > 0'>
       <div class='input-prepend'>
         <span class='add-on'><i ng-class="{'icon-search': !appFilter, 'icon-remove': appFilter}" ng-click="appFilter = ''"></i></span>

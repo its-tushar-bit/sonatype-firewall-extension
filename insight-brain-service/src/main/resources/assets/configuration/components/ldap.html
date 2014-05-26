@@ -5,10 +5,9 @@
     <div style="float:right; margin:10px;" class='btn-group' ng-show='ldap.id'>
       <a class="btn btn-mini" title="Remove Configuration" ng-click="confirmDeleteConfiguration(ldap)"><i class='glyphicons-sonatype bin'></i></a>
     </div>
-    <div class="fixed-width-small-form" style="padding-left: 25px;">
+    <div class="fixed-width-small-form" style="padding-left: 25px;" id='ldapName'>
       <div class='inline-editor head'
            clm-editable
-           id='ldapName'
            e-form='ldapNameForm'
            invalid='ldapEditor.$invalid'
            model='ldap'

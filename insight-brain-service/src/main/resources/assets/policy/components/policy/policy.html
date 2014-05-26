@@ -30,13 +30,13 @@
         <div class="accordion-body collapse">
           <!-- ngIf isnt used because of an IE9 (and IE10 i believe) where the select value only shows the first letter -->
           <div class="form-horizontal configuration" style="width: 700px;" ng-show="isPolicyMonitoringLicensed()">
-            <form id="monitoringForm" name="monitoringForm">
+            <form id="monitoring-form" name="monitoringForm">
               <div class='control-group'>
                 <label class="control-label" style="width: auto;padding-right: 5px;" for="policyMonitoring">
                   Monitor the latest scan from CLM stage
                 </label>
                 <div class='controls'>
-                  <select id="policyMonitoring" name="policyMonitoring" ng-model="policyMonitoring.stageTypeId"
+                  <select id="policy-monitoring" name="policyMonitoring" ng-model="policyMonitoring.stageTypeId"
                           ng-options="s.id as s.name for s in actionStageList" ng-change="savePolicyMonitoring()" ng-disabled="!isPolicyMonitoringLicensed()">
                     <option value="">{{ policyMonitoringPlaceHolder }}</option>
                   </select>

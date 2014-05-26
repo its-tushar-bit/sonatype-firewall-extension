@@ -36,20 +36,20 @@ class LdapUserAndGroupMappingConfigurationPage
     requiredFields { [userObjectClass, userIDAttribute, userRealNameAttribute, userEmailAttribute]}
 
     //controls
-    checkUserMapping { $('button', text: 'Check User Mapping') }
-    checkUserLogin { $('button', text: 'Check Login') }
-    reset { $('.ldap-button-group button', text: 'Reset') }
-    save { $('.ldap-button-group button', text: 'Save') }
+    checkUserMapping { $('.ldap-button-group > button:first-child') }
+    checkUserLogin { $('.ldap-button-group > button:nth-child(2)') }
+    reset { $('.ldap-button-group div button:first-child') }
+    save { $('.ldap-button-group button.btn-primary') }
 
     //test user mapping dialog
     userMappingDialog(required: false) { $('div.modal-ldap') }
-    userMappingDialogClose(required: false) { userMappingDialog.find('button') }
+    userMappingDialogClose(required: false) { $('div.modal-ldap button') }
 
     //test user login dialog
-    userLoginDialog(required: false) { $('div.modal h3', text: 'Test LDAP Login Credentials')?.parent().parent() }
-    userLoginUsername(required: false) { userLoginDialog.find('input', name: 'username') }
-    userLoginPassword(required: false) { userLoginDialog.find('input', name: 'password') }
-    userLoginDialogTest(required: false) { userLoginDialog.find('button', 'ng-click':'testLogin()') }
-    userLoginDialogClose(required: false) { userLoginDialog.find('button', text:'Close') }
+    userLoginDialog(required: false) { $('#ldap-check-login-modal') }
+    userLoginUsername(required: false) { $('#ldap-check-login-modal input[name="username"]') }
+    userLoginPassword(required: false) { $('#ldap-check-login-modal input[name="password"]') }
+    userLoginDialogTest(required: false) { $('#ldap-check-login-modal button.btn-primary') }
+    userLoginDialogClose(required: false) { $('#ldap-check-login-modal button:first-child') }
   }
 }

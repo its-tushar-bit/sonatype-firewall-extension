@@ -16,11 +16,13 @@ import org.openqa.selenium.WebElement
 class UserOptionsModule
     extends Module
 {
+  static base = { $('#user-menu') }
+
   static content = {
     displayName(wait: true) { $('.user-name') }
     optionsDropdown(wait: true) { $('.dashboard-user a.btn') }
-    logout (wait: true, to: ReportViolationsPage) { $('a', text: 'Logout') }
-    openChangePassword { $('a', text: 'Change Password') }
+    logout (wait: true, to: ReportViolationsPage) { $('li:last-child a') }
+    openChangePassword { $('li:first-child a') }
   }
 
   void logoutClick() {

@@ -748,20 +748,22 @@ var AngularStateUtils = {
         }
       };
     }
+    var counter = 0;
     return {
       open : function (config) {
         config = angular.extend({
           backdrop: 'static',
           keyboard : false,
-          template: '<div class="modal-header"><button type="button" class="close" ng-click="$close()">&times</button><h3>{{title}}</h3></div>' +
+          template: '<div id="{{id}}"><div class="modal-header"><button type="button" class="close" ng-click="$close()">&times</button><h3>{{title}}</h3></div>' +
               '<div class="modal-body"><p>{{body}}</p></div>' +
               '<div class="modal-footer">' +
                 '<button ng-repeat="button in buttons" ng-class="{\'btn-danger\' : button.type == \'danger\',\'btn-primary\' : button.type == \'primary\'}" class="btn" ng-click="button.click()">{{button.name}}</button>' +
-              '</div>',
+              '</div></div>',
           controller: ['$scope', function(scope) {
             scope.buttons = config.buttons;
             scope.title = config.title;
             scope.body = config.body;
+            scope.id = config.id || ('dialog-' + counter++);
 
             angular.forEach(scope.buttons, function (button) {
               button.click = wrapClick(button.click, scope, button.dismiss);

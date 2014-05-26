@@ -30,25 +30,20 @@ class ApplicationPage
     applicationId(required: false) { $('#applicationPublicId .editable') }
     applicationIdField(required: false) { $('input', 'placeholder':'Enter ID') }
     applicationIdSaved(required:false) { $('div.setappid') }
-    applicationOrgField(required: false) { $('div', 'on': 'selectedApplication.id && selectedApplication.organizationId').find('a') }
+    applicationOrgField(required: false) { $('#app-parent a') }
     applicationOrgName(required: false) { orgName -> $('#applicationEditor a', text: orgName) }
 
     applicationContactField(required: false) { $('#contact-field') }
     applicationContactDialog(wait: true) { $('#contact-modal-dialog') }
-    applicationContactDialogSearchField(required: false) { $('input', 'placeholder':'Find User') }
+    applicationContactDialogSearchField(required: false) { $('input[placeholder="Find User"]') }
     applicationContactDialogResultList(required : false) { $('.large-select-list-item') }
 
-    securityTabButton(required: false) { $('div', 'on': 'selectedApplication.id').find('a', text: 'SECURITY') }
     securityTab(required: false) { $('#security') }
-    developerRole(required: false) { $('p', text:'Developer' ) }
-    ownerRole(required: false) { $('p', text:'Owner' ) }
     buttons { module ButtonsModule, $('#applicationEditor') }
     applicationSaveButton(required: false) { buttons.save }
     applicationCancelButton(required: false) { buttons.cancel }
-    deleteButton(required: false) { $('a', 'title': 'Remove Application') }
-    deleteButtonAccept(required: false) { $('button', text: 'Delete') }
-    developerRole(required: false) { $('p', text: 'Developer') }
-    ownerRole(required: false) { $('p', text: 'Owner') }
+    deleteButton(required: false) { $('#remove-app-org-button') }
+    deleteButtonAccept(required: false) { $('#delete-app-modal button.btn-danger') }
 
     policyImport { module ImportPolicyModule }
 

@@ -15,8 +15,8 @@ class DropdownMultiSelectModule
 {
   static content = {
     dropdown { $('.btn-group') }
-    dropdownButton { dropdown.find('button') }
-    dropdownList { dropdown.find('ul') }
+    dropdownButton { $('.btn-group button') }
+    dropdownList { $('.btn-group ul') }
     dropdownItem(required: false) { name -> dropdownList.find('label').has('.multi-dropdown-item.name', text: name) }
     dropdownCheck { name -> dropdownItem(name).find('input') }
     dropdownColor { name -> dropdownItem(name).find('span.multi-dropdown-item-color') }

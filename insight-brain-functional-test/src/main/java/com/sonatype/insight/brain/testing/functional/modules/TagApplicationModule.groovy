@@ -14,12 +14,12 @@ class TagApplicationModule
     extends Module
 {
   static content = {
-    appliedTagList(required:false) { $('span', 'ng-repeat': startsWith('tag in appliedTags')).find('span') }
-    appliedTagEmptyText(required:false) { $('em', 'ng-show': startsWith('appliedTags.length') ) }
-    availableTagList(required:false) { $('span', 'ng-repeat': startsWith('tag in availableTags')).find('span') }
+    appliedTagList(required:false) { $('#tags .row-fluid .span6:first-child .clm-tag') }
+    appliedTagEmptyText(required:false) { $('#tags .row-fluid .span6:first-child em') }
+    availableTagList(required:false) { $('#tags .row-fluid .span6:last-child .clm-tag') }
     availableTag(required:false) { name -> availableTagList.filter(text: name) }
-    availableTagEmptyText(required:false) { $('em', 'ng-show': startsWith('availableTags.length') ) }
+    availableTagEmptyText(required:false) { $('#tags .row-fluid .span6:last-child em') }
 
-    tagFilterInput(required:false) { $('input', 'ng-model': 'tagSearch') }
+    tagFilterInput(required:false) { $('#tags input') }
   }
 }

@@ -24,12 +24,10 @@ class OrganizationPage
   static content = {
     organizationImage(wait: true) { $('div.editor-image') }
     organizationName(required: false) { $('#aoName .editable') }
-    organizationNameField(required: false) { $('input', 'placeholder':'Enter Organization Name') }
+    organizationNameField(required: false) { $('input[placeholder="Enter Organization Name"]') }
     organizationSaveButton(required: false) { $('button', text:'Save') }
-    deleteButton(required: false) { $('a', 'title': 'Remove Organization') }
-    deleteButtonAccept(required: false) { $('button', text:'Delete') }
-    developerRole(required: false) { $('p', text:'Developer') }
-    ownerRole(required: false) { $('p', text:'Owner') }
+    deleteButton(required: false) { $('#remove-app-org-button') }
+    deleteButtonAccept(required: false) { $('#delete-org-modal button.btn-danger') }
 
     tabs { module ContextTabsModule }
     tools(required: false) { module EditorToolsModule }

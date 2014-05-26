@@ -16,7 +16,7 @@ class GlobalCreateModule
 
   static content = {
     dropdown {
-      def navigator = $('a', 'data-toggle': 'dropdown')
+      def navigator = $('a[data-toggle="dropdown"]')
       browserClassName == 'ChromeDriver' ? navigator.parent() : navigator
     }
     newOrganization(required: false) { $('#global-create-org') }

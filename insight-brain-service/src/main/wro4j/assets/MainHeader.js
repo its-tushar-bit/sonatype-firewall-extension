@@ -33,7 +33,7 @@
 
     $scope.change = function () {
       modal.open({
-        templateUrl : 'change-password',
+        templateUrl : 'change-password-template',
         backdrop : 'static',
         controller : ['$scope', function (scope) {
           scope.result = {};

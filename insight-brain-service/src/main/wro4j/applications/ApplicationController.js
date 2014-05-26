@@ -373,7 +373,7 @@
             backdrop : 'static',
             keyboard : true,
             controller : 'DeleteResourceController',
-            templateUrl : 'delete-app-modal',
+            templateUrl : 'delete-app-modal-template',
             resolve : {
               selected : function () {
                 return $scope.selectedApplication;

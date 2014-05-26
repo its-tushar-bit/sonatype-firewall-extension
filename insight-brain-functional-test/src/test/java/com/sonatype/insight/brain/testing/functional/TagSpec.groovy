@@ -47,14 +47,14 @@ class TagSpec
 
     and: 'The tag is added to the list of available tags'
       waitFor { tags.tagList.size() == samplePolicy.tags.size() + 1 }
-      tags.tag(0).text() == 'New Tag'
-      tags.tag(0).classes().contains('blackLabel')
+      tags.tagList[0].text() == 'New Tag'
+      tags.tagList[0].classes().contains('blackLabel')
       tags.serverAlerts.children().size() == 0
   }
 
   def "Can edit an existing tag"() {
     when: 'We click on an existing Tag'
-      tags.tag(0).click()
+      tags.tagList[0].click()
 
     then: 'The form is populated with the name and description of the chosen Tag'
       tags.name == 'New Tag'
@@ -71,11 +71,11 @@ class TagSpec
       waitFor { !tags.tagEditor.displayed }
 
     and: 'The listed tag is updated'
-      waitFor { tags.tag(0).text() == 'New Tag Updated' }
-      tags.tag(0).classes().contains('greenLabel')
+      waitFor { tags.tagList[0].text() == 'New Tag Updated' }
+      tags.tagList[0].classes().contains('greenLabel')
 
     when:
-      tags.tag(0).click()
+      tags.tagList[0].click()
 
     then: 'The form is populated with the updated name, description and policy of the chosen Tag'
       tags.name == 'New Tag Updated'
@@ -86,7 +86,7 @@ class TagSpec
 
   def "Can delete the newly added Tag"() {
     when:
-      tags.delete(tags.tagList[0])
+      tags.tagList[0].delete.click()
       waitFor { deleteModal.modal.displayed }
       report 'modal dialog shown'
       deleteModal.confirm.click()
@@ -97,14 +97,14 @@ class TagSpec
 
   def "Are warned when attempting to change tags while editing"() {
     when: 'We click on an existing tag'
-      tags.tag(0).click()
+      tags.tagList[0].click()
 
     then: 'The form is populated with the name and description of the chosen tag'
       tags.name == samplePolicy.tags[0].name
 
     when: 'We make a change then attempt to edit another tag'
       tags.name = 'Policy Tag Updated'
-      tags.tag(1).click()
+      tags.tagList[1].click()
 
     then: 'We are presented with a modal warning that we have existing edits'
       waitFor { isEditingModal.modal.displayed }
@@ -113,7 +113,7 @@ class TagSpec
       tags.name == 'Policy Tag Updated'
 
     when: 'We once again attempt to edit another tag'
-      tags.tag(1).click()
+      tags.tagList[1].click()
 
     then: 'We can discard changes and edit another tag'
       waitFor { isEditingModal.modal.displayed }
@@ -208,7 +208,7 @@ class TagSpec
       marker.text() == '1'
 
     when: 'We try to delete the tag'
-      tags.delete(tags.tagList[2])
+      tags.tagList[2].delete.click()
 
     then: 'We are warned that it is in use'
       waitFor { deleteModal.modal.displayed }
@@ -242,7 +242,7 @@ class TagSpec
       marker.text() == '1'
 
     when: 'We try to delete the tag'
-      tags.delete(tags.tagList[1])
+      tags.tagList[1].delete.click()
 
     then: 'We are warned that it is in use'
       waitFor { deleteModal.modal.displayed }

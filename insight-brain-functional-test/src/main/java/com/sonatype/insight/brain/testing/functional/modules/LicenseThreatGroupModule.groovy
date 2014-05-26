@@ -11,6 +11,6 @@ class LicenseThreatGroupModule
     extends Module
 {
   static content = {
-    ltgEditor(required:false) { $('form', name: 'licenseGroupEditor') }
+    ltgEditor(required:false) { $('form[name="licenseGroupEditor"]') }
   }
 }

@@ -140,32 +140,36 @@
     </form>
   </div>
   </script>
-  <script type='text/ng-template' id='delete-app-modal'>
-    <div class='modal-header'>
-      <button type='button' class='close' ng-click='$dismiss()'>&times;</button>
-      <h3>Delete Application</h3>
-    </div>
-    <div class='modal-body'>
-      <p>Are you sure you want to delete the application <strong>{{selected.name}}</strong>? This will delete all
-        policies and license groups associated with this application.</p>
-    </div>
-    <div class='modal-footer'>
-      <button class='btn' ng-click='$dismiss()'>Cancel</button>
-      <button class='btn btn-danger' ng-disabled='!deletedEnabled' ng-click='doDelete();'>Delete</button>
+  <script type='text/ng-template' id='delete-app-modal-template'>
+    <div id="delete-app-modal">
+      <div class='modal-header'>
+        <button type='button' class='close' ng-click='$dismiss()'>&times;</button>
+        <h3>Delete Application</h3>
+      </div>
+      <div class='modal-body'>
+        <p>Are you sure you want to delete the application <strong>{{selected.name}}</strong>? This will delete all
+          policies and license groups associated with this application.</p>
+      </div>
+      <div class='modal-footer'>
+        <button class='btn' ng-click='$dismiss()'>Cancel</button>
+        <button class='btn btn-danger' ng-disabled='!deletedEnabled' ng-click='doDelete();'>Delete</button>
+      </div>
     </div>
   </script>
-  <script type='text/ng-template' id='delete-org-modal'>
-    <div class='modal-header'>
-      <button type='button' class='close' ng-click='$dismiss()'>&times;</button>
-      <h3>Delete Organization</h3>
-    </div>
-    <div class='modal-body'>
-      <p>Are you sure you want to delete the organization <strong>{{selected.name}}</strong>? This will delete all
-        policies, license groups and applications associated with this organization.</p>
-    </div>
-    <div class='modal-footer'>
-      <button class='btn' ng-click='$dismiss()'>Cancel</button>
-      <button class='btn btn-danger' ng-disabled='!deletedEnabled' ng-click='doDelete();'>Delete</button>
+  <script type='text/ng-template' id='delete-org-modal-template'>
+    <div id="delete-org-modal">
+      <div class='modal-header'>
+        <button type='button' class='close' ng-click='$dismiss()'>&times;</button>
+        <h3>Delete Organization</h3>
+      </div>
+      <div class='modal-body'>
+        <p>Are you sure you want to delete the organization <strong>{{selected.name}}</strong>? This will delete all
+          policies, license groups and applications associated with this organization.</p>
+      </div>
+      <div class='modal-footer'>
+        <button class='btn' ng-click='$dismiss()'>Cancel</button>
+        <button class='btn btn-danger' ng-disabled='!deletedEnabled' ng-click='doDelete();'>Delete</button>
+      </div>
     </div>
   </script>
   <script type='text/ng-template' id='contact-modal'>
@@ -290,7 +294,7 @@
               <span class="appid" ng-switch-default>{{selectedApplication.publicId}}</span>
             </div>
             in
-            <div ng-switch on='selectedApplication.id && selectedApplication.organizationId' style='display: inline-block;'>
+            <div id="app-parent" ng-switch on='selectedApplication.id && selectedApplication.organizationId' style='display: inline-block;'>
               <div ng-switch-when='null' class='btn-group'>
                 <a class="dropdown-toggle editable editable-empty" data-toggle="dropdown" href="#"
                    ng-class='{ selected: selectedApplication.organizationId }' style="line-height: 20px;">

@@ -19,8 +19,8 @@ class ThreatTableModule
     ageHeader(required: false) { headerLinks(1) }
     rows(required: false) { moduleList ThreatTableRow, $('tr').tail() }
     unknownComponentPopover(required: false) { $('div.popover.pathnames-popover.fade.top.in') }
-    unknownComponentPopoverTitle(required: false) { unknownComponentPopover.find('.popover-title').text() }
-    unknownComponentPopoverText(required: false) { unknownComponentPopover.find('.popover-content.pathnames-popover-content').text() }
+    unknownComponentPopoverTitle(required: false) { ('div.popover.pathnames-popover.fade.top.in .popover-title').text() }
+    unknownComponentPopoverText(required: false) { ('div.popover.pathnames-popover.fade.top.in .popover-content.pathnames-popover-content').text() }
     maxResults(required: false) { $('#max-results-shown') }
   }
 }

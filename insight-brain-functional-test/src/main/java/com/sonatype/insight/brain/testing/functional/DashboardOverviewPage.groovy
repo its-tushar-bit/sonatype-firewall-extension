@@ -39,7 +39,7 @@ class DashboardOverviewPage
       filterPanel.find('span[ng-repeat="policyThreatTypeId in filter.policyThreatTypes"]')
     }
     policyThreatLevelFilters(required: false) {
-      filterPanel.find('div[ng-if="filter.policyThreatLevel[0] > 0 || filter.policyThreatLevel[1] < 10"]')
+      filterPanel.find('#filter-summary-threat-level span')
     }
 
     noAvailableApplications(required: false) { $('#no-permissions') }

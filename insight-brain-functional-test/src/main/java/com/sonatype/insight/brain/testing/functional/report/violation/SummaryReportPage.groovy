@@ -14,6 +14,6 @@ class SummaryReportPage
 
   static content = {
     navigation { module ReportSubNavigation }
-    summaryContent(wait: true) { $('div', id: 'summary') }
+    summaryContent(wait: true) { $('div#summary') }
   }
 }

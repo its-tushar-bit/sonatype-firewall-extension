@@ -342,7 +342,7 @@ describe('ApplicationEditorController', function() {
       scope.confirmDelete();
       expect(modalSpy).toHaveBeenCalled();
       expect(modalSpy.mostRecentCall.args[0].resolve.selected()).toEqual(scope.selectedApplication);
-      expect(modalSpy.mostRecentCall.args[0].templateUrl).toEqual('delete-app-modal');
+      expect(modalSpy.mostRecentCall.args[0].templateUrl).toEqual('delete-app-modal-template');
 
       modalDeferred.resolve({});
       httpBackend.flush();

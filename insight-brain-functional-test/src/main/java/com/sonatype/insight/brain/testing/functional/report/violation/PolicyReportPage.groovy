@@ -29,8 +29,8 @@ class PolicyReportPage
 
   static content = {
     navigation { module ReportSubNavigation }
-    policyContent(wait: true) { $('div', class: 'slick-viewport') }
-    results { moduleList PolicyReportRow, $(class: 'slick-row') }
+    policyContent(wait: true) { $('div.slick-viewport') }
+    results { moduleList PolicyReportRow, $('.slick-row') }
     resultsWithNoScore { results.findAll { it.threatGroup == none } }
     waiver { module AddPolicyWaiver, $('#add-waiver-modal') }
     summaryViolations { $('#policy-violation-filter li a', text : 'Summary') }
@@ -60,7 +60,7 @@ class PolicyReportRow
 
     // private, use page methods for interaction
     // click a cell, not the row, to make the CIP appear
-    showCipTrigger { $(class:'slick-cell scoreCol') }
+    showCipTrigger { $('.slick-cell.scoreCol') }
   }
 
   Cip showCip() {
@@ -95,7 +95,7 @@ class PolicyDetail
     violations(wait: true) { moduleList PolicyRow, $('tbody tr') }
 
     // private
-    detailContainer { $('table', class: 'cip-policy-table') }
+    detailContainer { $('table.cip-policy-table') }
 
     // private, use page methods for interaction
     // assume that there will be no anchors with the same name
@@ -115,7 +115,7 @@ class PolicyRow
     waiver { module AddPolicyWaiver, parents().find('#add-waiver-modal') }
 
     // private, use page methods for interaction
-    addWaiverTrigger { $('button', text: 'Waive') }
+    addWaiverTrigger { $('button.btn-primary') }
   }
 
   AddPolicyWaiver addWaiver() {
@@ -137,17 +137,17 @@ class AddPolicyWaiver
 
     isImplicitScope { scopeContainer.displayed == false }
     // input for the scope/limit of the waiver (orgId or appPublicId)
-    scope { scopeContainer.find('input', name: 'waiverSelectedTarget') }
+    scope { $('#add-waiver-scope input[name="waiverSelectedTarget"]') }
     // input for the application of the waiver (selectedComponent or allComponents)
-    apply { applyContainer.find('input', name: 'waiver-hash') }
+    apply { $('#add-waiver-apply input[name="waiver-hash"]') }
     // input value for option to apply to all components
-    allComponents { applyContainer.find('label', class: 'radio', text: iContains('all components')).text() }
+    allComponents { $('#add-waiver-apply label.radio', text: iContains('all components')).text() }
     // input value for option to apply to selected component
-    selectedComponent { applyContainer.find('label', class: 'radio', text: iContains('selected component')).text() }
+    selectedComponent { $('#add-waiver-apply label.radio', text: iContains('selected component')).text() }
 
     // private, use page methods for interaction
-    saveTrigger { $('button', text: 'Waive') }
-    cancelTrigger { $('button', text: 'Cancel') }
+    saveTrigger { $('button.btn-primary') }
+    cancelTrigger { $('button:nth-child(2)') }
   }
 
   void save() {

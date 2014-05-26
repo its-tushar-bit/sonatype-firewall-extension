@@ -38,7 +38,7 @@ class UserManagementPage
     passwordValidateInput(required: false) { userForm.passwordValidate() }
     passwordValidateValidations(required: false) { module ValidationModule, passwordValidateInput.parent() }
 
-    uniqueUserValidation(required: false) { usernameInput.parent().find('div', text: 'Enter a unique username') }
+    uniqueUserValidation(required: false) { $('#username-error-unique') }
 
     validations(required: false) {
       [firstNameValidations, lastNameValidations, emailValidations, usernameValidations, passwordValidations,

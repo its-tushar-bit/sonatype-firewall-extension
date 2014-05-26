@@ -6,24 +6,24 @@
       <span ng-show="inlinePolicyForm.name.$error.alphaNumeric" class="help-inline">Must be alpha numeric</span>
       <span ng-show="inlinePolicyForm.name.$error.spaces && !inlinePolicyForm.name.$error.alphaNumeric" class="help-inline">No leading, trailing or double spaces or tabs, suggested name: {{suggestedName}}</span>
     </div>
-        <div ng-if="!isApplication">
-          <div>
-            <h5>Application Matching</h5>
-            <div style="padding-bottom: 5px;">Which applications should this policy apply to?</div>
-          </div>
-          <div class='policy-tag' ng-class='{ error : hasPolicyTags && appliedTagIds.length == 0 }'>
-            <div>
-              <input id='radio-all-applications{{policy.id}}' type='radio' name='policy-tag-radio{{policy.id}}' ng-click='clearTags()' ng-model='hasPolicyTags' ng-value='false'>
-              <label for='radio-all-applications{{policy.id}}'>All Applications in {{ ownerName }}</label>
-            </div>
-            <div>
-              <input id='radio-tag-applications{{policy.id}}' type='radio' name='policy-tag-radio{{policy.id}}' ng-model='hasPolicyTags' ng-value='true'>
-              <label for='radio-tag-applications{{policy.id}}'>Applications with one or more of these tags</label>
-              <span class='multi-dropdown' multi-select items='tags' selected-ids='appliedTagIds'></span>
-            </div>
-            <div ng-show='hasPolicyTags && appliedTagIds.length == 0'>Must select tags to associate with the policy.</div>
-          </div>
+    <div ng-if="!isApplication" id="application-matching">
+      <div>
+        <h5>Application Matching</h5>
+        <div style="padding-bottom: 5px;">Which applications should this policy apply to?</div>
+      </div>
+      <div class='policy-tag' ng-class='{ error : hasPolicyTags && appliedTagIds.length == 0 }'>
+        <div>
+          <input id='radio-all-applications{{policy.id}}' type='radio' name='policy-tag-radio{{policy.id}}' ng-click='clearTags()' ng-model='hasPolicyTags' ng-value='false'>
+          <label for='radio-all-applications{{policy.id}}'>All Applications in {{ ownerName }}</label>
         </div>
+        <div>
+          <input id='radio-tag-applications{{policy.id}}' type='radio' name='policy-tag-radio{{policy.id}}' ng-model='hasPolicyTags' ng-value='true'>
+          <label for='radio-tag-applications{{policy.id}}'>Applications with one or more of these tags</label>
+          <span class='multi-dropdown' multi-select items='tags' selected-ids='appliedTagIds'></span>
+        </div>
+        <div ng-show='hasPolicyTags && appliedTagIds.length == 0'>Must select tags to associate with the policy.</div>
+      </div>
+    </div>
     <div>
       <h5>Constraints</h5>
     </div>

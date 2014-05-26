@@ -15,13 +15,13 @@ class ChangePasswordModule
 {
   static content = {
     //this content is all in the popup dialog
-    dialog(required: false) { $('form', name: 'passwordForm') }
+    dialog(required: false) { $('form[name="passwordForm"]') }
     oldPassword(required: false) { dialog.originalPassword() }
     newPassword(required: false) { dialog.newPassword() }
     newPasswordValidate(required: false) { dialog.confirmPassword() }
     newPasswordValidateDoesntMatch(required: false) { dialog.find('span', text: 'Does not match') }
     invalidCredentialsError(required: false) { dialog.find('span', 'ng-show': 'error') }
-    ok(required: false) { dialog.find('button', text: 'Change') }
-    cancel(required: false) { dialog.find('button', text: 'Cancel') }
+    ok(required: false) { $('form[name="passwordForm"] button.btn-primary') }
+    cancel(required: false) { $('form[name="passwordForm"] button:nth-child(2)') }
   }
 }

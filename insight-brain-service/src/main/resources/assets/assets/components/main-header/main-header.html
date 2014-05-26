@@ -1,4 +1,4 @@
-<script type='text/ng-template' id='change-password'>
+<script type='text/ng-template' id='change-password-template'>
   <div class='modal-header'>
     <button type="button" class="close"  ng-click='$dismiss()' aria-hidden="true">&times;</button>
     <h3>Change Password</h3>
@@ -152,7 +152,7 @@
               </ul>
             </div>
           </li>
-          <li>
+          <li id="user-menu">
             <div class="btn-group">
               <a class="btn dropdown-toggle" data-toggle="dropdown" href="javascript:;">
                 <i class='glyphicons-sonatype medium user'></i><span class="user-name">{{ displayName }}</span>

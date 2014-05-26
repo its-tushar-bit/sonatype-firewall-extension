@@ -134,7 +134,7 @@
             <input class="input-xlarge" name="username" type="text" ng-required="!user.id" ng-pattern="/^\S*$/" alpha-numeric is-duplicate is-duplicate-array="context.users" is-duplicate-id-field="id" is-duplicate-case-sensitive="false" placeholder="Enter Username" ng-model="user.username">
             <div ng-if="userForm.username.$error.alphaNumeric && userForm.username.$dirty" class="text-error">Must be alpha numeric.</div>
             <div ng-if="userForm.username.$error.pattern && !userForm.username.$error.alphaNumeric && userForm.username.$dirty" class="text-error">Must not contain spaces.</div>
-            <div ng-if="userForm.username.$error.duplicate && userForm.username.$dirty" class="text-error">Enter a unique username</div>
+            <div ng-if="userForm.username.$error.duplicate && userForm.username.$dirty" class="text-error" id="user-name-error-unique">Enter a unique username</div>
             <div ng-if="userForm.username.$error.required && userForm.username.$dirty" class="text-error">Field is required.</div>
           </div>
         </div>

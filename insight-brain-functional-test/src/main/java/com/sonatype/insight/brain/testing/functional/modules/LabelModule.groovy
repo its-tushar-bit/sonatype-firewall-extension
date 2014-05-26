@@ -14,14 +14,14 @@ class LabelModule
     extends Module
 {
   static content = {
-    newLabelButton { $('button', 'ng-click': 'createNew()') }
+    newLabelButton { $('button[ng-click="createNew()"]') }
 
     labelList(required:false) { $('span', 'ng-repeat': startsWith('label in applicableLabel.labels')) }
     label(required:false) { index -> labelList[index].find('span') }
-    delete { tag -> tag.find('i', title: startsWith('Delete')).click() }
+    delete { tag -> tag.find('i[title]').click() }
 
     //form controls(only visible while editing)
-    labelEditor(required:false) { $('form', name: 'labelEditor') }
+    labelEditor(required:false) { $('form[name="labelEditor"]') }
     name(required:false)  { labelEditor.label() }
     description(required:false)  { labelEditor.description() }
     color(requied:false) { name -> labelEditor.find('.' + name + 'Label') }
@@ -32,10 +32,10 @@ class LabelModule
     errorFree { nameValidations.errorFree && serverAlerts.children().size() == 0 }
 
     //server error messaging
-    serverAlerts { $('div', 'clm-alerts': 'alerts') }
-    cancelServerAlert { serverAlerts.find('button') }
-    editAlerts(required:false) { $('div', 'clm-alerts': 'editorAlerts') }
-    cancelEditAlert { editAlerts.find('button') }
+    serverAlerts { $('div[clm-alerts="alerts"]') }
+    cancelServerAlert { $('div[clm-alerts="alerts"] button') }
+    editAlerts(required:false) { $('div[clm-alerts="editorAlerts"]') }
+    cancelEditAlert(required:false) { $('div[clm-alerts="editorAlerts"] button') }
   }
 
   def createNewLabel(name = 'NewLabel', description = 'Label description', color = 'black') {

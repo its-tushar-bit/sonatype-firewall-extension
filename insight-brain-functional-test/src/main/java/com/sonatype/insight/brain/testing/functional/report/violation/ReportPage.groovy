@@ -30,6 +30,6 @@ class ReportPage
 
   static content = {
     navigation { module ReportSubNavigation }
-    contentContainer(wait: true) { $('div', class:'container') }
+    contentContainer(wait: true) { $('div.container') }
   }
 }

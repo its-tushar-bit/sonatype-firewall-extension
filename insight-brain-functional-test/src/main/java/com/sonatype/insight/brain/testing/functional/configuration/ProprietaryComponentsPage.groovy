@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.testing.functional.configuration
 
+import com.sonatype.insight.brain.testing.functional.BasePage
 import com.sonatype.insight.brain.testing.functional.modules.ButtonsModule
 import geb.Module
 
@@ -12,16 +13,16 @@ import geb.Module
  * @since 1.11
  */
 class ProprietaryComponentsPage
-    extends ConfigurationPage
+    extends BasePage
 {
-  static url = "${ConfigurationPage.url}/proprietarycomponents"
+  static url = 'assets/index.html#/management/configuration/proprietarycomponents'
 
   static at = { $('#proprietaryTable').displayed }
 
   static content = {
     pageTitle { $('h1.page-title', text: 'Proprietary Components') }
     form { $('form[name="neditor"]') }
-    add { form.find('button') }
+    add { $('form[name="neditor"] button') }
     rows(required: false) { moduleList ProprietaryTableRow, $('tr') }
     buttons(required: false) { module ButtonsModule, $('#proprietaryButtons') }
     error(required: false) { $('#proprietaryError') }

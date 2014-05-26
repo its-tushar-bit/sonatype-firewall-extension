@@ -14,17 +14,15 @@ class TagModule
     extends Module
 {
   static content = {
-    newTagButton { $('button', 'ng-click': 'createNew()') }
+    newTagButton { $('#tags .tag-list button') }
 
-    tagList(required:false) { $('span', 'ng-repeat': startsWith('tag in tags')) }
-    tag(required:false) { index -> tagList[index].find('span') }
-    delete { tag -> tag.find('i', title: startsWith('Delete')).click() }
-    appliedMarker { tag -> tag.find('.applied-tag-count') }
+    tagList(required:false) { moduleList Tag, $('.clm-tag') }
+    appliedMarker { $('.applied-tag-count') }
 
     //form controls(only visible while editing)
-    tagEditor(required:false) { $('form', name: 'tagEditor') }
-    name(required:false)  { tagEditor.name() }
-    description(required:false)  { tagEditor.description() }
+    tagEditor(required:false) { $('form[name="tagEditor"]') }
+    name(required:false)  { $("#tagEditorLabel") }
+    description(required:false)  { $('form[name="tagEditor"] textarea') }
     color(required:false) { name -> tagEditor.find('.' + name + 'Label') }
     buttons { module ButtonsModule }
 
@@ -32,10 +30,10 @@ class TagModule
     nameValidations(required: false) { module ValidationModule, name.parent() }
 
     //server error messaging
-    serverAlerts { $('div', 'clm-alerts': 'alerts') }
-    cancelServerAlert { serverAlerts.find('button') }
-    editAlerts(required:false) { $('div', 'clm-alerts': 'editorAlerts') }
-    cancelEditAlert { editAlerts.find('button') }
+    serverAlerts { $('div[clm-alerts="alerts"]') }
+    cancelServerAlert { $('div[clm-alerts="alerts"] button') }
+    editAlerts(required:false) { $('div[clm-alerts="editorAlerts"]') }
+    cancelEditAlert { $('div[clm-alerts="editorAlerts"] button') }
   }
 
   def createNewTag(name = 'New Tag', description = 'Tag description', color = 'black') {
@@ -44,5 +42,14 @@ class TagModule
     this.name = name
     this.description = description
     this.color(color).click()
+  }
+}
+
+
+class Tag
+  extends Module
+{
+  static content = {
+    delete { $('i.icon-remove.label-remove') }
   }
 }

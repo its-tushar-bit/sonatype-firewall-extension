@@ -13,9 +13,9 @@ import geb.Module
 class PolicyModule
     extends Module {
   static content = {
-    newPolicyButton(wait: true) { $('.new-entity-button', text: 'New Policy') }
+    newPolicyButton(wait: true) { $('#policy .new-entity-button') }
     newPolicyEditor {module PolicyEditorModule, $('.inline-policy-editor') }
-    policyEditors(required: false) { moduleList PolicyEditorModule, $('#policyList div', 'ng-repeat': 'policy in policies') }
+    policyEditors(required: false) { moduleList PolicyEditorModule, $('#policyList div[ng-repeat="policy in policies"]') }
   }
 
   def findPolicyEditor(String policyName) {
@@ -31,18 +31,18 @@ class PolicyEditorModule
   static content = {
     //header elements are only present for existing Policies
     header(required:false) { $('.accordion-heading') }
-    editButton(required:false) { header.find('button', 'ng-click': 'edit(policy)') }
-    chicklet(required:false) { header.find('span.threat-chiclet') }
+    editButton(required:false) { $('.accordion-heading button[ng-click="edit(policy)"]') }
+    chicklet(required:false) { $('.accordion-heading span.threat-chiclet') }
 
     //Policy specifics
     name{ $('input#policyName') }
-    constraints { moduleList ConstraintModule, $('.accordion-group', 'ng-repeat': 'constraint in policy.constraints') }
+    constraints { moduleList ConstraintModule, $('.accordion-group[ng-repeat="constraint in policy.constraints"]') }
 
     //Tags related to Policies
-    tagsHeader(required: false) { $('h5', text: 'Application Matching') }
+    tagsHeader(required: false) { $('#application-matching') }
     buttons { module ButtonsModule }
     policyTag { $('.policy-tag') }
-    policyTagError { policyTag.find('div')[-1] }
+    policyTagError { $('.policy-tag > div:last-child') }
     allApplicationRadioButton { $('[id^="radio-all-applications"]') }
     taggedApplicationRadioButton { $('[id^="radio-tag-applications"]') }
 
@@ -64,16 +64,16 @@ class PolicyEditorModule
 
 class ConstraintModule extends Module{
   static content = {
-    editButton { $('button', title: 'Edit Constraint') }
-    constraintName { $('input', 'ng-model': 'constraint.name') }
-    conditions { moduleList ConditionModule, $('div', 'ng-repeat': 'condition in constraint.conditions') }
+    editButton { $('button[title"Edit Constraint"]') }
+    constraintName { $('input[ng-model="constraint.name"]') }
+    conditions { moduleList ConditionModule, $('div[ng-repeat="condition in constraint.conditions"]') }
   }
 }
 
 class ConditionModule extends Module{
   static content = {
-    conditionTypes { $('select', 'ng-model': 'condition.conditionTypeId') }
-    operators { $('select', 'ng-model': 'condition.operator') }
-    value { $('span', 'ng-model': 'condition.value').find('input') }
+    conditionTypes { $('select[ng-model="condition.conditionTypeId"]') }
+    operators { $('select[ng-model="condition.operator"]') }
+    value { $('span[ng-model="condition.value"] input') }
   }
 }

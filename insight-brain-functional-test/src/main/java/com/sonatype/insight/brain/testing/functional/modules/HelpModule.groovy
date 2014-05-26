@@ -16,7 +16,7 @@ class HelpModule
   static base = { $('#help') }
 
   static content = {
-    dropdown { $('a', 'data-toggle': 'dropdown') }
+    dropdown { $('a[data-toggle="dropdown"]') }
     documentation(required: false) { $('#documentation-link') }
     support(required: false) { $('#support-link') }
   }

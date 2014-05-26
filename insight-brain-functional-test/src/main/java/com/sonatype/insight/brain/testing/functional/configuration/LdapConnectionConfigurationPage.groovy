@@ -28,8 +28,8 @@ class LdapConnectionConfigurationPage
 
     requiredFields { [hostname, searchBase] }
     //controls
-    testConnection { $('.ldap-button-group button', text: 'Test Connection') }
-    reset { $('.ldap-button-group button', text: 'Reset') }
-    save { $('.ldap-button-group button', text: 'Save') }
+    testConnection { $('.ldap-button-group button.btn-success') }
+    reset { $('.ldap-button-group div button:first-child') }
+    save { $('.ldap-button-group button.btn-primary') }
   }
 }

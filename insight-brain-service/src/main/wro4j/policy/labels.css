@@ -196,7 +196,7 @@ form[name="labelEditor"] .clmLabel {
 }
 
 /* hover a box over the corner of the parent container */
-.applied-tag-count {
+#applied-tag-count {
   position: relative;
   color: white;
   border-radius: 0.25em;

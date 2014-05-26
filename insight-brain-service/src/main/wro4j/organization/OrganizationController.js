@@ -355,7 +355,7 @@
           backdrop : 'static',
           keyboard : true,
           controller : 'DeleteResourceController',
-          templateUrl : 'delete-org-modal',
+          templateUrl : 'delete-org-modal-template',
           resolve : {
             selected : function () {
               return $scope.selectedOrganization;

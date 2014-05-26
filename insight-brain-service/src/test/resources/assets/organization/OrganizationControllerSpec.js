@@ -264,7 +264,7 @@ describe('Tests for the OrganizationController', function() {
 
         expect(modalSpy).toHaveBeenCalled();
         expect(modalSpy.mostRecentCall.args[0].resolve.selected()).toEqual(scope.selectedOrganization);
-        expect(modalSpy.mostRecentCall.args[0].templateUrl).toEqual('delete-org-modal');
+        expect(modalSpy.mostRecentCall.args[0].templateUrl).toEqual('delete-org-modal-template');
 
         scope.$apply(function () {
           modalDeferred.resolve();
@@ -284,7 +284,7 @@ describe('Tests for the OrganizationController', function() {
 
         expect(modalSpy).toHaveBeenCalled();
         expect(modalSpy.mostRecentCall.args[0].resolve.selected()).toEqual(scope.selectedOrganization);
-        expect(modalSpy.mostRecentCall.args[0].templateUrl).toEqual('delete-org-modal');
+        expect(modalSpy.mostRecentCall.args[0].templateUrl).toEqual('delete-org-modal-template');
 
         scope.$apply(function () {
           modalDeferred.reject(['foo', 400, null, null]);

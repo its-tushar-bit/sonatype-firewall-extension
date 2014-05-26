@@ -5,33 +5,35 @@
  */
 package com.sonatype.insight.brain.testing.functional.configuration
 
+import com.sonatype.insight.brain.testing.functional.BasePage
+
 /**
  * @since 1.7
  */
 class LdapConfigurationPage
-    extends ConfigurationPage
+    extends BasePage
 {
-  static url = "${ConfigurationPage.url}/ldap"
+  static url = 'assets/index.html#/management/configuration/ldap'
 
   static at = { inlineEditorSpan?.displayed }
 
   static content = {
     // name editor
     inlineEditorSpan(wait: true) { $('#ldapName .editable') }
-    inlineEditor(required: false) { inlineEditorSpan.next().find('input') }
-    save(required: false) { $('button', text: 'Save') }
-    cancel(required: false) { $('button', text: 'Cancel') }
+    inlineEditor(required: false) { $('#ldapName input') }
+    save(required: false) { $('#ldapName button.btn-primary') }
+    cancel(required: false) { $('#ldapName button:first-child') }
 
     //requires confirmation to delete
-    delete(required: false) { $('a', title: 'Remove Configuration') }
-    deleteConfirm(required: false) { $('button', text: 'Delete') }
+    delete(required: false) { $('a[title="Remove Configuration"]') }
+    deleteConfirm(required: false) { $('#delete-ldap-confirmation button.btn-danger') }
 
     //requires confirmation to discard changes
-    discard(required: false) { $('button', text: 'Discard') }
+    discard(required: false) { $('#ldap-unsaved-changes button.btn-danger') }
 
     // in-page navigation
-    connectionTab(required: false, to: LdapConnectionConfigurationPage) { $('a', text: 'CONNECTION') }
-    userAndGroupSettingsTab(required: false, to: LdapUserAndGroupMappingConfigurationPage) { $('a', text: 'USER & GROUP SETTINGS') }
+    connectionTab(required: false, to: LdapConnectionConfigurationPage) { $('.tri-pane li:first-child a') }
+    userAndGroupSettingsTab(required: false, to: LdapUserAndGroupMappingConfigurationPage) { $('.tri-pane li:nth-child(2) a') }
   }
 
   static isActiveTab(tab) {

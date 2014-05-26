@@ -44,8 +44,8 @@ class UserManagementSpec
         passwordInput,
         passwordValidateInput
       ].each { input ->
-        input.displayed
-        input.value() == ''
+        assert input.displayed
+        assert input.value() == ''
       }
   }
 

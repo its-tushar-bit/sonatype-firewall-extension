@@ -65,7 +65,7 @@ class ClaimComponentSpec
     then: 'the form is shown and empty, with a disabled claim button'
       def form = cip.claimComponent.claimForm
       FORM_FIELDS.keySet().each { name ->
-        form."$name" == ''
+        assert form."$name" == ''
       }
       cip.claimComponent.claim.disabled
       !cip.claimComponent.revoke.present

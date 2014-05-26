@@ -47,7 +47,7 @@ class PolicyTagSpec
 
     and: 'expected Tags are available to choose'
       [tag1.name, tag2.name].each{ name ->
-        editor.tagsDropdown.dropdownCheck(name).displayed
+        assert editor.tagsDropdown.dropdownCheck(name).displayed
       }
 
     cleanup:

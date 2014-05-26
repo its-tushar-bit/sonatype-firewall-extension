@@ -63,7 +63,7 @@ class LdapConfigurationSpec
     then: "save is enabled"
       report 'connection details'
       requiredFields.each{
-        !it.hasClass('ng-invalid-required')
+        assert !it.hasClass('ng-invalid-required')
       }
       !save.disabled
 
@@ -80,7 +80,7 @@ class LdapConfigurationSpec
       report 'user and group mappings'
       at LdapUserAndGroupMappingConfigurationPage
       requiredFields.each{
-        it.hasClass('ng-invalid-required')
+        assert it.hasClass('ng-invalid-required')
       }
 
     and: "controls are disabled"
@@ -109,7 +109,7 @@ class LdapConfigurationSpec
 
     and: "changes are discarded"
       requiredFields.each{
-        !it.value()
+        assert !it.value()
       }
   }
 

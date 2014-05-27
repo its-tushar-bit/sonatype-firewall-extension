@@ -50,7 +50,7 @@ public class DashboardResource
   @GET
   @Path(GET_NEWEST_RISKS_PATH)
   @Produces(MediaType.APPLICATION_JSON)
-  public List<PolicyViolationDTO> getNewestRisks(
+  public List<NewestRiskDTO> getNewestRisks(
       @QueryParam("applicationPublicIds") Set<String> applicationPublicIds,
       @QueryParam("stageIds") Set<String> stageIds,
       @QueryParam("tagIds") Set<String> tagIds,
@@ -58,7 +58,8 @@ public class DashboardResource
       @QueryParam("policyThreatLevelRange") PolicyThreatLevelFilter policyThreatLevelFilter,
       @QueryParam("maxResults") @DefaultValue("1000") int maxResults)
   {
-    return dashboardService.getPolicyViolations(applicationPublicIds, stageIds, tagIds, policyThreatCategoryFilter, policyThreatLevelFilter, maxResults, true);
+    return dashboardService.getNewestRisks(applicationPublicIds, stageIds, tagIds, policyThreatCategoryFilter,
+        policyThreatLevelFilter, maxResults);
   }
 
   @GET

@@ -15,12 +15,14 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import com.sonatype.insight.brain.dashboard.NewestRiskDTO.StageDetailDTO;
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatCategoryFilter;
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatLevelFilter;
 import com.sonatype.insight.brain.dataaccess.ApplicationComponentDAO;
@@ -40,6 +42,8 @@ import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.organization.ApplicationService;
 import com.sonatype.insight.brain.policy.StageTypeService;
+import com.sonatype.insight.brain.policy.evaluator.PolicyViolationDiff;
+import com.sonatype.insight.brain.policy.evaluator.PolicyViolationDigester;
 import com.sonatype.insight.brain.security.AuditUtils;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
@@ -58,6 +62,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.apache.commons.collections.CollectionUtils;
 import org.codehaus.plexus.util.StringUtils;
+import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -68,7 +73,7 @@ public class DashboardService
 
   private static final PolicyViolationDTOComparator POLICY_VIOLATION_DTO_COMPARATOR = new PolicyViolationDTOComparator();
 
-  private static final int DEFAULT_NEWEST_POLICY_VIOLATION_TIME_RANGE = 30;
+  static final int NEWEST_RISK_TIME_RANGE_IN_DAYS = 30;
 
   private static final String SECRET_JOIN_STRING = "$";
 
@@ -127,17 +132,17 @@ public class DashboardService
    * Gets the policy violations matching the specified filter criteria. Empty or null filter criteria generally mean
    * "all available" violations for that aspect.
    */
-  public List<PolicyViolationDTO> getPolicyViolations(Set<String> applicationPublicIds, Set<String> stageIds,
+  private List<PolicyViolationDTO> getPolicyViolations(Set<String> applicationPublicIds, Set<String> stageIds,
       Set<String> tagIds, PolicyThreatCategoryFilter policyThreatCategoryFilter,
-      PolicyThreatLevelFilter policyThreatLevelFilter, Integer maxResults, boolean newest)
+      PolicyThreatLevelFilter policyThreatLevelFilter, Integer maxResults)
   {
     Predicate<PolicyViolation> filter = buildViolationFilter(policyThreatCategoryFilter, policyThreatLevelFilter);
 
     if (applicationPublicIds == null || applicationPublicIds.isEmpty()) {
-      return getPolicyViolations(stageIds, tagIds, filter, maxResults, newest);
+      return getPolicyViolations(stageIds, tagIds, filter, maxResults);
     }
 
-    return getPolicyViolationsByApplicationIds(applicationPublicIds, stageIds, tagIds, filter, maxResults, newest);
+    return getPolicyViolationsByApplicationIds(applicationPublicIds, stageIds, tagIds, filter, maxResults);
   }
 
   private Predicate<PolicyViolation> buildViolationFilter(PolicyThreatCategoryFilter threatCategoryFilter,
@@ -161,7 +166,6 @@ public class DashboardService
    * @param tagIds The tag ids to filter the applications for which to get policy violations, defaults to all applications
    * @param violationFilter A filter for violations, defaults to accept all violations.
    * @param limit If not null returns only the top violations limited by this amount.
-   * @param newest A flag indicating that only newly observed violations should be returned.
    * @return A list of {@link PolicyViolationDTO}s for the provided application public ids.
    * @throws BadRequestException Thrown if the list of application public ids is null, empty, the stage type id is
    *           unknown, or the first element is an empty string.
@@ -173,7 +177,7 @@ public class DashboardService
    */
   List<PolicyViolationDTO> getPolicyViolationsByApplicationIds(Set<String> applicationPublicIds,
       @Nullable Set<String> stageTypeIds, @Nullable Set<String> tagIds,
-      @Nullable Predicate<PolicyViolation> violationFilter, @Nullable Integer limit, boolean newest)
+      @Nullable Predicate<PolicyViolation> violationFilter, @Nullable Integer limit)
   {
     Set<StageType> stages = getStageTypes(stageTypeIds);
 
@@ -193,8 +197,7 @@ public class DashboardService
 
     for (String applicationPublicId : applicationPublicIds) {
       // getPolicyViolationsByApplicationId is handling the read authentication for each application public Id.
-      policyViolationDTOs.addAll(getPolicyViolationsByApplicationId(applicationPublicId, stages, violationFilter,
-          newest));
+      policyViolationDTOs.addAll(getPolicyViolationsByApplicationId(applicationPublicId, stages, violationFilter));
     }
 
     List<PolicyViolationDTO> sortedPolicyViolationDTOs = sort(policyViolationDTOs);
@@ -207,13 +210,11 @@ public class DashboardService
    * @param tagIds The tag ids to filter the applications for which to get policy violations, defaults to all applications
    * @param violationFilter A filter for violations, defaults to accept all violations.
    * @param limit If not null returns only the top violations limited by this amount.
-   * @param newest A flag indicating that only newly observed violations should be returned.
    * @return A list of {@link PolicyViolationDTO}s for all applications with read permissions.
    * @throws BadRequestException Thrown if the stageTypeId does not match a known {@link StageType}.
    */
-  List<PolicyViolationDTO> getPolicyViolations(@Nullable Set<String> stageTypeIds,
-      @Nullable final Set<String> tagIds, @Nullable Predicate<PolicyViolation> violationFilter, @Nullable Integer limit,
-      boolean newest)
+  List<PolicyViolationDTO> getPolicyViolations(@Nullable Set<String> stageTypeIds, @Nullable final Set<String> tagIds,
+      @Nullable Predicate<PolicyViolation> violationFilter, @Nullable Integer limit)
   {
     Set<StageType> stages = getStageTypes(stageTypeIds);
 
@@ -227,7 +228,7 @@ public class DashboardService
     List<PolicyViolationDTO> policyViolationDTOs = new ArrayList<>();
     for (Application application : applications) {
       for (StageType stage : stages) {
-        List<PolicyViolation> violations = getPolicyViolations(application.getId(), stage.getId(), newest);
+        List<PolicyViolation> violations = getPolicyViolations(application.getId(), stage.getId());
         violations = filter(violations, violationFilter);
 
         policyViolationDTOs.addAll(policyViolationAdapter.createPolicyViolationDTOs(application, violations));
@@ -469,7 +470,7 @@ public class DashboardService
   @Authorize(permission = Permission.READ)
   protected List<PolicyViolationDTO> getPolicyViolationsByApplicationId(
       @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String applicationPublicId, Set<StageType> stages,
-      @Nullable Predicate<PolicyViolation> violationFilter, boolean newest)
+      @Nullable Predicate<PolicyViolation> violationFilter)
   {
     if (StringUtils.isBlank(applicationPublicId)) {
       throw new BadRequestException("Unable to get policy violations for null or empty application public id.");
@@ -479,7 +480,7 @@ public class DashboardService
 
     List<PolicyViolationDTO> policyViolationDTOs = new ArrayList<>();
     for (StageType stage : stages) {
-      List<PolicyViolation> violations = getPolicyViolations(application.getId(), stage.getId(), newest);
+      List<PolicyViolation> violations = getPolicyViolations(application.getId(), stage.getId());
       violations = filter(violations, violationFilter);
       policyViolationDTOs.addAll(policyViolationAdapter.createPolicyViolationDTOs(application, violations));
     }
@@ -524,12 +525,7 @@ public class DashboardService
     return stageIdsToSearch;
   }
 
-  private List<PolicyViolation> getPolicyViolations(String applicationId, String stageId, boolean newest) {
-    if (newest) {
-      return policyViolationDAO.getNewestByApplicationIdAndStageTypeIdAndLastNDays(applicationId, stageId,
-          DEFAULT_NEWEST_POLICY_VIOLATION_TIME_RANGE);
-    }
-
+  private List<PolicyViolation> getPolicyViolations(String applicationId, String stageId) {
     PolicyEvaluation policyEvaluation = policyEvaluationDAO.getLastByApplicationIdAndStageId(applicationId, stageId);
 
     if (policyEvaluation == null) {
@@ -549,7 +545,7 @@ public class DashboardService
       PolicyThreatLevelFilter policyThreatLevelFilter, int maxResults)
   {
     List<PolicyViolationDTO> violations = getPolicyViolations(applicationPublicIds, stageIds, tagIds,
-        policyThreatCategoryFilter, policyThreatLevelFilter, null, false);
+        policyThreatCategoryFilter, policyThreatLevelFilter, null);
     Map<String, ComponentViolationRollUp> componentsByHash = new LinkedHashMap<>();
     for (PolicyViolationDTO violation : violations) {
       ComponentViolationRollUp component = componentsByHash.get(violation.hash);
@@ -728,7 +724,7 @@ public class DashboardService
           dto.scoreLow += violation.threatLevel;
         }
         if (StringUtils.isNotEmpty(violation.groupId)) {
-          dto.gavs.add(new ComponentRiskDTO.GavDTO(violation.groupId, violation.artifactId, violation.version));
+          dto.gavs.add(new GavDTO(violation.groupId, violation.artifactId, violation.version));
         }
         if (violation.pathnames != null) {
           dto.pathnames.addAll(violation.pathnames);
@@ -736,5 +732,125 @@ public class DashboardService
       }
       return dto;
     }
+  }
+
+  /**
+   * Gets the "newest" risk matching the specified filter criteria. Empty or null filter criteria generally means
+   * "all available" violations for that aspect.
+   */
+  public List<NewestRiskDTO> getNewestRisks(Set<String> applicationPublicIds, Set<String> stageIds, Set<String> tagIds,
+      PolicyThreatCategoryFilter policyThreatCategoryFilter, PolicyThreatLevelFilter policyThreatLevelFilter,
+      int maxResults)
+  {
+    long start = System.currentTimeMillis();
+
+    List<Application> applications = applicationService.getApplicationsByPublicIdsAndTagIds(applicationPublicIds,
+        tagIds);
+    Set<StageType> stageTypes = getStageTypes(stageIds);
+    Predicate<PolicyViolation> filter = buildViolationFilter(policyThreatCategoryFilter, policyThreatLevelFilter);
+
+    List<NewestRiskDTO> result = new ArrayList<>();
+
+    for (Application app : applications) {
+      List<PolicyViolation> allUniqueAppPolicyViolations = new ArrayList<>();
+      Map<PolicyViolation, NewestRiskDTO> newestRiskDTOsByPolicyViolation = new HashMap<>();
+      Map<String, PolicyEvaluation> policyEvaluationCache = new HashMap<>();
+
+      for (StageType stageType : stageTypes) {
+        List<PolicyViolation> policyViolations = policyViolationDAO.getNewestByApplicationIdAndStageTypeId(app.getId(),
+            stageType.getId());
+        policyViolations = filter(policyViolations, filter);
+        PolicyViolationDiff diff = PolicyViolationDigester.digestPolicyViolations(policyViolations,
+            allUniqueAppPolicyViolations);
+        for (PolicyViolation policyViolation : diff.getAppeared()) {
+          NewestRiskDTO newestRiskDTO = createNewestRiskDTO(app, stageType, policyViolation,
+              getScanId(policyViolation, policyEvaluationCache));
+          newestRiskDTOsByPolicyViolation.put(policyViolation, newestRiskDTO);
+          result.add(newestRiskDTO);
+        }
+        for (Entry<PolicyViolation, PolicyViolation> samePolicyViolationEntry : diff.getSame().entrySet()) {
+          NewestRiskDTO newestRiskDTO = newestRiskDTOsByPolicyViolation.get(samePolicyViolationEntry.getKey());
+          PolicyViolation policyViolation = samePolicyViolationEntry.getValue();
+          addToNewestRiskDTO(newestRiskDTO, stageType, policyViolation,
+              getScanId(policyViolation, policyEvaluationCache));
+        }
+
+        allUniqueAppPolicyViolations.addAll(diff.getAppeared());
+      }
+    }
+
+    result = filter(result);
+    Collections.sort(result, NewestRiskDTOComparator.INSTANCE);
+    result.subList(Math.min(result.size(), maxResults), result.size()).clear();
+
+    log.debug("getNewestRisks finished in {}", System.currentTimeMillis() - start);
+
+    return result;
+  }
+
+  /**
+   * Filters the given newestRiskDTOs to those that are newer than NEWEST_RISK_TIME_RANGE_IN_DAYS
+   */
+  private static List<NewestRiskDTO> filter(List<NewestRiskDTO> newestRiskDTOs) {
+    List<NewestRiskDTO> filtered = new ArrayList<>();
+    long filterFromTime = new DateTime().minusDays(NEWEST_RISK_TIME_RANGE_IN_DAYS).getMillis();
+    for (NewestRiskDTO newestRiskDTO : newestRiskDTOs) {
+      if (newestRiskDTO.time > filterFromTime) {
+        filtered.add(newestRiskDTO);
+      }
+    }
+    return filtered;
+  }
+
+  private NewestRiskDTO createNewestRiskDTO(Application app, StageType stageType, PolicyViolation policyViolation,
+      String scanId)
+  {
+    NewestRiskDTO newestRiskDTO = new NewestRiskDTO();
+    newestRiskDTO.applicationId = app.getId();
+    newestRiskDTO.applicationName = app.getName();
+    newestRiskDTO.threatLevel = policyViolation.getThreatLevel();
+    newestRiskDTO.time = policyViolation.getTime().getTime();
+    newestRiskDTO.policyId = policyViolation.getPolicyId();
+    newestRiskDTO.policyName = policyViolation.getPolicyName();
+    newestRiskDTO.hash = policyViolation.getHash();
+    newestRiskDTO.gav = new GavDTO(policyViolation.getGroupId(), policyViolation.getArtifactId(),
+        policyViolation.getVersion());
+    newestRiskDTO.pathnames = policyViolation.getPathnames();
+
+    StageDetailDTO stageDetailDTO = new StageDetailDTO();
+    stageDetailDTO.stageTypeId = stageType.getId();
+    stageDetailDTO.actionTypeId = policyViolation.getActionTypeId();
+    stageDetailDTO.time = policyViolation.getTime().getTime();
+    stageDetailDTO.scanId = scanId;
+    newestRiskDTO.stageDetails.add(stageDetailDTO);
+
+    return newestRiskDTO;
+  }
+
+  private void addToNewestRiskDTO(NewestRiskDTO newestRiskDTO, StageType stageType, PolicyViolation policyViolation,
+      String scanId)
+  {
+    if (newestRiskDTO.time < policyViolation.getTime().getTime()) {
+      newestRiskDTO.time = policyViolation.getTime().getTime();
+      newestRiskDTO.gav = new GavDTO(policyViolation.getGroupId(), policyViolation.getArtifactId(),
+          policyViolation.getVersion());
+      newestRiskDTO.pathnames = policyViolation.getPathnames();
+    }
+
+    StageDetailDTO stageDetailDTO = new StageDetailDTO();
+    stageDetailDTO.stageTypeId = stageType.getId();
+    stageDetailDTO.actionTypeId = policyViolation.getActionTypeId();
+    stageDetailDTO.time = policyViolation.getTime().getTime();
+    stageDetailDTO.scanId = scanId;
+    newestRiskDTO.stageDetails.add(stageDetailDTO);
+  }
+
+  private String getScanId(PolicyViolation policyViolation, Map<String, PolicyEvaluation> policyEvaluationCache) {
+    PolicyEvaluation policyEvaluation = policyEvaluationCache.get(policyViolation.getPolicyEvaluationId());
+    if (policyEvaluation == null) {
+      policyEvaluation = policyEvaluationDAO.getById(policyViolation.getPolicyEvaluationId());
+      policyEvaluationCache.put(policyEvaluation.getId(), policyEvaluation);
+    }
+    return policyEvaluation.getScanId();
   }
 }

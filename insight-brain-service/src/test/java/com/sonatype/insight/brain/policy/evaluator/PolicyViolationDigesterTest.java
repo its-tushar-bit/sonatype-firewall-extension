@@ -40,6 +40,7 @@ public class PolicyViolationDigesterTest
     assertThat(results, notNullValue());
     assertThat(results.getAppeared(), empty());
     assertThat(results.getCleared(), empty());
+    assertThat(results.getSame().isEmpty(), is(true));
   }
 
   @Test
@@ -51,6 +52,7 @@ public class PolicyViolationDigesterTest
 
     assertThat(results.getAppeared(), contains(newViolations.get(0)));
     assertThat(results.getCleared(), empty());
+    assertThat(results.getSame().isEmpty(), is(true));
   }
 
   @Test
@@ -63,6 +65,8 @@ public class PolicyViolationDigesterTest
     assertThat(results, notNullValue());
     assertThat(results.getAppeared(), empty());
     assertThat(results.getCleared(), empty());
+    assertThat(results.getSame().size(), is(1));
+    assertThat(results.getSame().get(oldViolations.get(0)), is(newViolations.get(0)));
   }
 
   @Test
@@ -74,6 +78,7 @@ public class PolicyViolationDigesterTest
 
     assertThat(results.getAppeared(), empty());
     assertThat(results.getCleared(), contains(oldViolations.get(0)));
+    assertThat(results.getSame().isEmpty(), is(true));
   }
 
   @Test
@@ -87,6 +92,8 @@ public class PolicyViolationDigesterTest
 
     assertThat(results.getAppeared(), contains(newViolations.get(0)));
     assertThat(results.getCleared(), empty());
+    assertThat(results.getSame().size(), is(1));
+    assertThat(results.getSame().get(oldViolations.get(0)), is(newViolations.get(1)));
   }
 
   @Test
@@ -100,6 +107,8 @@ public class PolicyViolationDigesterTest
 
     assertThat(results.getAppeared(), contains(newViolations.get(1)));
     assertThat(results.getCleared(), empty());
+    assertThat(results.getSame().size(), is(1));
+    assertThat(results.getSame().get(oldViolations.get(0)), is(newViolations.get(0)));
   }
 
   @Test
@@ -114,6 +123,8 @@ public class PolicyViolationDigesterTest
 
     assertThat(results.getAppeared(), contains(newViolations.get(0), newViolations.get(2)));
     assertThat(results.getCleared(), empty());
+    assertThat(results.getSame().size(), is(1));
+    assertThat(results.getSame().get(oldViolations.get(0)), is(newViolations.get(1)));
   }
 
   @Test
@@ -128,6 +139,7 @@ public class PolicyViolationDigesterTest
 
     assertThat(results.getAppeared(), contains(newViolations.get(0), newViolations.get(1)));
     assertThat(results.getCleared(), contains(oldViolations.get(0)));
+    assertThat(results.getSame().isEmpty(), is(true));
   }
 
   @Test
@@ -143,6 +155,8 @@ public class PolicyViolationDigesterTest
     assertThat(results.getAppeared(), hasSize(1));
     assertThat(results.getAppeared().get(0).getHash(), is("1H"));
     assertThat(results.getCleared(), empty());
+    assertThat(results.getSame().size(), is(1));
+    assertThat(results.getSame().get(oldViolations.get(0)), is(newViolations.get(1)));
   }
 
   @Test
@@ -158,6 +172,8 @@ public class PolicyViolationDigesterTest
     assertThat(results.getAppeared(), hasSize(1));
     assertThat(results.getAppeared().get(0).getHash(), is("H1"));
     assertThat(results.getCleared(), empty());
+    assertThat(results.getSame().size(), is(1));
+    assertThat(results.getSame().get(oldViolations.get(0)), is(newViolations.get(0)));
   }
 
   @Test
@@ -172,6 +188,8 @@ public class PolicyViolationDigesterTest
 
     assertThat(results.getAppeared(), empty());
     assertThat(results.getCleared(), empty());
+    assertThat(results.getSame().size(), is(1));
+    assertThat(results.getSame().get(oldViolations.get(0)), is(newViolations.get(0)));
   }
 
   @Test
@@ -187,6 +205,7 @@ public class PolicyViolationDigesterTest
     assertThat(results.getAppeared().get(0).getPolicyName(), is("Policy 4~"));
     assertThat(results.getCleared(), hasSize(1));
     assertThat(results.getCleared().get(0).getPolicyName(), is("Policy 4"));
+    assertThat(results.getSame().isEmpty(), is(true));
   }
 
   @Test
@@ -201,6 +220,8 @@ public class PolicyViolationDigesterTest
 
     assertThat(results.getAppeared(), empty());
     assertThat(results.getCleared(), empty());
+    assertThat(results.getSame().size(), is(1));
+    assertThat(results.getSame().get(oldViolations.get(0)), is(newViolations.get(0)));
   }
 
   @Test
@@ -216,6 +237,7 @@ public class PolicyViolationDigesterTest
     assertThat(results.getAppeared().get(0).getThreatLevel(), is(10));
     assertThat(results.getCleared(), hasSize(1));
     assertThat(results.getCleared().get(0).getThreatLevel(), is(0));
+    assertThat(results.getSame().isEmpty(), is(true));
   }
 
   private static List<PolicyViolation> defaultPolicyViolations() {

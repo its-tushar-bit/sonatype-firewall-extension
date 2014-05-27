@@ -122,6 +122,7 @@ public class PolicyViolationDigester
           j++;
         }
         else {
+          diff.addSame(newViolation, oldViolation);
           i++;
           j++;
         }

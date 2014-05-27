@@ -6,13 +6,17 @@
 package com.sonatype.insight.brain.policy.evaluator;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 
 public class PolicyViolationDiff
 {
   private final List<PolicyViolation> appeared = new ArrayList<>();
+
+  private final Map<PolicyViolation, PolicyViolation> same = new LinkedHashMap<>();
 
   private final List<PolicyViolation> cleared = new ArrayList<>();
 
@@ -34,5 +38,13 @@ public class PolicyViolationDiff
 
   public void addCleared(PolicyViolation policyViolation) {
     cleared.add(policyViolation);
+  }
+
+  public Map<PolicyViolation, PolicyViolation> getSame() {
+    return same;
+  }
+
+  public void addSame(PolicyViolation newPolicyViolation, PolicyViolation oldPolicyViolation) {
+    same.put(oldPolicyViolation, newPolicyViolation);
   }
 }

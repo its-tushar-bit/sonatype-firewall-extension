@@ -16,7 +16,7 @@ import java.util.List;
  */
 public class NewestRiskDTO
 {
-  public String applicationId;
+  public String applicationPublicId;
 
   public String applicationName;
 

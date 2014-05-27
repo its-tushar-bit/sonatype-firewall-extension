@@ -31,7 +31,9 @@ import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.conditions.LicenseConditionType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.DevelopStageType;
+import com.sonatype.insight.brain.model.policy.stages.OperateStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
+import com.sonatype.insight.brain.model.policy.stages.StageReleaseStageType;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
@@ -725,7 +727,7 @@ public class DashboardServiceTest
 
   private void assertNewestRiskDTO(NewestRiskDTO actual, Application app, PolicyViolation policyViolation) {
     assertThat(actual.applicationName, is(app.getName()));
-    assertThat(actual.applicationId, is(app.getId()));
+    assertThat(actual.applicationPublicId, is(app.getPublicId()));
     assertThat(actual.threatLevel, is(policyViolation.getThreatLevel()));
     assertThat(actual.time, is(policyViolation.getTime().getTime()));
     assertThat(actual.policyName, is(policyViolation.getPolicyName()));
@@ -745,6 +747,19 @@ public class DashboardServiceTest
         assertThat(stageDetailDTO.actionTypeId, is(policyViolation.getActionTypeId()));
         assertThat(stageDetailDTO.time, is(policyViolation.getTime().getTime()));
         assertThat(stageDetailDTO.scanId, is(scanId));
+        return;
+      }
+    }
+    fail("NewestRiskDTO does not contain details for stage " + stageTypeId);
+  }
+
+  private void assertNewestRiskDTOContainsEmptyStageDetails(NewestRiskDTO actual, String stageTypeId)
+  {
+    for (StageDetailDTO stageDetailDTO : actual.stageDetails) {
+      if (stageTypeId.equals(stageDetailDTO.stageTypeId)) {
+        assertThat(stageDetailDTO.actionTypeId, nullValue());
+        assertThat(stageDetailDTO.time, is(0l));
+        assertThat(stageDetailDTO.scanId, nullValue());
         return;
       }
     }
@@ -864,23 +879,31 @@ public class DashboardServiceTest
 
     NewestRiskDTO riskDTO0 = riskDTOs.get(0);
     assertNewestRiskDTO(riskDTO0, app1, policyViolation);
-    assertThat(riskDTO0.stageDetails, hasSize(2));
+    assertThat(riskDTO0.stageDetails, hasSize(4));
     assertNewestRiskDTOContainsStageDetails(riskDTO0, BuildStageType.ID, app1PolicyEvaluation.getScanId(),
         app1PolicyViolation);
     assertNewestRiskDTOContainsStageDetails(riskDTO0, ReleaseStageType.ID, policyEvaluation.getScanId(),
         policyViolation);
+    assertNewestRiskDTOContainsEmptyStageDetails(riskDTO0, StageReleaseStageType.ID);
+    assertNewestRiskDTOContainsEmptyStageDetails(riskDTO0, OperateStageType.ID);
 
     NewestRiskDTO riskDTO1 = riskDTOs.get(1);
     assertNewestRiskDTO(riskDTO1, app2, app2PolicyViolation);
-    assertThat(riskDTO1.stageDetails, hasSize(1));
+    assertThat(riskDTO1.stageDetails, hasSize(4));
     assertNewestRiskDTOContainsStageDetails(riskDTO1, BuildStageType.ID, app2PolicyEvaluation.getScanId(),
         app2PolicyViolation);
+    assertNewestRiskDTOContainsEmptyStageDetails(riskDTO1, StageReleaseStageType.ID);
+    assertNewestRiskDTOContainsEmptyStageDetails(riskDTO1, ReleaseStageType.ID);
+    assertNewestRiskDTOContainsEmptyStageDetails(riskDTO1, OperateStageType.ID);
 
     NewestRiskDTO riskDTO2 = riskDTOs.get(2);
     assertNewestRiskDTO(riskDTO2, app1, orgPolicyViolation);
-    assertThat(riskDTO2.stageDetails, hasSize(1));
+    assertThat(riskDTO2.stageDetails, hasSize(4));
     assertNewestRiskDTOContainsStageDetails(riskDTO2, BuildStageType.ID, app1PolicyEvaluation.getScanId(),
         app1PolicyViolation);
+    assertNewestRiskDTOContainsEmptyStageDetails(riskDTO2, StageReleaseStageType.ID);
+    assertNewestRiskDTOContainsEmptyStageDetails(riskDTO2, ReleaseStageType.ID);
+    assertNewestRiskDTOContainsEmptyStageDetails(riskDTO2, OperateStageType.ID);
   }
 
   @Test

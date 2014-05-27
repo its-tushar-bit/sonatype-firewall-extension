@@ -80,6 +80,9 @@
   font-size: inherit;
   color: inherit;
 }
+.sonatype-icons.pad-left:before {
+  padding-left: 3px;
+}
 
 .sonatype-icons-hover:hover:before {
   *zoom: 1;

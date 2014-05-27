@@ -647,8 +647,12 @@ table.table-risk td.low-risk {
   min-width: 45px;
 }
 
-.dashboard-content #time-header {
-  min-width: 90px;
+.dashboard-content .time-header {
+  min-width: 60px;
+}
+
+.latest-risk {
+  font-weight: bolder;
 }
 
 .image-thumbnail {

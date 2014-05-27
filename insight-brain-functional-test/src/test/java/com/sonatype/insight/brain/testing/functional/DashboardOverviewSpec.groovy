@@ -18,13 +18,15 @@ import com.sonatype.insight.brain.model.policy.Policy
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory
 import com.sonatype.insight.brain.model.policy.PolicyViolation
+import com.sonatype.insight.brain.model.policy.actions.FailActionType
+import com.sonatype.insight.brain.model.policy.actions.WarnActionType
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType
+import com.sonatype.insight.brain.model.policy.stages.StageReleaseStageType
 import com.sonatype.insight.brain.model.tag.Tag
 import com.sonatype.insight.brain.service.InsightWork
 import com.sonatype.insight.brain.testing.functional.modules.ThreatTableRow
 import com.sonatype.insight.brain.testing.functional.report.violation.ReportContainerPage
-
 import org.codehaus.plexus.util.FileUtils
 
 /**
@@ -33,7 +35,7 @@ import org.codehaus.plexus.util.FileUtils
 class DashboardOverviewSpec
   extends BaseSpec
 {
-  static final String RECENT_AGE = /.*(seconds|minute|minutes) ago/
+  static final String RECENT_AGE = /[1-9]{1}min/
 
   static final String alphaMatcher = /background-color: rgba\([0-9][0-9][0-9]?, [0-9][0-9][0-9]?, [0-9][0-9][0-9]?, (.*)\);/
   boolean assertAlpha(style, percentage) {
@@ -58,20 +60,34 @@ class DashboardOverviewSpec
     policy = temporaryEntity.newPolicy(org.id, 'DashboardSpecPolicy')
 
     Date now = new Date()
+
+    //first evaluation dated a week ago
     PolicyEvaluation firstPolicyEvaluation = temporaryEntity.newPolicyEvaluation(firstApp.id, BuildStageType.ID,
         'DashboardSpecFirstEvaluation', now - 7)
     PolicyViolation firstViolation = temporaryEntity.
         newPolicyViolation(firstPolicyEvaluation, policy, 5,
-            PolicyThreatCategory.LICENSE, "Group1", "Artifact1", "Version1")
+            PolicyThreatCategory.LICENSE, "Group1", "Artifact1", "Version1", "hash", FailActionType.ID)
     temporaryEntity.newNewestPolicyViolation(firstViolation.id, firstPolicyEvaluation.applicationId,
         firstPolicyEvaluation.stageTypeId)
-    temporaryEntity.newApplicationComponent(firstPolicyEvaluation.getApplicationId(), firstPolicyEvaluation.getStageTypeId(),
-        firstViolation.getHash(), firstViolation.getGroupId(), firstViolation.getArtifactId(), firstViolation.getVersion())
+    temporaryEntity.newApplicationComponent(firstPolicyEvaluation.applicationId, firstPolicyEvaluation.stageTypeId,
+        firstViolation.hash, firstViolation.groupId, firstViolation.artifactId, firstViolation.version)
 
+    //same policy as first evaluation, but a different stage and earlier
+    PolicyEvaluation firstPolicyEvaluationSecondStage = temporaryEntity.newPolicyEvaluation(firstApp.id,
+        StageReleaseStageType.ID, 'DashboardSpecFirstEvaluationSecondStage', now - 14)
+    PolicyViolation firstViolationSecondStage = temporaryEntity.newPolicyViolation(firstPolicyEvaluationSecondStage,
+        policy, 5, PolicyThreatCategory.LICENSE, "Group1", "Artifact1", "Version1", "hash", WarnActionType.ID)
+    temporaryEntity.newNewestPolicyViolation(firstViolationSecondStage.id,
+        firstPolicyEvaluationSecondStage.applicationId, firstPolicyEvaluationSecondStage.stageTypeId)
+    temporaryEntity.newApplicationComponent(firstPolicyEvaluationSecondStage.applicationId,
+        firstPolicyEvaluationSecondStage.stageTypeId, firstViolationSecondStage.hash,
+        firstViolationSecondStage.groupId, firstViolationSecondStage.artifactId,
+        firstViolationSecondStage.version)
+
+    //most recent evaluation
     PolicyEvaluation secondPolicyEvaluation = temporaryEntity.newPolicyEvaluation(secondApp.id, ReleaseStageType.ID,
         'DashboardSpecSecondEvaluation', now)
-    PolicyViolation secondViolation = temporaryEntity.
-        newPolicyViolation(secondPolicyEvaluation, policy, 10,
+    PolicyViolation secondViolation = temporaryEntity.newPolicyViolation(secondPolicyEvaluation, policy, 10,
             PolicyThreatCategory.QUALITY, null, null, null)
     temporaryEntity.newNewestPolicyViolation(secondViolation.id, secondPolicyEvaluation.applicationId,
         secondPolicyEvaluation.stageTypeId)
@@ -206,15 +222,21 @@ class DashboardOverviewSpec
 
     then: 'risks are sorted by descending threat level, with the most recent results shown first'
       newestViolationTable.rows[0].risk == 10
-      newestViolationTable.rows[0].age ==~ RECENT_AGE
+      !newestViolationTable.rows[0].buildAge
+      !newestViolationTable.rows[0].operateAge
+      newestViolationTable.rows[0].releaseAge ==~ RECENT_AGE
+      newestViolationTable.rows[0].releaseAge == newestViolationTable.rows[0].age
+      !newestViolationTable.rows[0].stageReleaseAge
       newestViolationTable.rows[1].risk == 5
-      newestViolationTable.rows[1].age.endsWith('days ago')
+      newestViolationTable.rows[1].buildAge == '7d'
+      newestViolationTable.rows[1].buildAge == newestViolationTable.rows[1].age
+      newestViolationTable.rows[1].stageReleaseAge == '14d'
 
     when: 'clicking the AGE header'
       newestViolationTable.ageHeader.click()
 
     then: 'we should now show the oldest result first'
-      newestViolationTable.rows[0].age.endsWith('days ago')
+      newestViolationTable.rows[0].age == '7d'
       newestViolationTable.rows[1].age ==~ RECENT_AGE
   }
 
@@ -230,14 +252,13 @@ class DashboardOverviewSpec
       newestViolationTable.rows[0].policy == 'DashboardSpecPolicy'
       newestViolationTable.rows[0].application == secondApp.name
       newestViolationTable.rows[0].component == 'unknown.jar'
-      newestViolationTable.rows[0].age.contains("ago")
+      newestViolationTable.rows[0].age ==~ RECENT_AGE
 
       newestViolationTable.rows[1].risk == 5
       newestViolationTable.rows[1].policy == 'DashboardSpecPolicy'
       newestViolationTable.rows[1].application == firstApp.name
-      // TODO Re-enable when the UI changes are ready
-      //newestViolationTable.rows[1].component == ["Group1", "Artifact1", "Version1"].join(' : ')
-      newestViolationTable.rows[1].age.contains("ago")
+      newestViolationTable.rows[1].component == ["Group1", "Artifact1", "Version1"].join(' : ')
+      newestViolationTable.rows[1].age == '7d'
 
     when: 'filtering to an application'
       filterPanelToggle.click()
@@ -252,7 +273,7 @@ class DashboardOverviewSpec
       newestViolationTable.rows[0].policy == 'DashboardSpecPolicy'
       newestViolationTable.rows[0].application == secondApp.name
       newestViolationTable.rows[0].component == 'unknown.jar'
-      newestViolationTable.rows[0].age.contains("ago")
+      newestViolationTable.rows[0].age ==~ RECENT_AGE
 
     when: 'filtering to a stage'
       filterPanelToggle.click()
@@ -267,7 +288,7 @@ class DashboardOverviewSpec
       newestViolationTable.rows[0].policy == 'DashboardSpecPolicy'
       newestViolationTable.rows[0].application == secondApp.name
       newestViolationTable.rows[0].component == 'unknown.jar'
-      newestViolationTable.rows[0].age.contains("ago")
+      newestViolationTable.rows[0].age ==~ RECENT_AGE
   }
 
   def 'Filter out all results'() {
@@ -499,7 +520,7 @@ class DashboardOverviewSpec
     when: 'Expand'
       applicationViolationsTable.rows[2].expand.click()
     then: 'Stage shown'
-      waitFor { applicationViolationsTable.rows.size() == 4 }
+      waitFor { applicationViolationsTable.rows.size() == 5 }
       applicationViolationsTable.rows[2].collapse.displayed
       applicationViolationsTable.rows[3].application.text() == new BuildStageType().getName().toUpperCase()
       applicationViolationsTable.rows[3].reportLink.displayed

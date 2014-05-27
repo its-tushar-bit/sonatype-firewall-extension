@@ -356,11 +356,11 @@
   }]);
 
   dashboardModule.directive('applicationRiskTable', ['CLMLocations', function(CLMLocations){
-    return dashboardTable(CLMLocations.getApplicationRisksUrl(), null, 'No data available given the applied filters and available permissions');
+    return dashboardTable(CLMLocations.getApplicationRisksUrl());
   }]);
 
   dashboardModule.directive('componentRiskTable', ['CLMLocations', function(CLMLocations) {
-    return dashboardTable(CLMLocations.getComponentRisksUrl(), null, 'No data available given the applied filters and available permissions');
+    return dashboardTable(CLMLocations.getComponentRisksUrl());
   }]);
 
   dashboardModule.directive('breadcrumb', ['$state', function($state) {
@@ -399,6 +399,45 @@
         scope.$watch('$state.$current', loadCurrentState);
       }
     };
+  }]);
+
+  dashboardModule.controller('NewestRiskTableController', ['$scope', function($scope) {
+    $scope.stageTypeSort = function(stageDetails){
+      var ordinal = 0;
+      switch (stageDetails.stageTypeId) {
+        case 'stage-release':
+          ordinal = 1;
+          break;
+        case 'release':
+          ordinal = 2;
+          break;
+        case 'operate':
+          ordinal = 3;
+          break;
+        default :
+          //stays as 0
+          break;
+      }
+      return ordinal;
+    };
+
+    angular.forEach($scope.data, function(data){
+      var latestStageDetails = null;
+      for(var key in data.stageDetails){
+        if (data.stageDetails.hasOwnProperty(key)) {
+          var stageDetail = data.stageDetails[key];
+          if (latestStageDetails === null) {
+            latestStageDetails = stageDetail;
+          }
+          else if (stageDetail.time > 0 && latestStageDetails.time < stageDetail.time) {
+            latestStageDetails = stageDetail;
+          }
+        }
+      }
+      if(latestStageDetails.time > 0){
+        latestStageDetails.latest = true;
+      }
+    });
   }]);
 
   dashboardModule.controller('componentRiskTable', ['$scope', function($scope) {

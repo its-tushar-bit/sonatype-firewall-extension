@@ -32,21 +32,34 @@ class ThreatTableRow
 
   static final int RISK = 1
 
-  static final int POLICY = 2
+  static final int AGE = 2
 
-  static final int APPLICATION = 3
+  static final int POLICY = 3
 
-  static final int COMPONENT = 4
+  static final int APPLICATION = 4
 
-  static final int AGE = 5
+  static final int COMPONENT = 5
+
+  static final int BUILD_AGE = 6
+
+  static final int STAGE_RELEASE_AGE = 7
+
+  static final int RELEASE_AGE = 8
+
+  static final int OPERATE_AGE = 9
+
 
   static content = {
     cell(required: false) { int i -> $('td', i) }
     risk { cell(RISK).text().toInteger() }
+    age { cell(AGE).text() }
     policy { cell(POLICY).text() }
     application { cell(APPLICATION).text() }
     component { cell(COMPONENT).text() }
     componentLink { cell(COMPONENT).find('a') }
-    age(required: false) { cell(AGE).text() }
+    buildAge { cell(BUILD_AGE).text() }
+    operateAge { cell(OPERATE_AGE).text() }
+    releaseAge { cell(RELEASE_AGE).text() }
+    stageReleaseAge { cell(STAGE_RELEASE_AGE).text() }
   }
 }

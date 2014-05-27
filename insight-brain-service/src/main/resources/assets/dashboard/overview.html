@@ -84,56 +84,81 @@
   </div>
 </script>
 <script type='text/ng-template' id='risk-table'>
-  <table class='table policy-violation-table' sortable sortable-reverse="true" sortable-field="threatLevel">
-    <thead>
-    <tr>
-      <th id='threat-header' colspan='2' class='clm-bar-text-offset'>
-        <div sort-column="threatLevel" sort-inverse="true">
-          RISK
-        </div>
-      </th>
-      <th class='policy-header'>
-        <div>POLICY</div>
-      </th>
-      <th class='application-header'>
-        <div>APPLICATION</div>
-      </th>
-      <th class='component-header'>
-        <div>COMPONENT</div>
-      </th>
-      <th id='time-header'>
-        <div sort-column="time">
-          AGE
-        </div>
-      </th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr ng-repeat='risk in data | orderBy:getSortField():getSortReverse() | limitTo: maxResults'>
-      <td class='clm-bar' threat-class="risk.threatLevel"></td>
-      <td>{{risk.threatLevel}}</td>
-      <td>{{risk.policyName}}</td>
-      <td>{{risk.applicationName}}</td>
-      <td ng-if='risk.groupId'>
-        <a ui-sref="dashboard.component({ hash: risk.hash })">
-          <!-- This line cannot break as it causes spaces between the GAV -->
-          {{risk.groupId}}<span class='wrap-force-break'> : </span>{{risk.artifactId}}<span class='wrap-force-break'> : </span>{{risk.version}}
-        </a>
-      </td>
-      <td ng-if='!risk.groupId && risk.pathnames' pathnames-popover='risk.pathnames'>
-        <a ui-sref="dashboard.component({ hash: risk.hash })">
-          <em>{{risk.pathnames[0] | fileName}}</em>
-        </a>
-      </td>
-      <td ng-if='!risk.groupId && !risk.pathnames'>
-        <a ui-sref="dashboard.component({ hash: risk.hash })">
-          <em>Unknown</em>
-        </a>
-      </td>
-      <td>{{risk.time | ago}}</td>
-    </tr>
-    </tbody>
-  </table>
+  <div ng-controller="NewestRiskTableController">
+    <table class='table policy-violation-table' sortable sortable-reverse="true" sortable-field="threatLevel">
+      <thead>
+      <tr>
+        <th id='threat-header' colspan='2' class='clm-bar-text-offset'>
+          <div sort-column="threatLevel" sort-inverse="true">
+            RISK
+          </div>
+        </th>
+        <th class='policy-header'>
+          <div sort-column="time">AGE</div>
+        </th>
+        <th class='policy-header'>
+          <div>POLICY</div>
+        </th>
+        <th class='application-header'>
+          <div>APPLICATION</div>
+        </th>
+        <th class='component-header'>
+          <div>COMPONENT</div>
+        </th>
+        <th id='build-header' class='time-header'>
+          <div>BUILD</div>
+        </th>
+        <th id='stage-release-header' class='time-header'>
+          <div>STAGE</div>
+        </th>
+        <th id='release-header' class='time-header'>
+            <div>RELEASE</div>
+        </th>
+        <th id='operate-header' class='time-header'>
+          <div>OPERATE</div>
+        </th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr ng-repeat='risk in data | orderBy:getSortField():getSortReverse() | limitTo: maxResults'>
+        <td class='clm-bar' threat-class="risk.threatLevel"></td>
+        <td>{{risk.threatLevel}}</td>
+        <td>{{risk.time | terseAgo}}</td>
+        <td>{{risk.policyName}}</td>
+        <td>{{risk.applicationName}}</td>
+        <td ng-if='risk.gav'>
+          <a ui-sref="dashboard.component({ hash: risk.hash })">
+            <!-- This line cannot break as it causes spaces between the GAV -->
+            {{risk.gav.groupId}}<span class='wrap-force-break'> : </span>{{risk.gav.artifactId}}<span
+                  class='wrap-force-break'> : </span>{{risk.gav.version}}
+          </a>
+        </td>
+        <td ng-if='!risk.gav && risk.pathnames' pathnames-popover='risk.pathnames'>
+          <a ui-sref="dashboard.component({ hash: risk.hash })">
+            <em>{{risk.pathnames[0] | fileName}}</em>
+          </a>
+        </td>
+        <td ng-if='!risk.gav && !risk.pathnames'>
+          <a ui-sref="dashboard.component({ hash: risk.hash })">
+            <em>Unknown</em>
+          </a>
+        </td>
+        <td ng-repeat='stageDetails in risk.stageDetails | orderBy:stageTypeSort'
+            ng-class="{ 'latest-risk': stageDetails.latest }">
+          <a title="View application report"
+             ng-href="index.html#/reports/{{risk.applicationPublicId}}/{{stageDetails.scanId}}"
+             target="_blank" ng-if="stageDetails.time > 0">
+            <div>
+              {{stageDetails.time | terseAgo}}
+              <i class="sonatype-icons pad-left"
+                 ng-class="{ warn: stageDetails.actionTypeId === 'warn', fail : stageDetails.actionTypeId === 'fail'}"/>
+            </div>
+          </a>
+        </td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
 </script>
 <script type="text/ng-template" id="dashboard-table">
   <div load-wrapper="error" reload="doLoad()">

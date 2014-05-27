@@ -17,15 +17,10 @@
     </div>
     <div class='fade' ng-class='{in : applicablePolicies }' id="monitoring">
       <div class="content-header">
-        <h4>
-          <span>Policy Monitoring</span>
-          <div class='common-expand-toggle' ng-click='monitoringExpanded = !monitoringExpanded'>
-            <a id="policy-monitoring-expand" ng-click="toggleSection('monitoring',monitoringExpanded)">
-              <i class='glyphicons-halflings-sonatype'
-                 ng-class="{'collapse': monitoringExpanded, 'expand': !monitoringExpanded}">
-              </i>
-            </a>
-          </div>
+        <h4><i class='clickable glyphicons-halflings-sonatype lighter' id="policy-monitoring-expand"
+               ng-class="{ 'expand' : !monitoringExpanded,
+                           'collapse' : monitoringExpanded }"
+               ng-click='toggleSection("monitoring", monitoringExpanded); monitoringExpanded = !monitoringExpanded'></i> Policy Monitoring
         </h4>
       </div>
       <div class="accordion monitoringContent">
@@ -69,15 +64,15 @@
       <div id='{{applicablePolicy.ownerId}}' ng-repeat='applicablePolicy in applicablePolicies' ng-show='applicablePolicy.editable || applicablePolicy.policies.length > 0'>
         <div class="content-header">
           <h4>
+            <i class='clickable glyphicons-halflings-sonatype lighter'
+               ng-class="{ 'expand' : !isExpanded(applicablePolicy),
+                           'collapse' : isExpanded(applicablePolicy) }"
+               ng-click='toggleAll(applicablePolicy)'></i>
             <span ng-switch='applicablePolicy.editable'>
               <span ng-switch-when='true'>{{applicablePolicy.ownerName}} Policies</span>
               <span ng-switch-default>Effective Policies Inherited from {{applicablePolicy.ownerName}}</span>
             </span>
-                        <div class='common-expand-toggle' ng-switch on='isExpanded(applicablePolicy)'>
-                            <a ng-switch-when="false" ng-click='toggleAll(applicablePolicy)'><i class="glyphicons-halflings-sonatype expand"></i></a>
-                            <a ng-switch-when="true" ng-click='toggleAll(applicablePolicy)'><i class="glyphicons-halflings-sonatype collapse"></i></a>
-                        </div>
-                    </h4>
+          </h4>
         </div>
         <div ng-if='applicablePolicy.editable' class='policies' style='margin-bottom:5px'>
           <div inline-policy-creator tags='tags' owner-name='applicablePolicy.ownerName'></div>

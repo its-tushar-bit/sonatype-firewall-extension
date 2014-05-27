@@ -142,7 +142,8 @@ table.policy-actions td:last-child {
 }
 .condition-value {
 	display:inline-block;
-	width:690px
+	width:690px;
+	margin-left:15px
 }
 .condition-value select, .condition-value input {
 	vertical-align:top;

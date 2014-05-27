@@ -817,17 +817,7 @@ ul.tri-pane {
 .accordion-group:hover .btn-mini {
   border: 1px solid #ccc;
 }
-.common-expand-toggle {
-	display: inline;
-	margin: 15px;
-}
-.common-expand-toggle a {
-	float: left;
-	margin-right: 5px;
-	text-decoration: none;
-	opacity: .4;
-	filter: alpha(opacity=80);	
-}
+
 /**
  * Error blocks
  */

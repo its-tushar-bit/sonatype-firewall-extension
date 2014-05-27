@@ -32,11 +32,17 @@
         <div ng-controller='ConstraintEditorController'>
           <div class="accordion-heading">
             <div class='floatRight btn-group hover-buttons'>
-              <button type='button' ng-class='{ active : isExpanded(constraint) }' class="btn btn-mini policy-button" title="Edit Constraint" ng-click="toggleConstraint(constraint)"><i class="icon-pencil"></i></button>
-              <a class="btn btn-mini policy-button" title="Remove Constraint" ng-show="policy.constraints.length > 1" ng-click="removeConstraint(constraint)"><i class="icon-minus-sign"></i></a>
-              <a class="btn btn-mini policy-button" title="Add Constraint" ng-click="addConstraint()"><i class="icon-plus-sign"></i></a>
+              <a class="btn btn-mini policy-button"
+                 title="Remove Constraint"
+                 ng-if="policy.constraints.length > 1"
+                 ng-click="removeConstraint(constraint)"><i class="icon-minus"></i></a>
+              <a class="btn btn-mini policy-button" title="Add Constraint" ng-click="addConstraint()"><i class="icon-plus"></i></a>
             </div>
-            <a class="accordion-toggle" data-parent="policy.constraints" ng-click="toggleConstraint(constraint)">
+            <div data-parent="policy.constraints" style="padding:5px">
+              <i class='clickable glyphicons-halflings-sonatype lighter'
+                 ng-class="{ 'expand' : !isExpanded(constraint),
+                             'collapse' : isExpanded(constraint) }"
+                 ng-click='toggleConstraint(constraint)'></i>
               <span ng-switch='isExpanded(constraint)'>
                 <span ng-switch-when='false'>
                   <span ng-show="constraint.name">{{constraint.name}}</span>
@@ -44,7 +50,7 @@
                 </span>
                 <input ng-switch-when='true' type="text" ng-model="constraint.name" ng-click='stop($event)' placeholder='Enter Constraint Name' required>
               </span>
-            </a>
+            </div>
           </div>
           <div id="collapse{{constraint.id}}" class="accordion-body collapse" delayed-overflow>
             <div class="accordion-inner nested-accordion">

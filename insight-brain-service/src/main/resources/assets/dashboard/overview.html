@@ -76,7 +76,7 @@
         </span>
       </div>
       <div class='span2' ng-if='filter.policyThreatLevel[0] > 0 || filter.policyThreatLevel[1] < 10' id="filter-summary-threat-level">
-        <div><strong>Policy Threat Levels</strong></div>
+        <div><strong>Policy Threat Level{{filter.policyThreatLevel[0] != filter.policyThreatLevel[1] ? 's' : ''}}</strong></div>
         <span ng-if="filter.policyThreatLevel[0] != filter.policyThreatLevel[1]">{{filter.policyThreatLevel[0]}} through {{filter.policyThreatLevel[1]}}</span>
         <span ng-if="filter.policyThreatLevel[0] == filter.policyThreatLevel[1]">{{filter.policyThreatLevel[0]}}</span>
       </div>

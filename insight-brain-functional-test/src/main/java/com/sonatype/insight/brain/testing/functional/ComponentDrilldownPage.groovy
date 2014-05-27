@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.testing.functional
 import geb.Module
 
 /**
+ * Represents the dashboard's Component Details view
   @since 1.11
  */
 class ComponentDrilldownPage
@@ -21,7 +22,7 @@ class ComponentDrilldownPage
 
     componentApplicationTable { $('.component-application-table') }
     componentApplicationRow { applicationId -> module ComponentApplicationRow,
-        componentApplicationTable.find("tr[data-target\$='${applicationId}']") }
+        componentApplicationTable.find("#${applicationId}") }
     componentViolationTable { applicationId -> $("div[id\$='${applicationId}'] .table") }
     componentViolationRow { applicationId, policyViolationName -> module ComponentViolationRow,
       componentViolationTable(applicationId).find('tr').has("td", text: "${policyViolationName}") }
@@ -31,12 +32,14 @@ class ComponentDrilldownPage
 class ComponentApplicationRow
   extends Module
 {
+  static final int EXPANDO = 0
   static final int ORG_APP = 1
   static final int RISK_PIE = 2
   static final int RISK_COUNT = 3
 
   static content = {
     cell(required: false) { int i -> $('td', i) }
+    expando { cell(EXPANDO).find('i') }
     applicationImage { $('.image-thumbnail') }
     orgApp { cell(ORG_APP).text().trim() }
     riskPie { cell(RISK_PIE).text().trim() }

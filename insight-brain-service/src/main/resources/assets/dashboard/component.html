@@ -28,15 +28,15 @@
         </thead>
         <tbody>
           <tr ng-repeat-start="applicationComponent in applicationComponents | orderBy:'risk':true"
-              data-toggle="collapse" data-target="#application-{{applicationComponent.application.id}}"
-              class="expandable-row" ng-click="applicationComponent.isExpanded = !applicationComponent.isExpanded"
-              ng-class="{ expanded: applicationComponent.isExpanded }">
+              ng-class="{ expanded: applicationComponent.isExpanded }"
+              class="expandable-row" id="{{applicationComponent.application.id}}">
             <td>
-              <a class="glyphicons"
-                 ng-class="{ 'circle_plus': !applicationComponent.isExpanded, 'circle_minus': applicationComponent.isExpanded }"
-                 ng-if="applicationComponent.policyViolations.length > 0">
-                <i></i>
-              </a>
+              <i ng-class="{ clickable : applicationComponent.policyViolations.length > 0,
+                            'icon-plus-sign' : !applicationComponent.isExpanded && applicationComponent.policyViolations.length > 0,
+                            'icon-minus-sign' : applicationComponent.isExpanded && applicationComponent.policyViolations.length > 0,
+                            'emptyIconGlyph' : applicationComponent.policyViolations.length === 0 }"
+                 ng-click="applicationComponent.isExpanded = !applicationComponent.isExpanded"
+                 data-toggle="collapse" data-target="#application-{{applicationComponent.application.id}}"></i>
             </td>
             <td>
               <img class="image-thumbnail"

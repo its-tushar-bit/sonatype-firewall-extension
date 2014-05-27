@@ -74,7 +74,7 @@ class ComponentDrilldownSpec
   def 'Component Drilldown Violation Row'() {
     when: 'The component application is expanded'
       waitFor { componentApplicationRow(app.id).displayed }
-      componentApplicationRow(app.id).click()
+      componentApplicationRow(app.id).expando.click()
 
     then: 'Violation row show component violation data'
       waitFor { componentViolationTable(app.id).displayed }

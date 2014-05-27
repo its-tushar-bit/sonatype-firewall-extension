@@ -675,10 +675,6 @@ table.table-risk td.low-risk {
   border-bottom: 1px solid #C1C1C1;
 }
 
-.component-application-table .expandable-row:hover {
-  cursor: pointer;
-}
-
 .component-application-table a {
   vertical-align: middle;
 }

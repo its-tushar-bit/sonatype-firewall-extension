@@ -407,6 +407,9 @@ table.table-risk td.total-risk {
 table.table-risk .stage td.total-risk, table.table-risk td.total-risk.black-text {
   color: #000;
 }
+table.table-risk td.muted-text {
+  color: #C6C6C6 !important;
+}
 
 table.table-risk td.critical-risk {
   background-color : #E6A29F;

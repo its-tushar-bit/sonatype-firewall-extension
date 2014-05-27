@@ -281,17 +281,25 @@
                       ng-class="{ 'black-text': (application.totalApplicationRisk.totalRisk | safeDivide:totalRisk) < 0.5 }">
                     {{application.totalApplicationRisk.totalRisk}}
                   </td>
-                  <td class="critical-risk" alpha-background="{{application.totalApplicationRisk.criticalRisk | safeDivide:criticalRisk}}">
-                    {{application.totalApplicationRisk.criticalRisk}}
+                  <td class="critical-risk"
+                      alpha-background="{{application.totalApplicationRisk.criticalRisk | safeDivide:criticalRisk}}"
+                      ng-class="{ 'muted-text': application.totalApplicationRisk.criticalRisk === 0 }">
+                      {{application.totalApplicationRisk.criticalRisk}}
                   </td>
-                  <td class="severe-risk" alpha-background="{{application.totalApplicationRisk.severeRisk | safeDivide:severeRisk}}">
-                    {{application.totalApplicationRisk.severeRisk}}
+                  <td class="severe-risk"
+                      alpha-background="{{application.totalApplicationRisk.severeRisk | safeDivide:severeRisk}}"
+                      ng-class="{ 'muted-text': application.totalApplicationRisk.severeRisk === 0 }">
+                      {{application.totalApplicationRisk.severeRisk}}
                   </td>
-                  <td class="moderate-risk" alpha-background="{{application.totalApplicationRisk.moderateRisk | safeDivide:moderateRisk}}">
-                    {{application.totalApplicationRisk.moderateRisk}}
+                  <td class="moderate-risk"
+                      alpha-background="{{application.totalApplicationRisk.moderateRisk | safeDivide:moderateRisk}}"
+                      ng-class="{ 'muted-text': application.totalApplicationRisk.moderateRisk === 0 }">
+                      {{application.totalApplicationRisk.moderateRisk}}
                   </td>
-                  <td class="low-risk" alpha-background="{{application.totalApplicationRisk.lowRisk | safeDivide:lowRisk}}">
-                    {{application.totalApplicationRisk.lowRisk}}
+                  <td class="low-risk"
+                      alpha-background="{{application.totalApplicationRisk.lowRisk | safeDivide:lowRisk}}"
+                      ng-class="{ 'muted-text': application.totalApplicationRisk.lowRisk === 0 }">
+                      {{application.totalApplicationRisk.lowRisk}}
                   </td>
                 </tr>
                 <tr class='stage' ng-repeat-end
@@ -344,16 +352,20 @@
                       ng-class="{ 'black-text': (component.score | safeDivide:totalRisk) < 0.5 }">
                     {{component.score}}
                   </td>
-                  <td class="critical-risk" alpha-background="{{component.scoreCritical | safeDivide:criticalRisk}}">
+                  <td class="critical-risk" alpha-background="{{component.scoreCritical | safeDivide:criticalRisk}}"
+                      ng-class="{ 'muted-text': component.scoreCritical === 0 }">
                     {{component.scoreCritical}}
                   </td>
-                  <td class="severe-risk" alpha-background="{{component.scoreSevere | safeDivide:severeRisk}}">
+                  <td class="severe-risk" alpha-background="{{component.scoreSevere | safeDivide:severeRisk}}"
+                      ng-class="{ 'muted-text': component.scoreSevere === 0 }">
                     {{component.scoreSevere}}
                   </td>
-                  <td class="moderate-risk" alpha-background="{{component.scoreModerate | safeDivide:moderateRisk}}">
+                  <td class="moderate-risk" alpha-background="{{component.scoreModerate | safeDivide:moderateRisk}}"
+                      ng-class="{ 'muted-text': component.scoreModerate === 0 }">
                     {{component.scoreModerate}}
                   </td>
-                  <td class="low-risk" alpha-background="{{component.scoreLow | safeDivide:lowRisk}}">
+                  <td class="low-risk" alpha-background="{{component.scoreLow | safeDivide:lowRisk}}"
+                      ng-class="{ 'muted-text': component.scoreLow === 0 }">
                     {{component.scoreLow}}
                   </td>
                 </tr>

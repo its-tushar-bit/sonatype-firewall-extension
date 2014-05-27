@@ -146,7 +146,7 @@
         <td ng-repeat='stageDetails in risk.stageDetails | orderBy:stageTypeSort'
             ng-class="{ 'latest-risk': stageDetails.latest }">
           <a title="View application report"
-             ng-href="index.html#/reports/{{risk.applicationPublicId}}/{{stageDetails.scanId}}"
+             ng-href="index.html#/reports/{{risk.applicationPublicId | EncodeURIComponent }}/{{stageDetails.scanId}}"
              target="_blank" ng-if="stageDetails.time > 0">
             <div>
               {{stageDetails.time | terseAgo}}

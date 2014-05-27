@@ -52,6 +52,7 @@ class DropdownMultiSelectModule
   }
 
   void showDropdown() {
+    waitFor { dropdownButton.displayed }
     dropdownButton.click()
     waitFor { dropdownList.displayed }
   }

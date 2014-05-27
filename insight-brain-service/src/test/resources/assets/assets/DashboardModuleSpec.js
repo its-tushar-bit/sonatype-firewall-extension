@@ -3,59 +3,15 @@ describe('DashboardModule', function() {
     return new RegExp('^' + url + '\?.*');
   }
 
-  var scope;
-  var newestViolations = [
+  var scope, tags = [
     {
-      applicationPublicId: "fooID",
-      applicationName: "Foo App",
-      gav: {
-        groupId: "org.apache.geronimo.framework",
-        artifactId: "geronimo-security",
-        version: "2.1"
-      },
-      hash: "848d7549ef7ec13ce546",
-      id: "5e833e5982534083a035019c07d66507",
-      policyEvaluationId: "2cca57dc20b947e999cc348f83da1e5b",
-      policyId: "f219cdc1b9bd4bd089343dcdc542e757",
-      policyName: "Bar Policy",
-      threatCategory: "OTHER",
-      threatLevel: 10,
-      pathnames: ["geronimo-security.jar"],
-      "stageDetails": [
-        {
-          "stageTypeId": "release",
-          "time": 1401149547140,
-          "actionTypeId": "fail",
-          "scanId": "d8cbb9196c2d475991e5fbdcdf96e345"
-        },
-        {
-          "stageTypeId": "build",
-          "time": 1385755537775,
-          "actionTypeId": "warn",
-          "scanId": "175427dcaa88418f8e310eea03233ec1"
-        },
-        {
-          "stageTypeId": "stage-release",
-          "time": 1401133522035,
-          "actionTypeId": "warn",
-          "scanId": "c2bdf85b6292489abfe93882153880f5"
-        },
-        {
-          "stageTypeId": "operate",
-          "time": 0,
-          "actionTypeId": null,
-          "scanId": null
-        }
-      ]
-    }
-  ], tags = [
-   {
-     id: "tagid1",
-     organizationId: 'orgId1',
-     name: "TagOne",
-     nameLowercaseNoWhitespace: "tagone",
-     description: "Tag One Description"
-   }, {
+      id: "tagid1",
+      organizationId: 'orgId1',
+      name: "TagOne",
+      nameLowercaseNoWhitespace: "tagone",
+      description: "Tag One Description"
+    },
+    {
       id: "tagid2",
       organizationId: 'orgId2',
       name: "TagTwo",
@@ -614,21 +570,10 @@ describe('DashboardModule', function() {
   });
 
   describe('NewestRiskTableController', function() {
-    var stageDetails;
     beforeEach(inject(function($rootScope, $controller) {
       scope = $rootScope.$new();
-      scope.data = newestViolations;
-      stageDetails = scope.data[0].stageDetails;
       $controller('NewestRiskTableController', { $scope: scope });
     }));
-
-    it('Marks one of the stage details as "latest"', function() {
-      expect(stageDetails.length).toBe(4);
-      expect(stageDetails[0].latest).toBeTruthy();
-      expect(stageDetails[1].latest).toBeFalsy();
-      expect(stageDetails[2].latest).toBeFalsy();
-      expect(stageDetails[3].latest).toBeFalsy();
-    });
 
     if('Can sort stageDetails by stageTypeId', function() {
       expect(scope.stageTypeSort(stageDetails[0])).toBe(2);

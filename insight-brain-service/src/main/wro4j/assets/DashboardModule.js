@@ -420,24 +420,6 @@
       }
       return ordinal;
     };
-
-    angular.forEach($scope.data, function(data){
-      var latestStageDetails = null;
-      for(var key in data.stageDetails){
-        if (data.stageDetails.hasOwnProperty(key)) {
-          var stageDetail = data.stageDetails[key];
-          if (latestStageDetails === null) {
-            latestStageDetails = stageDetail;
-          }
-          else if (stageDetail.time > 0 && latestStageDetails.time < stageDetail.time) {
-            latestStageDetails = stageDetail;
-          }
-        }
-      }
-      if(latestStageDetails.time > 0){
-        latestStageDetails.latest = true;
-      }
-    });
   }]);
 
   dashboardModule.controller('componentRiskTable', ['$scope', function($scope) {

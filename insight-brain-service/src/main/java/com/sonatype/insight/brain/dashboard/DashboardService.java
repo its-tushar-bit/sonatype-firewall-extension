@@ -852,7 +852,7 @@ public class DashboardService
       String scanId)
   {
     if (newestRiskDTO.time < policyViolation.getTime().getTime()) {
-      newestRiskDTO.time = Math.max(newestRiskDTO.time, policyViolation.getTime().getTime());
+      newestRiskDTO.time = policyViolation.getTime().getTime();
       if (policyViolation.getGroupId() != null) {
         newestRiskDTO.gav = new GavDTO(policyViolation.getGroupId(), policyViolation.getArtifactId(),
             policyViolation.getVersion());

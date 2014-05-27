@@ -270,7 +270,7 @@ public class UserResourceTest
         "test-password-two");
     assertResponseStatus(204, response);
     Cookie userCookie = extractSessionCookie(response);
-    response = RestAccess.delete(getRestBaseUrl() + UserSessionResource.SERVICE_PATH, null, null, null, userCookie);
+    response = RestAccess.delete(getRestBaseUrl() + UserSessionResource.LOGOUT_SERVICE_PATH, null, null, null, userCookie);
     assertResponseStatus(204, response);
     
     // access an anonymous resource to create a third session

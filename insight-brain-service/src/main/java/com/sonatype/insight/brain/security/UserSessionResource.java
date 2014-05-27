@@ -32,6 +32,10 @@ public class UserSessionResource
 {
   public static final String SERVICE_PATH = "rest/user/session";
 
+  private static final String LOGOUT_PATH = "logout";
+
+  public static final String LOGOUT_SERVICE_PATH = SERVICE_PATH + "/" + LOGOUT_PATH;
+
   @Inject
   public UserSessionResource() {
   }
@@ -48,6 +52,7 @@ public class UserSessionResource
    * Logout the currently logged in user
    */
   @DELETE
+  @Path(LOGOUT_PATH)
   public void logout() {
     SecurityUtils.getSubject().logout();
   }

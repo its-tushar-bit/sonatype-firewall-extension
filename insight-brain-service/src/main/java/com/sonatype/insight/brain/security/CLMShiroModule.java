@@ -52,6 +52,7 @@ public class CLMShiroModule
     manager.createChain("/rest/report/*/*/embedReport/**", "anon"); // backward-compat with non-authenticating clients
     manager.createChain("/rest/report/*/*/brain/**", "anon"); // only redirects
     manager.createChain("/rest/session/environment", "anon"); // client environment gathering
+    manager.createChain("/rest/user/session/logout", "anon"); // client logout requires no auth, will simply do nothing if not authenticated
     manager.createChain("/rest/version", "anon"); // product version info
     manager.createChain("/tasks/**", "anon"); // DW tasks exposed on admin port
     manager.createChain("/ui/links/**", "anon"); // only redirects

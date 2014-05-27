@@ -75,6 +75,10 @@
           return baseUrl.get() + '/rest/user/session';
         },
 
+        getSessionLogoutUrl: function() {
+          return baseUrl.get() + '/rest/user/session/logout';
+        },
+
         getUserUrl : function () {
           return baseUrl.get() + '/rest/user';
         },

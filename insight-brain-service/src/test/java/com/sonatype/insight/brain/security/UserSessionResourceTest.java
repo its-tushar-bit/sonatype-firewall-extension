@@ -23,7 +23,7 @@ public class UserSessionResourceTest
     extends AbstractResourceTest
 {
   private Response logout(Cookie cookie) throws Exception {
-    return RestAccess.delete(getRestBaseUrl() + UserSessionResource.SERVICE_PATH, null, null, null, cookie);
+    return RestAccess.delete(getRestBaseUrl() + UserSessionResource.LOGOUT_SERVICE_PATH, null, null, null, cookie);
   }
 
   private Response login() throws Exception {
@@ -106,5 +106,12 @@ public class UserSessionResourceTest
     // this cookie should no longer be valid
     response = status(jsessionIdCookie);
     assertResponseStatus(401, response);
+  }
+
+  @Test
+  public void testLogoutNoAuth() throws Exception {
+    //no cookie, no auth
+    Response response = logout(null);
+    assertResponseStatus(204, response);
   }
 }

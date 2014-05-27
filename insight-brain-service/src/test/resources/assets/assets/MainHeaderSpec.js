@@ -86,7 +86,7 @@ describe('mainHeader', function() {
         parentScope.$on('logout', spy);
 
         expect(scope.logout).not.toBeUndefined();
-        $httpBackend.expectDELETE(CLMLocations.getSessionUrl()).respond({});
+        $httpBackend.expectDELETE(CLMLocations.getSessionLogoutUrl()).respond({});
 
         scope.logout();
         $httpBackend.flush();

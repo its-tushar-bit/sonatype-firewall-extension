@@ -92,18 +92,36 @@ public class ApplicationService
       @Nullable final Set<String> tagIds)
   {
     if (isEmpty(applicationPublicIds) && isEmpty(tagIds)) {
+      //neither filled
       return getApplications();
     }
     else if (isEmpty(applicationPublicIds)) {
-      return applicationDAO.getByTagIds(tagIds);
+      return getApplicationsByTagIds(tagIds);
     }
     else if (isEmpty(tagIds)) {
-      return applicationDAO.getByPublicIds(applicationPublicIds);
+      return getApplicationsByPublicIds(applicationPublicIds);
     }
     else {
       //both filled
-      return applicationDAO.getByPublicIdsAndTagIds(applicationPublicIds, tagIds);
+      return getByPublicIdsAndTagIds(applicationPublicIds, tagIds);
     }
+  }
+
+  @AuthzFilter(permission = Permission.READ, context = AuthzFilter.Context.APPLICATION)
+  protected List<Application> getByPublicIdsAndTagIds(final Set<String> applicationPublicIds,
+      final Set<String> tagIds)
+  {
+    return applicationDAO.getByPublicIdsAndTagIds(applicationPublicIds, tagIds);
+  }
+
+  @AuthzFilter(permission = Permission.READ, context = AuthzFilter.Context.APPLICATION)
+  protected List<Application> getApplicationsByPublicIds(final Set<String> applicationPublicIds) {
+    return applicationDAO.getByPublicIds(applicationPublicIds);
+  }
+
+  @AuthzFilter(permission = Permission.READ, context = AuthzFilter.Context.APPLICATION)
+  protected List<Application> getApplicationsByTagIds(final Set<String> tagIds) {
+    return applicationDAO.getByTagIds(tagIds);
   }
 
   @AuthzFilter(permission = Permission.READ, context = AuthzFilter.Context.APPLICATION)

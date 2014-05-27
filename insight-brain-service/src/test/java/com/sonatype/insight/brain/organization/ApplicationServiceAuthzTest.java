@@ -12,6 +12,8 @@ import java.util.Set;
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.tag.ApplicationTag;
+import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 
 import com.google.common.collect.Sets;
@@ -204,5 +206,92 @@ public class ApplicationServiceAuthzTest
     }
     assertThat(ids, containsInAnyOrder(app.getId(), app2.getId()));
   }
+
+  @Test
+  public void testGetByPublicIdsAndTagIds_Authorized() throws Exception {
+
+    Tag tag = tempEntity.newTag(app.getOrganizationId());
+    ApplicationTag applicationTag1 = tempEntity.newApplicationTag(app.getId(), tag.getId());
+    Application app2 = tempEntity.newApplication("App2", org.getId());
+    ApplicationTag applicationTag2 = tempEntity.newApplicationTag(app2.getId(), tag.getId());
+
+    grantReadPermission(app.getId());
+    grantReadPermission(app2.getId());
+
+    final List<Application> applications = applicationService
+        .getByPublicIdsAndTagIds(Sets.newHashSet(app.getPublicId(), app2.getPublicId()), Sets.newHashSet(tag.getId()));
+    assertThat(applications, hasSize(2));
+  }
+
+  @Test
+  public void testGetByPublicIdsAndTagIds_PartiallyAuthorized() throws Exception {
+
+    Tag tag = tempEntity.newTag(app.getOrganizationId());
+    ApplicationTag applicationTag1 = tempEntity.newApplicationTag(app.getId(), tag.getId());
+    Application app2 = tempEntity.newApplication("App2", org.getId());
+    ApplicationTag applicationTag2 = tempEntity.newApplicationTag(app2.getId(), tag.getId());
+
+    grantReadPermission(app.getId());
+
+    final List<Application> applications = applicationService
+        .getByPublicIdsAndTagIds(Sets.newHashSet(app.getPublicId(), app2.getPublicId()), Sets.newHashSet(tag.getId()));
+    assertThat(applications, hasSize(1));
+    assertThat(applications.get(0).getId(), is(app.getId()));
+  }
+
+  @Test
+  public void testGetApplicationsByPublicIds_Authorized() throws Exception {
+
+    Application app2 = tempEntity.newApplication("App2", org.getId());
+    grantReadPermission(app.getId());
+    grantReadPermission(app2.getId());
+
+    final List<Application> applications = applicationService
+        .getApplicationsByPublicIds(Sets.newHashSet(app.getPublicId(), app2.getPublicId()));
+    assertThat(applications, hasSize(2));
+  }
+
+  @Test
+  public void testGetApplicationsByPublicIds_PartiallyAuthorized() throws Exception {
+
+    Application app2 = tempEntity.newApplication("App2", org.getId());
+    grantReadPermission(app.getId());
+
+    final List<Application> applications = applicationService
+        .getApplicationsByPublicIds(Sets.newHashSet(app.getPublicId(), app2.getPublicId()));
+    assertThat(applications, hasSize(1));
+    assertThat(applications.get(0).getId(), is(app.getId()));
+  }
+
+  @Test
+  public void testGetApplicationsThatHaveTags_Authorized() throws Exception {
+
+    Tag tag = tempEntity.newTag(app.getOrganizationId());
+    ApplicationTag applicationTag1 = tempEntity.newApplicationTag(app.getId(), tag.getId());
+    Application app2 = tempEntity.newApplication("App2", org.getId());
+    ApplicationTag applicationTag2 = tempEntity.newApplicationTag(app2.getId(), tag.getId());
+
+    grantReadPermission(app.getId());
+    grantReadPermission(app2.getId());
+
+    final List<Application> applications = applicationService.getApplicationsByTagIds(Sets.newHashSet(tag.getId()));
+    assertThat(applications, hasSize(2));
+  }
+
+  @Test
+  public void testGetApplicationsThatHaveTags_PartiallyAuthorized() throws Exception {
+
+    Tag tag = tempEntity.newTag(app.getOrganizationId());
+    ApplicationTag applicationTag1 = tempEntity.newApplicationTag(app.getId(), tag.getId());
+    Application app2 = tempEntity.newApplication("App2", org.getId());
+    ApplicationTag applicationTag2 = tempEntity.newApplicationTag(app2.getId(), tag.getId());
+
+    grantReadPermission(app.getId());
+
+    final List<Application> applications = applicationService.getApplicationsByTagIds(Sets.newHashSet(tag.getId()));
+    assertThat(applications, hasSize(1));
+    assertThat(applications.get(0).getId(), is(app.getId()));
+  }
+
 
 }

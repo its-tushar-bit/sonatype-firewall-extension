@@ -72,7 +72,7 @@ public class AuthorizationChecker
       return true;
     }
     else if (parameter.object instanceof Collection<?>) {
-      Collection<?> paramObjects = (Collection) parameter.object;
+      Collection<?> paramObjects = (Collection<?>) parameter.object;
       for (Object o : paramObjects) {
         Map<Key, Object> contextParamMap = new EnumMap<>(Key.class);
         contextParamMap.put(parameter.key, o);

@@ -368,7 +368,7 @@ table.table-risk thead th:nth-child(1n + 2) {
 
 table.table-risk tr.stage td:first-child {
   font-weight : bold;
-  text-align : center;
+  text-align : right;
 }
 
 table.table-risk tbody td:nth-child(1n + 2) {

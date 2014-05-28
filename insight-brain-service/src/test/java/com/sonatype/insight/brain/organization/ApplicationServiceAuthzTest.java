@@ -12,7 +12,6 @@ import java.util.Set;
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.tag.ApplicationTag;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 
@@ -211,9 +210,9 @@ public class ApplicationServiceAuthzTest
   public void testGetByPublicIdsAndTagIds_Authorized() throws Exception {
 
     Tag tag = tempEntity.newTag(app.getOrganizationId());
-    ApplicationTag applicationTag1 = tempEntity.newApplicationTag(app.getId(), tag.getId());
+    tempEntity.newApplicationTag(app.getId(), tag.getId());
     Application app2 = tempEntity.newApplication("App2", org.getId());
-    ApplicationTag applicationTag2 = tempEntity.newApplicationTag(app2.getId(), tag.getId());
+    tempEntity.newApplicationTag(app2.getId(), tag.getId());
 
     grantReadPermission(app.getId());
     grantReadPermission(app2.getId());
@@ -227,9 +226,9 @@ public class ApplicationServiceAuthzTest
   public void testGetByPublicIdsAndTagIds_PartiallyAuthorized() throws Exception {
 
     Tag tag = tempEntity.newTag(app.getOrganizationId());
-    ApplicationTag applicationTag1 = tempEntity.newApplicationTag(app.getId(), tag.getId());
+    tempEntity.newApplicationTag(app.getId(), tag.getId());
     Application app2 = tempEntity.newApplication("App2", org.getId());
-    ApplicationTag applicationTag2 = tempEntity.newApplicationTag(app2.getId(), tag.getId());
+    tempEntity.newApplicationTag(app2.getId(), tag.getId());
 
     grantReadPermission(app.getId());
 
@@ -267,9 +266,9 @@ public class ApplicationServiceAuthzTest
   public void testGetApplicationsThatHaveTags_Authorized() throws Exception {
 
     Tag tag = tempEntity.newTag(app.getOrganizationId());
-    ApplicationTag applicationTag1 = tempEntity.newApplicationTag(app.getId(), tag.getId());
+    tempEntity.newApplicationTag(app.getId(), tag.getId());
     Application app2 = tempEntity.newApplication("App2", org.getId());
-    ApplicationTag applicationTag2 = tempEntity.newApplicationTag(app2.getId(), tag.getId());
+    tempEntity.newApplicationTag(app2.getId(), tag.getId());
 
     grantReadPermission(app.getId());
     grantReadPermission(app2.getId());
@@ -282,9 +281,9 @@ public class ApplicationServiceAuthzTest
   public void testGetApplicationsThatHaveTags_PartiallyAuthorized() throws Exception {
 
     Tag tag = tempEntity.newTag(app.getOrganizationId());
-    ApplicationTag applicationTag1 = tempEntity.newApplicationTag(app.getId(), tag.getId());
+    tempEntity.newApplicationTag(app.getId(), tag.getId());
     Application app2 = tempEntity.newApplication("App2", org.getId());
-    ApplicationTag applicationTag2 = tempEntity.newApplicationTag(app2.getId(), tag.getId());
+    tempEntity.newApplicationTag(app2.getId(), tag.getId());
 
     grantReadPermission(app.getId());
 

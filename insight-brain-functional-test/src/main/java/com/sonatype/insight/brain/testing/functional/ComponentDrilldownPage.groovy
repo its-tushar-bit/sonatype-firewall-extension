@@ -21,8 +21,7 @@ class ComponentDrilldownPage
     totalRisk { $('#total-risk')}
 
     componentApplicationTable { $('.component-application-table') }
-    componentApplicationRow { applicationId -> module ComponentApplicationRow,
-        $("#${applicationId}") }
+    componentApplicationRow { applicationId -> module ComponentApplicationRow, $("#app-row-${applicationId}") }
     componentViolationTable { applicationId -> $("div[id\$='${applicationId}'] .table") }
     componentViolationRow { applicationId, policyViolationName -> module ComponentViolationRow,
       componentViolationTable(applicationId).find('tr').has("td", text: "${policyViolationName}") }

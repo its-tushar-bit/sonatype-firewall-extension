@@ -29,7 +29,7 @@
         <tbody>
           <tr ng-repeat-start="applicationComponent in applicationComponents | orderBy:'risk':true"
               ng-class="{ expanded: applicationComponent.isExpanded }"
-              class="expandable-row" id="{{applicationComponent.application.id}}">
+              class="expandable-row" id="app-row-{{applicationComponent.application.id}}">
             <td>
               <i ng-class="{ clickable : applicationComponent.policyViolations.length > 0,
                             'icon-plus-sign' : !applicationComponent.isExpanded && applicationComponent.policyViolations.length > 0,

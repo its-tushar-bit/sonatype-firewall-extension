@@ -846,6 +846,7 @@ table.table-risk td.low-risk {
   font-size: 14px !important;
   line-height: 14px !important;
   padding-right: 5px;
+  vertical-align: middle;
 }
 
 .dashboard-policy-icon:before {
@@ -853,9 +854,7 @@ table.table-risk td.low-risk {
   font-size: 16px !important;
   line-height: 16px !important;
   padding-right: 5px;
-  /* fix the icon positioning */
-  top: 2px;
-  position: relative;
+  vertical-align: middle;
 }
 
 .dashboard-component-icon:before {
@@ -863,4 +862,5 @@ table.table-risk td.low-risk {
   font-size: 14px !important;
   line-height: 14px !important;
   padding-right: 5px;
+  vertical-align: middle;
 }

@@ -806,17 +806,15 @@ public class DashboardService
   }
 
   private void padStageDetails(final NewestRiskDTO newestRiskDTO) {
-    List<String> seenStages = new ArrayList<>();
+    Set<String> seenStages = new HashSet<>();
     for (StageDetailDTO stageDetail : newestRiskDTO.stageDetails) {
       seenStages.add(stageDetail.stageTypeId);
     }
-    for (StageType stageType : StageTypes.getAll()) {
-      if(!StageTypes.isIgnoredForDashboard(stageType.getId())){
-        if(!seenStages.contains(stageType.getId())){
-          StageDetailDTO emptyStageDetails = new StageDetailDTO();
-          emptyStageDetails.stageTypeId = stageType.getId();
-          newestRiskDTO.stageDetails.add(emptyStageDetails);
-        }
+    for (StageType stageType : getStageTypes(null)) {
+      if (!seenStages.contains(stageType.getId())) {
+        StageDetailDTO emptyStageDetails = new StageDetailDTO();
+        emptyStageDetails.stageTypeId = stageType.getId();
+        newestRiskDTO.stageDetails.add(emptyStageDetails);
       }
     }
   }

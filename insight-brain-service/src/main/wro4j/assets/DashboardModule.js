@@ -401,10 +401,13 @@
     };
   }]);
 
-  dashboardModule.controller('NewestRiskTableController', ['$scope', function($scope) {
-    $scope.stageTypeSort = function(stageDetails){
-      var ordinal = 0;
-      switch (stageDetails.stageTypeId) {
+  dashboardModule.controller('NewestRiskTableController', ['$scope', 'StageTypeStore', function($scope, StageTypeStore) {
+    $scope.stageTypeSort = function(stage){
+      var ordinal = null;
+      switch (stage.stageTypeId) {
+        case 'build':
+          ordinal = 0;
+          break;
         case 'stage-release':
           ordinal = 1;
           break;
@@ -414,12 +417,28 @@
         case 'operate':
           ordinal = 3;
           break;
-        default :
-          //stays as 0
-          break;
       }
       return ordinal;
     };
+
+    StageTypeStore.get().then(function(data){
+      $scope.stageTypes = [];
+      // Copy values so we can modify the content for this use-case
+      for(var i = 0; i < data.length; i++) {
+        var stageType = {
+          stageTypeId: data[i].id,
+          name: data[i].name
+        };
+        // Name doesn't fit the display so we shorten it
+        if(stageType.stageTypeId === 'stage-release') {
+          stageType.name = 'Stage';
+        }
+        // Even if we do have 'develop' records we are not going to show them
+        if(stageType.stageTypeId !== 'develop') {
+          $scope.stageTypes.push(stageType);
+        }
+      }
+    });
   }]);
 
   dashboardModule.controller('componentRiskTable', ['$scope', function($scope) {

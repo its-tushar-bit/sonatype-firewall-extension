@@ -570,12 +570,52 @@ describe('DashboardModule', function() {
   });
 
   describe('NewestRiskTableController', function() {
-    beforeEach(inject(function($rootScope, $controller) {
+    var stageTypes = [
+      {"name": "Build", "id": "build"},
+      {"name": "Develop", "id": "develop"},
+      {"name": "Release", "id": "release"},
+      {"name": "Stage Release", "id": "stage-release"},
+      {"name": "Operate", "id": "operate"}
+    ], stageDetails = [
+      {
+        "stageTypeId": "release",
+        "time": 1401149547140,
+        "actionTypeId": "fail",
+        "scanId": "d8cbb9196c2d475991e5fbdcdf96e345"
+      },
+      {
+        "stageTypeId": "build",
+        "time": 1385755537775,
+        "actionTypeId": "warn",
+        "scanId": "175427dcaa88418f8e310eea03233ec1"
+      },
+      {
+        "stageTypeId": "stage-release",
+        "time": 1401133522035,
+        "actionTypeId": "warn",
+        "scanId": "c2bdf85b6292489abfe93882153880f5"
+      },
+      {
+        "stageTypeId": "operate",
+        "time": 0,
+        "actionTypeId": null,
+        "scanId": null
+      }
+    ];
+
+    beforeEach(inject(function($rootScope, $controller, $httpBackend, CLMLocations) {
       scope = $rootScope.$new();
+      $httpBackend.expectGET(CLMLocations.getActionStageUrl()).respond(stageTypes);
       $controller('NewestRiskTableController', { $scope: scope });
+      $httpBackend.flush();
     }));
 
-    if('Can sort stageDetails by stageTypeId', function() {
+    it('Modifies the loaded stages to remove develop and rename Stage-Release', function(){
+      expect(scope.stageTypes.length).toBe(4);
+      expect(scope.stageTypes[2].name).toBe('Stage');
+    });
+
+    it('Can sort stageDetails by stageTypeId', function() {
       expect(scope.stageTypeSort(stageDetails[0])).toBe(2);
       expect(scope.stageTypeSort(stageDetails[1])).toBe(0);
       expect(scope.stageTypeSort(stageDetails[2])).toBe(1);

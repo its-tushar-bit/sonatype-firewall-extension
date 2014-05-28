@@ -40,7 +40,7 @@ import static com.sonatype.insight.brain.testing.functional.modules.ThreatTableR
 class DashboardOverviewSpec
   extends BaseSpec
 {
-  static final String RECENT_AGE = /[1-9]{1}min/
+  static final String RECENT_AGE = /[1-9]min/
 
   static final String alphaMatcher = /background-color: rgba\([0-9][0-9][0-9]?, [0-9][0-9][0-9]?, [0-9][0-9][0-9]?, (.*)\);/
   boolean assertAlpha(style, percentage) {

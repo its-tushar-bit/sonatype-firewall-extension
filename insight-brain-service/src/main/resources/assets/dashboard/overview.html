@@ -90,7 +90,7 @@
       <tr>
         <th id='threat-header' colspan='2' class='clm-bar-text-offset'>
           <div sort-column="threatLevel" sort-inverse="true">
-            RISK
+            THREAT
           </div>
         </th>
         <th class='time-header'>
@@ -239,7 +239,7 @@
           <a id='tab-button-component' href="#" ng-click="$event.preventDefault(); riskTable='components'">By Component</a>
         </li>
         <li class="pull-right" ng-class="{ active : riskTable === 'newest-risk' }">
-          <a id='tab-button-newest' href="#" ng-click="$event.preventDefault(); riskTable='newest-risk'">Newest Risk</a>
+          <a id='tab-button-newest' href="#" ng-click="$event.preventDefault(); riskTable='newest-risk'">Newest</a>
         </li>
       </ul>
       <div ng-switch="riskTable">

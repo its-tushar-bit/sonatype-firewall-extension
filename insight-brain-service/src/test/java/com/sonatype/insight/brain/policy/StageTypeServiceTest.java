@@ -34,7 +34,7 @@ public class StageTypeServiceTest
   private TestProductLicenseManager productLicenseManager;
 
   @Test
-  public void checkStageTypes_RiskRemediation() throws Exception {
+  public void testGetLicensedStageTypes_RiskRemediation() throws Exception {
     productLicenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION);
     clmLicenseManager.installLicense(null);
 
@@ -44,7 +44,7 @@ public class StageTypeServiceTest
   }
 
   @Test
-  public void checkStageTypes_Risk() throws Exception {
+  public void testGetLicensedStageTypes_Risk() throws Exception {
     productLicenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK);
     clmLicenseManager.installLicense(null);
 
@@ -52,7 +52,7 @@ public class StageTypeServiceTest
   }
 
   @Test
-  public void checkStageTypes_Nexus() throws Exception {
+  public void testGetLicensedStageTypes_Nexus() throws Exception {
     productLicenseManager.setProducts(ProductLicenseDetails.PRODUCT_NEXUS);
     clmLicenseManager.installLicense(null);
 
@@ -61,7 +61,7 @@ public class StageTypeServiceTest
   }
 
   @Test
-  public void checkStageTypes_Legacy() throws Exception {
+  public void testGetLicensedStageTypes_Legacy() throws Exception {
     productLicenseManager.setProducts("");
     productLicenseManager.setEnforcementPoints(CLMEnforcementPoint.Build, CLMEnforcementPoint.Develop,
         CLMEnforcementPoint.Release, CLMEnforcementPoint.StageRelease);
@@ -73,7 +73,7 @@ public class StageTypeServiceTest
   }
 
   @Test
-  public void checkStageTypes_LegacyNexus() throws Exception {
+  public void testGetLicensedStageTypes_LegacyNexus() throws Exception {
     productLicenseManager.setProducts("");
     productLicenseManager.setEnforcementPoints(CLMEnforcementPoint.Release, CLMEnforcementPoint.StageRelease);
     clmLicenseManager.installLicense(null);

@@ -23,9 +23,9 @@ class ReportViolationsPage
 
     emptyMessage { $('#clm-welcome-message') }
 
-    filter(require: false) { $('input') }
-    reportViolationRows(require: false) { moduleList ReportViolationsRowModule, $('table.clm-table tbody tr') }
-    appNameHeader(require: false) { $('table.clm-table thead th:first-child') }
-    orgNameHeader(require: false) { $('table.clm-table thead th:last-child') }
+    filter(required: false) { $('input') }
+    reportViolationRows(required: false) { moduleList ReportViolationsRowModule, $('table.clm-table tbody tr') }
+    appNameHeader(required: false) { $('table.clm-table thead th:first-child') }
+    orgNameHeader(required: false) { $('table.clm-table thead th:last-child') }
   }
 }

@@ -29,6 +29,11 @@ import com.sonatype.insight.brain.testing.functional.modules.ThreatTableRow
 import com.sonatype.insight.brain.testing.functional.report.violation.ReportContainerPage
 import org.codehaus.plexus.util.FileUtils
 
+import static com.sonatype.insight.brain.testing.functional.modules.ThreatTableRow.BUILD_AGE
+import static com.sonatype.insight.brain.testing.functional.modules.ThreatTableRow.RELEASE_AGE
+import static com.sonatype.insight.brain.testing.functional.modules.ThreatTableRow.STAGE_RELEASE_AGE
+import static com.sonatype.insight.brain.testing.functional.modules.ThreatTableRow.OPERATE_AGE
+
 /**
  * @since 1.11
  */
@@ -222,15 +227,37 @@ class DashboardOverviewSpec
 
     then: 'risks are sorted by descending threat level, with the most recent results shown first'
       newestViolationTable.rows[0].risk == 10
+
+    and: 'only one stage is populated for the first result'
       !newestViolationTable.rows[0].buildAge
       !newestViolationTable.rows[0].operateAge
       newestViolationTable.rows[0].releaseAge ==~ RECENT_AGE
       newestViolationTable.rows[0].releaseAge == newestViolationTable.rows[0].age
       !newestViolationTable.rows[0].stageReleaseAge
+      newestViolationTable.rows[0].isLatestRisk(RELEASE_AGE)
+
+    and: 'none of the stages are marked warn/fail for the first result'
+      !newestViolationTable.rows[0].isMarkedAsWarn(BUILD_AGE)
+      !newestViolationTable.rows[0].isMarkedAsWarn(STAGE_RELEASE_AGE)
+      !newestViolationTable.rows[0].isMarkedAsWarn(RELEASE_AGE)
+      !newestViolationTable.rows[0].isMarkedAsWarn(OPERATE_AGE)
+
+    and: 'two stages are populated for the second result'
       newestViolationTable.rows[1].risk == 5
       newestViolationTable.rows[1].buildAge == '7d'
       newestViolationTable.rows[1].buildAge == newestViolationTable.rows[1].age
       newestViolationTable.rows[1].stageReleaseAge == '14d'
+
+    and: 'the build stage is marked as fail'
+      newestViolationTable.rows[1].isMarkedAsFail(BUILD_AGE)
+
+    and: 'the build stage is marked as most recent'
+      newestViolationTable.rows[1].isLatestRisk(BUILD_AGE)
+
+    and: 'the stage release stage is marked as warn'
+      newestViolationTable.rows[1].isMarkedAsWarn(STAGE_RELEASE_AGE)
+
+    and: 'the '
 
     when: 'clicking the AGE header'
       newestViolationTable.ageHeader.click()

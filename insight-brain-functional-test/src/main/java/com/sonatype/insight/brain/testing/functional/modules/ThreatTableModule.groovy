@@ -61,5 +61,8 @@ class ThreatTableRow
     operateAge { cell(OPERATE_AGE).text() }
     releaseAge { cell(RELEASE_AGE).text() }
     stageReleaseAge { cell(STAGE_RELEASE_AGE).text() }
+    isLatestRisk { int column -> cell(column).classes().contains('latest-risk') }
+    isMarkedAsWarn { int column -> cell(column).find('i').classes().contains('warn') }
+    isMarkedAsFail { int column -> cell(column).find('i').classes().contains('fail') }
   }
 }

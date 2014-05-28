@@ -368,13 +368,12 @@ table.table-risk thead th:nth-child(1n + 2) {
 
 table.table-risk tr.stage td:first-child {
   font-weight : bold;
-  text-align : right;
+  text-align : center;
 }
 
 table.table-risk tbody td:nth-child(1n + 2) {
   font-weight: bold;
-  text-align : right;
-  padding-right : 15px;
+  text-align : center;
   width : 64px;
 }
 
@@ -647,7 +646,7 @@ table.table-risk td.low-risk {
 }
 
 .dashboard-content #threat-header {
-  min-width: 45px;
+  min-width: 55px;
 }
 
 .dashboard-content .time-header {

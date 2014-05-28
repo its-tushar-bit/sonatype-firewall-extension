@@ -14,14 +14,24 @@ import com.sonatype.insight.brain.model.policy.StageType;
 
 public class StageTypes
 {
+  public static final StageType DEVELOP = new DevelopStageType();
+
+  public static final StageType BUILD = new BuildStageType();
+
+  public static final StageType STAGE_RELEASE = new StageReleaseStageType();
+
+  public static final StageType RELEASE = new ReleaseStageType();
+
+  public static final StageType OPERATE = new OperateStageType();
+
   private static final Map<String, StageType> allStageTypes = new LinkedHashMap<String, StageType>();
 
   static {
-    add(new DevelopStageType());
-    add(new BuildStageType());
-    add(new StageReleaseStageType());
-    add(new ReleaseStageType());
-    add(new OperateStageType());
+    add(DEVELOP);
+    add(BUILD);
+    add(STAGE_RELEASE);
+    add(RELEASE);
+    add(OPERATE);
   }
 
   public static Collection<StageType> getAll() {

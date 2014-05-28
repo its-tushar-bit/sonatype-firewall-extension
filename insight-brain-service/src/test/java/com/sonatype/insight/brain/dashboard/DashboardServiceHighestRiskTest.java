@@ -9,7 +9,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
-import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.ApplicationComponentDAO;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.filter.DashboardFilterDAO;
@@ -82,9 +81,9 @@ public class DashboardServiceHighestRiskTest
         policyEvaluationDAO, policyViolationAdapter, policyViolationDAO, stageTypeService, dashboardFilterDAO);
   }
 
-  private StageType buildStage = StageTypes.getById(Stage.ID_BUILD);
+  private StageType buildStage = StageTypes.BUILD;
 
-  private StageType releaseStage = StageTypes.getById(Stage.ID_RELEASE);
+  private StageType releaseStage = StageTypes.RELEASE;
 
   private String appId1 = "wagarbl";
 

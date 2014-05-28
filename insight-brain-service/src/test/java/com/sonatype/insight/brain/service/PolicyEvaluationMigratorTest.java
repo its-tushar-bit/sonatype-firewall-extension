@@ -198,8 +198,8 @@ public class PolicyEvaluationMigratorTest
     assertPolicyViolationActions(stageReleaseViolations.get(1), null /* actionTypeId */);
 
     Collection<StageType> emptyStages = new ArrayList<>(StageTypes.getAll());
-    emptyStages.remove(StageTypes.getById(Stage.ID_BUILD));
-    emptyStages.remove(StageTypes.getById(Stage.ID_STAGE_RELEASE));
+    emptyStages.remove(StageTypes.BUILD);
+    emptyStages.remove(StageTypes.STAGE_RELEASE);
     for (StageType stageType : emptyStages) {
       assertThat(policyEvaluationDAO.getAllByApplicationIdAndStageId(app1.getId(), stageType.getId()), empty());
     }
@@ -245,7 +245,7 @@ public class PolicyEvaluationMigratorTest
     assertUnknownPolicyViolation(policyEvaluation.getId(), policyViolations.get(1));
 
     emptyStages = new ArrayList<>(StageTypes.getAll());
-    emptyStages.remove(StageTypes.getById(Stage.ID_RELEASE));
+    emptyStages.remove(StageTypes.RELEASE);
     for (StageType stageType : emptyStages) {
       assertThat(policyEvaluationDAO.getAllByApplicationIdAndStageId(app2.getId(), stageType.getId()), empty());
     }

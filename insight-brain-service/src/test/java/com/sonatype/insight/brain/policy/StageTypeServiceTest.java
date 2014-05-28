@@ -9,11 +9,6 @@ package com.sonatype.insight.brain.policy;
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.TestProductLicenseManager;
-import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
-import com.sonatype.insight.brain.model.policy.stages.DevelopStageType;
-import com.sonatype.insight.brain.model.policy.stages.OperateStageType;
-import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
-import com.sonatype.insight.brain.model.policy.stages.StageReleaseStageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
@@ -44,10 +39,8 @@ public class StageTypeServiceTest
     clmLicenseManager.installLicense(null);
 
     assertThat(stageTypeService.getLicensedStageTypes(),
-        containsInAnyOrder(StageTypes.getById(BuildStageType.ID), StageTypes.getById(DevelopStageType.ID),
-            StageTypes.getById(OperateStageType.ID), StageTypes.getById(ReleaseStageType.ID),
-            StageTypes.getById(StageReleaseStageType.ID))
-    );
+        containsInAnyOrder(StageTypes.DEVELOP, StageTypes.BUILD, StageTypes.STAGE_RELEASE, StageTypes.RELEASE,
+            StageTypes.OPERATE));
   }
 
   @Test
@@ -55,8 +48,7 @@ public class StageTypeServiceTest
     productLicenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK);
     clmLicenseManager.installLicense(null);
 
-    assertThat(stageTypeService.getLicensedStageTypes(),
-        containsInAnyOrder(StageTypes.getById(ReleaseStageType.ID)));
+    assertThat(stageTypeService.getLicensedStageTypes(), containsInAnyOrder(StageTypes.RELEASE));
   }
 
   @Test
@@ -65,7 +57,7 @@ public class StageTypeServiceTest
     clmLicenseManager.installLicense(null);
 
     assertThat(stageTypeService.getLicensedStageTypes(),
-        containsInAnyOrder(StageTypes.getById(ReleaseStageType.ID), StageTypes.getById(StageReleaseStageType.ID)));
+        containsInAnyOrder(StageTypes.STAGE_RELEASE, StageTypes.RELEASE));
   }
 
   @Test
@@ -76,10 +68,8 @@ public class StageTypeServiceTest
     clmLicenseManager.installLicense(null);
 
     assertThat(stageTypeService.getLicensedStageTypes(),
-        containsInAnyOrder(StageTypes.getById(BuildStageType.ID), StageTypes.getById(DevelopStageType.ID),
-            StageTypes.getById(ReleaseStageType.ID), StageTypes.getById(StageReleaseStageType.ID),
-            StageTypes.getById(OperateStageType.ID))
-    );
+        containsInAnyOrder(StageTypes.DEVELOP, StageTypes.BUILD, StageTypes.STAGE_RELEASE, StageTypes.RELEASE,
+            StageTypes.OPERATE));
   }
 
   @Test
@@ -89,7 +79,6 @@ public class StageTypeServiceTest
     clmLicenseManager.installLicense(null);
 
     assertThat(stageTypeService.getLicensedStageTypes(),
-        containsInAnyOrder(StageTypes.getById(ReleaseStageType.ID), StageTypes.getById(StageReleaseStageType.ID))
-    );
+        containsInAnyOrder(StageTypes.STAGE_RELEASE, StageTypes.RELEASE));
   }
 }

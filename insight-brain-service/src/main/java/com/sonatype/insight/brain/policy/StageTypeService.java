@@ -13,11 +13,6 @@ import javax.inject.Inject;
 import javax.inject.Named;
 
 import com.sonatype.insight.brain.model.policy.StageType;
-import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
-import com.sonatype.insight.brain.model.policy.stages.DevelopStageType;
-import com.sonatype.insight.brain.model.policy.stages.OperateStageType;
-import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
-import com.sonatype.insight.brain.model.policy.stages.StageReleaseStageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.license.model.CLMEnforcementPoint;
@@ -47,12 +42,12 @@ public class StageTypeService
       return StageTypes.getAll();
     }
     else if (licenseManager.hasProduct(ProductLicenseDetails.PRODUCT_RISK)) {
-      return Collections.singleton(StageTypes.getById(ReleaseStageType.ID));
+      return Collections.singleton(StageTypes.RELEASE);
     }
     else if (licenseManager.hasProduct(ProductLicenseDetails.PRODUCT_NEXUS)) {
       ArrayList<StageType> types = new ArrayList<>();
-      types.add(StageTypes.getById(ReleaseStageType.ID));
-      types.add(StageTypes.getById(StageReleaseStageType.ID));
+      types.add(StageTypes.RELEASE);
+      types.add(StageTypes.STAGE_RELEASE);
       return types;
     }
 
@@ -64,20 +59,20 @@ public class StageTypeService
   private Collection<StageType> getLegacy() {
     ArrayList<StageType> types = new ArrayList<>();
     if (licenseManager.hasEnforcementPoint(CLMEnforcementPoint.Build)) {
-      types.add(StageTypes.getById(BuildStageType.ID));
+      types.add(StageTypes.BUILD);
     }
     if (licenseManager.hasEnforcementPoint(CLMEnforcementPoint.Develop)) {
-      types.add(StageTypes.getById(DevelopStageType.ID));
+      types.add(StageTypes.DEVELOP);
     }
     if (licenseManager.hasEnforcementPoint(CLMEnforcementPoint.Release)) {
-      types.add(StageTypes.getById(ReleaseStageType.ID));
+      types.add(StageTypes.RELEASE);
     }
     if (licenseManager.hasEnforcementPoint(CLMEnforcementPoint.StageRelease)) {
-      types.add(StageTypes.getById(StageReleaseStageType.ID));
+      types.add(StageTypes.STAGE_RELEASE);
     }
 
     if (!licenseManager.isLegacyNexusClmLicense()) {
-      types.add(StageTypes.getById(OperateStageType.ID));
+      types.add(StageTypes.OPERATE);
     }
 
     return types;

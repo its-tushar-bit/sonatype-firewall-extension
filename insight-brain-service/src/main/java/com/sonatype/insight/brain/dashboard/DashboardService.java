@@ -723,8 +723,9 @@ public class DashboardService
         else {
           dto.scoreLow += violation.threatLevel;
         }
-        if (StringUtils.isNotEmpty(violation.groupId)) {
-          dto.gavs.add(new GavDTO(violation.groupId, violation.artifactId, violation.version));
+        GavDTO gav = GavDTO.from(violation.groupId, violation.artifactId, violation.version);
+        if (gav != null) {
+          dto.gavs.add(gav);
         }
         if (violation.pathnames != null) {
           dto.pathnames.addAll(violation.pathnames);
@@ -830,10 +831,7 @@ public class DashboardService
     newestRiskDTO.policyId = policyViolation.getPolicyId();
     newestRiskDTO.policyName = policyViolation.getPolicyName();
     newestRiskDTO.hash = policyViolation.getHash();
-    if (policyViolation.getGroupId() != null) {
-      newestRiskDTO.gav = new GavDTO(policyViolation.getGroupId(), policyViolation.getArtifactId(),
-          policyViolation.getVersion());
-    }
+    newestRiskDTO.gav = GavDTO.from(policyViolation);
     newestRiskDTO.pathnames = policyViolation.getPathnames();
 
     StageDetailDTO stageDetailDTO = new StageDetailDTO();
@@ -851,10 +849,7 @@ public class DashboardService
   {
     if (newestRiskDTO.time < policyViolation.getTime().getTime()) {
       newestRiskDTO.time = policyViolation.getTime().getTime();
-      if (policyViolation.getGroupId() != null) {
-        newestRiskDTO.gav = new GavDTO(policyViolation.getGroupId(), policyViolation.getArtifactId(),
-            policyViolation.getVersion());
-      }
+      newestRiskDTO.gav = GavDTO.from(policyViolation);
       newestRiskDTO.pathnames = policyViolation.getPathnames();
     }
 

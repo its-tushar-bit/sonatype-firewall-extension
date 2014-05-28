@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.dashboard;
 
+import com.sonatype.insight.brain.model.policy.PolicyViolation;
+
 public class GavDTO
 {
   public String groupId;
@@ -16,10 +18,27 @@ public class GavDTO
   public GavDTO() {
   }
 
-  public GavDTO(String groupId, String artifactId, String version) {
+  private GavDTO(String groupId, String artifactId, String version) {
     this.groupId = groupId;
     this.artifactId = artifactId;
     this.version = version;
+  }
+
+  /**
+   * Wraps the specified coordinates into a DTO and returns {@code null} if the coordinates aren't set.
+   */
+  public static GavDTO from(String groupId, String artifactId, String version) {
+    if (groupId == null) {
+      return null;
+    }
+    return new GavDTO(groupId, artifactId, version);
+  }
+
+  /**
+   * Creates a DTO from the specified violation and returns {@code null} if the coordinates aren't known.
+   */
+  public static GavDTO from(PolicyViolation violation) {
+    return from(violation.getGroupId(), violation.getArtifactId(), violation.getVersion());
   }
 
   @Override

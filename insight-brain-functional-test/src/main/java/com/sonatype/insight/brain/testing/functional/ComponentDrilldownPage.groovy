@@ -22,7 +22,7 @@ class ComponentDrilldownPage
 
     componentApplicationTable { $('.component-application-table') }
     componentApplicationRow { applicationId -> module ComponentApplicationRow,
-        componentApplicationTable.find("#${applicationId}") }
+        $("#${applicationId}") }
     componentViolationTable { applicationId -> $("div[id\$='${applicationId}'] .table") }
     componentViolationRow { applicationId, policyViolationName -> module ComponentViolationRow,
       componentViolationTable(applicationId).find('tr').has("td", text: "${policyViolationName}") }

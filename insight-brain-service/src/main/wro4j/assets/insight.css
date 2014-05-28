@@ -776,7 +776,7 @@ table.table-risk td.low-risk {
 }
 
 .dashboard-label-wrapper {
-  padding: 5px;
+  padding: 5px 0px 5px 0px;
   margin-top: 5px;
   margin-bottom: 5px;
   width: 100%;

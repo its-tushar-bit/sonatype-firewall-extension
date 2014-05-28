@@ -372,7 +372,6 @@ table.table-risk tr.stage td:first-child {
 }
 
 table.table-risk tbody td:nth-child(1n + 2) {
-  font-weight: bold;
   text-align : center;
   width : 64px;
 }
@@ -401,6 +400,7 @@ table.table-risk td.total-risk {
   background-color : #444;
   color : #FFF;
   font-size: 14px;
+  border-bottom: 2px solid white;
 }
 
 table.table-risk .stage td.total-risk, table.table-risk td.total-risk.black-text {

@@ -806,6 +806,9 @@ public class DashboardService
     return filtered;
   }
 
+  /**
+   * Add an 'empty' record for each missing stage we need to show in the UI.
+   */
   private void padStageDetails(final NewestRiskDTO newestRiskDTO) {
     Set<String> seenStages = new HashSet<>();
     for (StageDetailDTO stageDetail : newestRiskDTO.stageDetails) {

@@ -24,9 +24,6 @@ public class GavDTO
     this.version = version;
   }
 
-  /**
-   * Wraps the specified coordinates into a DTO and returns {@code null} if the coordinates aren't set.
-   */
   public static GavDTO from(String groupId, String artifactId, String version) {
     if (groupId == null) {
       return null;
@@ -34,9 +31,6 @@ public class GavDTO
     return new GavDTO(groupId, artifactId, version);
   }
 
-  /**
-   * Creates a DTO from the specified violation and returns {@code null} if the coordinates aren't known.
-   */
   public static GavDTO from(PolicyViolation violation) {
     return from(violation.getGroupId(), violation.getArtifactId(), violation.getVersion());
   }

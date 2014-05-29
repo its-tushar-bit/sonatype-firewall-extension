@@ -377,7 +377,7 @@ table.table-risk tbody td:nth-child(1n + 2) {
 }
 
 table.table-risk  tbody tr:first-child td {
-  border-top : 2px solid transparent;
+  border-top : 1px solid transparent;
 }
 
 table.table-risk thead tr th:nth-child(n+2), table.table-risk thead tr th:nth-child(n+2) div {
@@ -400,13 +400,7 @@ table.table-risk td.total-risk {
   background-color : #444;
   color : #FFF;
   font-size: 14px;
-  border-bottom: 2px solid white;
-}
-
-table.table-risk td.risk-description {
-  border-bottom: 2px solid white;
-  border-top: 2px solid white;
-  border-right: 2px solid white;
+  border-bottom: 1px solid white;
 }
 
 table.table-risk tr.stage td {
@@ -425,29 +419,29 @@ table.table-risk td.muted-text {
 table.table-risk td.critical-risk {
   background-color : #E6A29F;
   color : #880D10;
-  border-left: 2px solid white;
-  border-bottom: 2px solid white;
+  border-left: 1px solid white;
+  border-bottom: 1px solid white;
 }
 
 table.table-risk td.severe-risk {
   background-color : #E7C2A1;
   color : #64460A;
-  border-left: 2px solid white;
-  border-bottom: 2px solid white;
+  border-left: 1px solid white;
+  border-bottom: 1px solid white;
 }
 
 table.table-risk td.moderate-risk {
   background-color : #E8D9A1;
   color : #968900;
-  border-left: 2px solid white;
-  border-bottom: 2px solid white;
+  border-left: 1px solid white;
+  border-bottom: 1px solid white;
 }
 
 table.table-risk td.low-risk {
   background-color : #B8D7E8;
   color : #233894;
-  border-left: 2px solid white;
-  border-bottom: 2px solid white;
+  border-left: 1px solid white;
+  border-bottom: 1px solid white;
 }
 
 .dashboard-content th {

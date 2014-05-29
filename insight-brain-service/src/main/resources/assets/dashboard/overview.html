@@ -263,7 +263,7 @@
                 </tr>
                 </thead>
                 <tr ng-repeat-start="application in data | limitTo: maxResults | orderBy:getSortField():getSortReverse()">
-                  <td class="risk-description"><i ng-class="{ 'clickable' : canExpand(application),
+                  <td><i ng-class="{ 'clickable' : canExpand(application),
                                         'icon-plus-sign' : canExpand(application),
                                         'icon-minus-sign' : isExpanded(application),
                                         'emptyIconGlyph' : !canExpand(application) }"
@@ -334,17 +334,17 @@
                   </tr>
                 </thead>
                 <tr ng-repeat="component in data | limitTo: maxResults | orderBy:getSortField():getSortReverse()">
-                  <td class="risk-description" ng-if="component.gavs.length">
+                  <td ng-if="component.gavs.length">
                     <a ui-sref="dashboard.component({ hash: component.hash })">
                       {{component.gavs[0].groupId}}<span class="wrap-force-break"> : </span>{{component.gavs[0].artifactId}}<span class="wrap-force-break"> : </span>{{component.gavs[0].version}}
                     </a>
                   </td>
-                  <td class="risk-description" ng-if="!component.gavs.length && component.pathnames.length" pathnames-popover='component.pathnames'>
+                  <td ng-if="!component.gavs.length && component.pathnames.length" pathnames-popover='component.pathnames'>
                     <a ui-sref="dashboard.component({ hash: component.hash })">
                       <em>{{component.pathnames[0] | fileName}}</em>
                     </a>
                   </td>
-                  <td class="risk-description" ng-if="!component.gavs.length && !component.pathnames.length">
+                  <td ng-if="!component.gavs.length && !component.pathnames.length">
                     <a ui-sref="dashboard.component({ hash: component.hash })">
                       <em>Unknown</em>
                     </a>

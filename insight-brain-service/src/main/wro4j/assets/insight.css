@@ -409,6 +409,12 @@ table.table-risk td.risk-description {
   border-right: 2px solid white;
 }
 
+table.table-risk tr.stage td {
+  border-bottom: 1px solid #ddd;
+  border-right: 0px;
+  border-left: 0px;
+}
+
 table.table-risk .stage td.total-risk, table.table-risk td.total-risk.black-text {
   color: #000;
 }

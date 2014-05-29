@@ -75,11 +75,11 @@
         <td>{{actionStage.name}}</td>
         <td style="height: 22px;text-align:center;cursor:pointer;vertical-align:middle;" ng-click='toggleWarnAction(actionStage)'
             class="sonatype-icons-hover" ng-class="{'warn': !showWarningIcon(actionStage)}">
-            <i ng-show='showWarningIcon(actionStage)' class='sonatype-icons warn'/>
+            <i ng-show='showWarningIcon(actionStage)' class='sonatype-icons warn'></i>
         </td>
         <td style="text-align:center;cursor:pointer;vertical-align:middle;" ng-click='toggleFailureAction(actionStage)'
             class="sonatype-icons-hover" ng-class="{'fail': !showFailureIcon(actionStage)}">
-          <i ng-show='showFailureIcon(actionStage)' class='sonatype-icons fail'/>
+          <i ng-show='showFailureIcon(actionStage)' class='sonatype-icons fail'></i>
         </td>
         <td style="width:400px;">
                   <div class="truncate-ellipsis" style="width:400px; cursor:pointer;"

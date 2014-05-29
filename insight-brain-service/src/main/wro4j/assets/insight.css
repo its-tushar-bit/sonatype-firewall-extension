@@ -870,3 +870,7 @@ table.table-risk td.low-risk {
   padding-right: 5px;
   vertical-align: middle;
 }
+
+.wrap-force-break {
+  word-spacing: -0.1em;
+}

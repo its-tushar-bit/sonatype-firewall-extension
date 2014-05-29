@@ -134,15 +134,15 @@ public class DashboardService
    */
   private List<PolicyViolationDTO> getPolicyViolations(Set<String> applicationPublicIds, Set<String> stageIds,
       Set<String> tagIds, PolicyThreatCategoryFilter policyThreatCategoryFilter,
-      PolicyThreatLevelFilter policyThreatLevelFilter, Integer maxResults)
+      PolicyThreatLevelFilter policyThreatLevelFilter)
   {
     Predicate<PolicyViolation> filter = buildViolationFilter(policyThreatCategoryFilter, policyThreatLevelFilter);
 
     if (applicationPublicIds == null || applicationPublicIds.isEmpty()) {
-      return getPolicyViolations(stageIds, tagIds, filter, maxResults);
+      return getPolicyViolations(stageIds, tagIds, filter);
     }
 
-    return getPolicyViolationsByApplicationIds(applicationPublicIds, stageIds, tagIds, filter, maxResults);
+    return getPolicyViolationsByApplicationIds(applicationPublicIds, stageIds, tagIds, filter);
   }
 
   private Predicate<PolicyViolation> buildViolationFilter(PolicyThreatCategoryFilter threatCategoryFilter,
@@ -165,7 +165,6 @@ public class DashboardService
    * @param stageTypeIds The stages to get policy violations for, defaults to {@link BuildStageType#ID}.
    * @param tagIds The tag ids to filter the applications for which to get policy violations, defaults to all applications
    * @param violationFilter A filter for violations, defaults to accept all violations.
-   * @param limit If not null returns only the top violations limited by this amount.
    * @return A list of {@link PolicyViolationDTO}s for the provided application public ids.
    * @throws BadRequestException Thrown if the list of application public ids is null, empty, the stage type id is
    *           unknown, or the first element is an empty string.
@@ -177,7 +176,7 @@ public class DashboardService
    */
   List<PolicyViolationDTO> getPolicyViolationsByApplicationIds(Set<String> applicationPublicIds,
       @Nullable Set<String> stageTypeIds, @Nullable Set<String> tagIds,
-      @Nullable Predicate<PolicyViolation> violationFilter, @Nullable Integer limit)
+      @Nullable Predicate<PolicyViolation> violationFilter)
   {
     Set<StageType> stages = getStageTypes(stageTypeIds);
 
@@ -201,20 +200,18 @@ public class DashboardService
     }
 
     List<PolicyViolationDTO> sortedPolicyViolationDTOs = sort(policyViolationDTOs);
-    return limit != null ? Lists.newArrayList(Iterables.limit(sortedPolicyViolationDTOs, limit))
-        : sortedPolicyViolationDTOs;
+    return sortedPolicyViolationDTOs;
   }
 
   /**
    * @param stageTypeIds The stages to get policy violations for, defaults to {@link BuildStageType#ID}.
    * @param tagIds The tag ids to filter the applications for which to get policy violations, defaults to all applications
    * @param violationFilter A filter for violations, defaults to accept all violations.
-   * @param limit If not null returns only the top violations limited by this amount.
    * @return A list of {@link PolicyViolationDTO}s for all applications with read permissions.
    * @throws BadRequestException Thrown if the stageTypeId does not match a known {@link StageType}.
    */
   List<PolicyViolationDTO> getPolicyViolations(@Nullable Set<String> stageTypeIds, @Nullable final Set<String> tagIds,
-      @Nullable Predicate<PolicyViolation> violationFilter, @Nullable Integer limit)
+      @Nullable Predicate<PolicyViolation> violationFilter)
   {
     Set<StageType> stages = getStageTypes(stageTypeIds);
 
@@ -236,8 +233,7 @@ public class DashboardService
     }
 
     List<PolicyViolationDTO> sortedPolicyViolationDTOs = sort(policyViolationDTOs);
-    return limit != null ? Lists.newArrayList(Iterables.limit(sortedPolicyViolationDTOs, limit))
-        : sortedPolicyViolationDTOs;
+    return sortedPolicyViolationDTOs;
   }
 
   List<PolicyViolation> filter(List<PolicyViolation> violations, Predicate<PolicyViolation> violationFilter) {
@@ -545,7 +541,7 @@ public class DashboardService
       PolicyThreatLevelFilter policyThreatLevelFilter, int maxResults)
   {
     List<PolicyViolationDTO> violations = getPolicyViolations(applicationPublicIds, stageIds, tagIds,
-        policyThreatCategoryFilter, policyThreatLevelFilter, null);
+        policyThreatCategoryFilter, policyThreatLevelFilter);
     Map<String, ComponentViolationRollUp> componentsByHash = new LinkedHashMap<>();
     for (PolicyViolationDTO violation : violations) {
       ComponentViolationRollUp component = componentsByHash.get(violation.hash);

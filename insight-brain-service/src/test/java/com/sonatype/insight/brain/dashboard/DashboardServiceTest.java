@@ -114,7 +114,7 @@ public class DashboardServiceTest
   public void testGetPolicyViolationsWithBadStageTypeId() {
     String badStageTypeId = "not a real stage type id";
     try {
-      dashboardService.getPolicyViolations(Sets.newHashSet(badStageTypeId), null, null, null);
+      dashboardService.getPolicyViolations(Sets.newHashSet(badStageTypeId), null, null);
       fail("Expected BadRequestException to be thrown.");
     }
     catch (BadRequestException e) {
@@ -128,12 +128,12 @@ public class DashboardServiceTest
     clmLicenseManager.installLicense(null);
 
     // Since we are not licensed for the build stage existing violations will not be returned.
-    List<PolicyViolationDTO> policyViolationDTOs = dashboardService.getPolicyViolations(null, null, null, null);
+    List<PolicyViolationDTO> policyViolationDTOs = dashboardService.getPolicyViolations(null, null, null);
     assertThat(policyViolationDTOs, hasSize(0));
 
     Set<String> stageTypeIds = Sets.newHashSet(BuildStageType.ID);
     try {
-      policyViolationDTOs = dashboardService.getPolicyViolations(stageTypeIds, null, null, null);
+      policyViolationDTOs = dashboardService.getPolicyViolations(stageTypeIds, null, null);
     }
     catch (BadRequestException e) {
       assertEquals(e.getMessage(), "Current license does not support stage type: " + BuildStageType.ID + ".");
@@ -147,7 +147,7 @@ public class DashboardServiceTest
     PolicyViolation violation = tempEntity.newPolicyViolation(newApp1PolicyEvaluation, app1Policy);
 
     // If no stages are given return violations for all stages.
-    List<PolicyViolationDTO> policyViolationDTOs = dashboardService.getPolicyViolations(null, null, null, null);
+    List<PolicyViolationDTO> policyViolationDTOs = dashboardService.getPolicyViolations(null, null, null);
 
     assertThat(policyViolationDTOs, hasSize(4));
     assertPolicyViolationDTO(policyViolationDTOs, orgPolicyViolation, app1, orgPolicy);
@@ -156,7 +156,7 @@ public class DashboardServiceTest
     assertPolicyViolationDTO(policyViolationDTOs, violation, app1, app1Policy);
 
     Set<String> stageTypeIds = Collections.emptySet();
-    policyViolationDTOs = dashboardService.getPolicyViolations(stageTypeIds, null, null, null);
+    policyViolationDTOs = dashboardService.getPolicyViolations(stageTypeIds, null, null);
 
     assertThat(policyViolationDTOs, hasSize(4));
     assertPolicyViolationDTO(policyViolationDTOs, orgPolicyViolation, app1, orgPolicy);
@@ -169,7 +169,7 @@ public class DashboardServiceTest
   public void testGetPolicyViolationsWithNullApplicationPublicIds() {
     Set<String> nullApplicationPublicId = null;
     try {
-      dashboardService.getPolicyViolationsByApplicationIds(nullApplicationPublicId, null, null, null, null);
+      dashboardService.getPolicyViolationsByApplicationIds(nullApplicationPublicId, null, null, null);
       fail("Expected BadRequestException to be thrown.");
     }
     catch (BadRequestException e) {
@@ -181,7 +181,7 @@ public class DashboardServiceTest
   public void testGetPolicyViolationsWithEmptyApplicationPublicIds() {
     Set<String> emptyApplicationPublicId = new HashSet<>();
     try {
-      dashboardService.getPolicyViolationsByApplicationIds(emptyApplicationPublicId, null, null, null, null);
+      dashboardService.getPolicyViolationsByApplicationIds(emptyApplicationPublicId, null, null, null);
       fail("Expected BadRequestException to be thrown.");
     }
     catch (BadRequestException e) {
@@ -191,7 +191,7 @@ public class DashboardServiceTest
 
   @Test
   public void testGetPolicyViolations() {
-    List<PolicyViolationDTO> policyViolationDTOs = dashboardService.getPolicyViolations(null, null, null, null);
+    List<PolicyViolationDTO> policyViolationDTOs = dashboardService.getPolicyViolations(null, null, null);
     assertThat(policyViolationDTOs, hasSize(3));
     assertPolicyViolationDTO(policyViolationDTOs, orgPolicyViolation, app1, orgPolicy);
     assertPolicyViolationDTO(policyViolationDTOs, app1PolicyViolation, app1, app1Policy);
@@ -205,7 +205,7 @@ public class DashboardServiceTest
     PolicyViolation violation = tempEntity.newPolicyViolation(newApp1PolicyEvaluation, app1Policy);
 
     List<PolicyViolationDTO> policyViolationDTOs = dashboardService.getPolicyViolations(
-        Sets.newHashSet(BuildStageType.ID, ReleaseStageType.ID), null, null, null);
+        Sets.newHashSet(BuildStageType.ID, ReleaseStageType.ID), null, null);
     assertThat(policyViolationDTOs, hasSize(4));
     assertPolicyViolationDTO(policyViolationDTOs, orgPolicyViolation, app1, orgPolicy);
     assertPolicyViolationDTO(policyViolationDTOs, app1PolicyViolation, app1, app1Policy);
@@ -219,11 +219,11 @@ public class DashboardServiceTest
         .newPolicyEvaluation(app1.getId(), DevelopStageType.ID, "test scan app1 id");
     tempEntity.newPolicyViolation(evaluation, app1Policy);
 
-    List<PolicyViolationDTO> policyViolationDTOs = dashboardService.getPolicyViolations(null, null, null, null);
+    List<PolicyViolationDTO> policyViolationDTOs = dashboardService.getPolicyViolations(null, null, null);
     assertThat(policyViolationDTOs, hasSize(3));
 
     try {
-      dashboardService.getPolicyViolations(Collections.singleton(DevelopStageType.ID), null, null, null);
+      dashboardService.getPolicyViolations(Collections.singleton(DevelopStageType.ID), null, null);
       fail("Expected exception");
     }
     catch (BadRequestException e) {
@@ -239,12 +239,12 @@ public class DashboardServiceTest
 
     List<PolicyViolationDTO> policyViolationDTOs = dashboardService.getPolicyViolations(
         Sets.newHashSet(ReleaseStageType.ID), null,
-        new PolicyThreatCategoryFilter(PolicyThreatCategory.OTHER).asPolicyViolationPredicate(), null);
+        new PolicyThreatCategoryFilter(PolicyThreatCategory.OTHER).asPolicyViolationPredicate());
 
     assertThat(policyViolationDTOs, hasSize(0));
 
     policyViolationDTOs = dashboardService.getPolicyViolations(Sets.newHashSet(ReleaseStageType.ID), null,
-        new PolicyThreatCategoryFilter(PolicyThreatCategory.LICENSE).asPolicyViolationPredicate(), null);
+        new PolicyThreatCategoryFilter(PolicyThreatCategory.LICENSE).asPolicyViolationPredicate());
 
     assertThat(policyViolationDTOs, hasSize(1));
     assertPolicyViolationDTO(policyViolationDTOs, violation, app1, app1Policy);
@@ -258,14 +258,13 @@ public class DashboardServiceTest
 
     // Violation out of threat level range.
     List<PolicyViolationDTO> policyViolationDTOs = dashboardService.getPolicyViolations(
-        Sets.newHashSet(ReleaseStageType.ID), null, new PolicyThreatLevelFilter(6, 7).asPolicyViolationPredicate(),
-        null);
+        Sets.newHashSet(ReleaseStageType.ID), null, new PolicyThreatLevelFilter(6, 7).asPolicyViolationPredicate());
 
     assertThat(policyViolationDTOs, hasSize(0));
 
     // Violation in range.
     policyViolationDTOs = dashboardService.getPolicyViolations(Sets.newHashSet(ReleaseStageType.ID), null,
-        new PolicyThreatLevelFilter(5, 7).asPolicyViolationPredicate(), null);
+        new PolicyThreatLevelFilter(5, 7).asPolicyViolationPredicate());
 
     assertThat(policyViolationDTOs, hasSize(1));
     assertPolicyViolationDTO(policyViolationDTOs, violation, app1, app1Policy);
@@ -281,25 +280,25 @@ public class DashboardServiceTest
     List<PolicyViolationDTO> policyViolationDTOs = dashboardService.getPolicyViolations(Sets
         .newHashSet(ReleaseStageType.ID), null, Predicates.and(new PolicyThreatCategoryFilter(
         PolicyThreatCategory.OTHER).asPolicyViolationPredicate(), new PolicyThreatLevelFilter(6, 7)
-        .asPolicyViolationPredicate()), null);
+        .asPolicyViolationPredicate()));
     assertThat(policyViolationDTOs, hasSize(0));
 
     // Violation out of threat level range and correct threat category.
     policyViolationDTOs = dashboardService.getPolicyViolations(Sets.newHashSet(ReleaseStageType.ID), null, Predicates
         .and(new PolicyThreatCategoryFilter(PolicyThreatCategory.LICENSE).asPolicyViolationPredicate(),
-            new PolicyThreatLevelFilter(6, 7).asPolicyViolationPredicate()), null);
+            new PolicyThreatLevelFilter(6, 7).asPolicyViolationPredicate()));
     assertThat(policyViolationDTOs, hasSize(0));
 
     // Violation in range, but wrong threat category.
     policyViolationDTOs = dashboardService.getPolicyViolations(Sets.newHashSet(ReleaseStageType.ID), null, Predicates
         .and(new PolicyThreatCategoryFilter(PolicyThreatCategory.OTHER).asPolicyViolationPredicate(),
-            new PolicyThreatLevelFilter(5, 7).asPolicyViolationPredicate()), null);
+            new PolicyThreatLevelFilter(5, 7).asPolicyViolationPredicate()));
     assertThat(policyViolationDTOs, hasSize(0));
 
     // Violation in range and in the correct category.
     policyViolationDTOs = dashboardService.getPolicyViolations(Sets.newHashSet(ReleaseStageType.ID), null, Predicates
         .and(new PolicyThreatCategoryFilter(PolicyThreatCategory.LICENSE).asPolicyViolationPredicate(),
-            new PolicyThreatLevelFilter(5, 7).asPolicyViolationPredicate()), null);
+            new PolicyThreatLevelFilter(5, 7).asPolicyViolationPredicate()));
 
     assertThat(policyViolationDTOs, hasSize(1));
     assertPolicyViolationDTO(policyViolationDTOs, violation, app1, app1Policy);
@@ -309,7 +308,7 @@ public class DashboardServiceTest
   public void testGetPolicyViolationsReturnsLatest() {
     // Create a new evaluation for app1 that does not include any violations.
     tempEntity.newPolicyEvaluation(app1.getId(), BuildStageType.ID, "re-scan app1");
-    List<PolicyViolationDTO> policyViolationDTOs = dashboardService.getPolicyViolations(null, null, null, null);
+    List<PolicyViolationDTO> policyViolationDTOs = dashboardService.getPolicyViolations(null, null, null);
 
     // The violations count should be 1, all of which come from app2.
     assertThat(policyViolationDTOs, hasSize(1));
@@ -319,7 +318,7 @@ public class DashboardServiceTest
   @Test
   public void testGetPolicyViolationsByApplicationIds() {
     List<PolicyViolationDTO> policyViolationDTOs = dashboardService.getPolicyViolationsByApplicationIds(
-        Sets.newHashSet(app1.getPublicId(), app2.getPublicId()), null, null, null, null);
+        Sets.newHashSet(app1.getPublicId(), app2.getPublicId()), null, null, null);
     assertThat(policyViolationDTOs, hasSize(3));
     assertPolicyViolationDTO(policyViolationDTOs, orgPolicyViolation, app1, orgPolicy);
     assertPolicyViolationDTO(policyViolationDTOs, app1PolicyViolation, app1, app1Policy);
@@ -334,7 +333,7 @@ public class DashboardServiceTest
 
     List<PolicyViolationDTO> policyViolationDTOs = dashboardService.getPolicyViolationsByApplicationIds(
         Sets.newHashSet(app1.getPublicId(), app2.getPublicId()),
-        Sets.newHashSet(BuildStageType.ID, ReleaseStageType.ID), null, null, null);
+        Sets.newHashSet(BuildStageType.ID, ReleaseStageType.ID), null, null);
     assertThat(policyViolationDTOs, hasSize(4));
     assertPolicyViolationDTO(policyViolationDTOs, orgPolicyViolation, app1, orgPolicy);
     assertPolicyViolationDTO(policyViolationDTOs, app1PolicyViolation, app1, app1Policy);
@@ -347,7 +346,7 @@ public class DashboardServiceTest
     // Create a new evaluation for app1 that does not include any violations.
     tempEntity.newPolicyEvaluation(app1.getId(), BuildStageType.ID, "re-scan app1");
     List<PolicyViolationDTO> policyViolationDTOs = dashboardService.getPolicyViolationsByApplicationIds(
-        Sets.newHashSet(app1.getPublicId(), app2.getPublicId()), null, null, null, null);
+        Sets.newHashSet(app1.getPublicId(), app2.getPublicId()), null, null, null);
 
     // The violations count should be 1, all of which come from app2.
     assertThat(policyViolationDTOs, hasSize(1));
@@ -411,32 +410,12 @@ public class DashboardServiceTest
   }
 
   @Test
-  public void testGetPolicyViolations_Limit() {
-    List<PolicyViolationDTO> policyViolationDTOs = dashboardService.getPolicyViolations(null, null, null, null);
-    assertThat(policyViolationDTOs, hasSize(3));
-
-    policyViolationDTOs = dashboardService.getPolicyViolations(null, null, null, 1);
-    assertThat(policyViolationDTOs, hasSize(1));
-  }
-
-  @Test
-  public void testGetPolicyViolationsByApplicationId_Limit() {
-    List<PolicyViolationDTO> policyViolationDTOs = dashboardService.getPolicyViolationsByApplicationIds(
-        Sets.newHashSet(app1.getPublicId(), app2.getPublicId()), null, null, null, null);
-    assertThat(policyViolationDTOs, hasSize(3));
-
-    policyViolationDTOs = dashboardService.getPolicyViolationsByApplicationIds(
-        Sets.newHashSet(app1.getPublicId(), app2.getPublicId()), null, null, null, 1);
-    assertThat(policyViolationDTOs, hasSize(1));
-  }
-
-  @Test
   public void testGetPolicyViolationsByTags() {
     Tag app1Tag = tempEntity.newTag(org.getId());
     tempEntity.newApplicationTag(app1.getId(), app1Tag.getId());
 
     List<PolicyViolationDTO> policyViolationDTOs = dashboardService.getPolicyViolations(null,
-        Sets.newHashSet(app1Tag.getId()), null, null);
+        Sets.newHashSet(app1Tag.getId()), null);
     assertThat(policyViolationDTOs, hasSize(2));
     assertPolicyViolationDTO(policyViolationDTOs, orgPolicyViolation, app1, orgPolicy);
     assertPolicyViolationDTO(policyViolationDTOs, app1PolicyViolation, app1, app1Policy);
@@ -445,7 +424,7 @@ public class DashboardServiceTest
     tempEntity.newApplicationTag(app2.getId(), app2Tag.getId());
 
     policyViolationDTOs = dashboardService.getPolicyViolations(null, Sets.newHashSet(app1Tag.getId(), app2Tag.getId()),
-        null, null);
+        null);
     assertThat(policyViolationDTOs, hasSize(3));
     assertPolicyViolationDTO(policyViolationDTOs, orgPolicyViolation, app1, orgPolicy);
     assertPolicyViolationDTO(policyViolationDTOs, app1PolicyViolation, app1, app1Policy);
@@ -460,13 +439,13 @@ public class DashboardServiceTest
     tempEntity.newApplicationTag(app1.getId(), app1Tag.getId());
 
     List<PolicyViolationDTO> policyViolationDTOs = dashboardService.getPolicyViolations(null, new HashSet<String>(),
-        null, null);
+        null);
     assertThat(policyViolationDTOs, hasSize(3));
     assertPolicyViolationDTO(policyViolationDTOs, orgPolicyViolation, app1, orgPolicy);
     assertPolicyViolationDTO(policyViolationDTOs, app1PolicyViolation, app1, app1Policy);
     assertPolicyViolationDTO(policyViolationDTOs, app2PolicyViolation, app2, orgPolicy);
 
-    policyViolationDTOs = dashboardService.getPolicyViolations(null, null, null, null);
+    policyViolationDTOs = dashboardService.getPolicyViolations(null, null, null);
     assertThat(policyViolationDTOs, hasSize(3));
     assertPolicyViolationDTO(policyViolationDTOs, orgPolicyViolation, app1, orgPolicy);
     assertPolicyViolationDTO(policyViolationDTOs, app1PolicyViolation, app1, app1Policy);

@@ -61,12 +61,6 @@ public class Constraint
     return operator;
   }
 
-  public void setOperator(final LogicalOperator operator) {
-    if (operator != null) {
-      this.operator = operator;
-    }
-  }
-
   public List<Condition> getConditions() {
     return conditions;
   }

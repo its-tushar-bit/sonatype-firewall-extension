@@ -35,10 +35,7 @@ public abstract class AbstractPolicyEvaluationTest
   protected Constraint createConstraint(String constraintId, String constraintName, String conditionTypeId,
       String operator, String value)
   {
-    Condition condition = new Condition();
-    condition.setConditionTypeId(conditionTypeId);
-    condition.setOperator(operator);
-    condition.setValue(value);
+    Condition condition = new Condition(conditionTypeId, operator, value);
     Constraint constraint = new Constraint(constraintId, constraintName, LogicalOperator.AND);
     constraint.addCondition(condition);
     return constraint;

@@ -34,16 +34,8 @@ public class Condition
     return conditionTypeId;
   }
 
-  public void setConditionTypeId(final String conditionTypeId) {
-    this.conditionTypeId = conditionTypeId;
-  }
-
   public String getOperator() {
     return operator;
-  }
-
-  public void setOperator(final String operator) {
-    this.operator = operator;
   }
 
   public String getValue() {

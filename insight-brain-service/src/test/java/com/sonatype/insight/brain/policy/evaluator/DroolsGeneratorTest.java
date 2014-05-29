@@ -11,12 +11,12 @@ import java.util.Arrays;
 import java.util.List;
 
 import com.sonatype.clm.dto.model.policy.Action;
+import com.sonatype.insight.brain.model.ValidationResult;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.InvalidPolicyException;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
-import com.sonatype.insight.brain.model.ValidationResult;
 import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.model.policy.conditions.LicenseConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityConditionType;
@@ -38,28 +38,15 @@ public class DroolsGeneratorTest
   public void testGenerate() {
     final List<Constraint> constraints = new ArrayList<Constraint>();
     final Constraint constraint1 = new Constraint("ConstraintId1", "Constraint Name 1", LogicalOperator.AND);
-    Condition condition1 = new Condition();
-    condition1.setConditionTypeId(SecurityVulnerabilityConditionType.ID);
-    condition1.setOperator("present");
+    Condition condition1 = new Condition(SecurityVulnerabilityConditionType.ID, "present");
     constraint1.addCondition(condition1);
-    Condition condition2 = new Condition();
-    condition2.setConditionTypeId(LicenseConditionType.ID);
-    condition2.setOperator("is");
-    condition2.setValue("Apache-2.0");
+    Condition condition2 = new Condition(LicenseConditionType.ID, "is", "Apache-2.0");
     constraint1.addCondition(condition2);
     constraints.add(constraint1);
-    final Constraint constraint2 = new Constraint();
-    constraint2.setId("ConstraintId2");
-    constraint2.setName("Constraint Name 2");
-    constraint2.setOperator(LogicalOperator.OR);
-    condition1 = new Condition();
-    condition1.setConditionTypeId(SecurityVulnerabilityConditionType.ID);
-    condition1.setOperator("absent");
+    final Constraint constraint2 = new Constraint("ConstraintId2", "Constraint Name 2", LogicalOperator.OR);
+    condition1 = new Condition(SecurityVulnerabilityConditionType.ID, "absent");
     constraint2.addCondition(condition1);
-    condition2 = new Condition();
-    condition2.setConditionTypeId(LicenseConditionType.ID);
-    condition2.setOperator("is not");
-    condition2.setValue("GPL-2.0");
+    condition2 = new Condition(LicenseConditionType.ID, "is not", "GPL-2.0");
     constraint2.addCondition(condition2);
     constraints.add(constraint2);
 
@@ -86,8 +73,7 @@ public class DroolsGeneratorTest
   public void testConditionWithoutOperator() {
     final List<Constraint> constraints = new ArrayList<Constraint>();
     final Constraint constraint1 = new Constraint("ConstraintId1", "Constraint Name 1", LogicalOperator.AND);
-    Condition condition1 = new Condition();
-    condition1.setConditionTypeId(SecurityVulnerabilityConditionType.ID);
+    Condition condition1 = new Condition(SecurityVulnerabilityConditionType.ID, null /* operator */);
     constraint1.addCondition(condition1);
     constraints.add(constraint1);
 
@@ -115,9 +101,7 @@ public class DroolsGeneratorTest
   public void testConditionWithUnsupportedOperator() {
     final List<Constraint> constraints = new ArrayList<Constraint>();
     final Constraint constraint1 = new Constraint("ConstraintId1", "Constraint Name 1", LogicalOperator.AND);
-    Condition condition1 = new Condition();
-    condition1.setConditionTypeId(SecurityVulnerabilityConditionType.ID);
-    condition1.setOperator("Verdi");
+    Condition condition1 = new Condition(SecurityVulnerabilityConditionType.ID, "Verdi");
     constraint1.addCondition(condition1);
     constraints.add(constraint1);
 
@@ -145,9 +129,7 @@ public class DroolsGeneratorTest
   public void testConditionWithoutValue_Valid() {
     final List<Constraint> constraints = new ArrayList<Constraint>();
     final Constraint constraint1 = new Constraint("ConstraintId1", "Constraint Name 1", LogicalOperator.AND);
-    Condition condition1 = new Condition();
-    condition1.setConditionTypeId(SecurityVulnerabilityConditionType.ID);
-    condition1.setOperator("present");
+    Condition condition1 = new Condition(SecurityVulnerabilityConditionType.ID, "present");
     constraint1.addCondition(condition1);
     constraints.add(constraint1);
 
@@ -167,9 +149,7 @@ public class DroolsGeneratorTest
   public void testConditionWithoutValue_Invalid() {
     final List<Constraint> constraints = new ArrayList<Constraint>();
     final Constraint constraint1 = new Constraint("ConstraintId1", "Constraint Name 1", LogicalOperator.AND);
-    Condition condition1 = new Condition();
-    condition1.setConditionTypeId(SecurityVulnerabilitySeverityConditionType.ID);
-    condition1.setOperator(">");
+    Condition condition1 = new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">");
     constraint1.addCondition(condition1);
     constraints.add(constraint1);
 

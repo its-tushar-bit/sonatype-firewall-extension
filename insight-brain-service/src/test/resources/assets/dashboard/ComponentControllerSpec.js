@@ -61,7 +61,7 @@ describe('ComponentController tests', function() {
     beforeEach(inject(function($rootScope, $controller, $httpBackend, CLMLocations) {
       scope = $rootScope.$new();
       $httpBackend.expectGET(CLMLocations.getComponentDetailsUrl()).respond(applicationComponents);
-      $httpBackend.expectGET(CLMLocations.getComponentNameUrl()).respond('foo');
+      $httpBackend.expectGET(CLMLocations.getComponentNameUrl()).respond('foo:bar:1.0');
       $controller('componentController', { $scope: scope });
       $httpBackend.flush();
     }));
@@ -84,7 +84,8 @@ describe('ComponentController tests', function() {
     });
 
     it('loads a component name', function() {
-      expect(scope.name).toBe('foo');
+      expect(scope.name).toBe('foo:bar:1.0');
+      expect(scope.gav).toEqual({groupId: 'foo', artifactId: 'bar', version: '1.0'});
     });
   });
 

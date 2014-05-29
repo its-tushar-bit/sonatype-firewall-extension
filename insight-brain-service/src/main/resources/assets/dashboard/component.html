@@ -2,10 +2,18 @@
 <div class="container" ng-hide="error">
   <div class="row">
     <div class="span12">
-      <h2 id="component-name" class="left-align-h1">{{name}}</h2>
-      <div class="bottom-align-h1-with-header pull-right">
-        <span id="total-risk">TOTAL RISK</span>
-        <h2>{{totalRisk}}</h2>
+      <div class="row">
+        <h2 id="component-name" class="span10">
+          <div ng-if="gav">
+            {{gav.groupId}}<span class='wrap-force-break'> : </span>{{gav.artifactId}}<span
+                  class='wrap-force-break'> : </span>{{gav.version}}
+          </div>
+          <div ng-if="!gav" style="word-break: break-all;">{{name}}</div>
+        </h2>
+        <div class="span2 bottom-align-h1-with-header">
+          <span id="total-risk">TOTAL RISK</span>
+          <h2>{{totalRisk}}</h2>
+        </div>
       </div>
     </div>
   </div>

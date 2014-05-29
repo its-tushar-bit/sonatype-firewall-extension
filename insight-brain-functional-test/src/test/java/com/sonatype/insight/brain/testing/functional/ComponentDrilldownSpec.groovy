@@ -53,11 +53,15 @@ class ComponentDrilldownSpec
   def 'Component Drilldown Breadcrumb'() {
     when: 'The dashboard overview is loaded'
       waitFor { breadcrumbs.size() == 2 }
+
     then: 'Only the dashboard breadcrumb is shown'
       crumb('dashboard.overview').displayed
       crumb('dashboard.overview').text().trim() == 'Dashboard'
       crumb('dashboard.component').displayed
       crumb('dashboard.component').text().trim() == 'Component Details'
+
+    and:'the desired component name is shown'
+      componentName.text() == 'Group1 : Artifact1 : Version1'
   }
 
   def 'Component Drilldown Application Row'() {

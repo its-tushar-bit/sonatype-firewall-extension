@@ -103,3 +103,7 @@
 .glyphicons-sonatype.link:hover:after {
   opacity: 1;
 }
+
+.glyphicons-halflings-sonatype.lighter:before {
+  color: #888888;
+}

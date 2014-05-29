@@ -502,6 +502,10 @@
         var rgb = backgroundMatched[2].split(',').map(function(color) {
           return parseInt(color);
         });
+
+        // enforce a lower bound on all alpha values
+        scope.alphaBackground = Math.max(0.1, scope.alphaBackground);
+
         if (rgb.length === 4) {
           rgb[3] = scope.alphaBackground;
         } else {

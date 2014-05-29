@@ -255,7 +255,7 @@
                 <thead>
                 <tr>
                   <th><div sort-column="applicationName">APPLICATION</div></th>
-                  <th><div sort-column="totalApplicationRisk.totalRisk" sort-inverse="true">TOTAL RISK</div></th>
+                  <th class="total-risk"><div sort-column="totalApplicationRisk.totalRisk" sort-inverse="true">TOTAL RISK</div></th>
                   <th><div sort-column="totalApplicationRisk.criticalRisk" sort-inverse="true">CRITICAL</div></th>
                   <th><div sort-column="totalApplicationRisk.severeRisk" sort-inverse="true">SEVERE</div></th>
                   <th><div sort-column="totalApplicationRisk.moderateRisk" sort-inverse="true">MODERATE</div></th>
@@ -263,12 +263,13 @@
                 </tr>
                 </thead>
                 <tr ng-repeat-start="application in data | limitTo: maxResults | orderBy:getSortField():getSortReverse()">
-                  <td><i ng-class="{ 'clickable' : canExpand(application),
-                                        'icon-plus-sign' : canExpand(application),
-                                        'icon-minus-sign' : isExpanded(application),
+                  <td><i class="glyphicons-halflings-sonatype lighter" ng-class="{ clickable : canExpand(application),
+                                        'expand' : canExpand(application),
+                                        'collapse' : isExpanded(application),
                                         'emptyIconGlyph' : !canExpand(application) }"
                          ng-click='expand(application)'></i> {{application.applicationName}}</td>
-                  <td class="total-risk" alpha-background="{{application.totalApplicationRisk.totalRisk | safeDivide:totalRisk}}"
+                  <td class="total-risk"
+                      alpha-background="{{application.totalApplicationRisk.totalRisk | safeDivide:totalRisk}}"
                       ng-class="{ 'black-text': (application.totalApplicationRisk.totalRisk | safeDivide:totalRisk) < 0.5 }">
                     {{application.totalApplicationRisk.totalRisk}}
                   </td>
@@ -326,7 +327,7 @@
                 <thead>
                   <tr>
                     <th><div>COMPONENT</div></th>
-                    <th><div sort-column="score" sort-inverse="true">TOTAL RISK</div></th>
+                    <th class="total-risk"><div sort-column="score" sort-inverse="true">TOTAL RISK</div></th>
                     <th><div sort-column="scoreCritical" sort-inverse="true">CRITICAL</div></th>
                     <th><div sort-column="scoreSevere" sort-inverse="true">SEVERE</div></th>
                     <th><div sort-column="scoreModerate" sort-inverse="true">MODERATE</div></th>
@@ -334,18 +335,18 @@
                   </tr>
                 </thead>
                 <tr ng-repeat="component in data | limitTo: maxResults | orderBy:getSortField():getSortReverse()">
-                  <td ng-if="component.gavs.length">
-                    <a ui-sref="dashboard.component({ hash: component.hash })">
-                      {{component.gavs[0].groupId}}<span class="wrap-force-break"> : </span>{{component.gavs[0].artifactId}}<span class="wrap-force-break"> : </span>{{component.gavs[0].version}}
+                  <td>
+                    <a ng-if="component.gavs.length" ui-sref="dashboard.component({ hash: component.hash })">
+                      {{component.gavs[0].groupId}}<span class="wrap-force-break"> : </span>{{component.gavs[0].artifactId}}<span
+                            class="wrap-force-break"> : </span>{{component.gavs[0].version}}
                     </a>
-                  </td>
-                  <td ng-if="!component.gavs.length && component.pathnames.length" pathnames-popover='component.pathnames'>
-                    <a ui-sref="dashboard.component({ hash: component.hash })">
-                      <em>{{component.pathnames[0] | fileName}}</em>
-                    </a>
-                  </td>
-                  <td ng-if="!component.gavs.length && !component.pathnames.length">
-                    <a ui-sref="dashboard.component({ hash: component.hash })">
+                    <div ng-if="!component.gavs.length && component.pathnames.length" pathnames-popover='component.pathnames'>
+                      <a ui-sref="dashboard.component({ hash: component.hash })">
+                        <em>{{component.pathnames[0] | fileName}}</em>
+                      </a>
+                    </div>
+                    <a ng-if="!component.gavs.length && !component.pathnames.length"
+                       ui-sref="dashboard.component({ hash: component.hash })">
                       <em>Unknown</em>
                     </a>
                   </td>

@@ -105,7 +105,7 @@ public class LicenseOverrideMigrator
 
         applicationCount++;
 
-        ArrayNode licenseJsonData = (ArrayNode) JsonUtils.read(licenseJsonFile);
+        ArrayNode licenseJsonData = JsonUtils.read(licenseJsonFile);
         // Aggregate all the changes found in the licenseJsonData log into one flat list
         List<JsonNode> licenseAuditChanges = new ArrayList<JsonNode>();
         for (int x = 0; x < licenseJsonData.size(); x++) {

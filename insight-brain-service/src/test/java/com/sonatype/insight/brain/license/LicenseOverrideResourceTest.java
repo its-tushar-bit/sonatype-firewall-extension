@@ -109,7 +109,7 @@ public class LicenseOverrideResourceTest
     File logFile = new File(brain.getAuditDir(ownerId), "licenses.json");
     assertTrue(logFile.getAbsolutePath() + " does not exist", logFile.exists());
 
-    ArrayNode allLogJsonData = (ArrayNode) JsonUtils.read(logFile);
+    ArrayNode allLogJsonData = JsonUtils.read(logFile);
     assertTrue(allLogJsonData.size() > 0);
     JsonNode logJsonData = allLogJsonData.get(0);
     assertNotNull(logJsonData);
@@ -136,7 +136,7 @@ public class LicenseOverrideResourceTest
     logFile = new File(brain.getAuditDir(ownerId), "bom.json");
     assertTrue(logFile.getAbsolutePath() + " does not exist", logFile.exists());
 
-    allLogJsonData = (ArrayNode) JsonUtils.read(logFile);
+    allLogJsonData = JsonUtils.read(logFile);
     assertTrue(allLogJsonData.size() > 0);
     logJsonData = allLogJsonData.get(0);
     assertNotNull(logJsonData);

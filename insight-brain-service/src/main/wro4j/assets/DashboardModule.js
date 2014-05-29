@@ -123,7 +123,7 @@
           componentElement.on('mouseleave', function() {
             var popover = componentElement.parent().children('.popover');
             setTimeout(function() {
-              if (!popover.is(':hover')) {
+              if (popover.length > 0 && !popover.is(':hover')) {
                 componentElement.popover('hide');
               }
             }, 100);

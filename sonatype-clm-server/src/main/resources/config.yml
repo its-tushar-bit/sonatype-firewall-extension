@@ -23,6 +23,9 @@ http:
   # The port on which the HTTP server listens for administrative
   # requests. Subject to the same limitations as "port".
   adminPort: 8071
+  # We recommend that you password protect access to the admin services
+  #adminUsername: user1234
+  #adminPassword: pass5678
 
 # Notification mail settings.
 #mail:

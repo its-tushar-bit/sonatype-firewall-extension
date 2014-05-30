@@ -86,6 +86,7 @@ public class ApplicationService
   }
 
   @Authorize(permission = Permission.READ)
+  @AuthzFilter(permission = Permission.READ, context = AuthzFilter.Context.APPLICATION)
   public List<Application> getApplicationsByPublicIdsAndTagIds(
       @Nullable @AuthzContext(value = AuthzContext.Key.APPLICATION_PUBLIC_ID, multiple = true)
       final Set<String> applicationPublicIds,
@@ -93,35 +94,18 @@ public class ApplicationService
   {
     if (isEmpty(applicationPublicIds) && isEmpty(tagIds)) {
       //neither filled
-      return getApplications();
+      return applicationDAO.getAll();
     }
     else if (isEmpty(applicationPublicIds)) {
-      return getApplicationsByTagIds(tagIds);
+      return applicationDAO.getByTagIds(tagIds);
     }
     else if (isEmpty(tagIds)) {
-      return getApplicationsByPublicIds(applicationPublicIds);
+      return applicationDAO.getByPublicIds(applicationPublicIds);
     }
     else {
       //both filled
-      return getByPublicIdsAndTagIds(applicationPublicIds, tagIds);
+      return applicationDAO.getByPublicIdsAndTagIds(applicationPublicIds, tagIds);
     }
-  }
-
-  @AuthzFilter(permission = Permission.READ, context = AuthzFilter.Context.APPLICATION)
-  protected List<Application> getByPublicIdsAndTagIds(final Set<String> applicationPublicIds,
-      final Set<String> tagIds)
-  {
-    return applicationDAO.getByPublicIdsAndTagIds(applicationPublicIds, tagIds);
-  }
-
-  @AuthzFilter(permission = Permission.READ, context = AuthzFilter.Context.APPLICATION)
-  protected List<Application> getApplicationsByPublicIds(final Set<String> applicationPublicIds) {
-    return applicationDAO.getByPublicIds(applicationPublicIds);
-  }
-
-  @AuthzFilter(permission = Permission.READ, context = AuthzFilter.Context.APPLICATION)
-  protected List<Application> getApplicationsByTagIds(final Set<String> tagIds) {
-    return applicationDAO.getByTagIds(tagIds);
   }
 
   @AuthzFilter(permission = Permission.READ, context = AuthzFilter.Context.APPLICATION)

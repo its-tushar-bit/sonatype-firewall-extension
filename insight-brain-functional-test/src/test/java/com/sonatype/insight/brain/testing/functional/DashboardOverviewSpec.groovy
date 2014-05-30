@@ -33,6 +33,8 @@ import static com.sonatype.insight.brain.testing.functional.modules.ThreatTableR
 import static com.sonatype.insight.brain.testing.functional.modules.ThreatTableRow.RELEASE_AGE
 import static com.sonatype.insight.brain.testing.functional.modules.ThreatTableRow.STAGE_RELEASE_AGE
 import static com.sonatype.insight.brain.testing.functional.modules.ThreatTableRow.OPERATE_AGE
+import static spock.util.matcher.HamcrestMatchers.closeTo
+import static spock.util.matcher.HamcrestSupport.that
 
 /**
  * @since 1.11
@@ -43,10 +45,9 @@ class DashboardOverviewSpec
   static final String RECENT_AGE = /[1-9]min/
 
   static final String alphaMatcher = /background-color: rgba\([0-9][0-9][0-9]?, [0-9][0-9][0-9]?, [0-9][0-9][0-9]?, (.*)\);/
-  boolean assertAlpha(style, percentage) {
-    // Different browsers render opacity differently. Epsilon 0.05 provides an accurate comparison of alpha.
-    Math.abs((style =~ alphaMatcher)[0][1].toBigDecimal() - percentage) < 0.05
-  }
+
+  // accept differential for precision of alpha results
+  static final BigDecimal TOLERANCE = 0.05
 
   static Organization org
   static Application firstApp
@@ -343,6 +344,11 @@ class DashboardOverviewSpec
   }
 
   def 'Threat level cells heat map'() {
+    // same calculation performed at the UI level, which sets a minimum value of 0.1
+    Closure alphaCalc = { double value, double max ->
+      max ? ((9 * (value / max)) + 1) / 10 : 0.1
+    }
+
     setup: 'Add a few records'
       List<Application> applications = new ArrayList<Application>();
       for (i in 0..2) {
@@ -350,11 +356,11 @@ class DashboardOverviewSpec
         def application = temporaryEntity.newApplication("DashboardSpecApp${i}", "DashboardSpecApp${i}", org.id)
         applications.add(application)
         def policyEvaluation = temporaryEntity.newPolicyEvaluation(application.id, BuildStageType.ID,
-          "DashboardSpecFirstEvaluation${i}", now - 7)
+            "DashboardSpecFirstEvaluation${i}", now - 7)
         def violation = temporaryEntity.newPolicyViolation(policyEvaluation, policy, 4 * i,
-          PolicyThreatCategory.SECURITY, "Group${i}", "Artifact${i}", "Version${i}", "hash${i}")
+            PolicyThreatCategory.SECURITY, "Group${i}", "Artifact${i}", "Version${i}", "hash${i}")
         temporaryEntity.newNewestPolicyViolation(violation.id, policyEvaluation.applicationId,
-          policyEvaluation.stageTypeId)
+            policyEvaluation.stageTypeId)
       }
 
     when: 'Switching to Components Tab'
@@ -362,45 +368,53 @@ class DashboardOverviewSpec
 
     then: 'Components tab heat map is shown'
       waitFor { componentViolationsTable.rows.size() == 4 }
-      assertAlpha(componentViolationsTable.rows[1].netRisk.attr('style'), 8d/15)
-      assertAlpha(componentViolationsTable.rows[2].netRisk.attr('style'), 4d/15)
-      assertAlpha(componentViolationsTable.rows[3].netRisk.attr('style'), 0.1)
-      assertAlpha(componentViolationsTable.rows[1].criticalRisk.attr('style'), 8d/10)
-      assertAlpha(componentViolationsTable.rows[2].criticalRisk.attr('style'), 0.1)
-      assertAlpha(componentViolationsTable.rows[3].criticalRisk.attr('style'), 0.1)
-      assertAlpha(componentViolationsTable.rows[1].severeRisk.attr('style'), 0.1)
-      assertAlpha(componentViolationsTable.rows[2].severeRisk.attr('style'), 4d/5)
-      assertAlpha(componentViolationsTable.rows[3].severeRisk.attr('style'), 0.1)
-      assertAlpha(componentViolationsTable.rows[1].moderateRisk.attr('style'), 0.1)
-      assertAlpha(componentViolationsTable.rows[2].moderateRisk.attr('style'), 0.1)
-      assertAlpha(componentViolationsTable.rows[3].moderateRisk.attr('style'), 0.1)
-      assertAlpha(componentViolationsTable.rows[1].lowRisk.attr('style'), 0.1)
-      assertAlpha(componentViolationsTable.rows[2].lowRisk.attr('style'), 0.1)
-      assertAlpha(componentViolationsTable.rows[3].lowRisk.attr('style'), 0.1)
+      ComponentViolationsTableRow secondComponentRow = componentViolationsTable.rows[1]
+      ComponentViolationsTableRow thirdComponentRow = componentViolationsTable.rows[2]
+      ComponentViolationsTableRow fourthComponentRow = componentViolationsTable.rows[3]
+
+      that parseAlpha(secondComponentRow.netRisk.attr('style')), closeTo(alphaCalc(8, 15), TOLERANCE)
+      that parseAlpha(thirdComponentRow.netRisk.attr('style')), closeTo(alphaCalc(4, 15), TOLERANCE)
+      that parseAlpha(fourthComponentRow.netRisk.attr('style')), closeTo(alphaCalc(0, 15), TOLERANCE)
+      that parseAlpha(thirdComponentRow.criticalRisk.attr('style')), closeTo(alphaCalc(0, 10), TOLERANCE)
+      that parseAlpha(fourthComponentRow.criticalRisk.attr('style')), closeTo(alphaCalc(0, 10), TOLERANCE)
+      that parseAlpha(secondComponentRow.severeRisk.attr('style')), closeTo(alphaCalc(0, 5), TOLERANCE)
+      that parseAlpha(thirdComponentRow.severeRisk.attr('style')), closeTo(alphaCalc(4, 5), TOLERANCE)
+      that parseAlpha(fourthComponentRow.severeRisk.attr('style')), closeTo(alphaCalc(0, 5), TOLERANCE)
+      that parseAlpha(secondComponentRow.moderateRisk.attr('style')), closeTo(alphaCalc(0, 0), TOLERANCE)
+      that parseAlpha(thirdComponentRow.moderateRisk.attr('style')), closeTo(alphaCalc(0, 0), TOLERANCE)
+      that parseAlpha(fourthComponentRow.moderateRisk.attr('style')), closeTo(alphaCalc(0, 0), TOLERANCE)
+      that parseAlpha(secondComponentRow.lowRisk.attr('style')), closeTo(alphaCalc(0, 0), TOLERANCE)
+      that parseAlpha(thirdComponentRow.lowRisk.attr('style')), closeTo(alphaCalc(0, 0), TOLERANCE)
+      that parseAlpha(fourthComponentRow.lowRisk.attr('style')), closeTo(alphaCalc(0, 0), TOLERANCE)
 
     when: 'Switching to Applications Tab'
       tabLinks.applicationsTabButton.click()
 
     then: 'Applications tab heat map is shown'
       waitFor { applicationViolationsTable.rows.size() == 4 }
-      assertAlpha(applicationViolationsTable.rows[1].netRisk.attr('style'), 8d/10)
-      assertAlpha(applicationViolationsTable.rows[2].netRisk.attr('style'), 5d/10)
-      assertAlpha(applicationViolationsTable.rows[3].netRisk.attr('style'), 4d/10)
-      assertAlpha(applicationViolationsTable.rows[1].criticalRisk.attr('style'), 8d/10)
-      assertAlpha(applicationViolationsTable.rows[2].criticalRisk.attr('style'), 0.1)
-      assertAlpha(applicationViolationsTable.rows[3].criticalRisk.attr('style'), 0.1)
-      assertAlpha(applicationViolationsTable.rows[0].severeRisk.attr('style'), 0.1)
-      assertAlpha(applicationViolationsTable.rows[1].severeRisk.attr('style'), 0.1)
-      assertAlpha(applicationViolationsTable.rows[3].severeRisk.attr('style'), 4d/5)
-      assertAlpha(applicationViolationsTable.rows[1].moderateRisk.attr('style'), 0.1)
-      assertAlpha(applicationViolationsTable.rows[2].moderateRisk.attr('style'), 0.1)
-      assertAlpha(applicationViolationsTable.rows[3].moderateRisk.attr('style'), 0.1)
-      assertAlpha(applicationViolationsTable.rows[1].lowRisk.attr('style'), 0.1)
-      assertAlpha(applicationViolationsTable.rows[2].lowRisk.attr('style'), 0.1)
-      assertAlpha(applicationViolationsTable.rows[3].lowRisk.attr('style'), 0.1)
+
+      ApplicationViolationsTableRow firstApplicationRow = applicationViolationsTable.rows[1]
+      ApplicationViolationsTableRow secondApplicationRow = applicationViolationsTable.rows[2]
+      ApplicationViolationsTableRow thirdApplicationRow = applicationViolationsTable.rows[3]
+
+      that parseAlpha(firstApplicationRow.netRisk.attr('style')), closeTo(alphaCalc(8, 10), TOLERANCE)
+      that parseAlpha(secondApplicationRow.netRisk.attr('style')), closeTo(alphaCalc(5, 10), TOLERANCE)
+      that parseAlpha(thirdApplicationRow.netRisk.attr('style')), closeTo(alphaCalc(4, 10), TOLERANCE)
+      that parseAlpha(firstApplicationRow.criticalRisk.attr('style')), closeTo(alphaCalc(8, 10), TOLERANCE)
+      that parseAlpha(secondApplicationRow.criticalRisk.attr('style')), closeTo(alphaCalc(0, 0), TOLERANCE)
+      that parseAlpha(thirdApplicationRow.criticalRisk.attr('style')), closeTo(alphaCalc(0, 0), TOLERANCE)
+      that parseAlpha(applicationViolationsTable.rows[0].severeRisk.attr('style')), closeTo(alphaCalc(0, 0), TOLERANCE)
+      that parseAlpha(firstApplicationRow.severeRisk.attr('style')), closeTo(alphaCalc(0, 0), TOLERANCE)
+      that parseAlpha(thirdApplicationRow.severeRisk.attr('style')), closeTo(alphaCalc(4, 5), TOLERANCE)
+      that parseAlpha(firstApplicationRow.moderateRisk.attr('style')), closeTo(alphaCalc(0, 0), TOLERANCE)
+      that parseAlpha(secondApplicationRow.moderateRisk.attr('style')), closeTo(alphaCalc(0, 0), TOLERANCE)
+      that parseAlpha(thirdApplicationRow.moderateRisk.attr('style')), closeTo(alphaCalc(0, 0), TOLERANCE)
+      that parseAlpha(firstApplicationRow.lowRisk.attr('style')), closeTo(alphaCalc(0, 0), TOLERANCE)
+      that parseAlpha(secondApplicationRow.lowRisk.attr('style')), closeTo(alphaCalc(0, 0), TOLERANCE)
+      that parseAlpha(thirdApplicationRow.lowRisk.attr('style')), closeTo(alphaCalc(0, 0), TOLERANCE)
 
     cleanup:
-      ApplicationDAO dao = new ApplicationDAO()
+      ApplicationDAO dao  = new ApplicationDAO()
       for (Application application : applications) {
         dao.delete(application)
       }
@@ -598,5 +612,12 @@ class DashboardOverviewSpec
     and: 'the percentage of matched components is shown'
       summaryPercentComponents.displayed
       summaryPercentComponents.text() == '100%'
+  }
+
+  /**
+   * helper method to parse alpha value from an rgb style string
+   */
+  def parseAlpha(String style) {
+    (style =~ alphaMatcher)[0][1].toBigDecimal()
   }
 }

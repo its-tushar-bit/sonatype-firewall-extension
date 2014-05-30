@@ -426,6 +426,7 @@ table.table-risk td.critical-risk {
   border-bottom: 1px solid white;
 }
 
+
 table.table-risk td.severe-risk {
   background-color : #E7C2A1;
   color : #64460A;
@@ -475,10 +476,21 @@ table.table-risk td.low-risk {
 .dashboard-content td {
   border-top: 0px;
 }
-
 .dashboard-content .policy-violation-table tbody>tr:nth-child(odd) {
   background-color: #E8E8E8;
 }
+
+/*
+ * Affected Applications background
+ */
+table.table-risk tr:nth-child(odd):not(.stage) > td:nth-child(2) {
+  background-color : #EDEDED;
+}
+
+table.table-risk tr:nth-child(even):not(.stage) > td:nth-child(2) {
+  background-color : #F1F1F1;
+}
+
 /* only stripe the first column of the heat-mapped tables, excepting those with the .stage class */
 .table-risk tr:nth-child(odd):not(.stage) > td:nth-child(1), .table-risk tr:nth-child(odd):not(.stage) > td:nth-child(2) {
   background-color: #E8E8E8;

@@ -60,7 +60,7 @@ class ComponentDrilldownSpec
       crumb('dashboard.component').displayed
       crumb('dashboard.component').text().trim() == 'Component Details'
 
-    and:'the desired component name is shown'
+    and: 'the desired component name is shown'
       waitFor { componentName.text() == 'Group1 : Artifact1 : Version1' }
   }
 

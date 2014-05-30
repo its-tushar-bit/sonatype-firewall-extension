@@ -19,10 +19,12 @@
       <div class="content-header">
         <h4>
           <span>Policy Monitoring</span>
-
           <div class='common-expand-toggle' ng-click='monitoringExpanded = !monitoringExpanded'>
-            <a ng-click="toggleSection('monitoring',monitoringExpanded)"><i class='glyphicons-halflings-sonatype'
-                    ng-class="{'collapse': monitoringExpanded, 'expand': !monitoringExpanded}"></i></a>
+            <a id="policy-monitoring-expand" ng-click="toggleSection('monitoring',monitoringExpanded)">
+              <i class='glyphicons-halflings-sonatype'
+                 ng-class="{'collapse': monitoringExpanded, 'expand': !monitoringExpanded}">
+              </i>
+            </a>
           </div>
         </h4>
       </div>
@@ -32,7 +34,7 @@
           <div class="form-horizontal configuration" style="width: 700px;" ng-show="isPolicyMonitoringLicensed()">
             <form id="monitoring-form" name="monitoringForm">
               <div class='control-group'>
-                <label class="control-label" style="width: auto;padding-right: 5px;" for="policyMonitoring">
+                <label class="control-label" style="width: auto;padding-right: 5px;" for="policy-monitoring">
                   Monitor the latest scan from CLM stage
                 </label>
                 <div class='controls'>

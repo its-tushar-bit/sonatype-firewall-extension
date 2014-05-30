@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.testing.functional
 import com.sonatype.insight.brain.model.Application
 import com.sonatype.insight.brain.model.Organization
 import groovy.util.logging.Slf4j
+import org.openqa.selenium.phantomjs.PhantomJSDriver
 import spock.lang.Stepwise
 
 /**
@@ -34,7 +35,13 @@ class PolicyMonitoringSpec
       waitFor { policyMonitoring.expandButton.present }
 
     when:
-      policyMonitoring.expandButton.click()
+      // workaround for issues like https://github.com/ariya/phantomjs/issues/10592
+      if (!(driver instanceof PhantomJSDriver)) {
+        policyMonitoring.expandButton.click()
+      }
+      else {
+        browser.js.exec('$("#policy-monitoring-expand").click()')
+      }
 
     then:
       waitFor { policyMonitoring.form.displayed }

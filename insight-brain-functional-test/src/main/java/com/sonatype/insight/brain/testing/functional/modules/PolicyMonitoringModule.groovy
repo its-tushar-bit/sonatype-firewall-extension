@@ -14,7 +14,7 @@ class PolicyMonitoringModule
     extends Module
 {
   static content = {
-    expandButton { $('a[ng-click="toggleSection(\'monitoring\',monitoringExpanded)"]') }
+    expandButton { $('#policy-monitoring-expand') }
     form { $('#monitoring-form') }
     policyMonitoring { $('#policy-monitoring') }
     selectedOptionText { $('#policy-monitoring option', value: policyMonitoring.value()).text() }

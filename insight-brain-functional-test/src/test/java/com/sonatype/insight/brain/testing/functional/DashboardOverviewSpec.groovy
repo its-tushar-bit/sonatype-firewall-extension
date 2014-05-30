@@ -538,6 +538,7 @@ class DashboardOverviewSpec
     then: 'Component Table Displayed'
       waitFor { componentViolationsTable.rows.size() == 1 }
       componentViolationsTable.rows[0].component.text() == "Group1 : Artifact1 : Version1"
+      componentViolationsTable.rows[0].affectedApplications.text() == "2"
       componentViolationsTable.rows[0].netRisk.text() == "15"
       componentViolationsTable.rows[0].criticalRisk.text() == "10"
       componentViolationsTable.rows[0].severeRisk.text() == "5"

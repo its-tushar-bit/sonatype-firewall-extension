@@ -692,6 +692,7 @@ public class DashboardService
   private static class ComponentViolationRollUp
   {
     Map<String, PolicyViolationDTO> violationsByAppAndPolicyId = new LinkedHashMap<>();
+    Set<String> applicationIds = new HashSet<>();
 
     void add(PolicyViolationDTO violation) {
       String id = violation.applicationId + "\t" + violation.policyId;
@@ -700,10 +701,12 @@ public class DashboardService
         // count violations for a given app+policy combo only once, using the data from the most recent evaluation
         violationsByAppAndPolicyId.put(id, violation);
       }
+      applicationIds.add(violation.applicationId);
     }
 
     public ComponentRiskDTO toDTO() {
       ComponentRiskDTO dto = new ComponentRiskDTO();
+      dto.affectedApplications = applicationIds.size();
       for (PolicyViolationDTO violation : violationsByAppAndPolicyId.values()) {
         dto.hash = violation.hash;
         dto.score += violation.threatLevel;

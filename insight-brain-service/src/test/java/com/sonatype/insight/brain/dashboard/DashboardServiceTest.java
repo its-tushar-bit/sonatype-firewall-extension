@@ -467,6 +467,7 @@ public class DashboardServiceTest
     assertThat(riskDTO.hash, is(violation.getHash()));
     assertThat(riskDTO.gavs, containsInAnyOrder(GavDTO.from(violation)));
     assertThat(riskDTO.score, is(violation.getThreatLevel() + orgPolicy.getThreatLevel() * 2));
+    assertThat(riskDTO.affectedApplications, is(2));
   }
 
   @Test
@@ -478,6 +479,7 @@ public class DashboardServiceTest
     assertThat(riskDTO.hash, is(app2PolicyViolation.getHash()));
     assertThat(riskDTO.gavs, containsInAnyOrder(GavDTO.from(app2PolicyViolation)));
     assertThat(riskDTO.score, is(orgPolicy.getThreatLevel()));
+    assertThat(riskDTO.affectedApplications, is(1));
   }
 
   @Test
@@ -493,6 +495,7 @@ public class DashboardServiceTest
     assertThat(riskDTO.hash, is(violation.getHash()));
     assertThat(riskDTO.gavs, containsInAnyOrder(GavDTO.from(violation)));
     assertThat(riskDTO.score, is(app1Policy.getThreatLevel()));
+    assertThat(riskDTO.affectedApplications, is(1));
   }
 
   @Test
@@ -527,6 +530,7 @@ public class DashboardServiceTest
     assertThat(riskDTO.hash, is(app2PolicyViolation.getHash()));
     assertThat(riskDTO.gavs, containsInAnyOrder(GavDTO.from(app2PolicyViolation)));
     assertThat(riskDTO.score, is(orgPolicy.getThreatLevel()));
+    assertThat(riskDTO.affectedApplications, is(1));
   }
 
   @Test
@@ -541,6 +545,7 @@ public class DashboardServiceTest
     assertThat(riskDTO.hash, is(violation.getHash()));
     assertThat(riskDTO.gavs, containsInAnyOrder(GavDTO.from(violation)));
     assertThat(riskDTO.score, is(app1Policy.getThreatLevel()));
+    assertThat(riskDTO.affectedApplications, is(1));
   }
 
   @Test
@@ -552,6 +557,7 @@ public class DashboardServiceTest
     assertThat(riskDTO.hash, is(orgPolicyViolation.getHash()));
     assertThat(riskDTO.gavs, containsInAnyOrder(GavDTO.from(orgPolicyViolation)));
     assertThat(riskDTO.score, is(orgPolicy.getThreatLevel() * 2));
+    assertThat(riskDTO.affectedApplications, is(2));
   }
 
   @Test
@@ -573,6 +579,7 @@ public class DashboardServiceTest
     assertThat(riskDTO.scoreModerate, is(5));
     assertThat(riskDTO.scoreLow, is(1));
     assertThat(riskDTO.score, is(55));
+    assertThat(riskDTO.affectedApplications, is(1));
   }
 
   @Test
@@ -590,6 +597,7 @@ public class DashboardServiceTest
     ComponentRiskDTO riskDTO = riskDTOs.get(0);
     assertThat(riskDTO.hash, is(hash));
     assertThat(riskDTO.score, is(12));
+    assertThat(riskDTO.affectedApplications, is(2));
   }
 
   @Test

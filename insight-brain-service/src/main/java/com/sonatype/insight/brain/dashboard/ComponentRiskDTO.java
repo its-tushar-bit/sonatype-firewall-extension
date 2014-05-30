@@ -26,6 +26,8 @@ public class ComponentRiskDTO
 
   public int scoreLow;
 
+  public int affectedApplications;
+
   public Set<GavDTO> gavs = new LinkedHashSet<>();
 
   // Insertion order matters, as the first path will be used as the display name throughout the UI for unknown

@@ -476,7 +476,8 @@ table.table-risk td.low-risk {
 .dashboard-content td {
   border-top: 0px;
 }
-.dashboard-content .policy-violation-table tbody>tr:nth-child(odd) {
+.dashboard-content .policy-violation-table tbody>tr:nth-child(odd),
+.dashboard-content .component-application-table tbody>tr:nth-child(odd) {
   background-color: #E8E8E8;
 }
 

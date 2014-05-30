@@ -61,7 +61,7 @@ class ComponentDrilldownSpec
       crumb('dashboard.component').text().trim() == 'Component Details'
 
     and:'the desired component name is shown'
-      componentName.text() == 'Group1 : Artifact1 : Version1'
+      waitFor { componentName.text() == 'Group1 : Artifact1 : Version1' }
   }
 
   def 'Component Drilldown Application Row'() {

@@ -327,6 +327,7 @@
                 <thead>
                   <tr>
                     <th><div>COMPONENT</div></th>
+                    <th><div sort-column="affectedApplications" sort-inverse="true">AFFECTED APPS</div></th>
                     <th class="total-risk"><div sort-column="score" sort-inverse="true">TOTAL RISK</div></th>
                     <th><div sort-column="scoreCritical" sort-inverse="true">CRITICAL</div></th>
                     <th><div sort-column="scoreSevere" sort-inverse="true">SEVERE</div></th>
@@ -350,6 +351,7 @@
                       <em>Unknown</em>
                     </a>
                   </td>
+                  <td>{{component.affectedApplications}}</td>
                   <td class="total-risk" alpha-background="{{component.score | safeDivide:totalRisk}}"
                       ng-class="{ 'black-text': (component.score | safeDivide:totalRisk) < 0.5 }">
                     {{component.score}}

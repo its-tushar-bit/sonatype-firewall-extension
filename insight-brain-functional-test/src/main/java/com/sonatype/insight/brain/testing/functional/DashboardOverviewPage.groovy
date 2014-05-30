@@ -89,11 +89,12 @@ class ComponentViolationsTableRow extends Module {
   static content = {
     component { $('td:first-child') }
     componentLink { $('td:first-child > a') }
-    netRisk { $('td:nth-child(2)') }
-    criticalRisk { $('td:nth-child(3)') }
-    severeRisk { $('td:nth-child(4)') }
-    moderateRisk { $('td:nth-child(5)') }
-    lowRisk { $('td:nth-child(6)') }
+    affectedApplications { $('td:nth-child(2)') }
+    netRisk { $('td:nth-child(3)') }
+    criticalRisk { $('td:nth-child(4)') }
+    severeRisk { $('td:nth-child(5)') }
+    moderateRisk { $('td:nth-child(6)') }
+    lowRisk { $('td:nth-child(7)') }
   }
 }
 

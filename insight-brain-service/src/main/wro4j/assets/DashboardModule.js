@@ -98,33 +98,61 @@
             placement: 'top',
             content: pathnames[0],
             title: pathnamesTitle,
-            // Attach the popover to the parent, as placing the popover in the td could resize it.
-            container: element.parent(),
+            // Attach the popover to the table (td -> tr -> table), as placing the popover in the td could resize it.
+            container: element.parent().parent(),
             // Add our styling, pathnames-popover and pathnames-popover-content, to the popover template.
-            template: '<div class="popover pathnames-popover"><div class="arrow"></div><div class="popover-inner"><h3 class="popover-title"></h3><div class="popover-content pathnames-popover-content"><p></p></div></div></div>'
+            template: '<div class="popover pathnames-popover"><div class="pathnames-popover-arrow"></div><div class="popover-inner"><h3 class="popover-title"></h3><div class="popover-content pathnames-popover-content"><p></p></div></div></div>'
           };
           
           // Configure the popover so that it functions modally.
-          var componentElement = $(element);
-          componentElement.popover(options);
+          element.popover(options);
+          // The position function will be modified to move the popover over the text
+          // within the TD dynamically based on the current element positions.
+          element.data('popover').getOriginalPosition = element.data('popover').getPosition;
+          
           // Display the popover when hovering over the component element, but only hide
           // the popover when the mouse leaves the popover.
-          componentElement.on('mouseenter', function() {
-            componentElement.popover('show');
-            // Because we've used the parent of the element as the popover container,
-            // start selecting from the parent.
-            var popover = componentElement.parent().children('.popover');
-            popover.on('mouseleave', function() {
-              componentElement.popover('hide');
-            });
+          element.on('mouseenter', function() {
+            // Add a slight delay so popovers aren't appearing as the user moves
+            // their mouse across the table.
+            setTimeout(function() {
+              if(!element.is(':hover')) {
+                return;
+              }
+              
+              // Calculate the position of the popover in reference to the left adjusted text.
+              var emphasizedPathnameElement = element.find('em');
+              if (emphasizedPathnameElement.length > 0) {
+                var popoverLeftPosition = emphasizedPathnameElement.offset().left;
+                element.data('popover').getPosition = function () {
+                  var originalPosition = this.getOriginalPosition();
+                  originalPosition.left = popoverLeftPosition;
+                  // Set the width to the width of the popover so that it stays aligned
+                  // with the left of the text.
+                  originalPosition.width = this.tip()[0].offsetWidth;
+                  return originalPosition;
+                };
+              }
+              
+              element.popover('show');
+              
+              // Because we've used the table element as the popover container,
+              // start selecting from the parent of the tr (td -> tr -> table).
+              // We also only want to select the popover of the current element, not all popovers.
+              var popover = element.parent().parent().children('.popover:contains(' + pathnames[0] + ')');
+              popover.on('mouseleave', function() {
+                element.popover('hide');
+              });
+            }, 50);
           });
+
           // Also, hide the popover if the mouse leaves the component element and is no
           // longer hovering over the popover.
-          componentElement.on('mouseleave', function() {
-            var popover = componentElement.parent().children('.popover');
+          element.on('mouseleave', function() {
+            var popover = element.parent().parent().children('.popover:contains(' + pathnames[0] + ')');
             setTimeout(function() {
               if (popover.length > 0 && !popover.is(':hover')) {
-                componentElement.popover('hide');
+                element.popover('hide');
               }
             }, 100);
           });

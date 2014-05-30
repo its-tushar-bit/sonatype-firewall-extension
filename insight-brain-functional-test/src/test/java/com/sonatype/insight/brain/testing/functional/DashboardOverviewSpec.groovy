@@ -393,28 +393,29 @@ class DashboardOverviewSpec
     then: 'Applications tab heat map is shown'
       waitFor { applicationViolationsTable.rows.size() == 4 }
 
-      ApplicationViolationsTableRow firstApplicationRow = applicationViolationsTable.rows[1]
-      ApplicationViolationsTableRow secondApplicationRow = applicationViolationsTable.rows[2]
-      ApplicationViolationsTableRow thirdApplicationRow = applicationViolationsTable.rows[3]
+      ApplicationViolationsTableRow firstApplicationRow = applicationViolationsTable.rows[0]
+      ApplicationViolationsTableRow secondApplicationRow = applicationViolationsTable.rows[1]
+      ApplicationViolationsTableRow thirdApplicationRow = applicationViolationsTable.rows[2]
+      ApplicationViolationsTableRow fourthApplicationRow = applicationViolationsTable.rows[3]
 
-      that parseAlpha(firstApplicationRow.netRisk.attr('style')), closeTo(alphaCalc(8, 10), TOLERANCE)
-      that parseAlpha(secondApplicationRow.netRisk.attr('style')), closeTo(alphaCalc(5, 10), TOLERANCE)
-      that parseAlpha(thirdApplicationRow.netRisk.attr('style')), closeTo(alphaCalc(4, 10), TOLERANCE)
-      that parseAlpha(firstApplicationRow.criticalRisk.attr('style')), closeTo(alphaCalc(8, 10), TOLERANCE)
-      that parseAlpha(secondApplicationRow.criticalRisk.attr('style')), closeTo(alphaCalc(0, 0), TOLERANCE)
+      that parseAlpha(secondApplicationRow.netRisk.attr('style')), closeTo(alphaCalc(8, 10), TOLERANCE)
+      that parseAlpha(thirdApplicationRow.netRisk.attr('style')), closeTo(alphaCalc(5, 10), TOLERANCE)
+      that parseAlpha(fourthApplicationRow.netRisk.attr('style')), closeTo(alphaCalc(4, 10), TOLERANCE)
+      that parseAlpha(secondApplicationRow.criticalRisk.attr('style')), closeTo(alphaCalc(8, 10), TOLERANCE)
       that parseAlpha(thirdApplicationRow.criticalRisk.attr('style')), closeTo(alphaCalc(0, 0), TOLERANCE)
-      that parseAlpha(applicationViolationsTable.rows[0].severeRisk.attr('style')), closeTo(alphaCalc(0, 0), TOLERANCE)
+      that parseAlpha(fourthApplicationRow.criticalRisk.attr('style')), closeTo(alphaCalc(0, 0), TOLERANCE)
       that parseAlpha(firstApplicationRow.severeRisk.attr('style')), closeTo(alphaCalc(0, 0), TOLERANCE)
-      that parseAlpha(thirdApplicationRow.severeRisk.attr('style')), closeTo(alphaCalc(4, 5), TOLERANCE)
-      that parseAlpha(firstApplicationRow.moderateRisk.attr('style')), closeTo(alphaCalc(0, 0), TOLERANCE)
+      that parseAlpha(secondApplicationRow.severeRisk.attr('style')), closeTo(alphaCalc(0, 0), TOLERANCE)
+      that parseAlpha(fourthApplicationRow.severeRisk.attr('style')), closeTo(alphaCalc(4, 5), TOLERANCE)
       that parseAlpha(secondApplicationRow.moderateRisk.attr('style')), closeTo(alphaCalc(0, 0), TOLERANCE)
       that parseAlpha(thirdApplicationRow.moderateRisk.attr('style')), closeTo(alphaCalc(0, 0), TOLERANCE)
-      that parseAlpha(firstApplicationRow.lowRisk.attr('style')), closeTo(alphaCalc(0, 0), TOLERANCE)
+      that parseAlpha(fourthApplicationRow.moderateRisk.attr('style')), closeTo(alphaCalc(0, 0), TOLERANCE)
       that parseAlpha(secondApplicationRow.lowRisk.attr('style')), closeTo(alphaCalc(0, 0), TOLERANCE)
       that parseAlpha(thirdApplicationRow.lowRisk.attr('style')), closeTo(alphaCalc(0, 0), TOLERANCE)
+      that parseAlpha(fourthApplicationRow.lowRisk.attr('style')), closeTo(alphaCalc(0, 0), TOLERANCE)
 
     cleanup:
-      ApplicationDAO dao  = new ApplicationDAO()
+      ApplicationDAO dao = new ApplicationDAO()
       for (Application application : applications) {
         dao.delete(application)
       }

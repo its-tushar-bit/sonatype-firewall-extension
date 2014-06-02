@@ -49,7 +49,11 @@ public class UserSessionResource
   }
 
   /**
-   * Logout the currently logged in user
+   * Logout the currently logged in user.
+   * 
+   * Conciously not doing this in a RESTful manner.  The use of a separate resource path is because we want to allow
+   * anonymous access but Shiro doesn't have the capability to apply different authc per HTTP method.
+   * See https://issues.apache.org/jira/browse/SHIRO-200 .
    */
   @DELETE
   @Path(LOGOUT_PATH)

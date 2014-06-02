@@ -13,6 +13,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -487,14 +488,8 @@ public class DashboardService
   private Set<StageType> getStageTypes(Set<String> stageTypeIds) {
     Collection<StageType> licensedStageTypes = stageTypeService.getLicensedStageTypes();
 
-    Set<StageType> stages = new HashSet<>();
-
-    if (stageTypeIds == null || stageTypeIds.isEmpty()) {
-      for (StageType stageType : licensedStageTypes) {
-        if (!StageTypes.isIgnoredForDashboard(stageType.getId())) {
-          stages.add(stageType);
-        }
-      }
+    if (stageTypeIds == null) {
+      stageTypeIds = Collections.emptySet();
     }
     else {
       for (String stageTypeId : stageTypeIds) {
@@ -505,8 +500,15 @@ public class DashboardService
         else if (!licensedStageTypes.contains(stage)) {
           throw new BadRequestException("Current license does not support stage type: " + stageTypeId + ".");
         }
+      }
+    }
 
-        stages.add(stage);
+    Set<StageType> stages = new LinkedHashSet<>();
+
+    for (StageType stageType : licensedStageTypes) {
+      if (!StageTypes.isIgnoredForDashboard(stageType.getId())
+          && (stageTypeIds.isEmpty() || stageTypeIds.contains(stageType.getId()))) {
+        stages.add(stageType);
       }
     }
 

@@ -34,6 +34,9 @@ public class StageTypes
     add(OPERATE);
   }
 
+  /**
+   * Gets all stage types in chronological order of appearance during the component lifecycle.
+   */
   public static Collection<StageType> getAll() {
     return Collections.unmodifiableCollection(allStageTypes.values());
   }

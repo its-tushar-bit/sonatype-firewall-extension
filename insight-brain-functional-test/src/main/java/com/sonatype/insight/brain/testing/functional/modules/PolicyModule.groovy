@@ -37,6 +37,7 @@ class PolicyEditorModule
     //Policy specifics
     name{ $('input#policyName') }
     constraints { moduleList ConstraintModule, $('.accordion-group[ng-repeat="constraint in policy.constraints"]') }
+    actions { moduleList ActionModule, $('tr[ng-repeat="actionStage in actionStages"]') }
 
     //Tags related to Policies
     tagsHeader(required: false) { $('#application-matching') }
@@ -75,5 +76,13 @@ class ConditionModule extends Module{
     conditionTypes { $('select[ng-model="condition.conditionTypeId"]') }
     operators { $('select[ng-model="condition.operator"]') }
     value { $('span[ng-model="condition.value"] input') }
+  }
+}
+
+class ActionModule
+    extends Module
+{
+  static content = {
+    stageName { $('td:first-child').text() }
   }
 }

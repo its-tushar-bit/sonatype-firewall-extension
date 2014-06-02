@@ -14,6 +14,7 @@ class ThreatTableModule
     extends Module
 {
   static content = {
+    headers { $('th') }
     headerLinks { int i -> $('th a', i) }
     riskHeader { headerLinks(0) }
     ageHeader(required: false) { headerLinks(1) }

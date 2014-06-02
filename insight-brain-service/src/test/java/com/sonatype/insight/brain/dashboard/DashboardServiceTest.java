@@ -5,9 +5,11 @@
  */
 package com.sonatype.insight.brain.dashboard;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -619,6 +621,28 @@ public class DashboardServiceTest
     catch (BadRequestException e) {
       assertThat(e.getMessage(), is("Invalid stage type: develop."));
     }
+  }
+
+  @Test
+  public void testGetApplicationRisks_StagesInChronologicalOrder() throws Exception {
+    PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(app1.getId(), OperateStageType.ID, "scan app1 id");
+    tempEntity.newPolicyViolation(evaluation, app1Policy);
+    evaluation = tempEntity.newPolicyEvaluation(app1.getId(), ReleaseStageType.ID, "scan app1 id");
+    tempEntity.newPolicyViolation(evaluation, app1Policy);
+    evaluation = tempEntity.newPolicyEvaluation(app1.getId(), StageReleaseStageType.ID, "scan app1 id");
+    tempEntity.newPolicyViolation(evaluation, app1Policy);
+
+    List<ApplicationRiskScoreDTO> riskDTOs = dashboardService.getApplicationRisks(
+        Collections.singleton(app1.getPublicId()),
+        new LinkedHashSet<>(Arrays.asList(ReleaseStageType.ID, OperateStageType.ID, BuildStageType.ID,
+            StageReleaseStageType.ID)), null, null, null, 100);
+    assertThat(riskDTOs, hasSize(1));
+    ApplicationRiskScoreDTO appDTO = riskDTOs.get(0);
+    assertThat(appDTO.stageRisks, hasSize(4));
+    assertThat(appDTO.stageRisks.get(0).stageTypeId, is(BuildStageType.ID));
+    assertThat(appDTO.stageRisks.get(1).stageTypeId, is(StageReleaseStageType.ID));
+    assertThat(appDTO.stageRisks.get(2).stageTypeId, is(ReleaseStageType.ID));
+    assertThat(appDTO.stageRisks.get(3).stageTypeId, is(OperateStageType.ID));
   }
 
   @Test

@@ -43,4 +43,12 @@ class ReportViolationsSpec
       reportViolationRows.size() == 1;
       reportViolationRows[0].orgName.text() == "org2";
   }
+
+  def "Stages are listed in chronological order"() {
+    when: "viewing the report violations page"
+      at ReportViolationsPage
+
+    then: "the table header lists the stages in proper order"
+      tableHeaders[1..3]*.@id == [ 'stage-header-build', 'stage-header-stage-release', 'stage-header-release' ]
+  }
 }

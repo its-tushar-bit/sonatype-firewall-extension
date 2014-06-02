@@ -38,6 +38,8 @@ class ApplicationPage
     applicationContactDialogSearchField(required: false) { $('input[placeholder="Find User"]') }
     applicationContactDialogResultList(required : false) { $('.large-select-list-item') }
 
+    policyEvalStages(required: false) { $('#policy-eval-summary > div > span:first-child') }
+
     securityTab(required: false) { $('#security') }
     buttons { module ButtonsModule, $('#applicationEditor') }
     applicationSaveButton(required: false) { buttons.save }

@@ -17,7 +17,7 @@ import com.sonatype.insight.license.model.ProductLicenseDetails;
 
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.contains;
 import static org.junit.Assert.assertThat;
 
 public class StageTypeServiceTest
@@ -39,7 +39,7 @@ public class StageTypeServiceTest
     clmLicenseManager.installLicense(null);
 
     assertThat(stageTypeService.getLicensedStageTypes(),
-        containsInAnyOrder(StageTypes.DEVELOP, StageTypes.BUILD, StageTypes.STAGE_RELEASE, StageTypes.RELEASE,
+        contains(StageTypes.DEVELOP, StageTypes.BUILD, StageTypes.STAGE_RELEASE, StageTypes.RELEASE,
             StageTypes.OPERATE));
   }
 
@@ -48,7 +48,7 @@ public class StageTypeServiceTest
     productLicenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK);
     clmLicenseManager.installLicense(null);
 
-    assertThat(stageTypeService.getLicensedStageTypes(), containsInAnyOrder(StageTypes.RELEASE));
+    assertThat(stageTypeService.getLicensedStageTypes(), contains(StageTypes.RELEASE));
   }
 
   @Test
@@ -57,7 +57,7 @@ public class StageTypeServiceTest
     clmLicenseManager.installLicense(null);
 
     assertThat(stageTypeService.getLicensedStageTypes(),
-        containsInAnyOrder(StageTypes.STAGE_RELEASE, StageTypes.RELEASE));
+        contains(StageTypes.STAGE_RELEASE, StageTypes.RELEASE));
   }
 
   @Test
@@ -68,7 +68,7 @@ public class StageTypeServiceTest
     clmLicenseManager.installLicense(null);
 
     assertThat(stageTypeService.getLicensedStageTypes(),
-        containsInAnyOrder(StageTypes.DEVELOP, StageTypes.BUILD, StageTypes.STAGE_RELEASE, StageTypes.RELEASE,
+        contains(StageTypes.DEVELOP, StageTypes.BUILD, StageTypes.STAGE_RELEASE, StageTypes.RELEASE,
             StageTypes.OPERATE));
   }
 
@@ -79,6 +79,6 @@ public class StageTypeServiceTest
     clmLicenseManager.installLicense(null);
 
     assertThat(stageTypeService.getLicensedStageTypes(),
-        containsInAnyOrder(StageTypes.STAGE_RELEASE, StageTypes.RELEASE));
+        contains(StageTypes.STAGE_RELEASE, StageTypes.RELEASE));
   }
 }

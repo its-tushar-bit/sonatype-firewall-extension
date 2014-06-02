@@ -105,7 +105,7 @@
         <th class='component-header'>
           <div>COMPONENT</div>
         </th>
-        <th ng-repeat="stage in stageTypes | orderBy:stageTypeSort" class="time-header">
+        <th id='stage-header-{{stage.stageTypeId}}' ng-repeat="stage in stageTypes | orderBy:stageTypeSort" class="time-header">
           <div>{{ stage.name | uppercase }}</div>
         </th>
       </tr>
@@ -295,7 +295,7 @@
                   </td>
                 </tr>
                 <tr class='stage' ng-repeat-end
-                    ng-repeat='stage in application.stageRisks | orderBy:"stageTypeName"'
+                    ng-repeat='stage in application.stageRisks'
                     ng-if='expanded[application.applicationId]'>
                   <td><a title="View application report" class="glyphicons-sonatype link"
                          ng-href="index.html#/reports/{{encodeURIComponent(application.applicationId)}}/{{stage.scanId}}"

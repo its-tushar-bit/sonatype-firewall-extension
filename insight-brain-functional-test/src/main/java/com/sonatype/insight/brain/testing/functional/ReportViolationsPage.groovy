@@ -25,6 +25,7 @@ class ReportViolationsPage
 
     filter(required: false) { $('input') }
     reportViolationRows(required: false) { moduleList ReportViolationsRowModule, $('table.clm-table tbody tr') }
+    tableHeaders(required: false) { $('#report-list-header > th') }
     appNameHeader(required: false) { $('table.clm-table thead th:first-child') }
     orgNameHeader(required: false) { $('table.clm-table thead th:last-child') }
   }

@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.testing.functional
 
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO
+
 import spock.lang.IgnoreIf
 import spock.lang.Issue
 import spock.lang.Stepwise
@@ -36,6 +38,18 @@ class ApplicationSpec
       application('New Application').displayed
       waitFor { applicationName.text() == 'New Application' }
       applicationIdSaved.text() == 'New Application'
+  }
+
+  def "Policy evaluation summary lists stages in chronological order"() {
+    given: 'at least one policy evaluation for the app'
+      temporaryEntity.newPolicyEvaluation(new ApplicationDAO().getByPublicIdNotNull('New Application').id, 'build', 'scan-id')
+
+    when: 'refreshing the page to reload the policy evaluation summary'
+      driver.navigate().refresh()
+      at ApplicationPage
+
+    then: 'the stages are listed in proper order'
+      policyEvalStages*.text() == [ 'Build', 'Stage Release', 'Release' ]
   }
 
   def "Can edit an existing Application"() {
@@ -83,9 +97,17 @@ class ApplicationSpec
     given: 'The policy tab has loaded'
       waitFor { policies.displayed }
 
-    when: "We add a new Policy"
+    when: "We click the new policy button"
       policies.newPolicyButton.click()
+
+    then: "the policy editor is shown"
       def policyEditor = policies.newPolicyEditor
+      waitFor { policyEditor.displayed }
+
+    and: "the editor lists stages in chronological order"
+      policyEditor.actions*.stageName == [ 'Develop', 'Build', 'Stage Release', 'Release', 'Operate' ]
+
+    when: "we complete the form and save the policy"
       policyEditor.name = 'NewPolicy'
 
       def constraint = policyEditor.constraints[0]

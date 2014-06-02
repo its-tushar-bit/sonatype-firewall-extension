@@ -1,8 +1,8 @@
 <div>
   <script type='text/ng-template' id='recent-policy-eval'>
-    <div ng-show='applicationSummary.stageCount'>
+    <div id='policy-eval-summary' ng-show='applicationSummary.stageCount'>
       <div ng-repeat='stage in state.actionStageList | filterReportColumns' class="report-summary">
-        {{stage.name}}
+        <span>{{stage.name}}</span>
         <span ng-if='applicationSummary.policyEvaluationsResults[stage.id]'>
         </span>
         <div ng-if='applicationSummary.policyEvaluationsResults[stage.id]'>

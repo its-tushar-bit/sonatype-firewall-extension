@@ -21,6 +21,7 @@ import com.sonatype.insight.brain.model.policy.PolicyViolation
 import com.sonatype.insight.brain.model.policy.actions.FailActionType
 import com.sonatype.insight.brain.model.policy.actions.WarnActionType
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType
+import com.sonatype.insight.brain.model.policy.stages.OperateStageType
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType
 import com.sonatype.insight.brain.model.policy.stages.StageReleaseStageType
 import com.sonatype.insight.brain.model.tag.Tag
@@ -90,6 +91,18 @@ class DashboardOverviewSpec
         firstViolationSecondStage.groupId, firstViolationSecondStage.artifactId,
         firstViolationSecondStage.version)
 
+    // evaluation in yet another stage
+    PolicyEvaluation thirdPolicyEvaluation = temporaryEntity.newPolicyEvaluation(firstApp.id, ReleaseStageType.ID,
+        'DashboardSpecThirdEvaluation', now - 8)
+    temporaryEntity.newPolicyViolation(thirdPolicyEvaluation, policy, 2, PolicyThreatCategory.QUALITY, 
+        "Group1", "Artifact1", "Version1")
+
+    // and one more stage to cover them all
+    PolicyEvaluation forthPolicyEvaluation = temporaryEntity.newPolicyEvaluation(firstApp.id, OperateStageType.ID,
+        'DashboardSpecForthEvaluation', now - 9)
+    temporaryEntity.newPolicyViolation(forthPolicyEvaluation, policy, 1, PolicyThreatCategory.OTHER, 
+        "Group1", "Artifact1", "Version1")
+
     //most recent evaluation
     PolicyEvaluation secondPolicyEvaluation = temporaryEntity.newPolicyEvaluation(secondApp.id, ReleaseStageType.ID,
         'DashboardSpecSecondEvaluation', now)
@@ -151,13 +164,17 @@ class DashboardOverviewSpec
       policyThreatFiltersDropdown.dropdownCheck('Other').displayed
       policyThreatFiltersDropdown.hideDropdown()
 
-    and: 'stage type filters are shown'
+    and: 'stage type filters are shown in proper chronological order'
       stageTypeFiltersDropdown.showDropdown()
-      stageTypeFiltersDropdown.dropdownCheck('Build').displayed
-      !stageTypeFiltersDropdown.dropdownItem('Develop').present
-      stageTypeFiltersDropdown.dropdownCheck('Release').displayed
-      stageTypeFiltersDropdown.dropdownCheck('Stage Release').displayed
-      stageTypeFiltersDropdown.dropdownCheck('Operate').displayed
+      stageTypeFiltersDropdown.dropdownName(0).displayed
+      stageTypeFiltersDropdown.dropdownName(0).text() == 'Build'
+      stageTypeFiltersDropdown.dropdownName(1).displayed
+      stageTypeFiltersDropdown.dropdownName(1).text() == 'Stage Release'
+      stageTypeFiltersDropdown.dropdownName(2).displayed
+      stageTypeFiltersDropdown.dropdownName(2).text() == 'Release'
+      stageTypeFiltersDropdown.dropdownName(3).displayed
+      stageTypeFiltersDropdown.dropdownName(3).text() == 'Operate'
+      !stageTypeFiltersDropdown.dropdownName(4).present
       stageTypeFiltersDropdown.hideDropdown()
 
     and: 'application tag filters are shown'
@@ -319,12 +336,19 @@ class DashboardOverviewSpec
       newestViolationTable.rows[0].age ==~ RECENT_AGE
   }
 
+  def 'Newest Risk Table shows stages in chronological order'() {
+    when: 'newest risk table is shown'
+      waitFor { newestViolationTable.displayed }
+
+    then: 'the table header lists the stages in proper order'
+      waitFor { newestViolationTable.headers[5..8]*.@id == [ 'stage-header-build', 'stage-header-stage-release', 'stage-header-release', 'stage-header-operate' ] }
+  }
+
   def 'Filter out all results'() {
     when: 'selecting filters that match no results on the newest risk tab'
       filterPanelToggle.click()
       waitFor { policyThreatFiltersDropdown.displayed }
       policyThreatFiltersDropdown.toggleOption('Security')
-      policyThreatFiltersDropdown.toggleOption('Other')
       applyFilter()
 
     then: 'the table is replaced by no result text'
@@ -561,11 +585,18 @@ class DashboardOverviewSpec
 
     when: 'Expand'
       applicationViolationsTable.rows[2].expand.click()
-    then: 'Stage shown'
-      waitFor { applicationViolationsTable.rows.size() == 5 }
+
+    then: 'stages shown in chronological order'
+      waitFor { applicationViolationsTable.rows.size() == 7 }
       applicationViolationsTable.rows[2].collapse.displayed
       applicationViolationsTable.rows[3].application.text() == new BuildStageType().getName().toUpperCase()
       applicationViolationsTable.rows[3].reportLink.displayed
+      applicationViolationsTable.rows[4].application.text() == new StageReleaseStageType().getName().toUpperCase()
+      applicationViolationsTable.rows[4].reportLink.displayed
+      applicationViolationsTable.rows[5].application.text() == new ReleaseStageType().getName().toUpperCase()
+      applicationViolationsTable.rows[5].reportLink.displayed
+      applicationViolationsTable.rows[6].application.text() == new OperateStageType().getName().toUpperCase()
+      applicationViolationsTable.rows[6].reportLink.displayed
 
     and: 'the stage label links to the underlying report'
       withNewWindow(page: ReportContainerPage, { applicationViolationsTable.rows[3].reportLink.click() } ) {

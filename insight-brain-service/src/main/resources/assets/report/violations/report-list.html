@@ -15,7 +15,7 @@
       </div>
       <table class='clm-table table table-striped table-bordered' style='margin-bottom:0px;background-color: white'>
         <thead>
-          <tr>
+          <tr id='report-list-header'>
             <th class='sortable' ng-click="setSort('name')"
               ng-class="{ 'sorted' : orderColumn == 'name' }">
               Application Name
@@ -23,7 +23,7 @@
                   'icon-chevron-up' : orderColumn == 'name' && !orderDirection,
                   'emptyIconGlyph' : orderColumn != 'name' }"></i>
             </th>
-            <th ng-repeat='stage in stages | filterReportColumns'>
+            <th id='stage-header-{{stage.id}}' ng-repeat='stage in stages | filterReportColumns'>
               {{stage.name}} Violations
             </th>
             <th>Contact</th>

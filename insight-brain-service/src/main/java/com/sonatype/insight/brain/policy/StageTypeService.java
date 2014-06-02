@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.policy;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -32,49 +33,55 @@ public class StageTypeService
   }
 
   /**
-   * Using details here https://docs.sonatype.com/display/ProdMgmt/Product+License+Matrix
-   * to map the product to available StageTypes
-   *
-   * @return all StageType objects allowed by the current license.
+   * Using details here https://docs.sonatype.com/display/ProdMgmt/Product+License+Matrix to map the product to
+   * available StageTypes
+   * 
+   * @return all StageType objects allowed by the current license in natural order of occurrence during the component
+   *         lifecycle.
    */
   public Collection<StageType> getLicensedStageTypes() {
+    Collection<StageType> stageTypes = StageTypes.getAll();
+    Collection<String> allowed = new HashSet<>();
+
     if (licenseManager.hasProduct(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION)) {
-      return StageTypes.getAll();
+      // all allowed
     }
     else if (licenseManager.hasProduct(ProductLicenseDetails.PRODUCT_RISK)) {
-      return Collections.singleton(StageTypes.RELEASE);
+      allowed.add(StageTypes.RELEASE.getId());
     }
     else if (licenseManager.hasProduct(ProductLicenseDetails.PRODUCT_NEXUS)) {
-      ArrayList<StageType> types = new ArrayList<>();
-      types.add(StageTypes.RELEASE);
-      types.add(StageTypes.STAGE_RELEASE);
-      return types;
+      allowed.add(StageTypes.STAGE_RELEASE.getId());
+      allowed.add(StageTypes.RELEASE.getId());
+    }
+    else {
+      // if no product is defined, we are dealing with legacy license
+      if (licenseManager.hasEnforcementPoint(CLMEnforcementPoint.Build)) {
+        allowed.add(StageTypes.BUILD.getId());
+      }
+      if (licenseManager.hasEnforcementPoint(CLMEnforcementPoint.Develop)) {
+        allowed.add(StageTypes.DEVELOP.getId());
+      }
+      if (licenseManager.hasEnforcementPoint(CLMEnforcementPoint.Release)) {
+        allowed.add(StageTypes.RELEASE.getId());
+      }
+      if (licenseManager.hasEnforcementPoint(CLMEnforcementPoint.StageRelease)) {
+        allowed.add(StageTypes.STAGE_RELEASE.getId());
+      }
+      if (!licenseManager.isLegacyNexusClmLicense()) {
+        allowed.add(StageTypes.OPERATE.getId());
+      }
     }
 
-    //if no product is defined, we are dealing with legacy license
-    return getLegacy();
-  }
-
-  //simply converting the old enforcement points to stages, fortunately 1-1 mapping
-  private Collection<StageType> getLegacy() {
-    ArrayList<StageType> types = new ArrayList<>();
-    if (licenseManager.hasEnforcementPoint(CLMEnforcementPoint.Build)) {
-      types.add(StageTypes.BUILD);
-    }
-    if (licenseManager.hasEnforcementPoint(CLMEnforcementPoint.Develop)) {
-      types.add(StageTypes.DEVELOP);
-    }
-    if (licenseManager.hasEnforcementPoint(CLMEnforcementPoint.Release)) {
-      types.add(StageTypes.RELEASE);
-    }
-    if (licenseManager.hasEnforcementPoint(CLMEnforcementPoint.StageRelease)) {
-      types.add(StageTypes.STAGE_RELEASE);
+    if (!allowed.isEmpty()) {
+      Collection<StageType> filtered = new ArrayList<>();
+      for (StageType stageType : stageTypes) {
+        if (allowed.contains(stageType.getId())) {
+          filtered.add(stageType);
+        }
+      }
+      stageTypes = Collections.unmodifiableCollection(filtered);
     }
 
-    if (!licenseManager.isLegacyNexusClmLicense()) {
-      types.add(StageTypes.OPERATE);
-    }
-
-    return types;
+    return stageTypes;
   }
 }

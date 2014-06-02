@@ -737,22 +737,23 @@ table.table-risk tr:nth-child(even):not(.stage) > td:nth-child(2) {
   padding: 0px !important;
 }
 
-.dashboard-content .pathnames-popover {
+.pathnames-popover {
   max-width: 500px;
   -webkit-border-bottom-left-radius: 0;
   -moz-border-radius-bottomleft: 0;
   border-bottom-left-radius: 0;
 }
 
-.dashboard-content .pathnames-popover-content {
+.pathnames-popover-content {
   overflow-x: auto;
   white-space: nowrap;
   padding-left: 0px;
   margin-right: 15px;
   margin-left: 15px;
+  margin-bottom: 10px;
 }
 
-.dashboard-content .pathnames-popover-arrow {
+.pathnames-popover-arrow {
   left: 0%;
   border-width: 14px 17px 0px 0px;
   border-color: #ffffff transparent transparent transparent !important;
@@ -764,7 +765,7 @@ table.table-risk tr:nth-child(even):not(.stage) > td:nth-child(2) {
   bottom: -14px;
 }
 
-.dashboard-content .pathnames-popover-arrow:after {
+.pathnames-popover-arrow:after {
   bottom: -13px;
   border-width: 15px 18px 0px 0px;
   margin-left: -1px;

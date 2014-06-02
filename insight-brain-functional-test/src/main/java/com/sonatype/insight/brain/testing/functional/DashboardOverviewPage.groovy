@@ -70,6 +70,10 @@ class DashboardOverviewPage
     summaryTotalComponents(required: false) { $('#summary-total-components') }
     summaryMatchedComponents(required: false) { $('#summary-matched-components') }
     summaryPercentComponents(required: false) { $('#summary-percent-components') }
+    
+    unknownComponentPopover(required: false) { $('.popover.pathnames-popover') }
+    unknownComponentPopoverTitle(required: false) { $('.popover-title').text() }
+    unknownComponentPopoverText(required: false) { $('.popover-content.pathnames-popover-content').text() }
   }
 
   void applyFilter() {

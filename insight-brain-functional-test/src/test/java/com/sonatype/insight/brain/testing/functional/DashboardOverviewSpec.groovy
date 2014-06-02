@@ -231,11 +231,11 @@ class DashboardOverviewSpec
       interact {
         moveToElement(unknownComponentCell)
       }
-      waitFor { newestViolationTable.unknownComponentPopover.displayed }
+      waitFor { unknownComponentPopover.displayed }
 
     then: 'newest risk popover is properly displayed'
-      newestViolationTable.unknownComponentPopoverTitle == 'Component Path'
-      newestViolationTable.unknownComponentPopoverText == 'unknown.jar'
+      unknownComponentPopoverTitle == 'Component Path'
+      unknownComponentPopoverText == 'unknown.jar'
   }
 
   def 'Newest Risk table can be sorted by age'() {

@@ -14,11 +14,13 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
+import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 
 import com.google.common.collect.Sets;
 import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.hamcrest.Matchers.empty;
@@ -33,6 +35,11 @@ public class DashboardServiceAuthzTest
 
   @Inject
   private DashboardService dashboardService;
+
+  @Before
+  public void init() {
+    tempEntity.newApplicationComponent(app.getId(), StageTypes.BUILD.getId(), "hash", "gid", "aid", "ver");
+  }
 
   @Test
   public void testGetPolicyViolations() throws Exception {
@@ -233,6 +240,42 @@ public class DashboardServiceAuthzTest
     grantReadPermission(app.getId());
     assertThat(dashboardService.getNewestRisks(null, null, null, null, null, 1), hasSize(1));
   }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testGetComponentSummary_ExplicitApplicationComponent_Unauthenticated() {
+    assertThat(getComponentSummaryTotal(false), is(0));
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testGetComponentSummary_ExplicitApplicationComponent_Unauthorized() {
+    login();
+    assertThat(getComponentSummaryTotal(false), is(0));
+  }
+
+  @Test
+  public void testGetComponentSummary_ExplicitApplicationComponent_Authorized() {
+    grantReadPermission(app.getId());
+    assertThat(getComponentSummaryTotal(false), is(1));
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testGetComponentSummary_ImplicitApplicationComponent_Unauthenticated() {
+    assertThat(getComponentSummaryTotal(true), is(0));
+  }
+
+  @Test
+  public void testGetComponentSummary_ImplicitApplicationComponent_Unauthorized() {
+    login();
+    assertThat(getComponentSummaryTotal(true), is(0));
+  }
+
+  @Test
+  public void testGetComponentSummary_ImplicitApplicationComponent_Authorized() {
+    grantReadPermission(app.getId());
+    assertThat(getComponentSummaryTotal(true), is(1));
+  }
+
+  private int getComponentSummaryTotal(boolean all) {
+    return dashboardService.getComponentSummary(all ? null : Collections.singleton(app.getPublicId()), null, null).total;
+  }
 }
-
-

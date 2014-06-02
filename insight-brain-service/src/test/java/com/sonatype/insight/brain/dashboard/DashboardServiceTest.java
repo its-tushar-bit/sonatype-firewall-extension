@@ -23,6 +23,7 @@ import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
@@ -106,6 +107,8 @@ public class DashboardServiceTest
     tempEntity.newNewestPolicyViolation(app1PolicyViolation.getId(), app1.getId(), BuildStageType.ID);
     tempEntity.newNewestPolicyViolation(app2PolicyViolation.getId(), app2.getId(), BuildStageType.ID);
     tempEntity.newApplicationComponent(app1.getId(), BuildStageType.ID, "hash-1", "g", "a", "1");
+    tempEntity.newApplicationComponent(app1.getId(), ReleaseStageType.ID, "hash-3", MatchState.SIMILAR, false);
+    tempEntity.newApplicationComponent(app1.getId(), ReleaseStageType.ID, "hash-4", MatchState.UNKNOWN, false);
     tempEntity.newApplicationComponent(app2.getId(), BuildStageType.ID, "hash-2", "g", "a", "2");
     while (System.currentTimeMillis() <= start) {
       // just spinning until next policy eval time is guaranteed to be greater than time for the evals created above
@@ -652,8 +655,8 @@ public class DashboardServiceTest
     assertThat(summary.matchedApplications, is(2));
     assertThat(summary.totalPolicies, is(2));
     assertThat(summary.matchedPolicies, is(2));
-    assertThat(summary.totalComponents, is(2));
-    assertThat(summary.matchedComponents, is(2));
+    assertThat(summary.totalComponents, is(4));
+    assertThat(summary.matchedComponents, is(4));
   }
 
   @Test
@@ -664,7 +667,7 @@ public class DashboardServiceTest
     assertThat(summary.matchedApplications, is(1));
     assertThat(summary.totalPolicies, is(2));
     assertThat(summary.matchedPolicies, is(1));
-    assertThat(summary.totalComponents, is(2));
+    assertThat(summary.totalComponents, is(4));
     assertThat(summary.matchedComponents, is(1));
   }
 
@@ -679,7 +682,7 @@ public class DashboardServiceTest
     assertThat(summary.matchedApplications, is(1));
     assertThat(summary.totalPolicies, is(2));
     assertThat(summary.matchedPolicies, is(1));
-    assertThat(summary.totalComponents, is(2));
+    assertThat(summary.totalComponents, is(4));
     assertThat(summary.matchedComponents, is(1));
   }
 
@@ -691,8 +694,8 @@ public class DashboardServiceTest
     assertThat(summary.matchedApplications, is(2));
     assertThat(summary.totalPolicies, is(2));
     assertThat(summary.matchedPolicies, is(1));
-    assertThat(summary.totalComponents, is(2));
-    assertThat(summary.matchedComponents, is(2));
+    assertThat(summary.totalComponents, is(4));
+    assertThat(summary.matchedComponents, is(4));
   }
 
   @Test
@@ -708,8 +711,8 @@ public class DashboardServiceTest
     assertThat(summary.matchedApplications, is(2));
     assertThat(summary.totalPolicies, is(2));
     assertThat(summary.matchedPolicies, is(1));
-    assertThat(summary.totalComponents, is(2));
-    assertThat(summary.matchedComponents, is(2));
+    assertThat(summary.totalComponents, is(4));
+    assertThat(summary.matchedComponents, is(4));
   }
 
   @Test
@@ -720,8 +723,8 @@ public class DashboardServiceTest
     assertThat(summary.matchedApplications, is(2));
     assertThat(summary.totalPolicies, is(2));
     assertThat(summary.matchedPolicies, is(2));
-    assertThat(summary.totalComponents, is(2));
-    assertThat(summary.matchedComponents, is(0));
+    assertThat(summary.totalComponents, is(4));
+    assertThat(summary.matchedComponents, is(2));
   }
 
   private void assertNewestRiskDTO(NewestRiskDTO actual, Application app, PolicyViolation policyViolation) {
@@ -932,5 +935,69 @@ public class DashboardServiceTest
     assertNewestRiskDTO(riskDTOs.get(0), app, newPolicyViolation);
     assertNewestRiskDTOContainsStageDetails(riskDTOs.get(0), BuildStageType.ID, oldScanId, oldPolicyViolation);
     assertNewestRiskDTOContainsStageDetails(riskDTOs.get(0), ReleaseStageType.ID, newScanId, newPolicyViolation);
+  }
+
+  @Test
+  public void testGetComponentSummary_NoFilter() throws Exception {
+    ComponentSummaryDTO summary = dashboardService.getComponentSummary(null, null, null);
+    assertThat(summary.total, is(4));
+    assertThat(summary.exact, is(2));
+    assertThat(summary.similar, is(1));
+    assertThat(summary.unknown, is(1));
+  }
+
+  @Test
+  public void testGetComponentSummary_FilterByApp() throws Exception {
+    ComponentSummaryDTO summary = dashboardService.getComponentSummary(Collections.singleton(app1.getPublicId()), null,
+        null);
+    assertThat(summary.total, is(3));
+    assertThat(summary.exact, is(1));
+    assertThat(summary.similar, is(1));
+    assertThat(summary.unknown, is(1));
+  }
+
+  @Test
+  public void testGetComponentSummary_FilterByTag() throws Exception {
+    Tag app2Tag = tempEntity.newTag(org.getId());
+    tempEntity.newApplicationTag(app2.getId(), app2Tag.getId());
+
+    ComponentSummaryDTO summary = dashboardService.getComponentSummary(null, null,
+        Collections.singleton(app2Tag.getId()));
+    assertThat(summary.total, is(1));
+    assertThat(summary.exact, is(1));
+    assertThat(summary.similar, is(0));
+    assertThat(summary.unknown, is(0));
+  }
+
+  @Test
+  public void testGetComponentSummary_FilterByStage() throws Exception {
+    ComponentSummaryDTO summary = dashboardService.getComponentSummary(null,
+        Collections.singleton(ReleaseStageType.ID), null);
+    assertThat(summary.total, is(2));
+    assertThat(summary.exact, is(0));
+    assertThat(summary.similar, is(1));
+    assertThat(summary.unknown, is(1));
+  }
+
+  @Test
+  public void testGetComponentSummary_ExcludesProprietaryComponents() throws Exception {
+    tempEntity.newApplicationComponent(app1.getId(), ReleaseStageType.ID, "hash-x", MatchState.SIMILAR, true);
+
+    ComponentSummaryDTO summary = dashboardService.getComponentSummary(null, null, null);
+    assertThat(summary.total, is(4));
+    assertThat(summary.exact, is(2));
+    assertThat(summary.similar, is(1));
+    assertThat(summary.unknown, is(1));
+  }
+
+  @Test
+  public void testGetComponentSummary_UsesMostRecentMatchState() throws Exception {
+    tempEntity.newApplicationComponent(app2.getId(), ReleaseStageType.ID, "hash-1", MatchState.SIMILAR, false);
+
+    ComponentSummaryDTO summary = dashboardService.getComponentSummary(null, null, null);
+    assertThat(summary.total, is(4));
+    assertThat(summary.exact, is(1));
+    assertThat(summary.similar, is(2));
+    assertThat(summary.unknown, is(1));
   }
 }

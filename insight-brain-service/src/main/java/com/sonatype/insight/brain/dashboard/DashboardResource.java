@@ -40,6 +40,8 @@ public class DashboardResource
 
   public static final String FILTERS_SUMMARY_PATH = "filters/summary";
 
+  public static final String COMPONENTS_SUMMARY_PATH = "components/summary";
+
   private DashboardService dashboardService;
 
   @Inject
@@ -130,5 +132,14 @@ public class DashboardResource
   {
     return dashboardService.getFilterSummary(applicationPublicIds, stageIds, tagIds, policyThreatCategoryFilter,
         policyThreatLevelFilter);
+  }
+
+  @GET
+  @Path(COMPONENTS_SUMMARY_PATH)
+  @Produces(MediaType.APPLICATION_JSON)
+  public ComponentSummaryDTO getComponentSummary(@QueryParam("applicationPublicIds") Set<String> applicationPublicIds,
+      @QueryParam("stageIds") Set<String> stageIds, @QueryParam("tagIds") Set<String> tagIds)
+  {
+    return dashboardService.getComponentSummary(applicationPublicIds, stageIds, tagIds);
   }
 }

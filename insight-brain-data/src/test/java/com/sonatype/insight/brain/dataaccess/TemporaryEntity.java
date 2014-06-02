@@ -622,12 +622,26 @@ public class TemporaryEntity
   }
 
   public ApplicationComponent newApplicationComponent(String applicationId, String stageTypeId, String hash,
+      MatchState matchState, boolean proprietary)
+  {
+    return newApplicationComponent(applicationId, stageTypeId, hash, "Group1", "Artifact1", "Version1", null,
+        matchState, proprietary);
+  }
+
+  public ApplicationComponent newApplicationComponent(String applicationId, String stageTypeId, String hash,
       String groupId, String artifactId, String version, String pathnamesString)
+  {
+    return newApplicationComponent(applicationId, stageTypeId, hash, groupId, artifactId, version, pathnamesString,
+        MatchState.EXACT, false);
+  }
+
+  public ApplicationComponent newApplicationComponent(String applicationId, String stageTypeId, String hash,
+      String groupId, String artifactId, String version, String pathnamesString, MatchState matchState,
+      boolean proprietary)
   {
     List<String> pathnames = StringUtils.isBlank(pathnamesString) ? null : Collections.singletonList(pathnamesString);
     ApplicationComponent applicationComponent = new ApplicationComponent(applicationId, stageTypeId, new Date(), hash,
-        groupId, artifactId, version, MatchState.EXACT.getId(), IdentificationSource.SONATYPE.getId(),
-        false /* proprietary */, pathnames);
+        groupId, artifactId, version, matchState.getId(), IdentificationSource.SONATYPE.getId(), proprietary, pathnames);
     appComponentDAO.insert(applicationComponent);
     return applicationComponent;
   }

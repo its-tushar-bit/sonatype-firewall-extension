@@ -33,6 +33,8 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.ApplicationComponent;
+import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.filter.DashboardFilter;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
@@ -872,5 +874,52 @@ public class DashboardService
       policyEvaluationCache.put(policyEvaluation.getId(), policyEvaluation);
     }
     return policyEvaluation.getScanId();
+  }
+
+  /**
+   * Calculates how the non-proprietary components within the matched applications and stages are distributed across the
+   * various match states.
+   */
+  public ComponentSummaryDTO getComponentSummary(Set<String> applicationPublicIds, Set<String> stageIds,
+      Set<String> tagIds)
+  {
+    long start = System.currentTimeMillis();
+
+    ComponentSummaryDTO summary = new ComponentSummaryDTO();
+
+    Collection<String> appIds = Collections2.transform(
+        applicationService.getApplicationsByPublicIdsAndTagIds(applicationPublicIds, tagIds), hasIdIdSelector);
+    Collection<String> stageTypeIds = getStageIds(getStageTypes(stageIds));
+    List<ApplicationComponent> components = applicationComponentDAO.getNonProprietaryByApplicationIdsAndStageTypeIds(
+        appIds, stageTypeIds);
+    Map<String, ApplicationComponent> componentsByHash = new HashMap<>();
+    for (ApplicationComponent component : components) {
+      String hash = component.getHash();
+      ApplicationComponent other = componentsByHash.get(hash);
+      if (other == null || other.getTime().getTime() < component.getTime().getTime()) {
+        componentsByHash.put(hash, component);
+      }
+    }
+
+    summary.total = componentsByHash.size();
+    for (ApplicationComponent component : componentsByHash.values()) {
+      String matchState = component.getMatchStateId();
+      if (MatchState.EXACT.getId().equals(matchState)) {
+        summary.exact++;
+      }
+      else if (MatchState.SIMILAR.getId().equals(matchState)) {
+        summary.similar++;
+      }
+      else if (MatchState.UNKNOWN.getId().equals(matchState)) {
+        summary.unknown++;
+      }
+      else {
+        throw new IllegalStateException("unknown match state: " + matchState);
+      }
+    }
+
+    log.debug("Calculated component summary in {} ms", System.currentTimeMillis() - start);
+
+    return summary;
   }
 }

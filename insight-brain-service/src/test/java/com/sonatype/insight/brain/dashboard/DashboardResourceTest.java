@@ -146,6 +146,15 @@ public class DashboardResourceTest
     assertThat(dto, is(notNullValue()));
   }
 
+  @Test
+  public void testGetComponentSummary() throws Exception {
+    Response response = AuthedRestAccess.get(getRestUrl(DashboardResource.SERVICE_PATH + '/'
+        + DashboardResource.COMPONENTS_SUMMARY_PATH));
+    assertResponseStatus(200, response);
+    ComponentSummaryDTO dto = fromJson(response, ComponentSummaryDTO.class);
+    assertThat(dto, is(notNullValue()));
+  }
+
   private PolicyViolation createNewestPolicyViolation(Application app, Policy tempPolicy, String stageTypeId) {
     PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(app.getId(), stageTypeId, "test scan id");
     PolicyViolation violation = tempEntity.newPolicyViolation(evaluation, tempPolicy);

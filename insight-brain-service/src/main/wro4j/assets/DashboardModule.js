@@ -139,7 +139,7 @@
               // Because we've used the table element as the popover container,
               // start selecting from the parent of the tr (td -> tr -> table).
               // We also only want to select the popover of the current element, not all popovers.
-              var popover = element.parent().parent().children('.popover:contains(' + pathnames[0] + ')');
+              var popover = element.parent().parent().children('.popover:contains(\'' + pathnames[0] + '\')');
               popover.on('mouseleave', function() {
                 element.popover('hide');
               });
@@ -149,7 +149,7 @@
           // Also, hide the popover if the mouse leaves the component element and is no
           // longer hovering over the popover.
           element.on('mouseleave', function() {
-            var popover = element.parent().parent().children('.popover:contains(' + pathnames[0] + ')');
+            var popover = element.parent().parent().children('.popover:contains(\'' + pathnames[0] + '\')');
             setTimeout(function() {
               if (popover.length > 0 && !popover.is(':hover')) {
                 element.popover('hide');

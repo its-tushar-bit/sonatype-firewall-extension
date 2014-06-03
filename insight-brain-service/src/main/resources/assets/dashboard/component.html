@@ -40,10 +40,12 @@
               class="expandable-row" id="app-row-{{applicationComponent.application.id}}">
             <td>
               <i ng-class="{ clickable : applicationComponent.policyViolations.length > 0,
-                            'icon-plus-sign' : !applicationComponent.isExpanded && applicationComponent.policyViolations.length > 0,
-                            'icon-minus-sign' : applicationComponent.isExpanded && applicationComponent.policyViolations.length > 0,
+                            'glyphicons-halflings-sonatype' : applicationComponent.policyViolations.length !== 0,
+                            expand : !applicationComponent.isExpanded && applicationComponent.policyViolations.length > 0,
+                            collapse : applicationComponent.isExpanded && applicationComponent.policyViolations.length > 0,
                             'emptyIconGlyph' : applicationComponent.policyViolations.length === 0 }"
                  ng-click="applicationComponent.isExpanded = !applicationComponent.isExpanded"
+                 class='lighter'
                  data-toggle="collapse" data-target="#application-{{applicationComponent.application.id}}"></i>
             </td>
             <td>

@@ -295,3 +295,10 @@ a {
   height: 39px;
   width: 39px;
 }
+
+table.clm-table-stripe > tbody > tr:nth-child(odd) {
+  background-color: #E8E8E8;
+}
+.clm-table-border-top {
+  border-top: 1px solid #ddd
+}

@@ -27,11 +27,6 @@
     url('../fonts/proximanova-sbold-webfont.ttf') format('truetype'),
     url('../fonts/proximanova-sbold-webfont.svg#webfont') format('svg');
 }
-body {
-  background: url(../img/body_background.gif);
-  font-family: Helvetica, Arial, sans-serif;
-  color: #36424e;
-}
 h1, h2, h3, h4, h5, h6 {
   font-family: "Proxima Nova Semibold", "Proxima Nova Regular", "Helvetica Neue", Arial, sans-serif;
   text-shadow: 0px 1px 0px white;

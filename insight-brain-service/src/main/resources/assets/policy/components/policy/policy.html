@@ -12,9 +12,10 @@
 </div>
   </script>
   <div class="content-section">
-    <div style='margin:25px' ng-show='!applicablePolicies && !error'>
-      <h5><i class='icon-time'></i> Loading...</h5>
-    </div>
+    <div load-error='error' reload='doLoad()'></div>
+    <h5 style='margin:25px' ng-show='!applicablePolicies && !error'>
+      <i class='icon-time'></i> Loading...
+    </h5>
     <div class='fade' ng-class='{in : applicablePolicies }' id="monitoring">
       <div class="content-header">
         <h4><i class='clickable glyphicons-halflings-sonatype lighter' id="policy-monitoring-expand"
@@ -37,8 +38,9 @@
                           ng-options="s.id as s.name for s in actionStageList" ng-change="savePolicyMonitoring()" ng-disabled="!isPolicyMonitoringLicensed()">
                     <option value="">{{ policyMonitoringPlaceHolder }}</option>
                   </select>
-                  <span class="icon-question-sign" data-popover="Each day the latest scan from this stage will be evaluated. Notifications for new violations can be configured per policy (below)." data-popover-placement="right"
-                        data-popover-trigger="mouseenter" data-popover-append-to-body="true"></span>
+                  <span class="icon-question-sign"
+                        data-popover="Each day the latest scan from this stage will be evaluated. Notifications for new violations can be configured per policy (below)."
+                        data-popover-placement="right" data-popover-trigger="mouseenter" data-popover-append-to-body="true"></span>
                 </div>
               </div>
               <div clm-alerts='policyMonitoringAlerts'></div>
@@ -52,26 +54,18 @@
         </div>
       </div>
     </div>
-  </div>
-  <div class="content-section" id="policyList">
-    <div load-error='error' reload='doLoad()'></div>
-    <div style='margin:25px' ng-show='!applicablePolicies && !error'>
-      <h5><i class='icon-time'></i> Loading...</h5>
-    </div>
     <div class='fade' ng-class='{in : applicablePolicies }'>
       <div clm-alerts='alerts' class='policies'></div>
       <!-- Note that i check for .editable in ng-show, this is because I ALWAYS want to show the section header for the app tests -->
       <div id='{{applicablePolicy.ownerId}}' ng-repeat='applicablePolicy in applicablePolicies' ng-show='applicablePolicy.editable || applicablePolicy.policies.length > 0'>
         <div class="content-header">
-          <h4>
+          <h4 ng-switch='applicablePolicy.editable'>
             <i class='clickable glyphicons-halflings-sonatype lighter'
                ng-class="{ 'expand' : !isExpanded(applicablePolicy),
                            'collapse' : isExpanded(applicablePolicy) }"
                ng-click='toggleAll(applicablePolicy)'></i>
-            <span ng-switch='applicablePolicy.editable'>
-              <span ng-switch-when='true'>{{applicablePolicy.ownerName}} Policies</span>
-              <span ng-switch-default>Effective Policies Inherited from {{applicablePolicy.ownerName}}</span>
-            </span>
+            <span ng-switch-when='true'>{{applicablePolicy.ownerName}} Policies</span>
+            <span ng-switch-default>Effective Policies Inherited from {{applicablePolicy.ownerName}}</span>
           </h4>
         </div>
         <div ng-if='applicablePolicy.editable' class='policies' style='margin-bottom:5px'>
@@ -82,7 +76,12 @@
           <!-- Note that we cannot (currently) have a template loaded in same div as ngSwitch
           see https://issues.sonatype.org/browse/CLM-1462-->
           <div ng-switch-default>
-                      <div owner-name='applicablePolicy.ownerName' policy-items='applicablePolicy.policies' editable='applicablePolicy.editable' remove='viewRemovePolicy' tags='tags' policy-tag-map='policyTagMap'></div>
+            <div owner-name='applicablePolicy.ownerName'
+                 policy-items='applicablePolicy.policies'
+                 editable='applicablePolicy.editable'
+                 remove='viewRemovePolicy'
+                 tags='tags'
+                 policy-tag-map='policyTagMap'></div>
           </div>
         </div>
       </div>

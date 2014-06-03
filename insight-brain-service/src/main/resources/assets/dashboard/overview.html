@@ -105,8 +105,8 @@
         <th class='component-header'>
           <div>COMPONENT</div>
         </th>
-        <th id='stage-header-{{stage.stageTypeId}}' ng-repeat="stage in stageTypes | orderBy:stageTypeSort" class="time-header">
-          <div>{{ stage.name | uppercase }}</div>
+        <th id='stage-header-{{stage.stageTypeId}}' ng-repeat="stage in stageTypes | orderBy:stageTypeSort">
+          <div sort-column="{{(stage.stageTypeId | removeDashes) + 'Time'}}">{{ stage.name | uppercase }}</div>
         </th>
       </tr>
       </thead>

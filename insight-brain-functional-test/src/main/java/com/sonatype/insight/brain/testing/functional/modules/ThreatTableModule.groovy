@@ -17,7 +17,8 @@ class ThreatTableModule
     headers { $('th') }
     headerLinks { int i -> $('th a', i) }
     riskHeader { headerLinks(0) }
-    ageHeader(required: false) { headerLinks(1) }
+    ageHeader { headerLinks(1) }
+    firstStageHeader { headerLinks(2) }
     rows(required: false) { moduleList ThreatTableRow, $('tr').tail() }
     maxResults(required: false) { $('#max-results-shown') }
   }

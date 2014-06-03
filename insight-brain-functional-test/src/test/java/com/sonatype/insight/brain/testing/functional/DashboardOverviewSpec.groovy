@@ -285,6 +285,24 @@ class DashboardOverviewSpec
       newestViolationTable.rows[1].age ==~ RECENT_AGE
   }
 
+
+  def 'Newest Risk table can be sorted by stage time'() {
+    when: 'the newest risk table is shown'
+      waitFor{ newestViolationTable.displayed }
+      waitFor { newestViolationTable.rows.size() >= 2 }
+
+    then: 'risks are sorted by descending threat level, with the most recent results shown first'
+      newestViolationTable.rows[0].age ==~ RECENT_AGE
+      newestViolationTable.rows[1].age == '7d'
+
+    when: 'clicking on the first stage header(BUILD in this case)'
+      newestViolationTable.firstStageHeader.click()
+
+    then: 'we should now show the oldest stage result first'
+      newestViolationTable.rows[0].age == '7d'
+      newestViolationTable.rows[1].age ==~ RECENT_AGE
+  }
+
   def 'Newest Risk Table can be filtered'() {
     when: 'newest risk table is shown'
       waitFor { newestViolationTable.displayed }

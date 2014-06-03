@@ -429,45 +429,58 @@
     };
   }]);
 
-  dashboardModule.controller('NewestRiskTableController', ['$scope', 'StageTypeStore', function($scope, StageTypeStore) {
-    $scope.stageTypeSort = function(stage){
-      var ordinal = null;
-      switch (stage.stageTypeId) {
-        case 'build':
-          ordinal = 0;
-          break;
-        case 'stage-release':
-          ordinal = 1;
-          break;
-        case 'release':
-          ordinal = 2;
-          break;
-        case 'operate':
-          ordinal = 3;
-          break;
-      }
-      return ordinal;
-    };
+  dashboardModule.controller('NewestRiskTableController', [
+    '$scope', 'StageTypeStore', '$filter', function($scope, StageTypeStore, $filter) {
+      $scope.stageTypeSort = function(stage) {
+        var ordinal = null;
+        switch (stage.stageTypeId) {
+          case 'build':
+            ordinal = 0;
+            break;
+          case 'stage-release':
+            ordinal = 1;
+            break;
+          case 'release':
+            ordinal = 2;
+            break;
+          case 'operate':
+            ordinal = 3;
+            break;
+        }
+        return ordinal;
+      };
 
-    StageTypeStore.get().then(function(data){
-      $scope.stageTypes = [];
-      // Copy values so we can modify the content for this use-case
-      for(var i = 0; i < data.length; i++) {
-        var stageType = {
-          stageTypeId: data[i].id,
-          name: data[i].name
-        };
-        // Name doesn't fit the display so we shorten it
-        if(stageType.stageTypeId === 'stage-release') {
-          stageType.name = 'Stage';
+      StageTypeStore.get().then(function(data) {
+        $scope.stageTypes = [];
+        // Copy values so we can modify the content for this use-case
+        for (var i = 0; i < data.length; i++) {
+          var stageType = {
+            stageTypeId: data[i].id,
+            name: data[i].name
+          };
+          // Name doesn't fit the display so we shorten it
+          if (stageType.stageTypeId === 'stage-release') {
+            stageType.name = 'Stage';
+          }
+          // Even if we do have 'develop' records we are not going to show them
+          if (stageType.stageTypeId !== 'develop') {
+            $scope.stageTypes.push(stageType);
+          }
         }
-        // Even if we do have 'develop' records we are not going to show them
-        if(stageType.stageTypeId !== 'develop') {
-          $scope.stageTypes.push(stageType);
+      });
+      // to aid sortability, copy the times from each stage to a property on the row
+      for (var i = 0; i < $scope.data.length; i++) {
+        var risk = $scope.data[i];
+        if (risk.stageDetails) {
+          for (var j = 0; j < risk.stageDetails.length; j++) {
+            var stageDetail = risk.stageDetails[j];
+            var propName = $filter('removeDashes')(stageDetail.stageTypeId) + 'Time';
+            risk[propName] = stageDetail.time > 0 ? stageDetail.time : null;
+          }
         }
       }
-    });
-  }]);
+    }
+  ]);
 
   dashboardModule.controller('componentRiskTable', ['$scope', function($scope) {
     $scope.totalRisk = 0;
@@ -707,6 +720,12 @@
       controller: ['$scope', function ($scope) {
         $scope.formatPercentage = AngularUtils.formatPercentage;
       }]
+    };
+  });
+
+  dashboardModule.filter('removeDashes', function() {
+    return function(input) {
+      return input.replace('-', '');
     };
   });
 }());

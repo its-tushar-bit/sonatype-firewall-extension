@@ -388,7 +388,7 @@ describe('DashboardModule', function() {
               stageTypeIds: [],
               applicationTagIds: [],
               policyThreatLevel: [0,10]
-            };;
+            };
           });
           $httpBackend.flush();
           expect(directiveScope.data).toEqual('foo');
@@ -605,6 +605,49 @@ describe('DashboardModule', function() {
 
     beforeEach(inject(function($rootScope, $controller, $httpBackend, CLMLocations) {
       scope = $rootScope.$new();
+      scope.data = [
+        {
+          "applicationPublicId": "appPublicId",
+          "applicationName": "appName",
+          "threatLevel": 10,
+          "time": 1401149547140,
+          "policyId": "policyId",
+          "policyName": "Policy",
+          "hash": "foobar1",
+          "gav": {
+            "groupId": "foo",
+            "artifactId": "bar",
+            "version": "1.0"
+          },
+          "pathnames": ["foobar.jar"],
+          "stageDetails": [
+            {
+              "stageTypeId": "build",
+              "time": 1385755537775,
+              "actionTypeId": "warn",
+              "scanId": "scan1"
+            },
+            {
+              "stageTypeId": "stage-release",
+              "time": 1401133522035,
+              "actionTypeId": "warn",
+              "scanId": "scan2"
+            },
+            {
+              "stageTypeId": "release",
+              "time": 1401149547140,
+              "actionTypeId": "fail",
+              "scanId": "scan3"
+            },
+            {
+              "stageTypeId": "operate",
+              "time": 0,
+              "actionTypeId": null,
+              "scanId": null
+            }
+          ]
+        }
+      ];
       $httpBackend.expectGET(CLMLocations.getActionStageUrl()).respond(stageTypes);
       $controller('NewestRiskTableController', { $scope: scope });
       $httpBackend.flush();
@@ -620,6 +663,14 @@ describe('DashboardModule', function() {
       expect(scope.stageTypeSort(stageDetails[1])).toBe(0);
       expect(scope.stageTypeSort(stageDetails[2])).toBe(1);
       expect(scope.stageTypeSort(stageDetails[3])).toBe(3);
+    });
+
+    it('Enhances the available data to aid sorting by row', function(){
+      var risk = scope.data[0];
+      expect(risk.stagereleaseTime).toBe(risk.stageDetails[1].time);
+      expect(risk.releaseTime).toBe(risk.stageDetails[2].time);
+      expect(risk.buildTime).toBe(risk.stageDetails[0].time);
+      expect(risk.operateTime).toBeNull();
     });
   });
 

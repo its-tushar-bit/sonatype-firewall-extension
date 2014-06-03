@@ -481,20 +481,20 @@ table.table-risk td.low-risk {
   background-color: #E8E8E8;
 }
 
+/* only stripe the first column of the heat-mapped tables, excepting those with the .stage class */
+.table-risk tr:nth-child(odd):not(.stage) > td:nth-child(1), .table-risk-component tr:nth-child(odd):not(.stage) > td:nth-child(2) {
+  background-color: #E8E8E8;
+}
+
 /*
  * Affected Applications background
  */
-table.table-risk tr:nth-child(odd):not(.stage) > td:nth-child(2) {
+.table-risk-component tr:nth-child(odd):not(.stage) > td:nth-child(2) {
   background-color : #EDEDED;
 }
 
-table.table-risk tr:nth-child(even):not(.stage) > td:nth-child(2) {
+.table-risk-component tr:nth-child(even):not(.stage) > td:nth-child(2) {
   background-color : #F1F1F1;
-}
-
-/* only stripe the first column of the heat-mapped tables, excepting those with the .stage class */
-.table-risk tr:nth-child(odd):not(.stage) > td:nth-child(1), .table-risk tr:nth-child(odd):not(.stage) > td:nth-child(2) {
-  background-color: #E8E8E8;
 }
 
 .dashboard-filters tr td:nth-child(2) {

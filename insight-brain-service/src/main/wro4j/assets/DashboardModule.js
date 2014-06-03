@@ -673,11 +673,11 @@
               },{
                 count: $scope.data.similar,
                 colorCss: 'match-partial',
-                label: 'Partial Match'
+                label: 'Similar Match'
               },{
                 count: $scope.data.unknown,
                 colorCss: 'match-none',
-                label: 'Not Matched'
+                label: 'Unknown'
               }];
             }).error(function() {
               $scope.error = arguments;

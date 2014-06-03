@@ -692,11 +692,11 @@ describe('DashboardModule', function() {
       }, {
         count : 18,
         colorCss : 'match-partial',
-        label : 'Partial Match'
+        label : 'Similar Match'
       }, {
         count : 1843,
         colorCss : 'match-none',
-        label : 'Not Matched'
+        label : 'Unknown'
       }]
     }, url;
 

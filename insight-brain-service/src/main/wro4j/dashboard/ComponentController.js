@@ -7,22 +7,24 @@
 (function() {
   'use strict';
 
-  var componentModule = angular.module('ComponentModule', ['ui.router', 'CommonServices', 'CLMLocation']);
+  var componentModule = angular.module('ComponentModule', ['ui.router', 'CommonServices', 'CLMLocation', 'Stores']);
 
-  componentModule.controller('componentController', ['$scope', '$state', '$q', '$http', 'CLMLocations',
-    function($scope, $state, $q, $http, CLMLocations) {
+  componentModule.controller('componentController', ['$scope', '$state', '$q', '$http', 'StageTypeStore', 'CLMLocations',
+    function($scope, $state, $q, $http, StageTypeStore, CLMLocations) {
     $scope.hash = $state.params.hash;
 
     $scope.doLoad = function() {
       var hash = $state.params.hash;
       var promises = [
         $http.get(CLMLocations.getComponentDetailsUrl(hash)),
-        $http.get(CLMLocations.getComponentNameUrl(hash))
+        $http.get(CLMLocations.getComponentNameUrl(hash)),
+        StageTypeStore.getDashboardStages()
       ];
 
       $q.all(promises).then(function(results) {
         $scope.applicationComponents = results[0].data;
         $scope.name = results[1].data;
+        $scope.stageTypes = results[2];
 
         // Extract GAV details if we can, to assist proper formatting
         var gav = $scope.name.split(':');

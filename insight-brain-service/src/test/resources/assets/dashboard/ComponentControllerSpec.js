@@ -60,6 +60,7 @@ describe('ComponentController tests', function() {
 
     beforeEach(inject(function($rootScope, $controller, $httpBackend, CLMLocations) {
       scope = $rootScope.$new();
+      $httpBackend.expectGET(CLMLocations.getActionStageUrl()).respond([]);
       $httpBackend.expectGET(CLMLocations.getComponentDetailsUrl()).respond(applicationComponents);
       $httpBackend.expectGET(CLMLocations.getComponentNameUrl()).respond('foo:bar:1.0');
       $controller('componentController', { $scope: scope });

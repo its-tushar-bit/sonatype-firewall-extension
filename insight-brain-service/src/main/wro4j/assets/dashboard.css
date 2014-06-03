@@ -662,12 +662,60 @@ table.table-risk td.low-risk {
   width: 20px;
 }
 
-.share-risk-header, .risk-header {
-  width: 200px;
+
+.share-risk-header {
+  width : 90px
 }
-.component-violations-table .share-risk-column, .component-violations-table .risk-column {
-  width: 194px;
+
+/* padding in the header is 8px, 2*(12-8) = 8px smaller width */
+.component-violations-table .share-risk-column {
+  width: 82px;
   padding: 8px 12px;
+}
+
+@media (min-width:1200px) {
+  .risk-header, .stage-column {
+    width: 70px;
+  }
+
+  /* padding in the header is 8px, 2*(12-8) = 8px smaller width */
+  .component-violations-table .risk-column {
+    width: 62px;
+    padding: 8px 12px;
+  }
+}
+
+@media (max-width:1199px) {
+  .risk-header, .stage-column {
+    width: 60px;
+  }
+
+  /* padding in the header is 8px, 2*(12-8) = 8px smaller width */
+  .component-violations-table .risk-column {
+    width: 52px;
+    padding: 8px 12px;
+  }
+}
+
+@media (max-width:979px) {
+  .risk-header, .stage-column {
+    width: 48px;
+  }
+
+  /* padding in the header is 8px, 2*(12-8) = 8px smaller width */
+  .component-violations-table .risk-column {
+    width: 40px;
+    padding: 8px 12px;
+  }
+}
+
+.component-violations-table table td, table.component-application-table td {
+  vertical-align: middle;
+}
+
+.share-risk-column > span {
+  vertical-align: middle;
+  display: inline-block;
 }
 
 .sparkline {

@@ -286,6 +286,35 @@ describe('DashboardModule', function() {
     }
   });
 
+  describe('stageTypeSort', function () {
+    it('sort by id', inject(function ($filter) {
+      var result = $filter('stageTypeSort')([{ id : 'operate' }, { id : 'build' }, { id : 'release' }, { id : 'stage-release' }]);
+      expect(result[0].id).toEqual('build');
+      expect(result[1].id).toEqual('stage-release');
+      expect(result[2].id).toEqual('release');
+      expect(result[3].id).toEqual('operate');
+    }));
+    it('sort by stageTypeId', inject(function ($filter) {
+      var result = $filter('stageTypeSort')([{
+        id : 'build',
+        stageTypeId : 'operate'
+      }, {
+        id : 'operate',
+        stageTypeId : 'build'
+      }, {
+        id : 'stage-release',
+        stageTypeId : 'release'
+      }, {
+        id : 'release',
+        stageTypeId : 'stage-release'
+      }]);
+      expect(result[0].stageTypeId).toEqual('build');
+      expect(result[1].stageTypeId).toEqual('stage-release');
+      expect(result[2].stageTypeId).toEqual('release');
+      expect(result[3].stageTypeId).toEqual('operate');
+    }));
+  });
+
   describe('Risk Table Controllers', function() {
     var controllers = [{
       prefix: 'application',
@@ -656,13 +685,6 @@ describe('DashboardModule', function() {
     it('Modifies the loaded stages to remove develop and rename Stage-Release', function(){
       expect(scope.stageTypes.length).toBe(4);
       expect(scope.stageTypes[2].name).toBe('Stage');
-    });
-
-    it('Can sort stageDetails by stageTypeId', function() {
-      expect(scope.stageTypeSort(stageDetails[0])).toBe(2);
-      expect(scope.stageTypeSort(stageDetails[1])).toBe(0);
-      expect(scope.stageTypeSort(stageDetails[2])).toBe(1);
-      expect(scope.stageTypeSort(stageDetails[3])).toBe(3);
     });
 
     it('Enhances the available data to aid sorting by row', function(){

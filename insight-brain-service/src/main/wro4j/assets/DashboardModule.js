@@ -445,43 +445,45 @@
     };
   }]);
 
+  dashboardModule.filter('stageTypeSort', function () {
+    function priority(stage){
+      var ordinal = null;
+      switch (stage.stageTypeId || stage.id) {
+        case 'build':
+          ordinal = 0;
+          break;
+        case 'stage-release':
+          ordinal = 1;
+          break;
+        case 'release':
+          ordinal = 2;
+          break;
+        case 'operate':
+          ordinal = 3;
+          break;
+      }
+      return ordinal;
+    }
+
+    return function (input) {
+      if (input) {
+        return input.sort(function (a, b) {
+          return priority(a) - priority(b);
+        });
+      }
+    };
+  });
+
   dashboardModule.controller('NewestRiskTableController', [
     '$scope', 'StageTypeStore', '$filter', function($scope, StageTypeStore, $filter) {
-      $scope.stageTypeSort = function(stage) {
-        var ordinal = null;
-        switch (stage.stageTypeId) {
-          case 'build':
-            ordinal = 0;
-            break;
-          case 'stage-release':
-            ordinal = 1;
-            break;
-          case 'release':
-            ordinal = 2;
-            break;
-          case 'operate':
-            ordinal = 3;
-            break;
-        }
-        return ordinal;
-      };
-
-      StageTypeStore.get().then(function(data) {
+      StageTypeStore.getDashboardStages().then(function(data) {
         $scope.stageTypes = [];
         // Copy values so we can modify the content for this use-case
         for (var i = 0; i < data.length; i++) {
-          var stageType = {
+          $scope.stageTypes.push({
             stageTypeId: data[i].id,
             name: data[i].name
-          };
-          // Name doesn't fit the display so we shorten it
-          if (stageType.stageTypeId === 'stage-release') {
-            stageType.name = 'Stage';
-          }
-          // Even if we do have 'develop' records we are not going to show them
-          if (stageType.stageTypeId !== 'develop') {
-            $scope.stageTypes.push(stageType);
-          }
+          });
         }
       });
       // to aid sortability, copy the times from each stage to a property on the row

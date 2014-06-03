@@ -41,6 +41,19 @@
     return {
       'get' : function() {
         return promise;
+      },
+      'getDashboardStages' : function () {
+        return promise.then(function (result) {
+          result = angular.copy(result);
+          for (var i=0; i<result.length; i++) {
+            if (result[i].id === 'develop') {
+              result.splice(i, 1);
+            } else if (result[i].id === 'stage-release') {
+              result[i].name = 'Stage';
+            }
+          }
+          return result;
+        });
       }
     };
   }]);

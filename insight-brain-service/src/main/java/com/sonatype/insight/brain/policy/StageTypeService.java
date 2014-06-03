@@ -40,48 +40,58 @@ public class StageTypeService
    *         lifecycle.
    */
   public Collection<StageType> getLicensedStageTypes() {
-    Collection<StageType> stageTypes = StageTypes.getAll();
-    Collection<String> allowed = new HashSet<>();
+    Collection<StageType> allowed = orderStages(calculateLicensedStages());
+    return Collections.unmodifiableCollection(allowed);
+  }
+
+  private Collection<StageType> calculateLicensedStages() {
+    Collection<StageType> allowed = new HashSet<>();
 
     if (licenseManager.hasProduct(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION)) {
       // all allowed
+      allowed.addAll(StageTypes.getAll());
     }
     else if (licenseManager.hasProduct(ProductLicenseDetails.PRODUCT_RISK)) {
-      allowed.add(StageTypes.RELEASE.getId());
+      allowed.add(StageTypes.RELEASE);
     }
     else if (licenseManager.hasProduct(ProductLicenseDetails.PRODUCT_NEXUS)) {
-      allowed.add(StageTypes.STAGE_RELEASE.getId());
-      allowed.add(StageTypes.RELEASE.getId());
+      allowed.add(StageTypes.STAGE_RELEASE);
+      allowed.add(StageTypes.RELEASE);
     }
     else {
       // if no product is defined, we are dealing with legacy license
       if (licenseManager.hasEnforcementPoint(CLMEnforcementPoint.Build)) {
-        allowed.add(StageTypes.BUILD.getId());
+        allowed.add(StageTypes.BUILD);
       }
       if (licenseManager.hasEnforcementPoint(CLMEnforcementPoint.Develop)) {
-        allowed.add(StageTypes.DEVELOP.getId());
+        allowed.add(StageTypes.DEVELOP);
       }
       if (licenseManager.hasEnforcementPoint(CLMEnforcementPoint.Release)) {
-        allowed.add(StageTypes.RELEASE.getId());
+        allowed.add(StageTypes.RELEASE);
       }
       if (licenseManager.hasEnforcementPoint(CLMEnforcementPoint.StageRelease)) {
-        allowed.add(StageTypes.STAGE_RELEASE.getId());
+        allowed.add(StageTypes.STAGE_RELEASE);
       }
       if (!licenseManager.isLegacyNexusClmLicense()) {
-        allowed.add(StageTypes.OPERATE.getId());
+        allowed.add(StageTypes.OPERATE);
+      }
+    }
+    return allowed;
+  }
+
+  /**
+   * Orders the given stages by their natural chronological order.  This is the same order as 
+   * {@link StageTypes#getAll()}.
+   */
+  private Collection<StageType> orderStages(Collection<StageType> stagesToOrder) {
+    Collection<StageType> ordered = new ArrayList<>();
+
+    for (StageType stageType : StageTypes.getAll()) {
+      if (stagesToOrder.contains(stageType)) {
+        ordered.add(stageType);
       }
     }
 
-    if (!allowed.isEmpty()) {
-      Collection<StageType> filtered = new ArrayList<>();
-      for (StageType stageType : stageTypes) {
-        if (allowed.contains(stageType.getId())) {
-          filtered.add(stageType);
-        }
-      }
-      stageTypes = Collections.unmodifiableCollection(filtered);
-    }
-
-    return stageTypes;
+    return ordered;
   }
 }

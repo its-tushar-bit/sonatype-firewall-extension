@@ -54,7 +54,7 @@
         </div>
       </div>
     </div>
-    <div class='fade' ng-class='{in : applicablePolicies }'>
+    <div class='fade' ng-class='{in : applicablePolicies }' id="policyList">
       <div clm-alerts='alerts' class='policies'></div>
       <!-- Note that i check for .editable in ng-show, this is because I ALWAYS want to show the section header for the app tests -->
       <div id='{{applicablePolicy.ownerId}}' ng-repeat='applicablePolicy in applicablePolicies' ng-show='applicablePolicy.editable || applicablePolicy.policies.length > 0'>

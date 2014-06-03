@@ -43,6 +43,13 @@ var AngularUtils = {
   },
   endsWith: function(str, check) {
     return str.indexOf(check, str.length - check.length) > -1;
+  },
+  formatPercentage: function(count, total, decimalCount) {
+    if (!total) {
+      return '0';
+    }
+
+    return (count / total * 100).toFixed(decimalCount ? decimalCount : 0);
   }
 };
 

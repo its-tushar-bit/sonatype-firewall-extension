@@ -622,4 +622,60 @@ describe('DashboardModule', function() {
       expect(scope.stageTypeSort(stageDetails[3])).toBe(3);
     });
   });
+
+  describe('Dashboard component match summary', function() {
+    var scope, data = {
+      exact: 13,
+      similar: 18,
+      unknown: 1843,
+      total: 1874
+    }, expectedData = {
+      exact: 13,
+      similar: 18,
+      unknown: 1843,
+      total: 1874,
+      items: [{
+        count : 13,
+        colorCss : 'match-exact',
+        label : 'Exact Match'
+      }, {
+        count : 18,
+        colorCss : 'match-partial',
+        label : 'Partial Match'
+      }, {
+        count : 1843,
+        colorCss : 'match-none',
+        label : 'Not Matched'
+      }]
+    }, url;
+
+    beforeEach(inject(function($rootScope, $httpBackend, CLMLocations) {
+      scope = $rootScope.$new();
+      scope.filters = {
+        applicationPublicIds: ['1', '2'],
+        policyThreatTypes: ['3', '4'],
+        stageTypeIds: ['5', '6'],
+        applicationTagIds: ['7', '8'],
+        policyThreatLevel: [3, 9]
+      };
+      $httpBackend.expectGET('dashboard-component-match-results').respond('<div></div>');
+      url = CLMLocations.getDashboardComponentMatchSummaryUrl() +
+          '?applicationPublicIds=1&applicationPublicIds=2&policyThreatCategories=3,4&policyThreatLevelRange=3,9&stageIds=5&stageIds=6&tagIds=7&tagIds=8'
+    }));
+
+    it('Data loaded from server into model properly', inject(function($compile, $httpBackend, CLMLocations) {
+      $httpBackend.expectGET(url).respond(data);
+      $compile(angular.element('<div dashboard-component-match-results filters="filters"></div>'))(scope);
+      $httpBackend.flush();
+      expect(scope.$$childHead.data).toEqual(expectedData);
+      expect(scope.$$childHead.error).toBeNull();
+    }));
+
+    it('Error propogated to scope', inject(function($compile, $httpBackend, CLMLocations) {
+      $httpBackend.expectGET(url).respond(404, 'You screwed up');
+      $compile(angular.element('<div dashboard-component-match-results filters="filters"></div>'))(scope);
+      $httpBackend.flush();
+      expect(scope.$$childHead.error).toBeDefined();
+    }));
+  });
 });

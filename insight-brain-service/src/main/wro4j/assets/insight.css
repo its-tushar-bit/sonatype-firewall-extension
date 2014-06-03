@@ -839,7 +839,7 @@ table.table-risk tr:nth-child(even):not(.stage) > td:nth-child(2) {
   vertical-align: middle;
 }
 
-.dashboard-viewing-header {
+.dashboard-section-header {
   padding-bottom: 5px;
   border-bottom:1px solid #ddd;
 }
@@ -851,6 +851,10 @@ table.table-risk tr:nth-child(even):not(.stage) > td:nth-child(2) {
 
 .dashboard-viewing-item.first {
   margin-left:0px;
+}
+
+.dashboard-loading {
+  margin-left: 28px;
 }
 
 @media (max-width: 1656px) {
@@ -912,4 +916,48 @@ table.table-risk tr:nth-child(even):not(.stage) > td:nth-child(2) {
 
 .wrap-force-break {
   word-spacing: -0.1em;
+}
+
+.percentage-graph-section {
+  border-top: 1px solid #ddd;
+  height: 61px;
+}
+
+.percentage-graph {
+  height: 20px;
+  float: left;
+}
+
+.percentage-graph-legend-count {
+  font-size: 12px;
+  font-weight: bold;
+  padding-right: 10px;
+}
+
+.percentage-graph-legend-color {
+  height: 14px;
+  width: 14px;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.percentage-graph-legend-label {
+  font-size: 12px;
+}
+
+.match-exact {
+  background-color: #343434;
+}
+
+.match-partial {
+  background-color: grey;
+}
+
+.match-none {
+  background-color: lightgrey;
+}
+
+.component-match-content {
+  padding-top: 5px;
+  padding-bottom: 5px;
 }

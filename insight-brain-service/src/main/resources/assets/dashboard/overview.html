@@ -175,14 +175,43 @@
     </div>
   </div>
 </script>
+<script type="text/ng-template" id="horizontal-percentage-graph">
+  <div>
+    <span class="percentage-graph {{item.colorCss}}" ng-style="{width: formatPercentage(item.count, model.total, 3) + '%'}" ng-repeat="item in model.items"></span>
+  </div>
+  <div class="percentage-graph-legend">
+    <span ng-repeat="item in model.items">
+      <div class="percentage-graph-legend-color {{item.colorCss}}"></div>
+      <span class="percentage-graph-legend-label">{{item.label}}</span>
+      <span class="percentage-graph-legend-count">{{item.count}} ({{formatPercentage(item.count, model.total)}}%)</span>
+    </span>
+  </div>
+</script>
+<script type="text/ng-template" id="dashboard-component-match-results">
+  <div load-wrapper="error" reload="doLoad()">
+    <h5 ng-if="!data && !error" class="dashboard-loading">
+      <i class='icon-time'></i> Loading...
+    </h5>
+    <div id='component-match-results' ng-if="data">
+      <div class="span6">
+        <h4 class="dashboard-section-header">Component Match Results</h4>
+        <div class="component-match-content">
+          <div class="component-match-graph-section">
+            <div horizontal-percentage-graph model="data"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</script>
 <script type="text/ng-template" id="dashboard-view-summary">
   <div load-wrapper="error" reload="doLoad()">
-    <h5 ng-if="!data && !error">
+    <h5 ng-if="!data && !error" class="dashboard-loading">
       <i class='icon-time'></i> Loading...
     </h5>
     <div id='summary-data' ng-if="data">
       <div class="span6">
-        <h4 class="dashboard-viewing-header">Viewing</h4>
+        <h4 class="dashboard-section-header">Viewing</h4>
         <form class="form-horizontal" role="form">
           <div class="form-group dashboard-viewing-item first span2">
             <div>
@@ -225,6 +254,7 @@
   </div>
   <div class='row' style='margin-bottom:10px' dashboard-filter="filters" toggle="toggleCollapse"></div>
   <div class='row' dashboard-view-summary filters="filters"></div>
+  <div class='row' dashboard-component-match-results filters="filters"></div>
   <div load-error='error' reload='doLoad()'></div>
   <div class='row dashboard-tables' ng-hide='error'>
     <div class='span12' id="highest-risk">

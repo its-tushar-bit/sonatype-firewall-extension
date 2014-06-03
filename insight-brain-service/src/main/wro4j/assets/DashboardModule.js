@@ -3,7 +3,7 @@
 * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
 * "Sonatype" is a trademark of Sonatype, Inc.
 */
-/* global angular, clmBuildTimestamp, $ */
+/* global angular, clmBuildTimestamp, $, AngularUtils */
 (function() {
   'use strict';
 
@@ -627,17 +627,85 @@
           });
         };
 
-        $scope.formatPercentage = function(matched, total){
-          if (!total) {
-            return '0';
-          }
-
-          return (matched / total * 100).toFixed(0);
-        };
+        $scope.formatPercentage = AngularUtils.formatPercentage;
 
         $scope.$watch('filters', function(){
           $scope.doLoad();
         });
+      }]
+    };
+  });
+
+  dashboardModule.directive('dashboardComponentMatchResults', function() {
+    return {
+      restrict: 'A',
+      templateUrl: 'dashboard-component-match-results',
+      scope: {
+        filters: '=filters'
+      },
+      controller: [
+        '$scope', 'CLMLocations', '$http', function($scope, CLMLocations, $http) {
+          $scope.doLoad = function() {
+            $scope.data = null;
+            $scope.error = null;
+            $http.get(CLMLocations.getDashboardComponentMatchSummaryUrl(), {
+              params: filterToParams($scope.filters)
+            }).success(function(data) {
+              $scope.data = data;
+
+              $scope.data.items = [{
+                count: $scope.data.exact,
+                colorCss: 'match-exact',
+                label: 'Exact Match'
+              },{
+                count: $scope.data.similar,
+                colorCss: 'match-partial',
+                label: 'Partial Match'
+              },{
+                count: $scope.data.unknown,
+                colorCss: 'match-none',
+                label: 'Not Matched'
+              }];
+            }).error(function() {
+              $scope.error = arguments;
+            });
+          };
+
+          $scope.$watch('filters', function() {
+            $scope.doLoad();
+          });
+        }
+      ]
+    };
+  });
+
+  /**
+   * expects a model in the following format
+   * {
+       total: 7, //the total count of all items
+   *   items: [{
+   *     count: 1, //the count associated with the item]
+   *     label: 'label', //the label put in the legend
+   *     colorCss: 'css-class' //the css class to assign to the graph section for this item,
+   *       and the legend for this item
+   *   }]
+   * }
+   *
+   * ex.
+   * <div horizontal-percentage-graph model="myData"></div>
+   *
+   * This directive should be moved someplace more generic, but I don't feel like bloating
+   * AngularCommon at the moment..
+   */
+  dashboardModule.directive('horizontalPercentageGraph', function() {
+    return {
+      restrict: 'A',
+      scope: {
+        model: '=model'
+      },
+      templateUrl: 'horizontal-percentage-graph',
+      controller: ['$scope', function ($scope) {
+        $scope.formatPercentage = AngularUtils.formatPercentage;
       }]
     };
   });

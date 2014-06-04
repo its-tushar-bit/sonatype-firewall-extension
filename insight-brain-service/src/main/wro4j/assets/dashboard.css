@@ -373,16 +373,10 @@ table.table-risk td.low-risk {
   min-width: 60px;
 }
 
-.dashboard-content #stage-header-build {
+.dashboard-content #stage-header-build, .dashboard-content #stage-header-stage-release {
   min-width: 60px;
 }
-.dashboard-content #stage-header-stage-release {
-  min-width: 60px;
-}
-.dashboard-content #stage-header-release {
-  min-width: 60px;
-}
-.dashboard-content #stage-header-operate {
+.dashboard-content #stage-header-release, .dashboard-content #stage-header-operate {
   min-width: 75px;
 }
 

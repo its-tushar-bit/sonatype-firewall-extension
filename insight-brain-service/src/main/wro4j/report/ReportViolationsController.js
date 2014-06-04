@@ -11,19 +11,12 @@
   reportListModule.controller('ReportViolationsController', ['$scope', '$http', '$q', 'CLMLocations',
     function($scope, $http, $q, clmLocations) {
 
-      $scope.setSort = function (field) {
-        $scope.orderDirection = field === $scope.orderColumn && !$scope.orderDirection;
-        $scope.orderColumn = field;
-      };
-
       $scope.isVisible = function (item) {
         return !$scope.appFilter ||
               item.name.toLowerCase().indexOf($scope.appFilter.toLowerCase()) > -1 ||
               item.organizationName.toLowerCase().indexOf($scope.appFilter.toLowerCase()) > -1;
       };
 
-      $scope.orderColumn = 'name';
-      $scope.orderDirection = false;
       $scope.encodeURIComponent = window.encodeURIComponent;
 
       $scope.doLoad = function() {

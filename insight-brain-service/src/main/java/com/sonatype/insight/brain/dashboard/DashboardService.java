@@ -23,7 +23,6 @@ import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.inject.Named;
 
-import com.sonatype.insight.brain.dashboard.NewestRiskDTO.StageDetailDTO;
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatCategoryFilter;
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatLevelFilter;
 import com.sonatype.insight.brain.dataaccess.ApplicationComponentDAO;

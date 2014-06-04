@@ -26,6 +26,7 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 
 public class PolicyViolationDAOTest
     extends AbstractDbDAOTest
@@ -128,5 +129,59 @@ public class PolicyViolationDAOTest
         .getNewestByApplicationIdAndStageTypeId(applicationId, ReleaseStageType.ID);
     assertThat(newestPolicyViolationsRelease, hasSize(1));
     assertThat(newestPolicyViolationsRelease.get(0).getId(), is(newestPolicyViolationRelease.getId()));
+  }
+
+  @Test
+  public void testGetFirstOccurrence_ComponentWithHash() {
+    Policy policy = tempEntity.newPolicy(applicationId, "name");
+
+    PolicyEvaluation evaluation1 = tempEntity.newPolicyEvaluation(applicationId, BuildStageType.ID, "scan-1");
+    PolicyViolation violation1 = tempEntity.newPolicyViolation(evaluation1, policy, "gid", "aid", "1", "hash-1", null);
+    tempEntity.newNewestPolicyViolation(violation1.getId(), applicationId, evaluation1.getStageTypeId());
+    PolicyViolation violation2 = tempEntity.newPolicyViolation(evaluation1, policy, "gid", "aid", "2", "hash-2", null);
+    tempEntity.newNewestPolicyViolation(violation2.getId(), applicationId, evaluation1.getStageTypeId());
+
+    PolicyEvaluation evaluation2 = tempEntity
+        .newPolicyEvaluation(applicationId, evaluation1.getStageTypeId(), "scan-2");
+    PolicyViolation violation3 = tempEntity.newPolicyViolation(evaluation2, policy, "gid", "aid", "2", "hash-2", null);
+
+    PolicyViolation first = new PolicyViolationDAO().getFirstOccurrence(applicationId, evaluation1.getStageTypeId(),
+        violation3);
+    assertThat(first, is(notNullValue()));
+    assertThat(first.getId(), is(violation2.getId()));
+  }
+
+  @Test
+  public void testGetFirstOccurrence_ComponentWithoutHash() {
+    Policy policy = tempEntity.newPolicy(applicationId, "name");
+
+    PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(applicationId, BuildStageType.ID, "scan-1");
+    PolicyViolation violation = tempEntity.newPolicyViolation(evaluation, policy, null, null, null, null, null);
+
+    try {
+      new PolicyViolationDAO().getFirstOccurrence(applicationId, evaluation.getStageTypeId(), violation);
+      fail("Should have bailed on missing component hash");
+    }
+    catch (IllegalArgumentException e) {
+      assertThat(e.getMessage(), is("Cannot determine first occurrence of violation for component without hash"));
+    }
+  }
+
+  @Test
+  public void testGetFirstOccurrence_MissingNewestViolationDueToIncompleteDataMigration() {
+    Policy policy = tempEntity.newPolicy(applicationId, "name");
+
+    PolicyEvaluation evaluation1 = tempEntity.newPolicyEvaluation(applicationId, BuildStageType.ID, "scan-1");
+    tempEntity.newPolicyViolation(evaluation1, policy, "gid", "aid", "1", "hash-1", null);
+    tempEntity.newPolicyViolation(evaluation1, policy, "gid", "aid", "2", "hash-2", null);
+
+    PolicyEvaluation evaluation2 = tempEntity
+        .newPolicyEvaluation(applicationId, evaluation1.getStageTypeId(), "scan-2");
+    PolicyViolation violation3 = tempEntity.newPolicyViolation(evaluation2, policy, "gid", "aid", "2", "hash-2", null);
+
+    PolicyViolation first = new PolicyViolationDAO().getFirstOccurrence(applicationId, evaluation1.getStageTypeId(),
+        violation3);
+    assertThat(first, is(notNullValue()));
+    assertThat(first.getId(), is(violation3.getId()));
   }
 }

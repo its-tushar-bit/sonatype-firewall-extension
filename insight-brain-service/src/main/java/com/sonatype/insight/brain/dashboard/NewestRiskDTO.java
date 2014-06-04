@@ -35,15 +35,4 @@ public class NewestRiskDTO
   public List<String> pathnames;
 
   public List<StageDetailDTO> stageDetails = new ArrayList<>();
-
-  static class StageDetailDTO
-  {
-    public String stageTypeId;
-
-    public long time;
-
-    public String actionTypeId;
-
-    public String scanId;
-  }
 }

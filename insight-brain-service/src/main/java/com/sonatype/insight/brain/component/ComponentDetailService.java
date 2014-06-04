@@ -6,8 +6,8 @@
 package com.sonatype.insight.brain.component;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -18,6 +18,7 @@ import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.insight.brain.component.ApplicationComponentDetailsDTO.PolicyViolationSummaryDTO;
 import com.sonatype.insight.brain.component.ApplicationComponentDetailsDTO.PolicyViolationSummaryDTO.ReasonDTO;
+import com.sonatype.insight.brain.dashboard.StageDetailDTO;
 import com.sonatype.insight.brain.dataaccess.ApplicationComponentDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
@@ -26,9 +27,12 @@ import com.sonatype.insight.brain.model.ApplicationComponent;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.StageType;
+import com.sonatype.insight.brain.model.policy.actions.FailActionType;
+import com.sonatype.insight.brain.model.policy.actions.WarnActionType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.organization.ApplicationAdapter;
 import com.sonatype.insight.brain.organization.ApplicationService;
+import com.sonatype.insight.brain.policy.StageTypeService;
 import com.sonatype.insight.error.exception.BadRequestException;
 
 @Named
@@ -43,13 +47,16 @@ public class ComponentDetailService
 
   private final ApplicationComponentDAO applicationComponentDAO;
 
+  private final StageTypeService stageTypeService;
+
   @Inject
   public ComponentDetailService(ApplicationService appService, ApplicationAdapter appAdapter,
-      ApplicationComponentDAO applicationComponentDAO)
+      ApplicationComponentDAO applicationComponentDAO, StageTypeService stageTypeService)
   {
     this.appService = appService;
     this.appAdapter = appAdapter;
     this.applicationComponentDAO = applicationComponentDAO;
+    this.stageTypeService = stageTypeService;
   }
 
   public List<ApplicationComponentDetailsDTO> getApplicationDetailsByHash(String hash) {
@@ -57,6 +64,13 @@ public class ComponentDetailService
 
     PolicyEvaluationDAO policyEvaluationDAO = new PolicyEvaluationDAO();
     PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
+
+    List<StageType> stageTypes = new ArrayList<StageType>();
+    for (StageType stageType : stageTypeService.getLicensedStageTypes()) {
+      if (!StageTypes.isIgnoredForDashboard(stageType.getId())) {
+        stageTypes.add(stageType);
+      }
+    }
 
     // Get the list of applications the user can see
     List<Application> applications = appService.getApplications();
@@ -69,10 +83,11 @@ public class ComponentDetailService
       ApplicationComponentDetailsDTO applicationComponentDetails = new ApplicationComponentDetailsDTO();
 
       Map<String, PolicyViolationSummaryDTO> policyViolationDTOsByPolicyId = new LinkedHashMap<>();
-      for (StageType stageType : StageTypes.getAll()) {
-        if (StageTypes.isIgnoredForDashboard(stageType.getId())) {
-          continue;
-        }
+      Map<String, Map<String, StageDetailDTO>> stageDetailsByPolicyId = new LinkedHashMap<>();
+      for (StageType stageType : stageTypes) {
+        StageDetailDTO appStageDetailDTO = new StageDetailDTO(stageType.getId(), stageType.getName());
+        applicationComponentDetails.stageDetails.add(appStageDetailDTO);
+
         PolicyEvaluation policyEvaluation = policyEvaluationDAO.getLastByApplicationIdAndStageId(application.getId(),
             stageType.getId());
         if (policyEvaluation == null) {
@@ -83,11 +98,26 @@ public class ComponentDetailService
             hash);
         for (PolicyViolation policyViolation : policyViolations) {
           String policyId = policyViolation.getPolicyId();
+
+          Map<String, StageDetailDTO> stageDetailsById = stageDetailsByPolicyId.get(policyId);
+          if (stageDetailsById == null) {
+            stageDetailsById = initStageDetails(stageTypes);
+            stageDetailsByPolicyId.put(policyId, stageDetailsById);
+          }
+          StageDetailDTO policyStageDetailDTO = stageDetailsById.get(stageType.getId());
+          policyStageDetailDTO.scanId = policyEvaluation.getScanId();
+          policyStageDetailDTO.actionTypeId = policyViolation.getActionTypeId();
+          policyStageDetailDTO.time = policyViolationDAO
+              .getFirstOccurrence(application.getId(), stageType.getId(), policyViolation).getTime().getTime();
+          if (getSeverity(appStageDetailDTO.actionTypeId) < getSeverity(policyStageDetailDTO.actionTypeId)) {
+            appStageDetailDTO.actionTypeId = policyStageDetailDTO.actionTypeId;
+          }
+
           PolicyViolationSummaryDTO policyViolationSummaryDTO = policyViolationDTOsByPolicyId.get(policyId);
           if (policyViolationSummaryDTO == null) {
             policyViolationSummaryDTO = new PolicyViolationSummaryDTO();
             policyViolationSummaryDTO.policyId = policyViolation.getPolicyId();
-            policyViolationSummaryDTO.stageTypeIds = new LinkedHashSet<>();
+            policyViolationSummaryDTO.stageDetails.addAll(stageDetailsById.values());
             policyViolationDTOsByPolicyId.put(policyId, policyViolationSummaryDTO);
           }
           // Use the values from the most recent policy violation
@@ -105,7 +135,6 @@ public class ComponentDetailService
               policyViolationSummaryDTO.reasons.add(reasonDTO);
             }
           }
-          policyViolationSummaryDTO.stageTypeIds.add(stageType.getId());
         }
       }
 
@@ -115,6 +144,28 @@ public class ComponentDetailService
     }
 
     return result;
+  }
+
+  private int getSeverity(String actionTypeId) {
+    if (actionTypeId == null) {
+      return 0;
+    }
+    else if (WarnActionType.ID.equals(actionTypeId)) {
+      return 1;
+    }
+    else if (FailActionType.ID.equals(actionTypeId)) {
+      return 2;
+    }
+    throw new IllegalStateException("unknown action type: " + actionTypeId);
+  }
+
+  private Map<String, StageDetailDTO> initStageDetails(Collection<StageType> stageTypes) {
+    Map<String, StageDetailDTO> stageDetailsById = new LinkedHashMap<>();
+    for (StageType stageType : stageTypes) {
+      StageDetailDTO stageDetailDTO = new StageDetailDTO(stageType.getId(), stageType.getName());
+      stageDetailsById.put(stageDetailDTO.stageTypeId, stageDetailDTO);
+    }
+    return stageDetailsById;
   }
 
   private boolean isComponentPartOfApplication(Application application, String hash) {

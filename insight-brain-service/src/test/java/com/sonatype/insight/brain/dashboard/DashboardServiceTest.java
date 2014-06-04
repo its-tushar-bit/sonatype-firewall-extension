@@ -16,7 +16,6 @@ import java.util.Set;
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.TestProductLicenseManager;
-import com.sonatype.insight.brain.dashboard.NewestRiskDTO.StageDetailDTO;
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatCategoryFilter;
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatLevelFilter;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
@@ -760,7 +759,7 @@ public class DashboardServiceTest
     for (StageDetailDTO stageDetailDTO : actual.stageDetails) {
       if (stageTypeId.equals(stageDetailDTO.stageTypeId)) {
         assertThat(stageDetailDTO.actionTypeId, nullValue());
-        assertThat(stageDetailDTO.time, is(0l));
+        assertThat(stageDetailDTO.time, is(nullValue()));
         assertThat(stageDetailDTO.scanId, nullValue());
         return;
       }

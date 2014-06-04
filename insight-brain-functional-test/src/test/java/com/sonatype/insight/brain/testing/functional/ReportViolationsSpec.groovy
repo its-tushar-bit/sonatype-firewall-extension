@@ -19,29 +19,34 @@ class ReportViolationsSpec
 
   def "Organization Sorting"() {
     given:
-      ReportViolationsPage page = at ReportViolationsPage;
-      waitFor { page.reportViolationRows.size() == 2; };
+      ReportViolationsPage page = at ReportViolationsPage
+      waitFor { page.reportViolationRows.size() == 2 }
+
     when: "org header is clicked"
       clickHeader(orgNameHeader)
+
     then: "rows sorted by organization"
-      page.reportViolationRows[0].orgName.text()== "org1";
-      page.reportViolationRows[1].orgName.text() == "org2";
+      page.reportViolationRows[0].orgName.text() == "org1"
+      page.reportViolationRows[1].orgName.text() == "org2"
 
     when: "org header is clicked again"
       clickHeader(orgNameHeader)
+
     then: "rows reverse sorted by organization"
-      page.reportViolationRows[0].orgName.text() == "org2";
-      page.reportViolationRows[1].orgName.text() == "org1";
+      page.reportViolationRows[0].orgName.text() == "org2"
+      page.reportViolationRows[1].orgName.text() == "org1"
   }
 
   def "Filter organization" () {
     given:
-      ReportViolationsPage page = at ReportViolationsPage;
+      ReportViolationsPage page = at ReportViolationsPage
+
     when: "I type a filter"
-      page.filter << "org2";
+      page.filter << "org2"
+
     then:
-      reportViolationRows.size() == 1;
-      reportViolationRows[0].orgName.text() == "org2";
+      reportViolationRows.size() == 1
+      reportViolationRows[0].orgName.text() == "org2"
   }
 
   def "Stages are listed in chronological order"() {

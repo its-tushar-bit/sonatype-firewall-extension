@@ -74,6 +74,11 @@ class DashboardOverviewPage
     unknownComponentPopover(required: false) { $('.popover.pathnames-popover') }
     unknownComponentPopoverTitle(required: false) { $('.popover-title').text() }
     unknownComponentPopoverText(required: false) { $('.popover-content.pathnames-popover-content').text() }
+
+    componentMatchSection(required: false) { $('#component-match-results') }
+    componentMatchExactCount(required: false) { $('#component-match-results .percentage-graph-legend-count')[0] }
+    componentMatchSimilarCount(required: false) { $('#component-match-results .percentage-graph-legend-count')[1] }
+    componentMatchUnknownCount(required: false) { $('#component-match-results .percentage-graph-legend-count')[2] }
   }
 
   void applyFilter() {

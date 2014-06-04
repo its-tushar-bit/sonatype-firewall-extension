@@ -14,6 +14,7 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO
 import com.sonatype.insight.brain.model.Application
 import com.sonatype.insight.brain.model.Color
 import com.sonatype.insight.brain.model.Organization
+import com.sonatype.insight.brain.model.component.MatchState
 import com.sonatype.insight.brain.model.policy.Policy
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory
@@ -77,7 +78,9 @@ class DashboardOverviewSpec
     temporaryEntity.newNewestPolicyViolation(firstViolation.id, firstPolicyEvaluation.applicationId,
         firstPolicyEvaluation.stageTypeId)
     temporaryEntity.newApplicationComponent(firstPolicyEvaluation.applicationId, firstPolicyEvaluation.stageTypeId,
-        firstViolation.hash, firstViolation.groupId, firstViolation.artifactId, firstViolation.version)
+        firstViolation.hash, firstViolation.groupId, firstViolation.artifactId, firstViolation.version, )
+    temporaryEntity.newApplicationComponent(firstPolicyEvaluation.applicationId, firstPolicyEvaluation.stageTypeId, '987654321', MatchState.SIMILAR, false);
+    temporaryEntity.newApplicationComponent(firstPolicyEvaluation.applicationId, firstPolicyEvaluation.stageTypeId, '987654322', MatchState.UNKNOWN, false);
 
     //same policy as first evaluation, but a different stage and earlier
     PolicyEvaluation firstPolicyEvaluationSecondStage = temporaryEntity.newPolicyEvaluation(firstApp.id,
@@ -654,15 +657,32 @@ class DashboardOverviewSpec
 
     and: 'the count of total components is shown'
       summaryTotalComponents.displayed
-      summaryTotalComponents.text() == '1'
+      summaryTotalComponents.text() == '3'
 
     and: 'the count of matched components is shown'
       summaryMatchedComponents.displayed
-      summaryMatchedComponents.text() == '1'
+      summaryMatchedComponents.text() == '3'
 
     and: 'the percentage of matched components is shown'
       summaryPercentComponents.displayed
       summaryPercentComponents.text() == '100%'
+  }
+
+  def 'Dashboard component match summary'() {
+    when: 'the component match summary is shown'
+      waitFor { componentMatchSection.displayed }
+
+    then: 'the count of exact match components is shown'
+      componentMatchExactCount.displayed
+      componentMatchExactCount.text() == '1 (33%)'
+
+    and: 'the count of similar match components is shown'
+      componentMatchSimilarCount.displayed
+      componentMatchSimilarCount.text() == '1 (33%)'
+
+    and: 'the count of unknown components is shown'
+      componentMatchUnknownCount.displayed
+      componentMatchUnknownCount.text() == '1 (33%)'
   }
 
   /**

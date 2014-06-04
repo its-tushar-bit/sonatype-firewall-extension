@@ -30,7 +30,7 @@
                 </th>
               </tr>
             </thead>
-            <tr ng-repeat='application in applications | filter: isVisible | orderBy:orderColumn:orderDirection'>
+            <tr ng-repeat='application in applications | filter: isVisible | orderBy:getSortField():getSortReverse()'>
               <td>
                 <a href='index.html#/management/application/{{encodeURIComponent(application.publicId)}}/policies'>
                   <img ng-src='../rest/application/icon/{{encodeURIComponent(application.publicId)}}'

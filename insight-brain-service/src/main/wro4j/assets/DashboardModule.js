@@ -195,7 +195,7 @@
 
           $q.all(promises).then(function(data) {
             scope.applications = data[0];
-            scope.stageTypes = data[1];
+            scope.stageTypes = angular.copy(data[1]); // Stores should not be modified directly
             scope.applicationTags = data[3].data;
 
             for (var i=0; i<scope.stageTypes.length; i++) {

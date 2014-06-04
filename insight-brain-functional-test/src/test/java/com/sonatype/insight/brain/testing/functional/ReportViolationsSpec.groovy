@@ -22,13 +22,13 @@ class ReportViolationsSpec
       ReportViolationsPage page = at ReportViolationsPage;
       waitFor { page.reportViolationRows.size() == 2; };
     when: "org header is clicked"
-      page.orgNameHeader.click();
+      clickHeader(orgNameHeader)
     then: "rows sorted by organization"
       page.reportViolationRows[0].orgName.text()== "org1";
       page.reportViolationRows[1].orgName.text() == "org2";
 
     when: "org header is clicked again"
-      page.orgNameHeader.click();
+      clickHeader(orgNameHeader)
     then: "rows reverse sorted by organization"
       page.reportViolationRows[0].orgName.text() == "org2";
       page.reportViolationRows[1].orgName.text() == "org1";
@@ -49,6 +49,6 @@ class ReportViolationsSpec
       at ReportViolationsPage
 
     then: "the table header lists the stages in proper order"
-      tableHeaders[1..3]*.@id == [ 'stage-header-build', 'stage-header-stage-release', 'stage-header-release' ]
+      tableHeaders[1..3]*.@id == [ 'report-list-header-build', 'report-list-header-stage-release', 'report-list-header-release' ]
   }
 }

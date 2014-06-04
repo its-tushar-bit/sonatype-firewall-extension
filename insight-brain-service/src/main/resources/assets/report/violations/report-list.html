@@ -15,17 +15,17 @@
       </div>
       <div class='scrollable-container border-top'>
         <div class='scrollable-container-inner'>
-          <table class='table clm-table-stripe' sortable sortable-field="name">
+          <table id='report-list-table' class='table clm-table-stripe' sortable sortable-field="name">
             <thead>
-              <tr id='report-list-header'>
-                <th>
+              <tr id='report-list-headers'>
+                <th id='report-list-header-app'>
                   <div sort-column='name'>Application Name</div>
                 </th>
-                <th id='stage-header-{{stage.id}}' ng-repeat='stage in stages | filterReportColumns'>
+                <th id='report-list-header-{{stage.id}}' ng-repeat='stage in stages | filterReportColumns'>
                   <div>{{stage.name}} Violations</div>
                 </th>
-                <th><div>Contact</div></th>
-                <th>
+                <th id='report-list-header-contact'><div>Contact</div></th>
+                <th id='report-list-header-org'>
                   <div sort-column='organizationName'>Organization</div>
                 </th>
               </tr>

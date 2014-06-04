@@ -24,9 +24,13 @@ class ReportViolationsPage
     emptyMessage { $('#clm-welcome-message') }
 
     filter(required: false) { $('input') }
-    reportViolationRows(required: false) { moduleList ReportViolationsRowModule, $('table.clm-table tbody tr') }
-    tableHeaders(required: false) { $('#report-list-header > th') }
-    appNameHeader(required: false) { $('table.clm-table thead th:first-child') }
-    orgNameHeader(required: false) { $('table.clm-table thead th:last-child') }
+    reportViolationRows(required: false) { moduleList ReportViolationsRowModule, $('#report-list-table tbody tr') }
+    tableHeaders(required: false) { $('#report-list-headers > th') }
+    appNameHeader(required: false) { $('#report-list-header-app') }
+    orgNameHeader(required: false) { $('#report-list-header-org') }
+  }
+
+  void clickHeader(header) {
+    header.find('a').click()
   }
 }

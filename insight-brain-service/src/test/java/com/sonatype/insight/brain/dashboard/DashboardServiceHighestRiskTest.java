@@ -23,6 +23,7 @@ import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.organization.ApplicationService;
 import com.sonatype.insight.brain.policy.StageTypeService;
+import com.sonatype.insight.brain.security.CurrentUser;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -73,12 +74,14 @@ public class DashboardServiceHighestRiskTest
   @Mock
   private DashboardFilterDAO dashboardFilterDAO;
 
+  @Mock
+  private CurrentUser currentUser;
 
   @Before
   public void init() {
 
     dashboardService = new DashboardService(applicationDAO, applicationComponentDAO, applicationService, policyDAO,
-        policyEvaluationDAO, policyViolationAdapter, policyViolationDAO, stageTypeService, dashboardFilterDAO);
+        policyEvaluationDAO, policyViolationAdapter, policyViolationDAO, stageTypeService, dashboardFilterDAO, currentUser);
   }
 
   private StageType buildStage = StageTypes.BUILD;

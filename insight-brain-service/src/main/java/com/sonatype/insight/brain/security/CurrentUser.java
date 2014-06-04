@@ -10,6 +10,7 @@ import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
+import javax.inject.Named;
 import javax.servlet.http.HttpServletRequest;
 
 import com.sonatype.insight.brain.model.security.UserPrincipal;
@@ -17,18 +18,17 @@ import com.sonatype.insight.brain.model.security.UserPrincipal;
 import org.apache.shiro.SecurityUtils;
 
 /**
- * Helps to populate the audit log.
- * 
- * @since 1.9.1
+ * Helps to get some information about the current user.
  */
-public final class AuditUtils
+@Named
+public class CurrentUser
 {
-  public static final String XFF_HEADER = "X-Forwarded-For";
+  static final String XFF_HEADER = "X-Forwarded-For";
 
-  private AuditUtils() {
-  }
-
-  public static String findUser() {
+  /**
+   * Gets the internal name for the user associated with the calling thread.
+   */
+  public String getUsername() {
     Object principal = SecurityUtils.getSubject().getPrincipal();
     if (principal == null) {
       return "anonymous";
@@ -36,7 +36,10 @@ public final class AuditUtils
     return ((UserPrincipal) principal).username;
   }
 
-  public static String findIP(final HttpServletRequest request) {
+  /**
+   * Makes a best effort at getting the IP of the user who initiated the given request.
+   */
+  public String getIP(final HttpServletRequest request) {
     String ip = null;
     final String xff = request.getHeader(XFF_HEADER);
     if (xff != null && xff.length() > 0) {
@@ -62,5 +65,4 @@ public final class AuditUtils
     }
     return null;
   }
-
 }

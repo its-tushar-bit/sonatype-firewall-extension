@@ -47,9 +47,9 @@ import com.sonatype.insight.brain.organization.ApplicationService;
 import com.sonatype.insight.brain.policy.StageTypeService;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationDiff;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationDigester;
-import com.sonatype.insight.brain.security.AuditUtils;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
+import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.model.HasStringId;
@@ -114,11 +114,13 @@ public class DashboardService
 
   private DashboardFilterDAO dashboardFilterDAO;
 
+  private final CurrentUser currentUser;
+
   @Inject
   public DashboardService(ApplicationDAO applicationDAO, ApplicationComponentDAO applicationComponentDAO,
       ApplicationService applicationService, PolicyDAO policyDAO, PolicyEvaluationDAO policyEvaluationDAO,
       PolicyViolationAdapter policyViolationAdapter, PolicyViolationDAO policyViolationDAO,
-      StageTypeService stageTypeService, DashboardFilterDAO dashboardFilterDAO)
+      StageTypeService stageTypeService, DashboardFilterDAO dashboardFilterDAO, CurrentUser currentUser)
   {
     this.applicationDAO = applicationDAO;
     this.applicationComponentDAO = applicationComponentDAO;
@@ -129,6 +131,7 @@ public class DashboardService
     this.policyViolationDAO = policyViolationDAO;
     this.stageTypeService = stageTypeService;
     this.dashboardFilterDAO = dashboardFilterDAO;
+    this.currentUser = currentUser;
   }
 
   /**
@@ -569,7 +572,7 @@ public class DashboardService
    * @since 1.11.0
    */
   public DashboardFilterDTO getDashboardFilterForCurrentUser() throws IOException {
-    String username = AuditUtils.findUser();
+    String username = currentUser.getUsername();
     DashboardFilter dashboardFilter = dashboardFilterDAO.getByUsername(username);
     if (dashboardFilter == null) {
       return null;
@@ -581,11 +584,12 @@ public class DashboardService
    * @since 1.11.0
    */
   public DashboardFilterDTO createOrUpdateDashboardFilterForCurrentUser(DashboardFilterDTO dashboardFilterDTO) {
+    String username = currentUser.getUsername();
     DashboardFilter dashboardFilter = new DashboardFilter();
-    dashboardFilter.setUsername(AuditUtils.findUser());
+    dashboardFilter.setUsername(username);
     dashboardFilter.setFilter(JsonUtils.format(dashboardFilterDTO));
 
-    DashboardFilter existingDashboardFilter = dashboardFilterDAO.getByUsername(AuditUtils.findUser());
+    DashboardFilter existingDashboardFilter = dashboardFilterDAO.getByUsername(username);
     if (existingDashboardFilter == null) {
       dashboardFilterDAO.insert(dashboardFilter);
     }
@@ -601,7 +605,7 @@ public class DashboardService
    * @since 1.11.0
    */
   public void deleteDashboardFilterForCurrentUser() {
-    String username = AuditUtils.findUser();
+    String username = currentUser.getUsername();
     DashboardFilter dashboardFilter = dashboardFilterDAO.getByUsername(username);
     if (dashboardFilter != null) {
       dashboardFilterDAO.delete(dashboardFilter);

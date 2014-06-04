@@ -61,9 +61,9 @@ import com.sonatype.insight.brain.policy.evaluator.PolicyAlertUtil;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluationUtils;
 import com.sonatype.insight.brain.releasegraph.ReleaseGraphService;
 import com.sonatype.insight.brain.saas.ComponentDetailsLoader;
-import com.sonatype.insight.brain.security.AuditUtils;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
+import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.MediaTypeUtils;
@@ -120,10 +120,12 @@ public class ReportResource
 
   private final ComponentDetailsLoader componentDetailsLoader;
 
+  private final CurrentUser currentUser;
+
   @Inject
   public ReportResource(final ReportDownloader reportDownloader, final PolicyEvaluationUtils policyEvaluationUtils,
       InsightWork work, BaseUrl baseUrl, ApplicationAdapter applicationAdapter, ReportDataService reportDataService,
-      ReleaseGraphService releaseGraphService, ComponentDetailsLoader componentDetailsLoader)
+      ReleaseGraphService releaseGraphService, ComponentDetailsLoader componentDetailsLoader, CurrentUser currentUser)
   {
     this.reportDownloader = reportDownloader;
     this.policyEvaluationUtils = policyEvaluationUtils;
@@ -133,6 +135,7 @@ public class ReportResource
     this.reportDataService = reportDataService;
     this.releaseGraphService = releaseGraphService;
     this.componentDetailsLoader = componentDetailsLoader;
+    this.currentUser = currentUser;
   }
 
   /**
@@ -407,7 +410,7 @@ public class ReportResource
 
       // Save the data in the audit log
       final JsonStore store = JsonUtils.fileStore(work.getAuditDir(appId));
-      store.commit(path, JsonUtils.stamp(AuditUtils.findUser(), AuditUtils.findIP(request), where, data));
+      store.commit(path, JsonUtils.stamp(currentUser.getUsername(), currentUser.getIP(request), where, data));
 
       if ("licenses.json".equals(path)) {
         // Save the data as license overrides

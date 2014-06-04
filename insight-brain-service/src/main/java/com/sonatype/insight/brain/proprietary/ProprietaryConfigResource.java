@@ -21,8 +21,8 @@ import com.sonatype.clm.dto.model.ProprietaryConfig;
 import com.sonatype.insight.brain.dataaccess.ProprietaryConfigDAO;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.policy.PolicyResource;
-import com.sonatype.insight.brain.security.AuditUtils;
 import com.sonatype.insight.brain.security.Authorize;
+import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.service.InsightWork;
 
 import org.slf4j.Logger;
@@ -38,9 +38,12 @@ public class ProprietaryConfigResource
 
   private final InsightWork work;
 
+  private final CurrentUser currentUser;
+
   @Inject
-  public ProprietaryConfigResource(InsightWork work) {
+  public ProprietaryConfigResource(InsightWork work, CurrentUser currentUser) {
     this.work = work;
+    this.currentUser = currentUser;
   }
 
   @GET
@@ -64,7 +67,7 @@ public class ProprietaryConfigResource
   {
     log.debug("Received request to update proprietary component configuration");
 
-    newDAO().session(AuditUtils.findUser(), AuditUtils.findIP(request), where).update(config);
+    newDAO().session(currentUser.getUsername(), currentUser.getIP(request), where).update(config);
   }
 
   private ProprietaryConfigDAO newDAO() {

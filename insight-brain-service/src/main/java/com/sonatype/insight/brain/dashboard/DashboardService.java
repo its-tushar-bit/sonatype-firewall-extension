@@ -42,7 +42,9 @@ import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.organization.ApplicationAdapter;
 import com.sonatype.insight.brain.organization.ApplicationService;
+import com.sonatype.insight.brain.organization.ContactDTO;
 import com.sonatype.insight.brain.policy.StageTypeService;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationDiff;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationDigester;
@@ -95,31 +97,35 @@ public class DashboardService
     }
   };
 
-  private ApplicationDAO applicationDAO;
+  private final ApplicationDAO applicationDAO;
 
-  private ApplicationComponentDAO applicationComponentDAO;
+  private final ApplicationComponentDAO applicationComponentDAO;
 
-  private ApplicationService applicationService;
+  private final ApplicationService applicationService;
 
   private final PolicyDAO policyDAO;
 
-  private PolicyEvaluationDAO policyEvaluationDAO;
+  private final PolicyEvaluationDAO policyEvaluationDAO;
 
-  private PolicyViolationAdapter policyViolationAdapter;
+  private final PolicyViolationAdapter policyViolationAdapter;
 
-  private PolicyViolationDAO policyViolationDAO;
+  private final PolicyViolationDAO policyViolationDAO;
 
-  private StageTypeService stageTypeService;
+  private final StageTypeService stageTypeService;
 
-  private DashboardFilterDAO dashboardFilterDAO;
+  private final DashboardFilterDAO dashboardFilterDAO;
 
   private final CurrentUser currentUser;
+  
+  private final ApplicationAdapter applicationAdapter;
+  
 
   @Inject
   public DashboardService(ApplicationDAO applicationDAO, ApplicationComponentDAO applicationComponentDAO,
       ApplicationService applicationService, PolicyDAO policyDAO, PolicyEvaluationDAO policyEvaluationDAO,
       PolicyViolationAdapter policyViolationAdapter, PolicyViolationDAO policyViolationDAO,
-      StageTypeService stageTypeService, DashboardFilterDAO dashboardFilterDAO, CurrentUser currentUser)
+      StageTypeService stageTypeService, DashboardFilterDAO dashboardFilterDAO, CurrentUser currentUser,
+      ApplicationAdapter applicationAdapter)
   {
     this.applicationDAO = applicationDAO;
     this.applicationComponentDAO = applicationComponentDAO;
@@ -131,6 +137,7 @@ public class DashboardService
     this.stageTypeService = stageTypeService;
     this.dashboardFilterDAO = dashboardFilterDAO;
     this.currentUser = currentUser;
+    this.applicationAdapter = applicationAdapter;
   }
 
   /**
@@ -237,8 +244,7 @@ public class DashboardService
       }
     }
 
-    List<PolicyViolationDTO> sortedPolicyViolationDTOs = sort(policyViolationDTOs);
-    return sortedPolicyViolationDTOs;
+    return sort(policyViolationDTOs);
   }
 
   List<PolicyViolation> filter(List<PolicyViolation> violations, Predicate<PolicyViolation> violationFilter) {
@@ -299,9 +305,12 @@ public class DashboardService
       final List<PolicyViolationDTO> allPolicyViolationDTOs)
   {
     List<ApplicationRiskScoreDTO> applicationRiskScores = new ArrayList<>();
-    for (final Application application : appsToSearch) {
+    ContactDTO[] contactsForApplications = findContactsForApplications(appsToSearch);
+    for (int i = 0; i < appsToSearch.size(); i++) {
+      Application application = appsToSearch.get(i);
+      ContactDTO contactDTO = (i < contactsForApplications.length) ? contactsForApplications[i] : null;
       ApplicationRiskScoreDTO applicationRisk = new ApplicationRiskScoreDTO(application.getName(),
-          application.getPublicId());
+          application.getPublicId(), contactDTO);
 
       Iterable<PolicyViolationDTO> violationsForApp = getViolationsForApp(allPolicyViolationDTOs, application);
       for (final StageType stage : stagesToSearch) {
@@ -316,6 +325,23 @@ public class DashboardService
     }
 
     return applicationRiskScores;
+  }
+
+  private ContactDTO[] findContactsForApplications(final List<Application> applications) {
+    List<String> contactNames = Lists.newArrayList(Iterables.filter(
+        Iterables.transform(applications, new Function<Application, String>()
+        {
+          @Nullable
+          @Override
+          public String apply(@Nullable final Application application) {
+            return (application == null || application.getContactInternalName() == null) ? null : application
+                .getContactInternalName();
+          }
+        }), Predicates.notNull()));
+
+    //still kind of hazy what happens down in LDAP land if we get nulls for some of the elements,
+    //we may have to deal with that
+    return applicationAdapter.getContacts(contactNames);
   }
 
   private Iterable<PolicyViolationDTO> getViolationsForApp(final List<PolicyViolationDTO> allPolicyViolationDTOs,

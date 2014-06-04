@@ -21,7 +21,9 @@ import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
+import com.sonatype.insight.brain.organization.ApplicationAdapter;
 import com.sonatype.insight.brain.organization.ApplicationService;
+import com.sonatype.insight.brain.organization.ContactDTO;
 import com.sonatype.insight.brain.policy.StageTypeService;
 import com.sonatype.insight.brain.security.CurrentUser;
 
@@ -35,6 +37,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
@@ -77,12 +80,27 @@ public class DashboardServiceHighestRiskTest
   @Mock
   private CurrentUser currentUser;
 
+  @Mock
+  private ApplicationAdapter applicationAdapter;
+
+  private static final String appUsername = "sample-user";
+
+  static Application createApplication(String publicId, String stageTypeId, String scanId) {
+    Application result = new Application(publicId, stageTypeId, scanId);
+    result.setContactInternalName(appUsername);
+    return result;
+  }
+
+
   @Before
   public void init() {
 
     dashboardService = new DashboardService(applicationDAO, applicationComponentDAO, applicationService, policyDAO,
-        policyEvaluationDAO, policyViolationAdapter, policyViolationDAO, stageTypeService, dashboardFilterDAO, currentUser);
+        policyEvaluationDAO, policyViolationAdapter, policyViolationDAO, stageTypeService, dashboardFilterDAO,
+        currentUser, applicationAdapter);
   }
+
+  private ContactDTO contactDTO = new ContactDTO(appUsername, "displayName", "email@example.com", "realm");
 
   private StageType buildStage = StageTypes.BUILD;
 
@@ -96,7 +114,7 @@ public class DashboardServiceHighestRiskTest
 
   private String orgId = "org123";
 
-  private Application application1 = new Application(appPublicId1, appName, orgId);
+  private Application application1 = createApplication(appPublicId1, appName, orgId);
 
   {
     application1.setId(appId1);
@@ -104,11 +122,10 @@ public class DashboardServiceHighestRiskTest
 
   private String scanId = "scan1";
 
-  private String policyEvalId1 = "polEval1";
-
   private PolicyEvaluation policyEvaluation1 = new PolicyEvaluation(appId1, buildStage.getId(), scanId);
 
   {
+    String policyEvalId1 = "polEval1";
     policyEvaluation1.setId(policyEvalId1);
     policyEvaluation1.setTime(new Date(1000L));
   }
@@ -135,19 +152,18 @@ public class DashboardServiceHighestRiskTest
 
   private String orgId2 = "org1234";
 
-  private Application application2 = new Application(appPublicId2, appName2, orgId2);
+  private Application application2 = createApplication(appPublicId2, appName2, orgId2);
 
   {
     application2.setId(appId2);
   }
-
-  private String policyEvalId4 = "polEval4";
 
   private String policyName4 = "fourthPolicy";
 
   private PolicyEvaluation policyEvaluation4 = new PolicyEvaluation(appId2, buildStage.getId(), scanId);
 
   {
+    String policyEvalId4 = "polEval4";
     policyEvaluation4.setId(policyEvalId4);
     policyEvaluation4.setTime(new Date(4000L));
   }
@@ -177,8 +193,12 @@ public class DashboardServiceHighestRiskTest
     }
 
     Set<String> returnAppIds = Sets.newHashSet();
+    List<String> appUserNames = Lists.newArrayList();
+    List<ContactDTO> contacts = Lists.newArrayList();
     for (Application app : returnApps) {
       returnAppIds.add(app.getId());
+      appUserNames.add(app.getContactInternalName());
+      contacts.add(contactDTO);
     }
 
     Set<String> policyEvaluationIds = Sets.newHashSet();
@@ -186,10 +206,12 @@ public class DashboardServiceHighestRiskTest
       policyEvaluationIds.add(eval.getId());
     }
 
+
     when(stageTypeService.getLicensedStageTypes()).thenReturn(stages);
     when(applicationService.getApplicationsByPublicIdsAndTagIds(returnAppIds, null)).thenReturn(returnApps);
     when(policyEvaluationDAO.getLastByApplicationIdsAndStageIds(returnAppIds, stageIds)).thenReturn(policyEvals);
     when(policyViolationDAO.getByEvaluationIds(policyEvaluationIds)).thenReturn(policyViolations);
+    when(applicationAdapter.getContacts(appUserNames)).thenReturn(contacts.toArray(new ContactDTO[contacts.size()]));
 
     return dashboardService
         .getApplicationRisks(returnAppIds, stageIds, null, null, null, limit);
@@ -201,12 +223,17 @@ public class DashboardServiceHighestRiskTest
         Lists.newArrayList(policyEvaluation1), Lists.newArrayList(vio1), Integer.MAX_VALUE);
 
     assertThat(result, hasSize(1));
-    assertRisk(result.get(0).totalApplicationRisk, 0, 5, 0, 0, 5);
+    ApplicationRiskScoreDTO result0 = result.get(0);
+    assertRisk(result0.totalApplicationRisk, 0, 5, 0, 0, 5);
     assertEquals("Risk name was set right", appName, result.get(0).applicationName);
     assertEquals("Risk public appID was set right", appPublicId1, result.get(0).applicationId);
-    assertThat(result.get(0).stageRisks, hasSize(1));
+    assertThat(result0.stageRisks, hasSize(1));
+    assertThat(result0.applicationContact.getEmail(), is(contactDTO.getEmail()));
+    assertThat(result0.applicationContact.getDisplayName(), is(contactDTO.getDisplayName()));
+    assertThat(result0.applicationContact.getInternalName(), is(appUsername));
+    assertThat(result0.applicationContact.getRealm(), is(contactDTO.getRealm()));
 
-    StageRiskScoreDTO buildStageRisk = result.get(0).getStageRiskScore(buildStage.getId());
+    StageRiskScoreDTO buildStageRisk = result0.getStageRiskScore(buildStage.getId());
     assertRisk(buildStageRisk.risk, 0, 5, 0, 0, 5);
     assertThat(buildStageRisk.scanId, is(policyEvaluation1.getScanId()));
     assertThat(buildStageRisk.stageTypeName, is(buildStage.getName()));
@@ -290,7 +317,7 @@ public class DashboardServiceHighestRiskTest
     String appPublicId3 = "pubbobl3";
     String appName3 = "myApp3";
     String orgId3 = "org12345";
-    Application application3 = new Application(appPublicId3, appName3, orgId3);
+    Application application3 = createApplication(appPublicId3, appName3, orgId3);
     application3.setId(appId3);
 
     String policyEvalId3 = "polEval3";
@@ -417,6 +444,43 @@ public class DashboardServiceHighestRiskTest
         Lists.newArrayList(policyEvaluation5), Lists.newArrayList(vio5), Integer.MAX_VALUE);
 
     assertThat(result, hasSize(0));
+  }
+
+  @Test
+  public void testGetAllApplicationNoUsernameOnApplication() {
+
+    Application application99 = createApplication(appPublicId1, appName, orgId);
+    application99.setId(appId1);
+    //have to overwrite what createApplication did
+    application99.setContactInternalName(null);
+
+
+    when(stageTypeService.getLicensedStageTypes()).thenReturn(Lists.newArrayList(buildStage));
+    when(applicationService.getApplicationsByPublicIdsAndTagIds(Sets.newHashSet(
+        application99.getId()), null)).thenReturn(Lists.newArrayList(application99));
+    when(policyEvaluationDAO
+        .getLastByApplicationIdsAndStageIds(Sets.newHashSet(application99.getId()),
+            Sets.newHashSet(buildStage.getId())))
+        .thenReturn(Lists.newArrayList(policyEvaluation1));
+    when(policyViolationDAO.getByEvaluationIds(Sets.newHashSet(policyEvaluation1.getId()))).thenReturn(
+        Lists.newArrayList(vio1));
+    when(applicationAdapter.getContacts(Lists.<String>newArrayList())).thenReturn(new ContactDTO[0]);
+
+    List<ApplicationRiskScoreDTO> result = dashboardService
+        .getApplicationRisks(Sets.newHashSet(application99.getId()), null, null, null, null, Integer.MAX_VALUE);
+
+    assertThat(result, hasSize(1));
+    ApplicationRiskScoreDTO result0 = result.get(0);
+    assertRisk(result0.totalApplicationRisk, 0, 5, 0, 0, 5);
+    assertEquals("Risk name was set right", appName, result0.applicationName);
+    assertEquals("Risk public appID was set right", appPublicId1, result0.applicationId);
+    assertThat(result0.stageRisks, hasSize(1));
+    assertThat(result0.applicationContact, nullValue());
+
+    StageRiskScoreDTO buildStageRisk = result0.getStageRiskScore(buildStage.getId());
+    assertRisk(buildStageRisk.risk, 0, 5, 0, 0, 5);
+    assertThat(buildStageRisk.scanId, is(policyEvaluation1.getScanId()));
+    assertThat(buildStageRisk.stageTypeName, is(buildStage.getName()));
   }
 
 

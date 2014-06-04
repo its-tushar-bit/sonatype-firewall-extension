@@ -168,7 +168,7 @@ public class ApplicationAdapter
    * @param internalNamesList the list of contact internal names to look up
    * @return the contact DTO array (guaranteed to be the same size as the input list)
    */
-  private ContactDTO[] getContacts(List<String> internalNamesList) {
+  public ContactDTO[] getContacts(List<String> internalNamesList) {
     if (internalNamesList == null || internalNamesList.isEmpty()) {
       return new ContactDTO[0];
     }
@@ -177,7 +177,7 @@ public class ApplicationAdapter
     ContactDTO[] contacts = new ContactDTO[internalNamesList.size()];
 
     Map<String, ContactDTO> nameToContactMap = null;
-    UserDirectory.QueryResult result = userDirectory.getMembersByNames(new HashSet<String>(internalNamesList), false);
+    UserDirectory.QueryResult result = userDirectory.getMembersByNames(new HashSet<>(internalNamesList), false);
     if (result.hasException()) {
       log.error(
           "An exception occurred while trying to resolve user names; attempting to resolve user names using the local CLM realm.",

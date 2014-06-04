@@ -35,13 +35,7 @@ class PolicyMonitoringSpec
       waitFor { policyMonitoring.expandButton.present }
 
     when:
-      // workaround for issues like https://github.com/ariya/phantomjs/issues/10592
-      if (!(driver instanceof PhantomJSDriver)) {
-        policyMonitoring.expandButton.click()
-      }
-      else {
-        browser.js.exec('$("#policy-monitoring-expand").click()')
-      }
+      policyMonitoring.expandButton.click()
 
     then:
       waitFor { policyMonitoring.form.displayed }

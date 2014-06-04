@@ -1,0 +1,30 @@
+/*
+ * Copyright (c) 2011-2014 Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.testing.functional.modules
+
+import geb.Module
+import geb.navigator.Navigator
+
+/**
+ * Exists only to simplify application of workaround for issues like https://github.com/ariya/phantomjs/issues/10592 across the board.
+ */
+class ExpandoModule
+    extends Module
+{
+  static content = {
+    expando(required: false) { $() }
+  }
+  
+  Navigator click() {
+    if (driver.class.name.endsWith("PhantomJSDriver")) {
+      browser.js.exec(expando.firstElement(), 'jQuery(arguments[0]).click()')
+    }
+    else {
+      expando.click()
+    }
+    return $()
+  }
+}

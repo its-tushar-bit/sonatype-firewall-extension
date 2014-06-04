@@ -65,7 +65,7 @@ class PolicyEditorModule
 
 class ConstraintModule extends Module{
   static content = {
-    editButton { $('.clickable') }
+    editButton { module ExpandoModule, $('.clickable') }
     constraintName { $('input[ng-model="constraint.name"]') }
     conditions { moduleList ConditionModule, $('div[ng-repeat="condition in constraint.conditions"]') }
   }

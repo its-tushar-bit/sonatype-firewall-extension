@@ -149,6 +149,11 @@
         getNewestRisksUrl: function() {
           return baseUrl.get() + '/rest/dashboard/policy/newestRisks';
         },
+
+        getPolicySummaryUrl: function() {
+          return baseUrl.get() + '/rest/dashboard/policy/summary';
+        },
+
         getApplicationTagsUrl : function() {
           return baseUrl.get() + '/rest/tag/application';
         },

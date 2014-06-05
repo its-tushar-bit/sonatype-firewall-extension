@@ -80,7 +80,7 @@ class DashboardOverviewPage
     componentMatchSimilarCount(required: false) { $('#component-match-results .percentage-graph-legend-count')[1] }
     componentMatchUnknownCount(required: false) { $('#component-match-results .percentage-graph-legend-count')[2] }
 
-    sparkline { module Sparkline, $('#sparkline') }
+    policySummary { module PolicySummaryModule, $('#policySummaryData') }
   }
 
   void applyFilter() {
@@ -90,7 +90,40 @@ class DashboardOverviewPage
   }
 }
 
-class Sparkline
+class PolicySummaryModule
+  extends Module {
+
+  static content = {
+    rows(required: false) { moduleList PolicySummaryRow, $('tr').tail() }
+  }
+}
+
+class PolicySummaryRow
+    extends Module
+{
+  static final int CATEGORY = 0
+  static final int COUNTS = 1
+  static final int DELTA = 2
+  static final int BAR_CHART = 3
+  static final int SPARKLINE = 4
+
+  static content = {
+    cell(required: false) { int i -> $('td', i) }
+    category { cell(CATEGORY).text() }
+    counts { cell(COUNTS).text() }
+    delta { cell(DELTA).text() }
+    barChart { module BarChartModule, cell(BAR_CHART)}
+    sparkline { module SparklineModule, cell(SPARKLINE) }
+  }
+}
+
+class BarChartModule
+    extends Module
+{
+
+}
+
+class SparklineModule
     extends Module
 {
   static content = {
@@ -99,7 +132,7 @@ class Sparkline
     guideText { $('.guide-text') }
   }
 
-  ArrayList<Number> getValues() {
+  List<Number> getValues() {
     def path = previousPath.attr('d');
     def points = path.split('L').collect {
       it.split(',')[1].toDouble()

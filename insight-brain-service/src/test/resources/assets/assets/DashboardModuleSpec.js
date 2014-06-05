@@ -34,7 +34,14 @@ describe('DashboardModule', function() {
       id: 'orgId2',
       name: 'OrganizationTwo'
     }
-  ];
+  ], commonFilters = {
+    applicationPublicIds: ['1', '2'],
+    policyThreatTypes: ['3', '4'],
+    stageTypeIds: ['5', '6'],
+    applicationTagIds: ['7', '8'],
+    policyThreatLevel: [3, 9]
+  }, commonFilterQuery = '?applicationPublicIds=1&applicationPublicIds=2&policyThreatCategories=3,' +
+    '4&policyThreatLevelRange=3,9&stageIds=5&stageIds=6&tagIds=7&tagIds=8';
 
   beforeEach(module('DashboardModule'));
 
@@ -482,16 +489,9 @@ describe('DashboardModule', function() {
     }));
 
     it('Predefined filters sent in GET request', inject(function($compile, $httpBackend, CLMLocations) {
-      scope.filters = {
-        applicationPublicIds: ['1', '2'],
-        policyThreatTypes: ['3', '4'],
-        stageTypeIds: ['5', '6'],
-        applicationTagIds: ['7', '8'],
-        policyThreatLevel: [3, 9]
-      };
+      scope.filters = commonFilters;
 
-      $httpBackend.expectGET(CLMLocations.getDashboardViewingSummaryUrl() +
-          '?applicationPublicIds=1&applicationPublicIds=2&policyThreatCategories=3,4&policyThreatLevelRange=3,9&stageIds=5&stageIds=6&tagIds=7&tagIds=8').respond();
+      $httpBackend.expectGET(CLMLocations.getDashboardViewingSummaryUrl() + commonFilterQuery).respond();
       $compile(angular.element('<div dashboard-view-summary filters="filters"></div>'))(scope);
       $httpBackend.flush();
       expect(scope.$$childHead.error).toBeNull();
@@ -790,19 +790,12 @@ describe('DashboardModule', function() {
 
     beforeEach(inject(function($rootScope, $httpBackend, CLMLocations) {
       scope = $rootScope.$new();
-      scope.filters = {
-        applicationPublicIds: ['1', '2'],
-        policyThreatTypes: ['3', '4'],
-        stageTypeIds: ['5', '6'],
-        applicationTagIds: ['7', '8'],
-        policyThreatLevel: [3, 9]
-      };
+      scope.filters = commonFilters;
       $httpBackend.expectGET('dashboard-component-match-results').respond('<div></div>');
-      url = CLMLocations.getDashboardComponentMatchSummaryUrl() +
-          '?applicationPublicIds=1&applicationPublicIds=2&policyThreatCategories=3,4&policyThreatLevelRange=3,9&stageIds=5&stageIds=6&tagIds=7&tagIds=8'
+      url = CLMLocations.getDashboardComponentMatchSummaryUrl() + commonFilterQuery;
     }));
 
-    it('Data loaded from server into model properly', inject(function($compile, $httpBackend, CLMLocations) {
+    it('Data loaded from server into model properly', inject(function($compile, $httpBackend) {
       $httpBackend.expectGET(url).respond(data);
       $compile(angular.element('<div dashboard-component-match-results filters="filters"></div>'))(scope);
       $httpBackend.flush();
@@ -810,12 +803,130 @@ describe('DashboardModule', function() {
       expect(scope.$$childHead.error).toBeNull();
     }));
 
-    it('Error propogated to scope', inject(function($compile, $httpBackend, CLMLocations) {
+    it('Error propogated to scope', inject(function($compile, $httpBackend) {
       $httpBackend.expectGET(url).respond(404, 'You screwed up');
       $compile(angular.element('<div dashboard-component-match-results filters="filters"></div>'))(scope);
       $httpBackend.flush();
       expect(scope.$$childHead.error).toBeDefined();
     }));
+  });
+
+  describe('Value bar chart with both positive and negative values', function(){
+    var element;
+    beforeEach(inject(function($rootScope, $compile) {
+      scope = $rootScope.$new();
+      scope.barData = [-50, 0, 50];
+      element = $compile(angular.element('<div value-bars data="barData" style="height: 50px;width: 100px;"></div>'))(scope);
+    }));
+
+    it('creates an SVG element based on the data', function(){
+      expect(element.find('svg')).toBeTruthy();
+    });
+
+    it('creates a bar for each of the data points', function(){
+      expect(element.find('svg').find('rect').length).toBe(scope.barData.length);
+    });
+
+    it('sets the correct style and size for values below zero', function(){
+      var negativeValue = angular.element(element.find('svg').find('rect')[0]);
+      expect(negativeValue.attr('class')).toBe('bar negative');
+      expect(negativeValue.attr('height')).toBe('25'); //half of chart below zero
+      expect(negativeValue.attr('y')).toBe('25');  //starts in the middle
+    });
+
+    it('sets the correct style and size for zero values', function(){
+      var zero = angular.element(element.find('svg').find('rect')[1]);
+      expect(zero.attr('class')).toBe('bar negative');
+      expect(zero.attr('height')).toBe('0'); //no height
+      expect(zero.attr('y')).toBe('25');  //starts in the middle
+    });
+
+    it('sets the correct style and size for positive values', function(){
+      var positiveValue = angular.element(element.find('svg').find('rect')[2]);
+      expect(positiveValue.attr('class')).toBe('bar positive');
+      expect(positiveValue.attr('height')).toBe('25'); //half of chart above zero
+      expect(positiveValue.attr('y')).toBe('0');  //starts at the top
+    });
+
+  });
+
+  describe('Value bar chart with only positive values', function(){
+    var element;
+    beforeEach(inject(function($rootScope, $compile) {
+      scope = $rootScope.$new();
+      scope.barData = [0, 25, 50];
+      element = $compile(angular.element('<div value-bars data="barData" style="height: 50px;width: 100px;"></div>'))(scope);
+    }));
+
+    it('sets the correct style and size for zero values', function(){
+      var zero = angular.element(element.find('svg').find('rect')[0]);
+      expect(zero.attr('class')).toBe('bar negative');
+      expect(zero.attr('height')).toBe('0'); //no height
+      expect(zero.attr('y')).toBe('0');
+    });
+
+    it('sets the correct style and size for intermediate positive value', function(){
+      var positiveValue = angular.element(element.find('svg').find('rect')[1]);
+      expect(positiveValue.attr('class')).toBe('bar positive');
+      expect(positiveValue.attr('height')).toBe('25'); //entire height
+      expect(positiveValue.attr('y')).toBe('25');  //starts in the middle
+    });
+
+    it('sets the correct style and size for maximum positive value', function(){
+      var positiveValue = angular.element(element.find('svg').find('rect')[2]);
+      expect(positiveValue.attr('class')).toBe('bar positive');
+      expect(positiveValue.attr('height')).toBe('50'); //entire height
+      expect(positiveValue.attr('y')).toBe('0');  //starts at the top
+    });
+
+  });
+
+  describe('Policy Summary table', function(){
+    var url, policySummaryData = {
+      "newCounts": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+      "fixedCounts": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+      "unresolvedCounts": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+    };
+
+    beforeEach(inject(function($rootScope, $httpBackend, CLMLocations) {
+      scope = $rootScope.$new();
+      scope.filters = commonFilters;
+      $httpBackend.expectGET('dashboard-policy-summary').respond('<div></div>');
+      url = CLMLocations.getPolicySummaryUrl() + commonFilterQuery;
+    }));
+
+    it('Data loaded from server  properly', inject(function($compile, $httpBackend) {
+      $httpBackend.expectGET(url).respond(policySummaryData);
+      $compile(angular.element('<div dashboard-policy-summary filters="filters"></div>'))(scope);
+      $httpBackend.flush();
+      assertPolicySummaryBlock('New', 12, 11, policySummaryData.newCounts,
+        [1, 3, 6, 10, 15, 21, 28, 36, 45, 55, 66, 78], true,
+        scope.$$childHead.policySummaryData[0]);
+      assertPolicySummaryBlock('Fixed', 12, 11, policySummaryData.fixedCounts,
+        [1, 3, 6, 10, 15, 21, 28, 36, 45, 55, 66, 78], false,
+        scope.$$childHead.policySummaryData[1]);
+      assertPolicySummaryBlock('Unresolved', 12, 11, policySummaryData.unresolvedCounts,
+        [1, 3, 6, 10, 15, 21, 28, 36, 45, 55, 66, 78], true,
+        scope.$$childHead.policySummaryData[2]);
+
+      expect(scope.$$childHead.error).toBeUndefined();
+    }));
+
+    it('Error propogated to scope', inject(function($compile, $httpBackend) {
+      $httpBackend.expectGET(url).respond(404, 'You screwed up');
+      $compile(angular.element('<div dashboard-policy-summary filters="filters"></div>'))(scope);
+      $httpBackend.flush();
+      expect(scope.$$childHead.error).toBeDefined();
+    }));
+
+    function assertPolicySummaryBlock(name, counts, delta, barchartData, sparklineData, inverseGreen, policySummaryBlock){
+      expect(policySummaryBlock.name).toEqual(name);
+      expect(policySummaryBlock.counts).toEqual(counts);
+      expect(policySummaryBlock.delta).toEqual(delta);
+      expect(policySummaryBlock.barChartData).toEqual(barchartData);
+      expect(policySummaryBlock.sparklineData).toEqual(sparklineData);
+      expect(policySummaryBlock.inverseGreen).toEqual(inverseGreen);
+    }
   });
 
   describe('windowEventsFactory', function() {

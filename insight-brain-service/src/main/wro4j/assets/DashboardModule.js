@@ -741,6 +741,142 @@
     };
   });
 
+  /**
+   * Provides all data required for the policy summary view.
+   */
+  dashboardModule.directive('dashboardPolicySummary', function() {
+    return {
+      restrict: 'A',
+      scope: {
+        filters: '=filters'
+      },
+      templateUrl: 'dashboard-policy-summary',
+      controller: [
+        '$scope', 'CLMLocations', '$http', function($scope, CLMLocations, $http) {
+
+          function delta(counts) {
+            return counts[counts.length-1] - counts[0];
+          }
+
+          function calculateRunningTotals(counts) {
+            var runningTotals = [];
+            for (var i = 0; i < counts.length; i++) {
+              if (i > 0) {
+                runningTotals[i] = counts[i] + runningTotals[i - 1];
+              }
+              else {
+                runningTotals[i] = counts[i];
+              }
+            }
+            return runningTotals;
+          }
+
+          function generateModel(policySummaryData) {
+            var newCounts = policySummaryData.newCounts,
+              fixedCounts = policySummaryData.fixedCounts,
+              unresolvedCounts = policySummaryData.unresolvedCounts;
+            return [
+              {
+                name: 'New',
+                counts: newCounts[newCounts.length-1],
+                delta: delta(newCounts),
+                barChartData : newCounts,
+                sparklineData: calculateRunningTotals(newCounts),
+                inverseGreen: true
+              },
+              {
+                name: 'Fixed',
+                counts: fixedCounts[fixedCounts.length-1],
+                delta: delta(fixedCounts),
+                barChartData : fixedCounts,
+                sparklineData: calculateRunningTotals(fixedCounts),
+                inverseGreen: false
+              },
+              {
+                name: 'Unresolved',
+                counts: unresolvedCounts[unresolvedCounts.length-1],
+                delta: delta(unresolvedCounts),
+                barChartData : unresolvedCounts,
+                sparklineData: calculateRunningTotals(unresolvedCounts),
+                inverseGreen: true
+              }
+            ];
+          }
+
+          $http.get(CLMLocations.getPolicySummaryUrl(), {
+            params: filterToParams($scope.filters)
+          }).success(function(data) {
+            $scope.policySummaryData = generateModel(data);
+          }).error(function() {
+            $scope.error = arguments;
+          });
+        }
+      ]
+    };
+  });
+
+  dashboardModule.directive('valueBars', function() {
+    return {
+      restrict: 'A',
+      scope: {
+        data: '=data'
+      },
+      replace: true,
+      link: function(scope, element) {
+        var data = scope.data;
+        var width = element.width(), height = element.height();
+
+        // scale the graph to keep the zero line centered only if there are negative numbers
+        var min = d3.min(data);
+        var max = d3.max([Math.abs(min), d3.max(data)]);
+        var extents = [((min >= 0) ? 0 : -max), max];
+        var y = d3.scale.linear()
+          .domain(extents)
+          .range([0, height]);
+        var x = d3.scale.ordinal()
+          .domain(d3.range(data.length))
+          .rangeRoundBands([0, width], 0.2);
+
+        // allow the svg element to take up all the parent's space
+        var chart = d3.select(element[0])
+          .append('svg')
+          .attr('width', '100%')
+          .attr('height', '100%');
+
+        chart.selectAll('g')
+          .data(data).enter()
+          .append('rect')
+          .attr('x', function(d, i) {
+            return x(i);
+          })
+          .attr('y', function(d) {
+            // render starting above or at the center line, depending on +/-
+            return (d > 0) ? height - y(d) : y(0);
+          })
+          .attr('height', function(d) {
+            return Math.abs(y(d) - y(0));
+          })
+          .attr('width', x.rangeBand())
+          .attr('class', function(d) {
+            return (d > 0) ? 'bar positive' : 'bar negative';
+          })
+          // tooltip to highlight actual figures involved
+          .append('title').text(function(d){ return d;});
+
+        // baseline will render at bottom for positive data, center for positive/negative data
+        // Need to fudge a bit if we're drawing at the bottom of the container to account for the stroke-width
+        var baseline = ((min < 0) ? y(0) : y(max) - 0.25);
+        chart.append('line')
+          .attr('x1', x(0))
+          .attr('x2', width - x.rangeBand() + 1)
+          .attr('y1', baseline)
+          .attr('y2', baseline)
+          .attr('stroke', '#777777')
+          .attr('stroke-width', '0.5');
+      }
+    };
+  });
+
   dashboardModule.directive('sparkline', ['windowEventsFactory', function(windowEventsFactory) {
     return {
       scope:{

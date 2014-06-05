@@ -483,6 +483,12 @@ table.table-risk td.low-risk {
   text-align: center;
 }
 
+.small-dashboard-label-wrapper {
+  padding: 3px 0px 3px 0px;
+  width: 80%;
+  text-align: center;
+}
+
 .dashboard-label {
   line-height: 20px !important;
   font-size: 20px !important;
@@ -673,6 +679,7 @@ table.table-risk td.low-risk {
   padding: 8px 12px;
 }
 
+/* styling for sparkling */
 @media (min-width:1200px) {
   .risk-header, .stage-column {
     width: 70px;
@@ -721,7 +728,6 @@ table.table-risk td.low-risk {
 .sparkline {
   height: 30px;
   width: 170px;
-  padding: 5px;
 }
 .sparkline .line {
   fill: none;
@@ -759,4 +765,25 @@ table.table-risk td.low-risk {
   font-weight: bold;
   fill: black;
   cursor: default;
+}
+/* styling for bar charts */
+.chart {
+  height: 30px;
+  width: 170px;
+}
+.bar.positive {
+  fill: #0B9743;
+}
+.bar.negative {
+  fill: #BC0430;
+}
+
+/* reduce padding on summary table cells */
+.table.policy-summary-table td {
+  padding: 3px 0 3px 0;
+  line-height: 30px;
+}
+.table.policy-summary-table th {
+  padding: 3px 0 3px 0;
+  text-align: center;
 }

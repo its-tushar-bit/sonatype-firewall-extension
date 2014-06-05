@@ -216,6 +216,23 @@ public class TemporaryEntity
     return dashboardFilter;
   }
 
+  public DashboardFilter updateDashboardFilter(String username, String filter) {
+    DashboardFilter dashboardFilter = new DashboardFilter();
+    dashboardFilter.setUsername(username);
+    dashboardFilter.setFilter(filter);
+
+    DashboardFilter existingDashboardFilter = dashboardFilterDAO.getByUsername(username);
+    if (existingDashboardFilter == null) {
+      dashboardFilterDAO.insert(dashboardFilter);
+    }
+    else {
+      dashboardFilter.setId(existingDashboardFilter.getId());
+      dashboardFilterDAO.update(dashboardFilter);
+    }
+    dashboardFilters.add(dashboardFilter);
+    return dashboardFilter;
+  }
+
   public Organization newOrganization() {
     return newOrganization("Test Org " + uuid());
   }

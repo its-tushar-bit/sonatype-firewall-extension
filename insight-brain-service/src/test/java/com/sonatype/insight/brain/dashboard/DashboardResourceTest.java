@@ -72,10 +72,33 @@ public class DashboardResourceTest
   }
 
   @Test
-  public void testDashboardUserFilterCRUD() throws Exception {
-    // No filter the first time
+  public void testDashboardFilterDefaultFilter() throws Exception {
+    // start with the default filter
     Response response = AuthedRestAccess.get(getRestUrl());
-    assertResponseStatus(204, response);
+    assertResponseStatus(200, response);
+
+    DashboardFilter dashboardFilter = dashboardFilterDAO.getByUsername("admin");
+    assertThat(dashboardFilter, notNullValue());
+    // Register to make sure the the filter is deleted after the test
+    tempEntity.register(dashboardFilter);
+
+    DashboardFilterDTO actual = JsonHelpers
+        .fromJson(response.getResponseBody(), DashboardFilterDTO.class);
+    assertThat(actual, notNullValue());
+
+    assertThat(actual.minPolicyThreatLevel, is(2));
+    assertThat(actual.maxPolicyThreatLevel, is(10));
+    assertThat(actual.applicationFilters, hasSize(0));
+    assertThat(actual.tagFilters, hasSize(0));
+    assertThat(actual.policyThreatCategoryFilters, hasSize(0));
+    assertThat(actual.stageTypeFilters, hasSize(0));
+  }
+
+  @Test
+  public void testDashboardUserFilterCRUD() throws Exception {
+    // start with the default filter
+    Response response = AuthedRestAccess.get(getRestUrl());
+    assertResponseStatus(200, response);
 
     Organization org = tempEntity.newOrganization();
     Application app = tempEntity.newApplication(org.getId());
@@ -125,13 +148,13 @@ public class DashboardResourceTest
   private void assertDashboardFilterDTO(DashboardFilterDTO actual, DashboardFilterDTO expected) {
     assertThat(actual.minPolicyThreatLevel, is(expected.minPolicyThreatLevel));
     assertThat(actual.maxPolicyThreatLevel, is(expected.maxPolicyThreatLevel));
-    assertThat(actual.applicationFilters.size(), is(1));
+    assertThat(actual.applicationFilters, hasSize(1));
     assertThat(actual.applicationFilters.get(0), is(expected.applicationFilters.get(0)));
-    assertThat(actual.tagFilters.size(), is(1));
+    assertThat(actual.tagFilters, hasSize(1));
     assertThat(actual.tagFilters.get(0), is(expected.tagFilters.get(0)));
-    assertThat(actual.policyThreatCategoryFilters.size(), is(1));
+    assertThat(actual.policyThreatCategoryFilters, hasSize(1));
     assertThat(actual.policyThreatCategoryFilters.get(0), is(expected.policyThreatCategoryFilters.get(0)));
-    assertThat(actual.stageTypeFilters.size(), is(1));
+    assertThat(actual.stageTypeFilters, hasSize(1));
     assertThat(actual.stageTypeFilters.get(0), is(expected.stageTypeFilters.get(0)));
   }
 

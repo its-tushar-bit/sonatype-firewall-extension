@@ -402,7 +402,7 @@ class DashboardOverviewSpec
         applications.add(application)
         def policyEvaluation = temporaryEntity.newPolicyEvaluation(application.id, BuildStageType.ID,
             "DashboardSpecFirstEvaluation${i}", now - 7)
-        def violation = temporaryEntity.newPolicyViolation(policyEvaluation, policy, 4 * i,
+        def violation = temporaryEntity.newPolicyViolation(policyEvaluation, policy, 2 + (3 * i),
             PolicyThreatCategory.SECURITY, "Group${i}", "Artifact${i}", "Version${i}", "hash${i}")
         temporaryEntity.newNewestPolicyViolation(violation.id, policyEvaluation.applicationId,
             policyEvaluation.stageTypeId)
@@ -413,21 +413,27 @@ class DashboardOverviewSpec
 
     then: 'Components tab heat map is shown'
       waitFor { componentViolationsTable.rows.size() == 4 }
+      ComponentViolationsTableRow firstComponentRow = componentViolationsTable.rows[0]
       ComponentViolationsTableRow secondComponentRow = componentViolationsTable.rows[1]
       ComponentViolationsTableRow thirdComponentRow = componentViolationsTable.rows[2]
       ComponentViolationsTableRow fourthComponentRow = componentViolationsTable.rows[3]
 
       that parseAlpha(secondComponentRow.netRisk.attr('style')), closeTo(alphaCalc(8, 15), TOLERANCE)
-      that parseAlpha(thirdComponentRow.netRisk.attr('style')), closeTo(alphaCalc(4, 15), TOLERANCE)
-      that parseAlpha(fourthComponentRow.netRisk.attr('style')), closeTo(alphaCalc(0, 15), TOLERANCE)
+      that parseAlpha(thirdComponentRow.netRisk.attr('style')), closeTo(alphaCalc(5, 15), TOLERANCE)
+      that parseAlpha(fourthComponentRow.netRisk.attr('style')), closeTo(alphaCalc(2, 15), TOLERANCE)
+
+      that parseAlpha(secondComponentRow.criticalRisk.attr('style')), closeTo(alphaCalc(8, 10), TOLERANCE)
       that parseAlpha(thirdComponentRow.criticalRisk.attr('style')), closeTo(alphaCalc(0, 10), TOLERANCE)
       that parseAlpha(fourthComponentRow.criticalRisk.attr('style')), closeTo(alphaCalc(0, 10), TOLERANCE)
+
       that parseAlpha(secondComponentRow.severeRisk.attr('style')), closeTo(alphaCalc(0, 5), TOLERANCE)
-      that parseAlpha(thirdComponentRow.severeRisk.attr('style')), closeTo(alphaCalc(4, 5), TOLERANCE)
       that parseAlpha(fourthComponentRow.severeRisk.attr('style')), closeTo(alphaCalc(0, 5), TOLERANCE)
-      that parseAlpha(secondComponentRow.moderateRisk.attr('style')), closeTo(alphaCalc(0, 0), TOLERANCE)
-      that parseAlpha(thirdComponentRow.moderateRisk.attr('style')), closeTo(alphaCalc(0, 0), TOLERANCE)
-      that parseAlpha(fourthComponentRow.moderateRisk.attr('style')), closeTo(alphaCalc(0, 0), TOLERANCE)
+
+      that parseAlpha(firstComponentRow.moderateRisk.attr('style')), closeTo(alphaCalc(0, 2), TOLERANCE)
+      that parseAlpha(secondComponentRow.moderateRisk.attr('style')), closeTo(alphaCalc(0, 2), TOLERANCE)
+      that parseAlpha(thirdComponentRow.moderateRisk.attr('style')), closeTo(alphaCalc(0, 2), TOLERANCE)
+
+      that parseAlpha(firstComponentRow.lowRisk.attr('style')), closeTo(alphaCalc(0, 0), TOLERANCE)
       that parseAlpha(secondComponentRow.lowRisk.attr('style')), closeTo(alphaCalc(0, 0), TOLERANCE)
       that parseAlpha(thirdComponentRow.lowRisk.attr('style')), closeTo(alphaCalc(0, 0), TOLERANCE)
       that parseAlpha(fourthComponentRow.lowRisk.attr('style')), closeTo(alphaCalc(0, 0), TOLERANCE)
@@ -436,28 +442,38 @@ class DashboardOverviewSpec
       tabLinks.applicationsTabButton.click()
 
     then: 'Applications tab heat map is shown'
-      waitFor { applicationViolationsTable.rows.size() == 4 }
+      waitFor { applicationViolationsTable.rows.size() == 5 }
 
       ApplicationViolationsTableRow firstApplicationRow = applicationViolationsTable.rows[0]
       ApplicationViolationsTableRow secondApplicationRow = applicationViolationsTable.rows[1]
       ApplicationViolationsTableRow thirdApplicationRow = applicationViolationsTable.rows[2]
       ApplicationViolationsTableRow fourthApplicationRow = applicationViolationsTable.rows[3]
+      ApplicationViolationsTableRow fifthApplicationRow = applicationViolationsTable.rows[4]
 
       that parseAlpha(secondApplicationRow.netRisk.attr('style')), closeTo(alphaCalc(8, 10), TOLERANCE)
       that parseAlpha(thirdApplicationRow.netRisk.attr('style')), closeTo(alphaCalc(5, 10), TOLERANCE)
-      that parseAlpha(fourthApplicationRow.netRisk.attr('style')), closeTo(alphaCalc(4, 10), TOLERANCE)
+      that parseAlpha(fourthApplicationRow.netRisk.attr('style')), closeTo(alphaCalc(5, 10), TOLERANCE)
+      that parseAlpha(fifthApplicationRow.netRisk.attr('style')), closeTo(alphaCalc(2, 10), TOLERANCE)
+
       that parseAlpha(secondApplicationRow.criticalRisk.attr('style')), closeTo(alphaCalc(8, 10), TOLERANCE)
-      that parseAlpha(thirdApplicationRow.criticalRisk.attr('style')), closeTo(alphaCalc(0, 0), TOLERANCE)
-      that parseAlpha(fourthApplicationRow.criticalRisk.attr('style')), closeTo(alphaCalc(0, 0), TOLERANCE)
-      that parseAlpha(firstApplicationRow.severeRisk.attr('style')), closeTo(alphaCalc(0, 0), TOLERANCE)
-      that parseAlpha(secondApplicationRow.severeRisk.attr('style')), closeTo(alphaCalc(0, 0), TOLERANCE)
-      that parseAlpha(fourthApplicationRow.severeRisk.attr('style')), closeTo(alphaCalc(4, 5), TOLERANCE)
-      that parseAlpha(secondApplicationRow.moderateRisk.attr('style')), closeTo(alphaCalc(0, 0), TOLERANCE)
-      that parseAlpha(thirdApplicationRow.moderateRisk.attr('style')), closeTo(alphaCalc(0, 0), TOLERANCE)
-      that parseAlpha(fourthApplicationRow.moderateRisk.attr('style')), closeTo(alphaCalc(0, 0), TOLERANCE)
+      that parseAlpha(thirdApplicationRow.criticalRisk.attr('style')), closeTo(alphaCalc(0, 10), TOLERANCE)
+      that parseAlpha(fourthApplicationRow.criticalRisk.attr('style')), closeTo(alphaCalc(0, 10), TOLERANCE)
+      that parseAlpha(fifthApplicationRow.criticalRisk.attr('style')), closeTo(alphaCalc(0, 10), TOLERANCE)
+
+      that parseAlpha(firstApplicationRow.severeRisk.attr('style')), closeTo(alphaCalc(0, 5), TOLERANCE)
+      that parseAlpha(secondApplicationRow.severeRisk.attr('style')), closeTo(alphaCalc(0, 5), TOLERANCE)
+      that parseAlpha(fifthApplicationRow.severeRisk.attr('style')), closeTo(alphaCalc(0, 5), TOLERANCE)
+
+      that parseAlpha(firstApplicationRow.moderateRisk.attr('style')), closeTo(alphaCalc(0, 2), TOLERANCE)
+      that parseAlpha(secondApplicationRow.moderateRisk.attr('style')), closeTo(alphaCalc(0, 2), TOLERANCE)
+      that parseAlpha(thirdApplicationRow.moderateRisk.attr('style')), closeTo(alphaCalc(0, 2), TOLERANCE)
+      that parseAlpha(fourthApplicationRow.moderateRisk.attr('style')), closeTo(alphaCalc(0, 2), TOLERANCE)
+
+      that parseAlpha(firstApplicationRow.lowRisk.attr('style')), closeTo(alphaCalc(0, 0), TOLERANCE)
       that parseAlpha(secondApplicationRow.lowRisk.attr('style')), closeTo(alphaCalc(0, 0), TOLERANCE)
       that parseAlpha(thirdApplicationRow.lowRisk.attr('style')), closeTo(alphaCalc(0, 0), TOLERANCE)
       that parseAlpha(fourthApplicationRow.lowRisk.attr('style')), closeTo(alphaCalc(0, 0), TOLERANCE)
+      that parseAlpha(fifthApplicationRow.lowRisk.attr('style')), closeTo(alphaCalc(0, 0), TOLERANCE)
 
     cleanup:
       ApplicationDAO dao = new ApplicationDAO()
@@ -538,7 +554,7 @@ class DashboardOverviewSpec
       dto.stageTypeFilters = [Stage.ID_RELEASE]
       dto.tagFilters = [firstAppTag.id]
 
-      temporaryEntity.newDashboardFilter('admin', new ObjectMapper().writeValueAsString(dto));
+      temporaryEntity.updateDashboardFilter('admin', new ObjectMapper().writeValueAsString(dto));
 
     when: 'Refresh the page to reload the filters'
       driver.navigate().refresh()
@@ -609,7 +625,7 @@ class DashboardOverviewSpec
       applicationViolationsTable.rows[2].expand.click()
 
     then: 'stages shown in chronological order'
-      waitFor { applicationViolationsTable.rows.size() == 7 }
+      waitFor { applicationViolationsTable.rows.size() == 6 }
       applicationViolationsTable.rows[2].collapse.displayed
       applicationViolationsTable.rows[3].application.text() == new BuildStageType().getName().toUpperCase()
       applicationViolationsTable.rows[3].reportLink.displayed
@@ -617,8 +633,6 @@ class DashboardOverviewSpec
       applicationViolationsTable.rows[4].reportLink.displayed
       applicationViolationsTable.rows[5].application.text() == new ReleaseStageType().getName().toUpperCase()
       applicationViolationsTable.rows[5].reportLink.displayed
-      applicationViolationsTable.rows[6].application.text() == new OperateStageType().getName().toUpperCase()
-      applicationViolationsTable.rows[6].reportLink.displayed
 
     and: 'the stage label links to the underlying report'
       withNewWindow(page: ReportContainerPage, { applicationViolationsTable.rows[3].reportLink.click() } ) {

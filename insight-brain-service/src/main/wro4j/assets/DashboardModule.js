@@ -20,9 +20,8 @@
       params.stageIds = filter.stageTypeIds;
       params.tagIds = filter.applicationTagIds;
 
-      //don't add this unless outside of defaults
       var threatLvls = filter.policyThreatLevel;
-      if (threatLvls && (threatLvls[0] > 0 || threatLvls[1] < 10)) {
+      if (threatLvls) {
         params.policyThreatLevelRange = threatLvls.join();
       }
     }
@@ -198,7 +197,7 @@
             scope.stageTypes = angular.copy(data[1]); // Stores should not be modified directly
             scope.applicationTags = data[3].data;
 
-            for (var i=0; i<scope.stageTypes.length; i++) {
+            for (var i = 0; i < scope.stageTypes.length; i++) {
               if (scope.stageTypes[i].id === 'develop') {
                 scope.stageTypes.splice(i, 1);
                 break;

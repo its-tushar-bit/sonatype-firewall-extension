@@ -603,9 +603,22 @@ public class DashboardService
     String username = currentUser.getUsername();
     DashboardFilter dashboardFilter = dashboardFilterDAO.getByUsername(username);
     if (dashboardFilter == null) {
-      return null;
+      return createDefaultDashboardFilterForCurrentUser();
     }
     return JsonUtils.parse(dashboardFilter.getFilter(), DashboardFilterDTO.class);
+  }
+
+  private DashboardFilterDTO createDefaultDashboardFilterForCurrentUser(){
+    DashboardFilterDTO dashboardFilterDTO = new DashboardFilterDTO();
+    dashboardFilterDTO.applicationFilters = new ArrayList<>();
+    //Threat levels of 0 or 1 are intended to be informational only, and therefore are
+    //not pertinent to assessing the "real" risk of a given Application or component
+    dashboardFilterDTO.minPolicyThreatLevel = 2;
+    dashboardFilterDTO.maxPolicyThreatLevel = 10;
+    dashboardFilterDTO.stageTypeFilters = new ArrayList<>();
+    dashboardFilterDTO.policyThreatCategoryFilters = new ArrayList<>();
+    dashboardFilterDTO.tagFilters = new ArrayList<>();
+    return createOrUpdateDashboardFilterForCurrentUser(dashboardFilterDTO);
   }
 
   /**

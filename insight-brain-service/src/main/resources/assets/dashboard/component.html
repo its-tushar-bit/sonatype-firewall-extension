@@ -65,7 +65,7 @@
             <td colspan="4" class="accordion-column">
               <div id="application-{{applicationComponent.application.id}}" class="accordion-body collapse">
                 <div class="component-violations-table">
-                  <table class="table">
+                  <table class="table clm-table-stripe">
                     <tbody>
                       <tr ng-repeat="policyViolation in applicationComponent.policyViolations | orderBy:'threatLevel':true">
                         <td class="clm-bar" threat-class="policyViolation.threatLevel"></td>

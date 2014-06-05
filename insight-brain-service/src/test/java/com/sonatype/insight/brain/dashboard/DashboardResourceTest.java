@@ -72,29 +72,6 @@ public class DashboardResourceTest
   }
 
   @Test
-  public void testDashboardFilterDefaultFilter() throws Exception {
-    // start with the default filter
-    Response response = AuthedRestAccess.get(getRestUrl());
-    assertResponseStatus(200, response);
-
-    DashboardFilter dashboardFilter = dashboardFilterDAO.getByUsername("admin");
-    assertThat(dashboardFilter, notNullValue());
-    // Register to make sure the the filter is deleted after the test
-    tempEntity.register(dashboardFilter);
-
-    DashboardFilterDTO actual = JsonHelpers
-        .fromJson(response.getResponseBody(), DashboardFilterDTO.class);
-    assertThat(actual, notNullValue());
-
-    assertThat(actual.minPolicyThreatLevel, is(2));
-    assertThat(actual.maxPolicyThreatLevel, is(10));
-    assertThat(actual.applicationFilters, hasSize(0));
-    assertThat(actual.tagFilters, hasSize(0));
-    assertThat(actual.policyThreatCategoryFilters, hasSize(0));
-    assertThat(actual.stageTypeFilters, hasSize(0));
-  }
-
-  @Test
   public void testDashboardUserFilterCRUD() throws Exception {
     // start with the default filter
     Response response = AuthedRestAccess.get(getRestUrl());

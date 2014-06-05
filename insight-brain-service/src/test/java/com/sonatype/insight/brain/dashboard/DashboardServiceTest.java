@@ -19,6 +19,7 @@ import com.sonatype.insight.brain.TestProductLicenseManager;
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatCategoryFilter;
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatLevelFilter;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
+import com.sonatype.insight.brain.dataaccess.filter.DashboardFilterDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
@@ -1191,5 +1192,20 @@ public class DashboardServiceTest
     assertThat(actual.newCounts.get(week), is(newCount));
     assertThat(actual.fixedCounts.get(week), is(fixedCount));
     assertThat(actual.unresolvedCounts.get(week), is(unresolvedCount));
+  }
+
+  @Test
+  public void testDashboardFilterDefaultFilter() throws Exception {
+    DashboardFilterDTO actual = dashboardService.getDashboardFilterForCurrentUser();
+    // Register to make sure the the filter is deleted after the test
+    tempEntity.register(new DashboardFilterDAO().getByUsername(USERNAME));
+    assertThat(actual, notNullValue());
+
+    assertThat(actual.minPolicyThreatLevel, is(2));
+    assertThat(actual.maxPolicyThreatLevel, is(10));
+    assertThat(actual.applicationFilters, hasSize(0));
+    assertThat(actual.tagFilters, hasSize(0));
+    assertThat(actual.policyThreatCategoryFilters, hasSize(0));
+    assertThat(actual.stageTypeFilters, hasSize(0));
   }
 }

@@ -264,9 +264,51 @@ public class ComponentDetailServiceTest
     ApplicationComponentDetailsDTO dto = appComponentDetailsDTOs.get(0);
     assertThat(dto.application.getId(), is(app1.getId()));
     assertThat(dto.stageDetails, hasSize(4));
-    assertStageDetails(dto.stageDetails.get(0), StageTypes.BUILD, WarnActionType.ID, null, null);
+    assertStageDetails(dto.stageDetails.get(0), StageTypes.BUILD, WarnActionType.ID, null, evaluation1.getTime().getTime());
     assertStageDetails(dto.stageDetails.get(1), StageTypes.STAGE_RELEASE, null, null, null);
-    assertStageDetails(dto.stageDetails.get(2), StageTypes.RELEASE, FailActionType.ID, null, null);
+    assertStageDetails(dto.stageDetails.get(2), StageTypes.RELEASE, FailActionType.ID, null, evaluation2.getTime().getTime());
+    assertStageDetails(dto.stageDetails.get(3), StageTypes.OPERATE, null, null, null);
+  }
+
+  @Test
+  public void testGetApplicationDetailsByHash_MostRecentTimeAmongMostSevereActionForAppLevel() {
+    String hash = "ababababab";
+
+    Application app1 = tempEntity.newApplicationWithParent("app1");
+    ApplicationComponent component = tempEntity.newApplicationComponent(app1.getId(), BuildStageType.ID, hash,
+        "groupId", "artifactId", "version");
+    tempEntity.newApplicationComponent(app1.getId(), ReleaseStageType.ID, component.getHash(), component.getGroupId(),
+        component.getArtifactId(), component.getVersion());
+
+    Policy policy1 = tempEntity.newPolicy(app1.getId(), "policy1");
+    Policy policy2 = tempEntity.newPolicy(app1.getId(), "policy2");
+
+    PolicyEvaluation evaluation1 = tempEntity.newPolicyEvaluation(app1.getId(), BuildStageType.ID, "scanId1",
+        new Date());
+    PolicyViolation violation1 = tempEntity.newPolicyViolation(evaluation1, policy1, policy1.getThreatLevel(),
+        policy1.getThreatCategory(), component.getGroupId(), component.getArtifactId(), component.getVersion(), hash,
+        WarnActionType.ID);
+    tempEntity.newNewestPolicyViolation(violation1.getId(), app1.getId(), BuildStageType.ID);
+
+    PolicyEvaluation evaluation2 = tempEntity.newPolicyEvaluation(app1.getId(), BuildStageType.ID, "scanId2", new Date(
+        evaluation1.getTime().getTime() + 1000));
+    tempEntity.newPolicyViolation(evaluation2, policy1, policy1.getThreatLevel(), policy1.getThreatCategory(),
+        component.getGroupId(), component.getArtifactId(), component.getVersion(), hash, WarnActionType.ID);
+    PolicyViolation violation2 = tempEntity.newPolicyViolation(evaluation2, policy2, policy2.getThreatLevel(),
+        policy2.getThreatCategory(), component.getGroupId(), component.getArtifactId(), component.getVersion(), hash,
+        WarnActionType.ID);
+    tempEntity.newNewestPolicyViolation(violation2.getId(), app1.getId(), BuildStageType.ID);
+
+    List<ApplicationComponentDetailsDTO> appComponentDetailsDTOs = componentDetailService
+        .getApplicationDetailsByHash(hash);
+    assertThat(appComponentDetailsDTOs, notNullValue());
+    assertThat(appComponentDetailsDTOs, hasSize(1));
+    ApplicationComponentDetailsDTO dto = appComponentDetailsDTOs.get(0);
+    assertThat(dto.application.getId(), is(app1.getId()));
+    assertThat(dto.stageDetails, hasSize(4));
+    assertStageDetails(dto.stageDetails.get(0), StageTypes.BUILD, WarnActionType.ID, null, evaluation2.getTime().getTime());
+    assertStageDetails(dto.stageDetails.get(1), StageTypes.STAGE_RELEASE, null, null, null);
+    assertStageDetails(dto.stageDetails.get(2), StageTypes.RELEASE, null, null, null);
     assertStageDetails(dto.stageDetails.get(3), StageTypes.OPERATE, null, null, null);
   }
 

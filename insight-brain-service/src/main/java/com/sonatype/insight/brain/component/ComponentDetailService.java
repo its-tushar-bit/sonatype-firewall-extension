@@ -111,6 +111,11 @@ public class ComponentDetailService
               .getFirstOccurrence(application.getId(), stageType.getId(), policyViolation).getTime().getTime();
           if (getSeverity(appStageDetailDTO.actionTypeId) < getSeverity(policyStageDetailDTO.actionTypeId)) {
             appStageDetailDTO.actionTypeId = policyStageDetailDTO.actionTypeId;
+            appStageDetailDTO.time = policyStageDetailDTO.time;
+          }
+          else if (policyStageDetailDTO.actionTypeId != null
+              && policyStageDetailDTO.actionTypeId.equals(appStageDetailDTO.actionTypeId)) {
+            appStageDetailDTO.time = Math.max(policyStageDetailDTO.time, appStageDetailDTO.time);
           }
 
           PolicyViolationSummaryDTO policyViolationSummaryDTO = policyViolationDTOsByPolicyId.get(policyId);

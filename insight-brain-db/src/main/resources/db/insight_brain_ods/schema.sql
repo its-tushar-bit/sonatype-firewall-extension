@@ -280,6 +280,7 @@ CREATE TABLE policy_evaluation (
   scan_id varchar(50) NOT NULL,
   reevaluation bool DEFAULT false NOT NULL,
   for_monitoring bool DEFAULT false NOT NULL,
+  for_obsolete_scan bool DEFAULT false NOT NULL,
   time datetime NOT NULL,
   CONSTRAINT policy_evaluation_pk PRIMARY KEY (policy_evaluation_id),
   CONSTRAINT policy_evaluation_app_fk FOREIGN KEY (application_id) REFERENCES application(application_id)

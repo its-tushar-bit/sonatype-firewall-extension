@@ -35,6 +35,10 @@ public class PolicyEvaluation
   @Column(name = "scan_id")
   private String scanId;
 
+  // Whether the policy evaluation was for a scan that was already obsolete at the time the evaluation happened.
+  @Column(name = "for_obsolete_scan")
+  private boolean isForObsoleteScan;
+
   @Column(name = "reevaluation")
   private boolean isReevaluation;
 
@@ -121,16 +125,25 @@ public class PolicyEvaluation
     this.time = time;
   }
 
+  public boolean isForObsoleteScan() {
+    return isForObsoleteScan;
+  }
+
+  public void setForObsoleteScan(boolean isForObsoleteScan) {
+    this.isForObsoleteScan = isForObsoleteScan;
+  }
+
   @Override
   public String toString() {
-    return "PolicyEvaluation{" +
-        "id='" + id + '\'' +
-        ", applicationId='" + applicationId + '\'' +
-        ", stageTypeId='" + stageTypeId + '\'' +
-        ", scanId='" + scanId + '\'' +
-        ", isReevaluation=" + isReevaluation +
-        ", isForMonitoring=" + isForMonitoring +
-        ", time=" + time +
+    return "PolicyEvaluation{" + //
+        "id='" + id + '\'' + //
+        ", applicationId='" + applicationId + '\'' + //
+        ", stageTypeId='" + stageTypeId + '\'' + //
+        ", scanId='" + scanId + '\'' + //
+        ", isReevaluation=" + isReevaluation + //
+        ", isForMonitoring=" + isForMonitoring + //
+        ", isForObsoleteScan=" + isForObsoleteScan + //
+        ", time=" + time + " (" + time.getTime() + ")" + //
         '}';
   }
 }

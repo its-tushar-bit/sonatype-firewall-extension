@@ -55,6 +55,7 @@ import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
@@ -93,12 +94,11 @@ public class DashboardServiceTest
     app2 = tempEntity.newApplication("app2", "app2", org.getId());
     orgPolicy = tempEntity.newPolicy(org.getId(), "org owned policy", 3);
     app1Policy = tempEntity.newPolicy(app1.getId(), "app owned policy", 5);
-    long time = System.currentTimeMillis();
+    long time = System.currentTimeMillis() - 1000;
     app1PolicyEvaluation = tempEntity.newPolicyEvaluation(app1.getId(), BuildStageType.ID, "test scan app1 id",
         new Date(time));
     app2PolicyEvaluation = tempEntity.newPolicyEvaluation(app2.getId(), BuildStageType.ID, "test scan app2 id",
         new Date(time + 1));
-    long start = System.currentTimeMillis();
     orgPolicyViolation = tempEntity.newPolicyViolation(app1PolicyEvaluation, orgPolicy);
     app1PolicyViolation = tempEntity.newPolicyViolation(app1PolicyEvaluation, app1Policy);
     app2PolicyViolation = tempEntity.newPolicyViolation(app2PolicyEvaluation, orgPolicy);
@@ -109,9 +109,6 @@ public class DashboardServiceTest
     tempEntity.newApplicationComponent(app1.getId(), ReleaseStageType.ID, "hash-3", MatchState.SIMILAR, false);
     tempEntity.newApplicationComponent(app1.getId(), ReleaseStageType.ID, "hash-4", MatchState.UNKNOWN, false);
     tempEntity.newApplicationComponent(app2.getId(), BuildStageType.ID, "hash-2", "g", "a", "2");
-    while (System.currentTimeMillis() <= start) {
-      // just spinning until next policy eval time is guaranteed to be greater than time for the evals created above
-    }
   }
 
   @Test
@@ -998,5 +995,201 @@ public class DashboardServiceTest
     assertThat(summary.exact, is(1));
     assertThat(summary.similar, is(2));
     assertThat(summary.unknown, is(1));
+  }
+
+  @Test
+  public void testGetPolicySummary_FilterByApplication() throws Exception {
+    DateTime now = new DateTime();
+    PolicyEvaluation pe1 = tempEntity.newPolicyEvaluation(app1.getId(), BuildStageType.ID, "scanId1",
+        now.minusWeeks(DashboardService.POLICY_SUMMARY_WEEKS).plusDays(1).toDate());
+    tempEntity.newPolicyViolation(pe1, orgPolicy);
+    PolicyEvaluation pe2 = tempEntity.newPolicyEvaluation(app2.getId(), BuildStageType.ID, "scanId2",
+        now.minusWeeks(DashboardService.POLICY_SUMMARY_WEEKS).plusDays(1).toDate());
+    tempEntity.newPolicyViolation(pe2, orgPolicy, "g2", "a2", "v2", "h2", "r2");
+    tempEntity.newPolicyViolation(pe2, orgPolicy, "g3", "a3", "v3", "h3", "r3");
+
+    PolicySummaryDTO dto = dashboardService.getPolicySummary(Collections.singleton(app1.getPublicId()), null, null,
+        null, null);
+    assertPolicySummaryWeek(dto, 0, 1, 0, 1);
+
+    dto = dashboardService.getPolicySummary(Sets.newHashSet(app1.getPublicId(), app2.getPublicId()), null, null, null,
+        null);
+    assertPolicySummaryWeek(dto, 0, 3, 0, 3);
+  }
+
+  @Test
+  public void testGetPolicySummary_FilterByStage() throws Exception {
+    DateTime now = new DateTime();
+    PolicyEvaluation pe1 = tempEntity.newPolicyEvaluation(app1.getId(), BuildStageType.ID, "scanId1",
+        now.minusWeeks(DashboardService.POLICY_SUMMARY_WEEKS).plusDays(1).toDate());
+    tempEntity.newPolicyViolation(pe1, orgPolicy);
+    PolicyEvaluation pe2 = tempEntity.newPolicyEvaluation(app2.getId(), ReleaseStageType.ID, "scanId2",
+        now.minusWeeks(DashboardService.POLICY_SUMMARY_WEEKS).plusDays(1).toDate());
+    tempEntity.newPolicyViolation(pe2, orgPolicy, "g2", "a2", "v2", "h2", "r2");
+    tempEntity.newPolicyViolation(pe2, orgPolicy, "g3", "a3", "v3", "h3", "r3");
+
+    PolicySummaryDTO dto = dashboardService.getPolicySummary(null, Collections.singleton(BuildStageType.ID), null,
+        null, null);
+    assertPolicySummaryWeek(dto, 0, 1, 0, 1);
+
+    dto = dashboardService.getPolicySummary(null, Sets.newHashSet(BuildStageType.ID, ReleaseStageType.ID), null, null,
+        null);
+    assertPolicySummaryWeek(dto, 0, 3, 0, 3);
+  }
+
+  @Test
+  public void testGetPolicySummary_FilterByStage_ExcludesDevelop() throws Exception {
+    DateTime now = new DateTime();
+    PolicyEvaluation pe1 = tempEntity.newPolicyEvaluation(app1.getId(), BuildStageType.ID, "scanId1",
+        now.minusWeeks(DashboardService.POLICY_SUMMARY_WEEKS).plusDays(1).toDate());
+    tempEntity.newPolicyViolation(pe1, orgPolicy);
+    PolicyEvaluation pe2 = tempEntity.newPolicyEvaluation(app2.getId(), DevelopStageType.ID, "scanId2",
+        now.minusWeeks(DashboardService.POLICY_SUMMARY_WEEKS).plusDays(1).toDate());
+    tempEntity.newPolicyViolation(pe2, orgPolicy);
+
+    PolicySummaryDTO dto = dashboardService.getPolicySummary(null, null, null, null, null);
+    assertPolicySummaryWeek(dto, 0, 1, 0, 1);
+
+    try {
+      dashboardService.getPolicySummary(null, Collections.singleton(DevelopStageType.ID), null, null, null);
+      fail("Expected BadRequestException");
+    }
+    catch (BadRequestException e) {
+      assertThat(e.getMessage(), is("Invalid stage type: develop."));
+    }
+  }
+
+  @Test
+  public void testGetPolicySummary_FilterByTag() throws Exception {
+    DateTime now = new DateTime();
+    PolicyEvaluation pe1 = tempEntity.newPolicyEvaluation(app1.getId(), BuildStageType.ID, "scanId1",
+        now.minusWeeks(DashboardService.POLICY_SUMMARY_WEEKS).plusDays(1).toDate());
+    tempEntity.newPolicyViolation(pe1, orgPolicy);
+    PolicyEvaluation pe2 = tempEntity.newPolicyEvaluation(app2.getId(), ReleaseStageType.ID, "scanId2",
+        now.minusWeeks(DashboardService.POLICY_SUMMARY_WEEKS).plusDays(1).toDate());
+    tempEntity.newPolicyViolation(pe2, orgPolicy, "g2", "a2", "v2", "h2", "r2");
+    tempEntity.newPolicyViolation(pe2, orgPolicy, "g3", "a3", "v3", "h3", "r3");
+    Tag app1Tag = tempEntity.newTag(org.getId());
+    tempEntity.newApplicationTag(app1.getId(), app1Tag.getId());
+    Tag app2Tag = tempEntity.newTag(org.getId());
+    tempEntity.newApplicationTag(app2.getId(), app2Tag.getId());
+
+    PolicySummaryDTO dto = dashboardService.getPolicySummary(null, null, Collections.singleton(app1Tag.getId()), null,
+        null);
+    assertPolicySummaryWeek(dto, 0, 1, 0, 1);
+
+    dto = dashboardService.getPolicySummary(null, null, Sets.newHashSet(app1Tag.getId(), app2Tag.getId()), null, null);
+    assertPolicySummaryWeek(dto, 0, 3, 0, 3);
+  }
+
+  @Test
+  public void testGetPolicySummary_FilterByPolicyThreatCategory() throws Exception {
+    DateTime now = new DateTime();
+    PolicyEvaluation pe1 = tempEntity.newPolicyEvaluation(app1.getId(), BuildStageType.ID, "scanId1",
+        now.minusWeeks(DashboardService.POLICY_SUMMARY_WEEKS).plusDays(1).toDate());
+    tempEntity.newPolicyViolation(pe1, orgPolicy, 5, PolicyThreatCategory.LICENSE, "gid", "aid", "1");
+    PolicyEvaluation pe2 = tempEntity.newPolicyEvaluation(app2.getId(), ReleaseStageType.ID, "scanId2",
+        now.minusWeeks(DashboardService.POLICY_SUMMARY_WEEKS).plusDays(1).toDate());
+    tempEntity.newPolicyViolation(pe2, orgPolicy, 5, PolicyThreatCategory.SECURITY, "gid", "aid", "1");
+    tempEntity.newPolicyViolation(pe2, orgPolicy, 5, PolicyThreatCategory.SECURITY, "gid", "aid", "2");
+
+    PolicySummaryDTO dto = dashboardService.getPolicySummary(null, null, null, new PolicyThreatCategoryFilter(
+        PolicyThreatCategory.LICENSE), null);
+    assertPolicySummaryWeek(dto, 0, 1, 0, 1);
+
+    dto = dashboardService.getPolicySummary(null, null, null, new PolicyThreatCategoryFilter(
+        PolicyThreatCategory.LICENSE, PolicyThreatCategory.SECURITY), null);
+    assertPolicySummaryWeek(dto, 0, 3, 0, 3);
+  }
+
+  @Test
+  public void testGetPolicySummary_FilterByPolicyThreatLevel() throws Exception {
+    DateTime now = new DateTime();
+    PolicyEvaluation pe1 = tempEntity.newPolicyEvaluation(app1.getId(), BuildStageType.ID, "scanId1",
+        now.minusWeeks(DashboardService.POLICY_SUMMARY_WEEKS).plusDays(1).toDate());
+    tempEntity.newPolicyViolation(pe1, orgPolicy, 5, PolicyThreatCategory.LICENSE, "gid", "aid", "1");
+    PolicyEvaluation pe2 = tempEntity.newPolicyEvaluation(app2.getId(), ReleaseStageType.ID, "scanId2",
+        now.minusWeeks(DashboardService.POLICY_SUMMARY_WEEKS).plusDays(1).toDate());
+    tempEntity.newPolicyViolation(pe2, orgPolicy, 8, PolicyThreatCategory.SECURITY, "gid", "aid", "1");
+    tempEntity.newPolicyViolation(pe2, orgPolicy, 8, PolicyThreatCategory.SECURITY, "gid", "aid", "2");
+
+    PolicySummaryDTO dto = dashboardService.getPolicySummary(null, null, null, null, new PolicyThreatLevelFilter(5, 5));
+    assertPolicySummaryWeek(dto, 0, 1, 0, 1);
+
+    dto = dashboardService.getPolicySummary(null, null, null, null, new PolicyThreatLevelFilter(5, 8));
+    assertPolicySummaryWeek(dto, 0, 3, 0, 3);
+  }
+
+  @Test
+  public void testGetPolicySummary_InitialData() throws Exception {
+    DateTime now = new DateTime();
+
+    // Data before week 0. One violation.
+    PolicyEvaluation pe1 = tempEntity.newPolicyEvaluation(app1.getId(), BuildStageType.ID, "scanId1",
+        now.minusWeeks(DashboardService.POLICY_SUMMARY_WEEKS).minusDays(1).toDate());
+    tempEntity.newPolicyViolation(pe1, orgPolicy, "g1", "a1", "v1", "h1", "r1");
+
+    // Data during week 0. Adds one violation.
+    PolicyEvaluation pe2 = tempEntity.newPolicyEvaluation(app1.getId(), ReleaseStageType.ID, "scanId2",
+        now.minusWeeks(DashboardService.POLICY_SUMMARY_WEEKS).plusDays(1).toDate());
+    tempEntity.newPolicyViolation(pe2, orgPolicy, "g2", "a2", "v2", "h2", "r2");
+
+    // Data during week 1. Fixes initial violation.
+    tempEntity.newPolicyEvaluation(app1.getId(), BuildStageType.ID, "scanId3",
+        now.minusWeeks(DashboardService.POLICY_SUMMARY_WEEKS - 1).plusDays(1).toDate());
+
+    PolicySummaryDTO dto = dashboardService.getPolicySummary(null, null, null, null, null);
+    assertThat(dto.newCounts, hasSize(DashboardService.POLICY_SUMMARY_WEEKS));
+    assertThat(dto.fixedCounts, hasSize(DashboardService.POLICY_SUMMARY_WEEKS));
+    assertThat(dto.unresolvedCounts, hasSize(DashboardService.POLICY_SUMMARY_WEEKS));
+    assertPolicySummaryWeek(dto, 0, 1, 0, 1);
+    assertPolicySummaryWeek(dto, 1, 0, 1, -1);
+    assertPolicySummaryWeek(dto, 2, 0, 0, 0);
+    for (int iWeek = 3; iWeek < DashboardService.POLICY_SUMMARY_WEEKS - 1; iWeek++) {
+      assertPolicySummaryWeek(dto, iWeek, 0, 0, 0);
+    }
+    assertPolicySummaryWeek(dto, DashboardService.POLICY_SUMMARY_WEEKS - 1, 3, 0, 3);
+  }
+
+  @Test
+  public void testGetPolicySummary_SameViolationTwoStages() throws Exception {
+    DateTime now = new DateTime();
+
+    // Data during week 0. Adds one violation for two stages.
+    PolicyEvaluation pe1 = tempEntity.newPolicyEvaluation(app1.getId(), BuildStageType.ID, "scanId1",
+        now.minusWeeks(DashboardService.POLICY_SUMMARY_WEEKS).plusDays(1).toDate());
+    tempEntity.newPolicyViolation(pe1, orgPolicy, "g1", "a1", "v1", "h1", "r1");
+    PolicyEvaluation pe2 = tempEntity.newPolicyEvaluation(app1.getId(), ReleaseStageType.ID, "scanId2",
+        now.minusWeeks(DashboardService.POLICY_SUMMARY_WEEKS).plusDays(2).toDate());
+    tempEntity.newPolicyViolation(pe2, orgPolicy, "g1", "a1", "v1", "h1", "r1");
+
+    // Data during week 1. Fixes one violation for one stage.
+    tempEntity.newPolicyEvaluation(app1.getId(), BuildStageType.ID, "scanId3",
+        now.minusWeeks(DashboardService.POLICY_SUMMARY_WEEKS - 1).plusDays(1).toDate());
+
+    // Data during week 2. Fixes one violation for the other stage.
+    tempEntity.newPolicyEvaluation(app1.getId(), ReleaseStageType.ID, "scanId4",
+        now.minusWeeks(DashboardService.POLICY_SUMMARY_WEEKS - 2).plusDays(1).toDate());
+
+    PolicySummaryDTO dto = dashboardService.getPolicySummary(null, null, null, null, null);
+    assertThat(dto.newCounts, hasSize(DashboardService.POLICY_SUMMARY_WEEKS));
+    assertThat(dto.fixedCounts, hasSize(DashboardService.POLICY_SUMMARY_WEEKS));
+    assertThat(dto.unresolvedCounts, hasSize(DashboardService.POLICY_SUMMARY_WEEKS));
+    assertPolicySummaryWeek(dto, 0, 1, 0, 1);
+    assertPolicySummaryWeek(dto, 1, 0, 0, 0);
+    assertPolicySummaryWeek(dto, 2, 0, 1, -1);
+    for (int iWeek = 3; iWeek < DashboardService.POLICY_SUMMARY_WEEKS - 1; iWeek++) {
+      assertPolicySummaryWeek(dto, iWeek, 0, 0, 0);
+    }
+    assertPolicySummaryWeek(dto, DashboardService.POLICY_SUMMARY_WEEKS - 1, 3, 0, 3);
+  }
+
+  private void assertPolicySummaryWeek(PolicySummaryDTO actual, int week, int newCount, int fixedCount,
+      int unresolvedCount)
+  {
+    assertThat(actual, notNullValue());
+    assertThat(actual.newCounts.get(week), is(newCount));
+    assertThat(actual.fixedCounts.get(week), is(fixedCount));
+    assertThat(actual.unresolvedCounts.get(week), is(unresolvedCount));
   }
 }

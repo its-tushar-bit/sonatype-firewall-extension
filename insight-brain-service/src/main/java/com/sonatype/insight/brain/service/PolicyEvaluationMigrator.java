@@ -85,7 +85,7 @@ public class PolicyEvaluationMigrator
 
   private static final String MARKER_FILE_NAME = "policyevaluations-migrated";
 
-  private static final String MONITOR_POLICY_ALERTS_FILE = "monitorpolicyalerts.json";
+  static final String MONITOR_POLICY_ALERTS_FILE = "monitorpolicyalerts.json";
 
   private static final Function<ConditionFact, PolicyThreatCategory> CONDITION_FACT_TRANSFORMER = new Function<ConditionFact, PolicyThreatCategory>()
   {
@@ -271,6 +271,20 @@ public class PolicyEvaluationMigrator
     }
   }
 
+  private PolicyEvaluation findMostRecentPrimaryEvaluationBeforeDate(List<PolicyEvaluation> policyEvaluations, Date date)
+  {
+    PolicyEvaluation result = null;
+    for (PolicyEvaluation policyEvaluation : policyEvaluations) {
+      if (!policyEvaluation.isReevaluation() && policyEvaluation.getTime().getTime() <= date.getTime()) {
+        if (result == null || policyEvaluation.getTime().getTime() > result.getTime().getTime()) {
+          result = policyEvaluation;
+        }
+      }
+    }
+
+    return result;
+  }
+
   private void savePolicyEvaluations(final EntityManager em, final Application app, final String stageId,
       final Collection<PolicyEvaluation> policyEvaluations, final Set<String> monitoringScans,
       final List<PolicyEvaluation> policyEvaluationsCache,
@@ -281,6 +295,14 @@ public class PolicyEvaluationMigrator
     for (PolicyEvaluation policyEvaluation : policyEvaluations) {
       policyEvaluation.setStageTypeId(stageId);
       policyEvaluation.setApplicationId(applicationId);
+      if (policyEvaluation.isReevaluation()) {
+        PolicyEvaluation mostRecentPrimaryEvaluationBeforeDate = findMostRecentPrimaryEvaluationBeforeDate(
+            policyEvaluationsCache, policyEvaluation.getTime());
+        if (mostRecentPrimaryEvaluationBeforeDate != null
+            && !mostRecentPrimaryEvaluationBeforeDate.getScanId().equals(policyEvaluation.getScanId())) {
+          policyEvaluation.setForObsoleteScan(true);
+        }
+      }
       policyEvaluationDAO.insert(em, policyEvaluation);
       policyEvaluationsCache.add(policyEvaluation);
       log.trace("Migrated: {}", policyEvaluation);

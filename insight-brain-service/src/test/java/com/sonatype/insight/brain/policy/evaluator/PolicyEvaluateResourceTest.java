@@ -279,10 +279,17 @@ public class PolicyEvaluateResourceTest
   }
 
   private void assertPolicyEvaluation(String applicationId, String scanId, boolean isReevaluation) {
+    assertPolicyEvaluation(applicationId, scanId, isReevaluation, false /* isForObsoleteScan */);
+  }
+
+  private void assertPolicyEvaluation(String applicationId, String scanId, boolean isReevaluation,
+      boolean isForObsoleteScan)
+  {
     PolicyEvaluation policyEvaluation = new PolicyEvaluationDAO()
         .getLastByApplicationIdAndScanId(applicationId, scanId);
     Assert.assertNotNull(policyEvaluation);
     Assert.assertEquals(isReevaluation, policyEvaluation.isReevaluation());
+    Assert.assertEquals(isForObsoleteScan, policyEvaluation.isForObsoleteScan());
   }
 
   @Test
@@ -706,7 +713,7 @@ public class PolicyEvaluateResourceTest
   }
 
   @Test
-  public void testReEvaluate() throws Exception {
+  public void testReEvaluate_Notifications() throws Exception {
     String scanId = "testReEvaluation";
 
     File saasReportFile = getReportResponseFile(licenseFingerprint, scanId);
@@ -955,6 +962,45 @@ public class PolicyEvaluateResourceTest
     assertThat(appComponents2, hasSize(1));
     assertApplicationComponent("geronimo", "geronimo-tomcat", "1.0", policyEvaluation2.getTime(), appComponents2.get(0));
     assertThat(appComponents2.get(0).getId(), is(appComponent2.getId()));
+  }
+
+  @Test
+  public void testReEvaluate_ObsoleteScan() throws Exception {
+    Stage stage = new Stage(BuildStageType.ID);
+
+    // Evaluate policy for scanId1
+    String scanId1 = "scanId1";
+    File saasReportFile1 = getReportResponseFile(licenseFingerprint, scanId1);
+    saasReportFile1.delete();
+    // Simulate that the report is available
+    URL testReportFileUrl = getClass().getResource("/PolicyEvaluateResourceTest/report.zip");
+    FileUtils.copyFile(new File(testReportFileUrl.getFile()), saasReportFile1);
+    Response response = AuthedRestAccess.post(getServiceURL(applicationPublicId, scanId1), JsonHelpers.asJson(stage));
+    assertResponseStatus(200, response);
+    PolicyEvaluationResult policyEvaluationResult = JsonHelpers.fromJson(response.getResponseBody(),
+        PolicyEvaluationResult.class);
+    assertPolicyEvaluation(app.getId(), scanId1, false /* isReevaluation */);
+
+    // Make sure we don't have two evaluations at exactly the same time
+    Thread.sleep(1);
+
+    // Evaluate policy for scanId2
+    String scanId2 = "scanId2";
+    File saasReportFile2 = getReportResponseFile(licenseFingerprint, scanId2);
+    saasReportFile2.delete();
+    // Simulate that the report is available
+    FileUtils.copyFile(new File(testReportFileUrl.getFile()), saasReportFile2);
+    response = AuthedRestAccess.post(getServiceURL(applicationPublicId, scanId2), JsonHelpers.asJson(stage));
+    assertResponseStatus(200, response);
+    assertPolicyEvaluation(app.getId(), scanId2, false /* isReevaluation */);
+
+    // Evaluate policy again for scanid1
+    response = AuthedRestAccess.post(getServiceURL(applicationPublicId, scanId1), JsonHelpers.asJson(stage));
+    assertResponseStatus(200, response);
+    policyEvaluationResult = JsonHelpers.fromJson(response.getResponseBody(), PolicyEvaluationResult.class);
+    Assert.assertNotNull(policyEvaluationResult);
+    Assert.assertTrue(policyEvaluationResult.isReevaluation());
+    assertPolicyEvaluation(app.getId(), scanId1, true /* isReevaluation */, true /* isForObsoleteScan */);
   }
 
   private void assertApplicationComponent(String groupId, String artifactId, String version, Date time,

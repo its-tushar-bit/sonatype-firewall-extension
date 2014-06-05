@@ -555,11 +555,22 @@ public class TemporaryEntity
   }
 
   public PolicyEvaluation newPolicyEvaluation(String applicationId, String stageTypeId, String scanId,
-      boolean isReevaluation, boolean idForMonitoring, Date time)
+      boolean isReevaluation, boolean isForMonitoring, Date time)
   {
     PolicyEvaluation policyEvaluation = new PolicyEvaluation(applicationId, stageTypeId, scanId, isReevaluation,
-        idForMonitoring);
+        isForMonitoring);
     policyEvaluation.setTime(time);
+    policyEvaluationDAO.insert(policyEvaluation);
+    return policyEvaluation;
+  }
+
+  public PolicyEvaluation newPolicyEvaluation(String applicationId, String stageTypeId, String scanId,
+      boolean isReevaluation, boolean isForMonitoring, boolean isForObsoleteScan, Date time)
+  {
+    PolicyEvaluation policyEvaluation = new PolicyEvaluation(applicationId, stageTypeId, scanId, isReevaluation,
+        isForMonitoring);
+    policyEvaluation.setTime(time);
+    policyEvaluation.setForObsoleteScan(isForObsoleteScan);
     policyEvaluationDAO.insert(policyEvaluation);
     return policyEvaluation;
   }

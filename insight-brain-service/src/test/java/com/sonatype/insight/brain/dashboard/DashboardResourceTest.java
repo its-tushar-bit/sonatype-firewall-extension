@@ -27,6 +27,7 @@ import org.junit.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.arrayWithSize;
+import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
@@ -51,6 +52,23 @@ public class DashboardResourceTest
     assertResponseStatus(200, response);
     NewestRiskDTO[] dtos = JsonHelpers.fromJson(response.getResponseBody(), NewestRiskDTO[].class);
     assertThat(dtos, arrayWithSize(1));
+  }
+
+  @Test
+  public void testGetPolicySummary() throws Exception {
+    Application app = tempEntity.newApplicationWithParent("app1", "test application");
+
+    Policy buildPolicy = tempEntity.newPolicy(app.getId(), "build policy");
+
+    createNewestPolicyViolation(app, buildPolicy, BuildStageType.ID);
+
+    Response response = AuthedRestAccess.get(getRestUrl(DashboardResource.SERVICE_PATH + '/'
+        + DashboardResource.GET_POLICY_SUMMARY_PATH));
+
+    assertResponseStatus(200, response);
+    PolicySummaryDTO dto = JsonHelpers.fromJson(response.getResponseBody(), PolicySummaryDTO.class);
+    assertThat(dto, notNullValue());
+    assertThat(dto.newCounts, hasSize(12));
   }
 
   @Test

@@ -142,11 +142,17 @@ public class PolicyEvaluationUtils
       try {
         em.getTransaction().begin();
   
-        boolean isReevaluation = (policyEvaluationDAO.getLastByApplicationIdAndScanId(em, appId, scanId) != null);
-  
         // Persist the policy evaluation
+        boolean isReevaluation = (policyEvaluationDAO.getLastByApplicationIdAndScanId(em, appId, scanId) != null);
         PolicyEvaluation policyEvaluation = new PolicyEvaluation(appId, stage.getStageTypeId(), scanId, isReevaluation,
             forMonitoring);
+        boolean isForLatestScan = true;
+        if (isReevaluation) {
+          PolicyEvaluation lastPrimaryPolicyEvaluation = policyEvaluationDAO.getLastPrimaryByApplicationIdAndStageId(
+              em, appId, stage.getStageTypeId());
+          isForLatestScan = lastPrimaryPolicyEvaluation.getScanId().equals(scanId);
+          policyEvaluation.setForObsoleteScan(!isForLatestScan);
+        }
         policyEvaluationDAO.insert(em, policyEvaluation);
   
         // Persist the policy violations
@@ -178,12 +184,6 @@ public class PolicyEvaluationUtils
 
         // Persist the NewestPolicyViolations and ApplicationComponents only if there isn't a more recent primary policy
         // evaluation, since any reevaluation (even for monitoring) may be for an older scan.
-        boolean isForLatestScan = true;
-        if (isReevaluation) {
-          PolicyEvaluation lastPrimaryPolicyEvaluation = policyEvaluationDAO.getLastPrimaryByApplicationIdAndStageId(
-              em, appId, stage.getStageTypeId());
-          isForLatestScan = lastPrimaryPolicyEvaluation.getScanId().equals(scanId);
-        }
         if (isForLatestScan) {
           // Calculate a diff between the current policy violations and the previous "newest" policy violations
           List<PolicyViolation> oldPolicyViolations = policyViolationDAO.getNewestByApplicationIdAndStageTypeId(em,

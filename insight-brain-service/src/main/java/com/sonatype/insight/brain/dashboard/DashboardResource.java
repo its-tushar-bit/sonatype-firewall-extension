@@ -36,6 +36,8 @@ public class DashboardResource
 
   public static final String GET_APPLICATION_RISKS_PATH = "policy/applicationRisks";
 
+  public static final String GET_POLICY_SUMMARY_PATH = "policy/summary";
+
   public static final String FILTERS_PATH = "filters";
 
   public static final String FILTERS_SUMMARY_PATH = "filters/summary";
@@ -141,5 +143,17 @@ public class DashboardResource
       @QueryParam("stageIds") Set<String> stageIds, @QueryParam("tagIds") Set<String> tagIds)
   {
     return dashboardService.getComponentSummary(applicationPublicIds, stageIds, tagIds);
+  }
+
+  @GET
+  @Path(GET_POLICY_SUMMARY_PATH)
+  @Produces(MediaType.APPLICATION_JSON)
+  public PolicySummaryDTO getPolicySummary(@QueryParam("applicationPublicIds") Set<String> applicationPublicIds,
+      @QueryParam("stageIds") Set<String> stageIds, @QueryParam("tagIds") Set<String> tagIds,
+      @QueryParam("policyThreatCategories") PolicyThreatCategoryFilter policyThreatCategoryFilter,
+      @QueryParam("policyThreatLevelRange") PolicyThreatLevelFilter policyThreatLevelFilter)
+  {
+    return dashboardService.getPolicySummary(applicationPublicIds, stageIds, tagIds, policyThreatCategoryFilter,
+        policyThreatLevelFilter);
   }
 }

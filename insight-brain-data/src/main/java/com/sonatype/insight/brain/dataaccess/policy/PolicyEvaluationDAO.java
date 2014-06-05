@@ -72,19 +72,33 @@ public class PolicyEvaluationDAO
     // We chose to implement it as a single query in order to have one round trip to the db instead of two.
     String sQuery = "SELECT pe1 FROM PolicyEvaluation pe1" + //
         " WHERE pe1.applicationId=?1 AND pe1.stageTypeId=?2" + //
-        "   AND pe1.scanId=(" + //
-        // Find the scan id for the most recent primary evaluation
-        "     SELECT pe2.scanId FROM PolicyEvaluation pe2" + //
+        "   AND pe1.time=(" + //
+        // Find the time for the most recent evaluation
+        "   SELECT max(pe2.time) FROM PolicyEvaluation pe2" + //
         "     WHERE pe2.applicationId=?1 AND pe2.stageTypeId=?2" + //
-        "       AND pe2.time=(" + //
-        // Find the time for the most recent primary evaluation
-        "       SELECT max(pe3.time) FROM PolicyEvaluation pe3" + //
-        "       WHERE pe3.applicationId=?1 AND pe3.stageTypeId=?2" + //
-        "         AND pe3.isReevaluation=false" + //
-        "     )" + //
-        "   )" + //
-        " ORDER BY pe1.time DESC";
-    return createQuery(sQuery, appId, stageTypeId).forceSingleResult().get(em);
+        "       AND pe2.isForObsoleteScan=false" + //
+        "   )";
+    return get(em, sQuery, appId, stageTypeId);
+  }
+
+  /**
+   * Returns the most recent policy evaluation before a specified date for the most recent scan for the given
+   * application and stage.
+   */
+  public PolicyEvaluation getLastBeforeDateByApplicationIdAndStageId(String appId, String stageTypeId, Date date) {
+    // This can be implemented simpler in two steps, by getting the last scan for the specified app and stage (by
+    // getting the last primary evaluation) and then getting the last evaluation for that scan.
+    // We chose to implement it as a single query in order to have one round trip to the db instead of two.
+    String sQuery = "SELECT pe1 FROM PolicyEvaluation pe1" + //
+        " WHERE pe1.applicationId=?1 AND pe1.stageTypeId=?2" + //
+        "   AND pe1.time=(" + //
+        // Find the time for the most recent evaluation before the specified date
+        "   SELECT max(pe2.time) FROM PolicyEvaluation pe2" + //
+        "     WHERE pe2.applicationId=?1 AND pe2.stageTypeId=?2" + //
+        "       AND pe2.isForObsoleteScan=false" + //
+        "       AND pe2.time <= ?3" + //
+        "   )";
+    return get(sQuery, appId, stageTypeId, date);
   }
 
   //the fancy query for this is slower than the query above, so simple it is
@@ -144,6 +158,8 @@ public class PolicyEvaluationDAO
 
   @Override
   public void insert(EntityManager em, PolicyEvaluation policyEvaluation) {
+    validate(policyEvaluation);
+
     if (policyEvaluation.getTime() == null) {
       policyEvaluation.setTime(new Date());
     }
@@ -154,6 +170,15 @@ public class PolicyEvaluationDAO
     String sQuery = "SELECT entity FROM PolicyEvaluation entity" + //
         " WHERE entity.applicationId=?1";
     return getList(em, sQuery, appId);
+  }
+
+  public List<PolicyEvaluation> getBetweenDatesByApplicationIdAndStageIds(String appId, Set<String> stageTypeIds, Date fromDate, Date toDate) {
+    String sQuery = "SELECT entity FROM PolicyEvaluation entity" + //
+        " WHERE entity.applicationId = ?1 AND entity.stageTypeId IN (?2)" + //
+        "   AND entity.isForObsoleteScan=false" + //
+        "   AND entity.time > ?3 AND entity.time <= ?4" + //
+        " ORDER BY entity.time";
+    return getList(sQuery, appId, stageTypeIds, fromDate, toDate);
   }
 
   @Override
@@ -171,5 +196,11 @@ public class PolicyEvaluationDAO
     }
 
     super.delete(em, entity);
+  }
+
+  private void validate(PolicyEvaluation policyEvaluation) {
+    if (!policyEvaluation.isReevaluation() && policyEvaluation.isForObsoleteScan()) {
+      throw new IllegalStateException("Primary evaluations cannot be for obsolete scans");
+    }
   }
 }

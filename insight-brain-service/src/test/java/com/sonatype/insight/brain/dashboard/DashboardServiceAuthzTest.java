@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.dashboard;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -23,9 +24,12 @@ import org.apache.shiro.authz.UnauthorizedException;
 import org.junit.Before;
 import org.junit.Test;
 
+import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
@@ -273,6 +277,28 @@ public class DashboardServiceAuthzTest
   public void testGetComponentSummary_ImplicitApplicationComponent_Authorized() {
     grantReadPermission(app.getId());
     assertThat(getComponentSummaryTotal(true), is(1));
+  }
+
+  @Test
+  public void testGetFilters_UnauthorizedApps() throws Exception {
+    Application app2 = tempEntity.newApplication(org.getId());
+
+    DashboardFilterDTO dto = new DashboardFilterDTO();
+    dto.applicationFilters = new ArrayList<>();
+    dto.applicationFilters.add(app.getPublicId());
+    dto.applicationFilters.add(app2.getPublicId());
+
+    login();
+
+    dashboardService.createOrUpdateDashboardFilterForCurrentUser(dto);
+
+    grantReadPermission(app.getId());
+    dto = dashboardService.getDashboardFilterForCurrentUser();
+    assertThat(dto.applicationFilters, not(contains(app2.getPublicId())));
+
+    grantReadPermission(app2.getId());
+    dto = dashboardService.getDashboardFilterForCurrentUser();
+    assertThat(dto.applicationFilters, containsInAnyOrder(app.getPublicId(), app2.getPublicId()));
   }
 
   private int getComponentSummaryTotal(boolean all) {

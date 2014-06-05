@@ -164,7 +164,7 @@ public class DashboardResourceTest
     dashboardFilterDTO.maxPolicyThreatLevel = 10;
 
     dashboardFilterDTO.applicationFilters = new ArrayList<>();
-    dashboardFilterDTO.applicationFilters.add(application.getId());
+    dashboardFilterDTO.applicationFilters.add(application.getPublicId());
 
     dashboardFilterDTO.tagFilters = new ArrayList<>();
     dashboardFilterDTO.tagFilters.add(tag.getId());

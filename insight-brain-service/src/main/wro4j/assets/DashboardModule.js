@@ -305,6 +305,10 @@
         scope.toggle = function() {
           $('.filter-edit').collapse('toggle');
         };
+
+        scope.$on('reloadFilter', function(){
+          loadFilters();
+        });
       }
     };
   }]);
@@ -344,7 +348,7 @@
   });
 
   function dashboardTable(url) {
-    function createFilterWatch($scope, $http) {
+    function createFilterWatch($scope, $rootScope, $http, Dialog) {
       return function (newFilter) {
         if (newFilter) {
           $scope.error = $scope.data = null;
@@ -358,7 +362,20 @@
             }
           }).error(function () {
             if (angular.equals(newFilter, $scope.filters)) {
-              $scope.error = arguments;
+              if (arguments[1] && arguments[1] === 403) {
+                Dialog.open({
+                  title : 'Filter invalid',
+                  body : 'Your filter settings have become invalid because of permission changes, click OK to reload.',
+                  buttons : [{
+                    name : 'OK',
+                    click: function() {
+                      $rootScope.$broadcast('reloadFilter');
+                    }
+                  }]
+                });
+              } else {
+                $scope.error = arguments;
+              }
             }
           });
         }
@@ -368,8 +385,8 @@
     return {
       transclude: true,
       templateUrl: 'dashboard-table',
-      controller: ['$scope', '$http', function($scope, $http) {
-        var filterChangedFn = createFilterWatch($scope, $http);
+      controller: ['$scope', '$rootScope', '$http', 'Dialog', function($scope, $rootScope, $http, Dialog) {
+        var filterChangedFn = createFilterWatch($scope, $rootScope, $http, Dialog);
         $scope.doLoad = function () {
           filterChangedFn($scope.filters);
         };

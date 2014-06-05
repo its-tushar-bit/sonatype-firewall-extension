@@ -51,6 +51,7 @@ import com.sonatype.insight.brain.policy.evaluator.PolicyViolationDiff;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationDigester;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
+import com.sonatype.insight.brain.security.AuthzFilter;
 import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.json.store.JsonUtils;
@@ -605,7 +606,24 @@ public class DashboardService
     if (dashboardFilter == null) {
       return createDefaultDashboardFilterForCurrentUser();
     }
-    return JsonUtils.parse(dashboardFilter.getFilter(), DashboardFilterDTO.class);
+    DashboardFilterDTO dto = JsonUtils.parse(dashboardFilter.getFilter(), DashboardFilterDTO.class);
+
+    //prune out any unauthorized applications
+    pruneUnauthorizedApplicationIds(dto);
+    return dto;
+  }
+
+  protected void pruneUnauthorizedApplicationIds(DashboardFilterDTO dto) {
+    List<Application> apps = getApplicationsByPublicIds(dto.applicationFilters);
+    dto.applicationFilters.clear();
+    for (Application app : apps) {
+      dto.applicationFilters.add(app.getPublicId());
+    }
+  }
+
+  @AuthzFilter(permission = Permission.READ, context = AuthzFilter.Context.APPLICATION)
+  protected List<Application> getApplicationsByPublicIds(final List<String> applicationPublicIds) {
+    return applicationDAO.getByPublicIds(new LinkedHashSet<String>(applicationPublicIds));
   }
 
   private DashboardFilterDTO createDefaultDashboardFilterForCurrentUser(){

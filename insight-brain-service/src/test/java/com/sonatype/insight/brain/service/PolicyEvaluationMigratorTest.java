@@ -54,7 +54,7 @@ public class PolicyEvaluationMigratorTest
   private static final String COMPONENT_HASH_CARROT = "074bcc9d152a928a4ea9";
 
   private static final String COMPONENT_HASH_UNKNOWN = "318ed314c3e5bfb0bacb";
-  
+
   @Rule
   public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
@@ -85,17 +85,17 @@ public class PolicyEvaluationMigratorTest
     insightWork = new InsightWork(insightConfig);
     policyEvaluationMigrator = new PolicyEvaluationMigrator(insightWork);
 
-    //provide evaluation logs and dummied up reports(zip has no content and the report.cache files are loaded) for test purposes
+    // provide evaluation logs and dummied up reports(zip has no content and the report.cache files are loaded) for test
+    // purposes
     FileUtils.copyDirectory(new File("target/test-classes", testDataDir), sonatypeWork);
     Organization organization = tempEntity.newOrganization();
-    app1 = tempEntity.newApplicationWithSpecificId("app1",
-        "PolicyEvaluationMigratorTest", "PolicyEvaluationMigratorTest", organization.getId());
-    app2 = tempEntity.newApplicationWithSpecificId("app2",
-        "PolicyEvaluationMigratorTest2", "PolicyEvaluationMigratorTest2", organization.getId());
+    app1 = tempEntity.newApplicationWithSpecificId("app1", "PolicyEvaluationMigratorTest",
+        "PolicyEvaluationMigratorTest", organization.getId());
+    app2 = tempEntity.newApplicationWithSpecificId("app2", "PolicyEvaluationMigratorTest2",
+        "PolicyEvaluationMigratorTest2", organization.getId());
 
-    //this app has no evals at all, it should not contribute a new policy evaluation
-    appNoEvals = tempEntity.newApplicationWithSpecificId("appNoEvals", "NoEvals", "NoEvals",
-        organization.getId());
+    // this app has no evals at all, it should not contribute a new policy evaluation
+    appNoEvals = tempEntity.newApplicationWithSpecificId("appNoEvals", "NoEvals", "NoEvals", organization.getId());
   }
 
   private void assertPolicyViolationActions(PolicyViolation policyViolation, String actionTypeId,
@@ -109,7 +109,7 @@ public class PolicyEvaluationMigratorTest
       assertThat(policyViolation.getNotifications(), containsInAnyOrder(notifications));
     }
   }
-  
+
   @Test
   public void testMigrateMultipleApps() throws Exception {
     setup("PolicyEvaluationMigratorTest/MultipleApplications");
@@ -126,8 +126,10 @@ public class PolicyEvaluationMigratorTest
 
     policyEvaluationMigrator.migrate();
 
-    //we should find 5 records for the first app in the build stage, one of them for monitoring, 2 originals and 2 for a re-evaluation(different scans)
-    List<PolicyEvaluation> appBuildEvaluations = policyEvaluationDAO.getAllByApplicationIdAndStageId(app1.getId(), Stage.ID_BUILD);
+    // we should find 5 records for the first app in the build stage, one of them for monitoring, 2 originals and 2 for
+    // a re-evaluation(different scans)
+    List<PolicyEvaluation> appBuildEvaluations = policyEvaluationDAO.getAllByApplicationIdAndStageId(app1.getId(),
+        Stage.ID_BUILD);
     assertThat(appBuildEvaluations, hasSize(5));
     for (PolicyEvaluation policyEvaluation : appBuildEvaluations) {
       System.out.println(policyEvaluation);
@@ -181,8 +183,9 @@ public class PolicyEvaluationMigratorTest
     assertUnknownPolicyViolation(buildEvaluation.getId(), violations.get(1));
     assertPolicyViolationActions(violations.get(1), null /* actionTypeId */);
 
-    //we should also find 3 records for the first app in stage-release, monitoring, a re-eval and the original
-    List<PolicyEvaluation> stageReleaseEvaluations = policyEvaluationDAO.getAllByApplicationIdAndStageId(app1.getId(), Stage.ID_STAGE_RELEASE);
+    // we should also find 3 records for the first app in stage-release, monitoring, a re-eval and the original
+    List<PolicyEvaluation> stageReleaseEvaluations = policyEvaluationDAO.getAllByApplicationIdAndStageId(app1.getId(),
+        Stage.ID_STAGE_RELEASE);
     assertThat(stageReleaseEvaluations, hasSize(3));
 
     // stage: re-evaluation
@@ -259,8 +262,9 @@ public class PolicyEvaluationMigratorTest
     assertAntlrAppComponent(appComponents, Stage.ID_STAGE_RELEASE, stageReleaseReevaluation.getTime());
     assertUnknownAppComponent(appComponents, Stage.ID_STAGE_RELEASE, stageReleaseReevaluation.getTime());
 
-    //second app
-    List<PolicyEvaluation> app2BuildEvaluations = policyEvaluationDAO.getAllByApplicationIdAndStageId(app2.getId(), Stage.ID_RELEASE);
+    // second app
+    List<PolicyEvaluation> app2BuildEvaluations = policyEvaluationDAO.getAllByApplicationIdAndStageId(app2.getId(),
+        Stage.ID_RELEASE);
     assertThat(app2BuildEvaluations, hasSize(1));
     PolicyEvaluation policyEvaluation = app2BuildEvaluations.get(0);
     assertPolicyEvaluation(policyEvaluation, Stage.ID_RELEASE, false, false, app2.getId(),
@@ -304,7 +308,8 @@ public class PolicyEvaluationMigratorTest
 
     policyEvaluationMigrator.migrate();
 
-    List<PolicyEvaluation> appBuildEvaluations = policyEvaluationDAO.getAllByApplicationIdAndStageId(app1.getId(), Stage.ID_BUILD);
+    List<PolicyEvaluation> appBuildEvaluations = policyEvaluationDAO.getAllByApplicationIdAndStageId(app1.getId(),
+        Stage.ID_BUILD);
     assertThat(appBuildEvaluations, hasSize(1));
 
     ApplicationComponentDAO applicationComponentDAO = new ApplicationComponentDAO();

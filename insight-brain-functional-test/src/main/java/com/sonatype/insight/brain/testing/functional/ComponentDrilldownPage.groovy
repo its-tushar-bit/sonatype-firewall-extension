@@ -27,6 +27,7 @@ class ComponentDrilldownPage
     componentViolationTable { applicationId -> $("div[id\$='${applicationId}'] .table") }
     componentViolationRow { applicationId, policyViolationName -> module ComponentViolationRow,
       componentViolationTable(applicationId).find('tr').has("td", text: "${policyViolationName}") }
+    header(required:false) { int i -> $('thead th', i).text() }
   }
 }
 
@@ -37,14 +38,28 @@ class ComponentApplicationRow
   static final int ORG_APP = 1
   static final int RISK_PIE = 2
   static final int RISK_COUNT = 3
+  static final int BUILD = 4
+  static final int STAGE = 5
+  static final int RELEASE = 6
+  static final int OPERATE = 7
 
   static content = {
     cell(required: false) { int i -> $('td', i) }
+    cellIcon(required: false) { int i -> $('td', i).find('i') }
     expando { module ExpandoModule, cell(EXPANDO).find('i') }
     applicationImage { $('.image-thumbnail') }
     orgApp { cell(ORG_APP).text().trim() }
     riskPie { cell(RISK_PIE).text().trim() }
     riskCount { cell(RISK_COUNT).text().toInteger() }
+    build { cell(BUILD).text() }
+  }
+
+  boolean isFail(int cell) {
+    return cellIcon(cell).hasClass('fail')
+  }
+
+  boolean isWarn(int cell) {
+    return cellIcon(cell).hasClass('warn')
   }
 }
 
@@ -55,12 +70,23 @@ class ComponentViolationRow
   static final int POLICY_NAME = 2
   static final int RISK_PIE = 3
   static final int RISK_COUNT = 4
+  static final int BUILD = 5
 
   static content = {
     cell(required: false) { int i -> $('td', i) }
+    cellIcon(required: false) { int i -> $('td', i).find('i') }
     threatLevel { cell(THREAT_LEVEL).text().toInteger() }
     policyName { cell(POLICY_NAME).text().trim() }
     riskPie { cell(RISK_PIE).text().trim() }
     riskCount { cell(RISK_COUNT).text().toInteger() }
+    build { cell(BUILD).text() }
+  }
+
+  boolean isFail(int cell) {
+    return cellIcon(cell).hasClass('fail')
+  }
+
+  boolean isWarn(int cell) {
+    return cellIcon(cell).hasClass('warn')
   }
 }

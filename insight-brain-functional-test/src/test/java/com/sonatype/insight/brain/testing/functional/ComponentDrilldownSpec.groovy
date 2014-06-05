@@ -12,6 +12,7 @@ import com.sonatype.insight.brain.model.policy.Policy
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory
 import com.sonatype.insight.brain.model.policy.PolicyViolation
+import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType
 import spock.lang.Stepwise
 
@@ -38,7 +39,7 @@ class ComponentDrilldownSpec
     PolicyEvaluation policyEvaluation = temporaryEntity.newPolicyEvaluation(app.id, BuildStageType.ID,
         'DashboardSpecFistEvaluation', now - 7)
     policyViolation = temporaryEntity.newPolicyViolation(policyEvaluation, policy, 5,
-        PolicyThreatCategory.LICENSE, "Group1", "Artifact1", "Version1")
+        PolicyThreatCategory.LICENSE, "Group1", "Artifact1", "Version1", "hash", FailActionType.ID)
     temporaryEntity.newNewestPolicyViolation(policyViolation.id, policyEvaluation.applicationId,
         policyEvaluation.stageTypeId)
     applicationComponent = temporaryEntity.newApplicationComponent(app.id, policyEvaluation.stageTypeId,
@@ -68,11 +69,19 @@ class ComponentDrilldownSpec
     when: 'The component data is loaded'
       waitFor { componentApplicationRow(app.id).displayed }
 
-    then: 'Application row displays component application data'
+    then: 'Stages are shown in the appropriate order'
+      header(ComponentApplicationRow.BUILD) == 'BUILD'
+      header(ComponentApplicationRow.STAGE) == 'STAGE'
+      header(ComponentApplicationRow.RELEASE) == 'RELEASE'
+      header(ComponentApplicationRow.OPERATE) == 'OPERATE'
+
+    and: 'Application row displays component application data'
       ComponentApplicationRow applicationRow = componentApplicationRow(app.id)
       applicationRow.orgApp == org.name + " : " + app.name
       applicationRow.riskPie == '100%'
       applicationRow.riskCount == 5
+      applicationRow.build == '7d'
+      applicationRow.isFail(ComponentApplicationRow.BUILD)
   }
 
   def 'Component Drilldown Violation Row'() {
@@ -87,5 +96,7 @@ class ComponentDrilldownSpec
       violationRow.policyName == policy.name
       violationRow.riskPie == "100%"
       violationRow.riskCount == 5
+      violationRow.build == '7d'
+      violationRow.isFail(ComponentViolationRow.BUILD)
   }
 }

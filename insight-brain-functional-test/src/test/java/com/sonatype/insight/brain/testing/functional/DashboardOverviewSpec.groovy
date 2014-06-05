@@ -685,7 +685,37 @@ class DashboardOverviewSpec
       componentMatchUnknownCount.text() == '1 (33%)'
   }
 
-  /**
+  def 'Dashboard Sparkline'() {
+    when: 'Sparkline is loaded'
+      waitFor { sparkline.displayed }
+
+    then: 'it builds a path'
+      def points = sparkline.getValues()
+      points.size() == 8
+      that(points[0], closeTo(0, TOLERANCE))
+      that(points[1], closeTo(0.2, TOLERANCE))
+      that(points[2], closeTo(0.4, TOLERANCE))
+      that(points[3], closeTo(0.2, TOLERANCE))
+      that(points[4], closeTo(1, TOLERANCE))
+      that(points[5], closeTo(0.4, TOLERANCE))
+      that(points[6], closeTo(0.4, TOLERANCE))
+      that(points[7], closeTo(0.8, TOLERANCE))
+
+    and: 'ends in a green line'
+      sparkline.isTrailingGreen()
+
+    when: 'hovering over sparkline'
+      interact {
+        moveToElement(sparkline.previousPath)
+      }
+      waitFor { sparkline.displayed }
+
+    then: 'value is displayed'
+      // moveToElement moves to the middle of the sparkline
+      sparkline.guideText.text() == '1'
+  }
+
+    /**
    * helper method to parse alpha value from an rgb style string
    */
   def parseAlpha(String style) {

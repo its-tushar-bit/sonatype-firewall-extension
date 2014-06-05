@@ -283,6 +283,10 @@ table.table-risk td.low-risk {
   .filter-edit-body .slider {
     width: 192px !important;
   }
+
+  .sparkline {
+    width: 310px !important;
+  }
 }
 
 /* .filter-edit needs a embedded div to prevent the collapse plugin from including the dropdowns in scrollheight */
@@ -664,4 +668,47 @@ table.table-risk td.low-risk {
 .component-violations-table .share-risk-column, .component-violations-table .risk-column {
   width: 194px;
   padding: 8px 12px;
+}
+
+.sparkline {
+  height: 30px;
+  width: 170px;
+  padding: 5px;
+}
+.sparkline .line {
+  fill: none;
+}
+.sparkline .fill.base {
+  fill: #E8E8E8;
+}
+.sparkline .line.base {
+  stroke: #198FFA;
+}
+.sparkline .fill.red {
+  fill: #EDB2AF;
+}
+.sparkline .line.red {
+  stroke: #BC0430;
+  stroke-width: 2px;
+}
+.sparkline .fill.green {
+  fill: #B6E9AB;
+}
+.sparkline .line.green {
+  stroke: #0B9743;
+  stroke-width: 2px;
+}
+.sparkline .guideline {
+  stroke: #444444;
+}
+.sparkline .guide-circle {
+  fill: #198FFA;
+}
+.sparkline .guide-rect {
+  fill: white;
+}
+.sparkline .guide-text {
+  font-weight: bold;
+  fill: black;
+  cursor: default;
 }

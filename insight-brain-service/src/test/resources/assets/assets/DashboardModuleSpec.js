@@ -674,6 +674,72 @@ describe('DashboardModule', function() {
     });
   });
 
+  describe('sparkline', function() {
+    var compile, scope;
+
+    beforeEach(inject(function($compile, $rootScope) {
+      compile = $compile;
+      scope = $rootScope.$new();
+    }));
+
+    it('sparkline should have reasonable defaults', function() {
+      var element = angular.element('<div sparkline></div>');
+      element = compile(element)(scope);
+
+      var svg = element.find('svg');
+      expect(svg).toBeDefined();
+      expect(+svg.attr('width')).toBe(100);
+      expect(+svg.attr('height')).toBe(25);
+    });
+
+    it('sparkline should respect size configuration', function() {
+      var element = angular.element('<div sparkline style="width:100px; height:200px"></div>');
+      element = compile(element)(scope);
+
+      var svg = element.find('svg');
+      expect(svg).toBeDefined();
+      expect(+svg.attr('width')).toBe(100);
+      expect(+svg.attr('height')).toBe(200);
+    });
+
+    it('sparkline should render the line and fill for the base color', function() {
+      var element = angular.element('<div sparkline data="[0,1,2,1,2]"></div>');
+      element = compile(element)(scope);
+
+      // expect each point, plus the 'move to' zero path command, plus each point on the base of the fill
+      var fill = element.find('.fill.base');
+      expect(fill.attr('d').split(',').length).toBe(9);
+
+      // expect each point, plus the 'move to' zero path command
+      var line = element.find('.line.base');
+      expect(line.attr('d').split(',').length).toBe(5);
+    });
+
+    it('sparkline should render the line and fill for the trailing color', function() {
+      var element = angular.element('<div sparkline data="[0,1,2,1,2]"></div>');
+      element = compile(element)(scope);
+
+      // expect each point, plus the 'move to' zero path command, plus each point on the base of the fill
+      var fill = element.find('.fill.green');
+      expect(fill.attr('d').split(',').length).toBe(5);
+
+      // expect each point, plus the 'move to' zero path command
+      var line = element.find('.line.green');
+      expect(line.attr('d').split(',').length).toBe(3);
+    });
+
+    it('sparkline renders trailing colors inverted when inverse is enabled', function() {
+      var element = angular.element('<div sparkline data="[0,1,2,1,2]" inverse-green="true"></div>');
+      element = compile(element)(scope);
+
+      var fill = element.find('.fill.green');
+      expect(fill.length).toBe(0);
+
+      fill = element.find('.fill.red');
+      expect(fill.length).toBe(1);
+    });
+  });
+
   describe('Dashboard component match summary', function() {
     var scope, data = {
       exact: 13,
@@ -728,5 +794,82 @@ describe('DashboardModule', function() {
       $httpBackend.flush();
       expect(scope.$$childHead.error).toBeDefined();
     }));
+  });
+
+  describe('windowEventsFactory', function() {
+    var wEventsFactory,
+      window,
+      scope;
+
+    beforeEach(function() {
+      module(function($provide) {
+        $provide.value('$window', (function() {
+          return {
+            resize: angular.noop
+          };
+        })());
+      });
+    });
+
+    beforeEach(inject(function(windowEventsFactory, $rootScope, $window) {
+      wEventsFactory = windowEventsFactory;
+      scope = $rootScope.$new();
+      window = angular.element($window);
+    }));
+
+    describe('addResizeHandler', function() {
+      it('invokes a callback when an element width resizes', function() {
+        var element = angular.element('<div></div>');
+        element.width(1);
+        element.height(1);
+        var callback = jasmine.createSpy();
+
+        wEventsFactory.addResizeHandler(scope, element, callback);
+        element.width(2);
+        window.resize();
+
+        expect(callback).toHaveBeenCalled();
+      });
+
+      it('invokes a callback when an element height resizes', function() {
+        var element = angular.element('<div></div>');
+        element.width(1);
+        element.height(1);
+        var callback = jasmine.createSpy();
+
+        wEventsFactory.addResizeHandler(scope, element, callback);
+        element.height(2);
+        window.resize();
+
+        expect(callback).toHaveBeenCalled();
+      });
+
+      it('does not callback when element is not resized', function() {
+        var element = angular.element('<div></div>');
+        element.width(1);
+        element.height(1);
+        var callback = jasmine.createSpy();
+
+        wEventsFactory.addResizeHandler(scope, element, callback);
+        window.resize();
+
+        expect(callback).not.toHaveBeenCalled();
+      });
+
+      it('does not callback when scope is disposed', function() {
+        var element = angular.element('<div></div>');
+        element.width(1);
+        element.height(1);
+        var callback = jasmine.createSpy();
+
+        wEventsFactory.addResizeHandler(scope, element, callback);
+        scope.$destroy();
+
+        element.width(2);
+        window.resize();
+
+        expect(callback).not.toHaveBeenCalled();
+      });
+    });
   });
 });

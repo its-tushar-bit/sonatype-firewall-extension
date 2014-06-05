@@ -3,7 +3,7 @@
 * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
 * "Sonatype" is a trademark of Sonatype, Inc.
 */
-/* global angular, clmBuildTimestamp, $, AngularUtils */
+/* global angular, clmBuildTimestamp, $, d3, AngularUtils */
 (function() {
   'use strict';
 
@@ -723,9 +723,215 @@
     };
   });
 
+  dashboardModule.directive('sparkline', ['windowEventsFactory', function(windowEventsFactory) {
+    return {
+      scope:{
+        data: '=',
+        inverseGreen: '='
+      },
+      link: function postLink(scope, element) {
+        function sparkline() {
+          var config = {
+            width : element.width() || 100,
+            height: element.height() || 25
+          };
+          var data = scope.data || [];
+
+          d3.select(element[0]).select('svg').remove();
+
+          var guideHeight = 12, guidePadding = 3, transitionDuration = 50;
+          function getGuidePositions(snapX, snapY, yValue) {
+            // Calculate rectangle width. Each digit takes ~7 pixels with 7 pixels for single digits and 6 pixel pad
+            var digits = yValue === 0 ? 0 : Math.log(yValue)/Math.log(10);
+            var width = Math.floor(digits) * 7 + 7 + 2 * guidePadding;
+            var x = Math.max(Math.min(snapX - width / 2, config.width - width), 0);
+            var y;
+            if (snapY > config.height / 2) {
+              y = Math.max(snapY - guideHeight - guidePadding, 0);
+            } else {
+              y = Math.min(snapY + guidePadding, config.height - guideHeight);
+            }
+            return {
+              width: width,
+              rect: {
+                x: x,
+                y: y
+              },
+              text: {
+                x: x + guidePadding,
+                y: y + guideHeight - guidePadding + 1
+              }
+            };
+          }
+
+          var svg = d3.select(element[0]).append('svg')
+            .attr('width', config.width)
+            .attr('height', config.height)
+            .append('g');
+
+          var yScale = d3.scale.linear().range([config.height, 0]),
+            pastX = d3.scale.linear().range([0, config.width - config.width / data.length]),
+            recentX = d3.scale.linear().range([config.width - config.width / data.length, config.width]);
+
+          pastX.domain([0, data.length-2]);
+          recentX.domain([0, 1]);
+          yScale.domain([0, d3.max(data)]);
+
+          var area = d3.svg.area().x(function(d, index) {
+            return pastX(index);
+          }).y0(config.height).y1(function(d) {
+            return yScale(d);
+          });
+
+          var line = d3.svg.line().x(function(d, index) {
+            return pastX(index);
+          }).y(function(d) {
+            return yScale(d);
+          });
+
+          svg.append('path')
+            .datum(data.slice(0, data.length - 1))
+            .attr('d', area)
+            .attr('class', 'fill base');
+
+          svg.append('path')
+            .datum(data.slice(0, data.length - 1))
+            .attr('d', line)
+            .attr('class', 'line base');
+
+          area = d3.svg.area().x(function(d, index) {
+            return recentX(index);
+          }).y0(config.height).y1(function(d) {
+            return yScale(d);
+          });
+
+          line = d3.svg.line().x(function(d, index) {
+            return recentX(index);
+          }).y(function(d) {
+            return yScale(d);
+          });
+
+          var trailingClass = (data[data.length - 2] - data[data.length - 1] > 0) ^ scope.inverseGreen ? 'red' : 'green';
+
+          svg.append('path')
+            .datum(data.slice(data.length - 2))
+            .attr('d', area)
+            .attr('class', 'fill ' + trailingClass);
+
+          svg.append('path')
+            .datum(data.slice(data.length - 2))
+            .attr('d', line)
+            .attr('class', 'line ' + trailingClass);
+
+          var guideLine = svg.append('line').attr({
+            opacity: 0,
+            x1: 0,
+            y1: 0,
+            x2: 0,
+            y2: config.height
+          }).attr('class', 'guideline');
+
+          var circlePoint = svg.append('circle').attr({
+            opacity: 0,
+            r: 3
+          }).attr('class', 'guide-circle');
+
+          var guideRectangle = svg.append('rect').attr({
+            opacity: 0,
+            rx: 4,
+            ry: 4,
+            height: guideHeight
+          }).attr('class', 'guide-rect');
+
+          var guideText = svg.append('text').attr({
+            opacity: 0
+          }).attr('class', 'guide-text');
+
+          var hoverElements = [ guideLine, circlePoint, guideRectangle, guideText ];
+
+          var guideSpace = svg.append('rect').attr({
+            w: 0,
+            h: 0,
+            width: config.width,
+            height: config.height,
+            fill: 'transparent'
+          });
+
+          guideSpace.on('mouseover', function() {
+            angular.forEach(hoverElements, function(element) {
+              element.transition(transitionDuration).attr('opacity', 1);
+            });
+          }).on('mousemove', function() {
+            var position = d3.mouse(this),
+              x = position[0],
+              dataX = Math.round(pastX.invert(x)),
+              snapX = pastX(dataX),
+              yValue = data[dataX],
+              snapY = yScale(yValue);
+
+            circlePoint.attr('cx', snapX).attr('cy', snapY);
+
+            var guidePositions = getGuidePositions(snapX, snapY, yValue);
+            guideRectangle.attr({
+              width: guidePositions.width,
+              x: guidePositions.rect.x,
+              y: guidePositions.rect.y
+            });
+            guideText.attr({
+              x: guidePositions.text.x,
+              y: guidePositions.text.y
+            }).text(yValue);
+
+            d3.select(element[0]).select('.guideline').attr('transform', function() {
+              return 'translate(' + snapX + ',0)';
+            });
+          });
+
+          d3.select(element[0]).on('mouseout', function() {
+            var position = d3.mouse(this),
+              x = position[0],
+              y = position[1];
+            if (x < 0 || x > config.width || y < 0 || y > config.height) {
+              angular.forEach(hoverElements, function(element) {
+                element.transition(transitionDuration).attr('opacity', 0);
+              });
+            }
+          });
+        }
+
+        windowEventsFactory.addResizeHandler(scope, element, sparkline);
+        sparkline();
+      }
+    };
+  }]);
+  
   dashboardModule.filter('removeDashes', function() {
     return function(input) {
       return input.replace('-', '');
     };
   });
+
+  dashboardModule.factory('windowEventsFactory', ['$window', function($window) {
+    return {
+      addResizeHandler: function(scope, element, callBack) {
+        var width = element.width();
+        var height = element.height();
+
+        function callBackWrapper() {
+          var newWidth = element.width();
+          var newHeight = element.height();
+          if (newWidth !== width || newHeight !== height) {
+            width = newWidth;
+            height = newHeight;
+            callBack();
+          }
+        }
+
+        angular.element($window).on('resize', callBackWrapper);
+        scope.$on('$destroy', function() {
+          angular.element($window).off('resize', callBackWrapper);
+        });
+      }
+    };
+  }]);
 }());

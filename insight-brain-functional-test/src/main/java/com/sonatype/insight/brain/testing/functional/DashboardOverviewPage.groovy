@@ -79,12 +79,44 @@ class DashboardOverviewPage
     componentMatchExactCount(required: false) { $('#component-match-results .percentage-graph-legend-count')[0] }
     componentMatchSimilarCount(required: false) { $('#component-match-results .percentage-graph-legend-count')[1] }
     componentMatchUnknownCount(required: false) { $('#component-match-results .percentage-graph-legend-count')[2] }
+
+    sparkline { module Sparkline, $('#sparkline') }
   }
 
   void applyFilter() {
     applyButton.click()
     // NOTE: Wait for filter to be persisted before the next test tries to reset it
     waitFor { !applyButton.displayed }
+  }
+}
+
+class Sparkline
+    extends Module
+{
+  static content = {
+    previousPath { $('.line.base') }
+    presentPath { $('.line:not(.base)') }
+    guideText { $('.guide-text') }
+  }
+
+  ArrayList<Number> getValues() {
+    def path = previousPath.attr('d');
+    def points = path.split('L').collect {
+      it.split(',')[1].toDouble()
+    }
+    path = presentPath.attr('d')
+    def presentPoint = path.split('L').collect {
+      it.split(',')[1].toDouble()
+    }.drop(1)
+    points = points.plus(presentPoint)
+    def maxValue = points.max()
+    return points.collect {
+      1.0 - it / maxValue
+    }
+  }
+
+  boolean isTrailingGreen() {
+    return presentPath.hasClass('green')
   }
 }
 

@@ -11,10 +11,6 @@ import javax.servlet.http.HttpServletRequest;
 import com.sonatype.insight.brain.model.security.UserPrincipal;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 
-import org.apache.shiro.subject.Subject;
-import org.apache.shiro.util.ThreadContext;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 
 import static org.hamcrest.Matchers.is;
@@ -27,21 +23,8 @@ import static org.mockito.Mockito.when;
 public class CurrentUserTest
     extends AbstractComponentTest
 {
-  private Subject subject;
-
   @Inject
   private CurrentUser currentUser;
-
-  @Before
-  public void init() {
-    subject = mock(Subject.class);
-    ThreadContext.bind(subject);
-  }
-
-  @After
-  public void exit() {
-    ThreadContext.unbindSubject();
-  }
 
   @Test
   public void testGetIP() {
@@ -95,6 +78,7 @@ public class CurrentUserTest
 
   @Test
   public void testGetUsername() {
+    when(subject.getPrincipal()).thenReturn(null);
     assertThat(currentUser.getUsername(), is("anonymous"));
     when(subject.getPrincipal()).thenReturn(new UserPrincipal("admin", "Administrator", true));
     assertThat(currentUser.getUsername(), is("admin"));

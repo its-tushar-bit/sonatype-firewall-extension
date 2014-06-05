@@ -23,7 +23,6 @@ import org.apache.shiro.guice.ShiroModule;
 import org.apache.shiro.mgt.SecurityManager;
 import org.apache.shiro.subject.Subject;
 import org.apache.shiro.util.ThreadContext;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 
@@ -44,8 +43,6 @@ public class AbstractServiceAuthzTest
 
   @Inject
   private SecurityManager securityManager;
-
-  private Subject subject;
 
   @Override
   public void configure(Binder binder) {
@@ -68,12 +65,6 @@ public class AbstractServiceAuthzTest
     ThreadContext.bind(securityManager);
     subject = (new Subject.Builder()).buildSubject();
     ThreadContext.bind(subject);
-  }
-
-  @After
-  public void tearDownSecurity() {
-    ThreadContext.unbindSecurityManager();
-    ThreadContext.unbindSubject();
   }
 
   protected void login() {

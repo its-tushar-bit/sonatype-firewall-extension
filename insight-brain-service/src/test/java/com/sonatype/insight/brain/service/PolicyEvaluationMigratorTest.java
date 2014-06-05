@@ -128,97 +128,93 @@ public class PolicyEvaluationMigratorTest
 
     // we should find 5 records for the first app in the build stage, one of them for monitoring, 2 originals and 2 for
     // a re-evaluation(different scans)
-    List<PolicyEvaluation> appBuildEvaluations = policyEvaluationDAO.getAllByApplicationIdAndStageId(app1.getId(),
+    List<PolicyEvaluation> app1BuildEvals = policyEvaluationDAO.getAllByApplicationIdAndStageId(app1.getId(),
         Stage.ID_BUILD);
-    assertThat(appBuildEvaluations, hasSize(5));
-    for (PolicyEvaluation policyEvaluation : appBuildEvaluations) {
+    assertThat(app1BuildEvals, hasSize(5));
+    for (PolicyEvaluation policyEvaluation : app1BuildEvals) {
       System.out.println(policyEvaluation);
     }
 
     // build: re-eval of second scan
-    PolicyEvaluation secondScanReeval = appBuildEvaluations.get(0);
-    assertPolicyEvaluation(secondScanReeval, Stage.ID_BUILD, true, false, app1.getId(), "buildScan2", 1395857140660L,
-        false);
-    List<PolicyViolation> violations = policyViolationDAO.getByEvaluationId(secondScanReeval.getId());
+    PolicyEvaluation build2Reeval = app1BuildEvals.get(0);
+    assertPolicyEvaluation(build2Reeval, Stage.ID_BUILD, true, false, app1.getId(), "buildScan2", 1395857140660L, false);
+    List<PolicyViolation> violations = policyViolationDAO.getByEvaluationId(build2Reeval.getId());
     assertThat(violations, hasSize(1));
-    assertAntlrPolicyViolation(secondScanReeval.getId(), violations.get(0));
+    assertAntlrPolicyViolation(build2Reeval.getId(), violations.get(0));
     assertPolicyViolationActions(violations.get(0), Action.ID_FAIL, "me@example.com", "you@example.com");
 
     // build: subset of results from other "original" scan, just newer
-    PolicyEvaluation secondScan = appBuildEvaluations.get(1);
-    assertPolicyEvaluation(secondScan, Stage.ID_BUILD, false, false, app1.getId(), "buildScan2", 1395857130659L, false);
-    violations = policyViolationDAO.getByEvaluationId(secondScan.getId());
+    PolicyEvaluation build2Eval = app1BuildEvals.get(1);
+    assertPolicyEvaluation(build2Eval, Stage.ID_BUILD, false, false, app1.getId(), "buildScan2", 1395857130659L, false);
+    violations = policyViolationDAO.getByEvaluationId(build2Eval.getId());
     assertThat(violations, hasSize(1));
-    assertAntlrPolicyViolation(secondScan.getId(), violations.get(0));
+    assertAntlrPolicyViolation(build2Eval.getId(), violations.get(0));
     assertPolicyViolationActions(violations.get(0), Action.ID_WARN, "him@example.com");
 
     // build: next, only one of the two re-evaluations in the log is recorded
-    PolicyEvaluation buildReEvaluation = appBuildEvaluations.get(2);
-    assertPolicyEvaluation(buildReEvaluation, Stage.ID_BUILD, true, false, app1.getId(), "buildScan", 1395857120658L,
-        false);
-    violations = policyViolationDAO.getByEvaluationId(buildReEvaluation.getId());
+    PolicyEvaluation buildReeval = app1BuildEvals.get(2);
+    assertPolicyEvaluation(buildReeval, Stage.ID_BUILD, true, false, app1.getId(), "buildScan", 1395857120658L, false);
+    violations = policyViolationDAO.getByEvaluationId(buildReeval.getId());
     assertThat(violations, hasSize(1));
-    assertAntlrPolicyViolation(buildReEvaluation.getId(), violations.get(0));
+    assertAntlrPolicyViolation(buildReeval.getId(), violations.get(0));
     assertPolicyViolationActions(violations.get(0), Action.ID_WARN);
 
     // build: monitoring
-    PolicyEvaluation buildMonitoring = appBuildEvaluations.get(3);
-    assertPolicyEvaluation(buildMonitoring, Stage.ID_BUILD, true, true, app1.getId(), "buildScan", 1395857105000L,
+    PolicyEvaluation buildMonitoringEval = app1BuildEvals.get(3);
+    assertPolicyEvaluation(buildMonitoringEval, Stage.ID_BUILD, true, true, app1.getId(), "buildScan", 1395857105000L,
         false);
-    violations = policyViolationDAO.getByEvaluationId(buildMonitoring.getId());
+    violations = policyViolationDAO.getByEvaluationId(buildMonitoringEval.getId());
     assertThat(violations, hasSize(2));
-    assertAntlrPolicyViolation(buildMonitoring.getId(), violations.get(0));
+    assertAntlrPolicyViolation(buildMonitoringEval.getId(), violations.get(0));
     assertPolicyViolationActions(violations.get(0), Action.ID_FAIL, "her@example.com");
-    assertUnknownPolicyViolation(buildMonitoring.getId(), violations.get(1));
+    assertUnknownPolicyViolation(buildMonitoringEval.getId(), violations.get(1));
     assertPolicyViolationActions(violations.get(1), null /* actionTypeId */);
 
     // build: last is the original build evaluation
-    PolicyEvaluation buildEvaluation = appBuildEvaluations.get(4);
-    assertPolicyEvaluation(buildEvaluation, Stage.ID_BUILD, false, false, app1.getId(), "buildScan", 1395857100656L,
-        false);
-    violations = policyViolationDAO.getByEvaluationId(buildEvaluation.getId());
+    PolicyEvaluation buildEval = app1BuildEvals.get(4);
+    assertPolicyEvaluation(buildEval, Stage.ID_BUILD, false, false, app1.getId(), "buildScan", 1395857100656L, false);
+    violations = policyViolationDAO.getByEvaluationId(buildEval.getId());
     assertThat(violations, hasSize(2));
-    assertAntlrPolicyViolation(buildEvaluation.getId(), violations.get(0));
+    assertAntlrPolicyViolation(buildEval.getId(), violations.get(0));
     assertPolicyViolationActions(violations.get(0), Action.ID_FAIL, "her@example.com");
-    assertUnknownPolicyViolation(buildEvaluation.getId(), violations.get(1));
+    assertUnknownPolicyViolation(buildEval.getId(), violations.get(1));
     assertPolicyViolationActions(violations.get(1), null /* actionTypeId */);
 
     // we should also find 3 records for the first app in stage-release, monitoring, a re-eval and the original
-    List<PolicyEvaluation> stageReleaseEvaluations = policyEvaluationDAO.getAllByApplicationIdAndStageId(app1.getId(),
+    List<PolicyEvaluation> app1StageReleaseEvals = policyEvaluationDAO.getAllByApplicationIdAndStageId(app1.getId(),
         Stage.ID_STAGE_RELEASE);
-    assertThat(stageReleaseEvaluations, hasSize(3));
+    assertThat(app1StageReleaseEvals, hasSize(3));
 
     // stage: re-evaluation
-    PolicyEvaluation stageReleaseReevaluation = stageReleaseEvaluations.get(0);
-    assertPolicyEvaluation(stageReleaseReevaluation, Stage.ID_STAGE_RELEASE, true, false, app1.getId(),
-        "stageReleaseScan", 1395854420876L, false);
-    List<PolicyViolation> stageReleaseReevalViolations = policyViolationDAO.getByEvaluationId(stageReleaseReevaluation
+    PolicyEvaluation stageReleaseReeval = app1StageReleaseEvals.get(0);
+    assertPolicyEvaluation(stageReleaseReeval, Stage.ID_STAGE_RELEASE, true, false, app1.getId(), "stageReleaseScan",
+        1395854420876L, false);
+    List<PolicyViolation> stageReleaseReevalViolations = policyViolationDAO.getByEvaluationId(stageReleaseReeval
         .getId());
     assertThat(stageReleaseReevalViolations, hasSize(2));
-    assertCarrotPolicyViolation(stageReleaseReevaluation.getId(), stageReleaseReevalViolations.get(0));
-    assertUnknownPolicyViolation(stageReleaseReevaluation.getId(), stageReleaseReevalViolations.get(1));
+    assertCarrotPolicyViolation(stageReleaseReeval.getId(), stageReleaseReevalViolations.get(0));
+    assertUnknownPolicyViolation(stageReleaseReeval.getId(), stageReleaseReevalViolations.get(1));
     assertPolicyViolationActions(stageReleaseReevalViolations.get(0), Action.ID_WARN);
     assertPolicyViolationActions(stageReleaseReevalViolations.get(1), null /* actionTypeId */);
 
     // stage: monitoring evaluation
-    PolicyEvaluation stageReleaseMonitoringEvaluation = stageReleaseEvaluations.get(1);
-    assertPolicyEvaluation(stageReleaseMonitoringEvaluation, Stage.ID_STAGE_RELEASE, true, true, app1.getId(),
+    PolicyEvaluation stageReleaseMonitoringEval = app1StageReleaseEvals.get(1);
+    assertPolicyEvaluation(stageReleaseMonitoringEval, Stage.ID_STAGE_RELEASE, true, true, app1.getId(),
         "stageReleaseScan", 1395854414000L, false);
     List<PolicyViolation> stageReleaseMonitoringViolations = policyViolationDAO
-        .getByEvaluationId(stageReleaseMonitoringEvaluation.getId());
+        .getByEvaluationId(stageReleaseMonitoringEval.getId());
     assertThat(stageReleaseMonitoringViolations, hasSize(1));
-    assertAntlrPolicyViolation(stageReleaseMonitoringEvaluation.getId(), stageReleaseMonitoringViolations.get(0));
+    assertAntlrPolicyViolation(stageReleaseMonitoringEval.getId(), stageReleaseMonitoringViolations.get(0));
     assertPolicyViolationActions(stageReleaseMonitoringViolations.get(0), Action.ID_WARN);
 
     // stage: original evaluation
-    PolicyEvaluation originalStageReleaseEvaluation = stageReleaseEvaluations.get(2);
-    assertPolicyEvaluation(originalStageReleaseEvaluation, Stage.ID_STAGE_RELEASE, false, false, app1.getId(),
-        "stageReleaseScan", 1395854410874L, false);
-    List<PolicyViolation> stageReleaseViolations = policyViolationDAO.getByEvaluationId(originalStageReleaseEvaluation
-        .getId());
+    PolicyEvaluation stageReleaseEval = app1StageReleaseEvals.get(2);
+    assertPolicyEvaluation(stageReleaseEval, Stage.ID_STAGE_RELEASE, false, false, app1.getId(), "stageReleaseScan",
+        1395854410874L, false);
+    List<PolicyViolation> stageReleaseViolations = policyViolationDAO.getByEvaluationId(stageReleaseEval.getId());
     assertThat(stageReleaseViolations, hasSize(2));
-    assertCarrotPolicyViolation(originalStageReleaseEvaluation.getId(), stageReleaseViolations.get(0));
-    assertUnknownPolicyViolation(originalStageReleaseEvaluation.getId(), stageReleaseViolations.get(1));
+    assertCarrotPolicyViolation(stageReleaseEval.getId(), stageReleaseViolations.get(0));
+    assertUnknownPolicyViolation(stageReleaseEval.getId(), stageReleaseViolations.get(1));
     assertPolicyViolationActions(stageReleaseViolations.get(0), Action.ID_WARN);
     assertPolicyViolationActions(stageReleaseViolations.get(1), null /* actionTypeId */);
 
@@ -233,7 +229,7 @@ public class PolicyEvaluationMigratorTest
     List<PolicyViolation> newestPolicyViolations = policyViolationDAO.getNewestByApplicationIdAndStageTypeId(
         app1.getId(), Stage.ID_BUILD);
     assertThat(newestPolicyViolations, hasSize(1));
-    assertAntlrPolicyViolation(buildEvaluation.getId(), newestPolicyViolations.get(0));
+    assertAntlrPolicyViolation(buildEval.getId(), newestPolicyViolations.get(0));
     NewestPolicyViolationDAO newestPolicyViolationDAO = new NewestPolicyViolationDAO();
     NewestPolicyViolation newestPolicyViolation = newestPolicyViolationDAO.getById(newestPolicyViolations.get(0)
         .getId());
@@ -241,10 +237,10 @@ public class PolicyEvaluationMigratorTest
     newestPolicyViolations = policyViolationDAO.getNewestByApplicationIdAndStageTypeId(app1.getId(),
         Stage.ID_STAGE_RELEASE);
     assertThat(newestPolicyViolations, hasSize(2));
-    assertCarrotPolicyViolation(stageReleaseReevaluation.getId(), newestPolicyViolations.get(0));
+    assertCarrotPolicyViolation(stageReleaseReeval.getId(), newestPolicyViolations.get(0));
     newestPolicyViolation = newestPolicyViolationDAO.getById(newestPolicyViolations.get(0).getId());
     assertThat(newestPolicyViolation.getStageTypeId(), is(Stage.ID_STAGE_RELEASE));
-    assertUnknownPolicyViolation(stageReleaseReevaluation.getId(), newestPolicyViolations.get(1));
+    assertUnknownPolicyViolation(stageReleaseReeval.getId(), newestPolicyViolations.get(1));
     newestPolicyViolation = newestPolicyViolationDAO.getById(newestPolicyViolations.get(1).getId());
     assertThat(newestPolicyViolation.getStageTypeId(), is(Stage.ID_STAGE_RELEASE));
 
@@ -253,26 +249,26 @@ public class PolicyEvaluationMigratorTest
     List<ApplicationComponent> appComponents = applicationComponentDAO.getByApplicationIdAndStageTypeId(app1.getId(),
         Stage.ID_BUILD);
     assertThat(appComponents, hasSize(3));
-    assertCarrotAppComponent(appComponents, Stage.ID_BUILD, secondScanReeval.getTime());
-    assertAntlrAppComponent(appComponents, Stage.ID_BUILD, secondScanReeval.getTime());
-    assertUnknownAppComponent(appComponents, Stage.ID_BUILD, secondScanReeval.getTime());
+    assertCarrotAppComponent(appComponents, Stage.ID_BUILD, build2Reeval.getTime());
+    assertAntlrAppComponent(appComponents, Stage.ID_BUILD, build2Reeval.getTime());
+    assertUnknownAppComponent(appComponents, Stage.ID_BUILD, build2Reeval.getTime());
     appComponents = applicationComponentDAO.getByApplicationIdAndStageTypeId(app1.getId(), Stage.ID_STAGE_RELEASE);
     assertThat(appComponents, hasSize(4));
-    assertCarrotAppComponent(appComponents, Stage.ID_STAGE_RELEASE, stageReleaseReevaluation.getTime());
-    assertAntlrAppComponent(appComponents, Stage.ID_STAGE_RELEASE, stageReleaseReevaluation.getTime());
-    assertUnknownAppComponent(appComponents, Stage.ID_STAGE_RELEASE, stageReleaseReevaluation.getTime());
+    assertCarrotAppComponent(appComponents, Stage.ID_STAGE_RELEASE, stageReleaseReeval.getTime());
+    assertAntlrAppComponent(appComponents, Stage.ID_STAGE_RELEASE, stageReleaseReeval.getTime());
+    assertUnknownAppComponent(appComponents, Stage.ID_STAGE_RELEASE, stageReleaseReeval.getTime());
 
     // second app
-    List<PolicyEvaluation> app2BuildEvaluations = policyEvaluationDAO.getAllByApplicationIdAndStageId(app2.getId(),
+    List<PolicyEvaluation> app2ReleaseEvals = policyEvaluationDAO.getAllByApplicationIdAndStageId(app2.getId(),
         Stage.ID_RELEASE);
-    assertThat(app2BuildEvaluations, hasSize(1));
-    PolicyEvaluation policyEvaluation = app2BuildEvaluations.get(0);
-    assertPolicyEvaluation(policyEvaluation, Stage.ID_RELEASE, false, false, app2.getId(),
+    assertThat(app2ReleaseEvals, hasSize(1));
+    PolicyEvaluation app2ReleaseEval = app2ReleaseEvals.get(0);
+    assertPolicyEvaluation(app2ReleaseEval, Stage.ID_RELEASE, false, false, app2.getId(),
         "86239d1f600444968309a763c71955e7", 1395857108659l, false);
-    List<PolicyViolation> policyViolations = policyViolationDAO.getByEvaluationId(policyEvaluation.getId());
+    List<PolicyViolation> policyViolations = policyViolationDAO.getByEvaluationId(app2ReleaseEval.getId());
     assertThat(policyViolations, hasSize(2));
-    assertCarrotPolicyViolation(policyEvaluation.getId(), policyViolations.get(0));
-    assertUnknownPolicyViolation(policyEvaluation.getId(), policyViolations.get(1));
+    assertCarrotPolicyViolation(app2ReleaseEval.getId(), policyViolations.get(0));
+    assertUnknownPolicyViolation(app2ReleaseEval.getId(), policyViolations.get(1));
 
     emptyStages = new ArrayList<>(StageTypes.getAll());
     emptyStages.remove(StageTypes.RELEASE);
@@ -283,8 +279,8 @@ public class PolicyEvaluationMigratorTest
     // "newest" policy violations for app2
     newestPolicyViolations = policyViolationDAO.getNewestByApplicationIdAndStageTypeId(app2.getId(), Stage.ID_RELEASE);
     assertThat(newestPolicyViolations, hasSize(2));
-    assertCarrotPolicyViolation(policyEvaluation.getId(), newestPolicyViolations.get(0));
-    assertUnknownPolicyViolation(policyEvaluation.getId(), newestPolicyViolations.get(1));
+    assertCarrotPolicyViolation(app2ReleaseEval.getId(), newestPolicyViolations.get(0));
+    assertUnknownPolicyViolation(app2ReleaseEval.getId(), newestPolicyViolations.get(1));
     newestPolicyViolation = newestPolicyViolationDAO.getById(newestPolicyViolations.get(0).getId());
     assertThat(newestPolicyViolation.getStageTypeId(), is(Stage.ID_RELEASE));
     newestPolicyViolation = newestPolicyViolationDAO.getById(newestPolicyViolations.get(1).getId());
@@ -293,8 +289,8 @@ public class PolicyEvaluationMigratorTest
     // application components for app2
     appComponents = applicationComponentDAO.getByApplicationIdAndStageTypeId(app2.getId(), Stage.ID_RELEASE);
     assertThat(appComponents, hasSize(2));
-    assertCarrotAppComponent(appComponents, Stage.ID_RELEASE, policyEvaluation.getTime());
-    assertUnknownAppComponent(appComponents, Stage.ID_RELEASE, policyEvaluation.getTime());
+    assertCarrotAppComponent(appComponents, Stage.ID_RELEASE, app2ReleaseEval.getTime());
+    assertUnknownAppComponent(appComponents, Stage.ID_RELEASE, app2ReleaseEval.getTime());
 
     // application without policy evaluations
     for (StageType stageType : StageTypes.getAll()) {

@@ -831,7 +831,8 @@
     return {
       restrict: 'A',
       scope: {
-        data: '=data'
+        data: '=data',
+        inverseGreen: '=inverseGreen'
       },
       replace: true,
       link: function(scope, element) {
@@ -873,7 +874,9 @@
             })
             .attr('width', x.rangeBand())
             .attr('class', function(d) {
-              return (d > 0) ? 'bar positive' : 'bar negative';
+              return (d > 0) ?
+                (scope.inverseGreen ? 'bar negative' : 'bar positive')
+                : (scope.inverseGreen ? 'bar positive' : 'bar negative');
             })
             // tooltip to highlight actual figures involved
             .append('title').text(function(d) {

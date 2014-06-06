@@ -266,17 +266,26 @@
           <td>
             <div class="label label-default small-dashboard-label-wrapper">{{category.counts}}</div>
           </td>
-          <td>{{category.delta}}</td>
           <td>
-            <div value-bars data="category.barChartData" class="chart pull-right"></div>
+            <div delta data="category.delta" inverse-green="category.inverseGreen"></div>
           </td>
           <td>
-            <div sparkline class="chart sparkline pull-right" data="category.sparklineData"
+            <div value-bars data="category.barChartData" class="chart"></div>
+          </td>
+          <td>
+            <div sparkline class="chart sparkline" data="category.sparklineData"
                  inverse-green="category.inverseGreen"></div>
           </td>
         </tr>
         </tbody>
       </table>
+    </div>
+  </div>
+</script>
+<script type="text/ng-template" id="policy-summary-delta">
+  <div ng-class="{'delta-positive': isPositive(), 'delta-negative': isNegative() }">
+    <div class="sonatype-icons" ng-class="{'up': data > 0, 'down': data < 0}" style="padding-left:5px;">
+      {{data | abs}}
     </div>
   </div>
 </script>
@@ -436,7 +445,7 @@
       <div class="row" dashboard-view-summary filters="filters"></div>
       <div class='row' dashboard-component-match-results filters="filters"></div>
     </div>
-    <div dashboard-policy-summary></div>
+    <div dashboard-policy-summary filters="filters"></div>
   </div>
   <div load-error='error' reload='doLoad()'></div>
   <div class='row dashboard-tables' ng-hide='error'>

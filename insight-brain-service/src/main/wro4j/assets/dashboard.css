@@ -285,7 +285,7 @@ table.table-risk td.low-risk {
   }
 
   .chart {
-    width: 310px !important;
+    width: 290px !important;
   }
 }
 
@@ -484,9 +484,11 @@ table.table-risk td.low-risk {
 }
 
 .small-dashboard-label-wrapper {
-  padding: 3px 0px 3px 0px;
-  width: 80%;
+  padding: 0;
+  width: 100%;
   text-align: center;
+  font-size: 1.2em;
+  line-height: 30px;
 }
 
 .dashboard-label {
@@ -736,6 +738,7 @@ table.table-risk td.low-risk {
   display: inline-block;
 }
 
+/* BEGIN styling for policy summary elements */
 .sparkline .line {
   fill: none;
 }
@@ -773,10 +776,9 @@ table.table-risk td.low-risk {
   fill: black;
   cursor: default;
 }
-/* styling for bar charts */
 .chart {
   height: 30px;
-  width: 170px;
+  width: 150px;
 }
 .bar.positive {
   fill: #0B9743;
@@ -784,13 +786,32 @@ table.table-risk td.low-risk {
 .bar.negative {
   fill: #BC0430;
 }
+.delta-negative .down:before, .delta-negative .up:before {
+  color: #BC0430;
+  font-size: 1.3em;
+}
+.delta-positive .down:before, .delta-positive .up:before {
+  color: #0B9743;
+  font-size: 1.3em;
+}
 
+.table.policy-summary-table {
+  max-width: 100%;
+}
 /* reduce padding on summary table cells */
 .table.policy-summary-table td {
   padding: 3px 0 3px 0;
   line-height: 30px;
+  font-size: 1.3em;
+  font-weight: bold;
+  min-width: 70px;
+}
+.table.policy-summary-table td:nth-child(2), .table.policy-summary-table td:nth-child(3),
+.table.policy-summary-table th {
+  text-align: center;
 }
 .table.policy-summary-table th {
   padding: 3px 0 3px 0;
-  text-align: center;
 }
+/* END styling for policy summary elements */
+

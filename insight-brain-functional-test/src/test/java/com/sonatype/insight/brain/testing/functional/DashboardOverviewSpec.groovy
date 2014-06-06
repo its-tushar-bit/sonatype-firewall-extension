@@ -716,8 +716,8 @@ class DashboardOverviewSpec
       that(points[6], closeTo(0, TOLERANCE))
       that(points[7], closeTo(0, TOLERANCE))
       that(points[8], closeTo(0, TOLERANCE))
-      that(points[9], closeTo(0.25, TOLERANCE))
-      that(points[10], closeTo(0.75, TOLERANCE))
+      that(points[9], closeTo(0.3, TOLERANCE))
+      that(points[10], closeTo(0.7, TOLERANCE))
       that(points[11], closeTo(1.0, TOLERANCE))
 
     and: 'ends in a red line'

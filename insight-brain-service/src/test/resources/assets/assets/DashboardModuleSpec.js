@@ -899,13 +899,13 @@ describe('DashboardModule', function() {
       $httpBackend.expectGET(url).respond(policySummaryData);
       $compile(angular.element('<div dashboard-policy-summary filters="filters"></div>'))(scope);
       $httpBackend.flush();
-      assertPolicySummaryBlock('New', 12, 11, policySummaryData.newCounts,
+      assertPolicySummaryBlock('New', 12, 77, policySummaryData.newCounts,
         [1, 3, 6, 10, 15, 21, 28, 36, 45, 55, 66, 78], true,
         scope.$$childHead.policySummaryData[0]);
-      assertPolicySummaryBlock('Fixed', 12, 11, policySummaryData.fixedCounts,
+      assertPolicySummaryBlock('Fixed', 12, 77, policySummaryData.fixedCounts,
         [1, 3, 6, 10, 15, 21, 28, 36, 45, 55, 66, 78], false,
         scope.$$childHead.policySummaryData[1]);
-      assertPolicySummaryBlock('Unresolved', 12, 11, policySummaryData.unresolvedCounts,
+      assertPolicySummaryBlock('Unresolved', 12, 77, policySummaryData.unresolvedCounts,
         [1, 3, 6, 10, 15, 21, 28, 36, 45, 55, 66, 78], true,
         scope.$$childHead.policySummaryData[2]);
 
@@ -1052,5 +1052,51 @@ describe('DashboardModule', function() {
         expect(modal.open).toHaveBeenCalledWith({templateUrl: 'bar', windowClass: 'test-class'});
       });
     });
+  });
+
+  describe('Value delta is styled properly', function(){
+    var element;
+    beforeEach(inject(function($rootScope, $httpBackend) {
+      scope = $rootScope.$new();
+      $httpBackend.expectGET('policy-summary-delta').respond('<div></div>');
+
+    }));
+
+    function compileAndAssert($compile, $httpBackend, isPositive, isNegative) {
+      element = $compile(angular.element('<div delta data="data" inverse-green="inverseGreen"></div>'))(scope);
+      $httpBackend.flush();
+      expect(scope.$$childHead.isPositive()).toBe(isPositive);
+      expect(scope.$$childHead.isNegative()).toBe(isNegative);
+    }
+
+    it('correctly interprets positive values with inverseGreen === false', inject(function($compile, $httpBackend){
+      scope.data = 5;
+      scope.inverseGreen = false;
+      compileAndAssert($compile, $httpBackend, true, false);
+    }));
+
+    it('correctly interprets positive values with inverseGreen === true', inject(function($compile, $httpBackend){
+      scope.data = 5;
+      scope.inverseGreen = true;
+      compileAndAssert($compile, $httpBackend, false, true);
+    }));
+
+    it('correctly interprets negative values with inverseGreen === false', inject(function($compile, $httpBackend){
+      scope.data = -5;
+      scope.inverseGreen = false;
+      compileAndAssert($compile, $httpBackend, false, true);
+    }));
+
+    it('correctly interprets negative values with inverseGreen === true', inject(function($compile, $httpBackend){
+      scope.data = -5;
+      scope.inverseGreen = true;
+      compileAndAssert($compile, $httpBackend, true, false);
+    }));
+
+    it('correctly interprets zero values', inject(function($compile, $httpBackend){
+      scope.data = 0;
+      scope.inverseGreen = true; //shouldn't matter what's set here if data === 0
+      compileAndAssert($compile, $httpBackend, false, false);
+    }));
   });
 });

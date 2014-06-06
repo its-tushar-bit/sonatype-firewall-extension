@@ -757,7 +757,9 @@
         '$scope', 'CLMLocations', '$http', function($scope, CLMLocations, $http) {
 
           function delta(counts) {
-            return counts[counts.length-1] - counts[0];
+            return counts.reduce(function(a, b) {
+              return a + b;
+            }) - counts[0];
           }
 
           function calculateRunningTotals(counts) {
@@ -1074,10 +1076,36 @@
       }
     };
   }]);
+
+  dashboardModule.directive('delta', function() {
+    return {
+      templateUrl: 'policy-summary-delta',
+      scope: {
+        data: '=',
+        inverseGreen: '='
+      },
+      controller: [
+        '$scope', function($scope) {
+          $scope.isPositive = function() {
+            return $scope.data > 0 && $scope.inverseGreen === false || $scope.data < 0 && $scope.inverseGreen !== false;
+          };
+          $scope.isNegative = function() {
+            return $scope.data < 0 && $scope.inverseGreen === false || $scope.data > 0 && $scope.inverseGreen !== false;
+          };
+        }
+      ]
+    };
+  });
   
   dashboardModule.filter('removeDashes', function() {
     return function(input) {
       return input.replace('-', '');
+    };
+  });
+
+  dashboardModule.filter('abs', function() {
+    return function(input) {
+      return Math.abs(input);
     };
   });
 

@@ -166,38 +166,42 @@ public class TemporaryEntity
 
   @Override
   protected void after() {
+    /*
+     * For our purposes, it's irrelevant whether the entity has been manually deleted or updated in the meantime, we
+     * just want it gone. Hence the defensive coding below to avoid optimistic lock errors and other JPA fun.
+     */
     for (DashboardFilter dashboardFilter : dashboardFilters) {
-      if (dashboardFilterDAO.getByUsername(dashboardFilter.getUsername()) != null) {
+      if ((dashboardFilter = dashboardFilterDAO.getByUsername(dashboardFilter.getUsername())) != null) {
         dashboardFilterDAO.delete(dashboardFilter);
       }
     }
     for (Application app : apps) {
-      if (appDAO.getById(app.getId()) != null) {
+      if ((app = appDAO.getById(app.getId())) != null) {
         appDAO.delete(app);
       }
     }
     for (Organization org : orgs) {
-      if (orgDAO.getById(org.getId()) != null) {
+      if ((org = orgDAO.getById(org.getId())) != null) {
         orgDAO.delete(org);
       }
     }
     for (User user : users) {
-      if (userDAO.getById(user.getId()) != null) {
+      if ((user = userDAO.getById(user.getId())) != null) {
         userDAO.delete(user);
       }
     }
     for (Role role : roles) {
-      if (roleDAO.getById(role.getId()) != null) {
+      if ((role = roleDAO.getById(role.getId())) != null) {
         roleDAO.delete(role);
       }
     }
     for (LdapServer ldapServer : ldapServers) {
-      if (ldapServerDAO.getById(ldapServer.getId()) != null) {
+      if ((ldapServer = ldapServerDAO.getById(ldapServer.getId())) != null) {
         ldapServerDAO.delete(ldapServer);
       }
     }
     for (HashGAV claimedComponent : claimedComponents) {
-      if (hashGAVDAO.getById(claimedComponent.getId()) != null) {
+      if ((claimedComponent = hashGAVDAO.getById(claimedComponent.getId())) != null) {
         hashGAVDAO.delete(claimedComponent);
       }
     }

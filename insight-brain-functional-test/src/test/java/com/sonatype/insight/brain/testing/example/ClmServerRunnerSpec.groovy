@@ -16,7 +16,8 @@ import spock.lang.Shared
 import spock.lang.Specification
 
 
-class ClmServerRunnerSpec extends Specification
+class ClmServerRunnerSpec
+    extends Specification
 {
   // Locates config in target/test-classes/config-test.yml .  May need to execute maven to copy it before running in IDE.
   // TODO Uses default port.  Will want that to be configurable to find unused port when running in CI.

@@ -23,7 +23,9 @@ import spock.lang.Shared
  * 
  * This will not be kept up-to-date with UI changes.  It is known to work with UI from commit 798321a .
  */
-class LoginScriptSpec extends GebReportingSpec {
+class LoginScriptSpec
+    extends GebReportingSpec 
+{
   @Shared
   @ClassRule
   TestRule startServiceRule = new DropwizardServiceRule<InsightConfig>(InsightBrainService.class,

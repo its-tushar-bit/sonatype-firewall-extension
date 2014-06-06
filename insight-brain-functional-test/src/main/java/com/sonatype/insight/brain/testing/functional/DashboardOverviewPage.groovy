@@ -13,10 +13,10 @@ import com.sonatype.insight.brain.testing.functional.modules.ThreatTableModule
 import geb.Module
 
 /**
-  @since 1.11
+ * @since 1.11
  */
 class DashboardOverviewPage
-  extends DashboardPage
+    extends DashboardPage
 {
   static at = { filterPanelToggle.displayed }
 
@@ -91,8 +91,8 @@ class DashboardOverviewPage
 }
 
 class PolicySummaryModule
-  extends Module {
-
+    extends Module
+{
   static content = {
     rows(required: false) { moduleList PolicySummaryRow, $('tr').tail() }
   }
@@ -153,13 +153,17 @@ class SparklineModule
   }
 }
 
-class ComponentViolationsTable extends Module {
+class ComponentViolationsTable
+    extends Module 
+{
   static content = {
     rows { moduleList ComponentViolationsTableRow, $('tbody tr') }
   }
 }
 
-class ComponentViolationsTableRow extends Module {
+class ComponentViolationsTableRow
+    extends Module
+{
   static content = {
     component { $('td:first-child') }
     componentLink { $('td:first-child > a') }
@@ -172,13 +176,17 @@ class ComponentViolationsTableRow extends Module {
   }
 }
 
-class ApplicationViolationsTable extends Module {
+class ApplicationViolationsTable
+    extends Module
+{
   static content = {
     rows { moduleList ApplicationViolationsTableRow, $('tbody tr') }
   }
 }
 
-class ApplicationViolationsTableRow extends Module {
+class ApplicationViolationsTableRow
+    extends Module
+{
   static content = {
     expand(required: false) { $('td:first-child i.expand') }
     collapse(required: false) { $('td:first-child i.collapse') }

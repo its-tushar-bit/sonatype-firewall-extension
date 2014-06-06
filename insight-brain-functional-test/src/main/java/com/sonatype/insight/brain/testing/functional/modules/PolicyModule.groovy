@@ -11,7 +11,8 @@ import geb.Module
  * Since 1.9
  */
 class PolicyModule
-    extends Module {
+    extends Module 
+{
   static content = {
     newPolicyButton(wait: true) { $('#policy .new-entity-button') }
     newPolicyEditor {module PolicyEditorModule, $('.inline-policy-editor') }
@@ -27,7 +28,8 @@ class PolicyModule
  * Since 1.9
  */
 class PolicyEditorModule
-    extends Module {
+    extends Module 
+{
   static content = {
     //header elements are only present for existing Policies
     header(required:false) { $('.accordion-heading') }
@@ -63,7 +65,9 @@ class PolicyEditorModule
   }
 }
 
-class ConstraintModule extends Module{
+class ConstraintModule
+    extends Module
+{
   static content = {
     editButton { module ExpandoModule, $('.clickable') }
     constraintName { $('input[ng-model="constraint.name"]') }
@@ -71,7 +75,9 @@ class ConstraintModule extends Module{
   }
 }
 
-class ConditionModule extends Module{
+class ConditionModule
+    extends Module
+{
   static content = {
     conditionTypes { $('select[ng-model="condition.conditionTypeId"]') }
     operators { $('select[ng-model="condition.operator"]') }

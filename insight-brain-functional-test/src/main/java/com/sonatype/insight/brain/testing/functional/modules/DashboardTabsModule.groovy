@@ -8,8 +8,8 @@ package com.sonatype.insight.brain.testing.functional.modules;
 import geb.Module
 
 class DashboardTabsModule
-  extends Module {
-
+    extends Module
+{
   static content = {
     applicationsTabButton { $('#tab-button-application') }
     componentsTabButton { $('#tab-button-component') }

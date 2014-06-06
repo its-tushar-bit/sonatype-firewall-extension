@@ -7,7 +7,9 @@ package com.sonatype.insight.brain.testing.example;
 
 import geb.spock.GebReportingSpec
 
-class ExampleGebSpockSpec extends GebReportingSpec {
+class ExampleGebSpockSpec
+    extends GebReportingSpec
+{
   def setup() {
     browser.config.baseUrl = "http://sonatype.com/clm/overview"
   }

@@ -20,7 +20,7 @@ import spock.lang.Stepwise
  */
 @Stepwise
 class ComponentDrilldownSpec
-  extends BaseSpec
+    extends BaseSpec
 {
   static Organization org
   static Application app

@@ -11,10 +11,10 @@ import geb.Module
 
 /**
  * Represents the dashboard's Component Details view
-  @since 1.11
+ * @since 1.11
  */
 class ComponentDrilldownPage
-  extends DashboardPage
+    extends DashboardPage
 {
   static at = { totalRisk.displayed }
 
@@ -31,7 +31,7 @@ class ComponentDrilldownPage
 }
 
 class ComponentApplicationRow
-  extends Module
+    extends Module
 {
   static final int EXPANDO = 0
   static final int ORG_APP = 1
@@ -49,7 +49,7 @@ class ComponentApplicationRow
 }
 
 class ComponentViolationRow
-  extends Module
+    extends Module
 {
   static final int THREAT_LEVEL = 1
   static final int POLICY_NAME = 2

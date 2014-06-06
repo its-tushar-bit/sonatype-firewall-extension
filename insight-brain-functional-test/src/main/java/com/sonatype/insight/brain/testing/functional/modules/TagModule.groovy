@@ -46,7 +46,7 @@ class TagModule
 
 
 class Tag
-  extends Module
+    extends Module
 {
   static content = {
     delete { $('i.icon-remove.label-remove') }

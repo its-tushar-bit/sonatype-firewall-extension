@@ -12,7 +12,8 @@ import org.junit.runner.Description
 import org.junit.runners.model.Statement
 import spock.lang.Shared
 
-class JunitRuleSpec extends GebReportingSpec
+class JunitRuleSpec
+    extends GebReportingSpec
 {
   @Shared
   @ClassRule
@@ -35,7 +36,9 @@ class JunitRuleSpec extends GebReportingSpec
       assert title.startsWith("CLM")
   }
 
-  static class ConsoleMessageRule implements TestRule {
+  static class ConsoleMessageRule
+      implements TestRule 
+  {
     String message = "Default message"
 
     ConsoleMessageRule() {

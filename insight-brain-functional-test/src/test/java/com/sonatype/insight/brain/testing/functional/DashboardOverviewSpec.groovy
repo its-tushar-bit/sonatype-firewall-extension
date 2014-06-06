@@ -42,7 +42,7 @@ import static spock.util.matcher.HamcrestSupport.that
  * @since 1.11
  */
 class DashboardOverviewSpec
-  extends BaseSpec
+    extends BaseSpec
 {
   static final String RECENT_AGE = /[1-9]min/
 

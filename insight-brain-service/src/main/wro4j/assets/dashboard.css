@@ -640,7 +640,6 @@ table.table-risk td.low-risk {
 
 .component-application-table .accordion-column .in {
   border-top: 2px solid #C1C1C1;
-  border-bottom: 1px solid #C1C1C1;
 }
 
 .component-application-table a {
@@ -655,6 +654,10 @@ table.table-risk td.low-risk {
   border-bottom: 1px solid #ddd;
 }
 
+.component-application-table .expandable-row {
+  border-top: 1px solid #ddd;
+}
+
 .component-violations-table {
   margin-left: 60px;
 }
@@ -662,6 +665,10 @@ table.table-risk td.low-risk {
 .component-violations-table .table {
   background: #f4f4f4;
   margin-bottom: 0px;
+}
+
+.component-violations-table tbody {
+  border-bottom: 0px;
 }
 
 .expandable-header {

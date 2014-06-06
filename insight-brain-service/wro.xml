@@ -36,6 +36,7 @@
     <css>/assets/management.css</css>
     <css>/assets/sonatype-icons.css</css>
     <css>/assets/threat.css</css>
+    <css>/assets/report-list.css</css>
     <css>/policy/labels.css</css>
     <css>/policy/policy.css</css>
     <css>/user/user.css</css>

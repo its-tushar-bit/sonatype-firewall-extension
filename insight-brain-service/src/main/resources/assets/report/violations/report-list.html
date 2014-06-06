@@ -21,7 +21,7 @@
                 <th id='report-list-header-app'>
                   <div sort-column='name'>Application Name</div>
                 </th>
-                <th id='report-list-header-{{stage.id}}' ng-repeat='stage in stages | filterReportColumns'>
+                <th id='report-list-header-{{stage.id}}' ng-repeat='stage in stages | filterReportColumns' class='stage-column'>
                   <div>{{stage.name}} Violations</div>
                 </th>
                 <th id='report-list-header-contact'><div>Contact</div></th>

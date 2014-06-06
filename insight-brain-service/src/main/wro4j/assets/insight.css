@@ -302,3 +302,47 @@ table.clm-table-stripe > tbody > tr:nth-child(odd) {
 .clm-table-border-top {
   border-top: 1px solid #ddd
 }
+
+.modal-help {
+  width: 40%;
+  max-height: 500px;
+}
+
+div.modal-help-icon {
+  display: inline;
+  left: 8px;
+  position: relative;
+}
+
+.heat-map-help {
+  overflow-y: auto;
+  max-height: 470px;
+  padding-right: 20px;
+  margin: 10px 10px 10px 30px;
+}
+
+.heat-map-help .risk-explanation {
+  width: 120px;
+  display: inline-block;
+}
+
+.heat-map-help .table-container {
+  position: relative;
+  padding-top: 15px;
+}
+
+.heat-map-help .scrollable {
+  overflow-x: auto;
+  overflow-y: auto;
+  height: 100%;
+  border-top: 1px solid #C6C6C6;
+  border-bottom: 1px solid #C6C6C6;
+}
+
+.heat-map-help .table-header {
+  border-bottom: 1px solid rgb(198, 198, 198);
+}
+
+.heat-map-help .table-help td:first-child {
+  min-width: 250px; 
+}

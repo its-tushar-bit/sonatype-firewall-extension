@@ -734,6 +734,26 @@ class DashboardOverviewSpec
       sparkline.guideText.text() == '0'
   }
 
+  def 'Modal heat map help available when tabs are activated' () {
+    when: 'Switch to Components Tab'
+      tabLinks.componentsTabButton.click()
+      waitFor { tabLinks.componentHeatMapHelpIcon.displayed }
+      tabLinks.componentHeatMapHelpIcon.click()
+    
+    then: 'wait for the component heat map help to be displayed'
+      waitFor { componentHeatMapHelp.displayed }
+      
+    when: 'Switch to Application Tab'
+      modalBackdrop.click()
+      waitFor { !componentHeatMapHelp.displayed }
+      tabLinks.applicationsTabButton.click()
+      waitFor { tabLinks.applicationHeatMapHelpIcon.displayed }
+      tabLinks.applicationHeatMapHelpIcon.click()
+    
+    then: 'wait for the application heat map help to be displayed'
+      waitFor { applicationHeatMapHelp.displayed }
+  }
+  
     /**
    * helper method to parse alpha value from an rgb style string
    */

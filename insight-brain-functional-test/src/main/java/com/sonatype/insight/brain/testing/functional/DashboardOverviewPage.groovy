@@ -82,6 +82,10 @@ class DashboardOverviewPage
     componentMatchUnknownCount(required: false) { $('#component-match-results .percentage-graph-legend-count')[2] }
 
     policySummary { module PolicySummaryModule, $('#policySummaryData') }
+    
+    applicationHeatMapHelp (required: false) { $('#application-heat-map-help-content') }
+    componentHeatMapHelp (required: false) { $('#component-heat-map-help-content') }
+    modalBackdrop (required: false) { $('div.modal-backdrop') }  
   }
 
   void applyFilter() {

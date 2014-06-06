@@ -280,6 +280,149 @@
     </div>
   </div>
 </script>
+<script type="text/ng-template" id="component-heat-map-help">
+  <div class="heat-map-help" id="component-heat-map-help-content">
+    <h3>Component Heat Map</h3>
+    <p>This tab contains a heat map showing the risk distribution across the components that match your filters.
+      Risk category columns are color coded and the intensity of each cell's background is tied to the size of the value
+      in the cell (producing the heat map effect). The Total Risk for each row is the sum of the values in the threat
+      category columns for that row. The values in the threat category cells are the sum of the Policy Threat Levels of
+    </p>
+    <ul>
+      <li><span class="risk-explanation">Total Risk (gray)</span> = Severe + Critical + Moderate + Low</li>
+      <li><span class="risk-explanation">Critical (red)</span> = Sum of all 8s, 9s, and 10s</li>
+      <li><span class="risk-explanation">Severe (orange)</span> = Sum of all 4s, 5s ,6s, and 7s</li>
+      <li><span class="risk-explanation">Moderate (yellow)</span> = Sum of all 2s and 3s</li>
+      <li><span class="risk-explanation">Low (blue)</span> = Sum of all 1s</li>
+    </ul>
+    <p>
+      <b>For all calculations, a violation is only counted once.</b> When there are multiple instances of the same
+      violation, only the newest violation is counted, regardless of stage. Because of this, in cases where a policy has
+      been changed in between evaluations, only the violation from the most recent evaluation will be included. This
+      will be true, even if the change to the policy included threat level.
+    </p>
+    <div
+      ng-init="data=[{'hash':'494308fc2d433720c778','score':23,'scoreCritical':9,'scoreSevere':13,'scoreModerate':0,'scoreLow':1,'affectedApplications':1,'gavs':[{'groupId':'org.mortbay.jetty','artifactId':'jetty','version':'6.1.15'}],'pathnames':[]},{'hash':'f2e35e4a21f07d25710f','score':14,'scoreCritical':8,'scoreSevere':5,'scoreModerate':0,'scoreLow':1,'affectedApplications':2,'gavs':[{'groupId':'org.webjars','artifactId':'select2','version':'3.2'}],'pathnames':[]},{'hash':'30a69958223a2c6215e2','score':2,'scoreCritical':0,'scoreSevere':0,'scoreModerate':0,'scoreLow':2,'affectedApplications':1,'gavs':[{'groupId':'geronimo','artifactId':'geronimo-tomcat','version':'1.0'}],'pathnames':[]}];">
+      <div class="table-container">
+        <div class="scrollable">
+          <div ng-controller="componentRiskTable">
+            <table class="table table-risk table-help">
+              <thead class="table-header">
+                <tr>
+                  <th>COMPONENT</th>
+                  <th>AFFECTED APPS</th>
+                  <th class="total-risk">TOTAL RISK</th>
+                  <th>CRITICAL</th>
+                  <th>SEVERE</th>
+                  <th>MODERATE</th>
+                  <th>LOW</th>
+                </tr>
+              </thead>
+              <tr ng-repeat="component in data">
+                <td><a> {{component.gavs[0].groupId}}<span class="wrap-force-break"> : </span>{{component.gavs[0].artifactId}}<span
+                    class="wrap-force-break"> : </span>{{component.gavs[0].version}}
+                </a></td>
+                <td>{{component.affectedApplications}}</td>
+                <td class="total-risk" alpha-background="{{component.score | safeDivide:totalRisk}}"
+                  ng-class="{ 'black-text': (component.score | safeDivide:totalRisk) < 0.5 }">{{component.score}}</td>
+                <td class="critical-risk" alpha-background="{{component.scoreCritical | safeDivide:criticalRisk}}"
+                  ng-class="{ 'muted-text': component.scoreCritical === 0 }">{{component.scoreCritical}}</td>
+                <td class="severe-risk" alpha-background="{{component.scoreSevere | safeDivide:severeRisk}}"
+                  ng-class="{ 'muted-text': component.scoreSevere === 0 }">{{component.scoreSevere}}</td>
+                <td class="moderate-risk" alpha-background="{{component.scoreModerate | safeDivide:moderateRisk}}"
+                  ng-class="{ 'muted-text': component.scoreModerate === 0 }">{{component.scoreModerate}}</td>
+                <td class="low-risk" alpha-background="{{component.scoreLow | safeDivide:lowRisk}}"
+                  ng-class="{ 'muted-text': component.scoreLow === 0 }">{{component.scoreLow}}</td>
+              </tr>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </script>
+  <script type="text/ng-template" id="application-heat-map-help">
+  <div class="heat-map-help" id="application-heat-map-help-content">
+    <h3>Application Heat Map</h3>
+    <p>This view displays the first 100 highest risk applications based on any filters that have been set, and your
+      level of access.</p>
+    <p>Risk for an application is found by taking the threat level of the policy the components in an application
+      have violated. This produces a total count by stage, which is then added together to create the total risk of an
+      application. Put another way, application risk is the sum of policy violation threat levels across all stages and
+      policies the application is evaluated against.</p>
+    <p>
+      <b>For all calculations, a violation is only counted once.</b> When there are multiple instances of the same
+      violation, only the newest violation is counted, regardless of stage. Because of this, in cases where a policy has
+      been changed in between evaluations, only the violation from the most recent evaluation will be included. This
+      will be true, even if the change to the policy included threat level.
+    </p>
+    <p>Given the logic behind the calculation, risk is then broken down into six columns, with the ability to expand
+      each application record to see the risk breakdown by stage. You may also access the Sonatype CLM report for each
+      stage by clicking on the Stage Name.</p>
+    <div
+      ng-init="data=[{'applicationName':'Enterprise Approvals','applicationId':'ea001','applicationContact':null,'totalApplicationRisk':{'totalRisk':236,'criticalRisk':59,'severeRisk':122,'moderateRisk':24,'lowRisk':31},'stageRisks':[{'stageTypeId':'build','stageTypeName':'Build','scanId':'ced92d7d14124b74a3d3348102d299d4','risk':{'totalRisk':233,'criticalRisk':59,'severeRisk':122,'moderateRisk':24,'lowRisk':28}},{'stageTypeId':'release','stageTypeName':'Release','scanId':'d0a8d7f46bdc47e7bf1092ab6f25c7fa','risk':{'totalRisk':33,'criticalRisk':9,'severeRisk':13,'moderateRisk':6,'lowRisk':5}}]},{'applicationName':'Metronome','applicationId':'me001','applicationContact':null,'totalApplicationRisk':{'totalRisk':33,'criticalRisk':9,'severeRisk':13,'moderateRisk':6,'lowRisk':5},'stageRisks':[{'stageTypeId':'stage-release','stageTypeName':'Stage Release','scanId':'ca175bd9a99b499394f6824a3d1feace','risk':{'totalRisk':33,'criticalRisk':9,'severeRisk':13,'moderateRisk':6,'lowRisk':5}}]},{'applicationName':'Web Portal','applicationId':'wa001','applicationContact':null,'totalApplicationRisk':{'totalRisk':21,'criticalRisk':8,'severeRisk':10,'moderateRisk':0,'lowRisk':3},'stageRisks':[{'stageTypeId':'build','stageTypeName':'Build','scanId':'7be4e8107bac4e219af22bec0092e8a5','risk':{'totalRisk':1,'criticalRisk':0,'severeRisk':0,'moderateRisk':0,'lowRisk':1}},{'stageTypeId':'stage-release','stageTypeName':'Stage Release','scanId':'76b220133f5e415eb3396c445c2dd028','risk':{'totalRisk':6,'criticalRisk':0,'severeRisk':5,'moderateRisk':0,'lowRisk':1}},{'stageTypeId':'release','stageTypeName':'Release','scanId':'77276a33b9764b84b2d334637c53d00b','risk':{'totalRisk':14,'criticalRisk':8,'severeRisk':5,'moderateRisk':0,'lowRisk':1}}]}];">
+      <div class="table-container">
+        <div class="scrollable">
+          <div ng-controller="applicationRiskTable">
+            <table class="table table-risk table-help">
+              <thead>
+                <tr>
+                  <th>APPLICATION</th>
+                  <th class="total-risk">TOTAL RISK</th>
+                  <th>CRITICAL</th>
+                  <th>SEVERE</th>
+                  <th>MODERATE</th>
+                  <th>LOW</th>
+                </tr>
+              </thead>
+              <tr ng-repeat-start="application in data">
+                <td><i class="glyphicons-halflings-sonatype lighter"
+                  ng-class="{ clickable : canExpand(application),
+                                        'expand' : canExpand(application),
+                                        'collapse' : isExpanded(application),
+                                        'emptyIconGlyph' : !canExpand(application) }"
+                  ng-click='expand(application)'></i> {{application.applicationName}}</td>
+                <td class="total-risk"
+                  alpha-background="{{application.totalApplicationRisk.totalRisk | safeDivide:totalRisk}}"
+                  ng-class="{ 'black-text': (application.totalApplicationRisk.totalRisk | safeDivide:totalRisk) < 0.5 }">
+                  {{application.totalApplicationRisk.totalRisk}}</td>
+                <td class="critical-risk"
+                  alpha-background="{{application.totalApplicationRisk.criticalRisk | safeDivide:criticalRisk}}"
+                  ng-class="{ 'muted-text': application.totalApplicationRisk.criticalRisk === 0 }">
+                  {{application.totalApplicationRisk.criticalRisk}}</td>
+                <td class="severe-risk"
+                  alpha-background="{{application.totalApplicationRisk.severeRisk | safeDivide:severeRisk}}"
+                  ng-class="{ 'muted-text': application.totalApplicationRisk.severeRisk === 0 }">
+                  {{application.totalApplicationRisk.severeRisk}}</td>
+                <td class="moderate-risk"
+                  alpha-background="{{application.totalApplicationRisk.moderateRisk | safeDivide:moderateRisk}}"
+                  ng-class="{ 'muted-text': application.totalApplicationRisk.moderateRisk === 0 }">
+                  {{application.totalApplicationRisk.moderateRisk}}</td>
+                <td class="low-risk"
+                  alpha-background="{{application.totalApplicationRisk.lowRisk | safeDivide:lowRisk}}"
+                  ng-class="{ 'muted-text': application.totalApplicationRisk.lowRisk === 0 }">
+                  {{application.totalApplicationRisk.lowRisk}}</td>
+              </tr>
+              <tr class='stage' ng-repeat-end ng-repeat='stage in application.stageRisks'
+                ng-if='expanded[application.applicationId]'>
+                <td><a title="View application report" class="glyphicons-sonatype link">{{stage.stageTypeName |
+                    uppercase}}</a></td>
+                <td class="total-risk" ng-class="{ 'muted-text': stage.risk.totalRisk === 0 }">
+                  {{stage.risk.totalRisk}}</td>
+                <td class="critical-risk" ng-class="{ 'muted-text': stage.risk.criticalRisk === 0 }">
+                  {{stage.risk.criticalRisk}}</td>
+                <td class="severe-risk" ng-class="{ 'muted-text': stage.risk.severeRisk === 0 }">
+                  {{stage.risk.severeRisk}}</td>
+                <td class="moderate-risk" ng-class="{ 'muted-text': stage.risk.moderateRisk === 0 }">
+                  {{stage.risk.moderateRisk}}</td>
+                <td class="low-risk" ng-class="{ 'muted-text': stage.risk.lowRisk === 0 }">{{stage.risk.lowRisk}}</td>
+              </tr>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</script>
 <div class='container'>
   <div class='row'>
     <div class='span12'>
@@ -302,12 +445,24 @@
         <li>
           <h4>Highest Risk</h4>
         </li>
-        <li class="pull-right" ng-class="{ active : riskTable === 'applications' }">
-          <a id='tab-button-application' href="#" ng-click="$event.preventDefault(); riskTable='applications'">By Application</a>
-        </li>
-        <li class="pull-right" ng-class="{ active : riskTable === 'components' }">
-          <a id='tab-button-component' href="#" ng-click="$event.preventDefault(); riskTable='components'">By Component</a>
-        </li>
+        <li class="pull-right" ng-class="{ active : riskTable === 'applications' }"><a id='tab-button-application'
+          href="#" ng-click="$event.preventDefault(); riskTable='applications'"><div>
+              By Application
+              <div class="modal-help-icon" modal-help="application-heat-map-help" ng-if="riskTable === 'applications'">
+                <i id="application-heat-map-help-icon" class="glyphicons-sonatype help small"
+                  tooltip="Click here for help about the Application Heat Map" tooltip-placement="top" tooltip-append-to-body="true"></i>
+              </div>
+            </div></a></li>
+        <li class="pull-right" ng-class="{ active : riskTable === 'components' }"><a id='tab-button-component'
+          href="#" ng-click="$event.preventDefault(); riskTable='components'">
+            <div>
+              By Component
+              <div class="modal-help-icon" modal-help="component-heat-map-help" ng-if="riskTable === 'components'">
+                <i id="component-heat-map-help-icon" class="glyphicons-sonatype help small"
+                  tooltip="Click here for help about the Component Heat Map" tooltip-placement="top" tooltip-append-to-body="true"></i>
+              </div>
+            </div>
+        </a></li>
         <li class="pull-right" ng-class="{ active : riskTable === 'newest-risk' }">
           <a id='tab-button-newest' href="#" ng-click="$event.preventDefault(); riskTable='newest-risk'">Newest</a>
         </li>
@@ -320,6 +475,7 @@
         </div>
         <div ng-switch-when="applications">
           <div application-risk-table>
+            <!-- The element below is almost duplicated in the application-heat-map-help, please ensure that changes are replicated there. -->
             <div ng-controller="applicationRiskTable">
               <table class="table table-risk" id="application-risk" sortable sortable-reverse="true" sortable-field="totalApplicationRisk.totalRisk">
                 <thead>
@@ -392,6 +548,7 @@
         </div>
         <div ng-switch-when="components">
           <div component-risk-table>
+             <!-- The element below is almost duplicated in the component-heat-map-help, please ensure that changes are replicated there. -->
             <div ng-controller="componentRiskTable">
               <table class="table table-risk table-risk-component" id="component-risk" sortable sortable-reverse="true" sortable-field="score">
                 <thead>

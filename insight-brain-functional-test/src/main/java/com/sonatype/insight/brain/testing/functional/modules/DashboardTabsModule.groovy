@@ -14,5 +14,7 @@ class DashboardTabsModule
     applicationsTabButton { $('#tab-button-application') }
     componentsTabButton { $('#tab-button-component') }
     newestRiskTabButton { $('#tab-button-newest') }
+    componentHeatMapHelpIcon(required: false) { $('#component-heat-map-help-icon') }
+    applicationHeatMapHelpIcon(required: false) { $('#application-heat-map-help-icon') }
   }
 }

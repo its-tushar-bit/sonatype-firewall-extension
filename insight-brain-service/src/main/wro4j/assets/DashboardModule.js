@@ -1104,4 +1104,35 @@
       }
     };
   }]);
+
+  dashboardModule.directive('modalHelp', function($modal) {
+    return {
+      restrict: 'A',
+      scope: {
+        modalHelp : '@',
+        modalHelpClass : '@',
+        modalHelpTrigger : '@'
+      },
+      link: function (scope, element) {
+        var helpClass = 'modal-help';
+        if(scope.modalHelpClass) {
+          helpClass = scope.modalHelpClass;
+        }
+        
+        var trigger = 'click';
+        if(scope.modalHelpTrigger) {
+          trigger = scope.modalHelpTrigger;
+        }
+        
+        var options = {
+          templateUrl: scope.modalHelp,
+          windowClass: helpClass
+        };
+
+        element.on(trigger, function() {
+          $modal.open(options);
+        });
+      }
+    };
+  });
 }());

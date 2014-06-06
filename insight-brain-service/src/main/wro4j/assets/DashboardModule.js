@@ -815,7 +815,7 @@
     };
   });
 
-  dashboardModule.directive('valueBars', function() {
+  dashboardModule.directive('valueBars',  ['windowEventsFactory', function(windowEventsFactory) {
     return {
       restrict: 'A',
       scope: {
@@ -823,59 +823,65 @@
       },
       replace: true,
       link: function(scope, element) {
-        var data = scope.data;
-        var width = element.width(), height = element.height();
+        function barChart() {
+          var data = scope.data;
+          var width = element.width(), height = element.height();
 
-        // scale the graph to keep the zero line centered only if there are negative numbers
-        var min = d3.min(data);
-        var max = d3.max([Math.abs(min), d3.max(data)]);
-        var extents = [((min >= 0) ? 0 : -max), max];
-        var y = d3.scale.linear()
-          .domain(extents)
-          .range([0, height]);
-        var x = d3.scale.ordinal()
-          .domain(d3.range(data.length))
-          .rangeRoundBands([0, width], 0.2);
+          d3.select(element[0]).select('svg').remove();
 
-        // allow the svg element to take up all the parent's space
-        var chart = d3.select(element[0])
-          .append('svg')
-          .attr('width', '100%')
-          .attr('height', '100%');
+          var y = d3.scale.linear()
+              .domain(d3.extent(data))
+            .range([0, height]);
+          var x = d3.scale.ordinal()
+            .domain(d3.range(data.length))
+            .rangeRoundBands([0, width], 0.2);
 
-        chart.selectAll('g')
-          .data(data).enter()
-          .append('rect')
-          .attr('x', function(d, i) {
-            return x(i);
-          })
-          .attr('y', function(d) {
-            // render starting above or at the center line, depending on +/-
-            return (d > 0) ? height - y(d) : y(0);
-          })
-          .attr('height', function(d) {
-            return Math.abs(y(d) - y(0));
-          })
-          .attr('width', x.rangeBand())
-          .attr('class', function(d) {
-            return (d > 0) ? 'bar positive' : 'bar negative';
-          })
-          // tooltip to highlight actual figures involved
-          .append('title').text(function(d){ return d;});
+          // allow the svg element to take up all the parent's space
+          var chart = d3.select(element[0])
+            .append('svg')
+            .attr('width', '100%')
+            .attr('height', '100%');
 
-        // baseline will render at bottom for positive data, center for positive/negative data
-        // Need to fudge a bit if we're drawing at the bottom of the container to account for the stroke-width
-        var baseline = ((min < 0) ? y(0) : y(max) - 0.25);
-        chart.append('line')
-          .attr('x1', x(0))
-          .attr('x2', width - x.rangeBand() + 1)
-          .attr('y1', baseline)
-          .attr('y2', baseline)
-          .attr('stroke', '#777777')
-          .attr('stroke-width', '0.5');
+          // baseline will render at bottom for positive data, somewhere in between for positive/negative data
+          // Need to fudge a bit if we're drawing at the bottom of the container to account for the stroke-width
+          var baseline = Math.min(height - 0.25, height - y(0));
+
+          chart.selectAll('g')
+            .data(data).enter()
+            .append('rect')
+            .attr('x', function(d, i) {
+              return x(i);
+            })
+            .attr('y', function(d) {
+              // render starting above or at the center line, depending on +/-
+              return (d > 0) ? height - y(d) : baseline;
+            })
+            .attr('height', function(d) {
+              return Math.abs(y(d) - y(0));
+            })
+            .attr('width', x.rangeBand())
+            .attr('class', function(d) {
+              return (d > 0) ? 'bar positive' : 'bar negative';
+            })
+            // tooltip to highlight actual figures involved
+            .append('title').text(function(d) {
+              return d;
+            });
+
+          chart.append('line')
+            .attr('x1', x(0))
+            .attr('x2', width - x.rangeBand() + 1)
+            .attr('y1', baseline)
+            .attr('y2', baseline)
+            .attr('stroke', '#777777')
+            .attr('stroke-width', '0.5');
+        }
+
+        windowEventsFactory.addResizeHandler(scope, element, barChart);
+        barChart();
       }
     };
-  });
+  }]);
 
   dashboardModule.directive('sparkline', ['windowEventsFactory', function(windowEventsFactory) {
     return {

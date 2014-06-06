@@ -831,7 +831,7 @@ describe('DashboardModule', function() {
       var negativeValue = angular.element(element.find('svg').find('rect')[0]);
       expect(negativeValue.attr('class')).toBe('bar negative');
       expect(negativeValue.attr('height')).toBe('25'); //half of chart below zero
-      expect(negativeValue.attr('y')).toBe('25');  //starts in the middle
+      expect(negativeValue.attr('y')).toBe('25');  //starts in the middle between high/low
     });
 
     it('sets the correct style and size for zero values', function(){
@@ -862,7 +862,7 @@ describe('DashboardModule', function() {
       var zero = angular.element(element.find('svg').find('rect')[0]);
       expect(zero.attr('class')).toBe('bar negative');
       expect(zero.attr('height')).toBe('0'); //no height
-      expect(zero.attr('y')).toBe('0');
+      expect(parseFloat(zero.attr('y'))).toBeCloseTo(50, 0.25);
     });
 
     it('sets the correct style and size for intermediate positive value', function(){

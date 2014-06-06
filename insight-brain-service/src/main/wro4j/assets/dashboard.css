@@ -284,7 +284,7 @@ table.table-risk td.low-risk {
     width: 192px !important;
   }
 
-  .sparkline {
+  .chart {
     width: 310px !important;
   }
 }
@@ -725,10 +725,6 @@ table.table-risk td.low-risk {
   display: inline-block;
 }
 
-.sparkline {
-  height: 30px;
-  width: 170px;
-}
 .sparkline .line {
   fill: none;
 }

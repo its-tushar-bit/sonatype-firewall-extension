@@ -7,6 +7,8 @@ package com.sonatype.insight.brain.testing.functional
 
 import com.sonatype.insight.brain.model.Organization
 
+import org.apache.commons.io.IOUtils
+
 class AppEvaluationSpec
     extends BaseSpec 
 {
@@ -20,6 +22,9 @@ class AppEvaluationSpec
       def name = "AppEvaluationApp$i"
       temporaryEntity.newApplication(name, name, org.id)
     }
+
+    saasRule.setResponseForURI('rest/ci/scan', '{"scanId": "blah", "timeToReport": 0}', 200);
+    saasRule.setResponseForURI('rest/ci/report?scanId=blah', IOUtils.toByteArray(getClass().getResourceAsStream('/report.zip')), 200);
   }
 
   def setup() {

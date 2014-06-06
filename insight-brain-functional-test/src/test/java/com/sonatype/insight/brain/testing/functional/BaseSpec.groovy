@@ -10,9 +10,9 @@ import com.sonatype.insight.brain.TestProductLicenseManager
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity
+import com.sonatype.insight.brain.service.InsightMockServerRule
 import com.sonatype.insight.brain.service.PortAllocator
 import com.sonatype.insight.brain.service.TestInsightBrainServiceRule
-import com.sonatype.insight.brain.testing.functional.utils.InsightMockServerRule
 
 import org.sonatype.licensing.product.ProductLicenseManager
 import org.sonatype.licensing.product.util.LicenseFingerprinter
@@ -38,13 +38,16 @@ abstract class BaseSpec
   }
 
   @Shared
-  @ClassRule
-  TestInsightBrainServiceRule serviceRule = new TestInsightBrainServiceRule(PortAllocator.findFreePort(8070),
-    PortAllocator.findFreePort(8071), null, null, false, getBrainModules())
+  private int hdsPort = PortAllocator.findFreePort(8090)
 
   @Shared
   @ClassRule
-  InsightMockServerRule saasRule = new InsightMockServerRule();
+  InsightMockServerRule saasRule = new InsightMockServerRule(hdsPort, new File("target/mock-saas-work/"), false)
+
+  @Shared
+  @ClassRule
+  TestInsightBrainServiceRule serviceRule = new TestInsightBrainServiceRule(PortAllocator.findFreePort(8070),
+    PortAllocator.findFreePort(8071), null, "http://localhost:" + hdsPort, false, getBrainModules())
 
   @Shared
   @ClassRule

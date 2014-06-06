@@ -651,6 +651,10 @@ table.table-risk td.low-risk {
   font-size: 12px;
 }
 
+.component-application-table tbody {
+  border-bottom: 1px solid #ddd;
+}
+
 .component-violations-table {
   margin-left: 60px;
 }

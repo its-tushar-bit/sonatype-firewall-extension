@@ -99,6 +99,9 @@ public class ComponentDetailService
         for (PolicyViolation policyViolation : policyViolations) {
           String policyId = policyViolation.getPolicyId();
 
+          PolicyViolation firstOccurrence = policyViolationDAO.getFirstOccurrence(application.getId(),
+              stageType.getId(), policyViolation);
+
           Map<String, StageDetailDTO> stageDetailsById = stageDetailsByPolicyId.get(policyId);
           if (stageDetailsById == null) {
             stageDetailsById = initStageDetails(stageTypes);
@@ -106,9 +109,8 @@ public class ComponentDetailService
           }
           StageDetailDTO policyStageDetailDTO = stageDetailsById.get(stageType.getId());
           policyStageDetailDTO.scanId = policyEvaluation.getScanId();
-          policyStageDetailDTO.actionTypeId = policyViolation.getActionTypeId();
-          policyStageDetailDTO.time = policyViolationDAO
-              .getFirstOccurrence(application.getId(), stageType.getId(), policyViolation).getTime().getTime();
+          policyStageDetailDTO.actionTypeId = firstOccurrence.getActionTypeId();
+          policyStageDetailDTO.time = firstOccurrence.getTime().getTime();
           if (getSeverity(appStageDetailDTO.actionTypeId) < getSeverity(policyStageDetailDTO.actionTypeId)) {
             appStageDetailDTO.actionTypeId = policyStageDetailDTO.actionTypeId;
             appStageDetailDTO.time = policyStageDetailDTO.time;

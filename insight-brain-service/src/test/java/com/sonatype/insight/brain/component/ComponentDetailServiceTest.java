@@ -201,7 +201,7 @@ public class ComponentDetailServiceTest
   }
 
   @Test
-  public void testGetApplicationDetailsByHash_FirstViolationOccurrence_LatestReportAndAction() {
+  public void testGetApplicationDetailsByHash_FirstViolationOccurrenceAndAction_LatestReport() {
     String hash = "ababababab";
 
     Application app1 = tempEntity.newApplicationWithParent("app1");
@@ -210,8 +210,9 @@ public class ComponentDetailServiceTest
     Policy policy1 = tempEntity.newPolicy(app1.getId(), "policy1");
     PolicyEvaluation evaluation1 = tempEntity.newPolicyEvaluation(app1.getId(), BuildStageType.ID, "scanId1", new Date(
         System.currentTimeMillis() - 1000));
-    PolicyViolation violation1 = tempEntity.newPolicyViolation(evaluation1, policy1, component.getGroupId(),
-        component.getArtifactId(), component.getVersion(), hash, "reason1");
+    PolicyViolation violation1 = tempEntity.newPolicyViolation(evaluation1, policy1, policy1.getThreatLevel(),
+        policy1.getThreatCategory(), component.getGroupId(), component.getArtifactId(), component.getVersion(), hash,
+        WarnActionType.ID);
     tempEntity.newNewestPolicyViolation(violation1.getId(), evaluation1.getApplicationId(),
         evaluation1.getStageTypeId());
 
@@ -228,7 +229,7 @@ public class ComponentDetailServiceTest
     assertThat(dto.application.getId(), is(app1.getId()));
     assertThat(dto.policyViolations, hasSize(1));
     assertThat(dto.policyViolations.get(0).stageDetails, hasSize(4));
-    assertStageDetails(dto.policyViolations.get(0).stageDetails.get(0), StageTypes.BUILD, violation2.getActionTypeId(),
+    assertStageDetails(dto.policyViolations.get(0).stageDetails.get(0), StageTypes.BUILD, violation1.getActionTypeId(),
         evaluation2.getScanId(), evaluation1.getTime().getTime());
   }
 

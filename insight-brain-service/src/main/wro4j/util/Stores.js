@@ -48,6 +48,7 @@
           for (var i=0; i<result.length; i++) {
             if (result[i].id === 'develop') {
               result.splice(i, 1);
+              i--;
             } else if (result[i].id === 'stage-release') {
               result[i].name = 'Stage';
             }

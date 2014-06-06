@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.testing.functional
 
+import com.sonatype.insight.brain.testing.functional.modules.ExpandoModule
+
 import geb.Module
 
 /**
@@ -38,7 +40,7 @@ class ComponentApplicationRow
 
   static content = {
     cell(required: false) { int i -> $('td', i) }
-    expando { cell(EXPANDO).find('i') }
+    expando { module ExpandoModule, cell(EXPANDO).find('i') }
     applicationImage { $('.image-thumbnail') }
     orgApp { cell(ORG_APP).text().trim() }
     riskPie { cell(RISK_PIE).text().trim() }

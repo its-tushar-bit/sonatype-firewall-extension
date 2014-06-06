@@ -1012,12 +1012,17 @@ describe('DashboardModule', function() {
       beforeEach(inject(function ($rootScope, $compile, $modal) {
         modal = $modal;
         spyOn(modal, 'open');
-        
+
         scope = $rootScope.$new();
-        var page = angular.element('<html><script type="text/ng-template" id="foo"><div>Foo</div></script><script type="text/ng-template" id="bar"><div>Bar</div></script>' +
-                '<div id="divFoo" modal-help="foo">click</div><div id="divBar" modal-help="bar" modal-help-trigger="mouseover">mouseover</div><div id="divBaz" modal-help="bar" modal-help-trigger="mouseover" modal-help-class="test-class">mouseover</div></html>');
+        var page = angular
+                .element('<html><script type="text/ng-template" id="foo"><div>Foo</div></script>
+                        + '<script type="text/ng-template" id="bar"><div>Bar</div></script>'
+                        + '<div id="divFoo" modal-help="foo">click</div>
+                        + '<div id="divBar" modal-help="bar" modal-help-trigger="mouseover">mouseover</div>
+                        + '<div id="divBaz" modal-help="bar" modal-help-trigger="mouseover" 
+                        +    'modal-help-class="test-class">mouseover</div></html>');
         $compile(page)(scope);
-        
+
         divFoo = page[2];
         divBar = page[3];
         divBaz = page[4];

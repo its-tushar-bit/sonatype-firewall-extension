@@ -909,7 +909,7 @@ describe('DashboardModule', function() {
         [1, 3, 6, 10, 15, 21, 28, 36, 45, 55, 66, 78], true,
         scope.$$childHead.policySummaryData[2]);
 
-      expect(scope.$$childHead.error).toBeUndefined();
+      expect(scope.$$childHead.error).toBeFalsy();
     }));
 
     it('Error propogated to scope', inject(function($compile, $httpBackend) {

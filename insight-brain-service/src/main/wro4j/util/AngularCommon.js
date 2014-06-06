@@ -317,7 +317,12 @@ var AngularStateUtils = {
       };
     }
   ]);
-  
+
+  /**
+   * Common handling of errors returned by the server.
+   * Usage: assign the return value of any failed $http call to $scope.error and surround
+   * the DOM content depending on the $http call with this directive.
+   */
   angularCommon.directive('loadWrapper', ['Messages', function(messages) {
     return {
       restrict : 'A',

@@ -803,12 +803,20 @@
             ];
           }
 
-          $http.get(CLMLocations.getPolicySummaryUrl(), {
-            params: filterToParams($scope.filters)
-          }).success(function(data) {
-            $scope.policySummaryData = generateModel(data);
-          }).error(function() {
-            $scope.error = arguments;
+          $scope.doLoad = function() {
+            $scope.data = null;
+            $scope.error = null;
+            $http.get(CLMLocations.getPolicySummaryUrl(), {
+              params: filterToParams($scope.filters)
+            }).success(function(data) {
+              $scope.policySummaryData = generateModel(data);
+            }).error(function() {
+              $scope.error = arguments;
+            });
+          };
+
+          $scope.$watch('filters', function() {
+            $scope.doLoad();
           });
         }
       ]

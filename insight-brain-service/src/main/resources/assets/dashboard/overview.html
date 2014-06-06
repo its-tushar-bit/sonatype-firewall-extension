@@ -246,32 +246,38 @@
   </div>
 </script>
 <script type="text/ng-template" id="dashboard-policy-summary">
-  <div class="span6" ng-if="policySummaryData" id="policySummaryData">
-    <h4 class="dashboard-section-header">Policy Summary</h4>
-    <table class="table policy-summary-table">
-      <thead>
-      <th>CATEGORY</th>
-      <th>COUNTS</th>
-      <th>DELTA</th>
-      <th>WEEKLY DELTAS</th>
-      <th>12 WEEK TREND</th>
-      </thead>
-      <tbody>
-      <tr ng-repeat="category in policySummaryData">
-        <td>{{category.name}}</td>
-        <td>
-          <div class="label label-default small-dashboard-label-wrapper">{{category.counts}}</div>
-        </td>
-        <td>{{category.delta}}</td>
-        <td>
-          <div value-bars data="category.barChartData" class="chart pull-right"></div>
-        </td>
-        <td>
-          <div sparkline class="chart sparkline pull-right" data="category.sparklineData" inverse-green="category.inverseGreen"></div>
-        </td>
-      </tr>
-      </tbody>
-    </table>
+  <div load-wrapper="error" reload="doLoad()">
+    <h5 ng-if="!policySummaryData && !error" class="dashboard-loading">
+      <i class='icon-time'></i> Loading...
+    </h5>
+    <div ng-if="policySummaryData" class="span6" id="policySummaryData">
+      <h4 class="dashboard-section-header">Policy Summary</h4>
+      <table  class="table policy-summary-table">
+        <thead>
+        <th>CATEGORY</th>
+        <th>COUNTS</th>
+        <th>DELTA</th>
+        <th>WEEKLY DELTAS</th>
+        <th>12 WEEK TREND</th>
+        </thead>
+        <tbody>
+        <tr ng-repeat="category in policySummaryData">
+          <td>{{category.name}}</td>
+          <td>
+            <div class="label label-default small-dashboard-label-wrapper">{{category.counts}}</div>
+          </td>
+          <td>{{category.delta}}</td>
+          <td>
+            <div value-bars data="category.barChartData" class="chart pull-right"></div>
+          </td>
+          <td>
+            <div sparkline class="chart sparkline pull-right" data="category.sparklineData"
+                 inverse-green="category.inverseGreen"></div>
+          </td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
   </div>
 </script>
 <div class='container'>

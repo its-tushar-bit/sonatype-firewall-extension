@@ -201,7 +201,7 @@ public class ComponentDetailServiceTest
   }
 
   @Test
-  public void testGetApplicationDetailsByHash_FirstViolationOccurrenceAndAction_LatestReport() {
+  public void testGetApplicationDetailsByHash_FirstViolationOccurrence_LatestReportAndAction() {
     String hash = "ababababab";
 
     Application app1 = tempEntity.newApplicationWithParent("app1");
@@ -229,7 +229,7 @@ public class ComponentDetailServiceTest
     assertThat(dto.application.getId(), is(app1.getId()));
     assertThat(dto.policyViolations, hasSize(1));
     assertThat(dto.policyViolations.get(0).stageDetails, hasSize(4));
-    assertStageDetails(dto.policyViolations.get(0).stageDetails.get(0), StageTypes.BUILD, violation1.getActionTypeId(),
+    assertStageDetails(dto.policyViolations.get(0).stageDetails.get(0), StageTypes.BUILD, violation2.getActionTypeId(),
         evaluation2.getScanId(), evaluation1.getTime().getTime());
   }
 

@@ -109,7 +109,7 @@ public class ComponentDetailService
           }
           StageDetailDTO policyStageDetailDTO = stageDetailsById.get(stageType.getId());
           policyStageDetailDTO.scanId = policyEvaluation.getScanId();
-          policyStageDetailDTO.actionTypeId = firstOccurrence.getActionTypeId();
+          policyStageDetailDTO.actionTypeId = policyViolation.getActionTypeId();
           policyStageDetailDTO.time = firstOccurrence.getTime().getTime();
           if (getSeverity(appStageDetailDTO.actionTypeId) < getSeverity(policyStageDetailDTO.actionTypeId)) {
             appStageDetailDTO.actionTypeId = policyStageDetailDTO.actionTypeId;

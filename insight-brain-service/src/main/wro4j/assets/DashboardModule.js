@@ -348,7 +348,7 @@
   });
 
   function dashboardTable(url) {
-    function createFilterWatch($scope, $rootScope, $http, Dialog) {
+    function createFilterWatch($scope, $rootScope, $http, Dialog, ApplicationStore) {
       return function (newFilter) {
         if (newFilter) {
           $scope.error = $scope.data = null;
@@ -369,6 +369,8 @@
                   buttons : [{
                     name : 'OK',
                     click: function() {
+                      //make sure to get any stale apps out of the app list
+                      ApplicationStore.refresh();
                       $rootScope.$broadcast('reloadFilter');
                     }
                   }]
@@ -385,8 +387,8 @@
     return {
       transclude: true,
       templateUrl: 'dashboard-table',
-      controller: ['$scope', '$rootScope', '$http', 'Dialog', function($scope, $rootScope, $http, Dialog) {
-        var filterChangedFn = createFilterWatch($scope, $rootScope, $http, Dialog);
+      controller: ['$scope', '$rootScope', '$http', 'Dialog', 'ApplicationStore', function($scope, $rootScope, $http, Dialog, ApplicationStore) {
+        var filterChangedFn = createFilterWatch($scope, $rootScope, $http, Dialog, ApplicationStore);
         $scope.doLoad = function () {
           filterChangedFn($scope.filters);
         };

@@ -10,7 +10,7 @@
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
     <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
-    <title>CLM Management</title>
+    <title ng-bind="'CLM ' + ($state.current.data.title ? $state.current.data.title : '')">CLM Management</title>
     <link href="css/style.css?${build.timestamp}" rel="stylesheet"/>
     <link rel='shortcut icon' href='favicon.ico'/>
     <script type='text/javascript'>

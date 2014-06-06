@@ -12,11 +12,17 @@
           parent: 'management',
           url: '/security',
           templateUrl: '../security-assets/security-navigation.html?' + clmBuildTimestamp,
-          controller: 'SecurityMenuController'
+          controller: 'SecurityMenuController',
+          data : {
+            title : 'Users'
+          }
         }).state('management.security.global', {
           parent: 'management.security',
           url: '/global',
-          template : '<h1 class="page-title">Global Roles</h1><div ng-controller="AppSecurityController" ng-include="\'../policy-assets/components/app-security/app-security.html?' + clmBuildTimestamp + '\'"></div>'
+          template : '<h1 class="page-title">Global Roles</h1><div ng-controller="AppSecurityController" ng-include="\'../policy-assets/components/app-security/app-security.html?' + clmBuildTimestamp + '\'"></div>',
+          data : {
+            title : 'Global Roles'
+          }
         });
       }]);
 

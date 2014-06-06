@@ -22,7 +22,10 @@
     $stateProvider.state('management', {
       url: '/management',
       templateUrl: '../assets/management.html?' + clmBuildTimestamp,
-      controller: 'ManagementController'
+      controller: 'ManagementController',
+      data : {
+        title : 'Management'
+      }
     });
   }]);
 

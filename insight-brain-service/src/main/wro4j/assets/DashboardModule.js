@@ -35,7 +35,10 @@
     $stateProvider.state('dashboard', {
       url: '/dashboard',
       templateUrl: '../dashboard-assets/dashboard.html?' + clmBuildTimestamp,
-      abstract: true
+      abstract: true,
+      data : {
+        title : 'Dashboard'
+      }
     }).state('dashboard.overview', {
       parent: 'dashboard',
       url: '',

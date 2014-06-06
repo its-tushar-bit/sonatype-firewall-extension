@@ -13,7 +13,10 @@
       $stateProvider.state('violations', {
         url: '/reports/violations',
         templateUrl: '../report-assets/violations/report-list.html?' + clmBuildTimestamp,
-        controller: 'ReportViolationsController'
+        controller: 'ReportViolationsController',
+        data : {
+          title : 'Report Violations'
+        }
       });
     }]);
 }());

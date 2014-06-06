@@ -12,7 +12,10 @@
       $stateProvider.state('report', {
         url: '/reports/{publicId}/{scanId}',
         controller: 'ReportController',
-        templateUrl: '../report-assets/report/report.html?' + clmBuildTimestamp
+        templateUrl: '../report-assets/report/report.html?' + clmBuildTimestamp,
+        data : {
+          title : 'Report'
+        }
       });
     }
   ]);

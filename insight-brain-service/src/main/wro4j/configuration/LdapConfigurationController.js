@@ -19,7 +19,10 @@
       parent: 'management.configuration',
       url: '/ldap',
       controller: 'LdapConfigurationController',
-      templateUrl: '../configuration-assets/components/ldap.html?' + clmBuildTimestamp
+      templateUrl: '../configuration-assets/components/ldap.html?' + clmBuildTimestamp,
+      data : {
+        title : 'LDAP Configuration'
+      }
     }).state('management.configuration.ldap.connection', {
       parent: 'management.configuration.ldap',
       controller: 'LdapConnectionController',

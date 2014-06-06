@@ -20,12 +20,18 @@
         parent: 'management.configuration',
         url: '/productlicense',
         controller: 'ProductLicenseController',
-        templateUrl: '../configuration-assets/components/license.html?' + clmBuildTimestamp
+        templateUrl: '../configuration-assets/components/license.html?' + clmBuildTimestamp,
+        data : {
+          title : 'Product License'
+        }
       }).state('management.configuration.proprietarycomponents', {
         parent: 'management.configuration',
         url: '/proprietarycomponents',
         controller: 'ProprietaryConfigurationController',
-        templateUrl: '../configuration-assets/components/proprietary.html?' + clmBuildTimestamp
+        templateUrl: '../configuration-assets/components/proprietary.html?' + clmBuildTimestamp,
+        data : {
+          title : 'Proprietary Configuration'
+        }
       });
     }
   ]);

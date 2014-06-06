@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.testing.functional
 import com.sonatype.insight.brain.testing.functional.modules.ButtonsModule
 import com.sonatype.insight.brain.testing.functional.modules.DashboardTabsModule
 import com.sonatype.insight.brain.testing.functional.modules.DropdownMultiSelectModule
+import com.sonatype.insight.brain.testing.functional.modules.ExpandoModule
 import com.sonatype.insight.brain.testing.functional.modules.SliderModule
 import com.sonatype.insight.brain.testing.functional.modules.ThreatTableModule
 import geb.Module
@@ -188,8 +189,8 @@ class ApplicationViolationsTableRow
     extends Module
 {
   static content = {
-    expand(required: false) { $('td:first-child i.expand') }
-    collapse(required: false) { $('td:first-child i.collapse') }
+    expand(required: false) { module ExpandoModule, $('td:first-child i.expand') }
+    collapse(required: false) { module ExpandoModule, $('td:first-child i.collapse') }
     application { $('td:first-child') }
     netRisk { $('td:nth-child(2)') }
     criticalRisk { $('td:nth-child(3)') }

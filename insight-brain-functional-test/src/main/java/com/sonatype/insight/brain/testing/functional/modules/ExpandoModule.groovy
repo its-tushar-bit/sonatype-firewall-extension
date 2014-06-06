@@ -17,9 +17,22 @@ class ExpandoModule
   static content = {
     expando(required: false) { $() }
   }
-  
+
+  private boolean isPhantomJs() {
+    return driver.class.name.endsWith("PhantomJSDriver");
+  }  
+
+  boolean isDisplayed() {
+    if (isPhantomJs()) {
+      expando.present
+    }
+    else {
+      expando.displayed
+    }
+  }
+
   Navigator click() {
-    if (driver.class.name.endsWith("PhantomJSDriver")) {
+    if (isPhantomJs()) {
       browser.js.exec(expando.firstElement(), 'jQuery(arguments[0]).click()')
     }
     else {

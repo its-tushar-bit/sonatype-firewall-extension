@@ -1059,7 +1059,6 @@ describe('DashboardModule', function() {
     beforeEach(inject(function($rootScope, $httpBackend) {
       scope = $rootScope.$new();
       $httpBackend.expectGET('policy-summary-delta').respond('<div></div>');
-
     }));
 
     function compileAndAssert($compile, $httpBackend, isPositive, isNegative) {

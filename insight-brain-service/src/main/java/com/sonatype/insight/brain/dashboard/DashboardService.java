@@ -10,7 +10,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -82,6 +81,8 @@ public class DashboardService
   static final int NEWEST_RISK_TIME_RANGE_IN_DAYS = 30;
 
   static final int POLICY_SUMMARY_WEEKS = 12;
+
+  private static final long ONE_WEEK_IN_MILLISECS = 7L * 24 * 3600 * 1000;
 
   private static final String SECRET_JOIN_STRING = "$";
 
@@ -1037,76 +1038,69 @@ public class DashboardService
     Set<StageType> stageTypes = getStageTypes(stageIds);
     Set<String> stageTypeIds = getStageIds(stageTypes);
     Predicate<PolicyViolation> filter = buildViolationFilter(policyThreatCategoryFilter, policyThreatLevelFilter);
+    Long now = System.currentTimeMillis();
 
     PolicySummaryDTO result = new PolicySummaryDTO();
+    for (int iWeek = 0; iWeek < POLICY_SUMMARY_WEEKS; iWeek++) {
+      result.weeklyDeltaNew.add(0);
+      result.weeklyDeltaFixed.add(0);
+    }
 
-    // Calculate initial policy violations.
-    DateTime now = new DateTime();
-    DateTime currentWeekStart = now.minusWeeks(POLICY_SUMMARY_WEEKS);
-    Map<String, PolicyViolationsWithStageTypes> policyViolationsByAppId = new LinkedHashMap<>();
     for (Application app : applications) {
+      Map<String, List<PolicyViolation>> lastViolationsByStageTypeId = new LinkedHashMap<>();
       PolicyViolationsWithStageTypes policyViolationsWithStageTypes = new PolicyViolationsWithStageTypes();
-      policyViolationsByAppId.put(app.getId(), policyViolationsWithStageTypes);
-      for (StageType stageType : stageTypes) {
-        PolicyEvaluation policyEvaluation = policyEvaluationDAO.getLastBeforeDateByApplicationIdAndStageId(app.getId(),
-            stageType.getId(), currentWeekStart.toDate());
-        if (policyEvaluation == null) {
+
+      List<PolicyEvaluation> policyEvaluations = policyEvaluationDAO.getByApplicationIdAndStageIds(app.getId(),
+          stageTypeIds);
+      for (PolicyEvaluation policyEvaluation : policyEvaluations) {
+        if (policyEvaluation.getTime().getTime() > now) {
+          // This policy evaluation is after we started calculating the policy summary. In order to be consistent,
+          // ignore it.
           continue;
         }
 
-        List<PolicyViolation> stagePolicyViolations = policyViolationDAO.getByEvaluationId(policyEvaluation.getId());
-        stagePolicyViolations = filter(stagePolicyViolations, filter);
-        PolicyViolationDiff diff = PolicyViolationDigester.digestPolicyViolations(stagePolicyViolations,
+        int weekIndex = POLICY_SUMMARY_WEEKS
+            - (int) ((now - policyEvaluation.getTime().getTime()) / ONE_WEEK_IN_MILLISECS) - 1;
+
+        List<PolicyViolation> policyViolations = policyViolationDAO.getByEvaluationId(policyEvaluation.getId());
+        policyViolations = filter(policyViolations, filter);
+
+        lastViolationsByStageTypeId.put(policyEvaluation.getStageTypeId(), policyViolations);
+
+        PolicyViolationDiff diff = PolicyViolationDigester.digestPolicyViolations(policyViolations,
             policyViolationsWithStageTypes.getPolicyViolations());
         for (PolicyViolation policyViolation : diff.getAppeared()) {
-          policyViolationsWithStageTypes.addViolationWithStageType(policyViolation, stageType.getId());
-        }
-        for (PolicyViolation policyViolation : diff.getSame().keySet()) {
-          policyViolationsWithStageTypes.addStageTypeToViolation(policyViolation, stageType.getId());
-        }
-      }
-    }
-
-    // Calculate the week-over-week deltas
-    for (int iWeek = 0; iWeek < POLICY_SUMMARY_WEEKS; iWeek++) {
-      int newCount = 0;
-      int fixedCount = 0;
-      Date fromDate = currentWeekStart.toDate();
-      Date toDate = currentWeekStart.plusWeeks(1).toDate();
-      for (Application app : applications) {
-        PolicyViolationsWithStageTypes policyViolationsWithStageTypes = policyViolationsByAppId.get(app.getId());
-
-        List<PolicyEvaluation> policyEvaluations = policyEvaluationDAO.getBetweenDatesByApplicationIdAndStageIds(
-            app.getId(), stageTypeIds, fromDate, toDate);
-        for (PolicyEvaluation policyEvaluation : policyEvaluations) {
-          List<PolicyViolation> policyViolations = policyViolationDAO.getByEvaluationId(policyEvaluation.getId());
-          policyViolations = filter(policyViolations, filter);
-
-          PolicyViolationDiff diff = PolicyViolationDigester.digestPolicyViolations(policyViolations,
-              policyViolationsWithStageTypes.getPolicyViolations());
-          for (PolicyViolation policyViolation : diff.getAppeared()) {
-            policyViolationsWithStageTypes
-                .addViolationWithStageType(policyViolation, policyEvaluation.getStageTypeId());
-            newCount++;
+          policyViolationsWithStageTypes.addViolationWithStageType(policyViolation, policyEvaluation.getStageTypeId());
+          result.totalNew++;
+          if (weekIndex >= 0) {
+            result.weeklyDeltaNew.set(weekIndex, result.weeklyDeltaNew.get(weekIndex) + 1);
           }
-          for (Entry<PolicyViolation, PolicyViolation> samePolicyViolationEntry : diff.getSame().entrySet()) {
-            policyViolationsWithStageTypes.addStageTypeToViolation(samePolicyViolationEntry.getKey(),
-                policyEvaluation.getStageTypeId());
-          }
-          for (PolicyViolation policyViolation : diff.getCleared()) {
-            if (policyViolationsWithStageTypes.removeStageTypeFromViolation(policyViolation,
-                policyEvaluation.getStageTypeId())) {
-              fixedCount++;
+        }
+        for (Entry<PolicyViolation, PolicyViolation> samePolicyViolationEntry : diff.getSame().entrySet()) {
+          policyViolationsWithStageTypes.addStageTypeToViolation(samePolicyViolationEntry.getKey(),
+              policyEvaluation.getStageTypeId());
+        }
+        for (PolicyViolation policyViolation : diff.getCleared()) {
+          if (policyViolationsWithStageTypes.removeStageTypeFromViolation(policyViolation,
+              policyEvaluation.getStageTypeId())) {
+            result.totalFixed++;
+            if (weekIndex >= 0) {
+              result.weeklyDeltaFixed.set(weekIndex, result.weeklyDeltaFixed.get(weekIndex) + 1);
             }
           }
         }
       }
 
-      result.newCounts.add(newCount);
-      result.fixedCounts.add(fixedCount);
-      result.unresolvedCounts.add(newCount - fixedCount);
+      List<PolicyViolation> uniquePolicyViolations = new ArrayList<>();
+      for (List<PolicyViolation> policyViolations : lastViolationsByStageTypeId.values()) {
+        PolicyViolationDiff diff = PolicyViolationDigester.digestPolicyViolations(policyViolations,
+            uniquePolicyViolations);
+        result.currentUnresolved += diff.getAppeared().size();
+      }
+    }
 
-      currentWeekStart = currentWeekStart.plusWeeks(1);
+    for (int iWeek = 0; iWeek < POLICY_SUMMARY_WEEKS; iWeek++) {
+      result.weeklyDeltaUnresolved.add(result.weeklyDeltaNew.get(iWeek) - result.weeklyDeltaFixed.get(iWeek));
     }
 
     log.debug("getPolicySummary finished in {}", System.currentTimeMillis() - start);

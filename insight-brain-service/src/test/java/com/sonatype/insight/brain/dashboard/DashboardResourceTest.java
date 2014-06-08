@@ -68,7 +68,7 @@ public class DashboardResourceTest
     assertResponseStatus(200, response);
     PolicySummaryDTO dto = JsonHelpers.fromJson(response.getResponseBody(), PolicySummaryDTO.class);
     assertThat(dto, notNullValue());
-    assertThat(dto.newCounts, hasSize(12));
+    assertThat(dto.weeklyDeltaNew, hasSize(12));
   }
 
   @Test

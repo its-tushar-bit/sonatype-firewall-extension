@@ -16,7 +16,11 @@ import java.util.List;
  */
 public class PolicySummaryDTO
 {
-  public List<Integer> newCounts = new ArrayList<>();
-  public List<Integer> fixedCounts = new ArrayList<>();
-  public List<Integer> unresolvedCounts = new ArrayList<>();
+  public int totalNew;
+  public int totalFixed;
+  public int currentUnresolved;
+
+  public List<Integer> weeklyDeltaNew = new ArrayList<>();
+  public List<Integer> weeklyDeltaFixed = new ArrayList<>();
+  public List<Integer> weeklyDeltaUnresolved = new ArrayList<>();
 }

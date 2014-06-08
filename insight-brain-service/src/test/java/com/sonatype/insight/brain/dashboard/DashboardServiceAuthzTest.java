@@ -326,9 +326,9 @@ public class DashboardServiceAuthzTest
   public void testGetPolicySummary_ImplicitApplicationFilter_Unauthenticated() {
     createPolicyViolation(app.getId());
     PolicySummaryDTO policySummaryDTO = dashboardService.getPolicySummary(null, null, null, null, null);
-    assertThat(policySummaryDTO.newCounts, hasSize(0));
-    assertThat(policySummaryDTO.fixedCounts, hasSize(0));
-    assertThat(policySummaryDTO.unresolvedCounts, hasSize(0));
+    assertThat(policySummaryDTO.weeklyDeltaNew, hasSize(0));
+    assertThat(policySummaryDTO.weeklyDeltaFixed, hasSize(0));
+    assertThat(policySummaryDTO.weeklyDeltaUnresolved, hasSize(0));
   }
 
   @Test
@@ -336,24 +336,24 @@ public class DashboardServiceAuthzTest
     createPolicyViolation(app.getId());
     login();
     PolicySummaryDTO policySummaryDTO = dashboardService.getPolicySummary(null, null, null, null, null);
-    assertThat(policySummaryDTO.newCounts, hasSize(DashboardService.POLICY_SUMMARY_WEEKS));
-    assertThat(policySummaryDTO.newCounts.get(DashboardService.POLICY_SUMMARY_WEEKS - 1), is(0));
-    assertThat(policySummaryDTO.fixedCounts, hasSize(DashboardService.POLICY_SUMMARY_WEEKS));
-    assertThat(policySummaryDTO.fixedCounts.get(DashboardService.POLICY_SUMMARY_WEEKS - 1), is(0));
-    assertThat(policySummaryDTO.unresolvedCounts, hasSize(DashboardService.POLICY_SUMMARY_WEEKS));
-    assertThat(policySummaryDTO.unresolvedCounts.get(DashboardService.POLICY_SUMMARY_WEEKS - 1), is(0));
+    assertThat(policySummaryDTO.weeklyDeltaNew, hasSize(DashboardService.POLICY_SUMMARY_WEEKS));
+    assertThat(policySummaryDTO.weeklyDeltaNew.get(DashboardService.POLICY_SUMMARY_WEEKS - 1), is(0));
+    assertThat(policySummaryDTO.weeklyDeltaFixed, hasSize(DashboardService.POLICY_SUMMARY_WEEKS));
+    assertThat(policySummaryDTO.weeklyDeltaFixed.get(DashboardService.POLICY_SUMMARY_WEEKS - 1), is(0));
+    assertThat(policySummaryDTO.weeklyDeltaUnresolved, hasSize(DashboardService.POLICY_SUMMARY_WEEKS));
+    assertThat(policySummaryDTO.weeklyDeltaUnresolved.get(DashboardService.POLICY_SUMMARY_WEEKS - 1), is(0));
   }
 
   @Test
   public void testGetPolicySummary_ImplicitApplicationFilter_Authorized() {
-    createNewestPolicyViolation(app.getId());
+    createPolicyViolation(app.getId());
     grantReadPermission(app.getId());
     PolicySummaryDTO policySummaryDTO = dashboardService.getPolicySummary(null, null, null, null, null);
-    assertThat(policySummaryDTO.newCounts, hasSize(DashboardService.POLICY_SUMMARY_WEEKS));
-    assertThat(policySummaryDTO.newCounts.get(DashboardService.POLICY_SUMMARY_WEEKS - 1), is(1));
-    assertThat(policySummaryDTO.fixedCounts, hasSize(DashboardService.POLICY_SUMMARY_WEEKS));
-    assertThat(policySummaryDTO.fixedCounts.get(DashboardService.POLICY_SUMMARY_WEEKS - 1), is(0));
-    assertThat(policySummaryDTO.unresolvedCounts, hasSize(DashboardService.POLICY_SUMMARY_WEEKS));
-    assertThat(policySummaryDTO.unresolvedCounts.get(DashboardService.POLICY_SUMMARY_WEEKS - 1), is(1));
+    assertThat(policySummaryDTO.weeklyDeltaNew, hasSize(DashboardService.POLICY_SUMMARY_WEEKS));
+    assertThat(policySummaryDTO.weeklyDeltaNew.get(DashboardService.POLICY_SUMMARY_WEEKS - 1), is(1));
+    assertThat(policySummaryDTO.weeklyDeltaFixed, hasSize(DashboardService.POLICY_SUMMARY_WEEKS));
+    assertThat(policySummaryDTO.weeklyDeltaFixed.get(DashboardService.POLICY_SUMMARY_WEEKS - 1), is(0));
+    assertThat(policySummaryDTO.weeklyDeltaUnresolved, hasSize(DashboardService.POLICY_SUMMARY_WEEKS));
+    assertThat(policySummaryDTO.weeklyDeltaUnresolved.get(DashboardService.POLICY_SUMMARY_WEEKS - 1), is(1));
   }
 }

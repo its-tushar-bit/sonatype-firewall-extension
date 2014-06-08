@@ -81,26 +81,6 @@ public class PolicyEvaluationDAO
     return get(em, sQuery, appId, stageTypeId);
   }
 
-  /**
-   * Returns the most recent policy evaluation before a specified date for the most recent scan for the given
-   * application and stage.
-   */
-  public PolicyEvaluation getLastBeforeDateByApplicationIdAndStageId(String appId, String stageTypeId, Date date) {
-    // This can be implemented simpler in two steps, by getting the last scan for the specified app and stage (by
-    // getting the last primary evaluation) and then getting the last evaluation for that scan.
-    // We chose to implement it as a single query in order to have one round trip to the db instead of two.
-    String sQuery = "SELECT pe1 FROM PolicyEvaluation pe1" + //
-        " WHERE pe1.applicationId=?1 AND pe1.stageTypeId=?2" + //
-        "   AND pe1.time=(" + //
-        // Find the time for the most recent evaluation before the specified date
-        "   SELECT max(pe2.time) FROM PolicyEvaluation pe2" + //
-        "     WHERE pe2.applicationId=?1 AND pe2.stageTypeId=?2" + //
-        "       AND pe2.isForObsoleteScan=false" + //
-        "       AND pe2.time <= ?3" + //
-        "   )";
-    return get(sQuery, appId, stageTypeId, date);
-  }
-
   //the fancy query for this is slower than the query above, so simple it is
   public List<PolicyEvaluation> getLastByApplicationIdsAndStageIds(Set<String> appIds, Set<String> stageTypeIds) {
     List<PolicyEvaluation> result = new ArrayList<>(appIds.size() * stageTypeIds.size());
@@ -172,13 +152,12 @@ public class PolicyEvaluationDAO
     return getList(em, sQuery, appId);
   }
 
-  public List<PolicyEvaluation> getBetweenDatesByApplicationIdAndStageIds(String appId, Set<String> stageTypeIds, Date fromDate, Date toDate) {
+  public List<PolicyEvaluation> getByApplicationIdAndStageIds(String appId, Set<String> stageTypeIds) {
     String sQuery = "SELECT entity FROM PolicyEvaluation entity" + //
         " WHERE entity.applicationId = ?1 AND entity.stageTypeId IN (?2)" + //
-        "   AND entity.isForObsoleteScan=false" + //
-        "   AND entity.time > ?3 AND entity.time <= ?4" + //
+        "   AND entity.isForObsoleteScan = false" + //
         " ORDER BY entity.time";
-    return getList(sQuery, appId, stageTypeIds, fromDate, toDate);
+    return getList(sQuery, appId, stageTypeIds);
   }
 
   @Override

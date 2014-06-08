@@ -1003,7 +1003,7 @@ public class DashboardServiceTest
     DateTime now = new DateTime();
     PolicyEvaluation pe1 = tempEntity.newPolicyEvaluation(app1.getId(), BuildStageType.ID, "scanId1",
         now.minusWeeks(DashboardService.POLICY_SUMMARY_WEEKS).plusDays(1).toDate());
-    tempEntity.newPolicyViolation(pe1, orgPolicy);
+    tempEntity.newPolicyViolation(pe1, orgPolicy, "g1", "a1", "v1", "h1", "r1");
     PolicyEvaluation pe2 = tempEntity.newPolicyEvaluation(app2.getId(), BuildStageType.ID, "scanId2",
         now.minusWeeks(DashboardService.POLICY_SUMMARY_WEEKS).plusDays(1).toDate());
     tempEntity.newPolicyViolation(pe2, orgPolicy, "g2", "a2", "v2", "h2", "r2");
@@ -1011,10 +1011,12 @@ public class DashboardServiceTest
 
     PolicySummaryDTO dto = dashboardService.getPolicySummary(Collections.singleton(app1.getPublicId()), null, null,
         null, null);
+    assertPolicySummary(dto, 3, 1, 2);
     assertPolicySummaryWeek(dto, 0, 1, 0, 1);
 
     dto = dashboardService.getPolicySummary(Sets.newHashSet(app1.getPublicId(), app2.getPublicId()), null, null, null,
         null);
+    assertPolicySummary(dto, 6, 3, 3);
     assertPolicySummaryWeek(dto, 0, 3, 0, 3);
   }
 
@@ -1023,7 +1025,7 @@ public class DashboardServiceTest
     DateTime now = new DateTime();
     PolicyEvaluation pe1 = tempEntity.newPolicyEvaluation(app1.getId(), BuildStageType.ID, "scanId1",
         now.minusWeeks(DashboardService.POLICY_SUMMARY_WEEKS).plusDays(1).toDate());
-    tempEntity.newPolicyViolation(pe1, orgPolicy);
+    tempEntity.newPolicyViolation(pe1, orgPolicy, "g1", "a1", "v1", "h1", "r1");
     PolicyEvaluation pe2 = tempEntity.newPolicyEvaluation(app2.getId(), ReleaseStageType.ID, "scanId2",
         now.minusWeeks(DashboardService.POLICY_SUMMARY_WEEKS).plusDays(1).toDate());
     tempEntity.newPolicyViolation(pe2, orgPolicy, "g2", "a2", "v2", "h2", "r2");
@@ -1031,10 +1033,12 @@ public class DashboardServiceTest
 
     PolicySummaryDTO dto = dashboardService.getPolicySummary(null, Collections.singleton(BuildStageType.ID), null,
         null, null);
+    assertPolicySummary(dto, 4, 1, 3);
     assertPolicySummaryWeek(dto, 0, 1, 0, 1);
 
     dto = dashboardService.getPolicySummary(null, Sets.newHashSet(BuildStageType.ID, ReleaseStageType.ID), null, null,
         null);
+    assertPolicySummary(dto, 6, 1, 5);
     assertPolicySummaryWeek(dto, 0, 3, 0, 3);
   }
 
@@ -1043,12 +1047,13 @@ public class DashboardServiceTest
     DateTime now = new DateTime();
     PolicyEvaluation pe1 = tempEntity.newPolicyEvaluation(app1.getId(), BuildStageType.ID, "scanId1",
         now.minusWeeks(DashboardService.POLICY_SUMMARY_WEEKS).plusDays(1).toDate());
-    tempEntity.newPolicyViolation(pe1, orgPolicy);
+    tempEntity.newPolicyViolation(pe1, orgPolicy, "g1", "a1", "v1", "h1", "r1");
     PolicyEvaluation pe2 = tempEntity.newPolicyEvaluation(app2.getId(), DevelopStageType.ID, "scanId2",
         now.minusWeeks(DashboardService.POLICY_SUMMARY_WEEKS).plusDays(1).toDate());
-    tempEntity.newPolicyViolation(pe2, orgPolicy);
+    tempEntity.newPolicyViolation(pe2, orgPolicy, "g2", "a2", "v2", "h2", "r2");
 
     PolicySummaryDTO dto = dashboardService.getPolicySummary(null, null, null, null, null);
+    assertPolicySummary(dto, 4, 1, 3);
     assertPolicySummaryWeek(dto, 0, 1, 0, 1);
 
     try {
@@ -1065,8 +1070,8 @@ public class DashboardServiceTest
     DateTime now = new DateTime();
     PolicyEvaluation pe1 = tempEntity.newPolicyEvaluation(app1.getId(), BuildStageType.ID, "scanId1",
         now.minusWeeks(DashboardService.POLICY_SUMMARY_WEEKS).plusDays(1).toDate());
-    tempEntity.newPolicyViolation(pe1, orgPolicy);
-    PolicyEvaluation pe2 = tempEntity.newPolicyEvaluation(app2.getId(), ReleaseStageType.ID, "scanId2",
+    tempEntity.newPolicyViolation(pe1, orgPolicy, "g1", "a1", "v1", "h1", "r1");
+    PolicyEvaluation pe2 = tempEntity.newPolicyEvaluation(app2.getId(), BuildStageType.ID, "scanId2",
         now.minusWeeks(DashboardService.POLICY_SUMMARY_WEEKS).plusDays(1).toDate());
     tempEntity.newPolicyViolation(pe2, orgPolicy, "g2", "a2", "v2", "h2", "r2");
     tempEntity.newPolicyViolation(pe2, orgPolicy, "g3", "a3", "v3", "h3", "r3");
@@ -1077,9 +1082,11 @@ public class DashboardServiceTest
 
     PolicySummaryDTO dto = dashboardService.getPolicySummary(null, null, Collections.singleton(app1Tag.getId()), null,
         null);
+    assertPolicySummary(dto, 3, 1, 2);
     assertPolicySummaryWeek(dto, 0, 1, 0, 1);
 
     dto = dashboardService.getPolicySummary(null, null, Sets.newHashSet(app1Tag.getId(), app2Tag.getId()), null, null);
+    assertPolicySummary(dto, 6, 3, 3);
     assertPolicySummaryWeek(dto, 0, 3, 0, 3);
   }
 
@@ -1088,18 +1095,20 @@ public class DashboardServiceTest
     DateTime now = new DateTime();
     PolicyEvaluation pe1 = tempEntity.newPolicyEvaluation(app1.getId(), BuildStageType.ID, "scanId1",
         now.minusWeeks(DashboardService.POLICY_SUMMARY_WEEKS).plusDays(1).toDate());
-    tempEntity.newPolicyViolation(pe1, orgPolicy, 5, PolicyThreatCategory.LICENSE, "gid", "aid", "1");
-    PolicyEvaluation pe2 = tempEntity.newPolicyEvaluation(app2.getId(), ReleaseStageType.ID, "scanId2",
+    tempEntity.newPolicyViolation(pe1, orgPolicy, 5, PolicyThreatCategory.LICENSE, "g1", "a1", "v1", "h1");
+    PolicyEvaluation pe2 = tempEntity.newPolicyEvaluation(app2.getId(), BuildStageType.ID, "scanId2",
         now.minusWeeks(DashboardService.POLICY_SUMMARY_WEEKS).plusDays(1).toDate());
-    tempEntity.newPolicyViolation(pe2, orgPolicy, 5, PolicyThreatCategory.SECURITY, "gid", "aid", "1");
-    tempEntity.newPolicyViolation(pe2, orgPolicy, 5, PolicyThreatCategory.SECURITY, "gid", "aid", "2");
+    tempEntity.newPolicyViolation(pe2, orgPolicy, 5, PolicyThreatCategory.SECURITY, "g2", "a2", "v2", "h2");
+    tempEntity.newPolicyViolation(pe2, orgPolicy, 5, PolicyThreatCategory.SECURITY, "g3", "a3", "v3", "h3");
 
     PolicySummaryDTO dto = dashboardService.getPolicySummary(null, null, null, new PolicyThreatCategoryFilter(
         PolicyThreatCategory.LICENSE), null);
+    assertPolicySummary(dto, 4, 1, 3);
     assertPolicySummaryWeek(dto, 0, 1, 0, 1);
 
     dto = dashboardService.getPolicySummary(null, null, null, new PolicyThreatCategoryFilter(
         PolicyThreatCategory.LICENSE, PolicyThreatCategory.SECURITY), null);
+    assertPolicySummary(dto, 6, 3, 3);
     assertPolicySummaryWeek(dto, 0, 3, 0, 3);
   }
 
@@ -1108,16 +1117,18 @@ public class DashboardServiceTest
     DateTime now = new DateTime();
     PolicyEvaluation pe1 = tempEntity.newPolicyEvaluation(app1.getId(), BuildStageType.ID, "scanId1",
         now.minusWeeks(DashboardService.POLICY_SUMMARY_WEEKS).plusDays(1).toDate());
-    tempEntity.newPolicyViolation(pe1, orgPolicy, 5, PolicyThreatCategory.LICENSE, "gid", "aid", "1");
-    PolicyEvaluation pe2 = tempEntity.newPolicyEvaluation(app2.getId(), ReleaseStageType.ID, "scanId2",
+    tempEntity.newPolicyViolation(pe1, orgPolicy, 5, PolicyThreatCategory.LICENSE, "g1", "a1", "v1", "h1");
+    PolicyEvaluation pe2 = tempEntity.newPolicyEvaluation(app2.getId(), BuildStageType.ID, "scanId2",
         now.minusWeeks(DashboardService.POLICY_SUMMARY_WEEKS).plusDays(1).toDate());
-    tempEntity.newPolicyViolation(pe2, orgPolicy, 8, PolicyThreatCategory.SECURITY, "gid", "aid", "1");
-    tempEntity.newPolicyViolation(pe2, orgPolicy, 8, PolicyThreatCategory.SECURITY, "gid", "aid", "2");
+    tempEntity.newPolicyViolation(pe2, orgPolicy, 8, PolicyThreatCategory.SECURITY, "g2", "a2", "v2", "h2");
+    tempEntity.newPolicyViolation(pe2, orgPolicy, 8, PolicyThreatCategory.SECURITY, "g3", "a3", "v3", "h3");
 
     PolicySummaryDTO dto = dashboardService.getPolicySummary(null, null, null, null, new PolicyThreatLevelFilter(5, 5));
+    assertPolicySummary(dto, 2, 1, 1);
     assertPolicySummaryWeek(dto, 0, 1, 0, 1);
 
     dto = dashboardService.getPolicySummary(null, null, null, null, new PolicyThreatLevelFilter(5, 8));
+    assertPolicySummary(dto, 4, 3, 1);
     assertPolicySummaryWeek(dto, 0, 3, 0, 3);
   }
 
@@ -1140,9 +1151,7 @@ public class DashboardServiceTest
         now.minusWeeks(DashboardService.POLICY_SUMMARY_WEEKS - 1).plusDays(1).toDate());
 
     PolicySummaryDTO dto = dashboardService.getPolicySummary(null, null, null, null, null);
-    assertThat(dto.newCounts, hasSize(DashboardService.POLICY_SUMMARY_WEEKS));
-    assertThat(dto.fixedCounts, hasSize(DashboardService.POLICY_SUMMARY_WEEKS));
-    assertThat(dto.unresolvedCounts, hasSize(DashboardService.POLICY_SUMMARY_WEEKS));
+    assertPolicySummary(dto, 5, 1, 4);
     assertPolicySummaryWeek(dto, 0, 1, 0, 1);
     assertPolicySummaryWeek(dto, 1, 0, 1, -1);
     assertPolicySummaryWeek(dto, 2, 0, 0, 0);
@@ -1173,9 +1182,7 @@ public class DashboardServiceTest
         now.minusWeeks(DashboardService.POLICY_SUMMARY_WEEKS - 2).plusDays(1).toDate());
 
     PolicySummaryDTO dto = dashboardService.getPolicySummary(null, null, null, null, null);
-    assertThat(dto.newCounts, hasSize(DashboardService.POLICY_SUMMARY_WEEKS));
-    assertThat(dto.fixedCounts, hasSize(DashboardService.POLICY_SUMMARY_WEEKS));
-    assertThat(dto.unresolvedCounts, hasSize(DashboardService.POLICY_SUMMARY_WEEKS));
+    assertPolicySummary(dto, 4, 1, 3);
     assertPolicySummaryWeek(dto, 0, 1, 0, 1);
     assertPolicySummaryWeek(dto, 1, 0, 0, 0);
     assertPolicySummaryWeek(dto, 2, 0, 1, -1);
@@ -1185,13 +1192,24 @@ public class DashboardServiceTest
     assertPolicySummaryWeek(dto, DashboardService.POLICY_SUMMARY_WEEKS - 1, 3, 0, 3);
   }
 
+  private void assertPolicySummary(PolicySummaryDTO actual, int totalNew, int totalFixed, int currentUnresolved) {
+    assertThat(actual, notNullValue());
+
+    assertThat(actual.totalNew, is(totalNew));
+    assertThat(actual.totalFixed, is(totalFixed));
+    assertThat(actual.currentUnresolved, is(currentUnresolved));
+
+    assertThat(actual.weeklyDeltaNew, hasSize(DashboardService.POLICY_SUMMARY_WEEKS));
+    assertThat(actual.weeklyDeltaFixed, hasSize(DashboardService.POLICY_SUMMARY_WEEKS));
+    assertThat(actual.weeklyDeltaUnresolved, hasSize(DashboardService.POLICY_SUMMARY_WEEKS));
+  }
+
   private void assertPolicySummaryWeek(PolicySummaryDTO actual, int week, int newCount, int fixedCount,
       int unresolvedCount)
   {
-    assertThat(actual, notNullValue());
-    assertThat(actual.newCounts.get(week), is(newCount));
-    assertThat(actual.fixedCounts.get(week), is(fixedCount));
-    assertThat(actual.unresolvedCounts.get(week), is(unresolvedCount));
+    assertThat(actual.weeklyDeltaNew.get(week), is(newCount));
+    assertThat(actual.weeklyDeltaFixed.get(week), is(fixedCount));
+    assertThat(actual.weeklyDeltaUnresolved.get(week), is(unresolvedCount));
   }
 
   @Test

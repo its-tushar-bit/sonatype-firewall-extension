@@ -759,49 +759,50 @@
           function delta(counts) {
             return counts.reduce(function(a, b) {
               return a + b;
-            }) - counts[0];
+            });
           }
 
-          function calculateRunningTotals(counts) {
-            var runningTotals = [];
+          function calculateRunningTotals(counts, startValue) {
+            var runningTotals = [startValue];
             for (var i = 0; i < counts.length; i++) {
-              if (i > 0) {
-                runningTotals[i] = counts[i] + runningTotals[i - 1];
-              }
-              else {
-                runningTotals[i] = counts[i];
-              }
+              runningTotals[i+1] = counts[i] + runningTotals[i];
             }
             return runningTotals;
           }
 
           function generateModel(policySummaryData) {
-            var newCounts = policySummaryData.newCounts,
-              fixedCounts = policySummaryData.fixedCounts,
-              unresolvedCounts = policySummaryData.unresolvedCounts;
+            var weeklyDeltaNew = policySummaryData.weeklyDeltaNew,
+              weeklyDeltaFixed = policySummaryData.weeklyDeltaFixed,
+              weeklyDeltaUnresolved = policySummaryData.weeklyDeltaUnresolved,
+              totalNew = policySummaryData.totalNew,
+              totalFixed = policySummaryData.totalFixed,
+              currentUnresolved = policySummaryData.currentUnresolved,
+              newDelta = delta(weeklyDeltaNew),
+              fixedDelta = delta(weeklyDeltaFixed),
+              unresolvedDelta = delta(weeklyDeltaUnresolved);
             return [
               {
                 name: 'New',
-                counts: newCounts[newCounts.length-1],
-                delta: delta(newCounts),
-                barChartData : newCounts,
-                sparklineData: calculateRunningTotals(newCounts),
+                counts: totalNew,
+                delta: newDelta,
+                barChartData : weeklyDeltaNew,
+                sparklineData: calculateRunningTotals(weeklyDeltaNew, totalNew - newDelta),
                 inverseGreen: true
               },
               {
                 name: 'Fixed',
-                counts: fixedCounts[fixedCounts.length-1],
-                delta: delta(fixedCounts),
-                barChartData : fixedCounts,
-                sparklineData: calculateRunningTotals(fixedCounts),
+                counts: totalFixed,
+                delta: fixedDelta,
+                barChartData : weeklyDeltaFixed,
+                sparklineData: calculateRunningTotals(weeklyDeltaFixed, totalFixed - fixedDelta),
                 inverseGreen: false
               },
               {
                 name: 'Unresolved',
-                counts: unresolvedCounts[unresolvedCounts.length-1],
-                delta: delta(unresolvedCounts),
-                barChartData : unresolvedCounts,
-                sparklineData: calculateRunningTotals(unresolvedCounts),
+                counts: currentUnresolved,
+                delta: unresolvedDelta,
+                barChartData : weeklyDeltaUnresolved,
+                sparklineData: calculateRunningTotals(weeklyDeltaUnresolved, currentUnresolved - unresolvedDelta),
                 inverseGreen: true
               }
             ];

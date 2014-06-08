@@ -881,11 +881,14 @@ describe('DashboardModule', function() {
 
   });
 
-  describe('Policy Summary table', function(){
+  describe('Policy Summary table', function() {
     var url, policySummaryData = {
-      "newCounts": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
-      "fixedCounts": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
-      "unresolvedCounts": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+      totalNew: 100,
+      totalFixed: 50,
+      currentUnresolved: 50,
+      weeklyDeltaNew: [1, 1, 2, 0, 3, 0, 1, 5, 2, 1, 0, 1],
+      weeklyDeltaFixed: [1, 1, 1, 1, 1, 1, 2, 0, 0, 0, 1, 0],
+      weeklyDeltaUnresolved: [0, 0, 1, -1, 2, -1, -1, 5, 2, 1, -1, 1]
     };
 
     beforeEach(inject(function($rootScope, $httpBackend, CLMLocations) {
@@ -895,18 +898,18 @@ describe('DashboardModule', function() {
       url = CLMLocations.getPolicySummaryUrl() + commonFilterQuery;
     }));
 
-    it('Data loaded from server  properly', inject(function($compile, $httpBackend) {
+    it('Data loaded from server properly', inject(function($compile, $httpBackend) {
       $httpBackend.expectGET(url).respond(policySummaryData);
       $compile(angular.element('<div dashboard-policy-summary filters="filters"></div>'))(scope);
       $httpBackend.flush();
-      assertPolicySummaryBlock('New', 12, 77, policySummaryData.newCounts,
-        [1, 3, 6, 10, 15, 21, 28, 36, 45, 55, 66, 78], true,
+      assertPolicySummaryBlock('New', 100, 17, policySummaryData.weeklyDeltaNew,
+        [83, 84, 85, 87, 87, 90, 90, 91, 96, 98, 99, 99, 100], true,
         scope.$$childHead.policySummaryData[0]);
-      assertPolicySummaryBlock('Fixed', 12, 77, policySummaryData.fixedCounts,
-        [1, 3, 6, 10, 15, 21, 28, 36, 45, 55, 66, 78], false,
+      assertPolicySummaryBlock('Fixed', 50, 9, policySummaryData.weeklyDeltaFixed,
+        [41, 42, 43, 44, 45, 46, 47, 49, 49, 49, 49, 50, 50], false,
         scope.$$childHead.policySummaryData[1]);
-      assertPolicySummaryBlock('Unresolved', 12, 77, policySummaryData.unresolvedCounts,
-        [1, 3, 6, 10, 15, 21, 28, 36, 45, 55, 66, 78], true,
+      assertPolicySummaryBlock('Unresolved', 50, 8, policySummaryData.weeklyDeltaUnresolved,
+        [42, 42, 42, 43, 42, 44, 43, 42, 47, 49, 50, 49, 50], true,
         scope.$$childHead.policySummaryData[2]);
 
       expect(scope.$$childHead.error).toBeFalsy();
@@ -919,7 +922,9 @@ describe('DashboardModule', function() {
       expect(scope.$$childHead.error).toBeDefined();
     }));
 
-    function assertPolicySummaryBlock(name, counts, delta, barchartData, sparklineData, inverseGreen, policySummaryBlock){
+    function assertPolicySummaryBlock(name, counts, delta, barchartData, sparklineData, inverseGreen,
+                                      policySummaryBlock)
+    {
       expect(policySummaryBlock.name).toEqual(name);
       expect(policySummaryBlock.counts).toEqual(counts);
       expect(policySummaryBlock.delta).toEqual(delta);

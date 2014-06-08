@@ -706,7 +706,7 @@ class DashboardOverviewSpec
     then: 'it builds a path for the new line'
       SparklineModule sparkline = policySummary.rows[0].sparkline
       def points = sparkline.getValues()
-      points.size() == 12
+      points.size() == 13
       that(points[0], closeTo(0, TOLERANCE))
       that(points[1], closeTo(0, TOLERANCE))
       that(points[2], closeTo(0, TOLERANCE))
@@ -716,9 +716,10 @@ class DashboardOverviewSpec
       that(points[6], closeTo(0, TOLERANCE))
       that(points[7], closeTo(0, TOLERANCE))
       that(points[8], closeTo(0, TOLERANCE))
-      that(points[9], closeTo(0.3, TOLERANCE))
-      that(points[10], closeTo(0.7, TOLERANCE))
-      that(points[11], closeTo(1.0, TOLERANCE))
+      that(points[9], closeTo(0, TOLERANCE))
+      that(points[10], closeTo(0.3, TOLERANCE))
+      that(points[11], closeTo(0.7, TOLERANCE))
+      that(points[12], closeTo(1.0, TOLERANCE))
 
     and: 'ends in a red line'
       !sparkline.isTrailingGreen()

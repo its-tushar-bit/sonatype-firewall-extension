@@ -285,7 +285,7 @@
 <script type="text/ng-template" id="policy-summary-delta">
   <div ng-class="{'delta-positive': isPositive(), 'delta-negative': isNegative() }">
     <div class="sonatype-icons" ng-class="{'up': data > 0, 'down': data < 0}" style="padding-left:5px;">
-      {{data | abs}}
+      {{data}}
     </div>
   </div>
 </script>

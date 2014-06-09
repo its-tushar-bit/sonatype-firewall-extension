@@ -223,7 +223,7 @@ table.table-risk td.low-risk {
     position: absolute;
   }
 
-  .dashboard-content .filter-edit {
+  .dashboard-content .filter-edit-body {
     padding-left: 20px;
   }
 }
@@ -233,8 +233,12 @@ table.table-risk td.low-risk {
     width: 744px;
   }
 
-  .dashboard-tables .span6 {
+  .dashboard-content .span6 {
     width: 724px;
+  }
+
+  .dashboard-content .span2 {
+    width: 228px;
   }
 
   .filter-edit .span2 {
@@ -330,6 +334,7 @@ table.table-risk td.low-risk {
 
 .scrollable-container {
   height: 500px;
+  min-width: 830px;
   position: relative;
   padding-top: 30px;
 }
@@ -783,6 +788,7 @@ table.table-risk td.low-risk {
 .chart {
   height: 30px;
   width: 160px;
+  margin: auto;
 }
 .bar.positive {
   fill: #0B9743;

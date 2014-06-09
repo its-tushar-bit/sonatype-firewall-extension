@@ -819,6 +819,7 @@ table.table-risk td.low-risk {
 }
 .table.policy-summary-table .category-header {
   min-width: 95px;
+  text-align: left;
 }
 /* END styling for policy summary elements */
 

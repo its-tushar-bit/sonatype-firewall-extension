@@ -256,7 +256,7 @@
         <thead>
           <tr>
             <th class="category-header">CATEGORY</th>
-            <th>COUNTS</th>
+            <th>COUNT</th>
             <th>DELTA</th>
             <th>WEEKLY DELTAS</th>
             <th>12 WEEK TREND</th>
@@ -286,9 +286,8 @@
 </script>
 <script type="text/ng-template" id="policy-summary-delta">
   <div ng-class="{'delta-positive': isPositive(), 'delta-negative': isNegative() }">
-    <div class="sonatype-icons" ng-class="{'up': data > 0, 'down': data < 0}" style="padding-left:5px;">
-      {{data}}
-    </div>
+    <i class="sonatype-icons" ng-class="{'up': data > 0, 'down': data < 0}" class="pull-left"></i>
+    <div class="pull-right">{{data}}</div>
   </div>
 </script>
 <script type="text/ng-template" id="component-heat-map-help">

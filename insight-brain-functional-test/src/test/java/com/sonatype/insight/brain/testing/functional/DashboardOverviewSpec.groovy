@@ -97,14 +97,18 @@ class DashboardOverviewSpec
     // evaluation in yet another stage
     PolicyEvaluation thirdPolicyEvaluation = temporaryEntity.newPolicyEvaluation(firstApp.id, ReleaseStageType.ID,
         'DashboardSpecThirdEvaluation', now - 8)
-    temporaryEntity.newPolicyViolation(thirdPolicyEvaluation, policy, 2, PolicyThreatCategory.QUALITY, 
+    PolicyViolation thirdViolation = temporaryEntity.newPolicyViolation(thirdPolicyEvaluation, policy, 2, PolicyThreatCategory.QUALITY, 
         "Group1", "Artifact1", "Version1")
+    temporaryEntity.newNewestPolicyViolation(thirdViolation.id, thirdPolicyEvaluation.applicationId,
+        thirdPolicyEvaluation.stageTypeId)
 
     // and one more stage to cover them all
     PolicyEvaluation forthPolicyEvaluation = temporaryEntity.newPolicyEvaluation(firstApp.id, OperateStageType.ID,
         'DashboardSpecForthEvaluation', now - 9)
-    temporaryEntity.newPolicyViolation(forthPolicyEvaluation, policy, 1, PolicyThreatCategory.OTHER, 
+    PolicyViolation forthViolation = temporaryEntity.newPolicyViolation(forthPolicyEvaluation, policy, 1, PolicyThreatCategory.OTHER, 
         "Group1", "Artifact1", "Version1")
+    temporaryEntity.newNewestPolicyViolation(forthViolation.id, forthPolicyEvaluation.applicationId,
+        forthPolicyEvaluation.stageTypeId)
 
     //most recent evaluation
     PolicyEvaluation secondPolicyEvaluation = temporaryEntity.newPolicyEvaluation(secondApp.id, ReleaseStageType.ID,
@@ -284,8 +288,9 @@ class DashboardOverviewSpec
       newestViolationTable.ageHeader.click()
 
     then: 'we should now show the oldest result first'
-      newestViolationTable.rows[0].age == '7d'
-      newestViolationTable.rows[1].age ==~ RECENT_AGE
+      newestViolationTable.rows[0].age == '8d'
+      newestViolationTable.rows[1].age == '7d'
+      newestViolationTable.rows[2].age ==~ RECENT_AGE
   }
 
 
@@ -309,7 +314,7 @@ class DashboardOverviewSpec
   def 'Newest Risk Table can be filtered'() {
     when: 'newest risk table is shown'
       waitFor { newestViolationTable.displayed }
-      waitFor { newestViolationTable.rows.size() == 2 }
+      waitFor { newestViolationTable.rows.size() == 3 }
 
     then: 'policy violations are listed by threat level'
       !noDataAvailable.displayed
@@ -484,15 +489,13 @@ class DashboardOverviewSpec
 
   def 'Limits results to 100 records'() {
     setup: 'Add over 100 records'
-      List<PolicyEvaluation> evaluations = new ArrayList<>()
+      Date now = new Date()
+      PolicyEvaluation policyEvaluation = temporaryEntity.newPolicyEvaluation(firstApp.id, BuildStageType.ID,
+          'DashboardSpecFirstEvaluation', now - 7)
       for (i in 0..100) {
-        Date now = new Date()
-        PolicyEvaluation policyEvaluation = temporaryEntity.newPolicyEvaluation(firstApp.id, BuildStageType.ID,
-            'DashboardSpecFirstEvaluation', now - 7)
-        evaluations.add(policyEvaluation)
         PolicyViolation violation = temporaryEntity.
             newPolicyViolation(policyEvaluation, policy, 5, PolicyThreatCategory.SECURITY,
-                "Group${i}", "Artifact${i}", "Version${i}")
+                "Group${i}", "Artifact${i}", "Version${i}", "Hash${i}")
         temporaryEntity.newNewestPolicyViolation(violation.id, policyEvaluation.applicationId,
             policyEvaluation.stageTypeId)
       }
@@ -515,10 +518,7 @@ class DashboardOverviewSpec
       newestViolationTable.maxResults.text() == 'Showing the top 100 results'
 
     cleanup:
-      PolicyEvaluationDAO dao = new PolicyEvaluationDAO()
-      for (PolicyEvaluation evaluation : evaluations) {
-        dao.delete(evaluation)
-      }
+      PolicyEvaluationDAO dao = new PolicyEvaluationDAO().delete(policyEvaluation)
   }
 
   def 'Filters stored as expected'() {

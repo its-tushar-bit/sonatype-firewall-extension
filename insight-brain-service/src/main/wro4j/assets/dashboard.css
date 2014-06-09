@@ -262,6 +262,10 @@ table.table-risk td.low-risk {
   .filter-edit-body .slider {
     width: 86px !important;
   }
+
+  .chart {
+    width: 100px !important;
+  }
 }
 
 @media (min-width: 1200px) {
@@ -285,7 +289,7 @@ table.table-risk td.low-risk {
   }
 
   .chart {
-    width: 290px !important;
+    width: 270px !important;
   }
 }
 
@@ -778,7 +782,7 @@ table.table-risk td.low-risk {
 }
 .chart {
   height: 30px;
-  width: 150px;
+  width: 160px;
 }
 .bar.positive {
   fill: #0B9743;
@@ -812,6 +816,9 @@ table.table-risk td.low-risk {
 }
 .table.policy-summary-table th {
   padding: 3px 0 3px 0;
+}
+.table.policy-summary-table .category-header {
+  min-width: 95px;
 }
 /* END styling for policy summary elements */
 

@@ -252,13 +252,15 @@
     </h5>
     <div ng-if="policySummaryData" class="span6" id="policySummaryData">
       <h4 class="dashboard-section-header">Policy Summary</h4>
-      <table  class="table policy-summary-table">
+      <table class="table policy-summary-table">
         <thead>
-        <th>CATEGORY</th>
-        <th>COUNTS</th>
-        <th>DELTA</th>
-        <th>WEEKLY DELTAS</th>
-        <th>12 WEEK TREND</th>
+          <tr>
+            <th class="category-header">CATEGORY</th>
+            <th>COUNTS</th>
+            <th>DELTA</th>
+            <th>WEEKLY DELTAS</th>
+            <th>12 WEEK TREND</th>
+          </tr>
         </thead>
         <tbody>
         <tr ng-repeat="category in policySummaryData">

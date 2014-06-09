@@ -57,6 +57,7 @@ public class AbstractServiceAuthzTest
     binder.install(new CLMShiroAopModule());
   }
 
+  @Override
   @Before
   public void setUpSecurity() {
     org = tempEntity.newOrganization();

@@ -304,8 +304,9 @@ table.clm-table-stripe > tbody > tr:nth-child(odd) {
 }
 
 .modal-help {
-  width: 40%;
+  width: 60%;
   max-height: 500px;
+  left: 36%;
 }
 
 div.modal-help-icon {
@@ -344,5 +345,5 @@ div.modal-help-icon {
 }
 
 .heat-map-help .table-help td:first-child {
-  min-width: 250px; 
+  width: 250px; 
 }

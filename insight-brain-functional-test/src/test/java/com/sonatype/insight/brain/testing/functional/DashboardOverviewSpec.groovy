@@ -251,36 +251,38 @@ class DashboardOverviewSpec
       waitFor { newestViolationTable.rows.size() >= 2 }
 
     then: 'risks are sorted by descending threat level, with the most recent results shown first'
-      newestViolationTable.rows[0].risk == 10
+      ThreatTableRow rowOne = newestViolationTable.rows[0]
+      ThreatTableRow rowTwo = newestViolationTable.rows[1]
+      rowOne.risk == 10
 
     and: 'only one stage is populated for the first result'
-      !newestViolationTable.rows[0].buildAge
-      !newestViolationTable.rows[0].operateAge
-      newestViolationTable.rows[0].releaseAge ==~ RECENT_AGE
-      newestViolationTable.rows[0].releaseAge == newestViolationTable.rows[0].age
-      !newestViolationTable.rows[0].stageReleaseAge
-      newestViolationTable.rows[0].isLatestRisk(RELEASE_AGE)
+      !rowOne.buildAge
+      !rowOne.operateAge
+      rowOne.releaseAge ==~ RECENT_AGE
+      rowOne.releaseAge == rowOne.age
+      !rowOne.stageReleaseAge
+      rowOne.isLatestRisk(ReleaseStageType.ID)
 
     and: 'none of the stages are marked warn/fail for the first result'
-      !newestViolationTable.rows[0].isMarkedAsWarn(BUILD_AGE)
-      !newestViolationTable.rows[0].isMarkedAsWarn(STAGE_RELEASE_AGE)
-      !newestViolationTable.rows[0].isMarkedAsWarn(RELEASE_AGE)
-      !newestViolationTable.rows[0].isMarkedAsWarn(OPERATE_AGE)
+      !rowOne.isMarkedAsWarn(BuildStageType.ID)
+      !rowOne.isMarkedAsWarn(StageReleaseStageType.ID)
+      !rowOne.isMarkedAsWarn(ReleaseStageType.ID)
+      !rowOne.isMarkedAsWarn(OperateStageType.ID)
 
     and: 'two stages are populated for the second result'
-      newestViolationTable.rows[1].risk == 5
-      newestViolationTable.rows[1].buildAge == '7d'
-      newestViolationTable.rows[1].buildAge == newestViolationTable.rows[1].age
-      newestViolationTable.rows[1].stageReleaseAge == '14d'
+      rowTwo.risk == 5
+      rowTwo.buildAge == '7d'
+      rowTwo.buildAge == rowTwo.age
+      rowTwo.stageReleaseAge == '14d'
 
     and: 'the build stage is marked as fail'
-      newestViolationTable.rows[1].isMarkedAsFail(BUILD_AGE)
+      rowTwo.isMarkedAsFail(BuildStageType.ID)
 
     and: 'the build stage is marked as most recent'
-      newestViolationTable.rows[1].isLatestRisk(BUILD_AGE)
+      rowTwo.isLatestRisk(BuildStageType.ID)
 
     and: 'the stage release stage is marked as warn'
-      newestViolationTable.rows[1].isMarkedAsWarn(STAGE_RELEASE_AGE)
+      rowTwo.isMarkedAsWarn(StageReleaseStageType.ID)
 
     and: 'the '
 
@@ -360,6 +362,12 @@ class DashboardOverviewSpec
       newestViolationTable.rows[0].application == secondApp.name
       newestViolationTable.rows[0].component == 'unknown.jar'
       newestViolationTable.rows[0].age ==~ RECENT_AGE
+
+    and: 'only release stage is visible'
+      !newestViolationTable.buildHeader.displayed
+      !newestViolationTable.stageHeader.displayed
+      newestViolationTable.releaseHeader.displayed
+      !newestViolationTable.operateHeader.displayed
   }
 
   def 'Newest Risk Table shows stages in chronological order'() {

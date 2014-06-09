@@ -19,8 +19,30 @@ class ThreatTableModule
     riskHeader { headerLinks(0) }
     ageHeader { headerLinks(1) }
     firstStageHeader { headerLinks(2) }
-    rows(required: false) { moduleList ThreatTableRow, $('tr').tail() }
+    rows(required: false) { moduleList ThreatTableRow, $('tr').tail(), stageColumns : getStageColumns() }
     maxResults(required: false) { $('#max-results-shown') }
+
+    buildHeader (required: false) { $('#stage-header-build') }
+    stageHeader (required: false) { $('#stage-header-stage-release') }
+    releaseHeader (required: false) { $('#stage-header-release') }
+    operateHeader (required: false) { $('#stage-header-operate') }
+  }
+
+  List<String> getStageColumns() {
+    List<String> headers = []
+    if (buildHeader.displayed) {
+      headers.push('build')
+    }
+    if (stageHeader.displayed) {
+      headers.push('stage-release')
+    }
+    if (releaseHeader.displayed) {
+      headers.push('release')
+    }
+    if (operateHeader.displayed) {
+      headers.push('operate')
+    }
+    return headers;
   }
 }
 
@@ -39,14 +61,7 @@ class ThreatTableRow
 
   static final int COMPONENT = 5
 
-  static final int BUILD_AGE = 6
-
-  static final int STAGE_RELEASE_AGE = 7
-
-  static final int RELEASE_AGE = 8
-
-  static final int OPERATE_AGE = 9
-
+  List<String> stageColumns
 
   static content = {
     cell(required: false) { int i -> $('td', i) }
@@ -56,12 +71,22 @@ class ThreatTableRow
     application { cell(APPLICATION).text() }
     component { cell(COMPONENT).text() }
     componentLink { cell(COMPONENT).find('a') }
-    buildAge { cell(BUILD_AGE).text() }
-    operateAge { cell(OPERATE_AGE).text() }
-    releaseAge { cell(RELEASE_AGE).text() }
-    stageReleaseAge { cell(STAGE_RELEASE_AGE).text() }
-    isLatestRisk { int column -> cell(column).classes().contains('latest-risk') }
-    isMarkedAsWarn { int column -> cell(column).find('i').classes().contains('warn') }
-    isMarkedAsFail { int column -> cell(column).find('i').classes().contains('fail') }
+
+    buildAge(required : false) { cell(getStageColumnIndex('build')).text() }
+    operateAge(required : false) { cell(getStageColumnIndex('operate')).text() }
+    releaseAge(required : false) { cell(getStageColumnIndex('release')).text() }
+    stageReleaseAge(required : false) { cell(getStageColumnIndex('stage-release')).text() }
+
+    isLatestRisk { String stageId -> cell(getStageColumnIndex(stageId)).classes().contains('latest-risk') }
+    isMarkedAsWarn { String stageId -> cell(getStageColumnIndex(stageId)).find('i').classes().contains('warn') }
+    isMarkedAsFail { String stageId -> cell(getStageColumnIndex(stageId)).find('i').classes().contains('fail') }
+  }
+
+  int getStageColumnIndex(String stageId) {
+    int index = stageColumns.indexOf(stageId)
+    if (index > -1) {
+      return COMPONENT + 1 + index;
+    }
+    return -1;
   }
 }

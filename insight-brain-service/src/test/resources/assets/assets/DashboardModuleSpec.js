@@ -337,11 +337,11 @@ describe('DashboardModule', function() {
     }));
 
     it('filter', inject(function ($filter) {
-      var stageList = [{ id : 'operate' }, { id : 'build' }, { id : 'release' }, { id : 'stage-release' }],
+      var stageList = [{ id : 'build' }, { id : 'stage-release' }, { id : 'release' }, { id : 'operate' }],
           result;
 
-      result = $filter('stageFilter')(stageList, { stageTypeIds : ['release'] });
-      expect(result).toEqual([{ id : 'release' }]);
+      result = $filter('stageFilter')(stageList, { stageTypeIds : ['release', 'build'] });
+      expect(result).toEqual([{ id : 'build' }, { id : 'release' }]);
     }));
   });
 

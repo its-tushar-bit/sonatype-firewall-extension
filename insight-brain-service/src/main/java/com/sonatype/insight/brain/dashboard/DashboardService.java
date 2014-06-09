@@ -1060,7 +1060,6 @@ public class DashboardService
     }
 
     for (Application app : applications) {
-      Map<String, List<PolicyViolation>> lastViolationsByStageTypeId = new LinkedHashMap<>();
       PolicyViolationsWithStageTypes policyViolationsWithStageTypes = new PolicyViolationsWithStageTypes();
 
       List<PolicyEvaluation> policyEvaluations = policyEvaluationDAO.getByApplicationIdAndStageIds(app.getId(),
@@ -1077,8 +1076,6 @@ public class DashboardService
 
         List<PolicyViolation> policyViolations = policyViolationDAO.getByEvaluationId(policyEvaluation.getId());
         policyViolations = filter(policyViolations, filter);
-
-        lastViolationsByStageTypeId.put(policyEvaluation.getStageTypeId(), policyViolations);
 
         PolicyViolationDiff diff = PolicyViolationDigester.digestPolicyViolations(policyViolations,
             policyViolationsWithStageTypes.getPolicyViolations());
@@ -1103,15 +1100,9 @@ public class DashboardService
           }
         }
       }
-
-      List<PolicyViolation> uniquePolicyViolations = new ArrayList<>();
-      for (List<PolicyViolation> policyViolations : lastViolationsByStageTypeId.values()) {
-        PolicyViolationDiff diff = PolicyViolationDigester.digestPolicyViolations(policyViolations,
-            uniquePolicyViolations);
-        result.currentUnresolved += diff.getAppeared().size();
-      }
     }
 
+    result.currentUnresolved = result.totalNew - result.totalFixed;
     for (int iWeek = 0; iWeek < POLICY_SUMMARY_WEEKS; iWeek++) {
       result.weeklyDeltaUnresolved.add(result.weeklyDeltaNew.get(iWeek) - result.weeklyDeltaFixed.get(iWeek));
     }

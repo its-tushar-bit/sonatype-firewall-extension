@@ -39,12 +39,12 @@ public class DashboardResourceTest
   private DashboardFilterDAO dashboardFilterDAO = new DashboardFilterDAO();
 
   @Test
-  public void testGetNewestPolicyViolations() throws Exception {
+  public void testGetNewestRisks() throws Exception {
     Application app = tempEntity.newApplicationWithParent("app1", "test application");
 
     Policy buildPolicy = tempEntity.newPolicy(app.getId(), "build policy");
 
-    createNewestPolicyViolation(app, buildPolicy, BuildStageType.ID);
+    createFirstOccurrencePolicyViolation(app, buildPolicy, BuildStageType.ID);
 
     Response response = AuthedRestAccess.get(getRestUrl(DashboardResource.SERVICE_PATH + '/'
         + DashboardResource.GET_NEWEST_RISKS_PATH));
@@ -60,7 +60,7 @@ public class DashboardResourceTest
 
     Policy buildPolicy = tempEntity.newPolicy(app.getId(), "build policy");
 
-    createNewestPolicyViolation(app, buildPolicy, BuildStageType.ID);
+    createFirstOccurrencePolicyViolation(app, buildPolicy, BuildStageType.ID);
 
     Response response = AuthedRestAccess.get(getRestUrl(DashboardResource.SERVICE_PATH + '/'
         + DashboardResource.GET_POLICY_SUMMARY_PATH));
@@ -173,10 +173,10 @@ public class DashboardResourceTest
     assertThat(dto, is(notNullValue()));
   }
 
-  private PolicyViolation createNewestPolicyViolation(Application app, Policy tempPolicy, String stageTypeId) {
+  private PolicyViolation createFirstOccurrencePolicyViolation(Application app, Policy tempPolicy, String stageTypeId) {
     PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(app.getId(), stageTypeId, "test scan id");
     PolicyViolation violation = tempEntity.newPolicyViolation(evaluation, tempPolicy);
-    tempEntity.newNewestPolicyViolation(violation.getId(), app.getId(), stageTypeId);
+    tempEntity.newFirstOccurrencePolicyViolation(violation.getId(), app.getId(), stageTypeId);
     return violation;
   }
 

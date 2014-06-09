@@ -16,7 +16,7 @@ import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.ApplicationComponentDAO;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
-import com.sonatype.insight.brain.dataaccess.policy.NewestPolicyViolationDAO;
+import com.sonatype.insight.brain.dataaccess.policy.FirstOccurrencePolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.model.Application;
@@ -24,7 +24,7 @@ import com.sonatype.insight.brain.model.ApplicationComponent;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.component.IdentificationSource;
 import com.sonatype.insight.brain.model.component.MatchState;
-import com.sonatype.insight.brain.model.policy.NewestPolicyViolation;
+import com.sonatype.insight.brain.model.policy.FirstOccurrencePolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
@@ -225,24 +225,26 @@ public class PolicyEvaluationMigratorTest
       assertThat(policyEvaluationDAO.getAllByApplicationIdAndStageId(app1.getId(), stageType.getId()), empty());
     }
 
-    // "newest" policy violations for app1
-    List<PolicyViolation> newestPolicyViolations = policyViolationDAO.getNewestByApplicationIdAndStageTypeId(
-        app1.getId(), Stage.ID_BUILD);
-    assertThat(newestPolicyViolations, hasSize(1));
-    assertAntlrPolicyViolation(buildEval.getId(), newestPolicyViolations.get(0));
-    NewestPolicyViolationDAO newestPolicyViolationDAO = new NewestPolicyViolationDAO();
-    NewestPolicyViolation newestPolicyViolation = newestPolicyViolationDAO.getById(newestPolicyViolations.get(0)
-        .getId());
-    assertThat(newestPolicyViolation.getStageTypeId(), is(Stage.ID_BUILD));
-    newestPolicyViolations = policyViolationDAO.getNewestByApplicationIdAndStageTypeId(app1.getId(),
+    // first occurrence policy violations for app1
+    List<PolicyViolation> firstOccurrencePolicyViolations = policyViolationDAO
+        .getFirstOccurrenceByApplicationIdAndStageTypeId(app1.getId(), Stage.ID_BUILD);
+    assertThat(firstOccurrencePolicyViolations, hasSize(1));
+    assertAntlrPolicyViolation(buildEval.getId(), firstOccurrencePolicyViolations.get(0));
+    FirstOccurrencePolicyViolationDAO firstOccurrencePolicyViolationDAO = new FirstOccurrencePolicyViolationDAO();
+    FirstOccurrencePolicyViolation firstOccurrencePolicyViolation = firstOccurrencePolicyViolationDAO
+        .getById(firstOccurrencePolicyViolations.get(0).getId());
+    assertThat(firstOccurrencePolicyViolation.getStageTypeId(), is(Stage.ID_BUILD));
+    firstOccurrencePolicyViolations = policyViolationDAO.getFirstOccurrenceByApplicationIdAndStageTypeId(app1.getId(),
         Stage.ID_STAGE_RELEASE);
-    assertThat(newestPolicyViolations, hasSize(2));
-    assertCarrotPolicyViolation(stageReleaseReeval.getId(), newestPolicyViolations.get(0));
-    newestPolicyViolation = newestPolicyViolationDAO.getById(newestPolicyViolations.get(0).getId());
-    assertThat(newestPolicyViolation.getStageTypeId(), is(Stage.ID_STAGE_RELEASE));
-    assertUnknownPolicyViolation(stageReleaseReeval.getId(), newestPolicyViolations.get(1));
-    newestPolicyViolation = newestPolicyViolationDAO.getById(newestPolicyViolations.get(1).getId());
-    assertThat(newestPolicyViolation.getStageTypeId(), is(Stage.ID_STAGE_RELEASE));
+    assertThat(firstOccurrencePolicyViolations, hasSize(2));
+    assertCarrotPolicyViolation(stageReleaseReeval.getId(), firstOccurrencePolicyViolations.get(0));
+    firstOccurrencePolicyViolation = firstOccurrencePolicyViolationDAO.getById(firstOccurrencePolicyViolations.get(0)
+        .getId());
+    assertThat(firstOccurrencePolicyViolation.getStageTypeId(), is(Stage.ID_STAGE_RELEASE));
+    assertUnknownPolicyViolation(stageReleaseReeval.getId(), firstOccurrencePolicyViolations.get(1));
+    firstOccurrencePolicyViolation = firstOccurrencePolicyViolationDAO.getById(firstOccurrencePolicyViolations.get(1)
+        .getId());
+    assertThat(firstOccurrencePolicyViolation.getStageTypeId(), is(Stage.ID_STAGE_RELEASE));
 
     // application components for app1
     ApplicationComponentDAO applicationComponentDAO = new ApplicationComponentDAO();
@@ -276,15 +278,18 @@ public class PolicyEvaluationMigratorTest
       assertThat(policyEvaluationDAO.getAllByApplicationIdAndStageId(app2.getId(), stageType.getId()), empty());
     }
 
-    // "newest" policy violations for app2
-    newestPolicyViolations = policyViolationDAO.getNewestByApplicationIdAndStageTypeId(app2.getId(), Stage.ID_RELEASE);
-    assertThat(newestPolicyViolations, hasSize(2));
-    assertCarrotPolicyViolation(app2ReleaseEval.getId(), newestPolicyViolations.get(0));
-    assertUnknownPolicyViolation(app2ReleaseEval.getId(), newestPolicyViolations.get(1));
-    newestPolicyViolation = newestPolicyViolationDAO.getById(newestPolicyViolations.get(0).getId());
-    assertThat(newestPolicyViolation.getStageTypeId(), is(Stage.ID_RELEASE));
-    newestPolicyViolation = newestPolicyViolationDAO.getById(newestPolicyViolations.get(1).getId());
-    assertThat(newestPolicyViolation.getStageTypeId(), is(Stage.ID_RELEASE));
+    // first occurrence policy violations for app2
+    firstOccurrencePolicyViolations = policyViolationDAO.getFirstOccurrenceByApplicationIdAndStageTypeId(app2.getId(),
+        Stage.ID_RELEASE);
+    assertThat(firstOccurrencePolicyViolations, hasSize(2));
+    assertCarrotPolicyViolation(app2ReleaseEval.getId(), firstOccurrencePolicyViolations.get(0));
+    assertUnknownPolicyViolation(app2ReleaseEval.getId(), firstOccurrencePolicyViolations.get(1));
+    firstOccurrencePolicyViolation = firstOccurrencePolicyViolationDAO.getById(firstOccurrencePolicyViolations.get(0)
+        .getId());
+    assertThat(firstOccurrencePolicyViolation.getStageTypeId(), is(Stage.ID_RELEASE));
+    firstOccurrencePolicyViolation = firstOccurrencePolicyViolationDAO.getById(firstOccurrencePolicyViolations.get(1)
+        .getId());
+    assertThat(firstOccurrencePolicyViolation.getStageTypeId(), is(Stage.ID_RELEASE));
 
     // application components for app2
     appComponents = applicationComponentDAO.getByApplicationIdAndStageTypeId(app2.getId(), Stage.ID_RELEASE);

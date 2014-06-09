@@ -99,9 +99,9 @@ public class DashboardServiceTest
     orgPolicyViolation = tempEntity.newPolicyViolation(app1PolicyEvaluation, orgPolicy);
     app1PolicyViolation = tempEntity.newPolicyViolation(app1PolicyEvaluation, app1Policy);
     app2PolicyViolation = tempEntity.newPolicyViolation(app2PolicyEvaluation, orgPolicy);
-    tempEntity.newNewestPolicyViolation(orgPolicyViolation.getId(), app1.getId(), BuildStageType.ID);
-    tempEntity.newNewestPolicyViolation(app1PolicyViolation.getId(), app1.getId(), BuildStageType.ID);
-    tempEntity.newNewestPolicyViolation(app2PolicyViolation.getId(), app2.getId(), BuildStageType.ID);
+    tempEntity.newFirstOccurrencePolicyViolation(orgPolicyViolation.getId(), app1.getId(), BuildStageType.ID);
+    tempEntity.newFirstOccurrencePolicyViolation(app1PolicyViolation.getId(), app1.getId(), BuildStageType.ID);
+    tempEntity.newFirstOccurrencePolicyViolation(app2PolicyViolation.getId(), app2.getId(), BuildStageType.ID);
     tempEntity.newApplicationComponent(app1.getId(), BuildStageType.ID, "hash-1", "g", "a", "1");
     tempEntity.newApplicationComponent(app1.getId(), ReleaseStageType.ID, "hash-3", MatchState.SIMILAR, false);
     tempEntity.newApplicationComponent(app1.getId(), ReleaseStageType.ID, "hash-4", MatchState.UNKNOWN, false);
@@ -775,7 +775,7 @@ public class DashboardServiceTest
     PolicyEvaluation evaluation = tempEntity
         .newPolicyEvaluation(app1.getId(), ReleaseStageType.ID, "test scan app1 id");
     PolicyViolation policyViolation = tempEntity.newPolicyViolation(evaluation, app1Policy);
-    tempEntity.newNewestPolicyViolation(policyViolation.getId(), app1.getId(), ReleaseStageType.ID);
+    tempEntity.newFirstOccurrencePolicyViolation(policyViolation.getId(), app1.getId(), ReleaseStageType.ID);
 
     List<NewestRiskDTO> riskDTOs = dashboardService.getNewestRisks(null, Collections.singleton(ReleaseStageType.ID),
         null, null, null, 1000);
@@ -788,7 +788,7 @@ public class DashboardServiceTest
   public void testGetNewestRisks_FilterByStage_ExcludesDevelop() throws Exception {
     PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(app2.getId(), DevelopStageType.ID, "newScanId");
     PolicyViolation policyViolation = tempEntity.newPolicyViolation(evaluation, orgPolicy);
-    tempEntity.newNewestPolicyViolation(policyViolation.getId(), app2.getId(), DevelopStageType.ID);
+    tempEntity.newFirstOccurrencePolicyViolation(policyViolation.getId(), app2.getId(), DevelopStageType.ID);
 
     List<NewestRiskDTO> riskDTOs = dashboardService.getNewestRisks(Collections.singleton(app2.getPublicId()), null,
         null, null, null, 1000);
@@ -824,7 +824,7 @@ public class DashboardServiceTest
   public void testGetNewestRisks_FilterByPolicyThreatCategory() throws Exception {
     PolicyViolation policyViolation = tempEntity.newPolicyViolation(app1PolicyEvaluation, app1Policy, 5,
         PolicyThreatCategory.OTHER, "gid", "aid", "1", "hash1");
-    tempEntity.newNewestPolicyViolation(policyViolation.getId(), app1.getId(), BuildStageType.ID);
+    tempEntity.newFirstOccurrencePolicyViolation(policyViolation.getId(), app1.getId(), BuildStageType.ID);
 
     List<NewestRiskDTO> riskDTOs = dashboardService.getNewestRisks(null, null, null, new PolicyThreatCategoryFilter(
         PolicyThreatCategory.OTHER), null, 1000);
@@ -837,7 +837,7 @@ public class DashboardServiceTest
   public void testGetNewestRisks_FilterByPolicyThreatLevel() throws Exception {
     PolicyViolation policyViolation = tempEntity.newPolicyViolation(app1PolicyEvaluation, app1Policy, 7,
         PolicyThreatCategory.OTHER, "gid", "aid", "1", "hash1");
-    tempEntity.newNewestPolicyViolation(policyViolation.getId(), app1.getId(), BuildStageType.ID);
+    tempEntity.newFirstOccurrencePolicyViolation(policyViolation.getId(), app1.getId(), BuildStageType.ID);
     List<NewestRiskDTO> riskDTOs = dashboardService.getNewestRisks(null, null, null, null, new PolicyThreatLevelFilter(
         7, 7), 1000);
     assertThat(riskDTOs, hasSize(1));
@@ -869,7 +869,7 @@ public class DashboardServiceTest
         app1PolicyViolation.getThreatLevel(), app1PolicyViolation.getThreatCategory(),
         app1PolicyViolation.getGroupId(), app1PolicyViolation.getArtifactId(), app1PolicyViolation.getVersion(),
         app1PolicyViolation.getHash());
-    tempEntity.newNewestPolicyViolation(policyViolation.getId(), app1.getId(), ReleaseStageType.ID);
+    tempEntity.newFirstOccurrencePolicyViolation(policyViolation.getId(), app1.getId(), ReleaseStageType.ID);
 
     List<NewestRiskDTO> riskDTOs = dashboardService.getNewestRisks(null, null, null, null, null, 100);
     assertThat(riskDTOs, hasSize(3));
@@ -912,7 +912,7 @@ public class DashboardServiceTest
     PolicyEvaluation oldPolicyEvaluation = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, oldScanId,
         beforeNDays);
     PolicyViolation oldPolicyViolation = tempEntity.newPolicyViolation(oldPolicyEvaluation, orgPolicy);
-    tempEntity.newNewestPolicyViolation(oldPolicyViolation.getId(), app.getId(), BuildStageType.ID);
+    tempEntity.newFirstOccurrencePolicyViolation(oldPolicyViolation.getId(), app.getId(), BuildStageType.ID);
 
     List<NewestRiskDTO> riskDTOs = dashboardService.getNewestRisks(Collections.singleton(app.getPublicId()), null,
         null, null, null, 100);
@@ -923,7 +923,7 @@ public class DashboardServiceTest
     PolicyEvaluation newPolicyEvaluation = tempEntity.newPolicyEvaluation(app.getId(), ReleaseStageType.ID, newScanId,
         afterNDays);
     PolicyViolation newPolicyViolation = tempEntity.newPolicyViolation(newPolicyEvaluation, orgPolicy);
-    tempEntity.newNewestPolicyViolation(newPolicyViolation.getId(), app.getId(), ReleaseStageType.ID);
+    tempEntity.newFirstOccurrencePolicyViolation(newPolicyViolation.getId(), app.getId(), ReleaseStageType.ID);
 
     riskDTOs = dashboardService.getNewestRisks(Collections.singleton(app.getPublicId()), null, null, null, null, 100);
     assertThat(riskDTOs, hasSize(1));
@@ -943,7 +943,7 @@ public class DashboardServiceTest
     PolicyEvaluation policyEval1 = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, scanId1,
         time1.toDate());
     PolicyViolation policyViolation1 = tempEntity.newPolicyViolation(policyEval1, orgPolicy);
-    tempEntity.newNewestPolicyViolation(policyViolation1.getId(), app.getId(), BuildStageType.ID);
+    tempEntity.newFirstOccurrencePolicyViolation(policyViolation1.getId(), app.getId(), BuildStageType.ID);
 
     DateTime time2 = time1.plusHours(1);
     String scanId2 = "scanId2";
@@ -956,7 +956,7 @@ public class DashboardServiceTest
     PolicyEvaluation policyEval3 = tempEntity.newPolicyEvaluation(app.getId(), ReleaseStageType.ID, scanId3,
         time3.toDate());
     PolicyViolation policyViolation3 = tempEntity.newPolicyViolation(policyEval3, orgPolicy);
-    tempEntity.newNewestPolicyViolation(policyViolation3.getId(), app.getId(), ReleaseStageType.ID);
+    tempEntity.newFirstOccurrencePolicyViolation(policyViolation3.getId(), app.getId(), ReleaseStageType.ID);
 
     DateTime time4 = time3.plusHours(1);
     String scanId4 = "scanId4";

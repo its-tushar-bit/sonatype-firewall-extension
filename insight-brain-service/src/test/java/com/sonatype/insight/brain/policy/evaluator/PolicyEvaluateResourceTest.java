@@ -20,7 +20,7 @@ import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.AuthedRestAccess;
 import com.sonatype.insight.brain.dataaccess.ApplicationComponentDAO;
 import com.sonatype.insight.brain.dataaccess.component.HashGAVDAO;
-import com.sonatype.insight.brain.dataaccess.policy.NewestPolicyViolationDAO;
+import com.sonatype.insight.brain.dataaccess.policy.FirstOccurrencePolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
@@ -34,8 +34,8 @@ import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
+import com.sonatype.insight.brain.model.policy.FirstOccurrencePolicyViolation;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
-import com.sonatype.insight.brain.model.policy.NewestPolicyViolation;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
@@ -787,8 +787,8 @@ public class PolicyEvaluateResourceTest
   }
 
   @Test
-  public void testEvaluate_NewestPolicyViolations_OneStage() throws Exception {
-    String scanId = "testEvaluateNewestPolicyViolations";
+  public void testEvaluate_FirstOccurrencePolicyViolations_OneStage() throws Exception {
+    String scanId = "testEvaluateFirstOccurrencePolicyViolations";
 
     File saasReportFile = getReportResponseFile(licenseFingerprint, scanId);
     saasReportFile.delete();
@@ -814,14 +814,14 @@ public class PolicyEvaluateResourceTest
     Response response = AuthedRestAccess.post(getServiceURL(applicationPublicId, scanId), JsonHelpers.asJson(stage));
     assertResponseStatus(200, response);
     PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
-    List<PolicyViolation> policyViolations1 = policyViolationDAO.getNewestByApplicationIdAndStageTypeId(app.getId(),
+    List<PolicyViolation> policyViolations1 = policyViolationDAO.getFirstOccurrenceByApplicationIdAndStageTypeId(app.getId(),
         stage.getStageTypeId());
     assertThat(policyViolations1, hasSize(2));
     assertThat(policyViolations1.get(0).getGroupId(), is("commons-pool"));
     assertThat(policyViolations1.get(1).getGroupId(), is("tomcat"));
-    NewestPolicyViolationDAO newestPolicyViolationDAO = new NewestPolicyViolationDAO();
-    NewestPolicyViolation newestPolicyViolationUnchanged1 = newestPolicyViolationDAO.getById(policyViolations1.get(0)
-        .getId());
+    FirstOccurrencePolicyViolationDAO firstOccurrencePolicyViolationDAO = new FirstOccurrencePolicyViolationDAO();
+    FirstOccurrencePolicyViolation firstOccurrencePolicyViolationUnchanged1 = firstOccurrencePolicyViolationDAO
+        .getById(policyViolations1.get(0).getId());
 
     // Change one of the policy conditions and re-evaluate the policy.
     // This should cause a policy violation to be cleared and a new policy violation to appear.
@@ -830,18 +830,18 @@ public class PolicyEvaluateResourceTest
     // Evaluate policy again for the same scan
     response = AuthedRestAccess.post(getServiceURL(applicationPublicId, scanId), JsonHelpers.asJson(stage));
     assertResponseStatus(200, response);
-    List<PolicyViolation> policyViolations2 = policyViolationDAO.getNewestByApplicationIdAndStageTypeId(app.getId(),
+    List<PolicyViolation> policyViolations2 = policyViolationDAO.getFirstOccurrenceByApplicationIdAndStageTypeId(app.getId(),
         stage.getStageTypeId());
     assertThat(policyViolations2, hasSize(2));
     assertThat(policyViolations2.get(0).getGroupId(), is("commons-dbcp"));
     assertThat(policyViolations2.get(1).getGroupId(), is("commons-pool"));
-    NewestPolicyViolation newestPolicyViolationUnchanged2 = newestPolicyViolationDAO.getById(policyViolations2.get(1)
-        .getId());
-    assertThat(newestPolicyViolationUnchanged2.getId(), is(newestPolicyViolationUnchanged1.getId()));
+    FirstOccurrencePolicyViolation firstOccurrencePolicyViolationUnchanged2 = firstOccurrencePolicyViolationDAO
+        .getById(policyViolations2.get(1).getId());
+    assertThat(firstOccurrencePolicyViolationUnchanged2.getId(), is(firstOccurrencePolicyViolationUnchanged1.getId()));
   }
 
   @Test
-  public void testEvaluate_NewestPolicyViolations_TwoStages() throws Exception {
+  public void testEvaluate_FirstOccurrencePolicyViolations_TwoStages() throws Exception {
     Constraint constraint1 = new Constraint("C1", "PolicyEvaluateResourceTest constraint 1", LogicalOperator.OR);
     Condition condition1 = new Condition(CoordinatesConditionType.ID, "match", "commons-pool:commons-pool:1.4");
     constraint1.addCondition(condition1);
@@ -861,13 +861,13 @@ public class PolicyEvaluateResourceTest
         JsonHelpers.asJson(BuildStageType.ID));
     assertResponseStatus(200, response);
     PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
-    List<PolicyViolation> policyViolationsBuild = policyViolationDAO.getNewestByApplicationIdAndStageTypeId(
+    List<PolicyViolation> policyViolationsBuild = policyViolationDAO.getFirstOccurrenceByApplicationIdAndStageTypeId(
         app.getId(), BuildStageType.ID);
     assertThat(policyViolationsBuild, hasSize(1));
     assertThat(policyViolationsBuild.get(0).getGroupId(), is("commons-pool"));
-    NewestPolicyViolationDAO newestPolicyViolationDAO = new NewestPolicyViolationDAO();
-    NewestPolicyViolation newestPolicyViolationBuild = newestPolicyViolationDAO.getById(policyViolationsBuild
-        .get(0).getId());
+    FirstOccurrencePolicyViolationDAO firstOccurrencePolicyViolationDAO = new FirstOccurrencePolicyViolationDAO();
+    FirstOccurrencePolicyViolation firstOccurrencePolicyViolationBuild = firstOccurrencePolicyViolationDAO
+        .getById(policyViolationsBuild.get(0).getId());
 
     // Evaluate policy for the Release stage
     String scanReleaseId = "scanReleaseId";
@@ -877,19 +877,19 @@ public class PolicyEvaluateResourceTest
     response = AuthedRestAccess.post(getServiceURL(applicationPublicId, scanReleaseId),
         JsonHelpers.asJson(ReleaseStageType.ID));
     assertResponseStatus(200, response);
-    List<PolicyViolation> policyViolationsRelease = policyViolationDAO.getNewestByApplicationIdAndStageTypeId(
+    List<PolicyViolation> policyViolationsRelease = policyViolationDAO.getFirstOccurrenceByApplicationIdAndStageTypeId(
         app.getId(), ReleaseStageType.ID);
     assertThat(policyViolationsRelease, hasSize(1));
     assertThat(policyViolationsRelease.get(0).getGroupId(), is("commons-pool"));
-    NewestPolicyViolation newestPolicyViolationRelease = newestPolicyViolationDAO.getById(policyViolationsRelease
-        .get(0).getId());
-    assertThat(newestPolicyViolationRelease.getId(), is(not(newestPolicyViolationBuild.getId())));
+    FirstOccurrencePolicyViolation firstOccurrencePolicyViolationRelease = firstOccurrencePolicyViolationDAO
+        .getById(policyViolationsRelease.get(0).getId());
+    assertThat(firstOccurrencePolicyViolationRelease.getId(), is(not(firstOccurrencePolicyViolationBuild.getId())));
 
-    policyViolationsBuild = policyViolationDAO.getNewestByApplicationIdAndStageTypeId(app.getId(), BuildStageType.ID);
+    policyViolationsBuild = policyViolationDAO.getFirstOccurrenceByApplicationIdAndStageTypeId(app.getId(), BuildStageType.ID);
     assertThat(policyViolationsBuild, hasSize(1));
-    NewestPolicyViolation newestPolicyViolationBuild1 = newestPolicyViolationDAO.getById(policyViolationsBuild.get(0)
-        .getId());
-    assertThat(newestPolicyViolationBuild1.getId(), is(newestPolicyViolationBuild.getId()));
+    FirstOccurrencePolicyViolation firstOccurrencePolicyViolationBuild1 = firstOccurrencePolicyViolationDAO
+        .getById(policyViolationsBuild.get(0).getId());
+    assertThat(firstOccurrencePolicyViolationBuild1.getId(), is(firstOccurrencePolicyViolationBuild.getId()));
   }
 
   @Test

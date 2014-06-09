@@ -208,7 +208,7 @@ public class ComponentDetailServiceTest
     PolicyViolation violation1 = tempEntity.newPolicyViolation(evaluation1, policy1, policy1.getThreatLevel(),
         policy1.getThreatCategory(), component.getGroupId(), component.getArtifactId(), component.getVersion(), hash,
         WarnActionType.ID);
-    tempEntity.newNewestPolicyViolation(violation1.getId(), evaluation1.getApplicationId(),
+    tempEntity.newFirstOccurrencePolicyViolation(violation1.getId(), evaluation1.getApplicationId(),
         evaluation1.getStageTypeId());
 
     PolicyEvaluation evaluation2 = tempEntity.newPolicyEvaluation(app1.getId(), BuildStageType.ID, "scanId2");
@@ -284,7 +284,7 @@ public class ComponentDetailServiceTest
     PolicyViolation violation1 = tempEntity.newPolicyViolation(evaluation1, policy1, policy1.getThreatLevel(),
         policy1.getThreatCategory(), component.getGroupId(), component.getArtifactId(), component.getVersion(), hash,
         WarnActionType.ID);
-    tempEntity.newNewestPolicyViolation(violation1.getId(), app1.getId(), BuildStageType.ID);
+    tempEntity.newFirstOccurrencePolicyViolation(violation1.getId(), app1.getId(), BuildStageType.ID);
 
     PolicyEvaluation evaluation2 = tempEntity.newPolicyEvaluation(app1.getId(), BuildStageType.ID, "scanId2", new Date(
         evaluation1.getTime().getTime() + 1000));
@@ -293,7 +293,7 @@ public class ComponentDetailServiceTest
     PolicyViolation violation2 = tempEntity.newPolicyViolation(evaluation2, policy2, policy2.getThreatLevel(),
         policy2.getThreatCategory(), component.getGroupId(), component.getArtifactId(), component.getVersion(), hash,
         WarnActionType.ID);
-    tempEntity.newNewestPolicyViolation(violation2.getId(), app1.getId(), BuildStageType.ID);
+    tempEntity.newFirstOccurrencePolicyViolation(violation2.getId(), app1.getId(), BuildStageType.ID);
 
     List<ApplicationComponentDetailsDTO> appComponentDetailsDTOs = componentDetailService
         .getApplicationDetailsByHash(hash);

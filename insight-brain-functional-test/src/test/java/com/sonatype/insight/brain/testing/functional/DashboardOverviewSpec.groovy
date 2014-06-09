@@ -75,7 +75,7 @@ class DashboardOverviewSpec
     PolicyViolation firstViolation = temporaryEntity.
         newPolicyViolation(firstPolicyEvaluation, policy, 5,
             PolicyThreatCategory.LICENSE, "Group1", "Artifact1", "Version1", "hash", FailActionType.ID)
-    temporaryEntity.newNewestPolicyViolation(firstViolation.id, firstPolicyEvaluation.applicationId,
+    temporaryEntity.newFirstOccurrencePolicyViolation(firstViolation.id, firstPolicyEvaluation.applicationId,
         firstPolicyEvaluation.stageTypeId)
     temporaryEntity.newApplicationComponent(firstPolicyEvaluation.applicationId, firstPolicyEvaluation.stageTypeId,
         firstViolation.hash, firstViolation.groupId, firstViolation.artifactId, firstViolation.version, )
@@ -87,7 +87,7 @@ class DashboardOverviewSpec
         StageReleaseStageType.ID, 'DashboardSpecFirstEvaluationSecondStage', now - 14)
     PolicyViolation firstViolationSecondStage = temporaryEntity.newPolicyViolation(firstPolicyEvaluationSecondStage,
         policy, 5, PolicyThreatCategory.LICENSE, "Group1", "Artifact1", "Version1", "hash", WarnActionType.ID)
-    temporaryEntity.newNewestPolicyViolation(firstViolationSecondStage.id,
+    temporaryEntity.newFirstOccurrencePolicyViolation(firstViolationSecondStage.id,
         firstPolicyEvaluationSecondStage.applicationId, firstPolicyEvaluationSecondStage.stageTypeId)
     temporaryEntity.newApplicationComponent(firstPolicyEvaluationSecondStage.applicationId,
         firstPolicyEvaluationSecondStage.stageTypeId, firstViolationSecondStage.hash,
@@ -99,7 +99,7 @@ class DashboardOverviewSpec
         'DashboardSpecThirdEvaluation', now - 8)
     PolicyViolation thirdViolation = temporaryEntity.newPolicyViolation(thirdPolicyEvaluation, policy, 2, PolicyThreatCategory.QUALITY, 
         "Group1", "Artifact1", "Version1")
-    temporaryEntity.newNewestPolicyViolation(thirdViolation.id, thirdPolicyEvaluation.applicationId,
+    temporaryEntity.newFirstOccurrencePolicyViolation(thirdViolation.id, thirdPolicyEvaluation.applicationId,
         thirdPolicyEvaluation.stageTypeId)
 
     // and one more stage to cover them all
@@ -107,7 +107,7 @@ class DashboardOverviewSpec
         'DashboardSpecForthEvaluation', now - 9)
     PolicyViolation forthViolation = temporaryEntity.newPolicyViolation(forthPolicyEvaluation, policy, 1, PolicyThreatCategory.OTHER, 
         "Group1", "Artifact1", "Version1")
-    temporaryEntity.newNewestPolicyViolation(forthViolation.id, forthPolicyEvaluation.applicationId,
+    temporaryEntity.newFirstOccurrencePolicyViolation(forthViolation.id, forthPolicyEvaluation.applicationId,
         forthPolicyEvaluation.stageTypeId)
 
     //most recent evaluation
@@ -115,7 +115,7 @@ class DashboardOverviewSpec
         'DashboardSpecSecondEvaluation', now)
     PolicyViolation secondViolation = temporaryEntity.newPolicyViolation(secondPolicyEvaluation, policy, 10,
             PolicyThreatCategory.QUALITY, null, null, null)
-    temporaryEntity.newNewestPolicyViolation(secondViolation.id, secondPolicyEvaluation.applicationId,
+    temporaryEntity.newFirstOccurrencePolicyViolation(secondViolation.id, secondPolicyEvaluation.applicationId,
         secondPolicyEvaluation.stageTypeId)
 
     InsightWork work = new InsightWork(serviceRule.configuration)
@@ -409,7 +409,7 @@ class DashboardOverviewSpec
             "DashboardSpecFirstEvaluation${i}", now - 7)
         def violation = temporaryEntity.newPolicyViolation(policyEvaluation, policy, 2 + (3 * i),
             PolicyThreatCategory.SECURITY, "Group${i}", "Artifact${i}", "Version${i}", "hash${i}")
-        temporaryEntity.newNewestPolicyViolation(violation.id, policyEvaluation.applicationId,
+        temporaryEntity.newFirstOccurrencePolicyViolation(violation.id, policyEvaluation.applicationId,
             policyEvaluation.stageTypeId)
       }
 
@@ -496,7 +496,7 @@ class DashboardOverviewSpec
         PolicyViolation violation = temporaryEntity.
             newPolicyViolation(policyEvaluation, policy, 5, PolicyThreatCategory.SECURITY,
                 "Group${i}", "Artifact${i}", "Version${i}", "Hash${i}")
-        temporaryEntity.newNewestPolicyViolation(violation.id, policyEvaluation.applicationId,
+        temporaryEntity.newFirstOccurrencePolicyViolation(violation.id, policyEvaluation.applicationId,
             policyEvaluation.stageTypeId)
       }
 

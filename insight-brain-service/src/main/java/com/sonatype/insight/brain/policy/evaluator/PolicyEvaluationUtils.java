@@ -31,15 +31,15 @@ import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.ApplicationComponentDAO;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentDAO;
-import com.sonatype.insight.brain.dataaccess.policy.NewestPolicyViolationDAO;
+import com.sonatype.insight.brain.dataaccess.policy.FirstOccurrencePolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationComponent;
 import com.sonatype.insight.brain.model.component.Component;
+import com.sonatype.insight.brain.model.policy.FirstOccurrencePolicyViolation;
 import com.sonatype.insight.brain.model.policy.InvalidStageException;
-import com.sonatype.insight.brain.model.policy.NewestPolicyViolation;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
@@ -182,26 +182,26 @@ public class PolicyEvaluationUtils
           }
         }
 
-        // Persist the NewestPolicyViolations and ApplicationComponents only if there isn't a more recent primary policy
-        // evaluation, since any reevaluation (even for monitoring) may be for an older scan.
+        // Persist the FirstOccurrencePolicyViolations and ApplicationComponents only if there isn't a more recent
+        // primary policy evaluation, since any reevaluation (even for monitoring) may be for an older scan.
         if (isForLatestScan) {
-          // Calculate a diff between the current policy violations and the previous "newest" policy violations
-          List<PolicyViolation> oldPolicyViolations = policyViolationDAO.getNewestByApplicationIdAndStageTypeId(em,
+          // Calculate a diff between the current policy violations and the previous first occurrence policy violations
+          List<PolicyViolation> oldPolicyViolations = policyViolationDAO.getFirstOccurrenceByApplicationIdAndStageTypeId(em,
               appId, stage.getStageTypeId());
           PolicyViolationDiff policyViolationDiff = PolicyViolationDigester.digestPolicyViolations(newPolicyViolations,
               oldPolicyViolations);
-          NewestPolicyViolationDAO newestPolicyViolationDAO = new NewestPolicyViolationDAO();
-          // Delete cleared "newest" policy violations
+          FirstOccurrencePolicyViolationDAO firstOccurrencePolicyViolationDAO = new FirstOccurrencePolicyViolationDAO();
+          // Delete cleared first occurrence policy violations
           for (PolicyViolation clearedPolicyViolation : policyViolationDiff.getCleared()) {
-            NewestPolicyViolation newestPolicyViolation = newestPolicyViolationDAO.getById(em,
-                clearedPolicyViolation.getId());
-            newestPolicyViolationDAO.delete(em, newestPolicyViolation);
+            FirstOccurrencePolicyViolation firstOccurrencePolicyViolation = firstOccurrencePolicyViolationDAO.getById(
+                em, clearedPolicyViolation.getId());
+            firstOccurrencePolicyViolationDAO.delete(em, firstOccurrencePolicyViolation);
           }
-          // Add new "newest" policy violations
+          // Add new first occurrence policy violations
           for (PolicyViolation appearedPolicyViolation : policyViolationDiff.getAppeared()) {
-            NewestPolicyViolation newestPolicyViolation = new NewestPolicyViolation(appearedPolicyViolation.getId(),
-                appId, stage.getStageTypeId());
-            newestPolicyViolationDAO.insert(em, newestPolicyViolation);
+            FirstOccurrencePolicyViolation firstOccurrencePolicyViolation = new FirstOccurrencePolicyViolation(
+                appearedPolicyViolation.getId(), appId, stage.getStageTypeId());
+            firstOccurrencePolicyViolationDAO.insert(em, firstOccurrencePolicyViolation);
           }
 
           persistApplicationComponents(em, appId, stage, policyEvaluation.getTime(), components);

@@ -36,7 +36,7 @@ import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.insight.brain.dataaccess.ApplicationComponentDAO;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentDAO;
-import com.sonatype.insight.brain.dataaccess.policy.NewestPolicyViolationDAO;
+import com.sonatype.insight.brain.dataaccess.policy.FirstOccurrencePolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
@@ -44,7 +44,7 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationComponent;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.policy.ConditionType;
-import com.sonatype.insight.brain.model.policy.NewestPolicyViolation;
+import com.sonatype.insight.brain.model.policy.FirstOccurrencePolicyViolation;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
@@ -125,7 +125,7 @@ public class PolicyEvaluationMigrator
 
   private final PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
 
-  private final NewestPolicyViolationDAO newestPolicyViolationDAO = new NewestPolicyViolationDAO();
+  private final FirstOccurrencePolicyViolationDAO firstOccurrencePolicyViolationDAO = new FirstOccurrencePolicyViolationDAO();
 
   private final ApplicationComponentDAO applicationComponentDAO = new ApplicationComponentDAO();
 
@@ -198,7 +198,7 @@ public class PolicyEvaluationMigrator
         }
         evaluationCount += monitoringScans.size();
 
-        saveNewestPolicyViolations(em, policyEvaluationsCache, policyViolationsByEvaluationCache);
+        saveFirstOccurrencePolicyViolations(em, policyEvaluationsCache, policyViolationsByEvaluationCache);
 
         log.debug("Migration of policy evaluations for Application named: {} complete in {} ms.", application.getName(),
             System.currentTimeMillis() - appStart);
@@ -217,7 +217,7 @@ public class PolicyEvaluationMigrator
         ownerCount, evaluationCount, System.currentTimeMillis() - start);
   }
 
-  private void saveNewestPolicyViolations(EntityManager em, List<PolicyEvaluation> policyEvaluations,
+  private void saveFirstOccurrencePolicyViolations(EntityManager em, List<PolicyEvaluation> policyEvaluations,
       Map<String, List<PolicyViolation>> policyViolationsByEvaluation)
   {
     // Sort policy evaluations by time
@@ -229,14 +229,15 @@ public class PolicyEvaluationMigrator
       }
     });
 
-    // Calculate "newest" policy violations
+    // Calculate first occurrence policy violations
     Map<String, String> lastScanIdsByStageId = new LinkedHashMap<>();
-    Map<String, List<PolicyViolation>> newestPolicyViolationsByStageId = new LinkedHashMap<>();
+    Map<String, List<PolicyViolation>> firstOccurrencePolicyViolationsByStageId = new LinkedHashMap<>();
     Map<String, PolicyEvaluation> policyEvaluationsById = new LinkedHashMap<>();
     for (PolicyEvaluation policyEvaluation : policyEvaluations) {
       if (policyEvaluation.isReevaluation()) {
         if (!policyEvaluation.getScanId().equals(lastScanIdsByStageId.get(policyEvaluation.getStageTypeId()))) {
-          // Policy re-evaluation for a scan older then the last scan. It should not change "newest" policy violations.
+          // Policy re-evaluation for a scan older then the last scan. It should not change first occurrence policy
+          // violations.
           continue;
         }
       }
@@ -245,28 +246,29 @@ public class PolicyEvaluationMigrator
       }
 
       List<PolicyViolation> policyViolations = policyViolationsByEvaluation.get(policyEvaluation.getId());
-      List<PolicyViolation> newestPolicyViolations = newestPolicyViolationsByStageId.get(policyEvaluation
-          .getStageTypeId());
-      if (newestPolicyViolations == null) {
-        newestPolicyViolationsByStageId.put(policyEvaluation.getStageTypeId(), policyViolations);
+      List<PolicyViolation> firstOccurrencePolicyViolations = firstOccurrencePolicyViolationsByStageId
+          .get(policyEvaluation.getStageTypeId());
+      if (firstOccurrencePolicyViolations == null) {
+        firstOccurrencePolicyViolationsByStageId.put(policyEvaluation.getStageTypeId(), policyViolations);
       }
       else {
         PolicyViolationDiff diff = PolicyViolationDigester.digestPolicyViolations(policyViolations,
-            newestPolicyViolations);
-        newestPolicyViolations.addAll(diff.getAppeared());
-        newestPolicyViolations.removeAll(diff.getCleared());
+            firstOccurrencePolicyViolations);
+        firstOccurrencePolicyViolations.addAll(diff.getAppeared());
+        firstOccurrencePolicyViolations.removeAll(diff.getCleared());
       }
       policyEvaluationsById.put(policyEvaluation.getId(), policyEvaluation);
     }
 
-    // Persist "newest" policy violations
-    for (Entry<String, List<PolicyViolation>> newestPolicyViolationsEntry : newestPolicyViolationsByStageId.entrySet()) {
-      String stageTypeId = newestPolicyViolationsEntry.getKey();
-      for (PolicyViolation policyViolation : newestPolicyViolationsEntry.getValue()) {
+    // Persist first occurrence policy violations
+    for (Entry<String, List<PolicyViolation>> firstOccurrencePolicyViolationsEntry : firstOccurrencePolicyViolationsByStageId
+        .entrySet()) {
+      String stageTypeId = firstOccurrencePolicyViolationsEntry.getKey();
+      for (PolicyViolation policyViolation : firstOccurrencePolicyViolationsEntry.getValue()) {
         PolicyEvaluation policyEvaluation = policyEvaluationsById.get(policyViolation.getPolicyEvaluationId());
-        NewestPolicyViolation newestPolicyViolation = new NewestPolicyViolation(policyViolation.getId(),
-            policyEvaluation.getApplicationId(), stageTypeId);
-        newestPolicyViolationDAO.insert(em, newestPolicyViolation);
+        FirstOccurrencePolicyViolation firstOccurrencePolicyViolation = new FirstOccurrencePolicyViolation(
+            policyViolation.getId(), policyEvaluation.getApplicationId(), stageTypeId);
+        firstOccurrencePolicyViolationDAO.insert(em, firstOccurrencePolicyViolation);
       }
     }
   }

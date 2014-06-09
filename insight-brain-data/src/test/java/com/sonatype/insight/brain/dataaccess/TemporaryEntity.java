@@ -30,7 +30,7 @@ import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupLicenseDAO;
-import com.sonatype.insight.brain.dataaccess.policy.NewestPolicyViolationDAO;
+import com.sonatype.insight.brain.dataaccess.policy.FirstOccurrencePolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
@@ -58,8 +58,8 @@ import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroupLicense;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
+import com.sonatype.insight.brain.model.policy.FirstOccurrencePolicyViolation;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
-import com.sonatype.insight.brain.model.policy.NewestPolicyViolation;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
@@ -117,7 +117,7 @@ public class TemporaryEntity
 
   private final PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
 
-  private final NewestPolicyViolationDAO newestPolicyViolationDAO = new NewestPolicyViolationDAO();
+  private final FirstOccurrencePolicyViolationDAO firstOccurrencePolicyViolationDAO = new FirstOccurrencePolicyViolationDAO();
 
   private final ComponentLabelDAO componentLabelDAO = new ComponentLabelDAO();
 
@@ -638,13 +638,13 @@ public class TemporaryEntity
     return policyViolation;
   }
 
-  public NewestPolicyViolation newNewestPolicyViolation(String policyViolationId, String applicationId,
-      String stageTypeId)
+  public FirstOccurrencePolicyViolation newFirstOccurrencePolicyViolation(String policyViolationId,
+      String applicationId, String stageTypeId)
   {
-    NewestPolicyViolation newestPolicyViolation = new NewestPolicyViolation(policyViolationId, applicationId,
-        stageTypeId);
-    newestPolicyViolationDAO.insert(newestPolicyViolation);
-    return newestPolicyViolation;
+    FirstOccurrencePolicyViolation firstOccurrencePolicyViolation = new FirstOccurrencePolicyViolation(
+        policyViolationId, applicationId, stageTypeId);
+    firstOccurrencePolicyViolationDAO.insert(firstOccurrencePolicyViolation);
+    return firstOccurrencePolicyViolation;
   }
 
   public ApplicationComponent newApplicationComponent(String applicationId, String stageTypeId, String hash,

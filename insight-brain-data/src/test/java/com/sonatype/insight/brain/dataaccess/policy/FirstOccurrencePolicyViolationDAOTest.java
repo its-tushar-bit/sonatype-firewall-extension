@@ -6,7 +6,7 @@
 package com.sonatype.insight.brain.dataaccess.policy;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
-import com.sonatype.insight.brain.model.policy.NewestPolicyViolation;
+import com.sonatype.insight.brain.model.policy.FirstOccurrencePolicyViolation;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
@@ -20,7 +20,7 @@ import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
-public class NewestPolicyViolationDAOTest
+public class FirstOccurrencePolicyViolationDAOTest
     extends AbstractDbDAOTest
 {
   @Test
@@ -30,37 +30,39 @@ public class NewestPolicyViolationDAOTest
         "PolicyViolationDAOTestScanId");
     PolicyViolation policyViolation = tempEntity.newPolicyViolation(policyEvaluation, policy);
 
-    NewestPolicyViolationDAO dao = new NewestPolicyViolationDAO();
+    FirstOccurrencePolicyViolationDAO dao = new FirstOccurrencePolicyViolationDAO();
 
     // Create
-    NewestPolicyViolation newestPolicyViolation = new NewestPolicyViolation(policyViolation.getId(), applicationId,
-        ReleaseStageType.ID);
-    dao.insert(newestPolicyViolation);
-    assertThat(newestPolicyViolation.getId(), is(policyViolation.getId()));
+    FirstOccurrencePolicyViolation firstOccurrencePolicyViolation = new FirstOccurrencePolicyViolation(
+        policyViolation.getId(), applicationId, ReleaseStageType.ID);
+    dao.insert(firstOccurrencePolicyViolation);
+    assertThat(firstOccurrencePolicyViolation.getId(), is(policyViolation.getId()));
 
     // Read
-    newestPolicyViolation = dao.getById(newestPolicyViolation.getId());
-    assertThat(newestPolicyViolation, is(notNullValue()));
-    assertNewestPolicyViolation(policyViolation.getId(), applicationId, ReleaseStageType.ID, newestPolicyViolation);
+    firstOccurrencePolicyViolation = dao.getById(firstOccurrencePolicyViolation.getId());
+    assertThat(firstOccurrencePolicyViolation, is(notNullValue()));
+    assertFirstOccurrencePolicyViolation(policyViolation.getId(), applicationId, ReleaseStageType.ID,
+        firstOccurrencePolicyViolation);
 
     // Update is not allowed
     try {
-      dao.update(newestPolicyViolation);
+      dao.update(firstOccurrencePolicyViolation);
       fail("Expected UnsupportedOperationException");
     }
     catch (UnsupportedOperationException expected) {
-      assertThat(expected.getMessage(), is("The NewestPolicyViolation table does not support update operations"));
+      assertThat(expected.getMessage(),
+          is("The FirstOccurrencePolicyViolation table does not support update operations"));
     }
 
     // Delete
-    dao.delete(newestPolicyViolation);
+    dao.delete(firstOccurrencePolicyViolation);
 
-    newestPolicyViolation = dao.getById(newestPolicyViolation.getId());
-    assertThat(newestPolicyViolation, is(nullValue()));
+    firstOccurrencePolicyViolation = dao.getById(firstOccurrencePolicyViolation.getId());
+    assertThat(firstOccurrencePolicyViolation, is(nullValue()));
   }
 
-  private void assertNewestPolicyViolation(String id, String applicationId, String stageTypeId,
-      NewestPolicyViolation actual)
+  private void assertFirstOccurrencePolicyViolation(String id, String applicationId, String stageTypeId,
+      FirstOccurrencePolicyViolation actual)
   {
     assertThat(actual.getId(), is(id));
     assertThat(actual.getApplicationId(), is(applicationId));

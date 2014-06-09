@@ -11,7 +11,7 @@ import java.util.Set;
 import javax.persistence.EntityManager;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
-import com.sonatype.insight.brain.model.policy.NewestPolicyViolation;
+import com.sonatype.insight.brain.model.policy.FirstOccurrencePolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 
 /**
@@ -56,20 +56,23 @@ public class PolicyViolationDAO
     return getList(em, sQuery, policyId);
   }
 
-  public List<PolicyViolation> getNewestByApplicationIdAndStageTypeId(EntityManager em, String appId, String stageTypeId)
+  public List<PolicyViolation> getFirstOccurrenceByApplicationIdAndStageTypeId(EntityManager em, String appId,
+      String stageTypeId)
   {
     String sQuery = "SELECT policyViolation" + //
-        " FROM PolicyViolation policyViolation, NewestPolicyViolation newestPolicyViolation" + //
-        " WHERE policyViolation.id=newestPolicyViolation.id AND newestPolicyViolation.applicationId=?1" + //
-        " AND newestPolicyViolation.stageTypeId=?2" + //
+        " FROM PolicyViolation policyViolation," + //
+        "   FirstOccurrencePolicyViolation firstOccurrencePolicyViolation" + //
+        " WHERE policyViolation.id=firstOccurrencePolicyViolation.id" + //
+        "   AND firstOccurrencePolicyViolation.applicationId=?1" + //
+        "   AND firstOccurrencePolicyViolation.stageTypeId=?2" + //
         " ORDER BY policyViolation.policyId, policyViolation.groupId, policyViolation.artifactId, policyViolation.version, policyViolation.hash";
     return getList(em, sQuery, appId, stageTypeId);
   }
 
-  public List<PolicyViolation> getNewestByApplicationIdAndStageTypeId(String appId, String stageTypeId) {
+  public List<PolicyViolation> getFirstOccurrenceByApplicationIdAndStageTypeId(String appId, String stageTypeId) {
     EntityManager em = createEntityManager();
     try {
-      return getNewestByApplicationIdAndStageTypeId(em, appId, stageTypeId);
+      return getFirstOccurrenceByApplicationIdAndStageTypeId(em, appId, stageTypeId);
     }
     finally {
       close(em);
@@ -78,11 +81,12 @@ public class PolicyViolationDAO
 
   @Override
   public void delete(EntityManager em, PolicyViolation entity) {
-    // Cascade to newest policy violation
-    NewestPolicyViolationDAO newestPolicyViolationDAO = new NewestPolicyViolationDAO();
-    NewestPolicyViolation newestPolicyViolation = newestPolicyViolationDAO.getById(em, entity.getId());
-    if (newestPolicyViolation != null) {
-      newestPolicyViolationDAO.delete(em, newestPolicyViolation);
+    // Cascade to first occurrence policy violation
+    FirstOccurrencePolicyViolationDAO firstOccurrencePolicyViolationDAO = new FirstOccurrencePolicyViolationDAO();
+    FirstOccurrencePolicyViolation firstOccurrencePolicyViolation = firstOccurrencePolicyViolationDAO.getById(em,
+        entity.getId());
+    if (firstOccurrencePolicyViolation != null) {
+      firstOccurrencePolicyViolationDAO.delete(em, firstOccurrencePolicyViolation);
     }
 
     super.delete(em, entity);
@@ -103,9 +107,9 @@ public class PolicyViolationDAO
       throw new IllegalArgumentException("Cannot determine first occurrence of violation for component without hash");
     }
     String sQuery = "SELECT policyViolation" + //
-        " FROM PolicyViolation policyViolation, NewestPolicyViolation newestPolicyViolation" + //
-        " WHERE policyViolation.id=newestPolicyViolation.id" + //
-        " AND newestPolicyViolation.applicationId=?1 AND newestPolicyViolation.stageTypeId=?2" + //
+        " FROM PolicyViolation policyViolation, FirstOccurrencePolicyViolation firstOccurrencePolicyViolation" + //
+        " WHERE policyViolation.id=firstOccurrencePolicyViolation.id" + //
+        " AND firstOccurrencePolicyViolation.applicationId=?1 AND firstOccurrencePolicyViolation.stageTypeId=?2" + //
         " AND policyViolation.policyId=?3 AND policyViolation.hash=?4";
     PolicyViolation firstViolation = get(sQuery, applicationId, stageTypeId, violation.getPolicyId(),
         violation.getHash());

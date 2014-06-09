@@ -108,11 +108,11 @@ public class DashboardServiceAuthzTest
     return tempEntity.newPolicyViolation(evaluation, tempEntity.newPolicy(app.getId(), "test policy name"));
   }
 
-  private void createNewestPolicyViolation(String appId) {
+  private void createFirstOccurrencePolicyViolation(String appId) {
     PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(appId, BuildStageType.ID, "test scan id");
     PolicyViolation policyViolation = tempEntity.newPolicyViolation(evaluation,
         tempEntity.newPolicy(app.getId(), "test policy name"));
-    tempEntity.newNewestPolicyViolation(policyViolation.getId(), appId, BuildStageType.ID);
+    tempEntity.newFirstOccurrencePolicyViolation(policyViolation.getId(), appId, BuildStageType.ID);
   }
 
   @Test(expected = UnauthenticatedException.class)
@@ -227,20 +227,20 @@ public class DashboardServiceAuthzTest
 
   @Test(expected = UnauthenticatedException.class)
   public void testGetNewestRisks_ImplicitApplicationFilter_Unauthenticated() {
-    createNewestPolicyViolation(app.getId());
+    createFirstOccurrencePolicyViolation(app.getId());
     assertThat(dashboardService.getNewestRisks(null, null, null, null, null, 1), hasSize(0));
   }
 
   @Test
   public void testGetNewestRisks_ImplicitApplicationFilter_Unauthorized() {
-    createNewestPolicyViolation(app.getId());
+    createFirstOccurrencePolicyViolation(app.getId());
     login();
     assertThat(dashboardService.getNewestRisks(null, null, null, null, null, 1), hasSize(0));
   }
 
   @Test
   public void testGetNewestRisks_ImplicitApplicationFilter_Authorized() {
-    createNewestPolicyViolation(app.getId());
+    createFirstOccurrencePolicyViolation(app.getId());
     grantReadPermission(app.getId());
     assertThat(dashboardService.getNewestRisks(null, null, null, null, null, 1), hasSize(1));
   }

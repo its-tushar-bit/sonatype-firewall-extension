@@ -10,7 +10,7 @@ import java.util.List;
 
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
-import com.sonatype.insight.brain.model.policy.NewestPolicyViolation;
+import com.sonatype.insight.brain.model.policy.FirstOccurrencePolicyViolation;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
@@ -91,44 +91,47 @@ public class PolicyViolationDAOTest
   }
 
   @Test
-  public void testCascadeDeleteToNewestPolicyViolations() {
-    Policy policy = tempEntity.newPolicy(applicationId, "testCascadeDeleteToNewestPolicyViolations");
+  public void testCascadeDeleteToFirstOccurrencePolicyViolations() {
+    Policy policy = tempEntity.newPolicy(applicationId, "testCascadeDeleteToFirstOccurrencePolicyViolations");
     PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(applicationId, ReleaseStageType.ID,
         "PolicyViolationDAOTest");
     PolicyViolation policyViolation = tempEntity.newPolicyViolation(policyEvaluation, policy);
-    NewestPolicyViolation newestPolicyViolation = tempEntity.newNewestPolicyViolation(policyViolation.getId(),
-        applicationId, ReleaseStageType.ID);
+    FirstOccurrencePolicyViolation firstOccurrencePolicyViolation = tempEntity.newFirstOccurrencePolicyViolation(
+        policyViolation.getId(), applicationId, ReleaseStageType.ID);
 
     new PolicyViolationDAO().delete(policyViolation);
-    assertThat(new NewestPolicyViolationDAO().getById(newestPolicyViolation.getId()), is(nullValue()));
+    assertThat(new FirstOccurrencePolicyViolationDAO().getById(firstOccurrencePolicyViolation.getId()), is(nullValue()));
   }
 
   @Test
-  public void testGetNewestByApplicationIdAndStageTypeId() {
-    Policy policy = tempEntity.newPolicy(applicationId, "testGetNewestByApplicationIdAndStageTypeId");
+  public void testGetFirstOccurrenceByApplicationIdAndStageTypeId() {
+    Policy policy = tempEntity.newPolicy(applicationId, "testGetFirstOccurrenceByApplicationIdAndStageTypeId");
 
     // Add policy violations for Release stage
     PolicyEvaluation policyEvaluationRelease = tempEntity.newPolicyEvaluation(applicationId, ReleaseStageType.ID,
         "ScanReleaseId");
-    // Add a policy violation that is not newest
+    // Add a policy violation that is not first occurrence
     tempEntity.newPolicyViolation(policyEvaluationRelease, policy);
-    // Add a policy violation that is newest
-    PolicyViolation newestPolicyViolationRelease = tempEntity.newPolicyViolation(policyEvaluationRelease, policy);
-    tempEntity.newNewestPolicyViolation(newestPolicyViolationRelease.getId(), applicationId, ReleaseStageType.ID);
+    // Add a policy violation that is first occurrence
+    PolicyViolation firstOccurrencePolicyViolationRelease = tempEntity.newPolicyViolation(policyEvaluationRelease,
+        policy);
+    tempEntity.newFirstOccurrencePolicyViolation(firstOccurrencePolicyViolationRelease.getId(), applicationId,
+        ReleaseStageType.ID);
 
     // Add policy violations for Build stage
     PolicyEvaluation policyEvaluationBuild = tempEntity.newPolicyEvaluation(applicationId, BuildStageType.ID,
         "ScanBuildId");
-    // Add a policy violation that is not newest
+    // Add a policy violation that is not first occurrence
     tempEntity.newPolicyViolation(policyEvaluationBuild, policy);
-    // Add a policy violation that is newest
-    PolicyViolation newestPolicyViolationBuild = tempEntity.newPolicyViolation(policyEvaluationBuild, policy);
-    tempEntity.newNewestPolicyViolation(newestPolicyViolationBuild.getId(), applicationId, BuildStageType.ID);
+    // Add a policy violation that is first occurrence
+    PolicyViolation firstOccurrencePolicyViolationBuild = tempEntity.newPolicyViolation(policyEvaluationBuild, policy);
+    tempEntity.newFirstOccurrencePolicyViolation(firstOccurrencePolicyViolationBuild.getId(), applicationId,
+        BuildStageType.ID);
 
-    List<PolicyViolation> newestPolicyViolationsRelease = new PolicyViolationDAO()
-        .getNewestByApplicationIdAndStageTypeId(applicationId, ReleaseStageType.ID);
-    assertThat(newestPolicyViolationsRelease, hasSize(1));
-    assertThat(newestPolicyViolationsRelease.get(0).getId(), is(newestPolicyViolationRelease.getId()));
+    List<PolicyViolation> firstOccurrencePolicyViolationsRelease = new PolicyViolationDAO()
+        .getFirstOccurrenceByApplicationIdAndStageTypeId(applicationId, ReleaseStageType.ID);
+    assertThat(firstOccurrencePolicyViolationsRelease, hasSize(1));
+    assertThat(firstOccurrencePolicyViolationsRelease.get(0).getId(), is(firstOccurrencePolicyViolationRelease.getId()));
   }
 
   @Test
@@ -137,9 +140,9 @@ public class PolicyViolationDAOTest
 
     PolicyEvaluation evaluation1 = tempEntity.newPolicyEvaluation(applicationId, BuildStageType.ID, "scan-1");
     PolicyViolation violation1 = tempEntity.newPolicyViolation(evaluation1, policy, "gid", "aid", "1", "hash-1", null);
-    tempEntity.newNewestPolicyViolation(violation1.getId(), applicationId, evaluation1.getStageTypeId());
+    tempEntity.newFirstOccurrencePolicyViolation(violation1.getId(), applicationId, evaluation1.getStageTypeId());
     PolicyViolation violation2 = tempEntity.newPolicyViolation(evaluation1, policy, "gid", "aid", "2", "hash-2", null);
-    tempEntity.newNewestPolicyViolation(violation2.getId(), applicationId, evaluation1.getStageTypeId());
+    tempEntity.newFirstOccurrencePolicyViolation(violation2.getId(), applicationId, evaluation1.getStageTypeId());
 
     PolicyEvaluation evaluation2 = tempEntity
         .newPolicyEvaluation(applicationId, evaluation1.getStageTypeId(), "scan-2");
@@ -168,7 +171,7 @@ public class PolicyViolationDAOTest
   }
 
   @Test
-  public void testGetFirstOccurrence_MissingNewestViolationDueToIncompleteDataMigration() {
+  public void testGetFirstOccurrence_MissingFirstOccurrenceViolationDueToIncompleteDataMigration() {
     Policy policy = tempEntity.newPolicy(applicationId, "name");
 
     PolicyEvaluation evaluation1 = tempEntity.newPolicyEvaluation(applicationId, BuildStageType.ID, "scan-1");

@@ -40,7 +40,7 @@ class ComponentDrilldownSpec
         'DashboardSpecFistEvaluation', now - 7)
     policyViolation = temporaryEntity.newPolicyViolation(policyEvaluation, policy, 5,
         PolicyThreatCategory.LICENSE, "Group1", "Artifact1", "Version1", "hash", FailActionType.ID)
-    temporaryEntity.newNewestPolicyViolation(policyViolation.id, policyEvaluation.applicationId,
+    temporaryEntity.newFirstOccurrencePolicyViolation(policyViolation.id, policyEvaluation.applicationId,
         policyEvaluation.stageTypeId)
     applicationComponent = temporaryEntity.newApplicationComponent(app.id, policyEvaluation.stageTypeId,
         policyViolation.hash, policyViolation.groupId, policyViolation.artifactId, policyViolation.version)

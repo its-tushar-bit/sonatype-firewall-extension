@@ -18,8 +18,8 @@ import com.sonatype.insight.model.HasStringId;
  * @since 1.11
  */
 @Entity
-@Table(name = "newest_policy_violation")
-public class NewestPolicyViolation
+@Table(name = "first_occurrence_policy_violation")
+public class FirstOccurrencePolicyViolation
     implements HasStringId
 {
   @Id
@@ -32,10 +32,10 @@ public class NewestPolicyViolation
   @Column(name = "stage_type_id")
   private String stageTypeId;
 
-  public NewestPolicyViolation() {
+  public FirstOccurrencePolicyViolation() {
   }
 
-  public NewestPolicyViolation(String policyViolationId, String applicationId, String stageTypeId) {
+  public FirstOccurrencePolicyViolation(String policyViolationId, String applicationId, String stageTypeId) {
     id = policyViolationId;
     this.applicationId = applicationId;
     this.stageTypeId = stageTypeId;

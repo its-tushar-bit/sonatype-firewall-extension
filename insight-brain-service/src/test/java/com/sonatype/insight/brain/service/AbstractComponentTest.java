@@ -9,6 +9,7 @@ import java.io.IOException;
 
 import com.sonatype.insight.brain.TestLicenseFingerprinter;
 import com.sonatype.insight.brain.TestProductLicenseManager;
+import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.model.security.UserPrincipal;
 
 import org.sonatype.licensing.product.ProductLicenseManager;
@@ -33,6 +34,9 @@ import static org.mockito.Mockito.when;
 public class AbstractComponentTest
     extends InjectedTest
 {
+  @Rule
+  public TemporaryEntity tempEntity = new TemporaryEntity();
+
   @Rule
   public TemporaryFolder tempDir = new TemporaryFolder();
 

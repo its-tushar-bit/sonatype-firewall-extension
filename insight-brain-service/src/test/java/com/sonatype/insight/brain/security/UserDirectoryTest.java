@@ -15,7 +15,6 @@ import javax.inject.Inject;
 import javax.naming.NamingException;
 
 import com.sonatype.insight.brain.configuration.ldap.LdapServer;
-import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
 import com.sonatype.insight.brain.ldap.LdapManager;
 import com.sonatype.insight.brain.ldap.TestLdapServer;
@@ -46,8 +45,7 @@ public class UserDirectoryTest
 
   @Rule
   public TestLdapServer embeddedLdapServer = new TestLdapServer();
-  @Rule
-  public TemporaryEntity tempEntity = new TemporaryEntity();
+
   @Inject
   private UserDirectory userDirectory;
 

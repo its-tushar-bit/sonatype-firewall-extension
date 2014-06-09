@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.service;
 
 import javax.inject.Inject;
 
-import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
@@ -24,7 +23,6 @@ import org.apache.shiro.mgt.SecurityManager;
 import org.apache.shiro.subject.Subject;
 import org.apache.shiro.util.ThreadContext;
 import org.junit.Before;
-import org.junit.Rule;
 
 /**
  * Common fixture for authorization tests of the service layer components.
@@ -32,9 +30,6 @@ import org.junit.Rule;
 public class AbstractServiceAuthzTest
     extends AbstractComponentTest
 {
-  @Rule
-  public TemporaryEntity tempEntity = new TemporaryEntity();
-
   protected Organization org;
 
   protected Application app;

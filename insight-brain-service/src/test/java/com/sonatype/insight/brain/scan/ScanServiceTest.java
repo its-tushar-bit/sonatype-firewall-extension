@@ -13,7 +13,6 @@ import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.policy.Stage;
-import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.report.ReportDownloader;
 import com.sonatype.insight.brain.saas.ScanUploader;
@@ -23,7 +22,6 @@ import com.sonatype.insight.error.exception.BadRequestException;
 import com.google.inject.Binder;
 import org.codehaus.plexus.util.FileUtils;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
@@ -47,9 +45,6 @@ import static org.mockito.Mockito.when;
 public class ScanServiceTest
     extends AbstractComponentTest
 {
-  @Rule
-  public TemporaryEntity tempEntity = new TemporaryEntity();
-
   @Inject
   private ScanService scanService;
 

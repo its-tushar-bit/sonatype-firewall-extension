@@ -13,7 +13,6 @@ import java.util.zip.ZipOutputStream;
 
 import javax.inject.Inject;
 
-import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
@@ -25,7 +24,6 @@ import com.sonatype.insight.json.store.JsonUtils;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.codehaus.plexus.util.FileUtils;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
 
 import static org.hamcrest.Matchers.containsInAnyOrder;
@@ -43,9 +41,6 @@ public class ReportDataServiceTest
 
   @Inject
   private InsightWork work;
-
-  @Rule
-  public TemporaryEntity tempEntity = new TemporaryEntity();
 
   private MultiLicenseDAO multiLicenseDAO = new MultiLicenseDAO();
 

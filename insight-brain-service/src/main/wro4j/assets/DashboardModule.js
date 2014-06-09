@@ -458,6 +458,23 @@
     };
   }]);
 
+  /**
+   * Remove stages which are not part of the filter
+   */
+  dashboardModule.filter('stageFilter', function () {
+    return function (input, filter) {
+      if (angular.isArray(input) && filter && filter.stageTypeIds.length > 0) {
+        for (var i=0; i<input.length; i++) {
+          if ($.inArray(input[i].id || input[i].stageTypeId, filter.stageTypeIds) === -1) {
+            input.splice(i,1);
+            --i;
+          }
+        }
+      }
+      return input;
+    };
+  });
+
   dashboardModule.filter('stageTypeSort', function () {
     function priority(stage){
       var ordinal = null;

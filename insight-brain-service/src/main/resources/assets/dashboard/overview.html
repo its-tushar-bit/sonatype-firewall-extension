@@ -105,7 +105,7 @@
         <th class='component-header'>
           <div>COMPONENT</div>
         </th>
-        <th id='stage-header-{{stage.stageTypeId}}' ng-repeat="stage in stageTypes">
+        <th id='stage-header-{{stage.stageTypeId}}' ng-repeat="stage in stageTypes | stageFilter:filters">
           <div sort-column="{{(stage.stageTypeId | removeDashes) + 'Time'}}">{{ stage.name | uppercase }}</div>
         </th>
       </tr>
@@ -134,7 +134,7 @@
             <em>Unknown</em>
           </a>
         </td>
-        <td ng-repeat='stageDetails in risk.stageDetails | stageTypeSort'
+        <td ng-repeat='stageDetails in risk.stageDetails | stageTypeSort | stageFilter:filters'
             ng-class="{ 'latest-risk': stageDetails.time === risk.time }">
           <a title="View application report"
              ng-href="index.html#/reports/{{risk.applicationPublicId | EncodeURIComponent }}/{{stageDetails.scanId}}"

@@ -322,6 +322,29 @@ describe('DashboardModule', function() {
     }));
   });
 
+  describe('stageFilter', function () {
+    it('empty filter', inject(function ($filter) {
+      var stageList = [{ id : 'operate' }, { id : 'build' }, { id : 'release' }, { id : 'stage-release' }],
+          result;
+
+      // null filter
+      result = $filter('stageFilter')(stageList);
+      expect(result).toEqual(stageList);
+
+      // empty filter
+      result = $filter('stageFilter')(stageList, { stageTypeIds : [] });
+      expect(result).toEqual(stageList);
+    }));
+
+    it('filter', inject(function ($filter) {
+      var stageList = [{ id : 'operate' }, { id : 'build' }, { id : 'release' }, { id : 'stage-release' }],
+          result;
+
+      result = $filter('stageFilter')(stageList, { stageTypeIds : ['release'] });
+      expect(result).toEqual([{ id : 'release' }]);
+    }));
+  });
+
   describe('Risk Table Controllers', function() {
     var controllers = [{
       prefix: 'application',

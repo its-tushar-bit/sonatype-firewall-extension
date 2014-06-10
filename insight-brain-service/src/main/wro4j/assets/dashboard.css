@@ -57,7 +57,7 @@
 }
 
 .dashboard-content table {
-  font-size : 12px;
+  font-size : 14px;
 }
 
 table.policy-violation-table tr td:nth-child(2) {
@@ -75,19 +75,23 @@ table.table-risk tr.stage td:first-child {
 
 table.table-risk tbody td:nth-child(1n + 2) {
   text-align : center;
-  width : 64px;
+  width : 115px;
 }
 
 table.table-risk  tbody tr:first-child td {
   border-top : 1px solid transparent;
 }
 
-table.table-risk thead tr th:nth-child(n+3), table.table-risk thead tr th:nth-child(n+3) div {
+table.table-risk thead tr th:nth-child(n+4), table.table-risk thead tr th:nth-child(n+4) div {
+  padding-left: 12px
+}
+
+table.table-risk thead tr th:nth-child(3), table.table-risk thead tr th:nth-child(3) div {
   padding-left: 8px
 }
 
 table.table-risk thead tr th, table.table-risk thead tr th div {
-  min-width: 100px;
+  min-width: 110px;
 }
 
 table.table-risk .stage td:first-child {
@@ -115,7 +119,7 @@ table.table-risk .stage td.total-risk, table.table-risk td.total-risk.black-text
   color: #000;
 }
 table.table-risk th.total-risk {
-  font-size: 1.2em;
+  font-size: 1.1em;
 }
 table.table-risk td.muted-text {
   color: #C6C6C6 !important;
@@ -367,11 +371,11 @@ table.table-risk td.low-risk, span.low-risk {
 }
 
 .dashboard-content .application-header {
-  min-width: 86px;
+  min-width: 96px;
 }
 
 .dashboard-content .policy-header {
-  min-width: 50px;
+  min-width: 60px;
 }
 
 .dashboard-content .component-header {
@@ -379,18 +383,18 @@ table.table-risk td.low-risk, span.low-risk {
 }
 
 .dashboard-content #threat-header {
-  min-width: 55px;
+  min-width: 65px;
 }
 
 .dashboard-content .time-header {
-  min-width: 60px;
+  min-width: 62px;
 }
 
 .dashboard-content #stage-header-build, .dashboard-content #stage-header-stage-release {
-  min-width: 60px;
+  min-width: 68px;
 }
 .dashboard-content #stage-header-release, .dashboard-content #stage-header-operate {
-  min-width: 75px;
+  min-width: 78px;
 }
 
 .latest-risk {

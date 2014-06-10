@@ -169,6 +169,8 @@ public class PolicyEvaluationMigrator
           List<PolicyEvaluation> policyEvaluations = allByStage(stageId, auditStore);
 
           if (policyEvaluations.isEmpty()) {
+            log.debug("Found no policy evaluations for Application named: {} and Stage: {}", application.getName(),
+                stageId);
             continue;
           }
 

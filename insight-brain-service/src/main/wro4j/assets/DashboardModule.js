@@ -861,7 +861,7 @@
 
           // baseline will render at bottom for positive data, somewhere in between for positive/negative data
           // Need to fudge a bit if we're drawing at the bottom of the container to account for the stroke-width
-          var baseline = Math.min(height - 0.25, height - y(0));
+          var baseline = Math.min(height - 0.50, height - y(0));
 
           chart.selectAll('g')
             .data(data).enter()

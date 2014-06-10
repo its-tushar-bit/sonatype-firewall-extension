@@ -862,7 +862,7 @@ describe('DashboardModule', function() {
       var zero = angular.element(element.find('svg').find('rect')[0]);
       expect(zero.attr('class')).toBe('bar negative');
       expect(zero.attr('height')).toBe('0'); //no height
-      expect(parseFloat(zero.attr('y'))).toBeCloseTo(50, 0.25);
+      expect(parseFloat(zero.attr('y'))).toBe(49.5); //baseline is fudged so it doesn't render outside the svg element
     });
 
     it('sets the correct style and size for intermediate positive value', function(){

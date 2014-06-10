@@ -104,8 +104,9 @@ public class PolicyViolationDAO
    */
   public PolicyViolation getFirstOccurrence(String applicationId, String stageTypeId, PolicyViolation violation) {
     if (violation.getHash() == null) {
-      throw new IllegalArgumentException("Cannot determine first occurrence of violation for component without hash");
+      return violation;
     }
+
     String sQuery = "SELECT policyViolation" + //
         " FROM PolicyViolation policyViolation, FirstOccurrencePolicyViolation firstOccurrencePolicyViolation" + //
         " WHERE policyViolation.id=firstOccurrencePolicyViolation.id" + //

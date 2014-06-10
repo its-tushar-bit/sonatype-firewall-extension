@@ -728,9 +728,14 @@ public class DashboardServiceTest
     assertThat(actual.policyName, is(policyViolation.getPolicyName()));
     assertThat(actual.policyId, is(policyViolation.getPolicyId()));
     assertThat(actual.hash, is(policyViolation.getHash()));
-    assertThat(actual.gav.groupId, is(policyViolation.getGroupId()));
-    assertThat(actual.gav.artifactId, is(policyViolation.getArtifactId()));
-    assertThat(actual.gav.version, is(policyViolation.getVersion()));
+    if (policyViolation.getGroupId() != null) {
+      assertThat(actual.gav.groupId, is(policyViolation.getGroupId()));
+      assertThat(actual.gav.artifactId, is(policyViolation.getArtifactId()));
+      assertThat(actual.gav.version, is(policyViolation.getVersion()));
+    }
+    else {
+      assertThat(actual.gav, is(nullValue()));
+    }
     assertThat(actual.pathnames, is(policyViolation.getPathnames()));
   }
 
@@ -972,6 +977,19 @@ public class DashboardServiceTest
         policyViolation2.getActionTypeId(), policyEval1.getTime());
     assertNewestRiskDTOContainsStageDetails(riskDTOs.get(0), ReleaseStageType.ID, scanId4,
         policyViolation4.getActionTypeId(), policyEval3.getTime());
+  }
+
+  @Test
+  public void testGetNewestRisks_ViolationWithoutHash() throws Exception {
+    PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(app1.getId(), ReleaseStageType.ID, "newScanId");
+    PolicyViolation policyViolation = tempEntity.newPolicyViolation(evaluation, app1Policy, null /* groupId */,
+        null /* artifactId */, null /* version */, null /* hash */, "reason");
+
+    List<NewestRiskDTO> riskDTOs = dashboardService.getNewestRisks(null, Collections.singleton(ReleaseStageType.ID),
+        null, null, null, 1000);
+    assertThat(riskDTOs, hasSize(1));
+    NewestRiskDTO riskDTO = riskDTOs.get(0);
+    assertNewestRiskDTO(riskDTO, app1, policyViolation, evaluation.getTime());
   }
 
   @Test

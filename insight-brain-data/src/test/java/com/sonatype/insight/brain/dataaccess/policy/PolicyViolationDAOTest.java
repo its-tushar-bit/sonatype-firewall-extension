@@ -26,7 +26,6 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
 
 public class PolicyViolationDAOTest
     extends AbstractDbDAOTest
@@ -159,15 +158,13 @@ public class PolicyViolationDAOTest
     Policy policy = tempEntity.newPolicy(applicationId, "name");
 
     PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(applicationId, BuildStageType.ID, "scan-1");
-    PolicyViolation violation = tempEntity.newPolicyViolation(evaluation, policy, null, null, null, null, null);
+    PolicyViolation violation = tempEntity.newPolicyViolation(evaluation, policy, null /* groupId */,
+        null /* artifactId */, null /* version */, null /* hash */, null /* reason */);
 
-    try {
-      new PolicyViolationDAO().getFirstOccurrence(applicationId, evaluation.getStageTypeId(), violation);
-      fail("Should have bailed on missing component hash");
-    }
-    catch (IllegalArgumentException e) {
-      assertThat(e.getMessage(), is("Cannot determine first occurrence of violation for component without hash"));
-    }
+    PolicyViolation first = new PolicyViolationDAO().getFirstOccurrence(applicationId, evaluation.getStageTypeId(),
+        violation);
+    assertThat(first, is(notNullValue()));
+    assertThat(first.getId(), is(violation.getId()));
   }
 
   @Test

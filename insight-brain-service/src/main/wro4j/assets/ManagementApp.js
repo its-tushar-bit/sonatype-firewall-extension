@@ -10,7 +10,7 @@
     ['MainModule', 'OrganizationModule', 'ApplicationModule', 'Configuration', 'UserModule', 'LdapConfiguration'],
     ['$urlRouterProvider',
       function($urlRouterProvider) {
-        $urlRouterProvider.when('', '/management/application');
+        $urlRouterProvider.when('', '/dashboard');
       }
     ]);
 }());

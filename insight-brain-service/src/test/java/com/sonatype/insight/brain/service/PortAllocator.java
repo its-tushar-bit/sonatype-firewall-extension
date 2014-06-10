@@ -26,7 +26,7 @@ public class PortAllocator
     @Override
     protected boolean removeEldestEntry(Map.Entry<Integer, Object> eldest) {
       return size() >= 10;
-    };
+    }
   };
 
   public static int findFreePort(final int defaultPort) {

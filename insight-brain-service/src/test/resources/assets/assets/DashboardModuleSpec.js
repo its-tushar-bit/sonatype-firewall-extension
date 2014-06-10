@@ -485,6 +485,7 @@ describe('DashboardModule', function() {
 
     beforeEach(inject(function($rootScope, $httpBackend) {
       scope = $rootScope.$new();
+      scope.filters={};
       $httpBackend.expectGET('dashboard-view-summary').respond('<div></div>');
     }));
 

@@ -400,6 +400,14 @@
     };
   }
 
+  function watchFilter($scope) {
+    $scope.$watch('filters', function(newFilter){
+      if (newFilter) {
+        $scope.doLoad();
+      }
+    });
+  }
+
   dashboardModule.directive('newestRiskTable', ['CLMLocations', function(CLMLocations) {
     return dashboardTable(CLMLocations.getNewestRisksUrl());
   }]);
@@ -665,9 +673,7 @@
 
         $scope.formatPercentage = AngularUtils.formatPercentage;
 
-        $scope.$watch('filters', function(){
-          $scope.doLoad();
-        });
+        watchFilter($scope);
       }]
     };
   });
@@ -707,9 +713,7 @@
             });
           };
 
-          $scope.$watch('filters', function() {
-            $scope.doLoad();
-          });
+          watchFilter($scope);
         }
       ]
     };
@@ -823,9 +827,7 @@
             });
           };
 
-          $scope.$watch('filters', function() {
-            $scope.doLoad();
-          });
+          watchFilter($scope);
         }
       ]
     };

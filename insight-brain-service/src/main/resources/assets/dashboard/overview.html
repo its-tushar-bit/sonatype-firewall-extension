@@ -257,7 +257,7 @@
           <tr>
             <th class="category-header">CATEGORY</th>
             <th>COUNT</th>
-            <th>DELTA</th>
+            <th colspan="3">DELTA</th>
             <th>WEEKLY DELTAS</th>
             <th>12 WEEK TREND</th>
           </tr>
@@ -268,9 +268,12 @@
           <td>
             <div class="label label-default small-dashboard-label-wrapper">{{category.counts}}</div>
           </td>
-          <td>
+          <td class="delta-column">
             <div delta data="category.delta" inverse-green="category.inverseGreen"></div>
           </td>
+          <td class="buffer-column"></td>
+          <td class="delta-column">8888</td>
+          <!--{{category.delta}}</td>-->
           <td>
             <div value-bars data="category.barChartData" class="chart" inverse-green="category.inverseGreen"></div>
           </td>
@@ -287,7 +290,6 @@
 <script type="text/ng-template" id="policy-summary-delta">
   <div ng-class="{'delta-positive': isPositive(), 'delta-negative': isNegative() }">
     <i class="sonatype-icons pull-left" ng-class="{'up': data > 0, 'down': data < 0}"></i>
-    <div class="pull-right">{{data}}</div>
   </div>
 </script>
 <script type="text/ng-template" id="component-heat-map-help">

@@ -57,7 +57,7 @@
        connect: {
          options: {
            port: 9090,
-           hostname: 'localhost'
+           hostname: '0.0.0.0'
          },
          proxies: [
            {

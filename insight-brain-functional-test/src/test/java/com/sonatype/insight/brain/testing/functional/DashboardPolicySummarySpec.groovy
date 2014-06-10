@@ -156,13 +156,8 @@ class DashboardPolicySummarySpec
       policyThreatFiltersDropdown.toggleOption('License')
       applyFilter()
     
-    then: 'the policy summary should be empty'
+    then: 'The counts for each category should all be zero'
       waitFor { filterPanel.displayed }
-      policySummary.discoveredRow.category== 'Discovered'
-      policySummary.fixedRow.category == 'Fixed'
-      policySummary.pendingRow.category == 'Pending'
-
-    and: 'The counts for each category should all be zero'
       policySummary.discoveredRow.count == 0
       policySummary.fixedRow.count == 0
       policySummary.pendingRow.count == 0

@@ -810,7 +810,7 @@ table.table-risk td.low-risk {
 }
 /* reduce padding on summary table cells */
 .table.policy-summary-table td {
-  padding: 3px 0 3px 0;
+  padding: 3px;
   line-height: 30px;
   font-size: 1.3em;
   font-weight: bold;

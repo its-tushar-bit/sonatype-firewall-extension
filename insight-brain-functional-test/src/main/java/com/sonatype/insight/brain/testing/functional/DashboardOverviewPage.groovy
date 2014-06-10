@@ -100,9 +100,9 @@ class PolicySummaryModule
 {
   static content = {
     rows(required: false) { moduleList PolicySummaryRow, $('tr').tail() }
-    newRow { (PolicySummaryRow)rows[0] }
+    pendingRow { (PolicySummaryRow)rows[0] }
     fixedRow { (PolicySummaryRow)rows[1] }
-    unresolvedRow { (PolicySummaryRow)rows[2] }
+    discoveredRow { (PolicySummaryRow)rows[2] }
   }
 }
 

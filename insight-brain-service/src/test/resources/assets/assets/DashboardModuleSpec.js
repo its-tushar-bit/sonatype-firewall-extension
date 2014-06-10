@@ -926,15 +926,15 @@ describe('DashboardModule', function() {
       $httpBackend.expectGET(url).respond(policySummaryData);
       $compile(angular.element('<div dashboard-policy-summary filters="filters"></div>'))(scope);
       $httpBackend.flush();
-      assertPolicySummaryBlock('New', 100, 17, policySummaryData.weeklyDeltaNew,
+      assertPolicySummaryBlock('Discovered', 100, 17, policySummaryData.weeklyDeltaNew,
         [83, 84, 85, 87, 87, 90, 90, 91, 96, 98, 99, 99, 100], true,
-        scope.$$childHead.policySummaryData[0]);
+        scope.$$childHead.policySummaryData[2]);
       assertPolicySummaryBlock('Fixed', 50, 9, policySummaryData.weeklyDeltaFixed,
         [41, 42, 43, 44, 45, 46, 47, 49, 49, 49, 49, 50, 50], false,
         scope.$$childHead.policySummaryData[1]);
-      assertPolicySummaryBlock('Unresolved', 50, 8, policySummaryData.weeklyDeltaUnresolved,
+      assertPolicySummaryBlock('Pending', 50, 8, policySummaryData.weeklyDeltaUnresolved,
         [42, 42, 42, 43, 42, 44, 43, 42, 47, 49, 50, 49, 50], true,
-        scope.$$childHead.policySummaryData[2]);
+        scope.$$childHead.policySummaryData[0]);
 
       expect(scope.$$childHead.error).toBeFalsy();
     }));

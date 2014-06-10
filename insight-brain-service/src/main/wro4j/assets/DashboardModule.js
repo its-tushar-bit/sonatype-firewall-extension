@@ -806,11 +806,11 @@
               unresolvedDelta = delta(weeklyDeltaUnresolved);
             return [
               {
-                name: 'New',
-                counts: totalNew,
-                delta: newDelta,
-                barChartData : weeklyDeltaNew,
-                sparklineData: calculateRunningTotals(weeklyDeltaNew, totalNew - newDelta),
+                name: 'Pending',
+                counts: currentUnresolved,
+                delta: unresolvedDelta,
+                barChartData : weeklyDeltaUnresolved,
+                sparklineData: calculateRunningTotals(weeklyDeltaUnresolved, currentUnresolved - unresolvedDelta),
                 inverseGreen: true
               },
               {
@@ -822,11 +822,11 @@
                 inverseGreen: false
               },
               {
-                name: 'Unresolved',
-                counts: currentUnresolved,
-                delta: unresolvedDelta,
-                barChartData : weeklyDeltaUnresolved,
-                sparklineData: calculateRunningTotals(weeklyDeltaUnresolved, currentUnresolved - unresolvedDelta),
+                name: 'Discovered',
+                counts: totalNew,
+                delta: newDelta,
+                barChartData : weeklyDeltaNew,
+                sparklineData: calculateRunningTotals(weeklyDeltaNew, totalNew - newDelta),
                 inverseGreen: true
               }
             ];

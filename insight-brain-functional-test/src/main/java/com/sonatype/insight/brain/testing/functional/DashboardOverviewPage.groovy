@@ -71,7 +71,7 @@ class DashboardOverviewPage
     summaryTotalComponents(required: false) { $('#summary-total-components') }
     summaryMatchedComponents(required: false) { $('#summary-matched-components') }
     summaryPercentComponents(required: false) { $('#summary-percent-components') }
-    
+
     unknownComponentPopover(required: false) { $('.popover.pathnames-popover') }
     unknownComponentPopoverTitle(required: false) { $('.popover-title').text() }
     unknownComponentPopoverText(required: false) { $('.popover-content.pathnames-popover-content').text() }
@@ -82,10 +82,10 @@ class DashboardOverviewPage
     componentMatchUnknownCount(required: false) { $('#component-match-results .percentage-graph-legend-count')[2] }
 
     policySummary { module PolicySummaryModule, $('#policySummaryData') }
-    
+
     applicationHeatMapHelp (required: false) { $('#application-heat-map-help-content') }
     componentHeatMapHelp (required: false) { $('#component-heat-map-help-content') }
-    modalBackdrop (required: false) { $('div.modal-backdrop') }  
+    modalBackdrop (required: false) { $('div.modal-backdrop') }
   }
 
   void applyFilter() {
@@ -100,6 +100,9 @@ class PolicySummaryModule
 {
   static content = {
     rows(required: false) { moduleList PolicySummaryRow, $('tr').tail() }
+    newRow { (PolicySummaryRow)rows[0] }
+    fixedRow { (PolicySummaryRow)rows[1] }
+    unresolvedRow { (PolicySummaryRow)rows[2] }
   }
 }
 
@@ -107,7 +110,7 @@ class PolicySummaryRow
     extends Module
 {
   static final int CATEGORY = 0
-  static final int COUNTS = 1
+  static final int COUNT = 1
   static final int DELTA = 2
   static final int BAR_CHART = 3
   static final int SPARKLINE = 4
@@ -115,8 +118,8 @@ class PolicySummaryRow
   static content = {
     cell(required: false) { int i -> $('td', i) }
     category { cell(CATEGORY).text() }
-    counts { cell(COUNTS).text() }
-    delta { cell(DELTA).text() }
+    count { cell(COUNT).text().toInteger() }
+    delta { module DeltaModule, cell(DELTA) }
     barChart { module BarChartModule, cell(BAR_CHART)}
     sparkline { module SparklineModule, cell(SPARKLINE) }
   }
@@ -125,7 +128,25 @@ class PolicySummaryRow
 class BarChartModule
     extends Module
 {
+  static content = {
+    bars(required: false) { $('svg rect') }
+    points { bars.collect{ it.find('title').text().toInteger() }}
+  }
+}
 
+class DeltaModule
+    extends Module
+{
+  static content = {
+    outerDiv { $('div').first() }
+    valueDiv { $('div').last() }
+    chevronDiv { $('i') }
+    isUp { chevronDiv.classes().contains('up') }
+    isDown { chevronDiv.classes().contains('down') }
+    value { valueDiv.text().toInteger() }
+    isPositive { outerDiv.classes().contains('delta-positive') }
+    isNegative { outerDiv.classes().contains('delta-negative') }
+  }
 }
 
 class SparklineModule
@@ -134,6 +155,7 @@ class SparklineModule
   static content = {
     previousPath { $('.line.base') }
     presentPath { $('.line:not(.base)') }
+    svgContainer { $('svg') }
     guideText { $('.guide-text') }
   }
 
@@ -147,7 +169,7 @@ class SparklineModule
       it.split(',')[1].toDouble()
     }.drop(1)
     points = points.plus(presentPoint)
-    def maxValue = points.max()
+    def maxValue = svgContainer.attr('height').toDouble()
     return points.collect {
       1.0 - it / maxValue
     }
@@ -159,7 +181,7 @@ class SparklineModule
 }
 
 class ComponentViolationsTable
-    extends Module 
+    extends Module
 {
   static content = {
     rows { moduleList ComponentViolationsTableRow, $('tbody tr') }

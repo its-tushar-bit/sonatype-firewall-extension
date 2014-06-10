@@ -1106,6 +1106,7 @@
   dashboardModule.directive('delta', function() {
     return {
       templateUrl: 'policy-summary-delta',
+      replace: true,
       scope: {
         data: '=',
         inverseGreen: '='

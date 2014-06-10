@@ -145,7 +145,7 @@ abstract class BaseSpec
    * @param args additional path segments for the Page
    * @return a reference to the newly loaded Page
    */
-  Page loginAsAdminVia(initialPage = ReportViolationsPage, Object[]args) {
+  public <T> T loginAsAdminVia(Class<T> initialPage = ReportViolationsPage, Object[]args) {
     via initialPage, args
     login.loginAsAdmin()
     verifyAt()
@@ -162,7 +162,7 @@ abstract class BaseSpec
    * @param args additional path segments for the Page
    * @return a reference to the newly loaded Page
    */
-  Page loginAsUserVia(String username, String password, initialPage = ReportViolationsPage, Object[] args) {
+  public <T> T loginAsUserVia(String username, String password, Class<T> initialPage = ReportViolationsPage, Object[] args) {
     via initialPage, args
     login.login(username, password)
     verifyAt()

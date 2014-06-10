@@ -213,8 +213,7 @@ public class DashboardServiceTest
 
   @Test
   public void testGetPolicyViolations_FilterByStage_ExcludesDevelop() {
-    PolicyEvaluation evaluation = tempEntity
-        .newPolicyEvaluation(app1.getId(), DevelopStageType.ID, "test scan app1 id");
+    PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(app1.getId(), DevelopStageType.ID, "newScanIdApp1");
     tempEntity.newPolicyViolation(evaluation, app1Policy);
 
     List<PolicyViolationDTO> policyViolationDTOs = dashboardService.getPolicyViolations(null, null, null);
@@ -454,8 +453,7 @@ public class DashboardServiceTest
   public void testGetComponentRisks_DedupViolationsForSameAppAndPolicyByPickingMostRecentViolationAcrossStages()
       throws Exception
   {
-    PolicyEvaluation evaluation = tempEntity
-        .newPolicyEvaluation(app1.getId(), ReleaseStageType.ID, "test scan app1 id");
+    PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(app1.getId(), ReleaseStageType.ID, "newScanIdApp1");
     PolicyViolation violation = tempEntity.newPolicyViolation(evaluation, app1Policy,
         app1Policy.getThreatLevel() + 1, PolicyThreatCategory.LICENSE, "Group1", "Artifact1", "Version1");
 
@@ -482,8 +480,7 @@ public class DashboardServiceTest
 
   @Test
   public void testGetComponentRisks_FilterByStage() throws Exception {
-    PolicyEvaluation evaluation = tempEntity
-        .newPolicyEvaluation(app1.getId(), ReleaseStageType.ID, "test scan app1 id");
+    PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(app1.getId(), ReleaseStageType.ID, "newScanIdApp1");
     PolicyViolation violation = tempEntity.newPolicyViolation(evaluation, app1Policy);
 
     List<ComponentRiskDTO> riskDTOs = dashboardService.getComponentRisks(null,
@@ -498,8 +495,7 @@ public class DashboardServiceTest
 
   @Test
   public void testGetComponentRisks_FilterByStage_ExcludesDevelop() throws Exception {
-    PolicyEvaluation evaluation = tempEntity
-        .newPolicyEvaluation(app1.getId(), DevelopStageType.ID, "test scan app1 id");
+    PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(app1.getId(), DevelopStageType.ID, "newScanIdApp1");
     tempEntity.newPolicyViolation(evaluation, app1Policy, app1Policy.getThreatLevel(), app1Policy.getThreatCategory(),
         "g", "a", "v", "somehash");
 
@@ -600,8 +596,7 @@ public class DashboardServiceTest
 
   @Test
   public void testGetApplicationRisks_FilterByStage_ExcludesDevelop() throws Exception {
-    PolicyEvaluation evaluation = tempEntity
-        .newPolicyEvaluation(app1.getId(), DevelopStageType.ID, "test scan app1 id");
+    PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(app1.getId(), DevelopStageType.ID, "newScanIdApp1");
     tempEntity.newPolicyViolation(evaluation, app1Policy, app1Policy.getThreatLevel(), app1Policy.getThreatCategory(),
         "g", "a", "v", "somehash");
 
@@ -777,8 +772,7 @@ public class DashboardServiceTest
 
   @Test
   public void testGetNewestRisks_FilterByStage() throws Exception {
-    PolicyEvaluation evaluation = tempEntity
-        .newPolicyEvaluation(app1.getId(), ReleaseStageType.ID, "test scan app1 id");
+    PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(app1.getId(), ReleaseStageType.ID, "newScanIdApp1");
     PolicyViolation policyViolation = tempEntity.newPolicyViolation(evaluation, app1Policy);
     tempEntity.newFirstOccurrencePolicyViolation(policyViolation.getId(), app1.getId(), ReleaseStageType.ID);
 

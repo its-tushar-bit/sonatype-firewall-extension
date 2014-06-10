@@ -700,10 +700,7 @@ class DashboardOverviewSpec
   }
 
   def 'Dashboard Sparkline'() {
-    when: 'policy summary is loaded for current filter'
-      waitFor { policySummary.rows[0].counts == "3" }
-
-    and: 'sparkline is loaded'
+    when: 'sparkline is loaded'
       waitFor { policySummary.rows[0].sparkline.displayed }
 
     then: 'it builds a path for the new line'

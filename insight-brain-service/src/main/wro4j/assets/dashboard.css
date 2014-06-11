@@ -826,6 +826,7 @@ table.table-risk td.low-risk, span.low-risk {
 }
 .table.policy-summary-table .delta-column {
   min-width: 0px;
+  text-align: right;
 }
 .table.policy-summary-table td:nth-child(2), .table.policy-summary-table td:nth-child(3),
 .table.policy-summary-table th {

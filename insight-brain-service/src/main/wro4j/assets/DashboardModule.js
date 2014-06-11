@@ -159,6 +159,14 @@
             }, 100);
           });
           
+          // When the element is removed we need to remove the popover as well.
+          scope.$on('$destroy', function() {
+            var popover = $('.popover:contains(\'' + pathnames[0] + '\')');
+            if (popover.length > 0) {
+              popover.remove();
+            }
+          });
+          
         });
       }
     };

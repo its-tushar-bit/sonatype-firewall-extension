@@ -864,6 +864,39 @@
       </properties>
     </profile>
     <profile>
+      <id>csslint</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>ro.isdc.wro4j</groupId>
+            <artifactId>wro4j-maven-plugin</artifactId>
+            <version>${wro4j.version}</version>
+            <executions>
+              <execution>
+                <phase>generate-resources</phase>
+                <id>default-cli</id>
+                <goals>
+                  <goal>csslint</goal>
+                </goals>
+                <configuration>
+                  <failNever>true</failNever>
+                  <targetGroups>css,cip</targetGroups>
+                  <options>box-model,display-property-grouping,duplicate-properties,empty-rules,known-properties,box-sizing,bulletproof-font-face,font-faces,regex-selectors,unqualified-attributes,zero-units,overqualified-elements,duplicate-background-images,floats,font-sizes,ids,important,qualified-headings,unique-headings</options>
+                </configuration>
+              </execution>
+            </executions>
+            <configuration>
+              <wroFile>${basedir}/wro.xml</wroFile>
+              <extraConfigFile>${basedir}/wro.properties</extraConfigFile>
+              <wroManagerFactory>ro.isdc.wro.maven.plugin.manager.factory.ConfigurableWroManagerFactory</wroManagerFactory>
+              <ignoreMissingResources>false</ignoreMissingResources>
+              <contextFolder>${basedir}/src/main/wro4j/</contextFolder>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <profile>
       <id>obfuscate</id>
       <activation>
         <property>

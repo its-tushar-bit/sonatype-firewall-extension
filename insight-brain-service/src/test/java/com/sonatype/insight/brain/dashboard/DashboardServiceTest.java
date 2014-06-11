@@ -637,6 +637,20 @@ public class DashboardServiceTest
   }
 
   @Test
+  public void testGetApplicationRisks_ViolationForComponentWithoutHash() throws Exception {
+    tempEntity.newPolicyViolation(app1PolicyEvaluation, app1Policy, null, null, null, null, "unknown");
+
+    List<ApplicationRiskScoreDTO> riskDTOs = dashboardService.getApplicationRisks(
+        Collections.singleton(app1.getPublicId()), null, null, null, null, 100);
+    assertThat(riskDTOs, hasSize(1));
+    ApplicationRiskScoreDTO appDTO = riskDTOs.get(0);
+    assertThat(appDTO.stageRisks, hasSize(1));
+    assertThat(appDTO.stageRisks.get(0).stageTypeId, is(BuildStageType.ID));
+    assertThat(appDTO.stageRisks.get(0).risk.totalRisk,
+        is(orgPolicy.getThreatLevel() + app1Policy.getThreatLevel() * 2));
+  }
+
+  @Test
   public void testGetFilterSummary_NoFilter() throws Exception {
     FilterSummaryDTO summary = dashboardService.getFilterSummary(null, null, null, null, null);
     assertThat(summary.totalApplications, is(2));

@@ -454,7 +454,7 @@ public class DashboardService
 
 
   private String createUniqueHashForPolicy(PolicyViolationDTO policyViolation) {
-    return Joiner.on(SECRET_JOIN_STRING)
+    return Joiner.on(SECRET_JOIN_STRING).useForNull("")
         .join(policyViolation.policyId, policyViolation.applicationId, policyViolation.hash);
   }
 

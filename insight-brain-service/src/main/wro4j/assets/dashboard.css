@@ -696,12 +696,12 @@ table.table-risk td.low-risk, span.low-risk {
 
 
 .share-risk-header {
-  width : 90px
+  width : 120px
 }
 
 /* padding in the header is 8px, 2*(12-8) = 8px smaller width */
 .component-violations-table .share-risk-column {
-  width: 82px;
+  width: 112px;
   padding: 8px 12px;
 }
 

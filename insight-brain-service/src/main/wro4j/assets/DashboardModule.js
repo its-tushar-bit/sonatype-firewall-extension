@@ -937,11 +937,11 @@
 
           d3.select(element[0]).select('svg').remove();
 
-          var guideHeight = 12, guidePadding = 3, transitionDuration = 50;
+          var guideHeight = 16, guidePadding = 3, transitionDuration = 50, digitLength = 10;
           function getGuidePositions(snapX, snapY, yValue) {
             // Calculate rectangle width. Each digit takes ~7 pixels with 7 pixels for single digits and 6 pixel pad
             var digits = yValue === 0 ? 0 : Math.log(yValue)/Math.log(10);
-            var width = Math.floor(digits) * 7 + 7 + 2 * guidePadding;
+            var width = Math.floor(digits) * digitLength + digitLength + 2 * guidePadding;
             var x = Math.max(Math.min(snapX - width / 2, config.width - width), 0);
             var y;
             if (snapY > config.height / 2) {

@@ -522,6 +522,7 @@ table.table-risk td.low-risk, span.low-risk {
 
 .dashboard-viewing-item {
   padding-top:10px;
+  padding-bottom: 10px;
 }
 
 .dashboard-viewing-item.first {

@@ -141,6 +141,21 @@ class DashboardPolicySummarySpec
       isDeltaArrayCloseToSum(3, NEW_ROW_DELTAS, policySummary.discoveredRow.sparkline.getValues())
       isDeltaArrayCloseToSum(0, FIXED_ROW_DELTAS, policySummary.fixedRow.sparkline.getValues())
       isDeltaArrayCloseToSum(3, UNRESOLVED_ROW_DELTAS, policySummary.pendingRow.sparkline.getValues())
+
+    and: 'The sparkline charts trail with the correct colors'
+      !policySummary.discoveredRow.sparkline.isTrailingGreen()
+      policySummary.fixedRow.sparkline.isTrailingGreen()
+      policySummary.pendingRow.sparkline.isTrailingGreen()
+
+    when: 'hovering over sparkline'
+      interact {
+        moveToElement(policySummary.discoveredRow.sparkline.previousPath)
+      }
+      waitFor { policySummary.discoveredRow.sparkline.guideText.displayed }
+
+    then: 'value is displayed'
+      // moveToElement moves to the middle of the sparkline
+      policySummary.discoveredRow.sparkline.guideText.text() == '7'
   }
 
   def 'Filtering out all data should show an empty policy summary'() {

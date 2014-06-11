@@ -111,15 +111,14 @@ class PolicySummaryRow
 {
   static final int CATEGORY = 0
   static final int COUNT = 1
-  static final int DELTA = 2
-  static final int BAR_CHART = 3
-  static final int SPARKLINE = 4
+  static final int BAR_CHART = 5
+  static final int SPARKLINE = 6
 
   static content = {
     cell(required: false) { int i -> $('td', i) }
     category { cell(CATEGORY).text() }
     count { cell(COUNT).text().toInteger() }
-    delta { module DeltaModule, cell(DELTA) }
+    delta { module DeltaModule }
     barChart { module BarChartModule, cell(BAR_CHART)}
     sparkline { module SparklineModule, cell(SPARKLINE) }
   }
@@ -138,8 +137,8 @@ class DeltaModule
     extends Module
 {
   static content = {
-    outerDiv { $('div').first() }
-    valueDiv { $('div').last() }
+    outerDiv { $('.delta-column div') }
+    valueDiv { $('.delta-column').last() }
     chevronDiv { $('i') }
     isUp { chevronDiv.classes().contains('up') }
     isDown { chevronDiv.classes().contains('down') }

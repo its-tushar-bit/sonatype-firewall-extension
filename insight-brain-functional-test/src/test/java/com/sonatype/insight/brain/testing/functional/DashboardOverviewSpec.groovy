@@ -707,42 +707,6 @@ class DashboardOverviewSpec
       componentMatchUnknownCount.text() == '1 (33%)'
   }
 
-  def 'Dashboard Sparkline'() {
-    when: 'sparkline is loaded'
-      waitFor { policySummary.rows[0].sparkline.displayed }
-
-    then: 'it builds a path for the new line'
-      SparklineModule sparkline = policySummary.rows[0].sparkline
-      def points = sparkline.getValues()
-      points.size() == 13
-      that(points[0], closeTo(0, TOLERANCE))
-      that(points[1], closeTo(0, TOLERANCE))
-      that(points[2], closeTo(0, TOLERANCE))
-      that(points[3], closeTo(0, TOLERANCE))
-      that(points[4], closeTo(0, TOLERANCE))
-      that(points[5], closeTo(0, TOLERANCE))
-      that(points[6], closeTo(0, TOLERANCE))
-      that(points[7], closeTo(0, TOLERANCE))
-      that(points[8], closeTo(0, TOLERANCE))
-      that(points[9], closeTo(0, TOLERANCE))
-      that(points[10], closeTo(0.3, TOLERANCE))
-      that(points[11], closeTo(0.7, TOLERANCE))
-      that(points[12], closeTo(1.0, TOLERANCE))
-
-    and: 'ends in a red line'
-      !sparkline.isTrailingGreen()
-
-    when: 'hovering over sparkline'
-      interact {
-        moveToElement(sparkline.previousPath)
-      }
-      waitFor { sparkline.guideText.displayed }
-
-    then: 'value is displayed'
-      // moveToElement moves to the middle of the sparkline
-      sparkline.guideText.text() == '0'
-  }
-
   def 'Modal heat map help available when tabs are activated' () {
     when: 'Switch to Components Tab'
       tabLinks.componentsTabButton.click()

@@ -12,15 +12,12 @@ import java.util.List;
 
 import javax.ws.rs.core.UriBuilder;
 
-import com.sonatype.insight.brain.db.DataSourceFactory;
-
 import com.google.inject.Module;
 import com.ning.http.client.Cookie;
 import com.ning.http.client.Response;
 import com.yammer.dropwizard.testing.JsonHelpers;
 import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.IOUtil;
-import org.junit.AfterClass;
 import org.junit.Rule;
 import org.junit.rules.TestName;
 
@@ -48,11 +45,6 @@ public abstract class AbstractBrainServiceTest
   public TestInsightBrainServiceRule brain = new TestInsightBrainServiceRule(PortAllocator.findFreePort(8070),
       PortAllocator.findFreePort(8071), getBrainBaseUrl(), "http://localhost:" + insightMockServerPort,
       isProxyRequiredToReachSaas(), getBrainModules());
-
-  @AfterClass
-  public static void afterClass() {
-    DataSourceFactory.clear_ForTestsOnly();
-  }
 
   private List<Module> getBrainModules() {
     List<Module> modules = new ArrayList<>();

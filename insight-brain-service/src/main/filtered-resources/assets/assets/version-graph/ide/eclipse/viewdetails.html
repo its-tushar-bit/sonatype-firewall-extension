@@ -23,5 +23,10 @@
     </script>
   </head>
   <body ng-include='"../../details.html?${build.timestamp}"' ng-controller='view'>
+    <noscript>
+      <div class='alert alert-error alert-centered'>
+      It appears that javascript is disabled.  Please verify security settings for the domain used for your Sonatype CLM server.
+      </div>
+    </noscript>
   </body>
 </html>

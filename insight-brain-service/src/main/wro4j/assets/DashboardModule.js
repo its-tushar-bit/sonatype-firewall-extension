@@ -365,73 +365,6 @@
     };
   });
 
-  function dashboardTable(url, $timeout, windowEventsFactory, noDataMessage) {
-    function createFilterWatch($scope, $rootScope, $http, Dialog, ApplicationStore) {
-      return function (newFilter) {
-        if (newFilter) {
-          $scope.error = $scope.data = null;
-          var params = filterToParams($scope.filters, $scope.maxResults);
-
-          $http.get(url, {
-            params : params
-          }).success(function (data) {
-            if (angular.equals(newFilter, $scope.filters)) {
-              $scope.data = data;
-            }
-          }).error(function () {
-            if (angular.equals(newFilter, $scope.filters)) {
-              if (arguments[1] && arguments[1] === 403) {
-                Dialog.open({
-                  title : 'Filter invalid',
-                  body : 'Your filter settings have become invalid because of permission changes, click OK to reload.',
-                  buttons : [{
-                    name : 'OK',
-                    click: function() {
-                      //make sure to get any stale apps out of the app list
-                      ApplicationStore.refresh();
-                      $rootScope.$broadcast('reloadFilter');
-                    }
-                  }]
-                });
-              } else {
-                $scope.error = arguments;
-              }
-            }
-          });
-        }
-      };
-    }
-
-    return {
-      transclude: true,
-      templateUrl: 'dashboard-table',
-      link: function(scope, element) {
-        function minTableFit() {
-          var scrollableContainer = element.find('.scrollable-container');
-          scrollableContainer.css('min-width', '');
-          scrollableContainer.css('opacity', '0');
-          $timeout(function() {
-            var table = element.find('table');
-            scrollableContainer = element.find('.scrollable-container');
-            scrollableContainer.css('min-width', table.width());
-            scrollableContainer.css('opacity', '');
-          }, 0);
-        }
-        windowEventsFactory.addResizeHandler(scope, element, minTableFit);
-
-        scope.$watch('data', minTableFit);
-      },
-      controller: ['$scope', '$rootScope', '$http', 'Dialog', 'ApplicationStore', function($scope, $rootScope, $http, Dialog, ApplicationStore) {
-        var filterChangedFn = createFilterWatch($scope, $rootScope, $http, Dialog, ApplicationStore);
-        $scope.doLoad = function () {
-          filterChangedFn($scope.filters);
-        };
-        $scope.$watch('filters', filterChangedFn);
-        $scope.noDataMessage = noDataMessage;
-      }]
-    };
-  }
-
   function watchFilter($scope) {
     $scope.$watch('filters', function(newFilter){
       if (newFilter) {
@@ -440,18 +373,110 @@
     });
   }
 
-  dashboardModule.directive('newestRiskTable', ['CLMLocations', '$timeout', 'windowEventsFactory', function(CLMLocations, $timeout, windowEventsFactory) {
-    return dashboardTable(CLMLocations.getNewestRisksUrl(), $timeout, windowEventsFactory,
-      'No data available in the last 30 days given the applied filters and available permissions.');
-  }]);
+  function getTableDirective(urlField, noDataMessage) {
+    return ['$timeout', '$window', 'maximizeHeightService', 'windowEventsFactory', 'CLMLocations', function ($timeout, $window, maximizeHeightService, windowEventsFactory, CLMLocations) {
+      function createFilterWatch($scope, $rootScope, $http, Dialog, ApplicationStore) {
+        return function (newFilter) {
+          if (newFilter) {
+            $scope.error = $scope.data = null;
+            var params = filterToParams($scope.filters, $scope.maxResults);
 
-  dashboardModule.directive('applicationRiskTable', ['CLMLocations', '$timeout', 'windowEventsFactory', function(CLMLocations, $timeout, windowEventsFactory) {
-    return dashboardTable(CLMLocations.getApplicationRisksUrl(), $timeout, windowEventsFactory);
-  }]);
+            $http.get(CLMLocations[urlField](), {
+              params : params
+            }).success(function (data) {
+              if (angular.equals(newFilter, $scope.filters)) {
+                $scope.data = data;
+              }
+            }).error(function () {
+              if (angular.equals(newFilter, $scope.filters)) {
+                if (arguments[1] && arguments[1] === 403) {
+                  Dialog.open({
+                    title : 'Filter invalid',
+                    body : 'Your filter settings have become invalid because of permission changes, click OK to reload.',
+                    buttons : [{
+                      name : 'OK',
+                      click: function() {
+                        //make sure to get any stale apps out of the app list
+                        ApplicationStore.refresh();
+                        $rootScope.$broadcast('reloadFilter');
+                      }
+                    }]
+                  });
+                } else {
+                  $scope.error = arguments;
+                }
+              }
+            });
+          }
+        };
+      }
 
-  dashboardModule.directive('componentRiskTable', ['CLMLocations', '$timeout', 'windowEventsFactory', function(CLMLocations, $timeout, windowEventsFactory) {
-    return dashboardTable(CLMLocations.getComponentRisksUrl(), $timeout, windowEventsFactory);
-  }]);
+      return {
+        transclude: true,
+        templateUrl: 'dashboard-table',
+        link : function (scope, element) {
+          function minTableFit() {
+            var scrollableContainer = element.find('.scrollable-container');
+            scrollableContainer.css('min-width', '');
+            scrollableContainer.css('opacity', '0');
+            $timeout(function() {
+              var table = element.find('table');
+              scrollableContainer = element.find('.scrollable-container');
+              scrollableContainer.css('min-width', table.width());
+              scrollableContainer.css('opacity', '');
+            }, 0);
+          }
+          windowEventsFactory.addResizeHandler(scope, element, minTableFit);
+
+          scope.$watch('data', minTableFit);
+
+          function updateDimensions() {
+            var container = $('.scrollable-container', element);
+            if (container.length > 0) {
+              timerId = maximizeHeightService.updateDimensions(container) || timerId;
+            }
+          }
+
+          var timerId;
+          function dedupe() {
+            if (timerId) {
+              $timeout.cancel(timerId);
+            }
+            timerId = $timeout(updateDimensions, 20);
+          }
+
+          scope.$watch('data', function (newValue, oldValue) {
+            if (newValue && !oldValue) {
+              if (!$.browser.msie || $.browser.version > 8) {
+                $timeout(updateDimensions, 100);
+                $($window).resize(dedupe);
+              }
+            }
+            else if (!newValue) {
+              $($window).unbind('resize', dedupe);
+            }
+          });
+          scope.$on('$destroy', function () {
+            $($window).unbind('resize', dedupe);
+          });
+        },
+        controller: ['$scope', '$rootScope', '$http', 'Dialog', 'ApplicationStore', function($scope, $rootScope, $http, Dialog, ApplicationStore) {
+          var filterChangedFn = createFilterWatch($scope, $rootScope, $http, Dialog, ApplicationStore);
+          $scope.doLoad = function () {
+            filterChangedFn($scope.filters);
+          };
+          $scope.$watch('filters', filterChangedFn);
+          $scope.noDataMessage = noDataMessage;
+        }]
+      };
+    }];
+  }
+
+  dashboardModule.directive('newestRiskTable', getTableDirective('getNewestRisksUrl', 'No data available in the last 30 days given the applied filters and available permissions.'));
+
+  dashboardModule.directive('applicationRiskTable', getTableDirective('getApplicationRisksUrl'));
+
+  dashboardModule.directive('componentRiskTable', getTableDirective('getComponentRisksUrl'));
 
   dashboardModule.directive('breadcrumb', ['$state', function($state) {
     var stateLookup = {

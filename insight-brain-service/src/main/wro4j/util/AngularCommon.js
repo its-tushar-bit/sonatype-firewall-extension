@@ -945,6 +945,65 @@ var AngularStateUtils = {
       }
     };
   });
+
+  angularCommon.service('maximizeHeightService', ['$timeout', '$window', function ($timeout, $window) {
+    return {
+      getOffset : function (element) {
+        var currentElement = element,
+            sum = 0;
+        while (currentElement[0] !== document.body) {
+          sum += currentElement.offset().top;
+          currentElement = element.offsetParent();
+        }
+        return sum;
+      },
+      setDimensions : function (element) {
+        var windowHeight = ($window.innerHeight) ? $window.innerHeight : $(document.body).height(),
+            containerTop = this.getOffset(element) + parseInt(element.css('padding-top')),
+            bottomPadding = 35,
+            height = Math.max(400, windowHeight - containerTop - bottomPadding);
+
+        element.height(height + 'px');
+      },
+      updateDimensions : function (element) {
+        var me = this;
+        if (element.is(':visible')) {
+          me.setDimensions(element);
+        } else {
+          return $timeout(function () {
+            me.updateDimensions(element);
+          }, 100);
+        }
+      }
+    };
+  }]);
+
+  angularCommon.directive('maximizeHeight', ['$timeout', '$window', 'maximizeHeightService', function ($timeout, $window, maximizeHeightService) {
+    return function (scope, element) {
+      function dedupe() {
+        if (timerId) {
+          $timeout.cancel(timerId);
+        }
+        timerId = $timeout(function () {
+          timerId = maximizeHeightService.updateDimensions(element) || timerId;
+        }, 20);
+      }
+
+      var timerId;
+
+      if (!$.browser.msie || $.browser.version > 8) {
+        $timeout(dedupe, 100);
+        $($window).resize(dedupe);
+      }
+
+      scope.$on('$destroy', function () {
+        if (timerId) {
+          $timeout.cancel(timerId);
+        }
+        $($window).unbind('resize', dedupe);
+      });
+    };
+  }]);
 }());
 
 (function() {

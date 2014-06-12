@@ -23,6 +23,7 @@ import com.sonatype.insight.brain.landing.IndexCacheControlFilter;
 import com.sonatype.insight.brain.saas.DefaultLicenseDataUpdater;
 import com.sonatype.insight.brain.security.CLMShiroAopModule;
 import com.sonatype.insight.brain.security.CLMShiroModule;
+import com.sonatype.insight.brain.security.TraceMethodBlockFilter;
 import com.sonatype.insight.brain.version.VersionResource;
 import com.sonatype.insight.db.DatabaseConfig;
 import com.sonatype.insight.error.JaxRsExceptionMapper;
@@ -196,6 +197,7 @@ public class InsightBrainService
     env.setJerseyProperty(ResourceConfig.PROPERTY_DEFAULT_RESOURCE_COMPONENT_PROVIDER_FACTORY_CLASS,
         SingletonFactory.class);
 
+    env.addFilter(getInstance(TraceMethodBlockFilter.class), TraceMethodBlockFilter.URL_PATTERN);
     env.addFilter(getInstance(GuiceShiroFilter.class), "/*");
     env.addFilter(getInstance(IndexCacheControlFilter.class), IndexCacheControlFilter.URL_PATTERN);
 

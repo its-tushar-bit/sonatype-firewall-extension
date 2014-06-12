@@ -522,7 +522,6 @@ table.table-risk td.low-risk, span.low-risk {
 
 .dashboard-viewing-item {
   padding-top:10px;
-  padding-bottom: 10px;
 }
 
 .dashboard-viewing-item.first {
@@ -631,6 +630,10 @@ table.table-risk td.low-risk, span.low-risk {
 
 .match-none {
   background-color: lightgrey;
+}
+
+#component-match-results {
+  padding-top: 10px;
 }
 
 .component-match-content {

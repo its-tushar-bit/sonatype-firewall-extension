@@ -109,18 +109,52 @@ public class CLMLicenseManagerTest
     assertEquals(true, clmLicenseManager.isValid());
     assertEquals(100, clmLicenseManager.getApplicationCountLimit());
     assertEquals(true, clmLicenseManager.hasPolicyMonitoring());
+    assertEquals(true, clmLicenseManager.hasDashboard());
 
     // now change the value and make sure the cache is still stale
     licenseManager.setApplicationLimit(10);
     assertEquals(100, clmLicenseManager.getApplicationCountLimit());
-    licenseManager.setProducts(new String[0]);
+    licenseManager.setProducts("");
     assertEquals(true, clmLicenseManager.hasPolicyMonitoring());
+    assertEquals(true, clmLicenseManager.hasDashboard());
     licenseManager.setEnforcementPoints(CLMEnforcementPoint.StageRelease, CLMEnforcementPoint.Release);
 
     // now install the license (which causes the cache to be cleared) and make sure the cache is no longer stale
     installLicense();
     assertEquals(10, clmLicenseManager.getApplicationCountLimit());
     assertEquals(false, clmLicenseManager.hasPolicyMonitoring());
+  }
+
+  @Test
+  public void testHasDashboard_NexusClmLicense_Legacy() throws Exception {
+    licenseManager.setVersion(0);
+    licenseManager.setProducts();
+    licenseManager.setEnforcementPoints(CLMEnforcementPoint.StageRelease, CLMEnforcementPoint.Release);
+    installLicense();
+    assertThat(clmLicenseManager.hasDashboard(), is(false));
+  }
+
+  @Test
+  public void testHasDashboard_FullClmLicense_Legacy() throws Exception {
+    licenseManager.setVersion(0);
+    licenseManager.setProducts();
+    installLicense();
+    assertThat(clmLicenseManager.hasDashboard(), is(true));
+  }
+
+  @Test
+  public void testHasDashboard_NexusClmLicense() throws Exception {
+    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_NEXUS);
+    licenseManager.setEnforcementPoints(CLMEnforcementPoint.StageRelease, CLMEnforcementPoint.Release);
+    installLicense();
+    assertThat(clmLicenseManager.hasDashboard(), is(false));
+  }
+
+  @Test
+  public void testHasDashboard_FullClmLicense() throws Exception {
+    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK);
+    installLicense();
+    assertThat(clmLicenseManager.hasDashboard(), is(true));
   }
 
   @Test

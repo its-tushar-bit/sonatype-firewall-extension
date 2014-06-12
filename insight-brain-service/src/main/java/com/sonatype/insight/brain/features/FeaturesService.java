@@ -50,5 +50,9 @@ public class FeaturesService
     if (licenseManager.hasPolicyMonitoring()) {
       features.add(Feature.POLICY_MONITORING);
     }
+
+    if (licenseManager.hasDashboard()) {
+      features.add(Feature.DASHBOARD);
+    }
   }
 }

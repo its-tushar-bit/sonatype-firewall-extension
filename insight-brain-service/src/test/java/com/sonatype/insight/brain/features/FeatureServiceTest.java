@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.features;
 
+import java.util.EnumSet;
 import java.util.Set;
 
 import javax.inject.Inject;
@@ -59,6 +60,29 @@ public class FeatureServiceTest
     when(licenseManager.isValid()).thenReturn(true);
     when(licenseManager.hasPolicyMonitoring()).thenReturn(true);
     Set<Feature> features = featuresService.getFeatures();
-    assertThat(features, containsInAnyOrder(Feature.values()));
+    EnumSet<Feature> expectedFeatures = EnumSet.allOf(Feature.class);
+    expectedFeatures.remove(Feature.DASHBOARD);
+    assertThat(features, containsInAnyOrder(expectedFeatures.toArray()));
+  }
+
+  @Test
+  public void testGetFeatures_WithoutDashboard() {
+    when(licenseManager.isValid()).thenReturn(true);
+    when(licenseManager.hasDashboard()).thenReturn(false);
+    Set<Feature> features = featuresService.getFeatures();
+    assertThat(
+        features,
+        containsInAnyOrder(Feature.LABELS, Feature.NOTIFICATIONS, Feature.POLICY, Feature.POLICY_VIOLATIONS,
+            Feature.REEVALUATE_POLICY, Feature.RELEASE_GRAPH));
+  }
+
+  @Test
+  public void testGetFeatures_WithDashboard() {
+    when(licenseManager.isValid()).thenReturn(true);
+    when(licenseManager.hasDashboard()).thenReturn(true);
+    Set<Feature> features = featuresService.getFeatures();
+    EnumSet<Feature> expectedFeatures = EnumSet.allOf(Feature.class);
+    expectedFeatures.remove(Feature.POLICY_MONITORING);
+    assertThat(features, containsInAnyOrder(expectedFeatures.toArray()));
   }
 }

@@ -35,6 +35,8 @@ public class CLMLicenseManager
 {
   private static final String FEATURE_POLICY_MONITORING = "PolicyMonitoring";
 
+  private static final String FEATURE_DASHBOARD = "DASHBOARD";
+
   private final class CachedLicenseData
       extends ProductLicenseDetails
   {
@@ -128,6 +130,18 @@ public class CLMLicenseManager
     if (features != null) {
       for (String feature : features) {
         if (FEATURE_POLICY_MONITORING.equals(feature)) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  public boolean hasDashboard() {
+    String[] features = licenseCache.getFeatures();
+    if (features != null) {
+      for (String feature : features) {
+        if (FEATURE_DASHBOARD.equals(feature)) {
           return true;
         }
       }
@@ -241,6 +255,7 @@ public class CLMLicenseManager
       // legacy license without product info
       if (!isLegacyNexusClmLicense(enforcementPoints)) {
         features.add(FEATURE_POLICY_MONITORING);
+        features.add(FEATURE_DASHBOARD);
       }
     }
     else {
@@ -248,6 +263,7 @@ public class CLMLicenseManager
       if (products.contains(ProductLicenseDetails.PRODUCT_RISK)
           || products.contains(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION)) {
         features.add(FEATURE_POLICY_MONITORING);
+        features.add(FEATURE_DASHBOARD);
       }
     }
 

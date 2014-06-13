@@ -25,6 +25,7 @@ import com.sonatype.insight.brain.organization.ApplicationAdapter;
 import com.sonatype.insight.brain.organization.ApplicationService;
 import com.sonatype.insight.brain.organization.ContactDTO;
 import com.sonatype.insight.brain.policy.StageTypeService;
+import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.security.CurrentUser;
 
 import com.google.common.collect.Lists;
@@ -83,6 +84,9 @@ public class DashboardServiceHighestRiskTest
   @Mock
   private ApplicationAdapter applicationAdapter;
 
+  @Mock
+  private CLMLicenseManager licenseManager;
+
   private static final String appUsername = "sample-user";
 
   static Application createApplication(String publicId, String stageTypeId, String scanId) {
@@ -95,9 +99,11 @@ public class DashboardServiceHighestRiskTest
   @Before
   public void init() {
 
+    when(licenseManager.hasDashboard()).thenReturn(true);
+
     dashboardService = new DashboardService(applicationDAO, applicationComponentDAO, applicationService, policyDAO,
         policyEvaluationDAO, policyViolationAdapter, policyViolationDAO, stageTypeService, dashboardFilterDAO,
-        currentUser, applicationAdapter);
+        currentUser, applicationAdapter, licenseManager);
   }
 
   private ContactDTO contactDTO = new ContactDTO(appUsername, "displayName", "email@example.com", "realm");

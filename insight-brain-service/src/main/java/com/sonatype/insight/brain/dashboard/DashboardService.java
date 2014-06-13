@@ -48,6 +48,8 @@ import com.sonatype.insight.brain.organization.ContactDTO;
 import com.sonatype.insight.brain.policy.StageTypeService;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationDiff;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationDigester;
+import com.sonatype.insight.brain.product.license.CLMLicenseManager;
+import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzFilter;
@@ -123,14 +125,15 @@ public class DashboardService
   private final CurrentUser currentUser;
   
   private final ApplicationAdapter applicationAdapter;
-  
+
+  private final CLMLicenseManager licenseManager;
 
   @Inject
   public DashboardService(ApplicationDAO applicationDAO, ApplicationComponentDAO applicationComponentDAO,
       ApplicationService applicationService, PolicyDAO policyDAO, PolicyEvaluationDAO policyEvaluationDAO,
       PolicyViolationAdapter policyViolationAdapter, PolicyViolationDAO policyViolationDAO,
       StageTypeService stageTypeService, DashboardFilterDAO dashboardFilterDAO, CurrentUser currentUser,
-      ApplicationAdapter applicationAdapter)
+      ApplicationAdapter applicationAdapter, CLMLicenseManager licenseManager)
   {
     this.applicationDAO = applicationDAO;
     this.applicationComponentDAO = applicationComponentDAO;
@@ -143,6 +146,7 @@ public class DashboardService
     this.dashboardFilterDAO = dashboardFilterDAO;
     this.currentUser = currentUser;
     this.applicationAdapter = applicationAdapter;
+    this.licenseManager = licenseManager;
   }
 
   /**
@@ -270,6 +274,8 @@ public class DashboardService
       final Set<String> stageIds, final Set<String> tagIds, final PolicyThreatCategoryFilter policyThreatCategoryFilter,
       final PolicyThreatLevelFilter policyThreatLevelFilter, final int maxResults)
   {
+    validateDashboardLicensed();
+
     List<Application> appsToSearch = applicationService
         .getApplicationsByPublicIdsAndTagIds(applicationPublicIds, tagIds);
     Set<StageType> stageTypes = getStageTypes(stageIds);
@@ -577,6 +583,8 @@ public class DashboardService
       Set<String> tagIds, PolicyThreatCategoryFilter policyThreatCategoryFilter,
       PolicyThreatLevelFilter policyThreatLevelFilter, int maxResults)
   {
+    validateDashboardLicensed();
+
     List<PolicyViolationDTO> violations = getPolicyViolations(applicationPublicIds, stageIds, tagIds,
         policyThreatCategoryFilter, policyThreatLevelFilter);
     Map<String, ComponentViolationRollUp> componentsByHash = new LinkedHashMap<>();
@@ -602,6 +610,8 @@ public class DashboardService
    * @since 1.11.0
    */
   public DashboardFilterDTO getDashboardFilterForCurrentUser() throws IOException {
+    validateDashboardLicensed();
+
     String username = currentUser.getUsername();
     DashboardFilter dashboardFilter = dashboardFilterDAO.getByUsername(username);
     if (dashboardFilter == null) {
@@ -644,6 +654,8 @@ public class DashboardService
    * @since 1.11.0
    */
   public DashboardFilterDTO createOrUpdateDashboardFilterForCurrentUser(DashboardFilterDTO dashboardFilterDTO) {
+    validateDashboardLicensed();
+
     String username = currentUser.getUsername();
     DashboardFilter dashboardFilter = new DashboardFilter();
     dashboardFilter.setUsername(username);
@@ -665,6 +677,8 @@ public class DashboardService
    * @since 1.11.0
    */
   public void deleteDashboardFilterForCurrentUser() {
+    validateDashboardLicensed();
+
     String username = currentUser.getUsername();
     DashboardFilter dashboardFilter = dashboardFilterDAO.getByUsername(username);
     if (dashboardFilter != null) {
@@ -679,6 +693,8 @@ public class DashboardService
   public FilterSummaryDTO getFilterSummary(Set<String> applicationPublicIds, Set<String> stageIds, Set<String> tagIds,
       PolicyThreatCategoryFilter policyThreatCategoryFilter, PolicyThreatLevelFilter policyThreatLevelFilter)
   {
+    validateDashboardLicensed();
+
     long start = System.currentTimeMillis();
 
     FilterSummaryDTO summary = new FilterSummaryDTO();
@@ -810,6 +826,8 @@ public class DashboardService
       PolicyThreatCategoryFilter policyThreatCategoryFilter, PolicyThreatLevelFilter policyThreatLevelFilter,
       int maxResults)
   {
+    validateDashboardLicensed();
+
     long start = System.currentTimeMillis();
 
     List<Application> applications = applicationService.getApplicationsByPublicIdsAndTagIds(applicationPublicIds,
@@ -960,6 +978,8 @@ public class DashboardService
   public ComponentSummaryDTO getComponentSummary(Set<String> applicationPublicIds, Set<String> stageIds,
       Set<String> tagIds)
   {
+    validateDashboardLicensed();
+
     long start = System.currentTimeMillis();
 
     ComponentSummaryDTO summary = new ComponentSummaryDTO();
@@ -1044,6 +1064,8 @@ public class DashboardService
   public PolicySummaryDTO getPolicySummary(Set<String> applicationPublicIds, Set<String> stageIds, Set<String> tagIds,
       PolicyThreatCategoryFilter policyThreatCategoryFilter, PolicyThreatLevelFilter policyThreatLevelFilter)
   {
+    validateDashboardLicensed();
+
     long start = System.currentTimeMillis();
 
     List<Application> applications = applicationService.getApplicationsByPublicIdsAndTagIds(applicationPublicIds,
@@ -1110,5 +1132,11 @@ public class DashboardService
     log.debug("getPolicySummary finished in {}", System.currentTimeMillis() - start);
 
     return result;
+  }
+
+  private void validateDashboardLicensed() {
+    if (!licenseManager.hasDashboard()) {
+      throw new InvalidLicenseException("Invalid license for the Dashboard feature");
+    }
   }
 }

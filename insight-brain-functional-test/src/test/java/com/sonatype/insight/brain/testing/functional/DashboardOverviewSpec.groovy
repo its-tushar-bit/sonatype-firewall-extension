@@ -388,6 +388,9 @@ class DashboardOverviewSpec
     then: 'the table is replaced by no result text'
       waitFor { noDataAvailable.displayed }
 
+    and: 'newest risk no data text is shown'
+      noDataAvailable.text() == "No data available in the last 30 days given the applied filters and available permissions.";
+
     when: 'user clicks the by component tab'
       tabLinks.componentsTabButton.click()
 

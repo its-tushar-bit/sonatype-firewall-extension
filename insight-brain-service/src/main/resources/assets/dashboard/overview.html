@@ -164,7 +164,7 @@
           <div ng-transclude></div>
           <div ng-if='data.length === 0'>
             <span class='clm-bar-text-offset'>
-              <em id='no-data'>No data available given the applied filters and available permissions.</em>
+              <em id='no-data'>{{noDataMessage ? noDataMessage : "No data available given the applied filters and available permissions."}}</em>
             </span>
           </div>
         </div>

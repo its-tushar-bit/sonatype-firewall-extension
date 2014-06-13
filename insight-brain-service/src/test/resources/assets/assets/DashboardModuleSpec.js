@@ -1097,7 +1097,7 @@ describe('DashboardModule', function() {
     });
   });
 
-	describe('modalHelp', function() {
+  describe('modalHelp', function() {
 
     var divFoo, divBar, divBaz, scope, modal;
 

@@ -637,7 +637,7 @@ describe('DashboardModule', function() {
     beforeEach(inject(function ($rootScope, $compile) {
       scope = $rootScope.$new();
       $compile('<div sortable sortable-fields="bar">' +
-              '<span sort-columns="foo">foo</span><span sort-columns="bar" sort-inverse="true">bar</span></div>')(scope);
+              '<span sort-columns="foo">foo</span><span sort-columns="-bar">bar</span></div>')(scope);
       fooScope = scope.$$childHead;
       barScope = scope.$$childHead.$$nextSibling.$$nextSibling;
     }));
@@ -648,7 +648,6 @@ describe('DashboardModule', function() {
       expect(barScope.isUp()).toBeTruthy();
       expect(barScope.isDown()).toBeFalsy();
       expect(scope.getSortField()).toEqual(['bar']);
-      expect(scope.getSortReverse()).toBeFalsy();
 
       fooScope.$apply(function () {
         barScope.setSort();
@@ -657,8 +656,7 @@ describe('DashboardModule', function() {
       expect(fooScope.isDown()).toBeFalsy();
       expect(barScope.isUp()).toBeFalsy();
       expect(barScope.isDown()).toBeTruthy();
-      expect(scope.getSortField()).toEqual(['bar']);
-      expect(scope.getSortReverse()).toBeTruthy();
+      expect(scope.getSortField()).toEqual(['-bar']);
 
       fooScope.$apply(function () {
         fooScope.setSort();
@@ -668,7 +666,6 @@ describe('DashboardModule', function() {
       expect(barScope.isUp()).toBeFalsy();
       expect(barScope.isDown()).toBeFalsy();
       expect(scope.getSortField()).toEqual(['foo']);
-      expect(scope.getSortReverse()).toBeFalsy();
 
       fooScope.$apply(function () {
         fooScope.setSort();
@@ -677,8 +674,7 @@ describe('DashboardModule', function() {
       expect(fooScope.isDown()).toBeFalsy();
       expect(barScope.isUp()).toBeFalsy();
       expect(barScope.isDown()).toBeFalsy();
-      expect(scope.getSortField()).toEqual(['foo']);
-      expect(scope.getSortReverse()).toBeTruthy();
+      expect(scope.getSortField()).toEqual(['-foo']);
     });
 
   });
@@ -689,21 +685,19 @@ describe('DashboardModule', function() {
     beforeEach(inject(function ($rootScope, $compile) {
       scope = $rootScope.$new();
       $compile('<div sortable sortable-fields="bar,foo">' +
-        '<span sort-columns="foo">foo</span><span sort-columns="bar,foo" sort-inverse="true">bar</span></div>')(scope);
+        '<span sort-columns="foo">foo</span><span sort-columns="-bar,foo">bar</span></div>')(scope);
       fooScope = scope.$$childHead;
       barScope = scope.$$childHead.$$nextSibling.$$nextSibling;
     }));
 
     it('tests', function () {
       expect(scope.getSortField()).toEqual(['bar','foo']);
-      expect(scope.getSortReverse()).toBeFalsy();
 
       fooScope.$apply(function () {
         barScope.setSort();
       });
 
-      expect(scope.getSortField()).toEqual(['bar','foo']);
-      expect(scope.getSortReverse()).toBeTruthy();
+      expect(scope.getSortField()).toEqual(['-bar','foo']);
     });
   });
 

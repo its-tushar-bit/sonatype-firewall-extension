@@ -647,30 +647,41 @@
     };
   }]);
 
+  function extractColumn(orderedColumn) {
+    if (orderedColumn.indexOf('-') === 0) {
+      return orderedColumn.substring(1);
+    } else {
+      return orderedColumn;
+    }
+  }
+
   dashboardModule.directive('sortColumns', function () {
     return {
       require : '^sortable',
       scope : {
-        field : '@sortColumns',  //comma separated list
-        inverse : '@?sortInverse'
+        field : '@sortColumns'  //comma separated list
       },
       transclude : true,
       template : '<a ng-click="setSort()"><span ng-transclude></span> <i class="sonatype-icons" ng-class="{ up : isUp(), down : isDown(), emptyIconGlyph : !isUp() && !isDown() }"></i></a>',
       link : function (scope, element, attrs, sortableCtrl) {
         scope.setSort = function () {
-          sortableCtrl.setSort(scope.field.split(','), scope.inverse);
+          sortableCtrl.setSort(scope.field.split(','));
         };
 
         scope.isUp = function () {
-          var reverse = sortableCtrl.sort.reverse,
-              inverse = scope.inverse;
-          return angular.equals(scope.field.split(','), sortableCtrl.sort.field) && ((inverse && !reverse) || (!inverse && reverse));
+          var sortColumn = extractColumn(sortableCtrl.sortFields[0]);
+          var isReverse = sortColumn !== sortableCtrl.sortFields[0];
+          var currentColumn = extractColumn(scope.field.split(',')[0]);
+          var isInverse = currentColumn !== scope.field.split(',')[0];
+          return sortColumn === currentColumn && (isReverse ^ isInverse);
         };
 
         scope.isDown = function () {
-          var reverse = sortableCtrl.sort.reverse,
-              inverse = scope.inverse;
-          return angular.equals(scope.field.split(','), sortableCtrl.sort.field) && !((inverse && !reverse) || (!inverse && reverse));
+          var sortColumn = extractColumn(sortableCtrl.sortFields[0]);
+          var isReverse = sortColumn !== sortableCtrl.sortFields[0];
+          var currentColumn = extractColumn(scope.field.split(',')[0]);
+          var isInverse = currentColumn !== scope.field.split(',')[0];
+          return sortColumn === currentColumn && !(isReverse ^ isInverse);
         };
       }
     };
@@ -681,30 +692,26 @@
       require : 'sortable',
       controller : ['$scope', function ($scope) {
         var me = this;
-        me.sort = {};
+        me.sortFields = [];
 
-        $scope.getSortReverse = function () {
-          return me.sort.reverse;
-        };
         $scope.getSortField = function () {
-          return me.sort.field;
+          return me.sortFields;
         };
-        me.setSort = function (field, defaultReverse) {
-          if (angular.equals(me.sort.field, field)) {
-            me.sort.reverse = ! me.sort.reverse;
+        me.setSort = function (newFields) {
+          if (angular.equals(me.sortFields, newFields)) {
+            var column = extractColumn(newFields[0]);
+            if (me.sortFields[0] !== column) {
+              me.sortFields[0] = column;
+            } else {
+              me.sortFields[0] = '-' + column;
+            }
           } else {
-            me.sort = {
-              field : field,
-              reverse : defaultReverse
-            };
+            me.sortFields = newFields;
           }
         };
       }],
       link : function (scope, element, attrs, sortable) {
-        sortable.sort = {
-          field : attrs.sortableFields.split(','),
-          reverse : attrs.sortableReverse
-        };
+        sortable.sortFields = attrs.sortableFields.split(',');
       }
     };
   });
@@ -1181,10 +1188,11 @@
       }
       // in the event of a compound sort, use the first field
       var sortField = angular.isArray(key) ? key[0] : key;
+      var sortColumn = extractColumn(sortField);
       return array.filter(function(item) {
-        return item[sortField];
+        return item[sortColumn];
       }).concat(array.filter(function(item) {
-        return !item[sortField];
+        return !item[sortColumn];
       }));
     };
   });

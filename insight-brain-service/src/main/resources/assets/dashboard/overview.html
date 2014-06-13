@@ -86,17 +86,17 @@
 </script>
 <script type='text/ng-template' id='risk-table'>
   <div ng-controller="NewestRiskTableController">
-    <table class='table policy-violation-table clm-table-stripe' sortable sortable-reverse="true"
-           sortable-fields='time,threatLevel'>
+    <table class='table policy-violation-table clm-table-stripe' sortable
+           sortable-fields='-time,-threatLevel'>
       <thead>
       <tr>
         <th id='threat-header' colspan='2' class='clm-bar-text-offset'>
-          <div sort-columns="threatLevel,time" sort-inverse="true">
+          <div sort-columns="-threatLevel,-time">
             THREAT
           </div>
         </th>
         <th class='time-header'>
-          <div sort-columns="time,threatLevel" sort-inverse="true">AGE</div>
+          <div sort-columns="-time,-threatLevel">AGE</div>
         </th>
         <th class='policy-header'>
           <div sort-columns="policyName,-time">POLICY</div>
@@ -113,7 +113,7 @@
       </tr>
       </thead>
       <tbody>
-      <tr ng-repeat='risk in data | orderBy:getSortField():getSortReverse() | limitTo: maxResults | emptyToEnd:getSortField()'>
+      <tr ng-repeat='risk in data | orderBy:getSortField() | limitTo: maxResults | emptyToEnd:getSortField()'>
         <td class='clm-bar' threat-class="risk.threatLevel"></td>
         <td>{{risk.threatLevel}}</td>
         <td>{{risk.time | terseAgo}}</td>
@@ -402,21 +402,19 @@
           <div ng-switch-when="applications">
             <div application-risk-table>
               <div ng-controller="applicationRiskTable">
-                <table class="table table-risk" id="application-risk" sortable sortable-reverse="true"
-                  sortable-fields="totalApplicationRisk.totalRisk">
+                <table class="table table-risk" id="application-risk" sortable sortable-fields="-totalApplicationRisk.totalRisk">
                   <thead>
                     <tr>
                       <th><div sort-columns="applicationName">APPLICATION</div></th>
-                      <th class="total-risk"><div sort-columns="totalApplicationRisk.totalRisk" sort-inverse="true">TOTAL
-                          RISK</div></th>
-                      <th><div sort-columns="totalApplicationRisk.criticalRisk" sort-inverse="true">CRITICAL</div></th>
-                      <th><div sort-columns="totalApplicationRisk.severeRisk" sort-inverse="true">SEVERE</div></th>
-                      <th><div sort-columns="totalApplicationRisk.moderateRisk" sort-inverse="true">MODERATE</div></th>
-                      <th><div sort-columns="totalApplicationRisk.lowRisk" sort-inverse="true">LOW</div></th>
+                      <th class="total-risk"><div sort-columns="-totalApplicationRisk.totalRisk">TOTAL RISK</div></th>
+                      <th><div sort-columns="-totalApplicationRisk.criticalRisk">CRITICAL</div></th>
+                      <th><div sort-columns="-totalApplicationRisk.severeRisk">SEVERE</div></th>
+                      <th><div sort-columns="-totalApplicationRisk.moderateRisk">MODERATE</div></th>
+                      <th><div sort-columns="-totalApplicationRisk.lowRisk">LOW</div></th>
                     </tr>
                   </thead>
                   <tr
-                    ng-repeat-start="application in data | limitTo: maxResults | orderBy:getSortField():getSortReverse()">
+                    ng-repeat-start="application in data | limitTo: maxResults | orderBy:getSortField()">
                     <td><i class="glyphicons-halflings-sonatype lighter"
                       ng-class="{ clickable : canExpand(application),
                                         'expand' : canExpand(application),
@@ -467,20 +465,19 @@
           <div ng-switch-when="components">
             <div component-risk-table>
               <div ng-controller="componentRiskTable">
-                <table class="table table-risk table-risk-component" id="component-risk" sortable
-                  sortable-reverse="true" sortable-fields="score">
+                <table class="table table-risk table-risk-component" id="component-risk" sortable sortable-fields="-score">
                   <thead>
                     <tr>
                       <th><div>COMPONENT</div></th>
-                      <th><div sort-columns="affectedApplications" sort-inverse="true">AFFECTED APPS</div></th>
-                      <th class="total-risk"><div sort-columns="score" sort-inverse="true">TOTAL RISK</div></th>
-                      <th><div sort-columns="scoreCritical" sort-inverse="true">CRITICAL</div></th>
-                      <th><div sort-columns="scoreSevere" sort-inverse="true">SEVERE</div></th>
-                      <th><div sort-columns="scoreModerate" sort-inverse="true">MODERATE</div></th>
-                      <th><div sort-columns="scoreLow" sort-inverse="true">LOW</div></th>
+                      <th><div sort-columns="-affectedApplications">AFFECTED APPS</div></th>
+                      <th class="total-risk"><div sort-columns="-score">TOTAL RISK</div></th>
+                      <th><div sort-columns="-scoreCritical">CRITICAL</div></th>
+                      <th><div sort-columns="-scoreSevere">SEVERE</div></th>
+                      <th><div sort-columns="-scoreModerate">MODERATE</div></th>
+                      <th><div sort-columns="-scoreLow">LOW</div></th>
                   </tr>
                 </thead>
-                <tr ng-repeat="component in data | limitTo: maxResults | orderBy:getSortField():getSortReverse()">
+                <tr ng-repeat="component in data | limitTo: maxResults | orderBy:getSortField()">
                   <td><a ng-if="component.gavs.length" ui-sref="dashboard.component({ hash: component.hash })">
                       {{component.gavs[0].groupId}}<span class="wrap-force-break"> : </span>{{component.gavs[0].artifactId}}<span
                       class="wrap-force-break"> : </span>{{component.gavs[0].version}}

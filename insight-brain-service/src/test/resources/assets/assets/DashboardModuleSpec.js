@@ -1095,55 +1095,55 @@ describe('DashboardModule', function() {
         expect(callback).not.toHaveBeenCalled();
       });
     });
-    
-    describe('modalHelp', function() {
-
-      var divFoo, divBar, divBaz, scope, modal;
-      
-      beforeEach(inject(function ($rootScope, $compile, $modal) {
-        modal = $modal;
-        spyOn(modal, 'open');
-
-        scope = $rootScope.$new();
-        var page = angular
-                .element('<html><script type="text/ng-template" id="foo"><div>Foo</div></script>'
-                        + '<script type="text/ng-template" id="bar"><div>Bar</div></script>'
-                        + '<div id="divFoo" modal-help="foo">click</div>'
-                        + '<div id="divBar" modal-help="bar" modal-help-trigger="mouseover">mouseover</div>'
-                        + '<div id="divBaz" modal-help="bar" modal-help-trigger="mouseover"' 
-                        + 'modal-help-class="test-class">mouseover</div></html>');
-        $compile(page)(scope);
-
-        divFoo = page[2];
-        divBar = page[3];
-        divBaz = page[4];
-      }));
-
-      it('click on foo div to open foo modal', function () {
-        expect(divFoo).toBeDefined();
-        
-        angular.element(divFoo).click();
-        
-        expect(modal.open).toHaveBeenCalled();
-      });
-      
-      it('mouseover on bar div to open bar modal', function () {
-        expect(divBar).toBeDefined();
-        
-        angular.element(divBar).mouseover();
-        
-        expect(modal.open).toHaveBeenCalled();
-      });
-      
-      it('mouseover on baz div to open bar modal that has a custom class', function () {
-        expect(divBaz).toBeDefined();
-        
-        angular.element(divBaz).mouseover();
-        
-        expect(modal.open).toHaveBeenCalledWith({templateUrl: 'bar', windowClass: 'test-class'});
-      });
-    });
   });
+
+	describe('modalHelp', function() {
+
+	  var divFoo, divBar, divBaz, scope, modal;
+	  
+	  beforeEach(inject(function ($rootScope, $compile, $modal) {
+		modal = $modal;
+		spyOn(modal, 'open');
+
+		scope = $rootScope.$new();
+		var page = angular
+		        .element('<html><script type="text/ng-template" id="foo"><div>Foo</div></script>'
+		                + '<script type="text/ng-template" id="bar"><div>Bar</div></script>'
+		                + '<div id="divFoo" modal-help="foo">click</div>'
+		                + '<div id="divBar" modal-help="bar" modal-help-trigger="mouseover">mouseover</div>'
+		                + '<div id="divBaz" modal-help="bar" modal-help-trigger="mouseover"' 
+		                + 'modal-help-class="test-class">mouseover</div></html>');
+		$compile(page)(scope);
+
+		divFoo = page[2];
+		divBar = page[3];
+		divBaz = page[4];
+	  }));
+
+	  it('click on foo div to open foo modal', function () {
+		expect(divFoo).toBeDefined();
+		
+		angular.element(divFoo).click();
+		
+		expect(modal.open).toHaveBeenCalled();
+	  });
+	  
+	  it('mouseover on bar div to open bar modal', function () {
+		expect(divBar).toBeDefined();
+		
+		angular.element(divBar).mouseover();
+		
+		expect(modal.open).toHaveBeenCalled();
+	  });
+	  
+	  it('mouseover on baz div to open bar modal that has a custom class', function () {
+		expect(divBaz).toBeDefined();
+		
+		angular.element(divBaz).mouseover();
+		
+		expect(modal.open).toHaveBeenCalledWith({templateUrl: 'bar', windowClass: 'test-class'});
+	  });
+	});
 
   describe('Value delta is styled properly', function(){
     var element;
@@ -1211,6 +1211,74 @@ describe('DashboardModule', function() {
 
     it('should filter all null values to the end when given a compound key', function() {
       expect(emptyToEnd(data, ['key','key2'])).toEqual(expectedResult);
+    });
+  });
+
+  describe('Pathname Popover', function() {
+
+    var divElement, scope;
+    
+    beforeEach(inject(function ($rootScope, $compile) {
+      jasmine.Clock.useMock();
+      
+      scope = $rootScope.$new();
+      var page = angular
+              .element('<div pathnames-popover="[\'pathname1\', \'pathname2\']">empty div</div>');
+      $compile(page)(scope);
+      
+      divElement = angular.element(page[0]);
+      
+      scope.$digest();
+    }));
+    
+    afterEach(function () {
+      $('.popover').remove();
+    });
+    
+    it('popover displayed when hovering over div', function () {   
+      spyOn($.fn, 'popover').andCallThrough();
+      spyOn($.fn, 'is').andReturn(true);
+      
+      // Mouse enter and hover.
+      divElement.mouseover();
+      jasmine.Clock.tick(51);
+      expect(divElement.popover).toHaveBeenCalledWith('show');
+      
+      // Ensure the contents are correct, just the first pathname.
+      var popover = $('.popover');
+      expect(popover.html()).toContain('pathname1');
+      expect(popover.html()).not.toContain('pathname2');
+      
+      // Mouse leave.
+      // Set the 'is' check to false because leaving the element (div)
+      // checks that we are hovering over the popover, which we want to return false.
+      $.fn.is.andReturn(false);
+      divElement.mouseleave();
+      jasmine.Clock.tick(101);      
+      expect(divElement.popover).toHaveBeenCalledWith('hide');
+    });
+    
+    it('popover functions modally', function () {      
+      spyOn($.fn, 'popover').andCallThrough();
+      spyOn($.fn, 'is').andReturn(true);
+      
+      // Mouse enter and hover.
+      divElement.mouseover();
+      jasmine.Clock.tick(51);
+      expect(divElement.popover).toHaveBeenCalledWith('show');
+      
+      // Hover over the popover instead of the element.
+      var popover = $('.popover');
+      divElement.mouseleave();
+      popover.mouseover();
+      // Skip forward 101 ms to ensure that the close fires from leaving the element.
+      jasmine.Clock.tick(101);
+      expect($.fn.is.callCount).toEqual(2);
+      // Even though the close event fired the popover is still open because we are hovering over it.
+      expect($('.popover').length).toEqual(1);
+      // Leave the popover.
+      popover.mouseleave();
+      expect(divElement.popover).toHaveBeenCalledWith('hide');
     });
   });
 });

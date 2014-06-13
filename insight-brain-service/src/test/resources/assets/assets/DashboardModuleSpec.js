@@ -636,8 +636,8 @@ describe('DashboardModule', function() {
 
     beforeEach(inject(function ($rootScope, $compile) {
       scope = $rootScope.$new();
-      $compile('<div sortable sortable-direction="true" sortable-field="bar">' +
-              '<span sort-column="foo">foo</span><span sort-column="bar" sort-inverse="true">bar</span></div>')(scope);
+      $compile('<div sortable sortable-fields="bar">' +
+              '<span sort-columns="foo">foo</span><span sort-columns="bar" sort-inverse="true">bar</span></div>')(scope);
       fooScope = scope.$$childHead;
       barScope = scope.$$childHead.$$nextSibling.$$nextSibling;
     }));
@@ -647,7 +647,7 @@ describe('DashboardModule', function() {
       expect(fooScope.isDown()).toBeFalsy();
       expect(barScope.isUp()).toBeTruthy();
       expect(barScope.isDown()).toBeFalsy();
-      expect(scope.getSortField()).toEqual('bar');
+      expect(scope.getSortField()).toEqual(['bar']);
       expect(scope.getSortReverse()).toBeFalsy();
 
       fooScope.$apply(function () {
@@ -657,7 +657,7 @@ describe('DashboardModule', function() {
       expect(fooScope.isDown()).toBeFalsy();
       expect(barScope.isUp()).toBeFalsy();
       expect(barScope.isDown()).toBeTruthy();
-      expect(scope.getSortField()).toEqual('bar');
+      expect(scope.getSortField()).toEqual(['bar']);
       expect(scope.getSortReverse()).toBeTruthy();
 
       fooScope.$apply(function () {
@@ -667,7 +667,7 @@ describe('DashboardModule', function() {
       expect(fooScope.isDown()).toBeTruthy();
       expect(barScope.isUp()).toBeFalsy();
       expect(barScope.isDown()).toBeFalsy();
-      expect(scope.getSortField()).toEqual('foo');
+      expect(scope.getSortField()).toEqual(['foo']);
       expect(scope.getSortReverse()).toBeFalsy();
 
       fooScope.$apply(function () {
@@ -677,11 +677,36 @@ describe('DashboardModule', function() {
       expect(fooScope.isDown()).toBeFalsy();
       expect(barScope.isUp()).toBeFalsy();
       expect(barScope.isDown()).toBeFalsy();
-      expect(scope.getSortField()).toEqual('foo');
+      expect(scope.getSortField()).toEqual(['foo']);
       expect(scope.getSortReverse()).toBeTruthy();
     });
 
   });
+
+  describe('sortable with secondary sort', function() {
+    var barScope, fooScope;
+
+    beforeEach(inject(function ($rootScope, $compile) {
+      scope = $rootScope.$new();
+      $compile('<div sortable sortable-fields="bar,foo">' +
+        '<span sort-columns="foo">foo</span><span sort-columns="bar,foo" sort-inverse="true">bar</span></div>')(scope);
+      fooScope = scope.$$childHead;
+      barScope = scope.$$childHead.$$nextSibling.$$nextSibling;
+    }));
+
+    it('tests', function () {
+      expect(scope.getSortField()).toEqual(['bar','foo']);
+      expect(scope.getSortReverse()).toBeFalsy();
+
+      fooScope.$apply(function () {
+        barScope.setSort();
+      });
+
+      expect(scope.getSortField()).toEqual(['bar','foo']);
+      expect(scope.getSortReverse()).toBeTruthy();
+    });
+  });
+
 
   describe('NewestRiskTableController', function() {
     var stageTypes = [
@@ -690,31 +715,6 @@ describe('DashboardModule', function() {
       {"name": "Release", "id": "release"},
       {"name": "Stage Release", "id": "stage-release"},
       {"name": "Operate", "id": "operate"}
-    ], stageDetails = [
-      {
-        "stageTypeId": "release",
-        "time": 1401149547140,
-        "actionTypeId": "fail",
-        "scanId": "d8cbb9196c2d475991e5fbdcdf96e345"
-      },
-      {
-        "stageTypeId": "build",
-        "time": 1385755537775,
-        "actionTypeId": "warn",
-        "scanId": "175427dcaa88418f8e310eea03233ec1"
-      },
-      {
-        "stageTypeId": "stage-release",
-        "time": 1401133522035,
-        "actionTypeId": "warn",
-        "scanId": "c2bdf85b6292489abfe93882153880f5"
-      },
-      {
-        "stageTypeId": "operate",
-        "time": 0,
-        "actionTypeId": null,
-        "scanId": null
-      }
     ];
 
     beforeEach(inject(function($rootScope, $controller, $httpBackend, CLMLocations) {
@@ -778,6 +778,7 @@ describe('DashboardModule', function() {
       expect(risk.releaseTime).toBe(risk.stageDetails[2].time);
       expect(risk.buildTime).toBe(risk.stageDetails[0].time);
       expect(risk.operateTime).toBeNull();
+      expect(risk.gavName).toBe('foo:bar:1.0');
     });
   });
 
@@ -1187,5 +1188,29 @@ describe('DashboardModule', function() {
       scope.inverseGreen = true; //shouldn't matter what's set here if data === 0
       compileAndAssert($compile, $httpBackend, false, false);
     }));
+  });
+
+  describe('dashboard "emptyToEnd" filter', function() {
+    var emptyToEnd, data = [
+        { key: null },
+        { key: 'value'},
+        { key: null }
+      ], expectedResult = [
+        { key: 'value' },
+        { key: null },
+        { key: null }
+      ]
+      ;
+    beforeEach(inject(function($filter) {
+      emptyToEnd = $filter('emptyToEnd');
+    }));
+
+    it('should filter all null values to the end of an array of objects', function() {
+      expect(emptyToEnd(data, 'key')).toEqual(expectedResult);
+    });
+
+    it('should filter all null values to the end when given a compound key', function() {
+      expect(emptyToEnd(data, ['key','key2'])).toEqual(expectedResult);
+    });
   });
 });

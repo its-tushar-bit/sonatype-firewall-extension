@@ -322,18 +322,20 @@ class DashboardOverviewSpec
   def 'Newest Risk table can be sorted by stage time'() {
     when: 'the newest risk table is shown'
       waitFor{ newestViolationTable.displayed }
-      waitFor { newestViolationTable.rows.size() >= 2 }
+      waitFor { newestViolationTable.rows.size() == 3 }
 
-    then: 'risks are sorted by descending threat level, with the most recent results shown first'
+    then: 'the first row has no build stage results'
       newestViolationTable.rows[0].age ==~ RECENT_AGE
-      newestViolationTable.rows[1].age == '7d'
+      !newestViolationTable.rows[0].buildAge
 
     when: 'clicking on the first stage header(BUILD in this case)'
-      newestViolationTable.firstStageHeader.click()
+      newestViolationTable.clickStageHeader(newestViolationTable.buildHeader)
 
-    then: 'we should now show the oldest stage result first'
-      newestViolationTable.rows[0].age == '7d'
-      newestViolationTable.rows[1].age ==~ RECENT_AGE
+    then: 'we should now show the oldest stage result first, followed by the empty results'
+      newestViolationTable.rows[0].buildAge == '7d'
+      !newestViolationTable.rows[1].buildAge
+      !newestViolationTable.rows[2].buildAge
+
   }
 
   def 'Newest Risk Table can be filtered'() {
@@ -341,7 +343,7 @@ class DashboardOverviewSpec
       waitFor { newestViolationTable.displayed }
       waitFor { newestViolationTable.rows.size() == 3 }
 
-    then: 'policy violations are listed by threat level'
+    then: 'policy violations are listed by age and then threat level'
       !noDataAvailable.displayed
 
       newestViolationTable.rows[0].risk == 10

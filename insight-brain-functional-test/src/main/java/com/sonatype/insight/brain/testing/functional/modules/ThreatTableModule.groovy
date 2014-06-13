@@ -18,7 +18,8 @@ class ThreatTableModule
     headerLinks { int i -> $('th a', i) }
     riskHeader { headerLinks(0) }
     ageHeader { headerLinks(1) }
-    firstStageHeader { headerLinks(2) }
+    policyHeader { headerLinks(2) }
+    applicationHeader { headerLinks(3) }
     rows(required: false) { moduleList ThreatTableRow, $('tr').tail(), stageColumns : getStageColumns() }
     maxResults(required: false) { $('#max-results-shown') }
 
@@ -43,6 +44,12 @@ class ThreatTableModule
       headers.push('operate')
     }
     return headers;
+  }
+
+  def clickStageHeader(header) {
+    def link = header.find('a')
+    link.click()
+    waitFor{ link.find('i').displayed }
   }
 }
 

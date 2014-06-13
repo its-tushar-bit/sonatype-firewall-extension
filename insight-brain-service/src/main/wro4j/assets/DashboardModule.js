@@ -549,7 +549,9 @@
           });
         }
       });
-      // to aid sortability, copy the times from each stage to a property on the row
+      // to aid sortability:
+      // - copy the times from each stage to a property on the row
+      // - provide a single sortable string for the component name
       for (var i = 0; i < $scope.data.length; i++) {
         var risk = $scope.data[i];
         if (risk.stageDetails) {
@@ -558,6 +560,12 @@
             var propName = $filter('removeDashes')(stageDetail.stageTypeId) + 'Time';
             risk[propName] = stageDetail.time > 0 ? stageDetail.time : null;
           }
+        }
+        if (risk.gav) {
+          risk.gavName = [risk.gav.groupId, risk.gav.artifactId, risk.gav.version].join(':');
+        }
+        else {
+          risk.gavName = risk.pathnames ? $filter('fileName')(risk.pathnames[0]) : 'Unknown';
         }
       }
     }
@@ -639,30 +647,30 @@
     };
   }]);
 
-  dashboardModule.directive('sortColumn', function () {
+  dashboardModule.directive('sortColumns', function () {
     return {
       require : '^sortable',
       scope : {
-        field : '@sortColumn',
+        field : '@sortColumns',  //comma separated list
         inverse : '@?sortInverse'
       },
       transclude : true,
       template : '<a ng-click="setSort()"><span ng-transclude></span> <i class="sonatype-icons" ng-class="{ up : isUp(), down : isDown(), emptyIconGlyph : !isUp() && !isDown() }"></i></a>',
       link : function (scope, element, attrs, sortableCtrl) {
         scope.setSort = function () {
-          sortableCtrl.setSort(scope.field, scope.inverse);
+          sortableCtrl.setSort(scope.field.split(','), scope.inverse);
         };
 
         scope.isUp = function () {
           var reverse = sortableCtrl.sort.reverse,
               inverse = scope.inverse;
-          return scope.field === sortableCtrl.sort.field && ((inverse && !reverse) || (!inverse && reverse));
+          return angular.equals(scope.field.split(','), sortableCtrl.sort.field) && ((inverse && !reverse) || (!inverse && reverse));
         };
 
         scope.isDown = function () {
           var reverse = sortableCtrl.sort.reverse,
               inverse = scope.inverse;
-          return scope.field === sortableCtrl.sort.field && !((inverse && !reverse) || (!inverse && reverse));
+          return angular.equals(scope.field.split(','), sortableCtrl.sort.field) && !((inverse && !reverse) || (!inverse && reverse));
         };
       }
     };
@@ -682,7 +690,7 @@
           return me.sort.field;
         };
         me.setSort = function (field, defaultReverse) {
-          if (me.sort.field === field) {
+          if (angular.equals(me.sort.field, field)) {
             me.sort.reverse = ! me.sort.reverse;
           } else {
             me.sort = {
@@ -694,7 +702,7 @@
       }],
       link : function (scope, element, attrs, sortable) {
         sortable.sort = {
-          field : attrs.sortableField,
+          field : attrs.sortableFields.split(','),
           reverse : attrs.sortableReverse
         };
       }
@@ -1163,9 +1171,21 @@
     };
   });
 
-  dashboardModule.filter('abs', function() {
-    return function(input) {
-      return Math.abs(input);
+  /**
+   * Filter an array to ensure that null entries are always at the end.
+   */
+  dashboardModule.filter('emptyToEnd', function() {
+    return function(array, key) {
+      if (!angular.isArray(array)) {
+        return;
+      }
+      // in the event of a compound sort, use the first field
+      var sortField = angular.isArray(key) ? key[0] : key;
+      return array.filter(function(item) {
+        return item[sortField];
+      }).concat(array.filter(function(item) {
+        return !item[sortField];
+      }));
     };
   });
 

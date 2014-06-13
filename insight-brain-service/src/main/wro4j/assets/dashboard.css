@@ -375,7 +375,7 @@ table.table-risk td.low-risk, span.low-risk {
 }
 
 .dashboard-content .application-header {
-  min-width: 96px;
+  min-width: 101px;
 }
 
 .dashboard-content .policy-header {
@@ -398,7 +398,7 @@ table.table-risk td.low-risk, span.low-risk {
   min-width: 68px;
 }
 .dashboard-content #stage-header-release, .dashboard-content #stage-header-operate {
-  min-width: 78px;
+  min-width: 85px;
 }
 
 .latest-risk {

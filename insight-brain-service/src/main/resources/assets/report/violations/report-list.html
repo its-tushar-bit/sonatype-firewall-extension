@@ -15,18 +15,18 @@
       </div>
       <div class='scrollable-container border-top'>
         <div class='scrollable-container-inner'>
-          <table id='report-list-table' class='table clm-table-stripe' sortable sortable-field="name">
+          <table id='report-list-table' class='table clm-table-stripe' sortable sortable-fields="name">
             <thead>
               <tr id='report-list-headers'>
                 <th id='report-list-header-app'>
-                  <div sort-column='name'>Application Name</div>
+                  <div sort-columns='name'>Application Name</div>
                 </th>
                 <th id='report-list-header-{{stage.id}}' ng-repeat='stage in stages | filterReportColumns' class='stage-column'>
                   <div>{{stage.name}} Violations</div>
                 </th>
                 <th id='report-list-header-contact'><div>Contact</div></th>
                 <th id='report-list-header-org'>
-                  <div sort-column='organizationName'>Organization</div>
+                  <div sort-columns='organizationName'>Organization</div>
                 </th>
               </tr>
             </thead>

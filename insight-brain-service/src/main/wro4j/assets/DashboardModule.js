@@ -365,7 +365,7 @@
     };
   });
 
-  function dashboardTable(url, noDataMessage) {
+  function dashboardTable(url, $timeout, windowEventsFactory, noDataMessage) {
     function createFilterWatch($scope, $rootScope, $http, Dialog, ApplicationStore) {
       return function (newFilter) {
         if (newFilter) {
@@ -405,6 +405,22 @@
     return {
       transclude: true,
       templateUrl: 'dashboard-table',
+      link: function(scope, element) {
+        function minTableFit() {
+          var scrollableContainer = element.find('.scrollable-container');
+          scrollableContainer.css('min-width', '');
+          scrollableContainer.css('opacity', '0');
+          $timeout(function() {
+            var table = element.find('table');
+            scrollableContainer = element.find('.scrollable-container');
+            scrollableContainer.css('min-width', table.width());
+            scrollableContainer.css('opacity', '');
+          }, 0);
+        }
+        windowEventsFactory.addResizeHandler(scope, element, minTableFit);
+
+        scope.$watch('data', minTableFit);
+      },
       controller: ['$scope', '$rootScope', '$http', 'Dialog', 'ApplicationStore', function($scope, $rootScope, $http, Dialog, ApplicationStore) {
         var filterChangedFn = createFilterWatch($scope, $rootScope, $http, Dialog, ApplicationStore);
         $scope.doLoad = function () {
@@ -424,16 +440,17 @@
     });
   }
 
-  dashboardModule.directive('newestRiskTable', ['CLMLocations', function(CLMLocations) {
-    return dashboardTable(CLMLocations.getNewestRisksUrl(), 'No data available in the last 30 days given the applied filters and available permissions.');
+  dashboardModule.directive('newestRiskTable', ['CLMLocations', '$timeout', 'windowEventsFactory', function(CLMLocations, $timeout, windowEventsFactory) {
+    return dashboardTable(CLMLocations.getNewestRisksUrl(), $timeout, windowEventsFactory,
+      'No data available in the last 30 days given the applied filters and available permissions.');
   }]);
 
-  dashboardModule.directive('applicationRiskTable', ['CLMLocations', function(CLMLocations){
-    return dashboardTable(CLMLocations.getApplicationRisksUrl());
+  dashboardModule.directive('applicationRiskTable', ['CLMLocations', '$timeout', 'windowEventsFactory', function(CLMLocations, $timeout, windowEventsFactory) {
+    return dashboardTable(CLMLocations.getApplicationRisksUrl(), $timeout, windowEventsFactory);
   }]);
 
-  dashboardModule.directive('componentRiskTable', ['CLMLocations', function(CLMLocations) {
-    return dashboardTable(CLMLocations.getComponentRisksUrl());
+  dashboardModule.directive('componentRiskTable', ['CLMLocations', '$timeout', 'windowEventsFactory', function(CLMLocations, $timeout, windowEventsFactory) {
+    return dashboardTable(CLMLocations.getComponentRisksUrl(), $timeout, windowEventsFactory);
   }]);
 
   dashboardModule.directive('breadcrumb', ['$state', function($state) {

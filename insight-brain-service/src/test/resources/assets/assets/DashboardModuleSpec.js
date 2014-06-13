@@ -523,6 +523,47 @@ describe('DashboardModule', function() {
     });
   });
 
+  describe('dashboardTable', function() {
+    var element;
+
+    beforeEach(function() {
+      module(function($provide) {
+        $provide.value('$window', (function() {
+          return {
+            resize: angular.noop
+          };
+        })());
+      });
+    });
+
+    beforeEach(inject(function($compile, $httpBackend, $timeout, $rootScope) {
+      var scope = $rootScope.$new();
+
+      $httpBackend.expectGET('dashboard-table').respond('<div class="scrollable-container"><table style="width: 100px"></table></div>');
+      element = angular.element('<div newest-risk-table></div>');
+      $compile(element)(scope);
+      scope.$digest();
+      $httpBackend.flush();
+      $timeout.flush();
+    }));
+
+    it('Defaults scroll container to table size', inject(function() {
+      var scrollContainer = element.find('.scrollable-container');
+      expect(scrollContainer.css('min-width')).toBe('100px');
+    }));
+
+    it('Adjusts to tables size', inject(function($window, $timeout) {
+      element.find('table').css('width', 200);
+      element.width(100);
+      var window = angular.element($window);
+      window.resize();
+      $timeout.flush();
+
+      var scrollContainer = element.find('.scrollable-container');
+      expect(scrollContainer.css('min-width')).toBe('200px');
+    }));
+  })
+
   describe('Dashboard view summary', function() {
     var scope;
 

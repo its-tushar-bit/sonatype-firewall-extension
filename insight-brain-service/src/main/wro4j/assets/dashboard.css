@@ -30,6 +30,10 @@
   text-align: right;
 }
 
+.no-bottom-border {
+  border-bottom: none;
+}
+
 .dashboard-content {
   padding-top: 55px;
   padding-left: 10px !important;
@@ -338,9 +342,9 @@ table.table-risk td.low-risk, span.low-risk {
 
 .scrollable-container {
   height: 500px;
-  min-width: 830px;
   position: relative;
   padding-top: 30px;
+  border-top: 1px solid #ddd;
 }
 
 .scrollable-container-inner {

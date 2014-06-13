@@ -31,7 +31,9 @@ import org.sonatype.licensing.product.internal.DefaultLicenseKey;
 import org.apache.commons.lang.StringUtils;
 
 /**
- * Simple replacement for a ProductLicenseManager.
+ * Test/mock implementation for ProductLicenseManager.
+ * <p>
+ * It wraps a MockProductLicenseManager instance, which is simply replaced when the reset() method is called.
  */
 @Named
 @Singleton
@@ -129,7 +131,7 @@ public class TestProductLicenseManager
   private static class MockProductLicenseManager
       implements ProductLicenseManager
   {
-    private boolean valid;
+    private boolean valid = true;
 
     private ProductLicenseKey key;
 
@@ -150,12 +152,6 @@ public class TestProductLicenseManager
     private boolean forceInstallIOFailure = false;
 
     public MockProductLicenseManager() {
-      this(true);
-    }
-
-    public MockProductLicenseManager(boolean valid) {
-      this.valid = valid;
-
       resetEnforcementPoints();
     }
 
@@ -166,7 +162,7 @@ public class TestProductLicenseManager
       enforcementPoints.add(CLMEnforcementPoint.Release);
       enforcementPoints.add(CLMEnforcementPoint.StageRelease);
 
-      if (this.valid) {
+      if (valid) {
         createKey();
       }
     }

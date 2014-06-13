@@ -18,6 +18,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
+ * TestInsightBrainService as Junit ExternalResource (which is a Junit TestRule).
+ * 
  * @since 1.9.1
  */
 public class TestInsightBrainServiceRule

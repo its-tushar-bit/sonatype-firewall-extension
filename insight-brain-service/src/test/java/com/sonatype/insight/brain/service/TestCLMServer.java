@@ -10,6 +10,11 @@ import java.util.List;
 
 import com.google.inject.Module;
 
+/**
+ * Test helper for CLM server. It wraps and manages a CLM brain service/server and a mocked Insight/SaaS/HDS server.
+ * 
+ * @since 1.11
+ */
 public class TestCLMServer
 {
   private final InsightMockServerRule insightMockServer;

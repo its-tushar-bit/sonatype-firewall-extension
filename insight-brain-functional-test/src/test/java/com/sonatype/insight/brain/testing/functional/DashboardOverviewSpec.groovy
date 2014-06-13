@@ -735,24 +735,58 @@ class DashboardOverviewSpec
       componentMatchUnknownCount.text() == '1 (33%)'
   }
 
-  def 'Modal heat map help available when tabs are activated' () {
-    when: 'Switch to Components Tab'
-      tabLinks.componentsTabButton.click()
-      waitFor { tabLinks.componentHeatMapHelpIcon.displayed }
-      tabLinks.componentHeatMapHelpIcon.click()
+  def 'Heat Map Help Modal' () {
+    when: 'component heat map help icon is clicked'
+      clickComponentHeatMapHelp()
     
-    then: 'wait for the component heat map help to be displayed'
+    then: 'component heat map help is displayed'
       waitFor { componentHeatMapHelp.displayed }
-      
-    when: 'Switch to Application Tab'
-      modalBackdrop.click()
-      waitFor { !componentHeatMapHelp.displayed }
-      tabLinks.applicationsTabButton.click()
-      waitFor { tabLinks.applicationHeatMapHelpIcon.displayed }
-      tabLinks.applicationHeatMapHelpIcon.click()
     
-    then: 'wait for the application heat map help to be displayed'
+    when: 'the modal backdrop is clicked'
+      waitFor { componentHeatMapHelp.displayed }
+      modalBackdrop.click()
+      
+    then: 'the component heat map help closes'
+      waitFor { !componentHeatMapHelp.displayed }
+      
+    when: 'the component heat map help close button is clicked'
+      clickComponentHeatMapHelp()
+      componentHeatMapHelpClose.click()
+
+    then: 'the help modal closes'
+      waitFor { !componentHeatMapHelp.displayed }
+      
+    when: 'application heat map help icon is clicked'
+      clickApplicationHeatMapHelp()
+    
+    then: 'application heat map help is displayed'
       waitFor { applicationHeatMapHelp.displayed }
+      
+    when: 'the modal backdrop is clicked'
+      waitFor { applicationHeatMapHelp.displayed }
+      modalBackdrop.click()
+
+    then: 'the application heat map help closes'
+      waitFor { !applicationHeatMapHelp.displayed }
+
+    when: 'the application heat map help close button is clicked '
+      clickApplicationHeatMapHelp()
+      applicationHeatMapHelpClose.click()
+      
+    then: 'the help modal closes'
+      waitFor { !applicationHeatMapHelp.displayed }
+  }
+  
+  def clickComponentHeatMapHelp() {
+    tabLinks.componentsTabButton.click()
+    waitFor { tabLinks.componentHeatMapHelpIcon.displayed }
+    tabLinks.componentHeatMapHelpIcon.click()
+  }
+  
+  def clickApplicationHeatMapHelp() {
+    tabLinks.applicationsTabButton.click()
+    waitFor { tabLinks.applicationHeatMapHelpIcon.displayed }
+    tabLinks.applicationHeatMapHelpIcon.click()
   }
   
     /**

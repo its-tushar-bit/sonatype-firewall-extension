@@ -84,7 +84,9 @@ class DashboardOverviewPage
     policySummary { module PolicySummaryModule, $('#policySummaryData') }
 
     applicationHeatMapHelp (required: false) { $('#application-heat-map-help-content') }
+    applicationHeatMapHelpClose (required: false) { $('#application-heat-map-help-close') }
     componentHeatMapHelp (required: false) { $('#component-heat-map-help-content') }
+    componentHeatMapHelpClose (required: false) { $('#component-heat-map-help-close') }
     modalBackdrop (required: false) { $('div.modal-backdrop') }
   }
 

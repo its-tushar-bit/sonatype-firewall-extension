@@ -860,18 +860,18 @@ public class DashboardServiceTest
   }
 
   @Test
-  public void testGetNewestRisks_ResultCapping() throws Exception {
+  public void testGetNewestRisks_SortAndResultCapping() throws Exception {
     // Limit to high value
     List<NewestRiskDTO> riskDTOs = dashboardService.getNewestRisks(null, null, null, null, null, 100);
     assertThat(riskDTOs, hasSize(3));
-    assertNewestRiskDTO(riskDTOs.get(0), app1, app1PolicyViolation, app1PolicyEvaluation.getTime());
-    assertNewestRiskDTO(riskDTOs.get(1), app2, app2PolicyViolation, app2PolicyEvaluation.getTime());
+    assertNewestRiskDTO(riskDTOs.get(0), app2, app2PolicyViolation, app2PolicyEvaluation.getTime());
+    assertNewestRiskDTO(riskDTOs.get(1), app1, app1PolicyViolation, app1PolicyEvaluation.getTime());
     assertNewestRiskDTO(riskDTOs.get(2), app1, orgPolicyViolation, app1PolicyEvaluation.getTime());
 
     // Limit to 1
     riskDTOs = dashboardService.getNewestRisks(null, null, null, null, null, 1);
     assertThat(riskDTOs, hasSize(1));
-    assertNewestRiskDTO(riskDTOs.get(0), app1, app1PolicyViolation, app1PolicyEvaluation.getTime());
+    assertNewestRiskDTO(riskDTOs.get(0), app2, app2PolicyViolation, app2PolicyEvaluation.getTime());
   }
 
   @Test

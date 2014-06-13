@@ -8,7 +8,7 @@ package com.sonatype.insight.brain.dashboard;
 import java.util.Comparator;
 
 /**
- * Sorts the NewestRiskDTOs by threat level, time, policy, application, using the component hash as tie breaker where
+ * Sorts the NewestRiskDTOs by time, threat level, policy, application, using the component hash as tie breaker where
  * needed to provide a stable ordering for later capping results from the top.
  */
 class NewestRiskDTOComparator
@@ -18,14 +18,14 @@ class NewestRiskDTOComparator
 
   @Override
   public int compare(NewestRiskDTO o1, NewestRiskDTO o2) {
-    // Descending by threat level
-    int rel = Integer.compare(o2.threatLevel, o1.threatLevel);
+    // Descending by time
+    int rel = Long.compare(o2.time, o1.time);
     if (rel != 0) {
       return rel;
     }
 
-    // Descending by time
-    rel = Long.compare(o2.time, o1.time);
+    // Descending by threat level
+    rel = Integer.compare(o2.threatLevel, o1.threatLevel);
     if (rel != 0) {
       return rel;
     }

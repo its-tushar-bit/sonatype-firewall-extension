@@ -7,17 +7,36 @@ package com.sonatype.insight.brain.service;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import javax.ws.rs.core.UriBuilder;
 
+import com.sonatype.insight.brain.AuthedRestAccess;
+import com.sonatype.insight.brain.TestLicenseFingerprinter;
+import com.sonatype.insight.brain.TestProductLicenseManager;
+import com.sonatype.insight.brain.product.license.ProductLicenseResource;
+import com.sonatype.insight.license.model.CLMEnforcementPoint;
+
+import org.sonatype.licensing.product.ProductLicenseManager;
+import org.sonatype.licensing.product.util.LicenseFingerprinter;
+
+import com.google.inject.AbstractModule;
 import com.google.inject.Module;
+import com.ning.http.client.AsyncHttpClient;
 import com.ning.http.client.Cookie;
 import com.ning.http.client.Response;
+import com.ning.http.multipart.ByteArrayPartSource;
+import com.ning.http.multipart.FilePart;
 import com.yammer.dropwizard.testing.JsonHelpers;
 import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.IOUtil;
+import org.junit.After;
+import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.rules.TestName;
 
@@ -32,38 +51,63 @@ public abstract class AbstractBrainServiceTest
 
   private static File saasWork = new File("target/mock-saas-work/");
 
-  private int insightMockServerPort = PortAllocator.findFreePort(8090);
-
   @Rule
   public TestName testName = new TestName();
 
-  @Rule
-  public InsightMockServerRule insightMockServer = new InsightMockServerRule(insightMockServerPort, saasWork,
-      isProxyRequiredToReachSaas());
+  // by default license is always valid, to override, simply uninstall the license
+  private static final TestProductLicenseManager licenseManager = new TestProductLicenseManager();
 
-  @Rule
-  public TestInsightBrainServiceRule brain = new TestInsightBrainServiceRule(PortAllocator.findFreePort(8070),
-      PortAllocator.findFreePort(8071), getBrainBaseUrl(), "http://localhost:" + insightMockServerPort,
-      isProxyRequiredToReachSaas(), getBrainModules());
+  private static boolean productlicenseWasUninstalled;
+
+  private static final TestLicenseFingerprinter licenseFingerprinter = new TestLicenseFingerprinter();
+
+  private static String savedLicenseFingerprint;
+
+  private static TestCLMServer testCLMServer;
+
+  @Before
+  public void initTest() throws Throwable {
+    if (testCLMServer != null && isProxyRequiredToReachSaas() != testCLMServer.isProxyRequiredToReachSaas()) {
+      testCLMServer.stop();
+      testCLMServer = null;
+    }
+
+    if (testCLMServer == null) {
+      testCLMServer = new TestCLMServer(saasWork, isProxyRequiredToReachSaas(), getBrainModules());
+      testCLMServer.start();
+    }
+  }
+
+  @After
+  public void cleanupTest() throws Exception {
+    testCLMServer.getInsightServer().reset();
+
+    if (savedLicenseFingerprint != null) {
+      licenseFingerprinter.setDummyLicenseFingerprint(savedLicenseFingerprint);
+      savedLicenseFingerprint = null;
+      installLicense();
+    }
+
+    if (licenseManager.wasChanged()) {
+      licenseManager.reset();
+      installLicense();
+    }
+    if (productlicenseWasUninstalled) {
+      installLicense();
+    }
+  }
 
   private List<Module> getBrainModules() {
     List<Module> modules = new ArrayList<>();
-    addBrainModules(modules);
+    modules.add(new AbstractModule()
+    {
+      @Override
+      protected void configure() {
+        bind(ProductLicenseManager.class).toInstance(licenseManager);
+        bind(LicenseFingerprinter.class).toInstance(licenseFingerprinter);
+      }
+    });
     return modules;
-  }
-
-  /**
-   * Allows subclasses to provide modules to be added to the test brain server's injector.
-   * This method is called before the test brain is initialized. Calling this method after the test brain server is
-   * initialized (i.e. from a test method) has no effect.
-   * 
-   * @since 1.9.1
-   */
-  protected void addBrainModules(List<Module> modules) {
-  }
-
-  protected String getBrainBaseUrl() {
-    return null;
   }
 
   private boolean isProxyRequiredToReachSaas() {
@@ -87,7 +131,7 @@ public abstract class AbstractBrainServiceTest
   }
 
   protected String getRestBaseUrl() {
-    String restBaseUrl = brain.getClientConfiguration().getServerUrl();
+    String restBaseUrl = getCLMServer().getClientConfiguration().getServerUrl();
     if (!restBaseUrl.endsWith("/")) {
       restBaseUrl = restBaseUrl + "/";
     }
@@ -103,11 +147,11 @@ public abstract class AbstractBrainServiceTest
   }
 
   protected void setSaasResponseForURI(String uri, int status, Object body) {
-    insightMockServer.setResponseForURI(uri, body, status);
+    getInsightServer().setResponseForURI(uri, body, status);
   }
 
   protected void setSaasResponseForURI(String uri, String body, int status) {
-    insightMockServer.setResponseForURI(uri, body, status);
+    getInsightServer().setResponseForURI(uri, body, status);
   }
 
   protected void setSaasResponseForURI(String uri, int status, String bodyResource) {
@@ -119,7 +163,7 @@ public abstract class AbstractBrainServiceTest
   }
 
   private void setAuditLog(String appId, String jsonFile, String jsonResource) {
-    File logFile = new File(brain.getAuditDir(appId), jsonFile);
+    File logFile = new File(getCLMServer().getAuditDir(appId), jsonFile);
     logFile.getAbsoluteFile().getParentFile().mkdirs();
     try {
       FileUtils.fileWrite(logFile, "UTF-8", toString(jsonResource));
@@ -172,5 +216,99 @@ public abstract class AbstractBrainServiceTest
     catch (IOException e) {
       throw new IllegalStateException(e);
     }
+  }
+
+  protected TestInsightBrainServiceRule getCLMServer() {
+    return testCLMServer.getCLMServer();
+  }
+
+  protected InsightMockServerRule getInsightServer() {
+    return testCLMServer.getInsightServer();
+  }
+
+  protected TestProductLicenseManager getTestProductLicenseManager() {
+    return licenseManager;
+  }
+
+  protected String getLicenseFingerprint() {
+    return licenseFingerprinter.calculate();
+  }
+
+  protected void setLicenseFingerprint(String licenseFingerprint) throws Exception {
+    if (savedLicenseFingerprint == null) {
+      savedLicenseFingerprint = licenseFingerprinter.calculate();
+    }
+    licenseFingerprinter.setDummyLicenseFingerprint(licenseFingerprint);
+    installLicense();
+  }
+
+  protected String installLicense() throws Exception {
+    Response response = uploadLicense(null);
+    assertResponseStatus(200, response);
+
+    Assert.assertTrue(licenseManager.isValid());
+
+    return response.getResponseBody();
+  }
+
+  protected Response installLicense(boolean forceSuccess) throws Exception {
+    return uploadLicense(Collections.singletonMap("forceSuccess", Boolean.toString(forceSuccess)));
+  }
+
+  protected Response uploadLicense(Map<String, String> queryParams, String username, String password) throws Exception {
+    InputStream license = AbstractLicenseTest.class.getResourceAsStream("/productlicense/license.lic");
+    try {
+      AsyncHttpClient.BoundRequestBuilder builder = AuthedRestAccess.getClient().preparePost(
+          getProductLicenseServiceURL());
+      builder.addBodyPart(new FilePart("file", new ByteArrayPartSource(null, IOUtil.toByteArray(license))));
+      if (queryParams != null) {
+        for (String key : queryParams.keySet()) {
+          builder.addQueryParameter(key, queryParams.get(key));
+        }
+      }
+
+      Response response;
+      if (username == null) {
+        response = AuthedRestAccess.execute(builder);
+      }
+      else {
+        response = AuthedRestAccess.execute(builder, username, password);
+      }
+      productlicenseWasUninstalled = false;
+      return response;
+    }
+    finally {
+      IOUtil.close(license);
+    }
+  }
+
+  private Response uploadLicense(Map<String, String> queryParams) throws Exception {
+    return uploadLicense(queryParams, null /* username */, null /* password */);
+  }
+
+  private String getProductLicenseServiceURL() {
+    return getRestBaseUrl() + ProductLicenseResource.SERVICE_PATH;
+  }
+
+  protected void uninstallLicense() throws Exception {
+    AuthedRestAccess.delete(getProductLicenseServiceURL());
+    productlicenseWasUninstalled = true;
+
+    Assert.assertFalse(licenseManager.isValid());
+  }
+
+  protected void setEnforcementPoints(CLMEnforcementPoint... enforcementPoints) throws Exception {
+    licenseManager.setEnforcementPoints(enforcementPoints);
+    installLicense();
+  }
+
+  protected void setApplicationLimit(int applicationLimit) throws Exception {
+    licenseManager.setApplicationLimit(applicationLimit);
+    installLicense();
+  }
+
+  protected void setLicenseProducts(String[] products) throws Exception {
+    licenseManager.setProducts(products);
+    installLicense();
   }
 }

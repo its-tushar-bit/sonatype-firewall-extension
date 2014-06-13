@@ -9,7 +9,9 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 
+import com.sonatype.insight.brain.DummyLicenseDataUpdater;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
+import com.sonatype.insight.brain.dataaccess.license.LicenseDataUpdater;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
@@ -17,6 +19,8 @@ import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 
 import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.StringUtils;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -38,6 +42,19 @@ public class LicenseOverrideMigratorTest
 
   @Rule
   public TemporaryEntity tempEntity = new TemporaryEntity();
+
+  private static LicenseDataUpdater savedLicenseDataUpdater;
+
+  @BeforeClass
+  public static void beforeClass() {
+    savedLicenseDataUpdater = LicenseDataUpdater.getUpdater();
+    LicenseDataUpdater.setUpdater(new DummyLicenseDataUpdater());
+  }
+
+  @AfterClass
+  public static void afterClass() {
+    LicenseDataUpdater.setUpdater(savedLicenseDataUpdater);
+  }
 
   @Test
   public void testMigrate() throws Exception {

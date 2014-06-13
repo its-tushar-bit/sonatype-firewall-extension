@@ -40,19 +40,19 @@ public class ConfigurationClientTest
 
   @After
   public void cleanup() throws Exception {
-    File configFile = new File(brain.getDataDir(), "proprietary.json");
+    File configFile = new File(getCLMServer().getDataDir(), "proprietary.json");
     assertTrue(configFile.delete() || !configFile.exists());
   }
 
   @Test
   public void testValidateConfiguration_AllGood() throws Exception {
-    Configuration config = brain.getClientConfiguration();
+    Configuration config = getCLMServer().getClientConfiguration();
     new ConfigurationClient(config).validateConfiguration();
   }
 
   @Test
   public void testValidateConfiguration_BadContextRoot() throws Exception {
-    Configuration config = brain.getClientConfiguration();
+    Configuration config = getCLMServer().getClientConfiguration();
     config.setServerUrl(config.getServerUrl() + "/bad");
     try {
       new ConfigurationClient(config).validateConfiguration();
@@ -66,7 +66,7 @@ public class ConfigurationClientTest
 
   @Test
   public void testValidateConfiguration_BadHost() throws Exception {
-    Configuration config = brain.getClientConfiguration();
+    Configuration config = getCLMServer().getClientConfiguration();
     config.setServerUrl("http://1234.bad.host.1234.com/");
     try {
       new ConfigurationClient(config).validateConfiguration();
@@ -79,7 +79,7 @@ public class ConfigurationClientTest
 
   @Test
   public void testValidateConfiguration_BadPort() throws Exception {
-    Configuration config = brain.getClientConfiguration();
+    Configuration config = getCLMServer().getClientConfiguration();
     config.setServerUrl("http://localhost:65535/");
     try {
       new ConfigurationClient(config).validateConfiguration();
@@ -92,7 +92,7 @@ public class ConfigurationClientTest
 
   @Test
   public void testValidateConfiguration_InvalidPort() throws Exception {
-    Configuration config = brain.getClientConfiguration();
+    Configuration config = getCLMServer().getClientConfiguration();
     config.setServerUrl("http://localhost:NaN/");
     try {
       new ConfigurationClient(config).validateConfiguration();
@@ -105,7 +105,7 @@ public class ConfigurationClientTest
 
   @Test
   public void testValidateConfiguration_BadProxyHost() throws Exception {
-    Configuration config = brain.getClientConfiguration();
+    Configuration config = getCLMServer().getClientConfiguration();
     config.setProxy("1234.bad.host.1234.com");
     try {
       new ConfigurationClient(config).validateConfiguration();
@@ -118,7 +118,7 @@ public class ConfigurationClientTest
 
   @Test
   public void testValidateConfiguration_BadProxyPort() throws Exception {
-    Configuration config = brain.getClientConfiguration();
+    Configuration config = getCLMServer().getClientConfiguration();
     config.setProxy("localhost:65535");
     try {
       new ConfigurationClient(config).validateConfiguration();
@@ -133,13 +133,13 @@ public class ConfigurationClientTest
   public void testValidateApplicationId_AllGood() throws Exception {
     Application app = tempEntity.newApplicationWithParent("valid-id");
 
-    new ConfigurationClient(brain.getClientConfiguration()).validateApplicationId(app.getPublicId());
+    new ConfigurationClient(getCLMServer().getClientConfiguration()).validateApplicationId(app.getPublicId());
   }
 
   @Test
   public void testValidateApplicationId_UnknownId() throws Exception {
     try {
-      new ConfigurationClient(brain.getClientConfiguration()).validateApplicationId("unknown-id");
+      new ConfigurationClient(getCLMServer().getClientConfiguration()).validateApplicationId("unknown-id");
       fail("Validation should have failed due to bad app id");
     }
     catch (IOException e) {
@@ -151,7 +151,8 @@ public class ConfigurationClientTest
   public void testGetApplicationIdNameMap() throws Exception {
     Application app = tempEntity.newApplicationWithParent("valid-id");
 
-    Map<String, String> map = new ConfigurationClient(brain.getClientConfiguration()).getApplicationIdNameMap();
+    Map<String, String> map = new ConfigurationClient(getCLMServer().getClientConfiguration())
+        .getApplicationIdNameMap();
 
     assertEquals(1, map.size());
     assertTrue(map.containsKey("valid-id"));
@@ -166,10 +167,10 @@ public class ConfigurationClientTest
     ProprietaryConfig config = new ProprietaryConfig();
     config.setPackages(packages);
     config.setRegexes(regexes);
-    ProprietaryConfigDAO dao = new ProprietaryConfigDAO(brain.getDataDir());
+    ProprietaryConfigDAO dao = new ProprietaryConfigDAO(getCLMServer().getDataDir());
     dao.update(config);
 
-    config = new ConfigurationClient(brain.getClientConfiguration()).getProprietaryConfiguration();
+    config = new ConfigurationClient(getCLMServer().getClientConfiguration()).getProprietaryConfiguration();
 
     assertEquals(packages, config.getPackages());
     assertEquals(regexes, config.getRegexes());
@@ -179,7 +180,7 @@ public class ConfigurationClientTest
   @Test
   public void testValidLogin() throws Exception {
 
-    Configuration config = brain.getClientConfiguration();
+    Configuration config = getCLMServer().getClientConfiguration();
     config.setServerAuth(SimpleAuthentication.parse("admin:admin123"));
     ConfigurationClient client = new ConfigurationClient(config);
     client.validateAuthentication();
@@ -188,7 +189,7 @@ public class ConfigurationClientTest
   @Test
   public void testInvalidPassword() throws Exception {
 
-    Configuration config = brain.getClientConfiguration();
+    Configuration config = getCLMServer().getClientConfiguration();
     config.setServerAuth(SimpleAuthentication.parse("admin:invalidpassword"));
     ConfigurationClient client = new ConfigurationClient(config);
     try {
@@ -203,7 +204,7 @@ public class ConfigurationClientTest
   @Test
   public void testInvalidUser() throws Exception {
 
-    Configuration config = brain.getClientConfiguration();
+    Configuration config = getCLMServer().getClientConfiguration();
     config.setServerAuth(SimpleAuthentication.parse("invaliduser:invalidpassword"));
     ConfigurationClient client = new ConfigurationClient(config);
     try {
@@ -218,7 +219,7 @@ public class ConfigurationClientTest
   @Test
   public void testNoAuthProvided() throws Exception {
 
-    Configuration config = brain.getClientConfiguration();
+    Configuration config = getCLMServer().getClientConfiguration();
     ConfigurationClient client = new ConfigurationClient(config);
     try {
       client.validateAuthentication();

@@ -70,17 +70,20 @@ public class PolicyMonitorTest
 
   private InsightConfig insightConfig;
 
+  private String savedBaseUrl;
+
   @Before
   public void setup() {
-    insightConfig = brain.getInjector().getInstance(InsightConfig.class);
+    insightConfig = getCLMServer().getInjector().getInstance(InsightConfig.class);
+    savedBaseUrl = insightConfig.getBaseUrl();
     insightConfig.setBaseUrl("http://clm.sonatype.com/test");
-    insightWork = brain.getInjector().getInstance(InsightWork.class);
-    policyMonitor = brain.getInjector().getInstance(PolicyMonitor.class);
+    insightWork = getCLMServer().getInjector().getInstance(InsightWork.class);
+    policyMonitor = getCLMServer().getInjector().getInstance(PolicyMonitor.class);
   }
-  
+
   @After
   public void cleanup() {
-    getTestProductLicenseManager().resetProducts();
+    insightConfig.setBaseUrl(savedBaseUrl);
   }
 
   @Test

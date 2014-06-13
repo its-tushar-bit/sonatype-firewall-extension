@@ -29,7 +29,7 @@ public class SearchResourceTest
 
   @Before
   public void init() {
-    helper = new TestHelper(tempEntity, brain);
+    helper = new TestHelper(tempEntity, getCLMServer());
   }
 
   private String getSearchUrl(String stageId, String hash) {

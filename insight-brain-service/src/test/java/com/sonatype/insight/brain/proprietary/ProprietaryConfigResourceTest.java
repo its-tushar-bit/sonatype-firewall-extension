@@ -32,7 +32,7 @@ public class ProprietaryConfigResourceTest
 
   @After
   public void cleanup() throws Exception {
-    File configFile = new File(brain.getDataDir(), "proprietary.json");
+    File configFile = new File(getCLMServer().getDataDir(), "proprietary.json");
     assertTrue(configFile.delete() || !configFile.exists());
   }
 

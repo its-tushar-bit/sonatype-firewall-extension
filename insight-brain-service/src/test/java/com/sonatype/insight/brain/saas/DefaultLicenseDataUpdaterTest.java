@@ -113,17 +113,22 @@ public class DefaultLicenseDataUpdaterTest
   }
 
   @Test
-  public void testNoSaaSServer() {
-    insightMockServer.stop();
+  public void testNoSaaSServer() throws Exception {
+    getInsightServer().stop();
 
-    String newId = "New license id";
-    MultiLicenseDAO multiLicenseDAO = new MultiLicenseDAO();
     try {
-      multiLicenseDAO.getById(newId);
-      fail("Expected RuntimeException");
+      String newId = "New license id";
+      MultiLicenseDAO multiLicenseDAO = new MultiLicenseDAO();
+      try {
+        multiLicenseDAO.getById(newId);
+        fail("Expected RuntimeException");
+      }
+      catch (RuntimeException e) {
+        assertTrue(e.getMessage(), e.getMessage().startsWith("Could not retrieve license data from SaaS:"));
+      }
     }
-    catch (RuntimeException e) {
-      assertTrue(e.getMessage(), e.getMessage().startsWith("Could not retrieve license data from SaaS:"));
+    finally {
+      getInsightServer().start();
     }
   }
 

@@ -106,7 +106,7 @@ public class LicenseOverrideResourceTest
       throws Exception
   {
     // Verify the license override audit
-    File logFile = new File(brain.getAuditDir(ownerId), "licenses.json");
+    File logFile = new File(getCLMServer().getAuditDir(ownerId), "licenses.json");
     assertTrue(logFile.getAbsolutePath() + " does not exist", logFile.exists());
 
     ArrayNode allLogJsonData = JsonUtils.read(logFile);
@@ -133,7 +133,7 @@ public class LicenseOverrideResourceTest
     assertEquals(expected.getLicenseId(), license.getId());
 
     // Verify the BOM audit
-    logFile = new File(brain.getAuditDir(ownerId), "bom.json");
+    logFile = new File(getCLMServer().getAuditDir(ownerId), "bom.json");
     assertTrue(logFile.getAbsolutePath() + " does not exist", logFile.exists());
 
     allLogJsonData = JsonUtils.read(logFile);

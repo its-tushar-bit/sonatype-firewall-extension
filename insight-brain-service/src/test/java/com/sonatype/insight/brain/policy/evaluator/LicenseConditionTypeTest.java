@@ -12,6 +12,8 @@ import java.util.List;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.DummyLicenseDataUpdater;
+import com.sonatype.insight.brain.dataaccess.license.LicenseDataUpdater;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.Condition;
@@ -22,12 +24,27 @@ import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.model.policy.conditions.LicenseConditionType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 
+import org.junit.AfterClass;
 import org.junit.Assert;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 public class LicenseConditionTypeTest
     extends AbstractPolicyEvaluationTest
 {
+  private static LicenseDataUpdater savedLicenseDataUpdater;
+
+  @BeforeClass
+  public static void beforeClass() {
+    savedLicenseDataUpdater = LicenseDataUpdater.getUpdater();
+    LicenseDataUpdater.setUpdater(new DummyLicenseDataUpdater());
+  }
+
+  @AfterClass
+  public static void afterClass() {
+    LicenseDataUpdater.setUpdater(savedLicenseDataUpdater);
+  }
+
   private Constraint createConstraint(String operator, String value) {
     return createConstraint("ConstraintId1", "Constraint Name 1", LicenseConditionType.ID, operator, value);
   }

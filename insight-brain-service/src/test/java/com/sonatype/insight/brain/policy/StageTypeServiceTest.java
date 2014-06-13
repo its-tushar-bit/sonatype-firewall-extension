@@ -15,6 +15,7 @@ import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.license.model.CLMEnforcementPoint;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 
+import org.junit.After;
 import org.junit.Test;
 
 import static org.hamcrest.Matchers.contains;
@@ -32,6 +33,12 @@ public class StageTypeServiceTest
 
   @Inject
   private TestProductLicenseManager productLicenseManager;
+
+  @After
+  public void cleanup() throws Exception {
+    productLicenseManager.reset();
+    clmLicenseManager.installLicense(null);
+  }
 
   @Test
   public void testGetLicensedStageTypes_RiskRemediation() throws Exception {

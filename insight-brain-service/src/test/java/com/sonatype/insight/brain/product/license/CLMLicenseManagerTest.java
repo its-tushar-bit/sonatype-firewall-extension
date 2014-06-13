@@ -48,7 +48,7 @@ public class CLMLicenseManagerTest
 
   private TestLicenseFingerprinter licenseFingerprinter = new TestLicenseFingerprinter();
 
-  private TestProductLicenseManager licenseManager = new TestProductLicenseManager(true);
+  private TestProductLicenseManager licenseManager = new TestProductLicenseManager();
 
   private static class NegativeFeatureValidator
       extends DefaultFeatureValidator

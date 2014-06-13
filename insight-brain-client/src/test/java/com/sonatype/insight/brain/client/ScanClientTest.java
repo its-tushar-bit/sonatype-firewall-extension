@@ -38,7 +38,7 @@ public class ScanClientTest
 
   @Test
   public void testUploadCiScan_AllGood() throws Exception {
-    Configuration config = brain.getClientConfiguration();
+    Configuration config = getCLMServer().getClientConfiguration();
     ScanReceipt receipt = new ScanClient(config, APP_ID).uploadCiScan(tmpDir.newFile("scan.xml.gz"));
     assertEquals("SCAN-ID", receipt.getScanId());
     assertEquals("ui/links/application/ScanClientTest_AppId/report/SCAN-ID", receipt.getReportUrl());
@@ -47,7 +47,7 @@ public class ScanClientTest
 
   @Test
   public void testUploaCiScan_InvalidAppId() throws Exception {
-    Configuration config = brain.getClientConfiguration();
+    Configuration config = getCLMServer().getClientConfiguration();
     try {
       new ScanClient(config, "invalid-id").uploadCiScan(tmpDir.newFile("scan.xml.gz"));
       fail("Upload should have failed due to invalid app ID");
@@ -60,7 +60,7 @@ public class ScanClientTest
 
   @Test
   public void testUploadRepoManScan_AllGood() throws Exception {
-    Configuration config = brain.getClientConfiguration();
+    Configuration config = getCLMServer().getClientConfiguration();
     ScanReceipt receipt = new ScanClient(config, APP_ID).uploadRepoManScan(tmpDir.newFile("scan.xml.gz"));
     assertEquals("SCAN-ID", receipt.getScanId());
     assertEquals("ui/links/application/ScanClientTest_AppId/report/SCAN-ID", receipt.getReportUrl());
@@ -69,7 +69,7 @@ public class ScanClientTest
 
   @Test
   public void testUploadRepoManScan_InvalidAppId() throws Exception {
-    Configuration config = brain.getClientConfiguration();
+    Configuration config = getCLMServer().getClientConfiguration();
     try {
       new ScanClient(config, "invalid-id").uploadRepoManScan(tmpDir.newFile("scan.xml.gz"));
       fail("Upload should have failed due to invalid app ID");
@@ -82,7 +82,7 @@ public class ScanClientTest
 
   @Test
   public void testSaveResultData() throws Exception {
-    Configuration config = brain.getClientConfiguration();
+    Configuration config = getCLMServer().getClientConfiguration();
     ScanReceipt receipt = new ScanReceipt();
     receipt.setScanId("the-scan-id");
     receipt.setReportUrl("the-report-url");

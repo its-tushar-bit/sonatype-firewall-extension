@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.product.license;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
 import com.ning.http.client.Response;
-
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
@@ -24,7 +23,7 @@ public class ProductLicenseResourceTest
 
   @Test
   public void testInstallFailedWithNormalBrowser() throws Exception {
-    getLicenseManager().forceInstallLicenseFailure(true);
+    getTestProductLicenseManager().forceInstallLicenseFailure(true);
 
     Response response = installLicense(false);
     assertResponseStatus(400, response);
@@ -35,7 +34,7 @@ public class ProductLicenseResourceTest
 
   @Test
   public void testInstallFailedWithIE() throws Exception {
-    getLicenseManager().forceInstallLicenseFailure(true);
+    getTestProductLicenseManager().forceInstallLicenseFailure(true);
 
     // IE is expecting a 200 response back, so we need to validate the error
     Response response = installLicense(true);
@@ -47,7 +46,7 @@ public class ProductLicenseResourceTest
 
   @Test
   public void testInstallFailedIOError() throws Exception {
-    getLicenseManager().setForceInstallIOFailure(true);
+    getTestProductLicenseManager().setForceInstallIOFailure(true);
 
     Response response = installLicense(false);
     assertResponseStatus(400, response);

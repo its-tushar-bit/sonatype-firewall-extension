@@ -52,6 +52,15 @@ public class TestInsightBrainServiceRule
 
   @Override
   protected void before() throws Throwable {
+    start();
+  }
+
+  @Override
+  protected void after() {
+    stop();
+  }
+
+  void start() throws Throwable {
     long start = System.currentTimeMillis();
 
     log.debug("Starting TestInsightBrainService on port {}, admin port {}", port, adminPort);
@@ -75,8 +84,7 @@ public class TestInsightBrainServiceRule
     log.debug("Started TestInsightBrainService in {}", System.currentTimeMillis() - start);
   }
 
-  @Override
-  protected void after() {
+  void stop() {
     long start = System.currentTimeMillis();
 
     if (brain != null) {

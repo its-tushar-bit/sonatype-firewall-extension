@@ -27,7 +27,7 @@ public class SearchResourceAuthzTest
 
   @Before
   public void init() {
-    helper = new TestHelper(tempEntity, brain);
+    helper = new TestHelper(tempEntity, getCLMServer());
   }
 
   @Test

@@ -66,7 +66,7 @@ public class SaasIdeResourcePerformanceUtils
   public static SaasClient createSaasClient(String saasAddress) {
     InsightConfig config = new InsightConfig();
     config.setSaasAddress(saasAddress);
-    return new SaasClient(new InsightProxy(config), new CLMLicenseManager(new TestProductLicenseManager(true),
+    return new SaasClient(new InsightProxy(config), new CLMLicenseManager(new TestProductLicenseManager(),
         new TestLicenseFingerprinter()));
   }
 

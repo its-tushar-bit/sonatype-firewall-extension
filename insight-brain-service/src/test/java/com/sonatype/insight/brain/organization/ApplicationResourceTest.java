@@ -231,7 +231,7 @@ public class ApplicationResourceTest
 
     // TODO ideally, need to create these directories by calling into appropriate REST endpoints
     final InsightConfig insightConfig = new InsightConfig();
-    insightConfig.setSonatypeWork(brain.getWorkDir().getAbsolutePath());
+    insightConfig.setSonatypeWork(getCLMServer().getWorkDir().getAbsolutePath());
     final InsightWork insightWork = new InsightWork(insightConfig);
     createDirectory(insightWork.getScanDir(applicationId));
     createDirectory(insightWork.getAuditDir(applicationId));

@@ -45,7 +45,7 @@ public class ReportClientTest
   @Test
   public void testScanIdNull() {
     try {
-      new ReportClient(brain.getClientConfiguration(), applicationPublicId, null /* scanId */);
+      new ReportClient(getCLMServer().getClientConfiguration(), applicationPublicId, null /* scanId */);
       Assert.fail("Expected IllegalArgumentException");
     }
     catch (IllegalArgumentException expected) {
@@ -55,7 +55,7 @@ public class ReportClientTest
   @Test
   public void testScanIdEmpty() {
     try {
-      new ReportClient(brain.getClientConfiguration(), applicationPublicId, " " /* scanId */);
+      new ReportClient(getCLMServer().getClientConfiguration(), applicationPublicId, " " /* scanId */);
       Assert.fail("Expected IllegalArgumentException");
     }
     catch (IllegalArgumentException expected) {
@@ -66,8 +66,8 @@ public class ReportClientTest
   public void testLinkToReport() throws Exception {
     String appId = "app id";
     String scanId = "scan id";
-    ReportClient reportClient = new ReportClient(brain.getClientConfiguration(), appId, scanId);
-    UriBuilder uriBuilder = UriBuilder.fromPath(brain.getClientConfiguration().getServerUrl());
+    ReportClient reportClient = new ReportClient(getCLMServer().getClientConfiguration(), appId, scanId);
+    UriBuilder uriBuilder = UriBuilder.fromPath(getCLMServer().getClientConfiguration().getServerUrl());
     uriBuilder.path(UserInterfaceLinksResource.SERVICE_PATH).path(UserInterfaceLinksResource.REPORT_PATH);
     Assert.assertEquals(reportClient.linkToReport(), uriBuilder.build(appId, scanId).toString());
   }
@@ -83,7 +83,7 @@ public class ReportClientTest
 
     File retrievedFile = temporaryFolder.newFile();
 
-    Configuration config = brain.getClientConfiguration();
+    Configuration config = getCLMServer().getClientConfiguration();
     config.setServerAuth(SimpleAuthentication.parse("admin:admin123"));
     ReportClient client = new ReportClient(config, applicationPublicId, scanId);
     client.downloadBundle(retrievedFile);
@@ -105,7 +105,7 @@ public class ReportClientTest
 
     File retrievedFile = temporaryFolder.newFile();
 
-    Configuration config = brain.getClientConfiguration();
+    Configuration config = getCLMServer().getClientConfiguration();
     ReportClient client = new ReportClient(config, applicationPublicId, scanId);
     try {
       client.downloadBundle(retrievedFile);

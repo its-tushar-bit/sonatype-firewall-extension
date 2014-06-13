@@ -24,7 +24,7 @@ public class ResourceClientTest
   @Test
   public void testMissingFile() throws Exception {
     try {
-      new ResourceClient(brain.getClientConfiguration()).getResource("/assets/foo/bar");
+      new ResourceClient(getCLMServer().getClientConfiguration()).getResource("/assets/foo/bar");
       fail("No exception thrown");
     }
     catch (HttpResponseException e) {
@@ -35,7 +35,7 @@ public class ResourceClientTest
 
   @Test
   public void testValidFile() throws Exception {
-    Resource resource = new ResourceClient(brain.getClientConfiguration()).getResource("/assets/index.html");
+    Resource resource = new ResourceClient(getCLMServer().getClientConfiguration()).getResource("/assets/index.html");
     assertTrue(new String(resource.getData()).startsWith("<!DOCTYPE html>"));
     // check mime type
     assertEquals("text/html;charset=UTF-8", resource.getContentType());

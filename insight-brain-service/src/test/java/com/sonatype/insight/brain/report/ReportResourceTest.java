@@ -76,17 +76,7 @@ import org.junit.Test;
 import org.jvnet.mock_javamail.Mailbox;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.equalToIgnoringWhiteSpace;
-import static org.hamcrest.Matchers.greaterThan;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.not;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.nullValue;
-import static org.hamcrest.Matchers.stringContainsInOrder;
+import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -447,7 +437,7 @@ public class ReportResourceTest
     final File saasReportFile = getReportResponseFile(licenseFingerprint, scanId);
     final URL testReportResultUrl = getClass().getResource("/ReportResourceTest/report.zip");
     FileUtils.copyURLToFile(testReportResultUrl, saasReportFile);
-    File reportDir = brain.getReportDir(appId, scanId);
+    File reportDir = getCLMServer().getReportDir(appId, scanId);
     reportDir.mkdirs();
     new File(reportDir, "restricted.txt").createNewFile();
 
@@ -542,7 +532,7 @@ public class ReportResourceTest
       assertResponseStatus(200, response);
 
       // pretend the print attempt crashed with OOME, which usually leaves an empty PDF file around
-      File pdfFile = new File(new File(new File(brain.getWorkDir(), "report/" + appId), scanId), "report.pdf");
+      File pdfFile = new File(new File(new File(getCLMServer().getWorkDir(), "report/" + appId), scanId), "report.pdf");
       assertTrue(pdfFile.getPath(), pdfFile.isFile());
       new FileOutputStream(pdfFile).close();
 

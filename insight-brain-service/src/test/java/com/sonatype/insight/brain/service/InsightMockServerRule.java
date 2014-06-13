@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.service;
 
 import java.io.File;
+import java.io.IOException;
 
 import com.sonatype.insight.mock.InsightMockServer;
 
@@ -37,6 +38,15 @@ public class InsightMockServerRule
 
   @Override
   protected void before() throws Throwable {
+    start();
+  }
+
+  @Override
+  protected void after() {
+    stop();
+  }
+
+  public void start() throws Exception {
     long start = System.currentTimeMillis();
 
     log.debug("Starting InsightMockServer on port {}", port);
@@ -50,11 +60,6 @@ public class InsightMockServerRule
     }
     insightMockServer.start();
     log.debug("Started InsightMockServer in {}", System.currentTimeMillis() - start);
-  }
-
-  @Override
-  protected void after() {
-    stop();
   }
 
   public void stop() {
@@ -81,5 +86,9 @@ public class InsightMockServerRule
 
   void setResponseForURI(String uri, String body, int status) {
     insightMockServer.setResponseForURI(uri, body, status);
+  }
+
+  public void reset() throws IOException {
+    insightMockServer.reset();
   }
 }

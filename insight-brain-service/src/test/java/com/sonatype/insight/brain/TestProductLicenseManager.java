@@ -38,180 +38,265 @@ import org.apache.commons.lang.StringUtils;
 public class TestProductLicenseManager
     implements ProductLicenseManager
 {
-  private boolean valid;
+  private MockProductLicenseManager mockProductLicenseManager = new MockProductLicenseManager();
 
-  private ProductLicenseKey key;
+  private boolean wasChanged;
 
-  private int version = 1;
-
-  private int appCount = 100;
-
-  private Date expirationDate = new Date(System.currentTimeMillis() + 600 * 1000);
-
-  private String[] products = { ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION };
-
-  private Set<CLMEnforcementPoint> enforcementPoints = new HashSet<CLMEnforcementPoint>();
-
-  private Map<String, String> properties = new HashMap<>();
-
-  private boolean forceInstallLicenseFailure = false;
-
-  private boolean forceInstallIOFailure = false;
-
-  public TestProductLicenseManager() {
-    this(true);
-  }
-
-  public TestProductLicenseManager(boolean valid) {
-    enforcementPoints.add(CLMEnforcementPoint.Build);
-    enforcementPoints.add(CLMEnforcementPoint.Develop);
-    enforcementPoints.add(CLMEnforcementPoint.Release);
-    enforcementPoints.add(CLMEnforcementPoint.StageRelease);
-
-    this.valid = valid;
-
-    if (this.valid) {
-      createKey();
-    }
+  @Override
+  public ProductLicenseKey getLicenseDetails() throws LicensingException {
+    return mockProductLicenseManager.getLicenseDetails();
   }
 
   @Override
-  public void installLicense(final InputStream licenseFile) throws IOException, LicensingException {
-    if (forceInstallLicenseFailure) {
-      throw new LicensingException("An error occurred");
-    }
-
-    if (forceInstallIOFailure) {
-      throw new IOException("An IO error occurred");
-    }
-
-    valid = true;
-    createKey();
+  public ProductLicenseKey getLicenseDetails(InputStream licenseFile) throws IOException, LicensingException {
+    return mockProductLicenseManager.getLicenseDetails(licenseFile);
   }
 
-  private void createKey() {
-    Map<String, Feature> featureMap = new HashMap<String, Feature>();
-    featureMap.put(CLMFeature.ID, new CLMFeature());
-    Properties properties = new Properties();
-
-    StringBuffer sb = new StringBuffer();
-
-    for (CLMEnforcementPoint ep : enforcementPoints) {
-      sb.append(ep.name()).append(",");
-    }
-
-    if (sb.length() > 0) {
-      sb.setLength(sb.length() - 1);
-    }
-
-    properties.put(ProductLicenseDetails.PROPERTY_VERSION, Integer.toString(version));
-    properties.put(ProductLicenseDetails.PROPERTY_PRODUCTS, StringUtils.join(products, ","));
-    properties.put(ProductLicenseDetails.PROPERTY_ENFORCEMENT_POINTS, sb.toString());
-    properties.put(ProductLicenseDetails.PROPERTY_APPLICATION_LIMIT, Integer.toString(appCount));
-    properties.putAll(this.properties);
-    key = new DefaultLicenseKey(new Features(featureMap));
-    key.setEffectiveDate(new Date(System.currentTimeMillis() - 10000));
-    key.setExpirationDate(expirationDate);
-    key.setProperties(properties);
+  @Override
+  public void installLicense(InputStream licenseFile) throws IOException, LicensingException {
+    mockProductLicenseManager.installLicense(licenseFile);
   }
 
   @Override
   public void uninstallLicense() throws LicensingException {
-    valid = false;
-    key = null;
+    wasChanged = true;
+    mockProductLicenseManager.uninstallLicense();
   }
 
   @Override
-  public ProductLicenseKey getLicenseDetails() throws LicensingException {
-    if (!valid) {
-      throw new LicensingException("Not licensed");
-    }
-    return key;
+  public void verifyFeature(ProductLicenseKey key, Feature feature) throws LicensingException {
+    mockProductLicenseManager.verifyFeature(key, feature);
   }
 
   @Override
-  public ProductLicenseKey getLicenseDetails(final InputStream licenseFile) throws IOException, LicensingException {
-    if (!valid) {
-      throw new LicensingException("Not licensed");
-    }
-    return key;
+  public void verifyLicenseAndFeature(Feature feature) throws LicensingException {
+    mockProductLicenseManager.verifyLicenseAndFeature(feature);
   }
 
-  @Override
-  public void verifyLicenseAndFeature(final Feature feature) throws LicensingException {
-    // TODO
+  public boolean wasChanged() {
+    return wasChanged;
   }
 
-  @Override
-  public void verifyFeature(final ProductLicenseKey key, final Feature feature) throws LicensingException {
-    // TODO
-  }
-
-  public boolean isValid() {
-    return valid;
-  }
-
-  public ProductLicenseKey getKey() {
-    return key;
-  }
-
-  public void setKey(final ProductLicenseKey key) {
-    this.key = key;
-  }
-
-  public void setEnforcementPoints(CLMEnforcementPoint... enforcementPoints) {
-    if (valid) {
-      this.enforcementPoints.clear();
-
-      for (CLMEnforcementPoint enforcementPoint : enforcementPoints) {
-        this.enforcementPoints.add(enforcementPoint);
-      }
-
-      createKey();
-    }
-  }
-
-  public void setVersion(int version) {
-    if (valid) {
-      this.version = version;
-      createKey();
-    }
-  }
-
-  public void setApplicationLimit(int applicationLimit) {
-    if (valid) {
-      this.appCount = applicationLimit;
-      createKey();
-    }
-  }
-
-  public void setProducts(String... products) {
-    if (valid) {
-      this.products = products;
-      createKey();
-    }
-  }
-
-  public void setExpirationDate(Date date) {
-    if (valid) {
-      this.expirationDate = date;
-      createKey();
-    }
+  public void reset() {
+    wasChanged = false;
+    mockProductLicenseManager = new MockProductLicenseManager();
   }
 
   public void forceInstallLicenseFailure(boolean forceInstallFailure) {
-    this.forceInstallLicenseFailure = forceInstallFailure;
+    wasChanged = true;
+    mockProductLicenseManager.forceInstallLicenseFailure(forceInstallFailure);
+  }
+
+  public boolean isValid() {
+    return mockProductLicenseManager.isValid();
+  }
+
+  public void setApplicationLimit(int applicationLimit) {
+    wasChanged = true;
+    mockProductLicenseManager.setApplicationLimit(applicationLimit);
+  }
+
+  public void setEnforcementPoints(CLMEnforcementPoint... enforcementPoints) {
+    wasChanged = true;
+    mockProductLicenseManager.setEnforcementPoints(enforcementPoints);
+  }
+
+  public void setExpirationDate(Date date) {
+    wasChanged = true;
+    mockProductLicenseManager.setExpirationDate(date);
   }
 
   public void setForceInstallIOFailure(boolean forceInstallIOFailure) {
-    this.forceInstallIOFailure = forceInstallIOFailure;
+    wasChanged = true;
+    mockProductLicenseManager.setForceInstallIOFailure(forceInstallIOFailure);
   }
 
-  public void resetProducts() {
-    setProducts(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION);
+  public void setProducts(String... products) {
+    wasChanged = true;
+    mockProductLicenseManager.setProducts(products);
   }
 
   public void setProperty(String key, String value) {
-    properties.put(key, value);
+    wasChanged = true;
+    mockProductLicenseManager.setProperty(key, value);
+  }
+
+  public void setVersion(int version) {
+    wasChanged = true;
+    mockProductLicenseManager.setVersion(version);
+  }
+
+  private static class MockProductLicenseManager
+      implements ProductLicenseManager
+  {
+    private boolean valid;
+
+    private ProductLicenseKey key;
+
+    private int version = 1;
+
+    private int appCount = 100;
+
+    private Date expirationDate = new Date(System.currentTimeMillis() + 600 * 1000);
+
+    private String[] products = { ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION };
+
+    private Set<CLMEnforcementPoint> enforcementPoints = new HashSet<CLMEnforcementPoint>();
+
+    private Map<String, String> properties = new HashMap<>();
+
+    private boolean forceInstallLicenseFailure = false;
+
+    private boolean forceInstallIOFailure = false;
+
+    public MockProductLicenseManager() {
+      this(true);
+    }
+
+    public MockProductLicenseManager(boolean valid) {
+      this.valid = valid;
+
+      resetEnforcementPoints();
+    }
+
+    public void resetEnforcementPoints() {
+      enforcementPoints.clear();
+      enforcementPoints.add(CLMEnforcementPoint.Build);
+      enforcementPoints.add(CLMEnforcementPoint.Develop);
+      enforcementPoints.add(CLMEnforcementPoint.Release);
+      enforcementPoints.add(CLMEnforcementPoint.StageRelease);
+
+      if (this.valid) {
+        createKey();
+      }
+    }
+
+    @Override
+    public void installLicense(final InputStream licenseFile) throws IOException, LicensingException {
+      if (forceInstallLicenseFailure) {
+        throw new LicensingException("An error occurred");
+      }
+
+      if (forceInstallIOFailure) {
+        throw new IOException("An IO error occurred");
+      }
+
+      valid = true;
+      createKey();
+    }
+
+    private void createKey() {
+      Map<String, Feature> featureMap = new HashMap<String, Feature>();
+      featureMap.put(CLMFeature.ID, new CLMFeature());
+      Properties properties = new Properties();
+
+      StringBuffer sb = new StringBuffer();
+
+      for (CLMEnforcementPoint ep : enforcementPoints) {
+        sb.append(ep.name()).append(",");
+      }
+
+      if (sb.length() > 0) {
+        sb.setLength(sb.length() - 1);
+      }
+
+      properties.put(ProductLicenseDetails.PROPERTY_VERSION, Integer.toString(version));
+      properties.put(ProductLicenseDetails.PROPERTY_PRODUCTS, StringUtils.join(products, ","));
+      properties.put(ProductLicenseDetails.PROPERTY_ENFORCEMENT_POINTS, sb.toString());
+      properties.put(ProductLicenseDetails.PROPERTY_APPLICATION_LIMIT, Integer.toString(appCount));
+      properties.putAll(this.properties);
+      key = new DefaultLicenseKey(new Features(featureMap));
+      key.setEffectiveDate(new Date(System.currentTimeMillis() - 10000));
+      key.setExpirationDate(expirationDate);
+      key.setProperties(properties);
+    }
+
+    @Override
+    public void uninstallLicense() throws LicensingException {
+      valid = false;
+      key = null;
+    }
+
+    @Override
+    public ProductLicenseKey getLicenseDetails() throws LicensingException {
+      if (!valid) {
+        throw new LicensingException("Not licensed");
+      }
+      return key;
+    }
+
+    @Override
+    public ProductLicenseKey getLicenseDetails(final InputStream licenseFile) throws IOException, LicensingException {
+      if (!valid) {
+        throw new LicensingException("Not licensed");
+      }
+      return key;
+    }
+
+    @Override
+    public void verifyLicenseAndFeature(final Feature feature) throws LicensingException {
+      // TODO
+    }
+
+    @Override
+    public void verifyFeature(final ProductLicenseKey key, final Feature feature) throws LicensingException {
+      // TODO
+    }
+
+    public boolean isValid() {
+      return valid;
+    }
+
+    public void setEnforcementPoints(CLMEnforcementPoint... enforcementPoints) {
+      if (valid) {
+        this.enforcementPoints.clear();
+
+        for (CLMEnforcementPoint enforcementPoint : enforcementPoints) {
+          this.enforcementPoints.add(enforcementPoint);
+        }
+
+        createKey();
+      }
+    }
+
+    public void setVersion(int version) {
+      if (valid) {
+        this.version = version;
+        createKey();
+      }
+    }
+
+    public void setApplicationLimit(int applicationLimit) {
+      if (valid) {
+        this.appCount = applicationLimit;
+        createKey();
+      }
+    }
+
+    public void setProducts(String... products) {
+      if (valid) {
+        this.products = products;
+        createKey();
+      }
+    }
+
+    public void setExpirationDate(Date date) {
+      if (valid) {
+        this.expirationDate = date;
+        createKey();
+      }
+    }
+
+    public void forceInstallLicenseFailure(boolean forceInstallFailure) {
+      this.forceInstallLicenseFailure = forceInstallFailure;
+    }
+
+    public void setForceInstallIOFailure(boolean forceInstallIOFailure) {
+      this.forceInstallIOFailure = forceInstallIOFailure;
+    }
+
+    public void setProperty(String key, String value) {
+      properties.put(key, value);
+    }
   }
 }

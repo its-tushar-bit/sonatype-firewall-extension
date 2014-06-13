@@ -399,49 +399,49 @@
             <div ng-include="'risk-table'"></div>
           </div>
         </div>
-          <div ng-switch-when="applications">
-            <div application-risk-table>
-              <div ng-controller="applicationRiskTable">
-                <table class="table table-risk" id="application-risk" sortable sortable-fields="-totalApplicationRisk.totalRisk">
-                  <thead>
-                    <tr>
-                      <th><div sort-columns="applicationName">APPLICATION</div></th>
-                      <th class="total-risk"><div sort-columns="-totalApplicationRisk.totalRisk">TOTAL RISK</div></th>
-                      <th><div sort-columns="-totalApplicationRisk.criticalRisk">CRITICAL</div></th>
-                      <th><div sort-columns="-totalApplicationRisk.severeRisk">SEVERE</div></th>
-                      <th><div sort-columns="-totalApplicationRisk.moderateRisk">MODERATE</div></th>
-                      <th><div sort-columns="-totalApplicationRisk.lowRisk">LOW</div></th>
-                    </tr>
-                  </thead>
-                  <tr
-                    ng-repeat-start="application in data | limitTo: maxResults | orderBy:getSortField()">
-                    <td><i class="glyphicons-halflings-sonatype lighter"
-                      ng-class="{ clickable : canExpand(application),
-                                        'expand' : canExpand(application),
-                                        'collapse' : isExpanded(application),
-                                        'emptyIconGlyph' : !canExpand(application) }"
-                      ng-click='expand(application)'></i> {{application.applicationName}}</td>
-                    <td class="total-risk"
-                      alpha-background="{{application.totalApplicationRisk.totalRisk | safeDivide:totalRisk}}"
-                      ng-class="{ 'black-text': (application.totalApplicationRisk.totalRisk | safeDivide:totalRisk) < 0.5 }">
-                      {{application.totalApplicationRisk.totalRisk}}</td>
-                    <td class="critical-risk"
-                      alpha-background="{{application.totalApplicationRisk.criticalRisk | safeDivide:criticalRisk}}"
-                      ng-class="{ 'muted-text': application.totalApplicationRisk.criticalRisk === 0 }">
-                      {{application.totalApplicationRisk.criticalRisk}}</td>
-                    <td class="severe-risk"
-                      alpha-background="{{application.totalApplicationRisk.severeRisk | safeDivide:severeRisk}}"
-                      ng-class="{ 'muted-text': application.totalApplicationRisk.severeRisk === 0 }">
-                      {{application.totalApplicationRisk.severeRisk}}</td>
-                    <td class="moderate-risk"
-                      alpha-background="{{application.totalApplicationRisk.moderateRisk | safeDivide:moderateRisk}}"
-                      ng-class="{ 'muted-text': application.totalApplicationRisk.moderateRisk === 0 }">
-                      {{application.totalApplicationRisk.moderateRisk}}</td>
-                    <td class="low-risk"
-                      alpha-background="{{application.totalApplicationRisk.lowRisk | safeDivide:lowRisk}}"
-                      ng-class="{ 'muted-text': application.totalApplicationRisk.lowRisk === 0 }">
-                      {{application.totalApplicationRisk.lowRisk}}</td>
+        <div ng-switch-when="applications">
+          <div application-risk-table>
+            <div ng-controller="applicationRiskTable">
+              <table class="table table-risk" id="application-risk" sortable sortable-fields="-totalApplicationRisk.totalRisk">
+                <thead>
+                  <tr>
+                    <th><div sort-columns="applicationName">APPLICATION</div></th>
+                    <th class="total-risk"><div sort-columns="-totalApplicationRisk.totalRisk">TOTAL RISK</div></th>
+                    <th><div sort-columns="-totalApplicationRisk.criticalRisk">CRITICAL</div></th>
+                    <th><div sort-columns="-totalApplicationRisk.severeRisk">SEVERE</div></th>
+                    <th><div sort-columns="-totalApplicationRisk.moderateRisk">MODERATE</div></th>
+                    <th><div sort-columns="-totalApplicationRisk.lowRisk">LOW</div></th>
                   </tr>
+                </thead>
+                <tr
+                  ng-repeat-start="application in data | limitTo: maxResults | orderBy:getSortField()">
+                  <td><i class="glyphicons-halflings-sonatype lighter"
+                    ng-class="{ clickable : canExpand(application),
+                                      'expand' : canExpand(application),
+                                      'collapse' : isExpanded(application),
+                                      'emptyIconGlyph' : !canExpand(application) }"
+                    ng-click='expand(application)'></i> {{application.applicationName}}</td>
+                  <td class="total-risk"
+                    alpha-background="{{application.totalApplicationRisk.totalRisk | safeDivide:totalRisk}}"
+                    ng-class="{ 'black-text': (application.totalApplicationRisk.totalRisk | safeDivide:totalRisk) < 0.5 }">
+                    {{application.totalApplicationRisk.totalRisk}}</td>
+                  <td class="critical-risk"
+                    alpha-background="{{application.totalApplicationRisk.criticalRisk | safeDivide:criticalRisk}}"
+                    ng-class="{ 'muted-text': application.totalApplicationRisk.criticalRisk === 0 }">
+                    {{application.totalApplicationRisk.criticalRisk}}</td>
+                  <td class="severe-risk"
+                    alpha-background="{{application.totalApplicationRisk.severeRisk | safeDivide:severeRisk}}"
+                    ng-class="{ 'muted-text': application.totalApplicationRisk.severeRisk === 0 }">
+                    {{application.totalApplicationRisk.severeRisk}}</td>
+                  <td class="moderate-risk"
+                    alpha-background="{{application.totalApplicationRisk.moderateRisk | safeDivide:moderateRisk}}"
+                    ng-class="{ 'muted-text': application.totalApplicationRisk.moderateRisk === 0 }">
+                    {{application.totalApplicationRisk.moderateRisk}}</td>
+                  <td class="low-risk"
+                    alpha-background="{{application.totalApplicationRisk.lowRisk | safeDivide:lowRisk}}"
+                    ng-class="{ 'muted-text': application.totalApplicationRisk.lowRisk === 0 }">
+                    {{application.totalApplicationRisk.lowRisk}}</td>
+                </tr>
                 <tr class='stage' ng-repeat-end ng-repeat='stage in application.stageRisks'
                   ng-if='expanded[application.applicationId]'>
                   <td><a title="View application report" class="glyphicons-sonatype link"
@@ -462,19 +462,19 @@
             </div>
           </div>
         </div>
-          <div ng-switch-when="components">
-            <div component-risk-table>
-              <div ng-controller="componentRiskTable">
-                <table class="table table-risk table-risk-component" id="component-risk" sortable sortable-fields="-score">
-                  <thead>
-                    <tr>
-                      <th><div>COMPONENT</div></th>
-                      <th><div sort-columns="-affectedApplications">AFFECTED APPS</div></th>
-                      <th class="total-risk"><div sort-columns="-score">TOTAL RISK</div></th>
-                      <th><div sort-columns="-scoreCritical">CRITICAL</div></th>
-                      <th><div sort-columns="-scoreSevere">SEVERE</div></th>
-                      <th><div sort-columns="-scoreModerate">MODERATE</div></th>
-                      <th><div sort-columns="-scoreLow">LOW</div></th>
+        <div ng-switch-when="components">
+          <div component-risk-table>
+            <div ng-controller="componentRiskTable">
+              <table class="table table-risk table-risk-component" id="component-risk" sortable sortable-fields="-score">
+                <thead>
+                  <tr>
+                    <th><div>COMPONENT</div></th>
+                    <th><div sort-columns="-affectedApplications">AFFECTED APPS</div></th>
+                    <th class="total-risk"><div sort-columns="-score">TOTAL RISK</div></th>
+                    <th><div sort-columns="-scoreCritical">CRITICAL</div></th>
+                    <th><div sort-columns="-scoreSevere">SEVERE</div></th>
+                    <th><div sort-columns="-scoreModerate">MODERATE</div></th>
+                    <th><div sort-columns="-scoreLow">LOW</div></th>
                   </tr>
                 </thead>
                 <tr ng-repeat="component in data | limitTo: maxResults | orderBy:getSortField()">

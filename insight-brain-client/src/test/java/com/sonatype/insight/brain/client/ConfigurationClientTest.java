@@ -14,7 +14,7 @@ import java.util.Map;
 import com.sonatype.clm.dto.model.ProprietaryConfig;
 import com.sonatype.insight.brain.dataaccess.ProprietaryConfigDAO;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.service.AbstractLicenseTest;
+import com.sonatype.insight.brain.service.AbstractBrainServiceTest;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.client.utils.SimpleAuthentication;
 
@@ -32,7 +32,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 public class ConfigurationClientTest
-    extends AbstractLicenseTest
+    extends AbstractBrainServiceTest
 {
   private void assertMatch(String pattern, String text) {
     assertTrue(text + " does not match pattern " + pattern, text != null && text.matches(pattern));

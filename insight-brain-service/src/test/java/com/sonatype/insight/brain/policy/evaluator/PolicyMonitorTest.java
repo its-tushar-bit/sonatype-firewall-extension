@@ -39,7 +39,7 @@ import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityC
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.policy.PolicyResource;
-import com.sonatype.insight.brain.service.AbstractLicenseTest;
+import com.sonatype.insight.brain.service.AbstractBrainServiceTest;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.IdUtils;
@@ -62,7 +62,7 @@ import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
 
 public class PolicyMonitorTest
-    extends AbstractLicenseTest
+    extends AbstractBrainServiceTest
 {
   private PolicyMonitor policyMonitor;
 

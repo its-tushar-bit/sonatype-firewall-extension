@@ -8,7 +8,7 @@ package com.sonatype.insight.brain.client;
 import java.io.File;
 
 import com.sonatype.clm.dto.model.ScanReceipt;
-import com.sonatype.insight.brain.service.AbstractLicenseTest;
+import com.sonatype.insight.brain.service.AbstractBrainServiceTest;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.json.store.JsonUtils;
 
@@ -24,7 +24,7 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
 public class ScanClientTest
-    extends AbstractLicenseTest
+    extends AbstractBrainServiceTest
 {
   private static final String APP_ID = "ScanClientTest_AppId";
 

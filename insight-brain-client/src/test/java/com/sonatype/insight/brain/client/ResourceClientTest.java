@@ -6,7 +6,7 @@
 package com.sonatype.insight.brain.client;
 
 import com.sonatype.clm.dto.model.Resource;
-import com.sonatype.insight.brain.service.AbstractLicenseTest;
+import com.sonatype.insight.brain.service.AbstractBrainServiceTest;
 
 import org.apache.http.client.HttpResponseException;
 import org.junit.Test;
@@ -18,7 +18,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 public class ResourceClientTest
-    extends AbstractLicenseTest
+    extends AbstractBrainServiceTest
 {
 
   @Test

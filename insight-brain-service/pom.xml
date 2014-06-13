@@ -769,7 +769,6 @@
                 <include>**/TestInsightBrainService*</include>
                 <include>**/TestInsightBrainServiceRule*</include>
                 <include>**/TestCLMServer*</include>
-                <include>**/AbstractLicenseTest*</include>
                 <include>**/AbstractResourceTest*</include>
                 <include>**/TestLicenseFingerprinter*</include>
                 <include>**/TestProductLicenseManager*</include>

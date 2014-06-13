@@ -8,14 +8,14 @@ package com.sonatype.insight.brain.client;
 import javax.ws.rs.core.UriBuilder;
 
 import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
-import com.sonatype.insight.brain.service.AbstractLicenseTest;
+import com.sonatype.insight.brain.service.AbstractBrainServiceTest;
 import com.sonatype.insight.brain.utils.IdUtils;
 
 import org.junit.Assert;
 import org.junit.Test;
 
 public class PolicyClientTest
-    extends AbstractLicenseTest
+    extends AbstractBrainServiceTest
 {
   @Test
   public void testLinkToManagement() throws Exception {

@@ -12,7 +12,7 @@ import java.util.zip.ZipFile;
 import javax.ws.rs.core.UriBuilder;
 
 import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
-import com.sonatype.insight.brain.service.AbstractLicenseTest;
+import com.sonatype.insight.brain.service.AbstractBrainServiceTest;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.client.utils.SimpleAuthentication;
 
@@ -29,7 +29,7 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.fail;
 
 public class ReportClientTest
-    extends AbstractLicenseTest
+    extends AbstractBrainServiceTest
 {
   private static final String applicationPublicId = "ReportClientTest_AppId";
 

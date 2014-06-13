@@ -7,6 +7,6 @@ package com.sonatype.insight.brain.service;
 
 
 public abstract class AbstractResourceTest
-    extends AbstractLicenseTest
+    extends AbstractBrainServiceTest
 {
 }

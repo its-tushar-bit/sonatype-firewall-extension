@@ -18,6 +18,7 @@ import javax.ws.rs.core.UriBuilder;
 import com.sonatype.insight.brain.AuthedRestAccess;
 import com.sonatype.insight.brain.TestLicenseFingerprinter;
 import com.sonatype.insight.brain.TestProductLicenseManager;
+import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.product.license.ProductLicenseResource;
 import com.sonatype.insight.license.model.CLMEnforcementPoint;
 
@@ -48,6 +49,9 @@ public abstract class AbstractBrainServiceTest
   static {
     System.setProperty("javax.net.ssl.trustStore", "src/test/resources/ssl/server-store");
   }
+
+  @Rule
+  public TemporaryEntity tempEntity = new TemporaryEntity();
 
   private static File saasWork = new File("target/mock-saas-work/");
 
@@ -256,7 +260,7 @@ public abstract class AbstractBrainServiceTest
   }
 
   protected Response uploadLicense(Map<String, String> queryParams, String username, String password) throws Exception {
-    InputStream license = AbstractLicenseTest.class.getResourceAsStream("/productlicense/license.lic");
+    InputStream license = this.getClass().getResourceAsStream("/productlicense/license.lic");
     try {
       AsyncHttpClient.BoundRequestBuilder builder = AuthedRestAccess.getClient().preparePost(
           getProductLicenseServiceURL());

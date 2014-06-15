@@ -172,7 +172,8 @@
         </div>
       </div>
       <span id="max-results-shown" class="pull-right" ng-if="data.length > maxResults">
-        Showing the top {{maxResults}} results
+        <div ng-if="riskTable === 'newest-risk'">Showing the newest {{maxResults}} results</div>
+        <div ng-if="riskTable !== 'newest-risk'">Showing the top {{maxResults}} results</div>
       </span>
     </div>
   </div>

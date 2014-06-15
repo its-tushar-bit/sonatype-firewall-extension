@@ -54,7 +54,6 @@ class DashboardOverviewPage
     applicationTagFiltersDropdown(required: false) { module DropdownMultiSelectModule, $('span[items="applicationTags"]'), emptyText: 'All Applications' }
     policyThreatLevelSlider(required: false) { module SliderModule, $('#policy-threat-levels') }
 
-    highestRiskTable(required: false) { module ThreatTableModule, $('div[ng-switch-when="policy-violations"]') }
     newestViolationTable(required: false) { module ThreatTableModule, $('div[ng-switch-when="newest-risk"]') }
     componentViolationsTable(required: false) { module ComponentViolationsTable, $('#component-risk') }
     applicationViolationsTable(required: false) { module ApplicationViolationsTable, $('#application-risk') }

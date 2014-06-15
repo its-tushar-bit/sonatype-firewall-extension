@@ -551,7 +551,7 @@ class DashboardOverviewSpec
         assert newestViolationTable.rows[i].y > tableBottom
 
     and: 'A message is displayed to show that only the top results are shown'
-      newestViolationTable.maxResults.text() == 'Showing the top 100 results'
+      newestViolationTable.maxResults.text() == 'Showing the newest 100 results'
 
     cleanup:
       PolicyEvaluationDAO dao = new PolicyEvaluationDAO().delete(policyEvaluation)

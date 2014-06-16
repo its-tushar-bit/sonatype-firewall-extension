@@ -64,6 +64,10 @@
   font-size : 14px;
 }
 
+.dashboard-tables {
+  margin-top: 10px;
+}
+
 table.policy-violation-table tr td:nth-child(2) {
   font-weight: bold;
 }
@@ -525,7 +529,7 @@ table.table-risk td.low-risk, span.low-risk {
 }
 
 .dashboard-viewing-item {
-  padding-top:10px;
+  padding-top:5px;
 }
 
 .dashboard-viewing-item.first {
@@ -565,8 +569,12 @@ table.table-risk td.low-risk, span.low-risk {
 }
 
 .dashboard-icon-label {
-  font-size: 12px;
   font-weight: bold;
+}
+
+.span6 .dashboard-icon-label {
+  margin-top: 11px;
+  margin-bottom: 0px;
 }
 
 .dashboard-app-icon:before {
@@ -821,7 +829,7 @@ table.table-risk td.low-risk, span.low-risk {
 }
 /* reduce padding on summary table cells */
 .table.policy-summary-table td {
-  padding: 3px;
+  padding: 5px 3px;
   line-height: 30px;
   font-size: 1.3em;
   font-weight: bold;
@@ -840,7 +848,7 @@ table.table-risk td.low-risk, span.low-risk {
   text-align: center;
 }
 .table.policy-summary-table th {
-  padding: 3px 0 3px 0;
+  padding: 5px 0;
 }
 .table.policy-summary-table .category-header {
   min-width: 105px;

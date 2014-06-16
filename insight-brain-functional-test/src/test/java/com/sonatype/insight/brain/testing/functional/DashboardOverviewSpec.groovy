@@ -333,10 +333,33 @@ class DashboardOverviewSpec
       newestViolationTable.clickStageHeader(newestViolationTable.buildHeader)
 
     then: 'we should now show the oldest stage result first, followed by the empty results'
-      newestViolationTable.rows[0].buildAge == '7d'
+      waitFor { newestViolationTable.rows[0].buildAge == '7d' }
       !newestViolationTable.rows[1].buildAge
       !newestViolationTable.rows[2].buildAge
 
+    when: 'clicking on the second stage header(STAGE)'
+      newestViolationTable.clickStageHeader(newestViolationTable.stageHeader)
+
+    then: 'we should sort the only result in this column to the top'
+      waitFor { newestViolationTable.rows[0].stageReleaseAge == '14d' }
+      !newestViolationTable.rows[1].stageReleaseAge
+      !newestViolationTable.rows[2].stageReleaseAge
+
+    when: 'clicking on the third stage header(RELEASE)'
+      newestViolationTable.clickStageHeader(newestViolationTable.releaseHeader)
+
+    then: 'we should sort the two results in this column to the top, ordered with most recent first'
+      waitFor { newestViolationTable.rows[0].releaseAge ==~ RECENT_AGE }
+      newestViolationTable.rows[1].releaseAge == '8d'
+      !newestViolationTable.rows[2].releaseAge
+
+    when: 'clicking the third stage header again'
+      newestViolationTable.clickStageHeader(newestViolationTable.releaseHeader)
+
+    then: 'the results should be sorted in reverse, with empty values at the end'
+      waitFor { newestViolationTable.rows[0].releaseAge == '8d' }
+      newestViolationTable.rows[1].releaseAge ==~ RECENT_AGE
+      !newestViolationTable.rows[2].releaseAge
   }
 
   def 'Newest Risk Table can be filtered'() {

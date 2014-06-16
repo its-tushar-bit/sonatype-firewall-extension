@@ -108,7 +108,7 @@
           <div sort-columns="gavName,-threatLevel">COMPONENT</div>
         </th>
         <th id='stage-header-{{stage.stageTypeId}}' ng-repeat="stage in stageTypes | stageFilter:filters">
-          <div sort-columns="{{(stage.stageTypeId | removeDashes) + 'Time'}},-threatLevel">{{ stage.name | uppercase }}</div>
+          <div sort-columns="-{{(stage.stageTypeId | removeDashes) + 'Time'}},-threatLevel">{{ stage.name | uppercase }}</div>
         </th>
       </tr>
       </thead>

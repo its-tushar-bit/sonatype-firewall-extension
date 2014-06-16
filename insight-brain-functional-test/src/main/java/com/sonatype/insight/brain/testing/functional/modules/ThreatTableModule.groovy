@@ -47,9 +47,7 @@ class ThreatTableModule
   }
 
   def clickStageHeader(header) {
-    def link = header.find('a')
-    link.click()
-    waitFor{ link.find('i').displayed }
+    header.find('a').click()
   }
 }
 

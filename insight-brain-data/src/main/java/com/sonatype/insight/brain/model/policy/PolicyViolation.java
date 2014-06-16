@@ -339,4 +339,12 @@ public class PolicyViolation
 
     return notifications;
   }
+
+  @Override
+  public String toString() {
+    return "PolicyViolation [id=" + id + ", policyEvaluationId=" + policyEvaluationId + ", time=" + time + "("
+        + time.getTime() + "), policyId=" + policyId + ", policyName=" + policyName + ", threatLevel=" + threatLevel
+        + ", threatCategory=" + threatCategory + ", hash=" + hash + ", groupId=" + groupId + ", artifactId="
+        + artifactId + ", version=" + version + ", actionTypeId=" + actionTypeId + "]";
+  }
 }

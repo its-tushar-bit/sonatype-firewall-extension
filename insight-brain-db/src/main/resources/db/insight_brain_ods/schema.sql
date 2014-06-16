@@ -308,6 +308,8 @@ CREATE TABLE policy_violation (
   CONSTRAINT policy_violation_evaluation_fk FOREIGN KEY (policy_evaluation_id) REFERENCES policy_evaluation(policy_evaluation_id)
 );
 CREATE INDEX policy_violation_time_idx ON policy_violation(time);
+CREATE INDEX policy_violation_policy_id_idx ON policy_violation(policy_id);
+CREATE INDEX policy_violation_hash_idx ON policy_violation(hash);
 
 CREATE TABLE first_occurrence_policy_violation (
   policy_violation_id varchar(50) NOT NULL,

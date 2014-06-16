@@ -818,6 +818,25 @@ public class DashboardService
     }
   }
 
+  private Map<PolicyViolation, PolicyViolation> getFirstOccurrencePolicyViolationsForLastPolicyViolations(
+      String appId, String stageTypeId, List<PolicyViolation> lastPolicyViolations)
+  {
+    Map<PolicyViolation, PolicyViolation> result = new LinkedHashMap<>();
+
+    List<PolicyViolation> firstOccurrences = policyViolationDAO.getFirstOccurrenceByApplicationIdAndStageTypeId(appId,
+        stageTypeId);
+    PolicyViolationDiff diff = PolicyViolationDigester.digestPolicyViolations(firstOccurrences, lastPolicyViolations);
+    for (Entry<PolicyViolation, PolicyViolation> samePolicyViolationEntry : diff.getSame().entrySet()) {
+      result.put(samePolicyViolationEntry.getKey(), samePolicyViolationEntry.getValue());
+    }
+    for (PolicyViolation policyViolation : diff.getCleared()) {
+      PolicyViolation firstOccurrence = policyViolationDAO.getFirstOccurrence(appId, stageTypeId, policyViolation);
+      result.put(policyViolation, firstOccurrence);
+    }
+
+    return result;
+  }
+
   /**
    * Gets the "newest" risk matching the specified filter criteria. Empty or null filter criteria generally means
    * "all available" violations for that aspect.
@@ -851,12 +870,18 @@ public class DashboardService
 
         List<PolicyViolation> policyViolations = policyViolationDAO.getByEvaluationId(policyEvaluation.getId());
         policyViolations = filter(policyViolations, filter);
+        if (policyViolations.isEmpty()) {
+          continue;
+        }
+
+        Map<PolicyViolation, PolicyViolation> firstOccurrencePolicyViolationsByLastPolicyViolations = getFirstOccurrencePolicyViolationsForLastPolicyViolations(
+            app.getId(), stageType.getId(), policyViolations);
 
         PolicyViolationDiff diff = PolicyViolationDigester.digestPolicyViolations(policyViolations,
             allUniqueAppPolicyViolations);
         for (PolicyViolation policyViolation : diff.getAppeared()) {
-          PolicyViolation firstOccurrencePolicyViolation = policyViolationDAO.getFirstOccurrence(app.getId(),
-              stageType.getId(), policyViolation);
+          PolicyViolation firstOccurrencePolicyViolation = firstOccurrencePolicyViolationsByLastPolicyViolations
+              .get(policyViolation);
           NewestRiskDTO newestRiskDTO = createNewestRiskDTO(app, stageType, policyViolation,
               firstOccurrencePolicyViolation.getTime().getTime(), getScanId(policyViolation, policyEvaluationCache));
           newestRiskDTOsByPolicyViolation.put(policyViolation, newestRiskDTO);
@@ -865,8 +890,8 @@ public class DashboardService
         for (Entry<PolicyViolation, PolicyViolation> samePolicyViolationEntry : diff.getSame().entrySet()) {
           NewestRiskDTO newestRiskDTO = newestRiskDTOsByPolicyViolation.get(samePolicyViolationEntry.getKey());
           PolicyViolation policyViolation = samePolicyViolationEntry.getValue();
-          PolicyViolation firstOccurrencePolicyViolation = policyViolationDAO.getFirstOccurrence(app.getId(),
-              stageType.getId(), policyViolation);
+          PolicyViolation firstOccurrencePolicyViolation = firstOccurrencePolicyViolationsByLastPolicyViolations
+              .get(policyViolation);
           addToNewestRiskDTO(newestRiskDTO, stageType, policyViolation, firstOccurrencePolicyViolation.getTime()
               .getTime(), getScanId(policyViolation, policyEvaluationCache));
         }

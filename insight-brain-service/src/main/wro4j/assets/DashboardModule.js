@@ -747,7 +747,7 @@
         };
       }],
       link : function (scope, element, attrs, sortable) {
-        sortable.sortFields = attrs.sortableFields.split(',');
+        sortable.sortFields = attrs.sortable.split(',');
       }
     };
   });

@@ -658,7 +658,7 @@ describe('DashboardModule', function() {
 
     beforeEach(inject(function ($rootScope, $compile) {
       scope = $rootScope.$new();
-      $compile('<div sortable sortable-fields="bar">' +
+      $compile('<div sortable="bar">' +
               '<span sort-columns="foo">foo</span><span sort-columns="-bar">bar</span></div>')(scope);
       fooScope = scope.$$childHead;
       barScope = scope.$$childHead.$$nextSibling.$$nextSibling;
@@ -706,7 +706,7 @@ describe('DashboardModule', function() {
 
     beforeEach(inject(function ($rootScope, $compile) {
       scope = $rootScope.$new();
-      $compile('<div sortable sortable-fields="bar,foo">' +
+      $compile('<div sortable="bar,foo">' +
         '<span sort-columns="foo">foo</span><span sort-columns="-bar,foo">bar</span></div>')(scope);
       fooScope = scope.$$childHead;
       barScope = scope.$$childHead.$$nextSibling.$$nextSibling;

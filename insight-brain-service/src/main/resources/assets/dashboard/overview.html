@@ -86,8 +86,7 @@
 </script>
 <script type='text/ng-template' id='risk-table'>
   <div ng-controller="NewestRiskTableController">
-    <table class='table policy-violation-table clm-table-stripe' sortable
-           sortable-fields='-time,-threatLevel'>
+    <table class='table policy-violation-table clm-table-stripe' sortable='-time,-threatLevel'>
       <thead>
       <tr>
         <th id='threat-header' colspan='2' class='clm-bar-text-offset'>
@@ -409,7 +408,7 @@
         <div ng-switch-when="applications">
           <div application-risk-table>
             <div ng-controller="applicationRiskTable">
-              <table class="table table-risk" id="application-risk" sortable sortable-fields="-totalApplicationRisk.totalRisk">
+              <table class="table table-risk" id="application-risk" sortable="-totalApplicationRisk.totalRisk">
                 <thead>
                   <tr>
                     <th><div sort-columns="applicationName">APPLICATION</div></th>
@@ -480,7 +479,7 @@
         <div ng-switch-when="components">
           <div component-risk-table>
             <div ng-controller="componentRiskTable">
-              <table class="table table-risk table-risk-component" id="component-risk" sortable sortable-fields="-score">
+              <table class="table table-risk table-risk-component" id="component-risk" sortable="-score">
                 <thead>
                   <tr>
                     <th><div>COMPONENT</div></th>

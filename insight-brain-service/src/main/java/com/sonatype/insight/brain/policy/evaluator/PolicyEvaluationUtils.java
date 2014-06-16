@@ -188,8 +188,8 @@ public class PolicyEvaluationUtils
           // Calculate a diff between the current policy violations and the previous first occurrence policy violations
           List<PolicyViolation> oldPolicyViolations = policyViolationDAO.getFirstOccurrenceByApplicationIdAndStageTypeId(em,
               appId, stage.getStageTypeId());
-          PolicyViolationDiff policyViolationDiff = PolicyViolationDigester.digestPolicyViolations(newPolicyViolations,
-              oldPolicyViolations);
+          PolicyViolationDiff policyViolationDiff = PolicyViolationDigester.digestPolicyViolations(oldPolicyViolations,
+              newPolicyViolations);
           FirstOccurrencePolicyViolationDAO firstOccurrencePolicyViolationDAO = new FirstOccurrencePolicyViolationDAO();
           // Delete cleared first occurrence policy violations
           for (PolicyViolation clearedPolicyViolation : policyViolationDiff.getCleared()) {

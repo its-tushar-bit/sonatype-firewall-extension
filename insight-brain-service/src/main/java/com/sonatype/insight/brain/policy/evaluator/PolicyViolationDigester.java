@@ -85,8 +85,8 @@ public class PolicyViolationDigester
     return result;
   }
 
-  public static PolicyViolationDiff digestPolicyViolations(List<PolicyViolation> newViolations,
-      List<PolicyViolation> oldViolations)
+  public static PolicyViolationDiff digestPolicyViolations(List<PolicyViolation> oldViolations,
+      List<PolicyViolation> newViolations)
   {
     PolicyViolationDiff diff = new PolicyViolationDiff();
 

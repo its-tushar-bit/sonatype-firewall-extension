@@ -825,7 +825,7 @@ public class DashboardService
 
     List<PolicyViolation> firstOccurrences = policyViolationDAO.getFirstOccurrenceByApplicationIdAndStageTypeId(appId,
         stageTypeId);
-    PolicyViolationDiff diff = PolicyViolationDigester.digestPolicyViolations(firstOccurrences, lastPolicyViolations);
+    PolicyViolationDiff diff = PolicyViolationDigester.digestPolicyViolations(lastPolicyViolations, firstOccurrences);
     for (Entry<PolicyViolation, PolicyViolation> samePolicyViolationEntry : diff.getSame().entrySet()) {
       result.put(samePolicyViolationEntry.getKey(), samePolicyViolationEntry.getValue());
     }
@@ -877,8 +877,8 @@ public class DashboardService
         Map<PolicyViolation, PolicyViolation> firstOccurrencePolicyViolationsByLastPolicyViolations = getFirstOccurrencePolicyViolationsForLastPolicyViolations(
             app.getId(), stageType.getId(), policyViolations);
 
-        PolicyViolationDiff diff = PolicyViolationDigester.digestPolicyViolations(policyViolations,
-            allUniqueAppPolicyViolations);
+        PolicyViolationDiff diff = PolicyViolationDigester.digestPolicyViolations(allUniqueAppPolicyViolations,
+            policyViolations);
         for (PolicyViolation policyViolation : diff.getAppeared()) {
           PolicyViolation firstOccurrencePolicyViolation = firstOccurrencePolicyViolationsByLastPolicyViolations
               .get(policyViolation);
@@ -1124,8 +1124,8 @@ public class DashboardService
         List<PolicyViolation> policyViolations = policyViolationDAO.getByEvaluationId(policyEvaluation.getId());
         policyViolations = filter(policyViolations, filter);
 
-        PolicyViolationDiff diff = PolicyViolationDigester.digestPolicyViolations(policyViolations,
-            policyViolationsWithStageTypes.getPolicyViolations());
+        PolicyViolationDiff diff = PolicyViolationDigester.digestPolicyViolations(policyViolationsWithStageTypes.getPolicyViolations(),
+            policyViolations);
         for (PolicyViolation policyViolation : diff.getAppeared()) {
           policyViolationsWithStageTypes.addViolationWithStageType(policyViolation, policyEvaluation.getStageTypeId());
           result.totalNew++;

@@ -195,6 +195,7 @@ class ComponentViolationsTableRow
     component { $('td:first-child') }
     componentLink { $('td:first-child > a') }
     affectedApplications { $('td:nth-child(2)') }
+    affectedApplicationsLink { $('td:nth-child(2) > a') }
     netRisk { $('td:nth-child(3)') }
     criticalRisk { $('td:nth-child(4)') }
     severeRisk { $('td:nth-child(5)') }

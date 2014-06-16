@@ -497,7 +497,7 @@
                     </div> <a ng-if="!component.gavs.length && !component.pathnames.length"
                     ui-sref="dashboard.component({ hash: component.hash })"> <em>Unknown</em>
                   </a></td>
-                  <td>{{component.affectedApplications}}</td>
+                  <td><a ui-sref="dashboard.component({ hash: component.hash })">{{component.affectedApplications}}</a></td>
                   <td class="total-risk" alpha-background="{{component.score | safeDivide:totalRisk}}"
                     ng-class="{ 'black-text': (component.score | safeDivide:totalRisk) < 0.5 }">
                     {{component.score}}</td>

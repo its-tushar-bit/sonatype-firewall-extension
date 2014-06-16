@@ -219,6 +219,7 @@ class DashboardOverviewSpec
       filterPanelToggle.click()
 
     and: 'Set some filters'
+      waitFor { applicationFiltersDropdown.displayed }
       applicationFiltersDropdown.toggleOption(firstApp.name)
       applicationTagFiltersDropdown.toggleOption(firstAppTag.name)
       stageTypeFiltersDropdown.toggleOption('Release')

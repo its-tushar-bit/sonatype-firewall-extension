@@ -180,27 +180,57 @@ class SparklineModule
   }
 }
 
+class ThreatHeaderModule
+    extends Module
+{
+  static final String CRITICAL = 'critical'
+  static final String SEVERE = 'severe'
+  static final String MODERATE = 'moderate'
+  static final String LOW = 'low'
+
+  int columnOffset
+
+  static content = {
+    critical(required: false) { $('#threat-header-critical') }
+    severe(required: false) { $('#threat-header-severe') }
+    moderate(required: false) { $('#threat-header-moderate') }
+    low(required: false) { $('#threat-header-low') }
+  }
+
+  Map<String, Integer> getColumnPositions() {
+    Map<String, Integer> positions = new HashMap<>()
+    positions.put(CRITICAL, critical.displayed ? positions.size() + columnOffset +1 : 0)
+    positions.put(SEVERE, severe.displayed ? positions.size() + columnOffset + 1 : 0)
+    positions.put(MODERATE, moderate.displayed ? positions.size() + columnOffset + 1 : 0)
+    positions.put(LOW, low.displayed ? positions.size() + columnOffset + 1 : 0)
+    return positions
+  }
+}
+
 class ComponentViolationsTable
     extends Module
 {
   static content = {
-    rows { moduleList ComponentViolationsTableRow, $('tbody tr') }
+    threatHeaders { module ThreatHeaderModule, columnOffset : 3 }
+    rows { moduleList ComponentViolationsTableRow, $('tbody tr'), threatColumnPositions : threatHeaders.columnPositions }
   }
 }
 
 class ComponentViolationsTableRow
     extends Module
 {
+  Map<String, Integer> threatColumnPositions
+
   static content = {
     component { $('td:first-child') }
     componentLink { $('td:first-child > a') }
     affectedApplications { $('td:nth-child(2)') }
     affectedApplicationsLink { $('td:nth-child(2) > a') }
     netRisk { $('td:nth-child(3)') }
-    criticalRisk { $('td:nth-child(4)') }
-    severeRisk { $('td:nth-child(5)') }
-    moderateRisk { $('td:nth-child(6)') }
-    lowRisk { $('td:nth-child(7)') }
+    criticalRisk(required: false) { $("td:nth-child(${threatColumnPositions[ThreatHeaderModule.CRITICAL]})") }
+    severeRisk(required: false) { $("td:nth-child(${threatColumnPositions[ThreatHeaderModule.SEVERE]})") }
+    moderateRisk(required: false) { $("td:nth-child(${threatColumnPositions[ThreatHeaderModule.MODERATE]})") }
+    lowRisk(required: false) { $("td:nth-child(${threatColumnPositions[ThreatHeaderModule.LOW]})") }
   }
 }
 
@@ -208,22 +238,25 @@ class ApplicationViolationsTable
     extends Module
 {
   static content = {
-    rows { moduleList ApplicationViolationsTableRow, $('tbody tr') }
+    threatHeaders { module ThreatHeaderModule, columnOffset : 2 }
+    rows { moduleList ApplicationViolationsTableRow, $('tbody tr'), threatColumnPositions : threatHeaders.columnPositions }
   }
 }
 
 class ApplicationViolationsTableRow
     extends Module
 {
+  Map<String, Integer> threatColumnPositions
+
   static content = {
     expand(required: false) { module ExpandoModule, $('td:first-child i.expand') }
     collapse(required: false) { module ExpandoModule, $('td:first-child i.collapse') }
     application { $('td:first-child') }
     netRisk { $('td:nth-child(2)') }
-    criticalRisk { $('td:nth-child(3)') }
-    severeRisk { $('td:nth-child(4)') }
-    moderateRisk { $('td:nth-child(5)') }
-    lowRisk { $('td:nth-child(6)') }
+    criticalRisk(required: false) { $("td:nth-child(${threatColumnPositions[ThreatHeaderModule.CRITICAL]})") }
+    severeRisk(required: false) { $("td:nth-child(${threatColumnPositions[ThreatHeaderModule.SEVERE]})") }
+    moderateRisk(required: false) { $("td:nth-child(${threatColumnPositions[ThreatHeaderModule.MODERATE]})") }
+    lowRisk(required: false) { $("td:nth-child(${threatColumnPositions[ThreatHeaderModule.LOW]})") }
     reportLink(required: false) { $('td:first-child > a') }
   }
 }

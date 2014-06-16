@@ -377,9 +377,20 @@
     return ['$timeout', '$window', 'maximizeHeightService', 'windowEventsFactory', 'CLMLocations', function ($timeout, $window, maximizeHeightService, windowEventsFactory, CLMLocations) {
       function createFilterWatch($scope, $rootScope, $http, Dialog, ApplicationStore) {
         return function (newFilter) {
+          function isOverlapping(min, max, policyThreatLevel) {
+            return min <= policyThreatLevel[1] && policyThreatLevel[0] <= max;
+          }
+
           if (newFilter) {
             $scope.error = $scope.data = null;
             var params = filterToParams($scope.filters, $scope.maxResults);
+
+            $scope.policyThreatLevelCategories = {
+              low : isOverlapping(0, 1, $scope.filters.policyThreatLevel),
+              moderate : isOverlapping(2, 3, $scope.filters.policyThreatLevel),
+              severe : isOverlapping(4, 7, $scope.filters.policyThreatLevel),
+              critical : isOverlapping(8, 10, $scope.filters.policyThreatLevel)
+            };
 
             $http.get(CLMLocations[urlField](), {
               params : params

@@ -498,11 +498,6 @@ class DashboardOverviewSpec
       that parseAlpha(secondComponentRow.moderateRisk.attr('style')), closeTo(alphaCalc(0, 2), TOLERANCE)
       that parseAlpha(thirdComponentRow.moderateRisk.attr('style')), closeTo(alphaCalc(0, 2), TOLERANCE)
 
-      that parseAlpha(firstComponentRow.lowRisk.attr('style')), closeTo(alphaCalc(0, 0), TOLERANCE)
-      that parseAlpha(secondComponentRow.lowRisk.attr('style')), closeTo(alphaCalc(0, 0), TOLERANCE)
-      that parseAlpha(thirdComponentRow.lowRisk.attr('style')), closeTo(alphaCalc(0, 0), TOLERANCE)
-      that parseAlpha(fourthComponentRow.lowRisk.attr('style')), closeTo(alphaCalc(0, 0), TOLERANCE)
-
     when: 'Switching to Applications Tab'
       tabLinks.applicationsTabButton.click()
 
@@ -533,12 +528,6 @@ class DashboardOverviewSpec
       that parseAlpha(secondApplicationRow.moderateRisk.attr('style')), closeTo(alphaCalc(0, 2), TOLERANCE)
       that parseAlpha(thirdApplicationRow.moderateRisk.attr('style')), closeTo(alphaCalc(0, 2), TOLERANCE)
       that parseAlpha(fourthApplicationRow.moderateRisk.attr('style')), closeTo(alphaCalc(0, 2), TOLERANCE)
-
-      that parseAlpha(firstApplicationRow.lowRisk.attr('style')), closeTo(alphaCalc(0, 0), TOLERANCE)
-      that parseAlpha(secondApplicationRow.lowRisk.attr('style')), closeTo(alphaCalc(0, 0), TOLERANCE)
-      that parseAlpha(thirdApplicationRow.lowRisk.attr('style')), closeTo(alphaCalc(0, 0), TOLERANCE)
-      that parseAlpha(fourthApplicationRow.lowRisk.attr('style')), closeTo(alphaCalc(0, 0), TOLERANCE)
-      that parseAlpha(fifthApplicationRow.lowRisk.attr('style')), closeTo(alphaCalc(0, 0), TOLERANCE)
 
     cleanup:
       ApplicationDAO dao = new ApplicationDAO()
@@ -579,6 +568,42 @@ class DashboardOverviewSpec
 
     cleanup:
       PolicyEvaluationDAO dao = new PolicyEvaluationDAO().delete(policyEvaluation)
+  }
+
+  def 'Threat level columns are hidden when not matching filter'() {
+    given: 'dashboard filter includes only critical threat level'
+      filterPanelToggle.click()
+      waitFor { policyThreatLevelSlider.displayed }
+      policyThreatLevelSlider.setValues(8,10)
+      applyFilter()
+
+    when: 'switching to the component risk view'
+      tabLinks.componentsTabButton.click()
+
+    then: 'only the critical threat level column is shown'
+      waitFor { componentViolationsTable.threatHeaders.critical.displayed }
+      !componentViolationsTable.threatHeaders.severe.displayed
+      !componentViolationsTable.threatHeaders.moderate.displayed
+      !componentViolationsTable.threatHeaders.low.displayed
+      waitFor { !componentViolationsTable.rows.empty }
+      componentViolationsTable.rows[0].criticalRisk.displayed
+      !componentViolationsTable.rows[0].severeRisk.displayed
+      !componentViolationsTable.rows[0].moderateRisk.displayed
+      !componentViolationsTable.rows[0].lowRisk.displayed
+
+    when: 'switching to the application risk view'
+      tabLinks.applicationsTabButton.click()
+
+    then: 'only the critical threat level column is shown'
+      waitFor { applicationViolationsTable.threatHeaders.critical.displayed }
+      !applicationViolationsTable.threatHeaders.severe.displayed
+      !applicationViolationsTable.threatHeaders.moderate.displayed
+      !applicationViolationsTable.threatHeaders.low.displayed
+      waitFor { !applicationViolationsTable.rows.empty }
+      applicationViolationsTable.rows[0].criticalRisk.displayed
+      !applicationViolationsTable.rows[0].severeRisk.displayed
+      !applicationViolationsTable.rows[0].moderateRisk.displayed
+      !applicationViolationsTable.rows[0].lowRisk.displayed
   }
 
   def 'Filters stored as expected'() {
@@ -641,7 +666,7 @@ class DashboardOverviewSpec
       componentViolationsTable.rows[0].criticalRisk.text() == "10"
       componentViolationsTable.rows[0].severeRisk.text() == "5"
       componentViolationsTable.rows[0].moderateRisk.text() == "0"
-      componentViolationsTable.rows[0].lowRisk.text() == "0"
+      !componentViolationsTable.rows[0].lowRisk.displayed
       componentViolationsTable.rows[0].componentLink.displayed
 
     when: 'clicking the component link'
@@ -664,14 +689,14 @@ class DashboardOverviewSpec
       applicationViolationsTable.rows[0].criticalRisk.text() == "10"
       applicationViolationsTable.rows[0].severeRisk.text() == "0"
       applicationViolationsTable.rows[0].moderateRisk.text() == "0"
-      applicationViolationsTable.rows[0].lowRisk.text() == "0"
+      !applicationViolationsTable.rows[0].lowRisk.displayed
       applicationViolationsTable.rows[0].expand.displayed
       applicationViolationsTable.rows[1].application.text() == firstApp.getName()
       applicationViolationsTable.rows[1].netRisk.text() == "5"
       applicationViolationsTable.rows[1].criticalRisk.text() == "0"
       applicationViolationsTable.rows[1].severeRisk.text() == "5"
       applicationViolationsTable.rows[1].moderateRisk.text() == "0"
-      applicationViolationsTable.rows[1].lowRisk.text() == "0"
+      !applicationViolationsTable.rows[1].lowRisk.displayed
       applicationViolationsTable.rows[1].expand.displayed
 
     when: 'Expand'

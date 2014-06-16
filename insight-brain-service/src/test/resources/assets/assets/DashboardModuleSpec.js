@@ -519,6 +519,28 @@ describe('DashboardModule', function() {
           expect(directiveScope.error).toBeTruthy();
           expect(directiveScope.data).toBeFalsy();
         }));
+
+        it('Derives Policy Threat Level Categories from Filter', inject(function (CLMLocations, $httpBackend) {
+          for (var i = 0; i <= 10; i++) {
+            $httpBackend.expectGET(startsWith(CLMLocations[directive.urlFn]())).respond('foo');
+            scope.$apply(function () {
+              scope.filters =  {
+                applicationPublicIds: [],
+                policyThreatTypes: [],
+                stageTypeIds: [],
+                applicationTagIds: [],
+                policyThreatLevel: [i,i]
+              };
+            });
+            $httpBackend.flush();
+            expect(directiveScope.policyThreatLevelCategories).toEqual({
+              critical: 8 <= i && i <= 10, 
+              severe : 4 <= i && i < 8, 
+              moderate : 2 <= i && i < 4, 
+              low : i < 2
+            });
+          }
+        }));
       });
     });
   });

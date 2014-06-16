@@ -751,6 +751,7 @@ class DashboardOverviewSpec
       
     when: 'the component heat map help close button is clicked'
       clickComponentHeatMapHelp()
+      waitFor { componentHeatMapHelpClose.displayed }
       componentHeatMapHelpClose.click()
 
     then: 'the help modal closes'
@@ -771,6 +772,7 @@ class DashboardOverviewSpec
 
     when: 'the application heat map help close button is clicked '
       clickApplicationHeatMapHelp()
+      waitFor { applicationHeatMapHelpClose.displayed }
       applicationHeatMapHelpClose.click()
       
     then: 'the help modal closes'

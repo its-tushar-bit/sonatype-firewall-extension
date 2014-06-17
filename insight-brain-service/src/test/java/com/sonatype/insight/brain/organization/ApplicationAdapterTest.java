@@ -557,7 +557,7 @@ public class ApplicationAdapterTest
       List<Member> members, Exception exception)
   {
     UserDirectory.QueryResult result = new UserDirectory.QueryResult(members, exception);
-    when(userDirectory.getMembersByNames(names, false)).thenReturn(result);
+    when(userDirectory.getUsersByName(names)).thenReturn(result);
   }
 
 }

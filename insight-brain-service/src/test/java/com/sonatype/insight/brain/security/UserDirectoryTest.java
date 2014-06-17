@@ -14,14 +14,21 @@ import java.util.Set;
 import javax.inject.Inject;
 import javax.naming.NamingException;
 
+import com.sonatype.insight.brain.configuration.ldap.LdapConnection;
+import com.sonatype.insight.brain.configuration.ldap.LdapGroupMappingType;
 import com.sonatype.insight.brain.configuration.ldap.LdapServer;
+import com.sonatype.insight.brain.configuration.ldap.LdapUserMapping;
+import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapUserMappingDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
 import com.sonatype.insight.brain.ldap.LdapManager;
 import com.sonatype.insight.brain.ldap.TestLdapServer;
+import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.User;
+import com.sonatype.insight.brain.security.UserDirectory.QueryResult;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 
 import com.google.common.collect.Sets;
+import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -47,6 +54,9 @@ public class UserDirectoryTest
   public TestLdapServer embeddedLdapServer = new TestLdapServer();
 
   @Inject
+  private LdapManager manager;
+
+  @Inject
   private UserDirectory userDirectory;
 
   @Test
@@ -64,13 +74,14 @@ public class UserDirectoryTest
 
     // Get users only, no groups.
     Set<String> names = Sets.newHashSet("clmbob", "testuser", "Alpha");
-    List<Member> members = userDirectory.getMembersByNames(names, false).get();
+    List<Member> members = userDirectory.getUsersByName(names).get();
 
     assertThat(members, hasSize(2));
     assertThat(names, hasItems(members.get(0).getInternalName(), members.get(1).getInternalName()));
 
     // Get both groups and users.
-    members = userDirectory.getMembersByNames(names, true).get();
+    members = userDirectory.getMembersByName(
+        Sets.newHashSet(createUser("clmbob"), createUser("testuser"), createGroup("Alpha"))).get();
 
     assertThat(members, hasSize(3));
     assertThat(names,
@@ -79,7 +90,7 @@ public class UserDirectoryTest
 
     // Get users only, case insensitive.
     names = Sets.newHashSet("CLMBOB", "TESTUSER", "ALPHA");
-    members = userDirectory.getMembersByNames(names, false).get();
+    members = userDirectory.getUsersByName(names).get();
 
     assertThat(members, hasSize(2));
     assertThat(
@@ -88,7 +99,8 @@ public class UserDirectoryTest
             .toUpperCase(Locale.ENGLISH)));
 
     // Get users and groups, case insensitive.
-    members = userDirectory.getMembersByNames(names, true).get();
+    members = userDirectory.getMembersByName(
+        Sets.newHashSet(createUser("CLMBOB"), createUser("TESTUSER"), createGroup("ALPHA"))).get();
 
     assertThat(members, hasSize(3));
     assertThat(
@@ -98,7 +110,36 @@ public class UserDirectoryTest
             .toUpperCase(Locale.ENGLISH)));
 
   }
-  
+
+  @Test
+  public void testGetDynamicGroupsDisabled() throws Exception {
+    embeddedLdapServer.start();
+    embeddedLdapServer.loadData("/UserDirectoryTest/ldap_users.ldif");
+
+    LdapServer ldapServer = tempEntity.newLdapServer("LDAP");
+    LdapConnection conn = tempEntity.newLdapConnection(ldapServer.getId(), embeddedLdapServer.getPort());
+    LdapUserMapping umap = tempEntity.newLdapUserMapping(ldapServer.getId());
+
+    conn.setSearchBase("dc=company,dc=com");
+    manager.saveConnection(conn);
+
+    LdapUserMappingDAO userMappingDAO = new LdapUserMappingDAO();
+    umap.setGroupMappingType(LdapGroupMappingType.DYNAMIC);
+    umap.setDynamicGroupSearchEnabled(false);
+    umap.setUserMemberOfGroupAttribute("departmentNumber");
+    userMappingDAO.update(umap);
+
+    QueryResult result = userDirectory.getMembersByQuery("testUsers", true);
+    assertThat(result.get(), hasSize(0));
+
+    result = userDirectory.getMembersByName(Collections.singleton(createGroup("testUsers")));
+    Assert.assertEquals(1, result.get().size());
+    Member member = result.get().get(0);
+    assertEquals(MemberType.GROUP, member.getType());
+    assertEquals("testUsers", member.getInternalName());
+    assertEquals("LDAP", member.getRealm());
+  }
+
   @Test
   public void testGetMembersByNames_WithUserDirectoryError() throws Exception {
     LdapManager mockLdapManager = Mockito.mock(LdapManager.class);
@@ -112,7 +153,7 @@ public class UserDirectoryTest
     tempEntity.newUser("clmbob");
 
     Set<String> names = Sets.newHashSet("clmbob", "testuser", "Alpha");
-    UserDirectory.QueryResult result = userDirectory.getMembersByNames(names, false);
+    UserDirectory.QueryResult result = userDirectory.getUsersByName(names);
     List<Member> members = result.get();
     
     // Verify that only the CLM user has been returned.
@@ -130,16 +171,17 @@ public class UserDirectoryTest
     tempEntity.newLdapConnection(ldapServer.getId(), embeddedLdapServer.getPort());
     tempEntity.newLdapUserMapping(ldapServer.getId());
 
-    List<Member> members = userDirectory.getMembersByNames(new HashSet<String>(), false).get();
+    List<Member> members = userDirectory.getMembersByName(new HashSet<Member>()).get();
 
     assertThat(members, hasSize(0));
 
-    members = userDirectory.getMembersByNames(null, true).get();
+    members = userDirectory.getMembersByName(null).get();
 
     assertThat(members, hasSize(0));
 
-    String nullName = null;
-    members = userDirectory.getMembersByNames(Sets.newHashSet(nullName), true).get();
+    Member nullUser = new Member(MemberType.USER, null, null);
+    Member nullGroup = new Member(MemberType.GROUP, null, null);
+    members = userDirectory.getMembersByName(Sets.newHashSet(nullUser, nullGroup)).get();
 
     assertThat(members, hasSize(0));
   }
@@ -326,5 +368,13 @@ public class UserDirectoryTest
 
     assertTrue(userDirectory.isLdapUser(new User("testuser", null, null, null, null)));
     assertFalse(userDirectory.isLdapUser(new User("not-a-real-user", null, null, null, null)));
+  }
+
+  private static Member createUser(String name) {
+    return new Member(MemberType.USER, name, null);
+  }
+
+  private static Member createGroup(String name) {
+    return new Member(MemberType.GROUP, name, null);
   }
 }

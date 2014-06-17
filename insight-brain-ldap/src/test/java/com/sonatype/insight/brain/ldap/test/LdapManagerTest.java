@@ -525,6 +525,45 @@ public class LdapManagerTest
   }
 
   @Test
+  public void testIsGroupSearchEnabled() throws Exception {
+    serverDetails = new LdapServer();
+    serverDetails.setName("Test Server");
+    serverDao.insert(serverDetails);
+    assertThat(manager.isGroupSearchEnabled(), is(false));
+
+    LdapConnection conn = createLdapConnection();
+    conn.setHostname("localhost");
+    conn.setSearchBase("dc=company,dc=com");
+    new LdapConnectionDAO().insert(conn);
+
+    assertThat(manager.isGroupSearchEnabled(), is(false));
+
+    LdapUserMapping umap = createUserMapping();
+    umap.setGroupMappingType(LdapGroupMappingType.NONE);
+
+    LdapUserMappingDAO userMappingDAO = new LdapUserMappingDAO();
+    userMappingDAO.insert(umap);
+
+    assertThat(manager.isGroupSearchEnabled(), is(false));
+
+    umap.setGroupMappingType(LdapGroupMappingType.STATIC);
+    userMappingDAO.update(umap);
+
+    assertThat(manager.isGroupSearchEnabled(), is(true));
+
+    umap.setGroupMappingType(LdapGroupMappingType.DYNAMIC);
+    umap.setDynamicGroupSearchEnabled(true);
+    userMappingDAO.update(umap);
+
+    assertThat(manager.isGroupSearchEnabled(), is(true));
+
+    umap.setDynamicGroupSearchEnabled(false);
+    userMappingDAO.update(umap);
+
+    assertThat(manager.isGroupSearchEnabled(), is(false));
+  }
+
+  @Test
   public void testGetLdapServerName() throws Exception {
     try {
       manager.getLdapServerName();

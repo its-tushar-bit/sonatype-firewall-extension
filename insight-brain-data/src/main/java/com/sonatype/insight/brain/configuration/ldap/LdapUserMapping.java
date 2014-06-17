@@ -144,6 +144,12 @@ public class LdapUserMapping
   @Column(name = "user_memberofgroup_attribute")
   private String userMemberOfGroupAttribute;
 
+  /**
+   * @since 1.11
+   */
+  @Column(name = "dynamic_group_search_enabled")
+  private boolean dynamicGroupSearchEnabled;
+
   @Override
   public String getId() {
     return id;
@@ -292,4 +298,11 @@ public class LdapUserMapping
     this.userMemberOfGroupAttribute = userMemberOfGroupAttribute;
   }
 
+  public boolean isDynamicGroupSearchEnabled() {
+    return dynamicGroupSearchEnabled;
+  }
+
+  public void setDynamicGroupSearchEnabled(boolean dynamicGroupSearchEnabled) {
+    this.dynamicGroupSearchEnabled = dynamicGroupSearchEnabled;
+  }
 }

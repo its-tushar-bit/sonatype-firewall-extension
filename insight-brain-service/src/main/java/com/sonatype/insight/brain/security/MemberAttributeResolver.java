@@ -7,10 +7,8 @@ package com.sonatype.insight.brain.security;
 
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import com.sonatype.insight.brain.model.security.MemberType;
 
@@ -38,14 +36,8 @@ public class MemberAttributeResolver
   public void resolve(List<Member> members) {
     List<Member> unresolvedMembers = resolveCachedMembers(members);
 
-    // Collect member names for query.
-    Set<String> unresolvedMemberNames = new HashSet<>();
-    for (Member member : unresolvedMembers) {
-      unresolvedMemberNames.add(member.getInternalName());
-    }
-
     // Get new members based on internal user names.
-    UserDirectory.QueryResult result = userDirectory.getMembersByNames(unresolvedMemberNames, true);
+    UserDirectory.QueryResult result = userDirectory.getMembersByName(unresolvedMembers);
     if (result.hasException()) {
       log.error(
           "An exception occurred while trying to resolve user names; attempting to resolve user names using the local CLM realm.",

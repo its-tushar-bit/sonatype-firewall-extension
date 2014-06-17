@@ -228,6 +228,8 @@ CREATE TABLE ldap_usermapping (
 
   user_memberofgroup_attribute varchar(255),
 
+  dynamic_group_search_enabled boolean DEFAULT true NOT NULL,
+
   CONSTRAINT ldap_usermapping_pk PRIMARY KEY (ldap_usermapping_id),
   CONSTRAINT ldap_usermapping_server_fk FOREIGN KEY (ldap_server_id) REFERENCES ldap_server(ldap_server_id),
   CONSTRAINT ldap_usermapping_server_id_uk UNIQUE KEY (ldap_server_id)

@@ -8,10 +8,13 @@ package com.sonatype.insight.brain.security;
 import java.text.CollationKey;
 import java.text.Collator;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -91,19 +94,59 @@ public class UserDirectory
   }
 
   /**
-   * @param names The internal names of users that should be returned.
-   * @param groupsEnabled True, if LDAP groups should also be searched.
+   * @param names The members that should be populated and returned
    * @return A query result containing members or exceptions. If an exception is encountered it is still likely that the
    *         result contains local user information.
    */
-  public QueryResult getMembersByNames(Set<String> names, boolean groupsEnabled) {
-    List<Member> members = new ArrayList<>();
-    Set<String> cleanNames = purgeNullUsernames(names);
-    if (cleanNames.isEmpty()) {
+  public QueryResult getMembersByName(Collection<Member> members) {
+    QueryResult result = getUsersByName(getNameByType(members, MemberType.USER));
+
+    if (!result.hasException() && ldapManager.isLdapEnabled()) {
+      String ldapName = ldapManager.getLdapServerName();
+      if (ldapManager.isGroupSearchEnabled()) {
+        Set<String> groupNames = getNameByType(members, MemberType.GROUP);
+        purgeNullNames(groupNames);
+
+        try {
+          for (LdapGroup group : ldapManager.getGroups(groupNames.toArray(new String[groupNames.size()]),
+              groupNames.size())) {
+            final String groupName = group.getGroupname();
+            Member member = new Member(MemberType.GROUP, groupName, groupName, null, ldapName);
+            result.get().add(member);
+          }
+        }
+        catch (Exception e) {
+          result.exception = e;
+        }
+      }
+      else {
+        for (Member m : purgeMembersNullUsernames(members)) {
+          if (MemberType.GROUP.equals(m.getType())) {
+            result.get().add(m);
+            m.setRealm(ldapName);
+          }
+        }
+      }
+    }
+    return result;
+  }
+
+  /**
+   * 
+   * @param origUserNames the user names to find
+   * @return A query result containing members or exceptions. If an exception is encountered it is still likely that the
+   *         result contains local user information.
+   */
+  public QueryResult getUsersByName(Set<String> origUserNames) {
+    List<Member> members = new LinkedList<>();
+    Set<String> userNames = new LinkedHashSet<>(origUserNames);
+    purgeNullNames(userNames);
+
+    if (userNames.isEmpty()) {
       return new QueryResult(members);
     }
 
-    List<User> clmUsers = userDao.getByUsernames(cleanNames);
+    List<User> clmUsers = userDao.getByUsernames(userNames);
     for (User user : clmUsers) {
       Member member = new Member(MemberType.USER, user.getUsername(), user.calculateDisplayName(), user.getEmail(),
           CLMRealm.DISPLAY_NAME);
@@ -114,18 +157,9 @@ public class UserDirectory
       try {
         String ldapName = ldapManager.getLdapServerName();
 
-        for (LdapUser user : ldapManager.getUsers(cleanNames.toArray(new String[cleanNames.size()]), cleanNames.size())) {
+        for (LdapUser user : ldapManager.getUsers(userNames.toArray(new String[userNames.size()]), userNames.size())) {
           Member member = new Member(MemberType.USER, user.getUsername(), user.getRealName(), user.getEmail(), ldapName);
           members.add(member);
-        }
-
-        if (groupsEnabled && ldapManager.isLdapGroupEnabled()) {
-          for (LdapGroup group : ldapManager.getGroups(cleanNames.toArray(new String[cleanNames.size()]),
-              cleanNames.size())) {
-            final String groupName = group.getGroupname();
-            Member member = new Member(MemberType.GROUP, groupName, groupName, null, ldapName);
-            members.add(member);
-          }
         }
       }
       catch (Exception e) {
@@ -173,7 +207,7 @@ public class UserDirectory
             users.put(key, member);
           }
         }
-        if (groupsEnabled && ldapManager.isLdapGroupEnabled()) {
+        if (groupsEnabled && ldapManager.isGroupSearchEnabled()) {
           for (LdapGroup group : ldapManager.findGroupsByName(query, 100)) {
             final String groupName = group.getGroupname();
             Member member = new Member(MemberType.GROUP, groupName, groupName, null, ldapName);
@@ -213,7 +247,7 @@ public class UserDirectory
       return Collections.emptySet();
     }
 
-    QueryResult result = getMembersByNames(userNames, false);
+    QueryResult result = getUsersByName(userNames);
     if (result.hasException()) {
       log.error("An exception occurred while trying to resolve user names; validating users against local CLM realm.",
           result.getException());
@@ -252,15 +286,36 @@ public class UserDirectory
     return collationKeys;
   }
 
-  private Set<String> purgeNullUsernames(Set<String> names) {
-    Set<String> result = new LinkedHashSet<>();
-    if (names != null) {
-      for (String name : names) {
-        if (!StringUtils.isBlank(name)) {
-          result.add(name);
+  private static Set<String> getNameByType(Iterable<Member> members, MemberType type) {
+    Set<String> names = new LinkedHashSet<>();
+    if (members != null) {
+      for (Member member : members) {
+        if (type.equals(member.getType())) {
+          names.add(member.getInternalName());
         }
       }
     }
-    return result;
+    return names;
+  }
+
+  private static Iterable<Member> purgeMembersNullUsernames(Iterable<Member> members) {
+    if (members != null) {
+      for (Iterator<Member> iter = members.iterator(); iter.hasNext();) {
+        Member member = iter.next();
+        if (StringUtils.isBlank(member.getInternalName())) {
+          iter.remove();
+        }
+      }
+    }
+    return members;
+  }
+
+  private static void purgeNullNames(Iterable<String> userNames) {
+    for (Iterator<String> iter = userNames.iterator(); iter.hasNext();) {
+      String member = iter.next();
+      if (StringUtils.isBlank(member)) {
+        iter.remove();
+      }
+    }
   }
 }

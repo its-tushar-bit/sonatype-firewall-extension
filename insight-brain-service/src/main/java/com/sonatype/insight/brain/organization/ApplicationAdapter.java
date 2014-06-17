@@ -177,7 +177,7 @@ public class ApplicationAdapter
     ContactDTO[] contacts = new ContactDTO[internalNamesList.size()];
 
     Map<String, ContactDTO> nameToContactMap;
-    UserDirectory.QueryResult result = userDirectory.getMembersByNames(new HashSet<>(internalNamesList), false);
+    UserDirectory.QueryResult result = userDirectory.getUsersByName(new HashSet<>(internalNamesList));
     if (result.hasException()) {
       log.error(
           "An exception occurred while trying to resolve user names; attempting to resolve user names using the local CLM realm.",

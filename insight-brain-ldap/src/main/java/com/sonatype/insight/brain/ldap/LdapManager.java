@@ -15,10 +15,6 @@ import javax.naming.NameNotFoundException;
 import javax.naming.NamingException;
 import javax.naming.NamingSecurityException;
 
-import org.codehaus.plexus.util.StringUtils;
-import org.sonatype.plexus.components.cipher.PlexusCipher;
-import org.sonatype.plexus.components.cipher.PlexusCipherException;
-
 import com.sonatype.insight.brain.configuration.ldap.LdapConnection;
 import com.sonatype.insight.brain.configuration.ldap.LdapGroupMappingType;
 import com.sonatype.insight.brain.configuration.ldap.LdapServer;
@@ -26,6 +22,11 @@ import com.sonatype.insight.brain.configuration.ldap.LdapUserMapping;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapConnectionDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapServerDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapUserMappingDAO;
+
+import org.sonatype.plexus.components.cipher.PlexusCipher;
+import org.sonatype.plexus.components.cipher.PlexusCipherException;
+
+import org.codehaus.plexus.util.StringUtils;
 
 /**
  * Manages LDAP information.
@@ -189,6 +190,17 @@ public class LdapManager
       LdapUserMapping mapping = userDao.getByServerId(conn.getServerId());
       if (mapping != null) {
         return mapping.getGroupMappingType() != LdapGroupMappingType.NONE;
+      }
+    }
+    return false;
+  }
+
+  public boolean isGroupSearchEnabled() {
+    if (isLdapEnabled() && isLdapGroupEnabled()) {
+      LdapConnection conn = getDecryptedConnection();
+      LdapUserMapping mapping = userDao.getByServerId(conn.getServerId());
+      if (mapping != null) {
+        return mapping.getGroupMappingType() != LdapGroupMappingType.DYNAMIC || mapping.isDynamicGroupSearchEnabled();
       }
     }
     return false;

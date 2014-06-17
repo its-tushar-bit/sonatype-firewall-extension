@@ -45,21 +45,21 @@ class MainHeaderSpec
   }
 
   def "dashboard default page when licensed"() {
-    given: "user logs out and user logs in again"
-      userOptions.logoutClick()
-      loginAsAdminVia(IndexPage)
+    when: "user navigates to index page"
+      via IndexPage
 
-    expect: "user to be at dashboard"
+    then: "user arrives at dashboard"
       waitFor { at DashboardOverviewPage }
   }
 
   def "dashboard not default page when unlicensed"() {
-    given: "user logs out and user logs in again"
+    given: "a license that doesn't support the dashboard"
       setLicensedProducts(ProductLicenseDetails.PRODUCT_NEXUS)
-      userOptions.logoutClick()
-      loginAsAdminVia(IndexPage)
 
-    expect: "user to be at reports page"
+    when: "user navigates to index page"
+      via IndexPage
+
+    then: "user arrives at reports page"
       waitFor { at ReportViolationsPage }
   }
 }

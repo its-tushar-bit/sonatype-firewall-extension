@@ -1,7 +1,7 @@
 describe('reportApp', function() {
-  var scope, state, currentUserSuccess, currentUserFail, licenseCheckerFail, licenseCheckerSuccess;
+  var scope, state;
   
-  beforeEach(module('ReportModule', 'ReportViolations', function($provide) {
+  beforeEach(module('ReportModule', 'ReportViolations', 'MainModule', function($provide) {
     $provide.value('$window', {
       location: {
         reload: function(){}
@@ -13,30 +13,9 @@ describe('reportApp', function() {
         createElement: function(){ return null ;}
       }
     });
-    $provide.value('securityStatusChecker', {
-      check : function(){
-        return {
-          then: function(data) {
-          }
-        };
-      }
-    });
-    $provide.value('CurrentUser', {
-      then : function (success, fail) {
-        currentUserSuccess = success;
-        currentUserFail = fail;
-        return this;
-      }
-    });
-    $provide.value('licenseChecker', {
-      check : function () {
-        return {
-          then : function (success, fail) {
-            licenseCheckerFail = fail;
-            licenseCheckerSuccess = success;
-          }
-        };
-      }
+
+    $provide.value('initService', {
+      start: angular.noop
     });
   }));
   
@@ -47,11 +26,6 @@ describe('reportApp', function() {
 
     $state.go('violations');
 
-    currentUserSuccess({
-      authenticated : true,
-      username : 'user'
-    });
-    $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getProductFeaturesUrl())).respond(['policy-monitoring']);
     $httpBackend.expectGET('../report-assets/violations/report-list.html?').respond('<div></div>');
     $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getActionStageUrl())).respond(MockData.getActionStageData());
     $httpBackend.expectGET(SpecUtil.toRegExp('/rest/application/services/summary')).respond(ApplicationMockData.getApplicationSummaryData());

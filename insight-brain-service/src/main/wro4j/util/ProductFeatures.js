@@ -9,21 +9,38 @@
   var productFeatureModule = angular.module('ProductFeaturesModule', ['CLMLocation']);
 
   productFeatureModule.service('ProductFeatures', ['$http', 'CLMLocations', function($http, CLMLocations) {
-    var productFeatures = {};
+    var promise = null, productFeatures = null;
     function doLoad() {
-      return $http.get(CLMLocations.getProductFeaturesUrl()).then(function(response) {
+      promise = $http.get(CLMLocations.getProductFeaturesUrl()).then(function(response) {
+        productFeatures = {};
         angular.forEach(response.data,function(feature){
           productFeatures[feature] = true;
         });
       });
+
+      return promise;
+    }
+
+    function available(feature) {
+      return productFeatures !== null && productFeatures[feature] === true;
+    }
+
+    function loaded() {
+      return productFeatures !== null;
     }
 
     return {
       load: function() {
-        return doLoad();
+        return promise ? promise : doLoad();
       },
       isAvailable: function(feature) {
-        return productFeatures[feature] === true;
+        return available(feature);
+      },
+      isLoaded: function() {
+        return loaded();
+      },
+      isDashboardLicensed: function() {
+        return loaded() && available('dashboard');
       }
     };
   }]);

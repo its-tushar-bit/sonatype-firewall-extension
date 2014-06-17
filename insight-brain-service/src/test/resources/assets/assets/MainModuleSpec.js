@@ -1,52 +1,20 @@
+/* global beforeEach, module, jasmine, afterEach, inject, describe, it, expect, SpecUtil */
 describe('mainModuleSpec', function() {
   'use strict';
-  var scope, state, currentUserSuccess, currentUserFail, licenseCheckerFail, licenseCheckerSuccess;
+  var scope, state;
 
-  beforeEach(module('Configuration'));
-  beforeEach(module('MainModule', function($stateProvider, $provide) {
+  beforeEach(module('InitModule', function($provide){
     $provide.value('$window', {
       location: {
-        href: 'http://blah/index.html',
+        href: 'http://blah',
         replace: jasmine.createSpy()
-      },
-      navigator: {
-        userAgent: {}
-      },
-      document: {
-        createElement: function() {
-          return null;
-        }
       }
     });
-    $provide.value('CurrentUser', {
-      then : function (success, fail) {
-        currentUserSuccess = success;
-        currentUserFail = fail;
-        return this;
-      }
-    });
-    $provide.value('licenseChecker', {
-      check : function () {
-        return {
-          then : function (success, fail) {
-            licenseCheckerFail = fail;
-            licenseCheckerSuccess = success;
-          }
-        };
-      }
-    });
-    $provide.value('ProductFeatures', {
-      load : function() {
-        return {
-          then: angular.noop
-        };
-      },
-      isAvailable : function() {
-        return true;
-      }
-    });
+  }));
 
-    $stateProvider.state('test', {url: '/test/:testId'});
+  beforeEach(inject(function($rootScope, $state) {
+    scope = $rootScope.$new();
+    state = $state;
   }));
 
   afterEach(inject(function($httpBackend) {
@@ -57,11 +25,6 @@ describe('mainModuleSpec', function() {
     $httpBackend.verifyNoOutstandingRequest();
   }));
 
-  beforeEach(inject(function($rootScope, $state) {
-    scope = $rootScope.$new();
-    state = $state;
-  }));
-
   describe('Custom sanitation', function() {
     it('allows blob urls unsanitized', inject(function($$sanitizeUri) {
       var uri = 'blob:http%3A//127.0.0.1%3A8070/someuuid';
@@ -70,122 +33,65 @@ describe('mainModuleSpec', function() {
     }));
   });
 
-  describe('Validate proper requests made on initialization', function () {
-    var event = {
-      preventDefault: jasmine.createSpy('preventDefault')
-    };
+  describe('Validate requests made on initService start', function(){
+    it('validate state after all requests succeed', inject(function($httpBackend, CLMLocations, initService, $rootScope, ProductFeatures){
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getSessionUrl())).respond({username:'myname'});
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getLicenseSummaryUrl())).respond({});
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getProductFeaturesUrl())).respond(['dashboard']);
+      $httpBackend.expectGET('../dashboard-assets/dashboard.html?').respond('<div></div>');
+      $httpBackend.expectGET('../dashboard-assets/overview.html?').respond('<div></div>');
 
-    it('normal', inject(function($rootScope, $state, $stateParams) {
-      var toParams = {testId:'blah'},
-          event = null;
-
-      scope.$apply(function () {
-        event = $rootScope.$broadcast('$stateChangeStart', 'test', toParams, '', {});
-      });
-
-      expect(event.defaultPrevented).toBeTruthy();
-
-      scope.$apply(function () {
-        currentUserSuccess({
-          username: 'user',
-          authenticated: true
-        });
-      });
-
-      expect($rootScope.initialized).toBeFalsy();
-      expect($rootScope.licensed).toBeFalsy();
-
-      scope.$apply(function () {
-        licenseCheckerSuccess({
-          expiryTimestamp : 0 // technically in the past but JS doesn't check this
-        });
-      });
-      
-      expect($rootScope.licensed).toBeTruthy();
-      expect($rootScope.initialized).toBeTruthy();
-
-      expect($state.current.name).toEqual('test');
-      expect($stateParams).toEqual(toParams);
-    }));
-
-    it('bad license', inject(function($rootScope, $state, $stateParams, $httpBackend) {
-      var event = null;
-      $httpBackend.expectGET('../assets/management.html?').respond('<div></div>');
-      $httpBackend.expectGET('../configuration-assets/components/configuration-navigator.html?').respond('<div></div>');
-      $httpBackend.expectGET('../configuration-assets/components/license.html?').respond('<div></div>');
-
-      scope.$apply(function () {
-        currentUserSuccess({
-          username: 'user',
-          authenticated: true
-        });
-        licenseCheckerFail(402);
-        event = $rootScope.$broadcast('$stateChangeStart', 'test', {}, '', {});
-      });
-
+      initService.start();
       $httpBackend.flush();
+      expect($rootScope.licensed).toEqual(true);
+      expect($rootScope.username).toEqual('myname');
+      expect(ProductFeatures.isDashboardLicensed()).toEqual(true);
+      expect($rootScope.initialized).toEqual(true);
+    }));
 
-      expect(event.defaultPrevented).toBeTruthy();
-      expect($rootScope.initialized).toBeTruthy();
+    it('validate state after license check fails because unlicensed', inject(function($httpBackend, CLMLocations, initService, $rootScope, ProductFeatures, $window){
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getSessionUrl())).respond({username:'myname'});
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getLicenseSummaryUrl())).respond(402);
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getProductFeaturesUrl())).respond(['dashboard']);
+
+      initService.start();
+      $httpBackend.flush();
       expect($rootScope.licensed).toBeFalsy();
-      expect($state.current.name).toEqual('management.configuration.productlicense');
+      expect($window.location.replace).toHaveBeenCalled();
+      expect($rootScope.initialized).toBeFalsy();
     }));
 
-    it('bad license in separate application', inject(function($rootScope, $state, $stateParams, $window) {
-      // now test with bad license from something other than index.html (i.e. reports.html)
-      $window.location.href = 'http://blah/reports.html';
-
-      currentUserSuccess({
-        username: 'user',
-        authenticated: true
-      });
-      licenseCheckerFail(402);
-      var event = $rootScope.$broadcast('$stateChangeStart', 'test', {}, '', {});
-
-      expect(event.defaultPrevented).toBeTruthy();
-      expect($window.location.replace).toHaveBeenCalledWith('index.html#/management/configuration/productlicense');
+    it('validate state after logged in check error', inject(function($httpBackend, CLMLocations, initService, $rootScope){
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getSessionUrl())).respond(500);
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getLicenseSummaryUrl())).respond({});
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getProductFeaturesUrl())).respond(['dashboard']);
+      $rootScope.error = undefined;
+      initService.start();
+      $httpBackend.flush();
+      expect($rootScope.error).toBeDefined();
+      expect($rootScope.initialized).toBeFalsy();
     }));
 
-    it('bad auth', inject(function($rootScope, $state, $stateParams, $window) {
-      $window.location.replace.reset();
-
-      currentUserSuccess({
-        username: 'user',
-        authenticated: false
-      });
-      licenseCheckerFail(401);
-      var event = $rootScope.$broadcast('$stateChangeStart', 'test', {}, '', {});
-
-      expect(event.defaultPrevented).toBeTruthy();
-      expect($rootScope.username).toBeFalsy();
-      expect($rootScope.licensed).toBeFalsy();
-    }));
-  });
-
-  describe('Normal Operation', function () {
-    beforeEach(inject(function($rootScope, $state, $controller) {
-      $rootScope.username = 'user';
-      $rootScope.authenticated = true;
-      $rootScope.licensed = true;
+    it('validate state after license check error', inject(function($httpBackend, CLMLocations, initService, $rootScope){
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getSessionUrl())).respond({username:'myname'});
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getLicenseSummaryUrl())).respond(500);
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getProductFeaturesUrl())).respond(['dashboard']);
+      $rootScope.error = undefined;
+      initService.start();
+      $httpBackend.flush();
+      expect($rootScope.error).toBeDefined();
+      expect($rootScope.initialized).toBeFalsy();
     }));
 
-    it('Validate location change event is broadcast properly', inject(function($rootScope) {
-      var successStart = false, successAccept = false;
-      $rootScope.$on('pageChangeStarted', function(event, destination) {
-        successStart = true;
-      });
-      $rootScope.$on('pageChangeAccepted', function(event, destination) {
-        successAccept = true;
-      });
-
-      $rootScope.$broadcast('$locationChangeStart', 'http://www.cnn.com', 'http://www.google.com');
-
-      waitsFor(function() {
-        return successStart;
-      }, "pageChangeStarted event not properly retrieved", 1000);
-      waitsFor(function() {
-        return successAccept;
-      }, "pageChangeAccepted event not properly retrieved", 1000);
+    it('validate state after product feature error', inject(function($httpBackend, CLMLocations, initService, $rootScope){
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getSessionUrl())).respond({username:'myname'});
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getLicenseSummaryUrl())).respond({});
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getProductFeaturesUrl())).respond(500);
+      $rootScope.error = undefined;
+      initService.start();
+      $httpBackend.flush();
+      expect($rootScope.error).toBeDefined();
+      expect($rootScope.initialized).toBeFalsy();
     }));
   });
 });

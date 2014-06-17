@@ -7,12 +7,7 @@
 (function() {
   'use strict';
   angular.module('managementApp',
-    ['MainModule', 'OrganizationModule', 'ApplicationModule', 'Configuration', 'UserModule', 'LdapConfiguration'],
-    ['$urlRouterProvider',
-      function($urlRouterProvider) {
-        $urlRouterProvider.when('', '/dashboard');
-      }
-    ]);
+    ['MainModule', 'OrganizationModule', 'ApplicationModule', 'Configuration', 'UserModule', 'LdapConfiguration']);
 }());
 
 (function() {

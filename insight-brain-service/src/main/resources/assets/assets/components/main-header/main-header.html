@@ -94,7 +94,7 @@
       </div>
       <div class='dashboard-responsive'>
         <ul class='inline dashboard-navigation'>
-          <li ng-class="{ 'active' : $state.includes('dashboard') }" tooltip='Dashboard' tooltip-placement='bottom'>
+          <li ng-class="{ 'active' : $state.includes('dashboard') }" tooltip='Dashboard' tooltip-placement='bottom' ng-if='isDashboardLicensed()'>
             <a href='index.html#/dashboard'>
               <span><i class='sonatype-icons medium dashboard'></i></span>
             </a>

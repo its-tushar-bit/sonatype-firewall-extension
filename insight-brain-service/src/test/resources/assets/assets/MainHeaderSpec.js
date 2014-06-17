@@ -29,6 +29,12 @@ describe('mainHeader', function() {
       }
     });
 
+    $provide.value('ProductFeatures', {
+      isDashboardLicensed : function() {
+        return true;
+      }
+    });
+
     $provide.value('$modal', {
       open: function(config) {
         dialogScope = scope.$new();
@@ -49,7 +55,7 @@ describe('mainHeader', function() {
     });
   }));
 
-  beforeEach(inject(function($rootScope, $state, $controller) {
+  beforeEach(inject(function($rootScope, $state, $controller, $httpBackend, CLMLocations) {
     scope = $rootScope.$new();
     state = $state;
 

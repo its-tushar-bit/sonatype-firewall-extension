@@ -701,6 +701,15 @@ table.table-risk td.low-risk, span.low-risk {
   border-bottom: 0px;
 }
 
+.component-violations-table td:not(:first-child), .component-violations-table a {
+  opacity: .75;
+}
+
+.component-violations-table tr {
+  border-bottom: 1px solid #ddd;
+  background-color: #FCFCFC !important;
+}
+
 .expandable-header {
   width: 10px;
 }
@@ -709,51 +718,49 @@ table.table-risk td.low-risk, span.low-risk {
   width: 20px;
 }
 
-
-.share-risk-header {
-  width : 120px
+.share-risk-header, .component-violations-table .share-risk-column {
+  min-width: 120px;
+  width: 120px;
 }
 
-/* padding in the header is 8px, 2*(12-8) = 8px smaller width */
-.component-violations-table .share-risk-column {
-  width: 112px;
-  padding: 8px 12px;
-}
-
-/* styling for sparkling */
 @media (min-width:1200px) {
-  .risk-header, .stage-column {
+  .risk-header, .stage-column, .component-violations-table .risk-column {
+    min-width: 70px;
     width: 70px;
-  }
-
-  /* padding in the header is 8px, 2*(12-8) = 8px smaller width */
-  .component-violations-table .risk-column {
-    width: 62px;
-    padding: 8px 12px;
   }
 }
 
 @media (max-width:1199px) {
-  .risk-header, .stage-column {
+  .risk-header, .stage-column, .component-violations-table .risk-column {
+    min-width: 60px;
     width: 60px;
   }
 
-  /* padding in the header is 8px, 2*(12-8) = 8px smaller width */
-  .component-violations-table .risk-column {
-    width: 52px;
-    padding: 8px 12px;
+  .component-violations-table .stage-column-release {
+    min-width: 63px;
+    width: 63px;
+  }
+
+  .component-violations-table .stage-column-operate {
+    min-width: 65px;
+    width: 65px;
   }
 }
 
 @media (max-width:979px) {
-  .risk-header, .stage-column {
+  .risk-header, .stage-column, .component-violations-table .risk-column {
+    min-width: 48px;
     width: 48px;
   }
 
-  /* padding in the header is 8px, 2*(12-8) = 8px smaller width */
-  .component-violations-table .risk-column {
-    width: 40px;
-    padding: 8px 12px;
+  .component-violations-table .stage-column-release {
+    min-width: 63px;
+    width: 63px;
+  }
+
+  .component-violations-table .stage-column-operate {
+    min-width: 65px;
+    width: 65px;
   }
 }
 

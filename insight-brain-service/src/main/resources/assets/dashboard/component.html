@@ -94,7 +94,7 @@
                         </td>
                         <td ng-repeat='stageDetails in policyViolation.stageDetails'
                             ng-class="{ 'latest-risk': stageDetails.time === risk.time }"
-                            class="stage-column">
+                            class="stage-column stage-column-{{stageDetails.stageTypeId}}">
                           <a title="View application report"
                              ng-href="index.html#/reports/{{applicationComponent.application.publicId | EncodeURIComponent }}/{{stageDetails.scanId}}"
                              target="_blank" ng-if="stageDetails.time > 0">

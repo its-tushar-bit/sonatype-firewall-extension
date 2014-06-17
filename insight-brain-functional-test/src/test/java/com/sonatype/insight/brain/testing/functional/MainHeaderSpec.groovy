@@ -5,10 +5,14 @@
  */
 package com.sonatype.insight.brain.testing.functional
 
+import com.sonatype.insight.license.model.ProductLicenseDetails
+
 class MainHeaderSpec
     extends BaseSpec 
 {
   def setup() {
+    productLicenseManager.reset()
+    clmLicenseManager.installLicense(null)
     loginAsAdminVia()
   }
   def "displays logged in users display name"() {
@@ -24,5 +28,38 @@ class MainHeaderSpec
     expect: "version is shown"
       waitFor { mainModule.version.displayed }
       waitFor { mainModule.version.text() == props["version"] }
+  }
+
+  def "dashboard icon shown when licensed"() {
+    given: "user has logged in"
+    expect: "dashboard icon to be visible"
+      waitFor { mainModule.dashboard.displayed }
+  }
+
+  def "dashboard icon not shown when not licensed"() {
+    given: "license is modified and page is refreshed"
+      setLicensedProducts(ProductLicenseDetails.PRODUCT_NEXUS)
+      driver.navigate().refresh()
+    expect: "dashboard icon is not shown"
+      waitFor { !mainModule.dashboard.present && mainModule.reports.present && mainModule.management.present }
+  }
+
+  def "dashboard default page when licensed"() {
+    given: "user logs out and user logs in again"
+      userOptions.logoutClick()
+      loginAsAdminVia(IndexPage)
+
+    expect: "user to be at dashboard"
+      waitFor { at DashboardOverviewPage }
+  }
+
+  def "dashboard not default page when unlicensed"() {
+    given: "user logs out and user logs in again"
+      setLicensedProducts(ProductLicenseDetails.PRODUCT_NEXUS)
+      userOptions.logoutClick()
+      loginAsAdminVia(IndexPage)
+
+    expect: "user to be at reports page"
+      waitFor { at ReportViolationsPage }
   }
 }

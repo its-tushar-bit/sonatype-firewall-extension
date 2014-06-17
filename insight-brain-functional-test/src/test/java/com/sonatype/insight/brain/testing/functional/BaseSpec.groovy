@@ -10,6 +10,7 @@ import com.sonatype.insight.brain.TestProductLicenseManager
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity
+import com.sonatype.insight.brain.product.license.CLMLicenseManager
 import com.sonatype.insight.brain.service.InsightMockServerRule
 import com.sonatype.insight.brain.service.PortAllocator
 import com.sonatype.insight.brain.service.TestInsightBrainServiceRule
@@ -58,14 +59,18 @@ abstract class BaseSpec
   
   static OrganizationDAO organizationDAO = new OrganizationDAO()
   static ApplicationDAO  applicationDAO = new ApplicationDAO()
+  public static TestProductLicenseManager productLicenseManager = new TestProductLicenseManager()
+  public static TestLicenseFingerprinter licenseFingerprinter = new TestLicenseFingerprinter()
+  public static CLMLicenseManager clmLicenseManager = new CLMLicenseManager(productLicenseManager, licenseFingerprinter)
 
   def getBrainModules() {
     return Arrays.asList(new AbstractModule()
     {
       @Override
       protected void configure() {
-        bind(ProductLicenseManager.class).to(TestProductLicenseManager.class)
-        bind(LicenseFingerprinter.class).to(TestLicenseFingerprinter.class)
+        bind(ProductLicenseManager.class).toInstance(productLicenseManager)
+        bind(LicenseFingerprinter.class).toInstance(licenseFingerprinter)
+        bind(CLMLicenseManager.class).toInstance(clmLicenseManager)
       }
     });
   }
@@ -73,6 +78,8 @@ abstract class BaseSpec
   def setupSpec() {
     // Use port as reported by service under test since it's not known until runtime.
     System.setProperty("geb.build.baseUrl", "http://localhost:" + serviceRule.getPort() + "/")
+    productLicenseManager.reset()
+    clmLicenseManager.installLicense(null)
   }
 
   def cleanupSpec() {
@@ -181,5 +188,10 @@ abstract class BaseSpec
     int size = !applicationList?.empty ? applicationList.size() : 0
     applicationManagementPage.createApp(name, id, orgName)
     waitFor{ applicationList.size() > size }
+  }
+
+  void setLicensedProducts(String... products) {
+    productLicenseManager.setProducts(products)
+    clmLicenseManager.installLicense(null)
   }
 }

@@ -14,6 +14,7 @@ import com.sonatype.insight.brain.model.policy.PolicyThreatCategory
 import com.sonatype.insight.brain.model.policy.PolicyViolation
 import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType
+import com.sonatype.insight.brain.testing.functional.report.violation.ReportContainerPage
 import spock.lang.Stepwise
 
 /**
@@ -98,5 +99,23 @@ class ComponentDrilldownSpec
       violationRow.riskCount == 5
       violationRow.build == '7d'
       violationRow.isFail(ComponentViolationRow.BUILD)
+  }
+
+  def 'Links to reports open in a new window'() {
+    when: 'clicking on a link to a report from the application row'
+      ComponentApplicationRow row = componentApplicationRow(app.id)
+
+    then: 'the stage label links to the underlying report'
+      withNewWindow(page: ReportContainerPage, { row.click(row.cell(ComponentApplicationRow.BUILD)) }) {
+        verifyAt()
+        reportTitle.text()
+      } ==~ app.name + ' .* Build Report'
+
+    and: 'the corresponding policy violation row label links to the same report'
+      ComponentViolationRow violationRow = componentViolationRow(app.id, policy.name)
+      withNewWindow(page: ReportContainerPage, { violationRow.click(violationRow.cell(ComponentViolationRow.BUILD)) }) {
+        verifyAt()
+        reportTitle.text()
+      } ==~ app.name + ' .* Build Report'
   }
 }

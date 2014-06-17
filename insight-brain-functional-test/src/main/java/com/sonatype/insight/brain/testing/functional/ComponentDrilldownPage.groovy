@@ -52,6 +52,9 @@ class ComponentApplicationRow
     riskPie { cell(RISK_PIE).text().trim() }
     riskCount { cell(RISK_COUNT).text().toInteger() }
     build { cell(BUILD).text() }
+    stage { cell(STAGE).text() }
+    release { cell(RELEASE).text() }
+    operate { cell(OPERATE).text() }
   }
 
   boolean isFail(int cell) {
@@ -60,6 +63,10 @@ class ComponentApplicationRow
 
   boolean isWarn(int cell) {
     return cellIcon(cell).hasClass('warn')
+  }
+
+  boolean click(cell) {
+    cell.find('a').click()
   }
 }
 
@@ -71,6 +78,9 @@ class ComponentViolationRow
   static final int RISK_PIE = 3
   static final int RISK_COUNT = 4
   static final int BUILD = 5
+  static final int STAGE = 6
+  static final int RELEASE = 7
+  static final int OPERATE = 8
 
   static content = {
     cell(required: false) { int i -> $('td', i) }
@@ -80,6 +90,9 @@ class ComponentViolationRow
     riskPie { cell(RISK_PIE).text().trim() }
     riskCount { cell(RISK_COUNT).text().toInteger() }
     build { cell(BUILD).text() }
+    stage { cell(STAGE).text() }
+    release { cell(RELEASE).text() }
+    operate { cell(OPERATE).text() }
   }
 
   boolean isFail(int cell) {
@@ -88,5 +101,9 @@ class ComponentViolationRow
 
   boolean isWarn(int cell) {
     return cellIcon(cell).hasClass('warn')
+  }
+
+  boolean click(cell) {
+    cell.find('a').click()
   }
 }

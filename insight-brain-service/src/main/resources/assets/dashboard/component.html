@@ -67,9 +67,13 @@
             <td ng-repeat='stageDetails in applicationComponent.stageDetails'
                 ng-class="{ 'latest-risk': stageDetails.time === risk.time }"
                 class="stage-column">
+              <a title="View application report"
+                 ng-href="index.html#/reports/{{applicationComponent.application.publicId | EncodeURIComponent }}/{{stageDetails.scanId}}"
+                 target="_blank" ng-if="stageDetails.time > 0">
                   {{stageDetails.time | terseAgo}}
                   <i class="sonatype-icons pad-left"
                      ng-class="{ warn: stageDetails.actionTypeId === 'warn', fail : stageDetails.actionTypeId === 'fail'}"></i>
+                </a>
             </td>
           </tr>
           <tr ng-repeat-end>

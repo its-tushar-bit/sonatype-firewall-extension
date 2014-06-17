@@ -104,6 +104,11 @@ public class ComponentDetailService
 
         List<PolicyViolation> policyViolations = policyViolationDAO.getByEvaluationIdAndHash(policyEvaluation.getId(),
             hash);
+        // only set this value if we have violations
+        if (!policyViolations.isEmpty()) {
+          appStageDetailDTO.time = policyEvaluation.getTime().getTime();
+          appStageDetailDTO.scanId = policyEvaluation.getScanId();
+        }
         for (PolicyViolation policyViolation : policyViolations) {
           String policyId = policyViolation.getPolicyId();
 
@@ -119,13 +124,12 @@ public class ComponentDetailService
           policyStageDetailDTO.scanId = policyEvaluation.getScanId();
           policyStageDetailDTO.actionTypeId = policyViolation.getActionTypeId();
           policyStageDetailDTO.time = firstOccurrence.getTime().getTime();
-          if (getSeverity(appStageDetailDTO.actionTypeId) < getSeverity(policyStageDetailDTO.actionTypeId)) {
-            appStageDetailDTO.actionTypeId = policyStageDetailDTO.actionTypeId;
+
+          // Should always have the time/action of the first occurring violation for the stage, to indicate how long
+          // violations have been around for this application.
+          if(policyStageDetailDTO.time <= appStageDetailDTO.time) {
             appStageDetailDTO.time = policyStageDetailDTO.time;
-          }
-          else if (policyStageDetailDTO.actionTypeId != null
-              && policyStageDetailDTO.actionTypeId.equals(appStageDetailDTO.actionTypeId)) {
-            appStageDetailDTO.time = Math.max(policyStageDetailDTO.time, appStageDetailDTO.time);
+            appStageDetailDTO.actionTypeId = policyStageDetailDTO.actionTypeId;
           }
 
           PolicyViolationSummaryDTO policyViolationSummaryDTO = policyViolationDTOsByPolicyId.get(policyId);
@@ -159,19 +163,6 @@ public class ComponentDetailService
     }
 
     return result;
-  }
-
-  private int getSeverity(String actionTypeId) {
-    if (actionTypeId == null) {
-      return 0;
-    }
-    else if (WarnActionType.ID.equals(actionTypeId)) {
-      return 1;
-    }
-    else if (FailActionType.ID.equals(actionTypeId)) {
-      return 2;
-    }
-    throw new IllegalStateException("unknown action type: " + actionTypeId);
   }
 
   private Map<String, StageDetailDTO> initStageDetails(Collection<StageType> stageTypes) {

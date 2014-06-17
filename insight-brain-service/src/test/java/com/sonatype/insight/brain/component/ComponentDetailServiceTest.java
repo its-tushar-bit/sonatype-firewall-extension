@@ -182,7 +182,7 @@ public class ComponentDetailServiceTest
     ApplicationComponentDetailsDTO dto = appComponentDetailsDTOs.get(0);
     assertThat(dto.application.getId(), is(app2.getId()));
     assertThat(dto.stageDetails, hasSize(4));
-    assertStageDetails(dto.stageDetails.get(0), StageTypes.BUILD, null, null, null);
+    assertStageDetails(dto.stageDetails.get(0), StageTypes.BUILD, null, "scanId1", evaluation3.getTime().getTime());
     assertStageDetails(dto.stageDetails.get(1), StageTypes.STAGE_RELEASE, null, null, null);
     assertStageDetails(dto.stageDetails.get(2), StageTypes.RELEASE, null, null, null);
     assertStageDetails(dto.stageDetails.get(3), StageTypes.OPERATE, null, null, null);
@@ -229,45 +229,7 @@ public class ComponentDetailServiceTest
   }
 
   @Test
-  public void testGetApplicationDetailsByHash_MostSevereActionForAppLevel() {
-    String hash = "ababababab";
-
-    Application app1 = tempEntity.newApplicationWithParent("app1");
-    ApplicationComponent component = tempEntity.newApplicationComponent(app1.getId(), BuildStageType.ID, hash,
-        "groupId", "artifactId", "version");
-    tempEntity.newApplicationComponent(app1.getId(), ReleaseStageType.ID, component.getHash(), component.getGroupId(),
-        component.getArtifactId(), component.getVersion());
-
-    Policy policy1 = tempEntity.newPolicy(app1.getId(), "policy1");
-    Policy policy2 = tempEntity.newPolicy(app1.getId(), "policy2");
-
-    PolicyEvaluation evaluation1 = tempEntity.newPolicyEvaluation(app1.getId(), BuildStageType.ID, "scanId1");
-    tempEntity.newPolicyViolation(evaluation1, policy1, policy1.getThreatLevel(), policy1.getThreatCategory(),
-        component.getGroupId(), component.getArtifactId(), component.getVersion(), hash, WarnActionType.ID);
-    tempEntity.newPolicyViolation(evaluation1, policy2, policy2.getThreatLevel(), policy2.getThreatCategory(),
-        component.getGroupId(), component.getArtifactId(), component.getVersion(), hash, null);
-
-    PolicyEvaluation evaluation2 = tempEntity.newPolicyEvaluation(app1.getId(), ReleaseStageType.ID, "scanId2");
-    tempEntity.newPolicyViolation(evaluation2, policy1, policy1.getThreatLevel(), policy1.getThreatCategory(),
-        component.getGroupId(), component.getArtifactId(), component.getVersion(), hash, WarnActionType.ID);
-    tempEntity.newPolicyViolation(evaluation2, policy2, policy2.getThreatLevel(), policy2.getThreatCategory(),
-        component.getGroupId(), component.getArtifactId(), component.getVersion(), hash, FailActionType.ID);
-
-    List<ApplicationComponentDetailsDTO> appComponentDetailsDTOs = componentDetailService
-        .getApplicationDetailsByHash(hash);
-    assertThat(appComponentDetailsDTOs, notNullValue());
-    assertThat(appComponentDetailsDTOs, hasSize(1));
-    ApplicationComponentDetailsDTO dto = appComponentDetailsDTOs.get(0);
-    assertThat(dto.application.getId(), is(app1.getId()));
-    assertThat(dto.stageDetails, hasSize(4));
-    assertStageDetails(dto.stageDetails.get(0), StageTypes.BUILD, WarnActionType.ID, null, evaluation1.getTime().getTime());
-    assertStageDetails(dto.stageDetails.get(1), StageTypes.STAGE_RELEASE, null, null, null);
-    assertStageDetails(dto.stageDetails.get(2), StageTypes.RELEASE, FailActionType.ID, null, evaluation2.getTime().getTime());
-    assertStageDetails(dto.stageDetails.get(3), StageTypes.OPERATE, null, null, null);
-  }
-
-  @Test
-  public void testGetApplicationDetailsByHash_MostRecentTimeAmongMostSevereActionForAppLevel() {
+  public void testGetApplicationDetailsByHash_FirstOccurrenceTimeForAppLevel() {
     String hash = "ababababab";
 
     Application app1 = tempEntity.newApplicationWithParent("app1");
@@ -302,7 +264,8 @@ public class ComponentDetailServiceTest
     ApplicationComponentDetailsDTO dto = appComponentDetailsDTOs.get(0);
     assertThat(dto.application.getId(), is(app1.getId()));
     assertThat(dto.stageDetails, hasSize(4));
-    assertStageDetails(dto.stageDetails.get(0), StageTypes.BUILD, WarnActionType.ID, null, evaluation2.getTime().getTime());
+    // should show the first occurence time and link to most recent scan report
+    assertStageDetails(dto.stageDetails.get(0), StageTypes.BUILD, WarnActionType.ID, "scanId2", evaluation1.getTime().getTime());
     assertStageDetails(dto.stageDetails.get(1), StageTypes.STAGE_RELEASE, null, null, null);
     assertStageDetails(dto.stageDetails.get(2), StageTypes.RELEASE, null, null, null);
     assertStageDetails(dto.stageDetails.get(3), StageTypes.OPERATE, null, null, null);

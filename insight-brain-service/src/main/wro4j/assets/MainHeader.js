@@ -14,7 +14,6 @@
         // TODO This ought to perform a dirty check before it simply logs the user out
         // https://issues.sonatype.org/browse/CLM-1251
         $http['delete'](CLMLocations.getSessionLogoutUrl()).success(function(){
-          $rootScope.username = null;
           $scope.$emit('logout');
         });
       };

@@ -137,6 +137,7 @@
         });
 
         $rootScope.$on('logout', function() {
+          $rootScope.username = null;
           $window.location.assign('..');
         });
 

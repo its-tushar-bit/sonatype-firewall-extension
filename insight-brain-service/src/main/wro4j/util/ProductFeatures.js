@@ -10,7 +10,11 @@
 
   productFeatureModule.service('ProductFeatures', ['$http', 'CLMLocations', function($http, CLMLocations) {
     var promise = null, productFeatures = null;
-    function doLoad() {
+    function load() {
+      if (promise) {
+        return promise;
+      }
+
       promise = $http.get(CLMLocations.getProductFeaturesUrl()).then(function(response) {
         productFeatures = {};
         angular.forEach(response.data,function(feature){
@@ -25,23 +29,14 @@
       return productFeatures !== null && productFeatures[feature] === true;
     }
 
-    function loaded() {
-      return productFeatures !== null;
+    function dashboardAvailable() {
+      return available('dashboard');
     }
 
     return {
-      load: function() {
-        return promise ? promise : doLoad();
-      },
-      isAvailable: function(feature) {
-        return available(feature);
-      },
-      isLoaded: function() {
-        return loaded();
-      },
-      isDashboardLicensed: function() {
-        return loaded() && available('dashboard');
-      }
+      load: load,
+      isAvailable: available,
+      isDashboardLicensed: dashboardAvailable
     };
   }]);
 }());

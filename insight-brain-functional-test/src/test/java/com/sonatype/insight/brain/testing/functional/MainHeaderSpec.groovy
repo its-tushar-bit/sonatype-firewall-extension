@@ -15,8 +15,10 @@ class MainHeaderSpec
     clmLicenseManager.installLicense(null)
     loginAsAdminVia()
   }
+
   def "displays logged in users display name"() {
     given: "user has logged in"
+
     expect: "users display name is shown"
       waitFor { userOptions.displayName.text() == "Admin BuiltIn" }
   }
@@ -25,6 +27,7 @@ class MainHeaderSpec
     given: "user has logged in"
       def props = new Properties()
       props.load(getClass().getResourceAsStream("/version.properties"));
+
     expect: "version is shown"
       waitFor { mainModule.version.displayed }
       waitFor { mainModule.version.text() == props["version"] }
@@ -32,6 +35,7 @@ class MainHeaderSpec
 
   def "dashboard icon shown when licensed"() {
     given: "user has logged in"
+
     expect: "dashboard icon to be visible"
       waitFor { mainModule.dashboard.displayed }
   }
@@ -40,6 +44,7 @@ class MainHeaderSpec
     given: "license is modified and page is refreshed"
       setLicensedProducts(ProductLicenseDetails.PRODUCT_NEXUS)
       driver.navigate().refresh()
+
     expect: "dashboard icon is not shown"
       waitFor { !mainModule.dashboard.present && mainModule.reports.present && mainModule.management.present }
   }

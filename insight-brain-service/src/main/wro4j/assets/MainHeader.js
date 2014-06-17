@@ -9,7 +9,7 @@
 
   var module = angular.module('MainHeader', ['ui.router', 'AngularCommon', 'CLMLocation', 'ProductFeaturesModule']);
 
-  module.controller('LogoutController', ['$scope', '$http', 'CLMLocations', '$rootScope', function ($scope, $http, CLMLocations, $rootScope) {
+  module.controller('LogoutController', ['$scope', '$http', 'CLMLocations', function ($scope, $http, CLMLocations) {
       $scope.logout = function () {
         // TODO This ought to perform a dirty check before it simply logs the user out
         // https://issues.sonatype.org/browse/CLM-1251

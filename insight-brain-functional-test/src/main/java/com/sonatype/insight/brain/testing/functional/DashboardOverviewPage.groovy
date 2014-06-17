@@ -199,10 +199,11 @@ class ThreatHeaderModule
 
   Map<String, Integer> getColumnPositions() {
     Map<String, Integer> positions = new HashMap<>()
-    positions.put(CRITICAL, critical.displayed ? positions.size() + columnOffset +1 : 0)
-    positions.put(SEVERE, severe.displayed ? positions.size() + columnOffset + 1 : 0)
-    positions.put(MODERATE, moderate.displayed ? positions.size() + columnOffset + 1 : 0)
-    positions.put(LOW, low.displayed ? positions.size() + columnOffset + 1 : 0)
+    int position = columnOffset + 1
+    positions.put(CRITICAL, critical.displayed ? position++ : 0)
+    positions.put(SEVERE, severe.displayed ? position++ : 0)
+    positions.put(MODERATE, moderate.displayed ? position++ : 0)
+    positions.put(LOW, low.displayed ? position++ : 0)
     return positions
   }
 }

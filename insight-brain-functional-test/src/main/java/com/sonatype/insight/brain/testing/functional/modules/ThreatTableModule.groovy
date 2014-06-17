@@ -16,10 +16,11 @@ class ThreatTableModule
   static content = {
     headers { $('th') }
     headerLinks { int i -> $('th a', i) }
-    riskHeader { headerLinks(0) }
+    threatHeader { headerLinks(0) }
     ageHeader { headerLinks(1) }
     policyHeader { headerLinks(2) }
     applicationHeader { headerLinks(3) }
+    componentHeader { headerLinks(4) }
     rows(required: false) { moduleList ThreatTableRow, $('tr').tail(), stageColumns : getStageColumns() }
     maxResults(required: false) { $('#max-results-shown') }
 
@@ -49,6 +50,14 @@ class ThreatTableModule
   def clickStageHeader(header) {
     header.find('a').click()
   }
+
+  def isUp(header) {
+    return header.find('i').hasClass('up')
+  }
+
+  def isDown(header) {
+    return header.find('i').hasClass('down')
+  }
 }
 
 class ThreatTableRow
@@ -56,7 +65,7 @@ class ThreatTableRow
 {
   static final int RISK_COLOR = 0
 
-  static final int RISK = 1
+  static final int THREAT = 1
 
   static final int AGE = 2
 
@@ -70,7 +79,7 @@ class ThreatTableRow
 
   static content = {
     cell(required: false) { int i -> $('td', i) }
-    risk { cell(RISK).text().toInteger() }
+    threat { cell(THREAT).text().toInteger() }
     age { cell(AGE).text() }
     policy { cell(POLICY).text() }
     application { cell(APPLICATION).text() }

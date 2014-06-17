@@ -27,14 +27,11 @@ import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType
 import com.sonatype.insight.brain.model.policy.stages.StageReleaseStageType
 import com.sonatype.insight.brain.model.tag.Tag
 import com.sonatype.insight.brain.service.InsightWork
+import com.sonatype.insight.brain.testing.functional.modules.ThreatTableModule
 import com.sonatype.insight.brain.testing.functional.modules.ThreatTableRow
 import com.sonatype.insight.brain.testing.functional.report.violation.ReportContainerPage
 import org.codehaus.plexus.util.FileUtils
 
-import static com.sonatype.insight.brain.testing.functional.modules.ThreatTableRow.BUILD_AGE
-import static com.sonatype.insight.brain.testing.functional.modules.ThreatTableRow.RELEASE_AGE
-import static com.sonatype.insight.brain.testing.functional.modules.ThreatTableRow.STAGE_RELEASE_AGE
-import static com.sonatype.insight.brain.testing.functional.modules.ThreatTableRow.OPERATE_AGE
 import static spock.util.matcher.HamcrestMatchers.closeTo
 import static spock.util.matcher.HamcrestSupport.that
 
@@ -50,6 +47,8 @@ class DashboardOverviewSpec
 
   // accept differential for precision of alpha results
   static final BigDecimal TOLERANCE = 0.05
+
+  static final String DEFAULT_COMPONENT = ["Group1", "Artifact1", "Version1"].join(' : ')
 
   static Organization org
   static Application firstApp
@@ -271,13 +270,21 @@ class DashboardOverviewSpec
 
   def 'Newest Risk table can be sorted by age'() {
     when: 'the newest risk table is shown'
+      ThreatTableModule newestViolationTable = newestViolationTable
       waitFor{ newestViolationTable.displayed }
       waitFor { newestViolationTable.rows.size() >= 2 }
 
-    then: 'risks are sorted by descending threat level, with the most recent results shown first'
+    then: 'risks are sorted by ascending age(most recent first), and then by threat level'
       ThreatTableRow rowOne = newestViolationTable.rows[0]
       ThreatTableRow rowTwo = newestViolationTable.rows[1]
-      rowOne.risk == 10
+      rowOne.threat == 10
+      newestViolationTable.rows[0].age ==~ RECENT_AGE
+      newestViolationTable.rows[1].age == '7d'
+      newestViolationTable.rows[2].age == '8d'
+
+    and: 'the sort is by default indicated as ascending for age'
+      newestViolationTable.isUp(newestViolationTable.ageHeader)
+      !newestViolationTable.isDown(newestViolationTable.ageHeader)
 
     and: 'only one stage is populated for the first result'
       !rowOne.buildAge
@@ -294,7 +301,7 @@ class DashboardOverviewSpec
       !rowOne.isMarkedAsWarn(OperateStageType.ID)
 
     and: 'two stages are populated for the second result'
-      rowTwo.risk == 5
+      rowTwo.threat == 5
       rowTwo.buildAge == '7d'
       rowTwo.buildAge == rowTwo.age
       rowTwo.stageReleaseAge == '14d'
@@ -308,20 +315,22 @@ class DashboardOverviewSpec
     and: 'the stage release stage is marked as warn'
       rowTwo.isMarkedAsWarn(StageReleaseStageType.ID)
 
-    and: 'the '
-
     when: 'clicking the AGE header'
       newestViolationTable.ageHeader.click()
 
     then: 'we should now show the oldest result first'
-      newestViolationTable.rows[0].age == '8d'
+      waitFor { newestViolationTable.rows[0].age == '8d' }
       newestViolationTable.rows[1].age == '7d'
       newestViolationTable.rows[2].age ==~ RECENT_AGE
-  }
 
+    and: 'the sort is indicated as descending for age'
+      newestViolationTable.isDown(newestViolationTable.ageHeader)
+      !newestViolationTable.isUp(newestViolationTable.ageHeader)
+  }
 
   def 'Newest Risk table can be sorted by stage time'() {
     when: 'the newest risk table is shown'
+      ThreatTableModule newestViolationTable = newestViolationTable
       waitFor{ newestViolationTable.displayed }
       waitFor { newestViolationTable.rows.size() == 3 }
 
@@ -332,7 +341,7 @@ class DashboardOverviewSpec
     when: 'clicking on the first stage header(BUILD in this case)'
       newestViolationTable.clickStageHeader(newestViolationTable.buildHeader)
 
-    then: 'we should now show the oldest stage result first, followed by the empty results'
+    then: 'we should now show the most recent stage result first, followed by the empty results'
       waitFor { newestViolationTable.rows[0].buildAge == '7d' }
       !newestViolationTable.rows[1].buildAge
       !newestViolationTable.rows[2].buildAge
@@ -353,6 +362,10 @@ class DashboardOverviewSpec
       newestViolationTable.rows[1].releaseAge == '8d'
       !newestViolationTable.rows[2].releaseAge
 
+    and: 'the sort is indicated as ascending for the RELEASE age'
+      newestViolationTable.isUp(newestViolationTable.releaseHeader)
+      !newestViolationTable.isDown(newestViolationTable.releaseHeader)
+
     when: 'clicking the third stage header again'
       newestViolationTable.clickStageHeader(newestViolationTable.releaseHeader)
 
@@ -360,6 +373,99 @@ class DashboardOverviewSpec
       waitFor { newestViolationTable.rows[0].releaseAge == '8d' }
       newestViolationTable.rows[1].releaseAge ==~ RECENT_AGE
       !newestViolationTable.rows[2].releaseAge
+
+    and: 'the sort is indicated as descending for the RELEASE age'
+      !newestViolationTable.isUp(newestViolationTable.releaseHeader)
+      newestViolationTable.isDown(newestViolationTable.releaseHeader)
+  }
+
+  def 'Newest risk table can be sorted by threat'() {
+    when: 'the newest risk table is shown'
+      ThreatTableModule newestViolationTable = newestViolationTable
+      waitFor{ newestViolationTable.displayed }
+      waitFor { newestViolationTable.rows.size() == 3 }
+
+    and: 'we click on the THREAT column header to sort'
+      newestViolationTable.threatHeader.click()
+
+    then: 'the highest threat should sort to the top'
+      waitFor{ newestViolationTable.rows[0].threat == 10 }
+
+    and: 'the sort is indicated as descending for threat'
+      !newestViolationTable.isUp(newestViolationTable.threatHeader)
+      newestViolationTable.isDown(newestViolationTable.threatHeader)
+
+    when: 'clicking the header again'
+      newestViolationTable.threatHeader.click()
+
+    then: 'the lowest threat should sort to the top'
+      waitFor{ newestViolationTable.rows[0].threat == 2 }
+
+    and: 'the sort is indicated as ascending for threat'
+      newestViolationTable.isUp(newestViolationTable.threatHeader)
+      !newestViolationTable.isDown(newestViolationTable.threatHeader)
+  }
+
+  def 'Newest risk table can be sorted by application name'() {
+    when: 'the newest risk table is shown'
+      ThreatTableModule newestViolationTable = newestViolationTable
+      waitFor{ newestViolationTable.displayed }
+      waitFor { newestViolationTable.rows.size() == 3 }
+
+    and: 'we click on the APPLICATION column header to sort'
+      newestViolationTable.applicationHeader.click()
+
+    then: 'the table should sort by application alphabetically'
+      waitFor{ newestViolationTable.rows[0].application == 'DashboardSpecAppOne' }
+      newestViolationTable.rows[1].application == 'DashboardSpecAppOne'
+      newestViolationTable.rows[2].application == 'DashboardSpecAppTwo'
+
+    and: 'the sort is indicated as ascending for application'
+      newestViolationTable.isUp(newestViolationTable.applicationHeader)
+      !newestViolationTable.isDown(newestViolationTable.applicationHeader)
+
+    when: 'clicking the header again'
+      newestViolationTable.applicationHeader.click()
+
+    then: 'the table should reverse the sort'
+      waitFor{ newestViolationTable.rows[0].application == 'DashboardSpecAppTwo' }
+      newestViolationTable.rows[1].application == 'DashboardSpecAppOne'
+      newestViolationTable.rows[2].application == 'DashboardSpecAppOne'
+
+    and: 'the sort is indicated as descending for application'
+      !newestViolationTable.isUp(newestViolationTable.applicationHeader)
+      newestViolationTable.isDown(newestViolationTable.applicationHeader)
+  }
+
+  def 'Newest risk table can be sorted by component name'() {
+    when: 'the newest risk table is shown'
+      ThreatTableModule newestViolationTable = newestViolationTable
+      waitFor{ newestViolationTable.displayed }
+      waitFor { newestViolationTable.rows.size() == 3 }
+
+    and: 'we click on the COMPONENT column header to sort'
+      newestViolationTable.componentHeader.click()
+
+    then: 'the table should sort by component alphabetically'
+      waitFor{ newestViolationTable.rows[0].component == DEFAULT_COMPONENT }
+      newestViolationTable.rows[1].component == DEFAULT_COMPONENT
+      newestViolationTable.rows[2].component == 'unknown.jar'
+
+    and: 'the sort is indicated as ascending for component'
+      newestViolationTable.isUp(newestViolationTable.componentHeader)
+      !newestViolationTable.isDown(newestViolationTable.componentHeader)
+
+    when: 'clicking the header again'
+      newestViolationTable.componentHeader.click()
+
+    then: 'the table should reverse the sort'
+      waitFor{ newestViolationTable.rows[2].component == DEFAULT_COMPONENT }
+      newestViolationTable.rows[1].component == DEFAULT_COMPONENT
+      newestViolationTable.rows[0].component == 'unknown.jar'
+
+    and: 'the sort is indicated as descending for component'
+      !newestViolationTable.isUp(newestViolationTable.componentHeader)
+      newestViolationTable.isDown(newestViolationTable.componentHeader)
   }
 
   def 'Newest Risk Table can be filtered'() {
@@ -370,16 +476,16 @@ class DashboardOverviewSpec
     then: 'policy violations are listed by age and then threat level'
       !noDataAvailable.displayed
 
-      newestViolationTable.rows[0].risk == 10
+      newestViolationTable.rows[0].threat == 10
       newestViolationTable.rows[0].policy == 'DashboardSpecPolicy'
       newestViolationTable.rows[0].application == secondApp.name
       newestViolationTable.rows[0].component == 'unknown.jar'
       newestViolationTable.rows[0].age ==~ RECENT_AGE
 
-      newestViolationTable.rows[1].risk == 5
+      newestViolationTable.rows[1].threat == 5
       newestViolationTable.rows[1].policy == 'DashboardSpecPolicy'
       newestViolationTable.rows[1].application == firstApp.name
-      newestViolationTable.rows[1].component == ["Group1", "Artifact1", "Version1"].join(' : ')
+      newestViolationTable.rows[1].component == DEFAULT_COMPONENT
       newestViolationTable.rows[1].age == '7d'
 
     when: 'filtering to an application'
@@ -391,7 +497,7 @@ class DashboardOverviewSpec
     then: 'only violations from that application are shown'
       waitFor { newestViolationTable.rows.size() == 1 }
       !applicationFiltersDropdown.displayed
-      newestViolationTable.rows[0].risk == 10
+      newestViolationTable.rows[0].threat == 10
       newestViolationTable.rows[0].policy == 'DashboardSpecPolicy'
       newestViolationTable.rows[0].application == secondApp.name
       newestViolationTable.rows[0].component == 'unknown.jar'
@@ -406,7 +512,7 @@ class DashboardOverviewSpec
     then: 'only violations from that stage are shown'
       waitFor { newestViolationTable.rows.size() == 1 }
       !stageTypeFiltersDropdown.displayed
-      newestViolationTable.rows[0].risk == 10
+      newestViolationTable.rows[0].threat == 10
       newestViolationTable.rows[0].policy == 'DashboardSpecPolicy'
       newestViolationTable.rows[0].application == secondApp.name
       newestViolationTable.rows[0].component == 'unknown.jar'

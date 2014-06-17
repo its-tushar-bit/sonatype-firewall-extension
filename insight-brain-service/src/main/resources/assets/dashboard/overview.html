@@ -95,7 +95,7 @@
           </div>
         </th>
         <th class='time-header'>
-          <div sort-columns="-time,-threatLevel">AGE</div>
+          <div sort-columns="-time,-threatLevel" sort-inverted="true">AGE</div>
         </th>
         <th class='policy-header'>
           <div sort-columns="policyName,-time">POLICY</div>
@@ -107,7 +107,9 @@
           <div sort-columns="gavName,-threatLevel">COMPONENT</div>
         </th>
         <th id='stage-header-{{stage.stageTypeId}}' ng-repeat="stage in stageTypes | stageFilter:filters">
-          <div sort-columns="-{{(stage.stageTypeId | removeDashes) + 'Time'}},-threatLevel">{{ stage.name | uppercase }}</div>
+          <div sort-columns="-{{(stage.stageTypeId | removeDashes) + 'Time'}},-threatLevel" sort-inverted="true">
+            {{ stage.name | uppercase }}
+          </div>
         </th>
       </tr>
       </thead>

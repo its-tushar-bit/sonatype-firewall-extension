@@ -694,30 +694,32 @@
   dashboardModule.directive('sortColumns', function () {
     return {
       require : '^sortable',
-      scope : {
-        field : '@sortColumns'  //comma separated list
+      scope: {
+        field: '@sortColumns',     // comma separated list
+        inverted: '@?sortInverted' // is the data logically inverted, i.e. AGE vs TIME
       },
       transclude : true,
       template : '<a ng-click="setSort()"><span ng-transclude></span> <i class="sonatype-icons" ng-class="{ up : isUp(), down : isDown(), emptyIconGlyph : !isUp() && !isDown() }"></i></a>',
       link : function (scope, element, attrs, sortableCtrl) {
+        var mainSort = scope.field.split(',')[0];
+        var isInverted = scope.inverted === 'true';
+
         scope.setSort = function () {
           sortableCtrl.setSort(scope.field.split(','));
         };
 
-        scope.isUp = function () {
+        scope.isUp = function() {
           var sortColumn = extractColumn(sortableCtrl.sortFields[0]);
-          var isReverse = sortColumn !== sortableCtrl.sortFields[0];
-          var currentColumn = extractColumn(scope.field.split(',')[0]);
-          var isInverse = currentColumn !== scope.field.split(',')[0];
-          return sortColumn === currentColumn && (isReverse ^ isInverse);
+          var reversed = sortColumn !== sortableCtrl.sortFields[0];
+          var currentColumn = extractColumn(mainSort);
+          return sortColumn === currentColumn && (isInverted ? reversed : !reversed);
         };
 
-        scope.isDown = function () {
+        scope.isDown = function() {
           var sortColumn = extractColumn(sortableCtrl.sortFields[0]);
-          var isReverse = sortColumn !== sortableCtrl.sortFields[0];
-          var currentColumn = extractColumn(scope.field.split(',')[0]);
-          var isInverse = currentColumn !== scope.field.split(',')[0];
-          return sortColumn === currentColumn && !(isReverse ^ isInverse);
+          var reversed = sortColumn !== sortableCtrl.sortFields[0];
+          var currentColumn = extractColumn(mainSort);
+          return sortColumn === currentColumn && (!isInverted ? reversed : !reversed);
         };
       }
     };

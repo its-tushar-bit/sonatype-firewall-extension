@@ -465,13 +465,13 @@
                     target="_blank">{{stage.stageTypeName | uppercase}}</a></td>
                   <td class="total-risk" ng-class="{ 'muted-text': stage.risk.totalRisk === 0 }">
                     {{stage.risk.totalRisk}}</td>
-                  <td class="critical-risk" ng-class="{ 'muted-text': stage.risk.criticalRisk === 0 }">
+                  <td ng-if="policyThreatLevelCategories.critical" class="critical-risk" ng-class="{ 'muted-text': stage.risk.criticalRisk === 0 }">
                     {{stage.risk.criticalRisk}}</td>
-                  <td class="severe-risk" ng-class="{ 'muted-text': stage.risk.severeRisk === 0 }">
+                  <td ng-if="policyThreatLevelCategories.severe" class="severe-risk" ng-class="{ 'muted-text': stage.risk.severeRisk === 0 }">
                     {{stage.risk.severeRisk}}</td>
-                  <td class="moderate-risk" ng-class="{ 'muted-text': stage.risk.moderateRisk === 0 }">
+                  <td ng-if="policyThreatLevelCategories.moderate" class="moderate-risk" ng-class="{ 'muted-text': stage.risk.moderateRisk === 0 }">
                     {{stage.risk.moderateRisk}}</td>
-                  <td class="low-risk" ng-class="{ 'muted-text': stage.risk.lowRisk === 0 }">
+                  <td ng-if="policyThreatLevelCategories.low" class="low-risk" ng-class="{ 'muted-text': stage.risk.lowRisk === 0 }">
                     {{stage.risk.lowRisk}}</td>
                 </tr>
               </table>

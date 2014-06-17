@@ -677,39 +677,52 @@ class DashboardOverviewSpec
   }
 
   def 'Threat level columns are hidden when not matching filter'() {
-    given: 'dashboard filter includes only critical threat level'
+    given: 'dashboard filter includes only severe threat level'
       filterPanelToggle.click()
       waitFor { policyThreatLevelSlider.displayed }
-      policyThreatLevelSlider.setValues(8,10)
+      policyThreatLevelSlider.setValues(4,7)
       applyFilter()
 
     when: 'switching to the component risk view'
       tabLinks.componentsTabButton.click()
 
-    then: 'only the critical threat level column is shown'
-      waitFor { componentViolationsTable.threatHeaders.critical.displayed }
-      !componentViolationsTable.threatHeaders.severe.displayed
+    then: 'only the severe threat level column is shown'
+      waitFor { componentViolationsTable.threatHeaders.severe.displayed }
+      !componentViolationsTable.threatHeaders.critical.displayed
       !componentViolationsTable.threatHeaders.moderate.displayed
       !componentViolationsTable.threatHeaders.low.displayed
       waitFor { !componentViolationsTable.rows.empty }
-      componentViolationsTable.rows[0].criticalRisk.displayed
-      !componentViolationsTable.rows[0].severeRisk.displayed
+      componentViolationsTable.rows[0].severeRisk.displayed
+      componentViolationsTable.rows[0].severeRisk.text() == '5'
+      !componentViolationsTable.rows[0].criticalRisk.displayed
       !componentViolationsTable.rows[0].moderateRisk.displayed
       !componentViolationsTable.rows[0].lowRisk.displayed
 
     when: 'switching to the application risk view'
       tabLinks.applicationsTabButton.click()
 
-    then: 'only the critical threat level column is shown'
-      waitFor { applicationViolationsTable.threatHeaders.critical.displayed }
-      !applicationViolationsTable.threatHeaders.severe.displayed
+    then: 'only the severe threat level column is shown'
+      waitFor { applicationViolationsTable.threatHeaders.severe.displayed }
+      !applicationViolationsTable.threatHeaders.critical.displayed
       !applicationViolationsTable.threatHeaders.moderate.displayed
       !applicationViolationsTable.threatHeaders.low.displayed
       waitFor { !applicationViolationsTable.rows.empty }
-      applicationViolationsTable.rows[0].criticalRisk.displayed
-      !applicationViolationsTable.rows[0].severeRisk.displayed
+      applicationViolationsTable.rows[0].severeRisk.displayed
+      applicationViolationsTable.rows[0].severeRisk.text() == '5'
+      !applicationViolationsTable.rows[0].criticalRisk.displayed
       !applicationViolationsTable.rows[0].moderateRisk.displayed
       !applicationViolationsTable.rows[0].lowRisk.displayed
+
+    when: 'expanding the application row'
+      applicationViolationsTable.rows[0].expand.click()
+
+    then: 'only the severe threat level column is shown for the stage details'
+      waitFor { applicationViolationsTable.rows.size() > 1 }
+      applicationViolationsTable.rows[1].severeRisk.displayed
+      applicationViolationsTable.rows[1].severeRisk.text() == '5'
+      !applicationViolationsTable.rows[1].criticalRisk.displayed
+      !applicationViolationsTable.rows[1].moderateRisk.displayed
+      !applicationViolationsTable.rows[1].lowRisk.displayed
   }
 
   def 'Filters stored as expected'() {

@@ -33,6 +33,8 @@ import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.organization.ApplicationAdapter;
 import com.sonatype.insight.brain.organization.ApplicationService;
 import com.sonatype.insight.brain.policy.StageTypeService;
+import com.sonatype.insight.brain.product.license.CLMLicenseManager;
+import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.error.exception.BadRequestException;
 
 @Named
@@ -49,17 +51,23 @@ public class ComponentDetailService
 
   private final StageTypeService stageTypeService;
 
+  private final CLMLicenseManager licenseManager;
+
   @Inject
   public ComponentDetailService(ApplicationService appService, ApplicationAdapter appAdapter,
-      ApplicationComponentDAO applicationComponentDAO, StageTypeService stageTypeService)
+      ApplicationComponentDAO applicationComponentDAO, StageTypeService stageTypeService,
+      CLMLicenseManager licenseManager)
   {
     this.appService = appService;
     this.appAdapter = appAdapter;
     this.applicationComponentDAO = applicationComponentDAO;
     this.stageTypeService = stageTypeService;
+    this.licenseManager = licenseManager;
   }
 
   public List<ApplicationComponentDetailsDTO> getApplicationDetailsByHash(String hash) {
+    validateDashboardLicensed();
+
     List<ApplicationComponentDetailsDTO> result = new ArrayList<>();
 
     PolicyEvaluationDAO policyEvaluationDAO = new PolicyEvaluationDAO();
@@ -187,6 +195,8 @@ public class ComponentDetailService
   }
 
   public String getComponentNameByHash(String hash) {
+    validateDashboardLicensed();
+
     ApplicationComponent applicationComponent = new ApplicationComponentDAO().getLastByHash(hash);
     if (applicationComponent == null) {
       throw new BadRequestException("Unknown component with hash " + hash);
@@ -202,5 +212,11 @@ public class ComponentDetailService
     }
 
     return null;
+  }
+
+  private void validateDashboardLicensed() {
+    if (!licenseManager.hasDashboard()) {
+      throw new InvalidLicenseException("Your CLM license does not enable the dashboard feature");
+    }
   }
 }

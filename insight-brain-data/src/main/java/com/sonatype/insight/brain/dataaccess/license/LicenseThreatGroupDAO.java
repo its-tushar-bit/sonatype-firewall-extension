@@ -178,7 +178,7 @@ public class LicenseThreatGroupDAO
       if (licenseCategoryId == null) {
         continue;
       }
-      String licenseThreatGroupName = null;
+      String licenseThreatGroupName;
       int threatLevel = 0;
       if (LicenseCategory.COPYLEFT_ID.equals(licenseCategoryId)) {
         licenseThreatGroupName = "Copyleft";

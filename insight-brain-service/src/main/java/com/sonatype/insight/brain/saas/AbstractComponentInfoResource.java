@@ -137,7 +137,7 @@ public abstract class AbstractComponentInfoResource
         {
           @Override
           public ComponentDetails getDetails() throws IOException {
-            ComponentDetails componentDetails = null;
+            ComponentDetails componentDetails;
             try {
               componentDetails = client.get(request, ComponentDetails.class, "rest/ide/component/details");
               componentDetails.setMatchState(MatchState.EXACT.getId());

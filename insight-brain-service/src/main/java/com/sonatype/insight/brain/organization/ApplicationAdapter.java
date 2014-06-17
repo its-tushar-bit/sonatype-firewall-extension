@@ -176,7 +176,7 @@ public class ApplicationAdapter
     // Preserving the original choice of an array and ordering as other parts of the API depend on this.
     ContactDTO[] contacts = new ContactDTO[internalNamesList.size()];
 
-    Map<String, ContactDTO> nameToContactMap = null;
+    Map<String, ContactDTO> nameToContactMap;
     UserDirectory.QueryResult result = userDirectory.getMembersByNames(new HashSet<>(internalNamesList), false);
     if (result.hasException()) {
       log.error(

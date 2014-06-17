@@ -237,8 +237,7 @@ public abstract class AbstractComponentInfoResourceTest
     licenses2.add(new License("GPL-2.0", "GPL-2.0"));
     saasComponentDetails2.setDeclaredLicenses(licenses2);
     ComponentDetailsList saasComponentDetailsList = new ComponentDetailsList();
-    saasComponentDetailsList.setList(Arrays.asList(new ComponentDetails[] { saasComponentDetails1,
-        saasComponentDetails2 }));
+    saasComponentDetailsList.setList(Arrays.asList(saasComponentDetails1, saasComponentDetails2));
     setSaasResponseForURI("rest/ide/component/details/list?groupId=" + groupId + "&artifactId=" + artifactId
         + "&version=" + version, toJson(saasComponentDetailsList), 200);
 

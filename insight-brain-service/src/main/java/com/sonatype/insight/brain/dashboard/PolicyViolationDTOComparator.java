@@ -58,9 +58,7 @@ public class PolicyViolationDTOComparator
   }
 
   private int compareCoordinates(PolicyViolationDTO v1, PolicyViolationDTO v2) {
-    int result = 0;
-
-    result = nullCheck(v1.groupId, v2.groupId);
+    int result = nullCheck(v1.groupId, v2.groupId);
     if (result != 0) {
       return result;
     }

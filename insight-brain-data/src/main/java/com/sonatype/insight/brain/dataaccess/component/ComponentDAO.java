@@ -40,7 +40,7 @@ public class ComponentDAO
 
   private LicenseThreatGroupDAO licenseThreatGroupDAO = new LicenseThreatGroupDAO();
 
-  private void processJsonLicenseData(Application application, Component component, JsonNode jsonLicenseData) {
+  private void processJsonLicenseData(Component component, JsonNode jsonLicenseData) {
     List<String> declaredLicenseNames = JsonUtils.getStringListFromArray(jsonLicenseData.get("declaredLicenses"));
     component.setDeclaredLicenseIds(multiLicenseNamesToLicenseIds(declaredLicenseNames));
     List<String> observedLicenseNames = JsonUtils.getStringListFromArray(jsonLicenseData.get("observedLicenses"));
@@ -139,7 +139,7 @@ public class ComponentDAO
           List<Component> components = componentsByGAV.get(key);
           if (components != null) {
             for (Component component : components) {
-              processJsonLicenseData(application, component, jsonLicenseNode);
+              processJsonLicenseData(component, jsonLicenseNode);
               loadLicenseOverride(application, component);
             }
           }
@@ -235,7 +235,7 @@ public class ComponentDAO
     component.setGroupId(jsonLicenseNode.get("groupId").asText());
     component.setVersion(jsonLicenseNode.get("version").asText());
 
-    processJsonLicenseData(application, component, jsonLicenseNode);
+    processJsonLicenseData(component, jsonLicenseNode);
     loadLicenseOverride(application, component);
 
     loadLicenseThreatGroups(application.getId(), component);

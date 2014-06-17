@@ -199,7 +199,7 @@ public class ApplicationResourceTest
   private void testValidIconResponse(Response iconResponse) throws Exception {
     assertResponseStatus(200, iconResponse);
     Assert.assertNotNull(iconResponse.getResponseBodyAsBytes());
-    BufferedImage icon = null;
+    BufferedImage icon;
     try (InputStream iconStream = iconResponse.getResponseBodyAsStream()) {
       icon = ImageIO.read(iconStream);
     }

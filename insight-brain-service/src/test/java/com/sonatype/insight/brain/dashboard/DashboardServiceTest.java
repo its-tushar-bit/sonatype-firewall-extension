@@ -132,6 +132,7 @@ public class DashboardServiceTest
     Set<String> stageTypeIds = Sets.newHashSet(BuildStageType.ID);
     try {
       policyViolationDTOs = dashboardService.getPolicyViolations(stageTypeIds, null, null);
+      fail("Expected BadRequestException");
     }
     catch (BadRequestException e) {
       assertEquals(e.getMessage(), "Current license does not support stage type: " + BuildStageType.ID + ".");

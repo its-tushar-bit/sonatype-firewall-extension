@@ -276,6 +276,8 @@ public class DashboardService
   {
     validateDashboardLicensed();
 
+    long start = System.currentTimeMillis();
+
     List<Application> appsToSearch = applicationService
         .getApplicationsByPublicIdsAndTagIds(applicationPublicIds, tagIds);
     Set<StageType> stageTypes = getStageTypes(stageIds);
@@ -292,8 +294,13 @@ public class DashboardService
         policyEvaluationsById, allPolicyViolationDTOs);
 
     List<ApplicationRiskScoreDTO> sortedApplicationRisks = sortAndFilterApplicationRiskScore(applicationRisks);
-    return sortedApplicationRisks.subList(0, Math.min(sortedApplicationRisks.size(), maxResults));
 
+    List<ApplicationRiskScoreDTO> result = sortedApplicationRisks.subList(0,
+        Math.min(sortedApplicationRisks.size(), maxResults));
+
+    log.debug("getApplicationRisks finished in {}", System.currentTimeMillis() - start);
+
+    return result;
   }
 
   private List<PolicyViolationDTO> createAllPolicyViolations(final Predicate<PolicyViolation> filter,
@@ -585,6 +592,8 @@ public class DashboardService
   {
     validateDashboardLicensed();
 
+    long start = System.currentTimeMillis();
+
     List<PolicyViolationDTO> violations = getPolicyViolations(applicationPublicIds, stageIds, tagIds,
         policyThreatCategoryFilter, policyThreatLevelFilter);
     Map<String, ComponentViolationRollUp> componentsByHash = new LinkedHashMap<>();
@@ -603,6 +612,9 @@ public class DashboardService
     }
     Collections.sort(dtos, ComponentRiskDTOComparator.INSTANCE);
     dtos.subList(Math.min(dtos.size(), maxResults), dtos.size()).clear();
+
+    log.debug("getComponentRisks finished in {}", System.currentTimeMillis() - start);
+
     return dtos;
   }
 

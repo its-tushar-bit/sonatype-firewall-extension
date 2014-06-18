@@ -390,7 +390,6 @@ class DashboardOverviewSpec
   def 'Newest risk table can be sorted by threat'() {
     when: 'the newest risk table is shown'
       def newestRiskPage = at NewestRiskDashboardPage
-      ThreatTableModule newestViolationTable = newestRiskPage.newestViolationTable
       waitFor{ newestViolationTable.displayed }
       waitFor { newestViolationTable.rows.size() == 3 }
 
@@ -418,7 +417,6 @@ class DashboardOverviewSpec
   def 'Newest risk table can be sorted by application name'() {
     when: 'the newest risk table is shown'
       def newestRiskPage = at NewestRiskDashboardPage
-      ThreatTableModule newestViolationTable = newestRiskPage.newestViolationTable
       waitFor{ newestViolationTable.displayed }
       waitFor { newestViolationTable.rows.size() == 3 }
 
@@ -450,7 +448,6 @@ class DashboardOverviewSpec
   def 'Newest risk table can be sorted by component name'() {
     when: 'the newest risk table is shown'
       def newestRiskPage = at NewestRiskDashboardPage
-      ThreatTableModule newestViolationTable = newestRiskPage.newestViolationTable
       waitFor{ newestViolationTable.displayed }
       waitFor { newestViolationTable.rows.size() == 3 }
 

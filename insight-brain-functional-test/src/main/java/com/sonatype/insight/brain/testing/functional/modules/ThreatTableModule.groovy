@@ -22,7 +22,6 @@ class ThreatTableModule
     applicationHeader { headerLinks(3) }
     componentHeader { headerLinks(4) }
     rows(required: false) { moduleList ThreatTableRow, $('tr').tail(), stageColumns : getStageColumns() }
-    maxResults(required: false) { $('#max-results-shown') }
 
     buildHeader (required: false) { $('#stage-header-build') }
     stageHeader (required: false) { $('#stage-header-stage-release') }

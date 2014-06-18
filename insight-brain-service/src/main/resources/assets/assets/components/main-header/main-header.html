@@ -95,18 +95,18 @@
       <div class='dashboard-responsive'>
         <ul class='inline dashboard-navigation'>
           <li ng-class="{ 'active' : $state.includes('dashboard') }" tooltip='Dashboard' tooltip-placement='bottom' ng-if='isDashboardLicensed()'>
-            <a href='index.html#/dashboard'>
+            <a ui-sref="dashboard.overview.newest-risk">
               <span><i class='sonatype-icons medium dashboard'></i></span>
             </a>
           </li>
           <li ng-class="{ 'active' : $state.includes('violations') }" tooltip='Reporting' tooltip-placement='bottom'>
-            <a href='index.html#/reports/violations'>
+            <a ui-sref="violations">
               <span><i class='sonatype-icons medium reporting'></i></span>
             </a>
           </li>
           <li ng-class="{ 'active' : $state.includes('management') }" tooltip='Manage Applications and Organizations'
               tooltip-placement='bottom'>
-            <a href='index.html#/management/organization'>
+            <a ui-sref="management.organization">
               <span><i class='sonatype-icons medium organizational-design'></i></span>
             </a>
           </li>

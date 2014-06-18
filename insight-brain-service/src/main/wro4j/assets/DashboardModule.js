@@ -42,8 +42,23 @@
     }).state('dashboard.overview', {
       parent: 'dashboard',
       url: '',
-      controller: 'DashboardController',
+      abstract: true,
       templateUrl: '../dashboard-assets/overview.html?' + clmBuildTimestamp
+    }).state('dashboard.overview.newest-risk', {
+      parent: 'dashboard.overview',
+      url: '/newest-risk',
+      controller: 'DashboardController',
+      templateUrl: '../dashboard-assets/newest-risk.html?' + clmBuildTimestamp
+    }).state('dashboard.overview.components', {
+      parent: 'dashboard.overview',
+      url: '/components',
+      controller: 'DashboardController',
+      templateUrl: '../dashboard-assets/components.html?' + clmBuildTimestamp
+    }).state('dashboard.overview.applications', {
+      parent: 'dashboard.overview',
+      url: '/applications',
+      controller: 'DashboardController',
+      templateUrl: '../dashboard-assets/applications.html?' + clmBuildTimestamp
     }).state('dashboard.component', {
       parent: 'dashboard',
       url: '/component/{hash}',
@@ -54,7 +69,6 @@
 
   dashboardModule.controller('DashboardController', ['$scope', function($scope) {
     $scope.maxResults = 100;
-    $scope.riskTable = 'newest-risk';
   }]);
 
   /**
@@ -495,6 +509,15 @@
         name: 'Dashboard',
         icon: 'sonatype-icons dashboard'
       },
+      'dashboard.overview.components': {
+        name: 'By Component'
+      },
+      'dashboard.overview.applications': {
+        name: 'By Application'
+      },
+      'dashboard.overview.newest-risk': {
+        name: 'Newest Risk'
+      },
       'dashboard.component': {
         name: 'Component Details'
       }
@@ -509,11 +532,12 @@
           var state = $state.$current;
           var states = [];
           while (state && state.name) {
+            // dashboard is an abstract state that can be ignored in favor of its parent
             if (state.name !== 'dashboard.overview') {
               states.unshift(angular.extend(stateLookup[state.name],
                 {
                   // dashboard is an abstract state an ui-sref will throw an exception rather than routing to default
-                  state: state.name === 'dashboard' ? 'dashboard.overview' : state.name
+                  state: state.name === 'dashboard' ? 'dashboard.overview.newest-risk' : state.name
                 }
               ));
             }

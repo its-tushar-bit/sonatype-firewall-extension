@@ -128,6 +128,10 @@ class DashboardOverviewSpec
     clearFilter()
   }
 
+  def cleanup() {
+    to NewestRiskDashboardPage
+  }
+
   /**
    * Do not clear cookies so we don't have to log back in after every feature test.
    * Delete the stored filter directly from the database and refresh the page to clear locally cached filter.
@@ -142,75 +146,79 @@ class DashboardOverviewSpec
 
   def 'Dashboard Overview Breadcrumb'() {
     when: 'The dashboard overview is loaded'
-      waitFor { breadcrumbs.size() == 1 }
-    then: 'Only the dashboard breadcrumb is shown'
-      crumb('dashboard.overview').displayed
-      crumb('dashboard.overview').text() == ' Dashboard'
+      waitFor { breadcrumbs.size() == 2 }
+    then: 'Two links to newest risk are shown'
+      crumb('dashboard.overview.newest-risk').text() == " Dashboard"
+      crumb('dashboard.overview.newest-risk').@href.contains("/dashboard/newest-risk")
+      crumb('dashboard.overview.newest-risk').next().text() == " Newest Risk"
+      crumb('dashboard.overview.newest-risk').next().@href.contains("/dashboard/newest-risk")
+
   }
 
   def 'Dashboard Filters'() {
     when: 'clicking the filter toggle button'
-      filterPanelToggle.click()
+      def newestRiskPage = at NewestRiskDashboardPage
+      newestRiskPage.filterPanelToggle.click()
 
     then: 'the dashboard filters are shown'
-      waitFor { applicationFiltersDropdown.displayed }
-      policyThreatFiltersDropdown.displayed
+      waitFor { newestRiskPage.applicationFiltersDropdown.displayed }
+      newestRiskPage.policyThreatFiltersDropdown.displayed
 
     and: 'application filters are loaded'
-      applicationFiltersDropdown.showDropdown()
-      applicationFiltersDropdown.dropdownCheck(firstApp.name).displayed
-      applicationFiltersDropdown.dropdownCheck(secondApp.name).displayed
-      applicationFiltersDropdown.hideDropdown()
+      newestRiskPage.applicationFiltersDropdown.showDropdown()
+      newestRiskPage.applicationFiltersDropdown.dropdownCheck(firstApp.name).displayed
+      newestRiskPage.applicationFiltersDropdown.dropdownCheck(secondApp.name).displayed
+      newestRiskPage.applicationFiltersDropdown.hideDropdown()
 
     and: 'policy threat category filters are shown'
-      policyThreatFiltersDropdown.showDropdown()
-      policyThreatFiltersDropdown.dropdownCheck('Security').displayed
-      policyThreatFiltersDropdown.dropdownCheck('License').displayed
-      policyThreatFiltersDropdown.dropdownCheck('Quality').displayed
-      policyThreatFiltersDropdown.dropdownCheck('Other').displayed
-      policyThreatFiltersDropdown.hideDropdown()
+      newestRiskPage.policyThreatFiltersDropdown.showDropdown()
+      newestRiskPage.policyThreatFiltersDropdown.dropdownCheck('Security').displayed
+      newestRiskPage.policyThreatFiltersDropdown.dropdownCheck('License').displayed
+      newestRiskPage.policyThreatFiltersDropdown.dropdownCheck('Quality').displayed
+      newestRiskPage.policyThreatFiltersDropdown.dropdownCheck('Other').displayed
+      newestRiskPage.policyThreatFiltersDropdown.hideDropdown()
 
     and: 'stage type filters are shown in proper chronological order'
-      stageTypeFiltersDropdown.showDropdown()
-      stageTypeFiltersDropdown.dropdownName(0).displayed
-      stageTypeFiltersDropdown.dropdownName(0).text() == 'Build'
-      stageTypeFiltersDropdown.dropdownName(1).displayed
-      stageTypeFiltersDropdown.dropdownName(1).text() == 'Stage Release'
-      stageTypeFiltersDropdown.dropdownName(2).displayed
-      stageTypeFiltersDropdown.dropdownName(2).text() == 'Release'
-      stageTypeFiltersDropdown.dropdownName(3).displayed
-      stageTypeFiltersDropdown.dropdownName(3).text() == 'Operate'
-      !stageTypeFiltersDropdown.dropdownName(4).present
-      stageTypeFiltersDropdown.hideDropdown()
+      newestRiskPage.stageTypeFiltersDropdown.showDropdown()
+      newestRiskPage.stageTypeFiltersDropdown.dropdownName(0).displayed
+      newestRiskPage.stageTypeFiltersDropdown.dropdownName(0).text() == 'Build'
+      newestRiskPage.stageTypeFiltersDropdown.dropdownName(1).displayed
+      newestRiskPage.stageTypeFiltersDropdown.dropdownName(1).text() == 'Stage Release'
+      newestRiskPage.stageTypeFiltersDropdown.dropdownName(2).displayed
+      newestRiskPage.stageTypeFiltersDropdown.dropdownName(2).text() == 'Release'
+      newestRiskPage.stageTypeFiltersDropdown.dropdownName(3).displayed
+      newestRiskPage.stageTypeFiltersDropdown.dropdownName(3).text() == 'Operate'
+      !newestRiskPage.stageTypeFiltersDropdown.dropdownName(4).present
+      newestRiskPage.stageTypeFiltersDropdown.hideDropdown()
 
     and: 'application tag filters are shown'
-      applicationTagFiltersDropdown.showDropdown()
-      applicationTagFiltersDropdown.dropdownCheck(firstAppTag.name).displayed
-      applicationTagFiltersDropdown.dropdownOwner(firstAppTag.name).text() == 'in ' + org.name
-      applicationTagFiltersDropdown.areOptionsColored([(firstAppTag.name): "blue"])
-      applicationTagFiltersDropdown.hideDropdown()
+      newestRiskPage.applicationTagFiltersDropdown.showDropdown()
+      newestRiskPage.applicationTagFiltersDropdown.dropdownCheck(firstAppTag.name).displayed
+      newestRiskPage.applicationTagFiltersDropdown.dropdownOwner(firstAppTag.name).text() == 'in ' + org.name
+      newestRiskPage.applicationTagFiltersDropdown.areOptionsColored([(firstAppTag.name): "blue"])
+      newestRiskPage.applicationTagFiltersDropdown.hideDropdown()
 
     and: 'policy threat level filter is shown'
-      policyThreatLevelSlider.slider.displayed
-      policyThreatLevelSlider.minLabel.text() == "0"
-      policyThreatLevelSlider.maxLabel.text() == "10"
+      newestRiskPage.policyThreatLevelSlider.slider.displayed
+      newestRiskPage.policyThreatLevelSlider.minLabel.text() == "0"
+      newestRiskPage.policyThreatLevelSlider.maxLabel.text() == "10"
 
     when: 'dashboard filters are applied'
-      applicationFiltersDropdown.toggleOption(firstApp.name)
-      applicationFiltersDropdown.toggleOption(secondApp.name)
-      applicationTagFiltersDropdown.toggleOption(firstAppTag.name)
-      stageTypeFiltersDropdown.toggleOption('Release')
-      policyThreatFiltersDropdown.toggleOption('Security')
-      policyThreatLevelSlider.setValues(2,7)
-      applyFilter()
+      newestRiskPage.applicationFiltersDropdown.toggleOption(firstApp.name)
+      newestRiskPage.applicationFiltersDropdown.toggleOption(secondApp.name)
+      newestRiskPage.applicationTagFiltersDropdown.toggleOption(firstAppTag.name)
+      newestRiskPage.stageTypeFiltersDropdown.toggleOption('Release')
+      newestRiskPage.policyThreatFiltersDropdown.toggleOption('Security')
+      newestRiskPage.policyThreatLevelSlider.setValues(2,7)
+      newestRiskPage.applyFilter()
 
     then: 'filters show up in readonly mode'
-      waitFor { filterPanel.displayed }
-      applicationFilters.collect{it.text()}.join('') == firstApp.name + ',' + secondApp.name
-      applicationTagFilters.text() == firstAppTag.name
-      stageTypeFilters.text() == 'Release'
-      policyThreatTypeFilters.text() == 'Security'
-      policyThreatLevelFilters.text() == '2 through 7'
+      waitFor { newestRiskPage.filterPanel.displayed }
+      newestRiskPage.applicationFilters.collect{it.text()}.join('') == firstApp.name + ',' + secondApp.name
+      newestRiskPage.applicationTagFilters.text() == firstAppTag.name
+      newestRiskPage.stageTypeFilters.text() == 'Release'
+      newestRiskPage.policyThreatTypeFilters.text() == 'Security'
+      newestRiskPage.policyThreatLevelFilters.text() == '2 through 7'
   }
 
   def 'Filter reset'() {
@@ -255,28 +263,29 @@ class DashboardOverviewSpec
   def 'Unknown components have popover displaying pathnames'() {
     when: 'newest risk table is shown'
       tabLinks.newestRiskTabButton.click()
-      waitFor { newestViolationTable.displayed }
-      waitFor { newestViolationTable.rows.size() >= 2 }
-      def unknownComponentCell = $(newestViolationTable.rows[0].cell(ThreatTableRow.COMPONENT)).firstElement()
+      def newestRiskPage = at NewestRiskDashboardPage
+      waitFor { newestRiskPage.newestViolationTable.displayed }
+      waitFor { newestRiskPage.newestViolationTable.rows.size() >= 2 }
+      def unknownComponentCell = $(newestRiskPage.newestViolationTable.rows[0].cell(ThreatTableRow.COMPONENT)).firstElement()
       interact {
         moveToElement(unknownComponentCell)
       }
-      waitFor { unknownComponentPopover.displayed }
+      waitFor { newestRiskPage.unknownComponentPopover.displayed }
 
     then: 'newest risk popover is properly displayed'
-      unknownComponentPopoverTitle == 'Component Path'
-      unknownComponentPopoverText == 'unknown.jar'
+      newestRiskPage.unknownComponentPopoverTitle == 'Component Path'
+      newestRiskPage.unknownComponentPopoverText == 'unknown.jar'
   }
 
   def 'Newest Risk table can be sorted by age'() {
     when: 'the newest risk table is shown'
-      ThreatTableModule newestViolationTable = newestViolationTable
-      waitFor{ newestViolationTable.displayed }
-      waitFor { newestViolationTable.rows.size() >= 2 }
+      def newestRiskPage = at NewestRiskDashboardPage
+      waitFor{ newestRiskPage.newestViolationTable.displayed }
+      waitFor { newestRiskPage.newestViolationTable.rows.size() >= 2 }
 
     then: 'risks are sorted by ascending age(most recent first), and then by threat level'
-      ThreatTableRow rowOne = newestViolationTable.rows[0]
-      ThreatTableRow rowTwo = newestViolationTable.rows[1]
+      ThreatTableRow rowOne = newestRiskPage.newestViolationTable.rows[0]
+      ThreatTableRow rowTwo = newestRiskPage.newestViolationTable.rows[1]
       rowOne.threat == 10
       newestViolationTable.rows[0].age ==~ RECENT_AGE
       newestViolationTable.rows[1].age == '7d'
@@ -316,72 +325,72 @@ class DashboardOverviewSpec
       rowTwo.isMarkedAsWarn(StageReleaseStageType.ID)
 
     when: 'clicking the AGE header'
-      newestViolationTable.ageHeader.click()
+      newestRiskPage.newestViolationTable.ageHeader.click()
 
     then: 'we should now show the oldest result first'
       waitFor { newestViolationTable.rows[0].age == '8d' }
-      newestViolationTable.rows[1].age == '7d'
-      newestViolationTable.rows[2].age ==~ RECENT_AGE
+      newestRiskPage.newestViolationTable.rows[1].age == '7d'
+      newestRiskPage.newestViolationTable.rows[2].age ==~ RECENT_AGE
 
     and: 'the sort is indicated as descending for age'
       newestViolationTable.isDown(newestViolationTable.ageHeader)
       !newestViolationTable.isUp(newestViolationTable.ageHeader)
   }
-
   def 'Newest Risk table can be sorted by stage time'() {
     when: 'the newest risk table is shown'
-      ThreatTableModule newestViolationTable = newestViolationTable
-      waitFor{ newestViolationTable.displayed }
-      waitFor { newestViolationTable.rows.size() == 3 }
+      def newestRiskPage = at NewestRiskDashboardPage
+      waitFor{ newestRiskPage.newestViolationTable.displayed }
+      waitFor { newestRiskPage.newestViolationTable.rows.size() == 3 }
 
     then: 'the first row has no build stage results'
-      newestViolationTable.rows[0].age ==~ RECENT_AGE
-      !newestViolationTable.rows[0].buildAge
+      newestRiskPage.newestViolationTable.rows[0].age ==~ RECENT_AGE
+      !newestRiskPage.newestViolationTable.rows[0].buildAge
 
     when: 'clicking on the first stage header(BUILD in this case)'
-      newestViolationTable.clickStageHeader(newestViolationTable.buildHeader)
+      newestRiskPage.newestViolationTable.clickStageHeader(newestViolationTable.buildHeader)
 
     then: 'we should now show the most recent stage result first, followed by the empty results'
-      waitFor { newestViolationTable.rows[0].buildAge == '7d' }
-      !newestViolationTable.rows[1].buildAge
-      !newestViolationTable.rows[2].buildAge
+      waitFor { newestRiskPage.newestViolationTable.rows[0].buildAge == '7d' }
+      !newestRiskPage.newestViolationTable.rows[1].buildAge
+      !newestRiskPage.newestViolationTable.rows[2].buildAge
 
     when: 'clicking on the second stage header(STAGE)'
-      newestViolationTable.clickStageHeader(newestViolationTable.stageHeader)
+      newestRiskPage.newestViolationTable.clickStageHeader(newestRiskPage.newestViolationTable.stageHeader)
 
     then: 'we should sort the only result in this column to the top'
-      waitFor { newestViolationTable.rows[0].stageReleaseAge == '14d' }
-      !newestViolationTable.rows[1].stageReleaseAge
-      !newestViolationTable.rows[2].stageReleaseAge
+      waitFor { newestRiskPage.newestViolationTable.rows[0].stageReleaseAge == '14d' }
+      !newestRiskPage.newestViolationTable.rows[1].stageReleaseAge
+      !newestRiskPage.newestViolationTable.rows[2].stageReleaseAge
 
     when: 'clicking on the third stage header(RELEASE)'
-      newestViolationTable.clickStageHeader(newestViolationTable.releaseHeader)
+      newestRiskPage.newestViolationTable.clickStageHeader(newestViolationTable.releaseHeader)
 
     then: 'we should sort the two results in this column to the top, ordered with most recent first'
-      waitFor { newestViolationTable.rows[0].releaseAge ==~ RECENT_AGE }
-      newestViolationTable.rows[1].releaseAge == '8d'
-      !newestViolationTable.rows[2].releaseAge
+      waitFor { newestRiskPage.newestViolationTable.rows[0].releaseAge ==~ RECENT_AGE }
+      newestRiskPage.newestViolationTable.rows[1].releaseAge == '8d'
+      !newestRiskPage.newestViolationTable.rows[2].releaseAge
 
     and: 'the sort is indicated as ascending for the RELEASE age'
       newestViolationTable.isUp(newestViolationTable.releaseHeader)
       !newestViolationTable.isDown(newestViolationTable.releaseHeader)
 
     when: 'clicking the third stage header again'
-      newestViolationTable.clickStageHeader(newestViolationTable.releaseHeader)
+      newestRiskPage.newestViolationTable.clickStageHeader(newestViolationTable.releaseHeader)
 
     then: 'the results should be sorted in reverse, with empty values at the end'
-      waitFor { newestViolationTable.rows[0].releaseAge == '8d' }
-      newestViolationTable.rows[1].releaseAge ==~ RECENT_AGE
-      !newestViolationTable.rows[2].releaseAge
+      waitFor { newestRiskPage.newestViolationTable.rows[0].releaseAge == '8d' }
+      newestRiskPage.newestViolationTable.rows[1].releaseAge ==~ RECENT_AGE
+      !newestRiskPage.newestViolationTable.rows[2].releaseAge
 
     and: 'the sort is indicated as descending for the RELEASE age'
-      !newestViolationTable.isUp(newestViolationTable.releaseHeader)
-      newestViolationTable.isDown(newestViolationTable.releaseHeader)
+      !newestRiskPage.newestViolationTable.isUp(newestRiskPage.newestViolationTable.releaseHeader)
+      newestRiskPage.newestViolationTable.isDown(newestRiskPage.newestViolationTable.releaseHeader)
   }
 
   def 'Newest risk table can be sorted by threat'() {
     when: 'the newest risk table is shown'
-      ThreatTableModule newestViolationTable = newestViolationTable
+      def newestRiskPage = at NewestRiskDashboardPage
+      ThreatTableModule newestViolationTable = newestRiskPage.newestViolationTable
       waitFor{ newestViolationTable.displayed }
       waitFor { newestViolationTable.rows.size() == 3 }
 
@@ -408,7 +417,8 @@ class DashboardOverviewSpec
 
   def 'Newest risk table can be sorted by application name'() {
     when: 'the newest risk table is shown'
-      ThreatTableModule newestViolationTable = newestViolationTable
+      def newestRiskPage = at NewestRiskDashboardPage
+      ThreatTableModule newestViolationTable = newestRiskPage.newestViolationTable
       waitFor{ newestViolationTable.displayed }
       waitFor { newestViolationTable.rows.size() == 3 }
 
@@ -439,7 +449,8 @@ class DashboardOverviewSpec
 
   def 'Newest risk table can be sorted by component name'() {
     when: 'the newest risk table is shown'
-      ThreatTableModule newestViolationTable = newestViolationTable
+      def newestRiskPage = at NewestRiskDashboardPage
+      ThreatTableModule newestViolationTable = newestRiskPage.newestViolationTable
       waitFor{ newestViolationTable.displayed }
       waitFor { newestViolationTable.rows.size() == 3 }
 
@@ -470,93 +481,98 @@ class DashboardOverviewSpec
 
   def 'Newest Risk Table can be filtered'() {
     when: 'newest risk table is shown'
-      waitFor { newestViolationTable.displayed }
-      waitFor { newestViolationTable.rows.size() == 3 }
+      def newestRiskPage = at NewestRiskDashboardPage
+      waitFor { newestRiskPage.newestViolationTable.displayed }
+      waitFor { newestRiskPage.newestViolationTable.rows.size() == 3 }
 
     then: 'policy violations are listed by age and then threat level'
-      !noDataAvailable.displayed
+      !newestRiskPage.noDataAvailable.displayed
 
-      newestViolationTable.rows[0].threat == 10
-      newestViolationTable.rows[0].policy == 'DashboardSpecPolicy'
-      newestViolationTable.rows[0].application == secondApp.name
-      newestViolationTable.rows[0].component == 'unknown.jar'
-      newestViolationTable.rows[0].age ==~ RECENT_AGE
+      newestRiskPage.newestViolationTable.rows[0].threat == 10
+      newestRiskPage.newestViolationTable.rows[0].policy == 'DashboardSpecPolicy'
+      newestRiskPage.newestViolationTable.rows[0].application == secondApp.name
+      newestRiskPage.newestViolationTable.rows[0].component == 'unknown.jar'
+      newestRiskPage.newestViolationTable.rows[0].age ==~ RECENT_AGE
 
-      newestViolationTable.rows[1].threat == 5
-      newestViolationTable.rows[1].policy == 'DashboardSpecPolicy'
-      newestViolationTable.rows[1].application == firstApp.name
-      newestViolationTable.rows[1].component == DEFAULT_COMPONENT
-      newestViolationTable.rows[1].age == '7d'
+      newestRiskPage.newestViolationTable.rows[1].threat == 5
+      newestRiskPage.newestViolationTable.rows[1].policy == 'DashboardSpecPolicy'
+      newestRiskPage.newestViolationTable.rows[1].application == firstApp.name
+      newestRiskPage.newestViolationTable.rows[1].component == DEFAULT_COMPONENT
+      newestRiskPage.newestViolationTable.rows[1].age == '7d'
 
     when: 'filtering to an application'
-      filterPanelToggle.click()
-      waitFor { applicationFiltersDropdown.displayed }
-      applicationFiltersDropdown.toggleOption(secondApp.name)
-      applyFilter()
+      newestRiskPage.filterPanelToggle.click()
+      waitFor { newestRiskPage.applicationFiltersDropdown.displayed }
+      newestRiskPage.applicationFiltersDropdown.toggleOption(secondApp.name)
+      newestRiskPage.applyFilter()
 
     then: 'only violations from that application are shown'
-      waitFor { newestViolationTable.rows.size() == 1 }
-      !applicationFiltersDropdown.displayed
-      newestViolationTable.rows[0].threat == 10
-      newestViolationTable.rows[0].policy == 'DashboardSpecPolicy'
-      newestViolationTable.rows[0].application == secondApp.name
-      newestViolationTable.rows[0].component == 'unknown.jar'
-      newestViolationTable.rows[0].age ==~ RECENT_AGE
+      waitFor { newestRiskPage.newestViolationTable.rows.size() == 1 }
+      !newestRiskPage.applicationFiltersDropdown.displayed
+      newestRiskPage.newestViolationTable.rows[0].threat == 10
+      newestRiskPage.newestViolationTable.rows[0].policy == 'DashboardSpecPolicy'
+      newestRiskPage.newestViolationTable.rows[0].application == secondApp.name
+      newestRiskPage.newestViolationTable.rows[0].component == 'unknown.jar'
+      newestRiskPage.newestViolationTable.rows[0].age ==~ RECENT_AGE
 
     when: 'filtering to a stage'
-      filterPanelToggle.click()
-      waitFor { stageTypeFiltersDropdown.displayed }
-      stageTypeFiltersDropdown.toggleOption('Release')
-      applyFilter()
+      newestRiskPage.filterPanelToggle.click()
+      waitFor { newestRiskPage.stageTypeFiltersDropdown.displayed }
+      newestRiskPage.stageTypeFiltersDropdown.toggleOption('Release')
+      newestRiskPage.applyFilter()
 
     then: 'only violations from that stage are shown'
-      waitFor { newestViolationTable.rows.size() == 1 }
-      !stageTypeFiltersDropdown.displayed
-      newestViolationTable.rows[0].threat == 10
-      newestViolationTable.rows[0].policy == 'DashboardSpecPolicy'
-      newestViolationTable.rows[0].application == secondApp.name
-      newestViolationTable.rows[0].component == 'unknown.jar'
-      newestViolationTable.rows[0].age ==~ RECENT_AGE
+      waitFor { newestRiskPage.newestViolationTable.rows.size() == 1 }
+      !newestRiskPage.stageTypeFiltersDropdown.displayed
+      newestRiskPage.newestViolationTable.rows[0].threat == 10
+      newestRiskPage.newestViolationTable.rows[0].policy == 'DashboardSpecPolicy'
+      newestRiskPage.newestViolationTable.rows[0].application == secondApp.name
+      newestRiskPage.newestViolationTable.rows[0].component == 'unknown.jar'
+      newestRiskPage.newestViolationTable.rows[0].age ==~ RECENT_AGE
 
     and: 'only release stage is visible'
-      !newestViolationTable.buildHeader.displayed
-      !newestViolationTable.stageHeader.displayed
-      newestViolationTable.releaseHeader.displayed
-      !newestViolationTable.operateHeader.displayed
+      !newestRiskPage.newestViolationTable.buildHeader.displayed
+      !newestRiskPage.newestViolationTable.stageHeader.displayed
+      newestRiskPage.newestViolationTable.releaseHeader.displayed
+      !newestRiskPage.newestViolationTable.operateHeader.displayed
   }
 
   def 'Newest Risk Table shows stages in chronological order'() {
     when: 'newest risk table is shown'
-      waitFor { newestViolationTable.displayed }
+      def newestRiskPage = at NewestRiskDashboardPage
+      waitFor { newestRiskPage.newestViolationTable.displayed }
 
     then: 'the table header lists the stages in proper order'
-      waitFor { newestViolationTable.headers[5..8]*.@id == [ 'stage-header-build', 'stage-header-stage-release', 'stage-header-release', 'stage-header-operate' ] }
+      waitFor { newestRiskPage.newestViolationTable.headers[5..8]*.@id == [ 'stage-header-build', 'stage-header-stage-release', 'stage-header-release', 'stage-header-operate' ] }
   }
 
   def 'Filter out all results'() {
     when: 'selecting filters that match no results on the newest risk tab'
-      filterPanelToggle.click()
-      waitFor { policyThreatFiltersDropdown.displayed }
-      policyThreatFiltersDropdown.toggleOption('Security')
-      applyFilter()
+      def newestRiskPage = at NewestRiskDashboardPage
+      newestRiskPage.filterPanelToggle.click()
+      waitFor { newestRiskPage.policyThreatFiltersDropdown.displayed }
+      newestRiskPage.policyThreatFiltersDropdown.toggleOption('Security')
+      newestRiskPage.applyFilter()
 
     then: 'the table is replaced by no result text'
-      waitFor { noDataAvailable.displayed }
+      waitFor { newestRiskPage.noDataAvailable.displayed }
 
     and: 'newest risk no data text is shown'
-      noDataAvailable.text() == "No data available in the last 30 days given the applied filters and available permissions.";
+      newestRiskPage.noDataAvailable.text() == "No data available in the last 30 days given the applied filters and available permissions.";
 
     when: 'user clicks the by component tab'
-      tabLinks.componentsTabButton.click()
+      newestRiskPage.tabLinks.componentsTabButton.click()
+      def compViolationsPage = at ComponentViolationsDashboardPage
 
     then: 'the table is replaced by no result text'
-      waitFor { noDataAvailable.displayed }
+      waitFor { compViolationsPage.noDataAvailable.displayed }
 
     when: 'user clicks the by application tab'
-      tabLinks.applicationsTabButton.click()
+      compViolationsPage.tabLinks.applicationsTabButton.click()
+      def appViolationsPage = at ApplicationViolationsDashboardPage
 
     then: 'the table is replaced by no result text'
-      waitFor { noDataAvailable.displayed }
+      waitFor { appViolationsPage.noDataAvailable.displayed }
   }
 
   def 'Threat level cells heat map'() {
@@ -581,13 +597,14 @@ class DashboardOverviewSpec
 
     when: 'Switching to Components Tab'
       tabLinks.componentsTabButton.click()
+      def compViolationsPage = at ComponentViolationsDashboardPage
 
     then: 'Components tab heat map is shown'
-      waitFor { componentViolationsTable.rows.size() == 4 }
-      ComponentViolationsTableRow firstComponentRow = componentViolationsTable.rows[0]
-      ComponentViolationsTableRow secondComponentRow = componentViolationsTable.rows[1]
-      ComponentViolationsTableRow thirdComponentRow = componentViolationsTable.rows[2]
-      ComponentViolationsTableRow fourthComponentRow = componentViolationsTable.rows[3]
+      waitFor { compViolationsPage.componentViolationsTable.rows.size() == 4 }
+      ComponentViolationsTableRow firstComponentRow = compViolationsPage.componentViolationsTable.rows[0]
+      ComponentViolationsTableRow secondComponentRow = compViolationsPage.componentViolationsTable.rows[1]
+      ComponentViolationsTableRow thirdComponentRow = compViolationsPage.componentViolationsTable.rows[2]
+      ComponentViolationsTableRow fourthComponentRow = compViolationsPage.componentViolationsTable.rows[3]
 
       that parseAlpha(secondComponentRow.netRisk.attr('style')), closeTo(alphaCalc(8, 15), TOLERANCE)
       that parseAlpha(thirdComponentRow.netRisk.attr('style')), closeTo(alphaCalc(5, 15), TOLERANCE)
@@ -606,15 +623,16 @@ class DashboardOverviewSpec
 
     when: 'Switching to Applications Tab'
       tabLinks.applicationsTabButton.click()
+      def appViolationsPage = at ApplicationViolationsDashboardPage
 
     then: 'Applications tab heat map is shown'
-      waitFor { applicationViolationsTable.rows.size() == 5 }
+      waitFor { appViolationsPage.applicationViolationsTable.rows.size() == 5 }
 
-      ApplicationViolationsTableRow firstApplicationRow = applicationViolationsTable.rows[0]
-      ApplicationViolationsTableRow secondApplicationRow = applicationViolationsTable.rows[1]
-      ApplicationViolationsTableRow thirdApplicationRow = applicationViolationsTable.rows[2]
-      ApplicationViolationsTableRow fourthApplicationRow = applicationViolationsTable.rows[3]
-      ApplicationViolationsTableRow fifthApplicationRow = applicationViolationsTable.rows[4]
+      ApplicationViolationsTableRow firstApplicationRow = appViolationsPage.applicationViolationsTable.rows[0]
+      ApplicationViolationsTableRow secondApplicationRow = appViolationsPage.applicationViolationsTable.rows[1]
+      ApplicationViolationsTableRow thirdApplicationRow = appViolationsPage.applicationViolationsTable.rows[2]
+      ApplicationViolationsTableRow fourthApplicationRow = appViolationsPage.applicationViolationsTable.rows[3]
+      ApplicationViolationsTableRow fifthApplicationRow = appViolationsPage.applicationViolationsTable.rows[4]
 
       that parseAlpha(secondApplicationRow.netRisk.attr('style')), closeTo(alphaCalc(8, 10), TOLERANCE)
       that parseAlpha(thirdApplicationRow.netRisk.attr('style')), closeTo(alphaCalc(5, 10), TOLERANCE)
@@ -659,18 +677,19 @@ class DashboardOverviewSpec
       driver.navigate().refresh()
 
     then: 'Only the first 500 pixels of results are shown'
-      waitFor { newestViolationTable.rows[0].displayed }
-      int tableBottom = newestViolationTable.y + newestViolationTable.height
+      def newestRiskPage = at NewestRiskDashboardPage
+      waitFor { newestRiskPage.newestViolationTable.rows[0].displayed }
+      int tableBottom = newestRiskPage.highestRiskDiv.y + newestRiskPage.highestRiskDiv.height
 
       // It is a reasonable expectation that the first 5 rows will render within 500 px in every browser
       for (i in 0..5)
-        assert newestViolationTable.rows[i].y < tableBottom
+        assert newestRiskPage.newestViolationTable.rows[i].y < tableBottom
       // And that rows 44-49 will not render within the scroll view
       for (i in 44..49)
-        assert newestViolationTable.rows[i].y > tableBottom
+        assert newestRiskPage.newestViolationTable.rows[i].y > tableBottom
 
     and: 'A message is displayed to show that only the top results are shown'
-      newestViolationTable.maxResults.text() == 'Showing the newest 100 results'
+      newestRiskPage.maxResults.text() == 'Showing the newest 100 results'
 
     cleanup:
       PolicyEvaluationDAO dao = new PolicyEvaluationDAO().delete(policyEvaluation)
@@ -678,65 +697,69 @@ class DashboardOverviewSpec
 
   def 'Threat level columns are hidden when not matching filter'() {
     given: 'dashboard filter includes only severe threat level'
-      filterPanelToggle.click()
-      waitFor { policyThreatLevelSlider.displayed }
-      policyThreatLevelSlider.setValues(4,7)
-      applyFilter()
+      def newestRiskPage = at NewestRiskDashboardPage
+      newestRiskPage.filterPanelToggle.click()
+      waitFor { newestRiskPage.policyThreatLevelSlider.displayed }
+      newestRiskPage.policyThreatLevelSlider.setValues(4,7)
+      newestRiskPage.applyFilter()
 
     when: 'switching to the component risk view'
-      tabLinks.componentsTabButton.click()
+      newestRiskPage.tabLinks.componentsTabButton.click()
+      def compViolationsPage = at ComponentViolationsDashboardPage
 
     then: 'only the severe threat level column is shown'
-      waitFor { componentViolationsTable.threatHeaders.severe.displayed }
-      !componentViolationsTable.threatHeaders.critical.displayed
-      !componentViolationsTable.threatHeaders.moderate.displayed
-      !componentViolationsTable.threatHeaders.low.displayed
-      waitFor { !componentViolationsTable.rows.empty }
-      componentViolationsTable.rows[0].severeRisk.displayed
-      componentViolationsTable.rows[0].severeRisk.text() == '5'
-      !componentViolationsTable.rows[0].criticalRisk.displayed
-      !componentViolationsTable.rows[0].moderateRisk.displayed
-      !componentViolationsTable.rows[0].lowRisk.displayed
+      waitFor { compViolationsPage.componentViolationsTable.threatHeaders.severe.displayed }
+      !compViolationsPage.componentViolationsTable.threatHeaders.critical.displayed
+      !compViolationsPage.componentViolationsTable.threatHeaders.moderate.displayed
+      !compViolationsPage.componentViolationsTable.threatHeaders.low.displayed
+      waitFor { !compViolationsPage.componentViolationsTable.rows.empty }
+      compViolationsPage.componentViolationsTable.rows[0].severeRisk.displayed
+      compViolationsPage.componentViolationsTable.rows[0].severeRisk.text() == '5'
+      !compViolationsPage.componentViolationsTable.rows[0].criticalRisk.displayed
+      !compViolationsPage.componentViolationsTable.rows[0].moderateRisk.displayed
+      !compViolationsPage.componentViolationsTable.rows[0].lowRisk.displayed
 
     when: 'switching to the application risk view'
-      tabLinks.applicationsTabButton.click()
+      compViolationsPage.tabLinks.applicationsTabButton.click()
+      def appViolationsPage = at ApplicationViolationsDashboardPage
 
     then: 'only the severe threat level column is shown'
-      waitFor { applicationViolationsTable.threatHeaders.severe.displayed }
-      !applicationViolationsTable.threatHeaders.critical.displayed
-      !applicationViolationsTable.threatHeaders.moderate.displayed
-      !applicationViolationsTable.threatHeaders.low.displayed
-      waitFor { !applicationViolationsTable.rows.empty }
-      applicationViolationsTable.rows[0].severeRisk.displayed
-      applicationViolationsTable.rows[0].severeRisk.text() == '5'
-      !applicationViolationsTable.rows[0].criticalRisk.displayed
-      !applicationViolationsTable.rows[0].moderateRisk.displayed
-      !applicationViolationsTable.rows[0].lowRisk.displayed
+      waitFor { appViolationsPage.applicationViolationsTable.threatHeaders.severe.displayed }
+      !appViolationsPage.applicationViolationsTable.threatHeaders.critical.displayed
+      !appViolationsPage.applicationViolationsTable.threatHeaders.moderate.displayed
+      !appViolationsPage.applicationViolationsTable.threatHeaders.low.displayed
+      waitFor { !appViolationsPage.applicationViolationsTable.rows.empty }
+      appViolationsPage.applicationViolationsTable.rows[0].severeRisk.displayed
+      appViolationsPage.applicationViolationsTable.rows[0].severeRisk.text() == '5'
+      !appViolationsPage.applicationViolationsTable.rows[0].criticalRisk.displayed
+      !appViolationsPage.applicationViolationsTable.rows[0].moderateRisk.displayed
+      !appViolationsPage.applicationViolationsTable.rows[0].lowRisk.displayed
 
     when: 'expanding the application row'
-      applicationViolationsTable.rows[0].expand.click()
+      appViolationsPage.applicationViolationsTable.rows[0].expand.click()
 
     then: 'only the severe threat level column is shown for the stage details'
-      waitFor { applicationViolationsTable.rows.size() > 1 }
-      applicationViolationsTable.rows[1].severeRisk.displayed
-      applicationViolationsTable.rows[1].severeRisk.text() == '5'
-      !applicationViolationsTable.rows[1].criticalRisk.displayed
-      !applicationViolationsTable.rows[1].moderateRisk.displayed
-      !applicationViolationsTable.rows[1].lowRisk.displayed
+      waitFor { appViolationsPage.applicationViolationsTable.rows.size() > 1 }
+      appViolationsPage.applicationViolationsTable.rows[1].severeRisk.displayed
+      appViolationsPage.applicationViolationsTable.rows[1].severeRisk.text() == '5'
+      !appViolationsPage.applicationViolationsTable.rows[1].criticalRisk.displayed
+      !appViolationsPage.applicationViolationsTable.rows[1].moderateRisk.displayed
+      !appViolationsPage.applicationViolationsTable.rows[1].lowRisk.displayed
   }
 
   def 'Filters stored as expected'() {
     when: 'dashboard filters are applied'
-      filterPanelToggle.click()
-      waitFor { applicationFiltersDropdown.displayed }
-      policyThreatFiltersDropdown.displayed
-      applicationFiltersDropdown.toggleOption(firstApp.name)
-      applicationFiltersDropdown.toggleOption(secondApp.name)
-      applicationTagFiltersDropdown.toggleOption(firstAppTag.name)
-      policyThreatFiltersDropdown.toggleOption('Security')
-      policyThreatFiltersDropdown.toggleOption('Other')
-      stageTypeFiltersDropdown.toggleOption('Release')
-      applyFilter()
+      def newestRiskPage = at NewestRiskDashboardPage
+      newestRiskPage.filterPanelToggle.click()
+      waitFor { newestRiskPage.applicationFiltersDropdown.displayed }
+      newestRiskPage.policyThreatFiltersDropdown.displayed
+      newestRiskPage.applicationFiltersDropdown.toggleOption(firstApp.name)
+      newestRiskPage.applicationFiltersDropdown.toggleOption(secondApp.name)
+      newestRiskPage.applicationTagFiltersDropdown.toggleOption(firstAppTag.name)
+      newestRiskPage.policyThreatFiltersDropdown.toggleOption('Security')
+      newestRiskPage.policyThreatFiltersDropdown.toggleOption('Other')
+      newestRiskPage.stageTypeFiltersDropdown.toggleOption('Release')
+      newestRiskPage.applyFilter()
 
     then: 'filters are stored to disk'
       DashboardFilterDTO dto = new ObjectMapper().readValue(new DashboardFilterDAO().getByUsername("admin").filter, DashboardFilterDTO.class);
@@ -764,83 +787,83 @@ class DashboardOverviewSpec
       driver.navigate().refresh()
 
     then: 'See proper values set in the filters'
-      waitFor { applicationFilters.displayed }
-      applicationFilters.collect { it.text() }.join('') == firstApp.name + ',' + secondApp.name
-      applicationTagFilters.text() == firstAppTag.name
-      stageTypeFilters.text() == 'Release'
-      policyThreatTypeFilters.collect { it.text() }.join('') == 'Security,Other'
-      policyThreatLevelFilters.text() == '3 through 6'
+      def newestRiskPage = at NewestRiskDashboardPage
+      waitFor { newestRiskPage.applicationFilters.displayed }
+      newestRiskPage.applicationFilters.collect { it.text() }.join('') == firstApp.name + ',' + secondApp.name
+      newestRiskPage.applicationTagFilters.text() == firstAppTag.name
+      newestRiskPage.stageTypeFilters.text() == 'Release'
+      newestRiskPage.policyThreatTypeFilters.collect { it.text() }.join('') == 'Security,Other'
+      newestRiskPage.policyThreatLevelFilters.text() == '3 through 6'
   }
 
   def 'Components Table'() {
     when: 'Switch to Components Tab'
       tabLinks.componentsTabButton.click()
+      def compViolationsPage = at ComponentViolationsDashboardPage
 
     then: 'Component Table Displayed'
-      waitFor { componentViolationsTable.rows.size() == 1 }
-      componentViolationsTable.rows[0].component.text() == "Group1 : Artifact1 : Version1"
-      componentViolationsTable.rows[0].affectedApplications.text() == "2"
-      componentViolationsTable.rows[0].affectedApplicationsLink.displayed
-      componentViolationsTable.rows[0].netRisk.text() == "15"
-      componentViolationsTable.rows[0].criticalRisk.text() == "10"
-      componentViolationsTable.rows[0].severeRisk.text() == "5"
-      componentViolationsTable.rows[0].moderateRisk.text() == "0"
-      !componentViolationsTable.rows[0].lowRisk.displayed
-      componentViolationsTable.rows[0].componentLink.displayed
+      waitFor { compViolationsPage.componentViolationsTable.rows.size() == 1 }
+      compViolationsPage.componentViolationsTable.rows[0].component.text() == "Group1 : Artifact1 : Version1"
+      compViolationsPage.componentViolationsTable.rows[0].affectedApplications.text() == "2"
+      compViolationsPage.componentViolationsTable.rows[0].affectedApplicationsLink.displayed
+      compViolationsPage.componentViolationsTable.rows[0].netRisk.text() == "15"
+      compViolationsPage.componentViolationsTable.rows[0].criticalRisk.text() == "10"
+      compViolationsPage.componentViolationsTable.rows[0].severeRisk.text() == "5"
+      compViolationsPage.componentViolationsTable.rows[0].moderateRisk.text() == "0"
+      !compViolationsPage.componentViolationsTable.rows[0].lowRisk.displayed
+      compViolationsPage.componentViolationsTable.rows[0].componentLink.displayed
 
     when: 'clicking the component link'
-      componentViolationsTable.rows[0].componentLink.click()
+      compViolationsPage.componentViolationsTable.rows[0].componentLink.click()
 
     then: 'the component drilldown page is shown'
       at ComponentDrilldownPage
-
-    cleanup: 'return to the overview page; hack to ensure we are refreshing the correct page in setup() for next feature'
-      to DashboardOverviewPage
   }
 
   def 'Applications Table'() {
     when: 'Switch to Applications Tab'
       tabLinks.applicationsTabButton.click()
+      def appViolationsPage = at ApplicationViolationsDashboardPage
     then:
-      waitFor { applicationViolationsTable.rows.size() == 2 }
-      applicationViolationsTable.rows[0].application.text() == secondApp.getName()
-      applicationViolationsTable.rows[0].netRisk.text() == "10"
-      applicationViolationsTable.rows[0].criticalRisk.text() == "10"
-      applicationViolationsTable.rows[0].severeRisk.text() == "0"
-      applicationViolationsTable.rows[0].moderateRisk.text() == "0"
-      !applicationViolationsTable.rows[0].lowRisk.displayed
-      applicationViolationsTable.rows[0].expand.displayed
-      applicationViolationsTable.rows[1].application.text() == firstApp.getName()
-      applicationViolationsTable.rows[1].netRisk.text() == "5"
-      applicationViolationsTable.rows[1].criticalRisk.text() == "0"
-      applicationViolationsTable.rows[1].severeRisk.text() == "5"
-      applicationViolationsTable.rows[1].moderateRisk.text() == "0"
-      !applicationViolationsTable.rows[1].lowRisk.displayed
-      applicationViolationsTable.rows[1].expand.displayed
+      waitFor { appViolationsPage.applicationViolationsTable.rows.size() == 2 }
+      appViolationsPage.applicationViolationsTable.rows[0].application.text() == secondApp.getName()
+      appViolationsPage.applicationViolationsTable.rows[0].netRisk.text() == "10"
+      appViolationsPage.applicationViolationsTable.rows[0].criticalRisk.text() == "10"
+      appViolationsPage.applicationViolationsTable.rows[0].severeRisk.text() == "0"
+      appViolationsPage.applicationViolationsTable.rows[0].moderateRisk.text() == "0"
+      !appViolationsPage.applicationViolationsTable.rows[0].lowRisk.displayed
+      appViolationsPage.applicationViolationsTable.rows[0].expand.displayed
+      appViolationsPage.applicationViolationsTable.rows[1].application.text() == firstApp.getName()
+      appViolationsPage.applicationViolationsTable.rows[1].netRisk.text() == "5"
+      appViolationsPage.applicationViolationsTable.rows[1].criticalRisk.text() == "0"
+      appViolationsPage.applicationViolationsTable.rows[1].severeRisk.text() == "5"
+      appViolationsPage.applicationViolationsTable.rows[1].moderateRisk.text() == "0"
+      !appViolationsPage.applicationViolationsTable.rows[1].lowRisk.displayed
+      appViolationsPage.applicationViolationsTable.rows[1].expand.displayed
 
     when: 'Expand'
-      applicationViolationsTable.rows[0].expand.click()
+      appViolationsPage.applicationViolationsTable.rows[0].expand.click()
     then: 'Stage shown'
-      waitFor { applicationViolationsTable.rows.size() == 3 }
-      applicationViolationsTable.rows[0].collapse.displayed
-      applicationViolationsTable.rows[1].application.text() == new ReleaseStageType().getName().toUpperCase()
-      applicationViolationsTable.rows[1].reportLink.displayed
+      waitFor { appViolationsPage.applicationViolationsTable.rows.size() == 3 }
+      appViolationsPage.applicationViolationsTable.rows[0].collapse.displayed
+      appViolationsPage.applicationViolationsTable.rows[1].application.text() == new ReleaseStageType().getName().toUpperCase()
+      appViolationsPage.applicationViolationsTable.rows[1].reportLink.displayed
 
     when: 'Expand'
-      applicationViolationsTable.rows[2].expand.click()
+      appViolationsPage.applicationViolationsTable.rows[2].expand.click()
 
     then: 'stages shown in chronological order'
-      waitFor { applicationViolationsTable.rows.size() == 6 }
-      applicationViolationsTable.rows[2].collapse.displayed
-      applicationViolationsTable.rows[3].application.text() == new BuildStageType().getName().toUpperCase()
-      applicationViolationsTable.rows[3].reportLink.displayed
-      applicationViolationsTable.rows[4].application.text() == new StageReleaseStageType().getName().toUpperCase()
-      applicationViolationsTable.rows[4].reportLink.displayed
-      applicationViolationsTable.rows[5].application.text() == new ReleaseStageType().getName().toUpperCase()
-      applicationViolationsTable.rows[5].reportLink.displayed
+      waitFor { appViolationsPage.applicationViolationsTable.rows.size() == 6 }
+      appViolationsPage.applicationViolationsTable.rows[2].collapse.displayed
+      appViolationsPage.applicationViolationsTable.rows[3].application.text() == new BuildStageType().getName().toUpperCase()
+      appViolationsPage.applicationViolationsTable.rows[3].reportLink.displayed
+      appViolationsPage.applicationViolationsTable.rows[4].application.text() == new StageReleaseStageType().getName().toUpperCase()
+      appViolationsPage.applicationViolationsTable.rows[4].reportLink.displayed
+      appViolationsPage.applicationViolationsTable.rows[5].application.text() == new ReleaseStageType().getName().toUpperCase()
+      appViolationsPage.applicationViolationsTable.rows[5].reportLink.displayed
 
     and: 'the stage label links to the underlying report'
-      withNewWindow(page: ReportContainerPage, { applicationViolationsTable.rows[3].reportLink.click() } ) {
+      withNewWindow(page: ReportContainerPage, { appViolationsPage.applicationViolationsTable.rows[3].reportLink.click() } ) {
         verifyAt()
         reportTitle.text()
       }  ==~ firstApp.getName() + ' .* Build Report'
@@ -848,60 +871,62 @@ class DashboardOverviewSpec
 
   def 'Dashboard Filter Summary'() {
     when: 'the filter summary data is loaded'
-      waitFor { summaryData.displayed }
+      def newestRiskPage = at NewestRiskDashboardPage
+      waitFor { newestRiskPage.summaryData.displayed }
 
     then: 'the count of total applications is shown'
-      summaryTotalApplications.displayed
-      summaryTotalApplications.text() == '2'
+      newestRiskPage.summaryTotalApplications.displayed
+      newestRiskPage.summaryTotalApplications.text() == '2'
 
     and: 'the count of matched applications is shown'
-      summaryMatchedApplications.displayed
-      summaryMatchedApplications.text() == '2'
+      newestRiskPage.summaryMatchedApplications.displayed
+      newestRiskPage.summaryMatchedApplications.text() == '2'
 
     and: 'the percentage of matched applications is shown'
-      summaryPercentApplications.displayed
-      summaryPercentApplications.text() == '100%'
+      newestRiskPage.summaryPercentApplications.displayed
+      newestRiskPage.summaryPercentApplications.text() == '100%'
 
     and: 'the count of total policies is shown'
-      summaryTotalPolicies.displayed
-      summaryTotalPolicies.text() == '1'
+      newestRiskPage.summaryTotalPolicies.displayed
+      newestRiskPage.summaryTotalPolicies.text() == '1'
 
     and: 'the count of matched policies is shown'
-      summaryMatchedPolicies.displayed
-      summaryMatchedPolicies.text() == '1'
+      newestRiskPage.summaryMatchedPolicies.displayed
+      newestRiskPage.summaryMatchedPolicies.text() == '1'
 
     and: 'the percentage of matched policies is shown'
-      summaryPercentPolicies.displayed
-      summaryPercentPolicies.text() == '100%'
+      newestRiskPage.summaryPercentPolicies.displayed
+      newestRiskPage.summaryPercentPolicies.text() == '100%'
 
     and: 'the count of total components is shown'
-      summaryTotalComponents.displayed
-      summaryTotalComponents.text() == '3'
+      newestRiskPage.summaryTotalComponents.displayed
+      newestRiskPage.summaryTotalComponents.text() == '3'
 
     and: 'the count of matched components is shown'
-      summaryMatchedComponents.displayed
-      summaryMatchedComponents.text() == '3'
+      newestRiskPage.summaryMatchedComponents.displayed
+      newestRiskPage.summaryMatchedComponents.text() == '3'
 
     and: 'the percentage of matched components is shown'
-      summaryPercentComponents.displayed
-      summaryPercentComponents.text() == '100%'
+      newestRiskPage.summaryPercentComponents.displayed
+      newestRiskPage.summaryPercentComponents.text() == '100%'
   }
 
   def 'Dashboard component match summary'() {
     when: 'the component match summary is shown'
-      waitFor { componentMatchSection.displayed }
+      def newestRiskPage = at NewestRiskDashboardPage
+      waitFor { newestRiskPage.componentMatchSection.displayed }
 
     then: 'the count of exact match components is shown'
-      componentMatchExactCount.displayed
-      componentMatchExactCount.text() == '1 (33%)'
+      newestRiskPage.componentMatchExactCount.displayed
+      newestRiskPage.componentMatchExactCount.text() == '1 (33%)'
 
     and: 'the count of similar match components is shown'
-      componentMatchSimilarCount.displayed
-      componentMatchSimilarCount.text() == '1 (33%)'
+      newestRiskPage.componentMatchSimilarCount.displayed
+      newestRiskPage.componentMatchSimilarCount.text() == '1 (33%)'
 
     and: 'the count of unknown components is shown'
-      componentMatchUnknownCount.displayed
-      componentMatchUnknownCount.text() == '1 (33%)'
+      newestRiskPage.componentMatchUnknownCount.displayed
+      newestRiskPage.componentMatchUnknownCount.text() == '1 (33%)'
   }
 
   def 'Heat Map Help Modal' () {

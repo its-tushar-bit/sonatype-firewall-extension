@@ -407,7 +407,141 @@
           <a id='tab-button-newest' ui-sref="dashboard.overview.newest-risk">Newest</a>
         </li>
       </ul>
+<<<<<<< HEAD
+      <div ng-switch="riskTable">
+        <div ng-switch-when="newest-risk">
+          <div newest-risk-table>
+            <div ng-include="'risk-table'"></div>
+          </div>
+        </div>
+        <div ng-switch-when="applications">
+          <div application-risk-table>
+            <div ng-controller="applicationRiskTable">
+              <table class="table table-risk" id="application-risk" sortable="-totalApplicationRisk.totalRisk">
+                <thead>
+                  <tr>
+                    <th><div sort-columns="applicationName">APPLICATION</div></th>
+                    <th class="total-risk"><div sort-columns="-totalApplicationRisk.totalRisk">TOTAL RISK</div></th>
+                    <th id="threat-header-critical" ng-if="policyThreatLevelCategories.critical">
+                      <div sort-columns="-totalApplicationRisk.criticalRisk" title="Policy Threat Levels 8 - 10">CRITICAL</div>
+                    </th>
+                    <th id="threat-header-severe" ng-if="policyThreatLevelCategories.severe">
+                      <div sort-columns="-totalApplicationRisk.severeRisk" title="Policy Threat Levels 4 - 8">SEVERE</div>
+                    </th>
+                    <th id="threat-header-moderate" ng-if="policyThreatLevelCategories.moderate">
+                      <div sort-columns="-totalApplicationRisk.moderateRisk" title="Policy Threat Levels 2 - 3">MODERATE</div>
+                    </th>
+                    <th id="threat-header-low" ng-if="policyThreatLevelCategories.low">
+                      <div sort-columns="-totalApplicationRisk.lowRisk" title="Policy Threat Levels 0 - 1">LOW</div>
+                    </th>
+                  </tr>
+                </thead>
+                <tr
+                  ng-repeat-start="application in data | limitTo: maxResults | orderBy:getSortField()">
+                  <td><i class="glyphicons-halflings-sonatype lighter"
+                    ng-class="{ clickable : canExpand(application),
+                                      'expand' : canExpand(application),
+                                      'collapse' : isExpanded(application),
+                                      'emptyIconGlyph' : !canExpand(application) }"
+                    ng-click='expand(application)'></i> {{application.applicationName}}</td>
+                  <td class="total-risk"
+                    alpha-background="{{application.totalApplicationRisk.totalRisk | safeDivide:totalRisk}}"
+                    ng-class="{ 'black-text': (application.totalApplicationRisk.totalRisk | safeDivide:totalRisk) < 0.5 }">
+                    {{application.totalApplicationRisk.totalRisk}}</td>
+                  <td ng-if="policyThreatLevelCategories.critical" class="critical-risk"
+                    alpha-background="{{application.totalApplicationRisk.criticalRisk | safeDivide:criticalRisk}}"
+                    ng-class="{ 'muted-text': application.totalApplicationRisk.criticalRisk === 0 }">
+                    {{application.totalApplicationRisk.criticalRisk}}</td>
+                  <td ng-if="policyThreatLevelCategories.severe" class="severe-risk"
+                    alpha-background="{{application.totalApplicationRisk.severeRisk | safeDivide:severeRisk}}"
+                    ng-class="{ 'muted-text': application.totalApplicationRisk.severeRisk === 0 }">
+                    {{application.totalApplicationRisk.severeRisk}}</td>
+                  <td ng-if="policyThreatLevelCategories.moderate" class="moderate-risk"
+                    alpha-background="{{application.totalApplicationRisk.moderateRisk | safeDivide:moderateRisk}}"
+                    ng-class="{ 'muted-text': application.totalApplicationRisk.moderateRisk === 0 }">
+                    {{application.totalApplicationRisk.moderateRisk}}</td>
+                  <td ng-if="policyThreatLevelCategories.low" class="low-risk"
+                    alpha-background="{{application.totalApplicationRisk.lowRisk | safeDivide:lowRisk}}"
+                    ng-class="{ 'muted-text': application.totalApplicationRisk.lowRisk === 0 }">
+                    {{application.totalApplicationRisk.lowRisk}}</td>
+                </tr>
+                <tr class='stage' ng-repeat-end ng-repeat='stage in application.stageRisks'
+                  ng-if='expanded[application.applicationId]'>
+                  <td><a title="View application report" class="glyphicons-sonatype link"
+                    ng-href="index.html#/reports/{{encodeURIComponent(application.applicationId)}}/{{stage.scanId}}"
+                    target="_blank">{{stage.stageTypeName | uppercase}}</a></td>
+                  <td class="total-risk" ng-class="{ 'muted-text': stage.risk.totalRisk === 0 }">
+                    {{stage.risk.totalRisk}}</td>
+                  <td ng-if="policyThreatLevelCategories.critical" class="critical-risk" ng-class="{ 'muted-text': stage.risk.criticalRisk === 0 }">
+                    {{stage.risk.criticalRisk}}</td>
+                  <td ng-if="policyThreatLevelCategories.severe" class="severe-risk" ng-class="{ 'muted-text': stage.risk.severeRisk === 0 }">
+                    {{stage.risk.severeRisk}}</td>
+                  <td ng-if="policyThreatLevelCategories.moderate" class="moderate-risk" ng-class="{ 'muted-text': stage.risk.moderateRisk === 0 }">
+                    {{stage.risk.moderateRisk}}</td>
+                  <td ng-if="policyThreatLevelCategories.low" class="low-risk" ng-class="{ 'muted-text': stage.risk.lowRisk === 0 }">
+                    {{stage.risk.lowRisk}}</td>
+                </tr>
+              </table>
+            </div>
+          </div>
+        </div>
+        <div ng-switch-when="components">
+          <div component-risk-table>
+            <div ng-controller="componentRiskTable">
+              <table class="table table-risk table-risk-component" id="component-risk" sortable="-score">
+                <thead>
+                  <tr>
+                    <th><div>COMPONENT</div></th>
+                    <th><div sort-columns="-affectedApplications">AFFECTED APPS</div></th>
+                    <th class="total-risk"><div sort-columns="-score">TOTAL RISK</div></th>
+                    <th id="threat-header-critical" ng-if="policyThreatLevelCategories.critical">
+                      <div sort-columns="-scoreCritical" title="Policy Threat Levels 8 - 10">CRITICAL</div>
+                    </th>
+                    <th id="threat-header-severe" ng-if="policyThreatLevelCategories.severe">
+                      <div sort-columns="-scoreSevere" title="Policy Threat Levels 4 - 7">SEVERE</div>
+                    </th>
+                    <th id="threat-header-moderate" ng-if="policyThreatLevelCategories.moderate">
+                      <div sort-columns="-scoreModerate" title="Policy Threat Levels 2 - 3">MODERATE</div>
+                    </th>
+                    <th id="threat-header-low" ng-if="policyThreatLevelCategories.low">
+                      <div sort-columns="-scoreLow" title="Policy Threat Levels 0 - 1">LOW</div>
+                    </th>
+                  </tr>
+                </thead>
+                <tr ng-repeat="component in data | limitTo: maxResults | orderBy:getSortField()">
+                  <td><a ng-if="component.gavs.length" ui-sref="dashboard.component({ hash: component.hash })">
+                      {{component.gavs[0].groupId}}<span class="wrap-force-break"> : </span>{{component.gavs[0].artifactId}}<span
+                      class="wrap-force-break"> : </span>{{component.gavs[0].version}}
+                  </a>
+                    <div ng-if="!component.gavs.length && component.pathnames.length"
+                      pathnames-popover='component.pathnames'>
+                      <a ui-sref="dashboard.component({ hash: component.hash })"> <em>{{component.pathnames[0]
+                          | fileName}}</em>
+                      </a>
+                    </div> <a ng-if="!component.gavs.length && !component.pathnames.length"
+                    ui-sref="dashboard.component({ hash: component.hash })"> <em>Unknown</em>
+                  </a></td>
+                  <td><a ui-sref="dashboard.component({ hash: component.hash })">{{component.affectedApplications}}</a></td>
+                  <td class="total-risk" alpha-background="{{component.score | safeDivide:totalRisk}}"
+                    ng-class="{ 'black-text': (component.score | safeDivide:totalRisk) < 0.5 }">
+                    {{component.score}}</td>
+                  <td ng-if="policyThreatLevelCategories.critical" class="critical-risk" alpha-background="{{component.scoreCritical | safeDivide:criticalRisk}}"
+                    ng-class="{ 'muted-text': component.scoreCritical === 0 }">{{component.scoreCritical}}</td>
+                  <td ng-if="policyThreatLevelCategories.severe" class="severe-risk" alpha-background="{{component.scoreSevere | safeDivide:severeRisk}}"
+                    ng-class="{ 'muted-text': component.scoreSevere === 0 }">{{component.scoreSevere}}</td>
+                  <td ng-if="policyThreatLevelCategories.moderate" class="moderate-risk" alpha-background="{{component.scoreModerate | safeDivide:moderateRisk}}"
+                    ng-class="{ 'muted-text': component.scoreModerate === 0 }">{{component.scoreModerate}}</td>
+                  <td ng-if="policyThreatLevelCategories.low" class="low-risk" alpha-background="{{component.scoreLow | safeDivide:lowRisk}}"
+                    ng-class="{ 'muted-text': component.scoreLow === 0 }">{{component.scoreLow}}</td>
+                </tr>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+=======
        <div ui-view></div>
+>>>>>>> CLM-2644 CLM-2491 Change dashboard pages to include url, update breadcrumbs
     </div>
   </div>
 </div>

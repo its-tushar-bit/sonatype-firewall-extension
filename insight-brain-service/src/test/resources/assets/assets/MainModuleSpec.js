@@ -40,6 +40,7 @@ describe('mainModuleSpec', function() {
       $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getProductFeaturesUrl())).respond(['dashboard']);
       $httpBackend.expectGET('../dashboard-assets/dashboard.html?').respond('<div></div>');
       $httpBackend.expectGET('../dashboard-assets/overview.html?').respond('<div></div>');
+      $httpBackend.expectGET('../dashboard-assets/newest-risk.html?').respond('<div></div>');
 
       initService.start();
       $httpBackend.flush();

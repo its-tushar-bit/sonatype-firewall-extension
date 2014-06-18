@@ -648,7 +648,7 @@ describe('DashboardModule', function() {
       scope.$digest();
 
       expect(scope.states.length).toBe(2);
-      expect(scope.states[0].state).toBe('dashboard.overview');
+      expect(scope.states[0].state).toBe('dashboard.overview.newest-risk');
       expect(scope.states[1].state).toBe('dashboard.component');
     }));
   });

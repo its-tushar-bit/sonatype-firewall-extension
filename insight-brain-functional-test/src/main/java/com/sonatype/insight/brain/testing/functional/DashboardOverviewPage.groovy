@@ -54,9 +54,8 @@ class DashboardOverviewPage
     applicationTagFiltersDropdown(required: false) { module DropdownMultiSelectModule, $('span[items="applicationTags"]'), emptyText: 'All Applications' }
     policyThreatLevelSlider(required: false) { module SliderModule, $('#policy-threat-levels') }
 
-    newestViolationTable(required: false) { module ThreatTableModule, $('div[ng-switch-when="newest-risk"]') }
-    componentViolationsTable(required: false) { module ComponentViolationsTable, $('#component-risk') }
-    applicationViolationsTable(required: false) { module ApplicationViolationsTable, $('#application-risk') }
+    highestRiskDiv(required: false) { module ThreatTableModule, $('#highest-risk') }
+    maxResults(required: false) { module ThreatTableModule, $('#max-results-shown') }
 
     tabLinks { module DashboardTabsModule, $('ul.nav.nav-tabs') }
 
@@ -93,6 +92,36 @@ class DashboardOverviewPage
     applyButton.click()
     // NOTE: Wait for filter to be persisted before the next test tries to reset it
     waitFor { !applyButton.displayed }
+  }
+}
+
+class NewestRiskDashboardPage
+  extends DashboardOverviewPage
+{
+  static url = DashboardOverviewPage.url + "/newest-risk"
+
+  static content = {
+    newestViolationTable(required: false) { module ThreatTableModule, $('#highest-risk-table') }
+  }
+}
+
+class ComponentViolationsDashboardPage
+  extends DashboardOverviewPage
+{
+  static url = DashboardOverviewPage.url + "/components"
+
+  static content = {
+    componentViolationsTable(required: false) { module ComponentViolationsTable, $('#component-risk') }
+  }
+}
+
+class ApplicationViolationsDashboardPage
+  extends DashboardOverviewPage
+{
+  static url = DashboardOverviewPage.url + "/applications"
+
+  static content = {
+    applicationViolationsTable(required: false) { module ApplicationViolationsTable, $('#application-risk') }
   }
 }
 

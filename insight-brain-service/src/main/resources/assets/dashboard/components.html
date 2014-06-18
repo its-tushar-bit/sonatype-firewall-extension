@@ -1,0 +1,51 @@
+<div component-risk-table>
+  <div ng-controller="componentRiskTable">
+    <table class="table table-risk table-risk-component" id="component-risk" sortable="-score">
+      <thead>
+      <tr>
+        <th><div>COMPONENT</div></th>
+        <th><div sort-columns="-affectedApplications">AFFECTED APPS</div></th>
+        <th class="total-risk"><div sort-columns="-score">TOTAL RISK</div></th>
+        <th id="threat-header-critical" ng-if="policyThreatLevelCategories.critical">
+          <div sort-columns="-scoreCritical" title="Policy Threat Levels 8 - 10">CRITICAL</div>
+        </th>
+        <th id="threat-header-severe" ng-if="policyThreatLevelCategories.severe">
+          <div sort-columns="-scoreSevere" title="Policy Threat Levels 4 - 7">SEVERE</div>
+        </th>
+        <th id="threat-header-moderate" ng-if="policyThreatLevelCategories.moderate">
+          <div sort-columns="-scoreModerate" title="Policy Threat Levels 2 - 3">MODERATE</div>
+        </th>
+        <th id="threat-header-low" ng-if="policyThreatLevelCategories.low">
+          <div sort-columns="-scoreLow" title="Policy Threat Levels 0 - 1">LOW</div>
+        </th>
+      </tr>
+      </thead>
+      <tr ng-repeat="component in data | limitTo: maxResults | orderBy:getSortField()">
+        <td><a ng-if="component.gavs.length" ui-sref="dashboard.component({ hash: component.hash })">
+          {{component.gavs[0].groupId}}<span class="wrap-force-break"> : </span>{{component.gavs[0].artifactId}}<span
+                class="wrap-force-break"> : </span>{{component.gavs[0].version}}
+        </a>
+          <div ng-if="!component.gavs.length && component.pathnames.length"
+               pathnames-popover='component.pathnames'>
+            <a ui-sref="dashboard.component({ hash: component.hash })"> <em>{{component.pathnames[0]
+              | fileName}}</em>
+            </a>
+          </div> <a ng-if="!component.gavs.length && !component.pathnames.length"
+                    ui-sref="dashboard.component({ hash: component.hash })"> <em>Unknown</em>
+          </a></td>
+        <td><a ui-sref="dashboard.component({ hash: component.hash })">{{component.affectedApplications}}</a></td>
+        <td class="total-risk" alpha-background="{{component.score | safeDivide:totalRisk}}"
+            ng-class="{ 'black-text': (component.score | safeDivide:totalRisk) < 0.5 }">
+          {{component.score}}</td>
+        <td ng-if="policyThreatLevelCategories.critical" class="critical-risk" alpha-background="{{component.scoreCritical | safeDivide:criticalRisk}}"
+            ng-class="{ 'muted-text': component.scoreCritical === 0 }">{{component.scoreCritical}}</td>
+        <td ng-if="policyThreatLevelCategories.severe" class="severe-risk" alpha-background="{{component.scoreSevere | safeDivide:severeRisk}}"
+            ng-class="{ 'muted-text': component.scoreSevere === 0 }">{{component.scoreSevere}}</td>
+        <td ng-if="policyThreatLevelCategories.moderate" class="moderate-risk" alpha-background="{{component.scoreModerate | safeDivide:moderateRisk}}"
+            ng-class="{ 'muted-text': component.scoreModerate === 0 }">{{component.scoreModerate}}</td>
+        <td ng-if="policyThreatLevelCategories.low" class="low-risk" alpha-background="{{component.scoreLow | safeDivide:lowRisk}}"
+            ng-class="{ 'muted-text': component.scoreLow === 0 }">{{component.scoreLow}}</td>
+      </tr>
+    </table>
+  </div>
+</div>

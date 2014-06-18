@@ -46,9 +46,9 @@ class ComponentDrilldownSpec
     applicationComponent = temporaryEntity.newApplicationComponent(app.id, policyEvaluation.stageTypeId,
         policyViolation.hash, policyViolation.groupId, policyViolation.artifactId, policyViolation.version)
 
-    loginAsAdminVia(DashboardOverviewPage)
-    waitFor { newestViolationTable.rows.size() == 1 }
-    newestViolationTable.rows[0].componentLink.click()
+    def newestRiskPage = loginAsAdminVia(NewestRiskDashboardPage)
+    waitFor { newestRiskPage.newestViolationTable.rows.size() == 1 }
+    newestRiskPage.newestViolationTable.rows[0].componentLink.click()
     at ComponentDrilldownPage
   }
 
@@ -57,8 +57,8 @@ class ComponentDrilldownSpec
       waitFor { breadcrumbs.size() == 2 }
 
     then: 'Only the dashboard breadcrumb is shown'
-      crumb('dashboard.overview').displayed
-      crumb('dashboard.overview').text().trim() == 'Dashboard'
+      crumb('dashboard.overview.newest-risk').displayed
+      crumb('dashboard.overview.newest-risk').text().trim() == 'Dashboard'
       crumb('dashboard.component').displayed
       crumb('dashboard.component').text().trim() == 'Component Details'
 

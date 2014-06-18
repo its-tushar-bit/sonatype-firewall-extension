@@ -155,6 +155,7 @@ public class ConfigurationClientTest
   public void testGetApplicationIdNameMap() throws Exception {
     Application app = tempEntity.newApplicationWithParent("valid-id");
 
+    @SuppressWarnings("deprecation")
     Map<String, String> map = new ConfigurationClient(getCLMServer().getClientConfiguration())
         .getApplicationIdNameMap();
 

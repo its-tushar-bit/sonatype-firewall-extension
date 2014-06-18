@@ -80,8 +80,8 @@ public class InsightBrainService
       new InsightBrainService().run(args.length > 0 ? args : new String[] { "server" });
     }
     catch (Throwable t) {
-      // Try to log to stderr before the trying the standard logging because the standard logging may not be
-      // operational at this point.
+      // Try to log to stderr before trying the standard logging because the standard logging may not be operational at
+      // this point.
       t.printStackTrace();
       log.error(t.getMessage(), t);
       System.exit(2);

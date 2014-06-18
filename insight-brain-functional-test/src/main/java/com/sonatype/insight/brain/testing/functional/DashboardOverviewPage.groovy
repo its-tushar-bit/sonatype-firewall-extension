@@ -190,6 +190,7 @@ class SparklineModule
 
   List<Number> getValues() {
     def path = previousPath.attr('d');
+    def padding = 2
     def points = path.split('L').collect {
       it.split(',')[1].toDouble()
     }
@@ -200,7 +201,7 @@ class SparklineModule
     points = points.plus(presentPoint)
     def maxValue = svgContainer.attr('height').toDouble()
     return points.collect {
-      1.0 - it / maxValue
+      1.0 - (it - padding) / (maxValue - 2 * padding)
     }
   }
 

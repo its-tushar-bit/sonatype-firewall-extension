@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import com.sonatype.clm.dto.model.ProprietaryConfig;
+import com.sonatype.clm.dto.model.application.ApplicationSummaryList;
 import com.sonatype.insight.client.utils.AbstractClient;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.client.utils.Result;
@@ -51,12 +52,26 @@ public class ConfigurationClient
     return result;
   }
 
+  /**
+   * @deprecated as of version 1.11.0 use {@link #getApplications()} instead.
+   */
+  @Deprecated
   @SuppressWarnings("unchecked")
   public Map<String, String> getApplicationIdNameMap() throws IOException {
     Result result = get(path("rest/application/services/names"));
     Map<String, String> applicationsById = new TreeMap<String, String>(String.CASE_INSENSITIVE_ORDER);
     applicationsById.putAll(JsonUtils.parse(result.text(), Map.class));
     return applicationsById;
+  }
+
+  /**
+   * The list of application summaries from the CLM server
+   *
+   * @since 1.11.0
+   */
+  public ApplicationSummaryList getApplications() throws IOException {
+    Result result = get(path("rest/integration/applications"));
+    return JsonUtils.parse(result.text(), ApplicationSummaryList.class);
   }
 
   public void validateConfiguration() throws IOException {

@@ -12,6 +12,8 @@ import java.util.List;
 import java.util.Map;
 
 import com.sonatype.clm.dto.model.ProprietaryConfig;
+import com.sonatype.clm.dto.model.application.ApplicationSummary;
+import com.sonatype.clm.dto.model.application.ApplicationSummaryList;
 import com.sonatype.insight.brain.dataaccess.ProprietaryConfigDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.service.AbstractBrainServiceTest;
@@ -24,7 +26,9 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
 
+import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.startsWith;
+import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
@@ -158,6 +162,22 @@ public class ConfigurationClientTest
     assertTrue(map.containsKey("valid-id"));
     assertEquals(app.getName(), map.get("valid-id"));
     assertEquals(app.getName(), map.get("VALID-ID"));
+  }
+
+  @Test
+  public void testGetApplications() throws Exception {
+    Application application = tempEntity.newApplicationWithParent("valid-id");
+
+    Configuration config = getCLMServer().getClientConfiguration();
+    config.setServerAuth(SimpleAuthentication.parse("admin:admin123"));
+    ApplicationSummaryList applicationSummaryList = new ConfigurationClient(config).getApplications();
+
+    assertThat(applicationSummaryList, notNullValue());
+    assertThat(applicationSummaryList.getApplicationSummaries(), hasSize(1));
+    ApplicationSummary applicationSummary = applicationSummaryList.getApplicationSummaries().get(0);
+    assertThat(applicationSummary.getId(), is(application.getId()));
+    assertThat(applicationSummary.getPublicId(), is(application.getPublicId()));
+    assertThat(applicationSummary.getName(), is(application.getName()));
   }
 
   @Test

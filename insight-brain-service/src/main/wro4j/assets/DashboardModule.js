@@ -117,7 +117,9 @@
             // Attach the popover to the body of the document, as certain browsers (IE9) will fail otherwise.
             container: 'body',
             // Add our styling, pathnames-popover and pathnames-popover-content, to the popover template.
-            template: '<div class="popover pathnames-popover"><div class="pathnames-popover-arrow"></div><div class="popover-inner"><h3 class="popover-title"></h3><div class="popover-content pathnames-popover-content"><p></p></div></div></div>'
+            template: '<div class="popover pathnames-popover"><div class="pathnames-popover-arrow"></div>' +
+              '<div class="popover-inner"><h3 class="popover-title"></h3>' +
+              '<div class="popover-content pathnames-popover-content"><p></p></div></div></div>'
           };
           
           // Configure the popover so that it functions modally.

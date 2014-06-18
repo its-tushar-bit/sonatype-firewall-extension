@@ -302,7 +302,3 @@ table.clm-table-stripe > tbody > tr:nth-child(odd) {
 .clm-table-border-top {
   border-top: 1px solid #ddd
 }
-
-.popover-content {
-  word-break: break-all;
-}

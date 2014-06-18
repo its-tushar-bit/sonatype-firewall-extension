@@ -1053,7 +1053,7 @@
 
           d3.select(element[0]).select('svg').remove();
 
-          var guideHeight = 16, guidePadding = 3, transitionDuration = 50, digitLength = 10;
+          var guideHeight = 16, guidePadding = 3, transitionDuration = 50, digitLength = 10, graphPadding = 2;
           function getGuidePositions(snapX, snapY, yValue) {
             // Calculate rectangle width. Each digit takes ~7 pixels with 7 pixels for single digits and 6 pixel pad
             var digits = yValue === 0 ? 0 : Math.log(yValue)/Math.log(10);
@@ -1083,9 +1083,9 @@
             .attr('height', config.height)
             .append('g');
 
-          var yScale = d3.scale.linear().range([config.height, 0]),
-            pastX = d3.scale.linear().range([0, config.width - config.width / data.length]),
-            recentX = d3.scale.linear().range([config.width - config.width / data.length, config.width]);
+          var yScale = d3.scale.linear().range([config.height - graphPadding, graphPadding]),
+            pastX = d3.scale.linear().range([graphPadding, config.width - config.width / data.length - graphPadding]),
+            recentX = d3.scale.linear().range([config.width - config.width / data.length - graphPadding, config.width - graphPadding]);
 
           pastX.domain([0, data.length-2]);
           recentX.domain([0, 1]);

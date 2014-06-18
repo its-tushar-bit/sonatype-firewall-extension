@@ -148,7 +148,7 @@ public class LdapUserMapping
    * @since 1.11
    */
   @Column(name = "dynamic_group_search_enabled")
-  private boolean dynamicGroupSearchEnabled;
+  private boolean dynamicGroupSearchEnabled = true;
 
   @Override
   public String getId() {

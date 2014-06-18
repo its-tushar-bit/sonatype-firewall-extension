@@ -226,6 +226,17 @@ public class UserDirectory
     return new QueryResult(members, ldapException);
   }
 
+  public boolean isGroupSearchEnabled() {
+    return ldapManager.isGroupSearchEnabled();
+  }
+
+  public String getGroupRealm() {
+    if (ldapManager.isLdapEnabled()) {
+      return ldapManager.getLdapServerName();
+    }
+    return null;
+  }
+
   public boolean isLdapUser(final User user) throws NamingException {
     if (!ldapManager.isLdapEnabled()) {
       return false;

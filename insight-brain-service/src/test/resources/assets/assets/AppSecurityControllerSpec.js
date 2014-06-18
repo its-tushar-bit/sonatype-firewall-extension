@@ -113,6 +113,7 @@ describe('AppSecurityControllerSpec', function() {
           realm : 'old'
         }]
       }];
+      parentScope.ldapRealm = 'old'
 
       $controller('AppSecurityEditorController', {
         $scope : scope
@@ -124,6 +125,26 @@ describe('AppSecurityControllerSpec', function() {
     afterEach(function () {
       parentScope.$destroy();
     });
+
+    it('isDuplicate', function () {
+      expect(scope.isDuplicate(null, 'asdf', 'GROUP')).toBeFalsy();
+      expect(scope.isDuplicate('newgroup', 'asdf', 'GROUP')).toBeFalsy();
+      expect(scope.isDuplicate('oldladiesgroup', 'old', 'GROUP')).toBeTruthy();
+      expect(scope.isDuplicate('OLDladiesGROUP', 'old', 'GROUP')).toBeTruthy();
+    });
+
+    it('addGroup', function () {
+      scope.queryString = 'yeolegroup';
+      scope.addGroup();
+      expect(parentScope.mappings[0].members.length).toEqual(3);
+      expect(parentScope.mappings[0].members[2]).toEqual({
+        type : 'GROUP',
+        internalName : 'yeolegroup',
+        displayName :  'yeolegroup',
+        email : null,
+        realm : 'old'
+      });
+    })
 
     it('Add User and Group', inject(function ($httpBackend, CLMAppLocations) {
       scope.$apply(function () {

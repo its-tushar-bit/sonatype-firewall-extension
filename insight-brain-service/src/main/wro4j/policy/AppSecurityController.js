@@ -49,7 +49,9 @@
 
       $http.get(clmAppLocations.getRoleMappingUrl()).success(function (data) {
         $scope.context = {
-          roles:  data.membersByRole
+          roles:  data.membersByRole,
+          ldapRealm : data.ldapRealm,
+          groupSearchEnabled : data.groupSearchEnabled
         };
       }).error(function () {
         $scope.error = arguments;
@@ -119,6 +121,33 @@
       });
     };
 
+    $scope.isDuplicate = function (internalName, realm, type) {
+      if (internalName) {
+        var nameregex = new RegExp('^' + internalName + '$', 'i');
+        for (var i=0; i<$scope.mappings[0].members.length; i++) {
+          if (nameregex.test($scope.mappings[0].members[i].internalName) &&
+                  $scope.mappings[0].members[i].realm === realm &&
+                  $scope.mappings[0].members[i].type === type) {
+            return true;
+          }
+        }
+      }
+      return false;
+    };
+
+    $scope.addGroup = function () {
+      if (!$scope.isDuplicate($scope.queryString, $scope.ldapRealm, 'GROUP')) {
+        $scope.mappings[0].members.push({
+          type : 'GROUP',
+          displayName : $scope.queryString,
+          internalName : $scope.queryString,
+          email : null,
+          realm : $scope.ldapRealm
+        });
+        $scope.queryString = '';
+      }
+    };
+
     $scope.removeMember = function ($parentIndex, member) {
       if ($parentIndex === 0) {
         for (var i=0; i<$scope.mappings[0].members.length; i++) {
@@ -178,7 +207,9 @@
       scope : {
         appSecurityEditor : '=appSecurityEditor',
         roleId : '=',
-        hide : '&'
+        hide : '&',
+        groupSearchEnabled : '=',
+        ldapRealm : '='
       },
       controller : 'AppSecurityEditorController',
       templateUrl : 'appSecurityEditor',

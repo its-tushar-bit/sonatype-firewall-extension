@@ -1,7 +1,24 @@
 <div id="security" style='min-width: 955px'>
   <script type='text/ng-template' id='appSecurityEditor'>
     <div style='width:500px; margin:5px'>
-      <div app-user-search set-results='setResults($members, $error)' query-string='queryString' request-active='requestActive'></div>
+      <p class='btn-group' ng-hide='groupSearchEnabled'>
+        <button class='btn' ng-click='mtype=null' ng-class='{ active : !mtype }'>Users</button>
+        <button class='btn' ng-click='mtype="groups"' ng-class='{ active : mtype }'>Groups</button>
+      </p>
+      <div ng-switch='mtype'>
+        <div ng-switch-when='groups'>
+           <div class='input-append'>
+             <input type='text' name='groupname' ng-model='$parent.queryString'>
+             <button class='btn'
+                     ng-click='addGroup()'
+                     ng-disabled='!queryString || isDuplicate(queryString, ldapRealm, "GROUP")'><i class='icon-plus'></i> Add Group</button>
+           </div>
+        </div>
+        <div ng-switch-default>
+          <span app-user-search set-results='setResults($members, $error)'
+                query-string='$parent.queryString' request-active='$parent.requestActive'></span>
+        </div>
+      </div>
       <div>
         <div class='selectList-large'>
           <h5>Applied</h5>
@@ -25,7 +42,7 @@
             </div>
           </div>
         </div>
-        <div class='selectList-large'>
+        <div class='selectList-large' ng-show='!mtype'>
           <h5>Available</h5>
           <div>
             <div>
@@ -99,7 +116,7 @@
                 </div>
               </div>
               <div ng-if='editMode'>
-                <div app-security-editor='role.membersByOwner' role-id='role.roleId' hide='$parent.editMode = false'></div>
+                <div app-security-editor='role.membersByOwner' role-id='role.roleId' ldap-realm='context.ldapRealm' group-search-enabled='context.groupSearchEnabled' hide='$parent.editMode = false'></div>
               </div>
             </div>
           </div>

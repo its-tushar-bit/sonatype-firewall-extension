@@ -33,7 +33,7 @@
               <div>RISK</div>
             </th>
             <th ng-repeat="stage in stageTypes"
-                class="stage-column">
+                class="stage-column stage-column-{{stage.id}}">
               <div>{{stage.name | uppercase}}</div>
             </th>
           </tr>

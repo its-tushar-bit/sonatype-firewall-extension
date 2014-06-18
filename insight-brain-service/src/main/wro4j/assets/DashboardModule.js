@@ -211,6 +211,7 @@
         function loadFilters() {
           //we don't want to update the data to be saved until they hit apply button
           scope.dirtyFilter = getEmptyFilter();
+          scope.error = null;
 
           var promises = [
             ApplicationStore.get(),
@@ -261,16 +262,19 @@
             }
             else {
               //need to init the filter to something, to trigger a data load
-              scope.filter = {};
+              scope.filter = getEmptyFilter();
             }
             scope.filtersLoaded = true;
-          }, function(){
+          }, function(error) {
+            scope.filter = getEmptyFilter();
             scope.filtersLoaded = true;
+            scope.error = error;
           });
         }
 
-        // TODO we should use load error n' stuff
         loadFilters();
+
+        scope.doLoad = loadFilters;
 
         scope.applicationNameFor = function(applicationId) {
           for (var i = 0; i < scope.applications.length; i++) {

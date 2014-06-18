@@ -143,6 +143,16 @@ describe('DashboardModule', function() {
       expect(directiveScope.applicationTags[0].owner).toBe(organizations[0].name);
     });
 
+    it('handles errors', inject(function($httpBackend, CLMLocations) {
+      $httpBackend.expectGET(CLMLocations.getApplicationTagsUrl()).respond(tags);
+      $httpBackend.expectGET(CLMLocations.getDashboardFilters()).respond(402, {});
+      directiveScope.doLoad();
+      $httpBackend.flush();
+      expect(directiveScope.filtersLoaded).toBeTruthy();
+      expect(directiveScope.filter).toBeDefined();
+      expect(directiveScope.error).toBeDefined();
+    }));
+
     it('reset filter', function () {
       directiveScope.resetFilter();
 

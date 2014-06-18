@@ -1,5 +1,5 @@
 <script type='text/ng-template' id='dashboard-filter'>
-  <div class='span12 dashboard-filters'>
+  <div class='span12 dashboard-filters' load-wrapper="error" reload="doLoad()">
     <div class='filter-edit collapse' delayed-overflow>
       <div ng-if='dirtyFilter'>
         <div class='row filter-edit-body'>

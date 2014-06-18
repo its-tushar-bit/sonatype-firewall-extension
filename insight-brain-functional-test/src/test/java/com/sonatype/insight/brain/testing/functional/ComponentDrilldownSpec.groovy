@@ -102,10 +102,10 @@ class ComponentDrilldownSpec
   }
 
   def 'Links to reports open in a new window'() {
-    when: 'clicking on a link to a report from the application row'
+    when: 'A user wants more information about the component in an application'
       ComponentApplicationRow row = componentApplicationRow(app.id)
 
-    then: 'the stage label links to the underlying report'
+    then: 'clicking the stage label takes us to the most recent report for that stage'
       withNewWindow(page: ReportContainerPage, { row.click(row.cell(ComponentApplicationRow.BUILD)) }) {
         verifyAt()
         reportTitle.text()

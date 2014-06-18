@@ -73,12 +73,12 @@
 .sonatype-icons.fail:before {
   content: '\e037';
   font-size: inherit;
-  color: inherit;
+  color: #74071C;
 }
 .sonatype-icons.warn:before {
   content: '\e03f';
   font-size: inherit;
-  color: inherit;
+  color: #EE7116;
 }
 .sonatype-icons.pad-left:before {
   padding-left: 3px;

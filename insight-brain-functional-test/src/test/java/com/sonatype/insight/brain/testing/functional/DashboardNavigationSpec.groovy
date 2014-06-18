@@ -12,7 +12,7 @@ class DashboardNavigationSpec
     extends BaseSpec
 {
 
-  public def "Can navigate directly to page with url"() {
+  def "Can navigate directly to page with url"() {
     when:
       loginAsAdminVia(DashboardOverviewPage, tableName)
 
@@ -23,4 +23,22 @@ class DashboardNavigationSpec
       tableName << ['newest-risk', 'components', 'applications']
   }
 
+  def "Back button will always take us back to the previous dashboard page"() {
+    setup: 'logging in as admin and click through the pages'
+      loginAsAdminVia(NewestRiskDashboardPage)
+      to ComponentViolationsDashboardPage
+      to ApplicationViolationsDashboardPage
+
+    when: 'back button press'
+      driver.navigate().back()
+
+    then: 'puts us at the component violation page'
+      waitFor { at(ComponentViolationsDashboardPage) }
+
+    when: 'back button again'
+      driver.navigate().back()
+
+    then: 'will take us back to newest risk page'
+      waitFor { at(NewestRiskDashboardPage) }
+  }
 }

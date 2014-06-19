@@ -53,7 +53,8 @@ public class ConfigurationClient
   }
 
   /**
-   * @deprecated as of version 1.11.0 use {@link #getApplications()} instead.
+   * @deprecated as of version 1.11.0 use {@link #getApplications()} instead. This method does not require
+   *             authentication (while {@link #getApplications()} does).
    */
   @Deprecated
   @SuppressWarnings("unchecked")
@@ -65,8 +66,9 @@ public class ConfigurationClient
   }
 
   /**
-   * The list of application summaries from the CLM server
-   *
+   * The list of application summaries from the CLM server. This method requires authentication and it returns only the
+   * applications the user is authorized to see.
+   * 
    * @since 1.11.0
    */
   public ApplicationSummaryList getApplications() throws IOException {

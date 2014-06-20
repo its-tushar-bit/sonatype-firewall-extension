@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.security;
 
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
@@ -39,6 +40,7 @@ import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -160,6 +162,22 @@ public class UserDirectoryTest
     assertThat(members, hasSize(1));
     assertThat(names, hasItems(members.get(0).getInternalName()));
     assertEquals(result.getException(), namingException);
+  }
+
+  @Test
+  public void testGetMembersByNames_noUnnecessaryQueries() throws Exception {
+    LdapManager mockLdapManager = Mockito.mock(LdapManager.class);
+    when(mockLdapManager.isLdapEnabled()).thenReturn(true);
+    NamingException namingException = new NamingException("Naming Exception!");
+    when(mockLdapManager.getUsers(any(String[].class), anyInt())).thenThrow(namingException);
+    when(mockLdapManager.getGroups(any(String[].class), anyInt())).thenThrow(namingException);
+    when(mockLdapManager.isGroupSearchEnabled()).thenReturn(true);
+
+    UserDirectory userDirectory = new UserDirectory(new UserDAO(), mockLdapManager);
+
+    UserDirectory.QueryResult result = userDirectory.getMembersByName(new LinkedList<Member>());
+
+    assertThat(result.getException(), nullValue());
   }
 
   @Test

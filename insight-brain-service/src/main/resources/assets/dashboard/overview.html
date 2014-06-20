@@ -84,77 +84,6 @@
     </div>
   </div>
 </script>
-<script type='text/ng-template' id='risk-table'>
-  <div ng-controller="NewestRiskTableController">
-    <table class='table policy-violation-table clm-table-stripe' id="highest-risk-table"
-           sortable='-time,-threatLevel'>
-      <thead>
-      <tr>
-        <th id='threat-header' colspan='2' class='clm-bar-text-offset'>
-          <div sort-columns="-threatLevel,-time">
-            THREAT
-          </div>
-        </th>
-        <th class='time-header'>
-          <div sort-columns="-time,-threatLevel" sort-inverted="true">AGE</div>
-        </th>
-        <th class='policy-header'>
-          <div sort-columns="policyName,-time">POLICY</div>
-        </th>
-        <th class='application-header'>
-          <div sort-columns="applicationName,-threatLevel">APPLICATION</div>
-        </th>
-        <th class='component-header'>
-          <div sort-columns="gavName,-threatLevel">COMPONENT</div>
-        </th>
-        <th id='stage-header-{{stage.stageTypeId}}' ng-repeat="stage in stageTypes | stageFilter:filters">
-          <div sort-columns="-{{(stage.stageTypeId | removeDashes) + 'Time'}},-threatLevel" sort-inverted="true">
-            {{ stage.name | uppercase }}
-          </div>
-        </th>
-      </tr>
-      </thead>
-      <tbody>
-      <tr ng-repeat='risk in data | orderBy:getSortField() | limitTo: maxResults | emptyToEnd:getSortField()'>
-        <td class='clm-bar' threat-class="risk.threatLevel"></td>
-        <td>{{risk.threatLevel}}</td>
-        <td>{{risk.time | terseAgo}}</td>
-        <td>{{risk.policyName}}</td>
-        <td>{{risk.applicationName}}</td>
-        <td ng-if='risk.gav'>
-          <a ui-sref="dashboard.component({ hash: risk.hash })">
-            <!-- This line cannot break as it causes spaces between the GAV -->
-            {{risk.gav.groupId}}<span class='wrap-force-break'> : </span>{{risk.gav.artifactId}}<span
-                  class='wrap-force-break'> : </span>{{risk.gav.version}}
-          </a>
-        </td>
-        <td ng-if='!risk.gav && risk.pathnames' pathnames-popover='risk.pathnames'>
-          <a ui-sref="dashboard.component({ hash: risk.hash })">
-            <em>{{risk.pathnames[0] | fileName}}</em>
-          </a>
-        </td>
-        <td ng-if='!risk.gav && !risk.pathnames'>
-          <a ui-sref="dashboard.component({ hash: risk.hash })">
-            <em>Unknown</em>
-          </a>
-        </td>
-        <td ng-repeat='stageDetails in risk.stageDetails | stageTypeSort | stageFilter:filters'
-            ng-class="{ 'latest-risk': stageDetails.time === risk.time }">
-          <a title="View application report"
-             ng-href="index.html#/reports/{{risk.applicationPublicId | EncodeURIComponent }}/{{stageDetails.scanId}}"
-             target="_blank" ng-if="stageDetails.time > 0">
-            <div>
-              {{stageDetails.time | terseAgo}}
-              <i class="sonatype-icons pad-left"
-                 ng-class="{ warn: stageDetails.actionTypeId === 'warn', fail : stageDetails.actionTypeId === 'fail'}"></i>
-            </div>
-          </a>
-        </td>
-      </tr>
-      </tbody>
-    </table>
-  </div>
-</script>
 <script type="text/ng-template" id="dashboard-table">
   <div load-wrapper="error" reload="doLoad()">
     <div ng-if="!data">
@@ -168,14 +97,17 @@
           <div ng-transclude></div>
           <div ng-if='data.length === 0'>
             <span class='clm-bar-text-offset'>
-              <em id='no-data'>{{noDataMessage ? noDataMessage : "No data available given the applied filters and available permissions."}}</em>
+              <em id='no-data'>
+                <span ng-if="$state.is('dashboard.overview.newest-risk')">No data available in the last 30 days given the applied filters and available permissions.</span>
+                <span ng-if="!$state.is('dashboard.overview.newest-risk')">No data available given the applied filters and available permissions.</span>
+              </em>
             </span>
           </div>
         </div>
       </div>
       <span id="max-results-shown" class="pull-right" ng-if="data.length > maxResults">
-        <div ng-if="$state.current.url === '/newest-risk'">Showing the newest {{maxResults}} results</div>
-        <div ng-if="$state.current.url !== '/newest-risk'">Showing the top {{maxResults}} results</div>
+        <div ng-if="$state.is('dashboard.overview.newest-risk')">Showing the newest {{maxResults}} results</div>
+        <div ng-if="!$state.is('dashboard.overview.newest-risk')">Showing the top {{maxResults}} results</div>
       </span>
     </div>
   </div>
@@ -379,11 +311,11 @@
         <li>
           <h4>Highest Risk</h4>
         </li>
-        <li class="pull-right" ng-class="{ active : $state.current.url === '/applications' }">
+        <li class="pull-right" ng-class="{ active : $state.is('dashboard.overview.applications') }">
           <a id='tab-button-application' ui-sref="dashboard.overview.applications">
             <div>
               By Application
-              <div class="modal-help-icon" modal-help="application-heat-map-help" ng-if="$state.current.url === '/applications'">
+              <div class="modal-help-icon" modal-help="application-heat-map-help" ng-if="$state.is('dashboard.overview.applications')">
                 <i id="application-heat-map-help-icon" class="glyphicons-sonatype help small"
                   tooltip="Click here for help about the Application Heat Map" tooltip-placement="top"
                   tooltip-append-to-body="true"></i>
@@ -391,11 +323,11 @@
             </div>
           </a>
         </li>
-        <li class="pull-right" ng-class="{ active : $state.current.url  === '/components' }">
+        <li class="pull-right" ng-class="{ active : $state.is('dashboard.overview.components') }">
           <a id='tab-button-component' ui-sref="dashboard.overview.components">
             <div>
               By Component
-              <div class="modal-help-icon" modal-help="component-heat-map-help" ng-if="$state.current.url === '/components'">
+              <div class="modal-help-icon" modal-help="component-heat-map-help" ng-if="$state.is('dashboard.overview.components')">
                 <i id="component-heat-map-help-icon" class="glyphicons-sonatype help small"
                   tooltip="Click here for help about the Component Heat Map" tooltip-placement="top"
                   tooltip-append-to-body="true"></i>
@@ -403,7 +335,7 @@
             </div>
           </a>
         </li>
-        <li class="pull-right" ng-class="{ active : $state.current.url === '/newest-risk' }">
+        <li class="pull-right"  ng-class="{ active : $state.is('dashboard.overview.newest-risk') }">
           <a id='tab-button-newest' ui-sref="dashboard.overview.newest-risk">Newest</a>
         </li>
       </ul>

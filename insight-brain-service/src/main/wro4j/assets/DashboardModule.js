@@ -393,7 +393,7 @@
     });
   }
 
-  function getTableDirective(urlField, noDataMessage) {
+  function getTableDirective(urlField) {
     return ['$timeout', '$window', 'maximizeHeightService', 'windowEventsFactory', 'CLMLocations', function ($timeout, $window, maximizeHeightService, windowEventsFactory, CLMLocations) {
       function createFilterWatch($scope, $rootScope, $http, Dialog, ApplicationStore) {
         return function (newFilter) {
@@ -497,13 +497,12 @@
             filterChangedFn($scope.filters);
           };
           $scope.$watch('filters', filterChangedFn);
-          $scope.noDataMessage = noDataMessage;
         }]
       };
     }];
   }
 
-  dashboardModule.directive('newestRiskTable', getTableDirective('getNewestRisksUrl', 'No data available in the last 30 days given the applied filters and available permissions.'));
+  dashboardModule.directive('newestRiskTable', getTableDirective('getNewestRisksUrl'));
 
   dashboardModule.directive('applicationRiskTable', getTableDirective('getApplicationRisksUrl'));
 

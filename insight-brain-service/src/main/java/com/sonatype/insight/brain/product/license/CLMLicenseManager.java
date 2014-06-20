@@ -37,6 +37,8 @@ public class CLMLicenseManager
 
   private static final String FEATURE_DASHBOARD = "DASHBOARD";
 
+  private static final String FEATURE_QUALITY = "QUALITY";
+
   private final class CachedLicenseData
       extends ProductLicenseDetails
   {
@@ -65,7 +67,9 @@ public class CLMLicenseManager
   public final class LicenseSummary
   {
     public final String fingerprint;
+
     public final long expiryTimestamp;
+
     public final String[] features;
 
     public LicenseSummary(String fingerprint, long timestamp, String[] features) {
@@ -86,7 +90,8 @@ public class CLMLicenseManager
   private final List<LicenseListener> listeners = new CopyOnWriteArrayList<>();
 
   @Inject
-  public CLMLicenseManager(final ProductLicenseManager licenseManager, final LicenseFingerprinter licenseFingerprinter)
+  public CLMLicenseManager(final ProductLicenseManager licenseManager,
+      final LicenseFingerprinter licenseFingerprinter)
   {
     this.licenseManager = licenseManager;
     this.licenseFingerprinter = licenseFingerprinter;
@@ -149,6 +154,23 @@ public class CLMLicenseManager
     return false;
   }
 
+  /**
+   * Checks to see if the license enables the quality feature
+   *
+   * @since 1.11.0
+   */
+  public boolean hasQuality() {
+    String[] features = licenseCache.getFeatures();
+    if (features != null) {
+      for (String feature : features) {
+        if (FEATURE_QUALITY.equals(feature)) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
   public boolean hasProduct(String productId) {
     Set<String> products = licenseCache.getProducts();
     return products != null && products.contains(productId);
@@ -160,7 +182,7 @@ public class CLMLicenseManager
 
   /**
    * Get whether the license is currently valid
-   * 
+   *
    * @return the validity
    */
   public boolean isValid() {
@@ -169,7 +191,7 @@ public class CLMLicenseManager
 
   /**
    * Validate that a license is installed
-   * 
+   *
    * @throws InvalidLicenseException when no license is installed or the installed license is not valid
    */
   public void validate() throws InvalidLicenseException {
@@ -182,7 +204,7 @@ public class CLMLicenseManager
 
   /**
    * Validates that the license is installed and contains any of the requested enforcement points.
-   * 
+   *
    * @throws InvalidLicenseException If none of the enforcement points is licensed.
    */
   public void validateAnyEnforcementPoint(Set<CLMEnforcementPoint> enforcementPoints) {
@@ -260,6 +282,9 @@ public class CLMLicenseManager
     }
     else {
       // new license with product info
+      if (products.contains(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION)) {
+        features.add(FEATURE_QUALITY);
+      }
       if (products.contains(ProductLicenseDetails.PRODUCT_RISK)
           || products.contains(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION)) {
         features.add(FEATURE_POLICY_MONITORING);
@@ -290,7 +315,7 @@ public class CLMLicenseManager
     }
     return value;
   }
-  
+
   private String getProperty(ProductLicenseKey key, String property) {
     return key.getProperties().getProperty(property);
   }
@@ -329,14 +354,14 @@ public class CLMLicenseManager
   }
 
   private void clearLicenseCache() {
-    licenseCache = new CachedLicenseData(null, 0, 0, Collections.<String> emptySet(), new String[0],
-        Collections.<CLMEnforcementPoint> emptySet(), 0);
+    licenseCache = new CachedLicenseData(null, 0, 0, Collections.<String>emptySet(), new String[0],
+        Collections.<CLMEnforcementPoint>emptySet(), 0);
     notifyListeners();
   }
 
   /**
    * Registers the specified listener to be notified of changes to the license.
-   * 
+   *
    * @since 1.9
    */
   public void addListener(LicenseListener listener) {
@@ -348,7 +373,7 @@ public class CLMLicenseManager
 
   /**
    * Unregisters the specified listener.
-   * 
+   *
    * @since 1.9
    */
   public void removeListener(LicenseListener listener) {

@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.client;
 import java.io.IOException;
 
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
+import com.sonatype.clm.dto.model.policy.PolicyEvaluationSummary;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.client.utils.AbstractClient;
 import com.sonatype.insight.client.utils.ClientException;
@@ -57,5 +58,33 @@ public class PolicyClient
 
   public String linkToManagement() {
     return UrlUtils.appendUrlPaths(serverUrl, "ui/links/application", appId, "management");
+  }
+
+  /**
+   * Get the latest (most recent) policy evaluation summary for the given application and stage
+   *
+   * @param stage must be one of the valid stages, see {@link Stage#Stage(String)}
+   * @return the latest policy evaluation summary, or null if not found
+   * @throws IOException if the returned json is invalid and cannot be parsed
+   * @since 1.11.0
+   */
+  public PolicyEvaluationSummary getPolicyEvaluationSummary(final Stage stage) throws IOException {
+
+    final Result result = path("rest/quality/evaluations/", appId, "/", stage.getStageTypeId()).get();
+
+    if (result.status() >= 400) {
+      throw new ClientException(result);
+    }
+
+    final String jsonResult = result.text();
+    try {
+      PolicyEvaluationSummary policyEvaluationSummary = JsonUtils.parse(jsonResult, PolicyEvaluationSummary.class);
+      policyEvaluationSummary.setReportUrl(UrlUtils.appendUrlPaths(serverUrl, policyEvaluationSummary.getReportUrl()));
+      return policyEvaluationSummary;
+    }
+    catch (final IOException e) {
+      log.error("Cannot parse json:" + jsonResult);
+      throw new ClientException(result, e);
+    }
   }
 }

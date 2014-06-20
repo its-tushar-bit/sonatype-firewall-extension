@@ -49,7 +49,7 @@ public class PolicyEvaluationSummaryResource
   public PolicyEvaluationSummary getCurrentPolicyEvaluation(@PathParam("applicationId") final String applicationId,
       @PathParam("stageTypeId") final String stageTypeId) throws IOException
   {
-    log.debug("Received request to evaluate policy for app id {}, stageTypeId {}", applicationId, stageTypeId);
+    log.debug("Received request to get policy evaluation summary for app id {}, stageTypeId {}", applicationId, stageTypeId);
 
     StageType stageType = StageTypes.getById(stageTypeId);
     if (stageType == null) {

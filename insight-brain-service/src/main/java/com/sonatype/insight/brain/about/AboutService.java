@@ -14,9 +14,6 @@ import javax.ws.rs.core.UriBuilder;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightBrainService;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 /**
  * Determines the actual target page when users browse to the server's about path.
  */

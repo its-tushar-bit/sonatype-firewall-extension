@@ -13,9 +13,6 @@ import javax.ws.rs.core.Response;
 
 import com.sonatype.insight.brain.product.license.UnlicensedPath;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 @Named
 @Path(AboutResource.SERVICE_PATH)
 @UnlicensedPath

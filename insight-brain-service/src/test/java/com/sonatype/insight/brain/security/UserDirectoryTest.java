@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.security;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -22,6 +23,7 @@ import com.sonatype.insight.brain.configuration.ldap.LdapUserMapping;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapUserMappingDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
 import com.sonatype.insight.brain.ldap.LdapManager;
+import com.sonatype.insight.brain.ldap.LdapUser;
 import com.sonatype.insight.brain.ldap.TestLdapServer;
 import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.User;
@@ -46,6 +48,8 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class UserDirectoryTest
@@ -261,6 +265,35 @@ public class UserDirectoryTest
     assertThat(members, hasSize(1));
     assertThat(members.get(0).getInternalName(), is("testclmuser"));
     assertEquals(result.getException(), namingException);
+  }
+
+  @Test
+  public void testGetUsersByName_LdapOnlyCalledWithNamesNotFoundInCLMRealm() throws Exception {
+    LdapManager mockLdapManager = Mockito.mock(LdapManager.class);
+    when(mockLdapManager.isLdapEnabled()).thenReturn(true);
+    List<LdapUser> emptyLdapUsers = new ArrayList<LdapUser>();
+    String[] expectedArgument = new String[] { "Alpha", "CLMBOB" };
+    when(mockLdapManager.getUsers(expectedArgument, 2)).thenReturn(emptyLdapUsers);
+
+    UserDirectory userDirectory = new UserDirectory(new UserDAO(), mockLdapManager);
+
+    // Add a new CLM user.
+    tempEntity.newUser("testclmuser", "John", "Doe", "testclmuser@testclmuser");
+
+    UserDirectory.QueryResult result = userDirectory.getUsersByName(Sets.newHashSet("tesTcLmUsEr", expectedArgument[0],
+        expectedArgument[1]));
+    List<Member> members = result.get();
+
+    // Verify that only the CLM user has been returned.
+    assertThat(members, hasSize(1));
+    assertThat(members.get(0).getInternalName(), is("testclmuser"));
+    // That 'John' was removed from the user names to search.
+    verify(mockLdapManager).getUsers(expectedArgument, 2);
+
+    // Test that the get users method isn't called when only CLM users are provided.
+    userDirectory.getUsersByName(Sets.newHashSet("tesTcLmUsEr"));
+    // Count of the number of calls is still one, as expected.
+    verify(mockLdapManager, times(1)).getUsers(any(String[].class), anyInt());
   }
 
   @Test

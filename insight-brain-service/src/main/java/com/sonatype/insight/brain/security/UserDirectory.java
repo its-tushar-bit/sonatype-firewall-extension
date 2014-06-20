@@ -141,25 +141,29 @@ public class UserDirectory
    */
   public QueryResult getUsersByName(Set<String> origUserNames) {
     List<Member> members = new LinkedList<>();
-    Set<String> userNames = new LinkedHashSet<>(origUserNames);
+    Set<String> userNames = new HashSet<>(origUserNames);
     purgeNullNames(userNames);
 
     if (userNames.isEmpty()) {
       return new QueryResult(members);
     }
 
-    List<User> clmUsers = userDao.getByUsernames(userNames);
+    Set<String> sortedUserNames = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
+    sortedUserNames.addAll(userNames);
+    List<User> clmUsers = userDao.getByUsernames(sortedUserNames);
     for (User user : clmUsers) {
       Member member = new Member(MemberType.USER, user.getUsername(), user.calculateDisplayName(), user.getEmail(),
           CLMRealm.DISPLAY_NAME);
       members.add(member);
+      sortedUserNames.remove(user.getUsername());
     }
 
-    if (ldapManager.isLdapEnabled()) {
+    if (ldapManager.isLdapEnabled() && !sortedUserNames.isEmpty()) {
       try {
         String ldapName = ldapManager.getLdapServerName();
 
-        for (LdapUser user : ldapManager.getUsers(userNames.toArray(new String[userNames.size()]), userNames.size())) {
+        for (LdapUser user : ldapManager.getUsers(sortedUserNames.toArray(new String[sortedUserNames.size()]),
+            sortedUserNames.size())) {
           Member member = new Member(MemberType.USER, user.getUsername(), user.getRealName(), user.getEmail(), ldapName);
           members.add(member);
         }

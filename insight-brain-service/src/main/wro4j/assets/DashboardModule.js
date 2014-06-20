@@ -43,21 +43,19 @@
       parent: 'dashboard',
       url: '',
       abstract: true,
+      controller: 'DashboardController',
       templateUrl: '../dashboard-assets/overview.html?' + clmBuildTimestamp
     }).state('dashboard.overview.newest-risk', {
       parent: 'dashboard.overview',
       url: '/newest-risk',
-      controller: 'DashboardController',
       templateUrl: '../dashboard-assets/newest-risk.html?' + clmBuildTimestamp
     }).state('dashboard.overview.components', {
       parent: 'dashboard.overview',
       url: '/components',
-      controller: 'DashboardController',
       templateUrl: '../dashboard-assets/components.html?' + clmBuildTimestamp
     }).state('dashboard.overview.applications', {
       parent: 'dashboard.overview',
       url: '/applications',
-      controller: 'DashboardController',
       templateUrl: '../dashboard-assets/applications.html?' + clmBuildTimestamp
     }).state('dashboard.component', {
       parent: 'dashboard',

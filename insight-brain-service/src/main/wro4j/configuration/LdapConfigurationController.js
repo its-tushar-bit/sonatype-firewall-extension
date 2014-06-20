@@ -366,7 +366,7 @@
       };
 
       $scope.isGroupFieldRequired = function(groupMappingType) {
-        return $scope.ldapUserMapping.groupMappingType === groupMappingType;
+        return $scope.ldapUserMapping && $scope.ldapUserMapping.groupMappingType === groupMappingType;
       };
 
       $http.get($scope.getConfigLdapUrl('userMapping')).success(function(data) {

@@ -69,6 +69,8 @@ public class InsightBrainService
 
   public static final String DASHBOARD_ASSET_PATH = "/dashboard-assets/";
 
+  public static final String ABOUT_ASSET_PATH = "/about-assets/";
+
   public static void main(final String[] args) {
     try {
       JavaRuntimeChecker.checkJreIsSupported();
@@ -162,6 +164,7 @@ public class InsightBrainService
     bootstrap.addBundle(new AssetsBundle("/assets/security/", SECURITY_ASSET_PATH));
     bootstrap.addBundle(new AssetsBundle("/assets/report/", REPORT_ASSET_PATH));
     bootstrap.addBundle(new AssetsBundle("/assets/dashboard/", DASHBOARD_ASSET_PATH));
+    bootstrap.addBundle(new AssetsBundle("/assets/about/", ABOUT_ASSET_PATH, "index.html"));
 
     // workaround to let us set different defaults in the core HTTP configuration
     bootstrap.getObjectMapperFactory().registerModule(new HttpConfig.Module());

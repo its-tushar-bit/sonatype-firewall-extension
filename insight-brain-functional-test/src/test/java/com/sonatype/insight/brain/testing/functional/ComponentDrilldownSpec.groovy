@@ -99,6 +99,7 @@ class ComponentDrilldownSpec
       violationRow.riskCount == 5
       violationRow.build == '7d'
       violationRow.isFail(ComponentViolationRow.BUILD)
+      violationRow.isLatestRisk(ComponentViolationRow.BUILD)
   }
 
   def 'Links to reports open in a new window'() {

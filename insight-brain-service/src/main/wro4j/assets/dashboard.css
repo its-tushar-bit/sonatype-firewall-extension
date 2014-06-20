@@ -717,6 +717,7 @@ table.table-risk td.low-risk, span.low-risk {
 
 .component-violations-table .threat-column {
   width: 20px;
+  font-weight: bold;
 }
 
 .share-risk-header, .component-violations-table .share-risk-column {

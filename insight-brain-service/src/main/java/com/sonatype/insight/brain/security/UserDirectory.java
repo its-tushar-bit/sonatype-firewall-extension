@@ -107,16 +107,18 @@ public class UserDirectory
         Set<String> groupNames = getNameByType(members, MemberType.GROUP);
         purgeNullNames(groupNames);
 
-        try {
-          for (LdapGroup group : ldapManager.getGroups(groupNames.toArray(new String[groupNames.size()]),
-              groupNames.size())) {
-            final String groupName = group.getGroupname();
-            Member member = new Member(MemberType.GROUP, groupName, groupName, null, ldapName);
-            result.get().add(member);
+        if (!groupNames.isEmpty()) {
+          try {
+            for (LdapGroup group : ldapManager.getGroups(groupNames.toArray(new String[groupNames.size()]),
+                groupNames.size())) {
+              final String groupName = group.getGroupname();
+              Member member = new Member(MemberType.GROUP, groupName, groupName, null, ldapName);
+              result.get().add(member);
+            }
           }
-        }
-        catch (Exception e) {
-          result.exception = e;
+          catch (Exception e) {
+            result.exception = e;
+          }
         }
       }
       else {

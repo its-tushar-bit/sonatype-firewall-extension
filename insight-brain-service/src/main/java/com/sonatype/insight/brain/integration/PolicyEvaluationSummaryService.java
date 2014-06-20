@@ -5,8 +5,6 @@
  */
 package com.sonatype.insight.brain.integration;
 
-import java.io.IOException;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -54,7 +52,6 @@ public class PolicyEvaluationSummaryService
   @Authorize(permission = Permission.READ)
   public PolicyEvaluationSummary getEvaluationSummaryByApplicationId(
       @AuthzContext(AuthzContext.Key.APPLICATION_ID) final String applicationId, final Stage stage)
-      throws IOException
   {
     validateLicensed();
 

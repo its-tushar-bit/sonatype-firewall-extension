@@ -78,9 +78,7 @@ public class PolicyClient
 
     final String jsonResult = result.text();
     try {
-      PolicyEvaluationSummary policyEvaluationSummary = JsonUtils.parse(jsonResult, PolicyEvaluationSummary.class);
-      policyEvaluationSummary.setReportUrl(UrlUtils.appendUrlPaths(serverUrl, policyEvaluationSummary.getReportUrl()));
-      return policyEvaluationSummary;
+      return JsonUtils.parse(jsonResult, PolicyEvaluationSummary.class);
     }
     catch (final IOException e) {
       log.error("Cannot parse json:" + jsonResult);

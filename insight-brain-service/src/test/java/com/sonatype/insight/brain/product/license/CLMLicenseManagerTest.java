@@ -8,6 +8,8 @@ package com.sonatype.insight.brain.product.license;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 
 import javax.inject.Inject;
 
@@ -110,6 +112,7 @@ public class CLMLicenseManagerTest
     assertEquals(100, clmLicenseManager.getApplicationCountLimit());
     assertEquals(true, clmLicenseManager.hasPolicyMonitoring());
     assertEquals(true, clmLicenseManager.hasDashboard());
+    assertEquals(true, clmLicenseManager.hasQuality());
 
     // now change the value and make sure the cache is still stale
     licenseManager.setApplicationLimit(10);
@@ -117,6 +120,7 @@ public class CLMLicenseManagerTest
     licenseManager.setProducts("");
     assertEquals(true, clmLicenseManager.hasPolicyMonitoring());
     assertEquals(true, clmLicenseManager.hasDashboard());
+    assertEquals(true, clmLicenseManager.hasQuality());
     licenseManager.setEnforcementPoints(CLMEnforcementPoint.StageRelease, CLMEnforcementPoint.Release);
 
     // now install the license (which causes the cache to be cleared) and make sure the cache is no longer stale
@@ -155,6 +159,41 @@ public class CLMLicenseManagerTest
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK);
     installLicense();
     assertThat(clmLicenseManager.hasDashboard(), is(true));
+  }
+
+  @Test
+  public void testHasQuality_RiskAndRemediation() throws Exception {
+    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION);
+    installLicense();
+    assertThat(clmLicenseManager.hasQuality(), is(true));
+  }
+
+  @Test
+  public void testHasQuality_NoRiskAndRemediation() throws Exception {
+    Set<String> productSet = new HashSet<>(ProductLicenseDetails.PRODUCTS);
+    productSet.remove(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION);
+    String[] products = productSet.toArray(new String[ProductLicenseDetails.PRODUCTS.size()]);
+    licenseManager.setProducts(products);
+    installLicense();
+    assertThat(clmLicenseManager.hasQuality(), is(false));
+  }
+
+  @Test
+  public void testHasQuality_LegacyNoBuildStage() throws Exception {
+    licenseManager.setVersion(0);
+    licenseManager.setProducts();
+    licenseManager.setEnforcementPoints(CLMEnforcementPoint.Release);
+    installLicense();
+    assertThat(clmLicenseManager.hasQuality(), is(false));
+  }
+
+  @Test
+  public void testHasQuality_LegacyWithBuildStage() throws Exception {
+    licenseManager.setVersion(0);
+    licenseManager.setProducts();
+    licenseManager.setEnforcementPoints(CLMEnforcementPoint.Build);
+    installLicense();
+    assertThat(clmLicenseManager.hasQuality(), is(true));
   }
 
   @Test

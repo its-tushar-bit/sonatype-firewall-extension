@@ -275,6 +275,9 @@ public class CLMLicenseManager
     Set<String> features = new LinkedHashSet<String>();
     if (version < 1) {
       // legacy license without product info
+      if (enforcementPoints.contains(CLMEnforcementPoint.Build)) {
+        features.add(FEATURE_QUALITY);
+      }
       if (!isLegacyNexusClmLicense(enforcementPoints)) {
         features.add(FEATURE_POLICY_MONITORING);
         features.add(FEATURE_DASHBOARD);

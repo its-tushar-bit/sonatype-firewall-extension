@@ -57,7 +57,7 @@ public class PolicyClientTest
 
     assertThat(policyEvaluationSummary, notNullValue());
     assertThat(policyEvaluationSummary.getReportUrl(),
-        is(config.getServerUrl() + "/ui/links/application/" + application.getPublicId() + "/report/" + scanId));
+        is("ui/links/application/" + application.getPublicId() + "/report/" + scanId));
     assertThat(policyEvaluationSummary.getAffectedComponentCount(), is(1));
     assertThat(policyEvaluationSummary.getCriticalComponentCount(), is(0));
     assertThat(policyEvaluationSummary.getModerateComponentCount(), is(0));

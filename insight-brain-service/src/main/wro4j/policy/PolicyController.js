@@ -227,8 +227,8 @@
           };
 
           scope.edit = function(policy) {
-            scope.policyEditMap[policy.id] = true;
-            $('#collapse' + policy.id).collapse('show');
+            scope.policyEditMap[policy.id] = !scope.policyEditMap[policy.id];
+            $('#collapse' + policy.id).collapse(scope.policyEditMap[policy.id] ? 'show' : 'hide');
           };
 
           scope.isTagged = function(policy){

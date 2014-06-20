@@ -42,12 +42,12 @@ import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -172,16 +172,15 @@ public class UserDirectoryTest
   public void testGetMembersByNames_noUnnecessaryQueries() throws Exception {
     LdapManager mockLdapManager = Mockito.mock(LdapManager.class);
     when(mockLdapManager.isLdapEnabled()).thenReturn(true);
-    NamingException namingException = new NamingException("Naming Exception!");
-    when(mockLdapManager.getUsers(any(String[].class), anyInt())).thenThrow(namingException);
-    when(mockLdapManager.getGroups(any(String[].class), anyInt())).thenThrow(namingException);
     when(mockLdapManager.isGroupSearchEnabled()).thenReturn(true);
 
     UserDirectory userDirectory = new UserDirectory(new UserDAO(), mockLdapManager);
 
     UserDirectory.QueryResult result = userDirectory.getMembersByName(new LinkedList<Member>());
 
-    assertThat(result.getException(), nullValue());
+    assertThat(result.get(), hasSize(0));
+    verify(mockLdapManager, never()).getUsers(any(String[].class), any(Long.class));
+    verify(mockLdapManager, never()).getGroups(any(String[].class), any(Long.class));
   }
 
   @Test

@@ -25,8 +25,6 @@ public class AboutService
 {
   private final BaseUrl baseUrl;
 
-  private static final Logger log = LoggerFactory.getLogger(AboutResource.class);
-
   @Inject
   public AboutService(BaseUrl baseUrl) {
     this.baseUrl = baseUrl;
@@ -38,8 +36,6 @@ public class AboutService
   public URI getDestination() {
     UriBuilder uriBuilder = baseUrl.redirect();
     uriBuilder.path(InsightBrainService.ABOUT_ASSET_PATH.substring(1) + "index.html");
-    URI uri = uriBuilder.build();
-    log.debug("about uri: " + uri);
-    return uri;
+    return uriBuilder.build();
   }
 }

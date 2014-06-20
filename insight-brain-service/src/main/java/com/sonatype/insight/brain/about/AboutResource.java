@@ -23,8 +23,6 @@ public class AboutResource
 {
   public static final String SERVICE_PATH = "about";
 
-  private static final Logger log = LoggerFactory.getLogger(AboutResource.class);
-
   private final AboutService aboutService;
 
   @Inject
@@ -34,7 +32,6 @@ public class AboutResource
 
   @GET
   public Response home() {
-    log.debug("about uri destination: " + aboutService.getDestination());
     return Response.seeOther(aboutService.getDestination()).build();
   }
 }

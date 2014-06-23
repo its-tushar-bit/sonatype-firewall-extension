@@ -5,3 +5,7 @@
 #report-list-table {
   font-size: 12px;
 }
+
+#report-list-table td {
+  vertical-align: middle;
+}

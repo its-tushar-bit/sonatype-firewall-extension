@@ -232,8 +232,8 @@ public class UserDirectory
     return new QueryResult(members, ldapException);
   }
 
-  public boolean isGroupSearchEnabled() {
-    return ldapManager.isGroupSearchEnabled();
+  public boolean isDynamicGroupSearchDisabled() {
+    return ldapManager.isDynamicGroupSearchDisabled();
   }
 
   public String getGroupRealm() {

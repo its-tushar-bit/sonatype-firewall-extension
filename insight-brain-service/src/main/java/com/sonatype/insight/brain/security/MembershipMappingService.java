@@ -141,7 +141,7 @@ public class MembershipMappingService
 
     final ApplicableMembershipMappings result = new ApplicableMembershipMappings();
     result.membersByRole.addAll(membersByRoleByRoleId.values());
-    result.groupSearchEnabled = userDirectory.isGroupSearchEnabled();
+    result.groupSearchEnabled = !userDirectory.isDynamicGroupSearchDisabled();
     result.ldapRealm = userDirectory.getGroupRealm();
     return result;
   }

@@ -195,12 +195,30 @@ public class LdapManager
     return false;
   }
 
+  /**
+   * Indicates whether the LDAP instance can be searched for groups.
+   */
   public boolean isGroupSearchEnabled() {
     if (isLdapEnabled() && isLdapGroupEnabled()) {
       LdapConnection conn = getDecryptedConnection();
       LdapUserMapping mapping = userDao.getByServerId(conn.getServerId());
       if (mapping != null) {
         return mapping.getGroupMappingType() != LdapGroupMappingType.DYNAMIC || mapping.isDynamicGroupSearchEnabled();
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Gets whether the search of dynamic groups is disabled. (Not an inverse of isGroupSearchEnabled, used by the UI
+   * determine whether it should allow manually adding groups)
+   */
+  public boolean isDynamicGroupSearchDisabled() {
+    if (isLdapEnabled() && isLdapGroupEnabled()) {
+      LdapConnection conn = getDecryptedConnection();
+      LdapUserMapping mapping = userDao.getByServerId(conn.getServerId());
+      if (mapping != null) {
+        return mapping.getGroupMappingType() == LdapGroupMappingType.DYNAMIC && !mapping.isDynamicGroupSearchEnabled();
       }
     }
     return false;

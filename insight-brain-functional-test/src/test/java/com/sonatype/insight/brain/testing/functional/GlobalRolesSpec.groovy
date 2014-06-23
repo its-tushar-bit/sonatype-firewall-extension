@@ -57,6 +57,10 @@ class GlobalRolesSpec
 
     then: "the edit form opens"
       roleRow.editor.displayed
+
+    and: 'the users & groups buttons are not visible'
+      !roleRow.usersButton.displayed
+      !roleRow.groupsButton.displayed
   }
 
   def "Typing in the search input filters the list of available users"() {

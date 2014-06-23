@@ -101,7 +101,9 @@
       }
 
       $scope.fileChanged = function(file) {
-        fileElement = angular.element(file)[0];
+        AngularUtils.safeApply($scope, function() {
+          fileElement = angular.element(file)[0];
+        });
       };
 
       $scope.getProgressWidth = function () {

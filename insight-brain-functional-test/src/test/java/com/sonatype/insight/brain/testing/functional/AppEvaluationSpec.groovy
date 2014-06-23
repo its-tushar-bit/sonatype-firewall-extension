@@ -85,8 +85,9 @@ class AppEvaluationSpec
       appPage.tools.appEvalButton.displayed
       appPage.tools.appEvalButton.click()
       waitFor { appPage.tools.appEval.dialog.displayed }
-      appPage.tools.appEval.file.value(new File(getClass().getResource( '/AppEvaluationSpec/some.file' ).toURI()).getAbsoluteFile().getAbsolutePath())
       appPage.tools.appEval.stage.value('0')
+      // integrating the file input with Angular is, interesting, populating this last to check UI responds properly/immediately
+      appPage.tools.appEval.file.value(new File(getClass().getResource( '/AppEvaluationSpec/some.file' ).toURI()).getAbsoluteFile().getAbsolutePath())
 
     then: 'The upload button enables'
       !appPage.tools.appEval.upload.disabled

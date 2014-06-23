@@ -230,7 +230,7 @@
         };
 
         $scope.canSaveEdit = function(valid) {
-          return valid && !$scope.submitActive && $scope.selectedGroup !== null && $scope.selectedGroup.name;
+          return valid && !$scope.submitActive && $scope.selectedGroup && $scope.selectedGroup.name;
         };
 
         $scope.saveClick = function() {

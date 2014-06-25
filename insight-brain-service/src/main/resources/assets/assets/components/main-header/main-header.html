@@ -98,13 +98,13 @@
             <a ui-sref="dashboard.overview.newest-risk">
               <span><i class='sonatype-icons medium dashboard'></i></span>
             </a>
-          </li>
-          <li ng-class="{ 'active' : $state.includes('violations') }" tooltip='Reporting' tooltip-placement='bottom'>
+          </li><!-- fix chrome bounce
+          --><li ng-class="{ 'active' : $state.includes('violations') }" tooltip='Reporting' tooltip-placement='bottom'>
             <a ui-sref="violations">
               <span><i class='sonatype-icons medium reporting'></i></span>
             </a>
-          </li>
-          <li ng-class="{ 'active' : $state.includes('management') }" tooltip='Manage Applications and Organizations'
+          </li><!-- fix chrome bounce
+          --><li ng-class="{ 'active' : $state.includes('management') }" tooltip='Manage Applications and Organizations'
               tooltip-placement='bottom'>
             <a ui-sref="management.organization">
               <span><i class='sonatype-icons medium organizational-design'></i></span>

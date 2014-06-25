@@ -11,18 +11,19 @@ import com.sonatype.insight.brain.security.CLMRealm
 
 
 class ChangePasswordSpec
-    extends BaseSpec 
+    extends BaseSpec
 {
   //simple setup, login as this new user and go to the management page
   def setupSpec() {
     UserDAO userDAO = new UserDAO()
-    User user = new User(username: "testchangepass", password: new CLMRealm().encryptPassword("secret"), firstName: "John", lastName: "Doe", email: "john@doe.net")
+    User user = new User(username: "testchangepass", password: new CLMRealm().encryptPassword("secret"),
+        firstName: "John", lastName: "Doe", email: "john@doe.net")
     userDAO.insert(user);
     via ReportViolationsPage
     login.login("testchangepass", "secret")
     verifyAt()
   }
-  
+
   //make sure to cleanup our mess!
   def cleanupSpec() {
     UserDAO userDAO = new UserDAO();
@@ -36,54 +37,54 @@ class ChangePasswordSpec
   def "can change password"() {
     when: "User clicks the change password link"
       userOptions.changePasswordClick()
-    
+
     then: "User sees the change password dialog and save is disabled"
       changePassword.dialog.displayed
       changePassword.ok.disabled
-      
+
     when: "User enters an invalid old password"
       changePassword.oldPassword.value('unsecret')
-    
+
     then: "Save button stays disabled"
       changePassword.ok.disabled
-    
+
     when: "User enters a new password"
       changePassword.newPassword.value('newsecret')
-    
+
     then: "Save button stays disabled"
       changePassword.ok.disabled
-    
+
     when: "User enters a validate password that doesn't match"
       changePassword.newPasswordValidate.value('newsecretdoesntmatch')
-    
+
     then: "Save button stays disabled and validation error shown"
       changePassword.newPasswordValidateDoesntMatch.displayed
       changePassword.ok.disabled
-    
+
     when: "User enters proper validation password"
       changePassword.newPasswordValidate.value('newsecret')
-    
+
     then: "Save button becomes enabled"
       !changePassword.newPasswordValidateDoesntMatch.displayed
       !changePassword.ok.disabled
-    
+
     when: "User clicks save button"
       changePassword.ok.click()
-    
+
     then: "User sees error stating credentials are invalid"
       waitFor { changePassword.invalidCredentialsError.displayed }
-    
+
     when: "User enters valid old password and clicks save"
       changePassword.oldPassword.value('secret')
       changePassword.ok.click()
-    
+
     then: "User should no longer see the change password dialog"
       waitFor { !changePassword.dialog.displayed }
-      
+
     when: "User attempts to login with new password"
       userOptions.logoutClick()
       login.login("testchangepass", "newsecret")
-    
+
     then: "Application is loaded"
       to ManagementPage
   }

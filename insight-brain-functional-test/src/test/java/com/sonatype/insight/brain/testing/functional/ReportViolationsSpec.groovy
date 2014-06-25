@@ -9,11 +9,13 @@ import spock.lang.Stepwise
 
 @Stepwise
 class ReportViolationsSpec
-    extends BaseSpec 
+    extends BaseSpec
 {
   def setupSpec() {
-    temporaryEntity.newApplication('ReportViolationsSpec1', 'ReportViolationsSpec1', temporaryEntity.newOrganization('org1').id)
-    temporaryEntity.newApplication('ReportViolationsSpec2', 'ReportViolationsSpec2', temporaryEntity.newOrganization('org2').id)
+    temporaryEntity.
+        newApplication('ReportViolationsSpec1', 'ReportViolationsSpec1', temporaryEntity.newOrganization('org1').id)
+    temporaryEntity.
+        newApplication('ReportViolationsSpec2', 'ReportViolationsSpec2', temporaryEntity.newOrganization('org2').id)
     loginAsAdminVia()
   }
 
@@ -37,7 +39,7 @@ class ReportViolationsSpec
       page.reportViolationRows[1].orgName.text() == "org1"
   }
 
-  def "Filter organization" () {
+  def "Filter organization"() {
     given:
       ReportViolationsPage page = at ReportViolationsPage
 
@@ -54,6 +56,7 @@ class ReportViolationsSpec
       at ReportViolationsPage
 
     then: "the table header lists the stages in proper order"
-      tableHeaders[1..3]*.@id == [ 'report-list-header-build', 'report-list-header-stage-release', 'report-list-header-release' ]
+      tableHeaders[1..3]*.@id ==
+          ['report-list-header-build', 'report-list-header-stage-release', 'report-list-header-release']
   }
 }

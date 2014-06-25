@@ -14,7 +14,7 @@ class LoginModule
     extends Module
 {
   static content = {
-    modal ( required: false ) { $('#loginModalHeader').parent() }
+    modal(required: false) { $('#loginModalHeader').parent() }
     usernameInput { $('#login-username') }
     passwordInput { $('#login-password') }
     loginAction { $('#login-action') }
@@ -39,7 +39,7 @@ class LoginModule
       waitFor { !modal.displayed }
     }
   }
-  
+
   def isDisplayed() {
     modal.displayed
   }

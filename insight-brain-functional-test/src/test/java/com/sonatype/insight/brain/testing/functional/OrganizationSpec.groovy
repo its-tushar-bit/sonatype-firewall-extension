@@ -5,8 +5,6 @@
  */
 package com.sonatype.insight.brain.testing.functional
 
-import spock.lang.IgnoreIf
-import spock.lang.Issue
 import spock.lang.Stepwise
 
 /**
@@ -67,7 +65,7 @@ class OrganizationSpec
       createOrg('A')
 
     then: 'they are listed alphabetically'
-      organizationList.collect{ it.text() } == ['A','Z']
+      organizationList.collect { it.text() } == ['A', 'Z']
   }
 
   def "Can add a new Policy"() {
@@ -82,7 +80,7 @@ class OrganizationSpec
       def constraint = policyEditor.constraints[0]
       constraint.editButton.click()
       constraint.constraintName = 'Constraint'
-      waitFor  { constraint.conditions[0].value.displayed }
+      waitFor { constraint.conditions[0].value.displayed }
       constraint.conditions[0].value = '1'
       policyEditor.buttons.save.click()
 

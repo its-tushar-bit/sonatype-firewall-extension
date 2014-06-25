@@ -11,16 +11,18 @@ import geb.Module
  * Since 1.9
  */
 class PolicyModule
-    extends Module 
+    extends Module
 {
   static content = {
     newPolicyButton(wait: true) { $('#policy .new-entity-button') }
-    newPolicyEditor {module PolicyEditorModule, $('.inline-policy-editor') }
-    policyEditors(required: false) { moduleList PolicyEditorModule, $('#policyList div[ng-repeat="policy in policies"]') }
+    newPolicyEditor { module PolicyEditorModule, $('.inline-policy-editor') }
+    policyEditors(required: false) {
+      moduleList PolicyEditorModule, $('#policyList div[ng-repeat="policy in policies"]')
+    }
   }
 
   def findPolicyEditor(String policyName) {
-    return policyEditors.find{ it.header.text().endsWith(policyName) }
+    return policyEditors.find { it.header.text().endsWith(policyName) }
   }
 }
 
@@ -28,16 +30,16 @@ class PolicyModule
  * Since 1.9
  */
 class PolicyEditorModule
-    extends Module 
+    extends Module
 {
   static content = {
     //header elements are only present for existing Policies
-    header(required:false) { $('.accordion-heading') }
-    editButton(required:false) { $('.accordion-heading button[ng-click="edit(policy)"]') }
-    chicklet(required:false) { $('.accordion-heading span.threat-chiclet') }
+    header(required: false) { $('.accordion-heading') }
+    editButton(required: false) { $('.accordion-heading button[ng-click="edit(policy)"]') }
+    chicklet(required: false) { $('.accordion-heading span.threat-chiclet') }
 
     //Policy specifics
-    name{ $('input#policyName') }
+    name { $('input#policyName') }
     constraints { moduleList ConstraintModule, $('.accordion-group[ng-repeat="constraint in policy.constraints"]') }
     actions { moduleList ActionModule, $('tr[ng-repeat="actionStage in actionStages"]') }
 

@@ -18,11 +18,11 @@ class JunitRuleSpec
   @Shared
   @ClassRule
   TestRule classRule = new ConsoleMessageRule("Custom message")
-  
+
   def setup() {
     browser.config.baseUrl = "http://sonatype.com/clm/overview"
   }
-  
+
   def "class rule is run"() {
     expect:
       true
@@ -37,7 +37,7 @@ class JunitRuleSpec
   }
 
   static class ConsoleMessageRule
-      implements TestRule 
+      implements TestRule
   {
     String message = "Default message"
 

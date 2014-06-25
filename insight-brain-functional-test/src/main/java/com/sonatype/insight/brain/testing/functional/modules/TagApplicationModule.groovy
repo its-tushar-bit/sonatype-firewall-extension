@@ -14,12 +14,12 @@ class TagApplicationModule
     extends Module
 {
   static content = {
-    appliedTagList(required:false) { $('#tags .row-fluid .span6:first-child .clm-tag') }
-    appliedTagEmptyText(required:false) { $('#tags .row-fluid .span6:first-child em') }
-    availableTagList(required:false) { $('#tags .row-fluid .span6:last-child .clm-tag') }
-    availableTag(required:false) { name -> availableTagList.filter(text: name) }
-    availableTagEmptyText(required:false) { $('#tags .row-fluid .span6:last-child em') }
+    appliedTagList(required: false) { $('#tags .row-fluid .span6:first-child .clm-tag') }
+    appliedTagEmptyText(required: false) { $('#tags .row-fluid .span6:first-child em') }
+    availableTagList(required: false) { $('#tags .row-fluid .span6:last-child .clm-tag') }
+    availableTag(required: false) { name -> availableTagList.filter(text: name) }
+    availableTagEmptyText(required: false) { $('#tags .row-fluid .span6:last-child em') }
 
-    tagFilterInput(required:false) { $('#tags input') }
+    tagFilterInput(required: false) { $('#tags input') }
   }
 }

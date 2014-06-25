@@ -81,7 +81,9 @@ class ImportPolicySpec
 
     then: 'Error message displayed'
       waitFor { policyImport.alertError.text() != null }
-      policyImport.alertError.text() == "The file you selected failed to upload correctly, are you certain it is a properly formatted policy import json file?"
+      policyImport.alertError.text() ==
+          "The file you selected failed to upload correctly, are you certain it is a properly formatted policy import" +
+          " json file?"
   }
 
   def "validate successful import"() {
@@ -93,7 +95,7 @@ class ImportPolicySpec
 
     then: 'Policy file is imported'
       waitFor { policyImport.policyList.size() == 4 }
-      def names = policyImport.policyList.collect{ it.text().trim() }
+      def names = policyImport.policyList.collect { it.text().trim() }
       names.contains("Security-High")
       names.contains("Security-Medium")
       names.contains("License-Copyleft")
@@ -105,6 +107,7 @@ class ImportPolicySpec
   }
 
   String getBadImportFilePath() {
-    return new File(getClass().getResource("/ImportPolicyTest/invalid-policy-import-file.txt").toURI()).getAbsoluteFile().getAbsolutePath()
+    return new File(getClass().getResource("/ImportPolicyTest/invalid-policy-import-file.txt").toURI()).
+        getAbsoluteFile().getAbsolutePath()
   }
 }

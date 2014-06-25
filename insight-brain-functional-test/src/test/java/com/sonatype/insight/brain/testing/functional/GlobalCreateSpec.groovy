@@ -9,7 +9,7 @@ import spock.lang.Stepwise
 
 @Stepwise
 class GlobalCreateSpec
-    extends BaseSpec 
+    extends BaseSpec
 {
 
   static app;
@@ -81,7 +81,7 @@ class GlobalCreateSpec
       waitFor { policies.displayed }
       waitFor { policies.newPolicyEditor.displayed }
   }
-  
+
   def 'Clicking global create button allows to create new policy from organization'() {
     given: 'viewing an existing organization'
       to OrganizationPage, app.organizationId
@@ -117,7 +117,7 @@ class GlobalCreateSpec
       waitFor { labels.displayed }
       waitFor { labels.labelEditor.displayed }
   }
-  
+
   def 'Clicking global create button allows to create new label from organization'() {
     given: 'viewing an existing organization'
       to OrganizationPage, app.organizationId
@@ -153,7 +153,7 @@ class GlobalCreateSpec
       waitFor { licenseThreatGroups.displayed }
       waitFor { licenseThreatGroups.ltgEditor.displayed }
   }
-  
+
   def 'Clicking global create button allows to create new license threat group from organization'() {
     given: 'viewing an existing organization'
       to OrganizationPage, app.organizationId
@@ -171,7 +171,7 @@ class GlobalCreateSpec
       waitFor { licenseThreatGroups.displayed }
       waitFor { licenseThreatGroups.ltgEditor.displayed }
   }
-  
+
   def 'Clicking global create button allows to create new tag from organization'() {
     given: 'viewing an existing organization'
       to OrganizationPage, app.organizationId
@@ -189,7 +189,7 @@ class GlobalCreateSpec
       waitFor { tags.displayed }
       waitFor { tags.tagEditor.displayed }
   }
-  
+
   def 'Clicking global create button does not allow to create new tag from application'() {
     given: 'viewing an existing application'
       to ApplicationPage, app.publicId

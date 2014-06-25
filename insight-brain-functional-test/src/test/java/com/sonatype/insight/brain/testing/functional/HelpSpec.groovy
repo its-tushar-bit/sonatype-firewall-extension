@@ -9,7 +9,7 @@ import spock.lang.Stepwise
 
 @Stepwise
 class HelpSpec
-    extends BaseSpec 
+    extends BaseSpec
 {
 
   def setupSpec() {
@@ -18,7 +18,8 @@ class HelpSpec
 
   def "Links to external pages are presented in the UI"() {
     when: 'We are on any page'
-    // noop, just need to confirm the elements are onscreen since ChromeDriver will not allow clicking of the dropdown(element is not visible)
+      // noop, just need to confirm the elements are onscreen since ChromeDriver will not allow clicking of the
+      // dropdown(element is not visible)
 
     then: 'We are presented with the links to the external documentation'
       helpLinks.dropdown.displayed

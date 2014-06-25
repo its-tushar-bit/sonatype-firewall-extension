@@ -25,8 +25,8 @@ class ApplicationEvaluationModule
     upload(required: false) { $('#evaluate-bundle-upload') }
     cancel(required: false) { $('#evaluate-bundle-cancel') }
   }
-  
+
   def getSelectedApplicationOption() {
-    return application.find('option', value:application.value()).text()
+    return application.find('option', value: application.value()).text()
   }
 }

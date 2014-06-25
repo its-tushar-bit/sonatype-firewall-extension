@@ -18,21 +18,19 @@ import com.sonatype.insight.brain.service.TestInsightBrainServiceRule
 import org.sonatype.licensing.product.ProductLicenseManager
 import org.sonatype.licensing.product.util.LicenseFingerprinter
 
-import com.google.inject.AbstractModule;
-import geb.Page
+import com.google.inject.AbstractModule
 import geb.spock.GebReportingSpec
 import groovy.util.logging.Slf4j
 import org.junit.ClassRule
 import org.junit.Rule
 import org.junit.rules.TestName
-import org.junit.rules.TestRule
 import org.openqa.selenium.logging.LogEntry
 import org.openqa.selenium.logging.LogType
 import spock.lang.Shared
 
 @Slf4j
 abstract class BaseSpec
-    extends GebReportingSpec 
+    extends GebReportingSpec
 {
   static {
     System.setProperty("javax.net.ssl.trustStore", "src/test/resources/ssl/server-store");
@@ -48,7 +46,7 @@ abstract class BaseSpec
   @Shared
   @ClassRule
   TestInsightBrainServiceRule serviceRule = new TestInsightBrainServiceRule(PortAllocator.findFreePort(8070),
-    PortAllocator.findFreePort(8071), null, "http://localhost:" + hdsPort, false, getBrainModules())
+      PortAllocator.findFreePort(8071), null, "http://localhost:" + hdsPort, false, getBrainModules())
 
   @Shared
   @ClassRule
@@ -56,11 +54,15 @@ abstract class BaseSpec
 
   @Rule
   TestName testName = new TestName()
-  
+
   static OrganizationDAO organizationDAO = new OrganizationDAO()
-  static ApplicationDAO  applicationDAO = new ApplicationDAO()
+
+  static ApplicationDAO applicationDAO = new ApplicationDAO()
+
   public static TestProductLicenseManager productLicenseManager = new TestProductLicenseManager()
+
   public static TestLicenseFingerprinter licenseFingerprinter = new TestLicenseFingerprinter()
+
   public static CLMLicenseManager clmLicenseManager = new CLMLicenseManager(productLicenseManager, licenseFingerprinter)
 
   def getBrainModules() {
@@ -122,7 +124,7 @@ abstract class BaseSpec
    */
   def setElementCss(element, Map<String, String> styles = [:]) {
     if (!element.empty) {
-      styles.each{ key, value ->
+      styles.each { key, value ->
         browser.js.exec(element.firstElement(), key, value, 'jQuery(arguments[0]).css(arguments[1], arguments[2]);')
       }
     }
@@ -152,7 +154,7 @@ abstract class BaseSpec
    * @param args additional path segments for the Page
    * @return a reference to the newly loaded Page
    */
-  public <T> T loginAsAdminVia(Class<T> initialPage = ReportViolationsPage, Object[]args) {
+  public <T> T loginAsAdminVia(Class<T> initialPage = ReportViolationsPage, Object[] args) {
     via initialPage, args
     login.loginAsAdmin()
     verifyAt()
@@ -169,7 +171,9 @@ abstract class BaseSpec
    * @param args additional path segments for the Page
    * @return a reference to the newly loaded Page
    */
-  public <T> T loginAsUserVia(String username, String password, Class<T> initialPage = ReportViolationsPage, Object[] args) {
+  public <T> T loginAsUserVia(String username, String password, Class<T> initialPage = ReportViolationsPage,
+                              Object[] args)
+  {
     via initialPage, args
     login.login(username, password)
     verifyAt()
@@ -180,14 +184,14 @@ abstract class BaseSpec
     OrganizationManagementPage organizationManagementPage = to(OrganizationManagementPage)
     int size = !organizationList?.empty ? organizationList.size() : 0
     organizationManagementPage.createOrg(name)
-    waitFor{ organizationList.size() > size }
+    waitFor { organizationList.size() > size }
   }
 
   void createApplication(name = 'test application', id = 'test application', orgName = 'test organization') {
     ApplicationManagementPage applicationManagementPage = to(ApplicationManagementPage)
     int size = !applicationList?.empty ? applicationList.size() : 0
     applicationManagementPage.createApp(name, id, orgName)
-    waitFor{ applicationList.size() > size }
+    waitFor { applicationList.size() > size }
   }
 
   void setLicensedProducts(String... products) {

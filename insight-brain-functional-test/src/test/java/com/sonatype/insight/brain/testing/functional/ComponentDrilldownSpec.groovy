@@ -12,9 +12,10 @@ import com.sonatype.insight.brain.model.policy.Policy
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory
 import com.sonatype.insight.brain.model.policy.PolicyViolation
-import com.sonatype.insight.brain.model.policy.actions.FailActionType;
+import com.sonatype.insight.brain.model.policy.actions.FailActionType
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType
 import com.sonatype.insight.brain.testing.functional.report.violation.ReportContainerPage
+
 import spock.lang.Stepwise
 
 /**
@@ -25,9 +26,13 @@ class ComponentDrilldownSpec
     extends BaseSpec
 {
   static Organization org
+
   static Application app
+
   static Policy policy
+
   static PolicyViolation policyViolation
+
   static ApplicationComponent applicationComponent
 
   def setupSpec() {

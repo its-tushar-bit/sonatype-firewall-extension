@@ -11,8 +11,11 @@ import groovy.json.JsonSlurper
 class ImportPolicyModule
     extends Module
 {
-  public static samplePolicyFile = new File(getClass().getResource("/ImportPolicyTest/Sonatype-Sample-Policy-1.6.json").toURI())
-  public static sampleOrgPolicyFile = new File(getClass().getResource("/ImportPolicyTest/Sonatype-Org-Sample-Policy-1.6.json").toURI())
+  public static samplePolicyFile = new File(
+      getClass().getResource("/ImportPolicyTest/Sonatype-Sample-Policy-1.6.json").toURI())
+
+  public static sampleOrgPolicyFile = new File(
+      getClass().getResource("/ImportPolicyTest/Sonatype-Org-Sample-Policy-1.6.json").toURI())
 
   static content = {
 

@@ -7,7 +7,13 @@ package com.sonatype.insight.brain.testing.functional.modules
 
 import geb.Module
 
-import static com.sonatype.insight.brain.testing.functional.utils.ValidationConstants.*
+import static com.sonatype.insight.brain.testing.functional.utils.ValidationConstants.ALPHA_NUMERIC
+import static com.sonatype.insight.brain.testing.functional.utils.ValidationConstants.INVALID_CHARACTERS
+import static com.sonatype.insight.brain.testing.functional.utils.ValidationConstants.INVALID_EMAIL
+import static com.sonatype.insight.brain.testing.functional.utils.ValidationConstants.NO_SPACES
+import static com.sonatype.insight.brain.testing.functional.utils.ValidationConstants.PASSWORDS_MUST_MATCH
+import static com.sonatype.insight.brain.testing.functional.utils.ValidationConstants.PATTERN
+import static com.sonatype.insight.brain.testing.functional.utils.ValidationConstants.REQUIRED
 
 /**
  * @since 1.7

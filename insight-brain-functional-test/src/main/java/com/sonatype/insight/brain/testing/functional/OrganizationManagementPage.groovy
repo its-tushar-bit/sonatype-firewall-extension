@@ -17,7 +17,7 @@ class OrganizationManagementPage
   static content = {
     newOrganizationButton(wait: true, to: OrganizationPage) { $('#nav-create-org') }
     organizationList(required: false) { $('#nav-org-list > li[ng-repeat] > a') }
-    organization(to: OrganizationPage) { name -> organizationList.find {it.text() == name} }
+    organization(to: OrganizationPage) { name -> organizationList.find { it.text() == name } }
   }
 
   public void createOrg(name = 'test organization') {

@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.testing.functional
 
 import com.sonatype.insight.brain.testing.functional.modules.ImportPolicyModule
+
 import spock.lang.Stepwise
 
 @Stepwise
@@ -13,6 +14,7 @@ class PolicyTagSpec
     extends BaseSpec
 {
   static Map tag1
+
   static Map tag2
 
   public static final String POLICY_NAME = 'Architecture-Quality'
@@ -46,7 +48,7 @@ class PolicyTagSpec
       !editor.isSelected(editor.taggedApplicationRadioButton)
 
     and: 'expected Tags are available to choose'
-      [tag1.name, tag2.name].each{ name ->
+      [tag1.name, tag2.name].each { name ->
         assert editor.tagsDropdown.dropdownCheck(name).displayed
       }
 
@@ -55,7 +57,7 @@ class PolicyTagSpec
   }
 
   def 'We can add tags to the policy'() {
-    given :
+    given:
       def editor = policies.findPolicyEditor(POLICY_NAME)
 
     when: 'We click the input'
@@ -89,14 +91,14 @@ class PolicyTagSpec
   }
 
   def 'We can save the Tag changes'() {
-    given :
+    given:
       def editor = policies.findPolicyEditor(POLICY_NAME)
 
     when: 'We save and refresh the page'
       editor.buttons.save.click()
-      waitFor{ !editor.tagsHeader.present }
+      waitFor { !editor.tagsHeader.present }
       driver.navigate().refresh()
-      waitFor{ policies.findPolicyEditor(POLICY_NAME).displayed }
+      waitFor { policies.findPolicyEditor(POLICY_NAME).displayed }
       editor = policies.findPolicyEditor(POLICY_NAME)
       editor.editButton.click()
       waitFor { editor.tagsHeader.displayed }
@@ -111,7 +113,7 @@ class PolicyTagSpec
   }
 
   def 'We can clear all Tags'() {
-    given :
+    given:
       def editor = policies.findPolicyEditor(POLICY_NAME)
 
     when: 'We choose the "All Applications" option'
@@ -124,7 +126,7 @@ class PolicyTagSpec
   }
 
   def 'We cannot save if we do not select Tags and "All Applications" is not selected'() {
-    given :
+    given:
       def editor = policies.findPolicyEditor(POLICY_NAME)
     when: 'We click on the "Applications with Tags" option'
       editor.taggedApplicationRadioButton.click()
@@ -135,7 +137,7 @@ class PolicyTagSpec
   }
 
   def 'The header tags icon is removed if no tags are selected'() {
-    given :
+    given:
       def editor = policies.findPolicyEditor(POLICY_NAME)
 
     when: 'We save the policy with no tags applied'

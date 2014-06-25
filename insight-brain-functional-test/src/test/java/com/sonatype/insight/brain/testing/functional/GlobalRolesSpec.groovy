@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.testing.functional
 
 import com.sonatype.insight.brain.dataaccess.security.UserDAO
 import com.sonatype.insight.brain.model.security.User
+
 import spock.lang.Stepwise
 
 @Stepwise
@@ -15,7 +16,8 @@ class GlobalRolesSpec
 {
   def setupSpec() {
     UserDAO userDAO = new UserDAO()
-    User user = new User(username: "test-a", password: "secret", firstName: "John", lastName: "Doe", email: "john@doe.net")
+    User user = new User(username: "test-a", password: "secret", firstName: "John", lastName: "Doe",
+        email: "john@doe.net")
     userDAO.insert(user);
     user = new User(username: "test-b", password: "secret", firstName: "Jane", lastName: "Doe", email: "jane@doe.net")
     userDAO.insert(user);
@@ -52,7 +54,7 @@ class GlobalRolesSpec
       roleRow.editButton.displayed
 
     when: "clicking the edit button"
-      js.exec '$( ".content" ).scrollLeft( 300 );'  //content appears offscreen in default browser size
+      js.exec '$( ".content" ).scrollLeft( 300 );' //content appears offscreen in default browser size
       roleRow.editButton.click()
 
     then: "the edit form opens"

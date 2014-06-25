@@ -998,24 +998,24 @@
     "licenseId": "Zlib"
   }
 ],
-"tags":[
-  {
-    "id": "aedb24ea13e844b69e8a8253f4b284ba",
-    "organizationId": "6c0a425633cd4bb0be0598f4010a1345",
-    "name": "Policy Tag 1",
-    "nameLowercaseNoWhitespace": "policyTag1",
-    "description": "A Tag used for testing",
-    "color": "red"
-  },
-  {
-    "id": "aedb24ea13e844b69e8a8253f4b284bb",
-    "organizationId": "6c0a425633cd4bb0be0598f4010a1345",
-    "name": "Policy Tag 2",
-    "nameLowercaseNoWhitespace": "policyTag2",
-    "description": "Another Tag used for testing",
-    "color": "blue"
-  }
-],
+  "tags": [
+    {
+      "id": "aedb24ea13e844b69e8a8253f4b284ba",
+      "organizationId": "6c0a425633cd4bb0be0598f4010a1345",
+      "name": "Policy Tag 1",
+      "nameLowercaseNoWhitespace": "policyTag1",
+      "description": "A Tag used for testing",
+      "color": "red"
+    },
+    {
+      "id": "aedb24ea13e844b69e8a8253f4b284bb",
+      "organizationId": "6c0a425633cd4bb0be0598f4010a1345",
+      "name": "Policy Tag 2",
+      "nameLowercaseNoWhitespace": "policyTag2",
+      "description": "Another Tag used for testing",
+      "color": "blue"
+    }
+  ],
   "policyTags": [
     {
       "id": "f4705ca239604edcb0bd1a62d867d7c7",

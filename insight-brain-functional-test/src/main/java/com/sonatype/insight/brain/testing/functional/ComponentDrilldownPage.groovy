@@ -20,14 +20,16 @@ class ComponentDrilldownPage
 
   static content = {
     componentName { $('#component-name') }
-    totalRisk { $('#total-risk')}
+    totalRisk { $('#total-risk') }
 
     componentApplicationTable { $('.component-application-table') }
     componentApplicationRow { applicationId -> module ComponentApplicationRow, $("#app-row-${applicationId}") }
     componentViolationTable { applicationId -> $("div[id\$='${applicationId}'] .table") }
-    componentViolationRow { applicationId, policyViolationName -> module ComponentViolationRow,
-      componentViolationTable(applicationId).find('tr').has("td", text: "${policyViolationName}") }
-    header(required:false) { int i -> $('thead th', i).text() }
+    componentViolationRow { applicationId, policyViolationName ->
+      module ComponentViolationRow,
+          componentViolationTable(applicationId).find('tr').has("td", text: "${policyViolationName}")
+    }
+    header(required: false) { int i -> $('thead th', i).text() }
   }
 }
 
@@ -35,10 +37,15 @@ class ComponentRow
     extends Module
 {
   static abstract int RISK_PIE
+
   static abstract int RISK_COUNT
+
   static abstract int BUILD
+
   static abstract int STAGE
+
   static abstract int RELEASE
+
   static abstract int OPERATE
 
   static content = {
@@ -69,12 +76,19 @@ class ComponentApplicationRow
     extends ComponentRow
 {
   static final int EXPANDO = 0
+
   static final int ORG_APP = 1
+
   static final int RISK_PIE = 2
+
   static final int RISK_COUNT = 3
+
   static final int BUILD = 4
+
   static final int STAGE = 5
+
   static final int RELEASE = 6
+
   static final int OPERATE = 7
 
   static content = {
@@ -88,12 +102,19 @@ class ComponentViolationRow
     extends ComponentRow
 {
   static final int THREAT_LEVEL = 1
+
   static final int POLICY_NAME = 2
+
   static final int RISK_PIE = 3
+
   static final int RISK_COUNT = 4
+
   static final int BUILD = 5
+
   static final int STAGE = 6
+
   static final int RELEASE = 7
+
   static final int OPERATE = 8
 
   static content = {

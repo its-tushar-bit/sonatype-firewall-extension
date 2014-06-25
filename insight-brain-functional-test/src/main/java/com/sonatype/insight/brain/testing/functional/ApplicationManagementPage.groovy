@@ -16,7 +16,7 @@ class ApplicationManagementPage
   static content = {
     newApplicationButton(wait: true, to: ApplicationPage) { $('#nav-create-app') }
     applicationList(required: false) { $('#nav-app-list > li[ng-repeat] > a') }
-    application { name -> applicationList.find {it.text() == name} }
+    application { name -> applicationList.find { it.text() == name } }
   }
 
   void createApp(name = 'test application', id = 'test application', orgName = 'test organization') {

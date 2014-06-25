@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.testing.functional
 import com.sonatype.clm.dto.model.ProprietaryConfig
 import com.sonatype.insight.brain.dataaccess.ProprietaryConfigDAO
 import com.sonatype.insight.brain.testing.functional.configuration.ProprietaryComponentsPage
+
 import spock.lang.Stepwise
 
 /**

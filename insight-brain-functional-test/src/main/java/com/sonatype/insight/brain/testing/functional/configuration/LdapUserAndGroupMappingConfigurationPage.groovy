@@ -33,7 +33,7 @@ class LdapUserAndGroupMappingConfigurationPage
     groupMemberFormat { $('#groupMemberFormat') }
     userMemberOfGroupAttribute { $('#userMemberOfGroupAttribute') }
 
-    requiredFields { [userObjectClass, userIDAttribute, userRealNameAttribute, userEmailAttribute]}
+    requiredFields { [userObjectClass, userIDAttribute, userRealNameAttribute, userEmailAttribute] }
 
     //controls
     checkUserMapping { $('.ldap-button-group > button:first-child') }

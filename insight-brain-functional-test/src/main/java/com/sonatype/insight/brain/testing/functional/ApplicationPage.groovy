@@ -6,15 +6,14 @@
 package com.sonatype.insight.brain.testing.functional
 
 import com.sonatype.insight.brain.testing.functional.modules.ButtonsModule
-import com.sonatype.insight.brain.testing.functional.modules.EditorToolsModule
 import com.sonatype.insight.brain.testing.functional.modules.ContextTabsModule
+import com.sonatype.insight.brain.testing.functional.modules.EditorToolsModule
 import com.sonatype.insight.brain.testing.functional.modules.ImportPolicyModule
 import com.sonatype.insight.brain.testing.functional.modules.LabelModule
 import com.sonatype.insight.brain.testing.functional.modules.LicenseThreatGroupModule
 import com.sonatype.insight.brain.testing.functional.modules.PolicyModule
 import com.sonatype.insight.brain.testing.functional.modules.PolicyMonitoringModule
 import com.sonatype.insight.brain.testing.functional.modules.TagApplicationModule
-
 
 class ApplicationPage
     extends ApplicationManagementPage
@@ -26,17 +25,17 @@ class ApplicationPage
     applicationImage(wait: true) { $('#userIcon') }
     applicationImageFileDialog(wait: true) { $('#file') }
     applicationName(required: false) { $('#aoName .editable') }
-    applicationNameField(required: false) { $('input', 'placeholder':'Enter Application Name') }
+    applicationNameField(required: false) { $('input', 'placeholder': 'Enter Application Name') }
     applicationId(required: false) { $('#applicationPublicId .editable') }
-    applicationIdField(required: false) { $('input', 'placeholder':'Enter ID') }
-    applicationIdSaved(required:false) { $('div.setappid') }
+    applicationIdField(required: false) { $('input', 'placeholder': 'Enter ID') }
+    applicationIdSaved(required: false) { $('div.setappid') }
     applicationOrgField(required: false) { $('#app-parent a') }
     applicationOrgName(required: false) { orgName -> $('#applicationEditor a', text: orgName) }
 
     applicationContactField(required: false) { $('#contact-field') }
     applicationContactDialog(wait: true) { $('#contact-modal-dialog') }
     applicationContactDialogSearchField(required: false) { $('input[placeholder="Find User"]') }
-    applicationContactDialogResultList(required : false) { $('.large-select-list-item') }
+    applicationContactDialogResultList(required: false) { $('.large-select-list-item') }
 
     policyEvalStages(required: false) { $('#policy-eval-summary > div > span:first-child') }
 
@@ -60,7 +59,9 @@ class ApplicationPage
     tags { module TagApplicationModule, tabs.tagTab }
   }
 
-  void editNewApp(String name = 'test application', String id = 'test application', String orgName = 'test organization') {
+  void editNewApp(String name = 'test application', String id = 'test application',
+                  String orgName = 'test organization')
+  {
     applicationId.click()
     waitFor { applicationIdField.displayed }
     applicationIdField = id

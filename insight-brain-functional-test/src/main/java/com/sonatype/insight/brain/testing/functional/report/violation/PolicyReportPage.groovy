@@ -7,11 +7,12 @@ package com.sonatype.insight.brain.testing.functional.report.violation
 
 import com.sonatype.insight.brain.testing.functional.modules.ButtonsModule
 import com.sonatype.insight.brain.testing.functional.modules.ModalModule
+
 import geb.Module
 import geb.Page
 
 class PolicyReportPage
-    extends Page 
+    extends Page
 {
   static at = { policyContent.displayed }
 
@@ -33,9 +34,9 @@ class PolicyReportPage
     results { moduleList PolicyReportRow, $('.slick-row') }
     resultsWithNoScore { results.findAll { it.threatGroup == none } }
     waiver { module AddPolicyWaiver, $('#add-waiver-modal') }
-    summaryViolations { $('#policy-violation-filter li a', text : 'Summary') }
-    allViolations { $('#policy-violation-filter li a', text : 'All') }
-    waivedViolations { $('#policy-violation-filter li a', text : 'Waived') }
+    summaryViolations { $('#policy-violation-filter li a', text: 'Summary') }
+    allViolations { $('#policy-violation-filter li a', text: 'All') }
+    waivedViolations { $('#policy-violation-filter li a', text: 'Waived') }
     selectedViolationFilter { $('#policy-violation-filter li.active a').text() }
     revokeClaimModal(required: false) { module ModalModule, title: 'Revoke Claim' }
   }
@@ -49,14 +50,14 @@ class PolicyReportPage
  * The CIP for this row can be opened with {@link #showCip()}.
  */
 class PolicyReportRow
-    extends Module 
+    extends Module
 {
   static content = {
     cip { module Cip, parent().find('#informationPanel') }
     // can't rely on the text within the cell since it's only shown for the first row with that score
     threatGroup { $(class: iEndsWith('Score')).classes()[0] }
     coordinates { $('.l1').text() }
-    waived(required : false) { $('.waiver-icon-container') }
+    waived(required: false) { $('.waiver-icon-container') }
 
     // private, use page methods for interaction
     // click a cell, not the row, to make the CIP appear
@@ -79,7 +80,7 @@ class PolicyReportRow
 }
 
 class Cip
-    extends Module 
+    extends Module
 {
   static content = {
     policy { module PolicyDetail }
@@ -89,7 +90,7 @@ class Cip
 }
 
 class PolicyDetail
-    extends Module 
+    extends Module
 {
   static content = {
     violations(wait: true) { moduleList PolicyRow, $('tbody tr') }
@@ -109,7 +110,7 @@ class PolicyDetail
 }
 
 class PolicyRow
-    extends Module 
+    extends Module
 {
   static content = {
     waiver { module AddPolicyWaiver, parents().find('#add-waiver-modal') }
@@ -127,7 +128,7 @@ class PolicyRow
 }
 
 class AddPolicyWaiver
-    extends Module 
+    extends Module
 {
   static content = {
     // private

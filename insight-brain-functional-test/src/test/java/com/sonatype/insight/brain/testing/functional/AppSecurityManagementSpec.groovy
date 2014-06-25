@@ -5,14 +5,15 @@
  */
 package com.sonatype.insight.brain.testing.functional
 
-import com.sonatype.insight.brain.configuration.ldap.LdapUserMapping
 import com.sonatype.insight.brain.configuration.ldap.LdapGroupMappingType
+import com.sonatype.insight.brain.configuration.ldap.LdapUserMapping
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapUserMappingDAO
 
 class AppSecurityManagementSpec
-    extends BaseSpec 
+    extends BaseSpec
 {
   String orgId
+
   String appPublicId
 
   // assumes a license has already been installed

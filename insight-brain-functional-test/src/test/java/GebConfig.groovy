@@ -9,6 +9,8 @@
  See: http://www.gebish.org/manual/current/configuration.html
 */
 
+import java.util.logging.Level
+
 import geb.driver.SauceLabsDriverFactory
 import org.openqa.selenium.Dimension
 import org.openqa.selenium.Platform
@@ -21,8 +23,6 @@ import org.openqa.selenium.phantomjs.PhantomJSDriverService
 import org.openqa.selenium.remote.DesiredCapabilities
 import org.openqa.selenium.remote.RemoteWebDriver
 import org.openqa.selenium.safari.SafariDriver
-
-import java.util.logging.Level
 
 reportsDir = "target/test-reports/geb"
 // Port is not known until runtime, needs to be set in BaseSpec.groovy
@@ -100,12 +100,13 @@ environments {
       }
     }
     driver = {
-      DesiredCapabilities capabilities =  DesiredCapabilities.phantomjs()
+      DesiredCapabilities capabilities = DesiredCapabilities.phantomjs()
       if (phantomJsBinary) {
         capabilities.setCapability('phantomjs.binary.path', phantomJsBinary)
       }
       capabilities.setCapability(PhantomJSDriverService.PHANTOMJS_CLI_ARGS, ['--webdriver-loglevel=DEBUG'] as String[]);
-      capabilities.setCapability(PhantomJSDriverService.PHANTOMJS_GHOSTDRIVER_CLI_ARGS, ["--logLevel=DEBUG"] as String[])
+      capabilities.
+          setCapability(PhantomJSDriverService.PHANTOMJS_GHOSTDRIVER_CLI_ARGS, ["--logLevel=DEBUG"] as String[])
       RemoteWebDriver webDriver = configure(new PhantomJSDriver(capabilities))
       webDriver.setLogLevel(Level.ALL)
       return webDriver

@@ -11,7 +11,7 @@ import spock.lang.Stepwise
 
 @Stepwise
 class ProductLicenseSpec
-    extends BaseSpec 
+    extends BaseSpec
 {
   def setupSpec() {
     loginAsAdminVia(ProductLicensePage)

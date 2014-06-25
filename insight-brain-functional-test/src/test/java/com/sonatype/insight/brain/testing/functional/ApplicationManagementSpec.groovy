@@ -18,13 +18,15 @@ class ApplicationManagementSpec
       tempFile.deleteOnExit()
 
       newApplicationButton.click()
-      //phantomjs and firefox can fail without this interaction; chrome fails with it, throwing up a window alert that changes would be lost
+      //phantomjs and firefox can fail without this interaction; chrome fails with it,
+      // throwing up a window alert that changes would be lost
       if (browser.config.properties['geb.env'] != 'chrome') {
         interact {
           moveToElement(applicationImage)
         }
       }
-      // Selenium 2.36+ apparently considers an element invisible when off-screen so we nuke the style that moves the element off-screen
+      // Selenium 2.36+ apparently considers an element invisible when off-screen so we nuke the style that moves the
+      // element off-screen
       applicationImageFileDialog.jquery.attr('style', '')
       applicationImageFileDialog << tempFile.getAbsolutePath()
 

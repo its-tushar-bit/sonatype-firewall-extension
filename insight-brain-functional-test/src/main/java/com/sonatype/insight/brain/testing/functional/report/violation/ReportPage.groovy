@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.testing.functional.report.violation
 
-import geb.Module
 import geb.Page
 
 /**

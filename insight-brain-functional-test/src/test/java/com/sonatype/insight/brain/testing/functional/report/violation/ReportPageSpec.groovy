@@ -18,7 +18,7 @@ import spock.lang.Stepwise
  */
 @Stepwise
 class ReportPageSpec
-    extends BaseSpec 
+    extends BaseSpec
 {
 
   static cannedTestReport = '/canned-reports/small-report.zip'
@@ -34,7 +34,7 @@ class ReportPageSpec
 
     // ensure there is a report to view
     def evaluator = new TestReportEvaluator(app, getClass().getResource(cannedTestReport), browser.baseUrl,
-      new InsightWork(serviceRule.configuration))
+        new InsightWork(serviceRule.configuration))
     scanId = evaluator.evaluatePolicy()
 
     // Can't do anything without a logged in user
@@ -55,7 +55,7 @@ class ReportPageSpec
     and: 'policy nav button is shown'
       navigation.policyTrigger.displayed == true
 
-    // add other nav button verifications to new then: blocks as tests require them
+      // add other nav button verifications to new then: blocks as tests require them
   }
 
   def "Can view summary sub report"() {

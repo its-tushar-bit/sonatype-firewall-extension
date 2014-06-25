@@ -8,7 +8,7 @@ package com.sonatype.insight.brain.testing.functional.modules
 import geb.Module
 
 class ReportViolationsRowModule
-    extends Module 
+    extends Module
 {
   static content = {
     name { $('td:first-child a') }

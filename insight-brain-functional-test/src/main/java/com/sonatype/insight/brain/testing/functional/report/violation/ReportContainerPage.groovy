@@ -9,9 +9,9 @@ import com.sonatype.insight.brain.testing.functional.BasePage
 
 /**
  * When navigating to this page the public application id and scan must be supplied, in that order.  For example:
- * 
+ *
  * to ReportContainerPage, app.publicId, scanId
- * 
+ *
  * Example using the IFRAME page
  * http://www.gebish.org/manual/current/pages.html#dealing_with_frames
  *
@@ -21,7 +21,7 @@ import com.sonatype.insight.brain.testing.functional.BasePage
  * }
  */
 class ReportContainerPage
-    extends BasePage 
+    extends BasePage
 {
   /**
    * The proper url will be created from the supplied appPublicId and scanId and should look like:

@@ -7,8 +7,6 @@ package com.sonatype.insight.brain.testing.functional
 
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO
 
-import spock.lang.IgnoreIf
-import spock.lang.Issue
 import spock.lang.Stepwise
 
 /**
@@ -42,14 +40,15 @@ class ApplicationSpec
 
   def "Policy evaluation summary lists stages in chronological order"() {
     given: 'at least one policy evaluation for the app'
-      temporaryEntity.newPolicyEvaluation(new ApplicationDAO().getByPublicIdNotNull('New Application').id, 'build', 'scan-id')
+      temporaryEntity.
+          newPolicyEvaluation(new ApplicationDAO().getByPublicIdNotNull('New Application').id, 'build', 'scan-id')
 
     when: 'refreshing the page to reload the policy evaluation summary'
       driver.navigate().refresh()
       at ApplicationPage
 
     then: 'the stages are listed in proper order'
-      policyEvalStages*.text() == [ 'Build', 'Stage Release', 'Release' ]
+      policyEvalStages*.text() == ['Build', 'Stage Release', 'Release']
   }
 
   def "Can edit an existing Application"() {
@@ -85,7 +84,7 @@ class ApplicationSpec
 
     then: 'they are listed alphabetically'
       waitFor { applicationList.size() == 2 }
-      applicationList.collect{ it.text() } == ['A','Z']
+      applicationList.collect { it.text() } == ['A', 'Z']
   }
 
   def "Can add a new Policy"() {
@@ -100,7 +99,7 @@ class ApplicationSpec
       waitFor { policyEditor.displayed }
 
     and: "the editor lists stages in chronological order"
-      policyEditor.actions*.stageName == [ 'Develop', 'Build', 'Stage Release', 'Release', 'Operate' ]
+      policyEditor.actions*.stageName == ['Develop', 'Build', 'Stage Release', 'Release', 'Operate']
 
     when: "we complete the form and save the policy"
       policyEditor.name = 'NewPolicy'
@@ -108,7 +107,7 @@ class ApplicationSpec
       def constraint = policyEditor.constraints[0]
       constraint.editButton.click()
       constraint.constraintName = 'Constraint'
-      waitFor  { constraint.conditions[0].value.displayed }
+      waitFor { constraint.conditions[0].value.displayed }
       constraint.conditions[0].value = '1'
       policyEditor.buttons.save.click()
 

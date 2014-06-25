@@ -7,7 +7,7 @@ package com.sonatype.insight.brain.testing.functional
 
 
 class LoginSpec
-    extends BaseSpec 
+    extends BaseSpec
 {
   def "form states are usable"() {
     when: "login modal is shown"
@@ -23,29 +23,29 @@ class LoginSpec
     when: "credential inputs are filled in"
       login.usernameInput = "some username"
       login.passwordInput = "some password"
-    
+
     then: "login action is enabled"
       !login.loginAction.isDisabled()
   }
-  
+
   def "can log in with valid credentials"() {
     given: "prompt to log in"
       via ReportViolationsPage
 
     when: "valid credentials are supplied"
       loginAsAdminVia()
-    
+
     then: "the user is logged in"
       waitFor { !login.isDisplayed() }
   }
-  
-  def "log in prevented when using invalid credentials" () {
+
+  def "log in prevented when using invalid credentials"() {
     given: "prompt to log in"
       via ReportViolationsPage
 
     when: "invalid credentials are supplied"
       login.login("unknown", "user", true)
-      
+
     then: "an error indicating bad credentials is shown"
       waitFor { login.errorMessage.text().contains("Invalid credentials") }
 
@@ -72,18 +72,18 @@ class LoginSpec
   def "authentication session state is remembered"() {
     when: "accessing management application"
       loginAsAdminVia(ManagementPage)
-    
+
     then: "user is not prompted to log in"
       report 'management page'
       at ManagementPage
-    
+
     when: "accessing report application"
       to ReportViolationsPage
 
     then: "user is not prompted to log in"
       report 'report page'
       at ReportViolationsPage
-    
+
     when: "cookies are removed"
       clearCookies()
 

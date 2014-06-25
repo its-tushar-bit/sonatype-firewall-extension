@@ -20,15 +20,29 @@ class RoleModule
 
     appliedMembersList(required: false) { $('div[app-security-editor] .selectList-large:first-child') }
     appliedMembers(required: false) { appliedMembersList.find('.large-select-list-item') }
-    appliedMemberNames(required: false) { appliedMembers.find('span:not(.large-select-list-item-detail):not(.large-select-list-item-right-detail):not(.ui-match)') }
-    appliedMember(required: false) { displayName -> appliedMembers.has('span:not(.large-select-list-item-detail):not(.large-select-list-item-right-detail):not(.ui-match)', text: displayName ) }
+    appliedMemberNames(required: false) {
+      appliedMembers.
+          find('span:not(.large-select-list-item-detail):not(.large-select-list-item-right-detail):not(.ui-match)')
+    }
+    appliedMember(required: false) { displayName ->
+      appliedMembers.
+          has('span:not(.large-select-list-item-detail):not(.large-select-list-item-right-detail):not(.ui-match)',
+              text: displayName)
+    }
     appliedMemberEmail(required: false) { appliedMembers.find('.large-select-list-item-detail') }
     appliedMemberRealm(required: false) { appliedMembers.find('.large-select-list-item-right-detail') }
 
     availableMembersList(required: false) { $('div[app-security-editor] .selectList-large:last-child') }
     availableMembers(required: false) { availableMembersList.find('.large-select-list-item') }
-    availableMemberNames(required: false) { availableMembers.find('span:not(.large-select-list-item-detail):not(.large-select-list-item-right-detail):not(.ui-match)') }
-    availableMember(required: false) { displayName -> availableMembers.has('span:not(.large-select-list-item-detail):not(.large-select-list-item-right-detail):not(.ui-match)', text: displayName ) }
+    availableMemberNames(required: false) {
+      availableMembers.
+          find('span:not(.large-select-list-item-detail):not(.large-select-list-item-right-detail):not(.ui-match)')
+    }
+    availableMember(required: false) { displayName ->
+      availableMembers.
+          has('span:not(.large-select-list-item-detail):not(.large-select-list-item-right-detail):not(.ui-match)',
+              text: displayName)
+    }
     availableMemberEmail(required: false) { availableMembers.find('.large-select-list-item-detail') }
     availableMemberRealm(required: false) { availableMembers.find('.large-select-list-item-right-detail') }
 

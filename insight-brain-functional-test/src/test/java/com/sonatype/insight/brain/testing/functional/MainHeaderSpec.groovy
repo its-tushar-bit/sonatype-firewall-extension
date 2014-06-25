@@ -8,7 +8,7 @@ package com.sonatype.insight.brain.testing.functional
 import com.sonatype.insight.license.model.ProductLicenseDetails
 
 class MainHeaderSpec
-    extends BaseSpec 
+    extends BaseSpec
 {
   def setup() {
     productLicenseManager.reset()
@@ -22,7 +22,7 @@ class MainHeaderSpec
     expect: "users display name is shown"
       waitFor { userOptions.displayName.text() == "Admin BuiltIn" }
   }
-  
+
   def "displays version in the header"() {
     given: "user has logged in"
       def props = new Properties()

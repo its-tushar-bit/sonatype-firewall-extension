@@ -16,10 +16,11 @@ import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityC
 import com.sonatype.insight.brain.service.InsightWork
 import com.sonatype.insight.brain.testing.functional.BaseSpec
 import com.sonatype.insight.brain.testing.functional.utils.TestReportEvaluator
+
 import spock.lang.Shared
 import spock.lang.Stepwise
 
-@Stepwise // Share the login and browser instance to reduce execution time
+@Stepwise
 class ReportPolicyViolationsSpec
     extends BaseSpec
 {
@@ -62,7 +63,7 @@ class ReportPolicyViolationsSpec
     then: "waived violations are hidden"
       // verify Summary is selected
       selectedViolationFilter == 'Summary'
-      waitFor{ results.size() == 4 }
+      waitFor { results.size() == 4 }
       hasRow(results, 'javancss : javancss : 29.50')
       hasRow(results, 'ch.qos.logback : logback-access : 0.6')
       hasRow(results, 'org.mortbay.jetty : jetty : 6.1.15')
@@ -97,6 +98,7 @@ class ReportPolicyViolationsSpec
   /*
    * Creates a policy against presence of a license
    */
+
   private static Policy createNoLGPL(String license, String name) {
     Policy policy = new Policy(name: "No$name", ownerId: app.id, threatLevel: 7,
         constraints: [new Constraint(name: "No$name", operator: LogicalOperator.AND,
@@ -115,7 +117,7 @@ class ReportPolicyViolationsSpec
     policyDAO.insert(policy)
     return policy
   }
-  
+
   private static boolean hasRow(List<PolicyReportRow> rows, String coordinates, boolean waived = false) {
     return rows.any { PolicyReportRow row ->
       row.coordinates == coordinates && row.waived.isPresent() == waived

@@ -5,16 +5,15 @@
  */
 package com.sonatype.insight.brain.testing.functional
 
+import com.sonatype.insight.brain.testing.functional.modules.ContextTabsModule
+import com.sonatype.insight.brain.testing.functional.modules.EditorToolsModule
 import com.sonatype.insight.brain.testing.functional.modules.ImportPolicyModule
 import com.sonatype.insight.brain.testing.functional.modules.LabelModule
 import com.sonatype.insight.brain.testing.functional.modules.LicenseThreatGroupModule
 import com.sonatype.insight.brain.testing.functional.modules.ModalModule
-import com.sonatype.insight.brain.testing.functional.modules.ContextTabsModule
-import com.sonatype.insight.brain.testing.functional.modules.EditorToolsModule
 import com.sonatype.insight.brain.testing.functional.modules.PolicyModule
 import com.sonatype.insight.brain.testing.functional.modules.PolicyMonitoringModule
 import com.sonatype.insight.brain.testing.functional.modules.TagModule
-
 
 class OrganizationPage
     extends OrganizationManagementPage
@@ -25,7 +24,7 @@ class OrganizationPage
     organizationImage(wait: true) { $('div.editor-image') }
     organizationName(required: false) { $('#aoName .editable') }
     organizationNameField(required: false) { $('input[placeholder="Enter Organization Name"]') }
-    organizationSaveButton(required: false) { $('button', text:'Save') }
+    organizationSaveButton(required: false) { $('button', text: 'Save') }
     deleteButton(required: false) { $('#remove-app-org-button') }
     deleteButtonAccept(required: false) { $('#delete-org-modal button.btn-danger') }
 

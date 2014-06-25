@@ -23,7 +23,7 @@ import spock.lang.Stepwise
  */
 @Stepwise // Share the login and browser instance to reduce execution time
 class WaiverSpec
-    extends BaseSpec 
+    extends BaseSpec
 {
 
   static cannedTestReport = '/canned-reports/small-report.zip'

@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.testing.functional.modules
 
 import com.sonatype.insight.brain.testing.functional.ReportViolationsPage
+
 import geb.Module
 import org.openqa.selenium.StaleElementReferenceException
 import org.openqa.selenium.WebElement
@@ -21,7 +22,7 @@ class UserOptionsModule
   static content = {
     displayName(wait: true) { $('.user-name') }
     optionsDropdown(wait: true) { $('a.btn') }
-    logout (wait: true, to: ReportViolationsPage) { $('#logout') }
+    logout(wait: true, to: ReportViolationsPage) { $('#logout') }
     openChangePassword(wait: true) { $('#change-password') }
   }
 
@@ -47,7 +48,8 @@ class UserOptionsModule
     try {
       element.isDisplayed()
       return false
-    } catch (StaleElementReferenceException e) {
+    }
+    catch (StaleElementReferenceException e) {
       return true
     }
   }

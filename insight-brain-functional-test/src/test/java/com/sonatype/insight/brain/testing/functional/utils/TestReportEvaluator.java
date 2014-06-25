@@ -30,9 +30,13 @@ import org.codehaus.plexus.util.FileUtils;
 class TestReportEvaluator
 {
   final Application app;
+
   final URL locationOfTestReport;
+
   final String brainBaseUrl;
+
   final InsightWork workStorage;
+
   String scanId;
 
   public TestReportEvaluator(Application app, URL locationOfTestReport, String brainBaseUrl, InsightWork workStorage) {

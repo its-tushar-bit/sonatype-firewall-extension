@@ -23,12 +23,12 @@ class NavigationToSpec
   def "Should be able to navigate directly using URLs once logged in"() {
     when: "Navigating to "
       to pageUnderTest
-    
+
     then:
       at pageUnderTest
 
     where:
       pageUnderTest << [ManagementPage, ReportViolationsPage, UserManagementPage, GlobalRolesPage,
-          ApplicationManagementPage, OrganizationManagementPage, ReportViolationsPage]
+                        ApplicationManagementPage, OrganizationManagementPage, ReportViolationsPage]
   }
 }

@@ -9,6 +9,7 @@ import com.sonatype.insight.brain.model.Application
 import com.sonatype.insight.brain.service.InsightWork
 import com.sonatype.insight.brain.testing.functional.BaseSpec
 import com.sonatype.insight.brain.testing.functional.utils.TestReportEvaluator
+
 import spock.lang.Shared
 import spock.lang.Stepwise
 

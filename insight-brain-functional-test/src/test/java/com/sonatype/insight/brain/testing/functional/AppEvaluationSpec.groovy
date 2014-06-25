@@ -10,21 +10,22 @@ import com.sonatype.insight.brain.model.Organization
 import org.apache.commons.io.IOUtils
 
 class AppEvaluationSpec
-    extends BaseSpec 
+    extends BaseSpec
 {
 
   static Organization org
-  
+
   def setupSpec() {
     org = temporaryEntity.newOrganization('AppEvaluationOrg')
 
-    for ( i in 1..5 ) {
+    for (i in 1..5) {
       def name = "AppEvaluationApp$i"
       temporaryEntity.newApplication(name, name, org.id)
     }
 
     saasRule.setResponseForURI('rest/ci/scan', '{"scanId": "blah", "timeToReport": 0}', 200);
-    saasRule.setResponseForURI('rest/ci/report?scanId=blah', IOUtils.toByteArray(getClass().getResourceAsStream('/report.zip')), 200);
+    saasRule.setResponseForURI('rest/ci/report?scanId=blah',
+        IOUtils.toByteArray(getClass().getResourceAsStream('/report.zip')), 200);
   }
 
   def setup() {
@@ -38,7 +39,7 @@ class AppEvaluationSpec
       orgManPage.organization("AppEvaluationOrg").click()
 
     then: 'User at organization page and app eval button is visible'
-      OrganizationPage orgPage = at (OrganizationPage)
+      OrganizationPage orgPage = at(OrganizationPage)
       orgPage.tools.appEvalButton.displayed
 
     when: 'User clicks on the app eval button'
@@ -60,7 +61,7 @@ class AppEvaluationSpec
       appManPage.application("AppEvaluationApp2").click()
 
     then: 'User at application page and app eval button is visible'
-      ApplicationPage appPage = at (ApplicationPage)
+      ApplicationPage appPage = at(ApplicationPage)
       appPage.tools.appEvalButton.displayed
 
     when: 'User clicks on the app eval button'
@@ -81,13 +82,15 @@ class AppEvaluationSpec
       ApplicationManagementPage appManPage = to ApplicationManagementPage
       waitFor { appManPage.application("AppEvaluationApp2").displayed }
       appManPage.application("AppEvaluationApp2").click()
-      ApplicationPage appPage = at (ApplicationPage)
+      ApplicationPage appPage = at(ApplicationPage)
       appPage.tools.appEvalButton.displayed
       appPage.tools.appEvalButton.click()
       waitFor { appPage.tools.appEval.dialog.displayed }
       appPage.tools.appEval.stage.value('0')
-      // integrating the file input with Angular is, interesting, populating this last to check UI responds properly/immediately
-      appPage.tools.appEval.file.value(new File(getClass().getResource( '/AppEvaluationSpec/some.file' ).toURI()).getAbsoluteFile().getAbsolutePath())
+      // integrating the file input with Angular is, interesting, populating this last to check UI responds
+      // properly/immediately
+      appPage.tools.appEval.file.value(
+          new File(getClass().getResource('/AppEvaluationSpec/some.file').toURI()).getAbsoluteFile().getAbsolutePath())
 
     then: 'The upload button enables'
       !appPage.tools.appEval.upload.disabled
@@ -99,7 +102,7 @@ class AppEvaluationSpec
       //will be disabled initially, until processing complete
       waitFor { appPage.tools.appEval.viewReport.@disabled || appPage.tools.appEval.status.text() == 'Done' }
       //so just wait for that to happen
-      waitFor('slow') {!appPage.tools.appEval.viewReport.@disabled}
+      waitFor('slow') { !appPage.tools.appEval.viewReport.@disabled }
       getAvailableWindows().size() == 1
 
     when: 'User clicks to view the report'

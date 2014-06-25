@@ -42,7 +42,7 @@ class UserManagementPage
 
     validations(required: false) {
       [firstNameValidations, lastNameValidations, emailValidations, usernameValidations, passwordValidations,
-          passwordValidateValidations]
+       passwordValidateValidations]
     }
 
     errorFree(required: false) { !validations.any { !it.errorFree } && !uniqueUserValidation?.displayed }
@@ -52,11 +52,13 @@ class UserManagementPage
     header(required: false) { index -> $('a.accordion-toggle', index) }
     currentUsers(required: false) { $('span[ng-if="isCurrentUser(user)"]').parent().find('h4') }
     deleteUserButton(required: false) { index -> header(index).parent().find('button[ng-click="removeClick(user)"]') }
-    resetUserButton(required: false) { index -> header(index).parent().find('button[ng-click="resetPasswordClick(user)"]') }
+    resetUserButton(required: false) {
+      index -> header(index).parent().find('button[ng-click="resetPasswordClick(user)"]')
+    }
 
-    deleteModal { module ModalModule, title: 'Delete User'}
+    deleteModal { module ModalModule, title: 'Delete User' }
 
-    resetModal { module ModalModule, title: 'Reset Password', confirmText: 'Reset'}
+    resetModal { module ModalModule, title: 'Reset Password', confirmText: 'Reset' }
     newPasswordField(required: false) { $('#generatedPassword') }
 
     summarySection { index -> $('div.accordion-inner', index) }

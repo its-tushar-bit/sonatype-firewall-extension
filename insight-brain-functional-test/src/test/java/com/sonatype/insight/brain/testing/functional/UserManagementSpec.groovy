@@ -11,7 +11,7 @@ import spock.lang.Unroll
 
 @Stepwise
 class UserManagementSpec
-    extends BaseSpec 
+    extends BaseSpec
 {
   // assumes a license has already been installed
   // get to the user page
@@ -37,12 +37,12 @@ class UserManagementSpec
       errorFree
       save.disabled
       [
-        firstNameInput,
-        lastNameInput,
-        emailInput,
-        usernameInput,
-        passwordInput,
-        passwordValidateInput
+          firstNameInput,
+          lastNameInput,
+          emailInput,
+          usernameInput,
+          passwordInput,
+          passwordValidateInput
       ].each { input ->
         assert input.displayed
         assert input.value() == ''

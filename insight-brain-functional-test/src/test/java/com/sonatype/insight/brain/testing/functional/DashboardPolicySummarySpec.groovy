@@ -10,6 +10,7 @@ import com.sonatype.insight.brain.model.Organization
 import com.sonatype.insight.brain.model.policy.Policy
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType
+
 import spock.lang.Stepwise
 
 import static spock.util.matcher.HamcrestMatchers.closeTo
@@ -46,7 +47,9 @@ class DashboardPolicySummarySpec
   }.asImmutable()
 
   static final List<Integer> NEW_ROW_DELTAS = [2, 0, 0, 2, 0, 0, 0, 1, 0, 1, 0, 1]
-  static final List<Integer> FIXED_ROW_DELTAS  = [0, 0, 0, 1, 0, 0, 0, 1, 2, 1, 0, 3]
+
+  static final List<Integer> FIXED_ROW_DELTAS = [0, 0, 0, 1, 0, 0, 0, 1, 2, 1, 0, 3]
+
   static final List<Integer> UNRESOLVED_ROW_DELTAS = [2, 0, 0, 1, 0, 0, 0, 0, -2, 0, 0, -2]
 
   def setupSpec() {
@@ -110,9 +113,9 @@ class DashboardPolicySummarySpec
       PolicySummaryModule policySummary = policySummary;
 
     then: 'The expected categories are shown'
-      policySummary.discoveredRow.category== 'Discovered'
+      policySummary.discoveredRow.category == 'Discovered'
       policySummary.fixedRow.category == 'Fixed'
-      policySummary.pendingRow.category== 'Pending'
+      policySummary.pendingRow.category == 'Pending'
 
     and: 'The counts for each category are shown'
       policySummary.discoveredRow.count == 10
@@ -170,7 +173,7 @@ class DashboardPolicySummarySpec
     when: 'we select a policy threat type that we have no violations for'
       policyThreatFiltersDropdown.toggleOption('License')
       applyFilter()
-    
+
     then: 'The counts for each category should all be zero'
       waitFor { filterPanel.displayed }
       policySummary.discoveredRow.count == 0
@@ -183,12 +186,13 @@ class DashboardPolicySummarySpec
       policySummary.pendingRow.delta.value == 0
 
     and: 'The deltas for each category should have no styling'
-      [policySummary.discoveredRow.delta, policySummary.fixedRow.delta, policySummary.pendingRow.delta].each{ DeltaModule delta ->
-        assert !delta.isUp
-        assert !delta.isDown
-        assert !delta.isPositive
-        assert !delta.isNegative
-      }
+      [policySummary.discoveredRow.delta, policySummary.fixedRow.delta, policySummary.pendingRow.delta].
+          each { DeltaModule delta ->
+            assert !delta.isUp
+            assert !delta.isDown
+            assert !delta.isPositive
+            assert !delta.isNegative
+          }
 
     and: 'The bar chart points should all be zero'
       def emptyPoints = (0..11).collect { 0 }

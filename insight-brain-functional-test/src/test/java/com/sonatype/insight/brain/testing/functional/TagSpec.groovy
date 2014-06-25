@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.testing.functional
 
 import com.sonatype.insight.brain.testing.functional.modules.ImportPolicyModule
 import com.sonatype.insight.brain.testing.functional.modules.Tag
+
 import spock.lang.Stepwise
 
 /**
@@ -177,7 +178,7 @@ class TagSpec
       applicationManagementPage.createApp('TagSpec', 'TagSpec', 'TagSpec')
 
     when: 'Viewing the inherited organization policies before tag application'
-      waitFor{ tabs.tagTabButton.displayed }
+      waitFor { tabs.tagTabButton.displayed }
 
     then: 'The non effective policy is not shown'
       !policies.findPolicyEditor('Security-High')
@@ -194,7 +195,9 @@ class TagSpec
       tabs.policiesTabButton.click()
       waitFor { policies.findPolicyEditor('Security-High').displayed }
 
-    then: 'The effective inherited policy is marked to show it will be  applied only if we have one of the corresponding tags'
+    then:
+      'The effective inherited policy is marked to show it will be  applied only if we have one of the ' +
+          'corresponding tags'
       policies.findPolicyEditor('Security-High').showsTagIcon()
 
     when: 'We view the Tags in the Organization view'
@@ -214,14 +217,15 @@ class TagSpec
 
     then: 'We are warned that it is in use'
       waitFor { deleteModal.modal.displayed }
-      deleteModal.text.contains('You cannot delete this tag because it is associated with the following policies: Security-High.')
+      deleteModal.text.
+          contains('You cannot delete this tag because it is associated with the following policies: Security-High.')
       deleteModal.cancel.click()
   }
 
   def "Applied tags warn on deletion"() {
     given: 'An Application to apply tags to'
       to ApplicationPage, 'TagSpec'
-      waitFor{ tabs.tagTabButton.displayed }
+      waitFor { tabs.tagTabButton.displayed }
 
     when: 'Applying a Tag to an Application'
       tabs.tagTabButton.click()

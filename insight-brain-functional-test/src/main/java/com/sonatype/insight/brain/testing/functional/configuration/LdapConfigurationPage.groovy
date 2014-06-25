@@ -33,7 +33,9 @@ class LdapConfigurationPage
 
     // in-page navigation
     connectionTab(required: false, to: LdapConnectionConfigurationPage) { $('.tri-pane li:first-child a') }
-    userAndGroupSettingsTab(required: false, to: LdapUserAndGroupMappingConfigurationPage) { $('.tri-pane li:nth-child(2) a') }
+    userAndGroupSettingsTab(required: false, to: LdapUserAndGroupMappingConfigurationPage) {
+      $('.tri-pane li:nth-child(2) a')
+    }
   }
 
   static isActiveTab(tab) {

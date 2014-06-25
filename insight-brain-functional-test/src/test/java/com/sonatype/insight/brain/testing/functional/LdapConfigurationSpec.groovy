@@ -56,20 +56,20 @@ class LdapConfigurationSpec
       save.disabled
 
     when: "filling out the required fields in the form"
-      requiredFields.each{
+      requiredFields.each {
         it << 'foo'
       }
 
     then: "save is enabled"
       report 'connection details'
-      requiredFields.each{
+      requiredFields.each {
         assert !it.hasClass('ng-invalid-required')
       }
       !save.disabled
 
     when: "cancelling the form"
       reset.click()
-      waitFor{ discard?.present }
+      waitFor { discard?.present }
       report 'confirmation of discarding changes'
       discard.click()
 
@@ -79,7 +79,7 @@ class LdapConfigurationSpec
     then: "user and group mapping form appears"
       report 'user and group mappings'
       at LdapUserAndGroupMappingConfigurationPage
-      requiredFields.each{
+      requiredFields.each {
         assert it.hasClass('ng-invalid-required')
       }
 
@@ -89,7 +89,7 @@ class LdapConfigurationSpec
       save.disabled
 
     when: "filling out required fields"
-      requiredFields.each{
+      requiredFields.each {
         it << 'foo'
       }
 
@@ -101,14 +101,14 @@ class LdapConfigurationSpec
 
     when: "resetting form to discard changes"
       reset.click()
-      waitFor{ discard?.present }
+      waitFor { discard?.present }
 
     then: "confirmation is requested"
       report 'confirmation of discarding changes'
       discard.click()
 
     and: "changes are discarded"
-      requiredFields.each{
+      requiredFields.each {
         assert !it.value()
       }
   }
@@ -121,9 +121,10 @@ class LdapConfigurationSpec
     to LdapConfigurationPage
     if (delete?.displayed) {
       delete.click()
-      waitFor{ deleteConfirm?.displayed }
+      waitFor { deleteConfirm?.displayed }
       deleteConfirm.click()
-      waitFor { !delete.present } // wait for the request to complete, otherwise an error dialog results and upsets the following tests
+      waitFor { !delete.present }
+      // wait for the request to complete, otherwise an error dialog results and upsets the following tests
     }
   }
 }

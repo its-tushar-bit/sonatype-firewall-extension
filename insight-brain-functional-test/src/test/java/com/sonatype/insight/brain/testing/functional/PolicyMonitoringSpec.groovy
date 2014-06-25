@@ -7,8 +7,8 @@ package com.sonatype.insight.brain.testing.functional
 
 import com.sonatype.insight.brain.model.Application
 import com.sonatype.insight.brain.model.Organization
+
 import groovy.util.logging.Slf4j
-import org.openqa.selenium.phantomjs.PhantomJSDriver
 import spock.lang.Stepwise
 
 /**

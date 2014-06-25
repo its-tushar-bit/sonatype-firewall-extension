@@ -16,13 +16,13 @@ class TagModule
   static content = {
     newTagButton { $('#tags .tag-list button') }
 
-    tagList(required:false) { moduleList Tag, $('span[ng-click="editTag(tag)"]') }
+    tagList(required: false) { moduleList Tag, $('span[ng-click="editTag(tag)"]') }
 
     //form controls(only visible while editing)
-    tagEditor(required:false) { $('form[name="tagEditor"]') }
-    name(required:false)  { $("#tagEditorLabel") }
-    description(required:false)  { $('form[name="tagEditor"] textarea') }
-    color(required:false) { name -> tagEditor.find('.' + name + 'Label') }
+    tagEditor(required: false) { $('form[name="tagEditor"]') }
+    name(required: false) { $("#tagEditorLabel") }
+    description(required: false) { $('form[name="tagEditor"] textarea') }
+    color(required: false) { name -> tagEditor.find('.' + name + 'Label') }
     buttons { module ButtonsModule }
 
     //client validation error messaging
@@ -31,7 +31,7 @@ class TagModule
     //server error messaging
     serverAlerts { $('div[clm-alerts="alerts"]') }
     cancelServerAlert { $('div[clm-alerts="alerts"] button') }
-    editAlerts(required:false) { $('div[clm-alerts="editorAlerts"]') }
+    editAlerts(required: false) { $('div[clm-alerts="editorAlerts"]') }
     cancelEditAlert { $('div[clm-alerts="editorAlerts"] button') }
   }
 
@@ -53,6 +53,6 @@ class Tag
     appliedMarker(required: false) { $('.applied-tag-count') }
     body { $('.clm-tag') }
     text { body.text() }
-    isColor { String color -> body.classes().contains("${color}Label".toString())}
+    isColor { String color -> body.classes().contains("${color}Label".toString()) }
   }
 }

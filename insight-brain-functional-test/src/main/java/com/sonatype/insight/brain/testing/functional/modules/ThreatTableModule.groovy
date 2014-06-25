@@ -21,12 +21,12 @@ class ThreatTableModule
     policyHeader { headerLinks(2) }
     applicationHeader { headerLinks(3) }
     componentHeader { headerLinks(4) }
-    rows(required: false) { moduleList ThreatTableRow, $('tr').tail(), stageColumns : getStageColumns() }
+    rows(required: false) { moduleList ThreatTableRow, $('tr').tail(), stageColumns: getStageColumns() }
 
-    buildHeader (required: false) { $('#stage-header-build') }
-    stageHeader (required: false) { $('#stage-header-stage-release') }
-    releaseHeader (required: false) { $('#stage-header-release') }
-    operateHeader (required: false) { $('#stage-header-operate') }
+    buildHeader(required: false) { $('#stage-header-build') }
+    stageHeader(required: false) { $('#stage-header-stage-release') }
+    releaseHeader(required: false) { $('#stage-header-release') }
+    operateHeader(required: false) { $('#stage-header-operate') }
   }
 
   List<String> getStageColumns() {
@@ -85,10 +85,10 @@ class ThreatTableRow
     component { cell(COMPONENT).text() }
     componentLink { cell(COMPONENT).find('a') }
 
-    buildAge(required : false) { cell(getStageColumnIndex('build')).text() }
-    operateAge(required : false) { cell(getStageColumnIndex('operate')).text() }
-    releaseAge(required : false) { cell(getStageColumnIndex('release')).text() }
-    stageReleaseAge(required : false) { cell(getStageColumnIndex('stage-release')).text() }
+    buildAge(required: false) { cell(getStageColumnIndex('build')).text() }
+    operateAge(required: false) { cell(getStageColumnIndex('operate')).text() }
+    releaseAge(required: false) { cell(getStageColumnIndex('release')).text() }
+    stageReleaseAge(required: false) { cell(getStageColumnIndex('stage-release')).text() }
 
     isLatestRisk { String stageId -> cell(getStageColumnIndex(stageId)).classes().contains('latest-risk') }
     isMarkedAsWarn { String stageId -> cell(getStageColumnIndex(stageId)).find('i').classes().contains('warn') }

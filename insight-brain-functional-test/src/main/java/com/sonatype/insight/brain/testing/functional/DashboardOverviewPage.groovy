@@ -11,6 +11,7 @@ import com.sonatype.insight.brain.testing.functional.modules.DropdownMultiSelect
 import com.sonatype.insight.brain.testing.functional.modules.ExpandoModule
 import com.sonatype.insight.brain.testing.functional.modules.SliderModule
 import com.sonatype.insight.brain.testing.functional.modules.ThreatTableModule
+
 import geb.Module
 
 /**
@@ -48,10 +49,18 @@ class DashboardOverviewPage
     noAvailableApplicationTags(required: false) { $('#no-application-tags') }
     noDataAvailable(required: false) { $('#no-data') }
 
-    applicationFiltersDropdown(required: false) { module DropdownMultiSelectModule, $('span[items="applications"]'), emptyText: 'All Applications' }
-    policyThreatFiltersDropdown(required: false) { module DropdownMultiSelectModule, $('span[items="policyThreatTypes"]'), emptyText: 'All Policy Types' }
-    stageTypeFiltersDropdown(required: false) { module DropdownMultiSelectModule, $('span[items="stageTypes"]'), emptyText: 'All Stages' }
-    applicationTagFiltersDropdown(required: false) { module DropdownMultiSelectModule, $('span[items="applicationTags"]'), emptyText: 'All Applications' }
+    applicationFiltersDropdown(required: false) {
+      module DropdownMultiSelectModule, $('span[items="applications"]'), emptyText: 'All Applications'
+    }
+    policyThreatFiltersDropdown(required: false) {
+      module DropdownMultiSelectModule, $('span[items="policyThreatTypes"]'), emptyText: 'All Policy Types'
+    }
+    stageTypeFiltersDropdown(required: false) {
+      module DropdownMultiSelectModule, $('span[items="stageTypes"]'), emptyText: 'All Stages'
+    }
+    applicationTagFiltersDropdown(required: false) {
+      module DropdownMultiSelectModule, $('span[items="applicationTags"]'), emptyText: 'All Applications'
+    }
     policyThreatLevelSlider(required: false) { module SliderModule, $('#policy-threat-levels') }
 
     highestRiskDiv(required: false) { module ThreatTableModule, $('#highest-risk') }
@@ -81,11 +90,11 @@ class DashboardOverviewPage
 
     policySummary { module PolicySummaryModule, $('#policySummaryData') }
 
-    applicationHeatMapHelp (required: false) { $('#application-heat-map-help-content') }
-    applicationHeatMapHelpClose (required: false) { $('#application-heat-map-help-close') }
-    componentHeatMapHelp (required: false) { $('#component-heat-map-help-content') }
-    componentHeatMapHelpClose (required: false) { $('#component-heat-map-help-close') }
-    modalBackdrop (required: false) { $('div.modal-backdrop') }
+    applicationHeatMapHelp(required: false) { $('#application-heat-map-help-content') }
+    applicationHeatMapHelpClose(required: false) { $('#application-heat-map-help-close') }
+    componentHeatMapHelp(required: false) { $('#component-heat-map-help-content') }
+    componentHeatMapHelpClose(required: false) { $('#component-heat-map-help-close') }
+    modalBackdrop(required: false) { $('div.modal-backdrop') }
   }
 
   void applyFilter() {
@@ -96,7 +105,7 @@ class DashboardOverviewPage
 }
 
 class NewestRiskDashboardPage
-  extends DashboardOverviewPage
+    extends DashboardOverviewPage
 {
   static url = DashboardOverviewPage.url + "/newest-risk"
 
@@ -106,7 +115,7 @@ class NewestRiskDashboardPage
 }
 
 class ComponentViolationsDashboardPage
-  extends DashboardOverviewPage
+    extends DashboardOverviewPage
 {
   static url = DashboardOverviewPage.url + "/components"
 
@@ -116,7 +125,7 @@ class ComponentViolationsDashboardPage
 }
 
 class ApplicationViolationsDashboardPage
-  extends DashboardOverviewPage
+    extends DashboardOverviewPage
 {
   static url = DashboardOverviewPage.url + "/applications"
 
@@ -130,9 +139,9 @@ class PolicySummaryModule
 {
   static content = {
     rows(required: false) { moduleList PolicySummaryRow, $('tr').tail() }
-    pendingRow { (PolicySummaryRow)rows[0] }
-    fixedRow { (PolicySummaryRow)rows[1] }
-    discoveredRow { (PolicySummaryRow)rows[2] }
+    pendingRow { (PolicySummaryRow) rows[0] }
+    fixedRow { (PolicySummaryRow) rows[1] }
+    discoveredRow { (PolicySummaryRow) rows[2] }
   }
 }
 
@@ -140,8 +149,11 @@ class PolicySummaryRow
     extends Module
 {
   static final int CATEGORY = 0
+
   static final int COUNT = 1
+
   static final int BAR_CHART = 5
+
   static final int SPARKLINE = 6
 
   static content = {
@@ -149,7 +161,7 @@ class PolicySummaryRow
     category { cell(CATEGORY).text() }
     count { cell(COUNT).text().toInteger() }
     delta { module DeltaModule }
-    barChart { module BarChartModule, cell(BAR_CHART)}
+    barChart { module BarChartModule, cell(BAR_CHART) }
     sparkline { module SparklineModule, cell(SPARKLINE) }
   }
 }
@@ -159,7 +171,7 @@ class BarChartModule
 {
   static content = {
     bars(required: false) { $('svg rect') }
-    points { bars.collect{ it.find('title').text().toInteger() }}
+    points { bars.collect { it.find('title').text().toInteger() } }
   }
 }
 
@@ -214,8 +226,11 @@ class ThreatHeaderModule
     extends Module
 {
   static final String CRITICAL = 'critical'
+
   static final String SEVERE = 'severe'
+
   static final String MODERATE = 'moderate'
+
   static final String LOW = 'low'
 
   int columnOffset
@@ -242,8 +257,8 @@ class ComponentViolationsTable
     extends Module
 {
   static content = {
-    threatHeaders { module ThreatHeaderModule, columnOffset : 3 }
-    rows { moduleList ComponentViolationsTableRow, $('tbody tr'), threatColumnPositions : threatHeaders.columnPositions }
+    threatHeaders { module ThreatHeaderModule, columnOffset: 3 }
+    rows { moduleList ComponentViolationsTableRow, $('tbody tr'), threatColumnPositions: threatHeaders.columnPositions }
   }
 }
 
@@ -269,8 +284,10 @@ class ApplicationViolationsTable
     extends Module
 {
   static content = {
-    threatHeaders { module ThreatHeaderModule, columnOffset : 2 }
-    rows { moduleList ApplicationViolationsTableRow, $('tbody tr'), threatColumnPositions : threatHeaders.columnPositions }
+    threatHeaders { module ThreatHeaderModule, columnOffset: 2 }
+    rows {
+      moduleList ApplicationViolationsTableRow, $('tbody tr'), threatColumnPositions: threatHeaders.columnPositions
+    }
   }
 }
 

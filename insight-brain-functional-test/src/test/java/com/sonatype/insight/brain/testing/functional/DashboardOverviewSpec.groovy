@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.testing.functional
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.sonatype.clm.dto.model.policy.Stage
 import com.sonatype.insight.brain.dashboard.DashboardFilterDTO
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO
@@ -27,9 +26,10 @@ import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType
 import com.sonatype.insight.brain.model.policy.stages.StageReleaseStageType
 import com.sonatype.insight.brain.model.tag.Tag
 import com.sonatype.insight.brain.service.InsightWork
-import com.sonatype.insight.brain.testing.functional.modules.ThreatTableModule
 import com.sonatype.insight.brain.testing.functional.modules.ThreatTableRow
 import com.sonatype.insight.brain.testing.functional.report.violation.ReportContainerPage
+
+import com.fasterxml.jackson.databind.ObjectMapper
 import org.codehaus.plexus.util.FileUtils
 
 import static spock.util.matcher.HamcrestMatchers.closeTo
@@ -43,7 +43,8 @@ class DashboardOverviewSpec
 {
   static final String RECENT_AGE = /[1-9]min/
 
-  static final String alphaMatcher = /background-color: rgba\([0-9][0-9][0-9]?, [0-9][0-9][0-9]?, [0-9][0-9][0-9]?, (.*)\);/
+  static
+  final String alphaMatcher = /background-color: rgba\([0-9][0-9][0-9]?, [0-9][0-9][0-9]?, [0-9][0-9][0-9]?, (.*)\);/
 
   // accept differential for precision of alpha results
   static final BigDecimal TOLERANCE = 0.05
@@ -51,9 +52,13 @@ class DashboardOverviewSpec
   static final String DEFAULT_COMPONENT = ["Group1", "Artifact1", "Version1"].join(' : ')
 
   static Organization org
+
   static Application firstApp
+
   static Tag firstAppTag
+
   static Application secondApp
+
   static Policy policy
 
   def setupSpec() {
@@ -77,9 +82,13 @@ class DashboardOverviewSpec
     temporaryEntity.newFirstOccurrencePolicyViolation(firstViolation.id, firstPolicyEvaluation.applicationId,
         firstPolicyEvaluation.stageTypeId)
     temporaryEntity.newApplicationComponent(firstPolicyEvaluation.applicationId, firstPolicyEvaluation.stageTypeId,
-        firstViolation.hash, firstViolation.groupId, firstViolation.artifactId, firstViolation.version, )
-    temporaryEntity.newApplicationComponent(firstPolicyEvaluation.applicationId, firstPolicyEvaluation.stageTypeId, '987654321', MatchState.SIMILAR, false);
-    temporaryEntity.newApplicationComponent(firstPolicyEvaluation.applicationId, firstPolicyEvaluation.stageTypeId, '987654322', MatchState.UNKNOWN, false);
+        firstViolation.hash, firstViolation.groupId, firstViolation.artifactId, firstViolation.version,)
+    temporaryEntity.
+        newApplicationComponent(firstPolicyEvaluation.applicationId, firstPolicyEvaluation.stageTypeId, '987654321',
+            MatchState.SIMILAR, false);
+    temporaryEntity.
+        newApplicationComponent(firstPolicyEvaluation.applicationId, firstPolicyEvaluation.stageTypeId, '987654322',
+            MatchState.UNKNOWN, false);
 
     //same policy as first evaluation, but a different stage and earlier
     PolicyEvaluation firstPolicyEvaluationSecondStage = temporaryEntity.newPolicyEvaluation(firstApp.id,
@@ -96,16 +105,18 @@ class DashboardOverviewSpec
     // evaluation in yet another stage
     PolicyEvaluation thirdPolicyEvaluation = temporaryEntity.newPolicyEvaluation(firstApp.id, ReleaseStageType.ID,
         'DashboardSpecThirdEvaluation', now - 8)
-    PolicyViolation thirdViolation = temporaryEntity.newPolicyViolation(thirdPolicyEvaluation, policy, 2, PolicyThreatCategory.QUALITY, 
-        "Group1", "Artifact1", "Version1")
+    PolicyViolation thirdViolation = temporaryEntity.
+        newPolicyViolation(thirdPolicyEvaluation, policy, 2, PolicyThreatCategory.QUALITY,
+            "Group1", "Artifact1", "Version1")
     temporaryEntity.newFirstOccurrencePolicyViolation(thirdViolation.id, thirdPolicyEvaluation.applicationId,
         thirdPolicyEvaluation.stageTypeId)
 
     // and one more stage to cover them all
     PolicyEvaluation forthPolicyEvaluation = temporaryEntity.newPolicyEvaluation(firstApp.id, OperateStageType.ID,
         'DashboardSpecForthEvaluation', now - 9)
-    PolicyViolation forthViolation = temporaryEntity.newPolicyViolation(forthPolicyEvaluation, policy, 1, PolicyThreatCategory.OTHER, 
-        "Group1", "Artifact1", "Version1")
+    PolicyViolation forthViolation = temporaryEntity.
+        newPolicyViolation(forthPolicyEvaluation, policy, 1, PolicyThreatCategory.OTHER,
+            "Group1", "Artifact1", "Version1")
     temporaryEntity.newFirstOccurrencePolicyViolation(forthViolation.id, forthPolicyEvaluation.applicationId,
         forthPolicyEvaluation.stageTypeId)
 
@@ -113,7 +124,7 @@ class DashboardOverviewSpec
     PolicyEvaluation secondPolicyEvaluation = temporaryEntity.newPolicyEvaluation(secondApp.id, ReleaseStageType.ID,
         'DashboardSpecSecondEvaluation', now)
     PolicyViolation secondViolation = temporaryEntity.newPolicyViolation(secondPolicyEvaluation, policy, 10,
-            PolicyThreatCategory.QUALITY, null, null, null)
+        PolicyThreatCategory.QUALITY, null, null, null)
     temporaryEntity.newFirstOccurrencePolicyViolation(secondViolation.id, secondPolicyEvaluation.applicationId,
         secondPolicyEvaluation.stageTypeId)
 
@@ -209,12 +220,12 @@ class DashboardOverviewSpec
       newestRiskPage.applicationTagFiltersDropdown.toggleOption(firstAppTag.name)
       newestRiskPage.stageTypeFiltersDropdown.toggleOption('Release')
       newestRiskPage.policyThreatFiltersDropdown.toggleOption('Security')
-      newestRiskPage.policyThreatLevelSlider.setValues(2,7)
+      newestRiskPage.policyThreatLevelSlider.setValues(2, 7)
       newestRiskPage.applyFilter()
 
     then: 'filters show up in readonly mode'
       waitFor { newestRiskPage.filterPanel.displayed }
-      newestRiskPage.applicationFilters.collect{it.text()}.join('') == firstApp.name + ',' + secondApp.name
+      newestRiskPage.applicationFilters.collect { it.text() }.join('') == firstApp.name + ',' + secondApp.name
       newestRiskPage.applicationTagFilters.text() == firstAppTag.name
       newestRiskPage.stageTypeFilters.text() == 'Release'
       newestRiskPage.policyThreatTypeFilters.text() == 'Security'
@@ -231,7 +242,7 @@ class DashboardOverviewSpec
       applicationTagFiltersDropdown.toggleOption(firstAppTag.name)
       stageTypeFiltersDropdown.toggleOption('Release')
       policyThreatFiltersDropdown.toggleOption('Security')
-      policyThreatLevelSlider.setValues(2,7)
+      policyThreatLevelSlider.setValues(2, 7)
 
     and: 'reset the filter'
       resetButton.click()
@@ -253,7 +264,7 @@ class DashboardOverviewSpec
       waitFor { policyThreatLevelSlider.slider.displayed }
 
     when: 'threat level filter is applied'
-      policyThreatLevelSlider.setValues(4,4)
+      policyThreatLevelSlider.setValues(4, 4)
       applyFilter()
 
     then: 'filter text shows one value'
@@ -266,7 +277,8 @@ class DashboardOverviewSpec
       def newestRiskPage = at NewestRiskDashboardPage
       waitFor { newestRiskPage.newestViolationTable.displayed }
       waitFor { newestRiskPage.newestViolationTable.rows.size() >= 2 }
-      def unknownComponentCell = $(newestRiskPage.newestViolationTable.rows[0].cell(ThreatTableRow.COMPONENT)).firstElement()
+      def unknownComponentCell =
+          $(newestRiskPage.newestViolationTable.rows[0].cell(ThreatTableRow.COMPONENT)).firstElement()
       interact {
         moveToElement(unknownComponentCell)
       }
@@ -280,7 +292,7 @@ class DashboardOverviewSpec
   def 'Newest Risk table can be sorted by age'() {
     when: 'the newest risk table is shown'
       def newestRiskPage = at NewestRiskDashboardPage
-      waitFor{ newestRiskPage.newestViolationTable.displayed }
+      waitFor { newestRiskPage.newestViolationTable.displayed }
       waitFor { newestRiskPage.newestViolationTable.rows.size() >= 2 }
 
     then: 'risks are sorted by ascending age(most recent first), and then by threat level'
@@ -336,10 +348,11 @@ class DashboardOverviewSpec
       newestViolationTable.isDown(newestViolationTable.ageHeader)
       !newestViolationTable.isUp(newestViolationTable.ageHeader)
   }
+
   def 'Newest Risk table can be sorted by stage time'() {
     when: 'the newest risk table is shown'
       def newestRiskPage = at NewestRiskDashboardPage
-      waitFor{ newestRiskPage.newestViolationTable.displayed }
+      waitFor { newestRiskPage.newestViolationTable.displayed }
       waitFor { newestRiskPage.newestViolationTable.rows.size() == 3 }
 
     then: 'the first row has no build stage results'
@@ -390,14 +403,14 @@ class DashboardOverviewSpec
   def 'Newest risk table can be sorted by threat'() {
     when: 'the newest risk table is shown'
       def newestRiskPage = at NewestRiskDashboardPage
-      waitFor{ newestViolationTable.displayed }
+      waitFor { newestViolationTable.displayed }
       waitFor { newestViolationTable.rows.size() == 3 }
 
     and: 'we click on the THREAT column header to sort'
       newestViolationTable.threatHeader.click()
 
     then: 'the highest threat should sort to the top'
-      waitFor{ newestViolationTable.rows[0].threat == 10 }
+      waitFor { newestViolationTable.rows[0].threat == 10 }
 
     and: 'the sort is indicated as descending for threat'
       !newestViolationTable.isUp(newestViolationTable.threatHeader)
@@ -407,7 +420,7 @@ class DashboardOverviewSpec
       newestViolationTable.threatHeader.click()
 
     then: 'the lowest threat should sort to the top'
-      waitFor{ newestViolationTable.rows[0].threat == 2 }
+      waitFor { newestViolationTable.rows[0].threat == 2 }
 
     and: 'the sort is indicated as ascending for threat'
       newestViolationTable.isUp(newestViolationTable.threatHeader)
@@ -417,14 +430,14 @@ class DashboardOverviewSpec
   def 'Newest risk table can be sorted by application name'() {
     when: 'the newest risk table is shown'
       def newestRiskPage = at NewestRiskDashboardPage
-      waitFor{ newestViolationTable.displayed }
+      waitFor { newestViolationTable.displayed }
       waitFor { newestViolationTable.rows.size() == 3 }
 
     and: 'we click on the APPLICATION column header to sort'
       newestViolationTable.applicationHeader.click()
 
     then: 'the table should sort by application alphabetically'
-      waitFor{ newestViolationTable.rows[0].application == 'DashboardSpecAppOne' }
+      waitFor { newestViolationTable.rows[0].application == 'DashboardSpecAppOne' }
       newestViolationTable.rows[1].application == 'DashboardSpecAppOne'
       newestViolationTable.rows[2].application == 'DashboardSpecAppTwo'
 
@@ -436,7 +449,7 @@ class DashboardOverviewSpec
       newestViolationTable.applicationHeader.click()
 
     then: 'the table should reverse the sort'
-      waitFor{ newestViolationTable.rows[0].application == 'DashboardSpecAppTwo' }
+      waitFor { newestViolationTable.rows[0].application == 'DashboardSpecAppTwo' }
       newestViolationTable.rows[1].application == 'DashboardSpecAppOne'
       newestViolationTable.rows[2].application == 'DashboardSpecAppOne'
 
@@ -448,14 +461,14 @@ class DashboardOverviewSpec
   def 'Newest risk table can be sorted by component name'() {
     when: 'the newest risk table is shown'
       def newestRiskPage = at NewestRiskDashboardPage
-      waitFor{ newestViolationTable.displayed }
+      waitFor { newestViolationTable.displayed }
       waitFor { newestViolationTable.rows.size() == 3 }
 
     and: 'we click on the COMPONENT column header to sort'
       newestViolationTable.componentHeader.click()
 
     then: 'the table should sort by component alphabetically'
-      waitFor{ newestViolationTable.rows[0].component == DEFAULT_COMPONENT }
+      waitFor { newestViolationTable.rows[0].component == DEFAULT_COMPONENT }
       newestViolationTable.rows[1].component == DEFAULT_COMPONENT
       newestViolationTable.rows[2].component == 'unknown.jar'
 
@@ -467,7 +480,7 @@ class DashboardOverviewSpec
       newestViolationTable.componentHeader.click()
 
     then: 'the table should reverse the sort'
-      waitFor{ newestViolationTable.rows[2].component == DEFAULT_COMPONENT }
+      waitFor { newestViolationTable.rows[2].component == DEFAULT_COMPONENT }
       newestViolationTable.rows[1].component == DEFAULT_COMPONENT
       newestViolationTable.rows[0].component == 'unknown.jar'
 
@@ -540,7 +553,10 @@ class DashboardOverviewSpec
       waitFor { newestRiskPage.newestViolationTable.displayed }
 
     then: 'the table header lists the stages in proper order'
-      waitFor { newestRiskPage.newestViolationTable.headers[5..8]*.@id == [ 'stage-header-build', 'stage-header-stage-release', 'stage-header-release', 'stage-header-operate' ] }
+      waitFor {
+        newestRiskPage.newestViolationTable.headers[5..8]*.@id ==
+            ['stage-header-build', 'stage-header-stage-release', 'stage-header-release', 'stage-header-operate']
+      }
   }
 
   def 'Filter out all results'() {
@@ -555,7 +571,8 @@ class DashboardOverviewSpec
       waitFor { newestRiskPage.noDataAvailable.displayed }
 
     and: 'newest risk no data text is shown'
-      newestRiskPage.noDataAvailable.text() == "No data available in the last 30 days given the applied filters and available permissions.";
+      newestRiskPage.noDataAvailable.text() ==
+          "No data available in the last 30 days given the applied filters and available permissions.";
 
     when: 'user clicks the by component tab'
       newestRiskPage.tabLinks.componentsTabButton.click()
@@ -679,11 +696,13 @@ class DashboardOverviewSpec
       int tableBottom = newestRiskPage.highestRiskDiv.y + newestRiskPage.highestRiskDiv.height
 
       // It is a reasonable expectation that the first 5 rows will render within 500 px in every browser
-      for (i in 0..5)
+      for (i in 0..5) {
         assert newestRiskPage.newestViolationTable.rows[i].y < tableBottom
+      }
       // And that rows 44-49 will not render within the scroll view
-      for (i in 44..49)
+      for (i in 44..49) {
         assert newestRiskPage.newestViolationTable.rows[i].y > tableBottom
+      }
 
     and: 'A message is displayed to show that only the top results are shown'
       newestRiskPage.maxResults.text() == 'Showing the newest 100 results'
@@ -697,7 +716,7 @@ class DashboardOverviewSpec
       def newestRiskPage = at NewestRiskDashboardPage
       newestRiskPage.filterPanelToggle.click()
       waitFor { newestRiskPage.policyThreatLevelSlider.displayed }
-      newestRiskPage.policyThreatLevelSlider.setValues(4,7)
+      newestRiskPage.policyThreatLevelSlider.setValues(4, 7)
       newestRiskPage.applyFilter()
 
     when: 'switching to the component risk view'
@@ -759,7 +778,8 @@ class DashboardOverviewSpec
       newestRiskPage.applyFilter()
 
     then: 'filters are stored to disk'
-      DashboardFilterDTO dto = new ObjectMapper().readValue(new DashboardFilterDAO().getByUsername("admin").filter, DashboardFilterDTO.class);
+      DashboardFilterDTO dto = new ObjectMapper().
+          readValue(new DashboardFilterDAO().getByUsername("admin").filter, DashboardFilterDTO.class);
       dto.applicationFilters.contains(firstApp.publicId)
       dto.applicationFilters.contains(secondApp.publicId)
       dto.tagFilters.contains(firstAppTag.id)
@@ -843,7 +863,8 @@ class DashboardOverviewSpec
     then: 'Stage shown'
       waitFor { appViolationsPage.applicationViolationsTable.rows.size() == 3 }
       appViolationsPage.applicationViolationsTable.rows[0].collapse.displayed
-      appViolationsPage.applicationViolationsTable.rows[1].application.text() == new ReleaseStageType().getName().toUpperCase()
+      appViolationsPage.applicationViolationsTable.rows[1].application.text() ==
+          new ReleaseStageType().getName().toUpperCase()
       appViolationsPage.applicationViolationsTable.rows[1].reportLink.displayed
 
     when: 'Expand'
@@ -852,18 +873,22 @@ class DashboardOverviewSpec
     then: 'stages shown in chronological order'
       waitFor { appViolationsPage.applicationViolationsTable.rows.size() == 6 }
       appViolationsPage.applicationViolationsTable.rows[2].collapse.displayed
-      appViolationsPage.applicationViolationsTable.rows[3].application.text() == new BuildStageType().getName().toUpperCase()
+      appViolationsPage.applicationViolationsTable.rows[3].application.text() ==
+          new BuildStageType().getName().toUpperCase()
       appViolationsPage.applicationViolationsTable.rows[3].reportLink.displayed
-      appViolationsPage.applicationViolationsTable.rows[4].application.text() == new StageReleaseStageType().getName().toUpperCase()
+      appViolationsPage.applicationViolationsTable.rows[4].application.text() ==
+          new StageReleaseStageType().getName().toUpperCase()
       appViolationsPage.applicationViolationsTable.rows[4].reportLink.displayed
-      appViolationsPage.applicationViolationsTable.rows[5].application.text() == new ReleaseStageType().getName().toUpperCase()
+      appViolationsPage.applicationViolationsTable.rows[5].application.text() ==
+          new ReleaseStageType().getName().toUpperCase()
       appViolationsPage.applicationViolationsTable.rows[5].reportLink.displayed
 
     and: 'the stage label links to the underlying report'
-      withNewWindow(page: ReportContainerPage, { appViolationsPage.applicationViolationsTable.rows[3].reportLink.click() } ) {
+      withNewWindow(page: ReportContainerPage,
+          { appViolationsPage.applicationViolationsTable.rows[3].reportLink.click() }) {
         verifyAt()
         reportTitle.text()
-      }  ==~ firstApp.getName() + ' .* Build Report'
+      } ==~ firstApp.getName() + ' .* Build Report'
   }
 
   def 'Dashboard Filter Summary'() {
@@ -926,20 +951,20 @@ class DashboardOverviewSpec
       newestRiskPage.componentMatchUnknownCount.text() == '1 (33%)'
   }
 
-  def 'Heat Map Help Modal' () {
+  def 'Heat Map Help Modal'() {
     when: 'component heat map help icon is clicked'
       clickComponentHeatMapHelp()
-    
+
     then: 'component heat map help is displayed'
       waitFor { componentHeatMapHelp.displayed }
-    
+
     when: 'the modal backdrop is clicked'
       waitFor { componentHeatMapHelp.displayed }
       modalBackdrop.click()
-      
+
     then: 'the component heat map help closes'
       waitFor { !componentHeatMapHelp.displayed }
-      
+
     when: 'the component heat map help close button is clicked'
       clickComponentHeatMapHelp()
       waitFor { componentHeatMapHelpClose.displayed }
@@ -947,13 +972,13 @@ class DashboardOverviewSpec
 
     then: 'the help modal closes'
       waitFor { !componentHeatMapHelp.displayed }
-      
+
     when: 'application heat map help icon is clicked'
       clickApplicationHeatMapHelp()
-    
+
     then: 'application heat map help is displayed'
       waitFor { applicationHeatMapHelp.displayed }
-      
+
     when: 'the modal backdrop is clicked'
       waitFor { applicationHeatMapHelp.displayed }
       modalBackdrop.click()
@@ -965,24 +990,24 @@ class DashboardOverviewSpec
       clickApplicationHeatMapHelp()
       waitFor { applicationHeatMapHelpClose.displayed }
       applicationHeatMapHelpClose.click()
-      
+
     then: 'the help modal closes'
       waitFor { !applicationHeatMapHelp.displayed }
   }
-  
+
   def clickComponentHeatMapHelp() {
     tabLinks.componentsTabButton.click()
     waitFor { tabLinks.componentHeatMapHelpIcon.displayed }
     tabLinks.componentHeatMapHelpIcon.click()
   }
-  
+
   def clickApplicationHeatMapHelp() {
     tabLinks.applicationsTabButton.click()
     waitFor { tabLinks.applicationHeatMapHelpIcon.displayed }
     tabLinks.applicationHeatMapHelpIcon.click()
   }
-  
-    /**
+
+  /**
    * helper method to parse alpha value from an rgb style string
    */
   def parseAlpha(String style) {

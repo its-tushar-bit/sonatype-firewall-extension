@@ -32,11 +32,11 @@ class TagApplicationSpec
 
   def 'Can navigate to the TAGS tab'() {
     when: 'Clicking on the tag tab'
-      waitFor{ tabs.tagTabButton.displayed }
+      waitFor { tabs.tagTabButton.displayed }
       tabs.tagTabButton.click()
 
     then: 'the url changes and we are presented with list of available tags'
-      waitFor{ tags.availableTagList.displayed }
+      waitFor { tags.availableTagList.displayed }
       tags.availableTagList.size() == 1
       tags.availableTagList[0].text() == 'New Tag'
       tags.availableTagList[0].classes().contains('blackLabel')

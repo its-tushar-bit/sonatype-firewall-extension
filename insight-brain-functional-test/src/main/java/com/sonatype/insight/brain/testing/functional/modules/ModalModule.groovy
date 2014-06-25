@@ -15,9 +15,13 @@ class ModalModule
     extends Module
 {
   def title
+
   def confirmText = 'Delete'
+
   def cancelText = 'Cancel'
+
   def okText = 'OK'
+
   def continueText = 'Continue'
 
   def static content = {

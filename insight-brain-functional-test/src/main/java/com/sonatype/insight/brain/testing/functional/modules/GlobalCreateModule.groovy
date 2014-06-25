@@ -8,7 +8,7 @@ package com.sonatype.insight.brain.testing.functional.modules
 import geb.Module
 
 class GlobalCreateModule
-    extends Module 
+    extends Module
 {
   String browserClassName
 

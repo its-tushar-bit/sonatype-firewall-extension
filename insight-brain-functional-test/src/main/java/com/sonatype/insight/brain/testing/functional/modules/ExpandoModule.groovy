@@ -9,7 +9,8 @@ import geb.Module
 import geb.navigator.Navigator
 
 /**
- * Exists only to simplify application of workaround for issues like https://github.com/ariya/phantomjs/issues/10592 across the board.
+ * Exists only to simplify application of workaround for issues like https://github.com/ariya/phantomjs/issues/10592
+ * across the board.
  */
 class ExpandoModule
     extends Module
@@ -20,7 +21,7 @@ class ExpandoModule
 
   private boolean isPhantomJs() {
     return driver.class.name.endsWith("PhantomJSDriver");
-  }  
+  }
 
   boolean isDisplayed() {
     if (isPhantomJs()) {

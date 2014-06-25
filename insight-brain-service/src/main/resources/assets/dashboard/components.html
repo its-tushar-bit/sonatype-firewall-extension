@@ -4,19 +4,23 @@
       <thead>
       <tr>
         <th><div>COMPONENT</div></th>
-        <th><div sort-columns="-affectedApplications">AFFECTED APPS</div></th>
-        <th class="total-risk"><div sort-columns="-score">TOTAL RISK</div></th>
+        <th id='affected-apps'>
+          <div sort-columns="-affectedApplications" centered="true">AFFECTED APPS</div>
+        </th>
+        <th class="total-risk">
+          <div sort-columns="-score" centered="true">TOTAL RISK</div>
+        </th>
         <th id="threat-header-critical" ng-if="policyThreatLevelCategories.critical">
-          <div sort-columns="-scoreCritical" title="Policy Threat Levels 8 - 10">CRITICAL</div>
+          <div sort-columns="-scoreCritical" centered="true" title="Policy Threat Levels 8 - 10">CRITICAL</div>
         </th>
         <th id="threat-header-severe" ng-if="policyThreatLevelCategories.severe">
-          <div sort-columns="-scoreSevere" title="Policy Threat Levels 4 - 7">SEVERE</div>
+          <div sort-columns="-scoreSevere" centered="true" title="Policy Threat Levels 4 - 7">SEVERE</div>
         </th>
         <th id="threat-header-moderate" ng-if="policyThreatLevelCategories.moderate">
-          <div sort-columns="-scoreModerate" title="Policy Threat Levels 2 - 3">MODERATE</div>
+          <div sort-columns="-scoreModerate" centered="true" title="Policy Threat Levels 2 - 3">MODERATE</div>
         </th>
         <th id="threat-header-low" ng-if="policyThreatLevelCategories.low">
-          <div sort-columns="-scoreLow" title="Policy Threat Levels 0 - 1">LOW</div>
+          <div sort-columns="-scoreLow" centered="true" title="Policy Threat Levels 0 - 1">LOW</div>
         </th>
       </tr>
       </thead>

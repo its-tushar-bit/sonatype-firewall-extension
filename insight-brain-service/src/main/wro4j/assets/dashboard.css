@@ -90,14 +90,6 @@ table.table-risk  tbody tr:first-child td {
   border-top : 1px solid transparent;
 }
 
-table.table-risk thead tr th:nth-child(n+4), table.table-risk thead tr th:nth-child(n+4) div {
-  padding-left: 12px
-}
-
-table.table-risk thead tr th:nth-child(3), table.table-risk thead tr th:nth-child(3) div {
-  padding-left: 8px
-}
-
 table.table-risk thead tr th, table.table-risk thead tr th div {
   min-width: 110px;
 }
@@ -140,7 +132,6 @@ table.table-risk td.critical-risk, span.critical-risk {
   border-bottom: 1px solid white;
 }
 
-
 table.table-risk td.severe-risk, span.severe-risk {
   background-color : #E7C2A1;
   color : #64460A;
@@ -160,6 +151,10 @@ table.table-risk td.low-risk, span.low-risk {
   color : #233894;
   border-left: 1px solid white;
   border-bottom: 1px solid white;
+}
+
+table th#affected-apps {
+  min-width:149px
 }
 
 .dashboard-content th {
@@ -344,6 +339,10 @@ table.table-risk td.low-risk, span.low-risk {
   font-size: 12px;
 }
 
+.dashboard-content .emptyIconGlyph {
+  width : 12px;
+}
+
 .scrollable-container {
   height: 500px;
   position: relative;
@@ -374,20 +373,18 @@ table.table-risk td.low-risk, span.low-risk {
   position: absolute;
   top: 0;
   line-height: 30px;
-  padding-left: 5px;
-  margin-left: -2px;
 }
 
 .dashboard-content .application-header {
-  min-width: 101px;
+  min-width: 107px;
 }
 
 .dashboard-content .policy-header {
-  min-width: 60px;
+  min-width: 68px;
 }
 
 .dashboard-content .component-header {
-  min-width: 84px;
+  min-width: 101px;
 }
 
 .dashboard-content #threat-header {

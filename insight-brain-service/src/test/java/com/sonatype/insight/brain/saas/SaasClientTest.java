@@ -33,6 +33,7 @@ import org.junit.Test;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.empty;
+import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.isIn;
 import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertThat;
@@ -48,6 +49,8 @@ public class SaasClientTest
   private SaasClient client;
 
   private AbstractHandler handler;
+
+  private InsightConfig config;
 
   @Before
   public void init() throws Exception {
@@ -65,8 +68,12 @@ public class SaasClientTest
     });
     server.start();
 
-    InsightConfig config = new InsightConfig();
+    config = new InsightConfig();
     config.setSaasAddress("http://localhost:" + server.getConnectors()[0].getLocalPort());
+    initClient();
+  }
+
+  private void initClient() {
     CLMLicenseManager licenseManager = mock(CLMLicenseManager.class);
     when(licenseManager.getLicenseFingerprint()).thenReturn("license-fingerprint");
     client = new SaasClient(new InsightProxy(config), licenseManager);
@@ -231,6 +238,19 @@ public class SaasClientTest
     }
     catch (BadGatewayException e) {
       assertThat(e.getMessage(), containsString("Sonatype Support"));
+    }
+  }
+
+  @Test
+  public void testTransformUnknownHost() throws Exception {
+    config.setSaasAddress("http://an.unresolvable.hostname/");
+    initClient();
+    try {
+      client.get(String.class, "/any", null);
+    }
+    catch (BadGatewayException e) {
+      assertThat(e.getMessage(), is("The hostname for the Sonatype HDS could not be resolved,"
+          + " please verify the network configuration (DNS) at the site where the Sonatype CLM server is operated"));
     }
   }
 }

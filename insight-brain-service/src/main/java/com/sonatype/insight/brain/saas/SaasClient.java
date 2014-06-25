@@ -10,6 +10,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.UnknownHostException;
 import java.util.Enumeration;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -246,12 +247,7 @@ public class SaasClient
       throw new IllegalArgumentException("Unknown request method " + request.getMethod());
     }
     populateRequest(request, cloudReq);
-    try {
-      return client.execute(cloudReq);
-    }
-    catch (HttpHostConnectException e) {
-      throw new GatewayTimeoutException(e.getMessage(), e);
-    }
+    return execute(cloudReq);
   }
 
   /**
@@ -269,16 +265,24 @@ public class SaasClient
       FileEntity fileEntity = new FileEntity(uploadFile, ContentType.DEFAULT_BINARY);
       cloudReq.setEntity(new BufferedHttpEntity(fileEntity));
       populateRequest(null /* base request */, cloudReq);
-      try {
-        HttpResponse response = client.execute(cloudReq);
-        return fromHttpResponse(response, clazz);
-      }
-      catch (HttpHostConnectException e) {
-        throw new GatewayTimeoutException(e.getMessage(), e);
-      }
+      HttpResponse response = execute(cloudReq);
+      return fromHttpResponse(response, clazz);
     }
     finally {
       log.debug("Completed SaaS request in {} ms.", System.currentTimeMillis() - start);
+    }
+  }
+
+  private HttpResponse execute(HttpUriRequest request) throws IOException {
+    try {
+      return client.execute(request);
+    }
+    catch (HttpHostConnectException e) {
+      throw new GatewayTimeoutException(e.getMessage(), e);
+    }
+    catch (UnknownHostException e) {
+      throw new BadGatewayException("The hostname for the Sonatype HDS could not be resolved, "
+          + "please verify the network configuration (DNS) at the site where the Sonatype CLM server is operated", e);
     }
   }
 

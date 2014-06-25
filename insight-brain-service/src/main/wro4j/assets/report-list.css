@@ -1,5 +1,15 @@
 #report-list-table .stage-column {
-  min-width: 140px;
+  min-width: 141px;
+}
+#report-list-table #report-list-header-contact {
+  min-width : 44px;
+}
+#report-list-table #report-list-header-org {
+  min-width : 87px;
+}
+
+#report-list-header-app {
+  min-width: 114px
 }
 
 #report-list-table {

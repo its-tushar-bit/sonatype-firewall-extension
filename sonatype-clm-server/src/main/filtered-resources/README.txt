@@ -33,10 +33,12 @@ This can be set when invoking java, with a Sun/Oracle JVM:
     java -XX:MaxPermSize=128m -jar ${clm.server.jar} server config.yml
 
 
-Support and further information
-===============================
+Documentation and Support
+=========================
 
-More information, documentation, and support can be found on our support site: http://links.sonatype.com/products/clm/ci/support
+For more comprehensive documentation that includes full installation, configuration and usage instructions, please visit our documentation portal: http://links.sonatype.com/products/clm/doc.
+
+If you are experiencing trouble with any part of Sonatype CLM, you can always visit our support site at http://links.sonatype.com/products/clm/support. There you can view our knowledge base and contact our support team directly.
 
 [1] Java SE 6 End of Public Updates Notice: http://www.oracle.com/technetwork/java/eol-135779.html
 [2] All Java 7 update releases: http://www.oracle.com/technetwork/java/javase/7u-relnotes-515228.html

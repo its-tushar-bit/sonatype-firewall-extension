@@ -1021,7 +1021,7 @@
 
           chart.append('line')
             .attr('x1', x(0))
-            .attr('x2', width - x.rangeBand() + 1)
+            .attr('x2', x(data.length - 1) + x.rangeBand())
             .attr('y1', baseline)
             .attr('y2', baseline)
             .attr('stroke', '#777777')

@@ -1002,6 +1002,14 @@ describe('DashboardModule', function() {
       expect(positiveValue.attr('y')).toBe('0');  //starts at the top
     });
 
+    it('sets the correct width for the baseline', function(){
+      var first = angular.element(element.find('svg').find('rect')[0]);
+      var last = angular.element(element.find('svg').find('rect')[scope.barData.length - 1]);
+      var baseline = angular.element(element.find('svg').find('line')[0]);
+      expect(baseline.attr('x1')).toEqual(first.attr('x'));
+      expect(baseline.attr('x2')).toEqual((parseInt(last.attr('x')) + parseInt(last.attr('width'))).toFixed());
+    });
+
   });
 
   describe('Value bar chart with only positive values', function(){

@@ -232,12 +232,7 @@ public class PolicyResource
       @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId,
       @Context HttpServletRequest servletRequest) throws IOException
   {
-    try {
-      return importPolicies(ownerType, ownerId, servletRequest.getInputStream());
-    }
-    catch (IllegalArgumentException e) {
-      throw new BadRequestException(e.getMessage());
-    }
+    return importPolicies(ownerType, ownerId, servletRequest.getInputStream());
   }
 
   @POST
@@ -251,7 +246,6 @@ public class PolicyResource
       @FormDataParam("file") InputStream uploadedInputStream,
       @FormDataParam("file") FormDataContentDisposition fileDetail)
   {
-
     String errorMessage = "";
     try {
       importPolicies(ownerType, ownerId, uploadedInputStream);
@@ -265,15 +259,19 @@ public class PolicyResource
   }
 
   private PolicyImportResult importPolicies(String ownerType, String ownerId, InputStream in) throws IOException {
-    PolicyExportResult exportDTO = readPolicyExportResult(in);
+    try {
+      PolicyExportResult exportDTO = readPolicyExportResult(in);
 
-    String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
+      String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
 
-    if (TYPE_ORGANIZATION.equals(ownerType)) {
-      return policyImporter.importOrganization(new OrganizationDAO().getByIdNotNull(internalOwnerId), exportDTO);
+      if (TYPE_ORGANIZATION.equals(ownerType)) {
+        return policyImporter.importOrganization(new OrganizationDAO().getByIdNotNull(internalOwnerId), exportDTO);
+      }
+      return policyImporter.importApplication(new ApplicationDAO().getByIdNotNull(internalOwnerId), exportDTO);
     }
-    return policyImporter.importApplication(new ApplicationDAO().getByIdNotNull(internalOwnerId), exportDTO);
-
+    catch (IllegalArgumentException e) {
+      throw new BadRequestException(e.getMessage());
+    }
   }
 
   private PolicyExportResult readPolicyExportResult(InputStream stream) throws IOException {

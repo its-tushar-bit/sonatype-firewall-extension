@@ -34,15 +34,20 @@ import com.sonatype.insight.brain.model.policy.conditions.LabelConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.LicenseThreatGroupConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityConditionType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
+import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.model.tag.PolicyTag;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.policy.PolicyResource.ApplicablePolicies;
 import com.sonatype.insight.brain.policy.PolicyResource.PoliciesByOwner;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.brain.utils.IdUtils;
+import com.sonatype.insight.test.RestAccess;
 
 import com.google.common.collect.Lists;
+import com.ning.http.client.AsyncHttpClient;
 import com.ning.http.client.Response;
+import com.ning.http.multipart.ByteArrayPartSource;
+import com.ning.http.multipart.FilePart;
 import com.yammer.dropwizard.testing.JsonHelpers;
 import org.junit.Assert;
 import org.junit.Test;
@@ -556,6 +561,29 @@ public class PolicyResourceTest
     Response response = AuthedRestAccess.put(getServiceURL(APP, app.getPublicId()) + "/import",
         asJson(policyExportResult));
     assertResponseStatus(400, response);
+    assertThat(response.getResponseBody(), is("Importing policies with applied tags to an application is not supported"));
+  }
+
+  /**
+   * Expected to return a validation error text response and HTTP 200 in the case of an error uploading to IE.
+   */
+  @Test
+  public void testImportToApplicationWithTagsForIE() throws Exception {
+    Application app = tempEntity.newApplicationWithParent("testAppPublicId");
+    PolicyExportResult export = createPolicyExportResult();
+    Tag tag = new Tag("orgId", "tagName", "tagDescription", Color.black);
+    tag.setId(id());
+    export.tags = Arrays.asList(tag);
+    PolicyTag policyTag = new PolicyTag("policyId", tag.getId());
+    export.policyTags = Arrays.asList(policyTag);
+
+    String url = getRestUrl(PolicyResource.SERVICE_PATH + "/import/ie", IdUtils.TYPE_APPLICATION, app.getPublicId());
+    AsyncHttpClient.BoundRequestBuilder builder =  AuthedRestAccess.getClient().preparePost(url);
+    builder.addBodyPart(new FilePart("file", new ByteArrayPartSource("file", toJson(export).getBytes())));
+    RestAccess.addAuthorization(builder, User.ADMIN_USERNAME, "admin123");
+
+    Response response = builder.execute().get();
+    assertResponseStatus(200, response);
     assertThat(response.getResponseBody(), is("Importing policies with applied tags to an application is not supported"));
   }
 

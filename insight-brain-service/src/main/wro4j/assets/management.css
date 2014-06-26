@@ -181,7 +181,7 @@ a:focus {
 .dashboard-navigation .active i:before {
   color: #2476FC;
 }
-.dashboard-navigation span:hover i:before, .dashboard-user a:hover, .dashboard-user a:hover i:before, .dashboard-menus li:hover i:before {
+.dashboard-navigation span:hover i:before, .dashboard-user a:hover, .dashboard-user a:hover i:before, .dashboard-menus a:hover i:before {
   color: #2476FC;
 }
 .dashboard-menus > li, .dashboard-add {

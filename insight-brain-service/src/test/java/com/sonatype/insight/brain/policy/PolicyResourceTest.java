@@ -23,13 +23,13 @@ import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.ValidationResult;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroupLicense;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.Policy;
-import com.sonatype.insight.brain.model.ValidationResult;
 import com.sonatype.insight.brain.model.policy.conditions.LabelConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.LicenseThreatGroupConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityConditionType;
@@ -561,7 +561,8 @@ public class PolicyResourceTest
     Response response = AuthedRestAccess.put(getServiceURL(APP, app.getPublicId()) + "/import",
         asJson(policyExportResult));
     assertResponseStatus(400, response);
-    assertThat(response.getResponseBody(), is("Importing policies with applied tags to an application is not supported"));
+    assertThat(response.getResponseBody(),
+        is("Importing policies with applied tags to an application is not supported."));
   }
 
   /**
@@ -584,7 +585,8 @@ public class PolicyResourceTest
 
     Response response = builder.execute().get();
     assertResponseStatus(200, response);
-    assertThat(response.getResponseBody(), is("Importing policies with applied tags to an application is not supported"));
+    assertThat(response.getResponseBody(),
+        is("Importing policies with applied tags to an application is not supported."));
   }
 
   @Test

@@ -39,8 +39,8 @@ import com.sonatype.insight.brain.model.tag.PolicyTag;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightBrainService;
+import com.sonatype.insight.error.exception.BadRequestException;
 
-import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -380,25 +380,38 @@ public class PolicyImporterImpl
   }
 
   private void checkAppImportPreconditions(Application app, PolicyExportResult exportDTO) {
-    Preconditions.checkNotNull(app, "Import failed. The passed in application was null");
+    checkNotNull(app, "Import failed. The passed in application was null.");
     checkPolicyExportResultPreconditions(exportDTO);
-    Preconditions.checkArgument(exportDTO.tags.isEmpty() && exportDTO.policyTags.isEmpty(),
-        "Importing policies with applied tags to an application is not supported");
+    if (!exportDTO.tags.isEmpty() || !exportDTO.policyTags.isEmpty()) {
+      throw new BadRequestException("Importing policies with applied tags to an application is not supported.");
+    }
   }
 
   private void checkOrgImportPreconditions(Organization org, PolicyExportResult exportDTO) {
-    Preconditions.checkNotNull(org, "Import failed. The passed in organization was null");
+    checkNotNull(org, "Import failed. The passed in organization was null.");
     checkPolicyExportResultPreconditions(exportDTO);
   }
 
   private void checkPolicyExportResultPreconditions(PolicyExportResult exportDTO) {
-    String msg = "Import failed. Part of the PolicyExportResult was null: %s";
-    Preconditions.checkNotNull(exportDTO, "Import failed. The passed in PolicyExportResult was null");
-    Preconditions.checkNotNull(exportDTO.policies, msg, "policies");
-    Preconditions.checkNotNull(exportDTO.labels, msg, "labels");
-    Preconditions.checkNotNull(exportDTO.licenseThreatGroups, msg, "licenseThreatGroups");
-    Preconditions.checkNotNull(exportDTO.licenseThreatGroupLicenses, msg, "licenseThreatGroupLicenses");
-    Preconditions.checkNotNull(exportDTO.tags, msg, "tags");
-    Preconditions.checkNotNull(exportDTO.policyTags, msg, "policyTags");
+    String msg = "Import failed. Part of the PolicyExportResult was null: ";
+    checkNotNull(exportDTO, "Import failed. The passed in PolicyExportResult was null.");
+    checkNotNull(exportDTO.policies, msg, "policies");
+    checkNotNull(exportDTO.labels, msg, "labels");
+    checkNotNull(exportDTO.licenseThreatGroups, msg, "licenseThreatGroups");
+    checkNotNull(exportDTO.licenseThreatGroupLicenses, msg, "licenseThreatGroupLicenses");
+    checkNotNull(exportDTO.tags, msg, "tags");
+    checkNotNull(exportDTO.policyTags, msg, "policyTags");
+  }
+
+  private static void checkNotNull(Object reference, String errorMessage) {
+    if (reference == null) {
+      throw new BadRequestException(errorMessage);
+    }
+  }
+
+  private static void checkNotNull(Object reference, String errorMessage, String errorMessageArg) {
+    if (reference == null) {
+      throw new BadRequestException(errorMessage + errorMessageArg);
+    }
   }
 }

@@ -259,19 +259,14 @@ public class PolicyResource
   }
 
   private PolicyImportResult importPolicies(String ownerType, String ownerId, InputStream in) throws IOException {
-    try {
-      PolicyExportResult exportDTO = readPolicyExportResult(in);
+    PolicyExportResult exportDTO = readPolicyExportResult(in);
 
-      String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
+    String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
 
-      if (TYPE_ORGANIZATION.equals(ownerType)) {
-        return policyImporter.importOrganization(new OrganizationDAO().getByIdNotNull(internalOwnerId), exportDTO);
-      }
-      return policyImporter.importApplication(new ApplicationDAO().getByIdNotNull(internalOwnerId), exportDTO);
+    if (TYPE_ORGANIZATION.equals(ownerType)) {
+      return policyImporter.importOrganization(new OrganizationDAO().getByIdNotNull(internalOwnerId), exportDTO);
     }
-    catch (IllegalArgumentException e) {
-      throw new BadRequestException(e.getMessage());
-    }
+    return policyImporter.importApplication(new ApplicationDAO().getByIdNotNull(internalOwnerId), exportDTO);
   }
 
   private PolicyExportResult readPolicyExportResult(InputStream stream) throws IOException {

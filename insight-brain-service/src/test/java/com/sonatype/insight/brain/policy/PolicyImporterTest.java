@@ -31,6 +31,7 @@ import com.sonatype.insight.brain.model.tag.PolicyTag;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.error.exception.BadRequestException;
 
 import com.google.common.collect.Lists;
 import org.junit.Before;
@@ -296,8 +297,8 @@ public class PolicyImporterTest
       policyImporter.importApplication(fromApp, policyExportResult);
       fail("Import should have thrown an exception due to tag data");
     }
-    catch (IllegalArgumentException e) {
-      assertThat(e.getMessage(), is("Importing policies with applied tags to an application is not supported"));
+    catch (BadRequestException e) {
+      assertThat(e.getMessage(), is("Importing policies with applied tags to an application is not supported."));
     }
 
     policyExportResult = emptyExportDTO();
@@ -307,8 +308,8 @@ public class PolicyImporterTest
       policyImporter.importApplication(fromApp, policyExportResult);
       fail("Import should have thrown an exception due to tag data");
     }
-    catch (IllegalArgumentException e) {
-      assertThat(e.getMessage(), is("Importing policies with applied tags to an application is not supported"));
+    catch (BadRequestException e) {
+      assertThat(e.getMessage(), is("Importing policies with applied tags to an application is not supported."));
     }
   }
 

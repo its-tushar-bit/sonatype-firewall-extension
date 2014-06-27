@@ -74,6 +74,7 @@ public class InsightBrainService
   public static void main(final String[] args) {
     try {
       JavaRuntimeChecker.checkJreIsSupported();
+      JavaXXMaxPermSizeChecker.check();
 
       if (!validateTempDir()) {
         System.exit(1);

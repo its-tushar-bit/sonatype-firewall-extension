@@ -36,6 +36,7 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.argThat;
 import static org.mockito.Matchers.eq;
+import static org.mockito.Matchers.same;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -199,13 +200,12 @@ public class ScanTaskTest
   public void sendsNotifications() throws Exception {
     task.init(app, bundleFile, bundleFilename, stage, true);
 
-    when(evaluator.evaluate(eq(app.getPublicId()), eq(scanReceipt.getScanId()), match(stage))).thenReturn(
-        new PolicyEvaluation());
+    PolicyEvaluation eval = new PolicyEvaluation();
+    when(evaluator.evaluate(eq(app.getPublicId()), eq(scanReceipt.getScanId()), match(stage))).thenReturn(eval);
 
     task.run();
 
-    verify(notifier).sendNotifications(eq(app.getPublicId()), eq(app.getId()), eq("scan-id"), match(stage),
-        (PolicyEvaluation) any(), (PolicyEvaluation) any());
+    verify(notifier).sendNotifications(eq(app.getPublicId()), same(eval), (PolicyEvaluation) any());
   }
 
   private void assertThatTaskCompletedSuccessfully(ScanTask task) {

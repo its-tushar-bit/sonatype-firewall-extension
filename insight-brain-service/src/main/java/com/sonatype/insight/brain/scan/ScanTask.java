@@ -199,8 +199,7 @@ class ScanTask
       // PolicyEvaluationUtils will fetch report if it's not there
       PolicyEvaluation policyEvaluation = policyEvaluationUtils.evaluate(appPublicId, scanReceipt.getScanId(), stage);
       if (sendNotifications) {
-        policyAlertNotifier.sendNotifications(appPublicId, app.getId(), scanReceipt.getScanId(), stage,
-            policyEvaluation, lastPrimaryPolicyEvaluation);
+        policyAlertNotifier.sendNotifications(appPublicId, policyEvaluation, lastPrimaryPolicyEvaluation);
       }
 
       // provide report/scanId once evaluation is completed successfully

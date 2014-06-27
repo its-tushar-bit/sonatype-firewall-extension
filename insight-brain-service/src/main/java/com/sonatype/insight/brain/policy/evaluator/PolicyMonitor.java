@@ -131,7 +131,7 @@ public class PolicyMonitor
     Stage stage = new Stage(policyMonitoring.getStageTypeId());
     PolicyEvaluation policyEvaluation = policyEvaluationUtils.evaluateForMonitoring(app.getPublicId(),
         scanId, stage);
-    policyAlertNotifier.sendNotifications(app.getPublicId(), app.getId(), scanId, stage, policyEvaluation,
+    policyAlertNotifier.sendNotifications(app.getPublicId(), policyEvaluation,
         lastMonitoringPolicyEvaluation != null ? lastMonitoringPolicyEvaluation : lastPrimaryPolicyEvaluation);
 
     log.debug("Policy monitoring evaluated for application '{}' in {} ms", app.getName(), System.currentTimeMillis()

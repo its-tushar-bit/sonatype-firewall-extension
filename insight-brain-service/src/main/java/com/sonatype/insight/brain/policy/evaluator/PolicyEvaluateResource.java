@@ -72,8 +72,7 @@ public class PolicyEvaluateResource
         .createPolicyEvaluationResult(policyEvaluation);
 
     if (!policyEvaluationResult.isReevaluation()) {
-      policyAlertNotifier.sendNotifications(applicationPublicId, appId, scanId, stage, policyEvaluation,
-          lastPrimaryPolicyEvaluation);
+      policyAlertNotifier.sendNotifications(applicationPublicId, policyEvaluation, lastPrimaryPolicyEvaluation);
     }
 
     return policyEvaluationResult;

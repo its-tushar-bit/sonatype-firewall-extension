@@ -76,7 +76,7 @@ public class PolicyAlertNotifier
    * Sends notifications in case of a difference between the current and previous policy violations for a given
    * application and stage.
    */
-  public void sendNotifications(final String applicationPublicId, String appId, final String scanId, final Stage stage,
+  public void sendNotifications(final String applicationPublicId, 
       final PolicyEvaluation currentEvaluation, final PolicyEvaluation previousEvaluation)
   {
     PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
@@ -91,7 +91,8 @@ public class PolicyAlertNotifier
       List<PolicyAlert> policyAlerts = PolicyAlertUtil.createPolicyAlerts(diff.getAppeared(),
           currentEvaluation.getStageTypeId(), currentEvaluation.isForMonitoring());
       updatePolicyViolations(diff.getAppeared(), policyAlerts);
-      sendNotifications(applicationPublicId, appId, scanId, stage, policyAlerts);
+      sendNotifications(applicationPublicId, currentEvaluation.getApplicationId(), currentEvaluation.getScanId(),
+          new Stage(currentEvaluation.getStageTypeId()), policyAlerts);
     }
   }
 

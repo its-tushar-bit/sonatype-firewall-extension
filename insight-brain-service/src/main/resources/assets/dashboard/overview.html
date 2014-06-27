@@ -234,27 +234,39 @@
     <h3>Component Heat Map</h3>
   </div>
   <div class="heat-map-help" id="component-heat-map-help-content">
-    <p>In the heat map below, risk scores are given for each component. A risk score corresponds to a sum of the
-      threat levels for the policies the component has violated. The table below demonstrates what scores are included
-      in each column.</p>
-    <ul>
-      <!-- Applying the class to each list item as a workaround for IE9's failure to understand the 'cascade' in CSS. -->
-      <li class="risk-explanation-list"><span class="risk-explanation total-risk" alpha-background="1">TOTAL
-          RISK</span> = Severe + Critical + Moderate + Low</li>
-      <li class="risk-explanation-list"><span class="risk-explanation critical-risk" alpha-background="1">CRITICAL</span>
-        = Sum of all 8s, 9s, and 10s</li>
-      <li class="risk-explanation-list"><span class="risk-explanation severe-risk" alpha-background="1">SEVERE</span>
-        = Sum of all 4s, 5s, 6s, and 7s</li>
-      <li class="risk-explanation-list"><span class="risk-explanation moderate-risk" alpha-background="1">MODERATE</span>
-        = Sum of all 2s and 3s</li>
-      <li class="risk-explanation-list"><span class="risk-explanation low-risk" alpha-background="1">LOW</span> =
-        Sum of all 1s</li>
-    </ul>
-    <p>The heat map includes a gradient of colors. As a particular value approaches the total for the column, the
-      color will darken.</p>
-    <p>
-      <b>For all calculations, a violation is only counted once.</b>
-    </p>
+    <div>
+      <div class="left-column">
+        <h5>Total Risk Score</h5>
+        In the component heat map, risk scores are given for each component. Total Risk is the sum of threat levels for
+        unique component violations across displayed threat level categories. The heat map includes a gradient of
+        colors. As a particular value approaches the maximum for the column, the color will darken.
+      </div>
+      <div class="right-column">
+        <div>
+          <span class="risk-cell"><b>TOTAL RISK</b></span>
+          <span class="risk-operator"></span>
+          <span class="risk-cell"><b>CRITICAL</b></span>
+          <span class="risk-operator"></span>
+          <span class="risk-cell"><b>SEVERE</b></span>
+          <span class="risk-operator"></span>
+          <span class="risk-cell"><b>MODERATE</b></span>
+        </div>
+        <div>
+          <span class="risk-cell total-risk">50</span>
+          <span class="risk-operator"><b>=</b></span>
+          <span class="risk-cell critical-risk">17</span>
+          <span class="risk-operator"><b>+</b></span>
+          <span class="risk-cell severe-risk">20</span>
+          <span class="risk-operator"><b>+</b></span>
+          <span class="risk-cell moderate-risk">13</span>
+        </div>
+        <div>
+          <span class="risk-cell"></span>
+          <span class="risk-operator"></span>
+          <span class="arrow left"></span>
+        </div>
+      </div>
+    </div>
   </div>
 </script>
 <script type="text/ng-template" id="application-heat-map-help">
@@ -263,29 +275,123 @@
     <h3>Application Heat Map</h3>
   </div>
   <div class="heat-map-help" id="application-heat-map-help-content">
-    <p>The heat map on this tab displays risk scores for applications. An application’s risk score is the sum of
-      violated policy threat levels across all stages. The table below demonstrates what scores are included in each
-      column.</p>
-    <ul>
-      <!-- Applying the class to each list item as a workaround for IE9's failure to understand the 'cascade' in CSS. -->
-      <li class="risk-explanation-list"><span class="risk-explanation total-risk" alpha-background="1">TOTAL
-          RISK</span> = Severe + Critical + Moderate + Low</li>
-      <li class="risk-explanation-list"><span class="risk-explanation critical-risk" alpha-background="1">CRITICAL</span>
-        = Sum of all 8s, 9s, and 10s</li>
-      <li class="risk-explanation-list"><span class="risk-explanation severe-risk" alpha-background="1">SEVERE</span>
-        = Sum of all 4s, 5s, 6s, and 7s</li>
-      <li class="risk-explanation-list"><span class="risk-explanation moderate-risk" alpha-background="1">MODERATE</span>
-        = Sum of all 2s and 3s</li>
-      <li class="risk-explanation-list"><span class="risk-explanation low-risk" alpha-background="1">LOW</span> =
-        Sum of all 1s</li>
-    </ul>
-    <p>The heat map includes a gradient of colors. As a particular value approaches the total for the column, the
-      color will darken.</p>
-    <p>Additionally, the risk score can be broken down by stage by clicking on the arrow to the left of an
-      application's name.</p>
-    <p>
-      <b>For all calculations, a violation is only counted once.</b>
-    </p>
+    <div>
+      <div class="left-column">
+        <h5>Total Risk Score</h5>
+        In the application heat map, risk scores are given for each application. Total Risk is the sum of threat levels
+        for policy violations across all stages. The heat map includes a gradient of colors. As a particular value
+        approaches the maximum for the column, the color will darken.
+      </div>
+      <div class="right-column">
+        <div>
+          <span class="risk-cell"><b>TOTAL RISK</b></span>
+          <span class="risk-operator"></span>
+          <span class="risk-cell"><b>CRITICAL</b></span>
+          <span class="risk-operator"></span>
+          <span class="risk-cell"><b>SEVERE</b></span>
+          <span class="risk-operator"></span>
+          <span class="risk-cell"><b>MODERATE</b></span>
+        </div>
+        <div>
+          <span class="risk-cell total-risk">50</span>
+          <span class="risk-operator"><b>=</b></span>
+          <span class="risk-cell critical-risk">17</span>
+          <span class="risk-operator"><b>+</b></span>
+          <span class="risk-cell severe-risk">20</span>
+          <span class="risk-operator"><b>+</b></span>
+          <span class="risk-cell moderate-risk">13</span>
+        </div>
+        <div>
+          <span class="risk-cell"></span>
+          <span class="risk-operator"></span>
+          <span class="arrow left"></span>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="left-column">
+        <h5>Risk Across Stages</h5>
+        Expanding the row, each cell represents a sum of violations for threat level categories and stages. The
+        violations are broken down by threat level as well.
+      </div>
+      <div class="right-column">
+        <div class="inline-block">
+          <div class="stage-row">
+            <span class="stage-cell glyphicons-sonatype link"><b>BUILD</b></span>
+            <span class="stage-risk-cell total-risk">50</span>
+            <span class="risk-operator">=</span>
+            <span class="stage-risk-cell critical-risk">18</span>
+            <span class="risk-operator">+</span>
+            <span class="stage-risk-cell severe-risk">17</span>
+            <span class="risk-operator">+</span>
+            <span class="stage-risk-cell moderate-risk">15</span>
+          </div>
+          <div class="stage-row">
+            <span class="stage-cell glyphicons-sonatype link"><b>STAGE RELEASE</b></span>
+            <span class="stage-risk-cell total-risk">20</span>
+            <span class="risk-operator">=</span>
+            <span class="stage-risk-cell critical-risk">8</span>
+            <span class="risk-operator">+</span>
+            <span class="stage-risk-cell severe-risk">9</span>
+            <span class="risk-operator">+</span>
+            <span class="stage-risk-cell moderate-risk">3</span>
+          </div>
+          <div class="stage-row">
+            <span class="stage-cell glyphicons-sonatype link"><b>RELEASE</b></span>
+            <span class="stage-risk-cell total-risk">20</span>
+            <span class="risk-operator">=</span>
+            <span class="stage-risk-cell critical-risk">5</span>
+            <span class="risk-operator">+</span>
+            <span class="stage-risk-cell severe-risk">10</span>
+            <span class="risk-operator">+</span>
+            <span class="stage-risk-cell moderate-risk">5</span>
+          </div>
+          <div>
+            <span class="stage-cell"></span>
+            <span class="stage-risk-cell"></span>
+            <span class="risk-operator"></span>
+            <span class="arrow left small"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="left-column">
+        <h5>Sum of Unique Violations</h5>
+        The total for each category is a sum of unique violations across all stages. Consider three separate violations
+        that occur across various stages: <b>v<sub>A</sub></b> with threat level 1, <b>v<sub>B</sub></b> with threat
+        level 2, and <b>v<sub>C</sub></b> with threat level 3.
+      </div>
+      <div class="right-column">
+        <div class="arrow up"></div>
+        <div class="inline-block">
+          <div class="stage-row">
+            <span class="stage-cell"></span>
+            <span class="risk-cell critical-risk"><b>v<sub>A</sub>, v<sub>B</sub>, v<sub>C</sub></b></span>
+            <span class="risk-operator"><b>=</b></span>
+            <span><b>1 + 2 + 3 = 6</b></span>
+          </div>
+          <div class="stage-row">
+            <span class="stage-cell glyphicons-sonatype link"><b>BUILD</b></span>
+            <span class="risk-cell"><b>v<sub>A</sub>, v<sub>B</sub></b></span>
+            <span class="risk-operator"><b>=</b></span>
+            <span><b>1 + 2 = 3</b></span>
+          </div>
+          <div class="stage-row">
+            <span class="stage-cell glyphicons-sonatype link"><b>STAGE RELEASE</b></span>
+            <span class="risk-cell"><b>v<sub>B</sub>, v<sub>C</sub></b></span>
+            <span class="risk-operator"><b>=</b></span>
+            <span><b>2 + 3 = 5</b></span>
+          </div>
+          <div class="stage-row">
+            <span class="stage-cell glyphicons-sonatype link"><b>RELEASE</b></span>
+            <span class="risk-cell"><b>v<sub>A</sub>, v<sub>C</sub></b></span>
+            <span class="risk-operator"><b>=</b></span>
+            <span><b>1 + 3 = 4</b></span>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </script>
 <div class='container'>

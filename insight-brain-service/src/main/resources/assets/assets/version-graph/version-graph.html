@@ -2,9 +2,15 @@
   <script type='text/ng-template' id='error'>
     <div class='alert alert-error cipContentBox' ng-if='errorMessage'>
       <h5>Error</h5>
-      <p>Unfortunately an error occurred while contacting the CLM server, if the problem persists please contact <a href='http://links.sonatype.com/products/clm/support' target='_blank'>Sonatype Support</a>.</p>
+
+      <p>Unfortunately an error occurred while contacting the CLM server, if the problem persists please contact <a
+              href='http://links.sonatype.com/products/clm/support' target='_blank'>Sonatype Support</a>.</p>
+
       <p>{{errorMessage}}</p>
-      <p><button class='btn btn-danger' ng-click='retryFn()'><i class='icon-white icon-refresh'></i> Retry</button></p>
+
+      <p>
+        <button class='btn btn-danger' ng-click='retryFn()'><i class='icon-white icon-refresh'></i> Retry</button>
+      </p>
     </div>
   </script>
   <div ng-include='"error"'></div>
@@ -14,9 +20,10 @@
         <form ng-show='applications' class='form-horizontal'>
           <div class='control-group'>
             <label for='selectApp' class='control-label'>Application: </label>
+
             <div class='controls'>
               <select id='selectApp' class='input-xlarge' ng-model='selectedApplication'
-                  ng-options='key as value for (key,value) in applications'></select>
+                      ng-options='key as value for (key,value) in applications'></select>
             </div>
           </div>
         </form>
@@ -30,11 +37,12 @@
       <div ng-include='"error"'></div>
       <div ng-controller='StatusController' ng-show='!gav'>
         <div ng-if='!state' class='alert alert-info alert-centered fade in'>
-            Select a component to view details.
+          Select a component to view details.
         </div>
         <!-- filtered -->
         <div class='alert alert-info cipContentBox' ng-if="state == 'filtered'">
-          All components are filtered out of the view. Adjust your <a href='#' ng-click='openView($event, "filter")'>filter settings</a> to view components.
+          All components are filtered out of the view. Adjust your <a href='#' ng-click='openView($event, "filter")'>filter
+          settings</a> to view components.
         </div>
         <!-- Pend -->
         <div class='alert alert-info cipContentBox' ng-if="state == 'pending'">
@@ -43,31 +51,42 @@
         <!-- failure -->
         <div class='alert alert-error cipContentBox' ng-if="state == 'failure'">
           <h5>Error</h5>
+
           <p>The component {{stateArgs.filename}} could not be evaluated:</p>
+
           <p>{{stateArgs.errorMessage}}</p>
         </div>
         <!-- Cred -->
         <div class='alert alert-error cipContentBox' ng-if="state == 'invalid-credentials'">
           <h5>Authentication failure</h5>
-          <p>Please verify you supplied the proper credentials in the <a href='#' ng-click='openView($event, "config")'>plugin configuration</a>.</p>
+
+          <p>Please verify you supplied the proper credentials in the <a href='#' ng-click='openView($event, "config")'>plugin
+            configuration</a>.</p>
         </div>
         <!-- AppID -->
         <div class='alert alert-error cipContentBox' ng-if="state == 'invalid-appid'">
           <h5>Invalid application ID</h5>
-          <p>The application ID <strong>{{stateArgs.appId}}</strong> is invalid or you do not have permission to use it. Please verify the <a href='#' ng-click='openView($event, "config")'>plugin configuration</a>.</p>
+
+          <p>The application ID <strong>{{stateArgs.appId}}</strong> is invalid or you do not have permission to use it.
+            Please verify the <a href='#' ng-click='openView($event, "config")'>plugin configuration</a>.</p>
         </div>
         <!-- Unassigned -->
         <div class='alert cipContentBox' ng-if="state == 'unassigned'">
-          No open projects are assigned application IDs, please verify the <a href='#' ng-click='openView($event, "config")'>Sonatype CLM for Eclipse configuration</a>.
+          No open projects are assigned application IDs, please verify the <a href='#'
+                                                                              ng-click='openView($event, "config")'>Sonatype
+          CLM for Eclipse configuration</a>.
         </div>
       </div>
       <div ng-if='isUnknown()' class='alert alert-centered fade in'>
         <p style='float: left; font-size: 50px; font-weight: bold; line-height: normal'>?</p>
+
         <div style='padding-left: 40px'>
           <p>The component is unknown.</p>
+
           <p ng-if='gav.artifactId'>
             {{gav.groupId}} : {{gav.artifactId}} : {{gav.version}}
           </p>
+
           <p ng-if='!gav.artifactId'>{{gav.filename}}</p>
         </div>
       </div>
@@ -75,23 +94,23 @@
         <div class='cip-box' ng-controller='DetailsController'>
           <div ng-show='loaded' id='detailsparent'>
             <table id='infoPanelArtifactTable' style='border-collapse: collapse'>
-                            <tr id='artifactInfoGroupIdRow'>
-                                <td>Group:</td>
-                                <td>{{componentDetails.groupId}}</td>
-                            </tr>
-                            <tr id='artifactInfoArtifactIdRow'>
-                                <td>Artifact:</td>
-                                <td>{{componentDetails.artifactId}}</td>
-                            </tr>
-                            <tr id='artifactInfoVersionRow'>
-                                <td>Version:</td>
-                                <td>{{componentDetails.version}}</td>
-                            </tr>
-              <tr id='artifactInfoDeclaredLicenseRow' ng-if="isManual()">
+              <tr id='artifactInfoGroupIdRow'>
+                <td>Group:</td>
+                <td>{{componentDetails.groupId}}</td>
+              </tr>
+              <tr id='artifactInfoArtifactIdRow'>
+                <td>Artifact:</td>
+                <td>{{componentDetails.artifactId}}</td>
+              </tr>
+              <tr id='artifactInfoVersionRow'>
+                <td>Version:</td>
+                <td>{{componentDetails.version}}</td>
+              </tr>
+              <tr id='artifactInfoClaimedLicenseRow' ng-if="isManual()">
                 <td>License:</td>
                 <td>Unavailable, Claimed Component</td>
               </tr>
-              <tr id='artifactInfoDeclaredLicenseRow' ng-if="!isManual()">
+              <tr id='artifactInfoOverriddenLicenseRow' ng-if="!isManual()">
                 <td>Overridden License:</td>
                 <td licenses='componentDetails.overriddenLicenses' empty-text='-'></td>
               </tr>
@@ -103,21 +122,21 @@
                 <td>Observed License:</td>
                 <td licenses='componentDetails.observedLicenses'></td>
               </tr>
-                            <tr>
-                                <td>Highest Policy Threat:</td>
-                                <td>
-                                    <div class='clm-chiclet'
-                                        ng-class='{ critical : highestPolicyThreat.level > 7,
+              <tr id='artifactInfoHighestPolicyThreat'>
+                <td>Highest Policy Threat:</td>
+                <td>
+                  <div class='clm-chiclet'
+                       ng-class='{ critical : highestPolicyThreat.level > 7,
                                         severe : highestPolicyThreat.level <= 7 && highestPolicyThreat.level > 3,
                                         moderate : highestPolicyThreat.level <= 3 && highestPolicyThreat.level > 1,
                                         none : highestPolicyThreat.level == 1,
                                         ignore : highestPolicyThreat.level == 0,
                                         unspecified : highestPolicyThreat.level == null }'>
-                                        {{highestPolicyThreat.level != null ? highestPolicyThreat.level : 'NA'}}
-                                    </div>
-                                    <span ng-if='highestPolicyThreat.violatedPolicies > 1'>within {{highestPolicyThreat.violatedPolicies}} policies</span>
-                                </td>
-                            </tr>
+                    {{highestPolicyThreat.level != null ? highestPolicyThreat.level : 'NA'}}
+                  </div>
+                  <span ng-if='highestPolicyThreat.violatedPolicies > 1'>within {{highestPolicyThreat.violatedPolicies}} policies</span>
+                </td>
+              </tr>
               <tr id='artifactInfoSecurityThreatRow'>
                 <td>Highest Security Threat:</td>
                 <td ng-if="isManual()">
@@ -142,7 +161,7 @@
                 <td>{{componentDetails.identificationSource}}</td>
               </tr>
               <tr id='artifactWebsite' ng-if='componentDetails.website'>
-                  <td>Website:</td>
+                <td>Website:</td>
                 <td>
                   <a href='{{componentDetails.website}}' target='{{linkTarget}}'><i class='icon-info-sign'></i></a>
                 </td>
@@ -152,8 +171,14 @@
                 <td>{{componentDetails.identificationSourceComment}}</td>
               </tr>
               <tr>
-                <td><button class='btn' ng-click='viewDetails()' ng-if='viewDetailsSupported'>View Details</button></td>
-                <td><button class='btn' ng-disabled='!canMigrate()' ng-click='markUpgrade()' ng-if='migrateSupported'>Migrate</button></td>
+                <td>
+                  <button class='btn' ng-click='viewDetails()' ng-if='viewDetailsSupported'>View Details</button>
+                </td>
+                <td>
+                  <button class='btn' ng-disabled='!canMigrate()' ng-click='markUpgrade()' ng-if='migrateSupported'>
+                    Migrate
+                  </button>
+                </td>
               </tr>
             </table>
           </div>

@@ -1,0 +1,71 @@
+/*
+ * Copyright (c) 2011-2014 Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.testing.functional.cip
+
+import geb.Module
+import geb.Page
+
+/**
+ * Parent for pages which embed the CIP in other applications, but which do not share a common url.
+ * @since 1.12
+ */
+abstract class AbstractCIPPage
+    extends Page
+{
+  static content = {
+    cip(required: false) { module CIPModule }
+    versionGraph(required: false) { module VersionGraphModule }
+  }
+
+  /**
+   * Call the same javascript function used by clients to trigger loading component details.
+   */
+  def setGAV(String groupId, String artifactId, String version, String applicationPublicId) {
+    browser.js.exec(groupId, artifactId, version, applicationPublicId, '''
+  window.Insight.setGav({
+        groupId: arguments[0],
+        artifactId: arguments[1],
+        version: arguments[2],
+        appId: arguments[3]
+  });
+  ''')
+  }
+}
+
+class CIPModule
+    extends Module
+{
+  static base = { $('#infoPanelArtifactTable') }
+
+  static content = {
+    group { $('#artifactInfoGroupIdRow td:last-child').text() }
+    artifact { $('#artifactInfoArtifactIdRow td:last-child').text() }
+    version { $('#artifactInfoVersionRow td:last-child').text() }
+    overriddenLicense { $('#artifactInfoOverriddenLicenseRow td:last-child').text() }
+    declaredLicense { $('#artifactInfoDeclaredLicenseRow td:last-child').text() }
+    observedLicense { $('#artifactInfoObservedLicenseRow td:last-child').text() }
+    highestPolicyThreat { $('#artifactInfoHighestPolicyThreat td:last-child').text() }
+    highestSecurityThreat { $('#artifactInfoSecurityThreatRow td:last-child').text() }
+    catalogued { $('#artifactInfoCatalogDateRow td:last-child').text() }
+    matchState { $('#artifactInfoSimilarityScoreRow td:last-child').text() }
+    identificationSource { $('#artifactInfoIdentificatonSource td:last-child').text() }
+    website(required: false) { $('#artifactWebsite a') }
+    viewDetails { $('[ng-click="viewDetails()"]') }
+    migrate(required: false) { $('[ng-click="markUpgrade()"]') } // only present in Eclipse
+  }
+}
+
+class VersionGraphModule
+    extends Module
+{
+  static base = { $('#aiVersionChart') }
+
+  static content = {
+    chart { $('#aiVersionChartViz svg') }
+    labels { $('#aiVersionChartLabels text')*.text() }
+  }
+}
+

@@ -94,6 +94,11 @@ public class PolicyAlertNotifier
       sendNotifications(applicationPublicId, currentEvaluation.getApplicationId(), currentEvaluation.getScanId(),
           new Stage(currentEvaluation.getStageTypeId()), policyAlerts);
     }
+    else {
+      log.debug("Not sending notification emails for application {} and scan {} in stage {}"
+          + ", no new policy violations since last evaluation", applicationPublicId, currentEvaluation.getScanId(),
+          currentEvaluation.getStageTypeId());
+    }
   }
 
   private void updatePolicyViolations(List<PolicyViolation> policyViolations, List<PolicyAlert> policyAlerts) {
@@ -118,8 +123,16 @@ public class PolicyAlertNotifier
   private void sendNotifications(final String applicationPublicId, String appId, final String scanId, final Stage stage,
       final List<PolicyAlert> policyAlerts)
   {
-    for (final Entry<String, List<PolicyAlert>> details : byRecipients(policyAlerts).entrySet()) {
+    String mailServer = mail.getServer();
+    Map<String, List<PolicyAlert>> alertsByRecipients = byRecipients(policyAlerts);
+    if (alertsByRecipients.isEmpty()) {
+      log.debug("Not sending notification emails for application {} and scan {} in stage {}"
+          + ", no recipients configured for any violated policy", applicationPublicId, scanId, stage);
+    }
+    for (final Entry<String, List<PolicyAlert>> details : alertsByRecipients.entrySet()) {
       try {
+        log.debug("Sending notification email via {} to {} for application {} and scan {} in stage {}", mailServer,
+            details.getKey(), applicationPublicId, scanId, stage);
         final String mailId = "SONATYPE-CLM-" + applicationPublicId + '-' + scanId;
         final List<Address> addresses = Arrays.asList(new Address(details.getKey()));
         final String subject = createPolicyMailSubject(new MailPolicyAlertCounts(details.getValue()));
@@ -127,7 +140,8 @@ public class PolicyAlertNotifier
         mail.sendHtml(mailId, addresses, subject, body);
       }
       catch (final Exception e) {
-        log.error("Unable to send notification to: {}", details.getKey(), e);
+        log.error("Unable to send notification email to {} for application {} and scan {} in stage {}",
+            details.getKey(), applicationPublicId, scanId, stage, e);
       }
     }
 

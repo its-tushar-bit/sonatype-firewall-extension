@@ -33,6 +33,10 @@ public class InsightMail
     insightMailer = new InsightMailer(mailer, config.getMailConfig());
   }
 
+  public String getServer() {
+    return insightMailer.getHostname() + ':' + insightMailer.getPort();
+  }
+
   public String getCdnUrl() {
     return config.getCdnUrl();
   }

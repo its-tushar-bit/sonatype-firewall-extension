@@ -8,7 +8,7 @@
 (function() {
   'use strict';
 
-  var processingLogin = false, requestQueue = [], httpInterceptors = angular.module('HttpInterceptors', []);
+  var requestQueue = [], httpInterceptors = angular.module('HttpInterceptors', []);
 
   // This is our unauthenticated interceptor factory, will handle creating the interceptor when necessary
   httpInterceptors.factory('unauthenticatedResponseHttpInterceptor', ['$q', '$rootScope', function($q, $rootScope) {
@@ -62,8 +62,7 @@
       $rootScope.$on('userNeedsAuthentication', function(event, response, deferred) {
         // if user is already processing login, this will be a login failure response so reject and let them try
         // again
-        if (processingLogin) {
-          processingLogin = false;
+        if (response.config && response.config.clmLogin) {
           deferred.reject(response);
         } else {
           // add a new function to the queue that will handle resolving the promise retrieved from event emitter
@@ -98,21 +97,17 @@
                 '<span id="login-error" ng-show="loginError" class="alert alert-error"' +
                 'style="margin-right:10px;">{{loginError}}</span>' +
                 '<button id="login-action" class="btn btn-primary" ng-click="signIn()" ' +
-                'ng-disabled="loginForm.$invalid || isProcessing()">Sign in</button>' + '</div>'+ '</form>',
+                'ng-disabled="loginForm.$invalid || processingLogin">Sign in</button>' + '</div>'+ '</form>',
               controller: ['$scope', '$http', 'CLMLocations', 'Messages', '$q',
                 function($scope, $http, CLMLocations, Messages, $q) {
                   // setup our data for binding
                   $scope.data = {};
+                  $scope.processingLogin = false;
 
                   // Remove error when user changes login information
                   $scope.$watchCollection('data', function() {
                     $scope.loginError = null;
                   });
-
-                  // give template access to the processing state
-                  $scope.isProcessing = function() {
-                    return processingLogin;
-                  };
 
                   $scope.getRequestQueue = function() {
                     return requestQueue;
@@ -123,9 +118,10 @@
                     var authz = Base64.encode($scope.data.username + ':' + $scope.data.password);
 
                     $scope.loginError = null;
-                    processingLogin = true;
+                    $scope.processingLogin = true;
 
                     $http.post(CLMLocations.getSessionUrl(), {}, {
+                      clmLogin: true,
                       headers: {
                         'Authorization': 'Basic ' + authz
                       }
@@ -136,16 +132,16 @@
                         promises.push(request());
                       });
                       $q.all(promises).then(function() {
-                        processingLogin = false;
+                        $scope.processingLogin = false;
                         $scope.$close();
                         requestQueue = [];
                       }, function(){
-                        processingLogin = false;
+                        $scope.processingLogin = false;
                         $scope.$close();
                         requestQueue = [];
                       });
                     }).error(function(data, status) {
-                      processingLogin = false;
+                      $scope.processingLogin = false;
                       if (status === 401) {
                         $scope.loginError = 'Invalid credentials. Please try again.';
                       } else {

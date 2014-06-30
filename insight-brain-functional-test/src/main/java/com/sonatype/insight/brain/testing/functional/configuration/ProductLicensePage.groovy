@@ -8,7 +8,8 @@ package com.sonatype.insight.brain.testing.functional.configuration
 import com.sonatype.insight.brain.testing.functional.BasePage
 
 class ProductLicensePage
-extends BasePage {
+    extends BasePage
+{
   static url = 'assets/index.html#/productlicense'
 
   static at = { $('#license').displayed }

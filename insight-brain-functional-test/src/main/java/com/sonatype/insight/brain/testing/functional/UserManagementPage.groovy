@@ -10,7 +10,8 @@ import com.sonatype.insight.brain.testing.functional.modules.ValidationModule
 
 
 class UserManagementPage
-extends BasePage {
+    extends BasePage
+{
   static url = "assets/index.html#/users"
 
   static at = { newUserButton.displayed }

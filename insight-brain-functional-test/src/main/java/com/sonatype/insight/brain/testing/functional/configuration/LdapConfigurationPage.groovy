@@ -11,7 +11,8 @@ import com.sonatype.insight.brain.testing.functional.BasePage
  * @since 1.7
  */
 class LdapConfigurationPage
-extends BasePage {
+    extends BasePage
+{
   static url = 'assets/index.html#/ldap'
 
   static at = { inlineEditorSpan?.displayed }

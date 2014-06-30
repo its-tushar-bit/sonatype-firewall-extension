@@ -37,6 +37,9 @@ class NexusCIPSpec
   }
 
   def 'Can select an application'() {
+    given: 'The application list has been loaded'
+      waitFor { appSelect.displayed }
+
     when: 'Selecting an application from the list'
       appSelect = app.name
 

@@ -21,7 +21,7 @@ class UserOptionsModule
 
   static content = {
     displayName(wait: true) { $('.user-name') }
-    optionsDropdown(wait: true) { $('a.btn') }
+    optionsDropdown(wait: true) { $('#user-menu-dropdown-toggle') }
     logout(wait: true, to: ReportViolationsPage) { $('#logout') }
     openChangePassword(wait: true) { $('#change-password') }
   }

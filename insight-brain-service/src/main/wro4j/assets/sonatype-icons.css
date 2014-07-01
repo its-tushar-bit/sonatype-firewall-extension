@@ -46,10 +46,11 @@
 }
 .sonatype-icons.add-organization:before {
   content: '\e60e';
-  font-size: 31px !important;
+  font-size: 32px !important;
 }
 .sonatype-icons.add-application:before {
   content: '\e008';
+  line-height: 32px;
 }
 .sonatype-icons.add-policy:before {
   content: '\e60d';

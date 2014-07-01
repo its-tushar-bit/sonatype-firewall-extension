@@ -43,55 +43,6 @@
           <span class="navbar-version">{{getServerVersion()}}</span>
         </span>
       </span>
-      <div class='dashboard-right pull-right'>
-        <ul class='inline dashboard-menus'>
-          <li>
-            <div class="btn-group pull-right">
-              <a class='dropdown-toggle' data-toggle="dropdown" href="#">
-                <i class='glyphicons-sonatype medium cogwheel'></i>
-              </a>
-              <ul class="dropdown-menu dropdown-menu-arrow">
-                <li class="disabled"><a tabindex="-1">System Preferences</a></li>
-                <li class="divider"></li>
-                <li ng-class="{'active': $state.is('users') }">
-                  <a href='index.html#/users'>Users</a>
-                </li>
-                <li ng-class="{'active': $state.is('global') }">
-                  <a href='index.html#/global'>Global Roles</a>
-                </li>
-                <li ng-class="{'active': $state.is('productlicense') }">
-                  <a href='index.html#/productlicense'>Product License</a>
-                </li>
-                <li ng-class="{'active': $state.is('proprietarycomponents') }">
-                  <a href='index.html#/proprietarycomponents'>Proprietary Components</a>
-                </li>
-                <li ng-class="{'active': $state.includes('ldap') }">
-                  <a href='index.html#/ldap'>LDAP</a>
-                </li>
-              </ul>
-            </div>
-          </li>
-          <li>
-            <div id="help" class="btn-group pull-right">
-              <a class='dropdown-toggle' data-toggle="dropdown" href="#">
-                <i class='glyphicons-sonatype medium help'></i>
-              </a>
-              <ul class="dropdown-menu dropdown-menu-arrow">
-                <li class="disabled"><a tabindex="-1">Support Options</a></li>
-                <li class="divider"></li>
-                <li>
-                  <a id="documentation-link" href="http://links.sonatype.com/products/clm/doc" title="Go to Online Help"
-                     target="_blank">Online Help</a>
-                </li>
-                <li>
-                  <a id="support-link" href="http://links.sonatype.com/products/clm/support"
-                     title="Submit a request to Sonatype support" target="_blank">Request Support</a>
-                </li>
-              </ul>
-            </div>
-          </li>
-        </ul>
-      </div>
       <div class='dashboard-responsive'>
         <ul class='inline dashboard-navigation'>
           <li ng-class="{ 'active' : $state.includes('dashboard') }" tooltip='Dashboard' tooltip-placement='bottom' ng-if='isDashboardLicensed()'>
@@ -115,60 +66,106 @@
             <div id="functionalTestingSupport" style="color: red;"></div>
           </li>
         </ul>
-        <ul class='inline dashboard-user pull-right'>
-          <li class='dashboard-add'>
-            <div id='global-create' class="btn-group">
-              <a class='dropdown-toggle' data-toggle="dropdown" href="#">
-                <i class='glyphicons-halflings-sonatype medium plus'></i>
-              </a>
-              <ul class="dropdown-menu dropdown-menu-arrow">
-                <li>
-                  <a id='global-create-org' class='sonatype-icons sonatype-icon-menu add-organization' ui-sref='management.organization.view({organizationId: "_new_"})'>New Organization</a>
-                </li>
-                <li>
-                  <a id='global-create-app' class='sonatype-icons sonatype-icon-menu add-application' ui-sref='management.application.view({applicationPublicId: "_new_"})'>New Application</a>
-                </li>
-                <li ng-if='$state.params.organizationId && $state.params.organizationId != "_new_"'>
-                  <a id='global-create-policy' class='sonatype-icons sonatype-icon-menu add-policy' ui-sref='management.organization.view.policies.new({organizationId: $state.params.organizationId})'>New Policy</a>
-                </li>
-                <li ng-if='$state.params.applicationPublicId && $state.params.applicationPublicId != "_new_"'>
-                  <a id='global-create-policy' class='sonatype-icons sonatype-icon-menu add-policy' ui-sref='management.application.view.policies.new({applicationPublicId: $state.params.applicationPublicId})'>New Policy</a>
-                </li>
-                <li ng-if='$state.params.organizationId && $state.params.organizationId != "_new_"'>
-                  <a id='global-create-label' class='sonatype-icons sonatype-icon-menu add-label' ui-sref='management.organization.view.labels.new({organizationId: $state.params.organizationId})'>New Label</a>
-                </li>
-                <li ng-if='$state.params.applicationPublicId && $state.params.applicationPublicId != "_new_"'>
-                  <a id='global-create-label' class='sonatype-icons sonatype-icon-menu add-label' ui-sref='management.application.view.labels.new({applicationPublicId: $state.params.applicationPublicId})'>New Label</a>
-                </li>
-                <li ng-if='$state.params.organizationId && $state.params.organizationId != "_new_"'>
-                  <a id='global-create-ltg' class='sonatype-icons sonatype-icon-menu add-license-threat-group' ui-sref='management.organization.view.licenses.new({organizationId: $state.params.organizationId})'>New License Threat Group</a>
-                </li>
-                <li ng-if='$state.params.applicationPublicId && $state.params.applicationPublicId != "_new_"'>
-                  <a id='global-create-ltg' class='sonatype-icons sonatype-icon-menu add-license-threat-group' ui-sref='management.application.view.licenses.new({applicationPublicId: $state.params.applicationPublicId})'>New License Threat Group</a>
-                </li>
-                <li ng-if='$state.params.organizationId && $state.params.organizationId != "_new_"'>
-                  <a id='global-create-tag' class='sonatype-icons sonatype-icon-menu add-tag' ui-sref='management.organization.view.tags.new({organizationId: $state.params.organizationId})'>New Tag</a>
-                </li>
-                
-              </ul>
-            </div>
-          </li>
-          <li id="user-menu">
-            <div class="btn-group">
-              <a class="btn dropdown-toggle" data-toggle="dropdown" href="javascript:;">
-                <i class='glyphicons-sonatype medium user'></i><span class="user-name">{{ displayName }}</span>
-              </a>
-              <ul class="dropdown-menu dropdown-menu-arrow">
-                <li ng-controller='ChangePassword' ng-show='canChangePassword()'>
-                  <a id='change-password' ng-click="change()">Change Password</a>
-                </li>
-                <li ng-controller='LogoutController'>
-                  <a id='logout' ng-click="logout()">Logout</a>
-                </li>
-              </ul>
-            </div>
-          </li>
-        </ul>
+        <div id="help-menu" class="help-menu inline pull-right">
+          <div class="dropdown pull-right">
+            <a id="help-menu-dropdown-toggle" class="dropdown-toggle" data-toggle="dropdown">
+              <i class='glyphicons-sonatype medium help'></i>
+            </a>
+            <ul class="dropdown-menu dropdown-menu-arrow">
+              <li class="disabled"><a tabindex="-1">Support Options</a></li>
+              <li class="divider"></li>
+              <li>
+                <a id="documentation-link" href="http://links.sonatype.com/products/clm/doc" title="Go to Online Help"
+                   target="_blank">Online Help</a>
+              </li>
+              <li>
+                <a id="support-link" href="http://links.sonatype.com/products/clm/support"
+                   title="Submit a request to Sonatype support" target="_blank">Request Support</a>
+              </li>
+            </ul>
+          </div>
+        </div>
+        <div class="system-menu inline pull-right">
+          <div class="dropdown pull-right">
+            <a class="dropdown-toggle" data-toggle="dropdown">
+              <i class='glyphicons-sonatype medium cogwheel'></i>
+            </a>
+            <ul class="dropdown-menu dropdown-menu-arrow">
+              <li class="disabled"><a tabindex="-1">System Preferences</a></li>
+              <li class="divider"></li>
+              <li ng-class="{'active': $state.is('users') }">
+                <a href='index.html#/users'>Users</a>
+              </li>
+              <li ng-class="{'active': $state.is('global') }">
+                <a href='index.html#/global'>Global Roles</a>
+              </li>
+              <li ng-class="{'active': $state.is('productlicense') }">
+                <a href='index.html#/productlicense'>Product License</a>
+              </li>
+              <li ng-class="{'active': $state.is('proprietarycomponents') }">
+                <a href='index.html#/proprietarycomponents'>Proprietary Components</a>
+              </li>
+              <li ng-class="{'active': $state.includes('ldap') }">
+                <a href='index.html#/ldap'>LDAP</a>
+              </li>
+            </ul>
+          </div>
+        </div>
+        <div id="user-menu" class='user-menu inline pull-right'>
+          <div class="dropdown">
+            <a id="user-menu-dropdown-toggle" class="dropdown-toggle" data-toggle="dropdown">
+              <i class='glyphicons-sonatype medium user'></i><span class="user-name">{{ displayName }}</span>
+            </a>
+            <ul class="dropdown-menu dropdown-menu-arrow">
+              <li class="disabled"><a tabindex="-1">Current User</a></li>
+              <li class="divider"></li>
+              <li ng-controller='ChangePassword' ng-show='canChangePassword()'>
+                <a id='change-password' ng-click="change()">Change Password</a>
+              </li>
+              <li ng-controller='LogoutController'>
+                <a id='logout' ng-click="logout()">Logout</a>
+              </li>
+            </ul>
+          </div>
+        </div>
+        <div id="global-create-menu" class="global-create-menu inline pull-right">
+          <div class="dropdown">
+            <a id="global-create-dropdown-toggle" class='dropdown-toggle' data-toggle="dropdown" href="#">
+              <i class='glyphicons-halflings-sonatype medium plus'></i>
+            </a>
+            <ul class="dropdown-menu dropdown-menu-arrow">
+              <li class="disabled"><a tabindex="-1">Expand CLM</a></li>
+              <li class="divider"></li>
+              <li>
+                <a id='global-create-org' class='sonatype-icons sonatype-icon-menu add-organization' ui-sref='management.organization.view({organizationId: "_new_"})'>New Organization</a>
+              </li>
+              <li>
+                <a id='global-create-app' class='sonatype-icons sonatype-icon-menu add-application' ui-sref='management.application.view({applicationPublicId: "_new_"})'>New Application</a>
+              </li>
+              <li ng-if='$state.params.organizationId && $state.params.organizationId != "_new_"'>
+                <a id='global-create-policy' class='sonatype-icons sonatype-icon-menu add-policy' ui-sref='management.organization.view.policies.new({organizationId: $state.params.organizationId})'>New Policy</a>
+              </li>
+              <li ng-if='$state.params.applicationPublicId && $state.params.applicationPublicId != "_new_"'>
+                <a id='global-create-policy' class='sonatype-icons sonatype-icon-menu add-policy' ui-sref='management.application.view.policies.new({applicationPublicId: $state.params.applicationPublicId})'>New Policy</a>
+              </li>
+              <li ng-if='$state.params.organizationId && $state.params.organizationId != "_new_"'>
+                <a id='global-create-label' class='sonatype-icons sonatype-icon-menu add-label' ui-sref='management.organization.view.labels.new({organizationId: $state.params.organizationId})'>New Label</a>
+              </li>
+              <li ng-if='$state.params.applicationPublicId && $state.params.applicationPublicId != "_new_"'>
+                <a id='global-create-label' class='sonatype-icons sonatype-icon-menu add-label' ui-sref='management.application.view.labels.new({applicationPublicId: $state.params.applicationPublicId})'>New Label</a>
+              </li>
+              <li ng-if='$state.params.organizationId && $state.params.organizationId != "_new_"'>
+                <a id='global-create-ltg' class='sonatype-icons sonatype-icon-menu add-license-threat-group' ui-sref='management.organization.view.licenses.new({organizationId: $state.params.organizationId})'>New License Threat Group</a>
+              </li>
+              <li ng-if='$state.params.applicationPublicId && $state.params.applicationPublicId != "_new_"'>
+                <a id='global-create-ltg' class='sonatype-icons sonatype-icon-menu add-license-threat-group' ui-sref='management.application.view.licenses.new({applicationPublicId: $state.params.applicationPublicId})'>New License Threat Group</a>
+              </li>
+              <li ng-if='$state.params.organizationId && $state.params.organizationId != "_new_"'>
+                <a id='global-create-tag' class='sonatype-icons sonatype-icon-menu add-tag' ui-sref='management.organization.view.tags.new({organizationId: $state.params.organizationId})'>New Tag</a>
+              </li>
+            </ul>
+          </div>
+        </div>
       </div>
     </div>
   </div>

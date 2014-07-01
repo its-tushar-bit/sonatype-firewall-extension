@@ -13,10 +13,10 @@ import geb.Module
 class HelpModule
     extends Module
 {
-  static base = { $('#help') }
+  static base = { $('#help-menu') }
 
   static content = {
-    dropdown { $('a[data-toggle="dropdown"]') }
+    dropdown { $('#help-menu-dropdown-toggle') }
     documentation(required: false) { $('#documentation-link') }
     support(required: false) { $('#support-link') }
   }

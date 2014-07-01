@@ -12,11 +12,11 @@ class GlobalCreateModule
 {
   String browserClassName
 
-  static base = { $('#global-create') }
+  static base = { $('#global-create-menu') }
 
   static content = {
     dropdown {
-      def navigator = $('a[data-toggle="dropdown"]')
+      def navigator = $('#global-create-dropdown-toggle')
       browserClassName == 'ChromeDriver' ? navigator.parent() : navigator
     }
     newOrganization(required: false) { $('#global-create-org') }

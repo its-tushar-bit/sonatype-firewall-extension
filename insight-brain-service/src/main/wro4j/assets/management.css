@@ -102,11 +102,6 @@ a:focus {
 	-moz-transition: all .2s linear;
 	transition: all .2s linear;
 }
-.first-row a::before, .first-row i::before {
-  -webkit-transition: all .2s linear;
-  -moz-transition: all .2s linear;
-  transition: all .2s linear;
-}
 .first-row a:hover {
 	text-decoration: none;
 }
@@ -239,7 +234,7 @@ a:focus {
 }
 .help-menu a:hover:before, .system-menu a:hover:before, .user-menu a:hover:before, .global-create-menu a:hover:before {
   color: #FFFFFF;
-  background-color: #2476FC;
+  background-color: transparent;
 }
 .help-menu .dropdown-menu li:not(.disabled) > a:hover, .system-menu .dropdown-menu li:not(.disabled) > a:hover, .user-menu .dropdown-menu li:not(.disabled) > a:hover, .global-create-menu .dropdown-menu li:not(.disabled) > a:hover {
   color: #FFFFFF;

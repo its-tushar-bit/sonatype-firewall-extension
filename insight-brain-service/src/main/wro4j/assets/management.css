@@ -102,6 +102,11 @@ a:focus {
 	-moz-transition: all .2s linear;
 	transition: all .2s linear;
 }
+.first-row a::before, .first-row i::before {
+  -webkit-transition: all .2s linear;
+  -moz-transition: all .2s linear;
+  transition: all .2s linear;
+}
 .first-row a:hover {
 	text-decoration: none;
 }
@@ -139,12 +144,11 @@ a:focus {
   display: inline;
   margin-bottom: 0px;
 }
-.dashboard-navigation > li {
-  line-height: 0;
-}
 .dashboard-navigation > li span {
+  padding-top: 5px;
   padding-right: 10px !important;
   padding-left: 10px !important;
+  display: inline-block;
 }
 .dashboard-navigation > li:first-child {
   margin-left: 21px !important;
@@ -154,16 +158,7 @@ a:focus {
 }
 .dashboard-navigation > li {
   padding: 0 !important;
-}
-.dashboard-navigation > li span {
-  display: inline-block;
-  padding-bottom: 6px;
-}
-.dashboard-right {
-  margin-bottom: -8px;
-}
-.dashboard-navigation li span {
-  padding-top: 11px;
+  line-height: 28px;
 }
 .dashboard-navigation > li span:hover {
   background-color: #f4f4f4;
@@ -171,6 +166,7 @@ a:focus {
 .dashboard-navigation i:before {
   font-size: 24px;
   color: #919191;
+  line-height: 28px;
 }
 .dashboard-navigation span {
   border-bottom: 3px solid transparent;
@@ -243,6 +239,12 @@ a:focus {
 }
 .help-menu a:hover:before, .system-menu a:hover:before, .user-menu a:hover:before, .global-create-menu a:hover:before {
   color: #FFFFFF;
+  background-color: #2476FC;
+}
+.help-menu .dropdown-menu li:not(.disabled) > a:hover, .system-menu .dropdown-menu li:not(.disabled) > a:hover, .user-menu .dropdown-menu li:not(.disabled) > a:hover, .global-create-menu .dropdown-menu li:not(.disabled) > a:hover {
+  color: #FFFFFF;
+  background-color: #2476FC;
+  background-image: none;
 }
 .help-menu .divider, .system-menu .divider, .user-menu .divider, .global-create-menu .divider {
   height: 0px;

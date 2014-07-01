@@ -46,7 +46,7 @@
 }
 .sonatype-icons.add-organization:before {
   content: '\e60e';
-  font-size: 32px !important;
+  font-size: 30px !important;
 }
 .sonatype-icons.add-application:before {
   content: '\e008';

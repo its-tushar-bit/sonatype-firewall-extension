@@ -245,6 +245,7 @@ a:focus {
   color: #FFFFFF;
   background-color: #2476FC;
   background-image: none;
+  filter: none;
 }
 .help-menu .divider, .system-menu .divider, .user-menu .divider, .global-create-menu .divider {
   height: 0px;

@@ -95,44 +95,46 @@
   <div style="width:100%;text-align:right;margin-bottom:5px;">
     <button class="btn" ng-click="viewWaivers()">View Existing Waivers</button>
   </div>
-  <table class="table table-condensed table-striped cip-policy-table" border="0" cellpadding="0" cellspacing="0">
-    <thead>
-      <tr>
-        <th class="cip-policy-table-header">Policy/<em>Action</em></th>
-        <th class="cip-policy-table-header">Constraint</th>
-        <th class="cip-policy-table-header">Condition Value</th>
-        <th class="cip-policy-table-header">Waivers</th>
-      </tr>
-    </thead>
-    <tr ng-repeat="policyAlert in processedPolicyAlerts">
-      <td align="left" valign="top" style="padding: 0px;" class="cip-policy cip-policy-{{policyAlert.color}}">
-        <div>
-          <b>{{policyAlert.name}}</b>
-        </div>
-        <ul style="color: #555555;">
-          <li ng-repeat="action in policyAlert.actions"><i>{{action.actionSummary}}</i></li>
-        </ul>
-      </td>
-      <td valign="top" align="left">
-        <div ng-repeat="constraint in policyAlert.constraints">
-          <div ng-repeat="condition in constraint.conditions">
-            <div style="color: #555555;" ng-show="$index == 0">
-              <b>{{constraint.constraintName}}</b>
-            </div>
-            <div ng-show="$index > 0">&nbsp;</div>
+  <div class="cip-policy-wrapper">
+    <table class="table table-condensed table-striped cip-policy-table" border="0" cellpadding="0" cellspacing="0">
+      <thead>
+        <tr>
+          <th class="cip-policy-table-header">Policy/<em>Action</em></th>
+          <th class="cip-policy-table-header">Constraint</th>
+          <th class="cip-policy-table-header">Condition Value</th>
+          <th class="cip-policy-table-header">Waivers</th>
+        </tr>
+      </thead>
+      <tr ng-repeat="policyAlert in processedPolicyAlerts">
+        <td align="left" valign="top" style="padding: 0px;" class="cip-policy cip-policy-{{policyAlert.color}}">
+          <div>
+            <b>{{policyAlert.name}}</b>
           </div>
-        </div>
-      </td>
-      <td>
-        <div ng-repeat="constraint in policyAlert.constraints">
-          <div ng-repeat="condition in constraint.conditions" style="color: #555555;">{{condition.conditionReason}}</div>
-        </div>
-      </td>
-      <td style="vertical-align:middle;">
-        <button type='none' class='btn btn-primary' ng-click='waiveComponent(policyAlert)'>Waive</button>
-      </td>
-    </tr>
-  </table>
+          <ul style="color: #555555;">
+            <li ng-repeat="action in policyAlert.actions"><i>{{action.actionSummary}}</i></li>
+          </ul>
+        </td>
+        <td valign="top" align="left">
+          <div ng-repeat="constraint in policyAlert.constraints">
+            <div ng-repeat="condition in constraint.conditions">
+              <div style="color: #555555;" ng-show="$index == 0">
+                <b>{{constraint.constraintName}}</b>
+              </div>
+              <div ng-show="$index > 0">&nbsp;</div>
+            </div>
+          </div>
+        </td>
+        <td>
+          <div ng-repeat="constraint in policyAlert.constraints">
+            <div ng-repeat="condition in constraint.conditions" style="color: #555555;">{{condition.conditionReason}}</div>
+          </div>
+        </td>
+        <td style="vertical-align:middle;">
+          <button type='none' class='btn btn-primary' ng-click='waiveComponent(policyAlert)'>Waive</button>
+        </td>
+      </tr>
+    </table>
+  </div>
   <div clm-alerts='alerts'></div>
   <div style="text-align:center;width:100%;" ng-show='processedPolicyAlerts.length == 0'>
     <b>No Policy Violations</b>

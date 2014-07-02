@@ -65,6 +65,10 @@
 		transparent;
 	color: #005399;
 }
+.cip-policy-wrapper {
+  overflow: auto;
+  height: 235px;
+}
 
 #add-waiver-modal label {
 	display : block;

@@ -11,7 +11,7 @@ import com.sonatype.insight.brain.testing.functional.modules.RoleMappingModule
 class GlobalRolesPage
     extends BasePage
 {
-  static url = "assets/index.html#/global"
+  static url = "assets/index.html#/globalroles"
 
   static at = { $('#security').displayed }
 

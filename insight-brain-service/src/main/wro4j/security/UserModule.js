@@ -8,8 +8,8 @@
   'use strict';
   angular.module('SecurityModule', ['ui.router', 'ManagementModule', 'AngularCommon', 'ApplicationSecurityModule'], ['$stateProvider',
       function($stateProvider) {
-        $stateProvider.state('global', {
-          url: '/global',
+        $stateProvider.state('globalroles', {
+          url: '/globalroles',
           template : '<div class="mid-content"><h1 class="page-title"><div class="container">Global Roles</div></h1></div>' +
                      '<div class="container" ng-controller="AppSecurityController" ng-include="\'../policy-assets/components/app-security/app-security.html?' + clmBuildTimestamp + '\'"></div>',
           data : {

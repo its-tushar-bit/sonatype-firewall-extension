@@ -54,7 +54,10 @@ public class PolicyViolationDTOComparator
     if (result != 0) {
       return result;
     }
-    return v1.hash.compareToIgnoreCase(v2.hash);
+    if (v1.hash != null) {
+      result = v1.hash.compareToIgnoreCase(v2.hash);
+    }
+    return result;
   }
 
   private int compareCoordinates(PolicyViolationDTO v1, PolicyViolationDTO v2) {

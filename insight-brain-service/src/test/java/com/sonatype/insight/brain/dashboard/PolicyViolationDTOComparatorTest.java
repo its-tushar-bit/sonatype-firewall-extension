@@ -12,6 +12,7 @@ import java.util.UUID;
 import com.google.common.collect.Lists;
 import org.junit.Test;
 
+import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 
@@ -58,5 +59,18 @@ public class PolicyViolationDTOComparatorTest
     dto.version = version;
     dto.hash = hash;
     return dto;
+  }
+
+  @Test
+  public void testIndistinguishable_NoGavNoHash() {
+    PolicyViolationDTO dto1 = buildPolicyViolationDTO(7, "policy", "app", null, null, null, null);
+    PolicyViolationDTO dto2 = buildPolicyViolationDTO(7, "policy", "app", null, null, null, null);
+
+    List<PolicyViolationDTO> sorted = Lists.newArrayList(dto1, dto2);
+
+    Collections.sort(sorted, new PolicyViolationDTOComparator());
+
+    // sanity check, the key point is merely to not blow up with a NPE
+    assertThat(sorted, contains(dto1, dto2));
   }
 }

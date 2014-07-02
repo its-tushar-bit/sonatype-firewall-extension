@@ -15,6 +15,8 @@ class NexusCIPPage
   static url = 'assets/version-graph/rm/nexus/index.html#/'
 
   static content = {
+    selectAnAppText(required: false) { $('#select-application') }
     appSelect { $('#selectApp') }
+    options { appSelect.find('option')*.text().findAll{ it.trim() } }
   }
 }

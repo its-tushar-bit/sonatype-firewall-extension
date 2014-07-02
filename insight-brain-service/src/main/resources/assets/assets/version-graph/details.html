@@ -113,7 +113,7 @@
       <div class='alert alert-error' style='margin: auto; margin-top: 20px; padding-top: 5px; width: 450px'>
         <h4>Error</h4>
 
-        <div ng-switch='error'>
+        <div id='error-message' ng-switch='error'>
           <div ng-switch-when='401'>
             <p>Authentication with the CLM Server failed. Please verify you supplied the proper credentials in the
               plugin configuration. Once the issue has been resolved, you will need to close and re-open this page.</p>

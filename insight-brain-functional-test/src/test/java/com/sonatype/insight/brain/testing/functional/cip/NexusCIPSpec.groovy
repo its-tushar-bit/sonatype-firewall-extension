@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.testing.functional.cip
 
 import com.sonatype.insight.brain.model.Application
 import com.sonatype.insight.brain.model.Organization
+import com.sonatype.insight.brain.testing.functional.utils.AbstractComponentDetailsSpec
 
 import spock.lang.Stepwise
 
@@ -31,9 +32,16 @@ class NexusCIPSpec
 
     Organization org = temporaryEntity.newOrganization('NexusCIPSpec')
     app = temporaryEntity.newApplication('NexusCIPSpec', org.id)
+  }
 
-    loginAsAdminVia()
-    to NexusCIPPage
+  def 'The application names are available without authentication'() {
+    when: 'First loading the CIP'
+      to NexusCIPPage
+
+    then: 'Application names are available to choose from'
+      options == [app.name]
+      selectAnAppText.displayed
+      selectAnAppText.text() == 'Select an application.'
   }
 
   def 'Can select an application'() {
@@ -45,12 +53,31 @@ class NexusCIPSpec
 
     then: 'Shows the application name in the select'
       appSelect.text() == app.name
+      defaultText.displayed
+      defaultText.text() == 'Select a component to view details.'
 
     and: 'the CIP is not loaded'
       !cip.displayed
   }
 
-  def 'Can select a GAV'() {
+  def 'Cannot load data without authenticating first'() {
+    when: 'Simulating user selection of a GAV with javascript'
+      page.setGAV(hdsComponentResponse.groupId, hdsComponentResponse.artifactId, hdsComponentResponse.version,
+          app.publicId)
+
+    then: 'an error message is shown'
+      error.displayed
+      error.text().contains('Error 401')
+  }
+
+  def 'Can select a GAV once logged in'() {
+    given: 'Logged into the server'
+      loginAsAdminVia()
+      to NexusCIPPage
+
+    expect: 'The previous choice for application is still there'
+      appSelect.text() == app.name
+
     when: 'Simulating user selection of a GAV with javascript'
       page.setGAV(hdsComponentResponse.groupId, hdsComponentResponse.artifactId, hdsComponentResponse.version,
           app.publicId)

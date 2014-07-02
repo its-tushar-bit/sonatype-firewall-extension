@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.testing.functional.cip
 
 import com.sonatype.insight.brain.model.Application
 import com.sonatype.insight.brain.model.Organization
+import com.sonatype.insight.brain.testing.functional.utils.AbstractComponentDetailsSpec
 
 import spock.lang.Stepwise
 
@@ -31,14 +32,37 @@ class EclipseCIPSpec
 
     Organization org = temporaryEntity.newOrganization('EclipseCIPSpec')
     app = temporaryEntity.newApplication('EclipseCIPSpec', org.id)
+  }
 
-    loginAsAdminVia()
-    to EclipseCIPPage
+  def 'The initial page can be loaded without authentication'() {
+    when: 'We load the CIP'
+      to EclipseCIPPage
+
+    then: 'We get the default message'
+      !cip.displayed
+      defaultText.displayed
+      defaultText.text() == 'Select a component to view details.'
+  }
+
+  def 'Cannot load data without authenticating first'() {
+    when: 'Simulating user selection of a GAV with javascript'
+      page.setGAV(component.groupId, component.artifactId, component.version,
+          app.publicId)
+
+    then: 'an error message is shown'
+      error.displayed
+      error.text().contains('Error 401')
   }
 
   def 'Initially the CIP is not shown'() {
+    given: 'Logged into the server'
+      loginAsAdminVia()
+      to EclipseCIPPage
+
     expect: 'the CIP is not loaded'
       !cip.displayed
+      defaultText.displayed
+      defaultText.text() == 'Select a component to view details.'
   }
 
   def 'Can select a GAV'() {

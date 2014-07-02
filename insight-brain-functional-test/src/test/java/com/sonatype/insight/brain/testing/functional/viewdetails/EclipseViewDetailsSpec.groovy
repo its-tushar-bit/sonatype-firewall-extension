@@ -7,13 +7,16 @@ package com.sonatype.insight.brain.testing.functional.viewdetails
 
 import com.sonatype.insight.brain.model.Application
 import com.sonatype.insight.brain.model.Organization
-import com.sonatype.insight.brain.testing.functional.cip.AbstractComponentDetailsSpec
+import com.sonatype.insight.brain.testing.functional.utils.AbstractComponentDetailsSpec
+
+import spock.lang.Stepwise
 
 import static com.sonatype.insight.brain.testing.functional.utils.HDSHelper.JUNIT_DETAILS_FILE
 
 /**
  * @since 1.12
  */
+@Stepwise
 class EclipseViewDetailsSpec
     extends AbstractComponentDetailsSpec
 {
@@ -26,11 +29,23 @@ class EclipseViewDetailsSpec
 
     Organization org = temporaryEntity.newOrganization(this.getClass().simpleName)
     app = temporaryEntity.newApplication(this.getClass().simpleName, org.id)
+  }
 
-    loginAsAdminVia()
+  def 'Does not load without authentication'() {
+    when: 'trying to load the page without being authenticated'
+      via EclipseViewDetailsPage,
+          appId: app.publicId, groupId: component.groupId, artifactId: component.artifactId,
+          version: component.version
+
+    then: 'an authorization error is shown'
+      error.displayed
+      error.text().startsWith('Authentication with the CLM Server failed.')
   }
 
   def "Can load view details page for a particular GAV in the context of an application"() {
+    given: 'Logged into the server'
+      loginAsAdminVia()
+
     when: 'loading the page with GAV and application public id'
       to EclipseViewDetailsPage,
           appId: app.publicId, groupId: component.groupId, artifactId: component.artifactId,

@@ -1,6 +1,6 @@
 <div id='version-graph'>
   <script type='text/ng-template' id='error'>
-    <div class='alert alert-error cipContentBox' ng-if='errorMessage'>
+    <div class='alert alert-error cipContentBox' ng-if='errorMessage' id='error-message'>
       <h5>Error</h5>
 
       <p>Unfortunately an error occurred while contacting the CLM server, if the problem persists please contact <a
@@ -29,14 +29,14 @@
         </form>
         <span ng-hide='applications'><h5><i class='icon-time'></i> Loading...</h5></span>
       </div>
-      <div ng-if='!selectedApplication' class='alert alert-info alert-centered fade in'>
+      <div id='select-application' ng-if='!selectedApplication' class='alert alert-info alert-centered fade in'>
         Select an application.
       </div>
     </div>
     <div ng-if='canLoad()' ng-controller='ComponentController' class='content'>
       <div ng-include='"error"'></div>
       <div ng-controller='StatusController' ng-show='!gav'>
-        <div ng-if='!state' class='alert alert-info alert-centered fade in'>
+        <div id='select-component' ng-if='!state' class='alert alert-info alert-centered fade in'>
           Select a component to view details.
         </div>
         <!-- filtered -->

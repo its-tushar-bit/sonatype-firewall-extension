@@ -16,8 +16,10 @@ abstract class AbstractCIPPage
     extends Page
 {
   static content = {
+    defaultText(required: false) { $('#select-component') }
     cip(required: false) { module CIPModule }
     versionGraph(required: false) { module VersionGraphModule }
+    error { $('#error-message') }
   }
 
   /**

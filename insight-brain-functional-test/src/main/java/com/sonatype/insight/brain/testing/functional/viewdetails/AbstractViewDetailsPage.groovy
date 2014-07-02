@@ -17,7 +17,7 @@ abstract class AbstractViewDetailsPage
   static at = { sectionHeaders.size > 2 }
 
   static content = {
-    sectionHeaders(wait: true) { $('h5')*.text().findAll{ it.trim() } }
+    sectionHeaders(wait: 'slow') { $('h5')*.text().findAll{ it.trim() } }
     noPolicyViolations { $('#no-policy-violations') }
     policyViolationTable(required: false) { module PolicyViolationTableModule, $('h5.policy-header ~ table') }
 
@@ -29,6 +29,8 @@ abstract class AbstractViewDetailsPage
     noSecurityForClaimed { $('#security-claimed') }
     noSecurity { $('#security-none') }
     securityViolationTable(required: false) { module SecurityViolationTableModule, $('h5.security-header ~ table') }
+
+    error { $('#error-message') }
   }
 }
 

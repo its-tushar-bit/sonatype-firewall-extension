@@ -37,7 +37,6 @@ class NexusViewDetailsSpec
           version: hdsComponentResponse.version
 
     then: 'details for the GAV are shown'
-      waitFor { at NexusViewDetailsPage }
       String gav = [hdsComponentResponse.groupId, hdsComponentResponse.artifactId, hdsComponentResponse.version].
           join(':')
       sectionHeaders[0] == "CLM Details for ${gav} in the context of CLM Application ${app.name}"

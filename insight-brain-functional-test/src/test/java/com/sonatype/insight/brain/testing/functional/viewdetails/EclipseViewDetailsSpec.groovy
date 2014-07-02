@@ -37,9 +37,6 @@ class EclipseViewDetailsSpec
           version: component.version
 
     then: 'details for the GAV are shown'
-      waitFor { at EclipseViewDetailsPage }
-      String gav = [component.groupId, component.artifactId, component.version].
-          join(':')
       sectionHeaders[0] == 'Policy Violations'
       sectionHeaders[1] == 'License Analysis'
       sectionHeaders[2] == 'Security Issues'

@@ -217,8 +217,7 @@ public class PolicyEvaluator
       final List<Component> components)
   {
     final String droolsCode = new DroolsGenerator().generate(applicationId, policies);
-    // Most probably this is too much logging, but it's good for debugging for now
-    log.debug("Generated drools code:\n{}", droolsCode);
+    log.trace("Generated drools code:\n{}", droolsCode);
 
     final KnowledgeBuilder droolsKnowledgeBuilder = KnowledgeBuilderFactory.newKnowledgeBuilder();
     droolsKnowledgeBuilder.add(ResourceFactory.newReaderResource(new StringReader(droolsCode)), ResourceType.DRL);

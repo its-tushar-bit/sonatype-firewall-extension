@@ -39,15 +39,13 @@ class NexusCIPSpec
       to NexusCIPPage
 
     then: 'Application names are available to choose from'
+      waitFor { appSelect.displayed }
       options == [app.name]
       selectAnAppText.displayed
       selectAnAppText.text() == 'Select an application.'
   }
 
   def 'Can select an application'() {
-    given: 'The application list has been loaded'
-      waitFor { appSelect.displayed }
-
     when: 'Selecting an application from the list'
       appSelect = app.name
 
@@ -66,7 +64,7 @@ class NexusCIPSpec
           app.publicId)
 
     then: 'an error message is shown'
-      error.displayed
+      waitFor { error.displayed }
       error.text().contains('Error 401')
   }
 
@@ -76,7 +74,7 @@ class NexusCIPSpec
       to NexusCIPPage
 
     expect: 'The previous choice for application is still there'
-      appSelect.text() == app.name
+      waitFor { appSelect.text() == app.name }
 
     when: 'Simulating user selection of a GAV with javascript'
       page.setGAV(hdsComponentResponse.groupId, hdsComponentResponse.artifactId, hdsComponentResponse.version,

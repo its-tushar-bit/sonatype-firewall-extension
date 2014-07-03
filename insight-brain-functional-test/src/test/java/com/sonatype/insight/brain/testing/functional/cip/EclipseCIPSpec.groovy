@@ -50,7 +50,7 @@ class EclipseCIPSpec
           app.publicId)
 
     then: 'an error message is shown'
-      error.displayed
+      waitFor { error.displayed }
       error.text().contains('Error 401')
   }
 

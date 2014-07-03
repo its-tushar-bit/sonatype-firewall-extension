@@ -38,7 +38,7 @@ class EclipseViewDetailsSpec
           version: component.version
 
     then: 'an authorization error is shown'
-      error.displayed
+      waitFor { error.displayed }
       error.text().startsWith('Authentication with the CLM Server failed.')
   }
 

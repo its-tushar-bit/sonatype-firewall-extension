@@ -27,6 +27,11 @@ http:
   #adminUsername: user1234
   #adminPassword: pass5678
 
+  # The hostname of the interface to which the HTTP server socket
+  # will be bound. If omitted, the socket will listen on all
+  # interfaces.
+  #bindHost: 127.0.0.1  # only bind to loopback
+
 # Notification mail settings.
 #mail:
 

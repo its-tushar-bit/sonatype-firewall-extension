@@ -12,18 +12,26 @@
    var mountFolder = function(connect, dir) {
      return connect.static(require('path').resolve(dir));
    };
-   var config = {
-     components: 'src/main/resources/assets',
-     filtered: 'src/main/filtered-resources/assets',
-     gruntFiltered: 'grunt/filtered',
-     assets: 'src/main/wro4j',
-     brainClientAssets: 'src/main/brain-client',
-     dist: 'grunt/working/dist',
-     tmp: 'grunt/working/.tmp',
-     debug: 'grunt/working/debug'
-   };
 
    module.exports = function(grunt) {
+     // parse angularjs.version out of pom file
+     function getAngularVersion() {
+       var xmlDoc = require('libxmljs').parseXml(grunt.file.read('pom.xml'));
+       return xmlDoc.get('//*[starts-with(name(), "angularjs.version")]').text();
+     }
+
+     var config = {
+       components: 'src/main/resources/assets',
+       filtered: 'src/main/filtered-resources/assets',
+       gruntFiltered: 'grunt/filtered',
+       assets: 'src/main/wro4j',
+       brainClientAssets: 'src/main/brain-client',
+       dist: 'grunt/working/dist',
+       tmp: 'grunt/working/.tmp',
+       debug: 'grunt/working/debug',
+       angularJsVersion: getAngularVersion()
+     };
+
      require('load-grunt-tasks')(grunt);
      require('time-grunt')(grunt);
 
@@ -75,8 +83,8 @@
                  liveReloadSnippet,
                  proxySnippet,
                  mountFolder(connect, config.components),
-                 mountFolder(connect, config.gruntFiltered),
-                 mountFolder(connect, config.debug)
+                 mountFolder(connect, config.debug),
+                 mountFolder(connect, config.gruntFiltered)
                ];
              }
            }
@@ -91,8 +99,8 @@
                    proxySnippet(req, res, options);
                  },
                  mountFolder(connect, config.components),
-                 mountFolder(connect, config.gruntFiltered),
-                 mountFolder(connect, config.debug)
+                 mountFolder(connect, config.debug),
+                 mountFolder(connect, config.gruntFiltered)
                ];
              }
            }
@@ -154,6 +162,15 @@
            cwd: '<%= config.assets %>/',
            dest: '<%= config.tmp %>/',
            src: '{,*/}*.css'
+         },
+         filtered: {
+           src: '<%= config.gruntFiltered %>/assets/index.html',
+           dest: '<%= config.debug %>/assets/index.html',
+           options: {
+             process: function(content, path) {
+               return grunt.template.process(content);
+             }
+           }
          },
          debug: {
            files: [{
@@ -281,6 +298,10 @@
            files: ['<%= config.components %>/{,*/}{,*/}{,*/}*'],
            tasks: ['copy:debug']
          },
+         filtered: {
+           files: ['<%= config.gruntFiltered %>/{,*/}{,*/}{,*/}*'],
+           tasks: ['copy:filtered']
+         },
          livereload: {
            options: {
              livereload: LIVERELOAD_PORT
@@ -298,6 +319,7 @@
      grunt.registerTask('server', [
        'clean:debug',
        'configureProxies',
+       'copy:filtered',
        'copy:debug',
        'connect:livereload',
        'open',

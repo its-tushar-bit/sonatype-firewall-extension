@@ -33,7 +33,8 @@
     "grunt-contrib-concat": "~0.3.0",
     "time-grunt": "~0.2.8",
     "karma-coverage": "~0.1.5",
-    "grunt-phantomas": "~0.5.2"
+    "grunt-phantomas": "~0.5.2",
+    "libxmljs": "^0.10.0"
   },
   "scripts": {
     "test": "grunt test"

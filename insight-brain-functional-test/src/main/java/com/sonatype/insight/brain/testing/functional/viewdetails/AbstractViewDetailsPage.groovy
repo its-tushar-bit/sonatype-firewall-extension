@@ -14,10 +14,10 @@ import geb.Page
 abstract class AbstractViewDetailsPage
     extends Page
 {
-  static at = { sectionHeaders.size > 2 }
+  static at = { browser.title == 'Component Detail' }
 
   static content = {
-    sectionHeaders(wait: 'slow') { $('h5')*.text().findAll{ it.trim() } }
+    sectionHeaders { $('h5')*.text().findAll { it.trim() } }
     noPolicyViolations { $('#no-policy-violations') }
     policyViolationTable(required: false) { module PolicyViolationTableModule, $('h5.policy-header ~ table') }
 
@@ -39,6 +39,26 @@ class PolicyViolationTableModule
 {
   static content = {
     headers { $('th')*.text() }
+    rows { moduleList PolicyViolationTableRow, $('tbody tr') }
+  }
+}
+
+class PolicyViolationTableRow
+    extends Module
+{
+  static final int THREAT_LEVEL = 0
+
+  static final int POLICY_NAME = 1
+
+  static final int CONSTRAINT_NAME = 2
+
+  static final int SUMMARY = 3
+
+  static content = {
+    cell { int i -> $('td', i) }
+    policyName { cell(POLICY_NAME).text() }
+    constraintName { cell(CONSTRAINT_NAME).text() }
+    summary { cell(SUMMARY).text() }
   }
 }
 
@@ -77,6 +97,28 @@ class SecurityViolationTableModule
 {
   static content = {
     headers { $('th')*.text() }
+    rows { moduleList SecurityViolationTableRow, $('tbody tr') }
+
+  }
+}
+
+class SecurityViolationTableRow
+    extends Module
+{
+  static final int THREAT_LEVEL = 1
+
+  static final int PROBLEM_CODE = 2
+
+  static final int STATUS = 3
+
+  static final int SUMMARY = 4
+
+  static content = {
+    cell { int i -> $('td', i) }
+    threatLevel { cell(THREAT_LEVEL).text().toInteger() }
+    problemCode { cell(PROBLEM_CODE).find('a') }
+    status { cell(STATUS).text() }
+    summary { cell(SUMMARY).text() }
   }
 }
 

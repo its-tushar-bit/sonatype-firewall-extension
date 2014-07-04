@@ -524,6 +524,11 @@ public class TemporaryEntity
     return policyTag;
   }
 
+  public Policy newPolicy(Policy policy) {
+    policyDAO.insert(policy);
+    return policy;
+  }
+
   public Policy newPolicy(String ownerId, String name, int threatLevel) {
     Policy policy = new Policy(null /* id */, name);
     policy.setOwnerId(ownerId);

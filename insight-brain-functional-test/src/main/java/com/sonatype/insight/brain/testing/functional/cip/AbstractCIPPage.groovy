@@ -15,6 +15,8 @@ import geb.Page
 abstract class AbstractCIPPage
     extends Page
 {
+  static at = { browser.title == 'Component Information Panel' }
+
   static content = {
     defaultText(required: false) { $('#select-component') }
     cip(required: false) { module CIPModule }
@@ -25,7 +27,7 @@ abstract class AbstractCIPPage
   /**
    * Call the same javascript function used by clients to trigger loading component details.
    */
-  def setGAV(String groupId, String artifactId, String version, String applicationPublicId) {
+  def setGav(String groupId, String artifactId, String version, String applicationPublicId) {
     browser.js.exec(groupId, artifactId, version, applicationPublicId, '''
   window.Insight.setGav({
         groupId: arguments[0],
@@ -34,6 +36,10 @@ abstract class AbstractCIPPage
         appId: arguments[3]
   });
   ''')
+  }
+
+  def clearGav() {
+    browser.js.exec('window.Insight.clearGav()')
   }
 }
 

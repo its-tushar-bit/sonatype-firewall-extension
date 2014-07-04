@@ -12,4 +12,7 @@ class NexusViewDetailsPage
     extends AbstractViewDetailsPage
 {
   static url = 'assets/version-graph/rm/nexus/viewdetails.html'
+
+  static at = { sectionHeaders.size > 2 }
+
 }

@@ -30,7 +30,6 @@
   <group name='css'>
     <css>/applications/application.css</css>
     <css>/assets/app-security.css</css>
-    <css>/assets/clm-large-responsive.css</css>
     <css>/assets/insight.css</css>
     <css>/assets/dashboard.css</css>
     <css>/assets/management.css</css>

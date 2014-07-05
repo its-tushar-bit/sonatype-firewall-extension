@@ -444,20 +444,6 @@
         transclude: true,
         templateUrl: 'dashboard-table',
         link : function (scope, element) {
-          function minTableFit() {
-            var scrollableContainer = element.find('.scrollable-container');
-            scrollableContainer.css('min-width', '');
-            scrollableContainer.css('opacity', '0');
-            $timeout(function() {
-              var table = element.find('table');
-              scrollableContainer = element.find('.scrollable-container');
-              scrollableContainer.css('min-width', table.width());
-              scrollableContainer.css('opacity', '');
-            }, 0);
-          }
-          windowEventsFactory.addResizeHandler(scope, element, minTableFit);
-
-          scope.$watch('data', minTableFit);
 
           function updateDimensions() {
             var container = $('.scrollable-container', element);

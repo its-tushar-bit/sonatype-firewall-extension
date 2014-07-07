@@ -52,7 +52,7 @@
   }
   .dashboard-content #stage-header-build, .dashboard-content #stage-header-stage-release,
   .dashboard-content #stage-header-release, .dashboard-content #stage-header-operate {
-    min-width: 65px;
+    min-width: 65px !important;
   }
   .percentage-graph-legend-count {
     font-size: 10px !important;

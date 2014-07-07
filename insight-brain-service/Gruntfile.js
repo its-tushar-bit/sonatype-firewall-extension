@@ -16,8 +16,10 @@
    module.exports = function(grunt) {
      // parse angularjs.version out of pom file
      function getAngularVersion() {
-       var xmlDoc = require('libxmljs').parseXml(grunt.file.read('pom.xml'));
-       return xmlDoc.get('//*[starts-with(name(), "angularjs.version")]').text();
+       var DOMParser = require('xmldom').DOMParser;
+       var doc = new DOMParser().parseFromString(grunt.file.read('pom.xml'));
+       var node = doc.documentElement.getElementsByTagName('angularjs.version')[0];
+       return node.firstChild.nodeValue;
      }
 
      var config = {

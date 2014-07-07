@@ -13,6 +13,23 @@
   }
 }
 @media (max-width: 1199px) {
+  table.table-risk thead tr th, table.table-risk thead tr th div {
+    min-width: 90px !important;
+  }
+  table.table-risk tbody td:nth-child(1n + 2) {
+    width: 90px !important;
+  }
+  .dashboard-content table {
+    font-size: 12px !important;
+  }
+  table.table-risk th.total-risk {
+    font-size: 12px !important;
+    padding: 0 0px;
+    min-width: 110px !important;
+  }
+  table th#affected-apps {
+    min-width: 120px !important;
+  }
   .dashboard-filters .multi-dropdown button div {
     max-width: 120px;
   }

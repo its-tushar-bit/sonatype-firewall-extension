@@ -1,4 +1,3 @@
-
 <div newest-risk-table>
   <div ng-controller="NewestRiskTableController">
     <table class='table policy-violation-table clm-table-stripe' id="highest-risk-table"
@@ -43,7 +42,7 @@
                   class='wrap-force-break'> : </span>{{risk.gav.version}}
           </a>
         </td>
-        <td ng-if='!risk.gav && risk.pathnames' pathnames-popover='risk.pathnames'>
+        <td ng-if='!risk.gav && risk.pathnames' pathnames-popover='risk.pathnames' class="word-break-all">
           <a ui-sref="dashboard.component({ hash: risk.hash })">
             <em>{{risk.pathnames[0] | fileName}}</em>
           </a>

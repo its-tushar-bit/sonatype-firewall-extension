@@ -545,6 +545,10 @@ table th#affected-apps {
   word-spacing: -0.1em;
 }
 
+.word-break-all {
+  word-break: break-all;
+}
+
 .percentage-graph-section {
   border-top: 1px solid #ddd;
   height: 61px;

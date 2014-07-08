@@ -93,13 +93,4 @@ public class DroolsGeneratorTest
     String droolsCode = DroolsGenerator.get(policies);
     assertThat(droolsCode, is("abc\ndef\n"));
   }
-
-  // @Test
-  // public void test()
-  // {
-  // final KnowledgeBuilder kbuilder = KnowledgeBuilderFactory.newKnowledgeBuilder();
-  // // this will parse and compile in one step
-  // kbuilder.add( ResourceFactory.newFileResource( "c:/temp/test.drl" ), ResourceType.DRL );
-  // Assert.assertFalse( kbuilder.getErrors().toString(), kbuilder.hasErrors() );
-  // }
 }

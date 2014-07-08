@@ -53,6 +53,9 @@ public class PolicyInternal
   @Column(name = "content")
   private String content;
 
+  @Column(name = "drools_code")
+  private String droolsCode;
+
   @Override
   public String getId() {
     return id;
@@ -112,6 +115,14 @@ public class PolicyInternal
     this.content = content;
   }
 
+  public String getDroolsCode() {
+    return droolsCode;
+  }
+
+  public void setDroolsCode(String droolsCode) {
+    this.droolsCode = droolsCode;
+  }
+
   public static PolicyInternal fromPolicy(Policy policy) {
     if (policy == null) {
       return null;
@@ -123,6 +134,7 @@ public class PolicyInternal
     result.setOwnerId(policy.getOwnerId());
     result.setThreatLevel(policy.getThreatLevel());
     result.setContent(JsonUtils.format(policy));
+    result.setDroolsCode(policy.getDroolsCode());
 
     return result;
   }
@@ -140,6 +152,7 @@ public class PolicyInternal
     result.setName(name);
     result.setOwnerId(ownerId);
     result.setThreatLevel(threatLevel);
+    result.setDroolsCode(droolsCode);
 
     return result;
   }

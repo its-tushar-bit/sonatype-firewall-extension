@@ -50,6 +50,8 @@ public class Policy
 
   private List<NotifyAction> monitorNotifyActions;
 
+  private String droolsCode;
+
   public Policy() {
   }
 
@@ -133,27 +135,14 @@ public class Policy
   }
 
   public ValidationResult validate(String ownerId) {
-    return validate(ownerId, false);
-  }
-
-  public ValidationResult validate(String ownerId, boolean forEvaluation) {
     log.debug("Validating " + this.toString());
 
     ValidationResult result = new ValidationResult();
-    if (forEvaluation) {
-      // if only doing evaluation, go with lenient name validation to support legacy policies
-      if (name == null || name.trim().isEmpty()) {
-        result.addError("The policy name must not be null or empty");
-      }
+    try {
+      NameHelper.validate("The policy name", name);
     }
-    else {
-      // if inserting/updating a policy, go with strict name validation
-      try {
-        NameHelper.validate("The policy name", name);
-      }
-      catch (InvalidNameException e) {
-        result.addError(e.getMessage());
-      }
+    catch (InvalidNameException e) {
+      result.addError(e.getMessage());
     }
     if (constraints == null || constraints.isEmpty()) {
       result.addError("Policy '" + name + "' has no constraints");
@@ -282,5 +271,13 @@ public class Policy
       }
     }
     return PolicyThreatCategory.getCategory(threatCategories);
+  }
+
+  public String getDroolsCode() {
+    return droolsCode;
+  }
+
+  public void setDroolsCode(String droolsCode) {
+    this.droolsCode = droolsCode;
   }
 }

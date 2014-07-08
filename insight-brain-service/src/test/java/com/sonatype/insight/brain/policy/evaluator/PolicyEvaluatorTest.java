@@ -36,6 +36,7 @@ import com.sonatype.insight.brain.model.policy.facts.MatchFact;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.DevelopStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
+import com.sonatype.insight.brain.policy.DroolsGenerator;
 
 import org.junit.Assert;
 import org.junit.Rule;
@@ -47,8 +48,6 @@ public class PolicyEvaluatorTest
 {
   @Rule
   public TemporaryFolder tempDir = new TemporaryFolder();
-
-  private String applicationId = "PolicyEvaluatorTest_AppId";
 
   @Test
   public void testEvaluate_TwoConstraintsWithConditions() {
@@ -78,7 +77,7 @@ public class PolicyEvaluatorTest
     components.add(component2);
 
     // Evaluate the policy
-    final List<PolicyAlert> policyAlerts = evaluator.evaluate(applicationId, stage, Arrays.asList(policy), components);
+    final List<PolicyAlert> policyAlerts = evaluate(stage, policy, components);
 
     Assert.assertNotNull(policyAlerts);
     Assert.assertEquals(1, policyAlerts.size());
@@ -110,7 +109,7 @@ public class PolicyEvaluatorTest
     components.add(component1);
 
     // Evaluate the policy
-    List<PolicyAlert> policyAlerts = evaluator.evaluate(applicationId, stage, Arrays.asList(policy), components);
+    List<PolicyAlert> policyAlerts = evaluate(stage, policy, components);
     Assert.assertNotNull(policyAlerts);
     Assert.assertEquals(0, policyAlerts.size());
   }
@@ -138,7 +137,7 @@ public class PolicyEvaluatorTest
     components.add(component1);
 
     // Evaluate the policy
-    List<PolicyAlert> policyAlerts = evaluator.evaluate(applicationId, stage, Arrays.asList(policy), components);
+    List<PolicyAlert> policyAlerts = evaluate(stage, policy, components);
 
     Assert.assertNotNull(policyAlerts);
     Assert.assertEquals(1, policyAlerts.size());
@@ -178,7 +177,7 @@ public class PolicyEvaluatorTest
     components.add(component1);
 
     // Evaluate the policy
-    List<PolicyAlert> policyAlerts = evaluator.evaluate(applicationId, stage, Arrays.asList(policy), components);
+    List<PolicyAlert> policyAlerts = evaluate(stage, policy, components);
 
     Assert.assertNotNull(policyAlerts);
     Assert.assertEquals(1, policyAlerts.size());
@@ -213,7 +212,7 @@ public class PolicyEvaluatorTest
     components.add(component1);
 
     // Evaluate the policy
-    List<PolicyAlert> policyAlerts = evaluator.evaluate(applicationId, stage, Arrays.asList(policy), components);
+    List<PolicyAlert> policyAlerts = evaluate(stage, policy, components);
 
     Assert.assertNotNull(policyAlerts);
     Assert.assertEquals(0, policyAlerts.size());
@@ -224,7 +223,7 @@ public class PolicyEvaluatorTest
     components.add(component2);
 
     // Evaluate the policy
-    policyAlerts = evaluator.evaluate(applicationId, stage, Arrays.asList(policy), components);
+    policyAlerts = evaluate(stage, policy, components);
 
     Assert.assertNotNull(policyAlerts);
     Assert.assertEquals(0, policyAlerts.size());
@@ -236,7 +235,7 @@ public class PolicyEvaluatorTest
     components.add(component3);
 
     // Evaluate the policy
-    policyAlerts = evaluator.evaluate(applicationId, stage, Arrays.asList(policy), components);
+    policyAlerts = evaluate(stage, policy, components);
 
     Assert.assertNotNull(policyAlerts);
     Assert.assertEquals(1, policyAlerts.size());
@@ -254,7 +253,7 @@ public class PolicyEvaluatorTest
     components.add(component4);
 
     // Evaluate the policy
-    policyAlerts = evaluator.evaluate(applicationId, stage, Arrays.asList(policy), components);
+    policyAlerts = evaluate(stage, policy, components);
 
     Assert.assertNotNull(policyAlerts);
     Assert.assertEquals(1, policyAlerts.size());
@@ -292,7 +291,7 @@ public class PolicyEvaluatorTest
     components.add(component1);
 
     // Evaluate the policy
-    List<PolicyAlert> policyAlerts = evaluator.evaluate(applicationId, stage, Arrays.asList(policy), components);
+    List<PolicyAlert> policyAlerts = evaluate(stage, policy, components);
 
     Assert.assertNotNull(policyAlerts);
     Assert.assertEquals(1, policyAlerts.size());
@@ -307,7 +306,7 @@ public class PolicyEvaluatorTest
     components.add(component2);
 
     // Evaluate the policy
-    policyAlerts = evaluator.evaluate(applicationId, stage, Arrays.asList(policy), components);
+    policyAlerts = evaluate(stage, policy, components);
 
     Assert.assertNotNull(policyAlerts);
     Assert.assertEquals(1, policyAlerts.size());
@@ -325,7 +324,7 @@ public class PolicyEvaluatorTest
     components.add(component3);
 
     // Evaluate the policy
-    policyAlerts = evaluator.evaluate(applicationId, stage, Arrays.asList(policy), components);
+    policyAlerts = evaluate(stage, policy, components);
 
     Assert.assertNotNull(policyAlerts);
     Assert.assertEquals(1, policyAlerts.size());
@@ -347,7 +346,7 @@ public class PolicyEvaluatorTest
     components.add(component4);
 
     // Evaluate the policy
-    policyAlerts = evaluator.evaluate(applicationId, stage, Arrays.asList(policy), components);
+    policyAlerts = evaluate(stage, policy, components);
 
     Assert.assertNotNull(policyAlerts);
     Assert.assertEquals(1, policyAlerts.size());
@@ -400,7 +399,7 @@ public class PolicyEvaluatorTest
     List<? extends Action> actions;
 
     // Evaluate the policy when developing
-    policyAlerts = evaluator.evaluate(applicationId, new Stage(DevelopStageType.ID), Arrays.asList(policy), components);
+    policyAlerts = evaluate(new Stage(DevelopStageType.ID), policy, components);
 
     Assert.assertNotNull(policyAlerts);
     Assert.assertEquals(1, policyAlerts.size());
@@ -410,7 +409,7 @@ public class PolicyEvaluatorTest
     Assert.assertNull(actions.get(0).getTarget());
 
     // Evaluate the policy when building
-    policyAlerts = evaluator.evaluate(applicationId, new Stage(BuildStageType.ID), Arrays.asList(policy), components);
+    policyAlerts = evaluate(new Stage(BuildStageType.ID), policy, components);
 
     Assert.assertNotNull(policyAlerts);
     Assert.assertEquals(1, policyAlerts.size());
@@ -420,7 +419,7 @@ public class PolicyEvaluatorTest
     Assert.assertNull(actions.get(0).getTarget());
 
     // Evaluate the policy when releasing
-    policyAlerts = evaluator.evaluate(applicationId, new Stage(ReleaseStageType.ID), Arrays.asList(policy), components);
+    policyAlerts = evaluate(new Stage(ReleaseStageType.ID), policy, components);
 
     Assert.assertNotNull(policyAlerts);
     Assert.assertEquals(1, policyAlerts.size());
@@ -436,7 +435,9 @@ public class PolicyEvaluatorTest
 
     // randomly generate a series of policies
     for (int i = 0; i <= 25 * Math.random(); i++) {
-      policies.add(randomPolicy());
+      Policy policy = randomPolicy();
+      DroolsGenerator.generate(policy);
+      policies.add(policy);
     }
 
     final List<Component> components = new ArrayList<Component>();
@@ -464,7 +465,7 @@ public class PolicyEvaluatorTest
     components.add(component4);
 
     // Evaluate the facts
-    final List<MatchFact> facts = PolicyEvaluator.evaluateFacts(applicationId, policies, components);
+    final List<MatchFact> facts = PolicyEvaluator.evaluateFacts(policies, components);
 
     // Sort facts by policy then component then constraint then condition
     Collections.sort(facts, PolicyEvaluator.MATCHES_BY_POLICY_COMPONENT_CONSTRAINT_CONDITION);

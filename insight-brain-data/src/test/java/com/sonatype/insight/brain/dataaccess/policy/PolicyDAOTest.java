@@ -31,8 +31,10 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 
@@ -462,6 +464,8 @@ public class PolicyDAOTest
     Assert.assertEquals(expected.getOwnerId(), actual.getOwnerId());
     Assert.assertEquals(expected.isEnabled(), actual.isEnabled());
     Assert.assertEquals(expected.getThreatLevel(), actual.getThreatLevel());
+    assertThat(actual.getDroolsCode(), is(notNullValue()));
+    assertThat(actual.getDroolsCode(), containsString("// Begin policy: " + expected.getName()));
 
     List<Constraint> expectedConstraints = expected.getConstraints();
     List<Constraint> actualConstraints = actual.getConstraints();

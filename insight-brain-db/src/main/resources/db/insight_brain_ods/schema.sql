@@ -95,6 +95,7 @@ CREATE TABLE policy (
   name_lowercase_no_whitespace varchar(60) NOT NULL,
   threat_level smallint(2) NOT NULL,
   content CLOB NOT NULL,
+  drools_code CLOB NOT NULL,
   CONSTRAINT policy_pk PRIMARY KEY (policy_id),
   CONSTRAINT policy_name_uk UNIQUE KEY (owner_id, name_lowercase_no_whitespace)
 );

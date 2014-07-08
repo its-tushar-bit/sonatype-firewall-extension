@@ -79,6 +79,11 @@ public class PolicyInternalDAO
     return get(em, sQuery, ownerId, name);
   }
 
+  List<PolicyInternal> getAll() {
+    String sQuery = "SELECT entity FROM PolicyInternal entity";
+    return getList(sQuery);
+  }
+
   @Override
   public void delete(EntityManager em, PolicyInternal policy) {
     // Cascade to policy waivers

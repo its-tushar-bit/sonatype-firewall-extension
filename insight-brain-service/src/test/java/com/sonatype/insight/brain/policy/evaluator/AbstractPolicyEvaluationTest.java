@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.policy.evaluator;
 
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -15,11 +16,15 @@ import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.PolicyFact;
+import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
+import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
+import com.sonatype.insight.brain.policy.DroolsGenerator;
 
 import org.codehaus.plexus.util.StringUtils;
 import org.junit.Assert;
@@ -31,6 +36,16 @@ public abstract class AbstractPolicyEvaluationTest
   public TemporaryEntity tempEntity = new TemporaryEntity();
 
   protected PolicyEvaluator evaluator = new PolicyEvaluator();
+
+  protected List<PolicyAlert> evaluate(Policy policy, List<Component> components) {
+    DroolsGenerator.generate(policy);
+    return evaluate(new Stage(BuildStageType.ID), policy, components);
+  }
+
+  protected List<PolicyAlert> evaluate(Stage stage, Policy policy, List<Component> components) {
+    DroolsGenerator.generate(policy);
+    return evaluator.evaluate(null /* applicationId */, stage, Arrays.asList(policy), components);
+  }
 
   protected Constraint createConstraint(String constraintId, String constraintName, String conditionTypeId,
       String operator, String value)

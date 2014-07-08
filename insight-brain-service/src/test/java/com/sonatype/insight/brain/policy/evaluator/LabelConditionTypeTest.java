@@ -6,12 +6,10 @@
 package com.sonatype.insight.brain.policy.evaluator;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
-import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.Organization;
@@ -81,8 +79,7 @@ public class LabelConditionTypeTest
     components.add(component3);
 
     // Evaluate the policy
-    List<PolicyAlert> policyAlerts = evaluator.evaluate(applicationId, new Stage(BuildStageType.ID),
-        Arrays.asList(policy), components);
+    List<PolicyAlert> policyAlerts = evaluate(policy, components);
 
     Assert.assertNotNull(policyAlerts);
     Assert.assertEquals(1, policyAlerts.size());
@@ -121,8 +118,7 @@ public class LabelConditionTypeTest
     components.add(component3);
 
     // Evaluate the policy
-    List<PolicyAlert> policyAlerts = evaluator.evaluate(applicationId, new Stage(BuildStageType.ID),
-        Arrays.asList(policy), components);
+    List<PolicyAlert> policyAlerts = evaluate(policy, components);
 
     Assert.assertNotNull(policyAlerts);
     Assert.assertEquals(1, policyAlerts.size());
@@ -163,8 +159,7 @@ public class LabelConditionTypeTest
     components.add(component3);
 
     // Evaluate the policy
-    List<PolicyAlert> policyAlerts = evaluator.evaluate(applicationId, new Stage(BuildStageType.ID),
-        Arrays.asList(policy), components);
+    List<PolicyAlert> policyAlerts = evaluate(policy, components);
 
     Assert.assertNotNull(policyAlerts);
     Assert.assertEquals(1, policyAlerts.size());
@@ -204,8 +199,7 @@ public class LabelConditionTypeTest
     Component component1 = new Component("g1", "a1", "v1", MatchState.EXACT);
     components.add(component1);
 
-    List<PolicyAlert> policyAlerts = evaluator.evaluate(applicationId, new Stage(BuildStageType.ID),
-        Arrays.asList(policy), components);
+    List<PolicyAlert> policyAlerts = evaluate(policy, components);
 
     Assert.assertNotNull(policyAlerts);
     Assert.assertEquals(0, policyAlerts.size());

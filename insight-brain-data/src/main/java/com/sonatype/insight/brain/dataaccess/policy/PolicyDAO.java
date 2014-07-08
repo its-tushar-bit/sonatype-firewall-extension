@@ -16,12 +16,15 @@ import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.tag.ApplicationTagDAO;
 import com.sonatype.insight.brain.dataaccess.tag.PolicyTagDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.ValidationResult;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.InvalidPolicyException;
 import com.sonatype.insight.brain.model.policy.Policy;
-import com.sonatype.insight.brain.model.ValidationResult;
 import com.sonatype.insight.brain.model.tag.ApplicationTag;
 import com.sonatype.insight.brain.model.tag.PolicyTag;
+import com.sonatype.insight.brain.policy.DroolsGenerator;
+
+import org.codehaus.plexus.util.StringUtils;
 
 public class PolicyDAO
 {
@@ -41,6 +44,10 @@ public class PolicyDAO
 
   public List<Policy> getByOwnerId(final String ownerId) {
     return PolicyInternal.toPolicies(policyInternalDAO.getByOwnerId(ownerId));
+  }
+
+  public List<Policy> getAll() {
+    return PolicyInternal.toPolicies(policyInternalDAO.getAll());
   }
 
   /**
@@ -82,6 +89,12 @@ public class PolicyDAO
       constraint.setId(newUUID());
     }
     
+    // We need the policy id to be set before the drools code is generated
+    if (StringUtils.isBlank(policy.getId())) {
+      policy.setId(newUUID());
+    }
+    DroolsGenerator.generate(policy);
+
     PolicyInternal policyInternal = PolicyInternal.fromPolicy(policy);
     policyInternalDAO.insert(em, policyInternal);
     policy.setId(policyInternal.getId());
@@ -123,6 +136,8 @@ public class PolicyDAO
         constraint.setId(newUUID());
       }
     }
+
+    DroolsGenerator.generate(policy);
 
     PolicyInternal policyInternal = PolicyInternal.fromPolicy(policy);
     policyInternalDAO.update(em, policyInternal);

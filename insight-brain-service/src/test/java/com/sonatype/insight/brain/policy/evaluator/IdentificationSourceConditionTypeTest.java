@@ -6,12 +6,10 @@
 package com.sonatype.insight.brain.policy.evaluator;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
-import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.IdentificationSource;
 import com.sonatype.insight.brain.model.component.MatchState;
@@ -54,8 +52,7 @@ public class IdentificationSourceConditionTypeTest
     components.add(component2);
 
     // Evaluate the policy
-    List<PolicyAlert> policyAlerts = evaluator.evaluate(null /* applicationId */, new Stage(BuildStageType.ID),
-        Arrays.asList(policy), components);
+    List<PolicyAlert> policyAlerts = evaluate(policy, components);
     Assert.assertNotNull(policyAlerts);
     Assert.assertEquals(1, policyAlerts.size());
     assertFactCounts(1, 1, policyAlerts.get(0));
@@ -84,8 +81,7 @@ public class IdentificationSourceConditionTypeTest
     components.add(component2);
 
     // Evaluate the policy
-    List<PolicyAlert> policyAlerts = evaluator.evaluate(null /* applicationId */, new Stage(BuildStageType.ID),
-        Arrays.asList(policy), components);
+    List<PolicyAlert> policyAlerts = evaluate(policy, components);
     Assert.assertNotNull(policyAlerts);
     Assert.assertEquals(1, policyAlerts.size());
     assertFactCounts(1, 1, policyAlerts.get(0));

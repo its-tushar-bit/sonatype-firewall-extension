@@ -31,6 +31,7 @@ import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.conditions.ConditionTypes;
 import com.sonatype.insight.brain.model.policy.facts.MatchFact;
+import com.sonatype.insight.brain.policy.DroolsGenerator;
 
 import org.drools.KnowledgeBase;
 import org.drools.KnowledgeBaseFactory;
@@ -88,7 +89,7 @@ public class PolicyEvaluator
   {
     final long start = System.currentTimeMillis();
 
-    List<MatchFact> facts = evaluateFacts(applicationId, policies, components);
+    List<MatchFact> facts = evaluateFacts(policies, components);
     PolicyWaiverResults policyWaiverResults = waiverEvaluator.applyWaivers(applicationId, facts);
     PolicyResults policyResults = new PolicyResults();
     policyResults.setActiveAlerts(createAlerts(policies, policyWaiverResults.getActiveFacts(), stage, forMonitoring));
@@ -213,11 +214,8 @@ public class PolicyEvaluator
     return byComponent;
   }
 
-  static List<MatchFact> evaluateFacts(final String applicationId, final List<Policy> policies,
-      final List<Component> components)
-  {
-    final String droolsCode = new DroolsGenerator().generate(applicationId, policies);
-    log.trace("Generated drools code:\n{}", droolsCode);
+  static List<MatchFact> evaluateFacts(final List<Policy> policies, final List<Component> components) {
+    final String droolsCode = DroolsGenerator.get(policies);
 
     final KnowledgeBuilder droolsKnowledgeBuilder = KnowledgeBuilderFactory.newKnowledgeBuilder();
     droolsKnowledgeBuilder.add(ResourceFactory.newReaderResource(new StringReader(droolsCode)), ResourceType.DRL);

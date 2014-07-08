@@ -41,6 +41,7 @@
     <rt.jar>${java.home}/lib/rt.jar</rt.jar>
     <mockito.version>1.9.5</mockito.version>
     <aether-util.version>1.13.1</aether-util.version>
+    <drools.version>6.0.0.CR1</drools.version>
   </properties>
 
   <scm>
@@ -272,6 +273,12 @@
         <groupId>org.codehaus.plexus</groupId>
         <artifactId>plexus-utils</artifactId>
         <version>3.0.1</version>
+      </dependency>
+      
+      <dependency>
+        <groupId>org.drools</groupId>
+        <artifactId>knowledge-api</artifactId>
+        <version>${drools.version}</version>
       </dependency>
 
       <dependency>

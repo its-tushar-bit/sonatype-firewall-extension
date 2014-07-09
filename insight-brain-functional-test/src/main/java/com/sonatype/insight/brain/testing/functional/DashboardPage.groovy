@@ -17,7 +17,8 @@ class DashboardPage
 
   static content = {
     breadcrumb { $('p.nav-crumb') }
-    breadcrumbs { breadcrumb.find('a') }
+    breadcrumbs { breadcrumb.find('span[ng-repeat="state in states"]') }
     crumb { state -> breadcrumb.find("[ui-sref='${state}']") }
+    lastCrumb { breadcrumb.find('.last-crumb[ng-if="$last"]') }
   }
 }

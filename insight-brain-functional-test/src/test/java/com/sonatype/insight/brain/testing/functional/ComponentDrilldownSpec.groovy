@@ -61,11 +61,13 @@ class ComponentDrilldownSpec
     when: 'The dashboard overview is loaded'
       waitFor { breadcrumbs.size() == 2 }
 
-    then: 'Only the dashboard breadcrumb is shown'
+    then: 'The dashboard breadcrumb is shown'
       crumb('dashboard.overview.newest-risk').displayed
       crumb('dashboard.overview.newest-risk').text().trim() == 'Dashboard'
-      crumb('dashboard.component').displayed
-      crumb('dashboard.component').text().trim() == 'Component Details'
+
+    and: 'The component details link is shown as the last crumb'
+      lastCrumb.displayed
+      lastCrumb.text().trim() == 'Component Details'
 
     and: 'the desired component name is shown'
       waitFor { componentName.text() == 'Group1 : Artifact1 : Version1' }

@@ -512,10 +512,14 @@
       }
     };
     return {
-      template: '<p class="nav-crumb"><a ng-repeat="state in states" ui-sref="{{state.state}}">' +
-                '<i ng-if="!$first" class="glyphicons-sonatype play"></i>' +
-                '<i ng-if="state.icon" class="{{state.icon}}"></i>&nbsp;{{state.name}}' +
-                '</a></p>',
+      template: '<p class="nav-crumb"><span ng-repeat="state in states">' +
+                  '<span ng-if="!$first" ng-class="{ \'last-crumb\': $last }">/</span>' +
+                  '<a ng-if="!$last" ui-sref="{{state.state}}">' +
+                    '<i ng-if="state.icon" class="{{state.icon}}"></i>&nbsp;{{state.name}}' +
+                  '</a>' +
+                  '<span ng-if="$last" class="last-crumb">' +
+                    '<i ng-if="state.icon" class="{{state.icon}}"></i>&nbsp;{{state.name}}' +
+                '</span></p>',
       link: function(scope) {
         function loadCurrentState() {
           var state = $state.$current;

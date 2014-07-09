@@ -158,11 +158,11 @@ class DashboardOverviewSpec
   def 'Dashboard Overview Breadcrumb'() {
     when: 'The dashboard overview is loaded'
       waitFor { breadcrumbs.size() == 2 }
-    then: 'Two links to newest risk are shown'
-      crumb('dashboard.overview.newest-risk').text() == " Dashboard"
+    then: 'The dashboard link is shown'
+      crumb('dashboard.overview.newest-risk').text().trim() == "Dashboard"
       crumb('dashboard.overview.newest-risk').@href.contains("/dashboard/newest-risk")
-      crumb('dashboard.overview.newest-risk').next().text() == " Newest Risk"
-      crumb('dashboard.overview.newest-risk').next().@href.contains("/dashboard/newest-risk")
+    and: 'The newest risk link is shown as the last crumb'
+      lastCrumb.text().trim() == "Newest Risk"
 
   }
 

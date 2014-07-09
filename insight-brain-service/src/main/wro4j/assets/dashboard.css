@@ -99,16 +99,32 @@
   color: #2476FC;
 }
 
+.dashboard-content .nav-crumb {
+  vertical-align: middle;
+}
+
 .dashboard-content .nav-crumb i:before {
   font-size: 14px;
-  vertical-align: middle;
   margin-right: 10px;
   line-height: 16px;
+  color: #2476C3;
+}
+
+.dashboard-content .nav-crumb i:before:hover {
+  color: #17558E;
 }
 
 .dashboard-content .nav-crumb a {
-  vertical-align: middle;
-  margin-right: 10px;
+  margin-right: 5px;
+  color: #2476C3;
+}
+
+.dashboard-content .nav-crumb a:hover {
+  color: #17558E;
+}
+
+.dashboard-content .nav-crumb .last-crumb {
+  color: #909090;
 }
 
 .dashboard-content table {

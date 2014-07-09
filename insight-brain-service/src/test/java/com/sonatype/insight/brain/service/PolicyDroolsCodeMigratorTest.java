@@ -25,7 +25,7 @@ import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
-public class PolicyCodeMigratorTest
+public class PolicyDroolsCodeMigratorTest
 {
   @Rule
   public TemporaryFolder tempDir = new TemporaryFolder();
@@ -36,13 +36,14 @@ public class PolicyCodeMigratorTest
   @Test
   public void testMigrate() throws Exception {
     // Create test data
-    Application app = tempEntity.newApplicationWithParent("PolicyCodeMigratorTest App", "PolicyCodeMigratorTestAppId");
+    Application app = tempEntity.newApplicationWithParent("PolicyDroolsCodeMigratorTest App",
+        "PolicyDroolsCodeMigratorTestAppId");
     Policy policyApp = tempEntity.newPolicy(app.getId(), "policyApp");
     Policy policyOrg = tempEntity.newPolicy(app.getOrganizationId(), "policyOrg");
 
     // Change the db to have policy.drools_code nullable and all values null
     new H2DatabaseMigrator().runScript(OperationalDataStoreProvider.getDataSource(),
-        "/PolicyCodeMigratorTest/set_policy_drools_code_to_null_success.sql");
+        "/PolicyDroolsCodeMigratorTest/set_policy_drools_code_to_null_success.sql");
     PolicyDAO policyDAO = new PolicyDAO();
     policyApp = policyDAO.getById(policyApp.getId());
     assertThat(policyApp.getDroolsCode(), is(nullValue()));
@@ -51,7 +52,7 @@ public class PolicyCodeMigratorTest
 
     // Run the migrator
     InsightWork insightWork = createInsightWork();
-    PolicyCodeMigrator migrator = new PolicyCodeMigrator(insightWork);
+    PolicyDroolsCodeMigrator migrator = new PolicyDroolsCodeMigrator(insightWork);
     migrator.migrate();
 
     // Assert the code was generated for all policies
@@ -63,7 +64,7 @@ public class PolicyCodeMigratorTest
     // Assert that the policy.drools_code column is not nullable
     try {
       new H2DatabaseMigrator().runScript(OperationalDataStoreProvider.getDataSource(),
-          "/PolicyCodeMigratorTest/set_policy_drools_code_to_null_fail.sql");
+          "/PolicyDroolsCodeMigratorTest/set_policy_drools_code_to_null_fail.sql");
       fail("Expected exception");
     }
     catch (Exception e) {

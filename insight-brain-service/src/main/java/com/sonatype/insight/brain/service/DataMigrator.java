@@ -23,19 +23,19 @@ public class DataMigrator
   private final PolicyEvaluationMigrator policyEvaluationMigrator;
   private final ProcureRemovalMigrator procureRemovalMigrator;
   private final NullHashModifiedMigrator modifiedMigrator;
-  private final PolicyCodeMigrator policyCodeMigrator;
+  private final PolicyDroolsCodeMigrator policyDroolsCodeMigrator;
 
   @Inject
   public DataMigrator(LicenseOverrideMigrator licenseOverrideMigrator, PolicyMigrator policyMigrator,
       PolicyEvaluationMigrator policyEvaluationMigrator, ProcureRemovalMigrator procureRemovalMigrator,
-      NullHashModifiedMigrator modifiedMigrator, PolicyCodeMigrator policyCodeMigrator)
+      NullHashModifiedMigrator modifiedMigrator, PolicyDroolsCodeMigrator policyDroolsCodeMigrator)
   {
     this.licenseOverrideMigrator = licenseOverrideMigrator;
     this.policyMigrator = policyMigrator;
     this.policyEvaluationMigrator = policyEvaluationMigrator;
     this.procureRemovalMigrator = procureRemovalMigrator;
     this.modifiedMigrator = modifiedMigrator;
-    this.policyCodeMigrator = policyCodeMigrator;
+    this.policyDroolsCodeMigrator = policyDroolsCodeMigrator;
   }
 
   /**
@@ -47,6 +47,6 @@ public class DataMigrator
     policyEvaluationMigrator.migrate();
     procureRemovalMigrator.migrate();
     modifiedMigrator.migrate();
-    policyCodeMigrator.migrate();
+    policyDroolsCodeMigrator.migrate();
   }
 }

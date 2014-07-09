@@ -28,16 +28,16 @@ import org.slf4j.LoggerFactory;
  * @since 1.12
  */
 @Named
-public class PolicyCodeMigrator
+public class PolicyDroolsCodeMigrator
 {
-  private static final Logger log = LoggerFactory.getLogger(PolicyCodeMigrator.class);
+  private static final Logger log = LoggerFactory.getLogger(PolicyDroolsCodeMigrator.class);
 
   private final InsightWork insightWork;
 
-  static final String MARKER_FILE_NAME = "policies-code-migrated";
+  static final String MARKER_FILE_NAME = "policy-drools-code-migrated";
 
   @Inject
-  public PolicyCodeMigrator(InsightWork insightWork) {
+  public PolicyDroolsCodeMigrator(InsightWork insightWork) {
     this.insightWork = insightWork;
   }
 

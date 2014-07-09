@@ -380,10 +380,11 @@ a:focus {
 	padding-left: 8px;
 }
 .content {
-	position: absolute;
-	top: 41px;
-	left : 275px;
-	overflow : auto;
+  position: absolute;
+  top: 41px;
+  left : 275px;
+  right: 0px;
+  overflow : auto;
 }
 .content .nav-tabs {
 	border-bottom-color: black;

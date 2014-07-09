@@ -11,8 +11,14 @@
     min-width: 70px;
     width: 70px;
   }
+  .filter-edit-body .slider {
+    width: 105px !important;
+  }
 }
 @media (max-width: 1199px) {
+  .filter-edit-body .slider {
+    width: 70px !important;
+  }
   table.table-risk thead tr th, table.table-risk thead tr th div {
     min-width: 90px !important;
   }
@@ -278,10 +284,6 @@ table th#affected-apps {
   position: absolute;
   margin-left: 0px;
   z-index: 200;
-}
-
-.filter-edit-body .slider {
-  width: 105px !important;
 }
 
 /* .filter-edit needs a embedded div to prevent the collapse plugin from including the dropdowns in scrollheight */

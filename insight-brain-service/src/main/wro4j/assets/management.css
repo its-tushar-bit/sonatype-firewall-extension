@@ -999,8 +999,8 @@ ul.tri-pane.left {
 
 /* center the config pages */
 .container.config {
-  width: 600px !important;
-  min-width: 600px !important;
+  width: 500px !important;
+  min-width: 500px !important;
 }
 
 .container.globalrole {

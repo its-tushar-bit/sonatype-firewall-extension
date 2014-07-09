@@ -1003,6 +1003,11 @@ ul.tri-pane.left {
   min-width: 500px !important;
 }
 
+.container.proprietary {
+  width: 550px !important;
+  min-width: 550px !important;
+}
+
 .container.globalrole {
   width: 955px !important;
   min-width: 955px !important;

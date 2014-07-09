@@ -997,12 +997,23 @@ ul.tri-pane.left {
   max-width: 400px;
 }
 
+/* center the config pages */
+.container.config {
+  width: 600px !important;
+  min-width: 600px !important;
+}
+
+.container.globalrole {
+  width: 955px !important;
+  min-width: 955px !important;
+}
+
 @media (max-width: 1199px) {
   .container {
-    width: 849px;
-    min-width: 849px;
-    margin: auto;
-  }
+     width: 849px;
+     min-width: 849px;
+     margin: auto;
+   }
   .dashboard-responsive {
     min-width: 849px;
   }

@@ -2,7 +2,7 @@
   <div load-error='loadError' reload='doLoad()'></div>
   <div ng-show='!loadError && !ldap'><i class='icon-time'></i> Loading</div>
   <div ng-show='!loadError && ldap'>
-    <div class='container'>
+    <div class='container config'>
       <div class="fixed-width-small-form" id='ldapName'>
         <div style="float:right; margin:10px;" class='btn-group' ng-show='ldap.id'>
           <a class="btn btn-mini" title="Remove Configuration" ng-click="confirmDeleteConfiguration(ldap)"><i class='glyphicons-sonatype bin'></i></a>
@@ -25,7 +25,7 @@
     </div>
     <div ng-if='ldap.id' style='margin-top:10px'>
       <div class='underline'>
-        <div class='container' style='margin-bottom:0px'>
+        <div class='container config' style='margin-bottom:0px'>
           <ul class='tri-pane left'>
             <li ng-class='{ active : isCurrentTab("connection") }'>
               <a ng-click='setCurrentTab("connection")'>CONNECTION</a>
@@ -36,7 +36,7 @@
           </ul>
         </div>
       </div>
-      <div class='container' ui-view></div>
+      <div class='container config' ui-view></div>
     </div>
   </div>
 </div>

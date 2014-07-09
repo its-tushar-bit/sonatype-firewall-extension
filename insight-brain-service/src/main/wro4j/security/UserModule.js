@@ -10,8 +10,8 @@
       function($stateProvider) {
         $stateProvider.state('globalroles', {
           url: '/globalroles',
-          template : '<div class="mid-content"><h1 class="page-title"><div class="container">Global Roles</div></h1></div>' +
-                     '<div class="container" ng-controller="AppSecurityController" ng-include="\'../policy-assets/components/app-security/app-security.html?' + clmBuildTimestamp + '\'"></div>',
+          template : '<div class="mid-content"><h1 class="page-title"><div class="container globalrole">Global Roles</div></h1></div>' +
+                     '<div class="container globalrole" ng-controller="AppSecurityController" ng-include="\'../policy-assets/components/app-security/app-security.html?' + clmBuildTimestamp + '\'"></div>',
           data : {
             title : 'Global Roles'
           }

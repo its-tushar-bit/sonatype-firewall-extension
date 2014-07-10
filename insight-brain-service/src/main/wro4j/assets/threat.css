@@ -81,35 +81,3 @@
 	background-color: #0047B2;
 	color: #FFF !important;
 }
-/* Threat Chiclets */
-.threat-chiclet {
-	display: inline-block;
-	width: 25px;
-	padding: 4px 6px;
-	text-align: center;
-	-webkit-border-radius: 4px;
-	-moz-border-radius: 4px;
-	border-radius: 4px;
-	font-weight: bold;
-	font-size: 14px;
-}
-.policy .threat-chiclet,
-.licenseGroups .threat-chiclet {
-	padding: 0; /* These show color only, no count */
-}
-.threat-chiclet-critical {
-	color: #FFF;
-	background-color: #DB2852 !important;
-}
-.threat-chiclet-severe {
-	color: #FFF;
-	background-color: #F2862F !important;
-}
-.threat-chiclet-moderate {
-	color: #444;
-	background-color: #F5C649 !important;
-}
-.threat-chiclet-none {
-  color: #FFF;
-  background-color: #0047b2 !important;
-}

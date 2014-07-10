@@ -27,7 +27,13 @@
     <js>/assets/Resource.js</js>
   </group>
 
+  <group name='newcss'>
+    <css>/scss/variables.scss</css>
+    <css>/scss/chiclet.scss</css>
+  </group>
+
   <group name='css'>
+    <group-ref>newcss</group-ref>
     <css>/applications/application.css</css>
     <css>/assets/app-security.css</css>
     <css>/assets/insight.css</css>

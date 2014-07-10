@@ -1,0 +1,10 @@
+$critical-color : #DB2852;
+$severe-color : #F2862F;
+$moderate-color : #F5C649;
+$none-color : #0047b2;
+
+// name, foreground, background
+$threat-levels: ("critical", #FFF, $critical-color),
+                ("severe", #FFF, $severe-color),
+                ("moderate", #444, $moderate-color),
+                ("none", #FFF, $none-color);

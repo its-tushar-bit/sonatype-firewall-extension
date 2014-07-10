@@ -1,0 +1,7 @@
+// threat levels
+@each $threatdef in $threat-levels {
+  .threat-chiclet-#{nth($threatdef, 1)} {
+    color : nth($threatdef, 2);
+    background-color : nth($threatdef, 3) !important;
+  }
+}

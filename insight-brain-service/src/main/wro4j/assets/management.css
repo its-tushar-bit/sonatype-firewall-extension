@@ -97,7 +97,7 @@ a:focus {
 	margin: 5px 0px 0px;
 }
 .first-row a {
-	color: #777777;
+	color: #CCCCCC;
 	-webkit-transition: all .2s linear;
 	-moz-transition: all .2s linear;
 	transition: all .2s linear;
@@ -160,7 +160,7 @@ a:focus {
 }
 .dashboard-navigation i:before {
   font-size: 24px;
-  color: #919191;
+  color: #CCCCCC;
   line-height: 28px;
 }
 .dashboard-navigation span {
@@ -190,7 +190,7 @@ a:focus {
   font-weight: bold;
 }
 .system-menu {
-  border-left: 1px solid #919191;
+  border-left: 1px solid #CCCCCC;
   padding-left: 20px;
 }
 .system-menu, .help-menu {
@@ -203,7 +203,7 @@ a:focus {
 .help-menu i::before, .system-menu i::before, .user-menu i::before, .global-create-menu i::before,
 .help-menu a::before, .system-menu a::before, .user-menu a::before, .global-create-menu a::before,
 .help-menu li > a, .system-menu li > a, .user-menu li > a, .global-create-menu li > a {
-  color: #919191;
+  color: #CCCCCC !important;
 }
 .help-menu li > a, .system-menu li > a, .user-menu li > a, .global-create-menu li > a {
   padding-bottom: 1px;
@@ -218,6 +218,7 @@ a:focus {
 .help-menu li.disabled a, .system-menu li.disabled a, .user-menu li.disabled a, .global-create-menu li.disabled a {
   font-size: 12px;
   font-weight: bold;
+  color: #CCCCCC;
 }
 .help-menu .dropdown-menu li:not(.disabled), .system-menu .dropdown-menu li:not(.disabled), .user-menu .dropdown-menu li:not(.disabled), .global-create-menu .dropdown-menu li:not(.disabled) {
   background-color: #000000;
@@ -233,11 +234,11 @@ a:focus {
   padding: 0px;
 }
 .help-menu a:hover:before, .system-menu a:hover:before, .user-menu a:hover:before, .global-create-menu a:hover:before {
-  color: #FFFFFF;
+  color: #FFFFFF !important;
   background-color: transparent;
 }
 .help-menu .dropdown-menu li:not(.disabled) > a:hover, .system-menu .dropdown-menu li:not(.disabled) > a:hover, .user-menu .dropdown-menu li:not(.disabled) > a:hover, .global-create-menu .dropdown-menu li:not(.disabled) > a:hover {
-  color: #FFFFFF;
+  color: #FFFFFF !important;
   background-color: #2476FC;
   background-image: none;
   filter: none;
@@ -245,7 +246,7 @@ a:focus {
 .help-menu .divider, .system-menu .divider, .user-menu .divider, .global-create-menu .divider {
   height: 0px;
   margin: 0px;
-  border-top: 1px solid #919191;
+  border-top: 1px solid #CCCCCC;
   border-bottom: 0px;
 }
 

@@ -34,6 +34,8 @@ class PolicyReportPage
     results { moduleList PolicyReportRow, $('.slick-row') }
     resultsWithNoScore { results.findAll { it.threatGroup == none } }
     waiver { module AddPolicyWaiver, $('#add-waiver-modal') }
+    policyDetailWaivers(required: false) { module PolicyDetailWaivers, $('#componentExistingWaiverModal') }
+    removeWaiverModal(required: false) { module RemoveWaiverModal, $('#confirm-delete-waiver-modal') }
     summaryViolations { $('#policy-violation-filter li a', text: 'Summary') }
     allViolations { $('#policy-violation-filter li a', text: 'All') }
     waivedViolations { $('#policy-violation-filter li a', text: 'Waived') }
@@ -93,6 +95,8 @@ class PolicyDetail
     extends Module
 {
   static content = {
+    viewWaiversButton { $('#view-existing-waivers') }
+    
     violations(wait: true) { moduleList PolicyRow, $('tbody tr') }
 
     // private
@@ -103,9 +107,71 @@ class PolicyDetail
     showTrigger { $('a', text: 'Policy') }
   }
 
+  void showWaivers() {
+    viewWaiversButton.click()
+  }
+  
   void show() {
-    showTrigger.click();
+    showTrigger.click()
     waitFor { detailContainer.displayed }
+  }
+}
+
+class PolicyDetailWaivers
+    extends Module
+{
+  static content = {
+    rows { moduleList WaiverRow, $('div.modal-body table.table.table-condensed tr').tail() }
+    noWaivers { $('#no-waivers-assigned') }
+    closeButton(required: false) { $('#close-component-existing-waivers') }
+  }
+  
+  void close() {
+    closeButton.click()
+  }
+}
+
+class WaiverRow
+    extends Module
+{
+  static final int POLICY = 0
+
+  static final int CREATED = 1
+
+  static final int OWNER = 2
+
+  static final int COMMENT = 3
+  
+  static final int REMOVE_BUTTON = 4
+
+  static content = {
+    cell(required: false) { int i -> $('td', i) }
+    policy { cell(POLICY) }
+    created { cell(CREATED) }
+    owner { cell(OWNER) }
+    comment { cell(COMMENT) }
+    removeWaiverButton { cell(REMOVE_BUTTON).children('#remove-waiver') }
+  }
+  
+  void showRemoveWaiverModal() {
+    removeWaiverButton.click()
+  }
+}
+
+class RemoveWaiverModal
+    extends Module
+{
+  static content = {
+    cancelButton { $('#cancel-remove-waiver') }
+    removeButton { $('#confirm-remove-waiver') }
+  }
+  
+  void cancel() {
+    cancelButton.click()
+  }
+  
+  void remove() {
+    removeButton.click()
   }
 }
 
@@ -135,6 +201,8 @@ class AddPolicyWaiver
     scopeContainer { $('#add-waiver-scope') }
     // private
     applyContainer { $('#add-waiver-apply') }
+    // private
+    commentTextArea { $('#add-waiver-modal textarea') }
 
     isImplicitScope { scopeContainer.displayed == false }
     // input for the scope/limit of the waiver (orgId or appPublicId)
@@ -151,6 +219,10 @@ class AddPolicyWaiver
     cancelTrigger { $('button:nth-child(2)') }
   }
 
+  void setComment(String comment) {
+    commentTextArea = comment
+  }
+  
   void save() {
     saveTrigger.click()
   }

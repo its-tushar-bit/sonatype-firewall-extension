@@ -14,6 +14,7 @@ import com.sonatype.insight.brain.model.policy.conditions.CoordinatesConditionTy
 import com.sonatype.insight.brain.service.InsightWork
 import com.sonatype.insight.brain.testing.functional.BaseSpec
 import com.sonatype.insight.brain.testing.functional.utils.TestReportEvaluator
+import com.sonatype.insight.client.utils.Result;
 
 import spock.lang.Stepwise
 
@@ -30,6 +31,10 @@ class WaiverSpec
 
   // The number of components that are in the canned test report
   static numberOfComponents = 4
+  
+  static policyName = 'All components'
+  
+  static noWaiversText = 'No waivers assigned'
 
   def app = newApplication()
 
@@ -44,6 +49,97 @@ class WaiverSpec
     loginAsAdminVia()
   }
 
+  def "View waived policy violations"() {
+    given: 'an org with a policy and a child app'
+      createGavViolatingPolicy(app.organizationId)
+  
+    and: 'a policy evaluation with a waiver'
+      scanId = evaluator.evaluatePolicy()
+      waiveComponent()
+      waiver.save()
+      evaluator.reevaluatePolicy()
+      to ReportPage, app.publicId, scanId
+      navigation.toPolicyReportPage()
+
+    when: 'waived filter selected'
+      waitFor { waivedViolations.displayed }
+      waivedViolations.click()
+
+    then: 'waived policy violations are displayed'
+      waitFor { results[0].coordinates != null }
+      results[0].coordinates == 'ch.qos.logback : logback-access : 0.6'
+  }
+  
+  def "View component policy waivers"() {
+    given: 'an org with a policy and a child app'
+      createGavViolatingPolicy(app.organizationId)
+      def longComment = "A".multiply(1001)
+      def truncatedLongComment = longComment.substring(0, 1000)
+    
+    and: 'a policy evaluation with a waiver'
+      scanId = evaluator.evaluatePolicy()
+      waiveComponent()
+      waiver.setComment('TEST COMMENT')
+      waiver.save()
+    
+    when: 'view existing waivers is clicked'
+      waitFor { results[0].cip.policy.viewWaiversButton.displayed }
+      results[0].cip.policy.showWaivers()
+      waitFor { policyDetailWaivers.rows[0].policy.displayed }
+      waitFor { policyDetailWaivers.rows[0].created.displayed }
+      waitFor { policyDetailWaivers.rows[0].owner.displayed }
+      waitFor { policyDetailWaivers.rows[0].comment.displayed }
+      waitFor { policyDetailWaivers.rows[0].removeWaiverButton.displayed }
+      
+    then: 'waivers are displayed with the correct content'
+      policyDetailWaivers.rows[0].policy.text() == policyName
+      policyDetailWaivers.rows[0].created.text() == new Date().format("yyyy-MM-dd")
+      policyDetailWaivers.rows[0].owner.text() == app.getName()
+      policyDetailWaivers.rows[0].comment.text() == 'TEST COMMENT'
+      
+    when: 'remove waiver clicked and confirmed'
+      policyDetailWaivers.rows[0].showRemoveWaiverModal()
+      waitFor { removeWaiverModal.removeButton.displayed }
+      removeWaiverModal.remove()
+      waitFor { policyDetailWaivers.noWaivers.displayed }
+
+    then: 'no waiver text is displayed'
+      policyDetailWaivers.noWaivers.text() == noWaiversText
+      
+    when: 'waiver with comment greater than 1000 characters'
+      waiveComponent()
+      waiver.setComment(longComment)
+      waiver.save()
+      waitFor { results[0].cip.policy.viewWaiversButton.displayed }
+      results[0].cip.policy.showWaivers()
+      waitFor { policyDetailWaivers.rows[0].comment.displayed }
+
+    then: 'comment is truncated to 1000 characters'
+      policyDetailWaivers.rows[0].comment.text() == truncatedLongComment
+
+    when: 'remove waiver clicked and not confirmed'
+      policyDetailWaivers.rows[0].showRemoveWaiverModal()
+      waitFor { removeWaiverModal.removeButton.displayed }
+      removeWaiverModal.cancel()
+      waitFor { policyDetailWaivers.rows[0].policy.displayed }
+      waitFor { policyDetailWaivers.rows[0].created.displayed }
+      waitFor { policyDetailWaivers.rows[0].owner.displayed }
+      waitFor { policyDetailWaivers.rows[0].comment.displayed }
+      waitFor { policyDetailWaivers.rows[0].removeWaiverButton.displayed }
+
+    then: 'waivers are displayed as normal'
+      policyDetailWaivers.rows[0].policy.text() == policyName
+      policyDetailWaivers.rows[0].created.text() == new Date().format("yyyy-MM-dd")
+      policyDetailWaivers.rows[0].owner.text() == app.getName()
+      policyDetailWaivers.rows[0].comment.text() == truncatedLongComment
+
+    when: 'policy waiver details is closed'
+      policyDetailWaivers.close()
+
+    then: 'policy waiver details no longer displayed'
+      waitFor { policyDetailWaivers.displayed == false }
+  }
+  
   /**
    * WaiverUxSpec that confirms the steps to open and dismiss the waiver dialog as well as the contents
    */
@@ -55,10 +151,7 @@ class WaiverSpec
       scanId = evaluator.evaluatePolicy()
 
     when: 'apply waiver dialog is active'
-      to ReportPage, app.publicId, scanId
-      navigation.toPolicyReportPage()
-
-      results[0].addWaiverForFirstViolation()
+      waiveComponent()
 
     then: 'there is no implicit scope...because the violation was against an orgs policy'
       waiver.isImplicitScope == false
@@ -284,7 +377,7 @@ class WaiverSpec
     constraint.name = 'All coordinates'
     constraint.addCondition(condition)
     def policy = new Policy()
-    policy.name = 'All components'
+    policy.name = policyName
     policy.addConstraint(constraint)
     policy.setOwnerId(ownerId)
 

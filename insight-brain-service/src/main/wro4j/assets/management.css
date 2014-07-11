@@ -57,7 +57,7 @@ h6 {
 } /* ES Sublabel */
 
 body {
-  background: #f4f4f4;
+  background: #ffffff;
   font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
   font-size: 14px;
   line-height: 20px;
@@ -292,7 +292,7 @@ a:focus {
 }
 .navigation {
   margin: 41px 0 auto auto;
-  background: #E0E0E0;
+  background: #E8E8E8;
   z-index: 1;
   width: 120px;
   position: fixed;
@@ -325,7 +325,7 @@ a:focus {
 	cursor: default;
 }
 .subnavigation {
-  background-color: #E8E8E8;
+  background-color: #F1F1F1;
   width: 150px;
   margin-left: 121px;
   position: fixed;

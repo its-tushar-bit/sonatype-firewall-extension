@@ -302,6 +302,11 @@ a {
 table.clm-table-stripe > tbody > tr:nth-child(odd) {
   background-color: #E8E8E8;
 }
+
+/* I don't want the component details page to get this striping as well, so scoping to report list only */
+#report-list-table > tbody > tr:nth-child(even) {
+  background-color: #F4F4F4;
+}
 .clm-table-border-top {
   border-top: 1px solid #ddd
 }

@@ -10,6 +10,8 @@ Insight Brain
 
 The on-premises server that customers run to evaluate policy against applications and review the results.
 
+See https://docs.sonatype.com/display/INSIGHT/Insight+Brain for more information
+
 Building
 ========
 

@@ -31,6 +31,7 @@
       dist: 'grunt/working/dist',
       tmp: 'grunt/working/.tmp',
       debug: 'grunt/working/debug',
+      scss: 'grunt/scss',
       angularJsVersion: getAngularVersion()
     };
 
@@ -258,6 +259,17 @@
           singleRun: true
         }
       },
+      sass: {
+        clmServer: {
+          files: [{
+            expand: true,
+            flatten: true,
+            src: '<%= config.scss %>/*.scss',
+            dest: '<%= config.debug %>/assets/scss/',
+            ext: '.css'
+          }]
+        }
+      },
       useminPrepare: {
         src: ['<%= config.gruntFiltered %>/assets/index.html'],
         options: {
@@ -289,8 +301,15 @@
       },
       watch: {
         assets: {
-          files: ['<%= config.assets %>/{,*/}{,*/}*'],
+          files: [
+            '<%= config.assets %>/{,*/}{,*/}*.css',
+            '<%= config.assets %>/{,*/}{,*/}*.js'
+          ],
           tasks: ['copy:debug']
+        },
+        scssAssets: {
+          files: '<%= config.assets %>/{,*/}{,*/}*.scss',
+          tasks: ['sass:clmServer']
         },
         brainClientAssets: {
           files: ['<%= config.brainClientAssets %>/{,*/}{,*/}*'],
@@ -321,6 +340,7 @@
     grunt.registerTask('server', [
       'clean:debug',
       'configureProxies',
+      'sass:clmServer',
       'copy:filtered',
       'copy:debug',
       'connect:livereload',
@@ -338,6 +358,7 @@
     grunt.registerTask('build', [
       'clean:dist',
       'useminPrepare',
+      'sass:clmServer',
       'concurrent:copy',
       'concat',
       'uglify',

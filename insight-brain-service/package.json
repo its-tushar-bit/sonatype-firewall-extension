@@ -31,7 +31,8 @@
     "time-grunt": "~0.2.8",
     "karma-coverage": "~0.1.5",
     "grunt-phantomas": "~0.5.2",
-    "xmldom": "^0.1.19"
+    "xmldom": "^0.1.19",
+    "grunt-contrib-sass": "~0.7.3"
   },
   "scripts": {
     "test": "grunt test"

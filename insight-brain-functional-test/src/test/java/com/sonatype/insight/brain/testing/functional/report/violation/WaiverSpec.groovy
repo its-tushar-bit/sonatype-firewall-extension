@@ -14,7 +14,7 @@ import com.sonatype.insight.brain.model.policy.conditions.CoordinatesConditionTy
 import com.sonatype.insight.brain.service.InsightWork
 import com.sonatype.insight.brain.testing.functional.BaseSpec
 import com.sonatype.insight.brain.testing.functional.utils.TestReportEvaluator
-import com.sonatype.insight.client.utils.Result;
+import com.sonatype.insight.client.utils.Result
 
 import spock.lang.Stepwise
 
@@ -85,13 +85,13 @@ class WaiverSpec
     when: 'view existing waivers is clicked'
       waitFor { results[0].cip.policy.viewWaiversButton.displayed }
       results[0].cip.policy.showWaivers()
+
+    then: 'waivers are displayed with the correct content'
       waitFor { policyDetailWaivers.rows[0].policy.displayed }
       waitFor { policyDetailWaivers.rows[0].created.displayed }
       waitFor { policyDetailWaivers.rows[0].owner.displayed }
       waitFor { policyDetailWaivers.rows[0].comment.displayed }
       waitFor { policyDetailWaivers.rows[0].removeWaiverButton.displayed }
-      
-    then: 'waivers are displayed with the correct content'
       policyDetailWaivers.rows[0].policy.text() == policyName
       policyDetailWaivers.rows[0].created.text() == new Date().format("yyyy-MM-dd")
       policyDetailWaivers.rows[0].owner.text() == app.getName()
@@ -101,9 +101,9 @@ class WaiverSpec
       policyDetailWaivers.rows[0].showRemoveWaiverModal()
       waitFor { removeWaiverModal.removeButton.displayed }
       removeWaiverModal.remove()
-      waitFor { policyDetailWaivers.noWaivers.displayed }
 
     then: 'no waiver text is displayed'
+      waitFor { policyDetailWaivers.noWaivers.displayed }
       policyDetailWaivers.noWaivers.text() == noWaiversText
       
     when: 'waiver with comment greater than 1000 characters'
@@ -112,22 +112,22 @@ class WaiverSpec
       waiver.save()
       waitFor { results[0].cip.policy.viewWaiversButton.displayed }
       results[0].cip.policy.showWaivers()
-      waitFor { policyDetailWaivers.rows[0].comment.displayed }
 
     then: 'comment is truncated to 1000 characters'
+      waitFor { policyDetailWaivers.rows[0].comment.displayed }
       policyDetailWaivers.rows[0].comment.text() == truncatedLongComment
 
     when: 'remove waiver clicked and not confirmed'
       policyDetailWaivers.rows[0].showRemoveWaiverModal()
       waitFor { removeWaiverModal.removeButton.displayed }
       removeWaiverModal.cancel()
+
+    then: 'waivers are displayed as normal'
       waitFor { policyDetailWaivers.rows[0].policy.displayed }
       waitFor { policyDetailWaivers.rows[0].created.displayed }
       waitFor { policyDetailWaivers.rows[0].owner.displayed }
       waitFor { policyDetailWaivers.rows[0].comment.displayed }
       waitFor { policyDetailWaivers.rows[0].removeWaiverButton.displayed }
-
-    then: 'waivers are displayed as normal'
       policyDetailWaivers.rows[0].policy.text() == policyName
       policyDetailWaivers.rows[0].created.text() == new Date().format("yyyy-MM-dd")
       policyDetailWaivers.rows[0].owner.text() == app.getName()

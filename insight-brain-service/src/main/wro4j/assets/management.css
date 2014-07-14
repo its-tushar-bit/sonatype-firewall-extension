@@ -291,12 +291,12 @@ a:focus {
 	background-clip: padding-box; /* for IE9+, Firefox 4+, Opera, Chrome */
 }
 .navigation {
-  margin: 41px 0 auto auto;
   background: #E8E8E8;
   z-index: 1;
   width: 120px;
   position: fixed;
-  height: 100%;
+  top: 41px;
+  bottom: 0px;
   left: 0px;
   border-right: 1px solid rgba(0, 0, 0, .1);
   -webkit-box-shadow: 0 0 5px rgba(0, 0, 0, 0.15);
@@ -332,6 +332,7 @@ a:focus {
   top: 41px;
   bottom : 0px;
   left : 0px;
+  z-index: 1;
   overflow: hidden;
   border-right: 1px solid rgba(0, 0, 0, .1);
   -webkit-box-shadow: 0 0 5px rgba(0, 0, 0, 0.15);
@@ -340,8 +341,8 @@ a:focus {
 }
 .subnavigation ul:nth-child(3) {
 	overflow:auto;
-	position:fixed;
-	top:117px;
+	position:absolute;
+	top:80px;
 	bottom:0px;
 	width:116px;
 }
@@ -384,8 +385,7 @@ a:focus {
   position: absolute;
   top: 41px;
   left : 275px;
-  right: 0px;
-  overflow : auto;
+  min-width: 840px;
 }
 .content .nav-tabs {
 	border-bottom-color: black;
@@ -714,7 +714,7 @@ ul.tri-pane:before, ul.tri-pane:after {
 ul.tri-pane {
 	width : 100%;
 	height: 30px;
-	margin-left: -12px;
+	margin-left: 0px;
 	padding-right: 12px; /* Ensures underline is full width with the above margin */
 	list-style-type: none;
 	min-width: 500px;
@@ -1020,6 +1020,9 @@ ul.tri-pane.left {
      min-width: 849px;
      margin: auto;
    }
+  #security .row {
+    margin-left: -30px;
+  }
   .dashboard-responsive {
     min-width: 849px;
   }

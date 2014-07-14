@@ -38,11 +38,17 @@
 .roles {
 	width : 867px;
 }
-.role-span {
-  width: 200px;
+.role-content, .member-content {
+  float: left;
+  min-height: 1px;
 }
-.member-span {
+.role-content {
+  width: 200px;
+  margin-left: 30px;
+}
+.member-content {
   width: 630px;
+  margin-left: 10px;
 }
 .role-header {
 	border-bottom:1px solid rgba(0,0,0,.1);

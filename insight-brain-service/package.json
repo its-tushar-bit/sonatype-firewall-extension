@@ -32,7 +32,8 @@
     "karma-coverage": "~0.1.5",
     "grunt-phantomas": "~0.5.2",
     "xmldom": "^0.1.19",
-    "grunt-contrib-sass": "~0.7.3"
+    "grunt-contrib-sass": "~0.7.3",
+    "grunt-styleguide": "~0.2.15"
   },
   "scripts": {
     "test": "grunt test"

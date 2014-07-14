@@ -10,6 +10,7 @@ dependency-reduced-pom.xml
 *.eml
 .DS_Store
 insight-brain-service/.sass-cache/
+insight-brain-service/grunt/docs/
 insight-brain-service/grunt/working/
 insight-brain-service/grunt/metrics/
 insight-brain-service/node_modules/

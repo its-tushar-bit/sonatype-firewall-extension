@@ -32,6 +32,7 @@
       tmp: 'grunt/working/.tmp',
       debug: 'grunt/working/debug',
       scss: 'grunt/scss',
+      docs: 'grunt/docs',
       angularJsVersion: getAngularVersion()
     };
 
@@ -79,7 +80,7 @@
             changeOrigin: false
           }
         ],
-        livereload: {
+        clmServer: {
           options: {
             middleware: function(connect) {
               return [
@@ -90,6 +91,17 @@
                 mountFolder(connect, config.gruntFiltered)
               ];
             }
+          }
+        },
+        styleguide: {
+          options: {
+            port: 9070,
+            middleware: function(connect) {
+              return [
+                mountFolder(connect, config.docs)
+              ];
+            },
+            keepalive: true
           }
         },
         metrics: {
@@ -299,6 +311,19 @@
           }
         }
       },
+      styleguide: {
+        styledocco: {
+          options: {
+            framework: {
+              name: 'styledocco'
+            },
+            name: 'CLM Living Style Guide'
+          },
+          files: {
+            '<%= config.docs %>': '<%= config.assets %>/**/*.css'
+          }
+        }
+      },
       watch: {
         assets: {
           files: [
@@ -343,7 +368,7 @@
       'sass:clmServer',
       'copy:filtered',
       'copy:debug',
-      'connect:livereload',
+      'connect:clmServer',
       'open',
       'watch'
     ]);
@@ -371,6 +396,11 @@
       'copy:debug',
       'connect:metrics',
       'phantomas:index'
+    ]);
+
+    grunt.registerTask('livingstyle', [
+      'styleguide',
+      'connect:styleguide'
     ]);
 
     grunt.registerTask('default', [

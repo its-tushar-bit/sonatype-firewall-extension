@@ -29,6 +29,7 @@
 
   <group name='newcss'>
     <css>/scss/variables.scss</css>
+    <css>/scss/form.scss</css>
     <css>/scss/chiclet.scss</css>
   </group>
 

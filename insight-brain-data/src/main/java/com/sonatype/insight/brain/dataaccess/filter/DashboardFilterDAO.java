@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.dataaccess.filter;
 
+import java.util.List;
+
 import javax.persistence.EntityManager;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
@@ -30,5 +32,10 @@ public class DashboardFilterDAO
     finally {
       close(em);
     }
+  }
+
+  public List<DashboardFilter> getAll() {
+    String sQuery = "SELECT entity FROM DashboardFilter entity";
+    return getList(sQuery);
   }
 }

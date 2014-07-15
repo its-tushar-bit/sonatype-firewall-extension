@@ -13,7 +13,7 @@
       params.maxResults = maxResults + 1;
     }
     if (filter) {
-      params.applicationPublicIds = filter.applicationPublicIds;
+      params.applicationIds = filter.applicationIds;
       params.policyThreatCategories = (filter.policyThreatTypes &&
           filter.policyThreatTypes.length > 0) ?
           filter.policyThreatTypes.join(',') : undefined;
@@ -198,7 +198,7 @@
       link : function (scope) {
         function getEmptyFilter() {
           return {
-            applicationPublicIds: [],
+            applicationIds: [],
             policyThreatTypes: [],
             stageTypeIds: [],
             applicationTagIds: [],
@@ -252,7 +252,7 @@
 
             if (data[4].data) {
               scope.filter = {
-                applicationPublicIds: data[4].data.applicationFilters,
+                applicationIds: data[4].data.applicationFilters,
                 policyThreatTypes: data[4].data.policyThreatCategoryFilters,
                 stageTypeIds: data[4].data.stageTypeFilters,
                 applicationTagIds: data[4].data.tagFilters,
@@ -279,7 +279,7 @@
         scope.applicationNameFor = function(applicationId) {
           for (var i = 0; i < scope.applications.length; i++) {
             var application = scope.applications[i];
-            if (application.publicId === applicationId) {
+            if (application.id === applicationId) {
               return application.name;
             }
           }
@@ -316,7 +316,7 @@
           // We copy it so the object is not shared
           scope.filter = angular.copy(scope.dirtyFilter);
           $http.put(CLMLocations.getDashboardFilters(), {
-            applicationFilters : scope.filter.applicationPublicIds,
+            applicationFilters : scope.filter.applicationIds,
             policyThreatCategoryFilters : scope.filter.policyThreatTypes,
             stageTypeFilters : scope.filter.stageTypeIds,
             tagFilters : scope.filter.applicationTagIds,

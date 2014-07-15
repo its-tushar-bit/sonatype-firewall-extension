@@ -30,7 +30,7 @@ class DashboardOverviewPage
     resetButton(required: false) { filterButtons.button('Reset') }
 
     applicationFilters(required: false) {
-      filterPanel.find('span[ng-repeat="applicationId in filter.applicationPublicIds"]')
+      filterPanel.find('span[ng-repeat="applicationId in filter.applicationIds"]')
     }
     applicationTagFilters(required: false) {
       filterPanel.find('span[ng-repeat="applicationTagId in filter.applicationTagIds"]')

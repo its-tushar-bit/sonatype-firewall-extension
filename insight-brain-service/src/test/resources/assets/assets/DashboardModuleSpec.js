@@ -35,12 +35,12 @@ describe('DashboardModule', function() {
       name: 'OrganizationTwo'
     }
   ], commonFilters = {
-    applicationPublicIds: ['1', '2'],
+    applicationIds: ['1', '2'],
     policyThreatTypes: ['3', '4'],
     stageTypeIds: ['5', '6'],
     applicationTagIds: ['7', '8'],
     policyThreatLevel: [3, 9]
-  }, commonFilterQuery = '?applicationPublicIds=1&applicationPublicIds=2&policyThreatCategories=3,' +
+  }, commonFilterQuery = '?applicationIds=1&applicationIds=2&policyThreatCategories=3,' +
     '4&policyThreatLevelRange=3,9&stageIds=5&stageIds=6&tagIds=7&tagIds=8';
 
   beforeEach(module('DashboardModule'));
@@ -59,7 +59,7 @@ describe('DashboardModule', function() {
 
       scope.$apply(function () {
         scope.filters = {
-          applicationPublicIds: [],
+          applicationIds: [],
           policyThreatTypes: [],
           stageTypeIds: [],
           applicationTagIds: [],
@@ -72,7 +72,7 @@ describe('DashboardModule', function() {
     it('Reacts to filter changes', function() {
       scope.$apply(function () {
         scope.filters = {
-          applicationPublicIds: ['foo'],
+          applicationIds: ['foo'],
           policyThreatTypes: [],
           stageTypeIds: [],
           applicationTagIds: [],
@@ -122,7 +122,7 @@ describe('DashboardModule', function() {
       expect(scope.filters.policyThreatTypes).toEqual(['SECURITY','OTHER']);
       expect(scope.filters.stageTypeIds).toEqual(['type1','type2']);
       expect(scope.filters.applicationTagIds).toEqual(['tag1','tag2']);
-      expect(scope.filters.applicationPublicIds).toEqual(['app1','app2']);
+      expect(scope.filters.applicationIds).toEqual(['app1','app2']);
       expect(scope.filters.policyThreatLevel).toEqual([3,6]);
     });
 
@@ -161,11 +161,11 @@ describe('DashboardModule', function() {
         policyThreatTypes: ['SECURITY','OTHER'],
         stageTypeIds: ['type1','type2'],
         applicationTagIds: ['tag1','tag2'],
-        applicationPublicIds: ['app1','app2'],
+        applicationIds: ['app1','app2'],
         policyThreatLevel: [3,6]
       });
       expect(directiveScope.dirtyFilter).toEqual({
-        applicationPublicIds: [],
+        applicationIds: [],
         policyThreatTypes: [],
         stageTypeIds: [],
         applicationTagIds: [],
@@ -187,12 +187,12 @@ describe('DashboardModule', function() {
     }
 
     it('filters policy violations by application', inject(function($httpBackend, CLMLocations) {
-      directiveScope.dirtyFilter.applicationPublicIds = ['fooID'];
+      directiveScope.dirtyFilter.applicationIds = ['fooID'];
       expectFilterPUT($httpBackend, CLMLocations, ['fooID']);
       directiveScope.applyFilter();
       $httpBackend.flush();
 
-      expect(scope.filters.applicationPublicIds.length).toBe(1);
+      expect(scope.filters.applicationIds.length).toBe(1);
     }));
 
     it('filters policy violations by policy threat type', inject(function($httpBackend, CLMLocations) {
@@ -232,32 +232,32 @@ describe('DashboardModule', function() {
     }));
 
     it('cancels filters', function() {
-      scope.filters.applicationPublicIds = [];
+      scope.filters.applicationIds = [];
       scope.filters.policyThreatTypes = [];
       scope.filters.stageTypeIds = [];
       scope.filters.applicationTagIds = [];
 
       directiveScope.$apply(function () {
-        directiveScope.dirtyFilter.applicationPublicIds = ['fooID'];
+        directiveScope.dirtyFilter.applicationIds = ['fooID'];
         directiveScope.dirtyFilter.policyThreatTypes = ['security'];
         directiveScope.dirtyFilter.stageTypeIds = ['type1'];
         directiveScope.dirtyFilter.applicationTagIds = ['tagID'];
         directiveScope.cancelFilter();
       });
 
-      expect(scope.filters.applicationPublicIds.length).toBe(0);
+      expect(scope.filters.applicationIds.length).toBe(0);
       expect(scope.filters.policyThreatTypes.length).toBe(0);
       expect(scope.filters.stageTypeIds.length).toBe(0);
       expect(scope.filters.applicationTagIds.length).toBe(0);
 
-      expect(directiveScope.dirtyFilter.applicationPublicIds.length).toBe(0);
+      expect(directiveScope.dirtyFilter.applicationIds.length).toBe(0);
       expect(directiveScope.dirtyFilter.policyThreatTypes.length).toBe(0);
       expect(directiveScope.dirtyFilter.stageTypeIds.length).toBe(0);
       expect(directiveScope.dirtyFilter.applicationTagIds.length).toBe(0);
     });
 
     it('converts from application.publicId to application.name', function(){
-      expect(directiveScope.applicationNameFor('applicationPublicId1')).toBe('ApplicationOne');
+      expect(directiveScope.applicationNameFor('applicationId1')).toBe('ApplicationOne');
     });
 
     it('converts from policyThreatCategory.id to policyThreatCategory.name', function(){
@@ -472,7 +472,7 @@ describe('DashboardModule', function() {
           $httpBackend.expectGET(startsWith(CLMLocations[directive.urlFn]())).respond('foo');
           scope.$apply(function () {
             scope.filters =  {
-              applicationPublicIds: ['foo'],
+              applicationIds: ['foo'],
               policyThreatTypes: [],
               stageTypeIds: [],
               applicationTagIds: [],
@@ -486,7 +486,7 @@ describe('DashboardModule', function() {
           $httpBackend.expectGET(startsWith(CLMLocations[directive.urlFn]())).respond('bar');
           scope.$apply(function () {
             scope.filters = angular.copy(scope.filters);
-            scope.filters.applicationPublicIds = ['bar'];
+            scope.filters.applicationIds = ['bar'];
           });
           $httpBackend.flush();
           expect(directiveScope.data).toEqual('bar');
@@ -496,7 +496,7 @@ describe('DashboardModule', function() {
           $httpBackend.expectGET(startsWith(CLMLocations[directive.urlFn]())).respond('foo');
           scope.$apply(function () {
             scope.filters =  {
-              applicationPublicIds: ['foo'],
+              applicationIds: ['foo'],
               policyThreatTypes: [],
               stageTypeIds: [],
               applicationTagIds: [],
@@ -508,7 +508,7 @@ describe('DashboardModule', function() {
           $httpBackend.expectGET(startsWith(CLMLocations[directive.urlFn]())).respond('bar');
           scope.$apply(function () {
             scope.filters = angular.copy(scope.filters);
-            scope.filters.applicationPublicIds = ['bar'];
+            scope.filters.applicationIds = ['bar'];
           });
           $httpBackend.flush();
           expect(directiveScope.data).toEqual('bar');
@@ -518,7 +518,7 @@ describe('DashboardModule', function() {
           $httpBackend.expectGET(startsWith(CLMLocations[directive.urlFn]())).respond(500, 'foo');
           scope.$apply(function () {
             scope.filters =  {
-              applicationPublicIds: ['foo'],
+              applicationIds: ['foo'],
               policyThreatTypes: [],
               stageTypeIds: [],
               applicationTagIds: [],
@@ -535,7 +535,7 @@ describe('DashboardModule', function() {
             $httpBackend.expectGET(startsWith(CLMLocations[directive.urlFn]())).respond('foo');
             scope.$apply(function () {
               scope.filters =  {
-                applicationPublicIds: [],
+                applicationIds: [],
                 policyThreatTypes: [],
                 stageTypeIds: [],
                 applicationTagIds: [],

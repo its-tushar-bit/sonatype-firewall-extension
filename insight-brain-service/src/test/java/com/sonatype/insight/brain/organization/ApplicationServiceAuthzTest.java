@@ -79,7 +79,7 @@ public class ApplicationServiceAuthzTest
   }
 
   @Test
-  public void testDeleteApplicationByPublicId_Authorized() throws Exception {
+  public void testDeleteApplicationById_Authorized() throws Exception {
     grantWritePermission(app.getId());
     applicationService.deleteApplicationByPublicId(app.getPublicId());
   }
@@ -147,64 +147,61 @@ public class ApplicationServiceAuthzTest
   @Test
   public void testGetApplicationsByPublicIdsAndTagIds_Authorized() throws Exception {
     grantReadPermission(app.getId());
-    final List<Application> applications = applicationService
-        .getApplicationsByPublicIdsAndTagIds(Sets.newHashSet(app.getPublicId()), null);
+    final List<Application> applications = applicationService.getApplicationsByIdsAndTagIds(
+        Sets.newHashSet(app.getId()), null);
     assertThat(applications, hasSize(1));
   }
 
   @Test
-  public void testGetApplicationsByPublicIdsAndTagIds_FilteredAuthorized() throws Exception {
+  public void testGetApplicationsByIdsAndTagIds_FilteredAuthorized() throws Exception {
     grantReadPermission(app.getId());
-    List<Application> applications = applicationService.getApplicationsByPublicIdsAndTagIds(null, null);
+    List<Application> applications = applicationService.getApplicationsByIdsAndTagIds(null, null);
     assertThat(applications, hasSize(1));
     assertThat(applications.get(0).getId(), is(app.getId()));
   }
 
   @Test()
-  public void testGetApplicationsByPublicIdsAndTagIds_TwoAppsAuthorized() throws Exception {
+  public void testGetApplicationsByIdsAndTagIds_TwoAppsAuthorized() throws Exception {
     Application app2 = tempEntity.newApplication("App2", "appPubId2", org.getId());
     grantReadPermission(app.getId());
     grantReadPermission(app2.getId());
 
-    final List<Application> applications = applicationService.getApplicationsByPublicIdsAndTagIds(
-        Sets.newHashSet(app.getPublicId(), app2.getPublicId()), null);
+    final List<Application> applications = applicationService.getApplicationsByIdsAndTagIds(
+        Sets.newHashSet(app.getId(), app2.getId()), null);
     assertThat(applications, hasSize(2));
   }
 
   @Test(expected = UnauthenticatedException.class)
-  public void testGetApplicationsByPublicIdsAndTagIds_Unauthenticated() throws Exception {
-    applicationService.getApplicationsByPublicIdsAndTagIds(
-        Sets.newHashSet(app.getPublicId()), null);
+  public void testGetApplicationsByIdsAndTagIds_Unauthenticated() throws Exception {
+    applicationService.getApplicationsByIdsAndTagIds(Sets.newHashSet(app.getId()), null);
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testGetApplicationsByPublicIdsAndTagIds_NotAuthorized() throws Exception {
+  public void testGetApplicationsByIdsAndTagIds_NotAuthorized() throws Exception {
     login();
-    applicationService.getApplicationsByPublicIdsAndTagIds(
-        Sets.newHashSet(app.getPublicId()), null);
+    applicationService.getApplicationsByIdsAndTagIds(Sets.newHashSet(app.getId()), null);
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testGetApplicationsByPublicIdsAndTagIds_TwoAppsOneNotAuthorized() throws Exception {
+  public void testGetApplicationsByIdsAndTagIds_TwoAppsOneNotAuthorized() throws Exception {
     Application app2 = tempEntity.newApplication("App2", "appPubId2", org.getId());
     grantReadPermission(app.getId());
-    applicationService.getApplicationsByPublicIdsAndTagIds(
-        Sets.newHashSet(app.getPublicId(), app2.getPublicId()), null);
+    applicationService.getApplicationsByIdsAndTagIds(Sets.newHashSet(app.getId(), app2.getId()), null);
   }
 
   @Test()
-  public void testGetApplicationsByPublicIdsAndTagIds_OnlySeesAppsWithPermission() throws Exception {
+  public void testGetApplicationsByIdsAndTagIds_OnlySeesAppsWithPermission() throws Exception {
     Application app2 = tempEntity.newApplication("App2", "appPubId2", org.getId());
     grantReadPermission(app.getId());
 
     //request with nothing specified, should only see app1
-    List<Application> applications = applicationService.getApplicationsByPublicIdsAndTagIds(null, null);
+    List<Application> applications = applicationService.getApplicationsByIdsAndTagIds(null, null);
     assertThat(applications, hasSize(1));
     assertEquals(app.getId(), applications.get(0).getId());
 
     //now app2 permission and it should show up
     grantReadPermission(app2.getId());
-    applications = applicationService.getApplicationsByPublicIdsAndTagIds(null, null);
+    applications = applicationService.getApplicationsByIdsAndTagIds(null, null);
     assertThat(applications, hasSize(2));
     Set<String> ids = new HashSet<>();
     for (Application a : applications) {

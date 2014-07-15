@@ -780,8 +780,8 @@ class DashboardOverviewSpec
     then: 'filters are stored to disk'
       DashboardFilterDTO dto = new ObjectMapper().
           readValue(new DashboardFilterDAO().getByUsername("admin").filter, DashboardFilterDTO.class);
-      dto.applicationFilters.contains(firstApp.publicId)
-      dto.applicationFilters.contains(secondApp.publicId)
+      dto.applicationFilters.contains(firstApp.id)
+      dto.applicationFilters.contains(secondApp.id)
       dto.tagFilters.contains(firstAppTag.id)
       dto.policyThreatCategoryFilters.contains(PolicyThreatCategory.SECURITY)
       dto.policyThreatCategoryFilters.contains(PolicyThreatCategory.OTHER)
@@ -791,7 +791,7 @@ class DashboardOverviewSpec
   def 'Stored filters loaded on view of dashboard'() {
     setup: 'Add filter for admin user'
       DashboardFilterDTO dto = new DashboardFilterDTO()
-      dto.applicationFilters = [firstApp.publicId, secondApp.publicId]
+      dto.applicationFilters = [firstApp.id, secondApp.id]
       dto.maxPolicyThreatLevel = 6
       dto.minPolicyThreatLevel = 3
       dto.policyThreatCategoryFilters = [PolicyThreatCategory.SECURITY, PolicyThreatCategory.OTHER]

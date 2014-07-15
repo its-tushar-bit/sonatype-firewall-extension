@@ -65,7 +65,7 @@ public class DashboardServiceAuthzTest
   @Test
   public void testGetPolicyViolationsByApplicationIds() throws Exception {
     try {
-      dashboardService.getPolicyViolationsByApplicationIds(Sets.newHashSet(app.getPublicId()), null, null, null);
+      dashboardService.getPolicyViolationsByApplicationIds(Sets.newHashSet(app.getId()), null, null, null);
       fail("Should throw an UnauthenticatedException as we haven't logged in.");
     }
     catch (UnauthenticatedException e) {
@@ -75,7 +75,7 @@ public class DashboardServiceAuthzTest
     login();
 
     try {
-      dashboardService.getPolicyViolationsByApplicationIds(Sets.newHashSet(app.getPublicId()), null, null, null);
+      dashboardService.getPolicyViolationsByApplicationIds(Sets.newHashSet(app.getId()), null, null, null);
       fail("Should throw an UnauthorizedException as the application does not have read permissions.");
     }
     catch (UnauthorizedException e) {
@@ -86,7 +86,7 @@ public class DashboardServiceAuthzTest
 
     PolicyViolation violation = createPolicyViolation(app.getId());
     List<PolicyViolationDTO> result = dashboardService.getPolicyViolationsByApplicationIds(
-        Sets.newHashSet(app.getPublicId()), null, null, null);
+        Sets.newHashSet(app.getId()), null, null, null);
     assertThat(result, hasSize(1));
     PolicyViolationDTO dto = result.get(0);
     assertThat(dto.id, is(violation.getId()));
@@ -94,8 +94,8 @@ public class DashboardServiceAuthzTest
     Application application = tempEntity.newApplication("nonReadableApplicationId", org.getId());
 
     try {
-      dashboardService.getPolicyViolationsByApplicationIds(
-          Sets.newHashSet(app.getPublicId(), application.getPublicId()), null, null, null);
+      dashboardService.getPolicyViolationsByApplicationIds(Sets.newHashSet(app.getId(), application.getId()), null,
+          null, null);
       fail("Should throw an UnauthorizedException as one of the applications does not have read permissions.");
     }
     catch (UnauthorizedException e) {
@@ -117,19 +117,19 @@ public class DashboardServiceAuthzTest
 
   @Test(expected = UnauthenticatedException.class)
   public void testGetComponentRisks_ExplicitApplicationFilter_Unauthenticated() {
-    dashboardService.getComponentRisks(Collections.singleton(app.getPublicId()), null, null, null, null, 1);
+    dashboardService.getComponentRisks(Collections.singleton(app.getId()), null, null, null, null, 1);
   }
 
   @Test(expected = UnauthorizedException.class)
   public void testGetComponentRisks_ExplicitApplicationFilter_Unauthorized() {
     login();
-    dashboardService.getComponentRisks(Collections.singleton(app.getPublicId()), null, null, null, null, 1);
+    dashboardService.getComponentRisks(Collections.singleton(app.getId()), null, null, null, null, 1);
   }
 
   @Test
   public void testGetComponentRisks_ExplicitApplicationFilter_Authorized() {
     grantReadPermission(app.getId());
-    dashboardService.getComponentRisks(Collections.singleton(app.getPublicId()), null, null, null, null, 1);
+    dashboardService.getComponentRisks(Collections.singleton(app.getId()), null, null, null, null, 1);
   }
 
   @Test
@@ -187,42 +187,42 @@ public class DashboardServiceAuthzTest
   }
 
   private int getFilterSummaryTotalApps(boolean all) {
-    return dashboardService.getFilterSummary(all ? null : Collections.singleton(app.getPublicId()), null, null, null,
+    return dashboardService.getFilterSummary(all ? null : Collections.singleton(app.getId()), null, null, null,
         null).totalApplications;
   }
 
   @Test(expected = UnauthenticatedException.class)
   public void testGetApplicationRisks_ExplicitApplicationFilter_Unauthenticated() {
-    dashboardService.getApplicationRisks(Collections.singleton(app.getPublicId()), null, null, null, null, 1);
+    dashboardService.getApplicationRisks(Collections.singleton(app.getId()), null, null, null, null, 1);
   }
 
   @Test(expected = UnauthorizedException.class)
   public void testGetApplicationRisks_ExplicitApplicationFilter_Unauthorized() {
     login();
-    dashboardService.getApplicationRisks(Collections.singleton(app.getPublicId()), null, null, null, null, 1);
+    dashboardService.getApplicationRisks(Collections.singleton(app.getId()), null, null, null, null, 1);
   }
 
   @Test
   public void testGetApplicationRisks_ExplicitApplicationFilter_Authorized() {
     grantReadPermission(app.getId());
-    dashboardService.getApplicationRisks(Collections.singleton(app.getPublicId()), null, null, null, null, 1);
+    dashboardService.getApplicationRisks(Collections.singleton(app.getId()), null, null, null, null, 1);
   }
 
   @Test(expected = UnauthenticatedException.class)
   public void testGetNewestRisks_ExplicitApplicationFilter_Unauthenticated() {
-    dashboardService.getNewestRisks(Collections.singleton(app.getPublicId()), null, null, null, null, 1);
+    dashboardService.getNewestRisks(Collections.singleton(app.getId()), null, null, null, null, 1);
   }
 
   @Test(expected = UnauthorizedException.class)
   public void testGetNewestRisks_ExplicitApplicationFilter_Unauthorized() {
     login();
-    dashboardService.getNewestRisks(Collections.singleton(app.getPublicId()), null, null, null, null, 1);
+    dashboardService.getNewestRisks(Collections.singleton(app.getId()), null, null, null, null, 1);
   }
 
   @Test
   public void testGetNewestRisks_ExplicitApplicationFilter_Authorized() {
     grantReadPermission(app.getId());
-    dashboardService.getNewestRisks(Collections.singleton(app.getPublicId()), null, null, null, null, 1);
+    dashboardService.getNewestRisks(Collections.singleton(app.getId()), null, null, null, null, 1);
   }
 
   @Test(expected = UnauthenticatedException.class)
@@ -285,8 +285,8 @@ public class DashboardServiceAuthzTest
 
     DashboardFilterDTO dto = new DashboardFilterDTO();
     dto.applicationFilters = new ArrayList<>();
-    dto.applicationFilters.add(app.getPublicId());
-    dto.applicationFilters.add(app2.getPublicId());
+    dto.applicationFilters.add(app.getId());
+    dto.applicationFilters.add(app2.getId());
 
     login();
 
@@ -294,32 +294,32 @@ public class DashboardServiceAuthzTest
 
     grantReadPermission(app.getId());
     dto = dashboardService.getDashboardFilterForCurrentUser();
-    assertThat(dto.applicationFilters, not(contains(app2.getPublicId())));
+    assertThat(dto.applicationFilters, not(contains(app2.getId())));
 
     grantReadPermission(app2.getId());
     dto = dashboardService.getDashboardFilterForCurrentUser();
-    assertThat(dto.applicationFilters, containsInAnyOrder(app.getPublicId(), app2.getPublicId()));
+    assertThat(dto.applicationFilters, containsInAnyOrder(app.getId(), app2.getId()));
   }
 
   private int getComponentSummaryTotal(boolean all) {
-    return dashboardService.getComponentSummary(all ? null : Collections.singleton(app.getPublicId()), null, null).total;
+    return dashboardService.getComponentSummary(all ? null : Collections.singleton(app.getId()), null, null).total;
   }
 
   @Test(expected = UnauthenticatedException.class)
   public void testGetPolicySummary_ExplicitApplicationFilter_Unauthenticated() {
-    dashboardService.getPolicySummary(Collections.singleton(app.getPublicId()), null, null, null, null);
+    dashboardService.getPolicySummary(Collections.singleton(app.getId()), null, null, null, null);
   }
 
   @Test(expected = UnauthorizedException.class)
   public void testGetPolicySummary_ExplicitApplicationFilter_Unauthorized() {
     login();
-    dashboardService.getPolicySummary(Collections.singleton(app.getPublicId()), null, null, null, null);
+    dashboardService.getPolicySummary(Collections.singleton(app.getId()), null, null, null, null);
   }
 
   @Test
   public void testGetPolicySummary_ExplicitApplicationFilter_Authorized() {
     grantReadPermission(app.getId());
-    dashboardService.getPolicySummary(Collections.singleton(app.getPublicId()), null, null, null, null);
+    dashboardService.getPolicySummary(Collections.singleton(app.getId()), null, null, null, null);
   }
 
   @Test(expected = UnauthenticatedException.class)

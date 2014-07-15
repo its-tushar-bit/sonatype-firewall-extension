@@ -7,7 +7,7 @@
             <div class='span2 offset1'>
               <h5>Applications</h5>
               <span ng-if='applications.length > 0' id='applications' class='multi-dropdown' multi-select small="true"
-                    items='applications' selected-ids='dirtyFilter.applicationPublicIds' effective-id-field='publicId'
+                    items='applications' selected-ids='dirtyFilter.applicationIds' effective-id-field='id'
                     summarize-with='applications' none-selected-text='All Applications'></span>
               <span ng-if='applications.length === 0' class="small-text">
                 <em id='no-permissions'>No applications available.</em>
@@ -52,9 +52,9 @@
       </div>
     </div>
     <div class='row filter-readonly'>
-      <div class="span2" ng-if='filter.applicationPublicIds.length > 0'>
+      <div class="span2" ng-if='filter.applicationIds.length > 0'>
         <div><strong>Applications</strong></div>
-        <span ng-repeat="applicationId in filter.applicationPublicIds">
+        <span ng-repeat="applicationId in filter.applicationIds">
           {{applicationNameFor(applicationId)}}{{!$last ? "," : ""}}
         </span>
       </div>

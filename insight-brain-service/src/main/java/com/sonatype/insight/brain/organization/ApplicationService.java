@@ -87,24 +87,23 @@ public class ApplicationService
 
   @Authorize(permission = Permission.READ)
   @AuthzFilter(permission = Permission.READ, context = AuthzFilter.Context.APPLICATION)
-  public List<Application> getApplicationsByPublicIdsAndTagIds(
-      @Nullable @AuthzContext(value = AuthzContext.Key.APPLICATION_PUBLIC_ID, multiple = true)
-      final Set<String> applicationPublicIds,
+  public List<Application> getApplicationsByIdsAndTagIds(
+      @Nullable @AuthzContext(value = AuthzContext.Key.APPLICATION_ID, multiple = true) final Set<String> applicationIds,
       @Nullable final Set<String> tagIds)
   {
-    if (isEmpty(applicationPublicIds) && isEmpty(tagIds)) {
+    if (isEmpty(applicationIds) && isEmpty(tagIds)) {
       //neither filled
       return applicationDAO.getAll();
     }
-    else if (isEmpty(applicationPublicIds)) {
+    else if (isEmpty(applicationIds)) {
       return applicationDAO.getByTagIds(tagIds);
     }
     else if (isEmpty(tagIds)) {
-      return applicationDAO.getByPublicIds(applicationPublicIds);
+      return applicationDAO.getByIds(applicationIds);
     }
     else {
       //both filled
-      return applicationDAO.getByPublicIdsAndTagIds(applicationPublicIds, tagIds);
+      return applicationDAO.getByIdsAndTagIds(applicationIds, tagIds);
     }
   }
 

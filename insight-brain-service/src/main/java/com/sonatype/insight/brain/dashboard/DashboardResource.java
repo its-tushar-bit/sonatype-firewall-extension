@@ -54,43 +54,40 @@ public class DashboardResource
   @GET
   @Path(GET_NEWEST_RISKS_PATH)
   @Produces(MediaType.APPLICATION_JSON)
-  public List<NewestRiskDTO> getNewestRisks(
-      @QueryParam("applicationPublicIds") Set<String> applicationPublicIds,
-      @QueryParam("stageIds") Set<String> stageIds,
-      @QueryParam("tagIds") Set<String> tagIds,
+  public List<NewestRiskDTO> getNewestRisks(@QueryParam("applicationIds") Set<String> applicationIds,
+      @QueryParam("stageIds") Set<String> stageIds, @QueryParam("tagIds") Set<String> tagIds,
       @QueryParam("policyThreatCategories") PolicyThreatCategoryFilter policyThreatCategoryFilter,
       @QueryParam("policyThreatLevelRange") PolicyThreatLevelFilter policyThreatLevelFilter,
       @QueryParam("maxResults") @DefaultValue("1000") int maxResults)
   {
-    return dashboardService.getNewestRisks(applicationPublicIds, stageIds, tagIds, policyThreatCategoryFilter,
+    return dashboardService.getNewestRisks(applicationIds, stageIds, tagIds, policyThreatCategoryFilter,
         policyThreatLevelFilter, maxResults);
   }
 
   @GET
   @Path(GET_APPLICATION_RISKS_PATH)
   @Produces(MediaType.APPLICATION_JSON)
-  public List<ApplicationRiskScoreDTO> getApplicationRisks(
-      @QueryParam("applicationPublicIds") Set<String> applicationPublicIds,
+  public List<ApplicationRiskScoreDTO> getApplicationRisks(@QueryParam("applicationIds") Set<String> applicationIds,
       @QueryParam("stageIds") Set<String> stageIds,
       @QueryParam("tagIds") Set<String> tagIds,
       @QueryParam("policyThreatCategories") PolicyThreatCategoryFilter policyThreatCategoryFilter,
       @QueryParam("policyThreatLevelRange") PolicyThreatLevelFilter policyThreatLevelFilter,
       @QueryParam("maxResults") @DefaultValue("1000") int maxResults)
   {
-    return dashboardService.getApplicationRisks(applicationPublicIds, stageIds, tagIds, policyThreatCategoryFilter,
+    return dashboardService.getApplicationRisks(applicationIds, stageIds, tagIds, policyThreatCategoryFilter,
         policyThreatLevelFilter, maxResults);
   }
 
   @GET
   @Path(GET_COMPONENT_RISKS_PATH)
   @Produces(MediaType.APPLICATION_JSON)
-  public List<ComponentRiskDTO> getComponentRisks(@QueryParam("applicationPublicIds") Set<String> applicationPublicIds,
+  public List<ComponentRiskDTO> getComponentRisks(@QueryParam("applicationIds") Set<String> applicationIds,
       @QueryParam("stageIds") Set<String> stageIds, @QueryParam("tagIds") Set<String> tagIds,
       @QueryParam("policyThreatCategories") PolicyThreatCategoryFilter policyThreatCategoryFilter,
       @QueryParam("policyThreatLevelRange") PolicyThreatLevelFilter policyThreatLevelFilter,
       @QueryParam("maxResults") @DefaultValue("1000") int maxResults)
   {
-    return dashboardService.getComponentRisks(applicationPublicIds, stageIds, tagIds, policyThreatCategoryFilter,
+    return dashboardService.getComponentRisks(applicationIds, stageIds, tagIds, policyThreatCategoryFilter,
         policyThreatLevelFilter, maxResults);
   }
 
@@ -127,33 +124,33 @@ public class DashboardResource
   @GET
   @Path(FILTERS_SUMMARY_PATH)
   @Produces(MediaType.APPLICATION_JSON)
-  public FilterSummaryDTO getFilterSummary(@QueryParam("applicationPublicIds") Set<String> applicationPublicIds,
+  public FilterSummaryDTO getFilterSummary(@QueryParam("applicationIds") Set<String> applicationIds,
       @QueryParam("stageIds") Set<String> stageIds, @QueryParam("tagIds") Set<String> tagIds,
       @QueryParam("policyThreatCategories") PolicyThreatCategoryFilter policyThreatCategoryFilter,
       @QueryParam("policyThreatLevelRange") PolicyThreatLevelFilter policyThreatLevelFilter)
   {
-    return dashboardService.getFilterSummary(applicationPublicIds, stageIds, tagIds, policyThreatCategoryFilter,
+    return dashboardService.getFilterSummary(applicationIds, stageIds, tagIds, policyThreatCategoryFilter,
         policyThreatLevelFilter);
   }
 
   @GET
   @Path(COMPONENTS_SUMMARY_PATH)
   @Produces(MediaType.APPLICATION_JSON)
-  public ComponentSummaryDTO getComponentSummary(@QueryParam("applicationPublicIds") Set<String> applicationPublicIds,
+  public ComponentSummaryDTO getComponentSummary(@QueryParam("applicationIds") Set<String> applicationIds,
       @QueryParam("stageIds") Set<String> stageIds, @QueryParam("tagIds") Set<String> tagIds)
   {
-    return dashboardService.getComponentSummary(applicationPublicIds, stageIds, tagIds);
+    return dashboardService.getComponentSummary(applicationIds, stageIds, tagIds);
   }
 
   @GET
   @Path(GET_POLICY_SUMMARY_PATH)
   @Produces(MediaType.APPLICATION_JSON)
-  public PolicySummaryDTO getPolicySummary(@QueryParam("applicationPublicIds") Set<String> applicationPublicIds,
+  public PolicySummaryDTO getPolicySummary(@QueryParam("applicationIds") Set<String> applicationIds,
       @QueryParam("stageIds") Set<String> stageIds, @QueryParam("tagIds") Set<String> tagIds,
       @QueryParam("policyThreatCategories") PolicyThreatCategoryFilter policyThreatCategoryFilter,
       @QueryParam("policyThreatLevelRange") PolicyThreatLevelFilter policyThreatLevelFilter)
   {
-    return dashboardService.getPolicySummary(applicationPublicIds, stageIds, tagIds, policyThreatCategoryFilter,
+    return dashboardService.getPolicySummary(applicationIds, stageIds, tagIds, policyThreatCategoryFilter,
         policyThreatLevelFilter);
   }
 }

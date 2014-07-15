@@ -40,43 +40,43 @@ public class ApplicationServiceTest
   }
 
   @Test
-  public void testGetApplicationsByPublicIdsAndTagIds_NullParams() {
+  public void testGetApplicationsByIdsAndTagIds_NullParams() {
     List<Application> apps = dashboardService
-        .getApplicationsByPublicIdsAndTagIds(null /* applicationPublicIds */, null /* tagIds */);
+        .getApplicationsByIdsAndTagIds(null /* applicationIds */, null /* tagIds */);
     assertThat(apps, hasSize(2));
   }
 
   @Test
-  public void testGetApplicationsByPublicIdsAndTagIds_EmptyParams() {
-    List<Application> apps = dashboardService.getApplicationsByPublicIdsAndTagIds(
-        Collections.<String> emptySet() /* applicationPublicIds */, Collections.<String> emptySet() /* tagIds */);
+  public void testGetApplicationsByIdsAndTagIds_EmptyParams() {
+    List<Application> apps = dashboardService.getApplicationsByIdsAndTagIds(
+        Collections.<String> emptySet() /* applicationIds */, Collections.<String> emptySet() /* tagIds */);
     assertThat(apps, hasSize(2));
   }
 
   @Test
-  public void testGetApplicationsByPublicIdsAndTagIds_AppPublicId() {
-    List<Application> apps = dashboardService.getApplicationsByPublicIdsAndTagIds(
-        Collections.singleton(app1.getPublicId()), null /* tagIds */);
+  public void testGetApplicationsByIdsAndTagIds_AppId() {
+    List<Application> apps = dashboardService
+        .getApplicationsByIdsAndTagIds(Collections.singleton(app1.getId()), null /* tagIds */);
     assertThat(apps, hasSize(1));
     assertThat(apps.get(0).getId(), is(app1.getId()));
   }
 
   @Test
-  public void testGetApplicationsByPublicIdsAndTagIds_TagId() {
+  public void testGetApplicationsByIdsAndTagIds_TagId() {
     Tag tag = tempEntity.newTag(org.getId());
     tempEntity.newApplicationTag(app2.getId(), tag.getId());
-    List<Application> apps = dashboardService.getApplicationsByPublicIdsAndTagIds(null /* applicationPublicIds */,
+    List<Application> apps = dashboardService.getApplicationsByIdsAndTagIds(null /* applicationIds */,
         Collections.singleton(tag.getId()));
     assertThat(apps, hasSize(1));
     assertThat(apps.get(0).getId(), is(app2.getId()));
   }
 
   @Test
-  public void testGetApplicationsByPublicIdsAndTagIds_AppPublicIdAndTagId() {
+  public void testGetApplicationsByIdsAndTagIds_AppIdAndTagId() {
     Tag tag = tempEntity.newTag(org.getId());
     tempEntity.newApplicationTag(app2.getId(), tag.getId());
-    List<Application> apps = dashboardService.getApplicationsByPublicIdsAndTagIds(
-        Collections.singleton(app1.getPublicId()), Collections.singleton(tag.getId()));
+    List<Application> apps = dashboardService.getApplicationsByIdsAndTagIds(Collections.singleton(app1.getId()),
+        Collections.singleton(tag.getId()));
     assertThat(apps, hasSize(0));
   }
 }

@@ -88,14 +88,6 @@ public class DashboardService
 
   private static final String SECRET_JOIN_STRING = "$";
 
-  private static final Function<Application, String> applicationPublicIdSelector = new Function<Application, String>()
-  {
-    @Override
-    public String apply(final Application application) {
-      return application.getPublicId();
-    }
-  };
-
   protected static final Function<HasStringId, String> hasIdIdSelector = new Function<HasStringId, String>()
   {
     @Override
@@ -153,17 +145,17 @@ public class DashboardService
    * Gets the policy violations matching the specified filter criteria. Empty or null filter criteria generally mean
    * "all available" violations for that aspect.
    */
-  private List<PolicyViolationDTO> getPolicyViolations(Set<String> applicationPublicIds, Set<String> stageIds,
+  private List<PolicyViolationDTO> getPolicyViolations(Set<String> applicationIds, Set<String> stageIds,
       Set<String> tagIds, PolicyThreatCategoryFilter policyThreatCategoryFilter,
       PolicyThreatLevelFilter policyThreatLevelFilter)
   {
     Predicate<PolicyViolation> filter = buildViolationFilter(policyThreatCategoryFilter, policyThreatLevelFilter);
 
-    if (applicationPublicIds == null || applicationPublicIds.isEmpty()) {
+    if (applicationIds == null || applicationIds.isEmpty()) {
       return getPolicyViolations(stageIds, tagIds, filter);
     }
 
-    return getPolicyViolationsByApplicationIds(applicationPublicIds, stageIds, tagIds, filter);
+    return getPolicyViolationsByApplicationIds(applicationIds, stageIds, tagIds, filter);
   }
 
   private Predicate<PolicyViolation> buildViolationFilter(PolicyThreatCategoryFilter threatCategoryFilter,
@@ -182,12 +174,12 @@ public class DashboardService
   }
 
   /**
-   * @param applicationPublicIds A list of application public ids to get policy violations.
+   * @param applicationIds A list of application ids to get policy violations.
    * @param stageTypeIds The stages to get policy violations for, defaults to {@link BuildStageType#ID}.
    * @param tagIds The tag ids to filter the applications for which to get policy violations, defaults to all applications
    * @param violationFilter A filter for violations, defaults to accept all violations.
-   * @return A list of {@link PolicyViolationDTO}s for the provided application public ids.
-   * @throws BadRequestException Thrown if the list of application public ids is null, empty, the stage type id is
+   * @return A list of {@link PolicyViolationDTO}s for the provided application ids.
+   * @throws BadRequestException Thrown if the list of application ids is null, empty, the stage type id is
    *           unknown, or the first element is an empty string.
    * @throws com.sonatype.insight.error.exception.NotFoundException Thrown if one of the provided application ids does
    *           not match an existing application.
@@ -195,7 +187,7 @@ public class DashboardService
    * @throws org.apache.shiro.authz.UnauthorizedException Thrown if the user is not authorized to read one of the
    *           applications provided.
    */
-  List<PolicyViolationDTO> getPolicyViolationsByApplicationIds(Set<String> applicationPublicIds,
+  List<PolicyViolationDTO> getPolicyViolationsByApplicationIds(Set<String> applicationIds,
       @Nullable Set<String> stageTypeIds, @Nullable Set<String> tagIds,
       @Nullable Predicate<PolicyViolation> violationFilter)
   {
@@ -204,20 +196,19 @@ public class DashboardService
     List<PolicyViolationDTO> policyViolationDTOs = new ArrayList<>();
 
     // The first item being an empty string occurs when someone GETs with a query parameter that has no value (i.e.
-    // ?applicationPublicIds&stageId=release).
-    if (applicationPublicIds == null || applicationPublicIds.isEmpty()
-        || applicationPublicIds.iterator().next().isEmpty()) {
-      throw new BadRequestException("Unable to get policy violations for null or empty application public IDs.");
+    // ?applicationIds&stageId=release).
+    if (applicationIds == null || applicationIds.isEmpty() || applicationIds.iterator().next().isEmpty()) {
+      throw new BadRequestException("Unable to get policy violations for null or empty application IDs.");
     }
 
     if (!CollectionUtils.isEmpty(tagIds)) {
-      List<Application> filteredApplications = applicationDAO.getByPublicIdsAndTagIds(applicationPublicIds, tagIds);
-      applicationPublicIds = new HashSet<>(Lists.transform(filteredApplications, applicationPublicIdSelector));
+      List<Application> filteredApplications = applicationDAO.getByIdsAndTagIds(applicationIds, tagIds);
+      applicationIds = new HashSet<>(Lists.transform(filteredApplications, hasIdIdSelector));
     }
 
-    for (String applicationPublicId : applicationPublicIds) {
-      // getPolicyViolationsByApplicationId is handling the read authentication for each application public Id.
-      policyViolationDTOs.addAll(getPolicyViolationsByApplicationId(applicationPublicId, stages, violationFilter));
+    for (String applicationId : applicationIds) {
+      // getPolicyViolationsByApplicationId is handling the read authentication for each application Id.
+      policyViolationDTOs.addAll(getPolicyViolationsByApplicationId(applicationId, stages, violationFilter));
     }
 
     List<PolicyViolationDTO> sortedPolicyViolationDTOs = sort(policyViolationDTOs);
@@ -239,8 +230,8 @@ public class DashboardService
     List<Application> applications = applicationService.getApplications();
 
     if (!CollectionUtils.isEmpty(tagIds)) {
-      Set<String> applicationPublicIds = new HashSet<>(Lists.transform(applications, applicationPublicIdSelector));
-      applications = applicationDAO.getByPublicIdsAndTagIds(applicationPublicIds, tagIds);
+      Set<String> applicationIds = new HashSet<>(Lists.transform(applications, hasIdIdSelector));
+      applications = applicationDAO.getByIdsAndTagIds(applicationIds, tagIds);
     }
 
     List<PolicyViolationDTO> policyViolationDTOs = new ArrayList<>();
@@ -270,7 +261,7 @@ public class DashboardService
    */
   @Authorize(permission = Permission.READ)
   public List<ApplicationRiskScoreDTO> getApplicationRisks(
-      @AuthzContext(value = AuthzContext.Key.APPLICATION_PUBLIC_ID, multiple = true) final Set<String> applicationPublicIds,
+      @AuthzContext(value = AuthzContext.Key.APPLICATION_ID, multiple = true) final Set<String> applicationIds,
       final Set<String> stageIds, final Set<String> tagIds, final PolicyThreatCategoryFilter policyThreatCategoryFilter,
       final PolicyThreatLevelFilter policyThreatLevelFilter, final int maxResults)
   {
@@ -278,8 +269,7 @@ public class DashboardService
 
     long start = System.currentTimeMillis();
 
-    List<Application> appsToSearch = applicationService
-        .getApplicationsByPublicIdsAndTagIds(applicationPublicIds, tagIds);
+    List<Application> appsToSearch = applicationService.getApplicationsByIdsAndTagIds(applicationIds, tagIds);
     Set<StageType> stageTypes = getStageTypes(stageIds);
     Predicate<PolicyViolation> filter = buildViolationFilter(policyThreatCategoryFilter, policyThreatLevelFilter);
 
@@ -514,14 +504,14 @@ public class DashboardService
 
   @Authorize(permission = Permission.READ)
   protected List<PolicyViolationDTO> getPolicyViolationsByApplicationId(
-      @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String applicationPublicId, Set<StageType> stages,
+      @AuthzContext(AuthzContext.Key.APPLICATION_ID) String applicationId, Set<StageType> stages,
       @Nullable Predicate<PolicyViolation> violationFilter)
   {
-    if (StringUtils.isBlank(applicationPublicId)) {
-      throw new BadRequestException("Unable to get policy violations for null or empty application public id.");
+    if (StringUtils.isBlank(applicationId)) {
+      throw new BadRequestException("Unable to get policy violations for null or empty application id.");
     }
 
-    Application application = applicationDAO.getByPublicIdNotNull(applicationPublicId);
+    Application application = applicationDAO.getByIdNotNull(applicationId);
 
     List<PolicyViolationDTO> policyViolationDTOs = new ArrayList<>();
     for (StageType stage : stages) {
@@ -586,7 +576,7 @@ public class DashboardService
    * null filter criteria generally mean "all available" violations for that aspect. The results are sorted by
    * descending component risk scores.
    */
-  public List<ComponentRiskDTO> getComponentRisks(Set<String> applicationPublicIds, Set<String> stageIds,
+  public List<ComponentRiskDTO> getComponentRisks(Set<String> applicationIds, Set<String> stageIds,
       Set<String> tagIds, PolicyThreatCategoryFilter policyThreatCategoryFilter,
       PolicyThreatLevelFilter policyThreatLevelFilter, int maxResults)
   {
@@ -594,7 +584,7 @@ public class DashboardService
 
     long start = System.currentTimeMillis();
 
-    List<PolicyViolationDTO> violations = getPolicyViolations(applicationPublicIds, stageIds, tagIds,
+    List<PolicyViolationDTO> violations = getPolicyViolations(applicationIds, stageIds, tagIds,
         policyThreatCategoryFilter, policyThreatLevelFilter);
     Map<String, ComponentViolationRollUp> componentsByHash = new LinkedHashMap<>();
     for (PolicyViolationDTO violation : violations) {
@@ -637,16 +627,16 @@ public class DashboardService
   }
 
   protected void pruneUnauthorizedApplicationIds(DashboardFilterDTO dto) {
-    List<Application> apps = getApplicationsByPublicIds(dto.applicationFilters);
+    List<Application> apps = getApplicationsByIds(dto.applicationFilters);
     dto.applicationFilters.clear();
     for (Application app : apps) {
-      dto.applicationFilters.add(app.getPublicId());
+      dto.applicationFilters.add(app.getId());
     }
   }
 
   @AuthzFilter(permission = Permission.READ, context = AuthzFilter.Context.APPLICATION)
-  protected List<Application> getApplicationsByPublicIds(final List<String> applicationPublicIds) {
-    return applicationDAO.getByPublicIds(new LinkedHashSet<String>(applicationPublicIds));
+  protected List<Application> getApplicationsByIds(final List<String> applicationIds) {
+    return applicationDAO.getByIds(new LinkedHashSet<String>(applicationIds));
   }
 
   private DashboardFilterDTO createDefaultDashboardFilterForCurrentUser(){
@@ -702,7 +692,7 @@ public class DashboardService
    * Calculates how many of the entities accessible to the current user are matched by the specified dashboard filter
    * settings.
    */
-  public FilterSummaryDTO getFilterSummary(Set<String> applicationPublicIds, Set<String> stageIds, Set<String> tagIds,
+  public FilterSummaryDTO getFilterSummary(Set<String> applicationIds, Set<String> stageIds, Set<String> tagIds,
       PolicyThreatCategoryFilter policyThreatCategoryFilter, PolicyThreatLevelFilter policyThreatLevelFilter)
   {
     validateDashboardLicensed();
@@ -715,19 +705,19 @@ public class DashboardService
     summary.totalApplications = readableApplications.size();
 
     Collection<Application> matchedApplications = readableApplications;
-    if (!CollectionUtils.isEmpty(applicationPublicIds) || !CollectionUtils.isEmpty(tagIds)) {
-      Map<String, Application> appsByPublicId = Maps.newHashMapWithExpectedSize(readableApplications.size());
+    if (!CollectionUtils.isEmpty(applicationIds) || !CollectionUtils.isEmpty(tagIds)) {
+      Map<String, Application> appsById = Maps.newHashMapWithExpectedSize(readableApplications.size());
       for (Application app : readableApplications) {
-        appsByPublicId.put(app.getPublicId(), app);
+        appsById.put(app.getId(), app);
       }
-      if (!CollectionUtils.isEmpty(applicationPublicIds)) {
-        appsByPublicId.keySet().retainAll(applicationPublicIds);
+      if (!CollectionUtils.isEmpty(applicationIds)) {
+        appsById.keySet().retainAll(applicationIds);
       }
       if (!CollectionUtils.isEmpty(tagIds)) {
-        matchedApplications = applicationDAO.getByPublicIdsAndTagIds(appsByPublicId.keySet(), tagIds);
+        matchedApplications = applicationDAO.getByIdsAndTagIds(appsById.keySet(), tagIds);
       }
       else {
-        matchedApplications = appsByPublicId.values();
+        matchedApplications = appsById.values();
       }
     }
     summary.matchedApplications = matchedApplications.size();
@@ -853,7 +843,7 @@ public class DashboardService
    * Gets the "newest" risk matching the specified filter criteria. Empty or null filter criteria generally means
    * "all available" violations for that aspect.
    */
-  public List<NewestRiskDTO> getNewestRisks(Set<String> applicationPublicIds, Set<String> stageIds, Set<String> tagIds,
+  public List<NewestRiskDTO> getNewestRisks(Set<String> applicationIds, Set<String> stageIds, Set<String> tagIds,
       PolicyThreatCategoryFilter policyThreatCategoryFilter, PolicyThreatLevelFilter policyThreatLevelFilter,
       int maxResults)
   {
@@ -861,8 +851,7 @@ public class DashboardService
 
     long start = System.currentTimeMillis();
 
-    List<Application> applications = applicationService.getApplicationsByPublicIdsAndTagIds(applicationPublicIds,
-        tagIds);
+    List<Application> applications = applicationService.getApplicationsByIdsAndTagIds(applicationIds, tagIds);
     Set<StageType> stageTypes = getStageTypes(stageIds);
     Predicate<PolicyViolation> filter = buildViolationFilter(policyThreatCategoryFilter, policyThreatLevelFilter);
 
@@ -1012,7 +1001,7 @@ public class DashboardService
    * Calculates how the non-proprietary components within the matched applications and stages are distributed across the
    * various match states.
    */
-  public ComponentSummaryDTO getComponentSummary(Set<String> applicationPublicIds, Set<String> stageIds,
+  public ComponentSummaryDTO getComponentSummary(Set<String> applicationIds, Set<String> stageIds,
       Set<String> tagIds)
   {
     validateDashboardLicensed();
@@ -1022,7 +1011,7 @@ public class DashboardService
     ComponentSummaryDTO summary = new ComponentSummaryDTO();
 
     Collection<String> appIds = Collections2.transform(
-        applicationService.getApplicationsByPublicIdsAndTagIds(applicationPublicIds, tagIds), hasIdIdSelector);
+        applicationService.getApplicationsByIdsAndTagIds(applicationIds, tagIds), hasIdIdSelector);
     Collection<String> stageTypeIds = getStageIds(getStageTypes(stageIds));
     List<ApplicationComponent> components = applicationComponentDAO.getNonProprietaryByApplicationIdsAndStageTypeIds(
         appIds, stageTypeIds);
@@ -1098,15 +1087,14 @@ public class DashboardService
    * Gets the policy summary matching the specified filter criteria. Empty or null filter criteria generally means
    * "all available" violations for that aspect.
    */
-  public PolicySummaryDTO getPolicySummary(Set<String> applicationPublicIds, Set<String> stageIds, Set<String> tagIds,
+  public PolicySummaryDTO getPolicySummary(Set<String> applicationIds, Set<String> stageIds, Set<String> tagIds,
       PolicyThreatCategoryFilter policyThreatCategoryFilter, PolicyThreatLevelFilter policyThreatLevelFilter)
   {
     validateDashboardLicensed();
 
     long start = System.currentTimeMillis();
 
-    List<Application> applications = applicationService.getApplicationsByPublicIdsAndTagIds(applicationPublicIds,
-        tagIds);
+    List<Application> applications = applicationService.getApplicationsByIdsAndTagIds(applicationIds, tagIds);
     Set<StageType> stageTypes = getStageTypes(stageIds);
     Set<String> stageTypeIds = getStageIds(stageTypes);
     Predicate<PolicyViolation> filter = buildViolationFilter(policyThreatCategoryFilter, policyThreatLevelFilter);

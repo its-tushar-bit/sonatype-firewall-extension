@@ -169,12 +169,12 @@ public class ApplicationDAO
     }
   }
 
-  public List<Application> getByPublicIdsAndTagIds(Set<String> applicationPublicIds, Set<String> tagIds) {
+  public List<Application> getByIdsAndTagIds(Set<String> applicationIds, Set<String> tagIds) {
     String sQuery = "SELECT application FROM Application application, ApplicationTag applicationTag" + //
         " WHERE application.id = applicationTag.applicationId" + //
-        " AND application.publicId IN (?1)" +
+        " AND application.id IN (?1)" +
         " AND applicationTag.tagId IN (?2)";
-    return getList(sQuery, applicationPublicIds, tagIds);
+    return getList(sQuery, applicationIds, tagIds);
   }
 
   public List<Application> getByTagIds(Set<String> tagIds) {
@@ -188,6 +188,12 @@ public class ApplicationDAO
     String sQuery = "SELECT entity FROM Application entity" + //
         " WHERE entity.publicId IN (?1)";
     return getList(sQuery, applicationPublicIds);
+  }
+
+  public List<Application> getByIds(Set<String> applicationIds) {
+    String sQuery = "SELECT entity FROM Application entity" + //
+        " WHERE entity.id IN (?1)";
+    return getList(sQuery, applicationIds);
   }
 
   @Override

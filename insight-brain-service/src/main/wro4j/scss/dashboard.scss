@@ -1,0 +1,175 @@
+/*
+  #Mixins, Inherited and Variable
+*/
+
+/*
+  Inline Middle
+```
+  <div class='inline-middle'>Text aligned on the same line with any image</div>
+  <img class='inline-middle' src='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH3gYbDyMwf5TyMQAAAEdJREFUSMdj/P//PwMtAQsDAwNNbWBiGAUEAON/GscyzeOAhYGBgXE0DoZ3HNDcB4xGGbNHy6IBzgdDPg4YaV1ljuaDgY8DABJfGLG/0aWxAAAAAElFTkSuQmCC'>
+```
+*/
+.inline-middle {
+  display: inline-block;
+  vertical-align: middle;
+}
+
+/*
+  No Margins
+```
+  <h4 class='no-margins'>Use typography</h4>
+  <h5 class='no-margins'>Without its pesky margins</h5>
+```
+*/
+.no-margin {
+  margin: 0;
+}
+
+/*
+  Component Matching Colors
+```
+  <h5>$exact-color</h5>
+  <div style='height:20px;width:20px;' class='match-exact'></div>
+  <h5>$partial-color</h5>
+  <div style='height:20px;width:20px;' class='match-partial'></div>
+  <h5>$none-color</h5>
+  <div style='height:20px;width:20px;' class='match-none'></div>
+```
+*/
+$exact-color: #875393;
+$partial-color: #b087b9;
+$none-color: #dac5df;
+
+/*
+  #Dashboard Viewing Summary
+*/
+
+/*
+  Dashboard Viewing Item
+```
+  <div class="form-group dashboard-viewing-item">
+    <div class="dashboard-viewing-icon-box"><i class="sonatype-icons dashboard-app-icon"></i></div><h2>50</h2>
+    <div class="dashboard-viewing-summary">
+      <h5>APPLICATIONS</h5>
+      <p>OF 100 (50%)</p>
+    </div>
+  </div>
+```
+*/
+.dashboard-viewing-item {
+  padding-top:5px;
+}
+
+.dashboard-viewing-item h2 {
+  @extend .no-margin;
+  display: inline-block;
+  margin-left: 5px;
+}
+
+.dashboard-viewing-item h5 {
+  @extend .no-margin;
+}
+
+.dashboard-viewing-item p {
+  @extend .no-margin;
+  @extend .inline-middle;
+}
+
+.dashboard-viewing-item.first {
+  @extend .no-margin;
+}
+
+.dashboard-viewing-icon-box {
+  width: 31px;
+  border-radius: 5px;
+  border-bottom-right-radius: 0;
+  background-color: black;
+  display: inline-block;
+}
+
+.dashboard-viewing-icon-box i::before {
+  color: white;
+  padding: 5px;
+  font-weight: normal;
+  font-size: 21px;
+  line-height: 29px !important;
+  vertical-align: text-bottom;
+}
+
+.dashboard-viewing-summary {
+  margin-left: 43px;
+}
+
+.dashboard-app-icon:before {
+  content: '\e008';
+}
+
+.dashboard-policy-icon:before {
+  content: '\e60d';
+}
+
+.dashboard-component-icon:before {
+  content: '\e0c9';
+}
+
+/*
+  Component Match Results Graph
+```
+  <div>
+    <span class='percentage-graph match-exact' style='width: 50%;'></span>
+    <span class='percentage-graph match-partial' style='width: 30%;'></span>
+    <span class='percentage-graph match-none' style='width: 20%;'></span>
+  </div>
+  <div class='percentage-graph-legend'>
+    <div class='percentage-graph-legend-item'>
+      <div class='percentage-graph-legend-color match-exact'></div>
+      <p>Exact</p>
+      <p>50%</p>
+    </div>
+    <div class='percentage-graph-legend-item'>
+      <div class='percentage-graph-legend-color match-partial'></div>
+      <p>Partial</p>
+      <p>30%</p>
+    </div>
+    <div class='percentage-graph-legend-item'>
+      <div class='percentage-graph-legend-color match-none'></div>
+      <p>None</p>
+      <p>20%</p>
+    </div>
+  </div>
+```
+*/
+.percentage-graph {
+  height: 20px;
+  float: left;
+}
+
+.percentage-graph-legend-item {
+  margin-right: 10px;
+}
+
+.percentage-graph-legend-item, .percentage-graph-legend-item p {
+  @extend .inline-middle;
+}
+
+.percentage-graph-legend-item p {
+  @extend .no-margin;
+}
+
+.percentage-graph-legend-color {
+  @extend .inline-middle;
+  height: 14px;
+  width: 14px;
+}
+
+.match-exact {
+  background-color: $exact-color;
+}
+
+.match-partial {
+  background-color: $partial-color;
+}
+
+.match-none {
+  background-color: $none-color;
+}

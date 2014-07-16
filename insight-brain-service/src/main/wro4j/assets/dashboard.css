@@ -64,14 +64,8 @@
     font-size: 10px !important;
     padding-right: 5px;
   }
-  .percentage-graph-legend-label {
-    font-size: 10px !important;
-  }
   .dashboard-label {
     font-size: 18px !important;
-  }
-  .dashboard-label-mini {
-    font-size: 9px !important;
   }
 }
 
@@ -508,55 +502,8 @@ table th#affected-apps {
   border-bottom:1px solid #ddd;
 }
 
-.dashboard-viewing-item {
-  padding-top:5px;
-}
-
-.dashboard-viewing-item.first {
-  margin-left:0px;
-}
-
 .dashboard-loading {
   margin-left: 28px;
-}
-
-.dashboard-label-mini {
-  padding: 5px 5px 5px 0px;
-  opacity: .8;
-  vertical-align: middle;
-}
-
-.dashboard-icon-label {
-  font-weight: bold;
-}
-
-.span6 .dashboard-icon-label {
-  margin-top: 11px;
-  margin-bottom: 0px;
-}
-
-.dashboard-app-icon:before {
-  content: '\e008';
-  font-size: 14px !important;
-  line-height: 14px !important;
-  padding-right: 5px;
-  vertical-align: middle;
-}
-
-.dashboard-policy-icon:before {
-  content: '\e60d';
-  font-size: 16px !important;
-  line-height: 16px !important;
-  padding-right: 5px;
-  vertical-align: middle;
-}
-
-.dashboard-component-icon:before {
-  content: '\e0c9';
-  font-size: 14px !important;
-  line-height: 14px !important;
-  padding-right: 5px;
-  vertical-align: middle;
 }
 
 .wrap-force-break {
@@ -565,45 +512,6 @@ table th#affected-apps {
 
 .word-break-all {
   word-break: break-all;
-}
-
-.percentage-graph-section {
-  border-top: 1px solid #ddd;
-  height: 61px;
-}
-
-.percentage-graph {
-  height: 20px;
-  float: left;
-}
-
-.percentage-graph-legend-count {
-  font-size: 12px;
-  font-weight: bold;
-  padding-right: 10px;
-}
-
-.percentage-graph-legend-color {
-  height: 14px;
-  width: 14px;
-  display: inline-block;
-  vertical-align: middle;
-}
-
-.percentage-graph-legend-label {
-  font-size: 12px;
-}
-
-.match-exact {
-  background-color: #343434;
-}
-
-.match-partial {
-  background-color: grey;
-}
-
-.match-none {
-  background-color: lightgrey;
 }
 
 #component-match-results {

@@ -117,11 +117,11 @@
     <span class="percentage-graph {{item.colorCss}}" ng-style="{width: formatPercentage(item.count, model.total, 3) + '%'}" ng-repeat="item in model.items"></span>
   </div>
   <div class="percentage-graph-legend">
-    <span ng-repeat="item in model.items">
+    <div ng-repeat="item in model.items" class="percentage-graph-legend-item">
       <div class="percentage-graph-legend-color {{item.colorCss}}"></div>
-      <span class="percentage-graph-legend-label">{{item.label}}</span>
-      <span class="percentage-graph-legend-count">{{item.count}} ({{formatPercentage(item.count, model.total)}}%)</span>
-    </span>
+      <p>{{item.label}}</p>
+      <p id="{{item.label}}-count">{{item.count}} ({{formatPercentage(item.count, model.total)}}%)</p>
+    </div>
   </div>
 </script>
 <script type="text/ng-template" id="dashboard-component-match-results">
@@ -131,7 +131,7 @@
     </h5>
     <div id='component-match-results' ng-if="data">
       <div class="span6">
-        <h5 class="dashboard-icon-label">Non-Proprietary Component Match Results</h5>
+        <h4>Non-Proprietary Component Match Results</h4>
         <div class="component-match-content">
           <div class="component-match-graph-section">
             <div horizontal-percentage-graph model="data"></div>
@@ -151,31 +151,34 @@
         <h4 class="dashboard-section-header">Viewing</h4>
         <form class="form-horizontal" role="form">
           <div class="form-group dashboard-viewing-item first span2">
-            <div>
-              <span class="sonatype-icons dashboard-app-icon"></span><span class="dashboard-icon-label">APPLICATIONS</span>
+            <div class="dashboard-viewing-icon-box"><i class="sonatype-icons dashboard-app-icon"></i></div>
+            <h2 id="summary-matched-applications">{{data.matchedApplications}}</h2>
+            <div class="dashboard-viewing-summary">
+              <h5>APPLICATIONS</h5>
+              <p>
+                OF&nbsp;<span id="summary-total-applications">{{data.totalApplications}}</span>&nbsp;(<span id="summary-percent-applications">{{formatPercentage(data.matchedApplications, data.totalApplications)}}%</span>)
+              </p>
             </div>
-            <span class="label label-default dashboard-label-wrapper">
-              <span class="dashboard-label" id='summary-matched-applications'>{{data.matchedApplications}}</span>
-              <span class="dashboard-label-mini">OF <span id='summary-total-applications'>{{data.totalApplications}}</span> (<span id='summary-percent-applications'>{{formatPercentage(data.matchedApplications, data.totalApplications)}}%</span>)</span>
-            </span>
           </div>
           <div class="form-group dashboard-viewing-item span2">
-            <div>
-              <span class="sonatype-icons dashboard-policy-icon"></span><span class="dashboard-icon-label">POLICIES</span>
+            <div class="dashboard-viewing-icon-box"><i class="sonatype-icons dashboard-policy-icon"></i></div>
+            <h2 id="summary-matched-policies">{{data.matchedPolicies}}</h2>
+            <div class="dashboard-viewing-summary">
+              <h5>POLICIES</h5>
+              <p>
+                OF&nbsp;<span id="summary-total-policies">{{data.totalPolicies}}</span>&nbsp;(<span id="summary-percent-policies">{{formatPercentage(data.matchedPolicies, data.totalPolicies)}}%</span>)
+              </p>
             </div>
-            <span class="label label-default dashboard-label-wrapper">
-              <span class="dashboard-label" id='summary-matched-policies'>{{data.matchedPolicies}}</span>
-              <span class="dashboard-label-mini">OF <span id='summary-total-policies'>{{data.totalPolicies}}</span> (<span id='summary-percent-policies'>{{formatPercentage(data.matchedPolicies, data.totalPolicies)}}%</span>)</span>
-            </span>
           </div>
           <div class="form-group dashboard-viewing-item span2">
-            <div>
-              <span class="sonatype-icons dashboard-component-icon"></span><span class="dashboard-icon-label">COMPONENTS</span>
+            <div class="dashboard-viewing-icon-box"><i class="sonatype-icons dashboard-component-icon"></i></div>
+            <h2 id="summary-matched-components">{{data.matchedComponents}}</h2>
+            <div class="dashboard-viewing-summary">
+              <h5>COMPONENTS</h5>
+              <p>
+                OF&nbsp;<span id="summary-total-components">{{data.totalComponents}}</span>&nbsp;(<span id="summary-percent-components">{{formatPercentage(data.matchedComponents, data.totalComponents)}}%</span>)
+              </p>
             </div>
-            <span class="label label-default dashboard-label-wrapper">
-              <span class="dashboard-label" id='summary-matched-components'>{{data.matchedComponents}}</span>
-              <span class="dashboard-label-mini">OF <span id='summary-total-components'>{{data.totalComponents}}</span>  (<span id='summary-percent-components'>{{formatPercentage(data.matchedComponents, data.totalComponents)}}%</span>)</span>
-            </span>
           </div>
         </form>
       </div>

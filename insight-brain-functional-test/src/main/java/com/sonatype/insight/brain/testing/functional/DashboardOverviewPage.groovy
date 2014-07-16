@@ -84,9 +84,9 @@ class DashboardOverviewPage
     unknownComponentPopoverText(required: false) { $('.popover-content.pathnames-popover-content').text() }
 
     componentMatchSection(required: false) { $('#component-match-results') }
-    componentMatchExactCount(required: false) { $('#component-match-results .percentage-graph-legend-count')[0] }
-    componentMatchSimilarCount(required: false) { $('#component-match-results .percentage-graph-legend-count')[1] }
-    componentMatchUnknownCount(required: false) { $('#component-match-results .percentage-graph-legend-count')[2] }
+    componentMatchExactCount(required: false) { $('#component-match-results [id$="-count"]')[0] }
+    componentMatchSimilarCount(required: false) { $('#component-match-results [id$="-count"]')[1] }
+    componentMatchUnknownCount(required: false) { $('#component-match-results [id$="-count"]')[2] }
 
     policySummary { module PolicySummaryModule, $('#policySummaryData') }
 

@@ -31,6 +31,7 @@
     <css>/scss/variables.scss</css>
     <css>/scss/form.scss</css>
     <css>/scss/chiclet.scss</css>
+    <css>/scss/dashboard.scss</css>
   </group>
 
   <group name='css'>

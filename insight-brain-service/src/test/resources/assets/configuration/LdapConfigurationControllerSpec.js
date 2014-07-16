@@ -122,28 +122,6 @@ describe('Tests for the LdapConfigurationController', function() {
     }));
   });
 
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
   describe('LdapConnectionController', function() {
     var httpBackend, state, getConfigLdapUrl;
 

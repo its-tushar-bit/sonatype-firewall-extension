@@ -38,23 +38,25 @@
     return false;
   };
 
-  var appSecurityModule = angular.module('ApplicationSecurityModule', ['CommonServices', 'ui.utils', 'ngSanitize']);
+  var appSecurityModule = angular.module('ApplicationSecurityModule', ['CommonServices', 'ui.utils', 'ngSanitize', 'PermissionServiceModule']);
 
-  appSecurityModule.controller('AppSecurityController', ['$scope', '$http', 'CLMAppLocations', function($scope, $http, clmAppLocations) {
+  appSecurityModule.controller('AppSecurityController', ['$scope', '$http', 'CLMAppLocations', 'PermissionService', function($scope, $http, clmAppLocations, PermissionService) {
     $scope.groupings = groupings;
     $scope.showGrouping = showGroupings;
 
     $scope.doLoad = function() {
-      $scope.error = null;
+      PermissionService.isAuthorized(['ADMIN'], true, clmAppLocations.isGlobal()).then(function() {
+        $scope.error = null;
 
-      $http.get(clmAppLocations.getRoleMappingUrl()).success(function (data) {
-        $scope.context = {
-          roles:  data.membersByRole,
-          ldapRealm : data.ldapRealm,
-          groupSearchEnabled : data.groupSearchEnabled
-        };
-      }).error(function () {
-        $scope.error = arguments;
+        $http.get(clmAppLocations.getRoleMappingUrl()).success(function(data) {
+          $scope.context = {
+            roles: data.membersByRole,
+            ldapRealm: data.ldapRealm,
+            groupSearchEnabled: data.groupSearchEnabled
+          };
+        }).error(function() {
+          $scope.error = arguments;
+        });
       });
     };
 

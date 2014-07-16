@@ -12,6 +12,7 @@ describe('AppSecurityControllerSpec', function() {
         name: 'application'
       }
     });
+    SpecUtil.mockPermissionService($provide);
   }));
 
   describe('AppSecurityController', function(){

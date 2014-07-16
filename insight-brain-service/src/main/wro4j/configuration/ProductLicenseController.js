@@ -8,30 +8,33 @@
 (function() {
   'use strict';
 
-  var module = angular.module('ProductLicense', ['AngularCommon', 'ngUpload', 'CLMLocation']);
+  var module = angular.module('ProductLicense',
+      ['AngularCommon', 'ngUpload', 'CLMLocation', 'PermissionServiceModule']);
 
   module.controller('ProductLicenseController', [
-    '$http', '$scope', 'CLMLocations', '$timeout', '$window', 'Messages', 'ErrorDialog',
-    function($http, $scope, clmLocations, $timeout, $window, Messages, ErrorDialog) {
+    '$http', '$scope', 'CLMLocations', '$timeout', '$window', 'Messages', 'ErrorDialog', 'PermissionService',
+    function($http, $scope, clmLocations, $timeout, $window, Messages, ErrorDialog, PermissionService) {
 
       $scope.summaryUrl = clmLocations.getLicenseSummaryUrl();
       $scope.uploadUrl = clmLocations.getLicenseUploadUrl();
 
       $scope.doLoad = function() {
-        $scope.error = null;
-        $http.get($scope.summaryUrl).success(function(data) {
-          $scope.license = data;
-        }).error(function(data, status) {
-              if (status !== 402) {
-                $scope.error = {
-                  status: status,
-                  data: data
-                };
-              }
-              else {
-                $scope.license = false;
-              }
-            });
+        PermissionService.isAuthorized(['ADMIN'], true).then(function() {
+          $scope.error = null;
+          $http.get($scope.summaryUrl).success(function(data) {
+            $scope.license = data;
+          }).error(function(data, status) {
+            if (status !== 402) {
+              $scope.error = {
+                status: status,
+                data: data
+              };
+            }
+            else {
+              $scope.license = false;
+            }
+          });
+        });
       };
 
       function showLicense() {

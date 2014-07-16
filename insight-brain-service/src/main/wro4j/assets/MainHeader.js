@@ -7,7 +7,7 @@
 (function() {
   'use strict';
 
-  var module = angular.module('MainHeader', ['ui.router', 'AngularCommon', 'CLMLocation', 'ProductFeaturesModule']);
+  var module = angular.module('MainHeader', ['ui.router', 'AngularCommon', 'CLMLocation', 'ProductFeaturesModule', 'PermissionServiceModule']);
 
   module.controller('LogoutController', ['$scope', '$http', 'CLMLocations', function ($scope, $http, CLMLocations) {
       $scope.logout = function () {
@@ -58,7 +58,7 @@
     };
   }]);
 
-  module.controller('mainHeaderController', ['$scope', '$state', 'CurrentUser', 'ProductFeatures', function($scope, $state, currentUser, ProductFeatures) {
+  module.controller('mainHeaderController', ['$scope', '$state', 'CurrentUser', 'ProductFeatures', 'PermissionService', function($scope, $state, currentUser, ProductFeatures, PermissionService) {
     $scope.$state = $state;
     
     currentUser.then(function(status) {
@@ -70,6 +70,10 @@
     };
 
     $scope.isDashboardLicensed = ProductFeatures.isDashboardLicensed;
+
+    PermissionService.isAuthorized(['ADMIN']).then(function(){
+      $scope.isAdmin = true;
+    });
   }]);
 
   module.directive('mainHeader', function () {

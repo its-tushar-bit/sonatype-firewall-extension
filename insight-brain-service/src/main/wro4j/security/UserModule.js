@@ -6,7 +6,7 @@
  /* global angular, AngularUtils, ZeroClipboard, clmBuildTimestamp, $ */
 (function() {
   'use strict';
-  angular.module('SecurityModule', ['ui.router', 'ManagementModule', 'AngularCommon', 'ApplicationSecurityModule'], ['$stateProvider',
+  angular.module('SecurityModule', ['ui.router', 'ManagementModule', 'AngularCommon', 'ApplicationSecurityModule', 'PermissionServiceModule'], ['$stateProvider',
       function($stateProvider) {
         $stateProvider.state('globalroles', {
           url: '/globalroles',
@@ -52,7 +52,7 @@
   }]);
 
   module.controller('UserListController', ['$http', 'CLMLocations', 'UserStore', 'Messages', 'CurrentUser', '$scope',
-      '$modal', '$q', function($http, clmLocations, UserStore, messages, CurrentUser, $scope, $modal, $q) {
+      '$modal', '$q', 'PermissionService', function($http, clmLocations, UserStore, messages, CurrentUser, $scope, $modal, $q, PermissionService) {
         var username = null;
 
         $scope.context = {
@@ -60,13 +60,15 @@
           users: []
         };
         $scope.doLoad = function() {
-          $scope.error = null;
+          PermissionService.isAuthorized(['ADMIN'],true).then(function() {
+            $scope.error = null;
 
-          $q.all([UserStore.refresh(), CurrentUser]).then(function(results) {
-            $scope.context.users = results[0];
-            username = results[1].username;
-          }, function(error) {
-            $scope.error = error;
+            $q.all([UserStore.refresh(), CurrentUser]).then(function(results) {
+              $scope.context.users = results[0];
+              username = results[1].username;
+            }, function(error) {
+              $scope.error = error;
+            });
           });
         };
         $scope.editClick = function(user) {

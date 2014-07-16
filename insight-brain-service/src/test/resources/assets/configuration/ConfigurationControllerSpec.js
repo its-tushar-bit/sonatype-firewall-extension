@@ -5,7 +5,10 @@ describe('Proprietary components', function() {
     controller,
     proprietaryConfig = { packages: ['foo'], regexes: ['bar']};
 
-  beforeEach(module('Configuration', 'CLMLocation'));
+  beforeEach(module('Configuration', 'CLMLocation', function($provide){
+    SpecUtil.mockPermissionService($provide);
+  }));
+
   afterEach(inject(function($httpBackend) {
     scope.$destroy();
     scope = null;

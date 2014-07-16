@@ -1242,4 +1242,24 @@ var AngularStateUtils = {
       return max === 0 ? 0 : value/max;
     };
   });
+
+  services.service('ApplicationId', [
+    '$state', function($state) {
+      return {
+        encoded: function() {
+          var applicationPublicId = $state.params.applicationPublicId;
+          return applicationPublicId ? encodeURI(applicationPublicId) : null;
+        }
+      };
+    }
+  ]);
+
+  services.service('OrganizationId', function($state) {
+    return {
+      encoded: function() {
+        var organizationId = $state.params.organizationId;
+        return organizationId ? encodeURI(organizationId) : null;
+      }
+    };
+  });
 }());

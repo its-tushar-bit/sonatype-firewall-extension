@@ -420,13 +420,4 @@
       });
     }
   ]);
-
-  organizationModule.service('OrganizationId', function($state) {
-    return {
-      encoded: function() {
-        var organizationId = $state.params.organizationId;
-        return organizationId ? encodeURI(organizationId) : null;
-      }
-    };
-  });
 }());

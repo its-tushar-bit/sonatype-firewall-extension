@@ -13,7 +13,7 @@
   }
 
   var module = angular.module('LdapConfiguration',
-  ['CLMLocation', 'ResourceModule', 'ui.router', 'AngularCommon', 'CommonServices', 'Configuration'],
+  ['CLMLocation', 'ResourceModule', 'ui.router', 'AngularCommon', 'CommonServices', 'Configuration', 'PermissionServiceModule'],
   ['$stateProvider', function($stateProvider) {
     $stateProvider.state('ldap', {
       url: '/ldap',
@@ -116,8 +116,8 @@
   }
   
   module.controller('LdapConfigurationController', [
-    '$scope', '$state', '$modal', 'Dialog', 'LdapConfigurationStore', 'CLMLocations', 'ErrorDialog',
-    function($scope, $state, $modal, Dialog, ldapStore, clmLocations, ErrorDialog) {
+    '$scope', '$state', '$modal', 'Dialog', 'LdapConfigurationStore', 'CLMLocations', 'ErrorDialog', 'PermissionService',
+    function($scope, $state, $modal, Dialog, ldapStore, clmLocations, ErrorDialog, PermissionService) {
       function isDirty() {
         if ($scope.ldapNameForm && $scope.ldapNameForm.$visible) {
           return true;
@@ -205,13 +205,15 @@
       $scope.setCurrentTab = setCurrentTab;
 
       $scope.doLoad = function () {
-        $scope.loadError = null;
+        PermissionService.isAuthorized(['ADMIN'], true).then(function() {
+          $scope.loadError = null;
 
-        ldapStore.get().then(function(results) {
-          $scope.ldap = results.length === 0 ? ldapStore.create() : results[0];
-          setCurrentTab('connection');
-        }, function(error) {
-          $scope.loadError = error;
+          ldapStore.get().then(function(results) {
+            $scope.ldap = results.length === 0 ? ldapStore.create() : results[0];
+            setCurrentTab('connection');
+          }, function(error) {
+            $scope.loadError = error;
+          });
         });
       };
       $scope.doLoad();

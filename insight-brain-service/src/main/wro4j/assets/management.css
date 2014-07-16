@@ -182,16 +182,14 @@ a:focus {
 }
 .user-menu {
   margin-right: 20px;
-  margin-left: 20px;
+  padding-right: 20px;
+  padding-left: 20px;
+  border-right: 1px solid #CCCCCC;
 }
 .user-menu .user-name {
   vertical-align: 3px;
   padding-left: 10px;
   font-weight: bold;
-}
-.system-menu {
-  border-left: 1px solid #CCCCCC;
-  padding-left: 20px;
 }
 .system-menu, .help-menu {
   padding-right: 20px;

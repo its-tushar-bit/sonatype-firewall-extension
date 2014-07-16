@@ -127,6 +127,7 @@
     <js>/util/HttpInterceptors.js</js>
     <js>/util/ProductFeatures.js</js>
     <js>/util/Stores.js</js>
+    <js>/util/PermissionService.js</js>
   </group>
 
   <group name='style'>

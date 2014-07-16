@@ -35,6 +35,19 @@ describe('mainHeader', function() {
       }
     });
 
+    $provide.factory('PermissionService', ['$q', function ($q) {
+      var deferred = $q.defer();
+      deferred.resolve();
+      function fn() {
+        return deferred.promise;
+      }
+      return {
+        isAuthorized: fn,
+        requireAuthorization: fn,
+        requireAuthorizationIf: fn
+      };
+    }]);
+
     $provide.value('$modal', {
       open: function(config) {
         dialogScope = scope.$new();

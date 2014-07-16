@@ -10,7 +10,7 @@
   'use strict';
 
   var module = angular.module('Configuration',
-    ['ListEditor', 'ui.router', 'ManagementModule', 'ProductLicense'], ['$stateProvider', function($stateProvider) {
+    ['ListEditor', 'ui.router', 'ManagementModule', 'ProductLicense', 'PermissionServiceModule'], ['$stateProvider', function($stateProvider) {
       $stateProvider.state('management.configuration', {
         parent: 'management',
         url: '/configuration',
@@ -35,7 +35,7 @@
   ]);
 
   module.controller('ProprietaryConfigurationController', [
-    '$scope', '$http', 'CLMLocations', 'Messages', function($scope, $http, clmLocations, Messages) {
+    '$scope', '$http', 'CLMLocations', 'Messages', 'PermissionService', function($scope, $http, clmLocations, Messages, PermissionService) {
       var PACKAGE_REGEXP = new RegExp('^[^ /.][^ /]*[^ /.]$');
       $scope.isRegex = false;
 
@@ -65,12 +65,14 @@
       };
 
       $scope.doLoad = function() {
-        $http.get(clmLocations.getProprietaryConfig()).success(function(data) {
+        PermissionService.isAuthorized(['ADMIN'], true).then(function() {
+          $http.get(clmLocations.getProprietaryConfig()).success(function(data) {
             $scope.proprietary = data;
             $scope.reset();
           }).error(function() {
             $scope.loadError = Messages.getHttpErrorMessage(arguments);
           });
+        });
       };
 
       $scope.save = function() {

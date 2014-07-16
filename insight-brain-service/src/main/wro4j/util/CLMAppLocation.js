@@ -7,7 +7,7 @@
 (function() {
   'use strict';
 
-  var locationModule = angular.module('CLMAppLocation', ['CommonServices', 'ApplicationModule', 'OrganizationModule', 'ui.router']);
+  var locationModule = angular.module('CLMAppLocation', ['CommonServices', 'ui.router']);
 
   locationModule.factory('CLMAppLocations', [
     'ApplicationId', 'OrganizationId', '$state', 'BaseUrl', function(appId, orgId, $state, baseUrl) {
@@ -133,7 +133,15 @@
           return baseUrl.get() + '/rest/appliedTag/policy/' + policyId + '?orgId=' + getId();
         },
 
-        isApplication: isApplication
+        getPermissionTestUrl : function() {
+          return baseUrl.get() + '/rest/user/permissions/' + getServicePathWithId();
+        },
+
+        isApplication: isApplication,
+        isOrganization: isOrganization,
+        isGlobal: function() {
+          return !isApplication() && !isOrganization();
+        }
       };
     }
   ]);

@@ -86,5 +86,18 @@ var SpecUtil = {
       evt.initEvent($sniffer.hasEvent(type) ? type : 'change', false, false);
     });
     inputElement[0].dispatchEvent(evt);
+  },
+
+  mockPermissionService: function($provide) {
+    $provide.factory('PermissionService', ['$q', function ($q) {
+      var deferred = $q.defer();
+      deferred.resolve();
+      function fn() {
+        return deferred.promise;
+      }
+      return {
+        isAuthorized: fn
+      };
+    }]);
   }
 };

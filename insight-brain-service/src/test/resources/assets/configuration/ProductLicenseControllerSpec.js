@@ -25,6 +25,7 @@ describe('ProductLicenseController', function() {
 
     module('ProductLicense', 'HttpInterceptors', function($provide) {
       $provide.value('$window', mockWindow);
+      SpecUtil.mockPermissionService($provide);
     });
   });
 

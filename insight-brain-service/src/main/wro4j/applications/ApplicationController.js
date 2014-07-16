@@ -508,18 +508,6 @@
       }
     ]);
 
-  applicationModule.service('ApplicationId', [
-    'commonCodeFactory', '$state', function(commonCodeFactory, $state) {
-      // TODO Are ui-router parameters encoded or decoded?
-      return {
-        encoded: function() {
-          var applicationPublicId = $state.params.applicationPublicId;
-          return applicationPublicId ? encodeURI(applicationPublicId) : null;
-        }
-      };
-    }
-  ]);
-
   applicationModule.service('policyEvaluator', function($q, $http, CLMLocations) {
     return {
       evaluate: function(application, policyEvaluation) {

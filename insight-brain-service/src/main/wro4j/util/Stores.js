@@ -10,66 +10,152 @@
 
   var storesModule = angular.module('Stores', ['CLMLocation', 'CLMAppLocation', 'ResourceModule']);
 
-  storesModule.service('ApplicationStore', ['$rootScope', 'CLMLocations', 'CLMResource', 'LastSelectedOrganization',
-      function($rootScope, clmLocations, clmResource, LastSelectedOrganization) {
-        var applicationStore = clmResource.getStore({
-          id: 'publicId',
-          url: clmLocations.getApplicationsUrl(),
-          template: function() {
-            var lastOrg = LastSelectedOrganization.get();
-            return {
-              id: null,
-              publicId: null,
-              name: null,
-              organizationId: lastOrg.id,
-              organizationName: lastOrg.name,
-              contact: null
-            };
-          }
-        });
-        $rootScope.$on('organizations.delete', function() {
-          applicationStore.refresh();
-        });
-        return applicationStore;
-      }]);
+  storesModule.service('ApplicationStore', [
+    '$rootScope', 'CLMLocations', 'CLMResource', 'LastSelectedOrganization',
+    function($rootScope, clmLocations, clmResource, LastSelectedOrganization) {
+      var applicationStore = clmResource.getStore({
+        id: 'publicId',
+        url: clmLocations.getApplicationsUrl(),
+        template: function() {
+          var lastOrg = LastSelectedOrganization.get();
+          return {
+            id: null,
+            publicId: null,
+            name: null,
+            organizationId: lastOrg.id,
+            organizationName: lastOrg.name,
+            contact: null
+          };
+        }
+      });
+      $rootScope.$on('organizations.delete', function() {
+        applicationStore.refresh();
+      });
+      return applicationStore;
+    }
+  ]);
 
-  storesModule.service('StageTypeStore', ['CLMResource', 'CLMLocations', function(CLMResource, CLMLocations){
-    var stageTypeStore = CLMResource.getStore({
-      id: 'id',
-      url: CLMLocations.getActionStageUrl()
-    }), promise = stageTypeStore.get();
-    return {
-      'get' : function() {
-        return promise;
-      },
-      'getDashboardStages' : function () {
-        return promise.then(function (result) {
-          result = angular.copy(result);
-          for (var i=0; i<result.length; i++) {
-            if (result[i].id === 'develop') {
-              result.splice(i, 1);
-              i--;
-            } else if (result[i].id === 'stage-release') {
-              result[i].name = 'Stage';
+  storesModule.service('StageTypeStore', [
+    'CLMResource', 'CLMLocations', function(CLMResource, CLMLocations) {
+      var stageTypeStore = CLMResource.getStore({
+        id: 'id',
+        url: CLMLocations.getActionStageUrl()
+      }), promise = stageTypeStore.get();
+      return {
+        'get': function() {
+          return promise;
+        },
+        'getDashboardStages': function() {
+          return promise.then(function(result) {
+            result = angular.copy(result);
+            for (var i = 0; i < result.length; i++) {
+              if (result[i].id === 'develop') {
+                result.splice(i, 1);
+                i--;
+              }
+              else if (result[i].id === 'stage-release') {
+                result[i].name = 'Stage';
+              }
             }
+            return result;
+          });
+        }
+      };
+    }
+  ]);
+
+  storesModule.service('ActionStore', [
+    'StageTypeStore', 'CLMLocations', 'CLMResource', '$q', function(StageTypeStore, clmLocations, clmResource, $q) {
+      var actionTypeStore = clmResource.getStore({
+        id: 'id',
+        url: clmLocations.getActionTypeUrl()
+      }), actionPromise = $q.all([actionTypeStore.get(), StageTypeStore.get()]);
+      return {
+        'get': function() {
+          return actionPromise;
+        }
+      };
+    }
+  ]);
+
+  storesModule.service('PolicyStore', [
+    'ConstraintStore', 'CLMLocations', 'CLMAppLocations', 'CLMResource', '$q',
+    function(constraintStore, clmLocations, clmAppLocations, clmResource, $q) {
+      var conditionTypes = null,
+      policyStoreTemplate = {
+        id: 'id',
+        template: function() {
+          var o = {
+            threatLevel: 5,
+            constraints: [
+              { conditions: [], operator: 'OR', id: '' + new Date().getTime() }
+            ],
+            actions: {}
+          }, conditionType = conditionTypes.AgeInDays;
+          o.constraints[0].conditions.push({
+            conditionTypeId: conditionType.id,
+            operator: conditionType.supportedOperators[0],
+            value: null
+          });
+          return o;
+        }
+      },
+      policyStores = {};
+
+      return {
+        get: function() {
+          var ownerId = clmAppLocations.getEntityId(),
+              store = policyStores[ownerId],
+              deferred = $q.defer();
+          if (!store) {
+            constraintStore.get().then(function(results) {
+              conditionTypes = {};
+              angular.forEach(results[0], function(type) {
+                conditionTypes[type.id] = type;
+              });
+              // Expire existing stores, prevents user from encountering stale data
+              angular.forEach(policyStores, function(value, key) {
+                policyStores[key] = null;
+              });
+              store = clmResource.getStore(angular.extend({ url: clmAppLocations.getPolicyUrl() },
+                  policyStoreTemplate));
+              policyStores[ownerId] = store;
+              deferred.resolve(store);
+            }, function(reason) {
+              deferred.reject(reason);
+            });
           }
-          return result;
-        });
-      }
-    };
-  }]);
-  
-  storesModule.service('ActionStore', ['StageTypeStore', 'CLMLocations', 'CLMResource', '$q', function(StageTypeStore, clmLocations, clmResource, $q) {
-    var actionTypeStore = clmResource.getStore({
-      id: 'id',
-      url: clmLocations.getActionTypeUrl()
-    }), actionPromise = $q.all([actionTypeStore.get(), StageTypeStore.get()]);
-    return {
-      'get': function() {
-        return actionPromise;
-      }
-    };
-  }]);
+          else {
+            deferred.resolve(store);
+          }
+          return deferred.promise;
+        },
+        getConditionTypes: function() {
+          return conditionTypes;
+        }
+      };
+    }
+  ]);
+
+  storesModule.service('ConstraintStore', [
+    'CLMLocations', 'CLMAppLocations', 'CLMResource', '$q', function(clmLocations, clmAppLocations, clmResource, $q) {
+      var conditionTypeStore = clmResource.getStore({
+        id: 'id',
+        url: clmLocations.getConditionTypeUrl()
+      });
+
+      return {
+        'get': function() {
+          var conditionValueTypeStore = clmResource.getStore({
+            id: 'id',
+            url: clmAppLocations.getConditionValueTypeUrl()
+          }),
+          conditionDeferred = $q.all([conditionTypeStore.get(), conditionValueTypeStore.get()]);
+          return conditionDeferred;
+        }
+      };
+    }
+  ]);
 
   /* A service which allows stores to be cached by a key, or if not provided the entity id.
    * Stores and their contents will be cached across the SPA.
@@ -77,35 +163,40 @@
    *   getUrl a function that returns the store URL at the point the store is requested
    *   getKey (optional) a function that returns the key at the point the store is requested
    */
-  storesModule.service('CachedStore', ['CLMResource', 'CLMAppLocations', function(CLMResource, CLMAppLocations) {
-    function CachedStore(config) {
-      var store, stores = {};
-      function refreshStore() {
-        var key = config.getKey ? config.getKey() : CLMAppLocations.getEntityId();
-        store = stores[key];
-        if (!store) {
-          store = stores[key] = CLMResource.getStore(angular.extend({ url: config.getUrl() }, config));
+  storesModule.service('CachedStore', [
+    'CLMResource', 'CLMAppLocations', function(CLMResource, CLMAppLocations) {
+      function CachedStore(config) {
+        var store, stores = {};
+
+        function refreshStore() {
+          var key = config.getKey ? config.getKey() : CLMAppLocations.getEntityId();
+          store = stores[key];
+          if (!store) {
+            store = stores[key] = CLMResource.getStore(angular.extend({ url: config.getUrl() }, config));
+          }
         }
+
+        return {
+          get: function() {
+            refreshStore();
+            return store.get();
+          },
+          refresh: function() {
+            refreshStore();
+            return store.refresh();
+          },
+          create: function() {
+            refreshStore();
+            return store.create();
+          }
+        };
       }
+
       return {
-        get: function() {
-          refreshStore();
-          return store.get();
-        },
-        refresh: function() {
-          refreshStore();
-          return store.refresh();
-        },
-        create: function() {
-          refreshStore();
-          return store.create();
+        get: function(config) {
+          return new CachedStore(config);
         }
       };
     }
-    return {
-      get: function(config) {
-        return new CachedStore(config);
-      }
-    };
-  }]);
+  ]);
 }());

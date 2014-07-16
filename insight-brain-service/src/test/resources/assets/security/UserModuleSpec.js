@@ -47,6 +47,7 @@ describe('UserModuleSpec.js', function() {
         };
       }
     });
+    SpecUtil.mockPermissionService($provide);
   }));
 
   beforeEach(inject(function($rootScope) {

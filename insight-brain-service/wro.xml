@@ -11,7 +11,7 @@
         xsi:schemaLocation="http://www.isdc.ro/wro wro.xsd">
   <group name='bootstrap-css'>
     <css>/lib/bootstrap/bootstrap-copyright.scss</css>
-    <css>/lib/boostrap-variables.scss</css>
+    <css>/lib/bootstrap/bootstrap-variables.scss</css>
     <css>/lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_mixins.scss</css>
     <css>/lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_reset.scss</css>
     <css>/lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_scaffolding.scss</css>

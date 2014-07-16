@@ -376,6 +376,7 @@
               <exclude>**/*.js</exclude>
               <exclude>**/*.css</exclude>
               <exclude>**/*.html</exclude>
+              <exclude>**/src/main/wro4j/lib/**/*</exclude>
             </excludes>
           </configuration>
         </plugin>

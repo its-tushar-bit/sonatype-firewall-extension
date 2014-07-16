@@ -9,6 +9,47 @@
 <groups xmlns="http://www.isdc.ro/wro"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://www.isdc.ro/wro wro.xsd">
+  <group name='bootstrap-css'>
+    <css>/lib/bootstrap/bootstrap-copyright.scss</css>
+    <css>/lib/boostrap-variables.scss</css>
+    <css>/lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_mixins.scss</css>
+    <css>/lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_reset.scss</css>
+    <css>/lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_scaffolding.scss</css>
+    <css>/lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_grid.scss</css>
+    <css>/lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_layouts.scss</css>
+    <css>/lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_type.scss</css>
+    <css>/lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_code.scss</css>
+    <css>/lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_forms.scss</css>
+    <css>/lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_tables.scss</css>
+    <css>/lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_sprites.scss</css>
+    <css>/lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_dropdowns.scss</css>
+    <css>/lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_dropdowns.scss</css>
+    <css>/lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_wells.scss</css>
+    <css>/lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_component-animations.scss</css>
+    <css>/lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_close.scss</css>
+    <css>/lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_buttons.scss</css>
+    <css>/lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_button-groups.scss</css>
+    <css>/lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_alerts.scss</css>
+    <css>/lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_navs.scss</css>
+    <css>/lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_navbar.scss</css>
+    <css>/lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_breadcrumbs.scss</css>
+    <css>/lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_pagination.scss</css>
+    <css>/lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_pager.scss</css>
+    <css>/lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_modals.scss</css>
+    <css>/lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_tooltip.scss</css>
+    <css>/lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_popovers.scss</css>
+    <css>/lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_thumbnails.scss</css>
+    <css>/lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_media.scss</css>
+    <css>/lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_labels-badges.scss</css>
+    <css>/lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_progress-bars.scss</css>
+    <css>/lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_accordion.scss</css>
+    <css>/lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_carousel.scss</css>
+    <css>/lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_hero-unit.scss</css>
+    <css>/lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_utilities.scss</css>
+    <css>/lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_responsive-utilities.scss</css>
+    <css>/lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_responsive-1200px-min.scss</css>
+  </group>
+
   <group name='configuration'>
     <js>/configuration/ConfigurationController.js</js>
     <js>/configuration/LdapConfigurationController.js</js>
@@ -55,8 +96,7 @@
   </group>
 
   <group name='lib'>
-    <css>/lib/bootstrap/bootstrap-2.3.1.min.css</css>
-    <css>/lib/bootstrap/bootstrap-responsive-2.3.1.css</css>
+    <group-ref>bootstrap-css</group-ref>
     <css>/lib/bootstrap/bootstrap-slider-2.0.0.css</css>
     <css>/lib/glyphicons/glyphicons.css</css>
     <css>/lib/glyphicons/halflings.css</css>
@@ -102,14 +142,14 @@
   </group>
 
   <group name='version-graph'>
-    <css>/lib/bootstrap/bootstrap-2.3.1.min.css</css>
+    <group-ref>bootstrap-css</group-ref>
     <css>/version-graph/content.css</css>
     <js>/version-graph/appcheck.js</js>
     <js>/version-graph/cip.js</js>
   </group>
 
   <group name='viewdetails'>
-    <css>/lib/bootstrap/bootstrap-2.3.1.min.css</css>
+    <group-ref>bootstrap-css</group-ref>
     <css>/version-graph/viewdetails.css</css>
   </group>
 </groups>

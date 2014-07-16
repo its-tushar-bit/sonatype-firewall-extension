@@ -1,0 +1,13 @@
+{
+  "name": "insight-brain-service",
+  "version": "1.11.01",
+  "homepage": "https://github.com/sonatype/insight-brain",
+  "authors": [
+    "Sonatype"
+  ],
+  "license": "Commercial",
+  "private": true,
+  "devDependencies": {
+    "bootstrap-sass-official": "https://github.com/twbs/bootstrap-sass.git#v2.3.2.0"
+  }
+}

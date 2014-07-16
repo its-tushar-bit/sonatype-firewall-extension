@@ -104,9 +104,9 @@ public class UserSessionResource
       if(subject.getPrincipal() != null) {
         Object principal = subject.getPrincipal();
         if (principal instanceof UserPrincipal) {
-          status.setUsername(((UserPrincipal) principal).username);
-          status.setDisplayName(((UserPrincipal)principal).displayName);
-          status.setClmUser(((UserPrincipal) principal).clmUser);
+          status.setUsername(((UserPrincipal) principal).getUsername());
+          status.setDisplayName(((UserPrincipal)principal).getDisplayName());
+          status.setClmUser(((UserPrincipal) principal).isClmUser());
         } else {
           status.setUsername(subject.getPrincipal().toString());
         }

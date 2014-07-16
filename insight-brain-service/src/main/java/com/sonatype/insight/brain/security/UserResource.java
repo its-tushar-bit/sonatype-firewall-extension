@@ -196,9 +196,9 @@ public class UserResource
 
     UserPrincipal principal = (UserPrincipal) SecurityUtils.getSubject().getPrincipal();
 
-    User user = dao.getByUsername(principal.username.trim());
+    User user = dao.getByUsername(principal.getUsername().trim());
     if (user == null) {
-      throw new NotFoundException("Could not find user with username " + principal.username);
+      throw new NotFoundException("Could not find user with username " + principal.getUsername());
     }
 
     // validate the old password first

@@ -189,10 +189,10 @@ public class AuthorizationChecker
 
   private boolean isUserIncluded(MembershipMapping membership, UserPrincipal user) {
     if (MemberType.USER.equals(membership.getMemberType())) {
-      return membership.getMemberName().equalsIgnoreCase(user.username);
+      return membership.getMemberName().equalsIgnoreCase(user.getUsername());
     }
     if (MemberType.GROUP.equals(membership.getMemberType())) {
-      return user.membership.contains(membership.getMemberName());
+      return user.getMembership().contains(membership.getMemberName());
     }
     return false;
   }

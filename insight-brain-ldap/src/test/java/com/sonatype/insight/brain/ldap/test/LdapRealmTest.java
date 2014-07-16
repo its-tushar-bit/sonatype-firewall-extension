@@ -206,7 +206,7 @@ public class LdapRealmTest
     Iterator<?> principalIterator = principalCollection.iterator();
     Object principal = principalIterator.next();
     assertEquals(new UserPrincipal(username, displayName, false), principal);
-    assertThat(((UserPrincipal) principal).membership, containsInAnyOrder(groups));
+    assertThat(((UserPrincipal) principal).getMembership(), containsInAnyOrder(groups));
     assertFalse(principalIterator.hasNext());
     assertThat(principalCollection.getRealmNames(), hasSize(1));
     assertEquals(realm.getName(), principalCollection.getRealmNames().iterator().next());

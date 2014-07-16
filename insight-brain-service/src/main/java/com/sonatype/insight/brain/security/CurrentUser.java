@@ -33,7 +33,7 @@ public class CurrentUser
     if (principal == null) {
       return "anonymous";
     }
-    return ((UserPrincipal) principal).username;
+    return ((UserPrincipal) principal).getUsername();
   }
 
   /**

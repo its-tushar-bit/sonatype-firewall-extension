@@ -10,13 +10,13 @@ import java.util.Set;
 
 public class UserPrincipal
 {
-  public final String username;
+  private final String username;
 
-  public final String displayName;
+  private final String displayName;
 
-  public final boolean clmUser;
+  private final boolean clmUser;
 
-  public final Set<String> membership;
+  private final Set<String> membership;
 
   public UserPrincipal(String username, String displayName, boolean clmUser) {
     this(username, displayName, clmUser, null);
@@ -27,6 +27,22 @@ public class UserPrincipal
     this.displayName = displayName;
     this.clmUser = clmUser;
     this.membership = membership != null ? membership : Collections.<String>emptySet();
+  }
+
+  public String getUsername() {
+    return this.username;
+  }
+
+  public String getDisplayName() {
+    return this.displayName;
+  }
+
+  public boolean isClmUser() {
+    return this.clmUser;
+  }
+
+  public Set<String> getMembership() {
+    return this.membership;
   }
 
   @Override

@@ -29,7 +29,7 @@
       assets: 'src/main/wro4j',
       brainClientAssets: 'src/main/brain-client',
       dist: 'grunt/working/dist',
-      tmp: 'grunt/working/.tmp',
+      tmp: 'grunt/working/tmp',
       debug: 'grunt/working/debug',
       scss: 'grunt/scss',
       docs: 'grunt/docs',
@@ -64,7 +64,8 @@
           ]
         },
         server: '<%= config.tmp %>',
-        debug: '<%= config.debug %>'
+        debug: '<%= config.debug %>',
+        docs: '<%= config.docs %>'
       },
       connect: {
         options: {
@@ -129,6 +130,17 @@
               ];
             }
           }
+        }
+      },
+      concat: {
+        styleguide: {
+          options: {
+            banner: '/*\n#Import Common CSS\n*/\n@import "../../../scss/bootstrap.scss";\n@import "../../../../src/main/wro4j/scss/variables";\n'
+          },
+          expand: true,
+          cwd: '<%= config.assets %>/scss',
+          dest: '<%= config.tmp %>/scss',
+          src: '{,*/}{,*/}*.scss'
         }
       },
       concurrent: {
@@ -320,7 +332,7 @@
             name: 'CLM Living Style Guide'
           },
           files: {
-            '<%= config.docs %>': '<%= config.assets %>/**/*.css'
+            '<%= config.docs %>': '<%= config.tmp %>/scss/*.css'
           }
         }
       },
@@ -399,7 +411,10 @@
     ]);
 
     grunt.registerTask('livingstyle', [
+      'clean:docs',
+      'concat:styleguide',
       'styleguide',
+      'clean:server',
       'connect:styleguide'
     ]);
 

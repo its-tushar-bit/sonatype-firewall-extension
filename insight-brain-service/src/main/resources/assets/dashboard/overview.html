@@ -54,7 +54,7 @@
     <div class='row filter-readonly'>
       <div class="span2" ng-if='filter.applicationIds.length > 0'>
         <div><strong>Applications</strong></div>
-        <span ng-repeat="applicationId in filter.applicationIds">
+        <span ng-repeat="applicationId in filter.applicationIds | orderBy:applicationNameFor">
           {{applicationNameFor(applicationId)}}{{!$last ? "," : ""}}
         </span>
       </div>

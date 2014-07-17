@@ -51,26 +51,26 @@
         <div style='clear: both'></div>
       </div>
     </div>
-    <div class='row filter-readonly'>
-      <div class="span2" ng-if='filter.applicationIds.length > 0'>
+    <div id='filter-summary' class='row filter-readonly'>
+      <div id='filter-summary-applications' class="span2" ng-if='filter.applicationIds.length > 0'>
         <div><strong>Applications</strong></div>
         <span ng-repeat="applicationId in filter.applicationIds | orderBy:applicationNameFor">
           {{applicationNameFor(applicationId)}}{{!$last ? "," : ""}}
         </span>
       </div>
-      <div class='span2' ng-if='filter.applicationTagIds.length > 0'>
+      <div id='filter-summary-application-tags' class='span2' ng-if='filter.applicationTagIds.length > 0'>
         <div><strong>Application Tags</strong></div>
         <span ng-repeat='applicationTagId in filter.applicationTagIds'>
           {{applicationTagNameFor(applicationTagId)}}{{!$last ? "," : ""}}
         </span>
       </div>
-      <div class="span2" style="display: inline;" ng-if='filter.policyThreatTypes.length > 0'>
+      <div id='filter-summary-policy-threat-types' class="span2" style="display: inline;" ng-if='filter.policyThreatTypes.length > 0'>
         <div><strong>Policy Types</strong></div>
         <span ng-repeat="policyThreatTypeId in filter.policyThreatTypes">
           {{policyThreatTypeNameFor(policyThreatTypeId)}}{{!$last ? "," : ""}}
         </span>
       </div>
-      <div class="span2" style="display: inline;" ng-if='filter.stageTypeIds.length > 0'>
+      <div id='filter-summary-stages' class="span2" style="display: inline;" ng-if='filter.stageTypeIds.length > 0'>
         <div><strong>Stages</strong></div>
         <span ng-repeat="stageTypeId in filter.stageTypeIds">
           {{stageTypeNameFor(stageTypeId)}}{{!$last ? "," : ""}}
@@ -401,7 +401,7 @@
   <div class='row'>
     <div class='span12'>
       <h1 class="left-align-h1">Dashboard</h1>
-      <a class='bottom-align-h1 pull-right' ng-click='toggleCollapse()'>Filters&nbsp;<i
+      <a id='filter-toggle' class='bottom-align-h1 pull-right' ng-click='toggleCollapse()'>Filters&nbsp;<i
         class='glyphicons-sonatype filter'></i></a>
     </div>
   </div>

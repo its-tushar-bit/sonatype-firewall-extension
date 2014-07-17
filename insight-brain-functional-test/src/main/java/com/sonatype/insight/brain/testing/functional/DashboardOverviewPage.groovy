@@ -23,23 +23,23 @@ class DashboardOverviewPage
   static at = { filterPanelToggle.displayed }
 
   static content = {
-    filterPanelToggle { $('a[ng-click="toggleCollapse()"]') }
-    filterPanel(required: false) { $('.filter-readonly') }
+    filterPanelToggle { $('#filter-toggle') }
+    filterPanel(required: false) { $('#filter-summary') }
     filterButtons(required: false) { module ButtonsModule, $('.filter-edit-buttons') }
     applyButton(required: false) { filterButtons.button('Apply') }
     resetButton(required: false) { filterButtons.button('Reset') }
 
     applicationFilters(required: false) {
-      filterPanel.find('span[ng-repeat^="applicationId in filter.applicationIds"]')
+      $('#filter-summary-applications span')
     }
     applicationTagFilters(required: false) {
-      filterPanel.find('span[ng-repeat="applicationTagId in filter.applicationTagIds"]')
+      $('#filter-summary-application-tags span')
     }
     stageTypeFilters(required: false) {
-      filterPanel.find('span[ng-repeat="stageTypeId in filter.stageTypeIds"]')
+      $('#filter-summary-stages span')
     }
     policyThreatTypeFilters(required: false) {
-      filterPanel.find('span[ng-repeat="policyThreatTypeId in filter.policyThreatTypes"]')
+      $('#filter-summary-policy-threat-types span')
     }
     policyThreatLevelFilters(required: false) {
       $('#filter-summary-threat-level span')

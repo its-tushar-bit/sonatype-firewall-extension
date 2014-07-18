@@ -24,23 +24,23 @@
   </form>
 ```
 */
-.clm-form input {
+.clm-form input, .clm-form textarea {
   width: 95% !important;
 }
-.clm-form input[required].ng-invalid {
+.clm-form input[required].ng-invalid, .clm-form textarea[required].ng-invalid {
   border-left: 5px solid $input-invalid-color !important;
 }
-.clm-form input[required].ng-valid {
+.clm-form input[required].ng-valid, .clm-form textarea[required].ng-valid {
   border-left: 5px solid $input-valid-color !important;
 }
-.clm-form input:not([required]) {
+.clm-form input:not([required]), .clm-form textarea:not([required]) {
   border-left: 5px solid $input-valid-color !important;
 }
-.clm-form input.ng-valid.ng-dirty {
+.clm-form input.ng-valid.ng-dirty, .clm-form textarea.ng-valid.ng-dirty {
   border: 1px solid $input-valid-color !important;
   border-left-width: 5px !important;
 }
-.clm-form input.ng-invalid.ng-dirty {
+.clm-form input.ng-invalid.ng-dirty, .clm-form textarea.ng-invalid.ng-dirty {
   border: 1px solid $input-invalid-color !important;
   border-left-width: 5px !important;
 }

@@ -22,6 +22,12 @@ describe('Forms module', function() {
     }).toThrow(new Error('The form must have a name'));
   });
 
+  it('Will reject a "messages" attr that is not an Object', function() {
+    expect(function() {
+      compile('<form><input messages="foo" name="test" clm-input type="text" ng-model="field"></form>')(scope);
+    }).toThrow(new Error('Messages provided to the input must be an Object!'));
+  });
+
   describe('Popover validation messages', function() {
     var element, input;
 
@@ -103,6 +109,13 @@ describe('Forms module', function() {
           input: '<input max="1" clm-input name="test" type="number" ng-model="field">',
           newValue: '2',
           expected: 'Maximum allowed value is 1',
+          finalValue: '1'
+        },
+        {
+          input: '<input max="1" clm-input name="test" type="number" ng-model="field" ' +
+              'messages="{max: \'Overriding the default message\'}">',
+          newValue: '2',
+          expected: 'Overriding the default message',
           finalValue: '1'
         }
       ];

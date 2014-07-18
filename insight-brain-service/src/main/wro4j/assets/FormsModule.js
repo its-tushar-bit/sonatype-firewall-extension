@@ -10,6 +10,8 @@
   /**
    * Watches for changes to the input validity and shows a popover above the input field if invalid input is seen, or
    * if a required field loses focus without having been set.
+   * Customized messages for error conditions can be provided using the 'messages' attr and providing an Object of
+   * error key to message. The 'messages' Object will be consulted first so it can also be used to override the defaults.
    */
       .directive('clmInput', function() {
         /**
@@ -17,8 +19,24 @@
          * @param attrs {Object} Attributes to consult for settings
          * @returns {string} The appropriate message for the error
          */
-        function determineErrorMessage(error, attrs) {
+        function determineErrorMessage(error, attrs, messages) {
           var message = '';
+
+          //first check any custom messages provided
+          if (messages) {
+            $.each(error, function(key, inError) {
+                  if (inError && messages[key]) {
+                    message = messages[key];
+                    return false;
+                  }
+                }
+            );
+          }
+          if(message){
+            return message;
+          }
+
+          //look in the default messages
           if (error.number) {
             message = 'Please enter a valid number';
           }
@@ -47,7 +65,14 @@
           restrict: 'A',
           require: ['ngModel', '^form'],
           link: function(scope, element, attrs, ctrls) {
-            var ctrl = ctrls[0], form = ctrls[1];
+            var ctrl = ctrls[0], form = ctrls[1], messages;
+
+            if (attrs.messages) {
+              messages = scope.$eval(attrs.messages);
+              if (typeof messages !== 'object') {
+                throw "Messages provided to the input must be an Object!";
+              }
+            }
 
             if (!ctrl.$name) {
               throw 'The input must have a name';
@@ -67,7 +92,7 @@
                 //popover template removes the title and adds our style overrides
                 myElem.popover({
                   placement: 'top',
-                  content: determineErrorMessage(myCtrl.$error, myAttrs),
+                  content: determineErrorMessage(myCtrl.$error, myAttrs, messages),
                   trigger: 'manual',
                   template: '<div class="popover input-popover fade top in">' +
                       '<div class="arrow"></div>' +

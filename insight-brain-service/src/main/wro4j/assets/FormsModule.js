@@ -70,7 +70,7 @@
             if (attrs.messages) {
               messages = scope.$eval(attrs.messages);
               if (typeof messages !== 'object') {
-                throw "Messages provided to the input must be an Object!";
+                throw 'Messages provided to the input must be an Object!';
               }
             }
 

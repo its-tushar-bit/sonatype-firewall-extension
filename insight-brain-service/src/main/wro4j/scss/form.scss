@@ -34,7 +34,7 @@
   border-left: 5px solid $input-valid-color !important;
 }
 .clm-form input:not([required]) {
-  border-left: 5px solid $input-pristine-color !important;
+  border-left: 5px solid $input-valid-color !important;
 }
 .clm-form input.ng-valid.ng-dirty {
   border: 1px solid $input-valid-color !important;

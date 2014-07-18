@@ -80,7 +80,7 @@
                 //reposition the popover on the right edge of the input field
                 var position = popover.getPosition();
                 position.left = position.right - popover.tip()[0].offsetWidth;
-                position.top = position.top - 35;
+                position.top = position.top - 30;
                 popover.applyPlacement(position, 'top');
               }
             }

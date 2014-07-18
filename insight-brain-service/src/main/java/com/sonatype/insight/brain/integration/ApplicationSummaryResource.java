@@ -13,7 +13,6 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
 import com.sonatype.clm.dto.model.application.ApplicationSummaryList;
-import com.sonatype.insight.brain.organization.ApplicationService;
 
 /**
  * Application rest resource for integration with other tools such as Sonar
@@ -26,20 +25,19 @@ public class ApplicationSummaryResource
 {
   public static final String SERVICE_PATH = "rest/integration/applications";
 
-  private final ApplicationSummaryAdapter applicationAdapter;
-
-  private final ApplicationService applicationService;
+  private final ApplicationSummaryService applicationSummaryService;
 
   @Inject
-  public ApplicationSummaryResource(final ApplicationSummaryAdapter applicationAdapter,
-      final ApplicationService applicationService) {
-    this.applicationAdapter = applicationAdapter;
-    this.applicationService = applicationService;
+  public ApplicationSummaryResource(final ApplicationSummaryService applicationSummaryService) {
+    this.applicationSummaryService = applicationSummaryService;
   }
 
+  /**
+   * Gets all applications the current user has read access to, sorted by (case-insensitive) name.
+   */
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   public ApplicationSummaryList getApplications() {
-    return applicationAdapter.convert(applicationService.getApplications());
+    return applicationSummaryService.getApplications();
   }
 }

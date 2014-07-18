@@ -89,3 +89,20 @@
 .input-popover.top .arrow:before {
   display: none;
 }
+
+/*
+  #Form Actions
+```
+    <button type='button' class='btn btn-link btn-cancel'>Cancel</button>
+    <button type='button' class='btn'>Reset</button>
+    <button type='button' class='btn btn-warning'>Update</button>
+    <button type='button' class='btn btn-primary'>Submit</button>
+```
+*/
+
+.btn-cancel {
+  color: $gray !important;
+}
+.btn-cancel:hover {
+  color: darken($gray, 25%) !important;
+}

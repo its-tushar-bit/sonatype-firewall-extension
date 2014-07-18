@@ -38,7 +38,7 @@ $textColor:             $grayDark !default;
 
 // Links
 // -------------------------
-$linkColor:             #08c !default;
+$linkColor:             #2177ff !default;
 $linkColorHover:        darken($linkColor, 15%) !default;
 
 
@@ -85,11 +85,11 @@ $tableBorder:                       #ddd !default; // table and cell border
 // Buttons
 // -------------------------
 $btnBackground:                     $white !default;
-$btnBackgroundHighlight:            darken($white, 10%) !default;
+$btnBackgroundHighlight:            darken($btnBackground, 15%) !default;
 $btnBorder:                         #ccc !default;
 
 $btnPrimaryBackground:              $linkColor !default;
-$btnPrimaryBackgroundHighlight:     adjust-hue($btnPrimaryBackground, 20%) !default;
+$btnPrimaryBackgroundHighlight:     $linkColorHover !default;
 
 $btnInfoBackground:                 #5bc0de !default;
 $btnInfoBackgroundHighlight:        #2f96b4 !default;

@@ -66,6 +66,7 @@
     <js>/assets/PolicyEditor.js</js>
     <js>/assets/ReportApp.js</js>
     <js>/assets/Resource.js</js>
+    <js>/assets/FormsModule.js</js>
   </group>
 
   <group name='newcss'>

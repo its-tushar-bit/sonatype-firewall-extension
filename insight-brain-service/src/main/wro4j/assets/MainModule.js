@@ -37,7 +37,7 @@
   angular.module('InitModule', [
     'ui.router', 'ui.bootstrap', 'CLMLocation', 'CommonServices',
     'ReportModule', 'Report', 'MainHeader', 'ngRoute', 'UnauthenticatedResponseHttpInterceptor', 'xeditable',
-    'ProductFeaturesModule', 'HttpInterceptors', 'DashboardModule'
+    'ProductFeaturesModule', 'HttpInterceptors', 'DashboardModule', 'FormsModule'
   ], [
     '$stateProvider', '$routeProvider', '$urlRouterProvider',
     function($stateProvider, $routeProvider, $urlRouterProvider) {

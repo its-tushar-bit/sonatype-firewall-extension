@@ -1,0 +1,91 @@
+/*
+  #Form elements
+*/
+/*
+  ##Text inputs
+```
+<form class='clm-form'>
+  <p>
+    <label for='normal'>An input that is not required and hasn't been updated</label>
+    <input type='text' id='normal' class='ng-valid'>
+  </p>
+  <p>
+    <label for='required'>An input that is required and hasn't been updated</label>
+    <input type='text' id='required' class='ng-invalid' required>
+  </p>
+    <p>
+    <label for='valid'>An input that has been updated and is valid</label>
+    <input type='text' id='valid' class='ng-valid ng-dirty' value='Valid'>
+  </p>
+  <p>
+    <label for='invalid'>An input that has been updated and is invalid</label>
+    <input type='text' id='invalid' class='ng-invalid ng-dirty' value='Invalid'>
+  </p>
+  </form>
+```
+*/
+.clm-form input {
+  width: 95% !important;
+}
+.clm-form input[required].ng-invalid {
+  border-left: 5px solid $input-invalid-color !important;
+}
+.clm-form input[required].ng-valid {
+  border-left: 5px solid $input-valid-color !important;
+}
+.clm-form input:not([required]) {
+  border-left: 5px solid $input-pristine-color !important;
+}
+.clm-form input.ng-valid.ng-dirty {
+  border: 1px solid $input-valid-color !important;
+  border-left-width: 5px !important;
+}
+.clm-form input.ng-invalid.ng-dirty {
+  border: 1px solid $input-invalid-color !important;
+  border-left-width: 5px !important;
+}
+
+/*
+  ##Validation popovers
+  Modified version of bootstrap popover styling, should appear at the far right edge of an invalidated input
+  ```
+  <div class="popover input-popover fade top in" style="top: 10px; left: 10px; display: block;">
+    <div class="arrow"></div>
+    <div class="popover-content">Please enter a value</div>
+ </div>
+  ```
+*/
+.input-popover{
+  background-color: #EDD7D7 !important;
+  color: #C70000;
+  border: 1px solid #C70000;
+  @include border-radius(2px);
+}
+.input-popover .top{
+  margin-top:-2px
+}
+.input-popover .right{
+  margin-left:2px
+}
+.input-popover .bottom{
+  margin-top:2px
+}
+.input-popover .left{
+  margin-left:-2px
+}
+.input-popover .top .popover-arrow{
+  bottom:-11px;
+  left:80%;
+}
+.input-popover .popover-content {
+  padding: 0 10px;
+}
+.input-popover.top .arrow {
+  left: 80%;
+}
+.input-popover.top .arrow:after {
+  border-top-color: #EDD7D7 !important;
+}
+.input-popover.top .arrow:before {
+  display: none;
+}

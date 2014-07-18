@@ -1003,8 +1003,8 @@ ul.tri-pane.left {
 
 /* center the config pages */
 .container.config {
-  width: 500px !important;
-  min-width: 500px !important;
+  width: 520px !important;
+  min-width: 520px !important;
 }
 
 .container.proprietary {

@@ -36,6 +36,8 @@ describe('Forms module', function() {
       var popover = input.data('popover');
       expect(popover).not.toBe(undefined);
       expect(popover.getContent()).toBe(message);
+      expect(scope.form.test.$invalid).toBe(true);
+
 
       //if we fix the problem the popover is removed, and the input is no longer invalid
       scope.form.test.$setViewValue(newValue);

@@ -9,13 +9,18 @@ import com.sonatype.insight.brain.testing.functional.configuration.LdapConfigura
 import com.sonatype.insight.brain.testing.functional.configuration.LdapConnectionConfigurationPage
 import com.sonatype.insight.brain.testing.functional.configuration.LdapUserAndGroupMappingConfigurationPage
 
+import org.openqa.selenium.Keys
+import spock.lang.Stepwise
+
 
 /**
  * @since 1.7
  */
+@Stepwise
 class LdapConfigurationSpec
     extends BaseSpec
 {
+
   def "create a new LDAP and navigate the connection and user/group mappings forms"() {
     setup: "login"
       loginAsAdminVia()
@@ -39,7 +44,7 @@ class LdapConfigurationSpec
       inlineEditor.displayed
 
     when: "Saving a LDAP server"
-      inlineEditor.value('TestLDAP')
+      inlineEditor.value('CLM Ldap Server')
       save.click()
 
     then: "the connection form appears"
@@ -54,34 +59,75 @@ class LdapConfigurationSpec
 
     and: "the save button is disabled"
       save.disabled
+  }
 
+  def "Fill out the connection form"() {
     when: "filling out the required fields in the form"
-      requiredFields.each {
-        it << 'foo'
-      }
+      hostname = 'ldap.clm'
+      searchBase = 'dc=win,dc=blackforest,dc=local'
 
     then: "save is enabled"
-      report 'connection details'
       requiredFields.each {
         assert !it.hasClass('ng-invalid-required')
       }
       !save.disabled
+  }
 
+  def "Cancelling on the connection form"() {
     when: "cancelling the form"
-      reset.click()
-      waitFor { discard?.present }
-      report 'confirmation of discarding changes'
+      cancel.click()
+      waitFor { discard.displayed }
       discard.click()
 
-    and: "navigating to the user and group settings"
+    then: 'save is disabled'
+      waitFor { !discard.displayed }
+      save.disabled
+  }
+
+  def "Required inputs for connection show validation error popovers"() {
+    when: 'Leaving a required field blank'
+      input << 'a'
+      input << Keys.BACK_SPACE
+
+    then: 'A popover should be displayed indicating that the field is required'
+      popoverText(input) == 'Please enter a value'
+
+    and: 'save should be disabled'
+      save.disabled
+
+    where:
+      input << requiredFields
+  }
+
+  def "Invalid numeric inputs for connection show validation error popovers"() {
+    when: 'Setting a value too low for the port'
+      port = 0
+
+    then: 'A validation popover is shown'
+      popoverText(port) == 'Minimum allowed value is 1'
+      report 'minimum port value error'
+
+    when: 'Setting sa value too high for the port'
+      port = 999999
+
+    then: 'A validation popover is shown'
+      popoverText(port) == 'Maximum allowed value is 65535'
+      report 'minimum port value error'
+
+    cleanup: 'Remove changes so we can navigate away'
+      cancel.click()
+      waitFor { discard.displayed }
+      discard.click()
+      waitFor { !discard.displayed }
+  }
+
+  def "Fill out the user/group mapping form"() {
+    when: "navigating to the user and group settings"
       userAndGroupSettingsTab.click()
 
     then: "user and group mapping form appears"
-      report 'user and group mappings'
-      at LdapUserAndGroupMappingConfigurationPage
-      requiredFields.each {
-        assert it.hasClass('ng-invalid-required')
-      }
+      waitFor { at LdapUserAndGroupMappingConfigurationPage }
+      requiredFields.each { assert it.hasClass('ng-invalid-required') }
 
     and: "controls are disabled"
       checkUserMapping.disabled
@@ -89,9 +135,10 @@ class LdapConfigurationSpec
       save.disabled
 
     when: "filling out required fields"
-      requiredFields.each {
-        it << 'foo'
-      }
+      userObjectClass = 'user'
+      userIDAttribute = 'sAMAccountName'
+      userRealNameAttribute = 'displayName'
+      userEmailAttribute = 'mail'
 
     then: "buttons are enabled"
       report 'form is ready to save'
@@ -100,7 +147,7 @@ class LdapConfigurationSpec
       !save.disabled
 
     when: "resetting form to discard changes"
-      reset.click()
+      cancel.click()
       waitFor { discard?.present }
 
     then: "confirmation is requested"
@@ -113,18 +160,44 @@ class LdapConfigurationSpec
       }
   }
 
-  /**
-   * assumes logged in at the end of each test, removes any configuration information stored
-   * @return
-   */
-  def cleanup() {
+  def "Required inputs for user/group mappings show validation error popovers"() {
+    when: 'Leaving a required field blank'
+      input << 'a'
+      input << Keys.BACK_SPACE
+
+    then: 'A popover should be displayed indicating that the field is required'
+      popoverText(input) == 'Please enter a value'
+
+    and: 'save should be disabled'
+      save.disabled
+
+    where:
+      input << requiredFields
+  }
+
+  def "Cancelling on the user/group mappings form"() {
+    when: "cancelling the form"
+      cancel.click()
+      waitFor { discard.displayed }
+      discard.click()
+
+    then: 'save is disabled'
+      waitFor { !discard.displayed }
+      save.disabled
+  }
+
+  def "We can delete the LDAP server"() {
+    when: 'We go to the LDAP page with a server configured'
     to LdapConfigurationPage
-    if (delete?.displayed) {
-      delete.click()
-      waitFor { deleteConfirm?.displayed }
-      deleteConfirm.click()
-      waitFor { !delete.present }
-      // wait for the request to complete, otherwise an error dialog results and upsets the following tests
-    }
+    waitFor { delete.displayed }
+
+    and: 'We confirm deletion of the LDAP server'
+    delete.click()
+    waitFor { deleteConfirm.displayed }
+    deleteConfirm.click()
+
+    then: 'The LDAP Server is deleted and we are forwarded to the Org management page'
+    waitFor { !delete.present }
+    at OrganizationManagementPage
   }
 }

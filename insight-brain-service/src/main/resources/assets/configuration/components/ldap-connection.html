@@ -1,64 +1,74 @@
-<div>
+<div class="well clm-well">
   <div ng-if='ldapConn == null' class='ldap-loading'>
     <h5><i class='icon icon-time'></i> Loading...</h5>
   </div>
-  <form ng-show='ldapConn != null' name='ldapConnectionEditor' class="well clm-form">
+  <form ng-show='ldapConn != null' name='ldapConnectionEditor' class="clm-form" novalidate>
     <div>
       <div class="content-header">
         <h4>Connection Details</h4>
       </div>
-      <div clm-control-group for="protocol" form="ldapConnectionEditor" label="Protocol">
-          <select name='protocol' id="protocol" ng-model="ldapConn.protocol" ng-options="p for p in ldapProtocols" autofocus></select>
+      <div clm-control-group for="protocol" label="Protocol">
+        <select name='protocol' id="protocol" ng-model="ldapConn.protocol" ng-options="p for p in ldapProtocols"
+                autofocus></select>
       </div>
-      <div clm-control-group for="hostname" form="ldapConnectionEditor" label="Hostname">
-        <input clm-input name='hostname' id='hostname' ng-model='ldapConn.hostname' required type='text'>
+      <div clm-control-group for="hostname" label="Hostname">
+        <input clm-input name='hostname' id='hostname' ng-model='ldapConn.hostname' required type='text'
+               placeholder="Your LDAP host">
       </div>
-      <div clm-control-group for="port" form="ldapConnectionEditor" label="Port">
-          <input clm-input name='port' id='port' ng-model='ldapConn.port' required type='number' min='1' max='65535'
-                 title="Valid range is 1 to 65535"/>
+      <div clm-control-group for="port" label="Port">
+        <input clm-input name='port' id='port' ng-model='ldapConn.port' required type='number' min='1' max='65535'
+               placeholder="Valid range is 1 to 65535"/>
       </div>
-      <div clm-control-group for="searchBase" form="ldapConnectionEditor" label="Search Base">
-          <input clm-input name='searchBase' id='searchBase' ng-model='ldapConn.searchBase' required type='text'>
+      <div clm-control-group for="searchBase" label="Search Base">
+        <input clm-input name='searchBase' id='searchBase' ng-model='ldapConn.searchBase' required type='text'
+               placeholder="Your LDAP search base">
       </div>
       <div class="content-header">
         <h4>Authentication</h4>
       </div>
-      <div clm-control-group for="authenticationMethod" form="ldapConnectionEditor" label="Method">
-          <select name='authenticationMethod' id='authenticationMethod' ng-model="ldapConn.authenticationMethod"
-                  ng-options="m for m in ldapMethods"></select>
+      <div clm-control-group for="authenticationMethod" label="Method">
+        <select name='authenticationMethod' id='authenticationMethod' ng-model="ldapConn.authenticationMethod"
+                ng-options="m for m in ldapMethods"></select>
       </div>
       <div ng-show="ldapConn.authenticationMethod != 'NONE'">
-        <div clm-control-group for="saslRealm" form="ldapConnectionEditor" label="SASL Realm">
-            <input clm-input name='saslRealm' id='saslRealm' ng-model='ldapConn.saslRealm' type='text'>
+        <div clm-control-group for="saslRealm" label="SASL Realm">
+          <input clm-input name='saslRealm' id='saslRealm' ng-model='ldapConn.saslRealm' type='text'
+                 placeholder="The SASL realm to use (optional)">
         </div>
-        <div clm-control-group for="systemUsername" form="ldapConnectionEditor" label="Username">
-            <input clm-input name='systemUsername' id='systemUsername' ng-model='ldapConn.systemUsername' type='text'
-                    ng-required="ldapConn.authenticationMethod != 'NONE'">
+        <div clm-control-group for="systemUsername" label="Username">
+          <input clm-input name='systemUsername' id='systemUsername' ng-model='ldapConn.systemUsername' type='text'
+                 ng-required="ldapConn.authenticationMethod != 'NONE'"
+                 placeholder="Username to connect to LDAP">
         </div>
-        <div clm-control-group for="systemPassword" form="ldapConnectionEditor" label="Password">
-            <input clm-input name='systemPassword' id='systemPassword' ng-model='ldapConn.systemPassword' type='password'
-                   ng-required="ldapConn.authenticationMethod != 'NONE'">
+        <div clm-control-group for="systemPassword" label="Password">
+          <input clm-input name='systemPassword' id='systemPassword' ng-model='ldapConn.systemPassword' type='password'
+                 ng-required="ldapConn.authenticationMethod != 'NONE'"
+                 placeholder="Password to connect to LDAP">
         </div>
       </div>
       <div class="content-header">
         <h4>Timeouts</h4>
       </div>
-      <div clm-control-group for="connectionTimeout" form="ldapConnectionEditor" label="Connection">
-          <input clm-input name='connectionTimeout' id='connectionTimeout' ng-model='ldapConn.connectionTimeout' type='number'
-                 min='0' max='999' title="Valid range is 0 to 999">
+      <div clm-control-group for="connectionTimeout" label="Connection">
+        <input clm-input name='connectionTimeout' id='connectionTimeout' ng-model='ldapConn.connectionTimeout'
+               type='number'
+               min='0' max='999' placeholder="Valid range is 0(default) to 999">
       </div>
-      <div clm-control-group for="retryDelay" form="ldapConnectionEditor" label="Retry Delay">
-          <input clm-input name='retryDelay' id='retryDelay' ng-model='ldapConn.retryDelay' type='number' min='0' max='999'
-                 title="Valid range is 0 to 999">
+      <div clm-control-group for="retryDelay" label="Retry Delay">
+        <input clm-input name='retryDelay' id='retryDelay' ng-model='ldapConn.retryDelay' type='number' min='0'
+               max='999'
+               placeholder="Valid range is 0(default) to 999">
       </div>
     </div>
   </form>
   <div style="max-width: 485px">
     <div clm-alerts='alerts'></div>
     <div class="ldap-button-group" ng-show='!saving && ldapConn'>
-      <button class='btn btn-success' ng-disabled="ldapConnectionEditor.$invalid || testInProgress" ng-click="testConnection()">Test Connection</button>
+      <button class="btn btn-link btn-cancel" ng-disabled="!isDirty()" ng-click="reset()">Cancel</button>
       <div style="float: right">
-        <button class="btn" ng-disabled="!isDirty()" ng-click="reset()">Reset</button>
+        <button class='btn btn-success' ng-disabled="ldapConnectionEditor.$invalid || testInProgress"
+                ng-click="testConnection()">Test Connection
+        </button>
         <button class="btn btn-primary" ng-disabled="!canSaveEdit()" ng-click="save()">Save</button>
       </div>
     </div>

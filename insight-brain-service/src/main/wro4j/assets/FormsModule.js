@@ -174,7 +174,7 @@
             label: '@'
           },
           template: '<div class="control-group">' +
-              '<label class="control-label" for="{{for}}">{{label}}</label>' +
+              '<label ng-if="label" class="control-label" for="{{for}}">{{label}}</label>' +
               '<div class="controls">' +
               '<div ng-transclude></div>' +
               '</div>' +

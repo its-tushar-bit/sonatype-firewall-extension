@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.testing.functional
 
+import org.openqa.selenium.Keys
 import spock.lang.Stepwise
 
 /**
@@ -120,15 +121,21 @@ class LabelSpec
       labels.createNewLabel('Another New Label')
 
     then: 'An invalid characters error message appears'
-      labels.nameValidations.invalidCharacters.displayed
+      popoverText(labels.name) == 'Invalid Character(s)'
       labels.buttons.save.@disabled
 
     when: 'We adjust name to use some non-alphanumeric characters'
       labels.name << '$'
 
     then: 'The error message remains'
-      labels.nameValidations.invalidCharacters.displayed
+      popoverText(labels.name) == 'Invalid Character(s)'
       labels.buttons.save.@disabled
+
+    when: 'We remove the content on the required field'
+      labels.name << (Keys.BACK_SPACE * 'Another New Label$'.size())
+
+    then: 'A required error message is shown'
+      waitFor {  popoverText(labels.name) == 'Please enter a value' }
 
     when: 'We correct the invalid data'
       labels.name = 'AnotherNewLabelAgain'

@@ -46,18 +46,16 @@
             <div clm-alerts='alerts'></div>
           </div>
         </div>
-        <div ng-if='applicableLabel.editable && selectedLabel' class="label-list">
-          <div class='fade in' style='width:544px;padding-bottom:15px' ng-controller='LabelEditorController'>
-            <form name='labelEditor' class='form-horizontal' style='margin-bottom:0' ng-submit='saveLabel()'>
-              <div class="control-group" ng-class='{ error : labelEditor.label.$error.duplicate || labelEditor.label.$error.invalid }'>
-                <div class="controls" style="margin-left: 0;">
-                  <input id="labelEditorLabel" name='label' type="text" maxlength='50' ng-model='selectedLabel.label' placeholder="Enter Label Name" focus-input="true" required item-label>
-                  <span ng-show='labelEditor.label.$error.duplicate' class="help-inline">Duplicate Label</span>
-                  <span ng-show='labelEditor.label.$error.invalid' class="help-inline">Invalid Character(s)</span>
-                </div>
+        <div ng-if='applicableLabel.editable && selectedLabel' class="label-list config">
+          <div class='fade in well clm-well' style='width:544px;' ng-controller='LabelEditorController'>
+            <form name='labelEditor' class='clm-form' style='margin-bottom:0' ng-submit='saveLabel()'>
+              <div clm-control-group for="labelEditorLabel">
+                  <input clm-input id="labelEditorLabel" name='label' type="text" maxlength='50' ng-model='selectedLabel.label'
+                         placeholder="Enter Label Name" focus-input="true" required item-label
+                          messages='{duplicate: "Duplicate Label", invalid: "Invalid Character(s)"}'>
               </div>
-              <div class="control-group">
-                <textarea name='description' maxlength="255" rows="3" style="width:530px;resize:none;" ng-model='selectedLabel.description'
+              <div clm-control-group for='description'>
+                <textarea clm-input id='description' name='description' maxlength="255" rows="3" style="width:530px;resize:none;" ng-model='selectedLabel.description'
                           placeholder="Enter Description"></textarea>
               </div>
               <div class="control-group">
@@ -68,10 +66,11 @@
                 </span>
               </div>
               <div clm-alerts='editorAlerts'></div>
+              <button class="btn btn-link btn-cancel" type='button' ng-click='cancelEditLabel()'>Cancel</button>
               <div class="pull-right">
-                <button class="btn" type='button' ng-click='cancelEditLabel()'>Cancel</button>
                 <button class="btn btn-primary" ng-disabled='!canSaveEdit(labelEditor.$valid, selectedLabel)'>Save</button>
               </div>
+              <div style="clear: both;"></div>
             </form>
           </div>
         </div>

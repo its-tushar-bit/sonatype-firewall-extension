@@ -136,13 +136,6 @@
                 }
               });
             });
-
-            // clear all errors if the form is set to $pristine from an invalid state
-            scope.$watch(form.$name + '.$pristine', function(newValue) {
-              if (newValue === true && element.data('popover')) {
-                element.popover('destroy');
-              }
-            });
           }
         };
       }
@@ -158,7 +151,8 @@
           transclude: true,
           scope: {
             for: '@',
-            label: '@'
+            label: '@',
+            form: '@'
           },
           template: '<div class="control-group">' +
               '<label class="control-label" for="{{for}}">{{label}}</label>' +

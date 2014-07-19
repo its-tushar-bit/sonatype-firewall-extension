@@ -244,17 +244,16 @@ describe('Tests for the LdapConfigurationController', function() {
       expect(e.defaultPrevented).toBeTruthy();
 
       scope.ldapConnectionEditor = {
-        $dirty: true,
-        $setPristine: angular.noop
+        $dirty: true      
       };
-      spyOn(scope.ldapConnectionEditor, '$setPristine');
+
       scope.reset();
 
       dialogScope.discardChanges();
 
       e = scope.$broadcast('pageChangeStarted');
       expect(e.defaultPrevented).not.toBeTruthy();
-      expect(scope.ldapConnectionEditor.$setPristine).toHaveBeenCalled();
+
     });
 
     it('test connection', inject(function(CLMLocations) {
@@ -451,17 +450,16 @@ describe('Tests for the LdapConfigurationController', function() {
       expect(e.defaultPrevented).toBeTruthy();
 
       scope.ldapUserMappingEditor = {
-        $dirty: true,
-        $setPristine: angular.noop
+        $dirty: true      
       };
-      spyOn(scope.ldapUserMappingEditor, '$setPristine');
+
       scope.reset();
 
       dialogScope.discardChanges();
 
       e = scope.$broadcast('pageChangeStarted');
       expect(e.defaultPrevented).not.toBeTruthy();
-      expect(scope.ldapUserMappingEditor.$setPristine).toHaveBeenCalled();
+
     });
 
   });

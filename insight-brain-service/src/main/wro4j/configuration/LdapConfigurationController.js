@@ -248,7 +248,6 @@
       $scope.reset = resetDialog($modal, function() {
           $scope.ldapConn = angular.copy(origLdapConn);
           $scope.alerts.length = 0;
-          $scope.ldapConnectionEditor.$setPristine();
         }
       );
 
@@ -304,7 +303,6 @@
       $scope.reset = resetDialog($modal, function () {
         $scope.ldapUserMapping = angular.copy(origLdapUserMapping);
         $scope.alerts.length = 0;
-        $scope.ldapUserMappingEditor.$setPristine();
       });
 
       preventPageChange($scope);

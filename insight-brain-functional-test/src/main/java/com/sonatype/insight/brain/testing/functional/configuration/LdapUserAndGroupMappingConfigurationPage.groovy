@@ -36,9 +36,9 @@ class LdapUserAndGroupMappingConfigurationPage
     requiredFields { [userObjectClass, userIDAttribute, userRealNameAttribute, userEmailAttribute] }
 
     //controls
-    checkUserMapping { $('.ldap-button-group .btn-success:first-child') }
-    checkUserLogin { $('.ldap-button-group .btn-success:nth-child(2)') }
-    cancel { $('.ldap-button-group button.btn-cancel') }
+    checkUserMapping { $('.ldap-button-group > button:first-child') }
+    checkUserLogin { $('.ldap-button-group > button:nth-child(2)') }
+    reset { $('.ldap-button-group div button:first-child') }
     save { $('.ldap-button-group button.btn-primary') }
 
     //test user mapping dialog

@@ -198,4 +198,15 @@ abstract class BaseSpec
     productLicenseManager.setProducts(products)
     clmLicenseManager.installLicense(null)
   }
+
+  /**
+   * Helper method to get the text out of an expected input validation popover.
+   * Since bootstrap popovers are inserted into the DOM as siblings of their target, we search for a popover within
+   * the element's parent scope.
+   */
+  String popoverText(element) {
+    def popover = element.parent().find('.input-popover')
+    waitFor { popover.displayed }
+    return popover.text()
+  }
 }

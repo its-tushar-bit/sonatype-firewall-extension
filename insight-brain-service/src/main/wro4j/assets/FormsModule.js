@@ -83,30 +83,35 @@
 
             // display a popover on validation errors
             function updateValidationMessages(myElem, myAttrs, myCtrl) {
-              // remove any previous warning
-              if (myElem.data('popover')) {
-                myElem.popover('destroy');
-              }
-
+              var currentPopover = myElem.data('popover');
               if (myCtrl.$invalid) {
-                //popover template removes the title and adds our style overrides
-                myElem.popover({
-                  placement: 'top',
-                  content: determineErrorMessage(myCtrl.$error, myAttrs, messages),
-                  trigger: 'manual',
-                  template: '<div class="popover input-popover fade top in">' +
-                      '<div class="arrow"></div>' +
-                      '<div class="popover-content">' +
-                      '</div>' +
-                      '</div>'
-                });
-                myElem.popover('show');
-                var popover = myElem.data('popover');
-                //reposition the popover on the right edge of the input field
-                var position = popover.getPosition();
-                position.left = position.right - popover.tip()[0].offsetWidth;
-                position.top = position.top - 30;
-                popover.applyPlacement(position, 'top');
+                if (currentPopover) {
+                  currentPopover.options.content = determineErrorMessage(myCtrl.$error, myAttrs, messages);
+                } else {
+                  //popover template removes the title and adds our style overrides
+                  myElem.popover({
+                    placement: 'top',
+                    content: determineErrorMessage(myCtrl.$error, myAttrs, messages),
+                    trigger: 'manual',
+                    template: '<div class="popover input-popover fade top in">' +
+                        '<div class="arrow"></div>' +
+                        '<div class="popover-content">' +
+                        '</div>' +
+                        '</div>'
+                  });
+                  myElem.popover('show');
+                  var popover = myElem.data('popover');
+                  //reposition the popover on the right edge of the input field
+                  var position = popover.getPosition();
+                  position.left = position.right - popover.tip()[0].offsetWidth;
+                  position.top = position.top - 30;
+                  popover.applyPlacement(position, 'top');
+                }
+              } else {
+                // remove any previous warning
+                if (currentPopover) {
+                  myElem.popover('destroy');
+                }
               }
             }
 

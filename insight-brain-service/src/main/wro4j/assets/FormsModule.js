@@ -85,13 +85,18 @@
             function updateValidationMessages(myElem, myAttrs, myCtrl) {
               var currentPopover = myElem.data('popover');
               if (myCtrl.$invalid) {
+                var errorMessage = determineErrorMessage(myCtrl.$error, myAttrs, messages);
                 if (currentPopover) {
-                  currentPopover.options.content = determineErrorMessage(myCtrl.$error, myAttrs, messages);
-                } else {
+                  if (currentPopover.options.content !== errorMessage) {
+                    currentPopover.options.content = errorMessage;
+                    myElem.popover('show');
+                  }
+                }
+                else {
                   //popover template removes the title and adds our style overrides
                   myElem.popover({
                     placement: 'top',
-                    content: determineErrorMessage(myCtrl.$error, myAttrs, messages),
+                    content: errorMessage,
                     trigger: 'manual',
                     template: '<div class="popover input-popover fade top in">' +
                         '<div class="arrow"></div>' +
@@ -99,15 +104,23 @@
                         '</div>' +
                         '</div>'
                   });
-                  myElem.popover('show');
+
                   var popover = myElem.data('popover');
+                  popover.getOriginalPosition = popover.getPosition;
                   //reposition the popover on the right edge of the input field
-                  var position = popover.getPosition();
-                  position.left = position.right - popover.tip()[0].offsetWidth;
-                  position.top = position.top - 30;
-                  popover.applyPlacement(position, 'top');
+                  popover.getPosition = function() {
+                    var position = this.getOriginalPosition();
+                    var newPosition = {
+                      left: myElem[0].offsetLeft + myElem[0].offsetWidth - popover.tip()[0].offsetWidth,
+                      top: position.top + 5,
+                      width: popover.tip()[0].offsetWidth
+                    };
+                    return angular.extend(position, newPosition);
+                  };
+                  myElem.popover('show');
                 }
-              } else {
+              }
+              else {
                 // remove any previous warning
                 if (currentPopover) {
                   myElem.popover('destroy');

@@ -209,4 +209,11 @@ abstract class BaseSpec
     waitFor { popover.displayed }
     return popover.text()
   }
+
+  /**
+   * Find all popover violation messages in a given element. Intended to confirm the presence/absence of violations in a form.
+   */
+  def popoverViolations(element) {
+    element.find('.input-popover')
+  }
 }

@@ -37,6 +37,12 @@
           }
 
           //look in the default messages
+          if(error.email) {
+            message = 'Use valid format: abc@xyz.com';
+          }
+          if(error.spaces) {
+            message = 'No leading, trailing or double spaces or tabs';
+          }
           if(error.alphaNumeric) {
             message = 'Must be alpha numeric';
           }

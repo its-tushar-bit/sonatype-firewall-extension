@@ -34,7 +34,6 @@ class UserManagementSpec
 
     then: 'verify add form visible'
       waitFor { userForm.present }
-      errorFree
       save.disabled
       [
           firstNameInput,
@@ -56,15 +55,11 @@ class UserManagementSpec
       input << Keys.TAB
 
     then: 'the noSpaces validation error is shown'
-      inputValidations.noSpaces.displayed
-      !inputValidations.errorFree
-      !errorFree
+      popoverText(input) == 'No leading, trailing or double spaces or tabs'
       report 'after invalidation'
 
     where:
-      input          | inputValidations
-      firstNameInput | firstNameValidations
-      lastNameInput  | lastNameValidations
+      input << [firstNameInput, lastNameInput]
   }
 
   @Unroll
@@ -73,19 +68,14 @@ class UserManagementSpec
       input << '#'
 
     then: 'the alphaNumeric validation error is shown'
-      inputValidations.alphaNumeric.displayed
-      !inputValidations.errorFree
-      !errorFree
+      popoverText(input) == 'Must be alpha numeric'
       report 'before cleanup'
 
     cleanup:
       input.value('')
 
     where:
-      input          | inputValidations
-      firstNameInput | firstNameValidations
-      lastNameInput  | lastNameValidations
-      usernameInput  | usernameValidations
+      input << [firstNameInput, lastNameInput, usernameInput]
   }
 
   @Unroll
@@ -95,18 +85,17 @@ class UserManagementSpec
       input << Keys.BACK_SPACE
 
     then: 'the required validation error is shown'
-      inputValidations.required.displayed
-      !inputValidations.errorFree
-      !errorFree
+      popoverText(input) == 'Please enter a value'
 
     where:
-      input                 | inputValidations
-      firstNameInput        | firstNameValidations
-      lastNameInput         | lastNameValidations
-      emailInput            | emailValidations
-      usernameInput         | usernameValidations
-      passwordInput         | passwordValidations
-      passwordValidateInput | passwordValidateValidations
+      input << [
+          firstNameInput,
+          lastNameInput,
+          emailInput,
+          usernameInput,
+          passwordInput,
+          passwordValidateInput
+      ]
   }
 
   def "We fill out all fields correctly"() {
@@ -119,7 +108,7 @@ class UserManagementSpec
       passwordValidateInput << "123abc"
 
     then: 'no errors are shown'
-      errorFree
+      waitFor { popoverViolations(userForm).size() == 0 }
       !save.disabled
   }
 
@@ -128,8 +117,7 @@ class UserManagementSpec
       passwordValidateInput << "23abc"
 
     then: 'an error is displayed stating that the passwords do not match'
-      passwordValidateValidations.passwordMatches.displayed
-      !errorFree
+      popoverText(passwordValidateInput) == 'Passwords must match!'
       save.disabled
   }
 
@@ -142,6 +130,7 @@ class UserManagementSpec
 
     then: 'we can now save'
       !save.disabled
+      popoverViolations(userForm).size() == 0
 
     when: 'we click save'
       save.click()

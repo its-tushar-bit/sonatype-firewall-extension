@@ -21,31 +21,12 @@ class UserManagementPage
     userForm(required: false) { $('#user-form') }
 
     firstNameInput(required: false) { userForm.firstName() }
-    firstNameValidations(required: false) { module ValidationModule, firstNameInput.parent() }
-
     lastNameInput(required: false) { userForm.lastName() }
-    lastNameValidations(required: false) { module ValidationModule, lastNameInput.parent() }
-
     emailInput(required: false) { userForm.email() }
-    emailValidations(required: false) { module ValidationModule, emailInput.parent() }
-
     usernameInput(required: false) { userForm.username() }
-    usernameValidations(required: false) { module ValidationModule, usernameInput.parent() }
-
     passwordInput(required: false) { userForm.password() }
-    passwordValidations(required: false) { module ValidationModule, passwordInput.parent() }
-
     passwordValidateInput(required: false) { userForm.passwordValidate() }
-    passwordValidateValidations(required: false) { module ValidationModule, passwordValidateInput.parent() }
 
-    uniqueUserValidation(required: false) { $('#username-error-unique') }
-
-    validations(required: false) {
-      [firstNameValidations, lastNameValidations, emailValidations, usernameValidations, passwordValidations,
-       passwordValidateValidations]
-    }
-
-    errorFree(required: false) { !validations.any { !it.errorFree } && !uniqueUserValidation?.displayed }
     save(required: false) { $('#user-form-save') }
     cancel(required: false) { $('#user-form-cancel') }
     headers(required: false) { $('a.accordion-toggle') }

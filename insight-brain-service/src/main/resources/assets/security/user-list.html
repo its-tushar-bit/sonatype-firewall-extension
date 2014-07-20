@@ -100,63 +100,46 @@
         <a style="text-transform:none;">Add New User</a>
       </li>
     </ul>
-    <form id='user-form' name="userForm" ng-submit="saveClick(user)">
-      <div class="form-horizontal">
-        <div class="control-group" ng-class="{ error : userForm.firstName.$invalid && userForm.firstName.$dirty }">
-          <label class="control-label user-form-label">First Name:</label>
-          <div class="controls">
-            <input class="input-xlarge" name="firstName" type="text" ng-required="true" alpha-numeric placeholder="Enter First Name" ng-model="user.firstName" focus-input="user" has-whitespace="suggestedFirstName">
-            <div ng-if="userForm.firstName.$error.alphaNumeric && userForm.firstName.$dirty" class="text-error">Must be alpha numeric.</div>
-            <div ng-if="userForm.firstName.$error.required && userForm.firstName.$dirty" class="text-error">Field is required.</div>
-            <div ng-if="userForm.firstName.$error.spaces && !userForm.firstName.$error.alphaNumeric && userForm.firstName.$dirty" class="text-error">No leading, trailing or double spaces or tabs, suggested name: {{suggestedFirstName}}</div>
-          </div>
+    <form id='user-form' name="userForm" class='clm-form well clm-well' ng-submit="saveClick(user)" novalidate>
+      <div>
+        <div clm-control-group for="firstName" label="First Name">
+          <input clm-input id="firstName" name="firstName" type="text" ng-required="true" alpha-numeric
+                 placeholder="Enter First Name" ng-model="user.firstName" focus-input="user"
+                 has-whitespace="suggestedFirstName">
         </div>
-        <div class="control-group" ng-class="{ error : userForm.lastName.$invalid && userForm.lastName.$dirty }">
-          <label class="control-label user-form-label">Last Name:</label>
-          <div class="controls">
-            <input class="input-xlarge" name="lastName" type="text" ng-required="true" alpha-numeric placeholder="Enter Last Name" ng-model="user.lastName" has-whitespace="suggestedLastName">
-            <div ng-if="userForm.lastName.$error.alphaNumeric && userForm.lastName.$dirty" class="text-error">Must be alpha numeric.</div>
-            <div ng-if="userForm.lastName.$error.required && !userForm.lastName.$error.alphaNumeric && userForm.lastName.$dirty" class="text-error">Field is required.</div>
-            <div ng-if="userForm.lastName.$error.spaces && !userForm.lastName.$error.alphaNumeric && userForm.lastName.$dirty" class="text-error">No leading, trailing or double spaces or tabs, suggested name: {{suggestedLastName}}</div>
-          </div>
+        <div clm-control-group for="lastName" label="Last Name">
+          <input clm-input id="lastName" name="lastName" type="text" ng-required="true" alpha-numeric
+                 placeholder="Enter Last Name" ng-model="user.lastName" has-whitespace="suggestedLastName">
         </div>
-        <div class="control-group" ng-class="{ error : userForm.email.$invalid && userForm.email.$dirty }">
-          <label class="control-label user-form-label">E-mail Address:</label>
-          <div class="controls">
-            <input class="input-xlarge" name="email" type="email" ng-required="true" placeholder="Enter E-mail Address" ng-model="user.email">
-            <div ng-if="userForm.email.$error.email && userForm.email.$dirty" class="text-error">Use valid format: abc@xyz.com</div>
-            <div ng-if="userForm.email.$error.required && !userForm.email.$error.alphaNumeric && userForm.email.$dirty" class="text-error">Field is required.</div>
-          </div>
+        <div clm-control-group for="email" label="Email">
+          <input clm-input id='email' name="email" type="email" ng-required="true" placeholder="Enter E-mail Address"
+                 ng-model="user.email">
         </div>
-        <div class="control-group" ng-show="!user.id" ng-class="{ error : userForm.username.$invalid && userForm.username.$dirty }">
-          <label class="control-label user-form-label">Username:</label>
-          <div class="controls">
-            <input class="input-xlarge" name="username" type="text" ng-required="!user.id" ng-pattern="/^\S*$/" alpha-numeric is-duplicate is-duplicate-array="context.users" is-duplicate-id-field="id" is-duplicate-case-sensitive="false" placeholder="Enter Username" ng-model="user.username">
-            <div ng-if="userForm.username.$error.alphaNumeric && userForm.username.$dirty" class="text-error">Must be alpha numeric.</div>
-            <div ng-if="userForm.username.$error.pattern && !userForm.username.$error.alphaNumeric && userForm.username.$dirty" class="text-error">Must not contain spaces.</div>
-            <div ng-if="userForm.username.$error.duplicate && userForm.username.$dirty" class="text-error" id="user-name-error-unique">Enter a unique username</div>
-            <div ng-if="userForm.username.$error.required && userForm.username.$dirty" class="text-error">Field is required.</div>
+        <div ng-show="!user.id">
+          <div clm-control-group for="username" label="Username">
+            <input clm-input id="username" name="username" type="text" ng-required="!user.id" ng-pattern="/^\S*$/"
+                   alpha-numeric is-duplicate is-duplicate-array="context.users" is-duplicate-id-field="id"
+                   is-duplicate-case-sensitive="false" placeholder="Enter Username" ng-model="user.username"
+                   messages="{pattern: 'Must not contain spaces', duplicate: 'Username already taken'}">
           </div>
-        </div>
-        <div class="control-group" ng-show="!user.id" ng-class="{ error : userForm.password.$invalid && userForm.password.$dirty }">
-          <label class="control-label user-form-label">Password:</label>
-          <div class="controls">
-            <input class="input-xlarge" name="password" type="password" ng-required="!user.id" placeholder="Enter Password" ng-model="user.password">
-            <div ng-if="userForm.password.$error.required && userForm.password.$dirty" class="text-error">Field is required.</div>
+          <div clm-control-group for="password" label="Password">
+            <input clm-input id='password' name="password" type="password" ng-required="!user.id"
+                   placeholder="Enter Password" ng-model="user.password">
           </div>
-        </div>
-        <div class="control-group" ng-show="!user.id" ng-class="{ error : userForm.passwordValidate.$invalid && userForm.passwordValidate.$dirty }">
-          <label class="control-label user-form-label">Validate:</label>
-          <div class="controls">
-            <input class="input-xlarge" name="passwordValidate" type="password" ng-required="!user.id" match="{{user.password}}" placeholder="Re-enter Password" ng-model="user.passwordValidate">
-            <div ng-if="userForm.passwordValidate.$error.match && userForm.passwordValidate.$dirty" class="text-error">Passwords must match!</div>
-            <div ng-if="userForm.passwordValidate.$error.required && userForm.passwordValidate.$dirty && !userForm.passwordValidate.$error.match" class="text-error">Field is required.</div>
+          <div clm-control-group for="passwordValidate" label="Validate Password">
+            <input clm-input id="passwordValidate" name="passwordValidate" type="password" ng-required="!user.id"
+                   match="{{user.password}}" placeholder="Re-enter Password" ng-model="user.passwordValidate"
+                   messages="{match: 'Passwords must match!'}">
           </div>
         </div>
       </div>
-      <div class="user-button-bar">
-        <button id='user-form-cancel' type="button" class='btn' type='button' ng-click='cancelClick(user)'>Cancel</button>
-        <button id='user-form-save' type="submit" class='btn btn-primary' type='button' ng-click='saveClick(user)' ng-disabled='userForm.$invalid || saving'>Save</button>
+      <button id='user-form-cancel' type="button" class='btn btn-link btn-cancel' type='button'
+              ng-click='cancelClick(user)'>Cancel
+      </button>
+      <div class="pull-right">
+        <button id='user-form-save' type="submit" class='btn btn-primary' type='button' ng-click='saveClick(user)'
+                ng-disabled='userForm.$invalid || saving'>Save
+        </button>
       </div>
       <div style="margin-left:25px;" ng-class="{'alert alert-error': errorMsg }">{{errorMsg}}</div>
     </form>

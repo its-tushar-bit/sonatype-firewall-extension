@@ -134,15 +134,14 @@ class TagSpec
       tags.createNewTag()
 
     then: 'We are presented with an error message'
-      tags.nameValidations.divStartsWith('Duplicate Tag name').displayed
+      popoverText(tags.name) == 'Duplicate Tag name'
       report 'duplicate tag error'
 
     when: 'We append some non-alphanumeric characters'
       tags.name << '$'
 
     then: 'The error message changes to reflect this'
-      !tags.nameValidations.divStartsWith('Duplicate Tag name').displayed
-      tags.nameValidations.alphaNumeric.displayed
+      waitFor { popoverText(tags.name) == 'Must be alpha numeric' }
       tags.buttons.save.@disabled
       report 'alphanumeric validation error'
 

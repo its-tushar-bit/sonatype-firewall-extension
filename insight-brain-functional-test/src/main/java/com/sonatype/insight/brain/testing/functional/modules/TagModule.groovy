@@ -25,9 +25,6 @@ class TagModule
     color(required: false) { name -> tagEditor.find('.' + name + 'Label') }
     buttons { module ButtonsModule }
 
-    //client validation error messaging
-    nameValidations(required: false) { module ValidationModule, name.parent() }
-
     //server error messaging
     serverAlerts { $('div[clm-alerts="alerts"]') }
     cancelServerAlert { $('div[clm-alerts="alerts"] button') }

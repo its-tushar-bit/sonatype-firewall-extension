@@ -28,20 +28,16 @@
         <div clm-alerts='alerts'></div>
       </div>
       <div ng-if='selectedTag' class="tag-list">
-        <div class='fade in' style='width:544px;padding-bottom:15px' ng-controller='TagEditorController'>
-          <form name='tagEditor' class='form-horizontal' style='margin-bottom:0' ng-submit='saveTag()'>
-            <div class="control-group"
-                 ng-class='{ error : tagEditor.name.$error.duplicate || tagEditor.name.$error.alphaNumeric }'>
-              <div class="controls" style="margin-left: 0;">
-                <input id="tagEditorLabel" name='name' type="text" maxlength='50' ng-model='selectedTag.name'
+        <div class='fade in well clm-well' style='width:544px' ng-controller='TagEditorController'>
+          <form name='tagEditor' class='clm-form' style='margin-bottom:0' ng-submit='saveTag()'>
+            <div clm-control-group for="tagEditorLabel">
+                <input clm-input id="tagEditorLabel" name='name' type="text" maxlength='50' ng-model='selectedTag.name'
                        placeholder="Enter Tag Name" focus-input="true" required alpha-numeric is-duplicate
-                       is-duplicate-array='tags' is-duplicate-id-field='name' is-duplicate-case-sensitive='false'>
-                <div ng-show='tagEditor.name.$error.duplicate' class="help-inline">Duplicate Tag name.</div>
-                <div ng-show='tagEditor.name.$error.alphaNumeric' class="help-inline">Must be alpha numeric.</div>
-              </div>
+                       is-duplicate-array='tags' is-duplicate-id-field='name' is-duplicate-case-sensitive='false'
+                       messages='{duplicate: "Duplicate Tag name"}'>
             </div>
-            <div class="control-group">
-              <textarea name='description' maxlength="255" rows="3" style="width:530px;resize:none;" ng-model='selectedTag.description'
+            <div clm-control-group for='description'>
+              <textarea clm-input name='description' maxlength="255" rows="3" style="width:530px;resize:none;" ng-model='selectedTag.description'
                         placeholder="Enter Description" required></textarea>
             </div>
             <div class="control-group">
@@ -52,8 +48,8 @@
               </span>
             </div>
             <div clm-alerts='editorAlerts'></div>
+            <button class="btn btn-link btn-cancel" type='button' ng-click='cancelEditTag()'>Cancel</button>
             <div class="pull-right">
-              <button class="btn" type='button' ng-click='cancelEditTag()'>Cancel</button>
               <button class="btn btn-primary" ng-disabled='!canSaveEdit(tagEditor.$valid, selectedTag)'>Save
               </button>
             </div>

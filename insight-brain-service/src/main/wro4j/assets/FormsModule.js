@@ -37,6 +37,9 @@
           }
 
           //look in the default messages
+          if(error.alphaNumeric) {
+            message = 'Must be alpha numeric';
+          }
           if (error.number) {
             message = 'Please enter a valid number';
           }
@@ -111,7 +114,7 @@
                   popover.getPosition = function() {
                     var position = this.getOriginalPosition();
                     var newPosition = {
-                      left: myElem[0].offsetLeft + myElem[0].offsetWidth - popover.tip()[0].offsetWidth,
+                      left: myElem[0].getBoundingClientRect().left + myElem[0].offsetWidth - popover.tip()[0].offsetWidth,
                       top: position.top + 5,
                       width: popover.tip()[0].offsetWidth
                     };

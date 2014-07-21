@@ -6,8 +6,6 @@
 package com.sonatype.insight.brain.testing.functional
 
 import com.sonatype.insight.brain.testing.functional.modules.ModalModule
-import com.sonatype.insight.brain.testing.functional.modules.ValidationModule
-
 
 class UserManagementPage
     extends BasePage

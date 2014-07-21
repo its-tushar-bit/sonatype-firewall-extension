@@ -49,12 +49,12 @@
         <div ng-if='applicableLabel.editable && selectedLabel' class="label-list config">
           <div class='fade in well clm-well' style='width:544px;' ng-controller='LabelEditorController'>
             <form name='labelEditor' class='clm-form' style='margin-bottom:0' ng-submit='saveLabel()'>
-              <div clm-control-group for="labelEditorLabel">
+              <div clm-control-group for="labelEditorLabel" label="Label Name">
                   <input clm-input id="labelEditorLabel" name='label' type="text" maxlength='50' ng-model='selectedLabel.label'
                          placeholder="Enter Label Name" focus-input="true" required item-label
                           messages='{duplicate: "Duplicate Label", invalid: "Invalid Character(s)"}'>
               </div>
-              <div clm-control-group for='description'>
+              <div clm-control-group for='description' label="Description">
                 <textarea clm-input id='description' name='description' maxlength="255" rows="3" style="width:530px;resize:none;" ng-model='selectedLabel.description'
                           placeholder="Enter Description"></textarea>
               </div>

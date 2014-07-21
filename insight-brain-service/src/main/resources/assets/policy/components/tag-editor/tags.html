@@ -30,13 +30,13 @@
       <div ng-if='selectedTag' class="tag-list">
         <div class='fade in well clm-well' style='width:544px' ng-controller='TagEditorController'>
           <form name='tagEditor' class='clm-form' style='margin-bottom:0' ng-submit='saveTag()'>
-            <div clm-control-group for="tagEditorLabel">
+            <div clm-control-group for="tagEditorLabel" label="Tag Name">
                 <input clm-input id="tagEditorLabel" name='name' type="text" maxlength='50' ng-model='selectedTag.name'
                        placeholder="Enter Tag Name" focus-input="true" required alpha-numeric is-duplicate
                        is-duplicate-array='tags' is-duplicate-id-field='name' is-duplicate-case-sensitive='false'
                        messages='{duplicate: "Duplicate Tag name"}'>
             </div>
-            <div clm-control-group for='description'>
+            <div clm-control-group for='description' label="Description">
               <textarea clm-input name='description' maxlength="255" rows="3" style="width:530px;resize:none;" ng-model='selectedTag.description'
                         placeholder="Enter Description" required></textarea>
             </div>

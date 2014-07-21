@@ -188,16 +188,16 @@ class LdapConfigurationSpec
 
   def "We can delete the LDAP server"() {
     when: 'We go to the LDAP page with a server configured'
-    to LdapConfigurationPage
-    waitFor { delete.displayed }
+      to LdapConfigurationPage
+      waitFor { delete.displayed }
 
     and: 'We confirm deletion of the LDAP server'
-    delete.click()
-    waitFor { deleteConfirm.displayed }
-    deleteConfirm.click()
+      delete.click()
+      waitFor { deleteConfirm.displayed }
+      deleteConfirm.click()
 
     then: 'The LDAP Server is deleted and we are forwarded to the Org management page'
-    waitFor { !delete.present }
-    at OrganizationManagementPage
+      waitFor { !delete.present }
+      at OrganizationManagementPage
   }
 }

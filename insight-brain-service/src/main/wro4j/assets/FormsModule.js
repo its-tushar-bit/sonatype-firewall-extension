@@ -32,18 +32,18 @@
                 }
             );
           }
-          if(message){
+          if (message) {
             return message;
           }
 
           //look in the default messages
-          if(error.email) {
+          if (error.email) {
             message = 'Use valid format: abc@xyz.com';
           }
-          if(error.spaces) {
+          if (error.spaces) {
             message = 'No leading, trailing or double spaces or tabs';
           }
-          if(error.alphaNumeric) {
+          if (error.alphaNumeric) {
             message = 'Must be alpha numeric';
           }
           if (error.number) {

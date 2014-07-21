@@ -44,9 +44,12 @@
         <div class="content-header">
           <h4>Group Element Mapping</h4>
         </div>
-        <div clm-control-group for="groupMappingType" label="Group Type">
-          <select name='groupMappingType' id='groupMappingType' ng-model='ldapUserMapping.groupMappingType'
-                  ng-options="p for p in groupMappingTypes" required></select>
+        <div class="control-group">
+          <label class="control-label" for="groupMappingType">Group Type</label>
+          <div class="controls">
+            <select name='groupMappingType' id='groupMappingType' ng-model='ldapUserMapping.groupMappingType'
+                    ng-options="p for p in groupMappingTypes" required></select>
+          </div>
         </div>
         <div ng-show='ldapUserMapping.groupMappingType == "STATIC"'>
           <div clm-control-group for="groupBaseDN" label="Base DN">

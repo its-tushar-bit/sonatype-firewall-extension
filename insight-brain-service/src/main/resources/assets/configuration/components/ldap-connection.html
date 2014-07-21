@@ -7,9 +7,12 @@
       <div class="content-header">
         <h4>Connection Details</h4>
       </div>
-      <div clm-control-group for="protocol" label="Protocol">
-        <select name='protocol' id="protocol" ng-model="ldapConn.protocol" ng-options="p for p in ldapProtocols"
-                autofocus></select>
+      <div class="control-group">
+        <label class="control-label" for="protocol">Protocol</label>
+        <div class="controls">
+          <select name='protocol' id="protocol" ng-model="ldapConn.protocol" ng-options="p for p in ldapProtocols"
+                  autofocus></select>
+        </div>
       </div>
       <div clm-control-group for="hostname" label="Hostname">
         <input clm-input name='hostname' id='hostname' ng-model='ldapConn.hostname' required type='text'
@@ -26,9 +29,12 @@
       <div class="content-header">
         <h4>Authentication</h4>
       </div>
-      <div clm-control-group for="authenticationMethod" label="Method">
-        <select name='authenticationMethod' id='authenticationMethod' ng-model="ldapConn.authenticationMethod"
-                ng-options="m for m in ldapMethods"></select>
+      <div class="control-group">
+        <label class="control-label" for="authenticationMethod">Method</label>
+        <div class="controls">
+          <select name='authenticationMethod' id='authenticationMethod' ng-model="ldapConn.authenticationMethod"
+                  ng-options="m for m in ldapMethods"></select>
+        </div>
       </div>
       <div ng-show="ldapConn.authenticationMethod != 'NONE'">
         <div clm-control-group for="saslRealm" label="SASL Realm">

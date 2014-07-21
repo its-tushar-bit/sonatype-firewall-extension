@@ -13,7 +13,7 @@
       </div>
       <div clm-control-group for="hostname" label="Hostname">
         <input clm-input name='hostname' id='hostname' ng-model='ldapConn.hostname' required type='text'
-               placeholder="Your LDAP host">
+               placeholder="Enter LDAP host">
       </div>
       <div clm-control-group for="port" label="Port">
         <input clm-input name='port' id='port' ng-model='ldapConn.port' required type='number' min='1' max='65535'
@@ -21,7 +21,7 @@
       </div>
       <div clm-control-group for="searchBase" label="Search Base">
         <input clm-input name='searchBase' id='searchBase' ng-model='ldapConn.searchBase' required type='text'
-               placeholder="Your LDAP search base">
+               placeholder="Enter LDAP Search Base">
       </div>
       <div class="content-header">
         <h4>Authentication</h4>
@@ -33,17 +33,17 @@
       <div ng-show="ldapConn.authenticationMethod != 'NONE'">
         <div clm-control-group for="saslRealm" label="SASL Realm">
           <input clm-input name='saslRealm' id='saslRealm' ng-model='ldapConn.saslRealm' type='text'
-                 placeholder="The SASL realm to use">
+                 placeholder="Enter SASL Realm">
         </div>
         <div clm-control-group for="systemUsername" label="Username">
           <input clm-input name='systemUsername' id='systemUsername' ng-model='ldapConn.systemUsername' type='text'
                  ng-required="ldapConn.authenticationMethod != 'NONE'"
-                 placeholder="Username to connect to LDAP">
+                 placeholder="Enter Username">
         </div>
         <div clm-control-group for="systemPassword" label="Password">
           <input clm-input name='systemPassword' id='systemPassword' ng-model='ldapConn.systemPassword' type='password'
                  ng-required="ldapConn.authenticationMethod != 'NONE'"
-                 placeholder="Password to connect to LDAP">
+                 placeholder="Enter Password">
         </div>
       </div>
       <div class="content-header">

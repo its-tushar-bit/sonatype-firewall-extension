@@ -40,13 +40,13 @@
           if (error.email) {
             message = 'Use valid format: abc@xyz.com';
           }
-          if (error.spaces) {
+          else if (error.spaces) {
             message = 'No leading, trailing or double spaces or tabs';
           }
-          if (error.alphaNumeric) {
+          else if (error.alphaNumeric) {
             message = 'Must be alpha numeric';
           }
-          if (error.number) {
+          else if (error.number) {
             message = 'Please enter a valid number';
           }
           else if (error.minlength) {
@@ -98,11 +98,12 @@
                 if (currentPopover) {
                   if (currentPopover.options.content !== errorMessage) {
                     currentPopover.options.content = errorMessage;
+                    // Must call show or the position is not updated
                     myElem.popover('show');
                   }
                 }
                 else {
-                  //popover template removes the title and adds our style overrides
+                  // Popover template removes the title and adds our style overrides
                   myElem.popover({
                     placement: 'top',
                     content: errorMessage,
@@ -116,7 +117,7 @@
 
                   var popover = myElem.data('popover');
                   popover.getOriginalPosition = popover.getPosition;
-                  //reposition the popover on the right edge of the input field
+                  // Reposition the popover on the right edge of the input field
                   popover.getPosition = function() {
                     var position = this.getOriginalPosition();
                     var newPosition = {
@@ -142,29 +143,20 @@
               element.popover('destroy');
             });
 
-            // Force validation when the field loses focus
-            element.on('blur keyup', function() {
-              //force the element to validate and set a dirty state
+            // Force the element to validate and set a dirty state
+            element.on('blur', function() {
               AngularUtils.safeApply(scope, function() {
                 ctrl.$setViewValue(element.val());
               });
               updateValidationMessages(element, attrs, ctrl);
             });
 
-            angular.forEach(['$dirty', '$valid', '$invalid'], function(propName) {
-              scope.$watch(form.$name + '.' + ctrl.$name + '.' + propName, function() {
-                if (ctrl.$dirty) {
-                  updateValidationMessages(element, attrs, ctrl);
-                }
-              });
-            });
-
-            // clear all errors if the form is set to $pristine from an invalid state
-            scope.$watch(form.$name + '.$pristine', function(newValue) {
-              if (newValue === true && element.data('popover')) {
-                element.popover('destroy');
+            // Update state whenever the $error state is changed
+            scope.$watch(form.$name + '.' + ctrl.$name + '.$error', function() {
+              if (ctrl.$dirty) {
+                updateValidationMessages(element, attrs, ctrl);
               }
-            });
+            }, true);
           }
         };
       }

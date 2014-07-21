@@ -52,11 +52,13 @@ class UserManagementSpec
   def "If multiple space characters are present during validation the #input field should show a noSpaces error"() {
     when: 'inserting text containing leading spaces and losing focus on the field'
       input << 'a  a'
-      input << Keys.TAB
 
     then: 'the noSpaces validation error is shown'
-      popoverText(input) == 'No leading, trailing or double spaces or tabs'
+      waitFor { popoverText(input) == 'No leading, trailing or double spaces or tabs' }
       report 'after invalidation'
+
+    cleanup:
+      input.value('')
 
     where:
       input << [firstNameInput, lastNameInput]
@@ -68,7 +70,7 @@ class UserManagementSpec
       input << '#'
 
     then: 'the alphaNumeric validation error is shown'
-      popoverText(input) == 'Must be alpha numeric'
+      waitFor { popoverText(input) == 'Must be alpha numeric' }
       report 'before cleanup'
 
     cleanup:
@@ -85,7 +87,7 @@ class UserManagementSpec
       input << Keys.BACK_SPACE
 
     then: 'the required validation error is shown'
-      popoverText(input) == 'Please enter a value'
+      waitFor { popoverText(input) == 'Please enter a value' }
 
     where:
       input << [

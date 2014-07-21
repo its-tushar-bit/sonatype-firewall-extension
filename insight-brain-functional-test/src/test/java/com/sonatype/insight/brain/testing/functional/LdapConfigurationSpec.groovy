@@ -112,7 +112,7 @@ class LdapConfigurationSpec
 
     then: 'A validation popover is shown'
       popoverText(port) == 'Maximum allowed value is 65535'
-      report 'minimum port value error'
+      report 'maximum port value error'
 
     cleanup: 'Remove changes so we can navigate away'
       cancel.click()

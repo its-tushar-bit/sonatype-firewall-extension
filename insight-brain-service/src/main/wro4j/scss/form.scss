@@ -56,10 +56,10 @@
   ```
 */
 .input-popover{
-  background-color: #EDD7D7 !important;
-  color: #C70000;
-  border: 1px solid #C70000;
-  @include border-radius(2px);
+  background-color: $errorBackground !important;
+  color: $errorText;
+  border: 1px solid $errorBorder;
+  @include border-radius($borderRadiusSmall);
 }
 .input-popover .top{
   margin-top:-2px
@@ -82,16 +82,17 @@
 }
 .input-popover.top .arrow {
   left: 80%;
+  border-top-color: $errorBorder !important;
 }
 .input-popover.top .arrow:after {
-  border-top-color: #EDD7D7 !important;
+  border-top-color: $errorBackground !important;
 }
 .input-popover.top .arrow:before {
   display: none;
 }
 
 /*
-  #Form Actions
+  ##Form Actions
 ```
     <button type='button' class='btn btn-link btn-cancel'>Cancel</button>
     <button type='button' class='btn'>Reset</button>
@@ -106,6 +107,19 @@
 .btn-cancel:hover {
   color: darken($gray, 25%) !important;
 }
+
+/*
+  ##Alerts
+```
+  <div class='alert alert-success'>
+    <strong>Success!</strong> A green alert indicates that a successful action took place.
+  </div>
+
+  <div class='alert alert-error'>
+    <strong>Warning!</strong> A red alert indicates that an error occurred.
+  </div>
+```
+*/
 
 .clm-well {
   border: 2px solid $medium-gray;

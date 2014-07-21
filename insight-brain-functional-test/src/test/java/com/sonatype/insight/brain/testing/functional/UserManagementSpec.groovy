@@ -129,8 +129,8 @@ class UserManagementSpec
       passwordValidateInput.value('123abc')
 
     then: 'we can now save'
+      waitFor { popoverViolations(userForm).size() == 0 }
       !save.disabled
-      popoverViolations(userForm).size() == 0
 
     when: 'we click save'
       save.click()

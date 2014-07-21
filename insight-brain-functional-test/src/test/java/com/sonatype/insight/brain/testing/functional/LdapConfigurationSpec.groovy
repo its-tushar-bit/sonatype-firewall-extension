@@ -107,7 +107,7 @@ class LdapConfigurationSpec
       popoverText(port) == 'Minimum allowed value is 1'
       report 'minimum port value error'
 
-    when: 'Setting sa value too high for the port'
+    when: 'Setting a value too high for the port'
       port = 999999
 
     then: 'A validation popover is shown'

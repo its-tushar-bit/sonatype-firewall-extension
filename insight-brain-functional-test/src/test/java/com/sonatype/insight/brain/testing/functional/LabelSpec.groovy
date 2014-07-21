@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.testing.functional
 
-import org.openqa.selenium.Keys
 import spock.lang.Stepwise
 
 /**
@@ -46,7 +45,6 @@ class LabelSpec
       waitFor { labels.labelList.size() == 1 }
       labels.label(0).text() == 'NewLabel'
       labels.label(0).classes().contains('blackLabel')
-      labels.errorFree
   }
 
   def "Can edit an existing label"() {
@@ -132,7 +130,7 @@ class LabelSpec
       labels.buttons.save.@disabled
 
     when: 'We remove the content on the required field'
-      labels.name << (Keys.BACK_SPACE * 'Another New Label$'.size())
+      labels.name.value('')
 
     then: 'A required error message is shown'
       waitFor {  popoverText(labels.name) == 'Please enter a value' }

@@ -27,10 +27,6 @@ class LabelModule
     color(requied: false) { name -> labelEditor.find('.' + name + 'Label') }
     buttons { module ButtonsModule, labelEditor }
 
-    //client validation error messaging
-    nameValidations(required: false) { module ValidationModule, name.parent() }
-    errorFree { nameValidations.errorFree && serverAlerts.children().size() == 0 }
-
     //server error messaging
     serverAlerts { $('div[clm-alerts="alerts"]') }
     cancelServerAlert { $('div[clm-alerts="alerts"] button') }

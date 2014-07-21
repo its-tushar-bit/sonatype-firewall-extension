@@ -21,10 +21,10 @@ class NavigationToSpec
 
   @Unroll("Navigating to #pageUnderTest should take us to #pageUnderTest.url")
   def "Should be able to navigate directly using URLs once logged in"() {
-    when: "Navigating to "
+    when: "Navigating to #pageUnderTest"
       to pageUnderTest
 
-    then:
+    then: "Should be at #pageUnderTest.url"
       at pageUnderTest
 
     where:

@@ -11,6 +11,7 @@ import com.sonatype.insight.brain.testing.functional.configuration.LdapUserAndGr
 
 import org.openqa.selenium.Keys
 import spock.lang.Stepwise
+import spock.lang.Unroll
 
 
 /**
@@ -84,7 +85,8 @@ class LdapConfigurationSpec
       save.disabled
   }
 
-  def "Required inputs for connection show validation error popovers"() {
+  @Unroll
+  def "Required inputs for connection show validation error popovers on #input"() {
     when: 'Leaving a required field blank'
       input << 'a'
       input << Keys.BACK_SPACE
@@ -126,7 +128,6 @@ class LdapConfigurationSpec
       userAndGroupSettingsTab.click()
 
     then: "user and group mapping form appears"
-      waitFor { at LdapUserAndGroupMappingConfigurationPage }
       requiredFields.each { assert it.hasClass('ng-invalid-required') }
 
     and: "controls are disabled"
@@ -160,7 +161,8 @@ class LdapConfigurationSpec
       }
   }
 
-  def "Required inputs for user/group mappings show validation error popovers"() {
+  @Unroll
+  def "Required inputs for user/group mappings show validation error popovers on #input"() {
     when: 'Leaving a required field blank'
       input << 'a'
       input << Keys.BACK_SPACE

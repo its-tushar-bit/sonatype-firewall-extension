@@ -61,34 +61,24 @@
         </div>
         <div class='modal-footer'>
           <span style="margin:0px;padding: 4px 35px 4px 14px;float:left;max-width:300px" ng-class="{'alert alert-error': error }" ng-show="error">{{error}}</span>
-          <button id='evaluate-bundle-close' class='btn' type='button' ng-disabled='!pollingUrl' ng-click='$close()'>Close</button>
+          <button id='evaluate-bundle-close' class='btn btn-link btn-cancel pull-left' type='button' ng-disabled='!pollingUrl' ng-click='$close()'>Close</button>
           <a id='evaluate-bundle-view' class='btn btn-primary' ng-disabled='!evaluationStatus.scanId' ng-href='{{getReportUrl()}}' target='_blank'>View Report</a>
         </div>
       </div>
       <div ng-switch-default>
-        <form name='evaluateBundle' action='{{evaluateBundleAction}}' enctype='multipart/form-data' method='post' ng-upload style='margin-bottom:0px'>
-          <div class='modal-body'>
-            <div class='control-group'>
-              <label class="control-label" for='bundleFile'>Select the file you want evaluated:</label>
-              <div class='controls'>
+        <form name='evaluateBundle' action='{{evaluateBundleAction}}' enctype='multipart/form-data' method='post' ng-upload class="clm-form well clm-well">
+            <div clm-control-group for="bundleFile" label="Select the file you want evaluated">
                 <input type='file' ng-model='bundle.file' id='bundleFile' name='file' onchange="angular.element(this).scope().fileChanged(this)">
-              </div>
             </div>
-            <div class='control-group'>
-              <label class="control-label" for='bundleApplication'>Which application is this file associated with?</label>
-              <div class='controls'>
+            <div clm-control-group for="bundleApplication" label="Which application is this file associated with?">
                 <select id='bundleApplication' ng-required="true" ng-model="bundle.applicationPublicId" ng-change="updateFormActionUrl()" ng-options="app.publicId as app.name for app in applications">
                   <option value="">-- Select Application --</option>
                 </select>
-              </div>
             </div>
-            <div class='control-group'>
-              <label class="control-label" for='bundleStage'>Which CLM stage should this evaluation be associated with?</label>
-              <div class='controls'>
+            <div clm-control-group for="bundleStage" label="Which CLM stage should this evaluation be associated with?">
                 <select id='bundleStage' ng-required="true" ng-model="bundle.stage" ng-change="updateFormActionUrl()" ng-options="stage.id as stage.name for stage in stages">
                   <option value="">-- Select CLM Stage --</option>
                 </select>
-              </div>
             </div>
             <div class='control-group'>
               <label class="control-label">Should notifications be sent if this application violates any policies?</label>
@@ -103,12 +93,9 @@
                 </label>
               </div>
             </div>
-          </div>
-          <div class='modal-footer'>
-            <span style="margin:0px;padding: 4px 35px 4px 14px;float:left;max-width:330px" ng-class="{'alert alert-error': error }" ng-show="error">{{error}}</span>
-            <button id='evaluate-bundle-cancel' class='btn' type='button' ng-click='$close()'>Cancel</button>
-            <button id='evaluate-bundle-upload' class='btn btn-primary' type='button' ng-disabled='state != "ready" || !isFormValid()' ng-click='doSubmit()'>Upload</button>
-          </div>
+          <button id='evaluate-bundle-cancel' class='btn btn-link btn-cancel' type='button' ng-click='$close()'>Cancel</button>
+          <span style="margin:0px;padding: 4px 35px 4px 14px;float:left;max-width:330px" ng-class="{'alert alert-error': error }" ng-show="error">{{error}}</span>
+          <button id='evaluate-bundle-upload' class='btn btn-primary pull-right' type='button' ng-disabled='state != "ready" || !isFormValid()' ng-click='doSubmit()'>Upload</button>
           <input type='submit' upload-submit='uploaded(content, completed)' class='hide' />
         </form>
       </div>

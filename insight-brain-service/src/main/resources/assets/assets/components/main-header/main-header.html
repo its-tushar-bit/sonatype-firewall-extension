@@ -3,7 +3,7 @@
     <button type="button" class="close"  ng-click='$dismiss()' aria-hidden="true">&times;</button>
     <h3>Change Password</h3>
   </div>
-  <form name='passwordForm' class='clm-form well clm-well' style='margin-bottom:0px' ng-submit='save()'>
+  <form name='passwordForm' class='clm-form well clm-well' ng-submit='save()'>
     <div clm-control-group for='originalPassword' label="Current Password">
       <input clm-input type="password" id="originalPassword" name="originalPassword"
              ng-model='result.originalPassword' required focus-input='true' placeholder="Enter Current Password">

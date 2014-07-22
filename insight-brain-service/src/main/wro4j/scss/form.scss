@@ -24,25 +24,29 @@
 </form>
 ```
 */
-.clm-form input, .clm-form textarea {
-  width: 95% !important;
-}
-.clm-form input[required].ng-invalid, .clm-form textarea[required].ng-invalid {
-  border-left: 5px solid $input-invalid-color !important;
-}
-.clm-form input[required].ng-valid, .clm-form textarea[required].ng-valid {
-  border-left: 5px solid $input-valid-color !important;
-}
-.clm-form input:not([required]), .clm-form textarea:not([required]) {
-  border-left: 5px solid $input-valid-color !important;
-}
-.clm-form input.ng-valid.ng-dirty, .clm-form textarea.ng-valid.ng-dirty {
-  border: 1px solid $input-valid-color !important;
-  border-left-width: 5px !important;
-}
-.clm-form input.ng-invalid.ng-dirty, .clm-form textarea.ng-invalid.ng-dirty {
-  border: 1px solid $input-invalid-color !important;
-  border-left-width: 5px !important;
+$input-types: ('input[type=text]', 'input[type=number]', 'input[type=email]', 'input[type=password]', 'textarea');
+
+@each $type in $input-types {
+  .clm-form #{nth($type, 1)} {
+    width: 95% !important;
+  }
+  .clm-form #{nth($type, 1)}[required].ng-invalid {
+    border-left: 5px solid $input-invalid-color !important;
+  }
+  .clm-form #{nth($type, 1)}[required].ng-valid {
+    border-left: 5px solid $input-valid-color !important;
+  }
+  .clm-form #{nth($type, 1)}:not([required]) {
+    border-left: 5px solid $input-valid-color !important;
+  }
+  .clm-form #{nth($type, 1)}.ng-valid.ng-dirty {
+    border: 1px solid $input-valid-color !important;
+    border-left-width: 5px !important;
+  }
+  .clm-form #{nth($type, 1)}.ng-invalid.ng-dirty {
+    border: 1px solid $input-invalid-color !important;
+    border-left-width: 5px !important;
+  }
 }
 
 /*
@@ -133,4 +137,5 @@
 */
 .clm-well {
   border: 2px solid $medium-gray;
+  margin-bottom:0px;
 }

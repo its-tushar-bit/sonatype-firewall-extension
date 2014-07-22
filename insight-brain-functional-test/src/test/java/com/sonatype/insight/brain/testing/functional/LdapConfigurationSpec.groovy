@@ -146,7 +146,32 @@ class LdapConfigurationSpec
       waitFor { !checkUserMapping.disabled }
       !checkUserLogin.disabled
       !save.disabled
+  }
 
+  def "Can test login now that the form is valid"() {
+    when: 'Clicking the test button'
+      checkUserLogin.click()
+
+    then: 'The login dialog is shown'
+      waitFor { userLoginDialog.displayed }
+
+    when: 'Failing to enter data'
+      userLoginUsername << Keys.TAB
+      userLoginPassword << Keys.TAB
+
+    then: 'Popover violations are shown'
+      waitFor { popoverText(userLoginPassword) == 'Please enter a value' }
+      popoverText(userLoginUsername) == 'Please enter a value'
+      report 'test ldap login dialog with errors'
+
+    when: 'We cancel the dialog'
+      userLoginDialogClose.click()
+
+    then: 'The dialog is disposed'
+      waitFor { !userLoginDialog.displayed }
+  }
+
+  def "Can reset the form and discard changes"() {
     when: "resetting form to discard changes"
       cancel.click()
       waitFor { discard?.present }

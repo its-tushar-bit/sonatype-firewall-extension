@@ -49,7 +49,7 @@ class LdapUserAndGroupMappingConfigurationPage
     userLoginDialog(required: false) { $('#ldap-check-login-modal') }
     userLoginUsername(required: false) { $('#ldap-check-login-modal input[name="username"]') }
     userLoginPassword(required: false) { $('#ldap-check-login-modal input[name="password"]') }
-    userLoginDialogTest(required: false) { $('#ldap-check-login-modal button.btn-primary') }
-    userLoginDialogClose(required: false) { $('#ldap-check-login-modal button:first-child') }
+    userLoginDialogTest(required: false) { $('#ldap-check-login-modal .btn-primary') }
+    userLoginDialogClose(required: false) { $('#ldap-check-login-modal .btn-cancel') }
   }
 }

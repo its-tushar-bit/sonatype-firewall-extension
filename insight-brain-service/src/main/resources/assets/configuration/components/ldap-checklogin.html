@@ -2,29 +2,26 @@
   <div class="modal-header">
     <h3>Test LDAP Login Credentials</h3>
   </div>
-  <form name='ldapCheckLogin' class='fixed-width-small-form'>
-    <div class="form-horizontal configuration">
-      <div class="control-group" ng-class='{ error : ldapCheckLogin.username.$invalid && ldapCheckLogin.username.$dirty}'>
-        <label class="control-label glyphicons-sonatype required">Username:</label>
-        <div class="controls">
-          <input type='text' name='username' ng-model="ldapCredentials.username" required focus-input='true'>
-        </div>
+  <form name='ldapCheckLogin' class='clm-form well clm-well' style='margin-bottom:0px' novalidate>
+    <div>
+      <div clm-control-group for="username" label="Username">
+        <input clm-input type='text' id='username' name='username' ng-model="ldapCredentials.username" required
+               focus-input='true' placeholder="Enter Username">
       </div>
-      <div class="control-group" ng-class='{ error : ldapCheckLogin.password.$invalid && ldapCheckLogin.password.$dirty }'>
-        <label class="control-label glyphicons-sonatype required">Password:</label>
-        <div class="controls">
-          <input type='password' name='password' ng-model="ldapCredentials.password" required>
-        </div>
+      <div clm-control-group for="password" label="Password">
+        <input clm-input type='password' name='password' ng-model="ldapCredentials.password" required
+               placeholder="Enter Password">
+      </div>
+    </div>
+    <span clm-alerts='alerts' style="text-align: left;padding-top:5px;"></span>
+    <div>
+      <button class="btn btn-link btn-cancel" ng-click="$close()">Cancel</button>
+      <div class="pull-right">
+        <button class='btn btn-primary' ng-disabled="ldapCheckLogin.$invalid || testInProgress"
+                ng-click="testLogin()">
+          Test Login
+        </button>
       </div>
     </div>
   </form>
-  <div class="modal-footer" style="padding-top: 0">
-    <div clm-alerts='alerts' style="text-align: left;padding-top:5px;"></div>
-    <div class="ldap-button-group">
-      <div style="float: right;">
-        <button class="btn" ng-click="$close()">Close</button>
-        <button class='btn btn-primary' ng-disabled="ldapCheckLogin.$invalid || testInProgress" ng-click="testLogin()">Test Login</button>
-      </div>
-    </div>
-  </div>
 </div>

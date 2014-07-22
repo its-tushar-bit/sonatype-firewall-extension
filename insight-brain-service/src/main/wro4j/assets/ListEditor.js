@@ -23,16 +23,21 @@
         placeHolder: '@placeHolder',
         maxLength: '@maxLength',
         entries: '=entries',
-        setError: '=setError'
+        messages: '=?'
       },
       priority: 99,
-      link: function(scope) {
+      link: function(scope, element) {
+        var inputScope = element.find('input').scope();
         scope.add = function() {
-          scope.entries.push(scope.currentEntry);
-          scope.currentEntry = '';
+          scope.entries.push(inputScope.currentEntry);
+          inputScope.currentEntry = '';
+          //explicitly reset form state otherwise input remains $dirty
+          scope.neditor.$setPristine();
         };
         scope.remove = function(index) {
           scope.entries.splice(index, 1);
+          //rerun validator for currentEntry once entry is removed
+          scope.neditor.currentEntry.$setViewValue(scope.neditor.currentEntry.$viewValue);
         };
       }
     };
@@ -53,17 +58,6 @@
           ctrl.$setValidity('unique', unique);
           ctrl.$setValidity('validInput', validInput);
 
-          if (typeof scope.setError === 'function') {
-            if (!unique) {
-              scope.setError('Enter a unique value');
-            }
-            else if (!validInput) {
-              scope.setError(typeof validation === 'string' ? validation : 'Invalid ' + scope.placeHolder);
-            }
-            else {
-              scope.setError(null);
-            }
-          }
           return unique && validInput ? newValue : undefined;
         };
 

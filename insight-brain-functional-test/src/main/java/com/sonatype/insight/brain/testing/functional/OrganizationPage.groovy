@@ -11,6 +11,7 @@ import com.sonatype.insight.brain.testing.functional.modules.ImportPolicyModule
 import com.sonatype.insight.brain.testing.functional.modules.LabelModule
 import com.sonatype.insight.brain.testing.functional.modules.LicenseThreatGroupModule
 import com.sonatype.insight.brain.testing.functional.modules.ModalModule
+import com.sonatype.insight.brain.testing.functional.modules.NotificationsModule
 import com.sonatype.insight.brain.testing.functional.modules.PolicyModule
 import com.sonatype.insight.brain.testing.functional.modules.PolicyMonitoringModule
 import com.sonatype.insight.brain.testing.functional.modules.TagModule
@@ -31,6 +32,7 @@ class OrganizationPage
     tabs { module ContextTabsModule }
     tools(required: false) { module EditorToolsModule }
     policies { module PolicyModule, tabs.policiesTab }
+    notificationModal(required: false) { module NotificationsModule, title: 'Notifications' }
     licenseThreatGroups { module LicenseThreatGroupModule, tabs.ltgTab }
     policyMonitoring { module PolicyMonitoringModule, tabs.policiesTab }
     labels { module LabelModule, tabs.labelsTab }

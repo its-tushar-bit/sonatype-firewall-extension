@@ -42,23 +42,25 @@ describe('ListEditor', function() {
     var valid = true,
         template = {
           myList: [],
-          setError: jasmine.createSpy('setError'),
           placeHolder: 'some text',
           validator: function() {
             return valid;
           }
         },
-        element = createDirective('<div list-editor validator="validator" entries="myList" set-error="setError" place-holder="placeHolder"></div>',
-            template),
-        input = angular.element('input', element);
+        element = createDirective('<form name="form">' +
+          '<div list-editor validator="validator" entries="myList" place-holder="placeHolder"></div>' +
+          '</form>', template),
+        input = angular.element('input', element),
+        form = element.scope().form;
 
     expect(input.length).not.toEqual(0);
     setInput(input, 'foo');
-    expect(template.setError).toHaveBeenCalledWith(null);
+    expect(form.$valid).toBe(true);
 
     valid = false;
     setInput(input, 'bar');
-    expect(template.setError).toHaveBeenCalledWith('Invalid placeHolder');
+    expect(form.$valid).toBe(false);
+    expect(form.neditor.$error.validInput).toBeTruthy();
   });
 
   it('Uniqueness', function() {
@@ -71,16 +73,19 @@ describe('ListEditor', function() {
             return valid;
           }
         },
-        element = createDirective('<div list-editor validator="validator" entries="myList" set-error="setError" place-holder="placeHolder"></div>',
-            template),
-        input = angular.element('input', element);
+        element = createDirective('<form name="form">' +
+          '<div list-editor validator="validator" entries="myList" place-holder="placeHolder"></div>' +
+          '</form>', template),
+        input = angular.element('input', element),
+        form = element.scope().form;
 
     setInput(input, 'foo');
     input.trigger('submit');
     expect(template.myList).toEqual(['foo']);
 
     setInput(input, 'foo');
-    expect(template.setError).toHaveBeenCalledWith('Enter a unique value');
+    expect(form.$valid).toBe(false);
+    expect(form.neditor.$error.unique).toBeTruthy();
   });
 
   it('Add', function() {
@@ -93,7 +98,7 @@ describe('ListEditor', function() {
             return valid;
           }
         },
-        element = createDirective('<div list-editor validator="validator" entries="myList" set-error="setError" place-holder="placeHolder"></div>',
+        element = createDirective('<div list-editor validator="validator" entries="myList" place-holder="placeHolder"></div>',
             template),
         input = angular.element('input', element);
 
@@ -112,18 +117,22 @@ describe('ListEditor', function() {
             return valid;
           }
         },
-        element = createDirective('<div list-editor validator="validator" entries="myList" set-error="setError" place-holder="placeHolder"></div>',
-            template),
-        input = angular.element('input', element);
+        element = createDirective('<form name="form">' +
+          '<div list-editor validator="validator" entries="myList" place-holder="placeHolder"></div>' +
+          '</form>', template),
+        input = angular.element('input', element),
+        form = element.scope().form;
 
     setInput(input, 'foo');
     input.trigger('submit');
     expect(template.myList).toEqual(['foo']);
 
     setInput(input, 'foo');
-    expect(template.setError).toHaveBeenCalledWith('Enter a unique value');
+    expect(form.$valid).toBe(false);
+    expect(form.neditor.$error.unique).toBeTruthy();
     angular.element('.btn-mini', element).click();
     expect(template.myList).toEqual([]);
+    expect(form.$valid).toBe(true);
   });
 
   // See https://issues.sonatype.org/browse/CLM-844
@@ -141,7 +150,7 @@ describe('ListEditor', function() {
               return item.valid ? null : 'invalid entry';
             }
           },
-          element = createDirective('<div list-editor validator="validator" entries="myList" set-error="setError" place-holder="placeHolder"></div>',
+          element = createDirective('<div list-editor validator="validator" entries="myList" place-holder="placeHolder"></div>',
               template),
           input = angular.element('input', element);
 

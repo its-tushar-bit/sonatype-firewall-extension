@@ -28,10 +28,10 @@ class ModalModule
     modals(required: false) { $('div.modal') }
     modal { modals.has('h3', text: title) }
     buttons { module ButtonsModule, modal }
-    confirm { buttons.button(confirmText) }
-    cancel { buttons.button(cancelText) }
+    confirm(required: false) { buttons.button(confirmText) }
+    cancel(required: false) { buttons.button(cancelText) }
     ok(required: false) { buttons.button(okText) }
-    continueButton { buttons.button(continueText) }
-    text { modal.find('p').text() }
+    continueButton(required: false) { buttons.button(continueText) }
+    text(required: false) { modal.find('p').text() }
   }
 }

@@ -3,6 +3,9 @@
 */
 /*
   ##Text inputs
+
+  See clmControlGroup and clmInput directives.
+
 ```
 <form class='clm-form'>
   <p>
@@ -52,6 +55,9 @@ $input-types: ('input[type=text]', 'input[type=number]', 'input[type=email]', 'i
 /*
   ##Validation popovers
   Modified version of bootstrap popover styling, should appear at the far right edge of an invalidated input
+
+  See clmInput directive.
+
   ```
   <div class="popover input-popover fade top in" style="top: 10px; left: 10px; display: block;">
     <div class="arrow"></div>
@@ -111,7 +117,9 @@ $input-types: ('input[type=text]', 'input[type=number]', 'input[type=email]', 'i
 .btn-cancel:hover {
   color: darken($gray, 25%) !important;
 }
-
+.modal-footer {
+  text-align: inherit;
+}
 /*
   ##Alerts
 ```
@@ -138,4 +146,88 @@ $input-types: ('input[type=text]', 'input[type=number]', 'input[type=email]', 'i
 .clm-well {
   border: 2px solid $medium-gray;
   margin-bottom:0px;
+}
+
+/*
+  #List Editor Form
+
+  See listEditor, clmControlGroup and clmInput directives.
+
+```
+  <div class='clm-form well clm-well'>
+    <form class='clm-form list-editor-form'>
+      <div class='control-group'>
+        <label for='current-entry'>Entry</label>
+        <div class='controls'>
+          <div class='input-append controls'>
+            <input placeholder='Enter Entry' type='text'>
+            <button class='btn' title='Add Entry'>Add</button>
+          </div>
+        </div>
+      </div>
+    </form>
+    <div class='well well-small list-editor-well'>
+      <div>
+        <table>
+          <tbody>
+            <tr>
+              <td>
+                <div title='AddedEntry'>AddedEntry</div>
+              </td>
+              <td>
+                <button class='btn btn-mini' title='Remove Entry'>
+                  <i class='icon-minus-sign'></i>
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <button class='btn btn-link btn-cancel'>Cancel</button>
+    <span class='pull-right'>
+      <button class='btn btn-primary'>Done</button>
+    </span>
+  </div>
+```
+*/
+.list-editor-form {
+  margin-bottom: 0px;
+}
+.list-editor-form input {
+  width: 441px !important;
+}
+.list-editor-well {
+  padding: 3px;
+  margin-bottom: 20px;
+  height: 120px;
+  background: #fff;
+}
+.list-editor-well>div {
+  height:100%;
+  overflow-y:auto
+}
+.list-editor-well table {
+  margin:auto;
+}
+.list-editor-well tr {
+  border-bottom: 1px solid #DDDDDD;
+}
+.list-editor-well td {
+  padding-bottom: 5px;
+  vertical-align: top;
+}
+.list-editor-well td:nth-child(1) {
+  width: 1%;
+  max-width: 370px;
+  padding-left: 5px;
+}
+.list-editor-well td:nth-child(1)>div {
+  max-width: 100%;
+  text-overflow:ellipsis;
+  overflow:hidden
+}
+.list-editor-well td:nth-child(2) {
+  width: 99%;
+  text-align: right;
 }

@@ -221,9 +221,6 @@
               modalScope.validateEmail = function(value) {
                 return !value || EMAIL_REGEXP.test(value);
               };
-              modalScope.setEditorError = function(error) {
-                modalScope.error = error;
-              };
 
               modalScope.notificationEmailList = addresses;
 

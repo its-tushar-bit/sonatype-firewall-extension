@@ -143,13 +143,15 @@
               element.popover('destroy');
             });
 
-            // Force the element to validate and set a dirty state
-            element.on('blur', function() {
+            var validate = function() {
               AngularUtils.safeApply(scope, function() {
                 ctrl.$setViewValue(element.val());
               });
               updateValidationMessages(element, attrs, ctrl);
-            });
+            };
+
+            // Force the element to validate and set a dirty state
+            element.on('blur', validate);
 
             // Update state whenever the $error state is changed
             scope.$watch(form.$name + '.' + ctrl.$name + '.$error', function() {

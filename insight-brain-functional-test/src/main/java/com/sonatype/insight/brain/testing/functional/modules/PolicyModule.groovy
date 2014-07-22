@@ -92,5 +92,16 @@ class ActionModule
 {
   static content = {
     stageName { $('td:first-child').text() }
+    notificationButton { $('.icon-envelope') }
+  }
+}
+
+class NotificationsModule
+    extends ModalModule
+{
+  static content = {
+    emailInput { modal.find('input[name="currentEntry"]') }
+    addEmailButton { modal.find('.btn') }
+    selectedEmails(required: false) { modal.find('tr[ng-repeat="entry in entries"]') }
   }
 }

@@ -111,15 +111,16 @@
     </div>
   </form>
   <script type='text/ng-template' id='notification'>
-    <div class="modal-header"><h3>Notifications</h3></div>
-    <div class="modal-body">
-      <div list-editor place-holder="E-mail Address" max-length="100" entries="notificationEmailList" set-error="setEditorError" validator="validateEmail"></div>
+    <div class="modal-header">
+      <button type="button" class="close"  ng-click='$dismiss()' aria-hidden="true">&times;</button>
+      <h3>Notifications</h3>
     </div>
-    <div class="modal-footer">
-      <span ng-show='error' class="alert alert-error" style="float: left; padding-top: 4px; padding-bottom: 4px; margin:0px">{{ error }}</span>
-      <span style="float: right;">
-        <a class="btn" ng-click="$close()">Cancel</a>
-        <a class="btn btn-primary" ng-click="save()">Done</a>
+    <div class="clm-form well clm-well">
+      <div list-editor place-holder="E-mail Address" max-length="100" entries="notificationEmailList"
+           validator="validateEmail" messages="{unique: 'Enter a unique value', validInput:'Invalid E-mail Address'}"></div>
+      <button class="btn btn-link btn-cancel" ng-click="$close()">Cancel</button>
+      <span class="pull-right">
+        <button class="btn btn-primary" ng-click="save()">Done</button>
       </span>
     </div>
   </script>

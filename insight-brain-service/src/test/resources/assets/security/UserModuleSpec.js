@@ -103,41 +103,6 @@ describe('UserModuleSpec.js', function() {
     expect(listScope.error).toBeFalsy();
     expect(listScope.context.users.length).toEqual(2);
   }));
-
-  it('change password', inject(function($httpBackend, CLMLocations) {
-    $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getUserUrl())).respond(data);
-    setupControllers();
-    $httpBackend.flush();
-
-    listScope.changePasswordClick({
-      id: 'test-id'
-    });
-
-    dialogScope.changePasswordForm = {
-      $valid: false,
-    };
-
-    // invalid, so no requests should be made
-    dialogScope.save();
-    $httpBackend.verifyNoOutstandingExpectation();
-    $httpBackend.verifyNoOutstandingRequest();
-
-    // server failure
-    dialogScope.changePasswordForm.$valid = true;
-    dialogScope.currentPassword = 'old';
-    dialogScope.newPassword = 'new';
-    $httpBackend.expectPUT(SpecUtil.toRegExp(CLMLocations.getUserUrl() + '/test-id/password')).respond(400, 'Error');
-
-    dialogScope.save();
-    $httpBackend.flush();
-    expect(dialogScope.errorMsg).toEqual('Error');
-
-    // all good
-    $httpBackend.expectPUT(SpecUtil.toRegExp(CLMLocations.getUserUrl() + '/test-id/password')).respond(204);
-    dialogScope.save();
-    $httpBackend.flush();
-    expect(dialogScope.errorMsg).toBeFalsy();
-  }));
   
   it('reset password', inject(function($httpBackend, CLMLocations) {
     $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getUserUrl())).respond(data);

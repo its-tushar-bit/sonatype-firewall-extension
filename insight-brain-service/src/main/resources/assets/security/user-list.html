@@ -53,42 +53,6 @@
   </div>
 </div>
   </script>
-  <script type='text/ng-template' id='change-password-modal'>
-<form name="changePasswordForm" ng-submit="save()" style="margin-bottom:0px;">
-  <div class="modal-header"><h3>Change Password</h3></div>
-  <div class="modal-body">
-    <div class="form-horizontal">
-      <div class="control-group" ng-class="{ error : changePasswordForm.currentPassword.$invalid && changePasswordForm.currentPassword.$dirty }">
-        <label class="control-label">Current Password</label>
-        <div class="controls">
-          <input class="input-xlarge" name="currentPassword" type="password" ng-required="true" placeholder="Enter Old Password" ng-model="currentPassword">
-          <div ng-if="changePasswordForm.currentPassword.$error.required && changePasswordForm.currentPassword.$dirty" class="text-error">Field is required.</div>
-        </div>
-      </div>
-      <div class="control-group" ng-class="{ error : changePasswordForm.newPassword.$invalid && changePasswordForm.newPassword.$dirty }">
-        <label class="control-label">New Password</label>
-        <div class="controls">
-          <input class="input-xlarge" name="newPassword" type="password" ng-required="true" placeholder="Enter New Password" ng-model="newPassword">
-          <div ng-if="changePasswordForm.newPassword.$error.required && changePasswordForm.newPassword.$dirty" class="text-error">Field is required.</div>
-        </div>
-      </div>
-      <div class="control-group" ng-class="{ error : changePasswordForm.validatePassword.$invalid && changePasswordForm.validatePassword.$dirty }">
-        <label class="control-label">Validate</label>
-        <div class="controls">
-          <input class="input-xlarge" name="validatePassword" type="password" ng-required="true" match="{{newPassword}}" placeholder="Re-enter Password" ng-model="validatePassword">
-          <div ng-if="changePasswordForm.validatePassword.$error.match && changePasswordForm.validatePassword.$dirty" class="text-error">Passwords must match!</div>
-          <div ng-if="changePasswordForm.newPassword.$error.required && !changePasswordForm.validatePassword.$error.match && changePasswordForm.validatePassword.$dirty" class="text-error">Field is required.</div>
-        </div>
-      </div>
-    </div>
-  </div>
-  <div class="modal-footer">
-    <button type="button" class="btn" ng-click="cancel()">Cancel</button>
-    <button type="submit" class="btn btn-primary" ng-disabled="changePasswordForm.$invalid || saving">Save</button>
-  </div>
-  <div style="margin-left:0px;margin-right:0px;margin-bottom:0px;" ng-class="{'alert alert-error': errorMsg }" ng-show="errorMsg">{{errorMsg}}</div>
-</form>
-  </script>
   <script type='text/ng-template' id='user-item'>
 <div ng-show='context.users' class="accordion users">
   <button id='user-new' ng-show='!user' type='button' class='btn add-new new-user-button' ng-click='newUserClick()'>

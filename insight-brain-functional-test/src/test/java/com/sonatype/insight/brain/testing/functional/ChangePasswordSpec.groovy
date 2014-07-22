@@ -58,14 +58,14 @@ class ChangePasswordSpec
       changePassword.newPasswordValidate.value('newsecretdoesntmatch')
 
     then: "Save button stays disabled and validation error shown"
-      changePassword.newPasswordValidateDoesntMatch.displayed
+      waitFor { popoverText(changePassword.newPasswordValidate) == 'Passwords must match!' }
       changePassword.ok.disabled
 
     when: "User enters proper validation password"
       changePassword.newPasswordValidate.value('newsecret')
 
     then: "Save button becomes enabled"
-      !changePassword.newPasswordValidateDoesntMatch.displayed
+      waitFor { popoverViolations(changePassword.newPasswordValidate).size() == 0 }
       !changePassword.ok.disabled
 
     when: "User clicks save button"

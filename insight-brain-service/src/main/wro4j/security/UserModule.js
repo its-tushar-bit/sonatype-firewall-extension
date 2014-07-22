@@ -78,38 +78,6 @@
         $scope.isCurrentUser = function(user) {
           return username === user.username;
         };
-        $scope.changePasswordClick = function(user) {
-          $modal.open({
-            backdrop: 'static',
-            templateUrl: 'change-password-modal',
-            scope: $scope,
-            controller: ['$scope', '$modalInstance', function($localScope, $modalInstance) {
-              $localScope.save = function() {
-                var scope = this;
-                if (scope.changePasswordForm.$valid) {
-                  if (!scope.saving) {
-                    scope.saving = true;
-                    scope.errorMsg = null;
-                    $http.put(clmLocations.getUserUrl() + '/' + user.id + '/password', {
-                      oldPassword: scope.currentPassword,
-                      newPassword: scope.newPassword
-                    }).success(function() {
-                      $modalInstance.close();
-                      scope.saving = false;
-                    }).error(function(error) {
-                      scope.errorMsg = error;
-                      scope.saving = false;
-                    });
-                  }
-                }
-              };
-              $localScope.cancel = function() {
-                $modalInstance.close();
-              };
-            }]
-          });
-        };
-        
         $scope.resetPasswordClick = function(user) {
           $modal.open({
             templateUrl: 'reset-password-modal',

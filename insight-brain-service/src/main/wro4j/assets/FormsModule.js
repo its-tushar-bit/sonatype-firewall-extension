@@ -157,6 +157,14 @@
                 updateValidationMessages(element, attrs, ctrl);
               }
             }, true);
+
+            // If $setPristine() is called the ctrl will not be $dirty, so
+            // handle this case specifically
+            scope.$watch(form.$name + '.' + ctrl.$name + '.$pristine', function(newValue, oldValue) {
+              if (!oldValue && newValue) {
+                updateValidationMessages(element, attrs, ctrl);
+              }
+            });
           }
         };
       }

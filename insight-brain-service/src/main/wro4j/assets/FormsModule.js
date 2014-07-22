@@ -13,7 +13,7 @@
    * Customized messages for error conditions can be provided using the 'messages' attr and providing an Object of
    * error key to message. The 'messages' Object will be consulted first so it can also be used to override the defaults.
    */
-      .directive('clmInput', function() {
+      .directive('clmInput', ['$timeout', '$window', function($timeout, $window) {
         /**
          * @param error {Object} Map of invalid keys
          * @param attrs {Object} Attributes to consult for settings
@@ -74,7 +74,7 @@
           restrict: 'A',
           require: ['ngModel', '^form'],
           link: function(scope, element, attrs, ctrls) {
-            var ctrl = ctrls[0], form = ctrls[1], messages;
+            var ctrl = ctrls[0], form = ctrls[1], messages, debounce, debounceDelay = 100;
 
             if (attrs.messages) {
               messages = scope.$eval(attrs.messages);
@@ -165,9 +165,18 @@
                 updateValidationMessages(element, attrs, ctrl);
               }
             });
+
+            angular.element($window).on('resize', function() {
+              $timeout.cancel(debounce);
+              debounce = $timeout(function() {
+                if (element.data('popover')) {
+                  element.popover('show');
+                }
+              }, debounceDelay);
+            });
           }
         };
-      }
+      }]
   )
   /**
    * Template for common structure of form inputs and associated labels.

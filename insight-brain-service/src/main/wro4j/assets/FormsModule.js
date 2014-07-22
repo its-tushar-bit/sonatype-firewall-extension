@@ -166,13 +166,18 @@
               }
             });
 
-            angular.element($window).on('resize', function() {
+            var repositionPopover = function() {
               $timeout.cancel(debounce);
               debounce = $timeout(function() {
                 if (element.data('popover')) {
                   element.popover('show');
                 }
               }, debounceDelay);
+            };
+            angular.element($window).on('resize', repositionPopover);
+
+            scope.$on('$destroy', function() {
+              angular.element($window).off('resize', repositionPopover);
             });
           }
         };

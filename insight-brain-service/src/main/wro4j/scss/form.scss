@@ -13,7 +13,7 @@
     <label for='required'>An input that is required and hasn't been updated</label>
     <input type='text' id='required' class='ng-invalid' required>
   </p>
-    <p>
+  <p>
     <label for='valid'>An input that has been updated and is valid</label>
     <input type='text' id='valid' class='ng-valid ng-dirty' value='Valid'>
   </p>
@@ -21,7 +21,7 @@
     <label for='invalid'>An input that has been updated and is invalid</label>
     <input type='text' id='invalid' class='ng-invalid ng-dirty' value='Invalid'>
   </p>
-  </form>
+</form>
 ```
 */
 .clm-form input, .clm-form textarea {

@@ -22,9 +22,10 @@ public class ApplicationSummaryService
 {
   private static final Comparator<Application> APP_COMPARATOR = new Comparator<Application>()
   {
+    @Override
     public int compare(Application a1, Application a2) {
       return a1.getName().compareToIgnoreCase(a2.getName());
-    };
+    }
   };
 
   private final ApplicationSummaryAdapter applicationAdapter;

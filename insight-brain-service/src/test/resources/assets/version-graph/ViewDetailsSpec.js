@@ -1,3 +1,10 @@
+var clmEndpoint, clmEndpointTemplate;
+
+clmEndpoint = clmEndpointTemplate = {
+  openView : angular.noop,
+  type : 'ide'
+};
+
 describe('Eclipse View Details tests', function() {
   var httpBackend,
       scope,
@@ -30,6 +37,37 @@ describe('Eclipse View Details tests', function() {
   afterEach(function() {
     httpBackend.verifyNoOutstandingExpectation();
     httpBackend.verifyNoOutstandingRequest();
+  });
+
+  describe('setLogger', function () {
+    afterEach(function () {
+      Insight.resetLogger();
+    });
+
+    it('Exceptions before registration are logged', inject(function($exceptionHandler) {
+      var spy = jasmine.createSpy('logger');
+      $exceptionHandler(new Error('foo'));
+      Insight.setLogger(spy);
+
+      // wait for an async call
+      waitsFor(function () {
+        return spy.callCount > 0;
+      }, "log to have been called", 10);
+
+      runs(function () {
+        expect(spy).toHaveBeenCalled();
+        expect(spy.argsForCall[0][0]).toMatch(/Error\: foo.*/);
+      });
+    }));
+
+    it('Exceptions after registration are logged', inject(function($exceptionHandler) {
+      var spy = jasmine.createSpy('logger');
+      Insight.setLogger(spy);
+      $exceptionHandler(new Error('foo'));
+
+      expect(spy).toHaveBeenCalled();
+      expect(spy.argsForCall[0][0]).toMatch(/Error\: foo.*/);
+    }));
   });
 
   describe('Legacy Plugin', function() {

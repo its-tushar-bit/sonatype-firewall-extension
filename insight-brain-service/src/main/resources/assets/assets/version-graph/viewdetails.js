@@ -3,12 +3,14 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-/*global angular, $, clmBuildTimestamp, window, document, Brain, clmEndpoint */
+/*global angular, window, document, Brain, clmEndpoint */
 (function() {
   'use strict';
   var query,
       module,
-      injector;
+      injector,
+      logQueue = [],
+      logFn = defaultLogFn;
 
   function toLicenseNames(licenses) {
     var names = [];
@@ -26,6 +28,11 @@
     var aUpper = a[field].toUpperCase(),
         bUpper = b[field].toUpperCase();
     return aUpper < bUpper ? -1 : (aUpper > bUpper ? 1 : 0);
+  }
+
+  function defaultLogFn(message) {
+    logQueue.push(arguments);
+    window.console.error(message);
   }
 
   query = (function() {
@@ -140,6 +147,30 @@
           $rootScope.$broadcast('reload');
         });
       }]);
+    },
+    /**
+     * @since 1.12
+     */
+    'Insight' : {
+      'setLogger' : function (newLogFn) {
+        // iterate over each exception
+        angular.forEach(logQueue, function (args) {
+          setTimeout(function () {
+            newLogFn.apply(null, args);
+          }, 0);
+        });
+        // Assign logger
+        logFn = newLogFn;
+        logQueue = null;
+      },
+      /**
+       * Resets the logger to the default, used for testing.
+       * @since 1.12
+       */
+      'resetLogger' : function () {
+        logQueue = [];
+        logFn = defaultLogFn;
+      }
     }
   });
 
@@ -268,4 +299,14 @@
       };
     }
   ]);
+
+  module.factory('$exceptionHandler', function () {
+    return function (exception) {
+      var message = exception.toString(); // Should look something like - Error: Borked
+      if (exception.stack) {
+        message += '\n' + exception.stack; // non-standard but supported by recent major browsers (ie10+, webkit, etc.)
+      }
+      logFn.call(null, message);
+    };
+  });
 }());

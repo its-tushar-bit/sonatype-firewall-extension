@@ -4,6 +4,7 @@ clmEndpoint = clmEndpointTemplate = {
   openView : angular.noop,
   type : 'ide'
 };
+
 (function () {
   'use strict';
 
@@ -15,6 +16,36 @@ clmEndpoint = clmEndpointTemplate = {
       document.cookie = 'clmAppId=; expires=Thu, 01-Jan-70 00:00:01 GMT;';
     });
 
+    describe('setLogger', function () {
+      afterEach(function () {
+        Insight.resetLogger();
+      });
+
+      it('Exceptions before registration are logged', inject(function($exceptionHandler) {
+        var spy = jasmine.createSpy('logger');
+        $exceptionHandler(new Error('foo'));
+        Insight.setLogger(spy);
+
+        // wait for an async call
+        waitsFor(function () {
+          return spy.callCount > 0;
+        }, "log to have been called", 10);
+
+        runs(function () {
+          expect(spy).toHaveBeenCalled();
+          expect(spy.argsForCall[0][0]).toMatch(/Error\: foo.*/);
+        });
+      }));
+
+      it('Exceptions after registration are logged', inject(function($exceptionHandler) {
+        var spy = jasmine.createSpy('logger');
+        Insight.setLogger(spy);
+        $exceptionHandler(new Error('foo'));
+
+        expect(spy).toHaveBeenCalled();
+        expect(spy.argsForCall[0][0]).toMatch(/Error\: foo.*/);
+      }));
+    });
 
     describe('GAV', function () {
       it('setGAV', inject(function (GAV) {
@@ -197,7 +228,9 @@ clmEndpoint = clmEndpointTemplate = {
         });
       };
     }
+
     describe('IDE', createApplicationsTests('ide'));
+
     describe('Nexus', createApplicationsTests('nexus'));
 
     describe('ComponentController', function () {

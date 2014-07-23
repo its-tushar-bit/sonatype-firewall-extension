@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/rhc/oss/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-/*global $, angular, Insight, Brain, clmEndpoint */
+/*global $, angular, Insight, Brain, clmEndpoint, console */
 (function () {
   'use strict';
 
@@ -33,9 +33,16 @@
     }
   }
 
+  function defaultLogFn(message) {
+    logQueue.push(arguments);
+    console.error(message);
+  }
+
   var injector = null,
       authHandler = null,
       injectorTimeout = null,
+      logQueue = [],
+      logFn = defaultLogFn,
       module = angular.module('CIP', ['ngRoute']).config(['$routeProvider', function ($routeProvider) {
         $routeProvider.when('/', {
           templateUrl : clmEndpoint.path + 'version-graph.html',
@@ -185,7 +192,29 @@
       },
       "setPending": createStateFn('pending'),
       "setUnassigned": createStateFn('unassigned'),
-      "setFiltered": createStateFn('filtered')
+      "setFiltered": createStateFn('filtered'),
+      /**
+       * @since 1.12
+       */
+      "setLogger" : function (newLogFn) {
+        // iterate over each exception 
+        $.each(logQueue, function (index, args) {
+          setTimeout(function () {
+            newLogFn.apply(null, args);
+          }, 0);
+        });
+        // Assign logger
+        logFn = newLogFn;
+        logQueue = null;
+      },
+      /**
+       * Resets the logger to the default, used for testing.
+       * @since 1.12
+       */
+      'resetLogger' : function () {
+        logQueue = [];
+        logFn = defaultLogFn;
+      }
     }
   });
 
@@ -619,4 +648,13 @@
     };
   });
 
+  module.factory('$exceptionHandler', function () {
+    return function (exception) {
+      var message = exception.toString(); // Should look something like - Error: Borked
+      if (exception.stack) {
+        message += '\n' + exception.stack; // non-standard but supported by recent major browsers (ie10+, webkit, etc.)
+      }
+      logFn.call(null, message);
+    };
+  });
 }());

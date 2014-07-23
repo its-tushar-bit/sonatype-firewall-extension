@@ -62,7 +62,7 @@
         <div class='modal-footer'>
           <span style="margin:0px;padding: 4px 35px 4px 14px;float:left;max-width:300px" ng-class="{'alert alert-error': error }" ng-show="error">{{error}}</span>
           <button id='evaluate-bundle-close' class='btn btn-link btn-cancel pull-left' type='button' ng-disabled='!pollingUrl' ng-click='$close()'>Close</button>
-          <a id='evaluate-bundle-view' class='btn btn-primary' ng-disabled='!evaluationStatus.scanId' ng-href='{{getReportUrl()}}' target='_blank'>View Report</a>
+          <a id='evaluate-bundle-view' class='btn btn-primary pull-right' ng-disabled='!evaluationStatus.scanId' ng-href='{{getReportUrl()}}' target='_blank'>View Report</a>
         </div>
       </div>
       <div ng-switch-default>

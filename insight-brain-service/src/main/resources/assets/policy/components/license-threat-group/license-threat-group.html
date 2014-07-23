@@ -4,15 +4,15 @@
       <div ng-hide='selectedGroup' style='margin-bottom:5px'>
         <button type="button" class="btn add-new new-entity-button"  ng-click="createNew()" id='createLTG'><i class="icon icon-plus"></i> New License Threat Group</button>
       </div>
-      <div ng-if="selectedGroup" class='well well-small' style='width:530px;margin-bottom:5px'>
+      <div ng-if="selectedGroup" style='width:530px;margin-bottom:5px'>
         <div ng-controller='LicenseThreatGroupEditorController'>
-          <form name='licenseGroupEditor' class='form' style='margin-bottom: 0px' ng-submit='saveClick();'>
+          <form name='licenseGroupEditor' class='clm-form well clm-well' ng-submit='saveClick();'>
             <div ng-include="'ltgeditor'"></div>
             <div clm-alerts='alerts' style='clear:both;'></div>
-            <div style='text-align:right'>
-              <button class='btn' type='button' ng-click='cancelLicenseGroupEdit()'>Cancel</button>
-              <button class='btn btn-primary' type='submit' ng-disabled='!canSaveEdit(licenseGroupEditor.$valid)'>Save</button>
-            </div>
+            <button class='btn btn-link btn-cancel' type='button' ng-click='cancelLicenseGroupEdit()'>Cancel
+            </button>
+            <button class='btn btn-primary pull-right' type='submit' ng-disabled='!canSaveEdit(licenseGroupEditor.$valid)'>Save
+            </button>
           </form>
         </div>
       </div>
@@ -20,7 +20,7 @@
   </script>
   <script type='text/ng-template' id='ltgInlineEditor'>
     <div style='width:530px'>
-      <form name='licenseGroupEditor' class='form' style='margin-bottom: 0px' ng-submit='saveClick();'>
+      <form name='licenseGroupEditor' class='clm-form well clm-well' ng-submit='saveClick();'>
         <div ng-include='"ltgeditor"'></div>
         <div clm-alerts='alerts' style='clear:both;'></div>
         <div style='text-align:right'>
@@ -32,29 +32,21 @@
   </script>
   <script type='text/ng-template' id='ltgeditor'>
 <div>
-  <div class='control-group halfSize'
-      ng-class='{ error : licenseGroupEditor.name.$error.duplicate || licenseGroupEditor.name.$error.alphaNumeric
-      || licenseGroupEditor.name.$error.spaces}'>
-    <div class='controls'>
-      <input id='licenseGroupEditorName' name='name' type='text'
-        class='input' maxlength='60' ng-model='selectedGroup.name'
-        required alpha-numeric is-duplicate is-duplicate-array='licenseGroups' is-duplicate-id-field='id'
-        placeholder="Enter Name" style='width:248px;' focus-input="true">
-     <div>
-      <span ng-show="licenseGroupEditor.name.$error.alphaNumeric" class="help-inline">Must be alpha numeric</span>
-      <span ng-show="licenseGroupEditor.name.$error.duplicate" class="help-inline">Name is already in use</span>
-     </div>
-    </div>
+  <div clm-control-group class='halfSize'>
+    <input clm-input id='licenseGroupEditorName' name='name' type='text'
+           class='input' maxlength='60' ng-model='selectedGroup.name'
+           required alpha-numeric is-duplicate is-duplicate-array='licenseGroups' is-duplicate-id-field='id'
+           placeholder="Enter Name" style='width:248px;' focus-input="true"
+           messages="{duplicate: 'Name is already in use'}">
   </div>
-  <div class='control-group halfSize'>
-    <div class='controls'>
+  <div clm-control-group class='halfSize'>
       <span threat-box selected='selectedGroup.threatLevel' one='1' zero='No Threat'></span>
-    </div>
   </div>
-  <div class='control-group clear'>
+  <div clm-control-group class='clear'>
     <div class='input-prepend fullWidthPrependedTextBox'>
       <span class='add-on'><i ng-class="{'icon-search': !licenseSearch, 'icon-remove': licenseSearch}" ng-click="licenseSearch = ''"></i></span>
-      <input type='text' placeholder='Find License' ng-model='licenseSearch' enter-down='searchEnter()' prevent-submit style='width:221px'>
+      <input type='text' placeholder='Find License' ng-model='licenseSearch' enter-down='searchEnter()' prevent-submit
+             style='width:91% !important;border: 1px solid lightgray !important;'>
     </div>
     <div class='selectList'>
       <h5>Applied Licenses</h5>

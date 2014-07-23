@@ -27,26 +27,24 @@
 </form>
 ```
 */
-$input-types: ('input[type=text]', 'input[type=number]', 'input[type=email]', 'input[type=password]', 'textarea');
+.clm-form input[type=text], .clm-form input[type=number], .clm-form input[type=email],
+.clm-form input[type=password], .clm-form textarea {
+  width: 95% !important;
 
-@each $type in $input-types {
-  .clm-form #{nth($type, 1)} {
-    width: 95% !important;
-  }
-  .clm-form #{nth($type, 1)}[required].ng-invalid {
+  &[required].ng-invalid {
     border-left: 5px solid $input-invalid-color !important;
   }
-  .clm-form #{nth($type, 1)}[required].ng-valid {
+  &[required].ng-valid {
     border-left: 5px solid $input-valid-color !important;
   }
-  .clm-form #{nth($type, 1)}:not([required]) {
+  &:not([required]) {
     border-left: 5px solid $input-valid-color !important;
   }
-  .clm-form #{nth($type, 1)}.ng-valid.ng-dirty {
+  &.ng-valid.ng-dirty {
     border: 1px solid $input-valid-color !important;
     border-left-width: 5px !important;
   }
-  .clm-form #{nth($type, 1)}.ng-invalid.ng-dirty {
+  &.ng-invalid.ng-dirty {
     border: 1px solid $input-invalid-color !important;
     border-left-width: 5px !important;
   }

@@ -350,26 +350,25 @@ var AngularStateUtils = {
     };
   }]);
 
+
+
   /**
-   * Full width closeable bootstrap alerts built from an array
+   * Full width, closeable, alerts built from an array
+   * @scope alerts {Object} An array of alerts, each an object with properties msg and type (error, success, info)
    */
-  angularCommon.directive('clmAlerts', [
-    function() {
-      return {
-        restrict: 'A',
-        priority: 99,
-        template: '<div alert ng-repeat="alert in alerts" type="alert.type" close="closeAlert($index)">{{alert.msg}}</div>',
-        scope: {
-          alerts: '=clmAlerts'
-        },
-        link: function($scope) {
-          $scope.closeAlert = function(index) {
-            $scope.alerts.splice(index, 1);
-          };
-        }
-      };
-    }
-  ]);
+  angularCommon.directive('clmAlerts', function() {
+    return {
+      restrict: 'A',
+      template: '<div class="alert {{ \'alert-\' + (alert.type || \'warning\') }}" ng-repeat="alert in alerts">' +
+                  '<button type="button" class="close" data-dismiss="alert">&times;</button>' +
+                  '{{alert.msg}}' +
+                '</div>',
+      scope: {
+        alerts: '=clmAlerts'
+      }
+    };
+  });
+
 
   /**
    * Ensure that a given value is all alphanumeric characters.

@@ -122,17 +122,22 @@ $input-types: ('input[type=text]', 'input[type=number]', 'input[type=email]', 'i
 }
 /*
   ##Alerts
+
+  See clmAlert directive.
+
 ```
   <div class='alert alert-success'>
-    <strong>Success!</strong> A green alert indicates that a successful action took place.
+    A green alert indicates that a successful action took place.
   </div>
 
   <div class='alert alert-error'>
-    <strong>Warning!</strong> A red alert indicates that an error occurred.
+    A red alert indicates that an error occurred.
   </div>
 ```
 */
-
+.alert {
+  word-break: break-word;
+}
 /*
   ##Well
 ```

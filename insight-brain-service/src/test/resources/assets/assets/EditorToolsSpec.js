@@ -280,7 +280,7 @@ describe('EditorToolsSpec', function() {
 
         scope.uploaded('Error', true);
         expect(scope.requestActive).toBeFalsy();
-        expect(scope.error).toEqual('Error');
+        expect(scope.error[0].msg).toEqual('Error');
       }));
 
       it('Successful', inject(function ($window) {
@@ -309,7 +309,7 @@ describe('EditorToolsSpec', function() {
           throw new Error("Foo");
         };
         scope.doSubmit();
-        expect(scope.error).toEqual('Foo');
+        expect(scope.error[0].msg).toEqual('Foo');
       }));
 
       it('Read Failure', function () {
@@ -320,7 +320,7 @@ describe('EditorToolsSpec', function() {
            message : 'FooBar'
         };
         reader.onerror();
-        expect(scope.error).toEqual('FooBar');
+        expect(scope.error[0].msg).toEqual('FooBar');
         expect(scope.requestActive).toBeFalsy();
       });
 

@@ -8,6 +8,10 @@
 
 //global function
 /* jshint strict:false */
+var messageTemplate = {
+  type: 'error',
+  msg: 'Something bad happened!'
+};
 var AngularUtils = {
   safeApply: function(scope, fn) {
     if (scope.$$phase || scope.$root.$$phase) {
@@ -50,6 +54,16 @@ var AngularUtils = {
     }
 
     return (count / total * 100).toFixed(decimalCount ? decimalCount : 0);
+  },
+  /**
+   * Format a message suitable for the clmAlerts directive
+   * @param msg
+   * @param type one of: error, warning, success, info
+   * @returns {*}
+   * @since 1.12
+   */
+  message: function(msg, type) {
+    return angular.extend({}, messageTemplate, type ? {type: type, msg: msg} : {msg: msg});
   }
 };
 
@@ -355,16 +369,18 @@ var AngularStateUtils = {
   /**
    * Full width, closeable, alerts built from an array
    * @scope alerts {Object} An array of alerts, each an object with properties msg and type (error, success, info)
+   * @scope hideButton {Boolean} optionally hide the 'close' button
    */
   angularCommon.directive('clmAlerts', function() {
     return {
       restrict: 'A',
       template: '<div class="alert {{ \'alert-\' + (alert.type || \'warning\') }}" ng-repeat="alert in alerts">' +
-                  '<button type="button" class="close" data-dismiss="alert">&times;</button>' +
+                  '<button ng-if="!hideButton" type="button" class="close" data-dismiss="alert">&times;</button>' +
                   '{{alert.msg}}' +
                 '</div>',
       scope: {
-        alerts: '=clmAlerts'
+        alerts: '=clmAlerts',
+        hideButton: '=?'
       }
     };
   });

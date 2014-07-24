@@ -279,9 +279,10 @@
       //there are certain cases where the browser will not give us an error
       //as we would expect, so we will add something default in this case
       if (message) {
-        $scope.error = message;
-      } else {
-        $scope.error = 'Error uploading, please check the file.';
+        $scope.error = [AngularUtils.message(message)];
+      }
+      else {
+        $scope.error = [AngularUtils.message('Error uploading, please check the file.')];
       }
     }
     var fileElement = null;
@@ -334,7 +335,7 @@
           // success
           $scope.$close();
         } else {
-          $scope.error = content;
+          $scope.error = [AngularUtils.message(content)];
         }
       }
     };

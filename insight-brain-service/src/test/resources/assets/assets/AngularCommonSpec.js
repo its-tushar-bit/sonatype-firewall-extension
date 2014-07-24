@@ -591,4 +591,43 @@ describe('AngularCommon', function() {
       expect(safeDivide(1, 0)).toBe(0);
     });
   });
+
+  describe('clmAlerts', function() {
+    var element, scope, compile;
+
+    beforeEach(inject(function($compile, $rootScope) {
+      scope = $rootScope.$new();
+      compile = $compile;
+    }));
+
+    it('defaults to showing a closeable warning message if no other type is specified', function() {
+      element = angular.element('<div clm-alerts="errors"></div>');
+      element = compile(element)(scope);
+      scope.$apply(function() {
+        scope.errors = [{msg: 'Foo'}];
+      });
+      expect(element.find('.alert-error').length).toBe(0);
+      expect(element.find('.alert-warning').length).toBe(1);
+      expect(element.find('button').length).toBe(1);
+    });
+
+    it('displays all errors configured in the scope', function() {
+      element = angular.element('<div clm-alerts="errors"></div>');
+      element = compile(element)(scope);
+      scope.$apply(function() {
+        scope.errors = [{type: 'error', msg: 'Foo'}];
+      });
+      expect(element.find('.alert-error').length).toBe(1);
+      expect(element.find('.alert-warning').length).toBe(0);
+    });
+
+    it('hides the "close" button if configured to', function() {
+      element = angular.element('<div clm-alerts="errors" hide-button="true"></div>');
+      element = compile(element)(scope);
+      scope.$apply(function() {
+        scope.errors = [{msg: 'Foo'}];
+      });
+      expect(element.find('button').length).toBe(0);
+    });
+  });
 });

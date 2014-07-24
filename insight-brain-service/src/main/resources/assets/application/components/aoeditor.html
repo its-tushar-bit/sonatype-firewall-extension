@@ -115,8 +115,7 @@
       </div>
       <p class="alert"><strong>Note:</strong> Importing policies is <strong>destructive</strong> and will replace
         existing policies and license threat groups</p>
-      <span style="margin:0px;padding: 4px 35px 4px 14px;float:left;max-width:330px"
-            ng-class="{'alert alert-error': error }" ng-show="error">{{error}}</span>
+      <div clm-alerts="error" hide-button="true"></div>
       <button class='btn btn-link btn-cancel' type='button' ng-click='$dismiss()'>Cancel</button>
       <button class='btn btn-primary pull-right' type='button' ng-disabled='btnDisabled || requestActive'
               ng-click='doSubmit()'>Import

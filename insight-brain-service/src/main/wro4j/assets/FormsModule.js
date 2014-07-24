@@ -17,6 +17,7 @@
         /**
          * @param error {Object} Map of invalid keys
          * @param attrs {Object} Attributes to consult for settings
+         * @param messages {Object} Optional custom or override messages
          * @returns {string} The appropriate message for the error
          */
         function determineErrorMessage(error, attrs, messages) {

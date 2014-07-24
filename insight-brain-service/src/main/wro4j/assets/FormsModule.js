@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-/*global angular, AngularUtils */
+/*global angular */
 (function() {
   'use strict';
   angular.module('FormsModule', ['AngularCommon'])
@@ -142,16 +142,6 @@
             scope.$on('$destroy', function() {
               element.popover('destroy');
             });
-
-            var validate = function() {
-              AngularUtils.safeApply(scope, function() {
-                ctrl.$setViewValue(element.val());
-              });
-              updateValidationMessages(element, attrs, ctrl);
-            };
-
-            // Force the element to validate and set a dirty state
-            element.on('blur', validate);
 
             // Update state whenever the $error state is changed
             scope.$watch(form.$name + '.' + ctrl.$name + '.$error', function() {

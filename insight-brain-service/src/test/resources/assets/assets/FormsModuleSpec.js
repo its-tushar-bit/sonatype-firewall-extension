@@ -58,21 +58,6 @@ describe('Forms module', function() {
         scope.$digest();
         confirmAndRemovePopover('Please enter a value', 'test');
       });
-
-      it('Will add a popover on blur, and remove it when the field is corrected', function() {
-        //trigger 'required' validation error bypassing setting input.$dirty
-        scope.field = null;
-        scope.$digest();
-
-        //popover initially is not present, but the field is marked invalid
-        var popover = input.data('popover');
-        expect(popover).toBe(undefined);
-        expect(scope.form.test.$invalid).toBe(true);
-
-        //if we blur(leave the field) the popover is introduced
-        input.blur();
-        confirmAndRemovePopover('Please enter a value', 'test');
-      });
     });
 
     describe('Popover specific messages', function() {

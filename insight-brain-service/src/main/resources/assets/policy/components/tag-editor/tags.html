@@ -36,16 +36,16 @@
                        is-duplicate-array='tags' is-duplicate-id-field='name' is-duplicate-case-sensitive='false'
                        messages='{duplicate: "Duplicate Tag name"}'>
             </div>
-            <div clm-control-group for='description' label="Description">
-              <textarea clm-input name='description' maxlength="255" rows="3" style="width:530px;resize:none;" ng-model='selectedTag.description'
-                        placeholder="Enter Description" required></textarea>
-            </div>
-            <div class="control-group">
+            <div clm-control-group label="Select Color">
               <span ng-repeat="color in colors" ng-click='setColor(color);'>
                 <span class='clmLabel {{color}}Label' ng-class='{ active : selectedTag.color == color}' style='min-width:33px'>
                   <span>{{selectedTag.name}}</span>
                 </span>
               </span>
+            </div>
+            <div clm-control-group for='description' label="Description">
+              <textarea clm-input name='description' maxlength="255" rows="3" style="width:530px;resize:none;" ng-model='selectedTag.description'
+                        placeholder="Enter Description" required></textarea>
             </div>
             <div clm-alerts='editorAlerts'></div>
             <button class="btn btn-link btn-cancel" type='button' ng-click='cancelEditTag()'>Cancel</button>

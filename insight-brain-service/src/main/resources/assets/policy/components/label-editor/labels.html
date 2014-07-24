@@ -54,16 +54,16 @@
                          placeholder="Enter Label Name" focus-input="true" required item-label
                           messages='{duplicate: "Duplicate Label", invalid: "Invalid Character(s)"}'>
               </div>
-              <div clm-control-group for='description' label="Description">
-                <textarea clm-input id='description' name='description' maxlength="255" rows="3" style="width:530px;resize:none;" ng-model='selectedLabel.description'
-                          placeholder="Enter Description"></textarea>
-              </div>
-              <div class="control-group">
+              <div clm-control-group label="Select Color">
                 <span ng-repeat="color in colors" ng-click='setColor(color);'>
                   <span class='clmLabel {{color}}Label' ng-class='{ active : selectedLabel.color == color}' style='min-width:33px'>
                     <span>{{selectedLabel.label}}</span>
                   </span>
                 </span>
+              </div>
+              <div clm-control-group for='description' label="Description">
+                <textarea clm-input id='description' name='description' maxlength="255" rows="3" style="width:530px;resize:none;" ng-model='selectedLabel.description'
+                          placeholder="Enter Description"></textarea>
               </div>
               <div clm-alerts='editorAlerts'></div>
               <button class="btn btn-link btn-cancel" type='button' ng-click='cancelEditLabel()'>Cancel</button>

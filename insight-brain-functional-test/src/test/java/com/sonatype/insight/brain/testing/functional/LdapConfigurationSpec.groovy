@@ -156,12 +156,12 @@ class LdapConfigurationSpec
       waitFor { userLoginDialog.displayed }
 
     when: 'Failing to enter data'
-      userLoginUsername << Keys.TAB
-      userLoginPassword << Keys.TAB
+      userLoginUsername.value("a${Keys.BACK_SPACE}")
+      userLoginPassword.value("a${Keys.BACK_SPACE}")
 
     then: 'Popover violations are shown'
-      waitFor { popoverText(userLoginPassword) == 'Please enter a value' }
-      popoverText(userLoginUsername) == 'Please enter a value'
+      waitFor { popoverText(userLoginUsername) == 'Please enter a value' }
+      popoverText(userLoginPassword) == 'Please enter a value'
       report 'test ldap login dialog with errors'
 
     when: 'We cancel the dialog'

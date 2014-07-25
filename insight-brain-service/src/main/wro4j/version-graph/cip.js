@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/rhc/oss/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-/*global $, angular, Insight, Brain, clmEndpoint, console */
+/*global $, angular, Insight, Brain, clmEndpoint, window */
 (function () {
   'use strict';
 
@@ -35,7 +35,9 @@
 
   function defaultLogFn(message) {
     logQueue.push(arguments);
-    console.error(message);
+    if (window.console) {
+      window.console.error(message);
+    }
   }
 
   var injector = null,

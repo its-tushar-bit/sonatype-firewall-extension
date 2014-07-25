@@ -32,7 +32,9 @@
 
   function defaultLogFn(message) {
     logQueue.push(arguments);
-    window.console.error(message);
+    if (window.console) {
+      window.console.error(message);
+    }
   }
 
   query = (function() {

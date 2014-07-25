@@ -111,6 +111,9 @@
 
 .btn-cancel {
   color: $gray !important;
+  box-sizing: content-box;
+  padding-left: 0;
+  padding-right:0;
 }
 .btn-cancel:hover {
   color: darken($gray, 25%) !important;

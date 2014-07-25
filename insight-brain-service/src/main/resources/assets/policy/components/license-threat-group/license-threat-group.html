@@ -36,11 +36,11 @@
     <input clm-input id='licenseGroupEditorName' name='name' type='text'
            class='input' maxlength='60' ng-model='selectedGroup.name'
            required alpha-numeric is-duplicate is-duplicate-array='licenseGroups' is-duplicate-id-field='id'
-           placeholder="Enter Name" style='width:248px;' focus-input="true"
+           placeholder="Enter Name" focus-input="true"
            messages="{duplicate: 'Name is already in use'}">
   </div>
   <div clm-control-group class='halfSize'>
-      <span threat-box selected='selectedGroup.threatLevel' one='1' zero='No Threat'></span>
+      <span threat-box selected='selectedGroup.threatLevel' one='1' zero='No Threat' style='margin-left: 5px;'></span>
   </div>
   <div clm-control-group class='clear'>
     <div class='input-prepend fullWidthPrependedTextBox'>

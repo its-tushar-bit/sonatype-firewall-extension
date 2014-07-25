@@ -62,7 +62,7 @@ var AngularUtils = {
    * @returns {*}
    * @since 1.12
    */
-  message: function(msg, type) {
+  toAlert: function(msg, type) {
     return angular.extend({}, messageTemplate, type ? {type: type, msg: msg} : {msg: msg});
   }
 };
@@ -369,18 +369,18 @@ var AngularStateUtils = {
   /**
    * Full width, closeable, alerts built from an array
    * @scope alerts {Object} An array of alerts, each an object with properties msg and type (error, success, info)
-   * @scope hideButton {Boolean} optionally hide the 'close' button
+   * @scope noClose {Boolean} optionally hide the 'close' button
    */
   angularCommon.directive('clmAlerts', function() {
     return {
       restrict: 'A',
       template: '<div class="alert {{ \'alert-\' + (alert.type || \'warning\') }}" ng-repeat="alert in alerts">' +
-                  '<button ng-if="!hideButton" type="button" class="close" data-dismiss="alert">&times;</button>' +
+                  '<button ng-if="!noClose" type="button" class="close" data-dismiss="alert">&times;</button>' +
                   '{{alert.msg}}' +
                 '</div>',
       scope: {
         alerts: '=clmAlerts',
-        hideButton: '=?'
+        noClose: '=?'
       }
     };
   });

@@ -615,14 +615,20 @@ describe('AngularCommon', function() {
       element = angular.element('<div clm-alerts="errors"></div>');
       element = compile(element)(scope);
       scope.$apply(function() {
-        scope.errors = [{type: 'error', msg: 'Foo'}];
+        scope.errors = [
+          {type: 'error', msg: 'Foo'},
+          {type: 'info', msg: 'Foo'},
+          {type: 'success', msg: 'Foo'}
+        ];
       });
       expect(element.find('.alert-error').length).toBe(1);
+      expect(element.find('.alert-info').length).toBe(1);
+      expect(element.find('.alert-success').length).toBe(1);
       expect(element.find('.alert-warning').length).toBe(0);
     });
 
     it('hides the "close" button if configured to', function() {
-      element = angular.element('<div clm-alerts="errors" hide-button="true"></div>');
+      element = angular.element('<div clm-alerts="errors" no-close="true"></div>');
       element = compile(element)(scope);
       scope.$apply(function() {
         scope.errors = [{msg: 'Foo'}];

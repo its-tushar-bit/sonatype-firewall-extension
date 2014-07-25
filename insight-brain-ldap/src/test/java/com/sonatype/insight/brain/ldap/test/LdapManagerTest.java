@@ -65,6 +65,17 @@ public class LdapManagerTest
   }
 
   @Test
+  public void testConnection_EscapedUrl() throws Exception {
+    startLdapServer();
+
+    LdapConnection connection = createLdapConnection();
+    // Search base with space will be escaped with %20.
+    connection.setSearchBase("dc=acme brick,dc=com");
+
+    manager.testConnection(connection);
+  }
+
+  @Test
   public void testConnectionTimeout() throws Exception {
     ServerSocket socket = new ServerSocket(0);
     try {

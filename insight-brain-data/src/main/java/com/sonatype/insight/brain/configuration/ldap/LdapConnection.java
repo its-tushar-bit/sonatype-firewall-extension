@@ -24,6 +24,7 @@ import org.codehaus.plexus.util.StringUtils;
 public class LdapConnection
     implements HasStringId, HasLdapServerId
 {
+
   /**
    * Internal id used to identify this LDAP configuration
    * 
@@ -243,8 +244,9 @@ public class LdapConnection
     StringBuilder sb = new StringBuilder();
     sb.append(protocol.getProtocol()).append("://").append(hostname).append(':').append(port);
     if (StringUtils.isNotBlank(searchBase)) {
-      sb.append('/').append(searchBase);
+      sb.append('/').append(LdapUtils.escapeLdapUrl(searchBase));
     }
+
     return sb.toString();
   }
 }

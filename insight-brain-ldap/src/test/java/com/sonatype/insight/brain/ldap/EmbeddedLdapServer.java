@@ -216,6 +216,13 @@ public class EmbeddedLdapServer
     usersPartition.setSchemaManager(directoryService.getSchemaManager());
     partitionFactory.addIndex(usersPartition, SchemaConstants.OBJECT_CLASS_AT, 100);
     directoryService.addPartition(usersPartition);
+
+    Partition acmeBrickPartition = partitionFactory.createPartition(directoryService.getSchemaManager(), "acme_brick",
+        "dc=acme brick,dc=com", 500, new File(directoryService.getInstanceLayout().getPartitionsDirectory(),
+            "acme_brick"));
+    acmeBrickPartition.setSchemaManager(directoryService.getSchemaManager());
+    partitionFactory.addIndex(acmeBrickPartition, SchemaConstants.OBJECT_CLASS_AT, 100);
+    directoryService.addPartition(acmeBrickPartition);
   }
 
   private static int getRandomPort() throws IOException {

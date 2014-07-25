@@ -873,6 +873,12 @@
       </properties>
     </profile>
     <profile>
+      <id>test-brain</id>
+      <properties>
+        <jasmine.brain.id>default-cli</jasmine.brain.id>
+      </properties>
+    </profile>
+    <profile>
       <id>test-version-graph</id>
       <properties>
         <jasmine.version.graph.id>default-cli</jasmine.version.graph.id>
@@ -882,12 +888,6 @@
       <id>test-view-details</id>
       <properties>
         <jasmine.view.details.id>default-cli</jasmine.view.details.id>
-      </properties>
-    </profile>
-    <profile>
-      <id>test-brain</id>
-      <properties>
-        <jasmine.brain.id>default-cli</jasmine.brain.id>
       </properties>
     </profile>
     <profile>

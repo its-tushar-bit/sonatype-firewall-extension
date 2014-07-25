@@ -186,8 +186,8 @@
           replace: true,
           transclude: true,
           scope: {
-            for: '@',
-            label: '@'
+            'for': '@',
+            'label': '@'
           },
           template: '<div class="control-group">' +
               '<label ng-if="label" class="control-label" for="{{for}}">{{label}}</label>' +

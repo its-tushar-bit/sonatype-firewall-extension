@@ -28,7 +28,8 @@ describe('AppSecurityControllerSpec', function() {
         "membersByRole": [role1, role2]
       });
       $controller('AppSecurityController', {
-        $scope : scope
+        $scope : scope,
+        hasPermission : true
       });
       $httpBackend.flush();
       expect(scope.context.roles.length).toEqual(2);

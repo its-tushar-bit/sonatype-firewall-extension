@@ -1,4 +1,4 @@
-<div class='mid-content'>
+<div class='mid-content' authorization-wrapper="isAuthorized">
   <h1 class='page-title'>
     <div class='container proprietary'>Proprietary Components</div>
   </h1>
@@ -11,11 +11,10 @@
         <p>These entries are provided to CLM scanners and are used to help identify internal components.
           If a specified package or file is contained within a component, it will be considered proprietary.</p>
         <div>
-          <form ng-submit='add()' name='neditor' class="clm-form">
+          <form ng-submit='add(currentEntry, isRegex); isRegex = false; currentEntry="";' name='neditor'>
             <div class='control-group'>
               <div class='input-append' style='width: 90%'>
-                <input type='text' style='width: 89%;' name='currentEntry' ng-model='currentEntry'
-                       maxlength='50'
+                <input type='text' style='width: 89%;' name='currentEntry' ng-model='currentEntry' maxlength='50'
                        placeholder='Enter Regex or Package Prefix for Proprietary Components' required entersubmit>
                 <button class='btn' ng-disabled='neditor.$invalid' title='Add Prefix/Regex for Proprietary Components'>
                   Add
@@ -62,10 +61,10 @@
         <div>
         <div clm-alerts="error" id="proprietaryError"></div>
         <span ng-show='!saving && proprietary' id='proprietaryButtons'>
-          <button class="btn btn-link btn-cancel" ng-click="reset(); error = null;" ng-disabled="!isDirty() && !error">Reset</button>
+          <button class="btn btn-link btn-cancel" ng-click="reset();" ng-disabled="!isDirty() && !error">Reset</button>
           <button class="btn btn-primary pull-right" ng-disabled="!isDirty()" ng-click="save()">Save</button>
         </span>
-          <span ng-show='saving' style='height:30px'><i class='icon-time'></i> Saving</span></div>
+        <span ng-show='saving' style='height:30px'><i class='icon-time'></i> Saving</span></div>
       </div>
     </div>
   </div>

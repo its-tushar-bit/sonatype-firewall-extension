@@ -10,10 +10,18 @@
       function($stateProvider) {
         $stateProvider.state('globalroles', {
           url: '/globalroles',
-          template : '<div class="mid-content"><h1 class="page-title"><div class="container globalrole">Global Roles</div></h1></div>' +
-                     '<div class="container globalrole" ng-controller="AppSecurityController" ng-include="\'../policy-assets/components/app-security/app-security.html?' + clmBuildTimestamp + '\'"></div>',
+          template : '<div authorization-wrapper="isAuthorized">' +
+                       '<div class="mid-content"><h1 class="page-title"><div class="container globalrole">Global Roles</div></h1></div>' +
+                       '<div class="container globalrole" ng-include="\'../policy-assets/components/app-security/app-security.html?' + clmBuildTimestamp + '\'"></div>' +
+                     '</div>',
           data : {
             title : 'Global Roles'
+          },
+          controller : 'AppSecurityController',
+          resolve : {
+            'hasPermission' : ['PermissionService', function (PermissionService) {
+              return PermissionService.isAuthorized(['ADMIN'], true);
+            }]
           }
         });
       }]);
@@ -30,6 +38,11 @@
               templateUrl: '../security-assets/user-list.html?' + clmBuildTimestamp,
               data : {
                 title : 'Users'
+              },
+              resolve : {
+                'hasAdminPermission' : ['PermissionService', function (PermissionService) {
+                  return PermissionService.isAuthorized(['ADMIN'], true);
+                }]
               }
             });
           }]);
@@ -52,15 +65,16 @@
   }]);
 
   module.controller('UserListController', ['$http', 'CLMLocations', 'UserStore', 'Messages', 'CurrentUser', '$scope',
-      '$modal', '$q', 'PermissionService', function($http, clmLocations, UserStore, messages, CurrentUser, $scope, $modal, $q, PermissionService) {
+      '$modal', '$q', 'hasAdminPermission', function($http, clmLocations, UserStore, messages, CurrentUser, $scope, $modal, $q, hasAdminPermission) {
         var username = null;
 
         $scope.context = {
           userEditMap: {},
           users: []
         };
+        $scope.isAuthorized = hasAdminPermission;
         $scope.doLoad = function() {
-          PermissionService.isAuthorized(['ADMIN'],true).then(function() {
+          if (hasAdminPermission) {
             $scope.error = null;
 
             $q.all([UserStore.refresh(), CurrentUser]).then(function(results) {
@@ -69,7 +83,7 @@
             }, function(error) {
               $scope.error = error;
             });
-          });
+          }
         };
         $scope.editClick = function(user) {
           $scope.context.userEditMap[user.id] = user;

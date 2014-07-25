@@ -5,7 +5,8 @@ describe('ProductLicenseController', function() {
 
   function getController($controller, scope) {
     return $controller('ProductLicenseController', {
-      $scope: scope
+      $scope: scope,
+      hasAdminPermission : true
     });
   }
 

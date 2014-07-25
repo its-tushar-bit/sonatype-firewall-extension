@@ -22,6 +22,7 @@ describe('Tests for the LdapConfigurationController', function() {
       }
     });
     $stateProvider.state('management.organization', {});
+    SpecUtil.mockPermissionService($provide);
   }));
 
   describe('LdapConfigurationController', function() {
@@ -47,7 +48,8 @@ describe('Tests for the LdapConfigurationController', function() {
 
       $controller('LdapConfigurationController', {
         $scope: scope,
-        $state: state
+        $state: state,
+        hasAdminPermission : true
       });
 
       httpBackend.flush();

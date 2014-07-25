@@ -9,17 +9,18 @@
   'use strict';
 
   var module = angular.module('ProductLicense',
-      ['AngularCommon', 'ngUpload', 'CLMLocation', 'PermissionServiceModule']);
+      ['AngularCommon', 'ngUpload', 'CLMLocation']);
 
   module.controller('ProductLicenseController', [
-    '$http', '$scope', 'CLMLocations', '$timeout', '$window', 'Messages', 'ErrorDialog', 'PermissionService',
-    function($http, $scope, clmLocations, $timeout, $window, Messages, ErrorDialog, PermissionService) {
+    '$http', '$scope', 'CLMLocations', '$timeout', '$window', 'Messages', 'ErrorDialog', 'hasAdminPermission',
+    function($http, $scope, clmLocations, $timeout, $window, Messages, ErrorDialog, hasAdminPermission) {
 
       $scope.summaryUrl = clmLocations.getLicenseSummaryUrl();
       $scope.uploadUrl = clmLocations.getLicenseUploadUrl();
+      $scope.isAuthorized = hasAdminPermission;
 
       $scope.doLoad = function() {
-        PermissionService.isAuthorized(['ADMIN'], true).then(function() {
+        if (hasAdminPermission) {
           $scope.error = null;
           $http.get($scope.summaryUrl).success(function(data) {
             $scope.license = data;
@@ -29,12 +30,11 @@
                 status: status,
                 data: data
               };
-            }
-            else {
+            } else {
               $scope.license = false;
             }
           });
-        });
+        }
       };
 
       function showLicense() {

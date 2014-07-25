@@ -88,7 +88,12 @@
           parent: 'management.application.view',
           url: '/security',
           controller: 'AppSecurityController',
-          templateUrl: '../policy-assets/components/app-security/app-security.html?' + clmBuildTimestamp
+          templateUrl: '../policy-assets/components/app-security/app-security.html?' + clmBuildTimestamp,
+          resolve : {
+            hasPermission : function () {
+              return true;
+            }
+          }
         }).state('management.application.view.tags', {
           parent: 'management.application.view',
           url: '/tags',

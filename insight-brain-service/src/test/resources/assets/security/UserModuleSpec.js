@@ -7,11 +7,13 @@ describe('UserModuleSpec.js', function() {
     inject(function($controller, $rootScope) {
       userScope = $rootScope.$new();
       $controller('UserController', {
-        $scope: userScope
+        $scope: userScope,
+        hasAdminPermission : true
       });
       listScope = $rootScope.$new();
       $controller('UserListController', {
-        $scope: listScope
+        $scope: listScope,
+        hasAdminPermission : true
       });
       userScope.context = listScope.context;
     });

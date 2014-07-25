@@ -1,42 +1,43 @@
-<div class='mid-content'>
-  <div load-error='loadError' reload='doLoad()'></div>
-  <div ng-show='!loadError && !ldap'><i class='icon-time'></i> Loading</div>
-  <div ng-show='!loadError && ldap'>
-    <div class='container config'>
-      <div class="fixed-width-small-form" id='ldapName'>
-        <div style="float:right; margin:10px;" class='btn-group' ng-show='ldap.id'>
-          <a class="btn btn-mini" title="Remove Configuration" ng-click="confirmDeleteConfiguration(ldap)"><i class='glyphicons-sonatype bin'></i></a>
-        </div>
-        <div class='inline-editor head'
-             clm-editable
-             e-form='ldapNameForm'
-             invalid='ldapEditor.$invalid'
-             model='ldap'
-             model-field='name'
-             empty-text='Enter Server Name'
-             whitespace-check='true'>
-        </div>
-        <div ng-show="!saving && (ldap.id == null || isDirty()) || ldapNameForm.$visible" style='padding-bottom:10px'>
-          <button type='button' class="btn" ng-click="ldap.$revert()">Cancel</button>
-          <button type='button' class="btn btn-primary" ng-disabled="!canSaveEdit()" ng-click="save()">Save</button>
-        </div>
-        <div ng-show='saving' style='height:30px'><i class='icon-time'></i> Saving</div>
-      </div>
-    </div>
-    <div ng-if='ldap.id' style='margin-top:10px'>
-      <div class='underline'>
-        <div class='container config' style='margin-bottom:0px'>
-          <ul class='tri-pane left'>
-            <li ng-class='{ active : isCurrentTab("connection") }'>
-              <a ng-click='setCurrentTab("connection")'>CONNECTION</a>
-            </li>
-            <li ng-class='{ active : isCurrentTab("usermapping") }'>
-              <a ng-click='setCurrentTab("usermapping")'>USER &amp; GROUP SETTINGS</a>
-            </li>
-          </ul>
+<div class='mid-content' authorization-wrapper="isAuthorized">
+  <div load-wrapper='loadError' reload='doLoad()'>
+    <div ng-show='!ldap'><i class='icon-time'></i> Loading</div>
+    <div ng-show='ldap'>
+      <div class='container config'>
+        <div class="fixed-width-small-form" id='ldapName'>
+          <div style="float:right; margin:10px;" class='btn-group' ng-show='ldap.id'>
+            <a class="btn btn-mini" title="Remove Configuration" ng-click="confirmDeleteConfiguration(ldap)"><i class='glyphicons-sonatype bin'></i></a>
+          </div>
+          <div class='inline-editor head'
+               clm-editable
+               e-form='$parent.$parent.ldapNameForm'
+               invalid='$parent.$parent.ldapEditor.$invalid'
+               model='ldap'
+               model-field='name'
+               empty-text='Enter Server Name'
+               whitespace-check='true'>
+          </div>
+          <div ng-show="!saving && (ldap.id == null || isDirty()) || ldapNameForm.$visible" style='padding-bottom:10px'>
+            <button type='button' class="btn" ng-click="ldap.$revert()">Cancel</button>
+            <button type='button' class="btn btn-primary" ng-disabled="!canSaveEdit()" ng-click="save()">Save</button>
+          </div>
+          <div ng-show='saving' style='height:30px'><i class='icon-time'></i> Saving</div>
         </div>
       </div>
-      <div class='container config' ui-view></div>
+      <div ng-if='ldap.id' style='margin-top:10px'>
+        <div class='underline'>
+          <div class='container config' style='margin-bottom:0px'>
+            <ul class='tri-pane left'>
+              <li ng-class='{ active : isCurrentTab("connection") }'>
+                <a ng-click='setCurrentTab("connection")'>CONNECTION</a>
+              </li>
+              <li ng-class='{ active : isCurrentTab("usermapping") }'>
+                <a ng-click='setCurrentTab("usermapping")'>USER &amp; GROUP SETTINGS</a>
+              </li>
+            </ul>
+          </div>
+        </div>
+        <div class='container config' ui-view></div>
+      </div>
     </div>
   </div>
 </div>

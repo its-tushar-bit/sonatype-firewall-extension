@@ -133,8 +133,8 @@
           return baseUrl.get() + '/rest/appliedTag/policy/' + policyId + '?orgId=' + getId();
         },
 
-        getPermissionTestUrl : function() {
-          return baseUrl.get() + '/rest/user/permissions/' + getServicePathWithId();
+        getPermissionTestUrl : function(global) {
+          return baseUrl.get() + '/rest/user/permissions/' + (global ? 'global/global' : getServicePathWithId());
         },
 
         isApplication: isApplication,

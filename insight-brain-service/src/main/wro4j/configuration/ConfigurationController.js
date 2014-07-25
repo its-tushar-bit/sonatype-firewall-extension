@@ -22,6 +22,11 @@
         templateUrl: '../configuration-assets/components/license.html?' + clmBuildTimestamp,
         data : {
           title : 'Product License'
+        },
+        resolve : {
+          'hasAdminPermission' : ['PermissionService', function (PermissionService) {
+            return PermissionService.isAuthorized(['ADMIN'], true);
+          }]
         }
       }).state('proprietarycomponents', {
         url: '/proprietarycomponents',
@@ -29,30 +34,30 @@
         templateUrl: '../configuration-assets/components/proprietary.html?' + clmBuildTimestamp,
         data : {
           title : 'Proprietary Configuration'
+        },
+        resolve : {
+          'hasAdminPermission' : ['PermissionService', function (PermissionService) {
+            return PermissionService.isAuthorized(['ADMIN'], true);
+          }]
         }
       });
     }
   ]);
 
   module.controller('ProprietaryConfigurationController', [
-    '$scope', '$http', 'CLMLocations', 'Messages', 'PermissionService', function($scope, $http, clmLocations, Messages, PermissionService) {
+    '$scope', '$http', 'CLMLocations', 'Messages', 'hasAdminPermission', function($scope, $http, clmLocations, Messages, hasAdminPermission) {
       var PACKAGE_REGEXP = new RegExp('^[^ /.][^ /]*[^ /.]$');
       $scope.isRegex = false;
+      $scope.isAuthorized = hasAdminPermission;
 
-      $scope.add = function() {
-        if ($scope.isRegex === true) {
-          if ($scope.validateRegex($scope.currentEntry)) {
-            $scope.regexes.push($scope.currentEntry);
+      $scope.add = function(currentEntry, isRegex) {
+        if (isRegex === true) {
+          if ($scope.validateRegex(currentEntry)) {
+            $scope.regexes.push(currentEntry);
           }
         }
-        else {
-          if ($scope.validatePackage($scope.currentEntry)) {
-            $scope.packages.push($scope.currentEntry);
-          }
-        }
-        if (!$scope.error) {
-          $scope.currentEntry = '';
-          $scope.isRegex = false;
+        else if ($scope.validatePackage(currentEntry)) {
+          $scope.packages.push(currentEntry);
         }
       };
 
@@ -65,14 +70,14 @@
       };
 
       $scope.doLoad = function() {
-        PermissionService.isAuthorized(['ADMIN'], true).then(function() {
+        if (hasAdminPermission) {
           $http.get(clmLocations.getProprietaryConfig()).success(function(data) {
             $scope.proprietary = data;
             $scope.reset();
           }).error(function() {
             $scope.loadError = Messages.getHttpErrorMessage(arguments);
           });
-        });
+        }
       };
 
       $scope.save = function() {
@@ -94,9 +99,7 @@
       $scope.reset = function() {
         $scope.packages = angular.copy($scope.proprietary.packages);
         $scope.regexes = angular.copy($scope.proprietary.regexes);
-        $scope.currentEntry = '';
         $scope.error = null;
-        $scope.isRegex = false;
       };
 
       $scope.isDirty = function() {

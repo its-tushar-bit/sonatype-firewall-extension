@@ -13,7 +13,7 @@
   }
 
   var module = angular.module('LdapConfiguration',
-  ['CLMLocation', 'ResourceModule', 'ui.router', 'AngularCommon', 'CommonServices', 'Configuration', 'PermissionServiceModule'],
+  ['CLMLocation', 'ResourceModule', 'ui.router', 'AngularCommon', 'CommonServices', 'Configuration'],
   ['$stateProvider', function($stateProvider) {
     $stateProvider.state('ldap', {
       url: '/ldap',
@@ -21,6 +21,11 @@
       templateUrl: '../configuration-assets/components/ldap.html?' + clmBuildTimestamp,
       data : {
         title : 'LDAP Configuration'
+      },
+      resolve : {
+        'hasAdminPermission' : ['PermissionService', function (PermissionService) {
+          return PermissionService.isAuthorized(['ADMIN'], true);
+        }]
       }
     }).state('ldap.connection', {
       parent: 'ldap',
@@ -116,8 +121,8 @@
   }
   
   module.controller('LdapConfigurationController', [
-    '$scope', '$state', '$modal', 'Dialog', 'LdapConfigurationStore', 'CLMLocations', 'ErrorDialog', 'PermissionService',
-    function($scope, $state, $modal, Dialog, ldapStore, clmLocations, ErrorDialog, PermissionService) {
+    '$scope', '$state', '$modal', 'Dialog', 'LdapConfigurationStore', 'CLMLocations', 'ErrorDialog', 'hasAdminPermission',
+    function($scope, $state, $modal, Dialog, ldapStore, clmLocations, ErrorDialog, hasAdminPermission) {
       function isDirty() {
         if ($scope.ldapNameForm && $scope.ldapNameForm.$visible) {
           return true;
@@ -142,6 +147,8 @@
           }
         }
       }
+
+      $scope.isAuthorized = hasAdminPermission;
 
       // used by nested scopes to calculate REST endpoint URL
       $scope.getConfigLdapUrl = function (resource) {
@@ -205,7 +212,7 @@
       $scope.setCurrentTab = setCurrentTab;
 
       $scope.doLoad = function () {
-        PermissionService.isAuthorized(['ADMIN'], true).then(function() {
+        if (hasAdminPermission) {
           $scope.loadError = null;
 
           ldapStore.get().then(function(results) {
@@ -214,7 +221,7 @@
           }, function(error) {
             $scope.loadError = error;
           });
-        });
+        }
       };
       $scope.doLoad();
     }

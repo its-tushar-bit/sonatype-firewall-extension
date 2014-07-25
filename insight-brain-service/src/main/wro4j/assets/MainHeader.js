@@ -71,8 +71,8 @@
 
     $scope.isDashboardLicensed = ProductFeatures.isDashboardLicensed;
 
-    PermissionService.isAuthorized(['ADMIN']).then(function(){
-      $scope.isAdmin = true;
+    PermissionService.isAuthorized(['ADMIN']).then(function(isAuthorized) {
+      $scope.isAdmin = isAuthorized;
     });
   }]);
 

@@ -90,7 +90,12 @@
         parent: 'management.organization.view',
         url: '/security',
         controller: 'AppSecurityController',
-        templateUrl: '../policy-assets/components/app-security/app-security.html?' + clmBuildTimestamp
+        templateUrl: '../policy-assets/components/app-security/app-security.html?' + clmBuildTimestamp,
+        resolve : {
+          hasPermission : function () {
+            return true;
+          }
+        }
       }).state('management.organization.view.tags', {
         parent: 'management.organization.view',
         url: '/tags',

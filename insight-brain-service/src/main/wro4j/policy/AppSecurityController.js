@@ -38,14 +38,15 @@
     return false;
   };
 
-  var appSecurityModule = angular.module('ApplicationSecurityModule', ['CommonServices', 'ui.utils', 'ngSanitize', 'PermissionServiceModule']);
+  var appSecurityModule = angular.module('ApplicationSecurityModule', ['CommonServices', 'ui.utils', 'ngSanitize']);
 
-  appSecurityModule.controller('AppSecurityController', ['$scope', '$http', 'CLMAppLocations', 'PermissionService', function($scope, $http, clmAppLocations, PermissionService) {
+  appSecurityModule.controller('AppSecurityController', ['$scope', '$http', 'CLMAppLocations', 'hasPermission', function($scope, $http, clmAppLocations, hasPermission) {
     $scope.groupings = groupings;
     $scope.showGrouping = showGroupings;
+    $scope.isAuthorized = hasPermission;
 
     $scope.doLoad = function() {
-      PermissionService.isAuthorized(['ADMIN'], true, clmAppLocations.isGlobal()).then(function() {
+      if (hasPermission) {
         $scope.error = null;
 
         $http.get(clmAppLocations.getRoleMappingUrl()).success(function(data) {
@@ -57,7 +58,7 @@
         }).error(function() {
           $scope.error = arguments;
         });
-      });
+      }
     };
 
     $scope.$on('roleSaveComplete',function(event, roleId, newMappings){

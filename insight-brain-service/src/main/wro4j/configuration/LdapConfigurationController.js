@@ -56,8 +56,8 @@
         backdrop: 'static',
         template: '<div id="ldap-unsaved-changes"><div class="modal-header"><h3>Unsaved Changes</h3></div>' +
             '<div class="modal-body">There are unsaved changes, continuing will discard them.</div>' +
-            '<div class="modal-footer"><button class="btn" ng-click="$close()">Cancel</button>' +
-            '<button class="btn btn-danger" ng-click="discardChanges()">' + discardLabel + '</button></div></div>',
+            '<div class="modal-footer"><button class="btn btn-link btn-cancel" ng-click="$close()">Cancel</button>' +
+            '<button class="btn btn-danger pull-right" ng-click="discardChanges()">' + discardLabel + '</button></div></div>',
         controller: [
           '$scope', function(modalScope) {
             modalScope.discardChanges = function() {

@@ -2,17 +2,20 @@
   <script type='text/ng-template' id='ltgcreator'>
     <div>
       <div ng-hide='selectedGroup' style='margin-bottom:5px'>
-        <button type="button" class="btn add-new new-entity-button"  ng-click="createNew()" id='createLTG'><i class="icon icon-plus"></i> New License Threat Group</button>
+        <button type="button" class="btn add-new new-entity-button" ng-click="createNew()" id='createLTG'><i
+                class="icon icon-plus"></i> New License Threat Group
+        </button>
       </div>
       <div ng-if="selectedGroup" style='width:530px;margin-bottom:5px'>
         <div ng-controller='LicenseThreatGroupEditorController'>
           <form name='licenseGroupEditor' class='clm-form well clm-well' ng-submit='saveClick();'>
             <div ng-include="'ltgeditor'"></div>
-            <div clm-alerts='alerts' style='clear:both;'></div>
+            <div clm-alerts='alerts'></div>
             <button class='btn btn-link btn-cancel' type='button' ng-click='cancelLicenseGroupEdit()'>Cancel
             </button>
-            <button class='btn btn-primary pull-right' type='submit' ng-disabled='!canSaveEdit(licenseGroupEditor.$valid)'>Save
-            </button>
+        <button class='btn btn-primary pull-right' type='submit'
+                ng-disabled='licenseGroupEditor.$pristine || !canSaveEdit(licenseGroupEditor.$valid)'>Save
+        </button>
           </form>
         </div>
       </div>
@@ -22,11 +25,11 @@
     <div style='width:530px'>
       <form name='licenseGroupEditor' class='clm-form well clm-well' ng-submit='saveClick();'>
         <div ng-include='"ltgeditor"'></div>
-        <div clm-alerts='alerts' style='clear:both;'></div>
-        <div style='text-align:right'>
-          <button class='btn' type='button' ng-click='cancelLicenseGroupEdit()'>Cancel</button>
-          <button class='btn btn-primary' type='submit' ng-disabled='!canSaveEdit(licenseGroupEditor.$valid)'>Save</button>
-        </div>
+        <div clm-alerts='alerts'></div>
+        <button class='btn btn-link btn-cancel' type='button' ng-click='cancelLicenseGroupEdit()'>Cancel</button>
+        <button class='btn btn-primary pull-right' type='submit'
+                ng-disabled='licenseGroupEditor.$pristine || !canSaveEdit(licenseGroupEditor.$valid)'>Save
+        </button>
       </form>
     </div>
   </script>

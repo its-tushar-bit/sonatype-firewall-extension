@@ -55,7 +55,7 @@ describe('mainHeader', function() {
     });
   }));
 
-  beforeEach(inject(function($rootScope, $state, $controller, $httpBackend, CLMLocations) {
+  beforeEach(inject(function($rootScope, $state, $controller) {
     scope = $rootScope.$new();
     state = $state;
 
@@ -133,7 +133,7 @@ describe('mainHeader', function() {
       });
 
       describe('Dialog', function () {
-        beforeEach(inject(function ($controller, $rootScope) {
+        beforeEach(inject(function () {
           currentUserSuccess({
             username : 'foo',
             authenticated : true,
@@ -170,7 +170,7 @@ describe('mainHeader', function() {
 
           expect(dialogScope.submitActive).toBeFalsy();
           expect(dialogScope.$close).not.toHaveBeenCalled();
-          expect(dialogScope.error).toEqual(Messages.getHttpErrorMessage([undefined, 400]));
+          expect(dialogScope.error[0]).toEqual({msg:Messages.getHttpErrorMessage([undefined, 400]), type: 'error'});
         }));
       });
     });

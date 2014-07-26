@@ -19,9 +19,8 @@ class ChangePasswordModule
     oldPassword(required: false) { dialog.originalPassword() }
     newPassword(required: false) { dialog.newPassword() }
     newPasswordValidate(required: false) { dialog.confirmPassword() }
-    newPasswordValidateDoesntMatch(required: false) { dialog.find('span', text: 'Does not match') }
-    invalidCredentialsError(required: false) { dialog.find('span', 'ng-show': 'error') }
+    invalidCredentialsError(required: false) { dialog.find('div.alert') }
     ok(required: false) { $('form[name="passwordForm"] button.btn-primary') }
-    cancel(required: false) { $('form[name="passwordForm"] button:nth-child(2)') }
+    cancel(required: false) { $('form[name="passwordForm"] button.btn-cancel)') }
   }
 }

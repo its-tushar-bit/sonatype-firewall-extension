@@ -911,9 +911,6 @@ ul.tri-pane.left {
   margin-right: auto;
   max-width: 510px;
 }
-.ldap-button-group{
-  margin: 20px 0 10px 0px;
-}
 
 .collapsed-cell {
 	text-overflow:ellipsis;

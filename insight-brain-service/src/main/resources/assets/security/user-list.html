@@ -3,10 +3,10 @@
 <div class="modal-header"><h3>Delete User</h3></div>
 <div class="modal-body"><p>Are you sure you want to delete user <strong>{{username}}</strong>?</p></div>
 <div class="modal-footer">
-  <button class="btn" ng-click="cancel()">Cancel</button>
-  <button class="btn btn-danger" ng-click="discard()">Delete</button>
+  <div clm-alerts="alerts" no-close="true"></div>
+  <button class="btn btn-link btn-cancel" ng-click="cancel()">Cancel</button>
+  <button class="btn btn-danger floatRight" ng-click="discard()">Delete</button>
 </div>
-<div style="margin-left:10px;margin-right:10px;" ng-class="{'alert alert-error': errorMsg }">{{errorMsg}}</div>
   </script>
   <script type='text/ng-template' id='reset-password-modal'>
 <div class="modal-header">
@@ -97,15 +97,15 @@
           </div>
         </div>
       </div>
+      <div clm-alerts="alerts" no-close="true"></div>
       <button id='user-form-cancel' type="button" class='btn btn-link btn-cancel' type='button'
               ng-click='cancelClick(user)'>Cancel
       </button>
       <div class="pull-right">
         <button id='user-form-save' type="submit" class='btn btn-primary' type='button' ng-click='saveClick(user)'
-                ng-disabled='userForm.$invalid || saving'>Save
+                ng-disabled='userForm.$invalid || userForm.$pristine || saving'>Save
         </button>
       </div>
-      <div style="margin-left:25px;" ng-class="{'alert alert-error': errorMsg }">{{errorMsg}}</div>
     </form>
   </div>
 </div>

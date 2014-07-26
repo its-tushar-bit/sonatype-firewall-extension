@@ -65,7 +65,7 @@ class ChangePasswordSpec
       changePassword.newPasswordValidate.value('newsecret')
 
     then: "Save button becomes enabled"
-      waitFor { popoverViolations(changePassword.newPasswordValidate).size() == 0 }
+      waitFor { popoverViolations(changePassword.newPasswordValidate.parent()).size() == 0 }
       !changePassword.ok.disabled
 
     when: "User clicks save button"

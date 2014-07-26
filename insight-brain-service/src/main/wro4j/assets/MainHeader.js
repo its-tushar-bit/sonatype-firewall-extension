@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
- /* global angular, clmServerVersion, clmBuildTimestamp */
+ /* global angular, clmServerVersion, clmBuildTimestamp, AngularUtils */
 (function() {
   'use strict';
 
@@ -49,7 +49,7 @@
                 scope.$close();
               }).error(function () {
                 scope.submitActive = false;
-                scope.error = messages.getHttpErrorMessage(arguments);
+                scope.error = [AngularUtils.toAlert(messages.getHttpErrorMessage(arguments))];
               });
             }
           };

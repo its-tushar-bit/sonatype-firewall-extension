@@ -65,17 +65,15 @@
                placeholder="Valid range is 0(default) to 999">
       </div>
   </form>
-  <div style="max-width: 485px">
-    <div clm-alerts='alerts'></div>
-    <div class="ldap-button-group" ng-show='!saving && ldapConn'>
-      <button class="btn btn-link btn-cancel" ng-disabled="!isDirty()" ng-click="reset()">Cancel</button>
-      <div style="float: right">
-        <button class='btn btn-success' ng-disabled="ldapConnectionEditor.$invalid || testInProgress"
-                ng-click="testConnection()">Test Connection
-        </button>
-        <button class="btn btn-primary" ng-disabled="!canSaveEdit()" ng-click="save()">Save</button>
-      </div>
+  <div clm-alerts='alerts'></div>
+  <div ng-show='!saving && ldapConn'>
+    <button id='ldap-connection-cancel' class="btn btn-link btn-cancel" ng-disabled="!isDirty()" ng-click="reset()">Cancel</button>
+    <div class="pull-right">
+      <button id='ldap-connection-test' class='btn btn-success' ng-disabled="ldapConnectionEditor.$invalid || testInProgress"
+              ng-click="testConnection()">Test Connection
+      </button>
+      <button id='ldap-connection-save' class="btn btn-primary" ng-disabled="!canSaveEdit()" ng-click="save()">Save</button>
     </div>
-    <div ng-show='saving' style='height:30px'><i class='icon-time'></i> Saving</div>
   </div>
+  <div ng-show='saving' style='height:30px'><i class='icon-time'></i> Saving</div>
 </div>

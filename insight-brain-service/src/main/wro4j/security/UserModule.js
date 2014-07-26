@@ -119,7 +119,7 @@
                 user.$delete().then(function() {
                   $modalInstance.close();
                 }, function(error) {
-                  $localScope.errorMsg = error.data;
+                  $localScope.alerts = [AngularUtils.toAlert(error.data)];
                 });
               };
               $localScope.cancel = function() {
@@ -137,7 +137,7 @@
     }
     $scope.saveClick = function(user) {
       if (!$scope.saving) {
-        $scope.errorMsg = null;
+        $scope.alerts = null;
         $scope.saving = true;
         $scope.user.$save().then(function() {
           if ($scope.context.userEditMap[user.id]) {
@@ -156,7 +156,7 @@
           });
           $scope.saving = false;
         }, function(error) {
-          $scope.errorMsg = error.data;
+          $scope.alerts = [AngularUtils.toAlert(error.data)];
           $scope.saving = false;
         });
       }

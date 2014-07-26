@@ -18,13 +18,9 @@
              ng-model='result.confirmPassword' required match='{{result.newPassword}}'
              messages="{match: 'Passwords must match!'}" placeholder="Confirm New Password">
     </div>
+    <div clm-alerts="error" no-close="true"></div>
     <button type='button' class="btn btn-link btn-cancel" ng-click='$dismiss()'>Cancel</button>
-    <span style="margin:0px;padding: 4px 35px 4px 14px;" ng-class="{'alert alert-error': error }"
-          ng-show="error">{{error}}
-    </span>
-    <div class="pull-right">
-      <button type='submit' class="btn btn-primary" ng-disabled='passwordForm.$invalid || submitActive'>Change</button>
-    </div>
+    <button type='submit' class="btn btn-primary pull-right" ng-disabled='passwordForm.$invalid || submitActive'>Change</button>
   </form>
 </script>
 <div class="first-row navbar navbar-fixed-top">

@@ -96,7 +96,7 @@
                 '</div>' + '<div class="modal-footer">' +
                 '<span id="login-error" ng-show="loginError" class="alert alert-error"' +
                 'style="margin-right:10px;">{{loginError}}</span>' +
-                '<button id="login-action" class="btn btn-primary" ng-click="signIn()" ' +
+                '<button id="login-action" class="btn btn-primary pull-right" ng-click="signIn()" ' +
                 'ng-disabled="loginForm.$invalid || processingLogin">Sign in</button>' + '</div>'+ '</form>',
               controller: ['$scope', '$http', 'CLMLocations', 'Messages', '$q',
                 function($scope, $http, CLMLocations, Messages, $q) {

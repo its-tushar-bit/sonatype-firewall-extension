@@ -105,6 +105,7 @@
     <button type='button' class='btn btn-link btn-cancel'>Cancel</button>
     <button type='button' class='btn'>Reset</button>
     <button type='button' class='btn btn-warning'>Update</button>
+    <button type='button' class='btn btn-success'>Action</button>
     <button type='button' class='btn btn-primary'>Submit</button>
 ```
 */
@@ -118,13 +119,35 @@
 .btn-cancel:hover {
   color: darken($gray, 25%) !important;
 }
+
+/*
+  ##Modal Forms
+```
+<div class="modal fade in">
+  <div class="modal-header">
+    <button type="button" class="close" aria-hidden="true">×</button>
+    <h3>Title</h3>
+  </div>
+  <div class='clm-form well clm-well'>
+    <form name="form">
+      <label for='normal'>An input that is not required and hasn't been updated</label>
+      <input type='text' id='normal' class='ng-valid'>
+      <label for='required'>An input that is required and hasn't been updated</label>
+      <input type='text' id='required' class='ng-invalid' required>
+      <button class='btn btn-link btn-cancel'>Cancel</button>
+      <button class='btn btn-primary pull-right'>Submit</button>
+    </form>
+  </div>
+</div>
+```
+*/
 .modal-footer {
   text-align: inherit;
 }
 /*
   ##Alerts
 
-  See clmAlert directive.
+  See clmAlerts directive.
 
 ```
   <div class='alert alert-success'>
@@ -150,8 +173,8 @@
 ```
 */
 .clm-well {
-  border: 2px solid $medium-gray;
-  margin-bottom:0px;
+  border: 2px solid $medium-gray !important;
+  margin-bottom:0px !important;
 }
 
 /*

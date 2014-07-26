@@ -272,8 +272,8 @@ var AngularStateUtils = {
         cancelFn : '&',
         cancelDisabled : '&'
       },
-      template : '<button class="btn" type="button" ng-click="decline()" ng-disabled="disabled || cancelDisabled()">{{cancelText}}</button> ' +
-                 '<button class="btn btn-primary" type="button" ng-click="accept()" ng-disabled="disabled || acceptDisabled()">{{acceptText}}</button>',
+      template : '<button class="btn btn-link btn-cancel" type="button" ng-click="decline()" ng-disabled="disabled || cancelDisabled()">{{cancelText}}</button> ' +
+                 '<button class="btn btn-primary pull-right" type="button" ng-click="accept()" ng-disabled="disabled || acceptDisabled()">{{acceptText}}</button>',
       link: function(scope, element, attrs) {
         function buttonClick(clickFn) {
           return function () {

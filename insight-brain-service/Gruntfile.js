@@ -109,7 +109,6 @@
           options: {
             middleware: function(connect) {
               return [
-                liveReloadSnippet,
                 function(req, res, options) {
                   req.headers.Authorization = 'Basic YWRtaW46YWRtaW4xMjM=';
                   proxySnippet(req, res, options);
@@ -405,6 +404,8 @@
     grunt.registerTask('metrics', [
       'clean:debug',
       'configureProxies',
+      'sass:clmServer',
+      'copy:filtered',
       'copy:debug',
       'connect:metrics',
       'phantomas:index'

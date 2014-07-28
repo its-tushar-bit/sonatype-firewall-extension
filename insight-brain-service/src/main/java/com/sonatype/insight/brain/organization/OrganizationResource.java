@@ -75,7 +75,7 @@ public class OrganizationResource
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-  public Organization addOrganization(@AuthzContext(AuthzContext.Key.ORGANIZATION_OWNER) Organization organization) {
+  public Organization addOrganization(Organization organization) {
     return organizationService.addOrganization(organization);
   }
 
@@ -85,7 +85,7 @@ public class OrganizationResource
   @PUT
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-  public Organization updateOrganization(@AuthzContext(AuthzContext.Key.ORGANIZATION) Organization organization) {
+  public Organization updateOrganization(Organization organization) {
     return organizationService.updateOrganization(organization);
   }
 
@@ -170,10 +170,7 @@ public class OrganizationResource
    */
   @DELETE
   @Path(DELETE_ORGANIZATION_PATH)
-  public void deleteOrganization(
-      @AuthzContext(AuthzContext.Key.ORGANIZATION_ID) @PathParam("organizationId") final String organizationId)
-      throws IOException
-  {
+  public void deleteOrganization(@PathParam("organizationId") final String organizationId) throws IOException {
     organizationService.deleteOrganization(organizationId);
   }
 }

@@ -86,4 +86,10 @@ public class Member
     this.email = email;
     this.realm = realm;
   }
+
+  @Override
+  public String toString() {
+    return "Member [type=" + type + ", internalName=" + internalName + ", displayName=" + displayName + ", email="
+        + email + ", realm=" + realm + "]";
+  }
 }

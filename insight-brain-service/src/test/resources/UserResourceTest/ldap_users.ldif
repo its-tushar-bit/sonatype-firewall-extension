@@ -26,7 +26,7 @@ departmentNumber: primaryUsers
 
 dn: uid=Beta,ou=users,dc=company,dc=com
 uid: Beta
-givenName: Beta User
+givenName: Beta
 objectClass: top
 objectClass: person
 objectClass: organizationalPerson

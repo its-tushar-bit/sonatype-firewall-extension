@@ -187,7 +187,8 @@ class LdapQuery
     NamingEnumeration<SearchResult> results = null;
     try {
       ctx = ctxFactory.getSystemLdapContext();
-      results = searchUsersByUsername(ctx, null, attributes, maxResults);
+      String username = "*";
+      results = searchUsersByUsername(ctx, username, attributes, maxResults);
       List<LdapUser> ldapUsers = new ArrayList<LdapUser>();
       while (results.hasMoreElements()) {
         ldapUsers.add(createUser(ctx, results.nextElement(), withMembership));
@@ -239,15 +240,15 @@ class LdapQuery
   }
 
   /**
-   * Query for list of users whos realname attribute matches the supplied nameFragment. This nameFragment will be prefixed and
-   * suffixed with a wildcard to find matches. Group membership is not included in the result.
+   * Query for list of users whose realname attribute matches the supplied name. Group membership is not included in the
+   * result.
    * 
-   * @param nameFragment String to match against
+   * @param name String to match against
    * @param maxResults maximum number of results to pull from ldap, don't want to overload the system
    * @return List of LdapUser objects matching the search criteria
    * @throws NamingException if there are problems accessing the ldap context
    */
-  public List<LdapUser> queryUsersByName(String nameFragment, long maxResults) throws NamingException {
+  public List<LdapUser> queryUsersByName(String name, long maxResults) throws NamingException {
     String[] attributes = pickAttributes( //
         umap.getUserIDAttribute(), //
         umap.getUserRealNameAttribute(), //
@@ -260,7 +261,7 @@ class LdapQuery
       ctx = ctxFactory.getSystemLdapContext();
       // TODO: query sanitization will be applied with this ticket
       // https://issues.sonatype.org/browse/CLM-1083
-      results = searchUsersByName(ctx, nameFragment, attributes, maxResults);
+      results = searchUsersByName(ctx, name, attributes, maxResults);
       List<LdapUser> ldapUsers = new ArrayList<LdapUser>();
       while (results.hasMoreElements()) {
         ldapUsers.add(createUser(ctx, results.nextElement(), false));
@@ -274,18 +275,17 @@ class LdapQuery
   }
 
   /**
-   * Query for list of groups whose Group ID attribute matches the supplied nameFragment. This nameFragment will be prefixed and
-   * suffixed with a wildcard to find matches.
-   *
-   * @param nameFragment String to match against
+   * Query for list of groups whose Group ID attribute matches the supplied name.
+   * 
+   * @param name String to match against
    * @param maxResults maximum number of results to pull from ldap, don't want to overload the system
    * @return List of LdapGroup objects matching the search criteria
    */
-  public List<LdapGroup> queryGroupsByName(String nameFragment, long maxResults) throws NamingException {
+  public List<LdapGroup> queryGroupsByName(String name, long maxResults) throws NamingException {
     LdapContext ctx = null;
     try {
       ctx = ctxFactory.getSystemLdapContext();
-      return searchGroupsByGroupname(ctx, nameFragment, maxResults);
+      return searchGroupsByGroupname(ctx, name, maxResults);
     } finally {
       LdapUtils.closeContext(ctx);
     }
@@ -359,7 +359,7 @@ class LdapQuery
   private NamingEnumeration<SearchResult> searchUsersByName(LdapContext ctx, String query, String[] attributes, long maxResults) throws NamingException
   {
     Multimap<String, String> attributeValues = ArrayListMultimap.create();
-    attributeValues.put(umap.getUserRealNameAttribute(), query != null ? "*" + query + "*" : "*");
+    attributeValues.put(umap.getUserRealNameAttribute(), query != null ? query : "");
     return searchUsersByAttributes(ctx, attributeValues, attributes, maxResults);
   }
   
@@ -370,7 +370,7 @@ class LdapQuery
       long maxResults) throws NamingException
   {
     Multimap<String, String> attributeValues = ArrayListMultimap.create();
-    attributeValues.put(umap.getUserIDAttribute(), username != null ? username : "*"); // mandatory username
+    attributeValues.put(umap.getUserIDAttribute(), username != null ? username : ""); // mandatory username
     return searchUsersByAttributes(ctx, attributeValues, attributes, maxResults);
   }
 
@@ -413,26 +413,29 @@ class LdapQuery
   /**
    * Search ldap server for all groups whose Group ID attribute matches the supplied name
    */
-  private List<LdapGroup> searchGroupsByGroupname(LdapContext ctx, String query, long maxResults)
+  private List<LdapGroup> searchGroupsByGroupname(LdapContext ctx, String groupName, long maxResults)
       throws NamingException
   {
     NamingEnumeration<SearchResult> results = null;
+    if (groupName == null) {
+      groupName = "";
+    }
     try {
       switch (umap.getGroupMappingType()) {
         case DYNAMIC: {
           String[] attributes = pickAttributes(umap.getUserMemberOfGroupAttribute());
           Multimap<String, String> attributeValues = ArrayListMultimap.create();
           attributeValues.put(umap.getUserIDAttribute(), "*");
-          attributeValues.put(umap.getUserMemberOfGroupAttribute(), query != null ? "*" + query + "*" : "*");
+          attributeValues.put(umap.getUserMemberOfGroupAttribute(), groupName);
 
           // Max results is ignored since all users must be returned to deduce unique dynamic groups
           results = searchUsersByAttributes(ctx, attributeValues, attributes, 0);
-          return buildGroupsFromDynamicSearchResults(new String[]{query}, results, false, maxResults);
+          return buildGroupsFromDynamicSearchResults(new String[] { groupName }, results, false, maxResults);
         }
         case STATIC: {
           String[] attributes = pickAttributes(umap.getGroupIDAttribute());
           Multimap<String, String> attributeValues = ArrayListMultimap.create();
-          attributeValues.put(umap.getGroupIDAttribute(), query != null ? "*" + query + "*" : "*");
+          attributeValues.put(umap.getGroupIDAttribute(), groupName);
 
           results = searchGroupsByAttributes(ctx, attributeValues, attributes, maxResults);
           return buildGroupsFromStaticSearchResults(results);

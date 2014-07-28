@@ -132,43 +132,43 @@ public class LdapManager
   }
 
   /**
-   * Find a list of users, searching the displayName attribute and adding a prefix and suffix wildcard to the nameFragment
+   * Find a list of users, searching the displayName attribute.
    * 
-   * @param nameFragment String to match against
+   * @param name String to match against
    * @param maxResults Limit on the number of results to return
    * @return List of LdapUser objects that match the search criteria
    * @throws NamingException if there is a problem with the mapping or the credentials
    */
-  public List<LdapUser> findUsersByName(String nameFragment, long maxResults) throws NamingException {
+  public List<LdapUser> findUsersByName(String name, long maxResults) throws NamingException {
     LdapConnection conn = getDecryptedConnection();
-    return new LdapQuery(conn, userDao.getByServerId(conn.getServerId())).queryUsersByName(nameFragment, maxResults);
+    return new LdapQuery(conn, userDao.getByServerId(conn.getServerId())).queryUsersByName(name, maxResults);
   }
 
   /**
-   * Find a list of groups, searching the Group ID attribute and adding a prefix and suffix wildcard to the nameFragment
-   *
-   * @param nameFragment String to match against
+   * Find a list of groups, searching the Group ID attribute.
+   * 
+   * @param name String to match against
    * @param maxResults Limit on the number of results to return
    * @return List of LdapGroup objects that match the search criteria
    */
-  public List<LdapGroup> findGroupsByName(String nameFragment, long maxResults) throws NamingException {
+  public List<LdapGroup> findGroupsByName(String name, long maxResults) throws NamingException {
     LdapConnection conn = getDecryptedConnection();
-    return new LdapQuery(conn, userDao.getByServerId(conn.getServerId())).queryGroupsByName(nameFragment, maxResults);
+    return new LdapQuery(conn, userDao.getByServerId(conn.getServerId())).queryGroupsByName(name, maxResults);
   }
 
   /**
-   * Tests finding users with a nameFragment
+   * Tests finding users by name
    * 
    * @param umap user mappings to find proper attributes for the ldap query
-   * @param nameFragment String to match against
+   * @param name String to match against
    * @param maxResults Limit on the number of results to return
    * @return List of LdapUser objects that match the search criteria
    * @throws NamingException if there is a problem with the mapping or the credentials
    */
-  public List<LdapUser> testFindUsersByName(LdapUserMapping umap, String nameFragment, long maxResults)
+  public List<LdapUser> testFindUsersByName(LdapUserMapping umap, String name, long maxResults)
       throws NamingException
   {
-    return new LdapQuery(getDecryptedConnection(), umap).queryUsersByName(nameFragment, maxResults);
+    return new LdapQuery(getDecryptedConnection(), umap).queryUsersByName(name, maxResults);
   }
 
   // User authentication

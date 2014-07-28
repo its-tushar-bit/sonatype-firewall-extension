@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.security;
 
 import java.io.IOException;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -379,7 +380,7 @@ public class UserResourceTest
     final String clmAndLDapUserName = "testuser";
 
     // Check LDAP for the user
-    Response response = AuthedRestAccess.get(getSearchUrl("John"));
+    Response response = AuthedRestAccess.get(getSearchUrl("John Doe"));
     assertMember(response, null, MemberType.USER, clmAndLDapUserName, "John Doe", "test.user@company.com", "LDAP");
 
     // Create the same user in CLM
@@ -483,7 +484,7 @@ public class UserResourceTest
     tempEntity.newLdapConnection(ldapServer.getId(), embeddedLdapServer.getPort());
     tempEntity.newLdapUserMapping(ldapServer.getId());
 
-    Response response = AuthedRestAccess.get(getSearchUrl("John"));
+    Response response = AuthedRestAccess.get(getSearchUrl("John Doe"));
     assertMember(response, null, MemberType.USER, "testuser", "John Doe", "test.user@company.com", "LDAP");
 
     tempEntity.newUser("testuser");
@@ -507,7 +508,7 @@ public class UserResourceTest
   }
 
   @Test
-  public void testFindLdapUserGroupSameName() throws Exception {
+  public void testFindLdapUserAndGroupWithSameName() throws Exception {
     embeddedLdapServer.start();
     embeddedLdapServer.loadData("/UserResourceTest/ldap_users.ldif");
 
@@ -520,9 +521,9 @@ public class UserResourceTest
     FindMembersDTO dto = fromJson(response, FindMembersDTO.class);
     Member[] members = dto.getMembers().toArray(new Member[0]);
     assertThat(members, is(notNullValue()));
-    assertThat(members.length, is(2));
+    assertThat("Found members:" + Arrays.toString(members), members.length, is(2));
 
-    assertMember(members[0], MemberType.USER, "Beta", "Beta User", "beta.user@company.com", "LDAP");
+    assertMember(members[0], MemberType.USER, "Beta", "Beta", "beta.user@company.com", "LDAP");
     assertMember(members[1], MemberType.GROUP, "Beta", "Beta", null, "LDAP");
   }
 
@@ -553,8 +554,8 @@ public class UserResourceTest
     return getRestBaseUrl() + UserResource.SERVICE_PATH;
   }
 
-  private String getSearchUrl(String query) {
-    return getRestBaseUrl() + UserResource.SERVICE_PATH + "/global/global/query?q=" + query;
+  private String getSearchUrl(String query) throws Exception {
+    return getRestBaseUrl() + UserResource.SERVICE_PATH + "/global/global/query?q=" + URLEncoder.encode(query, "UTF-8");
   }
 
   private void assertMember(Response response, String error, MemberType type, String name, String displayName,

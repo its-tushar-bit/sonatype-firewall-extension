@@ -177,8 +177,8 @@ public class UserDirectory
   }
 
   /**
-   * @param query The partial name query that searches for users based on first name, last name, or in the case of LDAP
-   *          name fragments.
+   * @param query The partial name query that searches for users based on first name, last name, or in the case of LDAP,
+   *          names.
    * @param groupsEnabled True, if LDAP groups should also be searched.
    * @return A query result containing members or exceptions. If an exception is encountered it is still likely that the
    *         result contains local user information.

@@ -28,7 +28,7 @@ class ImportPolicyModule
     cancelButton { buttons.cancel }
 
     policyList(required: false) { $('.policy-top') }
-    alertError(required: false) { $('#import-policy-dialog .alert-error') }
+    alertError(required: false) { $('#import-policy-dialog .alert-message') }
   }
 
   def importPolicy(File policyFile = samplePolicyFile) {

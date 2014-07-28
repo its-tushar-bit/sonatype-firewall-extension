@@ -26,7 +26,7 @@ class ProprietaryComponentsPage
     add { $('form[name="neditor"] button') }
     rows(required: false) { moduleList ProprietaryTableRow, $('tr') }
     buttons(required: false) { module ButtonsModule, $('#proprietaryButtons') }
-    error(required: false) { $('#proprietaryError') }
+    error(required: false) { $('#proprietaryError .alert-message') }
   }
 }
 

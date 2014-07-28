@@ -123,7 +123,7 @@ class ProprietaryComponentSpec
       add.click()
 
     then: 'an error is shown and the Reset button is enabled'
-      error.text().matches(~/Wildcards.*/)
+      error.text() == 'Wildcards are not allowed/required for packages'
       !buttons.button('Reset').disabled
       buttons.save.disabled
   }
@@ -137,7 +137,7 @@ class ProprietaryComponentSpec
       add.click()
 
     then: 'an error is shown and the Reset button is enabled'
-      error.text().matches(~/Invalid package prefix.*/)
+      error.text() == 'Invalid package prefix, enter e.g. com.mycompany'
       !buttons.button('Reset').disabled
       buttons.save.disabled
   }

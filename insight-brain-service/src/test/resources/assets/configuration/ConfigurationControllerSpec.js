@@ -94,7 +94,7 @@ describe('Proprietary components', function() {
       expect(scope.packages).toEqual(['foo', 'bar']);
       expect(scope.proprietary.regexes).toEqual(['bar']);
       expect(scope.regexes).toEqual(['bar', 'foo']);
-      expect(scope.error).toEqual('A Random Error');
+      expect(scope.error[0].msg).toEqual('A Random Error');
     }));
   });
 
@@ -105,7 +105,7 @@ describe('Proprietary components', function() {
       $httpBackend.expectGET(CLMLocations.getProprietaryConfig()).respond(proprietaryConfig);
       controller = $controller('ProprietaryConfigurationController', { $scope: scope });
       $httpBackend.flush();
-      expect(scope.error).toBeUndefined();
+      expect(scope.error).toBeNull();
     }));
 
     it('Good package inputs', function() {
@@ -126,29 +126,29 @@ describe('Proprietary components', function() {
 
     it('Bad package inputs', function() {
       expect(scope.validatePackage('com sonatype')).toBeFalsy();
-      expect(scope.error).toMatch(/invalid.*/i);
+      expect(scope.error[0].msg).toMatch(/invalid.*/i);
       expect(scope.validatePackage('com/sonatype')).toBeFalsy();
-      expect(scope.error).toMatch(/invalid.*/i);
+      expect(scope.error[0].msg).toMatch(/invalid.*/i);
       expect(scope.validatePackage('com.sonatype.')).toBeFalsy();
-      expect(scope.error).toMatch(/invalid.*/i);
+      expect(scope.error[0].msg).toMatch(/invalid.*/i);
       expect(scope.validatePackage('.com.sonatype')).toBeFalsy();
-      expect(scope.error).toMatch(/invalid.*/i);
+      expect(scope.error[0].msg).toMatch(/invalid.*/i);
       expect(scope.validatePackage('com.sonatype.*')).toBeFalsy();
-      expect(scope.error).toMatch(/wildcards.*/i);
+      expect(scope.error[0].msg).toMatch(/wildcards.*/i);
       expect(scope.validatePackage('com.sonatype.**')).toBeFalsy();
-      expect(scope.error).toMatch(/wildcards.*/i);
+      expect(scope.error[0].msg).toMatch(/wildcards.*/i);
       expect(scope.validatePackage('com.sona*')).toBeFalsy();
-      expect(scope.error).toMatch(/wildcards.*/i);
+      expect(scope.error[0].msg).toMatch(/wildcards.*/i);
       expect(scope.validatePackage('*.sonatype')).toBeFalsy();
-      expect(scope.error).toMatch(/wildcards.*/i);
+      expect(scope.error[0].msg).toMatch(/wildcards.*/i);
       expect(scope.validatePackage('foo')).toBeFalsy();
-      expect(scope.error).toBe('Package already specified');
+      expect(scope.error[0].msg).toBe('Package already specified');
     });
 
     it('Bad regex inputs', function() {
       //presently only checking to ensure regexes are unique
       expect(scope.validateRegex('bar')).toBeFalsy();
-      expect(scope.error).toBe('Regex already specified');
+      expect(scope.error[0].msg).toBe('Regex already specified');
     });
   });
 

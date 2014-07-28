@@ -4,7 +4,7 @@
  *          http://links.sonatype.com/products/clm/attributions. "Sonatype" is a
  *          trademark of Sonatype, Inc.
  */
-/* global angular, clmBuildTimestamp */
+/* global angular, clmBuildTimestamp, AngularUtils */
 
 (function() {
   'use strict';
@@ -50,8 +50,10 @@
             $scope.packages.push($scope.currentEntry);
           }
         }
-        $scope.currentEntry = '';
-        $scope.isRegex = false;
+        if (!$scope.error) {
+          $scope.currentEntry = '';
+          $scope.isRegex = false;
+        }
       };
 
       $scope.remove = function(index) {
@@ -83,13 +85,16 @@
           $scope.reset();
         }).error(function() {
           $scope.saving = false;
-          $scope.error =  Messages.getHttpErrorMessage(arguments);
+          $scope.error = [AngularUtils.toAlert(Messages.getHttpErrorMessage(arguments))];
         });
       };
 
       $scope.reset = function() {
         $scope.packages = angular.copy($scope.proprietary.packages);
         $scope.regexes = angular.copy($scope.proprietary.regexes);
+        $scope.currentEntry = '';
+        $scope.error = null;
+        $scope.isRegex = false;
       };
 
       $scope.isDirty = function() {
@@ -100,13 +105,13 @@
 
       $scope.validatePackage = function(value) {
         if($scope.packages.indexOf(value) !== -1) {
-          $scope.error = 'Package already specified';
+          $scope.error = [AngularUtils.toAlert('Package already specified')];
         }
         else if (value && !PACKAGE_REGEXP.test(value)) {
-          $scope.error = 'Invalid package prefix, enter e.g. com.mycompany';
+          $scope.error = [AngularUtils.toAlert('Invalid package prefix, enter e.g. com.mycompany')];
         }
         else if (value && value.indexOf('*') >= 0) {
-          $scope.error = 'Wildcards are not allowed/required for packages';
+          $scope.error = [AngularUtils.toAlert('Wildcards are not allowed/required for packages')];
         }
         else {
           $scope.error = null;
@@ -116,7 +121,7 @@
 
       $scope.validateRegex = function(value) {
         if ($scope.regexes.indexOf(value) !== -1) {
-          $scope.error = 'Regex already specified';
+          $scope.error = [AngularUtils.toAlert('Regex already specified')];
         }
         else {
           $scope.error = null;

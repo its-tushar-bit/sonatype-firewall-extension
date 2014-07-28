@@ -376,7 +376,7 @@ var AngularStateUtils = {
       restrict: 'A',
       template: '<div class="alert {{ \'alert-\' + (alert.type || \'warning\') }}" ng-repeat="alert in alerts">' +
                   '<button ng-if="!noClose" type="button" class="close" data-dismiss="alert">&times;</button>' +
-                  '{{alert.msg}}' +
+                  '<div class="alert-message">{{alert.msg}}</div>' +
                 '</div>',
       scope: {
         alerts: '=clmAlerts',

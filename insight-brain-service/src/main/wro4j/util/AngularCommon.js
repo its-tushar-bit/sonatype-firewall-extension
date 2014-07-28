@@ -414,30 +414,6 @@ var AngularStateUtils = {
   ]);
 
   /**
-   * Ensure that the value of the input matches the value from another specified input
-   */
-  angularCommon.directive('match', function() {
-    return {
-      restrict: 'A',
-      require: 'ngModel',
-      scope: false,
-      priority: 99,
-      link: function(scope, elm, attrs, ctrl) {
-        function validate (newVal) {
-          var match = !elm.val() || attrs.match === elm.val();
-
-          ctrl.$setValidity('match', match);
-
-          return match ? newVal : undefined;
-        }
-
-        ctrl.$parsers.unshift(validate);
-        attrs.$observe('match', validate);
-      }
-    };
-  });
-
-  /**
    * Ensure that a given value does not :
    * - have leading whitespace
    * - have trailing whitespace

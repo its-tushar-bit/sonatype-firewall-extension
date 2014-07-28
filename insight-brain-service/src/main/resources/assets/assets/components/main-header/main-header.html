@@ -15,8 +15,9 @@
     </div>
     <div clm-control-group for='confirmPassword' label="Confirm New Password">
       <input clm-input type="password" id="confirmPassword" name='confirmPassword'
-             ng-model='result.confirmPassword' required match='{{result.newPassword}}'
-             messages="{match: 'Passwords must match!'}" placeholder="Confirm New Password">
+             ng-model='result.confirmPassword' required ui-validate=" '$value==result.newPassword' "
+             ui-validate-watch=" 'result.newPassword' "
+             messages="{validator: 'Passwords must match!'}" placeholder="Confirm New Password">
     </div>
     <div clm-alerts="error" no-close="true"></div>
     <button type='button' class="btn btn-link btn-cancel" ng-click='$dismiss()'>Cancel</button>

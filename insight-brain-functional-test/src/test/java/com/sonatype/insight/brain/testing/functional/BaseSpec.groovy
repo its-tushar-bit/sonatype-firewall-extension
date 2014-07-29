@@ -205,15 +205,17 @@ abstract class BaseSpec
    * the element's parent scope.
    */
   String popoverText(element) {
-    def popover = element.parent().find('.input-popover')
-    waitFor { popover.displayed }
-    return popover.text()
+    def name = element.attr('name');
+    // Element needs to be selected twice as it is removed and readded to the DOM during waitFor
+    waitFor { $("#${name}-popover").displayed }
+    return $("#${name}-popover").text()
   }
 
   /**
    * Find all popover violation messages in a given element. Intended to confirm the presence/absence of violations in a form.
    */
   def popoverViolations(element) {
-    element.find('.input-popover')
+    def name = element.attr('name');
+    $("#${name}-popover")
   }
 }

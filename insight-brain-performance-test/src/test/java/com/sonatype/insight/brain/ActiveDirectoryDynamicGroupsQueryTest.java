@@ -7,6 +7,9 @@ package com.sonatype.insight.brain;
 
 import java.io.IOException;
 
+import com.sonatype.insight.brain.configuration.ldap.LdapUserMapping;
+import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapUserMappingDAO;
+
 import com.excilys.ebi.gatling.app.Gatling;
 import com.excilys.ebi.gatling.core.config.GatlingPropertiesBuilder;
 import org.junit.Before;
@@ -18,7 +21,7 @@ import static org.junit.Assert.assertThat;
 /**
  * @since 1.7
  */
-  public class LdapActiveDirectoryDynamicGroupsSimulationTest
+public class ActiveDirectoryDynamicGroupsQueryTest
     extends AbstractLdapSimulationTest
 {
   @Before
@@ -30,13 +33,16 @@ import static org.junit.Assert.assertThat;
   }
 
   @Test
-  public void testLdapSearchSimulation() {
+  public void testDynamicGroups() {
     GatlingPropertiesBuilder props =
-        configureGatling("LDAP Search Simulation with Active Directory Dynamic Groups", "com.sonatype.insight.brain.LdapQuerySimulation");
+        configureGatling("LDAP Search Simulation with Active Directory Dynamic Groups",
+            "com.sonatype.insight.brain.LdapQuerySimulation");
 
-    System.setProperty("userCount", "10");
-    System.setProperty("repeatTimes", "2");
-    System.setProperty("rampTime", "60");
+    //much more than this causes timeouts with dynamic group search enabled
+    System.setProperty("userCount", "8");
+    System.setProperty("repeatTimes", "1");
+    System.setProperty("rampTime", "120");
+    System.setProperty("testCases", "testCasesNoLeadingWildcardsDynamicGroupSearch.csv");
     int result = Gatling.fromMap(props.build());
     assertThat("Failures were detected from Gatling", result, equalTo(0));
   }

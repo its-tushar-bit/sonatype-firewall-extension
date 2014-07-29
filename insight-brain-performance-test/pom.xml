@@ -38,6 +38,7 @@
     <gatling.version>1.5.3</gatling.version>
     <gatling-highcharts.version>1.5.3</gatling-highcharts.version>
     <scala-maven-plugin.version>3.1.5</scala-maven-plugin.version>
+    <include.tests>**/ActiveDirectoryStaticGroupsQueryTest.java</include.tests>
   </properties>
 
   <dependencyManagement>
@@ -133,6 +134,49 @@
           </execution>
         </executions>
       </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+          <includes>
+            <include>${include.tests}</include>
+          </includes>
+        </configuration>
+      </plugin>
     </plugins>
   </build>
+
+  <!-- Gatling execution is limited to a single test case at a time, so test cases are separated into profiles -->
+  <profiles>
+    <profile>
+      <id>static-login</id>
+      <properties>
+        <include.tests>**/ActiveDirectoryStaticGroupsLoginTest.java</include.tests>
+      </properties>
+    </profile>
+    <profile>
+      <id>dynamic-login</id>
+      <properties>
+        <include.tests>**/ActiveDirectoryDynamicGroupsLoginTest.java</include.tests>
+      </properties>
+    </profile>
+    <profile>
+      <id>dynamic-query</id>
+      <properties>
+        <include.tests>**/ActiveDirectoryNoDynamicGroupsQueryTest.java</include.tests>
+      </properties>
+    </profile>
+    <profile>
+      <id>static-query-no-leading-wildcards</id>
+      <properties>
+        <include.tests>**/ActiveDirectoryStaticGroupsNoLeadingWildcardsTest.java</include.tests>
+      </properties>
+    </profile>
+    <profile>
+      <id>dynamic-query-group-search</id>
+      <properties>
+        <include.tests>**/ActiveDirectoryDynamicGroupsQueryTest.java</include.tests>
+      </properties>
+    </profile>
+  </profiles>
 </project>

@@ -19,9 +19,7 @@ class LdapQuerySimulation
 
   val repeatTimes: Int = Integer.getInteger("repeatTimes", 50)
 
-  val searchQueries = csv("testCases.csv").circular
-
-  val users = csv("users.csv").circular
+  val searchQueries = csv(System.getProperty("testCases", "testCases.csv")).circular
 
   val httpConf = httpConfig
       .baseURL("http://localhost:10070")
@@ -45,18 +43,8 @@ class LdapQuerySimulation
     }
   }
 
-  val login = {
-    scenario("Login with LDAP users")
-        .feed(users).repeat(repeatTimes) {
-      exec(http("login as ${username}").post("/rest/user/session").basicAuth("${username}", "${password}"))
-        .exec(http("logout as ${username}").delete("/rest/user/session"))
-          .exitHereIfFailed
-    }
-  }
-
   setUp(
-    search.users(userCount).ramp(rampTime).protocolConfig(httpConf),
-    login.users(userCount).ramp(rampTime).protocolConfig(httpConf)
+    search.users(userCount).ramp(rampTime).protocolConfig(httpConf)
   )
 
   assertThat(global.failedRequests.percent.is(0))

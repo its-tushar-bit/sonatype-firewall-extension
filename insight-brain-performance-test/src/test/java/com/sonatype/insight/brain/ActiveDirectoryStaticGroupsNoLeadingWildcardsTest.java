@@ -16,9 +16,13 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 
 /**
- * @since 1.7
+ * Comparison against queries that execute using pre and post-fixed wildcard characters in
+ * LdapActiveDirectoryStaticGroupsSimulationTest.
+ * The number of returned results should be smaller in almost all cases, and performance better.
+ *
+ * @since 1.11
  */
-public class LdapActiveDirectoryStaticGroupsSimulationTest
+public class ActiveDirectoryStaticGroupsNoLeadingWildcardsTest
     extends AbstractLdapSimulationTest
 {
 
@@ -31,10 +35,16 @@ public class LdapActiveDirectoryStaticGroupsSimulationTest
   }
 
   @Test
-  public void testLdapSearchSimulation() {
+  public void testStaticGroupsWithTrailingWildcardQueriesOnly() {
     GatlingPropertiesBuilder props =
-        configureGatling("LDAP Search Simulation with Active Directory Static Groups", "com.sonatype.insight.brain.LdapQuerySimulation");
+        configureGatling(
+            "LDAP Search Simulation with Active Directory Static Groups and only trailing wildcards included in the " +
+                "queries",
+            "com.sonatype.insight.brain.LdapQuerySimulation");
+
+    System.setProperty("testCases", "testCasesNoLeadingWildcardsGroupSearch.csv");
     int result = Gatling.fromMap(props.build());
+
     assertThat("Failures were detected from Gatling", result, equalTo(0));
   }
 

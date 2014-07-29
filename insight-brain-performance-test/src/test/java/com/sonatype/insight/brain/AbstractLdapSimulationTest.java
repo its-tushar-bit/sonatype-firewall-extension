@@ -63,7 +63,7 @@ public class AbstractLdapSimulationTest
 
     LdapUserMapping ldapUserMapping = new LdapUserMapping();
     ldapUserMapping.setServerId(ldapServer.getId());
-    ldapUserMapping.setUserPasswordAttribute(prop(properties,"userPasswordAttribute" ));
+    ldapUserMapping.setUserPasswordAttribute(prop(properties, "userPasswordAttribute"));
     ldapUserMapping.setUserBaseDN(prop(properties, "userBaseDN"));
     ldapUserMapping.setUserObjectClass(prop(properties, "userObjectClass"));
     ldapUserMapping.setUserIDAttribute(prop(properties, "userIDAttribute"));
@@ -76,6 +76,7 @@ public class AbstractLdapSimulationTest
     ldapUserMapping.setGroupMemberFormat(prop(properties, "groupMemberFormat"));
     ldapUserMapping.setUserMemberOfGroupAttribute(prop(properties, "userMemberOfGroupAttribute"));
     ldapUserMapping.setGroupMappingType(LdapGroupMappingType.valueOf(prop(properties, "groupMappingType")));
+    ldapUserMapping.setDynamicGroupSearchEnabled(true);
     new LdapUserMappingDAO().insert(ldapUserMapping);
   }
 

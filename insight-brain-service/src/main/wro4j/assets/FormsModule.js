@@ -109,6 +109,7 @@
                     placement: 'top',
                     content: errorMessage,
                     trigger: 'manual',
+                    container: 'body',
                     template: '<div class="popover input-popover fade top in">' +
                         '<div class="arrow"></div>' +
                         '<div class="popover-content">' +

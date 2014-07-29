@@ -67,6 +67,7 @@
   background-color: $errorBackground !important;
   color: $errorText;
   border: 1px solid $errorBorder;
+  z-index: $zindexModal + 1;
   @include border-radius($borderRadiusSmall);
 }
 .input-popover .top{
@@ -223,7 +224,7 @@
 .list-editor-form {
   margin-bottom: 0px;
 }
-.list-editor-form input {
+.list-editor-form input[type=text] {
   width: 441px !important;
 }
 .list-editor-well {

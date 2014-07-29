@@ -480,8 +480,8 @@ class LdapQuery
   }
 
   /**
-   * Return whether the name parameters exists within the queries array.
-   *
+   * Return whether the name parameter exists within the queries array.
+   * 
    * @param exact whether to filter results by substrings in queries or exact strings
    */
   private static boolean groupNameMatches(String name, String[] queries, boolean exact) {

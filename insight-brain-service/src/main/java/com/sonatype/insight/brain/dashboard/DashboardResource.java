@@ -24,6 +24,10 @@ import javax.ws.rs.core.MediaType;
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatCategoryFilter;
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatLevelFilter;
 
+import com.yammer.metrics.annotation.ExceptionMetered;
+import com.yammer.metrics.annotation.Metered;
+import com.yammer.metrics.annotation.Timed;
+
 @Named
 @Path(DashboardResource.SERVICE_PATH)
 public class DashboardResource
@@ -54,6 +58,9 @@ public class DashboardResource
   @GET
   @Path(GET_NEWEST_RISKS_PATH)
   @Produces(MediaType.APPLICATION_JSON)
+  @Timed
+  @Metered(name = "getNewestRisksMeter")
+  @ExceptionMetered(name = "getNewestRisksExceptionMeter")
   public List<NewestRiskDTO> getNewestRisks(@QueryParam("applicationIds") Set<String> applicationIds,
       @QueryParam("stageIds") Set<String> stageIds, @QueryParam("tagIds") Set<String> tagIds,
       @QueryParam("policyThreatCategories") PolicyThreatCategoryFilter policyThreatCategoryFilter,
@@ -67,6 +74,9 @@ public class DashboardResource
   @GET
   @Path(GET_APPLICATION_RISKS_PATH)
   @Produces(MediaType.APPLICATION_JSON)
+  @Timed
+  @Metered(name = "getApplicationRisksMeter")
+  @ExceptionMetered(name = "getApplicationRisksExceptionMeter")
   public List<ApplicationRiskScoreDTO> getApplicationRisks(@QueryParam("applicationIds") Set<String> applicationIds,
       @QueryParam("stageIds") Set<String> stageIds,
       @QueryParam("tagIds") Set<String> tagIds,
@@ -81,6 +91,9 @@ public class DashboardResource
   @GET
   @Path(GET_COMPONENT_RISKS_PATH)
   @Produces(MediaType.APPLICATION_JSON)
+  @Timed
+  @Metered(name = "getComponentRisksMeter")
+  @ExceptionMetered(name = "getComponentRisksExceptionMeter")
   public List<ComponentRiskDTO> getComponentRisks(@QueryParam("applicationIds") Set<String> applicationIds,
       @QueryParam("stageIds") Set<String> stageIds, @QueryParam("tagIds") Set<String> tagIds,
       @QueryParam("policyThreatCategories") PolicyThreatCategoryFilter policyThreatCategoryFilter,
@@ -97,6 +110,9 @@ public class DashboardResource
   @GET
   @Path(FILTERS_PATH)
   @Produces(MediaType.APPLICATION_JSON)
+  @Timed
+  @Metered(name = "getFilterMeter")
+  @ExceptionMetered(name = "getFilterExceptionMeter")
   public DashboardFilterDTO getDashboardFilterForCurrentUser() throws IOException {
     return dashboardService.getDashboardFilterForCurrentUser();
   }
@@ -108,6 +124,9 @@ public class DashboardResource
   @Path(FILTERS_PATH)
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
+  @Timed
+  @Metered(name = "updateFilterMeter")
+  @ExceptionMetered(name = "updateFilterExceptionMeter")
   public DashboardFilterDTO updateUserDashboardFilterForCurrentUser(DashboardFilterDTO dashboardFilterDTO) {
     return dashboardService.createOrUpdateDashboardFilterForCurrentUser(dashboardFilterDTO);
   }
@@ -117,6 +136,9 @@ public class DashboardResource
    */
   @DELETE
   @Path(FILTERS_PATH)
+  @Timed
+  @Metered(name = "deleteFilterMeter")
+  @ExceptionMetered(name = "deleteFilterExceptionMeter")
   public void deleteDashboardFilterForCurrentUser() {
     dashboardService.deleteDashboardFilterForCurrentUser();
   }
@@ -124,6 +146,9 @@ public class DashboardResource
   @GET
   @Path(FILTERS_SUMMARY_PATH)
   @Produces(MediaType.APPLICATION_JSON)
+  @Timed
+  @Metered(name = "getFilterSummaryMeter")
+  @ExceptionMetered(name = "getFilterSummaryExceptionMeter")
   public FilterSummaryDTO getFilterSummary(@QueryParam("applicationIds") Set<String> applicationIds,
       @QueryParam("stageIds") Set<String> stageIds, @QueryParam("tagIds") Set<String> tagIds,
       @QueryParam("policyThreatCategories") PolicyThreatCategoryFilter policyThreatCategoryFilter,
@@ -136,6 +161,9 @@ public class DashboardResource
   @GET
   @Path(COMPONENTS_SUMMARY_PATH)
   @Produces(MediaType.APPLICATION_JSON)
+  @Timed
+  @Metered(name = "getComponentSummaryMeter")
+  @ExceptionMetered(name = "getComponentSummaryExceptionMeter")
   public ComponentSummaryDTO getComponentSummary(@QueryParam("applicationIds") Set<String> applicationIds,
       @QueryParam("stageIds") Set<String> stageIds, @QueryParam("tagIds") Set<String> tagIds)
   {
@@ -145,6 +173,9 @@ public class DashboardResource
   @GET
   @Path(GET_POLICY_SUMMARY_PATH)
   @Produces(MediaType.APPLICATION_JSON)
+  @Timed
+  @Metered(name = "getPolicySummaryMeter")
+  @ExceptionMetered(name = "getPolicySummaryExceptionMeter")
   public PolicySummaryDTO getPolicySummary(@QueryParam("applicationIds") Set<String> applicationIds,
       @QueryParam("stageIds") Set<String> stageIds, @QueryParam("tagIds") Set<String> tagIds,
       @QueryParam("policyThreatCategories") PolicyThreatCategoryFilter policyThreatCategoryFilter,

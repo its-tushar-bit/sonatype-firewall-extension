@@ -41,6 +41,15 @@ var clmBuildTimestamp = '${build.timestamp}';
       }());
 
   window.Brain = {
+
+    /**
+     * This is only for unit testing
+     * @since version 1.12
+     * @param newBasePath - the new BasePath
+     */
+    "setBasePath": function(newBasePath){
+      basePath = newBasePath;
+    },
     /**
      * Check if the Brain instance supports a feature
      * @since version 1.1
@@ -75,7 +84,7 @@ var clmBuildTimestamp = '${build.timestamp}';
        * @since version 1.2
        */
       'getArtifactInfoUrl': function(arg) {
-        return '/rest/ci/component/details/' + encodeURIComponent(arg.appId) + '?' +
+        return basePath + 'rest/ci/component/details/' + encodeURIComponent(arg.appId) + '?' +
             param({ groupId: arg.groupId, artifactId: arg.artifactId, version: arg.version, hash: arg.hash,
               matchState: arg.matchState, proprietary: arg.proprietary, instanceId: arg.instanceId,
               ts: new Date().getTime() });
@@ -86,7 +95,7 @@ var clmBuildTimestamp = '${build.timestamp}';
        * @deprecated As of version 1.4, superseded by getComponentDetailsListUrl().
        */
       'getArtifactVersionInfoUrl': function(arg) {
-        return '/rest/ci/component/details/versions/' + encodeURIComponent(arg.appId) + '?' +
+        return basePath + 'rest/ci/component/details/versions/' + encodeURIComponent(arg.appId) + '?' +
             param({ groupId: arg.groupId, artifactId: arg.artifactId, version: arg.version, instanceId: arg.instanceId });
       },
       /**
@@ -94,7 +103,7 @@ var clmBuildTimestamp = '${build.timestamp}';
        * @since version 1.4
        */
       'getComponentDetailsListUrl': function(arg) {
-        return '/rest/ci/component/details/list/' + encodeURIComponent(arg.appId) + '?' +
+        return basePath + 'rest/ci/component/details/list/' + encodeURIComponent(arg.appId) + '?' +
             param({ groupId: arg.groupId, artifactId: arg.artifactId, version: arg.version, instanceId: arg.instanceId });
       },
       /**
@@ -102,7 +111,7 @@ var clmBuildTimestamp = '${build.timestamp}';
        * @since version 1.4
        */
       'getArtifactLicensesUrl': function(arg) {
-        return '/rest/ci/component/details/selectableLicenses/' + encodeURIComponent(arg.appId) + '?' +
+        return basePath + 'rest/ci/component/details/selectableLicenses/' + encodeURIComponent(arg.appId) + '?' +
             param({ groupId: arg.groupId, artifactId: arg.artifactId, version: arg.version, instanceId: arg.instanceId });
       }
     },

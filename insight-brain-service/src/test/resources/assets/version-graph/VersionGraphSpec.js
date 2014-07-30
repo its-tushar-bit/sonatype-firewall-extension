@@ -16,6 +16,50 @@ clmEndpoint = clmEndpointTemplate = {
       document.cookie = 'clmAppId=; expires=Thu, 01-Jan-70 00:00:01 GMT;';
     });
 
+    describe('Rest endpoints use base url', function() {
+
+      var gav = {
+        groupId: 'gid',
+        artifactId: 'aid',
+        version: '1',
+        hash: '12345678901234567890',
+        matchState: 'similar'
+      };
+
+      var bacon = /^\/bacon\//;
+
+      function shouldStartWithBacon(f) {
+        if (f.length === 0) {
+          expect(f()).toMatch(bacon)
+        }
+        else if (f.length === 1) {
+          expect(f(gav)).toMatch(bacon)
+        }
+        else {
+          console.log("Not yet programmed to deal with the args of: " + f);
+        }
+      }
+
+      function checkObjectAndSubObjectsForEnoughBacon(o) {
+        for (var f in o) {
+          if (o.hasOwnProperty(f)) {
+            if (f.match(/^get/) && f !== "getVersion" && typeof(o[f]) === 'function') {
+              shouldStartWithBacon(o[f]);
+            }
+            else if (typeof(o[f]) === "object") {
+              checkObjectAndSubObjectsForEnoughBacon(o[f]);
+            }
+          }
+        }
+      }
+
+      it('All getters should start with the base path of bacon', inject(function($httpBackend) {
+        Brain.setBasePath('/bacon/');
+        checkObjectAndSubObjectsForEnoughBacon(Brain);
+      }));
+
+    });
+
     describe('setLogger', function () {
       afterEach(function () {
         Insight.resetLogger();

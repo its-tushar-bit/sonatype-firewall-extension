@@ -38,7 +38,7 @@ public class LdapGroup
 
     buf.append("Group:");
     buf.append("\n\tGroupname: ").append(groupname);
-    buf.append("\n\tDN: ").append(dn);
+    buf.append("\n\tDN: ").append(dn).append('\n');
 
     return buf.toString();
   }

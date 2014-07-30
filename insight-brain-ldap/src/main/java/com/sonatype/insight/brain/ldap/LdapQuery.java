@@ -430,7 +430,14 @@ class LdapQuery
 
           // Max results is ignored since all users must be returned to deduce unique dynamic groups
           results = searchUsersByAttributes(ctx, attributeValues, attributes, 0);
-          return buildGroupsFromDynamicSearchResults(new String[] { groupName }, results, false, maxResults);
+          if (groupName.contains("*")) {
+            String groupNameNoWildCards = groupName.replace("*", "");
+            return buildGroupsFromDynamicSearchResults(new String[] { groupNameNoWildCards }, results, false,
+                maxResults);
+          }
+          else {
+            return buildGroupsFromDynamicSearchResults(new String[] { groupName }, results, true, maxResults);
+          }
         }
         case STATIC: {
           String[] attributes = pickAttributes(umap.getGroupIDAttribute());

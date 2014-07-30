@@ -485,6 +485,9 @@ public class LdapManagerTest
     List<LdapGroup> groups = manager.findGroupsByName("Omega", 100);
     assertThat(groups, hasSize(1));
     assertThat(groups.get(0).getGroupname(), is("Omega"));
+
+    groups = manager.findGroupsByName("meg", 100);
+    assertThat(groups, hasSize(0));
   }
 
   @Test
@@ -550,25 +553,80 @@ public class LdapManagerTest
     userMappingDAO.insert(umap);
   }
 
-  @Test
-  public void testFindDynamicGroupsByName() throws Exception {
-    startLdapServer();
-    setSearchBase();
-
-    LdapUserMappingDAO userMappingDAO = new LdapUserMappingDAO();
+  private void createDynamicGroupMapping() {
     LdapUserMapping umap = createUserMapping();
+    LdapUserMappingDAO userMappingDAO = new LdapUserMappingDAO();
     umap.setGroupMappingType(LdapGroupMappingType.DYNAMIC);
     umap.setUserMemberOfGroupAttribute("departmentNumber");
     userMappingDAO.insert(umap);
+  }
 
-    List<LdapGroup> groups = manager.findGroupsByName("Users", 100);
-    assertThat(groups.size(), is(3));
+  @Test
+  public void testFindDynamicGroupsByName_MaxResults() throws Exception {
+    startLdapServer();
+    setSearchBase();
 
-    groups = manager.findGroupsByName("Users", 1);
-    assertThat(groups.size(), is(1));
+    createDynamicGroupMapping();
 
-    groups = manager.findGroupsByName("Foo", 100);
-    assertThat(groups.size(), is(0));
+    List<LdapGroup> groups = manager.findGroupsByName("*Users", 100);
+    assertThat(groups, hasSize(3));
+
+    groups = manager.findGroupsByName("*Users", 2);
+    assertThat(groups, hasSize(2));
+  }
+
+  @Test
+  public void testFindDynamicGroupsByName_Wildcard() throws Exception {
+    startLdapServer();
+    setSearchBase();
+
+    createDynamicGroupMapping();
+
+    List<LdapGroup> groups = manager.findGroupsByName("*Users", 100);
+    assertThat(groups, hasSize(3));
+    List<String> foundNames = new ArrayList<>();
+    for (LdapGroup group : groups) {
+      foundNames.add(group.getGroupname());
+    }
+    assertThat(foundNames, containsInAnyOrder("primaryUsers", "secondaryUsers", "testUsers"));
+  }
+
+  @Test
+  public void testFindDynamicGroupsByName_Exact() throws Exception {
+    startLdapServer();
+    setSearchBase();
+
+    createDynamicGroupMapping();
+
+    List<LdapGroup> groups = manager.findGroupsByName("testUsers", 100);
+    assertThat(groups, hasSize(1));
+    assertThat(groups.get(0).getGroupname(), is("testUsers"));
+
+    groups = manager.findGroupsByName("estUser", 100);
+    assertThat(groups, hasSize(0));
+  }
+
+  @Test
+  public void testFindDynamicGroupsByName_CaseInsensitive() throws Exception {
+    startLdapServer();
+    setSearchBase();
+
+    createDynamicGroupMapping();
+
+    List<LdapGroup> groups = manager.findGroupsByName("TESTuSERS", 100);
+    assertThat(groups, hasSize(1));
+    assertThat(groups.get(0).getGroupname(), is("testUsers"));
+  }
+
+  @Test
+  public void testFindDynamicGroupsByName_NotFound() throws Exception {
+    startLdapServer();
+    setSearchBase();
+
+    createDynamicGroupMapping();
+
+    List<LdapGroup> groups = manager.findGroupsByName("Foo", 100);
+    assertThat(groups, hasSize(0));
   }
 
   @Test

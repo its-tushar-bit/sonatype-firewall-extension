@@ -50,23 +50,11 @@
       $scope.isRegex = false;
       $scope.isAuthorized = hasAdminPermission;
 
-      $scope.add = function(currentEntry, isRegex) {
-        if (isRegex === true) {
-          if ($scope.validateRegex(currentEntry)) {
-            $scope.regexes.push(currentEntry);
-          }
-        }
-        else if ($scope.validatePackage(currentEntry)) {
-          $scope.packages.push(currentEntry);
-        }
-      };
-
-      $scope.remove = function(index) {
-        $scope.packages.splice(index, 1);
-      };
-
-      $scope.removeRegex = function(index) {
-        $scope.regexes.splice(index, 1);
+      $scope.validatePackage = function(value, isRegex) {
+        return {
+          invalidPrefix: !value || isRegex || PACKAGE_REGEXP.test(value),
+          wildcards: !value || isRegex || value.indexOf('*') < 0
+        };
       };
 
       $scope.doLoad = function() {
@@ -106,32 +94,6 @@
         return $scope.packages && $scope.proprietary &&
           (!angular.equals($scope.packages, $scope.proprietary.packages) ||
             !angular.equals($scope.regexes, $scope.proprietary.regexes));
-      };
-
-      $scope.validatePackage = function(value) {
-        if($scope.packages.indexOf(value) !== -1) {
-          $scope.error = [AngularUtils.toAlert('Package already specified')];
-        }
-        else if (value && !PACKAGE_REGEXP.test(value)) {
-          $scope.error = [AngularUtils.toAlert('Invalid package prefix, enter e.g. com.mycompany')];
-        }
-        else if (value && value.indexOf('*') >= 0) {
-          $scope.error = [AngularUtils.toAlert('Wildcards are not allowed/required for packages')];
-        }
-        else {
-          $scope.error = null;
-        }
-        return $scope.error === null;
-      };
-
-      $scope.validateRegex = function(value) {
-        if ($scope.regexes.indexOf(value) !== -1) {
-          $scope.error = [AngularUtils.toAlert('Regex already specified')];
-        }
-        else {
-          $scope.error = null;
-        }
-        return $scope.error === null;
       };
 
       $scope.doLoad();

@@ -18,11 +18,12 @@ class ProprietaryComponentsPage
 {
   static url = 'assets/index.html#/proprietarycomponents'
 
-  static at = { $('#proprietaryTable').displayed }
+  static at = { $('#proprietary-component-form').displayed }
 
   static content = {
     pageTitle { $('h1.page-title', text: 'Proprietary Components') }
     form { $('form[name="neditor"]') }
+    input { $('form[name="neditor"] input[type="text"]') }
     add { $('form[name="neditor"] button') }
     rows(required: false) { moduleList ProprietaryTableRow, $('tr') }
     buttons(required: false) { module ButtonsModule, $('#proprietaryButtons') }

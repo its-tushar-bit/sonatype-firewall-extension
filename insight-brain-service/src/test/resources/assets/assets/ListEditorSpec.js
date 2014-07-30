@@ -44,7 +44,9 @@ describe('ListEditor', function() {
           myList: [],
           placeHolder: 'some text',
           validator: function() {
-            return valid;
+            return {
+              isValid: valid
+            };
           }
         },
         element = createDirective('<form name="form">' +
@@ -56,11 +58,12 @@ describe('ListEditor', function() {
     expect(input.length).not.toEqual(0);
     setInput(input, 'foo');
     expect(form.$valid).toBe(true);
+    expect(form.neditor.$error.isValid).not.toBeTruthy();
 
     valid = false;
     setInput(input, 'bar');
     expect(form.$valid).toBe(false);
-    expect(form.neditor.$error.validInput).toBeTruthy();
+    expect(form.neditor.$error.isValid).toBeTruthy();
   });
 
   it('Uniqueness', function() {
@@ -135,6 +138,49 @@ describe('ListEditor', function() {
     expect(form.$valid).toBe(true);
   });
 
+  it('Provides isRegex argument to validation', function() {
+    var validatorSpy = jasmine.createSpy('validator');
+    var template = {
+        entries: [],
+        regexes: [],
+        validator: validatorSpy
+      },
+      element = createDirective('<div list-editor validator="validator" entries="entries" regexes="regexes"></div>',
+        template),
+      input = angular.element('input', element);
+
+    setInput(input, 'foo');
+    expect(validatorSpy).toHaveBeenCalledWith('foo', false);
+
+    validatorSpy.reset();
+
+    scope.$$childHead.isRegex = true;
+    setInput(input, 'bar');
+    expect(validatorSpy).toHaveBeenCalledWith('bar', true);
+  });
+
+  it('Add entries to both entries and regexes', function() {
+    var template = {
+        entries: [],
+        regexes: [],
+        validator: function() { return {}; }
+      },
+      element = createDirective('<div list-editor validator="validator" entries="entries" regexes="regexes"></div>',
+        template),
+      input = angular.element('input', element);
+
+    setInput(input, 'foo');
+    scope.$$childHead.add();
+    scope.$digest();
+    expect(template.entries).toEqual(['foo']);
+
+    scope.$$childHead.isRegex = true;
+    setInput(input, 'bar');
+    scope.$$childHead.add();
+    scope.$digest();
+    expect(template.regexes).toEqual(['bar']);
+  });
+
   // See https://issues.sonatype.org/browse/CLM-844
   var reset = [
     { valid: true, name: 'Valid' },
@@ -147,7 +193,9 @@ describe('ListEditor', function() {
             setError: jasmine.createSpy('setError'),
             placeHolder: 'some text',
             validator: function() {
-              return item.valid ? null : 'invalid entry';
+              return {
+                isValid: item.valid ? true : false
+              };
             }
           },
           element = createDirective('<div list-editor validator="validator" entries="myList" place-holder="placeHolder"></div>',
@@ -162,7 +210,7 @@ describe('ListEditor', function() {
       scope.$apply(function() {
         scope.myList = ['asdf'];
       });
-      expect(scope.validator).toHaveBeenCalledWith('foo');
+      expect(scope.validator).toHaveBeenCalledWith('foo', false);
       expect(scope.$$childHead.neditor.$valid).toEqual(item.valid);
     });
   });

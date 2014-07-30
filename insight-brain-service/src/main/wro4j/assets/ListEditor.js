@@ -23,13 +23,21 @@
         placeHolder: '@placeHolder',
         maxLength: '@maxLength',
         entries: '=entries',
-        messages: '=?'
+        messages: '=?',
+        regexes: '=?'
       },
       priority: 99,
       link: function(scope, element) {
+        scope.isRegex = false;
+
         var inputScope = element.find('input').scope();
         scope.add = function() {
-          scope.entries.push(inputScope.currentEntry);
+          if (scope.regexes && scope.isRegex) {
+            scope.regexes.push(inputScope.currentEntry);
+          } else {
+            scope.entries.push(inputScope.currentEntry);
+          }
+
           inputScope.currentEntry = '';
           //explicitly reset form state otherwise input remains $dirty
           scope.neditor.$setPristine();
@@ -37,6 +45,18 @@
         scope.remove = function(index) {
           scope.entries.splice(index, 1);
           //rerun validator for currentEntry once entry is removed
+          scope.neditor.currentEntry.$setViewValue(scope.neditor.currentEntry.$viewValue);
+        };
+
+        scope.removeRegex = function(index) {
+          scope.regexes.splice(index, 1);
+          //rerun validator for currentEntry once entry is removed
+          scope.neditor.currentEntry.$setViewValue(scope.neditor.currentEntry.$viewValue);
+        };
+
+        scope.isRegexChanged = function() {
+          scope.isRegex = !scope.isRegex;
+          //rerun validator for currentEntry once is regex is toggled
           scope.neditor.currentEntry.$setViewValue(scope.neditor.currentEntry.$viewValue);
         };
       }
@@ -51,14 +71,21 @@
       priority: 99,
       link: function(scope, elm, attrs, ctrl) {
         var validate = function(newValue) {
-          var unique = angular.isArray(scope.entries) && scope.entries.indexOf(newValue) === -1,
-              validation = typeof scope.validator === 'function' ? scope.validator(newValue) : true,
-              validInput = typeof validation === 'string' ? false : validation !== false;
+          var unique = (!scope.isRegex && angular.isArray(scope.entries) && scope.entries.indexOf(newValue) === -1) ||
+                       (scope.isRegex && angular.isArray(scope.regexes) && scope.regexes.indexOf(newValue) === -1),
+              validation = typeof scope.validator === 'function' ? scope.validator(newValue, scope.isRegex) : true;
 
           ctrl.$setValidity('unique', unique);
-          ctrl.$setValidity('validInput', validInput);
 
-          return unique && validInput ? newValue : undefined;
+          var isValid = true;
+          for (var validity in validation) {
+            if (validation.hasOwnProperty(validity)) {
+              ctrl.$setValidity(validity, validation[validity]);
+              isValid = isValid && validation[validity];
+            }
+          }
+
+          return unique && isValid ? newValue : undefined;
         };
 
         ctrl.$parsers.unshift(validate);

@@ -3,9 +3,14 @@
     <div clm-control-group for="current-entry" label="{{placeHolder}}">
       <div class='input-append controls'>
         <input clm-input type='text' id="current-entry" name='currentEntry' ng-model='currentEntry' max='{{maxLength}}'
-               placeholder='Enter {{placeHolder}}' list-editor-validator required entersubmit messages="messages || {}">
+               placeholder='Enter {{placeHolder}}' list-editor-validator required entersubmit
+               messages="messages || {}">
         <button class='btn' ng-disabled='neditor.$invalid' title='Add {{placeHolder}}'>Add</button>
       </div>
+    </div>
+    <div class='control-group' ng-if="regexes !== undefined">
+      <input type='checkbox' id='isRegex' name='isRegex' ng-model='isRegex' ng-change="isRegexChanged()">
+      <label for='isRegex'>Regular expression</label>
     </div>
   </form>
   <div class='well well-small list-editor-well'>
@@ -17,6 +22,17 @@
           </td>
           <td>
             <button class='btn btn-mini' ng-click='remove($index)' title='Remove {{placeHolder}}'>
+              <i class='icon-minus-sign'></i>
+            </button>
+          </td>
+        </tr>
+        <tr ng-repeat='entry in regexes'>
+          <td>
+            <div title='{{entry}}'>{{entry}}</div>
+          </td>
+          <td>
+            <span><em>(regex)</em></span>
+            <button class='btn btn-mini' ng-click='removeRegex($index)' title='Remove {{placeHolder}}'>
               <i class='icon-minus-sign'></i>
             </button>
           </td>

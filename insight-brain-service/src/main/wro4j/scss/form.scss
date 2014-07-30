@@ -202,6 +202,10 @@
           </div>
         </div>
       </div>
+      <div class='control-group'>
+        <input type='checkbox'>
+        <label>Optional Regex Checkbox</label>
+      </div>
     </form>
     <div class='well well-small list-editor-well'>
       <div>
@@ -233,6 +237,10 @@
 }
 .list-editor-form input[type=text] {
   width: 441px !important;
+}
+.list-editor-form input[type=checkbox] {
+  float: left;
+  margin-right: 5px;
 }
 .list-editor-well {
   padding: 3px;

@@ -112,46 +112,27 @@ describe('Proprietary components', function() {
     }));
 
     it('Good package inputs', function() {
-      expect(scope.validatePackage('com.sonatype')).toBeTruthy();
-      expect(scope.error).toBeFalsy();
+      expect(scope.validatePackage('com.sonatype', false)).toEqual({ invalidPrefix : true, wildcards : true });
     });
 
     it('Good regex inputs', function() {
-      expect(scope.validateRegex('com.sonatype.*')).toBeTruthy();
-      expect(scope.error).toBeFalsy();
+      expect(scope.validatePackage('com.sonatype.*', true)).toEqual({ invalidPrefix : true, wildcards : true });
     });
 
     //see CLM-1097
     it('Should treat an empty entry as valid', function(){
-      expect(scope.validatePackage('')).toBeTruthy();
-      expect(scope.error).toBeFalsy();
+      expect(scope.validatePackage('', false)).toEqual({ invalidPrefix : true, wildcards : true });
     });
 
     it('Bad package inputs', function() {
-      expect(scope.validatePackage('com sonatype')).toBeFalsy();
-      expect(scope.error[0].msg).toMatch(/invalid.*/i);
-      expect(scope.validatePackage('com/sonatype')).toBeFalsy();
-      expect(scope.error[0].msg).toMatch(/invalid.*/i);
-      expect(scope.validatePackage('com.sonatype.')).toBeFalsy();
-      expect(scope.error[0].msg).toMatch(/invalid.*/i);
-      expect(scope.validatePackage('.com.sonatype')).toBeFalsy();
-      expect(scope.error[0].msg).toMatch(/invalid.*/i);
-      expect(scope.validatePackage('com.sonatype.*')).toBeFalsy();
-      expect(scope.error[0].msg).toMatch(/wildcards.*/i);
-      expect(scope.validatePackage('com.sonatype.**')).toBeFalsy();
-      expect(scope.error[0].msg).toMatch(/wildcards.*/i);
-      expect(scope.validatePackage('com.sona*')).toBeFalsy();
-      expect(scope.error[0].msg).toMatch(/wildcards.*/i);
-      expect(scope.validatePackage('*.sonatype')).toBeFalsy();
-      expect(scope.error[0].msg).toMatch(/wildcards.*/i);
-      expect(scope.validatePackage('foo')).toBeFalsy();
-      expect(scope.error[0].msg).toBe('Package already specified');
-    });
-
-    it('Bad regex inputs', function() {
-      //presently only checking to ensure regexes are unique
-      expect(scope.validateRegex('bar')).toBeFalsy();
-      expect(scope.error[0].msg).toBe('Regex already specified');
+      expect(scope.validatePackage('com sonatype', false)).toEqual({ invalidPrefix : false, wildcards : true });
+      expect(scope.validatePackage('com/sonatype', false)).toEqual({ invalidPrefix : false, wildcards : true });
+      expect(scope.validatePackage('com.sonatype.', false)).toEqual({ invalidPrefix : false, wildcards : true });
+      expect(scope.validatePackage('.com.sonatype', false)).toEqual({ invalidPrefix : false, wildcards : true });
+      expect(scope.validatePackage('com.sonatype.*', false)).toEqual({ invalidPrefix : true, wildcards : false });
+      expect(scope.validatePackage('com.sonatype.**', false)).toEqual({ invalidPrefix : true, wildcards : false });
+      expect(scope.validatePackage('com.sona*', false)).toEqual({ invalidPrefix : true, wildcards : false });
+      expect(scope.validatePackage('*.sonatype', false)).toEqual({ invalidPrefix : true, wildcards : false });
     });
   });
 

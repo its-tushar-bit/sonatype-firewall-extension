@@ -83,69 +83,53 @@ class ProprietaryComponentSpec
 
   def "Already specified packages result in an error"() {
     when: 'we add a package already stored'
+      form.isRegex = false
       form.currentEntry = CONFIG.packages[0]
-      add.click()
 
     then: 'an error is shown and the Reset button is enabled'
-      error.text() == 'Package already specified'
-      !buttons.button('Reset').disabled
+      popoverText(input) == 'Component selector already specified'
       buttons.save.disabled
   }
 
-  def "We can clear an error by resetting the form"() {
+  def "We can clear an error by removing the entry"() {
     when: 'we clear an existing error'
-      buttons.button('Reset').click()
+      form.currentEntry = ''
 
-    then: 'the error is removed and buttons are disabled'
-      !error.displayed
+    then: 'the error is replaced and buttons are disabled'
+      popoverText(input) == 'Please enter a value'
       buttons.save.disabled
-      buttons.button('Reset').disabled
   }
 
   def "Already specified regexes result in an error"() {
     when: 'we add a package already stored'
       form.currentEntry = CONFIG.regexes[0]
       form.isRegex = true
-      add.click()
 
     then: 'an error is shown and the Reset button is enabled'
-      error.text() == 'Regex already specified'
-      !buttons.button('Reset').disabled
+      popoverText(input) == 'Component selector already specified'
       buttons.save.disabled
   }
 
   def "Packages with wildcards should be rejected"() {
-    setup: 'clear existing error(already explicitly tested)'
-      buttons.button('Reset').click()
-
     when: 'we add a package containing a wildcard'
+      form.isRegex = false
       form.currentEntry = 'com.**'
-      add.click()
 
     then: 'an error is shown and the Reset button is enabled'
-      error.text() == 'Wildcards are not allowed/required for packages'
-      !buttons.button('Reset').disabled
+      popoverText(input) == 'Wildcards are not allowed/required for packages'
       buttons.save.disabled
   }
 
   def "Packages which have a bad prefix should be rejected"() {
-    setup: 'clear existing error(already explicitly tested)'
-      buttons.button('Reset').click()
-
     when: 'we add a package containing a wildcard'
       form.currentEntry = '.'
-      add.click()
 
     then: 'an error is shown and the Reset button is enabled'
-      error.text() == 'Invalid package prefix, enter e.g. com.mycompany'
-      !buttons.button('Reset').disabled
+      popoverText(input) == 'Invalid package prefix, enter e.g. com.mycompany'
       buttons.save.disabled
   }
 
   def "Unparseable regexes result in an error"() {
-    setup: 'clear existing error(already explicitly tested)'
-      buttons.button('Reset').click()
-
     when: 'we add a regex that cannot be parsed and try to save it'
       form.currentEntry = '*'
       form.isRegex = true

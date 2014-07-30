@@ -141,7 +141,9 @@
             '$scope', function(modalScope) {
               var EMAIL_REGEXP = /^\S+@\S+\.\S+$/;
               modalScope.validateEmail = function(value) {
-                return !value || EMAIL_REGEXP.test(value);
+                return {
+                  invalidEmail: !value || EMAIL_REGEXP.test(value)
+                };
               };
 
               modalScope.notificationEmailList = addresses;

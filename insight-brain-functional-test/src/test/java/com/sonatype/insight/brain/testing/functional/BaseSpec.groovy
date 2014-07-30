@@ -205,10 +205,9 @@ abstract class BaseSpec
    * the element's parent scope.
    */
   String popoverText(element) {
-    def name = element.attr('name');
-    // Element needs to be selected twice as it is removed and readded to the DOM during waitFor
-    waitFor { $("#${name}-popover").displayed }
-    return $("#${name}-popover").text()
+    def popover = popoverViolations(element)
+    waitFor { popover.displayed }
+    return popover.text()
   }
 
   /**
@@ -216,6 +215,6 @@ abstract class BaseSpec
    */
   def popoverViolations(element) {
     def name = element.attr('name');
-    $("#${name}-popover")
+    $("#${name}-popover.in")
   }
 }

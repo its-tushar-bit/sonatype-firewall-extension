@@ -270,7 +270,7 @@
         ownerType : '@',
         ownerId : '@'
       },
-      template : '<form name="userSearch" style="margin:0px">' +
+      template : '<form name="userSearch" style="margin:0; padding-top: 10px;">' +
           '<div class="input-prepend">' +
             '<span class="add-on">' +
               '<i class="icon-search" ng-show="!requestActive"> </i>' +

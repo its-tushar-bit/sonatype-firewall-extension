@@ -506,24 +506,24 @@ describe('ContactController', function () {
 
   it('Error', function () {
     scope.setQueryResults(null, "Failure");
-    expect(scope.error).toEqual("Failure");
+    expect(scope.alerts[0].msg).toEqual("Failure");
   });
 
   it('Query Error', function () {
     scope.setQueryResults(null, "Failure");
-    expect(scope.error).toEqual("Failure");
+    expect(scope.alerts[0].msg).toEqual("Failure");
     expect(scope.queryResults).toEqual(null);
   });
 
   it('Query Results+Error', function () {
     scope.setQueryResults([{ id : 'bar' }], "Failure");
-    expect(scope.error).toEqual("Failure");
+    expect(scope.alerts[0].msg).toEqual("Failure");
     expect(scope.queryResults).toEqual([{ id : 'bar' }]);
   });
 
   it('Query Results', function () {
     scope.setQueryResults([{ id : 'bar' }]);
-    expect(scope.error).toEqual(null);
+    expect(scope.alerts.length).toEqual(0);
     expect(scope.queryResults).toEqual([{ id : 'bar' }]);
   });
 

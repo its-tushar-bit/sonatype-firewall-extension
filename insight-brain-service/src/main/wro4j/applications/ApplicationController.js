@@ -4,7 +4,7 @@
  *          http://links.sonatype.com/products/clm/attributions. "Sonatype" is a
  *          trademark of Sonatype, Inc.
  */
- /* global angular, clmBuildTimestamp */
+ /* global angular, clmBuildTimestamp, AngularUtils */
 (function() {
   'use strict';
 
@@ -549,7 +549,9 @@
 
     $scope.setQueryResults = function (members, error) {
       $scope.queryResults = members;
-      $scope.error = error;
+      if (error) {
+        $scope.alerts = [AngularUtils.toAlert(error)];
+      }
     };
 
     $scope.selectUser = function (user) {

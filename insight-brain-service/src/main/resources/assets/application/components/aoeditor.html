@@ -161,8 +161,8 @@
     <div class='modal-header'>
       <h3>Contact User</h3>
     </div>
-    <div class='modal-body'>
-      <div style='width:75%;margin:auto'>
+    <div class='modal-body well clm-well' style="max-height:80%">
+      <div style='width:75%;margin:auto;'>
         <div app-user-search
           set-results='setQueryResults($members, $error)'
           query-string='queryString'
@@ -170,7 +170,7 @@
           owner-type='organization'
           owner-id='{{organizationId}}'
           groups='false'></div>
-        <div class='selectList-large' style='width:100%'>
+        <div class='selectList-large' style='width:100%;'>
           <h5>Available</h5>
           <div>
             <div>
@@ -188,12 +188,12 @@
             </div>
           </div>
         </div>
+        <div style="padding-top:10px;">
+          <div clm-alerts="alerts" no-close="true"></div>
+          <button class='btn btn-link btn-cancel' ng-click='$dismiss()'>Cancel</button>
+          <button class='btn btn-danger pull-right' ng-click='$close(null)'>Remove Contact</button>
+        </div>
       </div>
-    </div>
-    <div class='modal-footer'>
-      <span style="margin:0px;padding: 4px 14px;max-width:290px" ng-class="{'alert alert-error pull-left': error }" ng-show="error">{{error}}</span>
-      <button class='btn btn-danger' ng-click='$close(null)'>Remove Contact</button>
-      <button class='btn btn-primary' ng-click='$dismiss()'>Cancel</button>
     </div>
   </div>
   </script>

@@ -86,7 +86,7 @@ class LdapConfigurationSpec
   }
 
   @Unroll
-  def "Required inputs for connection show validation error popovers on #input"() {
+  def "Required inputs for connection show validation error popovers on #inputName"() {
     when: 'Leaving a required field blank'
       input << 'a'
       input << Keys.BACK_SPACE
@@ -99,6 +99,7 @@ class LdapConfigurationSpec
 
     where:
       input << requiredFields
+      inputName = input.@name
   }
 
   def "Invalid numeric inputs for connection show validation error popovers"() {
@@ -187,7 +188,7 @@ class LdapConfigurationSpec
   }
 
   @Unroll
-  def "Required inputs for user/group mappings show validation error popovers on #input"() {
+  def "Required inputs for user/group mappings show validation error popovers on #inputName"() {
     when: 'Leaving a required field blank'
       input << 'a'
       input << Keys.BACK_SPACE
@@ -200,6 +201,7 @@ class LdapConfigurationSpec
 
     where:
       input << requiredFields
+      inputName = input.@name
   }
 
   def "Cancelling on the user/group mappings form"() {

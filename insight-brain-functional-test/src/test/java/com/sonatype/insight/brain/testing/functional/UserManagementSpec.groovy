@@ -49,7 +49,7 @@ class UserManagementSpec
   }
 
   @Unroll
-  def "If multiple space characters are present during validation the #input field should show a noSpaces error"() {
+  def "If multiple space characters are present during validation the #inputName field should show a noSpaces error"() {
     when: 'inserting text containing leading spaces and losing focus on the field'
       input << 'a  a'
 
@@ -62,10 +62,11 @@ class UserManagementSpec
 
     where:
       input << [firstNameInput, lastNameInput]
+      inputName = input.@name
   }
 
   @Unroll
-  def "If non alphaNumeric content is present during validation the #input field should show an alphaNumeric error"() {
+  def "If non alphaNumeric content is present during validation the #inputName field should show an alphaNumeric error"() {
     when: 'we use non alphaNumeric content'
       input << '#'
 
@@ -78,10 +79,11 @@ class UserManagementSpec
 
     where:
       input << [firstNameInput, lastNameInput, usernameInput]
+      inputName = input.@name
   }
 
   @Unroll
-  def "If no content is present during validation the #input field should show a required error"() {
+  def "If no content is present during validation the #inputName field should show a required error"() {
     when: 'we add and remove content'
       input.value('a')
       input << Keys.BACK_SPACE
@@ -98,6 +100,7 @@ class UserManagementSpec
           passwordInput,
           passwordValidateInput
       ]
+      inputName = input.@name
   }
 
   def "We fill out all fields correctly"() {

@@ -251,7 +251,7 @@
             '<i class="{{iconClass}}"></i>' +
           '</div>' +
           '<div class="large-select-list-item-content">' +
-            '<span ng-bind-html="user.displayName | highlight:queryString:caseSensitive"></span>' +
+            '<span ng-bind-html="user.displayName"></span>' +
             '<div>' +
               '<span class="large-select-list-item-detail">{{user.email}}</span>' +
               '<span class="large-select-list-item-right-detail">{{user.realm}}</span>' +

@@ -130,17 +130,20 @@ clmEndpoint = clmEndpointTemplate = {
         expect(GAV.get()).toEqual({ id : 'setGAV2' });
       }));
 
-      it('Insight.clearGAV', inject(function (GAV) {
+      it('Insight.clearGAV', inject(function (GAV, State) {
         GAV.set({
           id : 'clearGAV'
         });
         spyOn(GAV, 'set').andCallThrough();
+        spyOn(State, 'set').andCallThrough();
 
         Insight.clearGav();
 
         expect(GAV.set).toHaveBeenCalledWith(null);
         expect(GAV.get()).toEqual(null);
         expect(GAV.getSelected()).toEqual(null);
+
+        expect(State.set).toHaveBeenCalledWith(null);
       }));
     });
 

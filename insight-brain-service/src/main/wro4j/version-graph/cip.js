@@ -127,13 +127,7 @@
   };
   $.extend(true, window, {
     "Insight": {
-      "clearGav": function () {
-        waitOnInjector(['GAV', '$rootScope', function (GAV, $rootScope) {
-          safeApply($rootScope, function () {
-            GAV.set(null);
-          });
-        }], true);
-      },
+      "clearGav": createStateFn(null),
       "registerMarkUpgradeListener": function (listener) {
         waitOnInjector(['$rootScope', function ($rootScope) {
           $rootScope.$on('markUpgrade', function (event, gav) {
@@ -159,9 +153,10 @@
         }]);
       },
       "setGav": function (arg) {
-        waitOnInjector(['GAV', '$rootScope', function (GAV, $rootScope) {
+        waitOnInjector(['GAV', 'State', '$rootScope', function (GAV, State, $rootScope) {
           safeApply($rootScope, function () {
             GAV.set(arg);
+            State.set(null);
           });
         }], true);
       },

@@ -21,8 +21,9 @@ sn: User
 cn: Test User
 userPassword: {md5}rQ8H83Kkz8RJZFwzDwk0fg==
 mail: test.user@company.com
-departmentNumber: testUsers
-departmentNumber: primaryUsers
+departmentNumber: ab
+departmentNumber: xb
+departmentNumber: abc
 
 dn: uid=test_user2,ou=users,dc=company,dc=com
 uid: test_user2
@@ -35,8 +36,9 @@ sn: User
 cn: Test User 2
 userPassword: test
 mail: test.user2@company.com
-departmentNumber: testUsers
-departmentNumber: secondaryUsers
+departmentNumber: ab
+departmentNumber: bc
+departmentNumber: bx
 
 dn: uid=test_sasl_user,ou=system
 uid: test_sasl_user
@@ -49,7 +51,7 @@ sn: User
 cn: Test SASL User
 userPassword: s3cr3t
 mail: test.sasl.user@company.com
-departmentNumber: testUsers
+departmentNumber: ab
 departmentNumber: saslUsers
 
 dn: cn=Alpha,ou=groups,dc=company,dc=com

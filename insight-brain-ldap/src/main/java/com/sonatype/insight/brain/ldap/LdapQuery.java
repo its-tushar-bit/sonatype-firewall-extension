@@ -49,6 +49,43 @@ class LdapQuery
 {
   private static final Logger log = LoggerFactory.getLogger(LdapQuery.class);
 
+  private static interface StringMatcher
+  {
+    boolean matches(String str, String searchStr);
+  }
+
+  private static final StringMatcher EQUALS = new StringMatcher()
+  {
+    @Override
+    public boolean matches(String str, String searchStr) {
+      return StringUtils.equalsIgnoreCase(str, searchStr);
+    }
+  };
+
+  private static final StringMatcher CONTAINS = new StringMatcher()
+  {
+    @Override
+    public boolean matches(String str, String searchStr) {
+      return StringUtils.containsIgnoreCase(str, searchStr);
+    }
+  };
+
+  private static final StringMatcher STARTS_WITH = new StringMatcher()
+  {
+    @Override
+    public boolean matches(String str, String searchStr) {
+      return StringUtils.startsWithIgnoreCase(str, searchStr);
+    }
+  };
+
+  private static final StringMatcher ENDS_WITH = new StringMatcher()
+  {
+    @Override
+    public boolean matches(String str, String searchStr) {
+      return StringUtils.endsWithIgnoreCase(str, searchStr);
+    }
+  };
+
   private final LdapCtxFactory ctxFactory;
 
   private final LdapUserMapping umap;
@@ -390,7 +427,7 @@ class LdapQuery
 
           // Max results is ignored since all users must be returned to deduce unique dynamic groups
           results = searchUsersByAttributes(ctx, attributeValues, attributes, 0);
-          return buildGroupsFromDynamicSearchResults(groupnames, results, true, maxResults);
+          return buildGroupsFromDynamicSearchResults(groupnames, results, EQUALS, maxResults);
         }
         case STATIC: {
           String[] attributes = pickAttributes(umap.getGroupIDAttribute());
@@ -430,14 +467,24 @@ class LdapQuery
 
           // Max results is ignored since all users must be returned to deduce unique dynamic groups
           results = searchUsersByAttributes(ctx, attributeValues, attributes, 0);
-          if (groupName.contains("*")) {
-            String groupNameNoWildCards = groupName.replace("*", "");
-            return buildGroupsFromDynamicSearchResults(new String[] { groupNameNoWildCards }, results, false,
-                maxResults);
+          StringMatcher stringMatcher;
+          if (groupName.startsWith("*")) {
+            if (groupName.endsWith("*")) {
+              stringMatcher = CONTAINS;
+            }
+            else {
+              stringMatcher = ENDS_WITH;
+            }
+            groupName = groupName.replace("*", "");
+          }
+          else if (groupName.endsWith("*")) {
+            stringMatcher = STARTS_WITH;
+            groupName = groupName.replace("*", "");
           }
           else {
-            return buildGroupsFromDynamicSearchResults(new String[] { groupName }, results, true, maxResults);
+            stringMatcher = EQUALS;
           }
+          return buildGroupsFromDynamicSearchResults(new String[] { groupName }, results, stringMatcher, maxResults);
         }
         case STATIC: {
           String[] attributes = pickAttributes(umap.getGroupIDAttribute());
@@ -459,13 +506,10 @@ class LdapQuery
 
   /**
    * Builds LdapGroup from a list of user objects who belong to dynamic groups. Uses UserMemberOfGroupAttribute.
-   * Results are case insensitively filtered by Strings in the queries array, either through contains or equality
-   * depending on the exact parameter.
-   *
-   * @param exact whether to filter results by substrings in queries or exact strings
+   * Results are case insensitively filtered by Strings in the queries array, using the specified StringMatcher.
    */
-  private List<LdapGroup> buildGroupsFromDynamicSearchResults(String[] queries, NamingEnumeration<SearchResult> results,
-                                                              boolean exact, long maxResults) throws NamingException
+  private List<LdapGroup> buildGroupsFromDynamicSearchResults(String[] queries,
+      NamingEnumeration<SearchResult> results, StringMatcher stringmatcher, long maxResults) throws NamingException
   {
     Map<String, LdapGroup> ldapGroups = new LinkedHashMap<>();
     while (results.hasMoreElements()) {
@@ -473,7 +517,8 @@ class LdapQuery
       Set<String> groupNames = getSimpleNames(getAttributeValues(result.getAttributes(), umap.getUserMemberOfGroupAttribute()));
       if (groupNames != null) {
         for (String groupName : groupNames) {
-          if (groupNameMatches(groupName, queries, exact) && !ldapGroups.containsKey(groupName.toLowerCase(Locale.ENGLISH))) {
+          if (groupNameMatches(groupName, queries, stringmatcher)
+              && !ldapGroups.containsKey(groupName.toLowerCase(Locale.ENGLISH))) {
             ldapGroups.put(groupName.toLowerCase(Locale.ENGLISH), createGroup(result, groupName));
 
             if (ldapGroups.size() == maxResults) {
@@ -488,22 +533,14 @@ class LdapQuery
 
   /**
    * Return whether the name parameter exists within the queries array.
-   * 
-   * @param exact whether to filter results by substrings in queries or exact strings
    */
-  private static boolean groupNameMatches(String name, String[] queries, boolean exact) {
+  private static boolean groupNameMatches(String name, String[] queries, StringMatcher stringMatcher) {
     for (String query : queries) {
       if (query == null)  {
         return true;
       }
-      if (exact) {
-        if (StringUtils.equalsIgnoreCase(name, query)) {
-          return true;
-        }
-      } else {
-        if (StringUtils.containsIgnoreCase(name, query)) {
-          return true;
-        }
+      if (stringMatcher.matches(name, query)) {
+        return true;
       }
     }
     return false;

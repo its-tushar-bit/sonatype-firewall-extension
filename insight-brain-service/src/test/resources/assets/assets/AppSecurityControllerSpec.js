@@ -71,7 +71,8 @@ describe('AppSecurityControllerSpec', function() {
 
   describe('AppSecurityEditorController', function () {
     var scope = null,
-        parentScope = null;
+        parentScope = null,
+        directiveScope = null;
 
     beforeEach(inject(function ($rootScope, $controller, $compile) {
       parentScope = $rootScope.$new();
@@ -121,7 +122,8 @@ describe('AppSecurityControllerSpec', function() {
         $scope : scope
       });
 
-      $compile("<div app-user-search set-results='setResults($members, $error)' query-string='queryString' request-active='requestActive'></div>")(scope);
+      var element = $compile("<div app-user-search set-results='setResults($members, $error)' query-string='queryString' request-active='requestActive'></div>")(scope);
+      directiveScope = element.isolateScope();
     }));
 
     afterEach(function () {
@@ -236,61 +238,34 @@ describe('AppSecurityControllerSpec', function() {
 
     describe('Queries', function () {
       it('Simple', inject(function ($timeout, $httpBackend) {
-        scope.$apply(function () {
-          scope.queryString = 'bar';
-        });
+        directiveScope.queryString = 'bar';
+        directiveScope.userSearch();
 
         $httpBackend.expectGET(SpecUtil.toRegExp('/rest/user/application/bom1-12345678/query?q=bar')).respond({ members: [{ id : 'bar' }], error: null });
 
         $timeout.flush();
 
         expect(scope.requestActive).toBeTruthy();
-        expect(scope.$$childHead.lastQuery).toEqual('bar');
         $httpBackend.flush();
 
         expect(scope.requestActive).toBeFalsy();
         expect(scope.queryResults).toEqual([{ id : 'bar' }]);
       }));
 
-      it('Query Extended', inject(function ($timeout, $httpBackend) {
-        scope.$apply(function () {
-          scope.queryString = 'foo';
-        });
-
-        $httpBackend.expectGET(SpecUtil.toRegExp('/rest/user/application/bom1-12345678/query?q=foo')).respond({ members: [{ id : 'food' }], error: null });
-        $timeout.flush();
-
-        expect(scope.requestActive).toBeTruthy();
-        expect(scope.$$childHead.lastQuery).toEqual('foo');
-
-        // User added charactersbefore the server responded
-        scope.$apply(function () {
-          scope.queryString = 'food';
-        });
-        $httpBackend.flush();
-
-        expect(scope.$$childHead.lastQuery).toEqual('food');
-        expect(scope.queryResults).toEqual([{ id : 'food' }]);
-      }));
-
       it('Query Completely Changed', inject(function ($timeout, $httpBackend) {
-        scope.$apply(function () {
-          scope.queryString = 'foo';
-        });
+        directiveScope.queryString = 'foo';
+        directiveScope.userSearch();
 
         $httpBackend.expectGET(SpecUtil.toRegExp('/rest/user/application/bom1-12345678/query?q=foo')).respond({ members: [{ id : 'foo' }], error: null });
         $timeout.flush();
 
         expect(scope.requestActive).toBeTruthy();
-        expect(scope.$$childHead.lastQuery).toEqual('foo');
 
         // User deleted it and typed something new before the server responded
-        scope.$apply(function () {
-          scope.queryString = 'bar';
-        });
+        directiveScope.queryString = 'bar';
+        directiveScope.userSearch();
         $httpBackend.flush();
 
-        expect(scope.$$childHead.lastQuery).toEqual('bar');
         expect(scope.queryResults).toBeFalsy();
 
         $httpBackend.expectGET(SpecUtil.toRegExp('/rest/user/application/bom1-12345678/query?q=bar')).respond({ members: [{ id : 'bar' }], error: null });
@@ -300,32 +275,28 @@ describe('AppSecurityControllerSpec', function() {
       }));
 
       it('Handles Ldap Connection Failure', inject(function($timeout, $httpBackend) {
-        scope.$apply(function () {
-          scope.queryString = 'foo';
-        });
+        directiveScope.queryString = 'foo';
+        directiveScope.userSearch();
 
         $httpBackend.expectGET(SpecUtil.toRegExp('/rest/user/application/bom1-12345678/query?q=foo')).respond({ members: [{ id : 'foo' }], error: '' });
 
         $timeout.flush();
 
         expect(scope.requestActive).toBeTruthy();
-        expect(scope.$$childHead.lastQuery).toEqual('foo');
         $httpBackend.flush();
 
         expect(scope.requestActive).toBeFalsy();
         expect(scope.queryResults).toEqual([{ id : 'foo' }]);
         expect(scope.alerts.length).toEqual(0);
 
-        scope.$apply(function () {
-          scope.queryString = 'bar';
-        });
+        directiveScope.queryString = 'bar';
+        directiveScope.userSearch();
 
         $httpBackend.expectGET(SpecUtil.toRegExp('/rest/user/application/bom1-12345678/query?q=bar')).respond({ members: [{ id : 'bar' }], error: 'baz' });
 
         $timeout.flush();
 
         expect(scope.requestActive).toBeTruthy();
-        expect(scope.$$childHead.lastQuery).toEqual('bar');
         $httpBackend.flush();
 
         expect(scope.requestActive).toBeFalsy();
@@ -337,16 +308,14 @@ describe('AppSecurityControllerSpec', function() {
       }));
 
       it('Handles HTTP Error', inject(function($timeout, $httpBackend) {
-        scope.$apply(function () {
-          scope.queryString = 'bar';
-        });
+        directiveScope.queryString = 'bar';
+        directiveScope.userSearch();
 
         $httpBackend.expectGET(SpecUtil.toRegExp('/rest/user/application/bom1-12345678/query?q=bar')).respond(403, 'Insufficient Permissions');
 
         $timeout.flush();
 
         expect(scope.requestActive).toBeTruthy();
-        expect(scope.$$childHead.lastQuery).toEqual('bar');
         $httpBackend.flush();
 
         expect(scope.requestActive).toBeFalsy();

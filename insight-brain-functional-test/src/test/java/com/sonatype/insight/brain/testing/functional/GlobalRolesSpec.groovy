@@ -34,8 +34,25 @@ class GlobalRolesSpec
     }
   }
 
+  def "Help context is displayed for user search field"() {
+    when: "hovering over query help icon"
+      def roleRow = mapping.role("Administrator")
+      roleRow.editButton.click()
+      waitFor { roleRow.queryHelp.displayed }
+      interact {
+        moveToElement(roleRow.queryHelp)
+      }
+      
+
+    then: "query help popover is displayed"
+      waitFor { roleRow.queryHelpPopover.displayed }
+  }
+  
   def "Entering the page shows the global roles"() {
-    expect: "the default roles along with builtin users"
+    when: "navigating to the global roles page"
+      to GlobalRolesPage
+
+    then: "the default roles along with builtin users"
       def roleRow = mapping.role("Administrator")
       roleRow.displayed
       roleRow.memberNames == ["Admin BuiltIn"]
@@ -65,10 +82,13 @@ class GlobalRolesSpec
       !roleRow.groupsButton.displayed
   }
 
-  def "Typing in the search input filters the list of available users"() {
+  def "Search input filters the list of available users"() {
     when: "entering first name prefix"
       def roleRow = mapping.role("Administrator")
       roleRow.queryInput.value("Jan")
+    
+    and: "clicking the search button"
+      roleRow.searchButton.click()
 
     then: "the matching users are listed"
       waitFor { roleRow.availableMembers.size() == 1 }
@@ -79,7 +99,10 @@ class GlobalRolesSpec
 
     when: "entering last name prefix"
       roleRow.queryInput.value("Do")
-
+      
+    and: "clicking on the search button"
+      roleRow.searchButton.click()
+      
     then: "the matching users are listed"
       waitFor { roleRow.availableMembers.size() == 2 }
       roleRow.availableMemberNames*.text().sort() == ["Jane Doe", "John Doe"]

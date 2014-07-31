@@ -235,7 +235,7 @@
       }
     };
   }]);
-
+  
   appSecurityModule.directive('userListItem', function () {
     return {
       restrict : 'A',
@@ -261,7 +261,7 @@
         '</div>'
     };
   });
-
+  
   appSecurityModule.directive('appUserSearch', ['$timeout', '$http', 'CLMAppLocations', 'Messages', function ($timeout, $http, clmAppLocations, Messages) {
     return {
       restrict : 'A',
@@ -273,22 +273,45 @@
         ownerType : '@',
         ownerId : '@'
       },
-      template : '<form name="userSearch" style="margin:0; padding-top: 10px;">' +
-          '<div class="input-prepend">' +
+      template : '<form ng-submit="userSearch()" name="userSearch" style="margin:0; padding-top: 10px;">' +
+          '<div class="input-prepend input-append">' +
             '<span class="add-on">' +
               '<i class="icon-search" ng-show="!requestActive"> </i>' +
               '<img src="../assets/img/loading.gif" ng-show="requestActive">' +
-            '</span><input placeholder="Find User" type="text" name="filter" ng-model="queryString" focus-input="true">' +
+            '</span><input id="user-search-filter" placeholder="Isaac Asim*" type="text" name="filter" ng-model="queryString" focus-input="true">' +
+            '<div class="btn-group">' +
+              '<button id="user-search-button" type="submit" class="btn" ng-disabled="!queryString">Search</button>' +
+              '<div id="user-search-help" style="display: inline-block; padding-left: 8px;">' +
+                '<i class="glyphicons-sonatype help"></i>' +
+              '</div>' +
+            '</div>' +
           '</div>' +
         '</form>',
       priority : 99,
-      link : function ($scope) {
+      link : function ($scope, element) {
+        
+        // Configure a help popover that explains how searches are conducted.
+        var modal = element.parents('.modal');
+        var options = {
+          trigger: 'hover',
+          placement: 'right',
+          content: 'User searches with prefixed and suffixed wildcards (e.g. *Isaac*) may take a long time to complete or timeout. For faster results limit searches to suffixed wildcards.',
+          container: 'body'
+        };
+        var helpDiv = element.find('#user-search-help');
+        helpDiv.popover(options);
+        if(modal.length > 0) {
+          helpDiv.data('popover').tip().css('z-index', parseInt(modal.css('z-index')) + 1);
+        }
+        
         var filterTimeout = null;
 
         $scope.requestActive = 0;
         $scope.queryString = $scope.queryString || '';
 
-        $scope.$watch('queryString', function (newVal) {
+        $scope.userSearch = function () {
+          var newVal = $scope.queryString;
+
           if (!newVal) {
             $scope.setResults({
               $members : null, // Empty query, empty results
@@ -301,7 +324,6 @@
             $timeout.cancel(filterTimeout);
           }
 
-          $scope.lastQuery = newVal;
           filterTimeout = $timeout(function () {
             $scope.requestActive++;
 
@@ -312,7 +334,7 @@
               }
             }).success(function (data) {
               $scope.requestActive--;
-              if ($scope.queryString === newVal || $scope.queryString.indexOf(newVal) === 0) {
+              if ($scope.queryString === newVal) {
                 $scope.setResults({
                   $members : data.members,
                   $error : data.error
@@ -327,7 +349,7 @@
               });
             });
           }, 500);
-        });
+        };
       }
     };
   }]);

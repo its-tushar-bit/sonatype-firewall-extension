@@ -91,6 +91,7 @@ class AppSecurityManagementSpec
 
     when: 'entering a username fragment'
       roleRow.queryInput.value('admin')
+      roleRow.searchButton.click();
 
     then: 'the matching users are listed as usual'
       waitFor { roleRow.availableMembers.size() == 1 }

@@ -17,6 +17,9 @@ class RoleModule
 
     editor(required: false) { $('div[app-security-editor] > div') }
     queryInput(required: false) { $('input[name=filter]') }
+    searchButton (required: false) { $('#user-search-button') }
+    queryHelp(required: false) { $('#user-search-help') }
+    queryHelpPopover(required: false) { page.$('.popover') }
 
     appliedMembersList(required: false) { $('div[app-security-editor] .selectList-large:first-child') }
     appliedMembers(required: false) { appliedMembersList.find('.large-select-list-item') }

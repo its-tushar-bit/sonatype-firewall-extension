@@ -34,7 +34,8 @@ class ApplicationPage
 
     applicationContactField(required: false) { $('#contact-field') }
     applicationContactDialog(wait: true) { $('#contact-modal-dialog') }
-    applicationContactDialogSearchField(required: false) { $('input[placeholder="Find User"]') }
+    applicationContactDialogSearchField(required: false) { $('#user-search-filter') }
+    applicationContactDialogSearchButton(required: false) { $('#user-search-button') }
     applicationContactDialogResultList(required: false) { $('.large-select-list-item') }
 
     policyEvalStages(required: false) { $('#policy-eval-summary > div > span:first-child') }

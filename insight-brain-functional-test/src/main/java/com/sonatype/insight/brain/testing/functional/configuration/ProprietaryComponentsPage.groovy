@@ -18,7 +18,7 @@ class ProprietaryComponentsPage
 {
   static url = 'assets/index.html#/proprietarycomponents'
 
-  static at = { $('#proprietary-component-form').displayed }
+  static at = { input.displayed }
 
   static content = {
     pageTitle { $('h1.page-title', text: 'Proprietary Components') }

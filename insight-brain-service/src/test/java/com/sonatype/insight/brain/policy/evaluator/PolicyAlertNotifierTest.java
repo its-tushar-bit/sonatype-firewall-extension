@@ -9,7 +9,6 @@ import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.Stage;
-import com.sonatype.insight.brain.LogOutput;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.Policy;
@@ -18,6 +17,7 @@ import com.sonatype.insight.brain.policy.evaluator.PolicyAlertNotifier.MailPolic
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightMail;
+import com.sonatype.insight.test.LogOutput;
 
 import org.sonatype.micromailer.Address;
 

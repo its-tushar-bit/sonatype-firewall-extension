@@ -33,7 +33,8 @@
       debug: 'grunt/working/debug',
       scss: 'grunt/scss',
       docs: 'grunt/docs',
-      angularJsVersion: getAngularVersion()
+      angularJsVersion: getAngularVersion(),
+      pkg: grunt.file.readJSON('package.json')
     };
 
     require('load-grunt-tasks')(grunt);

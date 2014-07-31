@@ -143,7 +143,7 @@ clmEndpoint = clmEndpointTemplate = {
         expect(GAV.get()).toEqual(null);
         expect(GAV.getSelected()).toEqual(null);
 
-        expect(State.set).toHaveBeenCalledWith(null);
+        expect(State.set).toHaveBeenCalledWith(null, undefined);
       }));
     });
 

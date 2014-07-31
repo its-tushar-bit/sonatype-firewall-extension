@@ -10,35 +10,34 @@
         </div>
         <div clm-control-group for="userBaseDN" label="Base DN">
           <input clm-input type='text' maxlength='255' name='userBaseDN' id='userBaseDN'
-                 ng-model="ldapUserMapping.userBaseDN" placeholder="Enter Base DN">
+                 ng-model="ldapUserMapping.userBaseDN">
         </div>
         <div clm-control-group for="userSubtree" label="User Subtree">
-          <input type='checkbox' name='userSubtree' id='userSubtree' ng-model="ldapUserMapping.userSubtree"
-                  placeholder="Enter User Subtree">
+          <input type='checkbox' name='userSubtree' id='userSubtree' ng-model="ldapUserMapping.userSubtree">
         </div>
         <div clm-control-group for="userObjectClass" label="Object Class">
           <input clm-input type='text' maxlength='255' name='userObjectClass' id="userObjectClass"
-                 ng-model='ldapUserMapping.userObjectClass' required placeholder="Enter Object Class">
+                 ng-model='ldapUserMapping.userObjectClass' required>
         </div>
         <div clm-control-group for="userFilter" label="User Filter">
           <input clm-input type='text' maxlength='255' name='userFilter' id='userFilter'
-                 ng-model='ldapUserMapping.userFilter' placeholder="Enter User Filter">
+                 ng-model='ldapUserMapping.userFilter'>
         </div>
         <div clm-control-group for="userIDAttribute" label="Username Attribute">
           <input clm-input type='text' maxlength='255' name='userIDAttribute' id='userIDAttribute'
-                 ng-model='ldapUserMapping.userIDAttribute' required placeholder="Enter Username Attribute">
+                 ng-model='ldapUserMapping.userIDAttribute' required>
         </div>
         <div clm-control-group for="userRealNameAttribute" label="Real Name Attribute">
           <input clm-input type='text' maxlength='255' name='userRealNameAttribute' id='userRealNameAttribute'
-                 ng-model='ldapUserMapping.userRealNameAttribute' required placeholder="Enter Real Name Attribute">
+                 ng-model='ldapUserMapping.userRealNameAttribute' required>
         </div>
         <div clm-control-group for="userEmailAttribute" label="E-mail Attribute">
           <input clm-input type='text' maxlength='255' name='userEmailAttribute' id='userEmailAttribute'
-                 ng-model='ldapUserMapping.userEmailAttribute' required placeholder="Enter E-mail Attribute">
+                 ng-model='ldapUserMapping.userEmailAttribute' required>
         </div>
         <div clm-control-group for="userPasswordAttribute" label="Password Attribute">
           <input clm-input type='text' maxlength='255' name='userPasswordAttribute' id='userPasswordAttribute'
-                 ng-model='ldapUserMapping.userPasswordAttribute' placeholder="Enter Password Attribute">
+                 ng-model='ldapUserMapping.userPasswordAttribute'>
         </div>
 
         <div class="content-header">
@@ -54,31 +53,26 @@
         <div ng-show='ldapUserMapping.groupMappingType == "STATIC"'>
           <div clm-control-group for="groupBaseDN" label="Base DN">
             <input clm-input type='text' maxlength='255' name='groupBaseDN' id='groupBaseDN'
-                   ng-model='ldapUserMapping.groupBaseDN' placeholder="Enter Base DN">
+                   ng-model='ldapUserMapping.groupBaseDN'>
           </div>
           <div clm-control-group for="groupSubtree" label="Group Subtree">
-            <input type='checkbox' name='groupSubtree' id='groupSubtree' ng-model='ldapUserMapping.groupSubtree'
-                   placeholder="Enter Group Subtree">
+            <input type='checkbox' name='groupSubtree' id='groupSubtree' ng-model='ldapUserMapping.groupSubtree'>
           </div>
           <div clm-control-group for="groupObjectClass" label="Object Class">
             <input clm-input type='text' maxlength='255' name='groupObjectClass' id='groupObjectClass'
-                   ng-model='ldapUserMapping.groupObjectClass' ng-required='isGroupFieldRequired("STATIC")'
-                   placeholder="Enter Object Class">
+                   ng-model='ldapUserMapping.groupObjectClass' ng-required='isGroupFieldRequired("STATIC")'>
           </div>
           <div clm-control-group for="groupIDAttribute" label="Group ID Attribute">
             <input clm-input type='text' maxlength='255' name='groupIDAttribute' id='groupIDAttribute'
-                   ng-model='ldapUserMapping.groupIDAttribute' ng-required='isGroupFieldRequired("STATIC")'
-                   placeholder="Enter Group ID Attribute">
+                   ng-model='ldapUserMapping.groupIDAttribute' ng-required='isGroupFieldRequired("STATIC")'>
           </div>
           <div clm-control-group for="groupMemberAttribute" label="Group Member Attribute">
             <input clm-input type='text' maxlength='255' name='groupMemberAttribute' id='groupMemberAttribute'
-                   ng-model='ldapUserMapping.groupMemberAttribute' ng-required='isGroupFieldRequired("STATIC")'
-                   placeholder="Enter Group Member Attribute">
+                   ng-model='ldapUserMapping.groupMemberAttribute' ng-required='isGroupFieldRequired("STATIC")'>
           </div>
           <div clm-control-group for="groupMemberFormat" label="Group Member Format">
             <input clm-input type='text' maxlength='255' name='groupMemberFormat' id='groupMemberFormat'
-                   ng-model='ldapUserMapping.groupMemberFormat' ng-required='isGroupFieldRequired("STATIC")'
-                   placeholder="Enter Group Member Format">
+                   ng-model='ldapUserMapping.groupMemberFormat' ng-required='isGroupFieldRequired("STATIC")'>
           </div>
         </div>
         <div ng-show='ldapUserMapping.groupMappingType == "DYNAMIC"'>
@@ -87,7 +81,7 @@
             <input clm-input type='text' maxlength='255' name='userMemberOfGroupAttribute'
                    id='userMemberOfGroupAttribute'
                    ng-model='ldapUserMapping.userMemberOfGroupAttribute'
-                   ng-required='isGroupFieldRequired("DYNAMIC")' placeholder="Enter Member of Attribute">
+                   ng-required='isGroupFieldRequired("DYNAMIC")'>
           </div>
           <div clm-control-group for="dynamicGroupSearchEnabled"
                label="Included in Search">

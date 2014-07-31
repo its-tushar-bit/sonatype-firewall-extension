@@ -18,7 +18,7 @@
                 <label class='control-label'>Group ID</label>
                 <div class='controls'>
                   <input name="groupId" class='input-xlarge' type='text' ng-model='claimData.groupId'
-                         placeholder='Enter Group ID' disablenav required/>
+                         disablenav required/>
                 </div>
               </div>
               <div class='control-group' ng-class='{ error : submitted && claimForm.artifactId.$error.required }'>
@@ -26,7 +26,6 @@
 
                 <div class='controls'>
                   <input name='artifactId' class='input-xlarge' type='text' ng-model='claimData.artifactId'
-                         placeholder='Enter Artifact ID' disablenav
                          required/>
                 </div>
               </div>
@@ -35,7 +34,6 @@
 
                 <div class='controls'>
                   <input name='version' class='input-xlarge' id='claimVersion' type='text' ng-model='claimData.version'
-                         placeholder='Enter Version'
                          disablenav required/>
                 </div>
               </div>

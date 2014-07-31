@@ -10,11 +10,11 @@
 <form class='clm-form'>
   <p>
     <label for='normal'>An input that is not required and hasn't been updated</label>
-    <input type='text' id='normal' class='ng-valid'>
+    <input type='text' id='normal' class='ng-valid' placeholder='ex. Antiquated Value'>
   </p>
   <p>
     <label for='required'>An input that is required and hasn't been updated</label>
-    <input type='text' id='required' class='ng-invalid' required>
+    <input type='text' id='required' class='ng-invalid' required placeholder='Integer between 1 and 100' min='1' max='100'>
   </p>
   <p>
     <label for='valid'>An input that has been updated and is valid</label>
@@ -197,7 +197,7 @@
         <label for='current-entry'>Entry</label>
         <div class='controls'>
           <div class='input-append controls'>
-            <input placeholder='Enter Entry' type='text'>
+            <input type='text'>
             <button class='btn' title='Add Entry'>Add</button>
           </div>
         </div>

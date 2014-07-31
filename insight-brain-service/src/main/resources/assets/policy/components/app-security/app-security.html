@@ -7,8 +7,9 @@
       </p>
       <div ng-switch='mtype'>
         <div ng-switch-when='groups'>
+          <label for="groupname">Group Name</label>
            <div class='input-append'>
-             <input type='text' name='groupname' ng-model='$parent.queryString' placeholder='Group Name' focus-input="true">
+             <input type='text' id="groupname" name="groupname" ng-model='$parent.queryString' focus-input="true">
              <button class='btn'
                      ng-click='addGroup()'
                      ng-disabled='!queryString || isDuplicate(queryString, ldapRealm, "GROUP")'><i class='icon-plus'></i> Add Group</button>

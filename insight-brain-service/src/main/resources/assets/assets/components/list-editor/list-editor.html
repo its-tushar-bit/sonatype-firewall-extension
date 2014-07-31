@@ -1,11 +1,10 @@
 <div style='margin:auto;width:510px'>
   <form ng-submit='add()' name='neditor' class="clm-form list-editor-form">
-    <div clm-control-group for="current-entry" label="{{placeHolder}}">
+    <div clm-control-group for="current-entry" label="{{label}}">
       <div class='input-append controls'>
         <input clm-input type='text' id="current-entry" name='currentEntry' ng-model='currentEntry' max='{{maxLength}}'
-               placeholder='Enter {{placeHolder}}' list-editor-validator required entersubmit
-               messages="messages || {}">
-        <button class='btn' ng-disabled='neditor.$invalid' title='Add {{placeHolder}}'>Add</button>
+               list-editor-validator required entersubmit messages="messages || {}">
+        <button class='btn' ng-disabled='neditor.$invalid' title='Add {{label}}'>Add</button>
       </div>
     </div>
     <div class='control-group' ng-if="regexes !== undefined">
@@ -21,7 +20,7 @@
             <div title='{{entry}}'>{{entry}}</div>
           </td>
           <td>
-            <button class='btn btn-mini' ng-click='remove($index)' title='Remove {{placeHolder}}'>
+            <button class='btn btn-mini' ng-click='remove($index)' title='Remove {{label}}'>
               <i class='icon-minus-sign'></i>
             </button>
           </td>
@@ -32,7 +31,7 @@
           </td>
           <td>
             <span><em>(regex)</em></span>
-            <button class='btn btn-mini' ng-click='removeRegex($index)' title='Remove {{placeHolder}}'>
+            <button class='btn btn-mini' ng-click='removeRegex($index)' title='Remove {{label}}'>
               <i class='icon-minus-sign'></i>
             </button>
           </td>

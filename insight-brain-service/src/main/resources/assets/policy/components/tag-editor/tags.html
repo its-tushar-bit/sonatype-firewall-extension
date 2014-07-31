@@ -32,7 +32,7 @@
           <form name='tagEditor' class='clm-form' style='margin-bottom:0' ng-submit='saveTag()'>
             <div clm-control-group for="tagEditorLabel" label="Tag Name">
                 <input clm-input id="tagEditorLabel" name='name' type="text" maxlength='50' ng-model='selectedTag.name'
-                       placeholder="Enter Tag Name" focus-input="true" required alpha-numeric is-duplicate
+                       placeholder="ex. Distributed" focus-input="true" required alpha-numeric is-duplicate
                        is-duplicate-array='tags' is-duplicate-id-field='name' is-duplicate-case-sensitive='false'
                        messages='{duplicate: "Duplicate Tag name"}'>
             </div>
@@ -45,7 +45,8 @@
             </div>
             <div clm-control-group for='description' label="Description">
               <textarea clm-input name='description' maxlength="255" rows="3" style="width:530px;resize:none;" ng-model='selectedTag.description'
-                        placeholder="Enter Description" required></textarea>
+                        placeholder="ex. Applications that are provided for consumption outside the company" required>
+              </textarea>
             </div>
             <div clm-alerts='editorAlerts'></div>
             <button class="btn btn-link btn-cancel" type='button' ng-click='cancelEditTag()'>Cancel</button>

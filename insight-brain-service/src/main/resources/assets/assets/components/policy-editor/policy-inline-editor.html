@@ -1,7 +1,7 @@
 <div class='inline-policy-editor' ng-controller='PolicyEditorController' style="width:875px;">
   <form name='inlinePolicyForm' novalidate>
     <div class="control-group" ng-class='{ error : inlinePolicyForm.name.$error.alphaNumeric || inlinePolicyForm.name.$error.spaces }'>
-      <input id='policyName' name='name' type='text' placeholder='Enter Policy Name' ng-model='policy.name' required maxlength='60' alpha-numeric has-whitespace='suggestedName' focus-input="true">
+      <input id='policyName' name='name' type='text' placeholder='ex. Architecture-Quality' ng-model='policy.name' required maxlength='60' alpha-numeric has-whitespace='suggestedName' focus-input="true">
       <span class='policy'><span threat-box selected='policy.threatLevel' one='1' zero='0 (None)'></span></span>
       <span ng-show="inlinePolicyForm.name.$error.alphaNumeric" class="help-inline">Must be alpha numeric</span>
       <span ng-show="inlinePolicyForm.name.$error.spaces && !inlinePolicyForm.name.$error.alphaNumeric" class="help-inline">No leading, trailing or double spaces or tabs, suggested name: {{suggestedName}}</span>
@@ -48,7 +48,7 @@
                   <span ng-show="constraint.name">{{constraint.name}}</span>
                   <span ng-show="!constraint.name">[Unnamed Constraint]</span>
                 </span>
-                <input ng-switch-when='true' type="text" ng-model="constraint.name" ng-click='stop($event)' placeholder='Enter Constraint Name' required>
+                <input ng-switch-when='true' type="text" ng-model="constraint.name" ng-click='stop($event)' placeholder='ex. Unpopular' required>
               </span>
             </div>
           </div>
@@ -116,7 +116,7 @@
       <h3>Notifications</h3>
     </div>
     <div class="clm-form well clm-well">
-      <div list-editor place-holder="E-mail Address" max-length="100" entries="notificationEmailList"
+      <div list-editor label="E-mail Address" max-length="100" entries="notificationEmailList"
            validator="validateEmail" messages="{unique: 'Enter a unique value', invalidEmail:'Invalid E-mail Address'}"></div>
       <button class="btn btn-link btn-cancel" ng-click="$close()">Cancel</button>
       <span class="pull-right">

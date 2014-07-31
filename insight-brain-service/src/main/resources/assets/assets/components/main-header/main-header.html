@@ -6,18 +6,18 @@
   <form name='passwordForm' class='clm-form well clm-well' ng-submit='save()'>
     <div clm-control-group for='originalPassword' label="Current Password">
       <input clm-input type="password" id="originalPassword" name="originalPassword"
-             ng-model='result.originalPassword' required focus-input='true' placeholder="Enter Current Password">
+             ng-model='result.originalPassword' required focus-input='true'>
     </div>
     <hr/>
     <div clm-control-group for='newPassword' label="New Password">
       <input clm-input type="password" id="newPassword" name="newPassword"
-             ng-model='result.newPassword' required placeholder="Enter New Password">
+             ng-model='result.newPassword' required>
     </div>
     <div clm-control-group for='confirmPassword' label="Confirm New Password">
       <input clm-input type="password" id="confirmPassword" name='confirmPassword'
              ng-model='result.confirmPassword' required ui-validate=" '$value==result.newPassword' "
              ui-validate-watch=" 'result.newPassword' "
-             messages="{validator: 'Passwords must match!'}" placeholder="Confirm New Password">
+             messages="{validator: 'Passwords must match!'}">
     </div>
     <div clm-alerts="error" no-close="true"></div>
     <button type='button' class="btn btn-link btn-cancel" ng-click='$dismiss()'>Cancel</button>

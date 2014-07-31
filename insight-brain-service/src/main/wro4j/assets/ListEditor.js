@@ -20,7 +20,7 @@
         cancel: '=cancel',
         doSave: '&save',
         validator: '=validator',
-        placeHolder: '@placeHolder',
+        label: '@label',
         maxLength: '@maxLength',
         entries: '=entries',
         messages: '=?',

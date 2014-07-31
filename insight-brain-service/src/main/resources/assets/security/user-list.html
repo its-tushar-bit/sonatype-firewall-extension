@@ -68,31 +68,31 @@
       <div>
         <div clm-control-group for="firstName" label="First Name">
           <input clm-input id="firstName" name="firstName" type="text" ng-required="true" alpha-numeric
-                 placeholder="Enter First Name" ng-model="user.firstName" focus-input="user"
+                 placeholder="ex. Isaac" ng-model="user.firstName" focus-input="user"
                  has-whitespace="suggestedFirstName">
         </div>
         <div clm-control-group for="lastName" label="Last Name">
           <input clm-input id="lastName" name="lastName" type="text" ng-required="true" alpha-numeric
-                 placeholder="Enter Last Name" ng-model="user.lastName" has-whitespace="suggestedLastName">
+                 placeholder="ex. Asimov" ng-model="user.lastName" has-whitespace="suggestedLastName">
         </div>
         <div clm-control-group for="email" label="Email">
-          <input clm-input id='email' name="email" type="email" ng-required="true" placeholder="Enter E-mail Address"
+          <input clm-input id='email' name="email" type="email" ng-required="true" placeholder="ex. iasimov@sonatype.com"
                  ng-model="user.email">
         </div>
         <div ng-show="!user.id">
           <div clm-control-group for="username" label="Username">
             <input clm-input id="username" name="username" type="text" ng-required="!user.id" ng-pattern="/^\S*$/"
                    alpha-numeric is-duplicate is-duplicate-array="context.users" is-duplicate-id-field="id"
-                   is-duplicate-case-sensitive="false" placeholder="Enter Username" ng-model="user.username"
+                   is-duplicate-case-sensitive="false" placeholder="ex. iasimov" ng-model="user.username"
                    messages="{pattern: 'Must not contain spaces', duplicate: 'Username already taken'}">
           </div>
           <div clm-control-group for="password" label="Password">
             <input clm-input id='password' name="password" type="password" ng-required="!user.id"
-                   placeholder="Enter Password" ng-model="user.password">
+                   placeholder="ex. correcthorsebatterystaple" ng-model="user.password">
           </div>
           <div clm-control-group for="passwordValidate" label="Validate Password">
             <input clm-input id="passwordValidate" name="passwordValidate" type="password" ng-required="!user.id"
-                   placeholder="Re-enter Password" ng-model="user.passwordValidate"
+                   placeholder="ex. correcthorsebatterystaple" ng-model="user.passwordValidate"
                    ui-validate=" '$value==user.password' " ui-validate-watch=" 'user.password' "
                    messages="{validator: 'Passwords must match!'}">
           </div>

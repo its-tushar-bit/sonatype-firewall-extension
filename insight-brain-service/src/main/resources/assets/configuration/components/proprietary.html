@@ -10,7 +10,7 @@
       <div ng-show='!loadError && proprietary' class="well clm-well">
         <p>These entries are provided to CLM scanners and are used to help identify internal components.
           If a specified package or file is contained within a component, it will be considered proprietary.</p>
-        <div list-editor place-holder="Prefix/Regex for Proprietary Components" max-length="50"
+        <div list-editor label="Prefix/Regex for Proprietary Components" max-length="50"
              entries="packages" regexes="regexes" validator="validatePackage"
              messages="{
               invalidPrefix: 'Invalid package prefix, enter e.g. com.mycompany',

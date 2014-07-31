@@ -86,12 +86,12 @@
                 '<div class="control-group">' +
                 '<label class="control-label" for="login-username">Username</label>' +
                 '<div class="controls">' +
-                '<input type="text" id="login-username" placeholder="Enter Username"' +
+                '<input type="text" id="login-username"' +
                 ' ng-model="data.username" ng-required="true" autofill focus-input="true">' + '</div>' + '</div>' +
                 '<div class="control-group">' +
                 '<label class="control-label" for="login-password">Password</label>' +
                 '<div class="controls">' +
-                '<input type="password" id="login-password" placeholder="Enter Password"' +
+                '<input type="password" id="login-password"' +
                 ' ng-model="data.password" ng-required="true" autofill>' + '</div>' + '</div>'  +
                 '</div>' + '<div class="modal-footer">' +
                 '<span id="login-error" ng-show="loginError" class="alert alert-error"' +

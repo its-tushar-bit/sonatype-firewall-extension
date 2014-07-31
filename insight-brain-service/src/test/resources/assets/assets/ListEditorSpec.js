@@ -50,7 +50,7 @@ describe('ListEditor', function() {
           }
         },
         element = createDirective('<form name="form">' +
-          '<div list-editor validator="validator" entries="myList" place-holder="placeHolder"></div>' +
+          '<div list-editor validator="validator" entries="myList" label="placeHolder"></div>' +
           '</form>', template),
         input = angular.element('input', element),
         form = element.scope().form;
@@ -77,7 +77,7 @@ describe('ListEditor', function() {
           }
         },
         element = createDirective('<form name="form">' +
-          '<div list-editor validator="validator" entries="myList" place-holder="placeHolder"></div>' +
+          '<div list-editor validator="validator" entries="myList" label="placeHolder"></div>' +
           '</form>', template),
         input = angular.element('input', element),
         form = element.scope().form;
@@ -101,7 +101,7 @@ describe('ListEditor', function() {
             return valid;
           }
         },
-        element = createDirective('<div list-editor validator="validator" entries="myList" place-holder="placeHolder"></div>',
+        element = createDirective('<div list-editor validator="validator" entries="myList" label="placeHolder"></div>',
             template),
         input = angular.element('input', element);
 
@@ -121,7 +121,7 @@ describe('ListEditor', function() {
           }
         },
         element = createDirective('<form name="form">' +
-          '<div list-editor validator="validator" entries="myList" place-holder="placeHolder"></div>' +
+          '<div list-editor validator="validator" entries="myList" label="placeHolder"></div>' +
           '</form>', template),
         input = angular.element('input', element),
         form = element.scope().form;
@@ -198,7 +198,7 @@ describe('ListEditor', function() {
               };
             }
           },
-          element = createDirective('<div list-editor validator="validator" entries="myList" place-holder="placeHolder"></div>',
+          element = createDirective('<div list-editor validator="validator" entries="myList" label="placeHolder"></div>',
               template),
           input = angular.element('input', element);
 

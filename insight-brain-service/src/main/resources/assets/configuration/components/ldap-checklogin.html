@@ -5,11 +5,10 @@
   <form name='ldapCheckLogin' class='clm-form well clm-well' style='margin-bottom:0px' novalidate>
     <div clm-control-group for="username" label="Username">
       <input clm-input type='text' id='username' name='username' ng-model="ldapCredentials.username" required
-             focus-input='true' placeholder="Enter Username">
+             focus-input='true'>
     </div>
     <div clm-control-group for="password" label="Password">
-      <input clm-input type='password' name='password' ng-model="ldapCredentials.password" required
-             placeholder="Enter Password">
+      <input clm-input type='password' name='password' ng-model="ldapCredentials.password" required>
     </div>
     <div clm-alerts='alerts'></div>
     <button class="btn btn-link btn-cancel" ng-click="$close()">Close</button>

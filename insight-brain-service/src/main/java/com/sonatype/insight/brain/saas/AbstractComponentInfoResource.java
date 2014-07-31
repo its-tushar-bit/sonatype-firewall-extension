@@ -156,6 +156,10 @@ public abstract class AbstractComponentInfoResource
     return componentDetailsLoader.augmentComponentDetails(application, componentDetails);
   }
 
+  /**
+   * NOTE: Cursory review suggests this method is obsolete since 1.6 when CLM-43 introduced cip-license-editor.js which
+   * makes use of getLicenses() instead to get this data (also see getArtifactLicensesUrl() in brain.client.js).
+   */
   @GET
   @Path("selectableLicenses/{applicationPublicId}")
   @Produces({ MediaType.APPLICATION_JSON })

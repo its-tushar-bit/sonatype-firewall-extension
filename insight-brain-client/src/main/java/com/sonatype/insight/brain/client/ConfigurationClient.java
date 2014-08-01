@@ -39,17 +39,26 @@ public class ConfigurationClient
     final int status = result.status();
     if (status >= 300) {
       String msg = result.message();
-      if (status == 401) {
-        /*
-         * Until the client uses authentication, a misconfigured base URL will make the client encounter authentication
-         * errors from already protected resources, so tweak the user facing error message to better highlight the
-         * proper remediation.
-         */
-        msg = "Resource not found, please check your request URL.";
-      }
       throw new HttpResponseException(status, msg);
     }
     return result;
+  }
+
+  private Result getAnon(RequestBuilder builder) throws IOException {
+    try {
+      return get(builder);
+    }
+    catch (HttpResponseException e) {
+      if (e.getStatusCode() == 401) {
+        /*
+         * For clients making anonymous calls, a misconfigured base URL will make the client encounter authentication
+         * errors from protected resources, so tweak the user facing error message to better highlight the proper
+         * remediation.
+         */
+        throw new HttpResponseException(e.getStatusCode(), "Resource not found, please check your request URL.");
+      }
+      throw e;
+    }
   }
 
   /**
@@ -59,7 +68,7 @@ public class ConfigurationClient
   @Deprecated
   @SuppressWarnings("unchecked")
   public Map<String, String> getApplicationIdNameMap() throws IOException {
-    Result result = get(path("rest/application/services/names"));
+    Result result = getAnon(path("rest/application/services/names"));
     Map<String, String> applicationsById = new TreeMap<String, String>(String.CASE_INSENSITIVE_ORDER);
     applicationsById.putAll(JsonUtils.parse(result.text(), Map.class));
     return applicationsById;
@@ -77,7 +86,7 @@ public class ConfigurationClient
   }
 
   public void validateConfiguration() throws IOException {
-    final Result result = get(path("rest/version"));
+    final Result result = getAnon(path("rest/version"));
     final String text = result.text();
     // at this point, the network connection appears fine, now let's just check we actually talked to a CLM server
     try {
@@ -92,7 +101,7 @@ public class ConfigurationClient
   }
 
   public void validateApplicationId(final String appId) throws IOException {
-    final Result result = get(path("rest/application/validate", UrlUtils.encodeUrlComponent(appId)));
+    final Result result = getAnon(path("rest/application/validate", UrlUtils.encodeUrlComponent(appId)));
     final String text = result.text();
     if (!"OK".equals(text)) {
       throw new IOException(text);
@@ -100,7 +109,7 @@ public class ConfigurationClient
   }
 
   public ProprietaryConfig getProprietaryConfiguration() throws IOException {
-    Result result = get(path("rest/config/proprietary"));
+    Result result = getAnon(path("rest/config/proprietary"));
     return JsonUtils.parse(result.text(), ProprietaryConfig.class);
   }
 

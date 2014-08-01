@@ -182,6 +182,20 @@ public class ConfigurationClientTest
   }
 
   @Test
+  public void testGetApplications_BadAuth() throws Exception {
+    Configuration config = getCLMServer().getClientConfiguration();
+    config.setServerAuth(SimpleAuthentication.parse("bad:auth"));
+    try {
+      new ConfigurationClient(config).getApplications();
+      fail("Request should have failed due to bad authentication");
+    }
+    catch (HttpResponseException e) {
+      assertThat(e.getStatusCode(), is(401));
+      assertThat(e.getMessage(), is("Unauthorized"));
+    }
+  }
+
+  @Test
   public void testGetProprietaryConfiguration() throws Exception {
     List<String> packages = Arrays.asList("org.sonatype", "com.sonatype");
     List<String> regexes = Arrays.asList("org.sonatype.*", "com.sonatype.*");

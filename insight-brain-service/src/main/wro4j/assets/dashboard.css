@@ -14,6 +14,33 @@
   .filter-edit-body .slider {
     width: 105px !important;
   }
+
+  .dashboard-content .application-header {
+    min-width: 107px;
+  }
+
+  .dashboard-content .policy-header {
+    min-width: 68px;
+  }
+
+  .dashboard-content .component-header {
+    min-width: 101px;
+  }
+
+  .dashboard-content #threat-header {
+    min-width: 65px;
+  }
+
+  .dashboard-content .time-header {
+    min-width: 62px;
+  }
+
+  .dashboard-content #stage-header-build, .dashboard-content #stage-header-stage-release {
+    min-width: 68px;
+  }
+  .dashboard-content #stage-header-release, .dashboard-content #stage-header-operate {
+    min-width: 85px;
+  }
 }
 @media (max-width: 1199px) {
   .filter-edit-body .slider {
@@ -56,9 +83,15 @@
   .chart {
     width: 70px !important;
   }
-  .dashboard-content #stage-header-build, .dashboard-content #stage-header-stage-release,
+  .dashboard-content #stage-header-build {
+    min-width: 43px;
+  }
+
+  .dashboard-content #stage-header-stage-release {
+    min-width: 47px;
+  }
   .dashboard-content #stage-header-release, .dashboard-content #stage-header-operate {
-    min-width: 65px !important;
+    min-width: 57px;
   }
   .percentage-graph-legend-count {
     font-size: 10px !important;
@@ -66,6 +99,26 @@
   }
   .dashboard-label {
     font-size: 18px !important;
+  }
+
+  .dashboard-content .application-header {
+    width: 85px;
+    min-width: 85px;
+  }
+
+  .dashboard-content .policy-header {
+    width: 50px;
+    min-width: 50px;
+  }
+
+  .dashboard-content #threat-header {
+    width: 45px;
+    min-width: 45px;
+  }
+
+  .dashboard-content .time-header {
+    width: 32px;
+    min-width: 32px;
   }
 }
 
@@ -349,33 +402,6 @@ table th#affected-apps {
   position: absolute;
   top: 0;
   line-height: 30px;
-}
-
-.dashboard-content .application-header {
-  min-width: 107px;
-}
-
-.dashboard-content .policy-header {
-  min-width: 68px;
-}
-
-.dashboard-content .component-header {
-  min-width: 101px;
-}
-
-.dashboard-content #threat-header {
-  min-width: 65px;
-}
-
-.dashboard-content .time-header {
-  min-width: 62px;
-}
-
-.dashboard-content #stage-header-build, .dashboard-content #stage-header-stage-release {
-  min-width: 68px;
-}
-.dashboard-content #stage-header-release, .dashboard-content #stage-header-operate {
-  min-width: 85px;
 }
 
 .latest-risk {

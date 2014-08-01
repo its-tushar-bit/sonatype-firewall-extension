@@ -5,7 +5,11 @@
  */
 package com.sonatype.insight.brain.testing.functional
 
+import com.sonatype.insight.brain.dataaccess.TemporaryEntity
 import com.sonatype.insight.brain.model.Organization
+import com.sonatype.insight.brain.model.security.Permission
+import com.sonatype.insight.brain.model.security.Role
+import com.sonatype.insight.brain.model.security.User
 
 import org.apache.commons.io.IOUtils
 
@@ -15,8 +19,13 @@ class AppEvaluationSpec
 
   static Organization org
 
+  private static final String USER_NAME = AppEvaluationSpec.class.getSimpleName()
+
   def setupSpec() {
+    User user = temporaryEntity.newUser(USER_NAME)
     org = temporaryEntity.newOrganization('AppEvaluationOrg')
+    Role role = temporaryEntity.newRole(false /* global */, Permission.WRITE, Permission.READ)
+    temporaryEntity.newMembershipMapping(org.getId(), role.getId(), user.getUsername())
 
     for (i in 1..5) {
       def name = "AppEvaluationApp$i"
@@ -29,7 +38,7 @@ class AppEvaluationSpec
   }
 
   def setup() {
-    loginAsAdminVia()
+    loginAsUserVia(USER_NAME, TemporaryEntity.USER_PASSWORD_CLEAR)
   }
 
   def "validate application evaluation available from organization screen"() {

@@ -6,6 +6,11 @@
 package com.sonatype.insight.brain.testing.functional
 
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO
+import com.sonatype.insight.brain.dataaccess.TemporaryEntity
+import com.sonatype.insight.brain.model.Organization
+import com.sonatype.insight.brain.model.security.Permission
+import com.sonatype.insight.brain.model.security.Role
+import com.sonatype.insight.brain.model.security.User
 
 import spock.lang.Stepwise
 
@@ -16,9 +21,17 @@ import spock.lang.Stepwise
 class ApplicationSpec
     extends BaseSpec
 {
+  private static Organization org
+
+  private static final String USER_NAME = ApplicationSpec.class.getSimpleName()
+
   def setupSpec() {
-    OrganizationManagementPage organizationManagementPage = loginAsAdminVia(OrganizationManagementPage)
-    organizationManagementPage.createOrg()
+    User user = temporaryEntity.newUser(USER_NAME)
+    org = temporaryEntity.newOrganization('test organization')
+
+    Role role = temporaryEntity.newRole(false /* global */, Permission.WRITE, Permission.READ)
+    temporaryEntity.newMembershipMapping(org.getId(), role.getId(), user.getUsername())
+    loginAsUserVia(USER_NAME, TemporaryEntity.USER_PASSWORD_CLEAR, ApplicationManagementPage)
   }
 
   def cleanupSpec() {

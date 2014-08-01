@@ -5,6 +5,12 @@
  */
 package com.sonatype.insight.brain.testing.functional
 
+import com.sonatype.insight.brain.dataaccess.TemporaryEntity
+import com.sonatype.insight.brain.model.Organization
+import com.sonatype.insight.brain.model.security.Permission
+import com.sonatype.insight.brain.model.security.Role
+import com.sonatype.insight.brain.model.security.User
+
 import spock.lang.Stepwise
 
 /**
@@ -14,9 +20,20 @@ import spock.lang.Stepwise
 class LabelSpec
     extends BaseSpec
 {
+
+  private static final String USER_NAME = LabelSpec.class.getSimpleName()
+
   def setupSpec() {
-    OrganizationManagementPage organizationManagementPage = loginAsAdminVia(OrganizationManagementPage)
-    organizationManagementPage.createOrg('LabelSpec')
+    Organization org = temporaryEntity.newOrganization('LabelSpec')
+
+    User user = temporaryEntity.newUser(USER_NAME)
+    Role role = temporaryEntity.newRole(false /* global */, Permission.WRITE, Permission.READ)
+    temporaryEntity.newMembershipMapping(org.getId(), role.getId(), user.getUsername())
+
+    loginAsUserVia(USER_NAME, TemporaryEntity.USER_PASSWORD_CLEAR, OrganizationManagementPage)
+    organization(org.getName()).click()
+
+    waitFor{ at OrganizationPage }
   }
 
   def cleanupSpec() {

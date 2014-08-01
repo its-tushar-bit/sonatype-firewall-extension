@@ -498,7 +498,7 @@ describe('ContactController', function () {
   beforeEach(inject(function ($rootScope, $controller) {
     scope = $rootScope.$new();
     scope.$close = jasmine.createSpy('closeSpy');
-    $controller('ContactController', { $scope: scope, organizationId : 'foo' });
+    $controller('ContactController', { $scope: scope, contextId : 'foo', contextType : 'application' });
   }));
   afterEach(function () {
     scope.$destroy();

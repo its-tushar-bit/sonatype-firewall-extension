@@ -504,7 +504,12 @@
             templateUrl : 'contact-modal',
             controller : 'ContactController',
             resolve : {
-              organizationId : function () { return selectedApplication.organizationId; }
+              contextId : function () {
+                return selectedApplication.id ? selectedApplication.publicId : selectedApplication.organizationId;
+              },
+              contextType : function () {
+                return selectedApplication.id ? 'application' : 'organization';
+              }
             }
           }).result.then(function (contact) {
             selectedApplication.contact = contact;
@@ -536,9 +541,10 @@
     };
   });
 
-  applicationModule.controller('ContactController', ['$scope', 'organizationId', function ($scope, organizationId) {
+  applicationModule.controller('ContactController', ['$scope', 'contextType', 'contextId', function ($scope, contextType, contextId) {
     $scope.alerts = [];
-    $scope.organizationId = organizationId;
+    $scope.contextId = contextId;
+    $scope.contextType = contextType;
 
     $scope.setQueryResults = function (members, error) {
       $scope.queryResults = members;

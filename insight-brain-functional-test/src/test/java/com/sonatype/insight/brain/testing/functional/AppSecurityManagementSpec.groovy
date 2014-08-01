@@ -7,7 +7,12 @@ package com.sonatype.insight.brain.testing.functional
 
 import com.sonatype.insight.brain.configuration.ldap.LdapGroupMappingType
 import com.sonatype.insight.brain.configuration.ldap.LdapUserMapping
+import com.sonatype.insight.brain.dataaccess.TemporaryEntity
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapUserMappingDAO
+import com.sonatype.insight.brain.model.Application
+import com.sonatype.insight.brain.model.security.Permission
+import com.sonatype.insight.brain.model.security.Role
+import com.sonatype.insight.brain.model.security.User
 
 class AppSecurityManagementSpec
     extends BaseSpec
@@ -16,16 +21,30 @@ class AppSecurityManagementSpec
 
   String appPublicId
 
+  private static final String USER_NAME = AppSecurityManagementSpec.class.getSimpleName()
+
+  def setupSpec() {
+    User user = temporaryEntity.newUser(USER_NAME)
+  }
+
   // assumes a license has already been installed
   // get to the organizations page
   def setup() {
     orgId = temporaryEntity.newOrganization('Test Org').id
-    appPublicId = temporaryEntity.newApplication('Test App', 'test-app', orgId).publicId
-    loginAsAdminVia()
+    Application app = temporaryEntity.newApplication('Test App', 'test-app', orgId)
+    appPublicId = app.publicId
+
+    Role role = temporaryEntity.newRole(false /* global */, Permission.READ)
+    temporaryEntity.newMembershipMapping(orgId, role.getId(), USER_NAME)
+
+    role = temporaryEntity.newRole(false /* global */, Permission.WRITE, Permission.READ)
+    temporaryEntity.newMembershipMapping(app.getId(), role.getId(), USER_NAME)
+    loginAsUserVia(USER_NAME, TemporaryEntity.USER_PASSWORD_CLEAR, OrganizationManagementPage)
   }
 
   def cleanup() {
     cleanAppsAndOrgs()
+    userOptions.logoutClick()
   }
 
   def "validate organization roles"() {

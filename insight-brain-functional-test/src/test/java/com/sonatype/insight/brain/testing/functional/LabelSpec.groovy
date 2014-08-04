@@ -31,6 +31,7 @@ class LabelSpec
     temporaryEntity.newMembershipMapping(org.getId(), role.getId(), user.getUsername())
 
     loginAsUserVia(USER_NAME, TemporaryEntity.USER_PASSWORD_CLEAR, OrganizationManagementPage)
+    waitFor { organization(org.getName()).displayed }
     organization(org.getName()).click()
 
     waitFor{ at OrganizationPage }

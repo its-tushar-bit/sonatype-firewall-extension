@@ -10,6 +10,8 @@ import com.sonatype.insight.brain.TestProductLicenseManager
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity
+import com.sonatype.insight.brain.model.security.Permission
+import com.sonatype.insight.brain.model.security.Role
 import com.sonatype.insight.brain.product.license.CLMLicenseManager
 import com.sonatype.insight.brain.service.InsightMockServerRule
 import com.sonatype.insight.brain.service.PortAllocator
@@ -180,6 +182,11 @@ abstract class BaseSpec
     return page
   }
 
+  public <T> T loginAsUserVia(Class<T> initialPage = ReportViolationsPage, Object[] args)
+  {
+    return loginAsUserVia(getUsername(), TemporaryEntity.USER_PASSWORD_CLEAR, initialPage, args)
+  }
+
   void createOrganization(name = 'test organization') {
     OrganizationManagementPage organizationManagementPage = to(OrganizationManagementPage)
     int size = !organizationList?.empty ? organizationList.size() : 0
@@ -214,5 +221,18 @@ abstract class BaseSpec
   def popoverViolations(element) {
     def name = element.attr('name');
     $("#${name}-popover.in")
+  }
+
+  def getUsername() {
+    return getClass().getSimpleName()
+  }
+
+  def createUser(String username = getUsername()) {
+    return temporaryEntity.newUser(username)
+  }
+
+  def grantPermissions(String username, String contextId, Permission... perms) {
+    Role role = temporaryEntity.newRole(false /* global */, perms)
+    temporaryEntity.newMembershipMapping(contextId, role.getId(), username)
   }
 }

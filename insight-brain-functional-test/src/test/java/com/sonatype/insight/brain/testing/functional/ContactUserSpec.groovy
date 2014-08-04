@@ -5,11 +5,8 @@
  */
 package com.sonatype.insight.brain.testing.functional
 
-import com.sonatype.insight.brain.dataaccess.TemporaryEntity
 import com.sonatype.insight.brain.model.Application
 import com.sonatype.insight.brain.model.security.Permission
-import com.sonatype.insight.brain.model.security.Role
-import com.sonatype.insight.brain.model.security.User
 
 class ContactUserSpec
     extends BaseSpec
@@ -21,12 +18,11 @@ class ContactUserSpec
 
 
   def setup() {
-    User user = temporaryEntity.newUser(USER_NAME)
+    createUser()
     Application app = temporaryEntity.newApplicationWithParent(appName, appName)
 
-    Role role = temporaryEntity.newRole(false /* global */, Permission.WRITE, Permission.READ)
-    temporaryEntity.newMembershipMapping(app.getId(), role.getId(), user.getUsername())
-    loginAsUserVia(USER_NAME, TemporaryEntity.USER_PASSWORD_CLEAR, ApplicationManagementPage)
+    grantPermissions(getUsername(), app.getId(), Permission.WRITE, Permission.READ)
+    loginAsUserVia(ApplicationManagementPage)
   }
 
   def cleanup() {

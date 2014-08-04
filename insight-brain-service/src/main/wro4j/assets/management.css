@@ -79,7 +79,6 @@ a:focus {
 }
 .first-row {
   border-bottom: 1px solid #d8d8d8;
-  min-width: 400px;
 }
 .first-row i {
   vertical-align: middle;

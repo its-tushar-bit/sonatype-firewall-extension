@@ -6,13 +6,11 @@
 package com.sonatype.insight.brain.client;
 
 import java.io.IOException;
-import java.net.UnknownHostException;
 import java.util.Map;
 import java.util.TreeMap;
 
 import com.sonatype.clm.dto.model.ProprietaryConfig;
 import com.sonatype.clm.dto.model.application.ApplicationSummaryList;
-import com.sonatype.insight.client.utils.AbstractClient;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.client.utils.Result;
 import com.sonatype.insight.client.utils.UrlUtils;
@@ -21,21 +19,14 @@ import com.sonatype.insight.json.store.JsonUtils;
 import org.apache.http.client.HttpResponseException;
 
 public class ConfigurationClient
-    extends AbstractClient
+    extends AbstractRequestClient
 {
   public ConfigurationClient(final Configuration config) {
     super(config);
   }
 
   private Result get(RequestBuilder builder) throws IOException {
-    final Result result;
-    try {
-      result = builder.get();
-    }
-    catch (UnknownHostException e) {
-      // improve error msg
-      throw (IOException) new UnknownHostException("Unknown host: " + e.getMessage()).initCause(e);
-    }
+    final Result result = getRequest(builder);
     final int status = result.status();
     if (status >= 300) {
       String msg = result.message();

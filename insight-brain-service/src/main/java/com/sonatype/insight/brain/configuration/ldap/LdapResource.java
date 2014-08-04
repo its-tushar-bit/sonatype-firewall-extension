@@ -235,7 +235,7 @@ public class LdapResource
 
   private void validateServerId(String serverId, HasLdapServerId entity) {
     if (serverId == null || entity == null || !serverId.equals(entity.getServerId())) {
-      throw new BadRequestException("Inconsistent LDAP server id");
+      throw new BadRequestException("Inconsistent LDAP server ID.");
     }
   }
 }

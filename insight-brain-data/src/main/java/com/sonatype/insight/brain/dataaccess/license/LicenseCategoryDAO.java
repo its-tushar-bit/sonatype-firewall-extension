@@ -41,7 +41,7 @@ public class LicenseCategoryDAO
     }
     LicenseCategory licenseCategory = licenseCategoriesById.get(id);
     if (licenseCategory == null) {
-      log.info("Cannot find a license category with id '{}'.  Refreshing license data.", id);
+      log.info("Cannot find a license category with ID '{}'.  Refreshing license data.", id);
       LicenseDataUpdater.update();
       licenseCategory = licenseCategoriesById.get(id);
     }
@@ -51,7 +51,7 @@ public class LicenseCategoryDAO
   public LicenseCategory getByIdNotNull(String id) {
     LicenseCategory licenseCategory = getById(id);
     if (licenseCategory == null) {
-      throw new NotFoundException("A license category with id '" + id + "' does not exist.");
+      throw new NotFoundException("A license category with ID '" + id + "' does not exist.");
     }
     return licenseCategory;
   }

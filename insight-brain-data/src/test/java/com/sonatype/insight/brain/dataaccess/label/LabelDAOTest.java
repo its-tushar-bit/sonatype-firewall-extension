@@ -469,7 +469,7 @@ public class LabelDAOTest
       fail("Expected NotFoundException");
     }
     catch (NotFoundException expected) {
-      assertEquals("Cannot find a label with id fake id", expected.getMessage());
+      assertEquals("Cannot find a label with ID fake id.", expected.getMessage());
     }
   }
 

@@ -31,7 +31,7 @@ public class PolicyWaiverDAO
   private PolicyWaiver getByIdNotNull(EntityManager em, String id) {
     PolicyWaiver policyWaiver = getById(em, id);
     if (policyWaiver == null) {
-      throw new NotFoundException("Cannot find a policy waiver with id " + id);
+      throw new NotFoundException("Cannot find a policy waiver with ID " + id + ".");
     }
     return policyWaiver;
   }
@@ -134,10 +134,10 @@ public class PolicyWaiverDAO
     PolicyWaiver other = getByHashAndPolicyIdAndConstraintIdAndOwnerId(em, entity.getHash(), entity.getPolicyId(),
         entity.getConstraintId(), entity.getOwnerId());
     if (other != null) {
-      throw new BadRequestException("This policy waiver already exists");
+      throw new BadRequestException("This policy waiver already exists.");
     }
     if (entity.getComment() != null && entity.getComment().length() > 1000) {
-      throw new BadRequestException("Comment length must not exceed 1000 characters");
+      throw new BadRequestException("Comment length must not exceed 1000 characters.");
     }
 
     entity.setCreateTime(new Date());

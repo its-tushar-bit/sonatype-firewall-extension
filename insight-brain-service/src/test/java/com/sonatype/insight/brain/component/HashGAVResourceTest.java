@@ -102,7 +102,7 @@ public class HashGAVResourceTest
     assertResponseStatus(400, response);
     assertEquals(
         "The 'HashGAVResourceTest_G:HashGAVResourceTest_A:HashGAVResourceTest_V:HashGAVResourceTest_E" +
-            ":HashGAVResourceTest_C' coordinates are already in use",
+            ":HashGAVResourceTest_C' coordinates are already in use.",
         response.getResponseBody()
     );
   }

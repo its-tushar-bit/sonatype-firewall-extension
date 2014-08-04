@@ -68,25 +68,25 @@ public class LicenseOverrideDAO
   private void validate(LicenseOverride entity) {
     if (entity.getStatus() == LicenseOverrideStatus.OVERRIDDEN || entity.getStatus() == LicenseOverrideStatus.SELECTED) {
       if (entity.getLicenseId() == null) {
-        throw new BadRequestException("Expected not null license id for license override");
+        throw new BadRequestException("Expected not null license ID for license override.");
       }
       new LicenseDAO().getByIdNotNull(entity.getLicenseId());
     }
     else {
       if (entity.getLicenseId() != null) {
-        throw new BadRequestException("Expected null license id for license override");
+        throw new BadRequestException("Expected null license ID for license override.");
       }
     }
 
     if (entity.getComment() != null && entity.getComment().length() > MAX_COMMENT_SIZE) {
-      throw new BadRequestException("Comment length must not exceed " + MAX_COMMENT_SIZE + " characters");
+      throw new BadRequestException("Comment length must not exceed " + MAX_COMMENT_SIZE + " characters.");
     }
   }
 
   private LicenseOverride getByIdNotNull(EntityManager em, String id) {
     LicenseOverride licenseOverride = getById(em, id);
     if (licenseOverride == null) {
-      throw new NotFoundException("Cannot find a license override with id " + id);
+      throw new NotFoundException("Cannot find a license override with ID " + id + ".");
     }
     return licenseOverride;
   }

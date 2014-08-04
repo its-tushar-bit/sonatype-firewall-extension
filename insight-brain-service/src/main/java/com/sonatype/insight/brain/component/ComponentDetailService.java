@@ -188,7 +188,7 @@ public class ComponentDetailService
 
     ApplicationComponent applicationComponent = new ApplicationComponentDAO().getLastByHash(hash);
     if (applicationComponent == null) {
-      throw new BadRequestException("Unknown component with hash " + hash);
+      throw new BadRequestException("Unknown component with hash " + hash + ".");
     }
 
     if (applicationComponent.getGroupId() != null) {

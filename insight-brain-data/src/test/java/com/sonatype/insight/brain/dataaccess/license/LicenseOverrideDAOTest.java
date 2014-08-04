@@ -89,7 +89,7 @@ public class LicenseOverrideDAOTest
       fail("Expected BadRequestException");
     }
     catch (BadRequestException expected) {
-      assertEquals("Comment length must not exceed 1000 characters", expected.getMessage());
+      assertEquals("Comment length must not exceed 1000 characters.", expected.getMessage());
     }
     override.setComment(StringUtils.repeat("X", LicenseOverrideDAO.MAX_COMMENT_SIZE));
     dao.insert(override);
@@ -99,7 +99,7 @@ public class LicenseOverrideDAOTest
       fail("Expected BadRequestException");
     }
     catch (BadRequestException expected) {
-      assertEquals("Comment length must not exceed 1000 characters", expected.getMessage());
+      assertEquals("Comment length must not exceed 1000 characters.", expected.getMessage());
     }
   }
 
@@ -114,7 +114,7 @@ public class LicenseOverrideDAOTest
       fail("Expected NotFoundException");
     }
     catch (NotFoundException expected) {
-      assertEquals("A license with id 'FataMorganaId' does not exist.", expected.getMessage());
+      assertEquals("A license with ID 'FataMorganaId' does not exist.", expected.getMessage());
     }
 
     override = new LicenseOverride(applicationId, "gid", "aid", "1.0", LicenseOverrideStatus.SELECTED,
@@ -124,7 +124,7 @@ public class LicenseOverrideDAOTest
       fail("Expected NotFoundException");
     }
     catch (NotFoundException expected) {
-      assertEquals("A license with id 'FataMorganaId' does not exist.", expected.getMessage());
+      assertEquals("A license with ID 'FataMorganaId' does not exist.", expected.getMessage());
     }
   }
 
@@ -142,7 +142,7 @@ public class LicenseOverrideDAOTest
       fail("Expected NotFoundException");
     }
     catch (NotFoundException expected) {
-      assertEquals("A license with id 'FataMorganaId' does not exist.", expected.getMessage());
+      assertEquals("A license with ID 'FataMorganaId' does not exist.", expected.getMessage());
     }
 
     override.setStatus(LicenseOverrideStatus.SELECTED);
@@ -151,7 +151,7 @@ public class LicenseOverrideDAOTest
       fail("Expected NotFoundException");
     }
     catch (NotFoundException expected) {
-      assertEquals("A license with id 'FataMorganaId' does not exist.", expected.getMessage());
+      assertEquals("A license with ID 'FataMorganaId' does not exist.", expected.getMessage());
     }
   }
 
@@ -176,7 +176,7 @@ public class LicenseOverrideDAOTest
             fail("Expected BadRequestException");
           }
           catch (BadRequestException expected) {
-            assertEquals("Expected not null license id for license override", expected.getMessage());
+            assertEquals("Expected not null license ID for license override.", expected.getMessage());
           }
           break;
         default:
@@ -207,7 +207,7 @@ public class LicenseOverrideDAOTest
             fail("Expected BadRequestException");
           }
           catch (BadRequestException expected) {
-            assertEquals("Expected not null license id for license override", expected.getMessage());
+            assertEquals("Expected not null license ID for license override.", expected.getMessage());
           }
           break;
         default:
@@ -232,7 +232,7 @@ public class LicenseOverrideDAOTest
             fail("Expected BadRequestException");
           }
           catch (BadRequestException expected) {
-            assertEquals("Expected null license id for license override", expected.getMessage());
+            assertEquals("Expected null license ID for license override.", expected.getMessage());
           }
           break;
         case OVERRIDDEN:
@@ -264,7 +264,7 @@ public class LicenseOverrideDAOTest
             fail("Expected BadRequestException");
           }
           catch (BadRequestException expected) {
-            assertEquals("Expected null license id for license override", expected.getMessage());
+            assertEquals("Expected null license ID for license override.", expected.getMessage());
           }
           break;
         case OVERRIDDEN:

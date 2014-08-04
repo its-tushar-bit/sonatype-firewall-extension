@@ -30,7 +30,7 @@ public class RoleDAO
   public Role getByIdNotNull(String id) {
     Role role = getById(id);
     if (role == null) {
-      throw new NotFoundException("Cannot find a role with id " + id);
+      throw new NotFoundException("Cannot find a role with ID " + id + ".");
     }
     return role;
   }

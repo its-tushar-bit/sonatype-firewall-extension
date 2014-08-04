@@ -97,7 +97,7 @@ public class UserDAO
   public User getByIdNotNull(EntityManager em, String id) {
     User user = getById(em, id);
     if (user == null) {
-      throw new NotFoundException("Cannot find a user with id " + id);
+      throw new NotFoundException("Cannot find a user with ID " + id + ".");
     }
     return user;
   }

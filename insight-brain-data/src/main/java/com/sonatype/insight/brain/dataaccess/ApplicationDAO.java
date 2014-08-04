@@ -67,7 +67,7 @@ public class ApplicationDAO
   public Application getByIdNotNull(EntityManager em, String id) {
     Application application = getById(em, id);
     if (application == null) {
-      throw new NotFoundException("Could not find an application with id " + id + ".");
+      throw new NotFoundException("Could not find an application with ID " + id + ".");
     }
     return application;
   }
@@ -106,7 +106,7 @@ public class ApplicationDAO
   public Application getByPublicIdNotNull(EntityManager em, String publicId) {
     Application application = getByPublicId(em, publicId);
     if (application == null) {
-      throw new NotFoundException("Could not find an application with public id " + publicId + ".");
+      throw new NotFoundException("Could not find an application with public ID " + publicId + ".");
     }
     return application;
   }
@@ -216,11 +216,11 @@ public class ApplicationDAO
 
     Application existingApplication = getById(em, application.getId());
     if (existingApplication == null) {
-      throw new InvalidApplicationException("Attempting to edit an application that doesn't exist. ID "
-          + application.getPublicId());
+      throw new InvalidApplicationException("Attempting to edit an application that doesn't exist. ID : "
+          + application.getPublicId() + ".");
     }
     if (!existingApplication.getPublicId().equals(application.getPublicId())) {
-      throw new InvalidApplicationException("Cannot change Public ID of existing application.");
+      throw new InvalidApplicationException("Cannot change public ID of existing application.");
     }
     if (!existingApplication.getOrganizationId().equals(application.getOrganizationId())) {
       throw new InvalidApplicationException("Cannot change the parent organization of an application.");
@@ -248,7 +248,7 @@ public class ApplicationDAO
       if (licenseThreatGroupDAO.getByOwnerIdAndName(em, organization.getId(), appLicenseThreatGroup.getName()) != null) {
         throw new InvalidApplicationException(
             "Both the application and the organization have a license threat group with the same name '"
-                + appLicenseThreatGroup.getName() + "'");
+                + appLicenseThreatGroup.getName() + "'.");
       }
     }
   }
@@ -263,10 +263,11 @@ public class ApplicationDAO
     }
     if (!conflicts.isEmpty()) {
       final StringBuilder msg = new StringBuilder(
-          "Both the application and the organization have labels with the same names." + " Conflicting label names :");
+          "Both the application and the organization have labels with the same names. Conflicting label names :");
       for (Label conflict : conflicts) {
         msg.append(" '").append(conflict.getLabelLowercase()).append('\'');
       }
+      msg.append(".");
       throw new InvalidApplicationException(msg.toString());
     }
   }
@@ -369,7 +370,7 @@ public class ApplicationDAO
 
     final String applicationPublicId = application.getPublicId();
     if (applicationPublicId == null || applicationPublicId.trim().isEmpty()) {
-      throw new InvalidApplicationException("publicId is required.");
+      throw new InvalidApplicationException("A public ID is required to save an application.");
     }
   }
 

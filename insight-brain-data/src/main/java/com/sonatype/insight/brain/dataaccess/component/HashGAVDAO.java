@@ -52,12 +52,12 @@ public class HashGAVDAO
   public void insert(EntityManager em, HashGAV entity) {
     HashGAV other = getByHash(em, entity.getHash());
     if (other != null) {
-      throw new BadRequestException("This component is already mapped to '" + other.getGAVECString() + "'");
+      throw new BadRequestException("This component is already mapped to '" + other.getGAVECString() + "'.");
     }
     other = getByGAVEC(em, entity.getGroupId(), entity.getArtifactId(), entity.getVersion(), entity.getExtension(),
         entity.getClassifier());
     if (other != null) {
-      throw new BadRequestException("Another component is already mapped to '" + other.getGAVECString() + "'");
+      throw new BadRequestException("Another component is already mapped to '" + other.getGAVECString() + "'.");
     }
     super.insert(em, entity);
   }

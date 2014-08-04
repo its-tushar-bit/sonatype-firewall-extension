@@ -87,7 +87,7 @@ public class PolicyResourceTest
     //ensure that we cannot import to an App that does not exist
     assertResponseStatus(404, response);
     assertThat(response.getResponseBody(),
-        is("Could not find an application with public id " + applicationPublicId + "."));
+        is("Could not find an application with public ID " + applicationPublicId + "."));
   }
 
   @Test
@@ -96,7 +96,7 @@ public class PolicyResourceTest
     Response response = AuthedRestAccess.post(getServiceURL(ORG, orgId), asJson(createPolicyExportResult()));
     //ensure that we cannot import to an Org that does not exist
     assertResponseStatus(404, response);
-    assertThat(response.getResponseBody(), is("Cannot find organization with id " + orgId + "."));
+    assertThat(response.getResponseBody(), is("Cannot find organization with ID " + orgId + "."));
   }
 
   @Test
@@ -728,7 +728,7 @@ public class PolicyResourceTest
     Response response = AuthedRestAccess.delete(getServiceURL(IdUtils.TYPE_APPLICATION, appPublicId2) + "/"
         + policy.getId());
     assertResponseStatus(404, response);
-    Assert.assertEquals("Cannot find a policy with id " + policy.getId() + " for application id " + appPublicId2,
+    Assert.assertEquals("Cannot find a policy with ID " + policy.getId() + " for application ID " + appPublicId2,
         response.getResponseBody());
     // Verify that the policy was not deleted
     assertThat(new PolicyDAO().getById(policy.getId()), notNullValue());

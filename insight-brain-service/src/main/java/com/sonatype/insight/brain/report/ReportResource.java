@@ -232,7 +232,7 @@ public class ReportResource
     PolicyEvaluation policyEvaluation = new PolicyEvaluationDAO().getLastByApplicationIdAndScanId(appId, scanId);
 
     if (policyEvaluation == null) {
-      throw new BadRequestException("Policy evaluation for scan " + scanId + " does not exist on the server");
+      throw new BadRequestException("Policy evaluation for scan " + scanId + " does not exist on the server.");
     }
 
     policyEvaluationUtils.evaluate(applicationPublicId, scanId, new Stage(policyEvaluation.getStageTypeId()));
@@ -524,7 +524,7 @@ public class ReportResource
       lock.lock(); // protect against concurrent download as well as concurrent editing of the report
     }
     else if (!lock.tryLock()) {
-      throw new NotFoundException("The report for scan id " + scanId + " is still being downloaded");
+      throw new NotFoundException("The report for scan ID " + scanId + " is still being downloaded");
     }
     try {
       if (!reportFile.exists()) {
@@ -537,7 +537,7 @@ public class ReportResource
         }
         final File tempFile = FileUtils.createTempFile("temp-", ".zip", reportFile.getParentFile());
         if (!reportDownloader.downloadReport(scanId, tempFile, attempts, interval)) {
-          throw new NotFoundException("Could not download the report for scan id " + scanId);
+          throw new NotFoundException("Could not download the report for scan ID " + scanId);
         }
         FileUtils.rename(tempFile, reportFile);
       }

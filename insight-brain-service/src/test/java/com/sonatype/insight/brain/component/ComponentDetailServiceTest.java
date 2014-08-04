@@ -303,7 +303,7 @@ public class ComponentDetailServiceTest
       fail("Expected BadRequestException");
     }
     catch (BadRequestException expected) {
-      assertThat(expected.getMessage(), is("Unknown component with hash ababababab"));
+      assertThat(expected.getMessage(), is("Unknown component with hash ababababab."));
     }
   }
 

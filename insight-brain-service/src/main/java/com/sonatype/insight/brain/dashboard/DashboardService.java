@@ -508,7 +508,7 @@ public class DashboardService
       @Nullable Predicate<PolicyViolation> violationFilter)
   {
     if (StringUtils.isBlank(applicationId)) {
-      throw new BadRequestException("Unable to get policy violations for null or empty application id.");
+      throw new BadRequestException("Unable to get policy violations for null or empty application ID.");
     }
 
     Application application = applicationDAO.getByIdNotNull(applicationId);

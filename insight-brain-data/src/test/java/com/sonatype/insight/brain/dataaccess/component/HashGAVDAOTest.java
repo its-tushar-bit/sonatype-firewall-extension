@@ -202,7 +202,7 @@ public class HashGAVDAOTest
     }
     catch (BadRequestException expected) {
       assertEquals(
-          "This component is already mapped to 'HashGAVDAOTest_G:HashGAVDAOTest_A:HashGAVDAOTest_V:HashGAVDAOTest_E:HashGAVDAOTest_C'",
+          "This component is already mapped to 'HashGAVDAOTest_G:HashGAVDAOTest_A:HashGAVDAOTest_V:HashGAVDAOTest_E:HashGAVDAOTest_C'.",
           expected.getMessage());
     }
 
@@ -230,7 +230,7 @@ public class HashGAVDAOTest
     }
     catch (BadRequestException expected) {
       assertEquals(
-          "Another component is already mapped to 'HashGAVDAOTest_G:HashGAVDAOTest_A:HashGAVDAOTest_V:HashGAVDAOTest_E:HashGAVDAOTest_C'",
+          "Another component is already mapped to 'HashGAVDAOTest_G:HashGAVDAOTest_A:HashGAVDAOTest_V:HashGAVDAOTest_E:HashGAVDAOTest_C'.",
           expected.getMessage());
     }
 

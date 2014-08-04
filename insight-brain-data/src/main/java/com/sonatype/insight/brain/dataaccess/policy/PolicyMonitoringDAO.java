@@ -46,7 +46,7 @@ public class PolicyMonitoringDAO
   public PolicyMonitoring getByOwnerIdNotNull(String ownerId) {
     PolicyMonitoring entity = getByOwnerId(ownerId);
     if (entity == null) {
-      throw new NotFoundException("Policy monitoring was not set for owner id " + ownerId);
+      throw new NotFoundException("Policy monitoring was not set for owner ID " + ownerId + ".");
     }
     return entity;
   }

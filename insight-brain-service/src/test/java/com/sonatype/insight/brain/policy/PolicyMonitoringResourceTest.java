@@ -84,7 +84,7 @@ public class PolicyMonitoringResourceTest
     Organization organization = tempEntity.newOrganization("PolicyMonitoringResourceTest");
     Response response = AuthedRestAccess.delete(getServiceURL(IdUtils.TYPE_ORGANIZATION, organization.getId()));
     assertResponseStatus(404, response);
-    assertThat(response.getResponseBody(), is("Policy monitoring was not set for owner id " + organization.getId()));
+    assertThat(response.getResponseBody(), is("Policy monitoring was not set for owner ID " + organization.getId() + "."));
   }
 
   @Test
@@ -93,7 +93,7 @@ public class PolicyMonitoringResourceTest
     Application application = tempEntity.newApplicationWithParent(appPublicId);
     Response response = AuthedRestAccess.delete(getServiceURL(IdUtils.TYPE_APPLICATION, appPublicId));
     assertResponseStatus(404, response);
-    assertThat(response.getResponseBody(), is("Policy monitoring was not set for owner id " + application.getId()));
+    assertThat(response.getResponseBody(), is("Policy monitoring was not set for owner ID " + application.getId() + "."));
   }
 
   @Test

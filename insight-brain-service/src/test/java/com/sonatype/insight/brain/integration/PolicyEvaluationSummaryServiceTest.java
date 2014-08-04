@@ -78,7 +78,7 @@ public class PolicyEvaluationSummaryServiceTest
       fail("Expected exception " + NotFoundException.class.getSimpleName());
     }
     catch (NotFoundException e) {
-      assertThat(e.getMessage(), is("Could not find an application with id " + appId + "."));
+      assertThat(e.getMessage(), is("Could not find an application with ID " + appId + "."));
     }
   }
 

@@ -65,7 +65,7 @@ public class PolicyEvaluationSummaryResourceTest
   public void testGetPolicyEvaluationSummary_badStage() throws Exception {
     Response response = AuthedRestAccess.get(getServiceURL(application.getId(), invalidStageId));
     assertResponseStatus(400, response);
-    assertThat(response.getResponseBody(), is("Invalid parameter stageTypeId=" + invalidStageId));
+    assertThat(response.getResponseBody(), is("Invalid parameter stageTypeId=" + invalidStageId + "."));
   }
 
   private String getServiceURL(final String appId, final String stageTypeId) {

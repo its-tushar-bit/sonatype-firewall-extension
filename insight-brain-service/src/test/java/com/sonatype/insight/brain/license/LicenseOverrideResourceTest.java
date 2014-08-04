@@ -157,7 +157,7 @@ public class LicenseOverrideResourceTest
 
     Response response = AuthedRestAccess.delete(getServiceURL(IdUtils.TYPE_APPLICATION, appPublicId) + "/YettiId");
     assertResponseStatus(404, response);
-    assertEquals("Cannot find a license override with id YettiId", response.getResponseBody());
+    assertEquals("Cannot find a license override with ID YettiId.", response.getResponseBody());
   }
 
   @Test
@@ -166,7 +166,7 @@ public class LicenseOverrideResourceTest
 
     Response response = AuthedRestAccess.delete(getServiceURL(IdUtils.TYPE_ORGANIZATION, organization.getId()) + "/YettiId");
     assertResponseStatus(404, response);
-    assertEquals("Cannot find a license override with id YettiId", response.getResponseBody());
+    assertEquals("Cannot find a license override with ID YettiId.", response.getResponseBody());
   }
 
   @Test
@@ -292,7 +292,7 @@ public class LicenseOverrideResourceTest
 
     response = AuthedRestAccess.delete(getServiceURL(ownerType, ownerPublicId2) + "/" + licenseOverride.getId());
     assertResponseStatus(404, response);
-    assertEquals("Cannot find a license override with id " + licenseOverride.getId() + " for " + ownerType + " id "
+    assertEquals("Cannot find a license override with ID " + licenseOverride.getId() + " for " + ownerType + " ID "
         + ownerPublicId2, response.getResponseBody());
     // Verify that the license override was not deleted
     new LicenseOverrideDAO().getByIdNotNull(licenseOverride.getId());

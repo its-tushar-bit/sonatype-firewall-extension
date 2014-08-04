@@ -73,8 +73,8 @@ public class PolicyWaiverResource
     PolicyWaiverDAO policyWaiverDAO = new PolicyWaiverDAO();
     PolicyWaiver policyWaiver = policyWaiverDAO.getByIdNotNull(policyWaiverId);
     if (!internalOwnerId.equals(policyWaiver.getOwnerId())) {
-      throw new NotFoundException("Cannot find a policy waiver with id " + policyWaiverId + " for " + ownerType
-          + " id " + ownerId);
+      throw new NotFoundException("Cannot find a policy waiver with ID " + policyWaiverId + " for " + ownerType
+          + " ID " + ownerId);
     }
 
     policyWaiverDAO.delete(policyWaiver);
@@ -151,7 +151,7 @@ public class PolicyWaiverResource
     }
 
     if (!application.getOrganizationId().equals(policy.getOwnerId())) {
-      throw new NotFoundException("Cannot find a policy with id " + policyId + " for application public id "
+      throw new NotFoundException("Cannot find a policy with ID " + policyId + " for application public ID "
           + applicationPublicId);
     }
 

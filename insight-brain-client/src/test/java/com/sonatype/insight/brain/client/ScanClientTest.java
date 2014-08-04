@@ -54,7 +54,7 @@ public class ScanClientTest
     }
     catch (HttpResponseException e) {
       assertEquals(404, e.getStatusCode());
-      assertEquals("Could not find an application with public id invalid-id.", e.getMessage());
+      assertEquals("Could not find an application with public ID invalid-id.", e.getMessage());
     }
   }
 
@@ -76,7 +76,7 @@ public class ScanClientTest
     }
     catch (HttpResponseException e) {
       assertEquals(404, e.getStatusCode());
-      assertEquals("Could not find an application with public id invalid-id.", e.getMessage());
+      assertEquals("Could not find an application with public ID invalid-id.", e.getMessage());
     }
   }
 

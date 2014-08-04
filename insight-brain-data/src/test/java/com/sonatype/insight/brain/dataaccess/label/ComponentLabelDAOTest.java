@@ -80,7 +80,7 @@ public class ComponentLabelDAOTest
     }
     catch (BadRequestException expected) {
       Assert.assertThat(expected.getMessage(),
-          IsEqual.equalTo("The label 'label' is already applied to the component ababababab"));
+          IsEqual.equalTo("The label 'label' is already applied to the component ababababab."));
     }
   }
 
@@ -98,7 +98,7 @@ public class ComponentLabelDAOTest
       Assert.assertThat(
           expected.getMessage(),
           IsEqual.equalTo("The label 'label' is not applicable for the selected context "
-              + application.getOrganizationId()));
+              + application.getOrganizationId() + "."));
     }
   }
 
@@ -117,7 +117,7 @@ public class ComponentLabelDAOTest
     }
     catch (BadRequestException expected) {
       Assert.assertThat(expected.getMessage(),
-          IsEqual.equalTo("The label 'label' is already applied to the component ababababab"));
+          IsEqual.equalTo("The label 'label' is already applied to the component ababababab."));
     }
   }
 
@@ -137,7 +137,7 @@ public class ComponentLabelDAOTest
       Assert.assertThat(
           expected.getMessage(),
           IsEqual.equalTo("The label 'label' is not applicable for the selected context "
-              + application.getOrganizationId()));
+              + application.getOrganizationId() + "."));
     }
   }
 

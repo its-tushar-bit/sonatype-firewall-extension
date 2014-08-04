@@ -39,8 +39,8 @@ abstract class AbstractLicenseThreatGroupResourceTest
 
     response = AuthedRestAccess.delete(getServiceURL(ownerPublicId2) + "/" + group.getId());
     assertResponseStatus(404, response);
-    Assert.assertEquals("Cannot find a license threat group with id " + group.getId() + " for " + getOwnerType()
-        + " id " + ownerPublicId2, response.getResponseBody());
+    Assert.assertEquals("Cannot find a license threat group with ID " + group.getId() + " for " + getOwnerType()
+        + " ID " + ownerPublicId2, response.getResponseBody());
     // Verify that the group was not deleted
     response = AuthedRestAccess.get(getServiceURL(ownerPublicId1));
     assertResponseStatus(200, response);

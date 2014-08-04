@@ -125,8 +125,8 @@ public class LicenseOverrideResource
     LicenseOverrideDAO licenseOverrideDAO = new LicenseOverrideDAO();
     LicenseOverride licenseOverride = licenseOverrideDAO.getByIdNotNull(licenseOverrideId);
     if (!internalOwnerId.equals(licenseOverride.getOwnerId())) {
-      throw new NotFoundException("Cannot find a license override with id " + licenseOverrideId + " for " + ownerType
-          + " id " + ownerId);
+      throw new NotFoundException("Cannot find a license override with ID " + licenseOverrideId + " for " + ownerType
+          + " ID " + ownerId);
     }
 
     String user = currentUser.getUsername();

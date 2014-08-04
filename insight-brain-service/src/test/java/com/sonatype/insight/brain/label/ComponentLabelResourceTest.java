@@ -151,8 +151,8 @@ public class ComponentLabelResourceTest
     response = AuthedRestAccess.delete(getServiceURL(IdUtils.TYPE_APPLICATION, app.getPublicId(), componentHash) + "/"
         + orgLabel.getId());
     assertResponseStatus(404, response);
-    Assert.assertThat(response.getResponseBody(), is("Cannot find the label with id " + orgLabel.getId()
-        + " for application id test-app on the component " + componentHash));
+    Assert.assertThat(response.getResponseBody(), is("Cannot find the label with ID " + orgLabel.getId()
+        + " for application ID test-app on the component " + componentHash + "."));
   }
 
   @Test
@@ -169,8 +169,8 @@ public class ComponentLabelResourceTest
     response = AuthedRestAccess.delete(getServiceURL(IdUtils.TYPE_ORGANIZATION, app.getOrganizationId(), componentHash) + "/"
         + appLabel.getId());
     assertResponseStatus(404, response);
-    Assert.assertThat(response.getResponseBody(), is("Cannot find the label with id " + appLabel.getId()
-        + " for organization id " + app.getOrganizationId() + " on the component " + componentHash));
+    Assert.assertThat(response.getResponseBody(), is("Cannot find the label with ID " + appLabel.getId()
+        + " for organization ID " + app.getOrganizationId() + " on the component " + componentHash + "."));
   }
 
   private String getServiceURL(String ownerType, String ownerId, String hash) {

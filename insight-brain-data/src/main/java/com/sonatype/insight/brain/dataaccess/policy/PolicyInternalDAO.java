@@ -33,7 +33,7 @@ public class PolicyInternalDAO
   PolicyInternal getByIdNotNull(EntityManager em, String id) {
     PolicyInternal policyInternal = getById(em, id);
     if (policyInternal == null) {
-      throw new NotFoundException("Cannot find a policy with id " + id);
+      throw new NotFoundException("Cannot find a policy with ID " + id + ".");
     }
     return policyInternal;
   }

@@ -65,7 +65,7 @@ public class ApplicationResourceTest
     // validate service always returns 200, the actual result is in the response body
     response = AuthedRestAccess.get(getValidateApplicationIdServiceURL(applicationPublicId));
     assertResponseStatus(200, response);
-    assertThat(response.getResponseBody(), equalTo("Invalid application id " + applicationPublicId));
+    assertThat(response.getResponseBody(), equalTo("Invalid application ID " + applicationPublicId + "."));
   }
 
   @Test
@@ -267,7 +267,7 @@ public class ApplicationResourceTest
     response = AuthedRestAccess.delete(getServiceURL() + "/" + applicationPublicId);
 
     assertResponseStatus(404, response);
-    Assert.assertEquals("Could not find an application with public id " + applicationPublicId + ".",
+    Assert.assertEquals("Could not find an application with public ID " + applicationPublicId + ".",
         response.getResponseBody());
   }
 

@@ -61,7 +61,7 @@ public class PolicyDAOTest
       Assert.fail("Expected NotFoundException");
     }
     catch (NotFoundException expected) {
-      if (!"Cannot find a policy with id yeti".equals(expected.getMessage())) {
+      if (!"Cannot find a policy with ID yeti.".equals(expected.getMessage())) {
         throw expected;
       }
     }

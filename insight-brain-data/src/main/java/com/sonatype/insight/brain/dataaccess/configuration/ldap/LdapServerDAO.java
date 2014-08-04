@@ -33,7 +33,7 @@ public class LdapServerDAO
   public LdapServer getByIdNotNull(String id) {
     LdapServer config = getById(id);
     if (config == null) {
-      throw new NotFoundException("Cannot find LdapServer with id " + id + ".");
+      throw new NotFoundException("Cannot find LdapServer with ID " + id + ".");
     }
     return config;
   }

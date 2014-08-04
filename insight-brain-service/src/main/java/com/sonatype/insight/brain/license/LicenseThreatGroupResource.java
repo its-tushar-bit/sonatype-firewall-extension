@@ -149,8 +149,8 @@ public class LicenseThreatGroupResource
 
     LicenseThreatGroup licenseThreatGroup = licenseThreatGroupDAO.getByIdNotNull(licenseThreatGroupId);
     if (!internalOwnerId.equals(licenseThreatGroup.getOwnerId())) {
-      throw new NotFoundException("Cannot find a license threat group with id " + licenseThreatGroupId + " for "
-          + ownerType + " id " + ownerId);
+      throw new NotFoundException("Cannot find a license threat group with ID " + licenseThreatGroupId + " for "
+          + ownerType + " ID " + ownerId);
     }
 
     // Verify that the license threat group is not used in a policy condition

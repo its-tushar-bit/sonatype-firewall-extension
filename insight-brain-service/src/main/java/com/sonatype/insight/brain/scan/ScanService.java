@@ -60,7 +60,7 @@ class ScanService
     log.debug("Request to scan binary '{}' for application public id '{}'", filename, appPublicId);
 
     if (!Stage.isValidStageTypeId(stage.getStageTypeId())) {
-      throw new BadRequestException("Invalid CLM stage: " + stage.getStageTypeId());
+      throw new BadRequestException("Invalid CLM stage: " + stage.getStageTypeId() + ".");
     }
     File binFile = saveBinary(is, filename);
 

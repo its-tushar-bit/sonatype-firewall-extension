@@ -43,7 +43,7 @@ public class PermissionResource
                                             @PathParam("ownerId") final String ownerId, Set<Permission> permissions)
   {
     if (permissions == null || permissions.isEmpty()) {
-      throw new BadRequestException("Must specify permissions to check");
+      throw new BadRequestException("Must specify permissions to check.");
     }
 
     return permissionService.hasPermissions(SecurityUtils.getSubject(), ownerType, ownerId, permissions);

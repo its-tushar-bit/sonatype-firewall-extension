@@ -113,7 +113,7 @@ public class LabelDAO
   Label getByIdNotNull(EntityManager em, String id) {
     Label label = getById(em, id);
     if (label == null) {
-      throw new NotFoundException("Cannot find a label with id " + id);
+      throw new NotFoundException("Cannot find a label with ID " + id + ".");
     }
     return label;
   }

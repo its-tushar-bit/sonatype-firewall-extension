@@ -142,7 +142,7 @@ public class LabelResourceTest
 
     Response response = AuthedRestAccess.delete(getServiceURLForApplication(appPublicId) + "/YettiId");
     assertResponseStatus(404, response);
-    Assert.assertEquals("Cannot find a label with id YettiId", response.getResponseBody());
+    Assert.assertEquals("Cannot find a label with ID YettiId.", response.getResponseBody());
   }
 
   @Test
@@ -155,7 +155,7 @@ public class LabelResourceTest
     
     Response response = AuthedRestAccess.delete(getServiceURLForApplication(appPublicId2) + "/" + label.getId());
     assertResponseStatus(404, response);
-    Assert.assertEquals("Cannot find a label with id " + label.getId() + " for application id " + appPublicId2,
+    Assert.assertEquals("Cannot find a label with ID " + label.getId() + " for application ID " + appPublicId2,
         response.getResponseBody());
     // Verify that the label was not deleted
     response = AuthedRestAccess.get(getServiceURLForApplication(appPublicId1));
@@ -302,7 +302,7 @@ public class LabelResourceTest
 
     Response response = AuthedRestAccess.delete(getServiceURLForOrganization(organization.getId()) + "/YettiId");
     assertResponseStatus(404, response);
-    Assert.assertEquals("Cannot find a label with id YettiId", response.getResponseBody());
+    Assert.assertEquals("Cannot find a label with ID YettiId.", response.getResponseBody());
   }
 
   @Test
@@ -317,7 +317,7 @@ public class LabelResourceTest
     Response response = AuthedRestAccess.delete(getServiceURLForOrganization(organization2.getId()) + "/" + label.getId());
     assertResponseStatus(404, response);
     Assert.assertEquals(
-        "Cannot find a label with id " + label.getId() + " for organization id " + organization2.getId(),
+        "Cannot find a label with ID " + label.getId() + " for organization ID " + organization2.getId(),
         response.getResponseBody());
     // Verify that the label was not deleted
     response = AuthedRestAccess.get(getServiceURLForOrganization(organization1.getId()));
@@ -439,8 +439,8 @@ public class LabelResourceTest
 
     response = AuthedRestAccess.get(getContextsURL(ORG, org.getId(), appLabel.getId()));
     assertResponseStatus(404, response);
-    Assert.assertThat(response.getResponseBody(), is("Cannot find a label with id " + appLabel.getId()
-        + " for organization id " + org.getId()));
+    Assert.assertThat(response.getResponseBody(), is("Cannot find a label with ID " + appLabel.getId()
+        + " for organization ID " + org.getId()));
   }
 
   private void assertLabel(String ownerId, String label, Color color, Label actual) {

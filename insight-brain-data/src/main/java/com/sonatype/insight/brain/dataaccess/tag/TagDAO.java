@@ -145,7 +145,7 @@ public class TagDAO
   private Tag getByIdNotNull(EntityManager em, String id) {
     Tag tag = getById(em, id);
     if (tag == null) {
-      throw new NotFoundException("Cannot find a tag with id " + id);
+      throw new NotFoundException("Cannot find a tag with ID " + id + ".");
     }
     return tag;
   }
@@ -165,7 +165,7 @@ public class TagDAO
     // Do not allow the delete if the tag is applied to policies
     List<PolicyTag> policyTags = new PolicyTagDAO().getByTagId(em, tag.getId());
     if (policyTags.size() > 0) {
-      throw new BadRequestException("Cannot delete the tag because it is associated with policies");
+      throw new BadRequestException("Cannot delete the tag because it is associated with policies.");
     }
 
     // Cascade to application tags

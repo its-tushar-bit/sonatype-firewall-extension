@@ -68,7 +68,7 @@ public class ScanResourceTest
     Response response = upload("app01.zip", getUploadUrl("bad-app-id", Stage.ID_BUILD) + "&noFormData=true");
     assertResponseStatus(200, response);
     assertThat(response.getContentType(), startsWith("text/plain"));
-    assertThat(response.getResponseBody(), is("Could not find an application with public id bad-app-id."));
+    assertThat(response.getResponseBody(), is("Could not find an application with public ID bad-app-id."));
   }
 
   private void waitForScanTaskToBeProcessed(String appPublicId, String scanTicketId) throws Exception {

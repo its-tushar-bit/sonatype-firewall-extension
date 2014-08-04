@@ -90,7 +90,7 @@ public class HashGAVResource
   public void deleteHashGAV(@PathParam("hash") String hash) {
     HashGAV toDelete = hashGAVDAO.getByHash(hash);
     if (toDelete == null) {
-      throw new BadRequestException("Unable to find a claimed component with hash: " + hash);
+      throw new BadRequestException("Unable to find a claimed component with hash: " + hash + ".");
     }
 
     hashGAVDAO.delete(toDelete);
@@ -101,7 +101,7 @@ public class HashGAVResource
     ComponentSummary componentSummary = getComponentSummary(hashGAV.getCoordinates());
 
     if (componentSummary.isKnown()) {
-      throw new BadRequestException("The '" + hashGAV.getGAVECString() + "' coordinates are already in use");
+      throw new BadRequestException("The '" + hashGAV.getGAVECString() + "' coordinates are already in use.");
     }
   }
 

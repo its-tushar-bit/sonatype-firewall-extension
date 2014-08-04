@@ -105,7 +105,7 @@ public class PolicyEvaluationUtils
     final ReportEntry bomReportEntry = Report.getEntry(reportFile, "bom.json");
 
     if (bomReportEntry == null || securityReportEntry == null || licenseReportEntry == null) {
-      throw new BadRequestException("Unable to evaluate policy, the scan " + scanId + " could not be processed");
+      throw new BadRequestException("Unable to evaluate policy, the scan " + scanId + " could not be processed.");
     }
 
     // Load data about components

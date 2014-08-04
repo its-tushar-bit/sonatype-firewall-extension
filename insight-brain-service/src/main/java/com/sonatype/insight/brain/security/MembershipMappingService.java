@@ -213,10 +213,10 @@ public class MembershipMappingService
   private Role validateRole(final String ownerType, final String roleId) {
     final Role role = roleDAO.getByIdNotNull(roleId);
     if (!IdUtils.TYPE_GLOBAL.equals(ownerType) && role.isGlobal()) {
-      throw new BadRequestException("Cannot map members to global role in context of " + ownerType);
+      throw new BadRequestException("Cannot map members to global role in context of " + ownerType + ".");
     }
     if (IdUtils.TYPE_GLOBAL.equals(ownerType) && !role.isGlobal()) {
-      throw new BadRequestException("Cannot map members to application role in global context");
+      throw new BadRequestException("Cannot map members to application role in global context.");
     }
     return role;
   }

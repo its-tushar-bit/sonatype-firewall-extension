@@ -73,7 +73,7 @@ public class ScanTaskRepository
     ScanTask task = scanTasks.get(id);
 
     if (task == null) {
-      throw new NotFoundException("Cannot find ScanTicket with id " + id + ".");
+      throw new NotFoundException("Cannot find ScanTicket with ID " + id + ".");
     }
 
     return task;

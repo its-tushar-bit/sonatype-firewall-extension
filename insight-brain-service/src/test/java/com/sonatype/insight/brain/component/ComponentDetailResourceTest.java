@@ -43,7 +43,7 @@ public class ComponentDetailResourceTest
 
     Response response = AuthedRestAccess.get(url);
     assertResponseStatus(400, response);
-    assertThat(response.getResponseBody(), is("Unknown component with hash ababababab"));
+    assertThat(response.getResponseBody(), is("Unknown component with hash ababababab."));
 
     tempEntity.newApplicationComponent(app.getId(), BuildStageType.ID, hash, "groupId", "artifactId", "version");
     response = AuthedRestAccess.get(url);

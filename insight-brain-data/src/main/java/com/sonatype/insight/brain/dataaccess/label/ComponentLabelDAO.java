@@ -101,11 +101,11 @@ public class ComponentLabelDAO
     ComponentLabel other = getByOwnerIdAndHashAndLabelId(em, entity.getOwnerId(), entity.getHash(), entity.getLabelId());
     if (other != null && !other.getId().equals(entity.getId())) {
       throw new BadRequestException("The label '" + label.getLabel() + "' is already applied to the component "
-          + entity.getHash());
+          + entity.getHash() + ".");
     }
     if (!isLabelApplicable(em, label, entity.getOwnerId(), labelDAO)) {
       throw new BadRequestException("The label '" + label.getLabel() + "' is not applicable for the selected context "
-          + entity.getOwnerId());
+          + entity.getOwnerId() + ".");
     }
   }
 

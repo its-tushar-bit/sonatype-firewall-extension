@@ -60,14 +60,14 @@ public class ReportDataService
     Application app = appDAO.getByPublicIdNotNull(applicationPublicId);
     File reportFile = ReportResource.getReport(work, app.getId(), scanId);
     if (reportFile == null) {
-      throw new NotFoundException("Could not find a report with id " + scanId);
+      throw new NotFoundException("Could not find a report with ID " + scanId);
     }
 
     ReportEntry bomEntry = Report.getEntry(reportFile, "bom.json");
     ReportEntry securityEntry = Report.getEntry(reportFile, "security.json");
     ReportEntry licenseEntry = Report.getEntry(reportFile, "licenses.json");
     if (bomEntry == null || securityEntry == null || licenseEntry == null) {
-      throw new BadRequestException("The report with id " + scanId + " contains no component data");
+      throw new BadRequestException("The report with ID " + scanId + " contains no component data.");
     }
 
     List<Component> components = componentDAO.getAll(app, licenseEntry.buf, securityEntry.buf, bomEntry.buf);

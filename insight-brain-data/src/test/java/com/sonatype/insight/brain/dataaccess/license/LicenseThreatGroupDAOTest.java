@@ -544,7 +544,7 @@ public class LicenseThreatGroupDAOTest
       fail("Expected NotFoundException");
     }
     catch (NotFoundException expected) {
-      assertEquals("Cannot find a license threat group with id fake id", expected.getMessage());
+      assertEquals("Cannot find a license threat group with ID fake id.", expected.getMessage());
     }
   }
 }

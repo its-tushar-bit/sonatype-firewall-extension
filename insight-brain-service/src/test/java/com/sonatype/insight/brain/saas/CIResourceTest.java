@@ -53,7 +53,7 @@ public class CIResourceTest
     // validate service always returns 200, the actual result is in the response body
     response = AuthedRestAccess.get(getServiceURL() + "/validate/" + applicationPublicId);
     assertResponseStatus(200, response);
-    assertThat(response.getResponseBody(), equalTo("Invalid application id " + applicationPublicId));
+    assertThat(response.getResponseBody(), equalTo("Invalid application ID " + applicationPublicId + "."));
   }
 
   @Test

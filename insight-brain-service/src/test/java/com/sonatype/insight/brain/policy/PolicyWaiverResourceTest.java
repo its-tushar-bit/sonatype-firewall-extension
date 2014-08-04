@@ -172,7 +172,7 @@ public class PolicyWaiverResourceTest
 
     response = AuthedRestAccess.delete(getServiceURL(ownerType, ownerPublicId2) + "/" + policyWaiver.getId());
     assertResponseStatus(404, response);
-    Assert.assertEquals("Cannot find a policy waiver with id " + policyWaiver.getId() + " for " + ownerType + " id "
+    Assert.assertEquals("Cannot find a policy waiver with ID " + policyWaiver.getId() + " for " + ownerType + " ID "
         + ownerPublicId2, response.getResponseBody());
     // Verify that the policy waiver was not deleted
     PolicyWaiverDAO policyWaiverDAO = new PolicyWaiverDAO();
@@ -188,7 +188,7 @@ public class PolicyWaiverResourceTest
 
     Response response = AuthedRestAccess.delete(getServiceURL(IdUtils.TYPE_APPLICATION, appPublicId) + "/YettiId");
     assertResponseStatus(404, response);
-    Assert.assertEquals("Cannot find a policy waiver with id YettiId", response.getResponseBody());
+    Assert.assertEquals("Cannot find a policy waiver with ID YettiId.", response.getResponseBody());
   }
 
   @Test
@@ -197,7 +197,7 @@ public class PolicyWaiverResourceTest
 
     Response response = AuthedRestAccess.delete(getServiceURL(IdUtils.TYPE_ORGANIZATION, organization.getId()) + "/YettiId");
     assertResponseStatus(404, response);
-    Assert.assertEquals("Cannot find a policy waiver with id YettiId", response.getResponseBody());
+    Assert.assertEquals("Cannot find a policy waiver with ID YettiId.", response.getResponseBody());
   }
 
   private void assertPolicyWaiver(String policyId, String ownerId, String comment, PolicyWaiver actual) {

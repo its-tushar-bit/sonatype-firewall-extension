@@ -28,7 +28,7 @@ public class LdapConnectionDAO
   public LdapConnection getByIdNotNull(String id) {
     LdapConnection conn = getById(id);
     if (conn == null) {
-      throw new NotFoundException("Cannot find LdapConnection with id " + id + ".");
+      throw new NotFoundException("Cannot find LdapConnection with ID " + id + ".");
     }
     return conn;
   }

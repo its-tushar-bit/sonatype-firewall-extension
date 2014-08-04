@@ -59,7 +59,7 @@ public class MultiLicenseDAO
     }
     MultiLicense multiLicense = multiLicensesById.get(id);
     if (multiLicense == null) {
-      log.info("Cannot find a multi-license with id '{}'.  Refreshing license data.", id);
+      log.info("Cannot find a multi-license with ID '{}'.  Refreshing license data.", id);
       LicenseDataUpdater.update();
       multiLicense = multiLicensesById.get(id);
     }
@@ -69,7 +69,7 @@ public class MultiLicenseDAO
   public MultiLicense getByIdNotNull(String id) {
     MultiLicense license = getById(id);
     if (license == null) {
-      throw new NotFoundException("A multi-license with id '" + id + "' does not exist.");
+      throw new NotFoundException("A multi-license with ID '" + id + "' does not exist.");
     }
     return license;
   }
@@ -104,14 +104,14 @@ public class MultiLicenseDAO
     }
     Set<License> licenses = licenseSetsById.get(id);
     if (licenses == null) {
-      log.info("Cannot find a multi-license with id '{}'.  Refreshing license data.", id);
+      log.info("Cannot find a multi-license with ID '{}'.  Refreshing license data.", id);
       LicenseDataUpdater.update();
       load();
     }
 
     licenses = licenseSetsById.get(id);
     if (licenses == null) {
-      throw new NotFoundException("A multi-license with id '" + id + "' does not exist locally or remotely.");
+      throw new NotFoundException("A multi-license with ID '" + id + "' does not exist locally or remotely.");
     }
 
     return licenses;

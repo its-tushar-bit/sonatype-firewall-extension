@@ -113,7 +113,7 @@ public class LicenseThreatGroupLicenseDAOTest
       Assert.fail("Expected NotFoundException");
     }
     catch (NotFoundException expected) {
-      if (!"A license with id 'BAZINGAAA' does not exist.".equals(expected.getMessage())) {
+      if (!"A license with ID 'BAZINGAAA' does not exist.".equals(expected.getMessage())) {
         throw expected;
       }
     }

@@ -135,7 +135,7 @@ public class LabelResource
     String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
     Label label = labelDAO.getByIdNotNull(labelId);
     if (!internalOwnerId.equals(label.getOwnerId())) {
-      throw new NotFoundException("Cannot find a label with id " + labelId + " for " + ownerType + " id " + ownerId);
+      throw new NotFoundException("Cannot find a label with ID " + labelId + " for " + ownerType + " ID " + ownerId);
     }
 
     ApplicableContext context;
@@ -208,7 +208,7 @@ public class LabelResource
 
     Label label = labelDAO.getByIdNotNull(labelId);
     if (!internalOwnerId.equals(label.getOwnerId())) {
-      throw new NotFoundException("Cannot find a label with id " + labelId + " for " + ownerType + " id " + ownerId);
+      throw new NotFoundException("Cannot find a label with ID " + labelId + " for " + ownerType + " ID " + ownerId);
     }
 
     // Verify that the label is not used in a policy condition

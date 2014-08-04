@@ -94,7 +94,7 @@ public class ApplicationHelper
     }
 
     if (application.getId() != null) {
-      throw new InvalidApplicationException("Application must not have an id set on creation.");
+      throw new InvalidApplicationException("Application must not have an ID set on creation.");
     }
 
     final String organizationId = application.getOrganizationId();
@@ -105,7 +105,7 @@ public class ApplicationHelper
     final Organization org = organizationDAO.getById(organizationId);
     if (org == null) {
       throw new InvalidApplicationException(
-          "Application references an organization (id=" + organizationId + ") that does not exist.");
+          "Application references an organization (ID=" + organizationId + ") that does not exist.");
     }
 
     final String contact = application.getContactInternalName();

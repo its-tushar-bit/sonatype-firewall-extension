@@ -51,7 +51,7 @@ public class LicenseDAO
     }
     License license = licensesById.get(id);
     if (license == null) {
-      log.info("Cannot find a license with id '{}'.  Refreshing license data.", id);
+      log.info("Cannot find a license with ID '{}'.  Refreshing license data.", id);
       LicenseDataUpdater.update();
       license = licensesById.get(id);
     }
@@ -61,7 +61,7 @@ public class LicenseDAO
   public License getByIdNotNull(String id) {
     License license = getById(id);
     if (license == null) {
-      throw new NotFoundException("A license with id '" + id + "' does not exist.");
+      throw new NotFoundException("A license with ID '" + id + "' does not exist.");
     }
     return license;
   }

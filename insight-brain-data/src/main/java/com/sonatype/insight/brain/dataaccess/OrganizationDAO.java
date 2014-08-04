@@ -52,7 +52,7 @@ public class OrganizationDAO
   public Organization getByIdNotNull(EntityManager em, String id) {
     Organization organization = getById(em, id);
     if (organization == null) {
-      throw new NotFoundException("Cannot find organization with id " + id + ".");
+      throw new NotFoundException("Cannot find organization with ID " + id + ".");
     }
     return organization;
   }

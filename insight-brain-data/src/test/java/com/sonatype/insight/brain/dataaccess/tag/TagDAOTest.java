@@ -443,7 +443,7 @@ public class TagDAOTest
       fail("Expected BadRequestException");
     }
     catch (BadRequestException expected) {
-      assertThat(expected.getMessage(), is("Cannot delete the tag because it is associated with policies"));
+      assertThat(expected.getMessage(), is("Cannot delete the tag because it is associated with policies."));
     }
 
     assertThat(new PolicyTagDAO().getByTagId(tag.getId()), hasSize(1));

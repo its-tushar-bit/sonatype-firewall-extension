@@ -66,14 +66,14 @@ public class SearchResourceTest
   public void testSearchComponent_MissingStageId() throws Exception {
     Response response = AuthedRestAccess.get(getSearchUrl("", "12345678901234567890"));
     assertResponseStatus(400, response);
-    assertThat(response.getResponseBody(), is("Stage has not been specified"));
+    assertThat(response.getResponseBody(), is("Stage has not been specified."));
   }
 
   @Test
   public void testSearchComponent_InvalidStageId() throws Exception {
     Response response = AuthedRestAccess.get(getSearchUrl("invalid", "12345678901234567890"));
     assertResponseStatus(400, response);
-    assertThat(response.getResponseBody(), is("Invalid stage: invalid"));
+    assertThat(response.getResponseBody(), is("Invalid stage: invalid."));
   }
 
   @Test
@@ -81,21 +81,21 @@ public class SearchResourceTest
     Response response = AuthedRestAccess.get(getSearchUrl("build", ""));
     assertResponseStatus(400, response);
     assertThat(response.getResponseBody(),
-        is("Neither hash nor coordinates of component to search for have been specified"));
+        is("Neither hash nor coordinates of component to search for have been specified."));
   }
 
   @Test
   public void testSearchComponent_InvalidHash() throws Exception {
     Response response = AuthedRestAccess.get(getSearchUrl("build", "invalid-hash"));
     assertResponseStatus(400, response);
-    assertThat(response.getResponseBody(), is("Invalid hash: invalid-hash"));
+    assertThat(response.getResponseBody(), is("Invalid hash: invalid-hash."));
   }
 
   @Test
   public void testSearchComponent_TooShortHash() throws Exception {
     Response response = AuthedRestAccess.get(getSearchUrl("build", "1249e25aebb15358bed"));
     assertResponseStatus(400, response);
-    assertThat(response.getResponseBody(), is("Invalid hash: 1249e25aebb15358bed"));
+    assertThat(response.getResponseBody(), is("Invalid hash: 1249e25aebb15358bed."));
   }
 
   @Test

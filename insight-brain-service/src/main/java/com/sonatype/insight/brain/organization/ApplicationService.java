@@ -52,7 +52,7 @@ public class ApplicationService
 
   public String validateApplicationPublicId(final String applicationPublicId) {
     if (applicationDAO.getByPublicId(applicationPublicId) == null) {
-      return "Invalid application id " + applicationPublicId;
+      return "Invalid application ID " + applicationPublicId + ".";
     }
 
     log.debug("Found application with public id {}", applicationPublicId);

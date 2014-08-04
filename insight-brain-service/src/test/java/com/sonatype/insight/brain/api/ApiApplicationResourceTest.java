@@ -232,7 +232,7 @@ public class ApiApplicationResourceTest
     Response response = AuthedRestAccess.put(getServiceURL() + "/" + app.getId(), JsonHelpers.asJson(applicationDTO));
     assertResponseStatus(400, response);
     String errorMessage = response.getResponseBody();
-    assertThat(errorMessage, is("Cannot change Public ID of existing application."));
+    assertThat(errorMessage, is("Cannot change public ID of existing application."));
   }
 
   @Test
@@ -240,14 +240,14 @@ public class ApiApplicationResourceTest
     final String appId = "invalidAppId";
     final Response response = AuthedRestAccess.delete(getServiceURL() + "/" + appId);
     assertResponseStatus(404, response);
-    assertThat(response.getResponseBody(), equalTo("Could not find an application with id " + appId + "."));
+    assertThat(response.getResponseBody(), equalTo("Could not find an application with ID " + appId + "."));
   }
 
   @Test
   public void testGetNotExistentApplication() throws Exception {
     final Response response = AuthedRestAccess.get(getServiceURL() + "/" + "invalidId");
     assertResponseStatus(404, response);
-    assertThat(response.getResponseBody(), equalTo("Could not find an application with id invalidId."));
+    assertThat(response.getResponseBody(), equalTo("Could not find an application with ID invalidId."));
   }
 
   @Test
@@ -279,7 +279,7 @@ public class ApiApplicationResourceTest
     // Test the post
     Response response = AuthedRestAccess.post(getServiceURL(), JsonHelpers.asJson(applicationDTO));
     assertResponseStatus(400, response);
-    assertThat(response.getResponseBody(), equalTo("Application must not have an id set on creation."));
+    assertThat(response.getResponseBody(), equalTo("Application must not have an ID set on creation."));
   }
 
   @Test
@@ -331,7 +331,7 @@ public class ApiApplicationResourceTest
     final Response response = AuthedRestAccess.post(getServiceURL(), JsonHelpers.asJson(applicationDTO));
     assertResponseStatus(400, response);
     assertThat(response.getResponseBody(),
-        equalTo("Application references an organization (id=" + orgId + ") that does not exist."));
+        equalTo("Application references an organization (ID=" + orgId + ") that does not exist."));
   }
 
   @Test

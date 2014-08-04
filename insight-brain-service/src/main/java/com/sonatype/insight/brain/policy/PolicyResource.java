@@ -192,7 +192,7 @@ public class PolicyResource
     PolicyDAO policyDAO = new PolicyDAO();
     Policy policy = policyDAO.getByIdNotNull(policyId);
     if (!internalOwnerId.equals(policy.getOwnerId())) {
-      throw new NotFoundException("Cannot find a policy with id " + policyId + " for " + ownerType + " id " + ownerId);
+      throw new NotFoundException("Cannot find a policy with ID " + policyId + " for " + ownerType + " ID " + ownerId);
     }
 
     policyDAO.delete(policy);

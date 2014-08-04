@@ -37,7 +37,7 @@ public class PolicyWaiverDAOTest
       fail("Expected NotFoundException");
     }
     catch (NotFoundException expected) {
-      assertEquals("Cannot find a policy waiver with id fake id", expected.getMessage());
+      assertEquals("Cannot find a policy waiver with ID fake id.", expected.getMessage());
     }
   }
 
@@ -120,7 +120,7 @@ public class PolicyWaiverDAOTest
       fail("Expected BadRequestException");
     }
     catch (BadRequestException expected) {
-      assertEquals("This policy waiver already exists", expected.getMessage());
+      assertEquals("This policy waiver already exists.", expected.getMessage());
     }
 
     dao.delete(policyWaiver1);
@@ -143,7 +143,7 @@ public class PolicyWaiverDAOTest
       fail("Expected BadRequestException");
     }
     catch (BadRequestException expected) {
-      assertEquals("This policy waiver already exists", expected.getMessage());
+      assertEquals("This policy waiver already exists.", expected.getMessage());
     }
 
     dao.delete(policyWaiver1);
@@ -196,7 +196,7 @@ public class PolicyWaiverDAOTest
       fail("Expected BadRequestException");
     }
     catch (BadRequestException expected) {
-      assertEquals("Comment length must not exceed 1000 characters", expected.getMessage());
+      assertEquals("Comment length must not exceed 1000 characters.", expected.getMessage());
     }
 
     dao.delete(policyWaiver1);

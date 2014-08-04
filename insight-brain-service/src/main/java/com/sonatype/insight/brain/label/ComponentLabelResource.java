@@ -109,8 +109,8 @@ public class ComponentLabelResource
     String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
     ComponentLabel label = componentLabelDAO.getByOwnerIdAndHashAndLabelId(internalOwnerId, hash, labelId);
     if (label == null) {
-      throw new NotFoundException("Cannot find the label with id " + labelId + " for " + ownerType + " id " + ownerId
-          + " on the component " + hash);
+      throw new NotFoundException("Cannot find the label with ID " + labelId + " for " + ownerType + " ID " + ownerId
+          + " on the component " + hash + ".");
     }
     componentLabelDAO.delete(label);
   }

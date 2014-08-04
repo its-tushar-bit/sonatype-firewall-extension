@@ -104,7 +104,7 @@ public class MultiLicenseDAOTest
       fail("Expected a NotFoundException to be thrown");
     }
     catch (NotFoundException e) {
-      assertThat(e.getMessage(), is("A multi-license with id '" + MOCK_REMOTE_LICENSE_ID
+      assertThat(e.getMessage(), is("A multi-license with ID '" + MOCK_REMOTE_LICENSE_ID
           + "' does not exist locally or remotely."));
     }
 

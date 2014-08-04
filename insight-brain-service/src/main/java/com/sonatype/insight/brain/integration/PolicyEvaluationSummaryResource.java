@@ -51,7 +51,7 @@ public class PolicyEvaluationSummaryResource
 
     StageType stageType = StageTypes.getById(stageTypeId);
     if (stageType == null) {
-      throw new BadRequestException("Invalid parameter stageTypeId=" + stageTypeId);
+      throw new BadRequestException("Invalid parameter stageTypeId=" + stageTypeId + ".");
     }
     Stage stage = new Stage(stageTypeId);
 

@@ -66,7 +66,7 @@ public class LicenseThreatGroupDAO
   LicenseThreatGroup getByIdNotNull(EntityManager em, String id) {
     LicenseThreatGroup licenseThreatGroup = getById(em, id);
     if (licenseThreatGroup == null) {
-      throw new NotFoundException("Cannot find a license threat group with id " + id);
+      throw new NotFoundException("Cannot find a license threat group with ID " + id + ".");
     }
     return licenseThreatGroup;
   }

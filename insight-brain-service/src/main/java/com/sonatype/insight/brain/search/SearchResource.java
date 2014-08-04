@@ -78,10 +78,10 @@ public class SearchResource
       @QueryParam("version") String version) throws IOException
   {
     if (StringUtils.isEmpty(stageId)) {
-      throw new BadRequestException("Stage has not been specified");
+      throw new BadRequestException("Stage has not been specified.");
     }
     if (StageTypes.getById(stageId) == null) {
-      throw new BadRequestException("Invalid stage: " + stageId);
+      throw new BadRequestException("Invalid stage: " + stageId + ".");
     }
 
     ArtifactCoordinate coords = null;
@@ -89,11 +89,11 @@ public class SearchResource
       coords = new ArtifactCoordinate(groupId, artifactId, version);
     }
     else if (StringUtils.isEmpty(hash)) {
-      throw new BadRequestException("Neither hash nor coordinates of component to search for have been specified");
+      throw new BadRequestException("Neither hash nor coordinates of component to search for have been specified.");
     }
     if (!StringUtils.isEmpty(hash)) {
       if (!hash.matches("[0-9a-fA-F]{20,40}")) {
-        throw new BadRequestException("Invalid hash: " + hash);
+        throw new BadRequestException("Invalid hash: " + hash + ".");
       }
       hash = hash.substring(0, 20);
     }

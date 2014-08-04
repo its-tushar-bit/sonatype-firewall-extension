@@ -145,9 +145,6 @@ a:focus {
   padding-left: 10px !important;
   display: inline-block;
 }
-.dashboard-navigation > li:first-child {
-  margin-left: 21px !important;
-}
 .dashboard-navigation > li:last-child {
   margin-right: 11px !important;
 }

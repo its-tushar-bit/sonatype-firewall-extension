@@ -34,6 +34,53 @@
           <span class="navbar-version">{{getServerVersion()}}</span>
         </span>
       </span>
+      <div class="pull-right">
+        <div class="system-menu" ng-if="isAdmin">
+          <div class="dropdown pull-right">
+            <a class="dropdown-toggle" data-toggle="dropdown">
+              <i class='glyphicons-sonatype medium cogwheel'></i>
+            </a>
+            <ul class="dropdown-menu dropdown-menu-arrow">
+              <li class="disabled"><a tabindex="-1">System Preferences</a></li>
+              <li class="divider"></li>
+              <li ng-class="{'active': $state.is('users') }">
+                <a href='index.html#/users'>Users</a>
+              </li>
+              <li ng-class="{'active': $state.is('globalroles') }">
+                <a href='index.html#/globalroles'>Global Roles</a>
+              </li>
+              <li ng-class="{'active': $state.is('productlicense') }">
+                <a href='index.html#/productlicense'>Product License</a>
+              </li>
+              <li ng-class="{'active': $state.is('proprietarycomponents') }">
+                <a href='index.html#/proprietarycomponents'>Proprietary Components</a>
+              </li>
+              <li ng-class="{'active': $state.includes('ldap') }">
+                <a href='index.html#/ldap'>LDAP</a>
+              </li>
+            </ul>
+          </div>
+        </div>
+        <div id="help-menu" class="help-menu">
+          <div class="dropdown pull-right">
+            <a id="help-menu-dropdown-toggle" class="dropdown-toggle" data-toggle="dropdown">
+              <i class='glyphicons-sonatype medium help'></i>
+            </a>
+            <ul class="dropdown-menu dropdown-menu-arrow">
+              <li class="disabled"><a tabindex="-1">Support Options</a></li>
+              <li class="divider"></li>
+              <li>
+                <a id="documentation-link" href="http://links.sonatype.com/products/clm/doc" title="Go to Online Help"
+                   target="_blank">Online Help</a>
+              </li>
+              <li>
+                <a id="support-link" href="http://links.sonatype.com/products/clm/support"
+                   title="Submit a request to Sonatype support" target="_blank">Request Support</a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
       <div class='dashboard-responsive'>
         <ul class='inline dashboard-navigation'>
           <li ng-class="{ 'active' : $state.includes('dashboard') }" tooltip='Dashboard' tooltip-placement='bottom' ng-if='isDashboardLicensed()'>
@@ -109,51 +156,6 @@
                 </li>
                 <li ng-controller='LogoutController'>
                   <a id='logout' ng-click="logout()">Logout</a>
-                </li>
-              </ul>
-            </div>
-          </div>
-          <div class="system-menu" ng-if="isAdmin">
-            <div class="dropdown pull-right">
-              <a class="dropdown-toggle" data-toggle="dropdown">
-                <i class='glyphicons-sonatype medium cogwheel'></i>
-              </a>
-              <ul class="dropdown-menu dropdown-menu-arrow">
-                <li class="disabled"><a tabindex="-1">System Preferences</a></li>
-                <li class="divider"></li>
-                <li ng-class="{'active': $state.is('users') }">
-                  <a href='index.html#/users'>Users</a>
-                </li>
-                <li ng-class="{'active': $state.is('globalroles') }">
-                  <a href='index.html#/globalroles'>Global Roles</a>
-                </li>
-                <li ng-class="{'active': $state.is('productlicense') }">
-                  <a href='index.html#/productlicense'>Product License</a>
-                </li>
-                <li ng-class="{'active': $state.is('proprietarycomponents') }">
-                  <a href='index.html#/proprietarycomponents'>Proprietary Components</a>
-                </li>
-                <li ng-class="{'active': $state.includes('ldap') }">
-                  <a href='index.html#/ldap'>LDAP</a>
-                </li>
-              </ul>
-            </div>
-          </div>
-          <div id="help-menu" class="help-menu">
-            <div class="dropdown pull-right">
-              <a id="help-menu-dropdown-toggle" class="dropdown-toggle" data-toggle="dropdown">
-                <i class='glyphicons-sonatype medium help'></i>
-              </a>
-              <ul class="dropdown-menu dropdown-menu-arrow">
-                <li class="disabled"><a tabindex="-1">Support Options</a></li>
-                <li class="divider"></li>
-                <li>
-                  <a id="documentation-link" href="http://links.sonatype.com/products/clm/doc" title="Go to Online Help"
-                     target="_blank">Online Help</a>
-                </li>
-                <li>
-                  <a id="support-link" href="http://links.sonatype.com/products/clm/support"
-                     title="Submit a request to Sonatype support" target="_blank">Request Support</a>
                 </li>
               </ul>
             </div>

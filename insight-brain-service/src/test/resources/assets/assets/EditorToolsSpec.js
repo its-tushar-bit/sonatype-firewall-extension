@@ -156,7 +156,8 @@ describe('EditorToolsSpec', function() {
         $httpBackend.flush();
         
         expect(scope.state).toEqual('ready');
-        expect(scope.error).toEqual('Some failure');
+        expect(scope.alerts.length).toEqual(1);
+        expect(scope.alerts[0].msg).toEqual('Some failure');
       }));
       
       it('Test submit success', inject(function(CLMLocations, $httpBackend, $timeout){
@@ -219,7 +220,8 @@ describe('EditorToolsSpec', function() {
         $timeout.flush();
         $httpBackend.flush();
         expect(scope.pollingUrl).toEqual(CLMLocations.getEvaluationStatusUrl('bom1-12345678', 'ticket'));
-        expect(scope.error).toEqual('something aint right');
+        expect(scope.alerts.length).toEqual(1);
+        expect(scope.alerts[0].msg).toEqual('something aint right');
       }));
       
       it('uses proper URL for state polling by IE9', inject(function(CLMLocations, $httpBackend){

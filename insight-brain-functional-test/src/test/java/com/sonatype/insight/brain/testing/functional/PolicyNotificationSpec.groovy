@@ -55,7 +55,7 @@ class PolicyNotificationSpec
       notificationModal.emailInput.value('foo')
 
     then: 'A popover should be displayed indicating an invalid email'
-      popoverText(notificationModal.emailInput) == 'Invalid E-mail Address'
+      popoverText(notificationModal.emailInput) == 'Use valid format: abc@xyz.com'
     
     when: 'A duplicate email is entered'
       notificationModal.emailInput.value('test@sonatype.com')

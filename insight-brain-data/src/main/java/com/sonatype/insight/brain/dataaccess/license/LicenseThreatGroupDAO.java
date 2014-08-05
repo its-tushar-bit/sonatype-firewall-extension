@@ -104,7 +104,7 @@ public class LicenseThreatGroupDAO
 
     validateName(em, licenseThreatGroup);
     if (getByOwnerIdAndName(em, licenseThreatGroup.getOwnerId(), licenseThreatGroup.getName()) != null) {
-      throw new InvalidLicenseThreatGroupException("A license threat group with the same name already exists");
+      throw new InvalidLicenseThreatGroupException("A license threat group with the same name already exists.");
     }
 
     super.insert(em, licenseThreatGroup);
@@ -119,7 +119,7 @@ public class LicenseThreatGroupDAO
       // The owner is an application
       if (getByOwnerIdAndName(em, parentApplication.getOrganizationId(), licenseThreatGroup.getName()) != null) {
         throw new InvalidLicenseThreatGroupException(
-            "A license threat group with the same name already exists for the parent organization");
+            "A license threat group with the same name already exists for the parent organization.");
       }
     }
     else {
@@ -129,7 +129,7 @@ public class LicenseThreatGroupDAO
         if (getByOwnerIdAndName(em, application.getId(), licenseThreatGroup.getName()) != null) {
           throw new InvalidLicenseThreatGroupException(
               "A license threat group with the same name already exists for application '" + application.getName()
-                  + "'");
+                  + "'.");
         }
       }
     }
@@ -143,7 +143,7 @@ public class LicenseThreatGroupDAO
     LicenseThreatGroup otherLicenseThreatGroup = getByOwnerIdAndName(em, licenseThreatGroup.getOwnerId(),
         licenseThreatGroup.getName());
     if (otherLicenseThreatGroup != null && !otherLicenseThreatGroup.getId().equals(licenseThreatGroup.getId())) {
-      throw new InvalidLicenseThreatGroupException("A license threat group with the same name already exists");
+      throw new InvalidLicenseThreatGroupException("A license threat group with the same name already exists.");
     }
 
     super.update(em, licenseThreatGroup);
@@ -151,7 +151,7 @@ public class LicenseThreatGroupDAO
 
   private void validateThreatLevel(int threatLevel) {
     if (threatLevel < 0 || threatLevel > 10) {
-      throw new InvalidLicenseThreatGroupException("The threat level must be a number between 0 and 10");
+      throw new InvalidLicenseThreatGroupException("The threat level must be a number between 0 and 10.");
     }
   }
 

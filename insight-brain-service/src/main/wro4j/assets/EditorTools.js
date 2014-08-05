@@ -35,9 +35,9 @@
         //there are certain cases where the browser will not give us an error
         //as we would expect, so we will add something default in this case
         if (message) {
-          $scope.error = message;
+          $scope.alerts = [AngularUtils.toAlert(message)];
         } else {
-          $scope.error = 'Error uploading, please check the file.';
+          $scope.alerts = [AngularUtils.toAlert('Error uploading, please check the file.')];
         }
       }
 

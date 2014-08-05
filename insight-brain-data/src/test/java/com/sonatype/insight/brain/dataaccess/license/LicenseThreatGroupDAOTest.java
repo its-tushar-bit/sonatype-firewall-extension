@@ -112,7 +112,7 @@ public class LicenseThreatGroupDAOTest
       Assert.fail("Expected InvalidLicenseThreatGroupException");
     }
     catch (InvalidLicenseThreatGroupException expected) {
-      if (!"A license threat group with the same name already exists".equals(expected.getMessage())) {
+      if (!"A license threat group with the same name already exists.".equals(expected.getMessage())) {
         throw expected;
       }
     }
@@ -139,7 +139,7 @@ public class LicenseThreatGroupDAOTest
       Assert.fail("Expected InvalidLicenseThreatGroupException");
     }
     catch (InvalidLicenseThreatGroupException expected) {
-      if (!"A license threat group with the same name already exists for the parent organization".equals(expected
+      if (!"A license threat group with the same name already exists for the parent organization.".equals(expected
           .getMessage())) {
         throw expected;
       }
@@ -167,7 +167,7 @@ public class LicenseThreatGroupDAOTest
       Assert.fail("Expected InvalidLicenseThreatGroupException");
     }
     catch (InvalidLicenseThreatGroupException expected) {
-      if (!"A license threat group with the same name already exists for application 'AbstractDbDAOTest-AppName'"
+      if (!"A license threat group with the same name already exists for application 'AbstractDbDAOTest-AppName'."
           .equals(expected.getMessage())) {
         throw expected;
       }
@@ -204,7 +204,7 @@ public class LicenseThreatGroupDAOTest
       Assert.fail("Expected InvalidLicenseThreatGroupException");
     }
     catch (InvalidLicenseThreatGroupException expected) {
-      if (!"A license threat group with the same name already exists".equals(expected.getMessage())) {
+      if (!"A license threat group with the same name already exists.".equals(expected.getMessage())) {
         throw expected;
       }
     }
@@ -240,7 +240,7 @@ public class LicenseThreatGroupDAOTest
       Assert.fail("Expected InvalidLicenseThreatGroupException");
     }
     catch (InvalidLicenseThreatGroupException expected) {
-      if (!"A license threat group with the same name already exists for the parent organization".equals(expected
+      if (!"A license threat group with the same name already exists for the parent organization.".equals(expected
           .getMessage())) {
         throw expected;
       }
@@ -277,7 +277,7 @@ public class LicenseThreatGroupDAOTest
       Assert.fail("Expected InvalidLicenseThreatGroupException");
     }
     catch (InvalidLicenseThreatGroupException expected) {
-      if (!"A license threat group with the same name already exists for application 'AbstractDbDAOTest-AppName'"
+      if (!"A license threat group with the same name already exists for application 'AbstractDbDAOTest-AppName'."
           .equals(expected.getMessage())) {
         throw expected;
       }
@@ -297,7 +297,7 @@ public class LicenseThreatGroupDAOTest
       Assert.fail("Expected InvalidLicenseThreatGroupException");
     }
     catch (InvalidLicenseThreatGroupException expected) {
-      if (!"The threat level must be a number between 0 and 10".equals(expected.getMessage())) {
+      if (!"The threat level must be a number between 0 and 10.".equals(expected.getMessage())) {
         throw expected;
       }
     }
@@ -308,7 +308,7 @@ public class LicenseThreatGroupDAOTest
       Assert.fail("Expected InvalidLicenseThreatGroupException");
     }
     catch (InvalidLicenseThreatGroupException expected) {
-      if (!"The threat level must be a number between 0 and 10".equals(expected.getMessage())) {
+      if (!"The threat level must be a number between 0 and 10.".equals(expected.getMessage())) {
         throw expected;
       }
     }
@@ -329,7 +329,7 @@ public class LicenseThreatGroupDAOTest
       Assert.fail("Expected InvalidLicenseThreatGroupException");
     }
     catch (InvalidLicenseThreatGroupException expected) {
-      if (!"The threat level must be a number between 0 and 10".equals(expected.getMessage())) {
+      if (!"The threat level must be a number between 0 and 10.".equals(expected.getMessage())) {
         throw expected;
       }
     }
@@ -340,7 +340,7 @@ public class LicenseThreatGroupDAOTest
       Assert.fail("Expected InvalidLicenseThreatGroupException");
     }
     catch (InvalidLicenseThreatGroupException expected) {
-      if (!"The threat level must be a number between 0 and 10".equals(expected.getMessage())) {
+      if (!"The threat level must be a number between 0 and 10.".equals(expected.getMessage())) {
         throw expected;
       }
     }

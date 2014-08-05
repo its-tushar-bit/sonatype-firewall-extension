@@ -142,7 +142,7 @@
               var EMAIL_REGEXP = /^\S+@\S+\.\S+$/;
               modalScope.validateEmail = function(value) {
                 return {
-                  invalidEmail: !value || EMAIL_REGEXP.test(value)
+                  email: !value || EMAIL_REGEXP.test(value)
                 };
               };
 

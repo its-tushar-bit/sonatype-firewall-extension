@@ -71,10 +71,6 @@
       event.preventDefault();
     });
 
-    $scope.filterWildcardsInQueryString = function() {
-
-    };
-
     $scope.doLoad();
   }]);
 

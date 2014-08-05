@@ -85,7 +85,7 @@ class GlobalRolesSpec
   def "Search input filters the list of available users"() {
     when: "entering first name prefix"
       def roleRow = mapping.role("Administrator")
-      roleRow.queryInput.value("Jan")
+      roleRow.queryInput.value("Jan*")
     
     and: "clicking the search button"
       roleRow.searchButton.click()
@@ -98,7 +98,7 @@ class GlobalRolesSpec
       roleRow.appliedMembers.size() == 0
 
     when: "entering last name prefix"
-      roleRow.queryInput.value("Do")
+      roleRow.queryInput.value("*Do*")
       
     and: "clicking on the search button"
       roleRow.searchButton.click()

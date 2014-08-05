@@ -458,10 +458,11 @@ public class UserResourceTest
     Response response = AuthedRestAccess.get(getSearchUrl(""));
     assertResponseStatus(400, response);
 
-    response = AuthedRestAccess.get(getSearchUrl(User.ADMIN_USERNAME));
+    response = AuthedRestAccess.get(getSearchUrl(User.ADMIN_USERNAME + "*"));
     assertMember(response, null, MemberType.USER, User.ADMIN_USERNAME, "Admin BuiltIn", "admin@localhost", "CLM");
 
-    response = AuthedRestAccess.get(getSearchUrl(User.ADMIN_USERNAME.substring(0, User.ADMIN_USERNAME.length() - 1)));
+    response = AuthedRestAccess.get(getSearchUrl(User.ADMIN_USERNAME.substring(0, User.ADMIN_USERNAME.length() - 1)
+        + "*"));
     assertMember(response, null, MemberType.USER, User.ADMIN_USERNAME, "Admin BuiltIn", "admin@localhost", "CLM");
 
     response = AuthedRestAccess.get(getSearchUrl("nobody-has-such-a-name-really"));
@@ -490,7 +491,7 @@ public class UserResourceTest
     tempEntity.newUser("testuser");
 
     // Test shading. testuser loaded from "/UserResourceTest/ldap_users.ldif" should not be returned
-    response = AuthedRestAccess.get(getSearchUrl("John"));
+    response = AuthedRestAccess.get(getSearchUrl("John Doe"));
     assertMember(response, null, MemberType.USER, "testuser", "John Doe", "testuser@void.com", "CLM");
   }
 
@@ -530,7 +531,7 @@ public class UserResourceTest
   @Test
   public void testNoLdapConnection() throws Exception {
     LdapServer ldapServer = tempEntity.newLdapServer("LDAP");
-    Response response = AuthedRestAccess.get(getSearchUrl(User.ADMIN_USERNAME));
+    Response response = AuthedRestAccess.get(getSearchUrl(User.ADMIN_USERNAME) + "*");
 
     // Should not try to use Ldap until server is added and configured
     assertMember(response, null, MemberType.USER, User.ADMIN_USERNAME, "Admin BuiltIn", "admin@localhost", "CLM");
@@ -538,7 +539,7 @@ public class UserResourceTest
     tempEntity.newLdapConnection(ldapServer.getId());
     tempEntity.newLdapUserMapping(ldapServer.getId());
 
-    response = AuthedRestAccess.get(getSearchUrl(User.ADMIN_USERNAME));
+    response = AuthedRestAccess.get(getSearchUrl(User.ADMIN_USERNAME) + "*");
     assertMember(response, "LDAP error, displaying local users only.", MemberType.USER, User.ADMIN_USERNAME,
         "Admin BuiltIn", "admin@localhost", "CLM");
   }

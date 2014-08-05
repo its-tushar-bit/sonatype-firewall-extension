@@ -47,6 +47,10 @@ import org.slf4j.LoggerFactory;
 @Singleton
 public class UserDirectory
 {
+  public static final char QUERY_WILDCARD = '*';
+
+  private static final char SQL_QUERY_WILDCARD = '%';
+
   /**
    * @since 1.11.0
    */
@@ -194,7 +198,8 @@ public class UserDirectory
     Map<String, Member> users = new LinkedHashMap<>();
     Map<String, Member> groups = new LinkedHashMap<>();
 
-    for (User user : userDao.findUsersByName(query)) {
+    String clmRealmQuery = query.replace(QUERY_WILDCARD, SQL_QUERY_WILDCARD);
+    for (User user : userDao.findUsersByName(clmRealmQuery)) {
       Member member = new Member(MemberType.USER, user.getUsername(), user.calculateDisplayName(), user.getEmail(),
           CLMRealm.DISPLAY_NAME);
       users.put(member.getInternalNameLowerCase(), member);

@@ -162,7 +162,7 @@ public class UserDirectoryTest
     UserDirectory.QueryResult result = userDirectory.getUsersByName(names);
     List<Member> members = result.get();
     
-    // Verify that only the CLM user has been returned.
+    // Verify that the CLM user has been returned.
     assertThat(members, hasSize(1));
     assertThat(names, hasItems(members.get(0).getInternalName()));
     assertEquals(result.getException(), namingException);
@@ -221,13 +221,13 @@ public class UserDirectoryTest
     tempEntity.newUser("clmbob", "clm", "bob", "clmbob@bob");
 
     // Get CLM user.
-    List<Member> members = userDirectory.getMembersByQuery("clm ", false).get();
+    List<Member> members = userDirectory.getMembersByQuery("clm bob", false).get();
 
     assertThat(members, hasSize(1));
     assertThat(members.get(0).getInternalName(), is("clmbob"));
 
     // Get CLM user case insensitive.
-    members = userDirectory.getMembersByQuery("CLM ", false).get();
+    members = userDirectory.getMembersByQuery("CLM BOB", false).get();
 
     assertThat(members, hasSize(1));
     assertThat(members.get(0).getInternalName(), is("clmbob"));
@@ -246,6 +246,41 @@ public class UserDirectoryTest
   }
 
   @Test
+  public void testGetMembersByQuery_WithWildcards() throws Exception {
+    // Configure LDAP.
+    embeddedLdapServer.start();
+    embeddedLdapServer.loadData("/UserDirectoryTest/ldap_users.ldif");
+
+    LdapServer ldapServer = tempEntity.newLdapServer("LDAP");
+    tempEntity.newLdapConnection(ldapServer.getId(), embeddedLdapServer.getPort());
+    tempEntity.newLdapUserMapping(ldapServer.getId());
+
+    // Add a new CLM user.
+    tempEntity.newUser("clmbob", "clm", "bob", "clmbob@bob");
+
+    // Prefix wildcard
+    List<Member> members = userDirectory.getMembersByQuery("*bob", false).get();
+    assertThat(members, hasSize(1));
+    assertThat(members.get(0).getInternalName(), is("clmbob"));
+    members = userDirectory.getMembersByQuery("*bo", false).get();
+    assertThat(members, hasSize(0));
+
+    // Suffix wildcard
+    members = userDirectory.getMembersByQuery("clm*", false).get();
+    assertThat(members, hasSize(1));
+    assertThat(members.get(0).getInternalName(), is("clmbob"));
+    members = userDirectory.getMembersByQuery("lm*", false).get();
+    assertThat(members, hasSize(0));
+
+    // Prefix and suffix wildcards
+    members = userDirectory.getMembersByQuery("*lm bo*", false).get();
+    assertThat(members, hasSize(1));
+    assertThat(members.get(0).getInternalName(), is("clmbob"));
+    members = userDirectory.getMembersByQuery("*lmbo*", false).get();
+    assertThat(members, hasSize(0));
+  }
+
+  @Test
   public void testGetMembersByQuery_WithLdapError() throws Exception {
     LdapManager mockLdapManager = Mockito.mock(LdapManager.class);
     when(mockLdapManager.isLdapEnabled()).thenReturn(true);
@@ -257,10 +292,10 @@ public class UserDirectoryTest
     // Add a new CLM user.
     tempEntity.newUser("testclmuser", "John", "Doe", "testclmuser@testclmuser");
 
-    UserDirectory.QueryResult result = userDirectory.getMembersByQuery("John ", false);
+    UserDirectory.QueryResult result = userDirectory.getMembersByQuery("John *", false);
     List<Member> members = result.get();
 
-    // Verify that only the CLM user has been returned.
+    // Verify that the CLM user has been returned.
     assertThat(members, hasSize(1));
     assertThat(members.get(0).getInternalName(), is("testclmuser"));
     assertEquals(result.getException(), namingException);

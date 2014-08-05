@@ -100,15 +100,18 @@ class AppSecurityManagementSpec
       roleRow.usersButton.hasClass('active')
       !roleRow.groupsButton.hasClass('active')
 
-    when: 'entering a username fragment'
-      roleRow.queryInput.value('admin')
+    when: 'entering a username query'
+      roleRow.queryInput.value('admin*')
       roleRow.searchButton.click();
 
     then: 'the matching users are listed as usual'
       waitFor { roleRow.availableMembers.size() == 1 }
       roleRow.availableMemberNames*.text().sort() == ['Admin BuiltIn']
 
-    when: 'clicking the groups button'
+    when: 'entering a group name'
+      roleRow.queryInput.value('admin')
+      
+    and: 'clicking the groups button'
       roleRow.groupsButton.click()
 
     then: 'the available members list is hidden'

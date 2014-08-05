@@ -41,7 +41,7 @@ class ContactUserSpec
       appPage.applicationContactField.click()
       waitFor { appPage.applicationContactDialog.displayed }
 
-      appPage.applicationContactDialogSearchField << 'admin'
+      appPage.applicationContactDialogSearchField << 'admin*'
       appPage.applicationContactDialogSearchButton.click()
       waitFor { appPage.applicationContactDialogResultList.size() == 1 }
 

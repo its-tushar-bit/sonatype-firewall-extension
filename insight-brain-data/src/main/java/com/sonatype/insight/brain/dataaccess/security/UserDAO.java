@@ -75,16 +75,17 @@ public class UserDAO
   }
 
   /**
-   * Find users in the database by matching the supplied name fragment against their full name.
+   * Find users in the database by matching case-insensitive the supplied name query against their full name.
    * 
-   * @param nameFragment This string will be prefixed and suffixed with wildcard characters and passed into the sql query
-   * @return List of matching User objects
+   * @param nameQuery This string may contain wildcards and it will be checked case-insensitive against
+   *          concat(entity.firstName, ' ', entity.lastName)
    */
-  public List<User> findUsersByName(String nameFragment) {
-    nameFragment = '%' + nameFragment.trim().toLowerCase(Locale.ENGLISH) + '%';
-    String sQuery = "SELECT entity from User entity" + //
-        " WHERE lower(concat(entity.firstName, ' ', entity.lastName)) LIKE ?1";
-    return getList(sQuery, nameFragment);
+  public List<User> findUsersByName(String nameQuery) {
+    nameQuery = nameQuery.trim().toLowerCase(Locale.ENGLISH);
+    String sQuery = "SELECT entity FROM User entity" + //
+        " WHERE lower(concat(entity.firstName, ' ', entity.lastName)) LIKE ?1" + //
+        " ORDER BY entity.username";
+    return getList(sQuery, nameQuery);
   }
 
   @Override

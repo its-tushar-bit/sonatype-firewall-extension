@@ -621,20 +621,22 @@ public class UserDAOTest
   @Test
   public void testFindUser_CaseInsensitive() {
     createUser("FOO", "aaa", "xxx", "xxx", "xxx@xxx.xxx");
-    createUser("xxx", "aaa", "FOO", "xxx", "xxx@xxx.xxx");
-    createUser("xxx1", "aaa", "xxx", "FOO", "xxx@xxx.xxx");
+    User user0 = createUser("xxx0", "aaa", "FOO", "xxx", "xxx@xxx.xxx");
+    User user1 = createUser("xxx1", "aaa", "xxx", "FOO", "xxx@xxx.xxx");
     createUser("xxx2", "aaa", "xxx", "xxx", "FOO@xxx.xxx");
     createUser("xxx3", "aaa", "xxx", "xxx", "xxx@xxx.xxx");
 
     UserDAO dao = new UserDAO();
-    List<User> users = dao.findUsersByName("fOo");
+    List<User> users = dao.findUsersByName("%fOo%");
     //we only check first name and last name, so 2 results should be found
-    assertEquals(2, users.size());
+    assertThat(users, hasSize(2));
+    assertThat(users.get(0).getUsername(), is(user0.getUsername()));
+    assertThat(users.get(1).getUsername(), is(user1.getUsername()));
   }
 
   @Test
   public void testFindUser_notByPassword() {
-    createUser("xxx", "foo", "xxx", "xxx", "xxx@xxx.xxx");
+    createUser("xxx", "foo" /* password */, "xxx", "xxx", "xxx@xxx.xxx");
 
     UserDAO dao = new UserDAO();
     List<User> users = dao.findUsersByName("foo");
@@ -647,7 +649,7 @@ public class UserDAOTest
     User user2 = createUser("user2", "secret", "Jane", "Doe", "xxx@xxx.xxx");
 
     UserDAO dao = new UserDAO();
-    List<User> users = dao.findUsersByName("Jane D");
+    List<User> users = dao.findUsersByName("Jane Doe");
     assertThat(users, hasSize(1));
     assertThat(users.get(0).getUsername(), is(user2.getUsername()));
   }

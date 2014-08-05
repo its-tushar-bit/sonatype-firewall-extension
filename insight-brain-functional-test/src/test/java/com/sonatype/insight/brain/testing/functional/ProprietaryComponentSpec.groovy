@@ -125,7 +125,7 @@ class ProprietaryComponentSpec
       form.currentEntry = '.'
 
     then: 'an error is shown and the Reset button is enabled'
-      popoverText(input) == 'Invalid package prefix, enter e.g. com.mycompany'
+      popoverText(input) == 'Invalid package prefix:\ne.g. com.sonatype'
       buttons.save.disabled
   }
 

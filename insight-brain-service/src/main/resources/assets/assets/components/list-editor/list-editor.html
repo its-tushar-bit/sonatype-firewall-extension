@@ -3,7 +3,7 @@
     <div clm-control-group for="current-entry" label="{{label}}">
       <div class='input-append controls'>
         <input clm-input type='text' id="current-entry" name='currentEntry' ng-model='currentEntry' max='{{maxLength}}'
-               list-editor-validator required entersubmit messages="messages || {}">
+               list-editor-validator required entersubmit messages="messages || {}" placeholder="{{placeholder}}">
         <button class='btn' ng-disabled='neditor.$invalid' title='Add {{label}}'>Add</button>
       </div>
     </div>

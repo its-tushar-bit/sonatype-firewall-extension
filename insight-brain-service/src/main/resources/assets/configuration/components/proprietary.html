@@ -12,8 +12,9 @@
           If a specified package or file is contained within a component, it will be considered proprietary.</p>
         <div list-editor label="Prefix/Regex for Proprietary Components" max-length="50"
              entries="packages" regexes="regexes" validator="validatePackage"
+             placeholder="ex. com.sonatype"
              messages="{
-              invalidPrefix: 'Invalid package prefix, enter e.g. com.mycompany',
+              invalidPrefix: 'Invalid package prefix:<br />e.g. com.sonatype',
               wildcards: 'Wildcards are not allowed/required for packages',
               unique: 'Component selector already specified'
             }"></div>

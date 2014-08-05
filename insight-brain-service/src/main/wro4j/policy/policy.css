@@ -163,3 +163,6 @@ table.policy-actions td:last-child {
   display: inline;
   font-weight: normal;
 }
+.notification-list-editor .list-editor-form input[type=text] {
+  width: 449px !important;
+}

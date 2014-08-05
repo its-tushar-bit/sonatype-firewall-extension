@@ -21,6 +21,7 @@
         doSave: '&save',
         validator: '=validator',
         label: '@label',
+        placeholder: '@?',
         maxLength: '@maxLength',
         entries: '=entries',
         messages: '=?',

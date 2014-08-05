@@ -115,9 +115,10 @@
       <button type="button" class="close"  ng-click='$dismiss()' aria-hidden="true">&times;</button>
       <h3>Notifications</h3>
     </div>
-    <div class="clm-form well clm-well">
-      <div list-editor label="E-mail Address" max-length="100" entries="notificationEmailList"
-           validator="validateEmail" messages="{unique: 'Enter a unique value', invalidEmail:'Invalid E-mail Address'}"></div>
+    <div class="clm-form well clm-well notification-list-editor">
+      <div list-editor label="E-mail Address" placeholder="ex. iasimov@sonatype.com" max-length="100"
+           entries="notificationEmailList" validator="validateEmail"
+           messages="{unique: 'Enter a unique value', invalidEmail:'Invalid E-mail Address'}"></div>
       <button class="btn btn-link btn-cancel" ng-click="$close()">Cancel</button>
       <span class="pull-right">
         <button class="btn btn-primary" ng-click="save()">Done</button>

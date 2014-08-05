@@ -156,7 +156,11 @@
             // handle this case specifically
             scope.$watch(form.$name + '.' + ctrl.$name + '.$pristine', function(newValue, oldValue) {
               if (!oldValue && newValue) {
-                updateValidationMessages(element, attrs, ctrl);
+                // If the form is set to pristine we can remove any existing popover
+                var currentPopover = element.data('popover');
+                if (currentPopover) {
+                  element.popover('destroy');
+                }
               }
             });
 

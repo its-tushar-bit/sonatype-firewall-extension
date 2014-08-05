@@ -30,7 +30,7 @@
                   <i class='glyphicons-sonatype small' ng-class='grouping.icon'></i>{{grouping.header}}
                 </div>
                 <div ng-repeat='mapping in mappings'>
-                  <div ng-repeat='member in mapping.members | filter: { displayName : queryString, type : grouping.type } | orderBy:"displayName"'>
+                  <div ng-repeat='member in mapping.members | displayNameContains:queryString:grouping.type | orderBy:"displayName"'>
                     <div user-list-item='member'
                          icon-class='{{$parent.$index ? "emptyIconGlyph" : "icon-minus-sign"}}'
                          query='{{queryString}}'
@@ -87,7 +87,7 @@
 
     <div class="accordion roles">
       <div class="accordion-group" ng-repeat='role in context.roles'>
-        <div class="accordion-heading role" ng-class="{'clm-well': expanded}">
+        <div class="accordion-heading role">
           <div class='row' ng-click="expanded = !expanded">
             <div class='role-content'>
               <div class='expandable'>{{role.roleName}}</div>

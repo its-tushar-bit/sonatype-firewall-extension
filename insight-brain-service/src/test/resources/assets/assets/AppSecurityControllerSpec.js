@@ -417,4 +417,61 @@ describe('AppSecurityControllerSpec', function() {
       expect(filter(users, [{ members : [] }])).toEqual(users);
     });
   });
+
+  describe('displayNameContains filter', function() {
+    var filter = null, items = [
+      {displayName: 'John Doe', type: 'USER'},
+      {displayName: 'John Smith', type: 'USER'},
+      {displayName: 'Jane Doe', type: 'USER'},
+      {displayName: 'FooBars', type: 'GROUP'},
+      {displayName: '$mash ?ob', type: 'USER'}
+    ];
+
+    beforeEach(inject(function ($filter) {
+      filter = $filter('displayNameContains');
+    }));
+
+    it('filters by group type', function() {
+      var filtered = filter(items, '*', 'GROUP');
+      expect(filtered.length).toBe(1);
+      expect(filtered[0].displayName).toBe('FooBars');
+    });
+
+    it('filters take into account "*" wildcards prefix', function() {
+      var filtered = filter(items, '*oe', 'USER');
+      expect(filtered.length).toBe(2);
+      expect(filtered[0].displayName).toBe('John Doe');
+      expect(filtered[1].displayName).toBe('Jane Doe');
+    });
+
+    it('filters take into account "*" wildcards postfix', function() {
+      var filtered = filter(items, 'John*', 'USER');
+      expect(filtered.length).toBe(2);
+      expect(filtered[0].displayName).toBe('John Doe');
+      expect(filtered[1].displayName).toBe('John Smith');
+    });
+
+    it('filters is case insensitive', function() {
+      var filtered = filter(items, 'john*', 'USER');
+      expect(filtered.length).toBe(2);
+      expect(filtered[0].displayName).toBe('John Doe');
+      expect(filtered[1].displayName).toBe('John Smith');
+    });
+
+    it('escapes other wildcard characters we do not directly support', function() {
+      var filtered = filter(items, '$m*', 'USER');
+      expect(filtered.length).toBe(1);
+      expect(filtered[0].displayName).toBe('$mash ?ob');
+    });
+
+    /**
+     * Documenting this case as on the backend we are only replacing leading and trailing "*" characters so this
+     * pattern should not actually match what is returned.
+     */
+    it('does not handle "*" characters in the middle', function(){
+      expect(filter(items, 'd*e', 'USER').length).toBe(0);
+    });
+
+  });
+
 });

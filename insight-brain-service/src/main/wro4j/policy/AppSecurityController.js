@@ -71,6 +71,10 @@
       event.preventDefault();
     });
 
+    $scope.filterWildcardsInQueryString = function() {
+
+    };
+
     $scope.doLoad();
   }]);
 
@@ -353,4 +357,28 @@
       }
     };
   }]);
+
+  /**
+   * Custom filter to allow for '*' wildcards during filtering
+   */
+  appSecurityModule.filter('displayNameContains', function() {
+    /**
+     * Filter the list of items by comparing queryString to displayName property for items with the appropriate type.
+     * '*' wildcards are removed from the queryString and any remaining RegEx characters are escaped before performing the test.
+     */
+    return function(members, queryString, type) {
+      var filtered = [];
+      // remove any asterisks which will be converted on the backend, and then escape any other regex characters as a precaution
+      var safeQueryString = queryString.replace(/\*/g, '').replace(/([.*+?^=!:${}()|\[\]\/\\])/g, '\\$1');
+      var match = new RegExp(safeQueryString, 'i');
+      for (var i = 0; i < members.length; i++) {
+        var member = members[i];
+        if (match.test(member.displayName) && member.type === type) {
+          filtered.push(member);
+        }
+      }
+      return filtered;
+    };
+  });
+
 }());

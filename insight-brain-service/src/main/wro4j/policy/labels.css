@@ -51,7 +51,7 @@ form[name="labelEditor"] .clmLabel {
 	text-shadow: 0 1px 0 rgba(255,255,255,0.5);
 }
 .whiteLabel, .whiteLabel::before {
-	background-color: #FFFFFF !important;
+	background-color: #FFFFF0 !important;
 	color: black !important;
 }
 .greyLabel, .greyLabel::before {

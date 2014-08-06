@@ -6,14 +6,13 @@
 /**
  * @since 1.7
  */
-@Grab(group = 'com.sonatype.insight.brain', module = 'insight-brain-functional-test', version = '1.11.0-SNAPSHOT', changing = true)
-@Grab('org.seleniumhq.selenium:selenium-firefox-driver:2.41.0')
+@Grab(group = 'com.sonatype.insight.brain', module = 'insight-brain-functional-test', version = '1.12.0-SNAPSHOT', changing = true)
+@Grab('org.seleniumhq.selenium:selenium-firefox-driver:2.42.0')
 import com.sonatype.insight.brain.testing.functional.*
 import com.sonatype.insight.brain.testing.functional.configuration.LdapConfigurationPage
 import com.sonatype.insight.brain.testing.functional.configuration.LdapConnectionConfigurationPage
 import com.sonatype.insight.brain.testing.functional.configuration.LdapUserAndGroupMappingConfigurationPage
 import geb.Browser
-import org.openqa.selenium.Keys
 import org.openqa.selenium.firefox.FirefoxDriver
 
 /**
@@ -143,11 +142,8 @@ Browser.drive(browser) {
 
   //fill out the required fields and save
   protocol.value(selectedConfig.protocol)
-  hostname << selectedConfig.hostname
-  (port.value().size()).times {
-    port << Keys.BACK_SPACE
-  }
-  port << selectedConfig.port
+  hostname.value(selectedConfig.hostname)
+  port.value(selectedConfig.port)
   searchBase << selectedConfig.searchBase
   if (selectedConfig.authMethod) {
     authenticationMethod.value(selectedConfig.authMethod)
@@ -156,11 +152,11 @@ Browser.drive(browser) {
   }
 
   save.click()
-  waitFor { $('div.alert-success span', text: 'Configuration saved.')?.displayed }
+  waitFor { $('div.alert-message', text: 'Configuration saved.')?.displayed }
 
   //test the connection
   testConnection.click()
-  waitFor { $('div.alert-success span', text: 'Success!')?.displayed }
+  waitFor { $('div.alert-message', text: 'Success!')?.displayed }
 
   //configure user/group
   userAndGroupSettingsTab.click()
@@ -189,7 +185,7 @@ Browser.drive(browser) {
 
   save.click()
 
-  waitFor { $('div.alert-success span', text: 'Configuration saved.')?.displayed }
+  waitFor { $('div.alert-message', text: 'Configuration saved.')?.displayed }
 
   // test the user login
   checkUserLogin.click()
@@ -198,7 +194,7 @@ Browser.drive(browser) {
   userLoginPassword << (selectedConfig.equals(configs.apacheDS) ? 'T3stU5er2' : selectedConfig.password)
   userLoginDialogTest.click()
 
-  waitFor { userLoginDialog.find('div.alert-success span')?.displayed }
+  waitFor { userLoginDialog.find('div.alert-success')?.displayed }
 
   userLoginDialogClose.click()
 

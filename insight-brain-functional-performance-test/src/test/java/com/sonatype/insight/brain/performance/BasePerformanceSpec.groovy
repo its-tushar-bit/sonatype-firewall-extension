@@ -1,0 +1,115 @@
+/*
+ * Copyright (c) 2011-2014 Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.performance
+
+import com.sonatype.insight.brain.service.PortAllocator
+
+import geb.report.ReporterSupport
+import geb.spock.GebSpec
+import groovy.util.logging.Slf4j
+import net.lightbody.bmp.proxy.ProxyServer
+import org.junit.Rule
+import org.junit.rules.TestName
+import org.openqa.selenium.firefox.FirefoxDriver
+import org.openqa.selenium.firefox.FirefoxProfile
+import org.openqa.selenium.remote.CapabilityType
+import org.openqa.selenium.remote.DesiredCapabilities
+import spock.lang.Shared
+
+/**
+ * Configures a proxy for all requests and provides convenience mechanisms for exporting HAR captured during test.
+ * Copies some code from GebReportingSpec to allow for capturing screenshots and page source while still controlling
+ * the driver lifecycle.
+ *
+ * @since 1.12
+ */
+@Slf4j
+abstract class BasePerformanceSpec
+    extends GebSpec
+{
+
+  //start copied from GebReportingSpec
+  // Ridiculous name to avoid name clashes
+  @Rule TestName _gebReportingSpecTestName
+  def _gebReportingPerTestCounter = 1
+  @Shared _gebReportingSpecTestCounter = 1
+  void report(String label = "") {
+    browser.report(ReporterSupport.toTestReportLabel(_gebReportingSpecTestCounter, _gebReportingPerTestCounter++, _gebReportingSpecTestName.methodName, label))
+  }
+  //end
+
+  @Shared
+  ProxyServer proxyServer
+
+  @Shared
+  DesiredCapabilities capabilities
+
+  static final int PROXY_PORT = PortAllocator.findFreePort(9090)
+
+  def setupSpec() {
+    //start copied from GebReportingSpec
+    reportGroup getClass()
+    cleanReportGroupDir()
+    //end
+
+    proxyServer = new ProxyServer(PROXY_PORT);
+    proxyServer.start();
+
+    //bypass login dialog to remove it from clouding page load timing
+    proxyServer.addHeader('Authorization', "Basic ${'admin:admin123'.bytes.encodeBase64().toString()}")
+
+    // get the Selenium proxy object
+    org.openqa.selenium.Proxy proxy = proxyServer.seleniumProxy();
+    proxy.setHttpProxy("localhost:$PROXY_PORT")
+    proxy.setSocksProxy("localhost:$PROXY_PORT")
+
+    // configure proxy as a desired capability
+    FirefoxProfile profile = new FirefoxProfile();
+    capabilities = new DesiredCapabilities();
+    profile.setAcceptUntrustedCertificates(true);
+    profile.setAssumeUntrustedCertificateIssuer(true);
+    profile.setPreference("network.proxy.http", "localhost")
+    profile.setPreference("network.proxy.http_port", PROXY_PORT)
+    profile.setPreference("network.proxy.ssl", "localhost")
+    profile.setPreference("network.proxy.ssl_port", PROXY_PORT)
+    profile.setPreference("network.proxy.type", 1)
+    profile.setPreference("network.proxy.no_proxies_on", "")
+    capabilities.setCapability(FirefoxDriver.PROFILE, profile);
+    capabilities.setCapability(CapabilityType.PROXY, proxy);
+  }
+
+  def setup()
+  {
+    //start copied from GebReportingSpec
+    reportGroup getClass()
+    //end
+
+    // assign this as the default driver on the browser for each test
+    browser.driver = new FirefoxDriver(capabilities)
+  }
+
+  def cleanup () {
+    //start copied from GebReportingSpec
+    report "end"
+    ++_gebReportingSpecTestCounter
+    //end
+
+    // kill the browser to ensure clean state for each test
+    browser.driver.quit()
+  }
+
+  def cleanupSpec() {
+    // after running the spec, kill the proxy server
+    proxyServer.stop()
+  }
+
+  void reportHAR(String name) {
+    new File(browser.getReportGroupDir(), "${name}.har".toString()).withOutputStream { os ->
+      proxyServer.har.writeTo(os)
+      proxyServer.endPage()
+    }
+  }
+}

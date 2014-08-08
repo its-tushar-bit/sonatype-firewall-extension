@@ -42,6 +42,8 @@
     <mockito.version>1.9.5</mockito.version>
     <aether-util.version>1.13.1</aether-util.version>
     <drools.version>6.0.0.CR1</drools.version>
+    <geb.version>0.9.2</geb.version>
+    <selenium.version>2.42.2</selenium.version>
   </properties>
 
   <scm>
@@ -64,6 +66,7 @@
     <module>sonatype-clm-scanner</module>
     <module>sonatype-integrator-scanner</module>
     <module>insight-brain-functional-test</module>
+    <module>insight-brain-functional-performance-test</module>
   </modules>
 
   <dependencyManagement>
@@ -123,6 +126,11 @@
         <version>1.12.0-SNAPSHOT</version>
         <classifier>tests</classifier>
         <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>com.sonatype.insight.brain</groupId>
+        <artifactId>insight-brain-functional-test</artifactId>
+        <version>1.12.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>org.apache.directory.server</groupId>

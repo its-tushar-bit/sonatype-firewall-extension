@@ -45,15 +45,7 @@
       injectorTimeout = null,
       logQueue = [],
       logFn = defaultLogFn,
-      module = angular.module('CIP', ['ngRoute']).config(['$routeProvider', function ($routeProvider) {
-        $routeProvider.when('/', {
-          templateUrl : clmEndpoint.path + 'version-graph.html',
-          controller : 'CIPController'
-        });
-        $routeProvider.otherwise({
-          redirect : '/'
-        });
-      }]).run(['$rootScope', '$injector', function ($rootScope, $injector) {
+      module = angular.module('CIP', []).run(['$rootScope', '$injector', function ($rootScope, $injector) {
         injector = $injector;
 
         $rootScope.setError = function (error) {

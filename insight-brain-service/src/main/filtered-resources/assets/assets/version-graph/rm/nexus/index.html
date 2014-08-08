@@ -9,7 +9,6 @@
     <script src='../../../../policy-assets/js/brain.client.js?${build.timestamp}'></script>
     <script src="../../../lib/jquery/jquery-1.8.3.min.js"></script>
     <script src="../../../lib/angular-${angularjs.version}/angular.min.js"></script>
-    <script src="../../../lib/angular-${angularjs.version}/angular-route.min.js"></script>
     <script src="../../protovis.min.js?${build.timestamp}"></script>
     <script src="../../version-graph.js?${build.timestamp}"></script>
     <script>
@@ -27,6 +26,6 @@
     </script>
     <!--[if lt IE 9]><script src="protovis-msie.min.js?${build.timestamp}"></script><![endif]-->
   </head>
-  <body ng-view>
+  <body ng-include='"../../version-graph.html?${build.timestamp}"' ng-controller='CIPController'>
   </body>
 </html>

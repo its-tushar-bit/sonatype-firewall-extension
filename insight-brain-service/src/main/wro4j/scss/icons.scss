@@ -43,9 +43,12 @@ $sonatype-icon-font-size-small: 12px;
   font-size: $sonatype-icon-font-size-small;
 }
 
-.sonatype-icons.double-chevron-right:before {
-  content: '\e600';
-}
-.sonatype-icons.double-chevron-left:before {
-  content: '\e601';
+$icon-map: ("double-chevron-right", '\e600'),
+        ("double-chevron-left", '\e601');
+
+//build out the icons
+@each $icon in $icon-map {
+  .sonatype-icons.#{nth($icon,1)}:before {
+    content: nth($icon,2);
+  }
 }

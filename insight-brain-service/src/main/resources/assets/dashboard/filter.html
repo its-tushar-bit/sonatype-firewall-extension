@@ -1,0 +1,25 @@
+<div id="dashboard-filter-panel" class="filter-panel-container" ng-class="{'filter-panel-container-expanded': expanded || error}">
+  <div class="filter-expando-container">
+    <i class="glyphicons-sonatype filter"></i>
+    <span ng-if="expanded" class="filter-expando-label">Filters</span>
+    <a ng-click="expanded=!expanded;">
+      <i class="sonatype-icons small pull-right" ng-class="{'double-chevron-right': !expanded, 'double-chevron-left': expanded}"></i>
+    </a>
+  </div>
+  <div class="filter-item-container">
+    <div ng-if="!expanded">
+      Mini filter items here
+    </div>
+    <div ng-if="expanded">
+      Full size Filter items here
+    </div>
+  </div>
+  <div ng-if="expanded" class="filter-button-container">
+    <div clm-alerts="alerts" no-close="true"></div>
+    <button id='dashboard-filter-cancel' type="button" class='btn btn-link btn-cancel' ng-click='cancel()'>Cancel</button>
+    <div class="pull-right clm-primary-buttons">
+      <button id='dashboard-filter-reset' type='button' class='btn btn-default' ng-click='reset()'>Reset</button>
+      <button id='dashboard-filter-save' type='button' class='btn btn-primary' ng-click='save()'>Save</button>
+    </div>
+  </div>
+</div>

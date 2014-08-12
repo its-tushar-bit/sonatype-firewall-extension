@@ -28,7 +28,7 @@
     return params;
   }
 
-  var dashboardModule = angular.module('DashboardModule', ['ui.router', 'Stores', 'AngularCommon', 'OrganizationModule', 'ComponentModule'],
+  var dashboardModule = angular.module('DashboardModule', ['ui.router', 'Stores', 'AngularCommon', 'OrganizationModule', 'ComponentModule', 'FilterModule'],
     // To avoid hacking dependency order, states must be declared with their parent.
     // Fixed https://github.com/angular-ui/ui-router/pull/492
     ['$stateProvider', function($stateProvider) {

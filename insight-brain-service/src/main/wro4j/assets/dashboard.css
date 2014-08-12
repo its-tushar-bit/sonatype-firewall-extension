@@ -177,6 +177,10 @@
   padding-top: 55px;
 }
 
+.dashboard-content {
+  margin-left: 80px;
+}
+
 .dashboard-content a {
   color: black;
   text-decoration: none;

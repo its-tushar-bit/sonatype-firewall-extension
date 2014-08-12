@@ -23,6 +23,7 @@ class DashboardOverviewPage
   static at = { filterPanelToggle.displayed }
 
   static content = {
+    //TODO: CLM-3160 reimplement with new filter panel
     filterPanelToggle { $('#filter-toggle') }
     filterPanel(required: false) { $('#filter-summary') }
     filterButtons(required: false) { module ButtonsModule, $('.filter-edit-buttons') }

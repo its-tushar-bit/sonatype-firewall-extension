@@ -71,6 +71,7 @@
 
   <group name='newcss'>
     <css>/scss/variables.scss</css>
+    <css>/scss/icons.scss</css>
     <css>/scss/form.scss</css>
     <css>/scss/chiclet.scss</css>
     <css>/scss/dashboard.scss</css>
@@ -92,6 +93,7 @@
   </group>
 
   <group name='dashboard'>
+    <js>/dashboard/FilterController.js</js>
     <js>/assets/DashboardModule.js</js>
     <js>/dashboard/ComponentController.js</js>
   </group>

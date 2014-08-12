@@ -20,6 +20,7 @@ import com.sonatype.insight.brain.TestLicenseFingerprinter;
 import com.sonatype.insight.brain.TestProductLicenseManager;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.product.license.ProductLicenseResource;
+import com.sonatype.insight.brain.security.CLMShiroModule;
 import com.sonatype.insight.license.model.CLMEnforcementPoint;
 
 import org.sonatype.licensing.product.ProductLicenseManager;
@@ -195,7 +196,7 @@ public abstract class AbstractBrainServiceTest
 
   protected Cookie extractSessionCookie(final Response response) {
     for (final Cookie cookie : response.getCookies()) {
-      if ("JSESSIONID".equals(cookie.getName())) {
+      if (CLMShiroModule.SESSION_COOKIE_NAME.equals(cookie.getName())) {
         return cookie;
       }
     }

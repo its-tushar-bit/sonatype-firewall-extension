@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.security;
 
+import javax.inject.Inject;
 import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.ldap.LdapRealm;
@@ -34,6 +35,8 @@ import org.apache.shiro.web.session.mgt.WebSessionManager;
 public class CLMShiroModule
     extends ShiroModule
 {
+  public static final String SESSION_COOKIE_NAME = "CLMSESSIONID";
+
   @Override
   protected void configureShiro() {
     bindWebSecurityManager(bind(WebSecurityManager.class));
@@ -64,6 +67,7 @@ public class CLMShiroModule
     bind(Authenticator.class).to(FirstSuccessfulRealmAuthenticator.class);
     bindRealm().to(CLMRealm.class);
     bindRealm().to(LdapRealm.class);
+    binder().requestInjection(new SessionCookieCustomizer());
   }
   
   // to be removed once all clients use authentication
@@ -80,8 +84,8 @@ public class CLMShiroModule
   @Override
   protected void bindSessionManager(AnnotatedBindingBuilder<SessionManager> bind) {
     bind.to(WebSessionManager.class);
-    bind(WebSessionManager.class).to(DefaultWebSessionManager.class).in(Singleton.class);
-    bind(DefaultWebSessionManager.class);
+    bind(WebSessionManager.class).to(DefaultWebSessionManager.class);
+    bind(DefaultWebSessionManager.class).in(Singleton.class);
     bind(SessionDAO.class).to(MemorySessionDAO.class).in(Singleton.class);
     expose(SessionDAO.class);
   }
@@ -106,5 +110,14 @@ public class CLMShiroModule
      * on the security manager, replacing the ServletContainerSessionManager it uses by default. Is this what we
      * need/want? Also see https://issues.apache.org/jira/browse/SHIRO-443.
      */
+  }
+
+  private static class SessionCookieCustomizer
+  {
+    @Inject
+    public void customize(DefaultWebSessionManager sessionManager) {
+      // customize cookie name to avoid clash with other webapps running on same host+contextRoot
+      sessionManager.getSessionIdCookie().setName(SESSION_COOKIE_NAME);
+    }
   }
 }

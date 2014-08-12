@@ -23,7 +23,7 @@
     };
     VersionGraphTab.prototype.create = function() {
       var timestamp = new Date().getTime(),
-          container = $('<div ng-view></div>'),
+          container = $('<div clm-include="\'' + CLM.path + 'assets/version-graph/version-graph.html\'"></div>'),
           me = this;
       me.node.empty();
       container.appendTo(this.node);

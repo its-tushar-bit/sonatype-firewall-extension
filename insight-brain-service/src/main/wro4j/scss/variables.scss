@@ -1,3 +1,13 @@
+//Global stuff
+$main-background-color: white;
+
+//Common borders
+$small-gray-border: 1px solid lightgray;
+
+//Utilities
+$quick-linear-transition: all .3s linear;
+
+//Threat colors
 $critical-color: #DB2852;
 $severe-color: #F2862F;
 $moderate-color: #F5C649;
@@ -9,11 +19,8 @@ $threat-levels: ("critical", #FFF, $critical-color),
         ("moderate", #444, $moderate-color),
         ("none", #FFF, $none-color);
 
+//Form stuff
 $input-valid-color: #84C900;
 $input-invalid-color: #C70000;
 
 $medium-gray: #C1C1C1;
-
-$small-gray-border: 1px solid lightgray;
-$quick-linear-transition: all .3s linear;
-$main-background-color: white;

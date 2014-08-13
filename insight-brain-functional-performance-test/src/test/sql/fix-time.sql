@@ -2,11 +2,11 @@
 
 SET SCHEMA insight_brain_ods;
 
-SET @timeDelta = SELECT datediff('ms', max(time), now()) from policy_evaluation;
+SET @timeDelta = SELECT datediff('mi', max(time), now()) from policy_evaluation;
 
-UPDATE policy_evaluation     SET time = dateadd('ms', @timeDelta, time);
-UPDATE policy_violation      SET time = dateadd('ms', @timeDelta, time);
-UPDATE application_component SET time = dateadd('ms', @timeDelta, time);
+UPDATE policy_evaluation     SET time = dateadd('mi', @timeDelta, time);
+UPDATE policy_violation      SET time = dateadd('mi', @timeDelta, time);
+UPDATE application_component SET time = dateadd('mi', @timeDelta, time);
 
-UPDATE hash_gav      SET create_time = dateadd('ms', @timeDelta, create_time);
-UPDATE policy_waiver SET create_time = dateadd('ms', @timeDelta, create_time);
+UPDATE hash_gav      SET create_time = dateadd('mi', @timeDelta, create_time);
+UPDATE policy_waiver SET create_time = dateadd('mi', @timeDelta, create_time);

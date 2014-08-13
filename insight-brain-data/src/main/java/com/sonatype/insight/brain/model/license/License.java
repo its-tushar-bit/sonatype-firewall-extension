@@ -22,6 +22,12 @@ public class License
 
   public static final String UNKNOWN_ID = "UNKNOWN";
 
+  public static final String NOT_DECLARED_ID = "Not-Declared";
+
+  public static final String NO_SOURCES_ID = "No-Sources";
+
+  public static final String NO_SOURCE_LICENSE_ID = "No-Source-License";
+
   @Id
   @Column(name = "license_id")
   private String id;
@@ -128,5 +134,13 @@ public class License
   @Override
   public String toString() {
     return id;
+  }
+
+  /**
+   * @since 1.12.0
+   */
+  public static boolean isEffectivelyUnspecified(String id) {
+    return NOT_DECLARED_ID.equals(id) || NO_SOURCES_ID.equals(id) ||
+        NO_SOURCE_LICENSE_ID.equals(id) || UNSPECIFIED_ID.equals(id);
   }
 }

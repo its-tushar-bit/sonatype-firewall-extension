@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.saas;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.LinkedHashSet;
@@ -151,10 +152,11 @@ public abstract class AbstractComponentInfoResourceTest
     ComponentLicenses licenses = fromJson(response, ComponentLicenses.class);
     assertThat(licenses.declaredlicenses, empty());
     assertThat(licenses.observedlicenses, empty());
+    assertThat(licenses.effectiveLicenses, empty());
 
     // Verify component with licenses
     tempEntity.newLicenseThreatGroup(application.getId(), "ComponentInfoResourceTest", 5, "LGPL-2.0", "BSD-3-Clause");
-    
+
     saasComponentDetails.setDeclaredLicenses(toLicenseSet("Apache-2.0", "LGPL-2.0-MPL-1.1"));
     saasComponentDetails.setObservedLicenses(toLicenseSet("GPL-2.0", "AFL-2.1-BSD-3-Clause"));
     setSaasResponseForURI(getSaasComponentDetailsUrl(groupId, artifactId, version), toJson(saasComponentDetails), 200);
@@ -169,6 +171,151 @@ public abstract class AbstractComponentInfoResourceTest
     assertContainsLicenseWithThreatLevel("GPL-2.0", "GPL-2.0", 9, licenses.observedlicenses);
     assertContainsLicenseWithThreatLevel("AFL-2.1", "AFL-2.1", 2, licenses.observedlicenses);
     assertContainsLicenseWithThreatLevel("BSD-3-Clause", "BSD-3-Clause", 5, licenses.observedlicenses);
+    assertThat(licenses.effectiveLicenses, hasSize(6));
+    List<LicenseWithThreatLevel> effectiveLicensesList = new ArrayList<>(licenses.effectiveLicenses);
+    for (LicenseWithThreatLevel licenseWithThreatLevel : licenses.declaredlicenses) {
+      assertContainsLicenseWithThreatLevel(licenseWithThreatLevel.license.getLicenseId(),
+          licenseWithThreatLevel.license.getLicenseName(), licenseWithThreatLevel.threatLevel, effectiveLicensesList);
+    }
+    for (LicenseWithThreatLevel licenseWithThreatLevel : licenses.observedlicenses) {
+      assertContainsLicenseWithThreatLevel(licenseWithThreatLevel.license.getLicenseId(),
+          licenseWithThreatLevel.license.getLicenseName(), licenseWithThreatLevel.threatLevel, effectiveLicensesList);
+    }
+  }
+
+  @Test
+  public void testGetLicenses_withOverride() throws Exception {
+    String applicationPublicId = "ComponentInfoResourceTest";
+    Application application = tempEntity.newApplicationWithParent(applicationPublicId);
+
+    String groupId = "g1";
+    String artifactId = "a1";
+    String version = "v1";
+
+    // Verify component with licenses
+    tempEntity.newLicenseThreatGroup(application.getId(), "ComponentInfoResourceTest", 5, "LGPL-2.0", "BSD-3-Clause");
+    tempEntity.newLicenseOverride(application.getId(), groupId, artifactId, version, LicenseOverrideStatus.SELECTED,
+        "BSD-3-Clause");
+
+    ComponentDetails saasComponentDetails = new ComponentDetails(groupId, artifactId, version);
+    saasComponentDetails.setDeclaredLicenses(toLicenseSet("Apache-2.0", "LGPL-2.0-MPL-1.1"));
+    saasComponentDetails.setObservedLicenses(toLicenseSet("GPL-2.0", "AFL-2.1-BSD-3-Clause"));
+    setSaasResponseForURI(getSaasComponentDetailsUrl(groupId, artifactId, version), toJson(saasComponentDetails), 200);
+    Response response = AuthedRestAccess.get(getLicensesServiceURL(applicationPublicId, groupId, artifactId, version));
+    assertResponseStatus(200, response);
+    ComponentLicenses licenses = fromJson(response, ComponentLicenses.class);
+    assertThat(licenses.declaredlicenses, hasSize(3));
+    assertContainsLicenseWithThreatLevel("Apache-2.0", "Apache-2.0", 0, licenses.declaredlicenses);
+    assertContainsLicenseWithThreatLevel("LGPL-2.0", "LGPL-2.0", 5, licenses.declaredlicenses);
+    assertContainsLicenseWithThreatLevel("MPL-1.1", "MPL-1.1", 2, licenses.declaredlicenses);
+    assertThat(licenses.observedlicenses, hasSize(3));
+    assertContainsLicenseWithThreatLevel("GPL-2.0", "GPL-2.0", 9, licenses.observedlicenses);
+    assertContainsLicenseWithThreatLevel("AFL-2.1", "AFL-2.1", 2, licenses.observedlicenses);
+    assertContainsLicenseWithThreatLevel("BSD-3-Clause", "BSD-3-Clause", 5, licenses.observedlicenses);
+    assertThat(licenses.effectiveLicenses, hasSize(1));
+    assertThat(licenses.effectiveLicenses.iterator().next().license.getLicenseId(), is("BSD-3-Clause"));
+    assertThat(licenses.effectiveLicenses.iterator().next().license.getLicenseName(), is("BSD-3-Clause"));
+  }
+
+  @Test
+  public void testGetLicenses_withNotDeclaredForDeclaredLicenses() throws Exception {
+    String applicationPublicId = "ComponentInfoResourceTest";
+    tempEntity.newApplicationWithParent(applicationPublicId);
+
+    String groupId = "g1";
+    String artifactId = "a1";
+    String version = "v1";
+
+    ComponentDetails saasComponentDetails = new ComponentDetails(groupId, artifactId, version);
+    saasComponentDetails.setDeclaredLicenses(toLicenseSet("Not-Declared"));
+    saasComponentDetails.setObservedLicenses(toLicenseSet("GPL-2.0"));
+    setSaasResponseForURI(getSaasComponentDetailsUrl(groupId, artifactId, version), toJson(saasComponentDetails), 200);
+    Response response = AuthedRestAccess.get(getLicensesServiceURL(applicationPublicId, groupId, artifactId, version));
+    assertResponseStatus(200, response);
+    ComponentLicenses licenses = fromJson(response, ComponentLicenses.class);
+    assertThat(licenses.declaredlicenses, hasSize(1));
+    assertContainsLicenseWithThreatLevel("Not-Declared", "Not Declared", null, licenses.declaredlicenses);
+    assertThat(licenses.observedlicenses, hasSize(1));
+    assertContainsLicenseWithThreatLevel("GPL-2.0", "GPL-2.0", 9, licenses.observedlicenses);
+    assertThat(licenses.effectiveLicenses, hasSize(1));
+    List<LicenseWithThreatLevel> effectiveList = new ArrayList<>(licenses.effectiveLicenses);
+    assertContainsLicenseWithThreatLevel("GPL-2.0", "GPL-2.0", 9, effectiveList);
+  }
+
+  @Test
+  public void testGetLicenses_withNoSourcesForObservedLicenses() throws Exception {
+    String applicationPublicId = "ComponentInfoResourceTest";
+    tempEntity.newApplicationWithParent(applicationPublicId);
+
+    String groupId = "g1";
+    String artifactId = "a1";
+    String version = "v1";
+
+    ComponentDetails saasComponentDetails = new ComponentDetails(groupId, artifactId, version);
+    saasComponentDetails.setDeclaredLicenses(toLicenseSet("GPL-2.0"));
+    saasComponentDetails.setObservedLicenses(toLicenseSet("No-Sources"));
+    setSaasResponseForURI(getSaasComponentDetailsUrl(groupId, artifactId, version), toJson(saasComponentDetails), 200);
+    Response response = AuthedRestAccess.get(getLicensesServiceURL(applicationPublicId, groupId, artifactId, version));
+    assertResponseStatus(200, response);
+    ComponentLicenses licenses = fromJson(response, ComponentLicenses.class);
+    assertThat(licenses.declaredlicenses, hasSize(1));
+    assertContainsLicenseWithThreatLevel("GPL-2.0", "GPL-2.0", 9, licenses.declaredlicenses);
+    assertThat(licenses.observedlicenses, hasSize(1));
+    assertContainsLicenseWithThreatLevel("No-Sources", "No Sources", null, licenses.observedlicenses);
+    assertThat(licenses.effectiveLicenses, hasSize(1));
+    List<LicenseWithThreatLevel> effectiveList = new ArrayList<>(licenses.effectiveLicenses);
+    assertContainsLicenseWithThreatLevel("GPL-2.0", "GPL-2.0", 9, effectiveList);
+  }
+
+  @Test
+  public void testGetLicenses_withNoSourceLicenseForObservedLicenses() throws Exception {
+    String applicationPublicId = "ComponentInfoResourceTest";
+    tempEntity.newApplicationWithParent(applicationPublicId);
+
+    String groupId = "g1";
+    String artifactId = "a1";
+    String version = "v1";
+
+    ComponentDetails saasComponentDetails = new ComponentDetails(groupId, artifactId, version);
+    saasComponentDetails.setDeclaredLicenses(toLicenseSet("GPL-2.0"));
+    saasComponentDetails.setObservedLicenses(toLicenseSet("No-Source-License"));
+    setSaasResponseForURI(getSaasComponentDetailsUrl(groupId, artifactId, version), toJson(saasComponentDetails), 200);
+    Response response = AuthedRestAccess.get(getLicensesServiceURL(applicationPublicId, groupId, artifactId, version));
+    assertResponseStatus(200, response);
+    ComponentLicenses licenses = fromJson(response, ComponentLicenses.class);
+    assertThat(licenses.declaredlicenses, hasSize(1));
+    assertContainsLicenseWithThreatLevel("GPL-2.0", "GPL-2.0", 9, licenses.declaredlicenses);
+    assertThat(licenses.observedlicenses, hasSize(1));
+    assertContainsLicenseWithThreatLevel("No-Source-License", "No Source License", null, licenses.observedlicenses);
+    assertThat(licenses.effectiveLicenses, hasSize(1));
+    List<LicenseWithThreatLevel> effectiveList = new ArrayList<>(licenses.effectiveLicenses);
+    assertContainsLicenseWithThreatLevel("GPL-2.0", "GPL-2.0", 9, effectiveList);
+  }
+
+  @Test
+  public void testGetLicenses_withNotDeclaredForDeclaredLicensesAndNoSourcesForObservedLicenses() throws Exception {
+    String applicationPublicId = "ComponentInfoResourceTest";
+    tempEntity.newApplicationWithParent(applicationPublicId);
+
+    String groupId = "g1";
+    String artifactId = "a1";
+    String version = "v1";
+
+    ComponentDetails saasComponentDetails = new ComponentDetails(groupId, artifactId, version);
+    saasComponentDetails.setDeclaredLicenses(toLicenseSet("Not-Declared"));
+    saasComponentDetails.setObservedLicenses(toLicenseSet("No-Source-License"));
+    setSaasResponseForURI(getSaasComponentDetailsUrl(groupId, artifactId, version), toJson(saasComponentDetails), 200);
+    Response response = AuthedRestAccess.get(getLicensesServiceURL(applicationPublicId, groupId, artifactId, version));
+    assertResponseStatus(200, response);
+    ComponentLicenses licenses = fromJson(response, ComponentLicenses.class);
+    assertThat(licenses.declaredlicenses, hasSize(1));
+    assertContainsLicenseWithThreatLevel("Not-Declared", "Not Declared", null, licenses.declaredlicenses);
+    assertThat(licenses.observedlicenses, hasSize(1));
+    assertContainsLicenseWithThreatLevel("No-Source-License", "No Source License", null, licenses.observedlicenses);
+    assertThat(licenses.effectiveLicenses, hasSize(2));
+    List<LicenseWithThreatLevel> effectiveList = new ArrayList<>(licenses.effectiveLicenses);
+    assertContainsLicenseWithThreatLevel("Not-Declared", "Not Declared", null, effectiveList);
+    assertContainsLicenseWithThreatLevel("No-Source-License", "No Source License", null, effectiveList);
   }
 
   @Test

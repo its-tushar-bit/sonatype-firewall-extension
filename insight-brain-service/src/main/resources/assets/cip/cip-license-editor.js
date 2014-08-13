@@ -204,7 +204,7 @@
             $scope.selectableLicenses[license.license.licenseId] = $scope.licenses[license.license.licenseId];
           });
 
-        }, function() {
+          }, function() {
           $scope.error = arguments[0];
         });
       };
@@ -279,7 +279,7 @@
       };
 
       $scope.getLicenseThreatClass = function(threat) {
-        if (threat === null) {
+        if (threat === null || typeof threat === 'undefined') {
           return 'unspecified';
         }
         else if (threat > 7) {
@@ -299,7 +299,7 @@
       $scope.isClaimedComponent = function() {
         return SelectedComponent.identificationSource === 'Manual';
       };
-      
+
       $scope.isSubmitEnabled = function() {
         return $scope.licenseEditorForm && $scope.licenseEditorForm.$dirty && !$scope.licenseEditorForm.$invalid && !$scope.saving;
       };

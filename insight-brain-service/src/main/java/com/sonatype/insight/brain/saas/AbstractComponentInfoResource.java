@@ -29,17 +29,20 @@ import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
+import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.MatchState;
+import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.license.MultiLicense;
 import com.sonatype.insight.brain.model.policy.stages.DevelopStageType;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluator;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
+import com.sonatype.insight.brain.utils.LicenseUtils;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.slf4j.Logger;
@@ -52,6 +55,8 @@ public abstract class AbstractComponentInfoResource
   private ApplicationDAO applicationDAO = new ApplicationDAO();
 
   private LicenseDAO licenseDAO = new LicenseDAO();
+
+  private LicenseOverrideDAO licenseOverrideDAO = new LicenseOverrideDAO();
 
   private PolicyEvaluator evaluator = new PolicyEvaluator();
 
@@ -225,7 +230,41 @@ public abstract class AbstractComponentInfoResource
     result.declaredlicenses = getLicensesWithThreatLevels(application, componentDetails.getDeclaredLicenses());
     result.observedlicenses = getLicensesWithThreatLevels(application, componentDetails.getObservedLicenses());
 
+    result.effectiveLicenses = new LinkedHashSet<>();
+    LicenseOverride licenseOverride = getLicenseOverride(application, groupId, artifactId, version);
+    if (licenseOverride == null || licenseOverride.getLicenseId() == null) {
+      result.effectiveLicenses.addAll(result.declaredlicenses);
+      result.effectiveLicenses.addAll(result.observedlicenses);
+      result.effectiveLicenses = removeNonLicensesUnlessNoOtherLicensesExist(result.effectiveLicenses);
+    }
+    else {
+      com.sonatype.insight.brain.model.license.License license = licenseDAO.getById(licenseOverride.getLicenseId());
+      result.effectiveLicenses.add(LicenseUtils.getLicenseWithThreatLevel(application, license));
+    }
+
     return result;
+  }
+
+  /**
+   * Return a set containing the licenses other than (No-Source-License, No-Sources, Not-Declared) unless these are the
+   * only licenses in the given set, then return the given set.
+   */
+  private Set<LicenseWithThreatLevel> removeNonLicensesUnlessNoOtherLicensesExist(
+      Set<LicenseWithThreatLevel> licenseWithThreatLevels)
+  {
+    Set<LicenseWithThreatLevel> filtered = new LinkedHashSet<>();
+    for (LicenseWithThreatLevel licenseWithThreatLevel : licenseWithThreatLevels) {
+      if (!com.sonatype.insight.brain.model.license.License.isEffectivelyUnspecified(
+          licenseWithThreatLevel.license.getLicenseId())) {
+        filtered.add(licenseWithThreatLevel);
+      }
+    }
+
+    if (filtered.isEmpty()) {
+      return licenseWithThreatLevels;
+    }
+
+    return filtered;
   }
 
   /**
@@ -237,22 +276,29 @@ public abstract class AbstractComponentInfoResource
 
     if (multiLicenses != null) {
       MultiLicenseDAO multiLicenseDAO = new MultiLicenseDAO();
-      LicenseDAO licenseDAO = new LicenseDAO();
       for (License multiLicense : multiLicenses) {
         Set<com.sonatype.insight.brain.model.license.License> licenses = multiLicenseDAO
             .getLicensesByMultiLicenseIdNotNull(multiLicense.getLicenseId());
         for (com.sonatype.insight.brain.model.license.License license : licenses) {
-          LicenseWithThreatLevel licenseWithThreatLevel = new LicenseWithThreatLevel();
-          licenseWithThreatLevel.license = new License(license.getId(), license.getShortDisplayName());
-          licenseWithThreatLevel.threatLevel = licenseDAO.getLicenseThreatLevelByApplicationAndLicenseId(application,
-              license.getId());
-
+          LicenseWithThreatLevel licenseWithThreatLevel = LicenseUtils.getLicenseWithThreatLevel(application, license);
           result.add(licenseWithThreatLevel);
         }
       }
     }
 
     return result;
+  }
+
+  private LicenseOverride getLicenseOverride(Application application, String groupId, String artifactId,
+      String version)
+  {
+    LicenseOverride licenseOverride = licenseOverrideDAO.getByOwnerIdAndGAV(application.getId(), groupId, artifactId,
+        version);
+    if (licenseOverride == null) {
+      licenseOverride = licenseOverrideDAO.getByOwnerIdAndGAV(application.getOrganizationId(), groupId, artifactId,
+          version);
+    }
+    return licenseOverride;
   }
 
   /**
@@ -262,6 +308,12 @@ public abstract class AbstractComponentInfoResource
   {
     public List<LicenseWithThreatLevel> declaredlicenses;
     public List<LicenseWithThreatLevel> observedlicenses;
+
+    /**
+     * @since 1.12
+     */
+    public Set<LicenseWithThreatLevel> effectiveLicenses;
+
   }
 
   /**
@@ -271,6 +323,34 @@ public abstract class AbstractComponentInfoResource
   {
     public License license;
     public Integer threatLevel;
+
+    @Override
+    public boolean equals(final Object o) {
+      if (this == o) {
+        return true;
+      }
+      if (o == null || getClass() != o.getClass()) {
+        return false;
+      }
+
+      LicenseWithThreatLevel that = (LicenseWithThreatLevel) o;
+
+      if (license != null ? !license.equals(that.license) : that.license != null) {
+        return false;
+      }
+      if (threatLevel != null ? !threatLevel.equals(that.threatLevel) : that.threatLevel != null) {
+        return false;
+      }
+
+      return true;
+    }
+
+    @Override
+    public int hashCode() {
+      int result = license != null ? license.hashCode() : 0;
+      result = 31 * result + (threatLevel != null ? threatLevel.hashCode() : 0);
+      return result;
+    }
   }
 
   protected abstract String getToolName();

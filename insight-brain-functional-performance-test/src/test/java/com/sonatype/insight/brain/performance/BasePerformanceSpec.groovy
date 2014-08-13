@@ -22,6 +22,9 @@ import org.openqa.selenium.remote.CapabilityType
 import org.openqa.selenium.remote.DesiredCapabilities
 import spock.lang.Shared
 
+import static org.openqa.selenium.phantomjs.PhantomJSDriverService.PHANTOMJS_EXECUTABLE_PATH_PROPERTY
+import static org.openqa.selenium.phantomjs.PhantomJSDriverService.PHANTOMJS_GHOSTDRIVER_PATH_PROPERTY
+
 /**
  * Configures a proxy for all requests and provides convenience mechanisms for exporting HAR captured during test.
  * Copies some code from GebReportingSpec to allow for capturing screenshots and page source while still controlling
@@ -74,6 +77,8 @@ abstract class BasePerformanceSpec
     switch(browser.config.properties['geb.env']) {
       case 'phantom':
         capabilities = DesiredCapabilities.phantomjs();
+        capabilities.
+            setCapability(PHANTOMJS_EXECUTABLE_PATH_PROPERTY, System.getProperty(PHANTOMJS_GHOSTDRIVER_PATH_PROPERTY))
         capabilities.setCapability(PhantomJSDriverService.PHANTOMJS_CLI_ARGS, ["--proxy=$proxyUrl"] as String[])
         break
       case 'chrome':

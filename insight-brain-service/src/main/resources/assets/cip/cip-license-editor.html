@@ -20,6 +20,7 @@
           <li class="license" ng-repeat='licenseWithThreat in component.observedlicenses'>
                       <div class='nx-clm-square {{getLicenseThreatClass(licenseWithThreat.threatLevel)}}'>
                         {{licenseWithThreat.license.licenseName}}</div></li>
+          <li class="license" ng-show="isClaimedComponent()">Unavailable, Claimed Component</li>
           <li class="divider"></li><li class="nav-header">Effective License</li>
           <li class="license" ng-repeat='licenseWithThreat in component.effectiveLicenses'>
             <div class='nx-clm-square {{getLicenseThreatClass(licenseWithThreat.threatLevel)}}'>

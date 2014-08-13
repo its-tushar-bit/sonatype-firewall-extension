@@ -35,7 +35,7 @@ class DashboardPerformanceSpec
 
     where:
       pageUnderTest                      | waitClosure
-      NewestRiskDashboardPage            | { policySummary.displayed && noDataAvailable.displayed }
+      NewestRiskDashboardPage            | { policySummary.displayed && newestViolationTable.rows }
       ComponentViolationsDashboardPage   | { policySummary.displayed && componentViolationsTable.rows }
       ApplicationViolationsDashboardPage | { policySummary.displayed && applicationViolationsTable.rows }
   }

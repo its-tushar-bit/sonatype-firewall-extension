@@ -12,17 +12,17 @@
       <div style="width:199px;height:212px;overflow:auto;" class="well">
         <ul class="nav nav-list" id="licenseList">
           <li class="nav-header">Declared Licenses</li>
-          <li class="license" ng-repeat='licenseWithThreat in component.declaredlicenses'>
+          <li class="license" ng-repeat='licenseWithThreat in component.declaredlicenses | orderBy:"license.licenseName"'>
             <div class='nx-clm-square {{getLicenseThreatClass(licenseWithThreat.threatLevel)}}'>
                           {{licenseWithThreat.license.licenseName}}</div></li>
           <li class="license" ng-show="isClaimedComponent()">Unavailable, Claimed Component</li>
           <li class="divider"></li><li class="nav-header">Observed Licenses</li>
-          <li class="license" ng-repeat='licenseWithThreat in component.observedlicenses'>
+          <li class="license" ng-repeat='licenseWithThreat in component.observedlicenses | orderBy:"license.licenseName"'>
                       <div class='nx-clm-square {{getLicenseThreatClass(licenseWithThreat.threatLevel)}}'>
                         {{licenseWithThreat.license.licenseName}}</div></li>
           <li class="license" ng-show="isClaimedComponent()">Unavailable, Claimed Component</li>
           <li class="divider"></li><li class="nav-header">Effective License</li>
-          <li class="license" ng-repeat='licenseWithThreat in component.effectiveLicenses'>
+          <li class="license" ng-repeat='licenseWithThreat in component.effectiveLicenses | orderBy:"license.licenseName"'>
             <div class='nx-clm-square {{getLicenseThreatClass(licenseWithThreat.threatLevel)}}'>
               {{licenseWithThreat.license.licenseName}}</div></li>
           <li class="license" ng-show="isClaimedComponent()">Unavailable, Claimed Component</li>

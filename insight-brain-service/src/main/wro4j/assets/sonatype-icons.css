@@ -1,12 +1,12 @@
 .sonatype-icons.dashboard:before {
-  content: '\e602';
+  content: '\e604';
 }
 
 .sonatype-icons.reporting:before {
-  content: '\e604';
+  content: '\e606';
 }
 .sonatype-icons.organizational-design:before {
-  content: '\e605';
+  content: '\e607';
 }
 .sonatype-icon-menu:before {
   font-size: 28px !important;
@@ -27,13 +27,13 @@
   font-size: 32px !important;
 }
 .sonatype-icons.add-label:before {
-  content: '\e608';
+  content: '\e60a';
 }
 .sonatype-icons.add-license-threat-group:before {
-  content: '\e609';
+  content: '\e60b';
 }
 .sonatype-icons.add-tag:before {
-  content: '\e60a';
+  content: '\e60c';
 }
 .sonatype-icons.up:before {
   content: '\e0d4';

@@ -64,13 +64,15 @@
           ];
 
           if (data[4].data) {
-            $scope.dirtyFilters = $scope.filters = {
+            $scope.filters = {
               applicationIds: data[4].data.applicationFilters,
               policyThreatTypes: data[4].data.policyThreatCategoryFilters,
               stageTypeIds: data[4].data.stageTypeFilters,
               applicationTagIds: data[4].data.tagFilters,
               policyThreatLevel: [data[4].data.minPolicyThreatLevel, data[4].data.maxPolicyThreatLevel]
             };
+
+            $scope.dirtyFilters = angular.copy($scope.filters);
           }
           else {
             $scope.filters = getEmptyFilters();
@@ -86,7 +88,7 @@
         $scope.expanded = false;
       };
       $scope.reset = function() {
-        $scope.dirtyFilters = $scope.filters = getEmptyFilters();
+        $scope.dirtyFilters = getEmptyFilters();
       };
       $scope.save = function() {
         $scope.filters = angular.copy($scope.dirtyFilters);

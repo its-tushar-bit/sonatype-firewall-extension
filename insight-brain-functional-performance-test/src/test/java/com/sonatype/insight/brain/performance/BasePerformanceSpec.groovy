@@ -13,8 +13,11 @@ import groovy.util.logging.Slf4j
 import net.lightbody.bmp.proxy.ProxyServer
 import org.junit.Rule
 import org.junit.rules.TestName
+import org.openqa.selenium.chrome.ChromeDriver
 import org.openqa.selenium.firefox.FirefoxDriver
 import org.openqa.selenium.firefox.FirefoxProfile
+import org.openqa.selenium.phantomjs.PhantomJSDriver
+import org.openqa.selenium.phantomjs.PhantomJSDriverService
 import org.openqa.selenium.remote.CapabilityType
 import org.openqa.selenium.remote.DesiredCapabilities
 import spock.lang.Shared
@@ -63,22 +66,35 @@ abstract class BasePerformanceSpec
 
     // get the Selenium proxy object
     org.openqa.selenium.Proxy proxy = proxyServer.seleniumProxy();
-    proxy.setHttpProxy("localhost:$PROXY_PORT")
-    proxy.setSocksProxy("localhost:$PROXY_PORT")
 
-    // configure proxy as a desired capability
-    FirefoxProfile profile = new FirefoxProfile();
-    capabilities = new DesiredCapabilities();
-    profile.setAcceptUntrustedCertificates(true);
-    profile.setAssumeUntrustedCertificateIssuer(true);
-    profile.setPreference("network.proxy.http", "localhost")
-    profile.setPreference("network.proxy.http_port", PROXY_PORT)
-    profile.setPreference("network.proxy.ssl", "localhost")
-    profile.setPreference("network.proxy.ssl_port", PROXY_PORT)
-    profile.setPreference("network.proxy.type", 1)
-    profile.setPreference("network.proxy.no_proxies_on", "")
-    capabilities.setCapability(FirefoxDriver.PROFILE, profile);
-    capabilities.setCapability(CapabilityType.PROXY, proxy);
+    def proxyUrl = "localhost:$PROXY_PORT"
+    proxy.setHttpProxy(proxyUrl)
+    proxy.setSocksProxy(proxyUrl)
+
+    switch(browser.config.properties['geb.env']) {
+      case 'phantom':
+        capabilities = DesiredCapabilities.phantomjs();
+        capabilities.setCapability(PhantomJSDriverService.PHANTOMJS_CLI_ARGS, ["--proxy=$proxyUrl"] as String[])
+        break
+      case 'chrome':
+        capabilities = DesiredCapabilities.chrome()
+        capabilities.setCapability(CapabilityType.PROXY, proxy)
+        break
+      default :
+        // configure proxy as a desired capability
+        FirefoxProfile profile = new FirefoxProfile();
+        capabilities = new DesiredCapabilities();
+        profile.setAcceptUntrustedCertificates(true);
+        profile.setAssumeUntrustedCertificateIssuer(true);
+        profile.setPreference("network.proxy.http", "localhost")
+        profile.setPreference("network.proxy.http_port", PROXY_PORT)
+        profile.setPreference("network.proxy.ssl", "localhost")
+        profile.setPreference("network.proxy.ssl_port", PROXY_PORT)
+        profile.setPreference("network.proxy.type", 1)
+        profile.setPreference("network.proxy.no_proxies_on", "")
+        capabilities.setCapability(FirefoxDriver.PROFILE, profile);
+        capabilities.setCapability(CapabilityType.PROXY, proxy);
+    }
   }
 
   def setup()
@@ -88,7 +104,16 @@ abstract class BasePerformanceSpec
     //end
 
     // assign this as the default driver on the browser for each test
-    browser.driver = new FirefoxDriver(capabilities)
+    switch(browser.config.properties['geb.env']) {
+      case 'phantom':
+        browser.driver = new PhantomJSDriver(capabilities)
+        break
+      case 'chrome':
+        browser.driver = new ChromeDriver(capabilities)
+        break
+      default:
+        browser.driver = new FirefoxDriver(capabilities)
+    }
   }
 
   def cleanup () {

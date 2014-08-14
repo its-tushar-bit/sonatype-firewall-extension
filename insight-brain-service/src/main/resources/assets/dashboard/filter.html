@@ -3,15 +3,31 @@
     <i class="glyphicons-sonatype filter"></i>
     <span ng-if="expanded" class="filter-expando-label">Filters</span>
     <a ng-click="expanded=!expanded;">
-      <i class="sonatype-icons small pull-right" ng-class="{'double-chevron-right': !expanded, 'double-chevron-left': expanded}"></i>
+      <i class="sonatype-icons extra-small pull-right" ng-class="{'double-chevron-right': !expanded, 'double-chevron-left': expanded}"></i>
     </a>
   </div>
   <div class="filter-item-container">
     <div ng-if="!expanded">
-      Mini filter items here
+      <div class="filter-item-collapsed">
+        <i class="sonatype-icons application"></i>
+        <div ng-if="filters.applicationIds.length" class="count-circle pull-right" tooltip-html-unsafe="{{applicationsTooltip}}" tooltip-placement="right" tooltip-append-to-body="true">{{filters.applicationIds.length}}</div>
+      </div>
     </div>
     <div ng-if="expanded">
-      Full size Filter items here
+      <div class="filter-item-expanded">
+        <div class="filter-item-icon">
+          <i class="sonatype-icons application"></i>
+        </div>
+        <div class="filter-item-content">
+          <div class="filter-item-header">Applications</div>
+          <span ng-if='applications.length > 0' class='multi-dropdown' multi-select items='applications'
+                selected-ids='dirtyFilters.applicationIds' effective-id-field='id'
+                summarize-with='applications' none-selected-text='All Applications'></span>
+          <span ng-if='applications.length === 0' class="small-text">
+            <em id='no-permissions'>No applications available.</em>
+          </span>
+        </div>
+      </div>
     </div>
   </div>
   <div ng-if="expanded" class="filter-button-container">

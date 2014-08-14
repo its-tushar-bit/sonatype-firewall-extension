@@ -8,7 +8,7 @@
 (function() {
   'use strict';
 
-  angular.module('OrganizationModule', ['ui.router', 'ManagementModule', 'Organization'], [
+  angular.module('OrganizationModule', ['ui.router', 'ManagementModule', 'Organization', 'Stores'], [
     '$stateProvider', function($stateProvider) {
       $stateProvider.state('management.organization', {
         parent: 'management',
@@ -410,19 +410,6 @@
       } else {
         doLoad();
       }
-    }
-  ]);
-
-  organizationModule.service('OrganizationStore', [
-    'CLMLocations', 'CLMResource', function(CLMLocations, clmResource) {
-      return clmResource.getStore({
-        id: 'id',
-        url: CLMLocations.getOrganizationsUrl(),
-        template: {
-          id: null,
-          name: null
-        }
-      });
     }
   ]);
 }());

@@ -1,12 +1,34 @@
 /*
+  Global icon variables
+*/
+$icon-font-color: #1d1d1b;
+$icon-font-size-large: 24px;
+$icon-font-size-medium: 18px;
+$icon-font-size-small: 12px;
+$icon-font-size-extra-small: 10px;
+
+//can add others such as sonatype-glyphicons etc
+$font-families: ('sonatype-icons');
+/*
+  Global icon styles
+*/
+@each $font-family in $font-families {
+  .#{$font-family}.medium:before {
+    font-size: $icon-font-size-medium !important;
+  }
+  .#{$font-family}.small:before {
+    font-size: $icon-font-size-small !important;
+  }
+  .#{$font-family}.extra-small:before {
+    font-size: $icon-font-size-extra-small !important;
+  }
+}
+
+/*
   The sonatype icon font
 */
 $sonatype-icon-font-name: 'sonatype-icons';
 $sonatype-icon-font-path: '../fonts/sonatype-icons';
-$sonatype-icon-font-color: #1d1d1b;
-$sonatype-icon-font-size: 24px;
-$sonatype-icon-font-size-medium: 18px;
-$sonatype-icon-font-size-small: 12px;
 
 @font-face {
   font-family: $sonatype-icon-font-name;
@@ -20,9 +42,9 @@ $sonatype-icon-font-size-small: 12px;
 }
 
 .sonatype-icons:before {
-  font-size: $sonatype-icon-font-size;
+  font-size: $icon-font-size-large;
   font-family: $sonatype-icon-font-name;
-  color: $sonatype-icon-font-color;
+  color: $icon-font-color;
   *zoom: 1;
   line-height: 30px;
   font-style: normal;
@@ -35,20 +57,13 @@ $sonatype-icon-font-size-small: 12px;
   -moz-osx-font-smoothing: grayscale;
 }
 
-.sonatype-icons.medium:before {
-  font-size: $sonatype-icon-font-size-medium;
-}
-
-.sonatype-icons.small:before {
-  font-size: $sonatype-icon-font-size-small;
-}
-
-$icon-map: ("double-chevron-right", '\e600'),
-        ("double-chevron-left", '\e601');
+$sonatype-icon-map: ("double-chevron-right", '\e600'),
+        ("double-chevron-left", '\e601'),
+        ("application", '\e008');
 
 //build out the icons
-@each $icon in $icon-map {
-  .sonatype-icons.#{nth($icon,1)}:before {
-    content: nth($icon,2);
+@each $sonatype-icon in $sonatype-icon-map {
+  .sonatype-icons.#{nth($sonatype-icon,1)}:before {
+    content: nth($sonatype-icon,2);
   }
 }

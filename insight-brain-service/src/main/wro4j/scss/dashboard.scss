@@ -183,8 +183,14 @@ Expanded
     </a>
   </div>
   <div class="filter-item-container">
-    <div>
-      Full size Filter items here
+    <div class="filter-item-expanded">
+      <div class="filter-item-icon">
+        <i class="sonatype-icons application"></i>
+      </div>
+      <div class="filter-item-content">
+        <div class="filter-item-header">Applications</div>
+        ...Some filter specific content here...
+      </div>
     </div>
   </div>
   <div class="filter-button-container">
@@ -207,33 +213,35 @@ Collapsed
     </a>
   </div>
   <div class="filter-item-container">
-    <div>
-      Mini filter items here
+    <div class="filter-item-collapsed">
+      <i class="sonatype-icons application"></i>
+      <div class="count-circle pull-right" tooltip-html-unsafe="A multiline<br>tooltip" tooltip-placement="right" tooltip-append-to-body="true">3</div>
     </div>
   </div>
 </div>
 ```
 */
+$filter-content-left-padding: 15px;
+$filter-multi-dropdown-width: 190px;
 
 .filter-panel-container {
   position: fixed;
   top: 40px;
   bottom: 0px;
   left: 0px;
-  width: 70px;
+  width: 60px;
   border-right: $small-gray-border;
   background-color: $main-background-color;
   overflow: hidden;
-  @include transition($quick-linear-transition);
 }
 
 .filter-panel-container-expanded {
-  width: 300px !important;
+  width: 250px !important;
 }
 
 .filter-expando-container {
   text-align: left;
-  padding-left: 15px;
+  padding-left: $filter-content-left-padding;
   line-height: 40px;
   border-bottom: $small-gray-border;
 }
@@ -244,16 +252,72 @@ Collapsed
 
 .filter-item-container {
   border-bottom: $small-gray-border;
-  padding-left: 5px;
 }
 
 .filter-button-container {
-  padding-left: 5px;
-  padding-top: 5px;
+  padding-left: $filter-content-left-padding;
+  padding-top: 10px;
+  padding-right: 5px;
+}
+
+.filter-item-collapsed {
+  padding-top: 10px;
+  padding-bottom: 10px;
+  padding-left: $filter-content-left-padding;
+}
+
+.filter-item-expanded {
+  padding-left: $filter-content-left-padding;
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+
+.filter-item-content {
+  display: inline-block;
+}
+
+.filter-item-content .btn {
+  width: $filter-multi-dropdown-width;
+  text-align: left;
+}
+
+.filter-item-content .btn .caret {
+  float: right;
+}
+
+.filter-item-content .multi-dropdown .dropdown-menu {
+  width: $filter-multi-dropdown-width;
+}
+
+.filter-item-icon {
+  float: left;
+  padding-right: 10px;
+}
+
+.filter-item-header {
+  font-weight: bold;
+  font-size: 16px;
+  padding-top: 6px;
+  padding-bottom: 6px;
+}
+
+.count-circle {
+  width: 15px;
+  height: 15px;
+  font-size: 10px;
+  line-height: 15px;
+  right: 20px;
+  top: 20px;
+  position: relative;
+  background-color: red;
+  color: white;
+  font-weight: bold;
+  text-align: center;
+  @include border-radius(50%)
 }
 
 .double-chevron-right:before, .double-chevron-left:before {
-  padding-right: 15px;
+  padding-right: 13px;
   vertical-align: middle;
 }
 

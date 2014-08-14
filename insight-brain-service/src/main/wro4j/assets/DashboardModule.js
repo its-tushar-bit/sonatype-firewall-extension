@@ -399,7 +399,9 @@
             return min <= policyThreatLevel[1] && policyThreatLevel[0] <= max;
           }
 
-          if (newFilter) {
+          //filterChangeInProgress logic is only temporary until the old filter is removed
+          if (newFilter && !$scope.filterChangeInProgress) {
+            $scope.filterChangeInProgress = true;
             $scope.error = $scope.data = null;
             var params = filterToParams($scope.filters, $scope.maxResults);
 
@@ -416,6 +418,7 @@
               if (angular.equals(newFilter, $scope.filters)) {
                 $scope.data = data;
               }
+              $scope.filterChangeInProgress = false;
             }).error(function () {
               if (angular.equals(newFilter, $scope.filters)) {
                 if (arguments[1] && arguments[1] === 403) {
@@ -435,6 +438,7 @@
                   $scope.error = arguments;
                 }
               }
+              $scope.filterChangeInProgress = false;
             });
           }
         };

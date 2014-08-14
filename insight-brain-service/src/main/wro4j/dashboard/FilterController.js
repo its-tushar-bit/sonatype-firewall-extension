@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-/* global angular, clmBuildTimestamp, AngularUtils */
+/* global angular, clmBuildTimestamp, AngularUtils, $ */
 (function() {
   'use strict';
 
@@ -20,6 +20,19 @@
           applicationTagIds: [],
           policyThreatLevel: [2, 10]
         };
+      }
+
+      function applicationNameFor(applicationId) {
+        for (var i = 0; i < $scope.applications.length; i++) {
+          var application = $scope.applications[i];
+          if (application.id === applicationId) {
+            return application.name;
+          }
+        }
+      }
+
+      function buildApplicationTooltip() {
+        $scope.applicationsTooltip = $.map($scope.filters.applicationIds, applicationNameFor).join('<br/>');
       }
 
       $scope.doLoad = function() {
@@ -72,6 +85,8 @@
               policyThreatLevel: [data[4].data.minPolicyThreatLevel, data[4].data.maxPolicyThreatLevel]
             };
 
+            buildApplicationTooltip();
+
             $scope.dirtyFilters = angular.copy($scope.filters);
           }
           else {
@@ -100,14 +115,14 @@
           minPolicyThreatLevel: $scope.filters.policyThreatLevel[0],
           maxPolicyThreatLevel: $scope.filters.policyThreatLevel[1]
         }).then(function(){
+          buildApplicationTooltip();
           $scope.expanded = false;
         },function(){
           $scope.alerts = [AngularUtils.toAlert(arguments)];
         });
       };
 
-      //TODO: uncomment when old filter panel is removed
-      //$scope.doLoad();
+      $scope.doLoad();
     }
   ]);
 

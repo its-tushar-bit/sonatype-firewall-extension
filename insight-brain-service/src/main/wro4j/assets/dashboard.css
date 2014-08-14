@@ -368,7 +368,6 @@ table th#affected-apps {
 .dashboard-content .filter-edit {
   position: absolute;
   margin-left: 0px;
-  z-index: 200;
 }
 
 /* .filter-edit needs a embedded div to prevent the collapse plugin from including the dropdowns in scrollheight */

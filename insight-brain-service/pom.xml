@@ -550,7 +550,7 @@
                 <include>resources/assets/assets/lib/angular-${angularjs.version}/angular.js</include>
                 <include>resources/assets/assets/lib/angular-${angularjs.version}/angular-route.js</include>
                 <include>resources/assets/assets/lib/angular-${angularjs.version}/angular-sanitize.js</include>
-                <include>resources/assets/assets/lib/ui-bootstrap-tpls-0.3.0.min.js</include>
+                <include>resources/assets/assets/lib/ui-bootstrap-tpls-*.min.js</include>
                 <include>resources/assets/assets/lib/X-editable/bootstrap-editable.min.js</include>
                 <include>resources/assets/assets/**/*.js</include>
                 <include>wro4j/**/*.js</include>

@@ -35,6 +35,19 @@
     }
   ]);
 
+  storesModule.service('OrganizationStore', [
+    'CLMLocations', 'CLMResource', function(CLMLocations, clmResource) {
+      return clmResource.getStore({
+        id: 'id',
+        url: CLMLocations.getOrganizationsUrl(),
+        template: {
+          id: null,
+          name: null
+        }
+      });
+    }
+  ]);
+
   storesModule.service('StageTypeStore', [
     'CLMResource', 'CLMLocations', function(CLMResource, CLMLocations) {
       var stageTypeStore = CLMResource.getStore({

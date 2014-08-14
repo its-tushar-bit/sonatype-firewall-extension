@@ -938,6 +938,14 @@
                 barChartData : weeklyDeltaNew,
                 sparklineData: calculateRunningTotals(weeklyDeltaNew, totalNew - newDelta),
                 inverseGreen: true
+              },
+              {
+                name: 'Waived',
+                counts: 0,
+                delta: 0,
+                barChartData: Array.apply(null, new Array(12)).map(Number.prototype.valueOf,0),
+                sparklineData: Array.apply(null, new Array(12)).map(Number.prototype.valueOf,0),
+                inverseGreen: false
               }
             ];
           }

@@ -12,7 +12,7 @@ import spock.lang.Unroll
 /**
  * @since 1.12
  */
-class ApplicationPerformanceTest
+class ApplicationPerformanceSpec
     extends BasePerformanceSpec
 {
   // app with the largest number of violations in the performance data set

@@ -1012,6 +1012,11 @@ ul.tri-pane.left {
   min-width: 955px !important;
 }
 
+/* See https://issues.sonatype.org/browse/CLM-3087 */
+.popover .arrow:before {
+  border-style: none;
+}
+
 @media (max-width: 1199px) {
   .container {
      width: 849px;

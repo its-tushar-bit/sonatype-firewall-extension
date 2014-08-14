@@ -297,4 +297,23 @@ public class PolicyViolationTest
     assertThat(policyViolation.getNotifications(), hasSize(0));
     assertThat(policyViolation.getNotificationsString(), is(nullValue()));
   }
+
+  @Test
+  public void testSetWaived() {
+    List<ConstraintFact> constraintFacts = createConstraintFacts(1);
+    PolicyViolation policyViolation = new PolicyViolation(evaluation, "policyId", "policyName", 5 /* threatLevel */,
+        PolicyThreatCategory.LICENSE, "hash", "groupId", "artifactId", "version", constraintFacts, null /* pathnames */);
+    assertThat(policyViolation.isWaived(), is(false));
+
+    policyViolation.setWaived(true);
+    assertThat(policyViolation.isWaived(), is(true));
+
+    try {
+      policyViolation.setWaived(false);
+      fail("Expected IllegalStateException");
+    }
+    catch (IllegalStateException expected) {
+      assertThat(expected.getMessage(), is("Cannot un-waive a policy violation."));
+    }
+  }
 }

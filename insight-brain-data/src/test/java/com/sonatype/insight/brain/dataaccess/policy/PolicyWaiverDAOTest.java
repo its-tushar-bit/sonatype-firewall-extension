@@ -10,7 +10,10 @@ import java.util.List;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
+import com.sonatype.insight.brain.model.policy.WaivedPolicyViolation;
+import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
@@ -224,5 +227,23 @@ public class PolicyWaiverDAOTest
     assertThat(waivers, hasSize(2));
     assertThat(waivers.get(0).getId(), is(policyWaiver1.getId()));
     assertThat(waivers.get(1).getId(), is(policyWaiver2.getId()));
+  }
+
+  @Test
+  public void testDeleteDoesNotCascadeToWaivedPolicyViolation() {
+    Policy policy = tempEntity.newPolicy(applicationId, "testDeleteDoesNotCascadeToWaivedPolicyViolation");
+    PolicyWaiver policyWaiver = tempEntity.newWaiver("ababababab", policy.getId(), applicationId);
+    PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(applicationId, ReleaseStageType.ID,
+        "PolicyWaiverDAOTest");
+    WaivedPolicyViolation waivedPolicyViolation = tempEntity.newWaivedPolicyViolation(policyEvaluation, policy,
+        policyWaiver);
+    PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
+    assertThat(policyViolationDAO.getById(waivedPolicyViolation.getId()), notNullValue());
+    WaivedPolicyViolationDAO waivedPolicyViolationDAO = new WaivedPolicyViolationDAO();
+    assertThat(waivedPolicyViolationDAO.getById(waivedPolicyViolation.getId()), notNullValue());
+
+    new PolicyWaiverDAO().delete(policyWaiver);
+    assertThat(policyViolationDAO.getById(waivedPolicyViolation.getId()), notNullValue());
+    assertThat(waivedPolicyViolationDAO.getById(waivedPolicyViolation.getId()), notNullValue());
   }
 }

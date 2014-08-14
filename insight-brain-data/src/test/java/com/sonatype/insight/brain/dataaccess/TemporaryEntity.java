@@ -35,6 +35,7 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
+import com.sonatype.insight.brain.dataaccess.policy.WaivedPolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
 import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
 import com.sonatype.insight.brain.dataaccess.security.RolePermissionDAO;
@@ -65,6 +66,7 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
+import com.sonatype.insight.brain.model.policy.WaivedPolicyViolation;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityConditionType;
 import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
@@ -118,6 +120,8 @@ public class TemporaryEntity
   private final PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
 
   private final FirstOccurrencePolicyViolationDAO firstOccurrencePolicyViolationDAO = new FirstOccurrencePolicyViolationDAO();
+
+  private final WaivedPolicyViolationDAO waivedPolicyViolationDAO = new WaivedPolicyViolationDAO();
 
   private final ComponentLabelDAO componentLabelDAO = new ComponentLabelDAO();
 
@@ -619,6 +623,22 @@ public class TemporaryEntity
   public PolicyViolation newPolicyViolation(PolicyEvaluation evaluation, Policy policy) {
     return newPolicyViolation(evaluation, policy, policy.getThreatLevel(), PolicyThreatCategory.LICENSE, "Group1",
         "Artifact1", "Version1");
+  }
+
+  public WaivedPolicyViolation newWaivedPolicyViolation(PolicyEvaluation evaluation, Policy policy,
+      PolicyWaiver policyWaiver)
+  {
+    PolicyViolation policyViolation = new PolicyViolation(evaluation, policy.getId(), policy.getName(),
+        policy.getThreatLevel(), policy.getThreatCategory(), "hash", "Group1", "Artifact1", "Version1", "[]",
+        "unknown.jar");
+    policyViolation.setWaived(true);
+    policyViolationDAO.insert(policyViolation);
+
+    WaivedPolicyViolation waivedPolicyViolation = new WaivedPolicyViolation(policyViolation.getId(),
+        policyWaiver.getId(), policyWaiver.getComment());
+    waivedPolicyViolationDAO.insert(waivedPolicyViolation);
+
+    return waivedPolicyViolation;
   }
 
   public PolicyViolation newPolicyViolation(PolicyEvaluation evaluation, Policy policy, int threatLevel,

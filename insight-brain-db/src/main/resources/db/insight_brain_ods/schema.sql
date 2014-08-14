@@ -307,6 +307,7 @@ CREATE TABLE policy_violation (
   pathnames CLOB, -- the paths to the component that caused the policy violation, paths are new line delimited
   action_type_id varchar(20),
   notifications CLOB, -- email addresses notified for this policy violation, delimited by new lines
+  waived bool DEFAULT false NOT NULL,
   CONSTRAINT policy_violation_pk PRIMARY KEY (policy_violation_id),
   CONSTRAINT policy_violation_evaluation_fk FOREIGN KEY (policy_evaluation_id) REFERENCES policy_evaluation(policy_evaluation_id)
 );
@@ -321,6 +322,14 @@ CREATE TABLE first_occurrence_policy_violation (
   CONSTRAINT first_occurrence_policy_violation_pk PRIMARY KEY (policy_violation_id),
   CONSTRAINT first_occurrence_violation_violation_fk FOREIGN KEY (policy_violation_id) REFERENCES policy_violation(policy_violation_id),
   CONSTRAINT first_occurrence_violation_application_fk FOREIGN KEY (application_id) REFERENCES application(application_id)
+);
+
+CREATE TABLE waived_policy_violation (
+  policy_violation_id varchar(50) NOT NULL,
+  policy_waiver_id varchar(50) NOT NULL,
+  comment varchar(1000) NULL,
+  CONSTRAINT waived_policy_violation_pk PRIMARY KEY (policy_violation_id),
+  CONSTRAINT waived_policy_violation_violation_fk FOREIGN KEY (policy_violation_id) REFERENCES policy_violation(policy_violation_id)
 );
 
 CREATE TABLE dashboard_filter (

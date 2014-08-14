@@ -15,6 +15,8 @@ import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
+import com.sonatype.insight.brain.model.policy.PolicyWaiver;
+import com.sonatype.insight.brain.model.policy.WaivedPolicyViolation;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 
@@ -100,6 +102,23 @@ public class PolicyViolationDAOTest
 
     new PolicyViolationDAO().delete(policyViolation);
     assertThat(new FirstOccurrencePolicyViolationDAO().getById(firstOccurrencePolicyViolation.getId()), is(nullValue()));
+  }
+
+  @Test
+  public void testCascadeDeleteToWaivedPolicyViolations() {
+    Policy policy = tempEntity.newPolicy(applicationId, "testCascadeDeleteToWaivedPolicyViolations");
+    PolicyWaiver policyWaiver = tempEntity.newWaiver("ababababab", policy.getId(), applicationId);
+    PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(applicationId, ReleaseStageType.ID,
+        "PolicyViolationDAOTest");
+    WaivedPolicyViolation waivedPolicyViolation = tempEntity.newWaivedPolicyViolation(policyEvaluation, policy,
+        policyWaiver);
+    WaivedPolicyViolationDAO waivedPolicyViolationDAO = new WaivedPolicyViolationDAO();
+    assertThat(waivedPolicyViolationDAO.getById(waivedPolicyViolation.getId()), is(notNullValue()));
+
+    PolicyViolationDAO dao = new PolicyViolationDAO();
+    PolicyViolation policyViolation = dao.getById(waivedPolicyViolation.getId());
+    dao.delete(policyViolation);
+    assertThat(waivedPolicyViolationDAO.getById(waivedPolicyViolation.getId()), is(nullValue()));
   }
 
   @Test

@@ -13,6 +13,7 @@ import javax.persistence.EntityManager;
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.model.policy.FirstOccurrencePolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
+import com.sonatype.insight.brain.model.policy.WaivedPolicyViolation;
 
 /**
  * @since 1.11
@@ -87,6 +88,15 @@ public class PolicyViolationDAO
         entity.getId());
     if (firstOccurrencePolicyViolation != null) {
       firstOccurrencePolicyViolationDAO.delete(em, firstOccurrencePolicyViolation);
+    }
+
+    // Cascade to waived policy violation
+    if (entity.isWaived()) {
+      WaivedPolicyViolationDAO waivedPolicyViolationDAO = new WaivedPolicyViolationDAO();
+      WaivedPolicyViolation waivedPolicyViolation = waivedPolicyViolationDAO.getById(em, entity.getId());
+      if (waivedPolicyViolation != null) {
+        waivedPolicyViolationDAO.delete(em, waivedPolicyViolation);
+      }
     }
 
     super.delete(em, entity);

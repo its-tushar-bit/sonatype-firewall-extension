@@ -90,6 +90,12 @@ public class PolicyViolation
   @Column(name = "notifications")
   private String notificationsString;
 
+  /**
+   * @since 1.12
+   */
+  @Column(name = "waived")
+  private boolean isWaived;
+
   private List<ConstraintFact> constraintFacts;
 
   private List<String> pathnames;
@@ -346,5 +352,16 @@ public class PolicyViolation
         + time.getTime() + "), policyId=" + policyId + ", policyName=" + policyName + ", threatLevel=" + threatLevel
         + ", threatCategory=" + threatCategory + ", hash=" + hash + ", groupId=" + groupId + ", artifactId="
         + artifactId + ", version=" + version + ", actionTypeId=" + actionTypeId + "]";
+  }
+
+  public boolean isWaived() {
+    return isWaived;
+  }
+
+  public void setWaived(boolean isWaived) {
+    if (this.isWaived && !isWaived) {
+      throw new IllegalStateException("Cannot un-waive a policy violation.");
+    }
+    this.isWaived = isWaived;
   }
 }

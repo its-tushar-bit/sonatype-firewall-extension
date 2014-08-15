@@ -24,6 +24,7 @@ import org.junit.Test;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.nullValue;
 
 public class PolicyClientTest
     extends AbstractBrainServiceTest
@@ -43,10 +44,6 @@ public class PolicyClientTest
     String scanId = "test-scanid";
 
     Application application = tempEntity.newApplicationWithParent("test-app");
-    PolicyEvaluation policyEvaluation = tempEntity
-        .newPolicyEvaluation(application.getId(), stage.getStageTypeId(), scanId);
-    Policy policy = tempEntity.newPolicy(application.getId(), "test-policy");
-    tempEntity.newPolicyViolation(policyEvaluation, policy);
 
     Configuration config = getCLMServer().getClientConfiguration();
     config.setServerAuth(SimpleAuthentication.parse("admin:admin123"));
@@ -54,6 +51,14 @@ public class PolicyClientTest
 
     PolicyEvaluationSummary policyEvaluationSummary = policyClient
         .getPolicyEvaluationSummary(new Stage(Stage.ID_BUILD));
+    assertThat(policyEvaluationSummary, is(nullValue()));
+
+    PolicyEvaluation policyEvaluation = tempEntity
+        .newPolicyEvaluation(application.getId(), stage.getStageTypeId(), scanId);
+    Policy policy = tempEntity.newPolicy(application.getId(), "test-policy");
+    tempEntity.newPolicyViolation(policyEvaluation, policy);
+
+    policyEvaluationSummary = policyClient.getPolicyEvaluationSummary(new Stage(Stage.ID_BUILD));
 
     assertThat(policyEvaluationSummary, notNullValue());
     assertThat(policyEvaluationSummary.getReportUrl(),

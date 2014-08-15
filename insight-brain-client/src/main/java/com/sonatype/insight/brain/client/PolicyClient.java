@@ -90,6 +90,9 @@ public class PolicyClient
     final Result result = get(path("rest/quality/evaluations/", appId, "/", stage.getStageTypeId()));
 
     final String jsonResult = result.text();
+    if (jsonResult == null) {
+      return null;
+    }
     try {
       return JsonUtils.parse(jsonResult, PolicyEvaluationSummary.class);
     }

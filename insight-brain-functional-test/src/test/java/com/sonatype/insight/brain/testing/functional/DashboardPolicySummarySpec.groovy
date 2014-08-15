@@ -52,6 +52,8 @@ class DashboardPolicySummarySpec
 
   static final List<Integer> UNRESOLVED_ROW_DELTAS = [2, 0, 0, 1, 0, 0, 0, 0, -2, 0, 0, -2]
 
+  static final List<Integer> WAIVED_ROW_DELTAS = [0] * 12
+
   def setupSpec() {
     org = temporaryEntity.newOrganization('DashboardPolicySummarySpec')
     app = temporaryEntity.newApplication('DashboardPolicySummarySpecApp', 'DashboardPolicySummarySpecApp', org.id)
@@ -109,23 +111,26 @@ class DashboardPolicySummarySpec
 
   def 'The policy summary view should show 12 weeks of data'() {
     when: 'The data is loaded'
-      waitFor { policySummary.rows.size() == 3 }
+      waitFor { policySummary.rows.size() == 4 }
       PolicySummaryModule policySummary = policySummary;
 
     then: 'The expected categories are shown'
       policySummary.discoveredRow.category == 'Discovered'
       policySummary.fixedRow.category == 'Fixed'
       policySummary.pendingRow.category == 'Pending'
+      policySummary.waivedRow.category == 'Waived'
 
     and: 'The counts for each category are shown'
       policySummary.discoveredRow.count == 10
       policySummary.fixedRow.count == 8
       policySummary.pendingRow.count == 2
+      policySummary.waivedRow.count == 0
 
     and: 'The deltas for each category are shown'
       policySummary.discoveredRow.delta.value == 7
       policySummary.fixedRow.delta.value == 8
       policySummary.pendingRow.delta.value == -1
+      policySummary.waivedRow.delta.value == 0
 
     and: 'The deltas for each category are styled properly'
       policySummary.discoveredRow.delta.isUp
@@ -134,21 +139,25 @@ class DashboardPolicySummarySpec
       policySummary.fixedRow.delta.isPositive
       policySummary.pendingRow.delta.isDown
       policySummary.pendingRow.delta.isPositive
+      policySummary.waivedRow.delta.value == 0
 
     and: 'The bar charts show the expected values'
       policySummary.discoveredRow.barChart.points == NEW_ROW_DELTAS
       policySummary.fixedRow.barChart.points == FIXED_ROW_DELTAS
       policySummary.pendingRow.barChart.points == UNRESOLVED_ROW_DELTAS
+      policySummary.waivedRow.barChart.points == WAIVED_ROW_DELTAS
 
     and: 'The sparkline charts show the expected values'
       isDeltaArrayCloseToSum(3, NEW_ROW_DELTAS, policySummary.discoveredRow.sparkline.getValues())
       isDeltaArrayCloseToSum(0, FIXED_ROW_DELTAS, policySummary.fixedRow.sparkline.getValues())
       isDeltaArrayCloseToSum(3, UNRESOLVED_ROW_DELTAS, policySummary.pendingRow.sparkline.getValues())
+      isDeltaArrayCloseToSum(0, WAIVED_ROW_DELTAS, policySummary.waivedRow.sparkline.getValues())
 
     and: 'The sparkline charts trail with the correct colors'
-      !policySummary.discoveredRow.sparkline.isTrailingGreen()
+      policySummary.discoveredRow.sparkline.isTrailingRed()
       policySummary.fixedRow.sparkline.isTrailingGreen()
       policySummary.pendingRow.sparkline.isTrailingGreen()
+      policySummary.waivedRow.sparkline.isTrailingRed()
 
     when: 'hovering over sparkline'
       interact {
@@ -179,31 +188,35 @@ class DashboardPolicySummarySpec
       policySummary.discoveredRow.count == 0
       policySummary.fixedRow.count == 0
       policySummary.pendingRow.count == 0
+      policySummary.waivedRow.count == 0
 
     and: 'The deltas for each category should all be zero'
       policySummary.discoveredRow.delta.value == 0
       policySummary.fixedRow.delta.value == 0
       policySummary.pendingRow.delta.value == 0
+      policySummary.waivedRow.delta.value == 0
 
     and: 'The deltas for each category should have no styling'
-      [policySummary.discoveredRow.delta, policySummary.fixedRow.delta, policySummary.pendingRow.delta].
-          each { DeltaModule delta ->
-            assert !delta.isUp
-            assert !delta.isDown
-            assert !delta.isPositive
-            assert !delta.isNegative
-          }
+      [policySummary.discoveredRow.delta, policySummary.fixedRow.delta, policySummary.pendingRow.delta,
+       policySummary.waivedRow.delta].each { DeltaModule delta ->
+        assert !delta.isUp
+        assert !delta.isDown
+        assert !delta.isPositive
+        assert !delta.isNegative
+      }
 
     and: 'The bar chart points should all be zero'
       def emptyPoints = (0..11).collect { 0 }
       policySummary.discoveredRow.barChart.points == emptyPoints
       policySummary.fixedRow.barChart.points == emptyPoints
       policySummary.pendingRow.barChart.points == emptyPoints
+      policySummary.waivedRow.barChart.points == emptyPoints
 
     and: 'The sparkline points should all be zero'
       isDeltaArrayCloseToSum(0, emptyPoints, policySummary.discoveredRow.sparkline.getValues())
       isDeltaArrayCloseToSum(0, emptyPoints, policySummary.fixedRow.sparkline.getValues())
       isDeltaArrayCloseToSum(0, emptyPoints, policySummary.pendingRow.sparkline.getValues())
+      isDeltaArrayCloseToSum(0, emptyPoints, policySummary.waivedRow.sparkline.getValues())
   }
 
 

@@ -141,8 +141,9 @@ class PolicySummaryModule
   static content = {
     rows(required: false) { moduleList PolicySummaryRow, $('tr').tail() }
     pendingRow { (PolicySummaryRow) rows[0] }
-    fixedRow { (PolicySummaryRow) rows[1] }
-    discoveredRow { (PolicySummaryRow) rows[2] }
+    waivedRow { (PolicySummaryRow) rows[1] }
+    fixedRow { (PolicySummaryRow) rows[2] }
+    discoveredRow { (PolicySummaryRow) rows[3] }
   }
 }
 
@@ -220,6 +221,10 @@ class SparklineModule
 
   boolean isTrailingGreen() {
     return presentPath.hasClass('green')
+  }
+
+  boolean isTrailingRed() {
+    return presentPath.hasClass('red')
   }
 }
 

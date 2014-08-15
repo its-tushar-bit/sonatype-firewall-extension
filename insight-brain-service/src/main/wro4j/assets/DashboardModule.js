@@ -909,12 +909,15 @@
             var weeklyDeltaNew = policySummaryData.weeklyDeltaNew,
               weeklyDeltaFixed = policySummaryData.weeklyDeltaFixed,
               weeklyDeltaUnresolved = policySummaryData.weeklyDeltaUnresolved,
+              weeklyDeltaWaived = policySummaryData.weeklyDeltaWaived || Array.apply(null, new Array(12)).map(Number.prototype.valueOf, 0),  //TODO - CLM-3102 KR tie in to real data when available*/
               totalNew = policySummaryData.totalNew,
               totalFixed = policySummaryData.totalFixed,
               currentUnresolved = policySummaryData.currentUnresolved,
+              totalWaived = policySummaryData.totalWaived || 0, //TODO - CLM-3102 KR tie in to real data when available
               newDelta = delta(weeklyDeltaNew),
               fixedDelta = delta(weeklyDeltaFixed),
-              unresolvedDelta = delta(weeklyDeltaUnresolved);
+              unresolvedDelta = delta(weeklyDeltaUnresolved),
+              waivedDelta = delta(weeklyDeltaWaived);
             return [
               {
                 name: 'Pending',
@@ -922,6 +925,14 @@
                 delta: unresolvedDelta,
                 barChartData : weeklyDeltaUnresolved,
                 sparklineData: calculateRunningTotals(weeklyDeltaUnresolved, currentUnresolved - unresolvedDelta),
+                inverseGreen: true
+              },
+              {
+                name: 'Waived',
+                counts: totalWaived,
+                delta: waivedDelta,
+                barChartData: weeklyDeltaWaived,
+                sparklineData: calculateRunningTotals(weeklyDeltaWaived, totalWaived - waivedDelta),
                 inverseGreen: true
               },
               {

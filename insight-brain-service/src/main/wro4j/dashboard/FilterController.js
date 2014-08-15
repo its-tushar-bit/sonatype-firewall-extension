@@ -31,7 +31,7 @@
         }
       }
 
-      function buildApplicationTooltip() {
+      function buildTooltips() {
         $scope.applicationsTooltip = $.map($scope.filters.applicationIds, applicationNameFor).join('<br/>');
       }
 
@@ -85,7 +85,7 @@
               policyThreatLevel: [data[4].data.minPolicyThreatLevel, data[4].data.maxPolicyThreatLevel]
             };
 
-            buildApplicationTooltip();
+            buildTooltips();
 
             $scope.dirtyFilters = angular.copy($scope.filters);
           }
@@ -115,7 +115,7 @@
           minPolicyThreatLevel: $scope.filters.policyThreatLevel[0],
           maxPolicyThreatLevel: $scope.filters.policyThreatLevel[1]
         }).then(function(){
-          buildApplicationTooltip();
+          buildTooltips();
           $scope.expanded = false;
         },function(){
           $scope.alerts = [AngularUtils.toAlert(arguments)];

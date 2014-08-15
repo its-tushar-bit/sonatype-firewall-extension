@@ -8,7 +8,7 @@
   </div>
   <div class="filter-item-container">
     <div ng-if="!expanded">
-      <div class="filter-item-collapsed" tooltip-html-unsafe="{{applicationsTooltip}}" tooltip-placement="right" tooltip-append-to-body="true">
+      <div class="filter-item-collapsed">
         <div tooltip-html-unsafe="{{applicationsTooltip}}" tooltip-placement="right" tooltip-append-to-body="true">
           <i class="sonatype-icons application"></i>
           <div ng-if="filters.applicationIds.length" class="count-circle pull-right">{{filters.applicationIds.length}}</div>
@@ -26,7 +26,7 @@
                 selected-ids='dirtyFilters.applicationIds' effective-id-field='id'
                 summarize-with='applications' none-selected-text='All Applications'></span>
           <span ng-if='applications.length === 0' class="small-text">
-            <em id='no-permissions'>No applications available.</em>
+            <em>No applications available.</em>
           </span>
         </div>
       </div>

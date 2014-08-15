@@ -285,6 +285,11 @@ $filter-multi-dropdown-width: 190px;
   float: right;
 }
 
+//don't want the text to overlay the caret
+.filter-item-content .btn span div {
+  max-width: 150px;
+}
+
 .filter-item-content .multi-dropdown .dropdown-menu {
   width: $filter-multi-dropdown-width;
 }

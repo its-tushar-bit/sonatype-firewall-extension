@@ -7,8 +7,7 @@ $icon-font-size-medium: 18px;
 $icon-font-size-small: 12px;
 $icon-font-size-extra-small: 10px;
 
-//can add others such as sonatype-glyphicons etc
-$font-families: ('sonatype-icons');
+$font-families: ('sonatype-icons', 'sonatype-glyphicons');
 /*
   Global icon styles
 */
@@ -23,7 +22,23 @@ $font-families: ('sonatype-icons');
     font-size: $icon-font-size-extra-small !important;
   }
 }
+/*
+  Mixins
+*/
+@mixin icon-font {
+  font-size: $icon-font-size-large;
+  color: $icon-font-color;
+  *zoom: 1;
+  line-height: 30px;
+  font-style: normal;
+  font-weight: normal;
+  font-variant: normal;
+  text-transform: none;
 
+  /* Better Font Rendering =========== */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
 /*
   The sonatype icon font
 */
@@ -42,28 +57,27 @@ $sonatype-icon-font-path: '../fonts/sonatype-icons';
 }
 
 .sonatype-icons:before {
-  font-size: $icon-font-size-large;
   font-family: $sonatype-icon-font-name;
-  color: $icon-font-color;
-  *zoom: 1;
-  line-height: 30px;
-  font-style: normal;
-  font-weight: normal;
-  font-variant: normal;
-  text-transform: none;
-
-  /* Better Font Rendering =========== */
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  @include icon-font();
 }
 
-$sonatype-icon-map: ("double-chevron-right", '\e600'),
-        ("double-chevron-left", '\e601'),
-        ("application", '\e008');
+/*
+  The sonatype glyphicon font
+*/
+$sonatype-glyphicon-font-name: 'Glyphicons';
+
+.sonatype-glyphicons:before {
+  font-family: $sonatype-glyphicon-font-name;
+  @include icon-font();
+}
 
 //build out the icons
-@each $sonatype-icon in $sonatype-icon-map {
-  .sonatype-icons.#{nth($sonatype-icon,1)}:before {
-    content: nth($sonatype-icon,2);
+$icon-map: ("sonatype-icons","double-chevron-right", '\e600'),
+        ("sonatype-icons","double-chevron-left", '\e601'),
+        ("sonatype-icons","application", '\e008');
+
+@each $icon in $icon-map {
+  .#{nth($icon,1)}.#{nth($icon,2)}:before {
+    content: nth($icon,3);
   }
 }

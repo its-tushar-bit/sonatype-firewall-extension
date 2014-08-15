@@ -66,6 +66,8 @@ describe('FilterController', function() {
     $httpBackend.expectGET(CLMLocations.getApplicationTagsUrl()).respond(tagData);
     $httpBackend.expectGET(CLMLocations.getDashboardFilters()).respond(filterData);
     $controller('FilterController', { $scope: $scope});
+    //TODO: NEWFILTER: remove when old filter panel is removed
+    $scope.doLoad();
     $httpBackend.flush();
   }));
 

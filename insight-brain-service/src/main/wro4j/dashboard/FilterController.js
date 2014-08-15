@@ -122,7 +122,8 @@
         });
       };
 
-      $scope.doLoad();
+      //TODO: NEWFILTER: uncomment to have filter panel load as expected
+      //$scope.doLoad();
     }
   ]);
 

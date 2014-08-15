@@ -8,9 +8,9 @@
   </div>
   <div class="filter-item-container">
     <div ng-if="!expanded">
-      <div class="filter-item-collapsed">
+      <div class="filter-item-collapsed" tooltip-html-unsafe="{{applicationsTooltip}}" tooltip-placement="right" tooltip-append-to-body="true">
         <i class="sonatype-icons application"></i>
-        <div ng-if="filters.applicationIds.length" class="count-circle pull-right" tooltip-html-unsafe="{{applicationsTooltip}}" tooltip-placement="right" tooltip-append-to-body="true">{{filters.applicationIds.length}}</div>
+        <div ng-if="filters.applicationIds.length" class="count-circle pull-right">{{filters.applicationIds.length}}</div>
       </div>
     </div>
     <div ng-if="expanded">

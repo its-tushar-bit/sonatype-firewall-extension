@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.dataaccess.policy;
 
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
@@ -21,8 +22,10 @@ import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.junit.Test;
 
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
@@ -202,5 +205,83 @@ public class PolicyViolationDAOTest
         violation3);
     assertThat(first, is(notNullValue()));
     assertThat(first.getId(), is(violation3.getId()));
+  }
+
+  @Test
+  public void testGetByEvaluationId() {
+    Policy policy = tempEntity.newPolicy(applicationId, "name");
+
+    PolicyEvaluation evaluation1 = tempEntity.newPolicyEvaluation(applicationId, BuildStageType.ID, "scan-1");
+    PolicyViolation activeViolation = tempEntity.newPolicyViolation(evaluation1, policy, "gid", "aid", "1", "hash-1",
+        null);
+    PolicyWaiver policyWaiver = tempEntity.newWaiver(policy.getId(), applicationId);
+    WaivedPolicyViolation waivedPolicyViolation = tempEntity
+        .newWaivedPolicyViolation(evaluation1, policy, policyWaiver);
+
+    PolicyEvaluation evaluation2 = tempEntity
+        .newPolicyEvaluation(applicationId, evaluation1.getStageTypeId(), "scan-2");
+    tempEntity.newPolicyViolation(evaluation2, policy, "gid", "aid", "2", "hash-2", null);
+
+    List<PolicyViolation> policyViolations = new PolicyViolationDAO().getByEvaluationId(evaluation1.getId());
+    assertThat(policyViolations, hasSize(2));
+    List<String> foundViolationIds = Arrays.asList(policyViolations.get(0).getId(), policyViolations.get(1).getId());
+    assertThat(foundViolationIds, containsInAnyOrder(activeViolation.getId(), waivedPolicyViolation.getId()));
+  }
+
+  @Test
+  public void testGetActiveByEvaluationId() {
+    Policy policy = tempEntity.newPolicy(applicationId, "name");
+
+    PolicyEvaluation evaluation1 = tempEntity.newPolicyEvaluation(applicationId, BuildStageType.ID, "scan-1");
+    PolicyViolation activeViolation = tempEntity.newPolicyViolation(evaluation1, policy, "gid", "aid", "1", "hash-1",
+        null);
+    PolicyWaiver policyWaiver = tempEntity.newWaiver(policy.getId(), applicationId);
+    tempEntity.newWaivedPolicyViolation(evaluation1, policy, policyWaiver);
+
+    PolicyEvaluation evaluation2 = tempEntity
+        .newPolicyEvaluation(applicationId, evaluation1.getStageTypeId(), "scan-2");
+    tempEntity.newPolicyViolation(evaluation2, policy, "gid", "aid", "2", "hash-2", null);
+
+    List<PolicyViolation> policyViolations = new PolicyViolationDAO().getActiveByEvaluationId(evaluation1.getId());
+    assertThat(policyViolations, hasSize(1));
+    assertThat(policyViolations.get(0).getId(), is(activeViolation.getId()));
+  }
+
+  @Test
+  public void testGetActiveByEvaluationIds() {
+    Policy policy = tempEntity.newPolicy(applicationId, "name");
+    PolicyWaiver policyWaiver = tempEntity.newWaiver(policy.getId(), applicationId);
+
+    PolicyEvaluation evaluation1 = tempEntity.newPolicyEvaluation(applicationId, BuildStageType.ID, "scan-1");
+    PolicyViolation activeViolation1 = tempEntity.newPolicyViolation(evaluation1, policy, "gid", "aid", "1", "hash-1",
+        null);
+    tempEntity.newWaivedPolicyViolation(evaluation1, policy, policyWaiver);
+
+    PolicyEvaluation evaluation2 = tempEntity
+        .newPolicyEvaluation(applicationId, evaluation1.getStageTypeId(), "scan-2");
+    PolicyViolation activeViolation2 = tempEntity.newPolicyViolation(evaluation2, policy, "gid", "aid", "2", "hash-2",
+        null);
+
+    List<PolicyViolation> policyViolations = new PolicyViolationDAO().getActiveByEvaluationIds(Sets.newHashSet(
+        evaluation1.getId(), evaluation2.getId()));
+    assertThat(policyViolations, hasSize(2));
+    List<String> foundViolationIds = Arrays.asList(policyViolations.get(0).getId(), policyViolations.get(1).getId());
+    assertThat(foundViolationIds, containsInAnyOrder(activeViolation1.getId(), activeViolation2.getId()));
+  }
+
+  @Test
+  public void testGetActiveByByEvaluationIdAndHash() {
+    Policy policy = tempEntity.newPolicy(applicationId, "name");
+
+    PolicyViolationDAO dao = new PolicyViolationDAO();
+    PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(applicationId, BuildStageType.ID, "scan-1");
+    PolicyWaiver policyWaiver = tempEntity.newWaiver(policy.getId(), applicationId);
+    WaivedPolicyViolation waivedPolicyViolation = tempEntity.newWaivedPolicyViolation(evaluation, policy, policyWaiver);
+    String hash = dao.getById(waivedPolicyViolation.getId()).getHash();
+    PolicyViolation activeViolation = tempEntity.newPolicyViolation(evaluation, policy, "gid", "aid", "1", hash, null);
+
+    List<PolicyViolation> policyViolations = dao.getActiveByEvaluationIdAndHash(evaluation.getId(), hash);
+    assertThat(policyViolations, hasSize(1));
+    assertThat(policyViolations.get(0).getId(), is(activeViolation.getId()));
   }
 }

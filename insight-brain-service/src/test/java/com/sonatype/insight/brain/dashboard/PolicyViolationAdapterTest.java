@@ -74,8 +74,8 @@ public class PolicyViolationAdapterTest
 
     List<PolicyViolation> violations = Lists.newArrayList();
     PolicyViolationDAO violationDAO = new PolicyViolationDAO();
-    violations.addAll(violationDAO.getByEvaluationId(policyEvaluation1.getId()));
-    violations.addAll(violationDAO.getByEvaluationId(policyEvaluation2.getId()));
+    violations.addAll(violationDAO.getActiveByEvaluationId(policyEvaluation1.getId()));
+    violations.addAll(violationDAO.getActiveByEvaluationId(policyEvaluation2.getId()));
 
     List<PolicyViolationDTO> dtos = policyViolationAdapter.createPolicyViolationDTOs(app, violations);
 
@@ -101,7 +101,7 @@ public class PolicyViolationAdapterTest
     policyDAO.delete(policy);
 
     List<PolicyViolationDTO> dtos = policyViolationAdapter.createPolicyViolationDTOs(app,
-        new PolicyViolationDAO().getByEvaluationId(policyEvaluation1.getId()));
+        new PolicyViolationDAO().getActiveByEvaluationId(policyEvaluation1.getId()));
 
     assertNotNull(dtos);
     assertThat(dtos, hasSize(2));

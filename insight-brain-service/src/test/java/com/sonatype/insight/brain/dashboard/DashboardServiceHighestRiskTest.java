@@ -216,7 +216,7 @@ public class DashboardServiceHighestRiskTest
     when(stageTypeService.getLicensedStageTypes()).thenReturn(stages);
     when(applicationService.getApplicationsByIdsAndTagIds(returnAppIds, null)).thenReturn(returnApps);
     when(policyEvaluationDAO.getLastByApplicationIdsAndStageIds(returnAppIds, stageIds)).thenReturn(policyEvals);
-    when(policyViolationDAO.getByEvaluationIds(policyEvaluationIds)).thenReturn(policyViolations);
+    when(policyViolationDAO.getActiveByEvaluationIds(policyEvaluationIds)).thenReturn(policyViolations);
     when(applicationAdapter.getContacts(appUserNames)).thenReturn(contacts.toArray(new ContactDTO[contacts.size()]));
 
     return dashboardService
@@ -468,7 +468,7 @@ public class DashboardServiceHighestRiskTest
         .getLastByApplicationIdsAndStageIds(Sets.newHashSet(application99.getId()),
             Sets.newHashSet(buildStage.getId())))
         .thenReturn(Lists.newArrayList(policyEvaluation1));
-    when(policyViolationDAO.getByEvaluationIds(Sets.newHashSet(policyEvaluation1.getId()))).thenReturn(
+    when(policyViolationDAO.getActiveByEvaluationIds(Sets.newHashSet(policyEvaluation1.getId()))).thenReturn(
         Lists.newArrayList(vio1));
     when(applicationAdapter.getContacts(Lists.<String>newArrayList())).thenReturn(new ContactDTO[0]);
 

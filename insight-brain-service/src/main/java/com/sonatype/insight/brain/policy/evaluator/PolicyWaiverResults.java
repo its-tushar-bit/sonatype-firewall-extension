@@ -21,8 +21,8 @@ class PolicyWaiverResults
 
   private List<MatchFact> waivedFacts = new ArrayList<>();
 
-  void addFact(MatchFact fact, boolean waived) {
-    (waived ? waivedFacts : activeFacts).add(fact);
+  void addFact(MatchFact fact) {
+    (fact.getPolicyWaiver() != null ? waivedFacts : activeFacts).add(fact);
   }
 
   /**

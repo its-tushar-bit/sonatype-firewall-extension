@@ -80,10 +80,10 @@ public class PolicyAlertNotifier
       final PolicyEvaluation currentEvaluation, final PolicyEvaluation previousEvaluation)
   {
     PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
-    List<PolicyViolation> currentViolations = policyViolationDAO.getByEvaluationId(currentEvaluation.getId());
+    List<PolicyViolation> currentViolations = policyViolationDAO.getActiveByEvaluationId(currentEvaluation.getId());
     List<PolicyViolation> previousViolations = null;
     if (previousEvaluation != null) {
-      previousViolations = policyViolationDAO.getByEvaluationId(previousEvaluation.getId());
+      previousViolations = policyViolationDAO.getActiveByEvaluationId(previousEvaluation.getId());
     }
     PolicyViolationDiff diff = PolicyViolationDigester.digestPolicyViolations(previousViolations, currentViolations);
 

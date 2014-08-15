@@ -12,13 +12,15 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.facts.MatchFact;
 
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
 
 public class PolicyWaiverEvaluatorTest
@@ -50,25 +52,29 @@ public class PolicyWaiverEvaluatorTest
 
   @Test
   public void testApplyWaivers_SpecificComponent() {
-    tempEntity.newWaiver("aaaaaaaaaaaaaaaaaaa0", policy0.getId(), app.getId());
+    PolicyWaiver policyWaiver = tempEntity.newWaiver("aaaaaaaaaaaaaaaaaaa0", policy0.getId(), app.getId());
     MatchFact fact1 = new MatchFact(newComponent("aaaaaaaaaaaaaaaaaaa0"), policy0.getId(), "constraint-0");
     MatchFact fact2 = new MatchFact(newComponent("aaaaaaaaaaaaaaaaaaa0"), policy0.getId(), "constraint-1");
     MatchFact fact3 = new MatchFact(newComponent("aaaaaaaaaaaaaaaaaaa0"), policy1.getId(), "constraint-0");
     MatchFact fact4 = new MatchFact(newComponent("aaaaaaaaaaaaaaaaaaa1"), policy0.getId(), "constraint-0");
-    PolicyWaiverResults results = evaluator.applyWaivers(app.getId(), Arrays.asList(fact1, fact2, fact3, fact4));
-    assertThat(results.getActiveFacts(), contains(fact3, fact4));
-    assertThat(results.getWaivedFacts(), contains(fact1, fact2));
+    evaluator.applyWaivers(app.getId(), Arrays.asList(fact1, fact2, fact3, fact4));
+    assertThat(fact1.getPolicyWaiver().getId(), is(policyWaiver.getId()));
+    assertThat(fact2.getPolicyWaiver().getId(), is(policyWaiver.getId()));
+    assertThat(fact3.getPolicyWaiver(), nullValue());
+    assertThat(fact4.getPolicyWaiver(), nullValue());
   }
 
   @Test
   public void testApplyWaivers_EntirePolicy() {
-    tempEntity.newWaiver(policy0.getId(), app.getId());
+    PolicyWaiver policyWaiver = tempEntity.newWaiver(policy0.getId(), app.getId());
     MatchFact fact1 = new MatchFact(newComponent("aaaaaaaaaaaaaaaaaaa0"), policy0.getId(), "constraint-0");
     MatchFact fact2 = new MatchFact(newComponent("aaaaaaaaaaaaaaaaaaa0"), policy0.getId(), "constraint-1");
     MatchFact fact3 = new MatchFact(newComponent("aaaaaaaaaaaaaaaaaaa0"), policy1.getId(), "constraint-0");
     MatchFact fact4 = new MatchFact(newComponent("aaaaaaaaaaaaaaaaaaa1"), policy0.getId(), "constraint-0");
-    PolicyWaiverResults results = evaluator.applyWaivers(app.getId(), Arrays.asList(fact1, fact2, fact3, fact4));
-    assertThat(results.getActiveFacts(), contains(fact3));
-    assertThat(results.getWaivedFacts(), contains(fact1, fact2, fact4));
+    evaluator.applyWaivers(app.getId(), Arrays.asList(fact1, fact2, fact3, fact4));
+    assertThat(fact1.getPolicyWaiver().getId(), is(policyWaiver.getId()));
+    assertThat(fact2.getPolicyWaiver().getId(), is(policyWaiver.getId()));
+    assertThat(fact3.getPolicyWaiver(), nullValue());
+    assertThat(fact4.getPolicyWaiver().getId(), is(policyWaiver.getId()));
   }
 }

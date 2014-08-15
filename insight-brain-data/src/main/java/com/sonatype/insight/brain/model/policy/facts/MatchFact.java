@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.model.policy.facts;
 
 import com.sonatype.insight.brain.model.component.Component;
+import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 
 public class MatchFact
 {
@@ -16,6 +17,13 @@ public class MatchFact
   private final String constraintId;
 
   private final int conditionNumber;
+
+  /**
+   * The policy waiver that waives this fact.
+   * 
+   * @since 1.12
+   */
+  private PolicyWaiver policyWaiver;
 
   public MatchFact(final Component component, final String policyId, final String constraintId) {
     this(component, policyId, constraintId, -1 /* indicates all conditions */);
@@ -50,5 +58,13 @@ public class MatchFact
   public String toString() {
     return "(Policy id:" + policyId + ", Constraint id:" + constraintId + ", Condition number:" + conditionNumber
         + ") @ " + component;
+  }
+
+  public PolicyWaiver getPolicyWaiver() {
+    return policyWaiver;
+  }
+
+  public void setPolicyWaiver(PolicyWaiver policyWaiver) {
+    this.policyWaiver = policyWaiver;
   }
 }

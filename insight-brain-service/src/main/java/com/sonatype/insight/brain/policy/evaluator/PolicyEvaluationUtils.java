@@ -35,6 +35,7 @@ import com.sonatype.insight.brain.dataaccess.policy.FirstOccurrencePolicyViolati
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
+import com.sonatype.insight.brain.dataaccess.policy.WaivedPolicyViolationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationComponent;
 import com.sonatype.insight.brain.model.component.Component;
@@ -44,6 +45,8 @@ import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
+import com.sonatype.insight.brain.model.policy.PolicyWaiver;
+import com.sonatype.insight.brain.model.policy.WaivedPolicyViolation;
 import com.sonatype.insight.brain.model.policy.actions.ActionTypes;
 import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.report.ReportDownloader;
@@ -67,6 +70,12 @@ public class PolicyEvaluationUtils
   private final ReportDownloader reportDownloader;
 
   private ApplicationDAO applicationDAO = new ApplicationDAO();
+
+  private PolicyDAO policyDAO = new PolicyDAO();
+
+  private PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
+
+  private WaivedPolicyViolationDAO waivedPolicyViolationDAO = new WaivedPolicyViolationDAO();
 
   @Inject
   public PolicyEvaluationUtils(final InsightWork insightWork, final ReportDownloader reportDownloader) {
@@ -97,8 +106,6 @@ public class PolicyEvaluationUtils
     String appId = application.getId();
 
     final File reportFile = ReportResource.fetchReport(reportDownloader, work, appId, scanId, true, false);
-
-    final PolicyDAO policyDAO = new PolicyDAO();
 
     final ReportEntry licenseReportEntry = Report.getEntry(reportFile, "licenses.json");
     final ReportEntry securityReportEntry = Report.getEntry(reportFile, "security.json");
@@ -155,19 +162,20 @@ public class PolicyEvaluationUtils
         }
         policyEvaluationDAO.insert(em, policyEvaluation);
   
-        // Persist the policy violations
+        // Persist policy violations
         List<PolicyViolation> newPolicyViolations = new ArrayList<>();
-        PolicyDAO policyDAO = new PolicyDAO();
-        PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
-        for (PolicyAlert policyAlert : policyResults.getActiveAlerts()) {
+        List<PolicyAlert> allPolicyAlerts = new ArrayList<>();
+        allPolicyAlerts.addAll(policyResults.getActiveAlerts());
+        allPolicyAlerts.addAll(policyResults.getWaivedAlerts());
+        for (PolicyAlert policyAlert : allPolicyAlerts) {
           PolicyFact policyFact = policyAlert.getTrigger();
           Policy policy = policyDAO.getByIdNotNull(policyFact.getPolicyId());
           PolicyThreatCategory threatCategory = policy.getThreatCategory();
           for (ComponentFact componentFact : policyFact.getComponentFacts()) {
-            PolicyViolation policyViolation = new PolicyViolation(policyEvaluation, policy.getId(),
-                policy.getName(), policyFact.getThreatLevel(), threatCategory, componentFact.getHash(),
-                componentFact.getGroupId(), componentFact.getArtifactId(), componentFact.getVersion(),
-                componentFact.getConstraintFacts(), componentFact.getPathnames());
+            PolicyViolation policyViolation = new PolicyViolation(policyEvaluation, policy.getId(), policy.getName(),
+                policyFact.getThreatLevel(), threatCategory, componentFact.getHash(), componentFact.getGroupId(),
+                componentFact.getArtifactId(), componentFact.getVersion(), componentFact.getConstraintFacts(),
+                componentFact.getPathnames());
             for (Action action : policyAlert.getActions()) {
               // Don't save notification data into policy violations here because at this point we don't really know if
               // the notifications will be sent or not.
@@ -177,8 +185,17 @@ public class PolicyEvaluationUtils
                 break;
               }
             }
+            PolicyWaiver policyWaiver = policyResults.getPolicyWaiver(componentFact);
+            policyViolation.setWaived(policyWaiver != null);
             policyViolationDAO.insert(em, policyViolation);
-            newPolicyViolations.add(policyViolation);
+            if (policyWaiver != null) {
+              WaivedPolicyViolation waivedPolicyViolation = new WaivedPolicyViolation(policyViolation.getId(),
+                  policyWaiver.getId(), policyWaiver.getComment());
+              waivedPolicyViolationDAO.insert(em, waivedPolicyViolation);
+            }
+            else {
+              newPolicyViolations.add(policyViolation);
+            }
           }
         }
 

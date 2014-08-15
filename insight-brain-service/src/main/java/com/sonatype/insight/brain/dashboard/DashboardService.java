@@ -396,7 +396,7 @@ public class DashboardService
       final Predicate<PolicyViolation> violationFilter)
   {
     Set<String> evaluationIds = Sets.newHashSet(Iterables.transform(evaluations, hasIdIdSelector));
-    return filter(policyViolationDAO.getByEvaluationIds(evaluationIds), violationFilter);
+    return filter(policyViolationDAO.getActiveByEvaluationIds(evaluationIds), violationFilter);
   }
 
   private void updateTotalApplicationRisks(final ApplicationRiskScoreDTO applicationRiskScore,
@@ -568,7 +568,7 @@ public class DashboardService
       return Lists.newArrayList();
     }
 
-    return policyViolationDAO.getByEvaluationId(policyEvaluation.getId());
+    return policyViolationDAO.getActiveByEvaluationId(policyEvaluation.getId());
   }
 
   /**
@@ -869,7 +869,7 @@ public class DashboardService
           continue;
         }
 
-        List<PolicyViolation> policyViolations = policyViolationDAO.getByEvaluationId(policyEvaluation.getId());
+        List<PolicyViolation> policyViolations = policyViolationDAO.getActiveByEvaluationId(policyEvaluation.getId());
         policyViolations = filter(policyViolations, filter);
         if (policyViolations.isEmpty()) {
           continue;
@@ -1121,7 +1121,7 @@ public class DashboardService
         int weekIndex = POLICY_SUMMARY_WEEKS
             - (int) ((now - policyEvaluation.getTime().getTime()) / ONE_WEEK_IN_MILLISECS) - 1;
 
-        List<PolicyViolation> policyViolations = policyViolationDAO.getByEvaluationId(policyEvaluation.getId());
+        List<PolicyViolation> policyViolations = policyViolationDAO.getActiveByEvaluationId(policyEvaluation.getId());
         policyViolations = filter(policyViolations, filter);
 
         PolicyViolationDiff diff = PolicyViolationDigester.digestPolicyViolations(policyViolationsWithStageTypes.getPolicyViolations(),

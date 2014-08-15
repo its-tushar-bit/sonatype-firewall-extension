@@ -29,7 +29,7 @@ public class PolicyAlertUtil
       return Collections.emptyList();
     }
 
-    List<PolicyViolation> policyViolations = new PolicyViolationDAO().getByEvaluationId(policyEvaluation.getId());
+    List<PolicyViolation> policyViolations = new PolicyViolationDAO().getActiveByEvaluationId(policyEvaluation.getId());
     return createPolicyAlerts(policyViolations, policyEvaluation.getStageTypeId(), policyEvaluation.isForMonitoring());
   }
 

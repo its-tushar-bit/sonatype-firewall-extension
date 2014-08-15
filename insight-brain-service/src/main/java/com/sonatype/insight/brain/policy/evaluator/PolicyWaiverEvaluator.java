@@ -5,9 +5,9 @@
  */
 package com.sonatype.insight.brain.policy.evaluator;
 
-import java.util.LinkedHashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
 
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
@@ -33,32 +33,32 @@ class PolicyWaiverEvaluator
     List<PolicyWaiver> policyWaivers = new PolicyWaiverDAO().getByOwnerId(applicationId, true /* inherit */);
     log.debug("Applying {} waivers to {} facts for application ID {}", policyWaivers.size(), facts.size(),
         applicationId);
-    Set<String> policyWaiverKeys = new LinkedHashSet<String>();
+    Map<String, PolicyWaiver> policyWaiversByKey = new LinkedHashMap<>();
     for (PolicyWaiver policyWaiver : policyWaivers) {
-      if (policyWaiver.getHash() == null) {
-        policyWaiverKeys.add(policyWaiver.getPolicyId());
+      String policyWaiverKey = policyWaiver.getPolicyId();
+      if (policyWaiver.getHash() != null) {
+        policyWaiverKey += "_" + policyWaiver.getHash();
       }
-      else {
-        policyWaiverKeys.add(policyWaiver.getPolicyId() + "_" + policyWaiver.getHash());
-      }
+      policyWaiversByKey.put(policyWaiverKey, policyWaiver);
     }
 
     PolicyWaiverResults results = new PolicyWaiverResults();
     for (MatchFact fact : facts) {
-      results.addFact(fact, isWaived(fact, policyWaiverKeys));
+      PolicyWaiver policyWaiver = findPolicyWaiverForMatchFact(fact, policyWaiversByKey);
+      fact.setPolicyWaiver(policyWaiver);
+      results.addFact(fact);
     }
     return results;
   }
 
-  private boolean isWaived(MatchFact fact, Set<String> policyWaiverKeys) {
+  private PolicyWaiver findPolicyWaiverForMatchFact(MatchFact fact, Map<String, PolicyWaiver> policyWaiversByKey) {
     String key = fact.getPolicyId();
-    if (policyWaiverKeys.contains(key)) {
-      return true;
+    PolicyWaiver policyWaiver = policyWaiversByKey.get(key);
+    if (policyWaiver == null) {
+      key += "_" + fact.getComponent().getHash();
+      policyWaiver = policyWaiversByKey.get(key);
     }
-    key += "_" + fact.getComponent().getHash();
-    if (policyWaiverKeys.contains(key)) {
-      return true;
-    }
-    return false;
+
+    return policyWaiver;
   }
 }

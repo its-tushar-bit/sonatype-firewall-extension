@@ -100,7 +100,7 @@ public class ComponentDetailService
           continue;
         }
 
-        List<PolicyViolation> policyViolations = policyViolationDAO.getByEvaluationIdAndHash(policyEvaluation.getId(),
+        List<PolicyViolation> policyViolations = policyViolationDAO.getActiveByEvaluationIdAndHash(policyEvaluation.getId(),
             hash);
         // only set this value if we have violations
         if (!policyViolations.isEmpty()) {

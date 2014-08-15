@@ -26,6 +26,7 @@ import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.model.policy.actions.NotifyActionType;
 import com.sonatype.insight.brain.model.policy.actions.WarnActionType;
@@ -42,6 +43,11 @@ import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
 
 public class PolicyEvaluatorTest
     extends AbstractPolicyEvaluationTest
@@ -481,16 +487,20 @@ public class PolicyEvaluatorTest
     }
 
     // Slice facts into alerts
-    final List<PolicyAlert> expectedAlerts = PolicyEvaluator.createAlerts(policies, facts,
-        new Stage(BuildStageType.ID), false /* forMonitoring */);
+    PolicyResults policyResults = new PolicyResults();
+    PolicyEvaluator.toPolicyResults(policies, facts, new Stage(BuildStageType.ID), false /* forMonitoring */,
+        policyResults);
+    final List<PolicyAlert> expectedAlerts = policyResults.getActiveAlerts();
 
     // Check slicing is consistent
     for (int i = 0; i < 100; i++) {
       Collections.shuffle(facts);
       Collections.shuffle(policies);
 
-      final List<PolicyAlert> alerts = PolicyEvaluator.createAlerts(policies, facts, new Stage(BuildStageType.ID),
-          false /* forMonitoring */);
+      policyResults = new PolicyResults();
+      PolicyEvaluator.toPolicyResults(policies, facts, new Stage(BuildStageType.ID), false /* forMonitoring */,
+          policyResults);
+      final List<PolicyAlert> alerts = policyResults.getActiveAlerts();
 
       Assert.assertEquals(alertsToString(expectedAlerts), alertsToString(alerts));
     }
@@ -627,34 +637,46 @@ public class PolicyEvaluatorTest
     component2.addDeclaredLicenseId("Apache-2.0");
     components.add(component2);
 
-    // Evaluate the policy
-    List<PolicyAlert> policyAlerts = evaluator
-        .evaluate(app.getId(), stage, Arrays.asList(policy1, policy2), components);
-    Assert.assertNotNull(policyAlerts);
-    Assert.assertEquals(2, policyAlerts.size());
-    Assert.assertEquals(2, policyAlerts.get(0).getTrigger().getComponentFacts().size());
-    Assert.assertEquals(2, policyAlerts.get(1).getTrigger().getComponentFacts().size());
+    // Evaluate the policies.
+    // Both policies are violated by both components.
+    PolicyResults policyResults = evaluator.evaluate(app.getId(), stage, Arrays.asList(policy1, policy2), components);
+    List<PolicyAlert> activePolicyAlerts = policyResults.getActiveAlerts();
+    Assert.assertNotNull(activePolicyAlerts);
+    Assert.assertEquals(2, activePolicyAlerts.size());
+    Assert.assertEquals(2, activePolicyAlerts.get(0).getTrigger().getComponentFacts().size());
+    Assert.assertEquals(2, activePolicyAlerts.get(1).getTrigger().getComponentFacts().size());
     assertContainsPolicyAlert(component1, policy1.getId(), policy1.getName(), FailActionType.ID, constraint1.getId(),
-        constraint1.getName(), SecurityVulnerabilityConditionType.ID, policyAlerts);
+        constraint1.getName(), SecurityVulnerabilityConditionType.ID, activePolicyAlerts);
     assertContainsPolicyAlert(component2, policy1.getId(), policy1.getName(), FailActionType.ID, constraint1.getId(),
-        constraint1.getName(), SecurityVulnerabilityConditionType.ID, policyAlerts);
+        constraint1.getName(), SecurityVulnerabilityConditionType.ID, activePolicyAlerts);
     assertContainsPolicyAlert(component1, policy2.getId(), policy2.getName(), FailActionType.ID, constraint2.getId(),
-        constraint2.getName(), SecurityVulnerabilityConditionType.ID, policyAlerts);
+        constraint2.getName(), SecurityVulnerabilityConditionType.ID, activePolicyAlerts);
     assertContainsPolicyAlert(component2, policy2.getId(), policy2.getName(), FailActionType.ID, constraint2.getId(),
-        constraint2.getName(), SecurityVulnerabilityConditionType.ID, policyAlerts);
+        constraint2.getName(), SecurityVulnerabilityConditionType.ID, activePolicyAlerts);
+    assertThat(policyResults.getWaivedAlerts(), hasSize(0));
 
     // Waive policy1 for component1 and re-evaluate
-    tempEntity.newWaiver("hash1", policy1.getId(), app.getId(), null /* comment */);
-    policyAlerts = evaluator.evaluate(app.getId(), stage, Arrays.asList(policy1, policy2), components);
-    Assert.assertNotNull(policyAlerts);
-    Assert.assertEquals(2, policyAlerts.size());
-    Assert.assertEquals(1, policyAlerts.get(0).getTrigger().getComponentFacts().size());
-    Assert.assertEquals(2, policyAlerts.get(1).getTrigger().getComponentFacts().size());
+    PolicyWaiver policyWaiver = tempEntity.newWaiver("hash1", policy1.getId(), app.getId(), null /* comment */);
+    policyResults = evaluator.evaluate(app.getId(), stage, Arrays.asList(policy1, policy2), components);
+    activePolicyAlerts = policyResults.getActiveAlerts();
+    Assert.assertNotNull(activePolicyAlerts);
+    Assert.assertEquals(2, activePolicyAlerts.size());
+    Assert.assertEquals(1, activePolicyAlerts.get(0).getTrigger().getComponentFacts().size());
+    Assert.assertEquals(2, activePolicyAlerts.get(1).getTrigger().getComponentFacts().size());
     assertContainsPolicyAlert(component2, policy1.getId(), policy1.getName(), FailActionType.ID, constraint1.getId(),
-        constraint1.getName(), SecurityVulnerabilityConditionType.ID, policyAlerts);
+        constraint1.getName(), SecurityVulnerabilityConditionType.ID, activePolicyAlerts);
     assertContainsPolicyAlert(component1, policy2.getId(), policy2.getName(), FailActionType.ID, constraint2.getId(),
-        constraint2.getName(), SecurityVulnerabilityConditionType.ID, policyAlerts);
+        constraint2.getName(), SecurityVulnerabilityConditionType.ID, activePolicyAlerts);
     assertContainsPolicyAlert(component2, policy2.getId(), policy2.getName(), FailActionType.ID, constraint2.getId(),
-        constraint2.getName(), SecurityVulnerabilityConditionType.ID, policyAlerts);
+        constraint2.getName(), SecurityVulnerabilityConditionType.ID, activePolicyAlerts);
+
+    List<PolicyAlert> waivedPolicyAlerts = policyResults.getWaivedAlerts();
+    assertThat(waivedPolicyAlerts, notNullValue());
+    assertThat(waivedPolicyAlerts, hasSize(1));
+    assertContainsPolicyAlert(component1, policy1.getId(), policy1.getName(), FailActionType.ID, constraint1.getId(),
+        constraint1.getName(), SecurityVulnerabilityConditionType.ID, waivedPolicyAlerts);
+    assertThat(waivedPolicyAlerts.get(0).getTrigger().getComponentFacts(), hasSize(1));
+    ComponentFact waivedComponentFact = waivedPolicyAlerts.get(0).getTrigger().getComponentFacts().get(0);
+    assertThat(policyResults.getPolicyWaiver(waivedComponentFact).getId(), is(policyWaiver.getId()));
   }
 }

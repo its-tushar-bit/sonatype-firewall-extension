@@ -82,7 +82,7 @@ public class PolicyEvaluationUtilsTest
     ComponentFact component1 = newComponentFact("1234567890");
     PolicyAlert alert1 = newAlert("policy-1", 7, component1);
     PolicyResults results = new PolicyResults();
-    results.setActiveAlerts(Arrays.asList(alert1));
+    results.addActiveAlert(alert1);
 
     PolicyThreats threats = evalUtils.toPolicyThreats(results);
     assertThat(threats, is(notNullValue()));
@@ -120,8 +120,8 @@ public class PolicyEvaluationUtilsTest
     PolicyAlert alert1 = newAlert("policy-1", 7, component1);
     PolicyAlert alert2 = newAlert("policy-2", 9, component1);
     PolicyResults results = new PolicyResults();
-    results.setActiveAlerts(Arrays.asList(alert1));
-    results.setWaivedAlerts(Arrays.asList(alert2));
+    results.addActiveAlert(alert1);
+    results.addWaivedAlert(alert2);
 
     PolicyThreats threats = evalUtils.toPolicyThreats(results);
     assertThat(threats, is(notNullValue()));
@@ -139,7 +139,7 @@ public class PolicyEvaluationUtilsTest
     ComponentFact component1 = newComponentFact("1234567890");
     PolicyAlert alert1 = newAlert("policy-1", 7, component1);
     PolicyResults results = new PolicyResults();
-    results.setWaivedAlerts(Arrays.asList(alert1));
+    results.addWaivedAlert(alert1);
 
     PolicyThreats threats = evalUtils.toPolicyThreats(results);
     assertThat(threats, is(notNullValue()));

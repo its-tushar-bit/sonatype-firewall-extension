@@ -29,6 +29,7 @@ import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.ConditionType;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.conditions.ConditionTypes;
 import com.sonatype.insight.brain.model.policy.facts.MatchFact;
 import com.sonatype.insight.brain.policy.DroolsGenerator;
@@ -78,10 +79,10 @@ public class PolicyEvaluator
   }
 
   // Package visibility for tests only
-  List<PolicyAlert> evaluate(final String applicationId, final Stage stage, final List<Policy> policies,
+  PolicyResults evaluate(final String applicationId, final Stage stage, final List<Policy> policies,
       final List<Component> components)
   {
-    return evaluate(applicationId, stage, policies, components, false /* forMonitoring */).getActiveAlerts();
+    return evaluate(applicationId, stage, policies, components, false /* forMonitoring */);
   }
 
   private PolicyResults evaluate(final String applicationId, final Stage stage, final List<Policy> policies,
@@ -92,32 +93,30 @@ public class PolicyEvaluator
     List<MatchFact> facts = evaluateFacts(policies, components);
     PolicyWaiverResults policyWaiverResults = waiverEvaluator.applyWaivers(applicationId, facts);
     PolicyResults policyResults = new PolicyResults();
-    policyResults.setActiveAlerts(createAlerts(policies, policyWaiverResults.getActiveFacts(), stage, forMonitoring));
-    policyResults.setWaivedAlerts(createAlerts(policies, policyWaiverResults.getWaivedFacts(), stage, forMonitoring));
+    toPolicyResults(policies, policyWaiverResults.getActiveFacts(), stage, forMonitoring, policyResults);
+    toPolicyResults(policies, policyWaiverResults.getWaivedFacts(), stage, forMonitoring, policyResults);
 
     log.debug("Evaluated policies in {} millisecs", System.currentTimeMillis() - start);
 
     return policyResults;
   }
 
-  /**
-   * Creates one PolicyAlert for each policy for which there are MatchFacts.
-   */
-  static List<PolicyAlert> createAlerts(final List<Policy> policies, final List<MatchFact> facts, final Stage stage,
-      boolean forMonitoring)
+  static void toPolicyResults(final List<Policy> policies, final List<MatchFact> facts, final Stage stage,
+      boolean forMonitoring, PolicyResults policyResults)
   {
     // Ordering of facts + slicing with LinkedHashMap should = consistent alerts
     Collections.sort(facts, MATCHES_BY_POLICY_COMPONENT_CONSTRAINT_CONDITION);
 
-    final List<PolicyAlert> alerts = new ArrayList<PolicyAlert>();
     for (final Entry<Policy, List<MatchFact>> byPolicy : byPolicy(policies, facts).entrySet()) {
       final Policy policy = byPolicy.getKey();
       final PolicyFact policyFact = new PolicyFact(policy.getId(), policy.getName(), policy.getThreatLevel());
+      boolean isWaived = false;
       for (final Entry<Component, List<MatchFact>> byComponent : byComponent(byPolicy.getValue()).entrySet()) {
         final Component component = byComponent.getKey();
         final ComponentFact componentFact = new ComponentFact(component.getGroupId(), component.getArtifactId(),
             component.getVersion(), component.getHash());
         componentFact.addPathnames(component.getPathnames());
+        PolicyWaiver policyWaiverForComponentFact = null;
         for (final Entry<Constraint, List<MatchFact>> byConstraints : byConstraint(policy.getConstraints(),
             byComponent.getValue()).entrySet()) {
           final Constraint constraint = byConstraints.getKey();
@@ -134,6 +133,9 @@ public class PolicyEvaluator
                 constraintFact.addConditionFact(createConditionFact(condition, component));
               }
             }
+            if (policyWaiverForComponentFact == null) {
+              policyWaiverForComponentFact = fact.getPolicyWaiver();
+            }
           }
           if (!constraintFact.getConditionFacts().isEmpty()) {
             componentFact.addConstraintFact(constraintFact);
@@ -141,6 +143,10 @@ public class PolicyEvaluator
         }
         if (!componentFact.getConstraintFacts().isEmpty()) {
           policyFact.addComponentFact(componentFact);
+        }
+        if (policyWaiverForComponentFact != null) {
+          policyResults.addPolicyWaiver(componentFact, policyWaiverForComponentFact);
+          isWaived = true;
         }
       }
       if (!policyFact.getComponentFacts().isEmpty()) {
@@ -151,10 +157,15 @@ public class PolicyEvaluator
         else {
           actions = policy.getActions(stage.getStageTypeId());
         }
-        alerts.add(new PolicyAlert(policyFact, actions));
+        PolicyAlert policyAlert = new PolicyAlert(policyFact, actions);
+        if (isWaived) {
+          policyResults.addWaivedAlert(policyAlert);
+        }
+        else {
+          policyResults.addActiveAlert(policyAlert);
+        }
       }
     }
-    return alerts;
   }
 
   public static ConditionFact createConditionFact(Condition condition, Component component) {

@@ -28,6 +28,13 @@ public class PolicyViolationDAO
     return get(em, sQuery, id);
   }
 
+  public List<PolicyViolation> getActiveByEvaluationId(String evaluationId) {
+    String sQuery = "SELECT entity FROM PolicyViolation entity" + //
+        " WHERE entity.policyEvaluationId=?1 AND entity.isWaived=false" + //
+        " ORDER BY entity.policyId, entity.groupId, entity.artifactId, entity.version, entity.hash";
+    return getList(sQuery, evaluationId);
+  }
+
   public List<PolicyViolation> getByEvaluationId(String evaluationId) {
     EntityManager em = createEntityManager();
     try {
@@ -45,16 +52,10 @@ public class PolicyViolationDAO
     return getList(em, sQuery, evaluationId);
   }
 
-  public List<PolicyViolation> getByEvaluationIds(Set<String> evaluationIds) {
+  public List<PolicyViolation> getActiveByEvaluationIds(Set<String> evaluationIds) {
     String sQuery = "SELECT entity FROM PolicyViolation entity" + //
-        " WHERE entity.policyEvaluationId IN (?1)";
+        " WHERE entity.policyEvaluationId IN (?1) AND entity.isWaived=false";
     return getList(sQuery, evaluationIds);
-  }
-
-  public List<PolicyViolation> getByPolicyId(EntityManager em, String policyId) {
-    String sQuery = "SELECT entity FROM PolicyViolation entity" + //
-        " WHERE entity.policyId=?1";
-    return getList(em, sQuery, policyId);
   }
 
   public List<PolicyViolation> getFirstOccurrenceByApplicationIdAndStageTypeId(EntityManager em, String appId,
@@ -102,9 +103,9 @@ public class PolicyViolationDAO
     super.delete(em, entity);
   }
 
-  public List<PolicyViolation> getByEvaluationIdAndHash(String evaluationId, String hash) {
+  public List<PolicyViolation> getActiveByEvaluationIdAndHash(String evaluationId, String hash) {
     String sQuery = "SELECT entity FROM PolicyViolation entity" + //
-        " WHERE entity.policyEvaluationId=?1 AND entity.hash=?2" + //
+        " WHERE entity.policyEvaluationId=?1 AND entity.hash=?2 AND entity.isWaived=false" + //
         " ORDER BY entity.policyId";
     return getList(sQuery, evaluationId, hash);
   }

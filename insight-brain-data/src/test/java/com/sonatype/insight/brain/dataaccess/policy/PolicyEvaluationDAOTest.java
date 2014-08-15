@@ -176,10 +176,10 @@ public class PolicyEvaluationDAOTest
         "PolicyEvaluationDAOTest");
     tempEntity.newPolicyViolation(policyEvaluation, policy);
     PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
-    assertThat(policyViolationDAO.getByEvaluationId(policyEvaluation.getId()), hasSize(1));
+    assertThat(policyViolationDAO.getActiveByEvaluationId(policyEvaluation.getId()), hasSize(1));
 
     new PolicyEvaluationDAO().delete(policyEvaluation);
-    assertThat(policyViolationDAO.getByEvaluationId(policyEvaluation.getId()), hasSize(0));
+    assertThat(policyViolationDAO.getActiveByEvaluationId(policyEvaluation.getId()), hasSize(0));
   }
 
   private void assertPolicyEvaluation(String applicationId, String stageTypeId, String scanId, boolean reevaluation,

@@ -24,6 +24,7 @@ import com.sonatype.insight.brain.dataaccess.policy.FirstOccurrencePolicyViolati
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
+import com.sonatype.insight.brain.dataaccess.policy.WaivedPolicyViolationDAO;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationComponent;
@@ -39,6 +40,8 @@ import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
+import com.sonatype.insight.brain.model.policy.PolicyWaiver;
+import com.sonatype.insight.brain.model.policy.WaivedPolicyViolation;
 import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.model.policy.actions.NotifyActionType;
 import com.sonatype.insight.brain.model.policy.conditions.AgeInDaysConditionType;
@@ -366,7 +369,7 @@ public class PolicyEvaluateResourceTest
     assertThat(policyEvaluation.isReevaluation(), is(false));
     assertPolicyEvaluation(app.getId(), scanId, false /* isReevaluation */);
     PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
-    for (PolicyViolation policyViolation : policyViolationDAO.getByEvaluationId(policyEvaluation.getId())) {
+    for (PolicyViolation policyViolation : policyViolationDAO.getActiveByEvaluationId(policyEvaluation.getId())) {
       if (policyViolation.getPolicyId().equals(policy1.getId())) {
         assertThat(policyViolation.getActionTypeId(), is(Action.ID_FAIL));
         assertThat(policyViolation.getNotificationsString(), is("manager@example.com\njohn.doe@example.com"));
@@ -410,7 +413,7 @@ public class PolicyEvaluateResourceTest
     policyEvaluation = policyEvaluationDAO.getLastByApplicationIdAndScanId(app.getId(), scanId);
     assertThat(policyEvaluation, notNullValue());
     assertThat(policyEvaluation.isReevaluation(), is(true));
-    for (PolicyViolation policyViolation : policyViolationDAO.getByEvaluationId(policyEvaluation.getId())) {
+    for (PolicyViolation policyViolation : policyViolationDAO.getActiveByEvaluationId(policyEvaluation.getId())) {
       if (policyViolation.getPolicyId().equals(policy1.getId())) {
         assertThat(policyViolation.getActionTypeId(), is(Action.ID_FAIL));
       }
@@ -1029,5 +1032,57 @@ public class PolicyEvaluateResourceTest
     return getRestBaseUrl()
         + ReportResource.SERVICE_PATH.replace("{applicationPublicId}", applicationPublicId).replace("{scanId}", scanId)
         + "/browseReport/" + PolicyEvaluationUtils.POLICY_THREATS_FILENAME;
+  }
+
+  @Test
+  public void testEvaluate_WaivedPolicyViolations() throws Exception {
+    String scanId = "testEvaluate_WaivedPolicyViolations_ScanId";
+
+    File saasReportFile = getReportResponseFile(licenseFingerprint, scanId);
+    saasReportFile.delete();
+
+    // Create a policy
+    Constraint constraint = new Constraint(null /* constraintId */, "Constraint 1", LogicalOperator.AND);
+    Condition condition = new Condition(LicenseConditionType.ID, "is", "GPL-2.0");
+    constraint.addCondition(condition);
+    Action action = new Action(FailActionType.ID);
+    Policy policy = new Policy(null /* policyId */, "Policy 1");
+    policy.setThreatLevel(5);
+    policy.addConstraint(constraint);
+    policy.addAction(BuildStageType.ID, action);
+    policy.setOwnerId(app.getId());
+    policyDAO.insert(policy);
+
+    String componentHash = "f2e35e4a21f07d25710f";
+    PolicyWaiver policyWaiver = tempEntity.newWaiver(componentHash, policy.getId(), app.getId(), "Waiver comment here");
+
+    // Simulate that the report is available
+    URL testReportFileUrl = getClass().getResource("/PolicyEvaluateResourceTest/report.zip");
+    FileUtils.copyFile(new File(testReportFileUrl.getFile()), saasReportFile);
+
+    // Evaluate the policy
+    Stage stage = new Stage(BuildStageType.ID);
+    Response response = AuthedRestAccess.post(getServiceURL(applicationPublicId, scanId), JsonHelpers.asJson(stage));
+    assertResponseStatus(200, response);
+
+    PolicyEvaluation policyEvaluation = new PolicyEvaluationDAO().getLastByApplicationIdAndScanId(app.getId(), scanId);
+    assertThat(policyEvaluation, notNullValue());
+    PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
+    List<PolicyViolation> policyViolations = policyViolationDAO.getByEvaluationId(policyEvaluation.getId());
+    assertThat(policyViolations, hasSize(3));
+    WaivedPolicyViolationDAO waivedPolicyViolationDAO = new WaivedPolicyViolationDAO();
+    for (PolicyViolation policyViolation : policyViolations) {
+      WaivedPolicyViolation waivedPolicyViolation = waivedPolicyViolationDAO.getById(policyViolation.getId());
+      if (componentHash.equals(policyViolation.getHash())) {
+        assertThat(policyViolation.isWaived(), is(true));
+        assertThat(waivedPolicyViolation, notNullValue());
+        assertThat(waivedPolicyViolation.getPolicyWaiverId(), is(policyWaiver.getId()));
+        assertThat(waivedPolicyViolation.getComment(), is(policyWaiver.getComment()));
+      }
+      else {
+        assertThat(policyViolation.isWaived(), is(false));
+        assertThat(waivedPolicyViolation, nullValue());
+      }
+    }
   }
 }

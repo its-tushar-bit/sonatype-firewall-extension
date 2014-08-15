@@ -28,7 +28,8 @@
     return params;
   }
 
-  var dashboardModule = angular.module('DashboardModule', ['ui.router', 'Stores', 'AngularCommon', 'OrganizationModule', 'ComponentModule', 'FilterModule'],
+  var dashboardModule = angular.module('DashboardModule', ['ui.router', 'Stores', 'AngularCommon', 'OrganizationModule',
+    'ComponentModule', 'FilterModule', 'SpaceInvaders'],
     // To avoid hacking dependency order, states must be declared with their parent.
     // Fixed https://github.com/angular-ui/ui-router/pull/492
     ['$stateProvider', function($stateProvider) {
@@ -1283,7 +1284,7 @@
     };
   }]);
 
-  dashboardModule.directive('modalHelp', function($modal) {
+  dashboardModule.directive('modalHelp', ['$modal', 'componentInvaders', function($modal, componentInvaders) {
     return {
       restrict: 'A',
       scope: {
@@ -1292,6 +1293,14 @@
         modalHelpTrigger : '@'
       },
       link: function (scope, element) {
+        var modal, modalScope = scope.$new();
+        modalScope.invade = function() {
+          if (modal) {
+            modal.close();
+          }
+          componentInvaders.invade();
+        };
+
         var helpClass = 'modal-help';
         if(scope.modalHelpClass) {
           helpClass = scope.modalHelpClass;
@@ -1304,13 +1313,77 @@
         
         var options = {
           templateUrl: scope.modalHelp,
-          windowClass: helpClass
+          windowClass: helpClass,
+          scope: modalScope
         };
 
         element.on(trigger, function() {
-          $modal.open(options);
+          modal = $modal.open(options);
         });
       }
     };
-  });
+  }]);
+
+  dashboardModule.factory('componentInvaders', ['$http', 'Dialog', 'CLMLocations', 'spaceInvaders',
+    function($http, Dialog, CLMLocations, spaceInvaders) {
+    return {
+      invade: function() {
+        var winCallBack = function() {
+          Dialog.open({
+            keyboard: true,
+            title: 'Violations Remediated',
+            body: '<p>With Sonatype CLM, your quick reflexes, and a stellar development team, component risk has been ' +
+              'eliminated. But don’t get too confident, another invasion could be just around the corner. Evaluate ' +
+              'your applications regularly and make sure your policies reflect the latest goals of your organization.' +
+              '</p><br /><p>Tip: Want to build policies that are even better at detecting the next bad component invasion? ' +
+              'Check out our <a target="_blank" href="http://books.sonatype.com/sonatype-clm-book/html/policy-management-guide/index.html">' +
+              'Policy Management Documentation</a>.</p>',
+            buttons: [{
+              name: 'Close',
+              type: 'cancel'
+            }]
+          });
+        };
+        var loseCallback = function() {
+          Dialog.open({
+            keyboard : true,
+            title: 'Game Over!',
+            body: '<p>When bad components invade your applications, you and your team are the only hope for eliminating ' +
+              'risk and saving your company. Sonatype CLM helps identify the bad components but you and your team ' +
+              'need to resolve them.</p><br /><p> Tip: Want to find out how to beat the bad component invasion? Check ' +
+              'out our guides on <a target="_blank" href="http://books.sonatype.com/sonatype-clm-book/html/book/security-issues-overview.html">' +
+              'security and license issue resolution</a>.</p>',
+            buttons: [{
+              name: 'Close',
+              type: 'cancel'
+            }]
+          });
+        };
+
+        $http.get(CLMLocations.getComponentRisksUrl()).then(function(components) {
+          var invaders = [];
+          angular.forEach(components.data, function(component) {
+            var threat;
+            if (component.scoreCritical > 0) {
+              threat = 2;
+            } else if (component.scoreSevere > 0) {
+              threat = 1;
+            } else if (component.scoreModerate > 0) {
+              threat = 0;
+            }
+            // For now only show components that have a gav
+            if (threat && component.gavs && component.gavs.length) {
+              invaders.push({
+                level: threat,
+                name: component.gavs[0].groupId + ':' + component.gavs[0].artifactId + ':' + component.gavs[0].version
+              });
+            }
+          });
+          spaceInvaders.run(invaders, 'Component Risk Invaders',
+            'Quick!\n\nSonatype CLM has found\ncomponent violations.\n\nDestroy them before\nthey destroy your\napplications.',
+            winCallBack, loseCallback);
+        });
+      }
+    };
+  }]);
 }());

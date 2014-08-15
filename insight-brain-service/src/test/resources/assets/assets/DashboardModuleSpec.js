@@ -1178,11 +1178,22 @@ describe('DashboardModule', function() {
 
       angular.element(divBaz).mouseover();
 
-      expect(modal.open).toHaveBeenCalledWith({
-        templateUrl: 'bar',
-        windowClass: 'test-class'
-      });
+      expect(modal.open).toHaveBeenCalled()
+      expect(modal.open.mostRecentCall.args[0].templateUrl).toBe('bar');
+      expect(modal.open.mostRecentCall.args[0].windowClass).toBe('test-class');
     });
+
+    it('plays space invaders', inject(function($httpBackend, CLMLocations) {
+      expect(divFoo).toBeDefined();
+
+      angular.element(divFoo).click();
+
+      var modalScope = scope.$$childHead.$$childHead;
+
+      $httpBackend.expectGET(CLMLocations.getComponentRisksUrl()).respond([]);
+      modalScope.invade();
+      $httpBackend.flush();
+    }));
   });
 
   describe('Value delta is styled properly', function(){

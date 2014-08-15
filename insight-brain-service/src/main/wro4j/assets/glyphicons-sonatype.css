@@ -103,3 +103,7 @@
 .glyphicons-halflings-sonatype.lighter:before {
   color: #888888;
 }
+
+.glyphicons-sonatype.cup:before {
+  content: "\E075";
+}

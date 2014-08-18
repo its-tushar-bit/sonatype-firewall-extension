@@ -57,11 +57,22 @@
         }
       }
 
+      function buildTooltip(items, fn, emptyTip) {
+        if (items && items.length) {
+          return $.map(items, fn).join('<br/>');
+        }
+
+        return emptyTip;
+      }
+
       function buildTooltips() {
-        $scope.applicationsTooltip = $.map($scope.filters.applicationIds, applicationNameFor).join('<br/>');
-        $scope.applicationTagsTooltip = $.map($scope.filters.applicationTagIds, applicationTagNameFor).join('<br/>');
-        $scope.stageTypesTooltip = $.map($scope.filters.stageTypeIds, stageTypeNameFor).join('<br/>');
-        $scope.policyTypesTooltip = $.map($scope.filters.policyThreatTypes, policyTypeNameFor).join('<br/>');
+        $scope.applicationsTooltip = buildTooltip($scope.filters.applicationIds, applicationNameFor,
+            'All applications');
+        $scope.applicationTagsTooltip = buildTooltip($scope.filters.applicationTagIds, applicationTagNameFor,
+            'All applications');
+        $scope.stageTypesTooltip = buildTooltip($scope.filters.stageTypeIds, stageTypeNameFor, 'All stage types');
+        $scope.policyTypesTooltip = buildTooltip($scope.filters.policyThreatTypes, policyTypeNameFor,
+            'All policy types');
       }
 
       $scope.doLoad = function() {
@@ -152,7 +163,7 @@
       };
 
       //TODO: NEWFILTER: uncomment to have filter panel load as expected
-      //$scope.doLoad();
+      $scope.doLoad();
     }
   ]);
 

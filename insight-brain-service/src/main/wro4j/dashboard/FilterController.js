@@ -22,57 +22,31 @@
         };
       }
 
-      function applicationNameFor(applicationId) {
-        for (var i = 0; i < $scope.applications.length; i++) {
-          var application = $scope.applications[i];
-          if (application.id === applicationId) {
-            return application.name;
-          }
-        }
-      }
-
-      function applicationTagNameFor(applicationTagId) {
-        for (var i = 0; i < $scope.applicationTags.length; i++) {
-          var applicationTag = $scope.applicationTags[i];
-          if (applicationTag.id === applicationTagId) {
-            return applicationTag.name;
-          }
-        }
-      }
-
-      function stageTypeNameFor(stageTypeId) {
-        for (var i = 0; i < $scope.stageTypes.length; i++) {
-          if ($scope.stageTypes[i].id === stageTypeId) {
-            return $scope.stageTypes[i].name;
-          }
-        }
-      }
-
-      function policyTypeNameFor(policyTypeId) {
-        for (var i = 0; i < $scope.policyThreatTypes.length; i++) {
-          var policyThreatType = $scope.policyThreatTypes[i];
-          if (policyThreatType.id === policyTypeId) {
-            return policyThreatType.name;
-          }
-        }
-      }
-
-      function buildTooltip(items, fn, emptyTip) {
+      function buildTooltip(items, nameMap, emptyTip) {
         if (items && items.length) {
-          return $.map(items, fn).join('<br/>');
+          return $.map(items, function(item){
+            return nameMap[item];
+          }).join('<br/>');
         }
 
         return emptyTip;
       }
 
       function buildTooltips() {
-        $scope.applicationsTooltip = buildTooltip($scope.filters.applicationIds, applicationNameFor,
+        $scope.applicationsTooltip = buildTooltip($scope.filters.applicationIds, $scope.nameMaps.applications,
             'All applications');
-        $scope.applicationTagsTooltip = buildTooltip($scope.filters.applicationTagIds, applicationTagNameFor,
+        $scope.applicationTagsTooltip = buildTooltip($scope.filters.applicationTagIds, $scope.nameMaps.applicationTags,
             'All applications');
-        $scope.stageTypesTooltip = buildTooltip($scope.filters.stageTypeIds, stageTypeNameFor, 'All stage types');
-        $scope.policyTypesTooltip = buildTooltip($scope.filters.policyThreatTypes, policyTypeNameFor,
+        $scope.stageTypesTooltip = buildTooltip($scope.filters.stageTypeIds, $scope.nameMaps.stageTypes,
+            'All stage types');
+        $scope.policyTypesTooltip = buildTooltip($scope.filters.policyThreatTypes, $scope.nameMaps.policyTypes,
             'All policy types');
+      }
+
+      function populateNameMap(itemList, nameMap) {
+        angular.forEach(itemList, function(item){
+          nameMap[item.id] = item.name;
+        });
       }
 
       $scope.doLoad = function() {
@@ -116,6 +90,18 @@
             {id: 'OTHER', name: 'Other'}
           ];
 
+          $scope.nameMaps = {
+            applications: {},
+            applicationTags: {},
+            stageTypes: {},
+            policyTypes: {}
+          }
+
+          populateNameMap($scope.applications, $scope.nameMaps.applications);
+          populateNameMap($scope.stageTypes, $scope.nameMaps.stageTypes);
+          populateNameMap($scope.applicationTags, $scope.nameMaps.applicationTags);
+          populateNameMap($scope.policyThreatTypes, $scope.nameMaps.policyTypes);
+
           if (data[4].data) {
             $scope.filters = {
               applicationIds: data[4].data.applicationFilters,
@@ -125,13 +111,13 @@
               policyThreatLevel: [data[4].data.minPolicyThreatLevel, data[4].data.maxPolicyThreatLevel]
             };
 
-            buildTooltips();
-
             $scope.dirtyFilters = angular.copy($scope.filters);
           }
           else {
             $scope.filters = getEmptyFilters();
           }
+
+          buildTooltips();
         }, function(error) {
           $scope.filters = getEmptyFilters();
           $scope.fatalError = error;

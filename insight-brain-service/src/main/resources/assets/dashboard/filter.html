@@ -14,6 +14,24 @@
           <div ng-if="filters.applicationIds.length" class="count-circle pull-right">{{filters.applicationIds.length}}</div>
         </div>
       </div>
+      <div class="filter-item-collapsed">
+        <div tooltip-html-unsafe="{{applicationTagsTooltip}}" tooltip-placement="right" tooltip-append-to-body="true">
+          <i class="sonatype-icons tag"></i>
+          <div ng-if="filters.applicationTagIds.length" class="count-circle pull-right">{{filters.applicationTagIds.length}}</div>
+        </div>
+      </div>
+      <div class="filter-item-collapsed">
+        <div tooltip-html-unsafe="{{stageTypesTooltip}}" tooltip-placement="right" tooltip-append-to-body="true">
+          <i class="sonatype-glyphicons stage-type"></i>
+          <div ng-if="filters.stageTypeIds.length" class="count-circle pull-right">{{filters.stageTypeIds.length}}</div>
+        </div>
+      </div>
+      <div class="filter-item-collapsed">
+        <div tooltip-html-unsafe="{{policyTypesTooltip}}" tooltip-placement="right" tooltip-append-to-body="true">
+          <i class="sonatype-icons policy"></i>
+          <div ng-if="filters.policyThreatTypes.length" class="count-circle pull-right">{{filters.policyThreatTypes.length}}</div>
+        </div>
+      </div>
     </div>
     <div ng-if="expanded">
       <div class="filter-item-expanded">
@@ -27,6 +45,45 @@
                 summarize-with='applications' none-selected-text='All Applications'></span>
           <span ng-if='applications.length === 0' class="small-text">
             <em>No applications available.</em>
+          </span>
+        </div>
+      </div>
+      <div class="filter-item-expanded">
+        <div class="filter-item-icon">
+          <i class="sonatype-icons tag"></i>
+        </div>
+        <div class="filter-item-content">
+          <div class="filter-item-header">Application Tags</div>
+          <span ng-if='applicationTags.length > 0' class='multi-dropdown' multi-select items='applicationTags'
+                selected-ids='dirtyFilters.applicationTagIds' none-selected-text='All Applications'></span>
+          <span ng-if='applicationTags.length === 0' class="small-text">
+            <em id='no-application-tags'>No applications tags available.</em>
+          </span>
+        </div>
+      </div>
+      <div class="filter-item-expanded">
+        <div class="filter-item-icon">
+          <i class="sonatype-glyphicons stage-type"></i>
+        </div>
+        <div class="filter-item-content">
+          <div class="filter-item-header">Stages</div>
+          <span ng-if='stageTypes.length > 0' class='multi-dropdown' multi-select items='stageTypes'
+                selected-ids='dirtyFilters.stageTypeIds' none-selected-text='All Stages'></span>
+          <span ng-if='stageTypes.length === 0' class="small-text">
+            <em>No stages available.</em>
+          </span>
+        </div>
+      </div>
+      <div class="filter-item-expanded">
+        <div class="filter-item-icon">
+          <i class="sonatype-icons policy"></i>
+        </div>
+        <div class="filter-item-content">
+          <div class="filter-item-header">Policy Types</div>
+          <span ng-if='policyThreatTypes.length > 0' class='multi-dropdown' multi-select items='policyThreatTypes'
+                selected-ids='dirtyFilters.policyThreatTypes' none-selected-text='All Policy Types'></span>
+          <span ng-if='policyThreatTypes.length === 0' class="small-text">
+            <em>No policy types available.</em>
           </span>
         </div>
       </div>

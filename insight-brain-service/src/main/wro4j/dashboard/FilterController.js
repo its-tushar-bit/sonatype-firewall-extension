@@ -31,8 +31,37 @@
         }
       }
 
+      function applicationTagNameFor(applicationTagId) {
+        for (var i = 0; i < $scope.applicationTags.length; i++) {
+          var applicationTag = $scope.applicationTags[i];
+          if (applicationTag.id === applicationTagId) {
+            return applicationTag.name;
+          }
+        }
+      }
+
+      function stageTypeNameFor(stageTypeId) {
+        for (var i = 0; i < $scope.stageTypes.length; i++) {
+          if ($scope.stageTypes[i].id === stageTypeId) {
+            return $scope.stageTypes[i].name;
+          }
+        }
+      }
+
+      function policyTypeNameFor(policyTypeId) {
+        for (var i = 0; i < $scope.policyThreatTypes.length; i++) {
+          var policyThreatType = $scope.policyThreatTypes[i];
+          if (policyThreatType.id === policyTypeId) {
+            return policyThreatType.name;
+          }
+        }
+      }
+
       function buildTooltips() {
         $scope.applicationsTooltip = $.map($scope.filters.applicationIds, applicationNameFor).join('<br/>');
+        $scope.applicationTagsTooltip = $.map($scope.filters.applicationTagIds, applicationTagNameFor).join('<br/>');
+        $scope.stageTypesTooltip = $.map($scope.filters.stageTypeIds, stageTypeNameFor).join('<br/>');
+        $scope.policyTypesTooltip = $.map($scope.filters.policyThreatTypes, policyTypeNameFor).join('<br/>');
       }
 
       $scope.doLoad = function() {

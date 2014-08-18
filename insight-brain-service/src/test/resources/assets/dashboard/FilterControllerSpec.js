@@ -34,14 +34,14 @@ describe('FilterController', function() {
     }
   ], tagData = [
     {
-      id: "tagid1",
+      id: "tagId1",
       organizationId: 'orgId1',
       name: "TagOne",
       nameLowercaseNoWhitespace: "tagone",
       description: "Tag One Description"
     },
     {
-      id: "tagid2",
+      id: "tagId2",
       organizationId: 'orgId2',
       name: "TagTwo",
       nameLowercaseNoWhitespace: "tagtwo",
@@ -50,7 +50,7 @@ describe('FilterController', function() {
   ], filterData = {
     policyThreatCategoryFilters: ['SECURITY', 'OTHER'],
     stageTypeFilters: ['type1', 'type2'],
-    tagFilters: ['tag1', 'tag2'],
+    tagFilters: ['tagId1', 'tagId2'],
     applicationFilters: ['applicationId1', 'applicationId2'],
     minPolicyThreatLevel: 3,
     maxPolicyThreatLevel: 6
@@ -82,7 +82,7 @@ describe('FilterController', function() {
   it('data loaded and placed in $scope', inject(function() {
     expect($scope.filters.policyThreatTypes).toEqual(['SECURITY', 'OTHER']);
     expect($scope.filters.stageTypeIds).toEqual(['type1', 'type2']);
-    expect($scope.filters.applicationTagIds).toEqual(['tag1', 'tag2']);
+    expect($scope.filters.applicationTagIds).toEqual(['tagId1', 'tagId2']);
     expect($scope.filters.applicationIds).toEqual(['applicationId1', 'applicationId2']);
     expect($scope.filters.policyThreatLevel).toEqual([3, 6]);
     expect($scope.applications.length).toBe(applicationData.length);
@@ -95,6 +95,9 @@ describe('FilterController', function() {
     expect($scope.applicationTags[0].id).toBe(tagData[0].id);
     expect($scope.applicationTags[0].owner).toBe(organizationData[0].name);
     expect($scope.applicationsTooltip).toBe('ApplicationOne<br/>ApplicationTwo');
+    expect($scope.applicationTagsTooltip).toBe('TagOne<br/>TagTwo');
+    expect($scope.stageTypesTooltip).toBe('Type 1<br/>Type 2');
+    expect($scope.policyTypesTooltip).toBe('Security<br/>Other');
   }));
 
   it('validate filter and dirty filter usage in scope', inject(function($httpBackend, CLMLocations) {

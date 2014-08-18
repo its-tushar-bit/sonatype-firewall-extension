@@ -8,8 +8,6 @@ package com.sonatype.insight.brain.policy.evaluator;
 import java.util.Arrays;
 import java.util.List;
 
-import javax.inject.Inject;
-
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.ComponentFact;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
@@ -27,12 +25,9 @@ import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
 
-public class PolicyEvaluationUtilsTest
+public class PolicyThreatsJsonGeneratorTest
     extends AbstractComponentTest
 {
-  @Inject
-  private PolicyEvaluationUtils evalUtils;
-
   private ComponentFact newComponentFact(String hash) {
     ComponentFact component = new ComponentFact("gid", "aid", "1.2.3", hash);
     ConstraintFact constraint = new ConstraintFact("constraint-id", "Constraint", "AND");
@@ -84,7 +79,7 @@ public class PolicyEvaluationUtilsTest
     PolicyResults results = new PolicyResults();
     results.addActiveAlert(alert1);
 
-    PolicyThreats threats = evalUtils.toPolicyThreats(results);
+    PolicyThreats threats = PolicyThreatsJsonGenerator.toPolicyThreats(results);
     assertThat(threats, is(notNullValue()));
     assertThat(threats.version, is(1));
     assertThat(threats.aaData, is(notNullValue()));
@@ -123,7 +118,7 @@ public class PolicyEvaluationUtilsTest
     results.addActiveAlert(alert1);
     results.addWaivedAlert(alert2);
 
-    PolicyThreats threats = evalUtils.toPolicyThreats(results);
+    PolicyThreats threats = PolicyThreatsJsonGenerator.toPolicyThreats(results);
     assertThat(threats, is(notNullValue()));
     assertThat(threats.aaData, is(notNullValue()));
     assertThat(threats.aaData, hasSize(1));
@@ -141,7 +136,7 @@ public class PolicyEvaluationUtilsTest
     PolicyResults results = new PolicyResults();
     results.addWaivedAlert(alert1);
 
-    PolicyThreats threats = evalUtils.toPolicyThreats(results);
+    PolicyThreats threats = PolicyThreatsJsonGenerator.toPolicyThreats(results);
     assertThat(threats, is(notNullValue()));
     assertThat(threats.aaData, is(notNullValue()));
     assertThat(threats.aaData, hasSize(1));

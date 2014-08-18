@@ -95,7 +95,7 @@
             applicationTags: {},
             stageTypes: {},
             policyTypes: {}
-          }
+          };
 
           populateNameMap($scope.applications, $scope.nameMaps.applications);
           populateNameMap($scope.stageTypes, $scope.nameMaps.stageTypes);

@@ -29,7 +29,7 @@
   }
 
   var dashboardModule = angular.module('DashboardModule', ['ui.router', 'Stores', 'AngularCommon', 'OrganizationModule',
-    'ComponentModule', 'FilterModule', 'SpaceInvaders'],
+    'ComponentModule', 'FilterModule', 'SpaceInvaders', 'BootstrapSlider'],
     // To avoid hacking dependency order, states must be declared with their parent.
     // Fixed https://github.com/angular-ui/ui-router/pull/492
     ['$stateProvider', function($stateProvider) {
@@ -349,40 +349,6 @@
       }
     };
   }]);
-
-  //integrating the bootstrap-slider
-  dashboardModule.directive('slider', function() {
-    return {
-      restrict: 'A',
-      scope: {
-        model: '=ngModel',
-        min: '@',
-        max: '@'
-      },
-      priority : 99,
-      link: function(scope, element) {
-        $(element).slider({
-          min: parseInt(scope.min),
-          max: parseInt(scope.max),
-          value: scope.model,
-          orientation: 'horizontal',
-          selection: 'after',
-          handle: 'square',
-          tooltip: 'none',
-          labels: true,
-          showHandleValues: true
-        }).on('slide', function(event){
-          scope.$apply(function () {
-            scope.model = event.value;
-          });
-        });
-
-        scope.$watch('model', function(newValue){
-          $(element).slider('setValue', newValue);
-        });
-      }
-    };
-  });
 
   function watchFilter($scope) {
     $scope.$watch('filters', function(newFilter){

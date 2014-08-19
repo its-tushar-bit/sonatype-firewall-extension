@@ -7,7 +7,7 @@
 (function() {
   'use strict';
 
-  var filterModule = angular.module('FilterModule', ['CommonServices', 'CLMLocation', 'Stores']);
+  var filterModule = angular.module('FilterModule', ['CommonServices', 'CLMLocation', 'Stores', 'BootstrapSlider']);
 
   filterModule.controller('FilterController', [
     '$scope', '$http', '$q', 'CLMLocations', 'ApplicationStore', 'StageTypeStore', 'OrganizationStore',
@@ -41,6 +41,10 @@
             'All stage types');
         $scope.policyTypesTooltip = buildTooltip($scope.filters.policyThreatTypes, $scope.nameMaps.policyTypes,
             'All policy types');
+        $scope.policyThreatLevelsTooltip = ($scope.filters.policyThreatLevel[0] !==
+            $scope.filters.policyThreatLevel[1] ? 'Policy threat levels ' + $scope.filters.policyThreatLevel[0] +
+            ' through ' + $scope.filters.policyThreatLevel[1] : 'Policy threat level ' +
+            $scope.filters.policyThreatLevel[0]);
       }
 
       function populateNameMap(itemList, nameMap) {

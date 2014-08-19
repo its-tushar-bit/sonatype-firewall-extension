@@ -98,6 +98,7 @@ describe('FilterController', function() {
     expect($scope.applicationTagsTooltip).toBe('TagOne<br/>TagTwo');
     expect($scope.stageTypesTooltip).toBe('Type 1<br/>Type 2');
     expect($scope.policyTypesTooltip).toBe('Security<br/>Other');
+    expect($scope.policyThreatLevelsTooltip).toBe('Policy threat levels 3 through 6');
   }));
 
   it('validate filter and dirty filter usage in scope', inject(function($httpBackend, CLMLocations) {

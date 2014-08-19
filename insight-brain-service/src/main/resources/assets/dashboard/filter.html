@@ -32,6 +32,12 @@
           <div ng-if="filters.policyThreatTypes.length" class="count-circle pull-right">{{filters.policyThreatTypes.length}}</div>
         </div>
       </div>
+      <div class="filter-item-collapsed">
+        <div tooltip-html-unsafe="{{policyThreatLevelsTooltip}}" tooltip-placement="right" tooltip-append-to-body="true">
+          <i class="sonatype-icons policy-threat-level"></i>
+          <div ng-if="filters.policyThreatLevel[0] > 0 || filters.policyThreatLevel[1] < 10" class="count-circle pull-right"></div>
+        </div>
+      </div>
     </div>
     <div ng-if="expanded">
       <div class="filter-item-expanded">
@@ -85,6 +91,17 @@
           <span ng-if='policyThreatTypes.length === 0' class="small-text">
             <em>No policy types available.</em>
           </span>
+        </div>
+      </div>
+      <div class="filter-item-expanded">
+        <div class="filter-item-icon">
+          <i class="sonatype-icons policy-threat-level"></i>
+        </div>
+        <div class="filter-item-content">
+          <div class="filter-item-header">Policy Threat Levels</div>
+          <div id="policy-threat-levels">
+            <div slider ng-model="dirtyFilters.policyThreatLevel" min="0" max="10" hide-labels="true"></div>
+          </div>
         </div>
       </div>
     </div>

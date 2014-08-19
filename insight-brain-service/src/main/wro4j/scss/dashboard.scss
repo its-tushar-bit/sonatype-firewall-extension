@@ -279,14 +279,15 @@ $filter-multi-dropdown-width: 190px;
 .filter-item-content .btn {
   width: $filter-multi-dropdown-width;
   text-align: left;
+  @include border-radius(4px);
 }
 
 .filter-item-content .btn .caret {
   float: right;
 }
 
-.filter-item-content .btn {
-  @include border-radius(4px);
+.filter-item-content .slider {
+  width: 180px;
 }
 
 //don't want the text to overlay the caret

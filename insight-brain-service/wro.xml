@@ -132,6 +132,7 @@
     <js>/util/ProductFeatures.js</js>
     <js>/util/Stores.js</js>
     <js>/util/PermissionService.js</js>
+    <js>/util/BootstrapSliderModule.js</js>
   </group>
 
   <group name='style'>

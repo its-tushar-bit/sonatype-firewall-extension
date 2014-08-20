@@ -23,6 +23,7 @@ import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightProxy;
 import com.sonatype.insight.client.utils.UserAgentUtils;
+import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.error.exception.BadGatewayException;
 
 import org.eclipse.jetty.http.HttpHeaders;
@@ -80,7 +81,7 @@ public class SaasClientTest
   private void initClient() {
     CLMLicenseManager licenseManager = mock(CLMLicenseManager.class);
     when(licenseManager.getLicenseFingerprint()).thenReturn("license-fingerprint");
-    client = new SaasClient(new InsightProxy(config), licenseManager);
+    client = new SaasClient(new InsightProxy(config), licenseManager, new VersionService());
   }
 
   @After

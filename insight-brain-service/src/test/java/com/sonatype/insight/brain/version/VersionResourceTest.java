@@ -29,10 +29,10 @@ public class VersionResourceTest
   public void testGetVersionInfo_Licensed() throws Exception {
     Response response = RestAccess.get(getServiceURL());
     assertResponseStatus(200, response);
-    Map<?, ?> versionInfo = JsonHelpers.fromJson(response.getResponseBody(), Map.class);
+    Map<String, String> versionInfo = JsonHelpers.fromJson(response.getResponseBody(), Map.class);
     assertNotNull(versionInfo);
-    for (String key : new String[] { "name", "version", "timestamp", "tag" }) {
-      assertTrue(key, versionInfo.get(key).toString().length() > 0);
+    for (String key : new String[] { "name", "version", "timestamp", "tag", "build" }) {
+      assertTrue("Testing: " + key + " of " + versionInfo.toString(), versionInfo.get(key).length() > 0);
     }
   }
 

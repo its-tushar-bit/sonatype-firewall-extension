@@ -1022,5 +1022,16 @@
         </plugins>
       </build>
     </profile>
+    <profile>
+      <id>test-only-properties</id>
+      <activation>
+        <property>
+          <name>!build.number</name>
+        </property>
+      </activation>
+      <properties>
+        <build.number>build-number</build.number>
+      </properties>
+    </profile>
   </profiles>
 </project>

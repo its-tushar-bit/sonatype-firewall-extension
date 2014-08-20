@@ -26,6 +26,7 @@ import com.sonatype.insight.brain.saas.SaasClient;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightProxy;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.version.VersionService;
 
 import org.mockito.Mockito;
 
@@ -67,7 +68,7 @@ public class SaasIdeResourcePerformanceUtils
     InsightConfig config = new InsightConfig();
     config.setSaasAddress(saasAddress);
     return new SaasClient(new InsightProxy(config), new CLMLicenseManager(new TestProductLicenseManager(),
-        new TestLicenseFingerprinter()));
+        new TestLicenseFingerprinter()), new VersionService());
   }
 
   public static InsightWork createInsightWork() throws IOException {

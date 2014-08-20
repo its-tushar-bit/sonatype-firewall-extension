@@ -486,6 +486,8 @@
       <properties>
         <!-- m2e doesn't provide a timestamp and Hudson will fail to proxy the assets if the property remains uninterpolated in the URL -->
         <build.timestamp>m2e</build.timestamp>
+        <build.number>m2e.number</build.number>
+        <build.tag>m2e.tag</build.tag>
       </properties>
     </profile>
     <profile>

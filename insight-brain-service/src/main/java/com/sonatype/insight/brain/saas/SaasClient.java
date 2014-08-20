@@ -14,7 +14,6 @@ import java.net.UnknownHostException;
 import java.util.Enumeration;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Properties;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -27,7 +26,7 @@ import javax.ws.rs.core.UriBuilder;
 
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.service.InsightProxy;
-import com.sonatype.insight.brain.version.VersionResource;
+import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.client.utils.HttpClientUtils;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.error.exception.BadGatewayException;
@@ -80,18 +79,21 @@ public class SaasClient
 
   private final CLMLicenseManager licenseManager;
 
+  private final VersionService versionService;
+
   private static volatile String version;
 
   public static final String UPLOAD_FILE_ATTRIBUTE = "saas.upload.file";
 
   @SuppressWarnings("deprecation")
   @Inject
-  public SaasClient(final InsightProxy proxy, final CLMLicenseManager licenseManager) {
+  public SaasClient(final InsightProxy proxy, final CLMLicenseManager licenseManager, VersionService versionService) {
     this.licenseManager = licenseManager;
     config = proxy.contextualize(new Configuration());
     client = HttpClientUtils.createConfig(config);
     client.getParams().setParameter(ClientPNames.CONNECTION_MANAGER_FACTORY_CLASS_NAME,
         PoolingClientConnectionManagerFactory.class.getName());
+    this.versionService = versionService;
     // TODO Need to determine if there is additional information we should be sending to the SaaS
     loadVersion();
   }
@@ -389,13 +391,7 @@ public class SaasClient
     if (version != null) {
       return;
     }
-    try {
-      Properties prop = VersionResource.get();
-      version = prop.getProperty("version", "Unknown");
-    }
-    catch (RuntimeException e) {
-      log.error("Failed to load version", e);
-      version = "Unknown";
-    }
+
+    version = versionService.getVersion("Unknown");
   }
 }

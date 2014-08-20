@@ -227,20 +227,10 @@ public abstract class AbstractComponentInfoResource
     ComponentLicenses result = new ComponentLicenses();
 
     ComponentDetails componentDetails = getComponentDetails(groupId, artifactId, version, null, null);
+    loadComponent(application, componentDetails);
     result.declaredlicenses = getLicensesWithThreatLevels(application, componentDetails.getDeclaredLicenses());
     result.observedlicenses = getLicensesWithThreatLevels(application, componentDetails.getObservedLicenses());
-
-    result.effectiveLicenses = new LinkedHashSet<>();
-    LicenseOverride licenseOverride = getLicenseOverride(application, groupId, artifactId, version);
-    if (licenseOverride == null || licenseOverride.getLicenseId() == null) {
-      result.effectiveLicenses.addAll(result.declaredlicenses);
-      result.effectiveLicenses.addAll(result.observedlicenses);
-      result.effectiveLicenses = removeNonLicensesUnlessNoOtherLicensesExist(result.effectiveLicenses);
-    }
-    else {
-      com.sonatype.insight.brain.model.license.License license = licenseDAO.getById(licenseOverride.getLicenseId());
-      result.effectiveLicenses.add(LicenseUtils.getLicenseWithThreatLevel(application, license));
-    }
+    result.effectiveLicenses = getLicensesWithThreatLevels(application, componentDetails.getEffectiveLicenses());
 
     return result;
   }
@@ -312,7 +302,7 @@ public abstract class AbstractComponentInfoResource
     /**
      * @since 1.12
      */
-    public Set<LicenseWithThreatLevel> effectiveLicenses;
+    public List<LicenseWithThreatLevel> effectiveLicenses;
 
   }
 
@@ -323,34 +313,6 @@ public abstract class AbstractComponentInfoResource
   {
     public License license;
     public Integer threatLevel;
-
-    @Override
-    public boolean equals(final Object o) {
-      if (this == o) {
-        return true;
-      }
-      if (o == null || getClass() != o.getClass()) {
-        return false;
-      }
-
-      LicenseWithThreatLevel that = (LicenseWithThreatLevel) o;
-
-      if (license != null ? !license.equals(that.license) : that.license != null) {
-        return false;
-      }
-      if (threatLevel != null ? !threatLevel.equals(that.threatLevel) : that.threatLevel != null) {
-        return false;
-      }
-
-      return true;
-    }
-
-    @Override
-    public int hashCode() {
-      int result = license != null ? license.hashCode() : 0;
-      result = 31 * result + (threatLevel != null ? threatLevel.hashCode() : 0);
-      return result;
-    }
   }
 
   protected abstract String getToolName();

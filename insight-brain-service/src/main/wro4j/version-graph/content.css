@@ -62,6 +62,25 @@
     color:#444549;
 }
 
+.clm-license-status {
+  display:inline-block;
+  height: 18px;
+  min-width: 18px;
+  padding: 0 5px;
+  text-align: center;
+  border-radius: 2px;
+  color:black;
+}
+
+.clm-license-status.overridden {
+  background-color: #972bf4;
+  color:white;
+}
+
+.clm-license-status.selected {
+  background-color: #D8DBE0;
+}
+
 #aiVersionChartContainer {
 	background:rgb(247,251,254);
 	border-radius:4px;

@@ -18,6 +18,7 @@ import com.sonatype.clm.dto.model.License;
 import com.sonatype.clm.dto.model.SecurityVulnerability;
 import com.sonatype.clm.dto.model.ide.ComponentDetails;
 import com.sonatype.clm.dto.model.ide.ComponentDetailsList;
+import com.sonatype.clm.dto.model.ide.LicenseStatus;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.insight.brain.AuthedRestAccess;
@@ -402,6 +403,14 @@ public abstract class AbstractComponentInfoResourceTest
     Assert.assertEquals(new Integer(9), componentDetails.getLicenseThreatLevel());
     Assert.assertEquals(1, componentDetails.getLicenseThreatGroupNames().size());
     Assert.assertEquals("Group1", componentDetails.getLicenseThreatGroupNames().get(0));
+    Assert.assertEquals(1, componentDetails.getDeclaredLicenses().size());
+    Assert.assertEquals("Apache-2.0", componentDetails.getDeclaredLicenses().iterator().next().getLicenseName());
+    Assert.assertEquals("Apache-2.0", componentDetails.getDeclaredLicenses().iterator().next().getLicenseId());
+    Assert.assertEquals(0, componentDetails.getObservedLicenses().size());
+    Assert.assertEquals(1, componentDetails.getEffectiveLicenses().size());
+    Assert.assertEquals("Apache-2.0", componentDetails.getEffectiveLicenses().iterator().next().getLicenseName());
+    Assert.assertEquals("Apache-2.0", componentDetails.getEffectiveLicenses().iterator().next().getLicenseId());
+    Assert.assertNull(componentDetails.getEffectiveLicenseStatus());
     componentDetails = componentDetailsList.getList().get(1);
     Assert.assertEquals(groupId, componentDetails.getGroupId());
     Assert.assertEquals(artifactId, componentDetails.getArtifactId());
@@ -409,6 +418,14 @@ public abstract class AbstractComponentInfoResourceTest
     Assert.assertEquals(new Integer(1), componentDetails.getLicenseThreatLevel());
     Assert.assertEquals(3, componentDetails.getLicenseThreatGroupNames().size());
     Assert.assertThat(componentDetails.getLicenseThreatGroupNames(), contains("groupA", "Groupb", "GroupC"));
+    Assert.assertEquals(1, componentDetails.getDeclaredLicenses().size());
+    Assert.assertEquals("GPL-2.0", componentDetails.getDeclaredLicenses().iterator().next().getLicenseName());
+    Assert.assertEquals("GPL-2.0", componentDetails.getDeclaredLicenses().iterator().next().getLicenseId());
+    Assert.assertEquals(0, componentDetails.getObservedLicenses().size());
+    Assert.assertEquals(1, componentDetails.getEffectiveLicenses().size());
+    Assert.assertEquals("GPL-2.0", componentDetails.getEffectiveLicenses().iterator().next().getLicenseName());
+    Assert.assertEquals("GPL-2.0", componentDetails.getEffectiveLicenses().iterator().next().getLicenseId());
+    Assert.assertNull(componentDetails.getEffectiveLicenseStatus());
   }
 
   @Test
@@ -501,6 +518,49 @@ public abstract class AbstractComponentInfoResourceTest
     Assert.assertEquals(new Integer(9), componentDetails.getLicenseThreatLevel());
     Assert.assertEquals(1, componentDetails.getLicenseThreatGroupNames().size());
     Assert.assertEquals("Copyleft", componentDetails.getLicenseThreatGroupNames().get(0));
+    Assert.assertEquals(1, componentDetails.getEffectiveLicenses().size());
+    License effectiveLicense = componentDetails.getEffectiveLicenses().iterator().next();
+    Assert.assertEquals("GPL-2.0", effectiveLicense.getLicenseId());
+    Assert.assertEquals("GPL-2.0", effectiveLicense.getLicenseName());
+    Assert.assertEquals(LicenseStatus.Overridden, componentDetails.getEffectiveLicenseStatus());
+  }
+
+  @Test
+  public void testGetComponentDetails_SelectedLicense() throws Exception {
+    String applicationPublicId = "IdeResourceTest_AppId";
+    Application application = tempEntity.newApplicationWithParent(applicationPublicId);
+
+    tempEntity.newLicenseOverride(application.getId(), "g1", "a1", "v1",
+        LicenseOverrideStatus.SELECTED, "GPL-2.0", null /* comment */);
+
+    String groupId = "g1";
+    String artifactId = "a1";
+    String version = "v1";
+    String serviceUrl = getComponentDetailsUrl(applicationPublicId, groupId, artifactId, version, null, null);
+    String saasUrl = convertToSaasUrl(serviceUrl, applicationPublicId);
+    ComponentDetails saasComponentDetails = new ComponentDetails(groupId, artifactId, version);
+    setSaasResponseForURI(saasUrl, toJson(saasComponentDetails), 200);
+    Response response = AuthedRestAccess.get(serviceUrl);
+    assertResponseStatus(200, response);
+
+    ComponentDetails componentDetails = fromJson(response, ComponentDetails.class);
+    Assert.assertNotNull(componentDetails);
+    Assert.assertEquals(groupId, componentDetails.getGroupId());
+    Assert.assertEquals(artifactId, componentDetails.getArtifactId());
+    Assert.assertEquals(version, componentDetails.getVersion());
+    Assert.assertEquals(1, componentDetails.getOverriddenLicenses().size());
+    License overriddenLicense = componentDetails.getOverriddenLicenses().iterator().next();
+    Assert.assertNotNull(overriddenLicense);
+    Assert.assertEquals("GPL-2.0", overriddenLicense.getLicenseId());
+    Assert.assertEquals("GPL-2.0", overriddenLicense.getLicenseName());
+    Assert.assertEquals(new Integer(9), componentDetails.getLicenseThreatLevel());
+    Assert.assertEquals(1, componentDetails.getLicenseThreatGroupNames().size());
+    Assert.assertEquals("Copyleft", componentDetails.getLicenseThreatGroupNames().get(0));
+    Assert.assertEquals(1, componentDetails.getEffectiveLicenses().size());
+    License effectiveLicense = componentDetails.getEffectiveLicenses().iterator().next();
+    Assert.assertEquals("GPL-2.0", effectiveLicense.getLicenseId());
+    Assert.assertEquals("GPL-2.0", effectiveLicense.getLicenseName());
+    Assert.assertEquals(LicenseStatus.Selected, componentDetails.getEffectiveLicenseStatus());
   }
 
   @Test

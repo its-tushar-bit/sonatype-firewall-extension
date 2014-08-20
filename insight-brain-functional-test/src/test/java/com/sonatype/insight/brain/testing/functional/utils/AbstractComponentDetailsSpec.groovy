@@ -96,10 +96,17 @@ abstract class AbstractComponentDetailsSpec
     assert cip.group == component.groupId
     assert cip.artifact == component.artifactId
     assert cip.version == component.version
-    assert cip.overriddenLicense == '-'
+    validateEffectiveLicense(cip, component)
     assert cip.declaredLicense == component.declaredLicenses[0].licenseName
     assert cip.observedLicense == component.observedLicenses[0].licenseName
     assert cip.matchState == 'exact'
     assert cip.identificationSource == 'Sonatype'
+  }
+
+  void validateEffectiveLicense(CIPModule cip, Map<String, Object> component) {
+    List effectLicenseNames = component.effectiveLicenses.licenseName
+    effectLicenseNames = effectLicenseNames.sort()
+    List cipLicenseNames = cip.effectiveLicense.split(",").sort()
+    assert cipLicenseNames.join(",") == effectLicenseNames.join(",")
   }
 }

@@ -52,7 +52,7 @@ class CIPModule
     group { $('#artifactInfoGroupIdRow td:last-child').text() }
     artifact { $('#artifactInfoArtifactIdRow td:last-child').text() }
     version { $('#artifactInfoVersionRow td:last-child').text() }
-    overriddenLicense { $('#artifactInfoOverriddenLicenseRow td:last-child').text() }
+    effectiveLicense { $('#artifactInfoEffectiveLicenseRow td:last-child').text() }
     declaredLicense { $('#artifactInfoDeclaredLicenseRow td:last-child').text() }
     observedLicense { $('#artifactInfoObservedLicenseRow td:last-child').text() }
     highestPolicyThreat { $('#artifactInfoHighestPolicyThreat td:last-child').text() }

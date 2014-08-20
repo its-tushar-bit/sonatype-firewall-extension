@@ -18,6 +18,13 @@
       }
     ],
     "overriddenLicenses": [],
+    "effectiveLicenses": [
+      {
+        "licenseId": "CPL-1.0",
+        "licenseName": "CPL-1.0"
+      }
+    ],
+    "effectiveLicenseStatus": null,
     "catalogDate": 1179178534000,
     "relativePopularity": 0,
     "securityVulnerabilities": [],
@@ -48,6 +55,13 @@
       }
     ],
     "overriddenLicenses": [],
+    "effectiveLicenses": [
+      {
+        "licenseId": "CPL-1.0",
+        "licenseName": "CPL-1.0"
+      }
+    ],
+    "effectiveLicenseStatus": null,
     "catalogDate": 1179178521000,
     "relativePopularity": 0,
     "securityVulnerabilities": [],
@@ -78,6 +92,13 @@
       }
     ],
     "overriddenLicenses": [],
+    "effectiveLicenses": [
+      {
+        "licenseId": "CPL-1.0",
+        "licenseName": "CPL-1.0"
+      }
+    ],
+    "effectiveLicenseStatus": null,
     "catalogDate": 1179178458000,
     "relativePopularity": 44,
     "securityVulnerabilities": [],
@@ -108,6 +129,13 @@
       }
     ],
     "overriddenLicenses": [],
+    "effectiveLicenses": [
+      {
+        "licenseId": "CPL-1.0",
+        "licenseName": "CPL-1.0"
+      }
+    ],
+    "effectiveLicenseStatus": null,
     "catalogDate": 1179178493000,
     "relativePopularity": 80,
     "securityVulnerabilities": [],
@@ -138,6 +166,13 @@
       }
     ],
     "overriddenLicenses": [],
+    "effectiveLicenses": [
+      {
+        "licenseId": "CPL-1.0",
+        "licenseName": "CPL-1.0"
+      }
+    ],
+    "effectiveLicenseStatus": null,
     "catalogDate": 1140290641000,
     "relativePopularity": 1,
     "securityVulnerabilities": [],
@@ -168,6 +203,13 @@
       }
     ],
     "overriddenLicenses": [],
+    "effectiveLicenses": [
+      {
+        "licenseId": "CPL-1.0",
+        "licenseName": "CPL-1.0"
+      }
+    ],
+    "effectiveLicenseStatus": null,
     "catalogDate": 1160134625000,
     "relativePopularity": 0,
     "securityVulnerabilities": [],
@@ -198,6 +240,13 @@
       }
     ],
     "overriddenLicenses": [],
+    "effectiveLicenses": [
+      {
+        "licenseId": "CPL-1.0",
+        "licenseName": "CPL-1.0"
+      }
+    ],
+    "effectiveLicenseStatus": null,
     "catalogDate": 1170373650000,
     "relativePopularity": 0,
     "securityVulnerabilities": [],
@@ -228,6 +277,17 @@
       }
     ],
     "overriddenLicenses": [],
+    "effectiveLicenses": [
+      {
+        "licenseId": "CPL-1.0",
+        "licenseName": "CPL-1.0"
+      },
+      {
+        "licenseId": "BSD-UNSPECIFIED",
+        "licenseName": "BSD"
+      }
+    ],
+    "effectiveLicenseStatus": null,
     "catalogDate": 1179178561000,
     "relativePopularity": 0,
     "securityVulnerabilities": [],
@@ -258,6 +318,17 @@
       }
     ],
     "overriddenLicenses": [],
+    "effectiveLicenses": [
+      {
+        "licenseId": "CPL-1.0",
+        "licenseName": "CPL-1.0"
+      },
+      {
+        "licenseId": "BSD-UNSPECIFIED",
+        "licenseName": "BSD"
+      }
+    ],
+    "effectiveLicenseStatus": null,
     "catalogDate": 1179178447000,
     "relativePopularity": 0,
     "securityVulnerabilities": [],
@@ -288,6 +359,17 @@
       }
     ],
     "overriddenLicenses": [],
+    "effectiveLicenses": [
+      {
+        "licenseId": "CPL-1.0",
+        "licenseName": "CPL-1.0"
+      },
+      {
+        "licenseId": "BSD-UNSPECIFIED",
+        "licenseName": "BSD"
+      }
+    ],
+    "effectiveLicenseStatus": null,
     "catalogDate": 1187718463000,
     "relativePopularity": 4,
     "securityVulnerabilities": [],
@@ -318,6 +400,17 @@
       }
     ],
     "overriddenLicenses": [],
+    "effectiveLicenses": [
+      {
+        "licenseId": "CPL-1.0",
+        "licenseName": "CPL-1.0"
+      },
+      {
+        "licenseId": "BSD-UNSPECIFIED",
+        "licenseName": "BSD"
+      }
+    ],
+    "effectiveLicenseStatus": null,
     "catalogDate": 1220534968000,
     "relativePopularity": 1,
     "securityVulnerabilities": [],
@@ -348,6 +441,17 @@
       }
     ],
     "overriddenLicenses": [],
+    "effectiveLicenses": [
+      {
+        "licenseId": "CPL-1.0",
+        "licenseName": "CPL-1.0"
+      },
+      {
+        "licenseId": "BSD-UNSPECIFIED",
+        "licenseName": "BSD"
+      }
+    ],
+    "effectiveLicenseStatus": null,
     "catalogDate": 1241897886000,
     "relativePopularity": 0,
     "securityVulnerabilities": [],
@@ -378,6 +482,17 @@
       }
     ],
     "overriddenLicenses": [],
+    "effectiveLicenses": [
+      {
+        "licenseId": "CPL-1.0",
+        "licenseName": "CPL-1.0"
+      },
+      {
+        "licenseId": "BSD-UNSPECIFIED",
+        "licenseName": "BSD"
+      }
+    ],
+    "effectiveLicenseStatus": null,
     "catalogDate": 1250092447000,
     "relativePopularity": 3,
     "securityVulnerabilities": [],
@@ -408,6 +523,17 @@
       }
     ],
     "overriddenLicenses": [],
+    "effectiveLicenses": [
+      {
+        "licenseId": "CPL-1.0",
+        "licenseName": "CPL-1.0"
+      },
+      {
+        "licenseId": "BSD-UNSPECIFIED",
+        "licenseName": "BSD"
+      }
+    ],
+    "effectiveLicenseStatus": null,
     "catalogDate": 1286268656000,
     "relativePopularity": 0,
     "securityVulnerabilities": [],
@@ -438,6 +564,17 @@
       }
     ],
     "overriddenLicenses": [],
+    "effectiveLicenses": [
+      {
+        "licenseId": "CPL-1.0",
+        "licenseName": "CPL-1.0"
+      },
+      {
+        "licenseId": "BSD-UNSPECIFIED",
+        "licenseName": "BSD"
+      }
+    ],
+    "effectiveLicenseStatus": null,
     "catalogDate": 1267100518000,
     "relativePopularity": 5,
     "securityVulnerabilities": [],
@@ -468,6 +605,17 @@
       }
     ],
     "overriddenLicenses": [],
+    "effectiveLicenses": [
+      {
+        "licenseId": "CPL-1.0",
+        "licenseName": "CPL-1.0"
+      },
+      {
+        "licenseId": "BSD-UNSPECIFIED",
+        "licenseName": "BSD"
+      }
+    ],
+    "effectiveLicenseStatus": null,
     "catalogDate": 1286268687000,
     "relativePopularity": 11,
     "securityVulnerabilities": [],
@@ -498,6 +646,13 @@
       }
     ],
     "overriddenLicenses": [],
+    "effectiveLicenses": [
+      {
+        "licenseId": "CPL-1.0",
+        "licenseName": "CPL-1.0"
+      }
+    ],
+    "effectiveLicenseStatus": null,
     "catalogDate": 1314036946000,
     "relativePopularity": 1,
     "securityVulnerabilities": [],
@@ -528,6 +683,13 @@
       }
     ],
     "overriddenLicenses": [],
+    "effectiveLicenses": [
+      {
+        "licenseId": "CPL-1.0",
+        "licenseName": "CPL-1.0"
+      }
+    ],
+    "effectiveLicenseStatus": null,
     "catalogDate": 1317323543000,
     "relativePopularity": 100,
     "securityVulnerabilities": [],
@@ -558,6 +720,13 @@
       }
     ],
     "overriddenLicenses": [],
+    "effectiveLicenses": [
+      {
+        "licenseId": "CPL-1.0",
+        "licenseName": "CPL-1.0"
+      }
+    ],
+    "effectiveLicenseStatus": null,
     "catalogDate": 1350330353000,
     "relativePopularity": 0,
     "securityVulnerabilities": [],
@@ -588,6 +757,13 @@
       }
     ],
     "overriddenLicenses": [],
+    "effectiveLicenses": [
+      {
+        "licenseId": "CPL-1.0",
+        "licenseName": "CPL-1.0"
+      }
+    ],
+    "effectiveLicenseStatus": null,
     "catalogDate": 1352920907000,
     "relativePopularity": 24,
     "securityVulnerabilities": [],

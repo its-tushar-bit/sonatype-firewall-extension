@@ -11,6 +11,11 @@
     {"licenseId": "No-Sources", "licenseName": "No Sources"}
   ],
   "overriddenLicenses": [],
+  "effectiveLicenses": [
+    {"licenseId": "Not-Declared", "licenseName": "Not Declared"},
+    {"licenseId": "No-Sources", "licenseName": "No Sources"}
+  ],
+  "effectiveLicenseStatus": null,
   "catalogDate": 1201148353000,
   "relativePopularity": 100,
   "securityVulnerabilities": [

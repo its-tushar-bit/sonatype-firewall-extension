@@ -8,7 +8,9 @@ package com.sonatype.insight.brain.saas;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -25,6 +27,7 @@ import com.sonatype.insight.brain.model.component.HashGAV;
 import com.sonatype.insight.brain.model.component.IdentificationSource;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.component.SecurityVulnerabilityStatus;
+import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.service.InsightWork;
 
@@ -119,6 +122,24 @@ public class ComponentDetailsLoader
       componentDetails.getOverriddenLicenses().add(
           new License(overriddenLicense.getId(), overriddenLicense.getShortDisplayName()));
     }
+
+    // Calculate the effective licenses
+    Set<License> overriddenLicenses = componentDetails.getOverriddenLicenses();
+    if (overriddenLicenses.isEmpty()) {
+      Set<License> effectiveLicenses = new LinkedHashSet<>();
+      effectiveLicenses.addAll(componentDetails.getDeclaredLicenses());
+      effectiveLicenses.addAll(componentDetails.getObservedLicenses());
+      effectiveLicenses = removeNonLicensesUnlessNoOtherLicensesExist(effectiveLicenses);
+      componentDetails.getEffectiveLicenses().addAll(effectiveLicenses);
+    } else {
+      componentDetails.getEffectiveLicenses().addAll(componentDetails.getOverriddenLicenses());
+      if (LicenseOverrideStatus.OVERRIDDEN.equals(component.getLicenseOverrideStatus())) {
+        componentDetails.setEffectiveLicenseStatus(com.sonatype.clm.dto.model.ide.LicenseStatus.Overridden);
+      } else if (LicenseOverrideStatus.SELECTED.equals(component.getLicenseOverrideStatus())) {
+        componentDetails.setEffectiveLicenseStatus(com.sonatype.clm.dto.model.ide.LicenseStatus.Selected);
+      }
+    }
+
     if (!component.getLicenseThreatGroups().isEmpty()) {
       int licenseThreatLevel = 0;
       List<String> licenseThreatGroupNames = new ArrayList<>();
@@ -150,5 +171,25 @@ public class ComponentDetailsLoader
       }
     }
     return component;
+  }
+
+  /**
+   * Return a set containing the licenses other than (No-Source-License, No-Sources, Not-Declared) unless these are the
+   * only licenses in the given set, then return the given set.
+   */
+  private Set<License> removeNonLicensesUnlessNoOtherLicensesExist(Set<License> licenses) {
+    Set<License> filtered = new LinkedHashSet<>();
+    for (License license : licenses) {
+      if (!com.sonatype.insight.brain.model.license.License.isEffectivelyUnspecified(
+          license.getLicenseId())) {
+        filtered.add(license);
+      }
+    }
+
+    if (filtered.isEmpty()) {
+      return licenses;
+    }
+
+    return filtered;
   }
 }

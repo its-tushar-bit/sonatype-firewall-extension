@@ -110,10 +110,6 @@
                 <td>License:</td>
                 <td>Unavailable, Claimed Component</td>
               </tr>
-              <tr id='artifactInfoOverriddenLicenseRow' ng-if="!isManual()">
-                <td>Overridden License:</td>
-                <td licenses='componentDetails.overriddenLicenses' empty-text='-'></td>
-              </tr>
               <tr id='artifactInfoDeclaredLicenseRow' ng-if="!isManual()">
                 <td>Declared License:</td>
                 <td licenses='componentDetails.declaredLicenses'></td>
@@ -121,6 +117,11 @@
               <tr id='artifactInfoObservedLicenseRow' ng-if="!isManual()">
                 <td>Observed License:</td>
                 <td licenses='componentDetails.observedLicenses'></td>
+              </tr>
+              <tr id='artifactInfoEffectiveLicenseRow' ng-if="!isManual()">
+                <td>Effective License:</td>
+                <td licenses='componentDetails.effectiveLicenses'
+                    status='{{componentDetails.effectiveLicenseStatus}}' empty-text='-'></td>
               </tr>
               <tr id='artifactInfoHighestPolicyThreat'>
                 <td>Highest Policy Threat:</td>

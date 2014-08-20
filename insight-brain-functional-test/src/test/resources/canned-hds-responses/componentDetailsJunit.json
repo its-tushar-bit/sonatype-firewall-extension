@@ -9,7 +9,16 @@
     "licenseId": "No-Source-License",
     "licenseName": "No Source License"
   }
-], "overriddenLicenses": [], "catalogDate": 1352920907000, "relativePopularity": 24, "securityVulnerabilities": [],
+],
+  "overriddenLicenses": [],
+  "effectiveLicenses": [
+    {
+      "licenseId": "CPL-1.0",
+      "licenseName": "CPL-1.0"
+    }
+  ],
+  "effectiveLicenseStatus": null,
+  "catalogDate": 1352920907000, "relativePopularity": 24, "securityVulnerabilities": [],
   "website": "http://junit.org", "policyAlerts": null, "licenseThreatLevel": null, "licenseThreatGroupNames": null,
   "majorRevisionStep": false, "identificationSource": null, "identificationSourceComment": null
 }

@@ -724,7 +724,7 @@
                 delta: unresolvedDelta,
                 barChartData : weeklyDeltaUnresolved,
                 sparklineData: calculateRunningTotals(weeklyDeltaUnresolved, currentUnresolved - unresolvedDelta),
-                inverseGreen: true
+                naturalOrder: false
               },
               {
                 name: 'Waived',
@@ -732,7 +732,7 @@
                 delta: waivedDelta,
                 barChartData: weeklyDeltaWaived,
                 sparklineData: calculateRunningTotals(weeklyDeltaWaived, totalWaived - waivedDelta),
-                inverseGreen: true
+                naturalOrder: false
               },
               {
                 name: 'Fixed',
@@ -740,15 +740,14 @@
                 delta: fixedDelta,
                 barChartData : weeklyDeltaFixed,
                 sparklineData: calculateRunningTotals(weeklyDeltaFixed, totalFixed - fixedDelta),
-                inverseGreen: false
+                naturalOrder: true
               },
               {
                 name: 'Discovered',
                 counts: totalNew,
                 delta: newDelta,
                 barChartData : weeklyDeltaNew,
-                sparklineData: calculateRunningTotals(weeklyDeltaNew, totalNew - newDelta),
-                inverseGreen: true
+                sparklineData: calculateRunningTotals(weeklyDeltaNew, totalNew - newDelta)
               }
             ];
           }
@@ -775,8 +774,7 @@
     return {
       restrict: 'A',
       scope: {
-        data: '=data',
-        inverseGreen: '=inverseGreen'
+        data: '=data'
       },
       replace: true,
       link: function(scope, element) {
@@ -796,8 +794,7 @@
           // allow the svg element to take up all the parent's space
           var chart = d3.select(element[0])
             .append('svg')
-            .attr('width', '100%')
-            .attr('height', '100%');
+            .attr('class', 'chart');
 
           // baseline will render at bottom for positive data, somewhere in between for positive/negative data
           // Need to fudge a bit if we're drawing at the bottom of the container to account for the stroke-width
@@ -818,9 +815,7 @@
             })
             .attr('width', x.rangeBand())
             .attr('class', function(d) {
-              return (d > 0) ?
-                (scope.inverseGreen ? 'bar negative' : 'bar positive')
-                : (scope.inverseGreen ? 'bar positive' : 'bar negative');
+              return (d > 0) ? 'bar up' : 'bar down';
             })
             // tooltip to highlight actual figures involved
             .append('title').text(function(d) {
@@ -845,8 +840,7 @@
   dashboardModule.directive('sparkline', ['windowEventsFactory', function(windowEventsFactory) {
     return {
       scope:{
-        data: '=',
-        inverseGreen: '='
+        data: '='
       },
       link: function postLink(scope, element) {
         function sparkline() {
@@ -884,8 +878,7 @@
           }
 
           var svg = d3.select(element[0]).append('svg')
-            .attr('width', config.width)
-            .attr('height', config.height)
+            .attr('class', 'chart')
             .append('g');
 
           var yScale = d3.scale.linear().range([config.height - graphPadding, graphPadding]),
@@ -930,7 +923,7 @@
             return yScale(d);
           });
 
-          var trailingClass = (data[data.length - 2] - data[data.length - 1] > 0) ^ scope.inverseGreen ? 'red' : 'green';
+          var trailingClass = (data[data.length - 1] - data[data.length - 2] > 0) ? 'up' : 'down';
 
           svg.append('path')
             .datum(data.slice(data.length - 2))
@@ -1024,27 +1017,6 @@
     };
   }]);
 
-  dashboardModule.directive('delta', function() {
-    return {
-      templateUrl: 'policy-summary-delta',
-      replace: true,
-      scope: {
-        data: '=',
-        inverseGreen: '='
-      },
-      controller: [
-        '$scope', function($scope) {
-          $scope.isPositive = function() {
-            return $scope.data > 0 && $scope.inverseGreen === false || $scope.data < 0 && $scope.inverseGreen !== false;
-          };
-          $scope.isNegative = function() {
-            return $scope.data < 0 && $scope.inverseGreen === false || $scope.data > 0 && $scope.inverseGreen !== false;
-          };
-        }
-      ]
-    };
-  });
-  
   dashboardModule.filter('removeDashes', function() {
     return function(input) {
       return input.replace('-', '');

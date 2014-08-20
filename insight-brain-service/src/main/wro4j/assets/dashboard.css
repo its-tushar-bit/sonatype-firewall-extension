@@ -608,62 +608,6 @@ table th#affected-apps {
 }
 
 /* BEGIN styling for policy summary elements */
-.sparkline .line {
-  fill: none;
-}
-.sparkline .fill.base {
-  fill: #E8E8E8;
-}
-.sparkline .line.base {
-  stroke: #198FFA;
-}
-.sparkline .fill.red {
-  fill: #EDB2AF;
-}
-.sparkline .line.red {
-  stroke: #BC0430;
-  stroke-width: 2px;
-}
-.sparkline .fill.green {
-  fill: #B6E9AB;
-}
-.sparkline .line.green {
-  stroke: #0B9743;
-  stroke-width: 2px;
-}
-.sparkline .guideline {
-  stroke: #444444;
-}
-.sparkline .guide-circle {
-  fill: #198FFA;
-}
-.sparkline .guide-rect {
-  fill: white;
-}
-.sparkline .guide-text {
-  font-weight: bold;
-  fill: black;
-  cursor: default;
-}
-.chart {
-  height: 30px;
-  width: 133px;
-  margin: auto;
-}
-.bar.positive {
-  fill: #0B9743;
-}
-.bar.negative {
-  fill: #BC0430;
-}
-.delta-negative .down:before, .delta-negative .up:before {
-  color: #BC0430;
-  font-size: 1.3em;
-}
-.delta-positive .down:before, .delta-positive .up:before {
-  color: #0B9743;
-  font-size: 1.3em;
-}
 
 .table.policy-summary-table {
   max-width: 100%;

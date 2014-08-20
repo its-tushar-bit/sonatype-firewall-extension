@@ -5,7 +5,9 @@
  */
 package com.sonatype.insight.brain.saas;
 
+import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Enumeration;
@@ -20,6 +22,7 @@ import javax.servlet.http.HttpServletResponse;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightProxy;
+import com.sonatype.insight.client.utils.UserAgentUtils;
 import com.sonatype.insight.error.exception.BadGatewayException;
 
 import org.eclipse.jetty.http.HttpHeaders;
@@ -33,6 +36,7 @@ import org.junit.Test;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.empty;
+import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.isIn;
 import static org.hamcrest.Matchers.not;
@@ -84,6 +88,48 @@ public class SaasClientTest
     if (server != null) {
       server.stop();
     }
+  }
+
+  @Test
+  public void testUserAgentOnRequests() throws Exception {
+    String userAgent = UserAgentUtils.getDefaultUserAgent();
+    final Set<String> headers = new HashSet<String>();
+    String testPath = "/rest/test";
+    handler = new AbstractHandler()
+    {
+
+      @Override
+      public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
+          throws IOException, ServletException
+      {
+        headers.clear();
+        for (Enumeration<String> en = request.getHeaderNames(); en.hasMoreElements();) {
+          headers.add(request.getHeader(en.nextElement()));
+        }
+        baseRequest.setHandled(true);
+      }
+    };
+
+    HttpServletRequest request = mock(HttpServletRequest.class);
+    when(request.getHeaderNames()).thenReturn(Collections.enumeration(Arrays.asList(HttpHeaders.USER_AGENT)));
+    when(request.getHeader(any(String.class))).thenReturn("header-value");
+    when(request.getMethod()).thenReturn("GET");
+
+    client.doProxy(request, testPath);
+    assertThat(headers, hasItem(userAgent));
+    client.doProxy(request, testPath, null, new String[] {});
+    assertThat(headers, hasItem(userAgent));
+    client.get(InputStream.class, testPath, null, new String[] {});
+    assertThat(headers, hasItem(userAgent));
+    client.get(request, InputStream.class, testPath, new String[] {});
+    assertThat(headers, hasItem(userAgent));
+    client.get(request, InputStream.class, testPath, null, new String[] {});
+    assertThat(headers, hasItem(userAgent));
+    client.getResponse(request, testPath, null, new String[] {});
+    assertThat(headers, hasItem(userAgent));
+    client.put(InputStream.class, testPath, new File(SaasClientTest.class.getResource("/config-test.yml").toURI()),
+        new String[] {});
+    assertThat(headers, hasItem(userAgent));
   }
 
   @Test

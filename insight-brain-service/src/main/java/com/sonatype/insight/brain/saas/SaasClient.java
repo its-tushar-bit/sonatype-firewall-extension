@@ -312,6 +312,7 @@ public class SaasClient
     }
     req.setHeader("X-Brain-Version", version);
     req.setHeader("X-CLM-Token", licenseManager.getLicenseFingerprint());
+    req.setHeader(HttpHeaders.USER_AGENT, config.getUserAgent());
   }
 
   private Response buildResponse(final HttpResponse response) throws IOException {

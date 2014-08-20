@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.service;
+package com.sonatype.insight.brain.migration;
 
 import java.io.File;
 import java.io.IOException;
@@ -18,6 +18,7 @@ import com.sonatype.insight.brain.db.H2DatabaseMigrator;
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.policy.DroolsGenerator;
+import com.sonatype.insight.brain.service.InsightWork;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

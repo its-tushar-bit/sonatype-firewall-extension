@@ -10,6 +10,8 @@ import java.io.IOException;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import com.sonatype.insight.brain.migration.WaivedPolicyViolationMigrator;
+
 /**
  * Migrates operational data from an earlier schema/format to the latest version.
  * 
@@ -21,6 +23,7 @@ public class DataMigrator
   private final LicenseOverrideMigrator licenseOverrideMigrator;
   private final PolicyMigrator policyMigrator;
   private final PolicyEvaluationMigrator policyEvaluationMigrator;
+  private final WaivedPolicyViolationMigrator waivedPolicyViolationMigrator;
   private final ProcureRemovalMigrator procureRemovalMigrator;
   private final NullHashModifiedMigrator modifiedMigrator;
   private final PolicyDroolsCodeMigrator policyDroolsCodeMigrator;
@@ -28,13 +31,14 @@ public class DataMigrator
 
   @Inject
   public DataMigrator(LicenseOverrideMigrator licenseOverrideMigrator, PolicyMigrator policyMigrator,
-      PolicyEvaluationMigrator policyEvaluationMigrator, ProcureRemovalMigrator procureRemovalMigrator,
-      NullHashModifiedMigrator modifiedMigrator, PolicyDroolsCodeMigrator policyDroolsCodeMigrator,
-      DashboardFilterAppIdMigrator dashboardFilterAppIdMigrator)
+      PolicyEvaluationMigrator policyEvaluationMigrator, WaivedPolicyViolationMigrator waivedPolicyViolationMigrator,
+      ProcureRemovalMigrator procureRemovalMigrator, NullHashModifiedMigrator modifiedMigrator,
+      PolicyDroolsCodeMigrator policyDroolsCodeMigrator, DashboardFilterAppIdMigrator dashboardFilterAppIdMigrator)
   {
     this.licenseOverrideMigrator = licenseOverrideMigrator;
     this.policyMigrator = policyMigrator;
     this.policyEvaluationMigrator = policyEvaluationMigrator;
+    this.waivedPolicyViolationMigrator = waivedPolicyViolationMigrator;
     this.procureRemovalMigrator = procureRemovalMigrator;
     this.modifiedMigrator = modifiedMigrator;
     this.policyDroolsCodeMigrator = policyDroolsCodeMigrator;
@@ -48,6 +52,7 @@ public class DataMigrator
     licenseOverrideMigrator.migrate();
     policyMigrator.migrate();
     policyEvaluationMigrator.migrate();
+    waivedPolicyViolationMigrator.migrate();
     procureRemovalMigrator.migrate();
     modifiedMigrator.migrate();
     policyDroolsCodeMigrator.migrate();

@@ -1,0 +1,74 @@
+{
+  "version" : 1,
+  "aaData" : [ {
+    "hash" : "hash1",
+    "groupId" : "groupId1",
+    "artifactId" : "artifactId1",
+    "version" : "1.0",
+    "policyId" : null,
+    "policyName" : "None",
+    "policyThreatLevel" : 0,
+    "activeViolations" : [ {
+      "policyId" : "policy1",
+      "policyName" : "Age",
+      "policyThreatLevel" : 2,
+      "actions" : [],
+      "constraints" : [ {
+        "constraintId" : "constraint1",
+        "constraintName" : "Age",
+        "constraintOperator" : "OR",
+        "conditions" : [ {
+          "conditionType" : "AgeInDays",
+          "conditionSummary" : "Age older than 1",
+          "conditionReason" : "Age was 7 years, 5 months and 22 days"
+        } ]
+      } ]
+    } ],
+    "waivedViolations" : [ {
+      "policyId" : "policy2",
+      "policyName" : "Age",
+      "policyThreatLevel" : 5,
+      "actions" : [],
+      "constraints" : [ {
+        "constraintId" : "constraint2",
+        "constraintName" : "Age",
+        "constraintOperator" : "OR",
+        "conditions" : [ {
+          "conditionType" : "AgeInDays",
+          "conditionSummary" : "Age older than 1",
+          "conditionReason" : "Age was 7 years, 5 months and 22 days"
+        } ]
+      } ]
+    }, {
+      "policyId" : "policy3",
+      "policyName" : "Age",
+      "policyThreatLevel" : 8,
+      "actions" : [],
+      "constraints" : [ {
+        "constraintId" : "constraint3",
+        "constraintName" : "Age",
+        "constraintOperator" : "OR",
+        "conditions" : [ {
+          "conditionType" : "AgeInDays",
+          "conditionSummary" : "Age older than 1",
+          "conditionReason" : "Age was 7 years, 5 months and 22 days"
+        } ]
+      } ]
+    }, {
+      "policyId" : "policy4",
+      "policyName" : "Age",
+      "policyThreatLevel" : 8,
+      "actions" : [],
+      "constraints" : [ {
+        "constraintId" : "constraint3",
+        "constraintName" : "Age",
+        "constraintOperator" : "OR",
+        "conditions" : [ {
+          "conditionType" : "AgeInDays",
+          "conditionSummary" : "Age older than 1",
+          "conditionReason" : "Age was 7 years, 5 months and 22 days"
+        } ]
+      } ]
+    } ]
+  } ]
+}

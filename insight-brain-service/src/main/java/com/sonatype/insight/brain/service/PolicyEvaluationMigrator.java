@@ -20,8 +20,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.SortedSet;
-import java.util.TreeSet;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -29,8 +27,6 @@ import javax.persistence.EntityManager;
 
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.ComponentFact;
-import com.sonatype.clm.dto.model.policy.ConditionFact;
-import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.insight.brain.dataaccess.ApplicationComponentDAO;
@@ -40,17 +36,16 @@ import com.sonatype.insight.brain.dataaccess.policy.FirstOccurrencePolicyViolati
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
+import com.sonatype.insight.brain.migration.PolicyThreatCategoryUtil;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationComponent;
 import com.sonatype.insight.brain.model.component.Component;
-import com.sonatype.insight.brain.model.policy.ConditionType;
 import com.sonatype.insight.brain.model.policy.FirstOccurrencePolicyViolation;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.StageType;
-import com.sonatype.insight.brain.model.policy.conditions.ConditionTypes;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationDiff;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationDigester;
@@ -86,18 +81,6 @@ public class PolicyEvaluationMigrator
   private static final String MARKER_FILE_NAME = "policyevaluations-migrated";
 
   static final String MONITOR_POLICY_ALERTS_FILE = "monitorpolicyalerts.json";
-
-  private static final Function<ConditionFact, PolicyThreatCategory> CONDITION_FACT_TRANSFORMER = new Function<ConditionFact, PolicyThreatCategory>()
-  {
-    @Override
-    public PolicyThreatCategory apply(final ConditionFact conditionFact) {
-      ConditionType<?> conditionType = ConditionTypes.getById(conditionFact.getConditionTypeId());
-      if (conditionType == null) {
-        return PolicyThreatCategory.OTHER;
-      }
-      return conditionType.getThreatCategory();
-    }
-  };
 
   private static final Predicate<PolicyEvaluation> IS_PRIMARY_EVALUATION = new Predicate<PolicyEvaluation>()
   {
@@ -354,8 +337,8 @@ public class PolicyEvaluationMigrator
 
       for (ComponentFact componentFact : policyFact.getComponentFacts()) {
         // threat category is decided by policy if it is available, otherwise by the subset of stored policy data
-        PolicyThreatCategory threatCategory = policy != null ? policy.getThreatCategory()
-            : determinePolicyThreatCategory(componentFact.getConstraintFacts());
+        PolicyThreatCategory threatCategory = policy != null ? policy.getThreatCategory() : PolicyThreatCategoryUtil
+            .determinePolicyThreatCategory(componentFact.getConstraintFacts());
 
         List<String> pathnames = hashToPathnames.get(componentFact.getHash());
 
@@ -445,17 +428,6 @@ public class PolicyEvaluationMigrator
       return result;
     }
     return Collections.emptyList();
-  }
-
-  /**
-   * Figure out the policy threat category based on the stored constraint facts.
-   */
-  private PolicyThreatCategory determinePolicyThreatCategory(List<ConstraintFact> constraintFacts) {
-    SortedSet<PolicyThreatCategory> policyThreatCategories = new TreeSet<>();
-    for (ConstraintFact constraintFact : constraintFacts) {
-      policyThreatCategories.addAll(Lists.transform(constraintFact.getConditionFacts(), CONDITION_FACT_TRANSFORMER));
-    }
-    return PolicyThreatCategory.getCategory(policyThreatCategories);
   }
 
   private String determineStageEvaluationFilename(String stageId) {

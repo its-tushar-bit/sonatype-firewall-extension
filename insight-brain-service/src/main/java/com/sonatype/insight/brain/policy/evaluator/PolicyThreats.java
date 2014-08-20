@@ -14,7 +14,7 @@ import java.util.List;
  * 
  * @since 1.9
  */
-class PolicyThreats
+public class PolicyThreats
 {
   // designator of format version to help interop
   public int version;

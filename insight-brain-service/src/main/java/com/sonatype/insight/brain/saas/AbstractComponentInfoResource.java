@@ -29,13 +29,11 @@ import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
-import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.MatchState;
-import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.license.MultiLicense;
 import com.sonatype.insight.brain.model.policy.stages.DevelopStageType;
 import com.sonatype.insight.brain.model.security.Permission;
@@ -55,8 +53,6 @@ public abstract class AbstractComponentInfoResource
   private ApplicationDAO applicationDAO = new ApplicationDAO();
 
   private LicenseDAO licenseDAO = new LicenseDAO();
-
-  private LicenseOverrideDAO licenseOverrideDAO = new LicenseOverrideDAO();
 
   private PolicyEvaluator evaluator = new PolicyEvaluator();
 
@@ -236,28 +232,6 @@ public abstract class AbstractComponentInfoResource
   }
 
   /**
-   * Return a set containing the licenses other than (No-Source-License, No-Sources, Not-Declared) unless these are the
-   * only licenses in the given set, then return the given set.
-   */
-  private Set<LicenseWithThreatLevel> removeNonLicensesUnlessNoOtherLicensesExist(
-      Set<LicenseWithThreatLevel> licenseWithThreatLevels)
-  {
-    Set<LicenseWithThreatLevel> filtered = new LinkedHashSet<>();
-    for (LicenseWithThreatLevel licenseWithThreatLevel : licenseWithThreatLevels) {
-      if (!com.sonatype.insight.brain.model.license.License.isEffectivelyUnspecified(
-          licenseWithThreatLevel.license.getLicenseId())) {
-        filtered.add(licenseWithThreatLevel);
-      }
-    }
-
-    if (filtered.isEmpty()) {
-      return licenseWithThreatLevels;
-    }
-
-    return filtered;
-  }
-
-  /**
    * @since 1.6
    */
   private List<LicenseWithThreatLevel> getLicensesWithThreatLevels(Application application, Set<License> multiLicenses)
@@ -277,18 +251,6 @@ public abstract class AbstractComponentInfoResource
     }
 
     return result;
-  }
-
-  private LicenseOverride getLicenseOverride(Application application, String groupId, String artifactId,
-      String version)
-  {
-    LicenseOverride licenseOverride = licenseOverrideDAO.getByOwnerIdAndGAV(application.getId(), groupId, artifactId,
-        version);
-    if (licenseOverride == null) {
-      licenseOverride = licenseOverrideDAO.getByOwnerIdAndGAV(application.getOrganizationId(), groupId, artifactId,
-          version);
-    }
-    return licenseOverride;
   }
 
   /**

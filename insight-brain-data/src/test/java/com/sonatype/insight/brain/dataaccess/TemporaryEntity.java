@@ -379,7 +379,7 @@ public class TemporaryEntity
   public Label newLabel(String ownerId, Color color) {
     return newLabel(ownerId, uuid(), color);
   }
-  
+
   public Label newLabel(String ownerId, String labelText) {
     return newLabel(ownerId, labelText, Color.white);
   }
@@ -393,7 +393,7 @@ public class TemporaryEntity
   public ComponentLabel newComponentLabel(String ownerId, String labelId){
     return newComponentLabel(ownerId, labelId, uuid().substring(0, 19));
   }
-  
+
   public ComponentLabel newComponentLabel(String ownerId, String labelId, String hash){
     ComponentLabel componentLabel = new ComponentLabel(ownerId, labelId, hash);
     componentLabelDAO.insert(componentLabel);
@@ -407,29 +407,29 @@ public class TemporaryEntity
   public LicenseThreatGroup newLicenseThreatGroup(String ownerId, String name, int threatLevel) {
     return newLicenseThreatGroup(ownerId, name, threatLevel, new String[0]);
   }
-  
+
   public LicenseThreatGroup newLicenseThreatGroup(String ownerId, String name, int threatLevel, String... licenseIds) {
     LicenseThreatGroup ltg = new LicenseThreatGroup(ownerId, name, threatLevel);
     licenseThreatGroupDAO.insert(ltg);
-    
+
     for (String licenseId : licenseIds) {
       newLicenseThreatGroupLicense(ownerId, ltg.getId(), licenseId);
     }
-    
+
     return ltg;
   }
-  
+
   public LicenseThreatGroupLicense newLicenseThreatGroupLicense(String ownerId, String licenseThreatGroupId) {
     return newLicenseThreatGroupLicense(ownerId, licenseThreatGroupId, "Apache-2.0");
   }
-  
+
   public LicenseThreatGroupLicense newLicenseThreatGroupLicense(String ownerId, String licenseThreatGroupId, String licenseId) {
     LicenseThreatGroupLicense licenseThreatGroupLicense = new LicenseThreatGroupLicense(ownerId, licenseThreatGroupId,
         licenseId);
     licenseThreatGroupLicenseDAO.insert(licenseThreatGroupLicense);
     return licenseThreatGroupLicense;
   }
-  
+
   public LicenseOverride newLicenseOverride(String ownerId, String groupId, String artifactId, String version,
       LicenseOverrideStatus status, String licenseId)
   {
@@ -451,7 +451,7 @@ public class TemporaryEntity
   public PolicyWaiver newWaiver(String hash, String policyId, String ownerId) {
     return newWaiver(hash, policyId, ownerId, "testing");
   }
-  
+
   public PolicyWaiver newWaiver(String hash, String policyId, String ownerId, String comment) {
     PolicyWaiver waiver = new PolicyWaiver(hash, policyId, ownerId, comment);
     waiverDAO.insert(waiver);
@@ -626,10 +626,9 @@ public class TemporaryEntity
   }
 
   public WaivedPolicyViolation newWaivedPolicyViolation(PolicyEvaluation evaluation, Policy policy,
-      PolicyWaiver policyWaiver)
-  {
+      String groupId, String artifactId, String version, String hash, PolicyWaiver policyWaiver) {
     PolicyViolation policyViolation = new PolicyViolation(evaluation, policy.getId(), policy.getName(),
-        policy.getThreatLevel(), policy.getThreatCategory(), "hash", "Group1", "Artifact1", "Version1", "[]",
+        policy.getThreatLevel(), policy.getThreatCategory(), hash, groupId, artifactId, version, "[]",
         "unknown.jar");
     policyViolation.setWaived(true);
     policyViolationDAO.insert(policyViolation);
@@ -639,6 +638,12 @@ public class TemporaryEntity
     waivedPolicyViolationDAO.insert(waivedPolicyViolation);
 
     return waivedPolicyViolation;
+  }
+
+  public WaivedPolicyViolation newWaivedPolicyViolation(PolicyEvaluation evaluation, Policy policy,
+      PolicyWaiver policyWaiver)
+  {
+    return newWaivedPolicyViolation(evaluation, policy, "hash", "Group1", "Artifact1", "Version1", policyWaiver);
   }
 
   public PolicyViolation newPolicyViolation(PolicyEvaluation evaluation, Policy policy, int threatLevel,

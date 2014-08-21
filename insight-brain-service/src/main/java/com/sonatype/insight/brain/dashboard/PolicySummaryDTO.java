@@ -17,10 +17,12 @@ import java.util.List;
 public class PolicySummaryDTO
 {
   public int totalNew;
+  public int totalWaived;
   public int totalFixed;
   public int currentUnresolved;
 
   public List<Integer> weeklyDeltaNew = new ArrayList<>();
+  public List<Integer> weeklyDeltaWaived = new ArrayList<>();
   public List<Integer> weeklyDeltaFixed = new ArrayList<>();
   public List<Integer> weeklyDeltaUnresolved = new ArrayList<>();
 }

@@ -1078,9 +1078,30 @@ public class DashboardService
       return false;
     }
 
+    void replacePolicyViolation(PolicyViolation oldViolation, PolicyViolation newViolation) {
+      Set<String> stageTypeIds = stageTypesByViolation.remove(oldViolation);
+      policyViolations.remove(oldViolation);
+      stageTypesByViolation.put(newViolation, stageTypeIds);
+      policyViolations.add(newViolation);
+    }
+
     List<PolicyViolation> getPolicyViolations() {
       return Collections.unmodifiableList(policyViolations);
     }
+  }
+
+  private void addWeekViolation(int weekIndex, List<Integer> weeklyDeltas) {
+    addWeekViolation(weekIndex, weeklyDeltas, 1);
+  }
+
+  private void addWeekViolation(int weekIndex, List<Integer> weeklyDeltas, int delta) {
+    if (weekIndex >= 0) {
+      weeklyDeltas.set(weekIndex, weeklyDeltas.get(weekIndex) + delta);
+    }
+  }
+
+  private int getPolicySummaryWeekFromTime(long now, long time) {
+    return POLICY_SUMMARY_WEEKS - (int) ((now - time) / ONE_WEEK_IN_MILLISECS) - 1;
   }
 
   /**
@@ -1103,6 +1124,7 @@ public class DashboardService
     PolicySummaryDTO result = new PolicySummaryDTO();
     for (int iWeek = 0; iWeek < POLICY_SUMMARY_WEEKS; iWeek++) {
       result.weeklyDeltaNew.add(0);
+      result.weeklyDeltaWaived.add(0);
       result.weeklyDeltaFixed.add(0);
     }
 
@@ -1118,10 +1140,9 @@ public class DashboardService
           continue;
         }
 
-        int weekIndex = POLICY_SUMMARY_WEEKS
-            - (int) ((now - policyEvaluation.getTime().getTime()) / ONE_WEEK_IN_MILLISECS) - 1;
+        int weekIndex = getPolicySummaryWeekFromTime(now, policyEvaluation.getTime().getTime());
 
-        List<PolicyViolation> policyViolations = policyViolationDAO.getActiveByEvaluationId(policyEvaluation.getId());
+        List<PolicyViolation> policyViolations = policyViolationDAO.getByEvaluationId(policyEvaluation.getId());
         policyViolations = filter(policyViolations, filter);
 
         PolicyViolationDiff diff = PolicyViolationDigester.digestPolicyViolations(policyViolationsWithStageTypes.getPolicyViolations(),
@@ -1129,29 +1150,50 @@ public class DashboardService
         for (PolicyViolation policyViolation : diff.getAppeared()) {
           policyViolationsWithStageTypes.addViolationWithStageType(policyViolation, policyEvaluation.getStageTypeId());
           result.totalNew++;
-          if (weekIndex >= 0) {
-            result.weeklyDeltaNew.set(weekIndex, result.weeklyDeltaNew.get(weekIndex) + 1);
+          addWeekViolation(weekIndex, result.weeklyDeltaNew);
+          if (policyViolation.isWaived()) {
+            result.totalWaived++;
+            addWeekViolation(weekIndex, result.weeklyDeltaWaived);
           }
         }
         for (Entry<PolicyViolation, PolicyViolation> samePolicyViolationEntry : diff.getSame().entrySet()) {
-          policyViolationsWithStageTypes.addStageTypeToViolation(samePolicyViolationEntry.getKey(),
-              policyEvaluation.getStageTypeId());
+          final PolicyViolation newViolation = samePolicyViolationEntry.getValue();
+          final PolicyViolation oldViolation = samePolicyViolationEntry.getKey();
+
+          if (newViolation.isWaived() && !oldViolation.isWaived()) {
+            result.totalWaived++;
+            addWeekViolation(weekIndex, result.weeklyDeltaWaived);
+            policyViolationsWithStageTypes.replacePolicyViolation(oldViolation, newViolation);
+            policyViolationsWithStageTypes.addStageTypeToViolation(newViolation, policyEvaluation.getStageTypeId());
+          }
+          else if (!newViolation.isWaived() && oldViolation.isWaived()) {
+            result.totalWaived--;
+            addWeekViolation(weekIndex, result.weeklyDeltaWaived, -1);
+            policyViolationsWithStageTypes.replacePolicyViolation(oldViolation, newViolation);
+            policyViolationsWithStageTypes.addStageTypeToViolation(newViolation, policyEvaluation.getStageTypeId());
+          }
+          else {
+            policyViolationsWithStageTypes.addStageTypeToViolation(oldViolation, policyEvaluation.getStageTypeId());
+          }
         }
         for (PolicyViolation policyViolation : diff.getCleared()) {
           if (policyViolationsWithStageTypes.removeStageTypeFromViolation(policyViolation,
               policyEvaluation.getStageTypeId())) {
             result.totalFixed++;
-            if (weekIndex >= 0) {
-              result.weeklyDeltaFixed.set(weekIndex, result.weeklyDeltaFixed.get(weekIndex) + 1);
+            addWeekViolation(weekIndex, result.weeklyDeltaFixed);
+            if (policyViolation.isWaived()) {
+              result.totalWaived--;
+              addWeekViolation(weekIndex, result.weeklyDeltaWaived, -1);
             }
           }
         }
       }
     }
 
-    result.currentUnresolved = result.totalNew - result.totalFixed;
+    result.currentUnresolved = result.totalNew - result.totalWaived - result.totalFixed;
     for (int iWeek = 0; iWeek < POLICY_SUMMARY_WEEKS; iWeek++) {
-      result.weeklyDeltaUnresolved.add(result.weeklyDeltaNew.get(iWeek) - result.weeklyDeltaFixed.get(iWeek));
+      result.weeklyDeltaUnresolved.add(
+          result.weeklyDeltaNew.get(iWeek) - result.weeklyDeltaWaived.get(iWeek) - result.weeklyDeltaFixed.get(iWeek));
     }
 
     log.debug("getPolicySummary finished in {}", System.currentTimeMillis() - start);

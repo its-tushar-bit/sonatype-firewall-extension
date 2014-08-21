@@ -3,24 +3,34 @@ describe('FilterController', function() {
   "use strict";
   var $scope, stageTypeData = [
     {
-      id: 'type1',
-      name: 'Type 1'
+      id: 'release',
+      name: 'Release'
     },
     {
-      id: 'type2',
-      name: 'Type 2'
+      id: 'stage-release',
+      name: 'Stage-Release'
+    },
+    {
+      id: 'build',
+      name: 'Build'
     }
   ], applicationData = [
     {
-      id: 'applicationId1',
-      publicId: 'applicationPublicId1',
-      name: 'ApplicationOne',
+      id: 'applicationIdZ',
+      publicId: 'applicationPublicIdZ',
+      name: 'ApplicationZ',
       organizationId: 'orgId1'
     },
     {
-      id: 'applicationId2',
-      publicId: 'applicationPublicId2',
-      name: 'ApplicationTwo',
+      id: 'applicationIdA',
+      publicId: 'applicationPublicIdA',
+      name: 'ApplicationA',
+      organizationId: 'orgId2'
+    },
+    {
+      id: 'applicationIdQ',
+      publicId: 'applicationPublicIdQ',
+      name: 'ApplicationQ',
       organizationId: 'orgId2'
     }
   ], organizationData = [
@@ -48,10 +58,10 @@ describe('FilterController', function() {
       description: "Tag Two Description"
     }
   ], filterData = {
-    policyThreatCategoryFilters: ['SECURITY', 'OTHER'],
-    stageTypeFilters: ['type1', 'type2'],
+    policyThreatCategoryFilters: ['QUALITY', 'OTHER', 'SECURITY'],
+    stageTypeFilters: ['release', 'stage-release', 'build'],
     tagFilters: ['tagId1', 'tagId2'],
-    applicationFilters: ['applicationId1', 'applicationId2'],
+    applicationFilters: ['applicationIdZ', 'applicationIdA', 'applicationIdQ'],
     minPolicyThreatLevel: 3,
     maxPolicyThreatLevel: 6
   };
@@ -66,8 +76,6 @@ describe('FilterController', function() {
     $httpBackend.expectGET(CLMLocations.getApplicationTagsUrl()).respond(tagData);
     $httpBackend.expectGET(CLMLocations.getDashboardFilters()).respond(filterData);
     $controller('FilterController', { $scope: $scope});
-    //TODO: NEWFILTER: remove when old filter panel is removed
-    $scope.doLoad();
     $httpBackend.flush();
   }));
 
@@ -80,10 +88,10 @@ describe('FilterController', function() {
   }));
 
   it('data loaded and placed in $scope', inject(function() {
-    expect($scope.filters.policyThreatTypes).toEqual(['SECURITY', 'OTHER']);
-    expect($scope.filters.stageTypeIds).toEqual(['type1', 'type2']);
+    expect($scope.filters.policyThreatTypes).toEqual(['QUALITY', 'OTHER', 'SECURITY']);
+    expect($scope.filters.stageTypeIds).toEqual(['release', 'stage-release', 'build']);
     expect($scope.filters.applicationTagIds).toEqual(['tagId1', 'tagId2']);
-    expect($scope.filters.applicationIds).toEqual(['applicationId1', 'applicationId2']);
+    expect($scope.filters.applicationIds).toEqual(['applicationIdZ', 'applicationIdA', 'applicationIdQ']);
     expect($scope.filters.policyThreatLevel).toEqual([3, 6]);
     expect($scope.applications.length).toBe(applicationData.length);
     expect($scope.applications[0].id).toBe(applicationData[0].id);
@@ -94,43 +102,103 @@ describe('FilterController', function() {
     expect($scope.applicationTags.length).toBe(tagData.length);
     expect($scope.applicationTags[0].id).toBe(tagData[0].id);
     expect($scope.applicationTags[0].owner).toBe(organizationData[0].name);
-    expect($scope.applicationsTooltip).toBe('ApplicationOne<br/>ApplicationTwo');
+    expect($scope.applicationsTooltip).toBe('ApplicationA<br/>ApplicationQ<br/>ApplicationZ');
     expect($scope.applicationTagsTooltip).toBe('TagOne<br/>TagTwo');
-    expect($scope.stageTypesTooltip).toBe('Type 1<br/>Type 2');
-    expect($scope.policyTypesTooltip).toBe('Security<br/>Other');
+    expect($scope.stageTypesTooltip).toBe('Build<br/>Stage-Release<br/>Release');
+    expect($scope.policyTypesTooltip).toBe('Security<br/>Quality<br/>Other');
     expect($scope.policyThreatLevelsTooltip).toBe('Policy threat levels 3 through 6');
   }));
 
   it('validate filter and dirty filter usage in scope', inject(function($httpBackend, CLMLocations) {
     //make sure updating the text fields doesn't update the filter (at least prior to hitting save)
     $scope.$apply(function() {
-      $scope.dirtyFilters.applicationIds = ['applicationId1'];
+      $scope.dirtyFilters.applicationIds = ['applicationIdA'];
     });
-    expect($scope.filters.applicationIds).toEqual(['applicationId1', 'applicationId2']);
+    expect($scope.filters.applicationIds).toEqual(['applicationIdZ', 'applicationIdA', 'applicationIdQ']);
 
     //make sure cancel cleans out the dirty filter
     $scope.$apply(function() {
       $scope.cancel();
     });
-    expect($scope.dirtyFilters.applicationIds).toEqual(['applicationId1', 'applicationId2']);
+    expect($scope.dirtyFilters.applicationIds).toEqual(['applicationIdZ', 'applicationIdA', 'applicationIdQ']);
 
     //make sure save puts data into the filter (from dirty filter)
     $scope.$apply(function() {
-      $scope.dirtyFilters.applicationIds = ['applicationId1'];
+      $scope.dirtyFilters.applicationIds = ['applicationIdA'];
     });
     var data = angular.copy(filterData);
-    data.applicationFilters = ['applicationId1'];
+    data.applicationFilters = ['applicationIdA'];
     $httpBackend.expectPUT(CLMLocations.getDashboardFilters(), data).respond(200);
     $scope.save();
     $httpBackend.flush();
-    expect($scope.dirtyFilters.applicationIds).toEqual(['applicationId1']);
-    expect($scope.filters.applicationIds).toEqual(['applicationId1']);
+    expect($scope.dirtyFilters.applicationIds).toEqual(['applicationIdA']);
+    expect($scope.filters.applicationIds).toEqual(['applicationIdA']);
 
     //make sure reset isn't automatically put in effect
     $scope.$apply(function() {
       $scope.reset();
       expect($scope.dirtyFilters.applicationIds).toEqual([]);
-      expect($scope.filters.applicationIds).toEqual(['applicationId1']);
+      expect($scope.filters.applicationIds).toEqual(['applicationIdA']);
     });
   }));
+
+  it('validate alert created on save error', inject(function($httpBackend, CLMLocations){
+    expect($scope.alerts).not.toBeDefined();
+    $httpBackend.expectPUT(CLMLocations.getDashboardFilters(), filterData).respond(500);
+    $scope.save();
+    $httpBackend.flush();
+    expect($scope.alerts).toBeDefined();
+  }));
 });
+
+describe('FilterController load errors', function() {
+  "use strict";
+  var $scope;
+
+  function validateErrorRequest($httpBackend, $controller, CLMLocations, actionResponse, appResponse, orgResponse, appTagResponse, filterResponse) {
+    $httpBackend.expectGET(CLMLocations.getActionStageUrl()).respond(actionResponse);
+    $httpBackend.expectGET(CLMLocations.getApplicationsUrl()).respond(appResponse);
+    $httpBackend.expectGET(CLMLocations.getOrganizationsUrl()).respond(orgResponse);
+    $httpBackend.expectGET(CLMLocations.getApplicationTagsUrl()).respond(appTagResponse);
+    $httpBackend.expectGET(CLMLocations.getDashboardFilters()).respond(filterResponse);
+    $controller('FilterController', { $scope: $scope});
+    expect($scope.fatalError).toBeNull();
+    $httpBackend.flush();
+    expect($scope.fatalError).not.toBeNull();
+  }
+
+  beforeEach(module('FilterModule'));
+
+  beforeEach(inject(function($rootScope, $httpBackend, $controller, CLMLocations) {
+    $scope = $rootScope.$new();
+  }));
+
+  afterEach(inject(function($httpBackend) {
+    if ($scope) {
+      $scope.$destroy();
+    }
+    $httpBackend.verifyNoOutstandingExpectation();
+    $httpBackend.verifyNoOutstandingRequest();
+  }));
+
+  it('validate action stage error is handled properly', inject(function($httpBackend, $controller, CLMLocations){
+    validateErrorRequest($httpBackend, $controller, CLMLocations, 500, {}, {}, {}, {});
+  }));
+
+  it('validate application error is handled properly', inject(function($httpBackend, $controller, CLMLocations){
+    validateErrorRequest($httpBackend, $controller, CLMLocations, {}, 500, {}, {}, {});
+  }));
+
+  it('validate organization error is handled properly', inject(function($httpBackend, $controller, CLMLocations){
+    validateErrorRequest($httpBackend, $controller, CLMLocations, {}, {}, 500, {}, {});
+  }));
+
+  it('validate application tag error is handled properly', inject(function($httpBackend, $controller, CLMLocations){
+    validateErrorRequest($httpBackend, $controller, CLMLocations, {}, {}, {}, 500, {});
+  }));
+
+  it('validate filter error is handled properly', inject(function($httpBackend, $controller, CLMLocations){
+    validateErrorRequest($httpBackend, $controller, CLMLocations, {}, {}, {}, {}, 500);
+  }));
+});
+

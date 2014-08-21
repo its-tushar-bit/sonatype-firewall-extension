@@ -169,106 +169,104 @@ class DashboardOverviewSpec
   def 'Dashboard Filters'() {
     when: 'clicking the filter toggle button'
       def newestRiskPage = at NewestRiskDashboardPage
-      newestRiskPage.filterPanelToggle.click()
+      newestRiskPage.filters.toggle.click()
 
     then: 'the dashboard filters are shown'
-      waitFor { newestRiskPage.applicationFiltersDropdown.displayed }
-      newestRiskPage.policyThreatFiltersDropdown.displayed
+      waitFor { newestRiskPage.filters.applicationMultiselect.displayed }
+      newestRiskPage.filters.policyTypeMultiselect.displayed
 
     and: 'application filters are loaded'
-      newestRiskPage.applicationFiltersDropdown.showDropdown()
-      newestRiskPage.applicationFiltersDropdown.dropdownCheck(firstApp.name).displayed
-      newestRiskPage.applicationFiltersDropdown.dropdownCheck(secondApp.name).displayed
-      newestRiskPage.applicationFiltersDropdown.hideDropdown()
+      newestRiskPage.filters.applicationMultiselect.showDropdown()
+      newestRiskPage.filters.applicationMultiselect.dropdownCheck(firstApp.name).displayed
+      newestRiskPage.filters.applicationMultiselect.dropdownCheck(secondApp.name).displayed
+      newestRiskPage.filters.applicationMultiselect.hideDropdown()
 
     and: 'policy threat category filters are shown'
-      newestRiskPage.policyThreatFiltersDropdown.showDropdown()
-      newestRiskPage.policyThreatFiltersDropdown.dropdownCheck('Security').displayed
-      newestRiskPage.policyThreatFiltersDropdown.dropdownCheck('License').displayed
-      newestRiskPage.policyThreatFiltersDropdown.dropdownCheck('Quality').displayed
-      newestRiskPage.policyThreatFiltersDropdown.dropdownCheck('Other').displayed
-      newestRiskPage.policyThreatFiltersDropdown.hideDropdown()
+      newestRiskPage.filters.policyTypeMultiselect.showDropdown()
+      newestRiskPage.filters.policyTypeMultiselect.dropdownCheck('Security').displayed
+      newestRiskPage.filters.policyTypeMultiselect.dropdownCheck('License').displayed
+      newestRiskPage.filters.policyTypeMultiselect.dropdownCheck('Quality').displayed
+      newestRiskPage.filters.policyTypeMultiselect.dropdownCheck('Other').displayed
+      newestRiskPage.filters.policyTypeMultiselect.hideDropdown()
 
     and: 'stage type filters are shown in proper chronological order'
-      newestRiskPage.stageTypeFiltersDropdown.showDropdown()
-      newestRiskPage.stageTypeFiltersDropdown.dropdownName(0).displayed
-      newestRiskPage.stageTypeFiltersDropdown.dropdownName(0).text() == 'Build'
-      newestRiskPage.stageTypeFiltersDropdown.dropdownName(1).displayed
-      newestRiskPage.stageTypeFiltersDropdown.dropdownName(1).text() == 'Stage Release'
-      newestRiskPage.stageTypeFiltersDropdown.dropdownName(2).displayed
-      newestRiskPage.stageTypeFiltersDropdown.dropdownName(2).text() == 'Release'
-      newestRiskPage.stageTypeFiltersDropdown.dropdownName(3).displayed
-      newestRiskPage.stageTypeFiltersDropdown.dropdownName(3).text() == 'Operate'
-      !newestRiskPage.stageTypeFiltersDropdown.dropdownName(4).present
-      newestRiskPage.stageTypeFiltersDropdown.hideDropdown()
+      newestRiskPage.filters.stageTypeMultiselect.showDropdown()
+      newestRiskPage.filters.stageTypeMultiselect.dropdownName(0).displayed
+      newestRiskPage.filters.stageTypeMultiselect.dropdownName(0).text() == 'Build'
+      newestRiskPage.filters.stageTypeMultiselect.dropdownName(1).displayed
+      newestRiskPage.filters.stageTypeMultiselect.dropdownName(1).text() == 'Stage Release'
+      newestRiskPage.filters.stageTypeMultiselect.dropdownName(2).displayed
+      newestRiskPage.filters.stageTypeMultiselect.dropdownName(2).text() == 'Release'
+      newestRiskPage.filters.stageTypeMultiselect.dropdownName(3).displayed
+      newestRiskPage.filters.stageTypeMultiselect.dropdownName(3).text() == 'Operate'
+      !newestRiskPage.filters.stageTypeMultiselect.dropdownName(4).present
+      newestRiskPage.filters.stageTypeMultiselect.hideDropdown()
 
     and: 'application tag filters are shown'
-      newestRiskPage.applicationTagFiltersDropdown.showDropdown()
-      newestRiskPage.applicationTagFiltersDropdown.dropdownCheck(firstAppTag.name).displayed
-      newestRiskPage.applicationTagFiltersDropdown.dropdownOwner(firstAppTag.name).text() == 'in ' + org.name
-      newestRiskPage.applicationTagFiltersDropdown.areOptionsColored([(firstAppTag.name): "blue"])
-      newestRiskPage.applicationTagFiltersDropdown.hideDropdown()
+      newestRiskPage.filters.applicationTagMultiselect.showDropdown()
+      newestRiskPage.filters.applicationTagMultiselect.dropdownCheck(firstAppTag.name).displayed
+      newestRiskPage.filters.applicationTagMultiselect.dropdownOwner(firstAppTag.name).text() == 'in ' + org.name
+      newestRiskPage.filters.applicationTagMultiselect.areOptionsColored([(firstAppTag.name): "blue"])
+      newestRiskPage.filters.applicationTagMultiselect.hideDropdown()
 
     and: 'policy threat level filter is shown'
-      newestRiskPage.policyThreatLevelSlider.slider.displayed
-      newestRiskPage.policyThreatLevelSlider.minLabel.text() == "0"
-      newestRiskPage.policyThreatLevelSlider.maxLabel.text() == "10"
+      newestRiskPage.filters.policyThreatLevelSlider.slider.displayed
 
     when: 'dashboard filters are applied'
-      newestRiskPage.applicationFiltersDropdown.toggleOption(firstApp.name)
-      newestRiskPage.applicationFiltersDropdown.toggleOption(secondApp.name)
-      newestRiskPage.applicationTagFiltersDropdown.toggleOption(firstAppTag.name)
-      newestRiskPage.stageTypeFiltersDropdown.toggleOption('Release')
-      newestRiskPage.policyThreatFiltersDropdown.toggleOption('Security')
-      newestRiskPage.policyThreatLevelSlider.setValues(2, 7)
-      newestRiskPage.applyFilter()
+      newestRiskPage.filters.applicationMultiselect.toggleOption(firstApp.name)
+      newestRiskPage.filters.applicationMultiselect.toggleOption(secondApp.name)
+      newestRiskPage.filters.applicationTagMultiselect.toggleOption(firstAppTag.name)
+      newestRiskPage.filters.stageTypeMultiselect.toggleOption('Release')
+      newestRiskPage.filters.policyTypeMultiselect.toggleOption('Security')
+      newestRiskPage.filters.policyThreatLevelSlider.setValues(2, 7)
+      newestRiskPage.filters.apply()
 
     then: 'filters show up in readonly mode'
-      waitFor { newestRiskPage.filterPanel.displayed }
-      newestRiskPage.applicationFilters.collect { it.text() }.join('') == firstApp.name + ',' + secondApp.name
-      newestRiskPage.applicationTagFilters.text() == firstAppTag.name
-      newestRiskPage.stageTypeFilters.text() == 'Release'
-      newestRiskPage.policyThreatTypeFilters.text() == 'Security'
-      newestRiskPage.policyThreatLevelFilters.text() == '2 through 7'
+      waitFor { newestRiskPage.filters.applicationSummary.displayed }
+      newestRiskPage.filters.applicationSummary.getTooltipContent() == firstApp.name + '\n' + secondApp.name
+      newestRiskPage.filters.applicationTagSummary.getTooltipContent() == firstAppTag.name
+      newestRiskPage.filters.stageTypeSummary.getTooltipContent() == 'Release'
+      newestRiskPage.filters.policyTypeSummary.getTooltipContent() == 'Security'
+      newestRiskPage.filters.policyThreatLevelSummary.getTooltipContent() == 'Policy threat levels 2 through 7'
   }
 
   def 'Filter reset'() {
     when: 'clicking the filter toggle button'
-      filterPanelToggle.click()
+      filters.toggle.click()
 
     and: 'Set some filters'
-      waitFor { applicationFiltersDropdown.displayed }
-      applicationFiltersDropdown.toggleOption(firstApp.name)
-      applicationTagFiltersDropdown.toggleOption(firstAppTag.name)
-      stageTypeFiltersDropdown.toggleOption('Release')
-      policyThreatFiltersDropdown.toggleOption('Security')
-      policyThreatLevelSlider.setValues(2, 7)
+      waitFor { filters.applicationMultiselect.displayed }
+      filters.applicationMultiselect.toggleOption(firstApp.name)
+      filters.applicationTagMultiselect.toggleOption(firstAppTag.name)
+      filters.stageTypeMultiselect.toggleOption('Release')
+      filters.policyTypeMultiselect.toggleOption('Security')
+      filters.policyThreatLevelSlider.setValues(2, 7)
 
     and: 'reset the filter'
-      resetButton.click()
+      filters.resetButton.click()
 
     then: 'filters are empty'
-      applicationFiltersDropdown.isEmpty()
-      applicationTagFiltersDropdown.isEmpty()
-      stageTypeFiltersDropdown.isEmpty()
-      policyThreatFiltersDropdown.isEmpty()
-      policyThreatLevelSlider.minValue.text() == '2'
-      policyThreatLevelSlider.maxValue.text() == '10'
+      filters.applicationMultiselect.isEmpty()
+      filters.applicationTagMultiselect.isEmpty()
+      filters.stageTypeMultiselect.isEmpty()
+      filters.policyTypeMultiselect.isEmpty()
+      filters.policyThreatLevelSlider.minValue.text() == '2'
+      filters.policyThreatLevelSlider.maxValue.text() == '10'
   }
 
   def 'Single value threat level slider filter'() {
     when: 'clicking the filter toggle button'
-      filterPanelToggle.click()
+      filters.toggle.click()
 
     then: 'the policy threat level slider is shown'
-      waitFor { policyThreatLevelSlider.slider.displayed }
+      waitFor { filters.policyThreatLevelSlider.slider.displayed }
 
     when: 'threat level filter is applied'
-      policyThreatLevelSlider.setValues(4, 4)
-      applyFilter()
+      filters.policyThreatLevelSlider.setValues(4, 4)
+      filters.apply()
 
     then: 'filter text shows one value'
-      waitFor { policyThreatLevelFilters.text() == '4' }
+      waitFor { filters.policyThreatLevelSummary.getTooltipContent() == 'Policy threat level 4' }
   }
 
   def 'Unknown components have popover displaying pathnames'() {
@@ -511,14 +509,14 @@ class DashboardOverviewSpec
       newestRiskPage.newestViolationTable.rows[1].age == '7d'
 
     when: 'filtering to an application'
-      newestRiskPage.filterPanelToggle.click()
-      waitFor { newestRiskPage.applicationFiltersDropdown.displayed }
-      newestRiskPage.applicationFiltersDropdown.toggleOption(secondApp.name)
-      newestRiskPage.applyFilter()
+      newestRiskPage.filters.toggle.click()
+      waitFor { newestRiskPage.filters.applicationMultiselect.displayed }
+      newestRiskPage.filters.applicationMultiselect.toggleOption(secondApp.name)
+      newestRiskPage.filters.apply()
 
     then: 'only violations from that application are shown'
       waitFor { newestRiskPage.newestViolationTable.rows.size() == 1 }
-      !newestRiskPage.applicationFiltersDropdown.displayed
+      !newestRiskPage.filters.applicationMultiselect.displayed
       newestRiskPage.newestViolationTable.rows[0].threat == 10
       newestRiskPage.newestViolationTable.rows[0].policy == 'DashboardSpecPolicy'
       newestRiskPage.newestViolationTable.rows[0].application == secondApp.name
@@ -526,14 +524,14 @@ class DashboardOverviewSpec
       newestRiskPage.newestViolationTable.rows[0].age ==~ RECENT_AGE
 
     when: 'filtering to a stage'
-      newestRiskPage.filterPanelToggle.click()
-      waitFor { newestRiskPage.stageTypeFiltersDropdown.displayed }
-      newestRiskPage.stageTypeFiltersDropdown.toggleOption('Release')
-      newestRiskPage.applyFilter()
+      newestRiskPage.filters.toggle.click()
+      waitFor { newestRiskPage.filters.stageTypeMultiselect.displayed }
+      newestRiskPage.filters.stageTypeMultiselect.toggleOption('Release')
+      newestRiskPage.filters.apply()
 
     then: 'only violations from that stage are shown'
       waitFor { newestRiskPage.newestViolationTable.rows.size() == 1 }
-      !newestRiskPage.stageTypeFiltersDropdown.displayed
+      !newestRiskPage.filters.stageTypeMultiselect.displayed
       newestRiskPage.newestViolationTable.rows[0].threat == 10
       newestRiskPage.newestViolationTable.rows[0].policy == 'DashboardSpecPolicy'
       newestRiskPage.newestViolationTable.rows[0].application == secondApp.name
@@ -562,10 +560,10 @@ class DashboardOverviewSpec
   def 'Filter out all results'() {
     when: 'selecting filters that match no results on the newest risk tab'
       def newestRiskPage = at NewestRiskDashboardPage
-      newestRiskPage.filterPanelToggle.click()
-      waitFor { newestRiskPage.policyThreatFiltersDropdown.displayed }
-      newestRiskPage.policyThreatFiltersDropdown.toggleOption('Security')
-      newestRiskPage.applyFilter()
+      newestRiskPage.filters.toggle.click()
+      waitFor { newestRiskPage.filters.policyTypeMultiselect.displayed }
+      newestRiskPage.filters.policyTypeMultiselect.toggleOption('Security')
+      newestRiskPage.filters.apply()
 
     then: 'the table is replaced by no result text'
       waitFor { newestRiskPage.noDataAvailable.displayed }
@@ -714,10 +712,10 @@ class DashboardOverviewSpec
   def 'Threat level columns are hidden when not matching filter'() {
     given: 'dashboard filter includes only severe threat level'
       def newestRiskPage = at NewestRiskDashboardPage
-      newestRiskPage.filterPanelToggle.click()
-      waitFor { newestRiskPage.policyThreatLevelSlider.displayed }
-      newestRiskPage.policyThreatLevelSlider.setValues(4, 7)
-      newestRiskPage.applyFilter()
+      newestRiskPage.filters.toggle.click()
+      waitFor { newestRiskPage.filters.policyThreatLevelSlider.displayed }
+      newestRiskPage.filters.policyThreatLevelSlider.setValues(4, 7)
+      newestRiskPage.filters.apply()
 
     when: 'switching to the component risk view'
       newestRiskPage.tabLinks.componentsTabButton.click()
@@ -766,16 +764,16 @@ class DashboardOverviewSpec
   def 'Filters stored as expected'() {
     when: 'dashboard filters are applied'
       def newestRiskPage = at NewestRiskDashboardPage
-      newestRiskPage.filterPanelToggle.click()
-      waitFor { newestRiskPage.applicationFiltersDropdown.displayed }
-      newestRiskPage.policyThreatFiltersDropdown.displayed
-      newestRiskPage.applicationFiltersDropdown.toggleOption(firstApp.name)
-      newestRiskPage.applicationFiltersDropdown.toggleOption(secondApp.name)
-      newestRiskPage.applicationTagFiltersDropdown.toggleOption(firstAppTag.name)
-      newestRiskPage.policyThreatFiltersDropdown.toggleOption('Security')
-      newestRiskPage.policyThreatFiltersDropdown.toggleOption('Other')
-      newestRiskPage.stageTypeFiltersDropdown.toggleOption('Release')
-      newestRiskPage.applyFilter()
+      newestRiskPage.filters.toggle.click()
+      waitFor { newestRiskPage.filters.applicationMultiselect.displayed }
+      newestRiskPage.filters.policyTypeMultiselect.displayed
+      newestRiskPage.filters.applicationMultiselect.toggleOption(firstApp.name)
+      newestRiskPage.filters.applicationMultiselect.toggleOption(secondApp.name)
+      newestRiskPage.filters.applicationTagMultiselect.toggleOption(firstAppTag.name)
+      newestRiskPage.filters.policyTypeMultiselect.toggleOption('Security')
+      newestRiskPage.filters.policyTypeMultiselect.toggleOption('Other')
+      newestRiskPage.filters.stageTypeMultiselect.toggleOption('Release')
+      newestRiskPage.filters.apply()
 
     then: 'filters are stored to disk'
       DashboardFilterDTO dto = new ObjectMapper().
@@ -805,12 +803,12 @@ class DashboardOverviewSpec
 
     then: 'See proper values set in the filters'
       def newestRiskPage = at NewestRiskDashboardPage
-      waitFor { newestRiskPage.applicationFilters.displayed }
-      newestRiskPage.applicationFilters.collect { it.text() }.join('') == firstApp.name + ',' + secondApp.name
-      newestRiskPage.applicationTagFilters.text() == firstAppTag.name
-      newestRiskPage.stageTypeFilters.text() == 'Release'
-      newestRiskPage.policyThreatTypeFilters.collect { it.text() }.join('') == 'Security,Other'
-      newestRiskPage.policyThreatLevelFilters.text() == '3 through 6'
+      waitFor { newestRiskPage.filters.applicationSummary.displayed }
+      newestRiskPage.filters.applicationSummary.getTooltipContent() == firstApp.name + '\n' + secondApp.name
+      newestRiskPage.filters.applicationTagSummary.getTooltipContent() == firstAppTag.name
+      newestRiskPage.filters.stageTypeSummary.getTooltipContent() == 'Release'
+      newestRiskPage.filters.policyTypeSummary.getTooltipContent() == 'Security\nOther'
+      newestRiskPage.filters.policyThreatLevelSummary.getTooltipContent() == 'Policy threat levels 3 through 6'
   }
 
   def 'Components Table'() {

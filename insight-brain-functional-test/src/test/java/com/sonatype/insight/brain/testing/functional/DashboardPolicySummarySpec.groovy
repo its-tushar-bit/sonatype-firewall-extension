@@ -173,18 +173,17 @@ class DashboardPolicySummarySpec
   def 'Filtering out all data should show an empty policy summary'() {
     when: 'clicking the filter toggle button'
       PolicySummaryModule policySummary = policySummary;
-      filterPanelToggle.click()
+      filters.toggle.click()
 
     then: 'the dashboard filters are shown'
-      waitFor { applicationFiltersDropdown.displayed }
-      policyThreatFiltersDropdown.displayed
+      waitFor { filters.applicationMultiselect.displayed }
+      filters.policyTypeMultiselect.displayed
 
     when: 'we select a policy threat type that we have no violations for'
-      policyThreatFiltersDropdown.toggleOption('License')
-      applyFilter()
+      filters.policyTypeMultiselect.toggleOption('License')
+      filters.apply()
 
     then: 'The counts for each category should all be zero'
-      waitFor { filterPanel.displayed }
       policySummary.discoveredRow.count == 0
       policySummary.fixedRow.count == 0
       policySummary.pendingRow.count == 0

@@ -22,11 +22,64 @@
         };
       }
 
-      function buildTooltip(items, nameMap, emptyTip) {
+      function getStageSortIndex(id) {
+        switch (id) {
+          case 'develop':
+            return 0;
+          case 'build':
+            return 1;
+          case 'stage-release':
+            return 2;
+          case 'release':
+            return 3;
+          case 'operate':
+            return 4;
+          default:
+            return 0;
+        }
+      }
+
+      function getPolicyTypeSortIndex(id) {
+        switch (id) {
+          case 'security':
+            return 0;
+          case 'license':
+            return 1;
+          case 'quality':
+            return 2;
+          case 'other':
+            return 3;
+          default:
+            return 0;
+        }
+      }
+
+      function alphaSort(a, b) {
+        var aLower = (a ? a : '').toLowerCase(), bLower = (b ? b : '').toLowerCase();
+        return aLower < bLower ? -1 : aLower > bLower ? 1 : 0;
+      }
+
+      function stageSort(a, b) {
+        return getStageSortIndex((a ? a : '').toLowerCase()) -
+            getStageSortIndex((b ? b : '').toLowerCase());
+      }
+
+      function policyTypeSort(a, b) {
+        return getPolicyTypeSortIndex((a ? a : '').toLowerCase()) -
+            getPolicyTypeSortIndex((b ? b : '').toLowerCase());
+      }
+
+      function buildTooltip(items, nameMap, emptyTip, sortFn) {
         if (items && items.length) {
-          return $.map(items, function(item){
+          var mappedItems = $.map(items, function(item){
             return nameMap[item];
-          }).join('<br/>');
+          });
+
+          if (sortFn) {
+            mappedItems.sort(sortFn);
+          }
+
+          return mappedItems.join('<br/>');
         }
 
         return emptyTip;
@@ -34,13 +87,13 @@
 
       function buildTooltips() {
         $scope.applicationsTooltip = buildTooltip($scope.filters.applicationIds, $scope.nameMaps.applications,
-            'All applications');
+            'All applications', alphaSort);
         $scope.applicationTagsTooltip = buildTooltip($scope.filters.applicationTagIds, $scope.nameMaps.applicationTags,
-            'All applications');
+            'All applications', alphaSort);
         $scope.stageTypesTooltip = buildTooltip($scope.filters.stageTypeIds, $scope.nameMaps.stageTypes,
-            'All stage types');
+            'All stage types', stageSort);
         $scope.policyTypesTooltip = buildTooltip($scope.filters.policyThreatTypes, $scope.nameMaps.policyTypes,
-            'All policy types');
+            'All policy types', policyTypeSort);
         $scope.policyThreatLevelsTooltip = ($scope.filters.policyThreatLevel[0] !==
             $scope.filters.policyThreatLevel[1] ? 'Policy threat levels ' + $scope.filters.policyThreatLevel[0] +
             ' through ' + $scope.filters.policyThreatLevel[1] : 'Policy threat level ' +
@@ -56,6 +109,7 @@
       $scope.doLoad = function() {
         $scope.dirtyFilters = getEmptyFilters();
         $scope.error = null;
+        $scope.fatalError = null;
 
         var promises = [
           ApplicationStore.get(),
@@ -68,16 +122,9 @@
         $q.all(promises).then(function(data) {
           $scope.applications = data[0];
           $scope.stageTypes = angular.copy(data[1]); // Stores should not be modified directly
+          var organizations = data[2];
           $scope.applicationTags = data[3].data;
 
-          for (var i = 0; i < $scope.stageTypes.length; i++) {
-            if ($scope.stageTypes[i].id === 'develop') {
-              $scope.stageTypes.splice(i, 1);
-              break;
-            }
-          }
-
-          var organizations = data[2];
           angular.forEach($scope.applicationTags, function(tag) {
             for (var i = 0; i < organizations.length; i++) {
               if (tag.organizationId === organizations[i].id) {
@@ -86,6 +133,13 @@
               }
             }
           });
+
+          for (var i = 0; i < $scope.stageTypes.length; i++) {
+            if ($scope.stageTypes[i].id === 'develop') {
+              $scope.stageTypes.splice(i, 1);
+              break;
+            }
+          }
 
           $scope.policyThreatTypes = [
             {id: 'SECURITY', name: 'Security'},
@@ -152,8 +206,11 @@
         });
       };
 
-      //TODO: NEWFILTER: uncomment to have filter panel load as expected
-      //$scope.doLoad();
+      $scope.$on('reloadFilter', function(){
+        $scope.doLoad();
+      });
+
+      $scope.doLoad();
     }
   ]);
 

@@ -58,13 +58,13 @@ class DashboardAuthzSpec
       loginAsUserVia(userWithPermission.username, userWithPermission.password, NewestRiskDashboardPage)
 
     when: 'looking at available applications to filter on'
-      filterPanelToggle.click()
-      waitFor { applicationFiltersDropdown.displayed }
-      applicationFiltersDropdown.showDropdown()
+      filters.toggle.click()
+      waitFor { filters.applicationMultiselect.displayed }
+      filters.applicationMultiselect.showDropdown()
 
     then: 'only the permissioned application is shown'
-      applicationFiltersDropdown.dropdownList.size() == 1
-      !noAvailableApplications.displayed
+      filters.applicationMultiselect.dropdownList.size() == 1
+      !filters.noApplications.displayed
   }
 
   def 'Should be advised that there are no applications to choose from without permissions'() {
@@ -72,11 +72,11 @@ class DashboardAuthzSpec
       loginAsUserVia(userWithoutPermission.username, userWithoutPermission.password, NewestRiskDashboardPage)
 
     when: 'looking at available applications to filter on'
-      filterPanelToggle.click()
+      filters.toggle.click()
 
     then: 'the select is not shown, and instead a message is presented'
-      waitFor { noAvailableApplications.displayed }
-      !applicationFiltersDropdown.displayed
+      waitFor { filters.noApplications.displayed }
+      !filters.applicationMultiselect.displayed
   }
 
   def 'Should only see application tag dropdown when application tags exist'() {
@@ -84,10 +84,10 @@ class DashboardAuthzSpec
       loginAsUserVia(userWithoutPermission.username, userWithoutPermission.password, NewestRiskDashboardPage)
 
     when: 'looking at available application tag filters'
-      filterPanelToggle.click()
+      filters.toggle.click()
 
     then: 'the select is not shown, and instead a message is presented'
-      waitFor { noAvailableApplicationTags.displayed }
-      !applicationTagFiltersDropdown.displayed
+      waitFor { filters.noApplicationTags.displayed }
+      !filters.applicationTagMultiselect.displayed
   }
 }

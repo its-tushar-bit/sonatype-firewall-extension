@@ -2,45 +2,45 @@
   <div class="filter-expando-container">
     <i class="glyphicons-sonatype filter"></i>
     <span ng-if="expanded" class="filter-expando-label">Filters</span>
-    <a ng-click="expanded=!expanded;">
+    <a id="dashboard-filter-toggle" ng-click="expanded=!expanded;">
       <i class="sonatype-icons extra-small pull-right" ng-class="{'double-chevron-right': !expanded, 'double-chevron-left': expanded}"></i>
     </a>
   </div>
   <div class="filter-item-container">
     <div ng-if="!expanded">
       <div class="filter-item-collapsed">
-        <div tooltip-html-unsafe="{{applicationsTooltip}}" tooltip-placement="right" tooltip-append-to-body="true">
+        <div id="application-filter-item-collapsed" tooltip-html-unsafe="{{applicationsTooltip}}" tooltip-placement="right" tooltip-append-to-body="true">
           <i class="sonatype-icons application"></i>
           <div ng-if="filters.applicationIds.length" class="count-circle pull-right">{{filters.applicationIds.length}}</div>
         </div>
       </div>
       <div class="filter-item-collapsed">
-        <div tooltip-html-unsafe="{{applicationTagsTooltip}}" tooltip-placement="right" tooltip-append-to-body="true">
+        <div id="application-tag-filter-item-collapsed" tooltip-html-unsafe="{{applicationTagsTooltip}}" tooltip-placement="right" tooltip-append-to-body="true">
           <i class="sonatype-icons tag"></i>
           <div ng-if="filters.applicationTagIds.length" class="count-circle pull-right">{{filters.applicationTagIds.length}}</div>
         </div>
       </div>
       <div class="filter-item-collapsed">
-        <div tooltip-html-unsafe="{{stageTypesTooltip}}" tooltip-placement="right" tooltip-append-to-body="true">
+        <div id="stage-type-filter-item-collapsed" tooltip-html-unsafe="{{stageTypesTooltip}}" tooltip-placement="right" tooltip-append-to-body="true">
           <i class="sonatype-glyphicons stage-type"></i>
           <div ng-if="filters.stageTypeIds.length" class="count-circle pull-right">{{filters.stageTypeIds.length}}</div>
         </div>
       </div>
       <div class="filter-item-collapsed">
-        <div tooltip-html-unsafe="{{policyTypesTooltip}}" tooltip-placement="right" tooltip-append-to-body="true">
+        <div id="policy-type-filter-item-collapsed" tooltip-html-unsafe="{{policyTypesTooltip}}" tooltip-placement="right" tooltip-append-to-body="true">
           <i class="sonatype-icons policy"></i>
           <div ng-if="filters.policyThreatTypes.length" class="count-circle pull-right">{{filters.policyThreatTypes.length}}</div>
         </div>
       </div>
       <div class="filter-item-collapsed">
-        <div tooltip-html-unsafe="{{policyThreatLevelsTooltip}}" tooltip-placement="right" tooltip-append-to-body="true">
+        <div id="policy-threat-level-filter-item-collapsed" tooltip-html-unsafe="{{policyThreatLevelsTooltip}}" tooltip-placement="right" tooltip-append-to-body="true">
           <i class="sonatype-icons policy-threat-level"></i>
           <div ng-if="filters.policyThreatLevel[0] > 0 || filters.policyThreatLevel[1] < 10" class="count-circle pull-right"></div>
         </div>
       </div>
     </div>
     <div ng-if="expanded">
-      <div class="filter-item-expanded">
+      <div id="application-filter-item" class="filter-item-expanded">
         <div class="filter-item-icon">
           <i class="sonatype-icons application"></i>
         </div>
@@ -50,11 +50,11 @@
                 selected-ids='dirtyFilters.applicationIds' effective-id-field='id'
                 summarize-with='applications' none-selected-text='All Applications'></span>
           <span ng-if='applications.length === 0' class="small-text">
-            <em>No applications available.</em>
+            <em id="no-applications">No applications available.</em>
           </span>
         </div>
       </div>
-      <div class="filter-item-expanded">
+      <div id="application-tag-filter-item" class="filter-item-expanded">
         <div class="filter-item-icon">
           <i class="sonatype-icons tag"></i>
         </div>
@@ -67,41 +67,33 @@
           </span>
         </div>
       </div>
-      <div class="filter-item-expanded">
+      <div id="stage-type-filter-item" class="filter-item-expanded">
         <div class="filter-item-icon">
           <i class="sonatype-glyphicons stage-type"></i>
         </div>
         <div class="filter-item-content">
           <div class="filter-item-header">Stages</div>
-          <span ng-if='stageTypes.length > 0' class='multi-dropdown' multi-select items='stageTypes'
+          <span class='multi-dropdown' multi-select items='stageTypes'
                 selected-ids='dirtyFilters.stageTypeIds' none-selected-text='All Stages'></span>
-          <span ng-if='stageTypes.length === 0' class="small-text">
-            <em>No stages available.</em>
-          </span>
         </div>
       </div>
-      <div class="filter-item-expanded">
+      <div id="policy-type-filter-item" class="filter-item-expanded">
         <div class="filter-item-icon">
           <i class="sonatype-icons policy"></i>
         </div>
         <div class="filter-item-content">
           <div class="filter-item-header">Policy Types</div>
-          <span ng-if='policyThreatTypes.length > 0' class='multi-dropdown' multi-select items='policyThreatTypes'
+          <span class='multi-dropdown' multi-select items='policyThreatTypes'
                 selected-ids='dirtyFilters.policyThreatTypes' none-selected-text='All Policy Types'></span>
-          <span ng-if='policyThreatTypes.length === 0' class="small-text">
-            <em>No policy types available.</em>
-          </span>
         </div>
       </div>
-      <div class="filter-item-expanded">
+      <div id="policy-threat-level-filter-item" class="filter-item-expanded">
         <div class="filter-item-icon">
           <i class="sonatype-icons policy-threat-level"></i>
         </div>
         <div class="filter-item-content">
           <div class="filter-item-header">Policy Threat Levels</div>
-          <div id="policy-threat-levels">
-            <div slider ng-model="dirtyFilters.policyThreatLevel" min="0" max="10" hide-labels="true"></div>
-          </div>
+          <div slider ng-model="dirtyFilters.policyThreatLevel" min="0" max="10" hide-labels="true"></div>
         </div>
       </div>
     </div>
@@ -111,7 +103,7 @@
     <button id='dashboard-filter-cancel' type="button" class='btn btn-link btn-cancel' ng-click='cancel()'>Cancel</button>
     <div class="pull-right clm-primary-buttons">
       <button id='dashboard-filter-reset' type='button' class='btn btn-default' ng-click='reset()'>Reset</button>
-      <button id='dashboard-filter-save' type='button' class='btn btn-primary' ng-click='save()'>Apply</button>
+      <button id='dashboard-filter-apply' type='button' class='btn btn-primary' ng-click='save()'>Apply</button>
     </div>
   </div>
 </div>

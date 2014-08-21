@@ -5,13 +5,10 @@
  */
 package com.sonatype.insight.brain.testing.functional
 
-import com.sonatype.insight.brain.testing.functional.modules.ButtonsModule
 import com.sonatype.insight.brain.testing.functional.modules.DashboardTabsModule
-import com.sonatype.insight.brain.testing.functional.modules.DropdownMultiSelectModule
 import com.sonatype.insight.brain.testing.functional.modules.ExpandoModule
-import com.sonatype.insight.brain.testing.functional.modules.SliderModule
+import com.sonatype.insight.brain.testing.functional.modules.FilterModule
 import com.sonatype.insight.brain.testing.functional.modules.ThreatTableModule
-
 import geb.Module
 
 /**
@@ -20,49 +17,10 @@ import geb.Module
 class DashboardOverviewPage
     extends DashboardPage
 {
-  static at = { filterPanelToggle.displayed }
+  static at = { filters.displayed }
 
   static content = {
-    //TODO: CLM-3160 reimplement with new filter panel
-    filterPanelToggle { $('#filter-toggle') }
-    filterPanel(required: false) { $('#filter-summary') }
-    filterButtons(required: false) { module ButtonsModule, $('.filter-edit-buttons') }
-    applyButton(required: false) { filterButtons.button('Apply') }
-    resetButton(required: false) { filterButtons.button('Reset') }
-
-    applicationFilters(required: false) {
-      $('#filter-summary-applications span')
-    }
-    applicationTagFilters(required: false) {
-      $('#filter-summary-application-tags span')
-    }
-    stageTypeFilters(required: false) {
-      $('#filter-summary-stages span')
-    }
-    policyThreatTypeFilters(required: false) {
-      $('#filter-summary-policy-threat-types span')
-    }
-    policyThreatLevelFilters(required: false) {
-      $('#filter-summary-threat-level span')
-    }
-
-    noAvailableApplications(required: false) { $('#no-permissions') }
-    noAvailableApplicationTags(required: false) { $('#no-application-tags') }
     noDataAvailable(required: false) { $('#no-data') }
-
-    applicationFiltersDropdown(required: false) {
-      module DropdownMultiSelectModule, $('span[items="applications"]'), emptyText: 'All Applications'
-    }
-    policyThreatFiltersDropdown(required: false) {
-      module DropdownMultiSelectModule, $('span[items="policyThreatTypes"]'), emptyText: 'All Policy Types'
-    }
-    stageTypeFiltersDropdown(required: false) {
-      module DropdownMultiSelectModule, $('span[items="stageTypes"]'), emptyText: 'All Stages'
-    }
-    applicationTagFiltersDropdown(required: false) {
-      module DropdownMultiSelectModule, $('span[items="applicationTags"]'), emptyText: 'All Applications'
-    }
-    policyThreatLevelSlider(required: false) { module SliderModule, $('#policy-threat-levels') }
 
     highestRiskDiv(required: false) { module ThreatTableModule, $('#highest-risk') }
     maxResults(required: false) { module ThreatTableModule, $('#max-results-shown') }
@@ -96,12 +54,8 @@ class DashboardOverviewPage
     componentHeatMapHelp(required: false) { $('#component-heat-map-help-content') }
     componentHeatMapHelpClose(required: false) { $('#component-heat-map-help-close') }
     modalBackdrop(required: false) { $('div.modal-backdrop') }
-  }
 
-  void applyFilter() {
-    applyButton.click()
-    // NOTE: Wait for filter to be persisted before the next test tries to reset it
-    waitFor { !applyButton.displayed }
+    filters { module FilterModule, $('#dashboard-filter-panel') }
   }
 }
 

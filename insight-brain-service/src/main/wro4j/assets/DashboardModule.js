@@ -29,7 +29,7 @@
   }
 
   var dashboardModule = angular.module('DashboardModule', ['ui.router', 'Stores', 'AngularCommon', 'OrganizationModule',
-    'ComponentModule', 'FilterModule', 'SpaceInvaders', 'BootstrapSlider'],
+    'ComponentModule', 'FilterModule', 'SpaceInvaders'],
     // To avoid hacking dependency order, states must be declared with their parent.
     // Fixed https://github.com/angular-ui/ui-router/pull/492
     ['$stateProvider', function($stateProvider) {
@@ -186,169 +186,6 @@
       }
     };
   });
-  
-  dashboardModule.directive('dashboardFilter',
-          ['$timeout', '$http', '$q', 'ApplicationStore', 'OrganizationStore', 'StageTypeStore', 'CLMLocations', 'Messages',
-          function ($timeout, $http, $q, ApplicationStore, OrganizationStore, StageTypeStore, CLMLocations, Messages) {
-    return {
-      scope : {
-        filter : '=dashboardFilter',
-        toggle : '='
-      },
-      templateUrl : 'dashboard-filter',
-      link : function (scope) {
-        function getEmptyFilter() {
-          return {
-            applicationIds: [],
-            policyThreatTypes: [],
-            stageTypeIds: [],
-            applicationTagIds: [],
-            policyThreatLevel: [2,10]
-          };
-        }
-        function resetFilter() {
-          scope.dirtyFilter = angular.copy(scope.filter);
-        }
-        function loadFilters() {
-          //we don't want to update the data to be saved until they hit apply button
-          scope.dirtyFilter = getEmptyFilter();
-          scope.error = null;
-
-          var promises = [
-            ApplicationStore.get(),
-            StageTypeStore.get(),
-            OrganizationStore.get(),
-            $http.get(CLMLocations.getApplicationTagsUrl()),
-            $http.get(CLMLocations.getDashboardFilters())
-          ];
-
-          $q.all(promises).then(function(data) {
-            scope.applications = data[0];
-            scope.stageTypes = angular.copy(data[1]); // Stores should not be modified directly
-            scope.applicationTags = data[3].data;
-
-            for (var i = 0; i < scope.stageTypes.length; i++) {
-              if (scope.stageTypes[i].id === 'develop') {
-                scope.stageTypes.splice(i, 1);
-                break;
-              }
-            }
-
-            var organizations = data[2];
-            angular.forEach(scope.applicationTags, function(tag) {
-              for (var i = 0; i < organizations.length; i++) {
-                if (tag.organizationId === organizations[i].id) {
-                  tag.owner = organizations[i].name;
-                  break;
-                }
-              }
-            });
-
-            scope.policyThreatTypes = [
-              {id:'SECURITY', name:'Security'},
-              {id:'LICENSE', name:'License'},
-              {id:'QUALITY', name:'Quality'},
-              {id:'OTHER', name:'Other'}
-            ];
-
-            if (data[4].data) {
-              scope.filter = {
-                applicationIds: data[4].data.applicationFilters,
-                policyThreatTypes: data[4].data.policyThreatCategoryFilters,
-                stageTypeIds: data[4].data.stageTypeFilters,
-                applicationTagIds: data[4].data.tagFilters,
-                policyThreatLevel: [data[4].data.minPolicyThreatLevel, data[4].data.maxPolicyThreatLevel]
-              };
-              resetFilter();
-            }
-            else {
-              //need to init the filter to something, to trigger a data load
-              scope.filter = getEmptyFilter();
-            }
-            scope.filtersLoaded = true;
-          }, function(error) {
-            scope.filter = getEmptyFilter();
-            scope.filtersLoaded = true;
-            scope.error = error;
-          });
-        }
-
-        loadFilters();
-
-        scope.doLoad = loadFilters;
-
-        scope.applicationNameFor = function(applicationId) {
-          for (var i = 0; i < scope.applications.length; i++) {
-            var application = scope.applications[i];
-            if (application.id === applicationId) {
-              return application.name;
-            }
-          }
-        };
-
-        scope.policyThreatTypeNameFor = function(policyThreatTypeId) {
-          for (var i = 0; i < scope.policyThreatTypes.length; i++) {
-            var policyThreatType = scope.policyThreatTypes[i];
-            if (policyThreatType.id === policyThreatTypeId) {
-              return policyThreatType.name;
-            }
-          }
-        };
-
-        scope.stageTypeNameFor = function(stageTypeId) {
-          for (var i = 0; i < scope.stageTypes.length; i++) {
-            if (scope.stageTypes[i].id === stageTypeId) {
-              return scope.stageTypes[i].name;
-            }
-          }
-        };
-
-        scope.applicationTagNameFor = function(applicationTagId) {
-          for (var i = 0; i < scope.applicationTags.length; i++) {
-            var applicationTag = scope.applicationTags[i];
-            if (applicationTag.id === applicationTagId) {
-              return applicationTag.name;
-            }
-          }
-        };
-
-        scope.applyFilter = function () {
-          scope.applyError = null;
-          // We copy it so the object is not shared
-          scope.filter = angular.copy(scope.dirtyFilter);
-          $http.put(CLMLocations.getDashboardFilters(), {
-            applicationFilters : scope.filter.applicationIds,
-            policyThreatCategoryFilters : scope.filter.policyThreatTypes,
-            stageTypeFilters : scope.filter.stageTypeIds,
-            tagFilters : scope.filter.applicationTagIds,
-            minPolicyThreatLevel : scope.filter.policyThreatLevel[0],
-            maxPolicyThreatLevel : scope.filter.policyThreatLevel[1]
-          }).then(function(){
-            scope.toggle();
-          }, function() {
-            scope.applyError = Messages.getHttpErrorMessage(arguments);
-          });
-        };
-
-        scope.cancelFilter = function () {
-          resetFilter();
-          scope.toggle();
-        };
-
-        scope.resetFilter = function () {
-          scope.dirtyFilter = getEmptyFilter();
-        };
-
-        scope.toggle = function() {
-          $('.filter-edit').collapse('toggle');
-        };
-
-        scope.$on('reloadFilter', function(){
-          loadFilters();
-        });
-      }
-    };
-  }]);
 
   function watchFilter($scope) {
     $scope.$watch('filters', function(newFilter){
@@ -366,9 +203,7 @@
             return min <= policyThreatLevel[1] && policyThreatLevel[0] <= max;
           }
 
-          //filterChangeInProgress logic is only temporary until the old filter is removed
-          if (newFilter && !$scope.filterChangeInProgress) {
-            $scope.filterChangeInProgress = true;
+          if (newFilter) {
             $scope.error = $scope.data = null;
             var params = filterToParams($scope.filters, $scope.maxResults);
 
@@ -385,7 +220,6 @@
               if (angular.equals(newFilter, $scope.filters)) {
                 $scope.data = data;
               }
-              $scope.filterChangeInProgress = false;
             }).error(function () {
               if (angular.equals(newFilter, $scope.filters)) {
                 if (arguments[1] && arguments[1] === 403) {
@@ -405,7 +239,6 @@
                   $scope.error = arguments;
                 }
               }
-              $scope.filterChangeInProgress = false;
             });
           }
         };

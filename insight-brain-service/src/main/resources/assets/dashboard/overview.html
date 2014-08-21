@@ -1,89 +1,3 @@
-<script type='text/ng-template' id='dashboard-filter'>
-  <div class='span12 dashboard-filters' load-wrapper="error" reload="doLoad()">
-    <div class='span12 filter-edit collapse' delayed-overflow>
-      <div ng-if='dirtyFilter'>
-        <div class='row filter-edit-body'>
-          <div ng-if='filtersLoaded'>
-            <div class='span2 offset1'>
-              <h5>Applications</h5>
-              <span ng-if='applications.length > 0' id='applications' class='multi-dropdown' multi-select small="true"
-                    items='applications' selected-ids='dirtyFilter.applicationIds' effective-id-field='id'
-                    summarize-with='applications' none-selected-text='All Applications'></span>
-              <span ng-if='applications.length === 0' class="small-text">
-                <em id='no-permissions'>No applications available.</em>
-              </span>
-            </div>
-            <div class='span2'>
-              <h5>Application Tags</h5>
-              <span ng-if='applicationTags.length > 0' id='application-tags' class='multi-dropdown' multi-select small="true"
-                    items='applicationTags' selected-ids='dirtyFilter.applicationTagIds' none-selected-text='All Applications'></span>
-              <span ng-if='applicationTags.length === 0' class="small-text">
-                <em id='no-application-tags'>No application tags available.</em>
-              </span>
-            </div>
-            <div class='span2'>
-              <h5>Stages</h5>
-              <span id='stage-types' class='multi-dropdown' multi-select small="true" items='stageTypes'
-                    selected-ids='dirtyFilter.stageTypeIds'
-                    none-selected-text='All Stages'></span>
-            </div>
-            <div class='span2'>
-              <h5>Policy Types</h5>
-              <span id='policy-types' class='multi-dropdown' multi-select  small="true" items='policyThreatTypes'
-                    selected-ids='dirtyFilter.policyThreatTypes'
-                    none-selected-text='All Policy Types'></span>
-            </div>
-            <div class='span2'>
-              <h5>Policy Threat Levels</h5>
-              <div id="policy-threat-levels">
-                <div slider ng-model="dirtyFilter.policyThreatLevel" min="0" max="10"></div>
-              </div>
-            </div>
-          </div>
-          <div ng-if="!filtersLoaded">Loading filters...</div>
-        </div>
-        <div ng-if="filtersLoaded" class='filter-edit-buttons'>
-          <span class="alert alert-error error-left-of-buttons" ng-if="applyError">{{applyError}}</span>
-          <button class='btn' type='button' ng-click='resetFilter()'>Reset</button>
-          <button class='btn' type='button' ng-click='cancelFilter()'>Cancel</button>
-          <button class='btn btn-primary' type='button' ng-click='applyFilter()'>Apply</button>
-        </div>
-        <div style='clear: both'></div>
-      </div>
-    </div>
-    <div id='filter-summary' class='row filter-readonly'>
-      <div id='filter-summary-applications' class="span2" ng-if='filter.applicationIds.length > 0'>
-        <div><strong>Applications</strong></div>
-        <span ng-repeat="applicationId in filter.applicationIds | orderBy:applicationNameFor">
-          {{applicationNameFor(applicationId)}}{{!$last ? "," : ""}}
-        </span>
-      </div>
-      <div id='filter-summary-application-tags' class='span2' ng-if='filter.applicationTagIds.length > 0'>
-        <div><strong>Application Tags</strong></div>
-        <span ng-repeat='applicationTagId in filter.applicationTagIds'>
-          {{applicationTagNameFor(applicationTagId)}}{{!$last ? "," : ""}}
-        </span>
-      </div>
-      <div id='filter-summary-policy-threat-types' class="span2" style="display: inline;" ng-if='filter.policyThreatTypes.length > 0'>
-        <div><strong>Policy Types</strong></div>
-        <span ng-repeat="policyThreatTypeId in filter.policyThreatTypes">
-          {{policyThreatTypeNameFor(policyThreatTypeId)}}{{!$last ? "," : ""}}
-        </span>
-      </div>
-      <div id='filter-summary-stages' class="span2" style="display: inline;" ng-if='filter.stageTypeIds.length > 0'>
-        <div><strong>Stages</strong></div>
-        <span ng-repeat="stageTypeId in filter.stageTypeIds">
-          {{stageTypeNameFor(stageTypeId)}}{{!$last ? "," : ""}}
-        </span>
-      </div>
-      <div class='span2' ng-if='filter.policyThreatLevel[0] > 0 || filter.policyThreatLevel[1] < 10' id="filter-summary-threat-level">
-        <div><strong>Policy Threat Level{{filter.policyThreatLevel[0] != filter.policyThreatLevel[1] ? 's' : ''}}</strong></div>
-        <span ng-if="filter.policyThreatLevel[0] != filter.policyThreatLevel[1]">{{filter.policyThreatLevel[0]}} through {{filter.policyThreatLevel[1]}}</span>
-        <span ng-if="filter.policyThreatLevel[0] == filter.policyThreatLevel[1]">{{filter.policyThreatLevel[0]}}</span>
-      </div>
-    </div>
-  </div>
-</script>
 <script type="text/ng-template" id="dashboard-table">
   <div load-wrapper="error" reload="doLoad()">
     <div ng-if="!data">
@@ -409,11 +323,8 @@
   <div class='row'>
     <div class='span12'>
       <h1 class="left-align-h1">Dashboard</h1>
-      <a id='filter-toggle' class='bottom-align-h1 pull-right' ng-click='toggleCollapse()'>Filters&nbsp;<i
-        class='glyphicons-sonatype filter'></i></a>
     </div>
   </div>
-  <div class='row' style='margin-bottom: 10px' dashboard-filter="filters" toggle="toggleCollapse"></div>
   <div class='row'>
     <div class="span6">
       <div class="row" dashboard-view-summary filters="filters"></div>

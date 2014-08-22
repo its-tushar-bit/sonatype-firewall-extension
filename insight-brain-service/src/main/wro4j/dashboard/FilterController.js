@@ -110,6 +110,7 @@
         $scope.dirtyFilters = getEmptyFilters();
         $scope.error = null;
         $scope.fatalError = null;
+        $scope.filtersLoaded = false;
 
         var promises = [
           ApplicationStore.get(),
@@ -175,10 +176,12 @@
             $scope.filters = getEmptyFilters();
           }
 
+          $scope.filtersLoaded = true;
           buildTooltips();
         }, function(error) {
           $scope.filters = getEmptyFilters();
           $scope.fatalError = error;
+          $scope.filtersLoaded = true;
         });
       };
 

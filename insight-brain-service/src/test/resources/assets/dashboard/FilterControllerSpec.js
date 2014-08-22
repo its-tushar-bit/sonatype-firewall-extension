@@ -75,8 +75,11 @@ describe('FilterController', function() {
     $httpBackend.expectGET(CLMLocations.getOrganizationsUrl()).respond(organizationData);
     $httpBackend.expectGET(CLMLocations.getApplicationTagsUrl()).respond(tagData);
     $httpBackend.expectGET(CLMLocations.getDashboardFilters()).respond(filterData);
+    expect($scope.filtersLoaded).toBeFalsy();
     $controller('FilterController', { $scope: $scope});
+    expect($scope.filtersLoaded).toBeFalsy();
     $httpBackend.flush();
+    expect($scope.filtersLoaded).toBe(true);
   }));
 
   afterEach(inject(function($httpBackend) {

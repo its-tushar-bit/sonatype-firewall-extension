@@ -40,65 +40,70 @@
       </div>
     </div>
     <div ng-if="expanded">
-      <div id="application-filter-item" class="filter-item-expanded">
-        <div class="filter-item-icon">
-          <i class="sonatype-icons application"></i>
-        </div>
-        <div class="filter-item-content">
-          <div class="filter-item-header">Applications</div>
-          <span ng-if='applications.length > 0' class='multi-dropdown' multi-select items='applications'
-                selected-ids='dirtyFilters.applicationIds' effective-id-field='id'
-                summarize-with='applications' none-selected-text='All Applications'></span>
-          <span ng-if='applications.length === 0' class="small-text">
-            <em id="no-applications">No applications available.</em>
-          </span>
-        </div>
+      <div ng-if="!filtersLoaded">
+        Loading filters...
       </div>
-      <div id="application-tag-filter-item" class="filter-item-expanded">
-        <div class="filter-item-icon">
-          <i class="sonatype-icons tag"></i>
+      <div ng-if="filtersLoaded">
+        <div id="application-filter-item" class="filter-item-expanded">
+          <div class="filter-item-icon">
+            <i class="sonatype-icons application"></i>
+          </div>
+          <div class="filter-item-content">
+            <div class="filter-item-header">Applications</div>
+            <span ng-if='applications.length > 0' class='multi-dropdown' multi-select items='applications'
+                  selected-ids='dirtyFilters.applicationIds' effective-id-field='id'
+                  summarize-with='applications' none-selected-text='All Applications'></span>
+            <span ng-if='applications.length === 0' class="small-text">
+              <em id="no-applications">No applications available.</em>
+            </span>
+          </div>
         </div>
-        <div class="filter-item-content">
-          <div class="filter-item-header">Application Tags</div>
-          <span ng-if='applicationTags.length > 0' class='multi-dropdown' multi-select items='applicationTags'
-                selected-ids='dirtyFilters.applicationTagIds' none-selected-text='All Applications'></span>
-          <span ng-if='applicationTags.length === 0' class="small-text">
-            <em id='no-application-tags'>No applications tags available.</em>
-          </span>
+        <div id="application-tag-filter-item" class="filter-item-expanded">
+          <div class="filter-item-icon">
+            <i class="sonatype-icons tag"></i>
+          </div>
+          <div class="filter-item-content">
+            <div class="filter-item-header">Application Tags</div>
+            <span ng-if='applicationTags.length > 0' class='multi-dropdown' multi-select items='applicationTags'
+                  selected-ids='dirtyFilters.applicationTagIds' none-selected-text='All Applications'></span>
+            <span ng-if='applicationTags.length === 0' class="small-text">
+              <em id='no-application-tags'>No applications tags available.</em>
+            </span>
+          </div>
         </div>
-      </div>
-      <div id="stage-type-filter-item" class="filter-item-expanded">
-        <div class="filter-item-icon">
-          <i class="sonatype-glyphicons stage-type"></i>
+        <div id="stage-type-filter-item" class="filter-item-expanded">
+          <div class="filter-item-icon">
+            <i class="sonatype-glyphicons stage-type"></i>
+          </div>
+          <div class="filter-item-content">
+            <div class="filter-item-header">Stages</div>
+            <span class='multi-dropdown' multi-select items='stageTypes'
+                  selected-ids='dirtyFilters.stageTypeIds' none-selected-text='All Stages'></span>
+          </div>
         </div>
-        <div class="filter-item-content">
-          <div class="filter-item-header">Stages</div>
-          <span class='multi-dropdown' multi-select items='stageTypes'
-                selected-ids='dirtyFilters.stageTypeIds' none-selected-text='All Stages'></span>
+        <div id="policy-type-filter-item" class="filter-item-expanded">
+          <div class="filter-item-icon">
+            <i class="sonatype-icons policy"></i>
+          </div>
+          <div class="filter-item-content">
+            <div class="filter-item-header">Policy Types</div>
+            <span class='multi-dropdown' multi-select items='policyThreatTypes'
+                  selected-ids='dirtyFilters.policyThreatTypes' none-selected-text='All Policy Types'></span>
+          </div>
         </div>
-      </div>
-      <div id="policy-type-filter-item" class="filter-item-expanded">
-        <div class="filter-item-icon">
-          <i class="sonatype-icons policy"></i>
-        </div>
-        <div class="filter-item-content">
-          <div class="filter-item-header">Policy Types</div>
-          <span class='multi-dropdown' multi-select items='policyThreatTypes'
-                selected-ids='dirtyFilters.policyThreatTypes' none-selected-text='All Policy Types'></span>
-        </div>
-      </div>
-      <div id="policy-threat-level-filter-item" class="filter-item-expanded">
-        <div class="filter-item-icon">
-          <i class="sonatype-icons policy-threat-level"></i>
-        </div>
-        <div class="filter-item-content">
-          <div class="filter-item-header">Policy Threat Levels</div>
-          <div slider ng-model="dirtyFilters.policyThreatLevel" min="0" max="10" hide-labels="true"></div>
+        <div id="policy-threat-level-filter-item" class="filter-item-expanded">
+          <div class="filter-item-icon">
+            <i class="sonatype-icons policy-threat-level"></i>
+          </div>
+          <div class="filter-item-content">
+            <div class="filter-item-header">Policy Threat Levels</div>
+            <div slider ng-model="dirtyFilters.policyThreatLevel" min="0" max="10" hide-labels="true"></div>
+          </div>
         </div>
       </div>
     </div>
   </div>
-  <div ng-if="expanded" class="filter-button-container">
+  <div ng-if="filtersLoaded && expanded" class="filter-button-container">
     <div clm-alerts="alerts" no-close="true"></div>
     <button id='dashboard-filter-cancel' type="button" class='btn btn-link btn-cancel' ng-click='cancel()'>Cancel</button>
     <div class="pull-right clm-primary-buttons">

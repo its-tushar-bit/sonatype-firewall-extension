@@ -135,14 +135,15 @@ class DeltaModule
     extends Module
 {
   static content = {
-    outerDiv { $('.delta-column div') }
     valueDiv { $('.delta-column').last() }
-    chevronDiv { $('i') }
-    isUp { chevronDiv.classes().contains('up') }
-    isDown { chevronDiv.classes().contains('down') }
+    chevron { $('.delta-column i') }
+    isUp { chevron.classes().contains('up') }
+    isDown { chevron.classes().contains('down') }
     value { valueDiv.text().toInteger() }
-    isPositive { outerDiv.classes().contains('delta-positive') }
-    isNegative { outerDiv.classes().contains('delta-negative') }
+    row { $() }
+    isInverse { $().classes().contains('inverse') }
+    isNatural { $().classes().contains('natural') }
+    isNeutral { $().classes().contains('neutral') }
   }
 }
 
@@ -157,8 +158,10 @@ class SparklineModule
   }
 
   List<Number> getValues() {
+    final double height = 30.0
+    final int padding = 2
+
     def path = previousPath.attr('d');
-    def padding = 2
     def points = path.split('L').collect {
       it.split(',')[1].toDouble()
     }
@@ -167,18 +170,23 @@ class SparklineModule
       it.split(',')[1].toDouble()
     }.drop(1)
     points = points.plus(presentPoint)
-    def maxValue = svgContainer.attr('height').toDouble()
     return points.collect {
-      1.0 - (it - padding) / (maxValue - 2 * padding)
+      1.0 - (it - padding) / (height - 2 * padding)
     }
   }
 
   boolean isTrailingGreen() {
-    return presentPath.hasClass('green')
+    def parent = $().parent('tr')
+    return presentPath.hasClass('up') && parent.hasClass('natural') || presentPath.hasClass('down') && parent.hasClass('inverse')
   }
 
   boolean isTrailingRed() {
-    return presentPath.hasClass('red')
+    def parent = $().parent('tr')
+    return presentPath.hasClass('up') && parent.hasClass('inverse') || presentPath.hasClass('down') && parent.hasClass('natural')
+  }
+
+  boolean isTrailingBlue() {
+    return $().parent('tr').hasClass('neutral')
   }
 }
 

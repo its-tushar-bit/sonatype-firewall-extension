@@ -9,6 +9,7 @@ import com.sonatype.insight.brain.model.Application
 import com.sonatype.insight.brain.model.Organization
 import com.sonatype.insight.brain.model.policy.Policy
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation
+import com.sonatype.insight.brain.model.policy.PolicyWaiver
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType
 
 import spock.lang.Stepwise
@@ -48,11 +49,13 @@ class DashboardPolicySummarySpec
 
   static final List<Integer> NEW_ROW_DELTAS = [2, 0, 0, 2, 0, 0, 0, 1, 0, 1, 0, 1]
 
-  static final List<Integer> FIXED_ROW_DELTAS = [0, 0, 0, 1, 0, 0, 0, 1, 2, 1, 0, 3]
+  static final List<Integer> FIXED_ROW_DELTAS = [0, 0, 0, 1, 0, 0, 1, 1, 3, 1, 0, 1]
 
-  static final List<Integer> UNRESOLVED_ROW_DELTAS = [2, 0, 0, 1, 0, 0, 0, 0, -2, 0, 0, -2]
+  static final List<Integer> UNRESOLVED_ROW_DELTAS = [2, 0, 0, 1, -3, 0, 0, 0, -2, 0, 0, 0]
 
-  static final List<Integer> WAIVED_ROW_DELTAS = [0] * 12
+  static final List<Integer> WAIVED_ROW_DELTAS = [0, 0, 0, 0, 3, 0, -1, 0, -1, 0, 0, 0]
+
+  static final List<PolicyWaiver> existingWaivers = new ArrayList<>();
 
   def setupSpec() {
     org = temporaryEntity.newOrganization('DashboardPolicySummarySpec')
@@ -80,29 +83,45 @@ class DashboardPolicySummarySpec
               newPolicyEvaluation(app.id, BuildStageType.ID, 'ninthWeekEval', time)
           createViolations(ninthWeekEval, COMPONENTS[1..6])
           break
-        case 7..5: // nothing happens these weeks
+        case 7: // Waive 3 violations
+          PolicyEvaluation eigthWeekEval = temporaryEntity.
+              newPolicyEvaluation(app.id, BuildStageType.ID, 'eightWeekEval', time)
+          createViolations(eigthWeekEval, COMPONENTS[4..6])
+          createWaivedViolations(eigthWeekEval, COMPONENTS[1..3])
           break
-        case 4: // find one, fix one
+        case 6: // nothing happens this weeks
+          break
+        case 5: // Fix one waived violation
           PolicyEvaluation fifthWeekEval = temporaryEntity.
               newPolicyEvaluation(app.id, BuildStageType.ID, 'fifthWeekEval', time)
-          createViolations(fifthWeekEval, COMPONENTS[2..7])
-          break
-        case 3: // fix two
+          createViolations(fifthWeekEval, COMPONENTS[4..6])
+          createWaivedViolations(fifthWeekEval, COMPONENTS[2..3])
+          break;
+        case 4: // find one, fix one
           PolicyEvaluation fourthWeekEval = temporaryEntity.
               newPolicyEvaluation(app.id, BuildStageType.ID, 'fourthWeekEval', time)
-          createViolations(fourthWeekEval, COMPONENTS[4..7])
+          createViolations(fourthWeekEval, COMPONENTS[5..7])
+          createWaivedViolations(fourthWeekEval, COMPONENTS[2..3])
           break
-        case 2: // find one, fix one
+        case 3: // fix two, fix one waived violation
           PolicyEvaluation thirdWeekEval = temporaryEntity.
               newPolicyEvaluation(app.id, BuildStageType.ID, 'thirdWeekEval', time)
-          createViolations(thirdWeekEval, COMPONENTS[5..8])
+          createViolations(thirdWeekEval, [COMPONENTS[7]])
+        createWaivedViolations(thirdWeekEval, [COMPONENTS[3]])
+          break
+        case 2: // find one, fix one
+          PolicyEvaluation secondWeekEval = temporaryEntity.
+              newPolicyEvaluation(app.id, BuildStageType.ID, 'secondWeekEval', time)
+          createViolations(secondWeekEval, [COMPONENTS[8]])
+          createWaivedViolations(secondWeekEval, [COMPONENTS[3]])
           break
         case 1: // nothing happens this week
           break
-        case 0: // finish strong by fixing all but one existing problem and adding a new one
+        case 0: // find one, fix one
           PolicyEvaluation thisWeekEval = temporaryEntity.
               newPolicyEvaluation(app.id, BuildStageType.ID, 'thisWeekEval', time)
-          createViolations(thisWeekEval, COMPONENTS[8..9])
+          createViolations(thisWeekEval, [COMPONENTS[9]])
+          createWaivedViolations(thisWeekEval, [COMPONENTS[3]])
           break
       }
     }
@@ -123,14 +142,14 @@ class DashboardPolicySummarySpec
     and: 'The counts for each category are shown'
       policySummary.discoveredRow.count == 10
       policySummary.fixedRow.count == 8
-      policySummary.pendingRow.count == 2
-      policySummary.waivedRow.count == 0
+      policySummary.pendingRow.count == 1
+      policySummary.waivedRow.count == 1
 
     and: 'The deltas for each category are shown'
       policySummary.discoveredRow.delta.value == 7
       policySummary.fixedRow.delta.value == 8
-      policySummary.pendingRow.delta.value == -1
-      policySummary.waivedRow.delta.value == 0
+      policySummary.pendingRow.delta.value == -2
+      policySummary.waivedRow.delta.value == 1
 
     and: 'The deltas for each category are styled properly'
       policySummary.discoveredRow.delta.isUp
@@ -139,7 +158,8 @@ class DashboardPolicySummarySpec
       policySummary.fixedRow.delta.isPositive
       policySummary.pendingRow.delta.isDown
       policySummary.pendingRow.delta.isPositive
-      policySummary.waivedRow.delta.value == 0
+      policySummary.waivedRow.delta.isUp
+      policySummary.waivedRow.delta.isNegative
 
     and: 'The bar charts show the expected values'
       policySummary.discoveredRow.barChart.points == NEW_ROW_DELTAS
@@ -156,7 +176,7 @@ class DashboardPolicySummarySpec
     and: 'The sparkline charts trail with the correct colors'
       policySummary.discoveredRow.sparkline.isTrailingRed()
       policySummary.fixedRow.sparkline.isTrailingGreen()
-      policySummary.pendingRow.sparkline.isTrailingGreen()
+      policySummary.pendingRow.sparkline.isTrailingRed()
       policySummary.waivedRow.sparkline.isTrailingRed()
 
     when: 'hovering over sparkline'
@@ -224,6 +244,18 @@ class DashboardPolicySummarySpec
       temporaryEntity.
           newPolicyViolation(evaluation, policy, component.groupId, component.artifactId, component.version,
               component.hash, '')
+    }
+  }
+
+  private void createWaivedViolations(PolicyEvaluation evaluation, List<Map> components) {
+    components.each { Map component ->
+      def waiver = existingWaivers.find { w -> w.hash.equals(component.hash) }
+      if (waiver == null) {
+        waiver = temporaryEntity.newWaiver(component.hash, policy.id, app.id)
+        existingWaivers.add(waiver)
+      }
+      temporaryEntity.newWaivedPolicyViolation(evaluation, policy, component.groupId, component.artifactId,
+              component.version, component.hash, waiver)
     }
   }
 

@@ -801,9 +801,11 @@ class DashboardOverviewSpec
     when: 'Refresh the page to reload the filters'
       driver.navigate().refresh()
 
-    then: 'See proper values set in the filters'
+    and: 'the filters have been reloaded'
       def newestRiskPage = at NewestRiskDashboardPage
-      waitFor { newestRiskPage.filters.applicationSummary.displayed }
+      waitFor { newestRiskPage.filters.applicationSummary.displayed && componentMatchSection.displayed }
+
+    then: 'See proper values set in the filters'
       newestRiskPage.filters.applicationSummary.getTooltipContent() == firstApp.name + '\n' + secondApp.name
       newestRiskPage.filters.applicationTagSummary.getTooltipContent() == firstAppTag.name
       newestRiskPage.filters.stageTypeSummary.getTooltipContent() == 'Release'

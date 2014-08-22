@@ -696,11 +696,12 @@ describe('DashboardModule', function() {
   });
 
   describe('Value bar chart with both positive and negative values', function(){
-    var element;
+    var element,
+        height = 25;
     beforeEach(inject(function($rootScope, $compile) {
       scope = $rootScope.$new();
       scope.barData = [-50, 0, 50];
-      element = $compile(angular.element('<div value-bars data="barData" style="height: 50px;width: 100px;"></div>'))(scope);
+      element = $compile(angular.element('<div value-bars data="barData"></div>'))(scope);
     }));
 
     it('creates an SVG element based on the data', function(){
@@ -714,21 +715,21 @@ describe('DashboardModule', function() {
     it('sets the correct style and size for values below zero', function(){
       var negativeValue = angular.element(element.find('svg').find('rect')[0]);
       expect(negativeValue.attr('class')).toBe('bar down');
-      expect(negativeValue.attr('height')).toBe('25'); //half of chart below zero
-      expect(negativeValue.attr('y')).toBe('25');  //starts in the middle between high/low
+      expect(negativeValue.attr('height')).toEqual('' + height / 2); //half of chart below zero
+      expect(negativeValue.attr('y')).toEqual('' + height / 2);  //starts in the middle between high/low
     });
 
     it('sets the correct style and size for zero values', function(){
       var zero = angular.element(element.find('svg').find('rect')[1]);
       expect(zero.attr('class')).toBe('bar down');
       expect(zero.attr('height')).toBe('0'); //no height
-      expect(zero.attr('y')).toBe('25');  //starts in the middle
+      expect(zero.attr('y')).toEqual('' + height / 2);  //starts in the middle
     });
 
     it('sets the correct style and size for positive values', function(){
       var positiveValue = angular.element(element.find('svg').find('rect')[2]);
       expect(positiveValue.attr('class')).toBe('bar up');
-      expect(positiveValue.attr('height')).toBe('25'); //half of chart above zero
+      expect(positiveValue.attr('height')).toEqual('' + height / 2); //half of chart above zero
       expect(positiveValue.attr('y')).toBe('0');  //starts at the top
     });
 
@@ -743,31 +744,32 @@ describe('DashboardModule', function() {
   });
 
   describe('Value bar chart with only positive values', function(){
-    var element;
+    var element,
+        height = 25;
     beforeEach(inject(function($rootScope, $compile) {
       scope = $rootScope.$new();
       scope.barData = [0, 25, 50];
-      element = $compile(angular.element('<div value-bars data="barData" style="height: 50px;width: 100px;"></div>'))(scope);
+      element = $compile(angular.element('<div value-bars data="barData"></div>'))(scope);
     }));
 
     it('sets the correct style and size for zero values', function(){
       var zero = angular.element(element.find('svg').find('rect')[0]);
       expect(zero.attr('class')).toBe('bar down');
       expect(zero.attr('height')).toBe('0'); //no height
-      expect(parseFloat(zero.attr('y'))).toBe(49.5); //baseline is fudged so it doesn't render outside the svg element
+      expect(parseFloat(zero.attr('y'))).toBe(height - 0.5); //baseline is fudged so it doesn't render outside the svg element
     });
 
     it('sets the correct style and size for intermediate positive value', function(){
       var positiveValue = angular.element(element.find('svg').find('rect')[1]);
       expect(positiveValue.attr('class')).toBe('bar up');
-      expect(positiveValue.attr('height')).toBe('25'); //entire height
-      expect(positiveValue.attr('y')).toBe('25');  //starts in the middle
+      expect(positiveValue.attr('height')).toBe('' + height / 2); //entire height
+      expect(positiveValue.attr('y')).toBe('' + height / 2);  //starts in the middle
     });
 
     it('sets the correct style and size for maximum positive value', function(){
       var positiveValue = angular.element(element.find('svg').find('rect')[2]);
       expect(positiveValue.attr('class')).toBe('bar up');
-      expect(positiveValue.attr('height')).toBe('50'); //entire height
+      expect(positiveValue.attr('height')).toBe('' + height); //entire height
       expect(positiveValue.attr('y')).toBe('0');  //starts at the top
     });
 

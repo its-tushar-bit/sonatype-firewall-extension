@@ -788,8 +788,8 @@
             .append('svg')
             .attr('class', 'chart');
 
-          var width = $(chart[0]).width(),
-              height = $(chart[0]).height();
+          var width = $(chart[0]).width() || 100,
+              height = $(chart[0]).height() || 25;
 
           var y = d3.scale.linear()
               .domain(d3.extent(data))

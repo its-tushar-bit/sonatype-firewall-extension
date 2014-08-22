@@ -69,6 +69,7 @@
             <!-- <geb.build.baseUrl>http://localhost:8070/</geb.build.baseUrl> -->
           </systemPropertyVariables>
           <argLine>-XX:MaxPermSize=144m</argLine>
+          <trimStackTrace>false</trimStackTrace>
         </configuration>
       </plugin>
       <!--

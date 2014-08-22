@@ -14,9 +14,6 @@ import java.util.Date;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.Properties;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -75,8 +72,6 @@ import com.sonatype.insight.json.store.JsonUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ContainerNode;
-import com.google.common.cache.CacheBuilder;
-import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.IOUtil;
 import org.codehaus.plexus.util.StringUtils;
 import org.slf4j.Logger;
@@ -94,13 +89,7 @@ public class ReportResource
 
   private static final Logger log = LoggerFactory.getLogger(ReportResource.class);
 
-  private static final ConcurrentMap<String, Lock> LOCK_TABLE = CacheBuilder.newBuilder().weakValues()
-      .<String, Lock> build().asMap();
-
   private static final long YEAR = (long) 365 * 24 * 60 * 60 * 1000;
-
-  static final ConcurrentMap<String, Integer> MODIFICATION_COUNTS = CacheBuilder.newBuilder().maximumSize(8192)
-      .<String, Integer> build().asMap();
 
   private final InsightWork work;
 
@@ -110,7 +99,7 @@ public class ReportResource
 
   private ApplicationAdapter applicationAdapter;
 
-  private final ReportDownloader reportDownloader;
+  private final ReportService reportService;
 
   private final PolicyEvaluationUtils policyEvaluationUtils;
 
@@ -123,11 +112,11 @@ public class ReportResource
   private final CurrentUser currentUser;
 
   @Inject
-  public ReportResource(final ReportDownloader reportDownloader, final PolicyEvaluationUtils policyEvaluationUtils,
+  public ReportResource(final ReportService reportService, final PolicyEvaluationUtils policyEvaluationUtils,
       InsightWork work, BaseUrl baseUrl, ApplicationAdapter applicationAdapter, ReportDataService reportDataService,
       ReleaseGraphService releaseGraphService, ComponentDetailsLoader componentDetailsLoader, CurrentUser currentUser)
   {
-    this.reportDownloader = reportDownloader;
+    this.reportService = reportService;
     this.policyEvaluationUtils = policyEvaluationUtils;
     this.work = work;
     this.baseUrl = baseUrl;
@@ -187,7 +176,7 @@ public class ReportResource
     String appId = application.getId();
 
     final String name = Report.toEntryName(path);
-    final File reportFile = fetchReport(reportDownloader, work, appId, scanId, false, false);
+    final File reportFile = reportService.fetchReport(work, appId, scanId, false);
     ReportEntry reportEntry = null;
     try {
       reportEntry = Report.getEntry(reportFile, name);
@@ -253,7 +242,7 @@ public class ReportResource
     String appId = application.getId();
     ContactDTO contact = applicationAdapter.getContact(application.getContactInternalName());
 
-    final File reportFile = fetchReport(reportDownloader, work, appId, scanId, true, false);
+    final File reportFile = reportService.fetchReport(work, appId, scanId, true);
 
     final ResponseBuilder response = Response.ok();
 
@@ -277,7 +266,7 @@ public class ReportResource
       @PathParam("scanId") final String scanId) throws IOException
   {
     Application app = applicationDAO.getByPublicIdNotNull(applicationPublicId);
-    File reportFile = fetchReport(reportDownloader, work, app.getId(), scanId, true, false);
+    File reportFile = reportService.fetchReport(work, app.getId(), scanId, true);
     String filename = "report-" + scanId + ".zip";
 
     Properties templateProps = Report.getTemplateProperties(reportFile);
@@ -510,89 +499,6 @@ public class ReportResource
     UriBuilder uriBuilder = baseUrl.redirect().path(path);
 
     return Response.temporaryRedirect(uriBuilder.build()).build();
-  }
-
-  public static File fetchReport(final ReportDownloader reportDownloader, final InsightWork work, final String appId,
-      final String scanId, final boolean waitForReport, final boolean skipUpdate) throws IOException
-  {
-    final File reportFile = work.getReportFile(appId, scanId);
-    if (reportDownloader == null && !reportFile.exists()) {
-      return null;
-    }
-    final Lock lock = lockFor(appId, scanId);
-    if (waitForReport || reportFile.exists()) {
-      lock.lock(); // protect against concurrent download as well as concurrent editing of the report
-    }
-    else if (!lock.tryLock()) {
-      throw new NotFoundException("The report for scan ID " + scanId + " is still being downloaded");
-    }
-    try {
-      if (!reportFile.exists()) {
-        int attempts = 0;
-        int interval = 0;
-
-        if (waitForReport) {
-          attempts = 30;
-          interval = 30;
-        }
-        final File tempFile = FileUtils.createTempFile("temp-", ".zip", reportFile.getParentFile());
-        if (!reportDownloader.downloadReport(scanId, tempFile, attempts, interval)) {
-          throw new NotFoundException("Could not download the report for scan ID " + scanId);
-        }
-        FileUtils.rename(tempFile, reportFile);
-      }
-
-      if (!skipUpdate) {
-        final File appAuditDir = work.getAuditDir(appId);
-        int newCount = JsonUtils.fileStore(appAuditDir).modificationCount();
-        Application application = new ApplicationDAO().getByIdNotNull(appId);
-        File orgAuditDir = work.getAuditDir(application.getOrganizationId());
-        newCount += JsonUtils.fileStore(orgAuditDir).modificationCount();
-        final Integer oldCount = MODIFICATION_COUNTS.get(appId + '-' + scanId);
-
-        if (oldCount == null || oldCount < newCount) {
-          Report.deletePdf(reportFile);
-
-          Report.applyChanges(application, reportFile, appAuditDir);
-
-          MODIFICATION_COUNTS.put(appId + '-' + scanId, newCount);
-        }
-      }
-
-      return reportFile;
-    }
-    finally {
-      lock.unlock();
-    }
-  }
-
-  public static File getReport(final InsightWork work, final String appId, final String scanId,
-                               final boolean skipUpdate) throws IOException {
-    return fetchReport(null, work, appId, scanId, false, skipUpdate);
-  }
-
-  public static File getReport(final InsightWork work, final String appId, final String scanId) throws IOException {
-    return fetchReport(null, work, appId, scanId, false, false);
-  }
-
-  public static void flushReportChanges(final String appId, final String scanId) {
-    MODIFICATION_COUNTS.remove(appId + '-' + scanId);
-  }
-
-  public static void flushReportChanges() {
-    MODIFICATION_COUNTS.clear();
-  }
-
-  private static Lock lockFor(final String appId, final String scanId) {
-    Lock lock = LOCK_TABLE.get(appId + '-' + scanId);
-    if (lock == null) {
-      final Lock newLock = new ReentrantLock();
-      lock = LOCK_TABLE.putIfAbsent(appId + '-' + scanId, newLock);
-      if (lock == null) {
-        lock = newLock;
-      }
-    }
-    return lock;
   }
 
   public static String getReportPath(final String appPublicId, final String scanId) {

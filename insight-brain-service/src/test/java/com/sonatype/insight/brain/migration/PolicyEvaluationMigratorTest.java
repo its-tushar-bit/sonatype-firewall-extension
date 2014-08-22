@@ -19,7 +19,6 @@ import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.policy.FirstOccurrencePolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
-import com.sonatype.insight.brain.migration.PolicyEvaluationMigrator;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationComponent;
 import com.sonatype.insight.brain.model.Organization;
@@ -32,7 +31,6 @@ import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.report.Report;
-import com.sonatype.insight.brain.report.ReportResource;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightWork;
 
@@ -41,6 +39,7 @@ import org.apache.commons.io.FileUtils;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.empty;
@@ -453,8 +452,8 @@ public class PolicyEvaluationMigratorTest
     assertThat(policyEvaluation.isForObsoleteScan(), is(isForObsoleteScan));
   }
 
-  private void fixReportEntryLastModified(String appId, String scanId, String fileName, long time) throws IOException {
-    File reportFile = ReportResource.getReport(insightWork, appId, scanId, true);
+  private void fixReportEntryLastModified(String appId, String scanId, String fileName, long time) {
+    File reportFile = PolicyEvaluationMigrator.getReport(insightWork, appId, scanId);
     File reportEntryFile = Report.getCacheFile(reportFile, fileName);
     reportEntryFile.setLastModified(time);
   }

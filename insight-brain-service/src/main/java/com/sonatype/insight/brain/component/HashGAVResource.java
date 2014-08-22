@@ -24,7 +24,7 @@ import com.sonatype.clm.dto.model.ComponentSummary;
 import com.sonatype.insight.brain.dataaccess.component.HashGAVDAO;
 import com.sonatype.insight.brain.model.component.HashGAV;
 import com.sonatype.insight.brain.model.component.MavenCoordinates;
-import com.sonatype.insight.brain.report.ReportResource;
+import com.sonatype.insight.brain.report.ReportService;
 import com.sonatype.insight.brain.saas.SaasClient;
 import com.sonatype.insight.error.exception.BadRequestException;
 
@@ -63,7 +63,7 @@ public class HashGAVResource
     hashGAV.setId(null);
     hashGAVDAO.insert(hashGAV);
 
-    ReportResource.flushReportChanges();
+    ReportService.flushReportChanges();
 
     return hashGAV;
   }
@@ -78,7 +78,7 @@ public class HashGAVResource
     hashGAV.setId(existingHashGAV.getId());
     hashGAVDAO.update(hashGAV);
 
-    ReportResource.flushReportChanges();
+    ReportService.flushReportChanges();
 
     return hashGAV;
   }
@@ -94,7 +94,7 @@ public class HashGAVResource
     }
 
     hashGAVDAO.delete(toDelete);
-    ReportResource.flushReportChanges();
+    ReportService.flushReportChanges();
   }
 
   private void ensureUnknownComponent(final HashGAV hashGAV) throws IOException {

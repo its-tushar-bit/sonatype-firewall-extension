@@ -993,7 +993,7 @@ public class ReportResourceTest
     assertThat(response.getResponseBody().replaceFirst("\"time\" : [0-9]+,", ""), equalToIgnoringWhiteSpace(feed));
 
     // force the internal modification count to make it look like we're already up-to-date
-    int oldModCount = ReportResource.MODIFICATION_COUNTS.put(appId + '-' + scanId, 888);
+    int oldModCount = ReportService.MODIFICATION_COUNTS.put(appId + '-' + scanId, 888);
 
     // verify nothing has changed
     response = AuthedRestAccess.get(resourcePrefix + "/browseReport/security.json");
@@ -1001,7 +1001,7 @@ public class ReportResourceTest
     assertThat(response.getResponseBody(), not(containsString("\"state\" : \"accepted\"")));
 
     // put back the accurate modification count, which should lead to a refresh
-    ReportResource.MODIFICATION_COUNTS.put(appId + '-' + scanId, oldModCount);
+    ReportService.MODIFICATION_COUNTS.put(appId + '-' + scanId, oldModCount);
 
     // verify the state has changed
     response = AuthedRestAccess.get(resourcePrefix + "/browseReport/security.json");

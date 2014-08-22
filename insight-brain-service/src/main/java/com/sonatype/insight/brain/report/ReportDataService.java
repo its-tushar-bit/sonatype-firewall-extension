@@ -45,12 +45,17 @@ public class ReportDataService
 
   private final ComponentDAO componentDAO;
 
+  private final ReportService reportService;
+
   @Inject
-  public ReportDataService(InsightWork work, ApplicationDAO appDAO, MultiLicenseDAO multiLicenseDAO, ComponentDAO componentDAO) {
+  public ReportDataService(InsightWork work, ApplicationDAO appDAO, MultiLicenseDAO multiLicenseDAO,
+      ComponentDAO componentDAO, ReportService reportService)
+  {
     this.work = work;
     this.appDAO = appDAO;
     this.multiLicenseDAO = multiLicenseDAO;
     this.componentDAO = componentDAO;
+    this.reportService = reportService;
   }
 
   @Authorize(permission = Permission.READ)
@@ -58,7 +63,7 @@ public class ReportDataService
       String scanId) throws IOException
   {
     Application app = appDAO.getByPublicIdNotNull(applicationPublicId);
-    File reportFile = ReportResource.getReport(work, app.getId(), scanId);
+    File reportFile = reportService.getReport(work, app.getId(), scanId);
     if (reportFile == null) {
       throw new NotFoundException("Could not find a report with ID " + scanId);
     }

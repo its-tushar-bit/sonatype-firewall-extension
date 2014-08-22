@@ -14,9 +14,8 @@ import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ReportPopularity;
 import com.sonatype.insight.brain.report.Report;
-import com.sonatype.insight.brain.report.ReportDownloader;
 import com.sonatype.insight.brain.report.ReportEntry;
-import com.sonatype.insight.brain.report.ReportResource;
+import com.sonatype.insight.brain.report.ReportService;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.json.store.JsonUtils;
 
@@ -29,14 +28,14 @@ public class ReportItemCacheLoader
 
   private final InsightWork work;
 
-  private final ReportDownloader reportDownloader;
+  private final ReportService reportService;
 
   private final ApplicationDAO applicationDAO;
 
   @Inject
-  public ReportItemCacheLoader(InsightWork work, ReportDownloader reportDownloader, ApplicationDAO applicationDAO) {
+  public ReportItemCacheLoader(InsightWork work, ReportService reportService, ApplicationDAO applicationDAO) {
     this.work = work;
-    this.reportDownloader = reportDownloader;
+    this.reportService = reportService;
     this.applicationDAO = applicationDAO;
   }
 
@@ -46,7 +45,7 @@ public class ReportItemCacheLoader
     String appId = application.getId();
 
     final String name = Report.toEntryName("popularity.json");
-    final File reportFile = ReportResource.fetchReport(reportDownloader, work, appId, key.getScanId(), false, false);
+    final File reportFile = reportService.getReport(work, appId, key.getScanId());
     ReportEntry reportEntry = Report.getEntry(reportFile, name);
 
     if (reportEntry == null) {

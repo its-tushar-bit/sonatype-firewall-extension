@@ -50,7 +50,6 @@ import com.sonatype.insight.brain.policy.evaluator.PolicyViolationDiff;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationDigester;
 import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.report.ReportEntry;
-import com.sonatype.insight.brain.report.ReportResource;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.json.store.JsonStore;
 import com.sonatype.insight.json.store.JsonUtils;
@@ -407,11 +406,19 @@ public class PolicyEvaluationMigrator
 
   private ReportEntry findReportEntry(final String appId, final String scanId, final String fileName)
       throws IOException {
-    final File reportFile = ReportResource.getReport(insightWork, appId, scanId, true);
+    final File reportFile = getReport(insightWork, appId, scanId);
     if (reportFile != null) {
       return Report.getEntry(reportFile, fileName);
     }
     return null;
+  }
+
+  static File getReport(final InsightWork work, final String appId, final String scanId) {
+    File reportFile = work.getReportFile(appId, scanId);
+    if (!reportFile.exists()) {
+      return null;
+    }
+    return reportFile;
   }
 
   /**

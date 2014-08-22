@@ -30,7 +30,7 @@ import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.policy.evaluator.PolicyAlertUtil;
 import com.sonatype.insight.brain.report.Report;
-import com.sonatype.insight.brain.report.ReportResource;
+import com.sonatype.insight.brain.report.ReportService;
 import com.sonatype.insight.brain.security.AuthzFilter;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightWork;
@@ -59,10 +59,13 @@ public class SearchResource
 
   private final BaseUrl baseUrl;
 
+  private final ReportService reportService;
+
   @Inject
-  public SearchResource(InsightWork work, BaseUrl baseUrl) {
+  public SearchResource(InsightWork work, BaseUrl baseUrl, ReportService reportService) {
     this.work = work;
     this.baseUrl = baseUrl;
+    this.reportService = reportService;
   }
 
   /**
@@ -118,7 +121,7 @@ public class SearchResource
         continue;
       }
 
-      File reportFile = ReportResource.getReport(work, app.getId(), eval.getScanId());
+      File reportFile = reportService.getReport(work, app.getId(), eval.getScanId());
       if (reportFile == null) {
         log.error("Cannot search application {} for component, recent report does not exist", app.getName());
         continue;

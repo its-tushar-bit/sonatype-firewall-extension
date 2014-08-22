@@ -45,9 +45,8 @@ import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.WaivedPolicyViolation;
 import com.sonatype.insight.brain.report.Report;
-import com.sonatype.insight.brain.report.ReportDownloader;
 import com.sonatype.insight.brain.report.ReportEntry;
-import com.sonatype.insight.brain.report.ReportResource;
+import com.sonatype.insight.brain.report.ReportService;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.json.store.JsonUtils;
@@ -63,7 +62,7 @@ public class PolicyEvaluationUtils
 
   private final InsightWork work;
 
-  private final ReportDownloader reportDownloader;
+  private final ReportService reportService;
 
   private ApplicationDAO applicationDAO = new ApplicationDAO();
 
@@ -74,9 +73,9 @@ public class PolicyEvaluationUtils
   private WaivedPolicyViolationDAO waivedPolicyViolationDAO = new WaivedPolicyViolationDAO();
 
   @Inject
-  public PolicyEvaluationUtils(final InsightWork insightWork, final ReportDownloader reportDownloader) {
+  public PolicyEvaluationUtils(final InsightWork insightWork, final ReportService reportService) {
     this.work = insightWork;
-    this.reportDownloader = reportDownloader;
+    this.reportService = reportService;
   }
 
   public PolicyEvaluation evaluate(final String applicationPublicId, final String scanId, final Stage stage)
@@ -101,7 +100,7 @@ public class PolicyEvaluationUtils
     Application application = applicationDAO.getByPublicIdNotNull(applicationPublicId);
     String appId = application.getId();
 
-    final File reportFile = ReportResource.fetchReport(reportDownloader, work, appId, scanId, true, false);
+    final File reportFile = reportService.fetchReport(work, appId, scanId, true);
 
     final ReportEntry licenseReportEntry = Report.getEntry(reportFile, "licenses.json");
     final ReportEntry securityReportEntry = Report.getEntry(reportFile, "security.json");
@@ -130,7 +129,7 @@ public class PolicyEvaluationUtils
 
     Report.putEntry(reportFile, POLICY_THREATS_FILENAME, PolicyThreatsJsonGenerator.generate(policyResults));
 
-    ReportResource.flushReportChanges(appId, scanId); // ensure policy count is recalculated on fetch
+    ReportService.flushReportChanges(appId, scanId); // ensure policy count is recalculated on fetch
 
     return policyEvaluation;
   }

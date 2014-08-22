@@ -599,24 +599,13 @@ describe('DashboardModule', function() {
       scope = $rootScope.$new();
     }));
 
-    it('sparkline should have reasonable defaults', function() {
+    it('sparkline will have class', function() {
       var element = angular.element('<div sparkline></div>');
       element = compile(element)(scope);
 
       var svg = element.find('svg');
       expect(svg).toBeDefined();
-      expect(+svg.attr('width')).toBe(100);
-      expect(+svg.attr('height')).toBe(25);
-    });
-
-    it('sparkline should respect size configuration', function() {
-      var element = angular.element('<div sparkline style="width:100px; height:200px"></div>');
-      element = compile(element)(scope);
-
-      var svg = element.find('svg');
-      expect(svg).toBeDefined();
-      expect(+svg.attr('width')).toBe(100);
-      expect(+svg.attr('height')).toBe(200);
+      expect(svg.attr('class')).toBe('chart');
     });
 
     it('sparkline should render the line and fill for the base color', function() {
@@ -637,11 +626,11 @@ describe('DashboardModule', function() {
       element = compile(element)(scope);
 
       // expect each point, plus the 'move to' zero path command, plus each point on the base of the fill
-      var fill = element.find('.fill.green');
+      var fill = element.find('.fill.up');
       expect(fill.attr('d').split(',').length).toBe(5);
 
       // expect each point, plus the 'move to' zero path command
-      var line = element.find('.line.green');
+      var line = element.find('.line.up');
       expect(line.attr('d').split(',').length).toBe(3);
     });
 
@@ -649,10 +638,10 @@ describe('DashboardModule', function() {
       var element = angular.element('<div sparkline data="[0,1,2,1,2]" inverse-green="true"></div>');
       element = compile(element)(scope);
 
-      var fill = element.find('.fill.green');
+      var fill = element.find('.fill.down');
       expect(fill.length).toBe(0);
 
-      fill = element.find('.fill.red');
+      fill = element.find('.fill.up');
       expect(fill.length).toBe(1);
     });
   });
@@ -724,21 +713,21 @@ describe('DashboardModule', function() {
 
     it('sets the correct style and size for values below zero', function(){
       var negativeValue = angular.element(element.find('svg').find('rect')[0]);
-      expect(negativeValue.attr('class')).toBe('bar negative');
+      expect(negativeValue.attr('class')).toBe('bar down');
       expect(negativeValue.attr('height')).toBe('25'); //half of chart below zero
       expect(negativeValue.attr('y')).toBe('25');  //starts in the middle between high/low
     });
 
     it('sets the correct style and size for zero values', function(){
       var zero = angular.element(element.find('svg').find('rect')[1]);
-      expect(zero.attr('class')).toBe('bar negative');
+      expect(zero.attr('class')).toBe('bar down');
       expect(zero.attr('height')).toBe('0'); //no height
       expect(zero.attr('y')).toBe('25');  //starts in the middle
     });
 
     it('sets the correct style and size for positive values', function(){
       var positiveValue = angular.element(element.find('svg').find('rect')[2]);
-      expect(positiveValue.attr('class')).toBe('bar positive');
+      expect(positiveValue.attr('class')).toBe('bar up');
       expect(positiveValue.attr('height')).toBe('25'); //half of chart above zero
       expect(positiveValue.attr('y')).toBe('0');  //starts at the top
     });
@@ -763,21 +752,21 @@ describe('DashboardModule', function() {
 
     it('sets the correct style and size for zero values', function(){
       var zero = angular.element(element.find('svg').find('rect')[0]);
-      expect(zero.attr('class')).toBe('bar negative');
+      expect(zero.attr('class')).toBe('bar down');
       expect(zero.attr('height')).toBe('0'); //no height
       expect(parseFloat(zero.attr('y'))).toBe(49.5); //baseline is fudged so it doesn't render outside the svg element
     });
 
     it('sets the correct style and size for intermediate positive value', function(){
       var positiveValue = angular.element(element.find('svg').find('rect')[1]);
-      expect(positiveValue.attr('class')).toBe('bar positive');
+      expect(positiveValue.attr('class')).toBe('bar up');
       expect(positiveValue.attr('height')).toBe('25'); //entire height
       expect(positiveValue.attr('y')).toBe('25');  //starts in the middle
     });
 
     it('sets the correct style and size for maximum positive value', function(){
       var positiveValue = angular.element(element.find('svg').find('rect')[2]);
-      expect(positiveValue.attr('class')).toBe('bar positive');
+      expect(positiveValue.attr('class')).toBe('bar up');
       expect(positiveValue.attr('height')).toBe('50'); //entire height
       expect(positiveValue.attr('y')).toBe('0');  //starts at the top
     });
@@ -808,16 +797,16 @@ describe('DashboardModule', function() {
       $compile(angular.element('<div dashboard-policy-summary filters="filters"></div>'))(scope);
       $httpBackend.flush();
       assertPolicySummaryBlock('Discovered', 100, 17, policySummaryData.weeklyDeltaNew,
-        [83, 84, 85, 87, 87, 90, 90, 91, 96, 98, 99, 99, 100], true,
+        [83, 84, 85, 87, 87, 90, 90, 91, 96, 98, 99, 99, 100], undefined,
         scope.$$childHead.policySummaryData[3]);
       assertPolicySummaryBlock('Fixed', 48, 7, policySummaryData.weeklyDeltaFixed,
-          [41, 42, 42, 43, 44, 45, 46, 47, 47, 47, 47, 48, 48], false,
+          [41, 42, 42, 43, 44, 45, 46, 47, 47, 47, 47, 48, 48], true,
         scope.$$childHead.policySummaryData[2]);
       assertPolicySummaryBlock('Waived', 2, 2, policySummaryData.weeklyDeltaWaived,
-          [0, 0, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2], true,
+          [0, 0, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2], false,
           scope.$$childHead.policySummaryData[1]);
       assertPolicySummaryBlock('Pending', 50, 8, policySummaryData.weeklyDeltaUnresolved,
-        [42, 42, 42, 43, 42, 44, 43, 42, 47, 49, 50, 49, 50], true,
+        [42, 42, 42, 43, 42, 44, 43, 42, 47, 49, 50, 49, 50], false,
         scope.$$childHead.policySummaryData[0]);
 
       expect(scope.$$childHead.error).toBeFalsy();
@@ -830,7 +819,7 @@ describe('DashboardModule', function() {
       expect(scope.$$childHead.error).toBeDefined();
     }));
 
-    function assertPolicySummaryBlock(name, counts, delta, barchartData, sparklineData, inverseGreen,
+    function assertPolicySummaryBlock(name, counts, delta, barchartData, sparklineData, naturalOrder,
                                       policySummaryBlock)
     {
       expect(policySummaryBlock.name).toEqual(name);
@@ -838,7 +827,7 @@ describe('DashboardModule', function() {
       expect(policySummaryBlock.delta).toEqual(delta);
       expect(policySummaryBlock.barChartData).toEqual(barchartData);
       expect(policySummaryBlock.sparklineData).toEqual(sparklineData);
-      expect(policySummaryBlock.inverseGreen).toEqual(inverseGreen);
+      expect(policySummaryBlock.naturalOrder).toEqual(naturalOrder);
     }
   });
 
@@ -977,51 +966,6 @@ describe('DashboardModule', function() {
       $httpBackend.expectGET(CLMLocations.getComponentRisksUrl()).respond([]);
       modalScope.invade();
       $httpBackend.flush();
-    }));
-  });
-
-  describe('Value delta is styled properly', function(){
-    var element;
-    beforeEach(inject(function($rootScope, $httpBackend) {
-      scope = $rootScope.$new();
-      $httpBackend.expectGET('policy-summary-delta').respond('<div></div>');
-    }));
-
-    function compileAndAssert($compile, $httpBackend, isPositive, isNegative) {
-      element = $compile(angular.element('<div delta data="data" inverse-green="inverseGreen"></div>'))(scope);
-      $httpBackend.flush();
-      expect(scope.$$childHead.isPositive()).toBe(isPositive);
-      expect(scope.$$childHead.isNegative()).toBe(isNegative);
-    }
-
-    it('correctly interprets positive values with inverseGreen === false', inject(function($compile, $httpBackend){
-      scope.data = 5;
-      scope.inverseGreen = false;
-      compileAndAssert($compile, $httpBackend, true, false);
-    }));
-
-    it('correctly interprets positive values with inverseGreen === true', inject(function($compile, $httpBackend){
-      scope.data = 5;
-      scope.inverseGreen = true;
-      compileAndAssert($compile, $httpBackend, false, true);
-    }));
-
-    it('correctly interprets negative values with inverseGreen === false', inject(function($compile, $httpBackend){
-      scope.data = -5;
-      scope.inverseGreen = false;
-      compileAndAssert($compile, $httpBackend, false, true);
-    }));
-
-    it('correctly interprets negative values with inverseGreen === true', inject(function($compile, $httpBackend){
-      scope.data = -5;
-      scope.inverseGreen = true;
-      compileAndAssert($compile, $httpBackend, true, false);
-    }));
-
-    it('correctly interprets zero values', inject(function($compile, $httpBackend){
-      scope.data = 0;
-      scope.inverseGreen = true; //shouldn't matter what's set here if data === 0
-      compileAndAssert($compile, $httpBackend, false, false);
     }));
   });
 

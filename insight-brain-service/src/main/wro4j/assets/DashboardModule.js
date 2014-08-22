@@ -780,9 +780,16 @@
       link: function(scope, element) {
         function barChart() {
           var data = scope.data;
-          var width = element.width(), height = element.height();
 
           d3.select(element[0]).select('svg').remove();
+
+          // allow the svg element to take up all the parent's space
+          var chart = d3.select(element[0])
+            .append('svg')
+            .attr('class', 'chart');
+
+          var width = $(chart[0]).width(),
+              height = $(chart[0]).height();
 
           var y = d3.scale.linear()
               .domain(d3.extent(data))
@@ -790,11 +797,6 @@
           var x = d3.scale.ordinal()
             .domain(d3.range(data.length))
             .rangeRoundBands([0, width], 0.2);
-
-          // allow the svg element to take up all the parent's space
-          var chart = d3.select(element[0])
-            .append('svg')
-            .attr('class', 'chart');
 
           // baseline will render at bottom for positive data, somewhere in between for positive/negative data
           // Need to fudge a bit if we're drawing at the bottom of the container to account for the stroke-width
@@ -844,11 +846,8 @@
       },
       link: function postLink(scope, element) {
         function sparkline() {
-          var config = {
-            width : element.width() || 100,
-            height: element.height() || 25
-          };
-          var data = scope.data || [];
+          var data = scope.data || [],
+              config = {};
 
           d3.select(element[0]).select('svg').remove();
 
@@ -880,6 +879,9 @@
           var svg = d3.select(element[0]).append('svg')
             .attr('class', 'chart')
             .append('g');
+
+          config.width = $(svg[0][0]).parent().width() || 100;
+          config.height = $(svg[0][0]).parent().height() || 25;
 
           var yScale = d3.scale.linear().range([config.height - graphPadding, graphPadding]),
             pastX = d3.scale.linear().range([graphPadding, config.width - config.width / data.length - graphPadding]),

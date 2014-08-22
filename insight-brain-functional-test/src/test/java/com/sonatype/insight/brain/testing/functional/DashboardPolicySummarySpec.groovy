@@ -176,7 +176,7 @@ extends BaseSpec {
     policySummary.discoveredRow.sparkline.isTrailingBlue()
     policySummary.fixedRow.sparkline.isTrailingGreen()
     policySummary.pendingRow.sparkline.isTrailingGreen()
-    policySummary.waivedRow.sparkline.isTrailingRed()
+    policySummary.waivedRow.sparkline.isTrailingGreen()
 
     when: 'hovering over sparkline'
     interact {

@@ -307,6 +307,9 @@ table th#affected-apps {
   margin:0px;
 }
 
+.dashboard-content .nav.nav-tabs .active {
+  margin-bottom: 0px;
+}
 .dashboard-content .nav.nav-tabs .active a {
   border-bottom:1px solid #2476FC;
 }

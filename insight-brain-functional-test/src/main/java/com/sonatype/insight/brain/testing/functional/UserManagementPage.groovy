@@ -44,7 +44,7 @@ class UserManagementPage
     summarySection { index -> $('div.accordion-inner', index) }
 
     editPanel(required: false) { index -> $('.accordion-body', index) }
-    editPanelForm(rqeuired: false) { index -> editPanel(index).find('form') }
+    editPanelForm(required: false) { index -> editPanel(index).find('form') }
     editFirstNameInput(required: false) { index -> editPanelForm(index).find('input[name=firstName]') }
     editLastNameInput(required: false) { index -> editPanelForm(index).find('input[name=lastName]') }
     editEmailInput(required: false) { index -> editPanelForm(index).find('input[name=email]') }

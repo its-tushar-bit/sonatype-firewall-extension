@@ -16,7 +16,7 @@ class UserManagementPage
 
   static content = {
     newUserButton(wait: true) { $('#user-new') }
-    userForm(required: false) { $('#user-form') }
+    userForm(required: false) { $('form[id$="user-form"]') }
 
     firstNameInput(required: false) { userForm.firstName() }
     lastNameInput(required: false) { userForm.lastName() }
@@ -25,8 +25,8 @@ class UserManagementPage
     passwordInput(required: false) { userForm.password() }
     passwordValidateInput(required: false) { userForm.passwordValidate() }
 
-    save(required: false) { $('#user-form-save') }
-    cancel(required: false) { $('#user-form-cancel') }
+    save(required: false) { $('button[id$="user-form-save"]') }
+    cancel(required: false) { $('button[id$="user-form-cancel"]') }
     headers(required: false) { $('a.accordion-toggle') }
     header(required: false) { index -> $('a.accordion-toggle', index) }
     currentUsers(required: false) { $('span[ng-if="isCurrentUser(user)"]').parent().find('h4') }

@@ -39,7 +39,7 @@ class ContactUserSpec
     when: 'User selects admin as contact'
       ApplicationPage appPage = at ApplicationPage
       appPage.applicationContactField.click()
-      waitFor { appPage.applicationContactDialog.displayed }
+      waitFor { appPage.applicationContactDialogSearchField.displayed }
 
       appPage.applicationContactDialogSearchField << 'admin*'
       appPage.applicationContactDialogSearchButton.click()

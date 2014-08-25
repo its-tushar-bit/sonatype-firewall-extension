@@ -126,7 +126,7 @@
           // Update Grid
           DataView.updateItem(SelectedComponent.id, component);
           // Update Summary Page
-          InsightDatatable.updateSummary();
+          Insight.updateSummary();
         }
       }
 

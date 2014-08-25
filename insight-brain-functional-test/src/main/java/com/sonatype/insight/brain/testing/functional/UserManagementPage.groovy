@@ -30,6 +30,7 @@ class UserManagementPage
     headers(required: false) { $('a.accordion-toggle') }
     header(required: false) { index -> $('a.accordion-toggle', index) }
     currentUsers(required: false) { $('span[ng-if="isCurrentUser(user)"]').parent().find('h4') }
+    editUserButton(required: false) { index -> header(index).parent().find('button[ng-click="editClick(user)"]') }
     deleteUserButton(required: false) { index -> header(index).parent().find('button[ng-click="removeClick(user)"]') }
     resetUserButton(required: false) {
       index -> header(index).parent().find('button[ng-click="resetPasswordClick(user)"]')
@@ -41,5 +42,12 @@ class UserManagementPage
     newPasswordField(required: false) { $('#generatedPassword') }
 
     summarySection { index -> $('div.accordion-inner', index) }
+
+    editPanel(required: false) { index -> $('.accordion-body', index) }
+    editPanelForm(rqeuired: false) { index -> editPanel(index).find('form') }
+    editFirstNameInput(required: false) { index -> editPanelForm(index).find('input[name=firstName]') }
+    editLastNameInput(required: false) { index -> editPanelForm(index).find('input[name=lastName]') }
+    editEmailInput(required: false) { index -> editPanelForm(index).find('input[name=email]') }
+    editSave(required: false) { index -> editPanelForm(index).find('button[ng-click="saveClick(user)"]') }
   }
 }

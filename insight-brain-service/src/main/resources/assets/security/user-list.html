@@ -55,7 +55,7 @@
   </script>
   <script type='text/ng-template' id='user-item'>
 <div ng-show='context.users' class="accordion users">
-  <button id='user-new' ng-show='!user' type='button' class='btn add-new new-user-button' ng-click='newUserClick()'>
+  <button id='user-new' ng-if='!user' type='button' class='btn add-new new-user-button' ng-click='newUserClick()'>
     <i class='icon icon-plus'></i> New User
   </button>
   <div ng-if='user'>
@@ -79,7 +79,7 @@
           <input clm-input id='email' name="email" type="email" ng-required="true" placeholder="ex. iasimov@sonatype.com"
                  ng-model="user.email">
         </div>
-        <div ng-show="!user.id">
+        <div ng-if="!user.id">
           <div clm-control-group for="username" label="Username">
             <input clm-input id="username" name="username" type="text" ng-required="!user.id" ng-pattern="/^\S*$/"
                    alpha-numeric is-duplicate is-duplicate-array="context.users" is-duplicate-id-field="id"

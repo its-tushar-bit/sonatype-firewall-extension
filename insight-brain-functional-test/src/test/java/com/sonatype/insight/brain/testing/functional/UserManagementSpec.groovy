@@ -193,10 +193,54 @@ class UserManagementSpec
       userOptions.logoutClick()
   }
 
-  def "The newly added user can be deleted"() {
+  def "The newly added user can be edited"() {
     setup: 'log back in as an admin'
       loginAsAdminVia(UserManagementPage)
 
+    when: 'hovering over the header of the user in the list'
+      interact {
+        moveToElement(header(0))
+      }
+
+    then: 'we can now see the edit symbol'
+      editUserButton(0).displayed
+
+    when: 'clicking on edit'
+      editUserButton(0).click()
+
+    then: 'we are shown the editable content'
+      waitFor { editPanel(0).displayed }
+
+    and: 'we are shown the proper user content'
+      editFirstNameInput(0).value() == 'add'
+      editLastNameInput(0).value() == 'user'
+      editEmailInput(0).value() == 'addusertest@email.com'
+
+    and: 'the save button is disabled'
+      editSave(0).@disabled == 'true'
+
+    then: 'we change some data'
+      editFirstNameInput(0).value('testupdateFirstName')
+      editLastNameInput(0).value('testupdateLastName')
+      editEmailInput(0).value('emailLastName@email.com')
+
+    and: 'the save button is enabled'
+      editSave(0).@disabled == ''
+
+    when: 'user clicks the save button'
+      editSave(0).click()
+
+    then: 'user data is updated'
+      def summary = summarySection(0)
+      waitFor { summary.displayed }
+      summary.find('td', text: 'testupdateFirstName').displayed
+      summary.find('td', text: 'testupdateLastName').displayed
+      summary.find('td', text: 'emailLastName@email.com').displayed
+      currentUsers.size() == 1
+      currentUsers.text() == 'admin (Admin BuiltIn)'
+  }
+
+  def "The newly added user can be deleted"() {
     when: 'hovering over the header of the user in the list'
       interact {
         moveToElement(header(0))

@@ -230,7 +230,10 @@ class UserManagementSpec
     when: 'user clicks the save button'
       editSave(0).click()
 
-    then: 'user data is updated'
+    then: 'the edit form is closed'
+      waitFor { !editPanelForm(0).displayed }
+
+    and: 'user data is updated'
       def summary = summarySection(0)
       waitFor { summary.displayed }
       summary.find('td', text: 'testupdateFirstName').displayed

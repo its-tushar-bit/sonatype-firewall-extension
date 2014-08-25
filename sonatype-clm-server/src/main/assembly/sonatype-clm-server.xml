@@ -23,6 +23,10 @@
       <directory>src/main/filtered-resources</directory>
       <outputDirectory>.</outputDirectory>
       <filtered>true</filtered>
+      <!-- Exclude demo.sh as it will need to have its executable bit set. -->
+      <excludes>
+        <exclude>demo.sh</exclude>
+      </excludes>
     </fileSet>
   </fileSets>
   <files>
@@ -34,8 +38,8 @@
     <!-- 
       Flip executable bit for demo bash script.
       
-      NOTE: this directive needs to be after the general fileSet for filtered-resources so that it overwrites that copy
-      with this one.
+      NOTE: The order of execution between a fileSet and a files collection is indeterminate
+            so it must be excluded from the fileSet to ensure that this flag is set.
     -->
     <file>
       <source>src/main/filtered-resources/demo.sh</source>

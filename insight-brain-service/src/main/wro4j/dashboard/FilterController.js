@@ -79,6 +79,11 @@
             mappedItems.sort(sortFn);
           }
 
+          //a 2nd pass over the list to encode _after_ sorting is complete
+          mappedItems = $.map(mappedItems, function(item){
+            return encodeURIComponent(item);
+          });
+
           return mappedItems.join('<br/>');
         }
 
@@ -102,8 +107,7 @@
 
       function populateNameMap(itemList, nameMap) {
         angular.forEach(itemList, function(item){
-          //just to be safe
-          nameMap[item.id] = encodeURIComponent(item.name);
+          nameMap[item.id] = item.name;
         });
       }
 

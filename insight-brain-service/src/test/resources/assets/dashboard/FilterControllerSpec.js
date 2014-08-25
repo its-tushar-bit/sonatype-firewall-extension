@@ -18,7 +18,7 @@ describe('FilterController', function() {
     {
       id: 'applicationIdZ',
       publicId: 'applicationPublicIdZ',
-      name: 'ApplicationZ',
+      name: 'ApplicationZ!@#$%^&*()`~-_=+[{]}\'\";:/?.>,<\\',
       organizationId: 'orgId1'
     },
     {
@@ -105,7 +105,8 @@ describe('FilterController', function() {
     expect($scope.applicationTags.length).toBe(tagData.length);
     expect($scope.applicationTags[0].id).toBe(tagData[0].id);
     expect($scope.applicationTags[0].owner).toBe(organizationData[0].name);
-    expect($scope.applicationsTooltip).toBe('ApplicationA<br/>ApplicationQ<br/>ApplicationZ');
+    //make sure the html encoding done
+    expect($scope.applicationsTooltip).toBe('ApplicationA<br/>ApplicationQ<br/>ApplicationZ!%40%23%24%25%5E%26*()%60~-_%3D%2B%5B%7B%5D%7D\'%22%3B%3A%2F%3F.%3E%2C%3C%5C');
     expect($scope.applicationTagsTooltip).toBe('TagOne<br/>TagTwo');
     expect($scope.stageTypesTooltip).toBe('Build<br/>Stage-Release<br/>Release');
     expect($scope.policyTypesTooltip).toBe('Security<br/>Quality<br/>Other');

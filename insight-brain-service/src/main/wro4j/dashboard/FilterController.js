@@ -102,7 +102,8 @@
 
       function populateNameMap(itemList, nameMap) {
         angular.forEach(itemList, function(item){
-          nameMap[item.id] = item.name;
+          //just to be safe
+          nameMap[item.id] = encodeURIComponent(item.name);
         });
       }
 

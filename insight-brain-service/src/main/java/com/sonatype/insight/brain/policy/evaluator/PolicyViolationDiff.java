@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.policy.evaluator;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -28,7 +29,7 @@ public class PolicyViolationDiff
     appeared.add(policyViolation);
   }
 
-  public void addAppeared(List<PolicyViolation> policyViolations) {
+  public void addAppeared(Collection<PolicyViolation> policyViolations) {
     appeared.addAll(policyViolations);
   }
 

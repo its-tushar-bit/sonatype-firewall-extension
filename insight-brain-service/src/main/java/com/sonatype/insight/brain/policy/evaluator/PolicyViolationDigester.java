@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.policy.evaluator;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -78,15 +79,15 @@ public class PolicyViolationDigester
     }
   };
   
-  private static List<PolicyViolation> sort(List<PolicyViolation> policyViolations) {
+  private static List<PolicyViolation> sort(Collection<PolicyViolation> policyViolations) {
     List<PolicyViolation> result = new ArrayList<>();
     result.addAll(policyViolations);
     Collections.sort(result, POLICY_VIOLATION_COMPARATOR);
     return result;
   }
 
-  public static PolicyViolationDiff digestPolicyViolations(List<PolicyViolation> oldViolations,
-      List<PolicyViolation> newViolations)
+  public static PolicyViolationDiff digestPolicyViolations(Collection<PolicyViolation> oldViolations,
+      Collection<PolicyViolation> newViolations)
   {
     PolicyViolationDiff diff = new PolicyViolationDiff();
 
@@ -94,23 +95,23 @@ public class PolicyViolationDigester
       diff.addAppeared(newViolations);
       return diff;
     }
-    newViolations = sort(newViolations);
-    oldViolations = sort(oldViolations);
+    List<PolicyViolation> newViolationsSorted = sort(newViolations);
+    List<PolicyViolation> oldViolationsSorted = sort(oldViolations);
 
     int i = 0, j = 0;
     while (true) {
-      if (j >= oldViolations.size()) {
-        if (i >= newViolations.size()) {
+      if (j >= oldViolationsSorted.size()) {
+        if (i >= newViolationsSorted.size()) {
           break; // nothing left
         }
-        diff.addAppeared(newViolations.get(i++));
+        diff.addAppeared(newViolationsSorted.get(i++));
       }
-      else if (i >= newViolations.size()) {
-        diff.addCleared(oldViolations.get(j++));
+      else if (i >= newViolationsSorted.size()) {
+        diff.addCleared(oldViolationsSorted.get(j++));
       }
       else {
-        final PolicyViolation newViolation = newViolations.get(i);
-        final PolicyViolation oldViolation = oldViolations.get(j);
+        final PolicyViolation newViolation = newViolationsSorted.get(i);
+        final PolicyViolation oldViolation = oldViolationsSorted.get(j);
 
         final int comparison = POLICY_VIOLATION_COMPARATOR.compare(newViolation, oldViolation);
         if (comparison < 0) {

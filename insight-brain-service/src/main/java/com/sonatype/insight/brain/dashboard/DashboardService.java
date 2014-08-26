@@ -1048,15 +1048,12 @@ public class DashboardService
 
   private static class PolicyViolationsWithStageTypes
   {
-    private List<PolicyViolation> policyViolations = new ArrayList<>();
-
     private Map<PolicyViolation, Set<String>> stageTypesByViolation = new LinkedHashMap<>();
 
     void addViolationWithStageType(PolicyViolation policyViolation, String stageTypeId) {
       Set<String> stageTypeIds = new LinkedHashSet<>();
       stageTypeIds.add(stageTypeId);
       stageTypesByViolation.put(policyViolation, stageTypeIds);
-      policyViolations.add(policyViolation);
     }
 
     void addStageTypeToViolation(PolicyViolation policyViolation, String stageTypeId) {
@@ -1072,7 +1069,6 @@ public class DashboardService
       stageTypeIds.remove(stageTypeId);
       if (stageTypeIds.isEmpty()) {
         stageTypesByViolation.remove(policyViolation);
-        policyViolations.remove(policyViolation);
         return true;
       }
       return false;
@@ -1080,13 +1076,11 @@ public class DashboardService
 
     void replacePolicyViolation(PolicyViolation oldViolation, PolicyViolation newViolation) {
       Set<String> stageTypeIds = stageTypesByViolation.remove(oldViolation);
-      policyViolations.remove(oldViolation);
       stageTypesByViolation.put(newViolation, stageTypeIds);
-      policyViolations.add(newViolation);
     }
 
-    List<PolicyViolation> getPolicyViolations() {
-      return Collections.unmodifiableList(policyViolations);
+    Collection<PolicyViolation> getPolicyViolations() {
+      return Collections.unmodifiableCollection(stageTypesByViolation.keySet());
     }
   }
 

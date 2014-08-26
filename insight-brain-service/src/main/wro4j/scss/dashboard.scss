@@ -223,7 +223,7 @@ Collapsed
 */
 $filter-content-left-padding: 15px;
 $filter-multi-dropdown-width: 190px;
-
+$filter-item-top-bottom-padding: 10px;
 .filter-panel-container {
   position: fixed;
   top: 40px;
@@ -261,15 +261,15 @@ $filter-multi-dropdown-width: 190px;
 }
 
 .filter-item-collapsed {
-  padding-top: 10px;
-  padding-bottom: 42px;
+  padding-top: $filter-item-top-bottom-padding;
+  padding-bottom: $filter-item-top-bottom-padding;
   padding-left: $filter-content-left-padding;
 }
 
 .filter-item-expanded {
   padding-left: $filter-content-left-padding;
-  padding-top: 10px;
-  padding-bottom: 10px;
+  padding-top: $filter-item-top-bottom-padding;
+  padding-bottom: $filter-item-top-bottom-padding;
 }
 
 .filter-item-content {

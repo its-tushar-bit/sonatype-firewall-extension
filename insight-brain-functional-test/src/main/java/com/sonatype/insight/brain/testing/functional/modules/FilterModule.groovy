@@ -29,6 +29,12 @@ class FilterModule
       module TooltipModule, $('#policy-threat-level-filter-item-collapsed')
     }
 
+    applicationSummaryCount(required: false) { applicationSummary.find('div') }
+    applicationTagSummaryCount(required: false) { applicationTagSummary.find('div') }
+    stageTypeSummaryCount(required: false) { stageTypeSummary.find('div') }
+    policyTypeSummaryCount(required: false) { policyTypeSummary.find('div') }
+    policyThreatLevelSummaryCount(required: false) { policyThreatLevelSummary.find('div') }
+
     noApplications(required: false) { $('#no-applications') }
     noApplicationTags(required: false) { $('#no-application-tags') }
 

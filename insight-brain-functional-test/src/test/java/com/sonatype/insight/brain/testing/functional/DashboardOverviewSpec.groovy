@@ -811,6 +811,13 @@ class DashboardOverviewSpec
       newestRiskPage.filters.stageTypeSummary.getTooltipContent() == 'Release'
       newestRiskPage.filters.policyTypeSummary.getTooltipContent() == 'Security\nOther'
       newestRiskPage.filters.policyThreatLevelSummary.getTooltipContent() == 'Policy threat levels 3 through 6'
+
+    and: 'See proper counts set in the filters'
+      newestRiskPage.filters.applicationSummaryCount.text() == '2'
+      newestRiskPage.filters.applicationTagSummary.text() == '1'
+      newestRiskPage.filters.stageTypeSummary.text() == '1'
+      newestRiskPage.filters.policyTypeSummary.text() == '2'
+      newestRiskPage.filters.policyThreatLevelSummary.text() == '4'
   }
 
   def 'Components Table'() {

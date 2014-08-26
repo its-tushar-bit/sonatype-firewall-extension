@@ -7,11 +7,14 @@
 (function() {
   'use strict';
 
-  var filterModule = angular.module('FilterModule', ['CommonServices', 'CLMLocation', 'Stores', 'BootstrapSlider']);
+  var filterModule = angular.module('FilterModule',
+      ['CommonServices', 'CLMLocation', 'Stores', 'BootstrapSlider']);
 
   filterModule.controller('FilterController', [
     '$scope', '$http', '$q', 'CLMLocations', 'ApplicationStore', 'StageTypeStore', 'OrganizationStore',
     function($scope, $http, $q, CLMLocations, ApplicationStore, StageTypeStore, OrganizationStore) {
+      //simply used for escaping html strings below
+      var utilDom = $('<span></span>');
       function getEmptyFilters() {
         return {
           applicationIds: [],
@@ -79,9 +82,9 @@
             mappedItems.sort(sortFn);
           }
 
-          //a 2nd pass over the list to encode _after_ sorting is complete
+          //a 2nd pass over the list to escape the html _after_ sorting is complete
           mappedItems = $.map(mappedItems, function(item){
-            return encodeURIComponent(item);
+            return utilDom.text(item).html();
           });
 
           return mappedItems.join('<br/>');

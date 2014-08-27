@@ -293,6 +293,7 @@ $filter-item-top-bottom-padding: 10px;
 //don't want the text to overlay the caret
 .filter-item-content .btn span div {
   max-width: 150px;
+  float: left;
 }
 
 .filter-item-content .multi-dropdown .dropdown-menu {

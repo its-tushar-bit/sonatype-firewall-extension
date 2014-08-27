@@ -11,6 +11,10 @@ import geb.report.ReporterSupport
 import geb.spock.GebSpec
 import groovy.util.logging.Slf4j
 import net.lightbody.bmp.proxy.ProxyServer
+import org.apache.http.client.methods.HttpPost
+import org.apache.http.entity.mime.MultipartEntity
+import org.apache.http.entity.mime.content.ByteArrayBody
+import org.apache.http.impl.client.HttpClientBuilder
 import org.junit.Rule
 import org.junit.rules.TestName
 import org.openqa.selenium.chrome.ChromeDriver
@@ -54,6 +58,9 @@ abstract class BasePerformanceSpec
   DesiredCapabilities capabilities
 
   static final int PROXY_PORT = PortAllocator.findFreePort(9090)
+
+  static final boolean useHarStorage = System.getProperty('useHarStorage', 'false').toBoolean()
+  static final String harStorageUrl = System.getProperty('harStorageUrl', 'http://localhost:5000')
 
   def setupSpec() {
     //start copied from GebReportingSpec
@@ -137,9 +144,24 @@ abstract class BasePerformanceSpec
   }
 
   void reportHAR(String name) {
-    new File(browser.getReportGroupDir(), "${name}.har".toString()).withOutputStream { os ->
-      proxyServer.har.writeTo(os)
-      proxyServer.endPage()
+    if (!useHarStorage) {
+      new File(browser.getReportGroupDir(), "${name}.har".toString()).withOutputStream { os ->
+        proxyServer.har.writeTo(os)
+        proxyServer.endPage()
+      }
+    } else {
+      def client = HttpClientBuilder.create().build()
+      def post = new HttpPost("${harStorageUrl}/results/upload")
+
+      def byteStream = new ByteArrayOutputStream()
+      proxyServer.har.writeTo(byteStream)
+      def body = new ByteArrayBody(byteStream.toByteArray(), "application/json", "${name}.har")
+
+      def entity = new MultipartEntity()
+      entity.addPart("file", body)
+
+      post.setEntity(entity)
+      client.execute(post)
     }
   }
 }

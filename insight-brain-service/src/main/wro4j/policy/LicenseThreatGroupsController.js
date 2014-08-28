@@ -12,7 +12,8 @@
       title : 'Unsaved Changes',
       body : 'There are unsaved changes, continuing will discard any unsaved changes.',
       buttons : [{
-        name : 'Cancel'
+        name : 'Cancel',
+        type: 'cancel'
       }, {
         name : 'Confirm',
         type : 'danger',

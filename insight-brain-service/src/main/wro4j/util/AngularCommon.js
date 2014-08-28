@@ -761,10 +761,20 @@ var AngularStateUtils = {
               '<div class="modal-body"><p ng-bind-html="body"></p></div>' +
               '<div class="modal-footer">' +
                 '<button ng-repeat="button in buttons" ' +
-                'ng-class="{\'btn-danger\' : button.type == \'danger\',\'btn-primary\' : button.type == \'primary\', \'btn-link btn-cancel\' : button.type == \'cancel\' }" ' +
+                'ng-class="{\'btn-danger\' : button.type == \'danger\', \'btn-primary\' : button.type == \'primary\', ' +
+                '\'btn-link btn-cancel\' : button.type == \'cancel\', \'pull-right\' : button.type != \'cancel\' }" ' +
                 'class="btn" ng-click="button.click()">{{button.name}}</button>' +
               '</div></div>',
           controller: ['$scope', function(scope) {
+            // Since the buttons need to be set in the controller, the cancel button should appear last. This fixes a
+            // browser bug where elements that are dynamically added float: right after others break to a new line
+            for (var i = config.buttons.length - 1; i >= 0; i--) {
+              var button = config.buttons[i];
+              if (button.type === 'cancel') {
+                config.buttons.splice(i, 1);
+                config.buttons.push(button);
+              }
+            }
             scope.buttons = config.buttons;
             scope.title = config.title;
             scope.body = config.body;

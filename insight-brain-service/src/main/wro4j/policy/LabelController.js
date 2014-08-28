@@ -49,7 +49,8 @@
             body: 'This label may contain unsaved changes, continuing will discard them.',
             buttons: [
               {
-                name: 'Cancel'
+                name: 'Cancel',
+                type: 'cancel'
               },
               {
                 name : 'Continue',

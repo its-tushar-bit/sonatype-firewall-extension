@@ -188,7 +188,8 @@
           body : 'Are you sure you want to delete this LDAP configuration?',
           id : 'delete-ldap-confirmation',
           buttons : [{
-            name : 'Cancel'
+            name : 'Cancel',
+            type: 'cancel'
           },{
             name : 'Delete',
             type : 'danger',

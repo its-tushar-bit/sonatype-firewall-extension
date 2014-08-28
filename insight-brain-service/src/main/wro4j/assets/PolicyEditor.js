@@ -99,7 +99,8 @@
           title : 'Remove Constraint',
           body : 'Are you sure you want to delete this constraint?',
           buttons : [{
-            name : 'Cancel'
+            name : 'Cancel',
+            type: 'cancel'
           }, {
             name : 'Delete',
             type : 'danger',
@@ -249,7 +250,8 @@
               title : 'Unsaved Changes',
               body : 'This policy may contain unsaved changes. Continuing will discard any unsaved changes.',
               buttons : [{
-                name : 'Cancel'
+                name : 'Cancel',
+                type: 'cancel'
               }, {
                 name : 'Discard',
                 type : 'danger',

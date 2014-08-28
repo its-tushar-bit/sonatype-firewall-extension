@@ -225,7 +225,8 @@
             ' This change will not be reflected until a new policy evaluation is triggered.',
           buttons: [
             {
-              name: 'Cancel'
+              name: 'Cancel',
+              type: 'cancel'
             },
             {
               name : 'Revoke',

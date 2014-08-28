@@ -73,6 +73,7 @@
           buttons: [
             {
               name: 'Cancel',
+              type: 'cancel',
               dismiss: true
             },
             {

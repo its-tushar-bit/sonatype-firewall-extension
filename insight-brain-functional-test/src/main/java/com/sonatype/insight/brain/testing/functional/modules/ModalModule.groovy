@@ -24,6 +24,8 @@ class ModalModule
 
   def continueText = 'Continue'
 
+  def applyText = 'Apply'
+
   def static content = {
     modals(required: false) { $('div.modal') }
     modal { modals.has('h3', text: title) }
@@ -32,6 +34,7 @@ class ModalModule
     cancel(required: false) { buttons.button(cancelText) }
     ok(required: false) { buttons.button(okText) }
     continueButton(required: false) { buttons.button(continueText) }
+    applyButton(required: false) { buttons.button(applyText) }
     text(required: false) { modal.find('p').text() }
   }
 }

@@ -269,6 +269,52 @@ class DashboardOverviewSpec
       waitFor { filters.policyThreatLevelSummary.getTooltipContent() == 'Policy threat level 4' }
   }
 
+  def 'Collapse filters presents apply dialog when necessary'() {
+    when: 'clicking the filter toggle button'
+      filters.toggle.click()
+
+    and: 'Change some data'
+      waitFor { filters.applicationMultiselect.displayed }
+      filters.applicationMultiselect.toggleOption(firstApp.name)
+
+    and: 'Collapse the panel'
+      filters.toggle.click()
+
+    then: 'The apply filter dialog is shown'
+      waitFor { applyFilterModal.displayed }
+
+    when: 'User clicks cancel'
+      applyFilterModal.cancel.click()
+
+    then: 'The panel is closed'
+      waitFor { filters.applicationSummary.displayed }
+
+    and: 'no new applications are added'
+      filters.applicationSummary.getTooltipContent() == 'All applications'
+
+    when: 'clicking the filter toggle button'
+      filters.toggle.click()
+
+    and: 'Change some data'
+      waitFor { filters.applicationMultiselect.displayed }
+      filters.applicationMultiselect.toggleOption(firstApp.name)
+
+    and: 'Collapse the panel'
+      filters.toggle.click()
+
+    then: 'The apply filter dialog is shown'
+      waitFor { applyFilterModal.displayed }
+
+    when: 'User clicks apply'
+      applyFilterModal.applyButton.click()
+
+    then: 'The panel is closed'
+      waitFor { filters.applicationSummary.displayed }
+
+    and: 'the new application is added'
+      filters.applicationSummary.getTooltipContent() == firstApp.name
+  }
+
   def 'Unknown components have popover displaying pathnames'() {
     when: 'newest risk table is shown'
       tabLinks.newestRiskTabButton.click()

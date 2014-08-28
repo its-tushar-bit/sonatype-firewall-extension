@@ -8,11 +8,11 @@
   'use strict';
 
   var filterModule = angular.module('FilterModule',
-      ['CommonServices', 'CLMLocation', 'Stores', 'BootstrapSlider']);
+      ['CommonServices', 'AngularCommon', 'CLMLocation', 'Stores', 'BootstrapSlider']);
 
   filterModule.controller('FilterController', [
-    '$scope', '$http', '$q', 'CLMLocations', 'ApplicationStore', 'StageTypeStore', 'OrganizationStore',
-    function($scope, $http, $q, CLMLocations, ApplicationStore, StageTypeStore, OrganizationStore) {
+    '$scope', '$http', '$q', 'Dialog', 'CLMLocations', 'ApplicationStore', 'StageTypeStore', 'OrganizationStore',
+    function($scope, $http, $q, Dialog, CLMLocations, ApplicationStore, StageTypeStore, OrganizationStore) {
       //simply used for escaping html strings below
       var utilDom = $('<span></span>');
       function getEmptyFilters() {
@@ -215,6 +215,33 @@
         },function(){
           $scope.alerts = [AngularUtils.toAlert(arguments)];
         });
+      };
+
+      $scope.togglePanel = function() {
+        if ($scope.expanded && !angular.equals($scope.dirtyFilters, $scope.filters)) {
+          Dialog.open({
+            title: 'Filter Settings Changed',
+            body: 'Your filter settings have unsaved changes, apply them now?',
+            buttons: [
+              {
+                name: 'Cancel',
+                type: 'cancel',
+                click: function() {
+                  $scope.cancel();
+                }
+              },
+              {
+                name: 'Apply',
+                type: 'primary',
+                click: function() {
+                  $scope.save();
+                }
+              }
+            ]
+          });
+        } else {
+          $scope.expanded = !$scope.expanded;
+        }
       };
 
       $scope.$on('reloadFilter', function(){

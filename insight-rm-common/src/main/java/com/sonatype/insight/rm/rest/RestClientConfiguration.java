@@ -9,7 +9,7 @@ import com.sonatype.insight.client.utils.HttpClientUtils;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.client.utils.SimpleAuthentication;
 
-import org.apache.http.client.HttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
 
 public class RestClientConfiguration
 {
@@ -72,7 +72,7 @@ public class RestClientConfiguration
     config.setHttpClientProvider(new HttpClientUtils.HttpClientProvider()
     {
       @Override
-      public HttpClient createHttpClient(final Configuration config) {
+      public HttpClientBuilder create(final Configuration config) {
         return httpClientProvider.createHttpClient(RestClientConfiguration.this);
       }
     });
@@ -82,7 +82,7 @@ public class RestClientConfiguration
   public static interface HttpClientProvider
   {
 
-    HttpClient createHttpClient(RestClientConfiguration config);
+    HttpClientBuilder createHttpClient(RestClientConfiguration config);
 
   }
 

@@ -48,17 +48,14 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.client.params.ClientPNames;
-import org.apache.http.conn.ClientConnectionManager;
-import org.apache.http.conn.ClientConnectionManagerFactory;
+import org.apache.http.conn.HttpClientConnectionManager;
 import org.apache.http.conn.HttpHostConnectException;
-import org.apache.http.conn.scheme.SchemeRegistry;
 import org.apache.http.entity.BufferedHttpEntity;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.FileEntity;
 import org.apache.http.entity.InputStreamEntity;
-import org.apache.http.impl.conn.PoolingClientConnectionManager;
-import org.apache.http.params.HttpParams;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.util.EntityUtils;
 import org.codehaus.plexus.util.IOUtil;
 import org.slf4j.Logger;
@@ -85,14 +82,13 @@ public class SaasClient
 
   public static final String UPLOAD_FILE_ATTRIBUTE = "saas.upload.file";
 
-  @SuppressWarnings("deprecation")
   @Inject
   public SaasClient(final InsightProxy proxy, final CLMLicenseManager licenseManager, VersionService versionService) {
     this.licenseManager = licenseManager;
     config = proxy.contextualize(new Configuration());
-    client = HttpClientUtils.createConfig(config);
-    client.getParams().setParameter(ClientPNames.CONNECTION_MANAGER_FACTORY_CLASS_NAME,
-        PoolingClientConnectionManagerFactory.class.getName());
+    HttpClientBuilder clientBuilder = HttpClientUtils.create(config);
+    clientBuilder.setConnectionManager(buildHttpClientConnectionManager());
+    client = clientBuilder.build();
     this.versionService = versionService;
     // TODO Need to determine if there is additional information we should be sending to the SaaS
     loadVersion();
@@ -374,17 +370,10 @@ public class SaasClient
     return result;
   }
 
-  public static class PoolingClientConnectionManagerFactory
-      implements ClientConnectionManagerFactory
-  {
-
-    @Override
-    public ClientConnectionManager newInstance(HttpParams params, SchemeRegistry schemeRegistry) {
-      PoolingClientConnectionManager connManager = new PoolingClientConnectionManager();
-      connManager.setDefaultMaxPerRoute(connManager.getMaxTotal());
-      return connManager;
-    }
-
+  private HttpClientConnectionManager buildHttpClientConnectionManager() {
+    PoolingHttpClientConnectionManager connManager = new PoolingHttpClientConnectionManager();
+    connManager.setDefaultMaxPerRoute(connManager.getMaxTotal());
+    return connManager;
   }
 
   private void loadVersion() {

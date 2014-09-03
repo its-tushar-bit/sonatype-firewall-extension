@@ -359,3 +359,13 @@ CREATE TABLE application_component (
 );
 CREATE INDEX application_component_hash_idx ON application_component(hash);
 CREATE INDEX application_component_time_idx ON application_component(time);
+
+CREATE TABLE last_policy_evaluation (
+  policy_evaluation_id varchar(50) NOT NULL,
+  application_id varchar(50) NOT NULL,
+  stage_type_id varchar(30) NOT NULL,
+  CONSTRAINT last_policy_evaluation_PK PRIMARY KEY (policy_evaluation_id),
+  CONSTRAINT last_policy_evaluation_uk UNIQUE KEY (application_id, stage_type_id),
+  CONSTRAINT last_policy_evaluation_eval_fk FOREIGN KEY (policy_evaluation_id) REFERENCES policy_evaluation(policy_evaluation_id),
+  CONSTRAINT last_policy_evaluation_app_fk FOREIGN KEY (application_id) REFERENCES application(application_id)
+);

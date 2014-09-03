@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.dataaccess.policy;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -22,6 +21,8 @@ import com.sonatype.insight.brain.model.policy.PolicyViolation;
 public class PolicyEvaluationDAO
     extends AbstractOperationalSqlDAO<PolicyEvaluation>
 {
+
+
   @Override
   protected PolicyEvaluation getById(EntityManager em, String id) {
     String sQuery = "SELECT entity FROM PolicyEvaluation entity" + //
@@ -67,33 +68,21 @@ public class PolicyEvaluationDAO
    * Returns the most recent policy evaluation for the most recent scan for the given application and stage.
    */
   public PolicyEvaluation getLastByApplicationIdAndStageId(EntityManager em, String appId, String stageTypeId) {
-    // This can be implemented simpler in two steps, by getting the last scan for the specified app and stage (by
-    // getting the last primary evaluation) and then getting the last evaluation for that scan.
-    // We chose to implement it as a single query in order to have one round trip to the db instead of two.
-    String sQuery = "SELECT pe1 FROM PolicyEvaluation pe1" + //
-        " WHERE pe1.applicationId=?1 AND pe1.stageTypeId=?2" + //
-        "   AND pe1.time=(" + //
-        // Find the time for the most recent evaluation
-        "   SELECT max(pe2.time) FROM PolicyEvaluation pe2" + //
-        "     WHERE pe2.applicationId=?1 AND pe2.stageTypeId=?2" + //
-        "       AND pe2.isForObsoleteScan=false" + //
-        "   )";
+    String sQuery = "SELECT pe FROM PolicyEvaluation pe," + //
+        " LastPolicyEvaluation per" + //
+        " WHERE pe.id = per.policyEvaluationId" + //
+        " AND per.applicationId=?1" + //
+        " AND per.stageTypeId=?2";
     return get(em, sQuery, appId, stageTypeId);
   }
 
-  //the fancy query for this is slower than the query above, so simple it is
   public List<PolicyEvaluation> getLastByApplicationIdsAndStageIds(Set<String> appIds, Set<String> stageTypeIds) {
-    List<PolicyEvaluation> result = new ArrayList<>(appIds.size() * stageTypeIds.size());
-    for (String stageTypeId : stageTypeIds) {
-      for (String appId : appIds) {
-        PolicyEvaluation eval = getLastByApplicationIdAndStageId(appId, stageTypeId);
-        if (eval != null) {
-          //can get null due to the code above :/
-          result.add(eval);
-        }
-      }
-    }
-    return result;
+    String sQuery = "SELECT pe FROM PolicyEvaluation pe," + //
+        " LastPolicyEvaluation per" + //
+        " WHERE pe.id = per.policyEvaluationId" + //
+        " AND per.applicationId in (?1)" + //
+        " AND per.stageTypeId in (?2)";
+    return getList(sQuery, appIds, stageTypeIds);
   }
 
   public PolicyEvaluation getLastByApplicationIdAndStageId(String appId, String stageTypeId) {
@@ -139,12 +128,20 @@ public class PolicyEvaluationDAO
   @Override
   public void insert(EntityManager em, PolicyEvaluation policyEvaluation) {
     validate(policyEvaluation);
+    final LastPolicyEvaluationDAO lastPolicyEvaluationDAO = new LastPolicyEvaluationDAO();
 
     if (policyEvaluation.getTime() == null) {
       policyEvaluation.setTime(new Date());
     }
     super.insert(em, policyEvaluation);
+
+    //make sure the last policy eval is right
+    lastPolicyEvaluationDAO.deleteForApplicationIdAndStageTypeId(em, policyEvaluation.getApplicationId(),
+        policyEvaluation.getStageTypeId());
+    lastPolicyEvaluationDAO.insertIfPossibleLastPolicyEvaluation(em, policyEvaluation.getApplicationId(),
+        policyEvaluation.getStageTypeId());
   }
+
 
   public List<PolicyEvaluation> getByApplicationId(EntityManager em, String appId) {
     String sQuery = "SELECT entity FROM PolicyEvaluation entity" + //
@@ -153,11 +150,23 @@ public class PolicyEvaluationDAO
   }
 
   public List<PolicyEvaluation> getByApplicationIdAndStageIds(String appId, Set<String> stageTypeIds) {
+    EntityManager em = createEntityManager();
+    try {
+      return getByApplicationIdAndStageIds(em, appId, stageTypeIds);
+    }
+    finally {
+      close(em);
+    }
+  }
+
+  public List<PolicyEvaluation> getByApplicationIdAndStageIds(EntityManager em, String appId,
+      Set<String> stageTypeIds)
+  {
     String sQuery = "SELECT entity FROM PolicyEvaluation entity" + //
         " WHERE entity.applicationId = ?1 AND entity.stageTypeId IN (?2)" + //
         "   AND entity.isForObsoleteScan = false" + //
         " ORDER BY entity.time";
-    return getList(sQuery, appId, stageTypeIds);
+    return getList(em, sQuery, appId, stageTypeIds);
   }
 
   @Override
@@ -166,15 +175,26 @@ public class PolicyEvaluationDAO
   }
 
   @Override
-  public void delete(EntityManager em, PolicyEvaluation entity) {
+  public void delete(final EntityManager em, PolicyEvaluation entity) {
+    final PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
+    final LastPolicyEvaluationDAO lastPolicyEvaluationDAO = new LastPolicyEvaluationDAO();
+
     // Cascade to policy violations
-    PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
     List<PolicyViolation> policyViolations = policyViolationDAO.getByEvaluationId(em, entity.getId());
     for (PolicyViolation policyViolation : policyViolations) {
       policyViolationDAO.delete(em, policyViolation);
     }
 
+    //cascade to LastPolicyEvaluation
+    lastPolicyEvaluationDAO.deleteForApplicationIdAndStageTypeId(em, entity.getApplicationId(),
+        entity.getStageTypeId());
+
+    //delete the eval itself
     super.delete(em, entity);
+
+    //insert if possible to LastPolicyEvaluation
+    lastPolicyEvaluationDAO.insertIfPossibleLastPolicyEvaluation(em, entity.getApplicationId(),
+        entity.getStageTypeId());
   }
 
   private void validate(PolicyEvaluation policyEvaluation) {

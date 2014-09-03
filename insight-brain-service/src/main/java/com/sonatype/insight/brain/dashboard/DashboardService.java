@@ -19,6 +19,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -63,6 +64,7 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
 import com.google.common.collect.Collections2;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -222,29 +224,42 @@ public class DashboardService
    * @return A list of {@link PolicyViolationDTO}s for all applications with read permissions.
    * @throws BadRequestException Thrown if the stageTypeId does not match a known {@link StageType}.
    */
-  List<PolicyViolationDTO> getPolicyViolations(@Nullable Set<String> stageTypeIds, @Nullable final Set<String> tagIds,
-      @Nullable Predicate<PolicyViolation> violationFilter)
+  List<PolicyViolationDTO> getPolicyViolations(@Nullable final Set<String> stageTypeIds,
+      @Nullable final Set<String> tagIds, @Nullable final Predicate<PolicyViolation> violationFilter)
   {
-    Set<StageType> stages = getStageTypes(stageTypeIds);
 
     List<Application> applications = applicationService.getApplications();
+    final Set<StageType> stageTypes = getStageTypes(stageTypeIds);
+    final Set<String> stageTypeIdsFiltered = getStageIds(stageTypes);
 
     if (!CollectionUtils.isEmpty(tagIds)) {
       Set<String> applicationIds = new HashSet<>(Lists.transform(applications, hasIdIdSelector));
       applications = applicationDAO.getByIdsAndTagIds(applicationIds, tagIds);
     }
 
-    List<PolicyViolationDTO> policyViolationDTOs = new ArrayList<>();
-    for (Application application : applications) {
-      for (StageType stage : stages) {
-        List<PolicyViolation> violations = getPolicyViolations(application.getId(), stage.getId());
-        violations = filter(violations, violationFilter);
+    final ImmutableMap<String, Application> applicationIdLookupMap = Maps.uniqueIndex(applications, hasIdIdSelector);
+    final List<PolicyEvaluation> latestEvaluations = policyEvaluationDAO
+        .getLastByApplicationIdsAndStageIds(applicationIdLookupMap.keySet(), stageTypeIdsFiltered);
 
-        policyViolationDTOs.addAll(policyViolationAdapter.createPolicyViolationDTOs(application, violations));
-      }
-    }
+    final ImmutableMap<String, PolicyEvaluation> evaluationIdLookupMap = Maps.uniqueIndex(latestEvaluations,
+        hasIdIdSelector);
+    final List<PolicyViolation> violations = filter(policyViolationDAO.getActiveByEvaluationIds(
+        Sets.newHashSet(Lists.transform(latestEvaluations, hasIdIdSelector))), violationFilter);
 
-    return sort(policyViolationDTOs);
+
+    final List<PolicyViolationDTO> result = Lists.newArrayList(Lists
+        .transform(violations, new Function<PolicyViolation, PolicyViolationDTO>()
+        {
+          @Nonnull
+          @Override
+          public PolicyViolationDTO apply(final PolicyViolation violation) {
+            final PolicyEvaluation evaluation = evaluationIdLookupMap.get(violation.getPolicyEvaluationId());
+            final Application application = applicationIdLookupMap.get(evaluation.getApplicationId());
+            return policyViolationAdapter.createPolicyViolationDTO(application, violation);
+          }
+        }));
+
+    return sort(result);
   }
 
   List<PolicyViolation> filter(List<PolicyViolation> violations, Predicate<PolicyViolation> violationFilter) {

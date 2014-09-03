@@ -16,7 +16,6 @@ public class PublicApiPaths
 
   public static final String ORG_SERVICE_PATH = API_VERSION_PATH + "organizations";
 
-  public static final String ROLE_MEMBER_SERVICE_PATH =
-      API_VERSION_PATH + "roleMembers/{ownerType: global|application|organization}/{ownerId}";
+  public static final String POLICY_SERVICE_PATH = API_VERSION_PATH + "policies";
 
 }

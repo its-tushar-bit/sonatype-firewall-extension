@@ -480,7 +480,7 @@ clmEndpoint = clmEndpointTemplate = {
         expect(scope.getColorClass()).toEqual(' severe');
 
         scope.componentDetails = {
-          securityVulnerabilities : [{ severity : 8 }]
+          securityVulnerabilities : [{ severity : 7 }]
         };
         expect(scope.getColorClass()).toEqual(' critical');
       }));

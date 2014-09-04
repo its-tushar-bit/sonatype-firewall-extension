@@ -1189,11 +1189,12 @@ public class DashboardService
           final PolicyViolation newViolation = samePolicyViolationEntry.getValue();
           final PolicyViolation oldViolation = samePolicyViolationEntry.getKey();
 
+          policyViolationHistory.addStageTypeToViolation(oldViolation, policyEvaluation.getStageTypeId());
+
           if (newViolation.isWaived() && !oldViolation.isWaived()) {
             result.totalWaived++;
             addWeekViolation(weekIndex, result.weeklyDeltaWaived);
             policyViolationHistory.replacePolicyViolation(oldViolation, newViolation);
-            policyViolationHistory.addStageTypeToViolation(newViolation, policyEvaluation.getStageTypeId());
             long policyViolationAgeWhenWaived = newViolation.getTime().getTime()
                 - policyViolationHistory.getPolicyViolationFirstOccurrenceTime(newViolation).getTime();
             ageWaivedStatistics.addValue(policyViolationAgeWhenWaived);
@@ -1202,10 +1203,6 @@ public class DashboardService
             result.totalWaived--;
             addWeekViolation(weekIndex, result.weeklyDeltaWaived, -1);
             policyViolationHistory.replacePolicyViolation(oldViolation, newViolation);
-            policyViolationHistory.addStageTypeToViolation(newViolation, policyEvaluation.getStageTypeId());
-          }
-          else {
-            policyViolationHistory.addStageTypeToViolation(oldViolation, policyEvaluation.getStageTypeId());
           }
         }
         for (PolicyViolation policyViolation : diff.getCleared()) {

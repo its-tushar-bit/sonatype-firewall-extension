@@ -298,10 +298,6 @@
 
   dashboardModule.directive('breadcrumb', ['$state', function($state) {
     var stateLookup = {
-      'dashboard': {
-        name: 'Dashboard',
-        icon: 'sonatype-icons dashboard'
-      },
       'dashboard.overview.components': {
         name: 'By Component'
       },
@@ -315,6 +311,8 @@
         name: 'Component Details'
       }
     };
+    var defaultState = 'dashboard.overview.newest-risk';
+    var parentStates = [defaultState, 'dashboard.overview.components'];
     return {
       template: '<p class="nav-crumb"><span ng-repeat="state in states">' +
                   '<span ng-if="!$first" ng-class="{ \'last-crumb\': $last }">/</span>' +
@@ -325,25 +323,30 @@
                     '<i ng-if="state.icon" class="{{state.icon}}"></i>&nbsp;{{state.name}}' +
                 '</span></p>',
       link: function(scope) {
-        function loadCurrentState() {
+        function loadCurrentState(event, toState, toParams, fromState) {
           var state = $state.$current;
           var states = [];
           while (state && state.name) {
-            // dashboard is an abstract state that can be ignored in favor of its parent
-            if (state.name !== 'dashboard.overview') {
-              states.unshift(angular.extend(stateLookup[state.name],
-                {
-                  // dashboard is an abstract state an ui-sref will throw an exception rather than routing to default
-                  state: state.name === 'dashboard' ? 'dashboard.overview.newest-risk' : state.name
-                }
-              ));
+            // dashboard is an abstract state that can represented by parent states navigated from or the default state
+            if (state.name === 'dashboard') {
+              states.unshift({
+                name: 'Dashboard',
+                icon: 'sonatype-icons dashboard',
+                state: $.inArray(fromState.name, parentStates) !== -1 ? fromState.name : defaultState
+              });
+            }
+            // dashboard.overview is an abstract state that can be ignored in favor of its parent
+            else if (state.name !== 'dashboard.overview') {
+              states.unshift(angular.extend(stateLookup[state.name], {
+                state: state.name
+              }));
             }
             state = state.parent;
           }
           scope.states = states;
         }
 
-        scope.$watch('$state.$current', loadCurrentState);
+        scope.$on('$stateChangeSuccess', loadCurrentState);
       }
     };
   }]);

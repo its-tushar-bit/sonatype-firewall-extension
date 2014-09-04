@@ -6,8 +6,6 @@
 package com.sonatype.insight.brain.dataaccess.policy;
 
 import java.util.Date;
-import java.util.List;
-
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.model.policy.LastPolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
@@ -15,7 +13,6 @@ import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;

@@ -9,10 +9,7 @@ package com.sonatype.insight.brain.model.policy;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
-import javax.persistence.IdClass;
 import javax.persistence.Table;
-
-import com.sonatype.insight.model.HasStringId;
 
 
 /**

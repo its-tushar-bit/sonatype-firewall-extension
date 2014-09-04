@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -70,6 +71,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.codehaus.plexus.util.StringUtils;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
@@ -1061,18 +1063,26 @@ public class DashboardService
     return summary;
   }
 
-  private static class PolicyViolationsWithStageTypes
+  private static class PolicyViolationHistory
   {
-    private Map<PolicyViolation, Set<String>> stageTypesByViolation = new LinkedHashMap<>();
+    private static class Data
+    {
+      private Set<String> stageTypeIds = new LinkedHashSet<>();
+
+      private Date firstOccurrenceTime;
+    }
+
+    private Map<PolicyViolation, Data> dataByViolation = new LinkedHashMap<>();
 
     void addViolationWithStageType(PolicyViolation policyViolation, String stageTypeId) {
-      Set<String> stageTypeIds = new LinkedHashSet<>();
-      stageTypeIds.add(stageTypeId);
-      stageTypesByViolation.put(policyViolation, stageTypeIds);
+      Data data = new Data();
+      data.stageTypeIds.add(stageTypeId);
+      data.firstOccurrenceTime = policyViolation.getTime();
+      dataByViolation.put(policyViolation, data);
     }
 
     void addStageTypeToViolation(PolicyViolation policyViolation, String stageTypeId) {
-      stageTypesByViolation.get(policyViolation).add(stageTypeId);
+      dataByViolation.get(policyViolation).stageTypeIds.add(stageTypeId);
     }
 
     /**
@@ -1080,22 +1090,26 @@ public class DashboardService
      * that the policy violation was fixed for all stages.
      */
     boolean removeStageTypeFromViolation(PolicyViolation policyViolation, String stageTypeId) {
-      Set<String> stageTypeIds = stageTypesByViolation.get(policyViolation);
-      stageTypeIds.remove(stageTypeId);
-      if (stageTypeIds.isEmpty()) {
-        stageTypesByViolation.remove(policyViolation);
+      Data data = dataByViolation.get(policyViolation);
+      data.stageTypeIds.remove(stageTypeId);
+      if (data.stageTypeIds.isEmpty()) {
+        dataByViolation.remove(policyViolation);
         return true;
       }
       return false;
     }
 
     void replacePolicyViolation(PolicyViolation oldViolation, PolicyViolation newViolation) {
-      Set<String> stageTypeIds = stageTypesByViolation.remove(oldViolation);
-      stageTypesByViolation.put(newViolation, stageTypeIds);
+      Data data = dataByViolation.remove(oldViolation);
+      dataByViolation.put(newViolation, data);
     }
 
     Collection<PolicyViolation> getPolicyViolations() {
-      return Collections.unmodifiableCollection(stageTypesByViolation.keySet());
+      return Collections.unmodifiableCollection(dataByViolation.keySet());
+    }
+
+    Date getPolicyViolationFirstOccurrenceTime(PolicyViolation policyViolation) {
+      return dataByViolation.get(policyViolation).firstOccurrenceTime;
     }
   }
 
@@ -1131,14 +1145,18 @@ public class DashboardService
     Long now = System.currentTimeMillis();
 
     PolicySummaryDTO result = new PolicySummaryDTO();
+    result.timestamp = now;
     for (int iWeek = 0; iWeek < POLICY_SUMMARY_WEEKS; iWeek++) {
       result.weeklyDeltaNew.add(0);
       result.weeklyDeltaWaived.add(0);
       result.weeklyDeltaFixed.add(0);
     }
 
+    DescriptiveStatistics ageWaivedStatistics = new DescriptiveStatistics();
+    DescriptiveStatistics ageFixedStatistics = new DescriptiveStatistics();
+    DescriptiveStatistics ageUnresolvedStatistics = new DescriptiveStatistics();
     for (Application app : applications) {
-      PolicyViolationsWithStageTypes policyViolationsWithStageTypes = new PolicyViolationsWithStageTypes();
+      PolicyViolationHistory policyViolationHistory = new PolicyViolationHistory();
 
       List<PolicyEvaluation> policyEvaluations = policyEvaluationDAO.getByApplicationIdAndStageIds(app.getId(),
           stageTypeIds);
@@ -1154,15 +1172,17 @@ public class DashboardService
         List<PolicyViolation> policyViolations = policyViolationDAO.getByEvaluationId(policyEvaluation.getId());
         policyViolations = filter(policyViolations, filter);
 
-        PolicyViolationDiff diff = PolicyViolationDigester.digestPolicyViolations(policyViolationsWithStageTypes.getPolicyViolations(),
-            policyViolations);
+        PolicyViolationDiff diff = PolicyViolationDigester.digestPolicyViolations(
+            policyViolationHistory.getPolicyViolations(), policyViolations);
         for (PolicyViolation policyViolation : diff.getAppeared()) {
-          policyViolationsWithStageTypes.addViolationWithStageType(policyViolation, policyEvaluation.getStageTypeId());
+          policyViolationHistory.addViolationWithStageType(policyViolation, policyEvaluation.getStageTypeId());
           result.totalNew++;
           addWeekViolation(weekIndex, result.weeklyDeltaNew);
           if (policyViolation.isWaived()) {
             result.totalWaived++;
             addWeekViolation(weekIndex, result.weeklyDeltaWaived);
+            // The policy violation was waived when it occurred the first time, so the age for "waived" is zero.
+            ageWaivedStatistics.addValue(0);
           }
         }
         for (Entry<PolicyViolation, PolicyViolation> samePolicyViolationEntry : diff.getSame().entrySet()) {
@@ -1172,21 +1192,26 @@ public class DashboardService
           if (newViolation.isWaived() && !oldViolation.isWaived()) {
             result.totalWaived++;
             addWeekViolation(weekIndex, result.weeklyDeltaWaived);
-            policyViolationsWithStageTypes.replacePolicyViolation(oldViolation, newViolation);
-            policyViolationsWithStageTypes.addStageTypeToViolation(newViolation, policyEvaluation.getStageTypeId());
+            policyViolationHistory.replacePolicyViolation(oldViolation, newViolation);
+            policyViolationHistory.addStageTypeToViolation(newViolation, policyEvaluation.getStageTypeId());
+            long policyViolationAgeWhenWaived = newViolation.getTime().getTime()
+                - policyViolationHistory.getPolicyViolationFirstOccurrenceTime(newViolation).getTime();
+            ageWaivedStatistics.addValue(policyViolationAgeWhenWaived);
           }
           else if (!newViolation.isWaived() && oldViolation.isWaived()) {
             result.totalWaived--;
             addWeekViolation(weekIndex, result.weeklyDeltaWaived, -1);
-            policyViolationsWithStageTypes.replacePolicyViolation(oldViolation, newViolation);
-            policyViolationsWithStageTypes.addStageTypeToViolation(newViolation, policyEvaluation.getStageTypeId());
+            policyViolationHistory.replacePolicyViolation(oldViolation, newViolation);
+            policyViolationHistory.addStageTypeToViolation(newViolation, policyEvaluation.getStageTypeId());
           }
           else {
-            policyViolationsWithStageTypes.addStageTypeToViolation(oldViolation, policyEvaluation.getStageTypeId());
+            policyViolationHistory.addStageTypeToViolation(oldViolation, policyEvaluation.getStageTypeId());
           }
         }
         for (PolicyViolation policyViolation : diff.getCleared()) {
-          if (policyViolationsWithStageTypes.removeStageTypeFromViolation(policyViolation,
+          Date policyViolationFirstOccurrenceTime = policyViolationHistory
+              .getPolicyViolationFirstOccurrenceTime(policyViolation);
+          if (policyViolationHistory.removeStageTypeFromViolation(policyViolation,
               policyEvaluation.getStageTypeId())) {
             result.totalFixed++;
             addWeekViolation(weekIndex, result.weeklyDeltaFixed);
@@ -1194,8 +1219,23 @@ public class DashboardService
               result.totalWaived--;
               addWeekViolation(weekIndex, result.weeklyDeltaWaived, -1);
             }
+            long policyViolationAgeWhenFixed = policyEvaluation.getTime().getTime()
+                - policyViolationFirstOccurrenceTime.getTime();
+            ageFixedStatistics.addValue(policyViolationAgeWhenFixed);
           }
         }
+      }
+
+      // Calculate age statistics for unresolved policy violations
+      for (PolicyViolation policyViolation : policyViolationHistory.getPolicyViolations()) {
+        if (policyViolation.isWaived()) {
+          continue;
+        }
+
+        Date policyViolationFirstOccurrenceTime = policyViolationHistory
+            .getPolicyViolationFirstOccurrenceTime(policyViolation);
+        long policyViolationAge = now - policyViolationFirstOccurrenceTime.getTime();
+        ageUnresolvedStatistics.addValue(policyViolationAge);
       }
     }
 
@@ -1203,6 +1243,19 @@ public class DashboardService
     for (int iWeek = 0; iWeek < POLICY_SUMMARY_WEEKS; iWeek++) {
       result.weeklyDeltaUnresolved.add(
           result.weeklyDeltaNew.get(iWeek) - result.weeklyDeltaWaived.get(iWeek) - result.weeklyDeltaFixed.get(iWeek));
+    }
+
+    if (ageWaivedStatistics.getN() > 0) {
+      result.ageAverageWaived = (long) ageWaivedStatistics.getMean();
+      result.agePercentile90Waived = (long) ageWaivedStatistics.getPercentile(90);
+    }
+    if (ageFixedStatistics.getN() > 0) {
+      result.ageAverageFixed = (long) ageFixedStatistics.getMean();
+      result.agePercentile90Fixed = (long) ageFixedStatistics.getPercentile(90);
+    }
+    if (ageUnresolvedStatistics.getN() > 0) {
+      result.ageAverageUnresolved = (long) ageUnresolvedStatistics.getMean();
+      result.agePercentile90Unresolved = (long) ageUnresolvedStatistics.getPercentile(90);
     }
 
     log.debug("getPolicySummary finished in {}", System.currentTimeMillis() - start);

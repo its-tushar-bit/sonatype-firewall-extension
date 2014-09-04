@@ -16,6 +16,8 @@ import java.util.List;
  */
 public class PolicySummaryDTO
 {
+  public long timestamp;
+
   public int totalNew;
   public int totalWaived;
   public int totalFixed;
@@ -25,4 +27,11 @@ public class PolicySummaryDTO
   public List<Integer> weeklyDeltaWaived = new ArrayList<>();
   public List<Integer> weeklyDeltaFixed = new ArrayList<>();
   public List<Integer> weeklyDeltaUnresolved = new ArrayList<>();
+
+  public long ageAverageWaived;
+  public long agePercentile90Waived;
+  public long ageAverageFixed;
+  public long agePercentile90Fixed;
+  public long ageAverageUnresolved;
+  public long agePercentile90Unresolved;
 }

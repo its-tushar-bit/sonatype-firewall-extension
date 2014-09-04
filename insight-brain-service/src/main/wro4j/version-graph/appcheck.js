@@ -631,8 +631,24 @@
           }
         };
 
-    function getSeverity(threatLevel) {
+    function getLicenseSeverity(threatLevel) {
       if (threatLevel >= 8) {
+        return 0; // CRITICAL
+      }
+      else if (threatLevel >= 4) {
+        return 1; // SEVERE
+      }
+      else if (threatLevel > 0) {
+        return 2; //MODERATE;
+      }
+      else if (threatLevel === 0) {
+        return 3;
+      }
+      return 4;
+    }
+
+    function getSecuritySeverity(threatLevel) {
+      if (threatLevel >= 7) {
         return 0; // CRITICAL
       }
       else if (threatLevel >= 4) {
@@ -673,7 +689,7 @@
         if (item.majorRevisionStep) {
           data.majorRevIndices.push(index);
         }
-        data.effectiveLicenses.push(getSeverity(item.effectiveLicenseThreat || item.licenseThreatLevel));
+        data.effectiveLicenses.push(getLicenseSeverity(item.effectiveLicenseThreat || item.licenseThreatLevel));
         if (item.securityThreats) {
           if ($.inArray("Critical", item.securityThreats) !== -1) {
             data.securityLevels[0].push(index);
@@ -687,7 +703,7 @@
         }
         else if (item.securityVulnerabilities && item.securityVulnerabilities.length > 0) {
           $.each(item.securityVulnerabilities, function(index, sv) {
-            var level = getSeverity(sv.severity);
+            var level = getSecuritySeverity(sv.severity);
             critical = critical || level === 0;
             severe = severe || level === 1;
             moderate = moderate || level >= 2;

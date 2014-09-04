@@ -38,7 +38,7 @@ class DashboardAuthzSpec
     def policy = temporaryEntity.newPolicy(org.id, 'DashboardAuthzSpecPolicy')
 
     PolicyEvaluation firstPolicyEvaluation = temporaryEntity.
-        newPolicyEvaluation(firstApp.id, BuildStageType.ID, 'DashboardAuthzSpecFistEvaluation')
+        newPolicyEvaluation(firstApp.id, BuildStageType.ID, 'DashboardAuthzSpecFirstEvaluation')
     temporaryEntity.newPolicyViolation(firstPolicyEvaluation, policy, 5,
         PolicyThreatCategory.LICENSE, "Group1", "Artifact1", "Version1")
     PolicyEvaluation secondPolicyEvaluation = temporaryEntity.

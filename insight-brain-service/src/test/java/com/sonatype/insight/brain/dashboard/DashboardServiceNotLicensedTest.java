@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.dashboard;
 import java.util.Collections;
 
 import com.sonatype.insight.brain.model.policy.stages.DevelopStageType;
-import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 
 import org.eclipse.sisu.launch.InjectedTest;
@@ -19,7 +18,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.doThrow;
 
 @RunWith(MockitoJUnitRunner.class)
 public class DashboardServiceNotLicensedTest
@@ -30,11 +29,11 @@ public class DashboardServiceNotLicensedTest
   private DashboardService dashboardService;
 
   @Mock
-  private CLMLicenseManager licenseManager;
+  private DashboardUtils dashboardUtils;
 
   @Before
   public void setup() {
-    when(licenseManager.hasDashboard()).thenReturn(false);
+    doThrow(new InvalidLicenseException("test")).when(dashboardUtils).validateDashboardLicensed();
   }
 
   @Test(expected = InvalidLicenseException.class)
@@ -75,10 +74,5 @@ public class DashboardServiceNotLicensedTest
   @Test(expected = InvalidLicenseException.class)
   public void testGetComponentSummary_Unlicensed() throws Exception {
     dashboardService.getComponentSummary(null, null, null);
-  }
-
-  @Test(expected = InvalidLicenseException.class)
-  public void testGetPolicySummary_Unlicensed() throws Exception {
-    dashboardService.getPolicySummary(null, null, null, null, null);
   }
 }

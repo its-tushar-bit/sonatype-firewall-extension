@@ -87,6 +87,8 @@ public class DashboardServiceHighestRiskTest
   @Mock
   private CLMLicenseManager licenseManager;
 
+  private DashboardUtils dashboardUtils;
+
   private static final String appUsername = "sample-user";
 
   static Application createApplication(String publicId, String stageTypeId, String scanId) {
@@ -101,9 +103,10 @@ public class DashboardServiceHighestRiskTest
 
     when(licenseManager.hasDashboard()).thenReturn(true);
 
+    dashboardUtils = new DashboardUtils(licenseManager, stageTypeService);
     dashboardService = new DashboardService(applicationDAO, applicationComponentDAO, applicationService, policyDAO,
-        policyEvaluationDAO, policyViolationAdapter, policyViolationDAO, stageTypeService, dashboardFilterDAO,
-        currentUser, applicationAdapter, licenseManager);
+        policyEvaluationDAO, policyViolationAdapter, policyViolationDAO, dashboardFilterDAO,
+        currentUser, applicationAdapter, dashboardUtils);
   }
 
   private ContactDTO contactDTO = new ContactDTO(appUsername, "displayName", "email@example.com", "realm");

@@ -48,11 +48,14 @@ public class DashboardResource
 
   public static final String COMPONENTS_SUMMARY_PATH = "components/summary";
 
-  private DashboardService dashboardService;
+  private final DashboardService dashboardService;
+
+  private final PolicySummaryService policySummaryService;
 
   @Inject
-  public DashboardResource(DashboardService dashboardService) {
+  public DashboardResource(DashboardService dashboardService, PolicySummaryService policySummaryService) {
     this.dashboardService = dashboardService;
+    this.policySummaryService = policySummaryService;
   }
 
   @GET
@@ -181,7 +184,7 @@ public class DashboardResource
       @QueryParam("policyThreatCategories") PolicyThreatCategoryFilter policyThreatCategoryFilter,
       @QueryParam("policyThreatLevelRange") PolicyThreatLevelFilter policyThreatLevelFilter)
   {
-    return dashboardService.getPolicySummary(applicationIds, stageIds, tagIds, policyThreatCategoryFilter,
+    return policySummaryService.getPolicySummary(applicationIds, stageIds, tagIds, policyThreatCategoryFilter,
         policyThreatLevelFilter);
   }
 }

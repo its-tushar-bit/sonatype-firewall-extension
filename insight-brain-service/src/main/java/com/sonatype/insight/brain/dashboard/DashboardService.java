@@ -10,7 +10,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -42,16 +41,12 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
-import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.organization.ApplicationAdapter;
 import com.sonatype.insight.brain.organization.ApplicationService;
 import com.sonatype.insight.brain.organization.ContactDTO;
-import com.sonatype.insight.brain.policy.StageTypeService;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationDiff;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationDigester;
-import com.sonatype.insight.brain.product.license.CLMLicenseManager;
-import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzFilter;
@@ -71,7 +66,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.codehaus.plexus.util.StringUtils;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
@@ -85,10 +79,6 @@ public class DashboardService
   private static final PolicyViolationDTOComparator POLICY_VIOLATION_DTO_COMPARATOR = new PolicyViolationDTOComparator();
 
   static final int NEWEST_RISK_TIME_RANGE_IN_DAYS = 30;
-
-  static final int POLICY_SUMMARY_WEEKS = 12;
-
-  private static final long ONE_WEEK_IN_MILLISECS = 7L * 24 * 3600 * 1000;
 
   private static final String SECRET_JOIN_STRING = "$";
 
@@ -114,22 +104,20 @@ public class DashboardService
 
   private final PolicyViolationDAO policyViolationDAO;
 
-  private final StageTypeService stageTypeService;
-
   private final DashboardFilterDAO dashboardFilterDAO;
 
   private final CurrentUser currentUser;
   
   private final ApplicationAdapter applicationAdapter;
 
-  private final CLMLicenseManager licenseManager;
+  private final DashboardUtils dashboardUtils;
 
   @Inject
   public DashboardService(ApplicationDAO applicationDAO, ApplicationComponentDAO applicationComponentDAO,
       ApplicationService applicationService, PolicyDAO policyDAO, PolicyEvaluationDAO policyEvaluationDAO,
       PolicyViolationAdapter policyViolationAdapter, PolicyViolationDAO policyViolationDAO,
-      StageTypeService stageTypeService, DashboardFilterDAO dashboardFilterDAO, CurrentUser currentUser,
-      ApplicationAdapter applicationAdapter, CLMLicenseManager licenseManager)
+      DashboardFilterDAO dashboardFilterDAO, CurrentUser currentUser, ApplicationAdapter applicationAdapter,
+      DashboardUtils dashboardUtils)
   {
     this.applicationDAO = applicationDAO;
     this.applicationComponentDAO = applicationComponentDAO;
@@ -138,11 +126,10 @@ public class DashboardService
     this.policyEvaluationDAO = policyEvaluationDAO;
     this.policyViolationAdapter = policyViolationAdapter;
     this.policyViolationDAO = policyViolationDAO;
-    this.stageTypeService = stageTypeService;
     this.dashboardFilterDAO = dashboardFilterDAO;
     this.currentUser = currentUser;
     this.applicationAdapter = applicationAdapter;
-    this.licenseManager = licenseManager;
+    this.dashboardUtils = dashboardUtils;
   }
 
   /**
@@ -153,28 +140,14 @@ public class DashboardService
       Set<String> tagIds, PolicyThreatCategoryFilter policyThreatCategoryFilter,
       PolicyThreatLevelFilter policyThreatLevelFilter)
   {
-    Predicate<PolicyViolation> filter = buildViolationFilter(policyThreatCategoryFilter, policyThreatLevelFilter);
+    Predicate<PolicyViolation> filter = dashboardUtils.buildViolationFilter(policyThreatCategoryFilter,
+        policyThreatLevelFilter);
 
     if (applicationIds == null || applicationIds.isEmpty()) {
       return getPolicyViolations(stageIds, tagIds, filter);
     }
 
     return getPolicyViolationsByApplicationIds(applicationIds, stageIds, tagIds, filter);
-  }
-
-  private Predicate<PolicyViolation> buildViolationFilter(PolicyThreatCategoryFilter threatCategoryFilter,
-      PolicyThreatLevelFilter threatLevelFilter)
-  {
-    if (threatCategoryFilter == null && threatLevelFilter == null) {
-      return null;
-    }
-    else if (threatCategoryFilter != null && threatLevelFilter != null) {
-      return Predicates.and(threatCategoryFilter.asPolicyViolationPredicate(),
-          threatLevelFilter.asPolicyViolationPredicate());
-    }
-
-    return (threatCategoryFilter != null) ? threatCategoryFilter.asPolicyViolationPredicate() : threatLevelFilter
-        .asPolicyViolationPredicate();
   }
 
   /**
@@ -195,7 +168,7 @@ public class DashboardService
       @Nullable Set<String> stageTypeIds, @Nullable Set<String> tagIds,
       @Nullable Predicate<PolicyViolation> violationFilter)
   {
-    Set<StageType> stages = getStageTypes(stageTypeIds);
+    Set<StageType> stages = dashboardUtils.getStageTypes(stageTypeIds);
 
     List<PolicyViolationDTO> policyViolationDTOs = new ArrayList<>();
 
@@ -231,8 +204,8 @@ public class DashboardService
   {
 
     List<Application> applications = applicationService.getApplications();
-    final Set<StageType> stageTypes = getStageTypes(stageTypeIds);
-    final Set<String> stageTypeIdsFiltered = getStageIds(stageTypes);
+    final Set<StageType> stageTypes = dashboardUtils.getStageTypes(stageTypeIds);
+    final Set<String> stageTypeIdsFiltered = dashboardUtils.getStageIds(stageTypes);
 
     if (!CollectionUtils.isEmpty(tagIds)) {
       Set<String> applicationIds = new HashSet<>(Lists.transform(applications, hasIdIdSelector));
@@ -245,7 +218,7 @@ public class DashboardService
 
     final ImmutableMap<String, PolicyEvaluation> evaluationIdLookupMap = Maps.uniqueIndex(latestEvaluations,
         hasIdIdSelector);
-    final List<PolicyViolation> violations = filter(policyViolationDAO.getActiveByEvaluationIds(
+    final List<PolicyViolation> violations = dashboardUtils.filter(policyViolationDAO.getActiveByEvaluationIds(
         Sets.newHashSet(Lists.transform(latestEvaluations, hasIdIdSelector))), violationFilter);
 
 
@@ -264,15 +237,6 @@ public class DashboardService
     return sort(result);
   }
 
-  List<PolicyViolation> filter(List<PolicyViolation> violations, Predicate<PolicyViolation> violationFilter) {
-    if (violationFilter == null || violations == null || violations.isEmpty()) {
-      return violations;
-    }
-
-    return Lists.newArrayList(Collections2.filter(violations, violationFilter));
-  }
-
-
   /**
    * @since 1.11.0
    */
@@ -282,16 +246,17 @@ public class DashboardService
       final Set<String> stageIds, final Set<String> tagIds, final PolicyThreatCategoryFilter policyThreatCategoryFilter,
       final PolicyThreatLevelFilter policyThreatLevelFilter, final int maxResults)
   {
-    validateDashboardLicensed();
+    dashboardUtils.validateDashboardLicensed();
 
     long start = System.currentTimeMillis();
 
     List<Application> appsToSearch = applicationService.getApplicationsByIdsAndTagIds(applicationIds, tagIds);
-    Set<StageType> stageTypes = getStageTypes(stageIds);
-    Predicate<PolicyViolation> filter = buildViolationFilter(policyThreatCategoryFilter, policyThreatLevelFilter);
+    Set<StageType> stageTypes = dashboardUtils.getStageTypes(stageIds);
+    Predicate<PolicyViolation> filter = dashboardUtils.buildViolationFilter(policyThreatCategoryFilter,
+        policyThreatLevelFilter);
 
     List<PolicyEvaluation> evaluations = policyEvaluationDAO.getLastByApplicationIdsAndStageIds(
-        Sets.newHashSet(Iterables.transform(appsToSearch, hasIdIdSelector)), getStageIds(stageTypes));
+        Sets.newHashSet(Iterables.transform(appsToSearch, hasIdIdSelector)), dashboardUtils.getStageIds(stageTypes));
 
     Map<String, PolicyEvaluation> policyEvaluationsById = mapCollectionById(evaluations);
     List<PolicyViolationDTO> allPolicyViolationDTOs = createAllPolicyViolations(filter, evaluations, appsToSearch,
@@ -413,7 +378,7 @@ public class DashboardService
       final Predicate<PolicyViolation> violationFilter)
   {
     Set<String> evaluationIds = Sets.newHashSet(Iterables.transform(evaluations, hasIdIdSelector));
-    return filter(policyViolationDAO.getActiveByEvaluationIds(evaluationIds), violationFilter);
+    return dashboardUtils.filter(policyViolationDAO.getActiveByEvaluationIds(evaluationIds), violationFilter);
   }
 
   private void updateTotalApplicationRisks(final ApplicationRiskScoreDTO applicationRiskScore,
@@ -533,49 +498,11 @@ public class DashboardService
     List<PolicyViolationDTO> policyViolationDTOs = new ArrayList<>();
     for (StageType stage : stages) {
       List<PolicyViolation> violations = getPolicyViolations(application.getId(), stage.getId());
-      violations = filter(violations, violationFilter);
+      violations = dashboardUtils.filter(violations, violationFilter);
       policyViolationDTOs.addAll(policyViolationAdapter.createPolicyViolationDTOs(application, violations));
     }
 
     return policyViolationDTOs;
-  }
-
-  private Set<StageType> getStageTypes(Set<String> stageTypeIds) {
-    Collection<StageType> licensedStageTypes = stageTypeService.getLicensedStageTypes();
-
-    if (stageTypeIds == null) {
-      stageTypeIds = Collections.emptySet();
-    }
-    else {
-      for (String stageTypeId : stageTypeIds) {
-        StageType stage = StageTypes.getById(stageTypeId);
-        if (stage == null || StageTypes.isIgnoredForDashboard(stage.getId())) {
-          throw new BadRequestException("Invalid stage type: " + stageTypeId + ".");
-        }
-        else if (!licensedStageTypes.contains(stage)) {
-          throw new BadRequestException("Current license does not support stage type: " + stageTypeId + ".");
-        }
-      }
-    }
-
-    Set<StageType> stages = new LinkedHashSet<>();
-
-    for (StageType stageType : licensedStageTypes) {
-      if (!StageTypes.isIgnoredForDashboard(stageType.getId())
-          && (stageTypeIds.isEmpty() || stageTypeIds.contains(stageType.getId()))) {
-        stages.add(stageType);
-      }
-    }
-
-    return stages;
-  }
-
-  private Set<String> getStageIds(final Collection<StageType> stageTypes) {
-    Set<String> stageIdsToSearch = new HashSet<>();
-    for (StageType stageType : stageTypes) {
-      stageIdsToSearch.add(stageType.getId());
-    }
-    return stageIdsToSearch;
   }
 
   private List<PolicyViolation> getPolicyViolations(String applicationId, String stageId) {
@@ -597,7 +524,7 @@ public class DashboardService
       Set<String> tagIds, PolicyThreatCategoryFilter policyThreatCategoryFilter,
       PolicyThreatLevelFilter policyThreatLevelFilter, int maxResults)
   {
-    validateDashboardLicensed();
+    dashboardUtils.validateDashboardLicensed();
 
     long start = System.currentTimeMillis();
 
@@ -629,7 +556,7 @@ public class DashboardService
    * @since 1.11.0
    */
   public DashboardFilterDTO getDashboardFilterForCurrentUser() throws IOException {
-    validateDashboardLicensed();
+    dashboardUtils.validateDashboardLicensed();
 
     String username = currentUser.getUsername();
     DashboardFilter dashboardFilter = dashboardFilterDAO.getByUsername(username);
@@ -673,7 +600,7 @@ public class DashboardService
    * @since 1.11.0
    */
   public DashboardFilterDTO createOrUpdateDashboardFilterForCurrentUser(DashboardFilterDTO dashboardFilterDTO) {
-    validateDashboardLicensed();
+    dashboardUtils.validateDashboardLicensed();
 
     String username = currentUser.getUsername();
     DashboardFilter dashboardFilter = new DashboardFilter();
@@ -696,7 +623,7 @@ public class DashboardService
    * @since 1.11.0
    */
   public void deleteDashboardFilterForCurrentUser() {
-    validateDashboardLicensed();
+    dashboardUtils.validateDashboardLicensed();
 
     String username = currentUser.getUsername();
     DashboardFilter dashboardFilter = dashboardFilterDAO.getByUsername(username);
@@ -712,7 +639,7 @@ public class DashboardService
   public FilterSummaryDTO getFilterSummary(Set<String> applicationIds, Set<String> stageIds, Set<String> tagIds,
       PolicyThreatCategoryFilter policyThreatCategoryFilter, PolicyThreatLevelFilter policyThreatLevelFilter)
   {
-    validateDashboardLicensed();
+    dashboardUtils.validateDashboardLicensed();
 
     long start = System.currentTimeMillis();
 
@@ -739,12 +666,12 @@ public class DashboardService
     }
     summary.matchedApplications = matchedApplications.size();
 
-    Collection<StageType> allStageTypes = getStageTypes(null);
+    Collection<StageType> allStageTypes = dashboardUtils.getStageTypes(null);
     summary.totalComponents = applicationComponentDAO.getUniqueCountByApplicationIdsAndStageTypeIds(
-        Collections2.transform(readableApplications, hasIdIdSelector), getStageIds(allStageTypes));
-    Collection<StageType> matchedStageTypes = getStageTypes(stageIds);
+        Collections2.transform(readableApplications, hasIdIdSelector), dashboardUtils.getStageIds(allStageTypes));
+    Collection<StageType> matchedStageTypes = dashboardUtils.getStageTypes(stageIds);
     summary.matchedComponents = applicationComponentDAO.getUniqueCountByApplicationIdsAndStageTypeIds(
-        Collections2.transform(matchedApplications, hasIdIdSelector), getStageIds(matchedStageTypes));
+        Collections2.transform(matchedApplications, hasIdIdSelector), dashboardUtils.getStageIds(matchedStageTypes));
 
     Set<String> readablePolicyOwnerIds = getPolicyOwnerIds(readableApplications);
     List<Policy> readablePolicies = policyDAO.getByOwnerIds(readablePolicyOwnerIds);
@@ -864,13 +791,14 @@ public class DashboardService
       PolicyThreatCategoryFilter policyThreatCategoryFilter, PolicyThreatLevelFilter policyThreatLevelFilter,
       int maxResults)
   {
-    validateDashboardLicensed();
+    dashboardUtils.validateDashboardLicensed();
 
     long start = System.currentTimeMillis();
 
     List<Application> applications = applicationService.getApplicationsByIdsAndTagIds(applicationIds, tagIds);
-    Set<StageType> stageTypes = getStageTypes(stageIds);
-    Predicate<PolicyViolation> filter = buildViolationFilter(policyThreatCategoryFilter, policyThreatLevelFilter);
+    Set<StageType> stageTypes = dashboardUtils.getStageTypes(stageIds);
+    Predicate<PolicyViolation> filter = dashboardUtils.buildViolationFilter(policyThreatCategoryFilter,
+        policyThreatLevelFilter);
 
     List<NewestRiskDTO> result = new ArrayList<>();
 
@@ -887,7 +815,7 @@ public class DashboardService
         }
 
         List<PolicyViolation> policyViolations = policyViolationDAO.getActiveByEvaluationId(policyEvaluation.getId());
-        policyViolations = filter(policyViolations, filter);
+        policyViolations = dashboardUtils.filter(policyViolations, filter);
         if (policyViolations.isEmpty()) {
           continue;
         }
@@ -952,7 +880,7 @@ public class DashboardService
     for (StageDetailDTO stageDetail : newestRiskDTO.stageDetails) {
       seenStages.add(stageDetail.stageTypeId);
     }
-    for (StageType stageType : getStageTypes(null)) {
+    for (StageType stageType : dashboardUtils.getStageTypes(null)) {
       if (!seenStages.contains(stageType.getId())) {
         StageDetailDTO emptyStageDetails = new StageDetailDTO();
         emptyStageDetails.stageTypeId = stageType.getId();
@@ -1021,7 +949,7 @@ public class DashboardService
   public ComponentSummaryDTO getComponentSummary(Set<String> applicationIds, Set<String> stageIds,
       Set<String> tagIds)
   {
-    validateDashboardLicensed();
+    dashboardUtils.validateDashboardLicensed();
 
     long start = System.currentTimeMillis();
 
@@ -1029,7 +957,7 @@ public class DashboardService
 
     Collection<String> appIds = Collections2.transform(
         applicationService.getApplicationsByIdsAndTagIds(applicationIds, tagIds), hasIdIdSelector);
-    Collection<String> stageTypeIds = getStageIds(getStageTypes(stageIds));
+    Collection<String> stageTypeIds = dashboardUtils.getStageIds(dashboardUtils.getStageTypes(stageIds));
     List<ApplicationComponent> components = applicationComponentDAO.getNonProprietaryByApplicationIdsAndStageTypeIds(
         appIds, stageTypeIds);
     Map<String, ApplicationComponent> componentsByHash = new HashMap<>();
@@ -1061,208 +989,5 @@ public class DashboardService
     log.debug("Calculated component summary in {} ms", System.currentTimeMillis() - start);
 
     return summary;
-  }
-
-  private static class PolicyViolationHistory
-  {
-    private static class Data
-    {
-      private Set<String> stageTypeIds = new LinkedHashSet<>();
-
-      private Date firstOccurrenceTime;
-    }
-
-    private Map<PolicyViolation, Data> dataByViolation = new LinkedHashMap<>();
-
-    void addViolationWithStageType(PolicyViolation policyViolation, String stageTypeId) {
-      Data data = new Data();
-      data.stageTypeIds.add(stageTypeId);
-      data.firstOccurrenceTime = policyViolation.getTime();
-      dataByViolation.put(policyViolation, data);
-    }
-
-    void addStageTypeToViolation(PolicyViolation policyViolation, String stageTypeId) {
-      dataByViolation.get(policyViolation).stageTypeIds.add(stageTypeId);
-    }
-
-    /**
-     * Returns true if this operation clears all stage types for the given policy violation, which effectively means
-     * that the policy violation was fixed for all stages.
-     */
-    boolean removeStageTypeFromViolation(PolicyViolation policyViolation, String stageTypeId) {
-      Data data = dataByViolation.get(policyViolation);
-      data.stageTypeIds.remove(stageTypeId);
-      if (data.stageTypeIds.isEmpty()) {
-        dataByViolation.remove(policyViolation);
-        return true;
-      }
-      return false;
-    }
-
-    void replacePolicyViolation(PolicyViolation oldViolation, PolicyViolation newViolation) {
-      Data data = dataByViolation.remove(oldViolation);
-      dataByViolation.put(newViolation, data);
-    }
-
-    Collection<PolicyViolation> getPolicyViolations() {
-      return Collections.unmodifiableCollection(dataByViolation.keySet());
-    }
-
-    Date getPolicyViolationFirstOccurrenceTime(PolicyViolation policyViolation) {
-      return dataByViolation.get(policyViolation).firstOccurrenceTime;
-    }
-  }
-
-  private void addWeekViolation(int weekIndex, List<Integer> weeklyDeltas) {
-    addWeekViolation(weekIndex, weeklyDeltas, 1);
-  }
-
-  private void addWeekViolation(int weekIndex, List<Integer> weeklyDeltas, int delta) {
-    if (weekIndex >= 0) {
-      weeklyDeltas.set(weekIndex, weeklyDeltas.get(weekIndex) + delta);
-    }
-  }
-
-  private int getPolicySummaryWeekFromTime(long now, long time) {
-    return POLICY_SUMMARY_WEEKS - (int) ((now - time) / ONE_WEEK_IN_MILLISECS) - 1;
-  }
-
-  /**
-   * Gets the policy summary matching the specified filter criteria. Empty or null filter criteria generally means
-   * "all available" violations for that aspect.
-   */
-  public PolicySummaryDTO getPolicySummary(Set<String> applicationIds, Set<String> stageIds, Set<String> tagIds,
-      PolicyThreatCategoryFilter policyThreatCategoryFilter, PolicyThreatLevelFilter policyThreatLevelFilter)
-  {
-    validateDashboardLicensed();
-
-    long start = System.currentTimeMillis();
-
-    List<Application> applications = applicationService.getApplicationsByIdsAndTagIds(applicationIds, tagIds);
-    Set<StageType> stageTypes = getStageTypes(stageIds);
-    Set<String> stageTypeIds = getStageIds(stageTypes);
-    Predicate<PolicyViolation> filter = buildViolationFilter(policyThreatCategoryFilter, policyThreatLevelFilter);
-    Long now = System.currentTimeMillis();
-
-    PolicySummaryDTO result = new PolicySummaryDTO();
-    result.timestamp = now;
-    for (int iWeek = 0; iWeek < POLICY_SUMMARY_WEEKS; iWeek++) {
-      result.weeklyDeltaNew.add(0);
-      result.weeklyDeltaWaived.add(0);
-      result.weeklyDeltaFixed.add(0);
-    }
-
-    DescriptiveStatistics ageWaivedStatistics = new DescriptiveStatistics();
-    DescriptiveStatistics ageFixedStatistics = new DescriptiveStatistics();
-    DescriptiveStatistics ageUnresolvedStatistics = new DescriptiveStatistics();
-    for (Application app : applications) {
-      PolicyViolationHistory policyViolationHistory = new PolicyViolationHistory();
-
-      List<PolicyEvaluation> policyEvaluations = policyEvaluationDAO.getByApplicationIdAndStageIds(app.getId(),
-          stageTypeIds);
-      for (PolicyEvaluation policyEvaluation : policyEvaluations) {
-        if (policyEvaluation.getTime().getTime() > now) {
-          // This policy evaluation is after we started calculating the policy summary. In order to be consistent,
-          // ignore it.
-          continue;
-        }
-
-        int weekIndex = getPolicySummaryWeekFromTime(now, policyEvaluation.getTime().getTime());
-
-        List<PolicyViolation> policyViolations = policyViolationDAO.getByEvaluationId(policyEvaluation.getId());
-        policyViolations = filter(policyViolations, filter);
-
-        PolicyViolationDiff diff = PolicyViolationDigester.digestPolicyViolations(
-            policyViolationHistory.getPolicyViolations(), policyViolations);
-        for (PolicyViolation policyViolation : diff.getAppeared()) {
-          policyViolationHistory.addViolationWithStageType(policyViolation, policyEvaluation.getStageTypeId());
-          result.totalNew++;
-          addWeekViolation(weekIndex, result.weeklyDeltaNew);
-          if (policyViolation.isWaived()) {
-            result.totalWaived++;
-            addWeekViolation(weekIndex, result.weeklyDeltaWaived);
-            // The policy violation was waived when it occurred the first time, so the age for "waived" is zero.
-            ageWaivedStatistics.addValue(0);
-          }
-        }
-        for (Entry<PolicyViolation, PolicyViolation> samePolicyViolationEntry : diff.getSame().entrySet()) {
-          final PolicyViolation newViolation = samePolicyViolationEntry.getValue();
-          final PolicyViolation oldViolation = samePolicyViolationEntry.getKey();
-
-          policyViolationHistory.addStageTypeToViolation(oldViolation, policyEvaluation.getStageTypeId());
-
-          if (newViolation.isWaived() && !oldViolation.isWaived()) {
-            result.totalWaived++;
-            addWeekViolation(weekIndex, result.weeklyDeltaWaived);
-            policyViolationHistory.replacePolicyViolation(oldViolation, newViolation);
-            long policyViolationAgeWhenWaived = newViolation.getTime().getTime()
-                - policyViolationHistory.getPolicyViolationFirstOccurrenceTime(newViolation).getTime();
-            ageWaivedStatistics.addValue(policyViolationAgeWhenWaived);
-          }
-          else if (!newViolation.isWaived() && oldViolation.isWaived()) {
-            result.totalWaived--;
-            addWeekViolation(weekIndex, result.weeklyDeltaWaived, -1);
-            policyViolationHistory.replacePolicyViolation(oldViolation, newViolation);
-          }
-        }
-        for (PolicyViolation policyViolation : diff.getCleared()) {
-          Date policyViolationFirstOccurrenceTime = policyViolationHistory
-              .getPolicyViolationFirstOccurrenceTime(policyViolation);
-          if (policyViolationHistory.removeStageTypeFromViolation(policyViolation,
-              policyEvaluation.getStageTypeId())) {
-            result.totalFixed++;
-            addWeekViolation(weekIndex, result.weeklyDeltaFixed);
-            if (policyViolation.isWaived()) {
-              result.totalWaived--;
-              addWeekViolation(weekIndex, result.weeklyDeltaWaived, -1);
-            }
-            long policyViolationAgeWhenFixed = policyEvaluation.getTime().getTime()
-                - policyViolationFirstOccurrenceTime.getTime();
-            ageFixedStatistics.addValue(policyViolationAgeWhenFixed);
-          }
-        }
-      }
-
-      // Calculate age statistics for unresolved policy violations
-      for (PolicyViolation policyViolation : policyViolationHistory.getPolicyViolations()) {
-        if (policyViolation.isWaived()) {
-          continue;
-        }
-
-        Date policyViolationFirstOccurrenceTime = policyViolationHistory
-            .getPolicyViolationFirstOccurrenceTime(policyViolation);
-        long policyViolationAge = now - policyViolationFirstOccurrenceTime.getTime();
-        ageUnresolvedStatistics.addValue(policyViolationAge);
-      }
-    }
-
-    result.currentUnresolved = result.totalNew - result.totalWaived - result.totalFixed;
-    for (int iWeek = 0; iWeek < POLICY_SUMMARY_WEEKS; iWeek++) {
-      result.weeklyDeltaUnresolved.add(
-          result.weeklyDeltaNew.get(iWeek) - result.weeklyDeltaWaived.get(iWeek) - result.weeklyDeltaFixed.get(iWeek));
-    }
-
-    if (ageWaivedStatistics.getN() > 0) {
-      result.ageAverageWaived = (long) ageWaivedStatistics.getMean();
-      result.agePercentile90Waived = (long) ageWaivedStatistics.getPercentile(90);
-    }
-    if (ageFixedStatistics.getN() > 0) {
-      result.ageAverageFixed = (long) ageFixedStatistics.getMean();
-      result.agePercentile90Fixed = (long) ageFixedStatistics.getPercentile(90);
-    }
-    if (ageUnresolvedStatistics.getN() > 0) {
-      result.ageAverageUnresolved = (long) ageUnresolvedStatistics.getMean();
-      result.agePercentile90Unresolved = (long) ageUnresolvedStatistics.getPercentile(90);
-    }
-
-    log.debug("getPolicySummary finished in {}", System.currentTimeMillis() - start);
-
-    return result;
-  }
-
-  private void validateDashboardLicensed() {
-    if (!licenseManager.hasDashboard()) {
-      throw new InvalidLicenseException("Invalid license for the Dashboard feature");
-    }
   }
 }

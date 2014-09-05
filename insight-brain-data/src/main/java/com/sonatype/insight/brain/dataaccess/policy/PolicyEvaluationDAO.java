@@ -69,19 +69,19 @@ public class PolicyEvaluationDAO
    */
   public PolicyEvaluation getLastByApplicationIdAndStageId(EntityManager em, String appId, String stageTypeId) {
     String sQuery = "SELECT pe FROM PolicyEvaluation pe," + //
-        " LastPolicyEvaluation per" + //
-        " WHERE pe.id = per.policyEvaluationId" + //
-        " AND per.applicationId=?1" + //
-        " AND per.stageTypeId=?2";
+        " LastPolicyEvaluation lpe" + //
+        " WHERE pe.id = lpe.policyEvaluationId" + //
+        " AND lpe.applicationId=?1" + //
+        " AND lpe.stageTypeId=?2";
     return get(em, sQuery, appId, stageTypeId);
   }
 
   public List<PolicyEvaluation> getLastByApplicationIdsAndStageIds(Set<String> appIds, Set<String> stageTypeIds) {
     String sQuery = "SELECT pe FROM PolicyEvaluation pe," + //
-        " LastPolicyEvaluation per" + //
-        " WHERE pe.id = per.policyEvaluationId" + //
-        " AND per.applicationId in (?1)" + //
-        " AND per.stageTypeId in (?2)";
+        " LastPolicyEvaluation lpe" + //
+        " WHERE pe.id = lpe.policyEvaluationId" + //
+        " AND lpe.applicationId in (?1)" + //
+        " AND lpe.stageTypeId in (?2)";
     return getList(sQuery, appIds, stageTypeIds);
   }
 

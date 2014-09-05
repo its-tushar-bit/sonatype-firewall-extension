@@ -82,6 +82,8 @@ public class SaasClient
 
   public static final String UPLOAD_FILE_ATTRIBUTE = "saas.upload.file";
 
+  public static final String CLM_CLIENT_USER_AGENT_HEADER = "X-CLM-Client-User-Agent";
+
   @Inject
   public SaasClient(final InsightProxy proxy, final CLMLicenseManager licenseManager, VersionService versionService) {
     this.licenseManager = licenseManager;
@@ -307,7 +309,10 @@ public class SaasClient
           req.setHeader(headerName, orig.getHeader(headerName));
         }
       }
+
+      req.setHeader(CLM_CLIENT_USER_AGENT_HEADER, orig.getHeader(HttpHeaders.USER_AGENT));
     }
+
     req.setHeader("X-Brain-Version", version);
     req.setHeader("X-CLM-Token", licenseManager.getLicenseFingerprint());
     req.setHeader(HttpHeaders.USER_AGENT, config.getUserAgent());

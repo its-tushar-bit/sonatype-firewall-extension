@@ -11,8 +11,10 @@ import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 
 import javax.servlet.ServletException;
@@ -22,8 +24,8 @@ import javax.servlet.http.HttpServletResponse;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightProxy;
-import com.sonatype.insight.client.utils.UserAgentUtils;
 import com.sonatype.insight.brain.version.VersionService;
+import com.sonatype.insight.client.utils.UserAgentUtils;
 import com.sonatype.insight.error.exception.BadGatewayException;
 
 import org.eclipse.jetty.http.HttpHeaders;
@@ -41,8 +43,10 @@ import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.isIn;
 import static org.hamcrest.Matchers.not;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -92,7 +96,53 @@ public class SaasClientTest
   }
 
   @Test
-  public void testUserAgentOnRequests() throws Exception {
+  public void testClientUserAgentOnRequests() throws Exception {
+    String testPath = "/rest/test";
+    String testClmClientUserAgent = "client_user_agent";
+
+    final Map<String, String> headers = new HashMap<>();
+    handler = new AbstractHandler()
+    {
+
+      @Override
+      public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
+          throws IOException, ServletException
+      {
+        headers.clear();
+        for (Enumeration<String> en = request.getHeaderNames(); en.hasMoreElements();) {
+          String headerName = en.nextElement();
+          headers.put(headerName, request.getHeader(headerName));
+        }
+        baseRequest.setHandled(true);
+      }
+    };
+
+    HttpServletRequest request = mock(HttpServletRequest.class);
+    when(request.getHeaderNames()).thenReturn(Collections.enumeration(Arrays.asList(HttpHeaders.USER_AGENT)));
+    when(request.getHeader(eq(HttpHeaders.USER_AGENT))).thenReturn(testClmClientUserAgent);
+    when(request.getMethod()).thenReturn("GET");
+
+    client.doProxy(request, testPath);
+    assertThat(headers.get(SaasClient.CLM_CLIENT_USER_AGENT_HEADER), is(testClmClientUserAgent));
+    client.doProxy(request, testPath, null, new String[] {});
+    assertThat(headers.get(SaasClient.CLM_CLIENT_USER_AGENT_HEADER), is(testClmClientUserAgent));
+    // Method does not pass an original request, hence the null header.
+    client.get(InputStream.class, testPath, null, new String[] {});
+    assertNull(headers.get(SaasClient.CLM_CLIENT_USER_AGENT_HEADER));
+    client.get(request, InputStream.class, testPath, new String[] {});
+    assertThat(headers.get(SaasClient.CLM_CLIENT_USER_AGENT_HEADER), is(testClmClientUserAgent));
+    client.get(request, InputStream.class, testPath, null, new String[] {});
+    assertThat(headers.get(SaasClient.CLM_CLIENT_USER_AGENT_HEADER), is(testClmClientUserAgent));
+    client.getResponse(request, testPath, null, new String[] {});
+    assertThat(headers.get(SaasClient.CLM_CLIENT_USER_AGENT_HEADER), is(testClmClientUserAgent));
+    // Method does not pass an original request, hence the null header.
+    client.put(InputStream.class, testPath, new File(SaasClientTest.class.getResource("/config-test.yml").toURI()),
+        new String[] {});
+    assertNull(headers.get(SaasClient.CLM_CLIENT_USER_AGENT_HEADER));
+  }
+
+  @Test
+  public void testClmUserAgentOnRequests() throws Exception {
     String userAgent = UserAgentUtils.getDefaultUserAgent();
     final Set<String> headers = new HashSet<String>();
     String testPath = "/rest/test";

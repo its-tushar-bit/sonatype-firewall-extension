@@ -882,6 +882,7 @@ class DashboardOverviewSpec
       compViolationsPage.componentViolationsTable.rows[0].moderateRisk.text() == "0"
       !compViolationsPage.componentViolationsTable.rows[0].lowRisk.displayed
       compViolationsPage.componentViolationsTable.rows[0].componentLink.displayed
+      report('Components Table')
 
     when: 'clicking the component link'
       compViolationsPage.componentViolationsTable.rows[0].componentLink.click()
@@ -935,6 +936,7 @@ class DashboardOverviewSpec
       appViolationsPage.applicationViolationsTable.rows[5].application.text() ==
           new ReleaseStageType().getName().toUpperCase()
       appViolationsPage.applicationViolationsTable.rows[5].reportLink.displayed
+      report('Applications Table')
 
     and: 'the stage label links to the underlying report'
       withNewWindow(page: ReportContainerPage,

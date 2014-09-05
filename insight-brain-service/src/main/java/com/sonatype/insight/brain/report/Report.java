@@ -204,7 +204,7 @@ public final class Report
           buildAlerts++;
         }
 
-        final int counter = severity < 4 ? 2 : severity < 8 ? 1 : 0;
+        final int counter = severity < 4 ? 2 : severity < 7 ? 1 : 0;
         for (final JsonNode level : gavDepths.path(gav)) {
           final int index = level.asInt() - 1;
           while (index >= securityPunchCard.size()) {

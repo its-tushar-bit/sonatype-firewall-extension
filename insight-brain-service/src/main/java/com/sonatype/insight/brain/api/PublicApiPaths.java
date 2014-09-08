@@ -18,4 +18,5 @@ public class PublicApiPaths
 
   public static final String POLICY_SERVICE_PATH = API_VERSION_PATH + "policies";
 
+  public static final String POLICY_VIOLATION_SERVICE_PATH = API_VERSION_PATH + "policyViolations";
 }

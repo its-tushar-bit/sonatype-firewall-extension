@@ -5,13 +5,10 @@
  */
 package com.sonatype.insight.brain.api.dto;
 
+import java.util.ArrayList;
 import java.util.List;
 
-/**
- * @since 1.11.0
- */
-public class ApiApplicationDTO
-  extends ApiApplicationBaseDTO
+public class ApiApplicationViolationListDTO
 {
-  public List<ApiApplicationTagDTO> applicationTags;
+  public List<ApiApplicationViolationDTO> applicationViolations = new ArrayList<>();
 }

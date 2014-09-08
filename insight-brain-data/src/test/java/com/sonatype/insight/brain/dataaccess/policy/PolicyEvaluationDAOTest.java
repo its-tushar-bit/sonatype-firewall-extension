@@ -411,4 +411,24 @@ public class PolicyEvaluationDAOTest
     assertThat(policyEvaluations, hasSize(1));
     assertThat(policyEvaluations.get(0).getId(), is(pe1.getId()));
   }
+
+  @Test
+  public void testGetLastByApplicationIds() {
+    PolicyEvaluationDAO dao = new PolicyEvaluationDAO();
+
+    String stageTypeId = ReleaseStageType.ID;
+    Date time1 = new Date();
+    Application application2 = tempEntity.newApplication(organization.getId());
+    tempEntity.newPolicyEvaluation(application2.getId(), stageTypeId, "scanId1", time1);
+    tempEntity.newPolicyEvaluation(applicationId, stageTypeId, "scanId2", time1);
+    Date time2 = new Date(time1.getTime() + 1000);
+    PolicyEvaluation pe2 = tempEntity.newPolicyEvaluation(applicationId, stageTypeId, "scanId3", time2);
+
+    List<PolicyEvaluation> policyEvaluations = dao.getLastByApplicationIds(Sets.newHashSet(applicationId));
+    assertThat(policyEvaluations, hasSize(1));
+    PolicyEvaluation policyEvaluation = policyEvaluations.get(0);
+    assertThat(policyEvaluation.getId(), equalTo(pe2.getId()));
+    assertThat(policyEvaluation.getTime(), is(time2));
+    assertThat(policyEvaluation.isForObsoleteScan(), is(false));
+  }
 }

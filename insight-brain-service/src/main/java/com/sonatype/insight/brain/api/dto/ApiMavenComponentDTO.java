@@ -5,13 +5,17 @@
  */
 package com.sonatype.insight.brain.api.dto;
 
-import java.util.List;
-
 /**
- * @since 1.11.0
+ * @since 1.12.0
  */
-public class ApiApplicationDTO
-  extends ApiApplicationBaseDTO
+public class ApiMavenComponentDTO
 {
-  public List<ApiApplicationTagDTO> applicationTags;
+
+  public String hash;
+
+  public String groupId;
+
+  public String artifactId;
+
+  public String version;
 }

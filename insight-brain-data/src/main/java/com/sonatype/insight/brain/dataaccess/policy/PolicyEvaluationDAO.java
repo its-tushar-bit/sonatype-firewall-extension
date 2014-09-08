@@ -64,6 +64,14 @@ public class PolicyEvaluationDAO
     }
   }
 
+  public List<PolicyEvaluation> getLastByApplicationIds(Set<String> appIds) {
+    String sQuery = "SELECT pe FROM PolicyEvaluation pe," + //
+        " LastPolicyEvaluation lpe" + //
+        " WHERE pe.id = lpe.policyEvaluationId" + //
+        " AND lpe.applicationId in (?1)";
+    return getList(sQuery, appIds);
+  }
+
   /**
    * Returns the most recent policy evaluation for the most recent scan for the given application and stage.
    */

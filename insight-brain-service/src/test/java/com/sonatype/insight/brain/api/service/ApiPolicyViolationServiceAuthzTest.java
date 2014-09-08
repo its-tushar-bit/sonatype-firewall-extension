@@ -116,16 +116,16 @@ public class ApiPolicyViolationServiceAuthzTest
 
   @Test
   public void testGetPolicyViolations_Unauthenticated() {
-    assertNotEmptyWhenUnauthorizedOrAuthenticated();
+    assertEmptyWhenUnauthorizedOrAuthenticated();
   }
 
   @Test
   public void testGetPolicyViolations_UnauthorizedButAuthenticated() {
     login();
-    assertNotEmptyWhenUnauthorizedOrAuthenticated();
+    assertEmptyWhenUnauthorizedOrAuthenticated();
   }
 
-  private void assertNotEmptyWhenUnauthorizedOrAuthenticated() {
+  private void assertEmptyWhenUnauthorizedOrAuthenticated() {
     Set<String> policyIds = Sets.newHashSet(orgPolicy.getId());
     ApiApplicationViolationListDTO apiApplicationViolationListDTO = apiPolicyViolationService.getPolicyViolations(
         policyIds);

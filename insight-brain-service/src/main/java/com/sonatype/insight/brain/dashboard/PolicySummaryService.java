@@ -181,8 +181,6 @@ public class PolicySummaryService
           if (policyViolation.isWaived()) {
             result.totalWaived++;
             addWeekViolation(weekIndex, result.weeklyDeltaWaived);
-            // The policy violation was waived when it occurred the first time, so the age for "waived" is zero.
-            ageWaivedStatistics.addValue(0);
           }
         }
         for (Entry<PolicyViolation, PolicyViolation> samePolicyViolationEntry : diff.getSame().entrySet()) {
@@ -195,14 +193,13 @@ public class PolicySummaryService
             result.totalWaived++;
             addWeekViolation(weekIndex, result.weeklyDeltaWaived);
             policyViolationHistory.replacePolicyViolation(oldViolation, newViolation);
-            long policyViolationAgeWhenWaived = newViolation.getTime().getTime()
-                - policyViolationHistory.getPolicyViolationFirstOccurrenceTime(newViolation).getTime();
-            ageWaivedStatistics.addValue(policyViolationAgeWhenWaived);
           }
           else if (!newViolation.isWaived() && oldViolation.isWaived()) {
             result.totalWaived--;
             addWeekViolation(weekIndex, result.weeklyDeltaWaived, -1);
             policyViolationHistory.replacePolicyViolation(oldViolation, newViolation);
+            long policyViolationAgeSinceWaived = newViolation.getTime().getTime() - oldViolation.getTime().getTime();
+            ageWaivedStatistics.addValue(policyViolationAgeSinceWaived);
           }
         }
         for (PolicyViolation policyViolation : diff.getCleared()) {
@@ -214,6 +211,9 @@ public class PolicySummaryService
             if (policyViolation.isWaived()) {
               result.totalWaived--;
               addWeekViolation(weekIndex, result.weeklyDeltaWaived, -1);
+              long policyViolationAgeSinceWaived = policyEvaluation.getTime().getTime()
+                  - policyViolation.getTime().getTime();
+              ageWaivedStatistics.addValue(policyViolationAgeSinceWaived);
             }
             long policyViolationAgeWhenFixed = policyEvaluation.getTime().getTime()
                 - policyViolationFirstOccurrenceTime.getTime();
@@ -222,16 +222,18 @@ public class PolicySummaryService
         }
       }
 
-      // Calculate age statistics for unresolved policy violations
+      // Calculate age statistics for waived and unresolved policy violations
       for (PolicyViolation policyViolation : policyViolationHistory.getPolicyViolations()) {
         if (policyViolation.isWaived()) {
-          continue;
+          long policyViolationAgeSinceWaived = now - policyViolation.getTime().getTime();
+          ageWaivedStatistics.addValue(policyViolationAgeSinceWaived);
         }
-
-        Date policyViolationFirstOccurrenceTime = policyViolationHistory
-            .getPolicyViolationFirstOccurrenceTime(policyViolation);
-        long policyViolationAge = now - policyViolationFirstOccurrenceTime.getTime();
-        ageUnresolvedStatistics.addValue(policyViolationAge);
+        else {
+          Date policyViolationFirstOccurrenceTime = policyViolationHistory
+              .getPolicyViolationFirstOccurrenceTime(policyViolation);
+          long policyViolationAge = now - policyViolationFirstOccurrenceTime.getTime();
+          ageUnresolvedStatistics.addValue(policyViolationAge);
+        }
       }
     }
 

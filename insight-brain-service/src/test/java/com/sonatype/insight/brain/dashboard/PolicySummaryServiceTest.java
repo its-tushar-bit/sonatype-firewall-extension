@@ -292,6 +292,60 @@ public class PolicySummaryServiceTest
   }
 
   @Test
+  public void testGetPolicySummary_Waived() {
+    DateTime now = new DateTime();
+
+    // Data before week 0. One app1 violation.
+    PolicyEvaluation pe1 = tempEntity.newPolicyEvaluation(app1.getId(), BuildStageType.ID, "scanId1",
+        now.minusWeeks(PolicySummaryService.POLICY_SUMMARY_WEEKS).minusDays(1).toDate());
+    tempEntity.newPolicyViolation(pe1, orgPolicy, "g1", "a1", "v1", "h1", "r1");
+
+    // Data during week 0. Waives app1 violation.
+    PolicyWaiver waiver = tempEntity.newWaiver("abababab", orgPolicy.getId(), app1.getId());
+    PolicyEvaluation pe2 = tempEntity.newPolicyEvaluation(app1.getId(), BuildStageType.ID, "scanId2",
+        now.minusWeeks(PolicySummaryService.POLICY_SUMMARY_WEEKS).plusDays(1).toDate());
+    tempEntity.newWaivedPolicyViolation(pe2, orgPolicy, "g1", "a1", "v1", "h1", waiver);
+
+    PolicySummaryDTO dto = policySummaryService.getPolicySummary(null, null, null, null, null);
+    assertCounters(dto, 1, 1, 0, 0);
+    assertCountersWeek(dto, 0, 0, 1, 0, -1);
+    DescriptiveStatistics ageWaivedStatistics = createStatistics(dto.timestamp - pe2.getTime().getTime());
+    DescriptiveStatistics ageFixedStatistics = createStatistics(0);
+    DescriptiveStatistics ageUnresolvedStatistics = createStatistics(0);
+    assertAges(dto, ageWaivedStatistics, ageFixedStatistics, ageUnresolvedStatistics);
+  }
+
+  @Test
+  public void testGetPolicySummary_WaivedAndUnwaived() {
+    DateTime now = new DateTime();
+
+    // Data before week 0. One app1 violation.
+    PolicyEvaluation pe1 = tempEntity.newPolicyEvaluation(app1.getId(), BuildStageType.ID, "scanId1",
+        now.minusWeeks(PolicySummaryService.POLICY_SUMMARY_WEEKS).minusDays(1).toDate());
+    tempEntity.newPolicyViolation(pe1, orgPolicy, "g1", "a1", "v1", "h1", "r1");
+
+    // Data during week 0. Waives app1 violation.
+    PolicyWaiver waiver = tempEntity.newWaiver("abababab", orgPolicy.getId(), app1.getId());
+    PolicyEvaluation pe2 = tempEntity.newPolicyEvaluation(app1.getId(), BuildStageType.ID, "scanId2",
+        now.minusWeeks(PolicySummaryService.POLICY_SUMMARY_WEEKS).plusDays(1).toDate());
+    tempEntity.newWaivedPolicyViolation(pe2, orgPolicy, "g1", "a1", "v1", "h1", waiver);
+
+    // Data during week 1. Unwaives app1 violation.
+    PolicyEvaluation pe3 = tempEntity.newPolicyEvaluation(app1.getId(), BuildStageType.ID, "scanId3",
+        now.minusWeeks(PolicySummaryService.POLICY_SUMMARY_WEEKS - 1).plusDays(2).toDate());
+    tempEntity.newPolicyViolation(pe3, orgPolicy, "g1", "a1", "v1", "h1", "r1");
+
+    PolicySummaryDTO dto = policySummaryService.getPolicySummary(null, null, null, null, null);
+    assertCounters(dto, 1, 0, 0, 1);
+    assertCountersWeek(dto, 0, 0, 1, 0, -1);
+    assertCountersWeek(dto, 1, 0, -1, 0, 1);
+    DescriptiveStatistics ageWaivedStatistics = createStatistics(pe3.getTime().getTime() - pe2.getTime().getTime());
+    DescriptiveStatistics ageFixedStatistics = createStatistics(0);
+    DescriptiveStatistics ageUnresolvedStatistics = createStatistics(dto.timestamp - pe1.getTime().getTime());
+    assertAges(dto, ageWaivedStatistics, ageFixedStatistics, ageUnresolvedStatistics);
+  }
+
+  @Test
   public void testGetPolicySummary_WaivedAndFixedSameWeek() {
     DateTime now = new DateTime();
 
@@ -315,7 +369,7 @@ public class PolicySummaryServiceTest
     assertCountersWeek(dto, 0, 0, 0, 0, 0);
     assertCountersWeek(dto, 1, 0, 0, 0, 0);
     assertCountersWeek(dto, 2, 0, 0, 1, -1);
-    DescriptiveStatistics ageWaivedStatistics = createStatistics(pe2.getTime().getTime() - pe1.getTime().getTime());
+    DescriptiveStatistics ageWaivedStatistics = createStatistics(pe3.getTime().getTime() - pe2.getTime().getTime());
     DescriptiveStatistics ageFixedStatistics = createStatistics(pe3.getTime().getTime() - pe1.getTime().getTime());
     DescriptiveStatistics ageUnresolvedStatistics = createStatistics(0);
     assertAges(dto, ageWaivedStatistics, ageFixedStatistics, ageUnresolvedStatistics);
@@ -346,7 +400,7 @@ public class PolicySummaryServiceTest
     assertCountersWeek(dto, 1, 0, 0, 0, 0);
     assertCountersWeek(dto, 2, 0, 1, 0, -1);
     assertCountersWeek(dto, 3, 0, -1, 1, 0);
-    DescriptiveStatistics ageWaivedStatistics = createStatistics(pe2.getTime().getTime() - pe1.getTime().getTime());
+    DescriptiveStatistics ageWaivedStatistics = createStatistics(pe3.getTime().getTime() - pe2.getTime().getTime());
     DescriptiveStatistics ageFixedStatistics = createStatistics(pe3.getTime().getTime() - pe1.getTime().getTime());
     DescriptiveStatistics ageUnresolvedStatistics = createStatistics(0);
     assertAges(dto, ageWaivedStatistics, ageFixedStatistics, ageUnresolvedStatistics);
@@ -405,10 +459,10 @@ public class PolicySummaryServiceTest
   private void assertCountersWeek(PolicySummaryDTO actual, int week, int newCount, int waivedCount, int fixedCount,
       int unresolvedCount)
   {
-    assertThat(actual.weeklyDeltaNew.get(week), is(newCount));
-    assertThat(actual.weeklyDeltaWaived.get(week), is(waivedCount));
-    assertThat(actual.weeklyDeltaFixed.get(week), is(fixedCount));
-    assertThat(actual.weeklyDeltaUnresolved.get(week), is(unresolvedCount));
+    assertThat("weeklyDeltaNew", actual.weeklyDeltaNew.get(week), is(newCount));
+    assertThat("weeklyDeltaWaived", actual.weeklyDeltaWaived.get(week), is(waivedCount));
+    assertThat("weeklyDeltaFixed", actual.weeklyDeltaFixed.get(week), is(fixedCount));
+    assertThat("weeklyDeltaUnresolved", actual.weeklyDeltaUnresolved.get(week), is(unresolvedCount));
   }
 
   private void assertAges(PolicySummaryDTO actual, DescriptiveStatistics ageWaivedStatistics,

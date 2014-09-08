@@ -43,6 +43,6 @@ public class PolicyAssertUtils
     assertThat(actualPolicy.ownerId, is(expectedPolicy.getOwnerId()));
     assertThat(actualPolicy.ownerType, is(ownerType));
     assertThat(actualPolicy.threatLevel, is(expectedPolicy.getThreatLevel()));
-    assertThat(PolicyThreatCategory.getByName(actualPolicy.threatCategory), is(expectedPolicy.getThreatCategory()));
+    assertThat(PolicyThreatCategory.getByName(actualPolicy.policyType), is(expectedPolicy.getThreatCategory()));
   }
 }

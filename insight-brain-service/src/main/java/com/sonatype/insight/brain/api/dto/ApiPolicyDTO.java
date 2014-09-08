@@ -20,7 +20,7 @@ public class ApiPolicyDTO
 
   public int threatLevel;
 
-  public String threatCategory;
+  public String policyType;
 
   @Override
   public String toString() {
@@ -30,7 +30,7 @@ public class ApiPolicyDTO
         ", ownerId='" + ownerId + '\'' +
         ", ownerType='" + ownerType + '\'' +
         ", threatLevel=" + threatLevel +
-        ", threatCategory='" + threatCategory + '\'' +
+        ", threatCategory='" + policyType + '\'' +
         '}';
   }
 }

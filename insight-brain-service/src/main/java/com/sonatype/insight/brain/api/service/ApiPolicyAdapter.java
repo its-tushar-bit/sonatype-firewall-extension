@@ -38,7 +38,7 @@ public class ApiPolicyAdapter
     policyDTO.ownerId = policy.getOwnerId();
     policyDTO.ownerType = ownerType;
     policyDTO.threatLevel = policy.getThreatLevel();
-    policyDTO.threatCategory = policy.getThreatCategory().getName();
+    policyDTO.policyType = policy.getThreatCategory().getName();
     return policyDTO;
   }
 }

@@ -144,6 +144,18 @@ extends BaseSpec {
     policySummary.pendingRow.count == 1
     policySummary.waivedRow.count == 1
 
+    and: 'The average age for each category is shown'
+    policySummary.discoveredRow.averageAge == ''
+    policySummary.fixedRow.averageAge == '1m'
+    policySummary.pendingRow.averageAge == '2d'
+    policySummary.waivedRow.averageAge == '1m'
+
+    and: 'The ninety percentile age for each category is shown'
+    policySummary.discoveredRow.ninetyPercentileAge == ''
+    policySummary.fixedRow.ninetyPercentileAge == '2m'
+    policySummary.pendingRow.ninetyPercentileAge == '2d'
+    policySummary.waivedRow.ninetyPercentileAge == '1m'
+
     and: 'The deltas for each category are shown'
     policySummary.discoveredRow.delta.value == 7
     policySummary.fixedRow.delta.value == 8

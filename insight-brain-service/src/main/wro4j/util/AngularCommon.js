@@ -1066,8 +1066,31 @@ var AngularStateUtils = {
       seconds: 'seconds ago',
       highlightMultiples: true,
       separator: ' ',
-      suffix: ' ago'
+      suffix: ' ago',
+      diffFunction: function(date) { return new Date().getTime() - date; }
     };
+    return new ElapsedTimeFilterFactory(rules);
+  });
+
+  /**
+   * English language abbreviations for time span.
+   */
+  var timeAbbreviations = {
+    year: 'y',
+    month: 'm',
+    day: 'd',
+    hour: 'h',
+    minute: 'min',
+    seconds: '1min',
+    highlightMultiples: false,
+    separator: '',
+    suffix: ''
+  };
+
+  services.filter('terseTimeSpan', function() {
+    var rules = angular.extend({
+      diffFunction: function(date) { return date; }
+    }, timeAbbreviations);
     return new ElapsedTimeFilterFactory(rules);
   });
 
@@ -1075,17 +1098,9 @@ var AngularStateUtils = {
    * English language abbreviations for elapsed time.
    */
   services.filter('terseAgo', function(){
-    var rules = {
-      year: 'y',
-      month: 'm',
-      day: 'd',
-      hour: 'h',
-      minute: 'min',
-      seconds: '1min',
-      highlightMultiples: false,
-      separator: '',
-      suffix: ''
-    };
+    var rules = angular.extend({
+      diffFunction: function(date) { return new Date().getTime() - date; }
+    }, timeAbbreviations);
     return new ElapsedTimeFilterFactory(rules);
   });
 
@@ -1106,7 +1121,7 @@ var AngularStateUtils = {
       if (!date) {
         return ago;
       }
-      diff = new Date().getTime() - date;
+      diff = localRules.diffFunction(date);
 
       if (diff > 12 * 30 * 24 * 60 * 60 * 1000) {
         val = diff / (12 * 30 * 24 * 60 * 60 * 1000);

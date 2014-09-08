@@ -67,6 +67,10 @@
   .chart {
     width: 70px !important;
   }
+  .table.policy-summary-table .category-header {
+    min-width: 85px !important;
+  }
+
   .dashboard-content #stage-header-build {
     min-width: 43px;
   }
@@ -343,13 +347,13 @@ table th#affected-apps {
   background-color : #F1F1F1;
 }
 
-.dashboard-content .up:before, .dashboard-content .down:before {
+.sort-column .up:before, .sort-column .down:before {
   line-height: 30px;
   vertical-align: top;
   font-size: 12px;
 }
 
-.dashboard-content .emptyIconGlyph {
+.sort-column .emptyIconGlyph {
   width : 12px;
 }
 
@@ -485,14 +489,6 @@ table th#affected-apps {
   text-align: center;
 }
 
-.small-dashboard-label-wrapper {
-  padding: 0;
-  width: 100%;
-  text-align: center;
-  font-size: 1.2em;
-  line-height: 30px;
-}
-
 .dashboard-label {
   line-height: 20px !important;
   font-size: 20px !important;
@@ -609,40 +605,6 @@ table th#affected-apps {
   vertical-align: middle;
   display: inline-block;
 }
-
-/* BEGIN styling for policy summary elements */
-
-.table.policy-summary-table {
-  max-width: 100%;
-}
-/* reduce padding on summary table cells */
-.table.policy-summary-table td {
-  padding: 5px 3px;
-  line-height: 30px;
-  font-size: 1.3em;
-  font-weight: bold;
-  min-width: 70px;
-}
-.table.policy-summary-table .buffer-column {
-  min-width: 0px;
-  padding: 0;
-}
-.table.policy-summary-table .delta-column {
-  min-width: 0px;
-  text-align: right;
-}
-.table.policy-summary-table td:nth-child(2), .table.policy-summary-table td:nth-child(3),
-.table.policy-summary-table th {
-  text-align: center;
-}
-.table.policy-summary-table th {
-  padding: 5px 0;
-}
-.table.policy-summary-table .category-header {
-  min-width: 105px;
-  text-align: left;
-}
-/* END styling for policy summary elements */
 
 /* BEGIN Style for modal heat map help. */
 .modal-help {

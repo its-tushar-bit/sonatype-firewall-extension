@@ -111,14 +111,20 @@ class PolicySummaryRow
 
   static final int COUNT = 1
 
-  static final int BAR_CHART = 5
+  static final int AVERAGE_AGE = 2
 
-  static final int SPARKLINE = 6
+  static final int NINETY_PERCENTILE_AGE = 3
+
+  static final int BAR_CHART = 7
+
+  static final int SPARKLINE = 8
 
   static content = {
     cell(required: false) { int i -> $('td', i) }
     category { cell(CATEGORY).text() }
     count { cell(COUNT).text().toInteger() }
+    averageAge { cell(AVERAGE_AGE).text() }
+    ninetyPercentileAge { cell(NINETY_PERCENTILE_AGE).text() }
     delta { module DeltaModule }
     barChart { module BarChartModule, cell(BAR_CHART) }
     sparkline { module SparklineModule, cell(SPARKLINE) }
@@ -161,7 +167,7 @@ class SparklineModule
   }
 
   List<Number> getValues() {
-    final double height = 30.0
+    final double height = 25.0
     final int padding = 2
 
     def path = previousPath.attr('d');

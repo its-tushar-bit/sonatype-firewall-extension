@@ -448,14 +448,58 @@ Bar Graphs
 </div>
 ```
 */
+$policy-summary-table-row-height: 25px;
+
 .policy-summary-table {
+  &.table {
+    max-width: 100%;
+  }
+
+  &.table td {
+    padding: 5px 2px;
+    line-height: $policy-summary-table-row-height;
+    font-size: 1.1em;
+    font-weight: bold;
+    min-width: 40px;
+  }
+
+  &.table .buffer-column {
+    min-width: 0px;
+    padding: 0;
+  }
+
+  &.table .delta-column {
+    min-width: 0px;
+    text-align: right;
+  }
+
+  &.table td:not(:first-child),
+  &.table th {
+    text-align: center;
+  }
+
+  &.table td:nth-child(2) {
+    font-size: 1.3em;
+  }
+
+  &.table th {
+    padding: 5px 0;
+  }
+
+  &.table .category-header {
+    min-width: 95px;
+    text-align: left;
+  }
+
   .delta-column .up:before, .delta-column .down:before {
     font-size : 1.3em;
+    line-height: $policy-summary-table-row-height;
+    vertical-align: top;
   }
 
   .chart {
-    height: 30px;
-    width: 133px;
+    height: $policy-summary-table-row-height;
+    width: 115px;
     margin: auto;
   }
 

@@ -524,7 +524,7 @@
         centered : '@?'
       },
       transclude : true,
-      template : '<a ng-click="setSort()">' +
+      template : '<a class="sort-column" ng-click="setSort()">' +
                    '<i ng-if="centered" class="sonatype-icons emptyIconGlyph"></i> ' + // should help center
                    '<span ng-transclude></span> <i class="sonatype-icons" ng-class="{ up : isUp(), down : isDown(), emptyIconGlyph : !isUp() && !isDown() }"></i></a>',
       link : function (scope, element, attrs, sortableCtrl) {
@@ -724,6 +724,8 @@
               {
                 name: 'Pending',
                 counts: currentUnresolved,
+                avg: policySummaryData.ageAverageUnresolved,
+                p90: policySummaryData.agePercentile90Unresolved,
                 delta: unresolvedDelta,
                 barChartData : weeklyDeltaUnresolved,
                 sparklineData: calculateRunningTotals(weeklyDeltaUnresolved, currentUnresolved - unresolvedDelta),
@@ -732,6 +734,8 @@
               {
                 name: 'Waived',
                 counts: totalWaived,
+                avg: policySummaryData.ageAverageWaived,
+                p90: policySummaryData.agePercentile90Waived,
                 delta: waivedDelta,
                 barChartData: weeklyDeltaWaived,
                 sparklineData: calculateRunningTotals(weeklyDeltaWaived, totalWaived - waivedDelta),
@@ -740,6 +744,8 @@
               {
                 name: 'Fixed',
                 counts: totalFixed,
+                avg: policySummaryData.ageAverageFixed,
+                p90: policySummaryData.agePercentile90Fixed,
                 delta: fixedDelta,
                 barChartData : weeklyDeltaFixed,
                 sparklineData: calculateRunningTotals(weeklyDeltaFixed, totalFixed - fixedDelta),

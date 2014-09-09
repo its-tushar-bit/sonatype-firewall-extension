@@ -152,6 +152,32 @@
         });
         expect(scope.statuses.length).toEqual(5);
       }));
+
+      describe('getLicenseThreatClass', function () {
+        it('Unspecified', function () {
+          expect(scope.getLicenseThreatClass(undefined)).toEqual('unspecified');
+          expect(scope.getLicenseThreatClass(null)).toEqual('unspecified');
+        });
+        it('Critical', function () {
+          expect(scope.getLicenseThreatClass(10)).toEqual('critical');
+          expect(scope.getLicenseThreatClass(9)).toEqual('critical');
+          expect(scope.getLicenseThreatClass(8)).toEqual('critical');
+        });
+        it('Severe', function () {
+          expect(scope.getLicenseThreatClass(7)).toEqual('severe');
+          expect(scope.getLicenseThreatClass(6)).toEqual('severe');
+          expect(scope.getLicenseThreatClass(5)).toEqual('severe');
+          expect(scope.getLicenseThreatClass(4)).toEqual('severe');
+        });
+        it('Moderate', function () {
+          expect(scope.getLicenseThreatClass(3)).toEqual('moderate');
+          expect(scope.getLicenseThreatClass(2)).toEqual('moderate');
+          expect(scope.getLicenseThreatClass(1)).toEqual('moderate');
+        });
+        it('None', function () {
+          expect(scope.getLicenseThreatClass(0)).toEqual('none');
+        });
+      });
     });
 
     describe("No Overrides", function() {

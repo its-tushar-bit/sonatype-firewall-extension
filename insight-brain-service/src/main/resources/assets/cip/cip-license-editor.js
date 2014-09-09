@@ -283,10 +283,10 @@
           return 'unspecified';
         }
         else if (threat > 7) {
-          return 'severe';
+          return 'critical';
         }
         else if (threat > 3) {
-          return 'critical';
+          return 'severe';
         }
         else if (threat > 0) {
           return 'moderate';

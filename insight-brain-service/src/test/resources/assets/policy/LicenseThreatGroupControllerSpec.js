@@ -133,7 +133,7 @@ describe('LicenseThreatGroup', function() {
       var element = angular.element('<div id="LicenseThreatGroupEditorController" ltg-editor="licenseGroup"></div>'),
           parentScope = scope.$new();
 
-      $httpBackend.expectGET('ltgInlineEditor').respond('');
+      $httpBackend.expectGET('ltgInlineEditor').respond('<form name="licenseGroupEditor"></form>');
       $compile(element)(parentScope);
       $httpBackend.flush();
       parentScope.$apply(function() {
@@ -172,6 +172,21 @@ describe('LicenseThreatGroup', function() {
       expect(getSelectedGroupLicenses().length).toEqual(1);
       expect(editorScope.selectedGroupLicenses['AFL-UNSPECIFIED']).toEqual(true);
       expect(editorScope.selectedGroupLicenses.AAL).toEqual(null);
+    });
+    it('Marks form dirty when adding or removing licenses', function() {
+      editorScope.$apply(function() {
+        editorScope.addLicense(LicenseGroupMockData.getLicensesData()[1]);
+      });
+      expect(editorScope.licenseGroupEditor.$pristine).toEqual(false);
+
+      //Reset form
+      editorScope.licenseGroupEditor.$setPristine();
+      expect(editorScope.licenseGroupEditor.$pristine).toEqual(true);
+
+      editorScope.$apply(function() {
+        editorScope.removeLicense(LicenseGroupMockData.getLicensesData()[2]);
+      });
+      expect(editorScope.licenseGroupEditor.$pristine).toEqual(false);
     });
   });
 });

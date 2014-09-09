@@ -215,6 +215,7 @@
           var newLicense = angular.extend(licenseGroupStore.create('licenses'), { licenseId: license.id });
           $scope.selectedGroup.licenses.push(newLicense);
           $scope.selectedGroupLicenses[license.id] = true;
+          $scope.licenseGroupEditor.$setDirty();
         };
 
         $scope.removeLicense = function(license) {
@@ -228,6 +229,7 @@
             $scope.selectedGroupLicenses[license.id] = null;
             $scope.selectedGroup.licenses.splice(index, 1);
           }
+          $scope.licenseGroupEditor.$setDirty();
         };
 
         $scope.canSaveEdit = function(valid) {

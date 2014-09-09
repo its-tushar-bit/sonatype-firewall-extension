@@ -5,8 +5,6 @@
  */
 package com.sonatype.insight.brain.api;
 
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.Set;
 
 import javax.inject.Inject;

@@ -1172,9 +1172,25 @@
               });
             }
           });
-          spaceInvaders.run(invaders, 'Component Risk Invaders',
-            'Quick!\n\nSonatype CLM has found\ncomponent violations.\n\nDestroy them before\nthey destroy your\napplications.',
-            winCallBack, loseCallback);
+          if (invaders.length > 0) {
+            spaceInvaders.run(invaders, 'Component Risk Invaders',
+              'Quick!\n\nSonatype CLM has found\ncomponent violations.\n\nDestroy them before\nthey destroy your\napplications.',
+              winCallBack, loseCallback);
+          } else {
+            Dialog.open({
+              keyboard : true,
+              title: 'Congratulations!',
+              body: '<p>Your applications are in a pristine condition with no component risk. Make sure to evaluate your applications ' +
+                'regularly and be sure your policies reflect the latest goals of your organization.' +
+                '</p><br /><p>Tip: Want to build policies that are even better at detecting the next bad component invasion? ' +
+                'Check out our <a target="_blank" href="http://books.sonatype.com/sonatype-clm-book/html/policy-management-guide/index.html">' +
+                'Policy Management Documentation</a>.</p>',
+              buttons: [{
+                name: 'Close',
+                type: 'cancel'
+              }]
+            });
+          }
         });
       }
     };

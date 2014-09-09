@@ -508,12 +508,11 @@ var AngularStateUtils = {
   angularCommon.directive('threatBox', function() {
     return {
       restrict: 'A',
-      scope: {
-        selected: '='
-      },
+      scope: false,
+      require: 'ngModel',
       template: '<span class="threat-level-dropdown dropdown">' +
-          '<a class="btn dropdown-toggle threat-level-{{selected}}" data-toggle="dropdown" href="#">' +
-          '{{selected}} <span class="caret"></span>' +
+          '<a class="btn dropdown-toggle threat-level-{{ngModel.$modelValue}}" data-toggle="dropdown" href="#">' +
+          '{{ngModel.$modelValue}} <span class="caret"></span>' +
           '</a>' +
           '<ul class="dropdown-menu">' +
           '<li ng-repeat="threatLevel in threatLevels">' +
@@ -521,10 +520,12 @@ var AngularStateUtils = {
           '</li>' +
           '</ul>' +
           '</span>',
-      link: function(scope, element, attrs) {
+      priority: 1,
+      link: function(scope, element, attrs, ngModel) {
+        scope.ngModel = ngModel;
         scope.threatLevels = [10, 9, 8, 7, 6, 5, 4, 3, 2, attrs.one || 1, attrs.zero || 0];
         scope.select = function(threat) {
-          scope.selected = threat;
+          scope.ngModel.$setViewValue(threat);
         };
       }
     };

@@ -240,10 +240,9 @@ public class DashboardService
   /**
    * @since 1.11.0
    */
-  @Authorize(permission = Permission.READ)
   public List<ApplicationRiskScoreDTO> getApplicationRisks(
-      @AuthzContext(value = AuthzContext.Key.APPLICATION_ID, multiple = true) final Set<String> applicationIds,
-      final Set<String> stageIds, final Set<String> tagIds, final PolicyThreatCategoryFilter policyThreatCategoryFilter,
+      final Set<String> applicationIds, final Set<String> stageIds, final Set<String> tagIds,
+      final PolicyThreatCategoryFilter policyThreatCategoryFilter,
       final PolicyThreatLevelFilter policyThreatLevelFilter, final int maxResults)
   {
     dashboardUtils.validateDashboardLicensed();

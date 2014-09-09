@@ -81,6 +81,8 @@ public class DashboardServiceTest
   private PolicyViolation orgPolicyViolation;
   private PolicyViolation app1PolicyViolation;
   private PolicyViolation app2PolicyViolation;
+  private Tag tag1;
+  private Tag tag2;
 
   @Before
   public void setup() {
@@ -104,6 +106,10 @@ public class DashboardServiceTest
     tempEntity.newApplicationComponent(app1.getId(), ReleaseStageType.ID, "hash-3", MatchState.SIMILAR, false);
     tempEntity.newApplicationComponent(app1.getId(), ReleaseStageType.ID, "hash-4", MatchState.UNKNOWN, false);
     tempEntity.newApplicationComponent(app2.getId(), BuildStageType.ID, "hash-2", "g", "a", "2");
+    tag1 = tempEntity.newTag(org.getId());
+    tag2 = tempEntity.newTag(org.getId());
+    tempEntity.newApplicationTag(app1.getId(), tag1.getId());
+    tempEntity.newApplicationTag(app1.getId(), tag2.getId());
   }
 
   @Test
@@ -1020,5 +1026,20 @@ public class DashboardServiceTest
     assertThat(actual.tagFilters, hasSize(0));
     assertThat(actual.policyThreatCategoryFilters, hasSize(0));
     assertThat(actual.stageTypeFilters, hasSize(0));
+  }
+
+  /**
+   * Tests elimination of duplicates in query results for Application with multiple Tags that are present in a filter
+   * Prior to the fix for this issue, the same call resulted in IAE when trying to Map duplicate Applications by their
+   * IDs.
+   * https://issues.sonatype.org/browse/CLM-3385
+   */
+  @Test
+  public void testGetPolicyViolationsForApplicationWithMultipleTags() {
+    List<PolicyViolationDTO> policyViolations = dashboardService
+        .getPolicyViolations(null, Sets.newHashSet(tag1.getId(), tag2.getId()), null);
+    assertThat(policyViolations, hasSize(2));
+    assertPolicyViolationDTO(policyViolations, orgPolicyViolation, app1, orgPolicy);
+    assertPolicyViolationDTO(policyViolations, app1PolicyViolation, app1, app1Policy);
   }
 }

@@ -85,7 +85,6 @@
     <css>/assets/dashboard.css</css>
     <css>/assets/management.css</css>
     <css>/assets/sonatype-icons.css</css>
-    <css>/assets/space-invaders.css</css>
     <css>/assets/threat.css</css>
     <css>/assets/report-list.css</css>
     <css>/policy/labels.css</css>
@@ -97,7 +96,6 @@
     <js>/dashboard/FilterController.js</js>
     <js>/assets/DashboardModule.js</js>
     <js>/dashboard/ComponentController.js</js>
-    <js>/space/SpaceInvaders.js</js>
   </group>
 
   <group name='lib'>

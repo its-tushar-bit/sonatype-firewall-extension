@@ -150,9 +150,7 @@
 </script>
 <script type="text/ng-template" id="component-heat-map-help">
   <div class="modal-header">
-    <button type='button' class='close' ng-click="invade()">
-      <i class="glyphicons-sonatype cup small"></i>
-    </button>
+    <button id="component-heat-map-help-close" type='button' class='close' ng-click='$dismiss()'>&times;</button>
     <h3>Component Heat Map</h3>
   </div>
   <div class="heat-map-help" id="component-heat-map-help-content">
@@ -191,7 +189,7 @@
     </div>
   </div>
   <div class="modal-footer">
-    <button id="component-heat-map-help-close" class="btn btn-link btn-cancel" ng-click="$dismiss()">Close</button>
+    <button class="btn btn-link btn-cancel" ng-click="$dismiss()">Close</button>
   </div>
 </script>
 <script type="text/ng-template" id="application-heat-map-help">

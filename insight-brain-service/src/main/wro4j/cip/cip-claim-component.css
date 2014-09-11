@@ -23,3 +23,6 @@
 	padding-top:5px;
 	width:50%;
 }
+.btn.btn-link.btn-cancel {
+  margin-right: 8px;
+}

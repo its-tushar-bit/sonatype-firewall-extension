@@ -94,7 +94,7 @@ var AngularStateUtils = {
   'use strict';
 
   var angularCommon;
-  angularCommon = angular.module('AngularCommon', ['CommonServices', 'ui.bootstrap']);
+  angularCommon = angular.module('AngularCommon', ['CommonServices', 'ui.bootstrap', 'ngSanitize']);
 
   angularCommon.controller('DeleteResourceController', ['$scope', '$http', 'CLMAppLocations', 'selected', function ($scope, $http, CLMAppLocations, selected) {
     $scope.deletedEnabled = true;

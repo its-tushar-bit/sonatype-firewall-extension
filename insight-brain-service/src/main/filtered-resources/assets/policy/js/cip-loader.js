@@ -194,7 +194,8 @@
        scripts = ['assets/lib/datepicker/bootstrap-datepicker.js', 'assets/lib/angular-${angularjs.version}/angular-route.min.js',
         'assets/lib/ui-bootstrap-tpls-0.8.0.min.js', 'assets/lib/Base64.js', 'cip/cip-label-editor.js',
         'cip/cip-policy-violations.js', 'cip/cip-claim-component.js', 'cip/cip-license-editor.js',
-        'cip/cip-version-graph.js', 'assets/version-graph/version-graph.js', 'assets/js/util.js'],
+        'cip/cip-version-graph.js', 'assets/version-graph/version-graph.js', 'assets/js/util.js', 
+        'assets/lib/angular-${angularjs.version}/angular-sanitize.min.js'],
       styles = ['assets/lib/datepicker/datepicker.css', 'cip/cip.css'],
       clmBuildTimestamp = '${build.timestamp}';
   

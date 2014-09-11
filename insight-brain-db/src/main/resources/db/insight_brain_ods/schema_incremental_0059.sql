@@ -14,12 +14,13 @@ CREATE TABLE last_policy_evaluation (
 
 --initial load
 INSERT INTO last_policy_evaluation(policy_evaluation_id, application_id, stage_type_id)
-  SELECT  e.policy_evaluation_id, e.application_id, e.stage_type_id
-  FROM  policy_evaluation e
-    where e.for_obsolete_scan = false
-    and e.time = (
-      SELECT max(e2.time) from policy_evaluation e2
-      WHERE e2.application_id = e.application_id
-      AND e2.stage_type_id = e.stage_type_id
-      AND e2.for_obsolete_scan = false
-    )
+  SELECT e.policy_evaluation_id, e.application_id, e.stage_type_id
+  FROM (
+    SELECT application_id, stage_type_id, max(time) as maxtime
+    FROM policy_evaluation
+      WHERE for_obsolete_scan = false
+      GROUP BY application_id, stage_type_id
+  ) AS x
+  INNER JOIN policy_evaluation AS e
+    ON e.application_id = x.application_id AND e.stage_type_id = x.stage_type_id AND e.time = maxtime
+    WHERE e.for_obsolete_scan = false;

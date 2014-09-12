@@ -46,10 +46,10 @@
   }]);
 
   // Apply the interceptor to the httpProvider during config
-  httpInterceptors.config(function($httpProvider) {
+  httpInterceptors.config(['$httpProvider', function($httpProvider) {
     $httpProvider.interceptors.push('unauthenticatedResponseHttpInterceptor');
     $httpProvider.interceptors.push('cacheBusterHttpInterceptor');
-  });
+  }]);
   
   //Ideally this would be merged into the above code, no event would be emitted, but sadly, ui.bootstrap (for $modal) has a dependency
   //on $http, therefore putting modal code in an http interceptor creates a circular dependency

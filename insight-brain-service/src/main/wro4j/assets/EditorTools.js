@@ -341,7 +341,7 @@
     };
   }]);
 
-  module.service('editorTools',
+  module.service('editorTools', ['$parse', '$q', '$timeout', 'regexFactory', '$http', 'CLMAppLocations', 'Messages',
       function($parse, $q, $timeout, regexFactory, $http, CLMAppLocations, Messages) {
         function EditorController($scope, idSelector, hiddenId, form) {
           var defer, me = this;
@@ -472,5 +472,5 @@
             return new EditorController($scope, idSelector, hiddenId, form);
           }
         };
-      });
+      }]);
 }());

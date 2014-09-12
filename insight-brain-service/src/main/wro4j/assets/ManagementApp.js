@@ -24,7 +24,7 @@
     });
   }]);
 
-  managementModule.controller('ManagementController', function($scope, $state, commonCodeFactory) {
+  managementModule.controller('ManagementController', ['$scope', '$state', 'commonCodeFactory', function($scope, $state, commonCodeFactory) {
     $scope.$state = $state;
 
     $scope.panes = [
@@ -53,5 +53,5 @@
     if (error) {
       $scope.syncAlerts.push({ type: 'error', msg: decodeURIComponent(error) });
     }
-  });
+  }]);
 }());

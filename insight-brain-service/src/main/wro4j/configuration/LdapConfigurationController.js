@@ -389,13 +389,13 @@
     }
   ]);
 
-  module.controller('LdapCheckUserMappingController', function($scope, users) {
+  module.controller('LdapCheckUserMappingController', ['$scope', 'users', function($scope, users) {
     $scope.users = users;
     $scope.infoText = 'Scroll through the table and verify that the values in each column are in the correct format. ' +
       'If they are not, click "Close" and revise your LDAP field mappings.';
-  });
+  }]);
 
-  module.controller('LdapCheckLoginController', function($scope, $http) {
+  module.controller('LdapCheckLoginController', ['$scope', '$http', function($scope, $http) {
     $scope.alerts = [];
     $scope.testInProgress = false;
     $scope.ldapCredentials = {};
@@ -407,6 +407,6 @@
       };
       testRequest($scope, $http, $scope.getConfigLdapUrl('testLogin'), request);
     };
-  });
+  }]);
 
 }());

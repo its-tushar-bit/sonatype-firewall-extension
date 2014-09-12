@@ -24,7 +24,7 @@
         },
         templateUrl: '../application-assets/components/aoeditor.html?' + clmBuildTimestamp,
         resolve : {
-          selectedOrganization : function ($q, $stateParams, OrganizationStore) {
+          selectedOrganization : ['$q', '$stateParams', 'OrganizationStore', function ($q, $stateParams, OrganizationStore) {
             if ($stateParams.organizationId === '_new_') {
               return OrganizationStore.create();
             }
@@ -40,7 +40,7 @@
               deferred.resolve(null);
             }, /* Errors will be handled at state parent */ angular.noop);
             return deferred.promise;
-          }
+          }]
         }
       }).state('management.organization.view.policies', {
         parent: 'management.organization.view',

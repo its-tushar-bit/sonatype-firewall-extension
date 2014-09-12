@@ -252,7 +252,7 @@ var AngularStateUtils = {
     }
   ]);
 
-  angularCommon.directive('formSubmit', function($parse) {
+  angularCommon.directive('formSubmit', ['$parse', function($parse) {
     return {
       restrict: 'A',
       link: function($scope, element, attrs) {
@@ -262,7 +262,7 @@ var AngularStateUtils = {
         };
       }
     };
-  });
+  }]);
 
   angularCommon.directive('clmButtons', [function () {
     return {
@@ -1282,12 +1282,12 @@ var AngularStateUtils = {
     }
   ]);
 
-  services.service('OrganizationId', function($state) {
+  services.service('OrganizationId', ['$state', function($state) {
     return {
       encoded: function() {
         var organizationId = $state.params.organizationId;
         return organizationId ? encodeURI(organizationId) : null;
       }
     };
-  });
+  }]);
 }());

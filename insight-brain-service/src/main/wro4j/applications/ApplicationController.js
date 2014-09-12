@@ -25,7 +25,7 @@
           },
           templateUrl: '../application-assets/components/aoeditor.html?' + clmBuildTimestamp,
           resolve : {
-            selectedApplication : function ($q, $stateParams, ApplicationStore) {
+            selectedApplication : ['$q', '$stateParams', 'ApplicationStore', function ($q, $stateParams, ApplicationStore) {
               if ($stateParams.applicationPublicId === '_new_') {
                 return ApplicationStore.create();
               }
@@ -40,7 +40,7 @@
                 deferred.resolve(null);
               }, /* Errors will be handled at state parent */ angular.noop);
               return deferred.promise;
-            }
+            }]
           }
         }).state('management.application.view.policies', {
           parent: 'management.application.view',
@@ -518,7 +518,7 @@
       }
     ]);
 
-  applicationModule.service('policyEvaluator', function($q, $http, CLMLocations) {
+  applicationModule.service('policyEvaluator', ['$q', '$http', 'CLMLocations', function($q, $http, CLMLocations) {
     return {
       evaluate: function(application, policyEvaluation) {
         var deferred = $q.defer();
@@ -539,7 +539,7 @@
         return deferred.promise;
       }
     };
-  });
+  }]);
 
   applicationModule.controller('ContactController', ['$scope', 'contextType', 'contextId', function ($scope, contextType, contextId) {
     $scope.alerts = [];

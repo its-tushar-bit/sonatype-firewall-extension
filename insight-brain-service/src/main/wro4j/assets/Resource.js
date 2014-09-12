@@ -15,7 +15,7 @@
     };
   }
 
-  module.service('CLMResource', function($q, $http, $parse) {
+  module.service('CLMResource', ['$q', '$http', '$parse', function($q, $http, $parse) {
     function Store(config) {
       var store = [],
           error = false,
@@ -406,5 +406,5 @@
         return new Store(config);
       }
     };
-  });
+  }]);
 }());

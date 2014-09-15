@@ -22,7 +22,7 @@ import com.sonatype.insight.brain.client.ScanClient;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 
 /**
- * @since 1.10
+ * @since 1.12.1
  */
 @Named
 public class RestClientFactory

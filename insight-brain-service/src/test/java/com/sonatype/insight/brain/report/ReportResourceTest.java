@@ -55,6 +55,7 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.actions.NotifyActionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityConditionType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
+import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateResource;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluationUtils;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
@@ -481,10 +482,12 @@ public class ReportResourceTest
   @Test
   public void testPrintReport() throws Exception {
     final String applicationPublicId = "ReportResourceTest_AppId";
-    tempEntity.newApplicationWithParent(applicationPublicId);
+    final String appId = tempEntity.newApplicationWithParent(applicationPublicId, "Test Project").getId();
     final String scanId = "ReportResourceTest_ScanId";
     final String licenseFingerprint = "ReportResourceTest_LicenseFingerprint";
     setLicenseFingerprint(licenseFingerprint);
+
+    tempEntity.newPolicyEvaluation(appId, StageTypes.BUILD.getId(), scanId);
 
     final String resourcePrefix = getServiceURL(applicationPublicId, scanId);
 
@@ -496,10 +499,10 @@ public class ReportResourceTest
 
     final Response response;
     try {
-      response = AuthedRestAccess.get(resourcePrefix + "/printReport?projectName=Test%20Project&buildNumber=8");
+      response = AuthedRestAccess.get(resourcePrefix + "/printReport");
       assertResponseStatus(200, response);
       assertThat(response.getHeader("Content-Disposition"),
-          stringContainsInOrder(Arrays.asList("attachment; filename=", "Test%20Project-8-", ".pdf")));
+          stringContainsInOrder(Arrays.asList("attachment; filename=\"Test Project-Build-", ".pdf\"")));
     }
     finally {
       Pdf.destroy();
@@ -513,10 +516,12 @@ public class ReportResourceTest
   @Test
   public void testPrintReport_AfterPreviousGenerationFailure() throws Exception {
     final String applicationPublicId = "ReportResourceTest_AppId";
-    final String appId = tempEntity.newApplicationWithParent(applicationPublicId).getId();
+    final String appId = tempEntity.newApplicationWithParent(applicationPublicId, "Test Project").getId();
     final String scanId = "ReportResourceTest_ScanId";
     final String licenseFingerprint = "ReportResourceTest_LicenseFingerprint";
     setLicenseFingerprint(licenseFingerprint);
+
+    tempEntity.newPolicyEvaluation(appId, StageTypes.BUILD.getId(), scanId);
 
     final String resourcePrefix = getServiceURL(applicationPublicId, scanId);
 
@@ -528,7 +533,7 @@ public class ReportResourceTest
 
     Response response;
     try {
-      response = AuthedRestAccess.get(resourcePrefix + "/printReport?projectName=Test%20Project&buildNumber=8");
+      response = AuthedRestAccess.get(resourcePrefix + "/printReport");
       assertResponseStatus(200, response);
 
       // pretend the print attempt crashed with OOME, which usually leaves an empty PDF file around
@@ -537,10 +542,10 @@ public class ReportResourceTest
       new FileOutputStream(pdfFile).close();
 
       // printing again after fixing the mem setting should produce a proper PDF
-      response = AuthedRestAccess.get(resourcePrefix + "/printReport?projectName=Test%20Project&buildNumber=8");
+      response = AuthedRestAccess.get(resourcePrefix + "/printReport");
       assertResponseStatus(200, response);
       assertThat(response.getHeader("Content-Disposition"),
-          stringContainsInOrder(Arrays.asList("attachment; filename=", "Test%20Project-8-", ".pdf")));
+          stringContainsInOrder(Arrays.asList("attachment; filename=\"Test Project-Build-", ".pdf\"")));
       assertThat(Long.parseLong(response.getHeader("Content-Length")), greaterThan(0L));
     }
     finally {

@@ -551,18 +551,18 @@ public final class Report
     return text;
   }
 
-  public static void printPdf(final File reportFile, final String projectName, final int buildNumber,
+  public static void printPdf(final File reportFile, final String projectName, final String stageName,
       final ContactDTO contact, final ResponseBuilder response) throws IOException
   {
     Pdf.generate(reportFile, getCacheDir(reportFile), ReportType.SAMPLE.equals(getType(reportFile)), projectName,
-        buildNumber, contact, response);
+        stageName, contact, response);
   }
 
-  public static File printPdf(final File reportFile, final String projectName, final int buildNumber,
+  public static File printPdf(final File reportFile, final String projectName, final String stageName,
       final ContactDTO contact) throws IOException
   {
     return Pdf.generate(reportFile, getCacheDir(reportFile), ReportType.SAMPLE.equals(getType(reportFile)),
-        projectName, buildNumber, contact);
+        projectName, stageName, contact);
   }
 
   public static void deletePdf(final File reportFile) {

@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.report;
 import java.io.File;
 
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.service.AbstractResourceAuthzTest;
 
 import org.codehaus.plexus.util.FileUtils;
@@ -51,6 +52,7 @@ public class ReportResourceAuthzTest
   @Test
   public void testPrintReport() throws Exception {
     String scanId = "scanId";
+    tempEntity.newPolicyEvaluation(app.getId(), StageTypes.BUILD.getId(), scanId);
     File saasReportFile = getReportResponseFile(getLicenseFingerprint(), scanId);
     FileUtils.copyURLToFile(getClass().getResource("/ReportResourceTest/report.zip"), saasReportFile);
 

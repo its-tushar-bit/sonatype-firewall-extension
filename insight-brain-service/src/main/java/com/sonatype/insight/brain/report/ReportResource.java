@@ -51,6 +51,7 @@ import com.sonatype.insight.brain.model.component.IdentificationSource;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.organization.ApplicationAdapter;
 import com.sonatype.insight.brain.organization.ContactDTO;
@@ -73,7 +74,6 @@ import com.sonatype.insight.json.store.JsonUtils;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ContainerNode;
 import org.codehaus.plexus.util.IOUtil;
-import org.codehaus.plexus.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -96,6 +96,8 @@ public class ReportResource
   private final BaseUrl baseUrl;
 
   private ApplicationDAO applicationDAO = new ApplicationDAO();
+
+  private PolicyEvaluationDAO policyEvaluationDAO = new PolicyEvaluationDAO();
 
   private ApplicationAdapter applicationAdapter;
 
@@ -235,8 +237,7 @@ public class ReportResource
   @Authorize(permission = Permission.READ)
   public Response printReport(
       @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) @PathParam("applicationPublicId") final String applicationPublicId,
-      @PathParam("scanId") final String scanId, @QueryParam("projectName") final String projectName,
-      @QueryParam("buildNumber") final int buildNumber) throws IOException
+      @PathParam("scanId") final String scanId) throws IOException
   {
     Application application = applicationDAO.getByPublicIdNotNull(applicationPublicId);
     String appId = application.getId();
@@ -246,9 +247,17 @@ public class ReportResource
 
     final ResponseBuilder response = Response.ok();
 
-    Report.printPdf(reportFile, StringUtils.defaultString(projectName, "clm"), buildNumber, contact, response);
+    Report.printPdf(reportFile, application.getName(), getStageName(appId, scanId), contact, response);
 
     return response.build();
+  }
+
+  private String getStageName(String appId, String scanId) {
+    PolicyEvaluation eval = policyEvaluationDAO.getLastByApplicationIdAndScanId(appId, scanId);
+    if (eval == null) {
+      throw new BadRequestException("Unable to locate scan " + scanId + " for application " + appId);
+    }
+    return StageTypes.getById(eval.getStageTypeId()).getName();
   }
 
   /**
@@ -275,7 +284,7 @@ public class ReportResource
     String dataPath = "data/";
 
     ContactDTO contact = applicationAdapter.getContact(app.getContactInternalName());
-    File pdfFile = Report.printPdf(reportFile, "", 0, contact);
+    File pdfFile = Report.printPdf(reportFile, "", "", contact);
 
     ReportData reportData = reportDataService.getData(applicationPublicId, scanId);
     PolicyEvaluation policyEvaluation = new PolicyEvaluationDAO().getLastByApplicationIdAndScanId(app.getId(), scanId);

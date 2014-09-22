@@ -19,7 +19,7 @@ public class PdfTest
 
   private ObjectNode summary;
   private String projectName = "test project";
-  private int buildNumber = 0;
+  private String stageName = "Build";
   private ContactDTO contact;
 
   @Before
@@ -36,28 +36,44 @@ public class PdfTest
 
   @Test
   public void testFillSummary() {
-    Pdf.fillSummary(summary, projectName, buildNumber, contact);
+    Pdf.fillSummary(summary, projectName, stageName, contact);
 
-    String summaryProjectName = summary.get("projectName").asText();
-    int summaryBuildNumber = summary.get("buildNumber").asInt();
+    String summaryApplicationName = summary.get("applicationName").asText();
+    String summaryStageName = summary.get("stageName").asText();
     String email = summary.get("applicationContactEmail").asText();
     String displayName = summary.get("applicationContactName").asText();
 
-    Assert.assertEquals(projectName, summaryProjectName);
-    Assert.assertEquals(buildNumber, summaryBuildNumber);
+    Assert.assertEquals(projectName, summaryApplicationName);
+    Assert.assertEquals(stageName, summaryStageName);
     Assert.assertEquals("email", email);
     Assert.assertEquals("displayName", displayName);
   }
 
+  /*
+   * Tests fields used for backwards compatibility with older PDF templates are populated
+   */
   @Test
-  public void testFillSummaryWithNullContact() {
-    Pdf.fillSummary(summary, projectName, buildNumber, null);
+  public void testFill_BackwardsCompat() {
+    Pdf.fillSummary(summary, projectName, stageName, contact);
 
     String summaryProjectName = summary.get("projectName").asText();
-    int summaryBuildNumber = summary.get("buildNumber").asInt();
+    String summaryBuildName = summary.get("buildNumber").asText();
 
     Assert.assertEquals(projectName, summaryProjectName);
-    Assert.assertEquals(buildNumber, summaryBuildNumber);
+    Assert.assertEquals(stageName, summaryBuildName);
+  }
+
+  @Test
+  public void testFillSummaryWithNullContact() {
+    Pdf.fillSummary(summary, projectName, stageName, null);
+
+    String summaryApplicationName = summary.get("applicationName").asText();
+    String summaryBuildName = summary.get("buildNumber").asText();
+    String summaryStageName = summary.get("stageName").asText();
+
+    Assert.assertEquals(projectName, summaryApplicationName);
+    Assert.assertEquals(stageName, summaryBuildName);
+    Assert.assertEquals(stageName, summaryStageName);
     Assert.assertNull(summary.get("applicationContactEmail"));
     Assert.assertNull(summary.get("applicationContactName"));
   }
@@ -65,14 +81,14 @@ public class PdfTest
   @Test
   public void testFillSummaryWithNoEmail() {
     contact.setEmail(null);
-    Pdf.fillSummary(summary, projectName, buildNumber, contact);
+    Pdf.fillSummary(summary, projectName, stageName, contact);
 
-    String summaryProjectName = summary.get("projectName").asText();
-    int summaryBuildNumber = summary.get("buildNumber").asInt();
+    String summaryApplicationName = summary.get("applicationName").asText();
+    String summaryBuildName = summary.get("buildNumber").asText();
     String displayName = summary.get("applicationContactName").asText();
 
-    Assert.assertEquals(projectName, summaryProjectName);
-    Assert.assertEquals(buildNumber, summaryBuildNumber);
+    Assert.assertEquals(projectName, summaryApplicationName);
+    Assert.assertEquals(stageName, summaryBuildName);
     Assert.assertNull(summary.get("applicationContactEmail"));
     Assert.assertEquals("displayName", displayName);
   }
@@ -80,14 +96,14 @@ public class PdfTest
   @Test
   public void testFillSummaryWithNoDisplayName() {
     contact.setDisplayName(null);
-    Pdf.fillSummary(summary, projectName, buildNumber, contact);
+    Pdf.fillSummary(summary, projectName, stageName, contact);
 
-    String summaryProjectName = summary.get("projectName").asText();
-    int summaryBuildNumber = summary.get("buildNumber").asInt();
+    String summaryApplicationName = summary.get("applicationName").asText();
+    String summaryBuildName = summary.get("buildNumber").asText();
     String email = summary.get("applicationContactEmail").asText();
 
-    Assert.assertEquals(projectName, summaryProjectName);
-    Assert.assertEquals(buildNumber, summaryBuildNumber);
+    Assert.assertEquals(projectName, summaryApplicationName);
+    Assert.assertEquals(stageName, summaryBuildName);
     Assert.assertEquals("email", email);
     Assert.assertNull(summary.get("applicationContactName"));
   }

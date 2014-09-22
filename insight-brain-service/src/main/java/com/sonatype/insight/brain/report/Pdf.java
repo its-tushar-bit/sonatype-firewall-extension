@@ -26,7 +26,6 @@ import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.common.io.FileCleaner.FileDeletionException;
 import com.sonatype.insight.brain.organization.ContactDTO;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluationUtils;
-import com.sonatype.insight.client.utils.UrlUtils;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -69,13 +68,13 @@ final class Pdf
   }
 
   public static File generate(final File reportFile, final File cacheDir, final boolean sample,
-      final String projectName, final int buildNumber, final ContactDTO contact)
+      final String applicationName, final String stageName, final ContactDTO contact)
       throws IOException
   {
     final File pdfFile = getPdfFile(reportFile);
 
     if (!pdfFile.isFile() || pdfFile.length() == 0) {
-      final File templateDir = setupTemplateDir(reportFile, cacheDir, projectName, buildNumber, contact);
+      final File templateDir = setupTemplateDir(reportFile, cacheDir, applicationName, stageName, contact);
       try {
         generate(pdfFile, templateDir, sample);
       }
@@ -87,10 +86,10 @@ final class Pdf
   }
 
   public static void generate(final File reportFile, final File cacheDir, final boolean sample,
-      final String projectName, final int buildNumber, final ContactDTO contact, final ResponseBuilder response)
+      final String applicationName, final String stageName, final ContactDTO contact, final ResponseBuilder response)
       throws IOException
   {
-    final File pdfFile = generate(reportFile, cacheDir, sample, projectName, buildNumber, contact);
+    final File pdfFile = generate(reportFile, cacheDir, sample, applicationName, stageName, contact);
     final Date now = new Date();
 
     response.lastModified(now);
@@ -99,8 +98,8 @@ final class Pdf
     response.type("application/pdf");
 
     final String timestamp = new SimpleDateFormat("yyyyMMdd-HHmmss").format(now);
-    final String filename = projectName + "-" + buildNumber + "-" + timestamp + ".pdf";
-    response.header("Content-Disposition", "attachment; filename=" + UrlUtils.encodeUrlComponent(filename));
+    final String filename = applicationName + "-" + stageName + "-" + timestamp + ".pdf";
+    response.header("Content-Disposition", "attachment; filename=\"" + filename + '"');
 
     response.entity(new StreamingOutput()
     {
@@ -117,8 +116,8 @@ final class Pdf
     });
   }
 
-  private static File setupTemplateDir(final File reportFile, final File cacheDir, final String projectName,
-      final int buildNumber, final ContactDTO contact) throws IOException
+  private static File setupTemplateDir(final File reportFile, final File cacheDir, final String applicationName,
+      final String stageName, final ContactDTO contact) throws IOException
   {
     final File templateDir = new File(reportFile.getParentFile(), "pdf");
 
@@ -148,7 +147,7 @@ final class Pdf
           }
           if ("summary.json".equals(name)) {
             final ObjectNode summary = JsonUtils.read(extractedFile);
-            fillSummary(summary, projectName, buildNumber, contact);
+            fillSummary(summary, applicationName, stageName, contact);
             JsonUtils.write(extractedFile, summary);
           }
         }
@@ -176,11 +175,14 @@ final class Pdf
     return false;
   }
 
-  static void fillSummary(final ObjectNode summary, final String projectName, final int buildNumber,
+  static void fillSummary(final ObjectNode summary, final String applicationName, final String stageName,
       final ContactDTO contact)
   {
-    summary.put("projectName", projectName);
-    summary.put("buildNumber", Integer.toString(buildNumber));
+    summary.put("applicationName", applicationName);
+    summary.put("stageName", stageName);
+    // PDF templates before 1.12.1 (Sept/Oct 2014) had projectName and buildNumber, so for backwards compat...
+    summary.put("projectName", applicationName);
+    summary.put("buildNumber", stageName);
     if (contact != null) {
       if (!Strings.isNullOrEmpty(contact.getEmail())) {
         summary.put("applicationContactEmail", contact.getEmail());

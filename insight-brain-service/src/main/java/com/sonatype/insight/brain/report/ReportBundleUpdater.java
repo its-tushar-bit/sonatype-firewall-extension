@@ -83,35 +83,44 @@ class ReportBundleUpdater
   }
 
   /**
-   * Adds the specified file into the bundle using the given name.
+   * Adds the specified file into the bundle using the given name
+   * if it has not already been added.
    */
   public void add(String entryName, File srcFile) throws IOException {
-    ZipEntry zipEntry = new ZipEntry(entryName);
-    zipStream.putNextEntry(zipEntry);
-    try (InputStream in = new FileInputStream(srcFile)) {
-      IOUtil.copy(in, zipStream);
+    if (!contains(entryName)) {
+      ZipEntry zipEntry = new ZipEntry(entryName);
+      zipStream.putNextEntry(zipEntry);
+      try (InputStream in = new FileInputStream(srcFile)) {
+        IOUtil.copy(in, zipStream);
+      }
+      addedEntries.add(entryName);
     }
-    addedEntries.add(entryName);
   }
 
   /**
-   * Adds the specified binary blob into the bundle using the given name.
+   * Adds the specified binary blob into the bundle using the given name
+   * if it has not already been added.
    */
   public void add(String entryName, byte[] bytes) throws IOException {
-    ZipEntry zipEntry = new ZipEntry(entryName);
-    zipStream.putNextEntry(zipEntry);
-    zipStream.write(bytes);
-    addedEntries.add(entryName);
+    if (!contains(entryName)) {
+      ZipEntry zipEntry = new ZipEntry(entryName);
+      zipStream.putNextEntry(zipEntry);
+      zipStream.write(bytes);
+      addedEntries.add(entryName);
+    }
   }
 
   /**
-   * Adds the specified DTO as JSON into the bundle using the given name.
+   * Adds the specified DTO as JSON into the bundle using the given name
+   * if it has not already been added.
    */
   public void add(String entryName, Object dto) throws IOException {
-    ZipEntry zipEntry = new ZipEntry(entryName);
-    zipStream.putNextEntry(zipEntry);
-    zipStream.write(JsonUtils.generate(dto));
-    addedEntries.add(entryName);
+    if (!contains(entryName)) {
+      ZipEntry zipEntry = new ZipEntry(entryName);
+      zipStream.putNextEntry(zipEntry);
+      zipStream.write(JsonUtils.generate(dto));
+      addedEntries.add(entryName);
+    }
   }
 
   /**

@@ -134,4 +134,35 @@ public class ReportBundleUpdaterTest
     }
     assertThat(read(updatedFile).keySet(), containsInAnyOrder("two.html"));
   }
+
+  @Test
+  public void testDuplicateAdds_bytes() throws Exception {
+    try (ReportBundleUpdater updater = new ReportBundleUpdater(originalFile, updatedFile)) {
+      updater.add("added.pdf", "added".getBytes("UTF-8"));
+      updater.add("added.pdf", "added".getBytes("UTF-8"));
+    }
+    assertThat(read(updatedFile).keySet(), containsInAnyOrder("one.txt", "two.html", "added.pdf"));
+    assertThat(read(updatedFile).get("added.pdf"), is("added"));
+  }
+
+  @Test
+  public void testDuplicateAdd_Dto() throws Exception {
+    try (ReportBundleUpdater updater = new ReportBundleUpdater(originalFile, updatedFile)) {
+      updater.add("added.pdf", true);
+      updater.add("added.pdf", true);
+    }
+    assertThat(read(updatedFile).keySet(), containsInAnyOrder("one.txt", "two.html", "added.pdf"));
+    assertThat(read(updatedFile).get("added.pdf"), is("true"));
+  }
+
+  @Test
+  public void testDuplicateAdd_File() throws Exception {
+    try (ReportBundleUpdater updater = new ReportBundleUpdater(originalFile, updatedFile)) {
+      final File newFile = tmpDir.newFile();
+      updater.add("added.pdf", newFile);
+      updater.add("added.pdf", newFile);
+    }
+    assertThat(read(updatedFile).keySet(), containsInAnyOrder("one.txt", "two.html", "added.pdf"));
+    assertThat(read(updatedFile).get("added.pdf"), is(""));
+  }
 }

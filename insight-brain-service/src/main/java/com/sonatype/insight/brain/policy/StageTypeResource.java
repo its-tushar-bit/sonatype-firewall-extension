@@ -19,6 +19,10 @@ import com.sonatype.insight.brain.model.policy.StageType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * @deprecated Use {@link LicensedStagesResource}
+ */
+@Deprecated
 @Named
 @Path(StageTypeResource.SERVICE_PATH)
 public class StageTypeResource

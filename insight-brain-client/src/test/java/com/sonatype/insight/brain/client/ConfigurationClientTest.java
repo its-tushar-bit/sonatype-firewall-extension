@@ -14,8 +14,10 @@ import java.util.Map;
 import com.sonatype.clm.dto.model.ProprietaryConfig;
 import com.sonatype.clm.dto.model.application.ApplicationSummary;
 import com.sonatype.clm.dto.model.application.ApplicationSummaryList;
+import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.ProprietaryConfigDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.service.AbstractBrainServiceTest;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.client.utils.SimpleAuthentication;
@@ -193,6 +195,27 @@ public class ConfigurationClientTest
       assertThat(e.getStatusCode(), is(401));
       assertThat(e.getMessage(), is("Unauthorized"));
     }
+  }
+
+
+  @Test
+  public void testGetLicensedStages() throws Exception {
+    Configuration config = getCLMServer().getClientConfiguration();
+    ConfigurationClient client = new ConfigurationClient(config);
+
+    List<Stage> stages = client.getLicensedStages();
+    // This rest call will return the stages in the following predefined order
+    MatcherAssert.assertThat(stages, hasSize(5));
+    MatcherAssert.assertThat(stages.get(0).getStageTypeId(), is(StageTypes.DEVELOP.getId()));
+    MatcherAssert.assertThat(stages.get(0).getStageName(), is(StageTypes.DEVELOP.getName()));
+    MatcherAssert.assertThat(stages.get(1).getStageTypeId(), is(StageTypes.BUILD.getId()));
+    MatcherAssert.assertThat(stages.get(1).getStageName(), is(StageTypes.BUILD.getName()));
+    MatcherAssert.assertThat(stages.get(2).getStageTypeId(), is(StageTypes.STAGE_RELEASE.getId()));
+    MatcherAssert.assertThat(stages.get(2).getStageName(), is(StageTypes.STAGE_RELEASE.getName()));
+    MatcherAssert.assertThat(stages.get(3).getStageTypeId(), is(StageTypes.RELEASE.getId()));
+    MatcherAssert.assertThat(stages.get(3).getStageName(), is(StageTypes.RELEASE.getName()));
+    MatcherAssert.assertThat(stages.get(4).getStageTypeId(), is(StageTypes.OPERATE.getId()));
+    MatcherAssert.assertThat(stages.get(4).getStageName(), is(StageTypes.OPERATE.getName()));
   }
 
   @Test

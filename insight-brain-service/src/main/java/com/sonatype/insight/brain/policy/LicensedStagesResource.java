@@ -1,0 +1,54 @@
+/*
+ * Copyright (c) 2011-2014 Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.policy;
+
+import java.util.ArrayList;
+import java.util.Collection;
+
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
+
+import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.model.policy.StageType;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+/**
+ * @since 1.12.1
+ */
+@Named
+@Path(LicensedStagesResource.SERVICE_PATH)
+public class LicensedStagesResource
+{
+  public static final String SERVICE_PATH = "rest/policy/stages";
+
+  private static final Logger log = LoggerFactory.getLogger(LicensedStagesResource.class);
+
+  private final StageTypeService stageTypeService;
+
+  @Inject
+  public LicensedStagesResource(final StageTypeService stageTypeService) {
+    this.stageTypeService = stageTypeService;
+  }
+
+  @GET
+  @Produces(MediaType.APPLICATION_JSON)
+  public Collection<Stage> getStageTypes() {
+    log.debug("Received request to get all licensed stages");
+
+    Collection<Stage> stages = new ArrayList<>();
+    Collection<StageType> stageTypes = stageTypeService.getLicensedStageTypes();
+    for (StageType stageType : stageTypes) {
+      stages.add(new Stage(stageType.getId(), stageType.getName()));
+    }
+    return stages;
+  }
+}

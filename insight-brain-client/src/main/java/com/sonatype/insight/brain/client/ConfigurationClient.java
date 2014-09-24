@@ -6,11 +6,15 @@
 package com.sonatype.insight.brain.client;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
 import com.sonatype.clm.dto.model.ProprietaryConfig;
 import com.sonatype.clm.dto.model.application.ApplicationSummaryList;
+import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.client.utils.Result;
 import com.sonatype.insight.client.utils.UrlUtils;
@@ -63,6 +67,19 @@ public class ConfigurationClient
     Map<String, String> applicationsById = new TreeMap<String, String>(String.CASE_INSENSITIVE_ORDER);
     applicationsById.putAll(JsonUtils.parse(result.text(), Map.class));
     return applicationsById;
+  }
+
+  /**
+   * @since 1.12.1
+   */
+  public List<Stage> getLicensedStages() throws IOException {
+    Result result = get(path("rest/policy/stages"));
+    final String jsonResult = result.text();
+    if (jsonResult == null) {
+      return Collections.emptyList();
+    }
+    Stage[] stageArray = JsonUtils.parse(jsonResult, Stage[].class);
+    return Arrays.asList(stageArray);
   }
 
   /**

@@ -8,16 +8,24 @@ package com.sonatype.insight.brain.policy;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.inject.Named;
 
 import com.sonatype.insight.brain.model.policy.StageType;
+import com.sonatype.insight.brain.model.policy.stages.DevelopStageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.license.model.CLMEnforcementPoint;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
+
+import com.google.common.base.Predicate;
+import com.google.common.base.Predicates;
+import com.google.common.collect.Collections2;
 
 /**
  * @since 1.11
@@ -25,22 +33,59 @@ import com.sonatype.insight.license.model.ProductLicenseDetails;
 @Named
 public class StageTypeService
 {
+  public static final String ALL_CONTEXT = "all";
+
+  public static final String CI_CONTEXT = "ci";
+
+  public static final String CLI_CONTEXT = "cli";
+
+  public static final String QA_CONTEXT = "qa";
+
+  public static final String RM_CONTEXT = "rm";
+
+  public static final String MAVEN_CONTEXT = "maven";
+
   private final CLMLicenseManager licenseManager;
+
+  private final Map<String, Predicate<StageType>> contextFilterMap = new HashMap<>();
 
   @Inject
   public StageTypeService(final CLMLicenseManager licenseManager) {
     this.licenseManager = licenseManager;
+    contextFilterMap.put(ALL_CONTEXT, Predicates.<StageType>alwaysTrue());
+    contextFilterMap.put(CI_CONTEXT, new CiFilter());
+    contextFilterMap.put(CLI_CONTEXT, Predicates.<StageType>alwaysTrue());
+    contextFilterMap.put(QA_CONTEXT, new CiFilter());
+    contextFilterMap.put(RM_CONTEXT, new CiFilter());
+    contextFilterMap.put(MAVEN_CONTEXT, Predicates.<StageType>alwaysTrue());
   }
 
   /**
    * Using details here https://docs.sonatype.com/display/ProdMgmt/Product+License+Matrix to map the product to
    * available StageTypes
-   * 
+   *
    * @return all StageType objects allowed by the current license in natural order of occurrence during the component
    *         lifecycle.
    */
   public Collection<StageType> getLicensedStageTypes() {
+    return getLicensedStageTypes(ALL_CONTEXT);
+  }
+
+  /**
+   * Using details here https://docs.sonatype.com/display/ProdMgmt/Product+License+Matrix to map the product to
+   * available StageTypes
+   *
+   * @return all StageType objects allowed by the current license in natural order of occurrence during the component
+   * lifecycle filtered by the supplied context.
+   * @since 1.12.1
+   */
+  public Collection<StageType> getLicensedStageTypes(final String context) {
+    Predicate<StageType> filter = contextFilterMap.get(context);
+    if (filter == null) {
+      throw new IllegalArgumentException("Invalid context " + context);
+    }
     Collection<StageType> allowed = orderStages(calculateLicensedStages());
+    allowed = Collections2.filter(allowed, filter);
     return Collections.unmodifiableCollection(allowed);
   }
 
@@ -80,7 +125,7 @@ public class StageTypeService
   }
 
   /**
-   * Orders the given stages by their natural chronological order.  This is the same order as 
+   * Orders the given stages by their natural chronological order.  This is the same order as
    * {@link StageTypes#getAll()}.
    */
   private Collection<StageType> orderStages(Collection<StageType> stagesToOrder) {
@@ -93,5 +138,17 @@ public class StageTypeService
     }
 
     return ordered;
+  }
+
+  class CiFilter
+      implements Predicate<StageType>
+  {
+    @Override
+    public boolean apply(@Nullable final StageType input) {
+      if (input == null) {
+        return false;
+      }
+      return !DevelopStageType.ID.equals(input.getId());
+    }
   }
 }

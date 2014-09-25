@@ -88,4 +88,61 @@ public class StageTypeServiceTest
     assertThat(stageTypeService.getLicensedStageTypes(),
         contains(StageTypes.STAGE_RELEASE, StageTypes.RELEASE));
   }
+
+  @Test
+  public void testGetLicensedStageTypes_RiskRemediation_ContextAll() throws Exception {
+    productLicenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION);
+    clmLicenseManager.installLicense(null);
+
+    assertThat(stageTypeService.getLicensedStageTypes(StageTypeService.ALL_CONTEXT),
+        contains(StageTypes.DEVELOP, StageTypes.BUILD, StageTypes.STAGE_RELEASE, StageTypes.RELEASE,
+            StageTypes.OPERATE));
+  }
+
+  @Test
+  public void testGetLicensedStageTypes_RiskRemediation_ContextCi() throws Exception {
+    productLicenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION);
+    clmLicenseManager.installLicense(null);
+
+    assertThat(stageTypeService.getLicensedStageTypes(StageTypeService.CI_CONTEXT),
+        contains(StageTypes.BUILD, StageTypes.STAGE_RELEASE, StageTypes.RELEASE, StageTypes.OPERATE));
+  }
+
+  @Test
+  public void testGetLicensedStageTypes_RiskRemediation_ContextCli() throws Exception {
+    productLicenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION);
+    clmLicenseManager.installLicense(null);
+
+    assertThat(stageTypeService.getLicensedStageTypes(StageTypeService.ALL_CONTEXT),
+        contains(StageTypes.DEVELOP, StageTypes.BUILD, StageTypes.STAGE_RELEASE, StageTypes.RELEASE,
+            StageTypes.OPERATE));
+  }
+
+  @Test
+  public void testGetLicensedStageTypes_RiskRemediation_ContextQa() throws Exception {
+    productLicenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION);
+    clmLicenseManager.installLicense(null);
+
+    assertThat(stageTypeService.getLicensedStageTypes(StageTypeService.CI_CONTEXT),
+        contains(StageTypes.BUILD, StageTypes.STAGE_RELEASE, StageTypes.RELEASE, StageTypes.OPERATE));
+  }
+
+  @Test
+  public void testGetLicensedStageTypes_RiskRemediation_ContextRm() throws Exception {
+    productLicenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION);
+    clmLicenseManager.installLicense(null);
+
+    assertThat(stageTypeService.getLicensedStageTypes(StageTypeService.CI_CONTEXT),
+        contains(StageTypes.BUILD, StageTypes.STAGE_RELEASE, StageTypes.RELEASE, StageTypes.OPERATE));
+  }
+
+  @Test
+  public void testGetLicensedStageTypes_RiskRemediation_ContextMaven() throws Exception {
+    productLicenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION);
+    clmLicenseManager.installLicense(null);
+
+    assertThat(stageTypeService.getLicensedStageTypes(StageTypeService.ALL_CONTEXT),
+        contains(StageTypes.DEVELOP, StageTypes.BUILD, StageTypes.STAGE_RELEASE, StageTypes.RELEASE,
+            StageTypes.OPERATE));
+  }
 }

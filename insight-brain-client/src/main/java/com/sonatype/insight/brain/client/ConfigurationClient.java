@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -25,6 +26,11 @@ import org.apache.http.client.HttpResponseException;
 public class ConfigurationClient
     extends AbstractRequestClient
 {
+  public enum Context
+  {
+    ALL, CI, CLI, QA, RM, MAVEN
+  }
+
   public ConfigurationClient(final Configuration config) {
     super(config);
   }
@@ -72,8 +78,13 @@ public class ConfigurationClient
   /**
    * @since 1.12.1
    */
-  public List<Stage> getLicensedStages() throws IOException {
-    Result result = get(path("rest/policy/stages"));
+  public List<Stage> getLicensedStages(final Context context) throws IOException {
+    RequestBuilder requestBuilder = path("rest/policy/stages");
+    if (context == null) {
+      throw new IllegalArgumentException("Context can not be null");
+    }
+    requestBuilder = requestBuilder.query("context", context.name().toLowerCase(Locale.ENGLISH));
+    Result result = get(requestBuilder);
     final String jsonResult = result.text();
     if (jsonResult == null) {
       return Collections.emptyList();
@@ -85,7 +96,7 @@ public class ConfigurationClient
   /**
    * The list of application summaries from the CLM server. This method requires authentication and it returns only the
    * applications the user is authorized to see.
-   * 
+   *
    * @since 1.11.0
    */
   public ApplicationSummaryList getApplications() throws IOException {

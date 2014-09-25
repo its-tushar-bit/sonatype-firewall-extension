@@ -10,9 +10,11 @@ import java.util.Collection;
 
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
 import com.sonatype.clm.dto.model.policy.Stage;
@@ -41,11 +43,13 @@ public class LicensedStagesResource
 
   @GET
   @Produces(MediaType.APPLICATION_JSON)
-  public Collection<Stage> getStageTypes() {
-    log.debug("Received request to get all licensed stages");
+  public Collection<Stage> getStageTypes(
+      @QueryParam("context") @DefaultValue(StageTypeService.ALL_CONTEXT) final String context)
+  {
+    log.debug("Received request to get licensed stages for context {}", context);
 
     Collection<Stage> stages = new ArrayList<>();
-    Collection<StageType> stageTypes = stageTypeService.getLicensedStageTypes();
+    Collection<StageType> stageTypes = stageTypeService.getLicensedStageTypes(context);
     for (StageType stageType : stageTypes) {
       stages.add(new Stage(stageType.getId(), stageType.getName()));
     }

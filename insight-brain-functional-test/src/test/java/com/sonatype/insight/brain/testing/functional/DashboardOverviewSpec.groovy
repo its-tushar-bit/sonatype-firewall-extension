@@ -1014,8 +1014,11 @@ class DashboardOverviewSpec
       waitFor { componentHeatMapHelp.displayed }
 
     when: 'the modal backdrop is clicked'
-      waitFor { componentHeatMapHelp.displayed }
-      modalBackdrop.click()
+      interact {
+        // don't click at the center of the backdrop which can still be within the modal
+        moveToElement(modalBackdrop, 10, 10)
+        click()
+      }
 
     then: 'the component heat map help closes'
       waitFor { !componentHeatMapHelp.displayed }
@@ -1035,8 +1038,11 @@ class DashboardOverviewSpec
       waitFor { applicationHeatMapHelp.displayed }
 
     when: 'the modal backdrop is clicked'
-      waitFor { applicationHeatMapHelp.displayed }
-      modalBackdrop.click()
+      interact {
+        // don't click at the center of the backdrop which can still be within the modal
+        moveToElement(modalBackdrop, 10, 10)
+        click()
+      }
 
     then: 'the application heat map help closes'
       waitFor { !applicationHeatMapHelp.displayed }

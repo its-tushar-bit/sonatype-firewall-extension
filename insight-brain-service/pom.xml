@@ -724,6 +724,9 @@
                 <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
                   <resource>META-INF/LICENSE.txt</resource>
                 </transformer>
+                <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+                  <resource>META-INF/insight/configuration.properties</resource>
+                </transformer>
               </transformers>
             </configuration>
           </execution>

@@ -18,6 +18,7 @@ class TagApplicationSpec
     OrganizationManagementPage organizationManagementPage = loginAsAdminVia(OrganizationManagementPage)
     organizationManagementPage.createOrg()
     tabs.tagTabButton.click()
+    waitFor { tags.displayed }
     tags.createNewTag()
     tags.buttons.save.click()
     waitFor { tags.tagList.size() == 1 }

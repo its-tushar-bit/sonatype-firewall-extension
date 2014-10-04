@@ -75,6 +75,7 @@ class DashboardNavigationSpec
 
     when: 'navigating to components page from a dashboard table'
       to test.table
+      waitFor { test.componentRow().displayed }
       test.componentRow().click()
       at ComponentDrilldownPage
 

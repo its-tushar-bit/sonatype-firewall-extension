@@ -17,6 +17,7 @@ class TagApplicationSpec
   def setupSpec() {
     OrganizationManagementPage organizationManagementPage = loginAsAdminVia(OrganizationManagementPage)
     organizationManagementPage.createOrg()
+    waitFor { tabs.tagTabButton.displayed }
     tabs.tagTabButton.click()
     waitFor { tags.displayed }
     tags.createNewTag()

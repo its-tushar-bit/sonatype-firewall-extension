@@ -64,6 +64,7 @@ class ClaimComponentSpec
       cip.claimComponent.showTrigger.click()
 
     then: 'the form is shown and empty, with a disabled claim button'
+      waitFor { cip.claimComponent.claimForm.displayed }
       def form = cip.claimComponent.claimForm
       FORM_FIELDS.keySet().each { name ->
         assert form."$name" == ''

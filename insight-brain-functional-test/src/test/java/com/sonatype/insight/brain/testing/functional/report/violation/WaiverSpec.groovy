@@ -83,7 +83,7 @@ class WaiverSpec
       waiver.save()
     
     when: 'view existing waivers is clicked'
-      waitFor { results[0].cip.policy.viewWaiversButton.displayed }
+      waitFor { !waiver.displayed && results[0].cip.policy.viewWaiversButton.displayed }
       results[0].cip.policy.showWaivers()
 
     then: 'waivers are displayed with the correct content'
@@ -110,7 +110,7 @@ class WaiverSpec
       waiveComponent()
       waiver.setComment(longComment)
       waiver.save()
-      waitFor { results[0].cip.policy.viewWaiversButton.displayed }
+      waitFor { !waiver.displayed && results[0].cip.policy.viewWaiversButton.displayed }
       results[0].cip.policy.showWaivers()
 
     then: 'comment is truncated to 1000 characters'

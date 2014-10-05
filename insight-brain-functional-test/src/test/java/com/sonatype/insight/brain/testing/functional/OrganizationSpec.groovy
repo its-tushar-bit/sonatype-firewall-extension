@@ -27,11 +27,16 @@ class OrganizationSpec
       OrganizationManagementPage organizationManagementPage = to(OrganizationManagementPage)
       organizationManagementPage.createOrg('New Organization')
 
-    then: 'we are left at the Organization page, and the newly created Org appears in the list of Organizations'
+    then: 'we are left at the Organization page'
       at OrganizationPage
+      waitFor { organizationName.text() == 'New Organization' }
+
+    and: 'the policy tab is shown by default'
+      waitFor { policies.displayed }
+
+    and: 'and the newly created Org appears in the list of Organizations'
       organizationList.size() == 1
       organization('New Organization').displayed
-      organizationName.text() == 'New Organization'
   }
 
   def "Can edit an existing Organization"() {

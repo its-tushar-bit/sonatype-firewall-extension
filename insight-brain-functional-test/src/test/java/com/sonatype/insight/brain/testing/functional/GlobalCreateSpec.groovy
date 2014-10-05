@@ -22,6 +22,7 @@ class GlobalCreateSpec
   def 'Main header shows global create button'() {
     when: 'the user has logged in'
       waitFor { userOptions.displayName.displayed }
+      waitFor { userOptions.displayName.text() }
 
     then: 'the global create button is displayed'
       globalCreate.dropdown.displayed

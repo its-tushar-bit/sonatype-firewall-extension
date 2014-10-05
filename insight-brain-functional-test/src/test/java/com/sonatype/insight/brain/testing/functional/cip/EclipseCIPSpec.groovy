@@ -32,7 +32,7 @@ class EclipseCIPSpec
 
     then: 'We get the default message'
       !cip.displayed
-      defaultText.displayed
+      waitFor { defaultText.displayed }
       defaultText.text() == SELECT_COMPONENT
   }
 

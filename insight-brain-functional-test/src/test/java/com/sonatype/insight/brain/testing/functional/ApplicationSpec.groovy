@@ -36,12 +36,17 @@ class ApplicationSpec
       ApplicationManagementPage applicationManagementPage = to(ApplicationManagementPage)
       applicationManagementPage.createApp('New Application', 'New Application')
 
-    then: 'we are left at the Application page, and the newly created App appears in the list of Applications'
+    then: 'we are left at the Application page'
       at ApplicationPage
-      waitFor { applicationList.size() == 1 }
-      application('New Application').displayed
       waitFor { applicationName.text() == 'New Application' }
       applicationIdSaved.text() == 'New Application'
+
+    and: 'the policy tab is shown by default'
+      waitFor { policies.displayed }
+
+    and: 'the newly created App appears in the list of Applications'
+      waitFor { applicationList.size() == 1 }
+      application('New Application').displayed
   }
 
   def "Policy evaluation summary lists stages in chronological order"() {
@@ -54,7 +59,7 @@ class ApplicationSpec
       at ApplicationPage
 
     then: 'the stages are listed in proper order'
-      policyEvalStages*.text() == ['Build', 'Stage Release', 'Release']
+      waitFor { policyEvalStages*.text() == ['Build', 'Stage Release', 'Release'] }
   }
 
   def "Can edit an existing Application"() {

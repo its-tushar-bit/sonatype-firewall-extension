@@ -33,7 +33,7 @@ class PolicyReportPage
     policyContent(wait: true) { $('div.slick-viewport') }
     results { moduleList PolicyReportRow, $('.slick-row') }
     resultsWithNoScore { results.findAll { it.threatGroup == none } }
-    waiver { module AddPolicyWaiver, $('#add-waiver-modal') }
+    waiver(required: false) { module AddPolicyWaiver, $('#add-waiver-modal') }
     policyDetailWaivers(required: false) { module PolicyDetailWaivers, $('#componentExistingWaiverModal') }
     removeWaiverModal(required: false) { module RemoveWaiverModal, $('#confirm-delete-waiver-modal') }
     summaryViolations { $('#policy-violation-filter li a', text: 'Summary') }

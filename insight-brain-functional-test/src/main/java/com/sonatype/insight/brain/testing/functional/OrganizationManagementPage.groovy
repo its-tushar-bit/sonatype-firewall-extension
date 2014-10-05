@@ -33,6 +33,7 @@ class OrganizationManagementPage
     browser.with {
       OrganizationPage organizationPage = at(OrganizationPage)
       organizationPage.editOrg(name)
+      waitFor { organizationPage.policies.displayed }
       organizationPage.policyImport.importPolicy(file)
     }
   }

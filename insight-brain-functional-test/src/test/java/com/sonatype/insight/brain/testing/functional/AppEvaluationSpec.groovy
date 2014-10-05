@@ -112,7 +112,7 @@ class AppEvaluationSpec
     then: 'new tab is open on the report page'
       waitFor { getAvailableWindows().size() == 2 }
       withWindow(close: true, availableWindows[1]) {
-        driver.currentUrl.contains('index.html#/reports/AppEvaluationApp2')
+        waitFor { driver.currentUrl.contains('index.html#/reports/AppEvaluationApp2') }
       }
 
     and: 'Dialog can be closed'

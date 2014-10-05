@@ -20,6 +20,7 @@ class PolicyNotificationSpec
     def organizationManagementPage = loginAsAdminVia(OrganizationManagementPage)
     organizationManagementPage.createOrg("PolicyNotificationOrg")
     def organizationPage = (OrganizationPage)browser.page
+    waitFor { organizationPage.policies.newPolicyButton.displayed }
     organizationPage.policies.newPolicyButton.click();
     policyEditor = organizationPage.policies.newPolicyEditor;
     waitFor { policyEditor.displayed }
@@ -41,6 +42,7 @@ class PolicyNotificationSpec
   def 'Adds an email to the list of notified emails'() {
     when: 'An email is added'
       NotificationsModule notificationModal = notificationModal
+      waitFor { notificationModal.emailInput.displayed } 
       notificationModal.emailInput.value('test@sonatype.com')
       notificationModal.addEmailButton.click()
 

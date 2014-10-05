@@ -17,7 +17,7 @@ import javax.servlet.ServletResponse;
 import com.yammer.dropwizard.config.Environment;
 
 /**
- * A servlet filter that puts REST clients into slow motion by delaying every request. This is useful to reveal timing
+ * A servlet filter that puts web clients into slow motion by delaying most requests. This is useful to reveal timing
  * issues in functional tests that mistake asynchronous operations as immediate.
  */
 class SlowMoFilter
@@ -27,7 +27,9 @@ class SlowMoFilter
     boolean enable = Boolean.getBoolean("slowmo.enable");
     Long delay = Long.getLong("slowmo.delay");
     if (enable && delay != null && delay > 0) {
-      env.addFilter(new SlowMoFilter(delay), "/rest/*");
+      SlowMoFilter filter = new SlowMoFilter(delay);
+      env.addFilter(filter, "/rest/*");
+      env.addFilter(filter, "*.html");
     }
   }
 

@@ -24,7 +24,7 @@ abstract class BasePage
     login { module LoginModule }
     userOptions { module UserOptionsModule }
     helpLinks { module HelpModule }
-    globalCreate { module GlobalCreateModule, browserClassName: browser.driver.class.simpleName }
+    globalCreate { module GlobalCreateModule }
     functionalTestingSupport { $('#functionalTestingSupport') }
   }
 }

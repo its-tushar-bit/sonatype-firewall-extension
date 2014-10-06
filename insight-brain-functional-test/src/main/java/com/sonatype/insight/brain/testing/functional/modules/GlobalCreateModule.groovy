@@ -5,19 +5,19 @@
  */
 package com.sonatype.insight.brain.testing.functional.modules
 
+import com.sonatype.insight.brain.testing.functional.utils.BrowserInfo
+
 import geb.Module
 
 class GlobalCreateModule
     extends Module
 {
-  String browserClassName
-
   static base = { $('#global-create-menu') }
 
   static content = {
     dropdown {
       def navigator = $('#global-create-dropdown-toggle')
-      browserClassName == 'ChromeDriver' ? navigator.parent() : navigator
+      BrowserInfo.chrome ? navigator.parent() : navigator
     }
     newOrganization(required: false) { $('#global-create-org') }
     newApplication(required: false) { $('#global-create-app') }

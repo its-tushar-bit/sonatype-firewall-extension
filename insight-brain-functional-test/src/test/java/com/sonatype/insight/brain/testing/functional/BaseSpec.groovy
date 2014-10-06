@@ -16,6 +16,7 @@ import com.sonatype.insight.brain.product.license.CLMLicenseManager
 import com.sonatype.insight.brain.service.InsightMockServerRule
 import com.sonatype.insight.brain.service.PortAllocator
 import com.sonatype.insight.brain.service.TestInsightBrainServiceRule
+import com.sonatype.insight.brain.testing.functional.utils.BrowserInfo
 
 import org.sonatype.licensing.product.ProductLicenseManager
 import org.sonatype.licensing.product.util.LicenseFingerprinter
@@ -84,6 +85,7 @@ abstract class BaseSpec
     System.setProperty("geb.build.baseUrl", "http://localhost:" + serviceRule.getPort() + "/")
     productLicenseManager.reset()
     clmLicenseManager.installLicense(null)
+    BrowserInfo.init(driver)
   }
 
   def cleanupSpec() {

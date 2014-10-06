@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.testing.functional.modules
 
+import com.sonatype.insight.brain.testing.functional.utils.BrowserInfo
+
 import geb.Module
 import geb.navigator.Navigator
 
@@ -20,7 +22,7 @@ class ExpandoModule
   }
 
   private boolean isPhantomJs() {
-    return driver.class.name.endsWith("PhantomJSDriver");
+    return BrowserInfo.phantom
   }
 
   boolean isDisplayed() {

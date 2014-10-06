@@ -15,7 +15,7 @@ class LoginSpec
       waitFor { login.isDisplayed() }
 
     then: "username input has focus"
-      js.'document.activeElement'.id == login.usernameInput.firstElement().id
+      js.'document.activeElement.id' == login.usernameInput.@id
 
     and: "login action is disabled"
       waitFor { login.loginAction.isDisabled() } // Navigator API version of loginAction.@disabled

@@ -11,6 +11,8 @@
 
 import java.util.logging.Level
 
+import com.sonatype.insight.brain.testing.functional.utils.PageTweakingWebDriver
+
 import geb.driver.SauceLabsDriverFactory
 import org.openqa.selenium.Dimension
 import org.openqa.selenium.Platform
@@ -107,9 +109,9 @@ environments {
       capabilities.setCapability(PhantomJSDriverService.PHANTOMJS_CLI_ARGS, ['--webdriver-loglevel=DEBUG'] as String[]);
       capabilities.
           setCapability(PhantomJSDriverService.PHANTOMJS_GHOSTDRIVER_CLI_ARGS, ["--logLevel=DEBUG"] as String[])
-      RemoteWebDriver webDriver = configure(new PhantomJSDriver(capabilities))
+      RemoteWebDriver webDriver = new PhantomJSDriver(capabilities)
       webDriver.setLogLevel(Level.ALL)
-      return webDriver
+      return configure(webDriver)
     }
 
     // increase default timeout to account for slower CI server
@@ -121,5 +123,9 @@ environments {
 
 def configure(final RemoteWebDriver driver) {
   driver.manage().window().setSize(new Dimension(1280, 1024))
-  return driver
+  return disableTransitions(driver)
+}
+
+WebDriver disableTransitions(WebDriver driver) {
+  return new PageTweakingWebDriver(driver)
 }

@@ -216,12 +216,11 @@ class LdapConfigurationSpec
   }
 
   def "We can delete the LDAP server"() {
-    when: 'We go to the LDAP page with a server configured'
-      to LdapConfigurationPage
+    when: 'Deleting the configured LDAP server'
       waitFor { delete.displayed }
+      delete.click()
 
     and: 'We confirm deletion of the LDAP server'
-      delete.click()
       waitFor { deleteConfirm.displayed }
       deleteConfirm.click()
 

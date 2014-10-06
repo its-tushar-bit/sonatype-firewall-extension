@@ -25,18 +25,9 @@
       </tr>
       </thead>
       <tr ng-repeat="component in data | limitTo: maxResults | orderBy:getSortField()">
-        <td><a ng-if="component.gavs.length" ui-sref="dashboard.component({ hash: component.hash })">
-          {{component.gavs[0].groupId}}<span class="wrap-force-break"> : </span>{{component.gavs[0].artifactId}}<span
-                class="wrap-force-break"> : </span>{{component.gavs[0].version}}
-        </a>
-          <div ng-if="!component.gavs.length && component.pathnames.length"
-               pathnames-popover='component.pathnames'>
-            <a ui-sref="dashboard.component({ hash: component.hash })"> <em>{{component.pathnames[0]
-              | fileName}}</em>
-            </a>
-          </div> <a ng-if="!component.gavs.length && !component.pathnames.length"
-                    ui-sref="dashboard.component({ hash: component.hash })"> <em>Unknown</em>
-          </a></td>
+        <td>
+          <div component-display component="component"></div>
+        </td>
         <td><a ui-sref="dashboard.component({ hash: component.hash })">{{component.affectedApplications}}</a></td>
         <td class="total-risk" alpha-background="{{component.score | safeDivide:totalRisk}}"
             ng-class="{ 'black-text': (component.score | safeDivide:totalRisk) < 0.5 }">

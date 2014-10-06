@@ -95,6 +95,7 @@
   <group name='dashboard'>
     <js>/dashboard/FilterController.js</js>
     <js>/assets/DashboardModule.js</js>
+    <js>/assets/ComponentDisplayModule.js</js>
     <js>/dashboard/ComponentController.js</js>
   </group>
 

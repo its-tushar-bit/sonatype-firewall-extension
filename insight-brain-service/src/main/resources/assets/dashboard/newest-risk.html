@@ -35,22 +35,8 @@
         <td>{{risk.time | terseAgo}}</td>
         <td>{{risk.policyName}}</td>
         <td>{{risk.applicationName}}</td>
-        <td ng-if='risk.gav'>
-          <a ui-sref="dashboard.component({ hash: risk.hash })">
-            <!-- This line cannot break as it causes spaces between the GAV -->
-            {{risk.gav.groupId}}<span class='wrap-force-break'> : </span>{{risk.gav.artifactId}}<span
-                  class='wrap-force-break'> : </span>{{risk.gav.version}}
-          </a>
-        </td>
-        <td ng-if='!risk.gav && risk.pathnames' pathnames-popover='risk.pathnames' class="word-break-all">
-          <a ui-sref="dashboard.component({ hash: risk.hash })">
-            <em>{{risk.pathnames[0] | fileName}}</em>
-          </a>
-        </td>
-        <td ng-if='!risk.gav && !risk.pathnames'>
-          <a ui-sref="dashboard.component({ hash: risk.hash })">
-            <em>Unknown</em>
-          </a>
+        <td>
+          <div component-display component="risk"></div>
         </td>
         <td ng-repeat='stageDetails in risk.stageDetails | stageTypeSort | stageFilter:filters'
             ng-class="{ 'latest-risk': stageDetails.time === risk.time }">

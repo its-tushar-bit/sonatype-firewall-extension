@@ -25,12 +25,13 @@ public abstract class AbstractComponentInfoResourceAuthzTest
     String version = "1.0";
     ComponentDetailsList componentDetailsList = new ComponentDetailsList();
     componentDetailsList.setList(Collections.<ComponentDetails> emptyList());
-    setSaasResponseForURI("rest/ide/component/details/list?groupId=" + groupId + "&artifactId=" + artifactId
+    setSaasResponseForURI("rest/" + getTool() + "/componentDetails/maven/list?groupId=" + groupId + "&artifactId="
+        + artifactId
         + "&version=" + version, toJson(componentDetailsList), 200);
 
     grantReadPermission(app.getId());
 
-    String url = getRestUrl(getResourcePath() + "/list/{applicationPublicId}", app.getPublicId()) + "?groupId="
+    String url = getRestUrl(getResourcePath() + "/{applicationPublicId}/maven/list", app.getPublicId()) + "?groupId="
         + groupId + "&artifactId=" + artifactId + "&version=" + version;
     testAuthzGet(url);
   }
@@ -43,7 +44,8 @@ public abstract class AbstractComponentInfoResourceAuthzTest
 
     grantReadPermission(app.getId());
 
-    String url = getRestUrl(getResourcePath() + "/{applicationPublicId}", app.getPublicId()) + "?groupId=" + groupId
+    String url = getRestUrl(getResourcePath() + "/{applicationPublicId}/maven", app.getPublicId()) + "?groupId="
+        + groupId
         + "&artifactId=" + artifactId + "&version=" + version;
     testAuthzGet(url);
   }
@@ -73,4 +75,6 @@ public abstract class AbstractComponentInfoResourceAuthzTest
         + groupId + "&artifactId=" + artifactId + "&version=" + version;
     testAuthzGet(url);
   }
+
+  protected abstract String getTool();
 }

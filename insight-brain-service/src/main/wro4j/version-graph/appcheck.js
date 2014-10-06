@@ -666,24 +666,24 @@
     /* Convert JSON data to be consumed by the graphic */
     function parseJsonData(json) {
       var data = {
-            versions: [],
-            versionPopularity: [],
-            majorRevIndices: [],
-            effectiveLicenses: [],
-            securityLevels: [
-              [],
-              [],
-              []
-            ]
-          },
-          i;
+          versions: [],
+          versionPopularity: [],
+          majorRevIndices: [],
+          effectiveLicenses: [],
+          securityLevels: [
+            [],
+            [],
+            []
+          ]
+        },
+        i;
 
       $.each(json.versions, function(index, item) {
         var critical = false, severe = false, moderate = false;
-        data.versions.push(item.version);
+        data.versions.push(item.identifier.coordinates.version);
         data.versionPopularity.push(item.popularity || item.relativePopularity || 0);
 
-        if (json.version === item.version) {
+        if (json.version === item.identifier.coordinates.version) {
           data.currentVersionIndex = index;
         }
         if (item.majorRevisionStep) {

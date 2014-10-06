@@ -9,6 +9,21 @@ var clmBuildTimestamp = '${build.timestamp}';
 (function() {
   "use strict";
 
+  function createComponentUrl(clientType) {
+    return function (appPublicId, componentType, coordinates) {
+      var url = basePath + 'rest/' + clientType + '/componentDetails/' + encodeURIComponent(appPublicId) + '/' + componentType;
+      
+      return url + '?' + param(coordinates);
+    };
+  }
+  function createComponentListUrl(clientType) {
+    return function (appPublicId, componentType, coordinates) {
+      var url = basePath + 'rest/' + clientType + '/componentDetails/' + encodeURIComponent(appPublicId) + '/' + componentType + '/list';
+      
+      return url + '?' + param(coordinates);
+    };
+  }
+
   var features = ["policy", "labels", "release-graph", "policy-violations", "notification", "reevaluate-policy"],// Lowercase
       param = window.$ ? $.param : function(obj) {
         var string = '',
@@ -80,89 +95,53 @@ var clmBuildTimestamp = '${build.timestamp}';
     },
     'ci': {
       /**
-       * Get the URL for a specific GAV. (Used to generate the table in the CIP)
-       * @since version 1.2
-       */
-      'getArtifactInfoUrl': function(arg) {
-        return basePath + 'rest/ci/component/details/' + encodeURIComponent(arg.appId) + '?' +
-            param({ groupId: arg.groupId, artifactId: arg.artifactId, version: arg.version, hash: arg.hash,
-              matchState: arg.matchState, proprietary: arg.proprietary, instanceId: arg.instanceId,
-              ts: new Date().getTime() });
-      },
-      /**
-       * Get the URL for all versions from a specific GAV. (Used to generate the versions graph in the CIP)
-       * @since version 1.2
-       * @deprecated As of version 1.4, superseded by getComponentDetailsListUrl().
-       */
-      'getArtifactVersionInfoUrl': function(arg) {
-        return basePath + 'rest/ci/component/details/versions/' + encodeURIComponent(arg.appId) + '?' +
-            param({ groupId: arg.groupId, artifactId: arg.artifactId, version: arg.version, instanceId: arg.instanceId });
-      },
-      /**
-       * Get the URL for all versions from a specific GAV. (Used to generate the versions graph in the CIP)
-       * @since version 1.4
-       */
-      'getComponentDetailsListUrl': function(arg) {
-        return basePath + 'rest/ci/component/details/list/' + encodeURIComponent(arg.appId) + '?' +
-            param({ groupId: arg.groupId, artifactId: arg.artifactId, version: arg.version, instanceId: arg.instanceId });
-      },
-      /**
        * Get the selectable licenses for a particular gav
        * @since version 1.4
        */
       'getArtifactLicensesUrl': function(arg) {
         return basePath + 'rest/ci/component/details/selectableLicenses/' + encodeURIComponent(arg.appId) + '?' +
             param({ groupId: arg.groupId, artifactId: arg.artifactId, version: arg.version, instanceId: arg.instanceId });
-      }
+      },
+      /**
+       * Get the URL for the agnostic coordinate ComponentDetails resource
+       * 
+       * @since version 1.13
+       */
+      'getComponentUrl' : createComponentUrl('ci'),
+      /**
+       * Get the URL for the agnostic coordinate ComponentDetailsList resource
+       * 
+       * @since version 1.13
+       */
+      'getComponentListUrl' : createComponentListUrl('ci')
     },
     'ide': {
       /**
-       * Get the URL for a specific GAV. (Used to generate the table in the CIP)
-       * @since version 1.2
+       * Get the URL for the agnostic coordinate ComponentDetails resource
+       * 
+       * @since version 1.13
        */
-      'getArtifactInfoUrl': function(arg) {
-        return basePath + 'rest/ide/component/details/' + encodeURIComponent(arg.appId) + '?' +
-            param({ groupId: arg.groupId, artifactId: arg.artifactId, version: arg.version, hash: arg.hash,
-              matchState: arg.matchState, proprietary: arg.proprietary, instanceId: arg.instanceId,
-              ts: new Date().getTime() });
-      },
+      'getComponentUrl' : createComponentUrl('ide'),
       /**
-       * Get the URL for all versions from a specific GAV. (Used to generate the versions graph in the CIP)
-       * @since version 1.2
-       * @deprecated As of version 1.4, superseded by getComponentDetailsListUrl().
+       * Get the URL for the agnostic coordinate ComponentDetailsList resource
+       * 
+       * @since version 1.13
        */
-      'getArtifactVersionInfoUrl': function(arg) {
-        return basePath + 'rest/ide/component/details/versions/' + encodeURIComponent(arg.appId) + '?' +
-            param({ groupId: arg.groupId, artifactId: arg.artifactId, version: arg.version, instanceId: arg.instanceId });
-      },
-      /**
-       * Get the URL for all versions from a specific GAV. (Used to generate the versions graph in the CIP)
-       * @since version 1.4
-       */
-      'getComponentDetailsListUrl': function(arg) {
-        return basePath + 'rest/ide/component/details/list/' + encodeURIComponent(arg.appId) + '?' +
-            param({ groupId: arg.groupId, artifactId: arg.artifactId, version: arg.version, instanceId: arg.instanceId });
-      }
+      'getComponentListUrl' : createComponentListUrl('ide')
     },
     'rm' : {
       /**
-       * Get the URL for a specific GAV. (Used to generate the table in the CIP)
-       * @since version 1.10
+       * Get the URL for the agnostic coordinate ComponentDetails resource
+       * 
+       * @since version 1.13
        */
-      'getArtifactInfoUrl': function(arg) {
-        return basePath + 'rest/rm/component/details/' + encodeURIComponent(arg.appId) + '?' +
-            param({ groupId: arg.groupId, artifactId: arg.artifactId, version: arg.version, hash: arg.hash,
-              matchState: arg.matchState, proprietary: arg.proprietary, instanceId: arg.instanceId,
-              ts: new Date().getTime() });
-      },
+      'getComponentUrl' : createComponentUrl('rm'),
       /**
-       * Get the URL for all versions from a specific GAV. (Used to generate the versions graph in the CIP)
-       * @since version 1.10
+       * Get the URL for the agnostic coordinate ComponentDetailsList resource
+       * 
+       * @since version 1.13
        */
-      'getComponentDetailsListUrl': function(arg) {
-        return basePath + 'rest/rm/component/details/list/' + encodeURIComponent(arg.appId) + '?' +
-            param({ groupId: arg.groupId, artifactId: arg.artifactId, version: arg.version, instanceId: arg.instanceId });
-      }
+      'getComponentListUrl' : createComponentListUrl('rm')
     }
   };
 }());

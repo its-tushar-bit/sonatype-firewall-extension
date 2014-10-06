@@ -14,4 +14,9 @@ public class IDEComponentInfoResourceTest
   protected String getResourcePath() {
     return IDEComponentInfoResource.SERVICE_PATH;
   }
+
+  @Override
+  protected String getToolName() {
+    return "ide";
+  }
 }

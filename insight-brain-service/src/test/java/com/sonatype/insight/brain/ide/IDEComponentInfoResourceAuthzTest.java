@@ -14,4 +14,8 @@ public class IDEComponentInfoResourceAuthzTest
   protected String getResourcePath() {
     return IDEComponentInfoResource.SERVICE_PATH;
   }
+
+  protected String getTool() {
+    return "ide";
+  }
 }

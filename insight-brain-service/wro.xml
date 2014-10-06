@@ -153,6 +153,7 @@
     <css>/version-graph/content.css</css>
     <js>/version-graph/appcheck.js</js>
     <js>/version-graph/cip.js</js>
+    <js>/assets/ComponentDisplayModule.js</js>
   </group>
 
   <group name='viewdetails'>

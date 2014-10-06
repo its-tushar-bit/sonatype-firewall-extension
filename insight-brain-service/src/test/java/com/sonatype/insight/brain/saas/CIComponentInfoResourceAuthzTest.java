@@ -12,4 +12,8 @@ public class CIComponentInfoResourceAuthzTest
   protected String getResourcePath() {
     return CIComponentInfoResource.SERVICE_PATH;
   }
+
+  protected String getTool() {
+    return "ci";
+  }
 }

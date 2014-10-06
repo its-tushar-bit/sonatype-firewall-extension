@@ -12,11 +12,6 @@
     return Brain.getVersion ? (status === 404 || status === 403) : (status === 402);
   }
 
-  function isUnknown(gav) {
-    var matchState = gav && gav.matchState ? gav.matchState.toLowerCase() : null;
-    return matchState === 'unknown';
-  }
-
   function getErrorMessage(error) {
     var responseText = error[0],
         status = error[1],
@@ -45,7 +40,7 @@
       injectorTimeout = null,
       logQueue = [],
       logFn = defaultLogFn,
-      module = angular.module('CIP', []).run(['$rootScope', '$injector', function ($rootScope, $injector) {
+      module = angular.module('CIP', ['ComponentName']).run(['$rootScope', '$injector', function ($rootScope, $injector) {
         injector = $injector;
 
         $rootScope.setError = function (error) {
@@ -90,9 +85,9 @@
 
   function createStateFn(stateName) {
     return function (arg) {
-      waitOnInjector(['$rootScope', 'GAV', 'State', function ($rootScope, GAV, State) {
+      waitOnInjector(['$rootScope', 'Coordinates', 'State', function ($rootScope, Coordinates, State) {
         safeApply($rootScope, function () {
-          GAV.set(null);
+          Coordinates.set(null);
           State.set(stateName, arg);
         });
       }], true);
@@ -123,32 +118,73 @@
       "registerMarkUpgradeListener": function (listener) {
         waitOnInjector(['$rootScope', function ($rootScope) {
           $rootScope.$on('markUpgrade', function (event, gav) {
-            listener(gav.groupId, gav.artifactId, gav.version);
+            if (Coordinates.getFormat() === 'maven') {
+              listener(gav.groupId, gav.artifactId, gav.version);
+            }
           });
         }]);
       },
       "registerViewDetailsListener": function (listener) {
-        waitOnInjector(['GAV', 'SelectedApp', '$rootScope', function (GAV, SelectedApp, $rootScope) {
+        waitOnInjector(['Coordinates', 'SelectedApp', '$rootScope', function (Coordinates, SelectedApp, $rootScope) {
           $rootScope.$on('viewDetails', function (event, version) {
-            var gav = GAV.get();
 
-            listener(SelectedApp.get(),
-                    gav.groupId,
-                    gav.artifactId,
-                    version,
-                    gav.classifier,
-                    gav.extension,
-                    version === gav.version ? gav.hash : null,
-                    version === gav.version ? gav.matchState : null,
-                    gav.proprietary);
+            if (Coordinates.getFormat() === 'maven') {
+              var gav = Coordinates.get();
+
+              listener(SelectedApp.get(),
+                      gav.groupId,
+                      gav.artifactId,
+                      version,
+                      gav.classifier,
+                      gav.extension,
+                      version === gav.version ? gav.hash : null,
+                      version === gav.version ? gav.matchState : null,
+                      gav.proprietary);
+            }
           });
         }]);
       },
-      "setGav": function (arg) {
-        waitOnInjector(['GAV', 'State', '$rootScope', function (GAV, State, $rootScope) {
+      "registerCoordsViewDetailsListener": function (listener) {
+        waitOnInjector(['Coordinates', 'SelectedApp', '$rootScope', function (Coordinates, SelectedApp, $rootScope) {
+          $rootScope.$on('viewDetails', function (event, version) {
+            var coordinates = angular.extend({}, Coordinates.get(), { version : version });
+
+            listener(SelectedApp.get(), Coordinates.getType(), coordinates,
+                    version === coordinates.version ? coordinates.hash : null,
+                    version === coordinates.version ? coordinates.matchState : null);
+          });
+        }]);
+      },
+      "registerCoordsMarkUpgradeListener": function (listener) {
+        waitOnInjector(['$rootScope', function ($rootScope) {
+          $rootScope.$on('markUpgrade', function (event, gav) {
+            listener(gav.groupId, gav.artifactId, gav.version);
+          });
+        }]);
+      },
+      'setCoordinates' : function (componentType, coordinates, matchState) {
+        waitOnInjector(['Coordinates', 'SelectedApp', 'State', 'MatchState', '$rootScope', function (Coordinates, SelectedApp, State, MatchState, $rootScope) {
           safeApply($rootScope, function () {
-            GAV.set(arg);
+            if (coordinates.appId) {
+              SelectedApp.set(coordinates.appId);
+              delete coordinates.appId;
+            }
+            Coordinates.set(componentType, coordinates);
             State.set(null);
+            MatchState.set(matchState);
+          });
+        }], true);
+      },
+      "setGav": function (arg) {
+        waitOnInjector(['Coordinates', 'SelectedApp', 'State', 'MatchState', '$rootScope', function (Coordinates, SelectedApp, State, MatchState, $rootScope) {
+          safeApply($rootScope, function () {
+            if (arg.appId) {
+              SelectedApp.set(arg.appId);
+              delete arg.appId;
+            }
+            Coordinates.set('maven', arg);
+            State.set(null);
+            MatchState.set(arg.matchState);
           });
         }], true);
       },
@@ -160,9 +196,9 @@
         }]);
       },
       "setError": function (arg) {
-        waitOnInjector(['$rootScope', 'GAV', 'State', function ($rootScope, GAV, State) {
+        waitOnInjector(['$rootScope', 'Coordinates', 'State', function ($rootScope, Coordinates, State) {
           safeApply($rootScope, function () {
-            GAV.set(null);
+            Coordinates.set(null);
 
             if (isInvalidAppId(arg.errorCode)) {
               State.set('invalid-appid', arg);
@@ -207,25 +243,30 @@
     }
   });
 
-  module.service('GAV', function () {
+  module.service('Coordinates', function () {
     var selected = null,
-        gav = null;
+        coordinates = null,
+        format = null;
     return {
       get : function () {
-        return gav;
+        return coordinates;
       },
-      set : function (g) {
-        gav = g;
+      getFormat : function () {
+        return format;
+      },
+      set : function (t, c) {
+        coordinates = c;
+        format = t;
         selected = null;
       },
       getSelected : function () {
-        return selected || gav;
+        return selected || coordinates;
       },
-      setSelected : function (g) {
-        if (g && gav && g.version === gav.version) {
+      setSelected : function (c) {
+        if (c && coordinates && c.version === coordinates.version) {
           selected = null;
         } else {
-          selected = g;
+          selected = c;
         }
       }
     };
@@ -248,11 +289,27 @@
     };
   });
 
+  module.service('MatchState', function () {
+    var matchState = null;
+    return {
+      get : function () {
+        return matchState;
+      },
+      set : function (newMatchState) {
+        matchState = newMatchState;
+      },
+      isUnknown : function () {
+        return (matchState || "").toLowerCase() === 'unknown';
+      }
+    };
+  });
+
   /**
    * Service to provide the selected application.  Persisted via cookies.
    */
-  module.service('SelectedApp', ['GAV', function (GAV) {
+  module.service('SelectedApp', function () {
     // Not cached as another browser tab could be touching the cookie
+    var storedAppId = null;
     return {
       get : function () {
         if (clmEndpoint.selectApplication) {
@@ -267,10 +324,9 @@
           });
 
           return clmAppId;
-        } else {
-          if (GAV.get()) {
-            return GAV.get().appId;
-          }
+        }
+        else {
+          return storedAppId;
         }
       },
       set : function (applicationId) {
@@ -283,9 +339,12 @@
             document.cookie = 'clmAppId=; expires=Thu, 01-Jan-70 00:00:01 GMT;';
           }
         }
+        else {
+          storedAppId = applicationId;
+        }
       }
     };
-  }]);
+  });
 
   module.service('Applications', ['$http', '$q', function ($http, $q) {
     var deferred = null;
@@ -336,22 +395,22 @@
     $scope.doLoad();
   }]);
 
-  module.controller('ComponentController', ['$scope', 'GAV', 'SelectedApp', '$http', function ($scope, GAV, SelectedApp, $http) {
-    function gavChanged() {
-      var gav = GAV.get() ? angular.extend({ appId : SelectedApp.get() }, GAV.get()) : null;
+  module.controller('ComponentController', ['$scope', 'Coordinates', 'SelectedApp', 'MatchState', '$http', function ($scope, Coordinates, SelectedApp, MatchState, $http) {
+    function coordinatesChanged() {
+      var coordinates = Coordinates.get() ? { coordinates : Coordinates.get(), appId : SelectedApp.get() } : null;
 
       $scope.errorMessage = null;
 
-      if (!angular.equals($scope.gav, gav)) {
+      if (!angular.equals($scope.coordinates, coordinates)) {
         $scope.componentDetailsList = null;
         $scope.loaded = false;
-        $scope.gav = gav;
+        $scope.coordinates = coordinates;
 
-        if (gav && gav.appId && !isUnknown(gav)) {
-          $http.get(Brain[clmEndpoint.type].getComponentDetailsListUrl(gav)).success(function (data) {
+        if (coordinates && coordinates.appId && !MatchState.isUnknown()) {
+          $http.get(Brain[clmEndpoint.type].getComponentListUrl(SelectedApp.get(), Coordinates.getFormat(), Coordinates.get())).success(function (data) {
             $scope.componentDetailsList = data.list ? data.list : data;
             for (var i = 0; i < $scope.componentDetailsList.length; i++) {
-              $scope.componentDetailsList[i].proprietary = gav.proprietary;
+              $scope.componentDetailsList[i].proprietary = Coordinates.get().proprietary;
             }
             $scope.loaded = true;
           }).error(function () {
@@ -369,25 +428,27 @@
       $scope.$broadcast('reload');
     };
 
-    $scope.isUnknown = function () {
-      return isUnknown(GAV.get());
-    };
-
     $scope.$on('reload', function () {
-      $scope.gav = null;
-      gavChanged();
+      $scope.coordinates = null;
+      coordinatesChanged();
     });
 
     $scope.$watch(function () {
-      return GAV.get();
-    }, gavChanged);
+      return MatchState.isUnknown();
+    }, function () {
+      $scope.isUnknown = MatchState.isUnknown();
+    });
+
+    $scope.$watch(function () {
+      return Coordinates.get();
+    }, coordinatesChanged);
 
     $scope.$watch(function () {
       return SelectedApp.get();
-    }, gavChanged);
+    }, coordinatesChanged);
   }]);
 
-  module.controller('StatusController', ['$scope', 'State', 'GAV', 'SelectedApp', function ($scope, State, GAV, SelectedApp) {
+  module.controller('StatusController', ['$scope', 'State', 'Coordinates', 'SelectedApp', function ($scope, State, Coordinates, SelectedApp) {
     $scope.openView = function ($event, action) {
       $event.preventDefault();
       clmEndpoint.openView(action);
@@ -412,19 +473,20 @@
     });
   }]);
 
-  module.controller('DetailsController', ['$scope', '$http', 'SelectedApp', 'GAV', function ($scope, $http, SelectedApp, GAV) {
-    function gavChanged() {
-      var gav = GAV.getSelected() ? angular.extend({ appId : SelectedApp.get() }, GAV.getSelected()) : null;
+  module.controller('DetailsController', ['$scope', '$http', 'SelectedApp', 'Coordinates', 'MatchState', function ($scope, $http, SelectedApp, Coordinates, MatchState) {
+    function coordinatesChanged() {
+      var coordinates = Coordinates.getSelected() ? { coordinates : Coordinates.getSelected(), appId : SelectedApp.get() } : null;
 
-      if (!angular.equals(last, gav)) {
+      if (!angular.equals(last, coordinates)) {
         $scope.componentDetails = null;
         $scope.highestPolicyThreat = null;
-        last = gav;
+        last = coordinates;
 
-        if (gav && gav.appId && !isUnknown(gav)) {
-          $http.get(Brain[clmEndpoint.type].getArtifactInfoUrl(gav)).success(function (data) {
+        if (coordinates && coordinates.appId && !MatchState.isUnknown()) {
+          $http.get(Brain[clmEndpoint.type].getComponentUrl(SelectedApp.get(), Coordinates.getFormat(), Coordinates.getSelected())).success(function (data) {
             $scope.componentDetails = data;
-            $scope.componentDetails.proprietary = gav.proprietary;
+            $scope.componentDetails.proprietary = Coordinates.getSelected().proprietary;
+            MatchState.set($scope.componentDetails.matchState);
 
             var i = 0;
             while (i < $scope.componentDetails.securityVulnerabilities.length) {
@@ -466,10 +528,10 @@
     };
 
     $scope.canMigrate = function () {
-      var gav = GAV.get(),
-          selectedGav = GAV.getSelected();
+      var coordinates = Coordinates.get(),
+          selected = Coordinates.getSelected();
 
-      return gav && selectedGav && gav.version !== selectedGav.version;
+      return coordinates && selected && coordinates.version !== selected.version;
     };
 
     $scope.getMaximumSeverity = function () {
@@ -504,28 +566,28 @@
     };
 
     $scope.viewDetails = function () {
-      $scope.$emit('viewDetails', GAV.getSelected().version);
+      $scope.$emit('viewDetails', Coordinates.getSelected().version);
     };
 
     $scope.markUpgrade = function () {
-      $scope.$emit('markUpgrade', GAV.getSelected());
+      $scope.$emit('markUpgrade', Coordinates.getSelected());
     };
 
     $scope.$on('reload', function () {
       last = {};
-      gavChanged();
+      coordinatesChanged();
     });
 
     $scope.$watch(function () {
-      return GAV.getSelected();
-    }, gavChanged);
+      return Coordinates.getSelected();
+    }, coordinatesChanged);
 
     $scope.$watch(function () {
       return SelectedApp.get();
-    }, gavChanged);
+    }, coordinatesChanged);
   }]);
 
-  module.directive('graph', ['GAV', function (GAV) {
+  module.directive('graph', ['Coordinates', function (Coordinates) {
     return {
       scope : {
         versions : '=graph'
@@ -540,23 +602,24 @@
         scope.$watch('versions', function (versions) {
           if (versions) {
             $.each(versions, function(index, component) {
-              if (component.version === GAV.get().version) {
-                component.hash = GAV.get().hash;
+              if (component.version === Coordinates.get().version) {
+                component.hash = Coordinates.get().hash;
                 return false;
               }
             });
 
             Insight.ComponentInformation({
               data: {
+                nextMajorRevisionIndex : versions.nextMajorRevisionIndex,
                 versions: versions,
-                version: GAV.get().version
+                version: Coordinates.get().version
               },
               selectable: true,
               versionClick: function(version) {
                 scope.$apply(function () {
                   $.each(versions, function(index, component) {
-                    if (component.version === version) {
-                      GAV.setSelected(component);
+                    if (component.identifier.coordinates.version === version) {
+                      Coordinates.setSelected(component.identifier.coordinates);
                       return false;
                     }
                   });

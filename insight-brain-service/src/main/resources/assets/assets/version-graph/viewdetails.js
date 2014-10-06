@@ -72,6 +72,9 @@
     }
     style += "}</style>";
     angular.element(head).append(style);
+
+    delete query.fontSize;
+    delete query.fontName;
   }());
 
   function transformPolicyAlerts(alerts) {
@@ -186,6 +189,13 @@
       $scope.$on('reload', function () {
         $scope.reload();
       });
+      
+      var appId = query.appId,
+          deferLoad = query.deferLoad,
+          format = query.format || 'maven'; // for backwards compat we default to maven if unknown
+      delete query.appId;
+      delete query.deferLoad;
+      delete query.format;
 
       // TODO Determine where the GAV is coming from, should it be a query string or should Eclipse call a JS function?
       $scope.data = null;
@@ -221,7 +231,7 @@
 
         var promises = [];
 
-        promises.push($http.get(Brain[clmEndpoint.type].getArtifactInfoUrl(query), {
+        promises.push($http.get(Brain[clmEndpoint.type].getComponentUrl(appId, format, query), {
           headers: {
             "Accept": "application/json"
           }
@@ -251,14 +261,14 @@
             return b.severity - a.severity;
           });
           if (clmEndpoint.showContext) {
-            $scope.data.appName = results[1].data[query.appId];
+            $scope.data.appName = results[1].data[appId];
           }
         }, function(errorData) {
           $scope.error = errorData.status;
           $scope.errorMessage = getErrorMessage(errorData.data, errorData.status, errorData.headers);
         });
       };
-      if (query.deferLoad !== 'true') {
+      if (deferLoad !== 'true') {
         $scope.reload();
       }
 

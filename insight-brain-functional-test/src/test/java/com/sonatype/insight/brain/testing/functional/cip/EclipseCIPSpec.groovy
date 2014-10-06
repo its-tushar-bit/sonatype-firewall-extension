@@ -116,11 +116,15 @@ class EclipseCIPSpec
 
     then: 'Details of the vulnerabilities are shown'
       CIPModule cip = cip
-      waitFor('slow') { cip.displayed && cip.group }
+      waitFor('slow') { cip.displayed && cip.name }
       validateCommon(cip, CATALINA_HOST_MANAGER)
       cip.highestSecurityThreat == '4.3 within 4 security issues'
 
     and: 'No website information is provided for this GAV'
       !cip.website.displayed
+  }
+
+  String getToolName() {
+    return "ide"
   }
 }

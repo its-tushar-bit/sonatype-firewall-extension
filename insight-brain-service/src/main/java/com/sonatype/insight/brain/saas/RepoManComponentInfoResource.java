@@ -19,7 +19,7 @@ import javax.ws.rs.Path;
 public class RepoManComponentInfoResource
     extends AbstractComponentInfoResource
 {
-  public static final String SERVICE_PATH = "rest/rm/component/details";
+  public static final String SERVICE_PATH = "rest/rm/componentDetails";
 
   @Inject
   public RepoManComponentInfoResource(SaasClient client, ComponentDetailsLoader componentDetailsLoader)

@@ -81,7 +81,8 @@ class NexusViewDetailsSpec
       PolicyViolationTableRow row = policyViolationTable.rows[0]
       row.policyName == policy.name
       row.constraintName == policy.constraints[0].name
-      row.summary == "Found 'No Source License' and '${JUNIT.declaredLicenses[0].licenseName}' Licenses"
+      row.summary.contains('No Source License')
+      row.summary.contains(JUNIT.declaredLicenses[0].licenseName)
   }
 
   def "Security vulnerabilities are highlighted"() {
@@ -100,5 +101,9 @@ class NexusViewDetailsSpec
       row.problemCode.text() == mockSecurityVulnerability.refId
       row.status == mockSecurityVulnerability.status ?: 'Open'
       row.summary == mockSecurityVulnerability.summary
+  }
+
+  public String getToolName() {
+    return 'rm';
   }
 }

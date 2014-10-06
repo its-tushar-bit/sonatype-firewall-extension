@@ -12,4 +12,9 @@ public class RepoManComponentInfoResourceTest
   protected String getResourcePath() {
     return RepoManComponentInfoResource.SERVICE_PATH;
   }
+
+  @Override
+  protected String getToolName() {
+    return "rm";
+  }
 }

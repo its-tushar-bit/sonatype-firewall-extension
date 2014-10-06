@@ -596,6 +596,7 @@
                 <include>wro4j/version-graph/protovis.min.js</include>
                 <include>wro4j/version-graph/appcheck.js</include>
                 <include>wro4j/version-graph/cip.js</include>
+                <include>wro4j/assets/ComponentDisplayModule.js</include>
               </sourceIncludes>
               <specIncludes>
                 <include>resources/assets/**/lib/*.js</include>

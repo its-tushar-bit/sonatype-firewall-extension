@@ -18,6 +18,7 @@ import com.sonatype.clm.dto.model.License;
 import com.sonatype.clm.dto.model.SecurityVulnerability;
 import com.sonatype.clm.dto.model.ide.ComponentDetails;
 import com.sonatype.clm.dto.model.ide.ComponentDetailsList;
+import com.sonatype.clm.dto.model.ide.ComponentIdentifier;
 import com.sonatype.clm.dto.model.ide.LicenseStatus;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
@@ -48,6 +49,7 @@ import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.saas.AbstractComponentInfoResource.ComponentLicenses;
 import com.sonatype.insight.brain.saas.AbstractComponentInfoResource.LicenseWithThreatLevel;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
+import com.sonatype.insight.mock.UriParamRequestMatcher;
 
 import com.ning.http.client.Response;
 import org.junit.Assert;
@@ -386,8 +388,8 @@ public abstract class AbstractComponentInfoResourceTest
     saasComponentDetails2.setDeclaredLicenses(licenses2);
     ComponentDetailsList saasComponentDetailsList = new ComponentDetailsList();
     saasComponentDetailsList.setList(Arrays.asList(saasComponentDetails1, saasComponentDetails2));
-    setSaasResponseForURI("rest/ide/component/details/list?groupId=" + groupId + "&artifactId=" + artifactId
-        + "&version=" + version, toJson(saasComponentDetailsList), 200);
+    setSaasResponseForURI("rest/" + getToolName() + "/componentDetails/maven/list?groupId=" + groupId + "&artifactId="
+        + artifactId + "&version=" + version, toJson(saasComponentDetailsList), 200);
 
     String serviceUrl = getComponentDetailsListUrl(applicationPublicId, groupId, artifactId, version);
     Response response = AuthedRestAccess.get(serviceUrl);
@@ -537,8 +539,10 @@ public abstract class AbstractComponentInfoResourceTest
     String artifactId = "a1";
     String version = "v1";
     String serviceUrl = getComponentDetailsUrl(applicationPublicId, groupId, artifactId, version, null, null);
-    String saasUrl = convertToSaasUrl(serviceUrl, applicationPublicId);
-    ComponentDetails saasComponentDetails = new ComponentDetails(groupId, artifactId, version);
+    String saasUrl = getSaasComponentDetailsUrl(groupId, artifactId, version);// convertToSaasUrl(serviceUrl,
+                                                                              // applicationPublicId);
+    ComponentDetails saasComponentDetails = new ComponentDetails();
+    saasComponentDetails.setIdentifier(ComponentIdentifier.createMavenCoordinates(groupId, artifactId, version));
     setSaasResponseForURI(saasUrl, toJson(saasComponentDetails), 200);
     Response response = AuthedRestAccess.get(serviceUrl);
     assertResponseStatus(200, response);
@@ -578,7 +582,7 @@ public abstract class AbstractComponentInfoResourceTest
     String saasUrl = convertToSaasUrl(serviceUrl, applicationPublicId);
     ComponentDetails saasComponentDetails = new ComponentDetails(groupId, artifactId, version);
     saasComponentDetails.addSecurityVulnerability(new SecurityVulnerability("36079", "osvdb", 7.5F, "Summary"));
-    setSaasResponseForURI(saasUrl, toJson(saasComponentDetails), 200);
+    setSaasResponse(new UriParamRequestMatcher(saasUrl, toJson(saasComponentDetails), 200));
     Response response = AuthedRestAccess.get(serviceUrl);
     assertResponseStatus(200, response);
 
@@ -853,12 +857,12 @@ public abstract class AbstractComponentInfoResourceTest
   }
 
   private String getSaasComponentDetailsUrl(String g, String a, String v) {
-    return "/rest/ide/component/details?groupId=" + g + "&artifactId=" + a + "&version=" + v;
+    return "rest/" + getToolName() + "/componentDetails/maven?groupId=" + g + "&artifactId=" + a + "&version=" + v;
   }
 
   private String convertToSaasUrl(String brainUrl, String applicationId) {
-    return brainUrl.replaceFirst("/rest/[^/]+/", "/rest/ide/").substring(getRestBaseUrl().length())
-        .replace("/" + applicationId, "");
+    return brainUrl.replaceFirst("/rest/[^/]+/", "/rest/" + getToolName() + "/").substring(getRestBaseUrl().length())
+        .replace("/" + applicationId, "").replace("component/details", "componentDetails");
   }
 
   private String getComponentDetailsUrl(String applicationPublicId, String groupId, String artifactId, String version,
@@ -871,7 +875,7 @@ public abstract class AbstractComponentInfoResourceTest
       String hash, String matchState, String proprietary)
   {
     UriBuilder builder = UriBuilder.fromUri(getServiceURL());
-    builder.path("{appId}");
+    builder.path("{appId}/maven");
     builder.queryParam("groupId", groupId);
     builder.queryParam("artifactId", artifactId);
     builder.queryParam("version", version);
@@ -888,7 +892,8 @@ public abstract class AbstractComponentInfoResourceTest
   }
 
   private String getComponentDetailsListUrl(String applicationPublicId, String g, String a, String v) {
-    return getServiceURL() + "/list/" + applicationPublicId + "?groupId=" + g + "&artifactId=" + a + "&version=" + v;
+    return getServiceURL() + "/" + applicationPublicId + "/maven/list" + "?groupId=" + g + "&artifactId=" + a
+        + "&version=" + v;
   }
 
   private String getLicensesServiceURL(String applicationPublicId, String g, String a, String v) {
@@ -904,4 +909,6 @@ public abstract class AbstractComponentInfoResourceTest
   private String getServiceURL() {
     return getRestBaseUrl() + getResourcePath();
   }
+
+  protected abstract String getToolName();
 }

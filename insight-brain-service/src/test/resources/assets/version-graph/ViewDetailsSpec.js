@@ -1,14 +1,14 @@
 var clmEndpoint, clmEndpointTemplate;
 
-clmEndpoint = clmEndpointTemplate = {
+clmEndpoint = angular.copy(clmEndpointTemplate = {
   openView : angular.noop,
   type : 'ide'
-};
+});
 
 describe('Eclipse View Details tests', function() {
   var httpBackend,
       scope,
-      query = { appId: 'appId', groupId: 'gid', artifactId: 'aid', version: '1.0', hash: '12345678901234567890', instanceId: 'iid' },
+      query = { appId: 'appId', groupId: 'gid', artifactId: 'aid', version: '1.0', hash: '12345678901234567890', instanceId: 'iid', format : 'maven' },
       wnd,
       data = {
         observedLicenses: [
@@ -24,9 +24,7 @@ describe('Eclipse View Details tests', function() {
         policyAlerts: []
       };
 
-  beforeEach(module('viewdetails', function($provide) {
-    $provide.constant('query', query);
-  }));
+  beforeEach(module('viewdetails'));
 
   beforeEach(inject(function($httpBackend, $rootScope, $controller, $window) {
     httpBackend = $httpBackend;
@@ -72,8 +70,8 @@ describe('Eclipse View Details tests', function() {
 
   describe('Legacy Plugin', function() {
     beforeEach(inject(function($httpBackend, $controller) {
-      httpBackend.expectGET(new RegExp('/rest/ide/component/details/appId')).respond(angular.copy(data));
-      $controller('view', { $scope: scope });
+      httpBackend.expectGET(new RegExp('/rest/ide/componentDetails/appId/maven')).respond(angular.copy(data));
+      $controller('view', { $scope: scope, query : angular.copy(query) });
       httpBackend.flush();
     }));
 
@@ -87,8 +85,8 @@ describe('Eclipse View Details tests', function() {
 
   describe('Error Handling', function() {
     it('ignores HTML bodies', inject(function($httpBackend, $controller) {
-      httpBackend.expectGET(new RegExp('/rest/ide/component/details/appId')).respond(500, '<html>Error</html>', {'Content-Type': 'text/html'});
-      $controller('view', { $scope: scope });
+      httpBackend.expectGET(new RegExp('/rest/ide/componentDetails/appId/maven')).respond(500, '<html>Error</html>', {'Content-Type': 'text/html'});
+      $controller('view', { $scope: scope, query : angular.copy(query) });
       httpBackend.flush();
       expect(scope.data).toBeNull();
       expect(scope.error).toEqual(500);
@@ -96,8 +94,8 @@ describe('Eclipse View Details tests', function() {
     }));
 
     it('uses plain text bodies', inject(function($httpBackend, $controller) {
-      httpBackend.expectGET(new RegExp('/rest/ide/component/details/appId')).respond(500, 'Oops', {'Content-Type': 'text/plain'});
-      $controller('view', { $scope: scope });
+      httpBackend.expectGET(new RegExp('/rest/ide/componentDetails/appId/maven')).respond(500, 'Oops', {'Content-Type': 'text/plain'});
+      $controller('view', { $scope: scope, query : angular.copy(query) });
       httpBackend.flush();
       expect(scope.data).toBeNull();
       expect(scope.error).toEqual(500);
@@ -105,8 +103,8 @@ describe('Eclipse View Details tests', function() {
     }));
 
     it('falls back to error code if no message supplied', inject(function($httpBackend, $controller) {
-      httpBackend.expectGET(new RegExp('/rest/ide/component/details/appId')).respond(500, '', {'Content-Type': 'text/plain'});
-      $controller('view', { $scope: scope });
+      httpBackend.expectGET(new RegExp('/rest/ide/componentDetails/appId/maven')).respond(500, '', {'Content-Type': 'text/plain'});
+      $controller('view', { $scope: scope, query : angular.copy(query) });
       httpBackend.flush();
       expect(scope.data).toBeNull();
       expect(scope.error).toEqual(500);
@@ -119,14 +117,14 @@ describe('Eclipse View Details tests', function() {
 
     beforeEach(inject(function($httpBackend, $controller) {
       angular.extend(query, { deferLoad: 'true' });
-      httpBackend.expectGET(new RegExp('/rest/ide/component/details/appId'), function(reqHeaders) {
+      httpBackend.expectGET(new RegExp('/rest/ide/componentDetails/appId/maven'), function(reqHeaders) {
         var match = true;
         angular.forEach(headers, function(value, key) {
           match = match && reqHeaders[key] === value;
         });
         return match;
       }).respond(angular.copy(data));
-      $controller('view', { $scope: scope });
+      $controller('view', { $scope: scope, query : angular.copy(query) });
     }));
 
     it('defers loading data until request headers are set', function() {

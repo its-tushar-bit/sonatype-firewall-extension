@@ -49,9 +49,7 @@ class CIPModule
   static base = { $('#infoPanelArtifactTable') }
 
   static content = {
-    group { $('#artifactInfoGroupIdRow td:last-child').text() }
-    artifact { $('#artifactInfoArtifactIdRow td:last-child').text() }
-    version { $('#artifactInfoVersionRow td:last-child').text() }
+    name { $('#artifactInfoName').text() }
     effectiveLicense { $('#artifactInfoEffectiveLicenseRow td:last-child').text() }
     declaredLicense { $('#artifactInfoDeclaredLicenseRow td:last-child').text() }
     observedLicense { $('#artifactInfoObservedLicenseRow td:last-child').text() }

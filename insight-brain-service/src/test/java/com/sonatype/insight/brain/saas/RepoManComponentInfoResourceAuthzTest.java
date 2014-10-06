@@ -12,4 +12,8 @@ public class RepoManComponentInfoResourceAuthzTest
   protected String getResourcePath() {
     return RepoManComponentInfoResource.SERVICE_PATH;
   }
+
+  protected String getTool() {
+    return "rm";
+  }
 }

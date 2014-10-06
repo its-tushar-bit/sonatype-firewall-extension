@@ -1,12 +1,16 @@
 describe('ComponentDisplay', function() {
   var $compile, scope;
 
-  beforeEach(module('ComponentDisplay'));
+  beforeEach(module('ComponentDisplay', 'ComponentName'));
 
   beforeEach(inject(function(_$compile_, $rootScope) {
     $compile = _$compile_;
     scope = $rootScope.$new();
   }));
+  
+  afterEach(function () {
+    scope.$destroy();
+  });
 
   describe('componentDisplay', function() {
     it('Can show an element with a displayName', function() {

@@ -8,9 +8,12 @@ package com.sonatype.insight.brain.saas;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
@@ -21,10 +24,14 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.core.UriInfo;
 
 import com.sonatype.clm.dto.model.License;
 import com.sonatype.clm.dto.model.ide.ComponentDetails;
 import com.sonatype.clm.dto.model.ide.ComponentDetailsList;
+import com.sonatype.clm.dto.model.ide.ComponentIdentifier;
+import com.sonatype.clm.dto.model.ide.NamedComponentDetails;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
@@ -43,6 +50,7 @@ import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.utils.LicenseUtils;
 import com.sonatype.insight.error.exception.NotFoundException;
 
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -69,52 +77,35 @@ public abstract class AbstractComponentInfoResource
   }
 
   @GET
-  @Path("list/{applicationPublicId}")
-  @Produces(MediaType.APPLICATION_JSON)
-  @Authorize(permission = Permission.READ)
-  public ComponentDetailsList getComponentDetailsList(
-      @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) @PathParam("applicationPublicId") String applicationPublicId,
-      @QueryParam("groupId") String groupId, @QueryParam("artifactId") String artifactId,
-      @QueryParam("version") String version) throws IOException
-  {
-    long start = System.currentTimeMillis();
-
-    log.debug("Getting {} component details list for application id {}, GAV {}:{}:{}.", getToolName(),
-        applicationPublicId, groupId, artifactId, version);
-    Application app = applicationDAO.getByPublicIdNotNull(applicationPublicId);
-
-    ComponentDetailsList componentDetailsList = client.get(request, ComponentDetailsList.class,
-        "rest/ide/component/details/list");
-
-    for (ComponentDetails componentDetails : componentDetailsList.getList()) {
-      loadComponent(app, componentDetails);
-    }
-
-    log.debug("Loaded component details list for {}:{}:{} in {} ms.", groupId, artifactId, version,
-        System.currentTimeMillis() - start);
-
-    return componentDetailsList;
-  }
-
-  @GET
-  @Path("{applicationPublicId}")
+  @Path("{applicationPublicId}/{format}")
   @Produces(MediaType.APPLICATION_JSON)
   @Authorize(permission = Permission.READ)
   public ComponentDetails getComponentDetails(
+      @Context UriInfo info,
       @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) @PathParam("applicationPublicId") String applicationPublicId,
-      @QueryParam("instanceId") String instanceId, @QueryParam("groupId") String groupId,
-      @QueryParam("artifactId") String artifactId, @QueryParam("version") String version,
-      @QueryParam("hash") String hash, @QueryParam("matchState") String matchState,
-      @QueryParam("proprietary") boolean proprietary) throws IOException
+      @PathParam("format") String format, @QueryParam("matchState") String matchState,
+      @QueryParam("hash") String hash, @QueryParam("proprietary") boolean proprietary) throws IOException
   {
     long start = System.currentTimeMillis();
 
-    log.debug("Getting {} component details for application id {}, GAV {}:{}:{}, hash {}.", getToolName(),
-        applicationPublicId, groupId, artifactId, version, hash);
+    final ComponentIdentifier identifier = createIdentifier(format, info.getQueryParameters());
+
+    ComponentDetails details = getEvaluatedComponentDetails(applicationPublicId, matchState, hash, proprietary,
+        identifier);
+
+    log.debug("Loaded component details for {}, hash {}, in {} ms.", identifier, hash, System.currentTimeMillis()
+        - start);
+
+    return details;
+  }
+
+  private ComponentDetails getEvaluatedComponentDetails(String applicationPublicId, String matchState, String hash,
+      boolean proprietary, final ComponentIdentifier identifier) throws IOException
+  {
+    ComponentDetails componentDetails = getComponentDetails(matchState, hash, identifier);
+
     Application app = applicationDAO.getByPublicIdNotNull(applicationPublicId);
     String applicationId = app.getId();
-
-    ComponentDetails componentDetails = getComponentDetails(groupId, artifactId, version, hash, matchState);
 
     Component component = loadComponent(app, componentDetails);
     component.setProprietary(proprietary);
@@ -124,33 +115,59 @@ public abstract class AbstractComponentInfoResource
         Collections.singletonList(component));
     componentDetails.setPolicyAlerts(policyAlerts);
 
-    log.debug("Loaded component details for {}:{}:{}, hash {}, in {} ms.", groupId, artifactId, version, hash,
-        System.currentTimeMillis() - start);
-
     return componentDetails;
   }
 
-  private ComponentDetails getComponentDetails(final String groupId, final String artifactId, final String version,
-      String hash, String matchState) throws IOException
+  private ComponentDetails getComponentDetails(String matchState, String hash, final ComponentIdentifier identifier)
+      throws IOException
   {
-    return componentDetailsLoader.getComponentDetails(groupId, artifactId, version, hash, matchState,
+    return componentDetailsLoader.getComponentDetails(identifier, hash, matchState,
         new ComponentDetailsLoader.HostedDataServicesSource()
         {
           @Override
           public ComponentDetails getDetails() throws IOException {
             ComponentDetails componentDetails;
             try {
-              componentDetails = client.get(request, ComponentDetails.class, "rest/ide/component/details");
+              componentDetails = client.get(request, NamedComponentDetails.class, "rest/" + getToolName()
+                  + "/componentDetails/" + identifier.format);
               componentDetails.setMatchState(MatchState.EXACT.getId());
             }
             catch (NotFoundException e) {
-              // GAV is unknown to HDS, still want to provide minimal data for details view
-              componentDetails = new ComponentDetails(groupId, artifactId, version);
+              // Identifier is unknown to HDS, still want to provide minimal data for details view
+              componentDetails = new NamedComponentDetails();
+              componentDetails.setIdentifier(identifier);
               componentDetails.setMatchState(MatchState.UNKNOWN.getId());
             }
             return componentDetails;
           }
         });
+  }
+
+  @GET
+  @Path("{applicationPublicId}/{format}/list")
+  @Produces(MediaType.APPLICATION_JSON)
+  @Authorize(permission = Permission.READ)
+  public ComponentDetailsList getComponentDetailsList(
+      @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) @PathParam("applicationPublicId") String applicationPublicId,
+      @PathParam("format") String format, @QueryParam("matchState") String matchState,
+      @QueryParam("proprietary") boolean proprietary) throws IOException
+  {
+    long start = System.currentTimeMillis();
+
+    String url = "rest/" + getToolName() + "/componentDetails/" + format + "/list";
+    ComponentDetailsList componentDetailsList = client.get(request, ComponentDetailsList.class, url);
+
+    Application app = applicationDAO.getByPublicIdNotNull(applicationPublicId);
+
+    for (ComponentDetails componentDetails : componentDetailsList.getList()) {
+      componentDetails.setMatchState(StringUtils.isEmpty(matchState) ? MatchState.EXACT.getId() : matchState);
+      loadComponent(app, componentDetails);
+    }
+
+    log.debug("Loaded component details list in {} ms.", System.currentTimeMillis() - start);
+
+    return componentDetailsList;
+
   }
 
   private Component loadComponent(Application application, ComponentDetails componentDetails) throws IOException {
@@ -173,7 +190,7 @@ public abstract class AbstractComponentInfoResource
     applicationDAO.getByPublicIdNotNull(applicationPublicId);
 
     // Get component details from the SAAS server
-    ComponentDetails componentDetails = getComponentDetails(groupId, artifactId, version, null, null);
+    ComponentDetails componentDetails = getEvaluatedComponentDetails(applicationPublicId, null, null, false, ComponentIdentifier.createMavenCoordinates(groupId, artifactId, version));
 
     MultiLicenseDAO multiLicenseDAO = new MultiLicenseDAO();
     Set<License> result = new LinkedHashSet<License>();
@@ -222,7 +239,9 @@ public abstract class AbstractComponentInfoResource
 
     ComponentLicenses result = new ComponentLicenses();
 
-    ComponentDetails componentDetails = getComponentDetails(groupId, artifactId, version, null, null);
+    ComponentDetails componentDetails = getComponentDetails(null, null,
+        ComponentIdentifier.createMavenCoordinates(groupId, artifactId, version));
+
     loadComponent(application, componentDetails);
     result.declaredlicenses = getLicensesWithThreatLevels(application, componentDetails.getDeclaredLicenses());
     result.observedlicenses = getLicensesWithThreatLevels(application, componentDetails.getObservedLicenses());
@@ -251,6 +270,23 @@ public abstract class AbstractComponentInfoResource
     }
 
     return result;
+  }
+
+  /*
+   * Attempts to construct a ComponentIdentifier from a map of queryParams
+   */
+  private ComponentIdentifier createIdentifier(String format, MultivaluedMap<String, String> queryParms) {
+    Map<String, String> coordinates = new HashMap<>();
+    for (Entry<String, List<String>> entry : queryParms.entrySet()) {
+      if (!"hash".equals(entry.getKey()) && !"matchState".equals(entry.getKey())
+          && !"proprietary".equals(entry.getKey())) {
+        if (entry.getValue() != null && entry.getValue().size() > 0) {
+          coordinates.put(entry.getKey(), entry.getValue().get(0));
+        }
+      }
+    }
+
+    return new ComponentIdentifier(format, coordinates);
   }
 
   /**

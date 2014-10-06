@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.IOException;
 
 import com.sonatype.insight.mock.InsightMockServer;
+import com.sonatype.insight.mock.InsightMockServer.ResponseProvider;
 
 import org.junit.rules.ExternalResource;
 import org.slf4j.Logger;
@@ -86,6 +87,10 @@ public class InsightMockServerRule
 
   void setResponseForURI(String uri, String body, int status) {
     insightMockServer.setResponseForURI(uri, body, status);
+  }
+
+  void setResponseForURI(ResponseProvider matcher) {
+    insightMockServer.setResponseForURI(matcher);
   }
 
   public void reset() throws IOException {

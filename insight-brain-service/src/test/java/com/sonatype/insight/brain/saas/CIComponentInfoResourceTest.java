@@ -12,4 +12,9 @@ public class CIComponentInfoResourceTest
   protected String getResourcePath() {
     return CIComponentInfoResource.SERVICE_PATH;
   }
+
+  @Override
+  protected String getToolName() {
+    return "ci";
+  }
 }

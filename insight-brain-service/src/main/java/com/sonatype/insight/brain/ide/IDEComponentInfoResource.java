@@ -18,7 +18,7 @@ import com.sonatype.insight.brain.saas.SaasClient;
 public class IDEComponentInfoResource
     extends AbstractComponentInfoResource
 {
-  public static final String SERVICE_PATH = "rest/ide/component/details";
+  public static final String SERVICE_PATH = "rest/ide/componentDetails";
 
   @Inject
   public IDEComponentInfoResource(SaasClient client, ComponentDetailsLoader componentDetailsLoader) {

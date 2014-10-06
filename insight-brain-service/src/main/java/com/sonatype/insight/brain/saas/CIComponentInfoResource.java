@@ -14,7 +14,7 @@ import javax.ws.rs.Path;
 public class CIComponentInfoResource
     extends AbstractComponentInfoResource
 {
-  public static final String SERVICE_PATH = "rest/ci/component/details";
+  public static final String SERVICE_PATH = "rest/ci/componentDetails";
 
   @Inject
   public CIComponentInfoResource(SaasClient client, ComponentDetailsLoader componentDetailsLoader) {

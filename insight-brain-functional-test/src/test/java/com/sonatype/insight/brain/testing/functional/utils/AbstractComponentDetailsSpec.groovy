@@ -5,12 +5,15 @@
  */
 package com.sonatype.insight.brain.testing.functional.utils
 
+import java.util.Map.Entry
+
 import com.sonatype.insight.brain.model.policy.Condition
 import com.sonatype.insight.brain.model.policy.Constraint
 import com.sonatype.insight.brain.model.policy.Policy
 import com.sonatype.insight.brain.model.policy.conditions.LicenseConditionType
 import com.sonatype.insight.brain.testing.functional.BaseSpec
 import com.sonatype.insight.brain.testing.functional.cip.CIPModule
+import com.sonatype.insight.mock.UriParamRequestMatcher
 
 import groovy.json.JsonOutput
 import groovy.json.JsonSlurper
@@ -50,14 +53,22 @@ abstract class AbstractComponentDetailsSpec
     saasRule.setResponseForURI('rest/license', this.getClass().getResource(LICENSES_FILE).text, 200)
   }
 
-  static String createComponentDetailURL(Map component) {
-    "rest/ide/component/details?groupId=${component.groupId}&artifactId=${component.artifactId}" +
-        "&version=${component.version}"
+  String createComponentDetailURL(Map<String,Object> componentIdentifier) {
+    String url = "rest/${getToolName()}/componentDetails/${componentIdentifier.format}?"
+    for (Entry<String,String> entry : componentIdentifier.coordinates) {
+      url += "${entry.getKey()}=${entry.getValue()}&"
+    }
+    return url.substring(0, url.length() - 1)
   }
 
-  static String createComponentDetailListURL(Map component) {
-    "rest/ide/component/details/list?groupId=${component.groupId}&artifactId=${component.artifactId}" +
-        "&version=${component.version}"
+  String createComponentDetailListURL(Map<String,Object> componentIdentifier) {
+    String url = "rest/${getToolName()}/componentDetails/${componentIdentifier.format}/list?"
+    for (Entry<String,String> entry : componentIdentifier.coordinates) {
+      if (entry.getValue() != null) {
+        url += "${entry.getKey()}=${entry.getValue()}&"
+      }
+    }
+    return url.substring(0, url.length() - 1)
   }
 
   static Map<String, Object> parseJsonFile(String jsonFilename) {
@@ -66,13 +77,13 @@ abstract class AbstractComponentDetailsSpec
 
   Map<String, Object> mockComponentDetails(String jsonFilename) {
     Map<String, Object> hdsComponentResponse = parseJsonFile(jsonFilename)
-    saasRule.setResponseForURI(createComponentDetailURL(hdsComponentResponse), JsonOutput.toJson(hdsComponentResponse), 200)
+    saasRule.setResponseForURI(new UriParamRequestMatcher(createComponentDetailURL(hdsComponentResponse.identifier), JsonOutput.toJson(hdsComponentResponse), 200))
     return hdsComponentResponse
   }
 
   Map<String, Object> mockComponentDetailsList(String jsonFilename, Map<String, Object> component) {
     Map<String, Object> hdsComponentListResponse = parseJsonFile(jsonFilename)
-    saasRule.setResponseForURI(createComponentDetailListURL(component), JsonOutput.toJson(hdsComponentListResponse), 200)
+    saasRule.setResponseForURI(new UriParamRequestMatcher(createComponentDetailListURL(component.identifier), JsonOutput.toJson(hdsComponentListResponse), 200))
     return hdsComponentListResponse
   }
 
@@ -86,16 +97,14 @@ abstract class AbstractComponentDetailsSpec
       ownerId = applicationId
       threatLevel = 10
       addConstraint(new Constraint(name: policyName,
-          conditions: [new Condition(LicenseConditionType.ID, 'is', licenseId)]))
+      conditions: [new Condition(LicenseConditionType.ID, 'is', licenseId)]))
     }
     temporaryEntity.newPolicy(policy)
     return policy
   }
 
   protected void validateCommon(CIPModule cip, Map<String, Object> component) {
-    assert cip.group == component.groupId
-    assert cip.artifact == component.artifactId
-    assert cip.version == component.version
+    assert cip.name == "${component.groupId} : ${component.artifactId} : ${component.version}"
     validateEffectiveLicense(cip, component)
     assert cip.declaredLicense == component.declaredLicenses[0].licenseName
     assert cip.observedLicense == component.observedLicenses[0].licenseName
@@ -109,4 +118,6 @@ abstract class AbstractComponentDetailsSpec
     List cipLicenseNames = cip.effectiveLicense.split(",").sort()
     assert cipLicenseNames.join(",") == effectLicenseNames.join(",")
   }
+
+  abstract String getToolName();
 }

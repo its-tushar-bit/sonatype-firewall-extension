@@ -26,6 +26,7 @@ import java.util.zip.ZipFile;
 
 import javax.ws.rs.core.Response.ResponseBuilder;
 
+import com.sonatype.insight.brain.component.ComponentDisplayNameUtil;
 import com.sonatype.insight.brain.dataaccess.component.ComponentDAO;
 import com.sonatype.insight.brain.dataaccess.component.HashGAVDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
@@ -298,8 +299,9 @@ public final class Report
     for (JsonNode bomJsonNode : bomJsonData.get("aaData")) {
       String hash = bomJsonNode.get("hash").asText();
       HashGAV hashGAV = hashGAVDAO.getByHash(hash);
+      ObjectNode bomObjectNode = (ObjectNode) bomJsonNode;
+
       if (hashGAV != null) {
-        ObjectNode bomObjectNode = (ObjectNode) bomJsonNode;
         bomObjectNode.put("groupId", hashGAV.getGroupId());
         bomObjectNode.put("artifactId", hashGAV.getArtifactId());
         bomObjectNode.put("version", hashGAV.getVersion());
@@ -312,6 +314,9 @@ public final class Report
         bomObjectNode.put("comment", hashGAV.getComment());
         claimedHashes.put(hash, hashGAV);
       }
+
+      ComponentDisplayNameUtil.injectDisplayName(bomObjectNode);
+
       gavs.add(bomJsonNode.get("groupId").asText() + ':' + bomJsonNode.get("artifactId").asText() + ':'
           + bomJsonNode.get("version").asText());
     }
@@ -337,6 +342,8 @@ public final class Report
       String groupId = licenseJsonNode.get("groupId").asText();
       String artifactId = licenseJsonNode.get("artifactId").asText();
       String version = licenseJsonNode.get("version").asText();
+
+      ComponentDisplayNameUtil.injectDisplayName(licenseJsonNode);
 
       String gav = groupId + ':' + artifactId + ':' + version;
       if (!gavs.contains(gav)) {
@@ -393,9 +400,12 @@ public final class Report
     ContainerNode<?> securityJsonData = JsonUtils.parse(securityReportEntry.buf);
     Iterator<JsonNode> iterSecurityData = securityJsonData.get("aaData").iterator();
     while (iterSecurityData.hasNext()) {
-      JsonNode jsonNode = iterSecurityData.next();
+      ObjectNode jsonNode = (ObjectNode) iterSecurityData.next();
       String gav = jsonNode.get("groupId").asText() + ':' + jsonNode.get("artifactId").asText() + ':'
           + jsonNode.get("version").asText();
+
+      ComponentDisplayNameUtil.injectDisplayName(jsonNode);
+
       if (!gavs.contains(gav)) {
         iterSecurityData.remove();
       }

@@ -65,6 +65,7 @@ import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.test.RestAccess;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ContainerNode;
 import com.ning.http.client.Response;
 import com.yammer.dropwizard.testing.JsonHelpers;
@@ -76,6 +77,8 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.jvnet.mock_javamail.Mailbox;
 
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertEquals;
@@ -385,16 +388,10 @@ public class ReportResourceTest
         assertThat(JsonUtils.parse(response.getResponseBodyAsBytes(), int[].class), equalTo(new int[] { 36, 8, 36 }));
       }
       else if ("licenses.json".equals(entry.getName())) {
-        String expected = IOUtil.toString(zipFile.getInputStream(entry), "UTF-8");
         String actual = response.getResponseBody();
 
         testLicensesJsonApplyChanges(actual);
-
-        // embedded report processor modifies the effectiveLicenseThreat property type
-        String alteredExpected = expected.replaceAll(",\\s*\"effectiveLicenseThreat\" : \"[^\"]+\"", "");
-        String alteredActual = actual.replaceAll(",\\s*\"effectiveLicenseThreat\" : [^,]+", "");
-
-        assertThat(alteredActual, equalToIgnoringWhiteSpace(alteredExpected));
+        testJsonApplyComponentChanges(actual);
       }
       else if ("licensethreats.json".equals(entry.getName())) {
         String actual = response.getResponseBody();
@@ -410,6 +407,10 @@ public class ReportResourceTest
         String actual = response.getResponseBody();
         assertTrue("The app public id was not included in the report",
             actual.contains("applicationId = '" + applicationPublicId + "'"));
+      }
+      else if ("security.json".equals(entry.getName()) || "bom.json".equals(entry.getName())) {
+        String actual = response.getResponseBody();
+        testJsonApplyComponentChanges(actual);
       }
       else if (contentType.startsWith("text") || contentType.endsWith("json")) {
         assertThat(response.getResponseBody(),
@@ -1199,6 +1200,51 @@ public class ReportResourceTest
       }
     }
     Assert.assertTrue(countNotZero > 0);
+  }
+
+  private void testJsonApplyComponentChanges(String json) throws IOException {
+    final ContainerNode<?> components = JsonUtils.parse(json);
+    final ArrayNode aaData = (ArrayNode) components.get("aaData");
+
+    for (int i = 0; i < aaData.size(); i++) {
+      JsonNode dataNode = aaData.get(i);
+
+      JsonNode infoNode = dataNode.get("info");
+      assertThat(infoNode, is(notNullValue()));
+      assertThat(infoNode.get("format").textValue(), is("maven"));
+
+      JsonNode hashNode = infoNode.get("hash");
+      assertThat(hashNode, is(notNullValue()));
+      assertThat(hashNode.get("sha1_20").textValue(), is(dataNode.get("hash").textValue()));
+
+      ArrayNode originalFileNames = (ArrayNode) dataNode.get("filenames");
+
+      if (originalFileNames != null) {
+        ArrayNode fileNames = (ArrayNode) infoNode.get("filenames");
+        assertThat(fileNames, is(notNullValue()));
+        assertThat(fileNames.size(), is(originalFileNames.size()));
+      }
+
+      JsonNode mavenNode = dataNode.get("maven");
+      assertThat(mavenNode, is(notNullValue()));
+      assertThat(mavenNode.get("groupId").textValue(), is(dataNode.get("groupId").textValue()));
+      assertThat(mavenNode.get("artifactId").textValue(), is(dataNode.get("artifactId").textValue()));
+      assertThat(mavenNode.get("version").textValue(), is(dataNode.get("version").textValue()));
+
+      ArrayNode displayNameNode = (ArrayNode) infoNode.get("displayName");
+      assertThat(displayNameNode, is(notNullValue()));
+      assertThat(displayNameNode.size(), is(5));
+      Assert.assertThat(displayNameNode.get(0).get("field").textValue(), is("Group"));
+      Assert.assertThat(displayNameNode.get(0).get("value").textValue(), is(dataNode.get("groupId").textValue()));
+      Assert.assertThat(displayNameNode.get(1).get("field"), is(nullValue()));
+      Assert.assertThat(displayNameNode.get(1).get("value").textValue(), is(" : "));
+      Assert.assertThat(displayNameNode.get(2).get("field").textValue(), is("Artifact"));
+      Assert.assertThat(displayNameNode.get(2).get("value").textValue(), is(dataNode.get("artifactId").textValue()));
+      Assert.assertThat(displayNameNode.get(3).get("field"), is(nullValue()));
+      Assert.assertThat(displayNameNode.get(3).get("value").textValue(), is(" : "));
+      Assert.assertThat(displayNameNode.get(4).get("field").textValue(), is("Version"));
+      Assert.assertThat(displayNameNode.get(4).get("value").textValue(), is(dataNode.get("version").textValue()));
+    }
   }
 
   private void testLicenseThreatsJsonApplyChanges(String json) throws IOException {

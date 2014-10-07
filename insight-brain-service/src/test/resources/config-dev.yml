@@ -15,4 +15,3 @@ logging:
     "org.apache.commons.beanutils.converters": INFO
   console:
     logFormat: "%d{'yyyy-MM-dd HH:mm:ss,SSSZ'} %level [%thread] %logger - %msg%n"
-    

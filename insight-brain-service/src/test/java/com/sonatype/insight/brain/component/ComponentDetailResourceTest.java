@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.component;
 
 import com.sonatype.insight.brain.AuthedRestAccess;
+import com.sonatype.insight.brain.component.dto.DisplayNameDTO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
@@ -48,8 +49,8 @@ public class ComponentDetailResourceTest
     tempEntity.newApplicationComponent(app.getId(), BuildStageType.ID, hash, "groupId", "artifactId", "version");
     response = AuthedRestAccess.get(url);
     assertResponseStatus(200, response);
-    String name = response.getResponseBody();
-    assertThat(name, is("groupId:artifactId:version"));
+    DisplayNameDTO name = JsonHelpers.fromJson(response.getResponseBody(), DisplayNameDTO.class);
+    DisplayFieldValueAssertionUtil.assertDisplayFieldValuesForGAV(name.parts, "groupId", "artifactId", "version");
   }
 
   private String getServiceURL() {

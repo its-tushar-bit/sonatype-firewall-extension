@@ -24,6 +24,7 @@ import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import com.sonatype.insight.brain.component.ComponentDisplayNameUtil;
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatCategoryFilter;
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatLevelFilter;
 import com.sonatype.insight.brain.dataaccess.ApplicationComponentDAO;
@@ -107,7 +108,7 @@ public class DashboardService
   private final DashboardFilterDAO dashboardFilterDAO;
 
   private final CurrentUser currentUser;
-  
+
   private final ApplicationAdapter applicationAdapter;
 
   private final DashboardUtils dashboardUtils;
@@ -751,9 +752,8 @@ public class DashboardService
         else {
           dto.scoreLow += violation.threatLevel;
         }
-        GavDTO gav = GavDTO.from(violation.groupId, violation.artifactId, violation.version);
-        if (gav != null) {
-          dto.gavs.add(gav);
+        if (dto.displayName == null) {
+          dto.displayName = ComponentDisplayNameUtil.fromGav(violation.groupId, violation.artifactId, violation.version);
         }
         if (violation.pathnames != null) {
           dto.pathnames.addAll(violation.pathnames);
@@ -899,7 +899,7 @@ public class DashboardService
     newestRiskDTO.policyId = policyViolation.getPolicyId();
     newestRiskDTO.policyName = policyViolation.getPolicyName();
     newestRiskDTO.hash = policyViolation.getHash();
-    newestRiskDTO.gav = GavDTO.from(policyViolation);
+    newestRiskDTO.displayName = ComponentDisplayNameUtil.fromPolicyViolation(policyViolation);
     newestRiskDTO.pathnames = policyViolation.getPathnames();
 
     StageDetailDTO stageDetailDTO = new StageDetailDTO();
@@ -916,7 +916,7 @@ public class DashboardService
       long time, String scanId)
   {
     if (newestRiskDTO.time < policyViolation.getTime().getTime()) {
-      newestRiskDTO.gav = GavDTO.from(policyViolation);
+      newestRiskDTO.displayName = ComponentDisplayNameUtil.fromPolicyViolation(policyViolation);
       newestRiskDTO.pathnames = policyViolation.getPathnames();
     }
 

@@ -7,54 +7,58 @@
 (function() {
   'use strict';
 
-  var componentDisplayModule = angular.module('ComponentDisplay', []);
+  var module = angular.module('ComponentDisplay', ['AngularCommon']).run(['$templateCache', function($templateCache) {
+        $templateCache.put('pathnames-display',
+                '<div pathnames-popover="component.pathnames">' +
+                '<em>{{component.pathnames[0] | fileName | truncate:35 }}</em>' +
+                '</div>'
+        );
+        $templateCache.put('unknown-display',
+                '<div>' +
+                '<em>Unknown</em>' +
+                '</div>'
+        );
+        $templateCache.put('displayname',
+                '<span ng-repeat="part in component.displayName.parts">' +
+                '<span ng-if="part.field">{{ part.value }}</span>' +
+                '<span ng-if="!part.field" class="wrap-force-break">{{ part.value }}</span>' +
+                '</span>'
+        );
+        $templateCache.put('component-display',
+                '<div>' +
+                '<div ng-if="component.displayName" ng-include="\'displayname\'"></div>' +
+                '<div ng-if="!component.displayName && component.pathnames" ng-include="\'pathnames-display\'"></div>' +
+                '<div ng-if="!component.displayName && !component.pathnames" ng-include="\'unknown-display\'"></div>' +
+                '</div>'
+        );
+        $templateCache.put('linked-component-display',
+                '<a ui-sref="dashboard.component({ hash: component.hash })">' +
+                '<div ng-include="\'component-display\'"></div>' +
+                '</a>'
+        );
+      }
+      ]
+  );
 
-  componentDisplayModule.directive('componentDisplay', function() {
+  module.directive('componentDisplay', function() {
     return {
       restrict: 'A',
       replace: true,
       scope: {
         component: '='
       },
-      templateUrl: 'component-display',
-      link: function(scope) {
-        if(scope.component.gav){
-          scope.gav = scope.component.gav;
-        } else if(scope.component.gavs && scope.component.gavs.length) {
-          scope.gav = scope.component.gavs[0];
-        } else if(scope.component.pathnames && scope.component.pathnames.length) {
-          scope.pathnames = scope.component.pathnames;
-        }
-      }
+      templateUrl: 'linked-component-display'
     };
   });
 
-  componentDisplayModule.directive('gavDisplay', function() {
-    return {
-      restrict: 'A',
-      replace: true,
-      templateUrl: 'gav-display'
+  module.service('ComponentDisplayNameUtil', function() {
+    var renderToString = function(displayName) {
+      return jQuery.map(displayName.parts, function(part) {
+        return part.value;
+      }).join('');
     };
-  });
-  componentDisplayModule.directive('pathnamesDisplay', function() {
     return {
-      restrict: 'A',
-      replace: true,
-      templateUrl: 'pathnames-display'
-    };
-  });
-  componentDisplayModule.directive('unknownDisplay', function() {
-    return {
-      restrict: 'A',
-      replace: true,
-      templateUrl: 'unknown-display'
-    };
-  });
-  componentDisplayModule.directive('displayName', function() {
-    return {
-      restrict: 'A',
-      replace: true,
-      templateUrl: 'component-displayname'
+      renderToString: renderToString
     };
   });
 }());

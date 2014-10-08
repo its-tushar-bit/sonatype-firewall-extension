@@ -1,0 +1,52 @@
+/*
+ * Copyright (c) 2011-2014 Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.component;
+
+import java.util.List;
+
+import com.sonatype.insight.brain.model.policy.PolicyViolation;
+
+import static com.sonatype.insight.brain.component.ComponentDisplayNameUtil.GAV_SEPARATOR;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.Matchers.hasSize;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
+
+/**
+ * Shared assertions for structure of DisplayFieldValues
+ *
+ * @since 1.13.0
+ */
+public class DisplayFieldValueAssertionUtil
+{
+  public static void assertDisplayFieldValue(final DisplayFieldValue displayFieldValue, final String field,
+                                             final String value)
+  {
+    assertThat(displayFieldValue.getField(), is(field));
+    assertThat(displayFieldValue.getValue(), is(value));
+  }
+
+  public static void assertDisplayFieldValuesForGAV(List<DisplayFieldValue> displayName, String groupId,
+                                                    String artifactId, String version)
+  {
+    assertThat(displayName, hasSize(5));
+    assertDisplayFieldValue(displayName.get(0), "Group", groupId);
+    assertDisplayFieldValue(displayName.get(1), null, GAV_SEPARATOR);
+    assertDisplayFieldValue(displayName.get(2), "Artifact", artifactId);
+    assertDisplayFieldValue(displayName.get(3), null, GAV_SEPARATOR);
+    assertDisplayFieldValue(displayName.get(4), "Version", version);
+  }
+
+  public static void assertDisplayFieldValues(final List<DisplayFieldValue> displayName,
+                                              final PolicyViolation policyViolation)
+  {
+    if (policyViolation.getGroupId() == null) {
+      fail();
+    }
+    assertDisplayFieldValuesForGAV(displayName, policyViolation.getGroupId(), policyViolation.getArtifactId(),
+        policyViolation.getVersion());
+  }
+}

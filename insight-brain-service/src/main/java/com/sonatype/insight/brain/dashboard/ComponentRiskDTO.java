@@ -8,6 +8,8 @@ package com.sonatype.insight.brain.dashboard;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
+import com.sonatype.insight.brain.component.dto.DisplayNameDTO;
+
 /**
  * Carries the data backing the "Highest Risk Component View", i.e. roll-up of violations by component.
  */
@@ -28,7 +30,7 @@ public class ComponentRiskDTO
 
   public int affectedApplications;
 
-  public Set<GavDTO> gavs = new LinkedHashSet<>();
+  public DisplayNameDTO displayName;
 
   // Insertion order matters, as the first path will be used as the display name throughout the UI for unknown
   // components.

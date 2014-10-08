@@ -56,13 +56,18 @@ describe('ComponentController tests', function() {
   ];
 
   describe('ComponentController', function() {
-    var scope;
-
+    var scope, displayName = [
+      {field: 'Group', value: 'foo'},
+      {value: ':'},
+      {field: 'Artifact', value: 'bar'},
+      {value: ':'},
+      {field: 'Version', value: '1.0'}
+    ];
     beforeEach(inject(function($rootScope, $controller, $httpBackend, CLMLocations) {
       scope = $rootScope.$new();
       $httpBackend.expectGET(CLMLocations.getActionStageUrl()).respond([]);
       $httpBackend.expectGET(CLMLocations.getComponentDetailsUrl()).respond(applicationComponents);
-      $httpBackend.expectGET(CLMLocations.getComponentNameUrl()).respond('foo:bar:1.0');
+      $httpBackend.expectGET(CLMLocations.getComponentNameUrl()).respond(displayName);
       $controller('componentController', { $scope: scope });
       $httpBackend.flush();
     }));
@@ -85,8 +90,7 @@ describe('ComponentController tests', function() {
     });
 
     it('loads a component name', function() {
-      expect(scope.name).toBe('foo:bar:1.0');
-      expect(scope.gav).toEqual({groupId: 'foo', artifactId: 'bar', version: '1.0'});
+      expect(scope.component.displayName).toEqual(displayName);
     });
   });
 

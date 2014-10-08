@@ -10,6 +10,8 @@ import java.util.List;
 
 import com.sonatype.clm.dto.model.component.MavenIdentifier;
 import com.sonatype.clm.dto.model.component.NugetIdentifier;
+import com.sonatype.insight.brain.component.dto.DisplayNameDTO;
+import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -25,6 +27,8 @@ import com.google.common.base.Strings;
  */
 public class ComponentDisplayNameUtil
 {
+  public static final String GAV_SEPARATOR = " : ";
+
   private static final String MAVEN = "maven";
   private static final String GROUP_ID = "groupId";
   private static final String ARTIFACT_ID = "artifactId";
@@ -37,6 +41,22 @@ public class ComponentDisplayNameUtil
 
   private static final String HASH = "hash";
   private static final String SHA1_20 = "sha1_20";
+
+  public static DisplayNameDTO fromGav(String groupId, String artifactId, String version) {
+    if (groupId == null) {
+      return null;
+    }
+    return new DisplayNameDTO(new DisplayFieldValueBuilder().addFieldAndValue("Group", groupId)
+        .addValue(GAV_SEPARATOR)
+        .addFieldAndValue("Artifact", artifactId)
+        .addValue(GAV_SEPARATOR)
+        .addFieldAndValue("Version", version)
+        .build());
+  }
+
+  public static DisplayNameDTO fromPolicyViolation(PolicyViolation policyViolation) {
+    return fromGav(policyViolation.getGroupId(), policyViolation.getArtifactId(), policyViolation.getVersion());
+  }
 
   public static void injectDisplayName(ObjectNode objectNode) {
     // First augment existing json to contain meta data which will exist after CLM-3574 CLM-3190
@@ -135,9 +155,9 @@ public class ComponentDisplayNameUtil
     switch (format) {
       case MAVEN:
         displayFieldValueBuilder.addFieldAndValue("Group", mavenIdentifier.groupId);
-        displayFieldValueBuilder.addValue(" : ");
+        displayFieldValueBuilder.addValue(GAV_SEPARATOR);
         displayFieldValueBuilder.addFieldAndValue("Artifact", mavenIdentifier.artifactId);
-        displayFieldValueBuilder.addValue(" : ");
+        displayFieldValueBuilder.addValue(GAV_SEPARATOR);
         displayFieldValueBuilder.addFieldAndValue("Version", mavenIdentifier.version);
         break;
       case NUGET:

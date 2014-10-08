@@ -31,6 +31,9 @@ import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.junit.Test;
 
+import static com.sonatype.insight.brain.component.DisplayFieldValueAssertionUtil.assertDisplayFieldValue;
+import static com.sonatype.insight.brain.component.DisplayFieldValueAssertionUtil.assertDisplayFieldValues;
+import static com.sonatype.insight.brain.component.DisplayFieldValueAssertionUtil.assertDisplayFieldValuesForGAV;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasSize;
@@ -290,8 +293,8 @@ public class ComponentDetailServiceTest
     Thread.sleep(1);
     tempEntity.newApplicationComponent(app.getId(), ReleaseStageType.ID, hash, "groupId2", "artifactId2", "version2");
 
-    String name = componentDetailService.getComponentNameByHash(hash);
-    assertThat(name, is("groupId2:artifactId2:version2"));
+    List<DisplayFieldValue> name = componentDetailService.getComponentNameByHash(hash).parts;
+    assertDisplayFieldValuesForGAV(name, "groupId2", "artifactId2", "version2");
   }
 
   @Test
@@ -314,8 +317,9 @@ public class ComponentDetailServiceTest
     tempEntity.newApplicationComponent(app.getId(), ReleaseStageType.ID, hash, null /* groupId */,
         null /* artifactId */, null /* version */, "somepath");
 
-    String name = componentDetailService.getComponentNameByHash(hash);
-    assertThat(name, is("somepath"));
+    List<DisplayFieldValue> name = componentDetailService.getComponentNameByHash(hash).parts;
+    assertThat(name, hasSize(1));
+    assertDisplayFieldValue(name.get(0), "Pathname", "somepath");
   }
 
   @Test
@@ -325,8 +329,7 @@ public class ComponentDetailServiceTest
     tempEntity.newApplicationComponent(app.getId(), ReleaseStageType.ID, hash, null /* groupId */,
         null /* artifactId */, null /* version */);
 
-    String name = componentDetailService.getComponentNameByHash(hash);
-    assertThat(name, nullValue());
+    assertThat(componentDetailService.getComponentNameByHash(hash), nullValue());
   }
 
   private PolicyViolationSummaryDTO getPolicyViolationSummaryDTO(String policyId,

@@ -8,12 +8,17 @@ package com.sonatype.insight.brain.component;
 import java.io.IOException;
 import java.util.List;
 
+import com.sonatype.insight.brain.component.dto.DisplayNameDTO;
+import com.sonatype.insight.brain.model.policy.PolicyViolation;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.Test;
 
+import static com.sonatype.insight.brain.component.ComponentDisplayNameUtil.*;
+import static com.sonatype.insight.brain.component.DisplayFieldValueAssertionUtil.*;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
@@ -25,7 +30,7 @@ public class ComponentDisplayNameUtilTest
   public void testAugmentJsonNode() throws IOException {
     ObjectMapper mapper = new ObjectMapper();
     ObjectNode jsonNode = (ObjectNode) mapper.readTree("{\"groupId\":\"g\", \"artifactId\":\"a\", \"version\":\"v\"}");
-    ComponentDisplayNameUtil.injectDisplayName(jsonNode);
+    injectDisplayName(jsonNode);
     JsonNode mavenNode = jsonNode.get("maven");
     JsonNode infoNode = jsonNode.get("info");
 
@@ -37,7 +42,7 @@ public class ComponentDisplayNameUtilTest
     assertThat(infoNode.get("format").textValue(), is("maven"));
 
     jsonNode = (ObjectNode) mapper.readTree("{\"filenames\":[\"foo.jar\",\"bar.ear\",\"baz.war\"]}");
-    ComponentDisplayNameUtil.injectDisplayName(jsonNode);
+    injectDisplayName(jsonNode);
     infoNode = jsonNode.get("info");
 
     assertThat(infoNode, is(notNullValue()));
@@ -50,7 +55,7 @@ public class ComponentDisplayNameUtilTest
     assertThat(fileNameNode.get(2).textValue(), is("baz.war"));
 
     jsonNode = (ObjectNode) mapper.readTree("{\"hash\":\"h\"}");
-    ComponentDisplayNameUtil.injectDisplayName(jsonNode);
+    injectDisplayName(jsonNode);
 
     infoNode = jsonNode.get("info");
     assertThat(infoNode, is(notNullValue()));
@@ -64,7 +69,7 @@ public class ComponentDisplayNameUtilTest
   public void testInjectDisplayName_Maven() throws IOException {
     ObjectMapper mapper = new ObjectMapper();
     ObjectNode jsonNode = (ObjectNode) mapper.readTree("{\"groupId\":\"g\", \"artifactId\":\"a\", \"version\":\"v\"}");
-    ComponentDisplayNameUtil.injectDisplayName(jsonNode);
+    injectDisplayName(jsonNode);
     JsonNode infoNode = jsonNode.get("info");
 
     ArrayNode displayNode = (ArrayNode) infoNode.get("displayName");
@@ -88,7 +93,7 @@ public class ComponentDisplayNameUtilTest
     ObjectNode jsonNode = (ObjectNode) mapper
         .readTree("{\"info\":{\"format\":\"nuget\"},\"nuget\":{\"id\":\"i\",\"version\":\"v\"}}");
 
-    List<DisplayFieldValue> displayFieldValues = ComponentDisplayNameUtil.generateDisplayFieldValues(jsonNode);
+    List<DisplayFieldValue> displayFieldValues = generateDisplayFieldValues(jsonNode);
     assertThat(displayFieldValues, is(notNullValue()));
     assertThat(displayFieldValues.size(), is(3));
     assertThat(displayFieldValues.get(0).getField(), is("ID"));
@@ -103,7 +108,7 @@ public class ComponentDisplayNameUtilTest
   public void testInjectDisplayName_Filename() throws IOException {
     ObjectMapper mapper = new ObjectMapper();
     ObjectNode jsonNode = (ObjectNode) mapper.readTree("{\"filenames\":[\"foo.jar\",\"bar.ear\",\"baz.war\"]}");
-    ComponentDisplayNameUtil.injectDisplayName(jsonNode);
+    injectDisplayName(jsonNode);
     JsonNode infoNode = jsonNode.get("info");
 
     ArrayNode displayNode = (ArrayNode) infoNode.get("displayName");
@@ -125,7 +130,7 @@ public class ComponentDisplayNameUtilTest
   public void testInjectDisplayName_Hash() throws IOException {
     ObjectMapper mapper = new ObjectMapper();
     ObjectNode jsonNode = (ObjectNode) mapper.readTree("{\"hash\":\"h\"}");
-    ComponentDisplayNameUtil.injectDisplayName(jsonNode);
+    injectDisplayName(jsonNode);
     JsonNode infoNode = jsonNode.get("info");
 
     ArrayNode displayNode = (ArrayNode) infoNode.get("displayName");
@@ -135,5 +140,34 @@ public class ComponentDisplayNameUtilTest
     assertThat(displayNode.get(0).get("value").textValue(), is("(Anonymized Path) SHA1: "));
     assertThat(displayNode.get(1).get("field").textValue(), is("Hash"));
     assertThat(displayNode.get(1).get("value").textValue(), is("h"));
+  }
+
+  @Test
+  public void testCreateComponentNameFromGAV() {
+    DisplayNameDTO componentNameDTO = fromGav("foo", "bar", "1.0");
+    assertDisplayFieldValuesForGAV(componentNameDTO.parts, "foo", "bar", "1.0");
+  }
+
+  @Test
+  public void testCreateComponentNameFromGAVMissingGroup () {
+    DisplayNameDTO componentNameDTO = fromGav(null, "bar", "1.0");
+    assertThat(componentNameDTO, nullValue());
+  }
+
+  @Test
+  public void testCreateComponentNameFromPolicyViolation() {
+    PolicyViolation policyViolation = new PolicyViolation();
+    policyViolation.setGroupId("foo");
+    policyViolation.setArtifactId("bar");
+    policyViolation.setVersion("1.0");
+
+    DisplayNameDTO componentNameDTO = fromPolicyViolation(policyViolation);
+    assertDisplayFieldValuesForGAV(componentNameDTO.parts, "foo", "bar", "1.0");
+  }
+
+  @Test
+  public void testCreateComponentNameFromPolicyViolationMissingGav () {
+    DisplayNameDTO componentNameDTO = fromPolicyViolation(new PolicyViolation());
+    assertThat(componentNameDTO, nullValue());
   }
 }

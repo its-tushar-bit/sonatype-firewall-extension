@@ -23,18 +23,8 @@
 
       $q.all(promises).then(function(results) {
         $scope.applicationComponents = results[0].data;
-        $scope.name = results[1].data;
+        $scope.component = {displayName: results[1].data};
         $scope.stageTypes = results[2];
-
-        // Extract GAV details if we can, to assist proper formatting
-        var gav = $scope.name.split(':');
-        if (gav.length === 3) {
-          $scope.gav = {
-            groupId: gav[0],
-            artifactId: gav[1],
-            version: gav[2]
-          };
-        }
 
         var totalRisk = 0;
         for (var i = 0; i < $scope.applicationComponents.length; i++) {

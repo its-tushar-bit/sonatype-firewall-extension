@@ -9,9 +9,11 @@ package com.sonatype.insight.brain.dashboard;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.sonatype.insight.brain.component.dto.DisplayNameDTO;
+
 /**
  * Carries the data backing the Newest Risk view.
- * 
+ *
  * @since 1.11.0
  */
 public class NewestRiskDTO
@@ -30,7 +32,7 @@ public class NewestRiskDTO
 
   public String hash;
 
-  public GavDTO gav;
+  public DisplayNameDTO displayName;
 
   public List<String> pathnames;
 

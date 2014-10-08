@@ -48,8 +48,8 @@ import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Test;
 
+import static com.sonatype.insight.brain.component.DisplayFieldValueAssertionUtil.assertDisplayFieldValues;
 import static com.sonatype.insight.brain.dashboard.PolicyViolationDTOTestUtils.assertPolicyViolationDTO;
-import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
@@ -410,7 +410,7 @@ public class DashboardServiceTest
     assertThat(riskDTOs, hasSize(1));
     ComponentRiskDTO riskDTO = riskDTOs.get(0);
     assertThat(riskDTO.hash, is(violation.getHash()));
-    assertThat(riskDTO.gavs, containsInAnyOrder(GavDTO.from(violation)));
+    assertDisplayFieldValues(riskDTO.displayName.parts, violation);
     assertThat(riskDTO.score, is(violation.getThreatLevel() + orgPolicy.getThreatLevel() * 2));
     assertThat(riskDTO.affectedApplications, is(2));
   }
@@ -422,7 +422,7 @@ public class DashboardServiceTest
     assertThat(riskDTOs, hasSize(1));
     ComponentRiskDTO riskDTO = riskDTOs.get(0);
     assertThat(riskDTO.hash, is(app2PolicyViolation.getHash()));
-    assertThat(riskDTO.gavs, containsInAnyOrder(GavDTO.from(app2PolicyViolation)));
+    assertDisplayFieldValues(riskDTO.displayName.parts, app2PolicyViolation);
     assertThat(riskDTO.score, is(orgPolicy.getThreatLevel()));
     assertThat(riskDTO.affectedApplications, is(1));
   }
@@ -437,7 +437,7 @@ public class DashboardServiceTest
     assertThat(riskDTOs, hasSize(1));
     ComponentRiskDTO riskDTO = riskDTOs.get(0);
     assertThat(riskDTO.hash, is(violation.getHash()));
-    assertThat(riskDTO.gavs, containsInAnyOrder(GavDTO.from(violation)));
+    assertDisplayFieldValues(riskDTO.displayName.parts, violation);
     assertThat(riskDTO.score, is(app1Policy.getThreatLevel()));
     assertThat(riskDTO.affectedApplications, is(1));
   }
@@ -471,7 +471,7 @@ public class DashboardServiceTest
     assertThat(riskDTOs, hasSize(1));
     ComponentRiskDTO riskDTO = riskDTOs.get(0);
     assertThat(riskDTO.hash, is(app2PolicyViolation.getHash()));
-    assertThat(riskDTO.gavs, containsInAnyOrder(GavDTO.from(app2PolicyViolation)));
+    assertDisplayFieldValues(riskDTO.displayName.parts, app2PolicyViolation);
     assertThat(riskDTO.score, is(orgPolicy.getThreatLevel()));
     assertThat(riskDTO.affectedApplications, is(1));
   }
@@ -486,7 +486,7 @@ public class DashboardServiceTest
     assertThat(riskDTOs, hasSize(1));
     ComponentRiskDTO riskDTO = riskDTOs.get(0);
     assertThat(riskDTO.hash, is(violation.getHash()));
-    assertThat(riskDTO.gavs, containsInAnyOrder(GavDTO.from(violation)));
+    assertDisplayFieldValues(riskDTO.displayName.parts, violation);
     assertThat(riskDTO.score, is(app1Policy.getThreatLevel()));
     assertThat(riskDTO.affectedApplications, is(1));
   }
@@ -498,7 +498,7 @@ public class DashboardServiceTest
     assertThat(riskDTOs, hasSize(1));
     ComponentRiskDTO riskDTO = riskDTOs.get(0);
     assertThat(riskDTO.hash, is(orgPolicyViolation.getHash()));
-    assertThat(riskDTO.gavs, containsInAnyOrder(GavDTO.from(orgPolicyViolation)));
+    assertDisplayFieldValues(riskDTO.displayName.parts, orgPolicyViolation);
     assertThat(riskDTO.score, is(orgPolicy.getThreatLevel() * 2));
     assertThat(riskDTO.affectedApplications, is(2));
   }
@@ -687,12 +687,10 @@ public class DashboardServiceTest
     assertThat(actual.policyId, is(policyViolation.getPolicyId()));
     assertThat(actual.hash, is(policyViolation.getHash()));
     if (policyViolation.getGroupId() != null) {
-      assertThat(actual.gav.groupId, is(policyViolation.getGroupId()));
-      assertThat(actual.gav.artifactId, is(policyViolation.getArtifactId()));
-      assertThat(actual.gav.version, is(policyViolation.getVersion()));
+      assertDisplayFieldValues(actual.displayName.parts, policyViolation);
     }
     else {
-      assertThat(actual.gav, is(nullValue()));
+      assertThat(actual.displayName, is(nullValue()));
     }
     assertThat(actual.pathnames, is(policyViolation.getPathnames()));
   }

@@ -51,60 +51,6 @@ describe('DashboardModule', function() {
     });
   });
 
-  describe('dashboard "fileName" filter', function() {
-    var fileNameFilter;
-    beforeEach(inject(function($filter) {
-      fileNameFilter = $filter('fileName');
-    }));
-    var testCases = [
-      { input: function() {
-        return '/';
-      }, expected: '' },
-      { input: function() {
-        return '//';
-      }, expected: '' },
-      { input: function() {
-        return '///';
-      }, expected: '' },
-      { input: function() {
-        return 'test/path/fileName';
-      }, expected: 'fileName' },
-      { input: function() {
-        return '/test/path/fileName';
-      }, expected: 'fileName' },
-      { input: function() {
-        return 'test/path/fileName/';
-      }, expected: 'fileName' },
-      { input: function() {
-        return '/test/path/fileName/';
-      }, expected: 'fileName' },
-      { input: function() {
-        return '/fileName';
-      }, expected: 'fileName' },
-      { input: function() {
-        return 'fileName/';
-      }, expected: 'fileName' },
-      { input: function() {
-        return 'fileName';
-      }, expected: 'fileName' },
-      { input: function() {
-        return null;
-      }, expected: null },
-      { input: function() {
-        return '';
-      }, expected: '' }
-    ];
-    function validateFilter(input, expected) {
-      it('should filter to: ' + expected, function() {
-        expect(fileNameFilter(input())).toMatch(expected);
-      });
-    }
-    for (var i = 0; i < testCases.length; i++) {
-      var testCase = testCases[i];
-      validateFilter(testCase.input, testCase.expected);
-    }
-  });
-
   describe('stageTypeSort', function () {
     it('sort by id', inject(function ($filter) {
       var result = $filter('stageTypeSort')([{ id : 'operate' }, { id : 'build' }, { id : 'release' }, { id : 'stage-release' }]);
@@ -547,10 +493,14 @@ describe('DashboardModule', function() {
           "policyId": "policyId",
           "policyName": "Policy",
           "hash": "foobar1",
-          "gav": {
-            "groupId": "foo",
-            "artifactId": "bar",
-            "version": "1.0"
+          "displayName": {
+            parts: [
+              {field: "Group", value: "foo"},
+              {value: " : "},
+              {field: "Artifact", value: "bar"},
+              {value: " : "},
+              {field: "Version", value: "1.0"}
+            ]
           },
           "pathnames": ["foobar.jar"],
           "stageDetails": [
@@ -597,7 +547,7 @@ describe('DashboardModule', function() {
       expect(risk.releaseTime).toBe(risk.stageDetails[2].time);
       expect(risk.buildTime).toBe(risk.stageDetails[0].time);
       expect(risk.operateTime).toBeNull();
-      expect(risk.gavName).toBe('foo:bar:1.0');
+      expect(risk.gavName).toBe('foo : bar : 1.0');
     });
   });
 

@@ -70,30 +70,6 @@
     $scope.maxResults = 100;
   }]);
 
-  /**
-   * Returns the last element of a path with the assumption that it is a file name. Path elements are assumed to be
-   * delimited by a '/'.
-   */
-  dashboardModule.filter('fileName', function() {
-    return function(path) {
-      var pathDelimiter = '/';
-      var stringPath = String(path);
-      // Avoid checking the last character as paths might end in a delimiter.
-      var lastIndexOfDelimiter = stringPath.lastIndexOf(pathDelimiter, stringPath.length - 2);
-
-      if (lastIndexOfDelimiter > -1) {
-        // If the last character is a delimiter, do not return it.
-        if (stringPath.charAt(stringPath.length - 1) === pathDelimiter) {
-          return stringPath.substring(lastIndexOfDelimiter + 1, stringPath.length - 1);
-        }
-
-        return stringPath.substring(lastIndexOfDelimiter + 1);
-      }
-
-      return stringPath;
-    };
-  });
-
   dashboardModule.directive('pathnamesPopover', function() {
     return {
       restrict: 'A',
@@ -398,7 +374,8 @@
   });
 
   dashboardModule.controller('NewestRiskTableController', [
-    '$scope', 'StageTypeStore', '$filter', function($scope, StageTypeStore, $filter) {
+    '$scope', 'StageTypeStore', 'ComponentDisplayNameUtil', '$filter',
+    function($scope, StageTypeStore, ComponentDisplayNameUtil, $filter) {
       StageTypeStore.getDashboardStages().then(function(data) {
         $scope.stageTypes = [];
         // Copy values so we can modify the content for this use-case
@@ -421,8 +398,8 @@
             risk[propName] = stageDetail.time > 0 ? stageDetail.time : null;
           }
         }
-        if (risk.gav) {
-          risk.gavName = [risk.gav.groupId, risk.gav.artifactId, risk.gav.version].join(':');
+        if (risk.displayName) {
+          risk.gavName = ComponentDisplayNameUtil.renderToString(risk.displayName);
         }
         else {
           risk.gavName = risk.pathnames ? $filter('fileName')(risk.pathnames[0]) : 'Unknown';
@@ -1107,4 +1084,5 @@
       }
     };
   }]);
+
 }());

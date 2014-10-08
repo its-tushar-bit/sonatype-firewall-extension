@@ -589,4 +589,58 @@ describe('AngularCommon', function() {
       expect(element.find('button').length).toBe(0);
     });
   });
+
+  describe('dashboard "fileName" filter', function() {
+    var fileNameFilter;
+    beforeEach(inject(function($filter) {
+      fileNameFilter = $filter('fileName');
+    }));
+    var testCases = [
+      { input: function() {
+        return '/';
+      }, expected: '' },
+      { input: function() {
+        return '//';
+      }, expected: '' },
+      { input: function() {
+        return '///';
+      }, expected: '' },
+      { input: function() {
+        return 'test/path/fileName';
+      }, expected: 'fileName' },
+      { input: function() {
+        return '/test/path/fileName';
+      }, expected: 'fileName' },
+      { input: function() {
+        return 'test/path/fileName/';
+      }, expected: 'fileName' },
+      { input: function() {
+        return '/test/path/fileName/';
+      }, expected: 'fileName' },
+      { input: function() {
+        return '/fileName';
+      }, expected: 'fileName' },
+      { input: function() {
+        return 'fileName/';
+      }, expected: 'fileName' },
+      { input: function() {
+        return 'fileName';
+      }, expected: 'fileName' },
+      { input: function() {
+        return null;
+      }, expected: null },
+      { input: function() {
+        return '';
+      }, expected: '' }
+    ];
+    function validateFilter(input, expected) {
+      it('should filter to: ' + expected, function() {
+        expect(fileNameFilter(input())).toMatch(expected);
+      });
+    }
+    for (var i = 0; i < testCases.length; i++) {
+      var testCase = testCases[i];
+      validateFilter(testCase.input, testCase.expected);
+    }
+  })
 });

@@ -1,33 +1,4 @@
 <div class="dashboard-content">
-  <script type="text/ng-template" id="pathnames-display">
-    <div pathnames-popover="pathnames">
-      <em>{{pathnames[0] | fileName | truncate:35 }}</em>
-    </div>
-  </script>
-  <script type="text/ng-template" id="gav-display">
-    <div>
-      <!-- This line cannot break as it causes spaces between the GAV -->
-      {{gav.groupId}}<span class="wrap-force-break"> : </span>{{gav.artifactId}}<span class="wrap-force-break"> : </span>{{gav.version}}
-    </div>
-  </script>
-  <script type="text/ng-template" id="unknown-display">
-    <div>
-      <em>Unknown</em>
-    </div>
-  </script>
-  <script type="text/ng-template" id="component-display">
-    <a ui-sref="dashboard.component({ hash: component.hash })">
-      <div ng-if="gav" gav-display></div>
-      <div ng-if="pathnames" pathnames-display></div>
-      <div ng-if="!gav && !pathnames" unknown-display></div>
-    </a>
-  </script>
-  <script type="text/ng-template" id="component-displayname">
-    <div>
-      <div ng-if="gav" gav-display></div>
-      <div ng-if="!gav" class="word-break-all">{{name}}</div>
-    </div>
-  </script>
   <div class="container">
     <div class="row">
       <div class="span12">

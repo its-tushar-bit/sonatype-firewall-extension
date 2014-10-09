@@ -157,7 +157,7 @@ div,p,a,li,td {
 							<div style="background-color: #FFFFFF;">
 								<#if component.groupId??>
 								<div style="border-bottom: 1px dotted #E6E6E6;">
-									<b>GAV:</b> ${component.groupId} : ${component.artifactId} : ${component.version}
+									${component.displayName}
 								</div>
 								<#else>
 								<div style="border-bottom: 1px dotted #E6E6E6;">

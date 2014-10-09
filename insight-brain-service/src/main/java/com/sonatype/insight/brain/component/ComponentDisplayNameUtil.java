@@ -8,9 +8,11 @@ package com.sonatype.insight.brain.component;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.sonatype.clm.dto.model.component.ComponentDisplayFieldValue;
+import com.sonatype.clm.dto.model.component.ComponentDisplayName;
 import com.sonatype.clm.dto.model.component.MavenIdentifier;
 import com.sonatype.clm.dto.model.component.NugetIdentifier;
-import com.sonatype.insight.brain.component.dto.DisplayNameDTO;
+import com.sonatype.clm.dto.model.policy.ComponentFact;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.json.store.JsonUtils;
 
@@ -42,11 +44,11 @@ public class ComponentDisplayNameUtil
   private static final String HASH = "hash";
   private static final String SHA1_20 = "sha1_20";
 
-  public static DisplayNameDTO fromGav(String groupId, String artifactId, String version) {
+  public static ComponentDisplayName fromGav(String groupId, String artifactId, String version) {
     if (groupId == null) {
       return null;
     }
-    return new DisplayNameDTO(new DisplayFieldValueBuilder().addFieldAndValue("Group", groupId)
+    return new ComponentDisplayName(new DisplayFieldValueBuilder().addFieldAndValue("Group", groupId)
         .addValue(GAV_SEPARATOR)
         .addFieldAndValue("Artifact", artifactId)
         .addValue(GAV_SEPARATOR)
@@ -54,7 +56,7 @@ public class ComponentDisplayNameUtil
         .build());
   }
 
-  public static DisplayNameDTO fromPolicyViolation(PolicyViolation policyViolation) {
+  public static ComponentDisplayName fromPolicyViolation(PolicyViolation policyViolation) {
     return fromGav(policyViolation.getGroupId(), policyViolation.getArtifactId(), policyViolation.getVersion());
   }
 
@@ -96,13 +98,20 @@ public class ComponentDisplayNameUtil
     objectNode.put("info", infoNode);
 
     // Generate the display name and augment info node with CLM Server generated array of Field/Value pairs
-    List<DisplayFieldValue> displayFieldValues = generateDisplayFieldValues(objectNode);
-    ArrayNode displayNameNode = JsonUtils.asTree(displayFieldValues);
+    ComponentDisplayName displayFieldValues = new ComponentDisplayName(generateDisplayFieldValues(objectNode));
+    JsonNode displayNameNode = JsonUtils.asTree(displayFieldValues);
     infoNode.put("displayName", displayNameNode);
   }
 
-  public static List<DisplayFieldValue> generateDisplayFieldValues(ObjectNode objectNode) {
+  public static void injectDisplayName(ComponentFact componentFact) {
+    MavenIdentifier mavenIdentifier = new MavenIdentifier();
+    mavenIdentifier.groupId = componentFact.getGroupId();
+    mavenIdentifier.artifactId = componentFact.getArtifactId();
+    mavenIdentifier.version = componentFact.getVersion();
+    componentFact.setDisplayName(new ComponentDisplayName(generateDisplayFieldValues(mavenIdentifier)));
+  }
 
+  public static List<ComponentDisplayFieldValue> generateDisplayFieldValues(ObjectNode objectNode) {
     JsonNode infoNode = objectNode.get("info");
     switch (infoNode.get("format").textValue()) {
       case MAVEN:
@@ -136,19 +145,19 @@ public class ComponentDisplayNameUtil
     }
   }
 
-  public static List<DisplayFieldValue> generateDisplayFieldValues(MavenIdentifier mavenIdentifier) {
+  public static List<ComponentDisplayFieldValue> generateDisplayFieldValues(MavenIdentifier mavenIdentifier) {
     return generateDisplayFieldValues(MAVEN, mavenIdentifier, null, null, null);
   }
 
-  public static List<DisplayFieldValue> generateDisplayFieldValues(NugetIdentifier nugetIdentifier) {
+  public static List<ComponentDisplayFieldValue> generateDisplayFieldValues(NugetIdentifier nugetIdentifier) {
     return generateDisplayFieldValues(NUGET, null, nugetIdentifier, null, null);
   }
 
-  public static List<DisplayFieldValue> generateDisplayFieldValues(List<String> fileNames, String sha) {
+  public static List<ComponentDisplayFieldValue> generateDisplayFieldValues(List<String> fileNames, String sha) {
     return generateDisplayFieldValues("unknown", null, null, fileNames, sha);
   }
 
-  public static List<DisplayFieldValue> generateDisplayFieldValues(String format, MavenIdentifier mavenIdentifier,
+  public static List<ComponentDisplayFieldValue> generateDisplayFieldValues(String format, MavenIdentifier mavenIdentifier,
       NugetIdentifier nugetIdentifier, List<String> fileNames, String hash)
   {
     DisplayFieldValueBuilder displayFieldValueBuilder = new DisplayFieldValueBuilder();

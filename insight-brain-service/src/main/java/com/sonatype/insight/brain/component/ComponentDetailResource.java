@@ -15,7 +15,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
-import com.sonatype.insight.brain.component.dto.DisplayNameDTO;
+import com.sonatype.clm.dto.model.component.ComponentDisplayName;
 
 /**
  * @since 1.11
@@ -43,7 +43,7 @@ public class ComponentDetailResource
   @GET
   @Path("name")
   @Produces(MediaType.APPLICATION_JSON)
-  public DisplayNameDTO getComponentNameByHash(@QueryParam("hash") String hash) {
+  public ComponentDisplayName getComponentNameByHash(@QueryParam("hash") String hash) {
     return componentDetailService.getComponentNameByHash(hash);
   }
 }

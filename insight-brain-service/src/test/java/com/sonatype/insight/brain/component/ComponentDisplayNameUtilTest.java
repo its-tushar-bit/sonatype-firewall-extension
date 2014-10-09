@@ -8,8 +8,10 @@ package com.sonatype.insight.brain.component;
 import java.io.IOException;
 import java.util.List;
 
-import com.sonatype.insight.brain.component.dto.DisplayNameDTO;
+import com.sonatype.clm.dto.model.component.ComponentDisplayName;
+import com.sonatype.clm.dto.model.policy.ComponentFact;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
+import com.sonatype.clm.dto.model.component.ComponentDisplayFieldValue;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -72,7 +74,7 @@ public class ComponentDisplayNameUtilTest
     injectDisplayName(jsonNode);
     JsonNode infoNode = jsonNode.get("info");
 
-    ArrayNode displayNode = (ArrayNode) infoNode.get("displayName");
+    ArrayNode displayNode = (ArrayNode) infoNode.get("displayName").get("parts");
     assertThat(displayNode, is(notNullValue()));
     assertThat(displayNode.size(), is(5));
     assertThat(displayNode.get(0).get("field").textValue(), is("Group"));
@@ -93,15 +95,15 @@ public class ComponentDisplayNameUtilTest
     ObjectNode jsonNode = (ObjectNode) mapper
         .readTree("{\"info\":{\"format\":\"nuget\"},\"nuget\":{\"id\":\"i\",\"version\":\"v\"}}");
 
-    List<DisplayFieldValue> displayFieldValues = generateDisplayFieldValues(jsonNode);
+    List<ComponentDisplayFieldValue> displayFieldValues = generateDisplayFieldValues(jsonNode);
     assertThat(displayFieldValues, is(notNullValue()));
     assertThat(displayFieldValues.size(), is(3));
-    assertThat(displayFieldValues.get(0).getField(), is("ID"));
-    assertThat(displayFieldValues.get(0).getValue(), is("i"));
-    assertThat(displayFieldValues.get(1).getField(), is(nullValue()));
-    assertThat(displayFieldValues.get(1).getValue(), is(" "));
-    assertThat(displayFieldValues.get(2).getField(), is("Version"));
-    assertThat(displayFieldValues.get(2).getValue(), is("v"));
+    assertThat(displayFieldValues.get(0).field, is("ID"));
+    assertThat(displayFieldValues.get(0).value, is("i"));
+    assertThat(displayFieldValues.get(1).field, is(nullValue()));
+    assertThat(displayFieldValues.get(1).value, is(" "));
+    assertThat(displayFieldValues.get(2).field, is("Version"));
+    assertThat(displayFieldValues.get(2).value, is("v"));
   }
 
   @Test
@@ -111,7 +113,7 @@ public class ComponentDisplayNameUtilTest
     injectDisplayName(jsonNode);
     JsonNode infoNode = jsonNode.get("info");
 
-    ArrayNode displayNode = (ArrayNode) infoNode.get("displayName");
+    ArrayNode displayNode = (ArrayNode) infoNode.get("displayName").get("parts");
     assertThat(displayNode, is(notNullValue()));
     assertThat(displayNode.size(), is(5));
     assertThat(displayNode.get(0).get("field").textValue(), is("Filename"));
@@ -133,7 +135,7 @@ public class ComponentDisplayNameUtilTest
     injectDisplayName(jsonNode);
     JsonNode infoNode = jsonNode.get("info");
 
-    ArrayNode displayNode = (ArrayNode) infoNode.get("displayName");
+    ArrayNode displayNode = (ArrayNode) infoNode.get("displayName").get("parts");
     assertThat(displayNode, is(notNullValue()));
     assertThat(displayNode.size(), is(2));
     assertThat(displayNode.get(0).get("field"), is(nullValue()));
@@ -144,13 +146,13 @@ public class ComponentDisplayNameUtilTest
 
   @Test
   public void testCreateComponentNameFromGAV() {
-    DisplayNameDTO componentNameDTO = fromGav("foo", "bar", "1.0");
+    ComponentDisplayName componentNameDTO = fromGav("foo", "bar", "1.0");
     assertDisplayFieldValuesForGAV(componentNameDTO.parts, "foo", "bar", "1.0");
   }
 
   @Test
   public void testCreateComponentNameFromGAVMissingGroup () {
-    DisplayNameDTO componentNameDTO = fromGav(null, "bar", "1.0");
+    ComponentDisplayName componentNameDTO = fromGav(null, "bar", "1.0");
     assertThat(componentNameDTO, nullValue());
   }
 
@@ -161,13 +163,22 @@ public class ComponentDisplayNameUtilTest
     policyViolation.setArtifactId("bar");
     policyViolation.setVersion("1.0");
 
-    DisplayNameDTO componentNameDTO = fromPolicyViolation(policyViolation);
+    ComponentDisplayName componentNameDTO = fromPolicyViolation(policyViolation);
     assertDisplayFieldValuesForGAV(componentNameDTO.parts, "foo", "bar", "1.0");
   }
 
   @Test
   public void testCreateComponentNameFromPolicyViolationMissingGav () {
-    DisplayNameDTO componentNameDTO = fromPolicyViolation(new PolicyViolation());
+    ComponentDisplayName componentNameDTO = fromPolicyViolation(new PolicyViolation());
     assertThat(componentNameDTO, nullValue());
+  }
+
+  @Test
+  public void testInjectDisplayName() {
+    ComponentFact componentFact = new ComponentFact("g", "a", "v", "h");
+    injectDisplayName(componentFact);
+    ComponentDisplayName componentDisplayName = componentFact.getDisplayName();
+
+    assertDisplayFieldValuesForGAV(componentDisplayName.parts, "g", "a", "v");
   }
 }

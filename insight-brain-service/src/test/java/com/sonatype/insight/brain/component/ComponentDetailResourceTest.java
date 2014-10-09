@@ -5,8 +5,8 @@
  */
 package com.sonatype.insight.brain.component;
 
+import com.sonatype.clm.dto.model.component.ComponentDisplayName;
 import com.sonatype.insight.brain.AuthedRestAccess;
-import com.sonatype.insight.brain.component.dto.DisplayNameDTO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
@@ -49,7 +49,7 @@ public class ComponentDetailResourceTest
     tempEntity.newApplicationComponent(app.getId(), BuildStageType.ID, hash, "groupId", "artifactId", "version");
     response = AuthedRestAccess.get(url);
     assertResponseStatus(200, response);
-    DisplayNameDTO name = JsonHelpers.fromJson(response.getResponseBody(), DisplayNameDTO.class);
+    ComponentDisplayName name = JsonHelpers.fromJson(response.getResponseBody(), ComponentDisplayName.class);
     DisplayFieldValueAssertionUtil.assertDisplayFieldValuesForGAV(name.parts, "groupId", "artifactId", "version");
   }
 

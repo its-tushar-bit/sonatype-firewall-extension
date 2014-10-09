@@ -14,11 +14,11 @@ import java.util.Map;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import com.sonatype.clm.dto.model.component.ComponentDisplayName;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.insight.brain.component.ApplicationComponentDetailsDTO.PolicyViolationSummaryDTO;
 import com.sonatype.insight.brain.component.ApplicationComponentDetailsDTO.PolicyViolationSummaryDTO.ReasonDTO;
-import com.sonatype.insight.brain.component.dto.DisplayNameDTO;
 import com.sonatype.insight.brain.dashboard.StageDetailDTO;
 import com.sonatype.insight.brain.dataaccess.ApplicationComponentDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
@@ -184,21 +184,21 @@ public class ComponentDetailService
     return false;
   }
 
-  public DisplayNameDTO getComponentNameByHash(String hash) {
+  public ComponentDisplayName getComponentNameByHash(String hash) {
     validateDashboardLicensed();
 
     ApplicationComponent applicationComponent = new ApplicationComponentDAO().getLastByHash(hash);
     if (applicationComponent == null) {
       throw new BadRequestException("Unknown component with hash " + hash + ".");
     }
-    DisplayNameDTO componentNameDTO = null;
+    ComponentDisplayName componentNameDTO = null;
     if (applicationComponent.getGroupId() != null) {
       componentNameDTO = ComponentDisplayNameUtil.fromGav(applicationComponent.getGroupId(),
           applicationComponent.getArtifactId(), applicationComponent.getVersion());
     }
 
     if (componentNameDTO == null && !applicationComponent.getPathnames().isEmpty()) {
-      componentNameDTO = new DisplayNameDTO(new DisplayFieldValueBuilder()
+      componentNameDTO = new ComponentDisplayName(new DisplayFieldValueBuilder()
           .addFieldAndValue("Pathname", applicationComponent.getPathnames().get(0)).build());
     }
 

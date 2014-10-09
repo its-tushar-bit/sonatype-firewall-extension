@@ -1231,7 +1231,7 @@ public class ReportResourceTest
       assertThat(mavenNode.get("artifactId").textValue(), is(dataNode.get("artifactId").textValue()));
       assertThat(mavenNode.get("version").textValue(), is(dataNode.get("version").textValue()));
 
-      ArrayNode displayNameNode = (ArrayNode) infoNode.get("displayName");
+      ArrayNode displayNameNode = (ArrayNode) infoNode.get("displayName").get("parts");
       assertThat(displayNameNode, is(notNullValue()));
       assertThat(displayNameNode.size(), is(5));
       Assert.assertThat(displayNameNode.get(0).get("field").textValue(), is("Group"));

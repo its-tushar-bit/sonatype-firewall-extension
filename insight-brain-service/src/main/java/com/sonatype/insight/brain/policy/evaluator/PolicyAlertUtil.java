@@ -16,6 +16,7 @@ import com.sonatype.clm.dto.model.policy.ComponentFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.PolicyFact;
+import com.sonatype.insight.brain.component.ComponentDisplayNameUtil;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.model.policy.Policy;
@@ -63,6 +64,7 @@ public class PolicyAlertUtil
 
       ComponentFact componentFact = new ComponentFact(policyViolation.getGroupId(), policyViolation.getArtifactId(),
           policyViolation.getVersion(), policyViolation.getHash());
+      ComponentDisplayNameUtil.injectDisplayName(componentFact);
       for (ConstraintFact constraintFact : policyViolation.getConstraintFacts()) {
         componentFact.addConstraintFact(constraintFact);
       }

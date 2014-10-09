@@ -75,6 +75,7 @@
     <css>/scss/form.scss</css>
     <css>/scss/chiclet.scss</css>
     <css>/scss/dashboard.scss</css>
+    <css>/scss/threatBars.scss</css>
   </group>
 
   <group name='css'>
@@ -156,6 +157,8 @@
 
   <group name='viewdetails'>
     <group-ref>bootstrap-css</group-ref>
+    <css>/scss/variables.scss</css>
+    <css>/scss/threatBars.scss</css>
     <css>/version-graph/viewdetails.css</css>
   </group>
 </groups>

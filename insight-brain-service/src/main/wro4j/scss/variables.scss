@@ -9,12 +9,14 @@ $critical-color: #DB2852;
 $severe-color: #F2862F;
 $moderate-color: #F5C649;
 $none-color: #0047b2;
+$ignore-color: #0081c2;
+$unspecified-color: #9D9D9D;
 
 // name, foreground, background
 $threat-levels: ("critical", #FFF, $critical-color),
-        ("severe", #FFF, $severe-color),
-        ("moderate", #444, $moderate-color),
-        ("none", #FFF, $none-color);
+  ("severe", #FFF, $severe-color),
+  ("moderate", #444, $moderate-color),
+  ("none", #FFF, $none-color);
 
 //Form stuff
 $input-valid-color: #84C900;

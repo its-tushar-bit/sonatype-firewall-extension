@@ -198,8 +198,7 @@ public class ComponentDetailService
     }
 
     if (componentNameDTO == null && !applicationComponent.getPathnames().isEmpty()) {
-      componentNameDTO = new ComponentDisplayName(new DisplayFieldValueBuilder()
-          .addFieldAndValue("Pathname", applicationComponent.getPathnames().get(0)).build());
+      componentNameDTO = new ComponentDisplayName().add("Pathname", applicationComponent.getPathnames().get(0));
     }
 
     return componentNameDTO;

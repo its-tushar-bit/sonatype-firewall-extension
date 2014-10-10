@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.component;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.sonatype.clm.dto.model.component.ComponentDisplayFieldValue;
 import com.sonatype.clm.dto.model.component.ComponentDisplayName;
 import com.sonatype.clm.dto.model.component.MavenIdentifier;
 import com.sonatype.clm.dto.model.component.NugetIdentifier;
@@ -48,12 +47,11 @@ public class ComponentDisplayNameUtil
     if (groupId == null) {
       return null;
     }
-    return new ComponentDisplayName(new DisplayFieldValueBuilder().addFieldAndValue("Group", groupId)
-        .addValue(GAV_SEPARATOR)
-        .addFieldAndValue("Artifact", artifactId)
-        .addValue(GAV_SEPARATOR)
-        .addFieldAndValue("Version", version)
-        .build());
+    return new ComponentDisplayName().add("Group", groupId)
+        .add(GAV_SEPARATOR)
+        .add("Artifact", artifactId)
+        .add(GAV_SEPARATOR)
+        .add("Version", version);
   }
 
   public static ComponentDisplayName fromPolicyViolation(PolicyViolation policyViolation) {
@@ -98,7 +96,7 @@ public class ComponentDisplayNameUtil
     objectNode.put("info", infoNode);
 
     // Generate the display name and augment info node with CLM Server generated array of Field/Value pairs
-    ComponentDisplayName displayFieldValues = new ComponentDisplayName(generateDisplayFieldValues(objectNode));
+    ComponentDisplayName displayFieldValues = fromJsonNode(objectNode);
     JsonNode displayNameNode = JsonUtils.asTree(displayFieldValues);
     infoNode.put("displayName", displayNameNode);
   }
@@ -108,10 +106,10 @@ public class ComponentDisplayNameUtil
     mavenIdentifier.groupId = componentFact.getGroupId();
     mavenIdentifier.artifactId = componentFact.getArtifactId();
     mavenIdentifier.version = componentFact.getVersion();
-    componentFact.setDisplayName(new ComponentDisplayName(generateDisplayFieldValues(mavenIdentifier)));
+    componentFact.setDisplayName(fromMavenIdentifier(mavenIdentifier));
   }
 
-  public static List<ComponentDisplayFieldValue> generateDisplayFieldValues(ObjectNode objectNode) {
+  public static ComponentDisplayName fromJsonNode(ObjectNode objectNode) {
     JsonNode infoNode = objectNode.get("info");
     switch (infoNode.get("format").textValue()) {
       case MAVEN:
@@ -120,13 +118,13 @@ public class ComponentDisplayNameUtil
         mavenIdentifier.groupId = mavenNode.get(GROUP_ID).textValue();
         mavenIdentifier.artifactId = mavenNode.get(ARTIFACT_ID).textValue();
         mavenIdentifier.version = mavenNode.get(VERSION).textValue();
-        return generateDisplayFieldValues(mavenIdentifier);
+        return fromMavenIdentifier(mavenIdentifier);
       case NUGET:
         JsonNode nugetNode = objectNode.get(NUGET);
         NugetIdentifier nugetIdentifier = new NugetIdentifier();
         nugetIdentifier.id = nugetNode.get(PACKAGE_ID).textValue();
         nugetIdentifier.version = nugetNode.get(VERSION).textValue();
-        return generateDisplayFieldValues(nugetIdentifier);
+        return fromNugetIdentifier(nugetIdentifier);
       default:
         List<String> fileNames = null;
         ArrayNode fileNamesNode = (ArrayNode)infoNode.get(FILENAMES);
@@ -141,54 +139,54 @@ public class ComponentDisplayNameUtil
         if (hashNode != null) {
           sha = hashNode.get(SHA1_20).textValue();
         }
-        return generateDisplayFieldValues(fileNames, sha);
+        return fromFilenames(fileNames, sha);
     }
   }
 
-  public static List<ComponentDisplayFieldValue> generateDisplayFieldValues(MavenIdentifier mavenIdentifier) {
+  public static ComponentDisplayName fromMavenIdentifier(MavenIdentifier mavenIdentifier) {
     return generateDisplayFieldValues(MAVEN, mavenIdentifier, null, null, null);
   }
 
-  public static List<ComponentDisplayFieldValue> generateDisplayFieldValues(NugetIdentifier nugetIdentifier) {
+  public static ComponentDisplayName fromNugetIdentifier(NugetIdentifier nugetIdentifier) {
     return generateDisplayFieldValues(NUGET, null, nugetIdentifier, null, null);
   }
 
-  public static List<ComponentDisplayFieldValue> generateDisplayFieldValues(List<String> fileNames, String sha) {
+  public static ComponentDisplayName fromFilenames(List<String> fileNames, String sha) {
     return generateDisplayFieldValues("unknown", null, null, fileNames, sha);
   }
 
-  public static List<ComponentDisplayFieldValue> generateDisplayFieldValues(String format, MavenIdentifier mavenIdentifier,
+  private static ComponentDisplayName generateDisplayFieldValues(String format, MavenIdentifier mavenIdentifier,
       NugetIdentifier nugetIdentifier, List<String> fileNames, String hash)
   {
-    DisplayFieldValueBuilder displayFieldValueBuilder = new DisplayFieldValueBuilder();
+    ComponentDisplayName name = new ComponentDisplayName();
     switch (format) {
       case MAVEN:
-        displayFieldValueBuilder.addFieldAndValue("Group", mavenIdentifier.groupId);
-        displayFieldValueBuilder.addValue(GAV_SEPARATOR);
-        displayFieldValueBuilder.addFieldAndValue("Artifact", mavenIdentifier.artifactId);
-        displayFieldValueBuilder.addValue(GAV_SEPARATOR);
-        displayFieldValueBuilder.addFieldAndValue("Version", mavenIdentifier.version);
+        name.add("Group", mavenIdentifier.groupId);
+        name.add(GAV_SEPARATOR);
+        name.add("Artifact", mavenIdentifier.artifactId);
+        name.add(GAV_SEPARATOR);
+        name.add("Version", mavenIdentifier.version);
         break;
       case NUGET:
-        displayFieldValueBuilder.addFieldAndValue("ID", nugetIdentifier.id);
-        displayFieldValueBuilder.addValue(" ");
-        displayFieldValueBuilder.addFieldAndValue("Version", nugetIdentifier.version);
+        name.add("ID", nugetIdentifier.id);
+        name.add(" ");
+        name.add("Version", nugetIdentifier.version);
         break;
       default:
         if (fileNames != null && fileNames.size() > 0) {
           int fileNamesSize = fileNames.size();
           for (int i = 0; i < fileNamesSize; i++) {
-            displayFieldValueBuilder.addFieldAndValue("Filename", fileNames.get(i));
+            name.add("Filename", fileNames.get(i));
             if (i < fileNamesSize - 1) {
-              displayFieldValueBuilder.addValue(", ");
+              name.add(", ");
             }
           }
         } else {
-          displayFieldValueBuilder.addValue("(Anonymized Path) SHA1: ");
-          displayFieldValueBuilder.addFieldAndValue("Hash", hash);
+          name.add("(Anonymized Path) SHA1: ");
+          name.add("Hash", hash);
         }
         break;
     }
-    return displayFieldValueBuilder.build();
+    return name;
   }
 }

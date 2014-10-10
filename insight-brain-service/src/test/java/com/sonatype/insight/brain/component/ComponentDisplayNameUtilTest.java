@@ -95,7 +95,7 @@ public class ComponentDisplayNameUtilTest
     ObjectNode jsonNode = (ObjectNode) mapper
         .readTree("{\"info\":{\"format\":\"nuget\"},\"nuget\":{\"id\":\"i\",\"version\":\"v\"}}");
 
-    List<ComponentDisplayFieldValue> displayFieldValues = generateDisplayFieldValues(jsonNode);
+    List<ComponentDisplayFieldValue> displayFieldValues = fromJsonNode(jsonNode).parts;
     assertThat(displayFieldValues, is(notNullValue()));
     assertThat(displayFieldValues.size(), is(3));
     assertThat(displayFieldValues.get(0).field, is("ID"));

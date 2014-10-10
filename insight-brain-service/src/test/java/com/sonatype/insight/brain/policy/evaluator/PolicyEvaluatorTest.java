@@ -56,6 +56,30 @@ public class PolicyEvaluatorTest
   public TemporaryFolder tempDir = new TemporaryFolder();
 
   @Test
+  public void testEvaluate_ConstraintFactHasDisplayName() {
+
+    List<Constraint> constraints = new ArrayList<>();
+    Constraint constraint = new Constraint("ConstraintId", "Constraint Name", LogicalOperator.OR);
+    constraint.addCondition(new Condition(MatchStateConditionType.ID, "is", MatchState.SIMILAR.toString()));
+    constraints.add(constraint);
+
+    Policy policy = new Policy("PolicyId", "Policy Name");
+    policy.setConstraints(constraints);
+
+    List<Component> components = new ArrayList<>();
+    Component component = new Component("g", "a", "v", MatchState.SIMILAR);
+    components.add(component);
+
+    List<PolicyAlert> policyAlerts = evaluate(policy, components);
+
+    Assert.assertNotNull(policyAlerts);
+    Assert.assertEquals(1, policyAlerts.size());
+    Assert.assertEquals(1, policyAlerts.get(0).getTrigger().getComponentFacts().size());
+    Assert.assertEquals("g : a : v", policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getDisplayName()
+        .toString());
+  }
+
+  @Test
   public void testEvaluate_TwoConstraintsWithConditions() {
     final Stage stage = new Stage(BuildStageType.ID);
 

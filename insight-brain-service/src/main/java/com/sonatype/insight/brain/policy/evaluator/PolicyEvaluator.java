@@ -23,6 +23,7 @@ import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.component.ComponentDisplayNameUtil;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.policy.Condition;
@@ -116,6 +117,7 @@ public class PolicyEvaluator
         final ComponentFact componentFact = new ComponentFact(component.getGroupId(), component.getArtifactId(),
             component.getVersion(), component.getHash());
         componentFact.addPathnames(component.getPathnames());
+        ComponentDisplayNameUtil.injectDisplayName(componentFact);
         PolicyWaiver policyWaiverForComponentFact = null;
         for (final Entry<Constraint, List<MatchFact>> byConstraints : byConstraint(policy.getConstraints(),
             byComponent.getValue()).entrySet()) {

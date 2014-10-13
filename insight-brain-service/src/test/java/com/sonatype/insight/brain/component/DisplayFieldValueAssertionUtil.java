@@ -7,7 +7,7 @@ package com.sonatype.insight.brain.component;
 
 import java.util.List;
 
-import com.sonatype.clm.dto.model.component.ComponentDisplayFieldValue;
+import com.sonatype.clm.dto.model.component.ComponentDisplayNamePart;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 
 import static com.sonatype.insight.brain.component.ComponentDisplayNameUtil.GAV_SEPARATOR;
@@ -23,14 +23,14 @@ import static org.junit.Assert.fail;
  */
 public class DisplayFieldValueAssertionUtil
 {
-  public static void assertDisplayFieldValue(final ComponentDisplayFieldValue displayFieldValue, final String field,
+  public static void assertDisplayFieldValue(final ComponentDisplayNamePart displayFieldValue, final String field,
                                              final String value)
   {
     assertThat(displayFieldValue.field, is(field));
     assertThat(displayFieldValue.value, is(value));
   }
 
-  public static void assertDisplayFieldValuesForGAV(List<ComponentDisplayFieldValue> displayName, String groupId,
+  public static void assertDisplayFieldValuesForGAV(List<ComponentDisplayNamePart> displayName, String groupId,
                                                     String artifactId, String version)
   {
     assertThat(displayName, hasSize(5));
@@ -41,7 +41,7 @@ public class DisplayFieldValueAssertionUtil
     assertDisplayFieldValue(displayName.get(4), "Version", version);
   }
 
-  public static void assertDisplayFieldValues(final List<ComponentDisplayFieldValue> displayName,
+  public static void assertDisplayFieldValues(final List<ComponentDisplayNamePart> displayName,
                                               final PolicyViolation policyViolation)
   {
     if (policyViolation.getGroupId() == null) {

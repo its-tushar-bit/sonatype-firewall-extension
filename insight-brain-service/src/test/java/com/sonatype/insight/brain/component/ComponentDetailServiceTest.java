@@ -10,7 +10,7 @@ import java.util.List;
 
 import javax.inject.Inject;
 
-import com.sonatype.clm.dto.model.component.ComponentDisplayFieldValue;
+import com.sonatype.clm.dto.model.component.ComponentDisplayNamePart;
 import com.sonatype.insight.brain.component.ApplicationComponentDetailsDTO.PolicyViolationSummaryDTO;
 import com.sonatype.insight.brain.component.ApplicationComponentDetailsDTO.PolicyViolationSummaryDTO.ReasonDTO;
 import com.sonatype.insight.brain.dashboard.StageDetailDTO;
@@ -294,7 +294,7 @@ public class ComponentDetailServiceTest
     Thread.sleep(1);
     tempEntity.newApplicationComponent(app.getId(), ReleaseStageType.ID, hash, "groupId2", "artifactId2", "version2");
 
-    List<ComponentDisplayFieldValue> name = componentDetailService.getComponentNameByHash(hash).parts;
+    List<ComponentDisplayNamePart> name = componentDetailService.getComponentNameByHash(hash).parts;
     assertDisplayFieldValuesForGAV(name, "groupId2", "artifactId2", "version2");
   }
 
@@ -318,7 +318,7 @@ public class ComponentDetailServiceTest
     tempEntity.newApplicationComponent(app.getId(), ReleaseStageType.ID, hash, null /* groupId */,
         null /* artifactId */, null /* version */, "somepath");
 
-    List<ComponentDisplayFieldValue> name = componentDetailService.getComponentNameByHash(hash).parts;
+    List<ComponentDisplayNamePart> name = componentDetailService.getComponentNameByHash(hash).parts;
     assertThat(name, hasSize(1));
     assertDisplayFieldValue(name.get(0), "Pathname", "somepath");
   }

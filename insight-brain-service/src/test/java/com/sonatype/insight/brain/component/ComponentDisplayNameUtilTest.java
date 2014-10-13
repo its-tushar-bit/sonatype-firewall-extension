@@ -9,9 +9,9 @@ import java.io.IOException;
 import java.util.List;
 
 import com.sonatype.clm.dto.model.component.ComponentDisplayName;
+import com.sonatype.clm.dto.model.component.ComponentDisplayNamePart;
 import com.sonatype.clm.dto.model.policy.ComponentFact;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
-import com.sonatype.clm.dto.model.component.ComponentDisplayFieldValue;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -95,7 +95,7 @@ public class ComponentDisplayNameUtilTest
     ObjectNode jsonNode = (ObjectNode) mapper
         .readTree("{\"info\":{\"format\":\"nuget\"},\"nuget\":{\"id\":\"i\",\"version\":\"v\"}}");
 
-    List<ComponentDisplayFieldValue> displayFieldValues = fromJsonNode(jsonNode).parts;
+    List<ComponentDisplayNamePart> displayFieldValues = fromJsonNode(jsonNode).parts;
     assertThat(displayFieldValues, is(notNullValue()));
     assertThat(displayFieldValues.size(), is(3));
     assertThat(displayFieldValues.get(0).field, is("ID"));

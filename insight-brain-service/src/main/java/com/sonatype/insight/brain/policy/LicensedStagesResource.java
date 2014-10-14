@@ -24,7 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * @since 1.12.1
+ * @since 1.13
  */
 @Named
 @Path(LicensedStagesResource.SERVICE_PATH)

@@ -77,7 +77,7 @@ public class StageTypeService
    *
    * @return all StageType objects allowed by the current license in natural order of occurrence during the component
    * lifecycle filtered by the supplied context.
-   * @since 1.12.1
+   * @since 1.13
    */
   public Collection<StageType> getLicensedStageTypes(final String context) {
     Predicate<StageType> filter = contextFilterMap.get(context);

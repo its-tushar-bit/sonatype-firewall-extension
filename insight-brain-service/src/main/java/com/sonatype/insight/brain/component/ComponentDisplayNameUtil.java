@@ -7,10 +7,10 @@ package com.sonatype.insight.brain.component;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import com.sonatype.clm.dto.model.component.ComponentDisplayName;
-import com.sonatype.clm.dto.model.component.MavenIdentifier;
-import com.sonatype.clm.dto.model.component.NugetIdentifier;
+import com.sonatype.clm.dto.model.ide.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ComponentFact;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.json.store.JsonUtils;
@@ -90,11 +90,9 @@ public class ComponentDisplayNameUtil
   }
 
   public static void injectDisplayName(ComponentFact componentFact) {
-    MavenIdentifier mavenIdentifier = new MavenIdentifier();
-    mavenIdentifier.groupId = componentFact.getGroupId();
-    mavenIdentifier.artifactId = componentFact.getArtifactId();
-    mavenIdentifier.version = componentFact.getVersion();
-    componentFact.setDisplayName(fromMavenIdentifier(mavenIdentifier));
+    ComponentIdentifier mavenIdentifier = ComponentIdentifier.createMavenCoordinates(componentFact.getGroupId(),
+        componentFact.getArtifactId(), componentFact.getVersion(), null, null);
+    componentFact.setDisplayName(fromComponentIdentifier(mavenIdentifier));
   }
 
   public static ComponentDisplayName fromJsonNode(ObjectNode objectNode) {
@@ -102,17 +100,15 @@ public class ComponentDisplayNameUtil
     switch (infoNode.get("format").textValue()) {
       case MAVEN:
         JsonNode mavenNode = objectNode.get(MAVEN);
-        MavenIdentifier mavenIdentifier = new MavenIdentifier();
-        mavenIdentifier.groupId = mavenNode.get(GROUP_ID).textValue();
-        mavenIdentifier.artifactId = mavenNode.get(ARTIFACT_ID).textValue();
-        mavenIdentifier.version = mavenNode.get(VERSION).textValue();
-        return fromMavenIdentifier(mavenIdentifier);
+        ComponentIdentifier mavenIdentifier = ComponentIdentifier
+            .createMavenCoordinates(mavenNode.get(GROUP_ID).textValue(), mavenNode.get(ARTIFACT_ID).textValue(),
+                mavenNode.get(VERSION).textValue(), null, null);
+        return fromComponentIdentifier(mavenIdentifier);
       case NUGET:
         JsonNode nugetNode = objectNode.get(NUGET);
-        NugetIdentifier nugetIdentifier = new NugetIdentifier();
-        nugetIdentifier.id = nugetNode.get(PACKAGE_ID).textValue();
-        nugetIdentifier.version = nugetNode.get(VERSION).textValue();
-        return fromNuGetIdentifier(nugetIdentifier);
+        ComponentIdentifier nugetIdentifier = ComponentIdentifier
+            .createNugetCoordinates(nugetNode.get(PACKAGE_ID).textValue(), nugetNode.get(VERSION).textValue());
+        return fromComponentIdentifier(nugetIdentifier);
       default:
         List<String> fileNames = null;
         ArrayNode fileNamesNode = (ArrayNode)infoNode.get(FILENAMES);
@@ -131,26 +127,29 @@ public class ComponentDisplayNameUtil
     }
   }
 
-  public static ComponentDisplayName fromMavenIdentifier(MavenIdentifier mavenIdentifier) {
-    return generateDisplayFieldValues(MAVEN, mavenIdentifier, null, null, null);
-  }
-
-  public static ComponentDisplayName fromNuGetIdentifier(NugetIdentifier nugetIdentifier) {
-    return generateDisplayFieldValues(NUGET, null, nugetIdentifier, null, null);
+  public static ComponentDisplayName fromComponentIdentifier(ComponentIdentifier componentIdentifier) {
+    return generateDisplayFieldValues(componentIdentifier, null, null);
   }
 
   public static ComponentDisplayName fromFilenames(List<String> fileNames, String sha) {
-    return generateDisplayFieldValues("unknown", null, null, fileNames, sha);
+    return generateDisplayFieldValues(null, fileNames, sha);
   }
 
-  private static ComponentDisplayName generateDisplayFieldValues(String format, MavenIdentifier mavenIdentifier,
-      NugetIdentifier nugetIdentifier, List<String> fileNames, String hash)
+  private static ComponentDisplayName generateDisplayFieldValues(ComponentIdentifier identifier,
+      List<String> fileNames, String hash)
   {
+    String format = identifier != null ? identifier.format : "";
     switch (format) {
-      case MAVEN:
-        return fromGav(mavenIdentifier.groupId, mavenIdentifier.artifactId, mavenIdentifier.version);
-      case NUGET:
-        return fromNuGet(nugetIdentifier.id, nugetIdentifier.version);
+      case MAVEN: {
+        Map<String, String> coordinates = identifier.coordinates;
+        return fromGav(coordinates.get(ComponentIdentifier.MAVEN_GROUP_ID),
+            coordinates.get(ComponentIdentifier.MAVEN_ARTIFACT_ID), coordinates.get(ComponentIdentifier.VERSION));
+      }
+      case NUGET: {
+        Map<String, String> coordinates = identifier.coordinates;
+        return fromNuGet(coordinates.get(ComponentIdentifier.NUGET_PACKAGE_ID),
+            coordinates.get(ComponentIdentifier.VERSION));
+      }
       default:
         ComponentDisplayName name = new ComponentDisplayName();
         if (fileNames != null && fileNames.size() > 0) {

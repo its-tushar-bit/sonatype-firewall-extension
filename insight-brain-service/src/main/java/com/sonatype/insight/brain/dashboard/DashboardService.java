@@ -753,7 +753,8 @@ public class DashboardService
           dto.scoreLow += violation.threatLevel;
         }
         if (dto.displayName == null) {
-          dto.displayName = ComponentDisplayNameUtil.fromGav(violation.groupId, violation.artifactId, violation.version);
+          dto.displayName = ComponentDisplayNameUtil
+              .fromGav(violation.groupId, violation.artifactId, violation.version);
         }
         if (violation.pathnames != null) {
           dto.pathnames.addAll(violation.pathnames);

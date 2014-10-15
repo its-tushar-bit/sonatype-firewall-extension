@@ -22,37 +22,25 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Strings;
 
 /**
- * Utility to build a component display name from its coordinates.
+ * Utility to build CLM Server specific component display names from coordinates.
  *
  * @since 1.13.0
  */
 public class ComponentDisplayNameUtil
+    extends com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil
 {
-  public static final String GAV_SEPARATOR = " : ";
-
   private static final String MAVEN = "maven";
+  private static final String NUGET = "nuget";
+
   private static final String GROUP_ID = "groupId";
   private static final String ARTIFACT_ID = "artifactId";
   private static final String VERSION = "version";
-
-  private static final String NUGET = "nuget";
   private static final String PACKAGE_ID = "id";
 
   private static final String FILENAMES = "filenames";
 
   private static final String HASH = "hash";
   private static final String SHA1_20 = "sha1_20";
-
-  public static ComponentDisplayName fromGav(String groupId, String artifactId, String version) {
-    if (groupId == null) {
-      return null;
-    }
-    return new ComponentDisplayName().add("Group", groupId)
-        .add(GAV_SEPARATOR)
-        .add("Artifact", artifactId)
-        .add(GAV_SEPARATOR)
-        .add("Version", version);
-  }
 
   public static ComponentDisplayName fromPolicyViolation(PolicyViolation policyViolation) {
     return fromGav(policyViolation.getGroupId(), policyViolation.getArtifactId(), policyViolation.getVersion());
@@ -124,7 +112,7 @@ public class ComponentDisplayNameUtil
         NugetIdentifier nugetIdentifier = new NugetIdentifier();
         nugetIdentifier.id = nugetNode.get(PACKAGE_ID).textValue();
         nugetIdentifier.version = nugetNode.get(VERSION).textValue();
-        return fromNugetIdentifier(nugetIdentifier);
+        return fromNuGetIdentifier(nugetIdentifier);
       default:
         List<String> fileNames = null;
         ArrayNode fileNamesNode = (ArrayNode)infoNode.get(FILENAMES);
@@ -147,7 +135,7 @@ public class ComponentDisplayNameUtil
     return generateDisplayFieldValues(MAVEN, mavenIdentifier, null, null, null);
   }
 
-  public static ComponentDisplayName fromNugetIdentifier(NugetIdentifier nugetIdentifier) {
+  public static ComponentDisplayName fromNuGetIdentifier(NugetIdentifier nugetIdentifier) {
     return generateDisplayFieldValues(NUGET, null, nugetIdentifier, null, null);
   }
 
@@ -158,21 +146,13 @@ public class ComponentDisplayNameUtil
   private static ComponentDisplayName generateDisplayFieldValues(String format, MavenIdentifier mavenIdentifier,
       NugetIdentifier nugetIdentifier, List<String> fileNames, String hash)
   {
-    ComponentDisplayName name = new ComponentDisplayName();
     switch (format) {
       case MAVEN:
-        name.add("Group", mavenIdentifier.groupId);
-        name.add(GAV_SEPARATOR);
-        name.add("Artifact", mavenIdentifier.artifactId);
-        name.add(GAV_SEPARATOR);
-        name.add("Version", mavenIdentifier.version);
-        break;
+        return fromGav(mavenIdentifier.groupId, mavenIdentifier.artifactId, mavenIdentifier.version);
       case NUGET:
-        name.add("ID", nugetIdentifier.id);
-        name.add(" ");
-        name.add("Version", nugetIdentifier.version);
-        break;
+        return fromNuGet(nugetIdentifier.id, nugetIdentifier.version);
       default:
+        ComponentDisplayName name = new ComponentDisplayName();
         if (fileNames != null && fileNames.size() > 0) {
           int fileNamesSize = fileNames.size();
           for (int i = 0; i < fileNamesSize; i++) {
@@ -181,12 +161,12 @@ public class ComponentDisplayNameUtil
               name.add(", ");
             }
           }
-        } else {
+        }
+        else {
           name.add("(Anonymized Path) SHA1: ");
           name.add("Hash", hash);
         }
-        break;
+        return name;
     }
-    return name;
   }
 }

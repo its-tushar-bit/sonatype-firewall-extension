@@ -145,18 +145,6 @@ public class ComponentDisplayNameUtilTest
   }
 
   @Test
-  public void testCreateComponentNameFromGAV() {
-    ComponentDisplayName componentNameDTO = fromGav("foo", "bar", "1.0");
-    assertDisplayFieldValuesForGAV(componentNameDTO.parts, "foo", "bar", "1.0");
-  }
-
-  @Test
-  public void testCreateComponentNameFromGAVMissingGroup () {
-    ComponentDisplayName componentNameDTO = fromGav(null, "bar", "1.0");
-    assertThat(componentNameDTO, nullValue());
-  }
-
-  @Test
   public void testCreateComponentNameFromPolicyViolation() {
     PolicyViolation policyViolation = new PolicyViolation();
     policyViolation.setGroupId("foo");

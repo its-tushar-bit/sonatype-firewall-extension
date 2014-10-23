@@ -1,24 +1,57 @@
-{"groupId": "junit", "artifactId": "junit", "version": "4.11", "hash": "4e031bb61df09069aeb2", "matchState": null,
-  "declaredLicenses": [
-    {
-      "licenseId": "CPL-1.0",
-      "licenseName": "CPL-1.0"
-    }
-  ], "observedLicenses": [
-  {
-    "licenseId": "No-Source-License",
-    "licenseName": "No Source License"
-  }
-],
-  "overriddenLicenses": [],
-  "effectiveLicenses": [
-    {
-      "licenseId": "CPL-1.0",
-      "licenseName": "CPL-1.0"
-    }
-  ],
-  "effectiveLicenseStatus": null,
-  "catalogDate": 1352920907000, "relativePopularity": 24, "securityVulnerabilities": [],
-  "website": "http://junit.org", "policyAlerts": null, "licenseThreatLevel": null, "licenseThreatGroupNames": null,
-  "majorRevisionStep": false, "identificationSource": null, "identificationSourceComment": null
+{
+   "groupId":"junit",
+   "artifactId":"junit",
+   "version":"4.11",
+   "hash":null,
+   "matchState":"exact",
+   "declaredLicenses":[
+      {
+         "licenseId":"CPL-1.0",
+         "licenseName":"CPL-1.0"
+      }
+   ],
+   "observedLicenses":[
+      {
+         "licenseId":"No-Source-License",
+         "licenseName":"No Source License"
+      }
+   ],
+   "overriddenLicenses":[
+
+   ],
+   "effectiveLicenses":[
+      {
+         "licenseId":"CPL-1.0",
+         "licenseName":"CPL-1.0"
+      }
+   ],
+   "effectiveLicenseStatus":null,
+   "catalogDate":1352917307000,
+   "relativePopularity":17,
+   "securityVulnerabilities":[
+
+   ],
+   "website":"http://junit.org",
+   "policyAlerts":null,
+   "licenseThreatLevel":2,
+   "licenseThreatGroupNames":[
+      "Weak Copyleft"
+   ],
+   "majorRevisionStep":false,
+   "identificationSource":"Sonatype",
+   "identificationSourceComment":null,
+   "identifier":{
+      "format":"maven",
+      "coordinates":{
+         "groupId":"junit",
+         "artifactId":"junit",
+         "version":"4.11"
+      }
+   },
+   "observedLicenseIds":[
+      "No-Source-License"
+   ],
+   "declaredLicenseIds":[
+      "CPL-1.0"
+   ]
 }

@@ -87,6 +87,8 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import static com.sonatype.clm.dto.model.ide.ComponentIdentifier.*;
+
 public class ReportResourceTest
     extends AbstractResourceTest
 {
@@ -1147,7 +1149,8 @@ public class ReportResourceTest
 
   private ComponentDetails findGAV(ComponentDetailsList list, String g, String a, String v) {
     for (ComponentDetails details : list.getList()) {
-      if (g.equals(details.getGroupId()) && a.equals(details.getArtifactId()) && v.equals(details.getVersion())) {
+      if (details.getIdentifier() != null && g.equals(details.getIdentifier().get(MAVEN_GROUP_ID)) &&
+        a.equals(details.getIdentifier().get(MAVEN_ARTIFACT_ID)) && v.equals(details.getIdentifier().get(VERSION))) {
         return details;
       }
     }

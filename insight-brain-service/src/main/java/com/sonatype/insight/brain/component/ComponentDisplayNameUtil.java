@@ -29,14 +29,6 @@ import com.google.common.base.Strings;
 public class ComponentDisplayNameUtil
     extends com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil
 {
-  private static final String MAVEN = "maven";
-  private static final String NUGET = "nuget";
-
-  private static final String GROUP_ID = "groupId";
-  private static final String ARTIFACT_ID = "artifactId";
-  private static final String VERSION = "version";
-  private static final String PACKAGE_ID = "id";
-
   private static final String FILENAMES = "filenames";
 
   private static final String HASH = "hash";
@@ -48,21 +40,21 @@ public class ComponentDisplayNameUtil
 
   public static void injectDisplayName(ObjectNode objectNode) {
     // First augment existing json to contain meta data which will exist after CLM-3574 CLM-3190
-    final String groupId = JsonUtils.getNullableString(objectNode.get(GROUP_ID));
-    final String artifactId = JsonUtils.getNullableString(objectNode.get(ARTIFACT_ID));
-    final String version = JsonUtils.getNullableString(objectNode.get(VERSION));
+    final String groupId = JsonUtils.getNullableString(objectNode.get(ComponentIdentifier.MAVEN_GROUP_ID));
+    final String artifactId = JsonUtils.getNullableString(objectNode.get(ComponentIdentifier.MAVEN_ARTIFACT_ID));
+    final String version = JsonUtils.getNullableString(objectNode.get(ComponentIdentifier.VERSION));
     final String hash = JsonUtils.getNullableString(objectNode.get(HASH));
     JsonNode fileNamesNode = objectNode.get(FILENAMES);
 
     ObjectNode infoNode = new ObjectNode(JsonNodeFactory.instance);
     if (!Strings.isNullOrEmpty(groupId)) {
-      infoNode.put("format", MAVEN);
+      infoNode.put("format", ComponentIdentifier.FORMAT_MAVEN);
 
       ObjectNode mavenNode = new ObjectNode(JsonNodeFactory.instance);
-      mavenNode.put(GROUP_ID, groupId);
-      mavenNode.put(ARTIFACT_ID, artifactId);
-      mavenNode.put(VERSION, version);
-      objectNode.put(MAVEN, mavenNode);
+      mavenNode.put(ComponentIdentifier.MAVEN_GROUP_ID, groupId);
+      mavenNode.put(ComponentIdentifier.MAVEN_ARTIFACT_ID, artifactId);
+      mavenNode.put(ComponentIdentifier.VERSION, version);
+      objectNode.put(ComponentIdentifier.FORMAT_MAVEN, mavenNode);
     }
     else {
       infoNode.put("format", "unknown");
@@ -98,16 +90,18 @@ public class ComponentDisplayNameUtil
   public static ComponentDisplayName fromJsonNode(ObjectNode objectNode) {
     JsonNode infoNode = objectNode.get("info");
     switch (infoNode.get("format").textValue()) {
-      case MAVEN:
-        JsonNode mavenNode = objectNode.get(MAVEN);
+      case ComponentIdentifier.FORMAT_MAVEN:
+        JsonNode mavenNode = objectNode.get(ComponentIdentifier.FORMAT_MAVEN);
         ComponentIdentifier mavenIdentifier = ComponentIdentifier
-            .createMavenCoordinates(mavenNode.get(GROUP_ID).textValue(), mavenNode.get(ARTIFACT_ID).textValue(),
-                mavenNode.get(VERSION).textValue(), null, null);
+            .createMavenCoordinates(mavenNode.get(ComponentIdentifier.MAVEN_GROUP_ID).textValue(),
+                mavenNode.get(ComponentIdentifier.MAVEN_ARTIFACT_ID).textValue(),
+                mavenNode.get(ComponentIdentifier.VERSION).textValue(), null, null);
         return fromComponentIdentifier(mavenIdentifier);
-      case NUGET:
-        JsonNode nugetNode = objectNode.get(NUGET);
+      case ComponentIdentifier.FORMAT_NUGET:
+        JsonNode nugetNode = objectNode.get(ComponentIdentifier.FORMAT_NUGET);
         ComponentIdentifier nugetIdentifier = ComponentIdentifier
-            .createNugetCoordinates(nugetNode.get(PACKAGE_ID).textValue(), nugetNode.get(VERSION).textValue());
+            .createNugetCoordinates(nugetNode.get(ComponentIdentifier.NUGET_PACKAGE_ID).textValue(),
+                nugetNode.get(ComponentIdentifier.VERSION).textValue());
         return fromComponentIdentifier(nugetIdentifier);
       default:
         List<String> fileNames = null;
@@ -140,12 +134,12 @@ public class ComponentDisplayNameUtil
   {
     String format = identifier != null ? identifier.format : "";
     switch (format) {
-      case MAVEN: {
+      case ComponentIdentifier.FORMAT_MAVEN: {
         Map<String, String> coordinates = identifier.coordinates;
         return fromGav(coordinates.get(ComponentIdentifier.MAVEN_GROUP_ID),
             coordinates.get(ComponentIdentifier.MAVEN_ARTIFACT_ID), coordinates.get(ComponentIdentifier.VERSION));
       }
-      case NUGET: {
+      case ComponentIdentifier.FORMAT_NUGET: {
         Map<String, String> coordinates = identifier.coordinates;
         return fromNuGet(coordinates.get(ComponentIdentifier.NUGET_PACKAGE_ID),
             coordinates.get(ComponentIdentifier.VERSION));

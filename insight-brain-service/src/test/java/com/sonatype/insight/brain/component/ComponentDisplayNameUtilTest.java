@@ -93,7 +93,7 @@ public class ComponentDisplayNameUtilTest
   public void testInjectDisplayName_Nuget() throws IOException {
     ObjectMapper mapper = new ObjectMapper();
     ObjectNode jsonNode = (ObjectNode) mapper
-        .readTree("{\"info\":{\"format\":\"nuget\"},\"nuget\":{\"id\":\"i\",\"version\":\"v\"}}");
+        .readTree("{\"info\":{\"format\":\"nuget\"},\"nuget\":{\"packageId\":\"i\",\"version\":\"v\"}}");
 
     List<ComponentDisplayNamePart> displayFieldValues = fromJsonNode(jsonNode).parts;
     assertThat(displayFieldValues, is(notNullValue()));

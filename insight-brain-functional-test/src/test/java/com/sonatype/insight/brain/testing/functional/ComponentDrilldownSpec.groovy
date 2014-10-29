@@ -23,8 +23,7 @@ import spock.lang.Stepwise
  */
 @Stepwise
 class ComponentDrilldownSpec
-    extends BaseSpec
-{
+extends BaseSpec {
   static Organization org
 
   static Application app
@@ -49,7 +48,7 @@ class ComponentDrilldownSpec
     temporaryEntity.newFirstOccurrencePolicyViolation(policyViolation.id, policyEvaluation.applicationId,
         policyEvaluation.stageTypeId)
     applicationComponent = temporaryEntity.newApplicationComponent(app.id, policyEvaluation.stageTypeId,
-        policyViolation.hash, policyViolation.groupId, policyViolation.artifactId, policyViolation.version)
+        policyViolation.hash, "Group1", "Artifact1", "Version1")
 
     def newestRiskPage = loginAsAdminVia(NewestRiskDashboardPage)
     waitFor { newestRiskPage.newestViolationTable.rows.size() == 1 }
@@ -59,71 +58,71 @@ class ComponentDrilldownSpec
 
   def 'Component Drilldown Breadcrumb'() {
     when: 'The dashboard overview is loaded'
-      waitFor { breadcrumbs.size() == 2 }
+    waitFor { breadcrumbs.size() == 2 }
 
     then: 'The dashboard breadcrumb is shown'
-      crumb('dashboard.overview.newest-risk').displayed
-      crumb('dashboard.overview.newest-risk').text().trim() == 'Dashboard'
+    crumb('dashboard.overview.newest-risk').displayed
+    crumb('dashboard.overview.newest-risk').text().trim() == 'Dashboard'
 
     and: 'The component details link is shown as the last crumb'
-      lastCrumb.displayed
-      lastCrumb.text().trim() == 'Component Details'
+    lastCrumb.displayed
+    lastCrumb.text().trim() == 'Component Details'
 
     and: 'the desired component name is shown'
-      waitFor { componentName.text() == 'Group1 : Artifact1 : Version1' }
+    waitFor { componentName.text() == 'Group1 : Artifact1 : Version1' }
   }
 
   def 'Component Drilldown Application Row'() {
     when: 'The component data is loaded'
-      waitFor { componentApplicationRow(app.id).displayed }
+    waitFor { componentApplicationRow(app.id).displayed }
 
     then: 'Stages are shown in the appropriate order'
-      header(ComponentApplicationRow.BUILD) == 'BUILD'
-      header(ComponentApplicationRow.STAGE) == 'STAGE'
-      header(ComponentApplicationRow.RELEASE) == 'RELEASE'
-      header(ComponentApplicationRow.OPERATE) == 'OPERATE'
+    header(ComponentApplicationRow.BUILD) == 'BUILD'
+    header(ComponentApplicationRow.STAGE) == 'STAGE'
+    header(ComponentApplicationRow.RELEASE) == 'RELEASE'
+    header(ComponentApplicationRow.OPERATE) == 'OPERATE'
 
     and: 'Application row displays component application data'
-      ComponentApplicationRow applicationRow = componentApplicationRow(app.id)
-      applicationRow.orgApp == org.name + " : " + app.name
-      applicationRow.riskPie == '100%'
-      applicationRow.riskCount == 5
-      applicationRow.build == '7d'
-      applicationRow.isFail(ComponentApplicationRow.BUILD)
+    ComponentApplicationRow applicationRow = componentApplicationRow(app.id)
+    applicationRow.orgApp == org.name + " : " + app.name
+    applicationRow.riskPie == '100%'
+    applicationRow.riskCount == 5
+    applicationRow.build == '7d'
+    applicationRow.isFail(ComponentApplicationRow.BUILD)
   }
 
   def 'Component Drilldown Violation Row'() {
     when: 'The component application is expanded'
-      waitFor { componentApplicationRow(app.id).displayed }
-      componentApplicationRow(app.id).expando.click()
+    waitFor { componentApplicationRow(app.id).displayed }
+    componentApplicationRow(app.id).expando.click()
 
     then: 'Violation row show component violation data'
-      waitFor { componentViolationTable(app.id).displayed }
-      ComponentViolationRow violationRow = componentViolationRow(app.id, policy.name)
-      violationRow.threatLevel == policyViolation.threatLevel
-      violationRow.policyName == policy.name
-      violationRow.riskPie == "100%"
-      violationRow.riskCount == 5
-      violationRow.build == '7d'
-      violationRow.isFail(ComponentViolationRow.BUILD)
-      violationRow.isLatestRisk(ComponentViolationRow.BUILD)
+    waitFor { componentViolationTable(app.id).displayed }
+    ComponentViolationRow violationRow = componentViolationRow(app.id, policy.name)
+    violationRow.threatLevel == policyViolation.threatLevel
+    violationRow.policyName == policy.name
+    violationRow.riskPie == "100%"
+    violationRow.riskCount == 5
+    violationRow.build == '7d'
+    violationRow.isFail(ComponentViolationRow.BUILD)
+    violationRow.isLatestRisk(ComponentViolationRow.BUILD)
   }
 
   def 'Links to reports open in a new window'() {
     when: 'A user wants more information about the component in an application'
-      ComponentApplicationRow row = componentApplicationRow(app.id)
+    ComponentApplicationRow row = componentApplicationRow(app.id)
 
     then: 'clicking the stage label takes us to the most recent report for that stage'
-      withNewWindow(page: ReportContainerPage, { row.click(row.cell(ComponentApplicationRow.BUILD)) }) {
-        verifyAt()
-        reportTitle.text()
-      } ==~ app.name + ' .* Build Report'
+    withNewWindow(page: ReportContainerPage, { row.click(row.cell(ComponentApplicationRow.BUILD)) }) {
+      verifyAt()
+      reportTitle.text()
+    } ==~ app.name + ' .* Build Report'
 
     and: 'the corresponding policy violation row label links to the same report'
-      ComponentViolationRow violationRow = componentViolationRow(app.id, policy.name)
-      withNewWindow(page: ReportContainerPage, { violationRow.click(violationRow.cell(ComponentViolationRow.BUILD)) }) {
-        verifyAt()
-        reportTitle.text()
-      } ==~ app.name + ' .* Build Report'
+    ComponentViolationRow violationRow = componentViolationRow(app.id, policy.name)
+    withNewWindow(page: ReportContainerPage, { violationRow.click(violationRow.cell(ComponentViolationRow.BUILD)) }) {
+      verifyAt()
+      reportTitle.text()
+    } ==~ app.name + ' .* Build Report'
   }
 }

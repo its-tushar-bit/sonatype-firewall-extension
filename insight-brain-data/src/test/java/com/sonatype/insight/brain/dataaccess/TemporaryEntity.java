@@ -12,6 +12,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
+import com.sonatype.clm.dto.model.ide.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.insight.brain.configuration.ldap.LdapAuthenticationMethod;
@@ -647,6 +648,13 @@ public class TemporaryEntity
   }
 
   public PolicyViolation newPolicyViolation(PolicyEvaluation evaluation, Policy policy, int threatLevel,
+      PolicyThreatCategory category)
+  {
+    return newPolicyViolation(evaluation, policy, threatLevel, category, null /* groupId */, null /* artifactId */,
+        null /* version */, "hash");
+  }
+
+  public PolicyViolation newPolicyViolation(PolicyEvaluation evaluation, Policy policy, int threatLevel,
       PolicyThreatCategory category, String groupId, String artifactId, String version)
   {
     return newPolicyViolation(evaluation, policy, threatLevel, category, groupId, artifactId, version, "hash");
@@ -659,10 +667,24 @@ public class TemporaryEntity
   }
 
   public PolicyViolation newPolicyViolation(PolicyEvaluation evaluation, Policy policy, int threatLevel,
+      PolicyThreatCategory category, ComponentIdentifier componentIdentifier, String hash)
+  {
+    return newPolicyViolation(evaluation, policy, threatLevel, category, componentIdentifier, hash, null);
+  }
+
+  public PolicyViolation newPolicyViolation(PolicyEvaluation evaluation, Policy policy, int threatLevel,
       PolicyThreatCategory category, String groupId, String artifactId, String version, String hash, String actionTypeId)
   {
+    return newPolicyViolation(evaluation, policy, threatLevel, category,
+        (groupId != null ? ComponentIdentifier.createMavenCoordinates(groupId, artifactId, version) : null), hash,
+        actionTypeId);
+  }
+
+  public PolicyViolation newPolicyViolation(PolicyEvaluation evaluation, Policy policy, int threatLevel,
+      PolicyThreatCategory category, ComponentIdentifier componentIdentifier, String hash, String actionTypeId)
+  {
     PolicyViolation policyViolation = new PolicyViolation(evaluation, policy.getId(), policy.getName(), threatLevel,
-        category, hash, groupId, artifactId, version, "[]", "unknown.jar");
+        category, hash, componentIdentifier, "[]", "unknown.jar");
     policyViolation.setActionTypeId(actionTypeId);
     policyViolationDAO.insert(policyViolation);
     return policyViolation;

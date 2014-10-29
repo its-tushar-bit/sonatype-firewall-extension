@@ -686,7 +686,7 @@ public class DashboardServiceTest
     assertThat(actual.policyName, is(policyViolation.getPolicyName()));
     assertThat(actual.policyId, is(policyViolation.getPolicyId()));
     assertThat(actual.hash, is(policyViolation.getHash()));
-    if (policyViolation.getGroupId() != null) {
+    if (policyViolation.getComponentIdentifier() != null) {
       assertDisplayFieldValues(actual.displayName.parts, policyViolation);
     }
     else {
@@ -827,8 +827,7 @@ public class DashboardServiceTest
         "test scan app2 release id", new Date(app1PolicyEvaluation.getTime().getTime() + 1));
     PolicyViolation policyViolation = tempEntity.newPolicyViolation(policyEvaluation, app1Policy,
         app1PolicyViolation.getThreatLevel(), app1PolicyViolation.getThreatCategory(),
-        app1PolicyViolation.getGroupId(), app1PolicyViolation.getArtifactId(), app1PolicyViolation.getVersion(),
-        app1PolicyViolation.getHash());
+        app1PolicyViolation.getComponentIdentifier(), app1PolicyViolation.getHash());
     tempEntity.newFirstOccurrencePolicyViolation(policyViolation.getId(), app1.getId(), ReleaseStageType.ID);
 
     List<NewestRiskDTO> riskDTOs = dashboardService.getNewestRisks(null, null, null, null, null, 100);

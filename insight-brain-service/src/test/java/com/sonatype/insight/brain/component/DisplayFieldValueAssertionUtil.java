@@ -8,9 +8,10 @@ package com.sonatype.insight.brain.component;
 import java.util.List;
 
 import com.sonatype.clm.dto.model.component.ComponentDisplayNamePart;
+import com.sonatype.clm.dto.model.ide.ComponentIdentifier;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 
-import static com.sonatype.insight.brain.component.ComponentDisplayNameUtil.GAV_SEPARATOR;
+import static com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil.GAV_SEPARATOR;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.assertThat;
@@ -44,10 +45,12 @@ public class DisplayFieldValueAssertionUtil
   public static void assertDisplayFieldValues(final List<ComponentDisplayNamePart> displayName,
                                               final PolicyViolation policyViolation)
   {
-    if (policyViolation.getGroupId() == null) {
+    if (policyViolation.getComponentIdentifier() == null) {
       fail();
     }
-    assertDisplayFieldValuesForGAV(displayName, policyViolation.getGroupId(), policyViolation.getArtifactId(),
-        policyViolation.getVersion());
+    ComponentIdentifier componentIdentifier = policyViolation.getComponentIdentifier();
+    assertDisplayFieldValuesForGAV(displayName, componentIdentifier.get(ComponentIdentifier.MAVEN_GROUP_ID),
+        componentIdentifier.get(ComponentIdentifier.MAVEN_ARTIFACT_ID),
+        componentIdentifier.get(ComponentIdentifier.VERSION));
   }
 }

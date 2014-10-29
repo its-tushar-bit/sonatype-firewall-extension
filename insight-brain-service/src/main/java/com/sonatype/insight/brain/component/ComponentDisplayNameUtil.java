@@ -35,7 +35,7 @@ public class ComponentDisplayNameUtil
   private static final String SHA1_20 = "sha1_20";
 
   public static ComponentDisplayName fromPolicyViolation(PolicyViolation policyViolation) {
-    return fromGav(policyViolation.getGroupId(), policyViolation.getArtifactId(), policyViolation.getVersion());
+    return fromIdentifier(policyViolation.getComponentIdentifier());
   }
 
   public static void injectDisplayName(ObjectNode objectNode) {

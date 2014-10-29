@@ -24,8 +24,7 @@ class PolicyViolationDTOTestUtils
       if (dto.id.equals(violation.getId())) {
         assertEquals(dto.applicationId, application.getId());
         assertEquals(dto.applicationName, application.getName());
-        assertEquals(dto.artifactId, violation.getArtifactId());
-        assertEquals(dto.groupId, violation.getGroupId());
+        assertEquals(dto.componentIdentifier, violation.getComponentIdentifier());
         assertEquals(dto.hash, violation.getHash());
         assertEquals(dto.id, violation.getId());
         assertEquals(dto.policyEvaluationId, violation.getPolicyEvaluationId());
@@ -33,7 +32,6 @@ class PolicyViolationDTOTestUtils
         assertEquals(dto.policyName, policy.getName());
         assertEquals(dto.threatCategory, violation.getThreatCategory());
         assertEquals(dto.threatLevel, violation.getThreatLevel());
-        assertEquals(dto.version, violation.getVersion());
         assertEquals(dto.time, violation.getTime().getTime());
         assertEquals(dto.pathnames, violation.getPathnames());
         return;

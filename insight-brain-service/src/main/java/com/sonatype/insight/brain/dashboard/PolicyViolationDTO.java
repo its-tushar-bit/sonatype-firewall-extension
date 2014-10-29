@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.dashboard;
 
 import java.util.List;
 
+import com.sonatype.clm.dto.model.ide.ComponentIdentifier;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 
 /**
@@ -18,9 +19,10 @@ public class PolicyViolationDTO
 
   public String applicationName;
 
-  public String artifactId;
-
-  public String groupId;
+  /**
+   * @since 1.13.0
+   */
+  public ComponentIdentifier componentIdentifier;
 
   public String hash;
 
@@ -35,8 +37,6 @@ public class PolicyViolationDTO
   public PolicyThreatCategory threatCategory;
 
   public int threatLevel;
-
-  public String version;
 
   public long time;
 

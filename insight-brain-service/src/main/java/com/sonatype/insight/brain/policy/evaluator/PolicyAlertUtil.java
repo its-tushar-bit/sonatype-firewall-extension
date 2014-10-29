@@ -62,8 +62,8 @@ public class PolicyAlertUtil
         result.add(policyAlert);
       }
 
-      ComponentFact componentFact = new ComponentFact(policyViolation.getGroupId(), policyViolation.getArtifactId(),
-          policyViolation.getVersion(), policyViolation.getHash());
+      ComponentFact componentFact = new ComponentFact(policyViolation.getComponentIdentifier(),
+          policyViolation.getHash());
       ComponentDisplayNameUtil.injectDisplayName(componentFact);
       for (ConstraintFact constraintFact : policyViolation.getConstraintFacts()) {
         componentFact.addConstraintFact(constraintFact);

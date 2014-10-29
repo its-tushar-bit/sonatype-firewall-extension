@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
+import com.sonatype.clm.dto.model.ide.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
@@ -133,9 +134,8 @@ public class WaivedPolicyViolationMigratorTest
     assertThat(policyViolation.getPolicyId(), is(policyId));
     assertThat(policyViolation.getPolicyName(), is(policyName));
     assertThat(policyViolation.getThreatLevel(), is(threatLevel));
-    assertThat(policyViolation.getGroupId(), is(groupId));
-    assertThat(policyViolation.getArtifactId(), is(artifactId));
-    assertThat(policyViolation.getVersion(), is(version));
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates(groupId, artifactId, version);
+    assertThat(policyViolation.getComponentIdentifier(), is(componentIdentifier));
     assertThat(policyViolation.getHash(), is(hash));
     assertThat(policyViolation.getThreatCategory(), is(threatCategory));
     assertThat(policyViolation.getConstraintFactsJson().length(), greaterThan(0));

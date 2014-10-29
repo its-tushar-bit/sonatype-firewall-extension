@@ -124,11 +124,8 @@ public class ApiPolicyViolationService
             apiPolicyViolationDTO.reportUrl = UserInterfaceLinksResource.getReportUrl(application.getPublicId(),
                 policyEvaluation.getScanId());
             apiPolicyViolationDTO.stageId = policyEvaluation.getStageTypeId();
-            apiPolicyViolationDTO.mavenComponent = new ApiMavenComponentDTO();
-            apiPolicyViolationDTO.mavenComponent.artifactId = policyViolation.getArtifactId();
-            apiPolicyViolationDTO.mavenComponent.groupId = policyViolation.getGroupId();
-            apiPolicyViolationDTO.mavenComponent.version = policyViolation.getVersion();
-            apiPolicyViolationDTO.mavenComponent.hash = policyViolation.getHash();
+            apiPolicyViolationDTO.mavenComponent = ApiMavenComponentDTO.create(policyViolation.getHash(),
+                policyViolation.getComponentIdentifier());
             apiPolicyViolationDTO.constraintViolations = buildConstraintViolationDTOs(policyViolation);
           }
         }

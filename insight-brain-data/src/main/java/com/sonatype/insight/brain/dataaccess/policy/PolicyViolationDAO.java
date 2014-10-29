@@ -31,7 +31,7 @@ public class PolicyViolationDAO
   public List<PolicyViolation> getActiveByEvaluationId(String evaluationId) {
     String sQuery = "SELECT entity FROM PolicyViolation entity" + //
         " WHERE entity.policyEvaluationId=?1 AND entity.isWaived=false" + //
-        " ORDER BY entity.policyId, entity.groupId, entity.artifactId, entity.version, entity.hash";
+        " ORDER BY entity.policyId, entity.hash";
     return getList(sQuery, evaluationId);
   }
 
@@ -48,7 +48,7 @@ public class PolicyViolationDAO
   public List<PolicyViolation> getByEvaluationId(EntityManager em, String evaluationId) {
     String sQuery = "SELECT entity FROM PolicyViolation entity" + //
         " WHERE entity.policyEvaluationId=?1" + //
-        " ORDER BY entity.policyId, entity.groupId, entity.artifactId, entity.version, entity.hash";
+        " ORDER BY entity.policyId, entity.hash";
     return getList(em, sQuery, evaluationId);
   }
 
@@ -67,7 +67,7 @@ public class PolicyViolationDAO
         " WHERE policyViolation.id=firstOccurrencePolicyViolation.id" + //
         "   AND firstOccurrencePolicyViolation.applicationId=?1" + //
         "   AND firstOccurrencePolicyViolation.stageTypeId=?2" + //
-        " ORDER BY policyViolation.policyId, policyViolation.groupId, policyViolation.artifactId, policyViolation.version, policyViolation.hash";
+        " ORDER BY policyViolation.policyId, policyViolation.hash";
     return getList(em, sQuery, appId, stageTypeId);
   }
 

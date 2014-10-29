@@ -40,8 +40,7 @@ public class PolicyViolationAdapter
     PolicyViolationDTO dto = new PolicyViolationDTO();
     dto.applicationId = application.getId();
     dto.applicationName = application.getName();
-    dto.artifactId = violation.getArtifactId();
-    dto.groupId = violation.getGroupId();
+    dto.componentIdentifier = violation.getComponentIdentifier();
     dto.hash = violation.getHash();
     dto.id = violation.getId();
     dto.policyEvaluationId = violation.getPolicyEvaluationId();
@@ -49,7 +48,6 @@ public class PolicyViolationAdapter
     dto.policyName = violation.getPolicyName();
     dto.threatCategory = violation.getThreatCategory();
     dto.threatLevel = violation.getThreatLevel();
-    dto.version = violation.getVersion();
     dto.time = violation.getTime().getTime();
     if (violation.getPathnames() != null) {
       dto.pathnames = new ArrayList<String>(violation.getPathnames());

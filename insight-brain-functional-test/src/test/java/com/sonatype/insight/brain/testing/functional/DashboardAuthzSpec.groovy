@@ -18,8 +18,7 @@ import com.sonatype.insight.brain.model.security.User
  * @since 1.11
  */
 class DashboardAuthzSpec
-    extends BaseSpec
-{
+extends BaseSpec {
   static Organization org
 
   static Application firstApp
@@ -43,8 +42,7 @@ class DashboardAuthzSpec
         PolicyThreatCategory.LICENSE, "Group1", "Artifact1", "Version1")
     PolicyEvaluation secondPolicyEvaluation = temporaryEntity.
         newPolicyEvaluation(secondApp.id, BuildStageType.ID, 'DashboardAuthzSpecSecondEvaluation')
-    temporaryEntity.newPolicyViolation(secondPolicyEvaluation, policy, 10,
-        PolicyThreatCategory.QUALITY, null, null, null)
+    temporaryEntity.newPolicyViolation(secondPolicyEvaluation, policy, 10, PolicyThreatCategory.QUALITY)
 
     userWithPermission = temporaryEntity.newUser();
     Role role = temporaryEntity.newRole(false, Permission.READ);
@@ -55,39 +53,39 @@ class DashboardAuthzSpec
 
   def 'Should only see one of two available applications based on READ permission to one'() {
     setup: 'Logging in as a user permission to 1 of 2 applications'
-      loginAsUserVia(userWithPermission.username, userWithPermission.password, NewestRiskDashboardPage)
+    loginAsUserVia(userWithPermission.username, userWithPermission.password, NewestRiskDashboardPage)
 
     when: 'looking at available applications to filter on'
-      filters.toggle.click()
-      waitFor { filters.applicationMultiselect.displayed }
-      filters.applicationMultiselect.showDropdown()
+    filters.toggle.click()
+    waitFor { filters.applicationMultiselect.displayed }
+    filters.applicationMultiselect.showDropdown()
 
     then: 'only the permissioned application is shown'
-      filters.applicationMultiselect.dropdownList.size() == 1
-      !filters.noApplications.displayed
+    filters.applicationMultiselect.dropdownList.size() == 1
+    !filters.noApplications.displayed
   }
 
   def 'Should be advised that there are no applications to choose from without permissions'() {
     setup: 'Logging in as a user without permission to any applications'
-      loginAsUserVia(userWithoutPermission.username, userWithoutPermission.password, NewestRiskDashboardPage)
+    loginAsUserVia(userWithoutPermission.username, userWithoutPermission.password, NewestRiskDashboardPage)
 
     when: 'looking at available applications to filter on'
-      filters.toggle.click()
+    filters.toggle.click()
 
     then: 'the select is not shown, and instead a message is presented'
-      waitFor { filters.noApplications.displayed }
-      !filters.applicationMultiselect.displayed
+    waitFor { filters.noApplications.displayed }
+    !filters.applicationMultiselect.displayed
   }
 
   def 'Should only see application tag dropdown when application tags exist'() {
     setup: 'Logging in as a user without permission to any applications'
-      loginAsUserVia(userWithoutPermission.username, userWithoutPermission.password, NewestRiskDashboardPage)
+    loginAsUserVia(userWithoutPermission.username, userWithoutPermission.password, NewestRiskDashboardPage)
 
     when: 'looking at available application tag filters'
-      filters.toggle.click()
+    filters.toggle.click()
 
     then: 'the select is not shown, and instead a message is presented'
-      waitFor { filters.noApplicationTags.displayed }
-      !filters.applicationTagMultiselect.displayed
+    waitFor { filters.noApplicationTags.displayed }
+    !filters.applicationTagMultiselect.displayed
   }
 }

@@ -10,6 +10,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -18,6 +19,7 @@ import javax.persistence.Enumerated;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
+import com.sonatype.clm.dto.model.ide.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.model.HasStringId;
@@ -69,14 +71,17 @@ public class PolicyViolation
   @Column(name = "hash")
   private String hash;
 
-  @Column(name = "group_id")
-  private String groupId;
+  /**
+   * @since 1.13.0
+   */
+  @Column(name = "component_id_format")
+  private String componentIdFormat;
 
-  @Column(name = "artifact_id")
-  private String artifactId;
-
-  @Column(name = "version")
-  private String version;
+  /**
+   * @since 1.13.0
+   */
+  @Column(name = "component_id_coordinates_json")
+  private String componentIdCoordinatesJson;
 
   @Column(name = "constraint_facts_json")
   private String constraintFactsJson;
@@ -102,11 +107,26 @@ public class PolicyViolation
 
   private List<String> notifications;
 
+  /**
+   * @since 1.13.0
+   */
+  private ComponentIdentifier componentIdentifier;
+
   public PolicyViolation() {
   }
 
+  // TODO Remove the constructors that take G, A, V as param in a separate PR. I want to keep the meaningful changes
+  // separate from the pure re-factorings (wich are not so interesting).
   public PolicyViolation(PolicyEvaluation evaluation, String policyId, String policyName, int threatLevel,
       PolicyThreatCategory threatCategory, String hash, String groupId, String artifactId, String version,
+      String constraintFactsJson, String pathnames)
+  {
+    this(evaluation, policyId, policyName, threatLevel, threatCategory, hash, (groupId != null ? ComponentIdentifier
+        .createMavenCoordinates(groupId, artifactId, version) : null), constraintFactsJson, pathnames);
+  }
+
+  public PolicyViolation(PolicyEvaluation evaluation, String policyId, String policyName, int threatLevel,
+      PolicyThreatCategory threatCategory, String hash, ComponentIdentifier componentIdentifier,
       String constraintFactsJson, String pathnames)
   {
     this.policyEvaluationId = evaluation.getId();
@@ -116,9 +136,7 @@ public class PolicyViolation
     this.threatLevel = threatLevel;
     this.threatCategory = threatCategory;
     this.hash = hash;
-    this.groupId = groupId;
-    this.artifactId = artifactId;
-    this.version = version;
+    setComponentIdentifier(componentIdentifier);
     setConstraintFactsJson(constraintFactsJson);
     setPathnamesString(pathnames);
   }
@@ -141,9 +159,9 @@ public class PolicyViolation
     this.threatLevel = threatLevel;
     this.threatCategory = threatCategory;
     this.hash = hash;
-    this.groupId = groupId;
-    this.artifactId = artifactId;
-    this.version = version;
+    if (groupId != null) {
+      setComponentIdentifier(ComponentIdentifier.createMavenCoordinates(groupId, artifactId, version));
+    }
     setConstraintFacts(constraintFacts);
     setPathnames(pathnames);
   }
@@ -196,30 +214,6 @@ public class PolicyViolation
 
   public void setHash(String hash) {
     this.hash = hash;
-  }
-
-  public String getGroupId() {
-    return groupId;
-  }
-
-  public void setGroupId(String groupId) {
-    this.groupId = groupId;
-  }
-
-  public String getArtifactId() {
-    return artifactId;
-  }
-
-  public void setArtifactId(String artifactId) {
-    this.artifactId = artifactId;
-  }
-
-  public String getVersion() {
-    return version;
-  }
-
-  public void setVersion(String version) {
-    this.version = version;
   }
 
   public PolicyThreatCategory getThreatCategory() {
@@ -283,6 +277,34 @@ public class PolicyViolation
       }
     }
     return constraintFacts;
+  }
+
+  public ComponentIdentifier getComponentIdentifier() {
+    if (componentIdFormat == null) {
+      return null;
+    }
+    if (componentIdentifier == null) {
+      try {
+        componentIdentifier = new ComponentIdentifier(componentIdFormat, JsonUtils.parse(componentIdCoordinatesJson,
+            Map.class));
+      }
+      catch (IOException e) {
+        throw new RuntimeException(e);
+      }
+    }
+    return componentIdentifier;
+  }
+
+  public void setComponentIdentifier(ComponentIdentifier componentIdentifier) {
+    this.componentIdentifier = componentIdentifier;
+    if (componentIdentifier == null) {
+      componentIdFormat = null;
+      componentIdCoordinatesJson = null;
+    }
+    else {
+      componentIdFormat = componentIdentifier.format;
+      componentIdCoordinatesJson = JsonUtils.format(componentIdentifier.coordinates);
+    }
   }
 
   public List<String> getPathnames() {
@@ -350,8 +372,8 @@ public class PolicyViolation
   public String toString() {
     return "PolicyViolation [id=" + id + ", policyEvaluationId=" + policyEvaluationId + ", time=" + time + "("
         + time.getTime() + "), policyId=" + policyId + ", policyName=" + policyName + ", threatLevel=" + threatLevel
-        + ", threatCategory=" + threatCategory + ", hash=" + hash + ", groupId=" + groupId + ", artifactId="
-        + artifactId + ", version=" + version + ", actionTypeId=" + actionTypeId + "]";
+        + ", threatCategory=" + threatCategory + ", hash=" + hash + ", componentIdentifier=" + componentIdentifier
+        + ", actionTypeId=" + actionTypeId + "]";
   }
 
   public boolean isWaived() {

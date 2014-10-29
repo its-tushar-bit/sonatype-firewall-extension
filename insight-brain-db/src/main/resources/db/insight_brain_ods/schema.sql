@@ -300,9 +300,8 @@ CREATE TABLE policy_violation (
   threat_level smallint(2) NOT NULL,
   threat_category varchar(20) NOT NULL,
   hash varchar(20),
-  group_id varchar(100),
-  artifact_id varchar(100),
-  version varchar(100),
+  component_id_format varchar(10),
+  component_id_coordinates_json CLOB, -- the component identifier coordinates (that caused the policy violation) stored in json format
   constraint_facts_json CLOB NOT NULL, -- the constraint facts (that caused the policy violation) stored in json format
   pathnames CLOB, -- the paths to the component that caused the policy violation, paths are new line delimited
   action_type_id varchar(20),

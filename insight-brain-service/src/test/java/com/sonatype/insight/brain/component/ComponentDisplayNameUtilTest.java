@@ -10,6 +10,7 @@ import java.util.List;
 
 import com.sonatype.clm.dto.model.component.ComponentDisplayName;
 import com.sonatype.clm.dto.model.component.ComponentDisplayNamePart;
+import com.sonatype.clm.dto.model.ide.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ComponentFact;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 
@@ -19,8 +20,10 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.Test;
 
-import static com.sonatype.insight.brain.component.ComponentDisplayNameUtil.*;
-import static com.sonatype.insight.brain.component.DisplayFieldValueAssertionUtil.*;
+import static com.sonatype.insight.brain.component.ComponentDisplayNameUtil.fromJsonNode;
+import static com.sonatype.insight.brain.component.ComponentDisplayNameUtil.fromPolicyViolation;
+import static com.sonatype.insight.brain.component.ComponentDisplayNameUtil.injectDisplayName;
+import static com.sonatype.insight.brain.component.DisplayFieldValueAssertionUtil.assertDisplayFieldValuesForGAV;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
@@ -147,9 +150,7 @@ public class ComponentDisplayNameUtilTest
   @Test
   public void testCreateComponentNameFromPolicyViolation() {
     PolicyViolation policyViolation = new PolicyViolation();
-    policyViolation.setGroupId("foo");
-    policyViolation.setArtifactId("bar");
-    policyViolation.setVersion("1.0");
+    policyViolation.setComponentIdentifier(ComponentIdentifier.createMavenCoordinates("foo", "bar", "1.0"));
 
     ComponentDisplayName componentNameDTO = fromPolicyViolation(policyViolation);
     assertDisplayFieldValuesForGAV(componentNameDTO.parts, "foo", "bar", "1.0");

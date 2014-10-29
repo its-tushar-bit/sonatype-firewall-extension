@@ -9,9 +9,11 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
+import com.sonatype.clm.dto.model.ide.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.ApplicationComponentDAO;
@@ -30,6 +32,7 @@ import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
+import com.sonatype.insight.brain.policy.evaluator.PolicyViolationComparator;
 import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightWork;
@@ -238,6 +241,7 @@ public class PolicyEvaluationMigratorTest
     firstOccurrencePolicyViolations = policyViolationDAO.getFirstOccurrenceByApplicationIdAndStageTypeId(app1.getId(),
         Stage.ID_STAGE_RELEASE);
     assertThat(firstOccurrencePolicyViolations, hasSize(2));
+    firstOccurrencePolicyViolations = sort(firstOccurrencePolicyViolations);
     assertCarrotPolicyViolation(stageReleaseReeval.getId(), firstOccurrencePolicyViolations.get(0));
     firstOccurrencePolicyViolation = firstOccurrencePolicyViolationDAO.getById(firstOccurrencePolicyViolations.get(0)
         .getId());
@@ -283,6 +287,7 @@ public class PolicyEvaluationMigratorTest
     firstOccurrencePolicyViolations = policyViolationDAO.getFirstOccurrenceByApplicationIdAndStageTypeId(app2.getId(),
         Stage.ID_RELEASE);
     assertThat(firstOccurrencePolicyViolations, hasSize(2));
+    firstOccurrencePolicyViolations = sort(firstOccurrencePolicyViolations);
     assertCarrotPolicyViolation(app2ReleaseEval.getId(), firstOccurrencePolicyViolations.get(0));
     assertUnknownPolicyViolation(app2ReleaseEval.getId(), firstOccurrencePolicyViolations.get(1));
     firstOccurrencePolicyViolation = firstOccurrencePolicyViolationDAO.getById(firstOccurrencePolicyViolations.get(0)
@@ -302,6 +307,12 @@ public class PolicyEvaluationMigratorTest
     for (StageType stageType : StageTypes.getAll()) {
       assertThat(policyEvaluationDAO.getAllByApplicationIdAndStageId(appNoEvals.getId(), stageType.getId()), empty());
     }
+  }
+
+  private List<PolicyViolation> sort(List<PolicyViolation> policyViolations) {
+    List<PolicyViolation> result = new ArrayList<>(policyViolations);
+    Collections.sort(result, PolicyViolationComparator.COMPARATOR);
+    return result;
   }
 
   @Test
@@ -430,9 +441,9 @@ public class PolicyEvaluationMigratorTest
     assertThat(policyViolation.getPolicyId(), is(policyId));
     assertThat(policyViolation.getPolicyName(), is(policyName));
     assertThat(policyViolation.getThreatLevel(), is(threatLevel));
-    assertThat(policyViolation.getGroupId(), is(groupId));
-    assertThat(policyViolation.getArtifactId(), is(artifactId));
-    assertThat(policyViolation.getVersion(), is(version));
+    ComponentIdentifier componentIdentifier = (groupId != null ? ComponentIdentifier.createMavenCoordinates(groupId,
+        artifactId, version) : null);
+    assertThat(policyViolation.getComponentIdentifier(), is(componentIdentifier));
     assertThat(policyViolation.getHash(), is(hash));
     assertThat(policyViolation.getThreatCategory(), is(threatCategory));
     assertThat(policyViolation.getPathnames(), is(pathnames));

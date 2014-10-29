@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.api;
 
 import java.util.Date;
 
+import com.sonatype.clm.dto.model.ide.ComponentIdentifier;
 import com.sonatype.insight.brain.AuthedRestAccess;
 import com.sonatype.insight.brain.api.dto.ApiApplicationViolationDTO;
 import com.sonatype.insight.brain.api.dto.ApiApplicationViolationListDTO;
@@ -69,9 +70,10 @@ public class ApiPolicyViolationResourceTest
         is("ui/links/application/" + app.getPublicId() + "/report/" + pe1App1.getScanId()));
     assertThat(apiPolicyViolationDTO.stageId, is(pe1App1.getStageTypeId()));
     assertThat(apiPolicyViolationDTO.mavenComponent.hash, is(pv1App1.getHash()));
-    assertThat(apiPolicyViolationDTO.mavenComponent.groupId, is(pv1App1.getGroupId()));
-    assertThat(apiPolicyViolationDTO.mavenComponent.artifactId, is(pv1App1.getArtifactId()));
-    assertThat(apiPolicyViolationDTO.mavenComponent.version, is(pv1App1.getVersion()));
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates(
+        apiPolicyViolationDTO.mavenComponent.groupId, apiPolicyViolationDTO.mavenComponent.artifactId,
+        apiPolicyViolationDTO.mavenComponent.version);
+    assertThat(componentIdentifier, is(pv1App1.getComponentIdentifier()));
 
     assertThat(apiPolicyViolationDTO.constraintViolations, hasSize(1));
     ApiConstraintViolationDTO apiConstraintViolationDTO = apiPolicyViolationDTO.constraintViolations.get(0);

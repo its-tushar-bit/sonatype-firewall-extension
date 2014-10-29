@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.api.dto;
 
+import com.sonatype.clm.dto.model.ide.ComponentIdentifier;
+
 /**
  * @since 1.12.0
  */
@@ -18,4 +20,25 @@ public class ApiMavenComponentDTO
   public String artifactId;
 
   public String version;
+
+  public static ApiMavenComponentDTO create(String hash, ComponentIdentifier componentIdentifier) {
+    ApiMavenComponentDTO result = new ApiMavenComponentDTO();
+    result.hash = hash;
+    if (componentIdentifier != null) {
+      switch (componentIdentifier.format) {
+        case ComponentIdentifier.FORMAT_MAVEN:
+          result.groupId = componentIdentifier.get(ComponentIdentifier.MAVEN_GROUP_ID);
+          result.artifactId = componentIdentifier.get(ComponentIdentifier.MAVEN_ARTIFACT_ID);
+          result.version = componentIdentifier.get(ComponentIdentifier.VERSION);
+          break;
+        case ComponentIdentifier.FORMAT_NUGET:
+          result.artifactId = componentIdentifier.get(ComponentIdentifier.NUGET_PACKAGE_ID);
+          result.version = componentIdentifier.get(ComponentIdentifier.VERSION);
+          break;
+        default:
+          // We don't want to throw an exception if the format is unknown.
+      }
+    }
+    return result;
+  }
 }

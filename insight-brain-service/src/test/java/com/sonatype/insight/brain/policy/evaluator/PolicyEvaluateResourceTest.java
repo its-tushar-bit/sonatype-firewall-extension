@@ -7,12 +7,15 @@ package com.sonatype.insight.brain.policy.evaluator;
 
 import java.io.File;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
 import javax.mail.Message;
 
+import com.sonatype.clm.dto.model.ide.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
@@ -789,6 +792,12 @@ public class PolicyEvaluateResourceTest
     Assert.assertNull(eval);
   }
 
+  private List<PolicyViolation> sort(List<PolicyViolation> policyViolations) {
+    List<PolicyViolation> result = new ArrayList<>(policyViolations);
+    Collections.sort(result, PolicyViolationComparator.COMPARATOR);
+    return result;
+  }
+
   @Test
   public void testEvaluate_FirstOccurrencePolicyViolations_OneStage() throws Exception {
     String scanId = "testEvaluateFirstOccurrencePolicyViolations";
@@ -820,11 +829,13 @@ public class PolicyEvaluateResourceTest
     List<PolicyViolation> policyViolations1 = policyViolationDAO.getFirstOccurrenceByApplicationIdAndStageTypeId(app.getId(),
         stage.getStageTypeId());
     assertThat(policyViolations1, hasSize(2));
-    assertThat(policyViolations1.get(0).getGroupId(), is("commons-pool"));
-    assertThat(policyViolations1.get(1).getGroupId(), is("tomcat"));
+    policyViolations1 = sort(policyViolations1);
+    assertThat(policyViolations1.get(0).getComponentIdentifier().get(ComponentIdentifier.MAVEN_GROUP_ID), is("tomcat"));
+    assertThat(policyViolations1.get(1).getComponentIdentifier().get(ComponentIdentifier.MAVEN_GROUP_ID),
+        is("commons-pool"));
     FirstOccurrencePolicyViolationDAO firstOccurrencePolicyViolationDAO = new FirstOccurrencePolicyViolationDAO();
     FirstOccurrencePolicyViolation firstOccurrencePolicyViolationUnchanged1 = firstOccurrencePolicyViolationDAO
-        .getById(policyViolations1.get(0).getId());
+        .getById(policyViolations1.get(1).getId());
 
     // Change one of the policy conditions and re-evaluate the policy.
     // This should cause a policy violation to be cleared and a new policy violation to appear.
@@ -836,10 +847,13 @@ public class PolicyEvaluateResourceTest
     List<PolicyViolation> policyViolations2 = policyViolationDAO.getFirstOccurrenceByApplicationIdAndStageTypeId(app.getId(),
         stage.getStageTypeId());
     assertThat(policyViolations2, hasSize(2));
-    assertThat(policyViolations2.get(0).getGroupId(), is("commons-dbcp"));
-    assertThat(policyViolations2.get(1).getGroupId(), is("commons-pool"));
+    policyViolations2 = sort(policyViolations2);
+    assertThat(policyViolations2.get(0).getComponentIdentifier().get(ComponentIdentifier.MAVEN_GROUP_ID),
+        is("commons-pool"));
+    assertThat(policyViolations2.get(1).getComponentIdentifier().get(ComponentIdentifier.MAVEN_GROUP_ID),
+        is("commons-dbcp"));
     FirstOccurrencePolicyViolation firstOccurrencePolicyViolationUnchanged2 = firstOccurrencePolicyViolationDAO
-        .getById(policyViolations2.get(1).getId());
+        .getById(policyViolations2.get(0).getId());
     assertThat(firstOccurrencePolicyViolationUnchanged2.getId(), is(firstOccurrencePolicyViolationUnchanged1.getId()));
   }
 
@@ -867,7 +881,8 @@ public class PolicyEvaluateResourceTest
     List<PolicyViolation> policyViolationsBuild = policyViolationDAO.getFirstOccurrenceByApplicationIdAndStageTypeId(
         app.getId(), BuildStageType.ID);
     assertThat(policyViolationsBuild, hasSize(1));
-    assertThat(policyViolationsBuild.get(0).getGroupId(), is("commons-pool"));
+    assertThat(policyViolationsBuild.get(0).getComponentIdentifier().get(ComponentIdentifier.MAVEN_GROUP_ID),
+        is("commons-pool"));
     FirstOccurrencePolicyViolationDAO firstOccurrencePolicyViolationDAO = new FirstOccurrencePolicyViolationDAO();
     FirstOccurrencePolicyViolation firstOccurrencePolicyViolationBuild = firstOccurrencePolicyViolationDAO
         .getById(policyViolationsBuild.get(0).getId());
@@ -883,7 +898,8 @@ public class PolicyEvaluateResourceTest
     List<PolicyViolation> policyViolationsRelease = policyViolationDAO.getFirstOccurrenceByApplicationIdAndStageTypeId(
         app.getId(), ReleaseStageType.ID);
     assertThat(policyViolationsRelease, hasSize(1));
-    assertThat(policyViolationsRelease.get(0).getGroupId(), is("commons-pool"));
+    assertThat(policyViolationsRelease.get(0).getComponentIdentifier().get(ComponentIdentifier.MAVEN_GROUP_ID),
+        is("commons-pool"));
     FirstOccurrencePolicyViolation firstOccurrencePolicyViolationRelease = firstOccurrencePolicyViolationDAO
         .getById(policyViolationsRelease.get(0).getId());
     assertThat(firstOccurrencePolicyViolationRelease.getId(), is(not(firstOccurrencePolicyViolationBuild.getId())));

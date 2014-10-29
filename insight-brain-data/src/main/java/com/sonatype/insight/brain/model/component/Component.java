@@ -14,18 +14,18 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.sonatype.clm.dto.model.component.ComponentDisplayName;
+import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
+import com.sonatype.clm.dto.model.ide.ComponentIdentifier;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import static com.sonatype.clm.dto.model.ide.ComponentIdentifier.*;
+
 public class Component
 {
-  private String groupId;
-
-  private String artifactId;
-
-  private String version;
 
   private String hash;
 
@@ -55,39 +55,28 @@ public class Component
 
   private List<String> pathnames = new ArrayList<>();
 
+  private ComponentIdentifier componentIdentifier;
+
   public Component() {
   }
 
   public Component(final String groupId, final String artifactId, final String version, MatchState matchState) {
-    this.groupId = groupId;
-    this.artifactId = artifactId;
-    this.version = version;
+    this.componentIdentifier = createMavenCoordinates(groupId, artifactId, version);
     this.matchState = matchState;
   }
 
   public String getGroupId() {
-    return groupId;
-  }
-
-  public void setGroupId(final String groupId) {
-    this.groupId = groupId;
+    return componentIdentifier != null ? componentIdentifier.get(MAVEN_GROUP_ID) : null;
   }
 
   public String getArtifactId() {
-    return artifactId;
-  }
-
-  public void setArtifactId(final String artifactId) {
-    this.artifactId = artifactId;
+    return componentIdentifier != null ? componentIdentifier.get(MAVEN_ARTIFACT_ID) : null;
   }
 
   public String getVersion() {
-    return version;
+    return componentIdentifier != null ? componentIdentifier.get(VERSION) : null;
   }
 
-  public void setVersion(final String version) {
-    this.version = version;
-  }
 
   public List<SecurityVulnerability> getSecurityVulnerabilitiesByStatusId(String securityVulnerabilityStatusId) {
     if (getSecurityVulnerabilities().isEmpty()) {
@@ -123,8 +112,9 @@ public class Component
   }
 
   @JsonIgnore
-  public String getGAV() {
-    return groupId + ':' + artifactId + ':' + version;
+  public String getDisplayName() {
+    ComponentDisplayName componentDisplayName = ComponentDisplayNameUtil.fromIdentifier(componentIdentifier);
+    return componentDisplayName != null ? componentDisplayName.toString() : null;
   }
 
   public Set<String> getDeclaredLicenseIds() {
@@ -310,5 +300,13 @@ public class Component
 
   public void addPathname(String pathname) {
     pathnames.add(pathname);
+  }
+
+  public ComponentIdentifier getComponentIdentifier() {
+    return componentIdentifier;
+  }
+
+  public void setComponentIdentifier(final ComponentIdentifier componentIdentifier) {
+    this.componentIdentifier = componentIdentifier;
   }
 }

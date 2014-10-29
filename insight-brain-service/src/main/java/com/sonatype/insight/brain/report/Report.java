@@ -232,7 +232,8 @@ public final class Report
         if (threatLevel > 0) {
           // Punch card expects 0 to be the highest threat with 2 being the lowest
           final int threatDepth = threatLevel < 4 ? 2 : threatLevel < 8 ? 1 : 0;
-          for (final JsonNode level : gavDepths.path(component.getGAV())) {
+          //TODO KR CLM-3697- gavDepths expects : delimited string to encode GAV, no spaces. Should probably just be display name
+          for (final JsonNode level : gavDepths.path(component.getDisplayName().replaceAll(" ", ""))) {
             final int index = level.asInt() - 1;
             while (index >= licensePunchCard.size()) {
               licensePunchCard.add(new int[3]);

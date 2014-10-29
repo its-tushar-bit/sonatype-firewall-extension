@@ -60,7 +60,7 @@ public class PolicyEvaluator
 
     private String index(final MatchFact fact) {
       // doesn't have to be lexically correct, just need to impose consistent ordering
-      return fact != null ? fact.getPolicyId() + '|' + fact.getComponent().getGAV() + '|'
+      return fact != null ? fact.getPolicyId() + '|' + fact.getComponent().getDisplayName() + '|'
           + fact.getComponent().getHash() + '|' + fact.getConstraintId() + '|' + fact.getConditionNumber() : "";
     }
   };

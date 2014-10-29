@@ -14,6 +14,7 @@ import java.util.Map;
 import java.util.Set;
 
 import com.sonatype.clm.dto.model.ComponentInfo;
+import com.sonatype.clm.dto.model.ide.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.label.ComponentLabelDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
@@ -36,6 +37,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 
 public class ComponentDAO
 {
+
   private MultiLicenseDAO multiLicenseDAO = new MultiLicenseDAO();
 
   private LicenseThreatGroupDAO licenseThreatGroupDAO = new LicenseThreatGroupDAO();
@@ -49,10 +51,10 @@ public class ComponentDAO
 
   private void loadLicenseOverride(Application application, Component component) {
     LicenseOverride licenseOverride = new LicenseOverrideDAO().getByOwnerIdAndGAV(application.getId(),
-        component.getGroupId(), component.getArtifactId(), component.getVersion());
+      component.getGroupId(), component.getArtifactId(), component.getVersion());
     if (licenseOverride == null) {
       licenseOverride = new LicenseOverrideDAO().getByOwnerIdAndGAV(application.getOrganizationId(),
-          component.getGroupId(), component.getArtifactId(), component.getVersion());
+        component.getGroupId(), component.getArtifactId(), component.getVersion());
     }
     if (licenseOverride != null) {
       component.setLicenseOverrideStatus(licenseOverride.getStatus());
@@ -63,7 +65,7 @@ public class ComponentDAO
   public List<Component> getAll(Application application, final byte[] licenseData, final byte[] securityData,
       final byte[] bomData)
   {
-    final Map<String, List<Component>> componentsByGAV = new LinkedHashMap<String, List<Component>>();
+    final Map<ComponentIdentifier, List<Component>> componentsByKey = new LinkedHashMap<>();
     final Map<String, Component> componentsByHash = new LinkedHashMap<String, Component>();
 
     // Load bom data
@@ -92,24 +94,20 @@ public class ComponentDAO
             component.addPathname(path.asText());
           }
           if (!matchState.equals(MatchState.UNKNOWN)) {
-            final String groupId = componentJson.get("groupId").asText();
-            final String artifactId = componentJson.get("artifactId").asText();
-            final String version = componentJson.get("version").asText();
+            component.setComponentIdentifier(ComponentIdentifierAdapter.getComponentIdentifier(componentJson));
+
             final JsonNode relativePopularityJson = componentJson.get("relativePopularity");
             final int relativePopularity = (int) (relativePopularityJson.asDouble() * 100);
             final long catalogDate = componentJson.get("createTime").asLong();
 
-            component.setGroupId(groupId);
-            component.setArtifactId(artifactId);
-            component.setVersion(version);
             component.setRelativePopularity(relativePopularity);
             component.setCatalogDate(catalogDate);
 
-            String key = getComponentGAVKey(groupId, artifactId, version);
-            List<Component> components = componentsByGAV.get(key);
+            ComponentIdentifier key = component.getComponentIdentifier();
+            List<Component> components = componentsByKey.get(key);
             if (components == null) {
-              components = new ArrayList<Component>();
-              componentsByGAV.put(key, components);
+              components = new ArrayList<>();
+              componentsByKey.put(key, components);
             }
             components.add(component);
           }
@@ -131,12 +129,8 @@ public class ComponentDAO
         final ArrayNode licenseJsonArray = (ArrayNode) licenseJson;
         for (int i = 0; i < licenseJsonArray.size(); i++) {
           final JsonNode jsonLicenseNode = licenseJsonArray.get(i);
-          final String groupId = jsonLicenseNode.get("groupId").asText();
-          final String artifactId = jsonLicenseNode.get("artifactId").asText();
-          final String version = jsonLicenseNode.get("version").asText();
-
-          String key = getComponentGAVKey(groupId, artifactId, version);
-          List<Component> components = componentsByGAV.get(key);
+          ComponentIdentifier key = ComponentIdentifierAdapter.getComponentIdentifier(jsonLicenseNode);
+          List<Component> components = componentsByKey.get(key);
           if (components != null) {
             for (Component component : components) {
               processJsonLicenseData(component, jsonLicenseNode);
@@ -155,17 +149,14 @@ public class ComponentDAO
         final ArrayNode securityJsonArray = (ArrayNode) securityJson;
         for (int i = 0; i < securityJsonArray.size(); i++) {
           final JsonNode securityVulnerabilityJson = securityJsonArray.get(i);
-          final String groupId = securityVulnerabilityJson.get("groupId").asText();
-          final String artifactId = securityVulnerabilityJson.get("artifactId").asText();
-          final String version = securityVulnerabilityJson.get("version").asText();
+          ComponentIdentifier key = ComponentIdentifierAdapter.getComponentIdentifier(securityVulnerabilityJson);
           final String source = securityVulnerabilityJson.get("source").asText();
           final String reference = securityVulnerabilityJson.get("reference").asText();
           final Float severity = JsonUtils.getNullableFloat(securityVulnerabilityJson.get("score"));
           final String statusString = JsonUtils.getNullableString(securityVulnerabilityJson.get("status"));
           final SecurityVulnerabilityStatus status = SecurityVulnerabilityStatus.getByName(statusString);
 
-          String key = getComponentGAVKey(groupId, artifactId, version);
-          List<Component> components = componentsByGAV.get(key);
+          List<Component> components = componentsByKey.get(key);
           if (components != null) {
             for (Component component : components) {
               SecurityVulnerability securityVulnerability = new SecurityVulnerability();
@@ -203,9 +194,8 @@ public class ComponentDAO
     Component component = new Component();
 
     component.setHash(componentInfo.getHash());
-    component.setGroupId(componentInfo.getGroupId());
-    component.setArtifactId(componentInfo.getArtifactId());
-    component.setVersion(componentInfo.getVersion());
+    component.setComponentIdentifier(ComponentIdentifier
+      .createMavenCoordinates(componentInfo.getGroupId(), componentInfo.getArtifactId(), componentInfo.getVersion()));
 
     component.setMatchState(MatchState.getById(componentInfo.getMatchState()));
     if (componentInfo.getIdentificationSource() != null) {
@@ -230,11 +220,9 @@ public class ComponentDAO
   }
 
   public Component getComponent(Application application, JsonNode jsonLicenseNode) {
-    Component component = new Component();
-    component.setArtifactId(jsonLicenseNode.get("artifactId").asText());
-    component.setGroupId(jsonLicenseNode.get("groupId").asText());
-    component.setVersion(jsonLicenseNode.get("version").asText());
 
+    Component component = new Component();
+    component.setComponentIdentifier(ComponentIdentifierAdapter.getComponentIdentifier(jsonLicenseNode));
     processJsonLicenseData(component, jsonLicenseNode);
     loadLicenseOverride(application, component);
 
@@ -343,10 +331,6 @@ public class ComponentDAO
       }
     }
     return licenseIds;
-  }
-
-  private static String getComponentGAVKey(final String groupId, final String artifactId, final String version) {
-    return groupId + ':' + artifactId + ':' + version;
   }
 
   private static JsonNode loadJson(final byte[] data) {

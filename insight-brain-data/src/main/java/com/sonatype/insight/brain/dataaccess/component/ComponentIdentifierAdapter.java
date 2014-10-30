@@ -18,19 +18,18 @@ import static com.sonatype.clm.dto.model.ide.ComponentIdentifier.MAVEN_GROUP_ID;
 import static com.sonatype.clm.dto.model.ide.ComponentIdentifier.VERSION;
 
 /**
- * Provides facilities for augmenting older data with ComponentIdentifier details, and utility methods
- * for extracting ComponentIdentifier details from JSON.
- *
+ * Provides utility methods for extracting ComponentIdentifier details from JSON.
+ * 
  * @since 1.13.0
  */
-public class ComponentIdentifierAdapter
+class ComponentIdentifierAdapter
 {
-  public static final String COMPONENT_IDENTIFIER = "componentIdentifier";
+  private static final String COMPONENT_IDENTIFIER = "componentIdentifier";
 
   /**
    * Extract ComponentIdentifier or create one as needed from existing GAV data.
    */
-  public static ComponentIdentifier getComponentIdentifier(final JsonNode objectNode) {
+  static ComponentIdentifier getComponentIdentifier(final JsonNode objectNode) {
     if (objectNode.hasNonNull(COMPONENT_IDENTIFIER)) {
       return toComponentIdentifier(objectNode.get(COMPONENT_IDENTIFIER));
     }

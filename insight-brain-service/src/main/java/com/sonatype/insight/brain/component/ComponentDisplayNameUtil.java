@@ -92,10 +92,10 @@ public class ComponentDisplayNameUtil
     switch (infoNode.get("format").textValue()) {
       case ComponentIdentifier.FORMAT_MAVEN:
         JsonNode mavenNode = objectNode.get(ComponentIdentifier.FORMAT_MAVEN);
-        ComponentIdentifier mavenIdentifier = ComponentIdentifier
-            .createMavenCoordinates(mavenNode.get(ComponentIdentifier.MAVEN_GROUP_ID).textValue(),
-                mavenNode.get(ComponentIdentifier.MAVEN_ARTIFACT_ID).textValue(),
-                mavenNode.get(ComponentIdentifier.VERSION).textValue(), null, null);
+        ComponentIdentifier mavenIdentifier = ComponentIdentifier.createMavenCoordinates(
+            mavenNode.get(ComponentIdentifier.MAVEN_GROUP_ID).textValue(),
+            mavenNode.get(ComponentIdentifier.MAVEN_ARTIFACT_ID).textValue(),
+            mavenNode.get(ComponentIdentifier.VERSION).textValue());
         return fromComponentIdentifier(mavenIdentifier);
       case ComponentIdentifier.FORMAT_NUGET:
         JsonNode nugetNode = objectNode.get(ComponentIdentifier.FORMAT_NUGET);
@@ -132,34 +132,25 @@ public class ComponentDisplayNameUtil
   private static ComponentDisplayName generateDisplayFieldValues(ComponentIdentifier identifier,
       List<String> fileNames, String hash)
   {
-    String format = identifier != null ? identifier.format : "";
-    switch (format) {
-      case ComponentIdentifier.FORMAT_MAVEN: {
-        Map<String, String> coordinates = identifier.coordinates;
-        return fromGav(coordinates.get(ComponentIdentifier.MAVEN_GROUP_ID),
-            coordinates.get(ComponentIdentifier.MAVEN_ARTIFACT_ID), coordinates.get(ComponentIdentifier.VERSION));
-      }
-      case ComponentIdentifier.FORMAT_NUGET: {
-        Map<String, String> coordinates = identifier.coordinates;
-        return fromNuGet(coordinates.get(ComponentIdentifier.NUGET_PACKAGE_ID),
-            coordinates.get(ComponentIdentifier.VERSION));
-      }
-      default:
-        ComponentDisplayName name = new ComponentDisplayName();
-        if (fileNames != null && fileNames.size() > 0) {
-          int fileNamesSize = fileNames.size();
-          for (int i = 0; i < fileNamesSize; i++) {
-            name.add("Filename", fileNames.get(i));
-            if (i < fileNamesSize - 1) {
-              name.add(", ");
-            }
+    if (identifier != null) {
+      return fromIdentifier(identifier);
+    }
+    else {
+      ComponentDisplayName name = new ComponentDisplayName();
+      if (fileNames != null && fileNames.size() > 0) {
+        int fileNamesSize = fileNames.size();
+        for (int i = 0; i < fileNamesSize; i++) {
+          name.add("Filename", fileNames.get(i));
+          if (i < fileNamesSize - 1) {
+            name.add(", ");
           }
         }
-        else {
-          name.add("(Anonymized Path) SHA1: ");
-          name.add("Hash", hash);
-        }
-        return name;
+      }
+      else {
+        name.add("(Anonymized Path) SHA1: ");
+        name.add("Hash", hash);
+      }
+      return name;
     }
   }
 }

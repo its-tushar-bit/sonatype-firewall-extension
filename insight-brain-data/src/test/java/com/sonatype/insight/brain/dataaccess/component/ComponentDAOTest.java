@@ -11,7 +11,6 @@ import java.util.Set;
 import java.util.TreeSet;
 
 import com.sonatype.clm.dto.model.SecurityVulnerability;
-import com.sonatype.clm.dto.model.ide.ComponentIdentifier;
 import com.sonatype.clm.dto.model.ide.MatchedComponent;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.dataaccess.label.ComponentLabelDAO;
@@ -28,7 +27,6 @@ import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import org.hamcrest.core.IsCollectionContaining;
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;

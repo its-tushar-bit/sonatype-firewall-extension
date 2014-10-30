@@ -12,7 +12,6 @@ import java.util.List;
 import com.sonatype.clm.dto.model.ide.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
-import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;

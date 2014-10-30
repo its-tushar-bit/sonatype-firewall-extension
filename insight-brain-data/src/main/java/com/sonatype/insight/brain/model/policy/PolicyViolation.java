@@ -115,16 +115,6 @@ public class PolicyViolation
   public PolicyViolation() {
   }
 
-  // TODO Remove the constructors that take G, A, V as param in a separate PR. I want to keep the meaningful changes
-  // separate from the pure re-factorings (wich are not so interesting).
-  public PolicyViolation(PolicyEvaluation evaluation, String policyId, String policyName, int threatLevel,
-      PolicyThreatCategory threatCategory, String hash, String groupId, String artifactId, String version,
-      String constraintFactsJson, String pathnames)
-  {
-    this(evaluation, policyId, policyName, threatLevel, threatCategory, hash, (groupId != null ? ComponentIdentifier
-        .createMavenCoordinates(groupId, artifactId, version) : null), constraintFactsJson, pathnames);
-  }
-
   public PolicyViolation(PolicyEvaluation evaluation, String policyId, String policyName, int threatLevel,
       PolicyThreatCategory threatCategory, String hash, ComponentIdentifier componentIdentifier,
       String constraintFactsJson, String pathnames)
@@ -141,15 +131,15 @@ public class PolicyViolation
     setPathnamesString(pathnames);
   }
 
-  public PolicyViolation(PolicyEvaluation evaluation, Policy policy, String hash, String groupId, String artifactId,
-      String version, List<ConstraintFact> constraintFacts, List<String> pathnames)
+  public PolicyViolation(PolicyEvaluation evaluation, Policy policy, String hash,
+      ComponentIdentifier componentIdentifier, List<ConstraintFact> constraintFacts, List<String> pathnames)
   {
     this(evaluation, policy.getId(), policy.getName(), policy.getThreatLevel(), policy.getThreatCategory(), hash,
-        groupId, artifactId, version, constraintFacts, pathnames);
+        componentIdentifier, constraintFacts, pathnames);
   }
 
   public PolicyViolation(PolicyEvaluation evaluation, String policyId, String policyName, int threatLevel,
-      PolicyThreatCategory threatCategory, String hash, String groupId, String artifactId, String version,
+      PolicyThreatCategory threatCategory, String hash, ComponentIdentifier componentIdentifier,
       List<ConstraintFact> constraintFacts, List<String> pathnames)
   {
     this.policyEvaluationId = evaluation.getId();
@@ -159,9 +149,7 @@ public class PolicyViolation
     this.threatLevel = threatLevel;
     this.threatCategory = threatCategory;
     this.hash = hash;
-    if (groupId != null) {
-      setComponentIdentifier(ComponentIdentifier.createMavenCoordinates(groupId, artifactId, version));
-    }
+    setComponentIdentifier(componentIdentifier);
     setConstraintFacts(constraintFacts);
     setPathnames(pathnames);
   }

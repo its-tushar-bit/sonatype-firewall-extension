@@ -12,6 +12,7 @@ import java.util.UUID;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
+import com.sonatype.clm.dto.model.ide.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ComponentFact;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.PolicyFact;
@@ -65,10 +66,16 @@ class TestHelper
       PolicyFact policyFact = policyAlert.getTrigger();
       createPolicy(appId, policyFact.getPolicyId(), policyFact.getPolicyName());
       for (ComponentFact componentFact : policyFact.getComponentFacts()) {
+        ComponentIdentifier componentIdentifier = null;
+        // TODO Get the componentIdentifier from the componentFact when CLM-3665 is implemented
+        if (componentFact.getGroupId() != null) {
+          componentIdentifier = ComponentIdentifier.createMavenCoordinates(componentFact.getGroupId(),
+              componentFact.getArtifactId(), componentFact.getVersion());
+        }
         PolicyViolation policyViolation = new PolicyViolation(policyEvaluation, policyFact.getPolicyId(),
             policyFact.getPolicyName(), policyFact.getThreatLevel(), PolicyThreatCategory.OTHER,
-            componentFact.getHash(), componentFact.getGroupId(), componentFact.getArtifactId(),
-            componentFact.getVersion(), componentFact.getConstraintFacts(), componentFact.getPathnames());
+            componentFact.getHash(), componentIdentifier, componentFact.getConstraintFacts(),
+            componentFact.getPathnames());
         policyViolationDAO.insert(policyViolation);
       }
     }

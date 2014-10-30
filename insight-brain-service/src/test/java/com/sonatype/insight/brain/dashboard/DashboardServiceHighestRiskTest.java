@@ -9,6 +9,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
+import com.sonatype.clm.dto.model.ide.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.ApplicationComponentDAO;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.filter.DashboardFilterDAO;
@@ -48,6 +49,8 @@ import static org.mockito.Mockito.when;
 @RunWith(MockitoJUnitRunner.class)
 public class DashboardServiceHighestRiskTest
 {
+  private static final ComponentIdentifier MAVEN_IDENTIFIER1 = ComponentIdentifier.createMavenCoordinates("group1",
+      "artifact1", "1.0");
 
   private DashboardService dashboardService;
 
@@ -141,16 +144,10 @@ public class DashboardServiceHighestRiskTest
 
   private String policyName = "firstPolicy";
 
-  private String groupId1 = "group1";
-
-  private String artifactId1 = "artifact1";
-
-  private String versionId1 = "1.0";
-
   private String vioHash1 = "bargobl";
 
   private PolicyViolation vio1 = new PolicyViolation(policyEvaluation1, "policyW", policyName, 5,
-      PolicyThreatCategory.LICENSE, vioHash1, groupId1, artifactId1, versionId1, "[]", "");
+      PolicyThreatCategory.LICENSE, vioHash1, MAVEN_IDENTIFIER1, "[]", "");
 
 
   private String appId2 = "wagarbl2";
@@ -178,7 +175,7 @@ public class DashboardServiceHighestRiskTest
   }
 
   private PolicyViolation vio4 = new PolicyViolation(policyEvaluation4, "policyFour", policyName4, 3,
-      PolicyThreatCategory.LICENSE, vioHash1, groupId1, artifactId1, versionId1, "[]", "");
+      PolicyThreatCategory.LICENSE, vioHash1, MAVEN_IDENTIFIER1, "[]", "");
 
 
   private void assertRisk(RiskDTO risk, int criticalRisk, int severeRisk, int moderateRisk,
@@ -257,7 +254,7 @@ public class DashboardServiceHighestRiskTest
     policyEvaluation2.setId(policyEvalId2);
     policyEvaluation2.setTime(new Date(5000L));
     PolicyViolation vio2 = new PolicyViolation(policyEvaluation2, "policyHam", policyName2, 7,
-        PolicyThreatCategory.LICENSE, vioHash1, groupId1, artifactId1, versionId1, "[]", "");
+        PolicyThreatCategory.LICENSE, vioHash1, MAVEN_IDENTIFIER1, "[]", "");
 
     List<ApplicationRiskScoreDTO> result = doTest(Lists.newArrayList(buildStage, releaseStage),
         Lists.newArrayList(application1),
@@ -286,7 +283,7 @@ public class DashboardServiceHighestRiskTest
     policyEvaluation2.setId(policyEvalId2);
     policyEvaluation2.setTime(new Date(5000L));
     PolicyViolation vio2 = new PolicyViolation(policyEvaluation2, "policyHam", policyName2, 7,
-        PolicyThreatCategory.LICENSE, vioHash1, groupId1, artifactId1, versionId1, "[]", "");
+        PolicyThreatCategory.LICENSE, vioHash1, MAVEN_IDENTIFIER1, "[]", "");
 
     List<ApplicationRiskScoreDTO> result = doTest(Lists.newArrayList(buildStage, releaseStage),
         Lists.newArrayList(application1, application2),
@@ -335,7 +332,7 @@ public class DashboardServiceHighestRiskTest
     policyEvaluation3.setId(policyEvalId3);
     policyEvaluation3.setTime(new Date(5000L));
     PolicyViolation vio3 = new PolicyViolation(policyEvaluation3, "policyCheese", policyName3, 3,
-        PolicyThreatCategory.LICENSE, vioHash1, groupId1, artifactId1, versionId1, "[]", "");
+        PolicyThreatCategory.LICENSE, vioHash1, MAVEN_IDENTIFIER1, "[]", "");
 
     List<ApplicationRiskScoreDTO> result = doTest(Lists.newArrayList(buildStage, releaseStage),
         Lists.newArrayList(application1, application2, application3),
@@ -379,14 +376,11 @@ public class DashboardServiceHighestRiskTest
     policyEvaluation5.setId(policyEvalId5);
     policyEvaluation5.setTime(new Date(4000L));
     PolicyViolation vio5 = new PolicyViolation(policyEvaluation5, "policyBacon", policyName5, 3,
-        PolicyThreatCategory.LICENSE, vioHash1, groupId1, artifactId1, versionId1, "[]", "");
-    String groupId2 = "group2";
-    String artifactId2 = "artifact2";
-    String versionId2 = "1.2";
+        PolicyThreatCategory.LICENSE, vioHash1, MAVEN_IDENTIFIER1, "[]", "");
     String vioHash2 = "bargoblyh";
     PolicyViolation vio51 = new PolicyViolation(policyEvaluation5, "policyw", policyName5, 9,
-        PolicyThreatCategory.LICENSE, vioHash2, groupId2, artifactId2, versionId2, "[]", "");
-
+        PolicyThreatCategory.LICENSE, vioHash2,
+        ComponentIdentifier.createMavenCoordinates("group2", "artifact2", "1.2"), "[]", "");
 
     List<ApplicationRiskScoreDTO> result = doTest(Lists.newArrayList(buildStage), Lists.newArrayList(application1),
         Lists.newArrayList(policyEvaluation5), Lists.newArrayList(vio5, vio51), Integer.MAX_VALUE);
@@ -411,7 +405,7 @@ public class DashboardServiceHighestRiskTest
     policyEvaluation7.setId(policyEvalId7);
     policyEvaluation7.setTime(new Date(4000L));
     PolicyViolation vio7 = new PolicyViolation(policyEvaluation7, sharedPolicyId, policyName7, 5,
-        PolicyThreatCategory.LICENSE, vioHash1, groupId1, artifactId1, versionId1, "[]", "");
+        PolicyThreatCategory.LICENSE, vioHash1, MAVEN_IDENTIFIER1, "[]", "");
 
     String policyEvalId8 = "polEval8";
     String policyName8 = "eightPolicy";
@@ -419,7 +413,7 @@ public class DashboardServiceHighestRiskTest
     policyEvaluation8.setId(policyEvalId8);
     policyEvaluation8.setTime(new Date(4000L));
     PolicyViolation vio8 = new PolicyViolation(policyEvaluation8, sharedPolicyId, policyName8, 5,
-        PolicyThreatCategory.LICENSE, vioHash1, groupId1, artifactId1, versionId1, "[]", "");
+        PolicyThreatCategory.LICENSE, vioHash1, MAVEN_IDENTIFIER1, "[]", "");
 
 
     List<ApplicationRiskScoreDTO> result = doTest(Lists.newArrayList(buildStage, releaseStage),
@@ -447,7 +441,7 @@ public class DashboardServiceHighestRiskTest
     policyEvaluation5.setId(policyEvalId5);
     policyEvaluation5.setTime(new Date(4000L));
     PolicyViolation vio5 = new PolicyViolation(policyEvaluation5, "policy5", policyName5, 0,
-        PolicyThreatCategory.LICENSE, vioHash1, groupId1, artifactId1, versionId1, "[]", "");
+        PolicyThreatCategory.LICENSE, vioHash1, MAVEN_IDENTIFIER1, "[]", "");
 
     List<ApplicationRiskScoreDTO> result = doTest(Lists.newArrayList(buildStage), Lists.newArrayList(application1),
         Lists.newArrayList(policyEvaluation5), Lists.newArrayList(vio5), Integer.MAX_VALUE);

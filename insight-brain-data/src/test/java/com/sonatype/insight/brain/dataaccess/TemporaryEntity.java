@@ -615,7 +615,8 @@ public class TemporaryEntity
         .getOperator().name());
     ConditionFact conditionFact = new ConditionFact(condition.getConditionTypeId(), "summary", reason);
     constraintFact.addConditionFact(conditionFact);
-    PolicyViolation policyViolation = new PolicyViolation(evaluation, policy, hash, groupId, artifactId, version,
+    PolicyViolation policyViolation = new PolicyViolation(evaluation, policy, hash,
+        ComponentIdentifier.createMavenCoordinates(groupId, artifactId, version),
         Collections.singletonList(constraintFact), null /* pathnames */);
     policyViolationDAO.insert(policyViolation);
     return policyViolation;
@@ -629,8 +630,8 @@ public class TemporaryEntity
   public WaivedPolicyViolation newWaivedPolicyViolation(PolicyEvaluation evaluation, Policy policy,
       String groupId, String artifactId, String version, String hash, PolicyWaiver policyWaiver) {
     PolicyViolation policyViolation = new PolicyViolation(evaluation, policy.getId(), policy.getName(),
-        policy.getThreatLevel(), policy.getThreatCategory(), hash, groupId, artifactId, version, "[]",
-        "unknown.jar");
+        policy.getThreatLevel(), policy.getThreatCategory(), hash, ComponentIdentifier.createMavenCoordinates(groupId,
+            artifactId, version), "[]", "unknown.jar");
     policyViolation.setWaived(true);
     policyViolationDAO.insert(policyViolation);
 

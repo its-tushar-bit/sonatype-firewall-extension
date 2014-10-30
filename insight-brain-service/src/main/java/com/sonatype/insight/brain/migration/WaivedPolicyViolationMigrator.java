@@ -16,6 +16,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.persistence.EntityManager;
 
+import com.sonatype.clm.dto.model.ide.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
@@ -196,10 +197,14 @@ public class WaivedPolicyViolationMigrator
     PolicyThreatCategory threatCategory = getPolicyThreatCategory(waivedViolation.policyId, constraintFacts);
     List<String> pathnames = null;
 
+    ComponentIdentifier componentIdentifier = null;
+    if (componentWithViolations.groupId != null) {
+      componentIdentifier = ComponentIdentifier.createMavenCoordinates(componentWithViolations.groupId,
+          componentWithViolations.artifactId, componentWithViolations.version);
+    }
     PolicyViolation policyViolation = new PolicyViolation(policyEvaluation, waivedViolation.policyId,
         waivedViolation.policyName, waivedViolation.policyThreatLevel, threatCategory, componentWithViolations.hash,
-        componentWithViolations.groupId, componentWithViolations.artifactId, componentWithViolations.version,
-        constraintFacts, pathnames);
+        componentIdentifier, constraintFacts, pathnames);
     policyViolation.setWaived(true);
     policyViolationDAO.insert(em, policyViolation);
 

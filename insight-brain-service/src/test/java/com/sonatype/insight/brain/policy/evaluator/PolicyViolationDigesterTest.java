@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import com.sonatype.clm.dto.model.ide.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.insight.brain.model.component.Component;
@@ -253,7 +254,8 @@ public class PolicyViolationDigesterTest
 
     PolicyEvaluation evaluation = new PolicyEvaluation();
     PolicyViolation policyViolation = new PolicyViolation(evaluation, "policy_4", "Policy 4", 0,
-        PolicyThreatCategory.OTHER, "H", "G", "A", "V", Collections.singletonList(constraintFact),
+        PolicyThreatCategory.OTHER, "H", ComponentIdentifier.createMavenCoordinates("G", "A", "V"),
+        Collections.singletonList(constraintFact),
         Collections.singletonList("pathnames"));
 
     return policyViolation;

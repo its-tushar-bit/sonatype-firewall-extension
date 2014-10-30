@@ -25,6 +25,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.persistence.EntityManager;
 
+import com.sonatype.clm.dto.model.ide.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.ComponentFact;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
@@ -341,10 +342,15 @@ public class PolicyEvaluationMigrator
 
         List<String> pathnames = hashToPathnames.get(componentFact.getHash());
 
+        ComponentIdentifier componentIdentifier = null;
+        // TODO Get the componentIdentifier from the componentFact when CLM-3665 is implemented
+        if (componentFact.getGroupId() != null) {
+          componentIdentifier = ComponentIdentifier.createMavenCoordinates(componentFact.getGroupId(),
+              componentFact.getArtifactId(), componentFact.getVersion());
+        }
         PolicyViolation policyViolation = new PolicyViolation(evaluation, policyFact.getPolicyId(),
             policyFact.getPolicyName(), policyFact.getThreatLevel(), threatCategory, componentFact.getHash(),
-            componentFact.getGroupId(), componentFact.getArtifactId(), componentFact.getVersion(),
-            componentFact.getConstraintFacts(), pathnames);
+            componentIdentifier, componentFact.getConstraintFacts(), pathnames);
         List<String> notifications = new ArrayList<>();
         for (Action action : policyAlert.getActions()) {
           if (Action.ID_NOTIFY.equals(action.getActionTypeId())) {

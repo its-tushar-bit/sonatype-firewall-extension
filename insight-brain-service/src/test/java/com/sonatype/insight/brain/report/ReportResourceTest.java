@@ -30,6 +30,7 @@ import javax.mail.Message;
 import com.sonatype.clm.dto.model.ComponentSummary;
 import com.sonatype.clm.dto.model.ide.ComponentDetails;
 import com.sonatype.clm.dto.model.ide.ComponentDetailsList;
+import com.sonatype.clm.dto.model.ide.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.AuthedRestAccess;
@@ -86,8 +87,6 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-
-import static com.sonatype.clm.dto.model.ide.ComponentIdentifier.*;
 
 public class ReportResourceTest
     extends AbstractResourceTest
@@ -1136,7 +1135,8 @@ public class ReportResourceTest
 
         list = JsonUtils.parse(zip.getInputStream(zip.getEntry("data/cip/list/tomcat/tomcat-util/5.5.23.json")),
             ComponentDetailsList.class);
-        details = findGAV(list, "tomcat", "tomcat-util", "5.5.23");
+        details = findDetailsForComponent(list,
+          ComponentIdentifier.createMavenCoordinates("tomcat", "tomcat-util", "5.5.23"));
         assertThat(details, is(notNullValue()));
         assertThat(details.getOverriddenLicenses(), hasSize(1));
         assertThat(details.getOverriddenLicenses().iterator().next().getLicenseId(),
@@ -1147,10 +1147,9 @@ public class ReportResourceTest
     }
   }
 
-  private ComponentDetails findGAV(ComponentDetailsList list, String g, String a, String v) {
+  private ComponentDetails findDetailsForComponent(ComponentDetailsList list, ComponentIdentifier componentIdentifier) {
     for (ComponentDetails details : list.getList()) {
-      if (details.getIdentifier() != null && g.equals(details.getIdentifier().get(MAVEN_GROUP_ID)) &&
-        a.equals(details.getIdentifier().get(MAVEN_ARTIFACT_ID)) && v.equals(details.getIdentifier().get(VERSION))) {
+      if (componentIdentifier.equals(details.getIdentifier())) {
         return details;
       }
     }

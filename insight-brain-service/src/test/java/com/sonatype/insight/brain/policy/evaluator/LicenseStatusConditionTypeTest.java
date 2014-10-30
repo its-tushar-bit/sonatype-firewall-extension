@@ -45,10 +45,10 @@ public class LicenseStatusConditionTypeTest
 
     List<Component> components = new ArrayList<Component>();
     // A component with license status OPEN
-    Component component1 = new Component("g1", "a1", "v1", MatchState.EXACT);
+    Component component1 = ComponentFactory.forGav("g1", "a1", "v1", MatchState.EXACT);
     components.add(component1);
     // A component with license status CONFIRMED
-    Component component2 = new Component("g2", "a2", "v2", MatchState.EXACT);
+    Component component2 = ComponentFactory.forGav("g2", "a2", "v2", MatchState.EXACT);
     component2.setLicenseOverrideStatus(LicenseOverrideStatus.CONFIRMED);
     components.add(component2);
 
@@ -75,10 +75,10 @@ public class LicenseStatusConditionTypeTest
 
     List<Component> components = new ArrayList<Component>();
     // A component with license status OPEN
-    Component component1 = new Component("g1", "a1", "v1", MatchState.EXACT);
+    Component component1 = ComponentFactory.forGav("g1", "a1", "v1", MatchState.EXACT);
     components.add(component1);
     // A component with license status CONFIRMED
-    Component component2 = new Component("g2", "a2", "v2", MatchState.EXACT);
+    Component component2 = ComponentFactory.forGav("g2", "a2", "v2", MatchState.EXACT);
     component2.setLicenseOverrideStatus(LicenseOverrideStatus.CONFIRMED);
     components.add(component2);
 

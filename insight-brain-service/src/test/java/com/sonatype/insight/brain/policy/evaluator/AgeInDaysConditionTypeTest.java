@@ -44,14 +44,14 @@ public class AgeInDaysConditionTypeTest
 
     List<Component> components = new ArrayList<Component>();
     // A component without age
-    Component component1 = new Component("g1", "a1", "v1", MatchState.EXACT);
+    Component component1 = ComponentFactory.forGav("g1", "a1", "v1", MatchState.EXACT);
     components.add(component1);
     // A component with age 10
-    Component component2 = new Component("g2", "a2", "v2", MatchState.EXACT);
+    Component component2 = ComponentFactory.forGav("g2", "a2", "v2", MatchState.EXACT);
     component2.setCatalogDate(System.currentTimeMillis() - 10 * AgeInDaysConditionType.DAY_IN_MILLISECONDS - 1);
     components.add(component2);
     // A component with age 20
-    Component component3 = new Component("g3", "a3", "v3", MatchState.EXACT);
+    Component component3 = ComponentFactory.forGav("g3", "a3", "v3", MatchState.EXACT);
     component3.setCatalogDate(System.currentTimeMillis() - 20 * AgeInDaysConditionType.DAY_IN_MILLISECONDS - 1);
     components.add(component3);
     // Evaluate the policy
@@ -77,14 +77,14 @@ public class AgeInDaysConditionTypeTest
 
     List<Component> components = new ArrayList<Component>();
     // A component without age
-    Component component1 = new Component("g1", "a1", "v1", MatchState.EXACT);
+    Component component1 = ComponentFactory.forGav("g1", "a1", "v1", MatchState.EXACT);
     components.add(component1);
     // A component with age 10
-    Component component2 = new Component("g2", "a2", "v2", MatchState.EXACT);
+    Component component2 = ComponentFactory.forGav("g2", "a2", "v2", MatchState.EXACT);
     component2.setCatalogDate(System.currentTimeMillis() - 10 * AgeInDaysConditionType.DAY_IN_MILLISECONDS - 1);
     components.add(component2);
     // A component with age 20
-    Component component3 = new Component("g3", "a3", "v3", MatchState.EXACT);
+    Component component3 = ComponentFactory.forGav("g3", "a3", "v3", MatchState.EXACT);
     component3.setCatalogDate(System.currentTimeMillis() - 20 * AgeInDaysConditionType.DAY_IN_MILLISECONDS - 1);
     components.add(component3);
     // Evaluate the policy

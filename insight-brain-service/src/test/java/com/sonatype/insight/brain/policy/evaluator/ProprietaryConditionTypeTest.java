@@ -41,10 +41,10 @@ public class ProprietaryConditionTypeTest
     policy.addAction(BuildStageType.ID, new Action(FailActionType.ID));
 
     List<Component> components = new ArrayList<Component>();
-    Component component1 = new Component("g1", "a1", "v1", MatchState.EXACT);
+    Component component1 = ComponentFactory.forGav("g1", "a1", "v1", MatchState.EXACT);
     component1.setProprietary(true);
     components.add(component1);
-    Component component2 = new Component("g2", "a2", "v2", MatchState.EXACT);
+    Component component2 = ComponentFactory.forGav("g2", "a2", "v2", MatchState.EXACT);
     component2.setProprietary(false);
     components.add(component2);
     Component component3 = new Component();
@@ -80,10 +80,10 @@ public class ProprietaryConditionTypeTest
     policy.addAction(BuildStageType.ID, new Action(FailActionType.ID));
 
     List<Component> components = new ArrayList<Component>();
-    Component component1 = new Component("g1", "a1", "v1", MatchState.EXACT);
+    Component component1 = ComponentFactory.forGav("g1", "a1", "v1", MatchState.EXACT);
     component1.setProprietary(true);
     components.add(component1);
-    Component component2 = new Component("g2", "a2", "v2", MatchState.EXACT);
+    Component component2 = ComponentFactory.forGav("g2", "a2", "v2", MatchState.EXACT);
     component2.setProprietary(false);
     components.add(component2);
     Component component3 = new Component();

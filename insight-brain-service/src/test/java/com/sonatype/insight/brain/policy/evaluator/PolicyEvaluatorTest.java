@@ -67,7 +67,7 @@ public class PolicyEvaluatorTest
     policy.setConstraints(constraints);
 
     List<Component> components = new ArrayList<>();
-    Component component = new Component("g", "a", "v", MatchState.SIMILAR);
+    Component component = ComponentFactory.forGav("g", "a", "v", MatchState.SIMILAR);
     components.add(component);
 
     List<PolicyAlert> policyAlerts = evaluate(policy, components);
@@ -98,11 +98,11 @@ public class PolicyEvaluatorTest
 
     final List<Component> components = new ArrayList<Component>();
     // A component with one security vulnerability
-    final Component component1 = new Component("g1", "a1", "v1", MatchState.EXACT);
+    final Component component1 = ComponentFactory.forGav("g1", "a1", "v1", MatchState.EXACT);
     component1.addSecurityVulnerability(new SecurityVulnerability("osvdb", "sv1", 3F));
     components.add(component1);
     // A component with Apache-2.0 license
-    final Component component2 = new Component("g2", "a2", "v2", MatchState.EXACT);
+    final Component component2 = ComponentFactory.forGav("g2", "a2", "v2", MatchState.EXACT);
     component2.addDeclaredLicenseId("Apache-2.0");
     components.add(component2);
 
@@ -237,7 +237,7 @@ public class PolicyEvaluatorTest
 
     final List<Component> components = new ArrayList<Component>();
     // A component with one security vulnerability
-    final Component component1 = new Component("g1", "a1", "v1", MatchState.EXACT);
+    final Component component1 = ComponentFactory.forGav("g1", "a1", "v1", MatchState.EXACT);
     component1.addSecurityVulnerability(new SecurityVulnerability("osvdb", "sv1", 3F));
     components.add(component1);
 
@@ -248,7 +248,7 @@ public class PolicyEvaluatorTest
     Assert.assertEquals(0, policyAlerts.size());
 
     // A component with Apache-2.0 license
-    final Component component2 = new Component("g2", "a2", "v2", MatchState.EXACT);
+    final Component component2 = ComponentFactory.forGav("g2", "a2", "v2", MatchState.EXACT);
     component2.addDeclaredLicenseId("Apache-2.0");
     components.add(component2);
 
@@ -259,7 +259,7 @@ public class PolicyEvaluatorTest
     Assert.assertEquals(0, policyAlerts.size());
 
     // A component with one security vulnerability and Apache-2.0 license
-    final Component component3 = new Component("g3", "a3", "v3", MatchState.EXACT);
+    final Component component3 = ComponentFactory.forGav("g3", "a3", "v3", MatchState.EXACT);
     component3.addSecurityVulnerability(new SecurityVulnerability("osvdb", "sv2", 3F));
     component3.addDeclaredLicenseId("Apache-2.0");
     components.add(component3);
@@ -277,7 +277,7 @@ public class PolicyEvaluatorTest
         "Constraint Name 1", LicenseConditionType.ID, policyAlerts);
 
     // Another component with one security vulnerability and Apache-2.0 license
-    final Component component4 = new Component("g4", "a4", "v4", MatchState.EXACT);
+    final Component component4 = ComponentFactory.forGav("g4", "a4", "v4", MatchState.EXACT);
     component4.addSecurityVulnerability(new SecurityVulnerability("osvdb", "sv4", 3F));
     component4.addDeclaredLicenseId("Apache-2.0");
     components.add(component4);
@@ -316,7 +316,7 @@ public class PolicyEvaluatorTest
 
     final List<Component> components = new ArrayList<Component>();
     // A component with one security vulnerability
-    final Component component1 = new Component("g1", "a1", "v1", MatchState.EXACT);
+    final Component component1 = ComponentFactory.forGav("g1", "a1", "v1", MatchState.EXACT);
     component1.addSecurityVulnerability(new SecurityVulnerability("osvdb", "sv1", 3F));
     components.add(component1);
 
@@ -331,7 +331,7 @@ public class PolicyEvaluatorTest
         "Constraint Name 1", SecurityVulnerabilityConditionType.ID, policyAlerts);
 
     // A component with Apache-2.0 license
-    final Component component2 = new Component("g2", "a2", "v2", MatchState.EXACT);
+    final Component component2 = ComponentFactory.forGav("g2", "a2", "v2", MatchState.EXACT);
     component2.addDeclaredLicenseId("Apache-2.0");
     components.add(component2);
 
@@ -348,7 +348,7 @@ public class PolicyEvaluatorTest
         "Constraint Name 1", LicenseConditionType.ID, policyAlerts);
 
     // A component with one security vulnerability and Apache-2.0 license
-    final Component component3 = new Component("g3", "a3", "v3", MatchState.EXACT);
+    final Component component3 = ComponentFactory.forGav("g3", "a3", "v3", MatchState.EXACT);
     component3.addSecurityVulnerability(new SecurityVulnerability("osvdb", "sv2", 3F));
     component3.addDeclaredLicenseId("Apache-2.0");
     components.add(component3);
@@ -370,7 +370,7 @@ public class PolicyEvaluatorTest
         "Constraint Name 1", LicenseConditionType.ID, policyAlerts);
 
     // Another component with one security vulnerability and Apache-2.0 license
-    final Component component4 = new Component("g4", "a4", "v4", MatchState.EXACT);
+    final Component component4 = ComponentFactory.forGav("g4", "a4", "v4", MatchState.EXACT);
     component4.addSecurityVulnerability(new SecurityVulnerability("osvdb", "sv4", 3F));
     component4.addDeclaredLicenseId("Apache-2.0");
     components.add(component4);
@@ -417,11 +417,11 @@ public class PolicyEvaluatorTest
 
     final List<Component> components = new ArrayList<Component>();
     // A component with one security vulnerability
-    final Component component1 = new Component("g1", "a1", "v1", MatchState.EXACT);
+    final Component component1 = ComponentFactory.forGav("g1", "a1", "v1", MatchState.EXACT);
     component1.addSecurityVulnerability(new SecurityVulnerability("osvdb", "sv1", 3F));
     components.add(component1);
     // A component with Apache-2.0 license
-    final Component component2 = new Component("g2", "a2", "v2", MatchState.EXACT);
+    final Component component2 = ComponentFactory.forGav("g2", "a2", "v2", MatchState.EXACT);
     component2.addDeclaredLicenseId("Apache-2.0");
     components.add(component2);
 
@@ -473,23 +473,23 @@ public class PolicyEvaluatorTest
     final List<Component> components = new ArrayList<Component>();
 
     // A component with one security vulnerability
-    final Component component1 = new Component("g1", "a1", "v1", MatchState.EXACT);
+    final Component component1 = ComponentFactory.forGav("g1", "a1", "v1", MatchState.EXACT);
     component1.addSecurityVulnerability(new SecurityVulnerability("osvdb", "sv1", 3F));
     components.add(component1);
 
     // A component with Apache-2.0 license
-    final Component component2 = new Component("g2", "a2", "v2", MatchState.EXACT);
+    final Component component2 = ComponentFactory.forGav("g2", "a2", "v2", MatchState.EXACT);
     component2.addDeclaredLicenseId("Apache-2.0");
     components.add(component2);
 
     // A component with one security vulnerability and Apache-2.0 license
-    final Component component3 = new Component("g3", "a3", "v3", MatchState.EXACT);
+    final Component component3 = ComponentFactory.forGav("g3", "a3", "v3", MatchState.EXACT);
     component3.addSecurityVulnerability(new SecurityVulnerability("osvdb", "sv2", 3F));
     component3.addDeclaredLicenseId("Apache-2.0");
     components.add(component3);
 
     // Another component with one security vulnerability and Apache-2.0 license
-    final Component component4 = new Component("g4", "a4", "v4", MatchState.EXACT);
+    final Component component4 = ComponentFactory.forGav("g4", "a4", "v4", MatchState.EXACT);
     component4.addSecurityVulnerability(new SecurityVulnerability("osvdb", "sv4", 3F));
     component4.addDeclaredLicenseId("Apache-2.0");
     components.add(component4);
@@ -563,11 +563,11 @@ public class PolicyEvaluatorTest
 
     List<Component> components = new ArrayList<Component>();
     // A component with one security vulnerability
-    Component component1 = new Component("g1", "a1", "v1", MatchState.EXACT);
+    Component component1 = ComponentFactory.forGav("g1", "a1", "v1", MatchState.EXACT);
     component1.addSecurityVulnerability(new SecurityVulnerability("osvdb", "sv1", 3F));
     components.add(component1);
     // A component with Apache-2.0 license
-    Component component2 = new Component("g2", "a2", "v2", MatchState.EXACT);
+    Component component2 = ComponentFactory.forGav("g2", "a2", "v2", MatchState.EXACT);
     component2.addDeclaredLicenseId("Apache-2.0");
     components.add(component2);
 
@@ -650,12 +650,12 @@ public class PolicyEvaluatorTest
 
     // Create two components
     List<Component> components = new ArrayList<Component>();
-    Component component1 = new Component("g1", "a1", "v1", MatchState.EXACT);
+    Component component1 = ComponentFactory.forGav("g1", "a1", "v1", MatchState.EXACT);
     component1.setHash("hash1");
     component1.addSecurityVulnerability(new SecurityVulnerability("osvdb", "sv1", 3F));
     component1.addDeclaredLicenseId("Apache-2.0");
     components.add(component1);
-    Component component2 = new Component("g2", "a2", "v2", MatchState.EXACT);
+    Component component2 = ComponentFactory.forGav("g2", "a2", "v2", MatchState.EXACT);
     component2.setHash("hash2");
     component2.addSecurityVulnerability(new SecurityVulnerability("osvdb", "sv1", 3F));
     component2.addDeclaredLicenseId("Apache-2.0");

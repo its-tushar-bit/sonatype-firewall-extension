@@ -60,9 +60,8 @@ public class Component
   public Component() {
   }
 
-  public Component(final String groupId, final String artifactId, final String version, MatchState matchState) {
-    this.componentIdentifier = createMavenCoordinates(groupId, artifactId, version);
-    this.matchState = matchState;
+  public Component(final ComponentIdentifier componentIdentifier) {
+    this.componentIdentifier = componentIdentifier;
   }
 
   public String getGroupId() {

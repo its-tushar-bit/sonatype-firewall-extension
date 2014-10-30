@@ -250,7 +250,7 @@ public class PolicyViolationDigesterTest
     final ConditionFact conditionFact = conditionFact(MatchStateConditionType.ID, "is", "exact");
     final ConstraintFact constraintFact = constraintFact("constraint_4", "Constraint 4", "OR");
     constraintFact.addConditionFact(conditionFact);
-    
+
     PolicyEvaluation evaluation = new PolicyEvaluation();
     PolicyViolation policyViolation = new PolicyViolation(evaluation, "policy_4", "Policy 4", 0,
         PolicyThreatCategory.OTHER, "H", "G", "A", "V", Collections.singletonList(constraintFact),
@@ -265,7 +265,7 @@ public class PolicyViolationDigesterTest
 
   private static ConditionFact conditionFact(final String conditionTypeId, final String operator, final String value) {
     final Condition condition = new Condition(conditionTypeId, operator, value);
-    return PolicyEvaluator.createConditionFact(condition, new Component("G", "A", "V", MatchState.EXACT));
+    return PolicyEvaluator.createConditionFact(condition, ComponentFactory.forGav("G", "A", "V", MatchState.EXACT));
   }
 
   private static PolicyViolation newPolicyViolation(String policyId, String policyName, int threatLevel) {

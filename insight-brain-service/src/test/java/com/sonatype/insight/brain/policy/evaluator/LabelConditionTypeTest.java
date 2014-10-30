@@ -69,13 +69,13 @@ public class LabelConditionTypeTest
     policy.addAction(BuildStageType.ID, new Action(FailActionType.ID));
 
     List<Component> components = new ArrayList<Component>();
-    Component component1 = new Component("g1", "a1", "v1", MatchState.EXACT);
+    Component component1 = ComponentFactory.forGav("g1", "a1", "v1", MatchState.EXACT);
     component1.addLabelId(labelId1);
     components.add(component1);
-    Component component2 = new Component("g2", "a2", "v2", MatchState.EXACT);
+    Component component2 = ComponentFactory.forGav("g2", "a2", "v2", MatchState.EXACT);
     component2.addLabelId(labelId2);
     components.add(component2);
-    Component component3 = new Component("g3", "a3", "v3", MatchState.EXACT);
+    Component component3 = ComponentFactory.forGav("g3", "a3", "v3", MatchState.EXACT);
     components.add(component3);
 
     // Evaluate the policy
@@ -108,13 +108,13 @@ public class LabelConditionTypeTest
     policy.addAction(BuildStageType.ID, new Action(FailActionType.ID));
 
     List<Component> components = new ArrayList<Component>();
-    Component component1 = new Component("g1", "a1", "v1", MatchState.EXACT);
+    Component component1 = ComponentFactory.forGav("g1", "a1", "v1", MatchState.EXACT);
     component1.addLabelId(labelId1);
     components.add(component1);
-    Component component2 = new Component("g2", "a2", "v2", MatchState.EXACT);
+    Component component2 = ComponentFactory.forGav("g2", "a2", "v2", MatchState.EXACT);
     component2.addLabelId(labelId2);
     components.add(component2);
-    Component component3 = new Component("g3", "a3", "v3", MatchState.EXACT);
+    Component component3 = ComponentFactory.forGav("g3", "a3", "v3", MatchState.EXACT);
     components.add(component3);
 
     // Evaluate the policy
@@ -149,13 +149,13 @@ public class LabelConditionTypeTest
     policy.addAction(BuildStageType.ID, new Action(FailActionType.ID));
 
     List<Component> components = new ArrayList<Component>();
-    Component component1 = new Component("g1", "a1", "v1", MatchState.EXACT);
+    Component component1 = ComponentFactory.forGav("g1", "a1", "v1", MatchState.EXACT);
     component1.addLabelId(labelId1);
     components.add(component1);
-    Component component2 = new Component("g2", "a2", "v2", MatchState.EXACT);
+    Component component2 = ComponentFactory.forGav("g2", "a2", "v2", MatchState.EXACT);
     component2.addLabelId(labelId2);
     components.add(component2);
-    Component component3 = new Component("g3", "a3", "v3", MatchState.EXACT);
+    Component component3 = ComponentFactory.forGav("g3", "a3", "v3", MatchState.EXACT);
     components.add(component3);
 
     // Evaluate the policy
@@ -196,7 +196,7 @@ public class LabelConditionTypeTest
     policy.addAction(BuildStageType.ID, new Action(FailActionType.ID));
 
     List<Component> components = new ArrayList<Component>();
-    Component component1 = new Component("g1", "a1", "v1", MatchState.EXACT);
+    Component component1 = ComponentFactory.forGav("g1", "a1", "v1", MatchState.EXACT);
     components.add(component1);
 
     List<PolicyAlert> policyAlerts = evaluate(policy, components);

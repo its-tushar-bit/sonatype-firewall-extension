@@ -60,10 +60,10 @@ public class LicenseConditionTypeTest
     policy.addAction(BuildStageType.ID, new Action(FailActionType.ID));
 
     List<Component> components = new ArrayList<Component>();
-    Component component1 = new Component("g1", "a1", "v1", MatchState.EXACT);
+    Component component1 = ComponentFactory.forGav("g1", "a1", "v1", MatchState.EXACT);
     component1.addDeclaredLicenseId("UNSPECIFIED");
     components.add(component1);
-    Component component2 = new Component("g2", "a2", "v2", MatchState.EXACT);
+    Component component2 = ComponentFactory.forGav("g2", "a2", "v2", MatchState.EXACT);
     component2.addDeclaredLicenseId("AFL-1.2");
     components.add(component2);
 
@@ -91,10 +91,10 @@ public class LicenseConditionTypeTest
     policy.addAction(BuildStageType.ID, new Action(FailActionType.ID));
 
     List<Component> components = new ArrayList<Component>();
-    Component component1 = new Component("g1", "a1", "v1", MatchState.EXACT);
+    Component component1 = ComponentFactory.forGav("g1", "a1", "v1", MatchState.EXACT);
     component1.addDeclaredLicenseId("UNSPECIFIED");
     components.add(component1);
-    Component component2 = new Component("g2", "a2", "v2", MatchState.EXACT);
+    Component component2 = ComponentFactory.forGav("g2", "a2", "v2", MatchState.EXACT);
     component2.addDeclaredLicenseId("Apache-2.0");
     components.add(component2);
 
@@ -122,10 +122,10 @@ public class LicenseConditionTypeTest
     policy.addAction(BuildStageType.ID, new Action(FailActionType.ID));
 
     List<Component> components = new ArrayList<Component>();
-    Component component1 = new Component("g1", "a1", "v1", MatchState.EXACT);
+    Component component1 = ComponentFactory.forGav("g1", "a1", "v1", MatchState.EXACT);
     component1.addObservedLicenseId("UNSPECIFIED");
     components.add(component1);
-    Component component2 = new Component("g2", "a2", "v2", MatchState.EXACT);
+    Component component2 = ComponentFactory.forGav("g2", "a2", "v2", MatchState.EXACT);
     component2.addObservedLicenseId("AFL-1.2");
     components.add(component2);
 
@@ -153,10 +153,10 @@ public class LicenseConditionTypeTest
     policy.addAction(BuildStageType.ID, new Action(FailActionType.ID));
 
     List<Component> components = new ArrayList<Component>();
-    Component component1 = new Component("g1", "a1", "v1", MatchState.EXACT);
+    Component component1 = ComponentFactory.forGav("g1", "a1", "v1", MatchState.EXACT);
     component1.addObservedLicenseId("UNSPECIFIED");
     components.add(component1);
-    Component component2 = new Component("g2", "a2", "v2", MatchState.EXACT);
+    Component component2 = ComponentFactory.forGav("g2", "a2", "v2", MatchState.EXACT);
     component2.addObservedLicenseId("Apache-2.0");
     components.add(component2);
 
@@ -184,12 +184,12 @@ public class LicenseConditionTypeTest
     policy.addAction(BuildStageType.ID, new Action(FailActionType.ID));
 
     List<Component> components = new ArrayList<Component>();
-    Component component1 = new Component("g1", "a1", "v1", MatchState.EXACT);
+    Component component1 = ComponentFactory.forGav("g1", "a1", "v1", MatchState.EXACT);
     component1.addDeclaredLicenseId("UNSPECIFIED");
     component1.addObservedLicenseId("UNSPECIFIED");
     component1.setLicenseOverrideId("Apache-2.0");
     components.add(component1);
-    Component component2 = new Component("g2", "a2", "v2", MatchState.EXACT);
+    Component component2 = ComponentFactory.forGav("g2", "a2", "v2", MatchState.EXACT);
     component2.addDeclaredLicenseId("AFL-1.2");
     component2.addObservedLicenseId("Apache-2.0");
     component2.setLicenseOverrideId("UNSPECIFIED");
@@ -219,12 +219,12 @@ public class LicenseConditionTypeTest
     policy.addAction(BuildStageType.ID, new Action(FailActionType.ID));
 
     List<Component> components = new ArrayList<Component>();
-    Component component1 = new Component("g1", "a1", "v1", MatchState.EXACT);
+    Component component1 = ComponentFactory.forGav("g1", "a1", "v1", MatchState.EXACT);
     component1.addDeclaredLicenseId("UNSPECIFIED");
     component1.addObservedLicenseId("UNSPECIFIED");
     component1.setLicenseOverrideId("Apache-2.0");
     components.add(component1);
-    Component component2 = new Component("g2", "a2", "v2", MatchState.EXACT);
+    Component component2 = ComponentFactory.forGav("g2", "a2", "v2", MatchState.EXACT);
     component2.addDeclaredLicenseId("AFL-1.2");
     component2.addObservedLicenseId("Apache-2.0");
     component2.setLicenseOverrideId("UNSPECIFIED");

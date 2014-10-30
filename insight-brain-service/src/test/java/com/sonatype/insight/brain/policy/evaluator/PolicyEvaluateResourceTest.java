@@ -144,11 +144,11 @@ public class PolicyEvaluateResourceTest
     Assert.assertNotNull(policyAlerts);
     Assert.assertEquals(1, policyAlerts.size());
     AbstractPolicyEvaluationTest.assertFactCounts(2, 3, policyAlerts.get(0));
-    Component expectedComponentExact = new Component("tomcat", "tomcat-util", "5.0.28", MatchState.EXACT);
+    Component expectedComponentExact = ComponentFactory.forGav("tomcat", "tomcat-util", "5.0.28", MatchState.EXACT);
     expectedComponentExact.setHash("3102cdd0edd5a05afe00");
-    Component expectedComponentSimilar1 = new Component("tomcat", "tomcat-util", "5.0.28", MatchState.SIMILAR);
+    Component expectedComponentSimilar1 = ComponentFactory.forGav("tomcat", "tomcat-util", "5.0.28", MatchState.SIMILAR);
     expectedComponentSimilar1.setHash("d29a75f9056e0b040f09");
-    Component expectedComponentSimilar2 = new Component("tomcat", "tomcat-util", "5.0.28", MatchState.SIMILAR);
+    Component expectedComponentSimilar2 = ComponentFactory.forGav("tomcat", "tomcat-util", "5.0.28", MatchState.SIMILAR);
     expectedComponentSimilar2.setHash("707df42012875442b9df");
     AbstractPolicyEvaluationTest.assertContainsPolicyAlert(expectedComponentExact, policy1.getId(), "Policy 1",
         FailActionType.ID, constraintLicense.getId(), "Constraint License", LicenseConditionType.ID, policyAlerts);
@@ -216,7 +216,7 @@ public class PolicyEvaluateResourceTest
     Assert.assertNotNull(policyAlerts);
     Assert.assertEquals(1, policyAlerts.size());
     AbstractPolicyEvaluationTest.assertFactCounts(1, 1, policyAlerts.get(0));
-    Component expectedComponentExact = new Component(groupId, artifactId, version, MatchState.EXACT);
+    Component expectedComponentExact = ComponentFactory.forGav(groupId, artifactId, version, MatchState.EXACT);
     expectedComponentExact.setHash(hash);
     AbstractPolicyEvaluationTest.assertContainsPolicyAlert(expectedComponentExact, policy1.getId(), "Policy 1",
         FailActionType.ID, constraint1.getId(), "Constraint 1", MatchStateConditionType.ID, policyAlerts);
@@ -278,7 +278,7 @@ public class PolicyEvaluateResourceTest
     assertThat(policyAlerts, is(notNullValue()));
     assertThat(policyAlerts.size(), is(1));
     AbstractPolicyEvaluationTest.assertFactCounts(1, 1, policyAlerts.get(0));
-    Component expectedComponentExact = new Component(groupId, artifactId, version, MatchState.EXACT);
+    Component expectedComponentExact = ComponentFactory.forGav(groupId, artifactId, version, MatchState.EXACT);
     expectedComponentExact.setHash(hash);
     AbstractPolicyEvaluationTest.assertContainsPolicyAlert(expectedComponentExact, policy1.getId(), "Policy 1",
         FailActionType.ID, constraint1.getId(), "Constraint 1", LabelConditionType.ID, policyAlerts);
@@ -551,7 +551,7 @@ public class PolicyEvaluateResourceTest
     Assert.assertNotNull(policyAlerts);
     Assert.assertEquals(1, policyAlerts.size());
     AbstractPolicyEvaluationTest.assertFactCounts(1, 3, policyAlerts.get(0));
-    Component expectedComponent = new Component("org.webjars", "select2", "3.2", MatchState.EXACT);
+    Component expectedComponent = ComponentFactory.forGav("org.webjars", "select2", "3.2", MatchState.EXACT);
     expectedComponent.setHash("f2e35e4a21f07d25710f");
     AbstractPolicyEvaluationTest.assertContainsPolicyAlert(expectedComponent, policy1.getId(), "Policy 1",
         FailActionType.ID, constraint1.getId(), "Constraint 1", LicenseConditionType.ID, policyAlerts);
@@ -588,7 +588,7 @@ public class PolicyEvaluateResourceTest
     // Simulate that the report is available
     URL testReportFileUrl = getClass().getResource("/PolicyEvaluateResourceTest/report.zip");
     FileUtils.copyFile(new File(testReportFileUrl.getFile()), saasReportFile);
-    
+
     // Override the license at org level
     tempEntity.newLicenseOverride(app.getOrganizationId(), "commons-pool",
         "commons-pool", "1.4", LicenseOverrideStatus.OVERRIDDEN, "ZPL-2.0", " My comment");
@@ -606,7 +606,7 @@ public class PolicyEvaluateResourceTest
     Assert.assertNotNull(policyAlerts);
     Assert.assertEquals(1, policyAlerts.size());
     AbstractPolicyEvaluationTest.assertFactCounts(2, 1, policyAlerts.get(0));
-    Component expectedComponent = new Component("commons-pool", "commons-pool", "1.4", MatchState.EXACT);
+    Component expectedComponent = ComponentFactory.forGav("commons-pool", "commons-pool", "1.4", MatchState.EXACT);
     expectedComponent.setHash("1a667c9d419dc4f185c9");
     AbstractPolicyEvaluationTest.assertContainsPolicyAlert(expectedComponent, policy1.getId(), "Policy 1",
         FailActionType.ID, constraint1.getId(), "Constraint 1", LicenseConditionType.ID, policyAlerts);

@@ -343,7 +343,6 @@ public class PolicyEvaluationMigrator
         List<String> pathnames = hashToPathnames.get(componentFact.getHash());
 
         ComponentIdentifier componentIdentifier = null;
-        // TODO Get the componentIdentifier from the componentFact when CLM-3665 is implemented
         if (componentFact.getGroupId() != null) {
           componentIdentifier = ComponentIdentifier.createMavenCoordinates(componentFact.getGroupId(),
               componentFact.getArtifactId(), componentFact.getVersion());

@@ -19,7 +19,6 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.persistence.EntityManager;
 
-import com.sonatype.clm.dto.model.ide.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.ComponentFact;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
@@ -168,15 +167,10 @@ public class PolicyEvaluationUtils
           Policy policy = policyDAO.getByIdNotNull(policyFact.getPolicyId());
           PolicyThreatCategory threatCategory = policy.getThreatCategory();
           for (ComponentFact componentFact : policyFact.getComponentFacts()) {
-            ComponentIdentifier componentIdentifier = null;
-            // TODO Get the componentIdentifier from the componentFact when CLM-3665 is implemented
-            if (componentFact.getGroupId() != null) {
-              componentIdentifier = ComponentIdentifier.createMavenCoordinates(componentFact.getGroupId(),
-                  componentFact.getArtifactId(), componentFact.getVersion());
-            }
             PolicyViolation policyViolation = new PolicyViolation(policyEvaluation, policy.getId(), policy.getName(),
-                policyFact.getThreatLevel(), threatCategory, componentFact.getHash(), componentIdentifier,
-                componentFact.getConstraintFacts(), componentFact.getPathnames());
+                policyFact.getThreatLevel(), threatCategory, componentFact.getHash(),
+                componentFact.getComponentIdentifier(), componentFact.getConstraintFacts(),
+                componentFact.getPathnames());
             for (Action action : policyAlert.getActions()) {
               // Don't save notification data into policy violations here because at this point we don't really know if
               // the notifications will be sent or not.

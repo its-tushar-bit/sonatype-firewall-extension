@@ -11,6 +11,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.sonatype.clm.dto.model.ide.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.ComponentFact;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
@@ -57,9 +58,13 @@ class PolicyThreatsJsonGenerator
         if (component == null) {
           component = new PolicyThreats.Component();
           component.hash = componentFact.getHash();
-          component.groupId = componentFact.getGroupId();
-          component.artifactId = componentFact.getArtifactId();
-          component.version = componentFact.getVersion();
+          ComponentIdentifier componentIdentifier = componentFact.getComponentIdentifier();
+          // TODO Fix the maven specific code as part of CLM-3709
+          if (componentIdentifier != null && ComponentIdentifier.FORMAT_MAVEN.equals(componentIdentifier.format)) {
+            component.groupId = componentIdentifier.get(ComponentIdentifier.MAVEN_GROUP_ID);
+            component.artifactId = componentIdentifier.get(ComponentIdentifier.MAVEN_ARTIFACT_ID);
+            component.version = componentIdentifier.get(ComponentIdentifier.VERSION);
+          }
           component.policyThreatLevel = -1;
           components.put(id, component);
         }

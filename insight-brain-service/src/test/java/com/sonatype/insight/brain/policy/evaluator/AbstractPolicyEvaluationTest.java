@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.policy.evaluator;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 import com.sonatype.clm.dto.model.policy.Action;
@@ -83,9 +84,7 @@ public abstract class AbstractPolicyEvaluationTest
       if (expectedPolicyId.equals(policyFact.getPolicyId()) && expectedPolicyName.equals(policyFact.getPolicyName())
           && policyAlertContainsAction(actualPolicyAlert, actionTypeId)) {
         for (ComponentFact componentFact : policyFact.getComponentFacts()) {
-          if (StringUtils.equals(expectedComponent.getGroupId(), componentFact.getGroupId())
-              && StringUtils.equals(expectedComponent.getArtifactId(), componentFact.getArtifactId())
-              && StringUtils.equals(expectedComponent.getVersion(), componentFact.getVersion())
+          if (Objects.equals(expectedComponent.getComponentIdentifier(), componentFact.getComponentIdentifier())
               && StringUtils.equals(expectedComponent.getHash(), componentFact.getHash())) {
             for (ConstraintFact constraintFact : componentFact.getConstraintFacts()) {
               if (expectedConstraintId.equals(constraintFact.getConstraintId())

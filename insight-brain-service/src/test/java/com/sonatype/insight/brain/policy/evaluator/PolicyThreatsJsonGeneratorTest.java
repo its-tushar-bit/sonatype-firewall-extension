@@ -48,9 +48,10 @@ public class PolicyThreatsJsonGeneratorTest
 
   private void assertComponent(PolicyThreats.Component component, ComponentFact fact) {
     assertThat(component.hash, is(fact.getHash()));
-    assertThat(component.groupId, is(fact.getGroupId()));
-    assertThat(component.artifactId, is(fact.getArtifactId()));
-    assertThat(component.version, is(fact.getVersion()));
+    ComponentIdentifier componentIdentifier = fact.getComponentIdentifier();
+    assertThat(component.groupId, is(componentIdentifier.get(ComponentIdentifier.MAVEN_GROUP_ID)));
+    assertThat(component.artifactId, is(componentIdentifier.get(ComponentIdentifier.MAVEN_ARTIFACT_ID)));
+    assertThat(component.version, is(componentIdentifier.get(ComponentIdentifier.VERSION)));
   }
 
   private void assertTopViolation(PolicyThreats.Component component, PolicyAlert alert) {

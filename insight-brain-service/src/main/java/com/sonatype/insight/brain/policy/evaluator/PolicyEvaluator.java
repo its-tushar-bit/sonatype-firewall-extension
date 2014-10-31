@@ -115,8 +115,7 @@ public class PolicyEvaluator
       boolean isWaived = false;
       for (final Entry<Component, List<MatchFact>> byComponent : byComponent(byPolicy.getValue()).entrySet()) {
         final Component component = byComponent.getKey();
-        final ComponentFact componentFact = new ComponentFact(ComponentIdentifier.createMavenCoordinates(
-            component.getGroupId(), component.getArtifactId(), component.getVersion()), component.getHash());
+        final ComponentFact componentFact = new ComponentFact(component.getComponentIdentifier(), component.getHash());
         componentFact.addPathnames(component.getPathnames());
         ComponentDisplayNameUtil.injectDisplayName(componentFact);
         PolicyWaiver policyWaiverForComponentFact = null;

@@ -66,15 +66,9 @@ class TestHelper
       PolicyFact policyFact = policyAlert.getTrigger();
       createPolicy(appId, policyFact.getPolicyId(), policyFact.getPolicyName());
       for (ComponentFact componentFact : policyFact.getComponentFacts()) {
-        ComponentIdentifier componentIdentifier = null;
-        // TODO Get the componentIdentifier from the componentFact when CLM-3665 is implemented
-        if (componentFact.getGroupId() != null) {
-          componentIdentifier = ComponentIdentifier.createMavenCoordinates(componentFact.getGroupId(),
-              componentFact.getArtifactId(), componentFact.getVersion());
-        }
         PolicyViolation policyViolation = new PolicyViolation(policyEvaluation, policyFact.getPolicyId(),
             policyFact.getPolicyName(), policyFact.getThreatLevel(), PolicyThreatCategory.OTHER,
-            componentFact.getHash(), componentIdentifier, componentFact.getConstraintFacts(),
+            componentFact.getHash(), componentFact.getComponentIdentifier(), componentFact.getConstraintFacts(),
             componentFact.getPathnames());
         policyViolationDAO.insert(policyViolation);
       }

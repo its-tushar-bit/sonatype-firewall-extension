@@ -157,7 +157,7 @@ public class ComponentDisplayNameUtilTest
   }
 
   @Test
-  public void testCreateComponentNameFromPolicyViolationMissingGav () {
+  public void testCreateComponentNameFromPolicyViolationMissingComponentIdentifier() {
     ComponentDisplayName componentNameDTO = fromPolicyViolation(new PolicyViolation());
     assertThat(componentNameDTO, nullValue());
   }

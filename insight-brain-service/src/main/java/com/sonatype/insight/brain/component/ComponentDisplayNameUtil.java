@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.component;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import com.sonatype.clm.dto.model.component.ComponentDisplayName;
 import com.sonatype.clm.dto.model.ide.ComponentIdentifier;
@@ -82,9 +81,7 @@ public class ComponentDisplayNameUtil
   }
 
   public static void injectDisplayName(ComponentFact componentFact) {
-    ComponentIdentifier mavenIdentifier = ComponentIdentifier.createMavenCoordinates(componentFact.getGroupId(),
-        componentFact.getArtifactId(), componentFact.getVersion(), null, null);
-    componentFact.setDisplayName(fromComponentIdentifier(mavenIdentifier));
+    componentFact.setDisplayName(fromComponentIdentifier(componentFact.getComponentIdentifier()));
   }
 
   public static ComponentDisplayName fromJsonNode(ObjectNode objectNode) {

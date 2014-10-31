@@ -164,7 +164,7 @@ public class ComponentDisplayNameUtilTest
 
   @Test
   public void testInjectDisplayName() {
-    ComponentFact componentFact = new ComponentFact("g", "a", "v", "h");
+    ComponentFact componentFact = new ComponentFact(ComponentIdentifier.createMavenCoordinates("g", "a", "v"), "h");
     injectDisplayName(componentFact);
     ComponentDisplayName componentDisplayName = componentFact.getDisplayName();
 

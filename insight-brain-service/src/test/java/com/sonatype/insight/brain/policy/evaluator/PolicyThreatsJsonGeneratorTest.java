@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.policy.evaluator;
 import java.util.Arrays;
 import java.util.List;
 
+import com.sonatype.clm.dto.model.ide.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.ComponentFact;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
@@ -29,7 +30,7 @@ public class PolicyThreatsJsonGeneratorTest
     extends AbstractComponentTest
 {
   private ComponentFact newComponentFact(String hash) {
-    ComponentFact component = new ComponentFact("gid", "aid", "1.2.3", hash);
+    ComponentFact component = new ComponentFact(ComponentIdentifier.createMavenCoordinates("gid", "aid", "1.2.3"), hash);
     ConstraintFact constraint = new ConstraintFact("constraint-id", "Constraint", "AND");
     constraint.addConditionFact(new ConditionFact("condition-type", "condition-summary", "condition-reason"));
     component.addConstraintFact(constraint);

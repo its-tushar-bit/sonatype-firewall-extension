@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.license;
 
 import java.io.File;
 
+import com.sonatype.clm.dto.model.ide.ComponentIdentifier;
 import com.sonatype.insight.brain.AuthedRestAccess;
 import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
@@ -59,8 +60,9 @@ public class LicenseOverrideResourceTest
     String where = "EdgeOfSpace";
 
     // Create
-    LicenseOverride licenseOverride = new LicenseOverride(null /* ownerId */, "g1", "a1", "v1",
-        LicenseOverrideStatus.OVERRIDDEN, "Apache-2.0", "My comment");
+    LicenseOverride licenseOverride = new LicenseOverride(null /* ownerId */,
+      ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1"), LicenseOverrideStatus.OVERRIDDEN, "Apache-2.0",
+      "My comment");
     Response response = AuthedRestAccess.post(getServiceURL(ownerType, ownerPublicId) + "?where=" + where,
         JsonHelpers.asJson(licenseOverride));
     assertResponseStatus(200, response);
@@ -76,8 +78,9 @@ public class LicenseOverrideResourceTest
         licenseOverride);
 
     // Update (i.e. add again)
-    licenseOverride = new LicenseOverride(null /* ownerId */, "g1", "a1", "v1", LicenseOverrideStatus.OVERRIDDEN,
-        "GPL-2.0", "My comment updated");
+    licenseOverride = new LicenseOverride(null /* ownerId */,
+      ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1"), LicenseOverrideStatus.OVERRIDDEN, "GPL-2.0",
+      "My comment updated");
     response = AuthedRestAccess.post(getServiceURL(ownerType, ownerPublicId) + "?where=" + where,
         JsonHelpers.asJson(licenseOverride));
     assertResponseStatus(200, response);
@@ -117,9 +120,9 @@ public class LicenseOverrideResourceTest
     assertEquals(where, logJsonData.get("where").asText());
     LicenseOverrideAudit licenseOverrideAudit = JsonUtils.asPojo(logJsonData.get("data"), LicenseOverrideAudit.class);
     assertNotNull(licenseOverrideAudit);
-    assertEquals(expected.getGroupId(), licenseOverrideAudit.getGroupId());
-    assertEquals(expected.getArtifactId(), licenseOverrideAudit.getArtifactId());
-    assertEquals(expected.getVersion(), licenseOverrideAudit.getVersion());
+    assertEquals(expected.getComponentIdentifier(), ComponentIdentifier
+      .createMavenCoordinates(licenseOverrideAudit.getGroupId(), licenseOverrideAudit.getArtifactId(),
+        licenseOverrideAudit.getVersion()));
     if (isDelete) {
       assertEquals("Deleted", licenseOverrideAudit.getStatus());
       assertNull(licenseOverrideAudit.getComment());
@@ -144,9 +147,8 @@ public class LicenseOverrideResourceTest
     assertEquals(where, logJsonData.get("where").asText());
     BomAudit bomAudit = JsonUtils.asPojo(logJsonData.get("data"), BomAudit.class);
     assertNotNull(bomAudit);
-    assertEquals(expected.getGroupId(), bomAudit.getGroupId());
-    assertEquals(expected.getArtifactId(), bomAudit.getArtifactId());
-    assertEquals(expected.getVersion(), bomAudit.getVersion());
+    assertEquals(expected.getComponentIdentifier(), ComponentIdentifier
+      .createMavenCoordinates(bomAudit.getGroupId(), bomAudit.getArtifactId(), bomAudit.getVersion()));
     assertEquals(!isDelete, bomAudit.isModified());
   }
 
@@ -201,8 +203,9 @@ public class LicenseOverrideResourceTest
         appliedLicenseOverrides.licenseOverridesByOwner.get(0));
 
     // Create a license override for the application
-    LicenseOverride appLicenseOverride = new LicenseOverride(null /* ownerId */, "g1", "a1", "v1",
-        LicenseOverrideStatus.OVERRIDDEN, "Apache-2.0", "My comment");
+    LicenseOverride appLicenseOverride = new LicenseOverride(null /* ownerId */,
+      ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1"), LicenseOverrideStatus.OVERRIDDEN, "Apache-2.0",
+      "My comment");
     response = AuthedRestAccess.post(getServiceURL(IdUtils.TYPE_APPLICATION, appPublicId),
         JsonHelpers.asJson(appLicenseOverride));
     appLicenseOverride = JsonHelpers.fromJson(response.getResponseBody(), LicenseOverride.class);
@@ -230,8 +233,9 @@ public class LicenseOverrideResourceTest
         appliedLicenseOverrides.licenseOverridesByOwner.get(0));
 
     // Create a license override for the organization
-    LicenseOverride orgLicenseOverride = new LicenseOverride(null /* ownerId */, "g1", "a1", "v1",
-        LicenseOverrideStatus.OVERRIDDEN, "Apache-2.0", "My comment");
+    LicenseOverride orgLicenseOverride = new LicenseOverride(null /* ownerId */,
+      ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1"), LicenseOverrideStatus.OVERRIDDEN, "Apache-2.0",
+      "My comment");
     response = AuthedRestAccess.post(getServiceURL(IdUtils.TYPE_ORGANIZATION, orgId), JsonHelpers.asJson(orgLicenseOverride));
     orgLicenseOverride = JsonHelpers.fromJson(response.getResponseBody(), LicenseOverride.class);
 
@@ -284,8 +288,9 @@ public class LicenseOverrideResourceTest
   private void testDelete_OwnerIdMismatch(String ownerType, String ownerPublicId1, String ownerId1,
       String ownerPublicId2) throws Exception
   {
-    LicenseOverride licenseOverride = new LicenseOverride(null /* ownerId */, "g1", "a1", "v1",
-        LicenseOverrideStatus.OVERRIDDEN, "Apache-2.0", "My comment");
+    LicenseOverride licenseOverride = new LicenseOverride(null /* ownerId */,
+      ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1"), LicenseOverrideStatus.OVERRIDDEN, "Apache-2.0",
+      "My comment");
     Response response = AuthedRestAccess.post(getServiceURL(ownerType, ownerPublicId1), JsonHelpers.asJson(licenseOverride));
     assertResponseStatus(200, response);
     licenseOverride = JsonHelpers.fromJson(response.getResponseBody(), LicenseOverride.class);
@@ -320,9 +325,7 @@ public class LicenseOverrideResourceTest
       LicenseOverrideStatus status, String licenseId, String comment, LicenseOverride actual)
   {
     assertEquals(ownerId, actual.getOwnerId());
-    assertEquals(groupId, actual.getGroupId());
-    assertEquals(artifactId, actual.getArtifactId());
-    assertEquals(version, actual.getVersion());
+    assertEquals(ComponentIdentifier.createMavenCoordinates(groupId, artifactId, version), actual.getComponentIdentifier());
     assertEquals(status, actual.getStatus());
     assertEquals(licenseId, actual.getLicenseId());
     assertEquals(comment, actual.getComment());

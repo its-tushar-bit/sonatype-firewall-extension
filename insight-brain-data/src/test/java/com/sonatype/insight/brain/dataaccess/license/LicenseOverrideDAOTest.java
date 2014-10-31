@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.dataaccess.license;
 
+import com.sonatype.clm.dto.model.ide.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
@@ -14,9 +15,11 @@ import com.sonatype.insight.error.exception.NotFoundException;
 import org.codehaus.plexus.util.StringUtils;
 import org.junit.Test;
 
+import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
 /**
@@ -25,23 +28,24 @@ import static org.junit.Assert.fail;
 public class LicenseOverrideDAOTest
     extends AbstractDbDAOTest
 {
+
+  private static final ComponentIdentifier MAVEN_COORDINATES = ComponentIdentifier
+    .createMavenCoordinates("gid", "aid", "1.0");
+
   private void testCRUD(String ownerId) throws Exception {
     LicenseOverrideDAO dao = new LicenseOverrideDAO();
-    String groupId = "g";
-    String artifactId = "a";
-    String version = "v";
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
     LicenseOverrideStatus status = LicenseOverrideStatus.OVERRIDDEN;
     String licenseId = "Apache-2.0";
     String comment = null;
 
     // Create
-    LicenseOverride licenseOverride = new LicenseOverride(ownerId, groupId, artifactId, version, status, licenseId,
-        comment);
+    LicenseOverride licenseOverride = new LicenseOverride(ownerId, componentIdentifier, status, licenseId, comment);
     dao.insert(licenseOverride);
     assertNotNull(licenseOverride.getId());
     licenseOverride = dao.getById(licenseOverride.getId());
     assertNotNull(licenseOverride);
-    assertLicenseOverride(ownerId, groupId, artifactId, version, status, licenseId, comment, licenseOverride);
+    assertLicenseOverride(ownerId, componentIdentifier, status, licenseId, comment, licenseOverride);
 
     // Update
     comment = "No comments";
@@ -49,7 +53,7 @@ public class LicenseOverrideDAOTest
     dao.update(licenseOverride);
     licenseOverride = dao.getById(licenseOverride.getId());
     assertNotNull(licenseOverride);
-    assertLicenseOverride(ownerId, groupId, artifactId, version, status, licenseId, comment, licenseOverride);
+    assertLicenseOverride(ownerId, componentIdentifier, status, licenseId, comment, licenseOverride);
 
     // Delete
     dao.delete(licenseOverride);
@@ -57,13 +61,12 @@ public class LicenseOverrideDAOTest
     assertNull(licenseOverride);
   }
 
-  private void assertLicenseOverride(String ownerId, String groupId, String artifactId, String version,
-      LicenseOverrideStatus status, String licenseId, String comment, LicenseOverride actual)
+  private void assertLicenseOverride(String ownerId, ComponentIdentifier componentIdentifier,
+                                     LicenseOverrideStatus status, String licenseId, String comment,
+                                     LicenseOverride actual)
   {
     assertEquals(ownerId, actual.getOwnerId());
-    assertEquals(groupId, actual.getGroupId());
-    assertEquals(artifactId, actual.getArtifactId());
-    assertEquals(version, actual.getVersion());
+    assertEquals(componentIdentifier, actual.getComponentIdentifier());
     assertEquals(status, actual.getStatus());
     assertEquals(licenseId, actual.getLicenseId());
     assertEquals(comment, actual.getComment());
@@ -82,8 +85,8 @@ public class LicenseOverrideDAOTest
   @Test
   public void testCommentTooLong() throws Exception {
     LicenseOverrideDAO dao = new LicenseOverrideDAO();
-    LicenseOverride override = new LicenseOverride(applicationId, "gid", "aid", "1.0", LicenseOverrideStatus.OPEN,
-        null, StringUtils.repeat("X", LicenseOverrideDAO.MAX_COMMENT_SIZE + 1));
+    LicenseOverride override = new LicenseOverride(applicationId, MAVEN_COORDINATES, LicenseOverrideStatus.OPEN, null,
+      StringUtils.repeat("X", LicenseOverrideDAO.MAX_COMMENT_SIZE + 1));
     try {
       dao.insert(override);
       fail("Expected BadRequestException");
@@ -107,8 +110,8 @@ public class LicenseOverrideDAOTest
   public void testInvalidLicenseId_Insert() throws Exception {
     LicenseOverrideDAO dao = new LicenseOverrideDAO();
 
-    LicenseOverride override = new LicenseOverride(applicationId, "gid", "aid", "1.0",
-        LicenseOverrideStatus.OVERRIDDEN, "FataMorganaId", "My comment");
+    LicenseOverride override = new LicenseOverride(applicationId, MAVEN_COORDINATES, LicenseOverrideStatus.OVERRIDDEN,
+      "FataMorganaId", "My comment");
     try {
       dao.insert(override);
       fail("Expected NotFoundException");
@@ -117,8 +120,8 @@ public class LicenseOverrideDAOTest
       assertEquals("A license with ID 'FataMorganaId' does not exist.", expected.getMessage());
     }
 
-    override = new LicenseOverride(applicationId, "gid", "aid", "1.0", LicenseOverrideStatus.SELECTED,
-        "FataMorganaId", "My comment");
+    override = new LicenseOverride(applicationId, MAVEN_COORDINATES, LicenseOverrideStatus.SELECTED, "FataMorganaId",
+      "My comment");
     try {
       dao.insert(override);
       fail("Expected NotFoundException");
@@ -132,8 +135,8 @@ public class LicenseOverrideDAOTest
   public void testInvalidLicenseId_Update() throws Exception {
     LicenseOverrideDAO dao = new LicenseOverrideDAO();
 
-    LicenseOverride override = new LicenseOverride(applicationId, "gid", "aid", "1.0",
-        LicenseOverrideStatus.OVERRIDDEN, "Apache-2.0", "My comment");
+    LicenseOverride override = new LicenseOverride(applicationId, MAVEN_COORDINATES, LicenseOverrideStatus.OVERRIDDEN,
+      "Apache-2.0", "My comment");
     dao.insert(override);
 
     override.setLicenseId("FataMorganaId");
@@ -160,8 +163,8 @@ public class LicenseOverrideDAOTest
     LicenseOverrideDAO dao = new LicenseOverrideDAO();
 
     for (LicenseOverrideStatus status : LicenseOverrideStatus.values()) {
-      LicenseOverride override = new LicenseOverride(applicationId, "gid", "aid", "1.0", status, null /* licenseId */,
-          "My comment");
+      LicenseOverride override = new LicenseOverride(applicationId, MAVEN_COORDINATES, status, null /* licenseId */,
+        "My comment");
       switch (status) {
         case ACKNOWLEDGED:
         case CONFIRMED:
@@ -188,8 +191,8 @@ public class LicenseOverrideDAOTest
   @Test
   public void testNullLicenseId_Update() throws Exception {
     LicenseOverrideDAO dao = new LicenseOverrideDAO();
-    LicenseOverride override = new LicenseOverride(applicationId, "gid", "aid", "1.0", LicenseOverrideStatus.OPEN,
-        null /* licenseId */, "My comment");
+    LicenseOverride override = new LicenseOverride(applicationId, MAVEN_COORDINATES, LicenseOverrideStatus.OPEN,
+      null /* licenseId */, "My comment");
     dao.insert(override);
 
     for (LicenseOverrideStatus status : LicenseOverrideStatus.values()) {
@@ -221,8 +224,8 @@ public class LicenseOverrideDAOTest
     LicenseOverrideDAO dao = new LicenseOverrideDAO();
 
     for (LicenseOverrideStatus status : LicenseOverrideStatus.values()) {
-      LicenseOverride override = new LicenseOverride(applicationId, "gid", "aid", "1.0", status, "Apache-2.0",
-          "My comment");
+      LicenseOverride override = new LicenseOverride(applicationId, MAVEN_COORDINATES, status, "Apache-2.0",
+        "My comment");
       switch (status) {
         case ACKNOWLEDGED:
         case CONFIRMED:
@@ -249,8 +252,8 @@ public class LicenseOverrideDAOTest
   @Test
   public void testNotNullLicenseId_Update() throws Exception {
     LicenseOverrideDAO dao = new LicenseOverrideDAO();
-    LicenseOverride override = new LicenseOverride(applicationId, "gid", "aid", "1.0",
-        LicenseOverrideStatus.OVERRIDDEN, "Apache-2.0", "My comment");
+    LicenseOverride override = new LicenseOverride(applicationId, MAVEN_COORDINATES, LicenseOverrideStatus.OVERRIDDEN,
+      "Apache-2.0", "My comment");
     dao.insert(override);
 
     for (LicenseOverrideStatus status : LicenseOverrideStatus.values()) {
@@ -276,4 +279,20 @@ public class LicenseOverrideDAOTest
       }
     }
   }
+
+  @Test
+  public void testUniqueValidation() {
+    LicenseOverrideDAO dao = new LicenseOverrideDAO();
+    LicenseOverride override = new LicenseOverride(applicationId, MAVEN_COORDINATES, LicenseOverrideStatus.OVERRIDDEN,
+      "Apache-2.0", "My comment");
+    dao.insert(override);
+
+    try {
+      dao.insert(override);
+    } catch (BadRequestException bre) {
+      assertThat(bre.getMessage(), is("LicenseOverride already exists for this ownerId and component"));
+    }
+
+  }
+
 }

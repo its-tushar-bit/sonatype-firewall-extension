@@ -14,6 +14,7 @@ import java.util.List;
 
 import javax.imageio.ImageIO;
 
+import com.sonatype.clm.dto.model.ide.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
@@ -356,8 +357,8 @@ public class OrganizationDAOTest
     Organization organization = tempEntity.newOrganization("testCascadeDeleteToLicenseOverrides");
     String organizationId = organization.getId();
 
-    LicenseOverride licenseOverride = new LicenseOverride(organizationId, "groupId", "artifactId", "version",
-        LicenseOverrideStatus.OVERRIDDEN, "Apache-2.0", "My comment");
+    LicenseOverride licenseOverride = new LicenseOverride(organizationId, ComponentIdentifier.createMavenCoordinates(
+      "groupId", "artifactId", "version"), LicenseOverrideStatus.OVERRIDDEN, "Apache-2.0", "My comment");
     LicenseOverrideDAO licenseOverrideDAO = new LicenseOverrideDAO();
     licenseOverrideDAO.insert(licenseOverride);
     List<LicenseOverride> licenseOverrides = licenseOverrideDAO.getByOwnerId(organizationId);

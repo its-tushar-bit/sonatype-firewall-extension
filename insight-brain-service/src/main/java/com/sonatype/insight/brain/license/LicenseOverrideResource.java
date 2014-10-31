@@ -23,6 +23,7 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 
+import com.sonatype.clm.dto.model.ide.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
@@ -40,6 +41,10 @@ import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.json.store.JsonStore;
 import com.sonatype.insight.json.store.JsonUtils;
+
+import static com.sonatype.clm.dto.model.ide.ComponentIdentifier.MAVEN_GROUP_ID;
+import static com.sonatype.clm.dto.model.ide.ComponentIdentifier.MAVEN_ARTIFACT_ID;
+import static com.sonatype.clm.dto.model.ide.ComponentIdentifier.VERSION;
 
 /**
  * @since 1.6
@@ -77,8 +82,8 @@ public class LicenseOverrideResource
     licenseOverride.setOwnerId(internalOwnerId);
 
     LicenseOverrideDAO licenseOverrideDAO = new LicenseOverrideDAO();
-    LicenseOverride existingLicenseOverride = licenseOverrideDAO.getByOwnerIdAndGAV(internalOwnerId,
-        licenseOverride.getGroupId(), licenseOverride.getArtifactId(), licenseOverride.getVersion());
+    LicenseOverride existingLicenseOverride = licenseOverrideDAO.getByOwnerIdAndComponentIdentifier(internalOwnerId,
+      licenseOverride.getComponentIdentifier());
     if (existingLicenseOverride != null) {
       licenseOverride.setId(existingLicenseOverride.getId());
       licenseOverrideDAO.update(licenseOverride);
@@ -107,8 +112,10 @@ public class LicenseOverrideResource
     }
     store.commit("licenses.json", JsonUtils.stamp(user, ipAddress, where, JsonUtils.asTree(licenseOverrideAudit)));
 
-    BomAudit bomAudit = new BomAudit(licenseOverride.getGroupId(), licenseOverride.getArtifactId(),
-        licenseOverride.getVersion(), !isDelete /* modified */);
+    String groupId = licenseOverride.getComponentIdentifier().get(MAVEN_GROUP_ID);
+    String artifactId = licenseOverride.getComponentIdentifier().get(MAVEN_ARTIFACT_ID);
+    String version = licenseOverride.getComponentIdentifier().get(VERSION);
+    BomAudit bomAudit = new BomAudit(groupId, artifactId, version, !isDelete /* modified */);
     store.commit("bom.json", JsonUtils.stamp(user, ipAddress, where, JsonUtils.asTree(bomAudit)));
   }
 
@@ -158,8 +165,8 @@ public class LicenseOverrideResource
       licenseOverrideByOwner.ownerId = application.getPublicId();
       licenseOverrideByOwner.ownerName = application.getName();
       licenseOverrideByOwner.ownerType = IdUtils.TYPE_APPLICATION;
-      licenseOverrideByOwner.licenseOverride = licenseOverrideDAO.getByOwnerIdAndGAV(application.getId(), groupId,
-          artifactId, version);
+      licenseOverrideByOwner.licenseOverride = licenseOverrideDAO.getByOwnerIdAndComponentIdentifier(
+        application.getId(), ComponentIdentifier.createMavenCoordinates(groupId, artifactId, version));
       result.licenseOverridesByOwner.add(licenseOverrideByOwner);
       organizationId = application.getOrganizationId();
     }
@@ -172,8 +179,8 @@ public class LicenseOverrideResource
     licenseOverrideByOwner.ownerId = organization.getId();
     licenseOverrideByOwner.ownerName = organization.getName();
     licenseOverrideByOwner.ownerType = IdUtils.TYPE_ORGANIZATION;
-    licenseOverrideByOwner.licenseOverride = licenseOverrideDAO.getByOwnerIdAndGAV(organization.getId(), groupId,
-        artifactId, version);
+    licenseOverrideByOwner.licenseOverride = licenseOverrideDAO.getByOwnerIdAndComponentIdentifier(organization.getId(),
+      ComponentIdentifier.createMavenCoordinates(groupId, artifactId, version));
     result.licenseOverridesByOwner.add(licenseOverrideByOwner);
 
     return result;

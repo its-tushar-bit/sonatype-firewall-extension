@@ -10,7 +10,7 @@ UPDATE application_component SET
   component_id_format='maven',
   component_id_coordinates_json='{"groupId":"' || STRINGENCODE(group_id) || '","artifactId":"' || STRINGENCODE(artifact_id) || '","version":"' || STRINGENCODE(version) || '"}'
   WHERE group_id IS NOT NULL;
-  
-ALTER TABLE policy_violation DROP COLUMN group_id;
-ALTER TABLE policy_violation DROP COLUMN artifact_id;
-ALTER TABLE policy_violation DROP COLUMN version;
+
+ALTER TABLE application_component DROP COLUMN group_id;
+ALTER TABLE application_component DROP COLUMN artifact_id;
+ALTER TABLE application_component DROP COLUMN version;

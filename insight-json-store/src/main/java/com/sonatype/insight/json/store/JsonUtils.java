@@ -17,10 +17,12 @@ import com.fasterxml.jackson.core.JsonEncoding;
 import com.fasterxml.jackson.core.JsonFactory.Feature;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.MappingJsonFactory;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ContainerNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
@@ -175,6 +177,18 @@ public final class JsonUtils
       return new String(generate(pojo), "UTF-8");
     }
     catch (IOException e) {
+      throw new UncheckedIOException(e);
+    }
+  }
+
+  /**
+   * Write to unformatted JSON string.
+   */
+  public static String writeValueAsString(Object pojo) {
+    try {
+      return new ObjectMapper(JSON).writeValueAsString(pojo);
+    }
+    catch (JsonProcessingException e) {
       throw new UncheckedIOException(e);
     }
   }

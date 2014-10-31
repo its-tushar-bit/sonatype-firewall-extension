@@ -459,8 +459,9 @@ public class ApplicationDAOTest
 
   @Test
   public void testCascadeDeleteToLicenseOverrides() {
-    LicenseOverride licenseOverride = new LicenseOverride(application.getId(), "groupId", "artifactId", "version",
-        LicenseOverrideStatus.OVERRIDDEN, "Apache-2.0", "My comment");
+    LicenseOverride licenseOverride = new LicenseOverride(application.getId(),
+      ComponentIdentifier.createMavenCoordinates("groupId", "artifactId", "version"), LicenseOverrideStatus.OVERRIDDEN,
+      "Apache-2.0", "My comment");
     LicenseOverrideDAO licenseOverrideDAO = new LicenseOverrideDAO();
     licenseOverrideDAO.insert(licenseOverride);
     List<LicenseOverride> licenseOverrides = licenseOverrideDAO.getByOwnerId(application.getId());

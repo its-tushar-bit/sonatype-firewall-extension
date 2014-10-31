@@ -1,0 +1,79 @@
+/*
+ * Copyright (c) 2011-2014 Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.model;
+
+import java.io.IOException;
+import java.io.Serializable;
+import java.util.Map;
+
+import javax.persistence.Column;
+import javax.persistence.MappedSuperclass;
+import javax.persistence.Transient;
+
+import com.sonatype.clm.dto.model.ide.ComponentIdentifier;
+import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
+import com.sonatype.insight.json.store.JsonUtils;
+
+/**
+ * @since 1.13.0
+ */
+@MappedSuperclass
+public abstract class HasComponentId
+    implements Serializable
+{
+
+  @Column(name = "component_id_format")
+  private String componentIdFormat;
+
+  @Column(name = "component_id_coordinates_json")
+  private String componentIdCoordinatesJson;
+
+  @Transient
+  private ComponentIdentifier componentIdentifier;
+
+  public ComponentIdentifier getComponentIdentifier() {
+    if (componentIdFormat == null) {
+      return null;
+    }
+    if (componentIdentifier == null) {
+      try {
+        componentIdentifier = new ComponentIdentifier(componentIdFormat, JsonUtils.parse(componentIdCoordinatesJson,
+          Map.class));
+      }
+      catch (IOException e) {
+        throw new RuntimeException(e);
+      }
+    }
+    return componentIdentifier;
+  }
+
+  public void setComponentIdentifier(ComponentIdentifier componentIdentifier) {
+    this.componentIdentifier = componentIdentifier;
+    if (componentIdentifier == null) {
+      componentIdFormat = null;
+      componentIdCoordinatesJson = null;
+    }
+    else {
+      componentIdFormat = componentIdentifier.format;
+      componentIdCoordinatesJson = JsonUtils.writeValueAsString(ComponentIdentifierAdapter.removeNonLegacyCoordinates(
+        componentIdentifier.coordinates));
+    }
+  }
+
+  /**
+   * exposed for testing
+   */
+  String getComponentIdFormat() {
+    return componentIdFormat;
+  }
+
+  /**
+   * exposed for testing
+   */
+  String getComponentIdCoordinatesJson() {
+    return componentIdCoordinatesJson;
+  }
+}

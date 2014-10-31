@@ -11,6 +11,7 @@ import java.util.Set;
 import java.util.TreeSet;
 
 import com.sonatype.clm.dto.model.SecurityVulnerability;
+import com.sonatype.clm.dto.model.ide.ComponentIdentifier;
 import com.sonatype.clm.dto.model.ide.MatchedComponent;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.dataaccess.label.ComponentLabelDAO;
@@ -135,16 +136,18 @@ public class ComponentDAOTest
 
     LicenseOverrideDAO licenseOverrideDAO = new LicenseOverrideDAO();
     // Override at org level
-    LicenseOverride orgLicenseOverride = new LicenseOverride(organization.getId(), "gid", "aid", "1.2.3",
-        LicenseOverrideStatus.OVERRIDDEN, "GPL-3.0", "My comment");
+    ComponentIdentifier componentIdentifier = ComponentIdentifier
+      .createMavenCoordinates("gid", "aid", "1.2.3", null, null);
+    LicenseOverride orgLicenseOverride = new LicenseOverride(organization.getId(), componentIdentifier,
+      LicenseOverrideStatus.OVERRIDDEN, "GPL-3.0", "My comment");
     licenseOverrideDAO.insert(orgLicenseOverride);
     component = componentDAO.getComponent(application, componentInfo, null);
     assertNotNull(component);
     assertEquals("GPL-3.0", component.getLicenseOverrideId());
 
     // Override at app level
-    LicenseOverride appLicenseOverride = new LicenseOverride(application.getId(), "gid", "aid", "1.2.3",
-        LicenseOverrideStatus.OVERRIDDEN, "GPL-2.0", "My comment");
+    LicenseOverride appLicenseOverride = new LicenseOverride(application.getId(), componentIdentifier,
+      LicenseOverrideStatus.OVERRIDDEN, "GPL-2.0", "My comment");
     licenseOverrideDAO.insert(appLicenseOverride);
     component = componentDAO.getComponent(application, componentInfo, null);
     assertNotNull(component);

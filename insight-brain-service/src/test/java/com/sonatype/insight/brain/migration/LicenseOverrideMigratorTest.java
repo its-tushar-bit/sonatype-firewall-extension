@@ -9,11 +9,11 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 
+import com.sonatype.clm.dto.model.ide.ComponentIdentifier;
 import com.sonatype.insight.brain.DummyLicenseDataUpdater;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.license.LicenseDataUpdater;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
-import com.sonatype.insight.brain.migration.LicenseOverrideMigrator;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
@@ -111,12 +111,11 @@ public class LicenseOverrideMigratorTest
   private void assertLicenseOverride(String ownerId, String groupId, String artifactId, String version,
       LicenseOverrideStatus status, String licenseId, String comment)
   {
-    LicenseOverride actual = new LicenseOverrideDAO().getByOwnerIdAndGAV(ownerId, groupId, artifactId, version);
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates(groupId, artifactId, version);
+    LicenseOverride actual = new LicenseOverrideDAO().getByOwnerIdAndComponentIdentifier(ownerId, componentIdentifier);
     assertNotNull(actual);
     assertEquals(ownerId, actual.getOwnerId());
-    assertEquals(groupId, actual.getGroupId());
-    assertEquals(artifactId, actual.getArtifactId());
-    assertEquals(version, actual.getVersion());
+    assertEquals(componentIdentifier, actual.getComponentIdentifier());
     assertEquals(status, actual.getStatus());
     assertEquals(licenseId, actual.getLicenseId());
     assertEquals(comment, actual.getComment());

@@ -88,9 +88,13 @@ public class PolicyEvaluateResourceTest
 
   private final ComponentIdentifier COMMONS_DBCP_1_4 = ComponentIdentifier.createMavenCoordinates("commons-dbcp",
       "commons-dbcp", "1.4");
-  
+
   private final ComponentIdentifier TOMCAT_UTIL_5_5_23 = ComponentIdentifier.createMavenCoordinates("tomcat",
       "tomcat-util", "5.5.23");
+
+
+  private static final ComponentIdentifier COMMONS_POOL_ID = ComponentIdentifier
+    .createMavenCoordinates("commons-pool", "commons-pool", "1.4");
 
   private String applicationPublicId = "PolicyEvaluateResourceTestAppPublicId";
 
@@ -599,8 +603,8 @@ public class PolicyEvaluateResourceTest
     FileUtils.copyFile(new File(testReportFileUrl.getFile()), saasReportFile);
 
     // Override the license at org level
-    tempEntity.newLicenseOverride(app.getOrganizationId(), "commons-pool",
-        "commons-pool", "1.4", LicenseOverrideStatus.OVERRIDDEN, "ZPL-2.0", " My comment");
+    tempEntity.newLicenseOverride(app.getOrganizationId(), COMMONS_POOL_ID, LicenseOverrideStatus.OVERRIDDEN, "ZPL-2.0",
+      " My comment");
 
     // Evaluate policy
     Response response = AuthedRestAccess.post(getServiceURL(applicationPublicId, scanId), JsonHelpers.asJson(stage));
@@ -624,8 +628,8 @@ public class PolicyEvaluateResourceTest
 
     // Override the license at app level. This must supersede the override at org level, so the policy should not
     // trigger any alerts.
-    tempEntity.newLicenseOverride(app.getId(), "commons-pool", "commons-pool",
-        "1.4", LicenseOverrideStatus.ACKNOWLEDGED, null /* licenseId */, " My comment");
+    tempEntity.newLicenseOverride(app.getId(), COMMONS_POOL_ID, LicenseOverrideStatus.ACKNOWLEDGED,
+      null /* licenseId */, " My comment");
 
     // Evaluate policy
     response = AuthedRestAccess.post(getServiceURL(applicationPublicId, scanId), JsonHelpers.asJson(stage));

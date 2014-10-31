@@ -12,9 +12,13 @@ import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
 import com.sonatype.insight.brain.model.license.License;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
 
+import static com.sonatype.clm.dto.model.ide.ComponentIdentifier.MAVEN_ARTIFACT_ID;
+import static com.sonatype.clm.dto.model.ide.ComponentIdentifier.MAVEN_GROUP_ID;
+import static com.sonatype.clm.dto.model.ide.ComponentIdentifier.VERSION;
+
 /**
  * DTO class for records in the license override audit logs.
- * 
+ *
  * @since 1.6
  */
 public class LicenseOverrideAudit
@@ -32,9 +36,9 @@ public class LicenseOverrideAudit
   }
 
   public LicenseOverrideAudit(LicenseOverride licenseOverride) {
-    groupId = licenseOverride.getGroupId();
-    artifactId = licenseOverride.getArtifactId();
-    version = licenseOverride.getVersion();
+    groupId = licenseOverride.getComponentIdentifier().get(MAVEN_GROUP_ID);
+    artifactId = licenseOverride.getComponentIdentifier().get(MAVEN_ARTIFACT_ID);
+    version = licenseOverride.getComponentIdentifier().get(VERSION);
     status = licenseOverride.getStatus().getName();
     if (licenseOverride.getLicenseId() != null) {
       overriddenLicenses = new ArrayList<String>();

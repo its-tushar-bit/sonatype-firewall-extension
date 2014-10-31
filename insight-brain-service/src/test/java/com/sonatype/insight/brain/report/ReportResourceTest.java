@@ -99,6 +99,13 @@ import static org.junit.Assert.assertTrue;
 public class ReportResourceTest
     extends AbstractResourceTest
 {
+
+  private static final ComponentIdentifier COMMONS_POOL_ID = ComponentIdentifier
+    .createMavenCoordinates("commons-pool", "commons-pool", "1.4");
+
+  private static final ComponentIdentifier TOMCAT_ID = ComponentIdentifier
+    .createMavenCoordinates("tomcat", "tomcat-util", "5.5.23");
+
   @Test
   public void testManuallyIdentifiedComponent() throws Exception {
     // The hash of commons-httpclient-3.1.SONATYPE.jar, similar match of commons-httpclient:commons-httpclient:3.1
@@ -192,6 +199,7 @@ public class ReportResourceTest
     String groupId = "testClaimedComponent_G";
     String artifactId = "testClaimedComponent_A";
     String version = "testClaimedComponent_V";
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates(groupId, artifactId, version);
     String extension = "testClaimedComponent_E";
     String classifier = "testClaimedComponent_C";
     Date createTime = new Date();
@@ -204,8 +212,8 @@ public class ReportResourceTest
     Application application = tempEntity.newApplicationWithParent(applicationPublicId);
 
     String licenseId = new LicenseDAO().getByIdNotNull("GPL-3.0").getId(); // db lookup to make sure licenseId is valid
-    tempEntity.newLicenseOverride(application.getId(), groupId, artifactId, version,
-        LicenseOverrideStatus.OVERRIDDEN, licenseId, "manual override");
+    tempEntity.newLicenseOverride(application.getId(), componentIdentifier, LicenseOverrideStatus.OVERRIDDEN, licenseId,
+      "manual override");
 
     String scanId = "testClaimedComponent_ScanId";
     String licenseFingerprint = "ReportResourceTest_LicenseFingerprint";
@@ -766,10 +774,11 @@ public class ReportResourceTest
     FileUtils.copyFile(new File(testReportResultUrl.getFile()), saasReportFile);
 
     LicenseOverrideDAO licenseOverrideDAO = new LicenseOverrideDAO();
-    LicenseOverride licenseOverride = licenseOverrideDAO.getByOwnerIdAndGAV(application.getId(), "tomcat",
-        "tomcat-util", "5.5.23");
+    LicenseOverride licenseOverride = licenseOverrideDAO
+      .getByOwnerIdAndComponentIdentifier(application.getId(), TOMCAT_ID);
     assertNull(licenseOverride);
-    licenseOverride = licenseOverrideDAO.getByOwnerIdAndGAV(application.getId(), "commons-pool", "commons-pool", "1.4");
+    licenseOverride = licenseOverrideDAO.getByOwnerIdAndComponentIdentifier(application.getId(),
+      COMMONS_POOL_ID);
     assertNull(licenseOverride);
 
     // edit the license
@@ -782,12 +791,12 @@ public class ReportResourceTest
     assertResponseStatus(200, response);
 
     // verify that the license overrides were saved in the database
-    licenseOverride = licenseOverrideDAO.getByOwnerIdAndGAV(application.getId(), "tomcat", "tomcat-util", "5.5.23");
+    licenseOverride = licenseOverrideDAO.getByOwnerIdAndComponentIdentifier(application.getId(), TOMCAT_ID);
     assertNotNull(licenseOverride);
     assertEquals(LicenseOverrideStatus.OVERRIDDEN, licenseOverride.getStatus());
     assertEquals("GPL-3.0", licenseOverride.getLicenseId());
     assertEquals("My comment", licenseOverride.getComment());
-    licenseOverride = licenseOverrideDAO.getByOwnerIdAndGAV(application.getId(), "commons-pool", "commons-pool", "1.4");
+    licenseOverride = licenseOverrideDAO.getByOwnerIdAndComponentIdentifier(application.getId(), COMMONS_POOL_ID);
     assertNotNull(licenseOverride);
     assertEquals(LicenseOverrideStatus.OVERRIDDEN, licenseOverride.getStatus());
     assertEquals("GPL-3.0", licenseOverride.getLicenseId());
@@ -829,12 +838,12 @@ public class ReportResourceTest
     assertResponseStatus(200, response);
 
     // verify that the license overrides were saved in the database
-    licenseOverride = licenseOverrideDAO.getByOwnerIdAndGAV(application.getId(), "tomcat", "tomcat-util", "5.5.23");
+    licenseOverride = licenseOverrideDAO.getByOwnerIdAndComponentIdentifier(application.getId(), TOMCAT_ID);
     assertNotNull(licenseOverride);
     assertEquals(LicenseOverrideStatus.OVERRIDDEN, licenseOverride.getStatus());
     assertEquals("Apache-2.0", licenseOverride.getLicenseId());
     assertEquals("My comment1", licenseOverride.getComment());
-    licenseOverride = licenseOverrideDAO.getByOwnerIdAndGAV(application.getId(), "commons-pool", "commons-pool", "1.4");
+    licenseOverride = licenseOverrideDAO.getByOwnerIdAndComponentIdentifier(application.getId(), COMMONS_POOL_ID);
     assertNotNull(licenseOverride);
     assertEquals(LicenseOverrideStatus.OVERRIDDEN, licenseOverride.getStatus());
     assertEquals("Apache-2.0", licenseOverride.getLicenseId());
@@ -902,8 +911,8 @@ public class ReportResourceTest
     Assert.assertEquals("Did not find expected license", 1, found);
 
     // Override the license at organization level
-    LicenseOverride orgLicenseOverride = new LicenseOverride(application.getOrganizationId(), "commons-pool",
-        "commons-pool", "1.4", LicenseOverrideStatus.OVERRIDDEN, "GPL-3.0", "My org license override");
+    LicenseOverride orgLicenseOverride = new LicenseOverride(application.getOrganizationId(), COMMONS_POOL_ID,
+      LicenseOverrideStatus.OVERRIDDEN, "GPL-3.0", "My org license override");
     response = AuthedRestAccess.post(
         getLicenseOverrideServiceURL(IdUtils.TYPE_ORGANIZATION, application.getOrganizationId()),
         JsonHelpers.asJson(orgLicenseOverride));
@@ -936,8 +945,9 @@ public class ReportResourceTest
     Assert.assertEquals("Did not find expected overridden license", 1, found);
 
     // Override the license at application level
-    LicenseOverride appLicenseOverride = new LicenseOverride(application.getId(), "commons-pool", "commons-pool",
-        "1.4", LicenseOverrideStatus.OVERRIDDEN, "GPL-2.0", "My app license override");
+    LicenseOverride appLicenseOverride = new LicenseOverride(application.getId(),
+      COMMONS_POOL_ID,
+      LicenseOverrideStatus.OVERRIDDEN, "GPL-2.0", "My app license override");
     response = AuthedRestAccess.post(getLicenseOverrideServiceURL(IdUtils.TYPE_APPLICATION, application.getPublicId()),
         JsonHelpers.asJson(appLicenseOverride));
     assertResponseStatus(200, response);
@@ -1084,11 +1094,12 @@ public class ReportResourceTest
 
     HashGAV claimedCompenent = tempEntity.newClaimedComponent("f0776db1593e215146d2", "commons-httpclient",
         "commons-httpclient", "3.1.SONATYPE");
-    LicenseOverride licenseOverride = tempEntity
-        .newLicenseOverride(appId, claimedCompenent.getGroupId(), claimedCompenent.getArtifactId(),
-            claimedCompenent.getVersion(), LicenseOverrideStatus.OVERRIDDEN, "GPL-2.0");
-    LicenseOverride licenseOverride2 = tempEntity.newLicenseOverride(appId, "tomcat", "tomcat-util", "5.5.23",
-        LicenseOverrideStatus.OVERRIDDEN, "EPL-1.0");
+    LicenseOverride licenseOverride = tempEntity.newLicenseOverride(appId,
+      ComponentIdentifier.createMavenCoordinates(claimedCompenent.getGroupId(), claimedCompenent.getArtifactId(),
+        claimedCompenent.getVersion()), LicenseOverrideStatus.OVERRIDDEN, "GPL-2.0");
+    LicenseOverride licenseOverride2 = tempEntity.newLicenseOverride(appId,
+      ComponentIdentifier.createMavenCoordinates("tomcat", "tomcat-util", "5.5.23"), LicenseOverrideStatus.OVERRIDDEN,
+      "EPL-1.0");
     Policy policy = tempEntity.newPolicy(appId, testName.getMethodName());
 
     Response response = AuthedRestAccess.post(getRestUrl(PolicyEvaluateResource.SERVICE_PATH, applicationPublicId)

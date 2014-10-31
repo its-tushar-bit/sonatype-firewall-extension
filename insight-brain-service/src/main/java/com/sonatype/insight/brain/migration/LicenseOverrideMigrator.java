@@ -16,6 +16,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.persistence.EntityManager;
 
+import com.sonatype.clm.dto.model.ide.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
@@ -35,7 +36,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Migrates the license overrides from the audit log to the ODS database.
- * 
+ *
  * @since 1.6
  */
 @Named
@@ -165,8 +166,9 @@ public class LicenseOverrideMigrator
                   gav, comment);
               comment = comment.substring(0, LicenseOverrideDAO.MAX_COMMENT_SIZE);
             }
-            LicenseOverride licenseOverride = new LicenseOverride(applicationId, groupId, artifactId, version, status,
-                licenseOverrideId, comment);
+            LicenseOverride licenseOverride = new LicenseOverride(applicationId,
+              ComponentIdentifier.createMavenCoordinates(groupId, artifactId, version), status, licenseOverrideId,
+              comment);
             licenseOverrideDAO.insert(em, licenseOverride);
           }
         }

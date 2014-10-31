@@ -38,6 +38,7 @@ import javax.ws.rs.core.UriBuilder;
 
 import com.sonatype.clm.dto.model.ide.ComponentDetails;
 import com.sonatype.clm.dto.model.ide.ComponentDetailsList;
+import com.sonatype.clm.dto.model.ide.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ComponentFact;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.Stage;
@@ -143,7 +144,7 @@ public class ReportResource
     if ("index.html".equals(path) || path.isEmpty()) {
       UriBuilder uriBuilder = baseUrl.redirect();
       uriBuilder.path(UserInterfaceLinksResource.SERVICE_PATH + "/" + UserInterfaceLinksResource.REPORT_PATH);
-      
+
       StringBuilder sb = new StringBuilder();
       sb.append("<html>");
       sb.append("<body style='font: 12px Verdana, Helvetica;margin-top:50px;'>");
@@ -152,7 +153,7 @@ public class ReportResource
       sb.append("<a target='_blank' href='" + uriBuilder.build(applicationPublicId, scanId) + "'>here</a></p>");
       sb.append("</body>");
       sb.append("</html>");
-      
+
       final ResponseBuilder response = Response.ok(sb.toString());
       response.type(MediaTypeUtils.byName("index.html"));
       response.expires(new Date(0));
@@ -263,7 +264,7 @@ public class ReportResource
   /**
    * Retrieves a self-contained ZIP bundle of the specified report for use by 3rd-party integrators like HP Fortify.
    * Obviously, the employed report template also needs to support self-containment.
-   * 
+   *
    * @since 1.10
    */
   @GET
@@ -433,7 +434,7 @@ public class ReportResource
 
   /**
    * Supports the bulk license editor which does not use LicenseOverrideResource.
-   * 
+   *
    * @since 1.6
    */
   private void saveLicenseOverride(String appId, JsonNode licenseData) {
@@ -455,9 +456,11 @@ public class ReportResource
     String comment = JsonUtils.getNullableString(licenseData.get("comment"));
 
     LicenseOverrideDAO licenseOverrideDAO = new LicenseOverrideDAO();
-    LicenseOverride licenseOverride = licenseOverrideDAO.getByOwnerIdAndGAV(appId, groupId, artifactId, version);
+    LicenseOverride licenseOverride = licenseOverrideDAO.getByOwnerIdAndComponentIdentifier(appId,
+      ComponentIdentifier.createMavenCoordinates(groupId, artifactId, version));
     if (licenseOverride == null) {
-      licenseOverride = new LicenseOverride(appId, groupId, artifactId, version, status, licenseOverrideId, comment);
+      licenseOverride = new LicenseOverride(appId, ComponentIdentifier.createMavenCoordinates(groupId, artifactId,
+        version), status, licenseOverrideId, comment);
       licenseOverrideDAO.insert(licenseOverride);
     }
     else {

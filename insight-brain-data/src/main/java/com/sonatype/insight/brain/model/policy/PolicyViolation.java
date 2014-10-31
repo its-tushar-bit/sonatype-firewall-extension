@@ -10,7 +10,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -18,9 +17,11 @@ import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 
 import com.sonatype.clm.dto.model.ide.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
+import com.sonatype.insight.brain.model.HasComponentId;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.model.HasStringId;
 
@@ -33,7 +34,8 @@ import org.codehaus.plexus.util.StringUtils;
 @Entity
 @Table(name = "policy_violation")
 public class PolicyViolation
-    implements HasStringId
+  extends HasComponentId
+  implements HasStringId
 {
   static final char NOTIFICATIONS_DELIMITER_CHAR = '\n';
 
@@ -41,7 +43,7 @@ public class PolicyViolation
   static final String NOTIFICATIONS_DELIMITER_REGEX = "\\" + NOTIFICATIONS_DELIMITER_CHAR;
 
   static final char PATHNAMES_DELIMITER_CHAR = '\n';
-  
+
   /** The pathnames delimiter character escaped for regular expressions. */
   static final String PATHNAMES_DELIMITER_REGEX = "\\" + PATHNAMES_DELIMITER_CHAR;
 
@@ -71,18 +73,6 @@ public class PolicyViolation
   @Column(name = "hash")
   private String hash;
 
-  /**
-   * @since 1.13.0
-   */
-  @Column(name = "component_id_format")
-  private String componentIdFormat;
-
-  /**
-   * @since 1.13.0
-   */
-  @Column(name = "component_id_coordinates_json")
-  private String componentIdCoordinatesJson;
-
   @Column(name = "constraint_facts_json")
   private String constraintFactsJson;
 
@@ -101,16 +91,14 @@ public class PolicyViolation
   @Column(name = "waived")
   private boolean isWaived;
 
+  @Transient
   private List<ConstraintFact> constraintFacts;
 
+  @Transient
   private List<String> pathnames;
 
+  @Transient
   private List<String> notifications;
-
-  /**
-   * @since 1.13.0
-   */
-  private ComponentIdentifier componentIdentifier;
 
   public PolicyViolation() {
   }
@@ -267,34 +255,6 @@ public class PolicyViolation
     return constraintFacts;
   }
 
-  public ComponentIdentifier getComponentIdentifier() {
-    if (componentIdFormat == null) {
-      return null;
-    }
-    if (componentIdentifier == null) {
-      try {
-        componentIdentifier = new ComponentIdentifier(componentIdFormat, JsonUtils.parse(componentIdCoordinatesJson,
-            Map.class));
-      }
-      catch (IOException e) {
-        throw new RuntimeException(e);
-      }
-    }
-    return componentIdentifier;
-  }
-
-  public void setComponentIdentifier(ComponentIdentifier componentIdentifier) {
-    this.componentIdentifier = componentIdentifier;
-    if (componentIdentifier == null) {
-      componentIdFormat = null;
-      componentIdCoordinatesJson = null;
-    }
-    else {
-      componentIdFormat = componentIdentifier.format;
-      componentIdCoordinatesJson = JsonUtils.format(componentIdentifier.coordinates);
-    }
-  }
-
   public List<String> getPathnames() {
     if (pathnames == null && !StringUtils.isBlank(pathnamesString)) {
       pathnames = Arrays.asList(pathnamesString.split(PATHNAMES_DELIMITER_REGEX));
@@ -360,7 +320,7 @@ public class PolicyViolation
   public String toString() {
     return "PolicyViolation [id=" + id + ", policyEvaluationId=" + policyEvaluationId + ", time=" + time + "("
         + time.getTime() + "), policyId=" + policyId + ", policyName=" + policyName + ", threatLevel=" + threatLevel
-        + ", threatCategory=" + threatCategory + ", hash=" + hash + ", componentIdentifier=" + componentIdentifier
+        + ", threatCategory=" + threatCategory + ", hash=" + hash + ", componentIdentifier=" + getComponentIdentifier()
         + ", actionTypeId=" + actionTypeId + "]";
   }
 

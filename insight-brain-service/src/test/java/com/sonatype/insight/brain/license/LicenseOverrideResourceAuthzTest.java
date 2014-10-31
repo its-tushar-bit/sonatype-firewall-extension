@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.license;
 
+import com.sonatype.clm.dto.model.ide.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
@@ -20,7 +21,8 @@ public class LicenseOverrideResourceAuthzTest
   @Test
   public void testAddLicenseOverride() throws Exception {
     grantWritePermission(app.getId());
-    LicenseOverride override = new LicenseOverride(null, "g", "a", "1", LicenseOverrideStatus.CONFIRMED, null, "test");
+    LicenseOverride override = new LicenseOverride(null, ComponentIdentifier.createMavenCoordinates("g", "a", "1"),
+      LicenseOverrideStatus.CONFIRMED, null, "test");
 
     String url = getRestUrl(LicenseOverrideResource.SERVICE_PATH, IdUtils.TYPE_APPLICATION, app.getPublicId());
     Response response = testAuthzPost(url, toJson(override));
@@ -28,7 +30,8 @@ public class LicenseOverrideResourceAuthzTest
     new LicenseOverrideDAO().delete(override);
 
     grantWritePermission(org.getId());
-    override = new LicenseOverride(null, "g", "a", "1", LicenseOverrideStatus.CONFIRMED, null, "test");
+    override = new LicenseOverride(null, ComponentIdentifier.createMavenCoordinates("g", "a", "1"),
+      LicenseOverrideStatus.CONFIRMED, null, "test");
 
     url = getRestUrl(LicenseOverrideResource.SERVICE_PATH, IdUtils.TYPE_ORGANIZATION, org.getId());
     response = testAuthzPost(url, toJson(override));
@@ -39,15 +42,16 @@ public class LicenseOverrideResourceAuthzTest
   @Test
   public void testDeleteLicenseOverride() throws Exception {
     grantWritePermission(app.getId());
-    LicenseOverride override = tempEntity.newLicenseOverride(app.getId(), "g", "a", "1",
-        LicenseOverrideStatus.CONFIRMED, null);
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "1");
+    LicenseOverride override = tempEntity.newLicenseOverride(app.getId(), componentIdentifier,
+      LicenseOverrideStatus.CONFIRMED, null);
 
     String url = getRestUrl(LicenseOverrideResource.SERVICE_PATH + "/{overrideId}", IdUtils.TYPE_APPLICATION,
         app.getPublicId(), override.getId());
     testAuthzDelete(url);
 
     grantWritePermission(org.getId());
-    override = tempEntity.newLicenseOverride(org.getId(), "g", "a", "1", LicenseOverrideStatus.CONFIRMED, null);
+    override = tempEntity.newLicenseOverride(org.getId(), componentIdentifier, LicenseOverrideStatus.CONFIRMED, null);
 
     url = getRestUrl(LicenseOverrideResource.SERVICE_PATH + "/{overrideId}", IdUtils.TYPE_ORGANIZATION, org.getId(),
         override.getId());

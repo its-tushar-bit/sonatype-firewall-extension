@@ -56,6 +56,9 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import static com.sonatype.clm.dto.model.ide.ComponentIdentifier.MAVEN_ARTIFACT_ID;
+import static com.sonatype.clm.dto.model.ide.ComponentIdentifier.MAVEN_GROUP_ID;
+import static com.sonatype.clm.dto.model.ide.ComponentIdentifier.VERSION;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.hasSize;
@@ -68,6 +71,10 @@ import static org.junit.Assert.fail;
 public abstract class AbstractComponentInfoResourceTest
     extends AbstractResourceTest
 {
+
+  private static final ComponentIdentifier MAVEN_COORDINATES = ComponentIdentifier
+    .createMavenCoordinates("g1", "a1", "v1");
+
   protected abstract String getResourcePath();
 
   @Before
@@ -194,13 +201,14 @@ public abstract class AbstractComponentInfoResourceTest
     String groupId = "g1";
     String artifactId = "a1";
     String version = "v1";
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates(groupId, artifactId, version);
 
     // Verify component with licenses
     tempEntity.newLicenseThreatGroup(application.getId(), "ComponentInfoResourceTest", 5, "LGPL-2.0", "BSD-3-Clause");
-    tempEntity.newLicenseOverride(application.getId(), groupId, artifactId, version, LicenseOverrideStatus.SELECTED,
-        "BSD-3-Clause");
+    tempEntity.newLicenseOverride(application.getId(), componentIdentifier, LicenseOverrideStatus.SELECTED,
+      "BSD-3-Clause");
 
-    ComponentDetails saasComponentDetails = new ComponentDetails(groupId, artifactId, version);
+    ComponentDetails saasComponentDetails = new ComponentDetails(componentIdentifier);
     saasComponentDetails.setDeclaredLicenses(toLicenseSet("Apache-2.0", "LGPL-2.0-MPL-1.1"));
     saasComponentDetails.setObservedLicenses(toLicenseSet("GPL-2.0", "AFL-2.1-BSD-3-Clause"));
     setSaasResponseForURI(getSaasComponentDetailsUrl(groupId, artifactId, version), toJson(saasComponentDetails), 200);
@@ -373,7 +381,7 @@ public abstract class AbstractComponentInfoResourceTest
     tempEntity.newLicenseThreatGroup(appId, "groupA", 1, "GPL-2.0");
     tempEntity.newLicenseThreatGroup(appId, "Groupb", 1, "GPL-2.0");
     tempEntity.newLicenseThreatGroup(appId, "GroupC", 1, "GPL-2.0");
-    
+
     // Create the mocked saas response
     String groupId = "g1";
     String artifactId = "a1";
@@ -494,24 +502,21 @@ public abstract class AbstractComponentInfoResourceTest
     String applicationPublicId = "IdeResourceTest_AppId";
     Application application = tempEntity.newApplicationWithParent(applicationPublicId);
 
-    tempEntity.newLicenseOverride(application.getId(), "g1", "a1", "v1",
-        LicenseOverrideStatus.OVERRIDDEN, "GPL-2.0", null /* comment */);
+    tempEntity.newLicenseOverride(application.getId(), MAVEN_COORDINATES, LicenseOverrideStatus.OVERRIDDEN, "GPL-2.0", null /* comment */);
 
-    String groupId = "g1";
-    String artifactId = "a1";
-    String version = "v1";
+    String groupId = MAVEN_COORDINATES.get(MAVEN_GROUP_ID);
+    String artifactId = MAVEN_COORDINATES.get(MAVEN_ARTIFACT_ID);
+    String version = MAVEN_COORDINATES.get(VERSION);
     String serviceUrl = getComponentDetailsUrl(applicationPublicId, groupId, artifactId, version, null, null);
     String saasUrl = convertToSaasUrl(serviceUrl, applicationPublicId);
-    ComponentDetails saasComponentDetails = new ComponentDetails(groupId, artifactId, version);
+    ComponentDetails saasComponentDetails = new ComponentDetails(MAVEN_COORDINATES);
     setSaasResponseForURI(saasUrl, toJson(saasComponentDetails), 200);
     Response response = AuthedRestAccess.get(serviceUrl);
     assertResponseStatus(200, response);
 
     ComponentDetails componentDetails = fromJson(response, ComponentDetails.class);
     Assert.assertNotNull(componentDetails);
-    Assert.assertEquals(groupId, componentDetails.getGroupId());
-    Assert.assertEquals(artifactId, componentDetails.getArtifactId());
-    Assert.assertEquals(version, componentDetails.getVersion());
+    Assert.assertEquals(MAVEN_COORDINATES, componentDetails.getIdentifier());
     Assert.assertEquals(1, componentDetails.getOverriddenLicenses().size());
     License overriddenLicense = componentDetails.getOverriddenLicenses().iterator().next();
     Assert.assertNotNull(overriddenLicense);
@@ -532,26 +537,23 @@ public abstract class AbstractComponentInfoResourceTest
     String applicationPublicId = "IdeResourceTest_AppId";
     Application application = tempEntity.newApplicationWithParent(applicationPublicId);
 
-    tempEntity.newLicenseOverride(application.getId(), "g1", "a1", "v1",
-        LicenseOverrideStatus.SELECTED, "GPL-2.0", null /* comment */);
+    tempEntity.newLicenseOverride(application.getId(), MAVEN_COORDINATES, LicenseOverrideStatus.SELECTED, "GPL-2.0",
+      null /* comment */);
 
-    String groupId = "g1";
-    String artifactId = "a1";
-    String version = "v1";
+    String groupId = MAVEN_COORDINATES.get(MAVEN_GROUP_ID);
+    String artifactId = MAVEN_COORDINATES.get(MAVEN_ARTIFACT_ID);
+    String version = MAVEN_COORDINATES.get(VERSION);
     String serviceUrl = getComponentDetailsUrl(applicationPublicId, groupId, artifactId, version, null, null);
-    String saasUrl = getSaasComponentDetailsUrl(groupId, artifactId, version);// convertToSaasUrl(serviceUrl,
-                                                                              // applicationPublicId);
-    ComponentDetails saasComponentDetails = new ComponentDetails();
-    saasComponentDetails.setIdentifier(ComponentIdentifier.createMavenCoordinates(groupId, artifactId, version));
+    String saasUrl = getSaasComponentDetailsUrl(groupId, artifactId, version);
+    ComponentDetails saasComponentDetails = new ComponentDetails(MAVEN_COORDINATES);
+
     setSaasResponseForURI(saasUrl, toJson(saasComponentDetails), 200);
     Response response = AuthedRestAccess.get(serviceUrl);
     assertResponseStatus(200, response);
 
     ComponentDetails componentDetails = fromJson(response, ComponentDetails.class);
     Assert.assertNotNull(componentDetails);
-    Assert.assertEquals(groupId, componentDetails.getGroupId());
-    Assert.assertEquals(artifactId, componentDetails.getArtifactId());
-    Assert.assertEquals(version, componentDetails.getVersion());
+    Assert.assertEquals(MAVEN_COORDINATES, componentDetails.getIdentifier());
     Assert.assertEquals(1, componentDetails.getOverriddenLicenses().size());
     License overriddenLicense = componentDetails.getOverriddenLicenses().iterator().next();
     Assert.assertNotNull(overriddenLicense);

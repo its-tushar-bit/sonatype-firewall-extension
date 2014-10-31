@@ -13,6 +13,7 @@ import java.util.zip.ZipOutputStream;
 
 import javax.inject.Inject;
 
+import com.sonatype.clm.dto.model.ide.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
@@ -68,12 +69,11 @@ public class ReportDataServiceTest
         for (JsonNode node : licenseNode.get("aaData")) {
           String status = JsonUtils.getNullableString(node.get("status"));
           if (status != null && !"Open".equals(status)) {
-            String groupId = node.get("groupId").asText();
-            String artifactId = node.get("artifactId").asText();
-            String version = node.get("version").asText();
+            ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates(
+              node.get("groupId").asText(), node.get("artifactId").asText(), node.get("version").asText());
             String licenseName = node.get("overriddenLicenses").get(0).asText();
             String licenseId = multiLicenseDAO.getByNameNotNull(licenseName).getId();
-            tempEntity.newLicenseOverride(app.getId(), groupId, artifactId, version,
+            tempEntity.newLicenseOverride(app.getId(), componentIdentifier,
                 LicenseOverrideStatus.getByName(status), licenseId, "testing");
           }
         }

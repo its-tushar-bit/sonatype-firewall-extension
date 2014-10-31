@@ -431,16 +431,16 @@ public class TemporaryEntity
     return licenseThreatGroupLicense;
   }
 
-  public LicenseOverride newLicenseOverride(String ownerId, String groupId, String artifactId, String version,
+  public LicenseOverride newLicenseOverride(String ownerId, ComponentIdentifier componentIdentifier,
       LicenseOverrideStatus status, String licenseId)
   {
-    return newLicenseOverride(ownerId, groupId, artifactId, version, status, licenseId, "testing");
+    return newLicenseOverride(ownerId, componentIdentifier, status, licenseId, "testing");
   }
 
-  public LicenseOverride newLicenseOverride(String ownerId, String groupId, String artifactId, String version,
-      LicenseOverrideStatus status, String licenseId, String comment)
+  public LicenseOverride newLicenseOverride(String ownerId, ComponentIdentifier componentIdentifier,
+    LicenseOverrideStatus status, String licenseId, String comment)
   {
-    LicenseOverride override = new LicenseOverride(ownerId, groupId, artifactId, version, status, licenseId, comment);
+    LicenseOverride override = new LicenseOverride(ownerId, componentIdentifier, status, licenseId, comment);
     licenseOverrideDAO.insert(override);
     return override;
   }

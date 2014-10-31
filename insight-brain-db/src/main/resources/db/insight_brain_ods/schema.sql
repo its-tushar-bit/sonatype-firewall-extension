@@ -116,14 +116,12 @@ CREATE TABLE policy_waiver (
 CREATE TABLE license_override (
   license_override_id varchar(50) NOT NULL,
   owner_id varchar(50) NOT NULL,
-  group_id varchar(100) NOT NULL,
-  artifact_id varchar(100) NOT NULL,
-  version varchar(100) NOT NULL,
+  component_id_format varchar(10) NOT NULL,
+  component_id_coordinates_json CLOB NOT NULL, -- the component identifier coordinates stored in json format
   status varchar(20) NOT NULL,
   license_id varchar(50) NULL,
   comment varchar(1000) NULL,
-  CONSTRAINT license_override_pk PRIMARY KEY (license_override_id),
-  CONSTRAINT license_override_uk UNIQUE KEY (owner_id, group_id, artifact_id, version)
+  CONSTRAINT license_override_pk PRIMARY KEY (license_override_id)
 );
 
 CREATE TABLE user (

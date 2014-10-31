@@ -26,6 +26,7 @@ import java.util.zip.ZipFile;
 
 import javax.ws.rs.core.Response.ResponseBuilder;
 
+import com.sonatype.clm.dto.model.ide.ComponentIdentifier;
 import com.sonatype.insight.brain.component.ComponentDisplayNameUtil;
 import com.sonatype.insight.brain.dataaccess.component.ComponentDAO;
 import com.sonatype.insight.brain.dataaccess.component.HashGAVDAO;
@@ -442,11 +443,12 @@ public final class Report
   private static LicenseOverride getLicenseOverride(final Application application,
       LicenseOverrideDAO licenseOverrideDAO, String groupId, String artifactId, String version)
   {
-    LicenseOverride licenseOverride = licenseOverrideDAO.getByOwnerIdAndGAV(application.getId(), groupId, artifactId,
-        version);
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates(groupId, artifactId, version);
+    LicenseOverride licenseOverride = licenseOverrideDAO
+      .getByOwnerIdAndComponentIdentifier(application.getId(), componentIdentifier);
     if (licenseOverride == null) {
-      licenseOverride = licenseOverrideDAO.getByOwnerIdAndGAV(application.getOrganizationId(), groupId, artifactId,
-          version);
+      licenseOverride = licenseOverrideDAO
+        .getByOwnerIdAndComponentIdentifier(application.getOrganizationId(), componentIdentifier);
     }
     return licenseOverride;
   }

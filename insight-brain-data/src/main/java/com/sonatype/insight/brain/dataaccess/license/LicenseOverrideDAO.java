@@ -9,11 +9,14 @@ import java.util.List;
 
 import javax.persistence.EntityManager;
 
+import com.sonatype.clm.dto.model.ide.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
+import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
+import com.sonatype.insight.json.store.JsonUtils;
 
 /**
  * @since 1.6
@@ -30,16 +33,15 @@ public class LicenseOverrideDAO
     return get(em, sQuery, id);
   }
 
-  public LicenseOverride getByOwnerIdAndGAV(String ownerId, String groupId, String artifactId, String version) {
-    String sQuery = "SELECT entity FROM LicenseOverride entity" + //
-        " WHERE entity.ownerId=?1 AND entity.groupId=?2 AND entity.artifactId=?3 AND entity.version=?4";
-    return get(sQuery, ownerId, groupId, artifactId, version);
+  public LicenseOverride getByOwnerIdAndComponentIdentifier(String ownerId, ComponentIdentifier componentIdentifier) {
+    String sQuery = "SELECT entity from LicenseOverride entity " +
+      "WHERE entity.ownerId=?1 and entity.componentIdFormat=?2 and entity.componentIdCoordinatesJson=?3";
+    return get(sQuery, ownerId, componentIdentifier.format, JsonUtils
+      .writeValueAsString(ComponentIdentifierAdapter.removeNonLegacyCoordinates(componentIdentifier.coordinates)));
   }
 
   public List<LicenseOverride> getByOwnerId(EntityManager em, String ownerId) {
-    String sQuery = "SELECT entity FROM LicenseOverride entity" + //
-        " WHERE entity.ownerId=?1" + //
-        " ORDER BY entity.groupId, entity.artifactId, entity.version";
+    String sQuery = "SELECT entity FROM LicenseOverride entity WHERE entity.ownerId=?1";
     return getList(em, sQuery, ownerId);
   }
 
@@ -56,6 +58,9 @@ public class LicenseOverrideDAO
   @Override
   public void insert(EntityManager em, LicenseOverride entity) {
     validate(entity);
+    if(getByOwnerIdAndComponentIdentifier(entity.getOwnerId(), entity.getComponentIdentifier()) != null) {
+      throw new BadRequestException("LicenseOverride already exists for this ownerId and component");
+    }
     super.insert(em, entity);
   }
 

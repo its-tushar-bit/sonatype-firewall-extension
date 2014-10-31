@@ -149,8 +149,7 @@ public abstract class AbstractComponentInfoResource
   @Authorize(permission = Permission.READ)
   public ComponentDetailsList getComponentDetailsList(
       @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) @PathParam("applicationPublicId") String applicationPublicId,
-      @PathParam("format") String format, @QueryParam("matchState") String matchState,
-      @QueryParam("proprietary") boolean proprietary) throws IOException
+      @PathParam("format") String format, @QueryParam("matchState") String matchState) throws IOException
   {
     long start = System.currentTimeMillis();
 

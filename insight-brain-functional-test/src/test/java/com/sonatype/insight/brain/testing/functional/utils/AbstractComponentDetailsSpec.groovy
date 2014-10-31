@@ -104,7 +104,9 @@ abstract class AbstractComponentDetailsSpec
   }
 
   protected void validateCommon(CIPModule cip, Map<String, Object> component) {
-    assert cip.name == "${component.groupId} : ${component.artifactId} : ${component.version}"
+    assert cip.getNameField('Group') == component.groupId
+    assert cip.getNameField('Artifact') == component.artifactId
+    assert cip.getNameField('Version') == component.version
     validateEffectiveLicense(cip, component)
     assert cip.declaredLicense == component.declaredLicenses[0].licenseName
     assert cip.observedLicense == component.observedLicenses[0].licenseName

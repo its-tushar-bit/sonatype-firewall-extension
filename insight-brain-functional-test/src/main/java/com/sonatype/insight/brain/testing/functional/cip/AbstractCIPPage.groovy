@@ -49,7 +49,6 @@ class CIPModule
   static base = { $('#infoPanelArtifactTable') }
 
   static content = {
-    name { $('#artifactInfoName').text() }
     effectiveLicense { $('#artifactInfoEffectiveLicenseRow td:last-child').text() }
     declaredLicense { $('#artifactInfoDeclaredLicenseRow td:last-child').text() }
     observedLicense { $('#artifactInfoObservedLicenseRow td:last-child').text() }
@@ -61,6 +60,10 @@ class CIPModule
     website(required: false) { $('#artifactWebsite a') }
     viewDetails { $('[ng-click="viewDetails()"]') }
     migrate(required: false) { $('[ng-click="markUpgrade()"]') } // only present in Eclipse
+  }
+
+  def getNameField(String field) {
+    return $("#artifactInfo-${field} td:last-child").text();
   }
 }
 

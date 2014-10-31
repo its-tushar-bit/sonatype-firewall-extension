@@ -1,7 +1,9 @@
 .content {
     padding: 5px;
 }
-
+#infoPanelArtifactTable .content-name td:first-child {
+    text-transform: capitalize;
+}
 #infoPanelArtifactTable tr td:first-child {
     font-size:11px;
     color:#333333;

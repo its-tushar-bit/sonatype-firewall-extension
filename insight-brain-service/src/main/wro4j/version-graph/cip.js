@@ -40,7 +40,7 @@
       injectorTimeout = null,
       logQueue = [],
       logFn = defaultLogFn,
-      module = angular.module('CIP', ['ComponentName']).run(['$rootScope', '$injector', function ($rootScope, $injector) {
+      module = angular.module('CIP', []).run(['$rootScope', '$injector', function ($rootScope, $injector) {
         injector = $injector;
 
         $rootScope.setError = function (error) {
@@ -709,6 +709,21 @@
         message += '\n' + exception.stack; // non-standard but supported by recent major browsers (ie10+, webkit, etc.)
       }
       logFn.call(null, message);
+    };
+  });
+
+  module.filter('namePart', function () {
+    return function (input) {
+      if (angular.isArray(input)) {
+        var result = [];
+        angular.forEach(input, function (part) {
+          if (part.field) {
+            result.push(part);
+          }
+        });
+        return result;
+      }
+      return input;
     };
   });
 }());

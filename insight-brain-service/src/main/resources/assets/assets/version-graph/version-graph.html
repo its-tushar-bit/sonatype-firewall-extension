@@ -87,10 +87,9 @@
         <div class='cip-box' ng-controller='DetailsController'>
           <div ng-show='loaded' id='detailsparent'>
             <table id='infoPanelArtifactTable' style='border-collapse: collapse'>
-              <tr id='artifactInfoName'>
-                <td colspan='2' style='text-align:center'>
-                  <div component-name='componentDetails.displayName'></div>
-                </td>
+              <tr ng-repeat='part in componentDetails.displayName.parts | namePart' id='artifactInfo-{{part.field}}' class='component-name'>
+                <td>{{part.field}}:</td>
+                <td>{{part.value}}</td>
               </tr>
               <tr id='artifactInfoClaimedLicenseRow' ng-if="isManual()">
                 <td>License:</td>

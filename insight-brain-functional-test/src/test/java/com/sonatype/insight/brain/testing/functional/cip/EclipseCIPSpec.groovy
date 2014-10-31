@@ -116,7 +116,7 @@ class EclipseCIPSpec
 
     then: 'Details of the vulnerabilities are shown'
       CIPModule cip = cip
-      waitFor('slow') { cip.displayed && cip.name }
+      waitFor('slow') { cip.displayed && cip.getNameField("Group") }
       validateCommon(cip, CATALINA_HOST_MANAGER)
       cip.highestSecurityThreat == '4.3 within 4 security issues'
 

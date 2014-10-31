@@ -83,6 +83,15 @@ import static org.junit.Assert.assertThat;
 public class PolicyEvaluateResourceTest
     extends AbstractResourceTest
 {
+  private final ComponentIdentifier GERONIMO_TOMCAT_1_0 = ComponentIdentifier.createMavenCoordinates("geronimo",
+      "geronimo-tomcat", "1.0");
+
+  private final ComponentIdentifier COMMONS_DBCP_1_4 = ComponentIdentifier.createMavenCoordinates("commons-dbcp",
+      "commons-dbcp", "1.4");
+  
+  private final ComponentIdentifier TOMCAT_UTIL_5_5_23 = ComponentIdentifier.createMavenCoordinates("tomcat",
+      "tomcat-util", "5.5.23");
+
   private String applicationPublicId = "PolicyEvaluateResourceTestAppPublicId";
 
   private String licenseFingerprint = "PolicyEvaluateResourceTest_LicenseFingerprint";
@@ -948,7 +957,7 @@ public class PolicyEvaluateResourceTest
     PolicyEvaluationDAO policyEvaluationDAO = new PolicyEvaluationDAO();
     PolicyEvaluation policyEvaluation1 = policyEvaluationDAO.getLastByApplicationIdAndStageId(app.getId(),
         stage1.getStageTypeId());
-    assertApplicationComponent("commons-dbcp", "commons-dbcp", "1.4", policyEvaluation1.getTime(), appComponent1);
+    assertApplicationComponent(COMMONS_DBCP_1_4, policyEvaluation1.getTime(), appComponent1);
 
     // Evaluate policy for a different stage. It should not touch the app<->component assocs for the first stage.
     assertThat(appComponentDAO.getByApplicationIdAndStageTypeId(app.getId(), stage2.getStageTypeId()), is(empty()));
@@ -960,11 +969,10 @@ public class PolicyEvaluateResourceTest
     ApplicationComponent appComponent2 = appComponents2.get(0);
     PolicyEvaluation policyEvaluation2 = policyEvaluationDAO.getLastByApplicationIdAndStageId(app.getId(),
         stage2.getStageTypeId());
-    assertApplicationComponent("geronimo", "geronimo-tomcat", "1.0", policyEvaluation2.getTime(), appComponent2);
+    assertApplicationComponent(GERONIMO_TOMCAT_1_0, policyEvaluation2.getTime(), appComponent2);
     appComponents1 = appComponentDAO.getByApplicationIdAndStageTypeId(app.getId(), stage1.getStageTypeId());
     assertThat(appComponents1, hasSize(1));
-    assertApplicationComponent("commons-dbcp", "commons-dbcp", "1.4", policyEvaluation1.getTime(),
-        appComponents1.get(0));
+    assertApplicationComponent(COMMONS_DBCP_1_4, policyEvaluation1.getTime(), appComponents1.get(0));
     assertThat(appComponents1.get(0).getId(), is(appComponent1.getId()));
 
     // Evaluate again for the first stage. It should replace the app<->component assocs for the first stage and it
@@ -976,10 +984,10 @@ public class PolicyEvaluateResourceTest
     assertThat(appComponents3, hasSize(1));
     ApplicationComponent appComponent3 = appComponents3.get(0);
     policyEvaluation1 = policyEvaluationDAO.getLastByApplicationIdAndStageId(app.getId(), stage1.getStageTypeId());
-    assertApplicationComponent("tomcat", "tomcat-util", "5.5.23", policyEvaluation1.getTime(), appComponent3);
+    assertApplicationComponent(TOMCAT_UTIL_5_5_23, policyEvaluation1.getTime(), appComponent3);
     appComponents2 = appComponentDAO.getByApplicationIdAndStageTypeId(app.getId(), stage2.getStageTypeId());
     assertThat(appComponents2, hasSize(1));
-    assertApplicationComponent("geronimo", "geronimo-tomcat", "1.0", policyEvaluation2.getTime(), appComponents2.get(0));
+    assertApplicationComponent(GERONIMO_TOMCAT_1_0, policyEvaluation2.getTime(), appComponents2.get(0));
     assertThat(appComponents2.get(0).getId(), is(appComponent2.getId()));
   }
 
@@ -1022,12 +1030,10 @@ public class PolicyEvaluateResourceTest
     assertPolicyEvaluation(app.getId(), scanId1, true /* isReevaluation */, true /* isForObsoleteScan */);
   }
 
-  private void assertApplicationComponent(String groupId, String artifactId, String version, Date time,
+  private void assertApplicationComponent(ComponentIdentifier componentIdentifier, Date time,
       ApplicationComponent actual)
   {
-    assertThat(actual.getGroupId(), is(groupId));
-    assertThat(actual.getArtifactId(), is(artifactId));
-    assertThat(actual.getVersion(), is(version));
+    assertThat(actual.getComponentIdentifier(), is(componentIdentifier));
     assertThat(actual.getTime(), is(time));
   }
 

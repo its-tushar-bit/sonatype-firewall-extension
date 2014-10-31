@@ -345,9 +345,8 @@ CREATE TABLE application_component (
   stage_type_id varchar(30) NOT NULL,
   time datetime NOT NULL,
   hash varchar(20) NOT NULL,
-  group_id varchar(100),
-  artifact_id varchar(100),
-  version varchar(100),
+  component_id_format varchar(10),
+  component_id_coordinates_json CLOB, -- the component identifier coordinates stored in json format
   match_state_id varchar(20) NOT NULL,
   identification_source_id varchar(20) NOT NULL,
   proprietary bool DEFAULT false NOT NULL,

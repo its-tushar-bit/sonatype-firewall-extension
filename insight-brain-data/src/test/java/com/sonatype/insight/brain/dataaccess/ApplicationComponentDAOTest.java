@@ -10,6 +10,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
+import com.sonatype.clm.dto.model.ide.ComponentIdentifier;
 import com.sonatype.insight.brain.model.ApplicationComponent;
 import com.sonatype.insight.brain.model.component.IdentificationSource;
 import com.sonatype.insight.brain.model.component.MatchState;
@@ -35,7 +36,8 @@ public class ApplicationComponentDAOTest
     // Create
     Date now = new Date();
     ApplicationComponent appComponent = new ApplicationComponent(applicationId, BuildStageType.ID, now, "hash",
-        "groupId", "artifactId", "version", MatchState.EXACT.getId(), IdentificationSource.SONATYPE.getId(),
+        ComponentIdentifier.createMavenCoordinates("groupId", "artifactId", "version"), MatchState.EXACT.getId(),
+        IdentificationSource.SONATYPE.getId(),
         true /* proprietary */, null /* pathnames */);
     dao.insert(appComponent);
     assertThat(appComponent.getId(), notNullValue());
@@ -43,9 +45,9 @@ public class ApplicationComponentDAOTest
     // Get
     appComponent = dao.getById(appComponent.getId());
     assertThat(appComponent, notNullValue());
-    assertApplicationComponent(applicationId, BuildStageType.ID, now, "hash", "groupId", "artifactId", "version",
-        MatchState.EXACT.getId(), IdentificationSource.SONATYPE.getId(), true /* proprietary */, null /* pathnames */,
-        appComponent);
+    assertApplicationComponent(applicationId, BuildStageType.ID, now, "hash",
+        ComponentIdentifier.createMavenCoordinates("groupId", "artifactId", "version"), MatchState.EXACT.getId(),
+        IdentificationSource.SONATYPE.getId(), true /* proprietary */, null /* pathnames */, appComponent);
 
     // Update
     try {
@@ -64,16 +66,14 @@ public class ApplicationComponentDAOTest
   }
 
   private void assertApplicationComponent(String applicationId, String stageTypeId, Date time, String hash,
-      String groupId, String artifactId, String version, String matchStateId, String identificationSourceId,
-      boolean proprietary, String pathnames, ApplicationComponent actual)
+      ComponentIdentifier componentIdentifier, String matchStateId, String identificationSourceId, boolean proprietary,
+      String pathnames, ApplicationComponent actual)
   {
     assertThat(actual.getApplicationId(), is(applicationId));
     assertThat(actual.getStageTypeId(), is(stageTypeId));
     assertThat(actual.getHash(), is(hash));
     assertThat(actual.getTime(), is(time));
-    assertThat(actual.getGroupId(), is(groupId));
-    assertThat(actual.getArtifactId(), is(artifactId));
-    assertThat(actual.getVersion(), is(version));
+    assertThat(actual.getComponentIdentifier(), is(componentIdentifier));
     assertThat(actual.getMatchStateId(), is(matchStateId));
     assertThat(actual.getIdentificationSourceId(), is(identificationSourceId));
     assertThat(actual.isProprietary(), is(proprietary));
@@ -85,9 +85,12 @@ public class ApplicationComponentDAOTest
     String app1 = application.getId();
     String app2 = tempEntity.newApplication(organization.getId()).getId();
 
-    tempEntity.newApplicationComponent(app1, BuildStageType.ID, "hash-1", "g", "a", "1");
-    tempEntity.newApplicationComponent(app1, BuildStageType.ID, "hash-2", "g", "a", "2");
-    tempEntity.newApplicationComponent(app2, BuildStageType.ID, "hash-1", "g", "a", "1.1");
+    tempEntity.newApplicationComponent(app1, BuildStageType.ID, "hash-1",
+        ComponentIdentifier.createMavenCoordinates("g", "a", "1"));
+    tempEntity.newApplicationComponent(app1, BuildStageType.ID, "hash-2",
+        ComponentIdentifier.createMavenCoordinates("g", "a", "2"));
+    tempEntity.newApplicationComponent(app2, BuildStageType.ID, "hash-1",
+        ComponentIdentifier.createMavenCoordinates("g", "a", "1.1"));
 
     Collection<String> stageTypeIds = Arrays.asList(BuildStageType.ID);
     assertThat(dao.getUniqueCountByApplicationIdsAndStageTypeIds(null, stageTypeIds), is(0));
@@ -100,9 +103,12 @@ public class ApplicationComponentDAOTest
 
   @Test
   public void testGetUniqueCountByApplicationIdsAndStageTypeIds_StageFiltering() {
-    tempEntity.newApplicationComponent(application.getId(), BuildStageType.ID, "hash-1", "g", "a", "1");
-    tempEntity.newApplicationComponent(application.getId(), BuildStageType.ID, "hash-2", "g", "a", "2");
-    tempEntity.newApplicationComponent(application.getId(), ReleaseStageType.ID, "hash-1", "g", "a", "1.1");
+    tempEntity.newApplicationComponent(application.getId(), BuildStageType.ID, "hash-1",
+        ComponentIdentifier.createMavenCoordinates("g", "a", "1"));
+    tempEntity.newApplicationComponent(application.getId(), BuildStageType.ID, "hash-2",
+        ComponentIdentifier.createMavenCoordinates("g", "a", "2"));
+    tempEntity.newApplicationComponent(application.getId(), ReleaseStageType.ID, "hash-1",
+        ComponentIdentifier.createMavenCoordinates("g", "a", "1.1"));
 
     Collection<String> appIds = Arrays.asList(application.getId());
     assertThat(dao.getUniqueCountByApplicationIdsAndStageTypeIds(appIds, null), is(0));

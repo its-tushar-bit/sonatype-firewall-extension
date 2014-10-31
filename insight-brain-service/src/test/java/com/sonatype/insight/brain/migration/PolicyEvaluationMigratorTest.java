@@ -384,8 +384,8 @@ public class PolicyEvaluationMigratorTest
   private void assertUnknownAppComponent(List<ApplicationComponent> appComponents, String stageTypeId, Date time) {
     for (ApplicationComponent appComponent : appComponents) {
       if (COMPONENT_HASH_UNKNOWN.equals(appComponent.getHash())) {
-        assertAppComponent(appComponent, null /* groupId */, null /* artifactId */, null /* version */, stageTypeId,
-            time, MatchState.UNKNOWN.getId(), IdentificationSource.SONATYPE.getId(), false /* proprietary */,
+        assertAppComponent(appComponent, null /* componentIdentifier */, stageTypeId, time, MatchState.UNKNOWN.getId(),
+            IdentificationSource.SONATYPE.getId(), false /* proprietary */,
             Lists.newArrayList("commons-httpclient-3.1.SONATYPE.jar"));
         return;
       }
@@ -396,7 +396,8 @@ public class PolicyEvaluationMigratorTest
   private void assertCarrotAppComponent(List<ApplicationComponent> appComponents, String stageTypeId, Date time) {
     for (ApplicationComponent appComponent : appComponents) {
       if (COMPONENT_HASH_CARROT.equals(appComponent.getHash())) {
-        assertAppComponent(appComponent, "com.carrotsearch", "hppc", "0.5.2", stageTypeId, time,
+        assertAppComponent(appComponent,
+            ComponentIdentifier.createMavenCoordinates("com.carrotsearch", "hppc", "0.5.2"), stageTypeId, time,
             MatchState.EXACT.getId(), IdentificationSource.SONATYPE.getId(), false /* proprietary */,
             Lists.newArrayList("com.carrotsearch.hppc.0.5.2.jar"));
         return;
@@ -408,22 +409,20 @@ public class PolicyEvaluationMigratorTest
   private void assertAntlrAppComponent(List<ApplicationComponent> appComponents, String stageTypeId, Date time) {
     for (ApplicationComponent appComponent : appComponents) {
       if (COMPONENT_HASH_ANTLR.equals(appComponent.getHash())) {
-        assertAppComponent(appComponent, "antlr", "antlr", "2.7.7", stageTypeId, time, MatchState.EXACT.getId(),
-            IdentificationSource.SONATYPE.getId(), false /* proprietary */,
-            Lists.newArrayList("antlr.antlr.2.7.7.jar", "shaded-product.jar"));
+        assertAppComponent(appComponent, ComponentIdentifier.createMavenCoordinates("antlr", "antlr", "2.7.7"),
+            stageTypeId, time, MatchState.EXACT.getId(), IdentificationSource.SONATYPE.getId(),
+            false /* proprietary */, Lists.newArrayList("antlr.antlr.2.7.7.jar", "shaded-product.jar"));
         return;
       }
     }
     fail("Cannot find antlr ApplicationComponent");
   }
 
-  private void assertAppComponent(ApplicationComponent actual, String groupId, String artifactId, String version,
+  private void assertAppComponent(ApplicationComponent actual, ComponentIdentifier componentIdentifier,
       String stageTypeId, Date time, String matchStateId, String identificationSourceId, boolean proprietary,
       List<String> pathnames)
   {
-    assertThat(actual.getGroupId(), is(groupId));
-    assertThat(actual.getArtifactId(), is(artifactId));
-    assertThat(actual.getVersion(), is(version));
+    assertThat(actual.getComponentIdentifier(), is(componentIdentifier));
     assertThat(actual.getStageTypeId(), is(stageTypeId));
     assertThat(actual.getTime(), is(time));
     assertThat(actual.getMatchStateId(), is(matchStateId));

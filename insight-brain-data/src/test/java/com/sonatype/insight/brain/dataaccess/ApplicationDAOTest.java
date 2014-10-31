@@ -22,6 +22,7 @@ import java.util.Set;
 
 import javax.imageio.ImageIO;
 
+import com.sonatype.clm.dto.model.ide.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
@@ -498,7 +499,7 @@ public class ApplicationDAOTest
   @Test
   public void testCascadeDeleteToApplicationComponents() {
     ApplicationComponent applicationComponent = tempEntity.newApplicationComponent(applicationId, BuildStageType.ID,
-        "hash", "groupId", "artifactId", "version");
+        "hash", ComponentIdentifier.createMavenCoordinates("groupId", "artifactId", "version"));
 
     applicationDAO.delete(application);
 

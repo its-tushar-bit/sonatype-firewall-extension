@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.testing.functional
 
+import com.sonatype.clm.dto.model.ide.ComponentIdentifier
 import com.sonatype.insight.brain.model.Application
 import com.sonatype.insight.brain.model.ApplicationComponent
 import com.sonatype.insight.brain.model.Organization
@@ -48,7 +49,7 @@ extends BaseSpec {
     temporaryEntity.newFirstOccurrencePolicyViolation(policyViolation.id, policyEvaluation.applicationId,
         policyEvaluation.stageTypeId)
     applicationComponent = temporaryEntity.newApplicationComponent(app.id, policyEvaluation.stageTypeId,
-        policyViolation.hash, "Group1", "Artifact1", "Version1")
+        policyViolation.hash, ComponentIdentifier.createMavenCoordinates("Group1", "Artifact1", "Version1"))
 
     def newestRiskPage = loginAsAdminVia(NewestRiskDashboardPage)
     waitFor { newestRiskPage.newestViolationTable.rows.size() == 1 }

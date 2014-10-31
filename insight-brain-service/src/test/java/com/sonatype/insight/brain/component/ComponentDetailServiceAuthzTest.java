@@ -9,6 +9,7 @@ import java.util.List;
 
 import javax.inject.Inject;
 
+import com.sonatype.clm.dto.model.ide.ComponentIdentifier;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
@@ -30,7 +31,8 @@ public class ComponentDetailServiceAuthzTest
 
   @Before
   public void before() {
-    tempEntity.newApplicationComponent(app.getId(), BuildStageType.ID, hash, "groupId", "artifactId", "version");
+    tempEntity.newApplicationComponent(app.getId(), BuildStageType.ID, hash,
+        ComponentIdentifier.createMavenCoordinates("groupId", "artifactId", "version"));
   }
 
   @Test
@@ -47,7 +49,8 @@ public class ComponentDetailServiceAuthzTest
   @Test
   public void testGetApplicationDetailsByHash_Authorized() throws Exception {
     Application app1 = tempEntity.newApplicationWithParent("app1");
-    tempEntity.newApplicationComponent(app1.getId(), BuildStageType.ID, hash, "groupId1", "artifactId1", "version1");
+    tempEntity.newApplicationComponent(app1.getId(), BuildStageType.ID, hash,
+        ComponentIdentifier.createMavenCoordinates("groupId1", "artifactId1", "version1"));
     grantReadPermission(app.getId());
     List<ApplicationComponentDetailsDTO> result = componentDetailService.getApplicationDetailsByHash(hash);
     assertThat(result, hasSize(1));

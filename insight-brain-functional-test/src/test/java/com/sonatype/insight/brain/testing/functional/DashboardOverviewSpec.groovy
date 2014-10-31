@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.testing.functional
 
+import com.sonatype.clm.dto.model.ide.ComponentIdentifier
 import com.sonatype.clm.dto.model.policy.Stage
 import com.sonatype.insight.brain.dashboard.DashboardFilterDTO
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO
@@ -48,6 +49,8 @@ extends BaseSpec {
   // accept differential for precision of alpha results
   static final BigDecimal TOLERANCE = 0.05
 
+  static final ComponentIdentifier DEFAULT_COMPONENT_IDENTIFIER = ComponentIdentifier.createMavenCoordinates("Group1", "Artifact1", "Version1");
+
   static final String DEFAULT_COMPONENT = [
     "Group1",
     "Artifact1",
@@ -85,7 +88,7 @@ extends BaseSpec {
     temporaryEntity.newFirstOccurrencePolicyViolation(firstViolation.id, firstPolicyEvaluation.applicationId,
         firstPolicyEvaluation.stageTypeId)
     temporaryEntity.newApplicationComponent(firstPolicyEvaluation.applicationId, firstPolicyEvaluation.stageTypeId,
-        firstViolation.hash, "Group1", "Artifact1", "Version1",)
+        firstViolation.hash, DEFAULT_COMPONENT_IDENTIFIER)
     temporaryEntity.
         newApplicationComponent(firstPolicyEvaluation.applicationId, firstPolicyEvaluation.stageTypeId, '987654321',
         MatchState.SIMILAR, false);
@@ -102,7 +105,7 @@ extends BaseSpec {
         firstPolicyEvaluationSecondStage.applicationId, firstPolicyEvaluationSecondStage.stageTypeId)
     temporaryEntity.newApplicationComponent(firstPolicyEvaluationSecondStage.applicationId,
         firstPolicyEvaluationSecondStage.stageTypeId, firstViolationSecondStage.hash,
-        "Group1", "Artifact1", "Version1")
+        DEFAULT_COMPONENT_IDENTIFIER)
 
     // evaluation in yet another stage
     PolicyEvaluation thirdPolicyEvaluation = temporaryEntity.newPolicyEvaluation(firstApp.id, ReleaseStageType.ID,

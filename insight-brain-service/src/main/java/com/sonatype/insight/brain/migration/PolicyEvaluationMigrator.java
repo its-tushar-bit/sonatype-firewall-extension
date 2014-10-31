@@ -383,10 +383,12 @@ public class PolicyEvaluationMigrator
       if (component.getHash() == null) {
         continue;
       }
+      // TODO Use agnostic coordinates CLM-3665.
+      ComponentIdentifier componentIdentifier = (component.getGroupId() != null ? ComponentIdentifier
+          .createMavenCoordinates(component.getGroupId(), component.getArtifactId(), component.getVersion()) : null);
       ApplicationComponent applicationComponent = new ApplicationComponent(appId, stageTypeId,
-          policyEvaluation.getTime(), component.getHash(), component.getGroupId(), component.getArtifactId(),
-          component.getVersion(), component.getMatchState().getId(), component.getIdentificationSource().getId(),
-          component.isProprietary(), component.getPathnames());
+          policyEvaluation.getTime(), component.getHash(), componentIdentifier, component.getMatchState().getId(),
+          component.getIdentificationSource().getId(), component.isProprietary(), component.getPathnames());
       applicationComponentDAO.insert(em, applicationComponent);
     }
   }

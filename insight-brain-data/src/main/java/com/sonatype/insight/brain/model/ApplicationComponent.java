@@ -5,16 +5,21 @@
  */
 package com.sonatype.insight.brain.model;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 
+import com.sonatype.clm.dto.model.ide.ComponentIdentifier;
+import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.model.HasStringId;
 
 import com.google.common.base.Joiner;
@@ -51,15 +56,6 @@ public class ApplicationComponent
   @Column(name = "hash")
   private String hash;
 
-  @Column(name = "group_id")
-  private String groupId;
-
-  @Column(name = "artifact_id")
-  private String artifactId;
-
-  @Column(name = "version")
-  private String version;
-
   @Column(name = "match_state_id")
   private String matchStateId;
 
@@ -72,20 +68,36 @@ public class ApplicationComponent
   @Column(name = "pathnames")
   private String pathnamesString;
 
+  /**
+   * @since 1.13.0
+   */
+  @Column(name = "component_id_format")
+  private String componentIdFormat;
+
+  /**
+   * @since 1.13.0
+   */
+  @Column(name = "component_id_coordinates_json")
+  private String componentIdCoordinatesJson;
+
+  /**
+   * @since 1.13.0
+   */
+  @Transient
+  private ComponentIdentifier componentIdentifier;
+
   public ApplicationComponent() {
   }
 
-  public ApplicationComponent(String applicationId, String stageTypeId, Date time, String hash, String groupId,
-      String artifactId, String version, String matchStateId, String identificationSourceId, boolean proprietary,
+  public ApplicationComponent(String applicationId, String stageTypeId, Date time, String hash,
+      ComponentIdentifier componentIdentifier, String matchStateId, String identificationSourceId, boolean proprietary,
       List<String> pathnames)
   {
     this.applicationId = applicationId;
     this.stageTypeId = stageTypeId;
     this.time = time;
     this.hash = hash;
-    this.groupId = groupId;
-    this.artifactId = artifactId;
-    this.version = version;
+    setComponentIdentifier(componentIdentifier);
     this.matchStateId = matchStateId;
     this.identificationSourceId = identificationSourceId;
     this.proprietary = proprietary;
@@ -110,6 +122,35 @@ public class ApplicationComponent
     this.applicationId = applicationId;
   }
 
+  @SuppressWarnings("unchecked")
+  public ComponentIdentifier getComponentIdentifier() {
+    if (componentIdFormat == null) {
+      return null;
+    }
+    if (componentIdentifier == null) {
+      try {
+        componentIdentifier = new ComponentIdentifier(componentIdFormat, JsonUtils.parse(componentIdCoordinatesJson,
+            Map.class));
+      }
+      catch (IOException e) {
+        throw new RuntimeException(e);
+      }
+    }
+    return componentIdentifier;
+  }
+
+  public void setComponentIdentifier(ComponentIdentifier componentIdentifier) {
+    this.componentIdentifier = componentIdentifier;
+    if (componentIdentifier == null) {
+      componentIdFormat = null;
+      componentIdCoordinatesJson = null;
+    }
+    else {
+      componentIdFormat = componentIdentifier.format;
+      componentIdCoordinatesJson = JsonUtils.format(componentIdentifier.coordinates);
+    }
+  }
+
   public String getStageTypeId() {
     return stageTypeId;
   }
@@ -124,30 +165,6 @@ public class ApplicationComponent
 
   public void setHash(String hash) {
     this.hash = hash;
-  }
-
-  public String getGroupId() {
-    return groupId;
-  }
-
-  public void setGroupId(String groupId) {
-    this.groupId = groupId;
-  }
-
-  public String getArtifactId() {
-    return artifactId;
-  }
-
-  public void setArtifactId(String artifactId) {
-    this.artifactId = artifactId;
-  }
-
-  public String getVersion() {
-    return version;
-  }
-
-  public void setVersion(String version) {
-    this.version = version;
   }
 
   public String getMatchStateId() {
@@ -203,7 +220,7 @@ public class ApplicationComponent
   @Override
   public String toString() {
     return "ApplicationComponent [applicationId=" + applicationId + ", stageTypeId=" + stageTypeId + ", hash=" + hash
-        + ", GAV=" + groupId + ":" + artifactId + ":" + version + ", matchStateId=" + matchStateId + "]";
+        + ", componentIdentifier=" + componentIdentifier + ", matchStateId=" + matchStateId + "]";
   }
 
   public Date getTime() {

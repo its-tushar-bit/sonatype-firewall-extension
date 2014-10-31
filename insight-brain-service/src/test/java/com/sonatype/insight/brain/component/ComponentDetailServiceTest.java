@@ -11,6 +11,7 @@ import java.util.List;
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentDisplayNamePart;
+import com.sonatype.clm.dto.model.ide.ComponentIdentifier;
 import com.sonatype.insight.brain.component.ApplicationComponentDetailsDTO.PolicyViolationSummaryDTO;
 import com.sonatype.insight.brain.component.ApplicationComponentDetailsDTO.PolicyViolationSummaryDTO.ReasonDTO;
 import com.sonatype.insight.brain.dashboard.StageDetailDTO;
@@ -54,11 +55,13 @@ public class ComponentDetailServiceTest
 
     // app1 has the component without any policy violations
     Application app1 = tempEntity.newApplicationWithParent("app1");
-    tempEntity.newApplicationComponent(app1.getId(), BuildStageType.ID, hash, "groupId", "artifactId", "version");
+    tempEntity.newApplicationComponent(app1.getId(), BuildStageType.ID, hash,
+        ComponentIdentifier.createMavenCoordinates("groupId", "artifactId", "version"));
 
     // app2 has the component with policy violations
     Application app2 = tempEntity.newApplicationWithParent("app2");
-    tempEntity.newApplicationComponent(app2.getId(), ReleaseStageType.ID, hash, "groupId", "artifactId", "version");
+    tempEntity.newApplicationComponent(app2.getId(), ReleaseStageType.ID, hash,
+        ComponentIdentifier.createMavenCoordinates("groupId", "artifactId", "version"));
     // add two policy violations for a stage
     Policy policy1 = tempEntity.newPolicy(app2.getId(), "policy1", 1);
     Policy policy2 = tempEntity.newPolicy(app2.getId(), "policy2", 1);
@@ -127,7 +130,8 @@ public class ComponentDetailServiceTest
     String hash = "ababababab";
 
     Application app = tempEntity.newApplicationWithParent("app");
-    tempEntity.newApplicationComponent(app.getId(), ReleaseStageType.ID, hash, "groupId", "artifactId", "version");
+    tempEntity.newApplicationComponent(app.getId(), ReleaseStageType.ID, hash,
+        ComponentIdentifier.createMavenCoordinates("groupId", "artifactId", "version"));
     Policy policy = tempEntity.newPolicy(app.getId(), "policy", 1);
     String policyId = policy.getId();
     PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "scanId");
@@ -164,17 +168,20 @@ public class ComponentDetailServiceTest
     String hash = "ababababab";
 
     Application app1 = tempEntity.newApplicationWithParent("app1");
-    tempEntity.newApplicationComponent(app1.getId(), DevelopStageType.ID, hash, "groupId", "artifactId", "version");
+    tempEntity.newApplicationComponent(app1.getId(), DevelopStageType.ID, hash,
+        ComponentIdentifier.createMavenCoordinates("groupId", "artifactId", "version"));
     Policy policy1 = tempEntity.newPolicy(app1.getId(), "policy1", 1);
     PolicyEvaluation evaluation1 = tempEntity.newPolicyEvaluation(app1.getId(), DevelopStageType.ID, "scanId1");
     tempEntity.newPolicyViolation(evaluation1, policy1, "groupId", "artifactId", "version", hash, "reason1");
 
     Application app2 = tempEntity.newApplicationWithParent("app2");
-    tempEntity.newApplicationComponent(app2.getId(), DevelopStageType.ID, hash, "groupId", "artifactId", "version");
+    tempEntity.newApplicationComponent(app2.getId(), DevelopStageType.ID, hash,
+        ComponentIdentifier.createMavenCoordinates("groupId", "artifactId", "version"));
     Policy policy2 = tempEntity.newPolicy(app2.getId(), "policy2", 1);
     PolicyEvaluation evaluation2 = tempEntity.newPolicyEvaluation(app2.getId(), DevelopStageType.ID, "scanId1");
     tempEntity.newPolicyViolation(evaluation2, policy2, "groupId", "artifactId", "version", hash, "reason1");
-    tempEntity.newApplicationComponent(app2.getId(), BuildStageType.ID, hash, "groupId", "artifactId", "version");
+    tempEntity.newApplicationComponent(app2.getId(), BuildStageType.ID, hash,
+        ComponentIdentifier.createMavenCoordinates("groupId", "artifactId", "version"));
     PolicyEvaluation evaluation3 = tempEntity.newPolicyEvaluation(app2.getId(), BuildStageType.ID, "scanId1");
     tempEntity.newPolicyViolation(evaluation3, policy2, "groupId", "artifactId", "version", hash, "reason1");
 
@@ -204,19 +211,19 @@ public class ComponentDetailServiceTest
 
     Application app1 = tempEntity.newApplicationWithParent("app1");
     ApplicationComponent component = tempEntity.newApplicationComponent(app1.getId(), BuildStageType.ID, hash,
-        "groupId", "artifactId", "version");
+        ComponentIdentifier.createMavenCoordinates("groupId", "artifactId", "version"));
     Policy policy1 = tempEntity.newPolicy(app1.getId(), "policy1");
     PolicyEvaluation evaluation1 = tempEntity.newPolicyEvaluation(app1.getId(), BuildStageType.ID, "scanId1", new Date(
         System.currentTimeMillis() - 1000));
     PolicyViolation violation1 = tempEntity.newPolicyViolation(evaluation1, policy1, policy1.getThreatLevel(),
-        policy1.getThreatCategory(), component.getGroupId(), component.getArtifactId(), component.getVersion(), hash,
+        policy1.getThreatCategory(), component.getComponentIdentifier(), hash,
         WarnActionType.ID);
     tempEntity.newFirstOccurrencePolicyViolation(violation1.getId(), evaluation1.getApplicationId(),
         evaluation1.getStageTypeId());
 
     PolicyEvaluation evaluation2 = tempEntity.newPolicyEvaluation(app1.getId(), BuildStageType.ID, "scanId2");
     PolicyViolation violation2 = tempEntity.newPolicyViolation(evaluation2, policy1, policy1.getThreatLevel(),
-        policy1.getThreatCategory(), component.getGroupId(), component.getArtifactId(), component.getVersion(), hash,
+        policy1.getThreatCategory(), component.getComponentIdentifier(), hash,
         FailActionType.ID);
 
     List<ApplicationComponentDetailsDTO> appComponentDetailsDTOs = componentDetailService
@@ -237,9 +244,9 @@ public class ComponentDetailServiceTest
 
     Application app1 = tempEntity.newApplicationWithParent("app1");
     ApplicationComponent component = tempEntity.newApplicationComponent(app1.getId(), BuildStageType.ID, hash,
-        "groupId", "artifactId", "version");
-    tempEntity.newApplicationComponent(app1.getId(), ReleaseStageType.ID, component.getHash(), component.getGroupId(),
-        component.getArtifactId(), component.getVersion());
+        ComponentIdentifier.createMavenCoordinates("groupId", "artifactId", "version"));
+    tempEntity.newApplicationComponent(app1.getId(), ReleaseStageType.ID, component.getHash(),
+        component.getComponentIdentifier());
 
     Policy policy1 = tempEntity.newPolicy(app1.getId(), "policy1");
     Policy policy2 = tempEntity.newPolicy(app1.getId(), "policy2");
@@ -247,16 +254,16 @@ public class ComponentDetailServiceTest
     PolicyEvaluation evaluation1 = tempEntity.newPolicyEvaluation(app1.getId(), BuildStageType.ID, "scanId1",
         new Date());
     PolicyViolation violation1 = tempEntity.newPolicyViolation(evaluation1, policy1, policy1.getThreatLevel(),
-        policy1.getThreatCategory(), component.getGroupId(), component.getArtifactId(), component.getVersion(), hash,
+        policy1.getThreatCategory(), component.getComponentIdentifier(), hash,
         WarnActionType.ID);
     tempEntity.newFirstOccurrencePolicyViolation(violation1.getId(), app1.getId(), BuildStageType.ID);
 
     PolicyEvaluation evaluation2 = tempEntity.newPolicyEvaluation(app1.getId(), BuildStageType.ID, "scanId2", new Date(
         evaluation1.getTime().getTime() + 1000));
     tempEntity.newPolicyViolation(evaluation2, policy1, policy1.getThreatLevel(), policy1.getThreatCategory(),
-        component.getGroupId(), component.getArtifactId(), component.getVersion(), hash, WarnActionType.ID);
+        component.getComponentIdentifier(), hash, WarnActionType.ID);
     PolicyViolation violation2 = tempEntity.newPolicyViolation(evaluation2, policy2, policy2.getThreatLevel(),
-        policy2.getThreatCategory(), component.getGroupId(), component.getArtifactId(), component.getVersion(), hash,
+        policy2.getThreatCategory(), component.getComponentIdentifier(), hash,
         WarnActionType.ID);
     tempEntity.newFirstOccurrencePolicyViolation(violation2.getId(), app1.getId(), BuildStageType.ID);
 
@@ -288,10 +295,12 @@ public class ComponentDetailServiceTest
   public void testGetComponentNameByHash() throws Exception {
     String hash = "ababababab";
     Application app = tempEntity.newApplicationWithParent("app");
-    tempEntity.newApplicationComponent(app.getId(), BuildStageType.ID, hash, "groupId1", "artifactId1", "version1");
+    tempEntity.newApplicationComponent(app.getId(), BuildStageType.ID, hash,
+        ComponentIdentifier.createMavenCoordinates("groupId1", "artifactId1", "version1"));
     // Force different times on the two ApplicationComponents
     Thread.sleep(1);
-    tempEntity.newApplicationComponent(app.getId(), ReleaseStageType.ID, hash, "groupId2", "artifactId2", "version2");
+    tempEntity.newApplicationComponent(app.getId(), ReleaseStageType.ID, hash,
+        ComponentIdentifier.createMavenCoordinates("groupId2", "artifactId2", "version2"));
 
     List<ComponentDisplayNamePart> name = componentDetailService.getComponentNameByHash(hash).parts;
     assertDisplayFieldValuesForGAV(name, "groupId2", "artifactId2", "version2");
@@ -314,8 +323,8 @@ public class ComponentDetailServiceTest
   public void testGetComponentNameByHash_NoGAV() throws Exception {
     String hash = "ababababab";
     Application app = tempEntity.newApplicationWithParent("app");
-    tempEntity.newApplicationComponent(app.getId(), ReleaseStageType.ID, hash, null /* groupId */,
-        null /* artifactId */, null /* version */, "somepath");
+    tempEntity.newApplicationComponent(app.getId(), ReleaseStageType.ID, hash, null /* componentIdentifier */,
+        "somepath");
 
     List<ComponentDisplayNamePart> name = componentDetailService.getComponentNameByHash(hash).parts;
     assertThat(name, hasSize(1));
@@ -326,8 +335,7 @@ public class ComponentDetailServiceTest
   public void testGetComponentNameByHash_NoGAVOrPathnames() throws Exception {
     String hash = "ababababab";
     Application app = tempEntity.newApplicationWithParent("app");
-    tempEntity.newApplicationComponent(app.getId(), ReleaseStageType.ID, hash, null /* groupId */,
-        null /* artifactId */, null /* version */);
+    tempEntity.newApplicationComponent(app.getId(), ReleaseStageType.ID, hash, null /* componentIdentifier */);
 
     assertThat(componentDetailService.getComponentNameByHash(hash), nullValue());
   }

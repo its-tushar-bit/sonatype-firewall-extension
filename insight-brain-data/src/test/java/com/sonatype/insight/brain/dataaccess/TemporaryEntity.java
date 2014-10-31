@@ -701,32 +701,31 @@ public class TemporaryEntity
   }
 
   public ApplicationComponent newApplicationComponent(String applicationId, String stageTypeId, String hash,
-      String groupId, String artifactId, String version)
+      ComponentIdentifier componentIdentifier)
   {
-    return newApplicationComponent(applicationId, stageTypeId, hash, groupId, artifactId, version, null /* pathnames */);
+    return newApplicationComponent(applicationId, stageTypeId, hash, componentIdentifier, null /* pathnames */);
   }
 
   public ApplicationComponent newApplicationComponent(String applicationId, String stageTypeId, String hash,
       MatchState matchState, boolean proprietary)
   {
-    return newApplicationComponent(applicationId, stageTypeId, hash, "Group1", "Artifact1", "Version1", null,
-        matchState, proprietary);
+    return newApplicationComponent(applicationId, stageTypeId, hash,
+        ComponentIdentifier.createMavenCoordinates("Group1", "Artifact1", "Version1"), null, matchState, proprietary);
   }
 
   public ApplicationComponent newApplicationComponent(String applicationId, String stageTypeId, String hash,
-      String groupId, String artifactId, String version, String pathnamesString)
+      ComponentIdentifier componentIdentifier, String pathnamesString)
   {
-    return newApplicationComponent(applicationId, stageTypeId, hash, groupId, artifactId, version, pathnamesString,
+    return newApplicationComponent(applicationId, stageTypeId, hash, componentIdentifier, pathnamesString,
         MatchState.EXACT, false);
   }
 
   public ApplicationComponent newApplicationComponent(String applicationId, String stageTypeId, String hash,
-      String groupId, String artifactId, String version, String pathnamesString, MatchState matchState,
-      boolean proprietary)
+      ComponentIdentifier componentIdentifier, String pathnamesString, MatchState matchState, boolean proprietary)
   {
     List<String> pathnames = StringUtils.isBlank(pathnamesString) ? null : Collections.singletonList(pathnamesString);
     ApplicationComponent applicationComponent = new ApplicationComponent(applicationId, stageTypeId, new Date(), hash,
-        groupId, artifactId, version, matchState.getId(), IdentificationSource.SONATYPE.getId(), proprietary, pathnames);
+        componentIdentifier, matchState.getId(), IdentificationSource.SONATYPE.getId(), proprietary, pathnames);
     appComponentDAO.insert(applicationComponent);
     return applicationComponent;
   }

@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.component;
 
 import com.sonatype.clm.dto.model.component.ComponentDisplayName;
+import com.sonatype.clm.dto.model.ide.ComponentIdentifier;
 import com.sonatype.insight.brain.AuthedRestAccess;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
@@ -27,7 +28,8 @@ public class ComponentDetailResourceTest
   public void testGetApplicationDetailsByHash() throws Exception {
     Application app = tempEntity.newApplicationWithParent("testGetApplicationDetailsByHash");
     String hash = "ababababab";
-    tempEntity.newApplicationComponent(app.getId(), BuildStageType.ID, hash, "groupId", "artifactId", "version");
+    tempEntity.newApplicationComponent(app.getId(), BuildStageType.ID, hash,
+        ComponentIdentifier.createMavenCoordinates("groupId", "artifactId", "version"));
     Response response = AuthedRestAccess.get(getServiceURL() + "/applications?hash=" + hash);
     assertResponseStatus(200, response);
     ApplicationComponentDetailsDTO[] applicationComponentDetailsDTOs = JsonHelpers.fromJson(response.getResponseBody(),
@@ -46,7 +48,8 @@ public class ComponentDetailResourceTest
     assertResponseStatus(400, response);
     assertThat(response.getResponseBody(), is("Unknown component with hash ababababab."));
 
-    tempEntity.newApplicationComponent(app.getId(), BuildStageType.ID, hash, "groupId", "artifactId", "version");
+    tempEntity.newApplicationComponent(app.getId(), BuildStageType.ID, hash,
+        ComponentIdentifier.createMavenCoordinates("groupId", "artifactId", "version"));
     response = AuthedRestAccess.get(url);
     assertResponseStatus(200, response);
     ComponentDisplayName name = JsonHelpers.fromJson(response.getResponseBody(), ComponentDisplayName.class);

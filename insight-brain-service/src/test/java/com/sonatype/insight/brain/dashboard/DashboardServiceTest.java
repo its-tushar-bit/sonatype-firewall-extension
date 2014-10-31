@@ -15,6 +15,7 @@ import java.util.Set;
 
 import javax.inject.Inject;
 
+import com.sonatype.clm.dto.model.ide.ComponentIdentifier;
 import com.sonatype.insight.brain.TestProductLicenseManager;
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatCategoryFilter;
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatLevelFilter;
@@ -102,10 +103,12 @@ public class DashboardServiceTest
     tempEntity.newFirstOccurrencePolicyViolation(orgPolicyViolation.getId(), app1.getId(), BuildStageType.ID);
     tempEntity.newFirstOccurrencePolicyViolation(app1PolicyViolation.getId(), app1.getId(), BuildStageType.ID);
     tempEntity.newFirstOccurrencePolicyViolation(app2PolicyViolation.getId(), app2.getId(), BuildStageType.ID);
-    tempEntity.newApplicationComponent(app1.getId(), BuildStageType.ID, "hash-1", "g", "a", "1");
+    tempEntity.newApplicationComponent(app1.getId(), BuildStageType.ID, "hash-1",
+        ComponentIdentifier.createMavenCoordinates("g", "a", "1"));
     tempEntity.newApplicationComponent(app1.getId(), ReleaseStageType.ID, "hash-3", MatchState.SIMILAR, false);
     tempEntity.newApplicationComponent(app1.getId(), ReleaseStageType.ID, "hash-4", MatchState.UNKNOWN, false);
-    tempEntity.newApplicationComponent(app2.getId(), BuildStageType.ID, "hash-2", "g", "a", "2");
+    tempEntity.newApplicationComponent(app2.getId(), BuildStageType.ID, "hash-2",
+        ComponentIdentifier.createMavenCoordinates("g", "a", "2"));
     tag1 = tempEntity.newTag(org.getId());
     tag2 = tempEntity.newTag(org.getId());
     tempEntity.newApplicationTag(app1.getId(), tag1.getId());

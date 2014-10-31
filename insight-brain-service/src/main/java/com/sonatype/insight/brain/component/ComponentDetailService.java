@@ -192,9 +192,9 @@ public class ComponentDetailService
       throw new BadRequestException("Unknown component with hash " + hash + ".");
     }
     ComponentDisplayName componentNameDTO = null;
-    if (applicationComponent.getGroupId() != null) {
-      componentNameDTO = ComponentDisplayNameUtil.fromGav(applicationComponent.getGroupId(),
-          applicationComponent.getArtifactId(), applicationComponent.getVersion());
+    if (applicationComponent.getComponentIdentifier() != null) {
+      componentNameDTO = ComponentDisplayNameUtil
+          .fromComponentIdentifier(applicationComponent.getComponentIdentifier());
     }
 
     if (componentNameDTO == null && !applicationComponent.getPathnames().isEmpty()) {

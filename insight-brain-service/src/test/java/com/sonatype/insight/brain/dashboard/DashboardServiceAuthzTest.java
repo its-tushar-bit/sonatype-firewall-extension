@@ -11,6 +11,7 @@ import java.util.List;
 
 import javax.inject.Inject;
 
+import com.sonatype.clm.dto.model.ide.ComponentIdentifier;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
@@ -42,7 +43,8 @@ public class DashboardServiceAuthzTest
 
   @Before
   public void init() {
-    tempEntity.newApplicationComponent(app.getId(), StageTypes.BUILD.getId(), "hash", "gid", "aid", "ver");
+    tempEntity.newApplicationComponent(app.getId(), StageTypes.BUILD.getId(), "hash",
+        ComponentIdentifier.createMavenCoordinates("gid", "aid", "ver"));
   }
 
   @Test

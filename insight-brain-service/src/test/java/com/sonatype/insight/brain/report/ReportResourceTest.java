@@ -343,9 +343,10 @@ public class ReportResourceTest
     final URL testReportResultUrl = getClass().getResource("/ReportResourceTest/report.zip");
     FileUtils.copyFile(new File(testReportResultUrl.getFile()), saasReportFile);
 
-    final Calendar calendar = Calendar.getInstance();
+    TimeZone gmt = TimeZone.getTimeZone("GMT");
+    final Calendar calendar = Calendar.getInstance(gmt);
     final SimpleDateFormat expirationHeaderFormat = new SimpleDateFormat("E, dd MMM yyyy HH:mm", Locale.ENGLISH);
-    expirationHeaderFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
+    expirationHeaderFormat.setTimeZone(gmt);
 
     calendar.setTime(new Date());
     calendar.set(Calendar.YEAR, calendar.get(Calendar.YEAR) + 1);

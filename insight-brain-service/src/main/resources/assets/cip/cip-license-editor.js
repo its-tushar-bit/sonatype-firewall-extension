@@ -174,10 +174,10 @@
         promises.push($http.get(CLM.path + 'rest/licenseOverride/application/' + ApplicationId.encoded() + '/applied/' +
             SelectedComponent.groupId + '/' + SelectedComponent.artifactId + '/' + SelectedComponent.version));
         // Component licenses
-        promises.push($http.get(CLM.path + 'rest/ci/component/details/licenses/' + ApplicationId.encoded(), {
+        promises.push($http.get(CLM.path + 'rest/ci/componentDetails/licenses/' + ApplicationId.encoded(), {
           params: {
-            'artifactId': SelectedComponent.artifactId,
             'groupId': SelectedComponent.groupId,
+            'artifactId': SelectedComponent.artifactId,
             'version': SelectedComponent.version
           }
         }));
@@ -215,9 +215,14 @@
         var licenseOverride = {
               id: null,
               ownerId: null,
-              artifactId: SelectedComponent.artifactId,
-              groupId: SelectedComponent.groupId,
-              version: SelectedComponent.version,
+              componentIdentifier: {
+                  format: 'maven',
+                  coordinates: {
+                      groupId: SelectedComponent.groupId,
+                      artifactId: SelectedComponent.artifactId,
+                      version: SelectedComponent.version
+                  }
+              },
               status: $scope.override.status.toUpperCase(),
               licenseId: null,
               comment: $scope.override.comment || ''

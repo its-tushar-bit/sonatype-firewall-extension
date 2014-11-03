@@ -73,6 +73,10 @@ class PolicyReportRow
     return cip
   }
 
+  def closeCip() {
+    showCipTrigger.click()
+  }
+
   AddPolicyWaiver addWaiverForFirstViolation() {
     def policyDetail = showCip().policy
     policyDetail.show()
@@ -87,6 +91,8 @@ class Cip
   static content = {
     policy { module PolicyDetail }
     claimComponent(required: false) { module ClaimComponentModule }
+    licenses(required: false) { module LicenseModule }
+    auditLog(required: false) { module AuditLogModule }
     // implement other tabs as needed
   }
 }
@@ -242,5 +248,67 @@ class ClaimComponentModule
     revoke(required: false) { buttons.button('Revoke Claim') }
     update(required: false) { buttons.button('Update') }
     showTrigger { $('a', text: 'Claim Component') }
+  }
+}
+
+/**
+ * Models the License tab of the Cip
+ */
+class LicenseModule
+    extends Module
+{
+  static content = {
+    form { $('form[name=licenseEditorForm]') }
+    buttons { module ButtonsModule, form }
+    update(required: false) { buttons.button('Update') }
+    declaredLicenses { form.find('#declaredLicenseBlock').text() }
+    observedLicenses { form.find('#observedLicenseBlock').text() }
+    effectiveLicense { form.find('#effectiveLicenseBlock').text() }
+    showTrigger { $('a', text: 'Licenses') }
+    licenseOptionShown(required: false) { form.find('select[name=license]').displayed }
+    selectedScope { selectedOptionText(form.scope()) }
+    selectedStatus { selectedOptionText(form.status()) }
+    selectedLicense(required: false) { licenseOptionShown ? selectedOptionText(form.license()) : '' }
+    selectedOptionText { field -> field.find('option', value: field.value()).text() }
+  }
+}
+
+/**
+ * Models the Audit Log tab of the Cip
+ */
+class AuditLogModule
+    extends Module
+{
+  static content = {
+    noChangesMessage(required: false) { $('.tab-content').text() }
+    auditTable(required: false) { $('#auditTable') }
+    results { moduleList AuditLogRow, auditTable.find('.slick-row') }
+    showTrigger { $('a', text: 'Audit Log') }
+  }
+
+}
+
+class AuditLogRow
+    extends Module
+{
+  static final int DATE = 0
+
+  static final int USER = 1
+
+  static final int ACTION = 2
+
+  static final int DETAIL = 3
+
+  static final int COMMENT = 4
+
+  static content = {
+    cell(required: false) { int i -> $('.slick-cell', i) }
+
+    date { cell(DATE).text().trim() }
+    user { cell(USER).text() }
+    userTooltip { cell(USER).@tooltip }
+    action { cell(ACTION).text() }
+    detail { cell(DETAIL).text() }
+    comment { cell(COMMENT).text() }
   }
 }

@@ -12,19 +12,25 @@
       <div style="width:199px;height:212px;overflow:auto;" class="well">
         <ul class="nav nav-list" id="licenseList">
           <li class="nav-header">Declared Licenses</li>
-          <li class="license" ng-repeat='licenseWithThreat in component.declaredlicenses | orderBy:"license.licenseName"'>
+          <div id="declaredLicenseBlock">
+            <li class="license" ng-repeat='licenseWithThreat in component.declaredlicenses | orderBy:"license.licenseName"'>
             <div class='nx-clm-square {{getLicenseThreatClass(licenseWithThreat.threatLevel)}}'>
                           {{licenseWithThreat.license.licenseName}}</div></li>
+          </div>
           <li class="license" ng-show="isClaimedComponent()">Unavailable, Claimed Component</li>
           <li class="divider"></li><li class="nav-header">Observed Licenses</li>
-          <li class="license" ng-repeat='licenseWithThreat in component.observedlicenses | orderBy:"license.licenseName"'>
+          <div id="observedLicenseBlock">
+            <li class="license" ng-repeat='licenseWithThreat in component.observedlicenses | orderBy:"license.licenseName"'>
                       <div class='nx-clm-square {{getLicenseThreatClass(licenseWithThreat.threatLevel)}}'>
                         {{licenseWithThreat.license.licenseName}}</div></li>
+          </div>
           <li class="license" ng-show="isClaimedComponent()">Unavailable, Claimed Component</li>
           <li class="divider"></li><li class="nav-header">Effective License</li>
-          <li class="license" ng-repeat='licenseWithThreat in component.effectiveLicenses | orderBy:"license.licenseName"'>
+          <div id="effectiveLicenseBlock">
+            <li class="license" ng-repeat='licenseWithThreat in component.effectiveLicenses | orderBy:"license.licenseName"'>
             <div class='nx-clm-square {{getLicenseThreatClass(licenseWithThreat.threatLevel)}}'>
               {{licenseWithThreat.license.licenseName}}</div></li>
+          </div>
           <li class="license" ng-show="isClaimedComponent()">Unavailable, Claimed Component</li>
         </ul>
       </div>
@@ -33,7 +39,7 @@
           <div class="control-group">
             <label class="control-label">Scope</label>
             <div class="controls">
-              <select ng-model='override.ownerId'
+              <select ng-model='override.ownerId' name="scope"
                   ng-options='scope.ownerId as scope.ownerName for scope in hierarchy'
                   required>
               </select>
@@ -42,7 +48,7 @@
           <div class="control-group">
             <label class="control-label">Status</label>
             <div class="controls" style="text-align:left;">
-              <select ng-model='override.status'
+              <select ng-model='override.status' name="status"
                   ng-options='status.value as status.label for status in statuses'
                   required>
               </select>
@@ -52,12 +58,12 @@
             <label class="control-label">License</label>
             <div class="controls" style="text-align:left;">
               <span ng-switch='override.status'>
-                <select ng-switch-when='SELECTED'
+                <select ng-switch-when='SELECTED' name="license"
                     ng-model='override.licenseId'
                     ng-options='license.id as license.shortDisplayName for (id, license) in selectableLicenses'
                     required>
                 </select>
-                <select ng-switch-when='OVERRIDDEN'
+                <select ng-switch-when='OVERRIDDEN' name="license"
                     ng-model='override.licenseId'
                     ng-options='license.id as license.shortDisplayName for (id, license) in licenses'
                     required>
@@ -68,7 +74,7 @@
           <div class="control-group">
             <label class="control-label" for="comment1376501760921">Comment</label>
             <div class="controls">
-              <textarea ng-model='override.comment' disablenav class="input-xlarge" id="comment1376501760921" maxlength='1000' rows="3" style="padding:0px;height:62px"></textarea>
+              <textarea ng-model='override.comment' name="comment" disablenav class="input-xlarge" id="comment1376501760921" maxlength='1000' rows="3" style="padding:0px;height:62px"></textarea>
             </div>
           </div>
           <div class="controls" style="text-align:right">

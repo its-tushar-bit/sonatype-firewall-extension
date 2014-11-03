@@ -93,7 +93,7 @@
             SelectedComponent.groupId + '/' + SelectedComponent.artifactId + '/' +
             SelectedComponent.version)).respond(getAppliedLicenseOverrides('ACKNOWLEDGED', null, 'OVERRIDDEN', "AFL"));
 
-        $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/ci/component/details/licenses/app1?artifactId=' +
+        $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/ci/componentDetails/licenses/app1?artifactId=' +
             SelectedComponent.artifactId +
             '&groupId=' + SelectedComponent.groupId + '&version=' +
             SelectedComponent.version)).respond(getLicenseWithThreats());
@@ -188,7 +188,7 @@
             SelectedComponent.groupId + '/' + SelectedComponent.artifactId + '/' +
             SelectedComponent.version)).respond(getAppliedLicenseOverrides(null, null, null, null));
 
-        $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/ci/component/details/licenses/app1?artifactId=' +
+        $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/ci/componentDetails/licenses/app1?artifactId=' +
             SelectedComponent.artifactId +
             '&groupId=' + SelectedComponent.groupId + '&version=' +
             SelectedComponent.version)).respond(getLicenseWithThreats());
@@ -216,12 +216,17 @@
           expect(post).toEqual({
             id: null,
             ownerId: 'org1',
-            artifactId: SelectedComponent.artifactId,
-            groupId: SelectedComponent.groupId,
-            version: SelectedComponent.version,
+            componentIdentifier: {
+                format: 'maven',
+                coordinates: {
+                    groupId: SelectedComponent.groupId,
+                    artifactId: SelectedComponent.artifactId,
+                    version: SelectedComponent.version
+                }
+            },
             status: 'ACKNOWLEDGED',
             licenseId: null,
-            comment : ''
+            comment: ''
           });
           post.id = 'saveOverrideId';
           return [200, post, headers];
@@ -244,9 +249,14 @@
           expect(post).toEqual({
             id: null,
             ownerId: 'app1',
-            artifactId: SelectedComponent.artifactId,
-            groupId: SelectedComponent.groupId,
-            version: SelectedComponent.version,
+            componentIdentifier: {
+                format: 'maven',
+                coordinates: {
+                    artifactId: SelectedComponent.artifactId,
+                    groupId: SelectedComponent.groupId,
+                    version: SelectedComponent.version
+                }
+            },
             status: 'ACKNOWLEDGED',
             licenseId: null,
             comment : ''
@@ -273,7 +283,7 @@
             SelectedComponent.groupId + '/' + SelectedComponent.artifactId + '/' +
             SelectedComponent.version)).respond(getAppliedLicenseOverrides(null, null, 'OVERRIDDEN', "AFL"));
 
-        $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/ci/component/details/licenses/app1?artifactId=' +
+        $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/ci/componentDetails/licenses/app1?artifactId=' +
             SelectedComponent.artifactId +
             '&groupId=' + SelectedComponent.groupId + '&version=' +
             SelectedComponent.version)).respond(getLicenseWithThreats());
@@ -316,9 +326,14 @@
           expect(posted).toEqual({
             id: null,
             ownerId: 'app1',
-            artifactId: SelectedComponent.artifactId,
-            groupId: SelectedComponent.groupId,
-            version: SelectedComponent.version,
+            componentIdentifier: {
+                format: 'maven',
+                coordinates: {
+                    artifactId: SelectedComponent.artifactId,
+                    groupId: SelectedComponent.groupId,
+                    version: SelectedComponent.version
+                }
+            },
             status: 'ACKNOWLEDGED',
             licenseId: null,
             comment : ''
@@ -346,7 +361,7 @@
             SelectedComponent.groupId + '/' + SelectedComponent.artifactId + '/' +
             SelectedComponent.version)).respond(getAppliedLicenseOverrides('OVERRIDDEN', "AFL", null, null));
 
-        $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/ci/component/details/licenses/app1?artifactId=' +
+        $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/ci/componentDetails/licenses/app1?artifactId=' +
             SelectedComponent.artifactId +
             '&groupId=' + SelectedComponent.groupId + '&version=' +
             SelectedComponent.version)).respond(getLicenseWithThreats());
@@ -390,9 +405,14 @@
           expect(posted).toEqual({
             id: null,
             ownerId: 'org1',
-            artifactId: SelectedComponent.artifactId,
-            groupId: SelectedComponent.groupId,
-            version: SelectedComponent.version,
+            componentIdentifier: {
+                format: 'maven',
+                coordinates: {
+                    artifactId: SelectedComponent.artifactId,
+                    groupId: SelectedComponent.groupId,
+                    version: SelectedComponent.version
+                }
+            },
             status: 'ACKNOWLEDGED',
             licenseId: null,
             comment : ''
@@ -424,7 +444,7 @@
             SelectedComponent.groupId + '/' + SelectedComponent.artifactId + '/' +
             SelectedComponent.version)).respond(getAppliedLicenseOverrides('OVERRIDDEN', 'AFL'));
 
-        $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/ci/component/details/licenses/app1?artifactId=' +
+        $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/ci/componentDetails/licenses/app1?artifactId=' +
             SelectedComponent.artifactId +
             '&groupId=' + SelectedComponent.groupId + '&version=' +
             SelectedComponent.version)).respond(getLicenseWithThreats());
@@ -459,9 +479,14 @@
           expect(posted).toEqual({
             id: null,
             ownerId: 'app1',
-            artifactId: SelectedComponent.artifactId,
-            groupId: SelectedComponent.groupId,
-            version: SelectedComponent.version,
+            componentIdentifier: {
+                format: 'maven',
+                coordinates: {
+                    artifactId: SelectedComponent.artifactId,
+                    groupId: SelectedComponent.groupId,
+                    version: SelectedComponent.version
+                }
+            },
             status: 'ACKNOWLEDGED',
             licenseId: null,
             comment : ''

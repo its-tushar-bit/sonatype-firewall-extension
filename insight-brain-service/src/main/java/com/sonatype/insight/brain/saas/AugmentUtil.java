@@ -26,6 +26,10 @@ public class AugmentUtil
     if (securityVulnerabilities == null || securityVulnerabilities.isEmpty()) {
       return null;
     }
+    if (componentIdentifier == null) {
+      return null;
+    }
+
     ArrayNode svData = new ArrayNode(JsonNodeFactory.instance);
     for (SecurityVulnerability securityVulnerability : securityVulnerabilities) {
       ObjectNode svNode = svData.objectNode();

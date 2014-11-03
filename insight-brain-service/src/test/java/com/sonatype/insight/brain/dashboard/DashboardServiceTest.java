@@ -939,8 +939,8 @@ public class DashboardServiceTest
   @Test
   public void testGetNewestRisks_ViolationWithoutHash() throws Exception {
     PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(app1.getId(), ReleaseStageType.ID, "newScanId");
-    PolicyViolation policyViolation = tempEntity.newPolicyViolation(evaluation, app1Policy, null /* groupId */,
-        null /* artifactId */, null /* version */, null /* hash */, "reason");
+    PolicyViolation policyViolation = tempEntity
+        .newPolicyViolation(evaluation, app1Policy, "g", "a", "v", null /* hash */, "reason");
 
     List<NewestRiskDTO> riskDTOs = dashboardService.getNewestRisks(null, Collections.singleton(ReleaseStageType.ID),
         null, null, null, 1000);

@@ -426,7 +426,7 @@ public class ReportResourceTest
         assertTrue("The app public id was not included in the report",
             actual.contains("applicationId = '" + applicationPublicId + "'"));
       }
-      else if ("security.json".equals(entry.getName()) || "bom.json".equals(entry.getName())) {
+      else if ("bom.json".equals(entry.getName())) {
         String actual = response.getResponseBody();
         testJsonApplyComponentChanges(actual);
       }

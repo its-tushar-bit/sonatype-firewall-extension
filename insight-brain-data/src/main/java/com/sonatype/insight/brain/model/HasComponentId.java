@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.model;
 
 import java.io.IOException;
-import java.io.Serializable;
 import java.util.Map;
 
 import javax.persistence.Column;
@@ -22,7 +21,6 @@ import com.sonatype.insight.json.store.JsonUtils;
  */
 @MappedSuperclass
 public abstract class HasComponentId
-    implements Serializable
 {
 
   @Column(name = "component_id_format")

@@ -159,8 +159,8 @@ public class ComponentDetailsLoader
       throws IOException
   {
     // Load the augmented data for licenses and security vulnerabilities
-    ArrayNode svData = AugmentUtil.getSVData(work, application.getId(), componentDetails.getGroupId(),
-        componentDetails.getArtifactId(), componentDetails.getVersion(), componentDetails.getSecurityVulnerabilities());
+    ArrayNode svData = AugmentUtil.getSVData(work, application.getId(), componentDetails.getIdentifier(),
+        componentDetails.getSecurityVulnerabilities());
     ComponentDAO componentDAO = new ComponentDAO();
     Component component = componentDAO.getComponent(application, componentDetails, svData);
 

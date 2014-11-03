@@ -29,6 +29,7 @@ import javax.ws.rs.core.Response.ResponseBuilder;
 import com.sonatype.clm.dto.model.ide.ComponentIdentifier;
 import com.sonatype.insight.brain.component.ComponentDisplayNameUtil;
 import com.sonatype.insight.brain.dataaccess.component.ComponentDAO;
+import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.dataaccess.component.HashGAVDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
@@ -295,7 +296,7 @@ public final class Report
     HashGAVDAO hashGAVDAO = new HashGAVDAO();
 
     Map<String, HashGAV> claimedHashes = new LinkedHashMap<String, HashGAV>();
-    Set<String> gavs = new LinkedHashSet<String>();
+    Set<ComponentIdentifier> componentIdentifiers = new LinkedHashSet<>();
     ReportEntry bomReportEntry = extractEntry(reportFile, "bom.json");
     ContainerNode<?> bomJsonData = JsonUtils.parse(bomReportEntry.buf);
     for (JsonNode bomJsonNode : bomJsonData.get("aaData")) {
@@ -317,10 +318,10 @@ public final class Report
         claimedHashes.put(hash, hashGAV);
       }
 
+      ComponentIdentifier componentIdentifier = ComponentIdentifierAdapter.getComponentIdentifier(bomObjectNode);
       ComponentDisplayNameUtil.injectDisplayName(bomObjectNode);
 
-      gavs.add(bomJsonNode.get("groupId").asText() + ':' + bomJsonNode.get("artifactId").asText() + ':'
-          + bomJsonNode.get("version").asText());
+      componentIdentifiers.add(componentIdentifier);
     }
 
     // now apply any data edits (e.g. modified flag)
@@ -345,10 +346,10 @@ public final class Report
       String artifactId = licenseJsonNode.get("artifactId").asText();
       String version = licenseJsonNode.get("version").asText();
 
+      ComponentIdentifier componentIdentifier = ComponentIdentifierAdapter.getComponentIdentifier(licenseJsonNode);
       ComponentDisplayNameUtil.injectDisplayName(licenseJsonNode);
 
-      String gav = groupId + ':' + artifactId + ':' + version;
-      if (!gavs.contains(gav)) {
+      if (!componentIdentifiers.contains(componentIdentifier)) {
         // License data for a GAV that is not in this report. Remove it.
         iterLicenseData.remove();
       }
@@ -403,12 +404,9 @@ public final class Report
     Iterator<JsonNode> iterSecurityData = securityJsonData.get("aaData").iterator();
     while (iterSecurityData.hasNext()) {
       ObjectNode jsonNode = (ObjectNode) iterSecurityData.next();
-      String gav = jsonNode.get("groupId").asText() + ':' + jsonNode.get("artifactId").asText() + ':'
-          + jsonNode.get("version").asText();
+      ComponentIdentifier componentIdentifier = ComponentIdentifierAdapter.getComponentIdentifier(jsonNode);
 
-      ComponentDisplayNameUtil.injectDisplayName(jsonNode);
-
-      if (!gavs.contains(gav)) {
+      if (!componentIdentifiers.contains(componentIdentifier)) {
         iterSecurityData.remove();
       }
     }

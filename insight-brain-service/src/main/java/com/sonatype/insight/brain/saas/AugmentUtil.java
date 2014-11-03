@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.util.List;
 
 import com.sonatype.clm.dto.model.SecurityVulnerability;
+import com.sonatype.clm.dto.model.ide.ComponentIdentifier;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.json.store.JsonUtils;
 
@@ -19,8 +20,8 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public class AugmentUtil
 {
-  public static ArrayNode getSVData(InsightWork work, String applicationId, String groupId, String artifactId,
-      String version, List<SecurityVulnerability> securityVulnerabilities) throws IOException
+  public static ArrayNode getSVData(InsightWork work, String applicationId, ComponentIdentifier componentIdentifier,
+      List<SecurityVulnerability> securityVulnerabilities) throws IOException
   {
     if (securityVulnerabilities == null || securityVulnerabilities.isEmpty()) {
       return null;
@@ -29,9 +30,15 @@ public class AugmentUtil
     for (SecurityVulnerability securityVulnerability : securityVulnerabilities) {
       ObjectNode svNode = svData.objectNode();
       svData.add(svNode);
-      svNode.put("groupId", groupId);
-      svNode.put("artifactId", artifactId);
-      svNode.put("version", version);
+
+      // Add groupId, artifactId and version so that the node will merge successfully with old versions of security.json
+      if (ComponentIdentifier.FORMAT_MAVEN.equals(componentIdentifier.format)) {
+        svNode.put("groupId", componentIdentifier.get(ComponentIdentifier.MAVEN_GROUP_ID));
+        svNode.put("artifactId", componentIdentifier.get(ComponentIdentifier.MAVEN_ARTIFACT_ID));
+        svNode.put("version", componentIdentifier.get(ComponentIdentifier.VERSION));
+      }
+
+      svNode.put("componentIdentifier", JsonUtils.asTree(componentIdentifier));
       svNode.put("reference", securityVulnerability.getRefId());
       svNode.put("source", securityVulnerability.getSource());
     }

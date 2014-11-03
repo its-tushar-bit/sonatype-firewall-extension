@@ -25,6 +25,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 
+import com.sonatype.clm.dto.model.ide.ComponentIdentifier;
 import com.sonatype.clm.dto.model.ide.IdeMatchedComponent;
 import com.sonatype.clm.dto.model.ide.MatchedComponent;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
@@ -136,9 +137,11 @@ public class IdeResource
     IdeMatchedComponent ideComponent = getComponent(matchedComponent);
     if (ideComponent.getWaitDelta() == null
         && (!"unknown".equals(ideComponent.getMatchState()) || !ideComponent.isSimpleMatch())) {
-      ArrayNode svData = AugmentUtil.getSVData(work, applicationId, matchedComponent.getGroupId(),
-          matchedComponent.getArtifactId(), matchedComponent.getVersion(),
-          matchedComponent.getSecurityVulnerabilities());
+      ComponentIdentifier componentIdentifier = ComponentIdentifier
+          .createMavenCoordinates(matchedComponent.getGroupId(), matchedComponent.getArtifactId(),
+              matchedComponent.getVersion());
+      ArrayNode svData = AugmentUtil
+          .getSVData(work, applicationId, componentIdentifier, matchedComponent.getSecurityVulnerabilities());
 
       ComponentDAO componentDAO = new ComponentDAO();
       Component component = componentDAO.getComponent(app, matchedComponent, svData);

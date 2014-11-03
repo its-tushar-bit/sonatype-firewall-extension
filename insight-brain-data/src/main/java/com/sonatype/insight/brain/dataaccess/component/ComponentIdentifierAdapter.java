@@ -44,7 +44,7 @@ public class ComponentIdentifierAdapter
   /**
    * Extract ComponentIdentifier or create one as needed from existing GAV data.
    */
-  static ComponentIdentifier getComponentIdentifier(final JsonNode objectNode) {
+  public static ComponentIdentifier getComponentIdentifier(final JsonNode objectNode) {
     if (objectNode.hasNonNull(COMPONENT_IDENTIFIER)) {
       return toComponentIdentifier(objectNode.get(COMPONENT_IDENTIFIER));
     }

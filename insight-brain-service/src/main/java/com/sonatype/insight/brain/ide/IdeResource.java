@@ -32,11 +32,11 @@ import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentDAO;
-import com.sonatype.insight.brain.dataaccess.component.HashGAVDAO;
+import com.sonatype.insight.brain.dataaccess.component.HashComponentIdentifierDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.Component;
-import com.sonatype.insight.brain.model.component.HashGAV;
+import com.sonatype.insight.brain.model.component.HashComponentIdentifier;
 import com.sonatype.insight.brain.model.component.IdentificationSource;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.stages.DevelopStageType;
@@ -118,12 +118,12 @@ public class IdeResource
     MatchedComponent matchedComponent = client.get(req, MatchedComponent.class, "rest/ide/scan/{scanType}/{path}",
         scanType, path);
     // Is this a manually claimed component?
-    HashGAV hashGAV = new HashGAVDAO().getByHash(matchedComponent.getHash());
-    if (hashGAV != null) {
-      matchedComponent.setGroupId(hashGAV.getGroupId());
-      matchedComponent.setArtifactId(hashGAV.getArtifactId());
-      matchedComponent.setVersion(hashGAV.getVersion());
-      matchedComponent.setCatalogDate(hashGAV.getCreateTimeLong());
+    HashComponentIdentifier hashComponentIdentifier = new HashComponentIdentifierDAO().getByHash(matchedComponent
+        .getHash());
+    if (hashComponentIdentifier != null) {
+      ComponentIdentifier componentIdentifier = hashComponentIdentifier.getComponentIdentifier();
+      matchedComponent.setComponentIdentifier(componentIdentifier);
+      matchedComponent.setCatalogDate(hashComponentIdentifier.getCreateTimeLong());
       matchedComponent.setMatchState(MatchState.EXACT.getId());
       matchedComponent.setIdentificationSource(IdentificationSource.MANUAL.getId());
       matchedComponent.setSecurityVulnerabilities(null);

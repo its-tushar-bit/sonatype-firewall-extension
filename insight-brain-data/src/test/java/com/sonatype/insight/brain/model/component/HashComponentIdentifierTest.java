@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.model.component;
 
+import com.sonatype.clm.dto.model.ide.ComponentIdentifier;
+
 import org.junit.Before;
 import org.junit.Test;
 
@@ -12,9 +14,9 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 /**
- * Test of {@link HashGAV} model.
+ * Test of {@link HashComponentIdentifier} model.
  */
-public class HashGAVTest
+public class HashComponentIdentifierTest
 {
   private final String longHash = "123456789012345678901";
 
@@ -30,15 +32,15 @@ public class HashGAVTest
 
   @Test
   public void testLongHashTruncatedWhenObjectCreated() {
-    HashGAV hashGAV = new HashGAV(longHash, null /* groupId */, null /* artifactId */, null /* version */,
-        null /* extension */, null /* classifier */);
-    assertEquals(expectedTruncatedHash, hashGAV.getHash());
+    HashComponentIdentifier hashComponentIdentifier = new HashComponentIdentifier(longHash,
+        ComponentIdentifier.createMavenCoordinates("g", "a", "v"));
+    assertEquals(expectedTruncatedHash, hashComponentIdentifier.getHash());
   }
 
   @Test
   public void testLongHashTruncatedWhenHashSet() {
-    HashGAV hashGAV = new HashGAV();
-    hashGAV.setHash(longHash);
-    assertEquals(expectedTruncatedHash, hashGAV.getHash());
+    HashComponentIdentifier hashComponentIdentifier = new HashComponentIdentifier();
+    hashComponentIdentifier.setHash(longHash);
+    assertEquals(expectedTruncatedHash, hashComponentIdentifier.getHash());
   }
 }

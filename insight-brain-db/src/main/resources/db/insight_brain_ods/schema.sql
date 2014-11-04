@@ -72,19 +72,15 @@ CREATE TABLE license_threat_group_license (
   CONSTRAINT license_threat_group_license_uk UNIQUE KEY (license_threat_group_id, license_id)
 );
 
-CREATE TABLE hash_gav (
-  hash_gav_id varchar(50) NOT NULL,
+CREATE TABLE hash_component_identifier (
+  hash_component_identifier_id varchar(50) NOT NULL,
   hash varchar(20) NOT NULL,
-  group_id varchar(100) NOT NULL,
-  artifact_id varchar(100) NOT NULL,
-  version varchar(100) NOT NULL,
-  extension varchar(50),
-  classifier varchar(50),
+  component_id_format varchar(10) NOT NULL,
+  component_id_coordinates_json CLOB NOT NULL, -- the component identifier coordinates stored in json format
   comment varchar(1000) NULL,
   create_time datetime NULL,
-  CONSTRAINT hash_gav_pk PRIMARY KEY (hash_gav_id),
-  CONSTRAINT hash_gav_hash_uk UNIQUE KEY (hash),
-  CONSTRAINT hash_gav_gavec_uk UNIQUE KEY (group_id, artifact_id, version, extension, classifier)
+  CONSTRAINT hash_component_identifier_pk PRIMARY KEY (hash_component_identifier_id),
+  CONSTRAINT hash_component_identifier_hash_uk UNIQUE KEY (hash)
 );
 
 -- owner_id can be an application or an organization id

@@ -18,10 +18,10 @@ import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.insight.brain.AuthedRestAccess;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
-import com.sonatype.insight.brain.dataaccess.component.HashGAVDAO;
+import com.sonatype.insight.brain.dataaccess.component.HashComponentIdentifierDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.component.HashGAV;
+import com.sonatype.insight.brain.model.component.HashComponentIdentifier;
 import com.sonatype.insight.brain.model.component.IdentificationSource;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.component.SecurityVulnerabilityStatus;
@@ -540,10 +540,11 @@ public class IdeResourceTest
     String artifactId = "a1";
     String version = "v1";
     Date createTime = new Date();
-    HashGAV hashGAV = new HashGAV(hash, groupId, artifactId, version, null /* extension */, null /* classifier */);
-    hashGAV.setCreateTime(createTime);
-    HashGAVDAO hashGAVDAO = new HashGAVDAO();
-    hashGAVDAO.insert(hashGAV);
+    HashComponentIdentifier hashComponentIdentifier = new HashComponentIdentifier(hash,
+        ComponentIdentifier.createMavenCoordinates(groupId, artifactId, version));
+    hashComponentIdentifier.setCreateTime(createTime);
+    HashComponentIdentifierDAO hashComponentIdentifierDAO = new HashComponentIdentifierDAO();
+    hashComponentIdentifierDAO.insert(hashComponentIdentifier);
     String serviceUrl = getScanUrl("simple", applicationPublicId, hash, null, null, null, null, "false" /* proprietary */);
     String saasUrl = convertToSaasUrl(serviceUrl, applicationPublicId);
     MatchedComponent saasResponse = new MatchedComponent();
@@ -551,7 +552,7 @@ public class IdeResourceTest
     saasResponse.addSecurityVulnerability(new SecurityVulnerability("12345", "osvdb", 5f));
     setSaasResponseForURI(saasUrl, JsonHelpers.asJson(saasResponse), 200);
     Response response = AuthedRestAccess.get(serviceUrl);
-    hashGAVDAO.delete(hashGAV);
+    hashComponentIdentifierDAO.delete(hashComponentIdentifier);
     assertResponseStatus(200, response);
     IdeMatchedComponent ideMatchedComponent = JsonHelpers.fromJson(response.getResponseBody(),
         IdeMatchedComponent.class);

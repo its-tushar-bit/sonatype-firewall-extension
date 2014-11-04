@@ -22,7 +22,7 @@ import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.AuthedRestAccess;
 import com.sonatype.insight.brain.dataaccess.ApplicationComponentDAO;
-import com.sonatype.insight.brain.dataaccess.component.HashGAVDAO;
+import com.sonatype.insight.brain.dataaccess.component.HashComponentIdentifierDAO;
 import com.sonatype.insight.brain.dataaccess.policy.FirstOccurrencePolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
@@ -32,7 +32,7 @@ import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationComponent;
 import com.sonatype.insight.brain.model.component.Component;
-import com.sonatype.insight.brain.model.component.HashGAV;
+import com.sonatype.insight.brain.model.component.HashComponentIdentifier;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
@@ -204,10 +204,11 @@ public class PolicyEvaluateResourceTest
     String groupId = "G";
     String artifactId = "A";
     String version = "V";
-    HashGAV hashGAV = new HashGAV(hash, groupId, artifactId, version, null /* extension */, null /* classifier */);
-    hashGAV.setCreateTime(new Date());
-    HashGAVDAO hashGAVDAO = new HashGAVDAO();
-    hashGAVDAO.insert(hashGAV);
+    HashComponentIdentifier hashComponentIdentifier = new HashComponentIdentifier(hash,
+        ComponentIdentifier.createMavenCoordinates(groupId, artifactId, version));
+    hashComponentIdentifier.setCreateTime(new Date());
+    HashComponentIdentifierDAO hashComponentIdentifierDAO = new HashComponentIdentifierDAO();
+    hashComponentIdentifierDAO.insert(hashComponentIdentifier);
     // The report file is not available yet
     Response response = AuthedRestAccess.post(getServiceURL(applicationPublicId, scanId), JsonHelpers.asJson(stage));
     assertResponseStatus(404, response);
@@ -217,7 +218,7 @@ public class PolicyEvaluateResourceTest
         .getResource("/PolicyEvaluateResourceTest/ManuallyIdentifiedComponent/report.zip");
     FileUtils.copyFile(new File(testReportFileUrl.getFile()), saasReportFile);
     response = AuthedRestAccess.post(getServiceURL(applicationPublicId, scanId), JsonHelpers.asJson(stage));
-    hashGAVDAO.delete(hashGAV);
+    hashComponentIdentifierDAO.delete(hashComponentIdentifier);
     assertResponseStatus(200, response);
     PolicyEvaluationResult policyEval = JsonHelpers.fromJson(response.getResponseBody(), PolicyEvaluationResult.class);
     Assert.assertNotNull(policyEval);

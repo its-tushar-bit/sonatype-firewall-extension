@@ -20,11 +20,11 @@ import com.sonatype.clm.dto.model.SecurityVulnerability;
 import com.sonatype.clm.dto.model.ide.ComponentDetails;
 import com.sonatype.clm.dto.model.ide.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.component.ComponentDAO;
-import com.sonatype.insight.brain.dataaccess.component.HashGAVDAO;
+import com.sonatype.insight.brain.dataaccess.component.HashComponentIdentifierDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.Component;
-import com.sonatype.insight.brain.model.component.HashGAV;
+import com.sonatype.insight.brain.model.component.HashComponentIdentifier;
 import com.sonatype.insight.brain.model.component.IdentificationSource;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.component.SecurityVulnerabilityStatus;
@@ -56,86 +56,44 @@ public class ComponentDetailsLoader
 
   private final LicenseDAO licenseDAO;
 
-  private final HashGAVDAO hashGAVDAO;
+  private final HashComponentIdentifierDAO hashComponentIdentifierDAO;
 
   @Inject
-  public ComponentDetailsLoader(InsightWork work, LicenseDAO licenseDAO, HashGAVDAO hashGAVDAO) {
+  public ComponentDetailsLoader(InsightWork work, LicenseDAO licenseDAO,
+      HashComponentIdentifierDAO hashComponentIdentifierDAO)
+  {
     this.work = work;
     this.licenseDAO = licenseDAO;
-    this.hashGAVDAO = hashGAVDAO;
+    this.hashComponentIdentifierDAO = hashComponentIdentifierDAO;
   }
 
   /**
    * Gets component details without CLM-specific vulnerability or license augmentation.
-   * 
-   * @deprecated As of 1.13
    */
-  @Deprecated
-  public ComponentDetails getComponentDetails(String groupId, String artifactId, String version, String hash,
+  public ComponentDetails getComponentDetails(ComponentIdentifier componentIdentifier, String hash,
       String matchState, HostedDataServicesSource hdsSource) throws IOException
   {
     ComponentDetails componentDetails = null;
 
     // Look among claimed components first
-    final HashGAV hashGAV;
+    HashComponentIdentifier hashComponentIdentifier = null;
     if (StringUtils.isNotBlank(hash)) {
-      hashGAV = hashGAVDAO.getByHash(hash);
+      hashComponentIdentifier = hashComponentIdentifierDAO.getByHash(hash);
+      if (hashComponentIdentifier != null) {
+        componentIdentifier = hashComponentIdentifier.getComponentIdentifier();
+      }
     }
     else {
-      hashGAV = hashGAVDAO.getByGAV(groupId, artifactId, version);
+      hashComponentIdentifier = hashComponentIdentifierDAO.getByComponentIdentifier(componentIdentifier);
     }
-    if (hashGAV != null) {
-      componentDetails = new ComponentDetails(hashGAV.getGroupId(), hashGAV.getArtifactId(), hashGAV.getVersion());
-      componentDetails.setHash(hashGAV.getHash());
+
+    if (hashComponentIdentifier != null) {
+      componentDetails = new ComponentDetails(componentIdentifier);
+      componentDetails.setHash(hashComponentIdentifier.getHash());
       componentDetails.setMatchState(MatchState.EXACT.getId());
-      componentDetails.setCatalogDate(hashGAV.getCreateTimeLong());
+      componentDetails.setCatalogDate(hashComponentIdentifier.getCreateTimeLong());
       componentDetails.setIdentificationSource(IdentificationSource.MANUAL.getId());
-      componentDetails.setIdentificationSourceComment(hashGAV.getComment());
-    }
-
-    // Get component details from the HDS, if not found locally
-    if (componentDetails == null) {
-      componentDetails = hdsSource.getDetails();
-      componentDetails.setHash(hash); // HDS does not set hash
-      if (StringUtils.isNotBlank(matchState)) {
-        componentDetails.setMatchState(matchState);
-      }
-      componentDetails.setIdentificationSource(IdentificationSource.SONATYPE.getId());
-    }
-
-    return componentDetails;
-  }
-
-  /**
-   * Gets component details without CLM-specific vulnerability or license augmentation.
-   */
-  public ComponentDetails getComponentDetails(ComponentIdentifier identifier, String hash,
-      String matchState, HostedDataServicesSource hdsSource) throws IOException
-  {
-    ComponentDetails componentDetails = null;
-
-    // Look among claimed components first
-    HashGAV hashGAV = null;
-    if (StringUtils.isNotBlank(hash)) {
-      hashGAV = hashGAVDAO.getByHash(hash);
-      if (hashGAV != null) {
-        identifier = ComponentIdentifier.createMavenCoordinates(hashGAV.getGroupId(), hashGAV.getArtifactId(),
-            hashGAV.getVersion(), hashGAV.getClassifier(), hashGAV.getExtension());
-      }
-    }
-    else if (ComponentIdentifier.FORMAT_MAVEN.equals(identifier.format)) {
-      hashGAV = hashGAVDAO.getByGAV(identifier.get(ComponentIdentifier.MAVEN_GROUP_ID),
-          identifier.get(ComponentIdentifier.MAVEN_ARTIFACT_ID), identifier.get(ComponentIdentifier.VERSION));
-    }
-
-    if (hashGAV != null) {
-      componentDetails = new ComponentDetails(hashGAV.getGroupId(), hashGAV.getArtifactId(), hashGAV.getVersion());
-      componentDetails.setHash(hashGAV.getHash());
-      componentDetails.setMatchState(MatchState.EXACT.getId());
-      componentDetails.setCatalogDate(hashGAV.getCreateTimeLong());
-      componentDetails.setIdentificationSource(IdentificationSource.MANUAL.getId());
-      componentDetails.setIdentificationSourceComment(hashGAV.getComment());
-      componentDetails.setIdentifier(identifier);
+      componentDetails.setIdentificationSourceComment(hashComponentIdentifier.getComment());
     }
 
     // Get component details from the HDS, if not found locally

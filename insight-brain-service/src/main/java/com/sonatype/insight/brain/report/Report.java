@@ -30,13 +30,13 @@ import com.sonatype.clm.dto.model.ide.ComponentIdentifier;
 import com.sonatype.insight.brain.component.ComponentDisplayNameUtil;
 import com.sonatype.insight.brain.dataaccess.component.ComponentDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
-import com.sonatype.insight.brain.dataaccess.component.HashGAVDAO;
+import com.sonatype.insight.brain.dataaccess.component.HashComponentIdentifierDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.Component;
-import com.sonatype.insight.brain.model.component.HashGAV;
+import com.sonatype.insight.brain.model.component.HashComponentIdentifier;
 import com.sonatype.insight.brain.model.component.IdentificationSource;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.license.License;
@@ -293,29 +293,33 @@ public final class Report
   private static void applyComponentRelatedChanges(final Application application, final File reportFile,
       final JsonStore auditStore) throws IOException
   {
-    HashGAVDAO hashGAVDAO = new HashGAVDAO();
+    HashComponentIdentifierDAO hashComponentIdentifierDAO = new HashComponentIdentifierDAO();
 
-    Map<String, HashGAV> claimedHashes = new LinkedHashMap<String, HashGAV>();
+    Map<String, HashComponentIdentifier> claimedHashes = new LinkedHashMap<String, HashComponentIdentifier>();
     Set<ComponentIdentifier> componentIdentifiers = new LinkedHashSet<>();
     ReportEntry bomReportEntry = extractEntry(reportFile, "bom.json");
     ContainerNode<?> bomJsonData = JsonUtils.parse(bomReportEntry.buf);
     for (JsonNode bomJsonNode : bomJsonData.get("aaData")) {
       String hash = bomJsonNode.get("hash").asText();
-      HashGAV hashGAV = hashGAVDAO.getByHash(hash);
+      HashComponentIdentifier hashComponentIdentifier = hashComponentIdentifierDAO.getByHash(hash);
       ObjectNode bomObjectNode = (ObjectNode) bomJsonNode;
 
-      if (hashGAV != null) {
-        bomObjectNode.put("groupId", hashGAV.getGroupId());
-        bomObjectNode.put("artifactId", hashGAV.getArtifactId());
-        bomObjectNode.put("version", hashGAV.getVersion());
-        bomObjectNode.put("extension", hashGAV.getExtension());
-        bomObjectNode.put("classifier", hashGAV.getClassifier());
+      if (hashComponentIdentifier != null) {
+        ComponentIdentifier componentIdentifier = hashComponentIdentifier.getComponentIdentifier();
+        bomObjectNode.put("componentIdentifier", JsonUtils.asTree(componentIdentifier));
+        if (ComponentIdentifier.FORMAT_MAVEN.equals(componentIdentifier.format)) {
+          bomObjectNode.put("groupId", componentIdentifier.get(ComponentIdentifier.MAVEN_GROUP_ID));
+          bomObjectNode.put("artifactId", componentIdentifier.get(ComponentIdentifier.MAVEN_ARTIFACT_ID));
+          bomObjectNode.put("version", componentIdentifier.get(ComponentIdentifier.VERSION));
+          bomObjectNode.put("extension", componentIdentifier.get(ComponentIdentifier.MAVEN_EXTENSION));
+          bomObjectNode.put("classifier", componentIdentifier.get(ComponentIdentifier.MAVEN_CLASSIFIER));
+        }
         bomObjectNode.put("matchState", MatchState.EXACT.getId());
-        bomObjectNode.put("createTime", hashGAV.getCreateTimeLong());
+        bomObjectNode.put("createTime", hashComponentIdentifier.getCreateTimeLong());
         bomObjectNode.put("relativePopularity", 0F);
         bomObjectNode.put("identificationSource", IdentificationSource.MANUAL.getId());
-        bomObjectNode.put("comment", hashGAV.getComment());
-        claimedHashes.put(hash, hashGAV);
+        bomObjectNode.put("comment", hashComponentIdentifier.getComment());
+        claimedHashes.put(hash, hashComponentIdentifier);
       }
 
       ComponentIdentifier componentIdentifier = ComponentIdentifierAdapter.getComponentIdentifier(bomObjectNode);
@@ -354,8 +358,8 @@ public final class Report
         iterLicenseData.remove();
       }
       else {
-        LicenseOverride licenseOverride = getLicenseOverride(application, licenseOverrideDAO, groupId, artifactId,
-            version);
+        LicenseOverride licenseOverride = getLicenseOverride(application, licenseOverrideDAO,
+            ComponentIdentifier.createMavenCoordinates(groupId, artifactId, version));
         if (licenseOverride != null) {
           licenseJsonNode.put("status", licenseOverride.getStatus().getName());
           if (licenseOverride.getLicenseId() != null) {
@@ -370,18 +374,21 @@ public final class Report
     }
 
     // add claimed components with license overrides
-    for (HashGAV hashGAV : claimedHashes.values()) {
-      LicenseOverride licenseOverride = getLicenseOverride(application, licenseOverrideDAO, hashGAV.getGroupId(),
-          hashGAV.getArtifactId(), hashGAV.getVersion());
+    for (HashComponentIdentifier hashComponentIdentifier : claimedHashes.values()) {
+      LicenseOverride licenseOverride = getLicenseOverride(application, licenseOverrideDAO,
+          hashComponentIdentifier.getComponentIdentifier());
       if (licenseOverride != null) {
         ObjectNode licenseJsonNode = licensesAaData.addObject();
-        licenseJsonNode.put("hash", hashGAV.getHash());
-        licenseJsonNode.put("groupId", hashGAV.getGroupId());
-        licenseJsonNode.put("artifactId", hashGAV.getArtifactId());
-        licenseJsonNode.put("version", hashGAV.getVersion());
-        licenseJsonNode.put("classifier", hashGAV.getClassifier());
+        licenseJsonNode.put("hash", hashComponentIdentifier.getHash());
+        ComponentIdentifier componentIdentifier = hashComponentIdentifier.getComponentIdentifier();
+        if (ComponentIdentifier.FORMAT_MAVEN.equals(componentIdentifier.format)) {
+          licenseJsonNode.put("groupId", componentIdentifier.get(ComponentIdentifier.MAVEN_GROUP_ID));
+          licenseJsonNode.put("artifactId", componentIdentifier.get(ComponentIdentifier.MAVEN_ARTIFACT_ID));
+          licenseJsonNode.put("version", componentIdentifier.get(ComponentIdentifier.VERSION));
+          licenseJsonNode.put("classifier", componentIdentifier.get(ComponentIdentifier.MAVEN_CLASSIFIER));
+        }
         licenseJsonNode.put("matchState", MatchState.EXACT.getId());
-        licenseJsonNode.put("catalogDate", hashGAV.getCreateTimeLong());
+        licenseJsonNode.put("catalogDate", hashComponentIdentifier.getCreateTimeLong());
         licenseJsonNode.put("status", licenseOverride.getStatus().getName());
         if (licenseOverride.getLicenseId() != null) {
           License license = licenseDAO.getByIdNotNull(licenseOverride.getLicenseId());
@@ -439,9 +446,8 @@ public final class Report
   }
 
   private static LicenseOverride getLicenseOverride(final Application application,
-      LicenseOverrideDAO licenseOverrideDAO, String groupId, String artifactId, String version)
+      LicenseOverrideDAO licenseOverrideDAO, ComponentIdentifier componentIdentifier)
   {
-    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates(groupId, artifactId, version);
     LicenseOverride licenseOverride = licenseOverrideDAO
       .getByOwnerIdAndComponentIdentifier(application.getId(), componentIdentifier);
     if (licenseOverride == null) {

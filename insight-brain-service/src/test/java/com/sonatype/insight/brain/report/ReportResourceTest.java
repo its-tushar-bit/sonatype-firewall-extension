@@ -34,8 +34,9 @@ import com.sonatype.clm.dto.model.ide.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.AuthedRestAccess;
-import com.sonatype.insight.brain.component.HashGAVResource;
-import com.sonatype.insight.brain.dataaccess.component.HashGAVDAO;
+import com.sonatype.insight.brain.component.HashComponentIdentifierResource;
+import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
+import com.sonatype.insight.brain.dataaccess.component.HashComponentIdentifierDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
@@ -43,7 +44,7 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
 import com.sonatype.insight.brain.license.LicenseOverrideResource;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.component.HashGAV;
+import com.sonatype.insight.brain.model.component.HashComponentIdentifier;
 import com.sonatype.insight.brain.model.component.IdentificationSource;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
@@ -115,11 +116,13 @@ public class ReportResourceTest
     String version = "testClaimedComponent_V";
     String extension = "testClaimedComponent_E";
     String classifier = "testClaimedComponent_C";
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates(groupId, artifactId, version,
+        classifier, extension);
     Date createTime = new Date();
-    HashGAV hashGAV = new HashGAV(hash, groupId, artifactId, version, extension, classifier);
-    hashGAV.setCreateTime(createTime);
-    HashGAVDAO hashGAVDAO = new HashGAVDAO();
-    hashGAVDAO.insert(hashGAV);
+    HashComponentIdentifier hashComponentIdentifier = new HashComponentIdentifier(hash, componentIdentifier);
+    hashComponentIdentifier.setCreateTime(createTime);
+    HashComponentIdentifierDAO hashComponentIdentifierDAO = new HashComponentIdentifierDAO();
+    hashComponentIdentifierDAO.insert(hashComponentIdentifier);
 
     String applicationPublicId = "testClaimedComponent_AppId";
     tempEntity.newApplicationWithParent(applicationPublicId);
@@ -152,6 +155,7 @@ public class ReportResourceTest
         assertEquals(version, bomJsonNode.get("version").asText());
         assertEquals(extension, bomJsonNode.get("extension").asText());
         assertEquals(classifier, bomJsonNode.get("classifier").asText());
+        assertEquals(componentIdentifier, ComponentIdentifierAdapter.getComponentIdentifier(bomJsonNode));
         assertEquals(MatchState.EXACT.getId(), bomJsonNode.get("matchState").asText());
         assertEquals(createTime.getTime(), bomJsonNode.get("createTime").asLong());
         assertEquals(0F, bomJsonNode.get("relativePopularity").asDouble(), 0F);
@@ -189,7 +193,7 @@ public class ReportResourceTest
     assertTrue(partialmatched.contains("c32df577f739535648b0"));
     assertTrue(partialmatched.contains("org.slf4j.api_1.6.1.v20100831-0715.jar"));
 
-    hashGAVDAO.delete(hashGAV);
+    hashComponentIdentifierDAO.delete(hashComponentIdentifier);
   }
 
   @Test
@@ -199,14 +203,15 @@ public class ReportResourceTest
     String groupId = "testClaimedComponent_G";
     String artifactId = "testClaimedComponent_A";
     String version = "testClaimedComponent_V";
-    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates(groupId, artifactId, version);
     String extension = "testClaimedComponent_E";
     String classifier = "testClaimedComponent_C";
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates(groupId, artifactId, version,
+        classifier, extension);
     Date createTime = new Date();
-    HashGAV hashGAV = new HashGAV(hash, groupId, artifactId, version, extension, classifier);
-    hashGAV.setCreateTime(createTime);
-    HashGAVDAO hashGAVDAO = new HashGAVDAO();
-    hashGAVDAO.insert(hashGAV);
+    HashComponentIdentifier hashComponentIdentifier = new HashComponentIdentifier(hash, componentIdentifier);
+    hashComponentIdentifier.setCreateTime(createTime);
+    HashComponentIdentifierDAO hashComponentIdentifierDAO = new HashComponentIdentifierDAO();
+    hashComponentIdentifierDAO.insert(hashComponentIdentifier);
 
     String applicationPublicId = "testClaimedComponent_AppId";
     Application application = tempEntity.newApplicationWithParent(applicationPublicId);
@@ -239,7 +244,7 @@ public class ReportResourceTest
     assertTrue(licensesJsonData.contains(artifactId));
     assertFalse(licensesJsonData.contains("commons-httpclient"));
 
-    hashGAVDAO.delete(hashGAV);
+    hashComponentIdentifierDAO.delete(hashComponentIdentifier);
   }
 
   @Test
@@ -268,11 +273,14 @@ public class ReportResourceTest
     String version = "testClaimedComponent_V";
     String extension = "testClaimedComponent_E";
     String classifier = "testClaimedComponent_C";
-    HashGAV hashGAV = new HashGAV(hash, groupId, artifactId, version, extension, classifier);
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates(groupId, artifactId, version,
+        classifier, extension);
+    HashComponentIdentifier hashComponentIdentifier = new HashComponentIdentifier(hash, componentIdentifier);
     setSaasResponseForURI("rest/ide/component?groupId=" + groupId + "&artifactId=" + artifactId + "&version=" + version
         + "&extension=" + extension + "&classifier=" + classifier, JsonHelpers.asJson(ComponentSummary.create(false)),
         200);
-    response = AuthedRestAccess.post(getRestBaseUrl() + HashGAVResource.SERVICE_PATH, JsonHelpers.asJson(hashGAV));
+    response = AuthedRestAccess.post(getRestBaseUrl() + HashComponentIdentifierResource.SERVICE_PATH,
+        JsonHelpers.asJson(hashComponentIdentifier));
     assertResponseStatus(200, response);
 
     response = AuthedRestAccess.get(resourcePrefix + "/browseReport/bom.json");
@@ -289,6 +297,7 @@ public class ReportResourceTest
         assertEquals(version, bomJsonNode.get("version").asText());
         assertEquals(extension, bomJsonNode.get("extension").asText());
         assertEquals(classifier, bomJsonNode.get("classifier").asText());
+        assertEquals(componentIdentifier, ComponentIdentifierAdapter.getComponentIdentifier(bomJsonNode));
         assertEquals(MatchState.EXACT.getId(), bomJsonNode.get("matchState").asText());
         foundClaimedComponent = true;
       }
@@ -322,9 +331,9 @@ public class ReportResourceTest
     assertFalse(partialmatched.contains(hash));
     assertFalse(partialmatched.contains("commons-httpclient"));
 
-    HashGAVDAO hashGAVDAO = new HashGAVDAO();
-    hashGAV = hashGAVDAO.getByHash(hashGAV.getHash());
-    hashGAVDAO.delete(hashGAV);
+    HashComponentIdentifierDAO hashComponentIdentifierDAO = new HashComponentIdentifierDAO();
+    hashComponentIdentifier = hashComponentIdentifierDAO.getByHash(hashComponentIdentifier.getHash());
+    hashComponentIdentifierDAO.delete(hashComponentIdentifier);
   }
 
   @Test
@@ -1093,11 +1102,12 @@ public class ReportResourceTest
     final URL testReportResultUrl = getClass().getResource("/ReportResourceTest/fortify.zip");
     FileUtils.copyURLToFile(testReportResultUrl, saasReportFile);
 
-    HashGAV claimedCompenent = tempEntity.newClaimedComponent("f0776db1593e215146d2", "commons-httpclient",
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("commons-httpclient",
         "commons-httpclient", "3.1.SONATYPE");
-    LicenseOverride licenseOverride = tempEntity.newLicenseOverride(appId,
-      ComponentIdentifier.createMavenCoordinates(claimedCompenent.getGroupId(), claimedCompenent.getArtifactId(),
-        claimedCompenent.getVersion()), LicenseOverrideStatus.OVERRIDDEN, "GPL-2.0");
+    HashComponentIdentifier claimedComponent = tempEntity.newClaimedComponent("f0776db1593e215146d2",
+        componentIdentifier);
+    LicenseOverride licenseOverride = tempEntity.newLicenseOverride(appId, claimedComponent.getComponentIdentifier(),
+        LicenseOverrideStatus.OVERRIDDEN, "GPL-2.0");
     LicenseOverride licenseOverride2 = tempEntity.newLicenseOverride(appId,
       ComponentIdentifier.createMavenCoordinates("tomcat", "tomcat-util", "5.5.23"), LicenseOverrideStatus.OVERRIDDEN,
       "EPL-1.0");
@@ -1128,20 +1138,22 @@ public class ReportResourceTest
         ComponentDetails details = JsonUtils.parse(
             zip.getInputStream(zip.getEntry("data/cip/details/f0776db1593e215146d2.json")), ComponentDetails.class);
         assertThat(details.getMatchState(), is("exact"));
-        assertThat(details.getGroupId(), is(claimedCompenent.getGroupId()));
-        assertThat(details.getArtifactId(), is(claimedCompenent.getArtifactId()));
-        assertThat(details.getVersion(), is(claimedCompenent.getVersion()));
-        assertThat(details.getCatalogDate(), is(claimedCompenent.getCreateTimeLong()));
+        assertThat(details.getGroupId(), is(componentIdentifier.get(ComponentIdentifier.MAVEN_GROUP_ID)));
+        assertThat(details.getArtifactId(), is(componentIdentifier.get(ComponentIdentifier.MAVEN_ARTIFACT_ID)));
+        assertThat(details.getVersion(), is(componentIdentifier.get(ComponentIdentifier.VERSION)));
+        assertThat(details.getIdentifier(), is(claimedComponent.getComponentIdentifier()));
+        assertThat(details.getCatalogDate(), is(claimedComponent.getCreateTimeLong()));
         assertThat(details.getOverriddenLicenses(), hasSize(1));
         assertThat(details.getOverriddenLicenses().iterator().next().getLicenseId(), is(licenseOverride.getLicenseId()));
         assertThat(details.getLicenseThreatGroupNames(), containsInAnyOrder("Copyleft"));
         assertThat(details.getLicenseThreatLevel(), is(9));
         assertThat(details.getIdentificationSource(), is(IdentificationSource.MANUAL.getId()));
-        assertThat(details.getIdentificationSourceComment(), is(claimedCompenent.getComment()));
+        assertThat(details.getIdentificationSourceComment(), is(claimedComponent.getComment()));
         ComponentDetailsList list = JsonUtils.parse(
-            zip.getInputStream(zip.getEntry("data/cip/list/" + claimedCompenent.getGroupId() + "/"
-                + claimedCompenent.getArtifactId() + "/" + claimedCompenent.getVersion() + ".json")),
-            ComponentDetailsList.class);
+            zip.getInputStream(zip.getEntry("data/cip/list/"
+                + componentIdentifier.get(ComponentIdentifier.MAVEN_GROUP_ID) + "/"
+                + componentIdentifier.get(ComponentIdentifier.MAVEN_ARTIFACT_ID) + "/"
+                + componentIdentifier.get(ComponentIdentifier.VERSION) + ".json")), ComponentDetailsList.class);
         assertThat(list.getList(), hasSize(0));
 
         details = JsonUtils.parse(zip.getInputStream(zip.getEntry("data/cip/details/1249e25aebb15358bedd.json")),

@@ -24,12 +24,12 @@ import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.insight.brain.AuthedRestAccess;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
-import com.sonatype.insight.brain.dataaccess.component.HashGAVDAO;
+import com.sonatype.insight.brain.dataaccess.component.HashComponentIdentifierDAO;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
-import com.sonatype.insight.brain.model.component.HashGAV;
+import com.sonatype.insight.brain.model.component.HashComponentIdentifier;
 import com.sonatype.insight.brain.model.component.IdentificationSource;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.label.Label;
@@ -756,14 +756,14 @@ public abstract class AbstractComponentInfoResourceTest
     Assert.assertNotNull(policyAlerts);
     Assert.assertEquals(0, policyAlerts.size());
 
-    HashGAV hashGAV = new HashGAV(hash, "Claimed" + groupId, "Claimed" + artifactId, "Claimed" + version,
-        null /* extension */, null /* classifier */);
-    hashGAV.setComment("ClaimedComment");
-    hashGAV.setCreateTime(new Date());
-    HashGAVDAO hashGAVDAO = new HashGAVDAO();
-    hashGAVDAO.insert(hashGAV);
+    HashComponentIdentifier hashComponentIdentifier = new HashComponentIdentifier(hash,
+        ComponentIdentifier.createMavenCoordinates("Claimed" + groupId, "Claimed" + artifactId, "Claimed" + version));
+    hashComponentIdentifier.setComment("ClaimedComment");
+    hashComponentIdentifier.setCreateTime(new Date());
+    HashComponentIdentifierDAO hashComponentIdentifierDAO = new HashComponentIdentifierDAO();
+    hashComponentIdentifierDAO.insert(hashComponentIdentifier);
     response = AuthedRestAccess.get(serviceUrl);
-    hashGAVDAO.delete(hashGAV);
+    hashComponentIdentifierDAO.delete(hashComponentIdentifier);
     assertResponseStatus(200, response);
     componentDetails = fromJson(response, ComponentDetails.class);
     Assert.assertNotNull(componentDetails);

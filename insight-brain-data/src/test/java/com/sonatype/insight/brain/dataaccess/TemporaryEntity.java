@@ -21,7 +21,7 @@ import com.sonatype.insight.brain.configuration.ldap.LdapGroupMappingType;
 import com.sonatype.insight.brain.configuration.ldap.LdapProtocol;
 import com.sonatype.insight.brain.configuration.ldap.LdapServer;
 import com.sonatype.insight.brain.configuration.ldap.LdapUserMapping;
-import com.sonatype.insight.brain.dataaccess.component.HashGAVDAO;
+import com.sonatype.insight.brain.dataaccess.component.HashComponentIdentifierDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapConnectionDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapServerDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapUserMappingDAO;
@@ -48,7 +48,7 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationComponent;
 import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.Organization;
-import com.sonatype.insight.brain.model.component.HashGAV;
+import com.sonatype.insight.brain.model.component.HashComponentIdentifier;
 import com.sonatype.insight.brain.model.component.IdentificationSource;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.filter.DashboardFilter;
@@ -140,7 +140,7 @@ public class TemporaryEntity
 
   private final LdapUserMappingDAO ldapUserMappingDAO = new LdapUserMappingDAO();
 
-  private final HashGAVDAO hashGAVDAO = new HashGAVDAO();
+  private final HashComponentIdentifierDAO hashComponentIdentifierDAO = new HashComponentIdentifierDAO();
 
   private final DashboardFilterDAO dashboardFilterDAO = new DashboardFilterDAO();
 
@@ -154,7 +154,7 @@ public class TemporaryEntity
 
   private Collection<LdapServer> ldapServers;
 
-  private Collection<HashGAV> claimedComponents;
+  private Collection<HashComponentIdentifier> claimedComponents;
 
   private Collection<DashboardFilter> dashboardFilters;
 
@@ -165,7 +165,7 @@ public class TemporaryEntity
     users = new ArrayList<User>();
     roles = new ArrayList<Role>();
     ldapServers = new ArrayList<LdapServer>();
-    claimedComponents = new ArrayList<HashGAV>();
+    claimedComponents = new ArrayList<HashComponentIdentifier>();
     dashboardFilters = new ArrayList<>();
   }
 
@@ -205,9 +205,9 @@ public class TemporaryEntity
         ldapServerDAO.delete(ldapServer);
       }
     }
-    for (HashGAV claimedComponent : claimedComponents) {
-      if ((claimedComponent = hashGAVDAO.getById(claimedComponent.getId())) != null) {
-        hashGAVDAO.delete(claimedComponent);
+    for (HashComponentIdentifier claimedComponent : claimedComponents) {
+      if ((claimedComponent = hashComponentIdentifierDAO.getById(claimedComponent.getId())) != null) {
+        hashComponentIdentifierDAO.delete(claimedComponent);
       }
     }
   }
@@ -277,8 +277,8 @@ public class TemporaryEntity
     Collections.addAll(orgs, organizations);
   }
 
-  public void register(HashGAV... hashGAVs) {
-    Collections.addAll(claimedComponents, hashGAVs);
+  public void register(HashComponentIdentifier... hashComponentIdentifiers) {
+    Collections.addAll(claimedComponents, hashComponentIdentifiers);
   }
 
   public Application newApplicationWithParent(String appPublicId) {
@@ -564,10 +564,10 @@ public class TemporaryEntity
     return policy;
   }
 
-  public HashGAV newClaimedComponent(String hash, String groupId, String artifactId, String version) {
-    HashGAV claimedComponent = new HashGAV(hash, groupId, artifactId, version, "jar", "");
+  public HashComponentIdentifier newClaimedComponent(String hash, ComponentIdentifier componentIdentifier) {
+    HashComponentIdentifier claimedComponent = new HashComponentIdentifier(hash, componentIdentifier);
     claimedComponent.setComment("testing");
-    hashGAVDAO.insert(claimedComponent);
+    hashComponentIdentifierDAO.insert(claimedComponent);
     claimedComponents.add(claimedComponent);
     return claimedComponent;
   }

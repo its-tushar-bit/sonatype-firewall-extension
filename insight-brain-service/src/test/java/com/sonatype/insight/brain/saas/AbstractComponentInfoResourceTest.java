@@ -101,7 +101,7 @@ public abstract class AbstractComponentInfoResourceTest
     String groupId = "g1";
     String artifactId = "a1";
     String version = "v1";
-    ComponentDetails saasComponentDetails = new ComponentDetails(groupId, artifactId, version);
+    ComponentDetails saasComponentDetails = newComponentDetailsForMaven(groupId, artifactId, version);
 
     // Verify that UNSPECIFIED is removed from the result
     saasComponentDetails.setDeclaredLicenses(toLicenseSet("EPL-1.0", "UNSPECIFIED"));
@@ -153,7 +153,7 @@ public abstract class AbstractComponentInfoResourceTest
     String groupId = "g1";
     String artifactId = "a1";
     String version = "v1";
-    ComponentDetails saasComponentDetails = new ComponentDetails(groupId, artifactId, version);
+    ComponentDetails saasComponentDetails = newComponentDetailsForMaven(groupId, artifactId, version);
 
     // Verify component without licenses
     setSaasResponseForURI(getSaasComponentDetailsUrl(groupId, artifactId, version), toJson(saasComponentDetails), 200);
@@ -237,7 +237,7 @@ public abstract class AbstractComponentInfoResourceTest
     String artifactId = "a1";
     String version = "v1";
 
-    ComponentDetails saasComponentDetails = new ComponentDetails(groupId, artifactId, version);
+    ComponentDetails saasComponentDetails = newComponentDetailsForMaven(groupId, artifactId, version);
     saasComponentDetails.setDeclaredLicenses(toLicenseSet("Not-Declared"));
     saasComponentDetails.setObservedLicenses(toLicenseSet("GPL-2.0"));
     setSaasResponseForURI(getSaasComponentDetailsUrl(groupId, artifactId, version), toJson(saasComponentDetails), 200);
@@ -262,7 +262,7 @@ public abstract class AbstractComponentInfoResourceTest
     String artifactId = "a1";
     String version = "v1";
 
-    ComponentDetails saasComponentDetails = new ComponentDetails(groupId, artifactId, version);
+    ComponentDetails saasComponentDetails = newComponentDetailsForMaven(groupId, artifactId, version);
     saasComponentDetails.setDeclaredLicenses(toLicenseSet("GPL-2.0"));
     saasComponentDetails.setObservedLicenses(toLicenseSet("No-Sources"));
     setSaasResponseForURI(getSaasComponentDetailsUrl(groupId, artifactId, version), toJson(saasComponentDetails), 200);
@@ -287,7 +287,7 @@ public abstract class AbstractComponentInfoResourceTest
     String artifactId = "a1";
     String version = "v1";
 
-    ComponentDetails saasComponentDetails = new ComponentDetails(groupId, artifactId, version);
+    ComponentDetails saasComponentDetails = newComponentDetailsForMaven(groupId, artifactId, version);
     saasComponentDetails.setDeclaredLicenses(toLicenseSet("GPL-2.0"));
     saasComponentDetails.setObservedLicenses(toLicenseSet("No-Source-License"));
     setSaasResponseForURI(getSaasComponentDetailsUrl(groupId, artifactId, version), toJson(saasComponentDetails), 200);
@@ -312,7 +312,7 @@ public abstract class AbstractComponentInfoResourceTest
     String artifactId = "a1";
     String version = "v1";
 
-    ComponentDetails saasComponentDetails = new ComponentDetails(groupId, artifactId, version);
+    ComponentDetails saasComponentDetails = newComponentDetailsForMaven(groupId, artifactId, version);
     saasComponentDetails.setDeclaredLicenses(toLicenseSet("Not-Declared"));
     saasComponentDetails.setObservedLicenses(toLicenseSet("No-Source-License"));
     setSaasResponseForURI(getSaasComponentDetailsUrl(groupId, artifactId, version), toJson(saasComponentDetails), 200);
@@ -386,11 +386,11 @@ public abstract class AbstractComponentInfoResourceTest
     String groupId = "g1";
     String artifactId = "a1";
     String version = "1.0.0";
-    ComponentDetails saasComponentDetails1 = new ComponentDetails(groupId, artifactId, version);
+    ComponentDetails saasComponentDetails1 = newComponentDetailsForMaven(groupId, artifactId, version);
     Set<License> licenses1 = new LinkedHashSet<License>();
     licenses1.add(new License("Apache-2.0", "Apache-2.0"));
     saasComponentDetails1.setDeclaredLicenses(licenses1);
-    ComponentDetails saasComponentDetails2 = new ComponentDetails(groupId, artifactId, "2.0.0");
+    ComponentDetails saasComponentDetails2 = newComponentDetailsForMaven(groupId, artifactId, "2.0.0");
     Set<License> licenses2 = new LinkedHashSet<License>();
     licenses2.add(new License("GPL-2.0", "GPL-2.0"));
     saasComponentDetails2.setDeclaredLicenses(licenses2);
@@ -480,7 +480,7 @@ public abstract class AbstractComponentInfoResourceTest
     String serviceUrl = getComponentDetailsUrl(applicationPublicId, groupId, artifactId, version,
         "01234567890123456789", "similar");
     String saasUrl = convertToSaasUrl(serviceUrl, applicationPublicId);
-    ComponentDetails saasComponentDetails = new ComponentDetails(groupId, artifactId, version);
+    ComponentDetails saasComponentDetails = newComponentDetailsForMaven(groupId, artifactId, version);
     saasComponentDetails.addSecurityVulnerability(new SecurityVulnerability("Test Ref Id", "Test Source", 7.5F));
     setSaasResponseForURI(saasUrl, toJson(saasComponentDetails), 200);
     Response response = AuthedRestAccess.get(serviceUrl);
@@ -582,7 +582,7 @@ public abstract class AbstractComponentInfoResourceTest
     String version = "v1";
     String serviceUrl = getComponentDetailsUrl(applicationPublicId, groupId, artifactId, version, null, null);
     String saasUrl = convertToSaasUrl(serviceUrl, applicationPublicId);
-    ComponentDetails saasComponentDetails = new ComponentDetails(groupId, artifactId, version);
+    ComponentDetails saasComponentDetails = newComponentDetailsForMaven(groupId, artifactId, version);
     saasComponentDetails.addSecurityVulnerability(new SecurityVulnerability("36079", "osvdb", 7.5F, "Summary"));
     setSaasResponse(new UriParamRequestMatcher(saasUrl, toJson(saasComponentDetails), 200));
     Response response = AuthedRestAccess.get(serviceUrl);
@@ -660,7 +660,7 @@ public abstract class AbstractComponentInfoResourceTest
     String version = "uv1";
     String serviceUrl = getComponentDetailsUrl(applicationPublicId, groupId, artifactId, version,
         "01234567890123456789", "unknown");
-    ComponentDetails saasComponentDetails = new ComponentDetails(groupId, artifactId, version);
+    ComponentDetails saasComponentDetails = newComponentDetailsForMaven(groupId, artifactId, version);
     setSaasResponseForURI(convertToSaasUrl(serviceUrl, applicationPublicId), toJson(saasComponentDetails), 200);
     Response response = AuthedRestAccess.get(serviceUrl);
     assertResponseStatus(200, response);
@@ -691,7 +691,7 @@ public abstract class AbstractComponentInfoResourceTest
     String serviceUrl = getComponentDetailsUrl(applicationPublicId, groupId, artifactId, version,
         "01234567890123456789", "similar", "true");
     String saasUrl = convertToSaasUrl(serviceUrl, applicationPublicId);
-    ComponentDetails saasComponentDetails = new ComponentDetails(groupId, artifactId, version);
+    ComponentDetails saasComponentDetails = newComponentDetailsForMaven(groupId, artifactId, version);
     setSaasResponseForURI(saasUrl, toJson(saasComponentDetails), 200);
     Response response = AuthedRestAccess.get(serviceUrl);
     assertResponseStatus(200, response);
@@ -910,6 +910,10 @@ public abstract class AbstractComponentInfoResourceTest
 
   private String getServiceURL() {
     return getRestBaseUrl() + getResourcePath();
+  }
+
+  private ComponentDetails newComponentDetailsForMaven(String groupId, String artifactId, String version) {
+    return new ComponentDetails(ComponentIdentifier.createMavenCoordinates(groupId, artifactId, version));
   }
 
   protected abstract String getToolName();

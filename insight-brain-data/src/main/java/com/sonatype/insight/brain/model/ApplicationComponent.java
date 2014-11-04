@@ -5,21 +5,17 @@
  */
 package com.sonatype.insight.brain.model;
 
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
-import javax.persistence.Transient;
 
 import com.sonatype.clm.dto.model.ide.ComponentIdentifier;
-import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.model.HasStringId;
 
 import com.google.common.base.Joiner;
@@ -33,6 +29,7 @@ import org.codehaus.plexus.util.StringUtils;
 @Entity
 @Table(name = "application_component")
 public class ApplicationComponent
+    extends HasComponentId
     implements HasStringId
 {
   private static final char PATHNAMES_DELIMITER_CHAR = '\n';
@@ -68,24 +65,6 @@ public class ApplicationComponent
   @Column(name = "pathnames")
   private String pathnamesString;
 
-  /**
-   * @since 1.13.0
-   */
-  @Column(name = "component_id_format")
-  private String componentIdFormat;
-
-  /**
-   * @since 1.13.0
-   */
-  @Column(name = "component_id_coordinates_json")
-  private String componentIdCoordinatesJson;
-
-  /**
-   * @since 1.13.0
-   */
-  @Transient
-  private ComponentIdentifier componentIdentifier;
-
   public ApplicationComponent() {
   }
 
@@ -120,35 +99,6 @@ public class ApplicationComponent
 
   public void setApplicationId(String applicationId) {
     this.applicationId = applicationId;
-  }
-
-  @SuppressWarnings("unchecked")
-  public ComponentIdentifier getComponentIdentifier() {
-    if (componentIdFormat == null) {
-      return null;
-    }
-    if (componentIdentifier == null) {
-      try {
-        componentIdentifier = new ComponentIdentifier(componentIdFormat, JsonUtils.parse(componentIdCoordinatesJson,
-            Map.class));
-      }
-      catch (IOException e) {
-        throw new RuntimeException(e);
-      }
-    }
-    return componentIdentifier;
-  }
-
-  public void setComponentIdentifier(ComponentIdentifier componentIdentifier) {
-    this.componentIdentifier = componentIdentifier;
-    if (componentIdentifier == null) {
-      componentIdFormat = null;
-      componentIdCoordinatesJson = null;
-    }
-    else {
-      componentIdFormat = componentIdentifier.format;
-      componentIdCoordinatesJson = JsonUtils.format(componentIdentifier.coordinates);
-    }
   }
 
   public String getStageTypeId() {
@@ -220,7 +170,7 @@ public class ApplicationComponent
   @Override
   public String toString() {
     return "ApplicationComponent [applicationId=" + applicationId + ", stageTypeId=" + stageTypeId + ", hash=" + hash
-        + ", componentIdentifier=" + componentIdentifier + ", matchStateId=" + matchStateId + "]";
+        + ", componentIdentifier=" + getComponentIdentifier() + ", matchStateId=" + matchStateId + "]";
   }
 
   public Date getTime() {

@@ -80,8 +80,7 @@ class NexusCIPSpec
       cip.website.@href.startsWith(JUNIT.website) //FF at least appends a slash on the href
       cip.highestPolicyThreat == 'NA'
       cip.highestSecurityThreat == 'NA'
-    //TODO - KR fix timing consideration from canned data
-      //cip.catalogued == '1 year ago'
+      cip.catalogued == '1 year ago'
       cip.identificationSource == 'Sonatype'
       cip.website.@href.startsWith(JUNIT.website) //FF at least appends a slash on the href
 

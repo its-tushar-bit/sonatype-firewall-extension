@@ -77,6 +77,7 @@ abstract class AbstractComponentDetailsSpec
 
   Map<String, Object> mockComponentDetails(String jsonFilename) {
     Map<String, Object> hdsComponentResponse = parseJsonFile(jsonFilename)
+    hdsComponentResponse.catalogDate = new Date().minus(366).time  // ensure that catalog data is consistent
     saasRule.setResponseForURI(new UriParamRequestMatcher(createComponentDetailURL(hdsComponentResponse.identifier), JsonOutput.toJson(hdsComponentResponse), 200))
     return hdsComponentResponse
   }

@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.ide;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
@@ -89,9 +91,49 @@ public class IdeResourceTest
     assertResponseStatus(200, response);
     IdeMatchedComponent ideMatchedComponent = JsonHelpers.fromJson(response.getResponseBody(),
         IdeMatchedComponent.class);
+    Assert.assertEquals(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", null, "jar"),
+        ideMatchedComponent.getComponentIdentifier());
     Assert.assertEquals("g1", ideMatchedComponent.getGroupId());
     Assert.assertEquals("a1", ideMatchedComponent.getArtifactId());
     Assert.assertEquals("v1", ideMatchedComponent.getVersion());
+    Assert.assertEquals("abababababababababab", ideMatchedComponent.getHash());
+    Assert.assertEquals("exact", ideMatchedComponent.getMatchState());
+    Assert.assertEquals(IdentificationSource.SONATYPE.getId(), ideMatchedComponent.getIdentificationSource());
+    Assert.assertTrue(ideMatchedComponent.isSimpleMatch());
+    List<PolicyAlert> policyAlerts = ideMatchedComponent.getAlerts();
+    Assert.assertNotNull(policyAlerts);
+    Assert.assertEquals(1, policyAlerts.size());
+  }
+
+  @Test
+  public void testDoScan_Simple_ByComponentIdentifier() throws Exception {
+    String applicationPublicId = "IdeResourceTest_AppId";
+    tempEntity.newApplicationWithParent(applicationPublicId);
+
+    Constraint constraint1 = new Constraint("C1", "Constraint 1", LogicalOperator.AND);
+    Condition condition1 = new Condition(SecurityVulnerabilityConditionType.ID, "present");
+    constraint1.addCondition(condition1);
+    Policy policy1 = new Policy("PolicyId1", "Policy Name 1");
+    policy1.setThreatLevel(8);
+    policy1.addConstraint(constraint1);
+    Action failAction = new Action(FailActionType.ID);
+    policy1.addAction(BuildStageType.ID, failAction);
+    addPolicy(applicationPublicId, policy1);
+
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", null, "jar");
+    String serviceUrl = getScanUrl("simple", applicationPublicId, "abababababababababab", null, componentIdentifier,
+        null);
+    String saasUrl = convertToSaasUrl(serviceUrl, applicationPublicId);
+    setSaasResponseForURI(saasUrl, 200, "/IdeResourceTest/SimpleMatch_abababababababababab.json");
+    Response response = AuthedRestAccess.get(serviceUrl);
+    assertResponseStatus(200, response);
+    IdeMatchedComponent ideMatchedComponent = JsonHelpers.fromJson(response.getResponseBody(),
+        IdeMatchedComponent.class);
+    Assert.assertEquals(componentIdentifier, ideMatchedComponent.getComponentIdentifier());
+    Assert.assertEquals(componentIdentifier.get(ComponentIdentifier.MAVEN_GROUP_ID), ideMatchedComponent.getGroupId());
+    Assert.assertEquals(componentIdentifier.get(ComponentIdentifier.MAVEN_ARTIFACT_ID),
+        ideMatchedComponent.getArtifactId());
+    Assert.assertEquals(componentIdentifier.get(ComponentIdentifier.VERSION), ideMatchedComponent.getVersion());
     Assert.assertEquals("abababababababababab", ideMatchedComponent.getHash());
     Assert.assertEquals("exact", ideMatchedComponent.getMatchState());
     Assert.assertEquals(IdentificationSource.SONATYPE.getId(), ideMatchedComponent.getIdentificationSource());
@@ -129,9 +171,55 @@ public class IdeResourceTest
     response = AuthedRestAccess.get(serviceUrl);
     assertResponseStatus(200, response);
     ideMatchedComponent = JsonHelpers.fromJson(response.getResponseBody(), IdeMatchedComponent.class);
+    Assert.assertEquals(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", null, "jar"),
+        ideMatchedComponent.getComponentIdentifier());
     Assert.assertEquals("g1", ideMatchedComponent.getGroupId());
     Assert.assertEquals("a1", ideMatchedComponent.getArtifactId());
     Assert.assertEquals("v1", ideMatchedComponent.getVersion());
+    Assert.assertEquals("abababababababababab", ideMatchedComponent.getHash());
+    Assert.assertEquals("exact", ideMatchedComponent.getMatchState());
+    Assert.assertEquals(IdentificationSource.SONATYPE.getId(), ideMatchedComponent.getIdentificationSource());
+    Assert.assertFalse(ideMatchedComponent.isSimpleMatch());
+    List<PolicyAlert> policyAlerts = ideMatchedComponent.getAlerts();
+    Assert.assertNotNull(policyAlerts);
+    Assert.assertEquals(1, policyAlerts.size());
+  }
+
+  @Test
+  public void testDoScan_Enhanced_ByComponentIdentifier() throws Exception {
+    String applicationPublicId = "IdeResourceTest_AppId";
+    tempEntity.newApplicationWithParent(applicationPublicId);
+
+    Constraint constraint1 = new Constraint("C1", "Constraint 1", LogicalOperator.AND);
+    constraint1.addCondition(new Condition(MatchStateConditionType.ID, "is", "exact"));
+    Policy policy1 = new Policy("PolicyId1", "Policy Name 1");
+    policy1.setThreatLevel(8);
+    policy1.addConstraint(constraint1);
+    Action failAction = new Action(FailActionType.ID);
+    policy1.addAction(BuildStageType.ID, failAction);
+    addPolicy(applicationPublicId, policy1);
+
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", null, "jar");
+    String serviceUrl = getScanUrl("enhanced", applicationPublicId, "abababababababababab", null, componentIdentifier,
+        null);
+    String saasUrl = convertToSaasUrl(serviceUrl, applicationPublicId);
+    setSaasResponseForURI(saasUrl, 202, "/IdeResourceTest/EnhancedMatch_wait.json");
+    Response response = AuthedRestAccess.post(serviceUrl, JsonHelpers.asJson(new ScannedComponent()));
+    assertResponseStatus(200, response);
+    IdeMatchedComponent ideMatchedComponent = JsonHelpers.fromJson(response.getResponseBody(),
+        IdeMatchedComponent.class);
+    Assert.assertNotNull(ideMatchedComponent.getWaitDelta());
+    Assert.assertTrue(ideMatchedComponent.getWaitDelta() > 0);
+
+    setSaasResponseForURI(saasUrl, 200, "/IdeResourceTest/EnhancedMatch_abababababababababab.json");
+    response = AuthedRestAccess.get(serviceUrl);
+    assertResponseStatus(200, response);
+    ideMatchedComponent = JsonHelpers.fromJson(response.getResponseBody(), IdeMatchedComponent.class);
+    Assert.assertEquals(componentIdentifier, ideMatchedComponent.getComponentIdentifier());
+    Assert.assertEquals(componentIdentifier.get(ComponentIdentifier.MAVEN_GROUP_ID), ideMatchedComponent.getGroupId());
+    Assert.assertEquals(componentIdentifier.get(ComponentIdentifier.MAVEN_ARTIFACT_ID),
+        ideMatchedComponent.getArtifactId());
+    Assert.assertEquals(componentIdentifier.get(ComponentIdentifier.VERSION), ideMatchedComponent.getVersion());
     Assert.assertEquals("abababababababababab", ideMatchedComponent.getHash());
     Assert.assertEquals("exact", ideMatchedComponent.getMatchState());
     Assert.assertEquals(IdentificationSource.SONATYPE.getId(), ideMatchedComponent.getIdentificationSource());
@@ -163,6 +251,8 @@ public class IdeResourceTest
     assertResponseStatus(200, response);
     IdeMatchedComponent ideMatchedComponent = JsonHelpers.fromJson(response.getResponseBody(),
         IdeMatchedComponent.class);
+    Assert.assertEquals(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", null, "jar"),
+        ideMatchedComponent.getComponentIdentifier());
     Assert.assertEquals("g1", ideMatchedComponent.getGroupId());
     Assert.assertEquals("a1", ideMatchedComponent.getArtifactId());
     Assert.assertEquals("v1", ideMatchedComponent.getVersion());
@@ -180,6 +270,8 @@ public class IdeResourceTest
     response = AuthedRestAccess.get(serviceUrl);
     assertResponseStatus(200, response);
     ideMatchedComponent = JsonHelpers.fromJson(response.getResponseBody(), IdeMatchedComponent.class);
+    Assert.assertEquals(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", null, "jar"),
+        ideMatchedComponent.getComponentIdentifier());
     Assert.assertEquals("g1", ideMatchedComponent.getGroupId());
     Assert.assertEquals("a1", ideMatchedComponent.getArtifactId());
     Assert.assertEquals("v1", ideMatchedComponent.getVersion());
@@ -215,6 +307,8 @@ public class IdeResourceTest
     assertResponseStatus(200, response);
     IdeMatchedComponent ideMatchedComponent = JsonHelpers.fromJson(response.getResponseBody(),
         IdeMatchedComponent.class);
+    Assert.assertEquals(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", null, "jar"),
+        ideMatchedComponent.getComponentIdentifier());
     Assert.assertEquals("g1", ideMatchedComponent.getGroupId());
     Assert.assertEquals("a1", ideMatchedComponent.getArtifactId());
     Assert.assertEquals("v1", ideMatchedComponent.getVersion());
@@ -232,6 +326,8 @@ public class IdeResourceTest
     response = AuthedRestAccess.get(serviceUrl);
     assertResponseStatus(200, response);
     ideMatchedComponent = JsonHelpers.fromJson(response.getResponseBody(), IdeMatchedComponent.class);
+    Assert.assertEquals(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", null, "jar"),
+        ideMatchedComponent.getComponentIdentifier());
     Assert.assertEquals("g1", ideMatchedComponent.getGroupId());
     Assert.assertEquals("a1", ideMatchedComponent.getArtifactId());
     Assert.assertEquals("v1", ideMatchedComponent.getVersion());
@@ -267,6 +363,8 @@ public class IdeResourceTest
     assertResponseStatus(200, response);
     IdeMatchedComponent ideMatchedComponent = JsonHelpers.fromJson(response.getResponseBody(),
         IdeMatchedComponent.class);
+    Assert.assertEquals(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", null, "jar"),
+        ideMatchedComponent.getComponentIdentifier());
     Assert.assertEquals("g1", ideMatchedComponent.getGroupId());
     Assert.assertEquals("a1", ideMatchedComponent.getArtifactId());
     Assert.assertEquals("v1", ideMatchedComponent.getVersion());
@@ -283,6 +381,8 @@ public class IdeResourceTest
     response = AuthedRestAccess.get(serviceUrl);
     assertResponseStatus(200, response);
     ideMatchedComponent = JsonHelpers.fromJson(response.getResponseBody(), IdeMatchedComponent.class);
+    Assert.assertEquals(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", null, "jar"),
+        ideMatchedComponent.getComponentIdentifier());
     Assert.assertEquals("g1", ideMatchedComponent.getGroupId());
     Assert.assertEquals("a1", ideMatchedComponent.getArtifactId());
     Assert.assertEquals("v1", ideMatchedComponent.getVersion());
@@ -298,6 +398,8 @@ public class IdeResourceTest
     response = AuthedRestAccess.get(serviceUrl);
     assertResponseStatus(200, response);
     ideMatchedComponent = JsonHelpers.fromJson(response.getResponseBody(), IdeMatchedComponent.class);
+    Assert.assertEquals(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", null, "jar"),
+        ideMatchedComponent.getComponentIdentifier());
     Assert.assertEquals("g1", ideMatchedComponent.getGroupId());
     Assert.assertEquals("a1", ideMatchedComponent.getArtifactId());
     Assert.assertEquals("v1", ideMatchedComponent.getVersion());
@@ -331,6 +433,8 @@ public class IdeResourceTest
     assertResponseStatus(200, response);
     IdeMatchedComponent ideMatchedComponent = JsonHelpers.fromJson(response.getResponseBody(),
         IdeMatchedComponent.class);
+    Assert.assertEquals(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", null, "jar"),
+        ideMatchedComponent.getComponentIdentifier());
     Assert.assertEquals("g1", ideMatchedComponent.getGroupId());
     Assert.assertEquals("a1", ideMatchedComponent.getArtifactId());
     Assert.assertEquals("v1", ideMatchedComponent.getVersion());
@@ -477,6 +581,8 @@ public class IdeResourceTest
     assertResponseStatus(200, response);
     IdeMatchedComponent ideMatchedComponent = JsonHelpers.fromJson(response.getResponseBody(),
         IdeMatchedComponent.class);
+    Assert.assertEquals(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", null, "jar"),
+        ideMatchedComponent.getComponentIdentifier());
     Assert.assertEquals("g1", ideMatchedComponent.getGroupId());
     Assert.assertEquals("a1", ideMatchedComponent.getArtifactId());
     Assert.assertEquals("v1", ideMatchedComponent.getVersion());
@@ -493,6 +599,8 @@ public class IdeResourceTest
     response = AuthedRestAccess.get(serviceUrl);
     assertResponseStatus(200, response);
     ideMatchedComponent = JsonHelpers.fromJson(response.getResponseBody(), IdeMatchedComponent.class);
+    Assert.assertEquals(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", null, "jar"),
+        ideMatchedComponent.getComponentIdentifier());
     Assert.assertEquals("g1", ideMatchedComponent.getGroupId());
     Assert.assertEquals("a1", ideMatchedComponent.getArtifactId());
     Assert.assertEquals("v1", ideMatchedComponent.getVersion());
@@ -509,6 +617,8 @@ public class IdeResourceTest
     response = AuthedRestAccess.get(serviceUrl);
     assertResponseStatus(200, response);
     ideMatchedComponent = JsonHelpers.fromJson(response.getResponseBody(), IdeMatchedComponent.class);
+    Assert.assertEquals(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", null, "jar"),
+        ideMatchedComponent.getComponentIdentifier());
     Assert.assertEquals("g1", ideMatchedComponent.getGroupId());
     Assert.assertEquals("a1", ideMatchedComponent.getArtifactId());
     Assert.assertEquals("v1", ideMatchedComponent.getVersion());
@@ -556,6 +666,8 @@ public class IdeResourceTest
     assertResponseStatus(200, response);
     IdeMatchedComponent ideMatchedComponent = JsonHelpers.fromJson(response.getResponseBody(),
         IdeMatchedComponent.class);
+    Assert.assertEquals(ComponentIdentifier.createMavenCoordinates(groupId, artifactId, version),
+        ideMatchedComponent.getComponentIdentifier());
     Assert.assertEquals(groupId, ideMatchedComponent.getGroupId());
     Assert.assertEquals(artifactId, ideMatchedComponent.getArtifactId());
     Assert.assertEquals(version, ideMatchedComponent.getVersion());
@@ -607,6 +719,8 @@ public class IdeResourceTest
     assertResponseStatus(200, response);
     IdeMatchedComponent ideMatchedComponent = JsonHelpers.fromJson(response.getResponseBody(),
         IdeMatchedComponent.class);
+    Assert.assertEquals(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", null, "jar"),
+        ideMatchedComponent.getComponentIdentifier());
     Assert.assertThat(ideMatchedComponent.getGroupId(), is("g1"));
     Assert.assertThat(ideMatchedComponent.getArtifactId(), is("a1"));
     Assert.assertThat(ideMatchedComponent.getVersion(), is("v1"));
@@ -623,6 +737,17 @@ public class IdeResourceTest
   public void testGetComponentVersions() throws Exception {
     setSaasResponseForURI("rest/ide/artifact/versions?groupId=gid&artifactId=aid", "[\"1.1\", \"2.0\"]", 200);
     Response response = AuthedRestAccess.get(getComponentVersionsUrl("gid", "aid"));
+    assertResponseStatus(200, response);
+    String[] versions = JsonHelpers.fromJson(response.getResponseBody(), String[].class);
+    Assert.assertEquals(Arrays.asList("1.1", "2.0"), Arrays.asList(versions));
+  }
+
+  @Test
+  public void testGetComponentVersions_ByComponentIdentifier() throws Exception {
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("gid", "aid", null);
+    setSaasResponseForURI("rest/ide/artifact/versions?componentIdentifier=" +
+        toQueryParam(componentIdentifier), "[\"1.1\", \"2.0\"]", 200);
+    Response response = AuthedRestAccess.get(getComponentVersionsUrl(componentIdentifier));
     assertResponseStatus(200, response);
     String[] versions = JsonHelpers.fromJson(response.getResponseBody(), String[].class);
     Assert.assertEquals(Arrays.asList("1.1", "2.0"), Arrays.asList(versions));
@@ -700,8 +825,30 @@ public class IdeResourceTest
             "proprietary", proprietary);
   }
 
+  private String getScanUrl(String mode, String applicationPublicId, String hash, String filename,
+      ComponentIdentifier componentIdentifier, String proprietary) throws UnsupportedEncodingException
+  {
+    return getServiceURL()
+        + "/scan/"
+        + mode
+        + "/"
+        + applicationPublicId
+        + "/"
+        + hash
+        + getQueryParams("filename", filename,
+        "componentIdentifier", toQueryParam(componentIdentifier), "proprietary", proprietary);
+  }
+
   private String getComponentVersionsUrl(String groupId, String artifactId) {
     return getServiceURL() + "/component/versions/?groupId=" + groupId + "&artifactId=" + artifactId;
+  }
+
+  private String getComponentVersionsUrl(ComponentIdentifier componentIdentifier) throws UnsupportedEncodingException {
+    return getServiceURL() + "/component/versions/?componentIdentifier=" + toQueryParam(componentIdentifier);
+  }
+
+  private String toQueryParam(ComponentIdentifier componentIdentifier) throws UnsupportedEncodingException {
+    return URLEncoder.encode(toJson(componentIdentifier), "UTF-8");
   }
 
   private String getQueryParams(String... params) {

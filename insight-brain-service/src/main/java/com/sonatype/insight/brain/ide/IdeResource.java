@@ -137,9 +137,7 @@ public class IdeResource
     IdeMatchedComponent ideComponent = getComponent(matchedComponent);
     if (ideComponent.getWaitDelta() == null
         && (!"unknown".equals(ideComponent.getMatchState()) || !ideComponent.isSimpleMatch())) {
-      ComponentIdentifier componentIdentifier = ComponentIdentifier
-          .createMavenCoordinates(matchedComponent.getGroupId(), matchedComponent.getArtifactId(),
-              matchedComponent.getVersion());
+      ComponentIdentifier componentIdentifier = matchedComponent.getComponentIdentifier();
       ArrayNode svData = AugmentUtil
           .getSVData(work, applicationId, componentIdentifier, matchedComponent.getSecurityVulnerabilities());
 
@@ -173,9 +171,7 @@ public class IdeResource
 
   private IdeMatchedComponent getComponent(MatchedComponent mComponent) {
     IdeMatchedComponent ide = new IdeMatchedComponent();
-    ide.setArtifactId(mComponent.getArtifactId());
-    ide.setGroupId(mComponent.getGroupId());
-    ide.setVersion(mComponent.getVersion());
+    ide.setComponentIdentifier(mComponent.getComponentIdentifier());
     ide.setHash(mComponent.getHash());
     ide.setMatchState(mComponent.getMatchState());
     ide.setIdentificationSource(mComponent.getIdentificationSource());

@@ -276,9 +276,7 @@ public class ReportResourceTest
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates(groupId, artifactId, version,
         classifier, extension);
     HashComponentIdentifier hashComponentIdentifier = new HashComponentIdentifier(hash, componentIdentifier);
-    setSaasResponseForURI("rest/ide/component?groupId=" + groupId + "&artifactId=" + artifactId + "&version=" + version
-        + "&extension=" + extension + "&classifier=" + classifier, JsonHelpers.asJson(ComponentSummary.create(false)),
-        200);
+    mockComponentSummary(componentIdentifier, ComponentSummary.create(false));
     response = AuthedRestAccess.post(getRestBaseUrl() + HashComponentIdentifierResource.SERVICE_PATH,
         JsonHelpers.asJson(hashComponentIdentifier));
     assertResponseStatus(200, response);

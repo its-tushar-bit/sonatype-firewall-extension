@@ -28,8 +28,7 @@ public class HashComponentIdentifierResourceAuthzTest
     String json = toJson(hashComponentIdentifier);
     String url = getRestUrl(HashComponentIdentifierResource.SERVICE_PATH);
 
-    setSaasResponseForURI("rest/ide/component?groupId=gid&artifactId=aid&version=1.0&extension=jar&classifier=jdk15",
-        toJson(ComponentSummary.create(false)), 200);
+    mockComponentSummary(hashComponentIdentifier.getComponentIdentifier(), ComponentSummary.create(false));
 
     Response response = RestAccess.post(url, json);
     assertResponseStatus(401, response);

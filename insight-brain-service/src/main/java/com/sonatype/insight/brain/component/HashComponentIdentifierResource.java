@@ -6,7 +6,7 @@
 package com.sonatype.insight.brain.component;
 
 import java.io.IOException;
-import java.util.LinkedHashMap;
+import java.util.Collections;
 import java.util.Map;
 
 import javax.inject.Inject;
@@ -27,8 +27,7 @@ import com.sonatype.insight.brain.model.component.HashComponentIdentifier;
 import com.sonatype.insight.brain.report.ReportService;
 import com.sonatype.insight.brain.saas.SaasClient;
 import com.sonatype.insight.error.exception.BadRequestException;
-
-import org.codehaus.plexus.util.StringUtils;
+import com.sonatype.insight.json.store.JsonUtils;
 
 /**
  * Associates component hash to a component identifier.
@@ -108,28 +107,8 @@ public class HashComponentIdentifierResource
   }
 
   private ComponentSummary getComponentSummary(ComponentIdentifier componentIdentifier) throws IOException {
-    Map<String, String> queryParams = new LinkedHashMap<String, String>();
-    switch (componentIdentifier.format) {
-      case (ComponentIdentifier.FORMAT_MAVEN):
-        queryParams.put("groupId", componentIdentifier.get(ComponentIdentifier.MAVEN_GROUP_ID));
-        queryParams.put("artifactId", componentIdentifier.get(ComponentIdentifier.MAVEN_ARTIFACT_ID));
-        queryParams.put("version", componentIdentifier.get(ComponentIdentifier.VERSION));
-        // optional fields
-        if (StringUtils.isNotBlank(componentIdentifier.get(ComponentIdentifier.MAVEN_EXTENSION))) {
-          queryParams.put("extension", componentIdentifier.get(ComponentIdentifier.MAVEN_EXTENSION));
-        }
-        if (StringUtils.isNotBlank(componentIdentifier.get(ComponentIdentifier.MAVEN_CLASSIFIER))) {
-          queryParams.put("classifier", componentIdentifier.get(ComponentIdentifier.MAVEN_CLASSIFIER));
-        }
-        break;
-      case (ComponentIdentifier.FORMAT_NUGET):
-        queryParams.put("artifactId", componentIdentifier.get(ComponentIdentifier.NUGET_PACKAGE_ID));
-        queryParams.put("version", componentIdentifier.get(ComponentIdentifier.VERSION));
-        break;
-      default:
-        throw new BadRequestException("Unknow component identifier format: " + componentIdentifier.format);
-    }
-
-    return client.get(ComponentSummary.class, "rest/ide/component", queryParams);
+    Map<String, String> queryParams = Collections.singletonMap("componentIdentifier",
+        JsonUtils.writeValueAsString(componentIdentifier));
+    return client.get(ComponentSummary.class, "rest/component/summary", queryParams);
   }
 }

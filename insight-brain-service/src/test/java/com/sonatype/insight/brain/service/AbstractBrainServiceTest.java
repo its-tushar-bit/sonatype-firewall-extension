@@ -15,6 +15,8 @@ import java.util.Map;
 
 import javax.ws.rs.core.UriBuilder;
 
+import com.sonatype.clm.dto.model.ComponentSummary;
+import com.sonatype.clm.dto.model.ide.ComponentIdentifier;
 import com.sonatype.insight.brain.AuthedRestAccess;
 import com.sonatype.insight.brain.TestLicenseFingerprinter;
 import com.sonatype.insight.brain.TestProductLicenseManager;
@@ -166,6 +168,14 @@ public abstract class AbstractBrainServiceTest
 
   protected void setSaasResponseForURI(String uri, int status, String bodyResource) {
     setSaasResponseForURI(uri, toString(bodyResource), status);
+  }
+
+  protected void mockComponentSummary(ComponentIdentifier componentIdentifier, ComponentSummary componentSummary)
+      throws Exception
+  {
+    String uri = UriBuilder.fromPath("rest/component/summary")
+        .queryParam("componentIdentifier", toJson(componentIdentifier)).build().toString();
+    setSaasResponseForURI(uri, toJson(componentSummary), 200);
   }
 
   protected void setSecurityAuditLog(String appId, String jsonResource) {

@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.component;
 
-import java.io.IOException;
 import java.util.Date;
 
 import com.sonatype.clm.dto.model.ComponentSummary;
@@ -30,18 +29,8 @@ public class HashComponentIdentifierResourceTest
 
   private static final String hash = "ab1234ab1234ab";
 
-  private static final String groupId = "g1";
-
-  private static final String artifactId = "a1";
-
-  private static final String version = "v1";
-
-  private static final String extension = "e1";
-
-  private static final String classifier = "c1";
-
-  private static final ComponentIdentifier COMPONENT_IDENTIFIER = ComponentIdentifier.createMavenCoordinates(groupId,
-      artifactId, version, classifier, extension);
+  private static final ComponentIdentifier COMPONENT_IDENTIFIER = ComponentIdentifier.createMavenCoordinates("g1",
+      "a1", "v1", "c1", "e1");
 
   private static final String comment = "my comment";
 
@@ -60,7 +49,7 @@ public class HashComponentIdentifierResourceTest
     hashComponentIdentifier.setCreateTime(createTime);
 
     // component must be unknown or we cannot claim it
-    setSaasResponse(groupId);
+    mockComponentSummary(hashComponentIdentifier.getComponentIdentifier(), ComponentSummary.create(false));
 
     // create
     Response response = AuthedRestAccess.post(getServiceURL(), JsonHelpers.asJson(hashComponentIdentifier));
@@ -74,11 +63,9 @@ public class HashComponentIdentifierResourceTest
     assertHashComponentIdentifier(hash, COMPONENT_IDENTIFIER, comment, createTime, hashComponentIdentifier);
 
     // update
-    String updatedGroupId = groupId + "_updated";
-    ComponentIdentifier updatedComponentIdentifier = ComponentIdentifier.createMavenCoordinates(updatedGroupId,
-        artifactId, version, classifier, extension);
+    ComponentIdentifier updatedComponentIdentifier = COMPONENT_IDENTIFIER.createAlternativeVersion("updated-version");
     hashComponentIdentifier.setComponentIdentifier(updatedComponentIdentifier);
-    setSaasResponse(updatedGroupId);
+    mockComponentSummary(hashComponentIdentifier.getComponentIdentifier(), ComponentSummary.create(false));
     response = AuthedRestAccess.put(getServiceURL(), JsonHelpers.asJson(hashComponentIdentifier));
     assertResponseStatus(200, response);
     hashComponentIdentifier = JsonHelpers.fromJson(response.getResponseBody(), HashComponentIdentifier.class);
@@ -98,11 +85,7 @@ public class HashComponentIdentifierResourceTest
 
   @Test
   public void testSet_KnownToSaaS() throws Exception {
-    setSaasResponseForURI("rest/ide/component?groupId=" + groupId + "&artifactId=" + artifactId + "&version=" + version
-            + "&extension=" + extension + "&classifier=" + classifier,
-        JsonHelpers.asJson(ComponentSummary.create(true)),
-        200
-    );
+    mockComponentSummary(hashComponentIdentifier.getComponentIdentifier(), ComponentSummary.create(true));
 
     Response response = AuthedRestAccess.post(getServiceURL(), JsonHelpers.asJson(hashComponentIdentifier));
     assertResponseStatus(400, response);
@@ -123,14 +106,5 @@ public class HashComponentIdentifierResourceTest
 
   private String getServiceURL() {
     return getRestBaseUrl() + HashComponentIdentifierResource.SERVICE_PATH;
-  }
-
-  private void setSaasResponse(final String groupId) throws IOException {
-    setSaasResponseForURI(
-        "rest/ide/component?groupId=" + groupId + "&artifactId=" + artifactId + "&version=" + version
-            + "&extension=" + extension + "&classifier=" + classifier,
-        JsonHelpers.asJson(ComponentSummary.create(false)),
-        200
-    );
   }
 }

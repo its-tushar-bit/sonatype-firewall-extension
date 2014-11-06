@@ -194,8 +194,7 @@ public class ComponentDAO
     Component component = new Component();
 
     component.setHash(componentInfo.getHash());
-    component.setComponentIdentifier(ComponentIdentifier
-      .createMavenCoordinates(componentInfo.getGroupId(), componentInfo.getArtifactId(), componentInfo.getVersion()));
+    component.setComponentIdentifier(componentInfo.getComponentIdentifier());
 
     component.setMatchState(MatchState.getById(componentInfo.getMatchState()));
     if (componentInfo.getIdentificationSource() != null) {
@@ -207,10 +206,12 @@ public class ComponentDAO
       component.setRelativePopularity(componentInfo.getRelativePopularity());
     }
 
-    loadLicenseOverride(application, component);
-    component.setDeclaredLicenseIds(multiLicenseIdsToLicenseIds(componentInfo.getDeclaredLicenseIds()));
-    component.setObservedLicenseIds(multiLicenseIdsToLicenseIds(componentInfo.getObservedLicenseIds()));
-    loadLicenseThreatGroups(application.getId(), component);
+    if (component.getComponentIdentifier() != null) {
+      loadLicenseOverride(application, component);
+      component.setDeclaredLicenseIds(multiLicenseIdsToLicenseIds(componentInfo.getDeclaredLicenseIds()));
+      component.setObservedLicenseIds(multiLicenseIdsToLicenseIds(componentInfo.getObservedLicenseIds()));
+      loadLicenseThreatGroups(application.getId(), component);
+    }
 
     addSecurityVulnerabilities(component, componentInfo.getSecurityVulnerabilities(), jsonSVNode);
 

@@ -516,7 +516,7 @@ public abstract class AbstractComponentInfoResourceTest
 
     ComponentDetails componentDetails = fromJson(response, ComponentDetails.class);
     Assert.assertNotNull(componentDetails);
-    Assert.assertEquals(MAVEN_COORDINATES, componentDetails.getIdentifier());
+    Assert.assertEquals(MAVEN_COORDINATES, componentDetails.getComponentIdentifier());
     Assert.assertEquals(1, componentDetails.getOverriddenLicenses().size());
     License overriddenLicense = componentDetails.getOverriddenLicenses().iterator().next();
     Assert.assertNotNull(overriddenLicense);
@@ -553,7 +553,7 @@ public abstract class AbstractComponentInfoResourceTest
 
     ComponentDetails componentDetails = fromJson(response, ComponentDetails.class);
     Assert.assertNotNull(componentDetails);
-    Assert.assertEquals(MAVEN_COORDINATES, componentDetails.getIdentifier());
+    Assert.assertEquals(MAVEN_COORDINATES, componentDetails.getComponentIdentifier());
     Assert.assertEquals(1, componentDetails.getOverriddenLicenses().size());
     License overriddenLicense = componentDetails.getOverriddenLicenses().iterator().next();
     Assert.assertNotNull(overriddenLicense);

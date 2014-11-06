@@ -135,7 +135,7 @@ public abstract class AbstractComponentInfoResource
             catch (NotFoundException e) {
               // Identifier is unknown to HDS, still want to provide minimal data for details view
               componentDetails = new NamedComponentDetails();
-              componentDetails.setIdentifier(identifier);
+              componentDetails.setComponentIdentifier(identifier);
               componentDetails.setMatchState(MatchState.UNKNOWN.getId());
             }
             return componentDetails;

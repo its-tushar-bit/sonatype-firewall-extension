@@ -180,8 +180,8 @@ public class PolicyViolationDAOTest
     Policy policy = tempEntity.newPolicy(applicationId, "name");
 
     PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(applicationId, BuildStageType.ID, "scan-1");
-    PolicyViolation violation = tempEntity.newPolicyViolation(evaluation, policy, null /* groupId */,
-        null /* artifactId */, null /* version */, null /* hash */, null /* reason */);
+    PolicyViolation violation = tempEntity.newPolicyViolation(evaluation, policy, "groupId", "artifactId", "version",
+        null /* hash */, null /* reason */);
 
     PolicyViolation first = new PolicyViolationDAO().getFirstOccurrence(applicationId, evaluation.getStageTypeId(),
         violation);

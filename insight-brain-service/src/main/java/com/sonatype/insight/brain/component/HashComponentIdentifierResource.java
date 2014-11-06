@@ -57,6 +57,8 @@ public class HashComponentIdentifierResource
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   public HashComponentIdentifier set(HashComponentIdentifier hashComponentIdentifier) throws IOException {
+    validateComponentIdentifier(hashComponentIdentifier.getComponentIdentifier());
+
     ensureUnknownComponent(hashComponentIdentifier);
 
     hashComponentIdentifier.setId(null);
@@ -71,6 +73,8 @@ public class HashComponentIdentifierResource
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   public HashComponentIdentifier update(HashComponentIdentifier hashComponentIdentifier) throws IOException {
+    validateComponentIdentifier(hashComponentIdentifier.getComponentIdentifier());
+
     ensureUnknownComponent(hashComponentIdentifier);
 
     HashComponentIdentifier existingHashComponentIdentifier = hashComponentIdentifierDAO
@@ -95,6 +99,19 @@ public class HashComponentIdentifierResource
 
     hashComponentIdentifierDAO.delete(toDelete);
     ReportService.flushReportChanges();
+  }
+
+  private void validateComponentIdentifier(ComponentIdentifier componentIdentifier) {
+    if (componentIdentifier == null) {
+      throw new BadRequestException("The component identifier cannot be null.");
+    }
+
+    try {
+      componentIdentifier.validate();
+    }
+    catch (Exception e) {
+      throw new BadRequestException(e.getMessage(), e);
+    }
   }
 
   private void ensureUnknownComponent(final HashComponentIdentifier hashComponentIdentifier) throws IOException {

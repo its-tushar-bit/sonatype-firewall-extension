@@ -615,8 +615,11 @@ public class TemporaryEntity
         .getOperator().name());
     ConditionFact conditionFact = new ConditionFact(condition.getConditionTypeId(), "summary", reason);
     constraintFact.addConditionFact(conditionFact);
-    PolicyViolation policyViolation = new PolicyViolation(evaluation, policy, hash,
-        ComponentIdentifier.createMavenCoordinates(groupId, artifactId, version),
+    ComponentIdentifier componentIdentifier = null;
+    if (groupId != null) {
+      componentIdentifier = ComponentIdentifier.createMavenCoordinates(groupId, artifactId, version);
+    }
+    PolicyViolation policyViolation = new PolicyViolation(evaluation, policy, hash, componentIdentifier,
         Collections.singletonList(constraintFact), null /* pathnames */);
     policyViolationDAO.insert(policyViolation);
     return policyViolation;

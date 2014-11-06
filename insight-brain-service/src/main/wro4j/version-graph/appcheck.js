@@ -680,10 +680,10 @@
 
       $.each(json.versions, function(index, item) {
         var critical = false, severe = false, moderate = false;
-        data.versions.push(item.identifier.coordinates.version);
+        data.versions.push(item.componentIdentifier.coordinates.version);
         data.versionPopularity.push(item.popularity || item.relativePopularity || 0);
 
-        if (json.version === item.identifier.coordinates.version) {
+        if (json.version === item.componentIdentifier.coordinates.version) {
           data.currentVersionIndex = index;
         }
         if (item.majorRevisionStep) {

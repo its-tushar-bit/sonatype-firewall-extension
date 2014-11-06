@@ -316,7 +316,7 @@ public class ReportResource
           if (!cipDetailsPath.isEmpty() && entry.getName().startsWith(cipDetailsPath)) {
             final ComponentDetails hdsDetails = JsonUtils
                 .parse(reportZip.getInputStream(entry), ComponentDetails.class);
-            ComponentDetails clmDetails = componentDetailsLoader.getComponentDetails(hdsDetails.getIdentifier(),
+            ComponentDetails clmDetails = componentDetailsLoader.getComponentDetails(hdsDetails.getComponentIdentifier(),
                 hdsDetails.getHash(), hdsDetails.getMatchState(),
                 new ComponentDetailsLoader.HostedDataServicesSource()
                 {

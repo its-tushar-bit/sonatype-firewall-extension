@@ -19,7 +19,6 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.persistence.EntityManager;
 
-import com.sonatype.clm.dto.model.ide.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.ComponentFact;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
@@ -249,8 +248,7 @@ public class PolicyEvaluationUtils
       }
 
       ApplicationComponent applicationComponent = new ApplicationComponent(appId, stage.getStageTypeId(), time,
-          component.getHash(), ComponentIdentifier.createMavenCoordinates(component.getGroupId(),
-              component.getArtifactId(), component.getVersion()), component.getMatchState().getId(), component
+          component.getHash(), component.getComponentIdentifier(), component.getMatchState().getId(), component
               .getIdentificationSource().getId(), component.isProprietary(), component.getPathnames());
       applicationComponentDAO.insert(em, applicationComponent);
     }

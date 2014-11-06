@@ -1139,7 +1139,7 @@ public class ReportResourceTest
         assertThat(details.getGroupId(), is(componentIdentifier.get(ComponentIdentifier.MAVEN_GROUP_ID)));
         assertThat(details.getArtifactId(), is(componentIdentifier.get(ComponentIdentifier.MAVEN_ARTIFACT_ID)));
         assertThat(details.getVersion(), is(componentIdentifier.get(ComponentIdentifier.VERSION)));
-        assertThat(details.getIdentifier(), is(claimedComponent.getComponentIdentifier()));
+        assertThat(details.getComponentIdentifier(), is(claimedComponent.getComponentIdentifier()));
         assertThat(details.getCatalogDate(), is(claimedComponent.getCreateTimeLong()));
         assertThat(details.getOverriddenLicenses(), hasSize(1));
         assertThat(details.getOverriddenLicenses().iterator().next().getLicenseId(), is(licenseOverride.getLicenseId()));
@@ -1179,7 +1179,7 @@ public class ReportResourceTest
 
   private ComponentDetails findDetailsForComponent(ComponentDetailsList list, ComponentIdentifier componentIdentifier) {
     for (ComponentDetails details : list.getList()) {
-      if (componentIdentifier.equals(details.getIdentifier())) {
+      if (componentIdentifier.equals(details.getComponentIdentifier())) {
         return details;
       }
     }

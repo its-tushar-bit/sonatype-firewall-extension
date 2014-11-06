@@ -40,7 +40,7 @@
    "majorRevisionStep":false,
    "identificationSource":"Sonatype",
    "identificationSourceComment":null,
-   "identifier":{
+   "componentIdentifier":{
       "format":"maven",
       "coordinates":{
          "groupId":"junit",

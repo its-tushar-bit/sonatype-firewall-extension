@@ -618,8 +618,8 @@
               versionClick: function(version) {
                 scope.$apply(function () {
                   $.each(versions, function(index, component) {
-                    if (component.identifier.coordinates.version === version) {
-                      Coordinates.setSelected(component.identifier.coordinates);
+                    if (component.componentIdentifier.coordinates.version === version) {
+                      Coordinates.setSelected(component.componentIdentifier.coordinates);
                       return false;
                     }
                   });

@@ -137,9 +137,8 @@ public class IdeResource
     IdeMatchedComponent ideComponent = getComponent(matchedComponent);
     if (ideComponent.getWaitDelta() == null
         && (!"unknown".equals(ideComponent.getMatchState()) || !ideComponent.isSimpleMatch())) {
-      ComponentIdentifier componentIdentifier = matchedComponent.getComponentIdentifier();
-      ArrayNode svData = AugmentUtil
-          .getSVData(work, applicationId, componentIdentifier, matchedComponent.getSecurityVulnerabilities());
+      ArrayNode svData = AugmentUtil.getSVData(work, applicationId, matchedComponent.getComponentIdentifier(),
+          matchedComponent.getSecurityVulnerabilities());
 
       ComponentDAO componentDAO = new ComponentDAO();
       Component component = componentDAO.getComponent(app, matchedComponent, svData);

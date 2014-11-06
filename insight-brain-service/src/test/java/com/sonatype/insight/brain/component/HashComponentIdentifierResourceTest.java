@@ -13,12 +13,14 @@ import com.sonatype.insight.brain.AuthedRestAccess;
 import com.sonatype.insight.brain.dataaccess.component.HashComponentIdentifierDAO;
 import com.sonatype.insight.brain.model.component.HashComponentIdentifier;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
+import com.sonatype.insight.json.store.JsonUtils;
 
 import com.ning.http.client.Response;
 import com.yammer.dropwizard.testing.JsonHelpers;
 import org.junit.Before;
 import org.junit.Test;
 
+import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
@@ -93,6 +95,23 @@ public class HashComponentIdentifierResourceTest
         "The 'maven: {groupId=g1, artifactId=a1, version=v1, classifier=c1, extension=e1}' coordinates are already in use.",
         response.getResponseBody()
     );
+  }
+
+  @Test
+  public void testSet_NullComponentIdentifier() throws Exception {
+    hashComponentIdentifier.setComponentIdentifier(null);
+    Response response = AuthedRestAccess.post(getServiceURL(), JsonHelpers.asJson(hashComponentIdentifier));
+    assertResponseStatus(400, response);
+    assertEquals("The component identifier cannot be null.", response.getResponseBody());
+  }
+
+  @Test
+  public void testSet_InvalidComponentIdentifier() throws Exception {
+    hashComponentIdentifier.setComponentIdentifier(JsonUtils.parse("{\"format\":\"maven\",\"coordinates\":null}",
+        ComponentIdentifier.class));
+    Response response = AuthedRestAccess.post(getServiceURL(), JsonHelpers.asJson(hashComponentIdentifier));
+    assertResponseStatus(400, response);
+    assertThat(response.getResponseBody(), is("A component identifier must have at least one coordinate."));
   }
 
   private void assertHashComponentIdentifier(String hash, ComponentIdentifier componentIdentifier, String comment,

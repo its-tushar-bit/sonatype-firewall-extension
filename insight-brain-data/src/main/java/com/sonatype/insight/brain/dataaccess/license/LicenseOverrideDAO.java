@@ -36,8 +36,8 @@ public class LicenseOverrideDAO
   public LicenseOverride getByOwnerIdAndComponentIdentifier(String ownerId, ComponentIdentifier componentIdentifier) {
     String sQuery = "SELECT entity from LicenseOverride entity " +
       "WHERE entity.ownerId=?1 and entity.componentIdFormat=?2 and entity.componentIdCoordinatesJson=?3";
-    return get(sQuery, ownerId, componentIdentifier.format, JsonUtils
-      .writeValueAsString(ComponentIdentifierAdapter.removeNonLegacyCoordinates(componentIdentifier.coordinates)));
+    return get(sQuery, ownerId, componentIdentifier.format, JsonUtils.writeValueAsString(ComponentIdentifierAdapter
+        .removeNonLegacyCoordinates(componentIdentifier.getCoordinates())));
   }
 
   public List<LicenseOverride> getByOwnerId(EntityManager em, String ownerId) {

@@ -72,7 +72,7 @@ public class ComponentIdentifierAdapter
     catch (IOException e) {
       throw new RuntimeException("Error deserializing ComponentIdentifier", e);
     }
-    if (Strings.isNullOrEmpty(componentIdentifier.format) || componentIdentifier.coordinates.isEmpty()) {
+    if (Strings.isNullOrEmpty(componentIdentifier.format)) {
       throw new IllegalStateException("Invalid ComponentIdentifier provided: " + componentIdentifier.toString());
     }
     return componentIdentifier;
@@ -80,7 +80,7 @@ public class ComponentIdentifierAdapter
 
   /**
    * hackity hack, remove classifier and extension, at least until other GAV-centric structures can account for them
-   * migrated data will never have these and so incoming ComponentDetails that contain values(even if null) will not
+   * migrated data will never have these and so incoming ComponentDetails that contain values will not
    * match
    */
   public static Map<String, String> removeNonLegacyCoordinates(final Map<String, String> coordinates) {

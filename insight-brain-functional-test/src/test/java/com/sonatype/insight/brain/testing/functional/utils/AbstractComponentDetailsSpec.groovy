@@ -22,8 +22,7 @@ import groovy.json.JsonSlurper
  * @since 1.12
  */
 abstract class AbstractComponentDetailsSpec
-    extends BaseSpec
-{
+extends BaseSpec {
 
   static final String SELECT_COMPONENT = 'Select a component to view details.'
 
@@ -32,10 +31,10 @@ abstract class AbstractComponentDetailsSpec
   static final String JUNIT_DETAILS_LIST_FILE = '/canned-hds-responses/componentDetailsListJunit.json'
 
   static final String CATALINA_HOST_MANAGER_DETAILS_FILE =
-      '/canned-hds-responses/componentDetailsCatalinaHostManager.json'
+  '/canned-hds-responses/componentDetailsCatalinaHostManager.json'
 
   static final String CATALINA_HOST_MANAGER_DETAILS_LIST_FILE =
-      '/canned-hds-responses/componentDetailsListCatalinaHostManager.json'
+  '/canned-hds-responses/componentDetailsListCatalinaHostManager.json'
 
   static final String LICENSES_FILE = '/canned-hds-responses/licenses.json'
 
@@ -78,13 +77,13 @@ abstract class AbstractComponentDetailsSpec
   Map<String, Object> mockComponentDetails(String jsonFilename) {
     Map<String, Object> hdsComponentResponse = parseJsonFile(jsonFilename)
     hdsComponentResponse.catalogDate = new Date().minus(366).time  // ensure that catalog data is consistent
-    saasRule.setResponseForURI(new UriParamRequestMatcher(createComponentDetailURL(hdsComponentResponse.identifier), JsonOutput.toJson(hdsComponentResponse), 200))
+    saasRule.setResponseForURI(new UriParamRequestMatcher(createComponentDetailURL(hdsComponentResponse.componentIdentifier), JsonOutput.toJson(hdsComponentResponse), 200))
     return hdsComponentResponse
   }
 
   Map<String, Object> mockComponentDetailsList(String jsonFilename, Map<String, Object> component) {
     Map<String, Object> hdsComponentListResponse = parseJsonFile(jsonFilename)
-    saasRule.setResponseForURI(new UriParamRequestMatcher(createComponentDetailListURL(component.identifier), JsonOutput.toJson(hdsComponentListResponse), 200))
+    saasRule.setResponseForURI(new UriParamRequestMatcher(createComponentDetailListURL(component.componentIdentifier), JsonOutput.toJson(hdsComponentListResponse), 200))
     return hdsComponentListResponse
   }
 
@@ -98,7 +97,9 @@ abstract class AbstractComponentDetailsSpec
       ownerId = applicationId
       threatLevel = 10
       addConstraint(new Constraint(name: policyName,
-      conditions: [new Condition(LicenseConditionType.ID, 'is', licenseId)]))
+      conditions: [
+        new Condition(LicenseConditionType.ID, 'is', licenseId)
+      ]))
     }
     temporaryEntity.newPolicy(policy)
     return policy

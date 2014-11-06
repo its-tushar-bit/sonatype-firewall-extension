@@ -40,8 +40,8 @@ public class ApiMavenComponentDTOTest
 
   @Test
   public void testCreateUnknownFormat() {
-    ApiMavenComponentDTO dto = ApiMavenComponentDTO.create("h1",
-        new ComponentIdentifier("unknown", null /* coordinates */));
+    ApiMavenComponentDTO dto = ApiMavenComponentDTO.create("h1", new ComponentIdentifier("unknown", ComponentIdentifier
+        .createMavenCoordinates("g1", "a1", "v1").getCoordinates()));
     assertThat(dto, is(notNullValue()));
     assertThat(dto.hash, is("h1"));
     assertThat(dto.groupId, is(nullValue()));

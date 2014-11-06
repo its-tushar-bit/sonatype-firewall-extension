@@ -93,9 +93,7 @@ public class ComponentDAOTest
 
     MatchedComponent info = new MatchedComponent();
     info.setHash(COMP_HASH);
-    info.setGroupId("gid");
-    info.setArtifactId("aid");
-    info.setVersion("1.2.3");
+    info.setComponentIdentifier(ComponentIdentifier.createMavenCoordinates("gid", "aid", "1.2.3"));
     info.setMatchState("similar");
     info.setCatalogDate(System.currentTimeMillis());
     info.setRelativePopularity(42);
@@ -105,6 +103,7 @@ public class ComponentDAOTest
     Component comp = componentDAO.getComponent(application, info, null);
     assertNotNull(comp);
     assertEquals(info.getHash(), comp.getHash());
+    assertEquals(info.getComponentIdentifier(), comp.getComponentIdentifier());
     assertEquals(info.getGroupId(), comp.getGroupId());
     assertEquals(info.getArtifactId(), comp.getArtifactId());
     assertEquals(info.getVersion(), comp.getVersion());
@@ -127,9 +126,7 @@ public class ComponentDAOTest
   public void testGetComponent_LicenseOverride() {
     MatchedComponent componentInfo = new MatchedComponent();
     componentInfo.setHash(COMP_HASH);
-    componentInfo.setGroupId("gid");
-    componentInfo.setArtifactId("aid");
-    componentInfo.setVersion("1.2.3");
+    componentInfo.setComponentIdentifier(ComponentIdentifier.createMavenCoordinates("gid", "aid", "1.2.3"));
     Component component = componentDAO.getComponent(application, componentInfo, null);
     assertNotNull(component);
     assertNull(component.getLicenseOverrideId());
@@ -158,9 +155,7 @@ public class ComponentDAOTest
   public void testGetComponent_MultiLicenses_Declared() {
     MatchedComponent componentInfo = new MatchedComponent();
     componentInfo.setHash(COMP_HASH);
-    componentInfo.setGroupId("gid");
-    componentInfo.setArtifactId("aid");
-    componentInfo.setVersion("1.2.3");
+    componentInfo.setComponentIdentifier(ComponentIdentifier.createMavenCoordinates("gid", "aid", "1.2.3"));
     componentInfo.addDeclaredLicenseId("Apache-2.0-GPL-2.0");
     Component component = componentDAO.getComponent(application, componentInfo, null);
     assertNotNull(component);
@@ -174,9 +169,7 @@ public class ComponentDAOTest
   public void testGetComponent_MultiLicenses_Observed() {
     MatchedComponent componentInfo = new MatchedComponent();
     componentInfo.setHash(COMP_HASH);
-    componentInfo.setGroupId("gid");
-    componentInfo.setArtifactId("aid");
-    componentInfo.setVersion("1.2.3");
+    componentInfo.setComponentIdentifier(ComponentIdentifier.createMavenCoordinates("gid", "aid", "1.2.3"));
     componentInfo.addObservedLicenseId("Apache-2.0-GPL-2.0");
     Component component = componentDAO.getComponent(application, componentInfo, null);
     assertNotNull(component);

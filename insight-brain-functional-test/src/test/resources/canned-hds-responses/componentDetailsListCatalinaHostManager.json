@@ -73,7 +73,7 @@
          "majorRevisionStep":false,
          "identificationSource":null,
          "identificationSourceComment":null,
-         "identifier":{
+         "componentIdentifier":{
             "format":"maven",
             "coordinates":{
                "groupId":"tomcat",
@@ -163,7 +163,7 @@
          "majorRevisionStep":false,
          "identificationSource":null,
          "identificationSourceComment":null,
-         "identifier":{
+         "componentIdentifier":{
             "format":"maven",
             "coordinates":{
                "groupId":"tomcat",

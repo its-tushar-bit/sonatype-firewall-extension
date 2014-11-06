@@ -26,14 +26,12 @@ public class ComponentIdentifierAdapterTest
     "{\"componentIdentifier\": {\"format\": \"any\", \"coordinates\":{\"a\":\"a\", " +
       "\"v\":\"v\"}}}";
 
-  private static final ComponentIdentifier ANY_COMPONENT_ID = new ComponentIdentifier();
-
-  {
-    ANY_COMPONENT_ID.format = "any";
+  private static final ComponentIdentifier ANY_COMPONENT_ID;
+  static {
     LinkedHashMap<String, String> coordinates = new LinkedHashMap<>();
     coordinates.put("a", "a");
     coordinates.put("v", "v");
-    ANY_COMPONENT_ID.coordinates = coordinates;
+    ANY_COMPONENT_ID = new ComponentIdentifier("any", coordinates);
   }
 
   private static final String MAVEN_CONTENT =

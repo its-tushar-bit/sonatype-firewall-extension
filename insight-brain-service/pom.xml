@@ -114,6 +114,10 @@
       <groupId>com.sonatype.insight.portal</groupId>
       <artifactId>insight-error-handling</artifactId>
     </dependency>
+    <dependency>
+      <groupId>com.sonatype.insight.portal</groupId>
+      <artifactId>insight-jaxrs-utils</artifactId>
+    </dependency>
 
     <dependency>
       <groupId>org.freemarker</groupId>
@@ -382,7 +386,6 @@
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
-      <version>13.0.1</version>
     </dependency>
     <dependency>
       <groupId>com.sonatype.clm</groupId>

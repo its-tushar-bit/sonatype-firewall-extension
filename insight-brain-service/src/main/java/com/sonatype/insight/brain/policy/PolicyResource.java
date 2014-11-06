@@ -44,9 +44,9 @@ import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzErrorMsg;
 import com.sonatype.insight.brain.utils.IdUtils;
-import com.sonatype.insight.error.ErrorResponseGenerator;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
+import com.sonatype.insight.jaxrs.error.ErrorResponseGenerator;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import com.sun.jersey.core.header.FormDataContentDisposition;

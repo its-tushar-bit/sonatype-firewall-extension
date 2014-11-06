@@ -18,7 +18,7 @@ import org.apache.shiro.authz.UnauthorizedException;
  */
 @Named
 public class ErrorResponseGenerator
-    extends com.sonatype.insight.error.ErrorResponseGenerator
+    extends com.sonatype.insight.jaxrs.error.ErrorResponseGenerator
 {
   public ErrorResponseGenerator() {
     super(false);

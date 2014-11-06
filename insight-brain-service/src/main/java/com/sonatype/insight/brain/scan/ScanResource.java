@@ -21,7 +21,7 @@ import javax.ws.rs.core.Response;
 
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.service.ErrorResponseGenerator;
-import com.sonatype.insight.error.ErrorResponse;
+import com.sonatype.insight.jaxrs.error.ErrorResponse;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import com.sun.jersey.core.header.FormDataContentDisposition;

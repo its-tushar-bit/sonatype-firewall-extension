@@ -22,9 +22,9 @@ import com.sonatype.insight.brain.dataaccess.IconDAO;
 import com.sonatype.insight.brain.saas.SaasClient;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightBrainService;
-import com.sonatype.insight.error.ErrorResponseGenerator;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
+import com.sonatype.insight.jaxrs.error.ErrorResponseGenerator;
 
 import com.sun.jersey.core.header.FormDataContentDisposition;
 import org.apache.http.HttpResponse;

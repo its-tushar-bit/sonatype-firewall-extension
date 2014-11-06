@@ -26,7 +26,7 @@ import com.sonatype.insight.brain.security.CLMShiroModule;
 import com.sonatype.insight.brain.security.TraceMethodBlockFilter;
 import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.db.DatabaseConfig;
-import com.sonatype.insight.error.JaxRsExceptionMapper;
+import com.sonatype.insight.jaxrs.error.JaxRsExceptionMapper;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Module;
@@ -239,7 +239,7 @@ public class InsightBrainService
     {
       @Override
       protected void configure() {
-        bind(com.sonatype.insight.error.ErrorResponseGenerator.class).to(ErrorResponseGenerator.class);
+        bind(com.sonatype.insight.jaxrs.error.ErrorResponseGenerator.class).to(ErrorResponseGenerator.class);
       }
     }, new CLMShiroModule(), new CLMShiroAopModule());
   }

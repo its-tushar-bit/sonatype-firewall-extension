@@ -535,7 +535,7 @@ var clmEndpointTemplate = {
 
         parentScope = $rootScope.$new();
         parentScope.componentDetails = [{
-          "identifier" : { "coordinates" : { "version" : "sources" } },
+          "componentIdentifier" : { "coordinates" : { "version" : "sources" } },
           "popularity": 1,
           "majorRevisionStep": false,
           "observedLicenseThreats": ["LIBERAL"],
@@ -543,7 +543,7 @@ var clmEndpointTemplate = {
           "effectiveLicenseThreat": "LIBERAL",
           "securityThreats": ["Severe"]
         }, {
-          "identifier" : { "coordinates" : { "version" : "4.0.4" } },
+          "componentIdentifier" : { "coordinates" : { "version" : "4.0.4" } },
           "popularity": 4,
           "majorRevisionStep": false,
           "observedLicenseThreats": ["NOT-PROVIDED"],
@@ -551,7 +551,7 @@ var clmEndpointTemplate = {
           "effectiveLicenseThreat": "NOT-PROVIDED",
           "securityThreats": ["Severe"]
         }, {
-          "identifier" : { "coordinates" : { "version" : "4.0.6" } },
+          "componentIdentifier" : { "coordinates" : { "version" : "4.0.6" } },
           "popularity": 2,
           "majorRevisionStep": false,
           "observedLicenseThreats": ["NOT-PROVIDED"],
@@ -559,7 +559,7 @@ var clmEndpointTemplate = {
           "effectiveLicenseThreat": "NOT-PROVIDED",
           "securityThreats": ["Severe"]
         }, {
-          "identifier" : { "coordinates" : { "version" : "4.1.9" } },
+          "componentIdentifier" : { "coordinates" : { "version" : "4.1.9" } },
           "popularity": 13,
           "majorRevisionStep": false,
           "observedLicenseThreats": ["NOT-PROVIDED"],
@@ -567,7 +567,7 @@ var clmEndpointTemplate = {
           "effectiveLicenseThreat": "NOT-PROVIDED",
           "securityThreats": ["Severe"]
         }, {
-          "identifier" : { "coordinates" : { "version" : "4.1.31" } },
+          "componentIdentifier" : { "coordinates" : { "version" : "4.1.31" } },
           "popularity": 2,
           "majorRevisionStep": false,
           "observedLicenseThreats": ["NOT-PROVIDED"],
@@ -575,7 +575,7 @@ var clmEndpointTemplate = {
           "effectiveLicenseThreat": "NOT-PROVIDED",
           "securityThreats": ["Severe"]
         }, {
-          "identifier" : { "coordinates" : { "version" : "4.1.34" } },
+          "componentIdentifier" : { "coordinates" : { "version" : "4.1.34" } },
           "popularity": 0,
           "majorRevisionStep": false,
           "observedLicenseThreats": ["NOT-PROVIDED"],
@@ -583,7 +583,7 @@ var clmEndpointTemplate = {
           "effectiveLicenseThreat": "NOT-PROVIDED",
           "securityThreats": ["Severe"]
         }, {
-          "identifier" : { "coordinates" : { "version" : "4.1.36" } },
+          "componentIdentifier" : { "coordinates" : { "version" : "4.1.36" } },
           "popularity": 1,
           "majorRevisionStep": false,
           "observedLicenseThreats": ["NOT-PROVIDED"],
@@ -591,7 +591,7 @@ var clmEndpointTemplate = {
           "effectiveLicenseThreat": "NOT-PROVIDED",
           "securityThreats": ["Severe"]
         }, {
-          "identifier" : { "coordinates" : { "version" : "5.0.16" } },
+          "componentIdentifier" : { "coordinates" : { "version" : "5.0.16" } },
           "popularity": 3,
           "majorRevisionStep": false,
           "observedLicenseThreats": ["NOT-PROVIDED"],
@@ -599,7 +599,7 @@ var clmEndpointTemplate = {
           "effectiveLicenseThreat": "NOT-PROVIDED",
           "securityThreats": ["Moderate", "Severe"]
         }, {
-          "identifier" : { "coordinates" : { "version" : "5.0.18" } },
+          "componentIdentifier" : { "coordinates" : { "version" : "5.0.18" } },
           "popularity": 1,
           "majorRevisionStep": false,
           "observedLicenseThreats": ["NOT-PROVIDED"],
@@ -607,7 +607,7 @@ var clmEndpointTemplate = {
           "effectiveLicenseThreat": "NOT-PROVIDED",
           "securityThreats": ["Moderate", "Severe"]
         }, {
-          "identifier" : { "coordinates" : { "version" : "5.0.28" } },
+          "componentIdentifier" : { "coordinates" : { "version" : "5.0.28" } },
           "popularity": 67,
           "majorRevisionStep": false,
           "observedLicenseThreats": ["NOT-PROVIDED"],
@@ -615,7 +615,7 @@ var clmEndpointTemplate = {
           "effectiveLicenseThreat": "NOT-PROVIDED",
           "securityThreats": ["Moderate", "Severe"]
         }, {
-          "identifier" : { "coordinates" : { "version" : "5.5.4" } },
+          "componentIdentifier" : { "coordinates" : { "version" : "5.5.4" } },
           "popularity": 3,
           "majorRevisionStep": false,
           "observedLicenseThreats": ["LIBERAL"],
@@ -623,7 +623,7 @@ var clmEndpointTemplate = {
           "effectiveLicenseThreat": "LIBERAL",
           "securityThreats": ["Moderate", "Severe"]
         }, {
-          "identifier" : { "coordinates" : { "version" : "5.5.7-alpha" } },
+          "componentIdentifier" : { "coordinates" : { "version" : "5.5.7-alpha" } },
           "popularity": 2,
           "majorRevisionStep": false,
           "observedLicenseThreats": ["NOT-PROVIDED"],
@@ -631,7 +631,7 @@ var clmEndpointTemplate = {
           "effectiveLicenseThreat": "NOT-PROVIDED",
           "securityThreats": ["Moderate", "Severe"]
         }, {
-          "identifier" : { "coordinates" : { "version" : "5.5.7" } },
+          "componentIdentifier" : { "coordinates" : { "version" : "5.5.7" } },
           "popularity": 2,
           "majorRevisionStep": false,
           "observedLicenseThreats": ["NOT-PROVIDED"],
@@ -639,7 +639,7 @@ var clmEndpointTemplate = {
           "effectiveLicenseThreat": "NOT-PROVIDED",
           "securityThreats": ["Moderate", "Severe"]
         }, {
-          "identifier" : { "coordinates" : { "version" : "5.5.8-alpha" } },
+          "componentIdentifier" : { "coordinates" : { "version" : "5.5.8-alpha" } },
           "popularity": 1,
           "majorRevisionStep": false,
           "observedLicenseThreats": ["NOT-PROVIDED"],
@@ -647,7 +647,7 @@ var clmEndpointTemplate = {
           "effectiveLicenseThreat": "NOT-PROVIDED",
           "securityThreats": ["Moderate", "Severe"]
         }, {
-          "identifier" : { "coordinates" : { "version" : "5.5.9-alpha" } },
+          "componentIdentifier" : { "coordinates" : { "version" : "5.5.9-alpha" } },
           "popularity": 2,
           "majorRevisionStep": false,
           "observedLicenseThreats": ["NOT-PROVIDED"],
@@ -655,7 +655,7 @@ var clmEndpointTemplate = {
           "effectiveLicenseThreat": "NOT-PROVIDED",
           "securityThreats": ["Moderate", "Severe"]
         }, {
-          "identifier" : { "coordinates" : { "version" : "5.5.9" } },
+          "componentIdentifier" : { "coordinates" : { "version" : "5.5.9" } },
           "popularity": 8,
           "majorRevisionStep": false,
           "observedLicenseThreats": ["NOT-PROVIDED"],
@@ -663,7 +663,7 @@ var clmEndpointTemplate = {
           "effectiveLicenseThreat": "NOT-PROVIDED",
           "securityThreats": ["Moderate", "Severe"]
         }, {
-          "identifier" : { "coordinates" : { "version" : "5.5.12" } },
+          "componentIdentifier" : { "coordinates" : { "version" : "5.5.12" } },
           "popularity": 3,
           "majorRevisionStep": false,
           "observedLicenseThreats": ["NOT-PROVIDED"],
@@ -671,7 +671,7 @@ var clmEndpointTemplate = {
           "effectiveLicenseThreat": "NOT-PROVIDED",
           "securityThreats": ["Moderate", "Severe"]
         }, {
-          "identifier" : { "coordinates" : { "version" : "5.5.15" } },
+          "componentIdentifier" : { "coordinates" : { "version" : "5.5.15" } },
           "popularity": 14,
           "majorRevisionStep": false,
           "observedLicenseThreats": ["NOT-PROVIDED"],
@@ -679,7 +679,7 @@ var clmEndpointTemplate = {
           "effectiveLicenseThreat": "LIBERAL",
           "securityThreats": ["Moderate", "Severe"]
         }, {
-          "identifier" : { "coordinates" : { "version" : "5.5.23" } },
+          "componentIdentifier" : { "coordinates" : { "version" : "5.5.23" } },
           "popularity": 100,
           "majorRevisionStep": false,
           "observedLicenseThreats": ["LIBERAL"],

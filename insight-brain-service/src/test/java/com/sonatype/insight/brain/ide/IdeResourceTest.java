@@ -59,8 +59,8 @@ public class IdeResourceTest
     extends AbstractResourceTest
 {
 
-  private static final ComponentIdentifier MAVEN_COORDINATES = ComponentIdentifier
-    .createMavenCoordinates("g1", "a1", "v1");
+  private static final ComponentIdentifier MAVEN_COORDINATES = ComponentIdentifier.createMavenCoordinates("g1", "a1",
+      "v1", null, "jar");
 
   private void addPolicy(String applicationPublicId, Policy policy) throws Exception {
     String appId = new ApplicationDAO().getByPublicIdNotNull(applicationPublicId).getId();

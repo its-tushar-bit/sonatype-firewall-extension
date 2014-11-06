@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.testing.functional.viewdetails
 
+import com.sonatype.clm.dto.model.SecurityVulnerability
 import com.sonatype.insight.brain.model.Application
 import com.sonatype.insight.brain.model.Organization
 import com.sonatype.insight.brain.model.policy.Policy
@@ -109,7 +110,7 @@ class EclipseViewDetailsSpec
       waitFor { securityViolationTable.displayed }
       securityViolationTable.rows.size() == 4
       SecurityViolationTableRow row = securityViolationTable.rows[0]
-      Map mockSecurityVulnerability = CATALINA_HOST_MANAGER.securityVulnerabilities[0]
+      SecurityVulnerability mockSecurityVulnerability = CATALINA_HOST_MANAGER.securityVulnerabilities[0]
 
       row.threatLevel == Math.floor(mockSecurityVulnerability.severity)
       row.problemCode.text() == mockSecurityVulnerability.refId

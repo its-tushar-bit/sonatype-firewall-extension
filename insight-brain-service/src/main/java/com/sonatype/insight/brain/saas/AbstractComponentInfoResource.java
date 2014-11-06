@@ -13,7 +13,6 @@ import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
@@ -24,8 +23,6 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.UriInfo;
 
 import com.sonatype.clm.dto.model.License;
 import com.sonatype.clm.dto.model.ide.ComponentDetails;
@@ -48,7 +45,10 @@ import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluator;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.utils.LicenseUtils;
+import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
+import com.sonatype.insight.jaxrs.JsonEncodedComponentIdentifier;
+import com.sonatype.insight.json.store.JsonUtils;
 
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -77,18 +77,19 @@ public abstract class AbstractComponentInfoResource
   }
 
   @GET
-  @Path("{applicationPublicId}/{format}")
+  @Path("{applicationPublicId}")
   @Produces(MediaType.APPLICATION_JSON)
   @Authorize(permission = Permission.READ)
   public ComponentDetails getComponentDetails(
-      @Context UriInfo info,
       @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) @PathParam("applicationPublicId") String applicationPublicId,
-      @PathParam("format") String format, @QueryParam("matchState") String matchState,
-      @QueryParam("hash") String hash, @QueryParam("proprietary") boolean proprietary) throws IOException
+      @QueryParam("componentIdentifier") JsonEncodedComponentIdentifier identifier,
+      @QueryParam("matchState") String matchState, @QueryParam("hash") String hash,
+      @QueryParam("proprietary") boolean proprietary) throws IOException
   {
     long start = System.currentTimeMillis();
-
-    final ComponentIdentifier identifier = createIdentifier(format, info.getQueryParameters());
+    if (identifier == null) {
+      throw new BadRequestException("componentIdentifier is required");
+    }
 
     ComponentDetails details = getEvaluatedComponentDetails(applicationPublicId, matchState, hash, proprietary,
         identifier);
@@ -118,7 +119,8 @@ public abstract class AbstractComponentInfoResource
     return componentDetails;
   }
 
-  private ComponentDetails getComponentDetails(String matchState, String hash, final ComponentIdentifier identifier)
+  private ComponentDetails getComponentDetails(String matchState, final String hash,
+      final ComponentIdentifier identifier)
       throws IOException
   {
     return componentDetailsLoader.getComponentDetails(identifier, hash, matchState,
@@ -127,9 +129,16 @@ public abstract class AbstractComponentInfoResource
           @Override
           public ComponentDetails getDetails() throws IOException {
             ComponentDetails componentDetails;
+
+            Map<String, String> queryParams = new HashMap<>();
+            queryParams.put("componentIdentifier", JsonUtils.writeValueAsString(identifier));
+            if (hash != null) {
+              queryParams.put("hash", hash);
+            }
+
             try {
               componentDetails = client.get(request, NamedComponentDetails.class, "rest/" + getToolName()
-                  + "/componentDetails/" + identifier.format);
+                  + "/componentDetails", queryParams);
               componentDetails.setMatchState(MatchState.EXACT.getId());
             }
             catch (NotFoundException e) {
@@ -144,16 +153,20 @@ public abstract class AbstractComponentInfoResource
   }
 
   @GET
-  @Path("{applicationPublicId}/{format}/list")
+  @Path("{applicationPublicId}/list")
   @Produces(MediaType.APPLICATION_JSON)
   @Authorize(permission = Permission.READ)
   public ComponentDetailsList getComponentDetailsList(
       @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) @PathParam("applicationPublicId") String applicationPublicId,
-      @PathParam("format") String format, @QueryParam("matchState") String matchState) throws IOException
+      @QueryParam("componentIdentifier") JsonEncodedComponentIdentifier identifier,
+      @QueryParam("matchState") String matchState) throws IOException
   {
     long start = System.currentTimeMillis();
+    if (identifier == null) {
+      throw new BadRequestException("componentIdentifier is required");
+    }
 
-    String url = "rest/" + getToolName() + "/componentDetails/" + format + "/list";
+    String url = "rest/" + getToolName() + "/componentDetails/list";
     ComponentDetailsList componentDetailsList = client.get(request, ComponentDetailsList.class, url);
 
     Application app = applicationDAO.getByPublicIdNotNull(applicationPublicId);
@@ -269,23 +282,6 @@ public abstract class AbstractComponentInfoResource
     }
 
     return result;
-  }
-
-  /*
-   * Attempts to construct a ComponentIdentifier from a map of queryParams
-   */
-  private ComponentIdentifier createIdentifier(String format, MultivaluedMap<String, String> queryParms) {
-    Map<String, String> coordinates = new HashMap<>();
-    for (Entry<String, List<String>> entry : queryParms.entrySet()) {
-      if (!"hash".equals(entry.getKey()) && !"matchState".equals(entry.getKey())
-          && !"proprietary".equals(entry.getKey())) {
-        if (entry.getValue() != null && entry.getValue().size() > 0) {
-          coordinates.put(entry.getKey(), entry.getValue().get(0));
-        }
-      }
-    }
-
-    return new ComponentIdentifier(format, coordinates);
   }
 
   /**

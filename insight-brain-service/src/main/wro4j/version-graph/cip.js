@@ -163,7 +163,7 @@
         }]);
       },
       'setCoordinates' : function (componentType, coordinates, matchState) {
-        waitOnInjector(['Coordinates', 'SelectedApp', 'State', 'MatchState', '$rootScope', function (Coordinates, SelectedApp, State, MatchState, $rootScope) {
+        waitOnInjector(['Coordinates', 'SelectedApp', 'State', 'Properties', '$rootScope', function (Coordinates, SelectedApp, State, Properties, $rootScope) {
           safeApply($rootScope, function () {
             if (coordinates.appId) {
               SelectedApp.set(coordinates.appId);
@@ -171,20 +171,36 @@
             }
             Coordinates.set(componentType, coordinates);
             State.set(null);
-            MatchState.set(matchState);
+            Properties.setMatchState(matchState);
           });
         }], true);
       },
       "setGav": function (arg) {
-        waitOnInjector(['Coordinates', 'SelectedApp', 'State', 'MatchState', '$rootScope', function (Coordinates, SelectedApp, State, MatchState, $rootScope) {
+        waitOnInjector(['Coordinates', 'SelectedApp', 'State', 'Properties', '$rootScope', function (Coordinates, SelectedApp, State, Properties, $rootScope) {
           safeApply($rootScope, function () {
             if (arg.appId) {
               SelectedApp.set(arg.appId);
-              delete arg.appId;
             }
-            Coordinates.set('maven', arg);
             State.set(null);
-            MatchState.set(arg.matchState);
+
+            Properties.reset();
+            Properties.setMatchState(arg.matchState);
+            Properties.setProprietary(arg.proprietary);
+            Properties.setFilename(arg.filename);
+            Properties.setHash(arg.hash);
+
+            var gav = {
+              groupId : arg.groupId,
+              artifactId : arg.artifactId,
+              version : arg.version
+            };
+            if (arg.extension) {
+              gav.extension = arg.extension;
+            }
+            if (arg.classifier) {
+              gav.classifier = arg.classifier;
+            }
+            Coordinates.set('maven', gav);
           });
         }], true);
       },
@@ -289,17 +305,38 @@
     };
   });
 
-  module.service('MatchState', function () {
-    var matchState = null;
+  module.service('Properties', function () {
+    var properties = {};
     return {
-      get : function () {
-        return matchState;
+      getFilename : function () {
+        return properties.filename;
       },
-      set : function (newMatchState) {
-        matchState = newMatchState;
+      getHash : function () {
+        return properties.hash;
+      },
+      getMatchState : function () {
+        return properties.matchState;
+      },
+      getProprietary : function () {
+        return properties.proprietary;
+      },
+      reset : function () {
+        properties = {};
+      },
+      setFilename : function (filename) {
+        properties.filename = filename;
+      },
+      setHash : function (hash) {
+        properties.hash = hash;
+      },
+      setMatchState : function (matchState) {
+        properties.matchState = matchState;
+      },
+      setProprietary : function (proprietary) {
+        properties.proprietary = proprietary;
       },
       isUnknown : function () {
-        return (matchState || "").toLowerCase() === 'unknown';
+        return (properties.matchState || '').toLowerCase() === 'unknown';
       }
     };
   });
@@ -395,7 +432,7 @@
     $scope.doLoad();
   }]);
 
-  module.controller('ComponentController', ['$scope', 'Coordinates', 'SelectedApp', 'MatchState', '$http', function ($scope, Coordinates, SelectedApp, MatchState, $http) {
+  module.controller('ComponentController', ['$scope', 'Coordinates', 'SelectedApp', 'Properties', '$http', function ($scope, Coordinates, SelectedApp, Properties, $http) {
     function coordinatesChanged() {
       var coordinates = Coordinates.get() ? { coordinates : Coordinates.get(), appId : SelectedApp.get() } : null;
 
@@ -406,8 +443,8 @@
         $scope.loaded = false;
         $scope.coordinates = coordinates;
 
-        if (coordinates && coordinates.appId && !MatchState.isUnknown()) {
-          $http.get(Brain[clmEndpoint.type].getComponentListUrl(SelectedApp.get(), Coordinates.getFormat(), Coordinates.get())).success(function (data) {
+        if (coordinates && coordinates.appId && !Properties.isUnknown()) {
+          $http.get(Brain[clmEndpoint.type].getComponentListUrl(SelectedApp.get(), Coordinates.getFormat(), Properties.getHash(), Properties.getMatchState(), Properties.getProprietary(), Coordinates.get())).success(function (data) {
             $scope.componentDetailsList = data.list ? data.list : data;
             for (var i = 0; i < $scope.componentDetailsList.length; i++) {
               $scope.componentDetailsList[i].proprietary = Coordinates.get().proprietary;
@@ -434,9 +471,9 @@
     });
 
     $scope.$watch(function () {
-      return MatchState.isUnknown();
+      return Properties.isUnknown();
     }, function () {
-      $scope.isUnknown = MatchState.isUnknown();
+      $scope.isUnknown = Properties.isUnknown();
     });
 
     $scope.$watch(function () {
@@ -473,7 +510,7 @@
     });
   }]);
 
-  module.controller('DetailsController', ['$scope', '$http', 'SelectedApp', 'Coordinates', 'MatchState', function ($scope, $http, SelectedApp, Coordinates, MatchState) {
+  module.controller('DetailsController', ['$scope', '$http', 'SelectedApp', 'Coordinates', 'Properties', function ($scope, $http, SelectedApp, Coordinates, Properties) {
     function coordinatesChanged() {
       var coordinates = Coordinates.getSelected() ? { coordinates : Coordinates.getSelected(), appId : SelectedApp.get() } : null;
 
@@ -482,11 +519,10 @@
         $scope.highestPolicyThreat = null;
         last = coordinates;
 
-        if (coordinates && coordinates.appId && !MatchState.isUnknown()) {
-          $http.get(Brain[clmEndpoint.type].getComponentUrl(SelectedApp.get(), Coordinates.getFormat(), Coordinates.getSelected())).success(function (data) {
+        if (coordinates && coordinates.appId && !Properties.isUnknown()) {
+          $http.get(Brain[clmEndpoint.type].getComponentUrl(SelectedApp.get(), Coordinates.getFormat(), Properties.getHash(), Properties.getMatchState(), Properties.getProprietary(), coordinates.coordinates)).success(function (data) {
             $scope.componentDetails = data;
             $scope.componentDetails.proprietary = Coordinates.getSelected().proprietary;
-            MatchState.set($scope.componentDetails.matchState);
 
             var i = 0;
             while (i < $scope.componentDetails.securityVulnerabilities.length) {
@@ -598,7 +634,7 @@
                      '<div id="aiVersionChartViz" style="overflow:hidden"></div>' +
                    '</div>' +
                  '</div>',
-      link : function (scope, element) {
+      link : function (scope) {
         scope.$watch('versions', function (versions) {
           if (versions) {
             $.each(versions, function(index, component) {

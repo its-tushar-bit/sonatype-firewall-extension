@@ -9,8 +9,11 @@ import java.util.Collections;
 
 import com.sonatype.clm.dto.model.ide.ComponentDetails;
 import com.sonatype.clm.dto.model.ide.ComponentDetailsList;
+import com.sonatype.clm.dto.model.ide.ComponentIdentifier;
 import com.sonatype.insight.brain.service.AbstractResourceAuthzTest;
+import com.sonatype.insight.mock.UriParamRequestMatcher;
 
+import org.eclipse.jetty.util.UrlEncoded;
 import org.junit.Test;
 
 public abstract class AbstractComponentInfoResourceAuthzTest
@@ -25,14 +28,13 @@ public abstract class AbstractComponentInfoResourceAuthzTest
     String version = "1.0";
     ComponentDetailsList componentDetailsList = new ComponentDetailsList();
     componentDetailsList.setList(Collections.<ComponentDetails> emptyList());
-    setSaasResponseForURI("rest/" + getTool() + "/componentDetails/maven/list?groupId=" + groupId + "&artifactId="
-        + artifactId
-        + "&version=" + version, toJson(componentDetailsList), 200);
+    setSaasResponse(new UriParamRequestMatcher("rest/" + getTool() + "/componentDetails/list?componentIdentifier="
+        + getComponentIdentifierParam(groupId, artifactId, version), toJson(componentDetailsList), 200));
 
     grantReadPermission(app.getId());
 
-    String url = getRestUrl(getResourcePath() + "/{applicationPublicId}/maven/list", app.getPublicId()) + "?groupId="
-        + groupId + "&artifactId=" + artifactId + "&version=" + version;
+    String url = getRestUrl(getResourcePath() + "/{applicationPublicId}/list", app.getPublicId())
+        + "?componentIdentifier=" + getComponentIdentifierParam(groupId, artifactId, version);
     testAuthzGet(url);
   }
 
@@ -44,9 +46,8 @@ public abstract class AbstractComponentInfoResourceAuthzTest
 
     grantReadPermission(app.getId());
 
-    String url = getRestUrl(getResourcePath() + "/{applicationPublicId}/maven", app.getPublicId()) + "?groupId="
-        + groupId
-        + "&artifactId=" + artifactId + "&version=" + version;
+    String url = getRestUrl(getResourcePath() + "/{applicationPublicId}", app.getPublicId()) + "?componentIdentifier="
+        + getComponentIdentifierParam(groupId, artifactId, version);
     testAuthzGet(url);
   }
 
@@ -74,6 +75,10 @@ public abstract class AbstractComponentInfoResourceAuthzTest
     String url = getRestUrl(getResourcePath() + "/licenses/{applicationPublicId}", app.getPublicId()) + "?groupId="
         + groupId + "&artifactId=" + artifactId + "&version=" + version;
     testAuthzGet(url);
+  }
+
+  private String getComponentIdentifierParam(String g, String a, String v) {
+    return UrlEncoded.encodeString(toJson(ComponentIdentifier.createMavenCoordinates(g, a, v)));
   }
 
   protected abstract String getTool();

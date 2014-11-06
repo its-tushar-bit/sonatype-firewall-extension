@@ -192,10 +192,16 @@
       
       var appId = query.appId,
           deferLoad = query.deferLoad,
-          format = query.format || 'maven'; // for backwards compat we default to maven if unknown
+          format = query.format || 'maven', // for backwards compat we default to maven if unknown
+          hash = query.hash,
+          proprietary = query.proprietary,
+          matchState = query.matchState;
+
       delete query.appId;
       delete query.deferLoad;
       delete query.format;
+      delete query.proprietary;
+      delete query.matchState;
 
       // TODO Determine where the GAV is coming from, should it be a query string or should Eclipse call a JS function?
       $scope.data = null;
@@ -231,7 +237,7 @@
 
         var promises = [];
 
-        promises.push($http.get(Brain[clmEndpoint.type].getComponentUrl(appId, format, query), {
+        promises.push($http.get(Brain[clmEndpoint.type].getComponentUrl(appId, format, hash, matchState, proprietary, query), {
           headers: {
             "Accept": "application/json"
           }

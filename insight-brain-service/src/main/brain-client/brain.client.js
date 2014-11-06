@@ -9,18 +9,34 @@ var clmBuildTimestamp = '${build.timestamp}';
 (function() {
   "use strict";
 
+  function toParams(componentType, hash, matchState, proprietary, coordinates) {
+    var params = { componentIdentifier : JSON.stringify({ format : componentType, coordinates : coordinates }) };
+
+    if (hash) {
+      params.hash = hash;
+    }
+    if (matchState) {
+      params.matchState = matchState;
+    }
+    if (proprietary) {
+      params.proprietary = proprietary;
+    }
+    return param(params);
+  }
+
   function createComponentUrl(clientType) {
-    return function (appPublicId, componentType, coordinates) {
-      var url = basePath + 'rest/' + clientType + '/componentDetails/' + encodeURIComponent(appPublicId) + '/' + componentType;
-      
-      return url + '?' + param(coordinates);
+    return function (appPublicId, componentType, hash, matchState, proprietary, coordinates) {
+      var url = basePath + 'rest/' + clientType + '/componentDetails/' + encodeURIComponent(appPublicId);
+
+      return url + '?' + toParams(componentType, hash, matchState, proprietary, coordinates);
     };
   }
+
   function createComponentListUrl(clientType) {
-    return function (appPublicId, componentType, coordinates) {
-      var url = basePath + 'rest/' + clientType + '/componentDetails/' + encodeURIComponent(appPublicId) + '/' + componentType + '/list';
-      
-      return url + '?' + param(coordinates);
+    return function (appPublicId, componentType, hash, matchState, proprietary, coordinates) {
+      var url = basePath + 'rest/' + clientType + '/componentDetails/' + encodeURIComponent(appPublicId) + '/list';
+
+      return url + '?' + toParams(componentType, hash, matchState, proprietary, coordinates);
     };
   }
 

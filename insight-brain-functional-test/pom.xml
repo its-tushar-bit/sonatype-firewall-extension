@@ -218,6 +218,10 @@
       <artifactId>insight-mock-server</artifactId>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>com.sonatype.clm</groupId>
+      <artifactId>com.sonatype.clm.dto.model</artifactId>
+    </dependency>
   </dependencies>
 
   <profiles>

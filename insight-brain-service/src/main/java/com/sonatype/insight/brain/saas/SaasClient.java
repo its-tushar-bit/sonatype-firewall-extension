@@ -360,7 +360,7 @@ public class SaasClient
   private String buildUri(HttpServletRequest base, String path, Map<String, String> queryParams, String... uriParams) {
     UriBuilder uriBuilder = UriBuilder.fromUri(config.getServerUrl());
     uriBuilder.path(path);
-    if (base != null) {
+    if (base != null && queryParams == null) {
       uriBuilder.replaceQuery(base.getQueryString());
     }
 

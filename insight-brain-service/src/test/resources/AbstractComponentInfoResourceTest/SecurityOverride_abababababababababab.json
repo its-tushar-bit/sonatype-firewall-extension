@@ -4,7 +4,7 @@
   "ip" : "0:0:0:0:0:0:0:1",
   "where" : "test2/25",
   "data" : [ {
-    "groupId" : "g1",
+    "groupId" : "g1.testGetComponentDetails_OverriddenSecurityVulnerabilityStatus",
     "artifactId" : "a1",
     "version" : "v1",
     "source" : "osvdb",

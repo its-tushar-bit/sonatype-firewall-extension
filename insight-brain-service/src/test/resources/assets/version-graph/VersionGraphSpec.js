@@ -121,15 +121,27 @@ var clmEndpointTemplate = {
         expect(Coordinates.getFormat()).toEqual('maven');
       }));
 
-      it('Insight.setGAV', inject(function (Coordinates) {
+      it('Insight.setGAV', inject(function (Coordinates, Properties, SelectedApp) {
         spyOn(Coordinates, 'set').andCallThrough();
         Insight.setGav({
-          id : 'setGAV2'
+          groupId : 'g1',
+          artifactId : 'a1',
+          version : 'v1',
+          classifier : 'war',
+          hash : '01234',
+          proprietary : false,
+          matchState : 'similar',
+          filename : 'foo.war'
         });
 
-        expect(Coordinates.set).toHaveBeenCalledWith('maven', { id : 'setGAV2' });
-        expect(Coordinates.get()).toEqual({ id : 'setGAV2' });
+        expect(Coordinates.set).toHaveBeenCalledWith('maven', { groupId : 'g1', artifactId : 'a1', version : 'v1', classifier : 'war' });
+        expect(Coordinates.get()).toEqual({ groupId : 'g1', artifactId : 'a1', version : 'v1', classifier : 'war' });
         expect(Coordinates.getFormat()).toEqual('maven');
+
+        expect(Properties.getHash()).toEqual('01234');
+        expect(Properties.getFilename()).toEqual('foo.war');
+        expect(Properties.getMatchState()).toEqual('similar');
+        expect(Properties.getProprietary()).toEqual(false);
       }));
 
       it('Insight.clearGAV', inject(function (Coordinates, State) {
@@ -318,12 +330,11 @@ var clmEndpointTemplate = {
         $httpBackend.verifyNoOutstandingRequest();
 
         spyOn(Brain[clmEndpoint.type], 'getComponentListUrl').andReturn('foo');
-        $httpBackend.expectGET(Brain[clmEndpoint.type].getComponentListUrl(angular.extend({ appId : 'myFirstApp' }, gav))).respond({ list: [ {} ] });
+        $httpBackend.expectGET('foo').respond({ list: [ {} ] });
         Insight.setGav(gav);
         $httpBackend.flush();
         expect(scope.componentDetailsList).not.toBeNull();
         expect(scope.componentDetailsList.length).toEqual(1);
-        expect(scope.componentDetailsList[0].proprietary).toEqual(true);
       }));
     });
 
@@ -341,12 +352,14 @@ var clmEndpointTemplate = {
         scope.$destroy();
       });
 
-      it('Http Requests', inject(function ($httpBackend, Coordinates) {
+      it('Http Requests', inject(function ($httpBackend, Coordinates, Properties) {
         var gav = {
           groupId : 'foo',
           artifactId : 'bar',
           version : '1',
-          proprietary : true
+          hash : '01234',
+          proprietary : true,
+          matchState : 'similar'
         };
         clmEndpoint.selectApplication = true;
 
@@ -364,37 +377,31 @@ var clmEndpointTemplate = {
         $httpBackend.expectGET('foo').respond({ securityVulnerabilities : [], policyAlerts: [] });
         Insight.setGav(angular.extend({ matchState : 'similar' }, gav));
         $httpBackend.flush();
-        expect(Brain[clmEndpoint.type].getComponentUrl).toHaveBeenCalledWith('myFirstApp', 'maven', {
+        expect(Brain[clmEndpoint.type].getComponentUrl).toHaveBeenCalledWith('myFirstApp', 'maven', '01234', 'similar', true, {
           groupId : 'foo',
           artifactId : 'bar',
-          version : '1',
-          matchState : 'similar',
-          proprietary : true
+          version : '1'
         });
-        expect(scope.componentDetails.proprietary).toEqual(true);
 
         // Another version selected
-        $httpBackend.expectGET(Brain[clmEndpoint.type].getComponentUrl(angular.extend({}, gav, {
-          appId: 'myFirstApp',
-          version: '2'
-        }))).respond({
+        $httpBackend.expectGET('foo').respond({
           securityVulnerabilities: [],
           policyAlerts: []
         });
         scope.$apply(function () {
-          Coordinates.setSelected(angular.extend({}, gav, { version : '2' }));
+          Coordinates.setSelected({ groupId : 'foo', artifactId : 'bar', version : '2' });
         });
         $httpBackend.flush();
-        expect(Brain[clmEndpoint.type].getComponentUrl).toHaveBeenCalledWith('myFirstApp', 'maven', {
+        expect(Brain[clmEndpoint.type].getComponentUrl).toHaveBeenCalledWith('myFirstApp', 'maven', '01234', 'similar', true, {
           groupId : 'foo',
           artifactId : 'bar',
-          version : '2',
-          proprietary : true
+          version : '2'
         });
 
         // Unknown GAV
         scope.$apply(function () {
-          Coordinates.setSelected({ matchState : 'unknown' });
+          Coordinates.set('maven', { groupId : 'foo', artifactId : 'bar', version : 1});
+          Properties.setMatchState('unknown');
         });
         $httpBackend.verifyNoOutstandingRequest();
       }));

@@ -307,7 +307,7 @@ public final class Report
       if (hashComponentIdentifier != null) {
         ComponentIdentifier componentIdentifier = hashComponentIdentifier.getComponentIdentifier();
         bomObjectNode.put("componentIdentifier", JsonUtils.asTree(componentIdentifier));
-        if (componentIdentifier.isMaven()) {
+        if (ComponentIdentifier.FORMAT_MAVEN.equals(componentIdentifier.format)) {
           bomObjectNode.put("groupId", componentIdentifier.get(ComponentIdentifier.MAVEN_GROUP_ID));
           bomObjectNode.put("artifactId", componentIdentifier.get(ComponentIdentifier.MAVEN_ARTIFACT_ID));
           bomObjectNode.put("version", componentIdentifier.get(ComponentIdentifier.VERSION));
@@ -381,7 +381,7 @@ public final class Report
         ObjectNode licenseJsonNode = licensesAaData.addObject();
         licenseJsonNode.put("hash", hashComponentIdentifier.getHash());
         ComponentIdentifier componentIdentifier = hashComponentIdentifier.getComponentIdentifier();
-        if (componentIdentifier.isMaven()) {
+        if (ComponentIdentifier.FORMAT_MAVEN.equals(componentIdentifier.format)) {
           licenseJsonNode.put("groupId", componentIdentifier.get(ComponentIdentifier.MAVEN_GROUP_ID));
           licenseJsonNode.put("artifactId", componentIdentifier.get(ComponentIdentifier.MAVEN_ARTIFACT_ID));
           licenseJsonNode.put("version", componentIdentifier.get(ComponentIdentifier.VERSION));

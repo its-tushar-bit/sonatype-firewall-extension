@@ -36,7 +36,7 @@ public class AugmentUtil
       svData.add(svNode);
 
       // Add groupId, artifactId and version so that the node will merge successfully with old versions of security.json
-      if (componentIdentifier.isMaven()) {
+      if (ComponentIdentifier.FORMAT_MAVEN.equals(componentIdentifier.format)) {
         svNode.put("groupId", componentIdentifier.get(ComponentIdentifier.MAVEN_GROUP_ID));
         svNode.put("artifactId", componentIdentifier.get(ComponentIdentifier.MAVEN_ARTIFACT_ID));
         svNode.put("version", componentIdentifier.get(ComponentIdentifier.VERSION));

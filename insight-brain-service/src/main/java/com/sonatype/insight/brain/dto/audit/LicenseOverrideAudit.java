@@ -12,20 +12,14 @@ import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
 import com.sonatype.insight.brain.model.license.License;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
 
-import static com.sonatype.clm.dto.model.ide.ComponentIdentifier.MAVEN_ARTIFACT_ID;
-import static com.sonatype.clm.dto.model.ide.ComponentIdentifier.MAVEN_GROUP_ID;
-import static com.sonatype.clm.dto.model.ide.ComponentIdentifier.VERSION;
-
 /**
  * DTO class for records in the license override audit logs.
  *
  * @since 1.6
  */
 public class LicenseOverrideAudit
+    extends Auditable
 {
-  private String groupId;
-  private String artifactId;
-  private String version;
   private String status;
   // The overriddenLicenses is declared as List only to be backwards compatible with the existing license override
   // audit logs.
@@ -36,9 +30,7 @@ public class LicenseOverrideAudit
   }
 
   public LicenseOverrideAudit(LicenseOverride licenseOverride) {
-    groupId = licenseOverride.getComponentIdentifier().get(MAVEN_GROUP_ID);
-    artifactId = licenseOverride.getComponentIdentifier().get(MAVEN_ARTIFACT_ID);
-    version = licenseOverride.getComponentIdentifier().get(VERSION);
+    setComponentIdentifier(licenseOverride.getComponentIdentifier());
     status = licenseOverride.getStatus().getName();
     if (licenseOverride.getLicenseId() != null) {
       overriddenLicenses = new ArrayList<String>();
@@ -46,30 +38,6 @@ public class LicenseOverrideAudit
       overriddenLicenses.add(license.getShortDisplayName());
     }
     comment = licenseOverride.getComment();
-  }
-
-  public String getGroupId() {
-    return groupId;
-  }
-
-  public void setGroupId(String groupId) {
-    this.groupId = groupId;
-  }
-
-  public String getArtifactId() {
-    return artifactId;
-  }
-
-  public void setArtifactId(String artifactId) {
-    this.artifactId = artifactId;
-  }
-
-  public String getVersion() {
-    return version;
-  }
-
-  public void setVersion(String version) {
-    this.version = version;
   }
 
   public String getStatus() {

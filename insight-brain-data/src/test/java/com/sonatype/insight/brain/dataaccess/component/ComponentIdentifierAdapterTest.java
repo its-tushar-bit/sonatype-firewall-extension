@@ -5,16 +5,22 @@
  */
 package com.sonatype.insight.brain.dataaccess.component;
 
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 
 import com.sonatype.clm.dto.model.ide.ComponentIdentifier;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.Test;
 
+import static com.sonatype.clm.dto.model.ide.ComponentIdentifier.MAVEN_ARTIFACT_ID;
+import static com.sonatype.clm.dto.model.ide.ComponentIdentifier.MAVEN_GROUP_ID;
+import static com.sonatype.clm.dto.model.ide.ComponentIdentifier.VERSION;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
@@ -23,8 +29,8 @@ public class ComponentIdentifierAdapterTest
 {
 
   private static final String ANY_CONTENT =
-    "{\"componentIdentifier\": {\"format\": \"any\", \"coordinates\":{\"a\":\"a\", " +
-      "\"v\":\"v\"}}}";
+      "{\"componentIdentifier\": {\"format\": \"any\", \"coordinates\":{\"a\":\"a\", " +
+          "\"v\":\"v\"}}}";
 
   private static final ComponentIdentifier ANY_COMPONENT_ID;
   static {
@@ -35,49 +41,51 @@ public class ComponentIdentifierAdapterTest
   }
 
   private static final String MAVEN_CONTENT =
-    "{\"componentIdentifier\": {\"format\": \"maven\", \"coordinates\":{\"groupId\":\"g\",\"artifactId\":\"a\", " +
-      "\"version\":\"v\"}}}";
+      "{\"componentIdentifier\": {\"format\": \"maven\", \"coordinates\":{\"groupId\":\"g\",\"artifactId\":\"a\", " +
+          "\"version\":\"v\"}}}";
 
   private static final ComponentIdentifier MAVEN_COMPONENT = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
 
   private static final String NUGET_CONTENT =
-    "{\"componentIdentifier\": {\"format\": \"nuget\", \"coordinates\":{\"packageId\":\"a\", " +
-      "\"version\":\"v\"}}}";
+      "{\"componentIdentifier\": {\"format\": \"nuget\", \"coordinates\":{\"packageId\":\"a\", " +
+          "\"version\":\"v\"}}}";
 
   private static final ComponentIdentifier NUGET_COMPONENT = ComponentIdentifier.createNugetCoordinates("a", "v");
+
+  private static final String GAV_CONTENT = "{\"groupId\":\"g\", \"artifactId\":\"a\", \"version\":\"v\"}";
 
   private static ObjectMapper mapper = new ObjectMapper();
 
   @Test
   public void testGetComponentIdentifier() throws Exception {
-    JsonNode jsonNode =  mapper.readTree(MAVEN_CONTENT);
+    JsonNode jsonNode = mapper.readTree(MAVEN_CONTENT);
     ComponentIdentifier componentIdentifier = ComponentIdentifierAdapter.getComponentIdentifier(jsonNode);
     assertThat(componentIdentifier, equalTo(MAVEN_COMPONENT));
   }
 
   @Test
   public void testGetComponentIdentifierLegacy() throws Exception {
-    JsonNode jsonNode =  mapper.readTree("{\"groupId\":\"g\", \"artifactId\":\"a\", \"version\":\"v\"}");
+    JsonNode jsonNode = mapper.readTree(GAV_CONTENT);
     assertThat(ComponentIdentifierAdapter.getComponentIdentifier(jsonNode), equalTo(MAVEN_COMPONENT));
   }
 
   @Test
   public void testGetComponentIdentifierNuget() throws Exception {
-    JsonNode jsonNode =  mapper.readTree(NUGET_CONTENT);
+    JsonNode jsonNode = mapper.readTree(NUGET_CONTENT);
     ComponentIdentifier componentIdentifier = ComponentIdentifierAdapter.getComponentIdentifier(jsonNode);
     assertThat(componentIdentifier, equalTo(NUGET_COMPONENT));
   }
 
   @Test
   public void testGetComponentIdentifierUnknownFormat() throws Exception {
-    JsonNode jsonNode =  mapper.readTree(ANY_CONTENT);
+    JsonNode jsonNode = mapper.readTree(ANY_CONTENT);
     ComponentIdentifier componentIdentifier = ComponentIdentifierAdapter.getComponentIdentifier(jsonNode);
     assertThat(componentIdentifier, equalTo(ANY_COMPONENT_ID));
   }
 
   @Test
   public void testToComponentIdentifierMissingExpectedData() throws Exception {
-    JsonNode jsonNode =  mapper.readTree("{\"blah\":{}}");
+    JsonNode jsonNode = mapper.readTree("{\"blah\":{}}");
     try {
       ComponentIdentifierAdapter.toComponentIdentifier(jsonNode);
       fail("Should have thrown IllegalStateException");
@@ -90,5 +98,34 @@ public class ComponentIdentifierAdapterTest
   @Test
   public void testToComponentIdentifierNull() throws Exception {
     assertThat(ComponentIdentifierAdapter.toComponentIdentifier(null), nullValue());
+  }
+
+  @Test
+  public void testReplaceGAV() throws Exception {
+    JsonNode jsonNode = mapper.readTree(GAV_CONTENT);
+    JsonNode copy = jsonNode.deepCopy();
+    ComponentIdentifierAdapter.replaceGavWithComponentIdentifier((ObjectNode) jsonNode);
+    assertThat(copy, not(jsonNode));
+    for (String key : Arrays.asList(MAVEN_GROUP_ID, MAVEN_ARTIFACT_ID, VERSION)) {
+      assertThat(jsonNode.hasNonNull(key), is(false));
+    }
+    assertThat(jsonNode.hasNonNull(ComponentIdentifierAdapter.COMPONENT_IDENTIFIER), is(true));
+    assertThat(ComponentIdentifierAdapter.getComponentIdentifier(jsonNode), is(MAVEN_COMPONENT));
+  }
+
+  @Test
+  public void testReplaceGAVExistingComponentIdentifier() throws Exception {
+    JsonNode jsonNode = mapper.readTree(MAVEN_CONTENT);
+    JsonNode copy = jsonNode.deepCopy();
+    ComponentIdentifierAdapter.replaceGavWithComponentIdentifier((ObjectNode) jsonNode);
+    assertThat(copy, is(jsonNode));
+  }
+
+  @Test
+  public void testReplaceGAVOnNonGAVStructure() throws Exception {
+    JsonNode jsonNode = mapper.readTree("{\"blah\":{}}");
+    JsonNode copy = jsonNode.deepCopy();
+    ComponentIdentifierAdapter.replaceGavWithComponentIdentifier((ObjectNode) jsonNode);
+    assertThat(copy, is(jsonNode));
   }
 }

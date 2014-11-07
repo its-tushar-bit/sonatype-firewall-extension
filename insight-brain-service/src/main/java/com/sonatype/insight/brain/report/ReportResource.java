@@ -43,6 +43,7 @@ import com.sonatype.clm.dto.model.policy.ComponentFact;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
@@ -74,6 +75,7 @@ import com.sonatype.insight.json.store.JsonUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ContainerNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.codehaus.plexus.util.IOUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -483,7 +485,7 @@ public class ReportResource
     String appId = application.getId();
 
     final JsonStore store = JsonUtils.fileStore(work.getAuditDir(appId));
-    final ContainerNode<?> key = encodedKey != null ? JsonUtils.parse(encodedKey.getBytes("UTF-8")) : null;
+    final ContainerNode<?> key = decodeKey(encodedKey);
     final ContainerNode<?> feed = store.history(key, path.split("[+]+"));
     if (feed != null) {
       return Response.ok(JsonUtils.generate(feed)).build();
@@ -527,5 +529,21 @@ public class ReportResource
     url = url.replace("{applicationPublicId}", UrlUtils.encodeUrlComponent(appPublicId));
     url = url.replace("{scanId}", UrlUtils.encodeUrlComponent(scanId));
     return url;
+  }
+
+  /**
+   * @since 1.13.0
+   * Given an encodedKey for a given Component, check for legacy GAV format and replace with ComponentIdentifier if
+   * it is missing.
+   * Necessary to maintain backwards compatibility for older reports which encode this key as a JSON Object in this
+   * format: {"hash":"hashValue","groupId":"g","artifactId":"a","version":"v"}
+   */
+  private ContainerNode<?> decodeKey(final String encodedKey) throws IOException {
+    if(encodedKey == null) {
+      return null;
+    }
+    ContainerNode<?> decodedKey = JsonUtils.parse(encodedKey.getBytes("UTF-8"));
+    ComponentIdentifierAdapter.replaceGavWithComponentIdentifier((ObjectNode) decodedKey);
+    return decodedKey;
   }
 }

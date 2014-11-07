@@ -17,6 +17,7 @@ import com.sonatype.clm.dto.model.ide.ComponentIdentifier;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Strings;
 
 import static com.sonatype.clm.dto.model.ide.ComponentIdentifier.MAVEN_ARTIFACT_ID;
@@ -32,7 +33,7 @@ import static com.sonatype.clm.dto.model.ide.ComponentIdentifier.VERSION;
  */
 public class ComponentIdentifierAdapter
 {
-  private static final String COMPONENT_IDENTIFIER = "componentIdentifier";
+  public static final String COMPONENT_IDENTIFIER = "componentIdentifier";
 
   /**
    * @since 1.13.0
@@ -76,6 +77,19 @@ public class ComponentIdentifierAdapter
       throw new IllegalStateException("Invalid ComponentIdentifier provided: " + componentIdentifier.toString());
     }
     return componentIdentifier;
+  }
+
+  /**
+   * Remove existing GAV fields and replace with ComponentIdentifier structure.
+   */
+  public static void replaceGavWithComponentIdentifier(final ObjectNode component) {
+    if (!component.hasNonNull(COMPONENT_IDENTIFIER)) {
+      ComponentIdentifier componentIdentifier = getComponentIdentifier(component);
+      if (componentIdentifier != null) {
+        component.remove(Arrays.asList(MAVEN_GROUP_ID, MAVEN_ARTIFACT_ID, VERSION));
+        component.put(COMPONENT_IDENTIFIER, JsonUtils.asTree(componentIdentifier));
+      }
+    }
   }
 
   /**

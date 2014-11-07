@@ -120,9 +120,7 @@ public class LicenseOverrideResourceTest
     assertEquals(where, logJsonData.get("where").asText());
     LicenseOverrideAudit licenseOverrideAudit = JsonUtils.asPojo(logJsonData.get("data"), LicenseOverrideAudit.class);
     assertNotNull(licenseOverrideAudit);
-    assertEquals(expected.getComponentIdentifier(), ComponentIdentifier
-      .createMavenCoordinates(licenseOverrideAudit.getGroupId(), licenseOverrideAudit.getArtifactId(),
-        licenseOverrideAudit.getVersion()));
+    assertEquals(expected.getComponentIdentifier(), licenseOverrideAudit.getComponentIdentifier());
     if (isDelete) {
       assertEquals("Deleted", licenseOverrideAudit.getStatus());
       assertNull(licenseOverrideAudit.getComment());

@@ -257,6 +257,14 @@ public class TemporaryEntity
     return org;
   }
 
+  public Organization newOrganizationWithSpecificId(String id) {
+    Organization org = new Organization(uuid());
+    org.setId(id);
+    orgDAO.insert(org, true);
+    orgs.add(org);
+    return org;
+  }
+
   public List<Organization> newOrganizations(int orgCount) {
     List<Organization> organizations = new ArrayList<>();
     for (int index = 0; index < orgCount; ++index) {

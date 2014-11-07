@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.dataaccess.license;
 
+import java.util.LinkedHashMap;
 import java.util.List;
 
 import javax.persistence.EntityManager;
@@ -36,8 +37,19 @@ public class LicenseOverrideDAO
   public LicenseOverride getByOwnerIdAndComponentIdentifier(String ownerId, ComponentIdentifier componentIdentifier) {
     String sQuery = "SELECT entity from LicenseOverride entity " +
       "WHERE entity.ownerId=?1 and entity.componentIdFormat=?2 and entity.componentIdCoordinatesJson=?3";
-    return get(sQuery, ownerId, componentIdentifier.format, JsonUtils.writeValueAsString(ComponentIdentifierAdapter
-        .removeNonLegacyCoordinates(componentIdentifier.getCoordinates())));
+    LicenseOverride licenseOverride = get(sQuery, ownerId, componentIdentifier.format,
+        JsonUtils.writeValueAsString(componentIdentifier.getCoordinates()));
+    if (licenseOverride == null && componentIdentifier.isMaven()) {
+      // Legacy license overrides for maven components have only G, A and V coordinates and those overrides must be used
+      // even if the passed in component identifier has complete maven coordinates (i.e. includes extension and
+      // classifier).
+      LinkedHashMap<String, String> gavCoordinates = ComponentIdentifierAdapter
+          .toGavOnlyCoordinates(componentIdentifier.getCoordinates());
+      if (!gavCoordinates.equals(componentIdentifier.getCoordinates())) {
+        licenseOverride = get(sQuery, ownerId, componentIdentifier.format, JsonUtils.writeValueAsString(gavCoordinates));
+      }
+    }
+    return licenseOverride;
   }
 
   public List<LicenseOverride> getByOwnerId(EntityManager em, String ownerId) {

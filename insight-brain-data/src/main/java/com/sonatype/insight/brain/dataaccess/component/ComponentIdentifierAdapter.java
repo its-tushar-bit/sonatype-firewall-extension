@@ -7,11 +7,8 @@ package com.sonatype.insight.brain.dataaccess.component;
 
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 
 import com.sonatype.clm.dto.model.ide.ComponentIdentifier;
 import com.sonatype.insight.json.store.JsonUtils;
@@ -21,8 +18,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Strings;
 
 import static com.sonatype.clm.dto.model.ide.ComponentIdentifier.MAVEN_ARTIFACT_ID;
-import static com.sonatype.clm.dto.model.ide.ComponentIdentifier.MAVEN_CLASSIFIER;
-import static com.sonatype.clm.dto.model.ide.ComponentIdentifier.MAVEN_EXTENSION;
 import static com.sonatype.clm.dto.model.ide.ComponentIdentifier.MAVEN_GROUP_ID;
 import static com.sonatype.clm.dto.model.ide.ComponentIdentifier.VERSION;
 
@@ -34,13 +29,6 @@ import static com.sonatype.clm.dto.model.ide.ComponentIdentifier.VERSION;
 public class ComponentIdentifierAdapter
 {
   public static final String COMPONENT_IDENTIFIER = "componentIdentifier";
-
-  /**
-   * @since 1.13.0
-   * Keys that didn't exist prior to this version and which will not be present in the migrated database json
-   * that we will be querying against.
-   */
-  private static final List<String> NON_LEGACY_KEYS = Arrays.asList(MAVEN_EXTENSION, MAVEN_CLASSIFIER);
 
   /**
    * Extract ComponentIdentifier or create one as needed from existing GAV data.
@@ -93,20 +81,15 @@ public class ComponentIdentifierAdapter
   }
 
   /**
-   * hackity hack, remove classifier and extension, at least until other GAV-centric structures can account for them
-   * migrated data will never have these and so incoming ComponentDetails that contain values will not
-   * match
+   * Returns a map of coordinates that contains only maven GAV coordinates (no classifier or extension).
+   * The result is ordered, hence the LinkedHashMap instead of Map.
    */
-  public static Map<String, String> removeNonLegacyCoordinates(final Map<String, String> coordinates) {
-    Map<String, String> sanitizedCoordinates = new LinkedHashMap<>(coordinates);
-    Iterator<Entry<String, String>> iterator = sanitizedCoordinates.entrySet().iterator();
-    while (iterator.hasNext()) {
-      Map.Entry<String, String> entry = iterator.next();
-      if (NON_LEGACY_KEYS.contains(entry.getKey()) && Strings.isNullOrEmpty(entry.getValue())) {
-        iterator.remove();
-      }
-    }
-    return sanitizedCoordinates;
+  public static LinkedHashMap<String, String> toGavOnlyCoordinates(final Map<String, String> coordinates) {
+    LinkedHashMap<String, String> gavCoordinates = new LinkedHashMap<>();
+    gavCoordinates.put(MAVEN_GROUP_ID, coordinates.get(MAVEN_GROUP_ID));
+    gavCoordinates.put(MAVEN_ARTIFACT_ID, coordinates.get(MAVEN_ARTIFACT_ID));
+    gavCoordinates.put(VERSION, coordinates.get(VERSION));
+    return gavCoordinates;
   }
 }
 

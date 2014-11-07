@@ -16,6 +16,8 @@ import org.codehaus.plexus.util.StringUtils;
 import org.junit.Test;
 
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -295,4 +297,55 @@ public class LicenseOverrideDAOTest
 
   }
 
+  @Test
+  public void testGetByOwnerIdAndComponentIdentifier_MavenGav() {
+    ComponentIdentifier gavIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
+    ComponentIdentifier gavecIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e");
+    LicenseOverride licenseOverride = tempEntity.newLicenseOverride(applicationId, gavIdentifier,
+        LicenseOverrideStatus.OVERRIDDEN, "Apache-2.0");
+
+    LicenseOverrideDAO dao = new LicenseOverrideDAO();
+
+    // Find by GAVEC
+    LicenseOverride foundLicenseOverride = dao.getByOwnerIdAndComponentIdentifier(applicationId, gavecIdentifier);
+    assertThat(foundLicenseOverride, is(notNullValue()));
+    assertThat(foundLicenseOverride.getId(), is(licenseOverride.getId()));
+
+    // Find by GAV
+    foundLicenseOverride = dao.getByOwnerIdAndComponentIdentifier(applicationId, gavIdentifier);
+    assertThat(foundLicenseOverride, is(notNullValue()));
+    assertThat(foundLicenseOverride.getId(), is(licenseOverride.getId()));
+  }
+
+  @Test
+  public void testGetByOwnerIdAndComponentIdentifier_MavenGavec() {
+    ComponentIdentifier gavIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
+    ComponentIdentifier gavecIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e");
+    LicenseOverride licenseOverride = tempEntity.newLicenseOverride(applicationId, gavecIdentifier,
+        LicenseOverrideStatus.OVERRIDDEN, "Apache-2.0");
+
+    LicenseOverrideDAO dao = new LicenseOverrideDAO();
+
+    // Find by GAVEC
+    LicenseOverride foundLicenseOverride = dao.getByOwnerIdAndComponentIdentifier(applicationId, gavecIdentifier);
+    assertThat(foundLicenseOverride, is(notNullValue()));
+    assertThat(foundLicenseOverride.getId(), is(licenseOverride.getId()));
+
+    // Find by GAV
+    foundLicenseOverride = dao.getByOwnerIdAndComponentIdentifier(applicationId, gavIdentifier);
+    assertThat(foundLicenseOverride, is(nullValue()));
+  }
+
+  @Test
+  public void testGetByOwnerIdAndComponentIdentifier_Nuget() {
+    ComponentIdentifier nugetIdentifier = ComponentIdentifier.createNugetCoordinates("p", "v");
+    LicenseOverride licenseOverride = tempEntity.newLicenseOverride(applicationId, nugetIdentifier,
+        LicenseOverrideStatus.OVERRIDDEN, "Apache-2.0");
+
+    LicenseOverrideDAO dao = new LicenseOverrideDAO();
+
+    LicenseOverride foundLicenseOverride = dao.getByOwnerIdAndComponentIdentifier(applicationId, nugetIdentifier);
+    assertThat(foundLicenseOverride, is(notNullValue()));
+    assertThat(foundLicenseOverride.getId(), is(licenseOverride.getId()));
+  }
 }

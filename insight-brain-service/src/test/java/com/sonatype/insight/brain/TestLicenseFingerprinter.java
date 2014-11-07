@@ -16,7 +16,7 @@ import org.sonatype.licensing.product.util.LicenseFingerprinter;
 public class TestLicenseFingerprinter
     extends LicenseFingerprinter
 {
-  private String dummyLicenseFingerprint = "1234";
+  private volatile String dummyLicenseFingerprint = "1234";
 
   @Override
   public String calculate() {

@@ -131,9 +131,9 @@ public class TestProductLicenseManager
   private static class MockProductLicenseManager
       implements ProductLicenseManager
   {
-    private boolean valid = true;
+    private volatile boolean valid = true;
 
-    private ProductLicenseKey key;
+    private volatile ProductLicenseKey key;
 
     private int version = 1;
 
@@ -201,10 +201,12 @@ public class TestProductLicenseManager
       properties.put(ProductLicenseDetails.PROPERTY_ENFORCEMENT_POINTS, sb.toString());
       properties.put(ProductLicenseDetails.PROPERTY_APPLICATION_LIMIT, Integer.toString(appCount));
       properties.putAll(this.properties);
-      key = new DefaultLicenseKey(new Features(featureMap));
+
+      ProductLicenseKey key = new DefaultLicenseKey(new Features(featureMap));
       key.setEffectiveDate(new Date(System.currentTimeMillis() - 10000));
       key.setExpirationDate(expirationDate);
       key.setProperties(properties);
+      this.key = key;
     }
 
     @Override

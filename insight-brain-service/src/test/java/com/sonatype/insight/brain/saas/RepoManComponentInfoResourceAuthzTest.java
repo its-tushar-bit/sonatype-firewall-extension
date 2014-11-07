@@ -13,6 +13,7 @@ public class RepoManComponentInfoResourceAuthzTest
     return RepoManComponentInfoResource.SERVICE_PATH;
   }
 
+  @Override
   protected String getTool() {
     return "rm";
   }

@@ -15,6 +15,7 @@ public class IDEComponentInfoResourceAuthzTest
     return IDEComponentInfoResource.SERVICE_PATH;
   }
 
+  @Override
   protected String getTool() {
     return "ide";
   }

@@ -13,6 +13,7 @@ public class CIComponentInfoResourceAuthzTest
     return CIComponentInfoResource.SERVICE_PATH;
   }
 
+  @Override
   protected String getTool() {
     return "ci";
   }

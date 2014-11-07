@@ -60,7 +60,7 @@ class PolicyThreatsJsonGenerator
           component.hash = componentFact.getHash();
           ComponentIdentifier componentIdentifier = componentFact.getComponentIdentifier();
           // TODO Fix the maven specific code as part of CLM-3709
-          if (componentIdentifier != null && ComponentIdentifier.FORMAT_MAVEN.equals(componentIdentifier.format)) {
+          if (componentIdentifier != null && componentIdentifier.isMaven()) {
             component.groupId = componentIdentifier.get(ComponentIdentifier.MAVEN_GROUP_ID);
             component.artifactId = componentIdentifier.get(ComponentIdentifier.MAVEN_ARTIFACT_ID);
             component.version = componentIdentifier.get(ComponentIdentifier.VERSION);

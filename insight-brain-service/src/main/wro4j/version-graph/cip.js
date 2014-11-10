@@ -145,13 +145,13 @@
         }]);
       },
       "registerCoordsViewDetailsListener": function (listener) {
-        waitOnInjector(['Coordinates', 'SelectedApp', '$rootScope', function (Coordinates, SelectedApp, $rootScope) {
+        waitOnInjector(['Coordinates', 'SelectedApp', 'Properties', '$rootScope', function (Coordinates, SelectedApp, Properties, $rootScope) {
           $rootScope.$on('viewDetails', function (event, version) {
             var coordinates = angular.extend({}, Coordinates.get(), { version : version });
 
-            listener(SelectedApp.get(), Coordinates.getType(), coordinates,
-                    version === coordinates.version ? coordinates.hash : null,
-                    version === coordinates.version ? coordinates.matchState : null);
+            listener(SelectedApp.get(), Coordinates.getFormat(), coordinates,
+                    version === coordinates.version ? Properties.getHash() : null,
+                    version === coordinates.version ? Properties.getMatchState() : null);
           });
         }]);
       },

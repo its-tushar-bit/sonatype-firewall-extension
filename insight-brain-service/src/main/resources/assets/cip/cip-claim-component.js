@@ -121,6 +121,16 @@
        * @param {Object} data
        */
       function updateView(data) {
+        //TODO remove once we can claim other formats https://issues.sonatype.org/browse/CLM-3719
+        angular.extend(data,
+          {
+            groupId: data.componentIdentifier.coordinates.groupId,
+            artifactId: data.componentIdentifier.coordinates.artifactId,
+            version: data.componentIdentifier.coordinates.version,
+            classifier: data.componentIdentifier.coordinates.classifier,
+            extension: data.componentIdentifier.coordinates.extension
+          }
+        );
         updateDataView({
           identificationSource: 'Manual',
           matchState: 'exact',
@@ -164,6 +174,19 @@
       function prepareForSubmit() {
         $scope.disableSubmit = true;
         $scope.claimData.hash = CurrentData.hash;
+        //TODO remove once we can claim other formats https://issues.sonatype.org/browse/CLM-3719
+        angular.extend($scope.claimData, {
+          componentIdentifier: {
+            format: 'maven',
+            coordinates: {
+              groupId: $scope.claimData.groupId,
+              artifactId: $scope.claimData.artifactId,
+              version: $scope.claimData.version,
+              classifier: $scope.claimData.classifier,
+              extension: $scope.claimData.extension
+            }
+          }}
+        );
         if ($scope.claimData.createTimeText) {
           $scope.claimData.createTime = stringToDate($scope.claimData.createTimeText).getTime();
         }

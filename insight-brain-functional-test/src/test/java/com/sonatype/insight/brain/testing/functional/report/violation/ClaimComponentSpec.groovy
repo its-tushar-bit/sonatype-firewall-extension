@@ -5,12 +5,15 @@
  */
 package com.sonatype.insight.brain.testing.functional.report.violation
 
+import javax.ws.rs.core.UriBuilder
+
+import com.sonatype.clm.dto.model.ide.ComponentIdentifier
 import com.sonatype.insight.brain.model.Application
 import com.sonatype.insight.brain.service.InsightWork
 import com.sonatype.insight.brain.testing.functional.BaseSpec
 import com.sonatype.insight.brain.testing.functional.utils.TestReportEvaluator
+import com.sonatype.insight.json.store.JsonUtils
 
-import org.junit.Ignore
 import spock.lang.Shared
 import spock.lang.Stepwise
 
@@ -18,8 +21,6 @@ import spock.lang.Stepwise
  * @since 1.11
  */
 @Stepwise
-// TODO Re-enable when CLM-3719 or CLM-3196 is implemented
-@Ignore
 class ClaimComponentSpec
 extends BaseSpec {
 
@@ -47,9 +48,13 @@ extends BaseSpec {
 
 
   static final Map<String, String> FORM_FIELDS = ['groupId'       : 'testG', 'artifactId': 'testA', 'version': 'testV',
-    'extension'     : 'testE', 'classifier': 'testC',
-    'createTimeText': '01/01/2014',
-    'comment'       : 'Something witty'].asImmutable()
+                                                  'extension'     : 'testE', 'classifier': 'testC',
+                                                  'createTimeText': '01/01/2014',
+                                                  'comment'       : 'Something witty'].asImmutable()
+
+  static final ComponentIdentifier CID = ComponentIdentifier.
+      createMavenCoordinates(FORM_FIELDS.groupId, FORM_FIELDS.artifactId, FORM_FIELDS.version, FORM_FIELDS.classifier,
+          FORM_FIELDS.extension)
 
   def setupSpec() {
     work = new InsightWork(serviceRule.configuration)
@@ -84,7 +89,7 @@ extends BaseSpec {
 
   def "Should be able to claim an unknown component"() {
     given: 'A GAV not found in our data'
-    saasRule.setResponseForURI(createUri(FORM_FIELDS), '{"isKnown": false }', 200)
+    saasRule.setResponseForURI(createUri(CID), '{"isKnown": false }', 200)
     Cip cip = results[0].cip
     def form = cip.claimComponent.claimForm
 
@@ -111,8 +116,9 @@ extends BaseSpec {
 
   def "Should be able to update an already claimed component"() {
     given: 'A GAV not found in our data'
-    Map updatedVersion = new LinkedHashMap<>(FORM_FIELDS)
-    updatedVersion.version = FORM_FIELDS.version + '-NEW'
+    ComponentIdentifier updatedVersion = ComponentIdentifier.
+        createMavenCoordinates(CID.coordinates.groupId, CID.coordinates.artifactId, CID.coordinates.version + '-NEW',
+            CID.coordinates.classifier, CID.coordinates.extension)
     saasRule.setResponseForURI(createUri(updatedVersion), '{"isKnown": false }', 200)
     def component = results[0].cip.claimComponent
 
@@ -154,13 +160,8 @@ extends BaseSpec {
     !component.update.displayed
   }
 
-  private static String createUri(Map fields) {
-    return "rest/ide/component?${createParams(fields)}"
-  }
-
-  private static String createParams(Map fields) {
-    fields.
-        findAll { k, v -> k in HDS_PARAMS }.
-        collect { k, v -> "$k=$v" }.join('&')
+  private String createUri(ComponentIdentifier componentIdentifier) {
+    return UriBuilder.fromPath('rest/component/summary').
+        queryParam('componentIdentifier', JsonUtils.writeValueAsString(componentIdentifier)).build().toString()
   }
 }

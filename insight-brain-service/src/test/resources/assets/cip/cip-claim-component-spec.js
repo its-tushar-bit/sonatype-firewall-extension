@@ -19,10 +19,21 @@ var InsightDatatable = {
     };
   }
 };
-var hashGAV = {
-  groupId: 'testg',
-  artifactId: 'testa',
-  version: 'testv',
+var componentIdentifier = {
+  format: 'maven',
+  coordinates: {
+    groupId: 'g',
+    artifactId: 'a',
+    version: 'v'
+  }
+};
+var component = {
+  componentIdentifier: componentIdentifier,
+  hash: 'abcdefghij0123456789',
+  //TODO remove once we can claim other formats https://issues.sonatype.org/browse/CLM-3719
+  groupId: componentIdentifier.coordinates.groupId,
+  artifactId: componentIdentifier.coordinates.artifactId,
+  version: componentIdentifier.coordinates.version,
   createTime: 100,
   comment: 'testc'
 };
@@ -70,7 +81,7 @@ describe('CIP Claim Component tests', function() {
     scope.claimData.version = 'version';
     expect(scope.formValid()).toEqual(true);
 
-    $http.expectPOST(SpecUtil.toRegExp('../brain/rest/component/identified')).respond({});
+    $http.expectPOST(SpecUtil.toRegExp('../brain/rest/component/identified')).respond(component);
     scope.claimSubmit();
     $http.flush();
     expect(formSetPristineSpy).toHaveBeenCalled();
@@ -84,7 +95,7 @@ describe('CIP Claim Component tests', function() {
       hash: '1',
       id: '1'
     }];
-    $http.expectPOST(SpecUtil.toRegExp('../brain/rest/component/identified')).respond(hashGAV);
+    $http.expectPOST(SpecUtil.toRegExp('../brain/rest/component/identified')).respond(component);
     scope.claimSubmit();
     $http.flush();
 
@@ -126,7 +137,7 @@ describe('CIP Claim Component tests', function() {
       }
     ];
 
-    $http.expectPUT(SpecUtil.toRegExp('../brain/rest/component/identified')).respond(hashGAV);
+    $http.expectPUT(SpecUtil.toRegExp('../brain/rest/component/identified')).respond(component);
     scope.claimUpdateSubmit();
     $http.flush();
     confirmDataViewUpdated(1);
@@ -168,11 +179,11 @@ describe('CIP Claim Component tests', function() {
       expect(item.id).toEqual('1');
       expect(item.identificationSource).toEqual('Manual');
       expect(item.matchState).toEqual('exact');
-      expect(item.groupId).toEqual(hashGAV.groupId);
-      expect(item.artifactId).toEqual(hashGAV.artifactId);
-      expect(item.version).toEqual(hashGAV.version);
-      expect(item.createTime).toEqual(hashGAV.createTime);
-      expect(item.comment).toEqual(hashGAV.comment);
+      expect(item.groupId).toEqual(component.groupId);
+      expect(item.artifactId).toEqual(component.artifactId);
+      expect(item.version).toEqual(component.version);
+      expect(item.createTime).toEqual(component.createTime);
+      expect(item.comment).toEqual(component.comment);
     }
 
     for (var i = 0; i < number; i++) {

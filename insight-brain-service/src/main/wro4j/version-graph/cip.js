@@ -162,7 +162,8 @@
           });
         }]);
       },
-      'setCoordinates' : function (componentType, coordinates, matchState) {
+      'setCoordinates' : function (componentType, coordinates, properties) {
+        properties = properties || {};
         waitOnInjector(['Coordinates', 'SelectedApp', 'State', 'Properties', '$rootScope', function (Coordinates, SelectedApp, State, Properties, $rootScope) {
           safeApply($rootScope, function () {
             if (coordinates.appId) {
@@ -171,7 +172,12 @@
             }
             Coordinates.set(componentType, coordinates);
             State.set(null);
-            Properties.setMatchState(matchState);
+
+            Properties.reset();
+            Properties.setMatchState(properties.matchState);
+            Properties.setProprietary(properties.proprietary);
+            Properties.setFilename(properties.filename);
+            Properties.setHash(properties.hash);
           });
         }], true);
       },

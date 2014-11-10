@@ -95,9 +95,25 @@ var clmEndpointTemplate = {
         Coordinates.set('maven', {
           id : 'setCoordinates'
         });
+
         expect(Coordinates.get()).toEqual({ id : 'setCoordinates' });
         expect(Coordinates.getSelected()).toEqual({ id : 'setCoordinates' });
         expect(Coordinates.getFormat()).toEqual('maven');
+      }));
+
+      it('Insight.setCoordinates', inject(function (Coordinates, Properties) {
+        Insight.setCoordinates('maven', {
+          id : 'setCoordinates'
+        }, { matchState : 'exact', proprietary : true , filename : 'foo.jar', hash : 'abc123'});
+
+        expect(Coordinates.get()).toEqual({ id : 'setCoordinates' });
+        expect(Coordinates.getSelected()).toEqual({ id : 'setCoordinates' });
+        expect(Coordinates.getFormat()).toEqual('maven');
+
+        expect(Properties.getMatchState()).toEqual('exact');
+        expect(Properties.getProprietary()).toEqual(true);
+        expect(Properties.getFilename()).toEqual('foo.jar');
+        expect(Properties.getHash()).toEqual('abc123');
       }));
 
       it('Selected', inject(function (Coordinates) {

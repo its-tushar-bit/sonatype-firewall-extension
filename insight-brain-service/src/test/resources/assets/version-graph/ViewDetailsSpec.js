@@ -8,7 +8,7 @@ clmEndpoint = angular.copy(clmEndpointTemplate = {
 describe('Eclipse View Details tests', function() {
   var httpBackend,
       scope,
-      query = { appId: 'appId', groupId: 'gid', artifactId: 'aid', version: '1.0', hash: '12345678901234567890', instanceId: 'iid', format : 'maven' },
+      query,
       wnd,
       data = {
         observedLicenses: [
@@ -30,6 +30,17 @@ describe('Eclipse View Details tests', function() {
     httpBackend = $httpBackend;
     scope = $rootScope.$new();
     wnd = $window;
+    query  = {
+      appId: 'appId',
+      groupId: 'gid',
+      artifactId: 'aid',
+      version: '1.0',
+      hash: '12345678901234567890',
+      instanceId: 'iid',
+      format: 'maven',
+      matchState: 'similar',
+      proprietary: false
+    };
   }));
 
   afterEach(function() {
@@ -136,5 +147,49 @@ describe('Eclipse View Details tests', function() {
       expect(scope.data.declaredLicenses).toEqual(['Apache-2.0 or EPL-1.0']);
       expect(scope.data.overriddenLicenses).toEqual(['EPL-1.0']);
     });
+  });
+
+  describe('componentIdentifier', function () {
+    beforeEach(function () {
+      spyOn(Brain.ide, 'getComponentUrl').andCallThrough();
+    });
+
+    it('legacy', inject(function ($controller) {
+      httpBackend.expectGET(new RegExp('/rest/ide/componentDetails/appId')).respond(angular.copy(data));
+      $controller('view', { $scope: scope, query : angular.copy(query) });
+      expect(Brain.ide.getComponentUrl).toHaveBeenCalledWith('appId', 'maven', '12345678901234567890', 'similar',
+              false, {
+                groupId: 'gid',
+                artifactId: 'aid',
+                version: '1.0'
+              });
+      httpBackend.flush();
+    }));
+
+    it('JSON', inject(function ($controller) {
+      query = {
+        appId: 'appId',
+        hash: '12345678901234567890',
+        instanceId: 'iid',
+        matchState: 'similar',
+        proprietary: false,
+        componentIdentifier : JSON.stringify({
+          format : 'nuget',
+          coordinates : {
+            packageId : 'foo',
+            version : '1.0'
+          }
+        })
+      };
+
+      httpBackend.expectGET(new RegExp('/rest/ide/componentDetails/appId')).respond(angular.copy(data));
+      $controller('view', { $scope: scope, query : angular.copy(query) });
+      expect(Brain.ide.getComponentUrl).toHaveBeenCalledWith('appId', 'nuget', '12345678901234567890', 'similar',
+              false, {
+                packageId : 'foo',
+                version: '1.0'
+              });
+      httpBackend.flush();
+    }));
   });
 });

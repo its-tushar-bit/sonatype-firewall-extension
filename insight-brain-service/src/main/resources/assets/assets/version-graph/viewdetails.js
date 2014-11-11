@@ -189,19 +189,26 @@
       $scope.$on('reload', function () {
         $scope.reload();
       });
-      
+
       var appId = query.appId,
           deferLoad = query.deferLoad,
-          format = query.format || 'maven', // for backwards compat we default to maven if unknown
+          identifier = query.componentIdentifier ? JSON.parse(query.componentIdentifier) : null,
           hash = query.hash,
           proprietary = query.proprietary,
           matchState = query.matchState;
 
-      delete query.appId;
-      delete query.deferLoad;
-      delete query.format;
-      delete query.proprietary;
-      delete query.matchState;
+      if (identifier === null) {
+        identifier = {
+          format : 'maven',
+          coordinates : {
+            groupId : query.groupId,
+            artifactId : query.artifactId,
+            version : query.version,
+            classifier : query.classifier,
+            extension : query.extension
+          }
+        };
+      }
 
       // TODO Determine where the GAV is coming from, should it be a query string or should Eclipse call a JS function?
       $scope.data = null;
@@ -237,7 +244,7 @@
 
         var promises = [];
 
-        promises.push($http.get(Brain[clmEndpoint.type].getComponentUrl(appId, format, hash, matchState, proprietary, query), {
+        promises.push($http.get(Brain[clmEndpoint.type].getComponentUrl(appId, identifier.format, hash, matchState, proprietary, identifier.coordinates), {
           headers: {
             "Accept": "application/json"
           }

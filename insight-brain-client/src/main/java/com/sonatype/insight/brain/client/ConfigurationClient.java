@@ -76,7 +76,7 @@ public class ConfigurationClient
   }
 
   /**
-   * @since 1.12.1
+   * @since 1.13
    */
   public List<Stage> getLicensedStages(final Context context) throws IOException {
     RequestBuilder requestBuilder = path("rest/policy/stages");

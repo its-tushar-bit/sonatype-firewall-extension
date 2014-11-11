@@ -25,7 +25,7 @@ public class ApiMavenComponentDTO
     ApiMavenComponentDTO result = new ApiMavenComponentDTO();
     result.hash = hash;
     if (componentIdentifier != null) {
-      switch (componentIdentifier.format) {
+      switch (componentIdentifier.getFormat()) {
         case ComponentIdentifier.FORMAT_MAVEN:
           result.groupId = componentIdentifier.get(ComponentIdentifier.MAVEN_GROUP_ID);
           result.artifactId = componentIdentifier.get(ComponentIdentifier.MAVEN_ARTIFACT_ID);

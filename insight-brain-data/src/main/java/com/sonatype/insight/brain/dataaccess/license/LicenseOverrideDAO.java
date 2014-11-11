@@ -37,7 +37,7 @@ public class LicenseOverrideDAO
   public LicenseOverride getByOwnerIdAndComponentIdentifier(String ownerId, ComponentIdentifier componentIdentifier) {
     String sQuery = "SELECT entity from LicenseOverride entity " +
       "WHERE entity.ownerId=?1 and entity.componentIdFormat=?2 and entity.componentIdCoordinatesJson=?3";
-    LicenseOverride licenseOverride = get(sQuery, ownerId, componentIdentifier.format,
+    LicenseOverride licenseOverride = get(sQuery, ownerId, componentIdentifier.getFormat(),
         JsonUtils.writeValueAsString(componentIdentifier.getCoordinates()));
     if (licenseOverride == null && componentIdentifier.isMaven()) {
       // Legacy license overrides for maven components have only G, A and V coordinates and those overrides must be used
@@ -46,7 +46,8 @@ public class LicenseOverrideDAO
       LinkedHashMap<String, String> gavCoordinates = ComponentIdentifierAdapter
           .toGavOnlyCoordinates(componentIdentifier.getCoordinates());
       if (!gavCoordinates.equals(componentIdentifier.getCoordinates())) {
-        licenseOverride = get(sQuery, ownerId, componentIdentifier.format, JsonUtils.writeValueAsString(gavCoordinates));
+        licenseOverride = get(sQuery, ownerId, componentIdentifier.getFormat(),
+            JsonUtils.writeValueAsString(gavCoordinates));
       }
     }
     return licenseOverride;

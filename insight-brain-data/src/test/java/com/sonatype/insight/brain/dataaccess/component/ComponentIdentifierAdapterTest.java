@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.dataaccess.component;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 
+import com.sonatype.clm.dto.model.component.InvalidComponentIdentifierException;
 import com.sonatype.clm.dto.model.ide.ComponentIdentifier;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -23,7 +24,6 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
 
 public class ComponentIdentifierAdapterTest
 {
@@ -83,16 +83,10 @@ public class ComponentIdentifierAdapterTest
     assertThat(componentIdentifier, equalTo(ANY_COMPONENT_ID));
   }
 
-  @Test
+  @Test(expected = InvalidComponentIdentifierException.class)
   public void testToComponentIdentifierMissingExpectedData() throws Exception {
     JsonNode jsonNode = mapper.readTree("{\"blah\":{}}");
-    try {
-      ComponentIdentifierAdapter.toComponentIdentifier(jsonNode);
-      fail("Should have thrown IllegalStateException");
-    }
-    catch (IllegalStateException e) {
-      assertThat(e.getMessage(), is("Invalid ComponentIdentifier provided: null: {}"));
-    }
+    ComponentIdentifierAdapter.toComponentIdentifier(jsonNode);
   }
 
   @Test

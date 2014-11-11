@@ -61,9 +61,7 @@ public class ComponentIdentifierAdapter
     catch (IOException e) {
       throw new RuntimeException("Error deserializing ComponentIdentifier", e);
     }
-    if (Strings.isNullOrEmpty(componentIdentifier.format)) {
-      throw new IllegalStateException("Invalid ComponentIdentifier provided: " + componentIdentifier.toString());
-    }
+    componentIdentifier.validate();
     return componentIdentifier;
   }
 

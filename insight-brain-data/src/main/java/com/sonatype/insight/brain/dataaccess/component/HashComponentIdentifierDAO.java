@@ -46,7 +46,7 @@ public class HashComponentIdentifierDAO
   {
     String sQuery = "SELECT entity FROM HashComponentIdentifier entity" + //
         " WHERE entity.componentIdFormat=?1 and entity.componentIdCoordinatesJson=?2";
-    return get(em, sQuery, componentIdentifier.format,
+    return get(em, sQuery, componentIdentifier.getFormat(),
         JsonUtils.writeValueAsString(componentIdentifier.getCoordinates()));
   }
 

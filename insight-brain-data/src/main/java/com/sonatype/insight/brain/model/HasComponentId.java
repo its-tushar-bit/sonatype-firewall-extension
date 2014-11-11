@@ -54,7 +54,7 @@ public abstract class HasComponentId
       componentIdCoordinatesJson = null;
     }
     else {
-      componentIdFormat = componentIdentifier.format;
+      componentIdFormat = componentIdentifier.getFormat();
       componentIdCoordinatesJson = JsonUtils.writeValueAsString(componentIdentifier.getCoordinates());
     }
   }

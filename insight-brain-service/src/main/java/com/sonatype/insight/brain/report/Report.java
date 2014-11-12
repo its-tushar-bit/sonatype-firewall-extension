@@ -52,6 +52,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ContainerNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.annotations.VisibleForTesting;
 import org.codehaus.plexus.util.IOUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -158,7 +159,8 @@ public final class Report
       return JsonUtils.parse(extractEntry(reportFile, "badges.json").buf, int[].class);
     }
 
-    final JsonNode gavDepths = JsonUtils.parse(extractEntry(reportFile, "dependencies.json").buf).get("gavDepths");
+    Map<ComponentIdentifier, Set<Integer>> depthsByIdentifier = parseDependencyDepths(JsonUtils.parse(extractEntry(
+        reportFile, "dependencies.json").buf));
 
     /*
      * TODO: extract basic calculation method so it can be shared with the insight-scan-processor
@@ -188,7 +190,7 @@ public final class Report
       }
     }
 
-    final Set<String> gavs = new HashSet<String>();
+    Set<ComponentIdentifier> components = new HashSet<>();
     for (final JsonNode row : security.get("aaData")) {
       final String status = row.path("status").asText();
       if (!"Not Applicable".equals(status)) {
@@ -197,8 +199,8 @@ public final class Report
 
         securityCounts[threatIndex < 0 ? 0 : threatIndex < 10 ? threatIndex : 9]++;
 
-        final String gav = gav(row);
-        if (gavs.add(gav)) {
+        ComponentIdentifier componentIdentifier = ComponentIdentifierAdapter.getComponentIdentifier(row);
+        if (components.add(componentIdentifier)) {
           insecureArtifactCount++;
         }
 
@@ -208,13 +210,7 @@ public final class Report
         }
 
         final int counter = severity < 4 ? 2 : severity < 7 ? 1 : 0;
-        for (final JsonNode level : gavDepths.path(gav)) {
-          final int index = level.asInt() - 1;
-          while (index >= securityPunchCard.size()) {
-            securityPunchCard.add(new int[3]);
-          }
-          securityPunchCard.get(index)[counter]++;
-        }
+        updatePunchCard(securityPunchCard, componentIdentifier, depthsByIdentifier, counter);
       }
     }
 
@@ -234,14 +230,7 @@ public final class Report
         if (threatLevel > 0) {
           // Punch card expects 0 to be the highest threat with 2 being the lowest
           final int threatDepth = threatLevel < 4 ? 2 : threatLevel < 8 ? 1 : 0;
-          //TODO KR CLM-3697- gavDepths expects : delimited string to encode GAV, no spaces. Should probably just be display name
-          for (final JsonNode level : gavDepths.path(component.getDisplayName().replaceAll(" ", ""))) {
-            final int index = level.asInt() - 1;
-            while (index >= licensePunchCard.size()) {
-              licensePunchCard.add(new int[3]);
-            }
-            licensePunchCard.get(index)[threatDepth]++;
-          }
+          updatePunchCard(licensePunchCard, component.getComponentIdentifier(), depthsByIdentifier, threatDepth);
           licenseAlerts++;
         }
       }
@@ -285,6 +274,57 @@ public final class Report
     log.debug("Applied changes to report in {} ms", System.currentTimeMillis() - start);
 
     return new int[] { securityAlerts, licenseAlerts, buildAlerts };
+  }
+
+  @VisibleForTesting
+  static Map<ComponentIdentifier, Set<Integer>> parseDependencyDepths(JsonNode dependenciesJson) {
+    Map<ComponentIdentifier, Set<Integer>> depthsByIdentifier = new LinkedHashMap<>();
+    JsonNode componentDepths = dependenciesJson.path("componentDepths");
+    JsonNode gavDepths = dependenciesJson.path("gavDepths");
+    if (componentDepths.isArray()) {
+      // new structure: [ { "componentIdentifier" : {...}, "depths" : [1, 2, 3] }, ... ]
+      for (JsonNode element : componentDepths) {
+        ComponentIdentifier componentIdentifier = ComponentIdentifierAdapter.getComponentIdentifier(element);
+        Set<Integer> depths = new LinkedHashSet<>();
+        for (final JsonNode level : element.path("depths")) {
+          depths.add(level.asInt());
+        }
+        depthsByIdentifier.put(componentIdentifier, depths);
+      }
+    }
+    else if (gavDepths.isObject()) {
+      // legacy structure: { "g:a:v" : [1, 2, 3], ... }
+      for (Iterator<Map.Entry<String, JsonNode>> it = gavDepths.fields(); it.hasNext();) {
+        Map.Entry<String, JsonNode> entry = it.next();
+        String[] gav = entry.getKey().split(":");
+        if (gav.length != 3) {
+          continue;
+        }
+        ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates(gav[0], gav[1], gav[2]);
+        Set<Integer> depths = new LinkedHashSet<>();
+        for (final JsonNode level : entry.getValue()) {
+          depths.add(level.asInt());
+        }
+        depthsByIdentifier.put(componentIdentifier, depths);
+      }
+    }
+    return depthsByIdentifier;
+  }
+
+  private static void updatePunchCard(List<int[]> punchCard, ComponentIdentifier componentIdentifier,
+      Map<ComponentIdentifier, Set<Integer>> depthsByIdentifier, int level)
+  {
+    Set<Integer> depths = depthsByIdentifier.get(componentIdentifier);
+    if (depths == null) {
+      return;
+    }
+    for (Integer depth : depths) {
+      int index = depth - 1;
+      while (index >= punchCard.size()) {
+        punchCard.add(new int[3]);
+      }
+      punchCard.get(index)[level]++;
+    }
   }
 
   /**
@@ -611,14 +651,6 @@ public final class Report
       archive.close(); // closes all InputStreams retrieved from this archive
     }
     return null;
-  }
-
-  static String gav(final JsonNode row) {
-    final StringBuilder buf = new StringBuilder();
-    buf.append(row.get("groupId").asText()).append(':');
-    buf.append(row.get("artifactId").asText()).append(':');
-    buf.append(row.get("version").asText());
-    return buf.toString();
   }
 
   private static ReportType getType(final File reportFile) throws IOException {

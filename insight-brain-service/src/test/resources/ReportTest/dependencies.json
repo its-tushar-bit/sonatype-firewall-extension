@@ -1,0 +1,31 @@
+{
+  "gavDepths" : {
+    "org.slf4j:slf4j-api:1.6" : [ 1, 2, 3 ],
+    "junit:junit:4.9" : [ 1 ]
+  },
+  "componentDepths" : [ {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "groupId" : "org.slf4j",
+        "artifactId" : "slf4j-api",
+        "version" : "1.6",
+        "classifier" : "",
+        "extension" : "jar"
+      }
+    },
+    "depths" : [ 1, 2, 3 ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "groupId" : "junit",
+        "artifactId" : "junit",
+        "version" : "4.9",
+        "classifier" : "",
+        "extension" : "jar"
+      }
+    },
+    "depths" : [ 1 ]
+  } ]
+}

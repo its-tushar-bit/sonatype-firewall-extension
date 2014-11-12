@@ -166,10 +166,6 @@
         properties = properties || {};
         waitOnInjector(['Coordinates', 'SelectedApp', 'State', 'Properties', '$rootScope', function (Coordinates, SelectedApp, State, Properties, $rootScope) {
           safeApply($rootScope, function () {
-            if (coordinates.appId) {
-              SelectedApp.set(coordinates.appId);
-              delete coordinates.appId;
-            }
             Coordinates.set(componentType, coordinates);
             State.set(null);
 
@@ -178,6 +174,10 @@
             Properties.setProprietary(properties.proprietary);
             Properties.setFilename(properties.filename);
             Properties.setHash(properties.hash);
+
+            if (properties.appId) {
+              SelectedApp.set(properties.appId);
+            }
           });
         }], true);
       },

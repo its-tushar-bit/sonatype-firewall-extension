@@ -236,7 +236,7 @@ var clmEndpointTemplate = {
           expect(SelectedApp.get()).toEqual('foo');
         }));
         it ('Retrieves from setCoordinates', inject(function (SelectedApp, Coordinates) {
-          Insight.setCoordinates('maven', {
+          Insight.setCoordinates('maven', {}, {
             appId : 'foo'
           });
           expect(SelectedApp.get()).toEqual('foo');

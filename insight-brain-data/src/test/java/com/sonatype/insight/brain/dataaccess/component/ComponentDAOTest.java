@@ -91,43 +91,43 @@ public class ComponentDAOTest
     componentLabelDAO.insert(new ComponentLabel(applicationId, appLabel.getId(), COMP_HASH));
     componentLabelDAO.insert(new ComponentLabel(application.getOrganizationId(), orgLabel.getId(), COMP_HASH));
 
-    MatchedComponent info = new MatchedComponent();
-    info.setHash(COMP_HASH);
-    info.setComponentIdentifier(ComponentIdentifier.createMavenCoordinates("gid", "aid", "1.2.3"));
-    info.setMatchState("similar");
-    info.setCatalogDate(System.currentTimeMillis());
-    info.setRelativePopularity(42);
-    info.addDeclaredLicenseId("Apache-2.0");
-    info.addObservedLicenseId("MIT");
-    info.addSecurityVulnerability(new SecurityVulnerability("12345", "osvdb", 4f));
-    Component comp = componentDAO.getComponent(application, info, null);
-    assertNotNull(comp);
-    assertEquals(info.getHash(), comp.getHash());
-    assertEquals(info.getComponentIdentifier(), comp.getComponentIdentifier());
-    assertEquals(info.getGroupId(), comp.getGroupId());
-    assertEquals(info.getArtifactId(), comp.getArtifactId());
-    assertEquals(info.getVersion(), comp.getVersion());
-    assertEquals(info.getMatchState(), comp.getMatchState().getId());
-    assertEquals(info.getCatalogDate(), comp.getCatalogDate());
-    assertEquals(info.getRelativePopularity(), new Integer(comp.getRelativePopularity()));
-    assertEquals(info.getDeclaredLicenseIds(), comp.getDeclaredLicenseIds());
-    assertEquals(info.getObservedLicenseIds(), comp.getObservedLicenseIds());
+    MatchedComponent matchedComponent = new MatchedComponent();
+    matchedComponent.setHash(COMP_HASH);
+    matchedComponent.setComponentIdentifier(ComponentIdentifier.createMavenCoordinates("gid", "aid", "1.2.3"));
+    matchedComponent.setMatchState("similar");
+    matchedComponent.setCatalogDate(System.currentTimeMillis());
+    matchedComponent.setRelativePopularity(42);
+    matchedComponent.addDeclaredLicenseId("Apache-2.0");
+    matchedComponent.addObservedLicenseId("MIT");
+    matchedComponent.addSecurityVulnerability(new SecurityVulnerability("12345", "osvdb", 4f));
+    Component component = componentDAO.getComponent(application, matchedComponent, null);
+    assertNotNull(component);
+    assertEquals(matchedComponent.getHash(), component.getHash());
+    assertEquals(matchedComponent.getComponentIdentifier(), component.getComponentIdentifier());
+    assertEquals(matchedComponent.getGroupId(), component.getGroupId());
+    assertEquals(matchedComponent.getArtifactId(), component.getArtifactId());
+    assertEquals(matchedComponent.getVersion(), component.getVersion());
+    assertEquals(matchedComponent.getMatchState(), component.getMatchState().getId());
+    assertEquals(matchedComponent.getCatalogDate(), component.getCatalogDate());
+    assertEquals(matchedComponent.getRelativePopularity(), new Integer(component.getRelativePopularity()));
+    assertEquals(matchedComponent.getDeclaredLicenseIds(), component.getDeclaredLicenseIds());
+    assertEquals(matchedComponent.getObservedLicenseIds(), component.getObservedLicenseIds());
 
-    assertNull(comp.getLicenseOverrideId());
-    assertLicenseThreatGroups(comp.getLicenseThreatGroups(), "Liberal");
-    assertSecurityVulnerabilities(comp.getSecurityVulnerabilities(),
+    assertNull(component.getLicenseOverrideId());
+    assertLicenseThreatGroups(component.getLicenseThreatGroups(), "Liberal");
+    assertSecurityVulnerabilities(component.getSecurityVulnerabilities(),
         newSV("12345", "osvdb", 4f, SecurityVulnerabilityStatus.OPEN));
 
-    assertEquals(2, comp.getLabelIds().size());
-    assertThat(comp.getLabelIds(), IsCollectionContaining.hasItems(appLabel.getId(), orgLabel.getId()));
+    assertEquals(2, component.getLabelIds().size());
+    assertThat(component.getLabelIds(), IsCollectionContaining.hasItems(appLabel.getId(), orgLabel.getId()));
   }
 
   @Test
   public void testGetComponent_LicenseOverride() {
-    MatchedComponent componentInfo = new MatchedComponent();
-    componentInfo.setHash(COMP_HASH);
-    componentInfo.setComponentIdentifier(ComponentIdentifier.createMavenCoordinates("gid", "aid", "1.2.3"));
-    Component component = componentDAO.getComponent(application, componentInfo, null);
+    MatchedComponent matchedComponent = new MatchedComponent();
+    matchedComponent.setHash(COMP_HASH);
+    matchedComponent.setComponentIdentifier(ComponentIdentifier.createMavenCoordinates("gid", "aid", "1.2.3"));
+    Component component = componentDAO.getComponent(application, matchedComponent, null);
     assertNotNull(component);
     assertNull(component.getLicenseOverrideId());
 
@@ -138,7 +138,7 @@ public class ComponentDAOTest
     LicenseOverride orgLicenseOverride = new LicenseOverride(organization.getId(), componentIdentifier,
       LicenseOverrideStatus.OVERRIDDEN, "GPL-3.0", "My comment");
     licenseOverrideDAO.insert(orgLicenseOverride);
-    component = componentDAO.getComponent(application, componentInfo, null);
+    component = componentDAO.getComponent(application, matchedComponent, null);
     assertNotNull(component);
     assertEquals("GPL-3.0", component.getLicenseOverrideId());
 
@@ -146,18 +146,18 @@ public class ComponentDAOTest
     LicenseOverride appLicenseOverride = new LicenseOverride(application.getId(), componentIdentifier,
       LicenseOverrideStatus.OVERRIDDEN, "GPL-2.0", "My comment");
     licenseOverrideDAO.insert(appLicenseOverride);
-    component = componentDAO.getComponent(application, componentInfo, null);
+    component = componentDAO.getComponent(application, matchedComponent, null);
     assertNotNull(component);
     assertEquals("GPL-2.0", component.getLicenseOverrideId());
   }
 
   @Test
   public void testGetComponent_MultiLicenses_Declared() {
-    MatchedComponent componentInfo = new MatchedComponent();
-    componentInfo.setHash(COMP_HASH);
-    componentInfo.setComponentIdentifier(ComponentIdentifier.createMavenCoordinates("gid", "aid", "1.2.3"));
-    componentInfo.addDeclaredLicenseId("Apache-2.0-GPL-2.0");
-    Component component = componentDAO.getComponent(application, componentInfo, null);
+    MatchedComponent matchedComponent = new MatchedComponent();
+    matchedComponent.setHash(COMP_HASH);
+    matchedComponent.setComponentIdentifier(ComponentIdentifier.createMavenCoordinates("gid", "aid", "1.2.3"));
+    matchedComponent.addDeclaredLicenseId("Apache-2.0-GPL-2.0");
+    Component component = componentDAO.getComponent(application, matchedComponent, null);
     assertNotNull(component);
     assertEquals(component.getDeclaredLicenseIds().toString(), 2, component.getDeclaredLicenseIds().size());
     assertTrue(component.getDeclaredLicenseIds().contains("Apache-2.0"));
@@ -167,11 +167,11 @@ public class ComponentDAOTest
 
   @Test
   public void testGetComponent_MultiLicenses_Observed() {
-    MatchedComponent componentInfo = new MatchedComponent();
-    componentInfo.setHash(COMP_HASH);
-    componentInfo.setComponentIdentifier(ComponentIdentifier.createMavenCoordinates("gid", "aid", "1.2.3"));
-    componentInfo.addObservedLicenseId("Apache-2.0-GPL-2.0");
-    Component component = componentDAO.getComponent(application, componentInfo, null);
+    MatchedComponent matchedComponent = new MatchedComponent();
+    matchedComponent.setHash(COMP_HASH);
+    matchedComponent.setComponentIdentifier(ComponentIdentifier.createMavenCoordinates("gid", "aid", "1.2.3"));
+    matchedComponent.addObservedLicenseId("Apache-2.0-GPL-2.0");
+    Component component = componentDAO.getComponent(application, matchedComponent, null);
     assertNotNull(component);
     assertEquals(component.getObservedLicenseIds().toString(), 2, component.getObservedLicenseIds().size());
     assertTrue(component.getObservedLicenseIds().contains("Apache-2.0"));

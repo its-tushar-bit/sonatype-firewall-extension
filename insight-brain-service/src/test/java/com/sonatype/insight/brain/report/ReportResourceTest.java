@@ -1088,7 +1088,7 @@ public class ReportResourceTest
   }
 
   @Test
-  public void testDownloadBundle() throws Exception {
+  public void testDownloadBundle_LegacyFormat() throws Exception {
     final String applicationPublicId = "ReportResourceTest_AppId";
     String appId = tempEntity.newApplicationWithParent(applicationPublicId).getId();
     final String scanId = "ReportResourceTest_ScanId";
@@ -1096,7 +1096,7 @@ public class ReportResourceTest
     setLicenseFingerprint(licenseFingerprint);
 
     final File saasReportFile = getReportResponseFile(licenseFingerprint, scanId);
-    final URL testReportResultUrl = getClass().getResource("/ReportResourceTest/fortify.zip");
+    final URL testReportResultUrl = getClass().getResource("/ReportResourceTest/standalone-legacy.zip");
     FileUtils.copyURLToFile(testReportResultUrl, saasReportFile);
 
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("commons-httpclient",
@@ -1108,7 +1108,7 @@ public class ReportResourceTest
     LicenseOverride licenseOverride2 = tempEntity.newLicenseOverride(appId,
       ComponentIdentifier.createMavenCoordinates("tomcat", "tomcat-util", "5.5.23"), LicenseOverrideStatus.OVERRIDDEN,
       "EPL-1.0");
-    Policy policy = tempEntity.newPolicy(appId, testName.getMethodName());
+    Policy policy = tempEntity.newPolicy(appId, testName.getMethodName().replaceAll("[_]", ""));
 
     Response response = AuthedRestAccess.post(getRestUrl(PolicyEvaluateResource.SERVICE_PATH, applicationPublicId)
         + "?scanId=" + scanId, toJson(new Stage(Stage.ID_BUILD)));
@@ -1166,6 +1166,98 @@ public class ReportResourceTest
             ComponentDetailsList.class);
         details = findDetailsForComponent(list,
           ComponentIdentifier.createMavenCoordinates("tomcat", "tomcat-util", "5.5.23"));
+        assertThat(details, is(notNullValue()));
+        assertThat(details.getOverriddenLicenses(), hasSize(1));
+        assertThat(details.getOverriddenLicenses().iterator().next().getLicenseId(),
+            is(licenseOverride2.getLicenseId()));
+        assertThat(details.getLicenseThreatGroupNames(), containsInAnyOrder("Weak Copyleft"));
+        assertThat(details.getLicenseThreatLevel(), is(2));
+      }
+    }
+  }
+
+  @Test
+  public void testDownloadBundle() throws Exception {
+    final String applicationPublicId = "ReportResourceTest_AppId";
+    String appId = tempEntity.newApplicationWithParent(applicationPublicId).getId();
+    final String scanId = "ReportResourceTest_ScanId";
+    final String licenseFingerprint = "ReportResourceTest_LicenseFingerprint";
+    setLicenseFingerprint(licenseFingerprint);
+
+    final File saasReportFile = getReportResponseFile(licenseFingerprint, scanId);
+    final URL testReportResultUrl = getClass().getResource("/ReportResourceTest/standalone.zip");
+    FileUtils.copyURLToFile(testReportResultUrl, saasReportFile);
+
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("commons-httpclient",
+        "commons-httpclient", "3.1.SONATYPE", "", "jar");
+    HashComponentIdentifier claimedComponent = tempEntity.newClaimedComponent("f0776db1593e215146d2",
+        componentIdentifier);
+    LicenseOverride licenseOverride = tempEntity.newLicenseOverride(appId, claimedComponent.getComponentIdentifier(),
+        LicenseOverrideStatus.OVERRIDDEN, "GPL-2.0");
+    LicenseOverride licenseOverride2 = tempEntity.newLicenseOverride(appId,
+      ComponentIdentifier.createMavenCoordinates("tomcat", "tomcat-util", "5.5.23"), LicenseOverrideStatus.OVERRIDDEN,
+      "EPL-1.0");
+    Policy policy = tempEntity.newPolicy(appId, testName.getMethodName());
+
+    Response response = AuthedRestAccess.post(getRestUrl(PolicyEvaluateResource.SERVICE_PATH, applicationPublicId)
+        + "?scanId=" + scanId, toJson(new Stage(Stage.ID_BUILD)));
+    assertResponseStatus(200, response);
+
+    String url = getRestUrl(ReportResource.SERVICE_PATH + '/' + ReportResource.DOWNLOAD_BUNDLE_PATH,
+        applicationPublicId, scanId);
+    response = AuthedRestAccess.get(url);
+    assertResponseStatus(200, response);
+    assertThat(response.getContentType(), is("application/zip"));
+    assertThat(response.getHeader("Content-Disposition"), containsString("filename="));
+    try (InputStream actual = response.getResponseBodyAsStream()) {
+      File temp = File.createTempFile("report", "zip");
+      FileUtils.copyStreamToFile(new RawInputStreamFacade(actual), temp);
+      try (ZipFile zip = new ZipFile(temp)) {
+        assertNotNull(zip.getEntry("data/report.pdf"));
+        assertNull(zip.getEntry("detail.rptdesign"));
+        assertNull(zip.getEntry("data/index.html"));
+        assertNotNull(zip.getEntry("data/components.json"));
+        assertNotNull(zip.getEntry("data/release-graph/tomcat/tomcat-util/5.5.23.png"));
+        assertNotNull(zip.getEntry("data/" + PolicyEvaluationUtils.POLICY_THREATS_FILENAME));
+
+        assertNull(zip.getEntry("cip/details/f0776db1593e215146d2.json"));
+        ComponentDetails details = JsonUtils.parse(
+            zip.getInputStream(zip.getEntry("data/cip/details/f0776db1593e215146d2.json")), ComponentDetails.class);
+        assertThat(details.getMatchState(), is("exact"));
+        assertThat(details.getGroupId(), is(componentIdentifier.get(ComponentIdentifier.MAVEN_GROUP_ID)));
+        assertThat(details.getArtifactId(), is(componentIdentifier.get(ComponentIdentifier.MAVEN_ARTIFACT_ID)));
+        assertThat(details.getVersion(), is(componentIdentifier.get(ComponentIdentifier.VERSION)));
+        assertThat(details.getComponentIdentifier(), is(claimedComponent.getComponentIdentifier()));
+        assertThat(details.getCatalogDate(), is(claimedComponent.getCreateTimeLong()));
+        assertThat(details.getOverriddenLicenses(), hasSize(1));
+        assertThat(details.getOverriddenLicenses().iterator().next().getLicenseId(), is(licenseOverride.getLicenseId()));
+        assertThat(details.getLicenseThreatGroupNames(), containsInAnyOrder("Copyleft"));
+        assertThat(details.getLicenseThreatLevel(), is(9));
+        assertThat(details.getIdentificationSource(), is(IdentificationSource.MANUAL.getId()));
+        assertThat(details.getIdentificationSourceComment(), is(claimedComponent.getComment()));
+        ComponentDetailsList list = JsonUtils.parse(
+            zip.getInputStream(zip.getEntry("data/cip/list/maven/artifactId="
+                + componentIdentifier.get(ComponentIdentifier.MAVEN_ARTIFACT_ID) + "/classifier="
+                + componentIdentifier.get(ComponentIdentifier.MAVEN_CLASSIFIER) + "/extension="
+                + componentIdentifier.get(ComponentIdentifier.MAVEN_EXTENSION) + "/groupId="
+                + componentIdentifier.get(ComponentIdentifier.MAVEN_GROUP_ID) + "/version="
+                + componentIdentifier.get(ComponentIdentifier.VERSION) + "/list.json")), ComponentDetailsList.class);
+        assertThat(list.getList(), hasSize(0));
+
+        details = JsonUtils.parse(zip.getInputStream(zip.getEntry("data/cip/details/1249e25aebb15358bedd.json")),
+            ComponentDetails.class);
+        assertThat(details.getMatchState(), is("exact"));
+        assertThat(details.getIdentificationSource(), is(IdentificationSource.SONATYPE.getId()));
+        assertThat(details.getIdentificationSourceComment(), is(nullValue()));
+        assertThat(details.getPolicyAlerts(), hasSize(1));
+        assertThat(details.getPolicyAlerts().get(0).getTrigger().getPolicyId(), is(policy.getId()));
+        assertThat(details.getPolicyAlerts().get(0).getTrigger().getComponentFacts(), hasSize(1));
+
+        list = JsonUtils.parse(zip.getInputStream(zip.getEntry("data/cip/list/maven/"
+            + "artifactId=tomcat-util/classifier=/extension=jar/groupId=tomcat/version=5.5.23/list.json")),
+            ComponentDetailsList.class);
+        details = findDetailsForComponent(list,
+          ComponentIdentifier.createMavenCoordinates("tomcat", "tomcat-util", "5.5.23", "", "jar"));
         assertThat(details, is(notNullValue()));
         assertThat(details.getOverriddenLicenses(), hasSize(1));
         assertThat(details.getOverriddenLicenses().iterator().next().getLicenseId(),

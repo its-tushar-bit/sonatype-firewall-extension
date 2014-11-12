@@ -193,8 +193,7 @@ public class ComponentDetailService
     }
     ComponentDisplayName componentNameDTO = null;
     if (applicationComponent.getComponentIdentifier() != null) {
-      componentNameDTO = ComponentDisplayNameUtil
-          .fromComponentIdentifier(applicationComponent.getComponentIdentifier());
+      componentNameDTO = ComponentDisplayNameUtil.fromIdentifier(applicationComponent.getComponentIdentifier());
     }
 
     if (componentNameDTO == null && !applicationComponent.getPathnames().isEmpty()) {

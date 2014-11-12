@@ -14,7 +14,6 @@ import com.sonatype.clm.dto.model.ide.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ComponentFact;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -32,52 +31,13 @@ import static org.junit.Assert.assertThat;
 public class ComponentDisplayNameUtilTest
 {
   @Test
-  public void testAugmentJsonNode() throws IOException {
-    ObjectMapper mapper = new ObjectMapper();
-    ObjectNode jsonNode = (ObjectNode) mapper.readTree("{\"groupId\":\"g\", \"artifactId\":\"a\", \"version\":\"v\"}");
-    injectDisplayName(jsonNode);
-    JsonNode mavenNode = jsonNode.get("maven");
-    JsonNode infoNode = jsonNode.get("info");
-
-    assertThat(mavenNode, is(notNullValue()));
-    assertThat(mavenNode.get("groupId").textValue(), is("g"));
-    assertThat(mavenNode.get("artifactId").textValue(), is("a"));
-    assertThat(mavenNode.get("version").textValue(), is("v"));
-    assertThat(infoNode, is(notNullValue()));
-    assertThat(infoNode.get("format").textValue(), is("maven"));
-
-    jsonNode = (ObjectNode) mapper.readTree("{\"filenames\":[\"foo.jar\",\"bar.ear\",\"baz.war\"]}");
-    injectDisplayName(jsonNode);
-    infoNode = jsonNode.get("info");
-
-    assertThat(infoNode, is(notNullValue()));
-    assertThat(infoNode.get("format").textValue(), is("unknown"));
-    ArrayNode fileNameNode = (ArrayNode) infoNode.get("filenames");
-    assertThat(fileNameNode, is(notNullValue()));
-    assertThat(fileNameNode.size(), is(3));
-    assertThat(fileNameNode.get(0).textValue(), is("foo.jar"));
-    assertThat(fileNameNode.get(1).textValue(), is("bar.ear"));
-    assertThat(fileNameNode.get(2).textValue(), is("baz.war"));
-
-    jsonNode = (ObjectNode) mapper.readTree("{\"hash\":\"h\"}");
-    injectDisplayName(jsonNode);
-
-    infoNode = jsonNode.get("info");
-    assertThat(infoNode, is(notNullValue()));
-    assertThat(infoNode.get("format").textValue(), is("unknown"));
-    JsonNode hashNode = infoNode.get("hash");
-    assertThat(hashNode, is(notNullValue()));
-    assertThat(hashNode.get("sha1_20").textValue(), is("h"));
-  }
-
-  @Test
   public void testInjectDisplayName_Maven() throws IOException {
     ObjectMapper mapper = new ObjectMapper();
-    ObjectNode jsonNode = (ObjectNode) mapper.readTree("{\"groupId\":\"g\", \"artifactId\":\"a\", \"version\":\"v\"}");
+    ObjectNode jsonNode = (ObjectNode) mapper.readTree(
+        "{\"componentIdentifier\":{\"format\":\"maven\",\"coordinates\":{\"groupId\":\"g\", \"artifactId\":\"a\", \"version\":\"v\"}}}");
     injectDisplayName(jsonNode);
-    JsonNode infoNode = jsonNode.get("info");
 
-    ArrayNode displayNode = (ArrayNode) infoNode.get("displayName").get("parts");
+    ArrayNode displayNode = (ArrayNode) jsonNode.get("displayName").get("parts");
     assertThat(displayNode, is(notNullValue()));
     assertThat(displayNode.size(), is(5));
     assertThat(displayNode.get(0).get("field").textValue(), is("Group"));
@@ -95,8 +55,8 @@ public class ComponentDisplayNameUtilTest
   @Test
   public void testInjectDisplayName_Nuget() throws IOException {
     ObjectMapper mapper = new ObjectMapper();
-    ObjectNode jsonNode = (ObjectNode) mapper
-        .readTree("{\"info\":{\"format\":\"nuget\"},\"nuget\":{\"packageId\":\"i\",\"version\":\"v\"}}");
+    ObjectNode jsonNode = (ObjectNode) mapper.readTree(
+        "{\"componentIdentifier\":{\"format\":\"nuget\",\"coordinates\":{\"packageId\":\"i\",\"version\":\"v\"}}}");
 
     List<ComponentDisplayNamePart> displayFieldValues = fromJsonNode(jsonNode).parts;
     assertThat(displayFieldValues, is(notNullValue()));
@@ -114,9 +74,8 @@ public class ComponentDisplayNameUtilTest
     ObjectMapper mapper = new ObjectMapper();
     ObjectNode jsonNode = (ObjectNode) mapper.readTree("{\"filenames\":[\"foo.jar\",\"bar.ear\",\"baz.war\"]}");
     injectDisplayName(jsonNode);
-    JsonNode infoNode = jsonNode.get("info");
 
-    ArrayNode displayNode = (ArrayNode) infoNode.get("displayName").get("parts");
+    ArrayNode displayNode = (ArrayNode) jsonNode.get("displayName").get("parts");
     assertThat(displayNode, is(notNullValue()));
     assertThat(displayNode.size(), is(5));
     assertThat(displayNode.get(0).get("field").textValue(), is("Filename"));
@@ -136,9 +95,8 @@ public class ComponentDisplayNameUtilTest
     ObjectMapper mapper = new ObjectMapper();
     ObjectNode jsonNode = (ObjectNode) mapper.readTree("{\"hash\":\"h\"}");
     injectDisplayName(jsonNode);
-    JsonNode infoNode = jsonNode.get("info");
 
-    ArrayNode displayNode = (ArrayNode) infoNode.get("displayName").get("parts");
+    ArrayNode displayNode = (ArrayNode) jsonNode.get("displayName").get("parts");
     assertThat(displayNode, is(notNullValue()));
     assertThat(displayNode.size(), is(2));
     assertThat(displayNode.get(0).get("field"), is(nullValue()));

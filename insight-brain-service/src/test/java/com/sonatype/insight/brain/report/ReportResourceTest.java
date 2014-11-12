@@ -1241,29 +1241,7 @@ public class ReportResourceTest
     for (int i = 0; i < aaData.size(); i++) {
       JsonNode dataNode = aaData.get(i);
 
-      JsonNode infoNode = dataNode.get("info");
-      assertThat(infoNode, is(notNullValue()));
-      assertThat(infoNode.get("format").textValue(), is("maven"));
-
-      JsonNode hashNode = infoNode.get("hash");
-      assertThat(hashNode, is(notNullValue()));
-      assertThat(hashNode.get("sha1_20").textValue(), is(dataNode.get("hash").textValue()));
-
-      ArrayNode originalFileNames = (ArrayNode) dataNode.get("filenames");
-
-      if (originalFileNames != null) {
-        ArrayNode fileNames = (ArrayNode) infoNode.get("filenames");
-        assertThat(fileNames, is(notNullValue()));
-        assertThat(fileNames.size(), is(originalFileNames.size()));
-      }
-
-      JsonNode mavenNode = dataNode.get("maven");
-      assertThat(mavenNode, is(notNullValue()));
-      assertThat(mavenNode.get("groupId").textValue(), is(dataNode.get("groupId").textValue()));
-      assertThat(mavenNode.get("artifactId").textValue(), is(dataNode.get("artifactId").textValue()));
-      assertThat(mavenNode.get("version").textValue(), is(dataNode.get("version").textValue()));
-
-      ArrayNode displayNameNode = (ArrayNode) infoNode.get("displayName").get("parts");
+      ArrayNode displayNameNode = (ArrayNode) dataNode.get("displayName").get("parts");
       assertThat(displayNameNode, is(notNullValue()));
       assertThat(displayNameNode.size(), is(5));
       Assert.assertThat(displayNameNode.get(0).get("field").textValue(), is("Group"));

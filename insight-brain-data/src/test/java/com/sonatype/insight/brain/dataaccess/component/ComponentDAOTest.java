@@ -82,6 +82,13 @@ public class ComponentDAOTest
     assertEquals(new TreeSet<String>(Arrays.asList(expected)), actualNames);
   }
 
+  @SuppressWarnings("deprecation")
+  private void assertGav(MatchedComponent expectedMatchedComponent, Component actualComponent) {
+    assertEquals(expectedMatchedComponent.getGroupId(), actualComponent.getGroupId());
+    assertEquals(expectedMatchedComponent.getArtifactId(), actualComponent.getArtifactId());
+    assertEquals(expectedMatchedComponent.getVersion(), actualComponent.getVersion());
+  }
+
   @Test
   public void testGetComponent() {
     Label appLabel = new Label(applicationId, "red");
@@ -104,9 +111,7 @@ public class ComponentDAOTest
     assertNotNull(component);
     assertEquals(matchedComponent.getHash(), component.getHash());
     assertEquals(matchedComponent.getComponentIdentifier(), component.getComponentIdentifier());
-    assertEquals(matchedComponent.getGroupId(), component.getGroupId());
-    assertEquals(matchedComponent.getArtifactId(), component.getArtifactId());
-    assertEquals(matchedComponent.getVersion(), component.getVersion());
+    assertGav(matchedComponent, component);
     assertEquals(matchedComponent.getMatchState(), component.getMatchState().getId());
     assertEquals(matchedComponent.getCatalogDate(), component.getCatalogDate());
     assertEquals(matchedComponent.getRelativePopularity(), new Integer(component.getRelativePopularity()));

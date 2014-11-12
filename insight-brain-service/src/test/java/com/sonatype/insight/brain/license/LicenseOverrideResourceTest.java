@@ -31,6 +31,7 @@ import com.yammer.dropwizard.testing.JsonHelpers;
 import org.junit.Test;
 
 import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -145,8 +146,7 @@ public class LicenseOverrideResourceTest
     assertEquals(where, logJsonData.get("where").asText());
     BomAudit bomAudit = JsonUtils.asPojo(logJsonData.get("data"), BomAudit.class);
     assertNotNull(bomAudit);
-    assertEquals(expected.getComponentIdentifier(), ComponentIdentifier
-      .createMavenCoordinates(bomAudit.getGroupId(), bomAudit.getArtifactId(), bomAudit.getVersion()));
+    assertThat(expected.getComponentIdentifier(), is(bomAudit.getComponentIdentifier()));
     assertEquals(!isDelete, bomAudit.isModified());
   }
 

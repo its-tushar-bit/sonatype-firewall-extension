@@ -26,14 +26,15 @@ public class DataMigrator
   private final NullHashModifiedMigrator modifiedMigrator;
   private final PolicyDroolsCodeMigrator policyDroolsCodeMigrator;
   private final DashboardFilterAppIdMigrator dashboardFilterAppIdMigrator;
-  private final LicenseOverrideAuditMigrator licenseOverrideAuditMigrator;
+  private final LicenseOverrideAuditGAVMigrator licenseOverrideAuditMigrator;
+  private final BomAuditGAVMigrator bomAuditMigrator;
 
   @Inject
   public DataMigrator(LicenseOverrideMigrator licenseOverrideMigrator, PolicyMigrator policyMigrator,
       PolicyEvaluationMigrator policyEvaluationMigrator, WaivedPolicyViolationMigrator waivedPolicyViolationMigrator,
       ProcureRemovalMigrator procureRemovalMigrator, NullHashModifiedMigrator modifiedMigrator,
       PolicyDroolsCodeMigrator policyDroolsCodeMigrator, DashboardFilterAppIdMigrator dashboardFilterAppIdMigrator,
-      LicenseOverrideAuditMigrator licenseOverrideAuditMigrator)
+      LicenseOverrideAuditGAVMigrator licenseOverrideAuditMigrator, BomAuditGAVMigrator bomAuditMigrator)
   {
     this.licenseOverrideMigrator = licenseOverrideMigrator;
     this.policyMigrator = policyMigrator;
@@ -44,6 +45,7 @@ public class DataMigrator
     this.policyDroolsCodeMigrator = policyDroolsCodeMigrator;
     this.dashboardFilterAppIdMigrator = dashboardFilterAppIdMigrator;
     this.licenseOverrideAuditMigrator = licenseOverrideAuditMigrator;
+    this.bomAuditMigrator = bomAuditMigrator;
   }
 
   /**
@@ -59,5 +61,6 @@ public class DataMigrator
     policyDroolsCodeMigrator.migrate();
     dashboardFilterAppIdMigrator.migrate();
     licenseOverrideAuditMigrator.migrate();
+    bomAuditMigrator.migrate();
   }
 }

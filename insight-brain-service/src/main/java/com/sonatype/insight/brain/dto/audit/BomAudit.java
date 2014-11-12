@@ -6,50 +6,24 @@
 package com.sonatype.insight.brain.dto.audit;
 
 
+import com.sonatype.clm.dto.model.ide.ComponentIdentifier;
+
 /**
  * DTO class for records in the BOM audit logs.
  * 
  * @since 1.6
  */
 public class BomAudit
+  extends Auditable
 {
-  private String groupId;
-  private String artifactId;
-  private String version;
   private boolean modified;
 
   public BomAudit() {
   }
 
-  public BomAudit(String groupId, String artifactId, String version, boolean modified) {
-    this.groupId = groupId;
-    this.artifactId = artifactId;
-    this.version = version;
+  public BomAudit(final ComponentIdentifier componentIdentifier, final boolean modified) {
+    setComponentIdentifier(componentIdentifier);
     this.modified = modified;
-  }
-
-  public String getGroupId() {
-    return groupId;
-  }
-
-  public void setGroupId(String groupId) {
-    this.groupId = groupId;
-  }
-
-  public String getArtifactId() {
-    return artifactId;
-  }
-
-  public void setArtifactId(String artifactId) {
-    this.artifactId = artifactId;
-  }
-
-  public String getVersion() {
-    return version;
-  }
-
-  public void setVersion(String version) {
-    this.version = version;
   }
 
   public boolean isModified() {

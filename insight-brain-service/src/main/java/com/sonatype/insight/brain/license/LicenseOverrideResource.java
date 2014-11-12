@@ -42,10 +42,6 @@ import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.json.store.JsonStore;
 import com.sonatype.insight.json.store.JsonUtils;
 
-import static com.sonatype.clm.dto.model.ide.ComponentIdentifier.MAVEN_GROUP_ID;
-import static com.sonatype.clm.dto.model.ide.ComponentIdentifier.MAVEN_ARTIFACT_ID;
-import static com.sonatype.clm.dto.model.ide.ComponentIdentifier.VERSION;
-
 /**
  * @since 1.6
  */
@@ -111,11 +107,7 @@ public class LicenseOverrideResource
       licenseOverrideAudit.setComment(null);
     }
     store.commit("licenses.json", JsonUtils.stamp(user, ipAddress, where, JsonUtils.asTree(licenseOverrideAudit)));
-
-    String groupId = licenseOverride.getComponentIdentifier().get(MAVEN_GROUP_ID);
-    String artifactId = licenseOverride.getComponentIdentifier().get(MAVEN_ARTIFACT_ID);
-    String version = licenseOverride.getComponentIdentifier().get(VERSION);
-    BomAudit bomAudit = new BomAudit(groupId, artifactId, version, !isDelete /* modified */);
+    BomAudit bomAudit = new BomAudit(licenseOverride.getComponentIdentifier(), !isDelete /* modified */);
     store.commit("bom.json", JsonUtils.stamp(user, ipAddress, where, JsonUtils.asTree(bomAudit)));
   }
 

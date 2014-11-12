@@ -381,6 +381,15 @@ public abstract class AbstractComponentInfoResourceTest
     assertResponseStatus(402, response);
   }
 
+  @SuppressWarnings("deprecation")
+  private void assertGavInComponentDetails(String groupId, String artifactId, String version,
+      ComponentDetails componentDetails)
+  {
+    assertThat(componentDetails.getGroupId(), is(groupId));
+    assertThat(componentDetails.getArtifactId(), is(artifactId));
+    assertThat(componentDetails.getVersion(), is(version));
+  }
+
   @Test
   public void testGetComponentDetailsList() throws Exception {
     // Create an application
@@ -422,9 +431,7 @@ public abstract class AbstractComponentInfoResourceTest
     Assert.assertNotNull(componentDetailsList);
     Assert.assertEquals(2, componentDetailsList.getList().size());
     ComponentDetails componentDetails = componentDetailsList.getList().get(0);
-    Assert.assertEquals(groupId, componentDetails.getGroupId());
-    Assert.assertEquals(artifactId, componentDetails.getArtifactId());
-    Assert.assertEquals(version, componentDetails.getVersion());
+    assertGavInComponentDetails(groupId, artifactId, version, componentDetails);
     Assert.assertEquals(new Integer(9), componentDetails.getLicenseThreatLevel());
     Assert.assertEquals(1, componentDetails.getLicenseThreatGroupNames().size());
     Assert.assertEquals("Group1", componentDetails.getLicenseThreatGroupNames().get(0));
@@ -437,9 +444,7 @@ public abstract class AbstractComponentInfoResourceTest
     Assert.assertEquals("Apache-2.0", componentDetails.getEffectiveLicenses().iterator().next().getLicenseId());
     Assert.assertNull(componentDetails.getEffectiveLicenseStatus());
     componentDetails = componentDetailsList.getList().get(1);
-    Assert.assertEquals(groupId, componentDetails.getGroupId());
-    Assert.assertEquals(artifactId, componentDetails.getArtifactId());
-    Assert.assertEquals("2.0.0", componentDetails.getVersion());
+    assertGavInComponentDetails(groupId, artifactId, "2.0.0", componentDetails);
     Assert.assertEquals(new Integer(1), componentDetails.getLicenseThreatLevel());
     Assert.assertEquals(3, componentDetails.getLicenseThreatGroupNames().size());
     Assert.assertThat(componentDetails.getLicenseThreatGroupNames(), contains("groupA", "Groupb", "GroupC"));
@@ -504,9 +509,7 @@ public abstract class AbstractComponentInfoResourceTest
 
     ComponentDetails componentDetails = fromJson(response, ComponentDetails.class);
     Assert.assertNotNull(componentDetails);
-    Assert.assertEquals(groupId, componentDetails.getGroupId());
-    Assert.assertEquals(artifactId, componentDetails.getArtifactId());
-    Assert.assertEquals(version, componentDetails.getVersion());
+    assertGavInComponentDetails(groupId, artifactId, version, componentDetails);
     List<PolicyAlert> policyAlerts = componentDetails.getPolicyAlerts();
     Assert.assertNotNull(policyAlerts);
     Assert.assertEquals(1, policyAlerts.size());
@@ -606,9 +609,7 @@ public abstract class AbstractComponentInfoResourceTest
 
     ComponentDetails componentDetails = fromJson(response, ComponentDetails.class);
     Assert.assertNotNull(componentDetails);
-    Assert.assertEquals(groupId, componentDetails.getGroupId());
-    Assert.assertEquals(artifactId, componentDetails.getArtifactId());
-    Assert.assertEquals(version, componentDetails.getVersion());
+    assertGavInComponentDetails(groupId, artifactId, version, componentDetails);
     Assert.assertEquals(1, componentDetails.getSecurityVulnerabilities().size());
     Assert.assertEquals("36079", componentDetails.getSecurityVulnerabilities().get(0).getRefId());
     Assert.assertEquals("osvdb", componentDetails.getSecurityVulnerabilities().get(0).getSource());
@@ -642,9 +643,7 @@ public abstract class AbstractComponentInfoResourceTest
 
     ComponentDetails componentDetails = fromJson(response, ComponentDetails.class);
     Assert.assertNotNull(componentDetails);
-    Assert.assertEquals(groupId, componentDetails.getGroupId());
-    Assert.assertEquals(artifactId, componentDetails.getArtifactId());
-    Assert.assertEquals(version, componentDetails.getVersion());
+    assertGavInComponentDetails(groupId, artifactId, version, componentDetails);
     List<PolicyAlert> policyAlerts = componentDetails.getPolicyAlerts();
     Assert.assertNotNull(policyAlerts);
     Assert.assertEquals(1, policyAlerts.size());
@@ -657,9 +656,7 @@ public abstract class AbstractComponentInfoResourceTest
 
     componentDetails = fromJson(response, ComponentDetails.class);
     Assert.assertNotNull(componentDetails);
-    Assert.assertEquals("", componentDetails.getGroupId());
-    Assert.assertEquals("", componentDetails.getArtifactId());
-    Assert.assertEquals("", componentDetails.getVersion());
+    assertGavInComponentDetails("", "", "", componentDetails);
     policyAlerts = componentDetails.getPolicyAlerts();
     Assert.assertNotNull(policyAlerts);
     Assert.assertEquals(1, policyAlerts.size());
@@ -683,9 +680,7 @@ public abstract class AbstractComponentInfoResourceTest
 
     ComponentDetails componentDetails = fromJson(response, ComponentDetails.class);
     Assert.assertNotNull(componentDetails);
-    Assert.assertEquals(groupId, componentDetails.getGroupId());
-    Assert.assertEquals(artifactId, componentDetails.getArtifactId());
-    Assert.assertEquals(version, componentDetails.getVersion());
+    assertGavInComponentDetails(groupId, artifactId, version, componentDetails);
   }
 
   @Test
@@ -714,9 +709,7 @@ public abstract class AbstractComponentInfoResourceTest
 
     ComponentDetails componentDetails = fromJson(response, ComponentDetails.class);
     Assert.assertNotNull(componentDetails);
-    Assert.assertEquals(groupId, componentDetails.getGroupId());
-    Assert.assertEquals(artifactId, componentDetails.getArtifactId());
-    Assert.assertEquals(version, componentDetails.getVersion());
+    assertGavInComponentDetails(groupId, artifactId, version, componentDetails);
     List<PolicyAlert> policyAlerts = componentDetails.getPolicyAlerts();
     Assert.assertNotNull(policyAlerts);
     Assert.assertEquals(1, policyAlerts.size());
@@ -728,9 +721,7 @@ public abstract class AbstractComponentInfoResourceTest
     assertResponseStatus(200, response);
     componentDetails = fromJson(response, ComponentDetails.class);
     Assert.assertNotNull(componentDetails);
-    Assert.assertEquals(groupId, componentDetails.getGroupId());
-    Assert.assertEquals(artifactId, componentDetails.getArtifactId());
-    Assert.assertEquals(version, componentDetails.getVersion());
+    assertGavInComponentDetails(groupId, artifactId, version, componentDetails);
     policyAlerts = componentDetails.getPolicyAlerts();
     Assert.assertNotNull(policyAlerts);
     Assert.assertEquals(0, policyAlerts.size());
@@ -762,9 +753,7 @@ public abstract class AbstractComponentInfoResourceTest
     ComponentDetails componentDetails = fromJson(response, ComponentDetails.class);
     Assert.assertNotNull(componentDetails);
     Assert.assertEquals(hash, componentDetails.getHash());
-    Assert.assertEquals(groupId, componentDetails.getGroupId());
-    Assert.assertEquals(artifactId, componentDetails.getArtifactId());
-    Assert.assertEquals(version, componentDetails.getVersion());
+    assertGavInComponentDetails(groupId, artifactId, version, componentDetails);
     Assert.assertEquals(MatchState.SIMILAR.getId(), componentDetails.getMatchState());
     Assert.assertEquals(IdentificationSource.SONATYPE.getId(), componentDetails.getIdentificationSource());
     List<PolicyAlert> policyAlerts = componentDetails.getPolicyAlerts();
@@ -784,9 +773,7 @@ public abstract class AbstractComponentInfoResourceTest
     componentDetails = fromJson(response, ComponentDetails.class);
     Assert.assertNotNull(componentDetails);
     Assert.assertEquals(hash, componentDetails.getHash());
-    Assert.assertEquals("Claimed" + groupId, componentDetails.getGroupId());
-    Assert.assertEquals("Claimed" + artifactId, componentDetails.getArtifactId());
-    Assert.assertEquals("Claimed" + version, componentDetails.getVersion());
+    assertGavInComponentDetails("Claimed" + groupId, "Claimed" + artifactId, "Claimed" + version, componentDetails);
     Assert.assertEquals(MatchState.EXACT.getId(), componentDetails.getMatchState());
     Assert.assertEquals(IdentificationSource.MANUAL.getId(), componentDetails.getIdentificationSource());
     Assert.assertEquals("ClaimedComment", componentDetails.getIdentificationSourceComment());
@@ -838,9 +825,7 @@ public abstract class AbstractComponentInfoResourceTest
     ComponentDetails componentDetails = fromJson(response, ComponentDetails.class);
     Assert.assertThat(componentDetails, is(notNullValue()));
     Assert.assertThat(componentDetails.getHash(), is(hash));
-    Assert.assertThat(componentDetails.getGroupId(), is(groupId));
-    Assert.assertThat(componentDetails.getArtifactId(), is(artifactId));
-    Assert.assertThat(componentDetails.getVersion(), is(version));
+    assertGavInComponentDetails(groupId, artifactId, version, componentDetails);
     Assert.assertThat(componentDetails.getMatchState(), is(MatchState.SIMILAR.getId()));
     Assert.assertThat(componentDetails.getIdentificationSource(), is(IdentificationSource.SONATYPE.getId()));
     List<PolicyAlert> policyAlerts = componentDetails.getPolicyAlerts();

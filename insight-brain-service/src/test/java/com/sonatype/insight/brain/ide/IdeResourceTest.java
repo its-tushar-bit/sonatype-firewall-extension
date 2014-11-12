@@ -54,6 +54,7 @@ import org.junit.Test;
 
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.junit.Assert.assertThat;
 
 public class IdeResourceTest
     extends AbstractResourceTest
@@ -93,9 +94,7 @@ public class IdeResourceTest
         IdeMatchedComponent.class);
     Assert.assertEquals(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", null, "jar"),
         ideMatchedComponent.getComponentIdentifier());
-    Assert.assertEquals("g1", ideMatchedComponent.getGroupId());
-    Assert.assertEquals("a1", ideMatchedComponent.getArtifactId());
-    Assert.assertEquals("v1", ideMatchedComponent.getVersion());
+    assertGavInIdeMatchedComponent("g1", "a1", "v1", ideMatchedComponent);
     Assert.assertEquals("abababababababababab", ideMatchedComponent.getHash());
     Assert.assertEquals("exact", ideMatchedComponent.getMatchState());
     Assert.assertEquals(IdentificationSource.SONATYPE.getId(), ideMatchedComponent.getIdentificationSource());
@@ -130,10 +129,7 @@ public class IdeResourceTest
     IdeMatchedComponent ideMatchedComponent = JsonHelpers.fromJson(response.getResponseBody(),
         IdeMatchedComponent.class);
     Assert.assertEquals(componentIdentifier, ideMatchedComponent.getComponentIdentifier());
-    Assert.assertEquals(componentIdentifier.get(ComponentIdentifier.MAVEN_GROUP_ID), ideMatchedComponent.getGroupId());
-    Assert.assertEquals(componentIdentifier.get(ComponentIdentifier.MAVEN_ARTIFACT_ID),
-        ideMatchedComponent.getArtifactId());
-    Assert.assertEquals(componentIdentifier.get(ComponentIdentifier.VERSION), ideMatchedComponent.getVersion());
+    assertGavInIdeMatchedComponent("g1", "a1", "v1", ideMatchedComponent);
     Assert.assertEquals("abababababababababab", ideMatchedComponent.getHash());
     Assert.assertEquals("exact", ideMatchedComponent.getMatchState());
     Assert.assertEquals(IdentificationSource.SONATYPE.getId(), ideMatchedComponent.getIdentificationSource());
@@ -173,9 +169,7 @@ public class IdeResourceTest
     ideMatchedComponent = JsonHelpers.fromJson(response.getResponseBody(), IdeMatchedComponent.class);
     Assert.assertEquals(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", null, "jar"),
         ideMatchedComponent.getComponentIdentifier());
-    Assert.assertEquals("g1", ideMatchedComponent.getGroupId());
-    Assert.assertEquals("a1", ideMatchedComponent.getArtifactId());
-    Assert.assertEquals("v1", ideMatchedComponent.getVersion());
+    assertGavInIdeMatchedComponent("g1", "a1", "v1", ideMatchedComponent);
     Assert.assertEquals("abababababababababab", ideMatchedComponent.getHash());
     Assert.assertEquals("exact", ideMatchedComponent.getMatchState());
     Assert.assertEquals(IdentificationSource.SONATYPE.getId(), ideMatchedComponent.getIdentificationSource());
@@ -216,10 +210,7 @@ public class IdeResourceTest
     assertResponseStatus(200, response);
     ideMatchedComponent = JsonHelpers.fromJson(response.getResponseBody(), IdeMatchedComponent.class);
     Assert.assertEquals(componentIdentifier, ideMatchedComponent.getComponentIdentifier());
-    Assert.assertEquals(componentIdentifier.get(ComponentIdentifier.MAVEN_GROUP_ID), ideMatchedComponent.getGroupId());
-    Assert.assertEquals(componentIdentifier.get(ComponentIdentifier.MAVEN_ARTIFACT_ID),
-        ideMatchedComponent.getArtifactId());
-    Assert.assertEquals(componentIdentifier.get(ComponentIdentifier.VERSION), ideMatchedComponent.getVersion());
+    assertGavInIdeMatchedComponent("g1", "a1", "v1", ideMatchedComponent);
     Assert.assertEquals("abababababababababab", ideMatchedComponent.getHash());
     Assert.assertEquals("exact", ideMatchedComponent.getMatchState());
     Assert.assertEquals(IdentificationSource.SONATYPE.getId(), ideMatchedComponent.getIdentificationSource());
@@ -253,9 +244,7 @@ public class IdeResourceTest
         IdeMatchedComponent.class);
     Assert.assertEquals(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", null, "jar"),
         ideMatchedComponent.getComponentIdentifier());
-    Assert.assertEquals("g1", ideMatchedComponent.getGroupId());
-    Assert.assertEquals("a1", ideMatchedComponent.getArtifactId());
-    Assert.assertEquals("v1", ideMatchedComponent.getVersion());
+    assertGavInIdeMatchedComponent("g1", "a1", "v1", ideMatchedComponent);
     Assert.assertEquals("abababababababababab", ideMatchedComponent.getHash());
     Assert.assertEquals("exact", ideMatchedComponent.getMatchState());
     Assert.assertTrue(ideMatchedComponent.isSimpleMatch());
@@ -272,9 +261,7 @@ public class IdeResourceTest
     ideMatchedComponent = JsonHelpers.fromJson(response.getResponseBody(), IdeMatchedComponent.class);
     Assert.assertEquals(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", null, "jar"),
         ideMatchedComponent.getComponentIdentifier());
-    Assert.assertEquals("g1", ideMatchedComponent.getGroupId());
-    Assert.assertEquals("a1", ideMatchedComponent.getArtifactId());
-    Assert.assertEquals("v1", ideMatchedComponent.getVersion());
+    assertGavInIdeMatchedComponent("g1", "a1", "v1", ideMatchedComponent);
     Assert.assertEquals("abababababababababab", ideMatchedComponent.getHash());
     Assert.assertEquals("exact", ideMatchedComponent.getMatchState());
     Assert.assertTrue(ideMatchedComponent.isSimpleMatch());
@@ -309,9 +296,7 @@ public class IdeResourceTest
         IdeMatchedComponent.class);
     Assert.assertEquals(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", null, "jar"),
         ideMatchedComponent.getComponentIdentifier());
-    Assert.assertEquals("g1", ideMatchedComponent.getGroupId());
-    Assert.assertEquals("a1", ideMatchedComponent.getArtifactId());
-    Assert.assertEquals("v1", ideMatchedComponent.getVersion());
+    assertGavInIdeMatchedComponent("g1", "a1", "v1", ideMatchedComponent);
     Assert.assertEquals("abababababababababab", ideMatchedComponent.getHash());
     Assert.assertEquals("exact", ideMatchedComponent.getMatchState());
     Assert.assertTrue(ideMatchedComponent.isSimpleMatch());
@@ -328,9 +313,7 @@ public class IdeResourceTest
     ideMatchedComponent = JsonHelpers.fromJson(response.getResponseBody(), IdeMatchedComponent.class);
     Assert.assertEquals(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", null, "jar"),
         ideMatchedComponent.getComponentIdentifier());
-    Assert.assertEquals("g1", ideMatchedComponent.getGroupId());
-    Assert.assertEquals("a1", ideMatchedComponent.getArtifactId());
-    Assert.assertEquals("v1", ideMatchedComponent.getVersion());
+    assertGavInIdeMatchedComponent("g1", "a1", "v1", ideMatchedComponent);
     Assert.assertEquals("abababababababababab", ideMatchedComponent.getHash());
     Assert.assertEquals("exact", ideMatchedComponent.getMatchState());
     Assert.assertTrue(ideMatchedComponent.isSimpleMatch());
@@ -365,9 +348,7 @@ public class IdeResourceTest
         IdeMatchedComponent.class);
     Assert.assertEquals(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", null, "jar"),
         ideMatchedComponent.getComponentIdentifier());
-    Assert.assertEquals("g1", ideMatchedComponent.getGroupId());
-    Assert.assertEquals("a1", ideMatchedComponent.getArtifactId());
-    Assert.assertEquals("v1", ideMatchedComponent.getVersion());
+    assertGavInIdeMatchedComponent("g1", "a1", "v1", ideMatchedComponent);
     Assert.assertEquals("abababababababababab", ideMatchedComponent.getHash());
     Assert.assertEquals("exact", ideMatchedComponent.getMatchState());
     Assert.assertTrue(ideMatchedComponent.isSimpleMatch());
@@ -383,9 +364,7 @@ public class IdeResourceTest
     ideMatchedComponent = JsonHelpers.fromJson(response.getResponseBody(), IdeMatchedComponent.class);
     Assert.assertEquals(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", null, "jar"),
         ideMatchedComponent.getComponentIdentifier());
-    Assert.assertEquals("g1", ideMatchedComponent.getGroupId());
-    Assert.assertEquals("a1", ideMatchedComponent.getArtifactId());
-    Assert.assertEquals("v1", ideMatchedComponent.getVersion());
+    assertGavInIdeMatchedComponent("g1", "a1", "v1", ideMatchedComponent);
     Assert.assertEquals("abababababababababab", ideMatchedComponent.getHash());
     Assert.assertEquals("exact", ideMatchedComponent.getMatchState());
     Assert.assertTrue(ideMatchedComponent.isSimpleMatch());
@@ -400,9 +379,7 @@ public class IdeResourceTest
     ideMatchedComponent = JsonHelpers.fromJson(response.getResponseBody(), IdeMatchedComponent.class);
     Assert.assertEquals(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", null, "jar"),
         ideMatchedComponent.getComponentIdentifier());
-    Assert.assertEquals("g1", ideMatchedComponent.getGroupId());
-    Assert.assertEquals("a1", ideMatchedComponent.getArtifactId());
-    Assert.assertEquals("v1", ideMatchedComponent.getVersion());
+    assertGavInIdeMatchedComponent("g1", "a1", "v1", ideMatchedComponent);
     Assert.assertEquals("abababababababababab", ideMatchedComponent.getHash());
     Assert.assertEquals("exact", ideMatchedComponent.getMatchState());
     Assert.assertTrue(ideMatchedComponent.isSimpleMatch());
@@ -435,9 +412,7 @@ public class IdeResourceTest
         IdeMatchedComponent.class);
     Assert.assertEquals(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", null, "jar"),
         ideMatchedComponent.getComponentIdentifier());
-    Assert.assertEquals("g1", ideMatchedComponent.getGroupId());
-    Assert.assertEquals("a1", ideMatchedComponent.getArtifactId());
-    Assert.assertEquals("v1", ideMatchedComponent.getVersion());
+    assertGavInIdeMatchedComponent("g1", "a1", "v1", ideMatchedComponent);
     Assert.assertEquals("abababababababababab", ideMatchedComponent.getHash());
     Assert.assertEquals("exact", ideMatchedComponent.getMatchState());
     Assert.assertTrue(ideMatchedComponent.isSimpleMatch());
@@ -583,9 +558,7 @@ public class IdeResourceTest
         IdeMatchedComponent.class);
     Assert.assertEquals(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", null, "jar"),
         ideMatchedComponent.getComponentIdentifier());
-    Assert.assertEquals("g1", ideMatchedComponent.getGroupId());
-    Assert.assertEquals("a1", ideMatchedComponent.getArtifactId());
-    Assert.assertEquals("v1", ideMatchedComponent.getVersion());
+    assertGavInIdeMatchedComponent("g1", "a1", "v1", ideMatchedComponent);
     Assert.assertEquals("abababababababababab", ideMatchedComponent.getHash());
     Assert.assertEquals("exact", ideMatchedComponent.getMatchState());
     Assert.assertTrue(ideMatchedComponent.isSimpleMatch());
@@ -601,9 +574,7 @@ public class IdeResourceTest
     ideMatchedComponent = JsonHelpers.fromJson(response.getResponseBody(), IdeMatchedComponent.class);
     Assert.assertEquals(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", null, "jar"),
         ideMatchedComponent.getComponentIdentifier());
-    Assert.assertEquals("g1", ideMatchedComponent.getGroupId());
-    Assert.assertEquals("a1", ideMatchedComponent.getArtifactId());
-    Assert.assertEquals("v1", ideMatchedComponent.getVersion());
+    assertGavInIdeMatchedComponent("g1", "a1", "v1", ideMatchedComponent);
     Assert.assertEquals("abababababababababab", ideMatchedComponent.getHash());
     Assert.assertEquals("exact", ideMatchedComponent.getMatchState());
     Assert.assertTrue(ideMatchedComponent.isSimpleMatch());
@@ -619,9 +590,7 @@ public class IdeResourceTest
     ideMatchedComponent = JsonHelpers.fromJson(response.getResponseBody(), IdeMatchedComponent.class);
     Assert.assertEquals(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", null, "jar"),
         ideMatchedComponent.getComponentIdentifier());
-    Assert.assertEquals("g1", ideMatchedComponent.getGroupId());
-    Assert.assertEquals("a1", ideMatchedComponent.getArtifactId());
-    Assert.assertEquals("v1", ideMatchedComponent.getVersion());
+    assertGavInIdeMatchedComponent("g1", "a1", "v1", ideMatchedComponent);
     Assert.assertEquals("abababababababababab", ideMatchedComponent.getHash());
     Assert.assertEquals("exact", ideMatchedComponent.getMatchState());
     Assert.assertTrue(ideMatchedComponent.isSimpleMatch());
@@ -668,9 +637,7 @@ public class IdeResourceTest
         IdeMatchedComponent.class);
     Assert.assertEquals(ComponentIdentifier.createMavenCoordinates(groupId, artifactId, version),
         ideMatchedComponent.getComponentIdentifier());
-    Assert.assertEquals(groupId, ideMatchedComponent.getGroupId());
-    Assert.assertEquals(artifactId, ideMatchedComponent.getArtifactId());
-    Assert.assertEquals(version, ideMatchedComponent.getVersion());
+    assertGavInIdeMatchedComponent(groupId, artifactId, version, ideMatchedComponent);
     Assert.assertEquals(hash, ideMatchedComponent.getHash());
     Assert.assertEquals(MatchState.EXACT.getId(), ideMatchedComponent.getMatchState());
     Assert.assertEquals(IdentificationSource.MANUAL.getId(), ideMatchedComponent.getIdentificationSource());
@@ -721,9 +688,7 @@ public class IdeResourceTest
         IdeMatchedComponent.class);
     Assert.assertEquals(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", null, "jar"),
         ideMatchedComponent.getComponentIdentifier());
-    Assert.assertThat(ideMatchedComponent.getGroupId(), is("g1"));
-    Assert.assertThat(ideMatchedComponent.getArtifactId(), is("a1"));
-    Assert.assertThat(ideMatchedComponent.getVersion(), is("v1"));
+    assertGavInIdeMatchedComponent("g1", "a1", "v1", ideMatchedComponent);
     Assert.assertThat(ideMatchedComponent.getHash(), is(hash));
     Assert.assertThat(ideMatchedComponent.getMatchState(), is("exact"));
     Assert.assertThat(ideMatchedComponent.getIdentificationSource(), is(IdentificationSource.SONATYPE.getId()));
@@ -866,5 +831,14 @@ public class IdeResourceTest
       }
     }
     return buffer.toString();
+  }
+
+  @SuppressWarnings("deprecation")
+  private void assertGavInIdeMatchedComponent(String groupId, String artifactId, String version,
+      IdeMatchedComponent ideMatchedComponent)
+  {
+    assertThat(ideMatchedComponent.getGroupId(), is(groupId));
+    assertThat(ideMatchedComponent.getArtifactId(), is(artifactId));
+    assertThat(ideMatchedComponent.getVersion(), is(version));
   }
 }

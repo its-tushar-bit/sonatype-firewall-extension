@@ -10,7 +10,7 @@ import java.io.IOException;
 import java.util.List;
 
 import com.sonatype.clm.dto.model.SecurityVulnerability;
-import com.sonatype.clm.dto.model.ide.ComponentIdentifier;
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.json.store.JsonUtils;
 

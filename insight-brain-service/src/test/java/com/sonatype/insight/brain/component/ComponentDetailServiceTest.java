@@ -11,7 +11,7 @@ import java.util.List;
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentDisplayNamePart;
-import com.sonatype.clm.dto.model.ide.ComponentIdentifier;
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.component.ApplicationComponentDetailsDTO.PolicyViolationSummaryDTO;
 import com.sonatype.insight.brain.component.ApplicationComponentDetailsDTO.PolicyViolationSummaryDTO.ReasonDTO;
 import com.sonatype.insight.brain.dashboard.StageDetailDTO;
@@ -32,7 +32,6 @@ import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.junit.Test;
-
 import static com.sonatype.insight.brain.component.DisplayFieldValueAssertionUtil.assertDisplayFieldValue;
 import static com.sonatype.insight.brain.component.DisplayFieldValueAssertionUtil.assertDisplayFieldValuesForGAV;
 import static org.hamcrest.MatcherAssert.assertThat;

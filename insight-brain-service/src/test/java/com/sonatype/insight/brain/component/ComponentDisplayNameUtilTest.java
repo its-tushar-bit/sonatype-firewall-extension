@@ -10,7 +10,7 @@ import java.util.List;
 
 import com.sonatype.clm.dto.model.component.ComponentDisplayName;
 import com.sonatype.clm.dto.model.component.ComponentDisplayNamePart;
-import com.sonatype.clm.dto.model.ide.ComponentIdentifier;
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ComponentFact;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 
@@ -18,7 +18,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.Test;
-
 import static com.sonatype.insight.brain.component.ComponentDisplayNameUtil.fromJsonNode;
 import static com.sonatype.insight.brain.component.ComponentDisplayNameUtil.fromPolicyViolation;
 import static com.sonatype.insight.brain.component.ComponentDisplayNameUtil.injectDisplayName;

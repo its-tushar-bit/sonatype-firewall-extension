@@ -16,9 +16,9 @@ import javax.ws.rs.core.UriBuilder;
 
 import com.sonatype.clm.dto.model.License;
 import com.sonatype.clm.dto.model.SecurityVulnerability;
-import com.sonatype.clm.dto.model.ide.ComponentDetails;
-import com.sonatype.clm.dto.model.ide.ComponentDetailsList;
-import com.sonatype.clm.dto.model.ide.ComponentIdentifier;
+import com.sonatype.clm.dto.model.component.ComponentDetails;
+import com.sonatype.clm.dto.model.component.ComponentDetailsList;
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.ide.LicenseStatus;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
@@ -51,15 +51,15 @@ import com.sonatype.insight.brain.saas.AbstractComponentInfoResource.LicenseWith
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.mock.UriParamRequestMatcher;
 
+import static com.sonatype.clm.dto.model.component.ComponentIdentifier.MAVEN_ARTIFACT_ID;
+import static com.sonatype.clm.dto.model.component.ComponentIdentifier.MAVEN_GROUP_ID;
+import static com.sonatype.clm.dto.model.component.ComponentIdentifier.VERSION;
+
 import com.ning.http.client.Response;
 import org.eclipse.jetty.util.UrlEncoded;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-
-import static com.sonatype.clm.dto.model.ide.ComponentIdentifier.MAVEN_ARTIFACT_ID;
-import static com.sonatype.clm.dto.model.ide.ComponentIdentifier.MAVEN_GROUP_ID;
-import static com.sonatype.clm.dto.model.ide.ComponentIdentifier.VERSION;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.hasSize;

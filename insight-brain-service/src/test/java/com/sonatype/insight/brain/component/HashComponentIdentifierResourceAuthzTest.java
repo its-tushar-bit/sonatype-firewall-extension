@@ -6,7 +6,7 @@
 package com.sonatype.insight.brain.component;
 
 import com.sonatype.clm.dto.model.ComponentSummary;
-import com.sonatype.clm.dto.model.ide.ComponentIdentifier;
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.component.HashComponentIdentifierDAO;
 import com.sonatype.insight.brain.model.component.HashComponentIdentifier;
 import com.sonatype.insight.brain.service.AbstractResourceAuthzTest;

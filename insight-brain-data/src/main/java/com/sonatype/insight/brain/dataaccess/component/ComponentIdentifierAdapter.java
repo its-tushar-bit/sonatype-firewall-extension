@@ -10,16 +10,16 @@ import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import com.sonatype.clm.dto.model.ide.ComponentIdentifier;
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.json.store.JsonUtils;
+
+import static com.sonatype.clm.dto.model.component.ComponentIdentifier.MAVEN_ARTIFACT_ID;
+import static com.sonatype.clm.dto.model.component.ComponentIdentifier.MAVEN_GROUP_ID;
+import static com.sonatype.clm.dto.model.component.ComponentIdentifier.VERSION;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Strings;
-
-import static com.sonatype.clm.dto.model.ide.ComponentIdentifier.MAVEN_ARTIFACT_ID;
-import static com.sonatype.clm.dto.model.ide.ComponentIdentifier.MAVEN_GROUP_ID;
-import static com.sonatype.clm.dto.model.ide.ComponentIdentifier.VERSION;
 
 /**
  * Provides utility methods for extracting ComponentIdentifier details from JSON.

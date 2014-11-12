@@ -6,7 +6,7 @@
 package com.sonatype.insight.brain.dto.audit;
 
 
-import com.sonatype.clm.dto.model.ide.ComponentIdentifier;
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 
 /**
  * DTO class for records in the BOM audit logs.

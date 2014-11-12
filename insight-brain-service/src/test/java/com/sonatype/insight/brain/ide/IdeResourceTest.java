@@ -12,7 +12,7 @@ import java.util.Date;
 import java.util.List;
 
 import com.sonatype.clm.dto.model.SecurityVulnerability;
-import com.sonatype.clm.dto.model.ide.ComponentIdentifier;
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.ide.IdeMatchedComponent;
 import com.sonatype.clm.dto.model.ide.MatchedComponent;
 import com.sonatype.clm.dto.model.ide.ScannedComponent;
@@ -51,7 +51,6 @@ import com.ning.http.client.Response;
 import com.yammer.dropwizard.testing.JsonHelpers;
 import org.junit.Assert;
 import org.junit.Test;
-
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertThat;

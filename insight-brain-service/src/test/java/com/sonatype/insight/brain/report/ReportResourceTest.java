@@ -28,9 +28,9 @@ import java.util.zip.ZipFile;
 import javax.mail.Message;
 
 import com.sonatype.clm.dto.model.ComponentSummary;
-import com.sonatype.clm.dto.model.ide.ComponentDetails;
-import com.sonatype.clm.dto.model.ide.ComponentDetailsList;
-import com.sonatype.clm.dto.model.ide.ComponentIdentifier;
+import com.sonatype.clm.dto.model.component.ComponentDetails;
+import com.sonatype.clm.dto.model.component.ComponentDetailsList;
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.AuthedRestAccess;
@@ -78,7 +78,6 @@ import org.codehaus.plexus.util.io.RawInputStreamFacade;
 import org.junit.Assert;
 import org.junit.Test;
 import org.jvnet.mock_javamail.Mailbox;
-
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;

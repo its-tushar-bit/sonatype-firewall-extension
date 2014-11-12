@@ -7,9 +7,9 @@ package com.sonatype.insight.brain.saas;
 
 import java.util.Collections;
 
-import com.sonatype.clm.dto.model.ide.ComponentDetails;
-import com.sonatype.clm.dto.model.ide.ComponentDetailsList;
-import com.sonatype.clm.dto.model.ide.ComponentIdentifier;
+import com.sonatype.clm.dto.model.component.ComponentDetails;
+import com.sonatype.clm.dto.model.component.ComponentDetailsList;
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.service.AbstractResourceAuthzTest;
 import com.sonatype.insight.mock.UriParamRequestMatcher;
 

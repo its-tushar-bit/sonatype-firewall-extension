@@ -8,17 +8,17 @@ package com.sonatype.insight.brain.dataaccess.component;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.component.InvalidComponentIdentifierException;
-import com.sonatype.clm.dto.model.ide.ComponentIdentifier;
+
+import static com.sonatype.clm.dto.model.component.ComponentIdentifier.MAVEN_ARTIFACT_ID;
+import static com.sonatype.clm.dto.model.component.ComponentIdentifier.MAVEN_GROUP_ID;
+import static com.sonatype.clm.dto.model.component.ComponentIdentifier.VERSION;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.Test;
-
-import static com.sonatype.clm.dto.model.ide.ComponentIdentifier.MAVEN_ARTIFACT_ID;
-import static com.sonatype.clm.dto.model.ide.ComponentIdentifier.MAVEN_GROUP_ID;
-import static com.sonatype.clm.dto.model.ide.ComponentIdentifier.VERSION;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;

@@ -5,7 +5,7 @@
  */
 package com.sonatype.insight.brain.testing.functional
 
-import com.sonatype.clm.dto.model.ide.ComponentIdentifier
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Stage
 import com.sonatype.insight.brain.dashboard.DashboardFilterDTO
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO
@@ -32,7 +32,6 @@ import com.sonatype.insight.brain.testing.functional.report.violation.ReportCont
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.codehaus.plexus.util.FileUtils
-
 import static spock.util.matcher.HamcrestMatchers.closeTo
 import static spock.util.matcher.HamcrestSupport.that
 

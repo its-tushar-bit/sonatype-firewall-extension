@@ -9,11 +9,10 @@ import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
-import com.sonatype.clm.dto.model.ide.ComponentIdentifier;
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 
 import com.google.common.collect.Lists;
 import org.junit.Test;
-
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;

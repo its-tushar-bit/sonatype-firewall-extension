@@ -15,7 +15,7 @@ import java.util.Set;
 
 import javax.inject.Inject;
 
-import com.sonatype.clm.dto.model.ide.ComponentIdentifier;
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.TestProductLicenseManager;
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatCategoryFilter;
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatLevelFilter;
@@ -48,7 +48,6 @@ import com.google.common.collect.Sets;
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Test;
-
 import static com.sonatype.insight.brain.component.DisplayFieldValueAssertionUtil.assertDisplayFieldValues;
 import static com.sonatype.insight.brain.dashboard.PolicyViolationDTOTestUtils.assertPolicyViolationDTO;
 import static org.hamcrest.Matchers.hasSize;

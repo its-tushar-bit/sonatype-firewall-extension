@@ -5,7 +5,7 @@
  */
 package com.sonatype.insight.brain.dto.audit;
 
-import com.sonatype.clm.dto.model.ide.ComponentIdentifier;
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 
 /**
  * @since 1.13.0

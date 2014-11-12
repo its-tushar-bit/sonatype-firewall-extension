@@ -16,13 +16,13 @@ import java.util.Set;
 
 import com.sonatype.clm.dto.model.component.ComponentDisplayName;
 import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
-import com.sonatype.clm.dto.model.ide.ComponentIdentifier;
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import static com.sonatype.clm.dto.model.component.ComponentIdentifier.*;
 
-import static com.sonatype.clm.dto.model.ide.ComponentIdentifier.*;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 public class Component
 {

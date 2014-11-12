@@ -8,7 +8,7 @@ package com.sonatype.insight.brain.component;
 import java.util.List;
 
 import com.sonatype.clm.dto.model.component.ComponentDisplayNamePart;
-import com.sonatype.clm.dto.model.ide.ComponentIdentifier;
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 
 import static com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil.GAV_SEPARATOR;

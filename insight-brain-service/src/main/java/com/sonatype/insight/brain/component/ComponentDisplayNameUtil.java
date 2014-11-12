@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.sonatype.clm.dto.model.component.ComponentDisplayName;
-import com.sonatype.clm.dto.model.ide.ComponentIdentifier;
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ComponentFact;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;

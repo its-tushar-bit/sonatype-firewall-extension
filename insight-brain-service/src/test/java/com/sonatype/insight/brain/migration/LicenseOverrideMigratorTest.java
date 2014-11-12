@@ -9,7 +9,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 
-import com.sonatype.clm.dto.model.ide.ComponentIdentifier;
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.DummyLicenseDataUpdater;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.license.LicenseDataUpdater;

@@ -7,7 +7,7 @@ package com.sonatype.insight.brain.api;
 
 import java.util.Date;
 
-import com.sonatype.clm.dto.model.ide.ComponentIdentifier;
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.AuthedRestAccess;
 import com.sonatype.insight.brain.api.dto.ApiApplicationViolationDTO;
 import com.sonatype.insight.brain.api.dto.ApiApplicationViolationListDTO;
@@ -26,7 +26,6 @@ import com.ning.http.client.Response;
 import com.yammer.dropwizard.testing.JsonHelpers;
 import org.hamcrest.CoreMatchers;
 import org.junit.Test;
-
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.core.Is.is;

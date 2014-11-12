@@ -16,7 +16,7 @@ import java.util.Map;
 import javax.ws.rs.core.UriBuilder;
 
 import com.sonatype.clm.dto.model.ComponentSummary;
-import com.sonatype.clm.dto.model.ide.ComponentIdentifier;
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.AuthedRestAccess;
 import com.sonatype.insight.brain.TestLicenseFingerprinter;
 import com.sonatype.insight.brain.TestProductLicenseManager;
@@ -44,7 +44,6 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.rules.TestName;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 

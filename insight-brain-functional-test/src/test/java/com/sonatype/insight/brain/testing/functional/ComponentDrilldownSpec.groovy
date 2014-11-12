@@ -5,7 +5,7 @@
  */
 package com.sonatype.insight.brain.testing.functional
 
-import com.sonatype.clm.dto.model.ide.ComponentIdentifier
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.model.Application
 import com.sonatype.insight.brain.model.ApplicationComponent
 import com.sonatype.insight.brain.model.Organization

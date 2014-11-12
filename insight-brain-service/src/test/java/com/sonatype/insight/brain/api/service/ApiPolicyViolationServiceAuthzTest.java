@@ -8,7 +8,7 @@ package com.sonatype.insight.brain.api.service;
 import java.util.Date;
 import java.util.Set;
 
-import com.sonatype.clm.dto.model.ide.ComponentIdentifier;
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.api.dto.ApiApplicationViolationDTO;
 import com.sonatype.insight.brain.api.dto.ApiApplicationViolationListDTO;
 import com.sonatype.insight.brain.api.dto.ApiConstraintViolationDTO;
@@ -26,7 +26,6 @@ import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 import org.junit.Before;
 import org.junit.Test;
-
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;

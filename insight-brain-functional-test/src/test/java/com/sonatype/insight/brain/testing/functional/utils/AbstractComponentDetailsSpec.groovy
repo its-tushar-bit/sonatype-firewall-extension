@@ -5,9 +5,9 @@
  */
 package com.sonatype.insight.brain.testing.functional.utils
 
-import com.sonatype.clm.dto.model.ide.ComponentDetails
-import com.sonatype.clm.dto.model.ide.ComponentDetailsList
-import com.sonatype.clm.dto.model.ide.ComponentIdentifier
+import com.sonatype.clm.dto.model.component.ComponentDetails;
+import com.sonatype.clm.dto.model.component.ComponentDetailsList;
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.model.policy.Condition
 import com.sonatype.insight.brain.model.policy.Constraint
 import com.sonatype.insight.brain.model.policy.Policy

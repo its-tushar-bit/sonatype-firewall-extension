@@ -7,7 +7,7 @@ package com.sonatype.insight.brain.dashboard;
 
 import java.util.List;
 
-import com.sonatype.clm.dto.model.ide.ComponentIdentifier;
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 
 /**

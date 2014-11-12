@@ -325,6 +325,18 @@ public class PolicyEvaluationMigrator
     }
   }
 
+  @SuppressWarnings("deprecation")
+  private ComponentIdentifier toComponentIdentifier(ComponentFact componentFact) {
+    // The componentFact was deserialized from json and it doesn't have a componentIdentifier.
+    // We need to create one based on the legacy GAV fields.
+    if (componentFact.getGroupId() == null) {
+      return null;
+    }
+
+    return ComponentIdentifier.createMavenCoordinates(componentFact.getGroupId(),
+          componentFact.getArtifactId(), componentFact.getVersion());
+  }
+
   private void savePolicyAlerts(final EntityManager em, final PolicyEvaluation evaluation,
       final List<PolicyAlert> policyAlerts, final Map<String, List<PolicyViolation>> policyViolationsByEvaluationCache,
       final Map<String, List<String>> hashToPathnames)
@@ -342,11 +354,7 @@ public class PolicyEvaluationMigrator
 
         List<String> pathnames = hashToPathnames.get(componentFact.getHash());
 
-        ComponentIdentifier componentIdentifier = null;
-        if (componentFact.getGroupId() != null) {
-          componentIdentifier = ComponentIdentifier.createMavenCoordinates(componentFact.getGroupId(),
-              componentFact.getArtifactId(), componentFact.getVersion());
-        }
+        ComponentIdentifier componentIdentifier = toComponentIdentifier(componentFact);
         PolicyViolation policyViolation = new PolicyViolation(evaluation, policyFact.getPolicyId(),
             policyFact.getPolicyName(), policyFact.getThreatLevel(), threatCategory, componentFact.getHash(),
             componentIdentifier, componentFact.getConstraintFacts(), pathnames);
@@ -383,12 +391,10 @@ public class PolicyEvaluationMigrator
       if (component.getHash() == null) {
         continue;
       }
-      // TODO Use agnostic coordinates CLM-3665.
-      ComponentIdentifier componentIdentifier = (component.getGroupId() != null ? ComponentIdentifier
-          .createMavenCoordinates(component.getGroupId(), component.getArtifactId(), component.getVersion()) : null);
       ApplicationComponent applicationComponent = new ApplicationComponent(appId, stageTypeId,
-          policyEvaluation.getTime(), component.getHash(), componentIdentifier, component.getMatchState().getId(),
-          component.getIdentificationSource().getId(), component.isProprietary(), component.getPathnames());
+          policyEvaluation.getTime(), component.getHash(), component.getComponentIdentifier(), component
+              .getMatchState().getId(), component.getIdentificationSource().getId(), component.isProprietary(),
+          component.getPathnames());
       applicationComponentDAO.insert(em, applicationComponent);
     }
   }

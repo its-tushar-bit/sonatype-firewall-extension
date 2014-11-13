@@ -26,6 +26,7 @@ public class LicenseOverrideAuditMigratorTest
     extends AbstractAuditMigratorTest
 {
 
+  @Override
   protected void verifyAuditHistory(JsonStore auditStore) throws IOException {
     ArrayNode aaData = (ArrayNode) auditStore.history(null, getAuditFileName()).get(
         "aaData");

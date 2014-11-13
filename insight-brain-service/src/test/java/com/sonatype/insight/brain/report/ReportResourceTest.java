@@ -78,6 +78,7 @@ import org.codehaus.plexus.util.io.RawInputStreamFacade;
 import org.junit.Assert;
 import org.junit.Test;
 import org.jvnet.mock_javamail.Mailbox;
+
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -1135,9 +1136,7 @@ public class ReportResourceTest
         ComponentDetails details = JsonUtils.parse(
             zip.getInputStream(zip.getEntry("data/cip/details/f0776db1593e215146d2.json")), ComponentDetails.class);
         assertThat(details.getMatchState(), is("exact"));
-        assertThat(details.getGroupId(), is(componentIdentifier.get(ComponentIdentifier.MAVEN_GROUP_ID)));
-        assertThat(details.getArtifactId(), is(componentIdentifier.get(ComponentIdentifier.MAVEN_ARTIFACT_ID)));
-        assertThat(details.getVersion(), is(componentIdentifier.get(ComponentIdentifier.VERSION)));
+        assertComponentIdentifier(details, claimedComponent.getComponentIdentifier());
         assertThat(details.getComponentIdentifier(), is(claimedComponent.getComponentIdentifier()));
         assertThat(details.getCatalogDate(), is(claimedComponent.getCreateTimeLong()));
         assertThat(details.getOverriddenLicenses(), hasSize(1));
@@ -1174,6 +1173,14 @@ public class ReportResourceTest
         assertThat(details.getLicenseThreatLevel(), is(2));
       }
     }
+  }
+
+  @SuppressWarnings("deprecation")
+  private void assertComponentIdentifier(ComponentDetails actual, ComponentIdentifier expected) {
+    assertThat(actual.getComponentIdentifier(), is(expected));
+    assertThat(actual.getGroupId(), is(expected.get(ComponentIdentifier.MAVEN_GROUP_ID)));
+    assertThat(actual.getArtifactId(), is(expected.get(ComponentIdentifier.MAVEN_ARTIFACT_ID)));
+    assertThat(actual.getVersion(), is(expected.get(ComponentIdentifier.VERSION)));
   }
 
   @Test
@@ -1224,10 +1231,7 @@ public class ReportResourceTest
         ComponentDetails details = JsonUtils.parse(
             zip.getInputStream(zip.getEntry("data/cip/details/f0776db1593e215146d2.json")), ComponentDetails.class);
         assertThat(details.getMatchState(), is("exact"));
-        assertThat(details.getGroupId(), is(componentIdentifier.get(ComponentIdentifier.MAVEN_GROUP_ID)));
-        assertThat(details.getArtifactId(), is(componentIdentifier.get(ComponentIdentifier.MAVEN_ARTIFACT_ID)));
-        assertThat(details.getVersion(), is(componentIdentifier.get(ComponentIdentifier.VERSION)));
-        assertThat(details.getComponentIdentifier(), is(claimedComponent.getComponentIdentifier()));
+        assertComponentIdentifier(details, claimedComponent.getComponentIdentifier());
         assertThat(details.getCatalogDate(), is(claimedComponent.getCreateTimeLong()));
         assertThat(details.getOverriddenLicenses(), hasSize(1));
         assertThat(details.getOverriddenLicenses().iterator().next().getLicenseId(), is(licenseOverride.getLicenseId()));

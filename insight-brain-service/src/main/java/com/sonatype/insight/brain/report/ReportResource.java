@@ -335,13 +335,14 @@ public class ReportResource
 
             if (!cipListPath.isEmpty()
                 && IdentificationSource.MANUAL.getId().equals(clmDetails.getIdentificationSource())) {
-              String listPath;
+              String listPath = cipListPath;
               if (dataVersion >= 1) {
-                listPath = cipListPath + toCipDataPath(clmDetails.getComponentIdentifier()) + "/list.json";
+                listPath += toDataPath(clmDetails.getComponentIdentifier()) + "/list.json";
               }
               else {
-                listPath = cipListPath + clmDetails.getGroupId() + "/" + clmDetails.getArtifactId() + "/"
-                    + clmDetails.getVersion() + ".json";
+                listPath += toLegacyDataPath(clmDetails.getGroupId(), clmDetails.getArtifactId(),
+                    clmDetails.getVersion())
+                    + ".json";
               }
               if (reportZip.getEntry(listPath) == null && !updater.contains(dataPath + listPath)) {
                 // CIP expects this to be an empty (!) array for every GAV but the HDS doesn't know about claimed
@@ -370,7 +371,7 @@ public class ReportResource
     return response.build();
   }
 
-  private String toCipDataPath(ComponentIdentifier componentIdentifier) {
+  private String toDataPath(ComponentIdentifier componentIdentifier) {
     StringBuilder buffer = new StringBuilder();
     buffer.append(componentIdentifier.getFormat());
     for (Map.Entry<String, String> entry : componentIdentifier.getCoordinates().entrySet()) {
@@ -380,6 +381,10 @@ public class ReportResource
     return buffer.toString();
   }
 
+  private String toLegacyDataPath(String groupId, String artifactId, String version) {
+    return groupId + '/' + artifactId + '/' + version;
+  }
+
   private void addUniqueComponentsToUpdater(final String applicationPublicId, final String scanId,
       final String dataPath, final List<ReportData.Component> components, final ReportBundleUpdater updater)
       throws IOException
@@ -387,8 +392,8 @@ public class ReportResource
     for (ReportData.Component component : components) {
       ReportData.Coordinates gav = component.mavenCoordinates;
       if (gav != null) {
-        final String imagePath = dataPath + "release-graph/" + gav.groupId + "/" + gav.artifactId + "/" + gav.version
-            + ".png";
+        final String imagePath = dataPath + "release-graph/"
+            + toLegacyDataPath(gav.groupId, gav.artifactId, gav.version) + ".png";
         if (!updater.contains(imagePath)) {
           byte[] imageData = releaseGraphService.getImage(applicationPublicId, scanId, gav.groupId, gav.artifactId,
               gav.version);

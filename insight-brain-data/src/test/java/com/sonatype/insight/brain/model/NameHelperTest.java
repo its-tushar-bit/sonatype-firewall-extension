@@ -97,9 +97,6 @@ public class NameHelperTest
   }
 }
 
-/**
- * Matches exception messages.
- */
 class ExceptionMessageMatcher
     extends TypeSafeMatcher<Exception>
 {

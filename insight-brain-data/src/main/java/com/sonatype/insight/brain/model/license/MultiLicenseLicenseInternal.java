@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.model.license;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -52,11 +53,7 @@ public class MultiLicenseLicenseInternal
         return false;
       }
       ID that = (ID) obj;
-      return eq(multiLicenseId, that.multiLicenseId) && eq(licenseId, that.licenseId);
-    }
-
-    private static <T> boolean eq(T obj1, T obj2) {
-      return (obj1 == null) ? obj2 == null : obj1.equals(obj2);
+      return Objects.equals(multiLicenseId, that.multiLicenseId) && Objects.equals(licenseId, that.licenseId);
     }
 
     @Override

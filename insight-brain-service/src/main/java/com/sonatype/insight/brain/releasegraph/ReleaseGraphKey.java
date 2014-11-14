@@ -47,8 +47,8 @@ public class ReleaseGraphKey
       return false;
     }
     ReleaseGraphKey that = (ReleaseGraphKey) obj;
-    return eq(reportKey, that.reportKey) && eq(artifactId, that.artifactId) && eq(groupId, that.groupId)
-        && eq(version, that.version);
+    return Objects.equals(reportKey, that.reportKey) && Objects.equals(artifactId, that.artifactId)
+        && Objects.equals(groupId, that.groupId) && Objects.equals(version, that.version);
   }
 
   public ReportItemKey getReportItemKey() {
@@ -61,10 +61,6 @@ public class ReleaseGraphKey
         Objects.equals(groupId, component.getComponentIdentifier().get(ComponentIdentifier.MAVEN_GROUP_ID)) &&
         Objects.equals(artifactId, component.getComponentIdentifier().get(ComponentIdentifier.MAVEN_ARTIFACT_ID)) &&
         Objects.equals(version, component.getComponentIdentifier().get(ComponentIdentifier.VERSION));
-  }
-
-  private static <T> boolean eq(T o1, T o2) {
-    return (o1 != null) ? o1.equals(o2) : o2 == null;
   }
 
   public String getGAV() {

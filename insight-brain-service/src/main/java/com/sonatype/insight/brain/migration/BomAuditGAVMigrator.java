@@ -31,6 +31,6 @@ public class BomAuditGAVMigrator
 
   @Override
   protected String getMarkerFilename() {
-    return "bomaudit-migrated";
+    return "bomauditgav-migrated";
   }
 }

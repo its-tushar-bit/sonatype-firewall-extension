@@ -31,6 +31,6 @@ public class LicenseOverrideAuditGAVMigrator
 
   @Override
   protected String getMarkerFilename() {
-    return "licenseoverrideaudit-migrated";
+    return "licenseoverrideauditgav-migrated";
   }
 }

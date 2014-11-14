@@ -58,14 +58,7 @@ public class MultiLicenseLicenseInternal
 
     @Override
     public int hashCode() {
-      int result = 1;
-      result = 31 * result + hash(multiLicenseId);
-      result = 31 * result + hash(licenseId);
-      return result;
-    }
-
-    private static int hash(Object obj) {
-      return (obj == null) ? 0 : obj.hashCode();
+      return Objects.hash(multiLicenseId, licenseId);
     }
   }
 

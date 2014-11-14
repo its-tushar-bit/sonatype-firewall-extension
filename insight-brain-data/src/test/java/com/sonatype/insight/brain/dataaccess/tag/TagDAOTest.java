@@ -15,6 +15,7 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.NameHelper;
+import com.sonatype.insight.brain.model.NameHelperTest;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.tag.ApplicationTag;
@@ -134,7 +135,7 @@ public class TagDAOTest
   @Test
   public void testValidateNameInvalidChars_Insert() {
     Tag tag = new Tag(organization.getId(), "name", "description", Color.yellow);
-    for (String name : INVALID_ALPHANUMERIC) {
+    for (String name : NameHelperTest.INVALID_ALPHANUMERIC) {
       tag.setName(name);
       try {
         dao.insert(tag);
@@ -150,7 +151,7 @@ public class TagDAOTest
   public void testValidateNameInvalidChars_Update() {
     Tag tag = new Tag(organization.getId(), "name", "description", Color.yellow);
     dao.insert(tag);
-    for (String name: INVALID_ALPHANUMERIC) {
+    for (String name: NameHelperTest.INVALID_ALPHANUMERIC) {
       tag.setName(name);
       try {
         dao.update(tag);
@@ -165,7 +166,7 @@ public class TagDAOTest
   @Test
   public void testValidateNameSpaces_Insert() {
     Tag tag = new Tag(organization.getId(), "name", "description", Color.yellow);
-    for (String name : INVALID_SPACING_NAMES) {
+    for (String name : NameHelperTest.INVALID_SPACING_NAMES) {
       tag.setName(name);
       try {
         dao.insert(tag);
@@ -183,7 +184,7 @@ public class TagDAOTest
     Tag tag = new Tag(organization.getId(), "name", "description", Color.yellow);
     dao.insert(tag);
 
-    for (String name : INVALID_SPACING_NAMES) {
+    for (String name : NameHelperTest.INVALID_SPACING_NAMES) {
       tag.setName(name);
       try {
         dao.update(tag);

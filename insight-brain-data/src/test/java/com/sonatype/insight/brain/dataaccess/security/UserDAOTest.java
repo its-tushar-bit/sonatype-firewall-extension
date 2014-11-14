@@ -12,6 +12,7 @@ import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.dataaccess.filter.DashboardFilterDAO;
 import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.NameHelper;
+import com.sonatype.insight.brain.model.NameHelperTest;
 import com.sonatype.insight.brain.model.filter.DashboardFilter;
 import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
@@ -202,7 +203,7 @@ public class UserDAOTest
 
   @Test
   public void testValidateUsernameInvalidChars_Insert() {
-    for (String username : INVALID_ALPHANUMERIC) {
+    for (String username : NameHelperTest.INVALID_ALPHANUMERIC) {
       try {
         createUser(username);
         fail("Expected InvalidNameException");
@@ -216,7 +217,7 @@ public class UserDAOTest
   @Test
   public void testValidateUsernameInvalidChars_Update() {
     User user = createUser("testValidateUsernameInvalidChars");
-    for (String username : INVALID_ALPHANUMERIC) {
+    for (String username : NameHelperTest.INVALID_ALPHANUMERIC) {
       user.setUsername(username);
       try {
         new UserDAO().update(user);

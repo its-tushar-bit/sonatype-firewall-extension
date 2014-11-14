@@ -17,6 +17,16 @@ import static org.junit.Assert.fail;
 
 public class NameHelperTest
 {
+  /**
+   * A sample of characters not allowed.
+   */
+  public static final String[] INVALID_ALPHANUMERIC = { "!", "@", "#", "$", "%", "^", "&", "*", "(", "_", "+" };
+
+  public static final String[] INVALID_SPACING_NAMES = {
+      " leading space", "trailing space ", " leading and trailing space ",
+      "double  space", "  starts with double space", "ends with double space  "
+  };
+
   @Test
   public void validateNameCanNotBeBlank() throws Exception {
     verifyNameRequired(null);
@@ -41,20 +51,18 @@ public class NameHelperTest
 
   @Test
   public void validateNameCanNotHaveSpecialCharacters() throws Exception {
-    // A small sample of characters not allowed
-    verifyNameHasBadCharacter(".");
-    verifyNameHasBadCharacter("*");
-    verifyNameHasBadCharacter("/");
-    verifyNameHasBadCharacter("_");
+    for (String name: NameHelperTest.INVALID_ALPHANUMERIC) {
+      verifyNameHasBadCharacter(name);
+    }
+
     verifyNameHasBadCharacter("tab\tspace");  // maybe should be a whitespace validation error
   }
 
   @Test
   public void validateInvalidWhitespaceForName() {
-    verifyNameHasBadWhitespace(" leading");
-    verifyNameHasBadWhitespace("trailing ");
-    verifyNameHasBadWhitespace(" leading-and-trailing ");
-    verifyNameHasBadWhitespace("double  space");
+    for (String name: NameHelperTest.INVALID_SPACING_NAMES) {
+      verifyNameHasBadWhitespace(name);
+    }
   }
 
   private void verifyNameHasBadWhitespace(String name) {

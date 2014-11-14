@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.dataaccess.license;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.NameHelper;
+import com.sonatype.insight.brain.model.NameHelperTest;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroupLicense;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -403,7 +404,7 @@ public class LicenseThreatGroupDAOTest
   @Test
   public void testValidateNameInvalidChars_Insert() {
     LicenseThreatGroupDAO dao = new LicenseThreatGroupDAO();
-    for (String name: INVALID_ALPHANUMERIC) {
+    for (String name: NameHelperTest.INVALID_ALPHANUMERIC) {
       LicenseThreatGroup group = new LicenseThreatGroup(applicationId, name, 5);
       try {
         dao.insert(group);
@@ -420,7 +421,7 @@ public class LicenseThreatGroupDAOTest
     LicenseThreatGroupDAO dao = new LicenseThreatGroupDAO();
     LicenseThreatGroup group = new LicenseThreatGroup(applicationId, "testValidateNameInvalidChars", 5);
     dao.insert(group);
-    for (String name: INVALID_ALPHANUMERIC) {
+    for (String name: NameHelperTest.INVALID_ALPHANUMERIC) {
       group.setName(name);
       try {
         dao.update(group);
@@ -435,7 +436,7 @@ public class LicenseThreatGroupDAOTest
   @Test
   public void testValidateNameSpaces_Insert() {
     LicenseThreatGroupDAO dao = new LicenseThreatGroupDAO();
-    for (String name : INVALID_SPACING_NAMES) {
+    for (String name : NameHelperTest.INVALID_SPACING_NAMES) {
       LicenseThreatGroup group = new LicenseThreatGroup(applicationId, name, 5);
       try {
         dao.insert(group);
@@ -454,7 +455,7 @@ public class LicenseThreatGroupDAOTest
     LicenseThreatGroup group = new LicenseThreatGroup(applicationId, "testValidateNameSpaces", 5);
     dao.insert(group);
 
-    for (String name : INVALID_SPACING_NAMES) {
+    for (String name : NameHelperTest.INVALID_SPACING_NAMES) {
       group.setName(name);
       try {
         dao.update(group);

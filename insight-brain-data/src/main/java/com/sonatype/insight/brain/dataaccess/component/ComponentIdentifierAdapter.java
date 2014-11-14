@@ -7,19 +7,20 @@ package com.sonatype.insight.brain.dataaccess.component;
 
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.SortedMap;
+import java.util.TreeMap;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.json.store.JsonUtils;
 
-import static com.sonatype.clm.dto.model.component.ComponentIdentifier.MAVEN_ARTIFACT_ID;
-import static com.sonatype.clm.dto.model.component.ComponentIdentifier.MAVEN_GROUP_ID;
-import static com.sonatype.clm.dto.model.component.ComponentIdentifier.VERSION;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Strings;
+
+import static com.sonatype.clm.dto.model.component.ComponentIdentifier.MAVEN_ARTIFACT_ID;
+import static com.sonatype.clm.dto.model.component.ComponentIdentifier.MAVEN_GROUP_ID;
+import static com.sonatype.clm.dto.model.component.ComponentIdentifier.VERSION;
 
 /**
  * Provides utility methods for extracting ComponentIdentifier details from JSON.
@@ -80,10 +81,11 @@ public class ComponentIdentifierAdapter
 
   /**
    * Returns a map of coordinates that contains only maven GAV coordinates (no classifier or extension).
-   * The result is ordered, hence the LinkedHashMap instead of Map.
+   * The result is ordered alphabetically by keys, hence the SortedMap instead of Map. (It must match the ordering of
+   * coordinates in {@link ComponentIdentifier}.)
    */
-  public static LinkedHashMap<String, String> toGavOnlyCoordinates(final Map<String, String> coordinates) {
-    LinkedHashMap<String, String> gavCoordinates = new LinkedHashMap<>();
+  public static SortedMap<String, String> toGavOnlyCoordinates(final Map<String, String> coordinates) {
+    TreeMap<String, String> gavCoordinates = new TreeMap<>();
     gavCoordinates.put(MAVEN_GROUP_ID, coordinates.get(MAVEN_GROUP_ID));
     gavCoordinates.put(MAVEN_ARTIFACT_ID, coordinates.get(MAVEN_ARTIFACT_ID));
     gavCoordinates.put(VERSION, coordinates.get(VERSION));

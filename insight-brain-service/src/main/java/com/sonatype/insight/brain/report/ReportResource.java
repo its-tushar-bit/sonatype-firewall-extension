@@ -15,7 +15,6 @@ import java.util.Enumeration;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-import java.util.TreeMap;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -374,7 +373,7 @@ public class ReportResource
   private String toCipDataPath(ComponentIdentifier componentIdentifier) {
     StringBuilder buffer = new StringBuilder();
     buffer.append(componentIdentifier.getFormat());
-    for (Map.Entry<String, String> entry : new TreeMap<>(componentIdentifier.getCoordinates()).entrySet()) {
+    for (Map.Entry<String, String> entry : componentIdentifier.getCoordinates().entrySet()) {
       buffer.append('/').append(entry.getKey());
       buffer.append('=').append(entry.getValue());
     }

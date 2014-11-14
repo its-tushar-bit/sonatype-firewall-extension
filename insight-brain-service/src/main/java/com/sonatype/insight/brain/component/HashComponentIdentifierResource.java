@@ -21,6 +21,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
 import com.sonatype.clm.dto.model.ComponentSummary;
+import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.component.HashComponentIdentifierDAO;
 import com.sonatype.insight.brain.model.component.HashComponentIdentifier;
@@ -118,7 +119,8 @@ public class HashComponentIdentifierResource
     ComponentSummary componentSummary = getComponentSummary(hashComponentIdentifier.getComponentIdentifier());
 
     if (componentSummary.isKnown()) {
-      throw new BadRequestException("The '" + hashComponentIdentifier.getComponentIdentifier()
+      throw new BadRequestException("The '"
+          + ComponentDisplayNameUtil.fromIdentifier(hashComponentIdentifier.getComponentIdentifier())
           + "' coordinates are already in use.");
     }
   }

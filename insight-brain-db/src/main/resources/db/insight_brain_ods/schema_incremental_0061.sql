@@ -8,7 +8,7 @@ ALTER TABLE application_component ADD COLUMN (
 
 UPDATE application_component SET
   component_id_format='maven',
-  component_id_coordinates_json='{"groupId":"' || STRINGENCODE(group_id) || '","artifactId":"' || STRINGENCODE(artifact_id) || '","version":"' || STRINGENCODE(version) || '"}'
+  component_id_coordinates_json='{"artifactId":"' || STRINGENCODE(artifact_id) || '","groupId":"' || STRINGENCODE(group_id) || '","version":"' || STRINGENCODE(version) || '"}'
   WHERE group_id IS NOT NULL;
 
 ALTER TABLE application_component DROP COLUMN group_id;

@@ -13,7 +13,7 @@ public class ReportPopularity
 
   private long lastCatalog;
 
-  private List<GAVPopularity> popularity;
+  private List<ComponentPopularity> popularity;
 
   public long getFirstCatalog() {
     return firstCatalog;
@@ -23,7 +23,7 @@ public class ReportPopularity
     return lastCatalog;
   }
 
-  public List<GAVPopularity> getPopularity() {
+  public List<ComponentPopularity> getPopularity() {
     return popularity;
   }
 
@@ -35,7 +35,7 @@ public class ReportPopularity
     this.lastCatalog = lastCatalog;
   }
 
-  public void setPopularity(List<GAVPopularity> popularity) {
+  public void setPopularity(List<ComponentPopularity> popularity) {
     this.popularity = popularity;
   }
 }

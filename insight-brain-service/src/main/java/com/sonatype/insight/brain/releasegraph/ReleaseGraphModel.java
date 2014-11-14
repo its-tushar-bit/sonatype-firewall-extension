@@ -10,7 +10,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
-import com.sonatype.insight.brain.model.GAVPopularity;
+import com.sonatype.insight.brain.model.ComponentPopularity;
 
 public class ReleaseGraphModel
 {
@@ -54,7 +54,7 @@ public class ReleaseGraphModel
   /*
    * Slots should be >=3
    */
-  public static ReleaseGraphModel build(GAVPopularity model, long startTime, long endTime, int slots) {
+  public static ReleaseGraphModel build(ComponentPopularity model, long startTime, long endTime, int slots) {
     final long period = endTime - startTime + 1;
     final double minDiff = ((double) period) / slots;
     int[] slotIndices = new int[slots];

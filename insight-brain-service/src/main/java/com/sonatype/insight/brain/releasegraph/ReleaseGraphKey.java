@@ -5,7 +5,10 @@
  */
 package com.sonatype.insight.brain.releasegraph;
 
-import com.sonatype.insight.brain.model.GAVPopularity;
+import java.util.Objects;
+
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.brain.model.ComponentPopularity;
 
 public class ReleaseGraphKey
 {
@@ -52,8 +55,12 @@ public class ReleaseGraphKey
     return reportKey;
   }
 
-  boolean isMatch(GAVPopularity gav) {
-    return eq(artifactId, gav.getArtifactId()) && eq(groupId, gav.getGroupId()) && eq(version, gav.getVersion());
+  boolean isMatch(ComponentPopularity component) {
+    return component.getComponentIdentifier() != null &&
+        component.getComponentIdentifier().isMaven() &&
+        Objects.equals(groupId, component.getComponentIdentifier().get(ComponentIdentifier.MAVEN_GROUP_ID)) &&
+        Objects.equals(artifactId, component.getComponentIdentifier().get(ComponentIdentifier.MAVEN_ARTIFACT_ID)) &&
+        Objects.equals(version, component.getComponentIdentifier().get(ComponentIdentifier.VERSION));
   }
 
   private static <T> boolean eq(T o1, T o2) {

@@ -10,7 +10,7 @@ import java.util.concurrent.TimeUnit;
 import javax.inject.Inject;
 import javax.inject.Named;
 
-import com.sonatype.insight.brain.model.GAVPopularity;
+import com.sonatype.insight.brain.model.ComponentPopularity;
 import com.sonatype.insight.brain.model.ReportPopularity;
 
 import com.google.common.cache.CacheBuilder;
@@ -35,7 +35,7 @@ public class ReleaseGraphCacheLoader
   @Override
   public byte[] load(ReleaseGraphKey key) throws Exception {
     ReportPopularity reportPopularity = cache.get(key.getReportItemKey());
-    for (GAVPopularity pop : reportPopularity.getPopularity()) {
+    for (ComponentPopularity pop : reportPopularity.getPopularity()) {
       if (key.isMatch(pop)) {
         ReleaseGraph graph = new ReleaseGraph(ReleaseGraphModel.build(pop, reportPopularity.getFirstCatalog(),
             reportPopularity.getLastCatalog(), ReleaseGraphModel.SLOTS), ReleaseGraphModel.SLOTS);

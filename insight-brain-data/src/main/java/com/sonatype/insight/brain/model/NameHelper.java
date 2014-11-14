@@ -28,12 +28,6 @@ public class NameHelper
     return (name1 != null) ? normalize(name1).equals(normalize(name2)) : name2 == null;
   }
 
-  /**
-   * Checks that a name meets the validation constraints.
-   *
-   * @param name the value to validate
-   * @throws InvalidNameException if the value fails to meet validation constraints
-   */
   public static void validate(String name) throws InvalidNameException {
     validate("Name", name);
   }

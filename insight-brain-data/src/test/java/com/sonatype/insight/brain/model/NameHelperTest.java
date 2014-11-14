@@ -15,7 +15,7 @@ import static com.sonatype.insight.brain.model.ExceptionMessageMatcher.hasMessag
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.fail;
 
-public class NameHelperValidationTest
+public class NameHelperTest
 {
   @Test
   public void validateNameCanNotBeBlank() throws Exception {

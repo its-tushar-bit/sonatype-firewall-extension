@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.testing.functional
 
+import com.sonatype.clm.dto.model.component.ComponentIdentifier
 import com.sonatype.insight.brain.model.Application
 import com.sonatype.insight.brain.model.Organization
 import com.sonatype.insight.brain.model.policy.Policy
@@ -37,9 +38,14 @@ extends BaseSpec {
 
   static final List<Map> COMPONENTS = (1..10).inject([]) { List<Map> components, int index ->
     components << [
-      groupId   : "group-$index",
-      artifactId: "artifact-$index",
-      version   : index.toString(),
+      componentIdentifier: [
+        format: "maven",
+        coordinates: [
+          groupId   : "group-$index".toString(),
+          artifactId: "artifact-$index".toString(),
+          version   : index.toString()
+        ]
+      ],
       hash      : index.toString(),
       pathnames : "pathname-$index"
     ]
@@ -250,8 +256,8 @@ extends BaseSpec {
   private void createViolations(PolicyEvaluation evaluation, List<Map> components) {
     components.each { Map component ->
       temporaryEntity.
-          newPolicyViolation(evaluation, policy, component.groupId, component.artifactId, component.version,
-          component.hash, '')
+          newPolicyViolation(evaluation, policy, (ComponentIdentifier) component.componentIdentifier, component.hash,
+              '')
     }
   }
 
@@ -262,8 +268,8 @@ extends BaseSpec {
         waiver = temporaryEntity.newWaiver(component.hash, policy.id, app.id)
         existingWaivers.add(waiver)
       }
-      temporaryEntity.newWaivedPolicyViolation(evaluation, policy, component.groupId, component.artifactId,
-          component.version, component.hash, waiver)
+      temporaryEntity.newWaivedPolicyViolation(evaluation, policy, (ComponentIdentifier) component.componentIdentifier,
+          component.hash, waiver)
     }
   }
 

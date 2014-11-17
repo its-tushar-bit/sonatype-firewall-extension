@@ -348,6 +348,7 @@ public final class Report
         ComponentIdentifier componentIdentifier = hashComponentIdentifier.getComponentIdentifier();
         bomObjectNode.put("componentIdentifier", JsonUtils.asTree(componentIdentifier));
         if (componentIdentifier.isMaven()) {
+          // reports generated before 1.13.0 still require separate GAV fields
           bomObjectNode.put("groupId", componentIdentifier.get(ComponentIdentifier.MAVEN_GROUP_ID));
           bomObjectNode.put("artifactId", componentIdentifier.get(ComponentIdentifier.MAVEN_ARTIFACT_ID));
           bomObjectNode.put("version", componentIdentifier.get(ComponentIdentifier.VERSION));
@@ -386,10 +387,6 @@ public final class Report
     while (iterLicenseData.hasNext()) {
       ObjectNode licenseJsonNode = (ObjectNode) iterLicenseData.next();
 
-      String groupId = licenseJsonNode.get("groupId").asText();
-      String artifactId = licenseJsonNode.get("artifactId").asText();
-      String version = licenseJsonNode.get("version").asText();
-
       ComponentIdentifier componentIdentifier = ComponentIdentifierAdapter.getComponentIdentifier(licenseJsonNode);
       ComponentDisplayNameUtil.injectDisplayName(licenseJsonNode);
 
@@ -398,8 +395,7 @@ public final class Report
         iterLicenseData.remove();
       }
       else {
-        LicenseOverride licenseOverride = getLicenseOverride(application, licenseOverrideDAO,
-            ComponentIdentifier.createMavenCoordinates(groupId, artifactId, version));
+        LicenseOverride licenseOverride = getLicenseOverride(application, licenseOverrideDAO, componentIdentifier);
         if (licenseOverride != null) {
           licenseJsonNode.put("status", licenseOverride.getStatus().getName());
           if (licenseOverride.getLicenseId() != null) {
@@ -421,7 +417,9 @@ public final class Report
         ObjectNode licenseJsonNode = licensesAaData.addObject();
         licenseJsonNode.put("hash", hashComponentIdentifier.getHash());
         ComponentIdentifier componentIdentifier = hashComponentIdentifier.getComponentIdentifier();
+        licenseJsonNode.put("componentIdentifier", JsonUtils.asTree(componentIdentifier));
         if (componentIdentifier.isMaven()) {
+          // reports generated before 1.13.0 still require separate GAV fields
           licenseJsonNode.put("groupId", componentIdentifier.get(ComponentIdentifier.MAVEN_GROUP_ID));
           licenseJsonNode.put("artifactId", componentIdentifier.get(ComponentIdentifier.MAVEN_ARTIFACT_ID));
           licenseJsonNode.put("version", componentIdentifier.get(ComponentIdentifier.VERSION));

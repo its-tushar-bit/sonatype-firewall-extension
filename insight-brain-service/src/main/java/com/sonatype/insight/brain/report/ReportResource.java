@@ -463,9 +463,7 @@ public class ReportResource
    * @since 1.6
    */
   private void saveLicenseOverride(String appId, JsonNode licenseData) {
-    String groupId = licenseData.get("groupId").asText();
-    String artifactId = licenseData.get("artifactId").asText();
-    String version = licenseData.get("version").asText();
+    ComponentIdentifier componentIdentifier = ComponentIdentifierAdapter.getComponentIdentifier(licenseData);
     String statusName = licenseData.get("status").asText();
 
     String licenseOverrideId = null;
@@ -481,11 +479,9 @@ public class ReportResource
     String comment = JsonUtils.getNullableString(licenseData.get("comment"));
 
     LicenseOverrideDAO licenseOverrideDAO = new LicenseOverrideDAO();
-    LicenseOverride licenseOverride = licenseOverrideDAO.getByOwnerIdAndComponentIdentifier(appId,
-      ComponentIdentifier.createMavenCoordinates(groupId, artifactId, version));
+    LicenseOverride licenseOverride = licenseOverrideDAO.getByOwnerIdAndComponentIdentifier(appId, componentIdentifier);
     if (licenseOverride == null) {
-      licenseOverride = new LicenseOverride(appId, ComponentIdentifier.createMavenCoordinates(groupId, artifactId,
-        version), status, licenseOverrideId, comment);
+      licenseOverride = new LicenseOverride(appId, componentIdentifier, status, licenseOverrideId, comment);
       licenseOverrideDAO.insert(licenseOverride);
     }
     else {

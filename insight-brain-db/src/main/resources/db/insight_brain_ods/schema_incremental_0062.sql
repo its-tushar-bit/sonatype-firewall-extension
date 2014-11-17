@@ -9,7 +9,7 @@ ALTER TABLE license_override ADD COLUMN (
 
 UPDATE license_override SET
   component_id_format='maven',
-  component_id_coordinates_json='{"groupId":"' || STRINGENCODE(group_id) || '","artifactId":"' || STRINGENCODE(artifact_id) || '","version":"' || STRINGENCODE(version) || '"}';
+  component_id_coordinates_json='{"artifactId":"' || STRINGENCODE(artifact_id) || '","groupId":"' || STRINGENCODE(group_id) || '","version":"' || STRINGENCODE(version) || '"}';
 
 ALTER TABLE license_override
   ALTER COLUMN component_id_format varchar(10) NOT NULL;

@@ -13,6 +13,7 @@ import com.sonatype.insight.brain.model.component.HashComponentIdentifier;
 import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.junit.Test;
+
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.isEmptyOrNullString;
 import static org.junit.Assert.assertEquals;
@@ -103,7 +104,7 @@ public class HashComponentIdentifierDAOTest
       fail("Expected BadRequestException");
     }
     catch (BadRequestException expected) {
-      assertEquals("This component is already mapped to 'maven: {groupId=g1, artifactId=a1, version=v1}'.",
+      assertEquals("This component is already mapped to 'g1 : a1 : v1'.",
           expected.getMessage());
     }
 
@@ -126,7 +127,7 @@ public class HashComponentIdentifierDAOTest
       fail("Expected BadRequestException");
     }
     catch (BadRequestException expected) {
-      assertEquals("Another component is already mapped to 'maven: {groupId=g1, artifactId=a1, version=v1}'.",
+      assertEquals("Another component is already mapped to 'g1 : a1 : v1'.",
           expected.getMessage());
     }
 

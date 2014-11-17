@@ -10,9 +10,10 @@ import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 
 import org.junit.Test;
+
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertThat;
 
 public class HasComponentIdTest
 {
@@ -22,8 +23,8 @@ public class HasComponentIdTest
     HasComponentId hasComponentId = new PolicyViolation();
     //classifier and extension are excluded from the stored results
     hasComponentId.setComponentIdentifier(ComponentIdentifier.createMavenCoordinates("g", "a", "v", null, null));
-    assertThat(hasComponentId.getComponentIdCoordinatesJson(), is("{\"groupId\":\"g\",\"artifactId\":\"a\"," +
-      "\"version\":\"v\"}"));
+    assertThat(hasComponentId.getComponentIdCoordinatesJson(),
+        is("{\"artifactId\":\"a\",\"groupId\":\"g\",\"version\":\"v\"}"));
     assertThat(hasComponentId.getComponentIdFormat(), is(ComponentIdentifier.FORMAT_MAVEN));
   }
 

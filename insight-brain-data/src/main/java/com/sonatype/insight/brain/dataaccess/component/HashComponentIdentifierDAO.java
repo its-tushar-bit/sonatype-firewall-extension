@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.dataaccess.component;
 
 import javax.persistence.EntityManager;
 
+import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.model.HashHelper;
@@ -54,11 +55,13 @@ public class HashComponentIdentifierDAO
   public void insert(EntityManager em, HashComponentIdentifier entity) {
     HashComponentIdentifier other = getByHash(em, entity.getHash());
     if (other != null) {
-      throw new BadRequestException("This component is already mapped to '" + other.getComponentIdentifier() + "'.");
+      throw new BadRequestException("This component is already mapped to '"
+          + ComponentDisplayNameUtil.fromIdentifier(other.getComponentIdentifier()) + "'.");
     }
     other = getByComponentIdentifier(em, entity.getComponentIdentifier());
     if (other != null) {
-      throw new BadRequestException("Another component is already mapped to '" + other.getComponentIdentifier() + "'.");
+      throw new BadRequestException("Another component is already mapped to '"
+          + ComponentDisplayNameUtil.fromIdentifier(other.getComponentIdentifier()) + "'.");
     }
     super.insert(em, entity);
   }

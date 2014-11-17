@@ -5,7 +5,7 @@
  */
 package com.sonatype.insight.brain.releasegraph;
 
-import com.sonatype.insight.brain.model.GAVPopularity;
+import com.sonatype.insight.brain.model.ComponentPopularity;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -144,8 +144,8 @@ public class ReleaseGraphModelTest
     Assert.assertEquals(2, model.getSlotIndices()[24]);
   }
 
-  private static GAVPopularity buildGavPopularity(long[] catalogDates, int[] popularity, int currentVersionIndex) {
-    GAVPopularity gav = new GAVPopularity();
+  private static ComponentPopularity buildGavPopularity(long[] catalogDates, int[] popularity, int currentVersionIndex) {
+    ComponentPopularity gav = new ComponentPopularity();
     gav.setCatalogDates(catalogDates);
     gav.setPopularity(popularity);
     gav.setCurrentVersionIndex(currentVersionIndex);

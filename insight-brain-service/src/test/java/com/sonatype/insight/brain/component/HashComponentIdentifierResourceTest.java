@@ -19,6 +19,7 @@ import com.ning.http.client.Response;
 import com.yammer.dropwizard.testing.JsonHelpers;
 import org.junit.Before;
 import org.junit.Test;
+
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertEquals;
@@ -90,10 +91,7 @@ public class HashComponentIdentifierResourceTest
 
     Response response = AuthedRestAccess.post(getServiceURL(), JsonHelpers.asJson(hashComponentIdentifier));
     assertResponseStatus(400, response);
-    assertEquals(
-        "The 'maven: {groupId=g1, artifactId=a1, version=v1, classifier=c1, extension=e1}' coordinates are already in use.",
-        response.getResponseBody()
-    );
+    assertEquals("The 'g1 : a1 : e1 : c1 : v1' coordinates are already in use.", response.getResponseBody());
   }
 
   @Test

@@ -31,6 +31,7 @@ import com.sonatype.insight.brain.model.ComponentPopularity;
 import com.sonatype.insight.brain.model.ReportPopularity;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.jaxrs.JsonEncodedComponentIdentifier;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import com.google.common.cache.CacheBuilder;
@@ -127,7 +128,7 @@ public class ReleaseGraphPerformance
       }
       if (preload) {
         try {
-          reportResource.getImage("ReleaseGraphPerformance_AppId", scanId, "fake", "fake", "fake");
+          reportResource.getImage("ReleaseGraphPerformance_AppId", scanId, "fake", "fake", "fake", null);
         }
         catch (Exception e) {
 
@@ -268,10 +269,8 @@ public class ReleaseGraphPerformance
       for (ComponentPopularity component : components) {
         if (ComponentIdentifier.FORMAT_MAVEN.equals(component.getComponentIdentifier().getFormat())) {
           long start = System.currentTimeMillis();
-          resource.getImage("ReleaseGraphPerformance_AppId", scanId, component.getComponentIdentifier().get(
-              ComponentIdentifier.MAVEN_GROUP_ID), component.getComponentIdentifier().get(
-              ComponentIdentifier.MAVEN_ARTIFACT_ID),
-              component.getComponentIdentifier().get(ComponentIdentifier.VERSION));
+          resource.getImage("ReleaseGraphPerformance_AppId", scanId, null, null, null,
+              JsonEncodedComponentIdentifier.copy(component.getComponentIdentifier()));
           results.put(component, System.currentTimeMillis() - start);
         }
       }

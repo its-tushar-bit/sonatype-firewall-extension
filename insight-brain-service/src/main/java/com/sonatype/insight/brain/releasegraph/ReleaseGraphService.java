@@ -9,6 +9,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.WebApplicationException;
 
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.error.HttpStatusCode;
 
 import com.google.common.cache.LoadingCache;
@@ -34,13 +35,11 @@ public class ReleaseGraphService
     this.cache = cache;
   }
 
-  public byte[] getImage(final String applicationPublicId, final String scanId, String groupId, String artifactId,
-      String version)
+  public byte[] getImage(final String applicationPublicId, final String scanId, ComponentIdentifier componentIdentifier)
   {
-    log.debug("Creating popularity graph for {}:{}:{} for scan {}", groupId, artifactId, version, scanId);
+    log.debug("Creating popularity graph for {} for scan {}", componentIdentifier, scanId);
     try {
-      return cache
-          .get(new ReleaseGraphKey(groupId, artifactId, version, new ReportItemKey(applicationPublicId, scanId)));
+      return cache.get(new ReleaseGraphKey(componentIdentifier, new ReportItemKey(applicationPublicId, scanId)));
     }
     catch (Exception e) {
       // undo any wrapping of resource exceptions introduced by Guava caches
@@ -52,7 +51,7 @@ public class ReleaseGraphService
         }
       }
 
-      throw new RuntimeException("Error creating popularity graph for " + groupId + ":" + artifactId + ":" + version
+      throw new RuntimeException("Error creating popularity graph for " + componentIdentifier
           + " for report " + scanId, e);
     }
   }

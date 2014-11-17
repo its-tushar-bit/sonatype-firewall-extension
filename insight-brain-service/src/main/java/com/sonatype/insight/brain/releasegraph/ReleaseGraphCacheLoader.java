@@ -42,7 +42,7 @@ public class ReleaseGraphCacheLoader
         return graph.getBytes();
       }
     }
-    log.debug("ReleaseGraphCacheLoader: No match for GAV: {}", key.getGAV());
+    log.debug("ReleaseGraphCacheLoader: No match for component: {}", key.getComponentIdentifier());
     return new byte[0];
   }
 }

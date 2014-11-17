@@ -395,8 +395,8 @@ public class ReportResource
         final String imagePath = dataPath + "release-graph/"
             + toLegacyDataPath(gav.groupId, gav.artifactId, gav.version) + ".png";
         if (!updater.contains(imagePath)) {
-          byte[] imageData = releaseGraphService.getImage(applicationPublicId, scanId, gav.groupId, gav.artifactId,
-              gav.version);
+          byte[] imageData = releaseGraphService.getImage(applicationPublicId, scanId,
+              ComponentIdentifier.createMavenCoordinates(gav.groupId, gav.artifactId, gav.version));
           updater.add(imagePath, imageData);
         }
       }

@@ -12,30 +12,18 @@ import com.sonatype.insight.brain.model.ComponentPopularity;
 
 public class ReleaseGraphKey
 {
-  private String artifactId;
-
-  private String groupId;
-
-  private String version;
+  private ComponentIdentifier componentIdentifier;
 
   private ReportItemKey reportKey;
 
-  public ReleaseGraphKey(String groupId, String artifactId, String version, ReportItemKey reportKey) {
-    this.artifactId = artifactId;
-    this.groupId = groupId;
-    this.version = version;
+  public ReleaseGraphKey(ComponentIdentifier componentIdentifier, ReportItemKey reportKey) {
+    this.componentIdentifier = componentIdentifier;
     this.reportKey = reportKey;
   }
 
   @Override
   public int hashCode() {
-    final int prime = 31;
-    int result = 1;
-    result = prime * result + ((artifactId == null) ? 0 : artifactId.hashCode());
-    result = prime * result + ((groupId == null) ? 0 : groupId.hashCode());
-    result = prime * result + ((version == null) ? 0 : version.hashCode());
-    result = prime * result + ((reportKey == null) ? 0 : reportKey.hashCode());
-    return result;
+    return Objects.hash(reportKey, componentIdentifier);
   }
 
   @Override
@@ -47,8 +35,7 @@ public class ReleaseGraphKey
       return false;
     }
     ReleaseGraphKey that = (ReleaseGraphKey) obj;
-    return Objects.equals(reportKey, that.reportKey) && Objects.equals(artifactId, that.artifactId)
-        && Objects.equals(groupId, that.groupId) && Objects.equals(version, that.version);
+    return Objects.equals(reportKey, that.reportKey) && Objects.equals(componentIdentifier, that.componentIdentifier);
   }
 
   public ReportItemKey getReportItemKey() {
@@ -56,14 +43,10 @@ public class ReleaseGraphKey
   }
 
   boolean isMatch(ComponentPopularity component) {
-    return component.getComponentIdentifier() != null &&
-        component.getComponentIdentifier().isMaven() &&
-        Objects.equals(groupId, component.getComponentIdentifier().get(ComponentIdentifier.MAVEN_GROUP_ID)) &&
-        Objects.equals(artifactId, component.getComponentIdentifier().get(ComponentIdentifier.MAVEN_ARTIFACT_ID)) &&
-        Objects.equals(version, component.getComponentIdentifier().get(ComponentIdentifier.VERSION));
+    return Objects.equals(componentIdentifier, component.getComponentIdentifier());
   }
 
-  public String getGAV() {
-    return groupId + ':' + artifactId + ':' + version;
+  ComponentIdentifier getComponentIdentifier() {
+    return componentIdentifier;
   }
 }

@@ -72,10 +72,15 @@ public class PolicyEvaluationUtils
 
   private WaivedPolicyViolationDAO waivedPolicyViolationDAO = new WaivedPolicyViolationDAO();
 
+  private final PolicyThreatsAdapter policyThreatsAdapter;
+
   @Inject
-  public PolicyEvaluationUtils(final InsightWork insightWork, final ReportService reportService) {
+  public PolicyEvaluationUtils(final InsightWork insightWork, final ReportService reportService,
+      final PolicyThreatsAdapter policyThreatsAdapter)
+  {
     this.work = insightWork;
     this.reportService = reportService;
+    this.policyThreatsAdapter = policyThreatsAdapter;
   }
 
   public PolicyEvaluation evaluate(final String applicationPublicId, final String scanId, final Stage stage)
@@ -127,7 +132,8 @@ public class PolicyEvaluationUtils
       Report.putEntry(reportFile, POLICY_ALERTS_FILENAME, alertsFileContent);
     }
 
-    Report.putEntry(reportFile, POLICY_THREATS_FILENAME, PolicyThreatsJsonGenerator.generate(policyResults));
+    Report.putEntry(reportFile, POLICY_THREATS_FILENAME, JsonUtils.generate(policyThreatsAdapter
+        .createPolicyThreats(policyViolationDAO.getByEvaluationId(policyEvaluation.getId()))));
 
     ReportService.flushReportChanges(appId, scanId); // ensure policy count is recalculated on fetch
 

@@ -8,6 +8,8 @@ package com.sonatype.insight.brain.policy.evaluator;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+
 /**
  * DTO describing the contents of the {@code policythreats.json} used to provide information about policy violations
  * specifically for consumption by the report.
@@ -26,9 +28,26 @@ public class PolicyThreats
   {
     // identification
     public String hash;
+    /**
+     * Legacy field only used by {@code WaivedPolicyViolationMigrator}. Use
+     * {@link PolicyThreats.Component#componentIdentifier}.
+     */
+    @Deprecated
     public String groupId;
+    /**
+     * Legacy field only used by {@code WaivedPolicyViolationMigrator}. Use
+     * {@link PolicyThreats.Component#componentIdentifier}.
+     */
+    @Deprecated
     public String artifactId;
+    /**
+     * Legacy field only used by {@code WaivedPolicyViolationMigrator}. Use
+     * {@link PolicyThreats.Component#componentIdentifier}.
+     */
+    @Deprecated
     public String version;
+    /** @since 1.13.0 */
+    public ComponentIdentifier componentIdentifier;
 
     // top critical violation among active violations, mostly for backward-compat
     public String policyId;

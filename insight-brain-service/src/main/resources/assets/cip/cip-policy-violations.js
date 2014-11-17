@@ -185,6 +185,7 @@
                       artifactId: policyThreat.artifactId,
                       version: policyThreat.version,
                       hash: policyThreat.hash,
+                      componentIdentifier: policyThreat.componentIdentifier,
                       constraints: activeViolation.constraints,
                       actions: actions
                     }));

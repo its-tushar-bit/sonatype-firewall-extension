@@ -59,7 +59,7 @@ class PolicyReportRow
     // can't rely on the text within the cell since it's only shown for the first row with that score
     threatGroup { $(class: iEndsWith('Score')).classes()[0] }
     coordinates { $('.l1').text() }
-    waived(required: false) { $('.waiver-icon-container') }
+    waived(required: false) { $("img[src='flag_white.png']") }
 
     // private, use page methods for interaction
     // click a cell, not the row, to make the CIP appear

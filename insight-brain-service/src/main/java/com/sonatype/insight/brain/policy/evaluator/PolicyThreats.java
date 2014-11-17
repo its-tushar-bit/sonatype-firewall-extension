@@ -10,6 +10,9 @@ import java.util.List;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+
 /**
  * DTO describing the contents of the {@code policythreats.json} used to provide information about policy violations
  * specifically for consumption by the report.
@@ -33,18 +36,21 @@ public class PolicyThreats
      * {@link PolicyThreats.Component#componentIdentifier}.
      */
     @Deprecated
+    @JsonInclude(Include.NON_NULL)
     public String groupId;
     /**
      * Legacy field only used by {@code WaivedPolicyViolationMigrator}. Use
      * {@link PolicyThreats.Component#componentIdentifier}.
      */
     @Deprecated
+    @JsonInclude(Include.NON_NULL)
     public String artifactId;
     /**
      * Legacy field only used by {@code WaivedPolicyViolationMigrator}. Use
      * {@link PolicyThreats.Component#componentIdentifier}.
      */
     @Deprecated
+    @JsonInclude(Include.NON_NULL)
     public String version;
     /** @since 1.13.0 */
     public ComponentIdentifier componentIdentifier;

@@ -22,13 +22,6 @@ public abstract class AbstractDbDAOTest
 
   protected Organization organization;
 
-  public static final String[] INVALID_ALPHANUMERIC = { "!", "@", "#", "$", "%", "^", "&", "*", "(", "_", "+" };
-
-  public static final String[] INVALID_SPACING_NAMES = {
-      " leading space", "trailing space ", "double  space",
-      "  starts with double space", "ends with double space  "
-  };
-
   @Before
   public void setup() {
     organization = tempEntity.newOrganization("AbstractDbDAOTest");

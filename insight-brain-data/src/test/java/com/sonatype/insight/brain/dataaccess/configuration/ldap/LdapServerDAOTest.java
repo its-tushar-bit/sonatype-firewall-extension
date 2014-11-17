@@ -12,6 +12,7 @@ import com.sonatype.insight.brain.configuration.ldap.LdapServer;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.NameHelper;
+import com.sonatype.insight.brain.model.NameHelperTest;
 
 import org.apache.commons.lang.StringUtils;
 import org.junit.After;
@@ -123,7 +124,7 @@ public class LdapServerDAOTest
 
   @Test
   public void testValidateNameInvalidChars_Insert() {
-    for (String name: INVALID_ALPHANUMERIC) {
+    for (String name: NameHelperTest.INVALID_ALPHANUMERIC) {
       LdapServer config = createLdapServer(name);
       try {
         dao.insert(config);
@@ -138,7 +139,7 @@ public class LdapServerDAOTest
   @Test
   public void testValidateNameInvalidChars_Update() {
     LdapServer config = insertLdapServer("testValidateNameInvalidChars");
-    for (String name: INVALID_ALPHANUMERIC) {
+    for (String name: NameHelperTest.INVALID_ALPHANUMERIC) {
       config.setName(name);
       try {
         dao.update(config);
@@ -152,7 +153,7 @@ public class LdapServerDAOTest
 
   @Test
   public void testValidateNameSpaces_Insert() {
-    for (String name : INVALID_SPACING_NAMES) {
+    for (String name : NameHelperTest.INVALID_SPACING_NAMES) {
       try {
         insertLdapServer(name);
         fail("Expected InvalidNameException");
@@ -167,7 +168,7 @@ public class LdapServerDAOTest
   @Test
   public void testValidateNameSpaces_Update() {
     LdapServer config = insertLdapServer("testValidateNameSpaces");
-    for (String name : INVALID_SPACING_NAMES) {
+    for (String name : NameHelperTest.INVALID_SPACING_NAMES) {
       config.setName(name);
       try {
         dao.update(config);

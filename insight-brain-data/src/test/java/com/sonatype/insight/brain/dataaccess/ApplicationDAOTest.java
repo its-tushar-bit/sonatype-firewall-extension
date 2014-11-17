@@ -38,6 +38,7 @@ import com.sonatype.insight.brain.model.ApplicationComponent;
 import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.NameHelper;
+import com.sonatype.insight.brain.model.NameHelperTest;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
@@ -310,7 +311,7 @@ public class ApplicationDAOTest
   @Test
   public void testValidateNameInvalidChars_Insert() {
     Application app = new Application("publicId", "name", organization.getId());
-    for (String name: INVALID_ALPHANUMERIC) {
+    for (String name: NameHelperTest.INVALID_ALPHANUMERIC) {
       app.setName(name);
       try {
         applicationDAO.insert(app);
@@ -324,7 +325,7 @@ public class ApplicationDAOTest
 
   @Test
   public void testValidateNameInvalidChars_Update() {
-    for (String name: INVALID_ALPHANUMERIC) {
+    for (String name: NameHelperTest.INVALID_ALPHANUMERIC) {
       application.setName(name);
       try {
         applicationDAO.update(application);
@@ -339,7 +340,7 @@ public class ApplicationDAOTest
   @Test
   public void testValidateNameSpaces_Insert() {
     Application app = new Application("publicId", "name", organization.getId());
-    for (String name : INVALID_SPACING_NAMES) {
+    for (String name : NameHelperTest.INVALID_SPACING_NAMES) {
       app.setName(name);
       try {
         applicationDAO.insert(app);
@@ -354,7 +355,7 @@ public class ApplicationDAOTest
 
   @Test
   public void testValidateNameSpaces_Update() {
-    for (String name : INVALID_SPACING_NAMES) {
+    for (String name : NameHelperTest.INVALID_SPACING_NAMES) {
       application.setName(name);
       try {
         applicationDAO.update(application);

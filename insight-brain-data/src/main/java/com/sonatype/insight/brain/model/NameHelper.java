@@ -28,11 +28,11 @@ public class NameHelper
     return (name1 != null) ? normalize(name1).equals(normalize(name2)) : name2 == null;
   }
 
-  public static void validate(String name) {
+  public static void validate(String name) throws InvalidNameException {
     validate("Name", name);
   }
 
-  public static void validate(String fieldName, String fieldValue) {
+  public static void validate(String fieldName, String fieldValue) throws InvalidNameException {
     if (fieldValue == null || fieldValue.trim().isEmpty()) {
       throw new InvalidNameException(fieldName + " is required.");
     }

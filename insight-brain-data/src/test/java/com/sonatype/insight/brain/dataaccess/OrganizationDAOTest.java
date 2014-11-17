@@ -28,6 +28,7 @@ import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
 import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.NameHelper;
+import com.sonatype.insight.brain.model.NameHelperTest;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
@@ -168,7 +169,7 @@ public class OrganizationDAOTest
 
   @Test
   public void testValidateNameInvalidChars_Insert() {
-    for (String name: INVALID_ALPHANUMERIC) {
+    for (String name: NameHelperTest.INVALID_ALPHANUMERIC) {
       Organization organization = new Organization(name);
       try {
         dao.insert(organization);
@@ -182,7 +183,7 @@ public class OrganizationDAOTest
 
   @Test
   public void testValidateNameInvalidChars_Update() {
-    for (String name: INVALID_ALPHANUMERIC) {
+    for (String name: NameHelperTest.INVALID_ALPHANUMERIC) {
       organization.setName(name);
       try {
         dao.update(organization);
@@ -196,7 +197,7 @@ public class OrganizationDAOTest
 
   @Test
   public void testValidateNameSpaces_Insert() {
-    for (String name : INVALID_SPACING_NAMES) {
+    for (String name : NameHelperTest.INVALID_SPACING_NAMES) {
       try {
         tempEntity.newOrganization(name);
         fail("Expected InvalidNameException");
@@ -210,7 +211,7 @@ public class OrganizationDAOTest
 
   @Test
   public void testValidateNameSpaces_Update() {
-    for (String name : INVALID_SPACING_NAMES) {
+    for (String name : NameHelperTest.INVALID_SPACING_NAMES) {
       organization.setName(name);
       try {
         dao.update(organization);

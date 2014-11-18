@@ -47,12 +47,12 @@ class NexusViewDetailsSpec
           version: JUNIT.version
 
     then: 'details for the GAV are shown'
-      String gav = [JUNIT.groupId, JUNIT.artifactId, JUNIT.version].
-          join(':')
-      sectionHeaders[0] == "CLM Details for ${gav} in the context of CLM Application ${app.name}"
-      sectionHeaders[1] == 'Policy Violations'
-      sectionHeaders[2] == 'License Analysis'
-      sectionHeaders[3] == 'Security Issues'
+    String gav = [JUNIT.groupId, JUNIT.artifactId, JUNIT.version].
+    join(' : ')
+    sectionHeaders[0] == "CLM Details for ${gav} in the context of CLM Application ${app.name}"
+    sectionHeaders[1] == 'Policy Violations'
+    sectionHeaders[2] == 'License Analysis'
+    sectionHeaders[3] == 'Security Issues'
 
     and: 'there are no policy violations'
       !policyViolationTable.displayed

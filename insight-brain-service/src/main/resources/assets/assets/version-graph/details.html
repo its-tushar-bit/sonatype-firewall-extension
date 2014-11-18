@@ -7,7 +7,7 @@
     </div>
     <div ng-show='data != null'>
       <div ng-show='showContext()'>
-        <h5>CLM Details for {{data.groupId}}:{{data.artifactId}}:{{data.version}} in the context of CLM Application
+        <h5>CLM Details for <span ng-repeat='part in data.displayName.parts'>{{part.value}}</span> in the context of CLM Application
           {{data.appName}}</h5>
         <br>
       </div>

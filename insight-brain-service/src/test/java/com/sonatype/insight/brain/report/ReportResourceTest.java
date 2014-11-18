@@ -79,22 +79,13 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.jvnet.mock_javamail.Mailbox;
 
-import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.equalToIgnoringWhiteSpace;
-import static org.hamcrest.Matchers.greaterThan;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.not;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.stringContainsInOrder;
+import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 public class ReportResourceTest
@@ -883,6 +874,30 @@ public class ReportResourceTest
       }
     }
     Assert.assertEquals("Did not find expected overridden license", 2, found);
+  }
+
+  @Test
+  public void testAugmentDataAndAuditLog_LicenseOverrides_ValidateComponentIdentifier() throws Exception {
+    final String applicationPublicId = "ReportResourceTest_AppId";
+    tempEntity.newApplicationWithParent(applicationPublicId);
+    final String scanId = "ReportResourceTest_ScanId";
+    final String licenseFingerprint = "ReportResourceTest_LicenseFingerprint";
+    setLicenseFingerprint(licenseFingerprint);
+
+    final String resourcePrefix = getServiceURL(applicationPublicId, scanId);
+
+    final File saasReportFile = getReportResponseFile(licenseFingerprint, scanId);
+    saasReportFile.delete();
+
+    final URL testReportResultUrl = getClass().getResource("/ReportResourceTest/report.zip");
+    FileUtils.copyFile(new File(testReportResultUrl.getFile()), saasReportFile);
+
+    // edit the license
+    String licenseEdit = "[{\"status\":\"Overridden\",\"overriddenLicenses\":[\"GPL-3.0\"],\"overriddenLicenseThreat\":10,\"comment\":\"My comment\"}]";
+    final String licenseQuery = "licenses.json?user=test&where=ReportResourceTest";
+    Response response = AuthedRestAccess.post(resourcePrefix + "/augmentData/" + licenseQuery, licenseEdit);
+    assertResponseStatus(400, response);
+    assertThat(response.getResponseBody(), is("The component identifier cannot be null."));
   }
 
   @Test

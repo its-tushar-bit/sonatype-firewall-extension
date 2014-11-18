@@ -43,6 +43,7 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ComponentFact;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.component.ComponentIdentifierValidator;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
@@ -475,6 +476,7 @@ public class ReportResource
    */
   private void saveLicenseOverride(String appId, JsonNode licenseData) {
     ComponentIdentifier componentIdentifier = ComponentIdentifierAdapter.getComponentIdentifier(licenseData);
+    ComponentIdentifierValidator.validate(componentIdentifier);
     String statusName = licenseData.get("status").asText();
 
     String licenseOverrideId = null;

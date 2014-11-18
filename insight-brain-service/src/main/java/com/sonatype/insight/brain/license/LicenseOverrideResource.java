@@ -24,6 +24,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.brain.component.ComponentIdentifierValidator;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
@@ -73,6 +74,8 @@ public class LicenseOverrideResource
       @QueryParam("where") String where, @Context final HttpServletRequest request)
       throws IOException
   {
+    ComponentIdentifierValidator.validate(licenseOverride.getComponentIdentifier());
+
     String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
 
     licenseOverride.setOwnerId(internalOwnerId);

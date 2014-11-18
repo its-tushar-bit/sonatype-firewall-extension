@@ -29,6 +29,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.ning.http.client.Response;
 import com.yammer.dropwizard.testing.JsonHelpers;
 import org.junit.Test;
+
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
@@ -326,5 +327,19 @@ public class LicenseOverrideResourceTest
     assertEquals(status, actual.getStatus());
     assertEquals(licenseId, actual.getLicenseId());
     assertEquals(comment, actual.getComment());
+  }
+
+  @Test
+  public void testAddLicenseOverride_ValidateComponentIdentifier() throws Exception {
+    String where = "EdgeOfSpace";
+    String appPublicId = "LicenseOverrideResourceTest";
+    tempEntity.newApplicationWithParent(appPublicId);
+
+    LicenseOverride licenseOverride = new LicenseOverride(null /* ownerId */, null /* componentIdentifier */,
+        LicenseOverrideStatus.OVERRIDDEN, "Apache-2.0", "My comment");
+    Response response = AuthedRestAccess.post(getServiceURL("application", appPublicId) + "?where=" + where,
+        JsonHelpers.asJson(licenseOverride));
+    assertResponseStatus(400, response);
+    assertThat(response.getResponseBody(), is("The component identifier cannot be null."));
   }
 }

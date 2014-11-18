@@ -388,13 +388,14 @@ public final class Report
       ObjectNode licenseJsonNode = (ObjectNode) iterLicenseData.next();
 
       ComponentIdentifier componentIdentifier = ComponentIdentifierAdapter.getComponentIdentifier(licenseJsonNode);
-      ComponentDisplayNameUtil.injectDisplayName(licenseJsonNode);
 
       if (!componentIdentifiers.contains(componentIdentifier)) {
         // License data for a GAV that is not in this report. Remove it.
         iterLicenseData.remove();
       }
       else {
+        ComponentDisplayNameUtil.injectDisplayName(licenseJsonNode);
+
         LicenseOverride licenseOverride = getLicenseOverride(application, licenseOverrideDAO, componentIdentifier);
         if (licenseOverride != null) {
           licenseJsonNode.put("status", licenseOverride.getStatus().getName());
@@ -450,10 +451,11 @@ public final class Report
     while (iterSecurityData.hasNext()) {
       ObjectNode jsonNode = (ObjectNode) iterSecurityData.next();
       ComponentIdentifier componentIdentifier = ComponentIdentifierAdapter.getComponentIdentifier(jsonNode);
-      ComponentDisplayNameUtil.injectDisplayName(jsonNode);
 
       if (!componentIdentifiers.contains(componentIdentifier)) {
         iterSecurityData.remove();
+      } else {
+        ComponentDisplayNameUtil.injectDisplayName(jsonNode);
       }
     }
 

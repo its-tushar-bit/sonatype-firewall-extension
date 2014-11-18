@@ -302,7 +302,7 @@ public class ReportResource
       updater.add(dataPath + "report.pdf", pdfFile);
       updater.add(dataPath + "components.json", reportData);
 
-      addUniqueComponentsToUpdater(applicationPublicId, scanId, dataPath, reportData.components, updater);
+      addUniqueComponentsToUpdater(applicationPublicId, scanId, dataPath, dataVersion, reportData.components, updater);
 
       File[] cachedFiles = Report.getCacheDir(reportFile).listFiles();
       if (cachedFiles != null) {
@@ -386,17 +386,28 @@ public class ReportResource
   }
 
   private void addUniqueComponentsToUpdater(final String applicationPublicId, final String scanId,
-      final String dataPath, final List<ReportData.Component> components, final ReportBundleUpdater updater)
-      throws IOException
+      final String dataPath, final int dataVersion, final List<ReportData.Component> components,
+      final ReportBundleUpdater updater) throws IOException
   {
     for (ReportData.Component component : components) {
-      ReportData.Coordinates gav = component.mavenCoordinates;
-      if (gav != null) {
-        final String imagePath = dataPath + "release-graph/"
-            + toLegacyDataPath(gav.groupId, gav.artifactId, gav.version) + ".png";
+      ComponentIdentifier componentIdentifier = component.componentIdentifier;
+      if (componentIdentifier != null) {
+        String imagePath;
+        if (dataVersion >= 1) {
+          imagePath = toDataPath(componentIdentifier) + "/releases.png";
+        }
+        else if (!componentIdentifier.isMaven()) {
+          continue;
+        }
+        else {
+          imagePath = toLegacyDataPath(componentIdentifier.get(ComponentIdentifier.MAVEN_GROUP_ID),
+              componentIdentifier.get(ComponentIdentifier.MAVEN_ARTIFACT_ID),
+              componentIdentifier.get(ComponentIdentifier.VERSION))
+              + ".png";
+        }
+        imagePath = dataPath + "release-graph/" + imagePath;
         if (!updater.contains(imagePath)) {
-          byte[] imageData = releaseGraphService.getImage(applicationPublicId, scanId,
-              ComponentIdentifier.createMavenCoordinates(gav.groupId, gav.artifactId, gav.version));
+          byte[] imageData = releaseGraphService.getImage(applicationPublicId, scanId, componentIdentifier);
           updater.add(imagePath, imageData);
         }
       }

@@ -81,6 +81,7 @@ public class ReportDataService
     for (Component comp : components) {
       ReportData.Component component = new ReportData.Component();
       component.hash = comp.getHash();
+      component.componentIdentifier = comp.getComponentIdentifier();
       ReportData.Coordinates coords = new ReportData.Coordinates();
       coords.groupId = comp.getGroupId();
       if (coords.groupId != null) {

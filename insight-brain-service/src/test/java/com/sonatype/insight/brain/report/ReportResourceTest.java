@@ -1224,7 +1224,8 @@ public class ReportResourceTest
         assertNull(zip.getEntry("detail.rptdesign"));
         assertNull(zip.getEntry("data/index.html"));
         assertNotNull(zip.getEntry("data/components.json"));
-        assertNotNull(zip.getEntry("data/release-graph/tomcat/tomcat-util/5.5.23.png"));
+        assertNotNull(zip.getEntry("data/release-graph/maven/"
+            + "artifactId=tomcat-util/classifier=/extension=jar/groupId=tomcat/version=5.5.23/releases.png"));
         assertNotNull(zip.getEntry("data/" + PolicyEvaluationUtils.POLICY_THREATS_FILENAME));
 
         assertNull(zip.getEntry("cip/details/f0776db1593e215146d2.json"));

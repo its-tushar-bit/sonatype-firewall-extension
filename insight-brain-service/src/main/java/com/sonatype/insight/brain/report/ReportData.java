@@ -8,6 +8,10 @@ package com.sonatype.insight.brain.report;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 /**
  * DTO describing the data for an application composition report (at least the bits we expose as public API so far).
  * 
@@ -21,6 +25,9 @@ public class ReportData
   public static class Component
   {
     public String hash;
+
+    @JsonIgnore
+    public ComponentIdentifier componentIdentifier;
 
     public Coordinates mavenCoordinates;
 

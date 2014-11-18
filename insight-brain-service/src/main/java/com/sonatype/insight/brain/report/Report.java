@@ -450,6 +450,7 @@ public final class Report
     while (iterSecurityData.hasNext()) {
       ObjectNode jsonNode = (ObjectNode) iterSecurityData.next();
       ComponentIdentifier componentIdentifier = ComponentIdentifierAdapter.getComponentIdentifier(jsonNode);
+      ComponentDisplayNameUtil.injectDisplayName(jsonNode);
 
       if (!componentIdentifiers.contains(componentIdentifier)) {
         iterSecurityData.remove();

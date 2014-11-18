@@ -454,7 +454,8 @@ public final class Report
 
       if (!componentIdentifiers.contains(componentIdentifier)) {
         iterSecurityData.remove();
-      } else {
+      }
+      else {
         ComponentDisplayNameUtil.injectDisplayName(jsonNode);
       }
     }

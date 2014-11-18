@@ -56,6 +56,7 @@ public class ComponentPopularity
     this.componentIdentifier = componentIdentifier;
   }
 
+  @SuppressWarnings("unused")
   @Deprecated
   /**
    * @deprecated since 1.13.0
@@ -73,6 +74,7 @@ public class ComponentPopularity
     this.currentVersionIndex = currentVersionIndex;
   }
 
+  @SuppressWarnings("unused")
   @Deprecated
   /**
    * @deprecated since 1.13.0
@@ -86,6 +88,7 @@ public class ComponentPopularity
     this.popularity = popularity;
   }
 
+  @SuppressWarnings("unused")
   @Deprecated
   /**
    * @deprecated since 1.13.0

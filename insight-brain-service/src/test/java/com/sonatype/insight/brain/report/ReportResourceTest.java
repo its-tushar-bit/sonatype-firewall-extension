@@ -34,6 +34,7 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.AuthedRestAccess;
+import com.sonatype.insight.brain.component.ComponentDisplayNameUtil;
 import com.sonatype.insight.brain.component.HashComponentIdentifierResource;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.dataaccess.component.HashComponentIdentifierDAO;
@@ -69,6 +70,7 @@ import com.sonatype.insight.test.RestAccess;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ContainerNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.ning.http.client.Response;
 import com.yammer.dropwizard.testing.JsonHelpers;
 import org.codehaus.plexus.util.FileUtils;
@@ -418,6 +420,14 @@ public class ReportResourceTest
         String actual = response.getResponseBody();
 
         testPartialMatchedJsonApplyChanges(actual);
+      }
+      else if ("security.json".equals(entry.getName())) {
+        JsonNode actual = JsonUtils.parse(response.getResponseBody());
+        JsonNode expected = JsonUtils.parse(IOUtil.toString(zipFile.getInputStream(entry)));
+        for (JsonNode node : expected.get("aaData")) {
+          ComponentDisplayNameUtil.injectDisplayName((ObjectNode) node);
+        }
+        assertThat(actual, is(expected));
       }
       else if ("index.html".equals(entry.getName())) {
         String actual = response.getResponseBody();

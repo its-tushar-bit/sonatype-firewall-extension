@@ -5,6 +5,9 @@
  */
 package com.sonatype.insight.brain.testing.functional.cip
 
+import com.sonatype.clm.dto.model.component.ComponentIdentifier
+import com.sonatype.insight.json.store.JsonUtils
+
 import geb.Module
 import geb.Page
 
@@ -34,6 +37,15 @@ abstract class AbstractCIPPage
         artifactId: arguments[1],
         version: arguments[2],
         appId: arguments[3]
+  });
+  ''')
+  }
+
+  def setCoordinates(ComponentIdentifier componentIdentifier, String applicationPublicId) {
+    browser.js.exec(JsonUtils.writeValueAsString(componentIdentifier), applicationPublicId, '''
+  var componentIdentifier = JSON.parse(arguments[0]);
+  window.Insight.setCoordinates(componentIdentifier.format, componentIdentifier.coordinates, {
+        appId: arguments[2]
   });
   ''')
   }

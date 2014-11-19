@@ -108,6 +108,10 @@
       <artifactId>selenium-support</artifactId>
       <version>${selenium.version}</version>
     </dependency>
+    <dependency>
+      <groupId>com.sonatype.insight.brain</groupId>
+      <artifactId>insight-json-store</artifactId>
+    </dependency>
     <!-- Mandatory dependencies for using Spock -->
     <dependency>
       <groupId>org.codehaus.groovy</groupId>

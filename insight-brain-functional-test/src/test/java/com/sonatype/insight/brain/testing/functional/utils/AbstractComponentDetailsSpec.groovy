@@ -108,9 +108,10 @@ extends BaseSpec {
   }
 
   protected void validateCommon(CIPModule cip, ComponentDetails component) {
-    assert cip.getNameField('Group') == component.groupId
-    assert cip.getNameField('Artifact') == component.artifactId
-    assert cip.getNameField('Version') == component.version
+    assert cip.getNameField('Group') == component.componentIdentifier.coordinates[ComponentIdentifier.MAVEN_GROUP_ID]
+    assert cip.getNameField('Artifact') ==
+        component.componentIdentifier.coordinates[ComponentIdentifier.MAVEN_ARTIFACT_ID]
+    assert cip.getNameField('Version') == component.componentIdentifier.coordinates[ComponentIdentifier.VERSION]
     validateEffectiveLicense(cip, component)
     assert cip.declaredLicense == component.declaredLicenses[0].licenseName
     assert cip.observedLicense == component.observedLicenses[0].licenseName

@@ -11,6 +11,8 @@ import com.sonatype.insight.brain.model.policy.Policy
 import com.sonatype.insight.brain.testing.functional.utils.AbstractComponentDetailsSpec
 
 import spock.lang.Stepwise
+import spock.lang.Unroll
+
 /**
  * Tests the ide endpoints of the clm server.
  * @since 1.12
@@ -20,6 +22,7 @@ class EclipseCIPSpec
     extends AbstractComponentDetailsSpec
 {
   static Application app
+  static Policy violatedPolicy = null
 
   def setupSpec() {
     Organization org = temporaryEntity.newOrganization('EclipseCIPSpec')
@@ -56,9 +59,10 @@ class EclipseCIPSpec
       !cip.displayed
   }
 
-  def 'Can select a GAV'() {
-    when: 'Simulating user selection of a GAV with javascript'
-      page.setGav(JUNIT.groupId, JUNIT.artifactId, JUNIT.version,  app.publicId)
+  @Unroll
+  def 'Can select a Component from #tests.name'() {
+    when: 'Simulating user selection of a Component with javascript'
+      tests.setCoordinates()
 
     then: 'the CIP loads'
       CIPModule cip = cip
@@ -85,6 +89,16 @@ class EclipseCIPSpec
 
     and: 'the select text is no longer shown'
       !defaultText.displayed
+
+    where:
+      tests << [ [
+           name: 'Legacy GAV',
+           setCoordinates: { page.setGav(JUNIT.groupId, JUNIT.artifactId, JUNIT.version, app.publicId) }
+         ],[
+           name: 'Component Identifier',
+           setCoordinates: { page.setCoordinates(JUNIT.componentIdentifier, app.publicId) }
+         ]
+      ]
   }
 
   def "The assigned GAV can be removed"() {
@@ -96,23 +110,36 @@ class EclipseCIPSpec
       defaultText.text() == SELECT_COMPONENT
   }
 
-  def "Local policy changes are reflected the next time details are loaded"() {
+  @Unroll
+  def "Local policy changes are reflected the next time details are loaded by #tests.name"() {
     given: 'A new policy is added that our viewed component violates'
-      Policy policy = createLicensePolicy(app.id, this.getClass().simpleName, JUNIT.declaredLicenses[0].licenseName)
+      if (violatedPolicy == null) {
+        violatedPolicy = createLicensePolicy(app.id, this.getClass().simpleName, JUNIT.declaredLicenses[0].licenseName)
+      }
 
-    when: 'We set the GAV'
-      page.setGav(JUNIT.groupId, JUNIT.artifactId, JUNIT.version, app.publicId)
+    when: 'We set the Component'
+      tests.setCoordinates()
 
     then: 'The changes should be reflected in the component details'
       CIPModule cip = cip
       waitFor('slow') { cip.displayed && cip.website.displayed }
-      cip.highestPolicyThreat.toInteger() == policy.threatLevel
+      cip.highestPolicyThreat.toInteger() == violatedPolicy.threatLevel
+
+    where:
+      tests << [ [
+          name: 'Legacy GAV',
+          setCoordinates: { page.setGav(JUNIT.groupId, JUNIT.artifactId, JUNIT.version, app.publicId) }
+        ],[
+          name: 'Component Identifier',
+          setCoordinates: { page.setCoordinates(JUNIT.componentIdentifier, app.publicId) }
+        ]
+      ]
   }
 
-  def "Security vulnerabilities are highlighted"() {
+  @Unroll
+  def "Security vulnerabilities for #tests.name are highlighted"() {
     when: 'We load a component with known security vulnerabilities'
-      page.setGav(CATALINA_HOST_MANAGER.groupId, CATALINA_HOST_MANAGER.artifactId, CATALINA_HOST_MANAGER.version,
-          app.publicId)
+      tests.setCoordinates()
 
     then: 'Details of the vulnerabilities are shown'
       CIPModule cip = cip
@@ -122,6 +149,19 @@ class EclipseCIPSpec
 
     and: 'No website information is provided for this GAV'
       !cip.website.displayed
+
+    where:
+      tests << [ [
+          name: 'Legacy GAV',
+          setCoordinates: {
+            page.setGav(CATALINA_HOST_MANAGER.groupId, CATALINA_HOST_MANAGER.artifactId, CATALINA_HOST_MANAGER.version,
+                app.publicId)
+            }
+        ], [
+          name: 'Component Identifier',
+          setCoordinates: { page.setCoordinates(CATALINA_HOST_MANAGER.componentIdentifier, app.publicId) }
+        ]
+      ]
   }
 
   String getToolName() {

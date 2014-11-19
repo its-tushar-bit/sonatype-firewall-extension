@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.testing.functional.viewdetails
 
 import com.sonatype.clm.dto.model.SecurityVulnerability
+import com.sonatype.clm.dto.model.component.ComponentIdentifier
 import com.sonatype.insight.brain.model.Application
 import com.sonatype.insight.brain.model.Organization
 import com.sonatype.insight.brain.model.policy.Policy
@@ -31,8 +32,9 @@ class EclipseViewDetailsSpec
   def 'Does not load without authentication'() {
     when: 'trying to load the page without being authenticated'
       via EclipseViewDetailsPage,
-          appId: app.publicId, groupId: JUNIT.groupId, artifactId: JUNIT.artifactId,
-          version: JUNIT.version
+          appId: app.publicId, groupId: JUNIT.componentIdentifier.coordinates[ComponentIdentifier.MAVEN_GROUP_ID],
+          artifactId: JUNIT.componentIdentifier.coordinates[ComponentIdentifier.MAVEN_ARTIFACT_ID],
+          version: JUNIT.componentIdentifier.coordinates[ComponentIdentifier.VERSION]
 
     then: 'an authentication error is shown'
       waitFor { error.displayed }
@@ -42,8 +44,9 @@ class EclipseViewDetailsSpec
   def 'Does not load with invalid authentication'() {
     when: 'trying to load the page with invalid authentication'
       via EclipseViewDetailsPage,
-          appId: app.publicId, groupId: JUNIT.groupId, artifactId: JUNIT.artifactId,
-          version: JUNIT.version
+          appId: app.publicId, groupId: JUNIT.componentIdentifier.coordinates[ComponentIdentifier.MAVEN_GROUP_ID],
+          artifactId: JUNIT.componentIdentifier.coordinates[ComponentIdentifier.MAVEN_ARTIFACT_ID],
+          version: JUNIT.componentIdentifier.coordinates[ComponentIdentifier.VERSION]
       page.setAuthHeaders('foo', 'bar')
 
     then: 'an authentication error is shown'
@@ -54,8 +57,9 @@ class EclipseViewDetailsSpec
   def "Can load view details page for a particular GAV in the context of an application"() {
     when: 'loading the page with GAV and application public id'
       to EclipseViewDetailsPage,
-          appId: app.publicId, groupId: JUNIT.groupId, artifactId: JUNIT.artifactId,
-          version: JUNIT.version, deferLoad: true
+          appId: app.publicId, groupId: JUNIT.componentIdentifier.coordinates[ComponentIdentifier.MAVEN_GROUP_ID],
+          artifactId: JUNIT.componentIdentifier.coordinates[ComponentIdentifier.MAVEN_ARTIFACT_ID],
+          version: JUNIT.componentIdentifier.coordinates[ComponentIdentifier.VERSION], deferLoad: true
 
     and: 'setting authentication headers for requests'
       page.setAuthHeaders(User.ADMIN_USERNAME, 'admin123')
@@ -102,8 +106,10 @@ class EclipseViewDetailsSpec
   def "Security vulnerabilities are highlighted"() {
     when: 'We load a component with known security vulnerabilities'
       to EclipseViewDetailsPage,
-          appId: app.publicId, groupId: CATALINA_HOST_MANAGER.groupId, artifactId: CATALINA_HOST_MANAGER.artifactId,
-          version: CATALINA_HOST_MANAGER.version, deferLoad: true
+          appId: app.publicId,
+          groupId: CATALINA_HOST_MANAGER.componentIdentifier.coordinates[ComponentIdentifier.MAVEN_GROUP_ID],
+          artifactId: CATALINA_HOST_MANAGER.componentIdentifier.coordinates[ComponentIdentifier.MAVEN_ARTIFACT_ID],
+          version: CATALINA_HOST_MANAGER.componentIdentifier.coordinates[ComponentIdentifier.VERSION], deferLoad: true
       page.reload()
 
     then: 'Details of the vulnerabilities are shown'

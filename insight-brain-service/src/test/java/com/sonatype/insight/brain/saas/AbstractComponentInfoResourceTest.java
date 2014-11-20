@@ -152,6 +152,15 @@ public abstract class AbstractComponentInfoResourceTest
   }
 
   @Test
+  public void testGetLicenses_NoComponentIdentifier() throws Exception {
+    String applicationPublicId = "ComponentInfoResourceTest";
+    tempEntity.newApplicationWithParent(applicationPublicId);
+    Response response = AuthedRestAccess.get(getLicensesServiceURL(applicationPublicId));
+    assertResponseStatus(400, response);
+    assertThat(response.getResponseBody(), is("componentIdentifier is required"));
+  }
+
+  @Test
   public void testGetLicenses() throws Exception {
     String applicationPublicId = "ComponentInfoResourceTest";
     Application application = tempEntity.newApplicationWithParent(applicationPublicId);
@@ -904,8 +913,12 @@ public abstract class AbstractComponentInfoResourceTest
   }
 
   private String getLicensesServiceURL(String applicationPublicId, String g, String a, String v) {
-    return getServiceURL() + "/licenses/" + applicationPublicId + "?groupId=" + g + "&artifactId=" + a + "&version="
-        + v;
+    return getLicensesServiceURL(applicationPublicId) + "?componentIdentifier=" +
+        getComponentIdentifierParam(g, a, v);
+  }
+
+  private String getLicensesServiceURL(String applicationPublicId) {
+    return getServiceURL() + "/licenses/" + applicationPublicId;
   }
 
   private String getSelectableLicensesServiceURL(String applicationPublicId, String g, String a, String v) {

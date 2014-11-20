@@ -244,15 +244,17 @@ public abstract class AbstractComponentInfoResource
   @Authorize(permission = Permission.READ)
   public ComponentLicenses getLicenses(
       @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) @PathParam("applicationPublicId") String applicationPublicId,
-      @QueryParam("groupId") String groupId, @QueryParam("artifactId") String artifactId,
-      @QueryParam("version") String version) throws IOException
+      @QueryParam("componentIdentifier") JsonEncodedComponentIdentifier componentIdentifier) throws IOException
   {
+    if (componentIdentifier == null) {
+      throw new BadRequestException("componentIdentifier is required");
+    }
+    
     Application application = applicationDAO.getByPublicIdNotNull(applicationPublicId);
 
     ComponentLicenses result = new ComponentLicenses();
 
-    ComponentDetails componentDetails = getComponentDetails(null, null,
-        ComponentIdentifier.createMavenCoordinates(groupId, artifactId, version));
+    ComponentDetails componentDetails = getComponentDetails(null, null, componentIdentifier);
 
     loadComponent(application, componentDetails);
     result.declaredlicenses = getLicensesWithThreatLevels(application, componentDetails.getDeclaredLicenses());

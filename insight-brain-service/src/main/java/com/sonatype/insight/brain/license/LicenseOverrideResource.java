@@ -23,7 +23,6 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 
-import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.component.ComponentIdentifierValidator;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
@@ -39,7 +38,9 @@ import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.IdUtils;
+import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
+import com.sonatype.insight.jaxrs.JsonEncodedComponentIdentifier;
 import com.sonatype.insight.json.store.JsonStore;
 import com.sonatype.insight.json.store.JsonUtils;
 
@@ -140,13 +141,15 @@ public class LicenseOverrideResource
 
   @GET
   @Produces({ MediaType.APPLICATION_JSON })
-  @Path("applied/{groupId}/{artifactId}/{version}")
   @Authorize(permission = Permission.READ)
   public AppliedLicenseOverrides getAppliedLicenseOverrides(
       @AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") String ownerType,
-      @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId, @PathParam("groupId") String groupId,
-      @PathParam("artifactId") String artifactId, @PathParam("version") String version)
+      @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId,
+      @QueryParam("componentIdentifier") JsonEncodedComponentIdentifier componentIdentifier)
   {
+    if (componentIdentifier == null) {
+      throw new BadRequestException("componentIdentifier is required");
+    }
     String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
 
     AppliedLicenseOverrides result = new AppliedLicenseOverrides();
@@ -161,7 +164,7 @@ public class LicenseOverrideResource
       licenseOverrideByOwner.ownerName = application.getName();
       licenseOverrideByOwner.ownerType = IdUtils.TYPE_APPLICATION;
       licenseOverrideByOwner.licenseOverride = licenseOverrideDAO.getByOwnerIdAndComponentIdentifier(
-        application.getId(), ComponentIdentifier.createMavenCoordinates(groupId, artifactId, version));
+        application.getId(), componentIdentifier);
       result.licenseOverridesByOwner.add(licenseOverrideByOwner);
       organizationId = application.getOrganizationId();
     }
@@ -175,7 +178,7 @@ public class LicenseOverrideResource
     licenseOverrideByOwner.ownerName = organization.getName();
     licenseOverrideByOwner.ownerType = IdUtils.TYPE_ORGANIZATION;
     licenseOverrideByOwner.licenseOverride = licenseOverrideDAO.getByOwnerIdAndComponentIdentifier(organization.getId(),
-      ComponentIdentifier.createMavenCoordinates(groupId, artifactId, version));
+        componentIdentifier);
     result.licenseOverridesByOwner.add(licenseOverrideByOwner);
 
     return result;

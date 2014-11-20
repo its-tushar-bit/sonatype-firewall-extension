@@ -5,7 +5,10 @@
  */
 package com.sonatype.insight.brain.license;
 
+import javax.ws.rs.core.UriBuilder;
+
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
@@ -62,14 +65,22 @@ public class LicenseOverrideResourceAuthzTest
   public void testGetAppliedLicenseOverrides() throws Exception {
     grantReadPermission(app.getId());
 
-    String url = getRestUrl(LicenseOverrideResource.SERVICE_PATH + "/applied/{g}/{a}/{v}", IdUtils.TYPE_APPLICATION,
-        app.getPublicId(), "g", "a", "1");
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "1");
+
+    String url = getServiceURL(IdUtils.TYPE_APPLICATION, app.getPublicId(), componentIdentifier);
     testAuthzGet(url);
 
     grantReadPermission(org.getId());
 
-    url = getRestUrl(LicenseOverrideResource.SERVICE_PATH + "/applied/{g}/{a}/{v}", IdUtils.TYPE_ORGANIZATION,
-        org.getId(), "g", "a", "1");
+    url = getServiceURL(IdUtils.TYPE_ORGANIZATION, org.getId(), componentIdentifier);
     testAuthzGet(url);
+  }
+
+  private String getServiceURL(final String ownerType, final String ownerId, final ComponentIdentifier componentIdentifier) {
+    UriBuilder builder = UriBuilder.fromUri(getRestUrl(LicenseOverrideResource.SERVICE_PATH, ownerType, ownerId));
+    if (componentIdentifier != null) {
+      builder.queryParam("componentIdentifier", ComponentIdentifierAdapter.toJson(componentIdentifier));
+    }
+    return builder.build().toString();
   }
 }

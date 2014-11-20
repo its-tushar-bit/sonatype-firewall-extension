@@ -72,8 +72,8 @@ public abstract class AbstractComponentInfoResourceAuthzTest
 
     grantReadPermission(app.getId());
 
-    String url = getRestUrl(getResourcePath() + "/licenses/{applicationPublicId}", app.getPublicId()) + "?groupId="
-        + groupId + "&artifactId=" + artifactId + "&version=" + version;
+    String url = getRestUrl(getResourcePath() + "/licenses/{applicationPublicId}", app.getPublicId())
+        + "?componentIdentifier=" + getComponentIdentifierParam(groupId, artifactId, version);
     testAuthzGet(url);
   }
 

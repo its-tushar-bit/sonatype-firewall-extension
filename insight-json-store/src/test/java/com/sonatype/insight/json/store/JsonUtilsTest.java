@@ -49,19 +49,14 @@ public class JsonUtilsTest
     Assert.assertEquals(tree, JsonUtils.aaDataNode(tree).get("aaData"));
   }
 
-  /**
-   * Ensure that the intended json storage for component identifiers matches that created during migration of GAV to
-   * ComponentIdentifier JSON representation
-   */
   @Test
-  public void testMapUnformattedJSONRendering() throws Exception {
+  public void testWriteUnformatted() throws Exception {
     Map<String, String> pojo = new HashMap<String, String>();
     pojo.put("groupId", "tomcat");// throw in a unicode character just for the hell of it
     pojo.put("artifactId", "tomcat-util");
     pojo.put("version", "5.5.23");
 
-    //generated from H2 as in schema_incremental_0060.sql
-    String h2ConcatenatedValue = "{\"groupId\":\"tomcat\uF8FF\",\"artifactId\":\"tomcat-util\",\"version\":\"5.5.23\"}";
-    assertThat(JsonUtils.writeValueAsString(pojo), is(h2ConcatenatedValue));
+    String expectedJson = "{\"groupId\":\"tomcat\uF8FF\",\"artifactId\":\"tomcat-util\",\"version\":\"5.5.23\"}";
+    assertThat(JsonUtils.writeUnformatted(pojo), is(expectedJson));
   }
 }

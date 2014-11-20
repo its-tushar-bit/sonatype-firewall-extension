@@ -67,6 +67,24 @@ public class ComponentIdentifierAdapter
   }
 
   /**
+   * Serializes a ComponentIdentifier to unformatted json string.
+   * 
+   * @since 1.13.0
+   */
+  public static String toJson(ComponentIdentifier componentIdentifier) {
+    return JsonUtils.writeUnformatted(componentIdentifier);
+  }
+
+  /**
+   * Serializes a map of component identifier coordinates to unformatted json string.
+   * 
+   * @since 1.13.0
+   */
+  public static String toJson(Map<String, String> coordinates) {
+    return JsonUtils.writeUnformatted(coordinates);
+  }
+
+  /**
    * Remove existing GAV fields and replace with ComponentIdentifier structure.
    */
   public static void replaceGavWithComponentIdentifier(final ObjectNode component) {

@@ -6,7 +6,7 @@
 package com.sonatype.insight.brain.testing.functional.cip
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier
-import com.sonatype.insight.json.store.JsonUtils
+import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter
 
 import geb.Module
 import geb.Page
@@ -16,8 +16,7 @@ import geb.Page
  * @since 1.12
  */
 abstract class AbstractCIPPage
-    extends Page
-{
+extends Page {
   static at = { browser.title == 'Component Information Panel' }
 
   static content = {
@@ -42,7 +41,7 @@ abstract class AbstractCIPPage
   }
 
   def setCoordinates(ComponentIdentifier componentIdentifier, String applicationPublicId) {
-    browser.js.exec(JsonUtils.writeValueAsString(componentIdentifier), applicationPublicId, '''
+    browser.js.exec(ComponentIdentifierAdapter.toJson(componentIdentifier), applicationPublicId, '''
   var componentIdentifier = JSON.parse(arguments[0]);
   window.Insight.setCoordinates(componentIdentifier.format, componentIdentifier.coordinates, {
         appId: arguments[2]
@@ -56,8 +55,7 @@ abstract class AbstractCIPPage
 }
 
 class CIPModule
-    extends Module
-{
+extends Module {
   static base = { $('#infoPanelArtifactTable') }
 
   static content = {
@@ -80,8 +78,7 @@ class CIPModule
 }
 
 class VersionGraphModule
-    extends Module
-{
+extends Module {
   static base = { $('#aiVersionChart') }
 
   static content = {

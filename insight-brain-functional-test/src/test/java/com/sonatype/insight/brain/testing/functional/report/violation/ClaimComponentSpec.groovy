@@ -7,12 +7,12 @@ package com.sonatype.insight.brain.testing.functional.report.violation
 
 import javax.ws.rs.core.UriBuilder
 
-import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.clm.dto.model.component.ComponentIdentifier
+import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter
 import com.sonatype.insight.brain.model.Application
 import com.sonatype.insight.brain.service.InsightWork
 import com.sonatype.insight.brain.testing.functional.BaseSpec
 import com.sonatype.insight.brain.testing.functional.utils.TestReportEvaluator
-import com.sonatype.insight.json.store.JsonUtils
 
 import spock.lang.Shared
 import spock.lang.Stepwise
@@ -48,13 +48,13 @@ extends BaseSpec {
 
 
   static final Map<String, String> FORM_FIELDS = ['groupId'       : 'testG', 'artifactId': 'testA', 'version': 'testV',
-                                                  'extension'     : 'testE', 'classifier': 'testC',
-                                                  'createTimeText': '01/01/2014',
-                                                  'comment'       : 'Something witty'].asImmutable()
+    'extension'     : 'testE', 'classifier': 'testC',
+    'createTimeText': '01/01/2014',
+    'comment'       : 'Something witty'].asImmutable()
 
   static final ComponentIdentifier CID = ComponentIdentifier.
-      createMavenCoordinates(FORM_FIELDS.groupId, FORM_FIELDS.artifactId, FORM_FIELDS.version, FORM_FIELDS.classifier,
-          FORM_FIELDS.extension)
+  createMavenCoordinates(FORM_FIELDS.groupId, FORM_FIELDS.artifactId, FORM_FIELDS.version, FORM_FIELDS.classifier,
+  FORM_FIELDS.extension)
 
   def setupSpec() {
     work = new InsightWork(serviceRule.configuration)
@@ -118,7 +118,7 @@ extends BaseSpec {
     given: 'A GAV not found in our data'
     ComponentIdentifier updatedVersion = ComponentIdentifier.
         createMavenCoordinates(CID.coordinates.groupId, CID.coordinates.artifactId, CID.coordinates.version + '-NEW',
-            CID.coordinates.classifier, CID.coordinates.extension)
+        CID.coordinates.classifier, CID.coordinates.extension)
     saasRule.setResponseForURI(createUri(updatedVersion), '{"isKnown": false }', 200)
     def component = results[0].cip.claimComponent
 
@@ -162,6 +162,6 @@ extends BaseSpec {
 
   private String createUri(ComponentIdentifier componentIdentifier) {
     return UriBuilder.fromPath('rest/component/summary').
-        queryParam('componentIdentifier', JsonUtils.writeValueAsString(componentIdentifier)).build().toString()
+    queryParam('componentIdentifier', ComponentIdentifierAdapter.toJson(componentIdentifier)).build().toString()
   }
 }

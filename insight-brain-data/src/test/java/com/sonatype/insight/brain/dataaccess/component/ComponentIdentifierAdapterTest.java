@@ -6,19 +6,21 @@
 package com.sonatype.insight.brain.dataaccess.component;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.Map;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.component.InvalidComponentIdentifierException;
-
-import static com.sonatype.clm.dto.model.component.ComponentIdentifier.MAVEN_ARTIFACT_ID;
-import static com.sonatype.clm.dto.model.component.ComponentIdentifier.MAVEN_GROUP_ID;
-import static com.sonatype.clm.dto.model.component.ComponentIdentifier.VERSION;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.Test;
+
+import static com.sonatype.clm.dto.model.component.ComponentIdentifier.MAVEN_ARTIFACT_ID;
+import static com.sonatype.clm.dto.model.component.ComponentIdentifier.MAVEN_GROUP_ID;
+import static com.sonatype.clm.dto.model.component.ComponentIdentifier.VERSION;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
@@ -121,5 +123,33 @@ public class ComponentIdentifierAdapterTest
     JsonNode copy = jsonNode.deepCopy();
     ComponentIdentifierAdapter.replaceGavWithComponentIdentifier((ObjectNode) jsonNode);
     assertThat(copy, is(jsonNode));
+  }
+
+  @Test
+  public void testToJsonComponentIdentifier() {
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e");
+    String json = ComponentIdentifierAdapter.toJson(componentIdentifier);
+    assertThat(
+        json,
+        is("{\"format\":\"maven\",\"coordinates\":{\"artifactId\":\"a\",\"classifier\":\"c\",\"extension\":\"e\",\"groupId\":\"g\",\"version\":\"v\"}}"));
+  }
+
+  @Test
+  public void testToJsonComponentIdentifierNull() {
+    ComponentIdentifier componentIdentifier = null;
+    String json = ComponentIdentifierAdapter.toJson(componentIdentifier);
+    assertThat(json, is("null"));
+  }
+
+  @Test
+  public void testToJsonCoordinates() throws Exception {
+    Map<String, String> coordinates = new HashMap<String, String>();
+    coordinates.put("groupId", "tomcat");// throw in a unicode character just for the hell of it
+    coordinates.put("artifactId", "tomcat-util");
+    coordinates.put("version", "5.5.23");
+
+    // generated from H2 as in schema_incremental_0060.sql
+    String h2ConcatenatedValue = "{\"groupId\":\"tomcat\uF8FF\",\"artifactId\":\"tomcat-util\",\"version\":\"5.5.23\"}";
+    assertThat(ComponentIdentifierAdapter.toJson(coordinates), is(h2ConcatenatedValue));
   }
 }

@@ -13,7 +13,6 @@ import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.model.HashHelper;
 import com.sonatype.insight.brain.model.component.HashComponentIdentifier;
 import com.sonatype.insight.error.exception.BadRequestException;
-import com.sonatype.insight.json.store.JsonUtils;
 
 public class HashComponentIdentifierDAO
     extends AbstractOperationalSqlDAO<HashComponentIdentifier>
@@ -48,7 +47,7 @@ public class HashComponentIdentifierDAO
     String sQuery = "SELECT entity FROM HashComponentIdentifier entity" + //
         " WHERE entity.componentIdFormat=?1 and entity.componentIdCoordinatesJson=?2";
     return get(em, sQuery, componentIdentifier.getFormat(),
-        JsonUtils.writeValueAsString(componentIdentifier.getCoordinates()));
+        ComponentIdentifierAdapter.toJson(componentIdentifier.getCoordinates()));
   }
 
   @Override

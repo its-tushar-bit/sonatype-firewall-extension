@@ -17,7 +17,6 @@ import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
-import com.sonatype.insight.json.store.JsonUtils;
 
 /**
  * @since 1.6
@@ -38,7 +37,7 @@ public class LicenseOverrideDAO
     String sQuery = "SELECT entity from LicenseOverride entity " +
       "WHERE entity.ownerId=?1 and entity.componentIdFormat=?2 and entity.componentIdCoordinatesJson=?3";
     LicenseOverride licenseOverride = get(sQuery, ownerId, componentIdentifier.getFormat(),
-        JsonUtils.writeValueAsString(componentIdentifier.getCoordinates()));
+        ComponentIdentifierAdapter.toJson(componentIdentifier.getCoordinates()));
     if (licenseOverride == null && componentIdentifier.isMaven()) {
       // Legacy license overrides for maven components have only G, A and V coordinates and those overrides must be used
       // even if the passed in component identifier has complete maven coordinates (i.e. includes extension and
@@ -47,7 +46,7 @@ public class LicenseOverrideDAO
           .toGavOnlyCoordinates(componentIdentifier.getCoordinates());
       if (!gavCoordinates.equals(componentIdentifier.getCoordinates())) {
         licenseOverride = get(sQuery, ownerId, componentIdentifier.getFormat(),
-            JsonUtils.writeValueAsString(gavCoordinates));
+            ComponentIdentifierAdapter.toJson(gavCoordinates));
       }
     }
     return licenseOverride;

@@ -12,8 +12,8 @@ import javax.ws.rs.core.UriBuilder;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.AuthedRestAccess;
+import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
-import com.sonatype.insight.json.store.JsonUtils;
 
 import com.ning.http.client.Response;
 import org.junit.Before;
@@ -47,7 +47,7 @@ public class ReleaseGraphResourceTest
       builder.queryParam("version", version);
     }
     if (componentIdentifier != null) {
-      builder.queryParam("componentIdentifier", JsonUtils.writeValueAsString(componentIdentifier));
+      builder.queryParam("componentIdentifier", ComponentIdentifierAdapter.toJson(componentIdentifier));
     }
     return builder.build().toString();
   }

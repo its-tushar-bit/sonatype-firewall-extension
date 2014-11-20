@@ -181,10 +181,7 @@ public final class JsonUtils
     }
   }
 
-  /**
-   * Write to unformatted JSON string.
-   */
-  public static String writeValueAsString(Object pojo) {
+  public static String writeUnformatted(Object pojo) {
     try {
       return new ObjectMapper(JSON).writeValueAsString(pojo);
     }

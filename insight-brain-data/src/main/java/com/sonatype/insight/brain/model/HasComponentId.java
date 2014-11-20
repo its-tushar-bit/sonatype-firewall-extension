@@ -13,6 +13,7 @@ import javax.persistence.MappedSuperclass;
 import javax.persistence.Transient;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.json.store.JsonUtils;
 
 /**
@@ -55,7 +56,7 @@ public abstract class HasComponentId
     }
     else {
       componentIdFormat = componentIdentifier.getFormat();
-      componentIdCoordinatesJson = JsonUtils.writeValueAsString(componentIdentifier.getCoordinates());
+      componentIdCoordinatesJson = ComponentIdentifierAdapter.toJson(componentIdentifier.getCoordinates());
     }
   }
 

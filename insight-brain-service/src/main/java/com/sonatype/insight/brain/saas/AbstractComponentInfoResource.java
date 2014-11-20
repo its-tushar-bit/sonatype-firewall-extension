@@ -32,6 +32,7 @@ import com.sonatype.clm.dto.model.component.NamedComponentDetails;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
@@ -48,7 +49,6 @@ import com.sonatype.insight.brain.utils.LicenseUtils;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.jaxrs.JsonEncodedComponentIdentifier;
-import com.sonatype.insight.json.store.JsonUtils;
 
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -131,7 +131,7 @@ public abstract class AbstractComponentInfoResource
             ComponentDetails componentDetails;
 
             Map<String, String> queryParams = new HashMap<>();
-            queryParams.put("componentIdentifier", JsonUtils.writeValueAsString(identifier));
+            queryParams.put("componentIdentifier", ComponentIdentifierAdapter.toJson(identifier));
             if (hash != null) {
               queryParams.put("hash", hash);
             }

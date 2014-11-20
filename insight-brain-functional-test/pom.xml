@@ -204,7 +204,6 @@
     <dependency>
       <groupId>com.sonatype.insight.brain</groupId>
       <artifactId>insight-brain-data</artifactId>
-      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>com.sonatype.insight.brain</groupId>

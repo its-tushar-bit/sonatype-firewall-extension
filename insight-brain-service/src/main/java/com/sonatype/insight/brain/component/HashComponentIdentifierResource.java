@@ -23,12 +23,12 @@ import javax.ws.rs.core.MediaType;
 import com.sonatype.clm.dto.model.ComponentSummary;
 import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.dataaccess.component.HashComponentIdentifierDAO;
 import com.sonatype.insight.brain.model.component.HashComponentIdentifier;
 import com.sonatype.insight.brain.report.ReportService;
 import com.sonatype.insight.brain.saas.SaasClient;
 import com.sonatype.insight.error.exception.BadRequestException;
-import com.sonatype.insight.json.store.JsonUtils;
 
 /**
  * Associates component hash to a component identifier.
@@ -114,7 +114,7 @@ public class HashComponentIdentifierResource
 
   private ComponentSummary getComponentSummary(ComponentIdentifier componentIdentifier) throws IOException {
     Map<String, String> queryParams = Collections.singletonMap("componentIdentifier",
-        JsonUtils.writeValueAsString(componentIdentifier));
+        ComponentIdentifierAdapter.toJson(componentIdentifier));
     return client.get(ComponentSummary.class, "rest/component/summary", queryParams);
   }
 }

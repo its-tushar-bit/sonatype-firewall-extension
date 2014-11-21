@@ -1360,21 +1360,7 @@ public class ReportResourceTest
     final ArrayNode aaData = (ArrayNode) components.get("aaData");
 
     for (int i = 0; i < aaData.size(); i++) {
-      JsonNode dataNode = aaData.get(i);
-
-      ArrayNode displayNameNode = (ArrayNode) dataNode.get("displayName").get("parts");
-      assertThat(displayNameNode, is(notNullValue()));
-      assertThat(displayNameNode.size(), is(5));
-      Assert.assertThat(displayNameNode.get(0).get("field").textValue(), is("Group"));
-      Assert.assertThat(displayNameNode.get(0).get("value").textValue(), is(dataNode.get("groupId").textValue()));
-      Assert.assertThat(displayNameNode.get(1).get("field"), is(nullValue()));
-      Assert.assertThat(displayNameNode.get(1).get("value").textValue(), is(" : "));
-      Assert.assertThat(displayNameNode.get(2).get("field").textValue(), is("Artifact"));
-      Assert.assertThat(displayNameNode.get(2).get("value").textValue(), is(dataNode.get("artifactId").textValue()));
-      Assert.assertThat(displayNameNode.get(3).get("field"), is(nullValue()));
-      Assert.assertThat(displayNameNode.get(3).get("value").textValue(), is(" : "));
-      Assert.assertThat(displayNameNode.get(4).get("field").textValue(), is("Version"));
-      Assert.assertThat(displayNameNode.get(4).get("value").textValue(), is(dataNode.get("version").textValue()));
+      testJsonApplyDisplayNameChanges(aaData.get(i));
     }
   }
 
@@ -1392,7 +1378,27 @@ public class ReportResourceTest
       final JsonNode matchedComponentNodes = license.get("matchDetails");
       Assert.assertTrue(matchedComponentNodes.size() > 0);
       testLicenseThreatsApplyChanges(matchedComponentNodes);
+
+      for (JsonNode matchDetail : matchedComponentNodes) {
+        testJsonApplyDisplayNameChanges(matchDetail);
+      }
     }
+  }
+
+  private void testJsonApplyDisplayNameChanges(JsonNode jsonNode) {
+    ArrayNode displayNameNode = (ArrayNode) jsonNode.get("displayName").get("parts");
+    assertThat(displayNameNode, is(notNullValue()));
+    assertThat(displayNameNode.size(), is(5));
+    Assert.assertThat(displayNameNode.get(0).get("field").textValue(), is("Group"));
+    Assert.assertThat(displayNameNode.get(0).get("value").textValue(), is(jsonNode.get("groupId").textValue()));
+    Assert.assertThat(displayNameNode.get(1).get("field"), is(nullValue()));
+    Assert.assertThat(displayNameNode.get(1).get("value").textValue(), is(" : "));
+    Assert.assertThat(displayNameNode.get(2).get("field").textValue(), is("Artifact"));
+    Assert.assertThat(displayNameNode.get(2).get("value").textValue(), is(jsonNode.get("artifactId").textValue()));
+    Assert.assertThat(displayNameNode.get(3).get("field"), is(nullValue()));
+    Assert.assertThat(displayNameNode.get(3).get("value").textValue(), is(" : "));
+    Assert.assertThat(displayNameNode.get(4).get("field").textValue(), is("Version"));
+    Assert.assertThat(displayNameNode.get(4).get("value").textValue(), is(jsonNode.get("version").textValue()));
   }
 
   private int testLicenseThreatsApplyChanges(JsonNode licenses) {

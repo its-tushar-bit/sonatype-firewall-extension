@@ -478,6 +478,13 @@ public final class Report
       if (claimedHashes.containsKey(hash)) {
         iterPartialMatchData.remove();
       }
+      else {
+        JsonNode matchDetails = jsonNode.get("matchDetails");
+        for (JsonNode matchDetail : matchDetails) {
+          ObjectNode detailsNode = (ObjectNode) matchDetail;
+          ComponentDisplayNameUtil.injectDisplayName(detailsNode);
+        }
+      }
     }
 
     // now apply any data edits

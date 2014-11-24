@@ -14,7 +14,7 @@
   function createPlugin() {
     LabelTab.prototype = new Insight.InformationPanelPlugin({ priority: 112 });
     LabelTab.prototype.isVisible = function() {
-      return this.gav.matchState !== 'unknown';
+      return (this.component || this.gav).matchState !== 'unknown';
     };
     LabelTab.prototype.create = function() {
       var timestamp = new Date().getTime(),
@@ -22,8 +22,8 @@
           me = this;
       me.node.empty();
       container.appendTo(this.node);
-      angular.module('componentProvider' + timestamp, []).service('ComponentLabelEditorGAV', function() {
-        return angular.extend({ applicationId: applicationId }, angular.copy(me.gav));
+      angular.module('componentProvider' + timestamp, []).service('ComponentLabelEditorComponent', function() {
+        return angular.extend({ applicationId: applicationId }, angular.copy(me.component || me.gav));
       });
       angular.bootstrap(container[0], ['ComponentLabelEditor', 'componentProvider' + timestamp, 'AngularCommon', 'ui.bootstrap']);
     };
@@ -65,11 +65,9 @@
         });
     //the add controller, controlling the add modal
     labelsApp.controller('LabelAddController', [
-      '$scope', 'CurrentLabelData', 'ComponentLabelEditorGAV', 'Messages', '$http',
-      function($scope, currentLabelData, componentLabelEditorGAV, messages, $http) {
-        $scope.groupId = componentLabelEditorGAV.groupId;
-        $scope.artifactId = componentLabelEditorGAV.artifactId;
-        $scope.version = componentLabelEditorGAV.version;
+      '$scope', 'CurrentLabelData', 'ComponentLabelEditorComponent', 'Messages', '$http',
+      function($scope, currentLabelData, ComponentLabelEditorComponent, messages, $http) {
+        $scope.displayName = ComponentLabelEditorComponent.displayName;
         //decline to add, just dump the modal and move on
         $scope.decline = function() {
           $('#labelAssignScopeModal').modal('hide');
@@ -80,7 +78,7 @@
           $scope.labelAddError = null;
           var parts = $scope.label.selectedOwner.split('$$');
           $http.post(CLM.path + 'rest/label/component/' + parts[1] + '/' + parts[0] + '/' +
-                  componentLabelEditorGAV.hash, currentLabelData.get()).success(function(responseData) {
+                  ComponentLabelEditorComponent.hash, currentLabelData.get()).success(function(responseData) {
             $scope.labelSaving = false;
             $('#labelAssignScopeModal').modal('hide');
           }).error(function(data, status, headersFn, config) {
@@ -95,14 +93,14 @@
             $scope.labelAddError = null;
             var label = currentLabelData.get();
             $scope.label = {
-              selectedOwner: componentLabelEditorGAV.applicationId + '$$application'
+              selectedOwner: ComponentLabelEditorComponent.applicationId + '$$application'
             };
             $scope.labelOwners = [];
             $http.get(CLM.path + 'rest/label/' + label.ownerType + '/' + label.ownerId + '/applicable/context/' +
                     label.id).success(function(data) {
               $scope.labelLoading = false;
               function processItem(item) {
-                if (item.type === 'application' && item.id === componentLabelEditorGAV.applicationId) {
+                if (item.type === 'application' && item.id === ComponentLabelEditorComponent.applicationId) {
                   $scope.labelOwners.splice(0, 0, item);
                 }
                 else if (item.type === 'organization') {
@@ -126,8 +124,8 @@
     ]);
     //the remove controller, controlling the remove modal
     labelsApp.controller('LabelRemoveController', [
-      '$scope', '$http', 'CurrentLabelData', 'ComponentLabelEditorGAV', 'Messages',
-      function($scope, $http, currentLabelData, componentLabelEditorGAV, messages) {
+      '$scope', '$http', 'CurrentLabelData', 'ComponentLabelEditorComponent', 'Messages',
+      function($scope, $http, currentLabelData, ComponentLabelEditorComponent, messages) {
         //decline to remove, just dump the dialog
         $scope.decline = function() {
           $('#labelRemoveModal').modal('hide');
@@ -138,7 +136,7 @@
           $scope.labelRemoveError = null;
           var label = currentLabelData.get();
           $http['delete'](CLM.path + 'rest/label/component/' + label.ownerType + '/' + label.ownerId + '/' +
-                  componentLabelEditorGAV.hash + '/' + label.id).success(function(responseData) {
+                  ComponentLabelEditorComponent.hash + '/' + label.id).success(function(responseData) {
             $scope.labelDeleting = false;
             $('#labelRemoveModal').modal('hide');
           }).error(function(data, status, headersFn, config) {
@@ -157,8 +155,8 @@
     ]);
     //main label controller handling the main view, and launching the other modals when necessary
     labelsApp.controller('LabelsController', [
-      '$http', '$scope', 'CurrentLabelData', 'ComponentLabelEditorGAV', 'Messages',
-      function($http, $scope, currentLabelData, componentLabelEditorGAV, messages) {
+      '$http', '$scope', 'CurrentLabelData', 'ComponentLabelEditorComponent', 'Messages',
+      function($http, $scope, currentLabelData, ComponentLabelEditorComponent, messages) {
         function errorFn(data, status, headersFn, config) {
           $scope.alerts.length = 0;
           $scope.alerts.push({
@@ -181,13 +179,13 @@
         }
 
         function reloadLabels() {
-          $http.get(CLM.path + 'rest/label/component/application/' + componentLabelEditorGAV.applicationId + '/' +
-              componentLabelEditorGAV.hash).success(function(data) {
+          $http.get(CLM.path + 'rest/label/component/application/' + ComponentLabelEditorComponent.applicationId + '/' +
+              ComponentLabelEditorComponent.hash).success(function(data) {
             $scope.itemLabels = flattenLabelList(data);
           }).error(errorFn);
         }
         function reloadAppLabels() {
-          $http.get(CLM.path + 'rest/label/application/' + componentLabelEditorGAV.applicationId + '/applicable').success(function(data) {
+          $http.get(CLM.path + 'rest/label/application/' + ComponentLabelEditorComponent.applicationId + '/applicable').success(function(data) {
             $scope.availableLabels = flattenLabelList(data);
           }).error(errorFn);
         }
@@ -202,8 +200,8 @@
         //for labels owned by the app, we simply do the add here, as there is no need to view the dialog to select the owner, app is the only option
         $scope.addLabel = function(label) {
           if (label.ownerType === 'application') {
-            $http.post(CLM.path + 'rest/label/component/application/' + componentLabelEditorGAV.applicationId + '/' +
-                    componentLabelEditorGAV.hash, label).success(function(responseData) {
+            $http.post(CLM.path + 'rest/label/component/application/' + ComponentLabelEditorComponent.applicationId + '/' +
+                    ComponentLabelEditorComponent.hash, label).success(function(responseData) {
               $scope.loadLabelData();
             }).error(errorFn);
           }

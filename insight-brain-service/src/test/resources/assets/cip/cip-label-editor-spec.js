@@ -2,14 +2,14 @@
 describe('ComponentLabelEditor tests', function() {
   var scope, addScope, removeScope, $http;
 
-  angular.module('TestGavProvider', []).service('ComponentLabelEditorGAV', function() {
+  angular.module('TestComponentProvider', []).service('ComponentLabelEditorComponent', function() {
     return {
       hash: '3102cdd0edd5a05afe00',
       applicationId: 'bom1-12345678'
     };
   });
 
-  beforeEach(module('ComponentLabelEditor', 'TestGavProvider'));
+  beforeEach(module('ComponentLabelEditor', 'TestComponentProvider'));
 
   //setup our http backend to return what we want
   beforeEach(inject(function($rootScope, $controller, $httpBackend) {
